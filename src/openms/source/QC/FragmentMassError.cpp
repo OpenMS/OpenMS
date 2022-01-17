@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,7 @@
 
 #include <OpenMS/QC/FragmentMassError.h>
 
-#include <assert.h>
+#include <cassert>
 #include <string>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -48,6 +48,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
@@ -86,11 +87,11 @@ namespace OpenMS
     // sequence
     const AASequence& seq = pep_id.getHits()[0].getSequence();
 
-    // charge: re-calulated from masses since much more robust this way (PepID annotation of pep_id.getHits()[0].getCharge() could be wrong)
+    // charge: re-calculated from masses since much more robust this way (PepID annotation of pep_id.getHits()[0].getCharge() could be wrong)
     Int charge = static_cast<Int>(round(seq.getMonoWeight() / pep_id.getMZ()));
 
     //-----------------------------------------------------------------------
-    // GET EXPERIMENTAL SPECTRUM MATCHING TO PEPTIDEIDENTIFICTION
+    // GET EXPERIMENTAL SPECTRUM MATCHING TO PEPTIDEIDENTIFICATION
     //-----------------------------------------------------------------------
 
     if (!pep_id.metaValueExists("spectrum_reference"))
@@ -106,7 +107,10 @@ namespace OpenMS
     Precursor::ActivationMethod act_method;
     if (exp_spectrum.getPrecursors().empty())
     {
-      if (print_warning) OPENMS_LOG_WARN << "No MS2 activation method provided. Using CID as fallback to compute fragment mass errors." << std::endl;
+      if (print_warning)
+      {
+        OPENMS_LOG_WARN << "No MS2 activation method provided. Using CID as fallback to compute fragment mass errors." << std::endl;
+      }
       print_warning = false; // only print it once
       act_method = Precursor::ActivationMethod::CID;
     }
@@ -114,7 +118,10 @@ namespace OpenMS
     {
       if (exp_spectrum.getPrecursors()[0].getActivationMethods().empty())
       {
-        if (print_warning) OPENMS_LOG_WARN << "No MS2 activation method provided. Using CID as fallback to compute fragment mass errors." << std::endl;
+        if (print_warning)
+        {
+          OPENMS_LOG_WARN << "No MS2 activation method provided. Using CID as fallback to compute fragment mass errors." << std::endl;
+        }
         print_warning = false;// only print it once
         act_method = Precursor::ActivationMethod::CID;
       }

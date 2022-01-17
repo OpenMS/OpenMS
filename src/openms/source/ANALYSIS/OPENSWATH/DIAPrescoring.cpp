@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,13 +33,19 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
+
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionHelper.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
+#include <boost/bind.hpp>
+#include <boost/lexical_cast.hpp>
+
 #include <iostream>
+#include <algorithm>
+#include <iterator>
 
 namespace OpenMS
 {
@@ -61,7 +67,7 @@ namespace OpenMS
     std::transform(normalizedLibraryIntensities.begin(),
                    normalizedLibraryIntensities.end(),
                    normalizedLibraryIntensities.begin(),
-                   boost::bind(std::divides<double>(), _1, totalInt));
+                   [totalInt](auto && PH1) { return std::divides<double>()(std::forward<decltype(PH1)>(PH1), totalInt); });
   }
 
   void getMZIntensityFromTransition(const std::vector<OpenSwath::LightTransition>& trans,
@@ -75,7 +81,7 @@ namespace OpenMS
 
   void DiaPrescore::operator()(OpenSwath::SpectrumAccessPtr swath_ptr,
                                OpenSwath::LightTargetedExperiment& transition_exp_used,
-                               OpenSwath::IDataFrameWriter* ivw)
+                               OpenSwath::IDataFrameWriter* ivw) const
   {
     //getParams();
     typedef std::map<std::string, std::vector<OpenSwath::LightTransition> > Mmap;
@@ -119,13 +125,13 @@ namespace OpenMS
 
         score1v.push_back(score1);
         score2v.push_back(score2);
-      } //end of forloop over transitions
+      } //end of for loop over transitions
 
       //std::string ispectrum = boost::lexical_cast<std::string>(i);
       std::string specRT = boost::lexical_cast<std::string>(specmeta.RT);
       ivw->store("score1_" + specRT, score1v);
       ivw->store("score2_" + specRT, score2v);
-    } //end of forloop over spectra
+    } //end of for loop over spectra
   }
 
   void DiaPrescore::score(OpenSwath::SpectrumPtr spec,
@@ -195,13 +201,13 @@ namespace OpenMS
     // different transitions affect each other (e.g. if one transition is missing, the other(s) get a much higher
     // normalized value and the whole distance is "penalized twice")
     // Maybe we could use two features, one for the average manhattan distance and one for matching of the total intensities to the
-    // library intensities. Also maybe normalisising by the max-value or the monoisotope (instead of the total sum) helps?
+    // library intensities. Also maybe normalising by the max-value or the monoisotope (instead of the total sum) helps?
     manhattan = OpenSwath::manhattanDist(intExp.begin(), intExp.end(), intTheor.begin());
 
     // compare against the spectrum with negative weight preIsotope peaks
     std::vector<double> intTheorNeg;
     // WARNING: This was spectrumWIso and therefore with 0 preIso weights in earlier versions! Was this a bug?
-    // Otherwise we dont need the second spectrum at all.
+    // Otherwise we don't need the second spectrum at all.
     DIAHelpers::extractSecond(spectrumWIsoNegPreIso, intTheorNeg);
     // Sqrt does not work if we actually have negative values
     //std::transform(intTheorNeg.begin(), intTheorNeg.end(), intTheorNeg.begin(), OpenSwath::mySqrt());

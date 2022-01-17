@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -109,7 +109,7 @@ protected:
     {
       if (map[i].metaValueExists(name))
       {
-        if (value == "")
+        if (value.empty())
         {
           ++count;
         }
@@ -146,7 +146,7 @@ protected:
     FeatureXMLFile().load(getStringOption_("truth"), features_truth);
     features_truth.sortByPosition();
     FeatureMap abort_reasons;
-    if (getStringOption_("abort_reasons") != "")
+    if (!getStringOption_("abort_reasons").empty())
     {
       FeatureXMLFile().load(getStringOption_("abort_reasons"), abort_reasons);
     }
@@ -158,7 +158,7 @@ protected:
     vector<double> rt_spans;
     for (Size t = 0; t < features_in.size(); ++t)
     {
-      if (features_in[t].getConvexHulls().size() != 0)
+      if (!features_in[t].getConvexHulls().empty())
       {
         rt_spans.push_back(features_in[t].getConvexHull().getBoundingBox().width());
       }
@@ -283,7 +283,7 @@ protected:
             }
           }
         }
-        if (reason == "")
+        if (reason.empty())
         {
           reason = "No seed found";
         }
@@ -321,7 +321,7 @@ protected:
     cout << "multiple matches: " << multi_match << percentage(multi_match, features_truth.size()) << endl;
     Size incorrect_match = multi_match + one_match - charge_match;
     cout << "incorrect matches: " << incorrect_match << percentage(incorrect_match, features_truth.size()) << endl;
-    if (abort_reasons.size())
+    if (!abort_reasons.empty())
     {
       cout << "reasons for unmatched features:" << endl;
       for (Map<String, UInt>::iterator it = abort_strings.begin(); it != abort_strings.end(); ++it)
@@ -378,13 +378,13 @@ protected:
     }
 
     //write output
-    if (getStringOption_("out") != "")
+    if (!getStringOption_("out").empty())
     {
       FeatureXMLFile().store(getStringOption_("out"), features_truth);
     }
 
     //ROC curve
-    if (getStringOption_("out_roc") != "")
+    if (!getStringOption_("out_roc").empty())
     {
       TextFile tf;
       tf.addLine("false\tcorrect\tFDR\tTPR");

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////home/lars/Code/git/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
 <consensusXML version="1.7" id="cm_5233264595117471314" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<mapList count="2">
 		<map id="0" name="FeatureFinderMultiplex_1_input.mzML" label="Dimethyl0" size="2">
@@ -10,18 +10,18 @@
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="e_4835329514588776807" quality="1" charge="2">
-			<centroid rt="1481.91170682959" mz="472.282340766101" it="1.30209e+08"/>
+		<consensusElement id="e_4835329514588776807" quality="1.0" charge="2">
+			<centroid rt="1481.911706829586365" mz="472.28234076610056" it="1.302289e08"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="1481.91170682959" mz="472.282340766101" it="1.30209e+08" charge="2"/>
-				<element map="1" id="0" rt="1481.3672326728" mz="476.304773819883" it="4.02087e+08" charge="2"/>
+				<element map="0" id="0" rt="1481.911706829586365" mz="472.28234076610056" it="1.302289e08" charge="2"/>
+				<element map="1" id="0" rt="1481.367232672803539" mz="476.304773819883224" it="4.021473e08" charge="2"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="e_17749660155506638460" quality="1" charge="2">
-			<centroid rt="1484.48374199201" mz="470.303156673582" it="6.35075e+07"/>
+		<consensusElement id="e_17749660155506638460" quality="1.0" charge="2">
+			<centroid rt="1484.483741992011119" mz="470.303156673581952" it="6.352923e07"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="1484.48374199201" mz="470.303156673582" it="6.35075e+07" charge="2"/>
-				<element map="1" id="0" rt="1484.18179263412" mz="474.32536238458" it="2.49226e+08" charge="2"/>
+				<element map="0" id="0" rt="1484.483741992011119" mz="470.303156673581952" it="6.352923e07" charge="2"/>
+				<element map="1" id="0" rt="1484.18179263412344" mz="474.325362384580103" it="2.493118e08" charge="2"/>
 			</groupedElementList>
 		</consensusElement>
 	</consensusElementList>

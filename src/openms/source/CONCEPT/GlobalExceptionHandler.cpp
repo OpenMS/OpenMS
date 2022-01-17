@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,11 +53,8 @@
 
 #define OPENMS_CORE_DUMP_ENVNAME "OPENMS_DUMP_CORE"
 
-namespace OpenMS
+namespace OpenMS::Exception
 {
-
-  namespace Exception
-  {
 
     GlobalExceptionHandler::GlobalExceptionHandler() throw()
     {
@@ -143,6 +140,5 @@ namespace OpenMS
       GlobalExceptionHandler::line_() = line;
     }
 
-  } // namespace Exception
 
-} // namespace OpenMS
+} // namespace OpenMS // namespace Exception

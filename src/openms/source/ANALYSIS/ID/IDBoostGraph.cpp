@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
+
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
@@ -143,13 +144,13 @@ namespace OpenMS
                              Size use_top_psms,
                              bool use_run_info,
                              bool best_psms_annotated,
-                             const boost::optional<const ExperimentalDesign>& ed):
+                             const std::optional<const ExperimentalDesign>& ed):
       protIDs_(proteins)
   {
     OPENMS_LOG_INFO << "Building graph on " << idedSpectra.size() << " spectra and " << proteins.getHits().size() << " proteins." << std::endl;
     if (use_run_info)
     {
-      buildGraphWithRunInfo_(proteins, idedSpectra, use_top_psms, ed.get_value_or(ExperimentalDesign::fromIdentifications({proteins})));
+      buildGraphWithRunInfo_(proteins, idedSpectra, use_top_psms, ed.value_or(ExperimentalDesign::fromIdentifications({proteins})));
     }
     else
     {
@@ -163,14 +164,14 @@ namespace OpenMS
                              bool use_run_info,
                              bool use_unassigned_ids,
                              bool best_psms_annotated,
-                             const boost::optional<const ExperimentalDesign>& ed):
+                             const std::optional<const ExperimentalDesign>& ed):
       protIDs_(proteins)
   {
     OPENMS_LOG_INFO << "Building graph on " << cmap.size() << " features, " << cmap.getUnassignedPeptideIdentifications().size() <<
     " unassigned spectra (if chosen) and " << proteins.getHits().size() << " proteins." << std::endl;
     if (use_run_info)
     {
-      buildGraphWithRunInfo_(proteins, cmap, use_top_psms, use_unassigned_ids, ed.get_value_or(ExperimentalDesign::fromConsensusMap(cmap)));
+      buildGraphWithRunInfo_(proteins, cmap, use_top_psms, use_unassigned_ids, ed.value_or(ExperimentalDesign::fromConsensusMap(cmap)));
     }
     else
     {
@@ -276,10 +277,10 @@ namespace OpenMS
     }
 
     //TODO add psm regularizer nodes here optionally if using multiple psms
-    auto pepIt = spectrum.getHits().begin();
+    
     //TODO sort or assume sorted
     auto pepItEnd = use_top_psms == 0 || spectrum.getHits().empty() ? spectrum.getHits().end() : spectrum.getHits().begin() + use_top_psms;
-    for (; pepIt != pepItEnd; ++pepIt)
+    for (auto pepIt = spectrum.getHits().begin(); pepIt != pepItEnd; ++pepIt)
     {
       IDPointer pepPtr(&(*pepIt));
       vertex_t pepV = addVertexWithLookup_(pepPtr, vertex_map);
@@ -771,7 +772,7 @@ namespace OpenMS
     if (ccs_.empty())
     {
       pl.startProgress(0, 1, "Annotating indistinguishable proteins...");
-      annotateIndistProteins_(g, addSingletons);
+      calculateAndAnnotateIndistProteins_(g, addSingletons);
       pl.nextProgress();
       pl.endProgress();
     }
@@ -1017,9 +1018,13 @@ namespace OpenMS
     }
   }
 
+  // TODO allow for higher_score_worse
   void IDBoostGraph::resolveGraphPeptideCentric_(Graph& fg, bool removeAssociationsInData = true/*, bool resolveTies*/)
   {
-    GetPosteriorVisitor gpv;
+    GetScoreTgTVisitor gpv;
+    //TODO allow any score type!
+    auto score_tgt_compare = [&fg,&gpv](vertex_t& n, vertex_t& m) -> bool
+        {return boost::apply_visitor(gpv, fg[n]) < boost::apply_visitor(gpv, fg[m]);};
     Graph::vertex_iterator ui, ui_end;
     boost::tie(ui,ui_end) = boost::vertices(fg);
 
@@ -1033,21 +1038,53 @@ namespace OpenMS
     {
       if (fg[*ui].which() == 2)
         // It should suffice to resolve at the pep cluster level
-        // if a pep does not belong to a cluster it didnt have multiple parents and
+        // if a pep does not belong to a cluster it didn't have multiple parents and
         // therefore does not need to be resolved
       {
         accs_to_remove.clear();
         q.push(*ui);
-        getUpstreamNodesNonRecursive(q, fg, 1, true, groups_or_singles);
+        getUpstreamNodesNonRecursive(q, fg, 1, true, groups_or_singles); //get either single prots or groups
 
-        auto score_compare = [&fg,&gpv](vertex_t& n, vertex_t& m) -> bool
-            {return boost::apply_visitor(gpv, fg[n]) < boost::apply_visitor(gpv, fg[m]);};
-        auto best_prot = std::max_element(groups_or_singles.begin(), groups_or_singles.end(), score_compare); //returns an iterator
-        //TODO how to/if resolve ties AND allow preferring targets? We need to merge the PR with TD info for groups first.
+        //TODO maybe apply visitor once to all and get normal vector of values
+        auto best_prot_it = std::max_element(groups_or_singles.begin(), groups_or_singles.end(), score_tgt_compare); //returns an iterator
+        const auto best_prot_val = boost::apply_visitor(gpv, fg[*best_prot_it]);
+        std::vector<size_t> best_indexes;
+        for (; best_prot_it != groups_or_singles.end();
+               best_prot_it = std::find_if(best_prot_it+1, groups_or_singles.end(),
+                                 [&best_prot_val,&gpv,&fg](const vertex_t& node) {return best_prot_val == boost::apply_visitor(gpv, fg[node]);}))
+        {
+          auto index = std::distance(groups_or_singles.begin(), best_prot_it);
+          best_indexes.push_back(index);
+        }
+
+        vertex_t best_prot = groups_or_singles[best_indexes[0]]; //cannot be empty
+        // if multiple equally good protein/groups exist, take the one with most identified (unmodified) peptide sequences
+        if (best_indexes.size() > 1)
+        {
+          std::vector<vertex_t> prots_to_resolve(best_indexes.size());
+          //select
+          std::transform(best_indexes.begin(), best_indexes.end(), prots_to_resolve.begin(), [&groups_or_singles](size_t pos) {return groups_or_singles[pos];});
+          //resolve ties based on nr peptides
+          Size most_peps = 0; //start with 0. every protein should have at least one peptide
+          std::vector<vertex_t> peps;
+          for (const auto& prot_node : prots_to_resolve)
+          {
+            q.push(prot_node);
+            // lvl6 would be PSMs while lvl3 would be Peptides. Let's do peptides.
+            getDownstreamNodesNonRecursive(q, fg, 3, true, peps);
+            if (peps.size() > most_peps)
+            {
+              most_peps = peps.size();
+              best_prot = prot_node;
+            }
+            peps.clear();
+          }
+        }
+        //TODO what if there are still ties left? Currently it just takes the first occurrence (due to ">")
 
         for (const auto& prot : groups_or_singles)
         {
-          if (prot != *best_prot)
+          if (prot != best_prot)
           {
             if (fg[prot].which() == 1) // if the node is a group, find their members first.
             {
@@ -1058,7 +1095,8 @@ namespace OpenMS
               {
                 ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[single_prot]);
                 accs_to_remove.insert(proteinPtr->getAccession());
-                proteinPtr->setScore(0.);
+                //TODO we probably cannot set it to 0 here since we dont know if it has a unique pep yet
+                //proteinPtr->setScore(0.);
               }
               singles.clear();
             }
@@ -1066,7 +1104,8 @@ namespace OpenMS
             {
               ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[prot]);
               accs_to_remove.insert(proteinPtr->getAccession());
-              proteinPtr->setScore(0.);
+              //TODO we probably cannot set it to 0 here since we dont know if it has a unique pep yet
+              //proteinPtr->setScore(0.);
             }
             boost::remove_edge(prot, *ui, fg);
           }
@@ -1087,11 +1126,18 @@ namespace OpenMS
                 newev.emplace_back(e);
               }
             }
+            if (newev.empty())
+            {
+              OPENMS_LOG_ERROR << "No evidences left for peptide " <<
+              peptidePtr->getSequence().toString() << " This should not happen. Please report an issue on GitHub."
+              << std::endl;
+            }
             peptidePtr->setPeptideEvidences(std::move(newev));
             newev.clear();
           }
           singles.clear();
         }
+        groups_or_singles.clear();
       }
     }
   }
@@ -1139,7 +1185,7 @@ namespace OpenMS
       #endif
 
       // Skip cc without peptide or protein
-      //TODO better to do quick bruteforce calculation if the cc is really small
+      //TODO better to do quick brute-force calculation if the cc is really small
       if (boost::num_edges(curr_cc) >= 1)
       {
         Graph::vertex_iterator ui, ui_end;
@@ -1325,7 +1371,7 @@ namespace OpenMS
       #endif
 
       // Skip cc without peptide or protein
-      //TODO better to do quick bruteforce calculation if the cc is really small
+      //TODO better to do quick brute-force calculation if the cc is really small
       if (boost::num_edges(curr_cc) >= 1)
       {
         Graph::vertex_iterator ui, ui_end;
@@ -1395,7 +1441,8 @@ namespace OpenMS
           ProteinGroup& pgnode = boost::get<ProteinGroup&>(curr_cc[grpVID]);
           pgnode.size = pepsToGrps.second.size();
           pgnode.tgts = nr_targets;
-          pgnode.score = -1.0;
+          // take score of any protein. They should be the same.
+          pgnode.score = boost::get<ProteinHit*>(curr_cc[*pepsToGrps.second.begin()])->getScore();
         }
 
         // reset iterator to loop through vertices again for peptide clusters
@@ -1589,7 +1636,7 @@ namespace OpenMS
           {
             if (fg[*ui].which() == 2)
               // It should suffice to resolve at the pep cluster level
-              // if a pep does not belong to a cluster it didnt have multiple parents and
+              // if a pep does not belong to a cluster it didn't have multiple parents and
               // therefore does not need to be resolved
             {
               vector<vertex_t> prots;
@@ -1676,7 +1723,9 @@ namespace OpenMS
   {
     /// Hashers for the strong typedefs
     //TODO switch everything to pointers so we compare memory addresses
-    // then we dont need those. They are just here to fulfill the "interface".
+
+    // then we don't need those. They are just here to fulfill the "interface".
+
     std::size_t hash_value(const IDBoostGraph::Peptide& x)
     {
       boost::hash<std::string> hasher;

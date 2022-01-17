@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,7 @@ namespace OpenMS
     double precursor_int; ///< precursor intensity
     double transition_quality_score; ///< transitions quality score (not yet used)
     double precursor_mz; ///< precursor mass-to-charge
-    double compound_rt; ///< compound rentention time
+    double compound_rt; ///< compound retention time
     String molecular_formula; ///<< (putative) molecular formula
     int compound_file; ///< integer of file it belongs to in a list of files
     String compound_name; ///< compound name
@@ -106,7 +106,7 @@ namespace OpenMS
     @param feature_ms2_spectra_map FeatureMapping class with associated MS2 spectra
     @param precursor_rt_tol Retention time tolerance of the precursor
     @param precursor_mz_distance Max m/z distance of the precursor entries of two spectra to be merged
-    @param cosine_sim_threshold Cosine similarty threshold for the usage of SpectraMerger
+    @param cosine_sim_threshold Cosine similarity threshold for the usage of SpectraMerger
     @param transition_threshold Intensity threshold for MS2 peak used in MetaboTargetedAssay
     @param min_fragment_mz Minimum m/z a fragment ion has to have to be considered as a transition
     @param max_fragment_mz Maximum m/z a fragment ion has to have to be considered as a transition
@@ -160,13 +160,13 @@ namespace OpenMS
     /**
     @brief Perform feature linking to build ambiguity groups based on the target and decoy position in the vector of MetaboTargetedAssays
 
-    @return Map of pair (mz, rt) and vector of ambiguities for this mz,rt combination (MetaboTargetAssay)
+    @return Map of pair (mz, rt) and vector of ambiguities for this mz,rt combination (MetaboTargetedAssay)
 
     @param v_mta Vector of MetaboTargetedAssay
     @param ar_mz_tol FeatureGroupingAlgorithmQT parameter distance_MZ:max_difference
     @param ar_rt_tol FeatureGroupingAlgorithmQT parameter distance_RT:max_difference
     @param ar_mz_tol_unit_res FeatureGroupingAlgorithmQT parameter distance_MZ_unit (ppm, Da)
-    @param in_files_size Number of files which were processed in the vector of MetaboTargetAssay (e.g. initally 5 different files in the vector<MetaboTargetedAsssy>)
+    @param in_files_size Number of files which were processed in the vector of MetaboTargetedAssay (e.g. initially 5 different files in the vector<MetaboTargetedAssay>)
     */
     static std::unordered_map< UInt64, std::vector<MetaboTargetedAssay> > buildAmbiguityGroup(const std::vector<MetaboTargetedAssay>& v_mta,
                                                                                               const double& ar_mz_tol,
@@ -176,10 +176,10 @@ namespace OpenMS
     /**
     @brief Resolve ambiguity groups based on occurrence in samples (e.g. at least in 20% of the samples) and if multiple possible identifications are reported within one ambiguity group use the one with the highest occurrence
 
-    @return Map of pair (mz, rt) and vector of ambiguities for this mz,rt combination (MetaboTargetAssay)
+    @return Map of pair (mz, rt) and vector of ambiguities for this mz,rt combination (MetaboTargetedAssay)
 
     @param total_occurrence_filter Value which has to be reached for the ambiguity group to be reported (e.g. in 20 % of the samples)
-    @param in_files_size Number of files which were processed in the vector of MetaboTargetAssay (e.g. initally 5 different files in the vector<MetaboTargetedAsssy>)
+    @param in_files_size Number of files which were processed in the vector of MetaboTargetedAssay (e.g. initially 5 different files in the vector<MetaboTargetedAssay>)
     */
     static void resolveAmbiguityGroup(std::unordered_map< UInt64, std::vector<MetaboTargetedAssay> >& map_mta_filter,
                                       const double& total_occurrence_filter,
@@ -206,7 +206,7 @@ namespace OpenMS
     @return Vector of MetaboTargetedAssay
 
     @param total_occurrence_filter Value which has to be reached for the ambiguity group to be reported (e.g. in 20 % of the samples)
-    @param in_files_size Number of files which were processed in the vector of MetaboTargetAssay (e.g. initally 5 different files in the vector<MetaboTargetedAsssy>)
+    @param in_files_size Number of files which were processed in the vector of MetaboTargetedAssay (e.g. initially 5 different files in the vector<MetaboTargetedAssay>)
     */
     static void filterBasedOnTotalOccurrence_(std::vector<MetaboTargetedAssay>& mta, double total_occurrence_filter, size_t in_files_size);
 

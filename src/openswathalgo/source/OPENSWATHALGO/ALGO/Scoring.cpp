@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,21 +45,19 @@
 #include <Entropy.c>
 #include <MutualInformation.c>
 
-namespace OpenSwath
+namespace OpenSwath::Scoring
 {
-  namespace Scoring
-  {
-
     void normalize_sum(double x[], unsigned int n)
-    {
+    { 
       double sumx = std::accumulate(&x[0], &x[0] + n, 0.0);
       if (sumx == 0.0)
-      {
+      { // avoid divide by zero below
         return;
-      } // do not divide by zero
-      for (unsigned int i = 0; i < n; i++)
+      }                           
+      auto inverse_sum = 1 / sumx; // precompute inverse since division is expensive!
+      for (unsigned int i = 0; i < n; ++i)
       {
-        x[i] = x[i] / sumx;
+        x[i] *= inverse_sum;
       }
     }
 
@@ -147,9 +145,14 @@ namespace OpenSwath
       }
       double stdev = sqrt(sqsum / data.size()); // standard deviation
 
-      if (mean == 0 && stdev == 0) return; // all data is zero
-      if (stdev == 0) stdev = 1; // all data is equal
-
+      if (mean == 0 && stdev == 0)
+      {
+        return; // all data is zero
+      }
+      if (stdev == 0)
+      {
+        stdev = 1; // all data is equal
+      }
       for (std::size_t i = 0; i < data.size(); i++)
       {
         data[i] = (data[i] - mean) / stdev;
@@ -157,7 +160,7 @@ namespace OpenSwath
     }
 
     XCorrArrayType normalizedCrossCorrelation(std::vector<double>& data1,
-                                              std::vector<double>& data2, const int& maxdelay, const int& lag = 1)
+                                              std::vector<double>& data2, int maxdelay, int lag = 1)
     {
       OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
@@ -173,7 +176,7 @@ namespace OpenSwath
     }
 
     XCorrArrayType calculateCrossCorrelation(const std::vector<double>& data1,
-                                             const std::vector<double>& data2, const int& maxdelay, const int& lag)
+                                             const std::vector<double>& data2, int maxdelay, int lag)
     {
       OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
@@ -229,7 +232,7 @@ namespace OpenSwath
         // sigma_1 * sigma_2 * n
         denominator = sqrt(sqsum1 * sqsum2);
       }
-
+      denominator = 1/denominator; // inverse denominator for faster calculation 
       XCorrArrayType result;
       result.data.reserve( (size_t)std::ceil((2*maxdelay + 1) / lag));
       int cnt = 0;
@@ -255,12 +258,12 @@ namespace OpenSwath
 
         if (denominator > 0)
         {
-          result.data.push_back(std::make_pair(delay, sxy/denominator));
+          result.data.emplace_back(delay, sxy*denominator);
         }
         else
         {
           // e.g. if all datapoints are zero
-          result.data.push_back(std::make_pair(delay, 0));
+          result.data.emplace_back(delay, 0);
         }
       }
       return result;
@@ -279,8 +282,10 @@ namespace OpenSwath
       std::pair<double, unsigned int> rank;
       std::vector<unsigned int> result(v_temp.size());
 
-      for (unsigned int i = 0; i < v_sort.size(); ++i) {
-        if (v_sort[i].first != rank.first) {
+      for (unsigned int i = 0; i < v_sort.size(); ++i)
+      {
+        if (v_sort[i].first != rank.first)
+        {
           rank = std::make_pair(v_sort[i].first, i);
         }
         result[v_sort[i].second] = rank.second;
@@ -303,6 +308,4 @@ namespace OpenSwath
 
       return result;
     }
-
-  } //end namespace Scoring
-}
+}      //namespace OpenMS  // namespace Scoring

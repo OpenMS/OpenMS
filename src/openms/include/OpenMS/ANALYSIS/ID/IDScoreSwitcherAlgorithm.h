@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 #include <vector>
@@ -248,11 +249,11 @@ namespace OpenMS
     std::map<ScoreType, std::set<String>> type_to_str_ =
         {
             {ScoreType::RAW, {"XTandem", "OMSSA", "SEQUEST:xcorr", "Mascot", "mvh"}},
-            //TODO find out reasonable raw scores for SES that provide evalues as main score or see below
-            //TODO there is no test for spectraST idXML, so I dont know its score
+            //TODO find out reasonable raw scores for SES that provide E-Values as main score or see below
+            //TODO there is no test for spectraST idXML, so I don't know its score
             //TODO check if we should combine RAW and RAW_EVAL:
             // What if a SE does not have an e-value score (spectrast, OMSSA, crux/sequest, myrimatch),
-            // then you need additional ifs/trys
+            // then you need additional if's/try's
             {ScoreType::RAW_EVAL, {"expect", "SpecEValue", "E-Value", "evalue", "MS:1002053", "MS:1002257"}},
             {ScoreType::PP, {"Posterior Probability"}},
             {ScoreType::PEP, {"Posterior Error Probability", "pep", "MS:1001493"}}, // TODO add CV terms

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,9 +51,9 @@ Int main()
   //calculate the ranges
   map.updateRanges();
 
-  cout << "Int: " << map.getMinInt() << " - " << map.getMaxInt() << endl;
-  cout << "RT:  " << map.getMin()[0] << " - " << map.getMax()[0] << endl;
-  cout << "m/z: " << map.getMin()[1] << " - " << map.getMax()[1] << endl;
+  cout << "Int: " << map.getMinIntensity() << " - " << map.getMaxIntensity() << endl;
+  cout << "RT:  " << map.getMinRT() << " - " << map.getMaxRT() << endl;
+  cout << "m/z: " << map.getMinMZ() << " - " << map.getMaxMZ() << endl;
 
   return 0;
 } //end of main

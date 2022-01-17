@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,9 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -136,14 +139,21 @@ protected:
   ExitCodes main_(int, const char**) override
   {
     ExitCodes ret = TOPPMapAlignerBase::checkParameters_();
-    if (ret != EXECUTION_OK) return ret;
-
+    if (ret != EXECUTION_OK)
+    {
+      return ret;
+    }
     MapAlignmentAlgorithmPoseClustering algorithm;
     Param algo_params = getParam_().copy("algorithm:", true);
     algorithm.setParameters(algo_params);
     algorithm.setLogType(log_type_);
 
     StringList in_files = getStringList_("in");
+    if (in_files.size() == 1)
+    {
+      OPENMS_LOG_WARN << "Only one file provided as input to MapAlignerPoseClustering." << std::endl;
+    }
+    
     StringList out_files = getStringList_("out");
     StringList out_trafos = getStringList_("trafo_out");
 
@@ -232,9 +242,26 @@ protected:
         FeatureXMLFile f_fxml_tmp; // do not use OMP-firstprivate, since FeatureXMLFile has no copy c'tor
         f_fxml_tmp.getOptions() = f_fxml.getOptions();
         f_fxml_tmp.load(in_files[i], map);
-        if (i == static_cast<int>(reference_index)) trafo.fitModel("identity");
-        else algorithm.align(map, trafo);
-        if (out_files.size())
+        if (i == static_cast<int>(reference_index)) 
+        {
+          trafo.fitModel("identity");
+        }
+        else 
+        {
+          try
+          {
+            algorithm.align(map, trafo);
+          }
+          catch (Exception::IllegalArgument& e)
+          {
+            OPENMS_LOG_ERROR << "Aligning " << in_files[i] << " to reference " << in_files[reference_index]
+                             << " failed. No transformation will be applied (RT not changed for this file)." << endl;
+            writeLog_("Illegal argument (" + String(e.getName()) + "): " + String(e.what()) + ".");
+            trafo.fitModel("identity");
+          }
+        }
+
+        if (!out_files.empty())
         {
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
@@ -246,9 +273,15 @@ protected:
       {
         PeakMap map;
         MzMLFile().load(in_files[i], map);
-        if (i == static_cast<int>(reference_index)) trafo.fitModel("identity");
-        else algorithm.align(map, trafo);
-        if (out_files.size())
+        if (i == static_cast<int>(reference_index))
+        {
+          trafo.fitModel("identity");
+        }
+        else
+        {
+          algorithm.align(map, trafo);
+        }
+        if (!out_files.empty())
         {
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
@@ -268,7 +301,6 @@ protected:
       {
         plog.setProgress(++progress); // thread safe progress counter
       }
-
     }
 
     plog.endProgress();

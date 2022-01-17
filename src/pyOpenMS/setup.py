@@ -12,11 +12,8 @@ if isosx:
     osx_ver = platform.mac_ver()[0] #e.g. ('10.15.1', ('', '', ''), 'x86_64')
 
 import sys
-single_threaded = False
 no_optimization = False
-if "--single-threaded" in sys.argv:
-    single_threaded = True
-    sys.argv.remove("--single-threaded")
+
 if "--no-optimization" in sys.argv:
     no_optimization = True
     sys.argv.remove("--no-optimization")
@@ -24,11 +21,13 @@ if "--no-optimization" in sys.argv:
 # import config
 from env import  (OPEN_MS_COMPILER, OPEN_MS_SRC, OPEN_MS_GIT_BRANCH, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
                   QT_INSTALL_LIBS, QT_INSTALL_BINS, MSVS_RTLIBS,
-                  OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, LIBRARIES_EXTEND,
+                  OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, INCLUDE_DIRS_EXTEND, LIBRARIES_EXTEND,
                   LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS,
-                  PY_NUM_MODULES, PY_NUM_THREADS, SYSROOT_OSX_PATH, LIBRARIES_TO_BE_PARSED_EXTEND, OPENMS_GIT_LC_DATE_FORMAT)
+                  PY_NUM_MODULES, PY_NUM_THREADS, SYSROOT_OSX_PATH, LIBRARIES_TO_BE_PARSED_EXTEND,
+                  OPENMS_GIT_LC_DATE_FORMAT, OPENMP_FOUND, OPENMP_CXX_FLAGS)
 
 IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
+OMP = (OPENMP_FOUND.upper() == "ON" or OPENMP_FOUND.upper() == "TRUE" or OPENMP_FOUND == "1")
 
 if iswin and IS_DEBUG:
     raise Exception("building pyopenms on windows in debug mode not tested yet.")
@@ -64,25 +63,7 @@ for include in extra_includes:
 persisted_data_path = "include_dir.bin"
 autowrap_include_dirs = pickle.load(open(persisted_data_path, "rb"))
 
-# patch for parallel compilation
-# https://stackoverflow.com/questions/11013851/speeding-up-build-process-with-distutils
-# -- this is not what we want, we dont want to compile each object with
-#    multiple threads, we want to compile multiple extensions at the same time:
 from setuptools import setup, Extension
-import multiprocessing.pool
-def parallel_build_extensions(self):
-    # taken from distutils/command/build_ext.py
-    # see also Cython/Distutils/old_build_ext.py
-    #  - note that we are missing the self.cython_sources line, so this will not work under all circumstances
-    # First, sanity-check the 'extensions' list
-    self.check_extensions_list(self.extensions)
-    mypool = multiprocessing.pool.ThreadPool(int(PY_NUM_THREADS))
-    list(mypool.imap(self.build_extension, self.extensions))
-if not single_threaded:
-    import distutils.command.build_ext
-    distutils.command.build_ext.build_ext.build_extensions = parallel_build_extensions
-    import Cython.Distutils.build_ext
-    distutils.command.build_ext.build_ext.build_extensions = parallel_build_extensions
 
 with open("pyopenms/version.py", "w") as fp:
     print("version=%r" % package_version, file=fp)
@@ -103,13 +84,13 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 #
 if iswin:
     if IS_DEBUG:
-        libraries = ["OpenMSd", "OpenSwathAlgod", "SuperHirnd", "Qt5Cored", "Qt5Networkd"]
+        libraries = ["OpenMSd", "OpenSwathAlgod", "Qt5Cored", "Qt5Networkd"]
     else:
-        libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "Qt5Core", "Qt5Network"]
+        libraries = ["OpenMS", "OpenSwathAlgo", "Qt5Core", "Qt5Network"]
 elif sys.platform.startswith("linux"):
-    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "Qt5Core", "Qt5Network"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "Qt5Core", "Qt5Network"]
 elif sys.platform == "darwin":
-    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn"]
+    libraries = ["OpenMS", "OpenSwathAlgo"]
 else:
     print("\n")
     print("platform", sys.platform, "not supported yet")
@@ -146,8 +127,13 @@ include_dirs = [
 
 # append all include and library dirs exported by CMake
 include_dirs.extend(PYOPENMS_INCLUDE_DIRS.split(";"))
-library_dirs.extend(LIBRARY_DIRS_EXTEND)
-libraries.extend(LIBRARIES_EXTEND)
+
+if INCLUDE_DIRS_EXTEND: # only add if not empty
+    include_dirs.extend(INCLUDE_DIRS_EXTEND.split(";"))
+if LIBRARY_DIRS_EXTEND: # only add if not empty
+    library_dirs.extend(LIBRARY_DIRS_EXTEND.split(";"))
+if LIBRARIES_EXTEND: # only add if not empty
+    libraries.extend(LIBRARIES_EXTEND.split(";"))
 
 
 # libraries of any type to be parsed and added
@@ -183,31 +169,44 @@ if iswin:
     # such that  boost::throw_excption() is declared but not implemented.
     # The linker does not like that very much ...
     extra_compile_args = ["/EHs", "/bigobj"]
+    extra_compile_args.append("/std:c++17")
+    extra_link_args.append("/std:c++17")
+
 elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
+    if OMP:
+        libraries.append("gomp")
+        libraries.append("pthread")
 elif sys.platform == "darwin":
     library_dirs.insert(0,j(OPEN_MS_BUILD_DIR,"pyOpenMS","pyopenms"))
+    if OMP:
+        libraries.append("omp")
     # we need to manually link to the Qt Frameworks
     extra_compile_args = ["-Qunused-arguments"]
     extra_link_args = ["-Wl,-rpath","-Wl,@loader_path/"]
 if IS_DEBUG:
     extra_compile_args.append("-g2")
+if OMP and OPENMP_CXX_FLAGS:
+    extra_compile_args.extend(OPENMP_CXX_FLAGS.split(";"))
 
-# Note: we use -std=gnu++11 in Linux by default, also reduce some warnings
 if not iswin:
     extra_link_args.append("-std=c++17")
-    if isosx: # MacOS c++11
-        extra_link_args.append("-stdlib=libc++") # MacOS libstdc++ does not include c++11 lib support.
-        extra_link_args.append("-mmacosx-version-min=10.7") # due to libc++
     extra_compile_args.append("-std=c++17")
-    if isosx: # MacOS c++11
+    if isosx: # MacOS
         extra_compile_args.append("-stdlib=libc++")
-        extra_compile_args.append("-mmacosx-version-min=10.7")
+        extra_link_args.append("-stdlib=libc++") # MacOS libstdc++ does not include c++11+ lib support.
+        extra_link_args.append("-mmacosx-version-min=10.9") # due to libc++
+        extra_compile_args.append("-Wno-deprecated")
+        extra_compile_args.append("-Wno-nullability-completeness")
         if (osx_ver >= "10.14.0" and SYSROOT_OSX_PATH): # since macOS Mojave
+            extra_link_args.append("-isysroot" + SYSROOT_OSX_PATH)
             extra_compile_args.append("-isysroot" + SYSROOT_OSX_PATH)
+    else:
+        extra_compile_args.append("-Wno-deprecated-copy")
     extra_compile_args.append("-Wno-redeclared-class-member")
     extra_compile_args.append("-Wno-unused-local-typedefs")
     extra_compile_args.append("-Wno-deprecated-register") # caused by seqan on gcc
+    extra_compile_args.append("-Wno-misleading-indentation") # caused by seqan on gcc
     extra_compile_args.append("-Wno-register") #caused by seqan on clang c17
     extra_compile_args.append("-Wdeprecated-declarations")
     extra_compile_args.append("-Wno-sign-compare")
@@ -217,7 +216,7 @@ if not iswin:
     extra_compile_args.append("-Wno-deprecated-declarations")
     extra_compile_args.append("-Wno-missing-declarations")
     extra_compile_args.append("-Wno-int-in-bool-context")
-    extra_compile_args.append("-Wno-deprecated-copy")
+    
     if no_optimization:
         extra_compile_args.append("-O0")
         extra_link_args.append("-O0")
@@ -255,6 +254,7 @@ setup(
     ext_package="pyopenms",
 	install_requires=[
           'numpy',
+          'pandas'
     ],
 
     version=package_version,

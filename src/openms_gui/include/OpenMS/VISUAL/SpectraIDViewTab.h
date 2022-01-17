@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
-#include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 #include <OpenMS/VISUAL/TableView.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -44,6 +44,10 @@
 #include <QComboBox>
 #include <QTableWidget>
 #include <QCheckBox>
+#include <QWidget>
+
+#include <unordered_map>
+#include <vector>
 
 namespace OpenMS
 {
@@ -65,12 +69,12 @@ namespace OpenMS
     ~SpectraIDViewTab() override = default;
 
     // docu in base class
-    bool hasData(const LayerData* layer) override;
+    bool hasData(const LayerDataBase* layer) override;
 
     /// set layer data and create table anew; if given a nullptr, behaves as clear()
-    void updateEntries(LayerData* model) override;
+    void updateEntries(LayerDataBase* model) override;
     /// get layer data
-    LayerData* getLayer();
+    LayerDataBase* getLayer();
 
     /// clears all visible data from table widget and voids the layer
     void clear() override;
@@ -81,6 +85,10 @@ namespace OpenMS
   protected slots:
     /// Rebuild table entries
     void updateEntries_();
+    /// Rebuild protein table entries
+    void updateProteinEntries_(int spec_cell_row_idx);
+    /// Switch horizontal or vertical layout of the PSM and Proteintable 
+    void switchOrientation_();
   signals:
     /// request to show a specific spectrum, and (if available) a specific pepId + pepHit in there (otherwise -1, -1)
     void spectrumSelected(int spectrum_index, int pep_id_index, int pep_hit_index);
@@ -90,16 +98,30 @@ namespace OpenMS
     void requestVisibleArea1D(double lower_mz, double upper_mz);
 
   private:
-   /// partially fill the bottom-most row  
-   void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor background_color);
+    /// partially fill the bottom-most row  
+    void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor& background_color);
+    /// extract the required part of the accession 
+    static QString extractNumFromAccession_(const QString& listItem);
+    /// open browser to navigate to uniport site with accession
+    void openUniProtSiteWithAccession_(const QString& accession);
 
-    LayerData* layer_ = nullptr;
+    class SelfResizingTableView_ : TableView
+    {
+      void resizeEvent(QResizeEvent * event) override;
+    };
+
+    LayerDataBase* layer_ = nullptr;
     QCheckBox* hide_no_identification_ = nullptr;
     QCheckBox* create_rows_for_commmon_metavalue_ = nullptr;
     TableView* table_widget_ = nullptr;
+    TableView* protein_table_widget_ = nullptr;
     QTableWidget* fragment_window_ = nullptr;
-    bool is_ms1_shown_ = false;
-  
+    QSplitter* tables_splitter_ = nullptr;
+    bool is_first_time_loading_ = true;
+    std::unordered_map<String, std::vector<const PeptideIdentification*>> protein_to_peptide_id_map;
+
+
+
   private slots:
     /// Saves the (potentially filtered) IDs as an idXML or mzIdentML file
     void saveIDs_();
@@ -107,5 +129,16 @@ namespace OpenMS
     void updatedSingleCell_(QTableWidgetItem* item);
     /// Cell clicked in table_widget; emits which spectrum (row) was clicked, and may show additional data
     void currentCellChanged_(int row, int column, int old_row, int old_column);
+
+    /// Create 'protein accession to peptide identification' map using C++ STL unordered_map
+    void createProteinToPeptideIDMap_();
+
+    /// Cell selected or deselected: this is only used to check for deselection, rest happens in currentCellChanged_
+    void currentSpectraSelectionChanged_();
+
+    /// update ProteinHits, when data in the table changes (status of checkboxes)
+    void updatedSingleProteinCell_(QTableWidgetItem* item);
+    /// Protein Cell clicked in protein_table_widget; emits which protein (row) was clicked, and may show additional data
+    void proteinCellClicked_(int row, int column);
   };
 }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -473,7 +473,7 @@ namespace OpenMS
     // any tool without a category gets into "unassigned" bin
     for (ToolListType::Iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
-      if (it->second.category.trim() == "")
+      if (it->second.category.trim().empty())
         it->second.category = "Unassigned";
     }
 
@@ -547,7 +547,7 @@ namespace OpenMS
 
   void TOPPASBase::addTOPPASFile(const String& file_name, bool in_new_window)
   {
-    if (file_name == "") return;
+    if (file_name.empty()) return;
 
     if (!file_name.toQString().endsWith(".toppas", Qt::CaseInsensitive))
     {
@@ -631,7 +631,7 @@ namespace OpenMS
     {
       // scene has requested to be saved
       TOPPASScene* ts = dynamic_cast<TOPPASScene*>(sendr);
-      if (ts && ts->views().size() > 0)
+      if (ts && !ts->views().empty())
       {
         w = dynamic_cast<TOPPASWidget*>(ts->views().first());
       }
@@ -1007,7 +1007,7 @@ namespace OpenMS
     //compose default ini file path
     String default_ini_file = String(QDir::homePath()) + "/.TOPPAS.ini";
 
-    if (filename == "")
+    if (filename.empty())
     {
       filename = default_ini_file;
     }
@@ -1311,7 +1311,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1329,7 +1329,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1347,7 +1347,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1365,7 +1365,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }

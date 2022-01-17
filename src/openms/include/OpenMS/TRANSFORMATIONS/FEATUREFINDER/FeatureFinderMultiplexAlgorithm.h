@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,38 +62,38 @@ public:
 
   /// main method for feature detection
   void run(MSExperiment& exp, bool progress);
-  
+
   /// get methods
   FeatureMap& getFeatureMap();
   ConsensusMap& getConsensusMap();
   MSExperiment& getBlacklist();
-  
+
 protected:
-  
+
   // experimental data
   MSExperiment exp_profile_;
   MSExperiment exp_centroid_;
-  
+
   bool centroided_;
-  
+
   ProgressLogger prog_log_;
-  
+
   bool progress_;
-  
+
   unsigned charge_min_;
   unsigned charge_max_;
-  
+
   unsigned isotopes_per_peptide_min_;
   unsigned isotopes_per_peptide_max_;
 
-  
+
   // mass shift names and their values
   std::map<String, double> label_mass_shift_;
-  
+
   // final results, maps of detected features
   FeatureMap feature_map_;
   ConsensusMap consensus_map_;
-  
+
   // blacklist
   MSExperiment exp_blacklist_;
 
@@ -108,18 +108,18 @@ protected:
    * @return list of m/z shifts
    */
   std::vector<MultiplexIsotopicPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, const std::vector<MultiplexDeltaMasses>& mass_pattern_list);
-  
+
   /**
    * @brief determine ratios through linear regression and correct peptide intensities
    *
    * In most labelled mass spectrometry experiments, the fold change i.e. ratio and not the individual peptide intensities
    * are of primary interest. For that reason, we determine the ratios from interpolated chromatogram data points directly,
    * and then correct the current ones.
-   * 
+   *
    * @param intensity_peptide    peptide intensities to be corrected
    */
-  void correctPeptideIntensities_(const MultiplexIsotopicPeakPattern& pattern, std::map<size_t, SplinePackage>& spline_chromatograms, const std::vector<double>& rt_peptide, std::vector<double>& intensity_peptide);
-  
+  void correctPeptideIntensities_(const MultiplexIsotopicPeakPattern& pattern, std::map<size_t, SplinePackage>& spline_chromatograms, const std::vector<double>& rt_peptide, std::vector<double>& intensity_peptide) const;
+
   /**
    * @brief calculate peptide intensities
    *
@@ -129,7 +129,7 @@ protected:
    * @return vector with intensities for each of the peptides
    */
   std::vector<double> determinePeptideIntensitiesCentroided_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteCentroided >& satellites);
-  
+
   /**
    * @brief calculate peptide intensities
    *
@@ -139,7 +139,7 @@ protected:
    * @return vector with intensities for each of the peptides
    */
   std::vector<double> determinePeptideIntensitiesProfile_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile >& satellites);
-  
+
   /**
    * @brief generates consensus and feature maps containing all peptide multiplets
    *
@@ -148,7 +148,7 @@ protected:
    * @param cluster_results    clusters of filter results
    */
   void generateMapsCentroided_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results);
-  
+
   /**
    * @brief generates consensus and feature maps containing all peptide multiplets
    *
@@ -157,7 +157,7 @@ protected:
    * @param cluster_results    clusters of filter results
    */
   void generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results);
-  
+
 };
 
 }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -244,9 +244,6 @@ protected:
       mzml.getOptions().addMSLevel(1);
       mzml.load(in, ffid_algo.getMSData());
 
-      // annotate mzML file
-      features.setPrimaryMSRunPath({in}, ffid_algo.getMSData());
-
       vector<PeptideIdentification> peptides, peptides_ext;
       vector<ProteinIdentification> proteins, proteins_ext;
 
@@ -262,8 +259,7 @@ protected:
       //-------------------------------------------------------------
       // run feature detection
       //-------------------------------------------------------------
-
-      ffid_algo.run(peptides, proteins, peptides_ext, proteins_ext, features);
+      ffid_algo.run(peptides, proteins, peptides_ext, proteins_ext, features, FeatureMap(), in);
 
       // write auxiliary output:
       bool keep_chromatograms = !chrom_out.empty();

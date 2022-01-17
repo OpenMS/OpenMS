@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,10 +43,9 @@
 using namespace xercesc;
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
     SemanticValidator::SemanticValidator(const CVMappings& mapping, const ControlledVocabulary& cv) :
       XMLHandler("", 0),
       XMLFile(),
@@ -422,7 +421,7 @@ namespace OpenMS
         ControlledVocabulary::CVTerm::XRefType type = cv_.getTerm(parsed_term.accession).xref_type;
 
         // get value, if it exists
-        if (parsed_term.has_value && (parsed_term.value != "" || type == ControlledVocabulary::CVTerm::XSD_STRING))
+        if (parsed_term.has_value && (!parsed_term.value.empty() || type == ControlledVocabulary::CVTerm::XSD_STRING))
         {
           String value = parsed_term.value;
           if (type == ControlledVocabulary::CVTerm::NONE)
@@ -586,5 +585,5 @@ namespace OpenMS
       }
       return false;
     }
-  } // namespace Internal
-} // namespace OpenMS
+    
+} // namespace OpenMS // namespace Internal

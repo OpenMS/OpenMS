@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -161,7 +161,7 @@ namespace OpenMS
           ++rank;
           // total weight = precursor RNA weight + peptide weight
           // this ensures that sequences with additional reported partial loss match the total weight
-          // Note that the partial loss is only relevent on the MS2 and would otherwise be added to the totalweight
+          // Note that the partial loss is only relevant on the MS2 and would otherwise be added to the total weight
           String sequence_string = ph.getSequence().toString();
           sequence_string.substitute("(RNA:U_prime-H2O)", "");
           sequence_string.substitute("(RNA:U_prime)", "");

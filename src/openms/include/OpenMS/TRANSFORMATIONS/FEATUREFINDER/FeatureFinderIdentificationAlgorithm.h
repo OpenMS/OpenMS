@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,8 +64,12 @@ public:
   /// External IDs (@p peptides_ext, @p proteins_ext) may be empty, 
   /// in which case no machine learning or FDR estimation will be performed.
   /// Optional seeds from e.g. untargeted FeatureFinders can be added with
-  /// @p seeds .
-  /// Results will be written to @p features .
+  /// @p seeds.
+  /// Results will be written to @p features. 
+  /// Note: The primaryMSRunPath of features will be updated to the primaryMSRunPath 
+  /// stored in the MSExperiment.
+  /// If that path is not a valid and readable mzML @p spectra_file 
+  /// will be annotated as a fall-back.
   /// Caution: peptide IDs will be shrunk to best hit, FFid metavalues added
   /// and potential seed IDs added.
   void run(
@@ -74,22 +78,27 @@ public:
     std::vector<PeptideIdentification> peptides_ext,
     std::vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
-    const FeatureMap& seeds = FeatureMap()
+    const FeatureMap& seeds = FeatureMap(),
+    const String spectra_file = ""
     );
 
   void runOnCandidates(FeatureMap& features);
 
-  PeakMap& getMSData() { return ms_data_; }
-  const PeakMap& getMSData() const { return ms_data_; }
+  PeakMap& getMSData();
+  const PeakMap& getMSData() const;
 
-  PeakMap& getChromatograms() { return chrom_data_; }
-  const PeakMap& getChromatograms() const { return chrom_data_; }
+  /// @brief set the MS data used for feature detection
+  void setMSData(const PeakMap& ms_data); // for pyOpenMS
+  void setMSData(PeakMap&& ms_data); // moves peak data and saves the copy. Note that getMSData() will give back a processed/modified version.
 
-  ProgressLogger& getProgressLogger() { return prog_log_; }
-  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  PeakMap& getChromatograms();
+  const PeakMap& getChromatograms() const;
 
-  TargetedExperiment& getLibrary() { return library_; }
-  const TargetedExperiment& getLibrary() const { return library_; }
+  ProgressLogger& getProgressLogger();
+  const ProgressLogger& getProgressLogger() const;
+
+  TargetedExperiment& getLibrary();
+  const TargetedExperiment& getLibrary() const;
 
 protected:
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
@@ -242,7 +251,7 @@ protected:
   /// annotate identified features with m/z, isotope probabilities, etc.
   void annotateFeatures_(FeatureMap& features, PeptideRefRTMap& ref_rt_map);
 
-  void ensureConvexHulls_(Feature& feature);
+  void ensureConvexHulls_(Feature& feature) const;
 
   void postProcess_(FeatureMap& features, bool with_external_ids);
 
@@ -266,7 +275,7 @@ protected:
   void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
                           std::map<Size, Int>& training_labels);
 
-  void getRandomSample_(std::map<Size, Int>& training_labels);
+  void getRandomSample_(std::map<Size, Int>& training_labels) const;
 
   void classifyFeatures_(FeatureMap& features);
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,7 @@
 #include <QtWidgets>
 
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
-#include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 
 class QLineEdit;
 class QComboBox;
@@ -62,14 +62,14 @@ namespace OpenMS
     /// Constructor
     DIATreeTab(QWidget* parent = nullptr);
     /// Destructor
-    ~DIATreeTab() = default;
+    ~DIATreeTab() override = default;
 
     // docu in base class
-    bool hasData(const LayerData* layer) override;
+    bool hasData(const LayerDataBase* layer) override;
 
     /// refresh the table using data from @p cl
     /// @param cl Layer with OSW data; cannot be const, since we might read missing protein data from source on demand
-    void updateEntries(LayerData* cl) override;
+    void updateEntries(LayerDataBase* cl) override;
 
     /// remove all visible data
     void clear() override;

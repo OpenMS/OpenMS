@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,11 +36,13 @@
 
 #include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+
+#include <optional>
 
 namespace OpenMS
 {
   class FeatureHandle;
-  class PeptideIdentification;
 
   /**
     @brief A basic LC-MS feature.
@@ -53,12 +55,11 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI BaseFeature :
-    public RichPeak2D
+  class OPENMS_DLLAPI BaseFeature : public RichPeak2D
   {
 public:
-    ///@name Type definitions
-    //@{
+    /// @name Type definitions
+    ///@{
     /// Type of quality values
     typedef float QualityType;
     /// Type of charge values
@@ -66,7 +67,7 @@ public:
     /// Type of feature width/FWHM (RT)
     typedef float WidthType;
 
-    /// state of identification, use getIDState() to query it
+    /// state of identification, use getAnnotationState() to query it
     enum AnnotationState
     {
       FEATURE_ID_NONE,
@@ -77,12 +78,10 @@ public:
     };
 
     static const std::string NamesOfAnnotationState[SIZE_OF_ANNOTATIONSTATE];
+    ///@}
 
-    //@}
-
-    /** @name Constructors and Destructor
-    */
-    //@{
+    /// @name Constructors and Destructor
+    ///@{
     /// Default constructor
     BaseFeature();
 
@@ -90,7 +89,20 @@ public:
     BaseFeature(const BaseFeature& feature) = default;
 
     /// Move constructor
-    BaseFeature(BaseFeature&& feature) = default;
+    /// Note: can't be "noexcept = default" because of missing noexcept on some standard containers
+    /// so we need to explicitly define it noexcept and provide an implementation.
+    BaseFeature(BaseFeature&& feature) noexcept
+      : RichPeak2D(std::move(feature))
+    {
+      quality_ = feature.quality_;
+      charge_ = feature.charge_;
+      width_ = feature.width_;
+      // Note: will terminate program if move assignment throws because of noexcept
+      // but we can't recover in that case anyways and we need to mark it noexcept for the move.
+      peptides_ = std::move(feature.peptides_);
+      primary_id_ = std::move(feature.primary_id_);
+      id_matches_ = std::move(feature.id_matches_);
+    }
 
     /// Copy constructor with a new map_index
     BaseFeature(const BaseFeature& rhs, UInt64 map_index);
@@ -106,10 +118,10 @@ public:
 
     /// Destructor
     ~BaseFeature() override;
-    //@}
+    ///@}
 
     /// @name Quality methods
-    //@{
+    ///@{
     /// Non-mutable access to the overall quality
     QualityType getQuality() const;
     /// Set the overall quality
@@ -138,7 +150,7 @@ public:
       }
 
     };
-    //@}
+    ///@}
 
     /// Non-mutable access to the features width (full width at half max, FWHM)
     WidthType getWidth() const;
@@ -163,6 +175,8 @@ public:
     /// Inequality operator
     bool operator!=(const BaseFeature& rhs) const;
 
+    /// @name Functions for dealing with identifications in legacy format
+    ///@{
     /// returns a const reference to the PeptideIdentification vector
     const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
 
@@ -174,9 +188,45 @@ public:
 
     /// sorts PeptideIdentifications, assuming they have the same scoreType.
     void sortPeptideIdentifications();
+    ///@}
 
     /// state of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only
     AnnotationState getAnnotationState() const;
+
+    /// @name Functions for dealing with identifications in new format
+    ///@{
+    /// has a primary ID (peptide, RNA, compound) been assigned?
+    bool hasPrimaryID() const;
+
+    /**
+       @brief Return the primary ID (peptide, RNA, compound) assigned to this feature.
+
+       @throw Exception::MissingInformation if no ID was assigned
+    */
+    const IdentificationData::IdentifiedMolecule& getPrimaryID() const;
+
+    /// clear any primary ID that was assigned
+    void clearPrimaryID();
+
+    /// set the primary ID (peptide, RNA, compound) for this feature
+    void setPrimaryID(const IdentificationData::IdentifiedMolecule& id);
+
+    /// immutable access to the set of matches (e.g. PSMs) with IDs for this feature
+    const std::set<IdentificationData::ObservationMatchRef>& getIDMatches() const;
+
+    /// mutable access to the set of matches (e.g. PSMs) with IDs for this feature
+    std::set<IdentificationData::ObservationMatchRef>& getIDMatches();
+
+    /// add an ID match (e.g. PSM) for this feature
+    void addIDMatch(IdentificationData::ObservationMatchRef ref);
+
+    /*!
+      @brief Update ID references (primary ID, matches) for this feature
+
+      This is needed e.g. after the IdentificationData instance containing the referenced data has been copied.
+    */
+    void updateIDReferences(const IdentificationData::RefTranslator& trans);
+    ///@}
 
 protected:
 
@@ -191,7 +241,12 @@ protected:
 
     /// PeptideIdentifications belonging to the feature
     std::vector<PeptideIdentification> peptides_;
+
+    /// primary ID (peptide, RNA, compound) assigned to this feature
+    std::optional<IdentificationData::IdentifiedMolecule> primary_id_;
+
+    /// set of observation matches (e.g. PSMs) with IDs for this feature
+    std::set<IdentificationData::ObservationMatchRef> id_matches_;
   };
 
 } // namespace OpenMS
-

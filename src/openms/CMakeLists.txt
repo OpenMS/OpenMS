@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -97,7 +97,8 @@ set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
                           ${GLPK_LIBRARIES}
                           ${CMAKE_DL_LIBS}
                           ${Qt5Core_LIBRARIES}
-                          ${Qt5Network_LIBRARIES})
+                          ${Qt5Network_LIBRARIES}
+                          ${Qt5Sql_LIBRARIES})
 
 # xerces requires linking against CoreFoundation&CoreServices on macOS
 # TODO check if this is still the case
@@ -161,10 +162,11 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${OpenSwathAlgo_INCLUDE_DIRECTORIES} #Includes boost which could be non-contrib
                                      ${Qt5Core_INCLUDE_DIRS}
                                      ${Qt5Network_INCLUDE_DIRS}
+                                     ${Qt5Sql_INCLUDE_DIRS}
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
-                   
+
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation
 # here

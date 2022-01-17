@@ -9,9 +9,10 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>"
   cdef cppclass SpectrumAccessOpenMS(ISpectrumAccess):
         # wrap-inherits:
         #  ISpectrumAccess
+        # wrap-doc:
+        #   An implementation of the OpenSWATH Spectrum Access interface using OpenMS
 
         SpectrumAccessOpenMS() # wrap-pass-constructor
 
-        SpectrumAccessOpenMS(SpectrumAccessOpenMS)
+        SpectrumAccessOpenMS(SpectrumAccessOpenMS &) nogil except + 
         SpectrumAccessOpenMS(shared_ptr[ MSExperiment ] & ms_experiment) nogil except +
-

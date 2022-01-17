@@ -146,7 +146,7 @@ struct Value<TValue * const>
 
 // TODO(holtgrew): Is this still a problem with dropped 2003 support of VC++?
 
-//The next two metafunctions dont work in VC++ due to a compiler bug.
+//The next two metafunctions don't work in VC++ due to a compiler bug.
 //(the default implementation in common_type.h is called instead)
 //work-around: convert arrays to pointers.
 template <typename TValue, size_t SIZE>
@@ -958,7 +958,7 @@ arrayMove(TSource1 source_begin,
 are moved to the area beginning at positions $move_to$. 
 All objects in $arr[0]$ to $arr[keep_from-1]$ are destroyed.
 After this function, the first $move_to$ positions of the array
-are free and dont contain objects. 
+are free and don't contain objects. 
 ..remarks.text:The array must have at least enough space to store $arr_length + move_to - keep_from$ objects.
 ..remarks.text:The objects from $arr[0]$ to $arr[array_length-1]$ have to be initialized/constructed, arrays beyond $arr[array_length-1]$ are assumed not to be constructed. If this assumption is violated, memory might leak.
 ..see:Function.arrayCopy

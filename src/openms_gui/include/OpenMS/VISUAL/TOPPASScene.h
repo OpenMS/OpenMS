@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -201,7 +201,7 @@ public:
     /// Sets the changed flag
     void setChanged(bool b);
     /// Returns if a pipeline is currently running
-    bool isPipelineRunning();
+    bool isPipelineRunning() const;
     /// Shows a dialog that allows to specify the output directory. If @p always_ask == false, the dialog won't be shown if a directory has been set, already.
     bool askForOutputDir(bool always_ask = true);
     /// Enqueues the process, it will be run when the currently pending processes have finished
@@ -227,7 +227,7 @@ public:
     ///Create @p resources from the current workflow
     void createResources(TOPPASResources & resources);
     ///Returns whether the workflow has been changed since the latest "save"
-    bool wasChanged();
+    bool wasChanged() const;
     /// Refreshes the parameters of the TOPP tools in this workflow
     RefreshStatus refreshParameters();
     

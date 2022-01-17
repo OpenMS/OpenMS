@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -136,7 +136,7 @@ protected:
     exp.sortSpectra();
 
     FeatureMap feature_map;
-    if (feature_in != "")
+    if (!feature_in.empty())
     {
       FeatureXMLFile().load(feature_in, feature_map);
     }
@@ -153,11 +153,11 @@ protected:
 
     PeakMap exp2 = exp;
     exp2.clear(false);
-    for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
+    for (const MSSpectrum& ms : exp)
     {
-      if (it->size() != 0)
+      if (!ms.empty())
       {
-        exp2.addSpectrum(*it);
+        exp2.addSpectrum(ms);
       }
     }
 
@@ -186,7 +186,7 @@ protected:
         writeLog_("Did not find a MS1 scan to the MS/MS scan at RT=" + String(it->getRT()));
         continue;
       }
-      if (ms1_it->size() == 0)
+      if (ms1_it->empty())
       {
         writeDebug_("No peaks in scan at RT=" + String(ms1_it->getRT()) + String(", skipping"), 1);
         continue;

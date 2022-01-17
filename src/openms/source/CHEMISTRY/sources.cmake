@@ -4,6 +4,7 @@ set(directory source/CHEMISTRY)
 ### list all filenames of the directory here
 set(sources_list
 AASequence.cpp
+AdductInfo.cpp
 CrossLinksDB.cpp
 DecoyGenerator.cpp
 Element.cpp
@@ -19,6 +20,7 @@ ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
 ModificationsDB.cpp
 ModifiedNASequenceGenerator.cpp
+ModifiedPeptideGenerator.cpp
 NASequence.cpp
 NucleicAcidSpectrumGenerator.cpp
 ProteaseDB.cpp

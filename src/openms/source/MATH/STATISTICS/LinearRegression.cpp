@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,10 +42,8 @@
 
 using boost::math::detail::inverse_students_t;
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-  namespace Math
-  {
     double LinearRegression::getIntercept() const
     {
       return intercept_;
@@ -199,7 +197,7 @@ namespace OpenMS
       if (rsd_ < 0.0)
       {
         std::cout << "rsd < 0.0 " << std::endl;
-        std::cout <<   "Intercept                                " << intercept_
+        std::cout << "Intercept                                  " << intercept_
                   << "\nSlope                                    " << slope_
                   << "\nSquared pearson coefficient              " << r_squared_
                   << "\nValue of the t-distribution              " << t_star_
@@ -217,6 +215,5 @@ namespace OpenMS
       }
     }
 
-  }
-}
+} // OpenMS //Math
 

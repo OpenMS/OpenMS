@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,11 +76,11 @@ namespace OpenMS
       @todo Duplicated code from MzMLHandler, need to clean up see MzMLHandler::fillData_() 
 
     */
-    OpenMS::Interfaces::SpectrumPtr decodeBinaryDataSpectrum_(std::vector<BinaryData> & data);
+    OpenMS::Interfaces::SpectrumPtr decodeBinaryDataSpectrum_(std::vector<BinaryData> & data) const;
 
-    void decodeBinaryDataMSSpectrum_(std::vector<BinaryData>& data, OpenMS::MSSpectrum& s);
+    void decodeBinaryDataMSSpectrum_(std::vector<BinaryData>& data, OpenMS::MSSpectrum& s) const;
 
-    void decodeBinaryDataMSChrom_(std::vector<BinaryData>& data, OpenMS::MSChromatogram& c);
+    void decodeBinaryDataMSChrom_(std::vector<BinaryData>& data, OpenMS::MSChromatogram& c) const;
 
     /**
       @brief decode binary data
@@ -88,7 +88,7 @@ namespace OpenMS
       @todo Duplicated code from MzMLHandler, need to clean up see MzMLHandler::fillData_() 
 
     */
-    OpenMS::Interfaces::ChromatogramPtr decodeBinaryDataChrom_(std::vector<BinaryData> & data);
+    OpenMS::Interfaces::ChromatogramPtr decodeBinaryDataChrom_(std::vector<BinaryData> & data) const;
 
     /**
       @brief Convert a single DOMNode of type binaryDataArray to BinaryData object.

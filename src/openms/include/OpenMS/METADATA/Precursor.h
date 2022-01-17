@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <set>
 
@@ -79,7 +80,6 @@ public:
     /// Move assignment operator
     Precursor& operator=(Precursor&&) & = default;
 
-
     /// Method of activation
     enum ActivationMethod
     {
@@ -96,23 +96,15 @@ public:
       PHD,                      ///< Photodissociation
       ETD,                      ///< Electron transfer dissociation
       PQD,                      ///< Pulsed q dissociation
+      TRAP,                     ///< trap-type collision-induced dissociation (MS:1002472)
+      HCD,                     ///< beam-type collision-induced dissociation (MS:1000422) "HCD"
+      INSOURCE,                 ///< in-source collision-induced dissociation (MS:1001880)
+      LIFT,                     ///< Bruker proprietary method (MS:1002000)
       SIZE_OF_ACTIVATIONMETHOD
     };
     /// Names of activation methods
     static const std::string NamesOfActivationMethod[SIZE_OF_ACTIVATIONMETHOD];
     static const std::string NamesOfActivationMethodShort[SIZE_OF_ACTIVATIONMETHOD];
-
-    /// Drift time unit
-    enum DriftTimeUnit
-    {
-      NONE,                        ///< No unit
-      MILLISECOND,                 ///< milliseconds
-      VSSC,                        ///< volt-second per square centimeter (i.e. 1/K_0)
-      FAIMS_COMPENSATION_VOLTAGE,  ///< compensation voltage
-      SIZE_OF_DRIFTTIMEUNIT
-    };
-    /// Names of IM Units. Should be usable as axis annotation.
-    static const std::string NamesOfDriftTimeUnit[SIZE_OF_DRIFTTIMEUNIT];
 
     /// Equality operator
     bool operator==(const Precursor & rhs) const;
@@ -124,7 +116,7 @@ public:
     /// returns a mutable reference to the activation methods
     std::set<ActivationMethod>& getActivationMethods();
     /// convenience function, returning string representation of getActivationMethods()
-    StringList getActivationMethodsAsString() const;
+    StringList getActivationMethodsAsString() const;    
     /// sets the activation methods
     void setActivationMethods(const std::set<ActivationMethod> & activation_methods);
 

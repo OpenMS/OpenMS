@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,10 +32,12 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-
 #pragma once
+
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/METADATA/DataArrays.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
@@ -220,7 +222,17 @@ namespace OpenMS
 
     std::swap(p_new, p);
   }
+
+  /**
+   * @brief Copies only the meta data contained in the input spectrum to the output spectrum.
+   * 
+   * @note Actual data is not copied.
+   *
+   * @param[in] input The input spectrum.
+   * @param[out] output The output spectrum (will be cleared and will contain all metadata of the input spectrum).
+   * @param clear_spectrum Whether the output spectrum should be cleared first (all raw data and data arrays will be deleted)
+   **/
+  OPENMS_DLLAPI void copySpectrumMeta(const MSSpectrum & input, MSSpectrum & output, bool clear_spectrum = true);
   
 } // namespace OpenMS
-
 

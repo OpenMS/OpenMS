@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,16 +75,15 @@ namespace OpenMS
     filtered_hits.reserve(id_data.size());
     Size missing_sequence = 0; // counter
 
-    for (vector<PeptideIdentification>::iterator id_it = id_data.begin();
-         id_it != id_data.end(); ++id_it)
+    for (PeptideIdentification& id_it : id_data)
     {
-      const vector<PeptideHit>& peptide_hits = id_it->getHits();
+      const vector<PeptideHit>& peptide_hits = id_it.getHits();
       if (!peptide_hits.empty() && 
           (peptide_hits.size() > 1 || !peptide_hits[0].getSequence().empty()))
       {
-        filtered_hits.push_back(*id_it);
+        filtered_hits.push_back(id_it);
       }
-      else if (!id_it->empty()) ++missing_sequence;
+      else if (!id_it.empty()) ++missing_sequence;
     }
     if (missing_sequence) 
     {
@@ -95,10 +94,12 @@ namespace OpenMS
 
     // check if we have (some) RT information:
     Size no_rt_count = 0;
-    for (vector<PeptideIdentification>::iterator id_it = id_data.begin();
-         id_it != id_data.end(); ++id_it)
+    for (PeptideIdentification& id_it : id_data)
     {
-      if (!id_it->hasRT()) ++no_rt_count;
+      if (!id_it.hasRT())
+      {
+        ++no_rt_count;
+      }
     }
     if (no_rt_count)
     {
@@ -116,10 +117,9 @@ namespace OpenMS
 
     // argh! Mascot 2.2 tends to repeat the first hit (yes it appears twice),
     // so we delete one of them
-    for (vector<PeptideIdentification>::iterator it = id_data.begin(); 
-         it != id_data.end(); ++it)
+    for (PeptideIdentification& pip : id_data)
     {
-      vector<PeptideHit> peptide_hits = it->getHits();
+      vector<PeptideHit> peptide_hits = pip.getHits();
       // check if equal, except for rank
       if (peptide_hits.size() > 1 &&
           peptide_hits[0].getScore() == peptide_hits[1].getScore() &&
@@ -128,7 +128,7 @@ namespace OpenMS
       {
         // erase first hit
         peptide_hits.erase(peptide_hits.begin() + 1);
-        it->setHits(peptide_hits);
+        pip.setHits(peptide_hits);
       }
     }
   }
@@ -156,11 +156,11 @@ namespace OpenMS
         lookup.addReferenceFormat("[Ss]can( [Nn]umber)?s?[=:]? *(?<SCAN>\\d+)");
         // - with .dta input to Mascot:
         // <...>/path/to/FTAC05_13.673.673.2.dta</...> -> 673
-        lookup.addReferenceFormat("\\.(?<SCAN>\\d+)\\.\\d+\\.(?<CHARGE>\\d+)(\\.dta)?");
+        lookup.addReferenceFormat(R"(\.(?<SCAN>\d+)\.\d+\.(?<CHARGE>\d+)(\.dta)?)");
       }
       // title containing RT and MZ instead of scan number:
       // <...>575.848571777344_5018.0811_controllerType=0 controllerNumber=1 scan=11515_EcoliMS2small</...>
-      lookup.addReferenceFormat("^(?<MZ>\\d+(\\.\\d+)?)_(?<RT>\\d+(\\.\\d+)?)");
+      lookup.addReferenceFormat(R"(^(?<MZ>\d+(\.\d+)?)_(?<RT>\d+(\.\d+)?))");
     }
     else // use only user-defined format
     {

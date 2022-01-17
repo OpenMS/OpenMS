@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,9 +35,11 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <ostream>
 #include <fstream>      // std::ofstream
-#include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
+#include <sstream>
+#include <boost/math/special_functions/fpclassify.hpp> // because isfinite not supported on Mac
 
 namespace OpenMS
 {
@@ -173,9 +175,18 @@ public:
       if ((boost::math::isfinite)(thing)) return operator<<(thing);
 
       bool old = modifyStrings(false);
-      if ((boost::math::isnan)(thing)) operator<<(nan_);
-      else if (thing < 0) operator<<("-" + inf_);
-      else operator<<(inf_);
+      if ((boost::math::isnan)(thing)) 
+      {
+        operator<<(nan_);
+      }
+      else if (thing < 0) 
+      {
+        operator<<("-" + inf_);
+      }
+      else 
+      {
+        operator<<(inf_);
+      }
       modifyStrings(old);
       return *this;
     }

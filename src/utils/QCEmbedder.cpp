@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -151,22 +151,24 @@ protected:
     ControlledVocabulary cv;
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
     cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
+    cv.loadFromOBO("QC", File::find("/CV/qc-cv-legacy.obo"));
+
 
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
-    if (target_file != "")
+    if (!target_file.empty())
     {
       target_run = QFileInfo(QString::fromStdString(target_file)).baseName();
     }
 
     QcMLFile qcmlfile;
-    if (in != "")
+    if (!in.empty())
     {
       qcmlfile.load(in);
     }
 
-    if (target_run == "")
+    if (target_run.empty())
     {
       //~ check if only one run in file
       std::vector<String> nas;
@@ -196,9 +198,9 @@ protected:
     at.id = String(UniqueIdGenerator::getUniqueId());
     at.cvRef = "QC"; //TODO assign right cv reference
 
-    if (plot_b64 != "" || tab != "")
+    if (!plot_b64.empty() || !tab.empty())
     {
-      if (plot_b64 != "")
+      if (!plot_b64.empty())
       {
         try
         {
@@ -214,7 +216,7 @@ protected:
         }
         at.binary = plot_b64;
       }
-      else if (tab != "")
+      else if (!tab.empty())
       {
         try
         {

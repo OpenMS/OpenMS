@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,7 +71,7 @@ public:
     /// assignment operator
     IDDecoyProbability & operator=(const IDDecoyProbability & rhs);
 
-    /**	converts the forward and reverse identification into probabilities
+    /**	@brief Converts the forward and reverse identification into probabilities
 
               @param prob_ids Output of the algorithm which includes identifications with probability based scores
               @param fwd_ids Input parameter which represents the identifications of the forward search

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -469,7 +469,7 @@ private:
   /// Macro for general debugging information
 #define OPENMS_LOG_DEBUG \
   OPENMS_THREAD_CRITICAL(LOGSTREAM) \
-  OpenMS_Log_debug << [](){ constexpr const char * x = (past_last_slash(__FILE__)); return x; }() << "(" << __LINE__ << "): "
+  OpenMS_Log_debug << [](){ constexpr const char* x = (past_last_slash(__FILE__)); return x; }() << "(" << __LINE__ << "): "
 
   /// Macro for general debugging information (without information on file)
 #define OPENMS_LOG_DEBUG_NOFILE \
@@ -483,4 +483,3 @@ private:
   OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_debug; ///< Global static instance of a LogStream to capture messages classified as debug output. By default it is not bound to any output stream. TOPP(AS)Base will connect cout, iff 0 < debug-level
 
 } // namespace OpenMS
-

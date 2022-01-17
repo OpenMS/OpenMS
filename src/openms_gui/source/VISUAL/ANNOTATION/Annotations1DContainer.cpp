@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -145,7 +145,7 @@ namespace OpenMS
     return nullptr;
   }
 
-  void Annotations1DContainer::selectItemAt(const QPoint & pos)
+  void Annotations1DContainer::selectItemAt(const QPoint & pos) const
   {
     Annotation1DItem * item = getItemAt(pos);
     if (item != nullptr)
@@ -154,7 +154,7 @@ namespace OpenMS
     }
   }
 
-  void Annotations1DContainer::deselectItemAt(const QPoint & pos)
+  void Annotations1DContainer::deselectItemAt(const QPoint & pos) const
   {
     Annotation1DItem * item = getItemAt(pos);
     if (item != nullptr)

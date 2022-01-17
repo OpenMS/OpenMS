@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,8 +69,9 @@ namespace OpenMS
   EmgModel & EmgModel::operator=(const EmgModel & source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     InterpolationModel::operator=(source);
     setParameters(source.getParameters());
     updateMembers_();
@@ -83,8 +84,9 @@ namespace OpenMS
     LinearInterpolation::container_type & data = interpolation_.getData();
     data.clear();
     if (max_ == min_)
+    {
       return;
-
+    }
     data.reserve(UInt((max_ - min_) / interpolation_step_ + 1));
     CoordinateType pos = min_;
 

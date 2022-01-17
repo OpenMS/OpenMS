@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -91,9 +91,10 @@ namespace OpenMS
     }
 
     // convert to vector
-    for (const auto& it : native_ids_annotated_spectra)
+    annotated_spectra.reserve(native_ids_annotated_spectra.size());
+    for (auto& id_spec : native_ids_annotated_spectra)
     {
-      annotated_spectra.emplace_back(std::move(it.second));
+      annotated_spectra.emplace_back(std::move(id_spec.second));
     }
 
     return annotated_spectra;
@@ -133,13 +134,13 @@ namespace OpenMS
       {
         if (line.hasPrefix(n_id_prefix))
         {
-           String n_id = line.erase(line.find(n_id_prefix), n_id_prefix.size());
-           ext_n_ids.emplace_back(n_id);
+          String n_id = line.erase(line.find(n_id_prefix), n_id_prefix.size());
+          ext_n_ids.emplace_back(n_id);
         }
         else if (spectrum_ms_file.eof())
         {
-           OPENMS_LOG_WARN << "No native id was found - please check your input mzML. " << std::endl;
-           break;
+          OPENMS_LOG_WARN << "No native id was found - please check your input mzML. " << std::endl;
+          break;
         }
       }
       spectrum_ms_file.close();
@@ -309,7 +310,7 @@ namespace OpenMS
           Peak1D fragment_mz_int;
           StringList splitted_line;
           line.split("\t",splitted_line);     
-          // option to use the exact mass as peakMZ (e.g. for library preparation).
+          // option to use the exact mass as peak MZ (e.g. for library preparation).
           if (use_exact_mass)
           {
             fragment_mz_int.setMZ(splitted_line[3].toDouble());

@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Date.h>" namespace "OpenMS":
     cdef cppclass Date:
 
         Date() nogil except +
-        Date(Date) nogil except + # wrap-ignore
+        Date(Date &) nogil except +
 
         void set(const String & date) nogil except +
         # void set(UInt month, UInt day, UInt year);

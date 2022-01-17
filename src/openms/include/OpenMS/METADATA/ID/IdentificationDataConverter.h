@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,8 @@
 
 namespace OpenMS
 {
+  class FeatureMap;
+
   class OPENMS_DLLAPI IdentificationDataConverter
   {
   public:
@@ -51,28 +53,107 @@ namespace OpenMS
                           const std::vector<ProteinIdentification>& proteins,
                           const std::vector<PeptideIdentification>& peptides);
 
-    /// Export to legacy peptide/protein identifications
+    /*!
+      @brief Export to legacy peptide/protein identifications
+
+      Results are added to existing data (if any) in @p proteins and @p peptides.
+    */
     static void exportIDs(const IdentificationData& id_data,
                           std::vector<ProteinIdentification>& proteins,
                           std::vector<PeptideIdentification>& peptides,
-                          bool export_oligonucleotides = false);
+                          bool export_ids_wo_scores = false);
 
     /// Export to mzTab format
     static MzTab exportMzTab(const IdentificationData& id_data);
 
-    /// Import FASTA sequences as parent molecules
+    /// Import FASTA sequences as parent sequences
     static void importSequences(IdentificationData& id_data,
                                 const std::vector<FASTAFile::FASTAEntry>& fasta,
                                 IdentificationData::MoleculeType type =
                                 IdentificationData::MoleculeType::PROTEIN,
                                 const String& decoy_pattern = "");
 
+    /// Convert parent matches to peptide evidences
+    static void exportParentMatches(
+      const IdentificationData::ParentMatches& parent_matches, PeptideHit& hit);
+
+    /*!
+      @brief Convert IDs from legacy peptide/protein identifications in a feature map
+
+      @param features Feature map containing IDs in legacy format
+      @param clear_original Clear original IDs after conversion?
+    */
+    static void importFeatureIDs(FeatureMap& features, bool clear_original = true);
+
+    /*!
+      @brief Convert IDs in a feature map to legacy peptide/protein identifications
+
+      @param features Feature map containing IDs in new format
+      @param clear_original Clear original IDs after conversion?
+    */
+    static void exportFeatureIDs(FeatureMap& features, bool clear_original = true);
+
   protected:
 
-    /// Export a parent molecule (protein or nucleic acid) to mzTab
+    using StepOpt = std::optional<IdentificationData::ProcessingStepRef>;
+
+    /// Functor for ordering @p StepOpt (by date of the steps, if available):
+    struct StepOptCompare
+    {
+      bool operator()(const StepOpt& left, const StepOpt& right) const
+      {
+        // @TODO: should runs without associated step go first or last?
+        if (!left) return bool(right);
+        if (!right) return false;
+        return **left < **right;
+      }
+    };
+
+    /// Functor for ordering peptide IDs by RT and m/z (if available)
+    struct PepIDCompare
+    {
+      bool operator()(const PeptideIdentification& left,
+                      const PeptideIdentification& right) const
+      {
+        // @TODO: should IDs without RT go first or last?
+        if (left.hasRT())
+        {
+          if (right.hasRT())
+          {
+            if (right.getRT() != left.getRT())
+            {
+              return left.getRT() < right.getRT();
+            } // else: compare by m/z (below)
+          }
+          else
+          {
+            return false;
+          }
+        }
+        else if (right.hasRT())
+        {
+          return true;
+        }
+        // no RTs or same RTs -> try to compare by m/z:
+        if (left.hasMZ())
+        {
+          if (right.hasMZ())
+          {
+              return left.getMZ() < right.getMZ();
+          }
+          else
+          {
+            return false;
+          }
+        }
+        return true;
+      }
+    };
+
+    /// Export a parent sequence (protein or nucleic acid) to mzTab
     template <typename MzTabSectionRow>
-    static void exportParentMoleculeToMzTab_(
-      const IdentificationData::ParentMolecule& parent,
+    static void exportParentSequenceToMzTab_(
+      const IdentificationData::ParentSequence& parent,
       std::vector<MzTabSectionRow>& output,
       std::map<IdentificationData::ScoreTypeRef, Size>& score_map)
     {
@@ -116,7 +197,7 @@ namespace OpenMS
         for (const auto& match_pair : identified.parent_matches)
         {
           row.accession.set(match_pair.first->accession);
-          for (const IdentificationData::MoleculeParentMatch& match :
+          for (const IdentificationData::ParentMatch& match :
                  match_pair.second)
           {
             MzTabSectionRow copy = row;
@@ -127,11 +208,11 @@ namespace OpenMS
       }
     }
 
-    /// Export a molecule-query match (peptide- or oligonucleotide-spectrum match) to mzTab
+    /// Export an input match (peptide- or oligonucleotide-spectrum match) to mzTab
     template <typename MzTabSectionRow>
-    static void exportQueryMatchToMzTab_(
+    static void exportObservationMatchToMzTab_(
       const String& sequence,
-      const IdentificationData::MoleculeQueryMatch& match, double calc_mass,
+      const IdentificationData::ObservationMatch& match, double calc_mass,
       std::vector<MzTabSectionRow>& output,
       std::map<IdentificationData::ScoreTypeRef, Size>& score_map,
       std::map<IdentificationData::InputFileRef, Size>& file_map)
@@ -141,30 +222,32 @@ namespace OpenMS
       xsm.sequence.set(sequence);
       exportStepsAndScoresToMzTab_(match.steps_and_scores, xsm.search_engine,
                                    xsm.search_engine_score, score_map);
-      const IdentificationData::DataQuery& query = *match.data_query_ref;
+      const IdentificationData::Observation& query = *match.observation_ref;
       std::vector<MzTabDouble> rts(1);
       rts[0].set(query.rt);
       xsm.retention_time.set(rts);
       xsm.charge.set(match.charge);
       xsm.exp_mass_to_charge.set(query.mz);
       xsm.calc_mass_to_charge.set(calc_mass / abs(match.charge));
-      if (query.input_file_opt)
-      {
-        xsm.spectra_ref.setMSFile(file_map[*query.input_file_opt]);
-      }
+      xsm.spectra_ref.setMSFile(file_map[query.input_file]);
       xsm.spectra_ref.setSpecRef(query.data_id);
+      // optional column for adduct:
+      if (match.adduct_opt)
+      {
+        MzTabOptionalColumnEntry opt_adduct;
+        opt_adduct.first = "opt_adduct";
+        opt_adduct.second.set((*match.adduct_opt)->getName());
+        xsm.opt_.push_back(opt_adduct);
+      }
+      // optional columns for isotope offset:
       // @TODO: find a way of passing in the names of relevant meta values
       // (e.g. from NucleicAcidSearchEngine), instead of hard-coding them here
-      static const std::vector<String> meta_out({"adduct", "isotope_offset"});
-      for (const String& meta : meta_out)
+      if (match.metaValueExists("isotope_offset"))
       {
-        if (match.metaValueExists(meta))
-        {
-          MzTabOptionalColumnEntry opt_meta;
-          opt_meta.first = "opt_" + meta;
-          opt_meta.second.set(match.getMetaValue(meta));
-          xsm.opt_.push_back(opt_meta);
-        }
+        MzTabOptionalColumnEntry opt_meta;
+        opt_meta.first = "opt_isotope_offset";
+        opt_meta.second.set(match.getMetaValue("isotope_offset"));
+        xsm.opt_.push_back(opt_meta);
       }
       // don't repeat data from the peptide section (e.g. accessions)
       // why are "pre"/"post"/"start"/"end" not in the peptide section?!
@@ -184,12 +267,12 @@ namespace OpenMS
 
     /// Helper function for @ref exportPeptideOrOligoToMzTab_() - oligonucleotide variant
     static void addMzTabMoleculeParentContext_(
-      const IdentificationData::MoleculeParentMatch& match,
+      const IdentificationData::ParentMatch& match,
       MzTabOligonucleotideSectionRow& row);
 
     /// Helper function for @ref exportPeptideOrOligoToMzTab_() - peptide variant
     static void addMzTabMoleculeParentContext_(
-      const IdentificationData::MoleculeParentMatch& match,
+      const IdentificationData::ParentMatch& match,
       MzTabPeptideSectionRow& row);
 
     /// Helper function to import DB search parameters from legacy format
@@ -205,5 +288,12 @@ namespace OpenMS
     static void exportMSRunInformation_(
       IdentificationData::ProcessingStepRef step_ref,
       ProteinIdentification& protein);
+
+    static void handleFeatureImport_(Feature& feature, IntList indexes,
+                                     std::vector<PeptideIdentification>& peptides,
+                                     Size& id_counter, bool clear_original);
+
+    static void handleFeatureExport_(Feature& feature, const IntList& indexes,
+                                     IdentificationData& id_data, Size& id_counter);
   };
 }

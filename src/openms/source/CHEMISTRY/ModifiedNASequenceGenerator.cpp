@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,11 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/ModifiedNASequenceGenerator.h>
+
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
 #include <vector>
 #include <map>
+#include <algorithm>
 
 using std::vector;
 using std::set;
@@ -146,7 +148,11 @@ namespace OpenMS
     for (auto const & r : seq)
     {
       // skip already modified residues
-      if (r.isModified()) { ++residue_index; continue; }
+      if (r.isModified())
+      { 
+        ++residue_index;
+        continue;
+      }
 
       //determine compatibility of variable modifications
       std::for_each(var_mods.begin(), var_mods.end(), [&residue_index, &r, &map_compatibility](ConstRibonucleotidePtr const & v)
@@ -202,7 +208,10 @@ namespace OpenMS
         map<int, vector<ConstRibonucleotidePtr>>::const_iterator mit = map_compatibility.begin();
         for (size_t i = 0; i != compatible_mod_sites; ++i, ++mit)
         {
-          if (subset_mask[i]) { subset_indices.push_back(mit->first); }
+          if (subset_mask[i])
+          { 
+            subset_indices.push_back(mit->first);
+          }
         }
 
         // now enumerate all modifications
@@ -269,14 +278,19 @@ namespace OpenMS
     vector<NASequence>& all_modified_seqs,
     bool keep_unmodified)
   {
-    if (keep_unmodified) { all_modified_seqs.push_back(seq); }
+    if (keep_unmodified)
+    { 
+      all_modified_seqs.push_back(seq);
+    }
 
     // we want the same behavior as for the slower function... we would need a reverse iterator here that NASequence doesn't provide
     for (NASequence::ConstIterator ribo_it = seq.cend() - 1; ribo_it != seq.cbegin() - 1; --ribo_it)
     {
       // skip already modified residues
-      if (ribo_it->isModified()) { continue; }
-
+      if (ribo_it->isModified())
+      { 
+        continue;
+      }
       size_t residue_index = ribo_it - seq.cbegin();
 
       // matches every variable modification to every site and return the new sequence with single modification

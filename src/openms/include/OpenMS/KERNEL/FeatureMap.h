@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,8 @@
 
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/Observation.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
@@ -49,7 +51,6 @@
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <algorithm>
 #include <exception>
 #include <vector>
 
@@ -97,7 +98,7 @@ namespace OpenMS
   class FeatureMap :
     private std::vector<Feature>,
     public MetaInfoInterface,
-    public RangeManager<2>,
+    public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>,
     public DocumentIdentifier,
     public UniqueIdInterface,
     public UniqueIdIndexer<FeatureMap>,
@@ -107,45 +108,42 @@ public:
     /**
       @name Type definitions
     */
-    typedef std::vector<Feature> privvec;
+    typedef std::vector<Feature> Base;
 
     // types
-    using privvec::value_type;
-    using privvec::iterator;
-    using privvec::const_iterator;
-    using privvec::size_type;
-    using privvec::pointer; // ConstRefVector
-    using privvec::reference; // ConstRefVector
-    using privvec::const_reference; // ConstRefVector
-    using privvec::difference_type; // ConstRefVector
+    using Base::value_type;
+    using Base::iterator;
+    using Base::const_iterator;
+    using Base::size_type;
+    using Base::pointer; // ConstRefVector
+    using Base::reference; // ConstRefVector
+    using Base::const_reference; // ConstRefVector
+    using Base::difference_type; // ConstRefVector
 
     // functions
-    using privvec::begin;
-    using privvec::end;
+    using Base::begin;
+    using Base::end;
 
-    using privvec::size;
-    using privvec::resize; // ConsensusMap, FeatureXMLFile
-    using privvec::empty;
-    using privvec::reserve;
-    using privvec::operator[];
-    using privvec::at; // UniqueIdIndexer
-    using privvec::back; // FeatureXMLFile
+    using Base::size;
+    using Base::resize; // ConsensusMap, FeatureXMLFile
+    using Base::empty;
+    using Base::reserve;
+    using Base::operator[];
+    using Base::at; // UniqueIdIndexer
+    using Base::back; // FeatureXMLFile
 
-    using privvec::push_back;
-    using privvec::emplace_back;
-    using privvec::pop_back; // FeatureXMLFile
-    using privvec::erase; // source/VISUAL/Plot2DCanvas.cpp 2871, FeatureMap_test 599
+    using Base::push_back;
+    using Base::emplace_back;
+    using Base::pop_back; // FeatureXMLFile
+    using Base::erase; // source/VISUAL/Plot2DCanvas.cpp 2871, FeatureMap_test 599
 
     //@{
-    typedef Feature FeatureType;
-    typedef RangeManager<2> RangeManagerType;
-    typedef std::vector<FeatureType> Base;
+    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
+    typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
     typedef Base::iterator Iterator;
     typedef Base::const_iterator ConstIterator;
     typedef Base::reverse_iterator ReverseIterator;
     typedef Base::const_reverse_iterator ConstReverseIterator;
-    typedef FeatureType& Reference;
-    typedef const FeatureType& ConstReference;
     //@}
 
     /**
@@ -158,6 +156,9 @@ public:
 
     /// Copy constructor
     OPENMS_DLLAPI FeatureMap(const FeatureMap& source);
+
+    /// Move constructor
+    OPENMS_DLLAPI FeatureMap(FeatureMap&& source);
 
     /// Destructor
     OPENMS_DLLAPI ~FeatureMap() override;
@@ -224,6 +225,8 @@ public:
 
     OPENMS_DLLAPI void swap(FeatureMap& from);
 
+    /// @name Functions for dealing with identifications in legacy format
+    ///@{
     /// non-mutable access to the protein identifications
     OPENMS_DLLAPI const std::vector<ProteinIdentification>& getProteinIdentifications() const;
 
@@ -241,6 +244,7 @@ public:
 
     /// sets the unassigned peptide identifications
     OPENMS_DLLAPI void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications);
+    ///@}
 
     /// returns a const reference to the description of the applied data processing
     OPENMS_DLLAPI const std::vector<DataProcessing>& getDataProcessing() const;
@@ -254,7 +258,7 @@ public:
     /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
     OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
 
-    /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @param e. 
+    /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @param e.
     /// If it doesn't exist, fallback to @param s.
     OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s, MSExperiment & e);
 
@@ -307,6 +311,24 @@ public:
 
     OPENMS_DLLAPI AnnotationStatistics getAnnotationStatistics() const;
 
+    /// @name Functions for dealing with identifications in new format
+    ///@{
+    /*!
+      @brief Return observation matches (e.g. PSMs) from the identification data that are not assigned to any feature in the map
+
+      Only top-level features are considered, i.e. no subordinates.
+
+      @see BaseFeature::getIDMatches()
+    */
+    OPENMS_DLLAPI std::set<IdentificationData::ObservationMatchRef> getUnassignedIDMatches() const;
+
+    /// Immutable access to the contained identification data
+    OPENMS_DLLAPI const IdentificationData& getIdentificationData() const;
+
+    /// Mutable access to the contained identification data
+    OPENMS_DLLAPI IdentificationData& getIdentificationData();
+    ///@}
+
 protected:
 
     /// protein identifications
@@ -318,6 +340,8 @@ protected:
     /// applied data processing
     std::vector<DataProcessing> data_processing_;
 
+    /// general identification results (peptides/proteins, RNA, compounds)
+    IdentificationData id_data_;
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const FeatureMap& map);

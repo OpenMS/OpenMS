@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,21 +35,15 @@
 #pragma once
 
 #include <cmath> // for "exp"
-#include <ctime> // for "time" (random number seed)
 #include <limits> // for "infinity"
-#include <random>
-#include <boost/bimap.hpp>
-#include <boost/bimap/multiset_of.hpp>
 
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-
-#include "OpenMS/OPENSWATHALGO/ALGO/Scoring.h"
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {
@@ -60,19 +54,11 @@ namespace OpenMS
   public:
 
       /// Constructor
-      explicit ConfidenceScoring(bool test_mode_ = false)
-      {
-        if (!test_mode_) shuffler_ = Math::RandomShuffler(0);
-        else shuffler_ = Math::RandomShuffler(time(nullptr));// seed with current time
-      }
+      explicit ConfidenceScoring(bool test_mode_ = false);
 
-      virtual ~ConfidenceScoring() {}
+      ~ConfidenceScoring() override {}
 
   protected:
-
-      /// Mapping: Q3 m/z <-> transition intensity (maybe not unique!)
-      typedef boost::bimap<double, boost::bimaps::multiset_of<double> > 
-      BimapType;
 
       /// Binomial GLM
       struct GLM_
@@ -81,7 +67,7 @@ namespace OpenMS
         double rt_coef;
         double int_coef;
 
-        double operator()(double diff_rt, double dist_int)
+        double operator()(double diff_rt, double dist_int) const
         {
           double lm = intercept + rt_coef * diff_rt * diff_rt + 
             int_coef * dist_int;
@@ -95,7 +81,7 @@ namespace OpenMS
         double min_rt;
         double max_rt;
         
-        double operator()(double rt)
+        double operator()(double rt) const
         {
           return (rt - min_rt) / (max_rt - min_rt) * 100;
         }
@@ -124,11 +110,6 @@ namespace OpenMS
 
       /// Get the retention time of an assay
       double getAssayRT_(const TargetedExperiment::Peptide& assay);
-
-      /// Extract the @p n_transitions highest intensities from @p intensity_map,
-      /// store them in @p intensities
-      void extractIntensities_(BimapType& intensity_map, Size n_transitions,
-                               DoubleList& intensities);
 
       /// Score the assay @p assay against feature data (@p feature_rt,
       /// @p feature_intensities), optionally using only the specified transitions

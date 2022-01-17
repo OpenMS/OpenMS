@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,10 +67,8 @@ START_SECTION((FeatureMap()))
 	pl_ptr = new FeatureMap();
   TEST_NOT_EQUAL(pl_ptr, nullPointer)
 
-	TEST_EQUAL(pl_ptr->getMin(), FeatureMap::PositionType::maxPositive())
-	TEST_EQUAL(pl_ptr->getMax(), FeatureMap::PositionType::minNegative())
-	TEST_REAL_SIMILAR(pl_ptr->getMinInt(), numeric_limits<double>::max())
-	TEST_REAL_SIMILAR(pl_ptr->getMaxInt(), -numeric_limits<double>::max())
+	TEST_EQUAL(pl_ptr->size(), 0)
+	TEST_EQUAL(pl_ptr->hasRange() == HasRangeType::NONE, true)
 END_SECTION
 
 START_SECTION((virtual ~FeatureMap()))
@@ -178,22 +176,22 @@ START_SECTION((void updateRanges()))
   s.updateRanges();
   s.updateRanges(); //second time to check the initialization
 
-  TEST_REAL_SIMILAR(s.getMaxInt(),1.0)
-  TEST_REAL_SIMILAR(s.getMinInt(),0.01)
-  TEST_REAL_SIMILAR(s.getMax()[0],10.5)
-  TEST_REAL_SIMILAR(s.getMax()[1],3.0)
-  TEST_REAL_SIMILAR(s.getMin()[0],0.0)
-  TEST_REAL_SIMILAR(s.getMin()[1],0.0)
+  TEST_REAL_SIMILAR(s.getMaxIntensity(),1.0)
+  TEST_REAL_SIMILAR(s.getMinIntensity(), 0.01)
+  TEST_REAL_SIMILAR(s.getMaxRT(),10.5)
+  TEST_REAL_SIMILAR(s.getMaxMZ(),3.0)
+  TEST_REAL_SIMILAR(s.getMinRT(),0.0)
+  TEST_REAL_SIMILAR(s.getMinMZ(),0.0)
 
   //test with convex hull
   s.push_back(feature4);
   s.updateRanges();
-  TEST_REAL_SIMILAR(s.getMaxInt(),1.0)
-  TEST_REAL_SIMILAR(s.getMinInt(),0.01)
-  TEST_REAL_SIMILAR(s.getMax()[0],10.5)
-  TEST_REAL_SIMILAR(s.getMax()[1],3.123)
-  TEST_REAL_SIMILAR(s.getMin()[0],-1.0)
-  TEST_REAL_SIMILAR(s.getMin()[1],0.0)
+  TEST_REAL_SIMILAR(s.getMaxIntensity(), 1.0)
+  TEST_REAL_SIMILAR(s.getMinIntensity(), 0.01)
+  TEST_REAL_SIMILAR(s.getMaxRT(),10.5)
+  TEST_REAL_SIMILAR(s.getMaxMZ(),3.123)
+  TEST_REAL_SIMILAR(s.getMinRT(),-1.0)
+  TEST_REAL_SIMILAR(s.getMinMZ(),0.0)
 
 END_SECTION
 
@@ -213,7 +211,7 @@ START_SECTION((FeatureMap(const FeatureMap &source)))
 
   TEST_EQUAL(map2.size(),3);
   TEST_EQUAL(map2.getMetaValue("meta").toString(),"value")
-  TEST_REAL_SIMILAR(map2.getMaxInt(),1.0)
+  TEST_REAL_SIMILAR(map2.getMaxIntensity(),1.0)
   TEST_STRING_EQUAL(map2.getIdentifier(),"lsid")
   TEST_EQUAL(map2.getDataProcessing().size(),1)
   TEST_EQUAL(map2.getProteinIdentifications().size(),1);
@@ -238,7 +236,7 @@ START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
 
 	TEST_EQUAL(map2.size(),3);
   TEST_EQUAL(map2.getMetaValue("meta").toString(),"value")
-  TEST_REAL_SIMILAR(map2.getMaxInt(),1.0)
+  TEST_REAL_SIMILAR(map2.getMaxIntensity(),1.0)
   TEST_STRING_EQUAL(map2.getIdentifier(),"lsid")
   TEST_EQUAL(map2.getDataProcessing().size(),1)
 	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
@@ -248,8 +246,7 @@ START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
    map2 = FeatureMap();
 
 	TEST_EQUAL(map2.size(),0);
-	TEST_REAL_SIMILAR(map2.getMinInt(), numeric_limits<double>::max())
-	TEST_REAL_SIMILAR(map2.getMaxInt(), -numeric_limits<double>::max())
+  TEST_EQUAL(map2.hasRange() == HasRangeType::NONE, true)
   TEST_STRING_EQUAL(map2.getIdentifier(),"")
   TEST_EQUAL(map2.getDataProcessing().size(),0)
 	TEST_EQUAL(map2.getProteinIdentifications().size(),0);
@@ -501,14 +498,14 @@ START_SECTION((void swap(FeatureMap& from)))
 
 	TEST_EQUAL(map1.getIdentifier(),"")
 	TEST_EQUAL(map1.size(),0)
-	TEST_REAL_SIMILAR(map1.getMinInt(),DRange<1>().minPosition()[0])
+  TEST_EQUAL(map1.hasRange() == HasRangeType::NONE, true)
   TEST_EQUAL(map1.getDataProcessing().size(),0)
 	TEST_EQUAL(map1.getProteinIdentifications().size(),0);
 	TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),0);
 
 	TEST_EQUAL(map2.getIdentifier(),"stupid comment")
 	TEST_EQUAL(map2.size(),2)
-	TEST_REAL_SIMILAR(map2.getMinInt(),0.5)
+	TEST_REAL_SIMILAR(map2.getMinIntensity(),0.5)
   TEST_EQUAL(map2.getDataProcessing().size(),1)
 	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
 	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
@@ -530,14 +527,14 @@ START_SECTION((void swapFeaturesOnly(FeatureMap& from)))
 
 	TEST_EQUAL(map1.getIdentifier(),"stupid comment")
 	TEST_EQUAL(map1.size(),0)
-	TEST_REAL_SIMILAR(map1.getMinInt(),DRange<1>().minPosition()[0])
+  TEST_EQUAL(map1.hasRange() == HasRangeType::NONE, true)
   TEST_EQUAL(map1.getDataProcessing().size(),1)
 	TEST_EQUAL(map1.getProteinIdentifications().size(),1);
 	TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),1);
 
 	TEST_EQUAL(map2.getIdentifier(),"")
 	TEST_EQUAL(map2.size(),2)
-	TEST_REAL_SIMILAR(map2.getMinInt(),0.5)
+	TEST_REAL_SIMILAR(map2.getMinIntensity(),0.5)
   TEST_EQUAL(map2.getDataProcessing().size(),0)
 	TEST_EQUAL(map2.getProteinIdentifications().size(),0);
 	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),0);
@@ -600,10 +597,13 @@ START_SECTION((void clear(bool clear_meta_data=true)))
 
 	map1.clear(false);
 	TEST_EQUAL(map1.size(),0)
-	TEST_EQUAL(map1==FeatureMap(),false)
+	TEST_EQUAL(map1 == FeatureMap(),false)
+	TEST_EQUAL(map1.empty(),true)
 
 	map1.clear(true);
-	TEST_EQUAL(map1==FeatureMap(),true)
+	TEST_EQUAL(map1.size(),0)
+	TEST_EQUAL(map1 == FeatureMap(),true)
+	TEST_EQUAL(map1.empty(),true)
 END_SECTION
 
 

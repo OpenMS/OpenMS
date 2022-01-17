@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,7 @@
 # CMake sub-project for OpenMS code examples
 
 project("OpenMS_code_examples")
-cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.9.0 FATAL_ERROR)
 
 set(EXAMPLES_executables)
 
@@ -50,7 +50,7 @@ include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 
 #------------------------------------------------------------------------------
 # QT dependencies
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Network Sql REQUIRED)
 
 # add the targets
 foreach(i ${EXAMPLES_executables})
@@ -70,6 +70,7 @@ add_dependencies(Tutorials_build ${EXAMPLES_executables})
 
 if(WITH_GUI)
   find_package(Qt5 COMPONENTS Core Network OpenGL Svg REQUIRED)
+  find_package(Qt5 COMPONENTS WebEngineWidgets)
   # add OpenMS GUI includes
   include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
 

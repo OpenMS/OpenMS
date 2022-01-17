@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -519,9 +519,8 @@ namespace OpenMS
     //model_->setColumnBounds(index,0.,1.,LPWrapper::DOUBLE_BOUNDED);
     //  cmodel_->setColumnUpper(counter,1.); // test for inclusion list protein based
 
-    //  TODO: German comment
-    //  cmodel_->setColumnIsInteger(counter,true); // testweise abgeschaltet, da er sonst, wenn nicht ausreichend
-    // Peptide da waren, um das Protein auf 1 zu setzen, gar keine Variablen f?r das Protein ausw?hlt
+    // cmodel_->setColumnIsInteger(counter,true); // partially switched off, if not enough peptides
+    // were available to set the protein to 1 (no variables choosen for the protein)
     model_->setObjective(index, 1.);
     protein_variable_index_map.insert(make_pair(map_iter->first, counter));
     ++counter;
@@ -1069,7 +1068,7 @@ namespace OpenMS
 #endif
       if (charges_set.count(features[i].getCharge()) < 1)
         continue;
-      if (mass_ranges[i].size() == 0)
+      if (mass_ranges[i].empty())
       {
         std::cout << "No mass ranges for " << features[i].getRT() << " " << features[i].getMZ() << std::endl;
       }
@@ -1486,7 +1485,7 @@ namespace OpenMS
     StopWatch timer;
     timer.start();
 #endif
-    if (new_feature.getPeptideIdentifications().size() > 0 && new_feature.getPeptideIdentifications()[0].getHits().size() > 0)
+    if (!new_feature.getPeptideIdentifications().empty() && !new_feature.getPeptideIdentifications()[0].getHits().empty())
     {
       // if a selected feature yielded a peptide id, the peptide probability needs to be considered in the protein constraint
       double pep_score = new_feature.getPeptideIdentifications()[0].getHits()[0].getScore();

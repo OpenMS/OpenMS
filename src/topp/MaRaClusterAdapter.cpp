@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -139,14 +139,18 @@ protected:
     bool operator!=(const MaRaClusterResult& rhs) const
     {
       if (file_idx != rhs.file_idx || scan_nr != rhs.scan_nr)
+      {
         return true;
+      }
       return false;
     }
 
     bool operator<(const MaRaClusterResult& rhs) const
     {
       if (file_idx < rhs.file_idx || (file_idx == rhs.file_idx && scan_nr < rhs.scan_nr))
+      {
         return true;
+      }
       return false;
     }
 
@@ -214,7 +218,7 @@ protected:
     for (Size i = 0; i < csv_file.rowCount(); ++i)
     {
       csv_file.getRow(i, row);
-      if (row.size() > 0)
+      if (!row.empty())
       {
         row[0] = String(filename_to_idx_map.at(row[0]));
 
@@ -255,23 +259,23 @@ protected:
   {
     Int scan_number = 0;
     StringList fields = ListUtils::create<String>(scan_identifier);
-    for (StringList::const_iterator it = fields.begin(); it != fields.end(); ++it)
+    for (const String& st : fields)
     {
       // if scan number is not available, use the scan index
       Size idx = 0;
-      if ((idx = it->find("scan=")) != string::npos)
+      if ((idx = st.find("scan=")) != string::npos)
       {
-        scan_number = it->substr(idx + 5).toInt();
+        scan_number = st.substr(idx + 5).toInt();
         break;
       }
-      else if ((idx = it->find("index=")) != string::npos)
+      else if ((idx = st.find("index=")) != string::npos)
       {
-        scan_number = it->substr(idx + 6).toInt();
+        scan_number = st.substr(idx + 6).toInt();
         break;
       }
-      else if ((idx = it->find("spectrum=")) != string::npos)
+      else if ((idx = st.find("spectrum=")) != string::npos)
       {
-        scan_number = it->substr(idx + 9).toInt();
+        scan_number = st.substr(idx + 9).toInt();
       }
     }
     return scan_number;
@@ -351,7 +355,10 @@ protected:
       arguments << "-c" << String(pcut).toQString();
 
       Int verbose_level = getIntOption_("verbose");
-      if (verbose_level != 2) arguments << "-v" << String(verbose_level).toQString();
+      if (verbose_level != 2)
+      {
+        arguments << "-v" << String(verbose_level).toQString();
+      }
     }
     writeLog_("Prepared maracluster command.");
 
@@ -394,11 +401,12 @@ protected:
       const StringList id_in = getStringList_("id_in");
       vector<PeptideIdentification> all_peptide_ids;
       vector<ProteinIdentification> all_protein_ids;
-      if (!id_in.empty()) {
-        for (StringList::const_iterator fit = id_in.begin(); fit != id_in.end(); ++fit, ++file_idx) {
+      if (!id_in.empty())
+      {
+        for (const String& ss : id_in) {
           vector<PeptideIdentification> peptide_ids;
           vector<ProteinIdentification> protein_ids;
-          IdXMLFile().load(*fit, protein_ids, peptide_ids);
+          IdXMLFile().load(ss, protein_ids, peptide_ids);
           for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it) {
             String scan_identifier = getScanIdentifier_(it, peptide_ids.begin());
             Int scan_number = getScanNumber_(scan_identifier);
@@ -409,14 +417,14 @@ protected:
             String filename = in_list[file_idx];
             it->setMetaValue("file_origin", filename);
           }
-          for (vector<ProteinIdentification>::iterator it = protein_ids.begin(); it != protein_ids.end(); ++it) {
+          for (ProteinIdentification& prot : protein_ids) {
             String filename = in_list[file_idx];
-            it->setMetaValue("file_origin", filename);
+            prot.setMetaValue("file_origin", filename);
           }
           all_peptide_ids.insert(all_peptide_ids.end(), peptide_ids.begin(), peptide_ids.end());
           all_protein_ids.insert(all_protein_ids.end(), protein_ids.begin(), protein_ids.end());
         }
-
+        ++file_idx;
       }
       else
       {
@@ -435,7 +443,7 @@ protected:
         }
       }
 
-      if (all_protein_ids.size() == 0)
+      if (all_protein_ids.empty())
       {
         ProteinIdentification protid;
         all_protein_ids.push_back(protid);

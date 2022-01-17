@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_UTILS")
-cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.9.0 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
 # OpenMS' UTILS tools
@@ -42,7 +42,7 @@ cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
 include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 add_definitions(/DBOOST_ALL_NO_LIB)
 
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Network Sql REQUIRED)
 
 # add all the tools
 set(UTILS_executables)
@@ -56,7 +56,8 @@ endforeach(i)
 
 # some regular UTILS tools need the GUI lib, only build them when WITH_GUI is enabled
 if(WITH_GUI)
-  find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL REQUIRED)
+  find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL Sql REQUIRED)
+  find_package(Qt5 COMPONENTS WebEngineWidgets)
   if (NOT Qt5Widgets_FOUND)
     message(STATUS "QtWidgets module not found!")
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
@@ -76,10 +77,6 @@ endif()
 # collection target
 add_custom_target(UTILS)
 add_dependencies(UTILS ${UTILS_executables})
-
-# FFSuperHirn requires linking against SuperHirn and pthread (needs find_package (Threads REQUIRED))
-include_directories(SYSTEM ${SuperHirn_INCLUDE_DIRECTORIES})
-target_link_libraries(FeatureFinderSuperHirn SuperHirn ${CMAKE_THREAD_LIBS_INIT})
 
 ## export the list of UTILS tools into CACHE
 set(UTILS_TOOLS ${UTILS_executables}

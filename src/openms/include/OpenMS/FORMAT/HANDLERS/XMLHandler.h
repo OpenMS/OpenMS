@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,7 +47,6 @@
 #include <xercesc/sax/Locator.hpp>
 #include <xercesc/sax2/Attributes.hpp>
 
-#include <algorithm>
 #include <iosfwd>
 #include <string>
 #include <memory>
@@ -422,7 +421,7 @@ public:
 
       /// throws a ParseError if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
       /// Should be called before writing any ProtIDs to file
-      void checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids);
+      void checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids) const;
 
 protected:
       /// Error message of the last error
@@ -470,21 +469,7 @@ protected:
 
       /// Converts @p term to the index of the term in the cv_terms_ entry @p section
       /// If the term is not found, @p result_on_error is returned (0 by default)
-      inline SignedSize cvStringToEnum_(const Size section, const String & term, const char * message, const SignedSize result_on_error = 0)
-      {
-        OPENMS_PRECONDITION(section < cv_terms_.size(), "cvStringToEnum_: Index overflow (section number too large)");
-
-        std::vector<String>::const_iterator it = std::find(cv_terms_[section].begin(), cv_terms_[section].end(), term);
-        if (it != cv_terms_[section].end())
-        {
-          return it - cv_terms_[section].begin();
-        }
-        else
-        {
-          warning(LOAD, String("Unexpected CV entry '") + message + "'='" + term + "'");
-          return result_on_error;
-        }
-      }
+      SignedSize cvStringToEnum_(const Size section, const String & term, const char * message, const SignedSize result_on_error = 0);
 
       //@}
 
@@ -590,7 +575,7 @@ protected:
       inline DateTime asDateTime_(String date_string) const
       {
         DateTime date_time;
-        if (date_string != "")
+        if (!date_string.empty())
         {
           try
           {

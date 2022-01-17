@@ -3,8 +3,10 @@ FROM openms/contrib:latest
 #USER gitpod
 # Avoid user input
 ARG DEBIAN_FRONTEND=noninteractive
+ARG CLANGDVER=12.0.1
 
 # Install tools for VSCode, Intellisense, JRE for Thirdparties, etc. using apt-get
-RUN apt-get -q update && apt-get install -yq gdb clangd-9 php openjdk-11-jre clang-tidy && rm -rf /var/lib/apt/lists/*
+RUN apt-get -q update && apt-get install -yq gdb unzip wget php openjdk-11-jre python3-pip && rm -rf /var/lib/apt/lists/*
+RUN wget https://github.com/clangd/clangd/releases/download/$CLANGDVER/clangd-linux-$CLANGDVER.zip && unzip clangd-linux-$CLANGDVER.zip -d /opt/ && mv /opt/clangd_$CLANGDVER /opt/clangd/ && rm clangd-linux-$CLANGDVER.zip 
 #
 # More information: https://www.gitpod.io/docs/42_config_docker/

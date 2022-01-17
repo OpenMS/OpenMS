@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,9 +34,10 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/DataProcessingStep.h>
+#include <OpenMS/METADATA/ID/ProcessingStep.h>
 #include <OpenMS/METADATA/ID/ScoreType.h>
 
+#include <boost/optional.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
@@ -47,34 +48,47 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief A processing step that was applied to a data item, possibly with associated scores.
+    /*!
+      A processing step that was applied to a data item, possibly with associated scores.
     */
     struct AppliedProcessingStep
     {
-      // if there are only scores, the processing step may be missing:
-      boost::optional<ProcessingStepRef> processing_step_opt;
+      /*!
+        @brief (Optional) reference to the processing step
+
+        If there are only scores, the processing step may be missing.
+       */
+      std::optional<ProcessingStepRef> processing_step_opt;
+
+      /// Map of scores and their types
       std::map<ScoreTypeRef, double> scores;
 
+      /// Constructor
       explicit AppliedProcessingStep(
-        const boost::optional<ProcessingStepRef>& processing_step_opt =
-        boost::none, const std::map<ScoreTypeRef, double>& scores =
+        const std::optional<ProcessingStepRef>& processing_step_opt =
+        std::nullopt, const std::map<ScoreTypeRef, double>& scores =
         std::map<ScoreTypeRef, double>()):
         processing_step_opt(processing_step_opt), scores(scores)
       {
       }
 
+      /// Equality operator (needed for multi-index container)
       bool operator==(const AppliedProcessingStep& other) const
       {
         return ((processing_step_opt == other.processing_step_opt) &&
                 (scores == other.scores));
       }
 
-      /** @brief Return scores in order of priority (primary first).
+      /*!
+        @brief Return scores in order of priority (primary first).
 
-        The order is defined in the @p DataProcessingSoftware referenced by the processing step (if available).
+        The order is defined in the @p ProcessingSoftware referenced by the processing step (if available).
         Scores not listed there are included at the end of the output.
+
+        @param primary_only Only return the primary score (ignoring any others)?
       */
-      std::vector<std::pair<ScoreTypeRef, double>> getScoresInOrder() const
+      std::vector<std::pair<ScoreTypeRef, double>>
+      getScoresInOrder(bool primary_only = false) const
       {
         std::vector<std::pair<ScoreTypeRef, double>> result;
         std::set<ScoreTypeRef> scores_done;
@@ -88,6 +102,7 @@ namespace OpenMS
             if (pos != scores.end())
             {
               result.push_back(*pos);
+              if (primary_only) return result;
               scores_done.insert(score_ref);
             }
           }
@@ -97,6 +112,7 @@ namespace OpenMS
           if (!scores_done.count(pair.first))
           {
             result.push_back(pair);
+            if (primary_only) return result;
           }
         }
         return result;
@@ -111,7 +127,7 @@ namespace OpenMS
         boost::multi_index::sequenced<>,
         boost::multi_index::ordered_unique<
           boost::multi_index::member<
-            AppliedProcessingStep, boost::optional<ProcessingStepRef>,
+            AppliedProcessingStep, std::optional<ProcessingStepRef>,
             &AppliedProcessingStep::processing_step_opt>>>
       > AppliedProcessingSteps;
 

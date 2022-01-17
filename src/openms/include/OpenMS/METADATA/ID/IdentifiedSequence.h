@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,7 @@
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
-#include <OpenMS/METADATA/ID/MoleculeParentMatch.h>
+#include <OpenMS/METADATA/ID/ParentMatch.h>
 #include <OpenMS/METADATA/ID/ScoredProcessingResult.h>
 
 #include <boost/multi_index_container.hpp>
@@ -47,7 +47,7 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /// Identified sequence (peptide or oligonucleotide)
+    /// Representation of an identified sequence (peptide or oligonucleotide)
     template <typename SeqType>
     struct IdentifiedSequence: public ScoredProcessingResult
     {
@@ -67,9 +67,9 @@ namespace OpenMS
 
       IdentifiedSequence(const IdentifiedSequence& other) = default;
 
-      IdentifiedSequence& operator+=(const IdentifiedSequence& other)
+      IdentifiedSequence& merge(const IdentifiedSequence& other)
       {
-        ScoredProcessingResult::operator+=(other);
+        ScoredProcessingResult::merge(other);
         // merge parent matches:
         for (const auto& pair : other.parent_matches)
         {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,8 +87,9 @@ namespace OpenMS
   Compomer& Compomer::operator=(const Compomer& source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     cmp_ = source.cmp_;
     net_charge_ = source.net_charge_;
     mass_ = source.mass_;
@@ -105,8 +106,9 @@ namespace OpenMS
   void Compomer::add(const Adduct& a, UInt side)
   {
     if (side >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::add() does not support this value for 'side'!", String(side));
-
+    }
     if (a.getAmount() < 0)
     {
       std::cerr << "Compomer::add() was given adduct with negative amount! Are you sure this is what you want?!\n";
@@ -142,10 +144,13 @@ namespace OpenMS
   bool Compomer::isConflicting(const Compomer& cmp, UInt side_this, UInt side_other) const
   {
     if (side_this  >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isConflicting() does not support this value for 'side_this'!", String(side_this));
+    }
     if (side_other >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isConflicting() does not support this value for 'side_other'!", String(side_other));
-
+    }
     bool conflict_found = false;
 
     // size is equal - we need to check more thorough...
@@ -163,8 +168,9 @@ namespace OpenMS
       }
     }
     else
+    {
       conflict_found = true;
-    //
+    }
     // if (conflict_found) std::cout << "found conflict!! between \n" << (*this) << "and\n" << cmp << " at sides i:" << (left_this?"left":"right") << " and j:" << (left_other?"left":"right") << "\n"
     // << "with implicits  i:" << implicit_this.getAmount() << " && j: " << implicit_other.getAmount() << "\n";
     return conflict_found;
@@ -231,18 +237,19 @@ namespace OpenMS
   String Compomer::getAdductsAsString(UInt side) const
   {
     if (side >= BOTH)
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getAdductsAsString() does not support this value for 'side'!", String(side));
-
-    String r;
-    CompomerSide::const_iterator it = cmp_[side].begin();
-    for (; it != cmp_[side].end(); ++it)
     {
-      Int f = it->second.getAmount();
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getAdductsAsString() does not support this value for 'side'!", String(side));
+    }
+    String r;
+    for (const auto& [formula, adduct] : cmp_[side])
+    {
+      Int f = adduct.getAmount();
 
-      if (it->first.has('+'))
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "An Adduct contains implicit charge. This is not allowed!", it->first);
-
-      EmpiricalFormula ef(it->first);
+      if (formula.has('+'))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "An Adduct contains implicit charge. This is not allowed!", formula);
+      }
+      EmpiricalFormula ef(formula);
       ef = ef * f;
       r += ef.toString();
     }
@@ -253,14 +260,17 @@ namespace OpenMS
   bool Compomer::isSingleAdduct(Adduct& a, const UInt side) const
   {
     if (side >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isSimpleAdduct() does not support this value for 'side'!", String(side));
-
+    }
     if (cmp_[side].size() != 1)
+    {
       return false;
-
+    }
     if (cmp_[side].count(a.getFormula()) == 0)
+    {
       return false;
-
+    }
     return true;
   }
 
@@ -274,8 +284,9 @@ namespace OpenMS
   Compomer Compomer::removeAdduct(const Adduct& a, const UInt side) const
   {
     if (side >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::removeAdduct() does not support this value for 'side'!", String(side));
-
+    }
     Compomer tmp(*this);
     if (tmp.cmp_[side].count(a.getFormula()) > 0)
     {
@@ -300,13 +311,14 @@ namespace OpenMS
   StringList Compomer::getLabels(const UInt side) const
   {
     if (side >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getLabels() does not support this value for 'side'!", String(side));
-
+    }
     StringList tmp;
 
     for (CompomerSide::const_iterator it = this->cmp_[side].begin(); it != this->cmp_[side].end(); ++it)
     {
-      if (it->second.getLabel() != "")
+      if (!it->second.getLabel().empty())
       {
         tmp.push_back(it->second.getLabel());
       }
@@ -330,16 +342,24 @@ namespace OpenMS
     // how to sort Compomers:
     // first by net_charge
     if (c1.net_charge_ < c2.net_charge_)
+    {
       return true;
+    }
     else if (c1.net_charge_ > c2.net_charge_)
+    {
       return false;
+    }
     else
     {
       // then my mass
       if (c1.mass_ < c2.mass_)
+      {
         return true;
+      }
       else if (c1.mass_ > c2.mass_)
+      {
         return false;
+      }
       else
       {
         // then by log probability (most probable compomers first!)

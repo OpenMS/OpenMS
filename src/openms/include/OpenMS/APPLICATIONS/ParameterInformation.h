@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,6 +53,7 @@ namespace OpenMS
       STRING, ///< String parameter
       INPUT_FILE, ///< String parameter that denotes an input file
       OUTPUT_FILE, ///< String parameter that denotes an output file
+      OUTPUT_PREFIX, ///< String parameter that denotes an output file prefix
       DOUBLE, ///< Floating point number parameter
       INT, ///< Integer parameter
       STRINGLIST, ///< More than one String Parameter

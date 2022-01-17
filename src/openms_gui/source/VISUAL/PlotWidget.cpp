@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,9 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/PlotWidget.h>
+
+#include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/HistogramDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/LayerStatisticsDialog.h>
-#include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 
 #include <QCloseEvent>
 #include <QtCore/QMimeData>
@@ -117,13 +119,21 @@ namespace OpenMS
   void PlotWidget::correctAreaToObeyMinMaxRanges_(PlotCanvas::AreaType& area)
   {
     if (area.maxX() > canvas()->getDataRange().maxX())
+    {
       area.setMaxX(canvas()->getDataRange().maxX());
+    }
     if (area.minX() < canvas()->getDataRange().minX())
+    {
       area.setMinX(canvas()->getDataRange().minX());
+    }
     if (area.maxY() > canvas()->getDataRange().maxY())
+    {
       area.setMaxY(canvas()->getDataRange().maxY());
+    }
     if (area.minY() < canvas()->getDataRange().minY())
+    {
       area.setMinY(canvas()->getDataRange().minY());
+    }
   }
 
   Int PlotWidget::getActionMode() const
@@ -142,13 +152,12 @@ namespace OpenMS
 
   void PlotWidget::showStatistics()
   {
-    LayerStatisticsDialog lsd(this);
+    LayerStatisticsDialog lsd(this, canvas_->getCurrentLayer().getStats());
     lsd.exec();
   }
 
-  void PlotWidget::showIntensityDistribution()
+  void PlotWidget::showIntensityDistribution(const Histogram<>& dist)
   {
-    Histogram<> dist = createIntensityDistribution_();
     HistogramDialog dw(dist);
     dw.setLegend(PlotWidget::INTENSITY_AXIS_TITLE);
     dw.setLogMode(true);
@@ -178,9 +187,8 @@ namespace OpenMS
     }
   }
 
-  void PlotWidget::showMetaDistribution(const String& name)
+  void PlotWidget::showMetaDistribution(const String& name, const Histogram<>& dist)
   {
-    Histogram<> dist = createMetaDistribution_(name);
     HistogramDialog dw(dist);
     dw.setLegend(name);
 
@@ -231,7 +239,7 @@ namespace OpenMS
     bool y_visible = y_scrollbar_->isVisible();
     x_scrollbar_->hide();
     y_scrollbar_->hide();
-    QPixmap pixmap = QPixmap::grabWidget(this);
+    QPixmap pixmap = this->grab();
     x_scrollbar_->setVisible(x_visible);
     y_scrollbar_->setVisible(y_visible);
     pixmap.save(file_name);
@@ -322,7 +330,7 @@ namespace OpenMS
     for (UInt l = 0; l < canvas()->getLayerCount(); ++l)
     {
       //modified => ask if it should be saved
-      const LayerData& layer = canvas()->getLayer(l);
+      const LayerDataBase& layer = canvas()->getLayer(l);
       if (layer.modified)
       {
         QMessageBox::StandardButton result = QMessageBox::question(this, "Save?", (String("Do you want to save your changes to layer '") + layer.getName() +  "'?").toQString(), QMessageBox::Ok | QMessageBox::Discard);

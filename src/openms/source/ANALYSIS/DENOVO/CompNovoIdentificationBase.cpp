@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -284,7 +284,7 @@ namespace OpenMS
     spec.sortByPosition();
   }
 
-  void CompNovoIdentificationBase::filterPermuts_(set<String> & permut)
+  void CompNovoIdentificationBase::filterPermuts_(set<String> & permut) const
   {
     set<String> tmp;
     for (set<String>::const_iterator it = permut.begin(); it != permut.end(); ++it)
@@ -470,7 +470,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
   }
 
   // s1 should be the original spectrum
-  double CompNovoIdentificationBase::compareSpectra_(const PeakSpectrum & s1, const PeakSpectrum & s2)
+  double CompNovoIdentificationBase::compareSpectra_(const PeakSpectrum & s1, const PeakSpectrum & s2) const
   {
     double score(0.0);
 
@@ -609,15 +609,15 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
   String CompNovoIdentificationBase::getModifiedStringFromAASequence_(const AASequence & sequence)
   {
     String seq;
-    for (AASequence::ConstIterator it = sequence.begin(); it != sequence.end(); ++it)
+    for (const Residue& res : sequence)
     {
-      if (residue_to_name_.has(&*it))
+      if (residue_to_name_.has(&res))
       {
-        seq += residue_to_name_[&*it];
+        seq += residue_to_name_[&res];
       }
       else
       {
-        seq += it->getOneLetterCode();
+        seq += res.getOneLetterCode();
       }
     }
     return seq;

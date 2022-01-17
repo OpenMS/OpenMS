@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,7 +41,7 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
@@ -222,7 +222,7 @@ using namespace OpenMS;
 
     protein_ids[0].setPrimaryMSRunPath({}, unprocessed_spectra);
 
-    if (unprocessed_spectra.empty() && unprocessed_spectra.getChromatograms().size() == 0)
+    if (unprocessed_spectra.empty() && unprocessed_spectra.getChromatograms().empty())
     {
       OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry." << endl;
@@ -512,10 +512,10 @@ using namespace OpenMS;
         vector< pair< Size, Size > > matched_spec_xlinks_alpha;
         vector< pair< Size, Size > > matched_spec_xlinks_beta;
 
-        if (linear_peaks.size() > 0)
+        if (!linear_peaks.empty())
         {
           DataArrays::IntegerDataArray exp_charges;
-          if (linear_peaks.getIntegerDataArrays().size() > 0)
+          if (!linear_peaks.getIntegerDataArrays().empty())
           {
             exp_charges = linear_peaks.getIntegerDataArrays()[0];
           }
@@ -547,10 +547,10 @@ using namespace OpenMS;
           continue;
         }
 
-        if (xlink_peaks.size() > 0)
+        if (!xlink_peaks.empty())
         {
           DataArrays::IntegerDataArray exp_charges;
-          if (xlink_peaks.getIntegerDataArrays().size() > 0)
+          if (!xlink_peaks.getIntegerDataArrays().empty())
           {
             exp_charges = xlink_peaks.getIntegerDataArrays()[0];
           }
@@ -673,7 +673,7 @@ using namespace OpenMS;
         DataArrays::FloatDataArray ppm_error_array_linear_beta;
         DataArrays::FloatDataArray ppm_error_array_xlinks_beta;
 
-        if (linear_peaks.size() > 0)
+        if (!linear_peaks.empty())
         {
           DataArrays::IntegerDataArray theo_charges_alpha;
           DataArrays::IntegerDataArray theo_charges_beta;
@@ -681,7 +681,7 @@ using namespace OpenMS;
 
           auto theo_alpha_it = getDataArrayByName(theoretical_spec_linear_alpha.getIntegerDataArrays(), "charge");
           theo_charges_alpha = *theo_alpha_it;
-          if (theoretical_spec_linear_beta.size() > 0)
+          if (!theoretical_spec_linear_beta.empty())
           {
             auto theo_beta_it = getDataArrayByName(theoretical_spec_linear_beta.getIntegerDataArrays(), "charge");
             theo_charges_beta = *theo_beta_it;
@@ -699,7 +699,7 @@ using namespace OpenMS;
           OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_linear_alpha, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_linear_alpha, linear_peaks, theo_charges_alpha, exp_charges, ppm_error_array_linear_alpha);
           OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_linear_beta, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_linear_beta, linear_peaks, theo_charges_beta, exp_charges, ppm_error_array_linear_beta);
         }
-        if (xlink_peaks.size() > 0)
+        if (!xlink_peaks.empty())
         {
           DataArrays::IntegerDataArray theo_charges_alpha;
           DataArrays::IntegerDataArray theo_charges_beta;
@@ -707,7 +707,7 @@ using namespace OpenMS;
 
           auto theo_alpha_it = getDataArrayByName(theoretical_spec_xlinks_alpha.getIntegerDataArrays(), "charge");
           theo_charges_alpha = *theo_alpha_it;
-          if (theoretical_spec_xlinks_beta.size() > 0)
+          if (!theoretical_spec_xlinks_beta.empty())
           {
             auto theo_beta_it = getDataArrayByName(theoretical_spec_xlinks_beta.getIntegerDataArrays(), "charge");
             theo_charges_beta = *theo_beta_it;
@@ -916,7 +916,7 @@ using namespace OpenMS;
               {
                 iso_peaks_xlinks_alpha.push_back(num_iso_peaks_array_xlinks[match.second]);
               }
-              if (iso_peaks_xlinks_alpha.size() > 0)
+              if (!iso_peaks_xlinks_alpha.empty())
               {
                 csm.num_iso_peaks_mean_xlinks_alpha = Math::mean(iso_peaks_xlinks_alpha.begin(), iso_peaks_xlinks_alpha.end());
               }
@@ -928,14 +928,14 @@ using namespace OpenMS;
               {
                 iso_peaks_xlinks_beta.push_back(num_iso_peaks_array_xlinks[match.second]);
               }
-              if (iso_peaks_xlinks_beta.size() > 0)
+              if (!iso_peaks_xlinks_beta.empty())
               {
                 csm.num_iso_peaks_mean_xlinks_beta = Math::mean(iso_peaks_xlinks_beta.begin(), iso_peaks_xlinks_beta.end());
               }
             }
           }
 
-          if (ppm_error_array_linear_alpha.size() > 0)
+          if (!ppm_error_array_linear_alpha.empty())
           {
             for (Size k = 0; k < ppm_error_array_linear_alpha.size(); ++k)
             {
@@ -944,7 +944,7 @@ using namespace OpenMS;
             csm.ppm_error_abs_sum_linear_alpha = csm.ppm_error_abs_sum_linear_alpha / ppm_error_array_linear_alpha.size();
           }
 
-          if (ppm_error_array_linear_beta.size() > 0)
+          if (!ppm_error_array_linear_beta.empty())
           {
             for (Size k = 0; k < ppm_error_array_linear_beta.size(); ++k)
             {
@@ -953,7 +953,7 @@ using namespace OpenMS;
             csm.ppm_error_abs_sum_linear_beta = csm.ppm_error_abs_sum_linear_beta / ppm_error_array_linear_beta.size();
           }
 
-          if (ppm_error_array_xlinks_alpha.size() > 0)
+          if (!ppm_error_array_xlinks_alpha.empty())
           {
             for (Size k = 0; k < ppm_error_array_xlinks_alpha.size(); ++k)
             {
@@ -962,7 +962,7 @@ using namespace OpenMS;
             csm.ppm_error_abs_sum_xlinks_alpha = csm.ppm_error_abs_sum_xlinks_alpha / ppm_error_array_xlinks_alpha.size();
           }
 
-          if (ppm_error_array_xlinks_beta.size() > 0)
+          if (!ppm_error_array_xlinks_beta.empty())
           {
             for (Size k = 0; k < ppm_error_array_xlinks_beta.size(); ++k)
             {
@@ -987,7 +987,7 @@ using namespace OpenMS;
           ppm_error_array.insert(ppm_error_array.end(), ppm_error_array_linear.begin(), ppm_error_array_linear.end());
           ppm_error_array.insert(ppm_error_array.end(), ppm_error_array_xlinks.begin(), ppm_error_array_xlinks.end());
 
-          if (ppm_error_array_linear.size() > 0)
+          if (!ppm_error_array_linear.empty())
           {
             for (double ppm_error : ppm_error_array_linear)
             {
@@ -996,7 +996,7 @@ using namespace OpenMS;
             csm.ppm_error_abs_sum_linear = csm.ppm_error_abs_sum_linear / ppm_error_array_linear.size();
           }
 
-          if (ppm_error_array_xlinks.size() > 0)
+          if (!ppm_error_array_xlinks.empty())
           {
             for (double ppm_error : ppm_error_array_xlinks)
             {
@@ -1005,7 +1005,7 @@ using namespace OpenMS;
             csm.ppm_error_abs_sum_xlinks = csm.ppm_error_abs_sum_xlinks / ppm_error_array_xlinks.size();
           }
 
-          if (ppm_error_array_alpha.size() > 0)
+          if (!ppm_error_array_alpha.empty())
           {
             for (double ppm_error : ppm_error_array_alpha)
             {
@@ -1014,7 +1014,7 @@ using namespace OpenMS;
             csm.ppm_error_abs_sum_alpha = csm.ppm_error_abs_sum_alpha / ppm_error_array_alpha.size();
           }
 
-          if (ppm_error_array_beta.size() > 0)
+          if (!ppm_error_array_beta.empty())
           {
             for (double ppm_error : ppm_error_array_beta)
             {
@@ -1023,7 +1023,7 @@ using namespace OpenMS;
             csm.ppm_error_abs_sum_beta = csm.ppm_error_abs_sum_beta / ppm_error_array_beta.size();
           }
 
-          if (ppm_error_array.size() > 0)
+          if (!ppm_error_array.empty())
           {
             for (double ppm_error : ppm_error_array)
             {
@@ -1203,7 +1203,7 @@ using namespace OpenMS;
         vector< pair< Size, Size > > matched_fragments_with_shift;
 
         spectrum_heavy_to_light.sortByPosition();
-        if (spectrum_heavy_to_light.size() > 0)
+        if (!spectrum_heavy_to_light.empty())
         {
           dummy_array.clear();
           OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_fragments_with_shift, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, spectrum_light, spectrum_heavy_to_light, dummy_charges, dummy_charges, dummy_array, 0.3);
@@ -1246,7 +1246,7 @@ using namespace OpenMS;
       for (Size i = 0; i != matched_fragments_without_shift.size(); ++i)
       {
         linear_peaks.push_back(spectrum_light[matched_fragments_without_shift[i].first]);
-        if (spectrum_light_charges.size() > 0)
+        if (!spectrum_light_charges.empty())
         {
           linear_peaks.getIntegerDataArrays()[0].push_back(spectrum_light_charges[matched_fragments_without_shift[i].first]);
           linear_peaks.getIntegerDataArrays()[1].push_back(spectrum_light_iso_peaks[matched_fragments_without_shift[i].first]);

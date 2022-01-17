@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -731,12 +731,12 @@ namespace OpenMS
 
     if (add_metainfo)
     {
-      if (spectrum.getIntegerDataArrays().size() == 0)
+      if (spectrum.getIntegerDataArrays().empty())
       {
         spectrum.getIntegerDataArrays().resize(1);
         spectrum.getIntegerDataArrays()[0].setName("Charges");
       }
-      if (spectrum.getStringDataArrays().size() == 0)
+      if (spectrum.getStringDataArrays().empty())
       {
         spectrum.getStringDataArrays().resize(1);
         spectrum.getStringDataArrays()[0].setName("IonNames");
@@ -915,7 +915,7 @@ namespace OpenMS
             Size region = std::min(mp_.number_regions - 1, (Size)floor(mp_.number_regions * prefix.getMonoWeight(Residue::Internal) / peptide.getMonoWeight()));
             std::vector<double>& props = mp_.conditional_prob[std::make_pair(*it, region)][bin];
             std::vector<double> weights;
-            std::transform(props.begin(), props.end(), std::back_inserter(weights), boost::bind(std::multiplies<double>(), _1, 10));
+            std::transform(props.begin(), props.end(), std::back_inserter(weights), [](auto && PH1) { return std::multiplies<double>()(std::forward<decltype(PH1)>(PH1), 10); });
             boost::random::discrete_distribution<Size> ddist(weights.begin(), weights.end());
             Size binned_int = ddist(rng);
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,7 +58,7 @@ START_TEST(ElementDB, "$Id$")
 
 EmpiricalFormula* e_ptr = nullptr;
 EmpiricalFormula* e_nullPointer = nullptr;
-const ElementDB * db = ElementDB::getInstance();
+const ElementDB* db = ElementDB::getInstance();
 
 EmpiricalFormula ef_empty;
 
@@ -135,6 +135,7 @@ START_SECTION(SignedSize getNumberOfAtoms() const)
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator<(const EmpiricalFormula& rhs))
+  // operator< compares pointers so this only works for same elements
   TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C6H2"), true)
   TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C5H3"), true)
   TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5H2"), true)
@@ -353,6 +354,9 @@ START_SECTION(double getMonoWeight() const)
                     e->getMonoWeight() * 2 - Constants::PROTON_MASS_U)
   TEST_REAL_SIMILAR(EmpiricalFormula("OH").getMonoWeight(), EmpiricalFormula("HO").getMonoWeight());
   TEST_REAL_SIMILAR(EmpiricalFormula("").getMonoWeight(), 0.0)
+
+  TEST_EQUAL(EmpiricalFormula("C5H2").getMonoWeight() < EmpiricalFormula("C5D2").getMonoWeight(), true)
+  TEST_EQUAL(EmpiricalFormula("C5D2").getMonoWeight() < EmpiricalFormula("C5T2").getMonoWeight(), true)
 END_SECTION
 
 START_SECTION(String toString() const)
@@ -391,6 +395,9 @@ START_SECTION(bool operator==(const EmpiricalFormula& rhs) const)
   TEST_EQUAL(ef1 == ef1, true)
   ef2.setCharge(1);
   TEST_EQUAL(ef2 == *e_ptr, false)
+
+  TEST_EQUAL(EmpiricalFormula("C5(2)H5") == EmpiricalFormula("C5D5"), true)
+  TEST_EQUAL(EmpiricalFormula("C5(3)H5") == EmpiricalFormula("C5T5"), true)
 END_SECTION
 
 START_SECTION(ConstIterator begin() const)
@@ -563,8 +570,8 @@ END_SECTION
 
 START_SECTION(([EXTRA] Check correct charge semantics))
   EmpiricalFormula ef1("H4C+"); // CH4 +1 charge
-  const Element * H = db->getElement("H");
-  const Element * C = db->getElement("C");
+  const Element* H = db->getElement("H");
+  const Element* C = db->getElement("C");
 
   TEST_EQUAL(ef1.getNumberOf(H), 4)
   TEST_EQUAL(ef1.getNumberOf(C), 1)
@@ -611,7 +618,24 @@ START_SECTION(([EXTRA] Check correct charge semantics))
   TEST_EQUAL(ef11.getCharge(), 3)
 END_SECTION
 
+START_SECTION((static EmpiricalFormula hydrogen(int n_atoms = 1)))
+{
+  EmpiricalFormula f("H");
+  EmpiricalFormula h = EmpiricalFormula::hydrogen();
+  TEST_EQUAL(f, h);
+}
+END_SECTION
+
+START_SECTION((static EmpiricalFormula hydrogen(int n_atoms = 1)))
+{
+  EmpiricalFormula f("H2O");
+  EmpiricalFormula w = EmpiricalFormula::water();
+  TEST_EQUAL(f, w);
+}
+END_SECTION
+
+delete e_ptr;
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,110 +69,6 @@ namespace OpenMS
 
   void Plot3DWidget::recalculateAxes_()
   {
-  }
-
-  Histogram<> Plot3DWidget::createIntensityDistribution_() const
-  {
-    //initialize histogram
-    double min = canvas_->getCurrentMinIntensity();
-    double max = canvas_->getCurrentMaxIntensity();
-    if (min == max)
-    {
-      min -= 0.01;
-      max += 0.01;
-    }
-    Histogram<> tmp(min, max, (max - min) / 500.0);
-
-    for (ExperimentType::ConstIterator spec_it = canvas_->getCurrentLayer().getPeakData()->begin(); spec_it != canvas_->getCurrentLayer().getPeakData()->end(); ++spec_it)
-    {
-      if (spec_it->getMSLevel() != 1)
-        continue;
-      for (ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
-      {
-        tmp.inc(peak_it->getIntensity());
-      }
-    }
-
-    return tmp;
-  }
-
-  Histogram<> Plot3DWidget::createMetaDistribution_(const String & name) const
-  {
-    Histogram<> tmp;
-
-    //determine min and max of the data
-    float m_min = (numeric_limits<float>::max)(), m_max = -(numeric_limits<float>::max)();
-    for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
-    {
-      if (s_it->getMSLevel() != 1)
-        continue;
-      //float arrays
-      for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
-      {
-        if (it->getName() == name)
-        {
-          for (Size i = 0; i < it->size(); ++i)
-          {
-            if ((*it)[i] < m_min)
-              m_min = (*it)[i];
-            if ((*it)[i] > m_max)
-              m_max = (*it)[i];
-          }
-          break;
-        }
-      }
-      //integer arrays
-      for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = s_it->getIntegerDataArrays().begin(); it != s_it->getIntegerDataArrays().end(); ++it)
-      {
-        if (it->getName() == name)
-        {
-          for (Size i = 0; i < it->size(); ++i)
-          {
-            if ((*it)[i] < m_min)
-              m_min = (*it)[i];
-            if ((*it)[i] > m_max)
-              m_max = (*it)[i];
-          }
-          break;
-        }
-      }
-    }
-    if (m_min >= m_max)
-      return tmp;
-
-    //create histogram
-    tmp.reset(m_min, m_max, (m_max - m_min) / 500.0);
-    for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
-    {
-      if (s_it->getMSLevel() != 1)
-        continue;
-      //float arrays
-      for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
-      {
-        if (it->getName() == name)
-        {
-          for (Size i = 0; i < it->size(); ++i)
-          {
-            tmp.inc((*it)[i]);
-          }
-          break;
-        }
-      }
-      //integer arrays
-      for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = s_it->getIntegerDataArrays().begin(); it != s_it->getIntegerDataArrays().end(); ++it)
-      {
-        if (it->getName() == name)
-        {
-          for (Size i = 0; i < it->size(); ++i)
-          {
-            tmp.inc((*it)[i]);
-          }
-          break;
-        }
-      }
-    }
-
-    return tmp;
   }
 
   void Plot3DWidget::showLegend(bool show)

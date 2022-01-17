@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
-#include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 
 namespace OpenMS
 {
@@ -53,25 +53,25 @@ public:
     ///@name Type definitions
     //@{
     /// Feature map type
-    typedef LayerData::FeatureMapType FeatureMapType;
+    typedef LayerDataBase::FeatureMapType FeatureMapType;
     /// Feature map managed type
-    typedef LayerData::FeatureMapSharedPtrType FeatureMapSharedPtrType;
+    typedef LayerDataBase::FeatureMapSharedPtrType FeatureMapSharedPtrType;
 
     /// Consensus feature map type
-    typedef LayerData::ConsensusMapType ConsensusMapType;
+    typedef LayerDataBase::ConsensusMapType ConsensusMapType;
     /// Consensus  map managed type
-    typedef LayerData::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
+    typedef LayerDataBase::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
 
     /// Peak map type
-    typedef LayerData::ExperimentType ExperimentType;
+    typedef LayerDataBase::ExperimentType ExperimentType;
     /// Main managed data type (experiment)
-    typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    typedef LayerDataBase::ExperimentSharedPtrType ExperimentSharedPtrType;
     /// Peak spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
     TVControllerBase() = delete;
 
-    virtual ~TVControllerBase() = default;
+    ~TVControllerBase() override = default;
 public slots:
     /// Slot for behavior activation. The default behaviour does nothing. Override in child class if desired.
     virtual void activateBehavior();

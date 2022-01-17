@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,13 +34,12 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <OpenMS/SYSTEM/File.h>
-
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 
 namespace OpenMS
 {
@@ -83,8 +82,10 @@ namespace OpenMS
 
   AnnotationStatistics& AnnotationStatistics::operator=(const AnnotationStatistics& rhs)
   {
-    if (this == &rhs) return *this;
-
+    if (this == &rhs)
+    {
+      return *this;
+    }
     states = rhs.states;
     return *this;
   }
@@ -103,7 +104,7 @@ namespace OpenMS
   FeatureMap::FeatureMap() :
     Base(),
     MetaInfoInterface(),
-    RangeManagerType(),
+    RangeManagerContainerType(),
     DocumentIdentifier(),
     UniqueIdInterface(),
     UniqueIdIndexer<FeatureMap>(),
@@ -116,24 +117,33 @@ namespace OpenMS
   FeatureMap::FeatureMap(const FeatureMap& source) :
     Base(source),
     MetaInfoInterface(source),
-    RangeManagerType(source),
+    RangeManagerContainerType(source),
     DocumentIdentifier(source),
     UniqueIdInterface(source),
     UniqueIdIndexer<FeatureMap>(source),
     protein_identifications_(source.protein_identifications_),
     unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
-    data_processing_(source.data_processing_)
+    data_processing_(source.data_processing_),
+    id_data_() // updated below
   {
+    // copy ID data and update references in features:
+    IdentificationData::RefTranslator trans = id_data_.merge(source.id_data_);
+    for (Feature& feature : *this)
+    {
+      feature.updateAllIDReferences(trans);
+    }
   }
 
-  FeatureMap::~FeatureMap()
-  {
-  }
+  FeatureMap::FeatureMap(FeatureMap&& source) = default;
+
+  FeatureMap::~FeatureMap() = default;
 
   FeatureMap& FeatureMap::operator=(const FeatureMap& rhs)
   {
-    if (&rhs == this) return *this;
-
+    if (&rhs == this)
+    {
+      return *this;
+    }
     Base::operator=(rhs);
     MetaInfoInterface::operator=(rhs);
     RangeManagerType::operator=(rhs);
@@ -156,6 +166,7 @@ namespace OpenMS
            protein_identifications_ == rhs.protein_identifications_ &&
            unassigned_peptide_identifications_ == rhs.unassigned_peptide_identifications_ &&
            data_processing_ == rhs.data_processing_;
+    // @TODO: implement "operator==" for IdentificationData?
   }
 
   bool FeatureMap::operator!=(const FeatureMap& rhs) const
@@ -176,7 +187,10 @@ namespace OpenMS
     // reset these:
     RangeManagerType::operator=(empty_map);
 
-    if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty()) OPENMS_LOG_INFO << "DocumentIdentifiers are lost during merge of FeatureMaps\n";
+    if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty())
+    {
+      OPENMS_LOG_INFO << "DocumentIdentifiers are lost during merge of FeatureMaps\n";
+    }
     DocumentIdentifier::operator=(empty_map);
 
     UniqueIdInterface::operator=(empty_map);
@@ -186,11 +200,20 @@ namespace OpenMS
     unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(), rhs.unassigned_peptide_identifications_.begin(), rhs.unassigned_peptide_identifications_.end());
     data_processing_.insert(data_processing_.end(), rhs.data_processing_.begin(), rhs.data_processing_.end());
 
+    Size n_old_features = size();
     // append features:
     this->insert(this->end(), rhs.begin(), rhs.end());
 
     // todo: check for double entries
     // features, unassignedpeptides, proteins...
+
+    // merge IDs (new format):
+    IdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
+    // update ID references of new features:
+    for (Size i = n_old_features; i < size(); ++i)
+    {
+      operator[](i).updateAllIDReferences(trans);
+    }
 
     // consistency
     try
@@ -210,70 +233,61 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::sort(this->begin(), this->end(), reverseComparator(FeatureType::IntensityLess()));
+      std::sort(this->begin(), this->end(), [](auto &left, auto &right) {Feature::IntensityLess cmp; return cmp(right, left);});
     }
     else
     {
-      std::sort(this->begin(), this->end(), FeatureType::IntensityLess());
+      std::sort(this->begin(), this->end(), Feature::IntensityLess());
     }
   }
 
   void FeatureMap::sortByPosition()
   {
-    std::sort(this->begin(), this->end(), FeatureType::PositionLess());
+    std::sort(this->begin(), this->end(), Feature::PositionLess());
   }
 
   void FeatureMap::sortByRT()
   {
-    std::sort(this->begin(), this->end(), FeatureType::RTLess());
+    std::sort(this->begin(), this->end(), Feature::RTLess());
   }
 
   void FeatureMap::sortByMZ()
   {
-    std::sort(this->begin(), this->end(), FeatureType::MZLess());
+    std::sort(this->begin(), this->end(), Feature::MZLess());
   }
 
   void FeatureMap::sortByOverallQuality(bool reverse)
   {
     if (reverse)
     {
-      std::sort(this->begin(), this->end(), reverseComparator(FeatureType::OverallQualityLess()));
+      std::sort(this->begin(), this->end(), [](auto& left, auto& right) {Feature::OverallQualityLess cmp; return cmp(right, left);});
     }
     else
     {
-      std::sort(this->begin(), this->end(), FeatureType::OverallQualityLess());
+      std::sort(this->begin(), this->end(), Feature::OverallQualityLess());
     }
   }
 
   void FeatureMap::updateRanges()
   {
-    this->clearRanges();
-    updateRanges_(this->begin(), this->end());
+    clearRanges();
+    for (const auto& f : (Base&) *this)
+    {
+      extendRT(f.getRT());
+      extendMZ(f.getMZ());
+      extendIntensity(f.getIntensity());
+    }
 
-    //enlarge the range by the convex hull points
+    // enlarge the range by the convex hull points
     for (Size i = 0; i < this->size(); ++i)
     {
-      DBoundingBox<2> box = this->operator[](i).getConvexHull().getBoundingBox();
+      const DBoundingBox<2>& box = this->operator[](i).getConvexHull().getBoundingBox();
       if (!box.isEmpty())
       {
-        //update RT
-        if (box.minPosition()[Peak2D::RT] < this->pos_range_.minPosition()[Peak2D::RT])
-        {
-          this->pos_range_.setMinX(box.minPosition()[Peak2D::RT]);
-        }
-        if (box.maxPosition()[Peak2D::RT] > this->pos_range_.maxPosition()[Peak2D::RT])
-        {
-          this->pos_range_.setMaxX(box.maxPosition()[Peak2D::RT]);
-        }
-        //update m/z
-        if (box.minPosition()[Peak2D::MZ] < this->pos_range_.minPosition()[Peak2D::MZ])
-        {
-          this->pos_range_.setMinY(box.minPosition()[Peak2D::MZ]);
-        }
-        if (box.maxPosition()[Peak2D::MZ] > this->pos_range_.maxPosition()[Peak2D::MZ])
-        {
-          this->pos_range_.setMaxY(box.maxPosition()[Peak2D::MZ]);
-        }
+        extendRT(box.minPosition()[Peak2D::RT]);
+        extendRT(box.maxPosition()[Peak2D::RT]);
+        extendMZ(box.minPosition()[Peak2D::MZ]);
+        extendMZ(box.maxPosition()[Peak2D::MZ]);
       }
     }
   }
@@ -308,6 +322,7 @@ namespace OpenMS
     protein_identifications_.swap(from.protein_identifications_);
     unassigned_peptide_identifications_.swap(from.unassigned_peptide_identifications_);
     data_processing_.swap(from.data_processing_);
+    id_data_.swap(from.id_data_);
   }
 
   const std::vector<ProteinIdentification>& FeatureMap::getProteinIdentifications() const
@@ -363,14 +378,14 @@ namespace OpenMS
       OPENMS_LOG_WARN << "Setting empty MS runs paths." << std::endl;
       this->setMetaValue("spectra_data", DataValue(s));
       return;
-    } 
+    }
 
     for (const String& filename : s)
     {
       if (!filename.hasSuffix("mzML") && !filename.hasSuffix("mzml"))
       {
         OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS run." << std::endl
-                        << "Filename: '" << filename << "'" << std::endl;                          
+                        << "Filename: '" << filename << "'" << std::endl;
       }
     }
 
@@ -378,7 +393,7 @@ namespace OpenMS
   }
 
 
-  void FeatureMap::setPrimaryMSRunPath(const StringList& s, MSExperiment & e)
+  void FeatureMap::setPrimaryMSRunPath(const StringList& s, MSExperiment& e)
   {
     StringList ms_path;
     e.getPrimaryMSRunPath(ms_path);
@@ -389,7 +404,7 @@ namespace OpenMS
     else
     {
       setPrimaryMSRunPath(s);
-    }        
+    }
   }
 
 
@@ -399,8 +414,8 @@ namespace OpenMS
     if (this->metaValueExists("spectra_data"))
     {
       toFill = this->getMetaValue("spectra_data");
-    }          
-     
+    }
+
     if (toFill.empty())
     {
       OPENMS_LOG_WARN << "No MS run annotated in feature map. Setting to 'UNKNOWN' " << std::endl;
@@ -421,6 +436,7 @@ namespace OpenMS
       protein_identifications_.clear();
       unassigned_peptide_identifications_.clear();
       data_processing_.clear();
+      id_data_.clear();
     }
   }
 
@@ -432,6 +448,40 @@ namespace OpenMS
       result += iter->getAnnotationState();
     }
     return result;
+  }
+
+
+  std::set<IdentificationDataInternal::ObservationMatchRef> FeatureMap::getUnassignedIDMatches() const
+  {
+    std::set<IdentificationData::ObservationMatchRef> all_matches;
+    for (auto it = id_data_.getObservationMatches().begin();
+         it != id_data_.getObservationMatches().end(); ++it)
+    {
+      all_matches.insert(it);
+    }
+    std::set<IdentificationData::ObservationMatchRef> assigned_matches;
+    for (const Feature& feat : *this)
+    {
+      assigned_matches.insert(feat.getIDMatches().begin(), feat.getIDMatches().end());
+      // @TODO: consider subordinate features? - probably not
+    }
+    std::set<IdentificationData::ObservationMatchRef> result;
+    std::set_difference(all_matches.begin(), all_matches.end(),
+                   assigned_matches.begin(), assigned_matches.end(),
+                   inserter(result, result.end()));
+    return result;
+  }
+
+
+  const IdentificationData& FeatureMap::getIdentificationData() const
+  {
+    return id_data_;
+  }
+
+
+  IdentificationData& FeatureMap::getIdentificationData()
+  {
+    return id_data_;
   }
 
 }

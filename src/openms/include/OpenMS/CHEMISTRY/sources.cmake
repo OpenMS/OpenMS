@@ -5,6 +5,7 @@ set(directory include/OpenMS/CHEMISTRY)
 set(sources_list_h
 AAIndex.h
 AASequence.h
+AdductInfo.h
 CrossLinksDB.h
 DecoyGenerator.h
 Element.h
@@ -19,6 +20,7 @@ DigestionEnzymeDB.h
 ModificationDefinition.h
 ModificationDefinitionsSet.h
 ModifiedNASequenceGenerator.h
+ModifiedPeptideGenerator.h
 ModificationsDB.h
 NASequence.h
 NucleicAcidSpectrumGenerator.h

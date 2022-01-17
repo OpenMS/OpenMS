@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
@@ -152,7 +153,7 @@ protected:
     //registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
     //registerIntOption_("precursor_tolerance_type", "<num>", 0, "0=average masses, 1=monoisotopic masses", false, false);
     registerStringOption_(Constants::UserParam::ISOTOPE_ERROR, "<choice>", "off", "This parameter controls whether the peptide_mass_tolerance takes into account possible isotope errors in the precursor mass measurement. Use -8/-4/0/4/8 only for SILAC.", false, false);
-    setValidStrings_(Constants::UserParam::ISOTOPE_ERROR, ListUtils::create<String>("off,0/1,0/1/2,0/1/2/3,-8/-4/0/4/8"));
+    setValidStrings_(Constants::UserParam::ISOTOPE_ERROR, ListUtils::create<String>("off,0/1,0/1/2,0/1/2/3,-8/-4/0/4/8,-1/0/1/2/3"));
 
     //Fragment Ions
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.01,
@@ -260,6 +261,9 @@ protected:
     registerIntOption_("max_variable_mods_in_peptide", "<num>", 5, "Set a maximum number of variable modifications per peptide", false, true);
     registerStringOption_("require_variable_mod", "<bool>", "false", "If true, requires at least one variable modification per peptide", false, true);
     setValidStrings_("require_variable_mod", ListUtils::create<String>("true,false"));
+
+    // register peptide indexing parameter (with defaults for this search engine) TODO: check if search engine defaults are needed
+    registerPeptideIndexingParameter_(PeptideIndexing().getParameters()); 
   }
 
   const vector<const ResidueModification*> getModifications_(const StringList& modNames)
@@ -303,6 +307,7 @@ protected:
     isotope_error["0/1/2"] = 2;
     isotope_error["0/1/2/3"] = 3;
     isotope_error["-8/-4/0/4/8"] = 4;
+    isotope_error["-1/0/1/2/3"] = 5;
 
     os << "peptide_mass_tolerance = " << getDoubleOption_("precursor_mass_tolerance") << "\n";
     os << "peptide_mass_units = " << precursor_error_units[getStringOption_("precursor_error_units")] << "\n";                  // 0=amu, 1=mmu, 2=ppm
@@ -338,7 +343,7 @@ protected:
     }
 
     IntList binary_modifications = getIntList_("binary_modifications");
-    if (binary_modifications.size() != 0 && binary_modifications.size() != variable_modifications.size())
+    if (!binary_modifications.empty() && binary_modifications.size() != variable_modifications.size())
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: List of binary modifications needs to have same size as variable modifications.");
     }
@@ -442,14 +447,20 @@ protected:
     {
       OPENMS_LOG_ERROR << "Fragment bin size (== 2x 'fragment_mass_tolerance') or offset is quite low for low-res instruments (Comet recommends 1.005 Da bin size & 0.4 Da offset). "
                        << "Current value: fragment bin size = " << bin_tol << "(=2x" << bin_tol/2 << ") and offset = " << bin_offset << ". Use the '-force' flag to continue anyway." << std::endl;
-      if (!getFlag_("force")) return ExitCodes::ILLEGAL_PARAMETERS;
+      if (!getFlag_("force"))
+      {
+        return ExitCodes::ILLEGAL_PARAMETERS;
+      }
       OPENMS_LOG_ERROR << "You used the '-force'!" << std::endl;
     }
     else if (instrument == "high_res" && (bin_tol > 0.1 || bin_offset > 0.1))
     {
       OPENMS_LOG_ERROR << "Fragment bin size (== 2x 'fragment_mass_tolerance') or offset is quite high for high-res instruments (Comet recommends 0.02 Da bin size & 0.0 Da offset). "
                        << "Current value: fragment bin size = " << bin_tol << "(=2x" << bin_tol / 2 << ") and offset = " << bin_offset << ". Use the '-force' flag to continue anyway." << std::endl;
-      if (!getFlag_("force")) return ExitCodes::ILLEGAL_PARAMETERS;
+      if (!getFlag_("force"))
+      {
+        return ExitCodes::ILLEGAL_PARAMETERS;
+      }
       OPENMS_LOG_ERROR << "You used the '-force'!" << std::endl;
     }
 
@@ -728,6 +739,9 @@ protected:
     {
       DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
     }
+
+    // if "reindex" parameter is set to true will perform reindexing
+    if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,7 +73,7 @@ public:
     /// Default constructor
     DTA2DFile();
     /// Destructor
-    ~DTA2DFile();
+    ~DTA2DFile() override;
     //@}
 
     /// Mutable access to the options for loading/storing
@@ -318,7 +318,7 @@ public:
       // write header (Always MZ=0 for chromatograms in DTA2D.)
       os << "#SEC\tMZ\tINT\n";
 
-      typename MapType::ChromatogramType TIC = map.getTIC();
+      typename MapType::ChromatogramType TIC = map.calculateTIC();
       for (typename MapType::ChromatogramType::ConstIterator it = TIC.begin(); it != TIC.end(); ++it)
       {
         // write rt, (mz=0) and intensity.

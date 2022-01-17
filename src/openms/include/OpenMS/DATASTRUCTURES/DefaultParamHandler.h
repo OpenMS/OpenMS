@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -143,7 +143,7 @@ public:
     * @param key_prefix  Will be added in front of the parameter name for the meta value key.
     *                    If the prefix isn't empty and doesn't end with a colon one will be added.
     */
-    static void writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& prefix = "");
+    static void writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& key_prefix = "");
 
 protected:
     /**
@@ -155,7 +155,11 @@ protected:
     */
     virtual void updateMembers_();
 
-    ///Updates the parameters after the defaults have been set in the constructor
+    /**
+       @brief Updates the parameters after the defaults have been set in the constructor
+
+       Also calls updateMembers_().
+    */
     void defaultsToParam_();
 
     ///Container for current parameters
@@ -182,16 +186,16 @@ protected:
         @brief If this member is set to false no checking if parameters in done;
 
         The only reason to set this member to false is that the derived class has no parameters!
-However, if a grand-child has defaults and you are using a base class cast, checking will
-not be done when casting back to grand-child. To just omit the warning, use 'warn_empty_defaults_'
+        However, if a grand-child has defaults and you are using a base class cast, checking will
+        not be done when casting back to grand-child. To just omit the warning, use 'warn_empty_defaults_'
     */
     bool check_defaults_;
 
     /**
-              @brief If this member is set to false no warning is emitted when defaults are empty;
+        @brief If this member is set to false no warning is emitted when defaults are empty;
 
-              The only reason to set this member to false is that the derived class has no parameters!
-      @see check_defaults_
+        The only reason to set this member to false is that the derived class has no parameters!
+        @see check_defaults_
           */
     bool warn_empty_defaults_;
 
@@ -202,4 +206,3 @@ private:
   }; //class
 
 } // namespace OPENMS
-

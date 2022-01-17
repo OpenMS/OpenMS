@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
@@ -174,11 +175,17 @@ public:
     switch (type)
     {
       case NONE:
+      {
         return "NONE";
+      }
       case CMD:
+      {
         return "CMD";
+      }
       case GUI:
+      {
         return "GUI";
+      }
     }
 
 // should never happen but gcc emits a warning/error
@@ -205,7 +212,10 @@ public:
 
   ProgressLogger& ProgressLogger::operator=(const ProgressLogger& other)
   {
-    if (&other == this) return *this;
+    if (&other == this)
+    {
+      return *this;
+    }
 
     this->last_invoke_ = other.last_invoke_;
     this->type_ = other.type_;
@@ -249,8 +259,10 @@ public:
   void ProgressLogger::setProgress(SignedSize value) const
   {
     // update only if at least 1 second has passed
-    if (last_invoke_ == time(nullptr)) return;
-
+    if (last_invoke_ == time(nullptr))
+    {
+      return;
+    }
     last_invoke_ = time(nullptr);
     current_logger_->setProgress(value, recursion_depth_);
   }
@@ -258,7 +270,10 @@ public:
   {
     auto p = current_logger_->nextProgress();
     // update only if at least 1 second has passed
-    if (last_invoke_ == time(nullptr)) return;
+    if (last_invoke_ == time(nullptr))
+    {
+      return;
+    }
 
     last_invoke_ = time(nullptr);
     current_logger_->setProgress(p, recursion_depth_);

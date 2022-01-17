@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,10 +32,12 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -176,13 +178,13 @@ protected:
                            String filename)
   {
     if (test_mode_) { filename = File::basename(filename); }
-    
-    for (ProteinIdentification & protein : proteins)
+
+    for (ProteinIdentification& protein : proteins)
     {
       protein.setMetaValue("file_origin", DataValue(filename));
     }
 
-    for (PeptideIdentification & pep : peptides)
+    for (PeptideIdentification& pep : peptides)
     {
       pep.setMetaValue("file_origin", DataValue(filename));
     }
@@ -190,13 +192,17 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    vector<String> formats = {"idXML", "oms"};
+    registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks (all must have the same type)");
+    setValidFormats_("in", formats);
+    registerOutputFile_("out", "<file>", "", "Output file (must have the same type as the input files)");
+    setValidFormats_("out", formats);
+    registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
+    setValidStrings_("out_type", formats);
     registerInputFile_("add_to", "<file>", "", "Optional input file. IDs from 'in' are added to this file, but only if the (modified) peptide sequences are not present yet (considering only best hits per spectrum).", false);
-    setValidFormats_("add_to", ListUtils::create<String>("idXML"));
-    registerFlag_("annotate_file_origin", "Store the original filename in each protein/peptide identification (meta value: file_origin).");
+    setValidFormats_("add_to", {"idXML"}); // .oms input currently not supported
+    registerStringOption_("annotate_file_origin", "<annotate>", "true", "Store the original filename in each protein/peptide identification (meta value: 'file_origin') - idXML input/output only", false);
+    setValidStrings_("annotate_file_origin", {"true","false"});
     registerFlag_("pepxml_protxml", "Merge idXML files derived from a pepXML and corresponding protXML file.\nExactly two input files are expected in this case. Not compatible with 'add_to'.");
     registerFlag_("merge_proteins_add_PSMs", "Merge all identified proteins by accession into one protein identification run but keep all the PSMs with updated links to potential new protein ID#s. Not compatible with 'add_to'.");
   }
@@ -209,7 +215,7 @@ protected:
     StringList file_names = getStringList_("in");
     String out = getStringOption_("out");
     String add_to = getStringOption_("add_to");
-    bool annotate_file_origin = getFlag_("annotate_file_origin");
+    bool annotate_file_origin = getStringOption_("annotate_file_origin") == "true" ? true : false;
 
     if (file_names.empty())
     {
@@ -246,9 +252,70 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
+    // check file types:
+    FileTypes::Type type;
+    String out_type = getStringOption_("out_type");
+    if (!out_type.empty())
+    {
+      type = FileTypes::nameToType(out_type);
+    }
+    else
+    {
+      type = FileHandler::getTypeByFileName(out);
+    }
+    for (const String& file_name : file_names)
+    {
+      FileTypes::Type current_type = FileHandler::getType(file_name);
+      if ((type == FileTypes::UNKNOWN) && (current_type != FileTypes::UNKNOWN))
+      {
+        type = current_type; // determine output file type from input
+        continue;
+      }
+      if (current_type != type)
+      {
+        writeLog_("Mixing different file types is not supported. Aborting!");
+        printUsage_();
+        return ILLEGAL_PARAMETERS;
+      }
+    }
+    if (type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Could not determine input/output file type. Aborting!");
+        printUsage_();
+        return ILLEGAL_PARAMETERS;
+    }
+
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
+
+    if (type == FileTypes::OMS)
+    {
+      if (!add_to.empty() || pepxml_protxml || merge_proteins_add_PSMs)
+      {
+        // 'annotate_file_origin' is on by default - just ignore it
+        writeLog_("Options are currently not supported when merging .oms files. Aborting!");
+        printUsage_();
+        return ILLEGAL_PARAMETERS;
+      }
+
+      OMSFile oms_file;
+      // load first file (others will be merged in):
+      IdentificationData data;
+      oms_file.load(file_names[0], data);
+      // merge in other files:
+      for (Size index = 1; index < file_names.size(); ++index)
+      {
+        IdentificationData more_data;
+        oms_file.load(file_names[index], more_data);
+        data.merge(more_data);
+      }
+
+      oms_file.store(out, data);
+      return EXECUTION_OK;
+    }
+
+    // file type: idXML
     vector<ProteinIdentification> proteins;
     vector<PeptideIdentification> peptides;
 
@@ -290,9 +357,9 @@ protected:
 
   void mergeIds_(StringList file_names,
                  bool annotate_file_origin,
-                 const String &add_to,
-                 vector<ProteinIdentification> & proteins,
-                 vector<PeptideIdentification> & peptides)
+                 const String& add_to,
+                 vector<ProteinIdentification>& proteins,
+                 vector<PeptideIdentification>& peptides)
   {
     map<String, ProteinIdentification> proteins_by_id;
     vector<vector<PeptideIdentification> > peptides_by_file;
@@ -383,7 +450,10 @@ protected:
           {
             OPENMS_LOG_DEBUG << "accession: " << acc << endl;
             // skip ahead if accession is not new:
-            if (accessions.find(acc) != accessions.end()) continue;
+            if (accessions.find(acc) != accessions.end())
+            {
+              continue;
+            }
             OPENMS_LOG_DEBUG << "new accession!" << endl;
             // first find the right protein identification:
             const String& id = pep_it->getIdentifier();

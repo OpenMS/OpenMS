@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/METADATA/DataArrays.h>
 
@@ -53,7 +52,7 @@ namespace OpenMS
 
   class OPENMS_DLLAPI MSChromatogram :
     private std::vector<ChromatogramPeak>,
-    public RangeManager<1>,
+    public RangeManagerContainer<RangeRT, RangeIntensity>,
     public ChromatogramSettings
   {
 
@@ -73,6 +72,8 @@ public:
     typedef typename PeakType::CoordinateType CoordinateType;
     /// Chromatogram base type
     typedef std::vector<PeakType> ContainerType;
+    /// RangeManager
+    typedef RangeManager<RangeRT, RangeIntensity> RangeManagerType;
     /// Float data array vector type
     typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
     typedef std::vector<FloatDataArray> FloatDataArrays;
@@ -135,8 +136,7 @@ public:
     MSChromatogram(MSChromatogram&&) = default;
 
     /// Destructor
-    ~MSChromatogram() override
-    {}
+    ~MSChromatogram() = default;
 
     /// Assignment operator
     MSChromatogram& operator=(const MSChromatogram& source);
@@ -156,8 +156,12 @@ public:
     // Docu in base class (RangeManager)
     void updateRanges() override
     {
-      this->clearRanges();
-      updateRanges_(ContainerType::begin(), ContainerType::end());
+      clearRanges();
+      for (const auto& peak : (ContainerType&) *this)
+      {
+        extendRT(peak.getRT());
+        extendIntensity(peak.getIntensity());
+      }
     }
 
     ///@name Accessors for meta information
@@ -416,7 +420,7 @@ public:
     ///@}
 
     /**
-      @brief Adds all the ChromatogramPeaks from another MSChromatogram and updates the metadata to indicate a merge
+      @brief Adds all the chromatogram peaks from another MSChromatogram and updates the metadata to indicate a merge
 
       @note Make sure BOTH chromatograms are sorted with respect to RT. Otherwise the result is
       undefined.

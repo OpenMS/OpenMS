@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,7 +85,7 @@ namespace OpenMS
 
         return editor;
       }
-      else if (type_ == ListEditor::STRING && restrictions_ != "")
+      else if (type_ == ListEditor::STRING && !restrictions_.empty())
       {
         QComboBox * editor = new QComboBox(parent);
         QStringList list;
@@ -185,11 +185,11 @@ namespace OpenMS
               vector<String> parts;
               if (restrictions_.split(' ', parts))
               {
-                if (parts[0] != "" && new_value.toInt() < parts[0].toInt())
+                if (!parts[0].empty() && new_value.toInt() < parts[0].toInt())
                 {
                   restrictions_met = false;
                 }
-                if (parts[1] != "" && new_value.toInt() > parts[1].toInt())
+                if (!parts[1].empty() && new_value.toInt() > parts[1].toInt())
                 {
                   restrictions_met = false;
                 }
@@ -206,18 +206,20 @@ namespace OpenMS
                 QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()));
                 new_value = present_value;
                 if (new_value == "")
+                {
                   new_value = 0;
+                }
               }
 
               //restrictions
               vector<String> parts;
               if (restrictions_.split(' ', parts))
               {
-                if (parts[0] != "" && new_value.toDouble() < parts[0].toDouble())
+                if (!parts[0].empty() && new_value.toDouble() < parts[0].toDouble())
                 {
                   restrictions_met = false;
                 }
-                if (parts[1] != "" && new_value.toDouble() > parts[1].toDouble())
+                if (!parts[1].empty() && new_value.toDouble() > parts[1].toDouble())
                 {
                   restrictions_met = false;
                 }
@@ -285,7 +287,7 @@ namespace OpenMS
       for (Int i = 0; i < count(); ++i)
       {
         stringit = item(i)->text();
-        if (stringit != "")
+        if (!stringit.empty())
         {
           stringit.trim();
         }

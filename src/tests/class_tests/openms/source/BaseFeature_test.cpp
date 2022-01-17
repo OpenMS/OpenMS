@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -429,8 +429,6 @@ START_SECTION((AnnotationState getAnnotationState() const))
   hit.setSequence(AASequence::fromString("KRGH"));
   ids[1].setHits(std::vector<PeptideHit>(1, hit)); // different to first hit
   TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_MULTIPLE_DIVERGENT);
-
-
 END_SECTION
 
 START_SECTION((sortPeptideIdentifications()))

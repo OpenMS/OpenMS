@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,94 +39,94 @@
 
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
+
+  AcqusHandler::AcqusHandler(const String & filename)
   {
+    params_.clear();
 
-    AcqusHandler::AcqusHandler(const String & filename)
+    std::ifstream is(filename.c_str());
+    if (!is)
     {
-      params_.clear();
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+    }
 
-      std::ifstream is(filename.c_str());
-      if (!is)
+    //temporary variables
+    String line;
+    std::vector<String> strings(2);
+
+    //read lines
+    while (getline(is, line, '\n'))
+    {
+      if (line.size() < 5)
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        continue;                    // minimal string = "##x=x"
       }
-
-      //temporary variables
-      String line;
-      std::vector<String> strings(2);
-
-      //read lines
-      while (getline(is, line, '\n'))
+      if (line.prefix(2) != String("##"))
       {
-        if (line.size() < 5)
-          continue;                    // minimal string = "##x=x"
-        if (line.prefix(2) != String("##"))
-          continue;
-
-        if (line.split('=', strings))
+        continue;
+      }
+      if (line.split('=', strings))
+      {
+        if (strings.size() == 2)
         {
-          if (strings.size() == 2)
-          {
-            params_[strings[0].substr(2)] = strings[1].trim();
-          }
+          params_[strings[0].substr(2)] = strings[1].trim();
         }
       }
-
-      // TOF calibration params
-      dw_ = params_[String("$DW")].toDouble();
-      delay_ = (Size)params_[String("$DELAY")].toInt();
-      ml1_ = params_[String("$ML1")].toDouble();
-      ml2_ = params_[String("$ML2")].toDouble();
-      ml3_ = params_[String("$ML3")].toDouble();
-      td_ = (Size) params_[String("$TD")].toInt();
-
-      is.close();
     }
 
-    AcqusHandler::~AcqusHandler()
+    // TOF calibration params
+    dw_ = params_[String("$DW")].toDouble();
+    delay_ = (Size)params_[String("$DELAY")].toInt();
+    ml1_ = params_[String("$ML1")].toDouble();
+    ml2_ = params_[String("$ML2")].toDouble();
+    ml3_ = params_[String("$ML3")].toDouble();
+    td_ = (Size) params_[String("$TD")].toInt();
+
+    is.close();
+  }
+
+  AcqusHandler::~AcqusHandler()
+  {
+    params_.clear();
+  }
+
+  Size AcqusHandler::getSize() const
+  {
+    return td_;
+  }
+
+  double AcqusHandler::getPosition(const Size index) const
+  {
+    double sqrt_mz_;
+    double tof_ = dw_ * index + delay_;
+    double a_ = ml3_;
+    double b_ = sqrt(1000000000000.0 / ml1_);
+    double c_ = ml2_ - tof_;
+
+    if (ml3_ == 0.0)
     {
-      params_.clear();
+      sqrt_mz_ = c_ / b_;
     }
-
-    Size AcqusHandler::getSize()
+    else
     {
-      return td_;
+      sqrt_mz_ = (sqrt(b_ * b_ - 4 * a_ * c_) - b_) / (2 * a_);
     }
+    return sqrt_mz_ * sqrt_mz_;
+  }
 
-    double AcqusHandler::getPosition(const Size index)
+  String AcqusHandler::getParam(const String & param)
+  {
+    if (param == String("mzMax"))
     {
-      double sqrt_mz_;
-      double tof_ = dw_ * index + delay_;
-      double a_ = ml3_;
-      double b_ = sqrt(1000000000000.0 / ml1_);
-      double c_ = ml2_ - tof_;
-
-      if (ml3_ == 0.0)
-      {
-        sqrt_mz_ = c_ / b_;
-      }
-      else
-      {
-        sqrt_mz_ = (sqrt(b_ * b_ - 4 * a_ * c_) - b_) / (2 * a_);
-      }
-      return sqrt_mz_ * sqrt_mz_;
+      return String(getPosition(td_ - 1));
     }
-
-    String AcqusHandler::getParam(const String & param)
+    else if (param == String("mzMin"))
     {
-      if (param == String("mzMax"))
-      {
-        return String(getPosition(td_ - 1));
-      }
-      else if (param == String("mzMin"))
-      {
-        return String(getPosition(0));
-      }
-      return params_[param];
+      return String(getPosition(0));
     }
+    return params_[param];
+  }
 
-  }   // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS    // namespace Internal

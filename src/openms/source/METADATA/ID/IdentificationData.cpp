@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,7 @@ namespace OpenMS
   {
     for (const auto& step : steps_and_scores)
     {
-      if ((step.processing_step_opt != boost::none) &&
+      if ((step.processing_step_opt != std::nullopt) &&
           (!isValidReference_(*step.processing_step_opt, processing_steps_)))
       {
         String msg = "invalid reference to a data processing step - register that first";
@@ -76,15 +76,15 @@ namespace OpenMS
   {
     for (const auto& pair : matches)
     {
-      if (!isValidHashedReference_(pair.first, parent_molecule_lookup_))
+      if (!isValidHashedReference_(pair.first, parent_lookup_))
       {
-        String msg = "invalid reference to a parent molecule - register that first";
+        String msg = "invalid reference to a parent sequence - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
       if (pair.first->molecule_type != expected_type)
       {
-        String msg = "unexpected molecule type for parent molecule";
+        String msg = "unexpected molecule type for parent sequence";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -93,23 +93,41 @@ namespace OpenMS
 
 
   IdentificationData::InputFileRef
-  IdentificationData::registerInputFile(const String& file)
+  IdentificationData::registerInputFile(const InputFile& file)
   {
-    return input_files_.insert(file).first;
+    if (!no_checks_ && file.name.empty()) // key may not be empty
+    {
+      String msg = "input file must have a name";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    auto result = input_files_.insert(file);
+    if (!result.second) // existing element - merge in new information
+    {
+      input_files_.modify(result.first, [&file](InputFile& existing)
+                          {
+                            existing.merge(file);
+                          });
+    }
+
+    return result.first;
   }
 
 
   IdentificationData::ProcessingSoftwareRef
-  IdentificationData::registerDataProcessingSoftware(
-    const DataProcessingSoftware& software)
+  IdentificationData::registerProcessingSoftware(
+    const ProcessingSoftware& software)
   {
-    for (ScoreTypeRef score_ref : software.assigned_scores)
+    if (!no_checks_)
     {
-      if (!isValidReference_(score_ref, score_types_))
+      for (ScoreTypeRef score_ref : software.assigned_scores)
       {
-        String msg = "invalid reference to a score type - register that first";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
+        if (!isValidReference_(score_ref, score_types_))
+        {
+          String msg = "invalid reference to a score type - register that first";
+          throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                           OPENMS_PRETTY_FUNCTION, msg);
+        }
       }
     }
     return processing_softwares_.insert(software).first;
@@ -125,32 +143,35 @@ namespace OpenMS
 
 
   IdentificationData::ProcessingStepRef
-  IdentificationData::registerDataProcessingStep(
-    const DataProcessingStep& step)
+  IdentificationData::registerProcessingStep(
+    const ProcessingStep& step)
   {
-    return registerDataProcessingStep(step, db_search_params_.end());
+    return registerProcessingStep(step, db_search_params_.end());
   }
 
 
   IdentificationData::ProcessingStepRef
-  IdentificationData::registerDataProcessingStep(
-    const DataProcessingStep& step, SearchParamRef search_ref)
+  IdentificationData::registerProcessingStep(
+    const ProcessingStep& step, SearchParamRef search_ref)
   {
-    // valid reference to software is required:
-    if (!isValidReference_(step.software_ref, processing_softwares_))
+    if (!no_checks_)
     {
-      String msg = "invalid reference to data processing software - register that first";
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, msg);
-    }
-    // if given, references to input files must be valid:
-    for (InputFileRef ref : step.input_file_refs)
-    {
-      if (!isValidReference_(ref, input_files_))
+      // valid reference to software is required:
+      if (!isValidReference_(step.software_ref, processing_softwares_))
       {
-        String msg = "invalid reference to input file - register that first";
+        String msg = "invalid reference to data processing software - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
+      }
+      // if given, references to input files must be valid:
+      for (InputFileRef ref : step.input_file_refs)
+      {
+        if (!isValidReference_(ref, input_files_))
+        {
+          String msg = "invalid reference to input file - register that first";
+          throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                           OPENMS_PRETTY_FUNCTION, msg);
+        }
       }
     }
 
@@ -158,11 +179,11 @@ namespace OpenMS
     // if given, reference to DB search param. must be valid:
     if (search_ref != db_search_params_.end())
     {
-      if (!isValidReference_(search_ref, db_search_params_))
+      if (!no_checks_ && !isValidReference_(search_ref, db_search_params_))
       {
         String msg = "invalid reference to database search parameters - register those first";
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, msg);
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
       }
       db_search_steps_.insert(make_pair(step_ref, search_ref));
     }
@@ -173,9 +194,10 @@ namespace OpenMS
   IdentificationData::ScoreTypeRef
   IdentificationData::registerScoreType(const ScoreType& score)
   {
-    if (score.cv_term.getAccession().empty() && score.cv_term.getName().empty())
+    // @TODO: allow just an accession? (all look-ups are currently by name)
+    if (!no_checks_ && score.cv_term.getName().empty())
     {
-      String msg = "score type must have an accession or a name";
+      String msg = "score type must have a name (as part of its CV term)";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -190,28 +212,42 @@ namespace OpenMS
     return result.first;
   }
 
-
-  IdentificationData::DataQueryRef
-  IdentificationData::registerDataQuery(const DataQuery& query)
+  IdentificationData::ObservationRef
+  IdentificationData::registerObservation(const Observation& obs)
   {
-    // reference to spectrum or feature is required:
-    if (query.data_id.empty())
+    if (!no_checks_)
     {
-      String msg = "missing identifier in data query";
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, msg);
+      // reference to spectrum or feature is required:
+      if (obs.data_id.empty())
+      {
+        String msg = "missing identifier in observation";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+      // ref. to input file must be valid:
+      if (!isValidReference_(obs.input_file, input_files_))
+      {
+        String msg = "invalid reference to an input file - register that first";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
     }
-    // ref. to input file may be missing, but must otherwise be valid:
-    if (query.input_file_opt && !isValidReference_(*query.input_file_opt,
-                                                   input_files_))
+
+    // can't use "insertIntoMultiIndex_" because Observation doesn't have the
+    // "steps_and_scores" member (from ScoredProcessingResult)
+    auto result = observations_.insert(obs);
+    if (!result.second) // existing element - merge in new information
     {
-      String msg = "invalid reference to an input file - register that first";
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, msg);
+      observations_.modify(result.first, [&obs](Observation& existing)
+                           {
+                             existing.merge(obs);
+                           });
     }
-    DataQueryRef ref = data_queries_.insert(query).first;
-    data_query_lookup_.insert(ref);
-    return ref;
+    // add address of new element to look-up table (for existence checks):
+    observation_lookup_.insert(uintptr_t(&(*result.first)));
+
+    // @TODO: add processing step? (currently not supported by Observation)
+    return result.first;
   }
 
 
@@ -219,13 +255,16 @@ namespace OpenMS
   IdentificationData::registerIdentifiedPeptide(const IdentifiedPeptide&
                                                 peptide)
   {
-    if (peptide.sequence.empty())
+    if (!no_checks_)
     {
-      String msg = "missing sequence for peptide";
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, msg);
+      if (peptide.sequence.empty())
+      {
+        String msg = "missing sequence for peptide";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+      checkParentMatches_(peptide.parent_matches, MoleculeType::PROTEIN);
     }
-    checkParentMatches_(peptide.parent_matches, MoleculeType::PROTEIN);
 
     return insertIntoMultiIndex_(identified_peptides_, peptide,
                                  identified_peptide_lookup_);
@@ -236,7 +275,7 @@ namespace OpenMS
   IdentificationData::registerIdentifiedCompound(const IdentifiedCompound&
                                                  compound)
   {
-    if (compound.identifier.empty())
+    if (!no_checks_ && compound.identifier.empty())
     {
       String msg = "missing identifier for compound";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -251,154 +290,190 @@ namespace OpenMS
   IdentificationData::IdentifiedOligoRef
   IdentificationData::registerIdentifiedOligo(const IdentifiedOligo& oligo)
   {
-    if (oligo.sequence.empty())
+    if (!no_checks_)
     {
-      String msg = "missing sequence for oligonucleotide";
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, msg);
+      if (oligo.sequence.empty())
+      {
+        String msg = "missing sequence for oligonucleotide";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+      checkParentMatches_(oligo.parent_matches, MoleculeType::RNA);
     }
-    checkParentMatches_(oligo.parent_matches, MoleculeType::RNA);
 
     return insertIntoMultiIndex_(identified_oligos_, oligo,
                                  identified_oligo_lookup_);
   }
 
 
-  IdentificationData::ParentMoleculeRef
-  IdentificationData::registerParentMolecule(const ParentMolecule& parent)
+  IdentificationData::ParentSequenceRef
+  IdentificationData::registerParentSequence(const ParentSequence& parent)
   {
-    if (parent.accession.empty())
+    if (!no_checks_)
     {
-      String msg = "missing accession for parent molecule";
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, msg);
-    }
-    if ((parent.coverage < 0.0) || (parent.coverage > 1.0))
-    {
-      String msg = "parent molecule coverage must be between 0 and 1";
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, msg);
+      if (parent.accession.empty())
+      {
+        String msg = "missing accession for parent sequence";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+      if ((parent.coverage < 0.0) || (parent.coverage > 1.0))
+      {
+        String msg = "parent sequence coverage must be between 0 and 1";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
     }
 
-    return insertIntoMultiIndex_(parent_molecules_, parent,
-                                 parent_molecule_lookup_);
+    return insertIntoMultiIndex_(parents_, parent,
+                                 parent_lookup_);
   }
 
 
-  void IdentificationData::registerParentMoleculeGrouping(
-    const ParentMoleculeGrouping& grouping)
+  void IdentificationData::registerParentGroupSet(const ParentGroupSet& groups)
   {
-    checkAppliedProcessingSteps_(grouping.steps_and_scores);
-
-    for (const auto& group : grouping.groups)
+    if (!no_checks_)
     {
-      checkScoreTypes_(group.scores);
+      checkAppliedProcessingSteps_(groups.steps_and_scores);
 
-      for (const auto& ref : group.parent_molecule_refs)
+      for (const auto& group : groups.groups)
       {
-        if (!isValidHashedReference_(ref, parent_molecule_lookup_))
+        checkScoreTypes_(group.scores); // are the score types registered?
+
+        for (const auto& ref : group.parent_refs)
         {
-          String msg = "invalid reference to a parent molecule - register that first";
+          if (!isValidHashedReference_(ref, parent_lookup_))
+          {
+            String msg = "invalid reference to a parent sequence - register that first";
+            throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                             OPENMS_PRETTY_FUNCTION, msg);
+          }
+        }
+      }
+    }
+
+    parent_groups_.push_back(groups);
+
+    // add the current processing step?
+    if ((current_step_ref_ != processing_steps_.end()) &&
+        (groups.steps_and_scores.get<1>().find(current_step_ref_) ==
+         groups.steps_and_scores.get<1>().end()))
+    {
+      parent_groups_.back().steps_and_scores.push_back(
+        IdentificationDataInternal::AppliedProcessingStep(current_step_ref_));
+    }
+  }
+
+
+  IdentificationData::AdductRef
+  IdentificationData::registerAdduct(const AdductInfo& adduct)
+  {
+    // @TODO: require non-empty name? (auto-generate from formula?)
+    auto result = adducts_.insert(adduct);
+    if (!result.second && (result.first->getName() != adduct.getName()))
+    {
+      OPENMS_LOG_WARN << "Warning: adduct '" << adduct.getName()
+                      << "' is already known under the name '"
+                      << result.first->getName() << "'";
+    }
+    return result.first;
+  }
+
+
+  IdentificationData::ObservationMatchRef
+  IdentificationData::registerObservationMatch(const ObservationMatch& match)
+  {
+    if (!no_checks_)
+    {
+      if (const IdentifiedPeptideRef* ref_ptr =
+          boost::get<IdentifiedPeptideRef>(&match.identified_molecule_var))
+      {
+        if (!isValidHashedReference_(*ref_ptr, identified_peptide_lookup_))
+        {
+          String msg = "invalid reference to an identified peptide - register that first";
+          throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                           OPENMS_PRETTY_FUNCTION, msg);
+        }
+      }
+      else if (const IdentifiedCompoundRef* ref_ptr =
+               boost::get<IdentifiedCompoundRef>(&match.identified_molecule_var))
+      {
+        if (!isValidHashedReference_(*ref_ptr, identified_compound_lookup_))
+        {
+          String msg = "invalid reference to an identified compound - register that first";
+          throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                           OPENMS_PRETTY_FUNCTION, msg);
+        }
+      }
+      else if (const IdentifiedOligoRef* ref_ptr =
+               boost::get<IdentifiedOligoRef>(&match.identified_molecule_var))
+      {
+        if (!isValidHashedReference_(*ref_ptr, identified_oligo_lookup_))
+        {
+          String msg = "invalid reference to an identified oligonucleotide - register that first";
+          throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                           OPENMS_PRETTY_FUNCTION, msg);
+        }
+      }
+
+      if (!isValidHashedReference_(match.observation_ref, observation_lookup_))
+      {
+        String msg = "invalid reference to an observation - register that first";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+
+      if (match.adduct_opt && !isValidReference_(*match.adduct_opt, adducts_))
+      {
+        String msg = "invalid reference to an adduct - register that first";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+    }
+
+    return insertIntoMultiIndex_(observation_matches_, match,
+                                 observation_match_lookup_);
+  }
+
+
+  IdentificationData::MatchGroupRef
+  IdentificationData::registerObservationMatchGroup(const ObservationMatchGroup& group)
+  {
+    if (!no_checks_)
+    {
+      for (const auto& ref : group.observation_match_refs)
+      {
+        if (!isValidHashedReference_(ref, observation_match_lookup_))
+        {
+          String msg = "invalid reference to an input match - register that first";
           throw Exception::IllegalArgument(__FILE__, __LINE__,
                                            OPENMS_PRETTY_FUNCTION, msg);
         }
       }
     }
 
-    parent_molecule_groupings_.push_back(grouping);
-
-    // add the current processing step?
-    if ((current_step_ref_ != processing_steps_.end()) &&
-        (grouping.steps_and_scores.get<1>().find(current_step_ref_) ==
-         grouping.steps_and_scores.get<1>().end()))
-    {
-      parent_molecule_groupings_.back().steps_and_scores.push_back(
-        IdentificationDataInternal::AppliedProcessingStep(current_step_ref_));
-    }
+    return insertIntoMultiIndex_(observation_match_groups_, group);
   }
 
 
-  IdentificationData::QueryMatchRef
-  IdentificationData::registerMoleculeQueryMatch(const MoleculeQueryMatch&
-                                                 match)
-  {
-    if (const IdentifiedPeptideRef* ref_ptr =
-        boost::get<IdentifiedPeptideRef>(&match.identified_molecule_ref))
-    {
-      if (!isValidHashedReference_(*ref_ptr, identified_peptide_lookup_))
-      {
-        String msg = "invalid reference to an identified peptide - register that first";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
-      }
-    }
-    else if (const IdentifiedCompoundRef* ref_ptr =
-             boost::get<IdentifiedCompoundRef>(&match.identified_molecule_ref))
-    {
-      if (!isValidHashedReference_(*ref_ptr, identified_compound_lookup_))
-      {
-        String msg = "invalid reference to an identified compound - register that first";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
-      }
-    }
-    else if (const IdentifiedOligoRef* ref_ptr =
-             boost::get<IdentifiedOligoRef>(&match.identified_molecule_ref))
-    {
-      if (!isValidHashedReference_(*ref_ptr, identified_oligo_lookup_))
-      {
-        String msg = "invalid reference to an identified oligonucleotide - register that first";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
-      }
-    }
-
-    if (!isValidHashedReference_(match.data_query_ref, data_query_lookup_))
-    {
-      String msg = "invalid reference to a data query - register that first";
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, msg);
-    }
-
-    return insertIntoMultiIndex_(query_matches_, match, query_match_lookup_);
-  }
-
-
-  IdentificationData::MatchGroupRef
-  IdentificationData::registerQueryMatchGroup(const QueryMatchGroup& group)
-  {
-    for (const auto& ref : group.query_match_refs)
-    {
-      if (!isValidHashedReference_(ref, query_match_lookup_))
-      {
-        String msg = "invalid reference to a molecule-query match - register that first";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
-      }
-    }
-
-    return insertIntoMultiIndex_(query_match_groups_, group);
-  }
-
-
-  void IdentificationData::addScore(QueryMatchRef match_ref,
+  void IdentificationData::addScore(ObservationMatchRef match_ref,
                                     ScoreTypeRef score_ref, double value)
   {
-    if (!isValidReference_(score_ref, score_types_))
+    if (!no_checks_ && !isValidReference_(score_ref, score_types_))
     {
       String msg = "invalid reference to a score type - register that first";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
 
-    ModifyMultiIndexAddScore<MoleculeQueryMatch> modifier(score_ref, value);
-    query_matches_.modify(match_ref, modifier);
+    ModifyMultiIndexAddScore<ObservationMatch> modifier(score_ref, value);
+    observation_matches_.modify(match_ref, modifier);
   }
 
 
   void IdentificationData::setCurrentProcessingStep(ProcessingStepRef step_ref)
   {
-    if (!isValidReference_(step_ref, processing_steps_))
+    if (!no_checks_ && !isValidReference_(step_ref, processing_steps_))
     {
       String msg = "invalid reference to a processing step - register that first";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -421,66 +496,82 @@ namespace OpenMS
   }
 
 
-  pair<IdentificationData::ScoreTypeRef, bool>
+  IdentificationData::ScoreTypeRef
   IdentificationData::findScoreType(const String& score_name) const
   {
     for (ScoreTypeRef it = score_types_.begin(); it != score_types_.end(); ++it)
     {
       if (it->cv_term.getName() == score_name)
       {
-        return make_pair(it, true);
+        return it;
       }
     }
-    return make_pair(score_types_.end(), false);
+    return score_types_.end();
   }
 
 
-  vector<IdentificationData::QueryMatchRef>
-  IdentificationData::getBestMatchPerQuery(ScoreTypeRef score_ref) const
+  vector<IdentificationData::ObservationMatchRef>
+  IdentificationData::getBestMatchPerObservation(ScoreTypeRef score_ref,
+                                                 bool require_score) const
   {
-    vector<QueryMatchRef> results;
-    bool higher_better = score_ref->higher_better;
+    vector<ObservationMatchRef> results;
     pair<double, bool> best_score = make_pair(0.0, false);
-    QueryMatchRef best_ref = query_matches_.end();
-    for (QueryMatchRef ref = query_matches_.begin();
-         ref != query_matches_.end(); ++ref)
+    ObservationMatchRef best_ref = observation_matches_.end();
+    Size n_matches = 1; // number of matches for current observation
+    // matches for same observation appear consecutively, so just iterate:
+    for (ObservationMatchRef ref = observation_matches_.begin();
+         ref != observation_matches_.end(); ++ref, ++n_matches)
     {
       pair<double, bool> current_score = ref->getScore(score_ref);
-      if ((best_ref != query_matches_.end()) &&
-          (ref->data_query_ref != best_ref->data_query_ref))
+      if (current_score.second && (!best_score.second ||
+                                   score_ref->isBetterScore(current_score.first,
+                                                           best_score.first)))
       {
-        // finalize previous query:
-        if (best_score.second) results.push_back(best_ref);
+        // new best score for the current observation:
         best_score = current_score;
         best_ref = ref;
       }
-      else if (current_score.second &&
-               (!best_score.second ||
-                isBetterScore(current_score.first, best_score.first,
-                              higher_better)))
+      // peek ahead:
+      ObservationMatchRef next = ref;
+      ++next;
+      if ((next == observation_matches_.end()) ||
+          (next->observation_ref != ref->observation_ref))
       {
-        // new best score for the current query:
-        best_score = current_score;
-        best_ref = ref;
+        // last match for this observation - finalize:
+        if (best_score.second)
+        {
+          results.push_back(best_ref);
+        }
+        else if (!require_score && (n_matches == 1))
+        {
+          results.push_back(ref); // only match for this observation
+        }
+        best_score.second = false;
+        n_matches = 0; // will be incremented by for-loop
       }
     }
-    // finalize last query:
-    if (best_score.second) results.push_back(best_ref);
 
     return results;
   }
 
 
+  pair<IdentificationData::ObservationMatchRef, IdentificationData::ObservationMatchRef>
+  IdentificationData::getMatchesForObservation(ObservationRef obs_ref) const
+  {
+    return observation_matches_.equal_range(obs_ref);
+  }
+
+
   void IdentificationData::calculateCoverages(bool check_molecule_length)
   {
-    // aggregate molecule-parent matches by parent:
+    // aggregate parent matches by parent:
     struct ParentData
     {
       Size length = 0;
       double coverage = 0.0;
       vector<pair<Size, Size>> fragments;
     };
-    map<ParentMoleculeRef, ParentData> parent_info;
+    map<ParentSequenceRef, ParentData> parent_info;
 
     // go through all peptides:
     for (const auto& molecule : identified_peptides_)
@@ -490,11 +581,14 @@ namespace OpenMS
       for (const auto& pair : molecule.parent_matches)
       {
         auto pos = parent_info.find(pair.first);
-        if (pos == parent_info.end()) // new parent molecule
+        if (pos == parent_info.end()) // new parent sequence
         {
           ParentData pd;
           pd.length = AASequence::fromString(pair.first->sequence).size();
-          if (pd.length == 0) break; // sequence not available
+          if (pd.length == 0)
+          {
+            break; // sequence not available
+          }
           pos = parent_info.insert(make_pair(pair.first, pd)).first;
         }
         Size parent_length = pos->second.length; // always check this
@@ -516,11 +610,14 @@ namespace OpenMS
       for (const auto& pair : molecule.parent_matches)
       {
         auto pos = parent_info.find(pair.first);
-        if (pos == parent_info.end()) // new parent molecule
+        if (pos == parent_info.end()) // new parent sequence
         {
           ParentData pd;
           pd.length = NASequence::fromString(pair.first->sequence).size();
-          if (pd.length == 0) break; // sequence not available
+          if (pd.length == 0)
+          {
+            break; // sequence not available
+          }
           pos = parent_info.insert(make_pair(pair.first, pd)).first;
         }
         Size parent_length = pos->second.length; // always check this
@@ -548,12 +645,12 @@ namespace OpenMS
                               double(pair.second.length));
     }
     // set coverage:
-    for (ParentMoleculeRef ref = parent_molecules_.begin();
-         ref != parent_molecules_.end(); ++ref)
+    for (ParentSequenceRef ref = parents_.begin();
+         ref != parents_.end(); ++ref)
     {
       auto pos = parent_info.find(ref);
       double coverage = (pos == parent_info.end()) ? 0.0 : pos->second.coverage;
-      parent_molecules_.modify(ref, [coverage](ParentMolecule& parent)
+      parents_.modify(ref, [coverage](ParentSequence& parent)
                                {
                                  parent.coverage = coverage;
                                });
@@ -561,7 +658,7 @@ namespace OpenMS
   }
 
 
-  void IdentificationData::cleanup(bool require_query_match,
+  void IdentificationData::cleanup(bool require_observation_match,
                                    bool require_identified_sequence,
                                    bool require_parent_match,
                                    bool require_parent_group,
@@ -569,38 +666,38 @@ namespace OpenMS
   {
     // we expect that only "primary results" (stored in classes derived from
     // "ScoredProcessingResult") will be directly removed (by filters) - not
-    // meta data (incl. data queries, score types, processing steps etc.)
+    // meta data (incl. score types, processing steps etc.)
 
-    // remove parent molecules based on parent groups:
+    // remove parent sequences based on parent groups:
     if (require_parent_group)
     {
-      parent_molecule_lookup_.clear(); // will become invalid anyway
-      for (const auto& grouping: parent_molecule_groupings_)
+      parent_lookup_.clear(); // will become invalid anyway
+      for (const auto& groups: parent_groups_)
       {
-        for (const auto& group : grouping.groups)
+        for (const auto& group : groups.groups)
         {
-          for (const auto& ref : group.parent_molecule_refs)
+          for (const auto& ref : group.parent_refs)
           {
-            parent_molecule_lookup_.insert(ref);
+            parent_lookup_.insert(ref);
           }
         }
       }
-      removeFromSetIfNotHashed_(parent_molecules_, parent_molecule_lookup_);
+      removeFromSetIfNotHashed_(parents_, parent_lookup_);
     }
-    // update look-up table of parent molecule addresses (in case parent
+    // update look-up table of parent sequence addresses (in case parent
     // molecules were removed):
-    updateAddressLookup_(parent_molecules_, parent_molecule_lookup_);
+    updateAddressLookup_(parents_, parent_lookup_);
 
-    // remove parent matches based on parent molecules:
+    // remove parent matches based on parent sequences:
     ModifyMultiIndexRemoveParentMatches<IdentifiedPeptide>
-      pep_modifier(parent_molecule_lookup_);
+      pep_modifier(parent_lookup_);
     for (auto it = identified_peptides_.begin();
          it != identified_peptides_.end(); ++it)
     {
       identified_peptides_.modify(it, pep_modifier);
     }
     ModifyMultiIndexRemoveParentMatches<IdentifiedOligo>
-      oli_modifier(parent_molecule_lookup_);
+      oli_modifier(parent_lookup_);
     for (auto it = identified_oligos_.begin();
          it != identified_oligos_.end(); ++it)
     {
@@ -620,126 +717,129 @@ namespace OpenMS
                        });
     }
 
-    // remove molecule-query matches based on identified molecules:
-    set<IdentifiedMoleculeRef> id_refs;
-    for (auto it = identified_peptides_.begin();
+    // remove observation matches based on identified molecules:
+    set<IdentifiedMolecule> id_vars;
+    for (IdentifiedPeptideRef it = identified_peptides_.begin();
          it != identified_peptides_.end(); ++it)
     {
-      id_refs.insert(it);
+      id_vars.insert(it);
     }
-    for (auto it = identified_compounds_.begin();
+    for (IdentifiedCompoundRef it = identified_compounds_.begin();
          it != identified_compounds_.end(); ++it)
     {
-      id_refs.insert(it);
+      id_vars.insert(it);
     }
-    for (auto it = identified_oligos_.begin();
+    for (IdentifiedOligoRef it = identified_oligos_.begin();
          it != identified_oligos_.end(); ++it)
     {
-      id_refs.insert(it);
+      id_vars.insert(it);
     }
-    removeFromSetIf_(query_matches_, [&](MoleculeQueryMatches::iterator it)
+    removeFromSetIf_(observation_matches_, [&](ObservationMatches::iterator it)
                      {
-                       return !id_refs.count(it->identified_molecule_ref);
+                       return !id_vars.count(it->identified_molecule_var);
                      });
 
-    // remove molecule-query matches based on query match groups:
+    // remove observation matches based on observation match groups:
     if (require_match_group)
     {
-      query_match_lookup_.clear(); // will become invalid anyway
-      for (const auto& group : query_match_groups_)
+      observation_match_lookup_.clear(); // will become invalid anyway
+      for (const auto& group : observation_match_groups_)
       {
-        for (const auto& ref : group.query_match_refs)
+        for (const auto& ref : group.observation_match_refs)
         {
-          query_match_lookup_.insert(ref);
+          observation_match_lookup_.insert(ref);
         }
       }
-      removeFromSetIfNotHashed_(query_matches_, query_match_lookup_);
+      removeFromSetIfNotHashed_(observation_matches_, observation_match_lookup_);
     }
-    // update look-up table of query match addresses:
-    updateAddressLookup_(query_matches_, query_match_lookup_);
+    // update look-up table of input match addresses:
+    updateAddressLookup_(observation_matches_, observation_match_lookup_);
 
-    // remove id'd molecules and data queries based on molecule-query matches:
-    if (require_query_match)
+    // remove id'd molecules, observations and adducts based on observation matches:
+    if (require_observation_match)
     {
-      data_query_lookup_.clear();
+      observation_lookup_.clear();
       identified_peptide_lookup_.clear();
       identified_compound_lookup_.clear();
       identified_oligo_lookup_.clear();
-      for (const auto& match : query_matches_)
+      set<AdductRef> adduct_refs;
+      for (const auto& match : observation_matches_)
       {
-        data_query_lookup_.insert(match.data_query_ref);
-        IdentificationData::MoleculeType molecule_type =
-          match.getMoleculeType();
-        if (molecule_type == IdentificationData::MoleculeType::PROTEIN)
+        observation_lookup_.insert(match.observation_ref);
+        const IdentifiedMolecule& molecule_var = match.identified_molecule_var;
+        switch (molecule_var.getMoleculeType())
         {
-          identified_peptide_lookup_.insert(match.getIdentifiedPeptideRef());
+          case IdentificationData::MoleculeType::PROTEIN:
+            identified_peptide_lookup_.insert(molecule_var.getIdentifiedPeptideRef());
+            break;
+          case IdentificationData::MoleculeType::COMPOUND:
+            identified_compound_lookup_.insert(molecule_var.getIdentifiedCompoundRef());
+            break;
+          case IdentificationData::MoleculeType::RNA:
+            identified_oligo_lookup_.insert(molecule_var.getIdentifiedOligoRef());
         }
-        else if (molecule_type == IdentificationData::MoleculeType::COMPOUND)
-        {
-          identified_compound_lookup_.insert(match.getIdentifiedCompoundRef());
-        }
-        else if (molecule_type == IdentificationData::MoleculeType::RNA)
-        {
-          identified_oligo_lookup_.insert(match.getIdentifiedOligoRef());
-        }
+        if (match.adduct_opt) adduct_refs.insert(*match.adduct_opt);
       }
-      removeFromSetIfNotHashed_(data_queries_, data_query_lookup_);
+      removeFromSetIfNotHashed_(observations_, observation_lookup_);
       removeFromSetIfNotHashed_(identified_peptides_,
                                 identified_peptide_lookup_);
       removeFromSetIfNotHashed_(identified_compounds_,
                                 identified_compound_lookup_);
       removeFromSetIfNotHashed_(identified_oligos_, identified_oligo_lookup_);
+      removeFromSetIf_(adducts_, [&](Adducts::iterator it)
+      {
+        return !adduct_refs.count(it);
+      });
     }
     // update look-up tables of addresses:
-    updateAddressLookup_(data_queries_, data_query_lookup_);
+    updateAddressLookup_(observations_, observation_lookup_);
     updateAddressLookup_(identified_peptides_, identified_peptide_lookup_);
     updateAddressLookup_(identified_compounds_, identified_compound_lookup_);
     updateAddressLookup_(identified_oligos_, identified_oligo_lookup_);
 
-    // remove parent molecules based on identified molecules:
+    // remove parent sequences based on identified molecules:
     if (require_identified_sequence)
     {
-      parent_molecule_lookup_.clear(); // will become invalid anyway
+      parent_lookup_.clear(); // will become invalid anyway
       for (const auto& peptide : identified_peptides_)
       {
         for (const auto& parent_pair : peptide.parent_matches)
         {
-          parent_molecule_lookup_.insert(parent_pair.first);
+          parent_lookup_.insert(parent_pair.first);
         }
       }
       for (const auto& oligo : identified_oligos_)
       {
         for (const auto& parent_pair : oligo.parent_matches)
         {
-          parent_molecule_lookup_.insert(parent_pair.first);
+          parent_lookup_.insert(parent_pair.first);
         }
       }
-      removeFromSetIfNotHashed_(parent_molecules_, parent_molecule_lookup_);
-      // update look-up table of parent molecule addresses (again):
-      updateAddressLookup_(parent_molecules_, parent_molecule_lookup_);
+      removeFromSetIfNotHashed_(parents_, parent_lookup_);
+      // update look-up table of parent sequence addresses (again):
+      updateAddressLookup_(parents_, parent_lookup_);
     }
 
-    // remove entries from parent molecule groups based on parent molecules:
+    // remove entries from parent sequence groups based on parent sequences
+    // (if a parent sequence doesn't exist anymore, remove it from any groups):
     bool warn = false;
-    for (auto& grouping : parent_molecule_groupings_)
+    for (auto& group_set : parent_groups_)
     {
-      for (auto group_it = grouping.groups.begin();
-           group_it != grouping.groups.end(); )
+      for (auto group_it = group_set.groups.begin();
+           group_it != group_set.groups.end(); )
       {
-        Size old_size = group_it->parent_molecule_refs.size();
-        grouping.groups.modify(
-          group_it, [&](ParentMoleculeGroup& group)
-          {
-            removeFromSetIfNotHashed_(group.parent_molecule_refs,
-                                      parent_molecule_lookup_);
-          });
-        if (group_it->parent_molecule_refs.empty())
+        Size old_size = group_it->parent_refs.size();
+        group_set.groups.modify(group_it, [&](ParentGroup& group)
         {
-          group_it = grouping.groups.erase(group_it);
+          removeFromSetIfNotHashed_(group.parent_refs, parent_lookup_);
+        });
+        if (group_it->parent_refs.empty())
+        {
+          group_it = group_set.groups.erase(group_it);
         }
         else
         {
-          if (group_it->parent_molecule_refs.size() != old_size)
+          if (group_it->parent_refs.size() != old_size)
           {
             warn = true;
           }
@@ -750,28 +850,26 @@ namespace OpenMS
     }
     if (warn)
     {
-      OPENMS_LOG_WARN << "Warning: filtering removed elements from parent molecule groups - associated scores may not be valid any more" << endl;
+      OPENMS_LOG_WARN << "Warning: filtering removed elements from parent sequence groups - associated scores may not be valid any more" << endl;
     }
 
-    // remove entries from query match groups based on molecule-query matches:
+    // remove entries from input match groups based on input matches:
     warn = false;
-    for (auto group_it = query_match_groups_.begin();
-         group_it != query_match_groups_.end(); )
+    for (auto group_it = observation_match_groups_.begin();
+         group_it != observation_match_groups_.end(); )
     {
-      Size old_size = group_it->query_match_refs.size();
-      query_match_groups_.modify(
-        group_it, [&](QueryMatchGroup& group)
-        {
-          removeFromSetIfNotHashed_(group.query_match_refs,
-                                    query_match_lookup_);
-        });
-      if (group_it->query_match_refs.empty())
+      Size old_size = group_it->observation_match_refs.size();
+      observation_match_groups_.modify(group_it, [&](ObservationMatchGroup& group)
       {
-        group_it = query_match_groups_.erase(group_it);
+        removeFromSetIfNotHashed_(group.observation_match_refs, observation_match_lookup_);
+      });
+      if (group_it->observation_match_refs.empty())
+      {
+        group_it = observation_match_groups_.erase(group_it);
       }
       else
       {
-        if (group_it->query_match_refs.size() != old_size)
+        if (group_it->observation_match_refs.size() != old_size)
         {
           warn = true;
         }
@@ -780,7 +878,307 @@ namespace OpenMS
     }
     if (warn)
     {
-      OPENMS_LOG_WARN << "Warning: filtering removed elements from query match groups - associated scores may not be valid any more" << endl;
+      OPENMS_LOG_WARN << "Warning: filtering removed elements from observation match groups - associated scores may not be valid any more" << endl;
+    }
+  }
+
+
+  bool IdentificationData::empty() const
+  {
+    return (input_files_.empty() && processing_softwares_.empty() &&
+            processing_steps_.empty() && db_search_params_.empty() &&
+            db_search_steps_.empty() && score_types_.empty() &&
+            observations_.empty() && parents_.empty() &&
+            parent_groups_.empty() &&
+            identified_peptides_.empty() && identified_compounds_.empty() &&
+            identified_oligos_.empty() && adducts_.empty() &&
+            observation_matches_.empty() && observation_match_groups_.empty());
+  }
+
+
+  void IdentificationData::mergeScoredProcessingResults_(
+    IdentificationData::ScoredProcessingResult& result,
+    const IdentificationData::ScoredProcessingResult& other,
+    const RefTranslator& trans)
+  {
+    result.MetaInfoInterface::operator=(other);
+    for (const AppliedProcessingStep& applied : other.steps_and_scores)
+    {
+      AppliedProcessingStep copy;
+      if (applied.processing_step_opt)
+      {
+        // need to reference a processing step in 'result', not the original one
+        // from 'other', so find the corresponding one:
+        copy.processing_step_opt = trans.processing_step_refs.at(*applied.processing_step_opt);
+      }
+      for (const auto& pair : applied.scores)
+      {
+        // need to reference a score type in 'result', not the original one from
+        // 'other', so find the corresponding one:
+        ScoreTypeRef score_ref = trans.score_type_refs.at(pair.first);
+        copy.scores[score_ref] = pair.second;
+      }
+      result.addProcessingStep(copy);
+    }
+  }
+
+
+  IdentificationData::RefTranslator
+  IdentificationData::merge(const IdentificationData& other)
+  {
+    RefTranslator trans;
+    // incoming data (stored in IdentificationData) is guaranteed to be consistent,
+    // so no need to check for consistency again:
+    no_checks_ = true;
+    // input files:
+    for (InputFileRef other_ref = other.getInputFiles().begin();
+         other_ref != other.getInputFiles().end(); ++other_ref)
+    {
+      trans.input_file_refs[other_ref] = registerInputFile(*other_ref);
+    }
+    // score types:
+    for (ScoreTypeRef other_ref = other.getScoreTypes().begin();
+         other_ref != other.getScoreTypes().end(); ++other_ref)
+    {
+      trans.score_type_refs[other_ref] = registerScoreType(*other_ref);
+    }
+    // processing software:
+    for (ProcessingSoftwareRef other_ref = other.getProcessingSoftwares().begin();
+         other_ref != other.getProcessingSoftwares().end(); ++other_ref)
+    {
+      // update internal references:
+      ProcessingSoftware copy = *other_ref;
+      for (ScoreTypeRef& score_ref : copy.assigned_scores)
+      {
+        score_ref = trans.score_type_refs[score_ref];
+      }
+      trans.processing_software_refs[other_ref] = registerProcessingSoftware(copy);
+    }
+    // search params:
+    for (SearchParamRef other_ref = other.getDBSearchParams().begin();
+         other_ref != other.getDBSearchParams().end(); ++other_ref)
+    {
+      trans.search_param_refs[other_ref] = registerDBSearchParam(*other_ref);
+    }
+    // processing steps:
+    for (ProcessingStepRef other_ref = other.getProcessingSteps().begin();
+         other_ref != other.getProcessingSteps().end(); ++other_ref)
+    {
+      // update internal references:
+      ProcessingStep copy = *other_ref;
+      copy.software_ref = trans.processing_software_refs[copy.software_ref];
+      for (InputFileRef& file_ref : copy.input_file_refs)
+      {
+        file_ref = trans.input_file_refs[file_ref];
+      }
+      trans.processing_step_refs[other_ref] = registerProcessingStep(copy);
+    }
+    // search steps:
+    for (const auto& pair : other.getDBSearchSteps())
+    {
+      ProcessingStepRef step_ref = trans.processing_step_refs[pair.first];
+      SearchParamRef param_ref = trans.search_param_refs[pair.second];
+      db_search_steps_[step_ref] = param_ref;
+    }
+    // observations:
+    for (ObservationRef other_ref = other.getObservations().begin();
+         other_ref != other.getObservations().end(); ++other_ref)
+    {
+      // update internal references:
+      Observation copy = *other_ref;
+      copy.input_file = trans.input_file_refs[copy.input_file];
+      trans.observation_refs[other_ref] = registerObservation(copy);
+    }
+    // parent sequences:
+    for (ParentSequenceRef other_ref = other.getParentSequences().begin();
+         other_ref != other.getParentSequences().end(); ++other_ref)
+    {
+      // don't copy processing steps and scores yet:
+      ParentSequence copy(other_ref->accession, other_ref->molecule_type,
+                          other_ref->sequence, other_ref->description,
+                          other_ref->coverage, other_ref->is_decoy);
+      // now copy precessing steps and scores while updating references:
+      mergeScoredProcessingResults_(copy, *other_ref, trans);
+      trans.parent_sequence_refs[other_ref] = registerParentSequence(copy);
+    }
+    // identified peptides:
+    for (IdentifiedPeptideRef other_ref = other.getIdentifiedPeptides().begin();
+         other_ref != other.getIdentifiedPeptides().end(); ++other_ref)
+    {
+      // don't copy parent matches, steps/scores yet:
+      IdentifiedPeptide copy(other_ref->sequence, ParentMatches());
+      // now copy steps/scores and parent matches while updating references:
+      mergeScoredProcessingResults_(copy, *other_ref, trans);
+      for (const auto& pair : other_ref->parent_matches)
+      {
+        ParentSequenceRef parent_ref = trans.parent_sequence_refs[pair.first];
+        copy.parent_matches[parent_ref] = pair.second;
+      }
+      trans.identified_peptide_refs[other_ref] = registerIdentifiedPeptide(copy);
+    }
+    // identified oligonucleotides:
+    for (IdentifiedOligoRef other_ref = other.getIdentifiedOligos().begin();
+         other_ref != other.getIdentifiedOligos().end(); ++other_ref)
+    {
+      // don't copy parent matches, steps/scores yet:
+      IdentifiedOligo copy(other_ref->sequence, ParentMatches());
+      // now copy steps/scores and parent matches while updating references:
+      mergeScoredProcessingResults_(copy, *other_ref, trans);
+      for (const auto& pair : other_ref->parent_matches)
+      {
+        ParentSequenceRef parent_ref = trans.parent_sequence_refs[pair.first];
+        copy.parent_matches[parent_ref] = pair.second;
+      }
+      trans.identified_oligo_refs[other_ref] = registerIdentifiedOligo(copy);
+    }
+    // identified compounds:
+    for (IdentifiedCompoundRef other_ref = other.getIdentifiedCompounds().begin();
+         other_ref != other.getIdentifiedCompounds().end(); ++other_ref)
+    {
+      IdentifiedCompound copy(other_ref->identifier, other_ref->formula,
+                              other_ref->name, other_ref->smile, other_ref->inchi);
+      mergeScoredProcessingResults_(copy, *other_ref, trans);
+      trans.identified_compound_refs[other_ref] = registerIdentifiedCompound(copy);
+    }
+    // adducts:
+    for (AdductRef other_ref = other.getAdducts().begin();
+         other_ref != other.getAdducts().end(); ++other_ref)
+    {
+      trans.adduct_refs[other_ref] = registerAdduct(*other_ref);
+    }
+    // observation matches:
+    for (ObservationMatchRef other_ref = other.getObservationMatches().begin();
+         other_ref != other.getObservationMatches().end(); ++other_ref)
+    {
+      IdentifiedMolecule molecule_var =
+        trans.translate(other_ref->identified_molecule_var);
+      ObservationRef obs_ref = trans.observation_refs[other_ref->observation_ref];
+      ObservationMatch copy(molecule_var, obs_ref, other_ref->charge);
+      if (other_ref->adduct_opt)
+      {
+        copy.adduct_opt = trans.adduct_refs[*other_ref->adduct_opt];
+      }
+      for (const auto& pair : other_ref->peak_annotations)
+      {
+        std::optional<ProcessingStepRef> opt_ref;
+        if (pair.first)
+        {
+          opt_ref = trans.processing_step_refs[*pair.first];
+        }
+        copy.peak_annotations[opt_ref] = pair.second;
+      }
+      mergeScoredProcessingResults_(copy, *other_ref, trans);
+      trans.observation_match_refs[other_ref] = registerObservationMatch(copy);
+    }
+    // parent sequence groups:
+    // @TODO: does this need to be more sophisticated?
+    for (const ParentGroupSet& groups : other.parent_groups_)
+    {
+      ParentGroupSet copy(groups.label);
+      mergeScoredProcessingResults_(copy, groups, trans);
+      for (const ParentGroup& group : groups.groups)
+      {
+        ParentGroup group_copy;
+        for (const auto& pair : group.scores)
+        {
+          ScoreTypeRef score_ref = trans.score_type_refs[pair.first];
+          group_copy.scores[score_ref] = pair.second;
+        }
+        for (ParentSequenceRef parent_ref : group.parent_refs)
+        {
+          group_copy.parent_refs.insert(trans.parent_sequence_refs[parent_ref]);
+        }
+        copy.groups.insert(group_copy);
+      }
+      registerParentGroupSet(copy);
+    }
+    no_checks_ = false;
+
+    return trans;
+  }
+
+
+  IdentificationData::IdentificationData(const IdentificationData& other):
+    MetaInfoInterface(other)
+  {
+    // don't add a processing step during merging:
+    current_step_ref_ = processing_steps_.end();
+    RefTranslator trans = merge(other);
+    if (other.current_step_ref_ != other.processing_steps_.end())
+    {
+      current_step_ref_ = trans.processing_step_refs[other.current_step_ref_];
+    }
+    no_checks_ = other.no_checks_;
+  }
+
+
+  void IdentificationData::swap(IdentificationData& other)
+  {
+    MetaInfoInterface::swap(other);
+    input_files_.swap(other.input_files_);
+    processing_softwares_.swap(other.processing_softwares_);
+    processing_steps_.swap(other.processing_steps_);
+    db_search_params_.swap(other.db_search_params_);
+    db_search_steps_.swap(other.db_search_steps_);
+    score_types_.swap(other.score_types_);
+    observations_.swap(other.observations_);
+    parents_.swap(other.parents_);
+    parent_groups_.swap(other.parent_groups_);
+    identified_peptides_.swap(other.identified_peptides_);
+    identified_compounds_.swap(other.identified_compounds_);
+    identified_oligos_.swap(other.identified_oligos_);
+    adducts_.swap(other.adducts_);
+    observation_matches_.swap(other.observation_matches_);
+    observation_match_groups_.swap(other.observation_match_groups_);
+    std::swap(current_step_ref_, other.current_step_ref_);
+    std::swap(no_checks_, other.no_checks_);
+    // look-up tables:
+    observation_lookup_.swap(other.observation_lookup_);
+    parent_lookup_.swap(other.parent_lookup_);
+    identified_peptide_lookup_.swap(other.identified_peptide_lookup_);
+    identified_compound_lookup_.swap(other.identified_compound_lookup_);
+    identified_oligo_lookup_.swap(other.identified_oligo_lookup_);
+    observation_match_lookup_.swap(other.observation_match_lookup_);
+  }
+
+
+  void IdentificationData::clear()
+  {
+    IdentificationData tmp;
+    swap(tmp);
+  }
+
+
+  void IdentificationData::setMetaValue(const ObservationMatchRef ref, const String& key,
+                                        const DataValue& value)
+  {
+    setMetaValue_(ref, key, value, observation_matches_, observation_match_lookup_);
+  }
+
+
+  void IdentificationData::setMetaValue(const ObservationRef ref, const String& key,
+                                        const DataValue& value)
+  {
+    setMetaValue_(ref, key, value, observations_, observation_lookup_);
+  }
+
+
+  void IdentificationData::setMetaValue(const IdentifiedMolecule& var, const String& key,
+                                        const DataValue& value)
+  {
+    switch (var.getMoleculeType())
+    {
+      case MoleculeType::PROTEIN:
+        setMetaValue_(var.getIdentifiedPeptideRef(), key, value,
+                      identified_peptides_, identified_peptide_lookup_);
+        break;
+      case MoleculeType::COMPOUND:
+        setMetaValue_(var.getIdentifiedCompoundRef(), key, value,
+                      identified_compounds_, identified_compound_lookup_);
+        break;
+      case MoleculeType::RNA:
+        setMetaValue_(var.getIdentifiedOligoRef(), key, value,
+                      identified_oligos_, identified_oligo_lookup_);
     }
   }
 

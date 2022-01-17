@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/SYSTEM/File.h>
 
 ///////////////////////////
 
@@ -223,7 +224,7 @@ START_SECTION(([ControlledVocabulary::CVTerm] String ControlledVocabulary::CVTer
 {
   ControlledVocabulary cv;
   cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-  String ref = "<cvParam accession=\"MS:1001331\" cvRef=\"PSI-MS\" name=\"X\\!Tandem:hyperscore\" value=\"12.5\"/>";
+  String ref = R"(<cvParam accession="MS:1001331" cvRef="PSI-MS" name="X\!Tandem:hyperscore" value="12.5"/>)";
   TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS", String("12.5")),ref)
 }
 END_SECTION
@@ -232,7 +233,7 @@ START_SECTION(([ControlledVocabulary::CVTerm] String ControlledVocabulary::CVTer
 {
   ControlledVocabulary cv;
   cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-  String ref = "<cvParam accession=\"MS:1001331\" cvRef=\"PSI-MS\" name=\"X\\!Tandem:hyperscore\" value=\"12.5\"/>";
+  String ref = R"(<cvParam accession="MS:1001331" cvRef="PSI-MS" name="X\!Tandem:hyperscore" value="12.5"/>)";
   OpenMS::DataValue val = 12.5;
   TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS",val),ref)
 }

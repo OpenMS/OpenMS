@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -128,7 +128,7 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("executable", "<executable>", "", "SIRIUS executable e.g. sirius", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("sirius_executable", "<executable>", "", "The Sirius executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", false, false);
 
     registerInputFileList_("in", "<file(s)>", StringList(), "MzML input file(s) used for assay library generation");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -139,7 +139,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Assay library output file");
     setValidFormats_("out", ListUtils::create<String>("tsv,traML,pqp"));
 
-    registerStringOption_("fragment_annotation", "<choice>", "none", "Fragment annotation method",false);
+    registerStringOption_("fragment_annotation", "<choice>", "sirius", "Fragment annotation method", false);
     setValidStrings_("fragment_annotation", ListUtils::create<String>("none,sirius"));
 
     registerDoubleOption_("ambiguity_resolution_mz_tolerance", "<num>", 10.0, "Mz tolerance for the resolution of identification ambiguity over multiple files", false);
@@ -167,7 +167,7 @@ protected:
 
     // preprocessing
     registerDoubleOption_("precursor_mz_distance", "<num>", 0.0001, "Max m/z distance of the precursor entries of two spectra to be merged in [Da].", false);
-    registerDoubleOption_("precursor_recalibration_window", "<num>", 0.1, "Tolerance window for precursor selection (Annotation of precursor mz and intensity)", false, true);
+    registerDoubleOption_("precursor_recalibration_window", "<num>", 0.01, "Tolerance window for precursor selection (Annotation of precursor mz and intensity)", false, true);
     registerStringOption_("precursor_recalibration_window_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance_annotation", false, true);
     setValidStrings_("precursor_recalibration_window_unit", ListUtils::create<String>("Da,ppm"));
     registerDoubleOption_("consensus_spectrum_precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [seconds], for consensus spectrum generation (only available without fragment annotation)", false);
@@ -284,7 +284,7 @@ protected:
     bool annotate_charge = getFlag_("deisotoping:annotate_charge");
 
     // param SiriusAdapterAlgorithm
-    String executable = getStringOption_("executable");
+    String sirius_executable = getStringOption_("sirius_executable");
 
     algorithm.updateExistingParameter(getParam_());
 
@@ -292,6 +292,51 @@ protected:
 
     // SIRIUS workspace (currently needed for fragmentation trees)
     String sirius_workspace_directory = getStringOption_("out_workspace_directory");
+
+    // assess the SIRIUS executable from SIRIUS_PATH or the PATH
+    if (use_fragment_annotation && sirius_executable.empty())
+    {
+      OPENMS_LOG_INFO << "Fragment annotation with SIRIUS should be performed, but no executable was provided via '-sirius_execuable'. \n" 
+                      << "Try to automatically assess the SIRIUS executable location." << std::endl;
+
+      if (sirius_executable.empty())
+      {
+        const char* sirius_env_var = std::getenv("SIRIUS_PATH"); // returns nullptr of not found
+        if (sirius_env_var == nullptr)
+        {
+            OPENMS_LOG_INFO << "SIRIUS executable could not be recovered from SIRIUS_PATH." << std::endl;
+        } 
+        else
+        {
+          const String sirius_path(sirius_env_var);
+          sirius_executable = QFileInfo(sirius_path.toQString()).canonicalFilePath().toStdString();
+          OPENMS_LOG_INFO << "Success: sirius_executable resolved to '" + sirius_executable + "'" << std::endl;
+        }
+      }
+
+      // was not found in the SIRIUS_PATH
+      // assess the SIRIUS executable from the PATH
+      if (sirius_executable.empty())
+      {
+        #ifdef OPENMS_WINDOWSPLATFORM
+          sirius_executable = "sirius.bat";
+        #else
+          sirius_executable = "sirius";
+        #endif
+        if (File::findExecutable(sirius_executable))
+        {
+          OPENMS_LOG_INFO << "Success: sirius_executable resolved to '" + sirius_executable + "'" << std::endl;
+        }
+        else
+        {
+          throw Exception::InvalidValue(__FILE__,
+                    __LINE__,
+                    OPENMS_PRETTY_FUNCTION,
+                    "FATAL: Executable of SIRIUS could not be found. Please either use SIRIUS_PATH env variable, add the Sirius directory to our PATH or provide the executable with -sirius_executable",
+                    "");
+        }
+      }
+    }
 
     //-------------------------------------------------------------
     // input and check
@@ -419,12 +464,7 @@ protected:
 
       vector< MetaboTargetedAssay::CompoundTargetDecoyPair > v_cmp_spec;
 
-      if (use_fragment_annotation && executable.empty())
-      {
-        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "SIRIUS executable was not found.");
-      }
-      else if (use_fragment_annotation && !executable.empty())
+      if (use_fragment_annotation && !sirius_executable.empty())
       {
         // make temporary files
         SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects sirius_tmp(debug_level_);
@@ -448,7 +488,7 @@ protected:
         String out_csifingerid;
         subdirs = algorithm.callSiriusQProcess(sirius_tmp.getTmpMsFile(),
                                                sirius_tmp.getTmpOutDir(),
-                                               executable,
+                                               sirius_executable,
                                                out_csifingerid,
                                                decoy_generation);
   

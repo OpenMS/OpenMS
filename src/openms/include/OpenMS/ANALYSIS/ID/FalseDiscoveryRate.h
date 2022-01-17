@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 #include <vector>
 #include <unordered_set>
@@ -122,21 +122,51 @@ public:
     @brief Calculate a linear combination of the area of the difference in estimated vs. empirical (TD) FDR
      and the ROC-N value (AUC up to first N false positives).
 
-    @param ids protein identifications, containing PEP scores annotated with target decoy. If vector, only first will be evaluated-
+    @param ids protein identifications, containing PEP scores annotated with target decoy. Only first run will be evaluated.
     @param pepCutoff up to which PEP should the differences between the two FDRs be calculated
     @param fpCutoff up to which nr. of false positives should the target-decoy AUC be evaluated
     @param diffWeight which weight should the difference get. The ROC-N value gets 1 - this weight.
     */
-    double applyEvaluateProteinIDs(const std::vector<ProteinIdentification>& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
-    double applyEvaluateProteinIDs(const ProteinIdentification& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
-    double applyEvaluateProteinIDs(ScoreToTgtDecLabelPairs& score_to_tgt_dec_fraction_pairs, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
+    double applyEvaluateProteinIDs(const std::vector<ProteinIdentification>& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2) const;
+    /**
+    @brief Calculate a linear combination of the area of the difference in estimated vs. empirical (TD) FDR
+     and the ROC-N value (AUC up to first N false positives).
 
-    /// simpler reimplemetation of the apply function above.
+    @param ids protein identifications, containing PEP scores annotated with target decoy.
+    @param pepCutoff up to which PEP should the differences between the two FDRs be calculated
+    @param fpCutoff up to which nr. of false positives should the target-decoy AUC be evaluated
+    @param diffWeight which weight should the difference get. The ROC-N value gets 1 - this weight.
+    */
+    double applyEvaluateProteinIDs(const ProteinIdentification& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2) const;
+
+    /**
+    @brief Calculate a linear combination of the area of the difference in estimated vs. empirical (TD) FDR
+     and the ROC-N value (AUC up to first N false positives).
+
+    @param score_to_tgt_dec_fraction_pairs extracted scores of protein(group) identifications, containing PEP scores annotated with target decoy fractions. Simple case target=1, decoy=0.
+    @param pepCutoff up to which PEP should the differences between the two FDRs be calculated
+    @param fpCutoff up to which nr. of false positives should the target-decoy AUC be evaluated
+    @param diffWeight which weight should the difference get. The ROC-N value gets 1 - this weight.
+    */
+    double applyEvaluateProteinIDs(ScoreToTgtDecLabelPairs& score_to_tgt_dec_fraction_pairs, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2) const;
+
+    /// simpler reimplementation of the apply function above.
     void applyBasic(std::vector<PeptideIdentification> & ids);
-    /// simpler reimplemetation of the apply function above for peptides in ConsensusMaps.
+    /// simpler reimplementation of the apply function above for peptides in ConsensusMaps.
     void applyBasic(ConsensusMap & cmap, bool use_unassigned_peptides = true);
-    /// simpler reimplemetation of the apply function above for proteins.
+    /// simpler reimplementation of the apply function above for proteins.
     void applyBasic(ProteinIdentification & id, bool groups_too = true);
+
+    /**
+     * @brief  Applies a picked protein FDR.
+     * Behaves like a normal target-decoy FDR where only the score of the best protein per
+     * target-decoy pair is used. A pair is calculated by checking accession equality after removing the decoy string.
+     * If @p decoy_string is empty, we try to guess it. If you set @p decoy_string you should also set @p prefix and
+     * say if the string is a prefix (true) or suffix (false).
+     * @p groups_too decides if also a (indistinguishable) group-level FDR will be calculated. Here a group score
+     * will be taken if not ALL proteins in the group were picked already. Targets preferred.
+     */
+    void applyPickedProteinFDR(ProteinIdentification& id, String decoy_string = "", bool prefix = true, bool groups_too = true);
 
     /// calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
     /// if fp_cutoff = 0, it will calculate the full AUC
@@ -164,16 +194,39 @@ public:
     double rocN(const ScoreToTgtDecLabelPairs& scores_labels, Size fpCutoff = 50) const;
 
     /**
-       @brief Calculate FDR on the level of molecule-query matches (e.g. peptide-spectrum matches) for "general" identification data
+       @brief Calculate FDR on the level of observation matches (e.g. peptide-spectrum matches) for "general" identification data
 
        @param id_data Identification data
        @param score_key Key of the score to use for FDR calculation
 
        @return Key of the FDR score
     */
-    IdentificationData::ScoreTypeRef applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref) const;
+    IdentificationData::ScoreTypeRef applyToObservationMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref) const;
 
+    /**
+     * @brief Finds decoy strings in ProteinIdentification runs
+     */
+    class DecoyStringHelper
+    {
+    public:
+      /**
+       * A result of the findDecoyString function
+       */
+      struct Result
+      {
+        bool success; ///< did more than 30% of proteins have the *same* prefix or suffix
+        String name; ///< on success, what was the decoy string?
+        bool is_prefix; ///< on success, was it a prefix or suffix
+      };
 
+      /**
+       * @brief Finds the most common decoy string in the accessions of @p proteins. Checks for suffix and prefix and
+       * some common decoy strings. Only successful if more than 30% had a common string.
+       * @param proteins Input proteins with accessions
+       * @return A @struct Result
+       */
+      static Result findDecoyString(const ProteinIdentification& proteins);
+    };
 private:
 
     /// Not implemented
@@ -185,14 +238,14 @@ private:
     /// calculates the FDR, given two vectors of scores
     void calculateFDRs_(std::map<double, double>& score_to_fdr, std::vector<double>& target_scores, std::vector<double>& decoy_scores, bool q_value, bool higher_score_better) const;
 
-    /// Helper function for applyToQueryMatches()
-    void handleQueryMatch_(
-        IdentificationData::QueryMatchRef match_ref,
+    /// Helper function for applyToObservationMatches()
+    void handleObservationMatch_(
+        IdentificationData::ObservationMatchRef match_ref,
         IdentificationData::ScoreTypeRef score_ref,
         std::vector<double>& target_scores,
         std::vector<double>& decoy_scores,
-        std::map<IdentificationData::IdentifiedMoleculeRef, bool>& molecule_to_decoy,
-        std::map<IdentificationData::QueryMatchRef, double>& match_to_score) const;
+        std::map<IdentificationData::IdentifiedMolecule, bool>& molecule_to_decoy,
+        std::map<IdentificationData::ObservationMatchRef, double>& match_to_score) const;
 
     /// calculates an estimated FDR (based on P(E)Ps) given a vector of score value pairs and fills a map for lookup
     /// in scores_to_FDR
@@ -213,8 +266,6 @@ private:
 
     /// calculates the trapezoidal area for a trapezoid with a flat horizontal base e.g. for an AUC
     double trapezoidal_area(double x1, double x2, double y1, double y2) const;
-
   };
 
 } // namespace OpenMS
-

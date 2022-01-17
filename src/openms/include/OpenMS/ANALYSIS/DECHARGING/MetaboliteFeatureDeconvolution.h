@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,10 +63,8 @@ public:
 
     enum CHARGEMODE {QFROMFEATURE = 1, QHEURISTIC, QALL};
 
-    typedef FeatureMap FeatureMapType;
-    typedef Feature FeatureType;
     typedef DPosition<2> ClusterPointType;
-    typedef FeatureMapType::FeatureType::CoordinateType CoordinateType;
+    typedef Feature::CoordinateType CoordinateType;
     typedef ILPDCWrapper::PairsType PairsType;
 
     /** @name Constructors and Destructor s
@@ -95,7 +93,7 @@ public:
       @param cons_map   [out] Output of grouped features belonging to a charge group
       @param cons_map_p [out] Output of paired features connected by an edge
     */
-    void compute(const FeatureMapType& fm_in, FeatureMapType& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p);
+    void compute(const FeatureMap& fm_in, FeatureMap& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p);
 
 
 protected:
@@ -124,11 +122,11 @@ protected:
     /// (more difficult explanation) supported by neighboring edges
     /// e.g. (.)   -> (H+) might be augmented to
     ///      (Na+) -> (H+Na+)
-    void inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_> >& feature_adducts);
+    void inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_>>& feature_adducts);
 
-    void candidateEdges_(FeatureMapType& fm_out, const Adduct& default_adduct, PairsType& feature_relation, Map<Size, std::set<CmpInfo_> >& feature_adducts);
+    void candidateEdges_(FeatureMap& fm_out, const Adduct& default_adduct, PairsType& feature_relation, Map<Size, std::set<CmpInfo_>>& feature_adducts);
 
-    void annotate_feature_(FeatureMapType& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt side, const Int new_q, const Int old_q);
+    void annotate_feature_(FeatureMap& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt side, const Int new_q, const Int old_q);
 
     /// A function mostly for debugging
     void printEdgesOfConnectedFeatures_(Size idx_1, Size idx_2, const PairsType& feature_relation);
@@ -139,7 +137,7 @@ protected:
       Filter for adding an edge only when the two features connected by it, fulfill the
       intensity criterion.
     **/
-    inline bool intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const FeatureType& f1, const FeatureType& f2);
+    inline bool intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const Feature& f1, const Feature& f2) const;
 
     /**
       @brief determines if we should test a putative feature charge

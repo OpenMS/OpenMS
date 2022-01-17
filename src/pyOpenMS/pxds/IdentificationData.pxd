@@ -6,8 +6,10 @@ from MetaInfoInterface cimport *
 
 cdef extern from "<OpenMS/METADATA/ID/IdentificationData.h>" namespace "OpenMS":
     
-    cdef cppclass IdentificationData(MetaInfoInterface) :
+    cdef cppclass IdentificationData(MetaInfoInterface):
         # wrap-inherits:
-        #  MetaInfoInterface
+        #    MetaInfoInterface
 
-        IdentificationData() nogil except +
+        IdentificationData() nogil except + # wrap-doc:Representation of spectrum identification results and associated data
+
+        IdentificationData(IdentificationData &) nogil except + # wrap-doc:Copy constructor

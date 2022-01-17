@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -121,13 +121,13 @@ public:
     /// Sets the source output parameter index
     void setSourceOutParam(int out);
     /// Returns the source output parameter index
-    int getSourceOutParam();
+    int getSourceOutParam() const;
     /// Returns the source output parameter name
     QString getSourceOutParamName();
     /// Sets the target input parameter index
     void setTargetInParam(int in);
     /// Returns the target input parameter index
-    int getTargetInParam();
+    int getTargetInParam() const;
     /// Returns the target input parameter index
     QString getTargetInParamName();
     /// Updates the edge color

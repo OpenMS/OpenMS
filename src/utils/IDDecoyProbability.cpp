@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,7 +66,7 @@ using namespace std;
 
     So far an estimation of the false score distribution with a gamma distribution
     and the correct score distribution with a gaussian distribution is performed.
-    The probabilities are calculated using bayes law, similar to PeptideProphet.
+    The probabilities are calculated using Bayes law, similar to PeptideProphet.
     This implementation is much simpler than that of PeptideProphet.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
@@ -127,9 +127,9 @@ protected:
     // either fwd_in and rev_in must be given or just the in which contains results of a search against a concatenated target decoy sequence db
     String fwd_in(getStringOption_("fwd_in")), rev_in(getStringOption_("rev_in")), in(getStringOption_("in"));
     bool combined(false);
-    if (fwd_in != "" && rev_in != "")
+    if (!fwd_in.empty() && !rev_in.empty())
     {
-      if (in != "")
+      if (!in.empty())
       {
         writeLog_("Error, either 'fwd_in' and 'rev_in' must be given or 'in', but not both");
         return ILLEGAL_PARAMETERS;
@@ -137,7 +137,7 @@ protected:
     }
     else
     {
-      if (in != "")
+      if (!in.empty())
       {
         combined = true;
       }

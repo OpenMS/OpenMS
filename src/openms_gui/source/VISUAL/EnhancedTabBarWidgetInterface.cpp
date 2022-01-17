@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,10 +58,13 @@ namespace OpenMS
     // use signal/slot to communicate, since directly storing the parent pointer for later access is dangerous (it may already be destroyed during program exit)
     QObject::connect(&this->sp_, &SignalProvider::aboutToBeDestroyed, parent, &EnhancedTabBar::removeId);
     parent->addTab(caption.toQString(), window_id_);
-    if (make_active_tab) parent->show(window_id_);
+    if (make_active_tab)
+    {
+      parent->show(window_id_);
+    }
   }
 
-  Int EnhancedTabBarWidgetInterface::getWindowId()
+  Int EnhancedTabBarWidgetInterface::getWindowId() const
   {
     return window_id_;
   }

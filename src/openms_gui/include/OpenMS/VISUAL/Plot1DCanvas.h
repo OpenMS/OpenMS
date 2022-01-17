@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -132,7 +132,7 @@ public:
     void flipLayer(Size index);
 
     /// Returns whether this widget is currently in mirror mode
-    bool mirrorModeActive();
+    bool mirrorModeActive() const;
 
     /// Sets whether this widget is currently in mirror mode
     void setMirrorModeActive(bool b);
@@ -175,7 +175,7 @@ public:
     Size getAlignmentSize();
 
     /// Returns the score of the alignment
-    double getAlignmentScore();
+    double getAlignmentScore() const;
 
     /// Returns aligned_peaks_indices_
     std::vector<std::pair<Size, Size> > getAlignedPeaksIndices();
@@ -324,7 +324,7 @@ protected:
     /// Shows dialog and calls addLabelAnnotation_
     void addUserLabelAnnotation_(const QPoint& screen_position);
     /// Adds an annotation item at the given screen position
-    void addLabelAnnotation_(const QPoint& screen_position, QString label_text);
+    void addLabelAnnotation_(const QPoint& screen_position, const QString& label_text);
     /// Shows dialog and calls addPeakAnnotation_
     void addUserPeakAnnotation_(PeakIndex near_peak);
 

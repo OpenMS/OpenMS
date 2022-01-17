@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,11 +38,13 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 
+
 #include <string>
 #include <map>
 
 namespace OpenMS
 {
+    class ConsensusMap;
   /**
     @brief Represents the peptide hits for a spectrum
 
@@ -51,7 +53,6 @@ namespace OpenMS
       can belong to one ProteinIdentification. The general information about a
       PeptideIdentification has to be looked up in the corresponding ProteinIndentification, using
       the unique <i>identifier</i> that links the two.
-
       When loading PeptideHit instances from a File, the retention time and mass-to-charge ratio
       of the precursor spectrum can be accessed using getRT() and getMZ().
       This information can be used to map the peptide hits to an MSExperiment, a FeatureMap
@@ -112,6 +113,7 @@ public:
     void insertHit(PeptideHit&& hit);
     /// Sets the peptide hits
     void setHits(const std::vector<PeptideHit>& hits);
+    void setHits(std::vector<PeptideHit>&& hits);
 
     /// returns the peptide significance threshold value
     double getSignificanceThreshold() const;
@@ -128,9 +130,9 @@ public:
     /// sets the peptide score orientation
     void setHigherScoreBetter(bool value);
 
-    /// returns the identifier
+    /// Returns the identifier which links this PI to its corresponding ProteinIdentification
     const String& getIdentifier() const;
-    /// sets the identifier
+    /// sets the identifier which links this PI to its corresponding ProteinIdentification
     void setIdentifier(const String& id);
 
     /// returns the base name which links to underlying peak map
@@ -165,6 +167,37 @@ public:
 
     /// returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)
     static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit>&, const std::set<String>& accession);
+
+      /**
+      @brief Builds MultiMap over all PI's via their UID (as obtained from buildUIDFromPepID()),
+             which is mapped to a index of PI therein, i.e. cm[p.first].getPeptideIdentifications()[p.second];
+
+      @param cmap All PI's of the CMap are enumerated and their UID -> pair mapping is computed
+
+      @return Returns the MultiMap
+    */
+    static std::multimap<String, std::pair<Size, Size>> buildUIDsFromAllPepIDs(const ConsensusMap &cmap);
+
+      /**
+      @brief Builds UID from PeptideIdentification
+             The UID can be formed in two ways.
+             Either it is composed of the map_index and the spectrum-reference
+             or of the ms_run_path and the spectrum_references, if the path is unique.
+             The parts of the UID are separated by '|'.
+
+      @throw Exception::MissingInformation if Spectrum reference missing at PeptideIdentification
+      @throw Exception::MissingInformation if Multiple files in a run, but no map_index in PeptideIdentification found
+
+      @param pep_id  PeptideIdentification for which the UID is computed
+      @param identifier_to_msrunpath Mapping required to build UID. Can be obtained from
+             ProteinIdentification::Mapping::identifier_to_msrunpath which can be created
+             from the corresponding ProtID's
+
+
+      @return Returns the UID for PeptideIdentification
+    */
+    static String buildUIDFromPepID(const PeptideIdentification& pep_id,
+                                    const std::map<String, StringList>& fidentifier_to_msrunpath);
 
 protected:
 

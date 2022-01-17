@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch, Timo Sachsenberg, Chris Bielow $
+// $Authors: Andreas Bertsch, Timo Sachsenberg, Chris Bielow, Jang Jang Jin$
 // --------------------------------------------------------------------------
 //
 
@@ -40,12 +40,15 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 
+#include <map>
+#include <string>
+
 namespace OpenMS
 {
 
   /** @ingroup Chemistry
 
-          @brief Stores elements
+          @brief Singleton that stores elements.
 
       The elements weights (in the default file) are taken from
       "Isotopic Compositions of the Elements 1997", Pure Appl. Chem., 70(1), 217-235, 1998.
@@ -55,9 +58,6 @@ namespace OpenMS
           "Atomic weights of the elements. Review 2000" (IUPAC Technical Report)
           Pure Appl. Chem., 2003, Vol. 75, No. 6, pp. 683-799
           doi:10.1351/pac200375060683
-
-          This singleton stores all elements. The elements are taken from the publications given
-          above and are stored in share/OpenMS/CHEMISTRY/Elements.xml.
 
           Specific isotopes of elements can be accessed by writing the atomic number of the isotope
           in brackets followed by the element name, e.g. "(2)H" for deuterium.
@@ -69,32 +69,31 @@ namespace OpenMS
   class OPENMS_DLLAPI ElementDB
   {
 public:
-    
+
     /** @name Accessors
     */
     //@{
     /// returns a pointer to the singleton instance of the element db
-    /// Upon first call, the Elements.xml file is parsed
     /// This is thread safe upon first and subsequent calls.
     static const ElementDB* getInstance();
 
     /// returns a hashmap that contains names mapped to pointers to the elements
-    const Map<String, const Element *> & getNames() const;
+    const std::map<std::string, const Element*>& getNames() const;
 
     /// returns a hashmap that contains symbols mapped to pointers to the elements
-    const Map<String, const Element *> & getSymbols() const;
+    const std::map<std::string, const Element*>& getSymbols() const;
 
     /// returns a hashmap that contains atomic numbers mapped to pointers of the elements
-    const Map<UInt, const Element *> & getAtomicNumbers() const;
+    const std::map<unsigned int, const Element*>& getAtomicNumbers() const;
 
     /** returns a pointer to the element with name or symbol given in parameter name;
         *	if no element exists with that name or symbol 0 is returned
         *	@param name: name or symbol of the element
     */
-    const Element * getElement(const String & name) const;
+    const Element* getElement(const std::string& name) const;
 
     /// returns a pointer to the element of atomic number; if no element is found 0 is returned
-    const Element * getElement(UInt atomic_number) const;
+    const Element* getElement(unsigned int atomic_number) const;
 
     //@}
 
@@ -102,10 +101,10 @@ public:
     */
     //@{
     /// returns true if the db contains an element with the given name
-    bool hasElement(const String & name) const;
+    bool hasElement(const std::string& name) const;
 
     /// returns true if the db contains an element with the given atomic_number
-    bool hasElement(UInt atomic_number) const;
+    bool hasElement(unsigned int atomic_number) const;
     //@}
 
 protected:
@@ -114,36 +113,37 @@ protected:
 
             @throw throws exception ParseError
      */
-    IsotopeDistribution parseIsotopeDistribution_(const Map<UInt, double>& Z_to_abundance, const Map<UInt, double>& Z_to_mass);
+    IsotopeDistribution parseIsotopeDistribution_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
     /*_ calculates the average weight based on isotope abundance and mass
      */
-    double calculateAvgWeight_(const Map<UInt, double> & Z_to_abundance, const Map<UInt, double> & Z_to_mass);
+    double calculateAvgWeight_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
     /*_ calculates the mono weight based on the smallest isotope mass
      */
-    double calculateMonoWeight_(const Map<UInt, double> & Z_to_mass);
+    double calculateMonoWeight_(const std::map<unsigned int, double>& Z_to_mass);
 
-    /*_ read elements from a XML file, formatted as a Param file.
+	// constructs element objects
+    void storeElements_();
 
-            @throw throws ParseError if the file cannot be parsed
-            @throw throws FileNotFound if the file could not be found
-     */
-    void readFromFile_(const String & file_name);
+  // build element objects from given abundances, masses, name, symbol, and atomic number
+    void buildElement_(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
+  // add element objects to documentation maps
+    void addElementToMaps_(const std::string& name, const std::string& symbol, const unsigned int an, const Element* e);
 
-    /// store element after parsing it
-    void storeElement_(const UInt an, const String& name, const String& symbol, const Map<UInt, double>& Z_to_abundancy, const Map<UInt, double>& Z_to_mass);
+  // constructs isotope objects
+    void storeIsotopes_(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& Z_to_mass, const IsotopeDistribution& isotopes);
 
     /*_ resets all containers
      */
     void clear_();
 
-    Map<String, const Element *> names_;
+    std::map<std::string, const Element*> names_;
 
-    Map<String, const Element *> symbols_;
+    std::map<std::string, const Element*> symbols_;
 
-    Map<UInt, const Element *> atomic_numbers_;
+    std::map<unsigned int, const Element*> atomic_numbers_;
 
 private:
     ElementDB();

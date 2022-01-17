@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,7 +32,6 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
@@ -42,13 +41,14 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
   ConsensusMap::ConsensusMap() :
     Base(),
     MetaInfoInterface(),
-    RangeManagerType(),
+    RangeManagerContainerType(),
     DocumentIdentifier(),
     UniqueIdInterface(),
     UniqueIdIndexer<ConsensusMap>(),
@@ -63,7 +63,7 @@ namespace OpenMS
   ConsensusMap::ConsensusMap(const ConsensusMap& source) :
     Base(source),
     MetaInfoInterface(source),
-    RangeManagerType(source),
+    RangeManagerContainerType(source),
     DocumentIdentifier(source),
     UniqueIdInterface(source),
     UniqueIdIndexer<ConsensusMap>(source),
@@ -75,14 +75,12 @@ namespace OpenMS
   {
   }
 
-  ConsensusMap::~ConsensusMap()
-  {
-  }
+  ConsensusMap::~ConsensusMap() = default;
 
   ConsensusMap::ConsensusMap(Base::size_type n) :
     Base(n),
     MetaInfoInterface(),
-    RangeManagerType(),
+    RangeManagerContainerType(),
     DocumentIdentifier(),
     UniqueIdInterface(),
     column_description_(),
@@ -102,7 +100,7 @@ namespace OpenMS
 
     Base::operator=(source);
     MetaInfoInterface::operator=(source);
-    RangeManagerType::operator=(source);
+    RangeManagerContainerType::operator=(source);
     DocumentIdentifier::operator=(source);
     UniqueIdInterface::operator=(source);
     column_description_ = source.column_description_;
@@ -119,7 +117,7 @@ namespace OpenMS
     ConsensusMap empty_map;
 
     // reset these:
-    RangeManagerType::operator=(empty_map);
+    RangeManagerContainerType::operator=(empty_map);
 
     if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty())
     {
@@ -170,7 +168,7 @@ namespace OpenMS
       fixMod.resize(it_2 - fixMod.begin());
     }
 
-    // append unassignedPeptideIdentifications
+    // append unassigned PeptideIdentifications
     unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(),
                                                rhs.unassigned_peptide_identifications_.begin(),
                                                rhs.unassigned_peptide_identifications_.end());
@@ -351,7 +349,7 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::stable_sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::IntensityLess()));
+      std::stable_sort(Base::begin(), Base::end(), [](auto &left, auto &right) {ConsensusFeature::IntensityLess cmp; return cmp(right, left);});
     }
     else
     {
@@ -361,7 +359,7 @@ namespace OpenMS
 
   void ConsensusMap::sortByRT()
   {
-    std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::RTLess());
+    std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::RTLess()); 
   }
 
   void ConsensusMap::sortByMZ()
@@ -378,7 +376,7 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::stable_sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::QualityLess()));
+      std::stable_sort(Base::begin(), Base::end(), [](auto &left, auto &right) {ConsensusFeature::QualityLess cmp; return cmp(right, left);});
     }
     else
     {
@@ -388,7 +386,7 @@ namespace OpenMS
 
   void ConsensusMap::sortBySize()
   {
-    std::stable_sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::SizeLess()));
+    std::stable_sort(Base::begin(), Base::end(), [](auto &left, auto &right) {ConsensusFeature::SizeLess cmp; return cmp(right, left);});
   }
 
   void ConsensusMap::sortByMaps()
@@ -405,8 +403,14 @@ namespace OpenMS
       const bool has_b = b.metaValueExists("map_index");
 
       // moves IDs without meta value to end
-      if (has_a && !has_b) { return true; }
-      if (!has_a && has_b) { return false; }
+      if (has_a && !has_b)
+      { 
+        return true;
+      }
+      if (!has_a && has_b)
+      { 
+        return false;
+      }
 
       // both have map index annotated
       if (has_a && has_b)
@@ -610,44 +614,17 @@ namespace OpenMS
   void ConsensusMap::updateRanges()
   {
     clearRanges();
-    updateRanges_(begin(), end());
-
     // enlarge the range by the internal points of each feature
-    for (Size i = 0; i < size(); ++i)
+    for (const auto& cf : (privvec&) *this)
     {
-      for (ConsensusFeature::HandleSetType::const_iterator it = operator[](i).begin(); it != operator[](i).end(); ++it)
+      extendRT(cf.getRT());
+      extendMZ(cf.getMZ());
+      extendIntensity(cf.getIntensity());
+      for (const auto& handle : cf.getFeatures())
       {
-        double rt = it->getRT();
-        double mz = it->getMZ();
-        double intensity = it->getIntensity();
-
-        // update RT
-        if (rt < pos_range_.minPosition()[Peak2D::RT])
-        {
-          pos_range_.setMinX(rt);
-        }
-        if (rt > pos_range_.maxPosition()[Peak2D::RT])
-        {
-          pos_range_.setMaxX(rt);
-        }
-        // update m/z
-        if (mz < pos_range_.minPosition()[Peak2D::MZ])
-        {
-          pos_range_.setMinY(mz);
-        }
-        if (mz > pos_range_.maxPosition()[Peak2D::MZ])
-        {
-          pos_range_.setMaxY(mz);
-        }
-        // update intensity
-        if (intensity <  int_range_.minX())
-        {
-          int_range_.setMinX(intensity);
-        }
-        if (intensity > int_range_.maxX())
-        {
-          int_range_.setMaxX(intensity);
-        }
+        extendRT(handle.getRT());
+        extendMZ(handle.getMZ());
+        extendIntensity(handle.getIntensity());
       }
     }
   }
@@ -819,6 +796,24 @@ OPENMS_THREAD_CRITICAL(oms_log)
     }
 
     return fmaps;
+  }
+
+  unsigned ConsensusMap::ColumnHeader::getLabelAsUInt(const String& experiment_type) const
+  {
+    if (metaValueExists("channel_id"))
+    {
+      return static_cast<unsigned int>(getMetaValue("channel_id")) + 1;
+    }
+    else
+    {
+      if (experiment_type != "label-free")
+      {
+        // TODO There seem to be files in our test data from the Multiplex toolset that do not annotate
+        //  a channel id but only add the "label" attribute with the SILAC modification. Add a fall-back here?
+        OPENMS_LOG_WARN << "No channel id annotated in labelled consensusXML. Assuming only a single channel was used." << std::endl;
+      }
+      return 1;
+    }
   }
 
 } // namespace OpenMS

@@ -1,7 +1,6 @@
 qrc_resources.cxx
 DartConfiguration.tcl
 .cache/*
-/**/*.cmake
 /**/*.canno
 Testing
 CMakeCache.txt

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -127,7 +127,7 @@ protected:
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
 
     // If we have a transformation file, trafo will transform the RT in the
-    // scoring according to the model. If we dont have one, it will apply the
+    // scoring according to the model. If we don't have one, it will apply the
     // null transformation.
     Param feature_finder_param = getParam_().copy("algorithm:", true);
 
@@ -171,7 +171,7 @@ protected:
       String fname = outfile_list[i];
       swath_file.setLogType(log_type_);
       swath_file.load(file_list[i], *swath_map);
-      if (swath_map->size() == 0 || (*swath_map)[0].getPrecursors().size() == 0)
+      if (swath_map->empty() || (*swath_map)[0].getPrecursors().empty())
       {
         std::cerr << "WARNING: File " << swath_map->getLoadedFilePath()
                   << " does not have any experiments or any precursors. Is it a SWATH map?"
@@ -186,7 +186,7 @@ protected:
       upper = prec[0].getMZ() + prec[0].getIsolationWindowUpperOffset();
       OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used,
                                               min_upper_edge_dist, lower, upper);
-      if (transition_exp_used.getTransitions().size() == 0)
+      if (transition_exp_used.getTransitions().empty())
       {
         std::cerr << "WARNING: For file " << swath_map->getLoadedFilePath()
                   << " there are no transitions to extract." << std::endl;

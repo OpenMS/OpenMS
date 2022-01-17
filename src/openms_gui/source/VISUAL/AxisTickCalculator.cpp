@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,9 +53,10 @@ namespace OpenMS
   {
     grid.clear();
 
-    if (boost::math::isnan(x1) || boost::math::isnan(x2))
+    if (std::isnan(x1) || std::isnan(x2))
+    {
       return;
-
+    }
     if (x1 > -0.0001 && x1 < 0.0001)
     {
       x1 = 0.0001;

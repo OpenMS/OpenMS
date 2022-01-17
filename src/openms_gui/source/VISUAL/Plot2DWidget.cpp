@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,7 +69,7 @@ namespace OpenMS
     grid_->setRowStretch(1, 3);
 
     PlotCanvas::ExperimentSharedPtrType shr_ptr = PlotCanvas::ExperimentSharedPtrType(new PlotCanvas::ExperimentType());
-    LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+    LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
     MSSpectrum dummy_spec;
     dummy_spec.push_back(Peak1D());
     shr_ptr->addSpectrum(dummy_spec);
@@ -175,158 +175,6 @@ namespace OpenMS
     }
   }
 
-  Histogram<> Plot2DWidget::createIntensityDistribution_() const
-  {
-    //initialize histogram
-    double min = canvas_->getCurrentMinIntensity();
-    double max = canvas_->getCurrentMaxIntensity();
-    if (min == max)
-    {
-      min -= 0.01;
-      max += 0.01;
-    }
-    Histogram<> tmp(min, max, (max - min) / 500.0);
-
-    if (canvas_->getCurrentLayer().type == LayerData::DT_PEAK)
-    {
-      for (ExperimentType::ConstIterator spec_it = canvas_->getCurrentLayer().getPeakData()->begin(); spec_it != canvas_->getCurrentLayer().getPeakData()->end(); ++spec_it)
-      {
-        if (spec_it->getMSLevel() != 1)
-        {
-          continue;
-        }
-        for (ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
-        {
-          tmp.inc(peak_it->getIntensity());
-        }
-      }
-    }
-    else if (canvas_->getCurrentLayer().type == LayerData::DT_FEATURE)
-    {
-      for (Plot2DCanvas::FeatureMapType::ConstIterator it = canvas_->getCurrentLayer().getFeatureMap()->begin(); it != canvas_->getCurrentLayer().getFeatureMap()->end(); ++it)
-      {
-        tmp.inc(it->getIntensity());
-      }
-    }
-    else
-    {
-      for (Plot2DCanvas::ConsensusMapType::ConstIterator it = canvas_->getCurrentLayer().getConsensusMap()->begin(); it != canvas_->getCurrentLayer().getConsensusMap()->end(); ++it)
-      {
-        tmp.inc(it->getIntensity());
-      }
-    }
-
-    return tmp;
-  }
-
-  Histogram<> Plot2DWidget::createMetaDistribution_(const String& name) const
-  {
-    Histogram<> tmp;
-
-    if (canvas_->getCurrentLayer().type == LayerData::DT_PEAK)
-    {
-      //determine min and max of the data
-      float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
-      for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
-      {
-        if (s_it->getMSLevel() != 1)
-          continue;
-        //float arrays
-        for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
-        {
-          if (it->getName() == name)
-          {
-            for (Size i = 0; i < it->size(); ++i)
-            {
-              if ((*it)[i] < min)
-                min = (*it)[i];
-              if ((*it)[i] > max)
-                max = (*it)[i];
-            }
-            break;
-          }
-        }
-        //integer arrays
-        for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = s_it->getIntegerDataArrays().begin(); it != s_it->getIntegerDataArrays().end(); ++it)
-        {
-          if (it->getName() == name)
-          {
-            for (Size i = 0; i < it->size(); ++i)
-            {
-              if ((*it)[i] < min)
-                min = (*it)[i];
-              if ((*it)[i] > max)
-                max = (*it)[i];
-            }
-            break;
-          }
-        }
-      }
-      if (min >= max)
-        return tmp;
-
-      //create histogram
-      tmp.reset(min, max, (max - min) / 500.0);
-      for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
-      {
-        if (s_it->getMSLevel() != 1)
-          continue;
-        //float arrays
-        for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
-        {
-          if (it->getName() == name)
-          {
-            for (Size i = 0; i < it->size(); ++i)
-            {
-              tmp.inc((*it)[i]);
-            }
-            break;
-          }
-        }
-        //integer arrays
-        for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = s_it->getIntegerDataArrays().begin(); it != s_it->getIntegerDataArrays().end(); ++it)
-        {
-          if (it->getName() == name)
-          {
-            for (Size i = 0; i < it->size(); ++i)
-            {
-              tmp.inc((*it)[i]);
-            }
-            break;
-          }
-        }
-      }
-    }
-    else //Features
-    {
-      //determine min and max
-      float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
-      for (Plot2DCanvas::FeatureMapType::ConstIterator it = canvas_->getCurrentLayer().getFeatureMap()->begin(); it != canvas_->getCurrentLayer().getFeatureMap()->end(); ++it)
-      {
-        if (it->metaValueExists(name))
-        {
-          float value = it->getMetaValue(name);
-          if (value < min)
-            min = value;
-          if (value > max)
-            max = value;
-        }
-      }
-      //create histogram
-      tmp.reset(min, max, (max - min) / 500.0);
-      for (Plot2DCanvas::FeatureMapType::ConstIterator it = canvas_->getCurrentLayer().getFeatureMap()->begin(); it != canvas_->getCurrentLayer().getFeatureMap()->end(); ++it)
-      {
-        if (it->metaValueExists(name))
-        {
-          tmp.inc((float)(it->getMetaValue(name)));
-        }
-      }
-
-    }
-
-    return tmp;
-  }
-
   void Plot2DWidget::updateProjections()
   {
     canvas()->updateProjections();
@@ -353,7 +201,7 @@ namespace OpenMS
   //  projection above the 2D area
   void Plot2DWidget::horizontalProjection(ExperimentSharedPtrType exp)
   {
-    LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+    LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
 
     // print horizontal (note that m/z in the projection could actually be RT - this only determines the orientation)
     projection_horz_->canvas()->mzToXAxis(true);
@@ -390,7 +238,7 @@ namespace OpenMS
   // projection on the right side of the 2D area
   void Plot2DWidget::verticalProjection(ExperimentSharedPtrType exp)
   {
-    LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+    LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
     // print vertically (note that m/z in the projection could actually be RT - this only determines the orientation)
     projection_vert_->canvas()->mzToXAxis(false);
     projection_vert_->canvas()->setSwappedAxis(true);
@@ -441,7 +289,7 @@ namespace OpenMS
     goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
     goto_dialog.setMinMaxOfRange(canvas()->getDataRange().minY(), canvas()->getDataRange().maxY(), canvas()->getDataRange().minX(), canvas()->getDataRange().maxX());
     // feature numbers only for consensus&feature maps
-    goto_dialog.enableFeatureNumber(canvas()->getCurrentLayer().type == LayerData::DT_FEATURE || canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS);
+    goto_dialog.enableFeatureNumber(canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE || canvas()->getCurrentLayer().type == LayerDataBase::DT_CONSENSUS);
     //execute
     if (goto_dialog.exec())
     {
@@ -449,7 +297,10 @@ namespace OpenMS
       {
         goto_dialog.fixRange();
         PlotCanvas::AreaType area(goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
-        if (goto_dialog.checked()) correctAreaToObeyMinMaxRanges_(area);
+        if (goto_dialog.checked())
+        {
+          correctAreaToObeyMinMaxRanges_(area);
+        }
         canvas()->setVisibleArea(area);
       }
       else
@@ -460,10 +311,14 @@ namespace OpenMS
         uid.setUniqueId(feature_id);
 
         Size feature_index(-1); // TODO : not use -1
-        if (canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
+        if (canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE)
+        {
           feature_index = canvas()->getCurrentLayer().getFeatureMap()->uniqueIdToIndex(uid.getUniqueId());
-        else if (canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS)
+        }
+        else if (canvas()->getCurrentLayer().type == LayerDataBase::DT_CONSENSUS)
+        {
           feature_index = canvas()->getCurrentLayer().getConsensusMap()->uniqueIdToIndex(uid.getUniqueId());
+        }
         if (feature_index == Size(-1)) // UID does not exist
         {
           try
@@ -477,14 +332,14 @@ namespace OpenMS
         }
 
         //check if the feature index exists
-        if ((canvas()->getCurrentLayer().type == LayerData::DT_FEATURE && feature_index >= canvas()->getCurrentLayer().getFeatureMap()->size())
-           || (canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS && feature_index >= canvas()->getCurrentLayer().getConsensusMap()->size()))
+        if ((canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE && feature_index >= canvas()->getCurrentLayer().getFeatureMap()->size())
+           || (canvas()->getCurrentLayer().type == LayerDataBase::DT_CONSENSUS && feature_index >= canvas()->getCurrentLayer().getConsensusMap()->size()))
         {
           QMessageBox::warning(this, "Invalid feature number", "Feature number too large/UniqueID not found.\nPlease select a valid feature!");
           return;
         }
         //display feature with a margin
-        if (canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
+        if (canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE)
         {
           const FeatureMapType& map = *canvas()->getCurrentLayer().getFeatureMap();
           DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();

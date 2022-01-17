@@ -7,9 +7,10 @@ cdef extern from "<OpenMS/FORMAT/MzTabFile.h>" namespace "OpenMS":
     cdef cppclass MzTabFile:
 
         MzTabFile() nogil except +
+        MzTabFile(MzTabFile &) nogil except + # compiler
 
-        void store(String filename, MzTab & mz_tab) nogil except +
-        void load(String filename, MzTab & mz_tab) nogil except +
+        void store(String filename, MzTab & mz_tab) nogil except + # wrap-doc:Stores MzTab file
+        void load(String filename, MzTab & mz_tab) nogil except + # wrap-doc:Loads MzTab file
 
         # Does not exist
         # void storeProteinReliabilityColumn(bool store) nogil except +

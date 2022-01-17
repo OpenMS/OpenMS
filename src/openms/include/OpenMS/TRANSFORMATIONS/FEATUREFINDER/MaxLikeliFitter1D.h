@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,11 +35,10 @@
 #pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 
 namespace OpenMS
 {
+  class InterpolationModel;
 
   /**
   @brief Abstract base class for all 1D-model fitters using maximum likelihood optimization.
@@ -80,60 +79,13 @@ public:
 protected:
 
     /// fit an offset on the basis of the Pearson correlation coefficient
-    QualityType fitOffset_(std::unique_ptr<InterpolationModel>& model, const RawDataArrayType & set, const CoordinateType stdev1, const CoordinateType stdev2, const CoordinateType offset_step) const
-    {
-      const CoordinateType offset_min = model->getInterpolation().supportMin() - stdev1;
-      const CoordinateType offset_max = model->getInterpolation().supportMin() + stdev2;
+    QualityType fitOffset_(std::unique_ptr<InterpolationModel>& model,
+                           const RawDataArrayType & set,
+                           const CoordinateType stdev1,
+                           const CoordinateType stdev2,
+                           const CoordinateType offset_step) const;
 
-      CoordinateType offset;
-      QualityType correlation;
-
-      //test model with default offset
-      std::vector<float> real_data;
-      real_data.reserve(set.size());
-      std::vector<float> model_data;
-      model_data.reserve(set.size());
-
-      for (Size i = 0; i < set.size(); ++i)
-      {
-        real_data.push_back(set[i].getIntensity());
-        model_data.push_back(model->getIntensity(DPosition<1>(set[i].getPosition())));
-      }
-
-      CoordinateType max_offset = model->getInterpolation().getOffset();
-      QualityType max_correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
-
-      //test different offsets
-      for (offset = offset_min; offset <= offset_max; offset += offset_step)
-      {
-        // set offset
-        model->setOffset(offset);
-
-        // get samples
-        model_data.clear();
-        for (Size i = 0; i < set.size(); ++i)
-        {
-          model_data.push_back(model->getIntensity(DPosition<1>(set[i].getPosition())));
-        }
-
-        correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
-
-        if (correlation > max_correlation)
-        {
-          max_correlation = correlation;
-          max_offset = offset;
-        }
-      }
-
-      model->setOffset(max_offset);
-
-      return max_correlation;
-    }
-
-    void updateMembers_() override
-    {
-      Fitter1D::updateMembers_();
-    }
+    void updateMembers_() override;
 
   };
 }

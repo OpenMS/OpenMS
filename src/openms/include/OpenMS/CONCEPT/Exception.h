@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -279,6 +279,7 @@ public:
     {
 public:
       InvalidRange(const char* file, int line, const char* function) noexcept;
+      InvalidRange(const char* file, int line, const char* function, const std::string& message) noexcept;
     };
 
 
@@ -656,6 +657,18 @@ public:
     {
 public:
       IllegalArgument(const char* file, int line, const char* function, const std::string& error_message) noexcept;
+    };
+
+    /**
+      @brief A tool or algorithm which was called internally raised an exception
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI InternalToolError :
+      public BaseException
+    {
+    public:
+      InternalToolError(const char* file, int line, const char* function, const std::string& error_message) noexcept;
     };
 
     /**

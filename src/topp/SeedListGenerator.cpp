@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,11 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SeedListGenerator.h>
+
+// TODO REMOVE
+#include <OpenMS/KERNEL/ConsensusMap.h>
+
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -128,8 +133,8 @@ protected:
       registerInputFile_("in", "<file>", "",
                          "Input file (see below for details)");
       setValidFormats_("in", ListUtils::create<String>("mzML,idXML,featureXML,consensusXML"));
-      registerOutputFileList_("out", "<file(s)>", StringList(), "Output file(s)");
-      setValidFormats_("out", ListUtils::create<String>("featureXML"));
+      registerOutputPrefix_("out_prefix", "<prefix>", String(), "Output file prefix");
+      setValidFormats_("out_prefix", ListUtils::create<String>("featureXML"));
       addEmptyLine_();
       registerFlag_("use_peptide_mass", "[idXML input only] Use the monoisotopic mass of the best peptide hit for the m/z position (default: use precursor m/z)");
     }
@@ -137,7 +142,8 @@ protected:
     ExitCodes main_(int, const char **) override
     {
       String in = getStringOption_("in");
-      StringList out = getStringList_("out");
+      String out_prefix = getStringOption_("out_prefix");
+
       SeedListGenerator seed_gen;
       // results (actually just one result, except for consensusXML input):
       Map<UInt64, SeedListGenerator::SeedList> seed_lists;
@@ -145,11 +151,24 @@ protected:
       Size num_maps = 0;
       FileTypes::Type in_type = FileHandler::getType(in);
 
+      StringList out;
+      out.push_back(out_prefix + "_0.featureXML"); // we manually set the name here
+
       if (in_type == FileTypes::CONSENSUSXML)
       {
         ConsensusMap consensus;
         ConsensusXMLFile().load(in, consensus);
         num_maps = consensus.getColumnHeaders().size();
+        ConsensusMap::ColumnHeaders ch = consensus.getColumnHeaders();
+        size_t map_count = 0;
+        // we have multiple out files
+        out.clear();
+        for([[maybe_unused]] const auto& header : ch)
+        {           
+          out.push_back(out_prefix + "_" + String(map_count) + ".featureXML"); // we manually set the name here
+          ++map_count;
+        }
+
         if (out.size() != num_maps)
         {
           writeLog_("Error: expected " + String(num_maps) +
@@ -195,16 +214,14 @@ protected:
         //annotate output with data processing info:
         addDataProcessing_(features, getProcessingInfo_(
                              DataProcessing::DATA_PROCESSING));
+        OPENMS_LOG_INFO << "Writing " << features.size() << " seeds to " << out[num_maps] << endl;
         FeatureXMLFile().store(out[num_maps], features);
       }
 
       return EXECUTION_OK;
     }
-
   };
-
 }
-
 
 int main(int argc, const char ** argv)
 {

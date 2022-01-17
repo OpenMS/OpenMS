@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -107,12 +107,12 @@ namespace OpenMS
 
       bool ms1 = false;
       double upper = -1, lower = -1, center = -1;
-      if (exp->size() == 0)
+      if (exp->empty())
       {
         std::cerr << "WARNING: File " << file_list[i] << "\n does not have any scans - I will skip it" << std::endl;
         continue;
       }
-      if (exp->getSpectra()[0].getPrecursors().size() == 0)
+      if (exp->getSpectra()[0].getPrecursors().empty())
       {
         std::cout << "NOTE: File " << file_list[i] << "\n does not have any precursors - I will assume it is the MS1 scan." << std::endl;
         ms1 = true;

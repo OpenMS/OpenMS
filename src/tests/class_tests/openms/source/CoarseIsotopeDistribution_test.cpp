@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
-// 
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
@@ -136,7 +136,7 @@ START_SECTION(IsotopeDistribution convolve_(const CoarseIsotopePatternGenerator&
 {
     IsotopeDistribution iso1, iso2;
     solver->setMaxIsotope(1);
-    IsotopeDistribution::ContainerType result = solver->convolve_(iso1.getContainer(), iso2.getContainer());
+    IsotopeDistribution::ContainerType result = solver->convolve(iso1.getContainer(), iso2.getContainer());
     TEST_EQUAL(result.size(), 1)
     TEST_EQUAL(result[0].getMZ(), 0)
     TEST_EQUAL(result[0].getIntensity(), 1)
@@ -288,6 +288,64 @@ START_SECTION(IsotopeDitribution CoarseIsotopePatternGenerator::estimateFromPept
     TEST_REAL_SIMILAR(iso.begin()->getMZ(), 9994);
 
     solver->setRoundMasses(false);
+}
+END_SECTION
+
+START_SECTION(IsotopeDitribution CoarseIsotopePatternGenerator::approximateFromPeptideWeight(double mass, int num_peaks))
+{
+  std::vector<float> masses_to_test = {20, 300, 1000, 2500};
+  for (auto mass = masses_to_test.begin(); mass != masses_to_test.end(); ++mass)
+  {
+    IsotopeDistribution approximation = CoarseIsotopePatternGenerator::approximateFromPeptideWeight(*mass);
+    solver->setMaxIsotope(approximation.size());
+    IsotopeDistribution coarse_truth = solver->estimateFromPeptideWeight(*mass);
+
+    // compute KL divergence (Sum over all x: P(x) * log(P(x) / Q(x)), where P is a distribution and Q its approximation
+    double KL = 0;
+    double sum = 0.0;
+    for (UInt peak = 0; peak != approximation.size() && peak != coarse_truth.size(); ++peak) // coarse_truth.size() is 18, although approximation.size() = 20 for mass = 20
+    {
+      double Px = coarse_truth[peak].getIntensity();
+      double Qx = approximation[peak].getIntensity();
+      sum += Qx;
+      if (Px != 0) // KL is 0 for Px = 0
+      {
+        KL += Px * log(Px / Qx);
+      }
+    }
+
+    TEST_REAL_SIMILAR(sum, 1.0);
+    TEST_EQUAL(0 < KL && KL < 0.05, true);
+  }
+}
+END_SECTION
+
+START_SECTION(IsotopeDitribution CoarseIsotopePatternGenerator::approximateIntensities(double mass, int num_peaks))
+{
+  std::vector<Int> masses_to_test = {20, 300, 1000, 2500};
+  for (auto mass = masses_to_test.begin(); mass != masses_to_test.end(); ++mass)
+  {
+    std::vector<double> approximation = CoarseIsotopePatternGenerator::approximateIntensities(*mass);
+    solver->setMaxIsotope(approximation.size());
+    IsotopeDistribution coarse_truth = solver->estimateFromPeptideWeight(*mass);
+
+    // compute KL divergence (Sum over all x: P(x) * log(P(x) / Q(x)), where P is a distribution and Q its approximation
+    double KL = 0;
+    double sum = 0.0;
+    for (UInt peak = 0; peak != approximation.size() && peak != coarse_truth.size(); ++peak)// coarse_truth.size() is 18, although approximation.size() = 20 for mass = 20
+    {
+      double Px = coarse_truth[peak].getIntensity();
+      double Qx = approximation[peak];
+      sum += Qx;
+      if (Px != 0)// KL is 0 for Px = 0
+      {
+        KL += Px * log(Px / Qx);
+      }
+    }
+
+    TEST_REAL_SIMILAR(sum, 1.0);
+    TEST_EQUAL(0 < KL && KL < 0.05, true);
+  }
 }
 END_SECTION
 
@@ -662,4 +720,3 @@ delete solver;
 END_TEST
 
 #pragma clang diagnostic pop
-

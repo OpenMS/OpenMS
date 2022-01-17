@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>" namespace
     
     cdef cppclass CsiFingerIdMzTabWriter "OpenMS::CsiFingerIdMzTabWriter":
         CsiFingerIdMzTabWriter() nogil except + 
-        CsiFingerIdMzTabWriter(CsiFingerIdMzTabWriter) nogil except +
+        CsiFingerIdMzTabWriter(CsiFingerIdMzTabWriter &) nogil except + # compiler
 
 # wrap static method:
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>" namespace "OpenMS::CsiFingerIdMzTabWriter":

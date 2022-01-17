@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,8 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>
+
+#include <boost/math/special_functions/fpclassify.hpp>
 
 //#define DAC_DEBUG
 
@@ -466,14 +468,14 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
 
       double score = zhang_(CID_sim_spec, CID_spec);
 
-      if (boost::math::isnan(score))
+      if (std::isnan(score))
       {
         score = 0;
       }
 
       score /= it->size();
 
-      if (boost::math::isnan(score))
+      if (std::isnan(score))
       {
         score = 0;
       }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,8 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+
+#include <list>
 
 using namespace OpenMS;
 using namespace OpenMS::Math;
@@ -214,7 +216,7 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
 	vv2.push_back(5);
 
 	result = Math::pearsonCorrelationCoefficient(vv1.begin(), vv1.end(), vv2.begin(), vv2.end());
-	if (boost::math::isnan(result) ) result = -1.0;
+	if (std::isnan(result) ) result = -1.0;
 
 	TEST_REAL_SIMILAR(result, -1.0);
 // ************ TEST for nan *****************

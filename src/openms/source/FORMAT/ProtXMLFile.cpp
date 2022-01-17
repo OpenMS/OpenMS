@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -113,7 +113,9 @@ namespace OpenMS
       date.set(time);
 
       if (!date.isValid())
+      {
         OPENMS_LOG_WARN << "Warning: Cannot parse 'time'='" << time << "'.\n";
+      }
       prot_id_->setDateTime(date);
       prot_id_->setSearchEngine(analysis);
       prot_id_->setSearchEngineVersion(version);
@@ -204,7 +206,7 @@ namespace OpenMS
       String temp_description = "";
       String origin = temp_aa_sequence[position - 1].getOneLetterCode();
       matchModification_(mass, origin, temp_description);
-      if (temp_description.size() > 0) // only if a mod was found
+      if (!temp_description.empty()) // only if a mod was found
       {
         // e.g. Carboxymethyl (C)
         vector<String> mod_split;

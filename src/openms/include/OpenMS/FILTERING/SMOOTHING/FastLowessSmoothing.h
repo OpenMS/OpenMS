@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,8 +37,6 @@
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <vector>
-#include <algorithm>    // std::min, std::max
-#include <functional>
 
 namespace OpenMS
 {
@@ -113,17 +111,8 @@ namespace OpenMS
       \pre The vector x needs to be sorted
       
     */
-    inline int OPENMS_DLLAPI lowess(const std::vector<double>& x, const std::vector<double>& y,
-               std::vector<double>& result)
-    {
-      OPENMS_PRECONDITION(x.size() == y.size(), "Vectors x and y must have the same length")
-      OPENMS_PRECONDITION(x.size() >= 2, "Need at least two points for smoothing")
-      OPENMS_PRECONDITION(std::adjacent_find(x.begin(), x.end(), std::greater<double>()) == x.end(),
-          "The vector x needs to be sorted")
-
-      double delta = 0.01 * (x[ x.size()-1 ] - x[0]); // x is sorted
-      return lowess(x, y, 2.0/3, 3, delta, result);
-    }
+    int OPENMS_DLLAPI lowess(const std::vector<double>& x, const std::vector<double>& y,
+               std::vector<double>& result);
   }
 
 } // namespace OpenMS

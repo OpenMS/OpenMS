@@ -18,6 +18,9 @@
 
     def values(self):
         return [self[k] for k in self.keys()]
+    
+    def descriptions(self):
+        return [self.getDescription(k) for k in self.keys()]
 
     def update(self, *a):
         """
@@ -60,6 +63,9 @@
         tags = self.getTags(key)
         desc = self.getDescription(key)
         self.setValue(key, value, desc, tags)
+        
+    def __str__(self):
+        return str(list(zip([k.decode() for k in self.keys()], self.values(), self.descriptions())))
 
 
 

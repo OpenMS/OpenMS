@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,8 +68,9 @@ namespace OpenMS
   Fitter1D& Fitter1D::operator=(const Fitter1D& source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     DefaultParamHandler::operator=(source);
     setParameters(source.getParameters());
     updateMembers_();

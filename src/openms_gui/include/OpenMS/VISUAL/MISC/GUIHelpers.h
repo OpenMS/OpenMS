@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,9 +79,9 @@ namespace OpenMS
        @param where Coordinates where to start drawing (upper left corner of text)
        @param col_fg Optional text color; if invalid (=default) will use the current painter's color
        @param col_bg Optional background color of bounding rectangle; if invalid (=default) no background will be painted
-       @param Optional font; will use Courier by default
+       @param font Font to use; will use Courier by default
     */
-    void drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor col_fg = QColor("invalid"), const QColor col_bg = QColor("invalid"), const QFont& f = QFont("Courier"));
+    void drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor col_fg = QColor("invalid"), const QColor col_bg = QColor("invalid"), const QFont& font = QFont("Courier"));
 
 
     /**

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -67,7 +68,7 @@ namespace OpenMS
     InternalCalibration();
 
     /// Destructor
-    ~InternalCalibration(){}
+    ~InternalCalibration() override{}
 
     /// helper class, describing a lock mass
     struct LockMass
@@ -200,7 +201,7 @@ namespace OpenMS
                    const String& file_residuals_plot = "",
                    const String& rscript_executable = "Rscript");
 
-    /*
+    /**
       @brief Transform a precursor's m/z
 
       Calibrate m/z of precursors.
@@ -210,7 +211,7 @@ namespace OpenMS
     */
     static void applyTransformation(std::vector<Precursor>& pcs, const MZTrafoModel& trafo);
 
-    /*
+    /**
       @brief Transform a spectrum (data+precursor)
 
       See applyTransformation(MSExperiment, ...) for details.
@@ -221,7 +222,7 @@ namespace OpenMS
     */
     static void applyTransformation(PeakMap::SpectrumType& spec, const IntList& target_mslvl, const MZTrafoModel& trafo);
 
-    /*
+    /**
       @brief Transform spectra from a whole map (data+precursor)
 
       All data peaks and precursor information (if present) are calibrated in m/z.
@@ -290,7 +291,7 @@ namespace OpenMS
     /// determine if sequence is within tol_ppm and update stats; fills mz_ref with the theoretical m/z of the sequence
     bool isDecalibrated_(const PeptideIdentification& pep_id, const double mz_obs, const double tol_ppm, CalibrantStats_& stats, double& mz_ref);
 
-    /*
+    /**
      @brief Calibrate m/z of a spectrum, ignoring precursors!
 
      This method is not exposed as public, because its easy to be misused on spectra while forgetting about the precursors of high-level spectra.

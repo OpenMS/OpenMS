@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -297,7 +298,7 @@ public:
     /**
        @brief Builds a map index of data that have a String index to find matches and return the objects
 
-       @note Currently implemented for FastaEntries and Peptide Evidences
+       @note Currently implemented for Fasta Entries and Peptide Evidences
     */
     template <class HitType, class Entry>
     struct GetMatchingItems
@@ -755,6 +756,10 @@ public:
     static void removeUnreferencedProteins(
       std::vector<ProteinIdentification>& proteins,
       const std::vector<PeptideIdentification>& peptides);
+    /// Removes protein hits from @p proteins that are not referenced by a peptide in @p peptides
+    static void removeUnreferencedProteins(
+        ProteinIdentification& proteins,
+        const std::vector<PeptideIdentification>& peptides);
 
     /**
        @brief Removes references to missing proteins
@@ -771,12 +776,24 @@ public:
     /**
        @brief Removes references to missing proteins
 
-       Only PeptideEvidence entries that reference protein hits in @p proteins are kept in the peptide hits.
+       Only PeptideEvidence entries that reference protein hits in their corresponding protein run of @p cmap are kept in the peptide hits.
 
        If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
     */
     static void updateProteinReferences(
         ConsensusMap& cmap,
+        bool remove_peptides_without_reference = false);
+
+    /**
+       @brief Removes references to missing proteins
+
+       Only PeptideEvidence entries that reference protein hits in @p ref_run are kept in the peptide hits.
+
+       If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
+    */
+    static void updateProteinReferences(
+        ConsensusMap& cmap,
+        const ProteinIdentification& ref_run,
         bool remove_peptides_without_reference = false);
 
     /**
@@ -1361,14 +1378,58 @@ public:
 
     /// @name Filter functions for class IdentificationData
     ///@{
-    static void keepBestMatchPerQuery(
+
+    /*!
+      @brief Helper function for filtering observation matches (e.g. PSMs) in IdentificationData
+
+      Depending on parameter @p cleanup_affected, the data structure may be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
+
+      @param id_data Data to be filtered
+      @param func Functor that returns true for items to be removed
+      @param cleanup_affected Will filtering invalidate other parts of @p id_data that need to be cleaned up?
+    */
+    template <typename PredicateType>
+    static void filterObservationMatchesByFunctor(
+        IdentificationData& id_data, PredicateType&& func, bool cleanup_affected = false)
+    {
+      id_data.removeFromSetIf_(id_data.observation_matches_, func);
+      if (cleanup_affected) id_data.cleanup();
+    }
+
+    /*!
+      @brief Filter IdentificationData to keep only the best match (e.g. PSM) for each observation (e.g. spectrum)
+
+      The data structure will be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
+
+      @see IdentificationData::getBestMatchPerObservation
+
+      @param id_data Data to be filtered
+      @param score_ref Reference to the score type defining "best" matches
+    */
+    static void keepBestMatchPerObservation(
       IdentificationData& id_data,
       IdentificationData::ScoreTypeRef score_ref);
 
-    static void filterQueryMatchesByScore(
+    /*!
+      @brief Filter observation matches (e.g. PSMs) in IdentificationData by score
+
+      Matches with scores of the required type that are worse than the cut-off are removed.
+      Matches without a score of the required type are also removed.
+      The data structure will be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
+
+      @param id_data Data to be filtered
+      @param score_ref Reference to the score type used for filtering
+      @param cutoff Score cut-off for filtering
+    */
+    static void filterObservationMatchesByScore(
       IdentificationData& id_data,
       IdentificationData::ScoreTypeRef score_ref, double cutoff);
 
+    /*!
+      @brief Filter IdentificationData to remove parent sequences annotated as decoys
+
+      If any were removed, the data structure will be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
+    */
     static void removeDecoys(IdentificationData& id_data);
     ///@}
 

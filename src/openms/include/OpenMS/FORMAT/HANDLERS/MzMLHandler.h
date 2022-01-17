@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -188,10 +188,10 @@ public:
       //@}
 
       /// handler which support partial loading, implement this method
-      virtual LOADDETAIL getLoadDetail() const override;
+      LOADDETAIL getLoadDetail() const override;
 
       /// handler which support partial loading, implement this method
-      virtual void setLoadDetail(const LOADDETAIL d) override;
+      void setLoadDetail(const LOADDETAIL d) override;
 
 protected:
 
@@ -507,7 +507,7 @@ protected:
       //@}
 
       ///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
-      ControlledVocabulary cv_;
+      const ControlledVocabulary& cv_;
       CVMappings mapping_;
 
     };

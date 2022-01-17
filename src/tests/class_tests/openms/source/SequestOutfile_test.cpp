@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -344,7 +344,7 @@ START_SECTION(void getSequences(const String& database_filename, const map< Stri
 	file.getSequences(OPENMS_GET_TEST_DATA_PATH("Sequest_test2.fasta"), ac_position_map_subset, found_sequences, found, not_found);
 	TEST_EQUAL(found.size(), 4)
 	TEST_EQUAL(not_found.size(), 0)
-	ABORT_IF(found.size() != 4 || not_found.size() != 0)
+	ABORT_IF(found.size() != 4 || !not_found.empty())
 
 	TEST_EQUAL(String("P02666"), found[2].first)
 	TEST_EQUAL(ac_position_map["P02666"], found[2].second)

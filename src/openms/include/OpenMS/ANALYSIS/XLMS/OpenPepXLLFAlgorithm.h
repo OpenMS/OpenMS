@@ -3,7 +3,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,7 +67,7 @@ namespace OpenMS
     <h3>Input: MS2 spectra and fasta database of proteins expected to be cross-linked in the sample</h3>
     The spectra should be provided as one PeakMap. If you have multiple files, e.g. for multiple fractions, you should run this tool on each
     file separately.
-    The database should be provided as a vector of FASTAEntrys containing the target and decoy proteins.
+    The database should be provided as a vector of FASTAEntries containing the target and decoy proteins.
 
     <h3>Parameters</h3>
     The parameters for fixed and variable modifications refer to additional modifications beside the cross-linker.
@@ -123,14 +123,14 @@ public:
     /**
      * @brief Performs the main function of this class, the search for cross-linked peptides
 
-     * @param unprocessed_spectra The input PeakMap of experimental spectra
-     * @param fasta_db The protein database containing targets and decoys
-     * @param protein_ids A result vector containing search settings. Should contain one PeptideIdentification.
-     * @param peptide_ids A result vector containing cross-link spectrum matches as PeptideIdentifications and PeptideHits. Should be empty.
-     * @param preprocessed_pair_spectra A result structure containing linear and cross-linked ion spectra. Will be overwritten. This is only necessary for writing out xQuest type spectrum files.
-     * @param spectrum_pairs A result vector containing paired spectra indices. Should be empty. This is only necessary for writing out xQuest type spectrum files.
-     * @param all_top_csms A result vector containing cross-link spectrum matches as CrossLinkSpectrumMatches. Should be empty. This is only necessary for writing out xQuest type spectrum files.
-     * @param spectra A result vector containing the input spectra after preprocessing and filtering. Should be empty. This is only necessary for writing out xQuest type spectrum files.
+      @param unprocessed_spectra The input PeakMap of experimental spectra
+      @param fasta_db The protein database containing targets and decoys
+      @param protein_ids A result vector containing search settings. Should contain one PeptideIdentification.
+      @param peptide_ids A result vector containing cross-link spectrum matches as PeptideIdentifications and PeptideHits. Should be empty.
+      @param preprocessed_pair_spectra A result structure containing linear and cross-linked ion spectra. Will be overwritten. This is only necessary for writing out xQuest type spectrum files.
+      @param spectrum_pairs A result vector containing paired spectra indices. Should be empty. This is only necessary for writing out xQuest type spectrum files.
+      @param all_top_csms A result vector containing cross-link spectrum matches as CrossLinkSpectrumMatches. Should be empty. This is only necessary for writing out xQuest type spectrum files.
+      @param spectra A result vector containing the input spectra after preprocessing and filtering. Should be empty. This is only necessary for writing out xQuest type spectrum files.
      */
     ExitCodes run(PeakMap& unprocessed_spectra, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra);
 
