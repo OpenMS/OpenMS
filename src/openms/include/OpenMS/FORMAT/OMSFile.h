@@ -85,7 +85,6 @@ namespace OpenMS
 
   protected:
     LogType log_type_;
-
   };
 } // namespace OpenMS
 

@@ -296,7 +296,6 @@ namespace OpenMS
   static MzTabM exportFeatureMapToMzTabM(const FeatureMap& feature_map);
 
   protected:
-
     MzTabMMetaData m_meta_data_;
     MzTabMSmallMoleculeSectionRows m_small_molecule_data_;
     MzTabMSmallMoleculeFeatureSectionRows m_small_molecule_feature_data_;

@@ -81,7 +81,8 @@ namespace OpenMS {
     defaultsToParam_();
   }
 
-  void FIAMSDataProcessor::updateMembers_() {
+  void FIAMSDataProcessor::updateMembers_()
+  {
     float max_mz_ = param_.getValue("max_mz");
     float bin_step_ = param_.getValue("bin_step");
     float resolution_ = static_cast<float>(param_.getValue("resolution"));
@@ -100,7 +101,8 @@ namespace OpenMS {
     sgfilter_.setParameters(p);
   }
 
-  void FIAMSDataProcessor::cutForTime(const MSExperiment& experiment, const float n_seconds, std::vector<MSSpectrum>& output) {
+  void FIAMSDataProcessor::cutForTime(const MSExperiment& experiment, const float n_seconds, std::vector<MSSpectrum>& output)
+  {
       for (const auto & s : experiment.getSpectra()) {
           if (s.getRT() < n_seconds) output.push_back(s);
       }
@@ -123,7 +125,8 @@ namespace OpenMS {
       return output;
   }
 
-  MSSpectrum FIAMSDataProcessor::extractPeaks(const MSSpectrum& input) {
+  MSSpectrum FIAMSDataProcessor::extractPeaks(const MSSpectrum& input)
+  {
     MSSpectrum spectrum(input);
     sgfilter_.filter(spectrum);
 
@@ -133,7 +136,8 @@ namespace OpenMS {
     return picked;
   }
 
-  FeatureMap FIAMSDataProcessor::convertToFeatureMap(const MSSpectrum& input) {
+  FeatureMap FIAMSDataProcessor::convertToFeatureMap(const MSSpectrum& input)
+  {
     String polarity_ = param_.getValue("polarity").toString();
     FeatureMap output;
     for (auto it = input.begin(); it != input.end(); ++it) {
@@ -146,7 +150,8 @@ namespace OpenMS {
     return output;
   }
 
-  void FIAMSDataProcessor::runAccurateMassSearch(FeatureMap& input, OpenMS::MzTab& output) {
+  void FIAMSDataProcessor::runAccurateMassSearch(FeatureMap& input, OpenMS::MzTab& output)
+  {
     Param ams_param;
     ams_param.setValue("ionization_mode", "auto");
     ams_param.setValue("mass_error_value", 1e+06 / (static_cast<float>(param_.getValue("resolution"))*2));
@@ -163,7 +168,8 @@ namespace OpenMS {
     ams.run(input, output);
   }
 
-  MSSpectrum FIAMSDataProcessor::trackNoise(const MSSpectrum& input) {
+  MSSpectrum FIAMSDataProcessor::trackNoise(const MSSpectrum& input)
+  {
     SignalToNoiseEstimatorMedianRapid sne(param_.getValue("sne:window"));
     MSSpectrum output;
     if (input.empty()) {
@@ -189,7 +195,8 @@ namespace OpenMS {
     return output;
   }
 
-  bool FIAMSDataProcessor::run(const MSExperiment& experiment, const float n_seconds, OpenMS::MzTab& output, const bool load_cached_spectrum) {
+  bool FIAMSDataProcessor::run(const MSExperiment& experiment, const float n_seconds, OpenMS::MzTab& output, const bool load_cached_spectrum)
+  {
     String postfix = String(static_cast<int>(n_seconds));
     std::string dir_output_ = param_.getValue("dir_output");
     std::string filename_ = param_.getValue("filename");
@@ -226,7 +233,8 @@ namespace OpenMS {
     return is_cached;
   }
 
-  void FIAMSDataProcessor::storeSpectrum_(const MSSpectrum& input, String filename) {
+  void FIAMSDataProcessor::storeSpectrum_(const MSSpectrum& input, String filename)
+  {
       MzMLFile mzml;
       MSExperiment exp;
       exp.addSpectrum(input);
@@ -234,12 +242,14 @@ namespace OpenMS {
   }
 
   /// Get mass-to-charge ratios to base the sliding window upon
-  const std::vector<float>& FIAMSDataProcessor::getMZs() {
+  const std::vector<float>& FIAMSDataProcessor::getMZs()
+  {
     return mzs_;
   }
 
   /// Get the sliding bin sizes
-  const std::vector<float>& FIAMSDataProcessor::getBinSizes() {
+  const std::vector<float>& FIAMSDataProcessor::getBinSizes()
+  {
     return bin_sizes_;
   }
 }

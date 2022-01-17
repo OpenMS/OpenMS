@@ -87,7 +87,6 @@ namespace OpenMS
 
   std::vector<String> MzTabM::getMSmallMoleculeOptionalColumnNames() const
   {
-
     return getOptionalColumnNames_(m_small_molecule_data_);
   }
 
@@ -130,6 +129,7 @@ namespace OpenMS
       const Feature& f = feature_map[i];
       std::vector<String> keys;
       f.getKeys(keys);
+      // replace whitespaces with underscore
       std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
       feature_user_value_keys.insert(keys.begin(), keys.end());
 
@@ -139,6 +139,7 @@ namespace OpenMS
         // feature section optional columns
         std::vector<String> obsm_keys;
         match_ref->getKeys(obsm_keys);
+        // replace whitespaces with underscore
         std::transform(obsm_keys.begin(), obsm_keys.end(), obsm_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
 
         // remove "IDConverter_trace" metadata from the ObservationMatch
@@ -157,6 +158,7 @@ namespace OpenMS
         IdentificationData::IdentifiedCompoundRef compound_ref = molecule.getIdentifiedCompoundRef();
         std::vector<String> compound_keys;
         compound_ref->getKeys(compound_keys);
+        // replace whitespaces with underscore
         std::transform(compound_keys.begin(), compound_keys.end(), compound_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
         compound_user_value_keys.insert(compound_keys.begin(), compound_keys.end());
       }

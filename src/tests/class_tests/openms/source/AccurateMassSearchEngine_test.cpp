@@ -306,6 +306,8 @@ fsc.setAcceptableAbsolute(1e-8);
 StringList sl;
 sl.push_back("xml-stylesheet");
 sl.push_back("IdentificationRun id=\"PI_0\" date=");
+sl.push_back("software[1]");
+sl.push_back("database[1]-uri");
 fsc.setWhitelist(sl);
 
 START_SECTION((void run(FeatureMap&, MzTab&) const))

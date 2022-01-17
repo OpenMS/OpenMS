@@ -286,7 +286,6 @@ namespace OpenMS
         name_(""),
         value_("")
   {
-
   }
 
   bool MzTabParameter::isNull() const

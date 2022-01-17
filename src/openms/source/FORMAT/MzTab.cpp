@@ -2394,6 +2394,7 @@ state0:
       const Feature& f = feature_map[i];
       vector<String> keys;
       f.getKeys(keys); //TODO: why not just return it?
+      // replace whitespaces with underscore
       std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
 
       feature_user_value_keys.insert(keys.begin(), keys.end());
@@ -2405,6 +2406,7 @@ state0:
         {
           vector<String> ph_keys;
           hit.getKeys(ph_keys);
+          // replace whitespaces with underscore
           std::transform(ph_keys.begin(), ph_keys.end(), ph_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
@@ -2420,6 +2422,7 @@ state0:
     {
       vector<String> keys;
       c.getKeys(keys);
+      // replace whitespaces with underscore
       std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
 
 
@@ -2432,6 +2435,7 @@ state0:
         {
           vector<String> ph_keys;
           hit.getKeys(ph_keys);
+          // replace whitespaces with underscore
           std::transform(ph_keys.begin(), ph_keys.end(), ph_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
@@ -2455,6 +2459,7 @@ state0:
       {
         vector<String> keys;
         hit.getKeys(keys);
+        // replace whitespaces with underscore
         std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
         protein_hit_user_value_keys.insert(keys.begin(), keys.end());
       }
@@ -2464,6 +2469,7 @@ state0:
     {
       vector<String> pid_keys;
       pep_id->getKeys(pid_keys);
+      // replace whitespaces with underscore
       std::transform(pid_keys.begin(), pid_keys.end(), pid_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
       peptide_id_user_value_keys.insert(pid_keys.begin(), pid_keys.end());
 
@@ -2471,6 +2477,7 @@ state0:
       {
         vector<String> ph_keys;
         hit.getKeys(ph_keys);
+        // replace whitespaces with underscore
         std::transform(ph_keys.begin(), ph_keys.end(), ph_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
         peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
       }
@@ -2667,6 +2674,7 @@ state0:
 
     // column headers may not contain spaces
     set<String> protein_hit_user_value_keys_tmp_2;
+    // replace whitespaces with underscore
     std::transform(protein_hit_user_value_keys_.begin(),
                    protein_hit_user_value_keys_.end(),
                    std::inserter(protein_hit_user_value_keys_tmp_2, protein_hit_user_value_keys_tmp_2.begin()),

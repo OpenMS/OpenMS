@@ -390,28 +390,26 @@ protected:
     virtual ~MzTabBase() = default;
 
   protected:
-  /// Helper function for "get...OptionalColumnNames" functions
-  template <typename SectionRows>
-  std::vector<String> getOptionalColumnNames_(const SectionRows& rows) const
-  {
-    // vector is used to preserve the column order
-    std::vector<String> names;
-    if (!rows.empty())
+    /// Helper function for "get...OptionalColumnNames" functions
+    template <typename SectionRows>
+    std::vector<String> getOptionalColumnNames_(const SectionRows& rows) const
     {
-      for (typename SectionRows::const_iterator it = rows.begin(); it != rows.end(); ++it)
+      // vector is used to preserve the column order
+      std::vector<String> names;
+      if (!rows.empty())
       {
-        for (auto it_opt = it->opt_.cbegin(); it_opt != it->opt_.cend(); ++it_opt)
+        for (typename SectionRows::const_iterator it = rows.begin(); it != rows.end(); ++it)
         {
-          if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
+          for (auto it_opt = it->opt_.cbegin(); it_opt != it->opt_.cend(); ++it_opt)
           {
-            names.push_back(it_opt->first);
+            if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
+            {
+              names.push_back(it_opt->first);
+            }
           }
         }
       }
+      return names;
     }
-    return names;
-  }
-
   };
-
 } // namespace OpenMS
