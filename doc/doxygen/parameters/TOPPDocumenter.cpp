@@ -46,8 +46,6 @@
 #include <fstream>
 #include <sstream>
 
-#include <boost/algorithm/string.hpp>
-
 using namespace std;
 using namespace OpenMS;
 using namespace Internal;

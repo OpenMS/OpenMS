@@ -285,7 +285,7 @@ namespace OpenMS
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                            "Error: Peptide " + pep->id + " does not have retention time information which is necessary to perform an RT-limited extraction");
         }
-        else if (boost::math::isnan(rt_extraction_window)) // if 'rt_extraction_window' is NAN, we assume that RT start/end is encoded in the data
+        else if (std::isnan(rt_extraction_window)) // if 'rt_extraction_window' is NAN, we assume that RT start/end is encoded in the data
         {
           // TODO: better use a single RT entry with start/end
           if (pep->rts.size() != 2)

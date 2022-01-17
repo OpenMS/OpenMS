@@ -55,7 +55,9 @@ namespace OpenMS
   /*!
     @brief Representation of spectrum identification results and associated data
 
-    This class provides capabilities for storing spectrum identification results from different types of experiments/molecules (proteomics: peptides/proteins, metabolomics: small molecules, "nucleomics": RNA).
+    This class provides capabilities for storing spectrum identification results from different 
+    types of experiments/molecules (proteomics: peptides/proteins, metabolomics: small molecules, "nucleomics": RNA).
+    
     The class design has the following goals:
     - Provide one structure for storing all relevant data for spectrum identification results.
     - Store data non-redundantly.

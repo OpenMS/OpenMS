@@ -157,7 +157,7 @@ if(AUTOWRAP_MISSING)
 else()
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 4))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 5))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -172,7 +172,7 @@ else()
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
     else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.22.2 is required)")
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.22.5 is required)")
         message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
     endif()
 endif()
@@ -556,7 +556,7 @@ IF(LINUX AND PY_NO_OUTPUT)
             OUTPUT ${PYSOFILES}
             COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS} 2> /dev/null
             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
-            DEPENDS compile_pxds OpenMS
+            DEPENDS compile_pxds prepare_pyopenms_libs
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSEIF(APPLE) # We need to still copy libs with our script
   add_custom_command(
@@ -564,14 +564,14 @@ ELSEIF(APPLE) # We need to still copy libs with our script
             COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -v
             COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
-            DEPENDS compile_pxds OpenMS
+            DEPENDS compile_pxds prepare_pyopenms_libs
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
   add_custom_command(
             OUTPUT ${PYSOFILES}
             COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
-            DEPENDS compile_pxds OpenMS
+            DEPENDS compile_pxds prepare_pyopenms_libs
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ENDIF()
 

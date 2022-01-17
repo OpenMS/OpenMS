@@ -23,6 +23,7 @@ FASTAFile.cpp
 FeatureXMLFile.cpp
 FileHandler.cpp
 FileTypes.cpp
+GNPSMGFFile.cpp
 GzipIfstream.cpp
 GzipInputStream.cpp
 HDF5Connector.cpp

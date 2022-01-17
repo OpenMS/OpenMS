@@ -95,7 +95,7 @@ namespace OpenMS
 
   protected:
 
-    using StepOpt = boost::optional<IdentificationData::ProcessingStepRef>;
+    using StepOpt = std::optional<IdentificationData::ProcessingStepRef>;
 
     /// Functor for ordering @p StepOpt (by date of the steps, if available):
     struct StepOptCompare

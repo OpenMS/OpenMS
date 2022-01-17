@@ -270,7 +270,7 @@ protected:
     IdentificationData::AdductOpt adduct;
 
     PrecursorInfo(Size scan_index, Int charge, Size isotope,
-                  const IdentificationData::AdductOpt& adduct = boost::none):
+                  const IdentificationData::AdductOpt& adduct = std::nullopt):
       scan_index(scan_index), charge(charge), isotope(isotope), adduct(adduct)
     {
     }
@@ -977,7 +977,7 @@ protected:
       getStringList_("precursor:potential_adducts");
     // @TODO: allow different adducts with same mass?
     map<double, IdentificationData::AdductOpt> adduct_masses;
-    adduct_masses[0.0] = boost::none; // always consider "no adduct"
+    adduct_masses[0.0] = std::nullopt; // always consider "no adduct"
     bool use_adducts = getFlag_("precursor:use_adducts");
     bool include_unknown_charge = getFlag_("precursor:include_unknown_charge");
     bool single_charge_spectra = getFlag_("decharge_ms2");

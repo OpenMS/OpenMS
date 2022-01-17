@@ -372,7 +372,8 @@ namespace OpenMS
     // "Observation" roughly corresponds to "PeptideIdentification",
     // "ProcessingStep" roughly corresponds to "ProteinIdentification";
     // score type is stored in "PeptideIdent.", not "PeptideHit":
-    map<pair<ID::ObservationRef, boost::optional<ID::ProcessingStepRef>>,
+
+    map<pair<ID::ObservationRef, std::optional<ID::ProcessingStepRef>>,
         pair<vector<PeptideHit>, ID::ScoreTypeRef>> psm_data;
     // we only export peptides and proteins (or oligos and RNAs), so start by
     // getting the PSMs (or OSMs):
