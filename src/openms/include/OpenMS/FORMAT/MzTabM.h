@@ -57,50 +57,64 @@ namespace OpenMS
     }
   };
 
+  /**
+    @brief MztabM Assay Metadata
+  */
   class OPENMS_DLLAPI MzTabMAssayMetaData
   {
   public:
-    MzTabString name;
-    std::map<Size,MzTabParameter> custom; // mztab-m
-    MzTabString external_uri; // mztab-m
-    MzTabInteger sample_ref;
-    MzTabInteger ms_run_ref; // adapted to address https://github.com/HUPO-PSI/mzTab/issues/26
+    MzTabString name; ///< Name of the assay
+    std::map<Size,MzTabParameter> custom; ///< Additional parameters or values for a given assay
+    MzTabString external_uri; ///< A reference to further information about the assay
+    MzTabInteger sample_ref; ///< An association from a given assay to the sample analysed
+    MzTabInteger ms_run_ref; ///< An association from a given assay to the source MS run
   };
 
+  /**
+    @brief MztabM MSRun Metadata
+  */
   class OPENMS_DLLAPI MzTabMMSRunMetaData
   {
   public:
-    MzTabString location;
-    MzTabInteger instrument_ref; // mztab-m
-    MzTabParameter format;
-    MzTabParameter id_format;
-    std::map<Size, MzTabParameter> fragmentation_method;
-    std::map<Size, MzTabParameter> scan_polarity; // mztab-m
-    MzTabString hash; // mztab-m
-    MzTabParameter hash_method; // mztab-m
+    MzTabString location; ///< Location of the external data file
+    MzTabInteger instrument_ref; ///< Link to a specific instrument
+    MzTabParameter format; ///< Parameter specifying the data format of the external MS data file
+    MzTabParameter id_format; ///< Parameter specifying the id format used in the external data file
+    std::map<Size, MzTabParameter> fragmentation_method; ///< The type of fragmentation used in a given ms run
+    std::map<Size, MzTabParameter> scan_polarity; ///< The polarity mode of a given run
+    MzTabString hash; ///< Hash value of the corresponding external MS data file
+    MzTabParameter hash_method; ///< Parameter specifying the hash methods
   };
 
+  /**
+    @brief MztabM StudyVariable Metadata
+  */
   class OPENMS_DLLAPI MzTabMStudyVariableMetaData
   {
   public:
-    MzTabString name;
-    std::vector<int> assay_refs;
-    MzTabParameter average_function; // mztab-m
-    MzTabParameter variation_function; // mztab-m
-    MzTabString description;
-    MzTabParameterList factors; // mztab-m
+    MzTabString name; ///< Name of the study variable
+    std::vector<int> assay_refs; ///< References to the IDs of assays grouped in the study variable
+    MzTabParameter average_function; ///< The function used to calculate the study variable quantification value
+    MzTabParameter variation_function; ///< The function used to calculate the study variable quantification variation value
+    MzTabString description; ///< A textual description of the study variable
+    MzTabParameterList factors; ///< Additional parameters or factors
   };
 
+  /**
+    @brief MztabM Database Metadata
+  */
   class OPENMS_DLLAPI MzTabMDatabaseMetaData // mztab-m
   {
   public:
-    MzTabParameter database;
-    MzTabString prefix;
-    MzTabString version;
-    MzTabString uri;
+    MzTabParameter database; ///< The description of databases used
+    MzTabString prefix; ///< The prefix used in the “identifier” column of data tables
+    MzTabString version; ///< The database version
+    MzTabString uri; ///< The URI to the database
   };
 
-  /// Metadata for MzTab-M
+  /**
+    @brief MztabM Metadata
+  */
   class OPENMS_DLLAPI MzTabMMetaData
   {
   public:
@@ -125,21 +139,19 @@ namespace OpenMS
     std::map<Size, MzTabParameter> custom; ///< Custom parameters
     std::map<Size, MzTabCVMetaData> cv; ///< Controlled Vocabulary details
     std::map<Size, MzTabMDatabaseMetaData> database; ///< Database details
-    std::map<Size, MzTabParameter> derivatization_agent; ///<
+    std::map<Size, MzTabParameter> derivatization_agent; ///< A description of derivatization agents applied to small molecules
     MzTabParameter small_molecule_quantification_unit; ///< Description of the unit type used
     MzTabParameter small_molecule_feature_quantification_unit; ///< Description of the unit type used
     MzTabParameter small_molecule_identification_reliability; ///< Reliability of identification (4-level schema)
     std::map<Size, MzTabParameter> id_confidence_measure; ///< Confidence measures / scores
-    // https://github.com/HUPO-PSI/mzTab/blob/master/specification_document-releases/2_0-Metabolomics-Release/mzTab_format_specification_2_0-M_release.adoc#6260-colunit-small_molecule_feature
-    // for a specific optional column?
-    // Should be in optional column metadata?
-    // e.g. opt_global_mass_error=[UO, UO:0000169, parts per million, ]
     std::vector<MzTabString> colunit_small_molecule; ///< Defines the unit used for a specific column
     std::vector<MzTabString> colunit_small_molecule_feature; ///< Defines the unit used for a specific column
     std::vector<MzTabString> colunit_small_molecule_evidence; ///< Defines the unit used for a specific column
   };
 
-  /// SML Small molecule section (mztab-m)
+  /**
+    @brief SML Small molecule section (mztab-m)
+  */
   class OPENMS_DLLAPI MzTabMSmallMoleculeSectionRow
   {
   public:
@@ -153,18 +165,19 @@ namespace OpenMS
     MzTabStringList uri; ///< The source entry’s location.
     MzTabDoubleList theoretical_neutral_mass; ///< Precursor theoretical neutral mass
     MzTabStringList adducts; ///< Adducts
-    // TODO: https://github.com/HUPO-PSI/mzTab/blob/master/specification_document-releases/2_0-Metabolomics-Release/mzTab_format_specification_2_0-M_release.adoc#6311-reliability
-    // Where can that be added appropriately - for each identification method individually?
+    // Reliability information of the used indentificavtion method has to be stored in the ID data structure
     MzTabString reliability; ///< Reliability of the given small molecule identification
     MzTabParameter best_id_confidence_measure; ///< The identification approach with the highest confidence
     MzTabDouble best_id_confidence_value; ///< The best confidence measure
-    std::map<Size, MzTabDouble> small_molecule_abundance_assay; ///<
-    std::map<Size, MzTabDouble> small_molecule_abundance_study_variable; ///<
-    std::map<Size, MzTabDouble> small_molecule_abundance_variation_study_variable; ///<
+    std::map<Size, MzTabDouble> small_molecule_abundance_assay; ///< The small molecule’s abundance in every assay described in the metadata section
+    std::map<Size, MzTabDouble> small_molecule_abundance_study_variable; ///< The small molecule’s abundance in all the study variables described in the metadata section
+    std::map<Size, MzTabDouble> small_molecule_abundance_variation_study_variable; ///< A measure of the variability of the study variable abundance measurement
     std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
   };
 
-  /// SMF Small molecule feature section (mztab-m)
+  /**
+    @brief SMF Small molecule feature section (mztab-m)
+  */
   class OPENMS_DLLAPI MzTabMSmallMoleculeFeatureSectionRow
   {
   public:
@@ -182,7 +195,9 @@ namespace OpenMS
     std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
   };
 
-  /// SME Small molecule evidence section (mztab-m)
+  /**
+    @brief SME Small molecule evidence section (mztab-m)
+  */
   class OPENMS_DLLAPI MzTabMSmallMoleculeEvidenceSectionRow
   {
   public:
@@ -224,28 +239,40 @@ namespace OpenMS
     /// Destructor
     ~MzTabM() = default;
 
+    /// Extract MzTabMMetaData
     const MzTabMMetaData& getMetaData() const;
 
+    /// Set MzTabMMetaData
     void setMetaData(const MzTabMMetaData& m_md);
 
+    /// Extract MzTabMSmallMoleculeSectionRows
     const MzTabMSmallMoleculeSectionRows& getMSmallMoleculeSectionRows() const;
 
+    /// Set MzTabMSmallMoleculeSectionRows
     void setMSmallMoleculeSectionRows(const MzTabMSmallMoleculeSectionRows& m_smsd);
 
+    /// Extract MzTabMSmallMoleculeFeatureSectionRows
     const MzTabMSmallMoleculeFeatureSectionRows& getMSmallMoleculeFeatureSectionRows() const;
 
+    /// Set MzTabMSmallMoleculeFeatureSectionRows
     void setMSmallMoleculeFeatureSectionRows(const MzTabMSmallMoleculeFeatureSectionRows& m_smfsd);
 
+    /// Extract MzTabMSmallMoleculeEvidenceSectionRows
     const MzTabMSmallMoleculeEvidenceSectionRows& getMSmallMoleculeEvidenceSectionRows() const;
 
+    /// Set MzTabMSmallMoleculeEvidenceSectionRows
     void setMSmallMoleculeEvidenceSectionRows(const MzTabMSmallMoleculeEvidenceSectionRows& m_smesd);
 
+    /// Set comment rows
     void setCommentRows(const std::map<Size, String>& com);
 
+    /// Set empty rows
     void setEmptyRows(const std::vector<Size>& empty);
 
+    /// Get empty rows
     const std::vector<Size>& getEmptyRows() const;
 
+    /// Get comment rows
     const std::map<Size, String>& getCommentRows() const;
 
     /// Extract opt_ (custom, optional column names)
@@ -287,34 +314,5 @@ namespace OpenMS
                                          std::set<String>& observationmatch_user_value_keys,
                                          std::set<String>& compound_user_value_keys);
 
-    template <class ForwardIterator>
-    static void replaceWhiteSpaces_(ForwardIterator first, ForwardIterator last)
-    {
-      while (first!=last)
-      {
-        first->substitute(' ', '_');
-        ++first;
-      }
-    }
-
-    static void replaceWhiteSpaces_(std::set<String>& keys)
-    {
-      std::set<String> tmp_keys;
-      auto first = keys.begin();
-      while (first != keys.end())
-      {
-        String s = *first;
-        s.substitute(' ', '_');
-        tmp_keys.insert(std::move(s));
-        ++first;
-      }
-      std::swap(keys, tmp_keys);
-    }
-
   };
-
 } // namespace OpenMS
-
-
-
-

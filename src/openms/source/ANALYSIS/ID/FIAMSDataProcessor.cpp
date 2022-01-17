@@ -146,7 +146,7 @@ namespace OpenMS {
     return output;
   }
 
-  void FIAMSDataProcessor::runAccurateMassSearch(FeatureMap& input, OpenMS::MzTab& output, OpenMS::MzTabM& output2) {
+  void FIAMSDataProcessor::runAccurateMassSearch(FeatureMap& input, OpenMS::MzTab& output) {
     Param ams_param;
     ams_param.setValue("ionization_mode", "auto");
     ams_param.setValue("mass_error_value", 1e+06 / (static_cast<float>(param_.getValue("resolution"))*2));
@@ -154,12 +154,13 @@ namespace OpenMS {
     ams_param.setValue("db:struct", param_.getValue("db:struct"));
     ams_param.setValue("positive_adducts", param_.getValue("positive_adducts"));
     ams_param.setValue("negative_adducts", param_.getValue("negative_adducts"));
+    ams_param.setValue("keep_unidentified_masses", "false"); // only report IDs
 
     AccurateMassSearchEngine ams;
     ams.setParameters(ams_param);
     ams.init();
 
-    ams.run(input, output, output2);
+    ams.run(input, output);
   }
 
   MSSpectrum FIAMSDataProcessor::trackNoise(const MSSpectrum& input) {
@@ -219,8 +220,7 @@ namespace OpenMS {
     MSSpectrum signal_to_noise = trackNoise(picked_spectrum);
     FeatureMap picked_features = convertToFeatureMap(picked_spectrum);
     storeSpectrum_(signal_to_noise, dir_output_ + "/" + filename_ + "_signal_to_noise_" + postfix + ".mzML");
-    OpenMS::MzTabM output2;
-    runAccurateMassSearch(picked_features, output, output2);
+    runAccurateMassSearch(picked_features, output);
     OpenMS::MzTabFile mztab_outfile;
     mztab_outfile.store(dir_output_ + "/" + filename_ + "_" + postfix + ".mzTab", output);
     return is_cached;

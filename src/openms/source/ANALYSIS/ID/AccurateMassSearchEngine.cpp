@@ -340,13 +340,13 @@ namespace OpenMS
     defaults_.setValue("use_feature_adducts", "false", "Whether to filter AMS candidates mismatching available feature adduct annotation.");
     defaults_.setValidStrings("use_feature_adducts", {"false", "true"});
 
-    defaults_.setValue("keep_unidentified_masses", "false", "Keep features that did not yield any DB hit.");
-    defaults_.setValidStrings("keep_unidentified_masses", {"false", "true"});
+    defaults_.setValue("keep_unidentified_masses", "true", "Keep features that did not yield any DB hit.");
+    defaults_.setValidStrings("keep_unidentified_masses", {"true", "false"});
 
     defaults_.setValue("mzTab:exportIsotopeIntensities", "false", "[featureXML input only] Export column with available isotope trace intensities (opt_global_MTint)");
     defaults_.setValidStrings("mzTab:exportIsotopeIntensities", {"false", "true"});
 
-    defaults_.setValue("id_format", "legacy", "Use legacy (ProteinID/PeptideID based storage of metabolomics data) or novel ID datastructure (ID).");
+    defaults_.setValue("id_format", "legacy", "Use legacy (ProteinID/PeptideID based storage of metabolomics data) with mzTab-v1.0.0 as output format or novel Identification Data (ID) with mzTab-v2.0.0-M as output format (ID and its MzTab-M output is currently only support for featureXML files).");
     defaults_.setValidStrings("id_format", {"legacy", "ID"});
 
     defaultsToParam_();
@@ -575,7 +575,7 @@ namespace OpenMS
     is_initialized_ = true;
   }
 
-  void AccurateMassSearchEngine::run(FeatureMap& fmap, MzTab& mztab_out, MzTabM& mztabm_out) const
+  void AccurateMassSearchEngine::run(FeatureMap& fmap, MzTabM& mztabm_out) const
   {
     if (!is_initialized_)
     {
@@ -604,71 +604,125 @@ namespace OpenMS
       ion_mode_internal = resolveAutoMode_(fmap);
     }
 
-    if (!legacyID_)
+    // register input file
+    IdentificationData::InputFile file(ms_run_paths[0]);
+    file_ref = id.registerInputFile(file);
+    std::vector<IdentificationData::InputFileRef> file_refs;
+    file_refs.emplace_back(file_ref);
+
+    // add previous DataProcessingStep(s) from FeatureMap
+    auto data_processing = fmap.getDataProcessing();
+    for (const auto& it : data_processing)
     {
-      // register input file
-      IdentificationData::InputFile file(ms_run_paths[0]);
-      file_ref = id.registerInputFile(file);
-      std::vector<IdentificationData::InputFileRef> file_refs;
-      file_refs.emplace_back(file_ref);
+      // software
+      IdentificationData::ProcessingSoftware sw(it.getSoftware().getName(), it.getSoftware().getVersion());
+      // transfer previous metadata
+      sw.addMetaValues(it);
+      IdentificationDataInternal::ProcessingSoftwareRef sw_ref = id.registerProcessingSoftware(sw);
+      // ProcessingStep: software, input_file_refs, data_time, actions
+      IdentificationData::ProcessingStep step(sw_ref, file_refs, it.getCompletionTime(), it.getProcessingActions());
+      step_ref = id.registerProcessingStep(step);
+      id.setCurrentProcessingStep(step_ref);
+    }
 
-      // add previous DataProcessingStep(s) from FeatureMap
-      auto data_processing = fmap.getDataProcessing();
-      for (const auto& it : data_processing)
+    // add information about current tool
+    // register a score type
+    IdentificationData::ScoreType mass_error_ppm_score("MassErrorPPMScore", false);
+    mass_error_ppm_score_ref = id.registerScoreType(mass_error_ppm_score);
+    IdentificationData::ScoreType mass_error_Da_score("MassErrorDaScore", false);
+    mass_error_Da_score_ref = id.registerScoreType(mass_error_Da_score);
+
+    // add the same score_refs to the ProcessingSoftware - to reference the Software with the
+    // ObservationMatch - the order is important - the most important score first.
+    std::vector<IdentificationDataInternal::ScoreTypeRef> assigned_scores{mass_error_ppm_score_ref, mass_error_Da_score_ref};
+
+    // register software (connected to score)
+    // CVTerm will be set in mztab-m based on the name
+    // if the name is not available in PSI-OBO "analysis software" will be used.
+    IdentificationData::ProcessingSoftware sw("AccurateMassSearch", VersionInfo::getVersion(), assigned_scores);
+    sw.setMetaValue("reliability", "2");
+    IdentificationData::ProcessingSoftwareRef sw_ref = id.registerProcessingSoftware(sw);
+
+    // all supported search settings
+    IdentificationData::DBSearchParam search_param;
+    search_param.database = database_name_;
+    search_param.database_version = database_version_;
+    search_param.setMetaValue("database_location", database_location_);
+
+    search_param.precursor_mass_tolerance = this->mass_error_value_;
+    search_param.precursor_tolerance_ppm = this->mass_error_unit_ == "ppm" ? true : false;
+    IdentificationData::SearchParamRef search_param_ref = id.registerDBSearchParam(search_param);
+
+    // file has been processed by software performing a specific processing action.
+    std::set<DataProcessing::ProcessingAction> actions;
+    actions.insert(DataProcessing::IDENTIFICATION);
+    IdentificationData::ProcessingStep step(sw_ref, file_refs, DateTime::now(), actions);
+    step_ref = id.registerProcessingStep(step, search_param_ref);
+    id.setCurrentProcessingStep(step_ref); // add the new step
+
+    // map for storing overall results
+    QueryResultsTable overall_results;
+    Size dummy_count(0);
+    for (Size i = 0; i < fmap.size(); ++i)
+    {
+      std::vector<AccurateMassSearchResult> query_results = extractQueryResults_(fmap[i], i, ion_mode_internal, dummy_count);
+      if (query_results.empty())
       {
-        // software
-        IdentificationData::ProcessingSoftware sw(it.getSoftware().getName(), it.getSoftware().getVersion());
-        // transfer previous metadata
-        sw.addMetaValues(it);
-        IdentificationDataInternal::ProcessingSoftwareRef sw_ref = id.registerProcessingSoftware(sw);
-        // ProcessingStep: software, input_file_refs, data_time, actions
-        IdentificationData::ProcessingStep step(sw_ref, file_refs, it.getCompletionTime(), it.getProcessingActions());
-        step_ref = id.registerProcessingStep(step);
-        id.setCurrentProcessingStep(step_ref);
+        continue;
       }
+      overall_results.push_back(query_results);
 
-      // add information about current tool
-      // register a score type
-      IdentificationData::ScoreType mass_error_ppm_score("MassErrorPPMScore", false);
-      mass_error_ppm_score_ref = id.registerScoreType(mass_error_ppm_score);
-      IdentificationData::ScoreType mass_error_Da_score("MassErrorDaScore", false);
-      mass_error_Da_score_ref = id.registerScoreType(mass_error_Da_score);
+      addMatchesToID_(id, query_results, file_ref, mass_error_ppm_score_ref, mass_error_Da_score_ref, step_ref, fmap[i]); // MztabM
+    }
 
-      // add the same score_refs to the ProcessingSoftware - to reference the Software with the
-      // ObservationMatch - the order is important - the most important score first.
-      std::vector<IdentificationDataInternal::ScoreTypeRef> assigned_scores{mass_error_ppm_score_ref, mass_error_Da_score_ref};
+    // filter FeatureMap to only have entries with an PrimaryID attached
+    if (!keep_unidentified_masses_)
+    {
+      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](Feature f){ return !f.hasPrimaryID(); }), fmap.end());
+    }
 
-      // register software (connected to score)
-      // CVTerm will be set in mztab-m based on the name
-      // if the name is not available in PSI-OBO "analysis software" will be used.
-      IdentificationData::ProcessingSoftware sw("AccurateMassSearch", VersionInfo::getVersion(), assigned_scores);
-      IdentificationData::ProcessingSoftwareRef sw_ref = id.registerProcessingSoftware(sw);
+    // add the identification data to the featureXML
+    // to allow featureXML export (without the use of legacy_ID)
+    // been transferred from the previous data stored within
+    // the feature.
+    IdentificationDataConverter::exportFeatureIDs(fmap, false);
 
-      // all supported search settings
-      IdentificationData::DBSearchParam search_param;
-      search_param.database = database_name_;
-      search_param.database_version = database_version_;
-      search_param.setMetaValue("database_location", database_location_);
+    if (fmap.empty())
+    {
+      OPENMS_LOG_INFO << "FeatureMap was empty! No hits found!" << std::endl;
+    }
+    else
+    { // division by 0 if used on empty fmap
+      OPENMS_LOG_INFO << "\nFound " << (overall_results.size() - dummy_count) << " matched masses (with at least one hit each)\nfrom " << fmap.size() << " features\n  --> " << (overall_results.size()-dummy_count)*100/fmap.size() << "% explained" << std::endl;
+    }
 
-      search_param.precursor_mass_tolerance = this->mass_error_value_;
-      search_param.precursor_tolerance_ppm = this->mass_error_unit_ == "ppm" ? true : false;
-      IdentificationData::SearchParamRef search_param_ref = id.registerDBSearchParam(search_param);
+    exportMzTabM_(fmap, mztabm_out);
 
-      // file has been processed by software performing a specific processing action.      
-      std::set<DataProcessing::ProcessingAction> actions;
-      actions.insert(DataProcessing::IDENTIFICATION);
-      IdentificationData::ProcessingStep step(sw_ref, file_refs, DateTime::now(), actions);
-      step_ref = id.registerProcessingStep(step, search_param_ref);
-      id.setCurrentProcessingStep(step_ref); // add the new step
+    return;
+  }
+
+  void AccurateMassSearchEngine::run(FeatureMap& fmap, MzTab& mztab_out) const
+  {
+    if (!is_initialized_)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
+    }
+
+    StringList ms_run_paths;
+    fmap.getPrimaryMSRunPath(ms_run_paths);
+
+    // check ion_mode
+    String ion_mode_internal(ion_mode_);
+    if (ion_mode_ == "auto")
+    {
+      ion_mode_internal = resolveAutoMode_(fmap);
     }
 
     // corresponding file locations
     std::vector<String> file_locations;
-    StringList paths;
-    fmap.getPrimaryMSRunPath(paths);
-    if (!paths.empty()) // if the file location is not available it will be set to UNKNOWN by MzTab
+    if (!ms_run_paths.empty()) // if the file location is not available it will be set to UNKNOWN by MzTab
     {
-      file_locations.emplace_back(paths[0]);
+      file_locations.emplace_back(ms_run_paths[0]);
     }
 
     // map for storing overall results
@@ -676,67 +730,27 @@ namespace OpenMS
     Size dummy_count(0);
     for (Size i = 0; i < fmap.size(); ++i)
     {
-      std::vector<AccurateMassSearchResult> query_results;
-
-      queryByFeature(fmap[i], i, ion_mode_internal, query_results);
-
-      if (query_results.empty()) continue; // cannot happen if a 'not-found' dummy was added
-      
-      bool is_dummy = (query_results[0].getMatchingIndex() == (Size)-1);
-      if (is_dummy) ++dummy_count;
-
-      if (iso_similarity_ && !is_dummy)
+      std::vector<AccurateMassSearchResult> query_results = extractQueryResults_(fmap[i], i, ion_mode_internal, dummy_count);
+      if (query_results.empty())
       {
-        if (!fmap[i].metaValueExists("num_of_masstraces"))
-        {
-          OPENMS_LOG_WARN << "Feature does not contain meta value 'num_of_masstraces'. Cannot compute isotope similarity.";
-        }
-        else if ((Size)fmap[i].getMetaValue("num_of_masstraces") > 1)
-        { // compute isotope pattern similarities (do not take the best-scoring one, since it might have really bad ppm or other properties --
-          // it is impossible to decide here which one is best
-          for (Size hit_idx = 0; hit_idx < query_results.size(); ++hit_idx)
-          {
-            String emp_formula(query_results[hit_idx].getFormulaString());
-            double iso_sim(computeIsotopePatternSimilarity_(fmap[i], EmpiricalFormula(emp_formula)));
-            query_results[hit_idx].setIsotopesSimScore(iso_sim);
-          }
-        }
+        continue;
       }
-
       overall_results.push_back(query_results);
 
-      if (legacyID_)
-      {
-        annotate_(query_results, fmap[i]);
-      }
-      else
-      {
-        addMatchesToID_(id, query_results, file_ref, mass_error_ppm_score_ref, mass_error_Da_score_ref, step_ref, fmap[i]);
-      }
+      annotate_(query_results, fmap[i]);
     }
 
-    // filter FeatureMap to only have entries with PrimaryID attached mzTab-m
-    if (!legacyID_ && !keep_unidentified_masses_)
+    // filter FeatureMap to only have entries with an identification
+    if (!keep_unidentified_masses_)
     {
-      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](Feature f){ return !f.hasPrimaryID(); }), fmap.end());
+      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](Feature f){ return f.getPeptideIdentifications().size() == 0; }), fmap.end());
     }
 
-    if(legacyID_)
-    {
-      // add dummy ProteinIdentification which is required to keep PeptideHits alive during store()
-      fmap.getProteinIdentifications().resize(fmap.getProteinIdentifications().size() + 1);
-      fmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearchEngine");
-      fmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearch");
-      fmap.getProteinIdentifications().back().setDateTime(DateTime().now());
-    }
-    else // only need it for featureXML?!
-    {
-      // add the identification data to the featureXML
-      // to allow featureXML export (without the use of legacy_ID)
-      // been transferred from the previous data stored within
-      // the feature.
-      IdentificationDataConverter::exportFeatureIDs(fmap, false);
-    }
+    // add dummy ProteinIdentification which is required to keep PeptideHits alive during store()
+    fmap.getProteinIdentifications().resize(fmap.getProteinIdentifications().size() + 1);
+    fmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearchEngine");
+    fmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearch");
+    fmap.getProteinIdentifications().back().setDateTime(DateTime().now());
 
     if (fmap.empty())
     {
@@ -749,10 +763,6 @@ namespace OpenMS
 
     exportMzTab_(overall_results, 1, mztab_out, file_locations);
 
-    if (!legacyID_) // export to mztab-m only works with featuremap including the identification data structure.
-    {
-      exportMzTabM_(fmap, 1, mztabm_out);
-    }
     return;
   }
 
@@ -822,7 +832,7 @@ namespace OpenMS
 
         // add adduct to the ObservationMatch
         String adduct = r.getFoundAdduct(); // M+Na;1+
-        if (!adduct.empty() || adduct != "null")
+        if (!adduct.empty() && adduct != "null")
         {
           AdductInfo ainfo = AdductInfo::parseAdductString(adduct);
           auto adduct_ref = id.registerAdduct(ainfo);
@@ -915,7 +925,7 @@ namespace OpenMS
   }
 
   // FeatureMap with IdentificationData attached!
-  void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, const Size number_of_maps, MzTabM& mztabm_out) const
+  void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, MzTabM& mztabm_out) const
   {
     mztabm_out = MzTabM::exportFeatureMapToMzTabM(fmap);
   }
@@ -1529,6 +1539,42 @@ namespace OpenMS
     }
 
     return computeCosineSim_(theoretical_iso_dist, observed_iso_dist);
+  }
+
+  std::vector<AccurateMassSearchResult> AccurateMassSearchEngine::extractQueryResults_(const Feature& feature, const Size& feature_index, const String& ion_mode_internal, Size& dummy_count) const
+  {
+    std::vector<AccurateMassSearchResult> query_results;
+
+    queryByFeature(feature, feature_index, ion_mode_internal, query_results);
+
+    if (query_results.empty())
+    {
+      return query_results;
+    }
+
+    bool is_dummy = (query_results[0].getMatchingIndex() == (Size) - 1);
+    if (is_dummy)
+      ++dummy_count;
+
+    if (iso_similarity_ && !is_dummy)
+    {
+      if (!feature.metaValueExists("num_of_masstraces"))
+      {
+        OPENMS_LOG_WARN
+        << "Feature does not contain meta value 'num_of_masstraces'. Cannot compute isotope similarity.";
+      }
+      else if ((Size) feature.getMetaValue("num_of_masstraces") > 1)
+      { // compute isotope pattern similarities (do not take the best-scoring one, since it might have really bad ppm or other properties --
+        // it is impossible to decide here which one is best
+        for (Size hit_idx = 0; hit_idx < query_results.size(); ++hit_idx)
+        {
+          String emp_formula(query_results[hit_idx].getFormulaString());
+          double iso_sim(computeIsotopePatternSimilarity_(feature, EmpiricalFormula(emp_formula)));
+          query_results[hit_idx].setIsotopesSimScore(iso_sim);
+        }
+      }
+    }
+    return query_results;
   }
 
 } // closing namespace OpenMS

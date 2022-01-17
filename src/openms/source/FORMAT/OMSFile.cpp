@@ -42,13 +42,11 @@ using ID = OpenMS::IdentificationData;
 
 namespace OpenMS
 {
-
   void OMSFile::store(const String& filename, const IdentificationData& id_data)
   {
     OpenMS::Internal::OMSFileStore helper(filename, log_type_);
     helper.store(id_data);
   }
-
 
   void OMSFile::store(const String& filename, const FeatureMap& features)
   {
@@ -62,11 +60,9 @@ namespace OpenMS
     helper.load(id_data);
   }
 
-
   void OMSFile::load(const String& filename, FeatureMap& features)
   {
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
     helper.load(features);
   }
 }
-

@@ -2394,7 +2394,7 @@ state0:
       const Feature& f = feature_map[i];
       vector<String> keys;
       f.getKeys(keys); //TODO: why not just return it?
-      replaceWhiteSpaces_(keys.begin(), keys.end());
+      std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
 
       feature_user_value_keys.insert(keys.begin(), keys.end());
 
@@ -2405,7 +2405,7 @@ state0:
         {
           vector<String> ph_keys;
           hit.getKeys(ph_keys);
-          replaceWhiteSpaces_(ph_keys.begin(), ph_keys.end());
+          std::transform(ph_keys.begin(), ph_keys.end(), ph_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
       }
@@ -2420,7 +2420,8 @@ state0:
     {
       vector<String> keys;
       c.getKeys(keys);
-      replaceWhiteSpaces_(keys.begin(), keys.end());
+      std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+
 
       consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
 
@@ -2431,7 +2432,7 @@ state0:
         {
           vector<String> ph_keys;
           hit.getKeys(ph_keys);
-          replaceWhiteSpaces_(ph_keys.begin(), ph_keys.end());
+          std::transform(ph_keys.begin(), ph_keys.end(), ph_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
       }
@@ -2454,7 +2455,7 @@ state0:
       {
         vector<String> keys;
         hit.getKeys(keys);
-        replaceWhiteSpaces_(keys.begin(), keys.end());
+        std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
         protein_hit_user_value_keys.insert(keys.begin(), keys.end());
       }
     }
@@ -2463,14 +2464,14 @@ state0:
     {
       vector<String> pid_keys;
       pep_id->getKeys(pid_keys);
-      replaceWhiteSpaces_(pid_keys.begin(), pid_keys.end());
+      std::transform(pid_keys.begin(), pid_keys.end(), pid_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
       peptide_id_user_value_keys.insert(pid_keys.begin(), pid_keys.end());
 
       for (auto const & hit : pep_id->getHits())
       {
         vector<String> ph_keys;
         hit.getKeys(ph_keys);
-        replaceWhiteSpaces_(ph_keys.begin(), ph_keys.end());
+        std::transform(ph_keys.begin(), ph_keys.end(), ph_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
         peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
       }
     }
@@ -2663,8 +2664,15 @@ state0:
         protein_hit_user_value_keys_.insert(protein_hit_user_value_keys_tmp.begin(), protein_hit_user_value_keys_tmp.end());
       }
     }
+
     // column headers may not contain spaces
-    replaceWhiteSpaces_(protein_hit_user_value_keys_);
+    set<String> protein_hit_user_value_keys_tmp_2;
+    std::transform(protein_hit_user_value_keys_.begin(),
+                   protein_hit_user_value_keys_.end(),
+                   std::inserter(protein_hit_user_value_keys_tmp_2, protein_hit_user_value_keys_tmp_2.begin()),
+                   [](String s) { return s.substitute(' ', '_'); });
+
+    std::swap(protein_hit_user_value_keys_, protein_hit_user_value_keys_tmp_2);
 
     // PRT optional columns
     for (const auto& k : protein_hit_user_value_keys_) prt_optional_column_names_.emplace_back("opt_global_" + k);

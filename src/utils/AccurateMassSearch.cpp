@@ -1,4 +1,3 @@
-
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
@@ -102,8 +101,6 @@ protected:
     setValidFormats_("in", {"featureXML", "consensusXML"});
     registerOutputFile_("out", "<file>", "", "mzTab file");
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
-    registerStringOption_("mzTab_version", "<choice>", "mzTab-1.0.0", "mzTab version", false);
-    setValidStrings_("mzTab_version", ListUtils::create<String>("mzTab-1.0.0,mzTab-M-v1.0.0"));
 
     registerOutputFile_("out_annotation", "<file>", "", "A copy of the input file, annotated with matching hits from the database.", false);
     setValidFormats_("out_annotation", {"featureXML", "consensusXML", "oms"});
@@ -143,7 +140,6 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String file_ann = getStringOption_("out_annotation");
-    bool mztabm = getStringOption_("mzTab_version") == "mzTab-M-v1.0.0" ? true : false;
 
     Param ams_param = getParam_().copy("algorithm:", true);
     // copy top-level params to algorithm
@@ -154,7 +150,7 @@ protected:
 
     if (file_ann.hasSuffix("oms"))
     {
-      ams_param.setValue("id_format", "ID"); // enable novel ID data structure
+      ams_param.setValue("id_format", "ID"); // use IdentificationData to store id results
     }
 
     writeDebug_("Parameters passed to AccurateMassSearch", ams_param, 3);
@@ -167,6 +163,9 @@ protected:
     ams.setParameters(ams_param);
     ams.init();
 
+    std::string idf = std::string(ams.getParameters().getValue("id_format"));
+    bool id_format = idf == "ID" ? true : false;
+
     FileTypes::Type filetype = FileHandler::getType(in);
 
     if (filetype == FileTypes::FEATUREXML)
@@ -177,7 +176,14 @@ protected:
       //-------------------------------------------------------------
       // do the work
       //-------------------------------------------------------------
-      ams.run(ms_feat_map, mztab_output, mztabm_output);
+      if (id_format) // if format ID is used, MzTabM output will be generated
+      {
+        ams.run(ms_feat_map, mztabm_output);
+      }
+      else
+      {
+        ams.run(ms_feat_map, mztab_output);
+      }
 
       //-------------------------------------------------------------
       // writing output
@@ -191,6 +197,14 @@ protected:
       {
         OMSFile().store(file_ann, ms_feat_map);
       }
+    }
+    else if (filetype == FileTypes::CONSENSUSXML && id_format)
+    {
+      throw Exception::InvalidValue(__FILE__,
+                                    __LINE__,
+                                    OPENMS_PRETTY_FUNCTION,
+                                    "FATAL: CONSENSUSXML is currently not supporting ID and its MzTabM (v2.0.0-M) output, please use legacy_id",
+                                    "");
     }
     else if (filetype == FileTypes::CONSENSUSXML)
     {
@@ -213,7 +227,7 @@ protected:
       }
     }
 
-    if(mztabm && !(filetype == FileTypes::CONSENSUSXML))  // works for FeatureMap only (featureXML input)
+    if(id_format && filetype == FileTypes::FEATUREXML)
     {
       MzTabMFile mztabm_file;
       mztabm_file.store(out, mztabm_output);

@@ -130,7 +130,7 @@ namespace OpenMS
       const Feature& f = feature_map[i];
       std::vector<String> keys;
       f.getKeys(keys);
-      replaceWhiteSpaces_(keys.begin(), keys.end());
+      std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
       feature_user_value_keys.insert(keys.begin(), keys.end());
 
       auto match_refs = f.getIDMatches();
@@ -139,7 +139,7 @@ namespace OpenMS
         // feature section optional columns
         std::vector<String> obsm_keys;
         match_ref->getKeys(obsm_keys);
-        replaceWhiteSpaces_(obsm_keys.begin(), obsm_keys.end());
+        std::transform(obsm_keys.begin(), obsm_keys.end(), obsm_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
 
         // remove "IDConverter_trace" metadata from the ObservationMatch
         // introduced by the IdentificationDataConverter
@@ -157,7 +157,7 @@ namespace OpenMS
         IdentificationData::IdentifiedCompoundRef compound_ref = molecule.getIdentifiedCompoundRef();
         std::vector<String> compound_keys;
         compound_ref->getKeys(compound_keys);
-        replaceWhiteSpaces_(compound_keys.begin(), compound_keys.end());
+        std::transform(compound_keys.begin(), compound_keys.end(), compound_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
         compound_user_value_keys.insert(compound_keys.begin(), compound_keys.end());
       }
     }
@@ -201,9 +201,14 @@ namespace OpenMS
 
     MzTabSoftwareMetaData meta_software;
     ControlledVocabulary cv;
+    MzTabString reliability = MzTabString("2"); // initialize at 2 (should be valid for all tools - putatively annotated compound)
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
     for (const auto& software : id_data.getProcessingSoftwares())
     {
+      if (software.metaValueExists("reliability"))
+      {
+        reliability = MzTabString(std::string(software.getMetaValue("reliability")));
+      }
       MzTabParameter p_software;
       ControlledVocabulary::CVTerm cvterm;
       // add TOPP - all OpenMS Tools have TOPP attached in the PSI-OBO
@@ -557,8 +562,8 @@ namespace OpenMS
         smf.exp_mass_to_charge = MzTabDouble(f.getMZ());
         smf.charge = MzTabInteger(f.getCharge());
         smf.retention_time = MzTabDouble(f.getRT());
-        smf.rt_start.setNull(true); // TODO: how to get that information
-        smf.rt_end.setNull(true); // TODO: how to get that information
+        smf.rt_start.setNull(true);
+        smf.rt_end.setNull(true);
         smf.small_molecule_feature_abundance_assay[1] = MzTabDouble(f.getIntensity()); // only one map in featureXML
 
         addMetaInfoToOptionalColumns(feature_user_value_keys, smf.opt_, String("global"), f);
@@ -571,6 +576,7 @@ namespace OpenMS
         // feature row based on number of individual identifications and adducts!
         std::map<String, std::vector<int>> evidence_id_ref_per_adduct;
 
+        // TODO: Remove copy operation (operator< IDData Ref)
         std::set<IdentificationDataInternal::ObservationMatchRef, CompareMzTabMMatchRef> sorted_match_refs(match_refs.begin(), match_refs.end());
 
         for (const auto& ref : sorted_match_refs) // iterate over all identifications of a feature
@@ -687,7 +693,16 @@ namespace OpenMS
         chemical_name.emplace_back(current_row_it->chemical_name);
         uri.emplace_back(current_row_it->uri);
         MzTabString cm = current_row_it->chemical_formula;
-        theoretical_neutral_mass.emplace_back(EmpiricalFormula(cm.toCellString()).getMonoWeight());
+        if (cm.toCellString() != "" && cm.toCellString() != "null" )
+        {
+          theoretical_neutral_mass.emplace_back(EmpiricalFormula(cm.toCellString()).getMonoWeight());
+        }
+        else
+        {
+          MzTabDouble dnull;
+          dnull.setNull(true);
+          theoretical_neutral_mass.emplace_back(dnull);
+        }
         adducts.emplace_back(current_row_it->adduct);
       }
       sml.database_identifier.set(database_identifier);
@@ -698,10 +713,7 @@ namespace OpenMS
       sml.uri.set(uri);
       sml.theoretical_neutral_mass.set(theoretical_neutral_mass);
       sml.adducts.set(adducts);
-      // TODO: IdentificationData::ComoundRef store reliability information
-      sml.reliability = MzTabString("2"); // putatively annotated compound
-      // TODO: e.g. use best search_engine score
-      // TODO: How to decide best id confidence measure
+      sml.reliability = reliability;
       sml.best_id_confidence_measure.setNull(true);
       sml.best_id_confidence_value.setNull(true);
       sml.small_molecule_abundance_assay = smf.small_molecule_feature_abundance_assay;

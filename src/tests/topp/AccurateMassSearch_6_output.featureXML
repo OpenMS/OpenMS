@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_14128832103716313886" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" document_id="PestMix1_1ngSolventDDA20-50.wiff" id="fm_14128832103716313886" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<UserParam type="stringList" name="spectra_data" value="[file://I:\OpenSWATH_Metabolomics_data\20181121_full_data\04_PestMixes_individually_Solvent_DDA_20-50/PestMix1_1ngSolventDDA20-50.wiff]"/>
 	<dataProcessing completion_time="2019-07-25T08:44:40">
 		<software name="FeatureFinderMetabo" version="2.4.0-nightly-2019-07-17" />
@@ -72,9 +72,9 @@
 		<UserParam type="string" name="parameter: algorithm:MetaboliteFeatureDeconvolution:default_map_label" value="decharged features"/>
 		<UserParam type="int" name="parameter: algorithm:MetaboliteFeatureDeconvolution:verbose_level" value="0"/>
 	</dataProcessing>
-	<IdentificationRun id="PI_0" date="2021-11-16T10:55:21" search_engine="AccurateMassSearch" search_engine_version="2.6.0-pre-idf-ams-2021-10-07">
-		<SearchParameters db="CustomDB" db_version="0.0" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
-			<UserParam type="string" name="database_location" value="/Users/alka/Desktop/AMS_ID_test/AMS_test_Mapping.tsv"/>
+	<IdentificationRun id="PI_0" date="2022-01-16T16:27:51" search_engine="AccurateMassSearch" search_engine_version="2.7.0-pre-idf-ams-2022-01-13">
+		<SearchParameters db="Custom" db_version="0.0" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+			<UserParam type="string" name="database_location" value="/Users/alka/Documents/work/software/openms_test/OpenMS/src/tests/topp/AMS_test_Mapping.tsv"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
 			<UserParam type="stringList" name="spectra_data" value="[file://I:\OpenSWATH_Metabolomics_data\20181121_full_data\04_PestMixes_individually_Solvent_DDA_20-50/PestMix1_1ngSolventDDA20-50.wiff]"/>

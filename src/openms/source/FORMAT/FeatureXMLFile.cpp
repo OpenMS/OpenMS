@@ -122,7 +122,6 @@ namespace OpenMS
     }
     catch (Exception::Postcondition& e)
     {
-
       OPENMS_LOG_FATAL_ERROR << e.getName() << ' ' << e.what() << std::endl;
       throw;
     }

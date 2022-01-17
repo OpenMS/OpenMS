@@ -159,19 +159,19 @@ START_SECTION(void load(const String& filename, FeatureMap& features))
   features.sortByPosition();
 
   // sort for reproducibility
-  auto proteins = features.getProteinIdentifications();
+  auto& proteins = features.getProteinIdentifications();
   for (auto& protein : proteins)
   {
     protein.sort();
   }
-  auto un_peptides = features.getUnassignedPeptideIdentifications();
+  auto& un_peptides = features.getUnassignedPeptideIdentifications();
   for (auto& un_pep : un_peptides)
   {
     un_pep.sort();
   }
 
-  features.setProteinIdentifications(proteins);
-  features.setUnassignedPeptideIdentifications(un_peptides);
+  //features.setProteinIdentifications(proteins);
+  //features.setUnassignedPeptideIdentifications(un_peptides);
   features.sortByPosition();
 
   NEW_TMP_FILE(fxml_tmp);

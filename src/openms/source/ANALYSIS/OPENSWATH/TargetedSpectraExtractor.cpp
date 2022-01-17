@@ -66,6 +66,7 @@ namespace OpenMS
     defaults_.setValue("PeakPickerHiRes:signal_to_noise", 1.0);
 
     defaults_.insert("AccurateMassSearchEngine:", AccurateMassSearchEngine().getDefaults());
+    defaults_.setValue("AccurateMassSearchEngine:keep_unidentified_masses", "false");
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -254,10 +255,9 @@ namespace OpenMS
   {
     OpenMS::AccurateMassSearchEngine ams;
     OpenMS::MzTab output;
-    OpenMS::MzTabM m_output;
     ams.setParameters(param_.copy("AccurateMassSearchEngine:", true));
     ams.init();
-    ams.run(feat_map, output, m_output);
+    ams.run(feat_map, output);
     // Remake the feature map replacing the peptide hits as features/sub-features
     feat_map_output.clear();
     for (const OpenMS::Feature& feature : feat_map)

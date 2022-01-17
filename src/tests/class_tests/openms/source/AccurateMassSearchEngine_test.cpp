@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/MzTabMFile.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -50,6 +51,7 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 ///////////////////////////
 
@@ -303,18 +305,16 @@ FuzzyStringComparator fsc;
 fsc.setAcceptableAbsolute(1e-8);
 StringList sl;
 sl.push_back("xml-stylesheet");
-sl.push_back("featureMap");
-sl.push_back("IdentificationRun");
+sl.push_back("IdentificationRun id=\"PI_0\" date=");
 fsc.setWhitelist(sl);
 
-START_SECTION((void run(FeatureMap&, MzTab&, MzTabM&) const))
+START_SECTION((void run(FeatureMap&, MzTab&) const))
 {
   FeatureMap exp_fm;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm);
   {
     MzTab test_mztab;
-    MzTabM test_mztabm;
-    ams_feat_test.run(exp_fm, test_mztab, test_mztabm);
+    ams_feat_test.run(exp_fm, test_mztab);
 
     // test annotation of input
     String tmp_file;
@@ -339,8 +339,7 @@ START_SECTION((void run(FeatureMap&, MzTab&, MzTabM&) const))
     FeatureMap exp_fm2;
     FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm2);
     MzTab test_mztab2;
-    MzTabM test_mztabm2;
-    ams_feat_test2.run(exp_fm2, test_mztab2, test_mztabm2);
+    ams_feat_test2.run(exp_fm2, test_mztab2);
 
     String tmp_mztab_file2;
     NEW_TMP_FILE(tmp_mztab_file2);
@@ -350,6 +349,39 @@ START_SECTION((void run(FeatureMap&, MzTab&, MzTabM&) const))
 }
 END_SECTION
 
+START_SECTION((void run(FeatureMap&, MzTabM&) const))
+{
+  FeatureMap exp_fm;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm);
+  {
+    MzTabM test_mztabm;
+    ams_feat_test.run(exp_fm, test_mztabm);
+
+    String tmp_mztabm_file;
+    NEW_TMP_FILE(tmp_mztabm_file);
+    MzTabMFile().store(tmp_mztabm_file, test_mztabm);
+    TEST_EQUAL(fsc.compareFiles(tmp_mztabm_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1_mztabm_featureXML.mzTab")), true);
+
+    // test use of adduct information
+    Param ams_param_tmp = ams_param;
+    ams_param_tmp.setValue("use_feature_adducts", "true");
+
+    AccurateMassSearchEngine ams_feat_test2;
+    ams_feat_test2.setParameters(ams_param_tmp);
+    ams_feat_test2.init();
+
+    FeatureMap exp_fm2;
+    FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm2);
+    MzTabM test_mztabm2;
+    ams_feat_test2.run(exp_fm2, test_mztabm2);
+
+    String tmp_mztabm_file2;
+    NEW_TMP_FILE(tmp_mztabm_file2);
+    MzTabMFile().store(tmp_mztabm_file2, test_mztabm2);
+    TEST_EQUAL(fsc.compareFiles(tmp_mztabm_file2, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output2_mztabm_featureXML.mzTab")), true);
+  }
+}
+END_SECTION
 
 START_SECTION((void run(ConsensusMap&, MzTab&) const))
   ConsensusMap exp_cm;
@@ -376,7 +408,6 @@ START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MA
   FeatureMap fm_p = exp_fm;
   AccurateMassSearchEngine ams;
   MzTab mzt;
-  MzTabM mztm;
   Param p;
   p.setValue("ionization_mode","auto");
   p.setValue("db:mapping", std::vector<std::string>{OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv")});
@@ -384,25 +415,24 @@ START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MA
   ams.setParameters(p);
   ams.init();
 
-  TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt, mztm)); // 'fm_p' has no scan_polarity meta value
+  TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // 'fm_p' has no scan_polarity meta value
   for (auto& f : fm_p)
   {
     f.setMetaValue("scan_polarity", "something;somethingelse");
   }
-  TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt, mztm)); // 'fm_p' scan_polarity meta value wrong
+  TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // 'fm_p' scan_polarity meta value wrong
 
   for (auto& f : fm_p)
   {
     f.setMetaValue("scan_polarity", "positive");
   }
-  ams.run(fm_p, mzt, mztm);
+  ams.run(fm_p, mzt);
 
   for (auto& f : fm_p)
   {
     f.setMetaValue("scan_polarity", "negative");
   }
-  ams.run(fm_p, mzt, mztm);
-
+  ams.run(fm_p, mzt);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

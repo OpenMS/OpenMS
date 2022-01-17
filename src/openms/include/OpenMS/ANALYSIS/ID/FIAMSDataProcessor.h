@@ -152,7 +152,7 @@ public:
       @param input  Input a feature map
       @param output  [out] mzTab file with the accurate mass search results
     */
-    void runAccurateMassSearch(FeatureMap& input, OpenMS::MzTab& output, OpenMS::MzTabM& output2);
+    void runAccurateMassSearch(FeatureMap& input, OpenMS::MzTab& output);
 
     /**
       @brief Get mass-to-charge ratios to base the summing the spectra along the time axis upon

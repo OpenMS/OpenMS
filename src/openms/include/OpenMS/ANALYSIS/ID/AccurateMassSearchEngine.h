@@ -229,7 +229,9 @@ public:
 
     /// main method of AccurateMassSearchEngine
     /// input map is not const, since it will get annotated with results
-    void run(FeatureMap&, MzTab&, MzTabM&) const;
+    void run(FeatureMap&, MzTab&) const;
+
+    void run(FeatureMap&, MzTabM&) const;
 
     /// main method of AccurateMassSearchEngine
     /// input map is not const, since it will get annotated with results
@@ -294,10 +296,13 @@ private:
     void parseAdductsFile_(const String& filename, std::vector<AdductInfo>& result);
     void searchMass_(double neutral_query_mass, double diff_mass, std::pair<Size, Size>& hit_indices) const;
 
-    /// add search results to a Consensus/Feature
+    /// Add search results to a Consensus/Feature
     void annotate_(const std::vector<AccurateMassSearchResult>&, BaseFeature&) const;
 
-    ///
+    /// Extract query results from feature
+    std::vector<AccurateMassSearchResult> extractQueryResults_(const Feature& feature, const Size& feature_index, const String& ion_mode_internal, Size& dummy_count) const;
+
+    /// Add resulting matches to IdentificationData
     void addMatchesToID_(
       IdentificationData& id,
       const std::vector<AccurateMassSearchResult>& amr, 
@@ -317,7 +322,7 @@ private:
 
     void exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out, const std::vector<String>& file_locations) const;
 
-    void exportMzTabM_(const FeatureMap& fmap, const Size number_of_maps, MzTabM& mztabm_out) const;
+    void exportMzTabM_(const FeatureMap& fmap, MzTabM& mztabm_out) const;
 
     /// private member variables
     typedef std::vector<std::vector<String> > MassIDMapping;

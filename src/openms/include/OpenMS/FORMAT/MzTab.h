@@ -830,31 +830,6 @@ public:
       std::set<String>& peptide_id_user_value_keys,
       std::set<String>& peptide_hit_user_value_keys);
 
-
-    template <class ForwardIterator>
-    static void replaceWhiteSpaces_(ForwardIterator first, ForwardIterator last)
-    {
-      while (first!=last) 
-      {
-        first->substitute(' ', '_');
-        ++first;
-      }
-    }
-
-    static void replaceWhiteSpaces_(std::set<String>& keys)
-    {
-      std::set<String> tmp_keys;
-      auto first = keys.begin();
-      while (first != keys.end()) 
-      {
-        String s = *first;
-        s.substitute(' ', '_');
-        tmp_keys.insert(std::move(s));
-        ++first;
-      }      
-      std::swap(keys, tmp_keys);
-    }
-
     // determine spectrum reference identifier type (e.g., Thermo nativeID) from spectrum references
     static MzTabParameter getMSRunSpectrumIdentifierType_(const std::vector<const PeptideIdentification*>& peptide_ids_);
 
