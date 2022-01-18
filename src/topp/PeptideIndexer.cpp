@@ -67,26 +67,24 @@ using namespace OpenMS;
   </CENTER>
 
   PeptideIndexer refreshes target/decoy information and mapping of peptides to proteins.
-  The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool. (For FDR calculations, "target+decoy" peptide hits count as target hits.)
+  The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool. (For FDR calculations, peptides hitting both target and decoy proteins are counted as target hits.)
 
-  PeptideIndexer allows for ambiguous amino acids (B|J|Z|X) in the protein database, but not in the peptide sequences. 
-  For the latter only I/L can be treated as equivalent (see 'IL_equivalent' flag), but 'J' is not allowed.
+  PeptideIndexer allows for ambiguous amino acids (B|J|Z|X) in the protein database and peptide sequence. 
   
-  Enzyme cutting rules and partial specificity can be specified (derived from input idXML automatically by default).
+  Enzyme cutting rules and partial specificity are derived from input idXML automatically by default or can be specified explicitly by the user.
 
-  Resulting protein hits appear in the order of the FASTA file, except for orphaned proteins, which will appear first with an empty target_decoy metavalue.
-  Duplicate protein accessions & sequences will not raise a warning, but create multiple hits (PeptideIndexer scans over the FASTA file once for efficiency
-  reasons, and thus might not see all accessions & sequences at once).
-
-  All peptide and protein hits are annotated with target/decoy information, using the meta value "target_decoy". 
+  All peptide and protein hits are annotated with target/decoy information, using the meta value 'target_decoy'. 
   For proteins the possible values are "target" and "decoy", depending on whether the protein accession contains the decoy pattern (parameter @p decoy_string) 
   as a suffix or prefix, respectively (see parameter @p prefix). 
-  
+  Resulting protein hits appear in the order of the FASTA file, except for orphaned proteins, which will appear first with an empty 'target_decoy' metavalue.
+  Duplicate protein accessions & sequences will not raise a warning, but create multiple hits (PeptideIndexer reads the FASTA file piecewise for efficiency
+  reasons, and thus might not see all accessions & sequences at once).
+
   Peptide hits are annotated with metavalue 'protein_references', and if matched to at least one protein also with metavalue 'target_decoy'.
-  The possible values for 'target_decoy' are "target", "decoy" and "target+decoy", 
-  depending on whether the peptide sequence is found only in target proteins, only in decoy proteins, or in both. The metavalue is not present, if the peptide is unmatched.
+  The possible values for 'target_decoy' in peptides are "target", "decoy" and "target+decoy", 
+  depending on whether the peptide sequence is found only in target proteins, only in decoy proteins, or in both. If the peptide is unmatched the metavalue is missing.
   
-  Runtime: PeptideIndexer is usually very fast (loading and storing the data takes the most time) and search speed can be further improved (linearly), but using more threads. 
+  Runtime: PeptideIndexer is usually very fast (loading and storing the data takes the most time) and search speed can be further improved (linearly) by using more threads. 
   Avoid allowing too many (>=4) ambiguous amino acids if your database contains long stretches of 'X' (exponential search space).
 
   PeptideIndexer supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified
@@ -126,7 +124,7 @@ protected:
                                               "Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'", false, false, { "skipexists" });
     setValidFormats_("fasta", { "fasta" }, false);
     registerOutputFile_("out", "<file>", "", "Output idXML file.");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", {"idXML"});
 
     registerFullParam_(PeptideIndexing().getParameters());
    }
