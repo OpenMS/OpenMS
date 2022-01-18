@@ -115,6 +115,15 @@ public:
     /// Returns the CV name (set in the load method)
     const String& name() const;
 
+    /// Returns the CV label (set in the load method)
+    const String& label() const;
+
+    /// Returns the CV version (set in the load method)
+    const String& version() const;
+
+    /// Returns the CV url (set in the load method)
+    const String& url() const;
+
     /**
         @brief Loads the CV from an OBO file
 
@@ -215,12 +224,18 @@ protected:
     */
     bool checkName_(const String& id, const String& name, bool ignore_case = true) const;
 
-    ///Map from ID to CVTerm
+    /// Map from ID to CVTerm
     Map<String, CVTerm> terms_;
-    ///Map from name to id
+    /// Map from name to id
     Map<String, String> namesToIds_;
-    ///Name set in the load method
+    /// Name set in the load method
     String name_;
+    /// CV label
+    String label_;
+    /// CV version
+    String version_;
+    /// CV URL
+    String url_;
   };
 
   ///Print the contents to a stream.

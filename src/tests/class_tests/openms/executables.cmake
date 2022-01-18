@@ -221,6 +221,8 @@ set(format_executables_list
   MzMLValidator_test
   MzTab_test
   MzTabFile_test
+  MzTabM_test
+  MzTabMFile_test
   # MSstatsFile_test
   MzQuantMLFile_test
   #MzQuantMLValidator_test

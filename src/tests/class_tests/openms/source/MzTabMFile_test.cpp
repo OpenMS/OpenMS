@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,41 +28,59 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Oliver Alka$
+// $Authors: Oliver Alka$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/OMSFile.h>
-#include <OpenMS/FORMAT/OMSFileLoad.h>
-#include <OpenMS/FORMAT/OMSFileStore.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
+///////////////////////////
+#include <OpenMS/FORMAT/MzTabMFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+///////////////////////////
+
+using namespace OpenMS;
 using namespace std;
 
-using ID = OpenMS::IdentificationData;
+START_TEST(MzTabMFile, "$Id$")
+/////////////////////////////////////////////////////////////
+MzTabMFile* ptr = nullptr;
+MzTabMFile* null_ptr = nullptr;
 
-namespace OpenMS
-{
-  void OMSFile::store(const String& filename, const IdentificationData& id_data)
-  {
-    OpenMS::Internal::OMSFileStore helper(filename, log_type_);
-    helper.store(id_data);
-  }
+START_SECTION(MzTabMFile())
+    {
+      ptr = new MzTabMFile();
+      TEST_NOT_EQUAL(ptr, null_ptr)
+    }
+END_SECTION
 
-  void OMSFile::store(const String& filename, const FeatureMap& features)
-  {
-    OpenMS::Internal::OMSFileStore helper(filename, log_type_);
-    helper.store(features);
-  }
+START_SECTION(~MzTabFile())
+    {
+      delete ptr;
+    }
+END_SECTION
 
-  void OMSFile::load(const String& filename, IdentificationData& id_data)
-  {
-    OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
-    helper.load(id_data);
-  }
+START_SECTION(void store(const String& filename, MzTabM& mztab_m))
+    {
+      FeatureMap feature_map;
+      MzTabM mztabm;
 
-  void OMSFile::load(const String& filename, FeatureMap& features)
-  {
-    OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
-    helper.load(features);
-  }
-}
+      OMSFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabMFile_input_1.oms"), feature_map);
+
+      mztabm = MzTabM::exportFeatureMapToMzTabM(feature_map);
+
+      String mztabm_tmpfile;
+      NEW_TMP_FILE(mztabm_tmpfile);
+      MzTabMFile().store(mztabm_tmpfile, mztabm);
+
+      TEST_FILE_SIMILAR(mztabm_tmpfile.c_str(), OPENMS_GET_TEST_DATA_PATH("MzTabMFile_output_1.mztab"));
+    }
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
