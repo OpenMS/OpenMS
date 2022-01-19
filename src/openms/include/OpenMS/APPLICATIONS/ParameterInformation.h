@@ -53,6 +53,7 @@ namespace OpenMS
       STRING, ///< String parameter
       INPUT_FILE, ///< String parameter that denotes an input file
       OUTPUT_FILE, ///< String parameter that denotes an output file
+      OUTPUT_PREFIX, ///< String parameter that denotes an output file prefix
       DOUBLE, ///< Floating point number parameter
       INT, ///< Integer parameter
       STRINGLIST, ///< More than one String Parameter

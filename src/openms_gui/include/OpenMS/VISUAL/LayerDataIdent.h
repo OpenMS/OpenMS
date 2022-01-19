@@ -76,6 +76,8 @@ namespace OpenMS
       return r;
     }
 
+    std::unique_ptr<LayerStatistics> getStats() const override;
+
     virtual const PepIds& getPeptideIds() const override
     {
       return peptides_;

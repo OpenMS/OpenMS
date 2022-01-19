@@ -73,6 +73,9 @@ public:
       r.assign(*getPeakData());
       return r;
     }
+
+    std::unique_ptr<LayerStatistics> getStats() const override;
+
   };
 
 } //namespace

@@ -205,9 +205,9 @@ public:
     template<typename T>
     ExitCodes run(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
 
-     const String& getDecoyString() const;
+    const String& getDecoyString() const;
 
-     bool isPrefix() const;
+    bool isPrefix() const;
 
  protected:
 

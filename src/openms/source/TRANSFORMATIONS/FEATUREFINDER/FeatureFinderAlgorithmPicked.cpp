@@ -1712,7 +1712,7 @@ namespace OpenMS
                                             isotopes.size() - b - e > 1))
         {
           double int_score = Math::pearsonCorrelationCoefficient(isotopes.intensity.begin() + b, isotopes.intensity.end() - e, pattern.intensity.begin() + b, pattern.intensity.end() - e);
-          if (boost::math::isnan(int_score))
+          if (std::isnan(int_score))
           {
             int_score = 0.0;
           }

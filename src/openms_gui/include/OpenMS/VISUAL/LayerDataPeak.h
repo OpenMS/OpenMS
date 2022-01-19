@@ -48,8 +48,7 @@ namespace OpenMS
   {
   public:
     /// Default constructor
-    LayerDataPeak() :
-        LayerDataBase(LayerDataBase::DT_PEAK){};
+    LayerDataPeak();
     /// no Copy-ctor (should not be needed)
     LayerDataPeak(const LayerDataPeak& ld) = delete;
     /// no assignment operator (should not be needed)
@@ -72,6 +71,8 @@ namespace OpenMS
       r.assign(*peak_map_);
       return r;
     }
+
+    std::unique_ptr<LayerStatistics> getStats() const override;
   };
 
 }// namespace OpenMS

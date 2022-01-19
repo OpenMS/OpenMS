@@ -18,7 +18,6 @@ HistogramWidget.h
 InputFile.h
 InputFileList.h
 LayerListView.h
-#LayerData.h
 LayerDataBase.h
 LayerDataChrom.h
 LayerDataConsensus.h
@@ -42,6 +41,7 @@ Plot3DWidget.h
 PlotCanvas.h
 PlotWidget.h
 RecentFilesMenu.h
+SequenceVisualizer.h
 SpectraTreeTab.h
 SpectraIDViewTab.h
 SwathLibraryStats.h

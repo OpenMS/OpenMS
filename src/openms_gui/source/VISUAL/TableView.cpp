@@ -332,6 +332,25 @@ namespace OpenMS
 
   void TableView::resizeEvent(QResizeEvent* /*event*/)
   {
+    this->resizeColumnsToContents();
+
+    int widgetWidth = this->viewport()->size().width();
+    int tableWidth = 0;
+
+    for (int i = 0; i < this->columnCount(); ++i)
+    {
+      tableWidth += this->horizontalHeader()->sectionSize(i);
+    } //sections already resized to fit all data
+
+    double scale = (double) widgetWidth / tableWidth;
+    if (scale > 1.)
+    {
+      for (int i = 0; i < this->columnCount(); ++i)
+      {
+        this->setColumnWidth(i, this->horizontalHeader()->sectionSize(i) * scale);
+      }
+    }
+
     emit resized();
   }
 

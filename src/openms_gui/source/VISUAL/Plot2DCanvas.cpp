@@ -1221,63 +1221,14 @@ namespace OpenMS
     selected_peak_.clear();
     measurement_start_.clear();
 
-    if (getCurrentLayer().type == LayerDataBase::DT_PEAK)   // peak data
+    auto& layer = getCurrentLayer();
+    layer.updateRanges(); // required for minIntensity() below and hasRange()
+    if (layer.getRange().hasRange() == HasRangeType::NONE)
     {
-      update_buffer_ = true;
-      // Abort if no data points are contained (note that all data could be on disk)
-      if (getCurrentLayer().getPeakData()->size() == 0)
-      {
-        popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
-        return false;
-      }
-      if ((getCurrentLayer().getPeakData()->getSize() == 0) && (getCurrentLayer().getPeakData()->hasRange() != HasRangeType::NONE))
-      {
-        setLayerFlag(LayerDataBase::P_PRECURSORS, true); // show precursors if no MS1 data is contained
-      }
+      popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
+      return false;
     }
-    else if (getCurrentLayer().type == LayerDataBase::DT_FEATURE)  // feature data
-    {
-      getCurrentLayer().getFeatureMap()->updateRanges();
-      setLayerFlag(LayerDataBase::F_HULL, true);
-
-      // Abort if no data points are contained
-      if (getCurrentLayer().getFeatureMap()->size() == 0)
-      {
-        popIncompleteLayer_("Cannot add an empty dataset. Aborting!");
-        return false;
-      }
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_CONSENSUS)  // consensus feature data
-    {
-      getCurrentLayer().getConsensusMap()->updateRanges();
-
-      // abort if no data points are contained
-      if (getCurrentLayer().getConsensusMap()->size() == 0)
-      {
-        popIncompleteLayer_("Cannot add an empty dataset. Aborting!");
-        return false;
-      }
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM)  // chromatogram data
-    {
-      update_buffer_ = true;
-
-      // abort if no data points are contained
-      if (getCurrentLayer().getPeakData()->getChromatograms().empty())
-      {
-        popIncompleteLayer_("Cannot add a dataset that contains no chromatograms. Aborting!");
-        return false;
-      }
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_IDENT)   // identification data
-    {
-      // abort if no data points are contained
-      if (dynamic_cast<IPeptideIds*>(&getCurrentLayer())->getPeptideIds().empty())
-      {
-        popIncompleteLayer_("Cannot add an empty dataset. Aborting!");
-        return false;
-      }
-    }
+    update_buffer_ = true;
 
     // overall values update
     recalculateRanges_(0, 1, 2);
@@ -1880,7 +1831,7 @@ namespace OpenMS
     QStringList lines;
     lines.push_back("RT delta:  " + QString::number(rt, 'f', 2));
     lines.push_back("m/z delta: " + QString::number(mz, 'f', 6) + " (" + QString::number(ppm, 'f', 1) +" ppm)");
-    if (boost::math::isinf(it) || boost::math::isnan(it))
+    if (std::isinf(it) || std::isnan(it))
     {
       lines.push_back("Int ratio: n/a");
     }
@@ -2972,7 +2923,7 @@ namespace OpenMS
       }
 
       // update gradient if the min/max intensity changes
-      if (!current_layer.getFeatureMap()->getRange().RangeIntensity::contains(tmp.getIntensity()))
+      if (!current_layer.getFeatureMap()->getRange().containsIntensity(tmp.getIntensity()))
       {
         current_layer.getFeatureMap()->updateRanges();
         recalculateRanges_(0, 1, 2);
@@ -3002,7 +2953,7 @@ namespace OpenMS
     // update the layer and overall ranges (if necessary)
     auto old_range = layer.getFeatureMap()->getRange();
     layer.getFeatureMap()->updateRanges();
-    if (!old_range.RangeIntensity::contains(layer.getFeatureMap()->getRangeForDim(MSDim::INT)))
+    if (!old_range.containsIntensity(layer.getFeatureMap()->getRangeForDim(MSDim::INT)))
     {
       intensityModeChange_();
     }
@@ -3029,7 +2980,7 @@ namespace OpenMS
     // update the layer and overall ranges (if necessary)
     auto old_range = layer.getConsensusMap()->getRange();
     layer.getConsensusMap()->updateRanges();
-    if (!old_range.RangeIntensity::contains(layer.getConsensusMap()->getRangeForDim(MSDim::INT)))
+    if (!old_range.containsIntensity(layer.getConsensusMap()->getRangeForDim(MSDim::INT)))
     {
       intensityModeChange_();
     }

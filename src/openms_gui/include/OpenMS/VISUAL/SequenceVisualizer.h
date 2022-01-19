@@ -28,66 +28,64 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Julianus Pfeuffer $
+// $Authors: Dhanmoni Nath, Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
+#ifdef QT_WEBENGINEWIDGETS_LIB
 #pragma once
 
-#include <OpenMS/METADATA/ID/MetaData.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <boost/optional.hpp>
+#include <QWidget>
+#include <QJsonObject>
+
+class QWebEngineView;
+class QWebChannel;
+
+namespace Ui
+{
+  class SequenceVisualizer;
+}
 
 namespace OpenMS
 {
-  namespace IdentificationDataInternal
+  class OPENMS_GUI_DLLAPI Backend : public QObject
   {
-    /** @brief Search query, e.g. spectrum or feature.
-    */
-    struct DataQuery: public MetaInfoInterface
-    {
-      /// spectrum or feature ID (from the file referenced by "input_file_ref"):
-      String data_id;
+    Q_OBJECT
 
-      // @TODO: make this non-optional (i.e. required)?
-      boost::optional<InputFileRef> input_file_opt;
+    // We can access the protein and peptide data using SequenceVisualizer.json_data_obj inside JS/HTML resource file
+    Q_PROPERTY(QJsonObject json_data_obj MEMBER m_json_data_obj_ NOTIFY dataChanged_)
+    signals:
+      void dataChanged_();
 
-      double rt, mz; // position
+  public:
+    QJsonObject m_json_data_obj_;
+  };
 
-      explicit DataQuery(
-        const String& data_id,
-        boost::optional<InputFileRef> input_file_opt = boost::none,
-        double rt = std::numeric_limits<double>::quiet_NaN(),
-        double mz = std::numeric_limits<double>::quiet_NaN()):
-        data_id(data_id), input_file_opt(input_file_opt), rt(rt), mz(mz)
-      {
-      }
+  class OPENMS_GUI_DLLAPI SequenceVisualizer : public QWidget
+  {
+    Q_OBJECT
 
-      DataQuery(const DataQuery& other) = default;
+  public:
+    explicit SequenceVisualizer(QWidget* parent = nullptr);
+    ~SequenceVisualizer() override;
 
-      // ignore RT and m/z for comparisons to avoid issues with rounding:
-      bool operator<(const DataQuery& other) const
-      {
-        // can't compare references directly, so compare addresses:
-        const String* sp = input_file_opt ? &(**input_file_opt) : nullptr;
-        const String* o_sp = other.input_file_opt ? &(**other.input_file_opt) :
-          nullptr;
-        return std::tie(sp, data_id) < std::tie(o_sp, other.data_id);
-      }
 
-      // ignore RT and m/z for comparisons to avoid issues with rounding:
-      bool operator==(const DataQuery& other) const
-      {
-        return std::tie(input_file_opt, data_id) ==
-          std::tie(other.input_file_opt, other.data_id);
-      }
+  public slots:
+    // this method sets protein and peptide data to m_json_data_obj_.
+    void setProteinPeptideDataToJsonObj(
+        const QString& accession_num, 
+        const QString& pro_seq, 
+        const QJsonArray& peptides_data);
 
-      // @TODO: do we need an "experiment label" (used e.g. in pepXML)?
-      // if yes, should it be stored here or together with the input file?
-    };
+  private:
 
-    typedef std::set<DataQuery> DataQueries;
-    typedef IteratorWrapper<DataQueries::iterator> DataQueryRef;
-
-  }
-}
+    Ui::SequenceVisualizer* ui_;
+    Backend backend_;
+    QWebEngineView* view_;
+    QWebChannel* channel_;
+  };
+}// namespace OpenMS
+#endif

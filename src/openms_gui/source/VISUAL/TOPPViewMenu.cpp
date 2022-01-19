@@ -91,10 +91,10 @@ namespace OpenMS
 
     m_file->addSeparator();
     
-    //Specifically set the role of the Preferences item. Additionally we have to avoid adding other action items that are
+    // Specifically set the role of the Preferences item. Additionally we have to avoid adding other action items that are
     // called preferences/config/options and have the default TextHeuristicRole because otherwise they will overwrite the macOS specific
     // menu entry under Application -> Preferences...
-    //m_file->addAction("&Preferences", parent, &TOPPViewBase::preferencesDialog);
+    // m_file->addAction("&Preferences", parent, &TOPPViewBase::preferencesDialog);
     auto pref = new QAction("&Preferences", parent);
     pref->setMenuRole(QAction::PreferencesRole);
     pref->setEnabled(true);
@@ -159,6 +159,7 @@ namespace OpenMS
       TV_STATUS::IS_1D_VIEW);
     action->setToolTip("Only available in 1D View");
     m_layer->addSeparator();
+    
     // Do not call it preferences without disabling text heuristics role.
     addAction_(m_layer->addAction("Layer preferences", parent, &TOPPViewBase::showPreferences),
       TV_STATUS::HAS_LAYER);
@@ -186,6 +187,9 @@ namespace OpenMS
     m_help->addAction("Tutorials and documentation", []() { GUIHelpers::openURL("html/index.html"); }, Qt::Key_F1);
 
     m_help->addSeparator();
+
+    // Note: it is important to pass parent by value, since the lambda will be evaluated later, 
+    // even after this function returned and parent reference would be out of scope.
     m_help->addAction("&About", [parent]() {QApplicationTOPP::showAboutDialog(parent, "TOPPView"); });
   }
 

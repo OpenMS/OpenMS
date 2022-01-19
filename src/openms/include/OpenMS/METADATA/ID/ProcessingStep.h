@@ -34,70 +34,59 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/ScoredProcessingResult.h>
-
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/member.hpp>
+#include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/METADATA/ID/ProcessingSoftware.h>
+#include <OpenMS/METADATA/ID/InputFile.h>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief Representation of a parent molecule that is identified only indirectly (e.g. a protein).
+    /** @brief Data processing step that is applied to the data (e.g. database search, PEP calculation, filtering, ConsensusID).
     */
-    struct ParentMolecule: public ScoredProcessingResult
+    struct ProcessingStep: public MetaInfoInterface
     {
-      String accession;
+      ProcessingSoftwareRef software_ref;
 
-      enum MoleculeType molecule_type;
+      std::vector<InputFileRef> input_file_refs;
 
-      // @TODO: if there are modifications in the sequence, "sequence.size()"
-      // etc. will be misleading!
-      String sequence;
+      DateTime date_time;
 
-      String description;
+      // @TODO: add processing actions that are relevant for ID data
+      std::set<DataProcessing::ProcessingAction> actions;
 
-      double coverage; ///< sequence coverage as a fraction between 0 and 1
-
-      bool is_decoy;
-
-      explicit ParentMolecule(
-        const String& accession,
-        MoleculeType molecule_type = MoleculeType::PROTEIN,
-        const String& sequence = "", const String& description = "",
-        double coverage = 0.0, bool is_decoy = false,
-        const AppliedProcessingSteps& steps_and_scores =
-        AppliedProcessingSteps()):
-        ScoredProcessingResult(steps_and_scores), accession(accession),
-        molecule_type(molecule_type), sequence(sequence),
-        description(description), coverage(coverage), is_decoy(is_decoy)
+      explicit ProcessingStep(
+        ProcessingSoftwareRef software_ref,
+        const std::vector<InputFileRef>& input_file_refs =
+        std::vector<InputFileRef>(), const DateTime& date_time =
+        DateTime::now(), std::set<DataProcessing::ProcessingAction> actions =
+        std::set<DataProcessing::ProcessingAction>()):
+        software_ref(software_ref), input_file_refs(input_file_refs),
+        date_time(date_time), actions(actions)
       {
       }
 
-      ParentMolecule(const ParentMolecule&) = default;
+      ProcessingStep(const ProcessingStep& other) = default;
 
-      ParentMolecule& operator+=(const ParentMolecule& other)
+      // order by date/time first, don't compare meta data (?):
+      bool operator<(const ProcessingStep& other) const
       {
-        ScoredProcessingResult::operator+=(other);
-        if (sequence.empty()) sequence = other.sequence;
-        if (description.empty()) description = other.description;
-        if (!is_decoy) is_decoy = other.is_decoy; // believe it when it's set
-        // @TODO: what about coverage? (not reliable if we're merging data)
+        return (std::tie(date_time, software_ref, input_file_refs, actions) <
+                std::tie(other.date_time, other.software_ref,
+                         other.input_file_refs, other.actions));
+      }
 
-        return *this;
+      // don't compare meta data (?):
+      bool operator==(const ProcessingStep& other) const
+      {
+        return (std::tie(software_ref, input_file_refs, date_time, actions) ==
+                std::tie(other.software_ref, other.input_file_refs,
+                         other.date_time, other.actions));
       }
     };
 
-    // parent molecules indexed by their accessions:
-    // @TODO: allow querying/iterating over proteins and RNAs separately
-    typedef boost::multi_index_container<
-      ParentMolecule,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::member<
-          ParentMolecule, String, &ParentMolecule::accession>>>
-      > ParentMolecules;
-    typedef IteratorWrapper<ParentMolecules::iterator> ParentMoleculeRef;
+    typedef std::set<ProcessingStep> ProcessingSteps;
+    typedef IteratorWrapper<ProcessingSteps::iterator> ProcessingStepRef;
 
   }
 }

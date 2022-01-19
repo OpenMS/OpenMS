@@ -166,8 +166,5 @@ namespace OpenMS
     double pre_int_;
     double pre_int_H2O_;
     double pre_int_NH3_;
-
-    // formula.toString() is extremely expensive, so we use a member map to remember what String belongs to which formula
-    //mutable std::map<EmpiricalFormula, String> formula_str_cache_;
   };
 }

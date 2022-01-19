@@ -343,7 +343,7 @@ namespace OpenMS
   }
 
 
-  void MetaboliteFeatureDeconvolution::annotate_feature_(FeatureMapType& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt comp_side, const Int new_q, const Int old_q)
+  void MetaboliteFeatureDeconvolution::annotate_feature_(FeatureMap& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt comp_side, const Int new_q, const Int old_q)
   {
     StringList labels;
     fm_out[f_idx].setMetaValue("map_idx", 0);
@@ -396,7 +396,7 @@ namespace OpenMS
 
   }
 
-  void MetaboliteFeatureDeconvolution::candidateEdges_(FeatureMapType& fm_out, const Adduct& default_adduct, PairsType& feature_relation, Map<Size, std::set<CmpInfo_> >& feature_adducts)
+  void MetaboliteFeatureDeconvolution::candidateEdges_(FeatureMap& fm_out, const Adduct& default_adduct, PairsType& feature_relation, Map<Size, std::set<CmpInfo_> >& feature_adducts)
   {
     bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
 
@@ -682,7 +682,7 @@ namespace OpenMS
 
 //@}
 
-  void MetaboliteFeatureDeconvolution::compute(const FeatureMapType& fm_in, FeatureMapType& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p)
+  void MetaboliteFeatureDeconvolution::compute(const FeatureMap& fm_in, FeatureMap& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p)
   {
     bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
     ConsensusMap cons_map_p_neg; // tmp
@@ -694,7 +694,7 @@ namespace OpenMS
     fm_out = fm_in;
     fm_out.sortByPosition();
     fm_out.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
-    FeatureMapType fm_out_untouched = fm_out;
+    FeatureMap fm_out_untouched = fm_out;
 
 
     Adduct default_adduct;
@@ -1032,7 +1032,7 @@ namespace OpenMS
       if (clique_register.count(i) > 0)
         continue;
 
-      FeatureMapType::FeatureType f_single = fm_out_untouched[i];
+      Feature f_single = fm_out_untouched[i];
       if (f_single.getCharge() == 0)
       {
         f_single.setMetaValue("is_ungrouped_monoisotopic", 1);
@@ -1258,7 +1258,7 @@ namespace OpenMS
     return;
   }
 
-  inline bool MetaboliteFeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const FeatureType& f1, const FeatureType& f2) const
+  inline bool MetaboliteFeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const Feature& f1, const Feature& f2) const
   {
     if (!enable_intensity_filter_)
       return true;

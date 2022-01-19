@@ -33,10 +33,20 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/LayerDataFeature.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 
 using namespace std;
 
 namespace OpenMS
 {
+  /// Default constructor
+  LayerDataFeature::LayerDataFeature() : LayerDataBase(LayerDataBase::DT_FEATURE)
+  {
+    flags.set(LayerDataBase::F_HULL);
+  }
 
+  std::unique_ptr<LayerStatistics> LayerDataFeature::getStats() const
+  {
+    return make_unique<LayerStatisticsFeatureMap>(*getFeatureMap());
+  }
 }// namespace OpenMS

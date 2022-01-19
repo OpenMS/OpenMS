@@ -283,7 +283,7 @@ namespace OpenMS
     changeVisibleArea_(tmp, repaint, true);
   }
 
-  void PlotCanvas::setVisibleArea(AreaType area)
+  void PlotCanvas::setVisibleArea(const AreaType& area)
   {
     //cout << OPENMS_PRETTY_FUNCTION << endl;
     changeVisibleArea_(area);
@@ -418,8 +418,7 @@ namespace OpenMS
 
   bool PlotCanvas::addLayer(ConsensusMapSharedPtrType map, const String & filename)
   {
-    LayerDataBaseUPtr new_layer(new LayerDataConsensus);
-    new_layer->getConsensusMap() = map;
+    LayerDataBaseUPtr new_layer(new LayerDataConsensus(map));
 
     setBaseLayerParameters(new_layer.get(), param_, filename);
     layers_.addLayer(std::move(new_layer));
@@ -1006,7 +1005,7 @@ namespace OpenMS
     }
     layers_.erase(layers_.begin() + layer_index);
 
-    // update current layer if it became invalid
+    // update current layer if it became invalid TODO dont you have to adjust the index to stay on the same layer??
     if (current_layer_ >= getLayerCount())
     {
       current_layer_ = getLayerCount() - 1; // overflow is intentional

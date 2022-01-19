@@ -298,6 +298,7 @@ protected:
     MSExperiment exp;
     MzMLFile m;
     PeakFileOptions op;
+    op.setFillData(false); // no actual peak data
     op.setMSLevels({ 2 }); //only MS2
     m.setOptions(op);
     m.load(in, exp);

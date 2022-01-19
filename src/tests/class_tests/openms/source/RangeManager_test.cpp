@@ -54,7 +54,11 @@ using RangeMTypeMzInt = RangeManager<RangeMZ, RangeIntensity>;
 
 class RM : public RangeMType
 {
-  public:       
+  public:  
+    // avoid compiler warning, but in production code virtual should not be done on a RM to save
+    // space and time
+    virtual ~RM() = default;
+
     bool operator == (const RM& rhs) const
     {
       return RangeMType::operator==(rhs);

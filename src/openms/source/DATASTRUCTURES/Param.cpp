@@ -92,7 +92,9 @@ namespace OpenMS
         {
           ok = true;
         }
-        else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() || std::find(tags.begin(), tags.end(), "output file") != tags.end())
+        else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() 
+          || std::find(tags.begin(), tags.end(), "output file") != tags.end()
+          || std::find(tags.begin(), tags.end(), "output prefix") != tags.end())
         {
           //do not check restrictions on file names for now
           ok = true;
@@ -124,7 +126,8 @@ namespace OpenMS
           {
             ok = true;
           }
-          else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() || std::find(tags.begin(), tags.end(), "output file") != tags.end())
+          else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() 
+            || std::find(tags.begin(), tags.end(), "output file") != tags.end())
           {
             //do not check restrictions on file names for now
             ok = true;
@@ -491,6 +494,17 @@ namespace OpenMS
       }
     }
     entry.valid_strings = strings;
+  }
+
+  const std::vector<std::string>& Param::getValidStrings(const std::string& key) const
+  {
+    ParamEntry& entry = getEntry_(key);
+    // check if correct parameter type
+    if (entry.value.valueType() != ParamValue::STRING_VALUE && entry.value.valueType() != ParamValue::STRING_LIST)
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
+    }
+    return entry.valid_strings;
   }
 
   void Param::setMinInt(const std::string& key, int min)

@@ -49,8 +49,7 @@ namespace OpenMS
   {
   public:
     /// Default constructor
-    LayerDataFeature() :
-        LayerDataBase(LayerDataBase::DT_FEATURE){};
+    LayerDataFeature();
     /// no Copy-ctor (should not be needed)
     LayerDataFeature(const LayerDataFeature& ld) = delete;
     /// no assignment operator (should not be needed)
@@ -71,6 +70,8 @@ namespace OpenMS
       r.assign(*getFeatureMap());
       return r;
     }
+
+    std::unique_ptr<LayerStatistics> getStats() const override;
 
     const PepIds& getPeptideIds() const override
     {

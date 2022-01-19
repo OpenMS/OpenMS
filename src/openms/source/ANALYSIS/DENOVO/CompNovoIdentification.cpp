@@ -588,7 +588,7 @@ namespace OpenMS
 
       score /= it->size();
 
-      if (boost::math::isnan(score))
+      if (std::isnan(score))
       {
         score = 0;
       }
