@@ -42,23 +42,24 @@ namespace OpenMS
   {
     /// Wrapper that adds @p operator< to iterators, so they can be used as (part of) keys in maps/sets or @p multi_index_containers
     template <typename Iterator>
-    struct IteratorWrapper: public Iterator
+    class IteratorWrapper: public Iterator
     {
-      IteratorWrapper(): Iterator() {}
+      public:
+        IteratorWrapper(): Iterator() {}
 
-      IteratorWrapper(const Iterator& it): Iterator(it) {}
+        IteratorWrapper(const Iterator& it): Iterator(it) {}
 
-      bool operator<(const IteratorWrapper& other) const
-      {
-        // compare by address of referenced element:
-        return &(**this) < &(*other);
-      }
+        bool operator<(const IteratorWrapper& other) const
+        {
+          // compare by address of referenced element:
+          return &(**this) < &(*other);
+        }
 
-      /// Conversion to pointer type for hashing
-      operator uintptr_t() const
-      {
-        return uintptr_t(&(**this));
-      }
+        /// Conversion to pointer type for hashing
+        operator uintptr_t() const
+        {
+          return uintptr_t(&(**this));
+        }
     };
 
 

@@ -89,6 +89,7 @@ namespace OpenMS
     };
 
     typedef std::set<ScoreType> ScoreTypes;
+    typedef ScoreTypes::iterator SetSTit;
     typedef IteratorWrapper<ScoreTypes::iterator> ScoreTypeRef;
   }
 }
