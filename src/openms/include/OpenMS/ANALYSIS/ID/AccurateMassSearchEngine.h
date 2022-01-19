@@ -40,6 +40,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/FORMAT/MzTabM.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -230,6 +231,8 @@ public:
     /// input map is not const, since it will get annotated with results
     void run(FeatureMap&, MzTab&) const;
 
+    void run(FeatureMap&, MzTabM&) const;
+
     /// main method of AccurateMassSearchEngine
     /// input map is not const, since it will get annotated with results
     /// @note Call init() before calling run!
@@ -293,8 +296,21 @@ private:
     void parseAdductsFile_(const String& filename, std::vector<AdductInfo>& result);
     void searchMass_(double neutral_query_mass, double diff_mass, std::pair<Size, Size>& hit_indices) const;
 
-    /// add search results to a Consensus/Feature
+    /// Add search results to a Consensus/Feature
     void annotate_(const std::vector<AccurateMassSearchResult>&, BaseFeature&) const;
+
+    /// Extract query results from feature
+    std::vector<AccurateMassSearchResult> extractQueryResults_(const Feature& feature, const Size& feature_index, const String& ion_mode_internal, Size& dummy_count) const;
+
+    /// Add resulting matches to IdentificationData
+    void addMatchesToID_(
+      IdentificationData& id,
+      const std::vector<AccurateMassSearchResult>& amr, 
+      const IdentificationData::InputFileRef& file_ref,
+      const IdentificationData::ScoreTypeRef& mass_error_ppm_score_ref,
+      const IdentificationData::ScoreTypeRef& mass_error_Da_score_ref,
+      const IdentificationData::ProcessingStepRef& step_ref,
+      BaseFeature& f) const;
 
     /// For two vectors of identical length, compute the cosine of the angle between them.
     /// Since we look at the angle, scaling of the vectors does not change the result (when ignoring numerical instability).
@@ -305,6 +321,8 @@ private:
     typedef std::vector<std::vector<AccurateMassSearchResult> > QueryResultsTable;
 
     void exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out, const std::vector<String>& file_locations) const;
+
+    void exportMzTabM_(const FeatureMap& fmap, MzTabM& mztabm_out) const;
 
     /// private member variables
     typedef std::vector<std::vector<String> > MassIDMapping;
@@ -342,6 +360,8 @@ private:
 
     bool is_initialized_; ///< true if init_() was called without any subsequent param changes
 
+    bool legacyID_ = true;
+
     /// parameter stuff
     double mass_error_value_;
     String mass_error_unit_;
@@ -359,6 +379,7 @@ private:
 
     String database_name_;
     String database_version_;
+    String database_location_;
 
     bool keep_unidentified_masses_;
   };

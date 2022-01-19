@@ -205,27 +205,27 @@ public:
   namespace StringUtils 
   {
 
-    static String number(double d, UInt n)
+    [[maybe_unused]] static String number(double d, UInt n)
     {
       return QString::number(d, 'f', n);
     }
 
-    static QString toQString(const String & this_s) 
+    [[maybe_unused]] static QString toQString(const String & this_s) 
     {
       return QString(this_s.c_str());
     }
 
-    static Int toInt(const String & this_s)
+    [[maybe_unused]] static Int toInt(const String & this_s)
     {
       return StringUtilsHelper::toInt(this_s);
     }
 
-    static float toFloat(const String & this_s)
+    [[maybe_unused]] static float toFloat(const String & this_s)
     {
       return StringUtilsHelper::toFloat(this_s);
     }
 
-    static double toDouble(const String & this_s)
+    [[maybe_unused]] static double toDouble(const String & this_s)
     {
       return StringUtilsHelper::toDouble(this_s);
     }

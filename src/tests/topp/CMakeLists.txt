@@ -2671,15 +2671,30 @@ add_test("UTILS_AccurateMassSearch_1_out1" ${DIFF} -in1 AccurateMassSearch_1_out
 set_tests_properties("UTILS_AccurateMassSearch_1_out1" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_1")
 # use FFM and MAD featurexml with custom adducts and database
 # mztab, featureXML (with isotope intensities)
-add_test("UTILS_AccurateMassSearch_2" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/AccurateMassSearch_2_input.featureXML -out AccurateMassSearch_2_output.tmp.mzTab -out_annotation AccurateMassSearch_2_output.tmp.featureXML -db:mapping ${DATA_DIR_TOPP}/AMS_test_Mapping.tsv -db:struct ${DATA_DIR_TOPP}/AMS_test_Struct.tsv -positive_adducts ${DATA_DIR_TOPP}/AMS_PositiveAdducts.tsv -negative_adducts ${DATA_DIR_TOPP}/AMS_NegativeAdducts.tsv -algorithm:mzTab:exportIsotopeIntensities true)
+add_test("UTILS_AccurateMassSearch_2" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/AccurateMassSearch_2_input.featureXML -out AccurateMassSearch_2_output.tmp.mzTab -out_annotation AccurateMassSearch_2_output.tmp.featureXML -db:mapping ${DATA_DIR_TOPP}/AMS_test_Mapping.tsv -db:struct ${DATA_DIR_TOPP}/AMS_test_Struct.tsv -positive_adducts ${DATA_DIR_TOPP}/AMS_PositiveAdducts.tsv -negative_adducts ${DATA_DIR_TOPP}/AMS_NegativeAdducts.tsv -algorithm:mzTab:exportIsotopeIntensities true -algorithm:keep_unidentified_masses false)
 add_test("UTILS_AccurateMassSearch_2_out1" ${DIFF} -in1 AccurateMassSearch_2_output.tmp.mzTab -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_2_output.mzTab -whitelist "")
-add_test("UTILS_AccurateMassSearch_2_out2" ${DIFF} -in1 AccurateMassSearch_2_output.tmp.featureXML -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_2_output.featureXML -whitelist "date")
+add_test("UTILS_AccurateMassSearch_2_out2" ${DIFF} -in1 AccurateMassSearch_2_output.tmp.featureXML -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_2_output.featureXML -whitelist "IdentificationRun id=\"PI_0\" date=" "database_location")
 set_tests_properties("UTILS_AccurateMassSearch_2_out1" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_2")
 set_tests_properties("UTILS_AccurateMassSearch_2_out2" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_2")
 # mztab (default)
 add_test("UTILS_AccurateMassSearch_3" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/AccurateMassSearch_2_input.featureXML -out AccurateMassSearch_3_output.tmp.mzTab -out_annotation AccurateMassSearch_2_output.tmp.featureXML -db:mapping ${DATA_DIR_TOPP}/AMS_test_Mapping.tsv -db:struct ${DATA_DIR_TOPP}/AMS_test_Struct.tsv -positive_adducts ${DATA_DIR_TOPP}/AMS_PositiveAdducts.tsv -negative_adducts ${DATA_DIR_TOPP}/AMS_NegativeAdducts.tsv)
 add_test("UTILS_AccurateMassSearch_3_out1" ${DIFF} -in1 AccurateMassSearch_3_output.tmp.mzTab -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_3_output.mzTab -whitelist "")
 set_tests_properties("UTILS_AccurateMassSearch_3_out1" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_3")
+# TODO: How to test the oms file?
+# oms (default)
+#add_test("UTILS_AccurateMassSearch_4" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/AccurateMassSearch_2_input.featureXML -out AccurateMassSearch_4_output.tmp.mzTab -out_annotation AccurateMassSearch_2_output.tmp.oms -db:mapping ${DATA_DIR_TOPP}/AMS_test_Mapping.tsv -db:struct ${DATA_DIR_TOPP}/AMS_test_Struct.tsv -positive_adducts ${DATA_DIR_TOPP}/AMS_PositiveAdducts.tsv -negative_adducts ${DATA_DIR_TOPP}/AMS_NegativeAdducts.tsv)
+#add_test("UTILS_AccurateMassSearch_4_out1" ${DIFF} -in1 AccurateMassSearch_4_output.tmp.oms -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_3_output.mzTab -whitelist "")
+#set_tests_properties("UTILS_AccurateMassSearch_4_out1" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_4")
+# mztab_m + oms (annotation)
+add_test("UTILS_AccurateMassSearch_5" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/AccurateMassSearch_2_input.featureXML -out AccurateMassSearch_5_output.tmp.mzTab -out_annotation AccurateMassSearch_5_output.tmp.oms -db:mapping ${DATA_DIR_TOPP}/AMS_test_Mapping.tsv -db:struct ${DATA_DIR_TOPP}/AMS_test_Struct.tsv -positive_adducts ${DATA_DIR_TOPP}/AMS_PositiveAdducts.tsv -negative_adducts ${DATA_DIR_TOPP}/AMS_NegativeAdducts.tsv -algorithm:id_format ID)
+add_test("UTILS_AccurateMassSearch_5_out1" ${DIFF} -in1 AccurateMassSearch_5_output.tmp.mzTab -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_5_output.mzTab -whitelist "")
+set_tests_properties("UTILS_AccurateMassSearch_5_out1" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_5")
+# mztab_m + feautreXML (annotation)
+add_test("UTILS_AccurateMassSearch_6" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/AccurateMassSearch_2_input.featureXML -out AccurateMassSearch_6_output.tmp.mzTab -out_annotation AccurateMassSearch_6_output.tmp.featureXML -db:mapping ${DATA_DIR_TOPP}/AMS_test_Mapping.tsv -db:struct ${DATA_DIR_TOPP}/AMS_test_Struct.tsv -positive_adducts ${DATA_DIR_TOPP}/AMS_PositiveAdducts.tsv -negative_adducts ${DATA_DIR_TOPP}/AMS_NegativeAdducts.tsv -algorithm:id_format ID)
+add_test("UTILS_AccurateMassSearch_6_out1" ${DIFF} -in1 AccurateMassSearch_6_output.tmp.mzTab -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_6_output.mzTab -whitelist "")
+add_test("UTILS_AccurateMassSearch_6_out2" ${DIFF} -in1 AccurateMassSearch_6_output.tmp.featureXML -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_6_output.featureXML -whitelist "IdentificationRun id=\"PI_0\" date=" "database_location")
+set_tests_properties("UTILS_AccurateMassSearch_6_out1" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_6")
+set_tests_properties("UTILS_AccurateMassSearch_6_out2" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_6")
 
 # AssayGeneratorMetabo
 # use FeatureFinderMetabo data
