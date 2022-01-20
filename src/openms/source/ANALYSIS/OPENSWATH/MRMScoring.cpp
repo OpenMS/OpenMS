@@ -42,7 +42,6 @@
 #include <iterator>
 
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
-#include <boost/numeric/conversion/cast.hpp>
 
 namespace OpenSwath
 {
@@ -69,7 +68,7 @@ namespace OpenSwath
         for (std::size_t j = i; j < data.size(); j++)
         {
           // compute normalized cross correlation
-          xcorr_matrix_.setValue(i, j, Scoring::normalizedCrossCorrelationPost(tmp_data[i], tmp_data[j], boost::numeric_cast<int>(data[i].size()), 1));
+          xcorr_matrix_.setValue(i, j, Scoring::normalizedCrossCorrelationPost(tmp_data[i], tmp_data[j], static_cast<int>(data[i].size()), 1));
           auto x = Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_.getValue(i, j));
           xcorr_matrix_max_peak_.setValue(i, j, std::abs(x->first));
           xcorr_matrix_max_peak_sec_.setValue(i, j, x->second);
@@ -109,7 +108,7 @@ namespace OpenSwath
         for (std::size_t j = i; j < native_ids.size(); j++)
         {
           // compute normalized cross correlation
-          xcorr_matrix_.setValue(i, j, Scoring::normalizedCrossCorrelationPost(intensity[i], intensity[j], boost::numeric_cast<int>(intensity[i].size()), 1));
+          xcorr_matrix_.setValue(i, j, Scoring::normalizedCrossCorrelationPost(intensity[i], intensity[j], static_cast<int>(intensity[i].size()), 1));
           auto x = Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_.getValue(i, j));
           xcorr_matrix_max_peak_.setValue(i, j, std::abs(x->first));
           xcorr_matrix_max_peak_sec_.setValue(i, j, x->second);
@@ -138,7 +137,7 @@ namespace OpenSwath
         for (std::size_t j = 0; j < native_ids_set2.size(); j++)
         {
           // compute normalized cross correlation
-          xcorr_contrast_matrix_.setValue(i, j, Scoring::normalizedCrossCorrelationPost(intensityi[i], intensityj[j], boost::numeric_cast<int>(intensityi[i].size()), 1));
+          xcorr_contrast_matrix_.setValue(i, j, Scoring::normalizedCrossCorrelationPost(intensityi[i], intensityj[j], static_cast<int>(intensityi[i].size()), 1));
           auto x = Scoring::xcorrArrayGetMaxPeak(xcorr_contrast_matrix_.getValue(i, j));
           xcorr_contrast_matrix_max_peak_sec_.setValue(i, j, x->second);
         }
@@ -160,7 +159,7 @@ namespace OpenSwath
         for (std::size_t j = i; j < precursor_ids.size(); j++)
         {
           // compute normalized cross correlation
-          xcorr_precursor_matrix_.setValue(i, j, Scoring::normalizedCrossCorrelationPost(intensity[i], intensity[j], boost::numeric_cast<int>(intensity[i].size()), 1));
+          xcorr_precursor_matrix_.setValue(i, j, Scoring::normalizedCrossCorrelationPost(intensity[i], intensity[j], static_cast<int>(intensity[i].size()), 1));
         }
       }
     }
@@ -185,7 +184,7 @@ namespace OpenSwath
         for (std::size_t j = 0; j < native_ids.size(); j++)
         {
           // compute normalized cross correlation
-          xcorr_precursor_contrast_matrix_.setValue(i, j, Scoring::normalizedCrossCorrelationPost(intensityi[i], intensityj[j], boost::numeric_cast<int>(intensityi[i].size()), 1));
+          xcorr_precursor_contrast_matrix_.setValue(i, j, Scoring::normalizedCrossCorrelationPost(intensityi[i], intensityj[j], static_cast<int>(intensityi[i].size()), 1));
         }
       }
     }
@@ -209,7 +208,7 @@ namespace OpenSwath
         for (std::size_t j = 0; j < data_fragments.size(); j++)
         {
           // compute normalized cross correlation
-          xcorr_precursor_contrast_matrix_.setValue(i, j, Scoring::normalizedCrossCorrelationPost(tmp_data_precursor[i], tmp_data_fragments[j], boost::numeric_cast<int>(tmp_data_precursor[i].size()), 1));
+          xcorr_precursor_contrast_matrix_.setValue(i, j, Scoring::normalizedCrossCorrelationPost(tmp_data_precursor[i], tmp_data_fragments[j], static_cast<int>(tmp_data_precursor[i].size()), 1));
 #ifdef MRMSCORING_TESTING
           std::cout << " fill xcorr_precursor_contrast_matrix_ "<< tmp_data_precursor[i].size() << " / " << tmp_data_fragments[j].size() << " : " << xcorr_precursor_contrast_matrix_[i][j].data.size() << std::endl;
 #endif
@@ -242,7 +241,7 @@ namespace OpenSwath
         for (std::size_t j = i; j < combined_intensity.size(); j++)
         {
           // compute normalized cross correlation
-          xcorr_precursor_combined_matrix_.setValue(i, j, Scoring::normalizedCrossCorrelationPost(combined_intensity[i], combined_intensity[j], boost::numeric_cast<int>(combined_intensity[i].size()), 1));
+          xcorr_precursor_combined_matrix_.setValue(i, j, Scoring::normalizedCrossCorrelationPost(combined_intensity[i], combined_intensity[j], static_cast<int>(combined_intensity[i].size()), 1));
         }
       }
     }
@@ -604,18 +603,18 @@ namespace OpenSwath
       manhattan = OpenSwath::manhattanScoring(experimental_intensity, library_intensity);
       dotprod = OpenSwath::dotprodScoring(experimental_intensity, library_intensity);
 
-      spectral_angle = Scoring::SpectralAngle(&experimental_intensity[0], &library_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
+      spectral_angle = Scoring::SpectralAngle(&experimental_intensity[0], &library_intensity[0], static_cast<unsigned int>(transitions.size()));
 
       if (boost::math::isnan(spectral_angle))
       {
         spectral_angle = 0.0;
       }
 
-      Scoring::normalize_sum(&experimental_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
-      Scoring::normalize_sum(&library_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
+      Scoring::normalize_sum(&experimental_intensity[0], static_cast<unsigned int>(transitions.size()));
+      Scoring::normalize_sum(&library_intensity[0], static_cast<unsigned int>(transitions.size()));
 
-      norm_manhattan = Scoring::NormalizedManhattanDist(&experimental_intensity[0], &library_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
-      rmsd = Scoring::RootMeanSquareDeviation(&experimental_intensity[0], &library_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
+      norm_manhattan = Scoring::NormalizedManhattanDist(&experimental_intensity[0], &library_intensity[0], static_cast<unsigned int>(transitions.size()));
+      rmsd = Scoring::RootMeanSquareDeviation(&experimental_intensity[0], &library_intensity[0], static_cast<unsigned int>(transitions.size()));
       correlation = OpenSwath::cor_pearson(experimental_intensity.begin(), experimental_intensity.end(), library_intensity.begin());
 
       if (boost::math::isnan(correlation))
@@ -725,7 +724,7 @@ namespace OpenSwath
     void MRMScoring::initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids)
     {
       std::vector<std::vector<double>> intensity;
-      std::vector<std::vector<unsigned int>> rank_vec;
+      std::vector<std::vector<unsigned int>> rank_vec{};
       fillIntensityFromFeature(mrmfeature, native_ids, intensity);
       Scoring::computeRankVector(intensity, rank_vec);
 
@@ -742,7 +741,7 @@ namespace OpenSwath
     void MRMScoring::initializeMIContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids_set1, const std::vector<String>& native_ids_set2)
     { 
       std::vector<std::vector<double>> intensityi, intensityj;
-      std::vector<std::vector<unsigned int>> rank_vec1, rank_vec2;
+      std::vector<std::vector<unsigned int>> rank_vec1{}, rank_vec2{};
       fillIntensityFromFeature(mrmfeature, native_ids_set1, intensityi);
       fillIntensityFromFeature(mrmfeature, native_ids_set2, intensityj);
       Scoring::computeRankVector(intensityi, rank_vec1);
@@ -762,7 +761,7 @@ namespace OpenSwath
     void MRMScoring::initializeMIPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids)
     {
       std::vector<std::vector<double>> intensity;
-      std::vector<std::vector<unsigned int>> rank_vec;
+      std::vector<std::vector<unsigned int>> rank_vec{};
       fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensity);
       Scoring::computeRankVector(intensity, rank_vec);
 
@@ -780,7 +779,7 @@ namespace OpenSwath
     void MRMScoring::initializeMIPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids)
     {
       std::vector<std::vector<double>> intensityi, intensityj;
-      std::vector<std::vector<unsigned int>> rank_vec1, rank_vec2;
+      std::vector<std::vector<unsigned int>> rank_vec1{}, rank_vec2{};
       fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensityi);
       fillIntensityFromFeature(mrmfeature, native_ids, intensityj);
       Scoring::computeRankVector(intensityi, rank_vec1);
@@ -799,7 +798,7 @@ namespace OpenSwath
 
     void MRMScoring::initializeMIPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids)
     {
-      std::vector<std::vector<unsigned int>> rank_vec;
+      std::vector<std::vector<unsigned int>> rank_vec{};
       std::vector<std::vector<double>> intensity;
       fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensity);
       Scoring::computeRankVector(intensity, rank_vec);

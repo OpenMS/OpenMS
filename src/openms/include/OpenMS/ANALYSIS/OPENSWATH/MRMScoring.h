@@ -234,7 +234,10 @@ namespace OpenSwath
         const OpenMS::Matrix<double> & getMIPrecursorCombinedMatrix() const;
         //@}
 
+        /// Get feature for each id in input ids vector and fill intensity in the input intensity vector for each feature
         void fillIntensityFromFeature(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& ids, std::vector<std::vector<double>>& intensity);
+
+        /// Get precursor feature for each id in input ids vector and fill intensity in the input intensity vector for each feature
         void fillIntensityFromPrecursorFeature(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& ids, std::vector<std::vector<double>>& intensity);
 
         /// Initialize the scoring object and building the MI matrix

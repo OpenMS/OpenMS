@@ -153,10 +153,9 @@ namespace OpenSwath::Scoring
       {
         stdev = 1; // all data is equal
       }
-      stdev = 1/stdev;
       for (std::size_t i = 0; i < data.size(); i++)
       {
-        data[i] = (data[i] - mean) * stdev;
+        data[i] = (data[i] - mean) / stdev;
       }
     }
 
