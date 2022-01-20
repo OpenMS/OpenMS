@@ -213,7 +213,7 @@ jobs:
             done
             for f in $Qt5_Dir/lib/*.framework/Versions/5/Qt*
             do
-              install_name_tool -id $f $f
+              install_name_tool -id $Qt5_Dir/lib/$(basename $f).framework/Versions/Current/$(basename $f) $f
             done
             for f in $Qt5_Dir/lib/*.framework/Versions/Current/Qt*
             do
