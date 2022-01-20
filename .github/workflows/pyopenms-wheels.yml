@@ -215,7 +215,10 @@ jobs:
             do
               install_name_tool -id $f $f
             done
-            otool -L /Users/runner/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Versions/5/QtCore
+            for f in $Qt5_Dir/lib/*.framework/Versions/Current/Qt*
+            do
+              install_name_tool -id $f $f
+            done
           popd
           mkdir bld
           pushd bld
