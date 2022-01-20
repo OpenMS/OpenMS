@@ -318,7 +318,8 @@ namespace OpenMS::Internal
       "data_value_id INTEGER NOT NULL, "                        \
       "FOREIGN KEY (parent_id) REFERENCES " + parent_ref + ", " \
       "FOREIGN KEY (data_value_id) REFERENCES DataValue (id), " \
-      "UNIQUE (parent_id, name)");
+      "PRIMARY KEY (parent_id, name)");
+
     // prepare query for inserting data:
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.prepare("INSERT INTO " + table.toQString() + " VALUES ("  \
@@ -1283,6 +1284,8 @@ namespace OpenMS::Internal
         }
       }
     }
+    // create index on parent_id column
+    query.exec("CREATE INDEX PeakAnnotation_parent_id ON ID_ObservationMatch_PeakAnnotation (parent_id)");
   }
 
 
