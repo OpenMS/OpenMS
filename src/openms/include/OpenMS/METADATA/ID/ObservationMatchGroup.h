@@ -97,6 +97,6 @@ namespace OpenMS
           boost::multi_index::member<ObservationMatchGroup, std::set<ObservationMatchRef>,
                                      &ObservationMatchGroup::observation_match_refs>>>
       > ObservationMatchGroups;
-    typedef IteratorWrapper<ObservationMatchGroups::iterator> MatchGroupRef;
+    typedef IteratorWrapper<ObservationMatchGroups::iterator, ObservationMatch> MatchGroupRef;
   }
 }

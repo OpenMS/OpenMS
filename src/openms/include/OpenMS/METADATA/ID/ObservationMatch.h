@@ -66,7 +66,7 @@ namespace OpenMS
     };
 
     typedef std::set<AdductInfo, AdductCompare> Adducts;
-    typedef IteratorWrapper<Adducts::iterator> AdductRef;
+    typedef IteratorWrapper<Adducts::iterator, AdductInfo> AdductRef;
     typedef boost::optional<AdductRef> AdductOpt;
 
     /// Representation of a search hit (e.g. peptide-spectrum match).
@@ -149,6 +149,6 @@ namespace OpenMS
                                        &ObservationMatch::adduct_opt>>>>
       > ObservationMatches;
 
-    typedef IteratorWrapper<ObservationMatches::iterator> ObservationMatchRef;
+    typedef IteratorWrapper<ObservationMatches::iterator, ObservationMatch> ObservationMatchRef;
   }
 }

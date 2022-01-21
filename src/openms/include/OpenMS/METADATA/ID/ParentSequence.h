@@ -118,7 +118,7 @@ namespace OpenMS
         boost::multi_index::ordered_unique<boost::multi_index::member<
           ParentSequence, String, &ParentSequence::accession>>>
       > ParentSequences;
-    typedef IteratorWrapper<ParentSequences::iterator> ParentSequenceRef;
+    typedef IteratorWrapper<ParentSequences::iterator, ParentSequence> ParentSequenceRef;
 
   }
 }

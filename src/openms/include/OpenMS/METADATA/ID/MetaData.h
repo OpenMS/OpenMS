@@ -41,7 +41,7 @@ namespace OpenMS
   namespace IdentificationDataInternal
   {
     /// Wrapper that adds @p operator< to iterators, so they can be used as (part of) keys in maps/sets or @p multi_index_containers
-    template <typename Iterator>
+    template <typename Iterator, typename Value>
     class IteratorWrapper: public Iterator
     {
       public:
@@ -60,6 +60,11 @@ namespace OpenMS
         {
           return uintptr_t(&(**this));
         }
+        Value deref()
+        {
+          return *(*this);
+        }
+
     };
 
 

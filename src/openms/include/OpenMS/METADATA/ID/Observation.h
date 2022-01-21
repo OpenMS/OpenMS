@@ -94,6 +94,6 @@ namespace OpenMS
             boost::multi_index::member<Observation, String,
                                        &Observation::data_id>>>>
       > Observations;
-    typedef IteratorWrapper<Observations::iterator> ObservationRef;
+    typedef IteratorWrapper<Observations::iterator, Observation> ObservationRef;
   }
 }

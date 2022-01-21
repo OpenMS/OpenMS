@@ -86,7 +86,7 @@ namespace OpenMS
     };
 
     typedef std::set<ProcessingStep> ProcessingSteps;
-    typedef IteratorWrapper<ProcessingSteps::iterator> ProcessingStepRef;
+    typedef IteratorWrapper<ProcessingSteps::iterator, ProcessingStep> ProcessingStepRef;
 
   }
 }

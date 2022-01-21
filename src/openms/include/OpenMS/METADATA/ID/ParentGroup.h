@@ -62,7 +62,7 @@ namespace OpenMS
           ParentGroup, std::set<ParentSequenceRef>,
           &ParentGroup::parent_refs>>>
       > ParentGroups;
-    typedef IteratorWrapper<ParentGroups::iterator> ParentGroupRef;
+    typedef IteratorWrapper<ParentGroups::iterator, ParentGroup> ParentGroupRef;
 
     /** @brief Set of groups of ambiguously identified parent sequences (e.g. results of running a protein inference algorithm)
     */

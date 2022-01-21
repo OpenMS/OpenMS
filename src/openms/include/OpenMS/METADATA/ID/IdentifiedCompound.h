@@ -77,6 +77,6 @@ namespace OpenMS
         boost::multi_index::ordered_unique<boost::multi_index::member<
           IdentifiedCompound, String, &IdentifiedCompound::identifier>>>
       > IdentifiedCompounds;
-    typedef IteratorWrapper<IdentifiedCompounds::iterator> IdentifiedCompoundRef;
+    typedef IteratorWrapper<IdentifiedCompounds::iterator, IdentifiedCompound> IdentifiedCompoundRef;
   }
 }

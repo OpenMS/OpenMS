@@ -66,7 +66,8 @@ namespace OpenMS
 
     // ordering is done using "operator<" inherited from "Software":
     typedef std::set<ProcessingSoftware> ProcessingSoftwares;
-    typedef IteratorWrapper<ProcessingSoftwares::iterator> ProcessingSoftwareRef;
+    typedef ProcessingSoftwares::iterator setPSit;
+    typedef IteratorWrapper<ProcessingSoftwares::iterator, ProcessingSoftware> ProcessingSoftwareRef;
 
   }
 }

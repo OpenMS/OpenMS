@@ -92,7 +92,7 @@ namespace OpenMS
         boost::multi_index::ordered_unique<boost::multi_index::member<
           InputFile, String, &InputFile::name>>>
       > InputFiles;
-    typedef IteratorWrapper<InputFiles::iterator> InputFileRef;
+    typedef IteratorWrapper<InputFiles::iterator, InputFile> InputFileRef;
 
   }
 }
