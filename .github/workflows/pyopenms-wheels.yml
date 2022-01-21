@@ -257,6 +257,7 @@ jobs:
             # build pyopenms distribution (macOS)
             cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
             make -j4 pyopenms
+            ls -la pyOpenMS/pyopenms/QtCore.framework/Versions/*
 
             # copy to directory
             cp pyOpenMS/dist/*.whl pyopenms_whls/
