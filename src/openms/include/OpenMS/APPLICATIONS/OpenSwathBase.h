@@ -171,6 +171,7 @@ protected:
                       const bool sort_swath_maps,
                       const bool sonar,
                       const bool prm,
+		      const bool pasef,
                       Interfaces::IMSDataConsumer* plugin_consumer = nullptr)
   {
     // (i) Load files
@@ -187,6 +188,8 @@ protected:
       OPENMS_LOG_DEBUG << "Found swath map " << i
         << " with lower " << swath_maps[i].lower
         << " and upper " << swath_maps[i].upper
+	<< " and im Lower bounds of " << swath_maps[i].imLower 
+	<< " and imUpper bounds of " << swath_maps[i].imUpper
         << " and " << swath_maps[i].sptr->getNrSpectra()
         << " spectra." << std::endl;
     }
@@ -222,6 +225,8 @@ protected:
       }
 
       if (sonar) {continue;} // skip next step as expect them to overlap ...
+
+      if (pasef) {continue;} // skip this step, expect there to be overlap ...
 
       if (lower_map_end - upper_map_start > 0.01)
       {
