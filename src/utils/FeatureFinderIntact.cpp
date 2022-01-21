@@ -41,7 +41,6 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
-#include <OpenMS/ANALYSIS/QUANTITATION/FeatureFindingIntact.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/FLASHDeconvQuant.h>
 
 // for testing
@@ -92,8 +91,8 @@ protected:
 
     // TODO: add mtd, epd param
 
-    Param p_ffi = FeatureFindingIntact().getDefaults();
-    combined.insert("ffi:", p_ffi);
+    Param p_ffi = FLASHDeconvQuant().getDefaults();
+    combined.insert(" :", p_ffi);
     combined.setSectionDescription("ffi", "FeatureFinder parameters (assembling mass traces to charged features)");
 
     return combined;

@@ -48,16 +48,16 @@ namespace OpenMS
       ProgressLogger(),
       DefaultParamHandler("FLASHDeconvQuant")
   {
-    defaults_.setValue("local_rt_range", 15.0, "RT range where to look for coeluting mass traces", ListUtils::create<String>("advanced"));
-    defaults_.setValue("local_mz_range", 6.5, "MZ range where to look for isotopic mass traces", ListUtils::create<String>("advanced")); // (-> decides size of isotopes =(local_mz_range_ * lowest_charge))
+    defaults_.setValue("local_rt_range", 15.0, "RT range where to look for coeluting mass traces", {"advanced"});
+    defaults_.setValue("local_mz_range", 6.5, "MZ range where to look for isotopic mass traces", {"advanced"}); // (-> decides size of isotopes =(local_mz_range_ * lowest_charge))
     defaults_.setValue("charge_lower_bound", 5, "Lowest charge state to consider");
     defaults_.setValue("charge_upper_bound", 50, "Highest charge state to consider");
     defaults_.setValue("min_mass", 10000, "minimim mass");
     defaults_.setValue("max_mass", 70000, "maximum mass");
     defaults_.setValue("mz_tol", 20, "ppm tolerance for m/z");
 
-    defaults_.setValue("use_smoothed_intensities", "true", "Use LOWESS intensities instead of raw intensities.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("use_smoothed_intensities", ListUtils::create<String>("false,true"));
+    defaults_.setValue("use_smoothed_intensities", "true", "Use LOWESS intensities instead of raw intensities.", {"advanced"});
+    defaults_.setValidStrings("use_smoothed_intensities", {"false","true"});
 
     defaultsToParam_();
 
@@ -2642,11 +2642,11 @@ namespace OpenMS
       // resolve this conflict region
       resolveConflictRegion_(feature_candidates, feature_indices_vec, conflicting_mts);
 
-      OPENMS_LOG_INFO << "---------conflicting masses----------" << endl;
+      OPENMS_LOG_DEBUG << "---------conflicting masses----------" << endl;
       for (auto& i : feature_indices_vec)
       {
         auto fg_index = feature_candidates[i].feature_group_index;
-        OPENMS_LOG_INFO << to_string(feature_groups[fg_index].getMonoisotopicMass()) << endl;
+        OPENMS_LOG_DEBUG << to_string(feature_groups[fg_index].getMonoisotopicMass()) << endl;
       }
     }
 
@@ -2839,11 +2839,11 @@ namespace OpenMS
       out_quant.resize(column_size, 1);
       NonNegativeLeastSquaresSolver::solve(theo_matrix, obs, out_quant);
 
-      OPENMS_LOG_INFO << "-------------------------" << endl;
-      OPENMS_LOG_INFO <<  "observed m/z : " <<  std::to_string(conflicting_mts[row]->getCentroidMZ()) << endl;
+      OPENMS_LOG_DEBUG << "-------------------------" << endl;
+      OPENMS_LOG_DEBUG <<  "observed m/z : " <<  std::to_string(conflicting_mts[row]->getCentroidMZ()) << endl;
       for (auto& peak : (*conflicting_mts[row]))
       {
-        OPENMS_LOG_INFO << std::to_string(peak.getRT()) << "\t" << std::to_string(peak.getIntensity()) << "\n";
+        OPENMS_LOG_DEBUG << std::to_string(peak.getRT()) << "\t" << std::to_string(peak.getIntensity()) << "\n";
       }
 
       // update lmt & feature intensity
@@ -2863,12 +2863,12 @@ namespace OpenMS
 
         lmt_ptr->setIntensity(out_quant.getValue(col, 0) * theo_intensity);
 
-        OPENMS_LOG_INFO << "--- theo[" << col << "]--- "<< std::to_string(out_quant.getValue(col, 0)) << "\t" << std::to_string(lmt_ptr->getIntensity()) << "\n";
+        OPENMS_LOG_DEBUG << "--- theo[" << col << "]--- "<< std::to_string(out_quant.getValue(col, 0)) << "\t" << std::to_string(lmt_ptr->getIntensity()) << "\n";
         for (auto& m : theo_matrix.col(col))
         {
-          OPENMS_LOG_INFO << to_string(m) << "\t";
+          OPENMS_LOG_DEBUG << to_string(m) << "\t";
         }
-        OPENMS_LOG_INFO << "\n";
+        OPENMS_LOG_DEBUG << "\n";
         col++;
       }
     }
