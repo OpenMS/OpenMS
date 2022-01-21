@@ -154,9 +154,9 @@ openms_add_library(TARGET_NAME  OpenMS
                    PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
                                     ${ISOSPEC_INCLUDE_DIRECTORY}
                                     ${JSON_INCLUDE_DIRECTORY}
+                                    ${SEQAN_INCLUDE_DIRECTORY}
                    EXTERNAL_INCLUDES ${OPENMS_CONTRIB_INCLUDE_DIRS} #root folder
                                      ${EVERGREEN_INCLUDE_DIRECTORY}
-                                     ${SEQAN_INCLUDE_DIRECTORY}
                                      ${INCLUDES_FROM_CONTRIB}
                                      ${INCLUDES_FROM_SYSTEM}
                                      ${OpenSwathAlgo_INCLUDE_DIRECTORIES} #Includes boost which could be non-contrib
