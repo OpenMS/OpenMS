@@ -7,6 +7,8 @@ from MetaInfoInterface cimport *
 from MetaData cimport *
 from ScoreType cimport *
 from ProcessingSoftware cimport *
+from ProcessingStep cimport *
+from InputFile cimport *
 
 
 
