@@ -554,36 +554,6 @@ endif()
 # write configured variables into env.py
 configure_file(${_env_py_in} ${_env_py} @ONLY)
 
-##WARNING DEBUG
-file(GENERATE
-    OUTPUT
-    ${_env_py}
-    INPUT
-    ${_env_py}
-)
-
-
-add_custom_target(pyopenms_cmake)
-set(PYOPENMS_SRC )
-
-foreach(nr RANGE 1 ${PY_NUM_MODULES})
-  list(APPEND PYOPENMS_SRC "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.cpp")
-  Python_add_library(pyopenms_${nr} MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.cpp" )
-  target_link_libraries(pyopenms_${nr} PRIVATE OpenMS)
-  target_include_directories(pyopenms_${nr} SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
-  target_compile_options(pyopenms_${nr} PRIVATE  -Wno-unused-member-function -Wno-builtin-macro-redefined -Wno-unused -Wno-zero-as-null-pointer-constant)
-  set_target_properties(pyopenms_${nr} PROPERTIES
-    OUTPUT_NAME pyopenms_${nr}.cpython-37m-darwin
-    CXX_VISIBILITY_PRESET hidden
-    VISIBILITY_INLINES_HIDDEN 1
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-)
-  add_dependencies(pyopenms_${nr} pyopenms_create_cpp)
-  add_dependencies(pyopenms_cmake pyopenms_${nr}) 
-endforeach()
-
 
 #------------------------------------------------------------------------------
 # create targets in makefile
@@ -616,29 +586,51 @@ endif()
 message(STATUS "Py extra args ${PY_EXTRA_ARGS}")
 
 
-IF(LINUX AND PY_NO_OUTPUT)
-  add_custom_command(
-            OUTPUT ${PYSOFILES}
-            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS} 2> /dev/null
-            COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
-            DEPENDS compile_pxds prepare_pyopenms_libs
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ELSEIF(APPLE) # We need to still copy libs with our script
-  add_custom_command(
-            OUTPUT ${PYSOFILES}
-            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
-            COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -f -v
-            COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
-            DEPENDS compile_pxds prepare_pyopenms_libs
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ELSE()
-  add_custom_command(
-            OUTPUT ${PYSOFILES}
-            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
-            COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
-            DEPENDS compile_pxds prepare_pyopenms_libs
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ENDIF()
+add_custom_target(pyopenms_cmake)
+set(PYOPENMS_SRC )
+
+foreach(nr RANGE 1 ${PY_NUM_MODULES})
+  list(APPEND PYOPENMS_SRC "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.cpp")
+  Python_add_library(pyopenms_${nr} MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.cpp" )
+  target_link_libraries(pyopenms_${nr} PRIVATE OpenMS)
+  target_include_directories(pyopenms_${nr} SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
+  target_compile_options(pyopenms_${nr} PRIVATE  -Wno-unused-member-function -Wno-builtin-macro-redefined -Wno-unused -Wno-zero-as-null-pointer-constant)
+  set_target_properties(pyopenms_${nr} PROPERTIES
+    OUTPUT_NAME pyopenms_${nr}.cpython-37m-darwin
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN 1
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+    )
+  add_dependencies(pyopenms_${nr} compile_pxds)
+  add_dependencies(pyopenms_cmake pyopenms_${nr}) 
+endforeach()
+
+
+# IF(LINUX AND PY_NO_OUTPUT)
+#   add_custom_command(
+#             OUTPUT ${PYSOFILES}
+#             COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS} 2> /dev/null
+#             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
+#             DEPENDS compile_pxds prepare_pyopenms_libs
+#             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+# ELSEIF(APPLE) # We need to still copy libs with our script
+#   add_custom_command(
+#             OUTPUT ${PYSOFILES}
+#             COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
+#             COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -f -v
+#             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
+#             DEPENDS compile_pxds prepare_pyopenms_libs
+#             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+# ELSE()
+#   add_custom_command(
+#             OUTPUT ${PYSOFILES}
+#             COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
+#             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
+#             DEPENDS compile_pxds prepare_pyopenms_libs
+#             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+# ENDIF()
 
 
 IF(LINUX AND PY_NO_OUTPUT)
