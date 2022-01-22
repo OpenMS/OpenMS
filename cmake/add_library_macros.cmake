@@ -132,12 +132,6 @@ function(openms_add_library)
   CACHE INTERNAL "${openms_add_library_TARGET_NAME} include directories" FORCE)
 
   #------------------------------------------------------------------------------
-  # Include directories
-  include_directories(${openms_add_library_INTERNAL_INCLUDES})
-  include_directories(SYSTEM ${openms_add_library_EXTERNAL_INCLUDES})
-  include_directories(SYSTEM ${openms_add_library_PRIVATE_INCLUDES})
-
-  #------------------------------------------------------------------------------
   # Check if we want a unity build
   if (ENABLE_UNITYBUILD)
   	message(STATUS "Enabled Unity Build for ${openms_add_library_TARGET_NAME}")
@@ -147,6 +141,14 @@ function(openms_add_library)
   #------------------------------------------------------------------------------
   # Add the library
   add_library(${openms_add_library_TARGET_NAME} ${openms_add_library_SOURCE_FILES})
+
+  #------------------------------------------------------------------------------
+  # Include directories
+  target_include_directories(${openms_add_library_TARGET_NAME} PUBLIC ${openms_add_library_INTERNAL_INCLUDES})
+  # TODO actually we shouldn't need to add these external includes. They should propagate through target_link_library if they are public
+  target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PUBLIC ${openms_add_library_EXTERNAL_INCLUDES})
+  target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PRIVATE ${openms_add_library_PRIVATE_INCLUDES})
+
   #TODO cxx_std_17 only requires a c++17 flag for the compiler. Not full standard support.
   # If we want full support, we need our own try_compiles (e.g. for structured bindings first available in GCC7)
   # or specify a min version of each compiler.
@@ -176,7 +178,7 @@ function(openms_add_library)
   if(openms_add_library_LINK_LIBRARIES)
     ## check for consistent lib arch (e.g. all 64bit)?
     check_lib_architecture(openms_add_library_LINK_LIBRARIES)
-    target_link_libraries(${openms_add_library_TARGET_NAME} ${openms_add_library_LINK_LIBRARIES} ${openms_add_library_PRIVATE_LINK_LIBRARIES})
+    target_link_libraries(${openms_add_library_TARGET_NAME} PUBLIC ${openms_add_library_LINK_LIBRARIES} PRIVATE ${openms_add_library_PRIVATE_LINK_LIBRARIES})
     list(LENGTH openms_add_library_LINK_LIBRARIES _library_count)
   endif()
 
@@ -190,12 +192,12 @@ function(openms_add_library)
 
   #------------------------------------------------------------------------------
   # we also want to install the library
-  install_library(${openms_add_library_TARGET_NAME})
-  install_headers("${openms_add_library_HEADER_FILES};${PROJECT_BINARY_DIR}/${_CONFIG_H}" ${openms_add_library_TARGET_NAME})
+  #install_library(${openms_add_library_TARGET_NAME})
+  #install_headers("${openms_add_library_HEADER_FILES};${PROJECT_BINARY_DIR}/${_CONFIG_H}" ${openms_add_library_TARGET_NAME})
 
   #------------------------------------------------------------------------------
   # register for export
-  openms_register_export_target(${openms_add_library_TARGET_NAME})
+  #openms_register_export_target(${openms_add_library_TARGET_NAME})
 
   #------------------------------------------------------------------------------
   # copy dll to test/doc bin folder on MSVC systems

@@ -213,13 +213,13 @@ def copyLibFromFramework(frameworkPath, targetPath)
   newFrameworkPath="#{targetPath}/#{libname}"
 
   if not File.exist?(targetPath + libname)
-    debug "Copy fw #{frameworkName} from #{frameworkDir} to #{targetPath}"
+    debug "Copy lib #{libname} from #{frameworkPath} to #{targetPath}"
     # preserve symlinks
     `cp #{frameworkPath} #{newFrameworkPath}`
     # adjust rights
     `chmod u+rwX #{newFrameworkPath}`
   else
-    debug "fw #{frameworkName} already exists in #{targetPath}"
+    debug "lib #{libname} already exists in #{targetPath}"
   end
 
   return newFrameworkPath, libname
