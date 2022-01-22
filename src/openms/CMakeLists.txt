@@ -67,7 +67,7 @@ add_subdirectory(thirdparty)
 #------------------------------------------------------------------------------
 # external libs (contrib or system)
 #------------------------------------------------------------------------------
-include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
+#include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
 
 #------------------------------------------------------------------------------
 # At this point make a summary of where data and doc will be located:
@@ -85,20 +85,25 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
-set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
-                          ${LIBSVM_LIBRARIES}
-                          ${XercesC_LIBRARY}
-                          ${Boost_LIBRARIES}
-                          ${WM5_LIBRARIES}
-                          ${BZIP2_LIBRARIES}
-                          ${ZLIB_LIBRARIES}
-                          ${SQLite_LIBRARY}
-                          ${HDF5_CXX_LIBRARIES}
-                          ${GLPK_LIBRARIES}
-                          ${CMAKE_DL_LIBS}
-                          ${Qt5Core_LIBRARIES}
-                          ${Qt5Network_LIBRARIES}
-                          ${Qt5Sql_LIBRARIES})
+#set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
+#                          ${LIBSVM_LIBRARIES}
+#                          ${XercesC_LIBRARY}
+#                          ${Boost_LIBRARIES}
+#                          ${WM5_LIBRARIES}
+#                          ${BZIP2_LIBRARIES}
+#                          ${ZLIB_LIBRARIES}
+#                          ${SQLite_LIBRARY}
+#                          ${HDF5_CXX_LIBRARIES}
+#                          ${GLPK_LIBRARIES}
+#                          ${CMAKE_DL_LIBS}
+#                          ${Qt5Core_LIBRARIES}
+#                          ${Qt5Network_LIBRARIES}
+#                          ${Qt5Sql_LIBRARIES})
+
+set(OPENMS_DEP_LIBRARIES XercesC::XercesC WM5::WM5 Qt5::Core Qt5::Network Qt5::Sql)
+
+set(OPENMS_DEP_PRIVATE_LIBRARIES CoinOR::CoinOR LibSVM::LibSVM Boost::iostreams Boost::date_time Boost::math_c99 Boost::regex
+  BZip2::BZip2 ZLIB::ZLIB SQLite::SQLite3 HDF5::HDF5 Eigen3::Eigen GLPK::GLPK)
 
 # xerces requires linking against CoreFoundation&CoreServices on macOS
 # TODO check if this is still the case
@@ -118,33 +123,6 @@ if (WITH_CRAWDAD) ## TODO check if still necessary
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
 
-set (OPENMS_CONTRIB_INCLUDE_DIRS "")
-if (OPENMS_CONTRIB_LIBS)
-  set (OPENMS_CONTRIB_INCLUDE_DIRS ${OPENMS_CONTRIB_LIBS}/include)
-endif()
-
-## Sort include directories into contrib ones (prefered in order) and system ones.
-foreach (includedir
-         ${SEQAN_INCLUDE_DIRS}
-         ${SQLite_INCLUDE_DIR}
-         ${HDF5_INCLUDE_DIRS}
-         ${LIBSVM_INCLUDE_DIRS}
-         ${EIGEN3_INCLUDE_DIR}
-         ${WM5_INCLUDE_DIRS}
-         ${CRAWDAD_INCLUDE_DIRS}
-         ${COIN_INCLUDE_DIRS}
-         ${GLPK_INCLUDE_DIRS}
-         ${ZLIB_INCLUDE_DIRS}
-         ${BZIP2_INCLUDE_DIR}
-         ${XercesC_INCLUDE_DIRS}
-         ${Boost_INCLUDE_DIRS})
-  if (${includedir} MATCHES "${OPENMS_CONTRIB_INCLUDE_DIRS}.*")
-    list(APPEND INCLUDES_FROM_CONTRIB ${includedir})
-  else()
-    list(APPEND INCLUDES_FROM_SYSTEM ${includedir})
-  endif()
-endforeach()
-
 openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}
@@ -154,17 +132,11 @@ openms_add_library(TARGET_NAME  OpenMS
                    PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
                                     ${ISOSPEC_INCLUDE_DIRECTORY}
                                     ${JSON_INCLUDE_DIRECTORY}
-                   EXTERNAL_INCLUDES ${OPENMS_CONTRIB_INCLUDE_DIRS} #root folder
-                                     ${EVERGREEN_INCLUDE_DIRECTORY}
-                                     ${SEQAN_INCLUDE_DIRECTORY}
-                                     ${INCLUDES_FROM_CONTRIB}
-                                     ${INCLUDES_FROM_SYSTEM}
-                                     ${OpenSwathAlgo_INCLUDE_DIRECTORIES} #Includes boost which could be non-contrib
-                                     ${Qt5Core_INCLUDE_DIRS}
-                                     ${Qt5Network_INCLUDE_DIRS}
-                                     ${Qt5Sql_INCLUDE_DIRS}
+                                    ${SEQAN_INCLUDE_DIRECTORY}
+                   EXTERNAL_INCLUDES ${EVERGREEN_INCLUDE_DIRECTORY}
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
+                   PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
 
 #------------------------------------------------------------------------------

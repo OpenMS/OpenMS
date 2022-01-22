@@ -428,6 +428,12 @@ if (MSVC)
 	endif()
 endif()
 
+
+# Find core dependencies here, so all projects have access to the same variables and
+# do not have to re-search for the core components
+
+include(cmake/cmake_findExternalLibs.cmake)
+
 #------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)
 #------------------------------------------------------------------------------
@@ -451,8 +457,8 @@ endif()
 
 #------------------------------------------------------------------------------
 # Handle export of targets and install them
-openms_export_targets()
-install_export_targets()
+#openms_export_targets()
+#install_export_targets()
 
 #------------------------------------------------------------------------------
 # Installation and packaging:

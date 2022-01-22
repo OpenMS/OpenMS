@@ -393,8 +393,6 @@ if(NOT WIN32)
   # the logic for static vs dynamic is in setup.py
   set(LIBRARIES_TO_BE_PARSED_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>" "\$<TARGET_LINKER_FILE:XercesC::XercesC>" )
   
-
-  
   # the following gets all dependent libraries of OpenMS
   # for the current config but filters out imported targets unfortunately.
   # We would need something recursive
@@ -467,6 +465,9 @@ exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-v" OUTPUT_VARIABLE QT_QMAKE_VERSION_I
 exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_LIBS" OUTPUT_VARIABLE QT_INSTALL_LIBS)
 exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_BINS" OUTPUT_VARIABLE QT_INSTALL_BINS)
 
+
+get_property(object_include_dirs TARGET OpenMS PROPERTY INCLUDE_DIRECTORIES)
+message("${object_include_dirs}")
 set(PYOPENMS_INCLUDE_DIRS
   ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
   ${OpenMS_INCLUDE_DIRECTORIES}
@@ -562,7 +563,7 @@ ELSEIF(APPLE) # We need to still copy libs with our script
   add_custom_command(
             OUTPUT ${PYSOFILES}
             COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
-            COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -v
+            COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -f -v
             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
             DEPENDS compile_pxds prepare_pyopenms_libs
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
