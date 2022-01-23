@@ -152,6 +152,8 @@ openms_add_library(TARGET_NAME  OpenMS
 # Note: that slash(/) is important here, otherwise the whole directory
 #       (not its content) will be copied!
 install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} share)
+# Devs also need our custom find modules
+install_directory(${OPENMS_HOST_DIRECTORY}/cmake/modules ${INSTALL_LIB_DIR}/cmake/OpenMS/Modules modules)
 
 #------------------------------------------------------------------------------
 # register relevant paths for the doxygen doc generation
