@@ -87,3 +87,4 @@ namespace OpenMS
     LogType log_type_;
   };
 } // namespace OpenMS
+
