@@ -146,9 +146,16 @@ function(openms_add_library)
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
   #------------------------------------------------------------------------------
   # Include directories
-  target_include_directories(${openms_add_library_TARGET_NAME} PUBLIC ${openms_add_library_INTERNAL_INCLUDES})
+  # TODO BIG figure out how to make the paths relative to the super projects folder.
+  target_include_directories(${openms_add_library_TARGET_NAME} PUBLIC
+                             "$<BUILD_INTERFACE:${openms_add_library_INTERNAL_INCLUDES}>"
+                             "$<INSTALL_INTERFACE:include/${openms_add_library_TARGET_NAME}>"  # <prefix>/include/OpenMS
+                             )
   # TODO actually we shouldn't need to add these external includes. They should propagate through target_link_library if they are public
-  target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PUBLIC ${openms_add_library_EXTERNAL_INCLUDES})
+  target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PUBLIC 
+                             "$<BUILD_INTERFACE:${openms_add_library_EXTERNAL_INCLUDES}>"
+                             "$<INSTALL_INTERFACE:include/${openms_add_library_TARGET_NAME}>"
+                             )
   target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PRIVATE ${openms_add_library_PRIVATE_INCLUDES})
 
   #TODO cxx_std_17 only requires a c++17 flag for the compiler. Not full standard support.
@@ -194,12 +201,12 @@ function(openms_add_library)
 
   #------------------------------------------------------------------------------
   # we also want to install the library
-  #install_library(${openms_add_library_TARGET_NAME})
-  #install_headers("${openms_add_library_HEADER_FILES};${PROJECT_BINARY_DIR}/${_CONFIG_H}" ${openms_add_library_TARGET_NAME})
+  install_library(${openms_add_library_TARGET_NAME})
+  install_headers("${openms_add_library_HEADER_FILES};${PROJECT_BINARY_DIR}/${_CONFIG_H}" ${openms_add_library_TARGET_NAME})
 
   #------------------------------------------------------------------------------
   # register for export
-  #openms_register_export_target(${openms_add_library_TARGET_NAME})
+  openms_register_export_target(${openms_add_library_TARGET_NAME})
 
   #------------------------------------------------------------------------------
   # copy dll to test/doc bin folder on MSVC systems

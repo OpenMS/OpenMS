@@ -457,8 +457,8 @@ endif()
 
 #------------------------------------------------------------------------------
 # Handle export of targets and install them
-#openms_export_targets()
-#install_export_targets()
+openms_export_targets()
+install_export_targets()
 
 #------------------------------------------------------------------------------
 # Installation and packaging:
@@ -485,10 +485,6 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
   include(CPack)
   include(cmake/package_components.cmake)
 endif()
-
-
-get_target_property(OUT OpenMS LINK_LIBRARIES)
-message(STATUS ${OUT})
 
 #------------------------------------------------------------------------------
 # Some final messages for the users

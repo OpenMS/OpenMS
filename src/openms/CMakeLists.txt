@@ -62,7 +62,15 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 #------------------------------------------------------------------------------
 # third party libs shipped with OpenMS directly
 #------------------------------------------------------------------------------
+# The two following libraries are in our public API, so create export targets
+install(EXPORT SeqAnTargets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/OpenMS FILE OpenMSSeqAnTargets.cmake)
+install(EXPORT EvergreenTargets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/OpenMS FILE OpenMSEvergreenTargets.cmake)
+
 add_subdirectory(thirdparty)
+
+# TODO check if we can do that in the subdirectories
+openms_register_export_target(SeqAn)
+openms_register_export_target(Evergreen)
 
 #------------------------------------------------------------------------------
 # external libs (contrib or system)
@@ -100,7 +108,7 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 #                          ${Qt5Network_LIBRARIES}
 #                          ${Qt5Sql_LIBRARIES})
 
-set(OPENMS_DEP_LIBRARIES XercesC::XercesC WM5::WM5 Qt5::Core Qt5::Network Qt5::Sql)
+set(OPENMS_DEP_LIBRARIES XercesC::XercesC WM5::WM5 Qt5::Core Qt5::Network Qt5::Sql SeqAn Evergreen)
 
 set(OPENMS_DEP_PRIVATE_LIBRARIES CoinOR::CoinOR LibSVM::LibSVM Boost::iostreams Boost::date_time Boost::math_c99 Boost::regex
   BZip2::BZip2 ZLIB::ZLIB SQLite::SQLite3 HDF5::HDF5 Eigen3::Eigen GLPK::GLPK)
@@ -132,8 +140,7 @@ openms_add_library(TARGET_NAME  OpenMS
                    PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
                                     ${ISOSPEC_INCLUDE_DIRECTORY}
                                     ${JSON_INCLUDE_DIRECTORY}
-                   EXTERNAL_INCLUDES ${EVERGREEN_INCLUDE_DIRECTORY}
-                                     ${SEQAN_INCLUDE_DIRECTORY}
+                   EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}

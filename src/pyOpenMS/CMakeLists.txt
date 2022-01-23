@@ -35,6 +35,12 @@
 project("pyOpenMS")
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
+if(NOT TARGET OpenMS)
+  find_package(OpenMS)
+  include(../../cmake/modules/GetGitRevisionDescription.cmake) #TODO set module path instead?
+  git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE)
+endif()
+
 #------------------------------------------------------------------------------
 # helper to copy/configure files from source to build
 function(_copy_assets _asset_dir _regex _target_dir)
@@ -47,13 +53,12 @@ function(_copy_assets _asset_dir _regex _target_dir)
 endfunction()
 
 #------------------------------------------------------------------------------
-# find and handle python
+# find and handle python (Development for macros to build python modules)
 find_package(Python COMPONENTS Interpreter Development)
 
 # find out python version info
 execute_process(
      COMMAND
-     #${PYTHON_EXECUTABLE} -c "import sys; print('%s'% sys.version[:2])"
      ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import sys; print('%s.%s' % sys.version_info[:2])"
      OUTPUT_VARIABLE PY_VERSION
      OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -427,9 +432,6 @@ endif()
 # of the actual path
 # If we only could get rid of distutils in general and do everything with CMake..
 if(NOT WIN32)
-  find_boost(regex) ## variables are not global -> find again
-  find_package(XercesC)
-
   # the following does not work since the FindBoost does not annotate all target_properties,
   # when run without BOOST_USE_STATIC On or Off.
   #set(OBJECTS_EXTEND "\$<GENEX_EVAL:\$<\$<STREQUAL:\$<TARGET_LINKER_FILE_SUFFIX:Boost::regex>,\".a\">:\$<TARGET_LINKER_FILE:Boost::regex>>>")
@@ -479,12 +481,6 @@ set(OPENMS_GIT_LC_DATE_REPLACED_LIST "${OPENMS_GIT_LC_DATE_REPLACED}")
 separate_arguments(OPENMS_GIT_LC_DATE_REPLACED_LIST)
 list(GET OPENMS_GIT_LC_DATE_REPLACED_LIST 0 OPENMS_GIT_LC_DATE_FORMAT)
 
-###debug
-set(OPENMS_GIT_LC_DATE ${OPENMS_GIT_LC_DATE})
-###debug 
-
-set(OPENMS_GIT_LC_DATE_FORMAT ${OPENMS_GIT_LC_DATE_FORMAT})
-
 set(_env_py_in ${PROJECT_SOURCE_DIR}/env.py.in)
 set(_env_py ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 
@@ -508,8 +504,6 @@ exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_LIBS" OUTPUT_VARIABL
 exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_BINS" OUTPUT_VARIABLE QT_INSTALL_BINS)
 
 
-get_property(object_include_dirs TARGET OpenMS PROPERTY INCLUDE_DIRECTORIES)
-message("${object_include_dirs}")
 set(PYOPENMS_INCLUDE_DIRS
   ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
   ${OpenMS_INCLUDE_DIRECTORIES}
@@ -531,6 +525,7 @@ add_custom_target(
 # assemble the libraries
 
 # copy the direct dependencies
+# TODO should work with OpenMS only.
 set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo)
 
 foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})

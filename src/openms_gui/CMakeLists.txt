@@ -73,8 +73,6 @@ foreach(COMP IN LISTS OpenMS_GUI_QT_COMPONENTS_OPT)
   list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt5::${COMP}")
 endforeach()
 
-message("${OpenMS_GUI_DEP_LIBRARIES}")
-
 set(CMAKE_AUTOUIC OFF) # leave off since this is broken, see qt5_wrap_ui below
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
