@@ -284,33 +284,43 @@ if(NUMPY_MISSING OR CYTHON_MISSING OR NOT CYTHON_VERSION_OK OR NOT AUTOWRAP_VERS
    OR SETUPTOOLS_MISSING OR WHEEL_MISSING)
   message(FATAL_ERROR "Required Python modules not found or out of date")
 endif()
-
-
     
-    # Find NumPy headers
-    exec_program(${PYTHON_EXECUTABLE}
-        ARGS "-c \"import numpy; print(numpy.get_include())\""
-        OUTPUT_VARIABLE NUMPY_INCLUDE_DIR
-        RETURN_VALUE NUMPY_NOT_FOUND
-        )
-    if(NUMPY_NOT_FOUND)
-        message(FATAL_ERROR "NumPy headers not found")
-    endif()
+# Find NumPy headers
+exec_program(${PYTHON_EXECUTABLE}
+    ARGS "-c \"import numpy; print(numpy.get_include())\""
+    OUTPUT_VARIABLE NUMPY_INCLUDE_DIR
+    RETURN_VALUE NUMPY_NOT_FOUND
+    )
+if(NUMPY_NOT_FOUND)
+    message(FATAL_ERROR "NumPy headers not found")
+endif()
 
-    # Find Python headers
-    exec_program(${PYTHON_EXECUTABLE}
-        ARGS "-c \"import sysconfig; print(sysconfig.get_paths()['include'])\""
-        OUTPUT_VARIABLE PYTHON_INCLUDE_DIRS
-        RETURN_VALUE PYTHON_INCLUDE_DIRS_NOT_FOUND
-        )
-    if(PYTHON_INCLUDE_DIRS_NOT_FOUND)
-        message(FATAL_ERROR "Python headers not found")
-    endif()
+# Find Python headers
+exec_program(${PYTHON_EXECUTABLE}
+    ARGS "-c \"import sysconfig; print(sysconfig.get_paths()['include'])\""
+    OUTPUT_VARIABLE PYTHON_INCLUDE_DIRS
+    RETURN_VALUE PYTHON_INCLUDE_DIRS_NOT_FOUND
+    )
+if(PYTHON_INCLUDE_DIRS_NOT_FOUND)
+    message(FATAL_ERROR "Python headers not found")
+endif()
 
-    # This goes after, since it uses PythonInterp as a hint
-    if(WIN32)
-        find_package(PythonLibs 3.5 REQUIRED)
-    endif()
+
+# Get suffix for python C(++) extensions
+exec_program(${PYTHON_EXECUTABLE}
+    ARGS "-c \"import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))\""
+    OUTPUT_VARIABLE PYTHON_EXT_SUFFIX
+    RETURN_VALUE PYTHON_EXT_SUFFIX_NOT_FOUND
+    )
+if(PYTHON_EXT_SUFFIX_NOT_FOUND)
+    message(FATAL_ERROR "Could not determine suffix for Python C extensions.")
+endif()
+
+
+# This goes after, since it uses PythonInterp as a hint
+if(WIN32)
+    find_package(PythonLibs 3.5 REQUIRED)
+endif()
 
 
 #------------------------------------------------------------------------------
@@ -585,28 +595,92 @@ endif()
 
 message(STATUS "Py extra args ${PY_EXTRA_ARGS}")
 
+#set(PYOPENMS_SRC )
 
-add_custom_target(pyopenms_cmake)
-set(PYOPENMS_SRC )
+set(PY_RPATH "")
+if (APPLE)
+ # TODO maybe we need one for linux too
+ set(PY_RPATH "@loader_path/")
+endif()
 
-foreach(nr RANGE 1 ${PY_NUM_MODULES})
-  list(APPEND PYOPENMS_SRC "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.cpp")
-  Python_add_library(pyopenms_${nr} MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.cpp" )
-  target_link_libraries(pyopenms_${nr} PRIVATE OpenMS)
-  target_include_directories(pyopenms_${nr} SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
-  target_compile_options(pyopenms_${nr} PRIVATE  -Wno-unused-member-function -Wno-builtin-macro-redefined -Wno-unused -Wno-zero-as-null-pointer-constant)
-  set_target_properties(pyopenms_${nr} PROPERTIES
-    OUTPUT_NAME pyopenms_${nr}.cpython-37m-darwin
-    CXX_VISIBILITY_PRESET hidden
-    VISIBILITY_INLINES_HIDDEN 1
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+if ("${PY_NUM_MODULES}" GREATER "1")
+    add_custom_target(pyopenms_compile)
+    foreach(nr RANGE 1 ${PY_NUM_MODULES})
+      #list(APPEND PYOPENMS_SRC "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.cpp")
+      Python_add_library(pyopenms_${nr} MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.cpp" )
+      target_link_libraries(pyopenms_${nr} PRIVATE OpenMS)
+      target_include_directories(pyopenms_${nr} SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
+      target_compile_options(pyopenms_${nr} PRIVATE -Wno-unused-member-function -Wno-builtin-macro-redefined -Wno-unused -Wno-zero-as-null-pointer-constant)
+      set_target_properties(pyopenms_${nr} PROPERTIES
+        OUTPUT_NAME pyopenms_${nr}
+        PREFIX "" # if you build a shared module it adds lib as prefix
+        SUFFIX ${PYTHON_EXT_SUFFIX} # since CMake 3.17 you can add WITH_SOABI to Python_add_library
+        CXX_VISIBILITY_PRESET hidden
+        VISIBILITY_INLINES_HIDDEN 1
+        INSTALL_RPATH ${PY_RPATH}
+        BUILD_WITH_INSTALL_RPATH 1
+        BUILD_WITH_INSTALL_NAME_DIR 1
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+      )
+      #add_dependencies(pyopenms_${nr} compile_pxds) # probably not necessary since the dependency is given through the files
+      add_dependencies(pyopenms_compile pyopenms_${nr})
+    endforeach()
+else()
+    Python_add_library(pyopenms_compile MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.cpp" )
+    target_link_libraries(pyopenms_compile PRIVATE OpenMS)
+    target_include_directories(pyopenms_compile SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
+    target_compile_options(pyopenms_compile PRIVATE -Wno-unused-member-function -Wno-builtin-macro-redefined -Wno-unused -Wno-zero-as-null-pointer-constant)
+    set_target_properties(pyopenms_compile PROPERTIES
+        OUTPUT_NAME pyopenms
+        PREFIX "" # if you build a shared module it adds lib as prefix
+        SUFFIX ${PYTHON_EXT_SUFFIX} # since CMake 3.17 you can add WITH_SOABI to Python_add_library
+        CXX_VISIBILITY_PRESET hidden
+        VISIBILITY_INLINES_HIDDEN 1
+        INSTALL_RPATH ${PY_RPATH}
+        BUILD_WITH_INSTALL_RPATH 1
+        BUILD_WITH_INSTALL_NAME_DIR 1
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
     )
-  add_dependencies(pyopenms_${nr} compile_pxds)
-  add_dependencies(pyopenms_cmake pyopenms_${nr}) 
-endforeach()
+endif()
 
+
+
+## use no-binary=pyopenms since we built the binaries already with cmake
+IF(LINUX AND PY_NO_OUTPUT)
+  add_custom_target(pyopenms
+            #COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg 2> /dev/null
+            COMMAND ${PYTHON_EXECUTABLE} -m pip wheel -w dist --no-binary=pyopenms . 2> /dev/null
+            #COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip 2> /dev/null
+            #COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace 2> /dev/null
+            COMMENT "Packaging pyopenms wheel."
+            DEPENDS prepare_pyopenms_libs pyopenms_compile
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ELSE()
+  IF(APPLE)
+        add_custom_target(pyopenms
+            COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -f -v
+            #COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
+            COMMAND ${PYTHON_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
+            #COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
+            #COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
+            COMMENT "Packaging pyopenms wheel."
+            DEPENDS prepare_pyopenms_libs pyopenms_compile
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+  ELSE()
+      add_custom_target(pyopenms
+            #COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
+            COMMAND ${PYTHON_EXECUTABLE} -m pip wheel -w dist --no-binary=pyopenms .
+            #COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
+            #COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
+            COMMENT "Packaging pyopenms wheel."
+            DEPENDS prepare_pyopenms_libs pyopenms_compile
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+  ENDIF()
+ENDIF()
 
 # IF(LINUX AND PY_NO_OUTPUT)
 #   add_custom_command(
@@ -631,25 +705,6 @@ endforeach()
 #             DEPENDS compile_pxds prepare_pyopenms_libs
 #             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 # ENDIF()
-
-
-IF(LINUX AND PY_NO_OUTPUT)
-  add_custom_target(pyopenms
-            COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg 2> /dev/null
-            COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel 2> /dev/null
-            COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip 2> /dev/null
-            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace 2> /dev/null
-            DEPENDS ${PYSOFILES}
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ELSE()
-  add_custom_target(pyopenms
-            COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
-            COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
-            COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
-            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
-            DEPENDS ${PYSOFILES}
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ENDIF()
 
 
 ###########################################################################
