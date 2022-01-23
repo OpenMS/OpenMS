@@ -64,6 +64,7 @@ if (@OPENMP_FOUND@)
 endif()
 
 # TODO also find GUI dependencies by default? Probably leave it up to the dev, if they need it.
+#  We should probably create components, e.g. OpenMS::Core, OpenMS::Gui, ...
 
 # we need this to reference the target file
 get_filename_component(OPENMS_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)

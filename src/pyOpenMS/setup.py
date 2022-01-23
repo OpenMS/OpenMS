@@ -263,8 +263,8 @@ setup(
 
     version=package_version,
 
-    maintainer="Uwe Schmitt",
-    maintainer_email="uschmitt@mineway.de",
+    maintainer="The OpenMS team",
+    maintainer_email="open-ms-general@lists.sourceforge.net",
     license="http://opensource.org/licenses/BSD-3-Clause",
     platforms=["any"],
     description="Python wrapper for C++ LCMS library OpenMS",
@@ -281,7 +281,7 @@ setup(
 
     url="http://open-ms.de",
 
-    author="Uwe Schmitt",
+    author="Uwe Schmitt and the OpenMS team",
     author_email="uschmitt@mineway.de",
 
     ext_modules=ext,
