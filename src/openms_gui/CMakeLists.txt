@@ -50,15 +50,17 @@ set(OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} CACHE INTERNAL "QT
 
 set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
 
-find_package(Qt5 COMPONENTS ${OpenMS_GUI_QT_COMPONENTS} OPTIONAL_COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
+find_package(Qt5 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS} OPTIONAL_COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
 
 IF (NOT Qt5Widgets_FOUND OR NOT Qt5Gui_FOUND OR NOT Qt5Svg_FOUND)
   message(STATUS "Qt5Widgets not found!")
 	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
 ENDIF()
 
+find_package(Qt5 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
+
 # TODO only works if WebEngineWidgets is the only optional component
-if(Qt5_WebEngineWidgets_NOTFOUND)
+if(NOT Qt5WebEngineWidgets_FOUND)
   message(WARNING "Qt5WebEngineWidgets not found, disabling JS Views in TOPPView!")
   set(OpenMS_GUI_QT_COMPONENTS_OPT)
 endif()

@@ -68,6 +68,8 @@ if(ENABLE_DOCS)
   #------------------------------------------------------------------------------
   # doc programs
   #------------------------------------------------------------------------------
+  # TODO switch to target based linking and avoid re-searching Qt.
+  # At least reuse the COMPONENT variables
   set(OpenMS_doc_executables)
   include(doxygen/parameters/executables.cmake)
 
@@ -80,12 +82,12 @@ if(ENABLE_DOCS)
   if(WITH_GUI)
     #------------------------------------------------------------------------------
     # QT dependencies
-    find_package(Qt5 COMPONENTS Core Network Sql Svg OpenGL REQUIRED)
-    find_package(Qt5 COMPONENTS WebEngineWidgets)
+    find_package(Qt5 REQUIRED COMPONENTS Core Network Sql Svg OpenGL)
+    find_package(Qt5 QUIET COMPONENTS WebEngineWidgets)
     set(_doc_progs_include ${OpenMS_GUI_INCLUDE_DIRECTORIES})
     set(_doc_progs_link_libraries ${OpenMS_GUI_LIBRARIES})
   else()
-    find_package(Qt5 COMPONENTS Core Network Sql REQUIRED)
+    find_package(Qt5 REQUIRED COMPONENTS Core Network Sql)
     set(_doc_progs_include ${OpenMS_INCLUDE_DIRECTORIES})
     set(_doc_progs_link_libraries ${OpenMS_LIBRARIES})
   endif()
