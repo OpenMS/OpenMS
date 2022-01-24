@@ -52,19 +52,16 @@ function(_copy_assets _asset_dir _regex _target_dir)
   endforeach()
 endfunction()
 
+# for backwards compatibility
+if (PYTHON_EXECUTABLE)
+  set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+endif()
+
 #------------------------------------------------------------------------------
 # find and handle python (Development for macros to build python modules)
 find_package(Python COMPONENTS Interpreter Development)
 
-# find out python version info
-execute_process(
-     COMMAND
-     ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import sys; print('%s.%s' % sys.version_info[:2])"
-     OUTPUT_VARIABLE PY_VERSION
-     OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
-message(STATUS "Python found at ${PYTHON_EXECUTABLE} with version ${PY_VERSION} (if this is wrong, configure with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python)")
+message(STATUS "Python found at ${Python_EXECUTABLE} with version ${Python_VERSION} (if this is wrong, see https://cmake.org/cmake/help/latest/module/FindPython.html and configure with e.g. -DPython_EXECUTABLE:=/path/to/python)")
 
 if(UNIX AND NOT APPLE AND NOT CYGWIN)
     set(LINUX TRUE)
@@ -80,18 +77,18 @@ endif()
 if(WIN32)
     if(SKIP_WIN_COMPILERCHECK)
         message(STATUS "Skipping MS Visual C++ compiler check (not recommended)")
-    elseif(MSVC90 AND (${PY_VERSION} STREQUAL "2.6" OR ${PY_VERSION} STREQUAL "2.7" ))
+    elseif(MSVC90 AND (${Python_VERSION} STREQUAL "2.6" OR ${Python_VERSION} STREQUAL "2.7" ))
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions -- ok")
-    elseif(MSVC10 AND (${PY_VERSION} STREQUAL "3.3" OR ${PY_VERSION} STREQUAL "3.4" ))
+    elseif(MSVC10 AND (${Python_VERSION} STREQUAL "3.3" OR ${Python_VERSION} STREQUAL "3.4" ))
         message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions -- ok")
-    elseif(MSVC14 AND (${PY_VERSION} VERSION_GREATER_EQUAL "3.5" ))
+    elseif(MSVC14 AND (${Python_VERSION} VERSION_GREATER_EQUAL "3.5" ))
         message(STATUS "Need Visual C++ 2015/2017/2019 compiler for building Python 3.5+ extensions -- ok")
     else()
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions")
         message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions")
         message(STATUS "Need Visual C++ 2015/2017/2019 compiler for building Python 3.5+ extensions")
         message(STATUS "To skip this check, please configure with -DSKIP_WIN_COMPILERCHECK=On")
-        message(FATAL_ERROR "Either reconfigure with the correct Visual Studio generator, select a different Python version with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python or disable pyOpenMS.")
+        message(FATAL_ERROR "Either reconfigure with the correct Visual Studio generator, select a different Python version with -DPython_EXECUTABLE:FILEPATH=/path/to/python or disable pyOpenMS.")
     endif()
 
     # Try to find MSVS runtime libs
@@ -126,14 +123,14 @@ if(CYTHON_MISSING)
 else()
   execute_process(
       COMMAND
-      ${PYTHON_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[1]) > 25 or (int(Cython.__version__.split('.')[1]) == 25 and int(Cython.__version__.split('.')[2]) >= 2))"
+      ${Python_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[1]) > 25 or (int(Cython.__version__.split('.')[1]) == 25 and int(Cython.__version__.split('.')[2]) >= 2))"
       RESULT_VARIABLE _CYTHON_VERSION_OK
       ERROR_QUIET
       OUTPUT_QUIET
   )
   execute_process(
       COMMAND
-      ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import Cython; print (Cython.__version__)"
+      ${Python_EXECUTABLE} -c "from __future__ import print_function; import Cython; print (Cython.__version__)"
       OUTPUT_VARIABLE CYTHON_VERSION
       OUTPUT_STRIP_TRAILING_WHITESPACE
   )
@@ -150,7 +147,7 @@ endif()
 # Check for autowrap
 execute_process(
      COMMAND
-     ${PYTHON_EXECUTABLE} -c "import autowrap"
+     ${Python_EXECUTABLE} -c "import autowrap"
      RESULT_VARIABLE AUTOWRAP_MISSING
      ERROR_QUIET
      OUTPUT_QUIET
@@ -162,20 +159,20 @@ if(AUTOWRAP_MISSING)
 else()
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 5))"
+        ${Python_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 5))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
     )
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import autowrap; print ('%d.%d.%d' % (autowrap.version))"
+        ${Python_EXECUTABLE} -c "from __future__ import print_function; import autowrap; print ('%d.%d.%d' % (autowrap.version))"
         OUTPUT_VARIABLE AUTOWRAP_VERSION
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import autowrap; print (''.join([autowrap.__path__[0],'/data_files/autowrap/']))"
+        ${Python_EXECUTABLE} -c "from __future__ import print_function; import autowrap; print (''.join([autowrap.__path__[0],'/data_files/autowrap/']))"
         OUTPUT_VARIABLE AUTOWRAP_INCLUDES
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
@@ -193,7 +190,7 @@ endif()
 # Check for Nose Test Framework
 execute_process(
      COMMAND
-     ${PYTHON_EXECUTABLE} -c "import nose"
+     ${Python_EXECUTABLE} -c "import nose"
      RESULT_VARIABLE _NOSE_MISSING
      ERROR_QUIET
      OUTPUT_QUIET
@@ -210,10 +207,10 @@ else()
 endif()
 
 #------------------------------------------------------------------------------
-# Check for Numpy
+# Check for Numpy (TODO since CMake 3.17 this can be done in the same call with the FindPython module)
 execute_process(
      COMMAND
-     ${PYTHON_EXECUTABLE} -c "import numpy"
+     ${Python_EXECUTABLE} -c "import numpy"
      RESULT_VARIABLE _NUMPY_MISSING
      ERROR_QUIET
      OUTPUT_QUIET
@@ -235,7 +232,7 @@ endif()
 
 execute_process(
      COMMAND
-     ${PYTHON_EXECUTABLE} -c "import setuptools"
+     ${Python_EXECUTABLE} -c "import setuptools"
      RESULT_VARIABLE SETUPTOOLS_MISSING
      ERROR_QUIET
      OUTPUT_QUIET
@@ -248,14 +245,14 @@ if(SETUPTOOLS_MISSING)
 else()
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import setuptools; exit(int(setuptools.__version__.split('.')[0]) >= 12)"
+        ${Python_EXECUTABLE} -c "import setuptools; exit(int(setuptools.__version__.split('.')[0]) >= 12)"
         RESULT_VARIABLE _SETUPTOOLS_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
     )
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "from __future__ import print_function;import setuptools; print(setuptools.__version__)"
+        ${Python_EXECUTABLE} -c "from __future__ import print_function;import setuptools; print(setuptools.__version__)"
         OUTPUT_VARIABLE SETUPTOOLS_VERSION
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
@@ -272,7 +269,7 @@ endif()
 # Check for python wheel
 execute_process(
      COMMAND
-     ${PYTHON_EXECUTABLE} -c "import wheel"
+     ${Python_EXECUTABLE} -c "import wheel"
      RESULT_VARIABLE WHEEL_MISSING
      ERROR_QUIET
      OUTPUT_QUIET
@@ -291,7 +288,7 @@ if(NUMPY_MISSING OR CYTHON_MISSING OR NOT CYTHON_VERSION_OK OR NOT AUTOWRAP_VERS
 endif()
     
 # Find NumPy headers
-exec_program(${PYTHON_EXECUTABLE}
+exec_program(${Python_EXECUTABLE}
     ARGS "-c \"import numpy; print(numpy.get_include())\""
     OUTPUT_VARIABLE NUMPY_INCLUDE_DIR
     RETURN_VALUE NUMPY_NOT_FOUND
@@ -301,7 +298,7 @@ if(NUMPY_NOT_FOUND)
 endif()
 
 # Find Python headers
-exec_program(${PYTHON_EXECUTABLE}
+exec_program(${Python_EXECUTABLE}
     ARGS "-c \"import sysconfig; print(sysconfig.get_paths()['include'])\""
     OUTPUT_VARIABLE PYTHON_INCLUDE_DIRS
     RETURN_VALUE PYTHON_INCLUDE_DIRS_NOT_FOUND
@@ -312,7 +309,7 @@ endif()
 
 
 # Get suffix for python C(++) extensions
-exec_program(${PYTHON_EXECUTABLE}
+exec_program(${Python_EXECUTABLE}
     ARGS "-c \"import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))\""
     OUTPUT_VARIABLE PYTHON_EXT_SUFFIX
     RETURN_VALUE PYTHON_EXT_SUFFIX_NOT_FOUND
@@ -567,14 +564,14 @@ IF(LINUX AND PY_NO_OUTPUT)
   add_custom_command(
     OUTPUT ${PYCPPFILES} ${PYPYXFILES}
     DEPENDS OpenMS # fake dependency to see if a header file has changed
-    COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py 2> /dev/null
+    COMMAND ${Python_EXECUTABLE} create_cpp_extension.py 2> /dev/null
     COMMENT "Creating C++ extension with autowrap and Cython"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
   add_custom_command(
     OUTPUT ${PYCPPFILES} ${PYPYXFILES}
     DEPENDS OpenMS # fake dependency to see if a header file has changed
-    COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
+    COMMAND ${Python_EXECUTABLE} create_cpp_extension.py
     COMMENT "Creating C++ extension with autowrap and Cython"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ENDIF()
@@ -645,10 +642,10 @@ endif()
 ## use no-binary=pyopenms since we built the binaries already with cmake
 IF(LINUX AND PY_NO_OUTPUT)
   add_custom_target(pyopenms
-            #COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg 2> /dev/null
-            COMMAND ${PYTHON_EXECUTABLE} -m pip wheel -w dist --no-binary=pyopenms . 2> /dev/null
-            #COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip 2> /dev/null
-            #COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace 2> /dev/null
+            #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg 2> /dev/null
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-binary=pyopenms . 2> /dev/null
+            #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip 2> /dev/null
+            #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace 2> /dev/null
             COMMENT "Packaging pyopenms wheel."
             DEPENDS prepare_pyopenms_libs pyopenms_compile
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
@@ -656,19 +653,19 @@ ELSE()
   IF(APPLE)
         add_custom_target(pyopenms
             COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -f -v
-            #COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
-            COMMAND ${PYTHON_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
-            #COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
-            #COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
+            #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
+            #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip
+            #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace
             COMMENT "Packaging pyopenms wheel."
             DEPENDS prepare_pyopenms_libs pyopenms_compile
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
   ELSE()
       add_custom_target(pyopenms
-            #COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
-            COMMAND ${PYTHON_EXECUTABLE} -m pip wheel -w dist --no-binary=pyopenms .
-            #COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
-            #COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
+            #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-binary=pyopenms .
+            #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip
+            #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace
             COMMENT "Packaging pyopenms wheel."
             DEPENDS prepare_pyopenms_libs pyopenms_compile
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
@@ -678,14 +675,14 @@ ENDIF()
 # IF(LINUX AND PY_NO_OUTPUT)
 #   add_custom_command(
 #             OUTPUT ${PYSOFILES}
-#             COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS} 2> /dev/null
+#             COMMAND ${Python_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS} 2> /dev/null
 #             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
 #             DEPENDS compile_pxds prepare_pyopenms_libs
 #             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 # ELSEIF(APPLE) # We need to still copy libs with our script
 #   add_custom_command(
 #             OUTPUT ${PYSOFILES}
-#             COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
+#             COMMAND ${Python_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
 #             COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -f -v
 #             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
 #             DEPENDS compile_pxds prepare_pyopenms_libs
@@ -693,7 +690,7 @@ ENDIF()
 # ELSE()
 #   add_custom_command(
 #             OUTPUT ${PYSOFILES}
-#             COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
+#             COMMAND ${Python_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
 #             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
 #             DEPENDS compile_pxds prepare_pyopenms_libs
 #             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
@@ -709,7 +706,7 @@ ENDIF()
 # actually have gone wrong. Thus we add additional tests below ...
 enable_testing()
 add_test(NAME test_pyopenms_unittests
-         COMMAND ${PYTHON_EXECUTABLE} run_nose.py
+         COMMAND ${Python_EXECUTABLE} run_nose.py
          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS
         )
 if(NOT WIN32)
@@ -751,7 +748,7 @@ test_MRMRTNormalizer.py
 # Loop through all the test files
 foreach (t ${pyopenms_unittest_testfiles})
   add_test(NAME "pyopenms_unittest_${t}"
-    COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests/${t} -s -v)
+    COMMAND ${Python_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests/${t} -s -v)
   if(NOT WIN32)
     set_tests_properties("pyopenms_unittest_${t}" PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib"
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
@@ -760,7 +757,7 @@ endforeach(t)
 
 foreach (t ${pyopenms_integrationtest_testfiles})
   add_test(NAME "pyopenms_integrationtest_${t}"
-    COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests/${t} -s -v)
+    COMMAND ${Python_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests/${t} -s -v)
   if(NOT WIN32)
     set_tests_properties("pyopenms_integrationtest_${t}" PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib"
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
@@ -770,7 +767,7 @@ endforeach(t)
 # Finally add the memory leaks test (in folder tests/memoryleaktests/)
 if(NOT PY_MEMLEAK_DISABLE)
   add_test(NAME pyopenms_test_memoryleaktests
-    COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests/ -s -v
+    COMMAND ${Python_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests/ -s -v
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
   if(NOT WIN32)
       set_tests_properties(pyopenms_test_memoryleaktests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
