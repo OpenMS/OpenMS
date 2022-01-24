@@ -111,7 +111,7 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 set(OPENMS_DEP_LIBRARIES XercesC::XercesC WM5::WM5 Qt5::Core Qt5::Network Qt5::Sql SeqAn Evergreen)
 
 set(OPENMS_DEP_PRIVATE_LIBRARIES CoinOR::CoinOR LibSVM::LibSVM Boost::iostreams Boost::date_time Boost::math_c99 Boost::regex
-  BZip2::BZip2 ZLIB::ZLIB SQLite::SQLite3 HDF5::HDF5 Eigen3::Eigen GLPK::GLPK)
+  BZip2::BZip2 ZLIB::ZLIB SQLite::SQLite3 hdf5::hdf5_cpp hdf5::hdf5_hl_cpp Eigen3::Eigen GLPK::GLPK)
 
 # xerces requires linking against CoreFoundation&CoreServices on macOS
 # TODO check if this is still the case
