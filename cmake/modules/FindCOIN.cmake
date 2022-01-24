@@ -80,7 +80,6 @@ endmacro()
 # actually find the required libs
 if(NOT TARGET CoinOR::CoinOR)
   add_library(CoinOR::CoinOR INTERFACE IMPORTED)
-  set_property(TARGET CoinOR::CoinOR PROPERTY INCLUDE_DIRECTORIES "${COIN_INCLUDE_DIR}")
 endif()
 
 _coin_find_lib("CBC" "libCbc;Cbc" "libCbcd;Cbc")

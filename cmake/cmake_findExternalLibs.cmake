@@ -125,7 +125,8 @@ endif()
 #------------------------------------------------------------------------------
 # SQLITE
 # creates SQLite::SQLite3 target
-find_package(SQLite3 3.15.0 REQUIRED)
+# In our contrib we make a subdir in the includes -> Add PATH_SUFFIXES
+find_package(SQLite3 3.15.0 REQUIRED PATH_SUFFIXES "sqlite")
 
 #------------------------------------------------------------------------------
 # HDF5
