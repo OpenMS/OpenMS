@@ -558,11 +558,11 @@ IF(LINUX AND PY_NO_OUTPUT)
             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
             DEPENDS compile_pxds prepare_pyopenms_libs
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ELSEIF(APPLE) # We need to still copy libs with our script
+ELSEIF(APPLE) # We need to still copy libs with our script. Do it before the actual build, so the fixed up names are included in the .so files
   add_custom_command(
             OUTPUT ${PYSOFILES}
+	    COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -v
             COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
-            COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -v
             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
             DEPENDS compile_pxds prepare_pyopenms_libs
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
