@@ -56,8 +56,8 @@ endforeach(i)
 
 # some regular UTILS tools need the GUI lib, only build them when WITH_GUI is enabled
 if(WITH_GUI)
-  find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL Sql REQUIRED)
-  find_package(Qt5 COMPONENTS WebEngineWidgets)
+  find_package(Qt5 REQUIRED COMPONENTS Core Network Widgets Svg OpenGL Sql)
+  find_package(Qt5 QUIET COMPONENTS WebEngineWidgets)
   if (NOT Qt5Widgets_FOUND)
     message(STATUS "QtWidgets module not found!")
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")

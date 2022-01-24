@@ -589,10 +589,10 @@ message(STATUS "Py extra args ${PY_EXTRA_ARGS}")
 
 #set(PYOPENMS_SRC )
 
-set(PY_RPATH "")
+set(PY_RPATH ${CMAKE_INSTALL_RPATH})
 if (APPLE)
  # TODO maybe we need one for linux too
- set(PY_RPATH "@loader_path/")
+ list(APPEND PY_RPATH "@loader_path/")
 endif()
 
 if ("${PY_NUM_MODULES}" GREATER "1")
