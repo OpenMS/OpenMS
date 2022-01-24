@@ -642,8 +642,6 @@ else()
     )
 endif()
 
-
-
 ## use no-binary=pyopenms since we built the binaries already with cmake
 IF(LINUX AND PY_NO_OUTPUT)
   add_custom_target(pyopenms
