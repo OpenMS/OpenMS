@@ -126,7 +126,9 @@ endif()
 # SQLITE
 # creates SQLite::SQLite3 target
 # In our contrib we make a subdir in the includes -> Add PATH_SUFFIXES
-find_package(SQLite3 3.15.0 REQUIRED PATH_SUFFIXES "sqlite")
+# Look for the necessary header
+find_path(SQLite3_INCLUDE_DIR NAMES sqlite3.h PATH_SUFFIXES "sqlite/sqlite3.h")
+find_package(SQLite3 3.15.0 REQUIRED)
 
 #------------------------------------------------------------------------------
 # HDF5
