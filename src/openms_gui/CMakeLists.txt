@@ -60,10 +60,13 @@ ENDIF()
 find_package(Qt5 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
 
 # TODO only works if WebEngineWidgets is the only optional component
-if(NOT Qt5WebEngineWidgets_FOUND)
+set(OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
+if(Qt5WebEngineWidgets_FOUND)
+  list(APPEND OpenMS_GUI_QT_FOUND_COMPONENTS_OPT "WebEngineWidgets")
+else()
   message(WARNING "Qt5WebEngineWidgets not found, disabling JS Views in TOPPView!")
-  set(OpenMS_GUI_QT_COMPONENTS_OPT)
 endif()
+  
 
 set(OpenMS_GUI_DEP_LIBRARIES "OpenMS")
 
@@ -71,7 +74,7 @@ foreach(COMP IN LISTS OpenMS_GUI_QT_COMPONENTS)
   list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt5::${COMP}")
 endforeach()
 
-foreach(COMP IN LISTS OpenMS_GUI_QT_COMPONENTS_OPT)
+foreach(COMP IN LISTS OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
   list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt5::${COMP}")
 endforeach()
 
