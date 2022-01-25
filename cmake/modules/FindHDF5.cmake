@@ -157,8 +157,8 @@ The following variables can be set to guide the search for HDF5 libraries and in
   Set ``true`` to skip trying to find ``hdf5-config.cmake``.
 #]=======================================================================]
 
-include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/FindPackageHandleStandardArgs.cmake)
+include(SelectLibraryConfigurations)
+include(FindPackageHandleStandardArgs)
 
 # We haven't found HDF5 yet. Clear its state in case it is set in the parent
 # scope somewhere else. We can't rely on it because different components may
