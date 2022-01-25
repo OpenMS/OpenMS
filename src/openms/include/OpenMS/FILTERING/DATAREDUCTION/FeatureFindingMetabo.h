@@ -42,7 +42,8 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 
 #include <vector>
-#include <svm.h>
+
+class svm_model;
 
 namespace OpenMS
 {

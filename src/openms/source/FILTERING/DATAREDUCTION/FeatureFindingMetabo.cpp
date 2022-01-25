@@ -43,6 +43,8 @@
 
 #include <boost/dynamic_bitset.hpp>
 
+#include "svm.h"
+
 #ifdef _OPENMP
 #endif
 

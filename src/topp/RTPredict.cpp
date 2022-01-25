@@ -46,6 +46,8 @@
 #include <map>
 #include <iostream>
 
+#include "svm.h"
+
 using namespace OpenMS;
 using namespace std;
 
