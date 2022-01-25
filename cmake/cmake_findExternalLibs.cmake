@@ -136,21 +136,7 @@ find_package(SQLite3 3.15.0 REQUIRED)
 if(MSVC)
   set(HDF5_USE_STATIC_LIBRARIES ON)
 endif()
-find_package(HDF5 REQUIRED COMPONENTS C CXX HL)
-
-if(HDF5_static_CXX_FOUND OR HDF5_shared_CXX_FOUND OR HDF5_CXX_FOUND)
-  if(TARGET hdf5_cpp)
-    set(HDF5_TARGETS "hdf5" "hdf5_cpp")
-  elseif(TARGET hdf5::hdf5_cpp)
-    set(HDF5_TARGETS "hdf5::hdf5" "hdf5::hdf5_cpp")
-  elseif(TARGET hdf5::hdf5_cpp-shared)
-    set(HDF5_TARGETS "hdf5::hdf5-shared" "hdf5::hdf5_cpp-shared")
-  elseif(TARGET hdf5::hdf5_cpp-static)
-    set(HDF5_TARGETS "hdf5::hdf5-static" "hdf5::hdf5_cpp-static")
-  else()
-    message(FATAL_ERROR "HDF5 was found, but no imported targets for it. Check your HDF5 and CMake version.")
-  endif()
-endif()
+find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
 
 #------------------------------------------------------------------------------
 # Done finding contrib libraries
