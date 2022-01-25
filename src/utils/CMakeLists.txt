@@ -74,9 +74,14 @@ if(WITH_GUI)
   set(UTILS_executables ${UTILS_executables} ${UTILS_executables_with_GUIlib})
 endif()
 
+
 # collection target
 add_custom_target(UTILS)
 add_dependencies(UTILS ${UTILS_executables})
+
+# special requirements of some tools
+target_link_libraries(DecoyDatabase boost::regex)
+target_link_libraries(NucleicAcidSearchEngine boost::regex)
 
 ## export the list of UTILS tools into CACHE
 set(UTILS_TOOLS ${UTILS_executables}

@@ -62,6 +62,9 @@ if(WITH_GUI)
   set(TOPP_executables ${TOPP_executables} ${TOPP_executables_with_GUIlib})
 endif()
 
+# special requirements of some tools
+target_link_libraries(FileMerger boost::regex)
+
 # collection target
 add_custom_target(TOPP)
 add_dependencies(TOPP ${TOPP_executables})
