@@ -96,14 +96,15 @@ endforeach(_class_test)
 set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
 
 #------------------------------------------------------------------------------
-# 2 - add link dependencies
+# 2 - add link dependencies (TODO could be more finegrained for boost)
 foreach(t ${Boost_dependent_tests})
-  target_link_libraries(${t} ${Boost_LIBRARIES})
+  target_link_libraries(${t} Boost::iostreams Boost::date_time Boost::math_c99 Boost::regex)
 endforeach()
 
 target_link_libraries(Base64_test ZLIB::ZLIB)
 target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
 target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
+target_link_libraries(HDF5_test HDF5::HDF5)
 
 #------------------------------------------------------------------------------
 # restore old compiler flags
