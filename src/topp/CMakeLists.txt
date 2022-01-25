@@ -63,7 +63,7 @@ if(WITH_GUI)
 endif()
 
 # special requirements of some tools
-target_link_libraries(FileMerger boost::regex)
+target_link_libraries(FileMerger Boost::regex)
 
 # collection target
 add_custom_target(TOPP)
