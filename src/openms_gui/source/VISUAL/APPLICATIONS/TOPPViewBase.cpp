@@ -1490,7 +1490,7 @@ namespace OpenMS
     {
       // TODO think about using lastActivatedSubwindow_
       const auto id = tab_bar_.currentIndex();
-      if (id < (Size) ws_.subWindowList().size())
+      if (id < ws_.subWindowList().size())
       {
         return qobject_cast<PlotWidget*>(ws_.subWindowList()[id]->widget());
       }

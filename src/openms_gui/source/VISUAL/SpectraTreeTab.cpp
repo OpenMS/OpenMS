@@ -187,11 +187,8 @@ namespace OpenMS
     spectra_treewidget_->setTreePosition(layer_->getCurrentSpectrumIndex());
   }
 
-  void SpectraTreeTab::itemSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* previous)
+  void SpectraTreeTab::itemSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem*)
   {
-    /*	test for previous == 0 is important - without it,
-        the wrong spectrum will be selected after finishing
-        the execution of a TOPP tool on the whole data */
     if (current == nullptr)
     {
       return;
