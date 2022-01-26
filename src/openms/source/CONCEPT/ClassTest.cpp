@@ -579,10 +579,13 @@ namespace OpenMS::Internal::ClassTest
           initialNewline();
           if (this_test)
           {
-            stdcout << " +  line " << line << ":  TEST_STRING_EQUAL("
-                      << string_1_stringified << ',' << string_2_stringified
-                      << "): got \"" << string_1 << "\", expected \"" << string_2
-                      << "\"" << std::endl;
+            if (std::getenv("OPENMS_TEST_VERBOSE_SUCCESS"))
+            {
+              stdcout << " +  line " << line << ":  TEST_STRING_EQUAL("
+                        << string_1_stringified << ',' << string_2_stringified
+                        << "): got \"" << string_1 << "\", expected \"" << string_2
+                        << "\"" << std::endl;
+            }
           }
           else
           {
