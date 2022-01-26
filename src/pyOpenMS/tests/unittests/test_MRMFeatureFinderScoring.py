@@ -12,7 +12,7 @@ class TestMRMFeatureFinderScoring(unittest.TestCase):
     def setUp(self):
         self.dirname = os.path.dirname(os.path.abspath(__file__))
         # TODO make the tests self-consistent to only use files under the pyOpenMS directory
-        self.testdirname = os.path.join(env.OPEN_MS_SRC, "../../src/tests/topp")
+        self.testdirname = os.path.join(env.PYOPENMS_SRC_DIR, "..", "..", "src/tests/topp")
         # set up files
         self.chromatograms = os.path.join(self.testdirname, "OpenSwathAnalyzer_1_input_chrom.mzML").encode()
         self.tramlfile = os.path.join(self.testdirname, "OpenSwathAnalyzer_1_input.TraML").encode()
