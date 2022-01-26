@@ -457,18 +457,17 @@ if(NOT PY_NUM_MODULES)
   set(PY_NUM_MODULES 8)
 endif()
 
-set(PYCPPFILES "")
-set(PYPYXFILES "")
-set(PYSOFILES "")
-foreach(NUM RANGE 1 ${PY_NUM_MODULES})
-  list(APPEND PYCPPFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${NUM}.cpp")
-  list(APPEND PYPYXFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${NUM}.pyx")
-  if (WIN32)
-    list(APPEND PYSOFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${NUM}.dll")
-  else()
-    list(APPEND PYSOFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${NUM}.so")
-  endif()
-endforeach()
+if ("${PY_NUM_MODULES}" GREATER "1")
+    set(PYCPPFILES "")
+    set(PYPYXFILES "")
+    foreach(NUM RANGE 1 ${PY_NUM_MODULES})
+      list(APPEND PYCPPFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${NUM}.cpp")
+      list(APPEND PYPYXFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${NUM}.pyx")
+    endforeach()
+else()
+    set(PYCPPFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.cpp")
+    set(PYPYXFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.pyx")
+endif()
 
 
 # set data variable nightly builds use repository last change date
@@ -616,7 +615,7 @@ if ("${PY_NUM_MODULES}" GREATER "1")
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
       )
-      #add_dependencies(pyopenms_${nr} compile_pxds) # probably not necessary since the dependency is given through the files
+      add_dependencies(pyopenms_${nr} compile_pxds) # this is necessary for make (not ninja), to avoid race conditions
       add_dependencies(pyopenms_compile pyopenms_${nr})
     endforeach()
 else()
