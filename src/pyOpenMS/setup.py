@@ -53,7 +53,7 @@ os.environ["CXX"] = OPEN_MS_COMPILER
 
 j = os.path.join
 
-src_pyopenms = j(OPEN_MS_SRC, "src/pyOpenMS")
+src_pyopenms = OPEN_MS_SRC
 extra_includes = glob.glob(src_pyopenms + "/extra_includes/*.h*")
 
 for include in extra_includes:

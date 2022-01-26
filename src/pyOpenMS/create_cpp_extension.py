@@ -102,7 +102,7 @@ if __name__ == '__main__':
 
   j = os.path.join
 
-  src_pyopenms = j(OPEN_MS_SRC, "src/pyOpenMS")
+  src_pyopenms = OPEN_MS_SRC
   pxd_files = glob.glob(src_pyopenms + "/pxds/*.pxd")
   addons = glob.glob(src_pyopenms + "/addons/*.pyx")
   converters = [j(src_pyopenms, "converters")]

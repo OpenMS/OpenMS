@@ -98,7 +98,9 @@ set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
 #------------------------------------------------------------------------------
 # 2 - add link dependencies (TODO could be more finegrained for boost)
 foreach(t ${Boost_dependent_tests})
-  target_link_libraries(${t} Boost::iostreams Boost::date_time Boost::math_c99 Boost::regex)
+  foreach(comp ${OpenMS_BOOST_COMPONENTS})
+    target_link_libraries(${t} Boost::${comp})
+  endforeach()
 endforeach()
 
 target_link_libraries(Base64_test ZLIB::ZLIB)

@@ -31,9 +31,8 @@
 # $Maintainer: Hannes Röst $
 # $Authors: Hannes Röst, Uwe Schmitt, Stephan Aiche $
 # --------------------------------------------------------------------------
-
-project("pyOpenMS")
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+project("pyOpenMS" LANGUAGES C CXX)
 
 if(NOT TARGET OpenMS)
   find_package(OpenMS)
@@ -123,7 +122,7 @@ if(CYTHON_MISSING)
 else()
   execute_process(
       COMMAND
-      ${Python_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[1]) > 25 or (int(Cython.__version__.split('.')[1]) == 25 and int(Cython.__version__.split('.')[2]) >= 2))"
+      ${Python_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[0]) > 0 or int(Cython.__version__.split('.')[1]) > 25 or (int(Cython.__version__.split('.')[1]) == 25 and int(Cython.__version__.split('.')[2]) >= 2))"
       RESULT_VARIABLE _CYTHON_VERSION_OK
       ERROR_QUIET
       OUTPUT_QUIET
@@ -369,6 +368,7 @@ set(_pyopenms_files
   README.rst
   setup.py
   create_cpp_extension.py
+  mac_fix_dependencies.rb
   version.py
   run_nose.py
   run_memleaks.py
@@ -649,7 +649,7 @@ endif()
 
 ## use no-binary=pyopenms since we built the binaries already with cmake
 IF(LINUX AND PY_NO_OUTPUT)
-  add_custom_target(pyopenms
+    add_custom_target(pyopenms
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg 2> /dev/null
             COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-binary=pyopenms . 2> /dev/null
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip 2> /dev/null
@@ -658,9 +658,9 @@ IF(LINUX AND PY_NO_OUTPUT)
             DEPENDS prepare_pyopenms_libs pyopenms_compile
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
-  IF(APPLE)
+    IF(APPLE)
         add_custom_target(pyopenms
-            COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -f -v
+            COMMAND ./mac_fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -f -v
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
             COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip
@@ -668,8 +668,8 @@ ELSE()
             COMMENT "Packaging pyopenms wheel."
             DEPENDS prepare_pyopenms_libs pyopenms_compile
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-  ELSE()
-      add_custom_target(pyopenms
+    ELSE()
+        add_custom_target(pyopenms
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
             COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-binary=pyopenms .
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip
@@ -677,7 +677,7 @@ ELSE()
             COMMENT "Packaging pyopenms wheel."
             DEPENDS prepare_pyopenms_libs pyopenms_compile
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-  ENDIF()
+    ENDIF()
 ENDIF()
 
 # IF(LINUX AND PY_NO_OUTPUT)
