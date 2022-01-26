@@ -249,6 +249,7 @@ namespace OpenMS
         }
       }
     }
+    return QString();
   }
 
   void SpectraIDViewTab::openUniProtSiteWithAccession_(const QString& accession)
@@ -377,8 +378,6 @@ namespace OpenMS
   {
     if (table_widget_->selectionModel()->selectedRows().empty())
     {
-      // deselect whatever is currently shown
-      int last_spectrum_index = int(layer_->getCurrentSpectrumIndex());
       // Deselecting spectrum does not do what you think it does. It still paints stuff. Without annotations..
       // so just leave it for now.
       //
@@ -994,9 +993,8 @@ namespace OpenMS
     }
   }
 
-  void SpectraIDViewTab::updatedSingleProteinCell_(QTableWidgetItem* item)
-  {
-    
+  void SpectraIDViewTab::updatedSingleProteinCell_(QTableWidgetItem* /*item*/)
+  {    
   }
 
   // Upon changes in the table data (only possible by checking or unchecking a checkbox right now),
@@ -1064,6 +1062,5 @@ namespace OpenMS
 
   void SpectraIDViewTab::SelfResizingTableView_::resizeEvent(QResizeEvent * /*event*/)
   {
-
   }
 }
