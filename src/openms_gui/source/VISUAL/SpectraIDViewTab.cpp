@@ -993,7 +993,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraIDViewTab::updatedSingleProteinCell_(QTableWidgetItem*)
+  void SpectraIDViewTab::updatedSingleProteinCell_(QTableWidgetItem* /*item*/)
   {    
   }
 

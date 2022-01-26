@@ -187,7 +187,7 @@ namespace OpenMS
     spectra_treewidget_->setTreePosition(layer_->getCurrentSpectrumIndex());
   }
 
-  void SpectraTreeTab::itemSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem*)
+  void SpectraTreeTab::itemSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* /*previous*/)
   {
     if (current == nullptr)
     {
