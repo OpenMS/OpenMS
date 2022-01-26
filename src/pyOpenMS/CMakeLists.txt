@@ -562,19 +562,20 @@ configure_file(${_env_py_in} ${_env_py} @ONLY)
 IF(LINUX AND PY_NO_OUTPUT)
   add_custom_command(
     OUTPUT ${PYCPPFILES} ${PYPYXFILES}
-    DEPENDS OpenMS # fake dependency to see if a header file has changed
+    DEPENDS OpenMS # fake dependency to see if a header file has changed (TODO should probably depend on pxds)
     COMMAND ${Python_EXECUTABLE} create_cpp_extension.py 2> /dev/null
     COMMENT "Creating C++ extension with autowrap and Cython"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
   add_custom_command(
     OUTPUT ${PYCPPFILES} ${PYPYXFILES}
-    DEPENDS OpenMS # fake dependency to see if a header file has changed
+    DEPENDS OpenMS # fake dependency to see if a header file has changed (TODO should probably depend on pxds)
     COMMAND ${Python_EXECUTABLE} create_cpp_extension.py
     COMMENT "Creating C++ extension with autowrap and Cython"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ENDIF()
 
+# this acts as a mutex in make, to not have race conditions on the above command in the next parallel targets
 add_custom_target(compile_pxds DEPENDS ${PYCPPFILES} ${PYPYXFILES})
 
 set(PY_EXTRA_ARGS "")
@@ -594,6 +595,14 @@ if (APPLE)
  list(APPEND PY_RPATH "@loader_path/")
 endif()
 
+if (LINUX) # see https://github.com/cython/cython/issues/3380
+  set(VIS_PRESET "default")
+  set(INLINES_HIDDEN 0)
+else()
+  set(VIS_PRESET "hidden")
+  set(INLINES_HIDDEN 1)
+endif()
+
 if ("${PY_NUM_MODULES}" GREATER "1")
     add_custom_target(pyopenms_compile)
     foreach(nr RANGE 1 ${PY_NUM_MODULES})
@@ -606,8 +615,8 @@ if ("${PY_NUM_MODULES}" GREATER "1")
         OUTPUT_NAME pyopenms_${nr}
         PREFIX "" # if you build a shared module it adds lib as prefix
         SUFFIX ${PYTHON_EXT_SUFFIX} # since CMake 3.17 you can add WITH_SOABI to Python_add_library
-        CXX_VISIBILITY_PRESET hidden
-        VISIBILITY_INLINES_HIDDEN 1
+        CXX_VISIBILITY_PRESET ${VIS_PRESET}
+        VISIBILITY_INLINES_HIDDEN ${INLINES_HIDDEN}
         INSTALL_RPATH ${PY_RPATH}
         BUILD_WITH_INSTALL_RPATH 1
         BUILD_WITH_INSTALL_NAME_DIR 1
@@ -627,8 +636,8 @@ else()
         OUTPUT_NAME pyopenms
         PREFIX "" # if you build a shared module it adds lib as prefix
         SUFFIX ${PYTHON_EXT_SUFFIX} # since CMake 3.17 you can add WITH_SOABI to Python_add_library
-        CXX_VISIBILITY_PRESET hidden
-        VISIBILITY_INLINES_HIDDEN 1
+        CXX_VISIBILITY_PRESET ${VIS_PRESET}
+        VISIBILITY_INLINES_HIDDEN ${INLINES_HIDDEN}
         INSTALL_RPATH ${PY_RPATH}
         BUILD_WITH_INSTALL_RPATH 1
         BUILD_WITH_INSTALL_NAME_DIR 1

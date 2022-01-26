@@ -40,14 +40,16 @@
 include(CMakeFindDependencyMacro)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/Modules/")
 
+# to mimic OpenMS CMake for finding dependencies
+if(DEFINED OPENMS_CONTRIB_LIBS)
+  list(PREPEND CMAKE_PREFIX_PATH ${OPENMS_CONTRIB_LIBS})
+endif()
+
 #------------------------------------------------------------------------------
 
 #TODO somehow add the same/compatible versions that were found by OpenMS? And what about static vs dynamic? E.g. if we link to static zlib in OpenMS(.dll) what (if at all) can/should the consumer link against?
 find_dependency(Qt5 @QT_MIN_VERSION@ COMPONENTS @OpenMS_QT_COMPONENTS@)
 find_dependency(XercesC)
-
-#------------------------------------------------------------------------------
-# BOOST
 find_dependency(Boost)
 find_dependency(LIBSVM 2.91)
 find_dependency(COIN)

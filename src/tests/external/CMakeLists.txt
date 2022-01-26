@@ -19,6 +19,8 @@ set(my_sources
 ## find OpenMS package and register target "OpenMS" (our library)
 ## Note: This is customized to fit the nightly test scenario. In a
 ##       regular build find_package(OpenMS) should be sufficient.
+## This will also try to find all dependencies of OpenMS, so make sure
+##  they are findable by e.g. providing CMAKE_PREFIX_PATH
 find_package(OpenMS PATHS "$ENV{OPENMS_BUILD_TREE}" NO_CMAKE_PACKAGE_REGISTRY)
 
 # check whether the OpenMS package was found
