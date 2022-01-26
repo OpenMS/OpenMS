@@ -41,6 +41,8 @@
 #include <boost/bind.hpp>
 #include <boost/random/discrete_distribution.hpp>
 
+#include "svm.h"
+
 // #define DEBUG
 
 namespace OpenMS
