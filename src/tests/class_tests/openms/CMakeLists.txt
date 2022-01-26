@@ -81,7 +81,6 @@ endif()
 foreach(_class_test ${TEST_executables})
   add_executable(${_class_test} source/${_class_test}.cpp)
   target_link_libraries(${_class_test} ${OpenMS_LIBRARIES})
-  set_property(TEST ${_class_test} APPEND PROPERTY ENVIRONMENT "OPENMS_TEST_VERBOSE_SUCCESS=1")
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
   # only add OPENMP flags to gcc linker (except Mac OS X, due to compiler bug
   # see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
