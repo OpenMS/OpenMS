@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/METADATA/ID/InputFile.h>" namespace "OpenMS::Identific
 
     InputFile() nogil except +
 
-    InputFile(InputFile other) nogil except +
+    InputFile(InputFile & other) nogil except +
 
     String name
 
@@ -16,9 +16,20 @@ cdef extern from "<OpenMS/METADATA/ID/InputFile.h>" namespace "OpenMS::Identific
 
     libcpp_set[String] primary_files
 
-    #InputFile(String & name, String & experimental_design_id = "", libcpp_set[String] primary_files = libcpp_set[String]())
+    InputFile(String & name, String & experimental_design_id, libcpp_set[String] primary_files) # Note that default args don't work
 
     InputFile & merge(InputFile & other)
 
-  ctypedef libcpp_set[ InputFile ] InputFiles #FIXME this is a placeholder
-  ctypedef libcpp_set[ InputFile ].iterator setIFit # FIXME TOO 
+  cdef cppclass InputFiles:
+    InputFiles() nogil except +
+
+
+    
+  cdef cppclass InputFileRef:
+      InputFileRef() nogil except +
+      InputFileRef(InputFileRef other) nogil except +
+      bool operator!=(InputFileRef) nogil except +
+      bool operator<(InputFileRef) nogil except +
+      InputFile deref()
+      #InputFileRef operator*() nogil
+      #InputFileRef operator++() nogil

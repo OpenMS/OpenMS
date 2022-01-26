@@ -68,6 +68,9 @@ namespace OpenMS
 
       ProcessingStep(const ProcessingStep& other) = default;
 
+      ProcessingStep() //FIXME: make pyopenms dependent
+      {}
+
       // order by date/time first, don't compare meta data (?):
       bool operator<(const ProcessingStep& other) const
       {
@@ -86,6 +89,7 @@ namespace OpenMS
     };
 
     typedef std::set<ProcessingStep> ProcessingSteps;
+    typedef std::set<ProcessingStep>::iterator setPSoftSit;
     typedef IteratorWrapper<ProcessingSteps::iterator, ProcessingStep> ProcessingStepRef;
 
   }

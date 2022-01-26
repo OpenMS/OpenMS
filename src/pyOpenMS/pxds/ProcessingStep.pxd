@@ -14,12 +14,15 @@ cdef extern from "<OpenMS/METADATA/ID/ProcessingStep.h>" namespace "OpenMS::Iden
     
     IteratorWrapper[setPSit,ProcessingSoftware] software_ref
     
-    libcpp_vector[IteratorWrapper[setIFit,InputFile]] input_file_refs
+    libcpp_vector[InputFileRef] input_file_refs
 
     DateTime date_time
     libcpp_set[ProcessingAction] actions
 
-    #ProcessingStep(IteratorWrapper[setPSit,ProcessingSoftware] software_ref, libcpp_vector[IteratorWrapper[setIFit,InputFile].iterator] input_file_refs = libcpp_vector[IteratorWrapper[setIFit,InputFile].iterator](), DateTime & date_time = DateTime.now(), libcpp_set[DataProcessing.ProcessingAction] actions = libcpp_set[DataProcessing.ProcessingAction]() )
+    ProcessingStep(IteratorWrapper[setPSit,ProcessingSoftware] software_ref, \
+      libcpp_vector[InputFileRef] input_file_refs, \
+      DateTime & date_time, \
+      libcpp_set[ProcessingAction] actions) #Note that we don't have default args
 
     ProcessingStep(ProcessingStep & other)
 

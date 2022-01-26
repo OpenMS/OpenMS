@@ -63,6 +63,9 @@ namespace OpenMS
         primary_files(primary_files)
       {
       }
+      
+      InputFile()
+      {} //FIXME make dependent on PyopenMS compilation
 
       InputFile(const InputFile& other) = default;
 
@@ -86,13 +89,31 @@ namespace OpenMS
       }
     };
 
-    typedef boost::multi_index_container<
-      InputFile,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::member<
-          InputFile, String, &InputFile::name>>>
-      > InputFiles;
-    typedef IteratorWrapper<InputFiles::iterator, InputFile> InputFileRef;
+    //typedef boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>> InputFiles;
 
-  }
+    struct InputFiles : public boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>> {
+      InputFiles() : boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>>()
+      {}
+
+      InputFiles(const InputFiles& other) : boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>>(other)
+      {}
+      InputFiles(const  boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>>& other ):  boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>>(other)
+      {}
+    };
+
+    typedef InputFiles::iterator setIFit;
+
+    //typedef IteratorWrapper<InputFiles::iterator, InputFile> InputFileRef;
+
+     struct InputFileRef : public IteratorWrapper<InputFiles::iterator, InputFile>
+     {
+      InputFileRef() : IteratorWrapper<InputFiles::iterator, InputFile>()
+        {}
+      InputFileRef(const IteratorWrapper<InputFiles::iterator, InputFile> other) :  IteratorWrapper<InputFiles::iterator, InputFile>(other)
+        {}
+      InputFileRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::InputFile, std::allocator<OpenMS::IdentificationDataInternal::InputFile> > > >& other) : IteratorWrapper<boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::InputFile, std::allocator<OpenMS::IdentificationDataInternal::InputFile> > > >, InputFile>(other)
+        {}
+      };
+
+  } // namespace IdentificationDataInternal
 }
