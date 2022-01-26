@@ -46,10 +46,11 @@
 #include <map>
 #include <cmath>
 
-class svm_problem;
-class svm_parameter;
-class svm_model;
-class svm_node;
+// forward declare svm types
+struct svm_problem;
+struct svm_parameter;
+struct svm_model;
+struct svm_node;
 
 namespace OpenMS
 {

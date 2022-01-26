@@ -41,9 +41,9 @@
 #include <vector>
 #include <utility>
 
-class svm_problem;
-class svm_parameter;
-class svm_model;
+struct svm_problem;
+struct svm_parameter;
+struct svm_model;
 
 namespace OpenMS
 {

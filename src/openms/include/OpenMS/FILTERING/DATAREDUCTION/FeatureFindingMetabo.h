@@ -43,7 +43,7 @@
 
 #include <vector>
 
-class svm_model;
+struct svm_model;
 
 namespace OpenMS
 {
