@@ -534,14 +534,14 @@ namespace OpenMS
             String with_plus = ion_name;
             with_plus.substitute(' ', '+');
             fa.annotation = with_plus; // turn "PEPT U-H2O" into "PEPT+U-H20"
-            shifted_immonium_ions.push_back(fa);  //TODO: add to shfited_internal_fragment_ions or rename vector
+            shifted_immonium_ions.push_back(fa);  //TODO: add to shifted_internal_fragment_ions or rename vector
           }
         }
 
         // track shifts in n- and c-term ladders (in AAs coordinates)
         // n_shifts and c_shifts will contain the summed intensities over all observed shifts at that position
         // the distinction allows to easily detect prefix and suffix ladders in the next step
-        vector<double> n_shifts(sites_sum_score.size(), 0);
+        vector<double> n_shifts(sites_sum_score.size(), 0); // vector index 0 == ion index 1
         vector<double> c_shifts(sites_sum_score.size(), 0);
 
         for (Size i = 0; i != n_shifts.size(); ++i)
@@ -603,8 +603,7 @@ namespace OpenMS
         // 1. if cross-link on AA, then the prefix or suffix ending at this AA must be shifted
         // 2. if the previous AA in the prefix / suffix had a stronger shifted signal, then the current on is not the correct one
         // 3. if the current AA is cross-linked, then the previous AA is not cross-linked and we should observe an unshifted prefix / suffix ion
-        // 4. if the current AA is cross-linked, we should observe a shifted prefix / suffix ion for the next AA, too
-        // 5. Sum up all intensities of shifted prefix / suffix ions
+        // Sum up all intensities of shifted prefix / suffix ions
         for (Size i = 0; i != sites_sum_score.size(); ++i)
         {
           sites_sum_score[i] = 0.0;
@@ -612,19 +611,18 @@ namespace OpenMS
 
           if (n_shifts[i] > 0)
           {
-            if (i >= 1 && n_shifts[i - 1] > n_shifts[i]) continue; // Strong signal from shifted AA before the current one? Then skip it.
-            if (i >= 1 && n_noshifts[i - 1] == 0) continue; // continue if unshifted AA is missing before (left of) the shifted one.
-            if (i < n_shifts.size()-1 && n_shifts[i + 1] == 0) continue; // Need a shifted ladder after (maybe too conservative?)
+            // Rules apply only for a3,b3 and higher ions (because we rarely observe a1,b1 ions we can't check for Rule 3)
+            if (i >= 2 && n_shifts[i - 1] > n_shifts[i]) continue; // Stronger signal from shifted AA before the current one? Then skip it.
+            if (i >= 2 && n_noshifts[i - 1] == 0) continue; // continue if unshifted AA is missing before (left of) the shifted one.
             // sum up all intensities from this position and all longer prefixes that also carry the NA
             for (Size j = i; j != sites_sum_score.size(); ++j) { sites_sum_score[i] += n_shifts[j]; }
           }
 
           if (c_shifts[i] > 0)
           {
-            if (i < c_shifts.size()-1 && c_shifts[i + 1] > c_shifts[i]) continue; // AA after already shifted. So ignore this one.
-            if (i < c_noshifts.size()-1 && c_noshifts[i + 1] == 0) continue; // continue if unshifted AA is missing before (right of) the shifted one.
-            if (i >=1 && c_shifts[i - 1] == 0) continue; // Need a shifted ladder after (maybe too conservative?)
-            sites_sum_score[i] += c_shifts[i];
+            // Rules apply only for y3 and higher ions (because we rarely observe y1 ions we can't check for Rule 3)
+            if (i < c_shifts.size()-2 && c_shifts[i + 1] > c_shifts[i]) continue; // AA after has higher intensity and also shifted? Then skip it.
+            if (i < c_noshifts.size()-2 && c_noshifts[i + 1] == 0) continue; // continue if unshifted AA is missing before (right of) the shifted one.
             // sum up all intensities from this position and all longer suffixes that also carry the NA
             for (int j = i; j >= 0; --j) { sites_sum_score[i] += c_shifts[j]; }
           }

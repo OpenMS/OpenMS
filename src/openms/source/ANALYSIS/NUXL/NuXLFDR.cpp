@@ -192,6 +192,9 @@ namespace OpenMS
       vector<ProteinIdentification> tmp_prots = protein_ids;
       IDFilter::removeUnreferencedProteins(tmp_prots, xl_pi);
 
+      // compute coverage by cross-linked peptides
+      tmp_prots[0].computeCoverage(xl_pi);
+
       // write out XL PSM result
       IdXMLFile().store(out_idxml + String::number(xlFDR, 4) + "_XLs.idXML", tmp_prots, xl_pi);
 
