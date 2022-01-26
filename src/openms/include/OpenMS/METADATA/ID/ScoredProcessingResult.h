@@ -212,6 +212,9 @@ namespace OpenMS
         return counter;
       }
 
+            /// Copy c'tor
+      ScoredProcessingResult(const ScoredProcessingResult&) = default;
+
     protected:
       /// Constructor
       explicit ScoredProcessingResult(
@@ -221,8 +224,7 @@ namespace OpenMS
       {
       }
 
-      /// Copy c'tor
-      ScoredProcessingResult(const ScoredProcessingResult&) = default;
+
     };
 
   }

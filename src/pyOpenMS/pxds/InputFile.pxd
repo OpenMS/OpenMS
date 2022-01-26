@@ -22,6 +22,9 @@ cdef extern from "<OpenMS/METADATA/ID/InputFile.h>" namespace "OpenMS::Identific
 
   cdef cppclass InputFiles:
     InputFiles() nogil except +
+    InputFiles(InputFiles & other) nogil except +
+    #int size() nogil except + 
+    #InputFile operator[](size_t index) #wrap-upper-limit:size() #TODO: Add some sort of access to get the InputFiles back out
 
 
     

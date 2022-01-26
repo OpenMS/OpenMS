@@ -29,3 +29,11 @@ cdef extern from "<OpenMS/METADATA/ID/IdentificationData.h>" namespace "OpenMS":
       libcpp_set[ScoreType] getScoreTypes() nogil except +
 
       libcpp_set[ProcessingSoftware] getProcessingSoftwares() nogil except +
+
+      InputFiles & getInputFiles() nogil except +
+
+      InputFileRef registerInputFile(InputFile & file) nogil except +
+
+      ProcessingSteps & getProcessingSteps() nogil except +
+
+      IteratorWrapper[setPSoftSit, ProcessingStep] registerProcessingStep(ProcessingStep & step) nogil except +

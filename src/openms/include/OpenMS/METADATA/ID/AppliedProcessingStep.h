@@ -72,6 +72,13 @@ namespace OpenMS
       {
       }
 
+      //Copy constructor for Python
+       AppliedProcessingStep(const AppliedProcessingStep& other)
+       {
+       this->scores=other.scores;
+       this->processing_step_opt = other.processing_step_opt;
+      }
+
       /// Equality operator (needed for multi-index container)
       bool operator==(const AppliedProcessingStep& other) const
       {
@@ -121,15 +128,37 @@ namespace OpenMS
 
     // we want to keep track of the processing steps in sequence (order of
     // application), but also ensure there are no duplicate steps:
-    typedef boost::multi_index_container<
-      AppliedProcessingStep,
-      boost::multi_index::indexed_by<
-        boost::multi_index::sequenced<>,
-        boost::multi_index::ordered_unique<
-          boost::multi_index::member<
-            AppliedProcessingStep, boost::optional<ProcessingStepRef>,
-            &AppliedProcessingStep::processing_step_opt>>>
-      > AppliedProcessingSteps;
+    struct AppliedProcessingSteps :
+        public boost::multi_index_container<
+          AppliedProcessingStep,
+          boost::multi_index::indexed_by<boost::multi_index::sequenced<>, boost::multi_index::ordered_unique<boost::multi_index::member<AppliedProcessingStep, boost::optional<ProcessingStepRef>,
+                                                                                                                                        &AppliedProcessingStep::processing_step_opt>>>> {
+      AppliedProcessingSteps() :
+          boost::multi_index_container<
+            AppliedProcessingStep,
+            boost::multi_index::indexed_by<boost::multi_index::sequenced<>, boost::multi_index::ordered_unique<boost::multi_index::member<AppliedProcessingStep, boost::optional<ProcessingStepRef>,
+                                                                                                                                          &AppliedProcessingStep::processing_step_opt>>>>()
+      {
+      }
+      AppliedProcessingSteps(const AppliedProcessingSteps& other) :
+          boost::multi_index_container<
+            AppliedProcessingStep,
+            boost::multi_index::indexed_by<boost::multi_index::sequenced<>, boost::multi_index::ordered_unique<boost::multi_index::member<AppliedProcessingStep, boost::optional<ProcessingStepRef>,
+                                                                                                                                          &AppliedProcessingStep::processing_step_opt>>>>(other)
+      {
+      }
+      AppliedProcessingSteps(const
+        boost::multi_index_container<AppliedProcessingStep, boost::multi_index::indexed_by<boost::multi_index::sequenced<>,
+                                                                                           boost::multi_index::ordered_unique<boost::multi_index::member<
+                                                                                             AppliedProcessingStep, boost::optional<ProcessingStepRef>, &AppliedProcessingStep::processing_step_opt>>>>&
+          other) :
+          boost::multi_index_container<
+            AppliedProcessingStep,
+            boost::multi_index::indexed_by<boost::multi_index::sequenced<>, boost::multi_index::ordered_unique<boost::multi_index::member<AppliedProcessingStep, boost::optional<ProcessingStepRef>,
+                                                                                                                                          &AppliedProcessingStep::processing_step_opt>>>>(other)
+      {
+      }
+    };
 
-  }
-}
+  } // namespace IdentificationDataInternal
+} // namespace OpenMS
