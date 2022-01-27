@@ -12,21 +12,32 @@ cdef extern from "<OpenMS/METADATA/ID/MetaData.h>" namespace "OpenMS::Identifica
     #  ScoreTypeRef := IteratorWrapper[setSTit, ScoreType]
     #  ProcessingSoftwareRef := IteratorWrapper[setPSit, ProcessingSoftware]
     #  ProcessingStepRef := IteratorWrapper[setPSoftSit, ProcessingStep]
+    #  SearchParamRef := IteratorWrapper[setDBSPit, DBSearchParam]
     # wrap-doc:
     #   Class for IteratorWrapper
     IteratorWrapper() nogil except +
     IteratorWrapper(IteratorWrapper[I,T]) nogil except +
     T deref() nogil except +
+  
+  cdef enum MoleculeType:
+    PROTEIN,
+    COMPOUND,
+    RNA
+  
+  cdef enum MassType:
+    MONOISOTOPIC,
+    AVERAGE
 
-cdef extern from "<boost/optional/optional.hpp>" namespace "boost::optional":
+cdef extern from "<boost/optional/optional.hpp>" namespace "boost":
 
   cdef cppclass optional[T]:
-
+    # wrap-instances:
+    #   _optional_ProcessingStepRef := optional[ProcessingStepRef]
     optional() nogil except + 
     optional(T val) nogil except +
     optional(optional[T] other) nogil except +
     bool operator==(optional[T] & other) nogil except +
-    bool operator=(optional[T] & other) nogil except +
-    bool operator=(T & other) nogil except +
+    #bool operator=(optional[T] & other) nogil except +
+    #bool operator=(T & other) nogil except +
     T get() nogil except +
-    bool bool() nogil except +
+    #bool bool() nogil except +

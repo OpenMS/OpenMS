@@ -124,6 +124,7 @@ namespace OpenMS
     };
 
     typedef std::set<DBSearchParam> DBSearchParams;
+    typedef DBSearchParams::iterator setDBSPit;
     typedef IteratorWrapper<DBSearchParams::iterator, DBSearchParam> SearchParamRef;
     typedef std::map<ProcessingStepRef, SearchParamRef> DBSearchSteps;
 
