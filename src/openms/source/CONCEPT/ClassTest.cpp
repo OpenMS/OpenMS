@@ -59,7 +59,6 @@
 
 namespace OpenMS::Internal::ClassTest
 {
-
       bool all_tests = true;
       bool equal_files;
       bool newline = false;
@@ -93,6 +92,7 @@ namespace OpenMS::Internal::ClassTest
 
       void mainInit(const char* version, const char* class_name, int argc, const char* argv0)
       {
+        TEST::verbose = getenv("OPENMS_TEST_SUPPRESS_SUCCESS") ? 0 : 2;
         OpenMS::UniqueIdGenerator::setSeed(2453440375);
         TEST::version_string = version;
 
@@ -132,12 +132,10 @@ namespace OpenMS::Internal::ClassTest
             TEST::equal_files &= (TEST_FILE__template_line == TEST_FILE__line);
             if (TEST_FILE__template_line != TEST_FILE__line)
             {
-              {
                 TEST::initialNewline();
                 stdcout << "   TEST_FILE_EQUAL: line mismatch:\n    got:      '"
                         << TEST_FILE__line << "'\n    expected: '"
                         << TEST_FILE__template_line << "'\n";
-              }
             }
           }
         }
@@ -176,13 +174,16 @@ namespace OpenMS::Internal::ClassTest
           TEST::initialNewline();
           if (TEST::this_test)
           {
-            stdcout << " +  line "
-                    << line
-                    << ": TEST_FILE_EQUAL("
-                    << filename_stringified
-                    << ", "
-                    << templatename_stringified
-                    << "): true";
+            if (TEST::verbose > 1)
+            {
+              stdcout << " +  line "
+                      << line
+                      << ": TEST_FILE_EQUAL("
+                      << filename_stringified
+                      << ", "
+                      << templatename_stringified
+                      << "): true";
+            }
           }
           else
           {
@@ -414,11 +415,14 @@ namespace OpenMS::Internal::ClassTest
           {
             if (TEST::this_test)
             {
-              stdcout << " +  line " << line << ":  TEST_REAL_SIMILAR("
-                        << number_1_stringified << ',' << number_2_stringified
-                        << "): got " << std::setprecision(number_1_written_digits)
-                        << number_1 << ", expected "
-                        << std::setprecision(number_2_written_digits) << number_2 << std::endl;
+              if (TEST::verbose > 1)
+              {
+                stdcout << " +  line " << line << ":  TEST_REAL_SIMILAR("
+                          << number_1_stringified << ',' << number_2_stringified
+                          << "): got " << std::setprecision(number_1_written_digits)
+                          << number_1 << ", expected "
+                          << std::setprecision(number_2_written_digits) << number_2 << std::endl;
+              }
             }
             else
             {
@@ -579,12 +583,12 @@ namespace OpenMS::Internal::ClassTest
           initialNewline();
           if (this_test)
           {
-            if (std::getenv("OPENMS_TEST_VERBOSE_SUCCESS"))
+            if (TEST::verbose > 1)
             {
-              stdcout << " +  line " << line << ":  TEST_STRING_EQUAL("
-                        << string_1_stringified << ',' << string_2_stringified
-                        << "): got \"" << string_1 << "\", expected \"" << string_2
-                        << "\"" << std::endl;
+            stdcout << " +  line " << line << ":  TEST_STRING_EQUAL("
+                    << string_1_stringified << ',' << string_2_stringified
+                    << "): got \"" << string_1 << "\", expected \"" << string_2
+                    << "\"" << std::endl;            
             }
           }
           else
@@ -630,16 +634,19 @@ namespace OpenMS::Internal::ClassTest
 
         TEST::initialNewline();
         if (TEST::this_test)
-        {
-          stdcout << " +  line " << line << ":  TEST_STRING_SIMILAR("
-                    << string_1_stringified << ',' << string_2_stringified << "):  "
-                                                                    "absolute: " << TEST::absdiff << " (" << TEST::absdiff_max_allowed
-                    << "), relative: " << TEST::ratio << " ("
-                    << TEST::ratio_max_allowed << ")    +\n";
-          stdcout << "got:\n";
-          TEST::printWithPrefix(string_1, TEST::line_num_1_max);
-          stdcout << "expected:\n";
-          TEST::printWithPrefix(string_2, TEST::line_num_2_max);
+        {          
+          if (TEST::verbose > 1)
+          {
+            stdcout << " +  line " << line << ":  TEST_STRING_SIMILAR("
+                      << string_1_stringified << ',' << string_2_stringified << "):  "
+                                                                      "absolute: " << TEST::absdiff << " (" << TEST::absdiff_max_allowed
+                      << "), relative: " << TEST::ratio << " ("
+                      << TEST::ratio_max_allowed << ")    +\n";
+            stdcout << "got:\n";
+            TEST::printWithPrefix(string_1, TEST::line_num_1_max);
+            stdcout << "expected:\n";
+            TEST::printWithPrefix(string_2, TEST::line_num_2_max);
+          }
         }
         else
         {
