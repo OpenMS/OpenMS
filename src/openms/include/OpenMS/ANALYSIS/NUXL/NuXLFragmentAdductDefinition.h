@@ -60,17 +60,9 @@ struct OPENMS_DLLAPI NuXLFragmentAdductDefinition
 
   NuXLFragmentAdductDefinition& operator=(NuXLFragmentAdductDefinition&&) = default;
 
-  bool operator<(const NuXLFragmentAdductDefinition& other) const
-  {
-    String fa = formula.toString();
-    String fb = other.formula.toString();
-    return std::tie(mass, fa, name) < std::tie(other.mass, fb, other.name);
-  }
+  bool operator<(const NuXLFragmentAdductDefinition& other) const;
 
-  bool operator==(const NuXLFragmentAdductDefinition& other) const
-  {
-    return std::tie(formula, name) == std::tie(other.formula, other.name);
-  }
+  bool operator==(const NuXLFragmentAdductDefinition& other) const;
 };
 
 }

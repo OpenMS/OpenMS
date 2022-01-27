@@ -285,10 +285,10 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
 
   // determine if there is a nucleotide/sugar/etc. that must be the cross-linked one
   set<char> must_xl;
-  for (auto c : exp_pc_xl_nts) { if (islower(c)) must_xl.insert(c); }
+  for (auto c : exp_pc_xl_nts) { if (c == 'd' || c == 'r') must_xl.insert(c); }
   if (must_xl.size() >= 2) 
   {
-    OPENMS_LOG_WARN << "More than one nucleotide present that is marked as mandatory cross-linked (lower-case letter)." << endl;
+    OPENMS_LOG_WARN << "More than one nucleotide present that is marked as mandatory cross-linked ('d' or 'r')." << endl;
     return ret; 
   }
   else if (must_xl.size() == 1)
