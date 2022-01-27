@@ -92,7 +92,13 @@ namespace OpenMS::Internal::ClassTest
 
       void mainInit(const char* version, const char* class_name, int argc, const char* argv0)
       {
-        TEST::verbose = getenv("OPENMS_TEST_SUPPRESS_SUCCESS") ? 0 : 2;
+        // if env var "OPENMS_TEST_VERBOSE=True" enable output of successfull line
+        char* pverbose = std::getenv("OPENMS_TEST_VERBOSE");
+        if (pverbose != nullptr)
+        {
+          if (std::string(pverbose) == "True") TEST::verbose = 2;
+        }
+
         OpenMS::UniqueIdGenerator::setSeed(2453440375);
         TEST::version_string = version;
 
@@ -368,7 +374,7 @@ namespace OpenMS::Internal::ClassTest
             }
           }
         }
-        //output for all files
+        //output for all files        
         if (passed_all)
         {
           std::cout << ": passed" << std::endl << std::endl;

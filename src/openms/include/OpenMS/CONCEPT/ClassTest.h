@@ -477,7 +477,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
     TEST::all_tests = false;                                                              \
     {                                                                                     \
       TEST::initialNewline();                                                             \
-      stdcout << "Error: Caught unidentified and unexpected exception - No message."    \
+      stdcout << "Error: Caught unidentified and unexpected exception - No message."      \
                 << std::endl;                                                             \
     }                                                                                     \
   }                                                                                       \
@@ -485,6 +485,10 @@ namespace TEST = OpenMS::Internal::ClassTest;
   if (!TEST::validate(TEST::tmp_file_list))                                               \
   {                                                                                       \
     TEST::all_tests = false;                                                              \
+  }                                                                                       \
+  if (TEST::verbose == 0)                                                                 \
+  {                                                                                       \
+    stdcout << "Output of successful tests were suppressed. Set the environment variable 'OPENMS_TEST_VERBOSE=True' to enable them." << std::endl; \
   }                                                                                       \
   /* check for exit code */                                                               \
   if (!TEST::all_tests)                                                                   \
