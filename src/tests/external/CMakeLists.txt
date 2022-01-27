@@ -4,6 +4,11 @@ cmake_minimum_required(VERSION 3.9)
 ### example CMakeLists.txt to develop programs using OpenMS
 project("OpenMS_ExternalCodeTest")
 
+message("${CMAKE_PREFIX_PATH}")
+message("${OPENMS_CONTRIB_LIBS}")
+
+message("${CMAKE_PREFIX_PATH_OPT}")
+message("${OPENMS_CONTRIB_LIBS_OPT}")
 
 ## list all your executables here (a corresponding .cpp file should exist, e.g. TestExternalCode.cpp)
 set(my_executables
