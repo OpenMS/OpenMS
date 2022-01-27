@@ -50,7 +50,7 @@ namespace OpenMS
   {
     // @TODO: move "PeakAnnotation" out of "PeptideHit"
     typedef std::vector<PeptideHit::PeakAnnotation> PeakAnnotations;
-    typedef std::map<boost::optional<ProcessingStepRef>,
+    typedef std::map<std::optional<ProcessingStepRef>,
                      PeakAnnotations> PeakAnnotationSteps;
 
     /// Comparator for adducts
@@ -67,7 +67,7 @@ namespace OpenMS
 
     typedef std::set<AdductInfo, AdductCompare> Adducts;
     typedef IteratorWrapper<Adducts::iterator, AdductInfo> AdductRef;
-    typedef boost::optional<AdductRef> AdductOpt;
+    typedef std::optional<AdductRef> AdductOpt;
 
     /// Representation of a search hit (e.g. peptide-spectrum match).
     struct ObservationMatch: public ScoredProcessingResult
@@ -87,7 +87,7 @@ namespace OpenMS
       explicit ObservationMatch(
         IdentifiedMolecule identified_molecule_var,
         ObservationRef observation_ref, Int charge = 0,
-        const boost::optional<AdductRef>& adduct_opt = boost::none,
+        const std::optional<AdductRef>& adduct_opt = std::nullopt,
         const AppliedProcessingSteps& steps_and_scores = AppliedProcessingSteps(),
         const PeakAnnotationSteps& peak_annotations = PeakAnnotationSteps()):
         ScoredProcessingResult(steps_and_scores),

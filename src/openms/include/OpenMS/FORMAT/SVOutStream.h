@@ -35,9 +35,11 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <ostream>
 #include <fstream>      // std::ofstream
-#include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
+#include <sstream>
+#include <boost/math/special_functions/fpclassify.hpp> // because isfinite not supported on Mac
 
 namespace OpenMS
 {
@@ -173,9 +175,18 @@ public:
       if ((boost::math::isfinite)(thing)) return operator<<(thing);
 
       bool old = modifyStrings(false);
-      if ((boost::math::isnan)(thing)) operator<<(nan_);
-      else if (thing < 0) operator<<("-" + inf_);
-      else operator<<(inf_);
+      if ((boost::math::isnan)(thing)) 
+      {
+        operator<<(nan_);
+      }
+      else if (thing < 0) 
+      {
+        operator<<("-" + inf_);
+      }
+      else 
+      {
+        operator<<(inf_);
+      }
       modifyStrings(old);
       return *this;
     }

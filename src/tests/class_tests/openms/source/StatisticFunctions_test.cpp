@@ -216,7 +216,7 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
 	vv2.push_back(5);
 
 	result = Math::pearsonCorrelationCoefficient(vv1.begin(), vv1.end(), vv2.begin(), vv2.end());
-	if (boost::math::isnan(result) ) result = -1.0;
+	if (std::isnan(result) ) result = -1.0;
 
 	TEST_REAL_SIMILAR(result, -1.0);
 // ************ TEST for nan *****************
