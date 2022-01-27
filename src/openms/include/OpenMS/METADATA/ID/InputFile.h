@@ -103,13 +103,13 @@ namespace OpenMS
 
     typedef InputFiles::iterator setIFit;
 
-    //typedef IteratorWrapper<InputFiles::iterator, InputFile> InputFileRef;
+    typedef IteratorWrapper<InputFiles::iterator, InputFile> IFR;
 
-     struct InputFileRef : public IteratorWrapper<InputFiles::iterator, InputFile>
+     struct InputFileRef : public IFR
      {
-      InputFileRef() : IteratorWrapper<InputFiles::iterator, InputFile>()
+      InputFileRef() : IFR()
         {}
-      InputFileRef(const IteratorWrapper<InputFiles::iterator, InputFile> other) :  IteratorWrapper<InputFiles::iterator, InputFile>(other)
+      InputFileRef(const IFR other) :  IFR(other)
         {}
       InputFileRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::InputFile, std::allocator<OpenMS::IdentificationDataInternal::InputFile> > > >& other) : IteratorWrapper<boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::InputFile, std::allocator<OpenMS::IdentificationDataInternal::InputFile> > > >, InputFile>(other)
         {}
