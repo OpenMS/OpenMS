@@ -1,10 +1,19 @@
+# pyTOPP_Rescorer
+# Tobias Nietsch
+# 23.12.2021
+
 # Already running Prosit server needed
 # Example command:
 # python script_idxml.py -input_mzML "searchfile.mzML" -input_idXML "searchresults.idXML"
-#   -prosit_server_ip "http://x.x.x.x:xxxx" -percolator_path "percolator executable path"
-#   -percolator_adapter_path "PercolatorAdapter path" -output "output.idXML"
+#   -prosit_server_ip "http://x.x.x.x:xxxx" -percolator_path ".../percolator"
+#   -percolator_adapter_path ".../PercolatorAdapter" -output "output.idXML"
+# Optional parameters:
+#   -ce (int) collision energy considered in Prosit run (default: 27)
+#   -runPSMFeatureExtractor
+#       Enable if used db search engine is supported by PSMFeatureExtractor for adding search engine specific features
 
 import os
+import sys
 from CTDopts.CTDopts import CTDModel
 from CTDsupport import *
 from pyopenms import *
@@ -14,12 +23,13 @@ from deeplc import DeepLC
 
 def main():
 
-    # register command line arguments
+    # Register command line arguments
     model = CTDModel(
-        name="ML4ProtID",
+        name="pyTOPP_Rescorer",
         version="1.0",
-        description="Script for finding peptide candidates incorporating predicted theoretical peak intensities and"
-                    "retention times.",
+        description="Tool for identifying peptides by incorporating predicted theoretical peak intensities and"
+                    "retention times (Spectral angle, RT difference and absolute pred. RT as additional meta values)."
+                    "Rescoring with Percolator.",
         docurl="",
         category="",
         executableName="",
@@ -33,7 +43,7 @@ def main():
         type="input-file",
         is_list=False,
         file_formats=["mzml"],
-        description="Input file"
+        description="Input file (mzML format)"
     )
 
     # Register input idXML file
@@ -43,7 +53,17 @@ def main():
         type="input-file",
         is_list=False,
         file_formats=["idxml"],
-        description="Input file"
+        description="Input file (idXML format)"
+    )
+
+    # Register normalized collision energy (NCE) considered in the peak intensity prediction with Prosit
+    model.add(
+        "ce",
+        required=False,
+        is_list=False,
+        type="int",
+        default=27,
+        description="Collision energy considered in peak intensity prediction (Prosit). Default: 27"
     )
 
     # Register IP of already running Prosit server
@@ -55,7 +75,7 @@ def main():
         description="Prosit server IP in the format http://x.x.x.x:xxxx"
     )
 
-    # Register path to Percolator executable, needed by OpenMS tool PercolatorAdapter
+    # Register path to Percolator executable, required by OpenMS PercolatorAdapter
     model.add(
         "percolator_path",
         required=True,
@@ -73,6 +93,16 @@ def main():
         description="Path to PercolatorAdapter executable"
     )
 
+    # Register if PSMFeatureExtractor should be run for adding search engine specific features. Default: disabled
+    model.add(
+        "runPSMFeatureExtractor",
+        required=False,
+        is_list=False,
+        type="boolean",
+        default='False',
+        description="Optionally enable PSMFeatureExtractor"
+    )
+
     # Register output file name (FDR filtered idXML file)
     model.add(
         "output",
@@ -86,68 +116,84 @@ def main():
     defaults = {}
     addParamToCTDopts(defaults, model)
 
-    # parse command line
-    # if -write_ini is provided, store model in CTD file, exit with error code 0
-    # if -ini is provided, load CTD file into defaults Param object and return new model with parameters set as defaults
+    # Parse command line
+    # If -write_ini is provided, store model in CTD file, exit with error code 0
+    # If -ini is provided, load CTD file into defaults Param object and return new model with parameters set as defaults
     arg_dict, openms_params = parseCTDCommandLine(sys.argv, model, defaults)
 
     # Set the arguments
     searchfile = arg_dict["input_mzML"]
     idxmlfile = arg_dict["input_idXML"]
+    ce = arg_dict["ce"]
     server_ip = arg_dict["prosit_server_ip"]
     perc_path = arg_dict["percolator_path"]
     percadapter_path = arg_dict["percolator_adapter_path"]
+    extract_features = arg_dict["runPSMFeatureExtractor"]
     outfile = arg_dict["output"]
 
-    # Run the database search on experimental spectra, store results to idXML file
+    # Load database search results
     protein_ids = []
     peptide_ids = []
     IdXMLFile().load(idxmlfile, protein_ids, peptide_ids)
-    # Storage of search results necessary in order to generate Prosit input (csv)
 
-    # Generate input csv file for Prosit and start the run with already running Prosit server
-    generate_csv_file(peptide_ids)
-    prosit_command = "curl -F \"peptides=@prosit_input.csv\" " + server_ip + "/predict/generic > " \
-                     "pred_ints.generic"
+    sys.stdout.write("\nStart Prosit ...\n\n")
+
+    # Generate input csv file for Prosit and start the process with already running Prosit server
+    generate_csv_file(peptide_ids, ce)
+    prosit_command = "curl -F \"peptides=@prosit_input.csv\" " + server_ip + "/predict/generic > pred_ints.generic"
     os.system(prosit_command)
 
-    # Generate calibrants, predict absolute RT and add it with RT difference as new meta values for all peptides
+    sys.stdout.write("\nStart RT prediction with DeepLC  ...\n\n")
+
+    # Generate calibrants, predict RT and assign predicted values to each peptide hit
     peptide_ids_calinput = peptide_ids[:]
     calibrants = create_calibration_data(peptide_ids_calinput)
     prot_ids, pep_ids = annotate_predictions(protein_ids, peptide_ids, predict(peptide_ids_to_dataframe(peptide_ids),
                                                                                calibrants))
 
-    # Generate theoretical spectra for the hits found by database search
+    sys.stdout.write("\nGenerate Theoretical spectra ...\n")
+
+    # Generate theoretical spectra for peptides found in the database search
     theoretical_exp, peptide_seqs = theoretical_spectra(pep_ids)
 
     # Integrate predicted intensities to theoretical spectra
     theoretical_exp_intensities = integrate_intensities("pred_ints.generic", theoretical_exp, peptide_seqs)
 
-    # Align experimental and theoretical spectra, add spectral angle and MSE as additional meta values
+    sys.stdout.write("\nRun Spectrum Alignment ...\n")
+
+    # Align experimental and theoretical spectra, add SA, RT difference and absolute RT as additional meta values
     experimental_exp = MSExperiment()
     MzMLFile().load(searchfile, experimental_exp)
     peptide_ids_add_vals = spectrum_alignment(experimental_exp, theoretical_exp_intensities, prot_ids, pep_ids)
     res_add_vals_file = "results_add_vals.idXML"
     IdXMLFile().store(res_add_vals_file, prot_ids, peptide_ids_add_vals)
 
+    sys.stdout.write("\n")
+
     # Run PercolatorAdapter
-    perc_protein_ids, perc_peptide_ids = run_percolator(res_add_vals_file, perc_path, percadapter_path)
+    perc_protein_ids, perc_peptide_ids = run_percolator(res_add_vals_file, perc_path, percadapter_path,
+                                                        extract_features)
 
     # FDR filtering
     perc_peptide_ids_filtered = fdr_filtering(perc_peptide_ids)
 
-    # Store result
+    # Write out result to output file
     IdXMLFile().store(outfile, perc_protein_ids, perc_peptide_ids_filtered)
 
 
-def generate_csv_file(peptide_ids: list):
+def generate_csv_file(peptide_ids: list, ce: int):
+    """
+    Generate csv file in the format required by Prosit
+    Args:
+        peptide_ids: peptide identifications
+        ce: collision energy to be used in the intensity prediction
+    """
+
+    # Define header of the csv file
     header = ['modified_sequence', 'collision_energy', 'precursor_charge']
 
     # Set file name
     file_name = "prosit_input.csv"
-
-    # Set the collision energy
-    collision_energy = 27
 
     with open(file_name, 'w') as f:
         writer = csv.writer(f)
@@ -163,12 +209,13 @@ def generate_csv_file(peptide_ids: list):
                 # Adjust needed notation for oxidation (other modifications are not supported)
                 sequence = sequence.replace("Oxidation", "ox")
 
-                # Remove (Carbamidomethyl) notation after cysteins, since each C is treated as C with carbamidomethylation
+                # Remove (Carbamidomethyl) notation after cysteins, since each C is treated as C with
+                # carbamidomethylation
                 sequence = sequence.replace("(Carbamidomethyl)", "")
 
-                row = [sequence, collision_energy, h.getCharge()]
+                row = [sequence, ce, h.getCharge()]
 
-                # Prosit error for charges > 3 (Occurred for MSGF+ and XTandem! generated idXML)
+                # Omit Prosit error for charges > 3 (May occur for MSGF+ and XTandem! results)
                 if h.getCharge() > 3:
                     continue
 
@@ -179,14 +226,15 @@ def generate_csv_file(peptide_ids: list):
 # DeepLC functions
 
 def peptide_ids_to_dataframe(pep_ids: list) -> pd.DataFrame:
-    """Parse a given list of peptide identification to a pandas DataFrame compatible with DeepLC.
+    """
+    Parse a given list of peptide identification to a pandas DataFrame compatible with DeepLC.
     See https://github.com/compomics/DeepLC#input-files for more information.
     Args:
-        pep_ids: List containing PeptideIdentification.
+        pep_ids: List containing PeptideIdentification
     Returns:
-        pandas DataFrame with three columns: seq, modifications and tr.
-        The returned pandas DataFrame can be used directly by DeepLC.
+        pandas DataFrame with three columns: seq, modifications and tr
     """
+
     columns = ["seq", "modifications", "tr"]
     sequences = []
     modifications = []
@@ -212,22 +260,26 @@ def peptide_ids_to_dataframe(pep_ids: list) -> pd.DataFrame:
 
 
 def create_calibration_data(pep_ids: list) -> pd.DataFrame:
-    #Create pandas DataFrame to be used by DeepLC for calibration.
-    #Args:
-    #    pep_ids: List containing PeptideIdentification
+    """
+    Create pandas DataFrame to be used by DeepLC for calibration.
+    Args:
+        pep_ids: List containing PeptideIdentification
+    Returns:
+        pandas DataFrame with calibration peptide hits
+    """
 
-    # check if target_decoy information present
+    # Check if target_decoy information is present
     has_target_decoy = False
     for pep_id in pep_ids:
         for hit in pep_id.getHits():
             if hit.metaValueExists("target_decoy"):
                 has_target_decoy = True
     if has_target_decoy:
-        # annotate q-value
+        # Annotate q-value
         fdr = FalseDiscoveryRate()
         fdr.apply(pep_ids)
 
-        # filter by 1% PSM FDR (q < 0.01)
+        # Filter by 1% PSM FDR (q < 0.01)
         idfilter = IDFilter()
         idfilter.filterHitsByScore(pep_ids, 0.01)
         idfilter.removeDecoyHits(pep_ids)
@@ -236,16 +288,18 @@ def create_calibration_data(pep_ids: list) -> pd.DataFrame:
 
 
 def annotate_predictions(prot_ids: list, pep_ids: list, predictions: list) -> list:
-    """Annotates predictions and returns proteins and peptides.
+    """
     Adds a custom meta value containing the prediction made by DeepLC.
     Args:
-        prot_ids:       the protein identifications
-        pep_ids:        the peptide identifications (PSMs)
-        predictions:    A list predictions to be inserted into the resulting idXML file.
+        prot_ids:       protein identifications
+        pep_ids:        peptide identifications
+        predictions:    A list predictions to be inserted into the resulting idXML file
+    Returns:
+        Annotated protein and peptide ids
     """
 
     preds_iter = iter(predictions)
-    # Insert prediction for each hit of a peptide id as meta value
+    # Insert prediction for each peptide hit as meta value
     for pep_id in pep_ids:
         new_hits = []
         for hit in pep_id.getHits():
@@ -260,9 +314,13 @@ def annotate_predictions(prot_ids: list, pep_ids: list, predictions: list) -> li
 
 def predict(peptides: pd.DataFrame, calibration: pd.DataFrame = None) -> list:
     """
-    Make predications based on a given peptide DataFrame and an optional
+    Make predictions based on a given peptide DataFrame and an optional
     calibration DataFrame using DeepLC.
+    Args:
+        peptides: pandas DataFrame with peptides
+        calibration: pandas DataFrame with calibration peptide hits (optional)
     """
+
     dlc = DeepLC()
     if calibration is None:
         return dlc.make_preds(seq_df=peptides, calibrate=False)
@@ -272,7 +330,14 @@ def predict(peptides: pd.DataFrame, calibration: pd.DataFrame = None) -> list:
 
 
 def theoretical_spectra(peptide_ids: list):
-    # Generate theoretical spectra
+    """
+    Generate theoretical spectra for the given peptide ids.
+    Args:
+        peptide_ids: peptide identifications
+    Returns:
+        theoretical_exp: object of generated theoretical spectra
+        peptide_seqs: list of given peptide sequences
+    """
 
     theoretical_exp = MSExperiment()
 
@@ -302,8 +367,17 @@ def theoretical_spectra(peptide_ids: list):
 
 
 def integrate_intensities(generic_out: str, theoretical_exp: MSExperiment, peptide_seqs: list):
-    # Parse Prosit output (given in generic text format)
+    """
+    Parse the Prosit output and integrate predicted intensities to theoretical spectra
+    Args:
+        generic_out: Prosit output in generic text format
+        theoretical_exp: generated theoretical spectra object
+        peptide_seqs: list of given peptide sequences
+    Returns:
+        ints_added_exp: theoretical spectra object with integrated predicted intensities
+    """
 
+    # Parse Prosit output
     df = pd.read_csv(generic_out)
 
     # Get all rows (i.e. ions) associated with a hit and store them as an element in a list in order to have a better
@@ -331,7 +405,7 @@ def integrate_intensities(generic_out: str, theoretical_exp: MSExperiment, pepti
     # Map the predicted intensities to the respective peaks by matching the fragment types and numbers
     # Store the adjusted spectra in a new experiment
     ints_added_exp = MSExperiment()
-    idx = 0
+
     s_idx = 0
     pred_idx = 0
 
@@ -343,6 +417,7 @@ def integrate_intensities(generic_out: str, theoretical_exp: MSExperiment, pepti
         # Retain the StringDataArrays() after set_peaks call in order to access the ion names during spectrum alignment
         s_array = s.getStringDataArrays()
 
+        # Catch the case that no ions were predicted for a peptide sequence
         if predicted_peaks[pred_idx][0]['StrippedPeptide'] != peptide_seqs[s_idx]:
             s_idx += 1
 
@@ -378,8 +453,17 @@ def integrate_intensities(generic_out: str, theoretical_exp: MSExperiment, pepti
 
 def spectrum_alignment(experimental_exp: MSExperiment, theoretical_exp_intensities: MSExperiment, protein_ids: list,
                        peptide_ids: list):
-    # Align experimental and theoretical spectra
-    # Compute and add spectral angle as new meta value
+    """
+    Perform the spectrum alignment of experimental and corresponding theoretical spectra,
+    calculate and add additional meta values (SA, RT difference, absolute RT)
+    Args:
+        experimental_exp: experimental spectra object
+        theoretical_exp_intensities: theoretical spectra with integrated predicted intensities object
+        protein_ids: protein identifications
+        peptide_ids: peptide identifications
+    Returns:
+        peptide_ids: peptide identifications annotated with the additional meta values
+    """
 
     # Base peak normalize the peak intensities in the experimental spectra
     normalizer = Normalizer()
@@ -392,11 +476,6 @@ def spectrum_alignment(experimental_exp: MSExperiment, theoretical_exp_intensiti
     sqrtmower2 = SqrtMower()
     sqrtmower2.filterPeakMap(theoretical_exp_intensities)
 
-    # Set extra features in order to add additional values for PercolatorAdapter
-    search_parameters = protein_ids[0].getSearchParameters()
-    search_parameters.setMetaValue(b'extra_features', b'score,spectral_angle,RT_difference,RT_predicted')
-    protein_ids[0].setSearchParameters(search_parameters)
-
     # Create dictionary for assigning indices to spectra native IDs
     spectrum_index = 0
     native_id2spectrum_index = dict()
@@ -405,16 +484,20 @@ def spectrum_alignment(experimental_exp: MSExperiment, theoretical_exp_intensiti
         native_id2spectrum_index[s.getNativeID()] = spectrum_index
         spectrum_index += 1
 
-    # Create spectrum alignment
+    # Set extra features in order to add additional values for PercolatorAdapter
+    search_parameters = protein_ids[0].getSearchParameters()
+    search_parameters.setMetaValue(b'extra_features', b'score,spectral_angle,RT_difference,RT_predicted')
+    protein_ids[0].setSearchParameters(search_parameters)
+
+    # Initialize spectrum alignment object
     spa = SpectrumAlignment()
     p = spa.getParameters()
     p.setValue(b'tolerance', 100.0)  # Tolerance of 100 ppm
     p.setValue(b'is_relative_tolerance', b'true')
     spa.setParameters(p)
 
-    theo_spec_idx = 0
-
     # Match experimental spectra and db search results in order to allow spectrum alignment
+    theo_spec_idx = 0
     for pep_idx, pep in enumerate(peptide_ids):
 
         ident_native_id = pep.getMetaValue("spectrum_reference")
@@ -427,16 +510,13 @@ def spectrum_alignment(experimental_exp: MSExperiment, theoretical_exp_intensiti
 
             for hit in pep.getHits():
 
+                # Initialize spectrum alignment list
                 alignment = []
-                spa = SpectrumAlignment()
-                p = spa.getParameters()
-                p.setValue(b'tolerance', 100.0)
-                p.setValue(b'is_relative_tolerance', b'true')
-                spa.setParameters(p)
 
                 spec_theo = theoretical_exp_intensities[theo_spec_idx]
                 spec_exp = experimental_exp[spectrum_index]
 
+                # Perform the alignment of two corresponding spectra
                 spa.getSpectrumAlignment(alignment, spec_theo, spec_exp)
 
                 # Set length of the vectors
@@ -451,16 +531,8 @@ def spectrum_alignment(experimental_exp: MSExperiment, theoretical_exp_intensiti
                 for a in spec_theo.getStringDataArrays()[0]:
                     arr_lst.append(a)
 
-                # Print out matched peaks
-                # print("Matched peaks: " + str(len(alignment)))
-                # print("ion\ttheo. m/z\ttheo. int.\tobserved m/z\t observed int.")
+                # Iterate over alignment list providing respective ion indices as tuples
                 for theo_idx, obs_idx in alignment:
-                    # print(hit.getSequence().toUnmodifiedString(), hit.getSequence())
-                    # print(spec_theo.getStringDataArrays()[0][theo_idx].decode() + "\t" +
-                    #      str(spec_theo[theo_idx].getMZ()) + "\t" +
-                    #      str(spec_theo[theo_idx].getIntensity()) + "\t" +
-                    #      str(spec_exp[obs_idx].getMZ()) + "\t" +
-                    #      str(spec_exp[obs_idx].getIntensity()))
 
                     if theo_idx >= len(arr_lst):
                         continue
@@ -470,7 +542,6 @@ def spectrum_alignment(experimental_exp: MSExperiment, theoretical_exp_intensiti
                     charge_shift = ((ion.count('+') - 1) * peptide_len)
 
                     # Set respective index in the vectors
-                    int_idx = 0
                     if ion[0] == 'b':
                         int_idx = (int(ion[1:].split('+', 1)[0]) - 1) + charge_shift
                     # Store y-ion intensities in the 2nd half of the array
@@ -502,15 +573,13 @@ def spectrum_alignment(experimental_exp: MSExperiment, theoretical_exp_intensiti
                 # Compute spectral angle
                 sa = 1 - 2 * (v_inv_cos / np.pi)
 
+                # Set SA to 0 if it is "NaN"
+                if sa != sa:
+                    sa = 0.0
+
                 # Get predicted absolute RT and RT difference
                 pred_RTval = float(hit.getMetaValue('prediction'))
                 rt_diff = abs(pred_RTval - pep.getRT())
-
-                # Compute mean squared error
-                #squared_diff = [(theo_int - exp_int) ** 2 for theo_int, exp_int in zip(v_theo, v_exp)]
-                #mse = 1.0 # If there are no matching peaks
-                #if len(alignment) > 0:
-                #    mse = sum(squared_diff) / len(alignment)
 
                 # Set SA, RT difference and absolute RT as additional meta values
                 hit.setMetaValue('spectral_angle', sa)
@@ -526,14 +595,41 @@ def spectrum_alignment(experimental_exp: MSExperiment, theoretical_exp_intensiti
     return peptide_ids
 
 
-def run_percolator(idxmlfile: str, perc_path: str, percadapter_path: str):
+def run_percolator(infile: str, perc_path: str, percadapter_path: str, extract_features: bool):
+    """
+    Perform rescoring with Percolator
+    Additionally generate search engine specific features if engine supported by OpenMS PSMFeatureExtractor
+    Args:
+        infile: path tho idXML file containing identifications with added meta values
+        perc_path: path to Percolator executable
+        percadapter_path: path to OpenMS PercolatorAdapter
+        extract_features: decide if PSMFeatureExtractor is applied prior to Percolator
+    Returns:
+        perc_protein_ids: protein identifications after Percolator run
+        perc_peptide_ids: peptide identifications after Percolator run
+    """
 
-    # Define the command for the PercolatorAdapter run
-    percadapter_command = percadapter_path + " -in " + idxmlfile + " -out results_percolated.idXML " + \
-                          "-percolator_executable " + perc_path + " -out_pin results_percolated.tab " + \
-                          "-weights results_percolated.weights -train_best_positive -score_type q-value "
+    # Run PSMFeatureExtractor if enabled
+    if bool(extract_features):
+        psmfeatextractor_path = percadapter_path.replace("PercolatorAdapter", "PSMFeatureExtractor")
+        specific_feats_added_file = "specific_features_added.idXML"
 
-    os.system(percadapter_command)
+        psmfeats_command = psmfeatextractor_path + " -in " + infile + " -out " + \
+                           specific_feats_added_file + " -extra spectral_angle RT_difference RT_predicted"
+        os.system(psmfeats_command)
+
+        # Define the command for the PercolatorAdapter run
+        percadapter_command = percadapter_path + " -in " + specific_feats_added_file + " -out results_percolated.idXML " + \
+                              "-percolator_executable " + perc_path + " -out_pin results_percolated_pin.tab " + \
+                              "-weights results_percolated.weights -train_best_positive -score_type q-value "
+        os.system(percadapter_command)
+    else:
+        # Define the command for the PercolatorAdapter run
+        percadapter_command = percadapter_path + " -in " + infile + " -out results_percolated.idXML " + \
+                              "-percolator_executable " + perc_path + " -out_pin results_percolated_pin.tab " + \
+                              "-weights results_percolated.weights -train_best_positive -score_type q-value "
+
+        os.system(percadapter_command)
 
     # Load the new ids
     perc_protein_ids = []
@@ -545,6 +641,14 @@ def run_percolator(idxmlfile: str, perc_path: str, percadapter_path: str):
 
 
 def fdr_filtering(peptide_ids: list):
+    """
+    Perform the a 1% FDR filtering
+    Args:
+        peptide_ids: peptide identifiactions (after Percolator rescoring)
+    Returns:
+        peptide_ids: final peptide identifications after filtering and exclusion of decoys
+    """
+
     # Annotate q-value
     fdr = FalseDiscoveryRate()
     fdr.apply(peptide_ids)
