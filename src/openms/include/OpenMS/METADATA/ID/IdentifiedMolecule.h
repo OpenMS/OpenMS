@@ -38,13 +38,13 @@
 #include <OpenMS/METADATA/ID/IdentifiedCompound.h>
 #include <OpenMS/METADATA/ID/IdentifiedSequence.h>
 
-#include <boost/variant.hpp>
+#include <variant>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    typedef boost::variant<IdentifiedPeptideRef, IdentifiedCompoundRef,
+    typedef std::variant<IdentifiedPeptideRef, IdentifiedCompoundRef,
                            IdentifiedOligoRef> RefVariant;
 
     struct IdentifiedMolecule: public RefVariant
@@ -74,22 +74,22 @@ namespace OpenMS
 
       MoleculeType getMoleculeType() const
       {
-        if (boost::get<IdentifiedPeptideRef>(this))
+        if (std::get_if<IdentifiedPeptideRef>(this))
         {
           return MoleculeType::PROTEIN;
         }
-        if (boost::get<IdentifiedCompoundRef>(this))
+        if (std::get_if<IdentifiedCompoundRef>(this))
         {
           return MoleculeType::COMPOUND;
         }
-        // if (boost::get<IdentifiedOligoRef>(this))
+        // if (get<IdentifiedOligoRef>(this))
         return MoleculeType::RNA;
       }
 
       IdentifiedPeptideRef getIdentifiedPeptideRef() const
       {
         if (const IdentifiedPeptideRef* ref_ptr =
-            boost::get<IdentifiedPeptideRef>(this))
+            std::get_if<IdentifiedPeptideRef>(this))
         {
           return *ref_ptr;
         }
@@ -101,7 +101,7 @@ namespace OpenMS
       IdentifiedCompoundRef getIdentifiedCompoundRef() const
       {
         if (const IdentifiedCompoundRef* ref_ptr =
-            boost::get<IdentifiedCompoundRef>(this))
+            std::get_if<IdentifiedCompoundRef>(this))
         {
           return *ref_ptr;
         }
@@ -113,7 +113,7 @@ namespace OpenMS
       IdentifiedOligoRef getIdentifiedOligoRef() const
       {
         if (const IdentifiedOligoRef* ref_ptr =
-            boost::get<IdentifiedOligoRef>(this))
+            std::get_if<IdentifiedOligoRef>(this))
         {
           return *ref_ptr;
         }
