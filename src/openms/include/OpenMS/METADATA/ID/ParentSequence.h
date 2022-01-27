@@ -76,6 +76,8 @@ namespace OpenMS
 
       ParentSequence(const ParentSequence&) = default;
 
+      ParentSequence(); //Only for use with Pyopenms FIXME
+
       ParentSequence& merge(const ParentSequence& other)
       {
         ScoredProcessingResult::merge(other);
@@ -117,8 +119,35 @@ namespace OpenMS
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<boost::multi_index::member<
           ParentSequence, String, &ParentSequence::accession>>>
-      > ParentSequences;
-    typedef IteratorWrapper<ParentSequences::iterator, ParentSequence> ParentSequenceRef;
+      > PSeqs;
+
+    struct ParentSequences: public PSeqs
+    {
+      ParentSequences(): PSeqs()
+      {}
+      ParentSequences(const ParentSequences& other): PSeqs(other)
+      {}
+      ParentSequences(const PSeqs & other): PSeqs(other)
+      {}
+    };
+
+    typedef IteratorWrapper<ParentSequences::iterator, ParentSequence> PSeqR;
+
+    struct ParentSequenceRef: public PSeqR
+    {
+      ParentSequenceRef(): PSeqR()
+      {}
+      ParentSequenceRef(const ParentSequenceRef & other) : PSeqR(other)
+      {}
+      ParentSequenceRef(const PSeqR & other) : PSeqR(other)
+      {}
+      ParentSequenceRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::ParentSequence, std::allocator<OpenMS::IdentificationDataInternal::ParentSequence> > > >& other): PSeqR(other)
+      {}
+    };
+
+
+
+
 
   }
 }

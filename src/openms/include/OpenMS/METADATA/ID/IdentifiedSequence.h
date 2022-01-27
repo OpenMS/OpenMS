@@ -65,6 +65,8 @@ namespace OpenMS
       {
       }
 
+      IdentifiedSequence(); //Null constructor for use with PyOpenMS only FIXME
+
       IdentifiedSequence(const IdentifiedSequence& other) = default;
 
       IdentifiedSequence& merge(const IdentifiedSequence& other)
@@ -112,8 +114,31 @@ namespace OpenMS
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<boost::multi_index::member<
           IdentifiedPeptide, AASequence, &IdentifiedPeptide::sequence>>>
-      > IdentifiedPeptides;
-    typedef IteratorWrapper<IdentifiedPeptides::iterator, IdentifiedPeptide> IdentifiedPeptideRef;
+      > IPeps;
+
+    struct IdentifiedPeptides: public IPeps
+    {
+      IdentifiedPeptides(): IPeps()
+      {}
+      IdentifiedPeptides(const IdentifiedPeptides& other): IPeps(other)
+      {}
+      IdentifiedPeptides(const IPeps & other): IPeps(other)
+      {}
+    };
+
+    typedef IteratorWrapper<IdentifiedPeptides::iterator, IdentifiedPeptide> IPepR;
+
+    struct IdentifiedPeptideRef: public IPepR
+    {
+      IdentifiedPeptideRef(): IPepR()
+      {}
+      IdentifiedPeptideRef(const IdentifiedPeptideRef & other) : IPepR(other)
+      {}
+      IdentifiedPeptideRef(const IPepR & other) : IPepR(other)
+      {}
+      IdentifiedPeptideRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::IdentifiedSequence<OpenMS::AASequence>, std::allocator<OpenMS::IdentificationDataInternal::IdentifiedSequence<OpenMS::AASequence> > > > >& other): IPepR(other)
+      {}
+    };
 
     // identified oligos indexed by their sequences:
     typedef boost::multi_index_container<
@@ -121,8 +146,32 @@ namespace OpenMS
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<boost::multi_index::member<
           IdentifiedOligo, NASequence, &IdentifiedOligo::sequence>>>
-      > IdentifiedOligos;
-    typedef IteratorWrapper<IdentifiedOligos::iterator, IdentifiedPeptide> IdentifiedOligoRef;
+      > IOligos;
+
+    struct IdentifiedOligos: public IOligos
+    {
+      IdentifiedOligos(): IOligos()
+      {}
+      IdentifiedOligos(const IdentifiedOligos& other): IOligos(other)
+      {}
+      IdentifiedOligos(const IOligos & other): IOligos(other)
+      {}
+    };
+
+
+    typedef IteratorWrapper<IdentifiedOligos::iterator, IdentifiedPeptide> IOligoR; //FIXME shouldn't this be IdentifiedOligo?
+
+    struct IdentifiedOligoRef: public IOligoR
+    {
+      IdentifiedOligoRef(): IOligoR()
+      {}
+      IdentifiedOligoRef(const IdentifiedOligoRef & other) : IOligoR(other)
+      {}
+      IdentifiedOligoRef(const IOligoR & other) : IOligoR(other)
+      {}
+      IdentifiedOligoRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::IdentifiedSequence<OpenMS::NASequence>, std::allocator<OpenMS::IdentificationDataInternal::IdentifiedSequence<OpenMS::NASequence> > > > >& other): IOligoR(other)
+      {}
+    };
 
   }
 }
