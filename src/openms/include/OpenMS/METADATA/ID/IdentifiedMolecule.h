@@ -61,17 +61,17 @@ namespace OpenMS
 
       IdentifiedMolecule(const IdentifiedMolecule&) = default;
 
-      OPENMS_DLLAPI MoleculeType getMoleculeType() const;
+      MoleculeType getMoleculeType() const;
 
-      OPENMS_DLLAPI IdentifiedPeptideRef getIdentifiedPeptideRef() const;
+      IdentifiedPeptideRef getIdentifiedPeptideRef() const;
 
-      OPENMS_DLLAPI IdentifiedCompoundRef getIdentifiedCompoundRef() const;
+      IdentifiedCompoundRef getIdentifiedCompoundRef() const;
 
-      OPENMS_DLLAPI IdentifiedOligoRef getIdentifiedOligoRef() const;
+      IdentifiedOligoRef getIdentifiedOligoRef() const;
 
-      OPENMS_DLLAPI String toString() const;
+      String toString() const;
 
-      OPENMS_DLLAPI EmpiricalFormula getFormula(Size fragment_type = 0, Int charge = 0) const;
+      EmpiricalFormula getFormula(Size fragment_type = 0, Int charge = 0) const;
     };
 
     OPENMS_DLLAPI bool operator==(const IdentifiedMolecule& a, const IdentifiedMolecule& b);
