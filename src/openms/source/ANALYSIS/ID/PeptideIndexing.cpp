@@ -193,7 +193,7 @@ using namespace std;
     defaults_.setValue("unmatched_action", names_of_unmatched[(Size)Unmatched::IS_ERROR], "If peptide sequences cannot be matched to any protein: 1) raise an error; 2) warn (unmatched PepHits will miss target/decoy annotation with downstream problems); 3) remove the hit.");
     defaults_.setValidStrings("unmatched_action", std::vector<std::string>(names_of_unmatched.begin(), names_of_unmatched.end()));
 
-    defaults_.setValue("aaa_max", 3, "Maximal number of ambiguous amino acids (AAAs) allowed when matching to a protein database with AAAs. AAAs are B, J, Z and X!");
+    defaults_.setValue("aaa_max", 3, "Maximal number of ambiguous amino acids (AAAs) allowed when matching to a protein database with AAAs. AAAs are 'B', 'J', 'Z' and 'X'.");
     defaults_.setMinInt("aaa_max", 0);
     defaults_.setMaxInt("aaa_max", 10);
     
