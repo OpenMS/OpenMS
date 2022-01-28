@@ -48,12 +48,6 @@ namespace OpenMS
 
       IteratorWrapper(const Iterator& it): Iterator(it) {}
 
-      bool operator==(const IteratorWrapper& other) const
-      {
-        // compare by address of referenced element:
-        return &(**this) == &(*other);
-      }
-
       bool operator<(const IteratorWrapper& other) const
       {
         // compare by address of referenced element:
