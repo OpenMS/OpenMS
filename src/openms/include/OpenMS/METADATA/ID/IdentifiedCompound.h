@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/ID/ScoredProcessingResult.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
