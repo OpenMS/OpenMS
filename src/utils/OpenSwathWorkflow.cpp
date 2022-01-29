@@ -951,7 +951,7 @@ protected:
     }
     else
     {
-      OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, outer_loop_threads);
+      OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, outer_loop_threads);
       wf.setLogType(log_type_);
       wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
           out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory);

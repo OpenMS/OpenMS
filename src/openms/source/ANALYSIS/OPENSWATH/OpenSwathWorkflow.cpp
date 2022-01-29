@@ -457,6 +457,8 @@ namespace OpenMS
     tsv_writer.writeHeader();
     osw_writer.writeHeader();
 
+    OPENMS_LOG_WARN << "JOSH: First swath map is m/z " << swath_maps[1].center << " with lower IM of " << swath_maps[1].imLower << std::endl;
+
     bool ms1_only = (swath_maps.size() == 1 && swath_maps[0].ms1);
 
     // Compute inversion of the transformation
@@ -537,6 +539,45 @@ namespace OpenMS
       }
     }
 
+    std::vector<int> pasef_map;
+    if (pasef_)
+    {
+	// For PASEF experiments it is possible that have DIA windows with the same m/z however different IM.
+	// Extract from the DIA window in which the precursor is more centered across its IM. 
+      
+      pasef_map.resize(transition_exp.transitions.size(), -1);
+      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+      {
+        for (Size k = 0; k < transition_exp.transitions.size(); k++)
+        {
+          const OpenSwath::LightTransition& tr = transition_exp.transitions[k];
+
+          // If the transition falls inside the current DIA window, check
+          // if the window is potentially a better match for extraction than
+          // the one previously stored in the map:
+          if (swath_maps[i].imLower < tr.getPrecursorIM() && tr.getPrecursorIM() < swath_maps[i].imUpper)
+          {
+            if (pasef_map[k] == -1) pasef_map[k] = i;
+            if (
+                std::fabs(((swath_maps[ pasef_map[k] ].imLower + swath_maps [ pasef_map[k] ].imUpper) / 2) - tr.getPrecursorIM() ) > 
+                std::fabs(((swath_maps[ i ].imLower + swath_maps [ i ].imUpper) / 2) - tr.getPrecursorIM() ) )
+            {
+              // current DIA window "i" is a better match
+	      double imOld = std::fabs(((swath_maps[ pasef_map[k] ].imLower + swath_maps [ pasef_map[k] ].imUpper) / 2) - tr.getPrecursorIM() );
+              double imNew = std::fabs(((swath_maps[ i ].imLower + swath_maps [ i ].imUpper) / 2) - tr.getPrecursorIM() );
+
+              OPENMS_LOG_DEBUG << "For Precursor " << tr.getPrecursorIM() << "Replacing Swath Map with IM center of " << imOld << " with swath map of im center " << imNew << std::endl;
+              pasef_map[k] = i;
+            }
+
+          }
+        }
+      }
+      // store pasef map in the prm map so go into the prm loop later on (they can be treated the same because both have "multiple windows"
+      prm_map.resize(transition_exp.transitions.size(), -1);
+      prm_map = pasef_map;
+    }
+
     // (iii) Perform extraction and scoring of fragment ion chromatograms (MS2)
     // We set dynamic scheduling such that the maps are worked on in the order
     // in which they were given to the program / acquired. This gives much
@@ -565,7 +606,7 @@ namespace OpenMS
 
         // Step 1: select which transitions to extract (proceed in batches)
         OpenSwath::LightTargetedExperiment transition_exp_used_all;
-        if (!prm_)
+        if (!(prm_ || pasef_))
         {
           // Step 1.1: select transitions matching the window
           OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used_all,
@@ -573,8 +614,9 @@ namespace OpenMS
         }
         else
         {
-          // Step 1.2: select transitions based on matching PRM window (best window)
+          // Step 1.2: select transitions based on matching PRM/PASEF window (best window) 
           std::set<std::string> matching_compounds;
+
           for (Size k = 0; k < prm_map.size(); k++)
           {
             if (prm_map[k] == i)

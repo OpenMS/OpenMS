@@ -689,6 +689,7 @@ namespace OpenMS
       transition.library_intensity  = tr_it->library_intensity;
       transition.precursor_mz  = tr_it->precursor;
       transition.product_mz  = tr_it->product;
+      transition.precursor_im = tr_it->drift_time;
       transition.fragment_charge = 0; // use zero for charge that is not set
       if (!tr_it->fragment_charge.empty() && tr_it->fragment_charge != "NA")
       {

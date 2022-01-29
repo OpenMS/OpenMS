@@ -208,6 +208,7 @@ public:
      */
     void consumeSpectrum(MapType::SpectrumType& s) override
     {
+
       if (!consuming_possible_)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -231,9 +232,10 @@ public:
         double lower = prec[0].getMZ() - prec[0].getIsolationWindowLowerOffset();
         double upper = prec[0].getMZ() + prec[0].getIsolationWindowUpperOffset();
 
-	// add IM if present 
 	double lowerIm = -1; // these initial values assume IM is not present 
 	double upperIm = -1;
+
+	// add IM if present 
 	if (s.metaValueExists("ion mobility lower limit"))
 	{
 		lowerIm = s.getMetaValue("ion mobility lower limit"); // want this to be -1  if no ion mobility 

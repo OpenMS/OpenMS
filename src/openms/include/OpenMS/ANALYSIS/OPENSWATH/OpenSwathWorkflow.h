@@ -112,6 +112,7 @@ protected:
       use_ms1_traces_(false),
       use_ms1_ion_mobility_(false),
       prm_(false),
+      pasef_(false),
       threads_outer_loop_(-1)
     {
     }
@@ -128,10 +129,11 @@ protected:
      *
      *
      **/
-    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, int threads_outer_loop) :
+    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, bool pasef, int threads_outer_loop) :
       use_ms1_traces_(use_ms1_traces),
       use_ms1_ion_mobility_(use_ms1_ion_mobility),
       prm_(prm),
+      pasef_(pasef),
       threads_outer_loop_(threads_outer_loop)
     {
     }
@@ -203,6 +205,9 @@ protected:
     /// Whether data is acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows
     bool prm_;
 
+    /// Whether data is diaPASEF data
+    bool pasef_;
+
     /** @brief How many threads should be used for the outer loop
      *
      *  @note A value of -1 will use all threads in the outer loop
@@ -243,7 +248,7 @@ protected:
     }
 
     explicit OpenSwathCalibrationWorkflow(bool use_ms1_traces) :
-      OpenSwathWorkflowBase(use_ms1_traces, false, false, -1)
+      OpenSwathWorkflowBase(use_ms1_traces, false, false, false, -1)
     {
     }
 
@@ -401,8 +406,8 @@ protected:
      *
      *
      **/
-    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, int threads_outer_loop) :
-      OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, prm, threads_outer_loop)
+    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, bool pasef, int threads_outer_loop) :
+      OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, prm, pasef, threads_outer_loop)
     {
     }
 
@@ -584,7 +589,7 @@ protected:
   public:
 
     explicit OpenSwathWorkflowSonar(bool use_ms1_traces) :
-      OpenSwathWorkflow(use_ms1_traces, false, false, -1)
+      OpenSwathWorkflow(use_ms1_traces, false, false, false, -1)
     {
     }
 
