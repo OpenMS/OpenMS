@@ -91,7 +91,27 @@ namespace OpenSwath
       return xcorr_precursor_combined_matrix_;
     }
 
-    void MRMScoring::initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids)
+    void fillIntensityFromFeature(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& ids, std::vector<std::vector<double>>& intensity)
+    {
+      intensity.resize(ids.size());
+      for (std::size_t i = 0; i < intensity.size(); i++)
+      {
+        MRMScoring::FeatureType fi = mrmfeature->getFeature(ids[i]);
+        fi->getIntensity(intensity[i]);
+      }
+    }
+
+    void fillIntensityFromPrecursorFeature(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& ids, std::vector<std::vector<double>>& intensity)
+    {
+      intensity.resize(ids.size());
+      for (std::size_t i = 0; i < intensity.size(); i++)
+      {
+        MRMScoring::FeatureType fi = mrmfeature->getPrecursorFeature(ids[i]);
+        fi->getIntensity(intensity[i]);
+      }
+    }
+
+    void MRMScoring::initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& native_ids)
     {
       std::vector<std::vector<double>> intensity;
       fillIntensityFromFeature(mrmfeature, native_ids, intensity);
@@ -116,7 +136,7 @@ namespace OpenSwath
       }
     }
 
-    void MRMScoring::initializeXCorrContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids_set1, const std::vector<String>& native_ids_set2)
+    void MRMScoring::initializeXCorrContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& native_ids_set1, const std::vector<std::string>& native_ids_set2)
     {
       std::vector<std::vector<double>> intensityi, intensityj;
       fillIntensityFromFeature(mrmfeature, native_ids_set1, intensityi);
@@ -144,7 +164,7 @@ namespace OpenSwath
       }
     }
 
-    void MRMScoring::initializeXCorrPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids)
+    void MRMScoring::initializeXCorrPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids)
     {
       std::vector<std::vector<double>> intensity;
       fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensity);
@@ -164,7 +184,7 @@ namespace OpenSwath
       }
     }
 
-    void MRMScoring::initializeXCorrPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids)
+    void MRMScoring::initializeXCorrPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids)
     {
       std::vector<std::vector<double>> intensityi, intensityj;
       fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensityi);
@@ -216,7 +236,7 @@ namespace OpenSwath
       }
     }
 
-    void MRMScoring::initializeXCorrPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids)
+    void MRMScoring::initializeXCorrPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids)
     {
       std::vector<std::vector<double>> intensityi, intensityj;
       fillIntensityFromPrecursorFeature(mrmfeature, precursor_ids, intensityi);
@@ -575,7 +595,7 @@ namespace OpenSwath
     {
       std::vector<double> library_intensity;
       std::vector<double> experimental_intensity;
-      String native_id;
+      std::string native_id;
 
       for (std::size_t k = 0; k < transitions.size(); k++)
       {
@@ -701,27 +721,7 @@ namespace OpenSwath
       return mi_precursor_combined_matrix_;
     }
 
-    void MRMScoring::fillIntensityFromFeature(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& ids, std::vector<std::vector<double>>& intensity)
-    {
-      intensity.resize(ids.size());
-      for (std::size_t i = 0; i < intensity.size(); i++)
-      {
-        FeatureType fi = mrmfeature->getFeature(ids[i]);
-        fi->getIntensity(intensity[i]);
-      }
-    }
-
-    void MRMScoring::fillIntensityFromPrecursorFeature(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& ids, std::vector<std::vector<double>>& intensity)
-    {
-      intensity.resize(ids.size());
-      for (std::size_t i = 0; i < intensity.size(); i++)
-      {
-        FeatureType fi = mrmfeature->getPrecursorFeature(ids[i]);
-        fi->getIntensity(intensity[i]);
-      }
-    }
-
-    void MRMScoring::initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids)
+    void MRMScoring::initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& native_ids)
     {
       std::vector<std::vector<double>> intensity;
       std::vector<std::vector<unsigned int>> rank_vec{};
@@ -738,7 +738,7 @@ namespace OpenSwath
         }
       }
     }
-    void MRMScoring::initializeMIContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids_set1, const std::vector<String>& native_ids_set2)
+    void MRMScoring::initializeMIContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& native_ids_set1, const std::vector<std::string>& native_ids_set2)
     { 
       std::vector<std::vector<double>> intensityi, intensityj;
       std::vector<std::vector<unsigned int>> rank_vec1{}, rank_vec2{};
@@ -758,7 +758,7 @@ namespace OpenSwath
       }
     }
 
-    void MRMScoring::initializeMIPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids)
+    void MRMScoring::initializeMIPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids)
     {
       std::vector<std::vector<double>> intensity;
       std::vector<std::vector<unsigned int>> rank_vec{};
@@ -776,7 +776,7 @@ namespace OpenSwath
       }
     }
 
-    void MRMScoring::initializeMIPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids)
+    void MRMScoring::initializeMIPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids)
     {
       std::vector<std::vector<double>> intensityi, intensityj;
       std::vector<std::vector<unsigned int>> rank_vec1{}, rank_vec2{};
@@ -796,7 +796,7 @@ namespace OpenSwath
       }
     }
 
-    void MRMScoring::initializeMIPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids)
+    void MRMScoring::initializeMIPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids)
     {
       std::vector<std::vector<unsigned int>> rank_vec{};
       std::vector<std::vector<double>> intensity;
