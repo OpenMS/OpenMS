@@ -438,10 +438,10 @@ m1 = mi(x_ranking,y_ranking)
   std::vector<double> data2 = {15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
                                121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108};
   std::vector<unsigned int> rank_vec1, rank_vec2;
-  Scoring::computeRank(data1, rank_vec1);
-  Scoring::computeRank(data2, rank_vec2);
+  unsigned int max_rank1 = Scoring::computeRank(data1, rank_vec1);
+  unsigned int max_rank2 = Scoring::computeRank(data2, rank_vec2);
 
-  double result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2);
+  double result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2, max_rank1, max_rank2);
 
   TEST_REAL_SIMILAR (result, 3.2776);
 }

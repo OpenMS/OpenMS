@@ -451,7 +451,7 @@ public:
           {
             chrom_vect_id.push_back(it->getIntensity());
           }
-          OpenSwath::Scoring::computeRank(chrom_vect_id, chrom_vect_det_ranked);
+          unsigned int max_rank_det = OpenSwath::Scoring::computeRank(chrom_vect_id, chrom_vect_det_ranked);
           // compute baseline mutual information
           int transition_total_mi_norm = 0;
           for (Size m = 0; m < transition_group.getTransitions().size(); m++)
@@ -464,8 +464,8 @@ public:
               {
                 chrom_vect_det.push_back(it->getIntensity());
               }
-              OpenSwath::Scoring::computeRank(chrom_vect_det, chrom_vect_id_ranked);
-              transition_total_mi += OpenSwath::Scoring::rankedMutualInformation(chrom_vect_id_ranked, chrom_vect_det_ranked);
+              unsigned int max_rank_id = OpenSwath::Scoring::computeRank(chrom_vect_det, chrom_vect_id_ranked);
+              transition_total_mi += OpenSwath::Scoring::rankedMutualInformation(chrom_vect_id_ranked, chrom_vect_det_ranked, max_rank_id, max_rank_det);
               transition_total_mi_norm++;
             }
           }
