@@ -80,8 +80,6 @@ namespace OpenSwath
         /// Cross Correlation matrix
         typedef OpenMS::Matrix<XCorrArrayType> XCorrMatrixType;
 
-        typedef std::string String;
-
         typedef OpenSwath::SpectrumPtr SpectrumType;
         typedef OpenSwath::LightTransition TransitionType;
         typedef OpenSwath::LightCompound PeptideType;
@@ -115,22 +113,22 @@ namespace OpenSwath
         void initializeXCorrMatrix(const std::vector< std::vector< double > >& data);
 
         /// Initialize the scoring object and building the cross-correlation matrix
-        void initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids);
+        void initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& native_ids);
 
         /// Initialize the scoring object and building the cross-correlation matrix of chromatograms of set1 (e.g. identification transitions) vs set2 (e.g. detection transitions)
-        void initializeXCorrContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids_set1, const std::vector<String>& native_ids_set2);
+        void initializeXCorrContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& native_ids_set1, const std::vector<std::string>& native_ids_set2);
 
         /// Initialize the scoring object and building the cross-correlation matrix
-        void initializeXCorrPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids);
+        void initializeXCorrPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids);
 
         /// Initialize the scoring object and building the cross-correlation matrix of chromatograms of precursor isotopes vs transitions
-        void initializeXCorrPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids);
+        void initializeXCorrPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids);
 
         /// Initialize the scoring object and building the cross-correlation matrix of chromatograms of precursor isotopes vs transitions
         void initializeXCorrPrecursorContrastMatrix(const std::vector< std::vector< double > >& data_precursor, const std::vector< std::vector< double > >& data_fragments);
 
         /// Initialize the scoring object and building the cross-correlation matrix of chromatograms of precursor isotopes and transitions
-        void initializeXCorrPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids);
+        void initializeXCorrPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids);
 
         /**
            @brief Calculate the cross-correlation coelution score
@@ -234,26 +232,20 @@ namespace OpenSwath
         const OpenMS::Matrix<double> & getMIPrecursorCombinedMatrix() const;
         //@}
 
-        /// Get feature for each id in input ids vector and fill intensity in the input intensity vector for each feature
-        void fillIntensityFromFeature(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& ids, std::vector<std::vector<double>>& intensity);
-
-        /// Get precursor feature for each id in input ids vector and fill intensity in the input intensity vector for each feature
-        void fillIntensityFromPrecursorFeature(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& ids, std::vector<std::vector<double>>& intensity);
-
         /// Initialize the scoring object and building the MI matrix
-        void initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids);
+        void initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& native_ids);
 
         /// Initialize the scoring object and building the MI matrix of chromatograms of set1 (e.g. identification transitions) vs set2 (e.g. detection transitions)
-        void initializeMIContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids_set1, const std::vector<String>& native_ids_set2);
+        void initializeMIContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& native_ids_set1, const std::vector<std::string>& native_ids_set2);
 
         /// Initialize the scoring object and building the MI matrix
-        void initializeMIPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids);
+        void initializeMIPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids);
 
         /// Initialize the mutual information vector against the MS1 trace
-        void initializeMIPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids);
+        void initializeMIPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids);
 
         /// Initialize the mutual information vector with the MS1 trace
-        void initializeMIPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids);
+        void initializeMIPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<std::string>& precursor_ids, const std::vector<std::string>& native_ids);
 
         double calcMIScore();
         double calcMIWeightedScore(const std::vector<double>& normalized_library_intensity);
