@@ -322,41 +322,22 @@ namespace OpenMS
           //check if we compare distance from centroid or subelements
           if (!measure_from_subelements)
           {
+            String ref_mv = "";
             if (map[cm_index].metaValueExists("id_scan_id")) // MS3 TMT
             {
-              if (ids[i].metaValueExists("spectrum_reference"))
-              {
-                if (ids[i].getMetaValue("spectrum_reference") == map[cm_index].getMetaValue("id_scan_id"))
-                {
-                  id_mapped = true;
-                  was_added = true;
-                  map[cm_index].getPeptideIdentifications().push_back(ids[i]);
-                  ++assigned_ids[i];
-                }
-              }
+              ref_mv = "id_scan_id";
             }
-            else if (map[cm_index].metaValueExists("scan_id")) // MS2 TMT
+            else if (map[cm_index].metaValueExists("scan_id"))
             {
-              if (ids[i].metaValueExists("spectrum_reference"))
-              {
-                if (ids[i].getMetaValue("spectrum_reference") == map[cm_index].getMetaValue("scan_id"))
-                {
-                  id_mapped = true;
-                  was_added = true;
-                  map[cm_index].getPeptideIdentifications().push_back(ids[i]);
-                  ++assigned_ids[i];
-                }
-              }
+              ref_mv = "scan_id";
             }
-            else
+            if ((!ref_mv.empty() && ids[i].metaValueExists("spectrum_reference") && (ids[i].getMetaValue("spectrum_reference") == map[cm_index].getMetaValue(ref_mv))) ||
+                (isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, map[cm_index].getCharge()))))
             {
-              if (isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, map[cm_index].getCharge())))
-              {
-                id_mapped = true;
-                was_added = true;
-                map[cm_index].getPeptideIdentifications().push_back(ids[i]);
-                ++assigned_ids[i];
-              }
+              id_mapped = true;
+              was_added = true;
+              map[cm_index].getPeptideIdentifications().push_back(ids[i]);
+              ++assigned_ids[i];
             }
           }
           else
