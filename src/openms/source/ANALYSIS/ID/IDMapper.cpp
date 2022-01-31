@@ -249,7 +249,7 @@ namespace OpenMS
     annotate(map, peptide_ids, protein_ids, clear_ids, map_ms1);
   }
 
-  bool isMatchByNativeID(const String& reference_id, const PeptideIdentification& id, ConsensusFeature& cf)
+  bool isMatchByNativeID(const PeptideIdentification& id, ConsensusFeature& cf)
   {
     // check if the native id of an identifying spectrum is annotated            
     String ref_mv;
@@ -339,7 +339,7 @@ namespace OpenMS
           //check if we compare distance from centroid or subelements
           if (!measure_from_subelements)
           {
-            if (isMatchByNativeID(ref_mv, ids[i], map[cm_index]) || // can we match by native ids? if not, match by rt/mz
+            if (isMatchByNativeID(ids[i], map[cm_index]) || // can we match by native ids? if not, match by rt/mz
                (isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, map[cm_index].getCharge()))))
             {
               id_mapped = true;
