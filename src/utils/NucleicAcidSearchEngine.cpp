@@ -189,6 +189,9 @@ protected:
     setValidFormats_("exp_ms2_out", ListUtils::create<String>("mzML"));
 
     registerFlag_("decharge_ms2", "Decharge the MS2 spectra for scoring", true);
+    
+    registerFlag_("deisotope_ms2", "Deisotope the MS2 spectra for scoring", true);
+
 
     registerTOPPSubsection_("precursor", "Precursor (parent ion) options");
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance (+/- around uncharged precursor mass)", false);
@@ -532,7 +535,7 @@ protected:
   }
 
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, Int frag_max_charge, Int frag_min_charge)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, Int frag_max_charge, Int frag_min_charge, bool deisotope_spectra)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -637,7 +640,7 @@ protected:
       }
  
       Int temp_frag_max_charge = (abs(frag_max_charge)>abs(precursor_charge)) ? precursor_charge * base_charge : temp_frag_max_charge;
-      deisotopeAndSingleChargeMSSpectrum_(spec, frag_min_charge, temp_frag_max_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
+      deisotopeAndSingleChargeMSSpectrum_(spec, frag_min_charge, temp_frag_max_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, deisotope_spectra, 3, 20, single_charge_spectra);
 
       // remove noise
       window_mower_filter.filterPeakSpectrum(spec);
@@ -998,6 +1001,7 @@ protected:
     bool use_adducts = getFlag_("precursor:use_adducts");
     bool include_unknown_charge = getFlag_("precursor:include_unknown_charge");
     bool single_charge_spectra = getFlag_("decharge_ms2");
+    bool deisotope_spectra = getFlag_("deiosotope_ms2");
     if (use_adducts)
     {
       for (const String& adduct_name : potential_adducts)
@@ -1125,7 +1129,7 @@ protected:
     preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
                        search_param.fragment_tolerance_ppm,
                        single_charge_spectra, negative_mode, min_charge,
-                       max_charge, include_unknown_charge, frag_min_charge, frag_max_charge);
+                       max_charge, include_unknown_charge, frag_min_charge, frag_max_charge, deisotope_spectra);
     progresslogger.endProgress();
     OPENMS_LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra()
                      << endl;
