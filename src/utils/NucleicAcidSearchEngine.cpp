@@ -216,6 +216,9 @@ protected:
     registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment mass tolerance", false, false);
     setValidStrings_("fragment:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
+    registerIntOption_("fragment:min_charge", "<num>", -1, "Minimum precursor charge to be considered", false, false);
+    registerIntOption_("fragment:max_charge", "<num>", -999, "Maximum precursor charge to be considered (note: if this is higher than the precursor charge the precursor charge will be used", false, false);
+
     registerStringList_("fragment:ions", "<choice>", fragment_ion_codes_, "Fragment ions to include in theoretical spectra", false);
     setValidStrings_("fragment:ions", fragment_ion_codes_);
 
@@ -529,7 +532,7 @@ protected:
   }
 
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, Int frag_max_charge, Int frag_min_charge)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -621,9 +624,16 @@ protected:
       }
 
       // deisotope
-      Int coef = negative_mode ? -1 : 1;
       // @TODO: what happens here if "precursor_charge" is zero?
-      deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * precursor_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
+      // Check that fragment charge parameters match polarity of parent
+      if ((precursor_charge * frag_max_charge < 0 )|| (precursor_charge * frag_min_charge <0))
+      {
+        OPENMS_LOG_ERROR
+              << "Error: Precursor charge state opposite polarity from specified fragement charge state range '"
+              << endl;
+      }
+      Int temp_frag_max_charge = (abs(frag_max_charge)>abs(precursor_charge)) ? precursor_charge : temp_frag_max_charge;
+      deisotopeAndSingleChargeMSSpectrum_(spec, frag_min_charge, temp_frag_max_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
 
       // remove noise
       window_mower_filter.filterPeakSpectrum(spec);
@@ -917,6 +927,9 @@ protected:
     bool use_avg_mass = getFlag_("precursor:use_avg_mass");
     Int min_charge = getIntOption_("precursor:min_charge");
     Int max_charge = getIntOption_("precursor:max_charge");
+    Int frag_min_charge = getIntOption_("fragment:min_charge");
+    Int frag_max_charge = getIntOption_("fragment:max_charge");
+
 
     // @TODO: allow zero to mean "any charge state in the data"?
     if ((min_charge == 0) || (max_charge == 0))
@@ -1108,7 +1121,7 @@ protected:
     preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
                        search_param.fragment_tolerance_ppm,
                        single_charge_spectra, negative_mode, min_charge,
-                       max_charge, include_unknown_charge);
+                       max_charge, include_unknown_charge, frag_min_charge, frag_max_charge);
     progresslogger.endProgress();
     OPENMS_LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra()
                      << endl;
