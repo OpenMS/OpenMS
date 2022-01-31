@@ -322,12 +322,41 @@ namespace OpenMS
           //check if we compare distance from centroid or subelements
           if (!measure_from_subelements)
           {
-            if (isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, map[cm_index].getCharge())))
+            if (map[cm_index].metaValueExists("id_scan_id")) // MS3 TMT
             {
-              id_mapped = true;
-              was_added = true;
-              map[cm_index].getPeptideIdentifications().push_back(ids[i]);
-              ++assigned_ids[i];
+              if (ids[i].metaValueExists("spectrum_reference"))
+              {
+                if (ids[i].getMetaValue("spectrum_reference") == map[cm_index].getMetaValue("id_scan_id"))
+                {
+                  id_mapped = true;
+                  was_added = true;
+                  map[cm_index].getPeptideIdentifications().push_back(ids[i]);
+                  ++assigned_ids[i];
+                }
+              }
+            }
+            else if (map[cm_index].metaValueExists("scan_id")) // MS2 TMT
+            {
+              if (ids[i].metaValueExists("spectrum_reference"))
+              {
+                if (ids[i].getMetaValue("spectrum_reference") == map[cm_index].getMetaValue("scan_id"))
+                {
+                  id_mapped = true;
+                  was_added = true;
+                  map[cm_index].getPeptideIdentifications().push_back(ids[i]);
+                  ++assigned_ids[i];
+                }
+              }
+            }
+            else
+            {
+              if (isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, map[cm_index].getCharge())))
+              {
+                id_mapped = true;
+                was_added = true;
+                map[cm_index].getPeptideIdentifications().push_back(ids[i]);
+                ++assigned_ids[i];
+              }
             }
           }
           else
@@ -336,7 +365,7 @@ namespace OpenMS
                  it_handle != map[cm_index].getFeatures().end();
                  ++it_handle)
             {
-              if (isMatch_(rt_pep - it_handle->getRT(), mz_pep, it_handle->getMZ())  && (ignore_charge_ || ListUtils::contains(current_charges, it_handle->getCharge())))
+              if (isMatch_(rt_pep - it_handle->getRT(), mz_pep, it_handle->getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, it_handle->getCharge())))
               {
                 id_mapped = true;
                 was_added = true;
