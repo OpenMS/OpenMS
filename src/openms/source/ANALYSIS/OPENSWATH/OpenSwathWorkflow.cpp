@@ -544,7 +544,7 @@ namespace OpenMS
     {
 	// For PASEF experiments it is possible that have DIA windows with the same m/z however different IM.
 	// Extract from the DIA window in which the precursor is more centered across its IM. 
-      
+
       pasef_map.resize(transition_exp.transitions.size(), -1);
       for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
       {
@@ -552,12 +552,16 @@ namespace OpenMS
         {
           const OpenSwath::LightTransition& tr = transition_exp.transitions[k];
 
-          // If the transition falls inside the current DIA window, check
+          // If the transition falls inside the current DIA window (both in IM and m/z axis), check
           // if the window is potentially a better match for extraction than
           // the one previously stored in the map:
-          if (swath_maps[i].imLower < tr.getPrecursorIM() && tr.getPrecursorIM() < swath_maps[i].imUpper)
+          if (
+             swath_maps[i].imLower < tr.getPrecursorIM() && tr.getPrecursorIM() < swath_maps[i].imUpper &&
+             swath_maps[i].lower < tr.getPrecursorMZ() && tr.getPrecursorMZ() < swath_maps[i].upper &&
+             std::fabs(swath_maps[i].upper - tr.getPrecursorMZ()) >= cp.min_upper_edge_dist )
           {
             if (pasef_map[k] == -1) pasef_map[k] = i;
+            // Check if the current window is better than the previously assigned window (across IM)
             if (
                 std::fabs(((swath_maps[ pasef_map[k] ].imLower + swath_maps [ pasef_map[k] ].imUpper) / 2) - tr.getPrecursorIM() ) > 
                 std::fabs(((swath_maps[ i ].imLower + swath_maps [ i ].imUpper) / 2) - tr.getPrecursorIM() ) )
@@ -624,6 +628,7 @@ namespace OpenMS
                const OpenSwath::LightTransition& tr = transition_exp.transitions[k];
                transition_exp_used_all.transitions.push_back(tr);
                matching_compounds.insert(tr.getPeptideRef());
+               OPENMS_LOG_DEBUG << "Adding Precursor with m/z " << tr.getPrecursorMZ() << " and IM of " << tr.getPrecursorIM() <<  " to swath with mz upper of " << swath_maps[i].upper << std::endl;
             }
           }
 
