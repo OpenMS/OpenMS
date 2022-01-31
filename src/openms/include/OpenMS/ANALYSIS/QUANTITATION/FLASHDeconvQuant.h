@@ -45,6 +45,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+#include <fstream>
 
 using namespace std;
 namespace OpenMS
@@ -369,9 +370,41 @@ namespace OpenMS
       intensity_ = tmp_inty;
     }
 
+    void updateSNR()
+    {
+      float cos_squred = isotope_cosine_score_ * isotope_cosine_score_;
+      float signal = 0, noise = 0;
+      per_charge_snr_ = std::vector<float>(1 + max_abs_charge_, .0);
+
+      for (int c = min_abs_charge_; c <= std::min((int) per_charge_signal_pwr_.size(), max_abs_charge_); ++c)
+      {
+        float per_charge_cos_squared = per_charge_cos_[c] * per_charge_cos_[c];
+        float signal_pwr =
+            per_charge_signal_pwr_[c] < per_charge_pwr_[c] ? per_charge_signal_pwr_[c] : per_charge_pwr_[c];
+        float nom = per_charge_cos_squared * signal_pwr;
+        float denom = per_charge_pwr_[c] - signal_pwr
+                      + (1 - per_charge_cos_squared) * signal_pwr;
+
+        per_charge_snr_[c] = denom <= 0 ? .0 : nom / denom;
+
+        signal += per_charge_signal_pwr_[c];
+        noise += per_charge_pwr_[c] - signal_pwr;
+      }
+
+      float t_nom = cos_squred * signal;
+      float t_denom = noise
+                      + (1 - cos_squred) * signal;
+      snr_ = t_denom <= 0 ? .0 : t_nom / t_denom;
+    }
+
     double getMonoisotopicMass() const
     {
       return monoisotopic_mass_;
+    }
+
+    float getSNR() const
+    {
+      return snr_;
     }
 
     std::tuple<int, int> getChargeRange() const
@@ -394,7 +427,7 @@ namespace OpenMS
       return charge_score_;
     }
 
-    double getFeatureGroupScore() const
+    float getFeatureGroupScore() const
     {
       return total_score_;
     }
@@ -440,7 +473,7 @@ namespace OpenMS
       return ltrace_indices_;
     }
 
-    double getIsotopeCosineOfCharge(const int &abs_charge) const
+    float getIsotopeCosineOfCharge(const int &abs_charge) const
     {
       return per_charge_cos_[abs_charge];
     }
@@ -527,7 +560,7 @@ namespace OpenMS
       isotope_cosine_score_ = cos;
     }
 
-    void setFeatureGroupScore(const double score)
+    void setFeatureGroupScore(const float score)
     {
       total_score_ = score;
     }
@@ -558,9 +591,30 @@ namespace OpenMS
       per_charge_int_[abs_charge] = intensity;
     }
 
-    void setAvgPPMError(const float error)
+    void setChargePower(const int abs_charge, const double pwr)
     {
-      avg_ppm_error_ = error;
+      if (max_abs_charge_ < abs_charge)
+      {
+        return;
+      }
+      if (per_charge_pwr_.empty())
+      {
+        per_charge_pwr_ = std::vector<float>(1 + max_abs_charge_, .0);
+      }
+      per_charge_pwr_[abs_charge] = pwr;
+    }
+
+    void setChargeSignalPower(const int abs_charge, const double pwr)
+    {
+      if (max_abs_charge_ < abs_charge)
+      {
+        return;
+      }
+      if (per_charge_signal_pwr_.empty())
+      {
+        per_charge_signal_pwr_ = std::vector<float>(1 + max_abs_charge_, .0);
+      }
+      per_charge_signal_pwr_[abs_charge] = pwr;
     }
 
     void setFwhmRange()
@@ -586,6 +640,7 @@ namespace OpenMS
       per_charge_int_.clear();
       per_charge_cos_ = std::vector<float>(1 + max_abs_charge_, .0);
       per_charge_int_ = std::vector<float>(1 + max_abs_charge_, .0);
+      // other vectors (per_charge_pwr_, per_charge_signal_pwr_, per_charge_snr_) don't need to be initialized
     }
 
     void setTraceIndices()
@@ -698,16 +753,19 @@ namespace OpenMS
     /// charge range
     int min_abs_charge_, max_abs_charge_; // absolute charge states.
     double intensity_;
-    double charge_score_;
-    double isotope_cosine_score_;
-    double total_score_;
-    double avg_ppm_error_;
+    float charge_score_;
+    float isotope_cosine_score_;
+    float snr_;
+    float total_score_;
 
     std::pair<double, double> fwhm_range_;
     std::vector<Size> ltrace_indices_;
 
     std::vector<float> per_charge_cos_;
     std::vector<float> per_charge_int_;
+    std::vector<float> per_charge_signal_pwr_;
+    std::vector<float> per_charge_pwr_;
+    std::vector<float> per_charge_snr_;
 
     double centroid_rt_of_apices;
     double rt_of_apex; // Apex : apex of most abundant mass traces
@@ -790,13 +848,13 @@ namespace OpenMS
     /// mass differences between average mass and monoisotopic mass
     std::vector<double> average_mono_mass_difference_;
     /// Isotope start indices: isotopes of the indices less than them have very low intensities
-    std::vector<Size> left_count_from_apex_;
+    std::vector<int> left_count_from_apex_;
     /// Isotope end indices: isotopes of the indices larger than them have very low intensities
-    std::vector<Size> right_count_from_apex_;
+    std::vector<int> right_count_from_apex_;
     /// most abundant isotope index
     std::vector<Size> apex_index_;
     /// max isotope index
-    int max_isotope_index_;
+    Size max_isotope_index_;
 
     /// mass interval for calculation
     double mass_interval_;
@@ -816,59 +874,71 @@ namespace OpenMS
     PrecalculatedAveragine(const double min_mass,
                            const double max_mass,
                            const double delta,
-                           CoarseIsotopePatternGenerator *generator):
-        mass_interval_(delta), min_mass_(min_mass)
+                           CoarseIsotopePatternGenerator *generator)
+        :mass_interval_(delta), min_mass_(min_mass)
     {
       int i = 0;
-      while (true) {
+      while (true)
+      {
         double mass = i * mass_interval_;
         i++;
-        if (mass < min_mass) {
+        if (mass < min_mass)
+        {
           continue;
         }
-        if (mass > max_mass) {
+        if (mass > max_mass)
+        {
           break;
         }
         auto iso = generator->estimateFromPeptideWeight(mass);
 
         const double min_pwr = .999;
-        const Size min_iso_length = 3;
+        const Size min_iso_length = 5;
         double total_pwr = .0;
         int most_abundant_index_ = 0;
         double most_abundant_int = 0;
 
         for (Size k = 0; k < iso.size(); k++) {
           total_pwr += iso[k].getIntensity() * iso[k].getIntensity();
-          if (most_abundant_int >= iso[k].getIntensity()) {
+          if (most_abundant_int >= iso[k].getIntensity())
+          {
             continue;
           }
           most_abundant_int = iso[k].getIntensity();
           most_abundant_index_ = k;
         }
 
-        Size left_count = 0;
-        Size right_count = iso.size() - 1;
+        int left_count = 0;
+        int right_count = iso.size() - 1;
         int trim_count = 0;
-        while (iso.size() - trim_count > min_iso_length) {
+        while (iso.size() - trim_count > min_iso_length)
+        {
           double lint = iso[left_count].getIntensity();
           double rint = iso[right_count].getIntensity();
           double pwr;
           bool trim_left = true;
-          if (lint < rint) {
+          if (lint < rint)
+          {
             pwr = lint * lint;
-          } else {
+          }
+          else
+          {
             pwr = rint * rint;
             trim_left = false;
           }
-          if (total_pwr - pwr < total_pwr * min_pwr) {
+          if (total_pwr - pwr < total_pwr * min_pwr)
+          {
             break;
           }
           total_pwr -= pwr;
           trim_count++;
-          if (trim_left) {
+          if (trim_left)
+          {
             iso[left_count].setIntensity(0);
             left_count++;
-          } else {
+          }
+          else
+          {
             iso[right_count].setIntensity(0); // for trimming
             right_count--;
           }
@@ -877,28 +947,22 @@ namespace OpenMS
         right_count = right_count - most_abundant_index_;
         iso.trimRight(1e-10);
 
-        for (Size k = 0; k < iso.size(); k++) {
+        for (Size k = 0; k < iso.size(); k++)
+        {
           double ori_int = iso[k].getIntensity();
           iso[k].setIntensity(ori_int / sqrt(total_pwr));
         }
-        /*
-                    std::cout<<"iso"<<mass<<"=[";
-                    for (int j = 0; j <iso.size(); ++j) {
-                        std::cout<<iso[j].getIntensity()<<",";
-                    }
-                    std::cout<<"];"<<std::endl;
-        */
+
         apex_index_.push_back(most_abundant_index_);
         right_count_from_apex_.push_back(right_count + 1);
         left_count_from_apex_.push_back(left_count + 1);
         average_mono_mass_difference_.push_back(iso.averageMass() - iso[0].getMZ());
-        //norms_.push_back(total_pwr);
         isotopes_.push_back(iso);
       }
     }
 
     /// get distribution for input mass
-    IsotopeDistribution get(double mass) const
+    IsotopeDistribution get(const double mass) const
     {
       Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
       i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
@@ -911,24 +975,20 @@ namespace OpenMS
       return max_isotope_index_;
     }
 
-    /// get max isotope index
-    void setMaxIsotopeIndex(int index)
-    {
-      max_isotope_index_ = index;
-    }
-
     /// get isotope start index
-    Size getLeftCountFromApex(const double mass) const {
+    Size getLeftCountFromApex(const double mass) const
+    {
       Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
       i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
-      return left_count_from_apex_[i];
+      return (Size) left_count_from_apex_[i];
     }
 
     /// get isotope end index
-    Size getRightCountFromApex(const double mass) const {
+    Size getRightCountFromApex(const double mass) const
+    {
       Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
       i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
-      return right_count_from_apex_[i];
+      return (Size) right_count_from_apex_[i];
     }
 
     /// get mass difference between avg and mono masses
@@ -939,10 +999,17 @@ namespace OpenMS
       return average_mono_mass_difference_[i];
     }
 
-    Size getApexIndex(const double mass) const {
+    Size getApexIndex(const double mass) const
+    {
       Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
       i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
       return apex_index_[i];
+    }
+
+    /// set max isotope index
+    void setMaxIsotopeIndex(const int index)
+    {
+      max_isotope_index_ = index;
     }
   };
 
@@ -1016,6 +1083,7 @@ namespace OpenMS
                                                     const std::vector<float> &mz_intensities);
     Matrix<int> filterMassBins_(const std::vector<float> &mass_intensities);
 
+    // equivalent to FLASHDeconvAlgorithm::generatePeakGroupsFromSpectrum_
     void getFeatureFromSpectrum_(std::vector<LogMassTrace*> &local_traces, std::vector<FeatureGroup> &local_fgroup);
 
     void buildMassTraceGroups_(std::vector<LogMassTrace> &log_mtraces, std::vector<FeatureGroup>& features);
@@ -1045,14 +1113,14 @@ namespace OpenMS
                       const int offset) const;
 
     double getShapeDiff_(const std::vector<double> &a,
-                                           const int &a_start,
-                                           const int &a_end,
-                                           const IsotopeDistribution &b,
-                                           const int &b_size,
-                                           const int max_b_index,
-                                           const int offset) const;
+                         const int &a_start,
+                         const int &a_end,
+                         const IsotopeDistribution &b,
+                         const int &b_size,
+                         const int max_b_index,
+                         const int offset) const;
 
-    float getAvgPPMError_(FeatureGroup &pg) const;
+    void removeHarmonicsPeakGroups_(std::vector<FeatureGroup> &local_fgroup) const;
 
     void removeOverlappingPeakGroups_(std::vector<FeatureGroup> &local_fgroup) const;
 
@@ -1077,13 +1145,11 @@ namespace OpenMS
                                    const std::vector<MassTrace> & input_masstraces,
                                    const std::vector<std::vector<Size> >& shared_m_traces_indices,
                                    const std::set<Size>& hypo_indices,
-                                   std::vector<FeatureGroup>& out_features,
-                                   ofstream& out,
-                                   String& cluster_name) const;
+                                   std::vector<FeatureGroup>& out_features) const;
 
     void writeMassTracesOfFeatureGroup(const std::vector<FeatureGroup>& featgroups,
                                        const std::vector<std::vector<Size> >& shared_m_traces_indices,
-                                       ofstream& out) const;
+                                       std::fstream& out) const;
 
     void writeFeatureGroupsInFile(std::vector<FeatureGroup>& feat, std::vector<MassTrace>& input_mtraces);
 
@@ -1103,7 +1169,7 @@ namespace OpenMS
     double local_mz_range_;
     Size charge_lower_bound_;
     Size charge_upper_bound_;
-    Size charge_range_;
+    int charge_range_;
     double min_mass_;
     double max_mass_;
     double mz_tolerance_; // ppm

@@ -92,7 +92,7 @@ protected:
     // TODO: add mtd, epd param
 
     Param p_ffi = FLASHDeconvQuant().getDefaults();
-    combined.insert(" :", p_ffi);
+    combined.insert("ffi:", p_ffi);
     combined.setSectionDescription("ffi", "FeatureFinder parameters (assembling mass traces to charged features)");
 
     return combined;
