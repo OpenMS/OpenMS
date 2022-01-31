@@ -293,6 +293,46 @@ namespace OpenMS
   return csv_rows;
 }
 
+  // crosslink efficiency = frequency of the crosslinked amino acid / frequency of the amino acid in all crosslink spectrum matches
+  map<char, double> RNPxlProteinReport::getCrossLinkEfficiency(const vector<PeptideIdentification>& peps)
+  {
+    map<char, double> aa_xl_freq;
+    map<char, double> aa_freq;
+
+    // store modification statistic for every protein    
+    for (const PeptideIdentification& pep : peps)
+    {
+      auto& hits = pep.getHits();
+      if (hits.empty()) continue;
+      const PeptideHit& ph = hits[0]; // only consider top hit
+      if (ph.getMetaValue("target_decoy") == "decoy" || ph.getMetaValue("NuXL:isXL") == "false") continue;
+      const int best_localization = ph.getMetaValue("NuXL:best_localization_position");
+
+      if (best_localization >= 0)
+      {
+        const AASequence& aas = ph.getSequence();
+        char c = aas.toUnmodifiedString()[best_localization];
+        aa_xl_freq[c] += 1;
+        for (char c : aas.toUnmodifiedString())
+        {
+          aa_freq[c] += 1;
+        }
+      }
+    }
+
+    double xl_sum{};
+    for (const auto& m : aa_xl_freq) { xl_sum += m.second; }
+    for (auto& m : aa_xl_freq) { m.second /= xl_sum; }
+
+    double aa_sum{};
+    for (const auto& m : aa_freq) { aa_sum += m.second; }
+    for (auto& m : aa_freq) { m.second /= aa_sum; }
+    
+    for (auto& m : aa_xl_freq) {m.second /= aa_freq[m.first]; }    
+
+    return aa_xl_freq;
+  }
+
   void RNPxlProteinReport::annotateProteinModificationForTopHits(
     vector<ProteinIdentification>& prot_ids, 
     const vector<PeptideIdentification>& peps, 
@@ -337,7 +377,7 @@ namespace OpenMS
       const PeptideHit& ph = hits[0]; // only consider top hit
       const std::vector<PeptideEvidence>& ph_evidences = ph.getPeptideEvidences();
       const int best_localization = ph.getMetaValue("NuXL:best_localization_position");
-
+      
       // create a user defined modification (at most once)
       ResidueModification* xl;
 
@@ -590,11 +630,12 @@ namespace OpenMS
         tsv_file.addLine("REGION: " + reg_loc.NA + ":" + String(reg_loc.first) + "-" + String(reg_loc.last) + "(" + String(reg_loc.count) + ")");
       }
     }
- 
+
     double sum{};
     for (const auto& m : aa2background_freq) { sum += m.second; }
     for (auto& m : aa2background_freq) { m.second /= sum; }
 
+/*
     if (report_decoys)
     {
       tsv_file.addLine("=============================================================");
@@ -604,7 +645,9 @@ namespace OpenMS
       {
         tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second));
       }
+*/
 
+/*
       tsv_file.addLine("=============================================================");
       tsv_file.addLine("PSM summary for decoy PSMs:");
       tsv_file.addLine("AA:PSMs");
@@ -613,7 +656,9 @@ namespace OpenMS
         tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second));
       }
     }
+*/
 
+/*
     tsv_file.addLine("=============================================================");
     tsv_file.addLine("Protein summary for target proteins:");
     tsv_file.addLine("AA:proteins");
@@ -621,13 +666,23 @@ namespace OpenMS
     {
       tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second) + "\tfreq. normalized: " + String(a2p.second * aa2background_freq[a2p.first]));
     }
+*/
 
+/*
     tsv_file.addLine("=============================================================");
     tsv_file.addLine("PSM summary for target PSMs:");
     tsv_file.addLine("AA:PSMs");
     for (const auto& a2p : aa2psm_count_targets)
     {
       tsv_file.addLine(String(a2p.first)  + " : " + String(a2p.second) + "\tfreq. normalized: " + String(a2p.second * aa2background_freq[a2p.first]));
+    }
+*/
+
+    auto aa_xl_freq = getCrossLinkEfficiency(peps);
+    tsv_file.addLine("Crosslink efficiency:");
+    for (auto& m : aa_xl_freq) 
+    { 
+      tsv_file.addLine(String(m.first) + "\t" + String(m.second));
     }
 
     tsv_file.addLine("=============================================================");
@@ -654,6 +709,23 @@ namespace OpenMS
     }
    
     for (auto m : name2mod) { delete(m.second); } // free memory
+  }
+
+  // static 
+  void  RNPxlProteinReport::mapAccessionToTDProteins(ProteinIdentification& prot_id, std::map<String, ProteinHit*>& acc2protein_targets, std::map<String, ProteinHit*>& acc2protein_decoys)
+  {
+    std::vector<ProteinHit>& proteins = prot_id.getHits();
+    for (ProteinHit& protein : proteins)
+    {
+      if (protein.getMetaValue("target_decoy").toString().hasPrefix("target"))
+      {
+        acc2protein_targets[protein.getAccession()] = &protein;
+      }
+      else
+      {
+        acc2protein_decoys[protein.getAccession()] = &protein;
+      }
+    }
   }
 
 }

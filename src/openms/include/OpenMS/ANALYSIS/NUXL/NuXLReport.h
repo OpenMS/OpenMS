@@ -106,22 +106,10 @@ struct OPENMS_DLLAPI RNPxlProteinReport
     TextFile& tsv_file,
     bool report_decoys = false);
 
-  static void mapAccessionToTDProteins(ProteinIdentification& prot_id, std::map<String, ProteinHit*>& acc2protein_targets, std::map<String, ProteinHit*>& acc2protein_decoys)
-  {
-    std::vector<ProteinHit>& proteins = prot_id.getHits();
-    for (ProteinHit& protein : proteins)
-    {
-      if (protein.getMetaValue("target_decoy").toString().hasPrefix("target"))
-      {
-        acc2protein_targets[protein.getAccession()] = &protein;
-      }
-      else
-      {
-        acc2protein_decoys[protein.getAccession()] = &protein;
-      }
-    }
-  }
-  
+  // crosslink efficiency = frequency of the crosslinked amino acid / frequency of the amino acid in all crosslink spectrum matches
+  static std::map<char, double> getCrossLinkEfficiency(const std::vector<PeptideIdentification>& peps);
+
+  static void mapAccessionToTDProteins(ProteinIdentification& prot_id, std::map<String, ProteinHit*>& acc2protein_targets, std::map<String, ProteinHit*>& acc2protein_decoys);
 };
 
 }
