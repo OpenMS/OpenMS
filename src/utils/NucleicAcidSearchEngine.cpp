@@ -220,7 +220,7 @@ protected:
     setValidStrings_("fragment:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
     registerIntOption_("fragment:min_charge", "<num>", -1, "Minimum precursor charge to be considered", false, false);
-    registerIntOption_("fragment:max_charge", "<num>", -999, "Maximum precursor charge to be considered (note: if this is higher than the precursor charge the precursor charge will be used", false, false);
+    registerIntOption_("fragment:max_charge", "<num>", -999, "Maximum precursor charge to be considered (note: if this is greater (in absolute terms) than the precursor charge the precursor charge will be used", false, false);
 
     registerStringList_("fragment:ions", "<choice>", fragment_ion_codes_, "Fragment ions to include in theoretical spectra", false);
     setValidStrings_("fragment:ions", fragment_ion_codes_);
@@ -632,14 +632,14 @@ protected:
 
       Int base_charge = negative_mode ? -1 : 1;
       // Check that fragment charge parameters match polarity of parent
-      if ((precursor_charge * base_charge * frag_max_charge < 0 )|| (precursor_charge * base_charge * frag_min_charge <0))
+      if ((precursor_charge * base_charge * frag_max_charge < 0 ) || (precursor_charge * base_charge * frag_min_charge < 0))
       {
         OPENMS_LOG_ERROR
               << "Error: Precursor charge state opposite polarity from specified fragment charge state range '"
               << endl;
       }
  
-      Int temp_frag_max_charge = (abs(frag_max_charge)>abs(precursor_charge)) ? precursor_charge * base_charge : temp_frag_max_charge;
+      Int temp_frag_max_charge = (abs(frag_max_charge)>abs(precursor_charge)) ? precursor_charge * base_charge : frag_max_charge;
       deisotopeAndSingleChargeMSSpectrum_(spec, frag_min_charge, temp_frag_max_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, deisotope_spectra, 3, 20, single_charge_spectra);
 
       // remove noise
