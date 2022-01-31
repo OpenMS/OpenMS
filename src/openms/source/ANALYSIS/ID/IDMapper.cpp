@@ -253,17 +253,17 @@ namespace OpenMS
   {
     // check if the native id of an identifying spectrum is annotated            
     String ref_mv;
-    if (map[cm_index].metaValueExists("id_scan_id")) // identifying MS2 spectrum in MS3 TMT
+    if (cf.metaValueExists("id_scan_id")) // identifying MS2 spectrum in MS3 TMT
     {
       ref_mv = "id_scan_id";
     }
-    else if (map[cm_index].metaValueExists("scan_id")) // identifying MS2 spectrum in standard TMT
+    else if (cf.metaValueExists("scan_id")) // identifying MS2 spectrum in standard TMT
     {
       ref_mv = "scan_id";
     }
 
     // return if no meta info to match ids between spectra and consensus features?
-    if (reference_id.empty() || !id.metaValueExists("spectrum_reference")) return false;
+    if (ref_mv.empty() || !id.metaValueExists("spectrum_reference")) return false;
     return id.getMetaValue("spectrum_reference") == cf.getMetaValue(ref_mv);
   }
 
