@@ -189,7 +189,7 @@ protected:
     setValidFormats_("exp_ms2_out", ListUtils::create<String>("mzML"));
 
     registerFlag_("decharge_ms2", "Decharge the MS2 spectra for scoring", true);
-    
+
     registerFlag_("deisotope_ms2", "Deisotope the MS2 spectra for scoring", true);
 
 
@@ -1001,7 +1001,7 @@ protected:
     bool use_adducts = getFlag_("precursor:use_adducts");
     bool include_unknown_charge = getFlag_("precursor:include_unknown_charge");
     bool single_charge_spectra = getFlag_("decharge_ms2");
-    bool deisotope_spectra = getFlag_("deiosotope_ms2");
+    bool deisotope_spectra = getFlag_("deisotope_ms2");
     if (use_adducts)
     {
       for (const String& adduct_name : potential_adducts)
