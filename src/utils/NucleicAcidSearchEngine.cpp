@@ -626,13 +626,17 @@ protected:
       // deisotope
       // @TODO: what happens here if "precursor_charge" is zero?
       // Check that fragment charge parameters match polarity of parent
-      if ((precursor_charge * frag_max_charge < 0 )|| (precursor_charge * frag_min_charge <0))
+
+      Int base_charge = negative_mode ? -1 : 1;
+      // Check that fragment charge parameters match polarity of parent
+      if ((precursor_charge * base_charge * frag_max_charge < 0 )|| (precursor_charge * base_charge * frag_min_charge <0))
       {
         OPENMS_LOG_ERROR
-              << "Error: Precursor charge state opposite polarity from specified fragement charge state range '"
+              << "Error: Precursor charge state opposite polarity from specified fragment charge state range '"
               << endl;
       }
-      Int temp_frag_max_charge = (abs(frag_max_charge)>abs(precursor_charge)) ? precursor_charge : temp_frag_max_charge;
+ 
+      Int temp_frag_max_charge = (abs(frag_max_charge)>abs(precursor_charge)) ? precursor_charge * base_charge : temp_frag_max_charge;
       deisotopeAndSingleChargeMSSpectrum_(spec, frag_min_charge, temp_frag_max_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
 
       // remove noise
