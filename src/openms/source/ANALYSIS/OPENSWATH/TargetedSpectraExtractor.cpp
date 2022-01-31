@@ -66,6 +66,7 @@ namespace OpenMS
     defaults_.setValue("PeakPickerHiRes:signal_to_noise", 1.0);
 
     defaults_.insert("AccurateMassSearchEngine:", AccurateMassSearchEngine().getDefaults());
+    defaults_.setValue("AccurateMassSearchEngine:keep_unidentified_masses", "false");
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -648,7 +649,7 @@ namespace OpenMS
     const MSSpectrum& input_spectrum,
     const Comparator& cmp,
     std::vector<Match>& matches
-  )
+  ) const
   {
     // TODO: remove times debug info
     // std::clock_t start;

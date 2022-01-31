@@ -571,7 +571,7 @@ namespace OpenMS
 
         if (report_mode_ == "best")
         {
-          if (partial_results.size() > 0)
+          if (!partial_results.empty())
           {
             matching_results.push_back(partial_results[0]);
           }

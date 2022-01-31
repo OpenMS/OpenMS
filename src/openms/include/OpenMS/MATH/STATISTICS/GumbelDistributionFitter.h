@@ -93,7 +93,7 @@ public:
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
-      GumbelDistributionFitResult fit(std::vector<DPosition<2> > & points);
+      GumbelDistributionFitResult fit(std::vector<DPosition<2> > & points) const;
 
       /**
           @brief Fits a gumbel distribution to the given data x values. Fills a

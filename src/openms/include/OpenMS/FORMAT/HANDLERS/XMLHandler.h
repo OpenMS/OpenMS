@@ -421,7 +421,7 @@ public:
 
       /// throws a ParseError if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
       /// Should be called before writing any ProtIDs to file
-      void checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids);
+      void checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids) const;
 
 protected:
       /// Error message of the last error
@@ -575,7 +575,7 @@ protected:
       inline DateTime asDateTime_(String date_string) const
       {
         DateTime date_time;
-        if (date_string != "")
+        if (!date_string.empty())
         {
           try
           {

@@ -142,7 +142,7 @@ public:
   static const String varmod_enable_common;
   static const String variable_modifications_unimod;
   static const String not_allow_multiple_variable_mods_on_residue;
-  static const String max_variable_mods_per_mod;
+  static const String max_variable_mods_per_peptide;
   static const String max_variable_mods_combinations;
 
   // spectrum
@@ -237,7 +237,6 @@ protected:
     const std::vector< double > emptyDoubles;
 
     const StringList validUnits = ListUtils::create<String>("Da,ppm");
-    const StringList isotope_error_and_enzyme_termini = ListUtils::create<String>("0,1,2");
     const StringList zero_to_five = ListUtils::create<String>("0,1,2,3,4,5");
 
     // License agreement
@@ -288,7 +287,7 @@ protected:
 
     // Isotope error
     registerStringOption_(TOPPMSFraggerAdapter::isotope_error, "<isotope_error>", "0", "Isotope correction for MS/MS events triggered on isotopic peaks. Should be set to 0 (disabled) for open search or 0/1/2 for correction of narrow window searches. Shifts the precursor mass window to multiples of this value multiplied by the mass of C13-C12.", false, false);
-    setValidStrings_(TOPPMSFraggerAdapter::isotope_error, isotope_error_and_enzyme_termini);
+    setValidStrings_(TOPPMSFraggerAdapter::isotope_error, ListUtils::create<String>("0,1,2,0/1/2"));
 
     // TOPP digest
     registerTOPPSubsection_("digest", "In-Silico Digestion Parameters");
@@ -341,8 +340,8 @@ protected:
     registerFlag_(TOPPMSFraggerAdapter::not_allow_multiple_variable_mods_on_residue, "Do not allow any one amino acid to be modified by multiple variable modifications", false);
 
     // Max variable mods per mod
-    registerStringOption_(TOPPMSFraggerAdapter::max_variable_mods_per_mod, "<max_variable_mods_per_mod>", "2", "Maximum number of residues that can be occupied by each variable modification", false, false);
-    setValidStrings_(TOPPMSFraggerAdapter::max_variable_mods_per_mod, zero_to_five);
+    registerStringOption_(TOPPMSFraggerAdapter::max_variable_mods_per_peptide, "<max_variable_mods_per_peptide>", "2", "Maximum total number of variable modifications per peptide", false, false);
+    setValidStrings_(TOPPMSFraggerAdapter::max_variable_mods_per_peptide, zero_to_five);
 
     // Max variable mods combinations
     _registerNonNegativeInt(TOPPMSFraggerAdapter::max_variable_mods_combinations, "<max_variable_mods_combinations>", 5000, "Maximum allowed number of modified variably modified peptides from each peptide sequence, (maximum of 65534). If a greater number than the maximum is generated, only the unmodified peptide is considered", false, false);
@@ -506,7 +505,7 @@ protected:
       }
 
       const bool arg_not_allow_multiple_variable_mods_on_residue = this->getFlag_(TOPPMSFraggerAdapter::not_allow_multiple_variable_mods_on_residue);
-      const String & arg_max_variable_mods_per_mod  = this->getStringOption_(TOPPMSFraggerAdapter::max_variable_mods_per_mod);
+      const String & arg_max_variable_mods_per_peptide  = this->getStringOption_(TOPPMSFraggerAdapter::max_variable_mods_per_peptide);
       const int arg_max_variable_mods_combinations = this->getIntOption_(TOPPMSFraggerAdapter::max_variable_mods_combinations);
 
       // spectrum
@@ -606,7 +605,7 @@ protected:
 
 
       // TODO Move to Modified Peptide Generator
-      if (arg_varmod_unimod.size() >= 1)
+      if (!arg_varmod_unimod.empty())
       {
         // String filter for terminal aminoacid modification, delete mod from String list, continue with other unimods
         std::vector< String > n_terminal_aa_mods;
@@ -714,7 +713,7 @@ protected:
       }
 
       // collect all unimod fixed modifications and specify deltamass for each aminoacid
-      if (arg_fixmod_unimod.size() >= 1)
+      if (!arg_fixmod_unimod.empty())
       {
         const ModifiedPeptideGenerator::MapToResidueType fixed_mod = ModifiedPeptideGenerator::getModifications(arg_fixmod_unimod);
         for (auto const & r : fixed_mod.val)
@@ -808,7 +807,7 @@ protected:
 
       os << std::endl
           << "\nallow_multiple_variable_mods_on_residue = " << (arg_not_allow_multiple_variable_mods_on_residue ? 0 : 1)
-          << "\nmax_variable_mods_per_mod = " << arg_max_variable_mods_per_mod
+          << "\nmax_variable_mods_per_peptide = " << arg_max_variable_mods_per_peptide
           << "\nmax_variable_mods_combinations = " << arg_max_variable_mods_combinations
           << "\n\noutput_file_extension = " << "pepXML"
           << "\noutput_format = " << "pepXML"
@@ -1043,7 +1042,7 @@ const String TOPPMSFraggerAdapter::varmod_masses = "varmod:masses";
 const String TOPPMSFraggerAdapter::varmod_syntax = "varmod:syntaxes";
 const String TOPPMSFraggerAdapter::varmod_enable_common = "varmod:enable_common";
 const String TOPPMSFraggerAdapter::not_allow_multiple_variable_mods_on_residue = "varmod:not_allow_multiple_variable_mods_on_residue";
-const String TOPPMSFraggerAdapter::max_variable_mods_per_mod = "varmod:max_variable_mods_per_mod";
+const String TOPPMSFraggerAdapter::max_variable_mods_per_peptide = "varmod:max_variable_mods_per_peptide";
 const String TOPPMSFraggerAdapter::max_variable_mods_combinations = "varmod:max_variable_mods_combinations";
 const String TOPPMSFraggerAdapter::variable_modifications_unimod = "varmod:unimod";
 

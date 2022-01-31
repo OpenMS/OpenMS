@@ -57,9 +57,9 @@ int main()
 
   // Calculate and output the ranges
   map.updateRanges();
-  cout << "Int: " << map.getMinInt() << " - " << map.getMaxInt() << endl;
-  cout << "RT:  " << map.getMin()[0] << " - " << map.getMax()[0] << endl;
-  cout << "m/z: " << map.getMin()[1] << " - " << map.getMax()[1] << endl;
+  cout << "Int: " << map.getMinIntensity() << " - " << map.getMaxIntensity() << endl;
+  cout << "RT:  " << map.getMinRT() << " - " << map.getMaxRT() << endl;
+  cout << "m/z: " << map.getMinMZ() << " - " << map.getMaxMZ() << endl;
 
   // ... and many more
   return 0;

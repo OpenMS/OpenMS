@@ -279,6 +279,7 @@ public:
     {
 public:
       InvalidRange(const char* file, int line, const char* function) noexcept;
+      InvalidRange(const char* file, int line, const char* function, const std::string& message) noexcept;
     };
 
 
@@ -656,6 +657,18 @@ public:
     {
 public:
       IllegalArgument(const char* file, int line, const char* function, const std::string& error_message) noexcept;
+    };
+
+    /**
+      @brief A tool or algorithm which was called internally raised an exception
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI InternalToolError :
+      public BaseException
+    {
+    public:
+      InternalToolError(const char* file, int line, const char* function, const std::string& error_message) noexcept;
     };
 
     /**

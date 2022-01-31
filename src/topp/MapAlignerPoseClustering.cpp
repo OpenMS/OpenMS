@@ -242,9 +242,26 @@ protected:
         FeatureXMLFile f_fxml_tmp; // do not use OMP-firstprivate, since FeatureXMLFile has no copy c'tor
         f_fxml_tmp.getOptions() = f_fxml.getOptions();
         f_fxml_tmp.load(in_files[i], map);
-        if (i == static_cast<int>(reference_index)) trafo.fitModel("identity");
-        else algorithm.align(map, trafo);
-        if (out_files.size())
+        if (i == static_cast<int>(reference_index)) 
+        {
+          trafo.fitModel("identity");
+        }
+        else 
+        {
+          try
+          {
+            algorithm.align(map, trafo);
+          }
+          catch (Exception::IllegalArgument& e)
+          {
+            OPENMS_LOG_ERROR << "Aligning " << in_files[i] << " to reference " << in_files[reference_index]
+                             << " failed. No transformation will be applied (RT not changed for this file)." << endl;
+            writeLog_("Illegal argument (" + String(e.getName()) + "): " + String(e.what()) + ".");
+            trafo.fitModel("identity");
+          }
+        }
+
+        if (!out_files.empty())
         {
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
@@ -264,7 +281,7 @@ protected:
         {
           algorithm.align(map, trafo);
         }
-        if (out_files.size())
+        if (!out_files.empty())
         {
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
@@ -284,7 +301,6 @@ protected:
       {
         plog.setProgress(++progress); // thread safe progress counter
       }
-
     }
 
     plog.endProgress();

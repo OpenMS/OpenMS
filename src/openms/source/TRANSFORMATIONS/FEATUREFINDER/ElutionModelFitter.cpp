@@ -334,6 +334,19 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   }
   delete fitter;
 
+  // check if fit worked for at least one feature
+  bool has_valid_models{false};
+  for (Feature& feature : features)
+  {
+    if (feature.getMetaValue("model_status") == "0 (valid)")
+    {
+      has_valid_models = true;
+      break;
+    }
+  }
+  // no valid feature e.g. because of empty file or blank? return empty features. (subsequent steps assume valid features)
+  if (!has_valid_models) { features.clear(); return; }
+  
   // find outliers in model parameters:
   if (width_limit > 0)
   {

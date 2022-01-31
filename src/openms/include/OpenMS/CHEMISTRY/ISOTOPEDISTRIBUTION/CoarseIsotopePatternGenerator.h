@@ -44,7 +44,7 @@ namespace OpenMS
   /**
     * @ingroup Chemistry
     * @brief Isotope pattern generator for coarse isotope distributions.
-    * 
+    *
     * This algorithm generates theoretical pattern distributions for empirical
     * formulas with resolution of 1Da. It assumes that every isotope has atomic
     * mass that is rounded to the closest integer in Daltons, therefore it
@@ -93,21 +93,17 @@ namespace OpenMS
     * See also method run()
     **/
 
-  class OPENMS_DLLAPI CoarseIsotopePatternGenerator 
+  class OPENMS_DLLAPI CoarseIsotopePatternGenerator
     : public IsotopePatternGenerator
   {
 
  public:
-    CoarseIsotopePatternGenerator();
+    CoarseIsotopePatternGenerator(const Size max_isotope = 0, const bool round_masses = false);
 
-    CoarseIsotopePatternGenerator(const Size& max_isotope);
-
-    CoarseIsotopePatternGenerator(const Size& max_isotope, const bool round_masses);
-
-    virtual ~CoarseIsotopePatternGenerator();
+    ~CoarseIsotopePatternGenerator() override;
 
     /// @name Accessors
-    //@{
+    ///@{
     /** @brief sets the maximal isotope with @p max_isotope
 
             sets the maximal isotope which is included in the distribution
@@ -124,7 +120,7 @@ namespace OpenMS
 
     /// returns the current value of the flag to return expected masses (true) or atomic numbers (false).
     bool getRoundMasses() const;
-    //@}
+    ///@}
 
     /**
       * @brief Creates an isotope distribution from an empirical sum formula
@@ -260,7 +256,7 @@ namespace OpenMS
        @pre average_weight_fragment > 0
        @pre precursor_isotopes.size() > 0
     */
-    IsotopeDistribution estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes);
+    IsotopeDistribution estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes) const;
 
     /**
        @brief Estimate RNA fragment IsotopeDistribution from the precursor's average weight,
@@ -315,7 +311,7 @@ namespace OpenMS
        @pre average_weight_fragment > 0
        @pre precursor_isotopes.size() > 0
     */
-    IsotopeDistribution estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P);
+    IsotopeDistribution estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P) const;
 
     /**
        @brief Calculate isotopic distribution for a fragment molecule
@@ -340,18 +336,18 @@ namespace OpenMS
     CoarseIsotopePatternGenerator& operator=(const CoarseIsotopePatternGenerator& iso);
 
     /// convolves the distributions @p left and @p right and stores the result in @p result
-    IsotopeDistribution::ContainerType convolve_(const IsotopeDistribution::ContainerType & left, const IsotopeDistribution::ContainerType & right) const;
-
-    /// convolves the distribution @p input @p factor times and stores the result in @p result
-    IsotopeDistribution::ContainerType convolvePow_(const IsotopeDistribution::ContainerType & input, Size factor) const;
-
-    /// convolves the distribution @p input with itself and stores the result in @p result
-    IsotopeDistribution::ContainerType convolveSquare_(const IsotopeDistribution::ContainerType & input) const;
-
-    /// converts the masses of distribution @p input from atomic numbers to accurate masses
-    IsotopeDistribution::ContainerType correctMass_(const IsotopeDistribution::ContainerType & input, const double mono_weight) const;
+    IsotopeDistribution::ContainerType convolve(const IsotopeDistribution::ContainerType& left, const IsotopeDistribution::ContainerType& right) const;
 
   protected:
+
+    /// convolves the distribution @p input @p factor times and stores the result in @p result
+    IsotopeDistribution::ContainerType convolvePow_(const IsotopeDistribution::ContainerType& input, Size factor) const;
+
+    /// convolves the distribution @p input with itself and stores the result in @p result
+    IsotopeDistribution::ContainerType convolveSquare_(const IsotopeDistribution::ContainerType& input) const;
+
+    /// converts the masses of distribution @p input from atomic numbers to accurate masses
+    IsotopeDistribution::ContainerType correctMass_(const IsotopeDistribution::ContainerType& input, const double mono_weight) const;
 
     /** @brief calculates the fragment distribution for a fragment molecule and stores it in @p result.
 
@@ -364,7 +360,6 @@ namespace OpenMS
     /// fill a gapped isotope pattern (i.e. certain masses are missing), with zero probability masses
     IsotopeDistribution::ContainerType fillGaps_(const IsotopeDistribution::ContainerType& id) const;
 
- protected:
     /// maximal isotopes which is used to calculate the distribution
     Size max_isotope_;
     /// flag to determine whether masses should be rounded or not
@@ -373,4 +368,3 @@ namespace OpenMS
   };
 
 } // namespace OpenMS
-

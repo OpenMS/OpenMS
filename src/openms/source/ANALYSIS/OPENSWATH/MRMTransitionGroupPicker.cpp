@@ -52,7 +52,7 @@ namespace OpenMS
   {
     defaults_.setValue("stop_after_feature", -1, "Stop finding after feature (ordered by intensity; -1 means do not stop).");
     defaults_.setValue("stop_after_intensity_ratio", 0.0001, "Stop after reaching intensity ratio");
-    defaults_.setValue("min_peak_width", -1.0, "Minimal peak width (s), discard all peaks below this value (-1 means no action).", {"advanced"});
+    defaults_.setValue("min_peak_width", 0.001, "Minimal peak width (s), discard all peaks below this value (-1 means no action).", {"advanced"});
 
     defaults_.setValue("peak_integration", "original", "Calculate the peak area and height either the smoothed or the raw chromatogram data.", {"advanced"});
     defaults_.setValidStrings("peak_integration", {"original","smoothed"});

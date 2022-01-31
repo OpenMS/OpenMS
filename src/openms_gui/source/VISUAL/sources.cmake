@@ -21,7 +21,12 @@ InputFile.ui
 InputFileList.cpp
 InputFileList.ui
 LayerListView.cpp
-LayerData.cpp
+LayerDataBase.cpp
+LayerDataChrom.cpp
+LayerDataConsensus.cpp
+LayerDataFeature.cpp
+LayerDataIdent.cpp
+LayerDataPeak.cpp
 ListEditor.cpp
 LogWindow.cpp
 MetaDataBrowser.cpp
@@ -41,6 +46,8 @@ Plot3DWidget.cpp
 PlotCanvas.cpp
 PlotWidget.cpp
 RecentFilesMenu.cpp
+SequenceVisualizer.cpp
+SequenceVisualizer.ui
 SpectraIDViewTab.cpp
 SpectraTreeTab.cpp
 SwathLibraryStats.cpp

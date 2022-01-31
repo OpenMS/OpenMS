@@ -72,7 +72,7 @@
 		<UserParam type="string" name="parameter: algorithm:MetaboliteFeatureDeconvolution:default_map_label" value="decharged features"/>
 		<UserParam type="int" name="parameter: algorithm:MetaboliteFeatureDeconvolution:verbose_level" value="0"/>
 	</dataProcessing>
-	<IdentificationRun id="PI_0" date="2019-10-22T10:00:43" search_engine="AccurateMassSearch" search_engine_version="">
+	<IdentificationRun id="PI_0" date="2022-01-16T16:27:50" search_engine="AccurateMassSearch" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
@@ -82,7 +82,7 @@
 		<feature id="f_8308517420049663419">
 			<position dim="0">355.507999999979973</position>
 			<position dim="1">235.144546436815318</position>
-			<intensity>12743.556641</intensity>
+			<intensity>1.274356e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>1.054042e-04</overallquality>
@@ -100,7 +100,7 @@
 			<UserParam type="string" name="label" value="T23.2"/>
 			<UserParam type="float" name="FWHM" value="7.11004114151001"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="floatList" name="masstrace_intensity" value="[12743.55710181579343]"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1.274355710181579e04]"/>
 			<UserParam type="floatList" name="masstrace_centroid_rt" value="[355.507999999979973]"/>
 			<UserParam type="floatList" name="masstrace_centroid_mz" value="[235.144546436815318]"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -111,7 +111,7 @@
 		<feature id="f_248283675846367528">
 			<position dim="0">518.841000000000008</position>
 			<position dim="1">332.108359495389948</position>
-			<intensity>77075.710938</intensity>
+			<intensity>7.707571e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>7.195689e-04</overallquality>
@@ -129,7 +129,7 @@
 			<UserParam type="string" name="label" value="T158_T810"/>
 			<UserParam type="float" name="FWHM" value="2.577003717422485"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
-			<UserParam type="floatList" name="masstrace_intensity" value="[77075.70750051928917, 13072.681000091004535]"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[7.707570750051929e04, 1.3072681000091e04]"/>
 			<UserParam type="floatList" name="masstrace_centroid_rt" value="[518.841000000000008, 518.841000000000008]"/>
 			<UserParam type="floatList" name="masstrace_centroid_mz" value="[332.108359495389948, 333.11124488484495]"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.002885389455002]"/>

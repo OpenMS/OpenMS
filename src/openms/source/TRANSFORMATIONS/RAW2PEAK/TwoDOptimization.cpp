@@ -1056,8 +1056,8 @@ namespace OpenMS
           }
           else         // it's a sech peak
           {
-            double x_left_endpoint = mz - 1 / left_width* boost::math::acosh(sqrt(height / 0.001));
-            double x_right_endpoint = mz + 1 / right_width* boost::math::acosh(sqrt(height / 0.001));
+            double x_left_endpoint = mz - 1 / left_width* std::acosh(sqrt(height / 0.001));
+            double x_right_endpoint = mz + 1 / right_width* std::acosh(sqrt(height / 0.001));
             double area_left = -height / left_width * (sinh(left_width * (mz - x_left_endpoint)) / cosh(left_width * (mz - x_left_endpoint)));
             double area_right = -height / right_width * (sinh(right_width * (mz - x_right_endpoint)) / cosh(right_width * (mz - x_right_endpoint)));
             ms_exp[itv->second[j].spectrum][itv->second[j].peak].setIntensity(area_left + area_right);
@@ -1093,19 +1093,19 @@ namespace OpenMS
     struct OpenMS::OptimizationFunctions::PenaltyFactors penalties;
 
     ParamValue pv = param_.getValue("penalties:position");
-    if (pv.isEmpty() || pv.toString() == "")
+    if (pv.isEmpty() || pv.toString().empty())
       penalties.pos = 0.;
     else
       penalties.pos = (float)pv;
 
     pv = param_.getValue("penalties:left_width");
-    if (pv.isEmpty() || pv.toString() == "")
+    if (pv.isEmpty() || pv.toString().empty())
       penalties.lWidth = 1.;
     else
       penalties.lWidth = (float)pv;
 
     pv = param_.getValue("penalties:right_width");
-    if (pv.isEmpty() || pv.toString() == "")
+    if (pv.isEmpty() || pv.toString().empty())
       penalties.rWidth = 1.;
     else
       penalties.rWidth = (float)pv;
@@ -1125,7 +1125,7 @@ namespace OpenMS
 
     UInt max_iteration;
     pv = param_.getValue("iterations");
-    if (pv.isEmpty() || pv.toString() == "")
+    if (pv.isEmpty() || pv.toString().empty())
       max_iteration = 15;
     else
       max_iteration = (UInt)pv;
@@ -1258,8 +1258,8 @@ namespace OpenMS
           else        //It's a Sech - Peak
           {
             PeakShape& ps = peak_shapes[p];
-            double x_left_endpoint = ps.mz_position - 1 / ps.left_width* boost::math::acosh(sqrt(ps.height / 0.001));
-            double x_right_endpoint = ps.mz_position + 1 / ps.right_width* boost::math::acosh(sqrt(ps.height / 0.001));
+            double x_left_endpoint = ps.mz_position - 1 / ps.left_width* std::acosh(sqrt(ps.height / 0.001));
+            double x_right_endpoint = ps.mz_position + 1 / ps.right_width* std::acosh(sqrt(ps.height / 0.001));
             double area_left = ps.height / ps.left_width * (sinh(ps.left_width * (ps.mz_position - x_left_endpoint)) / cosh(ps.left_width * (ps.mz_position - x_left_endpoint)));
             double area_right = -ps.height / ps.right_width * (sinh(ps.right_width * (ps.mz_position - x_right_endpoint)) / cosh(ps.right_width * (ps.mz_position - x_right_endpoint)));
             spec[set_iter->second].setIntensity(area_left + area_right); // area is stored as peak intensity

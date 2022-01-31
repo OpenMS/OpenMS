@@ -113,7 +113,7 @@ protected:
     void updateMembers_() override;
 
 
-    IsotopeType classifyIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it);
+    IsotopeType classifyIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it) const;
 
     double scoreIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it, Map<double, IonScore> & CID_nodes, Size charge = 1);
 

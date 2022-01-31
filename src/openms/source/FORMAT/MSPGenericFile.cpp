@@ -248,14 +248,14 @@ namespace OpenMS
           "The number of points parsed does not coincide with `Num Peaks`.");
       }
 
-      if (synonyms_.size())
+      if (!synonyms_.empty())
       {
         String synon;
         for (const String& s : synonyms_)
         {
           synon += s + synonyms_separator_;
         }
-        if (synon.size())
+        if (!synon.empty())
         {
           synon.pop_back();
         }

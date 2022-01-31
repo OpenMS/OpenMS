@@ -70,7 +70,7 @@ public:
     /// Default constructor
     XMassFile();
     /// Destructor
-    virtual ~XMassFile();
+    ~XMassFile() override;
 
     /**
         @brief Loads a spectrum from a XMass file.

@@ -8,6 +8,7 @@ import os
 
 from pyopenms import String as s
 import numpy as np
+import pandas as pd
 
 print("IMPORTED ", pyopenms.__file__)
 
@@ -845,12 +846,12 @@ def testConsensusMap():
     m.sortBySize()
     m.updateRanges()
 
-    assert isinstance(m.getMin()[0], float)
-    assert isinstance(m.getMin()[0], float)
-    assert isinstance(m.getMax()[1], float)
-    assert isinstance(m.getMax()[1], float)
-    assert isinstance(m.getMinInt(), float)
-    assert isinstance(m.getMaxInt(), float)
+    assert isinstance(m.getMinRT(), float)
+    assert isinstance(m.getMinRT(), float)
+    assert isinstance(m.getMaxMZ(), float)
+    assert isinstance(m.getMaxMZ(), float)
+    assert isinstance(m.getMinIntensity(), float)
+    assert isinstance(m.getMaxIntensity(), float)
 
     m.getIdentifier()
     m.getLoadedFileType()
@@ -1030,7 +1031,7 @@ def testDataProcessing(dp=pyopenms.DataProcessing()):
     dp.getMetaValue
     ac = dp.getProcessingActions()
     assert ac == set(())
-    ac = set([ pyopenms.ProcessingAction.PEAK_PICKING, pyopenms.ProcessingAction.BASELINE_REDUCTION])
+    ac = set([ pyopenms.DataProcessing.ProcessingAction.PEAK_PICKING, pyopenms.DataProcessing.ProcessingAction.BASELINE_REDUCTION])
     dp.setProcessingActions(ac)
     assert len(dp.getProcessingActions() ) == 2
     _testStrOutput(dp.getSoftware().getName())
@@ -2062,12 +2063,12 @@ def testFeatureMap():
 
     fm2.updateRanges()
 
-    assert isinstance(fm2.getMin()[0], float)
-    assert isinstance(fm2.getMin()[1], float)
-    assert isinstance(fm2.getMax()[0], float)
-    assert isinstance(fm2.getMax()[1], float)
-    assert isinstance(fm2.getMinInt(), float)
-    assert isinstance(fm2.getMaxInt(), float)
+    assert isinstance(fm2.getMinRT(), float)
+    assert isinstance(fm2.getMinRT(), float)
+    assert isinstance(fm2.getMaxMZ(), float)
+    assert isinstance(fm2.getMaxMZ(), float)
+    assert isinstance(fm2.getMinIntensity(), float)
+    assert isinstance(fm2.getMaxIntensity(), float)
 
     assert fm2.getProteinIdentifications() == []
     fm2.setProteinIdentifications([])
@@ -2121,10 +2122,28 @@ def testFeatureXMLFile():
     f.setMetaValue(b'mv1', 1)
     f.setMetaValue(b'mv2', 2)
 
-    fm.push_back(f)
+    f.setMetaValue('spectrum_native_id', 'spectrum=123')
+    pep_id = pyopenms.PeptideIdentification()
+    pep_id.insertHit(pyopenms.PeptideHit())
+    f.setPeptideIdentifications([pep_id])
+
     fm.push_back(f)
 
-    assert fm.get_df(meta_values='all').shape == (2, 12)
+    f.setMetaValue('spectrum_native_id', 'spectrum=124')
+    fm.push_back(f)
+
+    assert len(fm.get_assigned_peptide_identifications()) == 2
+    assert fm.get_df(meta_values='all').shape == (2, 16)
+    assert fm.get_df(meta_values='all', export_peptide_identifications=False).shape == (2, 12)
+
+    assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
+                on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (2,22)
+
+    fm = pyopenms.FeatureMap()
+    pyopenms.FeatureXMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_idmapped.featureXML'), fm)
+
+    assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
+                    on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (15,24)
 
     fh = pyopenms.FeatureXMLFile()
     fh.store("test.featureXML", fm)
@@ -2857,6 +2876,7 @@ def testMSExperiment():
      MSExperiment.isSorted
      MSExperiment.get2DPeakDataLong
      MSExperiment.get_df
+     MSExperiment.get_massql_df
     """
     mse = pyopenms.MSExperiment()
     mse_ = copy.copy(mse)
@@ -2874,13 +2894,9 @@ def testMSExperiment():
     assert isinstance(mse.getMaxMZ(), float)
     assert isinstance(mse.getMinMZ(), float)
     _testStrOutput(mse.getLoadedFilePath())
-    assert isinstance(mse.getMinInt(), float)
-    assert isinstance(mse.getMaxInt(), float)
+    assert isinstance(mse.getMinIntensity(), float)
+    assert isinstance(mse.getMaxIntensity(), float)
 
-    assert isinstance(mse.getMin()[0], float)
-    assert isinstance(mse.getMin()[1], float)
-    assert isinstance(mse.getMax()[0], float)
-    assert isinstance(mse.getMax()[1], float)
     mse.setLoadedFilePath("")
     assert mse.size() == 0
 
@@ -2933,6 +2949,14 @@ def testMSExperiment():
         exp.addSpectrum(s)
 
     assert exp.get_df().shape == (3,3)
+
+    pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)
+
+    ms1_df, ms2_df = exp.get_massql_df()
+
+    assert ms1_df.shape == (140055, 7)
+
+    assert np.allclose(ms2_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS2_MassQL.tsv'), sep='\t'))
 
 
 @report
@@ -3057,10 +3081,10 @@ def testMSSpectrum():
     spec.updateRanges()
     assert isinstance(spec.findNearest(0.0), int)
 
-    assert isinstance(spec.getMin()[0], float)
-    assert isinstance(spec.getMax()[0], float)
-    assert isinstance(spec.getMinInt(), float)
-    assert isinstance(spec.getMaxInt(), float)
+    assert isinstance(spec.getMinMZ(), float)
+    assert isinstance(spec.getMaxMZ(), float)
+    assert isinstance(spec.getMinIntensity(), float)
+    assert isinstance(spec.getMaxIntensity(), float)
 
     assert spec == spec
     assert not spec != spec
@@ -3315,10 +3339,10 @@ def testMSChromatogram():
     chrom.updateRanges()
     assert isinstance(chrom.findNearest(0.0), int)
 
-    assert isinstance(chrom.getMin()[0], float)
-    assert isinstance(chrom.getMax()[0], float)
-    assert isinstance(chrom.getMinInt(), float)
-    assert isinstance(chrom.getMaxInt(), float)
+    assert isinstance(chrom.getMinRT(), float)
+    assert isinstance(chrom.getMaxRT(), float)
+    assert isinstance(chrom.getMinIntensity(), float)
+    assert isinstance(chrom.getMaxIntensity(), float)
 
     assert chrom == chrom
     assert not chrom != chrom
@@ -4259,6 +4283,7 @@ def testProcessingAction():
      ProcessingAction.FEATURE_GROUPING
      ProcessingAction.FILTERING
      ProcessingAction.FORMAT_CONVERSION
+     ProcessingAction.IDENTIFICATION
      ProcessingAction.IDENTIFICATION_MAPPING
      ProcessingAction.NORMALIZATION
      ProcessingAction.PEAK_PICKING
@@ -4266,28 +4291,30 @@ def testProcessingAction():
      ProcessingAction.QUANTITATION
      ProcessingAction.SIZE_OF_PROCESSINGACTION
      ProcessingAction.SMOOTHING
+
     """
-    assert isinstance(pyopenms.ProcessingAction.ALIGNMENT, int)
-    assert isinstance(pyopenms.ProcessingAction.BASELINE_REDUCTION, int)
-    assert isinstance(pyopenms.ProcessingAction.CALIBRATION, int)
-    assert isinstance(pyopenms.ProcessingAction.CHARGE_CALCULATION, int)
-    assert isinstance(pyopenms.ProcessingAction.CHARGE_DECONVOLUTION, int)
-    assert isinstance(pyopenms.ProcessingAction.CONVERSION_DTA, int)
-    assert isinstance(pyopenms.ProcessingAction.CONVERSION_MZDATA, int)
-    assert isinstance(pyopenms.ProcessingAction.CONVERSION_MZML, int)
-    assert isinstance(pyopenms.ProcessingAction.CONVERSION_MZXML, int)
-    assert isinstance(pyopenms.ProcessingAction.DATA_PROCESSING, int)
-    assert isinstance(pyopenms.ProcessingAction.DEISOTOPING, int)
-    assert isinstance(pyopenms.ProcessingAction.FEATURE_GROUPING, int)
-    assert isinstance(pyopenms.ProcessingAction.FILTERING, int)
-    assert isinstance(pyopenms.ProcessingAction.FORMAT_CONVERSION, int)
-    assert isinstance(pyopenms.ProcessingAction.IDENTIFICATION_MAPPING, int)
-    assert isinstance(pyopenms.ProcessingAction.NORMALIZATION, int)
-    assert isinstance(pyopenms.ProcessingAction.PEAK_PICKING, int)
-    assert isinstance(pyopenms.ProcessingAction.PRECURSOR_RECALCULATION, int)
-    assert isinstance(pyopenms.ProcessingAction.QUANTITATION, int)
-    assert isinstance(pyopenms.ProcessingAction.SIZE_OF_PROCESSINGACTION, int)
-    assert isinstance(pyopenms.ProcessingAction.SMOOTHING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.ALIGNMENT, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.BASELINE_REDUCTION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CALIBRATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CHARGE_CALCULATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CHARGE_DECONVOLUTION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CONVERSION_DTA, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CONVERSION_MZDATA, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CONVERSION_MZML, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CONVERSION_MZXML, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.DATA_PROCESSING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.DEISOTOPING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.FEATURE_GROUPING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.FILTERING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.FORMAT_CONVERSION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.IDENTIFICATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.IDENTIFICATION_MAPPING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.NORMALIZATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.PEAK_PICKING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.PRECURSOR_RECALCULATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.QUANTITATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.SIZE_OF_PROCESSINGACTION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.SMOOTHING, int)
 
 
 @report

@@ -468,14 +468,14 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
 
       double score = zhang_(CID_sim_spec, CID_spec);
 
-      if (boost::math::isnan(score))
+      if (std::isnan(score))
       {
         score = 0;
       }
 
       score /= it->size();
 
-      if (boost::math::isnan(score))
+      if (std::isnan(score))
       {
         score = 0;
       }

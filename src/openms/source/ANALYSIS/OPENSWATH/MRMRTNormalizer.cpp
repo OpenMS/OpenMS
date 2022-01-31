@@ -262,7 +262,7 @@ namespace OpenMS
 
     double d = fabs(residuals[pos] - mean) / stdev;
     d /= pow(2.0, 0.5);
-    double prob = boost::math::erfc(d);
+    double prob = std::erfc(d);
 
     return prob;
   }

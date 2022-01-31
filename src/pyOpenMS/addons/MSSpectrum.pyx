@@ -125,20 +125,19 @@ import numpy as np
 
     def intensityInRange(self, float mzmin, float mzmax):
 
-        cdef int n
         cdef double I
 
         cdef _MSSpectrum * spec_ = self.inst.get()
         cdef int N = spec_.size()
 
-        I = 0
+        I = 0.0
         for i in range(N):
                 if deref(spec_)[i].getMZ() >= mzmin:
                     break
 
         cdef _Peak1D * p
         for j in range(i, N):
-                p = address(deref(spec_)[i])
+                p = address(deref(spec_)[j])
                 if p.getMZ() > mzmax:
                     break
                 I += p.getIntensity()

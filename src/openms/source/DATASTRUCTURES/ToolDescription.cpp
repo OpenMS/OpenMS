@@ -96,8 +96,8 @@ namespace OpenMS
       if (is_internal != other.is_internal
          || name != other.name
           //|| category != other.category
-         || (is_internal && external_details.size() > 0)
-         || (other.is_internal && other.external_details.size() > 0)
+         || (is_internal && !external_details.empty())
+         || (other.is_internal && !other.external_details.empty())
          || (!is_internal && external_details.size() != types.size())
          || (!other.is_internal && other.external_details.size() != other.types.size())
           )

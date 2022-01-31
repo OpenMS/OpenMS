@@ -437,14 +437,14 @@ namespace OpenMS
       replace(base_name.begin(), base_name.end(), '.', '_');
     }
 
-    f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
-    f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd\" summary_xml=\".xml\">" << "\n";
-    f << "<msms_run_summary base_name=\"" << base_name << "\" raw_data_type=\"raw\" raw_data=\"." << raw_data << "\" search_engine=\"" << search_engine_name << "\">" << "\n";
+    f << R"(<?xml version="1.0" encoding="UTF-8"?>)" << "\n";
+    f << R"(<msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd" summary_xml=".xml">)" << "\n";
+    f << "<msms_run_summary base_name=\"" << base_name << R"(" raw_data_type="raw" raw_data=".)" << raw_data << "\" search_engine=\"" << search_engine_name << "\">" << "\n";
     String enzyme_name = search_params.digestion_enzyme.getName();
     f << "\t<sample_enzyme name=\"";
     f << enzyme_name.toLower() << "\">" << "\n";
     f << "\t\t<specificity cut=\"";
-    if (search_params.digestion_enzyme.getRegEx() != "")
+    if (!search_params.digestion_enzyme.getRegEx().empty())
     {
       vector<String> sub_regex;
       search_params.digestion_enzyme.getRegEx().split(")",sub_regex);
@@ -459,7 +459,7 @@ namespace OpenMS
         f << "\" no_cut=\"P";
       }
     }
-    f << "\" sense=\"C\"/>" << "\n";
+    f << R"(" sense="C"/>)" << "\n";
     f << "\t</sample_enzyme>" << "\n";
 
     f << "\t<search_summary base_name=\"" << base_name;
@@ -482,8 +482,8 @@ namespace OpenMS
     {
       f << "average";
     }
-    f << "\" out_data_type=\"\" out_data=\"\" search_id=\"1\">" << "\n";
-    f << "\t\t<search_database local_path=\"" << search_params.db << "\" type=\"AA\"/>" << "\n";
+    f << R"(" out_data_type="" out_data="" search_id="1">)" << "\n";
+    f << "\t\t<search_database local_path=\"" << search_params.db << R"(" type="AA"/>)" << "\n";
 
 
     // register modifications
@@ -534,7 +534,7 @@ namespace OpenMS
         << "<aminoacid_modification aminoacid=\"" << mod->getOrigin()
         << "\" massdiff=\"" << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\""
         << precisionWrapper(ef.getMonoWeight())
-        << "\" variable=\"Y\" binary=\"N\" description=\"" << *it << "\"/>"
+        << R"(" variable="Y" binary="N" description=")" << *it << "\"/>"
         << "\n";
     }
 
@@ -542,20 +542,20 @@ namespace OpenMS
     {
       const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::N_TERM);
       f << "\t\t"
-        << "<terminal_modification terminus=\"n\" massdiff=\""
+        << R"(<terminal_modification terminus="n" massdiff=")"
         << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod->getMonoMass())
-        << "\" variable=\"Y\" description=\"" << *it
-        << "\" protein_terminus=\"\"/>" << "\n";
+        << R"(" variable="Y" description=")" << *it
+        << R"(" protein_terminus=""/>)" << "\n";
     }
 
     for (set<String>::const_iterator it = c_term_mods.begin(); it != c_term_mods.end(); ++it)
     {
       const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::C_TERM);
       f << "\t\t"
-        << "<terminal_modification terminus=\"c\" massdiff=\""
+        << R"(<terminal_modification terminus="c" massdiff=")"
         << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod->getMonoMass())
-        << "\" variable=\"Y\" description=\"" << *it
-        << "\" protein_terminus=\"\"/>" << "\n";
+        << R"(" variable="Y" description=")" << *it
+        << R"(" protein_terminus=""/>)" << "\n";
     }
 
     f << "\t</search_summary>" << "\n";
@@ -673,15 +673,15 @@ namespace OpenMS
 
         f << pe.getProteinAccession();
 
-        f << "\" num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
-          << "\" massdiff=\"0.0\" num_tol_term=\"";
+        f << R"(" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass=")" << precisionWrapper(precursor_neutral_mass)
+          << R"(" massdiff="0.0" num_tol_term=")";
         Int num_tol_term = 1;
         if ((pe.getAABefore() == 'R' || pe.getAABefore() == 'K') && search_params.digestion_enzyme.getName() == "Trypsin")
         {
           num_tol_term = 2;
         }
         f << num_tol_term;
-        f << "\" num_missed_cleavages=\"0\" is_rejected=\"0\" protein_descr=\"Protein No. 1\">" << "\n";
+        f << R"(" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">)" << "\n";
 
         // multiple protein hits: <alternative_protein protein="sp|P0CZ86|GLS24_STRP3" num_tol_term="2" peptide_prev_aa="K" peptide_next_aa="-"/>
         if (pes.size() > 1)
@@ -819,8 +819,8 @@ namespace OpenMS
             // check if score type is XTandem or qvalue/fdr
             if (pep.getScoreType() == "XTandem")
             {
-              f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getScore() << "\"" << "/>\n";
-              f << "\t\t\t<search_score" << " name=\"nextscore\" value=\"";
+              f << "\t\t\t<search_score" << R"( name="hyperscore" value=")" << h.getScore() << "\"" << "/>\n";
+              f << "\t\t\t<search_score" << R"( name="nextscore" value=")";
               if (h.metaValueExists("nextscore"))
               {
                 f << h.getMetaValue("nextscore") << "\"" << "/>\n";
@@ -832,8 +832,8 @@ namespace OpenMS
             }
             else if (h.metaValueExists("XTandem_score"))
             {
-              f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
-              f << "\t\t\t<search_score" << " name=\"nextscore\" value=\"";
+              f << "\t\t\t<search_score" << R"( name="hyperscore" value=")" << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
+              f << "\t\t\t<search_score" << R"( name="nextscore" value=")";
               if (h.metaValueExists("nextscore"))
               {
                 f << h.getMetaValue("nextscore") << "\"" << "/>\n";
@@ -843,29 +843,29 @@ namespace OpenMS
                 f << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
               }
             }
-            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("E-Value") << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("E-Value") << "\"" << "/>\n";
           }
           else if (search_engine_name == "Comet")
           {
-            f << "\t\t\t<search_score" << " name=\"xcorr\" value=\"" << h.getMetaValue("MS:1002252") << "\"" << "/>\n"; // name: Comet:xcorr
-            f << "\t\t\t<search_score" << " name=\"deltacn\" value=\"" << h.getMetaValue("MS:1002253") << "\"" << "/>\n"; // name: Comet:deltacn
-            f << "\t\t\t<search_score" << " name=\"deltacnstar\" value=\"" << h.getMetaValue("MS:1002254") << "\"" << "/>\n"; // name: Comet:deltacnstar
-            f << "\t\t\t<search_score" << " name=\"spscore\" value=\"" << h.getMetaValue("MS:1002255") << "\"" << "/>\n"; // name: Comet:spscore
-            f << "\t\t\t<search_score" << " name=\"sprank\" value=\"" << h.getMetaValue("MS:1002256") << "\"" << "/>\n"; // name: Comet:sprank
-            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("MS:1002257") << "\"" << "/>\n"; // name: Comet:expect
+            f << "\t\t\t<search_score" << R"( name="xcorr" value=")" << h.getMetaValue("MS:1002252") << "\"" << "/>\n"; // name: Comet:xcorr
+            f << "\t\t\t<search_score" << R"( name="deltacn" value=")" << h.getMetaValue("MS:1002253") << "\"" << "/>\n"; // name: Comet:deltacn
+            f << "\t\t\t<search_score" << R"( name="deltacnstar" value=")" << h.getMetaValue("MS:1002254") << "\"" << "/>\n"; // name: Comet:deltacnstar
+            f << "\t\t\t<search_score" << R"( name="spscore" value=")" << h.getMetaValue("MS:1002255") << "\"" << "/>\n"; // name: Comet:spscore
+            f << "\t\t\t<search_score" << R"( name="sprank" value=")" << h.getMetaValue("MS:1002256") << "\"" << "/>\n"; // name: Comet:sprank
+            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("MS:1002257") << "\"" << "/>\n"; // name: Comet:expect
           }
           else if (search_engine_name == "MASCOT")
           {
-            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("EValue") << "\"" << "/>\n";
-            f << "\t\t\t<search_score" << " name=\"ionscore\" value=\"" << h.getScore() << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("EValue") << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << R"( name="ionscore" value=")" << h.getScore() << "\"" << "/>\n";
           }
           else if (search_engine_name == "OMSSA")
           {
-            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getScore() << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getScore() << "\"" << "/>\n";
           }
           else if (search_engine_name == "MSGFPlus")
           {
-            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getScore() << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getScore() << "\"" << "/>\n";
           }
           else if (search_engine_name == "Percolator")
           {
@@ -873,24 +873,24 @@ namespace OpenMS
             if (h.metaValueExists("MS:1001492"))
             {
               svm_score = static_cast<double>(h.getMetaValue("MS:1001492"));
-              f << "\t\t\t<search_score" << " name=\"Percolator_score\" value=\"" << svm_score << "\"" << "/>\n";
+              f << "\t\t\t<search_score" << R"( name="Percolator_score" value=")" << svm_score << "\"" << "/>\n";
             }
             else if (h.metaValueExists("Percolator_score"))
             {
               svm_score = static_cast<double>(h.getMetaValue("Percolator_score"));
-              f << "\t\t\t<search_score" << " name=\"Percolator_score\" value=\"" << svm_score << "\"" << "/>\n";
+              f << "\t\t\t<search_score" << R"( name="Percolator_score" value=")" << svm_score << "\"" << "/>\n";
             }
 
             double qval_score = 0.0;
             if (h.metaValueExists("MS:1001491"))
             {
               qval_score = static_cast<double>(h.getMetaValue("MS:1001491"));
-              f << "\t\t\t<search_score" << " name=\"Percolator_qvalue\" value=\"" << qval_score << "\"" << "/>\n";
+              f << "\t\t\t<search_score" << R"( name="Percolator_qvalue" value=")" << qval_score << "\"" << "/>\n";
             }
             else if (h.metaValueExists("Percolator_qvalue"))
             {
               qval_score = static_cast<double>(h.getMetaValue("Percolator_qvalue"));
-              f << "\t\t\t<search_score" << " name=\"Percolator_qvalue\" value=\"" << qval_score << "\"" << "/>\n";
+              f << "\t\t\t<search_score" << R"( name="Percolator_qvalue" value=")" << qval_score << "\"" << "/>\n";
             }
 
             double pep_score = 0.0;
@@ -910,7 +910,7 @@ namespace OpenMS
                 throw Exception::MissingInformation(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION,"Percolator PEP score missing for pepXML export of Percolator results.");
               }
             }
-            f << "\t\t\t<search_score" << " name=\"Percolator_PEP\" value=\"" << pep_score << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << R"( name="Percolator_PEP" value=")" << pep_score << "\"" << "/>\n";
 
             f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
             f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << 1. - pep_score << "\"";

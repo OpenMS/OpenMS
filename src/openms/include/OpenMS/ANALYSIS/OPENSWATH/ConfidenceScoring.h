@@ -56,7 +56,7 @@ namespace OpenMS
       /// Constructor
       explicit ConfidenceScoring(bool test_mode_ = false);
 
-      virtual ~ConfidenceScoring() {}
+      ~ConfidenceScoring() override {}
 
   protected:
 
@@ -67,7 +67,7 @@ namespace OpenMS
         double rt_coef;
         double int_coef;
 
-        double operator()(double diff_rt, double dist_int)
+        double operator()(double diff_rt, double dist_int) const
         {
           double lm = intercept + rt_coef * diff_rt * diff_rt + 
             int_coef * dist_int;
@@ -81,7 +81,7 @@ namespace OpenMS
         double min_rt;
         double max_rt;
         
-        double operator()(double rt)
+        double operator()(double rt) const
         {
           return (rt - min_rt) / (max_rt - min_rt) * 100;
         }

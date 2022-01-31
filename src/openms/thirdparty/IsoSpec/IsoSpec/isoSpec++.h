@@ -113,7 +113,7 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     static inline Iso FromFASTA(const std::string& fasta, bool use_nominal_masses = false, bool add_water = true) { return FromFASTA(fasta.c_str(), use_nominal_masses, add_water); }
 
     //! The move constructor.
-    Iso(Iso&& other);
+    Iso(Iso&& other) noexcept ;
 
     /* We're not exactly following standard copy and assign semantics with Iso objects, so delete the default assign constructor just in case, so noone tries to use it. Copy ctor declared below. */
     Iso& operator=(const Iso& other) = delete;
@@ -219,7 +219,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoGenerator : public Iso
     IsoGenerator(Iso&& iso, bool alloc_partials = true);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Destructor.
-    virtual ~IsoGenerator();
+    ~IsoGenerator() override;
 };
 
 
@@ -249,14 +249,14 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGenerator: public IsoGenerator
     IsoOrderedGenerator(const IsoOrderedGenerator& other) = delete;
     IsoOrderedGenerator& operator=(const IsoOrderedGenerator& other) = delete;
 
-    bool advanceToNextConfiguration() override final;
+    bool advanceToNextConfiguration() final;
 
     //! Save the counts of isotopes in the space.
     /*!
         \param space An array where counts of isotopes shall be written.
                      Must be as big as the overall number of isotopes.
     */
-    inline void get_conf_signature(int* space) const override final
+    inline void get_conf_signature(int* space) const final
     {
         int* c = getConf(topConf);
 
@@ -277,7 +277,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGenerator: public IsoGenerator
     IsoOrderedGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Destructor.
-    virtual ~IsoOrderedGenerator();
+    ~IsoOrderedGenerator() override;
 };
 
 
@@ -309,7 +309,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
     IsoThresholdGenerator(const IsoThresholdGenerator& other) = delete;
     IsoThresholdGenerator& operator=(const IsoThresholdGenerator& other) = delete;
 
-    inline void get_conf_signature(int* space) const override final
+    inline void get_conf_signature(int* space) const final
     {
         counter[0] = lProbs_ptr - lProbs_ptr_start;
         if(marginalOrder != nullptr)
@@ -342,11 +342,11 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
     */
     IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute = true, int _tabSize = 1000, int _hashSize = 1000, bool reorder_marginals = true);
 
-    ~IsoThresholdGenerator();
+    ~IsoThresholdGenerator() override;
 
     // Perform highly aggressive inling as this function is often called as while(advanceToNextConfiguration()) {}
     // which leads to an extremely tight loop and some compilers miss this (potentially due to the length of the function).
-    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() final
     {
         lProbs_ptr++;
 
@@ -385,9 +385,9 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
     }
 
 
-    ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr)); }
-    ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(lProbs_ptr - lProbs_ptr_start); }
-    ISOSPEC_FORCE_INLINE double prob()  const override final { return partialProbs[1] * marginalResults[0]->get_prob(lProbs_ptr - lProbs_ptr_start); }
+    ISOSPEC_FORCE_INLINE double lprob() const final { return partialLProbs_second_val + (*(lProbs_ptr)); }
+    ISOSPEC_FORCE_INLINE double mass()  const final { return partialMasses[1] + marginalResults[0]->get_mass(lProbs_ptr - lProbs_ptr_start); }
+    ISOSPEC_FORCE_INLINE double prob()  const final { return partialProbs[1] * marginalResults[0]->get_prob(lProbs_ptr - lProbs_ptr_start); }
 
     //! Block the subsequent search of isotopologues.
     void terminate_search();
@@ -455,7 +455,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
     IsoLayeredGenerator(const IsoLayeredGenerator& other) = delete;
     IsoLayeredGenerator& operator=(const IsoLayeredGenerator& other) = delete;
 
-    inline void get_conf_signature(int* space) const override final
+    inline void get_conf_signature(int* space) const final
     {
         counter[0] = lProbs_ptr - lProbs_ptr_start;
         if(marginalOrder != nullptr)
@@ -481,9 +481,9 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
 
     IsoLayeredGenerator(Iso&& iso, int _tabSize = 1000, int _hashSize = 1000, bool reorder_marginals = true, double t_prob_hint = 0.99);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
-    ~IsoLayeredGenerator();
+    ~IsoLayeredGenerator() override;
 
-    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() final
     {
         do
         {
@@ -505,9 +505,9 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
         return false;
     }
 
-    ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr)); };
-    ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(lProbs_ptr - lProbs_ptr_start); };
-    ISOSPEC_FORCE_INLINE double prob()  const override final { return partialProbs[1] * marginalResults[0]->get_prob(lProbs_ptr - lProbs_ptr_start); };
+    ISOSPEC_FORCE_INLINE double lprob() const final { return partialLProbs_second_val + (*(lProbs_ptr)); };
+    ISOSPEC_FORCE_INLINE double mass()  const final { return partialMasses[1] + marginalResults[0]->get_mass(lProbs_ptr - lProbs_ptr_start); };
+    ISOSPEC_FORCE_INLINE double prob()  const final { return partialProbs[1] * marginalResults[0]->get_prob(lProbs_ptr - lProbs_ptr_start); };
 
     //! Block the subsequent search of isotopologues.
     void terminate_search();
@@ -551,15 +551,15 @@ class IsoStochasticGenerator : IsoGenerator
 
     ISOSPEC_FORCE_INLINE size_t count() const { return current_count; }
 
-    ISOSPEC_FORCE_INLINE double mass() const override final { return ILG.mass(); }
+    ISOSPEC_FORCE_INLINE double mass() const final { return ILG.mass(); }
 
-    ISOSPEC_FORCE_INLINE double prob() const override final { return static_cast<double>(count()); }
+    ISOSPEC_FORCE_INLINE double prob() const final { return static_cast<double>(count()); }
 
-    ISOSPEC_FORCE_INLINE double lprob() const override final { return log(prob()); }
+    ISOSPEC_FORCE_INLINE double lprob() const final { return log(prob()); }
 
-    ISOSPEC_FORCE_INLINE void get_conf_signature(int* space) const override final { ILG.get_conf_signature(space); }
+    ISOSPEC_FORCE_INLINE void get_conf_signature(int* space) const final { ILG.get_conf_signature(space); }
 
-    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() final
     {
         /* This function will be used mainly in very small, tight loops, therefore it makes sense to
          * aggressively inline it, despite its seemingly large body.

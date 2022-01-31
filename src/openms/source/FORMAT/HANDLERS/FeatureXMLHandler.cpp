@@ -44,9 +44,7 @@
 
 using namespace std;
 
-namespace OpenMS
-{
-namespace Internal
+namespace OpenMS::Internal
 {
   FeatureXMLHandler::FeatureXMLHandler(FeatureMap& map, const String& filename) :
     Internal::XMLHandler("", "1.9")
@@ -101,7 +99,7 @@ namespace Internal
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
        << "<featureMap version=\"" << version_ << "\"";
     // file id
-    if (feature_map.getIdentifier() != "")
+    if (!feature_map.getIdentifier().empty())
     {
       os << " document_id=\"" << feature_map.getIdentifier() << "\"";
     }
@@ -299,7 +297,7 @@ namespace Internal
     }
     // do the actual parsing:
     String parent_tag;
-    if (open_tags_.size() != 0)
+    if (!open_tags_.empty())
     {
       parent_tag = open_tags_.back();
     }
@@ -360,7 +358,7 @@ namespace Internal
     {
       String name = attributeAsString_(attributes, s_name);
       String value = attributeAsString_(attributes, s_value);
-      if (name != "" && value != "")
+      if (!name.empty() && !value.empty())
         param_.setValue(name, value);
     }
     else if (tag == "userParam" || tag == "UserParam") // correct: "UserParam". Test for backwards compatibility.
@@ -407,7 +405,7 @@ namespace Internal
       //check file version against schema version
       String file_version = "";
       optionalAttributeAsString_(file_version, attributes, s_version);
-      if (file_version == "")
+      if (file_version.empty())
       {
         file_version = "1.0"; //default version is 1.0
       }
@@ -633,7 +631,7 @@ namespace Internal
         accession_string.trim();
         vector<String> accessions;
         accession_string.split(' ', accessions);
-        if (accession_string != "" && accessions.empty())
+        if (!accession_string.empty() && accessions.empty())
         {
           accessions.push_back(accession_string);
         }
@@ -875,7 +873,7 @@ namespace Internal
       return;
     }
     // we are before first tag or beyond last tag
-    if (open_tags_.size() == 0)
+    if (open_tags_.empty())
     {
       return;
     }
@@ -1138,5 +1136,4 @@ namespace Internal
     }
   }
 
-}
 }

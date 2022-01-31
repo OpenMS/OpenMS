@@ -35,13 +35,7 @@
 #include <OpenMS/INTERFACES/DataStructures.h>
 #include <OpenMS/INTERFACES/ISpectrumAccess.h>
 
-namespace OpenMS
-{
-
-/**
-  @brief Mock implementations of the interfaces (empty ones)
-*/
-namespace Interfaces
+namespace OpenMS::Interfaces
 {
 
   class OPENMS_DLLAPI MockISpectraReader :
@@ -160,5 +154,4 @@ public:
   // create an instance of the mock object to test
   MockIChromatogramsWriter test_mock_chromatograms_writer;
 
-}
 }

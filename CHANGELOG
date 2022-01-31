@@ -16,6 +16,9 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 ------------------------------------------------------------------------------------------
 
 - Deisotoping algorithm using KL
+- Resolve compatibility issues between IDRipper and IDMerger #4957
+- Basic MzTabM support for AccurateMassSearch
+- Changed default parameter keep_unidentified_masses to "true" (AccurateMassSearch/AccurateMassSearchEngine)
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.7                                        ----

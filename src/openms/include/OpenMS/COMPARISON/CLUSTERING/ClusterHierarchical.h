@@ -158,7 +158,7 @@ public:
       float offset, 
       const ClusterFunctor & clusterer, 
       std::vector<BinaryTreeNode> & cluster_tree, 
-      DistanceMatrix<float> & original_distance)
+      DistanceMatrix<float> & original_distance) const
     {
       std::vector<BinnedSpectrum> binned_data;
       binned_data.reserve(data.size());
@@ -188,7 +188,7 @@ public:
     }
 
     /// get the threshold
-    double getThreshold()
+    double getThreshold() const
     {
       return threshold_;
     }

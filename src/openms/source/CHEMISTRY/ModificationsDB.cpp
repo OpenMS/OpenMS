@@ -596,7 +596,7 @@ namespace OpenMS
       line_wo_spaces = line;
       line_wo_spaces.removeWhitespaces();
 
-      if (line == "" || line[0] == '!') //skip empty lines and comments
+      if (line.empty() || line[0] == '!') //skip empty lines and comments
       {
         continue;
       }
@@ -604,7 +604,7 @@ namespace OpenMS
       if (line_wo_spaces == "[Term]")       //new term
       {
         // if the last [Term] was a moon-link, then it does not belong in CrossLinksDB
-        if (id != "" && !reading_cross_link) //store last term
+        if (!id.empty() && !reading_cross_link) //store last term
         {
           // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
           vector<String> origins;
@@ -791,7 +791,7 @@ namespace OpenMS
       }
     }
 
-    if (id != "") //store last term
+    if (!id.empty()) //store last term
     {
       // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
       vector<String> origins;

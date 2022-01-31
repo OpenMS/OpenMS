@@ -80,7 +80,6 @@ public:
     /// Move assignment operator
     Precursor& operator=(Precursor&&) & = default;
 
-
     /// Method of activation
     enum ActivationMethod
     {
@@ -97,6 +96,10 @@ public:
       PHD,                      ///< Photodissociation
       ETD,                      ///< Electron transfer dissociation
       PQD,                      ///< Pulsed q dissociation
+      TRAP,                     ///< trap-type collision-induced dissociation (MS:1002472)
+      HCD,                     ///< beam-type collision-induced dissociation (MS:1000422) "HCD"
+      INSOURCE,                 ///< in-source collision-induced dissociation (MS:1001880)
+      LIFT,                     ///< Bruker proprietary method (MS:1002000)
       SIZE_OF_ACTIVATIONMETHOD
     };
     /// Names of activation methods
@@ -113,7 +116,7 @@ public:
     /// returns a mutable reference to the activation methods
     std::set<ActivationMethod>& getActivationMethods();
     /// convenience function, returning string representation of getActivationMethods()
-    StringList getActivationMethodsAsString() const;
+    StringList getActivationMethodsAsString() const;    
     /// sets the activation methods
     void setActivationMethods(const std::set<ActivationMethod> & activation_methods);
 

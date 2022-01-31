@@ -112,6 +112,11 @@ namespace OpenMS::Internal
           tags.push_back("output file");          
           param_.setValue(name, value, description, tags);
         }
+        else if (type == "output-prefix")
+        {
+          tags.push_back("output prefix");          
+          param_.setValue(name, value, description, tags);
+        }
         else if (type == "float" || type == "double")
         {
           param_.setValue(name, asDouble_(value), description, tags);
@@ -143,11 +148,11 @@ namespace OpenMS::Internal
                 val.split('-', parts); //for downward compatibility
               if (parts.size() == 2)
               {
-                if (parts[0] != "")
+                if (!parts[0].empty())
                 {
                   param_.setMinInt(name, parts[0].toInt());
                 }
-                if (parts[1] != "")
+                if (!parts[1].empty())
                 {
                   param_.setMaxInt(name, parts[1].toInt());
                 }
@@ -171,11 +176,11 @@ namespace OpenMS::Internal
               }
               if (parts.size() == 2)
               {
-                if (parts[0] != "")
+                if (!parts[0].empty())
                 {
                   param_.setMinFloat(name, parts[0].toDouble());
                 }
-                if (parts[1] != "")
+                if (!parts[1].empty())
                 {
                   param_.setMaxFloat(name, parts[1].toDouble());
                 }
@@ -213,7 +218,7 @@ namespace OpenMS::Internal
         //parse description
         String description;
         optionalAttributeAsString_(description, attributes, "description");
-        if (description != "")
+        if (!description.empty())
         {
           description.substitute("#br#", "\n");
         }
@@ -225,8 +230,7 @@ namespace OpenMS::Internal
         String tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
         list_.tags = ListUtils::create<std::string>(tags_string);
-        
-        
+                
         //parse name/type
         list_.type = attributeAsString_(attributes, "type");
         // handle in-/output file correctly
@@ -304,7 +308,7 @@ namespace OpenMS::Internal
         optionalAttributeAsString_(file_version, attributes, "version");
 
         // default version is 1.0
-        if (file_version == "")
+        if (file_version.empty())
         {
           file_version = "1.0";
         }
@@ -356,11 +360,11 @@ namespace OpenMS::Internal
             }
             if (parts.size() == 2)
             {
-              if (parts[0] != "")
+              if (!parts[0].empty())
               {
                 param_.setMinInt(list_.name, parts[0].toInt());
               }
-              if (parts[1] != "")
+              if (!parts[1].empty())
               {
                 param_.setMaxInt(list_.name, parts[1].toInt());
               }
@@ -383,11 +387,11 @@ namespace OpenMS::Internal
             }
             if (parts.size() == 2)
             {
-              if (parts[0] != "")
+              if (!parts[0].empty())
               {
                 param_.setMinFloat(list_.name, parts[0].toDouble());
               }
-              if (parts[1] != "")
+              if (!parts[1].empty())
               {
                 param_.setMaxFloat(list_.name, parts[1].toDouble());
               }

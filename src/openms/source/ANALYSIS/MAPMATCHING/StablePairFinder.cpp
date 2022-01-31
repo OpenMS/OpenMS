@@ -89,8 +89,8 @@ namespace OpenMS
     checkIds_(input_maps);
 
     // set up the distance functor:
-    double max_intensity = max(input_maps[0].getMaxInt(),
-                               input_maps[1].getMaxInt());
+    double max_intensity = max(input_maps[0].getMaxIntensity(),
+                               input_maps[1].getMaxIntensity());
     Param distance_params = param_.copy("");
     distance_params.remove("use_identifications");
     distance_params.remove("second_nearest_gap");

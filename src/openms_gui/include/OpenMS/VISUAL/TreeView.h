@@ -51,7 +51,7 @@ namespace OpenMS
     /// Constructor
     TreeView(QWidget* parent = nullptr);
     /// Destructor
-    virtual ~TreeView() = default;
+    ~TreeView() override = default;
 
     /// sets the visible headers (and the number of columns)
     void setHeaders(const QStringList& headers);

@@ -60,7 +60,7 @@ namespace OpenMS
       m_inputs(dimensions), m_values(numDataPoints), m_data(data)
     {}
 
-    int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
+    int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const
     {
       //TODO: holding the parameters to be optimized and additional values in the same vector is
       //      most likely not the best idea. should be split in two vectors.
@@ -175,7 +175,7 @@ namespace OpenMS
     }
 
     // compute Jacobian matrix for the different parameters
-    int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
+    int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) const
     {
       // For the conventions on x and params c.f. the commentary in residual()
       //
@@ -436,7 +436,7 @@ namespace OpenMS
       // all peaks shall have the same width
       double wl = data.peaks[0].left_width;
       double wr = data.peaks[0].right_width;
-      if (boost::math::isnan(wl))
+      if (std::isnan(wl))
       {
         for (Size i = 0; i < data.peaks.size(); ++i)
         {
@@ -444,7 +444,7 @@ namespace OpenMS
         }
         wl = 1.;
       }
-      if (boost::math::isnan(wr))
+      if (std::isnan(wr))
       {
         for (Size i = 0; i < data.peaks.size(); ++i)
         {
@@ -518,8 +518,8 @@ namespace OpenMS
         else                   //It's a Sech - Peak
         {
           PeakShape p = peaks[current_peak];
-          double x_left_endpoint = p.mz_position + 1 / p.left_width * boost::math::acosh(sqrt(p.height / 0.001));
-          double x_right_endpoint = p.mz_position + 1 / p.right_width * boost::math::acosh(sqrt(p.height / 0.001));
+          double x_left_endpoint = p.mz_position + 1 / p.left_width * std::acosh(sqrt(p.height / 0.001));
+          double x_right_endpoint = p.mz_position + 1 / p.right_width * std::acosh(sqrt(p.height / 0.001));
 #ifdef DEBUG_DECONV
           std::cout << "x_left_endpoint " << x_left_endpoint << " x_right_endpoint " << x_right_endpoint << std::endl;
           std::cout << "p.height" << p.height << std::endl;

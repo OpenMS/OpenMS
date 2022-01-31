@@ -145,6 +145,11 @@ namespace OpenMS
             os << escapeXML(param_it->value.toString()) << R"(" type="output-file")";
             tag_list.erase("output file");
           }
+          else if (tag_list.find("output prefix") != tag_list.end())
+          {
+            os << escapeXML(param_it->value.toString()) << R"(" type="output-prefix")";
+            tag_list.erase("output prefix");
+          }          
           else if (param_it->valid_strings.size() == 2 &&
                    param_it->valid_strings[0] == "true" &&
                    param_it->valid_strings[1] == "false" &&
@@ -290,7 +295,9 @@ namespace OpenMS
           if (!restrictions.empty())
           {
             if (param_it->tags.find("input file") != param_it->tags.end() ||
-                param_it->tags.find("output file") != param_it->tags.end())
+                param_it->tags.find("output file") != param_it->tags.end() ||
+                param_it->tags.find("output prefix") != param_it->tags.end()                
+               )
             {
               os << " supported_formats=\"" << escapeXML(restrictions) << "\"";
             }

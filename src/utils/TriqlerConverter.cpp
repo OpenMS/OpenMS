@@ -110,7 +110,7 @@ protected:
     }
 
     // the main_ function is called after all parameters are read
-    ExitCodes main_(int, const char **) final override
+    ExitCodes main_(int, const char **) final 
     {
       try
       {

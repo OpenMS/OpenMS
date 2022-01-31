@@ -130,7 +130,7 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
-    if (target_file != "")
+    if (!target_file.empty())
     {
       target_run = QFileInfo(QString::fromStdString(target_file)).baseName();
     }
@@ -150,7 +150,7 @@ protected:
     }
 
     //TODO care for QualityParameter s
-    if (target_run == "")
+    if (target_run.empty())
     {
       for (Size i = 0; i < qp_accs.size(); ++i)
       {
