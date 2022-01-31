@@ -28,8 +28,8 @@ cdef extern from "<OpenMS/METADATA/ID/ParentSequence.h>" namespace "OpenMS::Iden
     ParentSequences(ParentSequences & other) nogil except +
 
   cdef cppclass ParentSequenceRef:
-      ParentSequenceRef() nogil except +
-      ParentSequenceRef(const ParentSequenceRef & other) nogil except +
-      bool operator!=(const ParentSequenceRef & other) nogil except +
-      bool operator<(const ParentSequenceRef & other) nogil except +
-      ParentSequence deref()
+    ParentSequenceRef() nogil except +
+    ParentSequenceRef(const ParentSequenceRef & other) nogil except +
+    bool operator!=(const ParentSequenceRef & other) nogil except +
+    bool operator<(const ParentSequenceRef & other) nogil except +
+    ParentSequence deref() nogil except +

@@ -61,8 +61,31 @@ namespace OpenMS
         boost::multi_index::member<
           ParentGroup, std::set<ParentSequenceRef>,
           &ParentGroup::parent_refs>>>
-      > ParentGroups;
-    typedef IteratorWrapper<ParentGroups::iterator, ParentGroup> ParentGroupRef;
+      > PaGrs;
+
+    struct ParentGroups: public PaGrs
+    {
+      ParentGroups(): PaGrs()
+      {}
+      ParentGroups(const ParentGroups& other): PaGrs(other)
+      {}
+      ParentGroups(const PaGrs & other): PaGrs(other)
+      {}
+    };
+
+    typedef IteratorWrapper<ParentGroups::iterator, ParentGroup> PaGrR;
+
+    struct ParentGroupRef: public PaGrR
+    {
+      ParentGroupRef(): PaGrR()
+      {}
+      ParentGroupRef(const ParentGroupRef & other) : PaGrR(other)
+      {}
+      ParentGroupRef(const PaGrR & other) : PaGrR(other)
+      {}
+      ParentGroupRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::ParentGroup, std::allocator<OpenMS::IdentificationDataInternal::ParentGroup> > > >& other): PaGrR(other)
+      {}
+    };
 
     /** @brief Set of groups of ambiguously identified parent sequences (e.g. results of running a protein inference algorithm)
     */
