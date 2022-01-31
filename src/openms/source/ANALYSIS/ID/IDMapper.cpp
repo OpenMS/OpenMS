@@ -249,6 +249,23 @@ namespace OpenMS
     annotate(map, peptide_ids, protein_ids, clear_ids, map_ms1);
   }
 
+  bool isMatchByNativeID(const String& reference_id, const PeptideIdentification& id, ConsensusFeature& cf)
+  {
+    // check if the native id of an identifying spectrum is annotated            
+    String ref_mv;
+    if (map[cm_index].metaValueExists("id_scan_id")) // identifying MS2 spectrum in MS3 TMT
+    {
+      ref_mv = "id_scan_id";
+    }
+    else if (map[cm_index].metaValueExists("scan_id")) // identifying MS2 spectrum in standard TMT
+    {
+      ref_mv = "scan_id";
+    }
+
+    // return if no meta info to match ids between spectra and consensus features?
+    if (reference_id.empty() || !id.metaValueExists("spectrum_reference")) return false;
+    return id.getMetaValue("spectrum_reference") == cf.getMetaValue(ref_mv);
+  }
 
   void IDMapper::annotate(
     ConsensusMap& map,
@@ -322,17 +339,8 @@ namespace OpenMS
           //check if we compare distance from centroid or subelements
           if (!measure_from_subelements)
           {
-            String ref_mv = "";
-            if (map[cm_index].metaValueExists("id_scan_id")) // MS3 TMT
-            {
-              ref_mv = "id_scan_id";
-            }
-            else if (map[cm_index].metaValueExists("scan_id"))
-            {
-              ref_mv = "scan_id";
-            }
-            if ((!ref_mv.empty() && ids[i].metaValueExists("spectrum_reference") && (ids[i].getMetaValue("spectrum_reference") == map[cm_index].getMetaValue(ref_mv))) ||
-                (isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, map[cm_index].getCharge()))))
+            if (isMatchByNativeID(ref_mv, ids[i], map[cm_index]) || // can we match by native ids? if not, match by rt/mz
+               (isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, map[cm_index].getCharge()))))
             {
               id_mapped = true;
               was_added = true;
