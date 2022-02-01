@@ -43,10 +43,6 @@
 
 using namespace OpenMS;
 
-//-------------------------------------------------------------
-//Doxygen docu
-//-------------------------------------------------------------
-
 /**
   @page TOPP_PeptideIndexer PeptideIndexer
 

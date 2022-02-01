@@ -152,7 +152,7 @@ public:
     /// Default destructor
     ~PeptideIndexing() override;
 
-    /// forward for old interface and pyOpenMS; use run<T>() for more control
+    /// forward for old interface and pyOpenMS; use other run() methods for more control
     ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
 
     /**
@@ -190,16 +190,21 @@ public:
     @return Exit status codes.
 
     */
-    template<typename T>
-    ExitCodes run(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+    ExitCodes run(FASTAContainer<TFI_File>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
 
+    /// Same as run() with TFI_File, but for proteins which are already in memory
+    ExitCodes run(FASTAContainer<TFI_Vector>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+
+    /// Which string is used to determine if a protein is a decoy or not
     const String& getDecoyString() const;
 
+    /// Is the decoy string position a prefix or suffix?
     bool isPrefix() const;
 
  protected:
-
     void updateMembers_() override;
+
+    template<typename T> ExitCodes run_(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
 
     String decoy_string_{};
     bool prefix_{ false };

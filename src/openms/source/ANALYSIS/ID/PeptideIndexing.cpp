@@ -241,7 +241,23 @@ using namespace std;
     mm_max_ = static_cast<Int>(param_.getValue("mismatches_max"));
   }
 
-const String &PeptideIndexing::getDecoyString() const
+PeptideIndexing::ExitCodes PeptideIndexing::run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
+{
+  FASTAContainer<TFI_Vector> protein_container(proteins);
+  return run_<TFI_Vector>(protein_container, prot_ids, pep_ids);
+}
+
+PeptideIndexing::ExitCodes PeptideIndexing::run(FASTAContainer<TFI_File>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
+{
+  return run_<TFI_File>(proteins, prot_ids, pep_ids);
+}
+
+PeptideIndexing::ExitCodes PeptideIndexing::run(FASTAContainer<TFI_Vector>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
+{
+  return run_<TFI_Vector>(proteins, prot_ids, pep_ids);
+}
+
+const String& PeptideIndexing::getDecoyString() const
 {
   return decoy_string_;
 }
@@ -252,7 +268,7 @@ bool PeptideIndexing::isPrefix() const
 }
 
 template<typename T>
-PeptideIndexing::ExitCodes PeptideIndexing::run(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
+PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
 {
   if ((enzyme_name_ == "Chymotrypsin" || enzyme_name_ == "Chymotrypsin/P" || enzyme_name_ == "TrypChymo")
     && IL_equivalent_)
@@ -831,16 +847,6 @@ PeptideIndexing::ExitCodes PeptideIndexing::run(FASTAContainer<T>& proteins, std
     return UNEXPECTED_RESULT;
   }
   return EXECUTION_OK;
-}
-
-// specialize templates here so they get instantiated only once (speeds up compile time and reduces memory usage)
-template OPENMS_DLLAPI PeptideIndexing::ExitCodes PeptideIndexing::run<class TFI_File>(FASTAContainer<TFI_File>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
-template OPENMS_DLLAPI PeptideIndexing::ExitCodes PeptideIndexing::run<class TFI_Vector>(FASTAContainer<TFI_Vector>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
-
-PeptideIndexing::ExitCodes PeptideIndexing::run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
-{
-  FASTAContainer<TFI_Vector> protein_container(proteins);
-  return run<TFI_Vector>(protein_container, prot_ids, pep_ids);
 }
 
 /// @endcond
