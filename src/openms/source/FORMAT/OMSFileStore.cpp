@@ -318,7 +318,8 @@ namespace OpenMS::Internal
       "data_value_id INTEGER NOT NULL, "                        \
       "FOREIGN KEY (parent_id) REFERENCES " + parent_ref + ", " \
       "FOREIGN KEY (data_value_id) REFERENCES DataValue (id), " \
-      "UNIQUE (parent_id, name)");
+      "PRIMARY KEY (parent_id, name)");
+
     // prepare query for inserting data:
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.prepare("INSERT INTO " + table.toQString() + " VALUES ("  \
@@ -960,7 +961,7 @@ namespace OpenMS::Internal
 
     createTable_(
       "ID_IdentifiedCompound",
-      "molecule_id UNIQUE INTEGER NOT NULL, "                           \
+      "molecule_id INTEGER UNIQUE NOT NULL , "                          \
       "formula TEXT, "                                                  \
       "name TEXT, "                                                     \
       "smile TEXT, "                                                    \
@@ -1283,6 +1284,8 @@ namespace OpenMS::Internal
         }
       }
     }
+    // create index on parent_id column
+    query.exec("CREATE INDEX PeakAnnotation_parent_id ON ID_ObservationMatch_PeakAnnotation (parent_id)");
   }
 
 
@@ -1500,9 +1503,9 @@ namespace OpenMS::Internal
   void OMSFileStore::storeMapMetaData_(const FeatureMap& features)
   {
     createTable_("FEAT_MapMetaData",
-                 "unique_id INTEGER, "          \
-                 "identifier TEXT, "            \
-                 "file_path TEXT, "             \
+                 "unique_id INTEGER PRIMARY KEY, "  \
+                 "identifier TEXT, "                \
+                 "file_path TEXT, "                 \
                  "file_type TEXT");
     QSqlQuery query(QSqlDatabase::database(db_name_));
     // @TODO: worth using a prepared query for just one insert?
@@ -1516,6 +1519,7 @@ namespace OpenMS::Internal
     query.bindValue(":file_path", features.getLoadedFilePath().toQString());
     String file_type = FileTypes::typeToName(features.getLoadedFileType());
     query.bindValue(":file_type", file_type.toQString());
+
     if (!query.exec())
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,

@@ -498,7 +498,7 @@ endforeach()
 	
 # fixup these dependencies (i.e. get other dynamic dependencies recursively)
 if (APPLE) ## On APPLE use our script because the executables need to be relinked
-## this is done before setup.py so that we fixup the resulting pyopenms.so's too
+## this is done after "setup.py build_ext" but before setup.py bdist_wheel so that we fixup the resulting pyopenms.so's too
 else()
     ## Assemble common required non-system libraries
     ## Note that we do not need the QT plugins or QTGui libraries since we do not include GUI tools here.
@@ -558,10 +558,10 @@ IF(LINUX AND PY_NO_OUTPUT)
             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
             DEPENDS compile_pxds prepare_pyopenms_libs
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ELSEIF(APPLE) # We need to still copy libs with our script
+ELSEIF(APPLE) # We need to still copy libs with our script. Do it before the actual build, so the fixed up names are included in the .so files
   add_custom_command(
             OUTPUT ${PYSOFILES}
-            COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -v
+	    COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -v
             COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
             DEPENDS compile_pxds prepare_pyopenms_libs

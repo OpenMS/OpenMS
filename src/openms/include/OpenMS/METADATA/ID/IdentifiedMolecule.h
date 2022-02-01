@@ -37,17 +37,21 @@
 #include <OpenMS/METADATA/ID/MetaData.h>
 #include <OpenMS/METADATA/ID/IdentifiedCompound.h>
 #include <OpenMS/METADATA/ID/IdentifiedSequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
-#include <boost/variant.hpp>
+#include <variant>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    typedef boost::variant<IdentifiedPeptideRef, IdentifiedCompoundRef,
+    typedef std::variant<IdentifiedPeptideRef, IdentifiedCompoundRef,
                            IdentifiedOligoRef> RefVariant;
 
-    struct IdentifiedMolecule: public RefVariant
+    /**
+      @brief Variant type holding Peptide/Compound/Oligo references and convenience functions.
+    **/
+    struct OPENMS_DLLAPI IdentifiedMolecule: public RefVariant
     {
       IdentifiedMolecule() = default;
 
@@ -57,111 +61,24 @@ namespace OpenMS
 
       IdentifiedMolecule(const IdentifiedMolecule&) = default;
 
-      bool operator==(const IdentifiedMolecule& other) const
-      {
-        return RefVariant::operator==(static_cast<RefVariant>(other));
-      }
+      MoleculeType getMoleculeType() const;
 
-      bool operator!=(const IdentifiedMolecule& other) const
-      {
-        return !operator==(other);
-      }
+      IdentifiedPeptideRef getIdentifiedPeptideRef() const;
 
-      bool operator<(const IdentifiedMolecule& other) const
-      {
-        return RefVariant::operator<(static_cast<RefVariant>(other));
-      }
+      IdentifiedCompoundRef getIdentifiedCompoundRef() const;
 
-      MoleculeType getMoleculeType() const
-      {
-        if (boost::get<IdentifiedPeptideRef>(this))
-        {
-          return MoleculeType::PROTEIN;
-        }
-        if (boost::get<IdentifiedCompoundRef>(this))
-        {
-          return MoleculeType::COMPOUND;
-        }
-        // if (boost::get<IdentifiedOligoRef>(this))
-        return MoleculeType::RNA;
-      }
+      IdentifiedOligoRef getIdentifiedOligoRef() const;
 
-      IdentifiedPeptideRef getIdentifiedPeptideRef() const
-      {
-        if (const IdentifiedPeptideRef* ref_ptr =
-            boost::get<IdentifiedPeptideRef>(this))
-        {
-          return *ref_ptr;
-        }
-        String msg = "matched molecule is not a peptide";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
-      }
+      String toString() const;
 
-      IdentifiedCompoundRef getIdentifiedCompoundRef() const
-      {
-        if (const IdentifiedCompoundRef* ref_ptr =
-            boost::get<IdentifiedCompoundRef>(this))
-        {
-          return *ref_ptr;
-        }
-        String msg = "matched molecule is not a compound";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
-      }
-
-      IdentifiedOligoRef getIdentifiedOligoRef() const
-      {
-        if (const IdentifiedOligoRef* ref_ptr =
-            boost::get<IdentifiedOligoRef>(this))
-        {
-          return *ref_ptr;
-        }
-        String msg = "matched molecule is not an oligonucleotide";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
-      }
-
-      String toString() const
-      {
-        switch (getMoleculeType())
-        {
-          case MoleculeType::PROTEIN:
-            return getIdentifiedPeptideRef()->sequence.toString();
-          case MoleculeType::COMPOUND:
-            return getIdentifiedCompoundRef()->identifier; // or use "name"?
-          case MoleculeType::RNA:
-            return getIdentifiedOligoRef()->sequence.toString();
-          default:
-            throw Exception::NotImplemented(__FILE__, __LINE__,
-                                            OPENMS_PRETTY_FUNCTION);
-        }
-      }
-
-      EmpiricalFormula getFormula(Size fragment_type = 0, Int charge = 0) const
-      {
-        switch (getMoleculeType())
-        {
-          case MoleculeType::PROTEIN:
-          {
-            auto type = static_cast<Residue::ResidueType>(fragment_type);
-            return getIdentifiedPeptideRef()->sequence.getFormula(type, charge);
-          }
-          case MoleculeType::COMPOUND:
-          {
-            // @TODO: what about fragment type and charge?
-            return getIdentifiedCompoundRef()->formula;
-          }
-          case MoleculeType::RNA:
-          {
-            auto type = static_cast<NASequence::NASFragmentType>(fragment_type);
-            return getIdentifiedOligoRef()->sequence.getFormula(type, charge);
-          }
-          default:
-            throw Exception::NotImplemented(__FILE__, __LINE__,
-                                            OPENMS_PRETTY_FUNCTION);
-        }
-      }
+      EmpiricalFormula getFormula(Size fragment_type = 0, Int charge = 0) const;
     };
+
+    OPENMS_DLLAPI bool operator==(const IdentifiedMolecule& a, const IdentifiedMolecule& b);
+
+    OPENMS_DLLAPI bool operator!=(const IdentifiedMolecule& a, const IdentifiedMolecule& b);
+
+    OPENMS_DLLAPI bool operator<(const IdentifiedMolecule& a, const IdentifiedMolecule& b);
+
   }
 }

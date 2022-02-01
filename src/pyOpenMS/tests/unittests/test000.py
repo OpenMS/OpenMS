@@ -1031,7 +1031,7 @@ def testDataProcessing(dp=pyopenms.DataProcessing()):
     dp.getMetaValue
     ac = dp.getProcessingActions()
     assert ac == set(())
-    ac = set([ pyopenms.ProcessingAction.PEAK_PICKING, pyopenms.ProcessingAction.BASELINE_REDUCTION])
+    ac = set([ pyopenms.DataProcessing.ProcessingAction.PEAK_PICKING, pyopenms.DataProcessing.ProcessingAction.BASELINE_REDUCTION])
     dp.setProcessingActions(ac)
     assert len(dp.getProcessingActions() ) == 2
     _testStrOutput(dp.getSoftware().getName())
@@ -4283,6 +4283,7 @@ def testProcessingAction():
      ProcessingAction.FEATURE_GROUPING
      ProcessingAction.FILTERING
      ProcessingAction.FORMAT_CONVERSION
+     ProcessingAction.IDENTIFICATION
      ProcessingAction.IDENTIFICATION_MAPPING
      ProcessingAction.NORMALIZATION
      ProcessingAction.PEAK_PICKING
@@ -4290,28 +4291,30 @@ def testProcessingAction():
      ProcessingAction.QUANTITATION
      ProcessingAction.SIZE_OF_PROCESSINGACTION
      ProcessingAction.SMOOTHING
+
     """
-    assert isinstance(pyopenms.ProcessingAction.ALIGNMENT, int)
-    assert isinstance(pyopenms.ProcessingAction.BASELINE_REDUCTION, int)
-    assert isinstance(pyopenms.ProcessingAction.CALIBRATION, int)
-    assert isinstance(pyopenms.ProcessingAction.CHARGE_CALCULATION, int)
-    assert isinstance(pyopenms.ProcessingAction.CHARGE_DECONVOLUTION, int)
-    assert isinstance(pyopenms.ProcessingAction.CONVERSION_DTA, int)
-    assert isinstance(pyopenms.ProcessingAction.CONVERSION_MZDATA, int)
-    assert isinstance(pyopenms.ProcessingAction.CONVERSION_MZML, int)
-    assert isinstance(pyopenms.ProcessingAction.CONVERSION_MZXML, int)
-    assert isinstance(pyopenms.ProcessingAction.DATA_PROCESSING, int)
-    assert isinstance(pyopenms.ProcessingAction.DEISOTOPING, int)
-    assert isinstance(pyopenms.ProcessingAction.FEATURE_GROUPING, int)
-    assert isinstance(pyopenms.ProcessingAction.FILTERING, int)
-    assert isinstance(pyopenms.ProcessingAction.FORMAT_CONVERSION, int)
-    assert isinstance(pyopenms.ProcessingAction.IDENTIFICATION_MAPPING, int)
-    assert isinstance(pyopenms.ProcessingAction.NORMALIZATION, int)
-    assert isinstance(pyopenms.ProcessingAction.PEAK_PICKING, int)
-    assert isinstance(pyopenms.ProcessingAction.PRECURSOR_RECALCULATION, int)
-    assert isinstance(pyopenms.ProcessingAction.QUANTITATION, int)
-    assert isinstance(pyopenms.ProcessingAction.SIZE_OF_PROCESSINGACTION, int)
-    assert isinstance(pyopenms.ProcessingAction.SMOOTHING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.ALIGNMENT, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.BASELINE_REDUCTION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CALIBRATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CHARGE_CALCULATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CHARGE_DECONVOLUTION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CONVERSION_DTA, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CONVERSION_MZDATA, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CONVERSION_MZML, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CONVERSION_MZXML, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.DATA_PROCESSING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.DEISOTOPING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.FEATURE_GROUPING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.FILTERING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.FORMAT_CONVERSION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.IDENTIFICATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.IDENTIFICATION_MAPPING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.NORMALIZATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.PEAK_PICKING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.PRECURSOR_RECALCULATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.QUANTITATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.SIZE_OF_PROCESSINGACTION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.SMOOTHING, int)
 
 
 @report

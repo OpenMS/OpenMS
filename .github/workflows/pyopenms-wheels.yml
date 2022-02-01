@@ -213,9 +213,12 @@ jobs:
             done
             for f in $Qt5_Dir/lib/*.framework/Versions/5/Qt*
             do
+              install_name_tool -id $Qt5_Dir/lib/$(basename $f).framework/Versions/Current/$(basename $f) $f
+            done
+            for f in $Qt5_Dir/lib/*.framework/Versions/Current/Qt*
+            do
               install_name_tool -id $f $f
             done
-            otool -L /Users/runner/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Versions/5/QtCore
           popd
           mkdir bld
           pushd bld
@@ -254,6 +257,7 @@ jobs:
             # build pyopenms distribution (macOS)
             cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
             make -j4 pyopenms
+            ls -la pyOpenMS/pyopenms/QtCore.framework/Versions/*
 
             # copy to directory
             cp pyOpenMS/dist/*.whl pyopenms_whls/

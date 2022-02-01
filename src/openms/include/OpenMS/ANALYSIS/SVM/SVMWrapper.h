@@ -34,8 +34,6 @@
 
 #pragma once
 
-#include <svm.h>
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -48,9 +46,14 @@
 #include <map>
 #include <cmath>
 
+// forward declare svm types
+struct svm_problem;
+struct svm_parameter;
+struct svm_model;
+struct svm_node;
+
 namespace OpenMS
 {
-
   /// Data structure used in SVMWrapper
   struct OPENMS_DLLAPI SVMData
   {
@@ -90,7 +93,7 @@ public:
     */
     enum SVM_parameter_type
     {
-      SVM_TYPE, ///< the svm type cab be NU_SVR or EPSILON_SVR
+      SVM_TYPE, ///< the svm type can be NU_SVR or EPSILON_SVR
       KERNEL_TYPE, ///< the kernel type
       DEGREE, ///< the degree for the polynomial- kernel
       C, ///< the C parameter of the svm
@@ -510,7 +513,7 @@ private:
     std::vector<double> gauss_table_; ///< lookup table for fast computation of the oligo kernel
     std::vector<std::vector<double> > gauss_tables_; ///< lookup table for fast computation of the combined oligo kernel
     Size kernel_type_; ///< the actual kernel type
-    Size  border_length_; ///< the actual kernel type
+    Size border_length_; ///< the actual kernel type
     svm_problem* training_set_ = nullptr; ///< the training set
     svm_problem* training_problem_ = nullptr; ///< the training set
     SVMData training_data_; ///< the training set (different encoding)
