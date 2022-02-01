@@ -147,7 +147,7 @@ namespace OpenMS
         String error_message = "Found no signal. The Gaussian width is probably smaller than the spacing in your chromatogram data. Try to use a bigger width.";
         if (chromatogram.getMZ() > 0.0)
         {
-          error_message += String(" The error occurred in the chromatogram with m/z time ") + chromatogram.getMZ() + ".";
+          error_message += String(" The error occurred in the chromatogram with m/z ratio ") + chromatogram.getMZ() + ".";
         }
         OPENMS_LOG_ERROR << error_message << std::endl;
       }

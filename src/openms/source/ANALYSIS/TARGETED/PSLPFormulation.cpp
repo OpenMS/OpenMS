@@ -36,6 +36,8 @@
 #include <OpenMS/ANALYSIS/TARGETED/PSProteinInference.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 
+#undef DEBUG_OPS
+
 #ifdef DEBUG_OPS
 #include <OpenMS/SYSTEM/StopWatch.h>
 #endif
