@@ -528,7 +528,7 @@ namespace OpenMS
     Size number_of_channels = quant_method_->getNumberOfChannels();
 
     PeakMap::ConstIterator it_last_MS2 = ms_exp_data.end(); // remember last MS2 spec, to get precursor in MS1 (also if quant is in MS3)
-
+    bool ms3 = false;
     for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
     {
       // remember the last MS1 spectra as we assume it to be the precursor spectrum
@@ -578,6 +578,7 @@ namespace OpenMS
 
       if (it->getMSLevel() == 3)
       {
+        ms3 = true;
         // we cannot save just the last MS2 but need to compare to the precursor info stored in the (potential MS3 spectrum)
         it_last_MS2 = ms_exp_data.getPrecursorSpectrum(it);
 
@@ -682,10 +683,16 @@ namespace OpenMS
 
       // embed the id of the scan from which the quantitative information was extracted
       cf.setMetaValue("scan_id", it->getNativeID());
+      // embed the id of the scan from which the ID information should be extracted
+      // helpful for mapping later
+      if (ms3)
+      {
+        cf.setMetaValue("id_scan_id", it_last_MS2->getNativeID());
+      }
       // ...as well as additional meta information
       cf.setMetaValue("precursor_intensity", it->getPrecursors()[0].getIntensity());
 
-      cf.setCharge(it->getPrecursors()[0].getCharge());
+      cf.setCharge(it_last_MS2->getPrecursors()[0].getCharge());
       cf.setIntensity(overall_intensity);
       consensus_map.push_back(cf);
 
