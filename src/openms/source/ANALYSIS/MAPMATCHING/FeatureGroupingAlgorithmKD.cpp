@@ -493,16 +493,24 @@ namespace OpenMS
   {
     ConsensusFeature cf;
     float avg_quality = 0;
+    float best_quality = 0;
     for (vector<Size>::const_iterator it = indices.begin(); it != indices.end(); ++it)
     {
       Size i = *it;
       cf.insert(kd_data.mapIndex(i), *(kd_data.feature(i)));
       avg_quality += kd_data.feature(i)->getQuality();
+
+      if (kd_data.feature(i)->metaValueExists("dc_charge_adducts") & (kd_data.feature(i)->getQuality() > best_quality))
+      {
+       cf.setMetaValue("best_ion", kd_data.feature(i)->getMetaValue("dc_charge_adducts"));
+       best_quality = kd_data.feature(i)->getQuality();
+      }
     }
     avg_quality /= indices.size();
     cf.setQuality(avg_quality);
     cf.computeConsensus();
     out.push_back(cf);
+    std::cout << cf.getMetaValue("best_ion") << std::endl;
   }
 
 } // namespace OpenMS
