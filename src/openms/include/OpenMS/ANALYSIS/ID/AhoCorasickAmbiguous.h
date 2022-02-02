@@ -131,7 +131,7 @@ namespace OpenMS
     /// C'tor from char; any char A-Z or a-z yields a valid AA.
     /// '$' is a special AA, which should only be used when modeling mismatches.
     /// All other chars produce an invalid AA ('?')
-    constexpr explicit AA(const char c) : aa_(CharToAA[unsigned char(c)])
+    constexpr explicit AA(const char c) : aa_(CharToAA[(unsigned char)c])
     {
     }
 
