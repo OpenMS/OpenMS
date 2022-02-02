@@ -118,6 +118,7 @@ execute_process(
 
 if (CYTHON_MODULE_NOTFOUND)
     message(FATAL_ERROR "Cython import failed for the given Python executable.")
+    set(CYTHON_MODULE_VERSION_CHECK_OK 0)
 else()
     # check minor version of Cython (0.xx.yy)
     # Working versions (tested manually) are 0.25.2+
@@ -276,7 +277,7 @@ endif()
 #------------------------------------------------------------------------------
 # Handle missing libraries (this should never be reached, as the individual
 #  parts should fire FATAL_ERRORs if something is missing)
-if(NUMPY_MISSING OR CYTHON_MISSING OR NOT CYTHON_VERSION_OK OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING
+if(NUMPY_MISSING OR CYTHON_MODULE_NOTFOUND OR NOT CYTHON_MODULE_VERSION_CHECK_OK OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING
    OR SETUPTOOLS_MISSING OR WHEEL_MISSING)
   message(FATAL_ERROR "Required Python modules not found or out of date")
 endif()
