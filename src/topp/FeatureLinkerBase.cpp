@@ -225,10 +225,15 @@ protected:
         for (Feature& ft : tmp)
         {
           String adduct;
+          String group;
           //exception: addduct information
           if (ft.metaValueExists("dc_charge_adducts"))
           {
             adduct = ft.getMetaValue("dc_charge_adducts");
+          }
+          if (ft.metaValueExists("Group"))
+          {
+            group = ft.getMetaValue("Group");
           }
           ft.getSubordinates().clear();
           ft.getConvexHulls().clear();
@@ -236,6 +241,10 @@ protected:
           if (!adduct.empty())
           {
             ft.setMetaValue("dc_charge_adducts", adduct);
+          }
+          if (!group.empty())
+          {
+            ft.setMetaValue("Group", group);
           }
 
         }

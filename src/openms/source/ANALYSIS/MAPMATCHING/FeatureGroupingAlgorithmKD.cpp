@@ -494,23 +494,31 @@ namespace OpenMS
     ConsensusFeature cf;
     float avg_quality = 0;
     float best_quality = 0;
+    String partners = "";
     for (vector<Size>::const_iterator it = indices.begin(); it != indices.end(); ++it)
     {
       Size i = *it;
       cf.insert(kd_data.mapIndex(i), *(kd_data.feature(i)));
       avg_quality += kd_data.feature(i)->getQuality();
-
       if (kd_data.feature(i)->metaValueExists("dc_charge_adducts") & (kd_data.feature(i)->getQuality() > best_quality))
       {
        cf.setMetaValue("best_ion", kd_data.feature(i)->getMetaValue("dc_charge_adducts"));
        best_quality = kd_data.feature(i)->getQuality();
       }
+      if (kd_data.feature(i)->metaValueExists("Group"))
+      {
+        partners += String(kd_data.feature(i)->getMetaValue("Group")) + String(";");
+      }
+    }
+    if (!partners.empty())
+    {
+      cf.setMetaValue("partners", partners.substr(0,partners.size()-1));
     }
     avg_quality /= indices.size();
     cf.setQuality(avg_quality);
     cf.computeConsensus();
     out.push_back(cf);
-    std::cout << cf.getMetaValue("best_ion") << std::endl;
+    std::cout << cf.getMetaValue("partners") << std::endl;
   }
 
 } // namespace OpenMS
