@@ -518,7 +518,6 @@ namespace OpenMS
     cf.setQuality(avg_quality);
     cf.computeConsensus();
     out.push_back(cf);
-    std::cout << cf.getMetaValue("partners") << std::endl;
   }
 
 } // namespace OpenMS
