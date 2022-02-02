@@ -174,12 +174,36 @@ namespace OpenMS
     return out;
   }
 
+  // if a ConsensusMap contains best_ion and partners mvs (added by FeatureLinkerUnlabeledKD and
+  // FeatureLinkerUnlabeledQT if MetaboliteAdductDecharger has been executed on the FeatureMaps)
+  // they will be added as columns "best_ion" and "partners"
+  bool incl_best_ion_and_partners = false;
+
   // general stream output operator for features and consensus features
   SVOutStream& operator<<(SVOutStream& out, const BaseFeature& feature)
   {
     writeFeature(out, feature.getRT(), feature.getMZ(), feature.getIntensity(),
                  feature.getCharge(), feature.getWidth());
     out.writeValueOrNan(feature.getQuality());
+    if (incl_best_ion_and_partners)
+    {
+      if (feature.metaValueExists("best_ion"))
+      {
+        out.write(String("\t") + String(feature.getMetaValue("best_ion")));
+      }
+      else 
+      {
+        out.write("\t");
+      }
+      if (feature.metaValueExists("partners"))
+      {
+        out.write(String("\t") + String(feature.getMetaValue("partners")));
+      }
+      else 
+      {
+        out.write("\t");
+      }
+    }
     return out;
   }
 
@@ -212,6 +236,11 @@ namespace OpenMS
     for (const String& str : elements)
     {
       out << str + suffix;
+    }
+    if (incl_best_ion_and_partners)
+    {
+      out << "best_ion";
+      out << "partners";
     }
     out.modifyStrings(old);
   }
@@ -846,6 +875,17 @@ protected:
         ConsensusXMLFile consensus_xml_file;
 
         consensus_xml_file.load(in, consensus_map);
+
+        // check if any ConsensusFeature has a MetaValue "best_ion" or "partners"
+        // if one is found they will be exported for the whole ConsensusMap
+        for (ConsensusFeature cf: consensus_map)
+        {
+          if (cf.metaValueExists("best_ion") || cf.metaValueExists("partners"))
+          {
+            incl_best_ion_and_partners = true;
+            break;
+          }
+        }
 
         // extract common id and hit meta values
         StringList peptide_id_meta_keys;
