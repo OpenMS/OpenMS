@@ -38,7 +38,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <iosfwd>
-#include <new>
 #include <string>
 #include <stdexcept>
 
