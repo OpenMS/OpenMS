@@ -475,7 +475,9 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
         for (SignedSize i = 0; i < prot_count; ++i)
         {
           ++progress_prots; // atomic
+          #ifdef _OPENMP // without OMP, we always set progress
           if (omp_get_thread_num() == 0)
+          #endif
           {
             this->setProgress(progress_prots);
           }
