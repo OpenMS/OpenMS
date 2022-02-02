@@ -410,15 +410,10 @@ namespace OpenMS
     }
     if (!precursor_map_for_real_time_acquisition.empty() && precursor_peak_group_.empty())
     {
-      for (auto map = precursor_map_for_real_time_acquisition.lower_bound(scan_number_);
-           map != precursor_map_for_real_time_acquisition.begin();
-           map--)
+      auto map = precursor_map_for_real_time_acquisition.lower_bound(scan_number_);
+      while (map != precursor_map_for_real_time_acquisition.begin())
       {
-        if (map->first >= scan_number_)
-        {
-          continue;
-        }
-
+        --map;
         if (map->first < scan_number_ - 50)
         {
           return false;
@@ -520,12 +515,6 @@ namespace OpenMS
                   }
 
                   max_score = score;
-
-                  //if (pg.getQScore() < .25)
-                  //{
-                  //  continue;
-                  //}
-                  // pg.setChargeSNR(tmp_precursor->abs_charge, precursor_snr);
                   precursor_peak_group_ = pg;
                 }
               }

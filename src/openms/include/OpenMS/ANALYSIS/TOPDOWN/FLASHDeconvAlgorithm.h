@@ -96,7 +96,7 @@ namespace OpenMS
     PrecalculatedAveragine getAveragine();
 
 
-    void setTargetMasses(const std::set<double> &masses, int ms_level);
+    void setTargetMasses(const std::vector<double> &masses, int ms_level);
 
     /** @brief precalculate averagine (for predifined mass bins) to speed up averagine generation
         @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calcualted
@@ -176,7 +176,8 @@ namespace OpenMS
     std::vector<double> prev_rts_ms2_;
 
     /// mass bins that are targeted for FLASHIda global targeting mode
-    std::vector<Size> target_mass_bins_;
+    boost::dynamic_bitset<> target_mass_bins_;
+    std::vector<double> target_masses_;
 
     /// harmonic charge factors that will be considered for harmonic mass reduction. For example, 2 is for 1/2 charge harmonic component reduction
     const std::vector<int> harmonic_charges_{2, 3, 5};

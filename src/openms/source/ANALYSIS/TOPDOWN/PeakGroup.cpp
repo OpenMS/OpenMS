@@ -142,6 +142,11 @@ namespace OpenMS
     per_charge_snr_[abs_charge] = c_snr;
   }
 
+  void PeakGroup::setTargeted()
+  {
+    is_targeted_ = true;
+  }
+
   void PeakGroup::setChargePower(const int abs_charge, const double pwr)
   {
     if (max_abs_charge_ < abs_charge)
@@ -301,6 +306,11 @@ namespace OpenMS
   float PeakGroup::getQScore() const
   {
     return qscore_;
+  }
+
+  bool PeakGroup::isTargeted() const
+  {
+    return is_targeted_;
   }
 
   void PeakGroup::updateSNR()

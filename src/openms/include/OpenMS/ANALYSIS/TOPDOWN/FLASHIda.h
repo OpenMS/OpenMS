@@ -165,9 +165,9 @@ namespace OpenMS
     DeconvolutedSpectrum deconvoluted_spectrum_;
     /// peakGroup charges to be triggered
     std::vector<int> trigger_charges;
-    /// peakGroup charges to be triggered
-    std::vector<int> trigger_left_isolation_mzs_;
-    std::vector<int> trigger_right_isolation_mzs_;
+    /// peakGroup isolation window ranges
+    std::vector<double> trigger_left_isolation_mzs_;
+    std::vector<double> trigger_right_isolation_mzs_;
 
     /// FLASHDeconvAlgorithm class for deconvolution
     FLASHDeconvAlgorithm fd_;
@@ -184,11 +184,12 @@ namespace OpenMS
     /// minimum isolation window width divided by two
     const double min_isolation_window_half_ = .6;
     /// maximum isolation window width divided by two
-    const double max_isolation_window_half_ = 4.0;
+    const double max_isolation_window_half_ = 3.0;
 
     /// maps for global targeting
-    std::map<int, std::vector<double>> target_nominal_masses_;
-    std::set<double> target_masses_;
+    std::map<double, std::vector<double>> target_mass_rt_map_;
+    std::map<double, std::vector<double>> target_mz_rt_map_;
+    std::vector<double> target_masses_; /// current target masses
 
     /// precursor SNR threshold
     double snr_threshold_ = 1.0;

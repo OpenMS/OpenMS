@@ -32,8 +32,8 @@
 // $Authors: Kyowon Jeong $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <sstream>
@@ -88,13 +88,13 @@ namespace OpenMS
     fd_defaults.setValue("max_charge", (int) inputs["max_charge"][0]);
     fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
     fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
-    fd_defaults.setValue("min_isotope_cosine", DoubleList{.9, .9});
+    fd_defaults.setValue("min_isotope_cosine", DoubleList{.85, .85});
 
     fd_defaults.setValue("min_qscore", .0);
     fd_defaults.setValue("tol", inputs["tol"]);
     tol_ = inputs["tol"];
     fd_defaults.setValue("rt_window", rt_window_);
-    fd_defaults.setValue("min_peaks", IntList{4, 3}); // more sensitive
+    fd_defaults.setValue("min_peaks", IntList{3, 3});//
 
     auto mass_count_double = inputs["max_mass_count"];
 
@@ -109,7 +109,7 @@ namespace OpenMS
       if (instream.good())
       {
         String line;
-        int scan;
+        double rt;
         double mass;
         while (std::getline(instream, line))
         {
@@ -117,26 +117,28 @@ namespace OpenMS
           {
             continue;
           }
+          //std::cout << line << " ";
           if (line.hasPrefix("MS1"))
           {
-            Size st = line.find("Aceess ID ") + 10;
-            Size ed = line.find(')');
-            String n = line.substr(st, ed);
-            scan = atoi(n.c_str());
+            Size st = line.find("RT ") + 3;
+            Size ed = line.find('(') - 2;
+            String n = line.substr(st, ed - st + 1);
+            rt = atof(n.c_str());
+            //std::cout << " rt " << n << std::endl ;
+            //precursor_map_for_real_time_acquisition[scan] = std::vector<std::vector<double>>();//// ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
           }
           if (line.hasPrefix("Mass"))
           {
             Size st = 5;
             Size ed = line.find('\t');
-            String n = line.substr(st, ed);
+            String n = line.substr(st, ed - st + 1);
             mass = atof(n.c_str());
-            target_masses_.insert(mass);
-            int nmass = FLASHDeconvAlgorithm::getNominalMass(mass);
-            if (target_nominal_masses_.find(nmass) == target_nominal_masses_.end())
+
+            if (target_mass_rt_map_.find(mass) == target_mass_rt_map_.end())
             {
-              target_nominal_masses_[nmass] = std::vector<double>();
+              target_mass_rt_map_[mass] = std::vector<double>();
             }
-            target_nominal_masses_[nmass].push_back((double) (scan * 5400.0 / 25000.0));
+            target_mass_rt_map_[mass].push_back(rt * 60.0);
             //precursor_map_for_real_time_acquisition[scan].push_back(e);
           }
         }
@@ -152,6 +154,7 @@ namespace OpenMS
       {
         String line;
         double mass;
+        double mz;
         while (std::getline(instream, line))
         {
           if (line.hasPrefix("rt"))
@@ -166,13 +169,18 @@ namespace OpenMS
             results.push_back(str);
           }
           mass = atof(results[5].c_str());
-          target_masses_.insert(mass);
-          int nmass = FLASHDeconvAlgorithm::getNominalMass(mass);
-          if (target_nominal_masses_.find(nmass) == target_nominal_masses_.end())
+          mz = (atof(results[1].c_str()) + atof(results[2].c_str())) / 2.0;
+          if (target_mass_rt_map_.find(mass) == target_mass_rt_map_.end())
           {
-            target_nominal_masses_[nmass] = std::vector<double>();
+            target_mass_rt_map_[mass] = std::vector<double>();
           }
-          target_nominal_masses_[nmass].push_back(60.0 * atof(results[0].c_str()));
+          target_mass_rt_map_[mass].push_back(60.0 * atof(results[0].c_str()));
+
+          if (target_mz_rt_map_.find(mz) == target_mz_rt_map_.end())
+          {
+            target_mz_rt_map_[mz] = std::vector<double>();
+          }
+          target_mz_rt_map_[mz].push_back(60.0 * atof(results[0].c_str()));
         }
         instream.close();
       }
@@ -180,7 +188,6 @@ namespace OpenMS
 
     fd_.setParameters(fd_defaults);
     fd_.calculateAveragine(false);
-    fd_.setTargetMasses(target_masses_, 1);
 
     std::cout << "QScore threshold: " << qscore_threshold_ << std::endl;
     std::cout << fd_defaults << std::endl;
@@ -209,11 +216,24 @@ namespace OpenMS
 
     std::vector<DeconvolutedSpectrum> tmp;
     std::map<int, std::vector<std::vector<double>>> empty;
-    deconvoluted_spectrum_ = fd_.getDeconvolutedSpectrum(spec, tmp, 0, empty);
 
+    target_masses_.clear();
+    for (auto&[mass, rts]: target_mass_rt_map_)
+    {
+      for (double prt: rts)
+      {
+        if (std::abs(rt - prt) < 300)
+        {
+          target_masses_.push_back(mass);
+          break;
+        }
+      }
+    }
+    std::sort(target_masses_.begin(), target_masses_.end());
+    fd_.setTargetMasses(target_masses_, 1);
+    deconvoluted_spectrum_ = fd_.getDeconvolutedSpectrum(spec, tmp, 0, empty);
     // per spec deconvolution
     FLASHIda::filterPeakGroupsUsingMassExclusion_(ms_level, rt);
-
     // spec.clear(true);
 
     return deconvoluted_spectrum_.size();
@@ -222,14 +242,17 @@ namespace OpenMS
   void FLASHIda::filterPeakGroupsUsingMassExclusion_(const int ms_level, const double rt)
   {
     std::vector<PeakGroup> filtered_peakgroups;
-
     std::sort(deconvoluted_spectrum_.begin(), deconvoluted_spectrum_.end(), QscoreComparator_);
     int mass_count = mass_count_[ms_level - 1];
     trigger_charges.clear();
     trigger_charges.reserve(mass_count);
+    trigger_left_isolation_mzs_.clear();
+    trigger_left_isolation_mzs_.reserve(mass_count);
+    trigger_right_isolation_mzs_.clear();
+    trigger_right_isolation_mzs_.reserve(mass_count);
 
     filtered_peakgroups.reserve(mass_count_.size());
-    std::set<int> current_selected_mzs; // current selected mzs
+    std::set<int> current_selected_mzs;// current selected mzs
 
     std::unordered_map<int, double> new_mz_rt_map_;
     std::unordered_map<int, double> new_mass_rt_map_;
@@ -273,9 +296,11 @@ namespace OpenMS
     new_mass_qscore_map_.swap(mass_qscore_map_);
     std::unordered_map<int, double>().swap(new_mass_qscore_map_);
 
+    int selection_phase_start = 0;
+    int selection_phase_end = target_masses_.size() > 0 ? 1 : 2;
     //When selection_phase == 0, consider only the masses whose tqscore did not exceed total qscore threshold.
     //when selection_phase == 1, consider all other masses for selection
-    for (int selection_phase = 0; selection_phase < 2; selection_phase++)
+    for (int selection_phase = selection_phase_start; selection_phase < selection_phase_end; selection_phase++)
     {
       for (auto &pg: deconvoluted_spectrum_)
       {
@@ -285,35 +310,61 @@ namespace OpenMS
           break;
         }
 
-        if (pg.getQScore() < qscore_threshold_)
+        int charge = pg.getRepAbsCharge();
+        double qscore = pg.getQScore();
+        double mass = pg.getMonoMass();
+        double center_mz =
+            (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0;
+
+        int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(mass);
+        bool include = false;
+        double snr_threshold = snr_threshold_;
+
+        if (target_masses_.size() > 0)
+        {
+          double delta = 2 * tol_[0] * mass * 1e-6;
+          auto ub = std::upper_bound(target_masses_.begin(), target_masses_.end(), mass + delta);
+
+          while (ub != target_masses_.begin() && !include && *ub > mass - delta)
+          {
+            --ub;
+            if (std::abs(*ub - mass) < delta)
+            {
+              include = true;
+              snr_threshold = 0.0;
+              break;
+            }
+          }
+
+
+          if (!include)
+          {
+            continue;
+          }
+        }
+
+        if (!include && qscore < qscore_threshold_)
         {
           break;
         }
 
-        if (pg.getChargeSNR(pg.getRepAbsCharge()) < snr_threshold_)
+        if (pg.getChargeSNR(charge) < snr_threshold)
         {
           continue;
         }
 
-        int charge = pg.getRepAbsCharge();
-        double qscore = pg.getQScore();
 
-        int mz = (int) round(
-            (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0);
+        int integer_mz = (int) round(center_mz);
 
-        int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(pg.getMonoMass());
-
-        if (current_selected_mzs.find(mz) != current_selected_mzs.end())
+        if (current_selected_mzs.find(integer_mz) != current_selected_mzs.end())
         {
           continue;
         }
 
         if (selection_phase == 0)
-        { // first, select masses or m/zs outside exclusion list
-          if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end()
-              ||
-              tqscore_exceeding_mz_rt_map_.find(mz) != tqscore_exceeding_mz_rt_map_.end()
-              )
+        {// first, select masses or m/zs outside exclusion list
+          if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end() ||
+              tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
           {
             continue;
           }
@@ -321,7 +372,7 @@ namespace OpenMS
 
         // here crawling isolation windows max_isolation_window_half_
         auto ospec = deconvoluted_spectrum_.getOriginalSpectrum();
-        Size index = ospec.findNearest(mz);
+        Size index = ospec.findNearest(center_mz);
         int tindexl = index;
         int tindexr = index + 1;
         double lmz = -1.0, rmz = -1.0;
@@ -329,20 +380,21 @@ namespace OpenMS
         double sig_pwr = .0;
         double noise_pwr = .0;
         bool lkeep = true;
-        bool rkeep = false;
+        bool rkeep = true;
         auto pmz_range = pg.getMzRange(charge);
         double pmzl = std::get<0>(pmz_range);
         double pmzr = std::get<1>(pmz_range);
+        //double final_snr = .0;
 
         while (lkeep || rkeep)
         {
-          if (tindexl < 0 || ospec[tindexl].getMZ() < mz - max_isolation_window_half_)// left side done
+          if (tindexl < 0 || ospec[tindexl].getMZ() < center_mz - max_isolation_window_half_)// left side done
           {
             lkeep = false;
           }
           else
           {
-            if (pg.isSignalMZ(ospec[tindexl].getMZ(), tol_[ospec.getMSLevel() - 1])) //
+            if (pg.isSignalMZ(ospec[tindexl].getMZ(), tol_[ospec.getMSLevel() - 1]))//
             {
               sig_pwr += pg.getIntensity() * pg.getIntensity();
             }
@@ -351,13 +403,14 @@ namespace OpenMS
               noise_pwr += pg.getIntensity() * pg.getIntensity();
             }
           }
-          if (tindexr >= ospec.size() || ospec[tindexr].getMZ() > mz + max_isolation_window_half_)// right side done
+          if (tindexr >= ospec.size() ||
+              ospec[tindexr].getMZ() > center_mz + max_isolation_window_half_)// right side done
           {
             rkeep = false;
           }
           else
           {
-            if (pg.isSignalMZ(ospec[tindexr].getMZ(), tol_[ospec.getMSLevel() - 1])) //
+            if (pg.isSignalMZ(ospec[tindexr].getMZ(), tol_[ospec.getMSLevel() - 1]))//
             {
               sig_pwr += pg.getIntensity() * pg.getIntensity();
             }
@@ -370,24 +423,25 @@ namespace OpenMS
           tindexl--;
           tindexr++;
 
-          if (ospec[tindexr].getMZ() < pmzr + min_isolation_window_half_)
+          if (ospec[tindexr - 1].getMZ() < pmzr + min_isolation_window_half_)
           {
             continue;
           }
 
-          if (ospec[tindexl].getMZ() > pmzl - min_isolation_window_half_)
+          if (ospec[tindexl + 1].getMZ() > pmzl - min_isolation_window_half_)
           {
             continue;
           }
 
-          if (sig_pwr / noise_pwr < snr_threshold_)
+          if (sig_pwr / noise_pwr < snr_threshold)
           {
             break;
           }
           else
           {
-            lmz = ospec[tindexl + 1].getMZ();
-            rmz = ospec[tindexr - 1].getMZ();
+            lmz = std::max(center_mz - max_isolation_window_half_, ospec[tindexl + 1].getMZ());
+            rmz = std::min(center_mz + max_isolation_window_half_, ospec[tindexr - 1].getMZ());
+            //final_snr = sig_pwr / noise_pwr;
           }
         }
 
@@ -410,14 +464,15 @@ namespace OpenMS
         if (1 - mass_qscore_map_[nominal_mass] > tqscore_threshold)
         {
           tqscore_exceeding_mass_rt_map_[nominal_mass] = rt;
-          tqscore_exceeding_mz_rt_map_[mz] = rt;
+          tqscore_exceeding_mz_rt_map_[integer_mz] = rt;
         }
         filtered_peakgroups.push_back(pg);
         trigger_charges.push_back(charge);
+
         trigger_left_isolation_mzs_.push_back(lmz);
         trigger_right_isolation_mzs_.push_back(rmz);
 
-        current_selected_mzs.insert(mz);
+        current_selected_mzs.insert(integer_mz);
       }
     }
 
@@ -454,7 +509,7 @@ namespace OpenMS
       min_charges[i] = std::get<0>(cr);
       max_charges[i] = std::get<1>(cr);
 
-      wstart[i] = trigger_left_isolation_mzs_[i];  //std::get<0>(mz_range) - min_isolation_window_half_;
+      wstart[i] = trigger_left_isolation_mzs_[i];//std::get<0>(mz_range) - min_isolation_window_half_;
       wend[i] = trigger_right_isolation_mzs_[i]; //std::get<1>(mz_range) + min_isolation_window_half_;
 
       qscores[i] = QScore::getQScore(&peakgroup, charges[i]);
@@ -489,4 +544,4 @@ namespace OpenMS
     spec.setRT(rt);
     return spec;
   }
-}
+}// namespace OpenMS

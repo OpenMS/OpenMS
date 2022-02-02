@@ -149,6 +149,9 @@ namespace OpenMS
     /// set charge SNR manually - for FLASHIda log file parsing
     void setChargeSNR(const int abs_charge, const float c_snr);
 
+    /// set if it is targeted
+    void setTargeted();
+
     /// get scan number
     int getScanNumber() const;
 
@@ -200,6 +203,9 @@ namespace OpenMS
     /// get if it is positive mode
     bool isPositive() const;
 
+    /// get if it is targeted
+    bool isTargeted() const;
+
   private:
     /// per charge SNR, isotope cosine, and intensity vectors
     std::vector<float> per_charge_signal_pwr_;
@@ -215,10 +221,12 @@ namespace OpenMS
     int scan_number_;
     /// is positive or not
     bool is_positive_;
-
+    /// if this peak group has been targeted
+    bool is_targeted_ = false;
     /// information on the deconvouted mass
     double monoisotopic_mass_ = -1.0;
     double intensity_;// total intensity
+
 
     /// scoring variables
     int max_qscore_abs_charge_;
