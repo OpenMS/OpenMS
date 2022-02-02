@@ -960,8 +960,6 @@ stringUnchecked
 tminus
 toLowercase
 tplus
-trypticCompressed
-trypticSeqan
 unassignedPeptideIDs
 updateCRC
 updateCombinedILPPeptideRule

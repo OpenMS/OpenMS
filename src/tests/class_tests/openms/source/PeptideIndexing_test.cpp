@@ -199,7 +199,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   TEST_EQUAL(proteins.size(), 3) // all three present
    
   // I/L conversion
-  p.setValue("aaa_max", 2); // testing I / L conversion, with additional ambAA's to saturate the max_aaa = 2 constraint to ensure that internally 'J' is not used for 'I' or 'L', since 'J' is unknown to SeqAn and will get converted to 'X' 
+  p.setValue("aaa_max", 2); // testing I / L conversion, with additional ambAA's to saturate the max_aaa = 2 constraint to ensure that internally 'J' is not used for 'I' or 'L'
   p.setValue("IL_equivalent", "false"); // NOT default
   pi.setParameters(p);
   proteins = toFASTAVec(QStringList() << "BEBEI" << "BEBEL"); //
