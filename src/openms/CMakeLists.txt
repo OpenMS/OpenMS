@@ -125,7 +125,6 @@ endif()
 
 ## Sort include directories into contrib ones (prefered in order) and system ones.
 foreach (includedir
-         ${SEQAN_INCLUDE_DIRS}
          ${SQLite_INCLUDE_DIR}
          ${HDF5_INCLUDE_DIRS}
          ${LIBSVM_INCLUDE_DIRS}
@@ -156,7 +155,6 @@ openms_add_library(TARGET_NAME  OpenMS
                                     ${JSON_INCLUDE_DIRECTORY}
                    EXTERNAL_INCLUDES ${OPENMS_CONTRIB_INCLUDE_DIRS} #root folder
                                      ${EVERGREEN_INCLUDE_DIRECTORY}
-                                     ${SEQAN_INCLUDE_DIRECTORY}
                                      ${INCLUDES_FROM_CONTRIB}
                                      ${INCLUDES_FROM_SYSTEM}
                                      ${OpenSwathAlgo_INCLUDE_DIRECTORIES} #Includes boost which could be non-contrib
