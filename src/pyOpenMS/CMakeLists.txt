@@ -107,40 +107,40 @@ if(WIN32)
 endif(WIN32)
 
 #------------------------------------------------------------------------------
-# Find Cython
-find_program( CYTHON_EXECUTABLE NAMES cython )
+# Find Cython as module
+execute_process(
+  COMMAND
+  ${PYTHON_EXECUTABLE} -c "import Cython"
+  RESULT_VARIABLE CYTHON_MODULE_NOTFOUND
+  ERROR_QUIET
+  OUTPUT_QUIET
+)
 
-set(CYTHON_MISSING FALSE)
-if(DEFINED CYTHON_EXECUTABLE-NOTFOUND)
-	set(CYTHON_MISSING TRUE)
-endif()
-
-# check minor version of Cython (0.xx.yy)
-# Working versions (tested manually) are 0.25.2
-set(CYTHON_VERSION_OK FALSE)
-if(CYTHON_MISSING)
-	message(FATAL_ERROR "Looking for cython - not found")
+if (CYTHON_MODULE_NOTFOUND)
+    message(FATAL_ERROR "Cython import failed for the given Python executable.")
 else()
-  execute_process(
+    # check minor version of Cython (0.xx.yy)
+    # Working versions (tested manually) are 0.25.2+
+    execute_process(
       COMMAND
       ${PYTHON_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[1]) > 25 or (int(Cython.__version__.split('.')[1]) == 25 and int(Cython.__version__.split('.')[2]) >= 2))"
-      RESULT_VARIABLE _CYTHON_VERSION_OK
+      RESULT_VARIABLE CYTHON_MODULE_VERSION_CHECK_OK
       ERROR_QUIET
       OUTPUT_QUIET
-  )
-  execute_process(
-      COMMAND
-      ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import Cython; print (Cython.__version__)"
-      OUTPUT_VARIABLE CYTHON_VERSION
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-  if(_CYTHON_VERSION_OK)
-      message(STATUS "Looking for Cython - found Cython ${CYTHON_VERSION}, version ok")
-      set(CYTHON_VERSION_OK TRUE)
-  else()
-      message(STATUS "Found Cython version ${CYTHON_VERSION}. The version is too old (>= 0.25.2 is required)")
-      message(FATAL_ERROR "Please upgrade Cython or disable pyOpenMS.")
-  endif()
+    )
+
+    if(CYTHON_MODULE_VERSION_CHECK_OK)
+        execute_process(
+          COMMAND
+          ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import Cython; print (Cython.__version__)"
+          OUTPUT_VARIABLE CYTHON_VERSION
+          OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        message(STATUS "Looking for Cython - found Cython version ${CYTHON_VERSION}. Version ok")
+    else()
+        message(STATUS "Looking for Cython - found Cython version ${CYTHON_VERSION}. The version is too old (>= 0.25.2 is required)")
+        message(FATAL_ERROR "Please upgrade Cython or disable pyOpenMS.")
+    endif()
 endif()
 
 #------------------------------------------------------------------------------
