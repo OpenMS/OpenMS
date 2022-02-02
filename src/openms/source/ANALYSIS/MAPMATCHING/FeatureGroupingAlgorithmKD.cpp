@@ -493,8 +493,11 @@ namespace OpenMS
   {
     ConsensusFeature cf;
     float avg_quality = 0;
+    // determine best quality feature for adduct ion annotation (best_ion)
     float best_quality = 0;
-    String partners = "";
+    // collect the "Group" MetaValues of Features in a ConsensusFeature and hash their Group IDs in a partners ID
+    hash<String> hasher;
+    Size partners = 0;
     for (vector<Size>::const_iterator it = indices.begin(); it != indices.end(); ++it)
     {
       Size i = *it;
@@ -507,12 +510,12 @@ namespace OpenMS
       }
       if (kd_data.feature(i)->metaValueExists("Group"))
       {
-        partners += String(kd_data.feature(i)->getMetaValue("Group")) + String(";");
+        partners += hasher(kd_data.feature(i)->getMetaValue("Group"));
       }
     }
-    if (!partners.empty())
+    if (partners)
     {
-      cf.setMetaValue("partners", partners.substr(0,partners.size()-1));
+      cf.setMetaValue("partners", partners);
     }
     avg_quality /= indices.size();
     cf.setQuality(avg_quality);
