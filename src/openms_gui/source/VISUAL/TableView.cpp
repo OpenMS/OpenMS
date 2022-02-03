@@ -135,7 +135,7 @@ namespace OpenMS
         {
           first = false;
         }
-        ts << a;        
+        ts << all_header_names[c];        
       }
       ts << "\n";      
     }
