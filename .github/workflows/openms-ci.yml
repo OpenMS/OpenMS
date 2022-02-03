@@ -71,9 +71,9 @@ jobs:
       id: extract_pr
 
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.8
+      uses: jwlawson/actions-setup-cmake@v1.12
       with:
-        cmake-version: '3.20.x'
+        cmake-version: 'latest'
 
     - name: Add THIRDPARTY
       shell: bash
