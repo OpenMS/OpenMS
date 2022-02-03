@@ -80,6 +80,12 @@ namespace OpenMS
       {
         return cv_term == other.cv_term;
       }
+
+      bool isBetterScore(double first, double second) const
+      {
+        if (higher_better) return first > second;
+        return first < second;
+      }
     };
 
     typedef std::set<ScoreType> ScoreTypes;

@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
@@ -36,6 +36,7 @@
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/FORMAT/MzTabM.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 

@@ -39,6 +39,8 @@
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
+#include "svm.h"
+
 using std::vector;
 using std::cout;
 using std::endl;

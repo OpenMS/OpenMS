@@ -93,7 +93,7 @@ namespace OpenMS
     /// Tabs which have data to show are automatically enabled. Others are disabled.
     /// If the currently visible tab would have to data to show, we pick the highest (rightmost) tab
     /// which has data and show that instead
-    void update();
+    void callUpdateEntries();
 
     /// invoked when user changes the active tab to @p tab_index
     void currentTabChanged(int tab_index);

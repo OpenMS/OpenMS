@@ -155,7 +155,11 @@ protected:
     */
     virtual void updateMembers_();
 
-    ///Updates the parameters after the defaults have been set in the constructor
+    /**
+       @brief Updates the parameters after the defaults have been set in the constructor
+
+       Also calls updateMembers_().
+    */
     void defaultsToParam_();
 
     ///Container for current parameters
@@ -202,4 +206,3 @@ private:
   }; //class
 
 } // namespace OPENMS
-

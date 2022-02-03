@@ -164,8 +164,6 @@ public:
     typedef SpectrumType::ConstIterator SpectrumConstIteratorType;
     /// Peak type
     typedef SpectrumType::PeakType PeakType;
-    /// Feature type
-    typedef FeatureMapType::FeatureType FeatureType;
 
     ///Type of the Points
     typedef DPosition<2> PointType;
@@ -546,7 +544,7 @@ public slots:
         Sets the visible area to a new value. Note that it does not emit visibleAreaChanged()
         @param area the new visible area
     */
-    void setVisibleArea(AreaType area);
+    void setVisibleArea(const AreaType& area);
 
     /**
         @brief Notifies the canvas that the horizontal scrollbar has been moved.
@@ -968,4 +966,3 @@ protected:
 
   };
 }
-

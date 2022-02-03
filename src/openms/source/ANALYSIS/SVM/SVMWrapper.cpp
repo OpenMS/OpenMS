@@ -44,17 +44,14 @@
 
 #include <boost/math/distributions/normal.hpp>
 
+#include "svm.h"
+
 using namespace std;
 using boost::math::cdf;
 
 namespace OpenMS
 {
-
-  SVMData::SVMData() :
-    sequences(std::vector<std::vector<std::pair<Int, double> > >()),
-    labels(std::vector<double>())
-  {
-  }
+  SVMData::SVMData() = default;
 
   SVMData::SVMData(std::vector<std::vector<std::pair<Int, double> > >& seqs, std::vector<double>& lbls) :
     sequences(seqs),

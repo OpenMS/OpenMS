@@ -69,7 +69,6 @@ namespace OpenMS
 			CHARGEMODE getChargeMode()
       { return q_try_;}
 
-
   };
 
 }

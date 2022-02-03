@@ -37,8 +37,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 
-#include <boost/math/tr1.hpp>
-
 namespace OpenMS
 {
   /**

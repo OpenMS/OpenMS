@@ -39,7 +39,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-#include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/assign.hpp>
 #include <boost/random/mersenne_twister.hpp>

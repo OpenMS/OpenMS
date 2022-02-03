@@ -39,7 +39,6 @@ OSWData.h
 Param.h
 ParamValue.h
 QTCluster.h
-SeqanIncludeWrapper.h
 String.h
 StringUtils.h
 StringListUtils.h

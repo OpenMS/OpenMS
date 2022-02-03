@@ -40,8 +40,8 @@
 #include <algorithm>
 #include <iostream>
 #include <iterator>
-
-#include <boost/math/special_functions/fpclassify.hpp> // for isnan
+#include <cmath> // for isnan
+// #include <boost/numeric/conversion/cast.hpp>
 
 namespace OpenSwath
 {
@@ -625,7 +625,7 @@ namespace OpenSwath
 
       spectral_angle = Scoring::SpectralAngle(&experimental_intensity[0], &library_intensity[0], static_cast<unsigned int>(transitions.size()));
 
-      if (boost::math::isnan(spectral_angle))
+      if (std::isnan(spectral_angle))
       {
         spectral_angle = 0.0;
       }
@@ -637,7 +637,7 @@ namespace OpenSwath
       rmsd = Scoring::RootMeanSquareDeviation(&experimental_intensity[0], &library_intensity[0], static_cast<unsigned int>(transitions.size()));
       correlation = OpenSwath::cor_pearson(experimental_intensity.begin(), experimental_intensity.end(), library_intensity.begin());
 
-      if (boost::math::isnan(correlation))
+      if (std::isnan(correlation))
       {
         correlation = -1.0;
       }

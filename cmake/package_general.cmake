@@ -63,7 +63,7 @@ set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResource
 #  " COMPONENT applications)
 
 if(APPLE OR WIN32) ## On Linux we require Qt to be installed from the package manager system-wide (e.g. via dependencies)
-  set(PACKAGE_QT_COMPONENTS "${OpenMS_QT_COMPONENTS};${OpenMS_GUI_QT_COMPONENTS}")
+  set(PACKAGE_QT_COMPONENTS "${OpenMS_QT_COMPONENTS};${OpenMS_GUI_QT_COMPONENTS};${OpenMS_GUI_QT_COMPONENTS_OPT}")
   find_package(Qt5 COMPONENTS ${PACKAGE_QT_COMPONENTS}) ## we have to find again so the target variables are reloaded
   install_qt5_libs("${PACKAGE_QT_COMPONENTS}" ${INSTALL_LIB_DIR} "QTLibs")
 endif()

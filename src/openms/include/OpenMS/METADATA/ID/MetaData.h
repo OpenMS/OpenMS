@@ -34,6 +34,8 @@
 
 #pragma once
 
+#include <cstdint> // for "uintptr_t"
+
 namespace OpenMS
 {
   namespace IdentificationDataInternal
@@ -64,20 +66,14 @@ namespace OpenMS
     {
       PROTEIN,
       COMPOUND,
-      RNA,
-      SIZE_OF_MOLECULETYPE
+      RNA
     };
 
 
     enum MassType
     {
       MONOISOTOPIC,
-      AVERAGE,
-      SIZE_OF_MASSTYPE
+      AVERAGE
     };
-    // Input files that were processed:
-    typedef std::set<String> InputFiles;
-    typedef IteratorWrapper<InputFiles::iterator> InputFileRef;
-
   }
 }

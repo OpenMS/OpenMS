@@ -227,14 +227,8 @@ namespace OpenMS
   String EmpiricalFormula::toString() const
   {
     String formula;
-    std::map<String, SignedSize> new_formula;
-
-    for (const auto& it : formula_)
-    {
-      new_formula[it.first->getSymbol()] = it.second;
-    }
-
-    for (const auto& it : new_formula)
+    auto formula_map = toMap();
+    for (const auto& it : formula_map)
     {
       (formula += it.first) += String(it.second);
     }
@@ -243,13 +237,12 @@ namespace OpenMS
 
   std::map<std::string, int> EmpiricalFormula::toMap() const
   {
-    std::map<std::string, int> new_formula;
-
+    std::map<std::string, int> formula_map;
     for (const auto & it : formula_)
     {
-      new_formula[it.first->getSymbol()] = it.second;
+      formula_map[it.first->getSymbol()] = it.second;
     }
-    return new_formula;
+    return formula_map;
   }
 
   EmpiricalFormula EmpiricalFormula::operator*(const SignedSize& times) const
@@ -686,5 +679,19 @@ namespace OpenMS
     return formula_ < rhs.formula_;
   }
 
+  EmpiricalFormula EmpiricalFormula::hydrogen(int n_atoms)
+  {
+    const ElementDB* db = ElementDB::getInstance();
+    return EmpiricalFormula(n_atoms, db->getElement(1));
+  }
+
+  EmpiricalFormula EmpiricalFormula::water(int n_molecules)
+  {
+    const ElementDB* db = ElementDB::getInstance();
+    EmpiricalFormula formula;
+    formula.formula_[db->getElement(1)] = n_molecules * 2; // hydrogen
+    formula.formula_[db->getElement(8)] = n_molecules; // oxygen
+    return formula;
+  }
 
 } // namespace OpenMS

@@ -418,7 +418,7 @@ protected:
     /**
       @name Parameter handling
 
-      Use the methods registerStringOption_, registerInputFile_, registerOutputFile_, registerDoubleOption_,
+      Use the methods registerStringOption_, registerInputFile_, registerOutputFile_, registerOutputPrefix_, registerDoubleOption_,
       registerIntOption_ and registerFlag_ in order to register parameters in registerOptionsAndFlags_.
 
       To access the values of registered parameters in the main_ method use methods
@@ -525,11 +525,35 @@ protected:
     void registerOutputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
+      @brief Registers an output file prefix used for tools with multiple file output.
+
+      Tools should follow the convention to name output files PREFIX_[0..N-1].EXTENSION.
+      For example, a tool that splits mzML files into multiple mgf files should create files:
+      splitted_0.mgf, splitted_1.mgf, ... if splitted got passed as prefix.
+      
+      Note: setting format(s) via setValidFormat_ for an output prefix can be used to export
+            e.g. valid CTD files that contain information on the expected output file types. In theory, it is possible
+            to output different types and list them here but this should be avoided for cleanlyness (prefer multiple
+            separate outputs). This could be left empty in case of an unknown amount of different extensions that
+            are produced but is highly recommended.
+
+      @param name Name of the option in the command line and the INI file
+      @param argument Argument description text for the help output
+      @param default_value Default value (remember, no extension is specified here)
+      @param description Description of the parameter. Indentation of newline is done automatically.
+      @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
+    */
+    void registerOutputPrefix_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
+
+    /**
       @brief Sets the formats for a input/output file option or for all members of an input/output file lists
 
       Setting the formats causes a check for the right file format (input file) or the right file extension (output file).
       This check is performed only, when the option is accessed in the TOPP tool.
       When @p force_OpenMS_format is set, only formats known to OpenMS internally are allowed (default).
+      
+      Note: Formats for output file prefixes are exported to e.g. CTD but no checks are performed (as they don't contain a file extension)
 
       @exception Exception::ElementNotFound is thrown if the parameter is unset or not a file parameter
       @exception Exception::InvalidParameter is thrown if an unknown format name is used (@see FileHandler::Type)
