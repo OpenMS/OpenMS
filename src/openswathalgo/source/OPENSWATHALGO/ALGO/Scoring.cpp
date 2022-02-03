@@ -38,7 +38,14 @@
 #include <algorithm>
 #include <unordered_map>
 
-#include <boost/functional/hash.hpp>
+struct pair_hash {
+    template <class T1, class T2>
+    std::size_t operator () (const std::pair<T1,T2> &p) const {
+        auto h1 = std::hash<T1>{}(p.first);
+        auto h2 = std::hash<T2>{}(p.second);
+        return h1 ^ h2;  
+    }
+};
 
 namespace OpenSwath::Scoring
 {
@@ -315,7 +322,7 @@ namespace OpenSwath::Scoring
       unsigned int secondNumStates = max_rank2 + 1;
       std::vector<double> firstStateCounts(firstNumStates,0);
       std::vector<double> secondStateCounts(secondNumStates,0);
-      std::unordered_map<pos2D, double, boost::hash<pos2D>> jointStateCounts{};
+      std::unordered_map<pos2D, double, pair_hash> jointStateCounts{};
 
       for (unsigned int i = 0; i < inputVectorlength; i++) {
         firstStateCounts[ranked_data1[i]] += 1;
