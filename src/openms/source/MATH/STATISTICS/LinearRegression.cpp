@@ -234,14 +234,14 @@ namespace OpenMS::Math
       bool pass = Wm5::HeightLineFit2<double>(static_cast<int>(points.size()), &points.front(), slope_, intercept_);
       chi_squared_ = computeChiSquare(x_begin, x_end, y_begin, slope_, intercept_);
 
-      if (pass)
+      if (!pass)
       {
-        if (compute_goodness && points.size() > 2) computeGoodness_(points, confidence_interval_P);
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression", String("Could not fit a linear model to the data (") + points.size() + " points).");
       }
-      else
+
+      if (compute_goodness && points.size() > 2)
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "UnableToFit-LinearRegression", String("Could not fit a linear model to the data (") + points.size() + " points).");
+        computeGoodness_(points, confidence_interval_P);
       }
     }
 

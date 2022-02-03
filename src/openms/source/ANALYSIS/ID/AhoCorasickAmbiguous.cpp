@@ -278,8 +278,9 @@ namespace OpenMS
       {
         const auto needle_length = trie_[i()].depth_and_hits.depth;
         const auto text_start = text_pos - needle_length;
-        for (const auto needle_idx : umap_index2needles_.at(i())) {
-          hits.emplace_back(needle_idx, needle_length, text_start);
+        for (const auto needle_idx : umap_index2needles_.at(i()))
+        {
+          hits.emplace_back(needle_idx, needle_length, Hit::T(text_start));
         }
         return true;
       }
@@ -387,9 +388,6 @@ namespace OpenMS
   {
     for (AA edge = spawn.nextValidAA(state); edge.isValid(); edge = spawn.nextValidAA(state))
     {
-      // has direct child (could also be an ambiguous AA - we don't care as long as a needle did contain that character)
-      Index ch = findChildBFS_(spawn.tree_pos, edge);
-
       const bool consider_ambAA = spawn.max_aaa_leftover > 0;
       const bool consider_MM = spawn.max_mm_leftover > 0;
 
