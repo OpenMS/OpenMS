@@ -118,7 +118,7 @@ namespace OpenMS
     QStringList str_list;
     
     QStringList cols_to_export = (getHeaderNames(WidgetHeader::VISIBLE_ONLY, true) + mandatory_export_columns_);    
-    cols_to_export.remove_duplicates();
+    cols_to_export.removeDuplicates();
 
     QStringList all_header_names = getHeaderNames(WidgetHeader::WITH_INVISIBLE, true);
 
