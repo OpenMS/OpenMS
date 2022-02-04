@@ -131,16 +131,16 @@ public:
     /// Standardize a vector (subtract mean, divide by standard deviation)
     OPENSWATHALGO_DLLAPI void standardize_data(std::vector<double>& data);
 
-    /// divide each element of x by the sum of the vector
+    /// Divide each element of x by the sum of the vector
     OPENSWATHALGO_DLLAPI void normalize_sum(double x[], unsigned int n);
 
-    // Compute rank of vector elements
-    OPENSWATHALGO_DLLAPI void computeRank(const std::vector<double>& v, std::vector<unsigned int>& ranks);
+    /// Compute rank of vector elements and append it to @param ranks
+    OPENSWATHALGO_DLLAPI void computeAndAppendRank(const std::vector<double>& v, std::vector<unsigned int>& ranks);
 
-    // Compute rank of vector elements for each row in a 2D array
+    /// Compute rank of vector elements for each row in a 2D array
     OPENSWATHALGO_DLLAPI void computeRankVector(const std::vector<std::vector<double>>& intensity, std::vector<std::vector<unsigned int>>& ranks);
 
-    // Estimate mutual information between two vectors of ranks
+    /// Estimate mutual information between two vectors of ranks
     OPENSWATHALGO_DLLAPI double rankedMutualInformation(std::vector<unsigned int>& ranked_data1, std::vector<unsigned int>& ranked_data2);
 
     //@}

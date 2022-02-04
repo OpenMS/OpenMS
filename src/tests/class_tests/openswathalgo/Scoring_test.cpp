@@ -376,7 +376,7 @@ BOOST_AUTO_TEST_CASE(test_MRMFeatureScoring_calcxcorr_legacy_mquest_)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_computeRank)
+BOOST_AUTO_TEST_CASE(test_computeAndAppendRank)
 {
 /*
 * Requires Octave with installed MIToolbox
@@ -384,7 +384,7 @@ BOOST_AUTO_TEST_CASE(test_computeRank)
 y = [5.97543668746948 4.2749171257019 3.3301842212677 4.08597040176392 5.50307035446167 5.24326848983765 8.40812492370605 2.83419919013977 6.94378805160522 7.69957494735718 4.08597040176392]';
 
 [~, ~, y_ranking] = unique(y);
-% Note: Matlab handles ties differently than Scoring::computeRank, but this makes no difference for MI estimation.
+% Note: Matlab handles ties differently than Scoring::computeAndAppendRank, but this makes no difference for MI estimation.
 
 */
 
@@ -402,7 +402,7 @@ y = [5.97543668746948 4.2749171257019 3.3301842212677 4.08597040176392 5.5030703
                              121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108};
 
   std::vector<unsigned int> result;
-  Scoring::computeRank(data1, result);
+  Scoring::computeAndAppendRank(data1, result);
 
   TEST_EQUAL (result[0],7);
   TEST_EQUAL (result[1],4);
@@ -438,8 +438,8 @@ m1 = mi(x_ranking,y_ranking)
   std::vector<double> data2 = {15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
                                121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108};
   std::vector<unsigned int> rank_vec1, rank_vec2;
-  Scoring::computeRank(data1, rank_vec1);
-  Scoring::computeRank(data2, rank_vec2);
+  Scoring::computeAndAppendRank(data1, rank_vec1);
+  Scoring::computeAndAppendRank(data2, rank_vec2);
 
   double result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2);
 

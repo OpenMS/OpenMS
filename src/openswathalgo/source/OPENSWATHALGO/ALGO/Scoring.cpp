@@ -277,7 +277,7 @@ namespace OpenSwath::Scoring
       return result;
     }
 
-    void computeRank(const std::vector<double>& v_temp, std::vector<unsigned int>& ranks_out)
+    void computeAndAppendRank(const std::vector<double>& v_temp, std::vector<unsigned int>& ranks_out)
     {
       std::vector<unsigned int> ranks{};
       ranks.resize(v_temp.size());
@@ -304,7 +304,7 @@ namespace OpenSwath::Scoring
       ranks.resize(pre_rank_size + intensity.size());
       for (std::size_t i = 0; i < intensity.size(); i++)
       {
-        computeRank(intensity[i], ranks[pre_rank_size + i]);
+        computeAndAppendRank(intensity[i], ranks[pre_rank_size + i]);
       }
     }
 
