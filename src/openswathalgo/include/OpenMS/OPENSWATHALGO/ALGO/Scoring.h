@@ -134,7 +134,7 @@ public:
     /// Divide each element of x by the sum of the vector
     OPENSWATHALGO_DLLAPI void normalize_sum(double x[], unsigned int n);
 
-    /// Compute rank of vector elements and append it to @param ranks
+    /// Compute rank of vector elements and append it to @p ranks
     OPENSWATHALGO_DLLAPI void computeAndAppendRank(const std::vector<double>& v, std::vector<unsigned int>& ranks);
 
     /// Compute rank of vector elements for each row in a 2D array
