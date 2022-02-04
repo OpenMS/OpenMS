@@ -12,7 +12,7 @@ on:
 jobs:
 
   build-win:
-    runs-on: windows-latest
+    runs-on: windows-2022
     continue-on-error: true
     steps:
     - uses: actions/checkout@v2
