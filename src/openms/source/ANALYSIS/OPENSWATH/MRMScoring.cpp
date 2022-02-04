@@ -41,7 +41,6 @@
 #include <iostream>
 #include <iterator>
 #include <cmath> // for isnan
-// #include <boost/numeric/conversion/cast.hpp>
 
 namespace OpenSwath
 {
