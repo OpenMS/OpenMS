@@ -55,6 +55,16 @@ namespace OpenSwath
 
     //@{
     typedef std::pair<unsigned int, unsigned int> pos2D;
+    /// Simple hash function for Scoring::pos2D
+    struct pair_hash 
+    {
+      template <class T1, class T2>
+      std::size_t operator () (const std::pair<T1,T2> &p) const {
+        auto h1 = std::hash<T1>{}(p.first);
+        auto h2 = std::hash<T2>{}(p.second);
+        return h1 ^ h2;  
+      }
+    };
     
     /// Cross Correlation array contains (lag,correlation) pairs
     typedef std::pair<int, double> XCorrEntry;
