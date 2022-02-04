@@ -116,16 +116,18 @@ namespace OpenMS
     }
     QTextStream ts(&f);
     QStringList str_list;
+    
+    QStringList cols_to_export = (getHeaderNames(WidgetHeader::VISIBLE_ONLY, true) + mandatory_export_columns_);    
+    cols_to_export.remove_duplicates();
 
-    // write header
     QStringList all_header_names = getHeaderNames(WidgetHeader::WITH_INVISIBLE, true);
 
+    // write header
     bool first{true};
     for (int c = 0; c < columnCount(); ++c)
     {
-      // print visible or mandatory exported column
-      if (!isColumnHidden(c)
-        || mandatory_export_columns_.indexOf(all_header_names[c]) != -1)
+      // columns marked for export
+      if (cols_to_export.indexOf(all_header_names[c]) != -1)
       {
         if (!first) 
         { 
@@ -145,9 +147,8 @@ namespace OpenMS
     {
       for (int c = 0; c < columnCount(); ++c)
       {
-        // skip hidden columns (if not marked as mandatory export column)
-        if (isColumnHidden(c)
-           && mandatory_export_columns_.indexOf(all_header_names[c]) == -1)
+        // only export columns we marked for export
+        if (cols_to_export.indexOf(all_header_names[c]) == -1)
         {
           continue;
         }
