@@ -63,6 +63,8 @@ namespace OpenMS
       All cells will be queried for their Qt::UserRole, then for Qt::DisplayRole and last for Qt::CheckStateRole.
       The first item to return data will be used!
       Thus, to export data which differs from the visible (==DisplayRole), use QTableWidgetItem::setData(Qt::UserRole, ...).
+      
+      Note: to force export of hidden columns use @p setMandatoryExportColumns()
     */
     virtual void exportEntries();
 
@@ -101,7 +103,7 @@ namespace OpenMS
        @return List of header names 
     */
     QStringList getHeaderNames(const WidgetHeader which, bool use_export_name = false);
-    
+
     /**
       @brief Set the export-name of a column, which will be returned in getHeaderNames() when @p use_export_name it true
 
@@ -134,14 +136,18 @@ namespace OpenMS
     /// @throws Exception::ElementNotFound if header at index @p header_column is not valid
     QString getHeaderName(const int header_column);
 
+    /// Set the mandatory export columns @p cols which get exported even if the user decided to hide them.
+    void setMandatoryExportColumns(QStringList& cols);    
   signals:
     /// emitted when the widget is resized
     void resized();
 
   protected:
-    // emits the resized signal
+    /// emits the resized signal
     void resizeEvent(QResizeEvent* event) override;
 
+    /// columns that are exported to tsv files even if they are hidden in the GUI
+    QStringList mandatory_export_columns_;
   protected slots:
     /// Display header context menu; allows to show/hide columns
     void headerContextMenu_(const QPoint&);
