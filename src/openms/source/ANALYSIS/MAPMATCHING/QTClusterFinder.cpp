@@ -529,9 +529,8 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
 
     // determine best quality feature for adduct ion annotation (best_ion)
     float best_quality = 0;
-    // collect the "Group" MetaValues of Features in a ConsensusFeature and hash their Group IDs in a partners ID
-    std::hash<String> hasher;
-    Size partners = 0;
+    // collect the "Group" MetaValues of Features in a ConsensusFeature "partners" MetaValue
+    vector<String> partners;
 
     // the features of the current best cluster are inserted into the new consensus feature
     for (const auto& element : elements)
@@ -548,17 +547,17 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
       }
       if (elem_feat.metaValueExists("dc_charge_adducts") & (elem_feat.getQuality() > best_quality))
       {
-       feature.setMetaValue("best_ion", elem_feat.getMetaValue("dc_charge_adducts"));
+       feature.setMetaValue(Constants::UserParam::BEST_ION, elem_feat.getMetaValue("dc_charge_adducts"));
        best_quality = elem_feat.getQuality();
       }
       if (elem_feat.metaValueExists("Group"))
       {
-        partners += hasher(elem_feat.getMetaValue("Group"));
+        partners.push_back(elem_feat.getMetaValue("Group"));
       }
     }
-    if (partners)
+    if (!partners.empty())
     {
-      feature.setMetaValue("partners", partners);
+      feature.setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, partners);
      }
     feature.computeConsensus();
   }

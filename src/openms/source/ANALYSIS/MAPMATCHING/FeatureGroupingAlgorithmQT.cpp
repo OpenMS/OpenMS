@@ -37,6 +37,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
+
 using namespace std;
 
 namespace OpenMS
@@ -70,6 +72,8 @@ namespace OpenMS
 
     cluster_finder.run(maps, out);
 
+    FeatureGroupingAlgorithm::linkAdductPartners(out);
+    
     postprocess_(maps, out);
   }
 
