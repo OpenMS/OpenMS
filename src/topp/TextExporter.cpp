@@ -221,7 +221,8 @@ namespace OpenMS
 
   // write the header for feature data
   void writeFeatureHeader(SVOutStream& out, const String& suffix = "",
-                          bool incl_quality = true, bool comment = true)
+                          bool incl_quality = true, bool comment = true,
+                          bool write_best_ion_and_partners = false)
   {
     StringList elements = ListUtils::create<String>("#rt,mz,intensity,charge,width");
     if (!comment)
@@ -236,6 +237,11 @@ namespace OpenMS
     for (const String& str : elements)
     {
       out << str + suffix;
+    }
+    if (incl_best_ion_and_partners & write_best_ion_and_partners)
+    {
+      out << "best_ion";
+      out << "partners";
     }
     out.modifyStrings(old);
   }
@@ -1254,7 +1260,7 @@ protected:
             output << nl;
           }
           output << "#CONSENSUS";
-          writeFeatureHeader(output, "_cf", true, false);
+          writeFeatureHeader(output, "_cf", true, false, true);
           for (Size fhindex = 0; fhindex < map_num_to_map_id.size();
                ++fhindex)
           {

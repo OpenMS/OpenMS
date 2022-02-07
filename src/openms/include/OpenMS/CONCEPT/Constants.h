@@ -450,7 +450,7 @@ namespace OpenMS
       /** User parameter name for partners ID of a ConsensusFeature. Represents a list of Group MVs from all Features in a ConsensusFeature.
        *  Can be used by FeatureGroupingAlgorithm::linkAdductPartners() to set the same partners ID for features that belong together but have
        *  different adducts.
-              String
+              List of String
       */
       inline const std::string   ADDUCT_PARTNERS = "partners";
     }
