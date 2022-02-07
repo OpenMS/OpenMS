@@ -146,8 +146,8 @@ public:
     /// Divide each element of x by the sum of the vector
     OPENSWATHALGO_DLLAPI void normalize_sum(double x[], unsigned int n);
 
-    // Compute rank of vector elements and return the highest rank
-    OPENSWATHALGO_DLLAPI unsigned int computeRank(const std::vector<double>& v, std::vector<unsigned int>& ranks);
+    // Compute rank of vector elements, append it to @p ranks and return the highest rank
+    OPENSWATHALGO_DLLAPI unsigned int computeAndAppendRank(const std::vector<double>& v, std::vector<unsigned int>& ranks);
 
     // Compute rank of vector elements and its highest rank for each row in a 2D array
     OPENSWATHALGO_DLLAPI std::vector<unsigned int> computeRankVector(const std::vector<std::vector<double>>& intensity, std::vector<std::vector<unsigned int>>& ranks);

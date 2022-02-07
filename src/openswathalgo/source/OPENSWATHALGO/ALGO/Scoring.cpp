@@ -270,7 +270,7 @@ namespace OpenSwath::Scoring
       return result;
     }
 
-    unsigned int computeRank(const std::vector<double>& v_temp, std::vector<unsigned int>& ranks_out)
+    unsigned int computeAndAppendRank(const std::vector<double>& v_temp, std::vector<unsigned int>& ranks_out)
     {
       std::vector<unsigned int> ranks{};
       ranks.resize(v_temp.size());
@@ -299,7 +299,7 @@ namespace OpenSwath::Scoring
       std::vector<unsigned int> max_rank_vec(intensity.size());
       for (std::size_t i = 0; i < intensity.size(); i++)
       {
-        max_rank_vec[i] = computeRank(intensity[i], ranks[pre_rank_size + i]);
+        max_rank_vec[i] = computeAndAppendRank(intensity[i], ranks[pre_rank_size + i]);
       }
       return max_rank_vec;
     }
@@ -326,7 +326,6 @@ namespace OpenSwath::Scoring
         mutualInformation += jointStateCount_val * log(jointStateCount_val / firstStateCounts[pos.first] / secondStateCounts[pos.second]);
       }
 
-      // \log l + 1/l * (\sum\sum c(x,y) * \log(c(x,y)/c(x)c(y)))
       mutualInformation /= inputVectorlength;
       mutualInformation += log(inputVectorlength);
       mutualInformation /= log(2.0);

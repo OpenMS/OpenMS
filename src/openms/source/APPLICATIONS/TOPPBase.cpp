@@ -669,6 +669,7 @@ namespace OpenMS
       case ParameterInformation::STRING:
       case ParameterInformation::INPUT_FILE:
       case ParameterInformation::OUTPUT_FILE:
+      case ParameterInformation::OUTPUT_PREFIX:
       case ParameterInformation::STRINGLIST:
       case ParameterInformation::INPUT_FILE_LIST:
       case ParameterInformation::OUTPUT_FILE_LIST:
@@ -682,8 +683,11 @@ namespace OpenMS
           }
 
           String add = "";
-          if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE ||
-              it->type == ParameterInformation::INPUT_FILE_LIST || it->type == ParameterInformation::OUTPUT_FILE_LIST)
+          if (it->type == ParameterInformation::INPUT_FILE 
+            || it->type == ParameterInformation::OUTPUT_FILE
+            || it->type == ParameterInformation::OUTPUT_PREFIX
+            || it->type == ParameterInformation::INPUT_FILE_LIST 
+            || it->type == ParameterInformation::OUTPUT_FILE_LIST)
             add = " formats";
 
           addons.push_back(String("valid") + add + ": " + ListUtils::concatenate(copy, ", ")); // concatenate restrictions by comma
@@ -777,6 +781,7 @@ namespace OpenMS
 
     bool input_file = entry.tags.count("input file");
     bool output_file = entry.tags.count("output file");
+    bool output_prefix = entry.tags.count("output prefix");
     if (input_file && output_file)
     {
       throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Parameter '" + full_name + "' marked as both input and output file");
@@ -789,6 +794,8 @@ namespace OpenMS
         type = ParameterInformation::INPUT_FILE;
       else if (output_file)
         type = ParameterInformation::OUTPUT_FILE;
+      else if (output_prefix)
+        type = ParameterInformation::OUTPUT_PREFIX;
       else
         type = ParameterInformation::STRING;
       break;
@@ -999,7 +1006,8 @@ namespace OpenMS
     if (p.type != ParameterInformation::INPUT_FILE
        && p.type != ParameterInformation::OUTPUT_FILE
        && p.type != ParameterInformation::INPUT_FILE_LIST
-       && p.type != ParameterInformation::OUTPUT_FILE_LIST)
+       && p.type != ParameterInformation::OUTPUT_FILE_LIST
+       && p.type != ParameterInformation::OUTPUT_PREFIX)
     {
       throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
@@ -1117,7 +1125,7 @@ namespace OpenMS
     }
     if (required && !default_value.empty() && count_conflicting_tags == 0)
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required InputFile param (" + name + ") with a non-empty default is forbidden!", default_value);
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE, argument, default_value, description, required, advanced, tags));
+    parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE, argument, default_value, description, required, advanced, tags));    
   }
 
   void TOPPBase::registerOutputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required, bool advanced)
@@ -1125,6 +1133,13 @@ namespace OpenMS
     if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required OutputFile param (" + name + ") with a non-empty default is forbidden!", default_value);
     parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE, argument, default_value, description, required, advanced));
+  }
+
+  void TOPPBase::registerOutputPrefix_(const String& name, const String& argument, const String& default_value, const String& description, bool required, bool advanced)
+  {
+    if (required && !default_value.empty())
+      throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required OutputPrefix param (" + name + ") with a non-empty default is forbidden!", default_value);
+    parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_PREFIX, argument, default_value, description, required, advanced));
   }
 
   void TOPPBase::registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description, bool required, bool advanced)
@@ -1221,7 +1236,10 @@ namespace OpenMS
   String TOPPBase::getStringOption_(const String& name) const
   {
     const ParameterInformation& p = findEntry_(name);
-    if (p.type != ParameterInformation::STRING && p.type != ParameterInformation::INPUT_FILE && p.type != ParameterInformation::OUTPUT_FILE)
+    if (p.type != ParameterInformation::STRING 
+      && p.type != ParameterInformation::INPUT_FILE 
+      && p.type != ParameterInformation::OUTPUT_FILE 
+      && p.type != ParameterInformation::OUTPUT_PREFIX)
     {
       throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
@@ -1258,7 +1276,7 @@ namespace OpenMS
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     double tmp = getParamAsDouble_(name, (double)p.default_value);
-    if (p.required && boost::math::isnan(tmp))
+    if (p.required && std::isnan(tmp))
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
@@ -1360,6 +1378,10 @@ namespace OpenMS
     {
       outputFileWritable_(param_value, param_name);
     }
+    else if (p.type == ParameterInformation::OUTPUT_PREFIX)
+    {
+      outputFileWritable_(param_value + "_0", param_name); // only test one file
+    }
 
     // check restrictions
     if (p.valid_strings.empty()) return;
@@ -1400,7 +1422,8 @@ namespace OpenMS
         // determine file type as string
         FileTypes::Type f_type = FileHandler::getTypeByFileName(param_value);
         // Wrong ending, unknown is is ok.
-        if (f_type != FileTypes::UNKNOWN && !ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type).toUpper(), ListUtils::CASE::INSENSITIVE))
+        if (f_type != FileTypes::UNKNOWN 
+          && !ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type).toUpper(), ListUtils::CASE::INSENSITIVE))
         {
           throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             String("Invalid output file extension for file '") + param_value + "'. Valid file extensions are: '" +
@@ -1408,6 +1431,8 @@ namespace OpenMS
         }
         break;
       }
+      case ParameterInformation::OUTPUT_PREFIX: /* no file extension check for out prefixes */
+        break;
       default: /*nothing */
         break;
     }
@@ -1416,7 +1441,9 @@ namespace OpenMS
   StringList TOPPBase::getStringList_(const String& name) const
   {
     const ParameterInformation& p = findEntry_(name);
-    if (p.type != ParameterInformation::STRINGLIST && p.type != ParameterInformation::INPUT_FILE_LIST && p.type != ParameterInformation::OUTPUT_FILE_LIST)
+    if (p.type != ParameterInformation::STRINGLIST 
+      && p.type != ParameterInformation::INPUT_FILE_LIST 
+      && p.type != ParameterInformation::OUTPUT_FILE_LIST)
     {
       throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
@@ -1495,10 +1522,8 @@ namespace OpenMS
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
 
-    Int tmp;
-    for (IntList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
+    for (const Int tmp : tmp_list)
     {
-      tmp = *it;
       writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
       //check if in valid range
@@ -1772,6 +1797,7 @@ namespace OpenMS
         case ParameterInformation::STRING:
         case ParameterInformation::INPUT_FILE:
         case ParameterInformation::OUTPUT_FILE:
+        case ParameterInformation::OUTPUT_PREFIX:
         case ParameterInformation::FLAG:
           if (it->value.valueType() != ParamValue::STRING_VALUE)
           {
@@ -1969,13 +1995,28 @@ namespace OpenMS
       String name = loc + it->name;
       std::vector<std::string> tags;
       if (it->advanced)
+      {
         tags.push_back("advanced");
+      }
       if (it->required)
+      {
         tags.push_back("required");
+      }
+
       if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::INPUT_FILE_LIST)
+      {
         tags.push_back("input file");
+      }
+      
       if (it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST)
+      {
         tags.push_back("output file");
+      }
+
+      if (it->type == ParameterInformation::OUTPUT_PREFIX)
+      {
+        tags.push_back("output prefix");
+      }        
 
       switch (it->type)
       {
@@ -1989,6 +2030,7 @@ namespace OpenMS
 
       case ParameterInformation::INPUT_FILE:
       case ParameterInformation::OUTPUT_FILE:
+      case ParameterInformation::OUTPUT_PREFIX:
         tmp.setValue(name, (String)it->default_value.toString(), it->description, tags);
         if (!it->valid_strings.empty())
         {
@@ -2367,6 +2409,7 @@ namespace OpenMS
             case ParameterInformation::STRING:
             case ParameterInformation::INPUT_FILE:
             case ParameterInformation::OUTPUT_FILE:
+            case ParameterInformation::OUTPUT_PREFIX:
               if (queue.empty())
                 value = std::string();
               else

@@ -90,7 +90,7 @@ typedef vector<IsotopePattern> IsotopePatterns;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_MetaProSIP MetaProSIP 
+    @page UTILS_MetaProSIP MetaProSIP
 
     @brief Performs proteinSIP on peptide features for elemental flux analysis.
 
@@ -793,11 +793,11 @@ public:
   static void createQualityReport(const String& tmp_path,
                                   const String& qc_output_directory,
                                   const String& file_suffix,
-                                  const String& file_extension, 
-                                  const vector<vector<SIPPeptide> >& sip_peptide_cluster, 
-                                  Size n_heatmap_bins, 
-                                  double score_plot_y_axis_min, 
-                                  bool report_natural_peptides, 
+                                  const String& file_extension,
+                                  const vector<vector<SIPPeptide> >& sip_peptide_cluster,
+                                  Size n_heatmap_bins,
+                                  double score_plot_y_axis_min,
+                                  bool report_natural_peptides,
                                   const QString& executable = QString("R"))
   {
     vector<SIPPeptide> sip_peptides;
@@ -1163,8 +1163,8 @@ public:
       const SIPPeptide& current_SIPpeptide = peptide_to_cluster_index[i].first;
 
       // skip non natural peptides for repoting if flag is set
-      if (!report_natural_peptides 
-        && current_SIPpeptide.incorporations.size() == 1 
+      if (!report_natural_peptides
+        && current_SIPpeptide.incorporations.size() == 1
         && current_SIPpeptide.incorporations[0].rate < 5.0)
       {
         continue;
@@ -1378,7 +1378,7 @@ public:
     if (modifications_ef.getNumberOf(e1) > 0) // modification adds additional (unlabeled) carbon atoms
     {
       IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_labeling_carbon + additional_isotopes));
-      
+
       for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)max_labeling_carbon)
       {
         double a = abundance / 100.0;
@@ -1388,7 +1388,7 @@ public:
         isotopes.insert(13, a);
         e2->setIsotopeDistribution(isotopes);
         IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_labeling_carbon + additional_isotopes));
-        dist.set(CoarseIsotopePatternGenerator().convolve_(dist.getContainer(), modification_dist.getContainer())); // convolve with modification distribution (which follows the natural distribution)
+        dist.set(CoarseIsotopePatternGenerator().convolve(dist.getContainer(), modification_dist.getContainer())); // convolve with modification distribution (which follows the natural distribution)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1400,7 +1400,7 @@ public:
     }
     else
     {
-      
+
       // calculate isotope distribution for a given peptide and varying incorporation rates
       // modification of isotope distribution in static ElementDB
       for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)MAXISOTOPES)
@@ -1470,7 +1470,7 @@ public:
     if (diff >= 0) // common case, mod added unlabeled elements
     {
       return labeling_element_mods_excluded;
-    } 
+    }
     else // special case, mod results in loss of labeling element
     {
       return labeling_element_mods_included;
@@ -1507,7 +1507,7 @@ public:
         isotopes.insert(15, a);
         e2->setIsotopeDistribution(isotopes);
         IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_labeling_nitrogens + additional_isotopes));
-        dist.set(CoarseIsotopePatternGenerator().convolve_(dist.getContainer(), modification_dist.getContainer())); // calculate convolution with isotope distribution of modification(s)
+        dist.set(CoarseIsotopePatternGenerator().convolve(dist.getContainer(), modification_dist.getContainer())); // calculate convolution with isotope distribution of modification(s)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1575,9 +1575,9 @@ public:
         isotopes.insert(1, 1.0 - a);
         isotopes.insert(2, a);
         e2->setIsotopeDistribution(isotopes);
-        
+
         IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_labeling_element + additional_isotopes));
-        dist.set(CoarseIsotopePatternGenerator().convolve_(dist.getContainer(), modification_dist.getContainer())); // convole with modification distribution (which follows the natural distribution)
+        dist.set(CoarseIsotopePatternGenerator().convolve(dist.getContainer(), modification_dist.getContainer())); // convole with modification distribution (which follows the natural distribution)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1645,9 +1645,9 @@ public:
         isotopes.insert(2, 0.0); // 17O is neglectable (=0.038%)
         isotopes.insert(3, a);
         e2->setIsotopeDistribution(isotopes);
-        
+
         IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_labeling_element * 2 + additional_isotopes)); // 2 * isotopic traces
-        dist.set(CoarseIsotopePatternGenerator().convolve_(dist.getContainer(), modification_dist.getContainer())); // convole with modification distribution (which follows the natural distribution)
+        dist.set(CoarseIsotopePatternGenerator().convolve(dist.getContainer(), modification_dist.getContainer())); // convole with modification distribution (which follows the natural distribution)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1690,7 +1690,7 @@ public:
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
-  
+
   static IsotopePatterns calculateIsotopePatternsFor15NRangeOfAveraginePeptide(double mass)
   {
     IsotopePatterns ret;
@@ -2210,7 +2210,7 @@ protected:
     }
 
     double TIC_threshold(0.0);
-    
+
     // N15 has smaller RIA resolution and multiple RIA peaks tend to overlap more in correlation. This reduces the width of the pattern leading to better distinction
     if (labeling_element == "N")
     {
@@ -2316,7 +2316,7 @@ protected:
       }
 
       // cout << ii << "\t" << std::distance(intensities_end, intensities_begin) << "\t" << std::distance(intensities_begin, isotopic_intensities.begin()) << "\t" << std::distance(intensities_end, isotopic_intensities.begin()) << endl;
-      if (boost::math::isnan(correlation_score))
+      if (std::isnan(correlation_score))
       {
         correlation_score = 0.0;
       }
@@ -2946,7 +2946,7 @@ protected:
     String tmp_path = File::getTempDirectory();
     tmp_path.substitute('\\', '/');
 
-    // Do we want to create a qc report?  
+    // Do we want to create a qc report?
     if (!qc_output_directory.empty())
     {
       QString executable = getStringOption_("r_executable").toQString();
@@ -2959,7 +2959,7 @@ protected:
       {
         qc_dir.mkpath(qc_output_directory.toQString());
       }
-      // check if R and dependencies are installed    
+      // check if R and dependencies are installed
       StringList package_names;
       package_names.push_back("gplots");
 
@@ -3282,7 +3282,7 @@ protected:
       else if (labeling_element == "O")
       {
         // 18O-16O distance is approx. 2.0042548 Dalton but natural isotopic pattern is dominated by 13C-12C distance (approx. 1.0033548)
-        // After the convolution of the O-isotope distribution with the natural one we get multiple copies of the O-distribution (with 2 Da spaces) 
+        // After the convolution of the O-isotope distribution with the natural one we get multiple copies of the O-distribution (with 2 Da spaces)
         // shifted by 13C-12C distances. Choosing (18O-16O) / 2 as expected mass trace distance should therefor collect all of them.
         sip_peptide.mass_diff = 2.0042548 / 2.0;
       }
@@ -3314,7 +3314,7 @@ protected:
         }
       }
 
-      isotopic_trace_count = labeling_element != "O" ? element_count : element_count * 2; 
+      isotopic_trace_count = labeling_element != "O" ? element_count : element_count * 2;
 
       // collect 13C / 15N peaks
       if (debug_level_ >= 10)
@@ -3421,7 +3421,7 @@ protected:
          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor2HRange(AASequence::fromString(feature_hit_seq));
        }
        else if (labeling_element == "O")
-       { 
+       {
          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor18ORange(AASequence::fromString(feature_hit_seq));
        }
       }
@@ -3607,7 +3607,7 @@ protected:
     {
       OPENMS_LOG_INFO << "Creating peptide centric report: " << out_peptide_centric_csv << std::endl;
 
-      if (getFlag_("test")) 
+      if (getFlag_("test"))
       {
         MetaProSIPReporting::createPeptideCentricCSVReport("test_mode_enabled.mzML", file_extension_, sippeptide_clusters, out_peptide_csv_stream, proteinid_to_description, qc_output_directory, file_suffix, report_natural_peptides);
       }

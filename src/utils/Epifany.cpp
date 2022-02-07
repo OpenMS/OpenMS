@@ -296,10 +296,10 @@ protected:
       ConsensusMap cmap;
       ConsensusXMLFile cxmlf;
       cxmlf.load(files[0], cmap);
-      boost::optional<const ExperimentalDesign> edopt = maybeGetExpDesign_(exp_des);
+      std::optional<const ExperimentalDesign> edopt = maybeGetExpDesign_(exp_des);
       if (!exp_des.empty())
       {
-        cmerge.mergeProteinsAcrossFractionsAndReplicates(cmap, edopt.get());
+        cmerge.mergeProteinsAcrossFractionsAndReplicates(cmap, edopt.value());
       }
       else
       {
@@ -484,10 +484,10 @@ protected:
   // - merge and don't assume same proteins: -> We need an extended graph, that has multiple versions
   //   of the proteins for every sample
 
-  static boost::optional<const ExperimentalDesign> maybeGetExpDesign_(const String& filename)
+  static std::optional<const ExperimentalDesign> maybeGetExpDesign_(const String& filename)
   {
-    if (filename.empty()) return boost::none;
-    return boost::optional<const ExperimentalDesign>(ExperimentalDesignFile::load(filename, false));
+    if (filename.empty()) return std::nullopt;
+    return std::optional<const ExperimentalDesign>(ExperimentalDesignFile::load(filename, false));
   }
 };
 

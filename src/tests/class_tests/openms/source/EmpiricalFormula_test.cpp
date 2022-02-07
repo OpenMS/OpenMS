@@ -58,7 +58,7 @@ START_TEST(ElementDB, "$Id$")
 
 EmpiricalFormula* e_ptr = nullptr;
 EmpiricalFormula* e_nullPointer = nullptr;
-const ElementDB * db = ElementDB::getInstance();
+const ElementDB* db = ElementDB::getInstance();
 
 EmpiricalFormula ef_empty;
 
@@ -570,8 +570,8 @@ END_SECTION
 
 START_SECTION(([EXTRA] Check correct charge semantics))
   EmpiricalFormula ef1("H4C+"); // CH4 +1 charge
-  const Element * H = db->getElement("H");
-  const Element * C = db->getElement("C");
+  const Element* H = db->getElement("H");
+  const Element* C = db->getElement("C");
 
   TEST_EQUAL(ef1.getNumberOf(H), 4)
   TEST_EQUAL(ef1.getNumberOf(C), 1)
@@ -618,9 +618,24 @@ START_SECTION(([EXTRA] Check correct charge semantics))
   TEST_EQUAL(ef11.getCharge(), 3)
 END_SECTION
 
+START_SECTION((static EmpiricalFormula hydrogen(int n_atoms = 1)))
+{
+  EmpiricalFormula f("H");
+  EmpiricalFormula h = EmpiricalFormula::hydrogen();
+  TEST_EQUAL(f, h);
+}
+END_SECTION
+
+START_SECTION((static EmpiricalFormula hydrogen(int n_atoms = 1)))
+{
+  EmpiricalFormula f("H2O");
+  EmpiricalFormula w = EmpiricalFormula::water();
+  TEST_EQUAL(f, w);
+}
+END_SECTION
+
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-

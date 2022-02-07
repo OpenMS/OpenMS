@@ -39,6 +39,8 @@
 
 ///////////////////////////
 
+#include "svm.h"
+
 #include <string>
 #include <vector>
 
