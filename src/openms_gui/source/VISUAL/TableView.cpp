@@ -100,6 +100,11 @@ namespace OpenMS
     context_menu.exec(mapToGlobal(pos));
   }
 
+  void TableView::setMandatoryExportColumns(QStringList& cols)
+  {
+    mandatory_export_columns_ = cols;
+  }
+
   void TableView::exportEntries()
   {
     QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "tsv file (*.tsv)");
@@ -111,17 +116,39 @@ namespace OpenMS
     }
     QTextStream ts(&f);
     QStringList str_list;
+    
+    QStringList cols_to_export = (getHeaderNames(WidgetHeader::VISIBLE_ONLY, true) + mandatory_export_columns_);    
+    cols_to_export.removeDuplicates();
+
+    QStringList all_header_names = getHeaderNames(WidgetHeader::WITH_INVISIBLE, true);
 
     // write header
-    ts << getHeaderNames(WidgetHeader::VISIBLE_ONLY, true).join("\t") + "\n";
+    bool first{true};
+    for (int c = 0; c < columnCount(); ++c)
+    {
+      // columns marked for export
+      if (cols_to_export.indexOf(all_header_names[c]) != -1)
+      {
+        if (!first) 
+        { 
+          ts << "\t"; 
+        }
+        else 
+        {
+          first = false;
+        }
+        ts << all_header_names[c];        
+      }
+    }
+    ts << "\n";
 
     // write entries
     for (int r = 0; r < rowCount(); ++r)
     {
       for (int c = 0; c < columnCount(); ++c)
       {
-        // do not export hidden columns
-        if (isColumnHidden(c))
+        // only export columns we marked for export
+        if (cols_to_export.indexOf(all_header_names[c]) == -1)
         {
           continue;
         }
