@@ -442,7 +442,7 @@ namespace OpenMS
       */
       inline const std::string   XFDR_FDR = "XFDR:FDR";
 
-      /** User parameter name for best ion annation in a ConsensusFeature, taken from the best quality feature.
+      /** User parameter name for best ion annotation in a ConsensusFeature, taken from the best quality feature.
               String
       */
       inline const std::string   BEST_ION = "best_ion";
@@ -453,6 +453,11 @@ namespace OpenMS
               List of String
       */
       inline const std::string   ADDUCT_PARTNERS = "partners";
+
+      /** User parameter name for group annotation in Feature by MetaboliteAdductDecharger to indicate matching Features with different adducts.
+              String
+      */
+      inline const std::string   ADDUCT_GROUP = "Group";
     }
 
     //@}

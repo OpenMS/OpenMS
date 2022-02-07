@@ -507,14 +507,14 @@ namespace OpenMS
       Size i = *it;
       cf.insert(kd_data.mapIndex(i), *(kd_data.feature(i)));
       avg_quality += kd_data.feature(i)->getQuality();
-      if (kd_data.feature(i)->metaValueExists("dc_charge_adducts") & (kd_data.feature(i)->getQuality() > best_quality))
+      if (kd_data.feature(i)->metaValueExists("dc_charge_adducts") && (kd_data.feature(i)->getQuality() > best_quality))
       {
        cf.setMetaValue(Constants::UserParam::BEST_ION, kd_data.feature(i)->getMetaValue("dc_charge_adducts"));
        best_quality = kd_data.feature(i)->getQuality();
       }
-      if (kd_data.feature(i)->metaValueExists("Group"))
+      if (kd_data.feature(i)->metaValueExists(Constants::UserParam::ADDUCT_GROUP))
       {
-        partners.push_back(kd_data.feature(i)->getMetaValue("Group"));
+        partners.push_back(kd_data.feature(i)->getMetaValue(Constants::UserParam::ADDUCT_GROUP));
       }
     }
     if (!partners.empty())

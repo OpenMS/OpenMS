@@ -545,20 +545,20 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
       {
         feature.setMetaValue(String(elem_feat.getUniqueId()), elem_feat.getMetaValue("dc_charge_adducts"));
       }
-      if (elem_feat.metaValueExists("dc_charge_adducts") & (elem_feat.getQuality() > best_quality))
+      if (elem_feat.metaValueExists("dc_charge_adducts") && (elem_feat.getQuality() > best_quality))
       {
        feature.setMetaValue(Constants::UserParam::BEST_ION, elem_feat.getMetaValue("dc_charge_adducts"));
        best_quality = elem_feat.getQuality();
       }
-      if (elem_feat.metaValueExists("Group"))
+      if (elem_feat.metaValueExists(Constants::UserParam::ADDUCT_GROUP))
       {
-        partners.push_back(elem_feat.getMetaValue("Group"));
+        partners.push_back(elem_feat.getMetaValue(Constants::UserParam::ADDUCT_GROUP));
       }
     }
     if (!partners.empty())
     {
       feature.setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, partners);
-     }
+    }
     feature.computeConsensus();
   }
 

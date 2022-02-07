@@ -998,7 +998,7 @@ namespace OpenMS
           it->setMetaValue(String(it_h->getUniqueId()), fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].getMetaValue("dc_charge_adducts"));
         }
         // also add consensusID of group to all feature_relation
-        fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].setMetaValue("Group", String(it->getUniqueId()));
+        fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].setMetaValue(Constants::UserParam::ADDUCT_GROUP, String(it->getUniqueId()));
       }
 
       // store number of distinct charges
@@ -1077,7 +1077,7 @@ namespace OpenMS
         cf.removeMetaValue(*it);
       }
       // Need to set userParam Group output feature map features for singletons here
-      fm_out[i].setMetaValue("Group", String(cf.getUniqueId()));
+      fm_out[i].setMetaValue(Constants::UserParam::ADDUCT_GROUP, String(cf.getUniqueId()));
 
 
       cons_map.push_back(cf);

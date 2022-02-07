@@ -231,9 +231,9 @@ protected:
           {
             adduct = ft.getMetaValue("dc_charge_adducts");
           }
-          if (ft.metaValueExists("Group"))
+          if (ft.metaValueExists(Constants::UserParam::ADDUCT_GROUP))
           {
-            group = ft.getMetaValue("Group");
+            group = ft.getMetaValue(Constants::UserParam::ADDUCT_GROUP);
           }
           ft.getSubordinates().clear();
           ft.getConvexHulls().clear();
