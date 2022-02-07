@@ -70,6 +70,9 @@ public:
     /// Register all derived classes in this method
     static void registerChildren();
 
+    /// Links consensus features by adduct partners with intersecting "Group" meta values (annoated in featureXML files by MetaboliteAdductDecharger).
+    void linkAdductPartners(ConsensusMap& out) const;
+
 protected:
 
     /// after grouping by the subclasses, postprocess unassigned IDs, protein IDs and sort results in a

@@ -35,6 +35,9 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h>
 
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
+
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -275,6 +278,8 @@ namespace OpenMS
     }
     endProgress();
 
+    FeatureGroupingAlgorithm::linkAdductPartners(out);
+
     postprocess_(input_maps, out);
   }
 
@@ -504,7 +509,7 @@ namespace OpenMS
       avg_quality += kd_data.feature(i)->getQuality();
       if (kd_data.feature(i)->metaValueExists("dc_charge_adducts") & (kd_data.feature(i)->getQuality() > best_quality))
       {
-       cf.setMetaValue("best_ion", kd_data.feature(i)->getMetaValue("dc_charge_adducts"));
+       cf.setMetaValue(Constants::UserParam::BEST_ION, kd_data.feature(i)->getMetaValue("dc_charge_adducts"));
        best_quality = kd_data.feature(i)->getQuality();
       }
       if (kd_data.feature(i)->metaValueExists("Group"))
@@ -514,7 +519,7 @@ namespace OpenMS
     }
     if (!partners.empty())
     {
-      cf.setMetaValue("partners", partners);
+      cf.setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, partners);
     }
     avg_quality /= indices.size();
     cf.setQuality(avg_quality);

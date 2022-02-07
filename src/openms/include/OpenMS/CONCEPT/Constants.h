@@ -441,6 +441,18 @@ namespace OpenMS
               String
       */
       inline const std::string   XFDR_FDR = "XFDR:FDR";
+
+      /** User parameter name for best ion annation in a ConsensusFeature, taken from the best quality feature.
+              String
+      */
+      inline const std::string   BEST_ION = "best_ion";
+
+      /** User parameter name for partners ID of a ConsensusFeature. Represents a list of Group MVs from all Features in a ConsensusFeature.
+       *  Can be used by FeatureGroupingAlgorithm::linkAdductPartners() to set the same partners ID for features that belong together but have
+       *  different adducts.
+              String
+      */
+      inline const std::string   ADDUCT_PARTNERS = "partners";
     }
 
     //@}

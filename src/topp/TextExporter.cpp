@@ -237,11 +237,6 @@ namespace OpenMS
     {
       out << str + suffix;
     }
-    if (incl_best_ion_and_partners)
-    {
-      out << "best_ion";
-      out << "partners";
-    }
     out.modifyStrings(old);
   }
 

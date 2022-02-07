@@ -43,6 +43,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
+#include <unordered_set>
+
 using namespace std;
 
 namespace OpenMS
@@ -166,6 +168,33 @@ namespace OpenMS
       else
       {
         id.removeMetaValue("map_index");
+      }
+    }
+  }
+
+  void FeatureGroupingAlgorithm::linkAdductPartners(ConsensusMap& out) const
+  {
+    unordered_set<int> already_processed;
+    for (size_t i = 0; i < out.size(); ++i)
+    {
+      if (already_processed.find(i) != already_processed.end())
+      {
+        continue;
+      }
+      for (size_t j = i+1; j < out.size(); ++j)
+      {
+        if (already_processed.find(j) == already_processed.end())
+        {
+          const vector<String>& partners = out[i].getMetaValue(Constants::UserParam::ADDUCT_PARTNERS, StringList()).toStringList();
+          const vector<String>& other_partners = out[j].getMetaValue(Constants::UserParam::ADDUCT_PARTNERS, StringList()).toStringList();
+          vector<String> intersection;
+          std::set_intersection(partners.begin(), partners.end(), other_partners.begin(), other_partners.end(), std::back_inserter(intersection));
+          if (!intersection.empty())
+          {
+            out[j].setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, partners);
+            already_processed.insert(j);
+          }
+        }
       }
     }
   }
