@@ -35,7 +35,6 @@
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/SequenceVisualizer.h>
 
-
 #include <OpenMS/VISUAL/TableView.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -127,6 +126,10 @@ namespace OpenMS
 
     QHBoxLayout* tables = new QHBoxLayout(tables_splitter_);
     table_widget_ = new TableView(tables_splitter_);
+
+    // exported protein accessions and PSM rank even if hidden
+    table_widget_->setMandatoryExportColumns(QStringList() << "accessions" << "rank");
+    
     table_widget_->setWhatsThis("Spectrum selection bar<BR><BR>Here all spectra of the current experiment are shown. Left-click on a spectrum to open it.");
     tables_splitter_->addWidget(table_widget_);
 

@@ -205,9 +205,6 @@ if not iswin:
         extra_compile_args.append("-Wno-deprecated-copy")
     extra_compile_args.append("-Wno-redeclared-class-member")
     extra_compile_args.append("-Wno-unused-local-typedefs")
-    extra_compile_args.append("-Wno-deprecated-register") # caused by seqan on gcc
-    extra_compile_args.append("-Wno-misleading-indentation") # caused by seqan on gcc
-    extra_compile_args.append("-Wno-register") #caused by seqan on clang c17
     extra_compile_args.append("-Wdeprecated-declarations")
     extra_compile_args.append("-Wno-sign-compare")
     extra_compile_args.append("-Wno-unknown-pragmas")

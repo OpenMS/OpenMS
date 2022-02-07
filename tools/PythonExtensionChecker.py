@@ -1136,7 +1136,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             print ("  - Found class", comp_name, compound.prot, "in namespace", comp_name.split("::")[0])
 
         namespace = comp_name.split("::")[0]
-        if namespace in ["std", "Ui", "xercesc", "seqan"]:
+        if namespace in ["std", "Ui", "xercesc"]:
             # Namespace std, xerces, UI -> skip
             continue
         elif comp_name.startswith("ms::numpress"):

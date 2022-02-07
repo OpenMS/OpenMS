@@ -31,66 +31,56 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
-// export formats of results
-#include <OpenMS/FORMAT/MSstatsFile.h>
-#include <OpenMS/FORMAT/TriqlerFile.h>
-#include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-
-#include <OpenMS/METADATA/ExperimentalDesign.h>
-#include <OpenMS/APPLICATIONS/MapAlignerBase.h>
-#include <OpenMS/DATASTRUCTURES/CalibrationData.h>
-#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
-#include <OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>
-#include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
-
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
-//#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
-
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
-#include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
+#include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
+//#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
+#include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/CalibrationData.h>
+#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
+#include <OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>
+#include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
-
-
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
-#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
-#include <OpenMS/FORMAT/MzTab.h>
-
-#include <OpenMS/KERNEL/ConversionHelper.h>
-
-#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
-#include <OpenMS/KERNEL/MassTrace.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-
 #include <OpenMS/FILTERING/ID/IDFilter.h>
-
-#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MSstatsFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/TriqlerFile.h>
+#include <OpenMS/KERNEL/ConversionHelper.h>
+#include <OpenMS/KERNEL/MassTrace.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
 using namespace OpenMS;
 using namespace std;
