@@ -35,6 +35,7 @@
 
 #pragma once
 
+#include <algorithm> // std::min
 #include <vector>
 #include <iosfwd>
 
