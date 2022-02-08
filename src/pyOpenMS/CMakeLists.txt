@@ -111,7 +111,7 @@ endif(WIN32)
 # Find Cython as module
 execute_process(
   COMMAND
-  ${PYTHON_EXECUTABLE} -c "import Cython"
+  ${Python_EXECUTABLE} -c "import Cython"
   RESULT_VARIABLE CYTHON_MODULE_NOTFOUND
   ERROR_QUIET
   OUTPUT_QUIET
@@ -124,7 +124,7 @@ else()
     # Working versions (tested manually) are 0.25.2+
     execute_process(
       COMMAND
-      ${PYTHON_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[0]) >= 3 or int(Cython.__version__.split('.')[1]) > 25 or (int(Cython.__version__.split('.')[1]) == 25 and int(Cython.__version__.split('.')[2]) >= 2))"
+      ${Python_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[0]) >= 3 or int(Cython.__version__.split('.')[1]) > 25 or (int(Cython.__version__.split('.')[1]) == 25 and int(Cython.__version__.split('.')[2]) >= 2))"
       RESULT_VARIABLE CYTHON_MODULE_VERSION_CHECK_OK
       ERROR_QUIET
       OUTPUT_QUIET
@@ -133,7 +133,7 @@ else()
     if(CYTHON_MODULE_VERSION_CHECK_OK)
         execute_process(
           COMMAND
-          ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import Cython; print (Cython.__version__)"
+          ${Python_EXECUTABLE} -c "from __future__ import print_function; import Cython; print (Cython.__version__)"
           OUTPUT_VARIABLE CYTHON_VERSION
           OUTPUT_STRIP_TRAILING_WHITESPACE
         )
