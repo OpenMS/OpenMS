@@ -302,6 +302,11 @@ namespace OpenMS
 
     if (!debug_im_file_.empty()) {os_im.close();}
 
+    if (exp_im.empty())
+    {
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression", String("Could not fit a linear model to the data (0 points)."));
+    }
+
     // linear correction is default (none returns in the beginning of the function)
     std::vector<double> im_regression_params;
     double confidence_interval_P(0.0);

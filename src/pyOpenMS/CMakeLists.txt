@@ -40,6 +40,8 @@ if(NOT TARGET OpenMS)
   git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE)
 endif()
 
+option(NO_DEPENDENCIES "Do not bundle dependencies into pyOpenMS build folder and wheel" OFF)
+
 #------------------------------------------------------------------------------
 # helper to copy/configure files from source to build
 function(_copy_assets _asset_dir _regex _target_dir)
@@ -106,40 +108,40 @@ if(WIN32)
 endif(WIN32)
 
 #------------------------------------------------------------------------------
-# Find Cython
-find_program( CYTHON_EXECUTABLE NAMES cython )
+# Find Cython as module
+execute_process(
+  COMMAND
+  ${PYTHON_EXECUTABLE} -c "import Cython"
+  RESULT_VARIABLE CYTHON_MODULE_NOTFOUND
+  ERROR_QUIET
+  OUTPUT_QUIET
+)
 
-set(CYTHON_MISSING FALSE)
-if(DEFINED CYTHON_EXECUTABLE-NOTFOUND)
-	set(CYTHON_MISSING TRUE)
-endif()
-
-# check minor version of Cython (0.xx.yy)
-# Working versions (tested manually) are 0.25.2
-set(CYTHON_VERSION_OK FALSE)
-if(CYTHON_MISSING)
-	message(FATAL_ERROR "Looking for cython - not found")
+if (CYTHON_MODULE_NOTFOUND)
+    message(FATAL_ERROR "Cython import failed for the given Python executable.")
+    set(CYTHON_MODULE_VERSION_CHECK_OK 0)
 else()
-  execute_process(
+    # Working versions (tested manually) are 0.25.2+
+    execute_process(
       COMMAND
-      ${Python_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[0]) > 0 or int(Cython.__version__.split('.')[1]) > 25 or (int(Cython.__version__.split('.')[1]) == 25 and int(Cython.__version__.split('.')[2]) >= 2))"
-      RESULT_VARIABLE _CYTHON_VERSION_OK
+      ${PYTHON_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[0]) >= 3 or int(Cython.__version__.split('.')[1]) > 25 or (int(Cython.__version__.split('.')[1]) == 25 and int(Cython.__version__.split('.')[2]) >= 2))"
+      RESULT_VARIABLE CYTHON_MODULE_VERSION_CHECK_OK
       ERROR_QUIET
       OUTPUT_QUIET
-  )
-  execute_process(
-      COMMAND
-      ${Python_EXECUTABLE} -c "from __future__ import print_function; import Cython; print (Cython.__version__)"
-      OUTPUT_VARIABLE CYTHON_VERSION
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-  if(_CYTHON_VERSION_OK)
-      message(STATUS "Looking for Cython - found Cython ${CYTHON_VERSION}, version ok")
-      set(CYTHON_VERSION_OK TRUE)
-  else()
-      message(STATUS "Found Cython version ${CYTHON_VERSION}. The version is too old (>= 0.25.2 is required)")
-      message(FATAL_ERROR "Please upgrade Cython or disable pyOpenMS.")
-  endif()
+    )
+
+    if(CYTHON_MODULE_VERSION_CHECK_OK)
+        execute_process(
+          COMMAND
+          ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import Cython; print (Cython.__version__)"
+          OUTPUT_VARIABLE CYTHON_VERSION
+          OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        message(STATUS "Looking for Cython - found Cython version ${CYTHON_VERSION}. Version ok")
+    else()
+        message(STATUS "Looking for Cython - found Cython version ${CYTHON_VERSION}. The version is too old (>= 0.25.2 is required)")
+        message(FATAL_ERROR "Please upgrade Cython or disable pyOpenMS.")
+    endif()
 endif()
 
 #------------------------------------------------------------------------------
@@ -281,7 +283,7 @@ endif()
 #------------------------------------------------------------------------------
 # Handle missing libraries (this should never be reached, as the individual
 #  parts should fire FATAL_ERRORs if something is missing)
-if(NUMPY_MISSING OR CYTHON_MISSING OR NOT CYTHON_VERSION_OK OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING
+if(NUMPY_MISSING OR CYTHON_MODULE_NOTFOUND OR NOT CYTHON_MODULE_VERSION_CHECK_OK OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING
    OR SETUPTOOLS_MISSING OR WHEEL_MISSING)
   message(FATAL_ERROR "Required Python modules not found or out of date")
 endif()
@@ -518,37 +520,38 @@ add_custom_target(
   DEPENDS OpenMS
 )
 
-# assemble the libraries
+if(NOT NO_DEPENDENCIES)
+    # assemble the libraries
 
-# copy the direct dependencies
-# TODO should work with OpenMS only.
-set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo)
+    # copy the direct dependencies
+    set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo)
 
-foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
-	add_custom_command(
-		TARGET prepare_pyopenms_libs POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PYOPENMS_DEPENDENCY}> ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms
-	)
-endforeach()
-	
-# fixup these dependencies (i.e. get other dynamic dependencies recursively)
-if (APPLE) ## On APPLE use our script because the executables need to be relinked
-## this is done after "setup.py build_ext" but before setup.py bdist_wheel so that we fixup the resulting pyopenms.so's too
-else()
-    ## Assemble common required non-system libraries
-    ## Note that we do not need the QT plugins or QTGui libraries since we do not include GUI tools here.
     foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
-        add_custom_command(
-            TARGET prepare_pyopenms_libs POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
-        )
+    	add_custom_command(
+    		TARGET prepare_pyopenms_libs POST_BUILD
+    		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PYOPENMS_DEPENDENCY}> ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms
+    	)
     endforeach()
-
-    if(WIN32)
-        # copy all runtime files (do not preserve permissions, due to issues when deleting them from tmp folders)
-        foreach (_runtime ${MSVS_RTLIBS})
-            file(COPY ${_runtime} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms NO_SOURCE_PERMISSIONS)
+    	
+    # fixup these dependencies (i.e. get other dynamic dependencies recursively)
+    if (APPLE) ## On APPLE use our script because in the libraries the "install_names" and "rpaths" need to be renamed
+    ## this is done after "setup.py build_ext" but before setup.py bdist_wheel so that we fixup the resulting pyopenms.so's too
+    else()
+        ## Assemble common required non-system libraries
+        ## Note that we do not need the QT plugins or QTGui libraries since we do not include GUI tools here.
+        foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
+            add_custom_command(
+                TARGET prepare_pyopenms_libs POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
+            )
         endforeach()
+
+        if(WIN32)
+            # copy all runtime files (do not preserve permissions, due to issues when deleting them from tmp folders)
+            foreach (_runtime ${MSVS_RTLIBS})
+                file(COPY ${_runtime} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms NO_SOURCE_PERMISSIONS)
+            endforeach()
+        endif()
     endif()
 endif()
 
@@ -586,8 +589,6 @@ if(PY_NO_OPTIMIZATION)
 endif()
 
 message(STATUS "Py extra args ${PY_EXTRA_ARGS}")
-
-#set(PYOPENMS_SRC )
 
 set(PY_RPATH ${CMAKE_INSTALL_RPATH})
 if (APPLE)

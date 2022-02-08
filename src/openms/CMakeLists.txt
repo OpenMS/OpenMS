@@ -69,7 +69,6 @@ install(EXPORT EvergreenTargets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/OpenMS
 add_subdirectory(thirdparty)
 
 # TODO check if we can do that in the subdirectories
-openms_register_export_target(SeqAn)
 openms_register_export_target(Evergreen)
 
 #------------------------------------------------------------------------------
@@ -108,10 +107,10 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 #                          ${Qt5Network_LIBRARIES}
 #                          ${Qt5Sql_LIBRARIES})
 
-set(OPENMS_DEP_LIBRARIES XercesC::XercesC LibSVM::LibSVM WM5::WM5 Qt5::Core Qt5::Network Qt5::Sql SeqAn Evergreen)
+set(OPENMS_DEP_LIBRARIES Evergreen WM5::WM5 LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network Qt5::Sql)
 
-set(OPENMS_DEP_PRIVATE_LIBRARIES CoinOR::CoinOR Boost::iostreams Boost::date_time Boost::math_c99 Boost::regex
-  BZip2::BZip2 ZLIB::ZLIB SQLite::SQLite3 Eigen3::Eigen GLPK::GLPK HDF5::HDF5)
+set(OPENMS_DEP_PRIVATE_LIBRARIES CoinOR::CoinOR Eigen3::Eigen GLPK::GLPK HDF5::HDF5 Boost::iostreams Boost::date_time Boost::math_c99 Boost::regex
+  BZip2::BZip2 ZLIB::ZLIB SQLite::SQLite3)
 
 # xerces requires linking against CoreFoundation&CoreServices on macOS
 # TODO check if this is still the case
@@ -130,6 +129,34 @@ endif()
 if (WITH_CRAWDAD) ## TODO check if still necessary
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
+
+
+## TODO do the following sorting based on the imported targets and their INCLUDE_DIRECTORY property
+#set (OPENMS_CONTRIB_INCLUDE_DIRS "")
+#if (OPENMS_CONTRIB_LIBS)
+#  set (OPENMS_CONTRIB_INCLUDE_DIRS ${OPENMS_CONTRIB_LIBS}/include)
+#endif()
+
+## Sort include directories into contrib ones (prefered in order) and system ones.
+#foreach (includedir
+#         ${SQLite_INCLUDE_DIR}
+#         ${HDF5_INCLUDE_DIRS}
+#         ${LIBSVM_INCLUDE_DIRS}
+#         ${EIGEN3_INCLUDE_DIR}
+#         ${WM5_INCLUDE_DIRS}
+#         ${CRAWDAD_INCLUDE_DIRS}
+#         ${COIN_INCLUDE_DIRS}
+#         ${GLPK_INCLUDE_DIRS}
+#         ${ZLIB_INCLUDE_DIRS}
+#         ${BZIP2_INCLUDE_DIR}
+#         ${XercesC_INCLUDE_DIRS}
+#         ${Boost_INCLUDE_DIRS})
+#  if (${includedir} MATCHES "${OPENMS_CONTRIB_INCLUDE_DIRS}.*")
+#    list(APPEND INCLUDES_FROM_CONTRIB ${includedir})
+#  else()
+#    list(APPEND INCLUDES_FROM_SYSTEM ${includedir})
+#  endif()
+#endforeach()
 
 openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}

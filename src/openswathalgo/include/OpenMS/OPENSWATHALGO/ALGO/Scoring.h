@@ -117,6 +117,10 @@ public:
     OPENSWATHALGO_DLLAPI XCorrArrayType normalizedCrossCorrelation(std::vector<double>& data1,
                                                                    std::vector<double>& data2, const int maxdelay, const int lag);
 
+    /// Calculate crosscorrelation on std::vector data that is already normalized
+    OPENSWATHALGO_DLLAPI XCorrArrayType normalizedCrossCorrelationPost(std::vector<double>& normalized_data1,
+                                                                       std::vector<double>& normalized_data2, const int maxdelay, const int lag);                                                                   
+
     /// Calculate crosscorrelation on std::vector data without normalization
     OPENSWATHALGO_DLLAPI XCorrArrayType calculateCrossCorrelation(const std::vector<double>& data1,
                                                                   const std::vector<double>& data2, const int maxdelay, const int lag);
@@ -127,14 +131,17 @@ public:
     /// Standardize a vector (subtract mean, divide by standard deviation)
     OPENSWATHALGO_DLLAPI void standardize_data(std::vector<double>& data);
 
-    /// divide each element of x by the sum of the vector
+    /// Divide each element of x by the sum of the vector
     OPENSWATHALGO_DLLAPI void normalize_sum(double x[], unsigned int n);
 
-    // Compute rank of vector elements
-    OPENSWATHALGO_DLLAPI std::vector<unsigned int> computeRank(const std::vector<double>& w);
+    /// Compute rank of vector elements and append it to @p ranks
+    OPENSWATHALGO_DLLAPI void computeAndAppendRank(const std::vector<double>& v, std::vector<unsigned int>& ranks);
 
-    // Estimate rank-transformed mutual information between two vectors of data points
-    OPENSWATHALGO_DLLAPI double rankedMutualInformation(std::vector<double>& data1, std::vector<double>& data2);
+    /// Compute rank of vector elements for each row in a 2D array
+    OPENSWATHALGO_DLLAPI void computeRankVector(const std::vector<std::vector<double>>& intensity, std::vector<std::vector<unsigned int>>& ranks);
+
+    /// Estimate mutual information between two vectors of ranks
+    OPENSWATHALGO_DLLAPI double rankedMutualInformation(std::vector<unsigned int>& ranked_data1, std::vector<unsigned int>& ranked_data2);
 
     //@}
 

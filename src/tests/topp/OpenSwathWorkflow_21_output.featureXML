@@ -2670,7 +2670,7 @@
 					<UserParam type="string" name="native_id" value="83"/>
 					<UserParam type="float" name="peak_apex_int" value="459.400001525878906"/>
 					<UserParam type="float" name="total_xic" value="6.614439999103547e04"/>
-					<UserParam type="float" name="total_mi" value="6.323664541462094"/>
+					<UserParam type="float" name="total_mi" value="6.38766454146209"/>
 					<UserParam type="float" name="width_at_50" value="139.000000000000284"/>
 					<UserParam type="float" name="logSN" value="0.518119045308912"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
