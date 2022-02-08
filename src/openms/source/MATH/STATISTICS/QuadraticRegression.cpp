@@ -93,7 +93,7 @@ namespace OpenMS::Math
     std::vector<Wm5::Vector2d> points;
     for(std::vector<double>::const_iterator xIter = x_begin, yIter = y_begin; xIter!=x_end; ++xIter, ++yIter)
     {
-      points.push_back( Wm5::Vector2d(*xIter, *yIter) );
+      points.emplace_back(*xIter, *yIter);
     }
 
     // Compute sums for linear system. copy&paste from GeometricTools Wm5ApprLineFit2.cpp
