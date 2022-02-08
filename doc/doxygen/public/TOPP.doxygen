@@ -179,4 +179,6 @@
   - @subpage TOPP_GNPSExport - Export MS/MS data in .MGF format for GNPS.
   - @subpage TOPP_MaRaClusterAdapter - Run the spectral clustering implemented in MaRaCluster.
 
+  <b>Top down</b>
+  - @subpage TOPP_FLASHDeconv - Computes a feature deconvolution from Top down MS data.
 */
