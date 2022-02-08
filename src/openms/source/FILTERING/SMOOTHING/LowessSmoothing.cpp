@@ -80,7 +80,7 @@ namespace OpenMS
       // Size inner_idx = 0;
       for (Size inner_idx = 0; inner_idx < input_size; ++inner_idx)
       {
-        distances[inner_idx] = std::abs(input_x[outer_idx] - input_x[inner_idx]);
+        distances[inner_idx] = fabs(input_x[outer_idx] - input_x[inner_idx]);
         sortedDistances[inner_idx] = distances[inner_idx];
       }
 
@@ -117,7 +117,7 @@ namespace OpenMS
     }
 
     // 0 <= u < t; u is regarded as 0.0 if fabs(u) falls below epsilon
-    if ((std::abs(u) < std::numeric_limits<double>::epsilon() || (0.0 < u)) && (u < t))
+    if ((fabs(u) < std::numeric_limits<double>::epsilon() || (0.0 < u)) && (u < t))
     {
       // (1 - (u/t)^3)^3
       // return pow( ( 1.0 - pow(u/t, 3.0)), 3.0 );
