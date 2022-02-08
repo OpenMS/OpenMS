@@ -109,6 +109,9 @@ struct OPENMS_DLLAPI RNPxlProteinReport
   // crosslink efficiency = frequency of the crosslinked amino acid / frequency of the amino acid in all crosslink spectrum matches
   static std::map<char, double> getCrossLinkEfficiency(const std::vector<PeptideIdentification>& peps);
 
+  // returns map of adduct to counts
+  static std::map<String, size_t> countAdducts(const std::vector<PeptideIdentification>& peps);
+
   static void mapAccessionToTDProteins(ProteinIdentification& prot_id, std::map<String, ProteinHit*>& acc2protein_targets, std::map<String, ProteinHit*>& acc2protein_decoys);
 };
 

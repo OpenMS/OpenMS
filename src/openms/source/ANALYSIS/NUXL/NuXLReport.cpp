@@ -333,6 +333,21 @@ namespace OpenMS
     return aa_xl_freq;
   }
 
+  // returns map of adduct to counts
+  map<String, size_t> RNPxlProteinReport::countAdducts(const vector<PeptideIdentification>& peps)
+  {
+    map<String, size_t> adduct2count;
+    for (const PeptideIdentification& pep : peps)
+    {
+      auto& hits = pep.getHits();
+      if (hits.empty()) continue;
+      const PeptideHit& ph = hits[0]; // only consider top hit
+      const String NA = ph.getMetaValue("NuXL:NA", String("none"));
+      adduct2count[NA] += 1;
+    }
+    return adduct2count;
+  }
+
   void RNPxlProteinReport::annotateProteinModificationForTopHits(
     vector<ProteinIdentification>& prot_ids, 
     const vector<PeptideIdentification>& peps, 
@@ -365,17 +380,15 @@ namespace OpenMS
     map<String, map<ModifiedRegion, size_t>> modified_region_xls_targets;    
     map<String, map<ModifiedRegion, size_t>> modified_region_xls_decoys;
 
-    map<String, ResidueModification*> name2mod; // used to free temporary residues
-
-    map<String, size_t> adduct2count;
+    map<String, size_t> adduct2count = countAdducts(peps);
 
     // store modification statistic for every protein    
+    map<String, ResidueModification*> name2mod; // used to free temporary residues
     for (const PeptideIdentification& pep : peps)
     {
       auto& hits = pep.getHits();
       if (hits.empty()) continue;
       const PeptideHit& ph = hits[0]; // only consider top hit
-      const std::vector<PeptideEvidence>& ph_evidences = ph.getPeptideEvidences();
       const int best_localization = ph.getMetaValue("NuXL:best_localization_position");
       
       // create a user defined modification (at most once)
@@ -383,7 +396,6 @@ namespace OpenMS
 
       // count adduct
       const String NA = ph.getMetaValue("NuXL:NA");
-      adduct2count[NA] += 1;
 
       if (auto it = name2mod.find(NA); it != name2mod.end())
       { // mod already registered? take it
@@ -396,6 +408,9 @@ namespace OpenMS
         xl->setOrigin('X'); // any AA
         name2mod[NA] = xl;
       }
+
+      const std::vector<PeptideEvidence>& ph_evidences = ph.getPeptideEvidences();
+      bool is_unique = ph.extractProteinAccessionsSet().size() == 1;
 
       for (auto& ph_evidence : ph_evidences)
       {
@@ -631,11 +646,11 @@ namespace OpenMS
       }
     }
 
+/*
     double sum{};
     for (const auto& m : aa2background_freq) { sum += m.second; }
     for (auto& m : aa2background_freq) { m.second /= sum; }
 
-/*
     if (report_decoys)
     {
       tsv_file.addLine("=============================================================");
