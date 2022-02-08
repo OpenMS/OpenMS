@@ -34,21 +34,120 @@
 
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 
+#include "Wm5Vector2.h"
+#include "Wm5LinearSystem.h"
+
 namespace OpenMS::Math
 {
+  // Note:x, y must be of same size
+  double computeChiSquareWeighted(
+    std::vector<double>::const_iterator x_begin, 
+    const std::vector<double>::const_iterator& x_end, 
+    std::vector<double>::const_iterator y_begin,
+    std::vector<double>::const_iterator w_begin,
+    const double a, const double b, const double c)
+  {
+    double chi_squared(0.0);
+    for (; x_begin != x_end; ++x_begin, ++y_begin, ++w_begin)
+    {
+      const double& x = *x_begin;
+      const double& y = *y_begin;
+      const double& weight = *w_begin;
+      chi_squared += weight * std::pow(y - a - b * x - c * x * x, 2);
+    }
 
-    QuadraticRegression::QuadraticRegression() :
-      a_(0), b_(0), c_(0), chi_squared_(0) {}
-
-    double QuadraticRegression::eval(double x) const {return a_ + b_*x + c_*x*x;}
-
-    double QuadraticRegression::eval(double A, double B, double C, double x) {return A + B*x + C*x*x;}
-
-    double QuadraticRegression::getA() const {return a_;}
-    double QuadraticRegression::getB() const {return b_;}
-    double QuadraticRegression::getC() const {return c_;}
-    double QuadraticRegression::getChiSquared() const {return chi_squared_;}
+    return chi_squared;
+  }
 
 
+  QuadraticRegression::QuadraticRegression() :
+    a_(0), b_(0), c_(0), chi_squared_(0) {}
+
+  double QuadraticRegression::eval(double x) const {return a_ + b_*x + c_*x*x;}
+
+  double QuadraticRegression::eval(double A, double B, double C, double x) {return A + B*x + C*x*x;}
+
+  double QuadraticRegression::getA() const {return a_;}
+  double QuadraticRegression::getB() const {return b_;}
+  double QuadraticRegression::getC() const {return c_;}
+  double QuadraticRegression::getChiSquared() const {return chi_squared_;}
+
+
+  void QuadraticRegression::computeRegression(std::vector<double>::const_iterator x_begin, 
+    std::vector<double>::const_iterator x_end, 
+    std::vector<double>::const_iterator y_begin)
+  {
+    std::vector<double> weights(std::distance(x_begin, x_end), 1);
+    computeRegressionWeighted(x_begin, x_end, y_begin, weights.begin());
+  }
+
+  void QuadraticRegression::computeRegressionWeighted(
+    std::vector<double>::const_iterator x_begin, 
+    std::vector<double>::const_iterator x_end, 
+    std::vector<double>::const_iterator y_begin, 
+    std::vector<double>::const_iterator w_begin)
+  {
+    // Compute the linear fit of a quadratic function.
+    // Get the coefficients for y = w_1*a +w_2*b*x + w_3*c*x^2.
+
+    std::vector<Wm5::Vector2d> points;
+    for(std::vector<double>::const_iterator xIter = x_begin, yIter = y_begin; xIter!=x_end; ++xIter, ++yIter)
+    {
+      points.push_back( Wm5::Vector2d(*xIter, *yIter) );
+    }
+
+    // Compute sums for linear system. copy&paste from GeometricTools Wm5ApprLineFit2.cpp
+    // and modified to allow quadratic functions
+    int numPoints = static_cast<Int>(points.size());
+    double sumX = 0, sumXX = 0, sumXXX = 0, sumXXXX = 0;
+    double sumY = 0, sumXY = 0, sumXXY = 0;
+    double sumW = 0;
+
+    auto wIter = w_begin;
+    for (int i = 0; i < numPoints; ++i, ++wIter)
+    {
+
+      double x = points[i].X();
+      double y = points[i].Y();
+      double weight = *wIter;
+
+      sumX += weight * x;
+      sumXX += weight * x * x;
+      sumXXX += weight * x * x * x;
+      sumXXXX += weight * x * x * x * x;
+
+      sumY += weight * y;
+      sumXY += weight * x * y;
+      sumXXY += weight * x * x * y;
+
+      sumW += weight;
+    }
+    //create matrices to solve Ax = B
+    double A[3][3] =
+    {
+      {sumW, sumX, sumXX},
+      {sumX, sumXX, sumXXX},
+      {sumXX, sumXXX, sumXXXX}
+    };
+    double B[3] =
+    {
+      sumY,
+      sumXY,
+      sumXXY
+    };
+    double X[3] = {0, 0, 0};
+
+    bool nonsingular = Wm5::LinearSystem<double>().Solve3(A, B, X);
+    if (nonsingular)
+    {
+      a_ = X[0];
+      b_ = X[1];
+      c_ = X[2];
+      chi_squared_ = computeChiSquareWeighted(x_begin, x_end, y_begin, w_begin, a_, b_, c_);
+    }
+    else
+    {
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-QuadraticRegression", "Could not fit a linear model to the data");
+    }
+  }
 } //OpenMS //Math
-
