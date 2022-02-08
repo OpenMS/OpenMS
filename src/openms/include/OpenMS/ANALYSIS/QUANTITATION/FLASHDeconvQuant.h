@@ -407,9 +407,26 @@ namespace OpenMS
       return snr_;
     }
 
-    std::tuple<int, int> getChargeRange() const
+    int getMinCharge() const
     {
-      return std::tuple<int, int>{min_abs_charge_, max_abs_charge_};
+      return  min_abs_charge_;
+    }
+
+    int getMaxCharge() const
+    {
+      return  max_abs_charge_;
+    }
+
+    std::vector<int> getChargeVector() const
+    {
+      std::set<int> cs_set;
+      for(auto &lmt : *this)
+      {
+        cs_set.insert(lmt.getCharge());
+      }
+      std::vector<int> out_vec(cs_set.size());
+      std::copy(cs_set.begin(), cs_set.end(), out_vec.begin());
+      return out_vec;
     }
 
     double getIntensity() const
@@ -752,6 +769,7 @@ namespace OpenMS
     double monoisotopic_mass_;
     /// charge range
     int min_abs_charge_, max_abs_charge_; // absolute charge states.
+    vector<int> charges_;
     double intensity_;
     float charge_score_;
     float isotope_cosine_score_;
@@ -1164,6 +1182,10 @@ namespace OpenMS
                                                   LogMassTrace* &most_abundant_mt_ptr,
                                                   const std::vector<std::vector<Size>>& shared_m_traces) const;
 
+    void getFLASHDeconvConsensusResult();
+
+    bool isThisMassOneOfTargets(const double &candi_mass, const double &candi_rt) const;
+
     /// parameter stuff
     double local_rt_range_;
     double local_mz_range_;
@@ -1222,6 +1244,9 @@ namespace OpenMS
 
     /// harmonic charge factors that will be considered for harmonic mass reduction. For example, 2 is for 1/2 charge harmonic component reduction
     const std::vector<int> harmonic_charges_{2, 3, 5};
+
+    // loop up table
+    std::vector<std::pair<double, double>> target_masses_; // mass and rt
 
   };
 }
