@@ -639,19 +639,16 @@ protected:
       inline StringList attributeAsStringList_(const xercesc::Attributes & a, const char * name) const
       {
         String tmp(expectList_(attributeAsString_(a, name)));
+        StringList tmp_list = ListUtils::create<String>(tmp.substr(1, tmp.size() - 2)); // between [ and ]
+
         if (tmp.hasSubstring("&#44;")) // check full string for escaped comma
-        { // special case: comma in list elements (e.g. filename with comma)
-          StringList tmp_list = ListUtils::create<String>(tmp.substr(1, tmp.size() - 2)); // between [ and ]
+        {
           for (String& s : tmp_list)
           {
             s.substitute("&#44;", ",");
-          }
-          return tmp_list;
+          }          
         }
-        else
-        { // usual case: no comma in list elements
-          return ListUtils::create<String>(tmp.substr(1, tmp.size() - 2));
-        }        
+        return tmp_list;
       }
 
       /**
