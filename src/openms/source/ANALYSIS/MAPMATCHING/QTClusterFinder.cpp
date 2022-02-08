@@ -541,13 +541,13 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
 
       BaseFeature& elem_feat = const_cast<BaseFeature&>(element.feature->getFeature());
       feature.insert(element.map_index, elem_feat);
-      if (elem_feat.metaValueExists("dc_charge_adducts"))
+      if (elem_feat.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
       {
-        feature.setMetaValue(String(elem_feat.getUniqueId()), elem_feat.getMetaValue("dc_charge_adducts"));
+        feature.setMetaValue(String(elem_feat.getUniqueId()), elem_feat.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
       }
-      if (elem_feat.metaValueExists("dc_charge_adducts") && (elem_feat.getQuality() > best_quality))
+      if (elem_feat.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) && (elem_feat.getQuality() > best_quality))
       {
-       feature.setMetaValue(Constants::UserParam::BEST_ION, elem_feat.getMetaValue("dc_charge_adducts"));
+       feature.setMetaValue(Constants::UserParam::BEST_ION, elem_feat.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
        best_quality = elem_feat.getQuality();
       }
       if (elem_feat.metaValueExists(Constants::UserParam::ADDUCT_GROUP))

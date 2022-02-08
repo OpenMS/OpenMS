@@ -420,14 +420,14 @@ namespace OpenMS
       if (merge_adduct == "Identical")
       {
         // subcase 1: one has adduct, other not
-        if (kd_data.feature(*it)->metaValueExists("dc_charge_adducts") != f_i->metaValueExists("dc_charge_adducts"))
+        if (kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) != f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
           continue;
         }
         // subcase 2: both have adduct, but is it the same?
-        if (kd_data.feature(*it)->metaValueExists("dc_charge_adducts"))
+        if (kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
-          if (EmpiricalFormula(kd_data.feature(*it)->getMetaValue("dc_charge_adducts")) != EmpiricalFormula(f_i->getMetaValue("dc_charge_adducts")))
+          if (EmpiricalFormula(kd_data.feature(*it)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) != EmpiricalFormula(f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)))
           {
             continue;
           }  
@@ -438,16 +438,16 @@ namespace OpenMS
       else if (merge_adduct == "With_unknown_adducts")
       {
         // subcase1: *it has adduct, but i not. don't want to collect potentially different adducts to previous without adduct 
-        if ((kd_data.feature(*it)->metaValueExists("dc_charge_adducts")) && (!f_i->metaValueExists("dc_charge_adducts")))
+        if ((kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)) && (!f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)))
         {
           continue;
         }
         // subcase2: both have adduct
-        if ((kd_data.feature(*it)->metaValueExists("dc_charge_adducts")) && (f_i->metaValueExists("dc_charge_adducts")))
+        if ((kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)) && (f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)))
         {
           // cheaper string check first, only check EF extensively if strings differ (might be just different element orders)
-          if ((kd_data.feature(*it)->getMetaValue("dc_charge_adducts") != f_i->getMetaValue("dc_charge_adducts")) &&
-              (EmpiricalFormula(kd_data.feature(*it)->getMetaValue("dc_charge_adducts")) != EmpiricalFormula(f_i->getMetaValue("dc_charge_adducts"))))
+          if ((kd_data.feature(*it)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS) != f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) &&
+              (EmpiricalFormula(kd_data.feature(*it)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) != EmpiricalFormula(f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))))
           {
             continue;
           }
@@ -507,9 +507,9 @@ namespace OpenMS
       Size i = *it;
       cf.insert(kd_data.mapIndex(i), *(kd_data.feature(i)));
       avg_quality += kd_data.feature(i)->getQuality();
-      if (kd_data.feature(i)->metaValueExists("dc_charge_adducts") && (kd_data.feature(i)->getQuality() > best_quality))
+      if (kd_data.feature(i)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) && (kd_data.feature(i)->getQuality() > best_quality))
       {
-       cf.setMetaValue(Constants::UserParam::BEST_ION, kd_data.feature(i)->getMetaValue("dc_charge_adducts"));
+       cf.setMetaValue(Constants::UserParam::BEST_ION, kd_data.feature(i)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
        best_quality = kd_data.feature(i)->getQuality();
       }
       if (kd_data.feature(i)->metaValueExists(Constants::UserParam::ADDUCT_GROUP))

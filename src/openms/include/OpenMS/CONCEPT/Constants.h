@@ -458,6 +458,11 @@ namespace OpenMS
               String
       */
       inline const std::string   ADDUCT_GROUP = "Group";
+
+      /** User parameter name for adduct annotation in Feature by MetaboliteAdductDecharger.
+              String
+      */
+      inline const std::string   DC_CHARGE_ADDUCTS = "dc_charge_adducts";
     }
 
     //@}

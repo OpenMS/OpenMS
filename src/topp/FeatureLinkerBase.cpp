@@ -227,9 +227,9 @@ protected:
           String adduct;
           String group;
           //exception: addduct information
-          if (ft.metaValueExists("dc_charge_adducts"))
+          if (ft.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
           {
-            adduct = ft.getMetaValue("dc_charge_adducts");
+            adduct = ft.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS);
           }
           if (ft.metaValueExists(Constants::UserParam::ADDUCT_GROUP))
           {
@@ -240,7 +240,7 @@ protected:
           ft.clearMetaInfo();
           if (!adduct.empty())
           {
-            ft.setMetaValue("dc_charge_adducts", adduct);
+            ft.setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, adduct);
           }
           if (!group.empty())
           {
