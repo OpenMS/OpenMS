@@ -1563,6 +1563,38 @@ namespace OpenMS
     local_fgroup.swap(filtered_pg_vec);
   }
 
+  /*
+FLASHDeconvAlgorithm fd_;
+    fd_.setParameters(fd_defaults);
+    fd_.calculateAveragine(false);
+std::vector<double> target_masses_; // monoisotope
+   // fd_.setTargetMasses(target_masses_, ms_level);
+
+   std::vector<DeconvolutedSpectrum> tmp;
+   std::map<int, std::vector<std::vector<double>>> empty;
+deconvoluted_spectrum_ = fd_.getDeconvolutedSpectrum(spec, tmp, 0, empty);
+
+
+   MSSpectrum FLASHIda::makeMSSpectrum_(const double *mzs, const double *ints, const int length, const double rt,
+                                       const int ms_level, const char *name)
+  {
+    auto spec = MSSpectrum();
+    for (int i = 0; i < length; i++)
+    {
+      if (ints[i] <= 0)
+      {
+        continue;
+      }
+      spec.emplace_back(mzs[i], ints[i]);
+    }
+    spec.setMSLevel(ms_level);
+    spec.setName(name);
+    spec.setRT(rt);
+    return spec;
+  }
+   */
+
+
   void FLASHDeconvQuant::getFeatureFromSpectrum_(std::vector<LogMassTrace *> &local_traces,
                                                  std::vector<FeatureGroup> &local_fgroup)
   {
