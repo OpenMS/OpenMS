@@ -106,7 +106,6 @@ namespace OpenMS::Math
     auto wIter = w_begin;
     for (int i = 0; i < numPoints; ++i, ++wIter)
     {
-
       double x = points[i].X();
       double y = points[i].Y();
       double weight = *wIter;
