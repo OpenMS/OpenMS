@@ -1831,7 +1831,6 @@ static void scoreXLIons_(
       }         
     }
   };
-
   struct RankScores
   {
     double explained_peak_fraction = 0.0;
@@ -1839,6 +1838,7 @@ static void scoreXLIons_(
     double wTop50 = 0.0;
   };
 
+/*
   class SmallestElements
   {
   private:
@@ -1863,7 +1863,8 @@ static void scoreXLIons_(
          pq.push(v); //priority queue will automatically restructure
        }
     }
-};
+  };
+*/
 
   RankScores rankScores_(const MSSpectrum& spectrum, vector<bool> peak_matched)
   {
@@ -2444,6 +2445,7 @@ static void scoreXLIons_(
     return std::tie(b.start, b.end) < std::tie(a.start, b.end); 
   }   
 
+/*
   double getAreaOfIntervalUnion_(std::vector<Interval_> i)
   { 
     if (i.empty()) return 0.0;
@@ -2488,7 +2490,7 @@ static void scoreXLIons_(
     } 
     return area; 
   } 
-
+*/
 
   /* @brief Filter spectra to remove noise.
 
