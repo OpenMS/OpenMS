@@ -59,7 +59,7 @@
 			<ProteinHit id="PH_1" accession="tr|Q1PI83|Q1PI83_ECOLI" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[C:\my_\|_comma_test.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[C:\test.mzML]"/>
 			<UserParam type="stringList" name="spectra_data_raw" value="[file:///bla.raw]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
@@ -98,11 +98,10 @@
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 	</UnassignedPeptideIdentification>
 	<mapList count="1">
-		<map id="0" name="" label="" size="22500">
+		<map id="0" name="file://comma,test.mzML" label="" size="22500">
 		</map>
 	</mapList>
-	<consensusElementList>
-		
+	<consensusElementList>		
 		<consensusElement id="e_16393779085856951517" quality="0.865367" charge="2">
 			<centroid rt="460.306214458680699" mz="430.185982351020698" it="1.851918e06"/>
 			<groupedElementList>
