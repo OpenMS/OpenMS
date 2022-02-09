@@ -51,7 +51,6 @@
 #include <string>
 #include <memory>
 
-#include <iostream>
 
 namespace OpenMS
 {
