@@ -277,10 +277,10 @@ namespace OpenMS
       setProgress(progress++);
     }
     endProgress();
+    
+    postprocess_(input_maps, out);
 
     FeatureGroupingAlgorithm::linkAdductPartners(out);
-
-    postprocess_(input_maps, out);
   }
 
   void FeatureGroupingAlgorithmKD::group(const std::vector<FeatureMap>& maps,
@@ -501,7 +501,7 @@ namespace OpenMS
     // determine best quality feature for adduct ion annotation (best_ion)
     float best_quality = 0;
     // collect the "Group" MetaValues of Features in a ConsensusFeature in a partners vector
-    vector<String> partners;
+    vector<String> groups;
     for (vector<Size>::const_iterator it = indices.begin(); it != indices.end(); ++it)
     {
       Size i = *it;
@@ -514,12 +514,12 @@ namespace OpenMS
       }
       if (kd_data.feature(i)->metaValueExists(Constants::UserParam::ADDUCT_GROUP))
       {
-        partners.push_back(kd_data.feature(i)->getMetaValue(Constants::UserParam::ADDUCT_GROUP));
+        groups.push_back(kd_data.feature(i)->getMetaValue(Constants::UserParam::ADDUCT_GROUP));
       }
     }
-    if (!partners.empty())
+    if (!groups.empty())
     {
-      cf.setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, partners);
+      cf.setMetaValue("groups", groups);
     }
     avg_quality /= indices.size();
     cf.setQuality(avg_quality);

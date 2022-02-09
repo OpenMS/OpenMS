@@ -174,30 +174,49 @@ namespace OpenMS
 
   void FeatureGroupingAlgorithm::linkAdductPartners(ConsensusMap& out) const
   {
-    unordered_set<int> already_processed;
+    // set row ID for each feature
+    for (size_t i = 0; i < out.size(); i++)
+    {
+      out[i].setMetaValue("row ID", i+1);
+    }
+    // set partners for each feature (row IDs of adduct partner features, separated by semicolon)
+    // Int annotation_network_number = 0;
     for (size_t i = 0; i < out.size(); ++i)
     {
-      if (already_processed.find(i) != already_processed.end())
+      if (!out[i].metaValueExists("groups"))
       {
         continue;
       }
-      for (size_t j = i+1; j < out.size(); ++j)
+      for (size_t j = 0; j < out.size(); ++j)
       {
-        if (already_processed.find(j) == already_processed.end())
+        if (!out[j].metaValueExists("groups") || (i == j))
         {
-          const vector<String>& partners = out[i].getMetaValue(Constants::UserParam::ADDUCT_PARTNERS, StringList()).toStringList();
-          const vector<String>& other_partners = out[j].getMetaValue(Constants::UserParam::ADDUCT_PARTNERS, StringList()).toStringList();
-          vector<String> intersection;
-          std::set_intersection(partners.begin(), partners.end(), other_partners.begin(), other_partners.end(), std::back_inserter(intersection));
-          if (!intersection.empty())
+          continue;
+        }
+        const vector<String>& groups = out[i].getMetaValue("groups").toStringList();
+        const vector<String>& other_groups = out[j].getMetaValue("groups").toStringList();
+        vector<String> intersection;
+        std::set_intersection(groups.begin(), groups.end(), other_groups.begin(), other_groups.end(), std::back_inserter(intersection));
+        if (!intersection.empty())
+        { 
+          if (out[i].metaValueExists("partners"))
           {
-            out[j].setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, partners);
-            already_processed.insert(j);
+            out[i].setMetaValue("partners", out[i].getMetaValue("partners").toString()
+                                +";"
+                                +out[j].getMetaValue("row ID").toString());
+          } else
+          {
+            out[i].setMetaValue("partners", out[j].getMetaValue("row ID"));
           }
         }
       }
     }
-  }
+    // remove "groups" mv
+    // for (size_t i = 0; i < out.size(); i++)
+    // {
+    //   out[i].removeMetaValue("groups");
+    // }
+ }
 
   FeatureGroupingAlgorithm::~FeatureGroupingAlgorithm()
   {

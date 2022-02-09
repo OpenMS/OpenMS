@@ -71,10 +71,9 @@ namespace OpenMS
     cluster_finder.setParameters(param_.copy("", true));
 
     cluster_finder.run(maps, out);
-
-    FeatureGroupingAlgorithm::linkAdductPartners(out);
     
     postprocess_(maps, out);
+    FeatureGroupingAlgorithm::linkAdductPartners(out);
   }
 
   void FeatureGroupingAlgorithmQT::group(const std::vector<FeatureMap>& maps,
