@@ -37,6 +37,7 @@
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 
 #include <algorithm>
+#include <cmath>
 
 namespace OpenMS
 {
