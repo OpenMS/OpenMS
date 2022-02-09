@@ -62,12 +62,18 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 #------------------------------------------------------------------------------
 # third party libs shipped with OpenMS directly
 #------------------------------------------------------------------------------
+# The two following libraries are in our public API, so create export targets
+install(EXPORT EvergreenTargets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/OpenMS FILE OpenMSEvergreenTargets.cmake)
+
 add_subdirectory(thirdparty)
+
+# TODO check if we can do that in the subdirectories
+openms_register_export_target(Evergreen)
 
 #------------------------------------------------------------------------------
 # external libs (contrib or system)
 #------------------------------------------------------------------------------
-include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
+#include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
 
 #------------------------------------------------------------------------------
 # At this point make a summary of where data and doc will be located:
@@ -85,20 +91,25 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
-set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
-                          ${LIBSVM_LIBRARIES}
-                          ${XercesC_LIBRARY}
-                          ${Boost_LIBRARIES}
-                          ${WM5_LIBRARIES}
-                          ${BZIP2_LIBRARIES}
-                          ${ZLIB_LIBRARIES}
-                          ${SQLite_LIBRARY}
-                          ${HDF5_CXX_LIBRARIES}
-                          ${GLPK_LIBRARIES}
-                          ${CMAKE_DL_LIBS}
-                          ${Qt5Core_LIBRARIES}
-                          ${Qt5Network_LIBRARIES}
-                          ${Qt5Sql_LIBRARIES})
+#set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
+#                          ${LIBSVM_LIBRARIES}
+#                          ${XercesC_LIBRARY}
+#                          ${Boost_LIBRARIES}
+#                          ${WM5_LIBRARIES}
+#                          ${BZIP2_LIBRARIES}
+#                          ${ZLIB_LIBRARIES}
+#                          ${SQLite_LIBRARY}
+#                          ${HDF5_CXX_LIBRARIES}
+#                          ${GLPK_LIBRARIES}
+#                          ${CMAKE_DL_LIBS}
+#                          ${Qt5Core_LIBRARIES}
+#                          ${Qt5Network_LIBRARIES}
+#                          ${Qt5Sql_LIBRARIES})
+
+set(OPENMS_DEP_LIBRARIES Evergreen WM5::WM5 LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network Qt5::Sql)
+
+set(OPENMS_DEP_PRIVATE_LIBRARIES CoinOR::CoinOR Eigen3::Eigen GLPK::GLPK HDF5::HDF5 Boost::iostreams Boost::date_time Boost::math_c99 Boost::regex
+  BZip2::BZip2 ZLIB::ZLIB SQLite::SQLite3)
 
 # xerces requires linking against CoreFoundation&CoreServices on macOS
 # TODO check if this is still the case
@@ -118,31 +129,33 @@ if (WITH_CRAWDAD) ## TODO check if still necessary
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
 
-set (OPENMS_CONTRIB_INCLUDE_DIRS "")
-if (OPENMS_CONTRIB_LIBS)
-  set (OPENMS_CONTRIB_INCLUDE_DIRS ${OPENMS_CONTRIB_LIBS}/include)
-endif()
+
+## TODO do the following sorting based on the imported targets and their INCLUDE_DIRECTORY property
+#set (OPENMS_CONTRIB_INCLUDE_DIRS "")
+#if (OPENMS_CONTRIB_LIBS)
+#  set (OPENMS_CONTRIB_INCLUDE_DIRS ${OPENMS_CONTRIB_LIBS}/include)
+#endif()
 
 ## Sort include directories into contrib ones (prefered in order) and system ones.
-foreach (includedir
-         ${SQLite_INCLUDE_DIR}
-         ${HDF5_INCLUDE_DIRS}
-         ${LIBSVM_INCLUDE_DIRS}
-         ${EIGEN3_INCLUDE_DIR}
-         ${WM5_INCLUDE_DIRS}
-         ${CRAWDAD_INCLUDE_DIRS}
-         ${COIN_INCLUDE_DIRS}
-         ${GLPK_INCLUDE_DIRS}
-         ${ZLIB_INCLUDE_DIRS}
-         ${BZIP2_INCLUDE_DIR}
-         ${XercesC_INCLUDE_DIRS}
-         ${Boost_INCLUDE_DIRS})
-  if (${includedir} MATCHES "${OPENMS_CONTRIB_INCLUDE_DIRS}.*")
-    list(APPEND INCLUDES_FROM_CONTRIB ${includedir})
-  else()
-    list(APPEND INCLUDES_FROM_SYSTEM ${includedir})
-  endif()
-endforeach()
+#foreach (includedir
+#         ${SQLite_INCLUDE_DIR}
+#         ${HDF5_INCLUDE_DIRS}
+#         ${LIBSVM_INCLUDE_DIRS}
+#         ${EIGEN3_INCLUDE_DIR}
+#         ${WM5_INCLUDE_DIRS}
+#         ${CRAWDAD_INCLUDE_DIRS}
+#         ${COIN_INCLUDE_DIRS}
+#         ${GLPK_INCLUDE_DIRS}
+#         ${ZLIB_INCLUDE_DIRS}
+#         ${BZIP2_INCLUDE_DIR}
+#         ${XercesC_INCLUDE_DIRS}
+#         ${Boost_INCLUDE_DIRS})
+#  if (${includedir} MATCHES "${OPENMS_CONTRIB_INCLUDE_DIRS}.*")
+#    list(APPEND INCLUDES_FROM_CONTRIB ${includedir})
+#  else()
+#    list(APPEND INCLUDES_FROM_SYSTEM ${includedir})
+#  endif()
+#endforeach()
 
 openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
@@ -153,16 +166,10 @@ openms_add_library(TARGET_NAME  OpenMS
                    PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
                                     ${ISOSPEC_INCLUDE_DIRECTORY}
                                     ${JSON_INCLUDE_DIRECTORY}
-                   EXTERNAL_INCLUDES ${OPENMS_CONTRIB_INCLUDE_DIRS} #root folder
-                                     ${EVERGREEN_INCLUDE_DIRECTORY}
-                                     ${INCLUDES_FROM_CONTRIB}
-                                     ${INCLUDES_FROM_SYSTEM}
-                                     ${OpenSwathAlgo_INCLUDE_DIRECTORIES} #Includes boost which could be non-contrib
-                                     ${Qt5Core_INCLUDE_DIRS}
-                                     ${Qt5Network_INCLUDE_DIRS}
-                                     ${Qt5Sql_INCLUDE_DIRS}
+                   EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
+                   PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
 
 #------------------------------------------------------------------------------
@@ -171,6 +178,9 @@ openms_add_library(TARGET_NAME  OpenMS
 # Note: that slash(/) is important here, otherwise the whole directory
 #       (not its content) will be copied!
 install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} share)
+# Devs also need our custom find modules
+install_directory(${OPENMS_HOST_DIRECTORY}/cmake/modules ${INSTALL_LIB_DIR}/cmake/OpenMS/Modules modules)
+file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINARY_DIRECTORY})
 
 #------------------------------------------------------------------------------
 # register relevant paths for the doxygen doc generation

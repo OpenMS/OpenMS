@@ -56,8 +56,8 @@ endforeach(i)
 
 # some regular UTILS tools need the GUI lib, only build them when WITH_GUI is enabled
 if(WITH_GUI)
-  find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL Sql REQUIRED)
-  find_package(Qt5 COMPONENTS WebEngineWidgets)
+  find_package(Qt5 REQUIRED COMPONENTS Core Network Widgets Svg OpenGL Sql)
+  find_package(Qt5 QUIET COMPONENTS WebEngineWidgets)
   if (NOT Qt5Widgets_FOUND)
     message(STATUS "QtWidgets module not found!")
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
@@ -74,9 +74,14 @@ if(WITH_GUI)
   set(UTILS_executables ${UTILS_executables} ${UTILS_executables_with_GUIlib})
 endif()
 
+
 # collection target
 add_custom_target(UTILS)
 add_dependencies(UTILS ${UTILS_executables})
+
+# special requirements of some tools
+target_link_libraries(DecoyDatabase Boost::regex)
+target_link_libraries(NucleicAcidSearchEngine Boost::regex)
 
 ## export the list of UTILS tools into CACHE
 set(UTILS_TOOLS ${UTILS_executables}

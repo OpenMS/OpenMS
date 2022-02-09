@@ -67,6 +67,14 @@ find_library (LIBSVM_LIBRARY_DEBUG NAMES svmd libsvmd DOC "LibSVM library locati
 include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
 select_library_configurations(LIBSVM)
 
+if(NOT TARGET LibSVM::LibSVM)
+  add_library(LibSVM::LibSVM UNKNOWN IMPORTED) # TODO we could try to infer shared/static
+  set_property(TARGET LibSVM::LibSVM PROPERTY IMPORTED_LOCATION "${LIBSVM_LIBRARY_RELEASE}")
+  set_property(TARGET LibSVM::LibSVM PROPERTY IMPORTED_LOCATION_DEBUG "${LIBSVM_LIBRARY_DEBUG}")
+  set_property(TARGET LibSVM::LibSVM PROPERTY INCLUDE_DIRECTORIES "${LIBSVM_INCLUDE_DIR}")
+  set_property(TARGET LibSVM::LibSVM PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${LIBSVM_INCLUDE_DIR}")
+endif()
+
 include (FindPackageHandleStandardArgs)
 find_package_handle_standard_args (LIBSVM
                                   REQUIRED_VARS LIBSVM_LIBRARIES LIBSVM_INCLUDE_DIRS

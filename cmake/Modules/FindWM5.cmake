@@ -131,6 +131,33 @@ if(WM5_FOUND)
   if(MSVC AND NOT WM5_IS_STATIC)
     set(WM5_DEFINITIONS "/D WM5_CORE_DLL_IMPORT /D WM5_MATHEMATICS_DLL_IMPORT")
   endif()
+
+  if(NOT TARGET WM5::Core)
+    add_library(WM5::Core UNKNOWN IMPORTED) # TODO we could try to infer shared/static
+    set_property(TARGET WM5::Core PROPERTY IMPORTED_LOCATION "${WM5_Wm5Mathematics_LIBRARY_RELEASE}")
+    set_property(TARGET WM5::Core PROPERTY IMPORTED_LOCATION_RELEASE "${WM5_Wm5Core_LIBRARY_RELEASE}")
+    set_property(TARGET WM5::Core PROPERTY IMPORTED_LOCATION_DEBUG "${WM5_Wm5Core_LIBRARY_DEBUG}")
+    set_property(TARGET WM5::Core PROPERTY INCLUDE_DIRECTORIES "${WM5_INCLUDE_DIR}")
+    set_property(TARGET WM5::Core PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${WM5_INCLUDE_DIR}")
+    set_property(TARGET WM5::Core PROPERTY COMPILE_DEFINITIONS "${WM5_DEFINITIONS}")
+  endif()
+
+  if(NOT TARGET WM5::Mathematics)
+    add_library(WM5::Mathematics UNKNOWN IMPORTED) # TODO we could try to infer shared/static
+    set_property(TARGET WM5::Mathematics PROPERTY IMPORTED_LOCATION "${WM5_Wm5Mathematics_LIBRARY_RELEASE}")
+    set_property(TARGET WM5::Mathematics PROPERTY IMPORTED_LOCATION_RELEASE "${WM5_Wm5Mathematics_LIBRARY_RELEASE}")
+    set_property(TARGET WM5::Mathematics PROPERTY IMPORTED_LOCATION_DEBUG "${WM5_Wm5Mathematics_LIBRARY_DEBUG}")
+    set_property(TARGET WM5::Mathematics PROPERTY INCLUDE_DIRECTORIES "${WM5_INCLUDE_DIR}")
+    set_property(TARGET WM5::Mathematics PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${WM5_INCLUDE_DIR}")
+    set_property(TARGET WM5::Mathematics PROPERTY COMPILE_DEFINITIONS "${WM5_DEFINITIONS}")
+  endif()
+
+  if(NOT TARGET WM5::WM5)
+    add_library(WM5::WM5 INTERFACE IMPORTED) # TODO we could try to infer shared/static
+    set_property(TARGET WM5::WM5 APPEND PROPERTY INTERFACE_LINK_LIBRARIES WM5::Core)
+    set_property(TARGET WM5::WM5 APPEND PROPERTY INTERFACE_LINK_LIBRARIES WM5::Mathematics)
+  endif()
+
 endif()
 
 #------------------------------------------------------------------------------

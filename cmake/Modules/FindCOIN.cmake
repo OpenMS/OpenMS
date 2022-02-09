@@ -65,10 +65,23 @@ macro(_coin_find_lib _libname _lib_file_names _lib_file_names_debug)
 
     # create final library to be exported
     select_library_configurations(COIN_${_libname})
+    if(NOT TARGET COIN_${_libname})
+      add_library(CoinOR::${_libname} UNKNOWN IMPORTED) # TODO we could try to infer shared/static
+      set_property(TARGET CoinOR::${_libname} PROPERTY IMPORTED_LOCATION "${COIN_${_libname}_LIBRARY_RELEASE}")
+      set_property(TARGET CoinOR::${_libname} PROPERTY IMPORTED_LOCATION_DEBUG "${COIN_${_libname}_LIBRARY_DEBUG}")
+      set_property(TARGET CoinOR::${_libname} PROPERTY INCLUDE_DIRECTORIES "${COIN_INCLUDE_DIR}")
+      set_property(TARGET CoinOR::${_libname} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${COIN_INCLUDE_DIR}")
+      # TODO there are probably dependencies across the single libs but we don't care for now. We always included all.
+      set_property(TARGET CoinOR::CoinOR APPEND PROPERTY INTERFACE_LINK_LIBRARIES CoinOR::${_libname})
+    endif()
   endif()
 endmacro()
 
 # actually find the required libs
+if(NOT TARGET CoinOR::CoinOR)
+  add_library(CoinOR::CoinOR INTERFACE IMPORTED)
+endif()
+
 _coin_find_lib("CBC" "libCbc;Cbc" "libCbcd;Cbc")
 _coin_find_lib("CGL" "libCgl;Cgl" "libCgld;Cgl")
 _coin_find_lib("CLP" "libClp;Clp" "libClpd;Clp")

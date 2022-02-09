@@ -48,7 +48,8 @@ find_package(XercesC REQUIRED)
 
 #------------------------------------------------------------------------------
 # BOOST
-find_boost(iostreams date_time math_c99 regex)
+set(OpenMS_BOOST_COMPONENTS date_time math_c99 regex CACHE INTERNAL "Boost components for core lib")
+find_boost(iostreams ${OpenMS_BOOST_COMPONENTS})
 
 if(Boost_FOUND)
   message(STATUS "Found Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}" )
@@ -62,6 +63,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # libsvm
+# creates LibSVM target
 find_package(LIBSVM 2.91 REQUIRED) ## will not overwrite LIBSVM_LIBRARY if defined already
 if (LIBSVM_FOUND)
 	set(CF_OPENMS_LIBSVM_VERSION_MAJOR ${LIBSVM_MAJOR_VERSION})
@@ -71,11 +73,14 @@ endif()
 
 #------------------------------------------------------------------------------
 # COIN-OR
+# Our find module creates an imported CoinOR::CoinOR target
 set(CF_USECOINOR 1)
 find_package(COIN REQUIRED)
 
+
 #------------------------------------------------------------------------------
 # GLPK
+# creates GLPK target
 find_package(GLPK REQUIRED)
 if (GLPK_FOUND)
 	set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
@@ -85,6 +90,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # zlib
+# creates ZLIB::ZLIB taret
 find_package(ZLIB REQUIRED)
 
 #------------------------------------------------------------------------------
@@ -93,6 +99,7 @@ find_package(BZip2 REQUIRED)
 
 #------------------------------------------------------------------------------
 # Find eigen3
+# creates Eigen3::Eigen3 package
 find_package(Eigen3 3.3.4 REQUIRED)
 
 #------------------------------------------------------------------------------
@@ -118,7 +125,11 @@ endif()
 
 #------------------------------------------------------------------------------
 # SQLITE
-find_package(SQLite 3.15.0 REQUIRED)
+# creates SQLite::SQLite3 target
+# In our contrib we make a subdir in the includes -> Add PATH_SUFFIXES
+# Look for the necessary header
+find_path(SQLite3_INCLUDE_DIR NAMES sqlite3.h PATH_SUFFIXES "sqlite")
+find_package(SQLite3 3.15.0 REQUIRED)
 
 #------------------------------------------------------------------------------
 # HDF5
@@ -126,7 +137,7 @@ find_package(SQLite 3.15.0 REQUIRED)
 if(MSVC)
   set(HDF5_USE_STATIC_LIBRARIES ON)
 endif()
-find_package(HDF5 COMPONENTS C CXX HL REQUIRED)
+find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
 
 #------------------------------------------------------------------------------
 # Done finding contrib libraries
@@ -143,10 +154,8 @@ endif()
 SET(QT_MIN_VERSION "5.5.0")
 
 # find qt
-## TODO Use the component variable during install time
-## Why were many more QT modules linked? Removed for now until complaints.
 set(OpenMS_QT_COMPONENTS Core Network Sql CACHE INTERNAL "QT components for core lib")
-find_package(Qt5 COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
+find_package(Qt5 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
 IF (NOT Qt5Core_FOUND)
   message(STATUS "QT5Core not found!")
@@ -154,14 +163,6 @@ IF (NOT Qt5Core_FOUND)
 ELSE()
   message(STATUS "Found Qt ${Qt5Core_VERSION}")
 ENDIF()
-
-
-##TODO check if we can integrate the next lines into the openms_add_library cmake macro
-add_definitions(${Qt5Core_DEFINITIONS})
-add_definitions(${Qt5Network_DEFINITIONS})
-add_definitions(${Qt5Sql_DEFINITIONS})
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS} ${Qt5Sql_EXECUTABLE_COMPILE_FLAGS}")
 
 # see https://github.com/ethereum/solidity/issues/4124
 if("${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}" VERSION_LESS "1.59")
