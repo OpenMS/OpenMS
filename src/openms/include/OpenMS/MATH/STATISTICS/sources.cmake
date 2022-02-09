@@ -13,7 +13,6 @@ GumbelMaxLikelihoodFitter.h
 Histogram.h
 LinearRegression.h
 LinearRegressionWithoutIntercept.h
-RegressionUtils.h
 QuadraticRegression.h
 PosteriorErrorProbabilityModel.h
 ROCCurve.h

@@ -42,12 +42,12 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
+#include <fstream>
+
 #define SWATHMAPMASSCORRECTION_DEBUG
 
 namespace OpenMS
 {
-
-
   void findBestFeature(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group, double& bestRT)
   {
     // Find the feature with the highest score
