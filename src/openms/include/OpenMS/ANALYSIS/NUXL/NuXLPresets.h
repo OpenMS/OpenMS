@@ -61,7 +61,7 @@ namespace OpenMS
     "A:-NH3"
   };
 
-  static constexpr std::array<const char*, 28> modifications_RNA_UV_PASE
+  static constexpr std::array<const char*, 28> modifications_RNA_UV_EXTENDED
   {
     "U:", 
     "U:-H2O", 
@@ -103,11 +103,11 @@ namespace OpenMS
     "S:-H2S"
   };
 
-  static constexpr std::array<const char*, 5> modifications_RNA_UV_4SU_PASE
+  static constexpr std::array<const char*, 5> modifications_RNA_UV_4SU_EXTENDED
   {   
     "S:",
     "S:-H2O",
-    "S:-H2O-HPO3",
+    "S:-H3PO4",
     "S:-HPO3",
     "S:-H2S"
   };
@@ -120,7 +120,7 @@ namespace OpenMS
     "A:+C5H9N1"
   };
 
-  static constexpr std::array<const char*, 34> modifications_RNA_NM_PASE
+  static constexpr std::array<const char*, 34> modifications_RNA_NM_EXTENDED
   {
     "U:+C5H9N1",
     "U:+C5H9N1-HPO3",
@@ -169,7 +169,7 @@ namespace OpenMS
     "A:+C4H6O2"
   };
 
-  static constexpr std::array<const char*, 34> modifications_RNA_DEB_PASE
+  static constexpr std::array<const char*, 34> modifications_RNA_DEB_EXTENDED
   {
     "U:+C4H6O2",
     "U:+C4H6O2-H2O",
@@ -230,7 +230,7 @@ namespace OpenMS
     "d:-H2O"
   };
 
-  static constexpr std::array<const char*, 32> modifications_DNA_UV_PASE
+  static constexpr std::array<const char*, 32> modifications_DNA_UV_EXTENDED
   {
     "T:",
     "T:-H2O",
@@ -270,34 +270,18 @@ namespace OpenMS
     "d:-HPO3"
   };
 
-  static constexpr std::array<const char*, 19> modifications_DNA_DEB
+  static constexpr std::array<const char*, 6> modifications_DNA_DEB
   {
     "T:+C4H6O2",
-    "T:+C4H6O2-H2O",
-    "T:+C4H6O2-H2O-H2O",
-
     "G:+C4H6O2",
-    "G:+C4H6O2-H2O",
-    "G:+C4H6O2-H2O-H2O",
-    "G:+C4H6O2-NH3",
-    "G:+C4H6O2-NH3-H2O",
-
     "C:+C4H6O2",
-    "C:+C4H6O2-H2O",
-    "C:+C4H6O2-H2O-H2O",
-    "C:+C4H6O2-NH3-H2O",
-    "C:+C4H6O2-NH3",
-
     "A:+C4H6O2",
-    "A:+C4H6O2-H2O",
-    "A:+C4H6O2-NH3",
-    "A:+C4H6O2-NH3-H2O",
 
     "d:", // deoxyribosephosphate (d in lower-letter = needs to be the cross-linked nt)
     "d:-H2O"
   };
 
-  static constexpr std::array<const char*, 38> modifications_DNA_DEB_PASE
+  static constexpr std::array<const char*, 38> modifications_DNA_DEB_EXTENDED
   {
     "T:+C4H6O2",
     "T:+C4H6O2-H2O",
@@ -343,34 +327,17 @@ namespace OpenMS
     "d:-HPO3"
   };
 
-  static constexpr std::array<const char*, 19> modifications_DNA_NM
+  static constexpr std::array<const char*, 6> modifications_DNA_NM
   {
     "T:+C5H9N1",
-    "T:+C5H9N1-H2O",
-    "T:+C5H9N1-H2O-H2O",
-
     "G:+C5H9N1",
-    "G:+C5H9N1-H2O",
-    "G:+C5H9N1-H2O-H2O",
-    "G:+C5H9N1-NH3",
-    "G:+C5H9N1-NH3-H2O",
-
     "C:+C5H9N1",
-    "C:+C5H9N1-H2O",
-    "C:+C5H9N1-H2O-H2O",
-    "C:+C5H9N1-NH3",
-    "C:+C5H9N1-NH3-H2O",
-
     "A:+C5H9N1",
-    "A:+C5H9N1-H2O",
-    "A:+C5H9N1-NH3",
-    "A:+C5H9N1-NH3-H2O",
-
     "d:",
     "d:-H2O"
   };
 
-  static constexpr std::array<const char*, 38> modifications_DNA_NM_PASE
+  static constexpr std::array<const char*, 38> modifications_DNA_NM_EXTENDED
   {
     "T:+C5H9N1",
     "T:+C5H9N1-H2O",
@@ -420,7 +387,7 @@ namespace OpenMS
   // fragment definitions
   ///////////////////////////////////////////////////////////////////////////////////
 
-  // shared by default and Pase
+  // shared by default and Extended
   static constexpr std::array<const char*, 39> fragments_RNA_UV
   {
     "U:C3O;C3O",
@@ -468,7 +435,7 @@ namespace OpenMS
     "A:C10H8N5O3;A-NH3-H3PO4"
   };
 
-  // shared by default and Pase
+  // shared by default and Extended
   static constexpr std::array<const char*, 40> fragments_RNA_UV_4SU
   {
       "S:C4H2N2O1;tU-H2S",
@@ -518,7 +485,7 @@ namespace OpenMS
       "A:C10H8N5O3;A-NH3-H3PO4"
   };      
 
-  // shared by default and Pase
+  // shared by default and Extended
   static constexpr std::array<const char*, 42> fragments_DNA_UV
   {
     "T:C5H6N2O2;T'",
@@ -570,7 +537,7 @@ namespace OpenMS
     "d:C5H6O2;C5H9O6P-H3PO4"
   };
 
-  // shared by default and Pase
+  // shared by default and Extended
   static constexpr std::array<const char*, 47> fragments_RNA_DEB
   {
     "U:C4H6O2;DEB",
@@ -621,11 +588,11 @@ namespace OpenMS
     "A:C14H19N5O6;DEB+A-HPO3",
     "A:C14H17N5O5;DEB+A-H3PO4",
     "A:C14H16N4O6;DEB+A-NH3-HPO3",
-    "A:C14H14N4O5;DEB+A-H3PO4",
+    "A:C14H14N4O5;DEB+A-NH3-H3PO4",
     "A:C14H15N4O8P1;DEB+A-NH3-H2O"  
   };
 
-  // shared by default and Pase
+  // shared by default and Extended
   static constexpr std::array<const char*, 50> fragments_DNA_DEB
   { 
     "T:C4H6O2;DEB",
@@ -684,7 +651,7 @@ namespace OpenMS
     "d:C5H6O2;C5H9O6P-H3PO4"
   };
 
-  // shared by default and Pase
+  // shared by default and Extended
   static constexpr std::array<const char*, 43> fragments_RNA_NM
   {
     "U:C5H9N1;NM",
@@ -735,7 +702,7 @@ namespace OpenMS
     "A:C15H18N5O6P1;NM+A-NH3-H2O"
   };
 
-  // shared by default and Pase
+  // shared by default and Extended
   static constexpr std::array<const char*, 46> fragments_DNA_NM
   { 
     "T:C5H9N1;NM",      
@@ -799,20 +766,20 @@ namespace OpenMS
       "none", 
       "RNA-UV (U)", 
       "RNA-UV (UCGA)",
-      "RNA-UV Pase (U)", 
-      "RNA-UV Pase (UCGA)", 
+      "RNA-UV Extended (U)", 
+      "RNA-UV Extended (UCGA)", 
       "RNA-UV (4SU)", 
-      "RNA-UV Pase (4SU)",
+      "RNA-UV Extended (4SU)",
       "RNA-DEB",
-      "RNA-DEB Pase", 
+      "RNA-DEB Extended", 
       "RNA-NM",
-      "RNA-NM Pase", 
+      "RNA-NM Extended", 
       "DNA-UV", 
-      "DNA-UV Pase", 
+      "DNA-UV Extended", 
       "DNA-DEB", 
-      "DNA-DEB Pase",
+      "DNA-DEB Extended",
       "DNA-NM",
-      "DNA-NM Pase"
+      "DNA-NM Extended"
    };
 
   void getPresets(const String& p, 
@@ -847,31 +814,31 @@ namespace OpenMS
     // note: we do this here as this raises a logic error if e.g., size of the array doesn't match the reserved size.
     //       This can easily happen if a comma is omitted and two string literals on two lines joined
     StringList RNA_UV_modifications(modifications_RNA_UV.begin(), modifications_RNA_UV.end());
-    StringList RNA_UV_PASE_modifications(modifications_RNA_UV_PASE.begin(), modifications_RNA_UV_PASE.end());
+    StringList RNA_UV_EXTENDED_modifications(modifications_RNA_UV_EXTENDED.begin(), modifications_RNA_UV_EXTENDED.end());
     StringList RNA_UV_fragments(fragments_RNA_UV.begin(), fragments_RNA_UV.end());
 
     StringList RNA_UV_4SU_modifications(modifications_RNA_UV_4SU.begin(), modifications_RNA_UV_4SU.end());
-    StringList RNA_UV_4SU_PASE_modifications(modifications_RNA_UV_4SU_PASE.begin(), modifications_RNA_UV_4SU_PASE.end());
+    StringList RNA_UV_4SU_EXTENDED_modifications(modifications_RNA_UV_4SU_EXTENDED.begin(), modifications_RNA_UV_4SU_EXTENDED.end());
     StringList RNA_UV_4SU_fragments(fragments_RNA_UV_4SU.begin(), fragments_RNA_UV_4SU.end());
 
     StringList DNA_UV_modifications(modifications_DNA_UV.begin(), modifications_DNA_UV.end());
-    StringList DNA_UV_PASE_modifications(modifications_DNA_UV_PASE.begin(), modifications_DNA_UV_PASE.end());
+    StringList DNA_UV_EXTENDED_modifications(modifications_DNA_UV_EXTENDED.begin(), modifications_DNA_UV_EXTENDED.end());
     StringList DNA_UV_fragments(fragments_DNA_UV.begin(), fragments_DNA_UV.end());
 
     StringList RNA_DEB_modifications(modifications_RNA_DEB.begin(), modifications_RNA_DEB.end());
-    StringList RNA_DEB_PASE_modifications(modifications_RNA_DEB_PASE.begin(), modifications_RNA_DEB_PASE.end());
+    StringList RNA_DEB_EXTENDED_modifications(modifications_RNA_DEB_EXTENDED.begin(), modifications_RNA_DEB_EXTENDED.end());
     StringList RNA_DEB_fragments(fragments_RNA_DEB.begin(), fragments_RNA_DEB.end());
 
     StringList RNA_NM_modifications(modifications_RNA_NM.begin(), modifications_RNA_NM.end());
-    StringList RNA_NM_PASE_modifications(modifications_RNA_NM_PASE.begin(), modifications_RNA_NM_PASE.end());
+    StringList RNA_NM_EXTENDED_modifications(modifications_RNA_NM_EXTENDED.begin(), modifications_RNA_NM_EXTENDED.end());
     StringList RNA_NM_fragments(fragments_RNA_NM.begin(), fragments_RNA_NM.end()); 
 
     StringList DNA_DEB_modifications(modifications_DNA_DEB.begin(), modifications_DNA_DEB.end());
-    StringList DNA_DEB_PASE_modifications(modifications_DNA_DEB_PASE.begin(), modifications_DNA_DEB_PASE.end());
+    StringList DNA_DEB_EXTENDED_modifications(modifications_DNA_DEB_EXTENDED.begin(), modifications_DNA_DEB_EXTENDED.end());
     StringList DNA_DEB_fragments(fragments_DNA_DEB.begin(), fragments_DNA_DEB.end());
 
     StringList DNA_NM_modifications(modifications_DNA_NM.begin(), modifications_DNA_NM.end());
-    StringList DNA_NM_PASE_modifications(modifications_DNA_NM_PASE.begin(), modifications_DNA_NM_PASE.end());
+    StringList DNA_NM_EXTENDED_modifications(modifications_DNA_NM_EXTENDED.begin(), modifications_DNA_NM_EXTENDED.end());
     StringList DNA_NM_fragments(fragments_DNA_NM.begin(), fragments_DNA_NM.end());
     
     const String RNA_U = "U";
@@ -886,9 +853,9 @@ namespace OpenMS
       can_cross_link = (p == "RNA-UV (U)") ? RNA_U : RNA_UCGA;
       return;
     }
-    else if (p == "RNA-UV Pase (U)" || p  == "RNA-UV Pase (UCGA)")
+    else if (p == "RNA-UV Extended (U)" || p  == "RNA-UV Extended (UCGA)")
     {
-      modifications = RNA_UV_PASE_modifications; 
+      modifications = RNA_UV_EXTENDED_modifications; 
       fragment_adducts = RNA_UV_fragments;
       can_cross_link = (p == "RNA-UV (U)") ? RNA_U : RNA_UCGA ;
       return;
@@ -902,11 +869,11 @@ namespace OpenMS
       can_cross_link = "S";
       return;
     }
-    else if (p == "RNA-UV Pase (4SU)")
+    else if (p == "RNA-UV Extended (4SU)")
     {
       nucleotides.push_back("S=C9H13N2O8PS"); // include thio-U
       mapping.push_back("S->S");
-      modifications = RNA_UV_4SU_PASE_modifications;
+      modifications = RNA_UV_4SU_EXTENDED_modifications;
       fragment_adducts = RNA_UV_4SU_fragments;
       can_cross_link = "S";
       return;
@@ -918,9 +885,9 @@ namespace OpenMS
       can_cross_link = DNA_TCGAd;
       return;
     }
-    else if (p == "DNA-UV Pase")
+    else if (p == "DNA-UV Extended")
     {
-      modifications = DNA_UV_PASE_modifications;
+      modifications = DNA_UV_EXTENDED_modifications;
       fragment_adducts = DNA_UV_fragments;
       can_cross_link = DNA_TCGAd;
       return;
@@ -936,13 +903,13 @@ namespace OpenMS
       can_cross_link = RNA_UCGA;
       return;
     }
-    else if (p == "RNA-DEB Pase")
+    else if (p == "RNA-DEB Extended")
     {
       // add special methionine loss
       auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
       r_ptr->addLossFormula(EmpiricalFormula("CH4S1"));
 
-      modifications = RNA_DEB_PASE_modifications;
+      modifications = RNA_DEB_EXTENDED_modifications;
       fragment_adducts = RNA_DEB_fragments;
       can_cross_link = RNA_UCGA;
       return;
@@ -958,13 +925,13 @@ namespace OpenMS
       can_cross_link = RNA_UCGA;
       return;
     }
-    else if (p == "RNA-NM Pase")
+    else if (p == "RNA-NM Extended")
     {
       // add special methionine loss
       auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
       r_ptr->addLossFormula(EmpiricalFormula("CH4S1"));
 
-      modifications = RNA_NM_PASE_modifications;
+      modifications = RNA_NM_EXTENDED_modifications;
       fragment_adducts = RNA_NM_fragments; 
       can_cross_link = RNA_UCGA;
       return;
@@ -976,9 +943,9 @@ namespace OpenMS
       can_cross_link = DNA_TCGAd;
       return;
     }
-    else if (p == "DNA-DEB Pase")
+    else if (p == "DNA-DEB Extended")
     {
-      modifications = DNA_DEB_PASE_modifications;
+      modifications = DNA_DEB_EXTENDED_modifications;
       fragment_adducts = DNA_DEB_fragments;
       can_cross_link = DNA_TCGAd;
       return;
@@ -990,9 +957,9 @@ namespace OpenMS
       can_cross_link = DNA_TCGAd;
       return;
     }
-    else if (p == "DNA-NM Pase")
+    else if (p == "DNA-NM Extended")
     {
-      modifications = DNA_NM_PASE_modifications;
+      modifications = DNA_NM_EXTENDED_modifications;
       fragment_adducts = DNA_NM_fragments;
       can_cross_link = DNA_TCGAd;
       return;
