@@ -51,6 +51,8 @@
 #include <string>
 #include <memory>
 
+#include <iostream>
+
 namespace OpenMS
 {
   class ProteinIdentification;
@@ -638,14 +640,14 @@ protected:
       /// Converts an attribute to an StringList
       inline StringList attributeAsStringList_(const xercesc::Attributes & a, const char * name) const
       {
-        String tmp(expectList_(attributeAsString_(a, name)));
+        String tmp(expectList_(attributeAsString_(a, name)));         
         StringList tmp_list = ListUtils::create<String>(tmp.substr(1, tmp.size() - 2)); // between [ and ]
-
-        if (tmp.hasSubstring("&#44;")) // check full string for escaped comma
+  
+        if (tmp.hasSubstring("\\|")) // check full string for escaped comma
         {
           for (String& s : tmp_list)
           {
-            s.substitute("&#44;", ",");
+            s.substitute("\\|", ",");
           }          
         }
         return tmp_list;
@@ -805,7 +807,16 @@ protected:
       inline StringList attributeAsStringList_(const xercesc::Attributes & a, const XMLCh * name) const
       {
         String tmp(expectList_(attributeAsString_(a, name)));
-        return ListUtils::create<String>(tmp.substr(1, tmp.size() - 2));
+        StringList tmp_list = ListUtils::create<String>(tmp.substr(1, tmp.size() - 2)); // between [ and ]
+
+        if (tmp.hasSubstring("\\|")) // check full string for escaped comma
+        {
+          for (String& s : tmp_list)
+          {
+            s.substitute("\\|", ",");
+          }          
+        }
+        return tmp_list;
       }
 
       /// Assigns the attribute content to the String @a value if the attribute is present

@@ -280,12 +280,12 @@ namespace OpenMS::Internal
         {
           os << "stringList";
           // List elements are separated by comma. In the rare case of comma inside individual strings
-          // we replace them by the XML ecoding of comma '&#44;'. 
+          // we replace them by an escape symbol '\\|'. 
           // This allows distinguishing commas as element separator and normal string character and reconstruct the list.
           StringList sl = d.toStringList();
           for (String& s : sl)
           {
-            if (s.has(',')) s.substitute(",", "&#44;");
+            if (s.has(',')) s.substitute(",", "\\|");
           }
           val = "[" + writeXMLEscape(ListUtils::concatenate(sl, ",")) + "]";
         }

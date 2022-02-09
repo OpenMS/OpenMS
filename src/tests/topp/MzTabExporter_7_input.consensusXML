@@ -59,11 +59,10 @@
 			<ProteinHit id="PH_1" accession="tr|Q1PI83|Q1PI83_ECOLI" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[C:\Users\bielow\AppData\Local\Temp\20200730_171917_45332_1\qc\009_InternalCalibration\out\bla.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[C:\my_\|_comma_test.mzML]"/>
 			<UserParam type="stringList" name="spectra_data_raw" value="[file:///bla.raw]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
-	
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="300.6357900319" RT="33" spectrum_reference="controllerType=0 controllerNumber=1 scan=52" >
 		<PeptideHit score="0.039528211667198" sequence="GC[161.027684999999991]TPEPTID" charge="2" aa_before="R" aa_after="V" start="31" end="35" protein_refs="PH_1">
 			<UserParam type="string" name="target_decoy" value="target"/>
