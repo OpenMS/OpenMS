@@ -81,3 +81,5 @@ set(OPENMS_ADDCXX_FLAGS "@CF_OPENMS_ADDCXX_FLAGS@")
 
 ## The targets file
 include("${OPENMS_CMAKE_DIR}/@_OPENMS_EXPORT_FILE@")
+include("${OPENMS_CMAKE_DIR}/OpenMSEvergreenTargets.cmake")
+
