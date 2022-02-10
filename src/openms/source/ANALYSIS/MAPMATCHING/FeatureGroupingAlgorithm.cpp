@@ -269,10 +269,10 @@ namespace OpenMS
     }
 
     // remove "groups" mv
-    // for (size_t i = 0; i < out.size(); i++)
-    // {
-    //   out[i].removeMetaValue("groups");
-    // }
+    for (size_t i = 0; i < out.size(); i++)
+    {
+      out[i].removeMetaValue("groups");
+    }
  }
 
   FeatureGroupingAlgorithm::~FeatureGroupingAlgorithm()

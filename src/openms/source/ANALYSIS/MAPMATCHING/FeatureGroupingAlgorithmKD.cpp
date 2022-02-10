@@ -280,7 +280,7 @@ namespace OpenMS
     
     postprocess_(input_maps, out);
 
-    FeatureGroupingAlgorithm::linkAdductPartners(out);
+    FeatureGroupingAlgorithm::annotateIonIdentityNetworks(out);
   }
 
   void FeatureGroupingAlgorithmKD::group(const std::vector<FeatureMap>& maps,
