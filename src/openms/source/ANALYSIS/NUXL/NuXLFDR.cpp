@@ -198,10 +198,14 @@ namespace OpenMS
       // write out XL PSM result
       IdXMLFile().store(out_idxml + String::number(xlFDR, 4) + "_XLs.idXML", tmp_prots, xl_pi);
 
-      // write out XL protein result
-      TextFile tsv_file;
-      RNPxlProteinReport::annotateProteinModificationForTopHits(tmp_prots, xl_pi, tsv_file);
-      tsv_file.store(out_idxml + "proteins" + String::number(xlFDR, 4) + "_XLs.tsv");
+      // write out XL protein result only for results with FDR < 10% otherwise we get to many protein associations and large memory consumption
+      if (xlFDR <= 0.1)
+      {
+        OPENMS_LOG_INFO << "Writing XL protein results at xl-FDR: " << xlFDR << endl;
+        TextFile tsv_file;
+        RNPxlProteinReport::annotateProteinModificationForTopHits(tmp_prots, xl_pi, tsv_file);
+        tsv_file.store(out_idxml + "proteins" + String::number(xlFDR, 4) + "_XLs.tsv");
+      }      
    }
   }
 

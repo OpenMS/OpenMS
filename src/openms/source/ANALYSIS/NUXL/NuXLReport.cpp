@@ -348,12 +348,29 @@ namespace OpenMS
     return adduct2count;
   }
 
+// TODO:
+// report for a single cross-linking site (one row = unmodified peptidsequence (not shown) + position)
+// +-------------------+----+----------+---------+-------+---------+------------+-----------------+-------------+------------------+-----------------+
+// |      protein      | AA | position | adduct  | xl NA | charges | CSM w/ loc | peptides w/ loc | CSM w/o loc | peptides w/o loc |   ambiguities   |
+// +-------------------+----+----------+---------+-------+---------+------------+-----------------+-------------+------------------+-----------------+
+// | U323423|HUMAN_XYZ | N  |      203 | GU,U,UU | U,G   |     2,3 |         13 |               2 |          34 |                2 |                 |
+// | U323423|HUMAN_XYZ | N  |      203 | U       | U     |     2,4 |          3 |               1 |           3 |                1 |                 | <- rare case unique but different sequence
+// | U323423|HUMAN_XYZ | N  |      203 | U-H2O   | U     |       2 |         34 |               2 |           1 |                1 | U3343|HUMAN_ABC | <- ambigious (=mapped to several proteins)
+// +-------------------+----+----------+---------+-------+---------+------------+-----------------+-------------+------------------+-----------------+
+// CSM and peptides w/o localization are only counted for unique peptides to prevent excessive output. Shared peptides w/o localization are listed separately as they contain little information.										
+//
+// shared peptides w/o localizations
+// +--------+-------+---------+-------------+------------------+-------------------------------------------------------------+
+// | adduct | xl NA | charges | CSM w/o loc | peptides w/o loc |                       ambiguities (region)                  |
+// +--------+-------+---------+-------------+------------------+-------------------------------------------------------------+
+// | UUU    | U     |     2,3 |           3 |                2 | U323423|HUMAN_XYZ (18-29),U3343|HUMAN_ABC (78-89)|HUMAN_ABC |
+// +--------+-------+---------+-------------+------------------+-------------------------------------------------------------+
+
   void RNPxlProteinReport::annotateProteinModificationForTopHits(
     vector<ProteinIdentification>& prot_ids, 
     const vector<PeptideIdentification>& peps, 
     TextFile& tsv_file, bool report_decoys)
   {
-    cout << "Creating protein report. " << endl;
     assert(prot_ids.size() == 1); // support for one run only
 
     // protein identification run
@@ -629,7 +646,7 @@ namespace OpenMS
       }); 
 
     // write to file
-    cout << "Write to file... " << endl;
+    cout << "Writing " << protein_report_entries.size() << " proteins to tsv file... " << endl;
     for (const auto& e : protein_report_entries)
     {
       tsv_file.addLine(String(">") + e.accession + "\t(" + String(e.count) + ")");
@@ -723,7 +740,7 @@ namespace OpenMS
       tsv_file.addLine(ca.second + " : " + String(ca.first) + " : " + String(100.0 * (double)ca.first / (double)total_psms));
     }
    
-    for (auto m : name2mod) { delete(m.second); } // free memory
+    for (auto m : name2mod) { delete(m.second); } // free memory    
   }
 
   // static 
