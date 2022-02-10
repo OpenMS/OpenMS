@@ -44,6 +44,7 @@
 #include <OpenMS/CONCEPT/Factory.h>
 
 #include <unordered_set>
+#include <regex>
 
 using namespace std;
 
@@ -175,9 +176,42 @@ namespace OpenMS
   void FeatureGroupingAlgorithm::annotateIonIdentityNetworks(ConsensusMap& out) const
   {
     // set row ID for each feature
+    // reformat best ion
     for (size_t i = 0; i < out.size(); i++)
     {
       out[i].setMetaValue(Constants::UserParam::ROW_ID, i+1);
+      if (out[i].metaValueExists(Constants::UserParam::BEST_ION))
+      {
+        String best_ion = out[i].getMetaValue(Constants::UserParam::BEST_ION);
+        String formatted_best_ion = "[M";
+        std::smatch matches;
+        std::regex_search(best_ion, matches, std::regex(".*[^\\d]+"));
+        if (matches.ready())
+        {
+          if (matches.str(0).rfind("-", 0) == 0)
+          {
+            formatted_best_ion += matches.str(0);
+          } else
+          {
+            formatted_best_ion += "+";
+            formatted_best_ion += matches.str(0);
+          }
+        }
+        formatted_best_ion += "]";
+        std::regex_search(best_ion, matches, std::regex("\\d$"));
+        if (matches.ready())
+        {
+          if (matches.str(0) == "1")
+          {
+            formatted_best_ion += "+";
+          } else
+          {
+            formatted_best_ion += matches.str(0);
+            formatted_best_ion += "+";
+          }
+        }
+        out[i].setMetaValue(Constants::UserParam::BEST_ION, formatted_best_ion);
+      }
     }
     // set partners for each feature (row IDs of other features with intersecting adduct groups, separated by semicolon)
     // store all related groups in a map with key index (equal to i) and value a set of all groups from other features with
