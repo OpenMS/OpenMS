@@ -442,17 +442,26 @@ namespace OpenMS
       */
       inline const std::string   XFDR_FDR = "XFDR:FDR";
 
-      /** User parameter name for best ion annotation in a ConsensusFeature, taken from the best quality feature.
+      /** User parameter name for best ion annotation in a ConsensusFeature, taken from the best quality feature. (Required for IIMN)
               String
       */
-      inline const std::string   BEST_ION = "best_ion";
+      inline const std::string   BEST_ION = "best ion";
 
-      /** User parameter name for partners ID of a ConsensusFeature. Represents a list of Group MVs from all Features in a ConsensusFeature.
-       *  Can be used by FeatureGroupingAlgorithm::linkAdductPartners() to set the same partners ID for features that belong together but have
-       *  different adducts.
+      /** User parameter name for a ConsensusFeature. Represents the ROW_IDs of related ConsensusFeatures defined by MetaboliteAdductDecharger.
+       *  Partners are separated by semin colon. (Required for IIMN)
               List of String
       */
       inline const std::string   ADDUCT_PARTNERS = "partners";
+
+      /** User parameter name for a unique ConsensusFeature index in a ConsensusMap. (Required for IIMN)
+              String
+      */
+      inline const std::string   ROW_ID = "row ID";
+
+      /** User parameter name for a ConsensusFeature to indicate a metabolite with different adduct states. (Required for IIMN)
+              String
+      */
+      inline const std::string   ANNOTATION_NETWORK_NUMBER = "annotation network number";
 
       /** User parameter name for group annotation in Feature by MetaboliteAdductDecharger to indicate matching Features with different adducts.
               String

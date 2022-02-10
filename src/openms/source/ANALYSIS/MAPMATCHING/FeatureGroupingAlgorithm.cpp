@@ -177,7 +177,7 @@ namespace OpenMS
     // set row ID for each feature
     for (size_t i = 0; i < out.size(); i++)
     {
-      out[i].setMetaValue("row ID", i+1);
+      out[i].setMetaValue(Constants::UserParam::ROW_ID, i+1);
     }
     // set partners for each feature (row IDs of other features with intersecting adduct groups, separated by semicolon)
     // store all related groups in a map with key index (equal to i) and value a set of all groups from other features with
@@ -220,14 +220,14 @@ namespace OpenMS
             related_groups[i].insert(group);
           }
           // check if feature has partners, if so add  other feature row ID with semi colon, else create new partners mv with row ID
-          if (out[i].metaValueExists("partners"))
+          if (out[i].metaValueExists(Constants::UserParam::ADDUCT_PARTNERS))
           {
-            out[i].setMetaValue("partners", out[i].getMetaValue("partners").toString()
+            out[i].setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, out[i].getMetaValue(Constants::UserParam::ADDUCT_PARTNERS).toString()
                                 +";"
-                                +out[j].getMetaValue("row ID").toString());
+                                +out[j].getMetaValue(Constants::UserParam::ROW_ID).toString());
           } else
           {
-            out[i].setMetaValue("partners", out[j].getMetaValue("row ID"));
+            out[i].setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, out[j].getMetaValue(Constants::UserParam::ROW_ID));
           }
         }
       }
@@ -244,7 +244,7 @@ namespace OpenMS
       if (related_groups.count(i) > 0 && !already_processed.count(i))
       {
         // annotate feature
-        out[i].setMetaValue("annotation network number", annotation_network_number);
+        out[i].setMetaValue(Constants::UserParam::ANNOTATION_NETWORK_NUMBER, annotation_network_number);
         // ... and compare to all following features (j) (not to every feature!)
         for (size_t j=i+1; j<out.size(); j++)
         {
@@ -258,7 +258,7 @@ namespace OpenMS
             if (!intersection.empty())
             {
               // annotate other feature and add j to already_processed
-              out[j].setMetaValue("annotation network number", annotation_network_number);
+              out[j].setMetaValue(Constants::UserParam::ANNOTATION_NETWORK_NUMBER, annotation_network_number);
               already_processed.insert(j);
             }
           }
