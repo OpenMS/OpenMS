@@ -177,9 +177,24 @@ openms_add_library(TARGET_NAME  OpenMS
 # here
 # Note: that slash(/) is important here, otherwise the whole directory
 #       (not its content) will be copied!
-install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} share)
+#install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} share)
+install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
+  DESTINATION ${INSTALL_SHARE_DIR}
+  COMPONENT share
+  FILE_PERMISSIONS      OWNER_WRITE OWNER_READ
+                        GROUP_READ
+                        WORLD_READ
+  DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                        GROUP_EXECUTE GROUP_READ
+                        WORLD_EXECUTE WORLD_READ
+  REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+  REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+  REGEX "OpenMS/examples" EXCLUDE
+)
+install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR}/examples examples)
+
 # Devs also need our custom find modules
-install_directory(${OPENMS_HOST_DIRECTORY}/cmake/modules ${INSTALL_LIB_DIR}/cmake/OpenMS/Modules modules)
+install_directory(${OPENMS_HOST_DIRECTORY}/cmake/modules ${INSTALL_LIB_DIR}/cmake/OpenMS/Modules cmake)
 file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINARY_DIRECTORY})
 
 #------------------------------------------------------------------------------

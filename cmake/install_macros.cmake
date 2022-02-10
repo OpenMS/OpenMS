@@ -131,8 +131,8 @@ endmacro()
 # Installs the exported target information
 macro(install_export_targets )
     install(EXPORT ${OPENMS_EXPORT_SET}
-            DESTINATION ${INSTALL_SHARE_DIR}/cmake
-            COMPONENT share)
+            DESTINATION ${INSTALL_LIB_DIR}/cmake
+            COMPONENT cmake)
 endmacro()
 
 #------------------------------------------------------------------------------
