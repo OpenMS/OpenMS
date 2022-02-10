@@ -124,7 +124,6 @@ namespace OpenMS
     QVBoxLayout* all = new QVBoxLayout(this);
     tables_splitter_ = new QSplitter(Qt::Horizontal);
 
-    QHBoxLayout* tables = new QHBoxLayout(tables_splitter_);
     table_widget_ = new TableView(tables_splitter_);
 
     // exported protein accessions and PSM rank even if hidden
@@ -137,7 +136,7 @@ namespace OpenMS
     protein_table_widget_->setWhatsThis("Protein selection bar<BR><BR>Here all proteins of the current experiment are shown. TODO what can you do with it");
 
     tables_splitter_->addWidget(protein_table_widget_);
-    tables_splitter_->setLayout(tables);
+
     all->addWidget(tables_splitter_);
     
     ////////////////////////////////////
