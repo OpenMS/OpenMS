@@ -255,7 +255,16 @@ namespace OpenMS
 
   void SpectraIDViewTab::openUniProtSiteWithAccession_(const QString& accession)
   {
-    QString accession_num = extractNumFromAccession_(accession);
+    QString accession_num;
+    try
+    {
+      accession_num = extractNumFromAccession_(accession);
+    }
+    catch (Exception::InvalidValue&)
+    {
+      // TODO: print in status(?) that accession format is not supported
+    }
+
     if (!accession_num.isEmpty()) 
     {
       QString base_url = "https://www.uniprot.org/uniprot/";
@@ -263,7 +272,6 @@ namespace OpenMS
       GUIHelpers::openURL(url);
     }
   }
-
 
   void SpectraIDViewTab::proteinCellClicked_(int row, int column)
   {
@@ -297,8 +305,17 @@ namespace OpenMS
       QString protein_sequence = protein_table_widget_->item(row, ProteinClmn::FULL_PROTEIN_SEQUENCE)->data(Qt::DisplayRole).toString();
       // store the accession as string, eg: tr|P02769|ALBU_BOVIN
       QString current_accession = protein_table_widget_->item(row, ProteinClmn::ACCESSION)->data(Qt::DisplayRole).toString();
-     // extract the part of accession , eg: P02769
-      QString accession_num = extractNumFromAccession_(current_accession);
+
+      // extract the part of accession , eg: P02769
+      QString accession_num;
+      try
+      {
+        accession_num = extractNumFromAccession_(current_accession);
+      }
+      catch (Exception::InvalidValue&)
+      {
+        // TODO: print in status(?) that accession format is not supported
+      }    
 
       auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
 
@@ -372,7 +389,7 @@ namespace OpenMS
         widget->show();
       }
     }
-#endif
+    #endif
   }
 
   void SpectraIDViewTab::currentSpectraSelectionChanged_()
@@ -656,6 +673,9 @@ namespace OpenMS
 
     protein_table_widget_->setHeaders(headers);
     protein_table_widget_->setColumnHidden(ProteinClmn::FULL_PROTEIN_SEQUENCE, true);
+    #ifndef QT_WEBENGINEWIDGETS_LIB
+      protein_table_widget_->setColumnHidden(ProteinClmn::SEQUENCE, true); // no web engine? hide sequence column used to do the JS query
+    #endif
     protein_table_widget_->resizeColumnsToContents();
     protein_table_widget_->setSortingEnabled(true);
     protein_table_widget_->sortByColumn(ProteinClmn::SCORE, Qt::AscendingOrder); //TODO figure out higher_score_better
