@@ -279,8 +279,16 @@ namespace OpenMS
     endProgress();
     
     postprocess_(input_maps, out);
-
-    FeatureGroupingAlgorithm::annotateIonIdentityNetworks(out);
+    
+    // if at least one of the features has an annotation for the best ion, annotate ConsensusMap for IIMN
+    for (const auto& f: out)
+    {
+      if (f.metaValueExists(Constants::UserParam::BEST_ION))
+      {
+        FeatureGroupingAlgorithm::annotateIonIdentityNetworks(out);
+        break;
+      }
+    }
   }
 
   void FeatureGroupingAlgorithmKD::group(const std::vector<FeatureMap>& maps,
