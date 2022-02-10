@@ -73,7 +73,7 @@ namespace OpenMS
     cluster_finder.run(maps, out);
     
     postprocess_(maps, out);
-    FeatureGroupingAlgorithm::linkAdductPartners(out);
+    FeatureGroupingAlgorithm::annotateIonIdentityNetworks(out);
   }
 
   void FeatureGroupingAlgorithmQT::group(const std::vector<FeatureMap>& maps,

@@ -70,8 +70,10 @@ public:
     /// Register all derived classes in this method
     static void registerChildren();
 
-    /// Links consensus features by adduct partners with intersecting "Group" meta values (annoated in featureXML files by MetaboliteAdductDecharger).
-    void linkAdductPartners(ConsensusMap& out) const;
+    /// Annotate ConsensusMap for ion identity molecular networking (IIMN) workflow by GNPS.
+    /// Adds meta values "row ID" (unique index for each feature),"partners" (related features row IDs)
+    /// and "annotation network number" (all related features (with different adduct states) get the same network number).
+    void annotateIonIdentityNetworks(ConsensusMap& out) const;
 
 protected:
 
