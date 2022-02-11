@@ -421,29 +421,32 @@ if (OpenMP_FOUND)
 # endforeach()
 endif()
 
-#-----------------------------------------------------------------------------
-# since boost 1.69 there seem to be symbols visible/imported after linking it
-# statically into OpenMS. Therefore we need to link to it for pyOpenMS as well.
-# Just using the OpenMS dependencies is hard since the CMake variables are
-# a) mangled together with generator expressions (debug and release)
-# b) do not specify if it was a static or dynamic library (on Unix this is easy to
-# test from the extension, but not on Windows)
-# c) may include recursively imported targets like Qt which list Qt::Core instead
-# of the actual path
-# If we only could get rid of distutils in general and do everything with CMake..
-if(NOT WIN32)
-  # the following does not work since the FindBoost does not annotate all target_properties,
-  # when run without BOOST_USE_STATIC On or Off.
-  #set(OBJECTS_EXTEND "\$<GENEX_EVAL:\$<\$<STREQUAL:\$<TARGET_LINKER_FILE_SUFFIX:Boost::regex>,\".a\">:\$<TARGET_LINKER_FILE:Boost::regex>>>")
+# TODO the next section and most of env.py should not be needed anymore if CMake based build works reliably.
+#  It is commented out for now.
+##-----------------------------------------------------------------------------
+## since boost 1.69 there seem to be symbols visible/imported after linking it
+## statically into OpenMS. Therefore we need to link to it for pyOpenMS as well.
+## Just using the OpenMS dependencies is hard since the CMake variables are
+## a) mangled together with generator expressions (debug and release)
+## b) do not specify if it was a static or dynamic library (on Unix this is easy to
+## test from the extension, but not on Windows)
+## c) may include recursively imported targets like Qt which list Qt::Core instead
+## of the actual path
+
+#if(NOT WIN32)
+
+  ## the following does not work since the FindBoost does not annotate all target_properties,
+  ## when run without BOOST_USE_STATIC On or Off.
+  ##set(OBJECTS_EXTEND "\$<GENEX_EVAL:\$<\$<STREQUAL:\$<TARGET_LINKER_FILE_SUFFIX:Boost::regex>,\".a\">:\$<TARGET_LINKER_FILE:Boost::regex>>>")
   
-  # the logic for static vs dynamic is in setup.py
-  set(LIBRARIES_TO_BE_PARSED_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>" "\$<TARGET_LINKER_FILE:XercesC::XercesC>" )
+  ## the logic for static vs dynamic is in setup.py
+  #set(LIBRARIES_TO_BE_PARSED_EXTEND "\$<TARGET_LINKER_FILE:Boost::regex>" "\$<TARGET_LINKER_FILE:XercesC::XercesC>" )
   
-  # the following gets all dependent libraries of OpenMS
-  # for the current config but filters out imported targets unfortunately.
-  # We would need something recursive
-  #set(ALL_OPENMS_DEPENDENCIES "\$<FILTER:\$<TARGET_GENEX_EVAL:OpenMS,\$<TARGET_PROPERTY:OpenMS,LINK_LIBRARIES>>,INCLUDE,/>")
-endif()
+  ## the following gets all dependent libraries of OpenMS
+  ## for the current config but filters out imported targets unfortunately.
+  ## We would need something recursive
+  ##set(ALL_OPENMS_DEPENDENCIES "\$<FILTER:\$<TARGET_GENEX_EVAL:OpenMS,\$<TARGET_PROPERTY:OpenMS,LINK_LIBRARIES>>,INCLUDE,/>")
+#endif()
 
 file(GENERATE
      OUTPUT ${CMAKE_BINARY_DIR}/pyOpenMS/env.py
