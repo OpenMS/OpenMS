@@ -146,18 +146,20 @@ function(openms_add_library)
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
   #------------------------------------------------------------------------------
   # Include directories
-  # TODO BIG figure out how to make the paths relative to the super projects folder.
+  # since internal includes all start with include/OpenMS and install_headers takes care of merging them in the install tree,
+  # we can reference them just by INSTALL_INCLUDE_DIR in the install tree. They are then included as usual via <OpenMS/OPENSWATHALGO/..>"
   target_include_directories(${openms_add_library_TARGET_NAME} PUBLIC
                              "$<BUILD_INTERFACE:${openms_add_library_INTERNAL_INCLUDES}>"
-                             "$<INSTALL_INTERFACE:include/${openms_add_library_TARGET_NAME}>"  # <prefix>/include/OpenMS
+                             "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>"  # <prefix>/include
                              )
+
   # TODO actually we shouldn't need to add these external includes. They should propagate through target_link_library if they are public
   target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PUBLIC 
                              "$<BUILD_INTERFACE:${openms_add_library_EXTERNAL_INCLUDES}>"
-                             "$<INSTALL_INTERFACE:include/${openms_add_library_TARGET_NAME}>"
+                             "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>"
                              )
   target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PRIVATE ${openms_add_library_PRIVATE_INCLUDES})
-
+  
   #TODO cxx_std_17 only requires a c++17 flag for the compiler. Not full standard support.
   # If we want full support, we need our own try_compiles (e.g. for structured bindings first available in GCC7)
   # or specify a min version of each compiler.
