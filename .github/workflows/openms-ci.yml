@@ -43,7 +43,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ github.workspace }}/OpenMS/contrib
-        key: ${{ runner.os }}-contrib
+        key: ${{ runner.os }}-contrib2
 
     - name: Load contrib build
       if: steps.cache-contrib-win.outputs.cache-hit != 'true'
@@ -151,7 +151,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ github.workspace }}/OpenMS/contrib
-        key: ${{ runner.os }}-contrib
+        key: ${{ runner.os }}-contrib2
 
     - name: Load contrib build
       if: steps.cache-contrib-os.outputs.cache-hit != 'true'
