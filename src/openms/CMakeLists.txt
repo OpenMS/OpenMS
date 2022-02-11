@@ -62,13 +62,9 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 #------------------------------------------------------------------------------
 # third party libs shipped with OpenMS directly
 #------------------------------------------------------------------------------
-# The two following libraries are in our public API, so create export targets
-install(EXPORT EvergreenTargets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/OpenMS FILE OpenMSEvergreenTargets.cmake)
-
+# The following library is in our public API, so create export targets
+#install(EXPORT EvergreenTarget DESTINATION ${INSTALL_LIB_DIR}/cmake/OpenMS FILE OpenMSTargets.cmake COMPONENT cmake)
 add_subdirectory(thirdparty)
-
-# TODO check if we can do that in the subdirectories
-openms_register_export_target(Evergreen)
 
 #------------------------------------------------------------------------------
 # external libs (contrib or system)
@@ -177,9 +173,24 @@ openms_add_library(TARGET_NAME  OpenMS
 # here
 # Note: that slash(/) is important here, otherwise the whole directory
 #       (not its content) will be copied!
-install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} share)
+#install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} share)
+install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
+  DESTINATION ${INSTALL_SHARE_DIR}
+  COMPONENT share
+  FILE_PERMISSIONS      OWNER_WRITE OWNER_READ
+                        GROUP_READ
+                        WORLD_READ
+  DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                        GROUP_EXECUTE GROUP_READ
+                        WORLD_EXECUTE WORLD_READ
+  REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+  REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+  REGEX "OpenMS/examples" EXCLUDE
+)
+install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR}/examples examples)
+
 # Devs also need our custom find modules
-install_directory(${OPENMS_HOST_DIRECTORY}/cmake/modules ${INSTALL_LIB_DIR}/cmake/OpenMS/Modules modules)
+install_directory(${OPENMS_HOST_DIRECTORY}/cmake/modules ${INSTALL_LIB_DIR}/cmake/OpenMS/Modules cmake)
 file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINARY_DIRECTORY})
 
 #------------------------------------------------------------------------------
