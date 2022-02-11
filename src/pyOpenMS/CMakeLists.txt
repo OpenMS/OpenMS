@@ -36,7 +36,8 @@ project("pyOpenMS" LANGUAGES C CXX)
 
 if(NOT TARGET OpenMS)
   find_package(OpenMS)
-  include(../../cmake/modules/GetGitRevisionDescription.cmake) #TODO set module path instead?
+  #TODO create own module copy under pyopenms or somehow point to installed copy based on the found OpenMS variables
+  include(../../cmake/Modules/GetGitRevisionDescription.cmake)
   git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE)
 endif()
 
