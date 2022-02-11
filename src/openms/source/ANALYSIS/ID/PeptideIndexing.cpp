@@ -626,6 +626,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
 
   Size pep_idx(0);
   Size func_hits_idx(0); ///< current position in func.pep_to_prot[] which has a stretch of matches for current pep_idx
+  const Size func_hits_size = func.pep_to_prot.size(); 
   for (std::vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
   {
     // which ProteinIdentification does the peptide belong to?
@@ -648,7 +649,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
       Hit::T last_prot_index = -1;
       // add new protein references
       // the vector 'pep_to_prot' is sorted by peptide_index, and then by protein_index 
-      while (func.pep_to_prot[func_hits_idx].peptide_index == pep_idx)
+      while ((func_hits_idx < func_hits_size) && (func.pep_to_prot[func_hits_idx].peptide_index == pep_idx))
       {
         const auto& pe = func.pep_to_prot[func_hits_idx];
 
