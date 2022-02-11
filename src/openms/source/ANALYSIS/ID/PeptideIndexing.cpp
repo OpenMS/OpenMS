@@ -587,9 +587,24 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
     std::cout << "Merge took: " << s.toString() << "\n";
     mu.after();
     std::cout << mu.delta("Aho-Corasick") << "\n\n";
+    
+    {
+      // count number of peptides found
+      // the vector 'pep_to_prot' is sorted by peptide_index, and then by protein_index 
+      size_t found_peptide_count{0};
+      Hit::T last_peptide_idx = -1;
+      for (const auto& hit : func.pep_to_prot)
+      {
+        if (hit.peptide_index != last_peptide_idx)
+        {
+          last_peptide_idx = hit.peptide_index;
+          ++found_peptide_count;
+        }
+      }
 
-    OPENMS_LOG_INFO << "\nAho-Corasick done:\n  found " << func.filter_passed << " hits for " << func.pep_to_prot.size() << " of " << ac_trie.getNeedleCount() << " peptides.\n";
-
+      OPENMS_LOG_INFO << "\nAho-Corasick done:\n  found " << func.filter_passed << " hits for " << found_peptide_count << " of " << ac_trie.getNeedleCount() << " peptides.\n";
+    }
+    
     // write some stats
     OPENMS_LOG_INFO << "Peptide hits passing enzyme filter: " << func.filter_passed << "\n"
                     << "     ... rejected by enzyme filter: " << func.filter_rejected << std::endl;
