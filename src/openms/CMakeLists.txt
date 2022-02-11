@@ -190,7 +190,7 @@ install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
 install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR}/examples examples)
 
 # Devs also need our custom find modules
-install_directory(${OPENMS_HOST_DIRECTORY}/cmake/modules ${INSTALL_LIB_DIR}/cmake/OpenMS/Modules cmake)
+install_directory(${OPENMS_HOST_DIRECTORY}/cmake/modules/ ${INSTALL_LIB_DIR}/cmake/OpenMS/Modules cmake)
 file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINARY_DIRECTORY})
 
 #------------------------------------------------------------------------------
