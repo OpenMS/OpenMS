@@ -423,6 +423,9 @@ namespace OpenMS
     **/
     bool addHits_(Index i, const size_t text_pos, std::vector<Hit>& hits) const;
 
+    /// same as addHits_, but only follows the suffix chain until the spawn looses its prefix
+    bool addHitsSpawn_(Index i, const ACSpawn& spawn, const size_t text_pos, std::vector<Hit>& hits, const int current_spawn_depths) const;
+
     /// Starting at node @p i, find the child with label @p edge
     /// If no child exists, follow the suffix link and try again (until root is reached)
     /// Note: This operates on the BFS trie (after compressTrie()), not the naive one.
