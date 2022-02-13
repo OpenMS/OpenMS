@@ -35,49 +35,6 @@
 project("OpenMS_GUI")
 cmake_minimum_required(VERSION 3.9.0 FATAL_ERROR)
 
-# --------------------------------------------------------------------------
-# Find Qt
-#---------------------------------------------------------------------------
-set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Svg)
-
-# On macOS the platform plugin of QT requires PrintSupport. We link
-# so it's packaged via the bundling/dependency tools/scripts
-if (APPLE)
-  set (TEMP_OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} PrintSupport)
-endif()
-
-set(OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} CACHE INTERNAL "QT components for GUI lib")
-
-set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
-
-find_package(Qt5 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
-
-IF (NOT Qt5Widgets_FOUND OR NOT Qt5Gui_FOUND OR NOT Qt5Svg_FOUND)
-  message(STATUS "Qt5Widgets not found!")
-	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
-ENDIF()
-
-find_package(Qt5 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
-
-# TODO only works if WebEngineWidgets is the only optional component
-set(OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
-if(Qt5WebEngineWidgets_FOUND)
-  list(APPEND OpenMS_GUI_QT_FOUND_COMPONENTS_OPT "WebEngineWidgets")
-else()
-  message(WARNING "Qt5WebEngineWidgets not found, disabling JS Views in TOPPView!")
-endif()
-  
-
-set(OpenMS_GUI_DEP_LIBRARIES "OpenMS")
-
-foreach(COMP IN LISTS OpenMS_GUI_QT_COMPONENTS)
-  list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt5::${COMP}")
-endforeach()
-
-foreach(COMP IN LISTS OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
-  list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt5::${COMP}")
-endforeach()
-
 set(CMAKE_AUTOUIC OFF) # leave off since this is broken, see qt5_wrap_ui below
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
