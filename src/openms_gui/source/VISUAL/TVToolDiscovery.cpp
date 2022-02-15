@@ -38,6 +38,7 @@
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
 #include <filesystem>
@@ -47,10 +48,7 @@
 
 namespace OpenMS
 {
-
-
-
-  void TVToolDiscovery::loadParams()
+  void TVToolDiscovery::loadToolParams()
   {
     // tool params are only loaded once by using a immediately evaluated lambda
     static bool _ [[maybe_unused]] = [&]() -> bool
@@ -58,36 +56,40 @@ namespace OpenMS
       // Get a map of all tools
       const auto &tools = ToolHandler::getTOPPToolList();
       const auto &utils = ToolHandler::getUtilList();
-      const auto &plugins = getPlugins_();
       // Launch threads for loading tool/util params.
-      for (auto& tool : tools)
+      for (const auto& [name, _] : tools)
       {
-        const std::string name = tool.first;
-        param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name, nullptr);
+        tool_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, name, nullptr));
       }
-      for (auto& util : utils)
+      for (const auto& [name, _] : utils)
       {
-        const std::string name = util.first;
-        param_futures_[name] = std::async(std::launch::async, getParamFromIni_, name, nullptr);
-      }
-      for (auto& plugin : plugins)
-      {
-        std::cout << "starting work on " << plugin << std::endl;
-        param_futures_[File::basename(plugin)] = std::async(std::launch::async, getParamFromIni_, plugin, &plugins_);
+        tool_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, name, nullptr));
       }
       return true;
     }();
   }
 
-  void TVToolDiscovery::waitForParams()
+  void TVToolDiscovery::loadPluginParams()
+  {
+    plugin_param_futures_.clear();
+    plugins_.clear();
+    const auto &plugins = getPlugins_();
+    for (auto& plugin : plugins)
+    {
+      std::cout << "starting work on " << plugin << std::endl;
+      plugin_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, plugin, &plugins_));
+    }
+  }
+
+  void TVToolDiscovery::waitForToolParams()
   {
     // Make sure that future results are only waited for and inserted in params_ once
     static bool _ [[maybe_unused]] = [&]() -> bool
     {
       // Make sure threads have been launched before waiting
-      loadParams();
+        loadToolParams();
       // Wait for futures to finish
-      for (auto&[name, param_future] : param_futures_)
+      for (auto& param_future : tool_param_futures_)
       {
         while (param_future.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
         {
@@ -95,23 +97,49 @@ namespace OpenMS
           QCoreApplication::processEvents();
         }
         // Make future results available in params_
-        params_.emplace(name, param_future.get());
+        tool_params_.insert("", param_future.get());
       }
       return true;
     }();
   }
 
-  const std::map<std::string, Param> &TVToolDiscovery::getToolParams()
+  void TVToolDiscovery::waitForPluginParams()
+  {
+    // Make sure threads have been launched before waiting
+    loadPluginParams();
+    // Wait for futures to finish
+    for (auto& param_future : plugin_param_futures_)
+    {
+      while (param_future.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
+      {
+        // Keep GUI responsive while waiting
+        QCoreApplication::processEvents();
+      }
+      // Make future results available in params_
+      plugin_params_.insert("", param_future.get());
+    }
+  }
+
+  //const std::vector<std::pair<String, Param>> &TVToolDiscovery::getToolParams()
+  const Param& TVToolDiscovery::getToolParams()
   {
     std::cout << "STARTING" << std::endl;
 
     // Make sure threads have been launched and waited for before accessing results
-    loadParams();
-    waitForParams();
-    return params_;
+    loadToolParams();
+    waitForToolParams();
+    return tool_params_;
   }
 
-  Param TVToolDiscovery::getParamFromIni_(const std::string &tool_name, StringList *plugins)
+  //const std::vector<std::pair<String, Param>> &TVToolDiscovery::getPluginParams()
+  const Param& TVToolDiscovery::getPluginParams()
+  {
+    plugin_params_.clear();
+    waitForPluginParams();
+    return plugin_params_;
+  }
+
+  Param TVToolDiscovery::getParamFromIni_(const String &tool_name, std::vector<std::pair<String, String>> *plugins)
   {
     FileHandler fh;
     // Temporary file path and arguments
@@ -132,13 +160,16 @@ namespace OpenMS
       std::cerr << "TOPP tool: " << e << " not found during tool discovery. Skipping." << std::endl;
       return tool_param;
     }
-//    std::cout << "after finding exec " << executable << std::endl;
+
     // Write tool ini to temporary file
-    ExternalProcess proc;
+    auto lam_out = [&](const String& out) { OPENMS_LOG_INFO << out; };
+    auto lam_err = [&](const String& out) { OPENMS_LOG_INFO << out; };
+    ExternalProcess proc(lam_out, lam_err);
     auto return_state = proc.run(executable.toQString(), args, working_dir.toQString(), true, ExternalProcess::IO_MODE::NO_IO);
     // Return empty param if writing the ini file failed
     if (return_state != ExternalProcess::RETURNSTATE::SUCCESS)
     {
+      std::cerr << "TOPP tool: " << executable << " error during execution: " << (uint32_t)return_state << "\n";
       return tool_param;
     }
     // Parse ini file to param object
@@ -150,16 +181,8 @@ namespace OpenMS
     catch(const Exception::FileNotFound& e)
     {
       std::cerr << e << "\n" << "TOPP tool: " << executable << 
-        " not able to write ini. Plugins must include -write-ini flag. Skipping." << std::endl;
+        " not able to write ini. Plugins must implement -write-ini flag. Skipping." << std::endl;
       return tool_param;
-    }
-
-
-    if (executable.hasSuffix("test.py"))    
-    {
-      std::cout << "TOOL_PARAMS: " << tool_param << std::endl;
-
-
     }
     
     if (plugins) {
@@ -168,23 +191,21 @@ namespace OpenMS
      
       // is this a problem for thread safety that we use plugins?
       // fill list of plugins with the Plugin Name from the ini
-      plugins->emplace(plugins->end(), param_line.substr(0, param_line.find_first_of(':')));
-      std::cout << "PLUGINS LIST ENTRY 1: " << plugins->at(0) << std::endl;
+      //plugins->emplace(plugins->end(), param_line.substr(0, param_line.find_first_of(':')));
+      //We also save the actual filename of the tool, we need that to execute it later on
+      //this way the tool name specified in the ini can be something different
+      //otherwise it would be necessary to be EXACTLY the same, including file extension
+      plugins->emplace_back(tool_name.suffix(tool_name.size() - tool_name.find_last_of('/') - 1),
+                            param_line.substr(0, param_line.find_first_of(':')));
+      std::cout << "PLUGINS LIST ENTRY 1: " << plugins->at(0).second << std::endl;
     }
-
-
-
 
     return tool_param;
   }
 
   // MAYBE USE THIS TO GET THE PLUGINS IN TOOLSDIALOG
-  const StringList &TVToolDiscovery::getPlugins()
+  const std::vector<std::pair<String, String>> &TVToolDiscovery::getPlugins()
   {
-    // Make sure threads have been launched and waited for before accessing results
-    loadParams();
-    waitForParams();
-
     return plugins_;
   }
 
@@ -195,12 +216,10 @@ namespace OpenMS
     std::cout << "PLUGIN DETECTION" << std::endl; 
     // this is unused right now... change the return value in the comparator to use this
     std::vector<std::string> valid_extensions {".py"};
-    // Path checked for plugins 
-    const std::string plugin_path = File::absolutePath("./test/");
 
-    if (File::fileList(plugin_path, "*", plugins, true))
+    if (File::fileList(plugin_path_, "*", plugins, true))
     {
-      const auto comparator = [plugin_path, valid_extensions](std::string plugin) -> bool
+      const auto comparator = [valid_extensions](const std::string& plugin) -> bool
       {
         return !File::executable(plugin) /*&& 
           (std::find(valid_extensions.begin(), valid_extensions.end(), std::filesystem::path(plugin).extension()) == valid_extensions.end())*/; 
@@ -209,11 +228,24 @@ namespace OpenMS
     }
 
     // this is just for debugging
-    for (auto p : plugins) 
+    for (auto& p : plugins)
     {
-      std::cout << "plugin " << p << std::endl; 
+      std::cout << "plugin " << p << "\n";
     }
+
+    std::cout << "END PLUGIN DETECTION" << std::endl;
 
     return plugins;
   }
+
+  void TVToolDiscovery::setPluginPath(const std::string &path)
+  {
+    plugin_path_ = path;
+  }
+
+  const std::string &TVToolDiscovery::getPluginPath()
+  {
+    return plugin_path_;
+  }
+
 }

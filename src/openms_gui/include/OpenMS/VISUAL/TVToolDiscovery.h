@@ -51,11 +51,11 @@ namespace OpenMS
 
      @code
      TVToolDiscovery scanner;
-     scanner.loadParams();
+     scanner.loadToolParams();
      // Do something else before explicitly waiting for the threads to finish
      ...
      // Wait when convenient. Keeps the GUI responsive while waiting
-     scanner.waitForParams();
+     scanner.waitForToolParams();
      // Access the params. If no special timing for waiting or loading is needed this function can be safely called directly.
      scanner.getToolParams();
      @endcode
@@ -66,49 +66,70 @@ namespace OpenMS
 
     
 
-    TVToolDiscovery() {};
+    TVToolDiscovery() :
+      plugin_path_() {};
 
     TVToolDiscovery(const TVToolDiscovery &) = delete;
 
     TVToolDiscovery &operator=(const TVToolDiscovery &) = delete;
 
-    ~TVToolDiscovery() {};
+    ~TVToolDiscovery() = default;
 
     /// Start creating params for each tool/util asynchronously
-    void loadParams();
+    void loadToolParams();
+    void loadPluginParams();
+
 
     /**
        @brief Wait for all future params to finish evaluating.
        @details
        While waiting the GUI remains responsive. After waiting it is safe to access the params without further waiting.
      */
-    void waitForParams();
+    void waitForToolParams();
+    void waitForPluginParams();
 
     /**
        @brief Returns a hash map containing a param for each tool/util.
        @details
        Note that it is possible that not all param futures have been finished (or loaded) yet if this function is called.
-       In that case, the function starts param parsing (loadParam()) and waits for completion (waitForParams())
+       In that case, the function starts param parsing (loadParam()) and waits for completion (waitForToolParams())
        before returning the result.
      */
-    const std::map<std::string, Param> &getToolParams();
+    //const std::vector<std::pair<String, Param>> &getToolParams();
+    const Param& getToolParams();
+
+    //const std::vector<std::pair<String, Param>> &getPluginParams();
+    const Param& getPluginParams();
 
     /// Returns the list of read Plugins as saved in the ini.
-    const StringList &getPlugins();
+    const std::vector<std::pair<String, String>> &getPlugins();
+
+    /// Set the path where to search for plugins
+    void setPluginPath(const std::string& path);
+
+    /// Return the set plugin path
+    const std::string& getPluginPath();
 
   private:
     /** Returns param for a given tool/util. This function is thread-safe. Additionally inserts names of tools into 
         plugin list
      */
-    static Param getParamFromIni_(const std::string &tool_name, StringList *plugins);
+    static Param getParamFromIni_(const String &tool_name, std::vector<std::pair<String, String>> *plugins);
+
+    /// The filepath to search pugins in
+    std::string plugin_path_;
 
     /// Contains a param future for each tool/util name
-    std::map<std::string, std::future<Param>> param_futures_;
+    //std::map<std::string, std::future<Param>> param_futures_;
+    std::vector<std::future<Param>> tool_param_futures_;
+    std::vector<std::future<Param>> plugin_param_futures_;
 
     /// Contains a mapping of each tool/util name to its param.
-    std::map<std::string, Param> params_;
+    Param tool_params_;
 
-    StringList plugins_;
+    Param plugin_params_;
+
+    std::vector<std::pair<String, String>> plugins_;
     /// Returns a list of executables that are found at the plugin path
     const StringList getPlugins_();
   };
