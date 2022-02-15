@@ -60,8 +60,8 @@ using namespace std;
   struct PeptideProteinMatchInformation
   {
     Hit::T peptide_index; ///< index of the peptide
-    Hit::T protein_index; //< index of the protein the peptide is contained in
-    Hit::T position;      //< the position of the peptide in the protein
+    Hit::T protein_index; ///< index of the protein the peptide is contained in
+    Hit::T position;      ///< the position of the peptide in the protein
     char AABefore; //< the amino acid after the peptide in the protein
     char AAAfter; //< the amino acid before the peptide in the protein
 
@@ -90,9 +90,9 @@ using namespace std;
   {
   public:
     using MapType = std::vector< PeptideProteinMatchInformation >;
-    MapType pep_to_prot; //< peptide index --> protein indices as flat vector
-    Size filter_passed{}; //< number of accepted hits (passing addHit() constraints)
-    Size filter_rejected{}; //< number of rejected hits (not passing addHit())
+    MapType pep_to_prot; ///< peptide index --> protein indices as flat vector
+    Size filter_passed{}; ///< number of accepted hits (passing addHit() constraints)
+    Size filter_rejected{}; ///< number of rejected hits (not passing addHit())
 
     ProteaseDigestion enzyme;
 

@@ -325,6 +325,7 @@ namespace OpenMS
     }
     return hits_before != hits.size();
   }
+  
   Index ACTrie::follow_(const Index i, const AA aa) const
   {
     Index ch = findChildBFS_(i, aa);
