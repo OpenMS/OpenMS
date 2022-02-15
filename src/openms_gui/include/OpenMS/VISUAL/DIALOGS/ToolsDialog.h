@@ -38,7 +38,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/VISUAL/LayerDataBase.h>
+#include <OpenMS/VISUAL/LayerData.h>
 
 class QLabel;
 class QComboBox;
@@ -50,6 +50,7 @@ class QString;
 namespace OpenMS
 {
   class ParamEditor;
+  class TVToolDiscovery;
 
   /**
       @brief TOPP tool selection dialog
@@ -81,7 +82,7 @@ public:
         @param layer_type The type of data (determines the applicable tools)
         @param layer_name The name of the selected layer
     */
-    ToolsDialog(QWidget * parent, const Param& params, String ini_file, String default_dir, LayerDataBase::DataType layer_type, String layer_name);
+    ToolsDialog(QWidget * parent, const Param& params, String ini_file, String default_dir, LayerData::DataType layer_type, String layer_name, TVToolDiscovery* tool_scanner);
     ///Destructor
     ~ToolsDialog() override;
 
@@ -91,6 +92,8 @@ public:
     String getInput();
     /// to get the currently selected tool-name
     String getTool();
+    /// to get the currently selected tool-filename (only necessary for plugins)
+    String getToolFilename();
 
 private:
     /// ParamEditor for reading ini-files
@@ -99,6 +102,7 @@ private:
     QLabel * tool_desc_;
     /// ComboBox for choosing a TOPP-tool
     QComboBox * tools_combo_;
+    QPushButton* reload_plugins_button_;
     /// for choosing an input parameter
     QComboBox * input_combo_;
     /// for choosing an output parameter
@@ -118,16 +122,20 @@ private:
     /// name of ini-file
     QString filename_;
     /// Mapping of file extension to layer type to determine the type of a tool
-    std::map<String, LayerDataBase::DataType> tool_map_;
+    std::map<String, LayerData::DataType> tool_map_;
     /// Param object containing all TOPP tool/util params
-    Param params_;
+    Param tool_params_;
+    Param plugin_params_;
+    ///Pointer to the tool scanner for access to the plugins and to invoke rescanning for plugins
+    TVToolDiscovery* tool_scanner_;
+    LayerData::DataType layer_type_;
 
-    ///Disables the ok button and input/output comboboxes
+      ///Disables the ok button and input/output comboboxes
     void disable_();
     ///Enables the ok button and input/output comboboxes
     void enable_();
     /// Determine all types a tool is compatible with by mapping each file extensions in a tools param
-    std::vector<LayerDataBase::DataType> getTypesFromParam_(const Param& p) const;
+    std::vector<LayerData::DataType> getTypesFromParam_(const Param& p) const;
     // Fill input_combo_ and output_combo_ box with the appropriate entries from the specified param object.
     void setInputOutputCombo_(const Param& p);
 
@@ -143,6 +151,8 @@ protected slots:
     void loadINI_();
     /// stores an ini-file from the editor_
     void storeINI_();
+    ///
+    void reloadPlugins_();
   };
 
 }

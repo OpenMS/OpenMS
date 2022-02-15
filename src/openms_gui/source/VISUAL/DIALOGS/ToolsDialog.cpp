@@ -69,12 +69,15 @@ namespace OpenMS
           String ini_file,
           String default_dir,
           LayerData::DataType layer_type,
-          String layer_name
-    ) :
-    QDialog(parent),
-    ini_file_(ini_file),
-    default_dir_(default_dir),
-    params_(params)
+          String layer_name,
+          TVToolDiscovery* tool_scanner) :
+          QDialog(parent),
+          ini_file_(ini_file),
+          default_dir_(default_dir),
+          tool_params_(params),
+          plugin_params_(),
+          tool_scanner_(tool_scanner),
+          layer_type_(layer_type)
   {
     auto main_grid = new QGridLayout(this);
 
@@ -99,23 +102,33 @@ namespace OpenMS
     const auto& tools = ToolHandler::getTOPPToolList();
     const auto& utils = ToolHandler::getUtilList();
 
+    plugin_params_ = tool_scanner->getPluginParams();
+
     for (auto& pair : tools)
     {
-      auto prefix = pair.first + ":";
-      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(params.copy(prefix));
-      
+      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ':'));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
       {
-        std::cout << pair.first << std::endl;
         list << pair.first.toQString();
       }
     }
     for (auto& pair : utils)
     {
-      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(params.copy(pair.first + ":"));
+      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ":"));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
       {
         list << pair.first.toQString();
+      }
+    }
+    //TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
+    for (const auto& [filename, name] : tool_scanner->getPlugins())
+    {
+      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
+      {
+        //Here we add the actual filename to the list because later on we cannot differentiate between Plugins and Tools
+        //To execute the plugin this has to be the correct
+        list << name.toQString() + ":" + filename.toQString();
       }
     }
 
@@ -128,6 +141,11 @@ namespace OpenMS
     connect(tools_combo_, SIGNAL(activated(int)), this, SLOT(setTool_(int)));
 
     main_grid->addWidget(tools_combo_, 1, 1);
+
+    reload_plugins_button_ = new QPushButton("Reload Plugins");
+    connect(reload_plugins_button_, SIGNAL(clicked()), this, SLOT(reloadPlugins_()));
+
+    main_grid->addWidget(reload_plugins_button_, 0, 2);
 
     label = new QLabel("input argument:");
     main_grid->addWidget(label, 2, 0);
@@ -260,7 +278,11 @@ namespace OpenMS
        editor_->clear();
        arg_map_.clear();
     }
-    arg_param_ = params_.copy(getTool() + ":");
+    arg_param_ = tool_params_.copy(getTool() + ":");
+    if (arg_param_.empty())
+    {
+      arg_param_ = plugin_params_.copy(getTool() + ":");
+    }
 
     tool_desc_->setText(String(arg_param_.getSectionDescription(getTool())).toQString());
     vis_param_ = arg_param_.copy(getTool() + ":1:", true);
@@ -407,6 +429,72 @@ namespace OpenMS
     }
   }
 
+  void ToolsDialog::reloadPlugins_()
+  {
+    const auto& tools = ToolHandler::getTOPPToolList();
+    const auto& utils = ToolHandler::getUtilList();
+    plugin_params_ = tool_scanner_->getPluginParams();
+
+    QStringList list;
+    for (auto& pair : tools)
+    {
+      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ':'));
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
+      {
+        list << pair.first.toQString();
+      }
+    }
+    for (auto& pair : utils)
+    {
+      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ":"));
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
+      {
+        list << pair.first.toQString();
+      }
+    }
+    //TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
+    for (const auto& [filename, name] : tool_scanner_->getPlugins())
+    {
+      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
+      {
+        //Here we add the actual filename to the list because later on we cannot differentiate between Plugins and Tools
+        //To execute the plugin this has to be the correct
+        list << name.toQString() + ":" + filename.toQString();
+      }
+    }
+
+
+    list.sort();
+    int32_t selected_index = -1;
+    for (int32_t i = 0; i < list.size(); ++i)
+    {
+      if (list.at(i) == tools_combo_->currentText())
+      {
+        selected_index = i;
+        break;
+      }
+    }
+    if (selected_index == -1)
+    {
+      list.push_front("<select tool>");
+      tool_desc_->clear();
+      arg_param_.clear();
+      vis_param_.clear();
+      editor_->clear();
+      arg_map_.clear();
+      input_combo_->clear();
+      output_combo_->clear();
+    }
+    tools_combo_->clear();
+    tools_combo_->addItems(list);
+    if (selected_index != -1)
+    {
+      tools_combo_->setCurrentIndex(selected_index);
+    }
+
+  }
+
   String ToolsDialog::getOutput()
   {
     if (output_combo_->currentText() == "<select>")
@@ -422,7 +510,22 @@ namespace OpenMS
 
   String ToolsDialog::getTool()
   {
-    return tools_combo_->currentText().toStdString();
+    String current = tools_combo_->currentText();
+    if (current.hasSubstring(":"))
+    {
+      return current.prefix(':');
+    }
+    return current;
+  }
+
+  String ToolsDialog::getToolFilename()
+  {
+    String current = tools_combo_->currentText();
+    if (current.hasSubstring(":"))
+    {
+      return current.suffix(':');
+    }
+    return current;
   }
 
 }
