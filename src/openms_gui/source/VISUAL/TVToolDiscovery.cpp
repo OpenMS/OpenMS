@@ -87,7 +87,7 @@ namespace OpenMS
     static bool _ [[maybe_unused]] = [&]() -> bool
     {
       // Make sure threads have been launched before waiting
-        loadToolParams();
+      loadToolParams();
       // Wait for futures to finish
       for (auto& param_future : tool_param_futures_)
       {

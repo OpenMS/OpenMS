@@ -64,8 +64,6 @@ namespace OpenMS
   {
   public:
 
-    
-
     TVToolDiscovery() :
       plugin_path_() {};
 
@@ -78,7 +76,6 @@ namespace OpenMS
     /// Start creating params for each tool/util asynchronously
     void loadToolParams();
     void loadPluginParams();
-
 
     /**
        @brief Wait for all future params to finish evaluating.

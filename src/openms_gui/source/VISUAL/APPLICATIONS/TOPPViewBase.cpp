@@ -1651,7 +1651,7 @@ namespace OpenMS
     if (!param_.hasSection("tool_params:") && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
     {
       tool_scanner_.waitForToolParams();
-      param_.insert("", tool_scanner_.getToolParams());
+      param_.insert("tool_params:", tool_scanner_.getToolParams());
     }
     // save only the subsection that begins with "preferences:" and all tool params ("tool_params:")
     try
@@ -1723,10 +1723,10 @@ namespace OpenMS
     if (!param_.hasSection("tool_params:"))
     {
       tool_scanner_.waitForToolParams();
-      param_.insert("", tool_scanner_.getToolParams());
+      param_.insert("tool_params:", tool_scanner_.getToolParams());
     }
 
-    ToolsDialog tools_dialog(this, param_.copy("tool_params:", true),
+    ToolsDialog tools_dialog(this, param_,
                              topp_.file_name + "_ini", current_path_, layer.type,
                              layer.getName(), &tool_scanner_);
 

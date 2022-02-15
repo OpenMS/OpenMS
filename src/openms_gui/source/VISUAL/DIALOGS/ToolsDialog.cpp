@@ -74,7 +74,7 @@ namespace OpenMS
           QDialog(parent),
           ini_file_(ini_file),
           default_dir_(default_dir),
-          tool_params_(params),
+          tool_params_(params.copy("tool_params:", true)),
           plugin_params_(),
           tool_scanner_(tool_scanner),
           layer_type_(layer_type)
@@ -102,7 +102,8 @@ namespace OpenMS
     const auto& tools = ToolHandler::getTOPPToolList();
     const auto& utils = ToolHandler::getUtilList();
 
-    plugin_params_ = tool_scanner->getPluginParams();
+    tool_scanner_->setPluginPath(params.getValue("preferences:plugins_path").toString());
+    plugin_params_ = tool_scanner_->getPluginParams();
 
     for (auto& pair : tools)
     {
@@ -464,9 +465,9 @@ namespace OpenMS
       }
     }
 
-
     list.sort();
-    int32_t selected_index = -1;
+    list.push_front("<select tool>");
+    int32_t selected_index = 0;
     for (int32_t i = 0; i < list.size(); ++i)
     {
       if (list.at(i) == tools_combo_->currentText())
@@ -475,9 +476,8 @@ namespace OpenMS
         break;
       }
     }
-    if (selected_index == -1)
+    if (selected_index == 0)
     {
-      list.push_front("<select tool>");
       tool_desc_->clear();
       arg_param_.clear();
       vis_param_.clear();
@@ -485,12 +485,14 @@ namespace OpenMS
       arg_map_.clear();
       input_combo_->clear();
       output_combo_->clear();
+      disable_();
     }
     tools_combo_->clear();
     tools_combo_->addItems(list);
-    if (selected_index != -1)
+    if (selected_index > 0)
     {
       tools_combo_->setCurrentIndex(selected_index);
+      createINI_();
     }
 
   }
