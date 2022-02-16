@@ -59,9 +59,9 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true # Will only build if this is not here
-          context: dockerfiles/tools
+          context: dockerfiles/executables
           build-args: |
             OPENMS_TAG=latest
             OPENMS_BRANCH=${{ steps.extract_branch.outputs.branch }}
           tags: |
-            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools:${{ steps.tag_name.outputs.tag }}
+            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables:${{ steps.tag_name.outputs.tag }}
