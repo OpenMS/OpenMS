@@ -135,7 +135,6 @@ protected:
 
     PeakMap experiment;
     MzMLFile().load(in, experiment);
-
     vector<MSSpectrum > spectra;
     vector<MSChromatogram > chromatograms;
 
@@ -177,7 +176,7 @@ protected:
         part.reserveSpaceSpectra(n_spec);
         for (Size i = spec_start; i < spec_start + n_spec; ++i)
         {
-          part.addSpectrum(spectra[i]);
+          part.addSpectrum(std::move(spectra[i]));
         }
       }
       spec_start += n_spec;
@@ -189,7 +188,7 @@ protected:
         part.reserveSpaceChromatograms(n_chrom);
         for (Size i = chrom_start; i < chrom_start + n_chrom; ++i)
         {
-          part.addChromatogram(chromatograms[i]);
+          part.addChromatogram(std::move(chromatograms[i]));
         }
       }
       chrom_start += n_chrom;

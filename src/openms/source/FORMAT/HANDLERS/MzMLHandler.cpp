@@ -1074,12 +1074,6 @@ namespace OpenMS::Internal
         {
           exp_->setDateTime(asDateTime_(start_time));
         }
-        //defaultSourceFileRef
-        String default_source_file_ref;
-        if (optionalAttributeAsString_(default_source_file_ref, attributes, s_default_source_file_ref))
-        {
-          exp_->getSourceFiles().push_back(source_files_[default_source_file_ref]);
-        }
       }
       else if (tag == "software")
       {
@@ -1330,6 +1324,10 @@ namespace OpenMS::Internal
       }
       else if (equal_(qname, s_mzml))
       {
+        for (auto const& ref_sourcefile : source_files_)
+        {
+          exp_->getSourceFiles().push_back(ref_sourcefile.second);
+        }
         ref_param_.clear();
         current_id_ = "";
         source_files_.clear();
