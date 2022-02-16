@@ -1,4 +1,4 @@
-FROM openms/contrib:latest
+FROM ghcr.io/openms/contrib:latest
                     
 #USER gitpod
 # Avoid user input
