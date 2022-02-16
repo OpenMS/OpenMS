@@ -54,7 +54,7 @@ jobs:
             OPENMS_TAG=latest
             OPENMS_BRANCH=${{ steps.extract_branch.outputs.branch }}
           tags: |
-            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library:${{ steps.tag_name.outputs.tag }}
+            ghcr.io/${{ steps.downcase_repo.outputs.repo }}/library:${{ steps.tag_name.outputs.tag }}
       - name: Build and Push Docker Tools Image
         uses: docker/build-push-action@v2
         with:
@@ -64,4 +64,4 @@ jobs:
             OPENMS_TAG=latest
             OPENMS_BRANCH=${{ steps.extract_branch.outputs.branch }}
           tags: |
-            ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables:${{ steps.tag_name.outputs.tag }}
+            ghcr.io/${{ steps.downcase_repo.outputs.repo }}/executables:${{ steps.tag_name.outputs.tag }}
