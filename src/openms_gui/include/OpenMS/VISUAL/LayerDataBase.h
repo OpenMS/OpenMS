@@ -171,17 +171,17 @@ namespace OpenMS
 
     /// Default constructor
     LayerDataBase() = delete;
-    /// Ctor for child classes
+    /// C'tor for child classes
     LayerDataBase(const DataType type) : type(type) {};
     /// no Copy-ctor (should not be needed)
     LayerDataBase(const LayerDataBase& ld) = delete;
     /// no assignment operator (should not be needed)
     LayerDataBase& operator=(const LayerDataBase& ld) = delete;
-    /// move Ctor
+    /// move C'tor
     LayerDataBase(LayerDataBase&& ld) = default;
     /// move assignment
     LayerDataBase& operator=(LayerDataBase&& ld) = default;
-    /// Dtor
+    /// D'tor
     virtual ~LayerDataBase() = default;
 
 
@@ -267,11 +267,11 @@ namespace OpenMS
       return chromatogram_map_;
     }
 
-    /// get annotation (e.g. to build a hierachical ID View)
+    /// get annotation (e.g. to build a hierarchical ID View)
     /// Not const, because we might have incomplete data, which needs to be loaded from sql source
     OSWDataSharedPtrType& getChromatogramAnnotation();
 
-    /// get annotation (e.g. to build a hierachical ID View)
+    /// get annotation (e.g. to build a hierarchical ID View)
     /// Not actually const (only the pointer, not the data), because we might have incomplete data, which needs to be loaded from sql source
     const OSWDataSharedPtrType& getChromatogramAnnotation() const;
 
