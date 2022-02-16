@@ -51,7 +51,7 @@ jobs:
           push: true # Will only build if this is not here
           context: dockerfiles/library
           build-args: |
-            OPENMS_TAG="latest"
+            OPENMS_TAG=latest
             OPENMS_BRANCH=${{ steps.extract_branch.outputs.branch }}
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library:${{ steps.tag_name.outputs.tag }}
@@ -61,7 +61,7 @@ jobs:
           push: true # Will only build if this is not here
           context: dockerfiles/tools
           build-args: |
-            OPENMS_TAG="latest"
+            OPENMS_TAG=latest
             OPENMS_BRANCH=${{ steps.extract_branch.outputs.branch }}
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-tools:${{ steps.tag_name.outputs.tag }}
