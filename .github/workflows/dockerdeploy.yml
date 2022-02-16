@@ -1,3 +1,4 @@
+name: deploy-docker-images
 on:
   workflow_dispatch:
   push:
