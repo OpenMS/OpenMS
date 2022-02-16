@@ -1733,7 +1733,7 @@ namespace OpenMS
     if (tools_dialog.exec() == QDialog::Accepted)
     {
       //Store tool name, input parameter and output parameter
-      topp_.tool = tools_dialog.getToolFilename();
+      topp_.tool = tools_dialog.getTool();
       topp_.in = tools_dialog.getInput();
       topp_.out = tools_dialog.getOutput();
       topp_.visible_area_only = visible_area_only;
@@ -1873,19 +1873,15 @@ namespace OpenMS
     // connect slots
     connect(topp_.process, &QProcess::readyReadStandardOutput, this, &TOPPViewBase::updateProcessLog);
     connect(topp_.process, CONNECTCAST(QProcess, finished, (int, QProcess::ExitStatus)), this, &TOPPViewBase::finishTOPPToolExecution);
-    QString tool_executable;
-    try
+    QString tool_executable = String(tool_scanner_.findPluginExecutable(topp_.tool)).toQString();
+    if (tool_executable.isEmpty())
     {
-      // find correct location of TOPP tool
-      tool_executable = File::findSiblingTOPPExecutable(topp_.tool).toQString();
-    }
-    catch (Exception::FileNotFound& /*ex*/)
-    {
-      //TODO(Ruben): Since we don't differentiate between tools and plugins right now I only can check for plugins
-      //if no TOPPTool with the name was found
-      tool_executable = String(tool_scanner_.getPluginPath() + "/" + topp_.tool).toQString();
-
-      if(!File::exists(tool_executable))
+      try
+      {
+        // find correct location of TOPP tool
+        tool_executable = File::findSiblingTOPPExecutable(topp_.tool).toQString();
+      }
+      catch (Exception::FileNotFound & /*ex*/)
       {
         log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Could not locate executable!",
                               QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(

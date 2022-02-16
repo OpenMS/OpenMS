@@ -41,6 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#define DEBUG_TOOL_DISCOVERY
 
 namespace OpenMS
 {
@@ -75,7 +76,6 @@ namespace OpenMS
 
     /// Start creating params for each tool/util asynchronously
     void loadToolParams();
-    void loadPluginParams();
 
     /**
        @brief Wait for all future params to finish evaluating.
@@ -86,48 +86,58 @@ namespace OpenMS
     void waitForPluginParams();
 
     /**
-       @brief Returns a hash map containing a param for each tool/util.
+       @brief Returns a param containing the params for each tool/util.
        @details
        Note that it is possible that not all param futures have been finished (or loaded) yet if this function is called.
        In that case, the function starts param parsing (loadParam()) and waits for completion (waitForToolParams())
        before returning the result.
      */
-    //const std::vector<std::pair<String, Param>> &getToolParams();
     const Param& getToolParams();
 
-    //const std::vector<std::pair<String, Param>> &getPluginParams();
+    /**
+       @brief Returns a param containing the params for each plugin.
+       @details
+       This function will ALWAYS trigger a reload of the plugins.
+    */
     const Param& getPluginParams();
 
-    /// Returns the list of read Plugins as saved in the ini.
-    const std::vector<std::pair<String, String>> &getPlugins();
+    /// Returns the list of read plugin names as saved in the ini.
+    const std::vector<std::string>& getPlugins();
 
     /// Set the path where to search for plugins
     void setPluginPath(const std::string& path);
 
-    /// Return the set plugin path
-    const std::string& getPluginPath();
+    /// Returns the path to the plugin executable or an empty string if the plugin name is unknown
+    std::string findPluginExecutable(const std::string& name);
 
   private:
     /** Returns param for a given tool/util. This function is thread-safe. Additionally inserts names of tools into 
         plugin list
      */
-    static Param getParamFromIni_(const String &tool_name, std::vector<std::pair<String, String>> *plugins);
+    static Param getParamFromIni_(const String &tool_path, bool plugins=false);
+
+    /** Start creating params for each plugin in the set plugin path asynchronously
+     *  This should only be called from waitForPluginParams() or the names in the plugins vector are not correct
+     */
+    void loadPluginParams();
+
+    /// Returns a list of executables that are found at the plugin path
+    const StringList getPlugins_();
 
     /// The filepath to search pugins in
     std::string plugin_path_;
 
-    /// Contains a param future for each tool/util name
-    //std::map<std::string, std::future<Param>> param_futures_;
+    /// The futures for asyncronous loading of the tools/utils and plugins
     std::vector<std::future<Param>> tool_param_futures_;
     std::vector<std::future<Param>> plugin_param_futures_;
 
-    /// Contains a mapping of each tool/util name to its param.
+    /// Contains all the params of the tools/utils
     Param tool_params_;
 
+    /// Contains all the params of the plugins
     Param plugin_params_;
 
-    std::vector<std::pair<String, String>> plugins_;
-    /// Returns a list of executables that are found at the plugin path
-    const StringList getPlugins_();
+    /// The names of all loaded plugins, this is used to add the plugins to the list in the ToolsDialog
+    std::vector<std::string> plugins_;
   };
 }

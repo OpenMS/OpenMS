@@ -51,6 +51,7 @@
 #include <QtWidgets/QCheckBox>
 #include <QProcess>
 
+
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -69,11 +70,11 @@ namespace OpenMS
           String ini_file,
           String default_dir,
           LayerData::DataType layer_type,
-          String layer_name,
+          const String& layer_name,
           TVToolDiscovery* tool_scanner) :
           QDialog(parent),
-          ini_file_(ini_file),
-          default_dir_(default_dir),
+          ini_file_(std::move(ini_file)),
+          default_dir_(std::move(default_dir)),
           tool_params_(params.copy("tool_params:", true)),
           plugin_params_(),
           tool_scanner_(tool_scanner),
@@ -122,14 +123,12 @@ namespace OpenMS
       }
     }
     //TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
-    for (const auto& [filename, name] : tool_scanner->getPlugins())
+    for (String name : tool_scanner->getPlugins())
     {
       std::vector<LayerData::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
       {
-        //Here we add the actual filename to the list because later on we cannot differentiate between Plugins and Tools
-        //To execute the plugin this has to be the correct
-        list << name.toQString() + ":" + filename.toQString();
+        list << name.toQString();
       }
     }
 
@@ -235,7 +234,6 @@ namespace OpenMS
       // Only add items and no nodes
       if (!str.empty() && str.find(":") == String::npos)
       {
-        arg_map_.insert(make_pair(str, iter.getName()));
         // Only add to input list if item has "input file" tag.
         if (iter->tags.find("input file") != iter->tags.end())
         {
@@ -277,16 +275,16 @@ namespace OpenMS
        arg_param_.clear();
        vis_param_.clear();
        editor_->clear();
-       arg_map_.clear();
     }
-    arg_param_ = tool_params_.copy(getTool() + ":");
+    auto tool_name = getTool();
+    arg_param_ = tool_params_.copy(tool_name + ":");
     if (arg_param_.empty())
     {
-      arg_param_ = plugin_params_.copy(getTool() + ":");
+      arg_param_ = plugin_params_.copy(tool_name + ":");
     }
 
-    tool_desc_->setText(String(arg_param_.getSectionDescription(getTool())).toQString());
-    vis_param_ = arg_param_.copy(getTool() + ":1:", true);
+    tool_desc_->setText(String(arg_param_.getSectionDescription(tool_name)).toQString());
+    vis_param_ = arg_param_.copy(tool_name + ":1:", true);
     vis_param_.remove("log");
     vis_param_.remove("no_progress");
     vis_param_.remove("debug");
@@ -363,7 +361,6 @@ namespace OpenMS
       arg_param_.clear();
       vis_param_.clear();
       editor_->clear();
-      arg_map_.clear();
     }
     try
     {
@@ -454,14 +451,12 @@ namespace OpenMS
       }
     }
     //TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
-    for (const auto& [filename, name] : tool_scanner_->getPlugins())
+    for (String name : tool_scanner_->getPlugins())
     {
       std::vector<LayerData::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
       {
-        //Here we add the actual filename to the list because later on we cannot differentiate between Plugins and Tools
-        //To execute the plugin this has to be the correct
-        list << name.toQString() + ":" + filename.toQString();
+        list << name.toQString();
       }
     }
 
@@ -482,7 +477,6 @@ namespace OpenMS
       arg_param_.clear();
       vis_param_.clear();
       editor_->clear();
-      arg_map_.clear();
       input_combo_->clear();
       output_combo_->clear();
       disable_();
@@ -512,22 +506,7 @@ namespace OpenMS
 
   String ToolsDialog::getTool()
   {
-    String current = tools_combo_->currentText();
-    if (current.hasSubstring(":"))
-    {
-      return current.prefix(':');
-    }
-    return current;
-  }
-
-  String ToolsDialog::getToolFilename()
-  {
-    String current = tools_combo_->currentText();
-    if (current.hasSubstring(":"))
-    {
-      return current.suffix(':');
-    }
-    return current;
+    return tools_combo_->currentText();
   }
 
 }

@@ -59,11 +59,11 @@ namespace OpenMS
       // Launch threads for loading tool/util params.
       for (const auto& [name, _] : tools)
       {
-        tool_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, name, nullptr));
+        tool_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, name, false));
       }
       for (const auto& [name, _] : utils)
       {
-        tool_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, name, nullptr));
+        tool_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, name, false));
       }
       return true;
     }();
@@ -77,7 +77,7 @@ namespace OpenMS
     for (auto& plugin : plugins)
     {
       std::cout << "starting work on " << plugin << std::endl;
-      plugin_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, plugin, &plugins_));
+      plugin_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, plugin, true));
     }
   }
 
@@ -96,7 +96,7 @@ namespace OpenMS
           // Keep GUI responsive while waiting
           QCoreApplication::processEvents();
         }
-        // Make future results available in params_
+        // Make future results available in tool_params_
         tool_params_.insert("", param_future.get());
       }
       return true;
@@ -115,8 +115,10 @@ namespace OpenMS
         // Keep GUI responsive while waiting
         QCoreApplication::processEvents();
       }
-      // Make future results available in params_
-      plugin_params_.insert("", param_future.get());
+      // Make future results available in plugin_params_
+      Param new_param = param_future.get();
+      plugins_.push_back(new_param.begin().getTrace().begin()->name);
+      plugin_params_.insert("", new_param);
     }
   }
 
@@ -126,7 +128,6 @@ namespace OpenMS
     std::cout << "STARTING" << std::endl;
 
     // Make sure threads have been launched and waited for before accessing results
-    loadToolParams();
     waitForToolParams();
     return tool_params_;
   }
@@ -139,7 +140,7 @@ namespace OpenMS
     return plugin_params_;
   }
 
-  Param TVToolDiscovery::getParamFromIni_(const String &tool_name, std::vector<std::pair<String, String>> *plugins)
+  Param TVToolDiscovery::getParamFromIni_(const String &tool_path, bool plugins)
   {
     FileHandler fh;
     // Temporary file path and arguments
@@ -153,7 +154,7 @@ namespace OpenMS
     try
     {
       // Is an executable already or has a sibling Executable
-      executable = File::exists(tool_name) ? tool_name : File::findSiblingTOPPExecutable(tool_name);
+      executable = File::exists(tool_path) ? tool_path : File::findSiblingTOPPExecutable(tool_path);
     }
     catch (const Exception::FileNotFound& e)
     {
@@ -186,25 +187,19 @@ namespace OpenMS
     }
     
     if (plugins) {
-      auto param_line = tool_param.begin().getName();
-      std::cout << "PLUGIN NAME: " << param_line.substr(0, param_line.find_first_of(':')) << std::endl;
-     
-      // is this a problem for thread safety that we use plugins?
-      // fill list of plugins with the Plugin Name from the ini
-      //plugins->emplace(plugins->end(), param_line.substr(0, param_line.find_first_of(':')));
-      //We also save the actual filename of the tool, we need that to execute it later on
-      //this way the tool name specified in the ini can be something different
-      //otherwise it would be necessary to be EXACTLY the same, including file extension
-      plugins->emplace_back(tool_name.suffix(tool_name.size() - tool_name.find_last_of('/') - 1),
-                            param_line.substr(0, param_line.find_first_of(':')));
-      std::cout << "PLUGINS LIST ENTRY 1: " << plugins->at(0).second << std::endl;
+      auto tool_name = tool_param.begin().getTrace().begin()->name;
+      auto filename = tool_path.substr(tool_path.find_first_of('/') + 1);
+      tool_param.setValue(tool_name + ":filename", filename, "The filename of the plugin executable, this entry is automatically generated");
+#ifdef DEBUG_TOOL_DISCOVERY
+      OPENMS_LOG_DEBUG << "PLUGIN NAME: " << tool_name << std::endl;
+#endif
     }
 
     return tool_param;
   }
 
   // MAYBE USE THIS TO GET THE PLUGINS IN TOOLSDIALOG
-  const std::vector<std::pair<String, String>> &TVToolDiscovery::getPlugins()
+  const std::vector<std::string>& TVToolDiscovery::getPlugins()
   {
     return plugins_;
   }
@@ -213,27 +208,29 @@ namespace OpenMS
   {
     StringList plugins;
 
-    std::cout << "PLUGIN DETECTION" << std::endl; 
+#ifdef DEBUG_TOOL_DISCOVERY
+    OPENMS_LOG_DEBUG << "PLUGIN DETECTION\n";
+#endif
     // this is unused right now... change the return value in the comparator to use this
-    std::vector<std::string> valid_extensions {".py"};
+    std::vector<std::string> valid_extensions {"", ".py"};
+    const auto comparator = [valid_extensions](const std::string& plugin) -> bool
+    {
+        return !File::executable(plugin) &&
+          (std::find(valid_extensions.begin(), valid_extensions.end(), std::filesystem::path(plugin).extension()) == valid_extensions.end());
+    };
 
     if (File::fileList(plugin_path_, "*", plugins, true))
     {
-      const auto comparator = [valid_extensions](const std::string& plugin) -> bool
-      {
-        return !File::executable(plugin) /*&& 
-          (std::find(valid_extensions.begin(), valid_extensions.end(), std::filesystem::path(plugin).extension()) == valid_extensions.end())*/; 
-      };
       plugins.erase(std::remove_if(plugins.begin(), plugins.end(), comparator), plugins.end());
     }
 
-    // this is just for debugging
+#ifdef DEBUG_TOOL_DISCOVERY
     for (auto& p : plugins)
     {
-      std::cout << "plugin " << p << "\n";
+      OPENMS_LOG_DEBUG << "found plugin: " << p << "\n";
     }
-
-    std::cout << "END PLUGIN DETECTION" << std::endl;
+    OPENMS_LOG_DEBUG << "END PLUGIN DETECTION" << std::endl;
+#endif
 
     return plugins;
   }
@@ -243,9 +240,16 @@ namespace OpenMS
     plugin_path_ = path;
   }
 
-  const std::string &TVToolDiscovery::getPluginPath()
+  std::string TVToolDiscovery::findPluginExecutable(const std::string &name)
   {
-    return plugin_path_;
+    //TODO: At the moment the usage of subdirectories in the plugin path are not possible
+    //To change that, the tool scanner has to recursively search all directories in the plugin path
+    //at the moment I don't know how to achieve this since the File utility only allows to list files
+    if (!plugin_params_.exists(name + ":filename"))
+    {
+      return "";
+    }
+    return plugin_path_ + "/" + plugin_params_.getValue(name + ":filename").toString();
   }
 
 }
