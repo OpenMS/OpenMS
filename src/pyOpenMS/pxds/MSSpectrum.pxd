@@ -4,6 +4,7 @@ from String cimport *
 from RangeManager cimport *
 from DataArrays cimport *
 from SpectrumSettings cimport *
+from IMTypes cimport *
 
 # this class has addons, see the ./addons folder (../addons/MSSpectrum.pyx)
 
