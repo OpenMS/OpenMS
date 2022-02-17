@@ -503,7 +503,7 @@ namespace OpenMS
   }
 
   double PlotCanvas::getSnapFactor()
-  {
+  { // FIXME: probably a bug. There should be one entry per layer?
     return snap_factors_[0];
   }
 

@@ -35,63 +35,54 @@
 #pragma once
 
 #include <OpenMS/VISUAL/LayerDataBase.h>
-#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
+
+class QPainter;
+class QPenStyle;
 
 namespace OpenMS
 {
+  class LayerDataPeak;
+  class Plot1DCanvas;
 
   /**
-  @brief Class that stores the data for one layer of type FeatureMap
-
-  @ingroup PlotWidgets
+   * @brief A base class for painting all items from a data layer (as supported by class derived from here) onto a 1D Canvas
   */
-  class OPENMS_GUI_DLLAPI LayerDataFeature : public LayerDataBase, public IPeptideIds
+  class OPENMS_GUI_DLLAPI Painter1DBase
   {
   public:
-    /// Default constructor
-    LayerDataFeature();
-    /// no Copy-ctor (should not be needed)
-    LayerDataFeature(const LayerDataFeature& ld) = delete;
-    /// no assignment operator (should not be needed)
-    LayerDataFeature& operator=(const LayerDataFeature& ld) = delete;
-    /// move C'tor
-    LayerDataFeature(LayerDataFeature&& ld) = default;
-    /// move assignment
-    LayerDataFeature& operator=(LayerDataFeature&& ld) = default;
+    /**
+       @brief Paints items using the given painter onto the canvas.
+ 
+       @param painter The painter used for drawing 
+       @param canvas The canvas to paint onto (should expose all the details needed, like canvas size, draw mode, colors etc)
+       @param layer_index Which layer is currently painted (FIXME: remove when Canvas1D::DrawMode and PenStyle are factored out) 
+    */
+    virtual void paint(QPainter*, Plot1DCanvas* canvas, int layer_index) = 0;
 
-    std::unique_ptr<Painter1DBase> getPainter1D() const override;
-    
-    void updateRanges() override
-    {
-      features_->updateRanges();
-    }
-
-    RangeAllType getRange() const override
-    {
-      RangeAllType r;
-      r.assign(*getFeatureMap());
-      return r;
-    }
-
-    std::unique_ptr<LayerStatistics> getStats() const override;
-
-    const PepIds& getPeptideIds() const override
-    {
-      return getFeatureMap()->getUnassignedPeptideIdentifications();
-    }
-    PepIds& getPeptideIds() override
-    {
-      return getFeatureMap()->getUnassignedPeptideIdentifications();
-    }
-
-    void setPeptideIds(const PepIds& ids) override
-    {
-      getFeatureMap()->getUnassignedPeptideIdentifications() = ids;
-    }
-    void setPeptideIds(PepIds&& ids) override
-    {
-      getFeatureMap()->getUnassignedPeptideIdentifications() = std::move(ids);
-    }
+    /// static method to draw a dashed line
+    static void drawDashedLine(const QPoint& from, const QPoint& to, QPainter* painter, QColor color);
   };
 
-}// namespace OpenMS
+  /**
+     @brief Painter1D for spectra
+     
+  */
+  class OPENMS_GUI_DLLAPI Painter1DPeak : public Painter1DBase
+  {
+  public:
+    /// C'tor which remembers the layer to paint
+    Painter1DPeak(const LayerDataPeak* parent);
+
+    /// Implementation of base class
+    void paint(QPainter*, Plot1DCanvas* canvas, int layer_index) override;
+
+  protected:
+    /// draw all Annotation1DItems attached to the layer
+    void drawAnnotations_(QPainter& painter, Plot1DCanvas* canvas);
+    /// annotate up to 10 interesting peaks in the range @p vbegin to @pvend with their m/z values (using deisotoping and intensity filtering)
+    void drawMZAtInterestingPeaks_(QPainter& painter, Plot1DCanvas* canvas, MSSpectrum::ConstIterator vbegin, MSSpectrum::ConstIterator vend);
+
+    const LayerDataPeak* layer_; ///< the data to paint
+  };
+
+} // namespace OpenMS

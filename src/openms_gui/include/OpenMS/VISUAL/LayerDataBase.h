@@ -49,6 +49,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
+//#include <OpenMS/VISUAL/Painter1DBase.h>
 #include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 
@@ -64,6 +65,7 @@ namespace OpenMS
   class LayerStatistics;
   class OnDiscMSExperiment;
   class OSWData;
+  class Painter1DBase;
 
   /**
   @brief Class that stores the data for one layer
@@ -183,6 +185,8 @@ namespace OpenMS
     LayerDataBase& operator=(LayerDataBase&& ld) = default;
     /// D'tor
     virtual ~LayerDataBase() = default;
+
+    virtual std::unique_ptr<Painter1DBase> getPainter1D() const = 0;
 
 
     /// Returns a const reference to the current feature data

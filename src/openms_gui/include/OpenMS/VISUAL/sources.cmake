@@ -30,6 +30,7 @@ MetaDataBrowser.h
 MultiGradient.h
 MultiGradientSelector.h
 OutputDirectory.h
+Painter1DBase.h
 ParamEditor.h
 Plot1DCanvas.h
 Plot1DWidget.h
