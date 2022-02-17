@@ -40,7 +40,7 @@ if(NOT multiConfig AND NOT DEFINED CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
 endif()
 
-project("OpenMS_host")
+project("OpenMS_host" LANGUAGES C CXX)
 
 # required for cmake < 3.13 if ccache is used
 set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
@@ -96,7 +96,7 @@ endif()
 if(NOT CMAKE_MODULE_PATH)
 	set(CMAKE_MODULE_PATH)
 endif()
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
 ## CMake looks for the NSIS script in the module path.
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 
@@ -427,6 +427,12 @@ if (MSVC)
 		file(COPY "${PROJECT_SOURCE_DIR}/tools/build.bat" DESTINATION "${PROJECT_BINARY_DIR}")
 	endif()
 endif()
+
+
+# Find core dependencies here, so all projects have access to the same variables and
+# do not have to re-search for the core components
+
+include(cmake/cmake_findExternalLibs.cmake)
 
 #------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)

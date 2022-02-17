@@ -399,7 +399,7 @@ START_SECTION((double performCrossValidation(svm_problem *problem_ul, const SVMD
   map<SVMWrapper::SVM_parameter_type, double> start_values;
 	map<SVMWrapper::SVM_parameter_type, double> step_sizes;
 	map<SVMWrapper::SVM_parameter_type, double> end_values;
-	LibSVMEncoder encoder;
+
 	UInt count = 8;
 	map<SVMWrapper::SVM_parameter_type, double> parameters;
 	double cv_quality;
@@ -479,7 +479,6 @@ END_SECTION
 
 START_SECTION((void predict(const SVMData &problem, std::vector< double > &results)))
 	SVMWrapper svm2;
- 	LibSVMEncoder encoder;
 	vector< vector< pair<Int, double> > > sequences;
 	vector< pair<Int, double> > sequence;
 	UInt count = 8;

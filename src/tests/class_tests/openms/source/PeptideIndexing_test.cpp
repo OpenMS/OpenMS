@@ -199,7 +199,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   TEST_EQUAL(proteins.size(), 3) // all three present
    
   // I/L conversion
-  p.setValue("aaa_max", 2); // testing I / L conversion, with additional ambAA's to saturate the max_aaa = 2 constraint to ensure that internally 'J' is not used for 'I' or 'L', since 'J' is unknown to SeqAn and will get converted to 'X' 
+  p.setValue("aaa_max", 2); // testing I / L conversion, with additional ambAA's to saturate the max_aaa = 2 constraint to ensure that internally 'J' is not used for 'I' or 'L'
   p.setValue("IL_equivalent", "false"); // NOT default
   pi.setParameters(p);
   proteins = toFASTAVec(QStringList() << "BEBEI" << "BEBEL"); //
@@ -227,6 +227,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   std::vector<ProteinIdentification> prot_ids_2;
   std::vector<PeptideIdentification> pep_ids_2;
 
+  {
   // simple prefix
   PeptideIndexing pi_2;
   Param p_2 = pi_2.getParameters();
@@ -234,7 +235,9 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   pi_2.run(proteins_2, prot_ids_2, pep_ids_2);
   TEST_STRING_EQUAL(pi_2.getDecoyString(), "DECOY_");
   TEST_EQUAL(pi_2.isPrefix(), true);
+  }
 
+  {
   // simple prefix without special characters
   PeptideIndexing pi_3;
   Param p_3 = pi_3.getParameters();
@@ -242,7 +245,9 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   pi_3.run(proteins_3, prot_ids_2, pep_ids_2);
   TEST_STRING_EQUAL(pi_3.getDecoyString(), "DECOY");
   TEST_EQUAL(pi_3.isPrefix(), true);
+  }
 
+  {
   // wrong suffix
   PeptideIndexing pi_4;
   Param p_4 = pi_4.getParameters();
@@ -250,7 +255,9 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   pi_4.run(proteins_4, prot_ids_2, pep_ids_2);
   TEST_STRING_EQUAL(pi_4.getDecoyString(), "DECOY_"); //here DECOY_ is the default when finding an affix fails
   TEST_EQUAL(pi_4.isPrefix(), true); // prefix is default too
+  }
 
+  {
   // simple suffix
   PeptideIndexing pi_42;
   Param p_42 = pi_42.getParameters();
@@ -258,7 +265,9 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   pi_42.run(proteins_42, prot_ids_2, pep_ids_2);
   TEST_STRING_EQUAL(pi_42.getDecoyString(), "_DECOY");
   TEST_EQUAL(pi_42.isPrefix(), false);
+  }
 
+  {
   // complex prefix with one false friend
   PeptideIndexing pi_5;
   Param p_5 = pi_5.getParameters();
@@ -267,22 +276,49 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   pi_5.run(proteins_5, prot_ids_2, pep_ids_2);
   TEST_STRING_EQUAL(pi_5.getDecoyString(), "__id_decoy__");
   TEST_EQUAL(pi_5.isPrefix(), true);
+  }
 
+  {
   // test for self containing decoys: rev vs reverse should output the longer decoy -> reverse?
   PeptideIndexing pi_6;
-  Param p_6 = pi_6.getParameters();
   std::vector<FASTAFile::FASTAEntry> proteins_6 = toFASTAVec(QStringList() << "PEPTIDEXXX" << "PEPTLDEXXX", QStringList() << "Protein1" << "reverse_Protein");
   pi_6.run(proteins_6, prot_ids_2, pep_ids_2);
   TEST_STRING_EQUAL(pi_6.getDecoyString(), "reverse_");
   TEST_EQUAL(pi_6.isPrefix(), true);
+  }
 
-  // impossible to determine automatically -> exitcode: DECOYSTRING_EMPTY?
+  {
+  // impossible to determine automatically -> exit code: DECOYSTRING_EMPTY?
   PeptideIndexing pi_7;
-  Param p_7 = pi_7.getParameters();
   std::vector<FASTAFile::FASTAEntry> proteins_7 = toFASTAVec(QStringList() << "PEPTIDEXXX" << "PEPTLDEXXX", QStringList() << "rev_Protein1" << "reverse_Protein");
   pi_7.run(proteins_7, prot_ids_2, pep_ids_2);
   TEST_STRING_EQUAL(pi_7.getDecoyString(), "DECOY_");
   TEST_EQUAL(pi_7.isPrefix(), true);
+  }
+
+  {
+  // test if ambiguous AA's can occur in peptides and are matched without using AAAs or MMs
+  PeptideIndexing pi_8;
+  Param p_8 = pi_8.getParameters();
+  p_8.setValue("aaa_max", 0);
+  p_8.setValue("mm_max", 0);
+  pi_8.setParameters(p_8);
+  std::vector<FASTAFile::FASTAEntry> proteins_8 = toFASTAVec(QStringList() << "PEPTIDERXXXBEBEAR"
+                                                                           << "PEPTLDEXXXXBEEEAR",
+                                                             QStringList() << "Protein1" << "otherProtein");
+  pep_ids = toPepVec(QStringList() << "PEPTIDER"    // matches Protein1;
+                                   << "XXXBEBEAR"); // matches Protein1;
+  pi_8.run(proteins_8, prot_ids_2, pep_ids);
+  for (auto& pep : pep_ids)
+  {
+    TEST_EQUAL(pep.getHits().size(), 1)
+    const auto r = pep.getHits()[0].extractProteinAccessionsSet();
+    TEST_EQUAL(r.size(), 1); // one hit!
+    TEST_EQUAL(*r.begin(), "Protein1"); // one hit!
+  }
+
+
+  }
 }
 END_SECTION
 

@@ -1,5 +1,6 @@
 from Types cimport *
 from MassTrace cimport *
+from MzTabM cimport *
 from Feature cimport *
 from ConsensusFeature cimport *
 from ConsensusMap cimport *
@@ -29,7 +30,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
         void queryByConsensusFeature(ConsensusFeature cfeat, Size cf_index, Size number_of_maps, String ion_mode,
                                      libcpp_vector[AccurateMassSearchResult]& results) nogil except +
 
-        void run(FeatureMap & , MzTab & ) nogil except +
+        void run(FeatureMap&, MzTab&) nogil except +
+        void run(FeatureMap&, MzTabM&) nogil except +
         void run(ConsensusMap&, MzTab&) nogil except +
 
         void init() nogil except +

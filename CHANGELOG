@@ -10,20 +10,25 @@ INIFileEditor - graphical parameter editor for INI files
 Parameters - list of algorithm or TOPP tool parameters that changed in this release
 PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 UTIL - An executable, just like a TOPP tool, but usually experimental or of lesser importance to common pipelines
+#<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit https://github.com/OpenMS/OpenMS/pull/4957 for details
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.0                                        ----
+----                                OpenMS 3.0     (coming soon)                      ----
 ------------------------------------------------------------------------------------------
 
 - Deisotoping algorithm using KL
-- Resolve compatibility issues between IDRipper and IDMerger #4957
+- PeptideIndexer supports ambiguous AA's in Peptide sequence (as reported by recent Mascot versions) (#5776)
+- SeqAn external library removed from source tree (not needed anymore)
+- Resolve compatibility issues between IDRipper and IDMerger (#4957)
+- Basic MzTabM support for AccurateMassSearch
+- Changed default parameter keep_unidentified_masses to "true" (AccurateMassSearch/AccurateMassSearchEngine)
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 2.7                                        ----
+----                                OpenMS 2.7     (released 9/2021)                  ----
 ------------------------------------------------------------------------------------------
 
 General:
-- OpenMS now expects a compiler that supports C17
+- OpenMS now expects a compiler that supports C++17
 - Config storage path on linux changed to ~/.config/
 - Some documentation improvements to pyOpenMS https://pyopenms.readthedocs.io/en/latest/
 - PyOpenMS checks if `OPENMS_DATA_PATH` environment variable is set, before setting to default value
@@ -80,7 +85,7 @@ GUI tools:
 
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 2.6                                        ----
+----                                OpenMS 2.6     (released 10/2020)                 ----
 ------------------------------------------------------------------------------------------
 
 We now create nightly pyopenms wheels (https://pypi.org/project/pyopenms-nightly/) and conda packages (https://anaconda.org/OpenMS/)
@@ -139,9 +144,9 @@ Various:
 - moved the config storage location for unix installations to comply with X Display Group (freedesktop.org) guidelines.
 
 
-------------------------------------------------------------------------------------------
-----                                OpenMS 2.5                                        ----
-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+----                                OpenMS 2.5     (released 2/2020)                   ----
+-------------------------------------------------------------------------------------------
 
 OpenMS 2.5 ships exciting new tools and improvements. 
 
@@ -188,9 +193,9 @@ Status changed:
 - XFDR (UTIL -> TOPP)
 
 
-------------------------------------------------------------------------------------------
-----                                OpenMS 2.4                                        ----
-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+----                                OpenMS 2.4     (released 9/2021)                   ----
+-------------------------------------------------------------------------------------------
 OpenMS 2.4 introduces changes from 322 pull requests including new features and bug fixes.
 
 Notable changes since version 2.3 are:
@@ -263,9 +268,9 @@ Third-party software:
 - Update: Crux (crux-3.1.8b78546) on all 64bit platforms.
 
 
-------------------------------------------------------------------------------------------
-----                                OpenMS 2.3                                        ----
-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+----                                OpenMS 2.3     (released 1/18)                   ----
+-------------------------------------------------------------------------------------------
 OpenMS 2.3 introduces a considerable number of new features and bug fixes.
 
 Notable changes since version 2.2 are:
@@ -332,9 +337,9 @@ Third-party software:
   - Update MS-GF+ to Release (v2017.07.21)  
 
 
-------------------------------------------------------------------------------------------
-----                                OpenMS 2.2                                        ----
-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+----                                OpenMS 2.2     (released 11/2016)                  ----
+-------------------------------------------------------------------------------------------
 OpenMS 2.2 introduces a considerable number of new features and bug fixes.
 
 Notable changes since version 2.1 are:
@@ -407,9 +412,9 @@ Databases:
 Third-party software:
   
 
-------------------------------------------------------------------------------------------
-----                                OpenMS 2.1                                        ----
-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+----                                OpenMS 2.1     (released 11/2016)                  ----
+-------------------------------------------------------------------------------------------
 OpenMS 2.1 introduces a considerable number of new features and bug fixes.
 
 Notable changes since version 2.0.1 are:
@@ -464,9 +469,9 @@ Third-party software:
   - update for pwiz 3.0.9935
 
 
-------------------------------------------------------------------------------------------
-----                                OpenMS 2.0.1                                      ----
-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+----                                OpenMS 2.0.1   (released 4/2016)                   ----
+-------------------------------------------------------------------------------------------
 OpenMS 2.0.1 is a source only release of the core libraries and tools. 
 With over 300 merged pull requests, it introduces a considerable number of new features, 
 bug fixes and speed improvements.
@@ -535,9 +540,9 @@ Third party software:
   - LuciphorAdapter (experimental) PTM localization using the LuciPHOr2 algorithm (http://luciphor2.sourceforge.net/)
 
 
-------------------------------------------------------------------------------------------
-----                                OpenMS 2.0                                        ----
-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+----                                OpenMS 2.0     (released 4/2015)                   ----
+-------------------------------------------------------------------------------------------
 Release date: February 2015
 
 OpenMS 2.0 is the first release after the switch to git and a complete overhaul of the
@@ -1007,9 +1012,9 @@ Resolved issues and merged pull requests:
   #1309 [FIX] Ammend to #1284
   #1315 sync develop additions
 
-------------------------------------------------------------------------------------------
-----                                OpenMS 1.11.1                                     ----
-------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------
+----                                OpenMS 1.11.1  (released 11/2013)                  ----
+-------------------------------------------------------------------------------------------
 Release date: November 2013
 
 OpenMS 1.11.1 is a bugfix release resolving the following issues with OpenMS 1.11:

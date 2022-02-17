@@ -39,20 +39,12 @@
 #include <iostream>
 #include <fstream>
 
+#include "svm.h"
+
 using namespace std;
 
 namespace OpenMS
 {
-  LibSVMEncoder::LibSVMEncoder()
-  {
-
-  }
-
-  LibSVMEncoder::~LibSVMEncoder()
-  {
-
-  }
-
   void LibSVMEncoder::encodeCompositionVector(const String& sequence,
                                               vector<pair<Int, double> >& composition_vector,
                                               const String& allowed_characters)

@@ -43,6 +43,8 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/sequenced_index.hpp>
 
+#include <optional>
+
 namespace OpenMS
 {
   namespace IdentificationDataInternal
