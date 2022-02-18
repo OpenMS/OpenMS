@@ -445,10 +445,18 @@ m1 = mi(x_ranking,y_ranking)
 
   TEST_REAL_SIMILAR (result, 3.2776);
 
+  rank_vec1 = {0};
+  rank_vec2 = {0};
+  result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2);
+  TEST_REAL_SIMILAR (result, 0);
+
   rank_vec1 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   rank_vec2 = {0, 1, 5, 4, 4, 2, 3, 1, 0, 2};
   result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2);
   TEST_REAL_SIMILAR (result, 0);
+
+  double result_symmetric = Scoring::rankedMutualInformation(rank_vec2, rank_vec1);
+  TEST_REAL_SIMILAR (result, result_symmetric);
 
   rank_vec1 = {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7};
   rank_vec2 = {0, 1, 5, 4, 4, 2, 3, 1, 0, 2, 6, 7, 7, 6, 5, 3};
@@ -460,7 +468,7 @@ m1 = mi(x_ranking,y_ranking)
   result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2);
   TEST_REAL_SIMILAR (result, 2.52193);
 
-  double result_symmetric = Scoring::rankedMutualInformation(rank_vec2, rank_vec1);
+  result_symmetric = Scoring::rankedMutualInformation(rank_vec2, rank_vec1);
   TEST_REAL_SIMILAR (result, result_symmetric);
 }
 END_SECTION
