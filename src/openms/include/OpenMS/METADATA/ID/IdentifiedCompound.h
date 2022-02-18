@@ -102,6 +102,10 @@ namespace OpenMS
       {}
       IdentifiedCompoundRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::IdentifiedCompound, std::allocator<OpenMS::IdentificationDataInternal::IdentifiedCompound> > > >& other): ICref(other)
       {}
+      IdentifiedCompoundRef operator=(const IdentifiedCompoundRef& other)
+      {
+        return ICref::operator=(other);
+      }
     };
   }
 }

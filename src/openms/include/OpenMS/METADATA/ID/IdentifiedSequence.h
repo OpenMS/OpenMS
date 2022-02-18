@@ -138,6 +138,11 @@ namespace OpenMS
       {}
       IdentifiedPeptideRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::IdentifiedSequence<OpenMS::AASequence>, std::allocator<OpenMS::IdentificationDataInternal::IdentifiedSequence<OpenMS::AASequence> > > > >& other): IPepR(other)
       {}
+
+      IdentifiedPeptideRef operator=(const IdentifiedPeptideRef& other)
+      {
+        return IPepR::operator=(other);
+      }
     };
 
     // identified oligos indexed by their sequences:
@@ -171,6 +176,10 @@ namespace OpenMS
       {}
       IdentifiedOligoRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::IdentifiedSequence<OpenMS::NASequence>, std::allocator<OpenMS::IdentificationDataInternal::IdentifiedSequence<OpenMS::NASequence> > > > >& other): IOligoR(other)
       {}
+      IdentifiedOligoRef operator=(const IdentifiedOligoRef& other)
+      {
+        return IOligoR::operator=(other);
+      }
     };
 
   }

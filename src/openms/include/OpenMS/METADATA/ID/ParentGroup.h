@@ -52,6 +52,11 @@ namespace OpenMS
       std::map<ScoreTypeRef, double> scores;
       // @TODO: does this need a "leader" or some such?
       std::set<ParentSequenceRef> parent_refs;
+
+      ParentGroup(const ParentGroup& other) = default;
+      ParentGroup() = default;
+      //ParentGroup operator=(const ParentGroup& other);
+
     };
 
     typedef boost::multi_index_container<

@@ -11,6 +11,7 @@ from ScoreType cimport *
 cdef extern from "<OpenMS/METADATA/ID/ParentGroup.h>" namespace "OpenMS::IdentificationDataInternal":
   cdef cppclass ParentGroup(MetaInfoInterface):
     ParentGroup() nogil except +
+    ParentGroup(ParentGroup other) nogil except +
     libcpp_map[IteratorWrapper[ setSTit, ScoreType ], double] scores
     libcpp_set[ParentSequenceRef] parent_refs
   
@@ -23,7 +24,7 @@ cdef extern from "<OpenMS/METADATA/ID/ParentGroup.h>" namespace "OpenMS::Identif
     ParentGroupRef(const ParentGroupRef  other) nogil except +
     bool operator!=(const ParentGroupRef  other) nogil except +
     bool operator<(const ParentGroupRef  other) nogil except +
-    ParentSequence deref()
+    ParentGroup deref()
 
   cdef cppclass ParentGroupSet(ScoredProcessingResult):
     ParentGroupSet() nogil except +
