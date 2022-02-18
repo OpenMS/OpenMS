@@ -97,7 +97,7 @@ namespace OpenMS
     void setName(const String& name);
 
     /// returns the name of the enzyme
-    String getName() const;
+    const String& getName() const;
 
     /// sets the synonyms
     void setSynonyms(const std::set<String>& synonyms);
@@ -112,13 +112,13 @@ namespace OpenMS
     void setRegEx(const String& cleavage_regex);
 
     /// returns the cleavage regex
-    String getRegEx() const;
+    const String& getRegEx() const;
 
     /// sets the regex description
     void setRegExDescription(const String& value);
 
     /// returns the regex description
-    String getRegExDescription() const;
+    const String& getRegExDescription() const;
     //@}
 
     /** @name Predicates

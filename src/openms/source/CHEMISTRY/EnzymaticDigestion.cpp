@@ -143,7 +143,7 @@ namespace OpenMS
                                            bool ignore_missed_cleavages,
                                            bool allow_nterm_protein_cleavage,
                                            bool allow_random_asp_pro_cleavage) const
-    {
+  {
     // for XTandem specific rules (see https://github.com/OpenMS/OpenMS/issues/2497)
     // M or MX at the N-terminus might have been cleaved off 
     if (allow_nterm_protein_cleavage && (pos <= 2) && (sequence[0] == 'M'))

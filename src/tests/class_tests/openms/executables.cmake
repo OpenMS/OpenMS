@@ -298,7 +298,6 @@ set(math_executables_list
   NonNegativeLeastSquaresSolver_test
   PosteriorErrorProbabilityModel_test
   QuadraticRegression_test
-  #RegressionUtils_test
   RANSAC_test
   RANSACModel_test
   RANSACModelLinear_test
@@ -708,6 +707,8 @@ endif(NOT DISABLE_OPENSWATH)
 set(Boost_dependent_tests
   DIAHelper_test
   EmgModel_test
+  LogConfigHandler_test
+  LogStream_test
   MRMDecoy_test
   MRMFeatureFinderScoring_test
   MRMTransitionGroupPicker_test
@@ -716,6 +717,8 @@ set(Boost_dependent_tests
   OpenSwathMRMFeatureAccessOpenMS_test
   OpenSwathSpectrumAccessOpenMS_test
   PeakPickerMRM_test
+  SpectrumLookup_test
+  SpectrumMetaDataLookup_test
   StatisticFunctions_test
   String_test
   TransitionTSVFile_test

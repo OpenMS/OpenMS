@@ -19,7 +19,7 @@ if "--no-optimization" in sys.argv:
     sys.argv.remove("--no-optimization")
 
 # import config
-from env import  (OPEN_MS_COMPILER, OPEN_MS_SRC, OPEN_MS_GIT_BRANCH, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
+from env import  (OPEN_MS_COMPILER, PYOPENMS_SRC_DIR, OPEN_MS_GIT_BRANCH, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
                   QT_INSTALL_LIBS, QT_INSTALL_BINS, MSVS_RTLIBS,
                   OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, INCLUDE_DIRS_EXTEND, LIBRARIES_EXTEND,
                   LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS,
@@ -53,7 +53,7 @@ os.environ["CXX"] = OPEN_MS_COMPILER
 
 j = os.path.join
 
-src_pyopenms = j(OPEN_MS_SRC, "src/pyOpenMS")
+src_pyopenms = PYOPENMS_SRC_DIR
 extra_includes = glob.glob(src_pyopenms + "/extra_includes/*.h*")
 
 for include in extra_includes:
@@ -220,6 +220,10 @@ if not iswin:
 
 mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 ext = []
+
+##WARNING debug
+libraries.extend("boost_regex-mt-x64")
+
 for module in mnames:
 
     ext.append(Extension(
@@ -256,8 +260,8 @@ setup(
 
     version=package_version,
 
-    maintainer="Uwe Schmitt",
-    maintainer_email="uschmitt@mineway.de",
+    maintainer="The OpenMS team",
+    maintainer_email="open-ms-general@lists.sourceforge.net",
     license="http://opensource.org/licenses/BSD-3-Clause",
     platforms=["any"],
     description="Python wrapper for C++ LCMS library OpenMS",
@@ -274,7 +278,7 @@ setup(
 
     url="http://open-ms.de",
 
-    author="Uwe Schmitt",
+    author="Uwe Schmitt and the OpenMS team",
     author_email="uschmitt@mineway.de",
 
     ext_modules=ext,

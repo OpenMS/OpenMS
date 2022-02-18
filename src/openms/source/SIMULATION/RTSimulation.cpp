@@ -132,7 +132,7 @@ namespace OpenMS
     defaults_.setSectionDescription("profile_shape:skewness", "Skewness of the EGH elution shape, i.e. the tau parameter, which is computed using 'value' + rnd_cauchy('variance')");
 
     // HPLC specific Parameters
-    defaults_.setValue("HPLC:model_file", "examples/simulation/RTPredict.model", "SVM model for retention time prediction");
+    defaults_.setValue("HPLC:model_file", "SIMULATION/RTPredict.model", "SVM model for retention time prediction");
 
     // CE specific Parameters
     defaults_.setValue("CE:pH", 3.0, "pH of buffer");

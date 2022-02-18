@@ -35,7 +35,6 @@
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/STATISTICS/RegressionUtils.h>
 
 #include "Wm5Vector2.h"
 #include "Wm5ApprLineFit2.h"
@@ -226,7 +225,11 @@ namespace OpenMS::Math
         std::vector<double>::const_iterator y_begin,
         bool compute_goodness)
     {
-      std::vector<Wm5::Vector2d> points = iteratorRange2Wm5Vectors(x_begin, x_end, y_begin);
+      std::vector<Wm5::Vector2d> points;
+      for(std::vector<double>::const_iterator xIter = x_begin, yIter = y_begin; xIter!=x_end; ++xIter, ++yIter)
+      {
+        points.emplace_back(*xIter, *yIter);
+      }
 
       // Compute the unweighted linear fit.
       // Get the intercept and the slope of the regression Y_hat=intercept_+slope_*X
@@ -255,7 +258,12 @@ namespace OpenMS::Math
       // Compute the weighted linear fit.
       // Get the intercept and the slope of the regression Y_hat=intercept_+slope_*X
       // and the value of Chi squared, the covariances of the intercept and the slope
-      std::vector<Wm5::Vector2d> points = iteratorRange2Wm5Vectors(x_begin, x_end, y_begin);
+      std::vector<Wm5::Vector2d> points;
+      for(std::vector<double>::const_iterator xIter = x_begin, yIter = y_begin; xIter!=x_end; ++xIter, ++yIter)
+      {
+        points.emplace_back(*xIter, *yIter);
+      }
+
       // Compute sums for linear system. copy&paste from GeometricTools Wm5ApprLineFit2.cpp
       // and modified to allow weights
       int numPoints = static_cast<int>(points.size());

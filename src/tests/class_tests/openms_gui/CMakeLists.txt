@@ -40,10 +40,10 @@ set(visual_executables_list
   MultiGradient_test
 )
 
-
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+# TODO should not be required anymore
 #------------------------------------------------------------------------------
 # required to build GUI tests (e.g., TOPPView_test)
 include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
@@ -51,27 +51,16 @@ include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
 # add include to find moced files
 include_directories(${PROJECT_BINARY_DIR})
 
+
 #------------------------------------------------------------------------------
 # VISUAL
 add_custom_target(VISUAL_TEST)
 add_dependencies(VISUAL_TEST ${visual_executables_list})
 
-find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL REQUIRED)
-find_package(Qt5 COMPONENTS WebEngineWidgets)
-if (NOT Qt5Widgets_FOUND)
-  message(STATUS "QtWidgets module not found!")
-  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
-endif()
-
 foreach(_class_test ${visual_executables_list})
   add_executable(${_class_test} source/${_class_test}.cpp)
   target_link_libraries(${_class_test} ${OpenMS_GUI_LIBRARIES})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
-  # only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
-  # see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
-  if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set_target_properties(${_class_test} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
-  endif()
 endforeach(_class_test)
 
 #------------------------------------------------------------------------------
@@ -94,11 +83,6 @@ if(HAS_XSERVER)
   endif()
 
   #------------------------------------------------------------------------------
-  # We need some special treatments of boost in moc, hence we search for boost
-  # here
-  find_boost()
-
-  #------------------------------------------------------------------------------
   # Add GUI tests
   foreach(_gui_test ${GUI_executables_list})
     # add the executable (Note: The header needs to be added as source file, too. Otherwise automoc will not find it.
@@ -109,11 +93,6 @@ if(HAS_XSERVER)
     target_link_libraries(${_gui_test} ${OpenMS_GUI_LIBRARIES} ${QT_LIBRARIES} Qt5::Test)
     # add the test
     add_test(${_gui_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_gui_test})
-    # only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
-    # see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
-    if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        set_target_properties(${_gui_test} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
-      endif()
   endforeach(_gui_test)
 
   #------------------------------------------------------------------------------
