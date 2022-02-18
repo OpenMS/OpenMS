@@ -97,13 +97,6 @@ namespace OpenMS
     }
   }
 
-
-  /// add annotation from an OSW sqlite file.
-
-
-  /// get annotation (e.g. to build a hierachical ID View)
-  /// Not const, because we might have incomplete data, which needs to be loaded from sql source
-
   LayerDataBase::OSWDataSharedPtrType& LayerDataBase::getChromatogramAnnotation()
   {
     return chrom_annotation_;
@@ -153,7 +146,6 @@ namespace OpenMS
     return cached_spectrum_;
   }
 
-  /// Returns a const-copy of the required spectrum which is guaranteed to be populated with raw data
 
   const LayerDataBase::ExperimentType::SpectrumType LayerDataBase::getSpectrum(Size spectrum_idx) const
   {

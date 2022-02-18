@@ -40,11 +40,9 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h> // StringList
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <xercesc/util/XMLString.hpp>
 #include <xercesc/sax2/DefaultHandler.hpp>
-#include <xercesc/sax/Locator.hpp>
 #include <xercesc/sax2/Attributes.hpp>
 
 #include <iosfwd>
@@ -55,7 +53,7 @@
 namespace OpenMS
 {
   class ProteinIdentification;
-
+  class MetaInfoInterface;
 
   namespace Internal
   {
