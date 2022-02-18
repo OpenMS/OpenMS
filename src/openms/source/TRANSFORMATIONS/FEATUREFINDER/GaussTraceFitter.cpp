@@ -34,6 +34,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <Eigen/Core>
 
@@ -182,7 +184,7 @@ namespace OpenMS
       for (Size i = 0; i < trace.peaks.size(); ++i)
       {
         fvec(count) = (m_data->traces_ptr->baseline + trace.theoretical_int * height
-                       * exp(c_fac * pow(trace.peaks[i].first - x0, 2)) - trace.peaks[i].second->getIntensity()) * weight;
+                       * exp(c_fac * pow(trace.peaks[i].first->getRT() - x0, 2)) - trace.peaks[i].second->getIntensity()) * weight;
         ++count;
       }
     }
@@ -207,7 +209,7 @@ namespace OpenMS
       double weight = m_data->weighted ? trace.theoretical_int : 1.0;
       for (Size i = 0; i < trace.peaks.size(); ++i)
       {
-        double rt = trace.peaks[i].first;
+        double rt = trace.peaks[i].first->getRT();
         double e = exp(c_fac * pow(rt - x0, 2));
         J(count, 0) = trace.theoretical_int * e * weight;
         J(count, 1) = trace.theoretical_int * height * e * (rt - x0) / sig_sq * weight;

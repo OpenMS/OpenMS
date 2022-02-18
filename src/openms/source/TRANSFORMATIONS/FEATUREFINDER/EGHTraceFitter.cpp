@@ -38,6 +38,7 @@
 #include <Eigen/Core>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <numeric> // for "accumulate"
 
@@ -78,7 +79,7 @@ namespace OpenMS
       double weight = m_data->weighted ? trace.theoretical_int : 1.0;
       for (Size i = 0; i < trace.peaks.size(); ++i)
       {
-        double rt = trace.peaks[i].first;
+        double rt = trace.peaks[i].first->getRT();
 
         t_diff = rt - tR;
         t_diff2 = t_diff * t_diff; // -> (t - t_R)^2
@@ -118,7 +119,7 @@ namespace OpenMS
       double weight = m_data->weighted ? trace.theoretical_int : 1.0;
       for (Size i = 0; i < trace.peaks.size(); ++i)
       {
-        double rt = trace.peaks[i].first;
+        double rt = trace.peaks[i].first->getRT();
 
         t_diff = rt - tR;
         t_diff2 = t_diff * t_diff; // -> (t - t_R)^2

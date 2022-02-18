@@ -38,7 +38,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 
 #include <vector>
 #include <list>
@@ -46,6 +45,9 @@
 
 namespace OpenMS
 {
+
+  class MSSpectrum;
+  class Peak1D;
 
   /**
    * @brief Wrapper struct for all the classes needed by the FeatureFinderAlgorithmPicked and the associated classes
@@ -86,8 +88,9 @@ namespace OpenMS
       ///Theoretical intensity value (scaled to [0,1])
       double theoretical_int;
 
-      ///Contained peaks (pair of RT and pointer to peak)
-      std::vector<std::pair<double, const Peak1D*> > peaks;
+      ///Contained peaks (pair of pointer to spectrum and pointer to peak)
+      ///RT and ion mobility is extracted from spectrum, m/z and intensity from peak
+      std::vector<std::pair<const MSSpectrum*, const Peak1D*> > peaks;
 
       ///determines the convex hull of the trace
       ConvexHull2D getConvexhull() const;
@@ -97,6 +100,9 @@ namespace OpenMS
 
       ///Returns the average m/z of all peaks in this trace (weighted by intensity)
       double getAvgMZ() const;
+
+      ///Returns the average ion mobility of all peaks in this trace (weighted by intensity)
+      double getAvgIM(Size im_array_location) const;
 
       ///Checks if this Trace is valid (has more than 2 points)
       bool isValid() const;

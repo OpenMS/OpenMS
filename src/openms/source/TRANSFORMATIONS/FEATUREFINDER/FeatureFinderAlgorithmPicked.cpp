@@ -1296,7 +1296,6 @@ namespace OpenMS
     Size start_index = pattern.spectrum[max_trace_index];
     const PeakType* start_peak = &(map_[pattern.spectrum[max_trace_index]][pattern.peak[max_trace_index]]);
     double start_mz = start_peak->getMZ();
-    double start_rt = map_[start_index].getRT();
     if (debug_)
     {
       log_ << " - Trace " << max_trace_index << " (maximum intensity)" << std::endl;
@@ -1307,12 +1306,12 @@ namespace OpenMS
     }
     //initialize the trace and extend
     MassTrace max_trace;
-    max_trace.peaks.emplace_back(start_rt, start_peak);
+    max_trace.peaks.emplace_back(&map_[start_index], start_peak);
     extendMassTrace_(max_trace, start_index, start_mz, false, meta_index_overall);
     extendMassTrace_(max_trace, start_index, start_mz, true, meta_index_overall);
 
-    double rt_max = max_trace.peaks.back().first;
-    double rt_min = max_trace.peaks.begin()->first;
+    double rt_max = max_trace.peaks.back().first->getRT();
+    double rt_min = max_trace.peaks.begin()->first->getRT();
     if (debug_)
     {
       log_ << "   - rt bounds: " << rt_min << "-" << rt_max << std::endl;
@@ -1400,7 +1399,7 @@ namespace OpenMS
       MassTrace trace;
       const PeakType* seed = &(map_[starting_peak.spectrum][starting_peak.peak]);
       //initialize trace with seed data and extend
-      trace.peaks.emplace_back(map_[starting_peak.spectrum].getRT(), seed);
+      trace.peaks.emplace_back(&map_[starting_peak.spectrum], seed);
       extendMassTrace_(trace, starting_peak.spectrum, seed->getMZ(), false, meta_index_overall, rt_min, rt_max);
       extendMassTrace_(trace, starting_peak.spectrum, seed->getMZ(), true, meta_index_overall, rt_min, rt_max);
 
@@ -1497,7 +1496,7 @@ namespace OpenMS
         missing_peaks = 0;
 
         //add found peak to trace
-        trace.peaks.emplace_back(map_[spectrum_index].getRT(), &(map_[spectrum_index][peak_index]));
+        trace.peaks.emplace_back(&map_[spectrum_index], &(map_[spectrum_index][peak_index]));
 
         //update deltas and intensities
         deltas.push_back((map_[spectrum_index][peak_index].getIntensity() - last_observed_intensity) / last_observed_intensity);
@@ -1924,7 +1923,7 @@ namespace OpenMS
       for (Size k = 0; k < trace.peaks.size(); ++k)
       {
         //consider peaks when inside RT bounds only
-        if (trace.peaks[k].first >= low_bound && trace.peaks[k].first <= high_bound)
+        if (trace.peaks[k].first->getRT() >= low_bound && trace.peaks[k].first->getRT() <= high_bound)
         {
           new_trace.peaks.push_back(trace.peaks[k]);
 
@@ -2093,7 +2092,7 @@ namespace OpenMS
       {
         for (Size j = 0; j < traces[k].peaks.size(); ++j)
         {
-          tf.addLine(String(pseudo_rt_shift * k + traces[k].peaks[j].first) + "\t" + traces[k].peaks[j].second->getIntensity());
+          tf.addLine(String(pseudo_rt_shift * k + traces[k].peaks[j].first->getRT()) + "\t" + traces[k].peaks[j].second->getIntensity());
         }
       }
       tf.store(path + plot_nr + ".dta");
@@ -2108,7 +2107,7 @@ namespace OpenMS
         {
           for (Size j = 0; j < new_traces[k].peaks.size(); ++j)
           {
-            tf_new_trace.addLine(String(pseudo_rt_shift * k + new_traces[k].peaks[j].first) + "\t" + new_traces[k].peaks[j].second->getIntensity());
+            tf_new_trace.addLine(String(pseudo_rt_shift * k + new_traces[k].peaks[j].first->getRT()) + "\t" + new_traces[k].peaks[j].second->getIntensity());
           }
         }
 

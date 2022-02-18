@@ -92,24 +92,22 @@ double ElutionModelFitter::calculateFitQuality_(const TraceFitter* fitter,
 {
   double mre = 0.0;
   double total_weights = 0.0;
-  double rt_start = max(fitter->getLowerRTBound(), traces[0].peaks[0].first);
+  double rt_start = max(fitter->getLowerRTBound(), traces[0].peaks[0].first->getRT());
   double rt_end = min(fitter->getUpperRTBound(),
-                      traces[0].peaks.back().first);
+                      traces[0].peaks.back().first->getRT());
 
-  for (MassTraces::const_iterator tr_it = traces.begin();
-       tr_it != traces.end(); ++tr_it)
+  for (const auto& masstrace : traces)
   {
-    for (vector<pair<double, const Peak1D*> >::const_iterator p_it =
-           tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
+    for (const auto& peak : masstrace.peaks)
     {
-      double rt = p_it->first;
+      double rt = peak.first->getRT();
       if ((rt >= rt_start) && (rt <= rt_end))
       {
         double model_value = fitter->getValue(rt);
-        double diff = fabs(model_value * tr_it->theoretical_int -
-                           p_it->second->getIntensity());
+        double diff = fabs(model_value * masstrace.theoretical_int -
+                           peak.second->getIntensity());
         mre += diff / model_value;
-        total_weights += tr_it->theoretical_int;
+        total_weights += masstrace.theoretical_int;
       }
     }
   }
@@ -118,9 +116,14 @@ double ElutionModelFitter::calculateFitQuality_(const TraceFitter* fitter,
 
 
 void ElutionModelFitter::fitAndValidateModel_(
-  TraceFitter* fitter, MassTraces& traces, Feature& feature,
-  double region_start, double region_end, bool asymmetric,
-  double area_limit, double check_boundaries)
+  TraceFitter* fitter,
+  MassTraces& traces,
+  Feature& feature,
+  double region_start,
+  double region_end,
+  bool asymmetric,
+  double area_limit,
+  double check_boundaries)
 {
   bool fit_success = true;
   try
@@ -252,11 +255,16 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     }
 
     vector<Peak1D> peaks;
+    vector<MSSpectrum> tmp_exp;
     // reserve space once, to avoid copying and invalidating pointers:
     Size points_per_hull = sub.getConvexHulls()[0].getHullPoints().size();
-    peaks.reserve(feat.getSubordinates().size() * points_per_hull +
-                  (add_zeros > 0.0)); // don't forget additional zero point
+    Size required_elem = feat.getSubordinates().size() * points_per_hull +
+                  (add_zeros > 0.0)*2; // don't forget additional zero point
+    tmp_exp.reserve(required_elem); // ensure we do not re-allocate memory and change pointers
+    peaks.reserve(required_elem);
+
     MassTraces traces;
+    MSSpectrum tmp_spec;
     traces.max_trace = 0;
     // need a mass trace for every transition, plus maybe one for add. zeros:
     traces.reserve(feat.getSubordinates().size() + (add_zeros > 0.0));
@@ -272,11 +280,14 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
         double intensity = point_it->getY();
         if (intensity > 0.0) // only use non-zero intensities for fitting
         {
+          // create a dummy spectrum and peak to add to the mass traces
           Peak1D peak;
           peak.setMZ(sub.getMZ());
           peak.setIntensity(intensity);
           peaks.push_back(peak);
-          trace.peaks.emplace_back(point_it->getX(), &peaks.back());
+          tmp_spec.setRT( point_it->getX() );
+          tmp_exp.push_back(tmp_spec);
+          trace.peaks.emplace_back(&tmp_exp.back(), &peaks.back());
         }
       }
       trace.updateMaximum();
@@ -322,8 +333,12 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       peak.setIntensity(0.0);
       peaks.push_back(peak);
       double offset = 0.2 * (region_start - region_end);
-      trace.peaks.emplace_back(region_start - offset, &peaks.back());
-      trace.peaks.emplace_back(region_end + offset, &peaks.back());
+      tmp_spec.setRT( region_start - offset );
+      tmp_exp.push_back(tmp_spec);
+      trace.peaks.emplace_back(&tmp_exp.back(), &peaks.back());
+      tmp_spec.setRT( region_end + offset );
+      tmp_exp.push_back(tmp_spec);
+      trace.peaks.emplace_back(&tmp_exp.back(), &peaks.back());
       traces.push_back(trace);
     }
 

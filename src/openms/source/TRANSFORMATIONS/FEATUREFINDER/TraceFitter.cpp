@@ -34,6 +34,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+
 #include <unsupported/Eigen/NonLinearOptimization>
 #include <Eigen/Core>
 
@@ -88,7 +90,7 @@ namespace OpenMS
 
   double TraceFitter::computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k) const
   {
-    double rt = trace.peaks[k].first;
+    double rt = trace.peaks[k].first->getRT();
 
     return trace.theoretical_int * getValue(rt);
   }
