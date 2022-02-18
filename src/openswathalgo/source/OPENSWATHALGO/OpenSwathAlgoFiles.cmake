@@ -84,6 +84,7 @@ set(header_dataaccess_list
   DATAACCESS/ITransition.h
   DATAACCESS/MockObjects.h
   DATAACCESS/SpectrumHelpers.h
+  DATAACCESS/SwathMap.h
   DATAACCESS/TransitionExperiment.h
   DATAACCESS/TransitionHelper.h
   DATAACCESS/Transitions.h
