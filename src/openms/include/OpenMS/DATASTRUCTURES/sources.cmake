@@ -41,6 +41,7 @@ ParamValue.h
 QTCluster.h
 String.h
 StringUtils.h
+StringutilsSimple.h
 StringListUtils.h
 ToolDescription.h
 )
