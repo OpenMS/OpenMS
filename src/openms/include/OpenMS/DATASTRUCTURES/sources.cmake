@@ -43,6 +43,7 @@ String.h
 StringUtils.h
 StringUtilsSimple.h
 StringListUtils.h
+StringView.h
 ToolDescription.h
 )
 
