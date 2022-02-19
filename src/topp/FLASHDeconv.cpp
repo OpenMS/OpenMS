@@ -177,9 +177,16 @@ protected:
     setMinInt_("write_detail", 0);
     setMaxInt_("write_detail", 1);
 
-    registerIntOption_("max_MS_level", "", 2, "maximum MS level (inclusive) for deconvolution", false, true);
+    registerIntOption_("max_MS_level", "", 2, "maximum MS level (inclusive) for deconvolution.", false, true);
     setMinInt_("max_MS_level", 1);
 
+    registerIntOption_("forced_MS_level",
+                       "",
+                       0,
+                       "if set to an integer N, MS level of all spectra will be set to N regardless of original MS level",
+                       false,
+                       true);
+    setMinInt_("forced_MS_level", 0);
 
     registerIntOption_("use_ensemble_spectrum",
                        "",
@@ -434,6 +441,7 @@ protected:
     double topFD_SNR_threshold = in_log_file.length() > 0 ? .0 : getDoubleOption_("min_precursor_snr");
     bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
     int max_ms_level = getIntOption_("max_MS_level");
+    int forced_ms_level = getIntOption_("forced_MS_level");
     bool ensemble = getIntOption_("use_ensemble_spectrum") > 0;
     bool write_detail = getIntOption_("write_detail") > 0;
     int mzml_charge = getIntOption_("mzml_mass_charge");
@@ -522,18 +530,47 @@ protected:
     std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition = read_FLASHIda_log_(
         in_log_file); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
 
-    int current_max_ms_level = 0;
+
+    //-------------------------------------------------------------
+    // reading input
+    //-------------------------------------------------------------
+
+    MSExperiment map;
+    MzMLFile mzml;
+
+
+    // all for measure elapsed cup wall time
+    double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
+
+
     double expected_identification_count = .0;
-    auto spec_cntr = std::vector<int>(max_ms_level, 0);
-    // spectrum number with at least one deconvoluted mass per ms level per input file
-    auto qspec_cntr = std::vector<int>(max_ms_level, 0);
-    // mass number per ms level per input file
-    auto mass_cntr = std::vector<int>(max_ms_level, 0);
+
     // feature number per input file
     int feature_cntr = 0;
 
     // feature index written in the output file
     int feature_index = 0;
+
+    auto begin = clock();
+    auto t_start = chrono::high_resolution_clock::now();
+
+    OPENMS_LOG_INFO << "Processing : " << in_file << endl;
+
+
+    mzml.setLogType(log_type_);
+    mzml.load(in_file, map);
+
+
+    int current_max_ms_level = 0;
+
+
+    auto spec_cntr = std::vector<int>(max_ms_level, 0);
+    // spectrum number with at least one deconvoluted mass per ms level per input file
+    auto qspec_cntr = std::vector<int>(max_ms_level, 0);
+    // mass number per ms level per input file
+    auto mass_cntr = std::vector<int>(max_ms_level, 0);
+    auto elapsed_deconv_cpu_secs = std::vector<double>(max_ms_level, .0);
+    auto elapsed_deconv_wall_secs = std::vector<double>(max_ms_level, .0);
 
     MSExperiment ensemble_map;
     // generate ensemble spectrum if param.ensemble is set
@@ -549,31 +586,9 @@ protected:
         ensemble_map.addSpectrum(spec);
       }
     }
-
-    //-------------------------------------------------------------
-    // reading input
-    //-------------------------------------------------------------
-
-    MSExperiment map;
-    MzMLFile mzml;
-
-    // all for measure elapsed cup wall time
-    double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
-    auto elapsed_deconv_cpu_secs = std::vector<double>(max_ms_level, .0);
-    auto elapsed_deconv_wall_secs = std::vector<double>(max_ms_level, .0);
-
-    auto begin = clock();
-    auto t_start = chrono::high_resolution_clock::now();
-
-    OPENMS_LOG_INFO << "Processing : " << in_file << endl;
-
-    mzml.setLogType(log_type_);
-    mzml.load(in_file, map);
-
     //      double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
     int ms1_cntr = 0;
     double ms2_cntr = .0; // for debug...
-    current_max_ms_level = 0;
 
     // read input dataset once to count spectra and generate ensemble spectrum if necessary
     for (auto &it: map)
@@ -585,6 +600,12 @@ protected:
       if (it.getMSLevel() > max_ms_level)
       {
         continue;
+      }
+
+      // if forced_ms_level > 0, force MS level of all spectra to 1.
+      if (forced_ms_level > 0)
+      {
+        it.setMSLevel(forced_ms_level);
       }
 
       int ms_level = it.getMSLevel();
