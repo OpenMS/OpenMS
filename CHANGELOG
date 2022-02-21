@@ -13,7 +13,7 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 #<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit https://github.com/OpenMS/OpenMS/pull/4957 for details
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 2.8.0     (released 2/2022)                      ----
+----                                OpenMS 2.8     (released 2/2022)                      ----
 ------------------------------------------------------------------------------------------
 
 - source + conda release only
