@@ -54,10 +54,12 @@ public:
     LayerDataChrom(const LayerDataChrom& ld) = delete;
     /// no assignment operator (should not be needed)
     LayerDataChrom& operator=(const LayerDataChrom& ld) = delete;
-    /// move Ctor
+    /// move C'tor
     LayerDataChrom(LayerDataChrom&& ld) = default;
     /// move assignment
     LayerDataChrom& operator=(LayerDataChrom&& ld) = default;
+
+    std::unique_ptr<Painter1DBase> getPainter1D() const override;
 
     void updateRanges() override
     {

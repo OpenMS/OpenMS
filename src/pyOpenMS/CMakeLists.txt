@@ -36,6 +36,10 @@ project("pyOpenMS" LANGUAGES C CXX)
 
 if(NOT TARGET OpenMS)
   find_package(OpenMS)
+  #TODO when separating pyopenms from OpenMS, specify a pyopenms version and the compatible OpenMS version to be searched above.
+  # For now we just hope that the right OpenMS version from this same git repo is installed and found and
+  # therefore give pyopenms here the same version. CF_OPENMS_PACKAGE_VERSION is used in env.py for setup.py
+  set(CF_OPENMS_PACKAGE_VERSION ${OpenMS_VERSION})
   #TODO create own module copy under pyopenms or somehow point to installed copy based on the found OpenMS variables
   include(../../cmake/Modules/GetGitRevisionDescription.cmake)
   git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE)

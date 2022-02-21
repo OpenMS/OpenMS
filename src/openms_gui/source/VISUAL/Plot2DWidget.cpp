@@ -341,7 +341,7 @@ namespace OpenMS
         //display feature with a margin
         if (canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE)
         {
-          const FeatureMapType& map = *canvas()->getCurrentLayer().getFeatureMap();
+          const FeatureMap& map = *canvas()->getCurrentLayer().getFeatureMap();
           DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();
           double rt_margin = (bb.maxPosition()[0] - bb.minPosition()[0]) * 0.5;
           double mz_margin = (bb.maxPosition()[1] - bb.minPosition()[1]) * 2;
