@@ -42,7 +42,6 @@
 #include <map>
 #include <vector>
 
-
 namespace OpenMS
 {
   namespace Detail

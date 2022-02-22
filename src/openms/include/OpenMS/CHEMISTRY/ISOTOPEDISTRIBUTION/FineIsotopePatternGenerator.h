@@ -149,7 +149,7 @@ namespace OpenMS
       * IsoSpecGeneratorWrapper) directly for increased performance.
       *
       **/
-    IsotopeDistribution run(const EmpiricalFormula&) const;
+    IsotopeDistribution run(const EmpiricalFormula&) const override;
 
     /// Set probability stop condition (lower values generate fewer results)
     void setThreshold(double stop_condition)

@@ -76,7 +76,7 @@ public:
     /// Constructor
     PeakIntegrator();
     /// Destructor
-    virtual ~PeakIntegrator();
+    ~PeakIntegrator() override;
 
     /** @name integratePeak() output
       The integratePeak() method uses this struct to save its results.
@@ -537,7 +537,7 @@ public:
     void getDefaultParameters(Param& params);
 
 protected:
-    void updateMembers_();
+    void updateMembers_() override;
 
     template <typename PeakContainerT>
     PeakArea integratePeak_(const PeakContainerT& pc, double left, double right) const

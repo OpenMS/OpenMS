@@ -95,7 +95,7 @@ public:
     /// returns 0 if no description is set.
     BaseModel<D> * createModel()
     {
-      if (name_ == "") return nullptr;
+      if (name_.empty()) return nullptr;
 
       BaseModel<D> * model = Factory<BaseModel<D> >::create(name_);
       model->setParameters(parameters_);

@@ -36,6 +36,8 @@
 #include <OpenMS/ANALYSIS/TARGETED/PSProteinInference.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 
+#undef DEBUG_OPS
+
 #ifdef DEBUG_OPS
 #include <OpenMS/SYSTEM/StopWatch.h>
 #endif
@@ -1068,7 +1070,7 @@ namespace OpenMS
 #endif
       if (charges_set.count(features[i].getCharge()) < 1)
         continue;
-      if (mass_ranges[i].size() == 0)
+      if (mass_ranges[i].empty())
       {
         std::cout << "No mass ranges for " << features[i].getRT() << " " << features[i].getMZ() << std::endl;
       }
@@ -1485,7 +1487,7 @@ namespace OpenMS
     StopWatch timer;
     timer.start();
 #endif
-    if (new_feature.getPeptideIdentifications().size() > 0 && new_feature.getPeptideIdentifications()[0].getHits().size() > 0)
+    if (!new_feature.getPeptideIdentifications().empty() && !new_feature.getPeptideIdentifications()[0].getHits().empty())
     {
       // if a selected feature yielded a peptide id, the peptide probability needs to be considered in the protein constraint
       double pep_score = new_feature.getPeptideIdentifications()[0].getHits()[0].getScore();

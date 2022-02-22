@@ -58,8 +58,9 @@ namespace OpenMS
   MRMFeature & MRMFeature::operator = (const MRMFeature &rhs)
   {
     if (&rhs == this)
+    {
       return *this;
-
+    }
     Feature::operator = (rhs);
     setScores(rhs.getScores());
     features_ = rhs.features_;
@@ -162,8 +163,10 @@ namespace OpenMS
   void MRMFeature::IDScoresAsMetaValue(bool decoy, const OpenSwath_Ind_Scores& idscores)
   {
     String id = "id_target_";
-    if (decoy) id = "id_decoy_";
-
+    if (decoy)
+    {
+      id = "id_decoy_";
+    }
     setMetaValue(id + "transition_names", idscores.ind_transition_names);
     setMetaValue(id + "num_transitions", idscores.ind_num_transitions);
     setMetaValue(id + "area_intensity", idscores.ind_area_intensity);

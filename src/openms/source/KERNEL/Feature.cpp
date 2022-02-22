@@ -131,7 +131,7 @@ namespace OpenMS
       else
       {
         convex_hull_.clear();
-        if (convex_hulls_.size() > 0)
+        if (!convex_hulls_.empty())
         {
           /*
           -- this does not work with our current approach of "non-convex"hull computation as the mass traces of features cannot be combined
@@ -166,10 +166,13 @@ namespace OpenMS
   bool Feature::encloses(double rt, double mz) const
   {
     ConvexHull2D::PointType tmp(rt, mz);
-    for (vector<ConvexHull2D>::const_iterator   it = convex_hulls_.begin(); it != convex_hulls_.end(); ++it)
+
+    for (const ConvexHull2D& hull : convex_hulls_)
     {
-      if (it->encloses(tmp))
+      if (hull.encloses(tmp))
+      {
         return true;
+      }
     }
     return false;
   }
@@ -229,6 +232,15 @@ namespace OpenMS
   void Feature::setSubordinates(const std::vector<Feature>& rhs)
   {
     subordinates_ = rhs;
+  }
+
+  void Feature::updateAllIDReferences(const IdentificationData::RefTranslator& trans)
+  {
+    updateIDReferences(trans); // update the feature itself (via BaseFeature method)
+    for (Feature& sub : subordinates_) // recursively update subordinate features
+    {
+      sub.updateAllIDReferences(trans);
+    }
   }
 
 }

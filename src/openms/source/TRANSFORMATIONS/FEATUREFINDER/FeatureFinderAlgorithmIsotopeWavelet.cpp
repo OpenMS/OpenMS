@@ -158,8 +158,8 @@ namespace OpenMS
 
   void FeatureFinderAlgorithmIsotopeWavelet::run()
   {
-    double max_mz = this->map_->getMax()[1];
-    double min_mz = this->map_->getMin()[1];
+    double max_mz = this->map_->getMaxMZ();
+    double min_mz = this->map_->getMinMZ();
 
     Size max_size = 0;
 

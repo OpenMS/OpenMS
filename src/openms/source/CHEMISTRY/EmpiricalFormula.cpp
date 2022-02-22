@@ -44,10 +44,10 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-
 #include <boost/math/special_functions/binomial.hpp>
 
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -227,14 +227,8 @@ namespace OpenMS
   String EmpiricalFormula::toString() const
   {
     String formula;
-    std::map<String, SignedSize> new_formula;
-
-    for (const auto& it : formula_)
-    {
-      new_formula[it.first->getSymbol()] = it.second;
-    }
-
-    for (const auto& it : new_formula)
+    auto formula_map = toMap();
+    for (const auto& it : formula_map)
     {
       (formula += it.first) += String(it.second);
     }
@@ -243,13 +237,12 @@ namespace OpenMS
 
   std::map<std::string, int> EmpiricalFormula::toMap() const
   {
-    std::map<std::string, int> new_formula;
-
+    std::map<std::string, int> formula_map;
     for (const auto & it : formula_)
     {
-      new_formula[it.first->getSymbol()] = it.second;
+      formula_map[it.first->getSymbol()] = it.second;
     }
-    return new_formula;
+    return formula_map;
   }
 
   EmpiricalFormula EmpiricalFormula::operator*(const SignedSize& times) const
@@ -358,7 +351,7 @@ namespace OpenMS
     return formula_.find(element) != formula_.end();
   }
 
-  bool EmpiricalFormula::contains(const EmpiricalFormula& ef)
+  bool EmpiricalFormula::contains(const EmpiricalFormula& ef) const
   {
     for (const auto& it : ef)
     {
@@ -518,7 +511,7 @@ namespace OpenMS
 
     // split the formula
     vector<String> splitter;
-    if (formula.size() > 0)
+    if (!formula.empty())
     {
       if (!isdigit(formula[0]) || formula[0] == '(')
       {
@@ -529,7 +522,7 @@ namespace OpenMS
           if ((isupper(formula[i]) && (!is_isotope || is_symbol))
              || formula[i] == '(')
           {
-            if (split != "")
+            if (!split.empty())
             {
               splitter.push_back(split);
               is_isotope = false;
@@ -579,7 +572,7 @@ namespace OpenMS
       }
 
       SignedSize num(1);
-      if (number != "")
+      if (!number.empty())
       {
         num = number.toInt();
       }
@@ -686,5 +679,19 @@ namespace OpenMS
     return formula_ < rhs.formula_;
   }
 
+  EmpiricalFormula EmpiricalFormula::hydrogen(int n_atoms)
+  {
+    const ElementDB* db = ElementDB::getInstance();
+    return EmpiricalFormula(n_atoms, db->getElement(1));
+  }
+
+  EmpiricalFormula EmpiricalFormula::water(int n_molecules)
+  {
+    const ElementDB* db = ElementDB::getInstance();
+    EmpiricalFormula formula;
+    formula.formula_[db->getElement(1)] = n_molecules * 2; // hydrogen
+    formula.formula_[db->getElement(8)] = n_molecules; // oxygen
+    return formula;
+  }
 
 } // namespace OpenMS

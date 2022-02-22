@@ -156,7 +156,7 @@ START_SECTION((MSDataCachedConsumer(String filename, bool clearData=true)))
 
     cached_consumer->setExpectedSize(2,0);
 
-    TEST_EQUAL(exp.getSpectrum(0).size() > 0, true)
+    TEST_EQUAL(!exp.getSpectrum(0).empty(), true)
 
     cached_consumer->consumeSpectrum(exp.getSpectrum(0));
 
@@ -177,11 +177,11 @@ START_SECTION((MSDataCachedConsumer(String filename, bool clearData=true)))
 
     cached_consumer->setExpectedSize(2,0);
 
-    TEST_EQUAL(exp.getSpectrum(0).size() > 0, true)
+    TEST_EQUAL(!exp.getSpectrum(0).empty(), true)
 
     cached_consumer->consumeSpectrum(exp.getSpectrum(0));
 
-    TEST_EQUAL(exp.getSpectrum(0).size() > 0, true)
+    TEST_EQUAL(!exp.getSpectrum(0).empty(), true)
     TEST_EQUAL(exp.getSpectrum(0) == first_spectrum, true)
 
     delete cached_consumer;

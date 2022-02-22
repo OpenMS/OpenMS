@@ -273,7 +273,10 @@ namespace OpenMS::Math
       vector<double> x_scores{search_engine_scores};
 
       //transform to a positive range
-      for (double & d : x_scores) { d += fabs(smallest_score_) + 0.001; }
+      for (double & d : x_scores)
+      { 
+        d += fabs(smallest_score_) + 0.001;
+      }
 
       processOutliers_(x_scores, outlier_handling);
 
@@ -445,10 +448,15 @@ namespace OpenMS::Math
     {
       bool return_value = fit(search_engine_scores, outlier_handling);
 
-      if (!return_value) return false;
-
+      if (!return_value)
+      {
+        return false;
+      }
       probabilities = std::vector<double>(search_engine_scores);
-      for (double & p : probabilities) { p = computeProbability(p); }
+      for (double & p : probabilities)
+      { 
+        p = computeProbability(p);
+      }
 
       return true;
     }
@@ -509,7 +517,7 @@ namespace OpenMS::Math
       }
     }
 
-    double PosteriorErrorProbabilityModel::computeLogLikelihood(const vector<double>& incorrect_density, const vector<double>& correct_density)
+    double PosteriorErrorProbabilityModel::computeLogLikelihood(const vector<double>& incorrect_density, const vector<double>& correct_density) const
     {
       double maxlike(0);
       auto incorrect = incorrect_density.cbegin();
@@ -522,7 +530,7 @@ namespace OpenMS::Math
 
     double PosteriorErrorProbabilityModel::computeLLAndIncorrectPosteriorsFromLogDensities(
         const vector<double>& incorrect_log_density, const vector<double>& correct_log_density,
-        vector<double>& incorrect_posterior)
+        vector<double>& incorrect_posterior) const
     {
       double loglikelihood = 0.0;
       double log_prior_pos = log(1. - negative_prior_);
@@ -647,10 +655,10 @@ namespace OpenMS::Math
       }
 
       TextFile data_points;
-      for (vector<DPosition<2> >::iterator it = points.begin(); it < points.end(); ++it)
+      for (DPosition<2>& dp : points)
       {
-        it->setY(it->getY() / (x_scores.size()  * dividing_score));
-        data_points << (String(it->getX()) + "\t" + it->getY());
+        dp.setY(dp.getY() / (x_scores.size()  * dividing_score));
+        data_points << (String(dp.getX()) + "\t" + dp.getY());
       }
       data_points.store((std::string)param_.getValue("out_plot") + "_scores.txt");
 
@@ -697,14 +705,14 @@ namespace OpenMS::Math
 
     void PosteriorErrorProbabilityModel::plotTargetDecoyEstimation(vector<double>& target, vector<double>& decoy)
     {
-      if (target.size() == 0 || decoy.size() == 0)
+      if (target.empty() || decoy.empty())
       {
         StringList empty;
-        if (target.size() == 0)
+        if (target.empty())
         {
           empty.push_back("target");
         }
-        if (decoy.size() == 0) 
+        if (decoy.empty()) 
         {
           empty.push_back("decoy");
         }
@@ -771,15 +779,15 @@ namespace OpenMS::Math
       }
 
       TextFile data_points;
-      for (vector<DPosition<3> >::iterator it = points.begin(); it < points.end(); ++it)
+      for (DPosition<3>& dpx : points)
       {
-        (*it)[1] = ((*it)[1] / ((decoy.size() + target.size())  * dividing_score));
-        (*it)[2] = ((*it)[2] / ((decoy.size() + target.size())  * dividing_score));
-        String temp_ = (*it)[0];
+        (dpx)[1] = ((dpx)[1] / ((decoy.size() + target.size())  * dividing_score));
+        (dpx)[2] = ((dpx)[2] / ((decoy.size() + target.size())  * dividing_score));
+        String temp_ = (dpx)[0];
         temp_ += "\t";
-        temp_ += (*it)[1];
+        temp_ += (dpx)[1];
         temp_ += "\t";
-        temp_ += (*it)[2];
+        temp_ += (dpx)[2];
         data_points << temp_;
       }
       data_points.store((std::string)param_.getValue("out_plot") + "_target_decoy_scores.txt");
@@ -816,7 +824,10 @@ namespace OpenMS::Math
 
     void PosteriorErrorProbabilityModel::processOutliers_(vector<double>& x_scores, const String& outlier_handling) const
     {
-      if (x_scores.empty()) return; //shouldn't happen, but be safe.
+      if (x_scores.empty())
+      {
+        return; //shouldn't happen, but be safe.
+      }
       if (outlier_handling != "none")
       {
         Size nr_outliers = 0;
@@ -884,17 +895,17 @@ namespace OpenMS::Math
         {
             if (actual_score_type == requested_score_type)
             {
-                return hit.getScore();
+              return hit.getScore();
             }
             else
             {
                 if (hit.metaValueExists(requested_score_type))
                 {
-                    return static_cast<double>(hit.getMetaValue(requested_score_type));
+                  return static_cast<double>(hit.getMetaValue(requested_score_type));
                 }
                 if (hit.metaValueExists(requested_score_type+"_score"))
                 {
-                    return static_cast<double>(hit.getMetaValue(requested_score_type+"_score"));
+                  return static_cast<double>(hit.getMetaValue(requested_score_type+"_score"));
                 }
             }
         }
@@ -977,7 +988,10 @@ namespace OpenMS::Math
         for (PeptideIdentification const & pep_id : peptide_ids)
         {
           const vector<PeptideHit>& hits = pep_id.getHits();
-          for (PeptideHit const & hit : hits) { charges.insert(hit.getCharge()); }
+          for (PeptideHit const & hit : hits)
+          { 
+            charges.insert(hit.getCharge());
+          }
         }
         if (charges.empty())
         {
@@ -1078,7 +1092,10 @@ namespace OpenMS::Math
           decoy.clear();
         }
 
-        if (split_charge) { ++charge_it; }
+        if (split_charge)
+        { 
+          ++charge_it;
+        }
       } while (charge_it != charges.end());
       return all_scores;
     }
@@ -1100,7 +1117,7 @@ namespace OpenMS::Math
       data_might_not_be_well_fit = false;
 
       engine.toUpper();
-      for (ProteinIdentification & prot : protein_ids)
+      for (ProteinIdentification& prot : protein_ids)
       {
         String se = prot.getSearchEngine();
         se.toUpper();

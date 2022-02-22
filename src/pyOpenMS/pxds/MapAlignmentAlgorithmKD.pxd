@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h>" names
             #   -----
             #   All CCCs above a user-specified minimum size are considered true sets of corresponding features
             #   and based on these, LOWESS transformations are computed for each input map such that the average
-            #   deviation from the mean retention time within all CCCs is minimized.
+            #   deviation from the mean retention time within all CCCs is minimized
 
         # private
         MapAlignmentAlgorithmKD() nogil except + # wrap-ignore

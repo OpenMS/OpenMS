@@ -53,6 +53,7 @@
 #include <functional>
 
 #include <boost/bind.hpp>
+#include <cmath> // for isnan
 
 const double C13C12_MASSDIFF_U = 1.0033548;
 
@@ -465,7 +466,7 @@ namespace OpenMS
     // score the pattern against a theoretical one
     OPENMS_POSTCONDITION(isotopes_int.size() == isotopes.intensity.size(), "Vectors for pearson correlation do not have the same size.");
     double int_score = OpenSwath::cor_pearson(isotopes_int.begin(), isotopes_int.end(), isotopes.intensity.begin());
-    if (boost::math::isnan(int_score))
+    if (std::isnan(int_score))
     {
       int_score = 0;
     }

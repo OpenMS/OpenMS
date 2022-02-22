@@ -48,6 +48,8 @@
 #include <QtCore/QDir>
 #include <QtNetwork/QHostInfo>
 
+#include <atomic>
+
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
 #endif
@@ -76,7 +78,8 @@ namespace OpenMS
 
   File::TempDir::~TempDir()
   {
-    if (keep_dir_) {
+    if (keep_dir_)
+    {
       OPENMS_LOG_DEBUG << "Keeping temporary files in directory '" << temp_dir_ << std::endl;
       return;
     }
@@ -120,8 +123,8 @@ namespace OpenMS
           {
             // ensure path ends with a "/", such that we can just write path + "ToolX", and to not worry about if its empty or a path.
             rpath.ensureLastChar('/');
-          } 
-          else 
+          }
+          else
           {
             std::cerr << "Path '" << rpath << "' extracted from Executable Path '" << path << "' does not exist! Returning empty string!\n";
             rpath = "";
@@ -177,30 +180,30 @@ namespace OpenMS
   }
 
   // https://stackoverflow.com/questions/2536524/copy-directory-using-qt
-  bool File::copyDirRecursively(const QString &from_dir, const QString &to_dir, File::CopyOptions option)
+  bool File::copyDirRecursively(const QString& from_dir, const QString& to_dir, File::CopyOptions option)
   {
     QDir source_dir(from_dir);
     QDir target_dir(to_dir);
 
     QString canonical_source_dir = source_dir.canonicalPath();
     QString canonical_target_dir = target_dir.canonicalPath();
-   
-    // check canonical path  
+
+    // check canonical path
     if (canonical_source_dir == canonical_target_dir)
     {
-      OPENMS_LOG_ERROR << "Error: Could not copy  " << from_dir.toStdString() << " to " << to_dir.toStdString() << ". Same path given." << std::endl;;  
+      OPENMS_LOG_ERROR << "Error: Could not copy  " << from_dir.toStdString() << " to " << to_dir.toStdString() << ". Same path given." << std::endl;
       return false;
     }
 
-    // make directory if not present 
+    // make directory if not present
     if (!target_dir.exists())
     {
       target_dir.mkpath(to_dir);
     }
-  
+
     // copy folder recursively
     QFileInfoList file_list = source_dir.entryInfoList();
-    for (const QFileInfo& entry : file_list)   
+    for (const QFileInfo& entry : file_list)
     {
       if (entry.fileName() == "." || entry.fileName() == "..")
       {
@@ -219,10 +222,10 @@ namespace OpenMS
         {
           switch (option)
             {
-              case CopyOptions::CANCEL: 
+              case CopyOptions::CANCEL:
                 return false;
-              case CopyOptions::SKIP: 
-                OPENMS_LOG_WARN << "The file " << entry.fileName().toStdString() << " was skipped." << std::endl; 
+              case CopyOptions::SKIP:
+                OPENMS_LOG_WARN << "The file " << entry.fileName().toStdString() << " was skipped." << std::endl;
                 continue;
               case CopyOptions::OVERWRITE:
                 target_dir.remove(entry.fileName());
@@ -240,11 +243,13 @@ namespace OpenMS
   bool File::remove(const String& file)
   {
     if (!exists(file))
+    {
       return true;
-
+    }
     if (std::remove(file.c_str()) != 0)
+    {
       return false;
-
+    }
     return true;
   }
 
@@ -328,7 +333,7 @@ namespace OpenMS
     // do NOT return an empty string, because this leads to issues when in generic code you do:
     // String new_path = path("a.txt") + '/' + basename("a.txt");
     // , as this would lead to "/a.txt", i.e. create a wrong absolute path from a relative name
-    String no_path = "."; 
+    String no_path = ".";
     return pos == string::npos ? no_path : file.substr(0, pos);
   }
 
@@ -364,8 +369,10 @@ namespace OpenMS
     // maybe we do not need to do anything?!
     // This check is required since calling File::find(File::find("CHEMISTRY/unimod.xml")) will otherwise fail
     // because the outer call receives an absolute path already
-    if (exists(filename)) return filename;
-
+    if (exists(filename))
+    {
+      return filename;
+    }
     String filename_new = filename;
 
     // empty string cannot be found, so throw Exception.
@@ -379,20 +386,20 @@ namespace OpenMS
 
     //add path suffix to all specified directories
     String path = File::path(filename);
-    if (path != "")
+    if (!path.empty())
     {
-      for (StringList::iterator it = directories.begin(); it != directories.end(); ++it)
+      for (String& str : directories)
       {
-        it->ensureLastChar('/');
-        *it += path;
+        str.ensureLastChar('/');
+        str += path;
       }
       filename_new = File::basename(filename);
     }
 
     //look up file
-    for (StringList::const_iterator it = directories.begin(); it != directories.end(); ++it)
+    for (const String& str : directories)
     {
-      String loc = *it;
+      String loc = str;
       loc.ensureLastChar('/');
       loc = loc + filename_new;
 
@@ -478,7 +485,10 @@ namespace OpenMS
         path = getenv("OPENMS_DATA_PATH");
         from_env = true;
         path_checked = isOpenMSDataPath_(path);
-        if (path_checked) found_path_from = "OPENMS_DATA_PATH (environment)";
+        if (path_checked)
+        {
+          found_path_from = "OPENMS_DATA_PATH (environment)";
+        }
       }
 
       // probe the install path
@@ -486,7 +496,10 @@ namespace OpenMS
       {
         path = OPENMS_INSTALL_DATA_PATH;
         path_checked = isOpenMSDataPath_(path);
-        if (path_checked) found_path_from = "OPENMS_INSTALL_DATA_PATH (compiled)";
+        if (path_checked)
+        {
+          found_path_from = "OPENMS_INSTALL_DATA_PATH (compiled)";
+        }
       }
 
       // probe the OPENMS_DATA_PATH macro
@@ -506,13 +519,16 @@ namespace OpenMS
         if (path_checked) found_path_from = "bundle path (run time)";
       }
   #endif
-      
+
       // On Linux and Apple check relative from the executable
       if (!path_checked)
       {
         path = getExecutablePath() + "../share/OpenMS";
         path_checked = isOpenMSDataPath_(path);
-        if (path_checked) found_path_from = "tool path (run time)";
+        if (path_checked)
+        {
+          found_path_from = "tool path (run time)";
+        }
       }
 
       // make its a proper path:
@@ -561,7 +577,7 @@ namespace OpenMS
     {
       dir = getenv("OPENMS_TMPDIR");
     }
-    else if (p.exists("temp_dir") && String(p.getValue("temp_dir").toString()).trim() != "")
+    else if (p.exists("temp_dir") && !String(p.getValue("temp_dir").toString()).trim().empty())
     {
       dir = p.getValue("temp_dir").toString();
     }
@@ -581,7 +597,7 @@ namespace OpenMS
     {
       dir = getenv("OPENMS_HOME_PATH");
     }
-    else if (p.exists("home_dir") && String(p.getValue("home_dir").toString()).trim() != "")
+    else if (p.exists("home_dir") && !String(p.getValue("home_dir").toString()).trim().empty())
     {
       dir = p.getValue("home_dir").toString();
     }
@@ -720,8 +736,10 @@ namespace OpenMS
 
   bool File::findExecutable(OpenMS::String& exe_filename)
   {
-    if (exists(exe_filename) && !isDirectory(exe_filename)) return true;
-
+    if (exists(exe_filename) && !isDirectory(exe_filename))
+    {
+      return true;
+    }
     StringList paths = getPathLocations();
     StringList exe_filenames = { exe_filename };
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -747,7 +765,7 @@ namespace OpenMS
     }
     return false;
   }
-  
+
   String File::findSiblingTOPPExecutable(const OpenMS::String& toolName)
   {
     // we first try the executablePath
@@ -757,17 +775,19 @@ namespace OpenMS
     if (!exec.hasSuffix(".exe")) exec += ".exe";
 #endif
 
-    if (File::exists(exec)) return exec;
-
+    if (File::exists(exec))
+    {
+      return exec;
+    }
 #if defined(__APPLE__)
-    // check if we are in one of the bundles (only built, not installed) 
+    // check if we are in one of the bundles (only built, not installed)
     exec = File::getExecutablePath() + "../../../" + toolName;
     if (File::exists(exec)) return exec;
 
     // check if we are in one of the bundles in an installed bundle (old bundles)
     exec = File::getExecutablePath() + "../../../TOPP/" + toolName;
     if (File::exists(exec)) return exec;
-    
+
     // check if we are in one of the bundles in an installed bundle (new bundles)
     exec = File::getExecutablePath() + "../../../bin/" + toolName;
     if (File::exists(exec)) return exec;
@@ -777,11 +797,13 @@ namespace OpenMS
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, toolName);
   }
 
-  const String& File::getTemporaryFile(const String& alternative_file)
+  String File::getTemporaryFile(const String& alternative_file)
   {
     // take no action
-    if (!alternative_file.empty()) return alternative_file;
-
+    if (!alternative_file.empty())
+    {
+      return alternative_file;
+    }
     // create temporary (and schedule for deletion)
     return temporary_files_.newFile();
   }
@@ -792,12 +814,13 @@ namespace OpenMS
   {
   }
 
-  const String& File::TemporaryFiles_::newFile()
+  String File::TemporaryFiles_::newFile()
   {
     String s = getTempDirectory().ensureLastChar('/') + getUniqueName();
     std::lock_guard<std::mutex> _(mtx_);
     filenames_.push_back(s);
-    return filenames_.back();
+    // do NOT return filenames_.back() by ref, since another thread might resize the vector and invalidate the reference!
+    return s; // uses RVO, so its efficient
   }
 
   File::TemporaryFiles_::~TemporaryFiles_()
@@ -805,7 +828,7 @@ namespace OpenMS
     std::lock_guard<std::mutex> _(mtx_);
     for (Size i = 0; i < filenames_.size(); ++i)
     {
-      if (File::exists(filenames_[i]) && !File::remove(filenames_[i])) 
+      if (File::exists(filenames_[i]) && !File::remove(filenames_[i]))
       {
         std::cerr << "Warning: unable to remove temporary file '" << filenames_[i] << "'" << std::endl;
       }
@@ -815,8 +838,10 @@ namespace OpenMS
   bool File::validateMatchingFileNames(const StringList& sl1, const StringList& sl2, bool basename, bool ignore_extension, bool strict)
   {
     // same number of filenames?
-    if (sl1.size() != sl2.size()) return false;
-
+    if (sl1.size() != sl2.size())
+    {
+      return false;
+    }
     set<String> sl1_set;
     set<String> sl2_set;
     bool different_name_at_index = false;
@@ -840,18 +865,25 @@ namespace OpenMS
       sl1_set.insert(sl1_name);
       sl2_set.insert(sl2_name);
 
-      if (sl1_name != sl2_name) different_name_at_index = true;      
+      if (sl1_name != sl2_name)
+      {
+        different_name_at_index = true;
+      }
     }
 
     // Check for common mistake that order of input files have been switched.
     // This is the case if names (or basenames) are identical but the order does not match.
     bool same_set = (sl1_set == sl2_set);
-    if (same_set && different_name_at_index) return false;
-
+    if (same_set && different_name_at_index)
+    {
+      return false;
+    }
     // If we enforce a strict check then the sets of filenames must be identical.
     // Note that this can lead to problems if a workflow engine assigns random names to intermediate results.
-    if (strict && !same_set) return false;
-
+    if (strict && !same_set)
+    {
+      return false;
+    }
     return true;
   }
 

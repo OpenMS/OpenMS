@@ -62,7 +62,7 @@ namespace OpenMS
 
 public:
       TOPPViewPrefDialog(QWidget * parent);
-      ~TOPPViewPrefDialog();
+      ~TOPPViewPrefDialog() override;
 
       /// initialize GUI values with these parameters
       void setParam(const Param& param);
@@ -76,6 +76,7 @@ protected slots:
 private:
       Ui::TOPPViewPrefDialogTemplate* ui_;
       mutable Param param_; ///< is updated in getParam()
+      Param tsg_param_; ///< params for TheoreticalSpectrumGenerator in the TSG tab
     };
   }
 }

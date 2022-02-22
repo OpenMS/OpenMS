@@ -56,7 +56,7 @@ namespace OpenMS
     return r;
   }
 
-  FS_LAYER OPENMS_GUI_DLLAPI operator+(const LayerData::DataType left, const LayerData::DataType right)
+  FS_LAYER OPENMS_GUI_DLLAPI operator+(const LayerDataBase::DataType left, const LayerDataBase::DataType right)
   {
     FS_LAYER r;
     r += left;
@@ -91,10 +91,10 @@ namespace OpenMS
 
     m_file->addSeparator();
     
-    //Specifically set the role of the Preferences item. Additionally we have to avoid adding other action items that are
+    // Specifically set the role of the Preferences item. Additionally we have to avoid adding other action items that are
     // called preferences/config/options and have the default TextHeuristicRole because otherwise they will overwrite the macOS specific
     // menu entry under Application -> Preferences...
-    //m_file->addAction("&Preferences", parent, &TOPPViewBase::preferencesDialog);
+    // m_file->addAction("&Preferences", parent, &TOPPViewBase::preferencesDialog);
     auto pref = new QAction("&Preferences", parent);
     pref->setMenuRole(QAction::PreferencesRole);
     pref->setEnabled(true);
@@ -125,15 +125,15 @@ namespace OpenMS
     m_tools->addSeparator();
     
     action = addAction_(m_tools->addAction("&Annotate with AccurateMassSearch results", parent, &TOPPViewBase::annotateWithAMS, Qt::CTRL + Qt::Key_A),
-      TV_STATUS::HAS_LAYER, FS_LAYER(LayerData::DT_PEAK));
+      TV_STATUS::HAS_LAYER, FS_LAYER(LayerDataBase::DT_PEAK));
     action->setToolTip("Annotate Peak layer with a featureXML from the AccurateMassSearch tool");
     
     action = addAction_(m_tools->addAction("&Annotate with peptide identifications", parent, &TOPPViewBase::annotateWithID, Qt::CTRL + Qt::Key_I),
-      TV_STATUS::HAS_LAYER, LayerData::DT_PEAK + LayerData::DT_FEATURE + LayerData::DT_CONSENSUS);
+      TV_STATUS::HAS_LAYER, LayerDataBase::DT_PEAK + LayerDataBase::DT_FEATURE + LayerDataBase::DT_CONSENSUS);
     action->setToolTip("Annotate a Peak or Feature or Consensus layer with peptide identifications");
 
     action = addAction_(m_tools->addAction("&Annotate with OpenSwath transitions", parent, &TOPPViewBase::annotateWithOSW, Qt::CTRL + Qt::Key_P),
-      TV_STATUS::HAS_LAYER, FS_LAYER(LayerData::DT_CHROMATOGRAM));
+      TV_STATUS::HAS_LAYER, FS_LAYER(LayerDataBase::DT_CHROMATOGRAM));
     action->setToolTip("Annotate Chromatogram layer with OSW transition id data from OpenSwathWorkflow or pyProphet");
     
     action = addAction_(m_tools->addAction("Align spectra", parent, &TOPPViewBase::showSpectrumAlignmentDialog),
@@ -159,6 +159,7 @@ namespace OpenMS
       TV_STATUS::IS_1D_VIEW);
     action->setToolTip("Only available in 1D View");
     m_layer->addSeparator();
+    
     // Do not call it preferences without disabling text heuristics role.
     addAction_(m_layer->addAction("Layer preferences", parent, &TOPPViewBase::showPreferences),
       TV_STATUS::HAS_LAYER);
@@ -186,10 +187,13 @@ namespace OpenMS
     m_help->addAction("Tutorials and documentation", []() { GUIHelpers::openURL("html/index.html"); }, Qt::Key_F1);
 
     m_help->addSeparator();
+
+    // Note: it is important to pass parent by value, since the lambda will be evaluated later, 
+    // even after this function returned and parent reference would be out of scope.
     m_help->addAction("&About", [parent]() {QApplicationTOPP::showAboutDialog(parent, "TOPPView"); });
   }
 
-  void TOPPViewMenu::update(const FS_TV status, const LayerData::DataType layer_type)
+  void TOPPViewMenu::update(const FS_TV status, const LayerDataBase::DataType layer_type)
   {
     for (auto& ar : menu_items_)
     { // only disable if not supported by the view. This way, the user can still see the item (greyed out) and its ToolTip (for how to activate the item)
@@ -214,7 +218,7 @@ namespace OpenMS
   }
 
 
-  void TOPPViewMenu::ActionRequirement_::enableAction(const FS_TV status, const LayerData::DataType layer_type)
+  void TOPPViewMenu::ActionRequirement_::enableAction(const FS_TV status, const LayerDataBase::DataType layer_type)
   {
     bool status_ok = status.isSuperSetOf(needs_);
     bool layer_ok = layer_set_.isSuperSetOf(layer_type) || layer_set_.empty();

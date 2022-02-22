@@ -162,7 +162,7 @@ public:
                                                   TargetedExperimentT& selected_transitions,
                                                   double min_upper_edge_dist)
     {
-      if (exp.size() == 0 || exp[0].getPrecursors().size() == 0)
+      if (exp.empty() || exp[0].getPrecursors().empty())
       {
         std::cerr << "WARNING: File " << exp.getLoadedFilePath()
                   << " does not have any experiments or any precursors. Is it a SWATH map? "

@@ -284,7 +284,7 @@ namespace OpenMS
     spec.sortByPosition();
   }
 
-  void CompNovoIdentificationBase::filterPermuts_(set<String> & permut)
+  void CompNovoIdentificationBase::filterPermuts_(set<String> & permut) const
   {
     set<String> tmp;
     for (set<String>::const_iterator it = permut.begin(); it != permut.end(); ++it)
@@ -470,7 +470,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
   }
 
   // s1 should be the original spectrum
-  double CompNovoIdentificationBase::compareSpectra_(const PeakSpectrum & s1, const PeakSpectrum & s2)
+  double CompNovoIdentificationBase::compareSpectra_(const PeakSpectrum & s1, const PeakSpectrum & s2) const
   {
     double score(0.0);
 

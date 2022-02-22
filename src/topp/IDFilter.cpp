@@ -290,7 +290,7 @@ protected:
 
     // handle remove_meta
     StringList meta_info = getStringList_("remove_peptide_hits_by_metavalue");
-    bool remove_meta_enabled = (meta_info.size() > 0);
+    bool remove_meta_enabled = (!meta_info.empty());
     if (remove_meta_enabled && meta_info.size() != 3)
     {
       writeLog_("Param 'remove_peptide_hits_by_metavalue' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
@@ -410,10 +410,9 @@ protected:
       vector<FASTAFile::FASTAEntry> fasta;
       FASTAFile().load(blacklist_fasta, fasta);
       set<String> accessions;
-      for (vector<FASTAFile::FASTAEntry>::iterator it = fasta.begin();
-           it != fasta.end(); ++it)
+      for (FASTAFile::FASTAEntry& ft : fasta)
       {
-        accessions.insert(it->identifier);
+        accessions.insert(ft.identifier);
       }
       IDFilter::removeHitsMatchingProteins(peptides, accessions);
       IDFilter::removeHitsMatchingProteins(proteins, accessions);
@@ -564,11 +563,10 @@ protected:
       OPENMS_LOG_INFO << "Filtering for variable modifications..." << endl;
       // gather possible variable modifications from search parameters:
       set<String> var_mods;
-      for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
-           prot_it != proteins.end(); ++prot_it)
+      for (ProteinIdentification& prot : proteins)
       {
         const ProteinIdentification::SearchParameters& params =
-          prot_it->getSearchParameters();
+          prot.getSearchParameters();
         for (vector<String>::const_iterator mod_it =
                params.variable_modifications.begin(); mod_it !=
                params.variable_modifications.end(); ++mod_it)
@@ -726,18 +724,17 @@ protected:
     }
 
     // propagate filter from protein level to protein group level
-    for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
-         prot_it != proteins.end(); ++prot_it)
+    for (ProteinIdentification& prot : proteins)
     {
-      bool valid = IDFilter::updateProteinGroups(prot_it->getProteinGroups(),
-                                                 prot_it->getHits());
+      bool valid = IDFilter::updateProteinGroups(prot.getProteinGroups(),
+                                                 prot.getHits());
       if (!valid)
       {
         OPENMS_LOG_WARN << "Warning: While updating protein groups, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more." << endl;
       }
 
       valid = IDFilter::updateProteinGroups(
-          prot_it->getIndistinguishableProteins(), prot_it->getHits());
+          prot.getIndistinguishableProteins(), prot.getHits());
       if (!valid)
       {
         OPENMS_LOG_WARN << "Warning: While updating indistinguishable proteins, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more." << endl;
@@ -746,14 +743,17 @@ protected:
       if (prot_grp_score != 0.0)
       {
         // Pass potential filtering on group level down to proteins
-        IDFilter::removeUngroupedProteins(prot_it->getIndistinguishableProteins(), prot_it->getHits());
+        IDFilter::removeUngroupedProteins(prot.getIndistinguishableProteins(), prot.getHits());
       }
     }
 
     // remove non-existant protein references from peptides (and optionally:
     // remove peptides with no proteins):
     bool rm_pep = getFlag_("delete_unreferenced_peptide_hits");
-    if (rm_pep) OPENMS_LOG_INFO << "Removing peptide hits without protein references..." << endl;
+    if (rm_pep)
+    {
+      OPENMS_LOG_INFO << "Removing peptide hits without protein references..." << endl;
+    }
     IDFilter::updateProteinReferences(peptides, proteins, rm_pep);
 
     IDFilter::removeEmptyIdentifications(peptides);

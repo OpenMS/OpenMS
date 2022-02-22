@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.9.0 FATAL_ERROR)
 project("OpenMS_class_tests_openms")
 
 #------------------------------------------------------------------------------
@@ -70,7 +70,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # QT dependencies
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Network Sql REQUIRED)
 if (NOT Qt5Network_FOUND)
   message(STATUS "QtNetwork module not found!")
   message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
@@ -96,10 +96,17 @@ endforeach(_class_test)
 set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
 
 #------------------------------------------------------------------------------
-# 2 - add link dependency
+# 2 - add link dependencies (TODO could be more finegrained for boost)
 foreach(t ${Boost_dependent_tests})
-  target_link_libraries(${t} ${Boost_LIBRARIES})
+  foreach(comp ${OpenMS_BOOST_COMPONENTS})
+    target_link_libraries(${t} Boost::${comp})
+  endforeach()
 endforeach()
+
+target_link_libraries(Base64_test ZLIB::ZLIB)
+target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
+target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
+target_link_libraries(HDF5_test HDF5::HDF5)
 
 #------------------------------------------------------------------------------
 # restore old compiler flags

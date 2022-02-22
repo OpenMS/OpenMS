@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/TriqlerFile.h>
+
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 
 #include <tuple>
@@ -274,8 +276,10 @@ void TriqlerFile::storeLFQ(const String& filename,
         const Int precursor_charge = pep_hit.getCharge();
 
         String accession  = ListUtils::concatenate(accs, accdelim_);
-        if (accession.empty()) accession = na_string_; // shouldn't really matter since we skip unquantifiable peptides
-
+        if (accession.empty())
+        {
+          accession = na_string_; // shouldn't really matter since we skip unquantifiable peptides
+        }
         // Write new line for each run
         for (Size j = 0; j < aggregatedInfo.consensus_feature_filenames[i].size(); j++)
         {
@@ -367,13 +371,19 @@ bool TriqlerFile::isQuantifyable_(
     const std::set<String>& accs,
     const std::unordered_map<String, const IndProtGrp*>& accession_to_group) const
 {
-  if (accs.empty()) return false;
-
-  if (accs.size() == 1) return true;
-
+  if (accs.empty())
+  {
+    return false;
+  }
+  if (accs.size() == 1)
+  {
+    return true;
+  }
   auto git = accession_to_group.find(*accs.begin());
-  if (git == accession_to_group.end()) return false;
-
+  if (git == accession_to_group.end())
+  {
+    return false;
+  }
   const IndProtGrp* grp = git->second;
 
   // every prot accession in the set needs to belong to the same indist. group to make this peptide
@@ -386,10 +396,15 @@ bool TriqlerFile::isQuantifyable_(
     // we assume that it is a singleton. Cannot be quantifiable anymore.
     // Set makes them unique. Non-membership in groups means that there is at least one other
     // non-agreeing protein in the set.
-    if (it == accession_to_group.end()) return false;
-
+    if (it == accession_to_group.end())
+    {
+      return false;
+    }
     // check if two different groups
-    if (it->second != grp) return false;
+    if (it->second != grp)
+    {
+      return false;
+    }
   }
   
   return true;

@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
 namespace OpenMS
@@ -91,7 +93,9 @@ namespace OpenMS
       for (Size s = 0; s < input_map.size(); ++s)
       {
         if (input_map[s].empty())
+        {
           continue;
+        }
         if (input_map[s][0].getMZ() < 0)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureFinder can only operate on spectra that contain peaks with positive m/z values. Filter the data accordingly beforehand! Aborting.");

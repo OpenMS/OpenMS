@@ -188,10 +188,10 @@ public:
       //@}
 
       /// handler which support partial loading, implement this method
-      virtual LOADDETAIL getLoadDetail() const override;
+      LOADDETAIL getLoadDetail() const override;
 
       /// handler which support partial loading, implement this method
-      virtual void setLoadDetail(const LOADDETAIL d) override;
+      void setLoadDetail(const LOADDETAIL d) override;
 
 protected:
 

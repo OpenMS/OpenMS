@@ -43,9 +43,9 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <vector>
 #include <numeric>
@@ -160,9 +160,14 @@ namespace OpenMS
     candidates_out_ = (string)param_.getValue("candidates_out");
   }
 
-  void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features)
+  void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable, 
+    FeatureMap& features, 
+    String spectra_file)
   {
-    for (const FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& c : metaboIdentTable)
+    // if proper mzML is annotated in MS data use this as reference. Otherwise, overwrite with spectra_file information.
+    features.setPrimaryMSRunPath({spectra_file}, ms_data_); 
+
+    for (const auto& c : metaboIdentTable)
     {
       addTargetToLibrary_(c.name, c.formula, c.mass, c.charges, c.rts, c.rt_ranges,
                       c.iso_distrib);
@@ -173,7 +178,10 @@ namespace OpenMS
     params.setValue("stop_report_after_feature", -1); // return all features
     params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
     params.setValue("write_convex_hull", "true");
-    if (min_peak_width_ < 1.0) min_peak_width_ *= peak_width_;
+    if (min_peak_width_ < 1.0)
+    {
+      min_peak_width_ *= peak_width_;
+    }
     params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
                     peak_width_);
     params.setValue("TransitionGroupPicker:min_peak_width", min_peak_width_);
@@ -181,6 +189,8 @@ namespace OpenMS
     // totally breaks the OpenSWATH feature detection (no features found)!
     params.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise",
                     signal_to_noise_);
+    
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages", "false");     
     params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method",
@@ -232,7 +242,7 @@ namespace OpenMS
 
     if (!candidates_out_.empty()) // store feature candidates
     {
-      FeatureXMLFile().store(candidates_out_, features);
+      FileHandler().storeFeatures(candidates_out_, features);
     }
 
     selectFeaturesFromCandidates_(features);
@@ -267,7 +277,14 @@ namespace OpenMS
                << " features left after resolving overlaps (involving "
                << n_overlap_features << " features in " << n_overlap_groups
                << " groups)." << endl;
+      if (features.empty())
+      {
+        OPENMS_LOG_INFO << "No features left after filtering." << endl;
+      }    
     }
+
+    if (features.empty()) return;
+
     n_shared_ = addTargetAnnotations_(features);
 
     if (elution_model_ != "none")
@@ -282,14 +299,11 @@ namespace OpenMS
     }
     else if (!candidates_out_.empty()) // hulls not needed, remove them
     {
-      for (FeatureMap::Iterator feat_it = features.begin();
-           feat_it != features.end(); ++feat_it)
+      for (Feature& feat : features)
       {
-        for (vector<Feature>::iterator sub_it =
-               feat_it->getSubordinates().begin(); sub_it !=
-               feat_it->getSubordinates().end(); ++sub_it)
+        for (Feature& sub : feat.getSubordinates())
         {
-          sub_it->getConvexHulls().clear();
+          sub.getConvexHulls().clear();
         }
       }
     }
@@ -328,7 +342,10 @@ namespace OpenMS
     target.molecular_formula = formula;
     EmpiricalFormula emp_formula(formula);
     bool mass_given = (mass > 0);
-    if (!mass_given) mass = emp_formula.getMonoWeight();
+    if (!mass_given)
+    {
+      mass = emp_formula.getMonoWeight();
+    }
     target.theoretical_mass = mass;
     String target_id = name + "_m" + String(float(mass));
 
@@ -408,8 +425,10 @@ namespace OpenMS
         target_rts_[target.id] = rts[i];
 
         double rt_tol = rt_ranges[i] / 2.0;
-        if (rt_tol == 0) rt_tol = rt_window_ / 2.0;
-
+        if (rt_tol == 0)
+        {
+          rt_tol = rt_window_ / 2.0;
+        }
         // store beginning and end of RT region:
         target.rts.clear();
         addTargetRT_(target, rts[i] - rt_tol);
@@ -426,8 +445,7 @@ namespace OpenMS
   {
     // go through different isotopes:
     Size counter = 0;
-    for (IsotopeDistribution::ConstIterator iso_it = iso_dist.begin();
-         iso_it != iso_dist.end(); ++iso_it, ++counter)
+    for (const Peak1D& iso : iso_dist)
     {
       ReactionMonitoringTransition transition;
       String annotation = "i" + String(counter);
@@ -438,11 +456,13 @@ namespace OpenMS
       // @TODO: use accurate masses from the isotope distribution here?
       transition.setProductMZ(mz + abs(Constants::C13C12_MASSDIFF_U *
                                        float(counter) / charge));
-      transition.setLibraryIntensity(iso_it->getIntensity());
+      transition.setLibraryIntensity(iso.getIntensity());
       // transition.setMetaValue("annotation", annotation); // ???
       transition.setCompoundRef(target_id);
       library_.addTransition(transition);
-      isotope_probs_[transition_name] = iso_it->getIntensity();
+      isotope_probs_[transition_name] = iso.getIntensity();
+      
+      ++counter;
     }
   }
 
@@ -462,16 +482,14 @@ namespace OpenMS
   bool FeatureFinderAlgorithmMetaboIdent::hasOverlappingBounds_(const vector<MassTraceBounds>& mtb1,
                              const vector<MassTraceBounds>& mtb2) const
   {
-    for (vector<MassTraceBounds>::const_iterator mtb1_it = mtb1.begin();
-         mtb1_it != mtb1.end(); ++mtb1_it)
+    for (const MassTraceBounds& mt1 : mtb1)
     {
-      for (vector<MassTraceBounds>::const_iterator mtb2_it = mtb2.begin();
-           mtb2_it != mtb2.end(); ++mtb2_it)
+      for (const MassTraceBounds& mt2 : mtb2)
       {
-        if (!((mtb1_it->rt_max < mtb2_it->rt_min) ||
-              (mtb1_it->rt_min > mtb2_it->rt_max) ||
-              (mtb1_it->mz_max < mtb2_it->mz_min) ||
-              (mtb1_it->mz_min > mtb2_it->mz_max)))
+        if (!((mt1.rt_max < mt2.rt_min) ||
+              (mt1.rt_min > mt2.rt_max) ||
+              (mt1.mz_max < mt2.mz_min) ||
+              (mt1.mz_min > mt2.mz_max)))
         {
           return true;
         }
@@ -506,18 +524,17 @@ namespace OpenMS
   void FeatureFinderAlgorithmMetaboIdent::getFeatureBounds_(const FeatureMap& features,
                          FeatureBoundsMap& feature_bounds)
   {
-    for (FeatureMap::ConstIterator feat_it = features.begin();
-         feat_it != features.end(); ++feat_it)
+    for (const  Feature& feat : features)
     {
-      for (Size i = 0; i < feat_it->getSubordinates().size(); ++i)
+      for (Size i = 0; i < feat.getSubordinates().size(); ++i)
       {
         MassTraceBounds mtb;
         mtb.sub_index = i;
         const ConvexHull2D::PointArrayType& points =
-          feat_it->getConvexHulls()[i].getHullPoints();
+          feat.getConvexHulls()[i].getHullPoints();
         mtb.mz_min = points.front().getY();
         mtb.mz_max = points.back().getY();
-        const Feature& sub = feat_it->getSubordinates()[i];
+        const Feature& sub = feat.getSubordinates()[i];
         // convex hulls should be written out by "MRMFeatureFinderScoring" (see
         // parameter "write_convex_hull"):
         if (sub.getConvexHulls().empty())
@@ -528,7 +545,10 @@ namespace OpenMS
         }
         const ConvexHull2D& hull = sub.getConvexHulls()[0];
         // find beginning of mass trace (non-zero intensity):
-        if (hull.getHullPoints().empty()) continue;
+        if (hull.getHullPoints().empty())
+        {
+          continue;
+        }
         double rt_min = hull.getHullPoints().back().getX();
         for (ConvexHull2D::PointArrayType::const_iterator p_it =
                hull.getHullPoints().begin(); p_it != hull.getHullPoints().end();
@@ -546,17 +566,23 @@ namespace OpenMS
                hull.getHullPoints().rbegin(); p_it !=
                hull.getHullPoints().rend(); ++p_it)
         {
-          if (p_it->getX() < rt_min) break;
+          if (p_it->getX() < rt_min)
+          {
+            break;
+          }
           if (p_it->getY() > 0)
           {
             rt_max = p_it->getX();
             break;
           }
         }
-        if (rt_min > rt_max) continue; // no peak -> skip
+        if (rt_min > rt_max)
+        {
+          continue; // no peak -> skip
+        }
         mtb.rt_min = rt_min;
         mtb.rt_max = rt_max;
-        feature_bounds[feat_it->getUniqueId()].push_back(mtb);
+        feature_bounds[feat.getUniqueId()].push_back(mtb);
       }
     }
   }
@@ -566,28 +592,25 @@ namespace OpenMS
                                 const FeatureBoundsMap& feature_bounds,
                                 vector<FeatureGroup>& overlap_groups)
   {
-    for (FeatureMap::Iterator feat_it = features.begin();
-         feat_it != features.end(); ++feat_it)
+    for (Feature& feat : features)
     {
       // @TODO: make this more efficient?
       vector<FeatureGroup> current_overlaps;
       vector<FeatureGroup> no_overlaps;
-      for (vector<FeatureGroup>::const_iterator group_it =
-             overlap_groups.begin(); group_it != overlap_groups.end();
-           ++group_it)
+      for (const FeatureGroup& group : overlap_groups)
       {
-        if (hasOverlappingFeature_(*feat_it, *group_it, feature_bounds))
+        if (hasOverlappingFeature_(feat, group, feature_bounds))
         {
-          current_overlaps.push_back(*group_it);
+          current_overlaps.push_back(group);
         }
         else
         {
-          no_overlaps.push_back(*group_it);
+          no_overlaps.push_back(group);
         }
       }
       if (current_overlaps.empty()) // make new group for current feature
       {
-        FeatureGroup new_group(1, &(*feat_it));
+        FeatureGroup new_group(1, &(feat));
         no_overlaps.push_back(new_group);
       }
       else // merge all groups that overlap the current feature, then add it
@@ -599,7 +622,7 @@ namespace OpenMS
         {
           merged.insert(merged.end(), group_it->begin(), group_it->end());
         }
-        merged.push_back(&(*feat_it));
+        merged.push_back(&feat);
         no_overlaps.push_back(merged);
       }
       overlap_groups.swap(no_overlaps);
@@ -616,7 +639,10 @@ namespace OpenMS
       for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
            ++it)
       {
-        if (it != group.begin()) msg += ", ";
+        if (it != group.begin())
+        {
+          msg += ", ";
+        }
         msg += String((*it)->getMetaValue("PeptideRef")) + " (RT " +
           String(float((*it)->getRT())) + ")";
       }
@@ -677,7 +703,10 @@ namespace OpenMS
       for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
            ++it)
       {
-        if (*it == best_feature) continue;
+        if (*it == best_feature)
+        {
+          continue;
+        }
         FeatureBoundsMap::const_iterator fbm_it2 =
           feature_bounds.find((*it)->getUniqueId());
         if (hasOverlappingBounds_(fbm_it1->second, fbm_it2->second))
@@ -706,28 +735,25 @@ namespace OpenMS
   /// Add relevant annotations/meta values to features
   void FeatureFinderAlgorithmMetaboIdent::annotateFeatures_(FeatureMap& features)
   {
-    for (FeatureMap::Iterator feat_it = features.begin();
-         feat_it != features.end(); ++feat_it)
+    for (Feature& feat : features)
     {
-      feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));
-      String ref = feat_it->getMetaValue("PeptideRef");
+      feat.setMZ(feat.getMetaValue("PrecursorMZ"));
+      String ref = feat.getMetaValue("PeptideRef");
       const TargetedExperiment::Compound& compound =
         library_.getCompoundByRef(ref);
-      feat_it->setCharge(compound.getChargeState());
-      ensureConvexHulls_(*feat_it);
-      feat_it->getPeptideIdentifications().clear();
-      feat_it->setMetaValue("label", compound.getMetaValue("name"));
-      feat_it->setMetaValue("sum_formula", compound.molecular_formula);
-      feat_it->setMetaValue("expected_rt",
+      feat.setCharge(compound.getChargeState());
+      ensureConvexHulls_(feat);
+      feat.getPeptideIdentifications().clear();
+      feat.setMetaValue("label", compound.getMetaValue("name"));
+      feat.setMetaValue("sum_formula", compound.molecular_formula);
+      feat.setMetaValue("expected_rt",
                             compound.getMetaValue("expected_rt"));
       // annotate subordinates with theoretical isotope intensities:
-      for (vector<Feature>::iterator sub_it =
-             feat_it->getSubordinates().begin(); sub_it !=
-             feat_it->getSubordinates().end(); ++sub_it)
+      for (Feature& sub : feat.getSubordinates())
       {
-        String native_id = sub_it->getMetaValue("native_id");
-        sub_it->setMetaValue("isotope_probability", isotope_probs_[native_id]);
-        sub_it->removeMetaValue("FeatureLevel"); // value "MS2" is misleading
+        String native_id = sub.getMetaValue("native_id");
+        sub.setMetaValue("isotope_probability", isotope_probs_[native_id]);
+        sub.removeMetaValue("FeatureLevel"); // value "MS2" is misleading
       }
     }
     features.getProteinIdentifications().clear();
@@ -740,19 +766,18 @@ namespace OpenMS
     {
       double rt_min = feature.getMetaValue("leftWidth");
       double rt_max = feature.getMetaValue("rightWidth");
-      for (vector<Feature>::iterator sub_it = feature.getSubordinates().begin();
-           sub_it != feature.getSubordinates().end(); ++sub_it)
+      for (Feature& sub : feature.getSubordinates())
       {
         double abs_mz_tol = mz_window_ / 2.0;
         if (mz_window_ppm_)
         {
-          abs_mz_tol = sub_it->getMZ() * abs_mz_tol * 1.0e-6;
+          abs_mz_tol = sub.getMZ() * abs_mz_tol * 1.0e-6;
         }
         ConvexHull2D hull;
-        hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() - abs_mz_tol));
-        hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() + abs_mz_tol));
-        hull.addPoint(DPosition<2>(rt_max, sub_it->getMZ() - abs_mz_tol));
-        hull.addPoint(DPosition<2>(rt_max, sub_it->getMZ() + abs_mz_tol));
+        hull.addPoint(DPosition<2>(rt_min, sub.getMZ() - abs_mz_tol));
+        hull.addPoint(DPosition<2>(rt_min, sub.getMZ() + abs_mz_tol));
+        hull.addPoint(DPosition<2>(rt_max, sub.getMZ() - abs_mz_tol));
+        hull.addPoint(DPosition<2>(rt_max, sub.getMZ() + abs_mz_tol));
         feature.getConvexHulls().push_back(hull);
       }
     }
@@ -882,6 +907,31 @@ namespace OpenMS
     trafo_.setDataPoints(points);
   }
 
+  void FeatureFinderAlgorithmMetaboIdent::setMSData(const PeakMap& m)
+  { 
+    ms_data_ = m; 
+    
+    vector<MSSpectrum>& specs = ms_data_.getSpectra();
+
+    // keep only MS1
+    specs.erase(
+      std::remove_if(specs.begin(), specs.end(),
+        [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
+      specs.end());
+  }
+
+  void FeatureFinderAlgorithmMetaboIdent::setMSData(PeakMap&& m)
+  { 
+    ms_data_ = std::move(m); 
+    
+    vector<MSSpectrum>& specs = ms_data_.getSpectra();
+
+    // keep only MS1
+    specs.erase(
+      std::remove_if(specs.begin(), specs.end(),
+        [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
+      specs.end());
+  }
 
 }
 

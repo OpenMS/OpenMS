@@ -1,0 +1,678 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sequence Visualizer</title>
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/babel-polyfill" defer></script>
+    <!-- Web component polyfill (only loads what it needs) -->
+    <script src="https://cdn.jsdelivr.net/npm/@webcomponents/custom-elements@latest"
+            defer></script>
+    <!-- Required to polyfill modern browsers as code is ES5 for IE... -->
+    <script src="https://cdn.jsdelivr.net/npm/@webcomponents/custom-elements@latest/src/native-shim.js"
+            defer></script>
+
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- d3 -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@5.9.2" defer></script>
+
+    <!-- protvista components -->
+    <script src="https://cdn.jsdelivr.net/npm/protvista-manager@latest" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/protvista-utils@latest" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/protvista-zoomable@latest" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/protvista-track@latest" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/protvista-navigation@latest" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/protvista-tooltip@latest" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/protvista-sequence@latest" defer></script>
+    <script defer>
+        var popUp = new Object();
+        popUp.open = function(id, classes, title, body, functionCancel, functionSend, textCancel, textSend){
+            var cancel = (textCancel !== undefined)? textCancel: 'Cancel';
+            var send = (textSend !== undefined)? textSend: 'OK';
+            classes += ' ';
+            var classArray = classes.split(' ');
+            classes = '';
+            classesBg = '';
+            var classBot = '';
+            $.each(classArray, function(index, value){
+                switch(value){
+                    case 'alert' : classBot += ' alert '; break;
+                    case 'blue' : classesBg += this + ' ';
+                    case 'green' : classesBg += this + ' ';
+                    case 'red' : classesBg += this + ' ';
+                    case 'white': classesBg += this + ' ';
+                    case 'orange': classesBg += this + ' ';
+                    case 'purple': classesBg += this + ' ';
+                    default : classes += this + ' '; break;
+                }
+            });
+            var popBg = '<div id="popBg_' + id + '" class="popUpBg ' + classesBg + '"></div>'
+            //<button class='cancelled " + classBot + "' id='" + id +"_cancelled' data-parent=" + id + ">" + cancel + "</button>
+            var popWindow = '<div id="' + id + '" class="popUp ' + classes + '"><h1>' + title + "</h1><div><span>" + body + "</span></div><button class='sent " + classBot + "' data-parent=" + id + " id='" + id +"_sent'>" + send + "</button></div>";
+            $("window, body").css('overflow', 'hidden');
+
+            $("body").append(popBg);
+            $("body").append(popWindow);
+            $("body").append(popBg);
+            //alert(janela);
+            $("#popBg_" + id).fadeIn("fast");
+            $("#" + id).addClass("popUpEnter");
+
+            $("#" + id + '_cancelled').on("click", function(){
+                if((functionCancel !== undefined) && (functionCancel !== '')){
+                    functionCancel();
+                }else{
+                    popUp.close(id);
+                }
+            });
+            $("#" + id + '_sent').on("click", function(){
+                if((functionSend !== undefined) && (functionSend !== '')){
+                    functionSend();
+                }else{
+                    popUp.close(id);
+                }
+            });
+
+        };
+        popUp.close = function(id){
+            if(id !== undefined){
+                $("#" + id).removeClass("popUpEnter").addClass("popUpLeft");
+
+                $("#popBg_" + id).fadeOut(1000, function(){
+                    $("#popBg_" + id).remove();
+                    $("#" + $(this).attr("id") + ", #" + id).remove();
+                    if (!($(".popUp")[0])){
+                        $("window, body").css('overflow', 'auto');
+                    }
+                });
+
+
+            }
+            else{
+                $(".popUp").removeClass("popUpEnter").addClass("popUpLeft");
+
+                $(".popUpBg").fadeOut(1000, function(){
+                    $(".popUpBg").remove();
+                    $(".popUp").remove();
+                    $("window, body").css('overflow', 'auto');
+                });
+
+            }
+        }
+
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            new QWebChannel(qt.webChannelTransport,
+            async function(channel){
+
+            let SequenceVisualizer = channel.objects.Backend;
+
+            function hashCode(str) {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                return hash;
+            }
+
+            function pickColor(str) {
+                return `hsl(${hashCode(str) % 360}, 100%, 80%)`;
+            }
+
+            let acc_num = SequenceVisualizer.json_data_obj.accession_num;
+            let protein_seq = SequenceVisualizer.json_data_obj.protein_sequence_data;
+            let peptides_data_arr = SequenceVisualizer.json_data_obj.peptides_data;
+            let protlen = SequenceVisualizer.json_data_obj.protein_sequence_data.length;
+
+            let peptide_obj = [];
+            let mod_peptide_obj = [];
+
+            if(!protein_seq.length){ 
+                async function fetchSeqDataJSON() {
+                  const response = await fetch('https://www.ebi.ac.uk/proteins/api/proteins/' + acc_num, {
+                        method:'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                  })
+                  if (!response.ok) {
+                      popUp.open("example", 'p red', 'Warning', 'No sequence data in the idXML file nor fetchable from EBI!');
+                      setTimeout(function(){popUp.close('example');}, 2000);
+                      let maxidx = 0;
+                      for (const pep of peptides_data_arr) {
+                          if (pep.end > maxidx)
+                          {
+                              maxidx = pep.end;
+                          }
+                      }
+                      protein_seq = "X".repeat(maxidx+1);
+                      protlen = maxidx+1;
+                  } else {
+                      const data = await response.json();
+                      protein_seq = data.sequence.sequence;
+                      protlen = data.sequence.length;
+                  }
+                }
+                await fetchSeqDataJSON()
+            }
+       
+
+            for (const pep of peptides_data_arr) {
+                let pep_obj = {};
+
+                pep_obj["start"] = pep.start + 1;
+                pep_obj["end"] = pep.end + 1;
+                pep_obj["accession"] = pep.seq;
+                pep_obj["color"] = pickColor(pep.seq);
+
+                peptide_obj.push(pep_obj);
+            }
+
+            for (const pepList of peptides_data_arr) {
+                for (let mod in pepList.mod_data) {
+                    for(const index of pepList.mod_data[mod]){
+                        let mod_obj = {};
+
+                        mod_obj["start"] = index + 1;
+                        mod_obj["end"] = index + 1;
+                        mod_obj["accession"] = pepList.seq;
+                        mod_obj["color"] = pickColor(mod);
+                        mod_obj["shape"] = "circle";
+                        mod_obj["tooltipContent"] = mod;
+
+                        mod_peptide_obj.push(mod_obj);
+                    }
+                }
+            }
+
+            let protNav = `
+            <protvista-navigation
+                length="${protlen}"
+                displaystart="1"
+                displayend="${protlen}"
+            />
+            `
+            let protSeq = `
+            <protvista-sequence id="seq"
+                sequence="${protein_seq}"
+                length="${protlen}"
+                displaystart="1"
+                displayend="${protlen}"
+                numberofticks="0"
+                use-ctrl-to-zoom="true"
+                highlight-event="onmouseover"
+            />
+            `
+            let protTrack = `
+            <protvista-track id="track"
+                length="${protlen}"
+                displaystart="1"
+                displayend="${protlen}"
+                use-ctrl-to-zoom="true"
+                tooltip-event="mouseover"
+            />
+            `
+            let modProtTrack = `
+            <protvista-track id="mod_track"
+                length="${protlen}"
+                displaystart="1"
+                displayend="${protlen}"
+                use-ctrl-to-zoom="true"
+                tooltip-event="mouseover"
+            />
+            `
+            let tooltipHTML = `
+            <protvista-tooltip 
+                id="toolTip"
+            ></protvista-tooltip>`
+        
+       
+            document.querySelector("#toppview_prot_visualizer").data = protein_seq;
+
+            $($.parseHTML(protNav)).appendTo($("#toppview_prot_visualizer"));
+            $($.parseHTML(protSeq)).appendTo($("#toppview_prot_visualizer"));
+            $($.parseHTML(protTrack)).appendTo($("#toppview_prot_visualizer"));
+            $($.parseHTML(modProtTrack)).appendTo($("#toppview_prot_visualizer"));
+            $($.parseHTML(tooltipHTML)).appendTo($("#toppview_prot_visualizer"));
+
+            document.querySelector("#track").data = peptide_obj;
+            document.querySelector("#mod_track").data = mod_peptide_obj;
+
+            const trackElement = document.querySelector('#track');
+            const modTrackElement = document.querySelector('#mod_track');
+	        const toolTipElement = document.querySelector('#toolTip');
+
+	        modTrackElement.addEventListener('change', (event) => {
+		        if(event.detail.eventtype == "mouseover"){
+                    let pep_mod_data = event.detail.feature;
+			        let x = event.detail.coords[0];
+	  		        let y = event.detail.coords[1];
+	  		        toolTipElement.visible = true;
+	  		        toolTipElement.x = x;
+	  		        toolTipElement.y = y;	
+                    toolTipElement.title = pep_mod_data.tooltipContent;
+                    toolTipElement.innerHTML = pep_mod_data.accession;
+		        }
+		        if(event.detail.eventtype == "mouseout"){
+			        toolTipElement.visible = false;
+		        }
+	        });
+
+            trackElement.addEventListener('change', (event) => {
+		            if(event.detail.eventtype == "mouseover"){
+                        let pep_data = event.detail.feature
+			            let x = event.detail.coords[0];
+	  		            let y = event.detail.coords[1];
+	  		            toolTipElement.visible = true;
+	  		            toolTipElement.x = x;
+	  		            toolTipElement.y = y;	
+                        toolTipElement.title = "Peptide " + pep_data.start + "-" + pep_data.end;
+                        toolTipElement.innerHTML = pep_data.accession;
+		            }
+		            if(event.detail.eventtype == "mouseout"){
+			            toolTipElement.visible = false;
+		            }
+	            });
+            });
+        });
+    </script>
+    <style>
+		
+		.helpBtn {
+		  position: absolute;
+		  bottom: 10px;
+		  left: 10px;
+		  display: inline-block;
+		  border: 1px solid black;
+		  border-radius: 4px;
+		  padding: 5px 10px;
+		}
+
+		.helpBtn .helpText {
+		  visibility: hidden;
+		  width: max-content;
+		  background-color: white;
+		  color: #000;
+		  border: 1px solid black;
+		  border-radius: 6px;
+		  padding: 10px 20px;
+		  position: absolute;
+		  z-index: 1;
+		  bottom: 150%;
+		  left: 50%;
+		  text-align: left;
+		}
+
+		.helpBtn .helpText::after {
+		  content: "";
+		  position: absolute;
+		  top: 100%;
+		  left: 2%;
+		  border-width: 10px;
+		  border-style: solid;
+		  border-color: black transparent transparent;
+		}
+        .helpBtn:hover {
+            cursor: pointer;
+        }
+		.helpBtn:hover .helpText {
+		  visibility: visible;
+		}
+
+        @import url(https://fonts.googleapis.com/css?family=PT+Sans:400,700,400italic);
+        @-webkit-keyframes popUpEnter {
+            0%{opacity: 0; margin-top: -20%;}
+            75%{margin-top: 5%;}
+            100%{opacity: 1;}
+        }
+        @keyframes popUpEnter {
+            0%{opacity: 0; margin-top: -20%;}
+            75%{margin-top: 5%;}
+            100%{opacity: 1;}
+        }
+        @-webkit-keyframes popUpLeft {
+            0%{opacity: 1;}
+            75%{opacity: 1; margin-top: -20%;}
+            100%{opacity: 0;margin-top: 40%;}
+        }
+        @keyframes popUpLeft {
+            0%{opacity: 1;}
+            75%{opacity: 1; margin-top: -20%;}
+            100%{opacity: 0;margin-top: 40%;}
+        }
+        body, html, root, document{
+            display: block;
+            height: 500px;
+        }
+        .popUpBg{
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color:#4879c3;
+            opacity: 0.8;
+            z-index: 50;
+        }
+        .popUp{
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            display: none;
+            position: fixed;
+            top: 40%;
+            left: 50%;
+            padding: 0;
+            font-size: 14px;
+            font-family: 'PT Sans', sans-serif;
+            color: #fff;
+            border-style:none;
+            z-index: 999;
+            overflow: hidden;
+        }
+        .popUp button:focus{
+            outline-style: none;
+        }
+        .popUp>h1{
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            margin: 0;
+            padding: 5px;
+            min-height: 40px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            color: #fff;
+            background-color: transparent;
+            border-style: none;
+            border-width: 5px;
+            border-color: black;
+        }
+        .vermelha>h1{
+            border-color: #fa5032;
+        }
+        .verde>h1{
+            border-color: #42ad4f;
+        }
+        .azul>h1{
+            border-color: #659cff;
+        }
+
+        .popUp>div{
+            display: block;
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            width: 100%;
+            padding: 5%;
+            text-align: center;
+            vertical-align: middle;
+            border-width: 1px;
+            border-color: #ccc;
+            border-style: none none solid none;
+            overflow: auto;
+        }
+        .popUp>div>span{
+            display: table-cell;
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            vertical-align: middle;
+        }
+        .popUp>button{
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            margin: 0;
+            padding: 10px;
+            width: 100%; /*change to 50% if you want two buttons*/
+            border: 1px none #ccc;
+            color: #fff;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .alert{
+            width: 100% !important;
+        }
+        .popUp .cancelled{
+            float: left;
+        }
+
+        .popUp .sent{
+            float: right;
+        }
+
+        .p{
+            margin: 0;
+            width: 100%;
+            max-width: 300px;
+            height: 100%;
+            max-height: 200px;
+            transform: translate(-50%, -50%);
+        }
+
+        .p>div{
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            width: 100%;
+            height: calc(100% -108px);
+            margin: 0;
+            padding: 0;
+            border-style: none;
+
+        }
+        .p>div>div, .p span{
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            width: 300px;
+            height: 108px;
+            margin: 0;
+            padding: 0;
+            border-style: none;
+
+        }
+
+        .p>button{
+            height: 50px;
+
+        }
+        .sent{
+            margin: 5px 0;
+        }
+        .cancelled{
+            margin: 5px 0;
+        }
+
+
+        .m{
+            margin: 0;
+            width: 100%;
+            max-width: 400px;
+            height: 100%;
+            max-height: 300px;
+            transform: translate(-50%, -50%);
+        }
+        .m>div{
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            width: 100%;
+            height: calc(100% -108px);
+            margin: 0;
+            padding: 0;
+            border-style: none;
+            border-color:#ccc;
+        }
+        .m>div>div, .m>span, .m>div>span{
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            width: 400px;
+            height: 208px;
+            margin: 0;
+            padding: 0;
+            border-style: none;
+        }
+
+        .m>button{
+            height: 50px;
+        }
+
+        .g{
+            margin: 0;
+            width: 100%;
+            max-width: 600px;
+            height: 100%;
+            max-height: 500px;
+            transform: translate(-50%, -50%);
+        }
+        .g>div{
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            width: 100%;
+            height: calc(100% -108px);
+            margin: 0;
+            padding: 0;
+            border-style: none;
+            border-color: #ccc;
+        }
+        .g>div>div, .g span{
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            width: 600px;
+            height: 408px;
+            margin: 0;
+            padding: 0;
+            border-style: none;
+        }
+        .g>button{
+            height: 60px;
+        }
+
+
+        .alert.sent{
+            display: none;
+        }
+
+        .popUpEnter{
+            display: block !important;
+            animation: popUpEnter 0.5s;
+            -webkit-animation: popUpEnter 0.5s;
+        }
+        .popUpLeft{
+            display: block !important;
+            animation: popUpLeft 0.5s;
+            -webkit-animation: popUpLeft 0.5s;
+            -webkit-animation-fill-mode: forwards;
+            animation-fill-mode: forwards;
+        }
+
+        .blue{
+            background-color:#51b2d6;
+        }
+        .blue>button{
+            background-color:#38a7d0;
+        }
+        .blue>button:hover{
+            background-color:#72c1de;
+        }
+        .popUpBg.blue{
+            background-color:#134152;
+        }
+        .green{
+            background-color: #43b649;
+        }
+        .green>button{
+            background-color:#3da743;
+        }
+        .green>button:hover{
+            background-color:#4fbe55;
+        }
+        .popUpBg.green{
+            background-color:#173f19;
+        }
+        .red{
+            background-color: #d55c4b;
+        }
+        .red>button{
+            background-color: #d04b38;
+        }
+        .red>button:hover{
+            background-color: #d86959;
+        }
+        .popUpBg.red{
+            background-color:#4a1811;
+        }
+        .orange{
+            background-color: #f9a025;
+        }
+        .orange>button{
+            background-color: #f89710;
+        }
+        .orange>button:hover{
+            background-color: #f9ac42;
+        }
+        .popUpBg.orange{
+            background-color: #8c5b02;
+        }
+        .purple{
+            background-color: #ab4bd5;
+        }
+        .purple>button{
+            background-color: #a238d0;
+        }
+        .purple>button:hover{
+            background-color: #b159d8;
+        }
+        .popUpBg.purple{
+            background-color: #3f114a;
+        }
+        .white{
+            background-color: #fff;
+            color: #555;
+        }
+        .white>h1{
+            color: #000;
+        }
+        .white>button{
+            background-color: #f3f3f3;
+            color: #555;
+        }
+        .white>button:hover{
+            background-color: #e3e3e3;
+        }
+
+        .popUpBg.white{
+            background-color:#555;
+        }
+
+    </style>
+</head>
+<body>
+    <protvista-manager attributes="length displaystart displayend highlight onclick"
+                       id="toppview_prot_visualizer">
+    </protvista-manager>
+    <div class="helpBtn">
+        Help
+        <div class="helpText">
+            <span>1) Keep your mouse over a track and use <kbd>ctrl + scroll</kbd> to zoom in/out</span><br>
+            <span>2) Hover over the modification track to view modification data</span><br>
+            <span>3) Hover over the peptide track to view peptide data</span>
+        </div>
+    </div>
+</body>
+</html>

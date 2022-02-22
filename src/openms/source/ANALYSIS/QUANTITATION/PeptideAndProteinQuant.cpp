@@ -34,6 +34,9 @@
 //
 
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace std;

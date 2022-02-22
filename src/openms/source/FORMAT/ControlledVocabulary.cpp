@@ -34,8 +34,9 @@
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 
-#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <iostream>
 #include <fstream>
@@ -208,10 +209,25 @@ namespace OpenMS
       line_wo_spaces.removeWhitespaces();
 
       //do nothing for empty lines
-      if (line == "")
+      if (line.empty())
       {
         continue;
       }
+
+      if (line_wo_spaces.hasPrefix("data-version:"))
+      {
+        version_ = line.substr(line.find(':') + 1).trim();
+      }
+      if (line_wo_spaces.hasPrefix("default-namespace:"))
+      {
+        label_ = line.substr(line.find(':') + 1).trim();
+      }
+      if (line_wo_spaces.hasPrefix("remark:URL:"))
+      {
+        // https://
+        url_ = line.substr(line.find_first_of('/') - 7).trim();
+      }
+
       //********************************************************************************
       //stanza line
       if (line_wo_spaces[0] == '[')
@@ -220,7 +236,7 @@ namespace OpenMS
         if (line_wo_spaces.toLower() == "[term]") //new term
         {
           in_term = true;
-          if (term.id != "") //store last term
+          if (!term.id.empty()) //store last term
           {
             terms_[term.id] = term;
           }
@@ -413,14 +429,14 @@ namespace OpenMS
           line_wo_spaces.trim();
           term.xref_binary.push_back(line_wo_spaces);
         }
-        else if (line != "")
+        else if (!line.empty())
         {
           term.unparsed.push_back(line);
         }
       }
     }
 
-    if (term.id != "") //store last term
+    if (!term.id.empty()) //store last term
     {
       terms_[term.id] = term;
     }
@@ -560,6 +576,21 @@ namespace OpenMS
     return name_;
   }
 
+  const String& ControlledVocabulary::label() const
+  {
+    return label_;
+  }
+
+  const String& ControlledVocabulary::version() const
+  {
+    return version_;
+  }
+
+  const String& ControlledVocabulary::url() const
+  {
+    return url_;
+  }
+
   const ControlledVocabulary& ControlledVocabulary::getPSIMSCV()
   {
     static const ControlledVocabulary cv = []() {
@@ -574,7 +605,7 @@ namespace OpenMS
     return cv;
   }
 
-  bool ControlledVocabulary::checkName_(const String& id, const String& name, bool ignore_case)
+  bool ControlledVocabulary::checkName_(const String& id, const String& name, bool ignore_case) const
   {
     if (!exists(id))
     {

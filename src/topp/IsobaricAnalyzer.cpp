@@ -34,8 +34,6 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/KERNEL/MSExperiment.h>
-
 // the available quantitation methods
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
@@ -44,20 +42,17 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
-
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
-
-#include <OpenMS/SYSTEM/File.h>
-
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzQuantMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <OpenMS/METADATA/MSQuantifications.h>
+#include <memory> // for std::unique_ptr
 
 using namespace OpenMS;
 using namespace std;
+
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -164,42 +159,26 @@ class TOPPIsobaricAnalyzer :
   public TOPPBase
 {
 private:
-  std::map<String, IsobaricQuantitationMethod*> quant_methods_;
+  std::map<String, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
   std::map<String, String> quant_method_names_;
+
+  void addMethod_(std::unique_ptr<IsobaricQuantitationMethod> ptr, std::string name)
+  {
+    std::string internal_name = ptr->getMethodName();
+    quant_methods_[internal_name] = std::move(ptr);
+    quant_method_names_[internal_name] = name;
+  }
 
 public:
   TOPPIsobaricAnalyzer() :
     TOPPBase("IsobaricAnalyzer", "Calculates isobaric quantitative values for peptides")
   {
-    ItraqFourPlexQuantitationMethod* itraq4plex = new ItraqFourPlexQuantitationMethod();
-    ItraqEightPlexQuantitationMethod* itraq8plex = new ItraqEightPlexQuantitationMethod();
-    TMTSixPlexQuantitationMethod* tmt6plex = new TMTSixPlexQuantitationMethod();
-    TMTTenPlexQuantitationMethod* tmt10plex = new TMTTenPlexQuantitationMethod();
-    TMTElevenPlexQuantitationMethod* tmt11plex = new TMTElevenPlexQuantitationMethod();
-    TMTSixteenPlexQuantitationMethod* tmt16plex = new TMTSixteenPlexQuantitationMethod();
-    quant_methods_[itraq4plex->getMethodName()] = itraq4plex;
-    quant_methods_[itraq8plex->getMethodName()] = itraq8plex;
-    quant_methods_[tmt6plex->getMethodName()] = tmt6plex;
-    quant_methods_[tmt10plex->getMethodName()] = tmt10plex;
-    quant_methods_[tmt11plex->getMethodName()] = tmt11plex;
-    quant_methods_[tmt16plex->getMethodName()] = tmt16plex;
-    quant_method_names_[itraq4plex->getMethodName()] = "iTRAQ 4-plex";
-    quant_method_names_[itraq8plex->getMethodName()] = "iTRAQ 8-plex";
-    quant_method_names_[tmt6plex->getMethodName()] = "TMT 6-plex";
-    quant_method_names_[tmt10plex->getMethodName()] = "TMT 10-plex";
-    quant_method_names_[tmt11plex->getMethodName()] = "TMT 11-plex";
-    quant_method_names_[tmt16plex->getMethodName()] = "TMT 16-plex";
-  }
-
-  ~TOPPIsobaricAnalyzer() override
-  {
-    // free allocated labelers
-    for (std::map<String, IsobaricQuantitationMethod*>::iterator it = quant_methods_.begin();
-         it != quant_methods_.end();
-         ++it)
-    {
-      delete it->second;
-    }
+    addMethod_(make_unique<ItraqFourPlexQuantitationMethod>(), "iTRAQ 4-plex");
+    addMethod_(make_unique<ItraqEightPlexQuantitationMethod>(), "iTRAQ 8-plex");
+    addMethod_(make_unique<TMTSixPlexQuantitationMethod>(), "TMT 6-plex");
+    addMethod_(make_unique<TMTTenPlexQuantitationMethod>(), "TMT 10-plex");
+    addMethod_(make_unique<TMTElevenPlexQuantitationMethod>(), "TMT 11-plex");
+    addMethod_(make_unique<TMTSixteenPlexQuantitationMethod>(), "TMT 16-plex");
   }
 
 protected:
@@ -208,26 +187,22 @@ protected:
     // initialize with the first available type
     registerStringOption_("type", "<mode>", quant_methods_.begin()->first, "Isobaric Quantitation method used in the experiment.", false);
     StringList valid_types;
-    for (std::map<String, IsobaricQuantitationMethod*>::iterator it = quant_methods_.begin();
-         it != quant_methods_.end();
-         ++it)
+    for (const auto& qm : quant_methods_)
     {
-      valid_types.push_back(it->first);
+      valid_types.push_back(qm.first);
     }
     setValidStrings_("type", valid_types);
 
     registerInputFile_("in", "<file>", "", "input raw/picked data file ");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML"});
     registerOutputFile_("out", "<file>", "", "output consensusXML file with quantitative information");
-    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("out", {"consensusXML"});
 
     registerSubsection_("extraction", "Parameters for the channel extraction.");
     registerSubsection_("quantification", "Parameters for the peptide quantification.");
-    for (std::map<String, IsobaricQuantitationMethod*>::iterator it = quant_methods_.begin();
-         it != quant_methods_.end();
-         ++it)
+    for (const auto& qm : quant_methods_)
     {
-      registerSubsection_(it->second->getMethodName(), String("Algorithm parameters for ") + quant_method_names_[it->second->getMethodName()]);
+      registerSubsection_(qm.second->getMethodName(), String("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
     }
   }
 
@@ -244,17 +219,12 @@ protected:
     }
     else
     {
-      std::map<String, IsobaricQuantitationMethod*>::const_iterator it = quant_methods_.find(section);
-      if (it != quant_methods_.end())
-      {
-        return it->second->getParameters();
+      const auto it = quant_methods_.find(section);
+      if (it == quant_methods_.end())
+      { // should not happen
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid subsection " + section);
       }
-      else
-      {
-        // this should not happen
-        Param empty;
-        return empty;
-      }
+      return it->second->getParameters();
     }
   }
 
@@ -278,7 +248,7 @@ protected:
     //-------------------------------------------------------------
     // init quant method
     //-------------------------------------------------------------
-    IsobaricQuantitationMethod* quant_method = quant_methods_[getStringOption_("type")];
+    const auto& quant_method = quant_methods_[getStringOption_("type")];
 
     // set the parameters for this method
     quant_method->setParameters(getParam_().copy(quant_method->getMethodName() + ":", true));
@@ -287,7 +257,7 @@ protected:
     // calculations
     //-------------------------------------------------------------
     Param extract_param(getParam_().copy("extraction:", true));
-    IsobaricChannelExtractor channel_extractor(quant_method);
+    IsobaricChannelExtractor channel_extractor(quant_method.get());
     channel_extractor.setParameters(extract_param);
 
     ConsensusMap consensus_map_raw, consensus_map_quant;
@@ -295,7 +265,7 @@ protected:
     // extract channel information
     channel_extractor.extractChannels(exp, consensus_map_raw);
 
-    IsobaricQuantifier quantifier(quant_method);
+    IsobaricQuantifier quantifier(quant_method.get());
     Param quant_param(getParam_().copy("quantification:", true));
     quantifier.setParameters(quant_param);
 
@@ -309,7 +279,7 @@ protected:
     addDataProcessing_(consensus_map_quant, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     // add filename references
-    for (auto & column : consensus_map_quant.getColumnHeaders())
+    for (auto& column : consensus_map_quant.getColumnHeaders())
     {
       column.second.filename = in;
     }

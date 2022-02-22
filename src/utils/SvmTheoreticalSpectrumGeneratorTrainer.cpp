@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
+#include "svm.h"
 
 using namespace std;
 using namespace OpenMS;

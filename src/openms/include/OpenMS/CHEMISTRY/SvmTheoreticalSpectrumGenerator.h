@@ -136,14 +136,6 @@ public:
     };
     //@}
 
-    /// A set of descriptors for a single training row
-    struct DescriptorSet
-    {
-      typedef std::vector<svm_node> DescriptorSetType;
-      DescriptorSetType descriptors;
-    };
-
-
     /// Simple container storing the model parameters required for simulation
     struct SvmModelParameterSet
     {
@@ -217,12 +209,19 @@ public:
     void load();
 
     ///return the set of ion types that are modeled by the loaded SVMs
-    const std::vector<IonType> & getIonTypes()
+    const std::vector<IonType> & getIonTypes() const
     {
       return mp_.ion_types;
     }
 
 protected:
+    /// A set of descriptors for a single training row
+    struct DescriptorSet
+    {
+      typedef std::vector<svm_node> DescriptorSetType;
+      DescriptorSetType descriptors;
+    };
+
     typedef std::map<IonType, double> IntensityMap;
 
     /// charge of the precursors used for training

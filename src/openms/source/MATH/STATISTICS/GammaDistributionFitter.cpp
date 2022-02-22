@@ -75,7 +75,7 @@ namespace OpenMS::Math
       {
       }
 
-      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
+      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const
       {
 
         double b = x(0);
@@ -89,7 +89,7 @@ namespace OpenMS::Math
           for (std::vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
           {
             double the_x = it->getX();
-            fvec(i) =  std::pow(b, p) / boost::math::tgamma(p) * std::pow(the_x, p - 1) * std::exp(-b * the_x) - it->getY();
+            fvec(i) =  std::pow(b, p) / std::tgamma(p) * std::pow(the_x, p - 1) * std::exp(-b * the_x) - it->getY();
           }
         }
         else
@@ -105,7 +105,7 @@ namespace OpenMS::Math
       }
 
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
+      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) const
       {
 
         double b = x(0);
@@ -120,12 +120,12 @@ namespace OpenMS::Math
             double the_x = it->getX();
 
             // partial deviation regarding b
-            double part_dev_b = std::pow(the_x, p - 1) * std::exp(-the_x * b) / boost::math::tgamma(p) * (p * std::pow(b, p - 1) - the_x * std::pow(b, p));
+            double part_dev_b = std::pow(the_x, p - 1) * std::exp(-the_x * b) / std::tgamma(p) * (p * std::pow(b, p - 1) - the_x * std::pow(b, p));
             J(i, 0) = part_dev_b;
 
             // partial deviation regarding p
-            double factor = std::exp(-b * the_x) * std::pow(the_x, p - 1) * std::pow(b, p) / std::pow(boost::math::tgamma(p), 2);
-            double argument = (std::log(b) + std::log(the_x)) * boost::math::tgamma(p) - boost::math::tgamma(p) * boost::math::digamma(p);
+            double factor = std::exp(-b * the_x) * std::pow(the_x, p - 1) * std::pow(b, p) / std::pow(std::tgamma(p), 2);
+            double argument = (std::log(b) + std::log(the_x)) * std::tgamma(p) - std::tgamma(p) * boost::math::digamma(p);
             double part_dev_p = factor * argument;
             J(i, 1) = part_dev_p;
           }
@@ -145,7 +145,7 @@ namespace OpenMS::Math
       const std::vector<DPosition<2> >* m_data;
     };
 
-    GammaDistributionFitter::GammaDistributionFitResult GammaDistributionFitter::fit(const std::vector<DPosition<2> >& input)
+    GammaDistributionFitter::GammaDistributionFitResult GammaDistributionFitter::fit(const std::vector<DPosition<2> >& input) const
     {
       Eigen::VectorXd x_init(2);
       x_init << init_param_.b, init_param_.p;

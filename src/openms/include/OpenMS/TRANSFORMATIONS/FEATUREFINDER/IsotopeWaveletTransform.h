@@ -43,14 +43,16 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
+
 #include <cmath>
-#include <cmath>
-#include <boost/math/special_functions/bessel.hpp>
 #include <vector>
 #include <map>
 #include <sstream>
 #include <fstream>
 #include <iomanip>
+
+// TODO: move this to cpp and use STL once it is available in clang on Mac
+#include <boost/math/special_functions/bessel.hpp>
 
 // This code has quite a few strange things in it triggering warnings which
 // clutters the rest of the diagnostics
@@ -1875,7 +1877,7 @@ protected:
       if (intenstype_ == "corrected")
       {
         double lambda = IsotopeWavelet::getLambdaL(av_mz * c_charge);
-        av_intens /= exp(-2 * lambda) * boost::math::cyl_bessel_i(0, 2 * lambda);
+        av_intens /= exp(-2 * lambda) * boost::math::cyl_bessel_i(0.0, 2.0 * lambda);
       }
       if (intenstype_ == "ref")
       {

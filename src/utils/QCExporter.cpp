@@ -136,7 +136,7 @@ protected:
     QcMLFile qcmlfile;
     qcmlfile.load(in);
 
-    if (mappi != "")
+    if (!mappi.empty())
     {
       CsvFile map_file(mappi);
 
@@ -183,7 +183,7 @@ protected:
         //~ }
       }
 
-      if (names.size() < 1)
+      if (names.empty())
       {
         std::vector<String> ns;
         qcmlfile.getRunIDs(ns); //n.b. names are ids

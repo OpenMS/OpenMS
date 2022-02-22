@@ -31,8 +31,10 @@
 // $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/ANALYSIS/DECHARGING/ILPDCWrapper.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
@@ -509,7 +511,7 @@ namespace OpenMS
     String e;
     if (getenv("M") != nullptr)
       e = String(getenv("M"));
-    if (e == "")
+    if (e.empty())
     {
       //std::cout << "1";
       score = pair.getCompomer().getLogP();

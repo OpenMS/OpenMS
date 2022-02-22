@@ -38,6 +38,7 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
@@ -170,11 +171,6 @@
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #endif
 
-// include this file after the GUI stuff, or there will be a conflict between
-// "LayerData.h" (via "Plot1DCanvas.h") and "SeqanIncludeWrapper.h"!
-// (see https://github.com/OpenMS/OpenMS/issues/1327)
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
-
 
 #include <fstream>
 
@@ -192,7 +188,7 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
   {
     f << "<B>Parameters of this class are:</B><BR><BR>\n";
   }
-  f << "<table border=\"1\" style=\"border-style:solid; border-collapse:collapse; border-color:#c0c0c0;\" width=\"100%\" cellpadding=\"4\">" << endl;
+  f << R"(<table border="1" style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;" width="100%" cellpadding="4">)" << endl;
   f << "<tr style=\"border-bottom:1px solid black; background:#fffff0\"><th>Name</th><th>Type</th><th>Default</th><th>Restrictions</th><th>Description</th></tr>" << endl;
   String type, description, restrictions;
   for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
@@ -249,7 +245,7 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
         type += " list";
 
       //restrictions
-      if (it->valid_strings.size() != 0)
+      if (!it->valid_strings.empty())
       {
         String valid_strings;
         valid_strings.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
@@ -455,10 +451,10 @@ int main(int argc, char** argv)
   DOCME(PeptideAndProteinQuant);
   DOCME(Math::PosteriorErrorProbabilityModel);
   // workarounds for documenting model parameters in MapAligners:
-  writeParameters("MapAlignerIdentificationModel", TOPPMapAlignerBase::getModelDefaults("interpolated"), true);
-  writeParameters("MapAlignerPoseClusteringModel", TOPPMapAlignerBase::getModelDefaults("linear"), true);
-  writeParameters("MapAlignerSpectrumModel", TOPPMapAlignerBase::getModelDefaults("interpolated"), true);
-  writeParameters("MapRTTransformerModel", TOPPMapAlignerBase::getModelDefaults("none"), true);
+  writeParameters("MapAlignerIdentificationModel", MapAlignerBase::getModelDefaults("interpolated"), true);
+  writeParameters("MapAlignerPoseClusteringModel", MapAlignerBase::getModelDefaults("linear"), true);
+  writeParameters("MapAlignerSpectrumModel", MapAlignerBase::getModelDefaults("interpolated"), true);
+  writeParameters("MapRTTransformerModel", MapAlignerBase::getModelDefaults("none"), true);
 
   //////////////////////////////////
   // More complicated cases

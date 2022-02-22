@@ -41,6 +41,8 @@
 #include <boost/bind.hpp>
 #include <boost/random/discrete_distribution.hpp>
 
+#include "svm.h"
+
 // #define DEBUG
 
 namespace OpenMS
@@ -171,7 +173,7 @@ namespace OpenMS
       initializeMaps_();
 
     defaults_.setValue("svm_mode", 1, "whether to predict abundant/missing using SVC (0) or predict intensities using SVR (1)");
-    defaults_.setValue("model_file_name", "examples/simulation/SvmMSim.model", "Name of the probabilistic Model file");
+    defaults_.setValue("model_file_name", "SIMULATION/SvmMSim.model", "Name of the probabilistic Model file");
 
     defaults_.setValue("add_isotopes", "false", "If set to 1 isotope peaks of the product ion peaks are added");
     defaults_.setValidStrings("add_isotopes", {"true","false"});
@@ -731,12 +733,12 @@ namespace OpenMS
 
     if (add_metainfo)
     {
-      if (spectrum.getIntegerDataArrays().size() == 0)
+      if (spectrum.getIntegerDataArrays().empty())
       {
         spectrum.getIntegerDataArrays().resize(1);
         spectrum.getIntegerDataArrays()[0].setName("Charges");
       }
-      if (spectrum.getStringDataArrays().size() == 0)
+      if (spectrum.getStringDataArrays().empty())
       {
         spectrum.getStringDataArrays().resize(1);
         spectrum.getStringDataArrays()[0].setName("IonNames");
@@ -915,7 +917,7 @@ namespace OpenMS
             Size region = std::min(mp_.number_regions - 1, (Size)floor(mp_.number_regions * prefix.getMonoWeight(Residue::Internal) / peptide.getMonoWeight()));
             std::vector<double>& props = mp_.conditional_prob[std::make_pair(*it, region)][bin];
             std::vector<double> weights;
-            std::transform(props.begin(), props.end(), std::back_inserter(weights), boost::bind(std::multiplies<double>(), _1, 10));
+            std::transform(props.begin(), props.end(), std::back_inserter(weights), [](auto && PH1) { return std::multiplies<double>()(std::forward<decltype(PH1)>(PH1), 10); });
             boost::random::discrete_distribution<Size> ddist(weights.begin(), weights.end());
             Size binned_int = ddist(rng);
 

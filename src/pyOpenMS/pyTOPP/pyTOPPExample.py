@@ -62,7 +62,7 @@ def main():
     out_map = pms.MSExperiment()
     pp.pickExperiment(input_map, out_map)
 
-    out_map = addDataProcessing(out_map, openms_params, pms.ProcessingAction.PEAK_PICKING)
+    out_map = addDataProcessing(out_map, openms_params, pms.DataProcessing.ProcessingAction.PEAK_PICKING)
     fh = pms.FileHandler()
     fh.storeExperiment(arg_dict["output"], out_map)
 

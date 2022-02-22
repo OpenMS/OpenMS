@@ -63,7 +63,7 @@ namespace OpenMS
       double lefthand = left_neighbor_mz;
       double righthand = right_neighbor_mz;
 
-      bool lefthand_sign = 1;
+      bool lefthand_sign = true;
       double eps = std::numeric_limits<double>::epsilon();
 
       // bisection
@@ -78,7 +78,7 @@ namespace OpenMS
           break;
         }
 
-        bool midpoint_sign = (midpoint_deriv_val < 0.0) ? 0 : 1;
+        bool midpoint_sign = (midpoint_deriv_val < 0.0) ? false : true;
 
         if (lefthand_sign ^ midpoint_sign)
         {

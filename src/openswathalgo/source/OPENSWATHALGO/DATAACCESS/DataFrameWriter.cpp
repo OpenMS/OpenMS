@@ -77,7 +77,9 @@ namespace OpenSwath
     {
       file_stream_ << std::setprecision(5) << values[i];
       if (i < (ncol - 1))
+      {
         file_stream_ << sep_;
+      }
     }
     file_stream_ << eol_; //append line-end
   }
@@ -96,7 +98,9 @@ namespace OpenSwath
     {
       file_stream_ << colnames[i];
       if (i < (ncol - 1))
+      {
         file_stream_ << sep_;
+      }
     }
     file_stream_ << eol_; //append line-end
   }

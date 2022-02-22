@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h> // to print newick tree on cml
 
@@ -181,8 +183,10 @@ private:
   ExitCodes main_(int, const char**) override
   {
     ExitCodes ret = checkParameters_();
-    if (ret != EXECUTION_OK) return ret;
-
+    if (ret != EXECUTION_OK)
+    {
+      return ret;
+    }
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------

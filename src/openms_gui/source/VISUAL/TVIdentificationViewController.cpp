@@ -79,14 +79,14 @@ namespace OpenMS
   void TVIdentificationViewController::showSpectrumAsNew1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
   {
     // basic behavior 1
-    LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
+    LayerDataBase& layer = const_cast<LayerDataBase&>(tv_->getActiveCanvas()->getCurrentLayer());
     ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
-    LayerData::ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
+    LayerDataBase::ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
 
-    if (layer.type == LayerData::DT_PEAK)
+    if (layer.type == LayerDataBase::DT_PEAK)
     {
       // open new 1D widget with the current default parameters
-      Plot1DWidget* w = new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
+      Plot1DWidget* w = new Plot1DWidget(tv_->getCanvasParameters(1), (QWidget*)tv_->getWorkspace());
 
       // add data and return if something went wrong
       if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename)
@@ -118,7 +118,10 @@ namespace OpenMS
       // Visualisation of ID data
 
       // if no peptide identification or peptide hit index provided we can return now
-      if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
+      if (peptide_id_index == -1 || peptide_hit_index == -1)
+      { 
+        return;
+      }
 
       // get peptide identification
       const vector<PeptideIdentification>& pis = w->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
@@ -128,7 +131,11 @@ namespace OpenMS
         switch (ms_level)
         {
           // mass fingerprint annotation of name etc.
-          case 1: { addPeakAnnotations_(pis); break; }
+          case 1:
+          { 
+            addPeakAnnotations_(pis); 
+            break;
+          }
 
           // annotation with stored fragments or synthesized theoretical spectrum
           case 2:
@@ -157,20 +164,21 @@ namespace OpenMS
         }
       }
 
+      // TODO Why would this need to trigger an update in e.g. the Tab Views??
       tv_->updateLayerBar(); // todo replace
       tv_->updateViewBar();
       tv_->updateFilterBar();
       tv_->updateMenu();
     }
-    // else if (layer.type == LayerData::DT_CHROMATOGRAM)
+    // else if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
   }
 
   void TVIdentificationViewController::addPeakAnnotations_(const vector<PeptideIdentification>& ph)
   {
     // called anew for every click on a spectrum
-    LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    auto getCurrentLayer = [&]() -> LayerDataBase& { return tv_->getActive1DWidget()->canvas()->getCurrentLayer(); };
 
-    if (current_layer.getCurrentSpectrum().empty())
+    if (getCurrentLayer().getCurrentSpectrum().empty())
     {
       OPENMS_LOG_WARN << "Spectrum is empty! Nothing to annotate!" << endl;
     }
@@ -181,7 +189,7 @@ namespace OpenMS
 
     vector<QColor> cols{ Qt::blue, Qt::green, Qt::red, Qt::gray, Qt::darkYellow };
 
-    if (!current_layer.getCurrentSpectrum().isSorted())
+    if (!getCurrentLayer().getCurrentSpectrum().isSorted())
     {
       QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!");
       return;
@@ -190,37 +198,51 @@ namespace OpenMS
                                                             it!= ph.end();
                                                             ++it)
     {
-      if (!it->hasMZ()) continue;
+      if (!it->hasMZ())
+      {
+        continue;
+      }
       double mz = it->getMZ();
-      Size peak_idx = current_layer.getCurrentSpectrum().findNearest(mz);
+      Size peak_idx = getCurrentLayer().getCurrentSpectrum().findNearest(mz);
 
       // m/z fits ?
-      if (Math::getPPMAbs(mz, current_layer.getCurrentSpectrum()[peak_idx].getMZ()) > ppm) continue;
+      if (Math::getPPMAbs(mz, getCurrentLayer().getCurrentSpectrum()[peak_idx].getMZ()) > ppm)
+      {
+        continue;
+      }
 
-      double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
+      double peak_int = getCurrentLayer().getCurrentSpectrum()[peak_idx].getIntensity();
 
       Annotation1DCaret* first_dit(nullptr);
       // we could have many many hits for different compounds which have the exact same sum formula... so first group by sum formula
       map<String, StringList> formula_to_names;
-      for (vector<PeptideHit>::const_iterator ith = it->getHits().begin();
-           ith != it->getHits().end(); ++ith)
+      for (const PeptideHit& pep : it->getHits())
       {
-        if (ith->metaValueExists("identifier") && ith->metaValueExists("chemical_formula"))
+        if (pep.metaValueExists("identifier") && pep.metaValueExists("chemical_formula"))
         {
-          String name = ith->getMetaValue("identifier");
+          String name = pep.getMetaValue("identifier");
           if (name.length() > 20)
           {
             name = name.substr(0, 17) + "...";
           }
-          String cf = ith->getMetaValue("chemical_formula");
-          if (cf.empty()) continue; // skip unannotated "null" peaks
+          String cf = pep.getMetaValue("chemical_formula");
+          if (cf.empty())
+          {
+            continue; // skip unannotated "null" peaks
+          }
           formula_to_names[cf].push_back(name);
         }
         else
         {
           StringList msg;
-          if (!ith->metaValueExists("identifier")) msg.push_back("identifier");
-          if (!ith->metaValueExists("chemical_formula")) msg.push_back("chemical_formula");
+          if (!pep.metaValueExists("identifier"))
+          {
+            msg.push_back("identifier");
+          }
+          if (!pep.metaValueExists("chemical_formula"))
+          {
+            msg.push_back("chemical_formula");
+          }
           OPENMS_LOG_WARN << "Missing meta-value(s): " << ListUtils::concatenate(msg, ", ") << ". Cannot annotate!\n";
         }
       }
@@ -243,19 +265,22 @@ namespace OpenMS
         double int_factor = peak_int / id.begin()->getIntensity();
         Annotation1DCaret::PositionsType points;
         Size itic(0);
-        for (IsotopeDistribution::ConstIterator iti = id.begin(); iti != id.end(); ++iti)
+        for (const Peak1D& iso : id)
         {
-          points.push_back(Annotation1DCaret::PointType(mz + itic*Constants::C13C12_MASSDIFF_U, iti->getIntensity() * int_factor));
+          points.push_back(Annotation1DCaret::PointType(mz + itic*Constants::C13C12_MASSDIFF_U, iso.getIntensity() * int_factor));
           ++itic;
         }
         Annotation1DCaret* ditem = new Annotation1DCaret(points,
                                                          QString(),
                                                          cols[i],
-                                                         String(current_layer.param.getValue("peak_color").toString()).toQString());
+                                                         String(getCurrentLayer().param.getValue("peak_color").toString()).toQString());
         ditem->setSelected(false);
         temporary_annotations_.push_back(ditem); // for removal (no ownership)
-        current_layer.getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
-        if (first_dit==nullptr) first_dit = ditem; // remember first item (we append the text, when ready)
+        getCurrentLayer().getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
+        if (first_dit == nullptr) 
+        {
+          first_dit = ditem; // remember first item (we append the text, when ready)
+        }
 
         // list of compound names  (shorten if required)
         if (ith->second.size() > 3)
@@ -287,16 +312,22 @@ namespace OpenMS
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == nullptr) { return; }
+    if (widget_1D == nullptr) 
+    {
+      std::cout << "Current widget is nullptr" << std::endl;
+      return; 
+    }
 
-    // lambda which returns the current layer
-    // (this needs to be reevaluated, since adding a layer can invalidate the reference/pointer due to realloc)
-    auto current_layer = [&]() -> LayerData& { return widget_1D->canvas()->getCurrentLayer(); };
+    // lambda which returns the current layer. This has to be used throughout this function to ensure
+    // being up-to-date (no invalidated pointer etc.)
+    // even after adding a layer with e.g. addTheoreticalSpectrumLayer_ in L372.
+    auto current_layer = [&]() -> LayerDataBase& { return widget_1D->canvas()->getCurrentLayer(); };
+
     widget_1D->canvas()->activateSpectrum(spectrum_index);
     current_layer().peptide_id_index = peptide_id_index;
     current_layer().peptide_hit_index = peptide_hit_index;
 
-    if (current_layer().type == LayerData::DT_PEAK)
+    if (current_layer().type == LayerDataBase::DT_PEAK)
     {
       UInt ms_level = current_layer().getCurrentSpectrum().getMSLevel();
 
@@ -311,11 +342,15 @@ namespace OpenMS
           // collect all MS2 spectra precursor till next MS1 spectrum is encountered
           for (Size i = spectrum_index + 1; i < current_layer().getPeakData()->size(); ++i)
           {
-            if ((*current_layer().getPeakData())[i].getMSLevel() == 1) break;
-
+            if ((*current_layer().getPeakData())[i].getMSLevel() == 1)
+            {
+              break;
+            }
             // skip MS2 without precursor
-            if ((*current_layer().getPeakData())[i].getPrecursors().empty()) continue;
-
+            if ((*current_layer().getPeakData())[i].getPrecursors().empty())
+            {
+              continue;
+            }
             // there should be only one precursor per MS2 spectrum.
             vector<Precursor> pcs = (*current_layer().getPeakData())[i].getPrecursors();
             copy(pcs.begin(), pcs.end(), back_inserter(precursors));
@@ -343,7 +378,10 @@ namespace OpenMS
               removeTheoreticalSpectrumLayer_();
 
               // return if no active 1D widget is present
-              if (widget_1D == nullptr) { return; }
+              if (widget_1D == nullptr)
+              { 
+                return;
+              }
               // update current PeptideHit with the synchronized one
               widget_1D->canvas()->activateSpectrum(spectrum_index);
               const vector<PeptideIdentification>& pis2 = current_layer().getCurrentSpectrum().getPeptideIdentifications();
@@ -406,13 +444,16 @@ namespace OpenMS
                 box_text += alpha_cov + "<br>" + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar;
 
               }
-              box_text = "<font size=\"5\" style=\"background-color:white;\"><pre>" + box_text + "</pre></font> ";
+              box_text = R"(<font size="5" style="background-color:white;"><pre>)" + box_text + "</pre></font> ";
               widget_1D->canvas()->setTextBox(box_text.toQString());
             }
             else if (ph.getPeakAnnotations().empty()) // only write the sequence
             {
               String seq = ph.getSequence().toString();
-              if (seq.empty()) seq = ph.getMetaValue("label"); // e.g. for RNA sequences
+              if (seq.empty())
+              {
+                seq = ph.getMetaValue("label"); // e.g. for RNA sequences
+              }
               widget_1D->canvas()->setTextBox(seq.toQString());
             }
             else if (widget_1D->canvas()->isIonLadderVisible())
@@ -453,7 +494,7 @@ namespace OpenMS
           OPENMS_LOG_WARN << "Annotation of MS level > 2 not supported." << endl;
       }
     } // end DT_PEAK
-    // else if (current_layer().type == LayerData::DT_CHROMATOGRAM)
+    // else if (current_layer().type == LayerDataBase::DT_CHROMATOGRAM)
   }
 
   // Helper function for text formatting
@@ -673,7 +714,10 @@ namespace OpenMS
       // special case for RNA: "a[n]-B", where "[n]" is the ion number
       // -> don't forget to add the "-B" back on if it's there:
       String more_ion = label.substr(split);
-      if (more_ion == "-B") ion += more_ion;
+      if (more_ion == "-B")
+      {
+        ion += more_ion;
+      }
       Size pos = label.substr(1, split - 1).toInt();
       ion_pos[ion].insert(pos);
       #ifdef DEBUG_IDENTIFICATION_VIEW
@@ -818,19 +862,19 @@ namespace OpenMS
 
   void TVIdentificationViewController::addPrecursorLabels1D_(const vector<Precursor>& pcs)
   {
-    LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    LayerDataBase& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
 
-    if (current_layer.type == LayerData::DT_PEAK)
+    if (current_layer.type == LayerDataBase::DT_PEAK)
     {
       const SpectrumType& spectrum = current_layer.getCurrentSpectrum();
 
-      for (vector<Precursor>::const_iterator it = pcs.begin(); it != pcs.end(); ++it)
+      for (const Precursor& pre : pcs)
       {
         // determine start and stop of isolation window
-        double center_mz = it->metaValueExists("isolation window target m/z") ?
-        double(it->getMetaValue("isolation window target m/z")) : it->getMZ();
-        double isolation_window_lower_mz = center_mz - it->getIsolationWindowLowerOffset();
-        double isolation_window_upper_mz = center_mz + it->getIsolationWindowUpperOffset();
+        double center_mz = pre.metaValueExists("isolation window target m/z") ?
+        double(pre.getMetaValue("isolation window target m/z")) : pre.getMZ();
+        double isolation_window_lower_mz = center_mz - pre.getIsolationWindowLowerOffset();
+        double isolation_window_upper_mz = center_mz + pre.getIsolationWindowUpperOffset();
 
         // determine maximum peak intensity in isolation window
         SpectrumType::const_iterator vbegin = spectrum.MZBegin(isolation_window_lower_mz);
@@ -849,10 +893,10 @@ namespace OpenMS
         DPosition<2> lower_position = DPosition<2>(isolation_window_lower_mz, max_intensity);
         DPosition<2> upper_position = DPosition<2>(isolation_window_upper_mz, max_intensity);
 
-        Annotation1DDistanceItem* item = new Annotation1DDistanceItem(QString::number(it->getCharge()), lower_position, upper_position);
+        Annotation1DDistanceItem* item = new Annotation1DDistanceItem(QString::number(pre.getCharge()), lower_position, upper_position);
         // add additional tick at precursor target position (e.g. to show if isolation window is asymmetric)
         vector<double> ticks;
-        ticks.push_back(it->getMZ());
+        ticks.push_back(pre.getMZ());
         item->setTicks(ticks);
         item->setSelected(false);
 
@@ -860,7 +904,7 @@ namespace OpenMS
         current_layer.getCurrentAnnotations().push_front(item); // for visualization (ownership)
       }
     }
-    else if (current_layer.type == LayerData::DT_CHROMATOGRAM)
+    else if (current_layer.type == LayerDataBase::DT_CHROMATOGRAM)
     {
 
     }
@@ -872,7 +916,7 @@ namespace OpenMS
     cout << "removePrecursorLabels1D_ " << spectrum_index << endl;
 #endif
     // Delete annotations added by IdentificationView (but not user added annotations)
-    LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    LayerDataBase& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
     const vector<Annotation1DItem*>& cas = temporary_annotations_;
     Annotations1DContainer& las = current_layer.getAnnotations(spectrum_index);
     for (vector<Annotation1DItem*>::const_iterator it = cas.begin(); it != cas.end(); ++it)
@@ -890,55 +934,34 @@ namespace OpenMS
   void TVIdentificationViewController::addTheoreticalSpectrumLayer_(const PeptideHit& ph)
   {
     PlotCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
-    LayerData& current_layer = current_canvas->getCurrentLayer();
+    LayerDataBase& current_layer = current_canvas->getCurrentLayer();
     const SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
 
-    AASequence aa_sequence = ph.getSequence();
+    const AASequence& aa_sequence = ph.getSequence();
 
     // get measured spectrum indices and spectrum
     Size current_spectrum_layer_index = current_canvas->getCurrentLayerIndex();
     Size current_spectrum_index = current_layer.getCurrentSpectrumIndex();
 
     const Param& tv_params = tv_->getParameters();
+    Param tag_params = tv_params.copy("preferences:user:idview:tsg:", true);
+    // override: enable metavalues for simulated peaks (needed for annotation)
+    assert(tag_params.exists("add_metainfo"));
+    tag_params.setValue("add_metainfo", "true");
 
-    PeakSpectrum spectrum;
+    PeakSpectrum theo_spectrum;
     TheoreticalSpectrumGenerator generator;
-    Param p;
-    p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-
-    // these two are true by default, initialize to false here and set to true in the loop below
-    p.setValue("add_y_ions", "false", "Add peaks of y-ions to the spectrum");
-    p.setValue("add_b_ions", "false", "Add peaks of b-ions to the spectrum");
-
-    p.setValue("max_isotope", tv_params.getValue("preferences:idview:max_isotope"), "Number of isotopic peaks");
-    p.setValue("add_losses", tv_params.getValue("preferences:idview:add_losses"), "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-    p.setValue("add_isotopes", tv_params.getValue("preferences:idview:add_isotopes"), "If set to 1 isotope peaks of the product ion peaks are added");
-    p.setValue("add_abundant_immonium_ions", tv_params.getValue("preferences:idview:add_abundant_immonium_ions"), "Add most abundant immonium ions");
-
-    p.setValue("a_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:a_intensity"), "Intensity of the a-ions");
-    p.setValue("b_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:b_intensity"), "Intensity of the b-ions");
-    p.setValue("c_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:c_intensity"), "Intensity of the c-ions");
-    p.setValue("x_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:x_intensity"), "Intensity of the x-ions");
-    p.setValue("y_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:y_intensity"), "Intensity of the y-ions");
-    p.setValue("z_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:z_intensity"), "Intensity of the z-ions");
-    p.setValue("relative_loss_intensity", tv_params.getValue("preferences:idview:relative_loss_intensity"), "Intensity of loss ions, in relation to the intact ion intensity");
-
-    p.setValue("add_a_ions", tv_params.getValue("preferences:idview:show_a_ions"), "Add peaks of a-ions to the spectrum");
-    p.setValue("add_b_ions", tv_params.getValue("preferences:idview:show_b_ions"), "Add peaks of b-ions to the spectrum");
-    p.setValue("add_c_ions", tv_params.getValue("preferences:idview:show_c_ions"), "Add peaks of c-ions to the spectrum");
-    p.setValue("add_x_ions", tv_params.getValue("preferences:idview:show_x_ions"), "Add peaks of x-ions to the spectrum");
-    p.setValue("add_y_ions", tv_params.getValue("preferences:idview:show_y_ions"), "Add peaks of y-ions to the spectrum");
-    p.setValue("add_z_ions", tv_params.getValue("preferences:idview:show_z_ions"), "Add peaks of z-ions to the spectrum");
-    p.setValue("add_precursor_peaks", tv_params.getValue("preferences:idview:show_precursor"), "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-
     try
     {
       Int max_charge = max(1, ph.getCharge()); // at least generate charge 1 if no charge (0) is annotated
 
       // generate mass ladder for all charge states
-      generator.setParameters(p);
-      generator.getSpectrum(spectrum, aa_sequence, 1, max_charge);
+      generator.setParameters(tag_params);
+      generator.getSpectrum(theo_spectrum, aa_sequence, 1, max_charge);
 
+      // scale spectrum to maximum peak intensity of real spectrum
+      auto scale_by = current_spectrum.getMaxIntensity();
+      std::for_each(theo_spectrum.begin(), theo_spectrum.end(), [scale_by](Peak1D& p) { p.setIntensity(p.getIntensity() * scale_by); });
     }
     catch (Exception::BaseException& e)
     {
@@ -947,11 +970,11 @@ namespace OpenMS
     }
 
     PeakMap new_exp;
-    new_exp.addSpectrum(spectrum);
+    new_exp.addSpectrum(theo_spectrum);
     ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
     FeatureMapSharedPtrType f_dummy(new FeatureMapType());
     ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
-    LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+    LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
     vector<PeptideIdentification> p_dummy;
 
     // Block update events for identification widget
@@ -959,24 +982,24 @@ namespace OpenMS
     RAIICleanup cleanup([&](){spec_id_view_->ignore_update = false; });
 
     String layer_caption = aa_sequence.toString() + " (identification view)";
-    tv_->addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_PEAK, false, false, false, layer_caption.toQString(), layer_caption.toQString());
+    tv_->addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerDataBase::DT_PEAK, false, false, false, layer_caption.toQString(), layer_caption.toQString());
 
     // get layer index of new layer
     Size theoretical_spectrum_layer_index = tv_->getActive1DWidget()->canvas()->getCurrentLayerIndex();
 
     // kind of a hack to check whether adding the layer was successful
-    if (current_spectrum_layer_index != theoretical_spectrum_layer_index && !spectrum.getStringDataArrays().empty())
+    if (current_spectrum_layer_index != theoretical_spectrum_layer_index && !theo_spectrum.getStringDataArrays().empty())
     {
       // Ensure theoretical spectrum is drawn as dashed sticks
       tv_->setDrawMode1D(Plot1DCanvas::DM_PEAKS);
       tv_->getActive1DWidget()->canvas()->setCurrentLayerPeakPenStyle(Qt::DashLine);
 
       // Add ion names as annotations to the theoretical spectrum
-      PeakSpectrum::StringDataArray sa = spectrum.getStringDataArrays()[0];
+      PeakSpectrum::StringDataArray sa = theo_spectrum.getStringDataArrays()[0];
 
-      for (Size i = 0; i != spectrum.size(); ++i)
+      for (Size i = 0; i != theo_spectrum.size(); ++i)
       {
-        DPosition<2> position = DPosition<2>(spectrum[i].getMZ(), spectrum[i].getIntensity());
+        DPosition<2> position = DPosition<2>(theo_spectrum[i].getMZ(), theo_spectrum[i].getIntensity());
         QString s(sa[i].c_str());
 
         if (s.at(0) == 'y')
@@ -1000,21 +1023,16 @@ namespace OpenMS
 
       // zoom to maximum visible area in real data (as theoretical might be much larger and therefor squeezes the interesting part)
       DRange<2> visible_area = tv_->getActive1DWidget()->canvas()->getVisibleArea();
-      double min_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMin()[0];
-      double max_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMax()[0];
-      double delta_mz = max_mz - min_mz;
-      visible_area.setMin(min_mz - 0.1 * delta_mz);
-      visible_area.setMax(max_mz + 0.1 * delta_mz);
+      auto spec_range = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getRange();
+      spec_range.scaleBy(1.2);
+      visible_area.setMinX(spec_range.getMinMZ());
+      visible_area.setMaxX(spec_range.getMaxMZ());
 
       tv_->getActive1DWidget()->canvas()->setVisibleArea(visible_area);
 
       // spectra alignment
-      Param param;
-
-      double tolerance = tv_params.getValue("preferences:idview:tolerance");
-
-      param.setValue("tolerance", tolerance, "Defines the absolute (in Da) or relative (in ppm) tolerance in the alignment");
-      tv_->getActive1DWidget()->performAlignment(current_spectrum_layer_index, theoretical_spectrum_layer_index, param);
+      Param p_align = tv_params.copy("preferences:user:idview:align", true);
+      tv_->getActive1DWidget()->performAlignment(current_spectrum_layer_index, theoretical_spectrum_layer_index, p_align);
 
       vector<pair<Size, Size> > aligned_peak_indices = tv_->getActive1DWidget()->canvas()->getAlignedPeaksIndices();
 
@@ -1079,7 +1097,7 @@ namespace OpenMS
   void TVIdentificationViewController::removeGraphicalPeakAnnotations_(int spectrum_index)
   {
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
-    LayerData& current_layer = widget_1D->canvas()->getCurrentLayer();
+    LayerDataBase& current_layer = widget_1D->canvas()->getCurrentLayer();
 
     #ifdef DEBUG_IDENTIFICATION_VIEW
           cout << "Removing peak annotations." << endl;
@@ -1105,12 +1123,17 @@ namespace OpenMS
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // Return if none present
-    if (widget_1D == nullptr) return;
-
-    LayerData& current_layer = widget_1D->canvas()->getCurrentLayer();
+    if (widget_1D == nullptr)
+    {
+      return;
+    }
+    LayerDataBase& current_layer = widget_1D->canvas()->getCurrentLayer();
 
     // Return if no valid peak layer attached
-    if (current_layer.getPeakData()->size() == 0 || current_layer.type != LayerData::DT_PEAK) { return; }
+    if (current_layer.getPeakData()->empty() || current_layer.type != LayerDataBase::DT_PEAK)
+    { 
+      return;
+    }
 
     MSSpectrum& spectrum = (*current_layer.getPeakDataMuteable())[spectrum_index];
     int ms_level = spectrum.getMSLevel();
@@ -1140,11 +1163,14 @@ namespace OpenMS
     String seq = hit.getSequence().toString();
     if (seq.empty())
     { // no sequence information stored? use label
-      if (hit.metaValueExists("label")) seq = hit.getMetaValue("label");
+      if (hit.metaValueExists("label"))
+      {
+        seq = hit.getMetaValue("label");
+      }
     }
 
     PlotCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
-    LayerData& current_layer = current_canvas->getCurrentLayer();
+    LayerDataBase& current_layer = current_canvas->getCurrentLayer();
     const MSSpectrum& current_spectrum = current_layer.getCurrentSpectrum();
 
     if (current_spectrum.empty())
@@ -1240,16 +1266,16 @@ namespace OpenMS
     }
 
     // Block update events for identification widget
+    // TODO: Why? If it is to avoid a new selection while repainting, why just do it now and not much earlier??
     spec_id_view_->ignore_update = true;
     RAIICleanup cleanup([&]() {spec_id_view_->ignore_update = false; });
 
     // zoom visible area to real data range:
     DRange<2> visible_area = tv_->getActive1DWidget()->canvas()->getVisibleArea();
-    double min_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMin()[0];
-    double max_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMax()[0];
-    double delta_mz = max_mz - min_mz;
-    visible_area.setMin(min_mz - 0.1 * delta_mz);
-    visible_area.setMax(max_mz + 0.1 * delta_mz);
+    auto spec_range = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getRange();
+    spec_range.scaleBy(1.2);
+    visible_area.setMinX(spec_range.getMinMZ());
+    visible_area.setMaxX(spec_range.getMaxMZ());
     tv_->getActive1DWidget()->canvas()->setVisibleArea(visible_area);
 
     tv_->updateLayerBar();
@@ -1283,10 +1309,12 @@ namespace OpenMS
   void TVIdentificationViewController::activateBehavior() 
   {
     Plot1DWidget* w = tv_->getActive1DWidget();
-    if (w == nullptr) return;
-
+    if (w == nullptr)
+    {
+      return;
+    }
     PlotCanvas* current_canvas = w->canvas();
-    LayerData& current_layer = current_canvas->getCurrentLayer();
+    LayerDataBase& current_layer = current_canvas->getCurrentLayer();
     const SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
 
     // find first MS2 spectrum with peptide identification and set current spectrum to it
@@ -1314,13 +1342,15 @@ namespace OpenMS
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == nullptr) return;
-
+    if (widget_1D == nullptr)
+    {
+      return;
+    }
     // clear textbox
     widget_1D->canvas()->setTextBox(QString());
 
     // remove precursor labels, theoretical spectra and trigger repaint
-    LayerData& cl = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    LayerDataBase& cl = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
     removeTemporaryAnnotations_(cl.getCurrentSpectrumIndex());
     removeTheoreticalSpectrumLayer_();
     cl.peptide_id_index = -1;
@@ -1333,13 +1363,14 @@ namespace OpenMS
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == nullptr) return;
-
+    if (widget_1D == nullptr)
+    {
+      return;
+    }
     DRange<2> range = tv_->getActive1DWidget()->canvas()->getVisibleArea();
     range.setMinX(l);
     range.setMaxX(h);
     tv_->getActive1DWidget()->canvas()->setVisibleArea(range);
     tv_->getActive1DWidget()->canvas()->repaint();
   }
-
 }

@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/config.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
@@ -192,7 +193,7 @@ public:
     PeakMap exp;
     mz_data_file.load(in, exp);
 
-    if (exp.empty() && exp.getChromatograms().size() == 0)
+    if (exp.empty() && exp.getChromatograms().empty())
     {
       OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";

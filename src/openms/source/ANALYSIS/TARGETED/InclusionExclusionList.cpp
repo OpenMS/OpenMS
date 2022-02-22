@@ -35,8 +35,8 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-
 #include <OpenMS/SIMULATION/RTSimulation.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>

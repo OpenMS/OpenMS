@@ -34,7 +34,7 @@
 
 #include <OpenMS/QC/FragmentMassError.h>
 
-#include <assert.h>
+#include <cassert>
 #include <string>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -48,6 +48,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
@@ -106,7 +107,10 @@ namespace OpenMS
     Precursor::ActivationMethod act_method;
     if (exp_spectrum.getPrecursors().empty())
     {
-      if (print_warning) OPENMS_LOG_WARN << "No MS2 activation method provided. Using CID as fallback to compute fragment mass errors." << std::endl;
+      if (print_warning)
+      {
+        OPENMS_LOG_WARN << "No MS2 activation method provided. Using CID as fallback to compute fragment mass errors." << std::endl;
+      }
       print_warning = false; // only print it once
       act_method = Precursor::ActivationMethod::CID;
     }
@@ -114,7 +118,10 @@ namespace OpenMS
     {
       if (exp_spectrum.getPrecursors()[0].getActivationMethods().empty())
       {
-        if (print_warning) OPENMS_LOG_WARN << "No MS2 activation method provided. Using CID as fallback to compute fragment mass errors." << std::endl;
+        if (print_warning)
+        {
+          OPENMS_LOG_WARN << "No MS2 activation method provided. Using CID as fallback to compute fragment mass errors." << std::endl;
+        }
         print_warning = false;// only print it once
         act_method = Precursor::ActivationMethod::CID;
       }

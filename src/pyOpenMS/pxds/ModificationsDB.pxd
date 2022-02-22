@@ -25,9 +25,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Collects all modifications which have the given name as synonym
                 #   -----
-                #   If `residue` is set, only modifications with matching residue of origin are considered.
-                #   If `term_spec` is set, only modifications with matching term specificity are considered.
-                #       The resulting set of modifications will be empty if no modification exists that fulfills the criteria.
+                #   If `residue` is set, only modifications with matching residue of origin are considered
+                #   If `term_spec` is set, only modifications with matching term specificity are considered
+                #   The resulting set of modifications will be empty if no modification exists that fulfills the criteria
 
         const ResidueModification * getModification(Size index) nogil except + # wrap-doc:Returns the modification with the given index
 
@@ -39,7 +39,11 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
 
         bool has(String modification) nogil except + # wrap-doc:Returns true if the modification exists
 
+        # unique_ptrs do not have a conversion provider in autowrap yet. Also, we would probably make a copy to not steal memory from the python object, defeating the purpose.
         #void addModification(libcpp_unique_ptr[ResidueModification] new_mod) nogil except +
+
+        # TODO also do a function with bool return type to save a copy?
+        const ResidueModification * addModification(const ResidueModification & new_mod) nogil except + # wrap-doc:Add a new modification to ModificationsDB. If the modification already exists (based on its fullID) it is not added. Returns the modification in the ModificationDB (which can differ from input if mod was already present).
 
         Size findModificationIndex(const String & mod_name) nogil except + # wrap-doc:Returns the index of the modification in the mods_ vector; a unique name must be given
 

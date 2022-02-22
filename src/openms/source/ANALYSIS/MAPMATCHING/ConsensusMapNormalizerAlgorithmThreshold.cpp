@@ -34,8 +34,10 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
+
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include "OpenMS/MATH/STATISTICS/StatisticFunctions.h"
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace std;
 

@@ -127,7 +127,7 @@ public:
     */
     virtual void setSeeds(const FeatureMap& seeds)
     {
-      if (seeds.size() != 0)
+      if (!seeds.empty())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The used feature detection algorithm does not support user-specified seed lists!");
       }

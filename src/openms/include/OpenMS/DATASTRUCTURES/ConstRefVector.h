@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 
 #include <algorithm>
 #include <typeinfo>
@@ -721,18 +720,19 @@ public:
     {
       if (reverse)
       {
-        std::sort(vector_.begin(), vector_.end(), reverseComparator(pointerComparator(typename ValueType::IntensityLess())));
+        auto pointerCmp = [](auto& left, auto& right){typename ValueType::IntensityLess cmp; return cmp(*left, *right);};
+        std::sort(vector_.begin(), vector_.end(), [&](auto &left, auto &right) {return pointerCmp(right, left);});
       }
       else
       {
-        std::sort(vector_.begin(), vector_.end(), pointerComparator(typename ValueType::IntensityLess()));
+        std::sort(vector_.begin(), vector_.end(), [](auto& left, auto& right){typename ValueType::IntensityLess cmp; return cmp(*left, *right);}); 
       }
     }
 
     /// Lexicographically sorts the elements by their position.
     void sortByPosition()
     {
-      std::sort(vector_.begin(), vector_.end(), pointerComparator(typename ValueType::PositionLess()));
+      std::sort(vector_.begin(), vector_.end(), [](auto& left, auto& right){typename ValueType::PositionLess cmp; return cmp(*left, *right);}); 
     }
 
     //@}
@@ -753,7 +753,7 @@ public:
     template <typename ComparatorType>
     void sortByComparator(ComparatorType const& comparator = ComparatorType())
     {
-      std::sort(vector_.begin(), vector_.end(), pointerComparator(comparator));
+      std::sort(vector_.begin(), vector_.end(), [&](auto& left, auto& right){return comparator(*left, *right);});
     }
 
     //@}

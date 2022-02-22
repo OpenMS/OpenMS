@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
@@ -46,6 +47,8 @@
 #include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <OpenMS/FORMAT/MsInspectFile.h>
 #include <OpenMS/FORMAT/SpecArrayFile.h>
@@ -501,7 +504,7 @@ namespace OpenMS
     // MS2 file format
     if (all_simple.hasSubstring("CreationDate"))
     {
-      if (all_simple.size() > 0 && all_simple[0] == 'H')
+      if (!all_simple.empty() && all_simple[0] == 'H')
       {
         return FileTypes::MS2;
       }
@@ -625,6 +628,68 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       return false;
     }
 
+    return true;
+  }
+
+  bool FileHandler::storeFeatures(const String& filename, const FeatureMap& map)
+  {
+    //determine file type
+    FileTypes::Type type;
+    try
+    {
+      type = getType(filename);
+    }
+    catch ( Exception::FileNotFound& )
+    {
+      return false;
+    }
+
+    //store right file
+    if (type == FileTypes::FEATUREXML)
+    {
+      FeatureXMLFile().store(filename, map);
+    }
+    else if (type == FileTypes::TSV)
+    {
+      MsInspectFile().store(filename, map);
+    }
+    else if (type == FileTypes::PEPLIST)
+    {
+      SpecArrayFile().store(filename, map);
+    }
+    else if (type == FileTypes::KROENIK)
+    {
+      KroenikFile().store(filename, map);
+    }
+    else
+    {
+      return false;
+    }
+
+    return true;
+  }
+
+  bool FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map)
+  {
+    ConsensusXMLFile().store(filename, map);
+    return true;
+  }
+
+  bool FileHandler::loadConsensusFeatures(const String& filename, ConsensusMap& map)
+  {
+    ConsensusXMLFile().load(filename, map);
+    return true;
+  }
+
+  bool FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification> additional_proteins, std::vector<PeptideIdentification> additional_peptides)
+  {
+    IdXMLFile().load(filename, additional_proteins, additional_peptides);
+    return true;
+  }
+
+  bool FileHandler::storeTransitions(const String& filename, const TargetedExperiment& library)
+  {
+    TraMLFile().store(filename, library);
     return true;
   }
 
