@@ -135,7 +135,7 @@ namespace OpenMS
     void currentSpectraSelectionChanged_();
 
     /// update ProteinHits, when data in the table changes (status of checkboxes)
-    void updatedSingleProteinCell_(QTableWidgetItem* item);
+    void updatedSingleProteinCell_(QTableWidgetItem* /*item*/);
     /// Protein Cell clicked in protein_table_widget; emits which protein (row) was clicked, and may show additional data
     void proteinCellClicked_(int row, int column);
   };
