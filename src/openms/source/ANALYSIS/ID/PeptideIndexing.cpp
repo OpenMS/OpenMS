@@ -266,7 +266,7 @@ using namespace std;
     IL_equivalent_ = param_.getValue("IL_equivalent").toBool();
     aaa_max_ = static_cast<Int>(param_.getValue("aaa_max"));
     mm_max_ = static_cast<Int>(param_.getValue("mismatches_max"));
-    allow_nterm_protein_cleavage_ = params_.getValue("allow_nterm_protein_cleavage").toBool();
+    allow_nterm_protein_cleavage_ = param_.getValue("allow_nterm_protein_cleavage").toBool();
   }
 
 PeptideIndexing::ExitCodes PeptideIndexing::run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
