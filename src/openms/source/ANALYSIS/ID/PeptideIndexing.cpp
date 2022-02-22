@@ -122,10 +122,11 @@ using namespace std;
       const OpenMS::Size idx_prot,
       const OpenMS::Size len_pep,
       const OpenMS::String& seq_prot,
-      OpenMS::Int position)
+      OpenMS::Int position,
+      const bool allow_nterm_protein_cleavage)
     {
       //TODO we could read and double-check missed cleavages as well
-      if (enzyme_.isValidProduct(seq_prot, position, len_pep, true, true, xtandem_))
+      if (enzyme_.isValidProduct(seq_prot, position, len_pep, true, allow_nterm_protein_cleavage, xtandem_))
       {
         PeptideProteinMatchInformation match
         {
@@ -152,14 +153,14 @@ using namespace std;
 
   // free function (not exported) used to add hits
   void search(ACTrie& trie, ACTrieState& state, const String& prot, const String& full_prot, size_t prot_offset, SignedSize idx_prot, 
-              FoundProteinFunctor& func_threads)
+              FoundProteinFunctor& func_threads, const bool allow_nterm_protein_cleavage)
   {
     state.setQuery(prot);
     trie.getAllHits(state);
     
     for (const auto& hit : state.hits)
     {
-      func_threads.addHit(hit.needle_index, idx_prot, hit.needle_length, full_prot, hit.query_pos + prot_offset);
+      func_threads.addHit(hit.needle_index, idx_prot, hit.needle_length, full_prot, hit.query_pos + prot_offset, allow_nterm_protein_cleavage);
     }
   }
 
@@ -218,6 +219,9 @@ using namespace std;
     defaults_.setValue("IL_equivalent", "false", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable). Also occurrences of 'J' will be treated as 'I' thus avoiding ambiguous matching.");
     defaults_.setValidStrings("IL_equivalent", { "true", "false" });
 
+    defaults_.setValue("allow_nterm_protein_cleavage", "true", "Allow the protein N-terminus amino acid to clip.");
+    defaults_.setValidStrings("allow_nterm_protein_cleavage", { "true", "false" });
+
     defaultsToParam_();
   }
 
@@ -239,6 +243,7 @@ using namespace std;
     IL_equivalent_ = param_.getValue("IL_equivalent").toBool();
     aaa_max_ = static_cast<Int>(param_.getValue("aaa_max"));
     mm_max_ = static_cast<Int>(param_.getValue("mismatches_max"));
+    allow_nterm_protein_cleavage_ = params_.getValue("allow_nterm_protein_cleavage").toBool();
   }
 
 PeptideIndexing::ExitCodes PeptideIndexing::run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
