@@ -525,7 +525,8 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
             while ((offset = prot.find(jumpX, offset + 1)) != std::string::npos)
             {
               //std::cout << "found X..X at " << offset << " in protein " << proteins[i].identifier << "\n";
-              search(ac_trie, ac_state, prot.substr(start, offset + jumpX.size() - start), prot, start, prot_idx, func_threads);
+              search(ac_trie, ac_state, prot.substr(start, offset + jumpX.size() - start), prot, start, prot_idx, func_threads,
+                     allow_nterm_protein_cleavage_);
               // skip ahead while we encounter more X...
               while (offset + jumpX.size() < prot.size() && prot[offset + jumpX.size()] == 'X') ++offset;
               start = offset;
@@ -534,12 +535,12 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
             // last chunk
             if (start < prot.size())
             {
-              search(ac_trie, ac_state, prot.substr(start), prot, start, prot_idx, func_threads);
+              search(ac_trie, ac_state, prot.substr(start), prot, start, prot_idx, func_threads, allow_nterm_protein_cleavage_);
             }
           }
           else // search the whole protein at once
           {
-            search(ac_trie, ac_state, prot, prot, 0, prot_idx, func_threads);
+            search(ac_trie, ac_state, prot, prot, 0, prot_idx, func_threads, allow_nterm_protein_cleavage_);
           }
           // was protein found?
           if (hits_total < func_threads.filter_passed + func_threads.filter_rejected)
