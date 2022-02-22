@@ -114,18 +114,18 @@ namespace OpenMS
 
   static constexpr std::array<const char*, 3> modifications_RNA_UV_6SG
   {   
-    "S:",
-    "S:-H2O",
-    "S:-H2S"
+    "X:",
+    "X:-H2O",
+    "X:-H2S"
   };
 
   static constexpr std::array<const char*, 5> modifications_RNA_UV_6SG_EXTENDED
   {   
-    "S:",
-    "S:-H2O",
-    "S:-H3PO4",
-    "S:-HPO3",
-    "S:-H2S"
+    "X:",
+    "X:-H2O",
+    "X:-H3PO4",
+    "X:-HPO3",
+    "X:-H2S"
   };
 
   static constexpr std::array<const char*, 4> modifications_RNA_NM
@@ -503,7 +503,7 @@ namespace OpenMS
 
   static constexpr std::array<const char*, 40> fragments_RNA_UV_6SG
   {
-      "S:C4H2N2O1;tU-H2S",
+      "X:C4H2N2O1;tG-H2S",
 
       "U:C3O;C3O",
       "U:C4H4N2O2;U'",
@@ -953,20 +953,20 @@ namespace OpenMS
     else if (p == "RNA-UV (6SG)")
     {
       C8H10N4O3S
-      nucleotides.push_back("S=C10H14N5O7PS"); // include 6-Thio-GMP
-      mapping.push_back("S->S");
+      nucleotides.push_back("X=C10H14N5O7PS"); // include 6-Thio-GMP
+      mapping.push_back("X->X");
       modifications = RNA_UV_6SG_modifications;
       fragment_adducts = RNA_UV_6SG_fragments;
-      can_cross_link = "S";
+      can_cross_link = "X";
       return;
     }
     else if (p == "RNA-UV Extended (6SG)")
     {
-      nucleotides.push_back("S=C10H14N5O7PS"); // include 6-Thio-GMP
-      mapping.push_back("S->S");
+      nucleotides.push_back("X=C10H14N5O7PS"); // include 6-Thio-GMP
+      mapping.push_back("X->X");
       modifications = RNA_UV_6SG_EXTENDED_modifications;
       fragment_adducts = RNA_UV_6SG_fragments;
-      can_cross_link = "S";
+      can_cross_link = "X";
       return;
     }
     else if (p == "DNA-UV")
