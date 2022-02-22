@@ -476,7 +476,6 @@ namespace OpenMS
       "C:C9H10N2O5;C-NH3-HPO3",
       "C:C9H8N2O4;C-NH3-H3PO4",
 
-
       "G:C5H5N5O;G'",
       "G:C5H3N5;G'-H2O",
       "G:C5H2N4O;G'-NH3",
@@ -503,7 +502,7 @@ namespace OpenMS
 
   static constexpr std::array<const char*, 40> fragments_RNA_UV_6SG
   {
-      "X:C4H2N2O1;tG-H2S",
+      "X:C5H3N5;tG-H2S",
 
       "U:C3O;C3O",
       "U:C4H4N2O2;U'",
@@ -524,7 +523,6 @@ namespace OpenMS
       "C:C9H11N3O4;C-H3PO4",
       "C:C9H10N2O5;C-NH3-HPO3",
       "C:C9H8N2O4;C-NH3-H3PO4",
-
 
       "G:C5H5N5O;G'",
       "G:C5H3N5;G'-H2O",
