@@ -217,6 +217,7 @@ public:
     bool keep_unreferenced_proteins_{ false };
     Unmatched unmatched_action_ = Unmatched::IS_ERROR;
     bool IL_equivalent_{ false };
+    bool allow_nterm_protein_cleavage_{ true };
 
     Int aaa_max_{0};
     Int mm_max_{0};

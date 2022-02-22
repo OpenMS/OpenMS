@@ -181,6 +181,11 @@ namespace OpenMS
       return (cleavage_positions.size() - 1) <= missed_cleavages_;
     }
     
+    if (specificity_ == SPEC_FULL && enzyme_->getName() == NoCleavage)
+    { // we want them to be exactly match
+      return pos == 0 && sequence.size() == end;
+    }
+
     // either SPEC_SEMI or SPEC_FULL
     bool spec_c = false, spec_n = false;
     // tokenize_ is really slow, so reduce work by working on substring with +-2 chars margin:
