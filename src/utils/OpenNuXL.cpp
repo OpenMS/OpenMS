@@ -549,7 +549,7 @@ protected:
     if (pscore <= std::numeric_limits<double>::min())
     {
       cout.precision(17);
-      OPENMS_LOG_ERROR << "matches,N,p: " << matches << " " << N << " " << p << "=" << -log10(std::numeric_limits<double>::min()) << endl;
+      OPENMS_LOG_DEBUG << "matches,N,p: " << matches << " " << N << " " << p << "=" << -log10(std::numeric_limits<double>::min()) << endl;
       return -log10(std::numeric_limits<double>::min());
     }
     const double minusLog10p1pscore = -log10(pscore);
@@ -2003,14 +2003,14 @@ static void scoreXLIons_(
       of.close(); 
 
       // Calculate background statistics on shifts
-      OPENMS_LOG_INFO << "mass\tresidue\tshift:" << endl;
+      OPENMS_LOG_DEBUG << "mass\tresidue\tshift:" << endl;
       for (const auto& mra : aa_plus_adduct_mass)
       {
         double m = mra.first;
         const map<const Residue*, double>& residue2adduct = mra.second;
         for (auto& r2a : residue2adduct)
         {
-          OPENMS_LOG_INFO << m << "\t" << r2a.first->getOneLetterCode() << "\t" << r2a.second << endl;
+          OPENMS_LOG_DEBUG << m << "\t" << r2a.first->getOneLetterCode() << "\t" << r2a.second << endl;
         }
       }
     }

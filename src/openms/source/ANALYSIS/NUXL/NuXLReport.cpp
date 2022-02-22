@@ -395,7 +395,8 @@ namespace OpenMS
   struct ProteinReport
   {
     String sequence; //< the protein sequence
-    size_t count = 0; // XL spectral count
+    size_t CSMs = 0; // XL spectral count
+    size_t CSMs_of_unique_peptides = 0; // XL spectral count of unique peptides
     map<size_t, AALevelLocalization> aa_level_localization; // position in protein to loc info
     map<pair<size_t, size_t>, RegionLevelLocalization> region_level_localization;      
   };
@@ -432,6 +433,8 @@ namespace OpenMS
 
       // loop over all target proteins the peptide maps to
       const std::set<std::string>& proteins = peptide2proteins.at(peptide_sequence_string);
+      const bool is_unique = proteins.size() == 1;
+
       for (const String& acc : proteins)
       {
         // add basic protein information first time we encounter a protein accession
@@ -489,7 +492,8 @@ namespace OpenMS
           int end = ph_evidence.getEnd();
           report[acc].region_level_localization[{start, end}].peptide2unlocalizedXL[peptide_sequence_string].push_back(xl);
         }
-        report[acc].count++; // count CSM (localized and unlocalized)
+        report[acc].CSMs++; // count CSM (localized and unlocalized)
+        if (is_unique) report[acc].CSMs_of_unique_peptides++; // count CSM (localized and unlocalized) of unique peptides
       }
     }    
 
@@ -567,9 +571,9 @@ namespace OpenMS
       l += ListUtils::concatenate(nt_set, ",") + "\t";
       l += ListUtils::concatenate(charge_set, ",") + "\t";
       l += String(unique_localized_CSM_count) + "\t";
-      l += String(localized_CSM_count) + "\t";
+      l += String(localized_CSM_count - unique_localized_CSM_count) + "\t";
       l += String(unique_peptidoforms.size()) + "\t"; // peptide counts
-      l += String(peptidoforms.size()) + "\t";
+      l += String(peptidoforms.size() - unique_peptidoforms.size()) + "\t";
 
       // print adducts, nucleotides and charge sets of unlocalized peptides
       l += ListUtils::concatenate(unlocalized_adduct_set, ",") + "\t"; 
@@ -641,9 +645,9 @@ namespace OpenMS
       l += ListUtils::concatenate(unlocalized_adduct_set, ",") + "\t"; 
       l += ListUtils::concatenate(unlocalized_charge_set, ",") + "\t";
       l += String(unique_unlocalized_CSM_count) + "\t";
-      l += String(unlocalized_CSM_count) + "\t";
+      l += String(unlocalized_CSM_count - unique_unlocalized_CSM_count) + "\t";
       l += String(unlocalized_unique_peptidoforms.size()) + "\t"; // peptide counts
-      l += String(unlocalized_peptidoforms.size()) + "\t";
+      l += String(unlocalized_peptidoforms.size() - unlocalized_unique_peptidoforms.size()) + "\t";
 
       // create string with other proteins
       auto ambiguities = peptide2proteins[peptide];
@@ -696,6 +700,8 @@ namespace OpenMS
     map<String, ProteinHit*> acc2protein_targets, acc2protein_decoys;
     RNPxlProteinReport::mapAccessionToTDProteins(prot_id, acc2protein_targets, acc2protein_decoys);
 
+    size_t CSMs_sum{}; // total number of XLed spectra
+
     // map peptide sequence to protein(s)
     std::map<std::string, std::set<std::string>> peptide2proteins;
     std::map<std::string, std::set<std::string>> protein2peptides; 
@@ -706,11 +712,12 @@ namespace OpenMS
       const PeptideHit& ph = hits[0]; // only consider top hit
       auto peptide_sequence = ph.getSequence().toUnmodifiedString();
       const std::vector<PeptideEvidence>& ph_evidences = ph.getPeptideEvidences();
+      ++CSMs_sum;
       for (auto& ph_evidence : ph_evidences)
       {
         const String& acc = ph_evidence.getProteinAccession();
         bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
-        if (!is_target) continue; // skip decoys
+        if (!is_target) continue; // skip decoys            
         peptide2proteins[peptide_sequence].insert(acc);
         protein2peptides[acc].insert(peptide_sequence);
       }
@@ -728,8 +735,8 @@ namespace OpenMS
     std::sort(report.begin(), report.end(), 
       [](const pair<string, ProteinReport> & a, const pair<string, ProteinReport> & b) -> bool
       { 
-         return std::tie(a.second.count, a.first) 
-          > std::tie(b.second.count, b.first);
+         return std::tie(a.second.CSMs, a.second.CSMs_of_unique_peptides, a.first) 
+          > std::tie(b.second.CSMs, b.second.CSMs_of_unique_peptides, b.first);
       }); 
 
 
@@ -748,6 +755,14 @@ namespace OpenMS
 
     // write to file
     cout << "Writing " << report.size() << " proteins to tsv file... " << endl;
+
+    tsv_file.addLine(String("accession\tAA\tpos.\t") + 
+                     "adducts (loc. + unique)\tNT (loc. + unique)\tcharges (loc. + unique)\t" + 
+                     "CSMs (loc. + unique)\tCSMs (loc. + shared)\tprecursors (loc. + unique)\tprecursors (loc. + shared)\t" +
+                     "adducts (\\wo loc. + unique)\tcharges (\\wo loc. + unique)\t" + 
+                     "CSMs (\\wo loc. + unique)\tCSMs (\\wo loc. + shared)\tprecursors (\\wo loc. + unique)\tprecursors (\\wo loc. + shared)\t" +
+                     "ambiguities\tpeptide"
+      );
     for (const auto& [accession, pr] : report)
     {
       // lookup to determine if and where the given peptide 
@@ -760,9 +775,6 @@ namespace OpenMS
           peptides2unlocalizedXL[peptide] = xls;
         }
       }  
-
-      tsv_file.addLine(String(">") + accession + "\t(CSMs: " + String(pr.count) + ")");
-      tsv_file.addLine(pr.sequence);
 
       // first write lines with site localizations
       set<string> printed_peptides;
@@ -787,7 +799,6 @@ namespace OpenMS
         std::inserter(remaining_peptides, remaining_peptides.end()));
 
       // write remaining unlocalized peptides (=regions)
-      std::cout << "Unlocalized peptides: " << remaining_peptides.size() << std::endl;
       for (const auto& [region, region_loc] : pr.region_level_localization)
       {
         printXLRegionDetails(
@@ -798,6 +809,19 @@ namespace OpenMS
           peptide2proteins,
           peptides2proteins2regions);        
       }
+    }
+
+    tsv_file.addLine("\n=============================================================");
+    tsv_file.addLine("Run summary:");
+    tsv_file.addLine("CSMs:\t" + String(CSMs_sum));
+    tsv_file.addLine("Proteins:\t" + String(report.size()));
+
+    tsv_file.addLine("\n=============================================================");
+    tsv_file.addLine("Protein summary:");
+    tsv_file.addLine("accession\tCSMs (unique pep.)\tCSMs (shared pep.)");
+    for (const auto& [accession, pr] : report)
+    {
+      tsv_file.addLine(accession + "\t" + String(pr.CSMs_of_unique_peptides) + "\t" + String(pr.CSMs - pr.CSMs_of_unique_peptides) );
     }
 
     tsv_file.addLine("\n=============================================================");

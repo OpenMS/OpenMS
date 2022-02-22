@@ -112,6 +112,22 @@ namespace OpenMS
     "S:-H2S"
   };
 
+  static constexpr std::array<const char*, 3> modifications_RNA_UV_6SG
+  {   
+    "S:",
+    "S:-H2O",
+    "S:-H2S"
+  };
+
+  static constexpr std::array<const char*, 5> modifications_RNA_UV_6SG_EXTENDED
+  {   
+    "S:",
+    "S:-H2O",
+    "S:-H3PO4",
+    "S:-HPO3",
+    "S:-H2S"
+  };
+
   static constexpr std::array<const char*, 4> modifications_RNA_NM
   {
     "U:+C5H9N1",
@@ -485,6 +501,55 @@ namespace OpenMS
       "A:C10H8N5O3;A-NH3-H3PO4"
   };      
 
+  static constexpr std::array<const char*, 40> fragments_RNA_UV_6SG
+  {
+      "S:C4H2N2O1;tU-H2S",
+
+      "U:C3O;C3O",
+      "U:C4H4N2O2;U'",
+      "U:C4H2N2O1;U'-H2O",
+      "U:C9H13N2O9P1;U",
+      "U:C9H11N2O8P1;U-H2O",
+      "U:C9H12N2O6;U-HPO3",
+      "U:C9H10N2O5;U-H3PO4",
+
+      "C:C4H5N3O;C'",
+      "C:C4H3N3;C'-H2O",
+      "C:C4H2N2O;C'-NH3",
+      "C:C9H14N3O8P;C",
+      "C:C9H11N2O8P;C-NH3",
+      "C:C9H12N3O7P;C-H2O",
+      "C:C9H9N2O7P;C-NH3-H2O",
+      "C:C9H13N3O5;C-HPO3",
+      "C:C9H11N3O4;C-H3PO4",
+      "C:C9H10N2O5;C-NH3-HPO3",
+      "C:C9H8N2O4;C-NH3-H3PO4",
+
+
+      "G:C5H5N5O;G'",
+      "G:C5H3N5;G'-H2O",
+      "G:C5H2N4O;G'-NH3",
+      "G:C10H14N5O8P;G",
+      "G:C10H12N5O7P;G-H2O",
+      "G:C10H11N4O8P;G-NH3",
+      "G:C10H9N4O7P;G-NH3-H2O",
+      "G:C10H13N5O5;G-HPO3",
+      "G:C10H11N5O4;G-H3PO4",
+      "G:C10H10N4O5;G-NH3-HPO3",
+      "G:C10H8N4O4;G-NH3-H3PO4",
+
+      "A:C5H5N5;A'",
+      "A:C5H2N4;A'-NH3",
+      "A:C10H14N5O7P;A",
+      "A:C10H12N5O6P;A-H2O",
+      "A:C10H11N4O7P;A-NH3",
+      "A:C10H9N4O6P;A-NH3-H2O",
+      "A:C10H13N5O4;A-HPO3",
+      "A:C10H11N5O3;A-H3PO4",
+      "A:C10H10N5O4;A-NH3-HPO3",
+      "A:C10H8N5O3;A-NH3-H3PO4"
+  };     
+
   // shared by default and Extended
   static constexpr std::array<const char*, 42> fragments_DNA_UV
   {
@@ -757,12 +822,13 @@ namespace OpenMS
     "d:C5H6O2;C5H9O6P-H3PO4"
   };
 
-    static constexpr std::array<const char*, 5> DNA_nucleotides {"A=C10H14N5O6P", "C=C9H14N3O7P", "G=C10H14N5O7P", "T=C10H15N2O8P", "d=C5H9O6P"}; // the mono-phosphates and deoxyribosephosphate
+    // the nucleotides (=mono-phosphates) and the deoxyribosephosphate (for DNA)
+    static constexpr std::array<const char*, 5> DNA_nucleotides {"A=C10H14N5O6P", "C=C9H14N3O7P", "G=C10H14N5O7P", "T=C10H15N2O8P", "d=C5H9O6P"};
     static constexpr std::array<const char*, 4> RNA_nucleotides {"A=C10H14N5O7P", "C=C9H14N3O8P", "G=C10H14N5O8P", "U=C9H13N2O9P"}; 
     static constexpr std::array<const char*, 5> DNA_mapping {"A->A", "C->C", "G->G", "T->T", "d->d"};
     static constexpr std::array<const char*, 4> RNA_mapping {"A->A", "C->C", "G->G", "U->U"};
 
-    static constexpr std::array<const char*, 17> presets_names {
+    static constexpr std::array<const char*, 19> presets_names {
       "none", 
       "RNA-UV (U)", 
       "RNA-UV (UCGA)",
@@ -770,6 +836,8 @@ namespace OpenMS
       "RNA-UV Extended (UCGA)", 
       "RNA-UV (4SU)", 
       "RNA-UV Extended (4SU)",
+      "RNA-UV (6SG)", 
+      "RNA-UV Extended (6SG)",
       "RNA-DEB",
       "RNA-DEB Extended", 
       "RNA-NM",
@@ -821,6 +889,10 @@ namespace OpenMS
     StringList RNA_UV_4SU_EXTENDED_modifications(modifications_RNA_UV_4SU_EXTENDED.begin(), modifications_RNA_UV_4SU_EXTENDED.end());
     StringList RNA_UV_4SU_fragments(fragments_RNA_UV_4SU.begin(), fragments_RNA_UV_4SU.end());
 
+    StringList RNA_UV_6SG_modifications(modifications_RNA_UV_6SG.begin(), modifications_RNA_UV_6SG.end());
+    StringList RNA_UV_6SG_EXTENDED_modifications(modifications_RNA_UV_6SG_EXTENDED.begin(), modifications_RNA_UV_6SG_EXTENDED.end());
+    StringList RNA_UV_6SG_fragments(fragments_RNA_UV_6SG.begin(), fragments_RNA_UV_6SG.end());
+
     StringList DNA_UV_modifications(modifications_DNA_UV.begin(), modifications_DNA_UV.end());
     StringList DNA_UV_EXTENDED_modifications(modifications_DNA_UV_EXTENDED.begin(), modifications_DNA_UV_EXTENDED.end());
     StringList DNA_UV_fragments(fragments_DNA_UV.begin(), fragments_DNA_UV.end());
@@ -862,7 +934,7 @@ namespace OpenMS
     }
     else if (p == "RNA-UV (4SU)")
     {
-      nucleotides.push_back("S=C9H13N2O8PS"); // include thio-U
+      nucleotides.push_back("S=C9H13N2O8PS"); // include 4-Thio-UMP
       mapping.push_back("S->S");
       modifications = RNA_UV_4SU_modifications;
       fragment_adducts = RNA_UV_4SU_fragments;
@@ -871,13 +943,32 @@ namespace OpenMS
     }
     else if (p == "RNA-UV Extended (4SU)")
     {
-      nucleotides.push_back("S=C9H13N2O8PS"); // include thio-U
+      nucleotides.push_back("S=C9H13N2O8PS"); // include 4-Thio-UMP
       mapping.push_back("S->S");
       modifications = RNA_UV_4SU_EXTENDED_modifications;
       fragment_adducts = RNA_UV_4SU_fragments;
       can_cross_link = "S";
       return;
-    }    
+    }
+    else if (p == "RNA-UV (6SG)")
+    {
+      C8H10N4O3S
+      nucleotides.push_back("S=C10H14N5O7PS"); // include 6-Thio-GMP
+      mapping.push_back("S->S");
+      modifications = RNA_UV_6SG_modifications;
+      fragment_adducts = RNA_UV_6SG_fragments;
+      can_cross_link = "S";
+      return;
+    }
+    else if (p == "RNA-UV Extended (6SG)")
+    {
+      nucleotides.push_back("S=C10H14N5O7PS"); // include 6-Thio-GMP
+      mapping.push_back("S->S");
+      modifications = RNA_UV_6SG_EXTENDED_modifications;
+      fragment_adducts = RNA_UV_6SG_fragments;
+      can_cross_link = "S";
+      return;
+    }
     else if (p == "DNA-UV")
     {
       modifications = DNA_UV_modifications;
