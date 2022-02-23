@@ -511,7 +511,7 @@ namespace OpenMS
       }
     }
 
-    return terms_[it->second];
+    return terms_.at(it->second);
   }
 
   bool ControlledVocabulary::exists(const String& id) const
@@ -523,7 +523,7 @@ namespace OpenMS
   {
     Map<String, String>::const_iterator it = namesToIds_.find(name);
     if (it == namesToIds_.end()) return nullptr;
-    return &terms_[it->second];
+    return &terms_.at(it->second);
   }
 
   bool ControlledVocabulary::hasTermWithName(const OpenMS::String& name) const

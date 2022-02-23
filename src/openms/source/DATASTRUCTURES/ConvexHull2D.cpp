@@ -73,7 +73,7 @@ namespace OpenMS
     {
       if (map_points_.has(it->first))
       {
-        if (map_points_[it->first] != it->second)
+        if (map_points_.at(it->first) != it->second)
         {
           return false;
         }
@@ -190,7 +190,7 @@ namespace OpenMS
 
     if (map_points_.has(point[0]))
     {
-      if (map_points_[point[0]].encloses(point[1]))
+      if (map_points_.at(point[0]).encloses(point[1]))
       {
         return false;
       }
@@ -264,7 +264,7 @@ namespace OpenMS
 
     if (map_points_.has(point[0]))
     {
-      if (map_points_[point[0]].encloses(point[1]))
+      if (map_points_.at(point[0]).encloses(point[1]))
       {
         return true;
       }

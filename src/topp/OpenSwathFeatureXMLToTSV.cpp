@@ -166,7 +166,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   // handle charge
   if (pep.hasCVTerm("MS:1000041"))
   {
-    charge = pep.getCVTerms()["MS:1000041"][0].getValue().toString();
+    charge = pep.getCVTerms().at("MS:1000041")[0].getValue().toString();
   }
   else if (pep.hasCharge())
   {
@@ -190,7 +190,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
 #if 1
     if (transition->getCVTerms().has("decoy"))
     {
-      decoy = transition->getCVTerms()["decoy"][0].getValue().toString();
+      decoy = transition->getCVTerms().at("decoy")[0].getValue().toString();
     }
     else if (transition->getCVTerms().has("MS:1002007"))    // target SRM transition
     {

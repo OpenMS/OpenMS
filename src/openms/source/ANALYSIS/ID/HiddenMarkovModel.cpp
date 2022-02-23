@@ -426,12 +426,12 @@ namespace OpenMS
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, s1);
     }
-    HMMState * state1 = name_to_state_[s1];
+    HMMState * state1 = name_to_state_.at(s1);
     if (name_to_state_.find(s2) == name_to_state_.end())
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, s2);
     }
-    HMMState * state2 = name_to_state_[s2];
+    HMMState * state2 = name_to_state_.at(s2);
     return getTransitionProbability_(state1, state2);
   }
 

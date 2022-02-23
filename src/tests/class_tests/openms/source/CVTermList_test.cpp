@@ -164,13 +164,13 @@ START_SECTION((void replaceCVTerm(const CVTerm &cv_term)))
   TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), false)
   cv_term_list.replaceCVTerm(cv_term);
   TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), true)
-  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"].size(), 1)
-  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"][0].getValue(), "3.0")
+  TEST_EQUAL(cv_term_list.getCVTerms().at("my_accession").size(), 1)
+  TEST_EQUAL(cv_term_list.getCVTerms().at("my_accession")[0].getValue(), "3.0")
   CVTerm cv_term2("my_accession", "my_name", "my_cv_identifier_ref", "2.0", unit);
   cv_term_list.replaceCVTerm(cv_term2);
   TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), true)
-  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"].size(), 1)
-  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"][0].getValue(), "2.0")
+  TEST_EQUAL(cv_term_list.getCVTerms().at("my_accession").size(), 1)
+  TEST_EQUAL(cv_term_list.getCVTerms().at("my_accession")[0].getValue(), "2.0")
 }
 END_SECTION
 
@@ -186,13 +186,13 @@ START_SECTION((void replaceCVTerms(const std::vector<CVTerm> &cv_terms)))
   TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), false)
   cv_term_list.replaceCVTerms(tmp, "my_accession");
   TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), true)
-  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"].size(), 2)
-  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"][0].getValue(), "3.0")
-  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"][1].getValue(), "2.0")
+  TEST_EQUAL(cv_term_list.getCVTerms().at("my_accession").size(), 2)
+  TEST_EQUAL(cv_term_list.getCVTerms().at("my_accession")[0].getValue(), "3.0")
+  TEST_EQUAL(cv_term_list.getCVTerms().at("my_accession")[1].getValue(), "2.0")
   cv_term_list.replaceCVTerm(cv_term2);
   TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), true)
-  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"].size(), 1)
-  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"][0].getValue(), "2.0")
+  TEST_EQUAL(cv_term_list.getCVTerms().at("my_accession").size(), 1)
+  TEST_EQUAL(cv_term_list.getCVTerms().at("my_accession")[0].getValue(), "2.0")
 }
 END_SECTION
 
@@ -214,14 +214,14 @@ START_SECTION((void replaceCVTerms(const Map<String, vector<CVTerm> >& cv_term_m
   TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), false)
   cv_term_list.replaceCVTerms(tmp, "my_accession");
   TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), true)
-  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"].size(), 1)
+  TEST_EQUAL(cv_term_list.getCVTerms().at("my_accession").size(), 1)
 
   // replace the terms, delete "my_accession" and introduce "my_accession2"
   cv_term_list.replaceCVTerms(new_terms);
   TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), false)
   TEST_EQUAL(cv_term_list.hasCVTerm("my_accession2"), true)
-  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession2"].size(), 1)
-  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession2"][0].getValue(), "2.0")
+  TEST_EQUAL(cv_term_list.getCVTerms().at("my_accession2").size(), 1)
+  TEST_EQUAL(cv_term_list.getCVTerms().at("my_accession2")[0].getValue(), "2.0")
 }
 END_SECTION
 

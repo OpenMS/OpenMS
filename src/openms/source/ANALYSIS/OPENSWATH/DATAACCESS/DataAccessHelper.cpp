@@ -175,7 +175,7 @@ namespace OpenMS
       // legacy
 #if 1
       if (transition_exp_.getTransitions()[i].getCVTerms().has("decoy") &&
-          transition_exp_.getTransitions()[i].getCVTerms()["decoy"][0].getValue().toString() == "1" )
+          transition_exp_.getTransitions()[i].getCVTerms().at("decoy")[0].getValue().toString() == "1" )
       {
         t.decoy = true;
       }
