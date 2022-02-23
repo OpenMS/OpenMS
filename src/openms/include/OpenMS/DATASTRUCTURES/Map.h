@@ -118,7 +118,7 @@ public:
   template <class Key, class T>
   const T& Map<Key, T>::at(const Key& key) const
   {
-    return this->at(key);
+    return std::map<Key, T>::at(key);
   }
   template <class Key, class T>
   T& Map<Key, T>::operator[](const Key& key)
