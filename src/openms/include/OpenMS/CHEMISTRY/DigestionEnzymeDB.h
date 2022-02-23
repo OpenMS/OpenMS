@@ -115,7 +115,7 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          String("Enzyme with regex " + cleavage_regex + " was not registered in Enzyme DB, register first!").c_str());
       }
-      return enzyme_regex_[cleavage_regex];
+      return enzyme_regex_.at(cleavage_regex);
     }
 
     /// returns all the enzyme names (does NOT include synonym names)

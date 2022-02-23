@@ -94,7 +94,7 @@ START_SECTION((T& operator [] (const Key& key)))
 }
 END_SECTION
 
-START_SECTION((const T & operator[](const Key &key) const ))
+START_SECTION((const T & at(const Key &key) const ))
 {
   Map<int, int> hm;
   hm[0] = 0;
@@ -106,14 +106,14 @@ START_SECTION((const T & operator[](const Key &key) const ))
   hm[5] = 32;
   const Map<int, int>& const_map = const_cast<const Map<int, int>&>(hm);
   TEST_EQUAL(const_map.size(), 6)
-  TEST_EQUAL(const_map[0], 1)
-  TEST_EQUAL(const_map[1], 2)
-  TEST_EQUAL(const_map[2], 4)
-  TEST_EQUAL(const_map[3], 8)
-  TEST_EQUAL(const_map[4], 16)
-  TEST_EQUAL(const_map[5], 32)
+  TEST_EQUAL(const_map.at(0), 1)
+  TEST_EQUAL(const_map.at(1), 2)
+  TEST_EQUAL(const_map.at(2), 4)
+  TEST_EQUAL(const_map.at(3), 8)
+  TEST_EQUAL(const_map.at(4), 16)
+  TEST_EQUAL(const_map.at(5), 32)
   typedef Map<int,int> MyMap; // otherwise next line wont work
-  TEST_EXCEPTION(MyMap::IllegalKey, const_map[6])
+  TEST_EXCEPTION(std::out_of_range, const_map.at(6))
 }
 END_SECTION
 
@@ -128,10 +128,6 @@ START_SECTION((bool has(const Key& key) const))
 }
 END_SECTION
 
-START_SECTION(([Map::IllegalKey] IllegalKey(const char *file, int line, const char *function)))
-  // already tested in const T & operator[](const Key &key) const
-  NOT_TESTABLE
-END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

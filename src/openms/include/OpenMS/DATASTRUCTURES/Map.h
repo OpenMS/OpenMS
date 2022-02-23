@@ -52,25 +52,6 @@ namespace OpenMS
   {
 public:
 
-    /**
-      @brief Map illegal key exception
-
-      Thrown when trying to access an element with operator[], which is not contained in the Map
-      , i.e. no default ctor is called (as done in std::map)
-
-      @ingroup Exceptions
-    */
-    class IllegalKey :
-      public Exception::BaseException
-    {
-public:
-      IllegalKey(const char* file, int line, const char* function) :
-        Exception::BaseException(file, line, function)
-      {
-      }
-
-    };
-
     ///@name OpenMS style typedefs
     //@{
     typedef std::map<Key, T> Base;
@@ -113,9 +94,9 @@ public:
     /**
       @brief Return a constant reference to the element whose key is @p key.
 
-      @exception IllegalKey if the given key does not exist
+      @exception out_of_range if the given key does not exist
     */
-    const T& operator[](const Key& key) const;
+    const T& at(const Key& key) const;
 
     /// Return a mutable reference to the element whose key is @p key. If an element with the key @p key does not exist, it is inserted.
     T& operator[](const Key& key);
@@ -135,19 +116,10 @@ public:
   //******************************************************************************************
 
   template <class Key, class T>
-  const T& Map<Key, T>::operator[](const Key& key) const
+  const T& Map<Key, T>::at(const Key& key) const
   {
-    ConstIterator it = this->find(key);
-    if (it == Base::end())
-    {
-      throw IllegalKey(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-    }
-    else
-    {
-      return it->second;
-    }
+    return this->at(key);
   }
-
   template <class Key, class T>
   T& Map<Key, T>::operator[](const Key& key)
   {
