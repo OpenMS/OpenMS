@@ -12,8 +12,15 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 UTIL - An executable, just like a TOPP tool, but usually experimental or of lesser importance to common pipelines
 #<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit https://github.com/OpenMS/OpenMS/pull/4957 for details
 
+
 ------------------------------------------------------------------------------------------
-----                                OpenMS 2.8     (released 2/2022)                      ----
+----                                OpenMS 3.0     (releases 4/2022)                  ----
+------------------------------------------------------------------------------------------
+
+- full release
+
+------------------------------------------------------------------------------------------
+----                                OpenMS 2.8     (released 2/2022)                  ----
 ------------------------------------------------------------------------------------------
 
 - source + conda release only
