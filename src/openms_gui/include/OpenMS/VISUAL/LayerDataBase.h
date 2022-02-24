@@ -49,6 +49,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
+//#include <OpenMS/VISUAL/Painter1DBase.h>
 #include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 
@@ -64,6 +65,7 @@ namespace OpenMS
   class LayerStatistics;
   class OnDiscMSExperiment;
   class OSWData;
+  class Painter1DBase;
 
   /**
   @brief Class that stores the data for one layer
@@ -171,18 +173,20 @@ namespace OpenMS
 
     /// Default constructor
     LayerDataBase() = delete;
-    /// Ctor for child classes
+    /// C'tor for child classes
     LayerDataBase(const DataType type) : type(type) {};
     /// no Copy-ctor (should not be needed)
     LayerDataBase(const LayerDataBase& ld) = delete;
     /// no assignment operator (should not be needed)
     LayerDataBase& operator=(const LayerDataBase& ld) = delete;
-    /// move Ctor
+    /// move C'tor
     LayerDataBase(LayerDataBase&& ld) = default;
     /// move assignment
     LayerDataBase& operator=(LayerDataBase&& ld) = default;
-    /// Dtor
+    /// D'tor
     virtual ~LayerDataBase() = default;
+
+    virtual std::unique_ptr<Painter1DBase> getPainter1D() const = 0;
 
 
     /// Returns a const reference to the current feature data
@@ -267,11 +271,11 @@ namespace OpenMS
       return chromatogram_map_;
     }
 
-    /// get annotation (e.g. to build a hierachical ID View)
+    /// get annotation (e.g. to build a hierarchical ID View)
     /// Not const, because we might have incomplete data, which needs to be loaded from sql source
     OSWDataSharedPtrType& getChromatogramAnnotation();
 
-    /// get annotation (e.g. to build a hierachical ID View)
+    /// get annotation (e.g. to build a hierarchical ID View)
     /// Not actually const (only the pointer, not the data), because we might have incomplete data, which needs to be loaded from sql source
     const OSWDataSharedPtrType& getChromatogramAnnotation() const;
 
