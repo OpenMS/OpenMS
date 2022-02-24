@@ -76,7 +76,7 @@ public:
       SIZE_OF_DATATYPE
     };
 
-    /// Names of activation methods
+    /// Names of data types for DataValue
     static const std::string NamesOfDataType[SIZE_OF_DATATYPE];
 
     /// Supported types for DataValue
