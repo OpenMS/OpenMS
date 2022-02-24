@@ -13,9 +13,14 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 #<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit https://github.com/OpenMS/OpenMS/pull/4957 for details
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.0     (coming soon)                      ----
+----                                OpenMS 2.8     (released 2/2022)                      ----
 ------------------------------------------------------------------------------------------
 
+- source + conda release only
+- Restructuring of Imported CMake targets and pyOpenMS CMake
+- Reduce exposition of third-party libraries to interface
+- greatly improved pyOpenMS documentation and extra functions (in the pyopenms-extra submodule)
+- Fixes IDMapper for isobaric labelling experiments (will lead to much more identifications)
 - Deisotoping algorithm using KL
 - PeptideIndexer supports ambiguous AA's in Peptide sequence (as reported by recent Mascot versions) (#5776)
 - SeqAn external library removed from source tree (not needed anymore)
