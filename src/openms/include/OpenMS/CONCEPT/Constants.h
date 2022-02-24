@@ -468,6 +468,11 @@ namespace OpenMS
       */
       inline const std::string   ADDUCT_GROUP = "Group";
 
+      /** User parameter name for a list of ADDUCT_GROUP annotations in a ConsensusFeature.
+              vector<String>
+      */
+      inline const std::string   LINKED_GROUPS = "LinkedGroups";
+
       /** User parameter name for adduct annotation in Feature by MetaboliteAdductDecharger.
               String
       */

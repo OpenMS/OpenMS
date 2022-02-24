@@ -509,7 +509,7 @@ namespace OpenMS
     // determine best quality feature for adduct ion annotation (best_ion)
     float best_quality = 0;
     // collect the "Group" MetaValues of Features in a ConsensusFeature in a partners vector
-    vector<String> groups;
+    vector<String> linked_groups;
     for (vector<Size>::const_iterator it = indices.begin(); it != indices.end(); ++it)
     {
       Size i = *it;
@@ -522,12 +522,12 @@ namespace OpenMS
       }
       if (kd_data.feature(i)->metaValueExists(Constants::UserParam::ADDUCT_GROUP))
       {
-        groups.push_back(kd_data.feature(i)->getMetaValue(Constants::UserParam::ADDUCT_GROUP));
+        linked_groups.push_back(kd_data.feature(i)->getMetaValue(Constants::UserParam::ADDUCT_GROUP));
       }
     }
-    if (!groups.empty())
+    if (!linked_groups.empty())
     {
-      cf.setMetaValue("groups", groups);
+      cf.setMetaValue(Constants::UserParam::LINKED_GROUPS, linked_groups);
     }
     avg_quality /= indices.size();
     cf.setQuality(avg_quality);

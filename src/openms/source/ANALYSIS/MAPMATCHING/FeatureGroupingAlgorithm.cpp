@@ -175,10 +175,11 @@ namespace OpenMS
 
   void FeatureGroupingAlgorithm::annotateIonIdentityNetworks(ConsensusMap& out) const
   {
-    // set row ID for each feature
-    // reformat best ion
+    // set row ID for each feature and reformat best ion
+    set<size_t> all;
     for (size_t i = 0; i < out.size(); i++)
     {
+      all.insert(i);
       out[i].setMetaValue(Constants::UserParam::ROW_ID, i+1);
       if (out[i].metaValueExists(Constants::UserParam::BEST_ION))
       {
@@ -213,47 +214,53 @@ namespace OpenMS
         out[i].setMetaValue(Constants::UserParam::BEST_ION, formatted_best_ion);
       }
     }
-    // set partners for each feature (row IDs of other features with intersecting adduct groups, separated by semicolon)
-    // store all related groups in a map with key index (equal to i) and value a set of all groups from other features with
-    // intersecting groups, wil be used later to create the annotation network number.
-    map<int, set<String>> related_groups;
-    // loop over each feature (i) ...
-    for (size_t i = 0; i < out.size(); ++i)
+
+    Int annotation_network_number = 1;
+
+    while (!all.empty())
     {
-      // if a feature has no groups mv, skip it
-      if (!out[i].metaValueExists("groups"))
+      size_t n = *all.begin();
+      all.erase(n);
+      if (!out[n].metaValueExists(Constants::UserParam::LINKED_GROUPS)) continue;
+      set<size_t> connected;
+      set<size_t> connected_queue = {n};
+      while (!connected_queue.empty())
       {
-        continue;
-      }
-      // get the groups of the feature as a const & to list of strings
-      const vector<String>& groups = out[i].getMetaValue("groups").toStringList();
-      // add each group in feature groups to all related groups with key i
-      for (String group: groups)
-      {
-        related_groups[i].insert(group);
-      }
-      // ...  and compare to all other features (j)
-      for (size_t j = 0; j < out.size(); ++j)
-      {
-        // same here, if other feature has no groups mv, skip it, also if feature and other feature are the same (i == j)
-        if (!out[j].metaValueExists("groups") || (i == j))
+        size_t i = *connected_queue.begin();
+        connected_queue.erase(i);
+        connected.insert(i);
+        vector<String> groups_i = out[i].getMetaValue(Constants::UserParam::LINKED_GROUPS).toStringList();
+        set<size_t> to_erase;
+        for (const auto& j: all)
         {
-          continue;
-        }
-        // get the groups of the feature as a const & to list of strings
-        const vector<String>& other_groups = out[j].getMetaValue("groups").toStringList();
-        // create a string of lists: intersections, to store intersecting groups between feature and other feature
-        vector<String> intersection;
-        std::set_intersection(groups.begin(), groups.end(), other_groups.begin(), other_groups.end(), std::back_inserter(intersection));
-        // if intersections not empty the features are related, and row IDs added to partners mv of feature (i)
-        if (!intersection.empty())
-        {
-          // add each group in other_groups to all related groups with key i
-          for (String group: other_groups)
+          if (!out[j].metaValueExists(Constants::UserParam::LINKED_GROUPS)) continue;
+          vector<String> groups_j = out[j].getMetaValue(Constants::UserParam::LINKED_GROUPS).toStringList();
+          vector<String> intersection;
+          set_intersection(groups_i.begin(), groups_i.end(), groups_j.begin(), groups_j.end(), back_inserter(intersection));
+          if (!intersection.empty())
           {
-            related_groups[i].insert(group);
+            connected_queue.insert(j);
+            to_erase.insert(j);
           }
-          // check if feature has partners, if so add  other feature row ID with semi colon, else create new partners mv with row ID
+        }
+        for (const auto& e: to_erase) all.erase(e);
+      }
+
+      cout << "connected components: ";
+      for (const auto& xx: connected) cout << xx << " ";
+      cout << endl;
+
+      for (const auto& i : connected)
+      {
+        out[i].setMetaValue(Constants::UserParam::ANNOTATION_NETWORK_NUMBER, annotation_network_number);
+        const vector<String>& groups_i = out[i].getMetaValue(Constants::UserParam::LINKED_GROUPS).toStringList();
+        for (const auto& j : connected)
+        {
+          const vector<String>& groups_j = out[j].getMetaValue(Constants::UserParam::LINKED_GROUPS).toStringList();
+          vector<String> intersection;
+          set_intersection(groups_i.begin(), groups_i.end(), groups_j.begin(), groups_j.end(), back_inserter(intersection));
+          
+          if (i == j || intersection.empty()) continue;
           if (out[i].metaValueExists(Constants::UserParam::ADDUCT_PARTNERS))
           {
             out[i].setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, out[i].getMetaValue(Constants::UserParam::ADDUCT_PARTNERS).toString()
@@ -265,48 +272,13 @@ namespace OpenMS
           }
         }
       }
+      annotation_network_number++;
     }
-
-    // all via partners and groups related features will get the same network annotation number mv
-    Int annotation_network_number = 1;
-    // if feature has been annotated already (processed), it's index (i or j) gets added to this list
-    set<size_t> already_processed;
-    // loop over every feature (i) ...
-    for (size_t i=0; i<out.size(); i++)
-    {
-      // only proceed if feature index (i) in related_groups map feature has not been processed
-      if (related_groups.count(i) > 0 && !already_processed.count(i))
-      {
-        // annotate feature
-        out[i].setMetaValue(Constants::UserParam::ANNOTATION_NETWORK_NUMBER, annotation_network_number);
-        // ... and compare to all following features (j) (not to every feature!)
-        for (size_t j=i+1; j<out.size(); j++)
-        {
-          if (related_groups.count(j) > 0)
-          {
-            // check for intersection between the related groups of feature (i) and other feature (j)
-            vector<String> intersection;
-            std::set_intersection(related_groups[i].begin(), related_groups[i].end(),
-                                  related_groups[j].begin(), related_groups[j].end(),
-                                  std::back_inserter(intersection));
-            if (!intersection.empty())
-            {
-              // annotate other feature and add j to already_processed
-              out[j].setMetaValue(Constants::UserParam::ANNOTATION_NETWORK_NUMBER, annotation_network_number);
-              already_processed.insert(j);
-            }
-          }
-        }
-        // increment annotation network number
-        annotation_network_number++;
-      }
-    }
-
-    // remove "groups" mv
-    for (size_t i = 0; i < out.size(); i++)
-    {
-      out[i].removeMetaValue("groups");
-    }
+    // remove Constants::UserParam::LINKED_GROUPS mv
+    // for (size_t i = 0; i < out.size(); i++)
+    // {
+    //   out[i].removeMetaValue(Constants::UserParam::LINKED_GROUPS);
+    // }
  }
 
   FeatureGroupingAlgorithm::~FeatureGroupingAlgorithm()
