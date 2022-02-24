@@ -655,14 +655,18 @@ namespace OpenMS
       case DOUBLE_LIST:
         return ParamValue(this->toDoubleList());
       case STRING_LIST:
-        // DataValue uses OpenMS::String while ParamValue uses std:string.
-        // Therefore the StringList isn't castable.
-        vector<std::string> v;
-        for (const String& s : this->toStringList())
         {
-          v.push_back(s);
+          // DataValue uses OpenMS::String while ParamValue uses std:string.
+          // Therefore the StringList isn't castable.
+          vector<std::string> v;
+          for (const String& s : this->toStringList())
+          {
+            v.push_back(s);
+          }
+          return ParamValue(v);
         }
-        return ParamValue(v);
+      default:
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");    
     }
     throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");
   }
@@ -819,6 +823,8 @@ namespace OpenMS
       case DataValue::INT_VALUE: return a.data_.ssize_ == b.data_.ssize_;
 
       case DataValue::DOUBLE_VALUE: return fabs(a.data_.dou_ - b.data_.dou_) < 1e-6;
+
+      default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");    
       }
     }
     return false;
@@ -843,6 +849,8 @@ namespace OpenMS
       case DataValue::INT_VALUE: return a.data_.ssize_ < b.data_.ssize_;
 
       case DataValue::DOUBLE_VALUE: return a.data_.dou_ < b.data_.dou_;
+
+      default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");    
       }
     }
     return false;
@@ -867,6 +875,9 @@ namespace OpenMS
       case DataValue::INT_VALUE: return a.data_.ssize_ > b.data_.ssize_;
 
       case DataValue::DOUBLE_VALUE: return a.data_.dou_ > b.data_.dou_;
+
+      default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");    
+
       }
     }
     return false;
@@ -897,6 +908,8 @@ namespace OpenMS
     case DataValue::DOUBLE_VALUE: os << String(p.data_.dou_); break; // using our String conversion (faster than os)
 
     case DataValue::EMPTY_VALUE: break;
+
+    default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");
     }
     return os;
   }
