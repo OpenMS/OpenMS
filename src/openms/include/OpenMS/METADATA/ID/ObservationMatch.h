@@ -49,9 +49,30 @@ namespace OpenMS
   namespace IdentificationDataInternal
   {
     // @TODO: move "PeakAnnotation" out of "PeptideHit"
-    typedef std::vector<PeptideHit::PeakAnnotation> PeakAnnotations;
+    typedef std::vector<PeptideHit::PeakAnnotation> PeakAnns;
+
+    struct PeakAnnotations: public PeakAnns
+    {
+      PeakAnnotations(): PeakAnns()
+      {}
+      PeakAnnotations(const PeakAnnotations& other): PeakAnns(other)
+      {}
+      PeakAnnotations(const PeakAnns & other): PeakAnns(other)
+      {}
+    };
+
     typedef std::map<std::optional<ProcessingStepRef>,
-                     PeakAnnotations> PeakAnnotationSteps;
+                     PeakAnnotations> PeakAnnSteps;
+    struct PeakAnnotationSteps: public PeakAnnSteps
+    {
+      PeakAnnotationSteps(): PeakAnnSteps()
+      {}
+      PeakAnnotationSteps(const PeakAnnotationSteps& other): PeakAnnSteps(other)
+      {}
+      PeakAnnotationSteps(const PeakAnnSteps & other): PeakAnnSteps(other)
+      {}
+    };
+
 
     /// Comparator for adducts
     // @TODO: this allows adducts with duplicate names, but requires different
@@ -65,8 +86,37 @@ namespace OpenMS
       }
     };
 
-    typedef std::set<AdductInfo, AdductCompare> Adducts;
-    typedef IteratorWrapper<Adducts::iterator, AdductInfo> AdductRef;
+    typedef std::set<AdductInfo, AdductCompare> Adds;
+    struct Adducts: public Adds
+    {
+      Adducts(): Adds()
+      {}
+      Adducts(const Adducts& other): Adds(other)
+      {}
+      Adducts(const Adds & other): Adds(other)
+      {}
+    };
+
+
+    typedef IteratorWrapper<Adducts::iterator, AdductInfo> AddRef;
+
+    struct AdductRef: public AddRef
+    {
+      AdductRef(): AddRef()
+      {}
+      AdductRef(const AdductRef & other) : AddRef(other)
+      {}
+      AdductRef(const AddRef & other) : AddRef(other)
+      {}
+      AdductRef(std::set<OpenMS::AdductInfo, OpenMS::IdentificationDataInternal::AdductCompare>::iterator other): AddRef(other)
+      {}
+      AdductRef operator=(const AdductRef& other)
+      {
+        return AddRef::operator=(other);
+      }
+    };
+
+    
     typedef std::optional<AdductRef> AdductOpt;
 
     /// Representation of a search hit (e.g. peptide-spectrum match).
@@ -98,6 +148,9 @@ namespace OpenMS
       }
 
       ObservationMatch(const ObservationMatch&) = default;
+
+      //ONLY FOR PYOPENMS
+      ObservationMatch();
 
       ObservationMatch& merge(const ObservationMatch& other)
       {
@@ -147,8 +200,35 @@ namespace OpenMS
               &ObservationMatch::identified_molecule_var>,
             boost::multi_index::member<ObservationMatch, AdductOpt,
                                        &ObservationMatch::adduct_opt>>>>
-      > ObservationMatches;
+      > ObsMatches;
 
-    typedef IteratorWrapper<ObservationMatches::iterator, ObservationMatch> ObservationMatchRef;
+    struct ObservationMatches: public ObsMatches
+    {
+      ObservationMatches(): ObsMatches()
+      {}
+      ObservationMatches(const ObservationMatches& other): ObsMatches(other)
+      {}
+      ObservationMatches(const ObsMatches & other): ObsMatches(other)
+      {}
+    };
+
+    typedef IteratorWrapper<ObservationMatches::iterator, ObservationMatch> ObsMatref;
+
+    struct ObservationMatchRef: public ObsMatref
+    {
+      ObservationMatchRef(): ObsMatref()
+      {}
+      ObservationMatchRef(const ObservationMatchRef & other) : ObsMatref(other)
+      {}
+      ObservationMatchRef(const ObsMatref & other) : ObsMatref(other)
+      {}
+      ObservationMatchRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::ObservationMatch, std::allocator<OpenMS::IdentificationDataInternal::ObservationMatch> > > >& other): ObsMatref(other)
+      {}
+      ObservationMatchRef operator=(const ObservationMatchRef& other)
+      {
+        return ObsMatref::operator=(other);
+      }
+    };
+
   }
 }

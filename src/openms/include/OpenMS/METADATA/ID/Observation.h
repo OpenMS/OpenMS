@@ -70,6 +70,10 @@ namespace OpenMS
       {
       }
 
+      //For PyOpenMS only do not use
+      Observation() = default;
+      Observation(const Observation& other) = default;
+
       /// Merge in data from another object
       Observation& merge(const Observation& other)
       {
@@ -92,7 +96,33 @@ namespace OpenMS
                                        &Observation::input_file>,
             boost::multi_index::member<Observation, String,
                                        &Observation::data_id>>>>
-      > Observations;
-    typedef IteratorWrapper<Observations::iterator, Observation> ObservationRef;
+      > Obs;
+    struct Observations: public Obs
+    {
+      Observations(): Obs()
+      {}
+      Observations(const Observations& other): Obs(other)
+      {}
+      Observations(const Obs & other): Obs(other)
+      {}
+    };
+
+    typedef IteratorWrapper<Observations::iterator, Observation> Obsref;
+
+    struct ObservationRef: public Obsref
+    {
+      ObservationRef(): Obsref()
+      {}
+      ObservationRef(const ObservationRef & other) : Obsref(other)
+      {}
+      ObservationRef(const Obsref & other) : Obsref(other)
+      {}
+      ObservationRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::Observation, std::allocator<OpenMS::IdentificationDataInternal::Observation> > > >& other): Obsref(other)
+      {}
+      ObservationRef operator=(const ObservationRef& other)
+      {
+        return Obsref::operator=(other);
+      }
+    };
   }
 }
