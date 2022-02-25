@@ -34,24 +34,28 @@
 
 #pragma once
 
-// OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+
 
 // declare Qt classes OUTSIDE of namespace OpenMS!
-class QString; 
-class QStringList;
 class QPainter;
 class QPoint;
+class QString; 
+class QStringList;
+class QWidget;
 
 #include <QColor>
-#include <QCursor>
 #include <QFont>
 
 #include <array>
 
 namespace OpenMS
 {
+
+  class FileTypeList;
+
   /**
     Namespace which holds static GUI-related helper functions.
   */
@@ -61,6 +65,16 @@ namespace OpenMS
     /// Open a folder in file explorer
     /// Will show a message box on failure
     OPENMS_GUI_DLLAPI void openFolder(const QString& folder);
+
+    /// Open a dialog to select a filename to save data to.
+
+    OPENMS_GUI_DLLAPI QString getSaveFilename(QWidget* parent,
+                                              const QString& caption,
+                                              const QString& dir,
+                                              FileTypeList supported_file_types, 
+                                              bool add_all_filter,
+                                              const FileTypes::Type fallback_extension);
+
 
     /// Open TOPPView (e.g. from within TOPPAS)
     OPENMS_GUI_DLLAPI void startTOPPView(const QStringList& args);

@@ -36,7 +36,6 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
-
 #include <QDesktopServices>
 #include <QDir>
 #include <QGuiApplication>
@@ -46,6 +45,7 @@
 #include <QProcess>
 #include <QString>
 #include <QStringList>
+#include <QtWidgets/QFileDialog>
 #include <QUrl>
 
 namespace OpenMS
@@ -70,6 +70,20 @@ namespace OpenMS
       QMessageBox::warning(nullptr, "Open Folder Error", "The folder '" + folder + "' could not be opened!");
     }
 #endif
+  }
+
+  OPENMS_GUI_DLLAPI QString GUIHelpers::getSaveFilename(QWidget* parent, const QString& caption, const QString& dir, FileTypeList supported_file_types, bool add_all_filter,
+                                                        const FileTypes::Type fallback_extension)
+  {
+    QString selected_filter;
+    QString file_name = QFileDialog::getSaveFileName(parent, caption, dir, supported_file_types.toFileDialogFilter(FilterLayout::ONE_BY_ONE, add_all_filter).toQString(), &selected_filter);
+    if (file_name.isEmpty())
+    {
+      return file_name;
+    }
+    // check whether a file type suffix has been given, or fall back to @p fallback_extension (if 'all filter' was used)
+    file_name = FileHandler::swapExtension(file_name, supported_file_types.fromFileDialogFilter(selected_filter, fallback_extension)).toQString();
+    return file_name;
   }
 
   void GUIHelpers::startTOPPView(const QStringList& args)
