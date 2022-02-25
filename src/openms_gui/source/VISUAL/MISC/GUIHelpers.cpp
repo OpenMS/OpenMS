@@ -244,7 +244,7 @@ namespace OpenMS
       OPENMS_LOG_WARN << "Warning: x-end is larger than x-start!\n";
 
     size_t best_index = 0;
-    double best_distance = -std::numeric_limits<double>::max();
+    double best_distance = std::numeric_limits<double>::max();
     for (size_t i = 0; i < rows_.size(); ++i)
     {
       if (rows_[i] < x_start)
@@ -260,6 +260,7 @@ namespace OpenMS
       }
     }
 
+    rows_[best_index] = x_end; // update space for next call
     return best_index;
   }
 
