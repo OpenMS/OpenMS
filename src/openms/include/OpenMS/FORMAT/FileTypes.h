@@ -144,7 +144,34 @@ namespace OpenMS
       /// @param style Create a combined filter, or single filters, or both
       /// @param add_all_filter Add 'all files (*)' as a single filter at the end?
       String toFileDialogFilter(const Filter style, bool add_all_filter) const;
+
+      /**
+        @brief Convert a Qt filter back to a Type if possible.
+        
+        E.g. from a full filter such as '"mzML files (*.mzML);;mzData files (*.mzData);;mzXML files (*.mzXML);;all files (*)"',
+        as created by toFileDialogFilter(), the selected @p filter could be "mzML files (*.mzML)", in which case the type is Type::MZML .
+        However, for the filter "all files (*)", Type::UNKNOWN will be returned.
+
+        If the type is UNKNOWN, then the fallback is returned (by default also UNKNOWN). This is useful if you want a default type to fall back to.
+
+        @param filter The filter returned by 'QFileDialog::getSaveFileName' and others, i.e. an item from the result of 'toFileDialogFilter'.
+        @param fallback If the filter is ambiguous, return this type instead
+        @return The type associated to the filter or the fallback
+        @throw Exception::ElementNotFound if the given @p filter is not a filter produced by toFileDialogFilter()
+      **/
+      Type fromFileDialogFilter(const String& filter, const Type fallback = Type::UNKNOWN) const;
+
     private:
+      struct FilterElements_
+      {
+        std::vector<String> items;
+        std::vector<Type> types;
+      };
+      /// creates Qt filters and the corresponding elements from type_list_
+      /// @param style Create a combined filter, or single filters, or both
+      /// @param add_all_filter Add 'all files (*)' as a single filter at the end?
+      FilterElements_ asFilterElements_(const Filter style, bool add_all_filter) const;
+
       std::vector<Type> type_list_;
     };
 

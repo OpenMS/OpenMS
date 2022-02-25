@@ -127,7 +127,6 @@ namespace OpenMS
   {
   }
 
-  /// check if @p type is contained in this array
   bool FileTypes::FileTypeList::contains(const Type& type) const
   {
     for (const auto& t : type_list_)
@@ -140,13 +139,29 @@ namespace OpenMS
     return false;
   }
 
-  /// converts the array into a Qt-compatible filter for selecting files in a user dialog.
-  /// e.g. "all readable files (*.mzML *.mzXML);;". See Filter enum.
-  /// @param style Create a combined filter, or single filters, or both
-  /// @param add_all_filter Add 'all files (*)' as a single filter at the end?
   String FileTypes::FileTypeList::toFileDialogFilter(const Filter style, bool add_all_filter) const
   {
-    String out;
+    return ListUtils::concatenate(asFilterElements_(style, add_all_filter).items, ";;");
+  }
+
+  FileTypes::Type FileTypes::FileTypeList::fromFileDialogFilter(const String& filter, const Type fallback) const
+  {
+    auto candidates = asFilterElements_(Filter::BOTH, true); // may add more filters than needed, but that's fine
+
+    auto where = std::find(candidates.items.begin(), candidates.items.end(), filter);
+    if (where == candidates.items.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filter);
+    }
+    const Type r = candidates.types[where - candidates.items.begin()];
+    return r == Type::UNKNOWN ? fallback : r;
+  }
+
+  
+  FileTypes::FileTypeList::FilterElements_ FileTypes::FileTypeList::asFilterElements_(const Filter style, bool add_all_filter) const
+  {
+    FilterElements_ result;
+
     if (style == Filter::COMPACT || style == Filter::BOTH)
     {
       StringList items;
@@ -154,27 +169,25 @@ namespace OpenMS
       {
         items.push_back("*." + FileTypes::typeToName(t));
       }
-      out += "all readable files (" + ListUtils::concatenate(items, " ") + ");;";
-    }
+      result.items.push_back("all readable files (" + ListUtils::concatenate(items, " ") + ")");
+      result.types.push_back(Type::UNKNOWN); // cannot associate a single type to a collection
+    }                                     
     if (style == Filter::ONE_BY_ONE || style == Filter::BOTH)
     {
       StringList items;
       for (const auto& t : type_list_)
       {
-        items.push_back(FileTypes::typeToDescription(t) + " (*." + FileTypes::typeToName(t) + ");;");
+        result.items.push_back(FileTypes::typeToDescription(t) + " (*." + FileTypes::typeToName(t) + ")");
+        result.types.push_back(t);
       }
-      out += ListUtils::concatenate(items, "");
     }
     if (add_all_filter)
     {
-      out += "all files (*);;";
+      result.items.push_back("all files (*)");
+      result.types.push_back(Type::UNKNOWN); // cannot associate a single type to a collection
     }
-    // remove the last ";;", since this will be interpreted as ' (*)' by Qt
-    out = out.chop(2);
-
-    return out;
+    return result;
   }
-
 
   String FileTypes::typeToName(FileTypes::Type type)
   {

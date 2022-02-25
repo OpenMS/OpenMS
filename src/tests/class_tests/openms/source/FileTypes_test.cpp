@@ -130,6 +130,20 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
   TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::COMPACT, true), "all readable files (*.mzML *.bz2);;all files (*)")
   TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::ONE_BY_ONE, true), "mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*)")
   TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::BOTH, false), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2)")
-END_SECTION
+
+  // testing Type FileTypeList::fromFileDialogFilter(const String& filter, const Type fallback = Type::UNKNOWN) const
+  TEST_EQUAL(list.fromFileDialogFilter("all readable files (*.mzML *.bz2)"), FileTypes::UNKNOWN);
+  TEST_EQUAL(list.fromFileDialogFilter("all files (*)"), FileTypes::UNKNOWN);
+  TEST_EQUAL(list.fromFileDialogFilter("mzML raw data file (*.mzML)"), FileTypes::MZML);
+  TEST_EQUAL(list.fromFileDialogFilter("bzip2 compressed file (*.bz2)"), FileTypes::BZ2);
+  TEST_EXCEPTION(Exception::ElementNotFound, list.fromFileDialogFilter("not a valid filter"));
+  // with default
+  TEST_EQUAL(list.fromFileDialogFilter("all readable files (*.mzML *.bz2)", FileTypes::CONSENSUSXML), FileTypes::CONSENSUSXML);
+  TEST_EQUAL(list.fromFileDialogFilter("all files (*)", FileTypes::CONSENSUSXML), FileTypes::CONSENSUSXML);
+  TEST_EQUAL(list.fromFileDialogFilter("mzML raw data file (*.mzML)", FileTypes::CONSENSUSXML), FileTypes::MZML);
+  TEST_EQUAL(list.fromFileDialogFilter("bzip2 compressed file (*.bz2)", FileTypes::CONSENSUSXML), FileTypes::BZ2);
+  TEST_EXCEPTION(Exception::ElementNotFound, list.fromFileDialogFilter("not a valid filter", FileTypes::CONSENSUSXML));
+
+  END_SECTION
 
 END_TEST
