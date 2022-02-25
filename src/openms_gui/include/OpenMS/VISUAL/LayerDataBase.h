@@ -539,25 +539,25 @@ namespace OpenMS
         @param file_dialog_text The header text of the file dialog shown to the user
         @param gui_lock Optional GUI element which will be locked (disabled) during call to 'annotateWorker_'; can be null_ptr
       **/
-    LayerAnnotatorBase(const FileTypes::FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock);
+    LayerAnnotatorBase(const FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock);
 
     /// Annotates a @p layer, writing messages to @p log and showing QMessageBoxes on errors.
     /// The input file is selected via a file-dialog which is opened with @p current_path as initial path.
-    /// The filetype is checked to be one of the supported_types_ before the annotateWorker_ function is called
+    /// The file type is checked to be one of the supported_types_ before the annotateWorker_ function is called
     /// as implemented by the derived classes
     bool annotateWithFileDialog(LayerDataBase& layer, LogWindow& log, const String& current_path) const;
 
     /// Annotates a @p layer, given a filename from which to load the data.
-    /// The filetype is checked to be one of the supported_types_ before the annotateWorker_ function is called
+    /// The file type is checked to be one of the supported_types_ before the annotateWorker_ function is called
     /// as implemented by the derived classes
     bool annotateWithFilename(LayerDataBase& layer, LogWindow& log, const String& filename) const;
 
-    /// get a derived annotator class, which supports annotation of the given filetype.
+    /// get a derived annotator class, which supports annotation of the given file type.
     /// If multiple class support this type (currently not the case) an Exception::IllegalSelfOperation will be thrown
     /// If NO class supports this type, the unique_ptr points to nothing (.get() == nullptr).
     static std::unique_ptr<LayerAnnotatorBase> getAnnotatorWhichSupports(const FileTypes::Type& type);
 
-    /// see getAnnotatorWhichSupports(const FileTypes::Type& type). Filetype is queried from filename
+    /// see getAnnotatorWhichSupports(const FileTypes::Type& type). File type is queried from filename
     static std::unique_ptr<LayerAnnotatorBase> getAnnotatorWhichSupports(const String& filename);
 
   protected:
@@ -565,7 +565,7 @@ namespace OpenMS
     /// returns true on success
     virtual bool annotateWorker_(LayerDataBase& layer, const String& filename, LogWindow& log) const = 0;
 
-    const FileTypes::FileTypeList supported_types_;
+    const FileTypeList supported_types_;
     const String file_dialog_text_;
     QWidget* gui_lock_ = nullptr;///< optional widget which will be locked when calling annotateWorker_() in child-classes
   };

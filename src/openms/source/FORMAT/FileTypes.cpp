@@ -41,8 +41,6 @@
 
 namespace OpenMS
 {
-
-  static FileTypes::FileTypeList test_type_list({ FileTypes::MZML });
   /// connect the type to some other information
   /// We could also use paired arrays, but this way, its less likely to have mismatches if a new type is added
   struct TypeNameBinding
@@ -122,12 +120,12 @@ namespace OpenMS
     TypeNameBinding(FileTypes::XML, "xml", "any XML file")  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
   };
 
-  FileTypes::FileTypeList::FileTypeList(const std::vector<Type>& types)
+  FileTypeList::FileTypeList(const std::vector<FileTypes::Type>& types)
     : type_list_(types)
   {
   }
 
-  bool FileTypes::FileTypeList::contains(const Type& type) const
+  bool FileTypeList::contains(const FileTypes::Type& type) const
   {
     for (const auto& t : type_list_)
     {
@@ -139,30 +137,30 @@ namespace OpenMS
     return false;
   }
 
-  String FileTypes::FileTypeList::toFileDialogFilter(const Filter style, bool add_all_filter) const
+  String FileTypeList::toFileDialogFilter(const FilterLayout style, bool add_all_filter) const
   {
     return ListUtils::concatenate(asFilterElements_(style, add_all_filter).items, ";;");
   }
 
-  FileTypes::Type FileTypes::FileTypeList::fromFileDialogFilter(const String& filter, const Type fallback) const
+  FileTypes::Type FileTypeList::fromFileDialogFilter(const String& filter, const FileTypes::Type fallback) const
   {
-    auto candidates = asFilterElements_(Filter::BOTH, true); // may add more filters than needed, but that's fine
+    auto candidates = asFilterElements_(FilterLayout::BOTH, true); // may add more filters than needed, but that's fine
 
     auto where = std::find(candidates.items.begin(), candidates.items.end(), filter);
     if (where == candidates.items.end())
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filter);
     }
-    const Type r = candidates.types[where - candidates.items.begin()];
-    return r == Type::UNKNOWN ? fallback : r;
+    const FileTypes::Type r = candidates.types[where - candidates.items.begin()];
+    return r == FileTypes::Type::UNKNOWN ? fallback : r;
   }
 
   
-  FileTypes::FileTypeList::FilterElements_ FileTypes::FileTypeList::asFilterElements_(const Filter style, bool add_all_filter) const
+  FileTypeList::FilterElements_ FileTypeList::asFilterElements_(const FilterLayout style, bool add_all_filter) const
   {
     FilterElements_ result;
 
-    if (style == Filter::COMPACT || style == Filter::BOTH)
+    if (style == FilterLayout::COMPACT || style == FilterLayout::BOTH)
     {
       StringList items;
       for (const auto& t : type_list_)
@@ -170,9 +168,9 @@ namespace OpenMS
         items.push_back("*." + FileTypes::typeToName(t));
       }
       result.items.push_back("all readable files (" + ListUtils::concatenate(items, " ") + ")");
-      result.types.push_back(Type::UNKNOWN); // cannot associate a single type to a collection
+      result.types.push_back(FileTypes::Type::UNKNOWN); // cannot associate a single type to a collection
     }                                     
-    if (style == Filter::ONE_BY_ONE || style == Filter::BOTH)
+    if (style == FilterLayout::ONE_BY_ONE || style == FilterLayout::BOTH)
     {
       StringList items;
       for (const auto& t : type_list_)
@@ -184,7 +182,7 @@ namespace OpenMS
     if (add_all_filter)
     {
       result.items.push_back("all files (*)");
-      result.types.push_back(Type::UNKNOWN); // cannot associate a single type to a collection
+      result.types.push_back(FileTypes::Type::UNKNOWN); // cannot associate a single type to a collection
     }
     return result;
   }
