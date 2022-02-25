@@ -228,41 +228,40 @@ namespace OpenMS
     QGuiApplication::restoreOverrideCursor(); 
     currently_locked_ = false;
   }
+  
+  GUIHelpers::OverlapDetector::OverlapDetector(int levels)
+  {
+    if (levels <= 0)
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels);
+    rows_.resize(levels, 0);
+  }
+
+  size_t GUIHelpers::OverlapDetector::placeItem(double x_start, double x_end)
+  {
+    if (x_start < 0)
+      OPENMS_LOG_WARN << "Warning: x coordinates should be positive!\n";
+    if (x_start > x_end)
+      OPENMS_LOG_WARN << "Warning: x-end is larger than x-start!\n";
+
+    size_t best_index = 0;
+    double best_distance = -std::numeric_limits<double>::max();
+    for (size_t i = 0; i < rows_.size(); ++i)
+    {
+      if (rows_[i] < x_start)
+      {                   // easy win; row[i] does not overlap; take it
+        rows_[i] = x_end; // update space for next call
+        return i;
+      }
+      // x_start is smaller than row's end...
+      if ((rows_[i] - x_start) < best_distance)
+      {
+        best_distance = rows_[i] - x_start;
+        best_index = i;
+      }
+    }
+
+    return best_index;
+  }
 
 } //namespace OpenMS
 
-  /// C'tor: number of @p levels must be >=1
-
-OpenMS::GUIHelpers::OverlapDetector::OverlapDetector(int levels)
-{
-  if (levels <= 0) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels);
-  rows_.resize(levels, 0);
-}
-
-/// try to put an item which spans from @p x_start to @p x_end in the topmost row possible
-/// @return the smallest row index (starting at 0) which has none (or the least) overlap
-
-size_t OpenMS::GUIHelpers::OverlapDetector::placeItem(double x_start, double x_end)
-{
-  if (x_start < 0) OPENMS_LOG_WARN << "Warning: x coordinates should be positive!\n";
-  if (x_start > x_end) OPENMS_LOG_WARN << "Warning: x-end is larger than x-start!\n";
-
-  size_t best_index = 0;
-  double best_distance = -std::numeric_limits<double>::max();
-  for (size_t i = 0; i < rows_.size(); ++i)
-  {
-    if (rows_[i] < x_start)
-    { // easy win; row[i] does not overlap; take it
-      rows_[i] = x_end; // update space for next call
-      return i;
-    }
-    // x_start is smaller than row's end...
-    if ((rows_[i] - x_start) < best_distance)
-    {
-      best_distance = rows_[i] - x_start;
-      best_index = i;
-    }
-  }
-
-  return best_index;
-}
