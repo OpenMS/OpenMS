@@ -4,6 +4,7 @@ from String cimport *
 from RangeManager cimport *
 from DataArrays cimport *
 from SpectrumSettings cimport *
+from IMTypes cimport *
 
 # this class has addons, see the ./addons folder (../addons/MSSpectrum.pyx)
 
@@ -68,10 +69,19 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
         MSSpectrum() nogil except +
         MSSpectrum(MSSpectrum &) nogil except +
+
         double getRT() nogil except + # wrap-doc:Returns the absolute retention time (in seconds)
         void setRT(double) nogil except +  # wrap-doc:Sets the absolute retention time (in seconds)
+
         double getDriftTime() nogil except + # wrap-doc:Returns the drift time (-1 if not set)
         void setDriftTime(double) nogil except + # wrap-doc:Sets the drift time (-1 if not set)
+        DriftTimeUnit getDriftTimeUnit() nogil except +
+        String getDriftTimeUnitAsString() nogil except +
+        void setDriftTimeUnit(DriftTimeUnit dt) nogil except +
+
+        bool containsIMData() nogil except +
+        libcpp_pair[Size, DriftTimeUnit] getIMData() nogil except + # wrap-ignore wrap-doc:Returns position of ion mobility float data array and drift time unit
+
         unsigned int getMSLevel() nogil except + # wrap-doc:Returns the MS level
         void setMSLevel(unsigned int) nogil except + # wrap-doc:Sets the MS level
 
@@ -115,4 +125,5 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         void setFloatDataArrays(libcpp_vector[FloatDataArray] fda) nogil except + # wrap-doc:Sets the additional float data arrays to store e.g. meta data
         void setIntegerDataArrays(libcpp_vector[IntegerDataArray] ida) nogil except + # wrap-doc:Sets the additional int data arrays to store e.g. meta data
         void setStringDataArrays(libcpp_vector[StringDataArray] sda) nogil except + # wrap-doc:Sets the additional string data arrays to store e.g. meta data
+
 

@@ -3226,6 +3226,40 @@ def testMSSpectrum():
     assert spec.getFloatDataArrays()[0][2] == 42.0
     assert len(f_da[0].get_data() ) == 3
 
+    spec = pyopenms.MSSpectrum()
+    dfunit = spec.getDriftTimeUnit()
+    assert pyopenms.DriftTimeUnit().getMapping()[dfunit]  == "NONE"
+    assert dfunit == pyopenms.DriftTimeUnit.NONE
+    assert spec.getDriftTimeUnitAsString() == '<NONE>'
+    spec.setDriftTimeUnit( pyopenms.DriftTimeUnit.MILLISECOND )
+
+    dfunit = spec.getDriftTimeUnit()
+    assert dfunit == pyopenms.DriftTimeUnit.MILLISECOND
+    assert pyopenms.DriftTimeUnit().getMapping()[dfunit]  == "MILLISECOND"
+    assert spec.getDriftTimeUnitAsString() == 'ms'
+
+    spec = pyopenms.MSSpectrum()
+    spec.setDriftTime(6.0)
+    assert spec.getDriftTime() == 6.0
+
+    spec = pyopenms.MSSpectrum()
+    assert not spec.containsIMData()
+    data = np.array( [5, 8, 42] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    f_da[0].setName("Ion Mobility")
+    spec.setFloatDataArrays( f_da )
+    assert spec.containsIMData()
+    assert spec.getIMData()[0] == 0
+    f_da = [ pyopenms.FloatDataArray(), pyopenms.FloatDataArray() ]
+    f_da[0].setName("test")
+    f_da[0].set_data(data)
+    f_da[1].set_data(data)
+    f_da[1].setName("Ion Mobility")
+    spec.setFloatDataArrays( f_da )
+    assert spec.containsIMData()
+    assert spec.getIMData()[0] == 1
+
 @report
 def testStringDataArray():
     """

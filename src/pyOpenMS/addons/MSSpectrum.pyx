@@ -144,3 +144,12 @@ import numpy as np
 
         return I
 
+    def getIMData(self):
+
+        cdef libcpp_pair[Size, _DriftTimeUnit] r = self.inst.get().getIMData()
+
+        pos = r.first
+        unit = <int>r.second
+
+        return (pos, unit)
+
