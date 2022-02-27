@@ -123,12 +123,12 @@ namespace OpenMS
       }
     }
     //TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
-    for (String name : tool_scanner->getPlugins())
+    for (const auto& name : tool_scanner->getPlugins())
     {
       std::vector<LayerData::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
       {
-        list << name.toQString();
+        list << String(name).toQString();
       }
     }
 
@@ -215,6 +215,7 @@ namespace OpenMS
             types.push_back(iter->second);
           }
         }
+        break;
       }
     }
     return types;

@@ -41,8 +41,6 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#define DEBUG_TOOL_DISCOVERY
-
 namespace OpenMS
 {
   /**

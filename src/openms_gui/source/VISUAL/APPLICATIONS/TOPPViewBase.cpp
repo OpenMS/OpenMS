@@ -445,8 +445,23 @@ namespace OpenMS
     // set current path
     current_path_ = param_.getValue("preferences:default_path").toString();
 
-    // set plugin search path
-    tool_scanner_.setPluginPath(param_.getValue("preferences:plugins_path").toString());
+    // set plugin search path, create it if it does not already exist
+    String plugin_path = String(param_.getValue("preferences:plugins_path").toString());
+    if (!File::exists(plugin_path))
+    {
+      QString dir = plugin_path.suffix('/').toQString();
+      QDir path = QDir(plugin_path.toQString());
+      path.cdUp();
+      printf("Dir: %s\n", dir.toStdString().c_str());
+      printf("Path: %s\n", path.absolutePath().toStdString().c_str());
+      if (!path.mkdir(dir))
+      {
+        OPENMS_LOG_WARN << "Unable to create plugin directory at " << path.absolutePath().toStdString() << "\n";
+        param_.setValue("preferences:plugins_path", ".");
+        plugin_path = ".";
+      }
+    }
+    tool_scanner_.setPluginPath(plugin_path);
 
     // update the menu
     updateMenu();
@@ -471,7 +486,7 @@ namespace OpenMS
     defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
     defaults_.setValidStrings("preferences:default_path_current", {"true","false"});
-    defaults_.setValue("preferences:plugins_path", "./OpenMS_Plugins", "Default path for loading Plugins");
+    defaults_.setValue("preferences:plugins_path", File::getUserDirectory() + "OpenMS_Plugins", "Default path for loading Plugins");
     defaults_.setValue("preferences:intensity_cutoff", "off", "Low intensity cutoff for maps.");
     defaults_.setValidStrings("preferences:intensity_cutoff", {"on","off"});
     defaults_.setValue("preferences:on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");

@@ -14,6 +14,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
     cdef cppclass Param:
 
          # COMMENT: Helper functions for Python
+         initPluginParam(name, version) # wrap-ignore
          asDict() # wrap-ignore
          keys() # wrap-ignore
          items() # wrap-ignore

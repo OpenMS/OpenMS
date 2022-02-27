@@ -76,7 +76,6 @@ namespace OpenMS
     const auto &plugins = getPlugins_();
     for (auto& plugin : plugins)
     {
-      std::cout << "starting work on " << plugin << std::endl;
       plugin_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, plugin, true));
     }
   }
@@ -125,8 +124,6 @@ namespace OpenMS
   //const std::vector<std::pair<String, Param>> &TVToolDiscovery::getToolParams()
   const Param& TVToolDiscovery::getToolParams()
   {
-    std::cout << "STARTING" << std::endl;
-
     // Make sure threads have been launched and waited for before accessing results
     waitForToolParams();
     return tool_params_;
@@ -147,7 +144,6 @@ namespace OpenMS
     String path = File::getTemporaryFile();
     String working_dir = path.prefix(path.find_last_of('/'));
     QStringList args{"-write_ini", path.toQString()};
-//    std::cout << "before finding exec " << tool_name << std::endl;
     Param tool_param;
     String executable;
     // Return empty param if tool executable cannot be found
@@ -158,7 +154,7 @@ namespace OpenMS
     }
     catch (const Exception::FileNotFound& e)
     {
-      std::cerr << "TOPP tool: " << e << " not found during tool discovery. Skipping." << std::endl;
+      OPENMS_LOG_WARN << "TOPP tool: " << e << " not found during tool discovery. Skipping." << std::endl;
       return tool_param;
     }
 
@@ -170,7 +166,7 @@ namespace OpenMS
     // Return empty param if writing the ini file failed
     if (return_state != ExternalProcess::RETURNSTATE::SUCCESS)
     {
-      std::cerr << "TOPP tool: " << executable << " error during execution: " << (uint32_t)return_state << "\n";
+      OPENMS_LOG_WARN << "TOPP tool: " << executable << " error during execution: " << (uint32_t)return_state << "\n";
       return tool_param;
     }
     // Parse ini file to param object
@@ -181,8 +177,8 @@ namespace OpenMS
     }
     catch(const Exception::FileNotFound& e)
     {
-      std::cerr << e << "\n" << "TOPP tool: " << executable << 
-        " not able to write ini. Plugins must implement -write-ini flag. Skipping." << std::endl;
+      OPENMS_LOG_WARN << e << "\n" << "TOPP tool: " << executable <<
+        " not able to write ini. Plugins must implement -write_ini parameter. Skipping." << std::endl;
       return tool_param;
     }
     
@@ -190,9 +186,6 @@ namespace OpenMS
       auto tool_name = tool_param.begin().getTrace().begin()->name;
       auto filename = tool_path.substr(tool_path.find_first_of('/') + 1);
       tool_param.setValue(tool_name + ":filename", filename, "The filename of the plugin executable, this entry is automatically generated");
-#ifdef DEBUG_TOOL_DISCOVERY
-      OPENMS_LOG_DEBUG << "PLUGIN NAME: " << tool_name << std::endl;
-#endif
     }
 
     return tool_param;
@@ -208,14 +201,11 @@ namespace OpenMS
   {
     StringList plugins;
 
-#ifdef DEBUG_TOOL_DISCOVERY
-    OPENMS_LOG_DEBUG << "PLUGIN DETECTION\n";
-#endif
-    // this is unused right now... change the return value in the comparator to use this
+    // here all supported file extensions can be added
     std::vector<std::string> valid_extensions {"", ".py"};
     const auto comparator = [valid_extensions](const std::string& plugin) -> bool
     {
-        return !File::executable(plugin) &&
+        return !File::executable(plugin) ||
           (std::find(valid_extensions.begin(), valid_extensions.end(), std::filesystem::path(plugin).extension()) == valid_extensions.end());
     };
 
@@ -223,14 +213,6 @@ namespace OpenMS
     {
       plugins.erase(std::remove_if(plugins.begin(), plugins.end(), comparator), plugins.end());
     }
-
-#ifdef DEBUG_TOOL_DISCOVERY
-    for (auto& p : plugins)
-    {
-      OPENMS_LOG_DEBUG << "found plugin: " << p << "\n";
-    }
-    OPENMS_LOG_DEBUG << "END PLUGIN DETECTION" << std::endl;
-#endif
 
     return plugins;
   }
@@ -244,7 +226,6 @@ namespace OpenMS
   {
     //TODO: At the moment the usage of subdirectories in the plugin path are not possible
     //To change that, the tool scanner has to recursively search all directories in the plugin path
-    //at the moment I don't know how to achieve this since the File utility only allows to list files
     if (!plugin_params_.exists(name + ":filename"))
     {
       return "";
