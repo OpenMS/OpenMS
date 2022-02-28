@@ -121,15 +121,15 @@ START_SECTION((static Type nameToType(const String& name)))
 END_SECTION
 
 START_SECTION([EXTRA] FileTypes::FileTypeList)
-  FileTypes::FileTypeList list({ FileTypes::MZML, FileTypes::BZ2 });
+  FileTypeList list({ FileTypes::MZML, FileTypes::BZ2 });
   TEST_EQUAL(list.contains(FileTypes::MZML), true);
   TEST_EQUAL(list.contains(FileTypes::BZ2), true);
   TEST_EQUAL(list.contains(FileTypes::MZDATA), false);
 
-  TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::BOTH, true), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*)")
-  TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::COMPACT, true), "all readable files (*.mzML *.bz2);;all files (*)")
-  TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::ONE_BY_ONE, true), "mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*)")
-  TEST_EQUAL(list.toFileDialogFilter(FileTypes::Filter::BOTH, false), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2)")
+  TEST_EQUAL(list.toFileDialogFilter(FilterLayout::BOTH, true), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*)")
+  TEST_EQUAL(list.toFileDialogFilter(FilterLayout::COMPACT, true), "all readable files (*.mzML *.bz2);;all files (*)")
+  TEST_EQUAL(list.toFileDialogFilter(FilterLayout::ONE_BY_ONE, true), "mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*)")
+  TEST_EQUAL(list.toFileDialogFilter(FilterLayout::BOTH, false), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2)")
 
   // testing Type FileTypeList::fromFileDialogFilter(const String& filter, const Type fallback = Type::UNKNOWN) const
   TEST_EQUAL(list.fromFileDialogFilter("all readable files (*.mzML *.bz2)"), FileTypes::UNKNOWN);
