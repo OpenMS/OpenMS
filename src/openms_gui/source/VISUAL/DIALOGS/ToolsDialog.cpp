@@ -103,7 +103,7 @@ namespace OpenMS
     const auto& tools = ToolHandler::getTOPPToolList();
     const auto& utils = ToolHandler::getUtilList();
 
-    tool_scanner_->setPluginPath(params.getValue("preferences:plugins_path").toString());
+    tool_scanner_->setPluginPath(params.getValue("preferences:user:plugins_path").toString());
     plugin_params_ = tool_scanner_->getPluginParams();
 
     for (auto& pair : tools)

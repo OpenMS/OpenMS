@@ -116,6 +116,8 @@ namespace OpenMS
       }
       // Make future results available in plugin_params_
       Param new_param = param_future.get();
+      // Skip if the param is empty, that means something went wrong during execution
+      if (new_param.empty()) continue;
       plugins_.push_back(new_param.begin().getTrace().begin()->name);
       plugin_params_.insert("", new_param);
     }
