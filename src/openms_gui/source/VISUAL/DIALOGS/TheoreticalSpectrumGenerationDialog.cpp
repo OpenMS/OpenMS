@@ -49,16 +49,15 @@ namespace OpenMS
     connect(ui_->list_widget, SIGNAL(itemChanged(QListWidgetItem *)), this, SLOT(itemChanged(QListWidgetItem *)));
 
     // select b- and y-ions as residue types by default
-    ui_->list_widget->item(0)->setCheckState(Qt::Unchecked);
-    ui_->list_widget->item(1)->setCheckState(Qt::Checked);
-    ui_->list_widget->item(2)->setCheckState(Qt::Unchecked);
-    ui_->list_widget->item(3)->setCheckState(Qt::Unchecked);
-    ui_->list_widget->item(4)->setCheckState(Qt::Checked);
-    ui_->list_widget->item(5)->setCheckState(Qt::Unchecked);
-    ui_->list_widget->item(6)->setCheckState(Qt::Unchecked);
-    ui_->list_widget->item(7)->setCheckState(Qt::Unchecked);
-    ui_->list_widget->item(8)->setCheckState(Qt::Unchecked);
-    ui_->list_widget->item(9)->setCheckState(Qt::Unchecked);
+    for (Checkbox c : check_box_names)
+    {
+      if (c == Checkbox::B_Ions || c == Checkbox::Y_Ions)
+      {
+        ui_->list_widget->item(int(c))->setCheckState(Qt::Checked);
+        continue;
+      }
+      ui_->list_widget->item(int(c))->setCheckState(Qt::Unchecked);
+    }
   }
 
   TheoreticalSpectrumGenerationDialog::~TheoreticalSpectrumGenerationDialog()
@@ -75,22 +74,16 @@ namespace OpenMS
   {
     Param p;
     p.setValue("charge", ui_->spin_box->value());
-    bool losses = (ui_->list_widget->item(7)->checkState() == Qt::Checked); // "Neutral losses"
-    String losses_str = losses ? "true" : "false";
-    p.setValue("add_losses", losses_str, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
 
-    bool isotopes = (ui_->list_widget->item(8)->checkState() == Qt::Checked); // "Isotope clusters"
-    String iso_str = isotopes ? "true" : "false";
-    p.setValue("add_isotopes", iso_str, "If set to 1 isotope peaks of the product ion peaks are added");
+    // add checkboxes to parameters, i.e. ion types
+    for (Checkbox c : check_box_names)
+    {
+      bool status = (ui_->list_widget->item(int(c))->checkState() == Qt::Checked);
+      String status_str = status ? "true" : "false";
+      p.setValue(checkbox_to_param.at(c).first, status_str, checkbox_to_param.at(c).second);
+    }
 
-    bool abundant_immonium_ions = (ui_->list_widget->item(9)->checkState() == Qt::Checked); // "abundant immonium-ions"
-    String abundant_immonium_ions_str = abundant_immonium_ions ? "true" : "false";
-    p.setValue("add_abundant_immonium_ions", abundant_immonium_ions_str, "Add most abundant immonium ions");
-
-    bool precursor_ions = (ui_->list_widget->item(6)->checkState() == Qt::Checked); // "add precursor ions"
-    String precursor_ions_str = precursor_ions ? "true" : "false";
-    p.setValue("add_precursor_peaks", precursor_ions_str, "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-
+    // add intensities
     Size max_iso_count = (Size)ui_->max_iso_spinbox->value();
     p.setValue("max_isotope", max_iso_count, "Number of isotopic peaks");
     p.setValue("a_intensity", ui_->a_intensity->value(), "Intensity of the a-ions");
@@ -101,48 +94,7 @@ namespace OpenMS
     p.setValue("z_intensity", ui_->z_intensity->value(), "Intensity of the z-ions");
     double rel_loss_int = (double)(ui_->rel_loss_intensity->value()) / 100.0;
     p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
-    
-    p.setValue("has_A", "false");
-    p.setValue("has_B", "false");
-    p.setValue("has_C", "false");
-    p.setValue("has_X", "false");
-    p.setValue("has_Y", "false");
-    p.setValue("has_Z", "false");
-    p.setValue("has_Precursor", "false");
-    p.setValue("has_abundantImmoniumIons", "false");
 
-    if (ui_->list_widget->item(0)->checkState() == Qt::Checked) // "A-ions"
-    {
-      p.setValue("has_A", "true");
-    }
-    if (ui_->list_widget->item(1)->checkState() == Qt::Checked) // "B-ions"
-    {
-      p.setValue("has_B", "true");
-    }
-    if (ui_->list_widget->item(2)->checkState() == Qt::Checked) // "C-ions"
-    {
-      p.setValue("has_C", "true");
-    }
-    if (ui_->list_widget->item(3)->checkState() == Qt::Checked) // "X-ions"
-    {
-      p.setValue("has_X", "true");
-    }
-    if (ui_->list_widget->item(4)->checkState() == Qt::Checked) // "Y-ions"
-    {
-      p.setValue("has_Y", "true");
-    }
-    if (ui_->list_widget->item(5)->checkState() == Qt::Checked) // "Z-ions"
-    {
-      p.setValue("has_Z", "true");
-    }
-    if (ui_->list_widget->item(6)->checkState() == Qt::Checked) // "Precursor"
-    {
-      p.setValue("has_Precursor", "true");
-    }
-    if (ui_->list_widget->item(9)->checkState() == Qt::Checked) // "abundant Immonium-ions"
-    {
-      p.setValue("has_abundantImmoniumIons", "true");
-    }
     return p;
   }
 

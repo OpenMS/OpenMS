@@ -2011,38 +2011,9 @@ namespace OpenMS
       PeakSpectrum spectrum;
       Param p = spec_gen_dialog.getParam();
       Int charge = p.getValue("charge");
+      p.remove("charge"); // "charge" isn't a parameter of TheoreticalSpectrumGenerator
 
       p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-
-      // these two are true by default, initialize to false here and set to true in the loop below
-      p.setValue("add_y_ions", "false", "Add peaks of y-ions to the spectrum");
-      p.setValue("add_b_ions", "false", "Add peaks of b-ions to the spectrum");
-
-      // for losses, isotopes, abundant_immonium_ions see getParam
-      if (p.getValue("has_A").toBool()) // "A-ions"
-      {
-        p.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
-      }
-      if (p.getValue("has_B").toBool()) // "B-ions"
-      {
-        p.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
-      }
-      if (p.getValue("has_C").toBool()) // "C-ions"
-      {
-        p.setValue("add_c_ions", "true", "Add peaks of c-ions to the spectrum");
-      }
-      if (p.getValue("has_X").toBool()) // "X-ions"
-      {
-        p.setValue("add_x_ions", "true", "Add peaks of x-ions to the spectrum");
-      }
-      if (p.getValue("has_Y").toBool()) // "Y-ions"
-      {
-        p.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
-      }
-      if (p.getValue("has_Z").toBool()) // "Z-ions"
-      {
-        p.setValue("add_z_ions", "true", "Add peaks of z-ions to the spectrum");
-      }
 
       TheoreticalSpectrumGenerator generator;
       generator.setParameters(p);
