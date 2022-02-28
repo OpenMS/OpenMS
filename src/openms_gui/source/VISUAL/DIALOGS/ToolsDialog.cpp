@@ -69,7 +69,7 @@ namespace OpenMS
           const Param& params,
           String ini_file,
           String default_dir,
-          LayerData::DataType layer_type,
+          LayerDataBase::DataType layer_type,
           const String& layer_name,
           TVToolDiscovery* tool_scanner) :
           QDialog(parent),
@@ -94,11 +94,11 @@ namespace OpenMS
 
     // Determine all available tools compatible with the layer_type
     tool_map_ = {
-            {FileTypes::Type::MZML, LayerData::DataType::DT_PEAK},
-            {FileTypes::Type::MZXML, LayerData::DataType::DT_PEAK},
-            {FileTypes::Type::FEATUREXML, LayerData::DataType::DT_FEATURE},
-            {FileTypes::Type::CONSENSUSXML, LayerData::DataType::DT_CONSENSUS},
-            {FileTypes::Type::IDXML, LayerData::DataType::DT_IDENT}
+            {FileTypes::Type::MZML, LayerDataBase::DataType::DT_PEAK},
+            {FileTypes::Type::MZXML, LayerDataBase::DataType::DT_PEAK},
+            {FileTypes::Type::FEATUREXML, LayerDataBase::DataType::DT_FEATURE},
+            {FileTypes::Type::CONSENSUSXML, LayerDataBase::DataType::DT_CONSENSUS},
+            {FileTypes::Type::IDXML, LayerDataBase::DataType::DT_IDENT}
     };
     const auto& tools = ToolHandler::getTOPPToolList();
     const auto& utils = ToolHandler::getUtilList();
@@ -108,7 +108,7 @@ namespace OpenMS
 
     for (auto& pair : tools)
     {
-      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ':'));
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ':'));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
       {
         list << pair.first.toQString();
@@ -116,7 +116,7 @@ namespace OpenMS
     }
     for (auto& pair : utils)
     {
-      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ":"));
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ":"));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
       {
         list << pair.first.toQString();
@@ -125,7 +125,7 @@ namespace OpenMS
     //TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
     for (const auto& name : tool_scanner->getPlugins())
     {
-      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
       {
         list << String(name).toQString();
@@ -144,7 +144,6 @@ namespace OpenMS
 
     reload_plugins_button_ = new QPushButton("Reload Plugins");
     connect(reload_plugins_button_, SIGNAL(clicked()), this, SLOT(reloadPlugins_()));
-
     main_grid->addWidget(reload_plugins_button_, 0, 2);
 
     label = new QLabel("input argument:");
@@ -195,15 +194,15 @@ namespace OpenMS
   {
   }
 
-  std::vector<LayerData::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const
+  std::vector<LayerDataBase::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const
   {
     // Containing all types a tool is compatible with
-    std::vector<LayerData::DataType> types;
+    std::vector<LayerDataBase::DataType> types;
     for (const auto& entry : p)
     {
       if (entry.name == "in")
       {
-        // Map all file extension to a LayerData::DataType
+        // Map all file extension to a LayerDataBase::DataType
         for (auto& file_extension : entry.valid_strings)
         {
           // a file extension in valid_strings is of form "*.TYPE" -> convert to substr "TYPE".
@@ -437,7 +436,7 @@ namespace OpenMS
     QStringList list;
     for (auto& pair : tools)
     {
-      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ':'));
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ':'));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
       {
         list << pair.first.toQString();
@@ -445,7 +444,7 @@ namespace OpenMS
     }
     for (auto& pair : utils)
     {
-      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ":"));
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ":"));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
       {
         list << pair.first.toQString();
@@ -454,7 +453,7 @@ namespace OpenMS
     //TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
     for (String name : tool_scanner_->getPlugins())
     {
-      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
       {
         list << name.toQString();
