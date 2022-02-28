@@ -902,6 +902,7 @@ namespace OpenMS
     }
 
     // print single proteins and ind. protein groups
+    set<string> printed_ind_group;
     for (const auto& [accession, pr] : report)
     {
       if (accessionToUniquePeptides.count(accession) == 1)
@@ -914,12 +915,20 @@ namespace OpenMS
       else if (auto it = accessionToIndistinguishableGroup.find(accession);
         it != accessionToIndistinguishableGroup.end())
       { // ind. protein group
-        const ProteinIdentification::ProteinGroup* pg = it->second;
-        String a = ListUtils::concatenate(pg->accessions, ",");
-        String group_type = "ind. protein group";
-        tsv_file.addLine(a + "\t" + String(pr.CSMs_of_unique_peptides) 
-          + "\t" + String(pr.CSMs - pr.CSMs_of_unique_peptides) 
-          + "\t" + group_type);
+        if (printed_ind_group.count(accession) == 0)
+        {
+          const ProteinIdentification::ProteinGroup* pg = it->second;
+          String a = ListUtils::concatenate(pg->accessions, ",");
+          String group_type = "ind. protein group";
+          tsv_file.addLine(a + "\t" + String(pr.CSMs_of_unique_peptides) 
+            + "\t" + String(pr.CSMs - pr.CSMs_of_unique_peptides) 
+            + "\t" + group_type);
+
+          for (auto a : pg->accessions) 
+          { // mark all ind. protein members as already printed
+            printed_ind_group.insert(std::move(accession));
+          }
+        }          
       }
       else
       { // general protein groups
