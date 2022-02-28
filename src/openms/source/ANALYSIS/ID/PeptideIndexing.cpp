@@ -126,7 +126,8 @@ using namespace std;
 
     bool validate(const String& seq_prot, const Int position, const Int len_pep, const bool allow_nterm_protein_cleavage)
     {
-      return enzyme.isValidProduct(seq_prot, position, len_pep, true, true, xtandem_, allow_nterm_protein_cleavage);
+      const bool ignore_missed_cleavages = true;
+      return enzyme.isValidProduct(seq_prot, position, len_pep, ignore_missed_cleavages, allow_nterm_protein_cleavage, xtandem_);
     }
 
     void addHit(
@@ -354,6 +355,11 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
     if (search_engine == "MS-GF+" || search_engine == "MSGFPLUS" || prot_id.getSearchParameters().metaValueExists("SE:MS-GF+")) { msgfplus_fix_parameters = true; }
   }
 
+  if (xtandem_fix_parameters)
+  {
+    OPENMS_LOG_WARN << "X!Tandem detected. Allowing random Asp/Pro cleavage." << std::endl;
+  }
+
   // including MSGFPlus -> Trypsin/P as enzyme
   if (msgfplus_fix_parameters && enzyme.getEnzymeName() == "Trypsin")
   {
@@ -535,7 +541,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
             }
           }
 
-          const Hit::T prot_idx = i + proteins.getChunkOffset();
+          const Hit::T prot_idx = Hit::T(i + proteins.getChunkOffset());
           
           // grab #hits before searching protein; we know its a hit if this number changes
           const Size hits_total = func_threads.filter_passed + func_threads.filter_rejected;
