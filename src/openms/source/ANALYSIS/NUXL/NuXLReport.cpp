@@ -786,8 +786,8 @@ namespace OpenMS
     std::sort(report.begin(), report.end(), 
       [](const pair<string, ProteinReport> & a, const pair<string, ProteinReport> & b) -> bool
       { 
-         return std::tie(a.second.CSMs, a.second.CSMs_of_unique_peptides, a.first) 
-          > std::tie(b.second.CSMs, b.second.CSMs_of_unique_peptides, b.first);
+         return std::tie(a.second.CSMs_of_unique_peptides, a.second.CSMs, a.first) 
+          > std::tie(b.second.CSMs_of_unique_peptides, b.second.CSMs, b.first);
       }); 
 
 
@@ -870,15 +870,32 @@ namespace OpenMS
     {
       vector<PeptideIdentification> pep_copy{peps}; // TODO: why copy needed?
       IDBoostGraph ibg{prot_id, pep_copy, true, false, false}; // only consider top hit
-      ibg.calculateAndAnnotateIndistProteins(true); // include singleton groups as indistinguishable
+      ibg.calculateAndAnnotateIndistProteins(false); // only indistinguishable protein groups
       ipg = prot_id.getIndistinguishableProteins();
       std::sort(std::begin(ipg), std::end(ipg));
+    }
+
+    // calculate proteins with unique XL peptide
+    set<string> accessionToUniquePeptides;
+    for (const PeptideIdentification& pep : peps)
+    {
+      auto& hits = pep.getHits();
+      if (hits.empty()) continue;
+      const PeptideHit& ph = hits[0]; // only consider top hit      
+      const AASequence& peptide_sequence = ph.getSequence();
+      const std::string peptide_sequence_string = peptide_sequence.toUnmodifiedString();
+      const std::set<std::string>& proteins = peptide2proteins.at(peptide_sequence_string);
+      const bool is_unique = proteins.size() == 1;
+      if (is_unique) 
+      {
+        accessionToUniquePeptides.insert(*proteins.begin());
+      }
     }
 
     map<string, ProteinIdentification::ProteinGroup*> accessionToIndistinguishableGroup;
     for (auto& pg : ipg)
     {
-      for (const auto& a : pg.accessions) // includes singleton groups
+      for (const auto& a : pg.accessions)
       {
         accessionToIndistinguishableGroup[a] = &pg;
       }
@@ -887,26 +904,30 @@ namespace OpenMS
     // print single proteins and ind. protein groups
     for (const auto& [accession, pr] : report)
     {
-      if (auto it = accessionToIndistinguishableGroup.find(accession);
+      if (accessionToUniquePeptides.count(accession) == 1)
+      { // protein with unique peptide
+        String group_type = "protein";
+        tsv_file.addLine(accession + "\t" + String(pr.CSMs_of_unique_peptides) 
+          + "\t" + String(pr.CSMs - pr.CSMs_of_unique_peptides) 
+          + "\t" + group_type);        
+      }
+      else if (auto it = accessionToIndistinguishableGroup.find(accession);
         it != accessionToIndistinguishableGroup.end())
-      {
+      { // ind. protein group
         const ProteinIdentification::ProteinGroup* pg = it->second;
         String a = ListUtils::concatenate(pg->accessions, ",");
-        String group_type = pg->accessions.size() == 1 ? "single protein" : "ind. protein group";
+        String group_type = "ind. protein group";
         tsv_file.addLine(a + "\t" + String(pr.CSMs_of_unique_peptides) 
           + "\t" + String(pr.CSMs - pr.CSMs_of_unique_peptides) 
           + "\t" + group_type);
       }
-    }
-    // now the general protein groups
-    for (const auto& [accession, pr] : report)
-    {
-      if (auto it = accessionToIndistinguishableGroup.find(accession);
-        it == accessionToIndistinguishableGroup.end())
-      {
+      else
+      { // general protein groups
+        set<string> group_neighbors = protein2proteins[accession];
+        group_neighbors.erase(accession);
         tsv_file.addLine(accession + "\t" + String(pr.CSMs_of_unique_peptides) 
           + "\t" + String(pr.CSMs - pr.CSMs_of_unique_peptides) 
-          + "\t" + ListUtils::concatenate(protein2proteins[accession], ","));
+          + "\tgen. protein group (shares XL peptides with: " + ListUtils::concatenate(group_neighbors, ",") + ")");
       }
     }
 
