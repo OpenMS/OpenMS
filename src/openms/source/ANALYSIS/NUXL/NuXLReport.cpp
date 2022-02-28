@@ -926,7 +926,7 @@ namespace OpenMS
 
           for (auto a : pg->accessions) 
           { // mark all ind. protein members as already printed
-            printed_ind_group.insert(std::move(accession));
+            printed_ind_group.insert(std::move(a));
           }
         }          
       }
