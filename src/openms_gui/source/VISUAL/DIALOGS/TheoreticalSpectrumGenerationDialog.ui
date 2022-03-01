@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>500</width>
-    <height>428</height>
+    <width>763</width>
+    <height>570</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -58,9 +58,12 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_10">
+        <layout class="QFormLayout" name="formLayout"/>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_8">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout">
+          <layout class="QHBoxLayout" name="horizontalLayout_14">
            <item>
             <widget class="QLabel" name="spin_label">
              <property name="sizePolicy">
@@ -93,35 +96,126 @@
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <layout class="QHBoxLayout" name="horizontalLayout_15">
            <item>
-            <widget class="QLabel" name="max_iso_label">
+            <widget class="QGroupBox" name="isotope_model">
              <property name="enabled">
               <bool>false</bool>
              </property>
-             <property name="maximumSize">
+             <property name="minimumSize">
               <size>
-               <width>16777213</width>
-               <height>16777215</height>
+               <width>0</width>
+               <height>90</height>
               </size>
              </property>
-             <property name="whatsThis">
-              <string>Defines the maximal isotopic peak which is added</string>
+             <property name="title">
+              <string>Isotope Model:</string>
              </property>
-             <property name="text">
-              <string>Max Isotope:</string>
-             </property>
+             <widget class="QRadioButton" name="model_none">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>20</y>
+                <width>91</width>
+                <height>22</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>None</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+             <widget class="QRadioButton" name="model_coarse">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>40</y>
+                <width>91</width>
+                <height>22</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Coarse</string>
+              </property>
+             </widget>
+             <widget class="QRadioButton" name="model_fine">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>60</y>
+                <width>91</width>
+                <height>22</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Fine</string>
+              </property>
+             </widget>
             </widget>
            </item>
            <item>
-            <widget class="QSpinBox" name="max_iso_spinbox">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="value">
-              <number>2</number>
-             </property>
-            </widget>
+            <layout class="QVBoxLayout" name="verticalLayout_9">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_16">
+               <item>
+                <widget class="QLabel" name="max_iso_label">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777213</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="whatsThis">
+                  <string>Defines the maximal isotopic peak which is added</string>
+                 </property>
+                 <property name="text">
+                  <string>Max. Isotope:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSpinBox" name="max_iso_spinbox">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="value">
+                  <number>2</number>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_17">
+               <item>
+                <widget class="QLabel" name="max_iso_prob_label">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="text">
+                  <string>Max. Isotope
+Probability in %</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSpinBox" name="max_iso_prob_spinbox">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="readOnly">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
            </item>
           </layout>
          </item>
