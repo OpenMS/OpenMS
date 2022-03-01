@@ -45,6 +45,24 @@
 
 #include <unordered_set>
 #include <regex>
+#include <map>
+
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/connected_components.hpp>
+
+struct VertexLabel
+{
+    VertexLabel() = default;
+    VertexLabel(OpenMS::String u, bool is_feat):uid(u), is_feature(is_feat) {}
+    OpenMS::String uid = "0";
+    bool is_feature = false;
+};
+
+using UndirectedOSMIdGraph = boost::adjacency_list<
+    boost::vecS,
+    boost::vecS, 
+    boost::undirectedS,
+    VertexLabel>;
 
 using namespace std;
 
@@ -176,10 +194,8 @@ namespace OpenMS
   void FeatureGroupingAlgorithm::annotateIonIdentityNetworks(ConsensusMap& out) const
   {
     // set row ID for each feature and reformat best ion
-    set<size_t> all;
     for (size_t i = 0; i < out.size(); i++)
     {
-      all.insert(i);
       out[i].setMetaValue(Constants::UserParam::ROW_ID, i+1);
       if (out[i].metaValueExists(Constants::UserParam::BEST_ION))
       {
@@ -215,70 +231,75 @@ namespace OpenMS
       }
     }
 
-    Int annotation_network_number = 1;
+    UndirectedOSMIdGraph g;
 
-    while (!all.empty())
+    for (size_t i = 0; i < out.size(); i++)
     {
-      size_t n = *all.begin();
-      all.erase(n);
-      if (!out[n].metaValueExists(Constants::UserParam::LINKED_GROUPS)) continue;
-      set<size_t> connected;
-      set<size_t> connected_queue = {n};
-      while (!connected_queue.empty())
+      if (!out[i].metaValueExists(Constants::UserParam::LINKED_GROUPS)) continue;
+      auto feature_vertex = add_vertex(VertexLabel(String(i), true), g);
+      for (const auto& group: out[i].getMetaValue(Constants::UserParam::LINKED_GROUPS).toStringList())
       {
-        size_t i = *connected_queue.begin();
-        connected_queue.erase(i);
-        connected.insert(i);
-        vector<String> groups_i = out[i].getMetaValue(Constants::UserParam::LINKED_GROUPS).toStringList();
-        set<size_t> to_erase;
-        for (const auto& j: all)
+        bool already_set = false;
+        for (auto i : boost::make_iterator_range(vertices(g)))
         {
-          if (!out[j].metaValueExists(Constants::UserParam::LINKED_GROUPS)) continue;
-          vector<String> groups_j = out[j].getMetaValue(Constants::UserParam::LINKED_GROUPS).toStringList();
-          vector<String> intersection;
-          set_intersection(groups_i.begin(), groups_i.end(), groups_j.begin(), groups_j.end(), back_inserter(intersection));
-          if (!intersection.empty())
-          {
-            connected_queue.insert(j);
-            to_erase.insert(j);
-          }
+            if ((group == g[i].uid) && (!g[i].is_feature)) 
+            {
+              boost::add_edge(feature_vertex, i, g);
+              already_set = true;
+              break;
+            }
         }
-        for (const auto& e: to_erase) all.erase(e);
-      }
-
-      cout << "connected components: ";
-      for (const auto& xx: connected) cout << xx << " ";
-      cout << endl;
-
-      for (const auto& i : connected)
-      {
-        out[i].setMetaValue(Constants::UserParam::ANNOTATION_NETWORK_NUMBER, annotation_network_number);
-        const vector<String>& groups_i = out[i].getMetaValue(Constants::UserParam::LINKED_GROUPS).toStringList();
-        for (const auto& j : connected)
+        if (!already_set)
         {
-          const vector<String>& groups_j = out[j].getMetaValue(Constants::UserParam::LINKED_GROUPS).toStringList();
-          vector<String> intersection;
-          set_intersection(groups_i.begin(), groups_i.end(), groups_j.begin(), groups_j.end(), back_inserter(intersection));
-          
-          if (i == j || intersection.empty()) continue;
-          if (out[i].metaValueExists(Constants::UserParam::ADDUCT_PARTNERS))
-          {
-            out[i].setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, out[i].getMetaValue(Constants::UserParam::ADDUCT_PARTNERS).toString()
-                                +";"
-                                +out[j].getMetaValue(Constants::UserParam::ROW_ID).toString());
-          } else
-          {
-            out[i].setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, out[j].getMetaValue(Constants::UserParam::ROW_ID));
-          }
+        boost::add_edge(feature_vertex, add_vertex(VertexLabel(group, false), g), g);
         }
       }
-      annotation_network_number++;
     }
-    // remove Constants::UserParam::LINKED_GROUPS mv
-    // for (size_t i = 0; i < out.size(); i++)
-    // {
-    //   out[i].removeMetaValue(Constants::UserParam::LINKED_GROUPS);
-    // }
+
+    std::vector<int> components (boost::num_vertices (g));
+    boost::connected_components (g, &components[0]);
+
+    // annotate network number and create a map with feature ID and partner IDs
+    // partner feature vertexes are connected via a group vertex
+    map<size_t, set<size_t>> partner_map;
+    for (auto i : boost::make_iterator_range(vertices(g)))
+    {
+      if (!g[i].is_feature) continue;
+      out[stoi(g[i].uid)].setMetaValue(Constants::UserParam::ANNOTATION_NETWORK_NUMBER, components[i]+1);
+      auto group_neighbours = boost::adjacent_vertices(i, g);
+      for (auto gn : make_iterator_range(group_neighbours))
+      {
+        auto feature_partners = boost::adjacent_vertices(gn, g);
+        for (auto partner : make_iterator_range(feature_partners))
+        {
+          if (g[i].uid == g[partner].uid) continue;
+          partner_map[stoi(g[i].uid)].insert(stoi(g[partner].uid));
+        }
+      }
+    }
+
+    // annotate partners
+    for (const auto& i : partner_map)
+    {
+      for (const auto& j : i.second)
+      {
+        if (out[i.first].metaValueExists(Constants::UserParam::ADDUCT_PARTNERS))
+        {
+          out[i.first].setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, out[i.first].getMetaValue(Constants::UserParam::ADDUCT_PARTNERS).toString()
+                              +";"
+                              +out[j].getMetaValue(Constants::UserParam::ROW_ID).toString());
+        } else
+        {
+          out[i.first].setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, out[j].getMetaValue(Constants::UserParam::ROW_ID));
+        }
+      }
+    }
+
+    // remove Constants::UserParam::LINKED_GROUPS meta values
+    for (size_t i = 0; i < out.size(); i++)
+    {
+      out[i].removeMetaValue(Constants::UserParam::LINKED_GROUPS);
+    }
  }
 
   FeatureGroupingAlgorithm::~FeatureGroupingAlgorithm()
