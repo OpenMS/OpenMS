@@ -112,6 +112,18 @@ namespace OpenMS
     //avgMass = monoisotopicMass + massDelta;
   }
 
+  bool PeakGroup::isSignalMZ(const double mz, const double tol) const
+  {
+    for (auto &p: *this)
+    {
+      if (abs(p.mz - mz) < p.mz * tol * 1e-6)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
   void PeakGroup::setSNR(const float snr)
   {
     snr_ = snr;
@@ -130,6 +142,10 @@ namespace OpenMS
     per_charge_snr_[abs_charge] = c_snr;
   }
 
+  void PeakGroup::setTargeted()
+  {
+    is_targeted_ = true;
+  }
 
   void PeakGroup::setChargePower(const int abs_charge, const double pwr)
   {
@@ -292,6 +308,11 @@ namespace OpenMS
     return qscore_;
   }
 
+  bool PeakGroup::isTargeted() const
+  {
+    return is_targeted_;
+  }
+
   void PeakGroup::updateSNR()
   {
     float cos_squred = isotope_cosine_score_ * isotope_cosine_score_;
@@ -343,6 +364,16 @@ namespace OpenMS
     }
     return per_charge_snr_[abs_charge];
   }
+
+  float PeakGroup::getChargePower(const int abs_charge) const
+  {
+    if (per_charge_pwr_.size() <= abs_charge)
+    {
+      return 0;
+    }
+    return per_charge_pwr_[abs_charge];
+  }
+
 
   float PeakGroup::getChargeIsotopeCosine(const int abs_charge) const
   {

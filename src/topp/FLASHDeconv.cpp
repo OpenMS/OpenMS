@@ -142,7 +142,7 @@ protected:
     registerDoubleOption_("min_precursor_snr",
                           "<SNR value>",
                           1.0,
-                          "minimum precursor SNR (SNR within the precursor envelope range) for identification. Now applied only for topFD outputs.",
+                          "minimum precursor SNR (SNR within the precursor envelope range) for identification. When FLASHIda log file is used, this parameter is ignored.  Now applied only for topFD outputs.",
                           false,
                           false);
 
@@ -177,9 +177,16 @@ protected:
     setMinInt_("write_detail", 0);
     setMaxInt_("write_detail", 1);
 
-    registerIntOption_("max_MS_level", "", 2, "maximum MS level (inclusive) for deconvolution", false, true);
+    registerIntOption_("max_MS_level", "", 2, "maximum MS level (inclusive) for deconvolution.", false, true);
     setMinInt_("max_MS_level", 1);
 
+    registerIntOption_("forced_MS_level",
+                       "",
+                       0,
+                       "if set to an integer N, MS level of all spectra will be set to N regardless of original MS level",
+                       false,
+                       true);
+    setMinInt_("forced_MS_level", 0);
 
     registerIntOption_("use_ensemble_spectrum",
                        "",
@@ -230,7 +237,7 @@ protected:
     //fd_defaults.addTag("tol", "advanced"); // hide entry
     fd_defaults.setValue("min_peaks", IntList{3, 3});
     fd_defaults.addTag("min_peaks", "advanced");
-    fd_defaults.setValue("min_intensity", 10.0, "Intensity threshold");
+    fd_defaults.setValue("min_intensity", 100.0, "Intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
     fd_defaults.setValue("min_isotope_cosine",
                          DoubleList{.85, .85},
@@ -431,23 +438,15 @@ protected:
     String out_promex_file = getStringOption_("out_promex");
     auto out_topfd_file = getStringList_("out_topFD");
     auto out_topfd_feature_file = getStringList_("out_topFD_feature");
-    double topFD_SNR_threshold = getDoubleOption_("min_precursor_snr");
+    double topFD_SNR_threshold = in_log_file.length() > 0 ? .0 : getDoubleOption_("min_precursor_snr");
     bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
     int max_ms_level = getIntOption_("max_MS_level");
+    int forced_ms_level = getIntOption_("forced_MS_level");
     bool ensemble = getIntOption_("use_ensemble_spectrum") > 0;
     bool write_detail = getIntOption_("write_detail") > 0;
     int mzml_charge = getIntOption_("mzml_mass_charge");
     double min_rt = getDoubleOption_("Algorithm:min_rt");
     double max_rt = getDoubleOption_("Algorithm:max_rt");
-    //DoubleList iso_mzs = getDoubleList_("isobaric_mz");
-
-    // int iso_option = getIntOption_("isobaric_labeling_option");
-    //if (iso_option == 1)// fix later..
-    //{
-    // iso_mzs = DoubleList{126.127725, 127.124760, 128.134433, 129.131468, 130.141141, 131.138176};
-    //iso_mzs = DoubleList{114.127725, 115.124760, 116.134433, 117.131468, 118.141141, 119.138176};
-    //}
-
 
     #ifdef DEBUG_EXTRA_PARAMTER
     auto out_topfd_file_log =  out_topfd_file[1] + ".log";
@@ -531,18 +530,47 @@ protected:
     std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition = read_FLASHIda_log_(
         in_log_file); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
 
+
+    //-------------------------------------------------------------
+    // reading input
+    //-------------------------------------------------------------
+
+    MSExperiment map;
+    MzMLFile mzml;
+
+
+    // all for measure elapsed cup wall time
+    double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
+
+
+    double expected_identification_count = .0;
+
+    // feature number per input file
+    int feature_cntr = 0;
+
+    // feature index written in the output file
+    int feature_index = 0;
+
+    auto begin = clock();
+    auto t_start = chrono::high_resolution_clock::now();
+
+    OPENMS_LOG_INFO << "Processing : " << in_file << endl;
+
+
+    mzml.setLogType(log_type_);
+    mzml.load(in_file, map);
+
+
     int current_max_ms_level = 0;
+
 
     auto spec_cntr = std::vector<int>(max_ms_level, 0);
     // spectrum number with at least one deconvoluted mass per ms level per input file
     auto qspec_cntr = std::vector<int>(max_ms_level, 0);
     // mass number per ms level per input file
     auto mass_cntr = std::vector<int>(max_ms_level, 0);
-    // feature number per input file
-    int feature_cntr = 0;
-
-    // feature index written in the output file
-    int feature_index = 0;
+    auto elapsed_deconv_cpu_secs = std::vector<double>(max_ms_level, .0);
+    auto elapsed_deconv_wall_secs = std::vector<double>(max_ms_level, .0);
 
     MSExperiment ensemble_map;
     // generate ensemble spectrum if param.ensemble is set
@@ -558,31 +586,9 @@ protected:
         ensemble_map.addSpectrum(spec);
       }
     }
-
-    //-------------------------------------------------------------
-    // reading input
-    //-------------------------------------------------------------
-
-    MSExperiment map;
-    MzMLFile mzml;
-
-    // all for measure elapsed cup wall time
-    double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
-    auto elapsed_deconv_cpu_secs = std::vector<double>(max_ms_level, .0);
-    auto elapsed_deconv_wall_secs = std::vector<double>(max_ms_level, .0);
-
-    auto begin = clock();
-    auto t_start = chrono::high_resolution_clock::now();
-
-    OPENMS_LOG_INFO << "Processing : " << in_file << endl;
-
-    mzml.setLogType(log_type_);
-    mzml.load(in_file, map);
-
     //      double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
     int ms1_cntr = 0;
     double ms2_cntr = .0; // for debug...
-    current_max_ms_level = 0;
 
     // read input dataset once to count spectra and generate ensemble spectrum if necessary
     for (auto &it: map)
@@ -594,6 +600,12 @@ protected:
       if (it.getMSLevel() > max_ms_level)
       {
         continue;
+      }
+
+      // if forced_ms_level > 0, force MS level of all spectra to 1.
+      if (forced_ms_level > 0)
+      {
+        it.setMSLevel(forced_ms_level);
       }
 
       int ms_level = it.getMSLevel();
@@ -731,7 +743,6 @@ protected:
       {
         precursor_specs = (last_deconvoluted_spectra[ms_level - 1]);
       }
-
       auto deconvoluted_spectrum = fd.getDeconvolutedSpectrum(*it,
                                                               precursor_specs,
                                                               scan_number,
@@ -740,27 +751,13 @@ protected:
       if (it->getMSLevel() > 1 && !deconvoluted_spectrum.getPrecursorPeakGroup().empty())
       {
         precursor_peak_groups[scan_number] = deconvoluted_spectrum.getPrecursorPeakGroup();
+        if (deconvoluted_spectrum.getPrecursorPeakGroup().getChargeSNR(deconvoluted_spectrum.getPrecursorCharge()) >
+            topFD_SNR_threshold)
+        {
+          expected_identification_count += deconvoluted_spectrum.getPrecursorPeakGroup().getQScore();
+        }
       }
 
-      /*
-            for (auto &pg: deconvoluted_spectrum)
-            {
-              if(pg.getIsotopeCosine()<0.99) continue;
-              if(std::get<0>(pg.getAbsChargeRange()) <=10 &&  std::get<1>(pg.getAbsChargeRange()) >=40 ){
-                for (int c = std::get<0>(pg.getAbsChargeRange()) ; c <= std::get<1>(pg.getAbsChargeRange())  ; ++c)
-                {
-                  auto mzr = pg.getMzRange(c);
-                  auto itr = it->MZBegin(std::get<0>(mzr));
-                  std::cout<<"iso"<<c<<"=[";
-                  while(itr->getMZ() < std::get<1>(mzr)){
-                    cout<<itr->getMZ() * c << "," <<itr->getIntensity()<<";";
-                    itr++;
-                  }
-                  std::cout<<"];\n";
-                }
-              }
-            }
-      */
       if (it->getMSLevel() == 2 && !in_train_file.empty() && !out_train_file.empty()
           && !deconvoluted_spectrum.getPrecursorPeakGroup().empty()
           )
@@ -775,10 +772,13 @@ protected:
 
       if (!out_mzml_file.empty())
       {
-        if (it->getMSLevel() == 1 || !deconvoluted_spectrum.getPrecursorPeakGroup().empty())
+        //if (it->getMSLevel() == 1)// || !deconvoluted_spectrum.getPrecursorPeakGroup().empty())
+        //{
+        if (!deconvoluted_spectrum.empty())
         {
           exp.addSpectrum(deconvoluted_spectrum.toSpectrum(mzml_charge));
         }
+        //}
       }
       elapsed_deconv_cpu_secs[ms_level - 1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
       elapsed_deconv_wall_secs[ms_level - 1] += chrono::duration<double>(
@@ -808,42 +808,6 @@ protected:
       mass_cntr[ms_level - 1] += deconvoluted_spectrum.size();
 
       DoubleList iso_intensities;
-      /*
-            if (ms_level> 1 && !iso_mzs.empty())
-            {
-              if (iso_option == 1)
-              {
-                if (deconvoluted_spectrum.getActivation_method() == "ETD")
-                {
-                  iso_mzs = DoubleList{114.127725, 115.124760, 116.134433, 117.131468, 118.141141, 119.138176};
-                }
-                else
-                {
-                  iso_mzs = DoubleList{126.127725, 127.124760, 128.134433, 129.131468, 130.141141, 131.138176};
-                }
-              }
-
-              int current_ch = 0;
-              iso_intensities = DoubleList(iso_mzs.size(), 0.0);
-              for (auto &peak: *it)
-              {
-                if (current_ch >= iso_mzs.size())
-                {
-                  break;
-                }
-                if (peak.getMZ() < iso_mzs[current_ch] - iso_mzs[current_ch] * tols[ms_level - 1] * 1e-6)
-                {
-                  continue;
-                }
-                if (peak.getMZ() > iso_mzs[current_ch] + iso_mzs[current_ch] * tols[ms_level - 1] * 1e-6)
-                {
-                  current_ch++;
-                  continue;
-                }
-                iso_intensities[current_ch] += peak.getIntensity();
-              }
-            }*/
-
       if (out_spec_streams.size() > ms_level - 1)
       {
         deconvoluted_spectrum
@@ -925,6 +889,11 @@ protected:
                       << " ms (CPU), " << 1000.0 * elapsed_deconv_wall_secs[j] / total_spec_cntr
                       << " ms (Wall)] --"
                       << endl;
+    }
+
+    if (expected_identification_count > 0)
+    {
+      OPENMS_LOG_INFO << "Expected number of PrSMs: " << expected_identification_count << endl;
     }
 
     #ifdef DEBUG_EXTRA_PARAMTER

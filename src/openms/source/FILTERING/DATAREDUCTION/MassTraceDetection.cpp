@@ -283,7 +283,7 @@ namespace OpenMS
       Size fwhm_meta_count(0);
       for (Size i = 0; i < work_exp.size(); ++i)
       {
-        if (!work_exp[i].getFloatDataArrays().empty() &&
+        if (work_exp[i].getFloatDataArrays().size() > 0 &&
             work_exp[i].getFloatDataArrays()[0].getName() == "FWHM_ppm")
         {
           if (work_exp[i].getFloatDataArrays()[0].size() != work_exp[i].size())
@@ -356,13 +356,16 @@ namespace OpenMS
 
         // double ftl_mean(centroid_mz);
         double ftl_sd((centroid_mz / 1e6) * mass_error_ppm_);
-        if (mass_error_da_ > 0) ftl_sd = mass_error_da_;
+        if (mass_error_da_ > 0)
+        {
+          ftl_sd = mass_error_da_;
+        }
 
         double intensity_so_far(apex_peak.getIntensity());
 
         while (((trace_down_idx > 0) && toggle_down) ||
                ((trace_up_idx < work_exp.size() - 1) && toggle_up)
-                )
+            )
         {
           // *********************************************************** //
           // Step 2.1 MOVE DOWN in RT dim

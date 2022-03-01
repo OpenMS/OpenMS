@@ -94,7 +94,6 @@ namespace OpenMS
     int min_abs_charge = INT_MAX;
     int max_abs_charge = INT_MIN;
     bool is_positive = true;
-    int topid = 1;
     for (auto &item: peak_group_map_)
     {
       double rt = item.first;
@@ -140,15 +139,11 @@ namespace OpenMS
 
       auto per_charge_intensity = std::vector<double>(charge_range + 1, .0);
       auto per_charge_max_intensity = std::vector<double>(charge_range + 1, .0);
-      auto per_charge_mz = std::vector<double>(charge_range + 1, .0);
       auto per_isotope_intensity = std::vector<double>(averagine.getMaxIsotopeIndex(), .0);
 
       int min_scan_num = -1;
       int max_scan_num = 0;
-
-      int rep_scan = 0, rep_charge = 0;
       double max_intensity = 0;
-      double max_mass = .0;
       double max_iso = 0;
       boost::dynamic_bitset<> charges(charge_range + 1);
 
@@ -163,27 +158,10 @@ namespace OpenMS
             min_feature_abs_charge < std::get<0>(crange) ? min_feature_abs_charge : std::get<0>(crange);
         max_feature_abs_charge =
             max_feature_abs_charge > std::get<1>(crange) ? max_feature_abs_charge : std::get<1>(crange);
-        if (min_scan_num < 0)
-        {
-          min_scan_num = scan_number;
-        }
-        else
-        {
-          min_scan_num = min_scan_num < scan_number ? min_scan_num : scan_number;
-        }
-        max_scan_num = max_scan_num > scan_number ? max_scan_num : scan_number;
-
-        if (pg.getIntensity() > max_intensity)
-        {
-          max_intensity = pg.getIntensity();
-          rep_scan = scan_number;
-
-        }
 
         if (pg.getIsotopeCosine() > max_iso)
         {
           max_iso = pg.getIsotopeCosine();
-          max_mass = pg.getMonoMass();
         }
 
         for (auto &p: pg)
@@ -202,7 +180,6 @@ namespace OpenMS
             continue;
           }
           per_charge_max_intensity[p.abs_charge - min_abs_charge] = p.intensity;
-          per_charge_mz[p.abs_charge - min_abs_charge] = p.mz;
         }
 
         max_qscore = max_qscore < pg.getQScore() ? pg.getQScore() : max_qscore;
@@ -298,52 +275,17 @@ namespace OpenMS
 
       fsf << "\n";
 
-
-      if (promex_out)
-      {
-        double max_charge_intensity = 0;
-        for (int c = 0; c < charge_range; c++) // c is charge range!!
-        {
-          if (per_charge_intensity[c] > max_charge_intensity)
-          {
-            max_charge_intensity = per_charge_intensity[c];
-            rep_charge = c + min_abs_charge;
-          }
-        }
-        auto apex = mt[mt.findMaxByIntPeak()];
-
-        //int si = rtSpecMap[(float) apex.getRT()];
-        auto &sub_pg_map = peak_group_map_[apex.getRT()];
-        auto &spg = sub_pg_map[apex.getMZ()];
-
-        fsp << feature_index << "\t" << min_scan_num << "\t" << max_scan_num << "\t"
-            << (is_positive ? min_feature_abs_charge : -max_feature_abs_charge) << "\t"
-            << (is_positive ? max_feature_abs_charge : -min_feature_abs_charge) << "\t" << std::to_string(mass) << "\t"
-            << std::fixed << std::setprecision(2)
-            << rep_scan << "\t" << (is_positive ? rep_charge : -rep_charge) << "\t" << per_charge_mz[rep_charge] << "\t"
-            << sum_intensity << "\t"
-            << spg.getScanNumber() << "\t" << spg.getIntensity() << "\t"
-            << mt.begin()->getRT() / 60.0 << "\t"
-            << mt.rbegin()->getRT() / 60.0 << "\t"
-            << mt.getTraceLength() / 60.0 << "\t";
-
-        for (int j = 0; j < averagine.getMaxIsotopeIndex(); ++j)
-        {
-          if (per_isotope_intensity[j] <= 0)
-          {
-            continue;
-          }
-          fsp << j << "," << per_isotope_intensity[j] << ";";
-        }
-        fsp << "\t" << isotope_score << "\n";
-        fsp << std::setprecision(0);
-      }
     }
 
 
-    if (topfd_feature_out)
+    if (topfd_feature_out || promex_out)
     {
       std::set<int> selected_traces_indices;
+
+      int topid = 1;
+      int promexid = 1;
+
+      auto per_isotope_intensity = std::vector<double>(averagine.getMaxIsotopeIndex(), .0);
 
       for (auto &precursor: precursor_peak_groups)
       {
@@ -388,12 +330,17 @@ namespace OpenMS
           double sum_intensity = .0;
           int min_feature_abs_charge = INT_MAX;
           int max_feature_abs_charge = INT_MIN;
+          int min_scan_num = -1;
+          int max_scan_num = 0;
+          int rep_scan = 0, rep_charge = 0;
+          max_intensity = .0;
           for (auto &p: smt)
           {
             sum_intensity += p.getIntensity();
             auto &pg_map = peak_group_map_[p.getRT()];
             auto &pg = pg_map[p.getMZ()];
             auto crange = pg.getAbsChargeRange();
+            int scan_number = pg.getScanNumber();
 
             min_feature_abs_charge =
                 min_feature_abs_charge < std::get<0>(crange) ? min_feature_abs_charge : std::get<0>(
@@ -401,51 +348,173 @@ namespace OpenMS
             max_feature_abs_charge =
                 max_feature_abs_charge > std::get<1>(crange) ? max_feature_abs_charge : std::get<1>(
                     crange);
+
+            for (auto &pp: pg)
+            {
+              if (pp.isotopeIndex < 0 || pp.isotopeIndex >= averagine.getMaxIsotopeIndex() ||
+                  pp.abs_charge < min_abs_charge ||
+                  pp.abs_charge >= charge_range + min_abs_charge + 1)
+              {
+                continue;
+              }
+
+              per_isotope_intensity[pp.isotopeIndex] += pp.intensity;
+            }
+
+            if (min_scan_num < 0)
+            {
+              min_scan_num = scan_number;
+            }
+            else
+            {
+              min_scan_num = min_scan_num < scan_number ? min_scan_num : scan_number;
+            }
+            max_scan_num = max_scan_num > scan_number ? max_scan_num : scan_number;
+
+            if (pg.getIntensity() > max_intensity)
+            {
+              max_intensity = pg.getIntensity();
+              rep_scan = scan_number;
+              rep_charge = pg.getRepAbsCharge();
+            }
           }
 
           for (int i = 0; i < fst.size(); i++)
           {
-            if (i == 0)
+            if (topfd_feature_out)
             {
-              fst[i] << "0\t" << topid << "\t" << smt.getCentroidMZ() << "\t" << sum_intensity << "\t"
-                     << smt.begin()->getRT() << "\t" << smt.rbegin()->getRT()
-                     << "\t" << (is_positive ? min_feature_abs_charge : -max_feature_abs_charge) << "\t"
-                     << (is_positive ? max_feature_abs_charge : -min_feature_abs_charge) << "\t1\t1\n";
+              if (i == 0)
+              {
+                fst[i] << "0\t" << topid << "\t" << smt.getCentroidMZ() << "\t" << sum_intensity << "\t"
+                       << smt.begin()->getRT() << "\t" << smt.rbegin()->getRT()
+                       << "\t" << (is_positive ? min_feature_abs_charge : -max_feature_abs_charge) << "\t"
+                       << (is_positive ? max_feature_abs_charge : -min_feature_abs_charge) << "\t1\t1\n";
+              }
+              else
+              {
+                fst[i] << ms2_scan_number << "\t0\t" << file_name << "\t" << ms2_scan_number << "\t" << ms1_scan_number
+                       << "\t" << ms1_scan_number << "\t" << precursor.second.getMonoMass() << "\t"
+                       << precursor.second.getIntensity() << "\t" << topid << "\t" << sum_intensity << "\t-1000\t"
+                       << topid << "\t" << sum_intensity << "\n";
+              }
+              topid++;
             }
-            else
+            if (promex_out && i == 0)
             {
-              //"Spec_ID\tFraction_ID\tFile_name\tScans\tMS_one_ID\tMS_one_scans\tPrecursor_mass\tPrecursor_intensity
-              // \tFraction_feature_ID\tFraction_feature_intensity\tFraction_feature_score\tSample_feature_ID\tSample_feature_intensity";
-              fst[i] << ms2_scan_number << "\t0\t" << file_name << "\t" << ms2_scan_number << "\t" << ms1_scan_number
-                     << "\t" << ms1_scan_number << "\t" << precursor.second.getMonoMass() << "\t"
-                     << precursor.second.getIntensity() << "\t" << topid << "\t" << sum_intensity << "\t-1000\t"
-                     << topid << "\t" << sum_intensity << "\n";
+              auto apex = smt[smt.findMaxByIntPeak()];
+              auto &sub_pg_map = peak_group_map_[apex.getRT()];
+              auto &spg = sub_pg_map[apex.getMZ()];
+              auto mz_range = spg.getMzRange(rep_charge);
+              double rmz = (std::get<0>(mz_range) + std::get<1>(mz_range)) / 2.0;
+
+              fsp << promexid << "\t" << min_scan_num << "\t" << max_scan_num << "\t"
+                  << (is_positive ? min_feature_abs_charge : -max_feature_abs_charge) << "\t"
+                  << (is_positive ? max_feature_abs_charge : -min_feature_abs_charge) << "\t"
+                  << std::to_string(smt.getCentroidMZ())
+                  << "\t"
+                  << std::fixed << std::setprecision(2)
+                  << rep_scan << "\t" << (is_positive ? rep_charge : -rep_charge) << "\t" << rmz
+                  << "\t"
+                  << sum_intensity << "\t"
+                  << spg.getScanNumber() << "\t" << spg.getIntensity() << "\t"
+                  << smt.begin()->getRT() / 60.0 << "\t"
+                  << smt.rbegin()->getRT() / 60.0 << "\t"
+                  << smt.getTraceLength() / 60.0 << "\t";
+
+              int offset = 0;
+              double isotope_score = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(smt.getCentroidMZ(),
+                                                                                                    per_isotope_intensity,
+                                                                                                    offset,
+                                                                                                    averagine);
+
+              for (int j = 0; j < averagine.getMaxIsotopeIndex(); ++j)
+              {
+                if (per_isotope_intensity[j] <= 0)
+                {
+                  continue;
+                }
+                fsp << j << "," << per_isotope_intensity[j] << ";";
+              }
+              fsp << "\t" << isotope_score << "\n";
+              fsp << std::setprecision(0);
+
+              promexid++;
             }
-            topid++;
           }
           continue;
         }
         auto crange = precursor.second.getAbsChargeRange();
         for (int i = 0; i < fst.size(); i++)
         {
-          if (i == 0)
+          if (topfd_feature_out)
           {
-            fst[i] << "0\t" << topid << "\t" << precursor.second.getMonoMass() << "\t"
-                   << precursor.second.getIntensity() << "\t" << rt - 1 << "\t" << rt + 1
-                   << "\t" << (is_positive ? std::get<0>(crange) : -std::get<1>(crange)) << "\t"
-                   << (is_positive ? std::get<1>(crange) : -std::get<0>(crange)) << "\t1\t1\n";
-          }
-          else
-          {
-            fst[i] << ms2_scan_number << "\t0\t" << file_name << "\t" << ms2_scan_number << "\t" << ms1_scan_number
-                   << "\t" << ms1_scan_number << "\t" << precursor.second.getMonoMass() << "\t"
-                   << precursor.second.getIntensity() << "\t" << topid << "\t" << precursor.second.getIntensity()
-                   << "\t-1000\t"
-                   << topid << "\t" << precursor.second.getIntensity() << "\n";
+            if (i == 0)
+            {
+              fst[i] << "0\t" << topid << "\t" << precursor.second.getMonoMass() << "\t"
+                     << precursor.second.getIntensity() << "\t" << rt - 1 << "\t" << rt + 1
+                     << "\t" << (is_positive ? std::get<0>(crange) : -std::get<1>(crange)) << "\t"
+                     << (is_positive ? std::get<1>(crange) : -std::get<0>(crange)) << "\t1\t1\n";
+            }
+            else
+            {
+              fst[i] << ms2_scan_number << "\t0\t" << file_name << "\t" << ms2_scan_number << "\t" << ms1_scan_number
+                     << "\t" << ms1_scan_number << "\t" << precursor.second.getMonoMass() << "\t"
+                     << precursor.second.getIntensity() << "\t" << topid << "\t" << precursor.second.getIntensity()
+                     << "\t-1000\t"
+                     << topid << "\t" << precursor.second.getIntensity() << "\n";
 
 
+            }
+            topid++;
           }
-          topid++;
+          if (promex_out && i == 0)
+          {
+            auto mz_range = precursor.second.getMaxQScoreMzRange();
+            double rmz = (std::get<0>(mz_range) + std::get<1>(mz_range)) / 2.0;
+
+            for (auto &pp: precursor.second)
+            {
+              if (pp.isotopeIndex < 0 || pp.isotopeIndex >= averagine.getMaxIsotopeIndex() ||
+                  pp.abs_charge < min_abs_charge ||
+                  pp.abs_charge >= charge_range + min_abs_charge + 1)
+              {
+                continue;
+              }
+
+              per_isotope_intensity[pp.isotopeIndex] += pp.intensity;
+            }
+
+            fsp << promexid << "\t" << precursor.second.getScanNumber() << "\t" << precursor.second.getScanNumber()
+                << "\t"
+                << (is_positive ? std::get<0>(crange) : -std::get<1>(crange)) << "\t"
+                << (is_positive ? std::get<1>(crange) : -std::get<0>(crange)) << "\t"
+                << std::to_string(precursor.second.getMonoMass())
+                << "\t"
+                << std::fixed << std::setprecision(2)
+                << precursor.second.getScanNumber() << "\t"
+                << (is_positive ? precursor.second.getRepAbsCharge() : -precursor.second.getRepAbsCharge())
+                << "\t" << rmz << "\t"
+                << precursor.second.getIntensity() << "\t"
+                << precursor.second.getScanNumber() << "\t" << precursor.second.getIntensity() << "\t"
+                << (rt - 1) / 60.0 << "\t"
+                << (rt + 1) / 60.0 << "\t"
+                << 2.0 / 60.0 << "\t";
+
+            int offset = 0;
+            double isotope_score = precursor.second.getIsotopeCosine();
+
+            for (int j = 0; j < averagine.getMaxIsotopeIndex(); ++j)
+            {
+              if (per_isotope_intensity[j] <= 0)
+              {
+                continue;
+              }
+              fsp << j << "," << per_isotope_intensity[j] << ";";
+            }
+            fsp << "\t" << isotope_score << "\n";
+            fsp << std::setprecision(0);
+            promexid++;
+          }
         }
       }
 
