@@ -100,7 +100,7 @@
            <item>
             <widget class="QGroupBox" name="isotope_model">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="minimumSize">
               <size>
@@ -211,6 +211,9 @@ Probability in %</string>
                  <property name="readOnly">
                   <bool>false</bool>
                  </property>
+                 <property name="value">
+                  <number>5</number>
+                 </property>
                 </widget>
                </item>
               </layout>
@@ -291,11 +294,6 @@ Probability in %</string>
            <item>
             <property name="text">
              <string>Neutral losses</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Isotope clusters</string>
             </property>
            </item>
            <item>
@@ -476,8 +474,8 @@ Probability in %</string>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>257</x>
+     <y>560</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -492,8 +490,8 @@ Probability in %</string>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>325</x>
+     <y>560</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>

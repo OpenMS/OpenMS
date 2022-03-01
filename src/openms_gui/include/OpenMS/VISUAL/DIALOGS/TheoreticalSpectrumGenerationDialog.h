@@ -36,8 +36,7 @@
 #pragma once
 
 #include <QtWidgets/QDialog>
-class QListWidgetItem;
-class QListWidget;
+
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -63,7 +62,7 @@ public:
     // Note: If an additional checkbox is added all of the following three objects have to be edited!
     // 
     // 
-    // enum to get ion checkbox index (ordering is important here!)
+    // enum to get ion checkbox index (Ordering has to be the same as in the ui!)
     enum class Checkbox
     {
       A_Ions,
@@ -74,7 +73,6 @@ public:
       Z_Ions,
       Precursor,
       Neutral_losses,
-      Isotope_cluster,
       Abundant_Immonium_Ions
     };
 
@@ -87,7 +85,6 @@ public:
                                                  Checkbox::Z_Ions,
                                                  Checkbox::Precursor,
                                                  Checkbox::Neutral_losses,
-                                                 Checkbox::Isotope_cluster,
                                                  Checkbox::Abundant_Immonium_Ions};
 
     // map from checkbox (index) to corresponding parameter with description
@@ -100,7 +97,6 @@ public:
       {Checkbox::Z_Ions, {"add_z_ions", "Add peaks of z-ions to the spectrum"}},
       {Checkbox::Precursor, {"add_precursor_peaks", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes"}},
       {Checkbox::Neutral_losses, {"add_losses", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered"}},
-      {Checkbox::Isotope_cluster, {"add_isotopes", "If set to 1 isotope peaks of the product ion peaks are added"}},
       {Checkbox::Abundant_Immonium_Ions, {"add_abundant_immonium_ions", "Add most abundant immonium ions"}}
     };
 
@@ -115,7 +111,7 @@ public:
 
 protected slots:
 
-    void itemChanged(QListWidgetItem * item);
+    void modelChanged();
 
 protected:
 

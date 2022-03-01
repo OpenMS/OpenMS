@@ -46,7 +46,12 @@ namespace OpenMS
   {
     ui_->setupUi(this);
 
-    connect(ui_->list_widget, SIGNAL(itemChanged(QListWidgetItem *)), this, SLOT(itemChanged(QListWidgetItem *)));
+    connect(ui_->model_none, SIGNAL(toggled(bool)), this, SLOT(modelChanged()));
+    connect(ui_->model_coarse, SIGNAL(toggled(bool)), this, SLOT(modelChanged()));
+    connect(ui_->model_fine, SIGNAL(toggled(bool)), this, SLOT(modelChanged()));
+
+    // default with no isotopes
+    ui_->model_none->setChecked(true);
 
     // select b- and y-ions as residue types by default
     for (Checkbox c : check_box_names)
@@ -83,9 +88,30 @@ namespace OpenMS
       p.setValue(checkbox_to_param.at(c).first, status_str, checkbox_to_param.at(c).second);
     }
 
+    // isotopes
+    if (!ui_->model_none->isChecked()) // add isotopes if any other model than 'None' is chosen
+    {
+      bool coarse_model = ui_->model_coarse->isChecked();
+      String model = coarse_model ? "coarse" : "fine";
+      p.setValue("isotope_model", model , "Model to use for isotopic peaks ('none' means no isotopic peaks are added, 'coarse' adds isotopic peaks in unit mass distance, 'fine' uses the hyperfine isotopic generator to add accurate isotopic peaks. Note that adding isotopic peaks is very slow.");
+
+      if (coarse_model)
+      {
+        Size max_iso_count = (Size)ui_->max_iso_spinbox->value();
+        p.setValue("max_isotope", max_iso_count, "Defines the maximal isotopic peak which is added if 'isotope_model' is 'coarse'");
+      }
+      else
+      {
+        double max_iso_prob = (double)ui_->max_iso_prob_spinbox->value() / 100.;
+        p.setValue("max_isotope_probability", max_iso_prob, "Defines the maximal isotopic probability to cover if 'isotope_model' is 'fine'");
+      }
+    }
+    else // don't add isotopes
+    {
+      p.setValue("isotope_model", "none", "Model to use for isotopic peaks ('none' means no isotopic peaks are added, 'coarse' adds isotopic peaks in unit mass distance, 'fine' uses the hyperfine isotopic generator to add accurate isotopic peaks. Note that adding isotopic peaks is very slow.");
+    }
+
     // add intensities
-    Size max_iso_count = (Size)ui_->max_iso_spinbox->value();
-    p.setValue("max_isotope", max_iso_count, "Number of isotopic peaks");
     p.setValue("a_intensity", ui_->a_intensity->value(), "Intensity of the a-ions");
     p.setValue("b_intensity", ui_->b_intensity->value(), "Intensity of the b-ions");
     p.setValue("c_intensity", ui_->c_intensity->value(), "Intensity of the c-ions");
@@ -98,21 +124,30 @@ namespace OpenMS
     return p;
   }
 
-  void TheoreticalSpectrumGenerationDialog::itemChanged(QListWidgetItem * item)
-  {
-    if (item->text() == "Isotope clusters")
+  void TheoreticalSpectrumGenerationDialog::modelChanged()
+  {    
+    if (ui_->model_none->isChecked())
     {
-      if (item->checkState() == Qt::Checked)
-      {
-        ui_->max_iso_label->setEnabled(true);
-        ui_->max_iso_spinbox->setEnabled(true);
-      }
-      else
-      {
-        ui_->max_iso_label->setEnabled(false);
-        ui_->max_iso_spinbox->setEnabled(false);
-      }
+      ui_->max_iso_label->setEnabled(false);
+      ui_->max_iso_spinbox->setEnabled(false);
+      ui_->max_iso_prob_label->setEnabled(false);
+      ui_->max_iso_prob_spinbox->setEnabled(false);
     }
+    else if (ui_->model_coarse->isChecked())
+    {
+      ui_->max_iso_label->setEnabled(true);
+      ui_->max_iso_spinbox->setEnabled(true);
+      ui_->max_iso_prob_label->setEnabled(false);
+      ui_->max_iso_prob_spinbox->setEnabled(false);
+    }
+    else if (ui_->model_fine->isChecked())
+    {
+      ui_->max_iso_label->setEnabled(false);
+      ui_->max_iso_spinbox->setEnabled(false);
+      ui_->max_iso_prob_label->setEnabled(true);
+      ui_->max_iso_prob_spinbox->setEnabled(true);
+    }
+
   }
 
 } // namespace
