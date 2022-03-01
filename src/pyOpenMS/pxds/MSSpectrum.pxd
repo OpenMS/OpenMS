@@ -90,6 +90,7 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
         Size size() nogil except + # wrap-doc:Returns the number of peaks in the spectrum
         void reserve(size_t n) nogil except + 
+        void resize(size_t n) nogil except + # wrap-doc:Resize the peak array 
 
         Peak1D& operator[](size_t) nogil except + # wrap-upper-limit:size()
 
