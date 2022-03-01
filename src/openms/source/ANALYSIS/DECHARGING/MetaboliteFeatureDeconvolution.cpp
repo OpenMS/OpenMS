@@ -38,6 +38,7 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -346,6 +347,7 @@ namespace OpenMS
   void MetaboliteFeatureDeconvolution::annotate_feature_(FeatureMap& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt comp_side, const Int new_q, const Int old_q)
   {
     StringList labels;
+    Adduct adduct;
     fm_out[f_idx].setMetaValue("map_idx", 0);
 
     EmpiricalFormula ef_(c.getAdductsAsString(comp_side));
@@ -357,28 +359,7 @@ namespace OpenMS
     else
     {
       fm_out[f_idx].setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, ef_.toString());
-      String charge_sign = new_q >= 0 ? "+" : "-";
-      String s("[M");
-
-      //need elements sorted canonically (by string)
-      map<String, String> sorted_elem_map;
-      for (const auto& element_count : ef_)
-      {
-        String e_symbol(element_count.first->getSymbol());
-        String tmp = element_count.second > 0 ? "+" : "-";
-        tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
-        tmp += e_symbol;
-        sorted_elem_map[e_symbol] = std::move(tmp);
-      }
-      for (const auto& sorted_e_cnt : sorted_elem_map)
-      {
-        s += sorted_e_cnt.second;
-      }
-      s += String("]");
-      s += abs(new_q) > 1 ? String(abs(new_q)) : "";
-      s += charge_sign;
-
-      StringList dc_new_adducts = ListUtils::create<String>(s);
+      StringList dc_new_adducts = ListUtils::create<String>(adduct.toAdductString(ef_.toString(), new_q));
       fm_out[f_idx].setMetaValue("adducts", dc_new_adducts);
     }
     fm_out[f_idx].setMetaValue("dc_charge_adduct_mass", ef_.getMonoWeight());
