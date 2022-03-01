@@ -350,16 +350,16 @@ namespace OpenMS
     }
     return adduct2count;
   }
-
-  // report for a single cross-linking site (one row = unmodified peptidsequence (not shown) + position) TODO: update
-  // +-------------------+----+----------+---------+-------+---------+------------+-----------------+-------------+------------------+-----------------+
-  // |      protein      | AA | position | adduct  | xl NA | charges | CSM w/ loc | peptides w/ loc | CSM w/o loc | peptides w/o loc |   ambiguities   |
-  // +-------------------+----+----------+---------+-------+---------+------------+-----------------+-------------+------------------+-----------------+
-  // | U323423|HUMAN_XYZ | N  |      203 | GU,U,UU | U,G   |     2,3 |         13 |               2 |          34 |                2 |                 |
-  // | U323423|HUMAN_XYZ | N  |      203 | U       | U     |     2,4 |          3 |               1 |           3 |                1 |                 | <- rare case unique but different sequence
-  // | U323423|HUMAN_XYZ | N  |      203 | U-H2O   | U     |       2 |         34 |               2 |           1 |                1 | U3343|HUMAN_ABC | <- ambigious (=mapped to several proteins)
-  // +-------------------+----+----------+---------+-------+---------+------------+-----------------+-------------+------------------+-----------------+
-  // CSM and peptides w/o localization are only counted for unique peptides to prevent excessive output. Shared peptides w/o localization are listed separately as they contain little information.										  
+/*
+Output format:
++----------------------+-----+--------+---------+------+--------------------------+---------------------+---------------------------+-----------------------+------------------------+------------------------------+------------------------------+-------------------------------+------------------------------+---------------------------+---------------------------+----------------------------------+----------------------------------+---------------+-------------------------+
+|      accession       |  AA |   pos. |   start |  end |  adducts (loc. + unique) |  NT (loc. + unique) |   charges (loc. + unique) |  CSMs (loc. + unique) |   CSMs (loc. + shared) |   precursors (loc. + unique) |   precursors (loc. + shared) |   adducts (\wo loc. + unique) |  charges (\wo loc. + unique) |  CSMs (\wo loc. + unique) |  CSMs (\wo loc. + shared) |   precursors (\wo loc. + unique) |   precursors (\wo loc. + shared) |   ambiguities |         peptide         |
++----------------------+-----+--------+---------+------+--------------------------+---------------------+---------------------------+-----------------------+------------------------+------------------------------+------------------------------+-------------------------------+------------------------------+---------------------------+---------------------------+----------------------------------+----------------------------------+---------------+-------------------------+
+| sp|P19338|NUCL_HUMAN |   P |    302 |     297 |  317 |  U                       |  U                  |                         3 |                     1 |                      0 |                            1 |                            0 |                               |                              |                         0 |                         0 |                                0 |                                0 |               |   VEGTEPTTAFNLFVGNLNFNK |
+| sp|P19338|NUCL_HUMAN |   F |    309 |     297 |  317 |  U,U-H2O1                |   U                 |                       2,3 |                     3 |                      0 |                            3 |                            0 |                               |                              |                         0 |                         0 |                                0 |                                0 |               |   VEGTEPTTAFNLFVGNLNFNK |
++----------------------+-----+--------+---------+------+--------------------------+---------------------+---------------------------+-----------------------+------------------------+------------------------------+------------------------------+-------------------------------+------------------------------+---------------------------+---------------------------+----------------------------------+----------------------------------+---------------+-------------------------+
+*/
+  
   struct AALevelLocalization
   {
     struct LocalizedXL
@@ -375,13 +375,6 @@ namespace OpenMS
     std::map<std::string, vector<LocalizedXL>> peptide2XL; // observed peptide -> adduct,NA,charge tuples    
   };
 
-
-  // shared peptides w/o localizations
-  // +--------+-------+---------+-------------+------------------+-------------------------------------------------------------+
-  // | adduct | xl NA | charges | CSM w/o loc | peptides w/o loc |                       ambiguities (region)                  |
-  // +--------+-------+---------+-------------+------------------+-------------------------------------------------------------+
-  // | UUU    | U     |     2,3 |           3 |                2 | U323423|HUMAN_XYZ (18-29),U3343|HUMAN_ABC (78-89)|HUMAN_ABC |
-  // +--------+-------+---------+-------------+------------------+-------------------------------------------------------------+
   struct  RegionLevelLocalization
   {
     struct UnlocalizedXL
@@ -398,7 +391,7 @@ namespace OpenMS
   struct ProteinReport
   {
     String sequence; //< the protein sequence
-    size_t CSMs = 0; // XL spectral count
+    size_t CSMs_of_shared_peptides = 0; // XL spectral count of shared peptides
     size_t CSMs_of_unique_peptides = 0; // XL spectral count of unique peptides
     map<size_t, AALevelLocalization> aa_level_localization; // position in protein to loc info
     map<pair<size_t, size_t>, RegionLevelLocalization> region_level_localization;      
@@ -495,8 +488,15 @@ namespace OpenMS
           int end = ph_evidence.getEnd();
           report[acc].region_level_localization[{start, end}].peptide2unlocalizedXL[peptide_sequence_string].push_back(xl);
         }
-        report[acc].CSMs++; // count CSM (localized and unlocalized)
-        if (is_unique) report[acc].CSMs_of_unique_peptides++; // count CSM (localized and unlocalized) of unique peptides
+        
+        if (is_unique)
+        {
+          report[acc].CSMs_of_unique_peptides++; // count CSM (localized and unlocalized) of unique peptides
+        }
+        else
+        {
+          report[acc].CSMs_of_shared_peptides++; // count CSM (localized and unlocalized)
+        }
       }
     }    
 
@@ -786,8 +786,8 @@ namespace OpenMS
     std::sort(report.begin(), report.end(), 
       [](const pair<string, ProteinReport> & a, const pair<string, ProteinReport> & b) -> bool
       { 
-         return std::tie(a.second.CSMs_of_unique_peptides, a.second.CSMs, a.first) 
-          > std::tie(b.second.CSMs_of_unique_peptides, b.second.CSMs, b.first);
+         return std::tie(a.second.CSMs_of_unique_peptides, a.second.CSMs_of_shared_peptides, a.first) 
+          > std::tie(b.second.CSMs_of_unique_peptides, b.second.CSMs_of_shared_peptides, b.first);
       }); 
 
 
@@ -909,7 +909,7 @@ namespace OpenMS
       { // protein with unique peptide
         String group_type = "protein";
         tsv_file.addLine(accession + "\t" + String(pr.CSMs_of_unique_peptides) 
-          + "\t" + String(pr.CSMs - pr.CSMs_of_unique_peptides) 
+          + "\t" + String(pr.CSMs_of_shared_peptides) 
           + "\t" + group_type);        
       }
       else if (auto it = accessionToIndistinguishableGroup.find(accession);
@@ -921,7 +921,7 @@ namespace OpenMS
           String a = ListUtils::concatenate(pg->accessions, ",");
           String group_type = "ind. protein group";
           tsv_file.addLine(a + "\t" + String(pr.CSMs_of_unique_peptides) 
-            + "\t" + String(pr.CSMs - pr.CSMs_of_unique_peptides) 
+            + "\t" + String(pr.CSMs_of_shared_peptides) 
             + "\t" + group_type);
 
           for (auto a : pg->accessions) 
@@ -935,7 +935,7 @@ namespace OpenMS
         set<string> group_neighbors = protein2proteins[accession];
         group_neighbors.erase(accession);
         tsv_file.addLine(accession + "\t" + String(pr.CSMs_of_unique_peptides) 
-          + "\t" + String(pr.CSMs - pr.CSMs_of_unique_peptides) 
+          + "\t" + String(pr.CSMs_of_shared_peptides) 
           + "\tgen. protein group (shares XL peptides with: " + ListUtils::concatenate(group_neighbors, ",") + ")");
       }
     }
@@ -973,319 +973,5 @@ namespace OpenMS
     }
 
   }
-
-/*
-  void RNPxlProteinReport::annotateProteinModificationForTopHits(
-    vector<ProteinIdentification>& prot_ids, 
-    const vector<PeptideIdentification>& peps, 
-    TextFile& tsv_file, bool report_decoys)
-  {
-    assert(prot_ids.size() == 1); // support for one run only
-
-    // protein identification run
-    ProteinIdentification& prot_id = prot_ids[0];
-
-    // create lookup accession -> protein
-    map<String, ProteinHit*> acc2protein_targets;
-    map<String, ProteinHit*> acc2protein_decoys;
-    mapAccessionToTDProteins(prot_id, acc2protein_targets, acc2protein_decoys);
-
-    // internal helper struct to store a modified region
-    struct ModifiedRegion
-    {
-      ResidueModification* xl = nullptr;
-      int first = 0; 
-      int last = 0;
-      bool operator<(const ModifiedRegion& rhs) const
-      {
-        return std::tie(first, last, *xl) < std::tie(rhs.first, rhs.last, *rhs.xl);
-      }
-    };
-
-    // protein -> regions with XLs without AA level localization and in how many PSMs it was detected
-    map<String, map<ModifiedRegion, size_t>> modified_region_xls_targets;    
-    map<String, map<ModifiedRegion, size_t>> modified_region_xls_decoys;
-
-    map<String, size_t> adduct2count = countAdducts(peps);
-
-    // store modification statistic for every protein    
-    map<String, ResidueModification*> name2mod; // used to free temporary residues
-    for (const PeptideIdentification& pep : peps)
-    {
-      auto& hits = pep.getHits();
-
-      if (hits.empty()) continue;
-
-      const PeptideHit& ph = hits[0]; // only consider top hit
-      const int best_localization = ph.getMetaValue("NuXL:best_localization_position");
-      
-      // create a user defined modification (at most once)
-      ResidueModification* xl;
-
-      // count adduct
-      const String NA = ph.getMetaValue("NuXL:NA");
-
-      if (auto it = name2mod.find(NA); it != name2mod.end())
-      { // mod already registered? take it
-        xl = it->second;
-      }
-      else
-      {
-        xl = new ResidueModification();
-        xl->setFullId(NA);
-        xl->setOrigin('X'); // any AA
-        name2mod[NA] = xl;
-      }
-
-      const std::vector<PeptideEvidence>& ph_evidences = ph.getPeptideEvidences();
-      bool is_unique = ph.extractProteinAccessionsSet().size() == 1;
-
-      for (auto& ph_evidence : ph_evidences)
-      {
-        const String& acc = ph_evidence.getProteinAccession();
-        const int peptide_start_in_protein = ph_evidence.getStart();
-
-        if (peptide_start_in_protein < 0) continue;
- 
-        const int xl_pos_in_protein = peptide_start_in_protein + best_localization;
-
-        bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
-
-        if (best_localization < 0)
-        { // not localized? annotate region
-          ModifiedRegion mr;
-          mr.xl = xl;
-          mr.first = ph_evidence.getStart();
-          mr.last = ph_evidence.getEnd();
-          if (is_target)
-          {
-            modified_region_xls_targets[acc][mr]++;
-          }
-          else
-          {
-            modified_region_xls_decoys[acc][mr]++;
-          }
-        }
-        else
-        {
-          // localized? retrieve protein the evidence points to and set position as cross-linked
-          ProteinHit* protein = is_target ? acc2protein_targets[acc] : acc2protein_decoys[acc];
-          if (xl_pos_in_protein < (int)protein->getSequence().size())
-          {
-            auto mods = protein->getModifications();  // TODO: add mutable reference access
-            mods.AALevelSummary[xl_pos_in_protein][xl].count++;
-            protein->setModifications(mods);
-          }
-        }
-      }
-    }
-   
-    map<char, size_t> aa2protein_count_targets; // how many proteins have that AA cross-linked
-    map<char, size_t> aa2psm_count_targets; // how many PSMs have that AA cross-linked
-    map<char, size_t> aa2protein_count_decoys; // how many proteins have that AA cross-linked
-    map<char, size_t> aa2psm_count_decoys; // how many PSMs have that AA cross-linked
-
-    map<char, double> aa2background_freq; // AA background distribution for normalization
-
-    vector<ProteinReportEntry> protein_report_entries;
-
-    for (const ProteinIdentification& prot_id : prot_ids)
-    { 
-      const vector<ProteinHit>& phs = prot_id.getHits();
-
-      for (const ProteinHit& protein : phs)
-      { // for all identified proteins
-        const String& acc = protein.getAccession();        
-        bool is_target = acc2protein_targets.find(acc) != acc2protein_targets.end();
-
-        if (!is_target && !report_decoys) continue; // skip decoys if option is set
-
-        const String& seq = protein.getSequence();
-
-        for (const char c : seq) { aa2background_freq[c] += 1.0; }
-
-        // create result entry
-        ProteinReportEntry e;
-        e.accession = acc;
-
-        auto mods = protein.getModifications();
-
-        // count how many PSMs support XL-ed position in the current protein
-        map<size_t, size_t> position2psm_count;
-        for (const auto& p2ms : mods.AALevelSummary)
-        {
-          size_t position = p2ms.first;
-          for (const auto& m2s : p2ms.second)
-          { 
-            const auto stat = m2s.second;
-            position2psm_count[position] += stat.count;            
-          }
-        }
-
-        // put string with AA, position, PSM count in sequence: e.g.: [Y123,2]
-        String annotated_sequence;
-        size_t p{0};
-
-        if (!position2psm_count.empty())
-        {       
-          for (const auto& [pos, psm_count] : position2psm_count)
-          {
-            while (p < pos) 
-            { 
-              annotated_sequence += seq[p]; 
-              ++p;
-            }
-            // p now points to the modified AA
-            annotated_sequence += String("[") + seq[p] + String(pos + 1) + "," + String(psm_count) + "]";
-            ++p;
-          }
-          while (p < seq.size()) 
-          { // output AAs after last modification
-            annotated_sequence += seq[p]; ++p; 
-          }
-          e.annotated_sequence = annotated_sequence;
-        }
-        else
-        {
-          e.annotated_sequence = seq;
-        }
-
-        // output modification AA and count for this protein
-        //tsv_file.addLine("Cross-link localizations:");
-        set<char> already_counted_at_protein_level;
-        for (const auto& p2ms : mods.AALevelSummary)
-        {
-          size_t position = p2ms.first;
-
-          // retrieve AA a xl position
-          char AA_at_position = '?';
-          if (seq.size() > position) // TODO: not sure why this can happen
-          {
-            AA_at_position = seq[position]; 
-          }
-
-          // count a modified AA only once per protein for protein count
-          if (already_counted_at_protein_level.count(AA_at_position) == 0)
-          {        
-            if (is_target)
-            {
-              aa2protein_count_targets[AA_at_position]++;
-            }
-            else
-            {
-              aa2protein_count_decoys[AA_at_position]++;
-            }
-            already_counted_at_protein_level.insert(AA_at_position);
-          }
-
-          for (const auto& m2s : p2ms.second)
-          {
-            auto stat = m2s.second;
-            size_t count = stat.count;
-            if (is_target)
-            {
-              aa2psm_count_targets[AA_at_position] += count;
-            }
-            else
-            {
-              aa2psm_count_decoys[AA_at_position] += count;
-            }
-            
-            e.aa_level_localization[position + 1].AA = AA_at_position;
-
-            // store observed adduct,NA,charge tuple
-            AALevelLocalization::AALevelEvidence evidence;
-            evidence.adduct = m2s.first->getFullId();
-            evidence.NA = m2s.first->getFullId(); // ???
-            evidence.charge = ???:
-            e.aa_level_localization[position + 1].evidence = std::move(evidence);                        
-            e.aa_level_localization[position + 1].CSM_with_Loc_count = count; ???
-            e.count += count; // count total CSM at protein level
-            //tsv_file.addLine(m2s.first->getFullId() + ":" + AA_at_position + String(position + 1) + "(" + String(count) + ")");
-          }
-        }
-        
-        // output list of modified regions (without AA level localization)
-        //tsv_file.addLine("Cross-linked peptides without localization at single AA-level:");
-        for (const auto& p2xlregions : modified_region_xls_targets)
-        {
-          for (const auto& region : p2xlregions.second)
-          {
-            const ModifiedRegion& r = region.first;
-            const size_t region_count = region.second;
-            RegionLevelLocalization reg_loc;
-            reg_loc.NA = r.xl->getFullId();
-            reg_loc.first = r.first + 1;
-            reg_loc.last = r.last + 1;
-            reg_loc.count = region_count;
-            e.region_level_localization.push_back(reg_loc);
-            e.count += region_count; // count PSM 
-            //tsv_file.addLine(r.xl->getFullId() + ":" + String(r.first + 1) + "-" + String(r.last + 1) + "(" + String(count) + ")");
-          }
-        }
-        protein_report_entries.push_back(e);
-      }  
-    }
-  
-    // sort report entries (largest number of XL PSM count first) 
-    cout << "Sorting entries... " << endl;
-    std::sort(protein_report_entries.begin(), protein_report_entries.end(), 
-      [](const ProteinReportEntry & a, const ProteinReportEntry & b) -> bool
-      { 
-         return std::tie(a.count, a.accession, a.annotated_sequence) > std::tie(b.count, b.accession, b.annotated_sequence);
-      }); 
-
-    // write to file
-    cout << "Writing " << protein_report_entries.size() << " proteins to tsv file... " << endl;
-    for (const auto& e : protein_report_entries)
-    {
-      tsv_file.addLine(String(">") + e.accession + "\t(" + String(e.count) + ")");
-      tsv_file.addLine("SEQUENCE: " + e.annotated_sequence);
-      //tsv_file.addLine("Cross-link localizations:");
-      for (const auto& aa_loc : e.aa_level_localization)
-      {
-        tsv_file.addLine("AA: " + aa_loc.NA + ":" + aa_loc.AA + String(aa_loc.pos) + "(" + String(aa_loc.count) + ")"); 
-      }     
-      //tsv_file.addLine("Cross-linked peptides (without AA-level localization):");
-      for (const auto& reg_loc : e.region_level_localization)
-      {
-        tsv_file.addLine("REGION: " + reg_loc.NA + ":" + String(reg_loc.first) + "-" + String(reg_loc.last) + "(" + String(reg_loc.count) + ")");
-      }
-    }
-
-
-    auto aa_xl_freq = getCrossLinkEfficiency(peps);
-    tsv_file.addLine("Crosslink efficiency:");
-    for (auto& m : aa_xl_freq) 
-    { 
-      tsv_file.addLine(String(m.first) + "\t" + String(m.second));
-    }
-
-    tsv_file.addLine("=============================================================");
-    tsv_file.addLine("Precursor adduct summary for target PSMs:");
-    tsv_file.addLine("Precursor adduct:PSMs:PSMs(%)");
-
-    vector<pair<size_t, String>> count2adduct;
-    size_t total_psms{};
-    for (const auto& ac : adduct2count)
-    {
-      count2adduct.push_back({ac.second, ac.first});
-      total_psms += ac.second;
-    }
-
-    std::sort(count2adduct.begin(), count2adduct.end(), 
-      [](const pair<size_t, String> & a, const pair<size_t, String> & b) -> bool
-      { 
-         return std::tie(a.first, a.second) > std::tie(b.first, b.second);
-      }); 
-
-    for (const auto& ca : count2adduct)
-    {
-      tsv_file.addLine(ca.second + " : " + String(ca.first) + " : " + String(100.0 * (double)ca.first / (double)total_psms));
-    }
-   
-    for (auto m : name2mod) { delete(m.second); } // free memory    
-  }
-  */
 
 }

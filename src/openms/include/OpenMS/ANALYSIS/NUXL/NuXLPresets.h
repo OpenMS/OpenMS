@@ -927,7 +927,7 @@ namespace OpenMS
     {
       modifications = RNA_UV_EXTENDED_modifications; 
       fragment_adducts = RNA_UV_fragments;
-      can_cross_link = (p == "RNA-UV (U)") ? RNA_U : RNA_UCGA ;
+      can_cross_link = (p == "RNA-UV Extended (U)") ? RNA_U : RNA_UCGA ;
       return;
     }
     else if (p == "RNA-UV (4SU)")
