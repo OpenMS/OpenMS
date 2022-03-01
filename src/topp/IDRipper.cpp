@@ -77,7 +77,7 @@ using namespace OpenMS;
 
   <p>Obviously the file contains protein/peptide identifications of IDMerger1_test.idXML and IDMerger2_test.idXML.</p>
 
-  <p>Calling IDRipper with an input file (here: @p -in IDRipper_test.idXML) and an output directory (via @p out or @p out_path) will
+  <p>Calling IDRipper with an input file (here: @p -in IDRipper_test.idXML) and an output directory (via @p out) will
   result in two idXML files stored in the specified directory and named according to their file origin.</p>
 
   <p>In theory, merging files with @p IDMerger and splitting the resulting file with @p IDRipper will result in the original input files.
