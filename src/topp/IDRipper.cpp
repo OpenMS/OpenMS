@@ -114,7 +114,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file, in which the protein/peptide identifications must be tagged with 'file_origin'");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out", "<file>", "", "Path to the output directory to write the ripped files to.", false, false);
+    registerOutputPrefix_("out", "<directory>", "", "Path to the output directory to write the ripped files to.", true, false);
     registerFlag_("numeric_filenames", "Do not infer output filenames from spectra_data or file_origin but use the input filename with numeric suffixes.");
     registerFlag_("split_ident_runs", "Split different identification runs into separate files.");
   }
