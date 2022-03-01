@@ -333,7 +333,7 @@ void MQEvidence::exportRowFromFeature_(
       file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
       file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [mDa]
     }
-    else if ((uncalibrated_mz_error_ppm))
+    else if (isnan(uncalibrated_mz_error_ppm))
       {
         file_ << calibrated_mz_error_ppm << "\t"; // Mass error [ppm]
         file_ << "NA" << "\t"; // Uncalibrated Mass error [ppm]
