@@ -1991,40 +1991,11 @@ namespace OpenMS
     TheoreticalSpectrumGenerationDialog spec_gen_dialog;
     if (spec_gen_dialog.exec())
     {
-      String seq_string(spec_gen_dialog.getSequence());
-      if (seq_string == "")
+      // spectrum is generated in the dialog, so just receive it here
+      PeakSpectrum spectrum = spec_gen_dialog.getSpectrum();
+      if (spectrum.empty())
       {
-        QMessageBox::warning(this, "Error", "You must enter a peptide sequence!");
-        return;
-      }
-      AASequence aa_sequence;
-      try
-      {
-        aa_sequence = AASequence::fromString(seq_string);
-      }
-      catch (Exception::BaseException& e)
-      {
-        QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + ")");
-        return;
-      }
-
-      PeakSpectrum spectrum;
-      Param p = spec_gen_dialog.getParam();
-      Int charge = p.getValue("charge");
-      p.remove("charge"); // "charge" isn't a parameter of TheoreticalSpectrumGenerator
-
-      p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-
-      TheoreticalSpectrumGenerator generator;
-      generator.setParameters(p);
-
-      try
-      {
-        generator.getSpectrum(spectrum, aa_sequence, charge, charge);
-      }
-      catch (Exception::BaseException& e)
-      {
-        QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + "). Please report this to the developers (specify what input you used)!");
+        QMessageBox::warning(this, "Error", QString("The generated spectrum is empty!"));
         return;
       }
 
@@ -2035,7 +2006,7 @@ namespace OpenMS
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
       ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
       vector<PeptideIdentification> p_dummy;
-      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerDataBase::DT_PEAK, false, true, true, "", seq_string + " (theoretical)");
+      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerDataBase::DT_PEAK, false, true, true, "", spec_gen_dialog.getSequence() + " (theoretical)");
 
       // ensure spectrum is drawn as sticks
       draw_group_1d_->button(Plot1DCanvas::DM_PEAKS)->setChecked(true);

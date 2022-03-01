@@ -469,22 +469,6 @@ Probability in %</string>
  <connections>
   <connection>
    <sender>button_box</sender>
-   <signal>accepted()</signal>
-   <receiver>TheoreticalSpectrumGenerationDialogTemplate</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>257</x>
-     <y>560</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_box</sender>
    <signal>rejected()</signal>
    <receiver>TheoreticalSpectrumGenerationDialogTemplate</receiver>
    <slot>reject()</slot>

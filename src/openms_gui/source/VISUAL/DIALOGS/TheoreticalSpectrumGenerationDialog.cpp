@@ -36,7 +36,11 @@
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 #include <ui_TheoreticalSpectrumGenerationDialog.h>
 
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+
+// Qt includes
+#include <QtWidgets/QMessageBox>
 
 
 namespace OpenMS
@@ -46,11 +50,15 @@ namespace OpenMS
   {
     ui_->setupUi(this);
 
+    // if dialog is accepted, try generating a spectrum, only close dialog on success
+    connect(ui_->button_box, SIGNAL(accepted()), this, SLOT(calculateSpectrum()));
+
+    // signals for changing isotope model interface
     connect(ui_->model_none, SIGNAL(toggled(bool)), this, SLOT(modelChanged()));
     connect(ui_->model_coarse, SIGNAL(toggled(bool)), this, SLOT(modelChanged()));
     connect(ui_->model_fine, SIGNAL(toggled(bool)), this, SLOT(modelChanged()));
 
-    // default with no isotopes
+    // don't add any isotopes by default
     ui_->model_none->setChecked(true);
 
     // select b- and y-ions as residue types by default
@@ -122,6 +130,52 @@ namespace OpenMS
     p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
 
     return p;
+  }
+
+  MSSpectrum TheoreticalSpectrumGenerationDialog::getSpectrum() const
+  {
+    return spec_;
+  }
+
+  void TheoreticalSpectrumGenerationDialog::calculateSpectrum()
+  {
+    String seq_string(this->getSequence());
+    if (seq_string == "")
+    {
+      QMessageBox::warning(this, "Error", "You must enter a peptide sequence!");
+      return;
+    }
+    AASequence aa_sequence;
+    try
+    {
+      aa_sequence = AASequence::fromString(seq_string);
+    }
+    catch (Exception::BaseException& e)
+    {
+      QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + ")");
+      return;
+    }
+
+    Param p = this->getParam();
+    Int charge = p.getValue("charge");
+    p.remove("charge"); // "charge" isn't a parameter of TheoreticalSpectrumGenerator
+
+    p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+
+    TheoreticalSpectrumGenerator generator;
+    generator.setParameters(p);
+
+    try
+    {
+      generator.getSpectrum(spec_, aa_sequence, charge, charge);
+    }
+    catch (Exception::BaseException& e)
+    {
+      QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + "). Please report this to the developers (specify what input you used)!");
+      return;
+    }
+
+    this->accept();
   }
 
   void TheoreticalSpectrumGenerationDialog::modelChanged()

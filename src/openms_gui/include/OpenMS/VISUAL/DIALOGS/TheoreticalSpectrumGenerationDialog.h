@@ -39,6 +39,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace Ui
 {
@@ -109,14 +110,19 @@ public:
 
     Param getParam() const;
 
+    MSSpectrum getSpectrum() const;
+
 protected slots:
 
     void modelChanged();
+    void calculateSpectrum();
 
 protected:
 
 private:
     Ui::TheoreticalSpectrumGenerationDialogTemplate* ui_;
+
+    MSSpectrum spec_;
   };
 
 }
