@@ -41,6 +41,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 
 #include <fstream>
+#include <map>
 
 using namespace std;
 
@@ -637,7 +638,7 @@ namespace OpenMS::Internal
         }
         for (vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
         {
-          Map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
+          std::map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
             PeptideEvidence pe;

@@ -39,6 +39,8 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 
+#include <map>
+
 // #define MIN_DOUBLE_MZ 900.0
 
 // #define SELECT_PIVOT_DEBUG
@@ -362,7 +364,7 @@ namespace OpenMS
     }
   }
 
-  void CompNovoIdentificationBase::selectPivotIons_(vector<Size> & pivots, Size left, Size right, Map<double, CompNovoIonScoringBase::IonScore> & ion_scores, const PeakSpectrum & CID_spec, double precursor_weight, bool full_range)
+  void CompNovoIdentificationBase::selectPivotIons_(vector<Size> & pivots, Size left, Size right, std::map<double, CompNovoIonScoringBase::IonScore> & ion_scores, const PeakSpectrum & CID_spec, double precursor_weight, bool full_range)
   {
 #ifdef SELECT_PIVOT_DEBUG
     cerr << "void selectPivotIons(pivots[" << pivots.size() << "], " << left << "[" << CID_spec[left].getPosition()[0] << "]" << ", " << right << "[" << CID_spec[right].getPosition()[0]  << "])" << endl;
@@ -748,7 +750,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     mass_decomp_algorithm_.setParameters(decomp_param);
 
     min_aa_weight_ = numeric_limits<double>::max();
-    for (Map<char, double>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
+    for (std::map<char, double>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
     {
       if (min_aa_weight_ > it->second)
       {

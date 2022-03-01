@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
+#include <map>
 
 // #define SPECTRUMCHEAPDPCORR_DEBUG
 // #undef  SPECTRUMCHEAPDPCORR_DEBUG
@@ -330,7 +331,7 @@ namespace OpenMS
     return lastconsensus_;
   }
 
-  Map<UInt, UInt> SpectrumCheapDPCorr::getPeakMap() const
+  std::map<UInt, UInt> SpectrumCheapDPCorr::getPeakMap() const
   {
     return peak_map_;
   }

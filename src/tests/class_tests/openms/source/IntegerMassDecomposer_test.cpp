@@ -41,9 +41,10 @@
 
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+
+#include <map>
 
 using namespace OpenMS;
 using namespace ims;
@@ -51,7 +52,7 @@ using namespace std;
 
 Weights createWeights()
 {
-  Map<char, double> aa_to_weight;
+  std::map<char, double> aa_to_weight;
 
   set<const Residue*> residues = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
 
@@ -62,13 +63,13 @@ Weights createWeights()
 
   // init mass decomposer
   IMSAlphabet alphabet;
-  for (Map<char, double>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
+  for (std::map<char, double>::const_iterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
   {
     alphabet.push_back(String(it->first), it->second);
   }
 
   // initializes weights
-  Weights weights(alphabet.getMasses(), 0.01);
+  Weights weights(alphabet.getMasses(), ConstIterator0.01);
 
   // optimize alphabet by dividing by gcd
   weights.divideByGCD();

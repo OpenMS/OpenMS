@@ -2,6 +2,8 @@
 #define _GRAPH_TO_DOT_HPP
 
 #include <fstream>
+#include <map>
+#include <vector>
 
 template <typename VARIABLE_KEY>
 void graph_to_dot(const InferenceGraph<VARIABLE_KEY> & ig, std::ostream & os) {

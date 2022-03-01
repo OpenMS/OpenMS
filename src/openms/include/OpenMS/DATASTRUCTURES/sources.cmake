@@ -31,8 +31,7 @@ KDTree.h
 ListUtils.h
 ListUtilsIO.h
 LPWrapper.h
-Map.h
-MassExplainer.h
+        MassExplainer.h
 MatchedIterator.h
 Matrix.h
 OSWData.h

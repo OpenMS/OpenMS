@@ -36,12 +36,12 @@
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <set>
+#include <map>
 
 namespace OpenMS
 {
@@ -196,7 +196,7 @@ namespace OpenMS
 
       try
       {
-        Map<String, String> values;
+        std::map<String, String> values;
         String previous_enzyme = split[1];
         // this iterates over all the "ITEM" elements in the XML file:
         for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
@@ -222,11 +222,11 @@ namespace OpenMS
     }
 
     /// parses an enzyme, given the key/value pairs from an XML file
-    const DigestionEnzymeType* parseEnzyme_(Map<String, String>& values) const
+    const DigestionEnzymeType* parseEnzyme_(std::map<String, String>& values) const
     {
       DigestionEnzymeType* enzy_ptr = new DigestionEnzymeType();
 
-      for (Map<String, String>::iterator it = values.begin(); it != values.end(); ++it)
+      for (std::map<String, String>::iterator it = values.begin(); it != values.end(); ++it)
       {
         const String& key = it->first;
         const String& value = it->second;
@@ -259,9 +259,9 @@ namespace OpenMS
       return;
     }
 
-    Map<String, const DigestionEnzymeType*> enzyme_names_; ///< index by names
+    std::map<String, const DigestionEnzymeType*> enzyme_names_; ///< index by names
 
-    Map<String, const DigestionEnzymeType*> enzyme_regex_; ///< index by regex
+    std::map<String, const DigestionEnzymeType*> enzyme_regex_; ///< index by regex
 
     std::set<const DigestionEnzymeType*> const_enzymes_; ///< set of enzymes
 

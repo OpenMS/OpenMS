@@ -174,21 +174,21 @@ namespace OpenMS
 
       // legacy
 #if 1
-      if (transition_exp_.getTransitions()[i].getCVTerms().has("decoy") &&
+      if (transition_exp_.getTransitions()[i].getCVTerms().find("decoy") != transition_exp_.getTransitions()[i].getCVTerms().end() &&
           transition_exp_.getTransitions()[i].getCVTerms().at("decoy")[0].getValue().toString() == "1" )
       {
         t.decoy = true;
       }
-      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007"))    // target SRM transition
+      else if (transition_exp_.getTransitions()[i].getCVTerms().find("MS:1002007") != transition_exp_.getTransitions()[i].getCVTerms().end())    // target SRM transition
       {
         t.decoy = false;
       }
-      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008"))    // decoy SRM transition
+      else if (transition_exp_.getTransitions()[i].getCVTerms().find("MS:1002008") != transition_exp_.getTransitions()[i].getCVTerms().end())    // decoy SRM transition
       {
         t.decoy = true;
       }
-      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007") &&
-          transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008"))    // both == illegal
+      else if (transition_exp_.getTransitions()[i].getCVTerms().find("MS:1002007") != transition_exp_.getTransitions()[i].getCVTerms().end() &&
+          transition_exp_.getTransitions()[i].getCVTerms().find("MS:1002008") != transition_exp_.getTransitions()[i].getCVTerms().end())    // both == illegal
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Transition " + t.transition_name + " cannot be target and decoy at the same time.");

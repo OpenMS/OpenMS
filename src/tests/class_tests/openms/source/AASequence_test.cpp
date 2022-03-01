@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <map>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -846,7 +847,7 @@ END_SECTION
 
 START_SECTION(void getAAFrequencies(Map<String, Size>& frequency_table) const)
   AASequence a = AASequence::fromString("THREEAAAWITHYYY");
-  Map<String, Size> table;
+  std::map<String, Size> table;
   a.getAAFrequencies(table);
 
   TEST_EQUAL(table["T"]==2, true);

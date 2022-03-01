@@ -46,6 +46,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <map>
 
 using namespace std;
 
@@ -1425,7 +1426,7 @@ namespace OpenMS
     aas.peptide_.shrink_to_fit();
   }
 
-  void AASequence::getAAFrequencies(Map<String, Size>& frequency_table) const
+  void AASequence::getAAFrequencies(std::map<String, Size>& frequency_table) const
   {
     frequency_table.clear();
     for (std::vector<const Residue*>::const_iterator it = peptide_.begin(); it != peptide_.end(); ++it)

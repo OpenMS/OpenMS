@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SeedListGenerator.h>
+#include <map>
 
 using namespace std;
 
@@ -85,7 +86,7 @@ namespace OpenMS
   }
 
   void SeedListGenerator::generateSeedLists(const ConsensusMap& consensus,
-                                            Map<UInt64, SeedList>& seed_lists)
+                                            std::map<UInt64, SeedList>& seed_lists)
   {
     seed_lists.clear();
     // iterate over all consensus features...

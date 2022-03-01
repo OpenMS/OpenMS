@@ -34,7 +34,7 @@
 //
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
-
+#include <map>
 
 namespace OpenMS
 {
@@ -174,7 +174,7 @@ namespace OpenMS
 
   void ItraqConstants::initChannelMap(const int itraq_type, ChannelMapType & map)
   {
-    static Map<Int, double> reporter_mass_exact;
+    static std::map<Int, double> reporter_mass_exact;
     if (reporter_mass_exact.empty() && (itraq_type == EIGHTPLEX || itraq_type == FOURPLEX)) // exact monoisotopic reporter ion masses (taken from AB Sciex)
     {
       reporter_mass_exact[113] = 113.1078;

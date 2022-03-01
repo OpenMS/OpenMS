@@ -41,6 +41,8 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
+#include <map>
+
 //#define DAC_DEBUG
 
 //#define WRITE_SCORED_SPEC
@@ -511,7 +513,7 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
   }
 
 // divide and conquer algorithm of the sequencing
-  void CompNovoIdentificationCID::getDecompositionsDAC_(set<String> & sequences, Size left, Size right, double peptide_weight, const PeakSpectrum & CID_spec, Map<double, CompNovoIonScoringCID::IonScore> & ion_scores)
+  void CompNovoIdentificationCID::getDecompositionsDAC_(set<String> & sequences, Size left, Size right, double peptide_weight, const PeakSpectrum & CID_spec, std::map<double, CompNovoIonScoringCID::IonScore> & ion_scores)
   {
     static double oxonium_mass = EmpiricalFormula("H2O+").getMonoWeight();
     double offset_suffix(CID_spec[left].getPosition()[0] - oxonium_mass);

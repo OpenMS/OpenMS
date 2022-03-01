@@ -34,6 +34,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <map>
 
 ///////////////////////////
 #include <OpenMS/METADATA/CVTermList.h>
@@ -205,7 +206,7 @@ START_SECTION((void replaceCVTerms(const Map<String, vector<CVTerm> >& cv_term_m
   tmp.push_back(cv_term);
   std::vector<CVTerm> tmp2;
   tmp2.push_back(cv_term2);
-  Map<String, std::vector<CVTerm> >new_terms;
+  std::map<String, std::vector<CVTerm> >new_terms;
   new_terms["my_accession2"] = tmp2;
   TEST_EQUAL(new_terms.has("my_accession2"), true);
 

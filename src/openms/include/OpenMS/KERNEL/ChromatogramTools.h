@@ -34,12 +34,13 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -138,8 +139,8 @@ public:
     void convertSpectraToChromatograms(ExperimentType & exp, bool remove_spectra = false, bool force_conversion = false)
     {
       typedef typename ExperimentType::SpectrumType SpectrumType;
-      Map<double, Map<double, std::vector<SpectrumType> > > chroms;
-      Map<double, MSChromatogram > chroms_xic;
+      std::map<double, Map<double, std::vector<SpectrumType> > > chroms;
+      std::map<double, MSChromatogram > chroms_xic;
       for (typename ExperimentType::ConstIterator it = exp.begin(); it != exp.end(); ++it)
       {
         // TODO other types
@@ -209,7 +210,7 @@ public:
       typename Map<double, Map<double, std::vector<SpectrumType> > >::const_iterator it1 = chroms.begin();
       for (; it1 != chroms.end(); ++it1)
       {
-        typename Map<double, std::vector<SpectrumType> >::const_iterator it2 = it1->second.begin();
+        typename std::map<double, std::vector<SpectrumType> >::const_iterator it2 = it1->second.begin();
         for (; it2 != it1->second.end(); ++it2)
         {
           typename ExperimentType::ChromatogramType chrom;

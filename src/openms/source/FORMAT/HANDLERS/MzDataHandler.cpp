@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
 
 #include <OpenMS/FORMAT/Base64.h>
+#include <map>
 
 namespace OpenMS::Internal
 {
@@ -804,7 +805,7 @@ namespace OpenMS::Internal
           warning(STORE, "Not all spectrum native IDs are numbers or correctly prefixed with 'spectrum='. The spectra are renumbered and the native IDs are lost!");
         }
         //Map to store the last spectrum ID for each MS level (needed to find precursor spectra)
-        Map<Int, Size> level_id;
+        std::map<Int, Size> level_id;
 
         os << "\t<spectrumList count=\"" << cexp_->size() << "\">\n";
         for (Size s = 0; s < cexp_->size(); ++s)

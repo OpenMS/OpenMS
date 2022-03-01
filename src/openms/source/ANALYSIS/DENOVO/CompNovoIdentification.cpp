@@ -43,6 +43,8 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
+#include <map>
+
 //#define DAC_DEBUG
 //#define ESTIMATE_PRECURSOR_DEBUG
 
@@ -628,7 +630,7 @@ namespace OpenMS
   }
 
 // divide and conquer algorithm of the sequencing
-  void CompNovoIdentification::getDecompositionsDAC_(set<String> & sequences, Size left, Size right, double peptide_weight, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec, Map<double, CompNovoIonScoring::IonScore> & ion_scores)
+  void CompNovoIdentification::getDecompositionsDAC_(set<String> & sequences, Size left, Size right, double peptide_weight, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec, std::map<double, CompNovoIonScoring::IonScore> & ion_scores)
   {
     static double oxonium_mass = EmpiricalFormula("H2O+").getMonoWeight();
     double offset_suffix(CID_spec[left].getPosition()[0] - oxonium_mass);
@@ -874,8 +876,8 @@ namespace OpenMS
     double peptide_weight(0);
     // for each possible charge state just get all possible precursor peaks
     double precursor_mz(ETD_spec.getPrecursors().begin()->getMZ());
-    Map<Size, Map<Size, vector<Peak1D> > > peaks;
-    Map<Size, Map<Size, vector<double> > > correlations;
+    std::map<Size, std::map<Size, vector<Peak1D> > > peaks;
+    std::map<Size, std::map<Size, vector<double> > > correlations;
     for (PeakSpectrum::ConstIterator it = ETD_spec.begin(); it != ETD_spec.end(); ++it)
     {
       for (Size prec_z = 1; prec_z <= 3; ++prec_z)
@@ -898,13 +900,13 @@ namespace OpenMS
     }
 
     // for each possible peptide charge state
-    Map<Size, double> correlation_sums;
-    Map<Size, Map<Size, pair<double, double> > > best_corr_ints;
-    for (Map<Size, Map<Size, vector<double> > >::ConstIterator it1 = correlations.begin(); it1 != correlations.end(); ++it1)
+    std::map<Size, double> correlation_sums;
+    std::map<Size, std::map<Size, pair<double, double> > > best_corr_ints;
+    for (std::map<Size, std::map<Size, vector<double> > >::const_iterator it1 = correlations.begin(); it1 != correlations.end(); ++it1)
     {
       double correlation_sum(0);
       // search for the best correlation
-      for (Map<Size, vector<double> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      for (std::map<Size, vector<double> >::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
       {
         double best_correlation(0);
         Size best_pos(0);
@@ -926,10 +928,10 @@ namespace OpenMS
 
     double best_correlation = 0;
     Size best_charge = 0;
-    for (Map<Size, double>::ConstIterator it = correlation_sums.begin(); it != correlation_sums.end(); ++it)
+    for (std::map<Size, double>::const_iterator it = correlation_sums.begin(); it != correlation_sums.end(); ++it)
     {
       //cerr << "Correlations z=" << it->first << ", corr=" << it->second << endl;
-      for (Map<Size, pair<double, double> >::ConstIterator mit = best_corr_ints[it->first].begin(); mit != best_corr_ints[it->first].end(); ++mit)
+      for (std::map<Size, pair<double, double> >::const_iterator mit = best_corr_ints[it->first].begin(); mit != best_corr_ints[it->first].end(); ++mit)
       {
         //cerr << "CorrelationIntensity: z=" << mit->first << ", corr=" << mit->second.first << ", m/z=" << mit->second.second << " [M+H]=" << (mit->second.second * (double)mit->first) - ((double)mit->first - 1) * Constants::NEUTRON_MASS_U  << endl;
       }
@@ -944,7 +946,7 @@ namespace OpenMS
     charge = best_charge;
 
     // check whether charge one is available
-    if (best_corr_ints[best_charge].has(1))
+    if (best_corr_ints[best_charge].find(1) != best_corr_ints[best_charge].end())
     {
       peptide_weight = best_corr_ints[best_charge][1].second;
     }
@@ -954,7 +956,7 @@ namespace OpenMS
       best_correlation = 0;
       double best_corr_mz = 0;
       Size best_corr_z = 0;
-      for (Map<Size, pair<double, double> >::ConstIterator it = best_corr_ints[best_charge].begin(); it != best_corr_ints[best_charge].end(); ++it)
+      for (std::map<Size, pair<double, double> >::const_iterator it = best_corr_ints[best_charge].begin(); it != best_corr_ints[best_charge].end(); ++it)
       {
         if (it->second.first > best_correlation)
         {

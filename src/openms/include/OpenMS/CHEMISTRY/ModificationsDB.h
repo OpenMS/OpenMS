@@ -35,7 +35,6 @@
 #pragma once
 
 #include "OpenMS/CHEMISTRY/AASequence.h"
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 

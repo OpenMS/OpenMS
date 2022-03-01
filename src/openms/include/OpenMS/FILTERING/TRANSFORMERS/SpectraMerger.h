@@ -47,6 +47,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <vector>
+#include <vector>
 
 namespace OpenMS
 {
@@ -123,10 +124,10 @@ protected:
 public:
 
     /// blocks of spectra (master-spectrum index to sacrifice-spectra(the ones being merged into the master-spectrum))
-    typedef Map<Size, std::vector<Size> > MergeBlocks;
+    typedef std::map<Size, std::vector<Size> > MergeBlocks;
 
     /// blocks of spectra (master-spectrum index to update to spectra to average over)
-    typedef Map<Size, std::vector<std::pair<Size, double> > > AverageBlocks;
+    typedef std::map<Size, std::vector<std::pair<Size, double> > > AverageBlocks;
 
     // @name Constructors and Destructors
     // @{
@@ -207,7 +208,7 @@ public:
       // convert spectra's precursors to clusterizable data
       Size data_size;
       std::vector<BinaryTreeNode> tree;
-      Map<Size, Size> index_mapping;
+      std::map<Size, Size> index_mapping;
       // local scope to save memory - we do not need the clustering stuff later
       {
         std::vector<BaseFeature> data;
@@ -428,7 +429,7 @@ public:
       }
 
       // normalize weights
-      for (AverageBlocks::Iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      for (AverageBlocks::iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         double sum(0.0);
         for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
@@ -498,7 +499,7 @@ protected:
       // merge spectra
       MapType merged_spectra;
 
-      Map<Size, Size> cluster_sizes;
+      std::map<Size, Size> cluster_sizes;
       std::set<Size> merged_indices;
 
       // set up alignment
@@ -634,7 +635,7 @@ protected:
       }
 
       OPENMS_LOG_INFO << "Cluster sizes:\n";
-      for (Map<Size, Size>::const_iterator it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
+      for (std::map<Size, Size>::const_iterator it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
       {
         OPENMS_LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
       }
@@ -702,7 +703,7 @@ protected:
       startProgress(0, spectra_to_average_over.size(), progress_message.str());
 
       // loop over blocks
-      for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      for (AverageBlocks::const_iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         setProgress(++progress);
 
@@ -777,7 +778,7 @@ protected:
       // loop over blocks
       int n(0);
       //typename MapType::SpectrumType empty_spec;
-      for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      for (AverageBlocks::const_iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         exp[it->first] = exp_tmp[n];
         //exp_tmp[n] = empty_spec;
@@ -816,7 +817,7 @@ protected:
       logger.startProgress(0, spectra_to_average_over.size(), progress_message.str());
 
       // loop over blocks
-      for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      for (AverageBlocks::const_iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         logger.setProgress(++progress);
 
@@ -895,7 +896,7 @@ protected:
 
       // loop over blocks
       int n(0);
-      for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      for (AverageBlocks::const_iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         exp[it->first] = exp_tmp[n];
         ++n;

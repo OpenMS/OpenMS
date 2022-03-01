@@ -43,6 +43,8 @@
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SeedListGenerator.h>
 
+#include <map>
+
 // TODO REMOVE
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
@@ -146,7 +148,7 @@ protected:
 
       SeedListGenerator seed_gen;
       // results (actually just one result, except for consensusXML input):
-      Map<UInt64, SeedListGenerator::SeedList> seed_lists;
+      std::map<UInt64, SeedListGenerator::SeedList> seed_lists;
 
       Size num_maps = 0;
       FileTypes::Type in_type = FileHandler::getType(in);
@@ -206,7 +208,7 @@ protected:
 
       // output:
       num_maps = 0;
-      for (Map<UInt64, SeedListGenerator::SeedList>::Iterator it =
+      for (std::map<UInt64, SeedListGenerator::SeedList>::iterator it =
              seed_lists.begin(); it != seed_lists.end(); ++it, ++num_maps)
       {
         FeatureMap features;
