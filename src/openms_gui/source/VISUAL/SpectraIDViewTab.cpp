@@ -972,8 +972,6 @@ namespace OpenMS
     // synchronize PeptideHits with the annotations in the spectrum
     layer_->synchronizePeakAnnotations();
 
-    QString selectedFilter;
-    QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "idXML file (*.idXML);;mzIdentML file (*.mzid)", &selectedFilter);
     vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
     vector<PeptideIdentification> all_pep_ids;
 
@@ -997,22 +995,17 @@ namespace OpenMS
       copy(pep_id.begin(), pep_id.end(), back_inserter(all_pep_ids));
     }
 
-    if (String(filename).hasSuffix(String(".mzid")))
+    QString filename = GUIHelpers::getSaveFilename(this, "Save file", "", FileTypeList({FileTypes::IDXML, FileTypes::MZIDENTML}), true, FileTypes::IDXML);
+    if (filename.isEmpty())
+    {
+      return;
+    }      
+    if (FileHandler::getTypeByFileName(filename) == FileTypes::MZIDENTML)
     {
       MzIdentMLFile().store(filename, prot_id, all_pep_ids);
     }
-    else if (String(filename).hasSuffix(String(".idXML")))
+    else 
     {
-      IdXMLFile().store(filename, prot_id, all_pep_ids);
-    }
-    else if (String(selectedFilter).hasSubstring(String(".mzid")))
-    {
-      filename = filename + ".mzid";
-      MzIdentMLFile().store(filename, prot_id, all_pep_ids);
-    }
-    else
-    {
-      filename = filename + ".idXML";
       IdXMLFile().store(filename, prot_id, all_pep_ids);
     }
   }
