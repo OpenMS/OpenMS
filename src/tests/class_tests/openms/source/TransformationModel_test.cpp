@@ -122,8 +122,10 @@ START_SECTION((bool checkValidWeight(const string& weight, const vector<string>&
   TEST_EQUAL(dw.checkValidWeight(test,dw.getValidYWeights()), true);
   test = "1/x2";
   TEST_EQUAL(dw.checkValidWeight(test,dw.getValidXWeights()), true);
-  test = "";
+  test = "x";
   TEST_EQUAL(dw.checkValidWeight(test,dw.getValidXWeights()), true);
+  test = "y";
+  TEST_EQUAL(dw.checkValidWeight(test,dw.getValidYWeights()), true);
   test = "none";
   TEST_EQUAL(dw.checkValidWeight(test,dw.getValidXWeights()), false);
   test = "x2";
@@ -231,7 +233,7 @@ START_SECTION((virtual void weightData(DataPoints& data, const Param& params)))
     double ymax = 10e12;
 
     param.setValue("x_weight", "ln(x)");
-    param.setValue("y_weight", "1");
+    param.setValue("y_weight", "y");
     TransformationModel dw(data, param);
     test1.clear();
     point.first = std::log(xmin);
@@ -262,7 +264,7 @@ START_SECTION((virtual void weightData(DataPoints& data, const Param& params)))
   }
 
   {
-    param.setValue("x_weight", "1");
+    param.setValue("x_weight", "x");
     param.setValue("y_weight", "ln(y)");
     TransformationModel dw(data, param);
     test1.clear();
@@ -371,7 +373,7 @@ START_SECTION((virtual void unWeightData(DataPoints& data, const Param& params))
   {
     Param param;
     TransformationModel::getDefaultParameters(param);
-    param.setValue("x_weight", "1");
+    param.setValue("x_weight", "x");
     param.setValue("y_weight", "ln(y)");
     TransformationModel dw(data, param);
     test1.clear();
