@@ -119,7 +119,7 @@ START_SECTION((void generateSeedLists(const ConsensusMap& consensus, Map<UInt64,
 	ConsensusMap consensus;
 	String path = OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML");
 	ConsensusXMLFile().load(path, consensus);
-  std::map<UInt64, SeedListGenerator::SeedList> seed_lists;
+	std::map<UInt64, SeedListGenerator::SeedList> seed_lists;
 	SeedListGenerator().generateSeedLists(consensus, seed_lists);
 	TEST_EQUAL(seed_lists.size(), 2);
 	TEST_EQUAL(seed_lists[0].size(), 0);
