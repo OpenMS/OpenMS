@@ -61,7 +61,7 @@ import numpy as np
 
         cdef _MSSpectrum * spec_ = self.inst.get()
 
-        spec_.clear(0) # empty vector , keep meta data
+        spec_.resize(0) # empty vector, keep meta data and data arrays
         spec_.reserve(<int>len(data_mz)) # allocate space for incoming data
         cdef _Peak1D p = _Peak1D()
         cdef double mz
@@ -83,7 +83,7 @@ import numpy as np
 
         cdef _MSSpectrum * spec_ = self.inst.get()
 
-        spec_.clear(0) # empty vector , keep meta data
+        spec_.resize(0) # empty vector, keep meta data and data arrays
         spec_.reserve(<int>len(data_mz)) # allocate space for incoming data
         cdef _Peak1D p = _Peak1D()
         cdef double mz
@@ -106,7 +106,7 @@ import numpy as np
 
         cdef _MSSpectrum * spec_ = self.inst.get()
 
-        spec_.clear(0) # empty vector , keep meta data
+        spec_.resize(0) # empty vector, keep meta data and data arrays
         spec_.reserve(<int>len(mzs)) # allocate space for incoming data
         cdef _Peak1D p = _Peak1D()
         cdef double mz
