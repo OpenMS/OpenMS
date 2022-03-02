@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" id="cm_14565878841617807609" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2022-03-02T10:37:33">
+		<software name="FeatureLinkerUnlabeledKD" version="2.7.0-pre-feature-annotations-for-IIMN-2022-03-02" />
+		<processingAction name="Feature grouping" />
+		<UserParam type="stringList" name="parameter: in" value="[fm1.featureXML,fm2.featureXML,fm3.featureXML,fm4.featureXML]"/>
+		<UserParam type="string" name="parameter: out" value="kd.consensusXML"/>
+		<UserParam type="string" name="parameter: design" value=""/>
+		<UserParam type="string" name="parameter: keep_subelements" value="false"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="false"/>
+		<UserParam type="string" name="parameter: force" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: algorithm:mz_unit" value="ppm"/>
+		<UserParam type="int" name="parameter: algorithm:nr_partitions" value="100"/>
+		<UserParam type="string" name="parameter: algorithm:warp:enabled" value="true"/>
+		<UserParam type="float" name="parameter: algorithm:warp:rt_tol" value="100.0"/>
+		<UserParam type="float" name="parameter: algorithm:warp:mz_tol" value="5.0"/>
+		<UserParam type="float" name="parameter: algorithm:warp:max_pairwise_log_fc" value="0.5"/>
+		<UserParam type="float" name="parameter: algorithm:warp:min_rel_cc_size" value="0.5"/>
+		<UserParam type="int" name="parameter: algorithm:warp:max_nr_conflicts" value="0"/>
+		<UserParam type="float" name="parameter: algorithm:link:rt_tol" value="30.0"/>
+		<UserParam type="float" name="parameter: algorithm:link:mz_tol" value="10.0"/>
+		<UserParam type="string" name="parameter: algorithm:link:charge_merging" value="With_charge_zero"/>
+		<UserParam type="string" name="parameter: algorithm:link:adduct_merging" value="Any"/>
+		<UserParam type="float" name="parameter: algorithm:distance_RT:exponent" value="1.0"/>
+		<UserParam type="float" name="parameter: algorithm:distance_RT:weight" value="1.0"/>
+		<UserParam type="float" name="parameter: algorithm:distance_MZ:exponent" value="2.0"/>
+		<UserParam type="float" name="parameter: algorithm:distance_MZ:weight" value="1.0"/>
+		<UserParam type="float" name="parameter: algorithm:distance_intensity:exponent" value="1.0"/>
+		<UserParam type="float" name="parameter: algorithm:distance_intensity:weight" value="1.0"/>
+		<UserParam type="string" name="parameter: algorithm:distance_intensity:log_transform" value="enabled"/>
+		<UserParam type="float" name="parameter: algorithm:LOWESS:span" value="0.666666666666667"/>
+		<UserParam type="int" name="parameter: algorithm:LOWESS:num_iterations" value="3"/>
+		<UserParam type="float" name="parameter: algorithm:LOWESS:delta" value="-1.0"/>
+		<UserParam type="string" name="parameter: algorithm:LOWESS:interpolation_type" value="cspline"/>
+		<UserParam type="string" name="parameter: algorithm:LOWESS:extrapolation_type" value="four-point-linear"/>
+	</dataProcessing>
+	<mapList count="4">
+		<map id="0" name="fm1.mzML" unique_id="213911553665596607" label="" size="6">
+		</map>
+		<map id="1" name="fm2.mzML" unique_id="7340924528146240171" label="" size="6">
+		</map>
+		<map id="2" name="fm3.mzML" unique_id="13071283558916006907" label="" size="5">
+		</map>
+		<map id="3" name="fm4.mzML" unique_id="1629970225687398089" label="" size="6">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_6591640000999503324" quality="1.0" charge="1">
+			<centroid rt="790.0" mz="195.030000000000001" it="3.0e04"/>
+			<groupedElementList>
+				<element map="0" id="5285552942396249712" rt="790.0" mz="195.030000000000001" it="3.0e04" charge="1"/>
+				<element map="1" id="14330978235000467375" rt="790.0" mz="195.030000000000001" it="3.0e04" charge="1"/>
+				<element map="2" id="15963101270796120232" rt="790.0" mz="195.030000000000001" it="3.0e04" charge="1"/>
+				<element map="3" id="17111687935985770427" rt="790.0" mz="195.030000000000001" it="3.0e04" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+Na]+"/>
+			<UserParam type="int" name="row ID" value="1"/>
+			<UserParam type="int" name="annotation network number" value="1"/>
+			<UserParam type="int" name="partners" value="2"/>
+		</consensusElement>
+		<consensusElement id="e_13866891634725835281" quality="0.25" charge="1">
+			<centroid rt="790.0" mz="173.030000000000001" it="5.0e04"/>
+			<groupedElementList>
+				<element map="0" id="5732876346751247708" rt="790.0" mz="173.030000000000001" it="5.0e04" charge="1"/>
+				<element map="1" id="5177841928309749340" rt="790.0" mz="173.030000000000001" it="5.0e04" charge="1"/>
+				<element map="2" id="11040928760595925715" rt="790.0" mz="173.030000000000001" it="5.0e04" charge="1"/>
+				<element map="3" id="16575280079181854513" rt="790.0" mz="173.030000000000001" it="5.0e04" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="int" name="row ID" value="2"/>
+			<UserParam type="int" name="annotation network number" value="1"/>
+			<UserParam type="int" name="partners" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_4053929417646423565" quality="1.0" charge="1">
+			<centroid rt="810.0" mz="625.179999999999723" it="8.0e04"/>
+			<groupedElementList>
+				<element map="0" id="10919820581878161813" rt="810.0" mz="625.179999999999723" it="8.0e04" charge="1"/>
+				<element map="1" id="10919820581878165813" rt="810.0" mz="625.179999999999723" it="8.0e04" charge="1"/>
+				<element map="2" id="10919820481878161813" rt="810.0" mz="625.179999999999723" it="8.0e04" charge="1"/>
+				<element map="3" id="10919820582878161813" rt="810.0" mz="625.179999999999723" it="8.0e04" charge="1"/>
+			</groupedElementList>
+			<UserParam type="int" name="row ID" value="3"/>
+		</consensusElement>
+		<consensusElement id="e_7527875990036783910" quality="1.0" charge="1">
+			<centroid rt="810.0" mz="833.030000000000086" it="8.0e04"/>
+			<groupedElementList>
+				<element map="0" id="10919820581878161812" rt="810.0" mz="833.029999999999973" it="8.0e04" charge="1"/>
+				<element map="2" id="10111383611593435922" rt="810.0" mz="833.029999999999973" it="8.0e04" charge="1"/>
+				<element map="3" id="2433608855395687211" rt="810.0" mz="833.029999999999973" it="8.0e04" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="int" name="row ID" value="4"/>
+			<UserParam type="int" name="annotation network number" value="2"/>
+		</consensusElement>
+		<consensusElement id="e_14733071166935944447" quality="1.0" charge="1">
+			<centroid rt="600.0" mz="222.080000000000013" it="1.0e05"/>
+			<groupedElementList>
+				<element map="1" id="7005685766099445716" rt="600.0" mz="222.080000000000013" it="1.0e05" charge="1"/>
+				<element map="2" id="9014637501663572000" rt="600.0" mz="222.080000000000013" it="1.0e05" charge="1"/>
+				<element map="3" id="9950282852785763055" rt="600.0" mz="222.080000000000013" it="1.0e05" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+H]+"/>
+			<UserParam type="int" name="row ID" value="5"/>
+			<UserParam type="int" name="annotation network number" value="3"/>
+			<UserParam type="string" name="partners" value="6;7"/>
+		</consensusElement>
+		<consensusElement id="e_16442614065753005366" quality="1.0" charge="1">
+			<centroid rt="810.0" mz="204.089999999999719" it="8.0e04"/>
+			<groupedElementList>
+				<element map="0" id="10919820581878161813" rt="810.0" mz="204.089999999999719" it="8.0e04" charge="1"/>
+				<element map="1" id="10919820581878161813" rt="810.0" mz="204.089999999999719" it="8.0e04" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
+			<UserParam type="int" name="row ID" value="6"/>
+			<UserParam type="int" name="annotation network number" value="3"/>
+			<UserParam type="string" name="partners" value="5;7;8"/>
+		</consensusElement>
+		<consensusElement id="e_14657300578789204156" quality="1.0" charge="1">
+			<centroid rt="600.0" mz="244.080000000000013" it="1.0e04"/>
+			<groupedElementList>
+				<element map="1" id="10987546009195234538" rt="600.0" mz="244.080000000000013" it="1.0e04" charge="1"/>
+				<element map="3" id="9891498650992256221" rt="600.0" mz="244.080000000000013" it="1.0e04" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M+Na]+"/>
+			<UserParam type="int" name="row ID" value="7"/>
+			<UserParam type="int" name="annotation network number" value="3"/>
+			<UserParam type="string" name="partners" value="5;6"/>
+		</consensusElement>
+		<consensusElement id="e_2593592043157115476" quality="1.0" charge="1">
+			<centroid rt="810.0" mz="186.089999999999719" it="8.0e04"/>
+			<groupedElementList>
+				<element map="0" id="10919820581878161813" rt="810.0" mz="186.089999999999719" it="8.0e04" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="best ion" value="[M-3H-2O]+"/>
+			<UserParam type="int" name="row ID" value="8"/>
+			<UserParam type="int" name="annotation network number" value="3"/>
+			<UserParam type="int" name="partners" value="6"/>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>
