@@ -193,6 +193,20 @@ namespace OpenMS
 
   void FeatureGroupingAlgorithm::annotateIonIdentityNetworks(ConsensusMap& out) const
   {
+    // bipartite graph with ConsensusFeature indexes and Groups from Features
+    // Vertexes contain uid (index/Group) and is_feature (bool)
+    // e.g. 
+    // ConsensusFeature0 contains Feature (Group = 1) and Feature (Group = 2)
+    // ConsensusFeature1 contains Feature (Group = 2) and Feature (Group = 3)
+    // ConsensusFeature2 contains Feature (Group = 4) and Feature (Group = 5)
+    // graph looks like (Vertex <--> Vertex; component_number)
+    // 0, true <--> 1, false; 0
+    // 0, true <--> 2, false; 0
+    // 1, true <--> 2, false; 0
+    // 1, true <--> 3, false; 0
+    // 2, true <--> 4, false; 1
+    // 2, true <--> 5, false; 1
+    // Total number of components: 2
     UndirectedOSMIdGraph g;
 
     for (size_t i = 0; i < out.size(); i++)
