@@ -286,7 +286,7 @@ START_SECTION((void disableTransitions()))
 END_SECTION
 
 START_SECTION((void calculateEmissionProbabilities(Map<HMMState*, double>& emission_probs)))
-  std::map<HMMState*, double> emission_probs;
+	std::map<HMMState*, double> emission_probs;
 	the_hmm.calculateEmissionProbabilities(emission_probs);
 	TEST_EQUAL(emission_probs.size(), 3)
 	double sum(0);
