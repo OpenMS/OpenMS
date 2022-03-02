@@ -54,6 +54,7 @@ namespace OpenMS
     connect(ui_->button_box, SIGNAL(accepted()), this, SLOT(calculateSpectrum()));
 
     // signals for changing isotope model interface
+    // there has to be a smarter way of doing this
     connect(ui_->model_none, SIGNAL(toggled(bool)), this, SLOT(modelChanged()));
     connect(ui_->model_coarse, SIGNAL(toggled(bool)), this, SLOT(modelChanged()));
     connect(ui_->model_fine, SIGNAL(toggled(bool)), this, SLOT(modelChanged()));
@@ -86,7 +87,6 @@ namespace OpenMS
   Param TheoreticalSpectrumGenerationDialog::getParam() const
   {
     Param p;
-    p.setValue("charge", ui_->spin_box->value());
 
     // add checkboxes to parameters, i.e. ion types
     for (Checkbox c : check_box_names)
@@ -95,6 +95,9 @@ namespace OpenMS
       String status_str = status ? "true" : "false";
       p.setValue(checkbox_to_param.at(c).first, status_str, checkbox_to_param.at(c).second);
     }
+
+    // charge
+    p.setValue("charge", ui_->spin_box->value());
 
     // isotopes
     if (!ui_->model_none->isChecked()) // add isotopes if any other model than 'None' is chosen
