@@ -63,7 +63,7 @@ namespace OpenMS
     ui_->model_none->setChecked(true);
 
     // select b- and y-ions as residue types by default
-    for (Checkbox c : check_box_names)
+    for (const Checkbox& c : check_box_names)
     {
       if (c == Checkbox::B_Ions || c == Checkbox::Y_Ions)
       {
@@ -89,7 +89,7 @@ namespace OpenMS
     Param p;
 
     // add checkboxes to parameters, i.e. ion types
-    for (Checkbox c : check_box_names)
+    for (const Checkbox& c : check_box_names)
     {
       bool status = (ui_->list_widget->item(int(c))->checkState() == Qt::Checked);
       String status_str = status ? "true" : "false";
