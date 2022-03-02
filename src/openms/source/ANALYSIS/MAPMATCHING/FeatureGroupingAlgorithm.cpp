@@ -193,48 +193,11 @@ namespace OpenMS
 
   void FeatureGroupingAlgorithm::annotateIonIdentityNetworks(ConsensusMap& out) const
   {
-    // set row ID for each feature and reformat best ion
-    for (size_t i = 0; i < out.size(); i++)
-    {
-      out[i].setMetaValue(Constants::UserParam::ROW_ID, i+1);
-      if (out[i].metaValueExists(Constants::UserParam::BEST_ION))
-      {
-        String best_ion = out[i].getMetaValue(Constants::UserParam::BEST_ION);
-        String formatted_best_ion = "[M";
-        std::smatch matches;
-        std::regex_search(best_ion, matches, std::regex(".*[^\\d]+"));
-        if (matches.ready())
-        {
-          if (matches.str(0).rfind("-", 0) == 0)
-          {
-            formatted_best_ion += matches.str(0);
-          } else
-          {
-            formatted_best_ion += "+";
-            formatted_best_ion += matches.str(0);
-          }
-        }
-        formatted_best_ion += "]";
-        std::regex_search(best_ion, matches, std::regex("\\d$"));
-        if (matches.ready())
-        {
-          if (matches.str(0) == "1")
-          {
-            formatted_best_ion += "+";
-          } else
-          {
-            formatted_best_ion += matches.str(0);
-            formatted_best_ion += "+";
-          }
-        }
-        out[i].setMetaValue(Constants::UserParam::BEST_ION, formatted_best_ion);
-      }
-    }
-
     UndirectedOSMIdGraph g;
 
     for (size_t i = 0; i < out.size(); i++)
     {
+      out[i].setMetaValue(Constants::UserParam::ROW_ID, i+1);
       if (!out[i].metaValueExists(Constants::UserParam::LINKED_GROUPS)) continue;
       auto feature_vertex = add_vertex(VertexLabel(String(i), true), g);
       for (const auto& group: out[i].getMetaValue(Constants::UserParam::LINKED_GROUPS).toStringList())

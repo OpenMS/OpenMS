@@ -37,6 +37,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -505,25 +506,35 @@ namespace OpenMS
   void FeatureGroupingAlgorithmKD::addConsensusFeature_(const vector<Size>& indices, const KDTreeFeatureMaps& kd_data, ConsensusMap& out) const
   {
     ConsensusFeature cf;
+    Adduct adduct;
     float avg_quality = 0;
-    // determine best quality feature for adduct ion annotation (best_ion)
+    // determine best quality feature for adduct ion annotation (Constanst::UserParam::BEST_ION)
     float best_quality = 0;
-    // collect the "Group" MetaValues of Features in a ConsensusFeature in a partners vector
+    size_t best_quality_index = 0;
+    // collect the "Group" MetaValues of Features in a ConsensusFeature MetaValue (Constanst::UserParam::LINKED_GROUPS)
     vector<String> linked_groups;
     for (vector<Size>::const_iterator it = indices.begin(); it != indices.end(); ++it)
     {
       Size i = *it;
       cf.insert(kd_data.mapIndex(i), *(kd_data.feature(i)));
       avg_quality += kd_data.feature(i)->getQuality();
-      if (kd_data.feature(i)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) && (kd_data.feature(i)->getQuality() > best_quality))
+      if (kd_data.feature(i)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) &&
+         (kd_data.feature(i)->getQuality() > best_quality) &&
+         (kd_data.feature(i)->getCharge()))
       {
-       cf.setMetaValue(Constants::UserParam::BEST_ION, kd_data.feature(i)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
        best_quality = kd_data.feature(i)->getQuality();
+       best_quality_index = i;
       }
       if (kd_data.feature(i)->metaValueExists(Constants::UserParam::ADDUCT_GROUP))
       {
         linked_groups.push_back(kd_data.feature(i)->getMetaValue(Constants::UserParam::ADDUCT_GROUP));
       }
+    }
+    if (kd_data.feature(best_quality_index)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+    {
+      cf.setMetaValue(Constants::UserParam::BEST_ION, 
+                      adduct.toAdductString(kd_data.feature(best_quality_index)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS),
+                                            kd_data.feature(best_quality_index)->getCharge()));
     }
     if (!linked_groups.empty())
     {

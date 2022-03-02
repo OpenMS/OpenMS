@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -527,9 +528,11 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
   {
     feature.setQuality(quality);
 
-    // determine best quality feature for adduct ion annotation (best_ion)
+    Adduct adduct;
+    // determine best quality feature for adduct ion annotation (Constanst::UserParam::BEST_ION)
     float best_quality = 0;
-    // collect the "Group" MetaValues of Features in a ConsensusFeature "groups" MetaValue
+    size_t best_quality_index = 0;
+    // collect the "Group" MetaValues of Features in a ConsensusFeature MetaValue (Constanst::UserParam::LINKED_GROUPS)
     vector<String> linked_groups;
     // the features of the current best cluster are inserted into the new consensus feature
     for (const auto& element : elements)
@@ -546,13 +549,19 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
       }
       if (elem_feat.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) && (elem_feat.getQuality() > best_quality))
       {
-       feature.setMetaValue(Constants::UserParam::BEST_ION, elem_feat.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
-       best_quality = elem_feat.getQuality();
+        feature.setMetaValue(Constants::UserParam::BEST_ION, elem_feat.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
+        best_quality = elem_feat.getQuality();
       }
       if (elem_feat.metaValueExists(Constants::UserParam::ADDUCT_GROUP))
       {
         linked_groups.push_back(elem_feat.getMetaValue(Constants::UserParam::ADDUCT_GROUP));
       }
+    }
+    if (elements[best_quality_index].feature->getFeature().metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+    {
+      feature.setMetaValue(Constants::UserParam::BEST_ION, 
+                      adduct.toAdductString(elements[best_quality_index].feature->getFeature().getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS),
+                                            elements[best_quality_index].feature->getFeature().getCharge()));
     }
     if (!linked_groups.empty())
     {
