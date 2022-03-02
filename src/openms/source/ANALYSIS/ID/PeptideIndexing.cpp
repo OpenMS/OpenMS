@@ -124,9 +124,10 @@ using namespace std;
       other.filter_rejected = 0;
     }
 
-    bool validate(const String& seq_prot, const Int position, const Int len_pep)
+    bool validate(const String& seq_prot, const Int position, const Int len_pep, const bool allow_nterm_protein_cleavage)
     {
-      return enzyme.isValidProduct(seq_prot, position, len_pep, true, true, xtandem_);
+      const bool ignore_missed_cleavages = true;
+      return enzyme.isValidProduct(seq_prot, position, len_pep, ignore_missed_cleavages, allow_nterm_protein_cleavage, xtandem_);
     }
 
     void addHit(
@@ -163,7 +164,7 @@ using namespace std;
 
   // free function (not exported) used to add hits
   void search(ACTrie& trie, ACTrieState& state, const String& prot, const String& full_prot, size_t prot_offset, Hit::T idx_prot, 
-              FoundProteinFunctor& func_threads)
+              FoundProteinFunctor& func_threads, const bool allow_nterm_protein_cleavage)
   {
     state.setQuery(prot);
     trie.getAllHits(state);
@@ -181,7 +182,7 @@ using namespace std;
       Hit::T pos = Hit::T(hit.query_pos + prot_offset);
       if (!(hit.needle_length == old.needle_length && hit.query_pos == old.query_pos))
       { // new stretch in protein. Validate if cutting site
-        last_valid = func_threads.validate(full_prot, pos, hit.needle_length);
+        last_valid = func_threads.validate(full_prot, pos, hit.needle_length, allow_nterm_protein_cleavage);
       }
       func_threads.addHit(last_valid, hit.needle_index, idx_prot, hit.needle_length, full_prot, pos);
       old = hit;
@@ -242,6 +243,9 @@ using namespace std;
     defaults_.setValue("IL_equivalent", "false", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable). Also occurrences of 'J' will be treated as 'I' thus avoiding ambiguous matching.");
     defaults_.setValidStrings("IL_equivalent", { "true", "false" });
 
+    defaults_.setValue("allow_nterm_protein_cleavage", "true", "Allow the protein N-terminus amino acid to clip.");
+    defaults_.setValidStrings("allow_nterm_protein_cleavage", { "true", "false" });
+
     defaultsToParam_();
   }
 
@@ -263,6 +267,7 @@ using namespace std;
     IL_equivalent_ = param_.getValue("IL_equivalent").toBool();
     aaa_max_ = static_cast<Int>(param_.getValue("aaa_max"));
     mm_max_ = static_cast<Int>(param_.getValue("mismatches_max"));
+    allow_nterm_protein_cleavage_ = param_.getValue("allow_nterm_protein_cleavage").toBool();
   }
 
 PeptideIndexing::ExitCodes PeptideIndexing::run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
@@ -348,6 +353,11 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
     OPENMS_LOG_INFO << "Peptide identification engine: " << search_engine << std::endl;
     if (search_engine == "XTANDEM" || prot_id.getSearchParameters().metaValueExists("SE:XTandem")) { xtandem_fix_parameters = true; }
     if (search_engine == "MS-GF+" || search_engine == "MSGFPLUS" || prot_id.getSearchParameters().metaValueExists("SE:MS-GF+")) { msgfplus_fix_parameters = true; }
+  }
+
+  if (xtandem_fix_parameters)
+  {
+    OPENMS_LOG_WARN << "X!Tandem detected. Allowing random Asp/Pro cleavage." << std::endl;
   }
 
   // including MSGFPlus -> Trypsin/P as enzyme
@@ -531,7 +541,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
             }
           }
 
-          const Hit::T prot_idx = i + proteins.getChunkOffset();
+          const Hit::T prot_idx = Hit::T(i + proteins.getChunkOffset());
           
           // grab #hits before searching protein; we know its a hit if this number changes
           const Size hits_total = func_threads.filter_passed + func_threads.filter_rejected;
@@ -544,7 +554,8 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
             while ((offset = prot.find(jumpX, offset + 1)) != std::string::npos)
             {
               //std::cout << "found X..X at " << offset << " in protein " << proteins[i].identifier << "\n";
-              search(ac_trie, ac_state, prot.substr(start, offset + jumpX.size() - start), prot, start, prot_idx, func_threads);
+              search(ac_trie, ac_state, prot.substr(start, offset + jumpX.size() - start), prot, start, prot_idx, func_threads,
+                     allow_nterm_protein_cleavage_);
               // skip ahead while we encounter more X...
               while (offset + jumpX.size() < prot.size() && prot[offset + jumpX.size()] == 'X') ++offset;
               start = offset;
@@ -553,12 +564,12 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
             // last chunk
             if (start < prot.size())
             {
-              search(ac_trie, ac_state, prot.substr(start), prot, start, prot_idx, func_threads);
+              search(ac_trie, ac_state, prot.substr(start), prot, start, prot_idx, func_threads, allow_nterm_protein_cleavage_);
             }
           }
           else // search the whole protein at once
           {
-            search(ac_trie, ac_state, prot, prot, 0, prot_idx, func_threads);
+            search(ac_trie, ac_state, prot, prot, 0, prot_idx, func_threads, allow_nterm_protein_cleavage_);
           }
           // was protein found?
           if (hits_total < func_threads.filter_passed + func_threads.filter_rejected)

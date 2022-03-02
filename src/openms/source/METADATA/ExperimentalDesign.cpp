@@ -636,13 +636,14 @@ namespace OpenMS
             __FILE__,
             __LINE__,
             OPENMS_PRETTY_FUNCTION,
-            "Fraction groups do not start with 1.",
-            String(msfile_section_[0].fraction_group));
+            "Labels do not start with 1.",
+            String(msfile_section_[0].label));
       }
 
       Size last_fraction = 1;
       Size last_label = 1;
       Size last_fraction_group = 0;
+      
       for (const MSFileSectionEntry& row : msfile_section_)
       {
         if (row.fraction_group != last_fraction_group)
@@ -704,7 +705,7 @@ namespace OpenMS
                 String(row.fraction));
           }
         }
-        else // only label increased
+        else // only label may have changed
         {
           ++last_label;
           if (row.label != last_label)

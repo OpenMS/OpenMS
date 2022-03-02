@@ -37,6 +37,7 @@ project("OpenMS_class_tests_openms_gui")
 
 set(visual_executables_list
   AxisTickCalculator_test
+  GUIHelpers_test
   MultiGradient_test
 )
 
