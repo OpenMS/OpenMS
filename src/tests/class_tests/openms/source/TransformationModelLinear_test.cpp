@@ -116,8 +116,8 @@ START_SECTION((void getParameters(Param & params) const))
   TEST_EQUAL(lm0.getParameters(), p_out);
 
   //add additional data and test without weightings
-  p_in.setValue("x_weight", "");
-  p_in.setValue("y_weight", "");
+  p_in.setValue("x_weight", "1");
+  p_in.setValue("y_weight", "1");
   p_in.setValue("x_datum_min", 10e-5);
   p_in.setValue("x_datum_max", 1e15);
   p_in.setValue("y_datum_min", 10e-8);
@@ -132,8 +132,8 @@ START_SECTION((void getParameters(Param & params) const))
   p_in.clear();
   p_in.setValue("slope", 12.3);
   p_in.setValue("intercept", -45.6);
-  p_in.setValue("x_weight", "");
-  p_in.setValue("y_weight", "");
+  p_in.setValue("x_weight", "1");
+  p_in.setValue("y_weight", "1");
   p_in.setValue("x_datum_min", 10e-5);
   p_in.setValue("x_datum_max", 1e15);
   p_in.setValue("y_datum_min", 10e-8);
@@ -149,7 +149,7 @@ START_SECTION(([EXTRA] void getParameters(double&, double&, String&, String&, do
   param.setValue("slope", 12.3);
   param.setValue("intercept", -45.6);  
   String x_weight_test, y_weight_test;
-  x_weight_test = "";
+  x_weight_test = "1";
   y_weight_test = "ln(y)";
   param.setValue("x_weight", x_weight_test);
   param.setValue("y_weight", y_weight_test);
