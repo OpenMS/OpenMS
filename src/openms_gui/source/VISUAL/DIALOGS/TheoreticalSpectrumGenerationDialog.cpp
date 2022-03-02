@@ -178,6 +178,12 @@ namespace OpenMS
       return;
     }
 
+    if (spec_.empty())
+    {
+      QMessageBox::warning(this, "Error", QString("The generated spectrum was empty and will not be drawn!"));
+      return;
+    }
+
     this->accept();
   }
 

@@ -1988,16 +1988,11 @@ namespace OpenMS
 
   void TOPPViewBase::showSpectrumGenerationDialog()
   {
-    TheoreticalSpectrumGenerationDialog spec_gen_dialog;
-    if (spec_gen_dialog.exec())
+    //TheoreticalSpectrumGenerationDialog spec_gen_dialog;
+    if (spec_gen_dialog_.exec())
     {
       // spectrum is generated in the dialog, so just receive it here
-      PeakSpectrum spectrum = spec_gen_dialog.getSpectrum();
-      if (spectrum.empty())
-      {
-        QMessageBox::warning(this, "Error", QString("The generated spectrum is empty!"));
-        return;
-      }
+      PeakSpectrum spectrum = spec_gen_dialog_.getSpectrum();
 
       PeakMap new_exp;
       new_exp.addSpectrum(spectrum);
@@ -2006,7 +2001,7 @@ namespace OpenMS
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
       ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
       vector<PeptideIdentification> p_dummy;
-      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerDataBase::DT_PEAK, false, true, true, "", spec_gen_dialog.getSequence() + " (theoretical)");
+      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerDataBase::DT_PEAK, false, true, true, "", spec_gen_dialog_.getSequence() + " (theoretical)");
 
       // ensure spectrum is drawn as sticks
       draw_group_1d_->button(Plot1DCanvas::DM_PEAKS)->setChecked(true);
