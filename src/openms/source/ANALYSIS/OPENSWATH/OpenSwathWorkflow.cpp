@@ -457,8 +457,6 @@ namespace OpenMS
     tsv_writer.writeHeader();
     osw_writer.writeHeader();
 
-    OPENMS_LOG_WARN << "JOSH: First swath map is m/z " << swath_maps[1].center << " with lower IM of " << swath_maps[1].imLower << std::endl;
-
     bool ms1_only = (swath_maps.size() == 1 && swath_maps[0].ms1);
 
     // Compute inversion of the transformation
@@ -620,7 +618,6 @@ namespace OpenMS
         {
           // Step 1.2: select transitions based on matching PRM/PASEF window (best window) 
           std::set<std::string> matching_compounds;
-
           for (Size k = 0; k < prm_map.size(); k++)
           {
             if (prm_map[k] == i)

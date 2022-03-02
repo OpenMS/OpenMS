@@ -50,7 +50,6 @@ namespace OpenSwath
     double center;
     double imLower;
     double imUpper;
-
     bool ms1;
 
     SwathMap() :

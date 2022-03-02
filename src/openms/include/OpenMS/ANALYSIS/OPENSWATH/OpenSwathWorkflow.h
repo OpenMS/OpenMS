@@ -407,7 +407,7 @@ protected:
      *
      **/
     OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, bool pasef, int threads_outer_loop) :
-      OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, prm, pasef, threads_outer_loop)
+    OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, prm, pasef, threads_outer_loop)
     {
     }
 
