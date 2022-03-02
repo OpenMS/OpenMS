@@ -186,7 +186,7 @@ namespace OpenMS
     out.writeValueOrNan(feature.getQuality());
     if (incl_IIMN)
     {
-      for (const auto& k: {Constants::UserParam::ROW_ID,
+      for (const auto& k: {Constants::UserParam::IIMN_ROW_ID,
                            Constants::UserParam::BEST_ION,
                            Constants::UserParam::ADDUCT_PARTNERS,
                            Constants::UserParam::ANNOTATION_NETWORK_NUMBER})
@@ -237,7 +237,7 @@ namespace OpenMS
     }
     if (incl_IIMN & write_IIMN)
     {
-      for (const auto& k: {Constants::UserParam::ROW_ID,
+      for (const auto& k: {Constants::UserParam::IIMN_ROW_ID,
                            Constants::UserParam::BEST_ION,
                            Constants::UserParam::ADDUCT_PARTNERS,
                            Constants::UserParam::ANNOTATION_NETWORK_NUMBER})

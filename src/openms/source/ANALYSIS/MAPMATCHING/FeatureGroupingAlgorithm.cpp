@@ -197,7 +197,7 @@ namespace OpenMS
 
     for (size_t i = 0; i < out.size(); i++)
     {
-      out[i].setMetaValue(Constants::UserParam::ROW_ID, i+1);
+      out[i].setMetaValue(Constants::UserParam::IIMN_ROW_ID, i+1);
       if (!out[i].metaValueExists(Constants::UserParam::LINKED_GROUPS)) continue;
       auto feature_vertex = add_vertex(VertexLabel(String(i), true), g);
       for (const auto& group: out[i].getMetaValue(Constants::UserParam::LINKED_GROUPS).toStringList())
@@ -250,10 +250,10 @@ namespace OpenMS
         {
           out[i.first].setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, out[i.first].getMetaValue(Constants::UserParam::ADDUCT_PARTNERS).toString()
                               +";"
-                              +out[j].getMetaValue(Constants::UserParam::ROW_ID).toString());
+                              +out[j].getMetaValue(Constants::UserParam::IIMN_ROW_ID).toString());
         } else
         {
-          out[i.first].setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, out[j].getMetaValue(Constants::UserParam::ROW_ID));
+          out[i.first].setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, out[j].getMetaValue(Constants::UserParam::IIMN_ROW_ID));
         }
       }
     }

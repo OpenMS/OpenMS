@@ -447,7 +447,7 @@ namespace OpenMS
       */
       inline const std::string   BEST_ION = "best ion";
 
-      /** User parameter name for a ConsensusFeature. Represents the ROW_IDs of related ConsensusFeatures defined by MetaboliteAdductDecharger.
+      /** User parameter name for a ConsensusFeature. Represents the IIMN_ROW_IDs of related ConsensusFeatures defined by MetaboliteAdductDecharger.
        *  Partners are separated by semin colon. (Required for IIMN)
               List of String
       */
@@ -456,7 +456,7 @@ namespace OpenMS
       /** User parameter name for a unique ConsensusFeature index in a ConsensusMap. (Required for IIMN)
               String
       */
-      inline const std::string   ROW_ID = "row ID";
+      inline const std::string   IIMN_ROW_ID = "row ID";
 
       /** User parameter name for a ConsensusFeature to indicate a metabolite with different adduct states. (Required for IIMN)
               String
