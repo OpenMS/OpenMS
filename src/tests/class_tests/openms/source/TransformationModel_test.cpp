@@ -138,7 +138,7 @@ START_SECTION((double weightDatum(double& datum, const string& weight) const))
   Param param;
   TransformationModel dw(data, param);
   string test;
-  test = "";
+  test = "x";
   double inf = std::numeric_limits<double>::infinity();
   TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), 0.0);
   TEST_REAL_SIMILAR(dw.weightDatum(2.0,test), 2.0);
@@ -183,7 +183,7 @@ START_SECTION((double weightDatum(double& datum, const string& weight) const))
   Param param;
   TransformationModel dw(data, param);
   string test;
-  test = "";
+  test = "x";
   TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), 0.0);
   TEST_REAL_SIMILAR(dw.weightDatum(2.0,test), 2.0);
   TEST_REAL_SIMILAR(dw.weightDatum(10e13,test), 10e13);
@@ -302,7 +302,7 @@ START_SECTION((double unWeightDatum(double& datum, const string& weight) const))
   Param param;
   TransformationModel dw(data, param);
   string test;
-  test = "";
+  test = "x";
   TEST_REAL_SIMILAR(dw.unWeightDatum(0.0,test), 0.0);
   TEST_REAL_SIMILAR(dw.unWeightDatum(2.0,test), 2.0);
   test = "none";
@@ -340,7 +340,7 @@ START_SECTION((virtual void unWeightData(DataPoints& data, const Param& params))
     Param param;
     TransformationModel::getDefaultParameters(param);
     param.setValue("x_weight", "ln(x)");
-    param.setValue("y_weight", "");
+    param.setValue("y_weight", "y");
     TransformationModel dw(data, param);
     test1.clear();
     point.first = std::exp(0.0);
