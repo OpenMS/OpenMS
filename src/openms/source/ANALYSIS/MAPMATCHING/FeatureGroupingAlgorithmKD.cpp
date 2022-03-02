@@ -511,7 +511,7 @@ namespace OpenMS
     // determine best quality feature for adduct ion annotation (Constanst::UserParam::BEST_ION)
     float best_quality = 0;
     size_t best_quality_index = 0;
-    // collect the "Group" MetaValues of Features in a ConsensusFeature MetaValue (Constanst::UserParam::LINKED_GROUPS)
+    // collect the "Group" MetaValues of Features in a ConsensusFeature MetaValue (Constant::UserParam::LINKED_GROUPS)
     vector<String> linked_groups;
     for (vector<Size>::const_iterator it = indices.begin(); it != indices.end(); ++it)
     {
