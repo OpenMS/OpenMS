@@ -257,7 +257,7 @@ namespace OpenMS
         auto feature_partners = boost::adjacent_vertices(gn, g);
         for (auto partner : make_iterator_range(feature_partners))
         {
-          if (g[i].uid == g[partner].uid) continue;
+          if (i == partner) continue;
           partner_map[stoi(g[i].uid)].insert(stoi(g[partner].uid));
         }
       }
