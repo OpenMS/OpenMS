@@ -289,7 +289,7 @@ protected:
         {
           reason = "No seed found";
         }
-        if (abort_strings.has(reason))
+        if (abort_strings.find(reason) != abort_strings.end())
         {
           abort_strings[reason]++;
         }
