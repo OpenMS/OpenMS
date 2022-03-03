@@ -69,7 +69,7 @@ Weights createWeights()
   }
 
   // initializes weights
-  Weights weights(alphabet.getMasses(), ConstIterator0.01);
+  Weights weights(alphabet.getMasses(), 0.01);
 
   // optimize alphabet by dividing by gcd
   weights.divideByGCD();

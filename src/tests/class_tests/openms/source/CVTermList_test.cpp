@@ -140,9 +140,10 @@ START_SECTION((const Map<String, std::vector<CVTerm> >& getCVTerms() const ))
   cv_terms.push_back(cv_term);
   cv_terms.push_back(cv_term2);
   cv_term_list.setCVTerms(cv_terms);
-  TEST_EQUAL(cv_term_list.getCVTerms().size(), 2);
-  TEST_EQUAL(cv_term_list.getCVTerms().has("my_accession"), true);
-  TEST_EQUAL(cv_term_list.getCVTerms().has("my_accession2"), true);
+  const auto& t = cv_term_list.getCVTerms();
+  TEST_EQUAL(t.size(), 2);
+  TEST_EQUAL(t.find("my_accession") != t.end(), true);
+  TEST_EQUAL(t.find("my_accession2") != t.end(), true);
 }
 END_SECTION
 
@@ -208,7 +209,7 @@ START_SECTION((void replaceCVTerms(const Map<String, vector<CVTerm> >& cv_term_m
   tmp2.push_back(cv_term2);
   std::map<String, std::vector<CVTerm> >new_terms;
   new_terms["my_accession2"] = tmp2;
-  TEST_EQUAL(new_terms.has("my_accession2"), true);
+  TEST_EQUAL(new_terms.find("my_accession2") != new_terms.end(), true);
 
   // create CVTermList with old "my_accession"
   CVTermList cv_term_list;
