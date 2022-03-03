@@ -83,8 +83,8 @@ namespace OpenMS
     {Checkbox::Y_Ions, {"add_y_ions", "Add peaks of y-ions to the spectrum"}},
     {Checkbox::Z_Ions, {"add_z_ions", "Add peaks of z-ions to the spectrum"}},
     {Checkbox::Precursor, {"add_precursor_peaks", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes"}},
-    {Checkbox::Neutral_losses, {"add_losses", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered"}},
-    {Checkbox::Abundant_Immonium_Ions, {"add_abundant_immonium_ions", "Add most abundant immonium ions"}}};
+    {Checkbox::Neutral_losses, {"add_losses", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered (peptide sequences only)"}},
+    {Checkbox::Abundant_Immonium_Ions, {"add_abundant_immonium_ions", "Add most abundant immonium ions (peptide sequences only)"}}};
 
   // specific checkboxes (TheoreticalSpectrumGenerator (peptide) vs. NucleicAcidSpectrumGenerator (rna))
   const std::vector<Checkbox> rna_specific_ions {Checkbox::A_b_Ions, Checkbox::D_Ions, Checkbox::W_Ions};
