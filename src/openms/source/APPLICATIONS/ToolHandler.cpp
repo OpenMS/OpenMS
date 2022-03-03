@@ -294,8 +294,10 @@ namespace OpenMS
 
   bool ToolHandler::checkDuplicated(const String& toolname)
   {
-    bool in_utils = getUtilList().find(toolname) != getUtilList().end();
-    bool in_tools = getTOPPToolList().find(toolname) != getUtilList().end();
+    ToolListType utilmap = getUtilList();
+    ToolListType toppmap = getTOPPToolList();
+    bool in_utils = utilmap.find(toolname) != utilmap.end();
+    bool in_tools = toppmap.find(toolname) != toppmap.end();
     bool duplicated = in_utils && in_tools;
     return duplicated;
   }
