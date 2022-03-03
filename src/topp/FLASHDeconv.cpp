@@ -42,6 +42,7 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -177,7 +178,7 @@ protected:
     setMinInt_("write_detail", 0);
     setMaxInt_("write_detail", 1);
 
-    registerIntOption_("max_MS_level", "", 2, "maximum MS level (inclusive) for deconvolution.", false, true);
+    registerIntOption_("max_MS_level", "", 3, "maximum MS level (inclusive) for deconvolution.", false, true);
     setMinInt_("max_MS_level", 1);
 
     registerIntOption_("forced_MS_level",
@@ -622,6 +623,7 @@ protected:
       if (ensemble)
       {
         auto &espec = ensemble_map[it.getMSLevel() - 1];
+
         for (auto &p: it)
         {
           espec.push_back(p);
@@ -653,15 +655,14 @@ protected:
         //pickParam.setValue("spacing_difference", 2.0);
         //pickParam.setValue("missing", 0);
 
-        pickerHiRes.setParameters(pickParam);
+        //pickerHiRes.setParameters(pickParam);
         auto tmp_spec = ensemble_map[i];
         pickerHiRes.pick(tmp_spec, ensemble_map[i]);
 
-        // PeakPickerCWT picker;
-        // tmp_spec = ensemble_map[i];
+        //PeakPickerCWT picker;
+        //auto tmp_spec = ensemble_map[i];
         //picker.pick(tmp_spec, ensemble_map[i]);
       }
-
       map = ensemble_map;
     }
     // Run FLASHDeconv here
