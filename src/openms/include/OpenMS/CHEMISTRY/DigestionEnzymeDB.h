@@ -109,7 +109,7 @@ namespace OpenMS
     /// @throw Exception::IllegalArgument if enzyme regex  is unregistered.
     const DigestionEnzymeType* getEnzymeByRegEx(const String& cleavage_regex) const
     {
-      if (!enzyme_regex_.has(cleavage_regex))
+      if (!hasRegEx(cleavage_regex))
       {
         // @TODO: why does this use a different exception than "getEnzyme"?
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -141,7 +141,7 @@ namespace OpenMS
     /// returns true if the db contains a enzyme with the given regex
     bool hasRegEx(const String& cleavage_regex) const
     {
-      return enzyme_regex_.has(cleavage_regex);
+      return (enzyme_regex_.find(cleavage_regex) != enzyme_regex_.end());
     }
 
     /// returns true if the db contains the enzyme of the given pointer
