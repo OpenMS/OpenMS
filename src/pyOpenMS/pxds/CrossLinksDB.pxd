@@ -1,6 +1,6 @@
 from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
-from Map cimport *
+from libcpp.map cimport map as cpp_map
 from String cimport *
 from ResidueModification cimport *
 #from libcpp.memory cimport unique_ptr as libcpp_unique_ptr

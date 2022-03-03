@@ -1,7 +1,7 @@
+from libcpp.map cimport map as cpp_map
 from Types cimport *
 from CVTermList cimport *
 from Peak1D cimport *
-from Map cimport *
 
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 

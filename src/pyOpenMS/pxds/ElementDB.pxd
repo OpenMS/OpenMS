@@ -1,7 +1,7 @@
 from Types cimport *
 from libcpp cimport bool
+from libcpp.map cimport map as cpp_map
 from String cimport *
-from Map cimport *
 from Element cimport *
 from IsotopeDistribution cimport *
 

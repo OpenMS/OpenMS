@@ -5,7 +5,6 @@ from PeptideIdentification cimport *
 from AASequence cimport *
 from XMLFile cimport *
 from SpectrumMetaDataLookup cimport *
-from Map cimport *
 from MSExperiment cimport *
 
 cdef extern from "<OpenMS/FORMAT/MascotXMLFile.h>" namespace "OpenMS":

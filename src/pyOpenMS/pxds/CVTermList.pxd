@@ -1,5 +1,5 @@
 from libcpp cimport bool
-from Map cimport *
+from libcpp.map cimport map as cpp_map
 from String cimport *
 from MetaInfoInterface cimport *
 from CVTerm cimport *
@@ -27,9 +27,9 @@ cdef extern from "<OpenMS/METADATA/CVTermList.h>" namespace "OpenMS":
         void replaceCVTerms(libcpp_vector[CVTerm] cv_terms, String accession) nogil except +
         # void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
 
-        void consumeCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except + # wrap-doc:Merges the given map into the member map, no duplicate checking
+        void consumeCVTerms(cpp_map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except + # wrap-doc:Merges the given map into the member map, no duplicate checking
 
-        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except + # wrap-doc:Returns the accession string of the term
+        cpp_map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except + # wrap-doc:Returns the accession string of the term
         void addCVTerm(CVTerm & term)                   nogil except + # wrap-doc:Adds a CV term
 
         bool operator==(CVTermList)  nogil except +

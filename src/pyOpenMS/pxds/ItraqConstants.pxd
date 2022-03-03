@@ -1,7 +1,7 @@
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp cimport bool
+from libcpp.map cimport map as cpp_map
 from Types cimport *
-from Map cimport *
 from Peak2D cimport *
 from String cimport *
 from StringList cimport *
