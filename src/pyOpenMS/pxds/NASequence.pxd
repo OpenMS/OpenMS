@@ -1,5 +1,4 @@
 from libcpp cimport bool
-from libcpp.map cimport map as cpp_map
 from Types cimport *
 from String cimport *
 from Residue cimport *
