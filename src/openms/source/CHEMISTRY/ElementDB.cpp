@@ -564,14 +564,7 @@ namespace OpenMS
     map<unsigned int, double> radon_mass = {{220u, 220.0113941}, {222u, 222.0175782}};
     buildElement_("Radon", "Rn", 86u, radon_abundance, radon_mass);
 
-
-    map<unsigned int, double> francium_abundance = {{223u, 0.0000001}};
-    map<unsigned int, double> francium_mass = {{223u, 223.0197360}};
-    buildElement_("Francium", "Fr", 87u, francium_abundance, francium_mass);
-
-
     // Radium(Ra) abundance is not known.
-
 
     map<unsigned int, double> thorium_abundance = {{230u, 0.0002}, {232u, 0.9998}};
     map<unsigned int, double> thorium_mass = {{230u, 230.033133800000002}, {232u, 232.038055299999996}};
@@ -586,10 +579,6 @@ namespace OpenMS
     map<unsigned int, double> uranium_abundance = {{234u,  0.000054}, {235u, 0.007204}, {238u, 0.992742}};
     map<unsigned int, double> uranium_mass = {{234u,  234.040950}, {235u,  235.043928}, {238u,   238.05079}};
     buildElement_("Uranium", "U", 92u, uranium_abundance, uranium_mass);
-
-    map<unsigned int, double> neptunium_abundance = {{236u, 0.0000}, {237u, 0.0000}};
-    map<unsigned int, double> neptunium_mass = {{236u, 236.046570}, {237u, 237.0481736}};
-    buildElement_("Neptunium", "Np", 93u, neptunium_abundance, neptunium_mass);
 
     // Pu, Am, Cm, Bk, Cf, Es, Fm, Md, No, Lr, Rf, Db, Sg, Bh, Hs, Mt, Ds, Rg, Cn, Nh, Fl, Mc, Lv, Ts and Og Abundances are not known.
 
