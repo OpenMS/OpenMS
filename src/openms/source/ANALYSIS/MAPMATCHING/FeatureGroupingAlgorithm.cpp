@@ -215,7 +215,8 @@ namespace OpenMS
 
     // For each ConsensusFeature: add Constants::UserParam::IIMN_ROW_ID and if Constants::UserParam::IIMN_LINKED_GROUPS is present
     // add a Vertex for the ConsensusFeature and all corresponding Groups to bipartite graph.
-    // Check if a Group Vertex has been added already, since the same Group can occur multiple times.
+    // Check if a Group Vertex has been added already to the graph, since the same Group can occur multiple times.
+    unordered_map<String, size_t> already_in_graph; // <group_uid, vertex_index>
     for (size_t i = 0; i < out.size(); i++)
     {
       out[i].setMetaValue(Constants::UserParam::IIMN_ROW_ID, i+1);
@@ -223,19 +224,13 @@ namespace OpenMS
       auto feature_vertex = add_vertex(VertexLabel(String(i), true), g);
       for (const auto& group: out[i].getMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS).toStringList())
       {
-        bool already_set = false;
         for (auto i : boost::make_iterator_range(vertices(g)))
         {
-            if ((group == g[i].uid) && (!g[i].is_feature)) 
+            if (already_in_graph[i]) 
             {
               boost::add_edge(feature_vertex, i, g);
-              already_set = true;
-              break;
             }
-        }
-        if (!already_set)
-        {
-          boost::add_edge(feature_vertex, add_vertex(VertexLabel(group, false), g), g);
+            else boost::add_edge(feature_vertex, add_vertex(VertexLabel(group, false), g), g);
         }
       }
     }
