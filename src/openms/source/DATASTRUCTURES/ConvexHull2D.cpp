@@ -262,7 +262,7 @@ namespace OpenMS
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    if (map_points_.find(point[0]) != map_points_.end()
+    if (map_points_.find(point[0]) != map_points_.end())
     {
       if (map_points_.at(point[0]).encloses(point[1]))
       {

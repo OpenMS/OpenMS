@@ -218,7 +218,7 @@ namespace OpenMS
               map_index = simulated_features[f_index].getMetaValue("map_index");
             }
 
-            if (charge_mapping.has(simulated_features[f_index].getMetaValue("charge_adducts")))
+            if (charge_mapping.find(simulated_features[f_index].getMetaValue("charge_adducts")) != charge_mapping.end() )
             {
               charge_mapping[simulated_features[f_index].getMetaValue("charge_adducts")].insert(FeatureHandle(map_index, simulated_features[f_index]));
             }
