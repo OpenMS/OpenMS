@@ -50,11 +50,15 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/connected_components.hpp>
 
+// VertexLabel is used for IINM to build a bipartite graph using UndirectedOSMIdGraph
 struct VertexLabel
 {
     VertexLabel() = default;
     VertexLabel(OpenMS::String u, bool is_feat):uid(u), is_feature(is_feat) {}
-    OpenMS::String uid = "0";
+    // if feature vertex: index (0 to n) for a feature in ConsensusMap; 
+    // if group vertex: Constants::UserParam::ADDUCT_GROUP from ConsensusFeature Constants::UserParam::IIMN_LINKED_GROUPS
+    OpenMS::String uid = "0"; 
+    // false = vertex represents a group, true = vertex represents a feature   
     bool is_feature = false;
 };
 
@@ -199,7 +203,7 @@ namespace OpenMS
     // ConsensusFeature0 contains Feature (Group = 1) and Feature (Group = 2)
     // ConsensusFeature1 contains Feature (Group = 2) and Feature (Group = 3)
     // ConsensusFeature2 contains Feature (Group = 4) and Feature (Group = 5)
-    // graph looks like (Vertex <--> Vertex; component_number)
+    // graph looks like (Vertex of ConsensusFeature <--> Vertex of Group; component_number)
     // 0, true <--> 1, false; 0
     // 0, true <--> 2, false; 0
     // 1, true <--> 2, false; 0
@@ -209,12 +213,15 @@ namespace OpenMS
     // Total number of components: 2
     UndirectedOSMIdGraph g;
 
+    // For each ConsensusFeature: add Constants::UserParam::IIMN_ROW_ID and if Constants::UserParam::IIMN_LINKED_GROUPS is present
+    // add a Vertex for the ConsensusFeature and all corresponding Groups to bipartite graph.
+    // Check if a Group Vertex has been added already, since the same Group can occur multiple times.
     for (size_t i = 0; i < out.size(); i++)
     {
       out[i].setMetaValue(Constants::UserParam::IIMN_ROW_ID, i+1);
-      if (!out[i].metaValueExists(Constants::UserParam::LINKED_GROUPS)) continue;
+      if (!out[i].metaValueExists(Constants::UserParam::IIMN_LINKED_GROUPS)) continue;
       auto feature_vertex = add_vertex(VertexLabel(String(i), true), g);
-      for (const auto& group: out[i].getMetaValue(Constants::UserParam::LINKED_GROUPS).toStringList())
+      for (const auto& group: out[i].getMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS).toStringList())
       {
         bool already_set = false;
         for (auto i : boost::make_iterator_range(vertices(g)))
@@ -228,11 +235,12 @@ namespace OpenMS
         }
         if (!already_set)
         {
-        boost::add_edge(feature_vertex, add_vertex(VertexLabel(group, false), g), g);
+          boost::add_edge(feature_vertex, add_vertex(VertexLabel(group, false), g), g);
         }
       }
     }
 
+    // represents the component number for each vertex
     std::vector<int> components (boost::num_vertices (g));
     boost::connected_components (g, &components[0]);
 
@@ -242,7 +250,7 @@ namespace OpenMS
     for (auto i : boost::make_iterator_range(vertices(g)))
     {
       if (!g[i].is_feature) continue;
-      out[stoi(g[i].uid)].setMetaValue(Constants::UserParam::ANNOTATION_NETWORK_NUMBER, components[i]+1);
+      out[stoi(g[i].uid)].setMetaValue(Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER, components[i]+1);
       auto group_neighbours = boost::adjacent_vertices(i, g);
       for (auto gn : make_iterator_range(group_neighbours))
       {
@@ -260,22 +268,22 @@ namespace OpenMS
     {
       for (const auto& j : i.second)
       {
-        if (out[i.first].metaValueExists(Constants::UserParam::ADDUCT_PARTNERS))
+        if (out[i.first].metaValueExists(Constants::UserParam::IIMN_ADDUCT_PARTNERS))
         {
-          out[i.first].setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, out[i.first].getMetaValue(Constants::UserParam::ADDUCT_PARTNERS).toString()
+          out[i.first].setMetaValue(Constants::UserParam::IIMN_ADDUCT_PARTNERS, out[i.first].getMetaValue(Constants::UserParam::IIMN_ADDUCT_PARTNERS).toString()
                               +";"
                               +out[j].getMetaValue(Constants::UserParam::IIMN_ROW_ID).toString());
         } else
         {
-          out[i.first].setMetaValue(Constants::UserParam::ADDUCT_PARTNERS, out[j].getMetaValue(Constants::UserParam::IIMN_ROW_ID));
+          out[i.first].setMetaValue(Constants::UserParam::IIMN_ADDUCT_PARTNERS, out[j].getMetaValue(Constants::UserParam::IIMN_ROW_ID));
         }
       }
     }
 
-    // remove Constants::UserParam::LINKED_GROUPS meta values
+    // remove Constants::UserParam::IIMN_LINKED_GROUPS meta values
     for (size_t i = 0; i < out.size(); i++)
     {
-      out[i].removeMetaValue(Constants::UserParam::LINKED_GROUPS);
+      out[i].removeMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS);
     }
  }
 

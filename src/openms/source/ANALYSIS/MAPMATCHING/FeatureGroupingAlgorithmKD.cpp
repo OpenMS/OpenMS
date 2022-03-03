@@ -281,10 +281,10 @@ namespace OpenMS
     
     postprocess_(input_maps, out);
     
-    // if at least one of the features has an annotation for the best ion, annotate ConsensusMap for IIMN
+    // if at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN
     for (const auto& f: out)
     {
-      if (f.metaValueExists(Constants::UserParam::BEST_ION))
+      if (f.metaValueExists(Constants::UserParam::IIMN_LINKED_GROUPS))
       {
         FeatureGroupingAlgorithm::annotateIonIdentityNetworks(out);
         break;
@@ -508,10 +508,10 @@ namespace OpenMS
     ConsensusFeature cf;
     Adduct adduct;
     float avg_quality = 0;
-    // determine best quality feature for adduct ion annotation (Constanst::UserParam::BEST_ION)
+    // determine best quality feature for adduct ion annotation (Constanst::UserParam::IIMN_BEST_ION)
     float best_quality = 0;
     size_t best_quality_index = 0;
-    // collect the "Group" MetaValues of Features in a ConsensusFeature MetaValue (Constant::UserParam::LINKED_GROUPS)
+    // collect the "Group" MetaValues of Features in a ConsensusFeature MetaValue (Constant::UserParam::IIMN_LINKED_GROUPS)
     vector<String> linked_groups;
     for (vector<Size>::const_iterator it = indices.begin(); it != indices.end(); ++it)
     {
@@ -532,13 +532,13 @@ namespace OpenMS
     }
     if (kd_data.feature(best_quality_index)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
     {
-      cf.setMetaValue(Constants::UserParam::BEST_ION, 
+      cf.setMetaValue(Constants::UserParam::IIMN_BEST_ION, 
                       adduct.toAdductString(kd_data.feature(best_quality_index)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS),
                                             kd_data.feature(best_quality_index)->getCharge()));
     }
     if (!linked_groups.empty())
     {
-      cf.setMetaValue(Constants::UserParam::LINKED_GROUPS, linked_groups);
+      cf.setMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS, linked_groups);
     }
     avg_quality /= indices.size();
     cf.setQuality(avg_quality);

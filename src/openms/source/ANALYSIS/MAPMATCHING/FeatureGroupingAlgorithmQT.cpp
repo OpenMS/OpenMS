@@ -74,10 +74,10 @@ namespace OpenMS
     
     postprocess_(maps, out);
     
-    // if at least one of the features has an annotation for the best ion, annotate ConsensusMap for IIMN
+    // if at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN
     for (const auto& f: out)
     {
-      if (f.metaValueExists(Constants::UserParam::BEST_ION))
+      if (f.metaValueExists(Constants::UserParam::IIMN_LINKED_GROUPS))
       {
         FeatureGroupingAlgorithm::annotateIonIdentityNetworks(out);
         break;

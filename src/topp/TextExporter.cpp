@@ -187,9 +187,9 @@ namespace OpenMS
     if (incl_IIMN)
     {
       for (const auto& k: {Constants::UserParam::IIMN_ROW_ID,
-                           Constants::UserParam::BEST_ION,
-                           Constants::UserParam::ADDUCT_PARTNERS,
-                           Constants::UserParam::ANNOTATION_NETWORK_NUMBER})
+                           Constants::UserParam::IIMN_BEST_ION,
+                           Constants::UserParam::IIMN_ADDUCT_PARTNERS,
+                           Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER})
       {
         if (feature.metaValueExists(k))
         {
@@ -238,9 +238,9 @@ namespace OpenMS
     if (incl_IIMN & write_IIMN)
     {
       for (const auto& k: {Constants::UserParam::IIMN_ROW_ID,
-                           Constants::UserParam::BEST_ION,
-                           Constants::UserParam::ADDUCT_PARTNERS,
-                           Constants::UserParam::ANNOTATION_NETWORK_NUMBER})
+                           Constants::UserParam::IIMN_BEST_ION,
+                           Constants::UserParam::IIMN_ADDUCT_PARTNERS,
+                           Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER})
       out << k;
     }
     out.modifyStrings(old);
@@ -881,9 +881,9 @@ protected:
         // if one is found information for IIMN will be exported
         for (ConsensusFeature cf: consensus_map)
         {
-          if (cf.metaValueExists(Constants::UserParam::BEST_ION) || 
-              cf.metaValueExists(Constants::UserParam::ADDUCT_PARTNERS) ||
-              cf.metaValueExists(Constants::UserParam::ANNOTATION_NETWORK_NUMBER))
+          if (cf.metaValueExists(Constants::UserParam::IIMN_BEST_ION) || 
+              cf.metaValueExists(Constants::UserParam::IIMN_ADDUCT_PARTNERS) ||
+              cf.metaValueExists(Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER))
           {
             incl_IIMN = true;
             break;

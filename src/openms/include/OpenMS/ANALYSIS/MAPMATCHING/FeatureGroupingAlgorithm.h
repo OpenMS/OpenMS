@@ -71,8 +71,10 @@ public:
     static void registerChildren();
 
     /// Annotate ConsensusMap for ion identity molecular networking (IIMN) workflow by GNPS.
-    /// Adds meta values "row ID" (unique index for each feature),"partners" (related features row IDs)
-    /// and "annotation network number" (all related features (with different adduct states) get the same network number).
+    /// Adds meta values Constants::UserParams::IIMN_ROW_ID (unique index for each feature), Constants::UserParams::IIMN_ADDUCT_PARTNERS (related features row IDs)
+    /// and Constants::UserParams::IIMN_ANNOTATION_NETWORK_NUMBER (all related features with different adduct states) get the same network number).
+    /// This method requires the features annotated with the Constants::UserParams::IIMN_LINKED_GROUPS meta value.
+    //  If at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN.
     void annotateIonIdentityNetworks(ConsensusMap& out) const;
 
 protected:
