@@ -266,18 +266,13 @@ namespace OpenMS
     // annotate partners
     for (const auto& i : partner_map)
     {
+      String partners;
       for (const auto& j : i.second)
       {
-        if (out[i.first].metaValueExists(Constants::UserParam::IIMN_ADDUCT_PARTNERS))
-        {
-          out[i.first].setMetaValue(Constants::UserParam::IIMN_ADDUCT_PARTNERS, out[i.first].getMetaValue(Constants::UserParam::IIMN_ADDUCT_PARTNERS).toString()
-                              +";"
-                              +out[j].getMetaValue(Constants::UserParam::IIMN_ROW_ID).toString());
-        } else
-        {
-          out[i.first].setMetaValue(Constants::UserParam::IIMN_ADDUCT_PARTNERS, out[j].getMetaValue(Constants::UserParam::IIMN_ROW_ID));
-        }
+        if (partners.size() > 0) partners += ";";
+        partners += out[j].getMetaValue(Constants::UserParam::IIMN_ROW_ID).toString();
       }
+      out[i.first].setMetaValue(Constants::UserParam::IIMN_ADDUCT_PARTNERS, partners);
     }
 
     // remove Constants::UserParam::IIMN_LINKED_GROUPS meta values
