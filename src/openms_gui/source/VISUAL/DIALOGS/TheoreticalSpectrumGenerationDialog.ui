@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>763</width>
-    <height>570</height>
+    <height>572</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,13 +20,19 @@
       <layout class="QHBoxLayout" name="horizontalLayout_12">
        <item>
         <widget class="QLabel" name="enter_seq_label">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string>Enter sequence:</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="comboBox">
+        <widget class="QComboBox" name="seq_type">
          <item>
           <property name="text">
            <string>Peptide</string>
@@ -292,12 +298,27 @@ Probability in %</string>
            </item>
            <item>
             <property name="text">
+             <string>A-b-ions</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
              <string>B-ions</string>
             </property>
            </item>
            <item>
             <property name="text">
              <string>C-ions</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>D-ions</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>W-ions</string>
             </property>
            </item>
            <item>
@@ -361,6 +382,24 @@ Probability in %</string>
          </layout>
         </item>
         <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="a_b_label">
+            <property name="text">
+             <string>A-b-ions</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="a_b_intensity">
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
            <widget class="QLabel" name="label_2">
@@ -389,6 +428,42 @@ Probability in %</string>
           </item>
           <item>
            <widget class="QDoubleSpinBox" name="c_intensity">
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_10">
+          <item>
+           <widget class="QLabel" name="d_label">
+            <property name="text">
+             <string>D-ions</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="d_intensity">
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_13">
+          <item>
+           <widget class="QLabel" name="w_label">
+            <property name="text">
+             <string>W-ions</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="w_intensity">
             <property name="value">
              <double>1.000000000000000</double>
             </property>
@@ -453,7 +528,7 @@ Probability in %</string>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_9">
           <item>
-           <widget class="QLabel" name="label_7">
+           <widget class="QLabel" name="rel_loss_label">
             <property name="text">
              <string>Relative loss in %</string>
             </property>
