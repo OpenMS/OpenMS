@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
 // OpenMS includes
@@ -77,8 +77,8 @@ namespace OpenMS
     {Checkbox::A_b_Ions, {"add_a-B_ions", "Add peaks of a-B-ions to the spectrum (nucleotide sequences only)"}},
     {Checkbox::B_Ions, {"add_b_ions", "Add peaks of b-ions to the spectrum"}},
     {Checkbox::C_Ions, {"add_c_ions", "Add peaks of c-ions to the spectrum"}},
-    {Checkbox::D_Ions, {"add_d_ions", "Add peaks of d-ions to the spectrum"}},
-    {Checkbox::W_Ions, {"add_w_ions", "Add peaks of w-ions to the spectrum"}},
+    {Checkbox::D_Ions, {"add_d_ions", "Add peaks of d-ions to the spectrum (nucleotide sequences only)"}},
+    {Checkbox::W_Ions, {"add_w_ions", "Add peaks of w-ions to the spectrum (nucleotide sequences only)"}},
     {Checkbox::X_Ions, {"add_x_ions", "Add peaks of x-ions to the spectrum"}},
     {Checkbox::Y_Ions, {"add_y_ions", "Add peaks of y-ions to the spectrum"}},
     {Checkbox::Z_Ions, {"add_z_ions", "Add peaks of z-ions to the spectrum"}},
@@ -124,6 +124,10 @@ namespace OpenMS
       }
       ui_->list_widget->item(int(c))->setCheckState(Qt::Unchecked);
     }
+
+    // automatic layout
+    // disables manual resizing from the user
+    layout()->setSizeConstraint(QLayout::SetFixedSize);
   }
 
   TheoreticalSpectrumGenerationDialog::~TheoreticalSpectrumGenerationDialog()
@@ -320,63 +324,66 @@ namespace OpenMS
     QListWidgetItem* losses = ui_->list_widget->item(int(Checkbox::Neutral_losses));
     QListWidgetItem* abundant_i = ui_->list_widget->item(int(Checkbox::Abundant_Immonium_Ions));
 
-    QFlags enabled = (Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
-    QFlags disabled = ~(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
-
     if (peptide_input)
     {
       // enable isotopes
-      ui_->isotope_model->setEnabled(true);
+      ui_->isotope_model->setHidden(false);
+      ui_->max_iso_label->setHidden(false);
+      ui_->max_iso_spinbox->setHidden(false);
+      ui_->max_iso_prob_label->setHidden(false);
+      ui_->max_iso_prob_spinbox->setHidden(false);
       modelChanged();
       
       // ensable losses and immonium ions
-      ui_->rel_loss_intensity->setEnabled(true);
-      ui_->rel_loss_label->setEnabled(true);
-      losses->setFlags(enabled);
-      abundant_i->setFlags(enabled);
+      ui_->rel_loss_intensity->setHidden(false);
+      ui_->rel_loss_label->setHidden(false);
+      losses->setHidden(false);
+      abundant_i->setHidden(false);
 
       // disable a-B-, D- and W-Ions
 
-      ui_->a_b_intensity->setEnabled(false);
-      ui_->a_b_label->setEnabled(false);
-      a_b->setFlags(disabled);
+      ui_->a_b_intensity->setHidden(true);
+      ui_->a_b_label->setHidden(true);
+      a_b->setHidden(true);
 
-      ui_->d_intensity->setEnabled(false);
-      ui_->d_label->setEnabled(false);
-      d->setFlags(disabled);
+      ui_->d_intensity->setHidden(true);
+      ui_->d_label->setHidden(true);
+      d->setHidden(true);
 
-      ui_->w_intensity->setEnabled(false);
-      ui_->w_label->setEnabled(false);
-      w->setFlags(disabled);
+      ui_->w_intensity->setHidden(true);
+      ui_->w_label->setHidden(true);
+      w->setHidden(true);
     }
     else // rna input
     {
       // disable isotopes
-      ui_->isotope_model->setEnabled(false);
-      ui_->max_iso_label->setEnabled(false);
-      ui_->max_iso_spinbox->setEnabled(false);
-      ui_->max_iso_prob_label->setEnabled(false);
-      ui_->max_iso_prob_spinbox->setEnabled(false);
+      ui_->isotope_model->setHidden(true);
+      ui_->max_iso_label->setHidden(true);
+      ui_->max_iso_spinbox->setHidden(true);
+      ui_->max_iso_prob_label->setHidden(true);
+      ui_->max_iso_prob_spinbox->setHidden(true);
 
       // disable losses and immonium ions
-      ui_->rel_loss_intensity->setEnabled(false);
-      ui_->rel_loss_label->setEnabled(false);
-      losses->setFlags(disabled);
-      abundant_i->setFlags(disabled);
+      ui_->rel_loss_intensity->setHidden(true);
+      ui_->rel_loss_label->setHidden(true);
+      losses->setHidden(true);
+      abundant_i->setHidden(true);
 
       // enable a-B-, D- and W-Ions
 
-      ui_->a_b_intensity->setEnabled(true);
-      ui_->a_b_label->setEnabled(true);
-      a_b->setFlags(enabled);
+      ui_->a_b_intensity->setHidden(false);
+      ui_->a_b_label->setHidden(false);
+      a_b->setHidden(false);
 
-      ui_->d_intensity->setEnabled(true);
-      ui_->d_label->setEnabled(true);
-      d->setFlags(enabled);
+      ui_->d_intensity->setHidden(false);
+      ui_->d_label->setHidden(false);
+      d->setHidden(false);
 
-      ui_->w_intensity->setEnabled(true);
-      ui_->w_label->setEnabled(true);
-      w->setFlags(enabled);
+      ui_->w_intensity->setHidden(false);
+      ui_->w_label->setHidden(false);
+      w->setHidden(false);
+
+      //this->resize(QSize(150, 300));
     }
   }
 
