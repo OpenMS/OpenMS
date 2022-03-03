@@ -106,13 +106,14 @@ namespace OpenMS
     "S:-C5H8O4-H2S"
   };
 
-  static constexpr std::array<const char*, 10> modifications_RNA_UV_4SU_EXTENDED
+  static constexpr std::array<const char*, 11> modifications_RNA_UV_4SU_EXTENDED
   {   
     "S:",
     "S:-H2O",
     "S:-H3PO4",
     "S:-HPO3",
     "S:-H2S",
+    "S:+HPO3-H2S", // P1 artefact?
 
     "S:-C5H8O4",
     "S:-C5H8O4-H2O",
@@ -131,13 +132,15 @@ namespace OpenMS
     "X:-C5H8O4-H2S"
   };
 
-  static constexpr std::array<const char*, 10> modifications_RNA_UV_6SG_EXTENDED
+  static constexpr std::array<const char*, 11> modifications_RNA_UV_6SG_EXTENDED
   {   
     "X:",
     "X:-H2O",
     "X:-H3PO4",
     "X:-HPO3",
     "X:-H2S",
+    "X:+HPO3-H2S", // P1 artefact?
+
     "X:-C5H8O4",
     "X:-C5H8O4-H2O",
     "X:-C5H8O4-H3PO4",
