@@ -96,19 +96,19 @@ namespace OpenMS
     ui_->setupUi(this);
 
     // if dialog is accepted, try generating a spectrum, only close dialog on success
-    connect(ui_->button_box, SIGNAL(accepted()), this, SLOT(calculateSpectrum()));
+    connect(ui_->button_box, &QDialogButtonBox::accepted, this, &TheoreticalSpectrumGenerationDialog::calculateSpectrum);
 
     // signals for changing isotope model interface
-    connect(ui_->model_none, SIGNAL(toggled(bool)), this, SLOT(modelChanged()));
-    connect(ui_->model_coarse, SIGNAL(toggled(bool)), this, SLOT(modelChanged()));
-    connect(ui_->model_fine, SIGNAL(toggled(bool)), this, SLOT(modelChanged()));
+    connect(ui_->model_none, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
+    connect(ui_->model_coarse, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
+    connect(ui_->model_fine, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
 
     // don't add any isotopes by default and update interface
     ui_->model_none->setChecked(true);
     modelChanged();
 
     // signal for changing interface depending on sequence type
-    connect(ui_->seq_type, SIGNAL(currentTextChanged(QString)), this, SLOT(seqTypeSwitch()));
+    connect(ui_->seq_type, &QComboBox::currentTextChanged, this, &TheoreticalSpectrumGenerationDialog::seqTypeSwitch);
 
     // select peptide sequence by default and update interface
     ui_->seq_type->setCurrentText("Peptide");
@@ -221,7 +221,7 @@ namespace OpenMS
     bool peptide_input = ui_->seq_type->currentText() == "Peptide";
 
     String seq_string(this->getSequence());
-    if (seq_string == "")
+    if (seq_string.empty())
     {
       QMessageBox::warning(this, "Error", QString("You must enter a") + (peptide_input ? "peptide" : "RNA") + " sequence!");
       return;
