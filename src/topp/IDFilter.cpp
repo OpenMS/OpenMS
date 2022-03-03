@@ -682,6 +682,7 @@ protected:
           case DataValue::INT_LIST : v_user = ListUtils::create<Int>(meta_info[2]); break;
           case DataValue::DOUBLE_LIST : v_user = ListUtils::create<double>(meta_info[2]); break;
           case DataValue::EMPTY_VALUE : v_user = DataValue::EMPTY; break;
+          default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!"); break;
         }
 
         if (meta_info[1] == "lt")
