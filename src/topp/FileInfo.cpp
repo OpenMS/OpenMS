@@ -1190,7 +1190,7 @@ protected:
           for (Size m = 0; m < exp[s].getStringDataArrays().size(); ++m)
           {
             String name = exp[s].getStringDataArrays()[m].getName();
-            if (names.has(name))
+            if (names.find(name) != names.end())
             {
               os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")"
                  << '\n';

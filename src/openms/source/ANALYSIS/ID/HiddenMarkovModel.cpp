@@ -650,7 +650,7 @@ namespace OpenMS
 
   void HiddenMarkovModel::evaluate()
   {
-    for (Map<HMMState *, Map<HMMState *, double> >::const_iterator it1 = count_trans_.begin(); it1 != count_trans_.end(); ++it1)
+    for (std::map<HMMState *, std::map<HMMState *, double> >::const_iterator it1 = count_trans_.begin(); it1 != count_trans_.end(); ++it1)
     {
 #ifdef EVALUATE_DEBUG
       cerr <<  it1->first->getName() << endl;

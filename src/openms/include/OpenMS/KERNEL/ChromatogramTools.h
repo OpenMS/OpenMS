@@ -139,7 +139,7 @@ public:
     void convertSpectraToChromatograms(ExperimentType & exp, bool remove_spectra = false, bool force_conversion = false)
     {
       typedef typename ExperimentType::SpectrumType SpectrumType;
-      std::map<double, Map<double, std::vector<SpectrumType> > > chroms;
+      std::map<double, std::map<double, std::vector<SpectrumType> > > chroms;
       std::map<double, MSChromatogram > chroms_xic;
       for (typename ExperimentType::ConstIterator it = exp.begin(); it != exp.end(); ++it)
       {
@@ -207,7 +207,7 @@ public:
       for (auto & chrom: chroms_xic) exp.addChromatogram(chrom.second);
 
       // Add the SRM chromatograms
-      typename Map<double, Map<double, std::vector<SpectrumType> > >::const_iterator it1 = chroms.begin();
+      typename std::map<double, std::map<double, std::vector<SpectrumType> > >::const_iterator it1 = chroms.begin();
       for (; it1 != chroms.end(); ++it1)
       {
         typename std::map<double, std::vector<SpectrumType> >::const_iterator it2 = it1->second.begin();

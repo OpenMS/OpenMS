@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
-#include <map>Map
+#include <map>
 
 namespace OpenMS
 {

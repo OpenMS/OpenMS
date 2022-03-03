@@ -348,7 +348,7 @@ namespace OpenMS
     //static Map<double, vector<MassDecomposition> > decomp_cache;
     if (!no_caching)
     {
-      if (decomp_cache_.has(mass))
+      if (decomp_cache_.find(mass) != decomp_cache_.end())
       {
         decomps = decomp_cache_[mass];
         return;
@@ -595,7 +595,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     AASequence seq;
     for (String::ConstIterator it = sequence.begin(); it != sequence.end(); ++it)
     {
-      if (name_to_residue_.has(*it))
+      if (name_to_residue_.find(*it) != name_to_residue_.end())
       {
         seq += name_to_residue_[*it];
       }
@@ -613,7 +613,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     String seq;
     for (const Residue& res : sequence)
     {
-      if (residue_to_name_.has(&res))
+      if (residue_to_name_.find(&res) != residue_to_name_.end())
       {
         seq += residue_to_name_[&res];
       }

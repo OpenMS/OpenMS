@@ -39,6 +39,7 @@
 #include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
 
 #include <QtCore/QRegExp>
+#include <map>
 
 using namespace xercesc;
 using namespace std;
@@ -174,7 +175,7 @@ namespace OpenMS::Internal
 
       //look up rules and fulfilled rules/terms
       vector<CVMappingRule>& rules = rules_[path];
-      Map<String, Map<String, UInt> >& fulfilled = fulfilled_[path]; //(rule ID => term ID => term count)
+      std::map<String, std::map<String, UInt> >& fulfilled = fulfilled_[path]; //(rule ID => term ID => term count)
 
       //check how often each term appeared
       for (Size r = 0; r < rules.size(); ++r)

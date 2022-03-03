@@ -749,7 +749,7 @@ namespace OpenMS::Internal
         String source_file_ref;
         if (optionalAttributeAsString_(source_file_ref, attributes, s_source_file_ref))
         {
-          if (source_files_.has(source_file_ref))
+          if (source_files_.find(source_file_ref) != source_files_.end())
           {
             spec_.setSourceFile(source_files_[source_file_ref]);
           }

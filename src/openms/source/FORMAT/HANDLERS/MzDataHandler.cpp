@@ -962,7 +962,7 @@ namespace OpenMS::Internal
           {
             Int precursor_ms_level = spec.getMSLevel() - 1;
             SignedSize precursor_id = -1;
-            if (level_id.has(precursor_ms_level))
+            if (level_id.find(precursor_ms_level) != level_id.end())
             {
               precursor_id = level_id[precursor_ms_level];
             }

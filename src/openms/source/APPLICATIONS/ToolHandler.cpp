@@ -269,7 +269,7 @@ namespace OpenMS
   {
     // for internal tools, query TOPP and UTILS for a match
     Internal::ToolDescription ret;
-    if (getUtilList().has(toolname))
+    if (getUtilList().find(toolname) != getUtilList().end())
     {
       return getUtilList()[toolname].types;
     }
@@ -284,7 +284,7 @@ namespace OpenMS
       {
         tools = getTOPPToolList();
       }
-      if (tools.has(toolname))
+      if (tools.find(toolname) != tools.end())
       {
         return tools[toolname].types;
       }
@@ -294,8 +294,8 @@ namespace OpenMS
 
   bool ToolHandler::checkDuplicated(const String& toolname)
   {
-    bool in_utils = getUtilList().has(toolname);
-    bool in_tools = getTOPPToolList().has(toolname);
+    bool in_utils = getUtilList().find(toolname) != getUtilList().end();
+    bool in_tools = getTOPPToolList().find(toolname) != getUtilList().end();
     bool duplicated = in_utils && in_tools;
     return duplicated;
   }
@@ -442,11 +442,11 @@ namespace OpenMS
     ToolListType tools = getTOPPToolList(true);
     ToolListType utils = getUtilList();
     String s;
-    if (tools.has(toolname))
+    if (tools.find(toolname) != tools.end())
     {
       s = tools[toolname].category;
     }
-    else if (utils.has(toolname))
+    else if (utils.find(toolname) != utils.end())
     {
       s = utils[toolname].category;
     }
