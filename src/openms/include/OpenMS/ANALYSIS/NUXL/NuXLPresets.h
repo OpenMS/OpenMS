@@ -96,36 +96,53 @@ namespace OpenMS
     "A:-NH3-H3PO4" 
   };
 
-  static constexpr std::array<const char*, 3> modifications_RNA_UV_4SU
+  static constexpr std::array<const char*, 6> modifications_RNA_UV_4SU
   {   
     "S:",
     "S:-H2O",
-    "S:-H2S"
+    "S:-H2S",
+    "S:-C5H8O4",
+    "S:-C5H8O4-H2O",
+    "S:-C5H8O4-H2S"
   };
 
-  static constexpr std::array<const char*, 5> modifications_RNA_UV_4SU_EXTENDED
+  static constexpr std::array<const char*, 10> modifications_RNA_UV_4SU_EXTENDED
   {   
     "S:",
     "S:-H2O",
     "S:-H3PO4",
     "S:-HPO3",
-    "S:-H2S"
+    "S:-H2S",
+
+    "S:-C5H8O4",
+    "S:-C5H8O4-H2O",
+    "S:-C5H8O4-H3PO4",
+    "S:-C5H8O4-HPO3",
+    "S:-C5H8O4-H2S"
   };
 
-  static constexpr std::array<const char*, 3> modifications_RNA_UV_6SG
+  static constexpr std::array<const char*, 6> modifications_RNA_UV_6SG
   {   
     "X:",
     "X:-H2O",
-    "X:-H2S"
+    "X:-H2S",
+    "X:-C5H8O4",
+    "X:-C5H8O4-H2O",
+    "X:-C5H8O4-H2S"
   };
 
-  static constexpr std::array<const char*, 5> modifications_RNA_UV_6SG_EXTENDED
+  static constexpr std::array<const char*, 10> modifications_RNA_UV_6SG_EXTENDED
   {   
     "X:",
     "X:-H2O",
     "X:-H3PO4",
     "X:-HPO3",
-    "X:-H2S"
+    "X:-H2S",
+    "X:-C5H8O4",
+    "X:-C5H8O4-H2O",
+    "X:-C5H8O4-H3PO4",
+    "X:-C5H8O4-HPO3",
+    "X:-C5H8O4-H2S"    
   };
 
   static constexpr std::array<const char*, 4> modifications_RNA_NM
@@ -452,9 +469,10 @@ namespace OpenMS
   };
 
   // shared by default and Extended
-  static constexpr std::array<const char*, 40> fragments_RNA_UV_4SU
+  static constexpr std::array<const char*, 41> fragments_RNA_UV_4SU
   {
-      "S:C4H2N2O1;tU-H2S", // 4SU base - H2S
+      "S:C9H10N2O5;tU-H2S", // 4SU - H2S
+      "S:C4H2N2O1;tU'-H2S", // 4SU base - H2S
 
       "U:C3O;C3O",
       "U:C4H4N2O2;U'",
@@ -500,9 +518,10 @@ namespace OpenMS
       "A:C10H8N5O3;A-NH3-H3PO4"
   };      
 
-  static constexpr std::array<const char*, 40> fragments_RNA_UV_6SG
+  static constexpr std::array<const char*, 41> fragments_RNA_UV_6SG
   {
-      "X:C5H3N5;tG-H2S",
+      "X:C10H11N5O4;tG-H2S",
+      "X:C5H3N5;tG'-H2S",
 
       "U:C3O;C3O",
       "U:C4H4N2O2;U'",
