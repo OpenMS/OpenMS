@@ -1,6 +1,5 @@
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp.set cimport set as libcpp_set
-from libcpp.map cimport map as cpp_map
 from libcpp cimport bool
 
 from String cimport *

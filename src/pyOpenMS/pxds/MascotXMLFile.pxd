@@ -1,5 +1,4 @@
 from Types cimport *
-from libcpp.map cimport map as libcpp_map
 from libcpp.vector cimport vector as libcpp_vector
 from PeptideIdentification cimport *
 from AASequence cimport *

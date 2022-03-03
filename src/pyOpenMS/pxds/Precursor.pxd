@@ -1,4 +1,4 @@
-from libcpp.map cimport map as cpp_map
+from libcpp.map cimport map as libcpp_map
 from Types cimport *
 from CVTermList cimport *
 from Peak1D cimport *

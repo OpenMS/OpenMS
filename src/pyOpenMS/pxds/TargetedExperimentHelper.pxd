@@ -1,5 +1,5 @@
 from libcpp.vector cimport vector as libcpp_vector
-from libcpp.map cimport map as cpp_map
+from libcpp.map cimport map as libcpp_map
 from String cimport *
 from CVTerm cimport *
 from Residue cimport *
@@ -153,9 +153,9 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
         void replaceCVTerm(CVTerm & term)               nogil except +
         void replaceCVTerms(libcpp_vector[CVTerm] cv_terms, String accession) nogil except +
-        void replaceCVTerms(cpp_map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        void consumeCVTerms(cpp_map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        cpp_map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
+        void replaceCVTerms(libcpp_map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
+        void consumeCVTerms(libcpp_map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
+        libcpp_map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
         void addCVTerm(CVTerm & term)                   nogil except +
         bool hasCVTerm(String accession)  nogil except +
         bool empty()                      nogil except +
@@ -199,9 +199,9 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
         void replaceCVTerm(CVTerm & term)               nogil except +
         void replaceCVTerms(libcpp_vector[CVTerm] cv_terms, String accession) nogil except +
-        void replaceCVTerms(cpp_map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        void consumeCVTerms(cpp_map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        cpp_map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
+        void replaceCVTerms(libcpp_map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
+        void consumeCVTerms(libcpp_map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
+        libcpp_map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
         void addCVTerm(CVTerm & term)                   nogil except +
         bool hasCVTerm(String accession)  nogil except +
         bool empty()                      nogil except +

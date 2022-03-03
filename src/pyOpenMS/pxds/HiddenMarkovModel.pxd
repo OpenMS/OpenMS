@@ -1,5 +1,5 @@
 from Types cimport *
-from libcpp.map cimport map as cpp_map
+from libcpp.map cimport map as libcpp_map
 from Types cimport *
 from StringList cimport *
 from String cimport *
