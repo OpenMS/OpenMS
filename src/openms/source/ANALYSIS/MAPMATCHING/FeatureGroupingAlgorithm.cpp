@@ -45,7 +45,7 @@
 
 #include <unordered_set>
 #include <regex>
-#include <map>
+#include <unordered_map>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/connected_components.hpp>
@@ -246,7 +246,7 @@ namespace OpenMS
 
     // annotate network number and create a map with feature ID and partner IDs
     // partner feature vertexes are connected via a group vertex
-    map<size_t, set<size_t>> partner_map;
+    unordered_map<size_t, set<size_t>> partner_map;
     for (auto i : boost::make_iterator_range(vertices(g)))
     {
       if (!g[i].is_feature) continue;
