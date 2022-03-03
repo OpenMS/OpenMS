@@ -1,5 +1,3 @@
-from libcpp cimport bool, map
-from libcpp.vector cimport vector as libcpp_vector
 from Types cimport *
 from Adduct cimport *
 from StringList cimport *
@@ -22,8 +20,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
         Size getID() nogil except + # wrap-doc:Returns Id which allows unique identification of this compomer
 
         # /// left and right adducts of this compomer
-        # TODO OpenMS Map type
-        libcpp_vector[map[String, Adduct] ] getComponent() nogil except + # wrap-ignore
+        libcpp_vector[libcpp_map[String, Adduct] ] getComponent() nogil except + # wrap-ignore
     
         # /// net charge of compomer (i.e. difference between left and right side of compomer)
         Int getNetCharge() nogil except + # wrap-doc:Net charge of compomer (i.e. difference between left and right side of compomer)
