@@ -269,9 +269,10 @@ namespace OpenMS
   {
     // for internal tools, query TOPP and UTILS for a match
     Internal::ToolDescription ret;
-    if (getUtilList().find(toolname) != getUtilList().end())
+    const auto& utils = getUtilList();
+    if (utils.find(toolname) != utils.end())
     {
-      return getUtilList()[toolname].types;
+      return utils.at(toolname).types;
     }
     else
     {

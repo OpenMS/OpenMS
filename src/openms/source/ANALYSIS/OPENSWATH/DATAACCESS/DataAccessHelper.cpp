@@ -153,62 +153,61 @@ namespace OpenMS
     }
 
     //mapping of transitions
-    for (Size i = 0; i < transition_exp_.getTransitions().size(); i++)
+    for (const auto& transition : transition_exp_.getTransitions())
     {
       OpenSwath::LightTransition t;
-      t.transition_name = transition_exp_.getTransitions()[i].getNativeID();
-      t.product_mz = transition_exp_.getTransitions()[i].getProductMZ();
-      t.precursor_mz = transition_exp_.getTransitions()[i].getPrecursorMZ();
-      t.library_intensity = transition_exp_.getTransitions()[i].getLibraryIntensity();
-      t.peptide_ref = transition_exp_.getTransitions()[i].getPeptideRef();
+      t.transition_name = transition.getNativeID();
+      t.product_mz = transition.getProductMZ();
+      t.precursor_mz = transition.getPrecursorMZ();
+      t.library_intensity = transition.getLibraryIntensity();
+      t.peptide_ref = transition.getPeptideRef();
       // try compound ref
       if (t.peptide_ref.empty())
       {
-        t.peptide_ref = transition_exp_.getTransitions()[i].getCompoundRef();
+        t.peptide_ref = transition.getCompoundRef();
       }
-      if (transition_exp_.getTransitions()[i].isProductChargeStateSet())
+      if (transition.isProductChargeStateSet())
       {
-        t.fragment_charge = transition_exp_.getTransitions()[i].getProductChargeState();
+        t.fragment_charge = transition.getProductChargeState();
       }
       t.decoy = false;
 
       // legacy
 #if 1
-      if (transition_exp_.getTransitions()[i].getCVTerms().find("decoy") != transition_exp_.getTransitions()[i].getCVTerms().end() &&
-          transition_exp_.getTransitions()[i].getCVTerms().at("decoy")[0].getValue().toString() == "1" )
+      const auto& cv_terms = transition.getCVTerms();
+      if (cv_terms.find("decoy") != cv_terms.end() && cv_terms.at("decoy")[0].getValue().toString() == "1" )
       {
         t.decoy = true;
       }
-      else if (transition_exp_.getTransitions()[i].getCVTerms().find("MS:1002007") != transition_exp_.getTransitions()[i].getCVTerms().end())    // target SRM transition
+      else if (cv_terms.find("MS:1002007") != cv_terms.end())    // target SRM transition
       {
         t.decoy = false;
       }
-      else if (transition_exp_.getTransitions()[i].getCVTerms().find("MS:1002008") != transition_exp_.getTransitions()[i].getCVTerms().end())    // decoy SRM transition
+      else if (cv_terms.find("MS:1002008") != cv_terms.end())    // decoy SRM transition
       {
         t.decoy = true;
       }
-      else if (transition_exp_.getTransitions()[i].getCVTerms().find("MS:1002007") != transition_exp_.getTransitions()[i].getCVTerms().end() &&
-          transition_exp_.getTransitions()[i].getCVTerms().find("MS:1002008") != transition_exp_.getTransitions()[i].getCVTerms().end())    // both == illegal
+      else if (cv_terms.find("MS:1002007") != cv_terms.end() && cv_terms.find("MS:1002008") != cv_terms.end())    // both == illegal
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Transition " + t.transition_name + " cannot be target and decoy at the same time.");
       }
       else
 #endif
-      if (transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::UNKNOWN ||
-          transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::TARGET)
+      if (transition.getDecoyTransitionType() == ReactionMonitoringTransition::UNKNOWN ||
+          transition.getDecoyTransitionType() == ReactionMonitoringTransition::TARGET)
       {
         // assume its target
         t.decoy = false;
       }
-      else if (transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
+      else if (transition.getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
       {
         t.decoy = true;
       }
 
-      t.detecting_transition = transition_exp_.getTransitions()[i].isDetectingTransition();
-      t.identifying_transition = transition_exp_.getTransitions()[i].isIdentifyingTransition();
-      t.quantifying_transition = transition_exp_.getTransitions()[i].isQuantifyingTransition();
+      t.detecting_transition = transition.isDetectingTransition();
+      t.identifying_transition = transition.isIdentifyingTransition();
+      t.quantifying_transition = transition.isQuantifyingTransition();
 
       transition_exp.transitions.push_back(t);
     }

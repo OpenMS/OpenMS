@@ -117,8 +117,9 @@ namespace OpenMS
     }
 
     // default to ToolHandler
-    if (ToolHandler::getTOPPToolList(true).find(old_name) != ToolHandler::getTOPPToolList(true).end() ||
-        ToolHandler::getUtilList().find(old_name) != ToolHandler::getUtilList().end())
+    const auto& topp = ToolHandler::getTOPPToolList(true);
+    const auto& utils = ToolHandler::getUtilList();
+    if (topp.find(old_name) != topp.end() || utils.find(old_name) != utils.end())
     {
       new_name = old_name;
       return true;
