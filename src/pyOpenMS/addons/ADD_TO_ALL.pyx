@@ -1,7 +1,6 @@
 
 from libc.stddef cimport ptrdiff_t
 from libc.stdint cimport *
-from libcpp.map cimport map as cpp_map
 cimport numpy as np
 import numpy as np
 ctypedef libcpp_vector[ double ] _DoubleList

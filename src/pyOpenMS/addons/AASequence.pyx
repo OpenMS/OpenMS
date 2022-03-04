@@ -1,8 +1,8 @@
-from libcpp.map cimport map as cpp_map
+from libcpp.map cimport map as libcpp_map
 
 
     def getAAFrequencies(self, dict mmap):
-        cdef cpp_map[_String, size_t] c_mmap
+        cdef lipcpp_map[_String, size_t] c_mmap
         self.inst.get().getAAFrequencies(c_mmap)
         for k,v in mmap.iteritems():
             v = c_mmap[ _String(<char *>k) ]
