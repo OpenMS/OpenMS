@@ -180,7 +180,7 @@ namespace OpenMS
     std::vector<double> target_masses_;
 
     /// harmonic charge factors that will be considered for harmonic mass reduction. For example, 2 is for 1/2 charge harmonic component reduction
-    const std::vector<int> harmonic_charges_{2, 3, 5};
+    const std::vector<int> harmonic_charges_{2, 3, 5, 7};
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;
     /// deconvoluted_spectrum_ stores the decovnoluted mass peak groups
