@@ -566,6 +566,11 @@ namespace OpenMS
 
   void ElementDB::addElementToMaps_(const string& name, const string& symbol, const unsigned int an, const Element* e)
   {
+    // delete existing element before adding a new one
+    if (atomic_numbers_.find(an) != atomic_numbers_.end())
+    {
+      delete atomic_numbers_[an];
+    }
     names_[name] = e;
     symbols_[symbol] = e;
     atomic_numbers_[an] = e;
