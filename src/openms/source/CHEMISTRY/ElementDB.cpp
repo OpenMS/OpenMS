@@ -110,33 +110,37 @@ namespace OpenMS
 
   bool ElementDB::hasElement(unsigned int atomic_number) const
   {
-    return atomic_numbers_.count(atomic_number) == 1;
+    return atomic_numbers_.find(atomic_number) != atomic_numbers_.end();
   }
 
   double ElementDB::calculateAvgWeight_(const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
   {
     double avg = 0;
     // calculate weighted average
-    for (map<unsigned int, double>::const_iterator it = abundance.begin(); it != abundance.end(); ++it)
+    for (const auto& it : abundance)
     {
-      avg += mass.at(it->first) * abundance.at(it->first);
+      avg += mass.at(it.first) * abundance.at(it.first);
     }
     return avg;
   }
 
-  double ElementDB::calculateMonoWeight_(const map<unsigned int, double>& mass)
+  double ElementDB::calculateMonoWeight_(const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
   {
-    double smallest_weight = 1e10;
+    double highest_abundance = -1.0;
+    int highest_abundance_isotope = -1;
 
-    for (map<unsigned int, double>::const_iterator it = mass.begin(); it != mass.end(); ++it)
+    // the monoisotopic weight is the *most abundant* isotope of an element
+    for (const auto& it : abundance)
     {
-      if (it->second < smallest_weight)
+      if (it.second > highest_abundance)
       {
-        smallest_weight = it->second;
+        highest_abundance = it.second;
+        highest_abundance_isotope = it.first;
       }
     }
 
-    return smallest_weight;
+    if (highest_abundance_isotope != -1) return mass.at(highest_abundance_isotope);
+    else return 0.0;
   }
 
   void ElementDB::storeElements_()
@@ -561,7 +565,7 @@ namespace OpenMS
   {
     IsotopeDistribution isotopes = parseIsotopeDistribution_(abundance, mass);
     double avg_weight = calculateAvgWeight_(abundance, mass);
-    double mono_weight = calculateMonoWeight_(mass);
+    double mono_weight = calculateMonoWeight_(abundance, mass);
 
     Element* e = new Element(name, symbol, an, avg_weight, mono_weight, isotopes);
     addElementToMaps_(name, symbol, an, e);
