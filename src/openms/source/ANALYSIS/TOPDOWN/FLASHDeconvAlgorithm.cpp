@@ -1018,7 +1018,7 @@ namespace OpenMS
         pg.setChargePower(abs_charge, peak_pwr);
       }
 
-      if (total_signal_pwr / 4.0 > *std::max_element(total_harmonic_pwr.begin(), total_harmonic_pwr.end()) &&
+      if (total_signal_pwr / 2.0 > *std::max_element(total_harmonic_pwr.begin(), total_harmonic_pwr.end()) &&
           !pg.empty())
       {
         double max_intensity = -1.0;

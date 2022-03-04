@@ -41,8 +41,10 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
+//#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+//#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -105,7 +107,7 @@ protected:
     registerOutputFile_("out",
                         "<file>",
                         "",
-                        "feature level deconvolution output tsv file (or ensemble spectrum level deconvluted mass if use_ensemble_spectrum is set to 1) ");
+                        "feature level deconvolution output tsv file");
     setValidFormats_("out", ListUtils::create<String>("tsv"));
 
     registerOutputFileList_("out_spec", "<file for MS1, file for MS2, ...>", {""},
@@ -189,18 +191,12 @@ protected:
                        true);
     setMinInt_("forced_MS_level", 0);
 
-    registerIntOption_("use_ensemble_spectrum",
-                       "",
-                       0,
-                       "if set to 1, all spectra will add up to a single ensemble spectrum (per MS level) "
-                       "for which the deconvolution is performed. out_spec should specify the output spectrum level deconvolution tsv files."
-                       "This mode is not fully developed yet.",
-                       false,
-                       false);
-
-    setMinInt_("use_ensemble_spectrum", 0);
-    setMaxInt_("use_ensemble_spectrum", 1);
-
+    registerIntOption_("merging_method", "<0: None 1: gaussian averaging 2: block method>", 0,
+                                            "Method of spectra merging which should be used. 0: No merging "
+                                                                "1: Average gaussian method to perform moving gaussian averaging of spectra per MS level (e.g., for QTOF datasets). "
+                                                                "2: Block method to perform merging of all spectra into a single one per MS level (e.g., for NativeMS datasets)", false);
+    setMinInt_("merging_method", 0);
+    setMaxInt_("merging_method", 2);
     /*
         registerIntOption_("isobaric_labeling_option",
                            "",
@@ -222,7 +218,7 @@ protected:
     setMaxInt_("use_RNA_averagine", 1);
 
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
-    fd_defaults.setValue("tol", DoubleList{10.0, 10.0}, "ppm tolerance");
+    fd_defaults.setValue("tol", DoubleList{10.0, 10.0, 10.0}, "ppm tolerance for MS1, MS2, ... ");
     fd_defaults.setValue("min_charge", 2);
     fd_defaults.setValue("max_charge", 100);
     fd_defaults.setValue("min_mz", -1.0);
@@ -236,17 +232,17 @@ protected:
     fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
     //fd_defaults.addTag("tol", "advanced"); // hide entry
-    fd_defaults.setValue("min_peaks", IntList{3, 3});
+    fd_defaults.setValue("min_peaks", IntList{3, 3, 3});
     fd_defaults.addTag("min_peaks", "advanced");
     fd_defaults.setValue("min_intensity", 100.0, "Intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
     fd_defaults.setValue("min_isotope_cosine",
-                         DoubleList{.85, .85},
+                         DoubleList{.85, .85, .85},
                          "cosine similarity thresholds "
                          "between avg. and observed isotope patterns for MS1, 2, ... "
                          "(e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
     fd_defaults.setValue("max_mass_count",
-                         IntList{-1, -1},
+                         IntList{-1, -1, -1},
                          "maximum mass counts per spec for MS1, 2, ... "
                          "(e.g., -max_mass_count_ 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
     fd_defaults.addTag("max_mass_count", "advanced");
@@ -274,16 +270,31 @@ protected:
 
     DoubleList tols = fd_defaults.getValue("tol");
     mf_defaults.setValue("mass_error_ppm", tols[0]);
-
-    //mf_defaults.remove("mass_error_ppm"); // hide entry
     mf_defaults.setValue("min_sample_rate", 0.2);
 
+    /*
+    Param sm_defaults = SpectraMerger().getDefaults();
+    sm_defaults.remove("mz_binning_width");
+    sm_defaults.remove("mz_binning_width_unit");
+    sm_defaults.remove("sort_blocks");
+
+    sm_defaults.remove("average_gaussian:spectrum_type");
+    sm_defaults.remove("average_gaussian:rt_FWHM");
+    sm_defaults.remove("average_gaussian:cutoff");
+    sm_defaults.remove("block_method:rt_max_length");
+
+    sm_defaults.remove("average_gaussian:ms_level");
+    sm_defaults.remove("block_method:ms_levels");
+
+    sm_defaults.removeAll("precursor_method");
+    sm_defaults.removeAll("average_tophat");
+*/
     Param combined;
     combined.insert("Algorithm:", fd_defaults);
     combined.insert("FeatureTracing:", mf_defaults);
+    //combined.insert("SpectraMerger:", sm_defaults);
     registerFullParam_(combined);
   }
-
 
   static std::map<int, std::vector<std::vector<double>>> read_FLASHIda_log_(const String &in_log_file)
   {
@@ -443,7 +454,7 @@ protected:
     bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
     int max_ms_level = getIntOption_("max_MS_level");
     int forced_ms_level = getIntOption_("forced_MS_level");
-    bool ensemble = getIntOption_("use_ensemble_spectrum") > 0;
+    int merge = getIntOption_("merging_method");
     bool write_detail = getIntOption_("write_detail") > 0;
     int mzml_charge = getIntOption_("mzml_mass_charge");
     double min_rt = getDoubleOption_("Algorithm:min_rt");
@@ -539,7 +550,6 @@ protected:
     MSExperiment map;
     MzMLFile mzml;
 
-
     // all for measure elapsed cup wall time
     double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
 
@@ -561,9 +571,7 @@ protected:
     mzml.setLogType(log_type_);
     mzml.load(in_file, map);
 
-
     int current_max_ms_level = 0;
-
 
     auto spec_cntr = std::vector<int>(max_ms_level, 0);
     // spectrum number with at least one deconvoluted mass per ms level per input file
@@ -573,27 +581,11 @@ protected:
     auto elapsed_deconv_cpu_secs = std::vector<double>(max_ms_level, .0);
     auto elapsed_deconv_wall_secs = std::vector<double>(max_ms_level, .0);
 
-    MSExperiment ensemble_map;
-    // generate ensemble spectrum if param.ensemble is set
-    if (ensemble)
-    {
-      for (int i = 0; i < max_ms_level; i++)
-      {
-        auto spec = MSSpectrum();
-        spec.setMSLevel(i + 1);
-        std::ostringstream name;
-        name << "ensemble MS" << (i + 1) << " spectrum";
-        spec.setName(name.str());
-        ensemble_map.addSpectrum(spec);
-      }
-    }
-    //      double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
-    int ms1_cntr = 0;
-    double ms2_cntr = .0; // for debug...
-
-    // read input dataset once to count spectra and generate ensemble spectrum if necessary
+    // read input dataset once to count spectra
+    double gradient_rt = .0;
     for (auto &it: map)
     {
+      gradient_rt = it.getRT();
       if (it.empty())
       {
         continue;
@@ -620,51 +612,11 @@ protected:
       {
         break;
       }
-      if (ensemble)
-      {
-        auto &espec = ensemble_map[it.getMSLevel() - 1];
-
-        for (auto &p: it)
-        {
-          espec.push_back(p);
-        }
-      }
-
-      if (it.getMSLevel() == 1)
-      {
-        ms1_cntr++;
-      }
-      if (it.getMSLevel() == 2)
-      {
-        ms2_cntr++;
-      }
     }
 
     // Max MS Level is adjusted according to the input dataset
     current_max_ms_level = current_max_ms_level > max_ms_level ? max_ms_level : current_max_ms_level;
-    // if an ensemble spectrum is analyzed, replace the input dataset with the ensemble one
-    if (ensemble)
-    {
-      for (int i = 0; i < current_max_ms_level; ++i)
-      {
-        ensemble_map[i].sortByPosition();
-        //spacing_difference_gap
-        PeakPickerHiRes pickerHiRes;
-        auto pickParam = pickerHiRes.getParameters();
-        //pickParam.setValue("spacing_difference_gap", 1e-1);
-        //pickParam.setValue("spacing_difference", 2.0);
-        //pickParam.setValue("missing", 0);
 
-        //pickerHiRes.setParameters(pickParam);
-        auto tmp_spec = ensemble_map[i];
-        pickerHiRes.pick(tmp_spec, ensemble_map[i]);
-
-        //PeakPickerCWT picker;
-        //auto tmp_spec = ensemble_map[i];
-        //picker.pick(tmp_spec, ensemble_map[i]);
-      }
-      map = ensemble_map;
-    }
     // Run FLASHDeconv here
 
     int scan_number = 0;
@@ -683,11 +635,47 @@ protected:
     Param fd_param = getParam_().copy("Algorithm:", true);
     DoubleList tols = fd_param.getValue("tol");
     //fd_param.setValue("tol", getParam_().getValue("tol"));
-    if (ensemble)
+
+    // if a merged spectrum is analyzed, replace the input dataset with the merged one
+    if (merge == 1)
     {
+      std::cout<< "Merging spectra using gaussian averaging... "<<std::endl;
+      SpectraMerger merger;
+      merger.setLogType(log_type_);
+      Param sm_param = merger.getDefaults();
+      sm_param.setValue("average_gaussian:precursor_mass_tol", tols[0]);
+      sm_param.setValue("average_gaussian:precursor_max_charge", (int)fd_param.getValue("max_charge"));
+
+      merger.setParameters(sm_param);
+      map.sortSpectra();
+
+      for (int tmp_ms_level = 1; tmp_ms_level <= current_max_ms_level; tmp_ms_level++)
+      {
+        merger.average(map, "gaussian", tmp_ms_level);
+      }
+    }
+    else if(merge == 2)
+    {
+      //mz_binning_width - ms tols
+      std::cout<< "Merging spectra into a single spectrum per MS level... "<<std::endl;
+      SpectraMerger merger;
+      merger.setLogType(log_type_);
+      Param sm_param = merger.getDefaults();
+      sm_param.setValue("block_method:rt_block_size", (int)gradient_rt);
+      map.sortSpectra();
+
+      for(int ml = 1; ml<=current_max_ms_level; ml++)
+      {
+        sm_param.setValue("mz_binning_width", tols[ml - 1] / 2);
+        sm_param.setValue("block_method:ms_levels", IntList{ml});
+        merger.setParameters(sm_param);
+        merger.mergeSpectraBlockWise(map);
+      }
       fd_param.setValue("min_rt", .0);
       fd_param.setValue("max_rt", .0);
     }
+
+
     fd.setParameters(fd_param);
     fd.calculateAveragine(use_RNA_averagine);
     auto avg = fd.getAveragine();
@@ -794,7 +782,7 @@ protected:
         last_deconvoluted_spectra[ms_level].push_back(deconvoluted_spectrum);
       }
 
-      if (!ensemble)
+      if (merge != 2)
       {
         mass_tracer.storeInformationFromDeconvolutedSpectrum(
             deconvoluted_spectrum);// add deconvoluted mass in mass_tracer
@@ -831,7 +819,7 @@ protected:
     std::cout << std::endl;
 
     // mass_tracer run
-    if (!ensemble)
+    if (merge != 2)
     {
       mass_tracer.findFeatures(in_file, !out_promex_file.empty(), !out_topfd_feature_file.empty(),
                                precursor_peak_groups,
@@ -851,9 +839,9 @@ protected:
         continue;
       }
 
-      if (ensemble)
+      if (merge == 2)
       {
-        OPENMS_LOG_INFO << "So far, FLASHDeconv found " << mass_cntr[j] << " masses in the ensemble MS"
+        OPENMS_LOG_INFO << "So far, FLASHDeconv found " << mass_cntr[j] << " masses in the merged MS"
                         << (j + 1) << " spectrum" << endl;
 
       }
