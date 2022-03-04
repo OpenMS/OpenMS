@@ -81,7 +81,7 @@ namespace OpenMS
       {
         Size f1 = pairs[i].getElementIndex(0);
         Size f2 = pairs[i].getElementIndex(1);
-        if (f2g.find(f1) != f2g.end() && f2g.find(f2) != f2g.end()) // edge connects two distinct groups
+        if ((f2g.find(f1) != f2g.end()) && (f2g.find(f2) != f2g.end())) // edge connects two distinct groups
         {
           Size group1 = f2g[f1];
           Size group2 = f2g[f2];
