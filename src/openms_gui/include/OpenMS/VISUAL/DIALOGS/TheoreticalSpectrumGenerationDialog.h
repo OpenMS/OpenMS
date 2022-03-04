@@ -29,17 +29,17 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
 
 #pragma once
 
 #include <QtWidgets/QDialog>
-class QListWidgetItem;
-class QListWidget;
+
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace Ui
 {
@@ -69,14 +69,20 @@ public:
 
     Param getParam() const;
 
+    const MSSpectrum& getSpectrum() const;
+
 protected slots:
 
-    void itemChanged(QListWidgetItem * item);
+    void modelChanged();
+    void calculateSpectrum();
+    void seqTypeSwitch();
 
 protected:
 
 private:
     Ui::TheoreticalSpectrumGenerationDialogTemplate* ui_;
+
+    MSSpectrum spec_;
   };
 
 }
