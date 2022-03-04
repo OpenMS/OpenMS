@@ -62,7 +62,7 @@ namespace OpenMS
                  generator->estimateFromRNAWeight(mass) :
                  generator->estimateFromPeptideWeight(mass);
 
-      const double min_pwr = .9995;
+      const double min_pwr = .9999;
       const Size min_iso_length = 3;
       const int min_left_right_count = 3;
       double total_pwr = .0;
