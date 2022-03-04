@@ -50,7 +50,10 @@ namespace OpenMS
 {
   /** @ingroup Chemistry
 
-          @brief Representation of an element
+      @brief Representation of an element
+
+      This contains information on an element and its isotopes, including a
+      common name, atomic symbol and mass/abundance of its isotopes.
   */
   class OPENMS_DLLAPI Element
   {
@@ -158,7 +161,7 @@ protected:
     /// mono isotopic weight of the most frequent isotope
     double mono_weight_;
 
-    /// distribution of the isotopes
+    /// distribution of the isotopes (mass and natural frequency)
     IsotopeDistribution isotopes_;
   };
 

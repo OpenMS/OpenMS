@@ -29,19 +29,15 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch, Timo Sachsenberg, Chris Bielow, Jang Jang Jin‚$
+// $Authors: Andreas Bertsch, Timo Sachsenberg, Chris Bielow, Jang Jang Jin$
 // --------------------------------------------------------------------------
 //
+
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+
 #include <OpenMS/CHEMISTRY/Element.h>
-
-#include <OpenMS/DATASTRUCTURES/Param.h>
-
-#include <OpenMS/FORMAT/ParamXMLFile.h>
-
-#include <OpenMS/SYSTEM/File.h>
-
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 
@@ -57,7 +53,7 @@ namespace OpenMS
     clear_();
   }
 
-  const ElementDB* ElementDB::getInstance()
+  ElementDB* ElementDB::getInstance()
   {
     static ElementDB* db_ = new ElementDB;
     return db_;
@@ -580,7 +576,7 @@ namespace OpenMS
     for (const auto& isotope : isotopes)
     {
       double atomic_mass = isotope.getMZ();
-      unsigned int mass_number = round(atomic_mass);
+      unsigned int mass_number = std::round(atomic_mass);
       string iso_name = "(" + std::to_string(mass_number) + ")" + name;
       string iso_symbol = "(" + std::to_string(mass_number) + ")" + symbol;
 

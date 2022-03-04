@@ -39,6 +39,7 @@
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <map>
 #include <string>
@@ -48,7 +49,7 @@ namespace OpenMS
 
   /** @ingroup Chemistry
 
-          @brief Singleton that stores elements.
+      @brief Singleton that stores elements and isotopes.
 
       The elements weights (in the default file) are taken from
       "Isotopic Compositions of the Elements 1997", Pure Appl. Chem., 70(1), 217-235, 1998.
@@ -59,11 +60,11 @@ namespace OpenMS
           Pure Appl. Chem., 2003, Vol. 75, No. 6, pp. 683-799
           doi:10.1351/pac200375060683
 
-          Specific isotopes of elements can be accessed by writing the atomic number of the isotope
-          in brackets followed by the element name, e.g. "(2)H" for deuterium.
+      Specific isotopes of elements can be accessed by writing the atomic number of the isotope
+      in brackets followed by the element name, e.g. "(2)H" for deuterium.
 
-    @improvement include exact mass values for the isotopes (done) and update IsotopeDistribution (Andreas)
-          @improvement add exact isotope distribution based on exact isotope values (Andreas)
+      @improvement include exact mass values for the isotopes (done) and update IsotopeDistribution (Andreas)
+      @improvement add exact isotope distribution based on exact isotope values (Andreas)
 */
 
   class OPENMS_DLLAPI ElementDB
@@ -75,7 +76,7 @@ public:
     //@{
     /// returns a pointer to the singleton instance of the element db
     /// This is thread safe upon first and subsequent calls.
-    static const ElementDB* getInstance();
+    static ElementDB* getInstance();
 
     /// returns a hashmap that contains names mapped to pointers to the elements
     const std::map<std::string, const Element*>& getNames() const;
@@ -95,6 +96,30 @@ public:
     /// returns a pointer to the element of atomic number; if no element is found 0 is returned
     const Element* getElement(unsigned int atomic_number) const;
 
+    /** Adds or replaces a new element to the database
+     *
+     * Adds a new element (or replaces an existing one if @em replace_existing is true). 
+     *
+     * @param name Common name of the element
+     * @param symbol Element symbol (one or two letter)
+     * @param an Atomic number (number of protons)
+     * @param abundance List of abundances for each isotope (e.g. {{12u, 0.9893}, {13u, 0.0107}} for Carbon)
+     * @param abundance List of masses for each isotope (e.g. {{12u, 12.0}, {13u, 13.003355}} for Carbon)
+    */
+    void addElement(const std::string& name,
+                    const std::string& symbol,
+                    const unsigned int an,
+                    const std::map<unsigned int, double>& abundance,
+                    const std::map<unsigned int, double>& mass,
+                    bool replace_existing)
+    {
+      if (hasElement(an) && !replace_existing)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Element with atomic number ") + an + " already exists");
+      }
+      buildElement_(name, symbol, an, abundance, mass);
+    }
+
     //@}
 
     /** @name Predicates
@@ -109,34 +134,34 @@ public:
 
 protected:
 
-    /*_ parses a Histogram given as a OpenMS String and return the distribution
+    /** parses a Histogram given as a OpenMS String and return the distribution
 
             @throw throws exception ParseError
-     */
+    **/
     IsotopeDistribution parseIsotopeDistribution_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
-    /*_ calculates the average weight based on isotope abundance and mass
-     */
+    /** calculates the average weight based on isotope abundance and mass
+     **/
     double calculateAvgWeight_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
-    /*_ calculates the mono weight based on the smallest isotope mass
-     */
+    /**_ calculates the mono weight based on the smallest isotope mass
+     **/
     double calculateMonoWeight_(const std::map<unsigned int, double>& Z_to_mass);
 
-	// constructs element objects
+	  /// constructs element objects
     void storeElements_();
 
-  // build element objects from given abundances, masses, name, symbol, and atomic number
+    /// build element objects from given abundances, masses, name, symbol, and atomic number
     void buildElement_(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
-  // add element objects to documentation maps
+    /// add element objects to documentation maps
     void addElementToMaps_(const std::string& name, const std::string& symbol, const unsigned int an, const Element* e);
 
-  // constructs isotope objects
+    /// constructs isotope objects
     void storeIsotopes_(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& Z_to_mass, const IsotopeDistribution& isotopes);
 
-    /*_ resets all containers
-     */
+    /**_ resets all containers
+    **/
     void clear_();
 
     std::map<std::string, const Element*> names_;
