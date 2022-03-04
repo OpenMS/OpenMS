@@ -98,7 +98,7 @@ namespace OpenMS
             g2f.erase(group2);
           }
         }
-        else if (f2g.find(f1) != f2g.end() && !(f2g.find(f2) != f2g.end())) // only f1 is part of a group
+        else if ((f2g.find(f1) != f2g.end()) && !(f2g.find(f2) != f2g.end())) // only f1 is part of a group
         {
           Size group1 = f2g[f1];
           f2g[f2] = group1;
