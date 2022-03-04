@@ -5251,6 +5251,19 @@ def testElementDB():
     assert e2.getSymbol() == "O"
     assert e2.getIsotopeDistribution()
 
+    # assume we discovered a new element
+    e2 = edb.addElement("NewElement", "NE", 300, {400 : 1.0}, {400 : 400.1}, False)
+    e2 = edb.getElement(pyopenms.String("NE"))
+    assert e2.getName() == "NewElement"
+
+    # replace oxygen
+    e2 = edb.addElement("Oxygen", "O", 8, {16 : 0.7, 19 : 0.3}, {16 : 16.01, 19 : 19.01}, True)
+    e2 = edb.getElement(pyopenms.String("O"))
+    assert e2.getName() == "Oxygen"
+    assert e2.getIsotopeDistribution()
+    assert len(e2.getIsotopeDistribution()) == 2
+    assert abs(e2.getIsotopeDistribution()[1].getIntensity() - 0.3) < 1e-5
+
     # assert e == e2
 
     #  not yet implemented
