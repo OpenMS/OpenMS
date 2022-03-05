@@ -98,6 +98,9 @@ namespace OpenMS
       // keep the group of input widgets in sync with respect to their current-working-dir, when browsing for new files
       connect(ui->input_mzMLs, &InputFileList::updatedCWD, this, &FLASHDeconvTabWidget::broadcastNewCWD_);
 
+      // check the "checkbox_spec" true (output files for masses per spectrum)
+      ui->checkbox_spec->setCheckState(Qt::Checked);
+
       // param setting
       setWidgetsfromFDDefaultParam_();
 
@@ -128,8 +131,8 @@ namespace OpenMS
       // get parameter
       updateFLASHDeconvParamFromWidgets_();
       updateOutputParamFromWidgets_();
-      Param tmp_param;
-      tmp_param.insert("FLASHDeconv:1:", flashdeconv_param_);
+      Param fd_param;
+      fd_param.insert("FLASHDeconv:1:", flashdeconv_param_);
 //      tmp_param.insert("FLASHDeconv:1:", flashdeconv_param_outputs_); // dummy to be updated
 
       String tmp_ini = File::getTemporaryFile();
@@ -146,6 +149,7 @@ namespace OpenMS
       for (const auto& mzML : in_mzMLs)
       {
         updateOutputParamFromPerInputFile(mzML.toQString());
+        Param tmp_param = Param(fd_param);
         tmp_param.insert("FLASHDeconv:1:", flashdeconv_param_outputs_);
 
         ParamXMLFile().store(tmp_ini, tmp_param);
