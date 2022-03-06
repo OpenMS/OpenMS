@@ -263,10 +263,10 @@ namespace OpenMS
     Matrix<int> filterMassBins_(const std::vector<float> &mass_intensities);
 
     /** @brief Subfunction of updateMassBins_. It select candidate masses and update mass_bins_ using the universal pattern, eliminate possible harmonic masses
-        @param mass_intensitites mass bin intensities which are updated in te function
+        @param mass_intensities mass bin intensities which are updated in this function
         @param mz_intensities mz bin intensities
      */
-    void updateCandidateMassBins_(std::vector<float> &mass_intensitites, const std::vector<float> &mz_intensities);
+    void updateCandidateMassBins_(std::vector<float> & mass_intensities, const std::vector<float> &mz_intensities);
 
     /** @brief For selected masses in mass_bins_, select the peaks from the original spectrum. Also isotopic peaks are clustered in this function.
         @param per_mass_abs_charge_ranges charge range per mass

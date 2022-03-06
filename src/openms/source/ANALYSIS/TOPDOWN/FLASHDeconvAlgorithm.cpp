@@ -459,7 +459,7 @@ namespace OpenMS
   }
 
   // Find candidate mass bins from the current spectrum. The runtime of FLASHDeconv is deteremined by this function..
-  void FLASHDeconvAlgorithm::updateCandidateMassBins_(std::vector<float>& mass_intensitites,
+  void FLASHDeconvAlgorithm::updateCandidateMassBins_(std::vector<float>& mass_intensities,
                                                       const std::vector<float>& mz_intensities)
   {
     int charge_range = current_max_charge_ - current_min_charge_ + 1;
@@ -518,7 +518,7 @@ namespace OpenMS
         bool pass_first_check = false;
 
         // intensity ratio between consecutive charges should not exceed the factor.
-        float factor = abs_charge < low_charge_ ? 10.0f : 5.0f + 50.0f / abs_charge;
+        float factor = abs_charge <= low_charge_ ? 10.0f : 5.0f + 50.0f / abs_charge;
         // intensity ratio between consecutive charges for possible harmonic should be within this factor
         float hfactor = factor / 2.0f;
         // intensity of previous charge
@@ -551,6 +551,7 @@ namespace OpenMS
           if (next_iso_bin < mz_bins_for_edge_effect_.size() && mz_bins_for_edge_effect_[next_iso_bin])
           {
             pass_first_check = true;
+            support_peak_intensity = mz_intensities[next_iso_bin];
             //harmonic check
             for (int hc : harmonic_charges_)
             {
@@ -558,13 +559,14 @@ namespace OpenMS
               //for (int off = 0; off <= 0; off++)
               {
                 Size next_harmonic_iso_bin = getBinNumber_(log_mz + hdiff, mz_bin_min_value_, bin_width);
+                double harmonic_intensity = mz_intensities[next_harmonic_iso_bin];
                 if (
                     next_harmonic_iso_bin < mz_bins_for_edge_effect_.size() &&
                     mz_bins_for_edge_effect_[next_harmonic_iso_bin] &&
-                    (mz_intensities[next_iso_bin] / 2.0 < mz_intensities[next_harmonic_iso_bin] ||
-                     intensity / 2.0 < mz_intensities[next_harmonic_iso_bin]))
+                    (support_peak_intensity / 2.0 < harmonic_intensity ||
+                     intensity / 2.0 < harmonic_intensity))
                 {
-                  mass_intensitites[mass_bin_index] -= intensity + mz_intensities[next_harmonic_iso_bin];
+                  mass_intensities[mass_bin_index] -= intensity + harmonic_intensity;
                   pass_first_check = false;
                   //break;
                 }
@@ -593,8 +595,9 @@ namespace OpenMS
 
             float high_threshold = max_intensity * hfactor;
             float low_threshold = min_intensity / hfactor;
-            ;
+
             bool is_harmonic = false;
+
             for (int k = 0; k < h_charge_size; k++)//
             {
               int hmz_bin_index = mass_bin_index - harmonic_bin_offset_matrix_.getValue(k, j);
@@ -615,32 +618,35 @@ namespace OpenMS
                 break;
               }
             }
+
             if (!is_harmonic)// if it is not harmonic
             {
-              mass_intensitites[mass_bin_index] += intensity + support_peak_intensity;
+              mass_intensities[mass_bin_index] += intensity + support_peak_intensity;
               spc++;
               if (spc >= min_peak_cntr || spc >= abs_charge / 2)//
               {
+                //double tm = exp(getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width));
                 mass_bins_[mass_bin_index] = true;
               }
             }
             else// if harmonic
             {
-              mass_intensitites[mass_bin_index] -= intensity;
+              mass_intensities[mass_bin_index] -= intensity;
             }
           }
-          else if (abs_charge < low_charge_)// for low charge, include the mass if isotope is present
+          else if (abs_charge <= low_charge_)// for low charge, include the mass if isotope is present
           {
-            mass_intensitites[mass_bin_index] += intensity;
+            mass_intensities[mass_bin_index] += intensity + support_peak_intensity;
             spc++;
             {
+              double tm = exp(getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width));
               mass_bins_[mass_bin_index] = true;
             }
           }
         }
         else if (abs_charge <= low_charge_)// if, for low charge, no isotope peak exists..
         {
-          mass_intensitites[mass_bin_index] -= intensity;
+          mass_intensities[mass_bin_index] -= intensity;
         }
         prev_intensity = intensity;
         prev_charge = j;
@@ -710,12 +716,25 @@ namespace OpenMS
           {// no signal
             continue;
           }
-          if (max_intensity < t)
+          double tm = exp(getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width));
+
+          int abs_charge = (j + current_min_charge_);
+          if(abs_charge <= low_charge_) //
+          {
+            abs_charge_ranges
+                .setValue(0, mass_bin_index,
+                          std::min(abs_charge_ranges.getValue(0, mass_bin_index), j));
+            abs_charge_ranges
+                .setValue(1, mass_bin_index,
+                          std::max(abs_charge_ranges.getValue(1, mass_bin_index), j));
+            mass_bins_[mass_bin_index] = true;
+            max_intensity = max_intensity < t ? t : max_intensity;
+          }
+          else if (max_intensity < t)
           {
             bool artifact = false;
-
-            int abs_charge = (j + current_min_charge_);
             // mass level harmonic, charge off by n artifact removal
+
             double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width);
             double mass = exp(original_log_mass);
             //double diff = Constants::ISOTOPE_MASSDIFF_55K_U / mass;
@@ -858,48 +877,45 @@ namespace OpenMS
            j <= per_mass_abs_charge_ranges.getValue(1, mass_bin_index);
            j++)
       {
-        int& bin_offset = bin_offsets_[j];
-        int b_index = mass_bin_index - bin_offset;// m/z bin
-
-        double max_intensity = -1.0;
-        int abs_charge = j + current_min_charge_;//
-        int& cpi = current_peak_index[j];        // in this charge which peak is to be considered?
         int max_peak_index = -1;
+        int abs_charge = j + current_min_charge_;//
+        int& bin_offset = bin_offsets_[j];
 
-        while (cpi < log_mz_peak_size - 1)// scan through peaks from cpi
         {
-          if (peak_bin_numbers[cpi] == b_index)// if the peak of consideration matches to this mass with charge abs_charge
+          int b_index = mass_bin_index - bin_offset;// m/z bin
+          int& cpi = current_peak_index[j];// in this charge which peak is to be considered?
+          double max_intensity = -1;
+
+          while (cpi < log_mz_peak_size - 1)// scan through peaks from cpi
           {
-            double intensity = log_mz_peaks_[cpi].intensity;
-            if (intensity >
-                max_intensity)// compare with other matching peaks and select the most intense peak (in max_peak_index)
+            if (peak_bin_numbers[cpi] == b_index)// if the peak of consideration matches to this mass with charge abs_charge
             {
-              max_intensity = intensity;
-              max_peak_index = cpi;
+              double intensity = log_mz_peaks_[cpi].intensity;
+              if (intensity >
+                  max_intensity)// compare with other matching peaks and select the most intense peak (in max_peak_index)
+              {
+                max_intensity = intensity;
+                max_peak_index = cpi;
+              }
             }
+            else if (peak_bin_numbers[cpi] > b_index)
+            {
+              break;
+            }
+            cpi++;
           }
-          else if (peak_bin_numbers[cpi] > b_index)
-          {
-            break;
-          }
-          cpi++;
-        }
 
-        if (max_peak_index < 0)
-        {
-          continue;
-        }
-
-        if (max_peak_index > 0 && log_mz_peaks_[max_peak_index - 1].intensity > max_intensity)// to select local maximum
-        {
-          //if(peak_bin_numbers[max_peak_index - 1] == b_index - 1)
+          if (max_peak_index < 0)
           {
             continue;
           }
-        }
-        if (max_peak_index < log_mz_peaks_.size() - 1 && log_mz_peaks_[max_peak_index + 1].intensity > max_intensity)
-        {
-          // if(peak_bin_numbers[max_peak_index + 1] == b_index + 1)
+
+          // Search for local max.
+          if (peak_bin_numbers[max_peak_index - 1] == b_index - 1 && (max_peak_index > 0 && log_mz_peaks_[max_peak_index - 1].intensity > max_intensity))
+          {
+            continue;
+          }
+          if (peak_bin_numbers[max_peak_index + 1] == b_index + 1 && (max_peak_index < log_mz_peaks_.size() - 1 && log_mz_peaks_[max_peak_index + 1].intensity > max_intensity))
           {
             continue;
           }
