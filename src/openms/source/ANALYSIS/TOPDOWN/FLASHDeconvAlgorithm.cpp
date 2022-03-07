@@ -719,7 +719,8 @@ namespace OpenMS
           double tm = exp(getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width));
 
           int abs_charge = (j + current_min_charge_);
-          if(abs_charge <= low_charge_) //
+
+          if(abs_charge <= low_charge_) // for low charges, include all masses.
           {
             abs_charge_ranges
                 .setValue(0, mass_bin_index,
@@ -730,62 +731,64 @@ namespace OpenMS
             mass_bins_[mass_bin_index] = true;
             max_intensity = max_intensity < t ? t : max_intensity;
           }
-          else if (max_intensity < t)
+          else
+              if (max_intensity < t)
           {
             bool artifact = false;
             // mass level harmonic, charge off by n artifact removal
-
-            double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width);
-            double mass = exp(original_log_mass);
-            //double diff = Constants::ISOTOPE_MASSDIFF_55K_U / mass;
-            for (int iso_off = 0; iso_off <= 0 && !artifact; ++iso_off)
+            //if(abs_charge > low_charge_)
             {
-              double log_mass = log(
-                  mass + iso_off * Constants::ISOTOPE_MASSDIFF_55K_U);//original_log_mass + diff * iso_off;
-              if (log_mass < 1)
+              double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width);
+              double mass = exp(original_log_mass);
+              //double diff = Constants::ISOTOPE_MASSDIFF_55K_U / mass;
+              //for (int iso_off = 0; iso_off <= 0 && !artifact; ++iso_off)
               {
-                continue;
-              }
+                double log_mass = log(mass);// + iso_off * Constants::ISOTOPE_MASSDIFF_55K_U);//original_log_mass + diff * iso_off;
+                if (log_mass < 1)
+                {
+                  continue;
+                }
 
-              for (int h : harmonic_charges_)
-              {
-                for (int f = -1; f <= 1 && !artifact; f += 2)//
+                for (int h : harmonic_charges_)
                 {
-                  double hmass = log_mass - log(h) * f;
-                  Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width);
-                  if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
+                  for (int f = -1; f <= 1 && !artifact; f += 2)//
                   {
-                    if (mass_intensities[hmass_index] >= t)
-                    {
-                      artifact = true;//
-                      break;
-                    }
-                  }
-                }
-                if (artifact)
-                {
-                  break;
-                }
-              }
-              //   max_intensity_abs_charge off by one here
-              if (!artifact)//
-              {
-                for (int coff = 1; coff <= 3 && !artifact; coff++)
-                {
-                  for (int f = -1; f <= 1 && !artifact; f += 2)
-                  {
-                    if (abs_charge + f * coff <= 0)
-                    {
-                      continue;
-                    }
-                    double hmass = log_mass - log(abs_charge) + log(abs_charge + f * coff);
+                    double hmass = log_mass - log(h) * f;
                     Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width);
                     if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
                     {
                       if (mass_intensities[hmass_index] >= t)
                       {
-                        artifact = true;
+                        artifact = true;//
                         break;
+                      }
+                    }
+                  }
+                  if (artifact)
+                  {
+                    break;
+                  }
+                }
+                //   max_intensity_abs_charge off by one here
+                if (!artifact)//
+                {
+                  for (int coff = 1; coff <= 3 && !artifact; coff++)
+                  {
+                    for (int f = -1; f <= 1 && !artifact; f += 2)
+                    {
+                      if (abs_charge + f * coff <= 0)
+                      {
+                        continue;
+                      }
+                      double hmass = log_mass - log(abs_charge) + log(abs_charge + f * coff);
+                      Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width);
+                      if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
+                      {
+                        if (mass_intensities[hmass_index] >= t)
+                        {
+                          artifact = true;
+                          break;
+                        }
                       }
                     }
                   }
@@ -968,9 +971,9 @@ namespace OpenMS
             for (int l = 0; l < harmonic_charges_.size(); l++)
             {
               int hc = harmonic_charges_[l];
-              int div = hc / (hc / 2);
-              int tmp_hi = (int) round(mz_diff / (iso_delta / div));
-              double err = abs(mz_diff - tmp_hi * (iso_delta / div));
+              double hiso_delta = iso_delta / (hc / (hc / 2));
+              int tmp_hi = (int) round(mz_diff / hiso_delta);
+              double err = abs(mz_diff - tmp_hi * hiso_delta);
               if (err < mz_delta)
               {
                 total_harmonic_pwr[l] += intensity * intensity;
@@ -1018,9 +1021,9 @@ namespace OpenMS
             for (int l = 0; l < harmonic_charges_.size(); l++)
             {
               int hc = harmonic_charges_[l];
-              int div = hc / (hc / 2);
-              int tmp_hi = (int) round(mz_diff / (iso_delta / div));
-              double err = abs(mz_diff - tmp_hi * (iso_delta / div));
+              double hiso_delta = iso_delta / (hc / (hc / 2));
+              int tmp_hi = (int) round(mz_diff / hiso_delta);
+              double err = abs(mz_diff - tmp_hi * hiso_delta);
 
               if (err < mz_delta)
               {
@@ -1164,8 +1167,8 @@ namespace OpenMS
 
     scoreAndFilterPeakGroups_();
 
-    removeHarmonicsPeakGroups_();
     removeOverlappingPeakGroups_(tolerance_[ms_level_ - 1], ms_level_ == 1 ? 1 : 0);
+    removeHarmonicsPeakGroups_();
 
     if (ms_level_ == 1)
     {
@@ -1383,7 +1386,7 @@ namespace OpenMS
       }
     }
 
-    for (int tmp_offset = -apex_index - left; tmp_offset <= right; tmp_offset++)
+    for (int tmp_offset = - left; tmp_offset <= right; tmp_offset++)
     {
       double tmp_cos = getCosine_(per_isotope_intensities,
                                   min_isotope_index,
@@ -1391,7 +1394,6 @@ namespace OpenMS
                                   iso,
                                   iso_size,//apex_index,
                                   tmp_offset);
-
 
       if (min_diff < tmp_cos)
       {
@@ -1511,15 +1513,15 @@ namespace OpenMS
       }
       sort(intensities.begin(), intensities.end());
     }
-
+    int avg_max_index = avg_.getMaxIsotopeIndex();
     for (auto& peak_group : deconvoluted_spectrum_)
     {
-      auto per_isotope_intensities = std::vector<double>(avg_.getMaxIsotopeIndex(), 0);
+      auto per_isotope_intensities = std::vector<double>(avg_max_index, 0);
       auto per_abs_charge_intensities = std::vector<double>(charge_range, 0);
 
       auto indices = calculatePerChargeIsotopeIntensity_(
           per_isotope_intensities, per_abs_charge_intensities,
-          avg_.getMaxIsotopeIndex(), peak_group);
+          avg_max_index, peak_group);
 
       //bool is_charge_well_distributed = true;
       // is_charge_well_distributed = checkChargeDistribution_(per_abs_charge_intensities); //  could be permanently removed?
@@ -1535,7 +1537,7 @@ namespace OpenMS
                                                             per_isotope_intensities,
                                                             offset, avg_, false);
       peak_group.setIsotopeCosine(cos);
-      peak_group.updateMassesAndIntensity(offset, avg_.getMaxIsotopeIndex());
+      peak_group.updateMassesAndIntensity(offset, avg_max_index);
 
       if (peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
       {
@@ -1591,9 +1593,9 @@ namespace OpenMS
         {
           continue;
         }
-        auto current_per_isotope_intensities = std::vector<double>(avg_.getMaxIsotopeIndex(), 0);
+        auto current_per_isotope_intensities = std::vector<double>(avg_max_index, 0);
 
-        int min_isotope_index = avg_.getMaxIsotopeIndex();
+        int min_isotope_index = avg_max_index;
         int max_isotope_index = 0;
 
         double max_intensity = .0;
@@ -1734,7 +1736,7 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::removeHarmonicsPeakGroups_()
   {
-    std::map<double, std::set<int>> peak_to_pgs;
+    std::unordered_map<double, std::set<int>> peak_to_pgs;
     std::set<int> to_remove_pgs;
     std::vector<PeakGroup> filtered_pg_vec;
     filtered_pg_vec.reserve(deconvoluted_spectrum_.size());
