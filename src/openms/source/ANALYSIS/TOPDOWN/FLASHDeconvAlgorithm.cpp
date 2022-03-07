@@ -333,6 +333,7 @@ namespace OpenMS
 
       mz_bin_intensities[bi] += p.intensity;
     }
+
     for (auto& p : log_mz_peaks_)
     {
       Size bi = getBinNumber_(p.logMz, mz_bin_min_value_, bin_width);
@@ -720,7 +721,7 @@ namespace OpenMS
 
           int abs_charge = (j + current_min_charge_);
 
-          if(abs_charge <= low_charge_) // for low charges, include all masses.
+          if (abs_charge <= low_charge_)// for low charges, include all masses.
           {
             abs_charge_ranges
                 .setValue(0, mass_bin_index,
@@ -731,8 +732,7 @@ namespace OpenMS
             mass_bins_[mass_bin_index] = true;
             max_intensity = max_intensity < t ? t : max_intensity;
           }
-          else
-              if (max_intensity < t)
+          else if (max_intensity < t)
           {
             bool artifact = false;
             // mass level harmonic, charge off by n artifact removal
@@ -886,7 +886,7 @@ namespace OpenMS
 
         {
           int b_index = mass_bin_index - bin_offset;// m/z bin
-          int& cpi = current_peak_index[j];// in this charge which peak is to be considered?
+          int& cpi = current_peak_index[j];         // in this charge which peak is to be considered?
           double max_intensity = -1;
 
           while (cpi < log_mz_peak_size - 1)// scan through peaks from cpi
@@ -966,7 +966,7 @@ namespace OpenMS
               max_mz = observed_mz;
             }
           }
-          else
+          else// if(abs_charge <= low_charge_)
           {
             for (int l = 0; l < harmonic_charges_.size(); l++)
             {
@@ -1016,7 +1016,7 @@ namespace OpenMS
               max_mz = observed_mz;
             }
           }
-          else
+          else// if(abs_charge <= low_charge_)
           {
             for (int l = 0; l < harmonic_charges_.size(); l++)
             {
@@ -1386,7 +1386,7 @@ namespace OpenMS
       }
     }
 
-    for (int tmp_offset = - left; tmp_offset <= right; tmp_offset++)
+    for (int tmp_offset = -left; tmp_offset <= right; tmp_offset++)
     {
       double tmp_cos = getCosine_(per_isotope_intensities,
                                   min_isotope_index,
@@ -1736,7 +1736,7 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::removeHarmonicsPeakGroups_()
   {
-    std::unordered_map<double, std::set<int>> peak_to_pgs;
+    std::map<double, std::set<int>> peak_to_pgs;
     std::set<int> to_remove_pgs;
     std::vector<PeakGroup> filtered_pg_vec;
     filtered_pg_vec.reserve(deconvoluted_spectrum_.size());
