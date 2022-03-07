@@ -72,8 +72,12 @@ public:
       STRING_LIST, ///< string list
       INT_LIST, ///< integer list
       DOUBLE_LIST, ///< double list
-      EMPTY_VALUE ///< empty value
+      EMPTY_VALUE, ///< empty 
+      SIZE_OF_DATATYPE
     };
+
+    /// Names of data types for DataValue
+    static const std::string NamesOfDataType[SIZE_OF_DATATYPE];
 
     /// Supported types for DataValue
     enum UnitType : unsigned char

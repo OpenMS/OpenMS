@@ -34,39 +34,35 @@
 
 // OpenMS
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/VISUAL/PlotCanvas.h>
-#include <OpenMS/VISUAL/PlotWidget.h>
-#include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
-#include <OpenMS/VISUAL/MetaDataBrowser.h>
-#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/LayerDataChrom.h>
-#include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/LayerDataConsensus.h>
 #include <OpenMS/VISUAL/LayerDataFeature.h>
 #include <OpenMS/VISUAL/LayerDataIdent.h>
+#include <OpenMS/VISUAL/LayerDataPeak.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/MetaDataBrowser.h>
+#include <OpenMS/VISUAL/PlotCanvas.h>
+#include <OpenMS/VISUAL/PlotWidget.h>
 
 // QT
-#include <QPainter>
-#include <QPaintEvent>
 #include <QBitmap>
+#include <QFontMetrics>
+#include <QPaintEvent>
+#include <QPainter>
 #include <QWheelEvent>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QPushButton>
-#include <QFontMetrics>
-
 #include <iostream>
 
 using namespace std;
 
 namespace OpenMS
 {
-  PlotCanvas::PlotCanvas(const Param & /*preferences*/, QWidget * parent) :
-    QWidget(parent),
-    DefaultParamHandler("PlotCanvas"),
-    rubber_band_(QRubberBand::Rectangle, this)
+  PlotCanvas::PlotCanvas(const Param& /*preferences*/, QWidget* parent) : QWidget(parent), DefaultParamHandler("PlotCanvas"), rubber_band_(QRubberBand::Rectangle, this)
   {
-    //Prevent filling background
+    // Prevent filling background
     setAttribute(Qt::WA_OpaquePaintEvent);
     // get mouse coordinates while mouse moves over diagramm and for focus handling
     setMouseTracking(true);
@@ -75,18 +71,18 @@ namespace OpenMS
     setMinimumSize(200, 200);
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
-    //set common defaults for all canvases
+    // set common defaults for all canvases
     defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
 
-    //Set focus policy in order to get keyboard events
+    // Set focus policy in order to get keyboard events
 
-    //Set 'whats this' text
-    setWhatsThis("Translate: Translate mode is activated by default. Hold down the left mouse key and move the mouse to translate. Arrow keys can be used for translation independent of the current mode.\n\n"
-                 "Zoom: Zoom mode is activated with the CTRL key. CTRL+/CTRL- are used to traverse the zoom stack (or mouse wheel). Pressing Backspace resets the zoom.\n\n"
-                 "Measure: Measure mode is activated with the SHIFT key. To measure the distace between data points, press the left mouse button on a point and drag the mouse to another point.\n\n"
-                 );
+    // Set 'whats this' text
+    setWhatsThis(
+      "Translate: Translate mode is activated by default. Hold down the left mouse key and move the mouse to translate. Arrow keys can be used for translation independent of the current mode.\n\n"
+      "Zoom: Zoom mode is activated with the CTRL key. CTRL+/CTRL- are used to traverse the zoom stack (or mouse wheel). Pressing Backspace resets the zoom.\n\n"
+      "Measure: Measure mode is activated with the SHIFT key. To measure the distace between data points, press the left mouse button on a point and drag the mouse to another point.\n\n");
 
-    //set move cursor and connect signal that updates the cursor automatically
+    // set move cursor and connect signal that updates the cursor automatically
     updateCursor_();
     connect(this, SIGNAL(actionModeChange()), this, SLOT(updateCursor_()));
   }
@@ -95,7 +91,7 @@ namespace OpenMS
   {
   }
 
-  void PlotCanvas::resizeEvent(QResizeEvent * /* e */)
+  void PlotCanvas::resizeEvent(QResizeEvent* /* e */)
   {
 #ifdef DEBUG_TOPPVIEW
     cout << "BEGIN " << OPENMS_PRETTY_FUNCTION << endl;
@@ -111,9 +107,9 @@ namespace OpenMS
 
   void PlotCanvas::setFilters(const DataFilters& filters)
   {
-    //set filters
+    // set filters
     layers_.getCurrentLayer().filters = filters;
-    //update the content
+    // update the content
     update_buffer_ = true;
     update_(OPENMS_PRETTY_FUNCTION);
   }
@@ -136,7 +132,7 @@ namespace OpenMS
   {
     mz_to_x_axis_ = mz_to_x_axis;
 
-    //swap axes if necessary
+    // swap axes if necessary
     if (spectrum_widget_)
     {
       spectrum_widget_->updateAxes();
@@ -147,14 +143,13 @@ namespace OpenMS
     update_(OPENMS_PRETTY_FUNCTION);
   }
 
-  void PlotCanvas::changeVisibleArea_(const AreaType & new_area, bool repaint, bool add_to_stack)
+  void PlotCanvas::changeVisibleArea_(const AreaType& new_area, bool repaint, bool add_to_stack)
   {
-    //store old zoom state
+    // store old zoom state
     if (add_to_stack)
     {
       // if we scrolled in between zooming we want to store the last position before zooming as well
-      if ((zoom_stack_.size() > 0)
-         && (zoom_stack_.back() != visible_area_))
+      if ((zoom_stack_.size() > 0) && (zoom_stack_.back() != visible_area_))
       {
         zoomAdd_(visible_area_);
       }
@@ -179,10 +174,9 @@ namespace OpenMS
 
   void PlotCanvas::updateScrollbars_()
   {
-
   }
 
-  void PlotCanvas::wheelEvent(QWheelEvent * e)
+  void PlotCanvas::wheelEvent(QWheelEvent* e)
   {
     zoom_(e->x(), e->y(), e->delta() > 0);
     e->accept();
@@ -212,22 +206,22 @@ namespace OpenMS
 
   void PlotCanvas::zoomBack_()
   {
-    //cout << "Zoom out" << endl;
-    //cout << " - pos before:" << (zoom_pos_-zoom_stack_.begin()) << endl;
-    //cout << " - size before:" << zoom_stack_.size() << endl;
+    // cout << "Zoom out" << endl;
+    // cout << " - pos before:" << (zoom_pos_-zoom_stack_.begin()) << endl;
+    // cout << " - size before:" << zoom_stack_.size() << endl;
     if (zoom_pos_ != zoom_stack_.begin())
     {
       --zoom_pos_;
       changeVisibleArea_(*zoom_pos_);
     }
-    //cout << " - pos after:" << (zoom_pos_-zoom_stack_.begin()) << endl;
+    // cout << " - pos after:" << (zoom_pos_-zoom_stack_.begin()) << endl;
   }
 
   void PlotCanvas::zoomForward_()
   {
-    //cout << "Zoom in" << endl;
-    //cout << " - pos before:" << (zoom_pos_-zoom_stack_.begin()) << endl;
-    //cout << " - size before:" << zoom_stack_.size() <<endl;
+    // cout << "Zoom in" << endl;
+    // cout << " - pos before:" << (zoom_pos_-zoom_stack_.begin()) << endl;
+    // cout << " - size before:" << zoom_stack_.size() <<endl;
 
     // if at end of zoom level then simply add a new zoom
     if (zoom_pos_ == zoom_stack_.end() || (zoom_pos_ + 1) == zoom_stack_.end())
@@ -249,24 +243,24 @@ namespace OpenMS
     }
     changeVisibleArea_(*zoom_pos_);
 
-    //cout << " - pos after:" << (zoom_pos_-zoom_stack_.begin()) << endl;
+    // cout << " - pos after:" << (zoom_pos_-zoom_stack_.begin()) << endl;
   }
 
-  void PlotCanvas::zoomAdd_(const AreaType & area)
+  void PlotCanvas::zoomAdd_(const AreaType& area)
   {
-    //cout << "Adding to stack" << endl;
-    //cout << " - pos before:" << (zoom_pos_-zoom_stack_.begin()) << endl;
-    //cout << " - size before:" << zoom_stack_.size() <<endl;
+    // cout << "Adding to stack" << endl;
+    // cout << " - pos before:" << (zoom_pos_-zoom_stack_.begin()) << endl;
+    // cout << " - size before:" << zoom_stack_.size() <<endl;
     if (zoom_pos_ != zoom_stack_.end() && (zoom_pos_ + 1) != zoom_stack_.end())
     {
-      //cout << " - removing from:" << ((zoom_pos_+1)-zoom_stack_.begin()) << endl;
+      // cout << " - removing from:" << ((zoom_pos_+1)-zoom_stack_.begin()) << endl;
       zoom_stack_.erase(zoom_pos_ + 1, zoom_stack_.end());
     }
     zoom_stack_.push_back(area);
     zoom_pos_ = zoom_stack_.end();
     --zoom_pos_;
-    //cout << " - pos after:" << (zoom_pos_-zoom_stack_.begin()) << endl;
-    //cout << " - size after:" << zoom_stack_.size() <<endl;
+    // cout << " - pos after:" << (zoom_pos_-zoom_stack_.begin()) << endl;
+    // cout << " - size after:" << zoom_stack_.size() <<endl;
   }
 
   void PlotCanvas::zoomClear_()
@@ -285,11 +279,11 @@ namespace OpenMS
 
   void PlotCanvas::setVisibleArea(const AreaType& area)
   {
-    //cout << OPENMS_PRETTY_FUNCTION << endl;
+    // cout << OPENMS_PRETTY_FUNCTION << endl;
     changeVisibleArea_(area);
   }
 
-  void PlotCanvas::paintGridLines_(QPainter & painter)
+  void PlotCanvas::paintGridLines_(QPainter& painter)
   {
     if (!show_grid_ || !spectrum_widget_)
     {
@@ -303,7 +297,7 @@ namespace OpenMS
 
     painter.save();
 
-    unsigned int xl, xh, yl, yh;     //width/height of the diagram area, x, y coordinates of lo/hi x,y values
+    unsigned int xl, xh, yl, yh; // width/height of the diagram area, x, y coordinates of lo/hi x,y values
 
     xl = 0;
     xh = width();
@@ -317,18 +311,18 @@ namespace OpenMS
       // style definitions
       switch (j)
       {
-      case 0:           // style settings for big intervals
-        painter.setPen(p1);
-        break;
+        case 0: // style settings for big intervals
+          painter.setPen(p1);
+          break;
 
-      case 1:           // style settings for small intervals
-        painter.setPen(p2);
-        break;
+        case 1: // style settings for small intervals
+          painter.setPen(p2);
+          break;
 
-      default:
-        std::cout << "empty vertical grid line vector error!" << std::endl;
-        painter.setPen(QPen(QColor(0, 0, 0)));
-        break;
+        default:
+          std::cout << "empty vertical grid line vector error!" << std::endl;
+          painter.setPen(QPen(QColor(0, 0, 0)));
+          break;
       }
 
       for (std::vector<double>::const_iterator it = spectrum_widget_->xAxis()->gridLines()[j].begin(); it != spectrum_widget_->xAxis()->gridLines()[j].end(); ++it)
@@ -340,22 +334,21 @@ namespace OpenMS
 
     for (Size j = 0; j != spectrum_widget_->yAxis()->gridLines().size(); j++)
     {
-
       // style definitions
       switch (j)
       {
-      case 0:           // style settings for big intervals
-        painter.setPen(p1);
-        break;
+        case 0: // style settings for big intervals
+          painter.setPen(p1);
+          break;
 
-      case 1:           // style settings for small intervals
-        painter.setPen(p2);
-        break;
+        case 1: // style settings for small intervals
+          painter.setPen(p2);
+          break;
 
-      default:
-        std::cout << "empty vertical grid line vector error!" << std::endl;
-        painter.setPen(QPen(QColor(0, 0, 0)));
-        break;
+        default:
+          std::cout << "empty vertical grid line vector error!" << std::endl;
+          painter.setPen(QPen(QColor(0, 0, 0)));
+          break;
       }
 
       for (std::vector<double>::const_iterator it = spectrum_widget_->yAxis()->gridLines()[j].begin(); it != spectrum_widget_->yAxis()->gridLines()[j].end(); ++it)
@@ -377,11 +370,10 @@ namespace OpenMS
     new_layer->setName(QFileInfo(filename.toQString()).completeBaseName());
   }
 
-  bool PlotCanvas::addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String & filename)
+  bool PlotCanvas::addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String& filename)
   {
     // both empty
-    if (!map->getChromatograms().empty() 
-     && !map->empty())
+    if (!map->getChromatograms().empty() && !map->empty())
     {
       // TODO : handle this case better
       OPENMS_LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
@@ -389,8 +381,7 @@ namespace OpenMS
 
     LayerDataBaseUPtr new_layer;
     // check which one is empty
-    if (!map->getChromatograms().empty() 
-      && map->empty())
+    if (!map->getChromatograms().empty() && map->empty())
     {
       new_layer.reset(new LayerDataChrom);
     }
@@ -400,13 +391,13 @@ namespace OpenMS
     }
     new_layer->setPeakData(map);
     new_layer->setOnDiscPeakData(od_map);
-    
+
     setBaseLayerParameters(new_layer.get(), param_, filename);
     layers_.addLayer(std::move(new_layer));
     return finishAdding_();
   }
 
-  bool PlotCanvas::addLayer(FeatureMapSharedPtrType map, const String & filename)
+  bool PlotCanvas::addLayer(FeatureMapSharedPtrType map, const String& filename)
   {
     LayerDataBaseUPtr new_layer(new LayerDataFeature);
     new_layer->getFeatureMap() = map;
@@ -416,7 +407,7 @@ namespace OpenMS
     return finishAdding_();
   }
 
-  bool PlotCanvas::addLayer(ConsensusMapSharedPtrType map, const String & filename)
+  bool PlotCanvas::addLayer(ConsensusMapSharedPtrType map, const String& filename)
   {
     LayerDataBaseUPtr new_layer(new LayerDataConsensus(map));
 
@@ -431,19 +422,20 @@ namespace OpenMS
     new_layer->setPeptideIds(std::move(peptides));
     setBaseLayerParameters(new_layer, param_, filename);
     layers_.addLayer(LayerDataBaseUPtr(new_layer));
-    return finishAdding_(); 
+    return finishAdding_();
   }
 
   void PlotCanvas::popIncompleteLayer_(const QString& error_message)
   {
     layers_.removeCurrentLayer();
-    if (!error_message.isEmpty()) QMessageBox::critical(this, "Error", error_message);
+    if (!error_message.isEmpty())
+      QMessageBox::critical(this, "Error", error_message);
   }
 
-  void PlotCanvas::setLayerName(Size i, const String & name)
+  void PlotCanvas::setLayerName(Size i, const String& name)
   {
     getLayer(i).setName(name);
-    if (i == 0 && spectrum_widget_) 
+    if (i == 0 && spectrum_widget_)
     {
       spectrum_widget_->setWindowTitle(name.toQString());
     }
@@ -484,18 +476,18 @@ namespace OpenMS
   void PlotCanvas::recalculateRanges_(UInt mz_dim, UInt rt_dim, UInt it_dim)
   {
     RangeType layer_range; // temporary, until we switch overall_data_range_ to a RangeType
-    //overall_data_range_.clearRanges();
+    // overall_data_range_.clearRanges();
 
     for (Size layer_index = 0; layer_index < getLayerCount(); ++layer_index)
     {
-      layer_range.extend(getLayer(layer_index).getRange());  
+      layer_range.extend(getLayer(layer_index).getRange());
     }
 
     // add 4% margin (2% left, 2% right) to RT, m/z and intensity
     layer_range.scaleBy(1.04);
 
-    // set minimum intensity to 0
-    layer_range.extendIntensity(0);
+    // set minimum intensity to 0 (avoid negative intensities!)
+    layer_range.RangeIntensity::setMin(0);
 
     overall_data_range_ = DRange<3>::empty;
     DRange<3>::PositionType m_min = overall_data_range_.minPosition();
@@ -511,7 +503,7 @@ namespace OpenMS
   }
 
   double PlotCanvas::getSnapFactor()
-  {
+  { // FIXME: probably a bug. There should be one entry per layer?
     return snap_factors_[0];
   }
 
@@ -522,26 +514,23 @@ namespace OpenMS
 
   void PlotCanvas::recalculateSnapFactor_()
   {
-
   }
 
   void PlotCanvas::horizontalScrollBarChange(int /*value*/)
   {
-
   }
 
   void PlotCanvas::verticalScrollBarChange(int /*value*/)
   {
-
   }
 
-  void PlotCanvas::update_(const char *)
+  void PlotCanvas::update_(const char*)
   {
     update();
   }
 
-  //this does not work anymore, probably due to Qt::StrongFocus :( -- todo: delete!
-  void PlotCanvas::focusOutEvent(QFocusEvent * /*e*/)
+  // this does not work anymore, probably due to Qt::StrongFocus :( -- todo: delete!
+  void PlotCanvas::focusOutEvent(QFocusEvent* /*e*/)
   {
     // Alt/Shift pressed and focus lost => change back action mode
     if (action_mode_ != AM_TRANSLATE)
@@ -550,27 +539,27 @@ namespace OpenMS
       emit actionModeChange();
     }
 
-    //reset peaks
+    // reset peaks
     selected_peak_.clear();
     measurement_start_.clear();
 
-    //update
+    // update
     update_(OPENMS_PRETTY_FUNCTION);
   }
 
-  void PlotCanvas::leaveEvent(QEvent * /*e*/)
+  void PlotCanvas::leaveEvent(QEvent* /*e*/)
   {
-    //release keyboard, when the mouse pointer leaves
+    // release keyboard, when the mouse pointer leaves
     releaseKeyboard();
   }
 
-  void PlotCanvas::enterEvent(QEvent * /*e*/)
+  void PlotCanvas::enterEvent(QEvent* /*e*/)
   {
-    //grab keyboard, as we need to handle key presses
+    // grab keyboard, as we need to handle key presses
     grabKeyboard();
   }
 
-  void PlotCanvas::keyReleaseEvent(QKeyEvent * e)
+  void PlotCanvas::keyReleaseEvent(QKeyEvent* e)
   {
     // Alt/Shift released => change back action mode
     if (e->key() == Qt::Key_Control || e->key() == Qt::Key_Shift)
@@ -583,7 +572,7 @@ namespace OpenMS
     e->ignore();
   }
 
-  void PlotCanvas::keyPressEvent(QKeyEvent * e)
+  void PlotCanvas::keyPressEvent(QKeyEvent* e)
   {
     if (e->key() == Qt::Key_Control)
     { // Ctrl pressed => change action mode
@@ -595,8 +584,9 @@ namespace OpenMS
       action_mode_ = AM_MEASURE;
       emit actionModeChange();
     }
-    else if ((e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Plus)) // do not use (e->modifiers() == Qt::ControlModifier) to target Ctrl exclusively, since +/- might(!) also trigger the Qt::KeypadModifier
-    { // CTRL+Plus => Zoom stack
+    else if ((e->modifiers() & Qt::ControlModifier) &&
+             (e->key() == Qt::Key_Plus)) // do not use (e->modifiers() == Qt::ControlModifier) to target Ctrl exclusively, since +/- might(!) also trigger the Qt::KeypadModifier
+    {                                    // CTRL+Plus => Zoom stack
       zoomForward_();
     }
     else if ((e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Minus))
@@ -657,14 +647,14 @@ namespace OpenMS
 
   void PlotCanvas::getVisiblePeakData(ExperimentType& map) const
   {
-    //clear output experiment
+    // clear output experiment
     map.clear(true);
 
     const LayerDataBase& layer = getCurrentLayer();
     if (layer.type == LayerDataBase::DT_PEAK)
     {
-      const AreaType & area = getVisibleArea();
-      const ExperimentType & peaks = *layer.getPeakData();
+      const AreaType& area = getVisibleArea();
+      const ExperimentType& peaks = *layer.getPeakData();
       // copy experimental settings
       map.ExperimentalSettings::operator=(peaks);
       // get begin / end of the range
@@ -697,7 +687,7 @@ namespace OpenMS
         // copy peak information
         if (!is_1d && spectrum_ref.getMSLevel() > 1 && !spectrum_ref.getPrecursors().empty())
         {
-          //MS^n (n>1) spectra are copied if their precursor is in the m/z range
+          // MS^n (n>1) spectra are copied if their precursor is in the m/z range
           if (spectrum_ref.getPrecursors()[0].getMZ() >= area.minPosition()[0] && spectrum_ref.getPrecursors()[0].getMZ() <= area.maxPosition()[0])
           {
             spectrum.insert(spectrum.begin(), spectrum_ref.begin(), spectrum_ref.end());
@@ -721,34 +711,30 @@ namespace OpenMS
     }
     else if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
     {
-      //TODO CHROM
+      // TODO CHROM
     }
   }
 
-  void PlotCanvas::getVisibleFeatureData(FeatureMapType & map) const
+  void PlotCanvas::getVisibleFeatureData(FeatureMapType& map) const
   {
-    //clear output experiment
+    // clear output experiment
     map.clear(true);
 
     const LayerDataBase& layer = getCurrentLayer();
     if (layer.type == LayerDataBase::DT_FEATURE)
     {
-      //copy meta data
+      // copy meta data
       map.setIdentifier(layer.getFeatureMap()->getIdentifier());
       map.setProteinIdentifications(layer.getFeatureMap()->getProteinIdentifications());
-      //Visible area
+      // Visible area
       double min_rt = getVisibleArea().minPosition()[1];
       double max_rt = getVisibleArea().maxPosition()[1];
       double min_mz = getVisibleArea().minPosition()[0];
       double max_mz = getVisibleArea().maxPosition()[0];
-      //copy features
+      // copy features
       for (FeatureMapType::ConstIterator it = layer.getFeatureMap()->begin(); it != layer.getFeatureMap()->end(); ++it)
       {
-        if (layer.filters.passes(*it)
-           && it->getRT() >= min_rt
-           && it->getRT() <= max_rt
-           && it->getMZ() >= min_mz
-           && it->getMZ() <= max_mz)
+        if (layer.filters.passes(*it) && it->getRT() >= min_rt && it->getRT() <= max_rt && it->getMZ() >= min_mz && it->getMZ() <= max_mz)
         {
           map.push_back(*it);
         }
@@ -756,29 +742,25 @@ namespace OpenMS
     }
   }
 
-  void PlotCanvas::getVisibleConsensusData(ConsensusMapType & map) const
+  void PlotCanvas::getVisibleConsensusData(ConsensusMapType& map) const
   {
-    //clear output experiment
+    // clear output experiment
     map.clear(true);
 
     const LayerDataBase& layer = getCurrentLayer();
     if (layer.type == LayerDataBase::DT_CONSENSUS)
     {
-      //copy file descriptions
+      // copy file descriptions
       map.getColumnHeaders() = layer.getConsensusMap()->getColumnHeaders();
-      //Visible area
+      // Visible area
       double min_rt = getVisibleArea().minPosition()[1];
       double max_rt = getVisibleArea().maxPosition()[1];
       double min_mz = getVisibleArea().minPosition()[0];
       double max_mz = getVisibleArea().maxPosition()[0];
-      //copy features
+      // copy features
       for (ConsensusMapType::ConstIterator it = layer.getConsensusMap()->begin(); it != layer.getConsensusMap()->end(); ++it)
       {
-        if (layer.filters.passes(*it)
-           && it->getRT() >= min_rt
-           && it->getRT() <= max_rt
-           && it->getMZ() >= min_mz
-           && it->getMZ() <= max_mz)
+        if (layer.filters.passes(*it) && it->getRT() >= min_rt && it->getRT() <= max_rt && it->getMZ() >= min_mz && it->getMZ() <= max_mz)
         {
           map.push_back(*it);
         }
@@ -791,7 +773,8 @@ namespace OpenMS
     peptides.clear();
 
     auto p = dynamic_cast<const IPeptideIds*>(&getCurrentLayer());
-    if (p == nullptr) return;
+    if (p == nullptr)
+      return;
 
     // copy peptides, if visible
     for (const auto& p : p->getPeptideIds())
@@ -832,14 +815,14 @@ namespace OpenMS
       }
       else if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
       {
-        //TODO CHROM
+        // TODO CHROM
       }
       else if (layer.type == LayerDataBase::DT_IDENT)
       {
         // TODO IDENT
       }
     }
-    else     //show element meta data
+    else // show element meta data
     {
       if (layer.type == LayerDataBase::DT_PEAK)
       {
@@ -855,7 +838,7 @@ namespace OpenMS
       }
       else if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
       {
-        //TODO CHROM
+        // TODO CHROM
       }
       else if (layer.type == LayerDataBase::DT_IDENT)
       {
@@ -863,7 +846,7 @@ namespace OpenMS
       }
     }
 
-    //if the meta data was modified, set the flag
+    // if the meta data was modified, set the flag
     if (modifiable && dlg.exec())
     {
       modificationStatus_(getCurrentLayerIndex(), true);
@@ -874,17 +857,17 @@ namespace OpenMS
   {
     switch (action_mode_)
     {
-    case AM_TRANSLATE:
-      setCursor(QCursor(QPixmap(":/cursor_move.png"), 0, 0));
-      break;
+      case AM_TRANSLATE:
+        setCursor(QCursor(QPixmap(":/cursor_move.png"), 0, 0));
+        break;
 
-    case AM_ZOOM:
-      setCursor(QCursor(QPixmap(":/cursor_zoom.png"), 0, 0));
-      break;
+      case AM_ZOOM:
+        setCursor(QCursor(QPixmap(":/cursor_zoom.png"), 0, 0));
+        break;
 
-    case AM_MEASURE:
-      setCursor(QCursor(QPixmap(":/cursor_measure.png"), 0, 0));
-      break;
+      case AM_MEASURE:
+        setCursor(QCursor(QPixmap(":/cursor_measure.png"), 0, 0));
+        break;
     }
   }
 
@@ -903,18 +886,16 @@ namespace OpenMS
     }
   }
 
-  void PlotCanvas::drawText_(QPainter & painter, QStringList text)
+  void PlotCanvas::drawText_(QPainter& painter, QStringList text)
   {
     GUIHelpers::drawText(painter, text, {2, 3}, Qt::black, QColor(255, 255, 255, 200));
   }
 
-  double PlotCanvas::getIdentificationMZ_(const Size layer_index,
-                                                  const PeptideIdentification &
-                                                  peptide) const
+  double PlotCanvas::getIdentificationMZ_(const Size layer_index, const PeptideIdentification& peptide) const
   {
     if (getLayerFlag(layer_index, LayerDataBase::I_PEPTIDEMZ))
     {
-      const PeptideHit & hit = peptide.getHits().front();
+      const PeptideHit& hit = peptide.getHits().front();
       Int charge = hit.getCharge();
       return hit.getSequence().getMZ(charge);
     }
@@ -926,11 +907,10 @@ namespace OpenMS
 
   void LayerStack::addLayer(LayerDataBaseUPtr new_layer)
   {
-    // insert after last layer of same type, 
-    // if there is no such layer after last layer of previous types, 
+    // insert after last layer of same type,
+    // if there is no such layer after last layer of previous types,
     // if there are no layers at all put at front
-    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerDataBaseUPtr& l)
-    { return l->type <= new_layer->type; });
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerDataBaseUPtr& l) { return l->type <= new_layer->type; });
 
     auto where = layers_.insert(it.base(), std::move(new_layer));
     // update to index we just inserted into
@@ -1017,4 +997,4 @@ namespace OpenMS
     removeLayer(current_layer_);
   }
 
-} //namespace
+} // namespace OpenMS

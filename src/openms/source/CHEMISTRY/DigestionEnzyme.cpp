@@ -122,7 +122,7 @@ namespace OpenMS
     name_ = name;
   }
 
-  String DigestionEnzyme::getName() const
+  const String& DigestionEnzyme::getName() const
   {
     return name_;
   }
@@ -147,7 +147,7 @@ namespace OpenMS
     cleavage_regex_ = cleavage_regex;
   }
 
-  String DigestionEnzyme::getRegEx() const
+  const String& DigestionEnzyme::getRegEx() const
   {
     return cleavage_regex_;
   }
@@ -157,7 +157,7 @@ namespace OpenMS
     regex_description_ = value;
   }
 
-  String DigestionEnzyme::getRegExDescription() const
+  const String& DigestionEnzyme::getRegExDescription() const
   {
     return regex_description_;
   }

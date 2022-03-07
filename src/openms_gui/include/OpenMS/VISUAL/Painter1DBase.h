@@ -28,29 +28,61 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Christian Ehrlich $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-
 #pragma once
-#include <vector>
-#include "Wm5Vector2.h"
 
-namespace OpenMS {
-  namespace Math {
-    /// Copies the distance(x_begin,x_end) elements starting at x_begin and y_begin into the Wm5::Vector
-    template <typename Iterator>
-    std::vector<Wm5::Vector2d> iteratorRange2Wm5Vectors(Iterator x_begin, Iterator x_end, Iterator y_begin)
-    {
-      Iterator xIter = x_begin;
-      Iterator yIter = y_begin;
-      std::vector<Wm5::Vector2d> points;
-      for(;xIter!=x_end; ++xIter, ++yIter)
-      {
-        points.push_back( Wm5::Vector2d(*xIter, *yIter) );
-      }
-      return points;
-    }
-  }
-}
+#include <OpenMS/VISUAL/LayerDataBase.h>
+
+class QPainter;
+class QPenStyle;
+
+namespace OpenMS
+{
+  class LayerDataPeak;
+  class Plot1DCanvas;
+
+  /**
+   * @brief A base class for painting all items from a data layer (as supported by class derived from here) onto a 1D Canvas
+  */
+  class OPENMS_GUI_DLLAPI Painter1DBase
+  {
+  public:
+    /**
+       @brief Paints items using the given painter onto the canvas.
+ 
+       @param painter The painter used for drawing 
+       @param canvas The canvas to paint onto (should expose all the details needed, like canvas size, draw mode, colors etc)
+       @param layer_index Which layer is currently painted (FIXME: remove when Canvas1D::DrawMode and PenStyle are factored out) 
+    */
+    virtual void paint(QPainter*, Plot1DCanvas* canvas, int layer_index) = 0;
+
+    /// static method to draw a dashed line
+    static void drawDashedLine(const QPoint& from, const QPoint& to, QPainter* painter, QColor color);
+  };
+
+  /**
+     @brief Painter1D for spectra
+     
+  */
+  class OPENMS_GUI_DLLAPI Painter1DPeak : public Painter1DBase
+  {
+  public:
+    /// C'tor which remembers the layer to paint
+    Painter1DPeak(const LayerDataPeak* parent);
+
+    /// Implementation of base class
+    void paint(QPainter*, Plot1DCanvas* canvas, int layer_index) override;
+
+  protected:
+    /// draw all Annotation1DItems attached to the layer
+    void drawAnnotations_(QPainter& painter, Plot1DCanvas* canvas);
+    /// annotate up to 10 interesting peaks in the range @p vbegin to @pvend with their m/z values (using deisotoping and intensity filtering)
+    void drawMZAtInterestingPeaks_(QPainter& painter, Plot1DCanvas* canvas, MSSpectrum::ConstIterator vbegin, MSSpectrum::ConstIterator vend);
+
+    const LayerDataPeak* layer_; ///< the data to paint
+  };
+
+} // namespace OpenMS

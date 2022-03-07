@@ -164,7 +164,7 @@ namespace OpenMS
     defaults_.setMinInt("mz:sampling_points", 2);
 
     // contaminants:
-    defaults_.setValue("contaminants:file", "examples/simulation/contaminants.csv", "Contaminants file with sum formula and absolute RT interval. See 'OpenMS/examples/simulation/contaminants.txt' for details");
+    defaults_.setValue("contaminants:file", "SIMULATION/contaminants.csv", "Contaminants file with sum formula and absolute RT interval. See 'share/OpenMS/SIMULATION/contaminants.txt' for details");
 
     // VARIATION
 

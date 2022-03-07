@@ -139,8 +139,8 @@ namespace OpenMS
         }
         ts << all_header_names[c];        
       }
-      ts << "\n";      
     }
+    ts << "\n";
 
     // write entries
     for (int r = 0; r < rowCount(); ++r)

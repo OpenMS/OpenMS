@@ -295,6 +295,37 @@ namespace OpenMS
     return hits_before != hits.size();
   }
 
+  bool ACTrie::addHitsSpawn_(Index i, const ACSpawn& spawn, const size_t text_pos, std::vector<Hit>& hits, const int current_spawn_depths) const
+  {
+    size_t hits_before = hits.size();
+    // hits from current node; return true if going upstream has more hits..
+    auto collect = [&]() {
+      if (trie_[i()].depth_and_hits.has_hit)
+      {
+        const auto needle_length = trie_[i()].depth_and_hits.depth;
+        const auto text_start = text_pos - needle_length;
+        // we want the first AAA of the spawn to be part of the hit; otherwise that hit will be reported by shorter sub-spawns or the master
+        if (current_spawn_depths - needle_length >= spawn.max_prefix_loss_leftover) 
+        {
+          return false;
+        }
+        for (const auto needle_idx : umap_index2needles_.at(i()))
+        {
+          hits.emplace_back(needle_idx, needle_length, Hit::T(text_start));
+        }
+        return true;
+      }
+      return false;
+    };
+
+    // follow chain of suffix nodes until a node does not have hits anymore
+    while (collect())
+    {
+      i = trie_[i()].suffix;
+    }
+    return hits_before != hits.size();
+  }
+  
   Index ACTrie::follow_(const Index i, const AA aa) const
   {
     Index ch = findChildBFS_(i, aa);
@@ -320,8 +351,9 @@ namespace OpenMS
   {
     // let spawn follow the original edge
     Index j = follow_(spawn.tree_pos, edge);
-    // did we loose a prefix?        old-depth                  new depth
-    int up_count = int(trie_[spawn.tree_pos()].depth_and_hits.depth) - int(trie_[j()].depth_and_hits.depth) + 1;
+    const int new_depth = int(trie_[j()].depth_and_hits.depth);
+    // did we loose a prefix?              old-depth                         new depth
+    const int up_count = int(trie_[spawn.tree_pos()].depth_and_hits.depth) - new_depth + 1;
     if (up_count >= spawn.max_prefix_loss_leftover)
     { // spawn is dead because it lost its AAA/MM
       return false;
@@ -329,7 +361,7 @@ namespace OpenMS
     // update the prefix length
     spawn.max_prefix_loss_leftover -= up_count;
     spawn.tree_pos = j;
-    addHits_(j, spawn.textPos(state), state.hits);
+    addHitsSpawn_(j, spawn, spawn.textPos(state), state.hits, new_depth);
     return true;
   }
 
