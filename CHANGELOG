@@ -35,6 +35,7 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 - Basic MzTabM support for AccurateMassSearch
 - Changed default parameter keep_unidentified_masses to "true" (AccurateMassSearch/AccurateMassSearchEngine)
 - Added parameter allow_nterm_protein_cleavage to PeptideIndexer to support no cleavage.
+- Fixes and improves TheoreticalSpectrumGenerationDialog in TOPPView (closes #5787) (#5883)
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.7     (released 9/2021)                  ----
