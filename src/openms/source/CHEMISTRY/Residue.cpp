@@ -324,6 +324,8 @@ namespace OpenMS
   {
     formula_ = formula;
     internal_formula_ = formula_ - getInternalToFull();
+    average_weight_ = formula_.getAverageWeight();
+    mono_weight_ = formula_.getMonoWeight();
   }
 
   EmpiricalFormula Residue::getFormula(ResidueType res_type) const
@@ -479,26 +481,17 @@ namespace OpenMS
       mono_weight_ += mod->getDiffMonoMass();
     }
 
-    bool updated_formula(false);
     if (!mod->getDiffFormula().isEmpty())
     {
-      updated_formula = true;
       setFormula(getFormula() + mod->getDiffFormula());
     }
     else if (!mod->getFormula().empty())
     {
-      updated_formula = true;
       String formula = mod->getFormula();
       formula.removeWhitespaces();
-      formula_ = EmpiricalFormula(formula);
+      setFormula(formula);
     }
 
-    if (updated_formula)
-    {
-      average_weight_ = formula_.getAverageWeight();
-      mono_weight_ = formula_.getMonoWeight();
-    }
-    
     // neutral losses
     loss_formulas_.clear();
     loss_names_.clear();
@@ -559,7 +552,7 @@ namespace OpenMS
 
   const String& Residue::getModificationName() const
   {
-    if (modification_ == nullptr) return String::EMPTY;
+    if (!isModified()) return String::EMPTY;
     return modification_->getId();
   }
 
