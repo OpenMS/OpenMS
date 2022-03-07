@@ -625,7 +625,7 @@ namespace OpenMS
                const OpenSwath::LightTransition& tr = transition_exp.transitions[k];
                transition_exp_used_all.transitions.push_back(tr);
                matching_compounds.insert(tr.getPeptideRef());
-               OPENMS_LOG_DEBUG << "Adding Precursor with m/z " << tr.getPrecursorMZ() << " and IM of " << tr.getPrecursorIM() <<  " to swath with mz upper of " << swath_maps[i].upper << std::endl;
+               OPENMS_LOG_DEBUG << "Adding Precursor with m/z " << tr.getPrecursorMZ() << " and IM of " << tr.getPrecursorIM() <<  " to swath with mz upper of " << swath_maps[i].upper << " im lower of " << swath_maps[i].imLower << " and im upper of " << swath_maps[i].imUpper << std::endl;
             }
           }
 
