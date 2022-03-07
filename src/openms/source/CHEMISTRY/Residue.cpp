@@ -489,7 +489,7 @@ namespace OpenMS
     {
       String formula = mod->getFormula();
       formula.removeWhitespaces();
-      setFormula(formula);
+      setFormula(EmpiricalFormula(formula));
     }
 
     // neutral losses
