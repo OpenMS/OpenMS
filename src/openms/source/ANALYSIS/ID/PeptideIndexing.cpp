@@ -781,7 +781,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
       for (std::vector<ProteinHit>::iterator p_hit = phits.begin(); p_hit != phits.end(); ++p_hit)
       {
         const String& acc = p_hit->getAccession();
-        if (!(acc_to_prot.find(acc) != acc_to_prot.end())) // acc_to_prot only contains found proteins from current run
+        if (acc_to_prot.find(acc) == acc_to_prot.end()) // acc_to_prot only contains found proteins from current run
         { // old hit is orphaned
           ++stats_orphaned_proteins;
           if (keep_unreferenced_proteins_)

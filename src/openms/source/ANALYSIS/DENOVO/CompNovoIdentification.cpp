@@ -691,7 +691,7 @@ namespace OpenMS
 #endif
 
         String exp_string = it.toExpandedString();
-        if (!(permute_cache_.find(exp_string) != permute_cache_.end()))
+        if (permute_cache_.find(exp_string) == permute_cache_.end())
         {
           permute_("", exp_string, sequences);
           permute_cache_[exp_string] = sequences;

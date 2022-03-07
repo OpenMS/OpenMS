@@ -123,7 +123,7 @@ namespace OpenMS
 
   const QList<TOPPASResource>& TOPPASResources::get(const QString& key) const
   {
-    if (!(map_.find(key) != map_.end()))
+    if (map_.find(key) == map_.end())
     {
       return empty_list_;
     }
