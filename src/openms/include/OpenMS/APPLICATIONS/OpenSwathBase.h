@@ -233,7 +233,8 @@ protected:
         OPENMS_LOG_WARN << "Extraction will overlap between " << lower_map_end << " and " << upper_map_start << "!\n"
                  << "This will lead to multiple extraction of the transitions in the overlapping region "
                  << "which will lead to duplicated output. It is very unlikely that you want this." << "\n"
-                 << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << std::endl;
+                 << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << "\n"
+                 << "Did you mean to set the -sonar or -pasef Flag?" << std::endl;
         if (!force)
         {
           OPENMS_LOG_ERROR << "Extraction windows overlap. Will abort (override with -force)" << std::endl;
