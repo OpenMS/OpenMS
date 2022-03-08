@@ -75,23 +75,23 @@ START_SECTION(static const ElementDB* getInstance())
   TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
-START_SECTION((const map<string, const Element*>& getNames() const))
-  map<string, const Element*> names = e_ptr->getNames();
+START_SECTION((const unordered_map<string, const Element*>& getNames() const))
+  unordered_map<string, const Element*> names = e_ptr->getNames();
   const Element * e = e_ptr->getElement("Carbon");
   TEST_EQUAL(e, names["Carbon"])
   TEST_NOT_EQUAL(e, elem_nullPointer)
 END_SECTION
 
 
-START_SECTION((const map<string, const Element*>& getSymbols() const))
-  map<string, const Element*> symbols = e_ptr->getSymbols();
+START_SECTION((const unordered_map<string, const Element*>& getSymbols() const))
+  unordered_map<string, const Element*> symbols = e_ptr->getSymbols();
   const Element * e = e_ptr->getElement("Carbon");
   TEST_EQUAL(e, symbols["C"])
   TEST_NOT_EQUAL(e, elem_nullPointer)
 END_SECTION
 
-START_SECTION((const map<unsigned int, const Element*>& getAtomicNumbers() const))
-  map<unsigned int, const Element*> atomic_numbers = e_ptr->getAtomicNumbers();
+START_SECTION((const unordered_map<unsigned int, const Element*>& getAtomicNumbers() const))
+  unordered_map<unsigned int, const Element*> atomic_numbers = e_ptr->getAtomicNumbers();
   const Element * e = e_ptr->getElement("Carbon");
   TEST_EQUAL(e, atomic_numbers[6])
   TEST_NOT_EQUAL(e, elem_nullPointer)

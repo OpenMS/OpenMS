@@ -59,17 +59,17 @@ namespace OpenMS
     return db_;
   }
 
-  const map<string, const Element*>& ElementDB::getNames() const
+  const unordered_map<string, const Element*>& ElementDB::getNames() const
   {
     return names_;
   }
 
-  const map<string, const Element*>& ElementDB::getSymbols() const
+  const unordered_map<string, const Element*>& ElementDB::getSymbols() const
   {
     return symbols_;
   }
 
-  const map<unsigned int, const Element*>& ElementDB::getAtomicNumbers() const
+  const unordered_map<unsigned int, const Element*>& ElementDB::getAtomicNumbers() const
   {
     return atomic_numbers_;
   }
