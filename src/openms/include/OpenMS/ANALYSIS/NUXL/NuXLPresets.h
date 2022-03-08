@@ -817,8 +817,16 @@ namespace OpenMS
     "A:C15H18N5O6P1;NM+A-NH3-H2O"
   };
 
-  static constexpr std::array<const char*, 27> fragments_RNA_FA
+  static constexpr std::array<const char*, 34> fragments_RNA_FA
   {
+      "U:C3O;C3O",
+      "U:C4H4N2O2;U'",
+      "U:C4H2N2O1;U'-H2O",
+      "U:C9H13N2O9P1;U",
+      "U:C9H11N2O8P1;U-H2O",
+      "U:C9H12N2O6;U-HPO3",
+      "U:C9H10N2O5;U-H3PO4",
+
     "G:C;FA",
     "G:C5H5N5O;G'",
     "G:C6H5N5O;G'+FA",
