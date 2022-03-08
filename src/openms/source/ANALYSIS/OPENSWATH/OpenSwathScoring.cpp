@@ -37,6 +37,8 @@
 #include <OpenMS/CONCEPT/Macros.h>
 
 // scoring
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>

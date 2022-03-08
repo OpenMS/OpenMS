@@ -114,7 +114,8 @@ public:
 
     /// Picker and prepare functions
     //@{
-    /** @brief Pick features in one experiment containing chromatogram
+
+    /** @brief Pick and score features in a single experiment from chromatograms
      *
      * Function for for wrapping in Python, only uses OpenMS datastructures and
      * does not return the map.
@@ -127,10 +128,13 @@ public:
      * @param swath_map Optional SWATH-MS (DIA) map corresponding from which the chromatograms were extracted
      *
     */
-    void pickExperiment(PeakMap & chromatograms, FeatureMap& output, TargetedExperiment& transition_exp,
-                        TransformationDescription trafo, PeakMap& swath_map);
+    void pickExperiment(const PeakMap & chromatograms,
+                        FeatureMap& output,
+                        const TargetedExperiment& transition_exp,
+                        const TransformationDescription& trafo,
+                        const PeakMap& swath_map);
 
-    /** @brief Pick features in one experiment containing chromatogram
+    /** @brief Pick and score features in a single experiment from chromatograms
      *
      * @param input The input chromatograms
      * @param output The output features with corresponding scores
@@ -144,11 +148,11 @@ public:
      * @param transition_group_map Output mapping of transition groups
      *
     */
-    void pickExperiment(OpenSwath::SpectrumAccessPtr input,
+    void pickExperiment(const OpenSwath::SpectrumAccessPtr input,
                         FeatureMap& output,
-                        OpenSwath::LightTargetedExperiment& transition_exp,
-                        TransformationDescription trafo,
-                        std::vector<OpenSwath::SwathMap> swath_maps,
+                        const OpenSwath::LightTargetedExperiment& transition_exp,
+                        const TransformationDescription& trafo,
+                        const std::vector<OpenSwath::SwathMap>& swath_maps,
                         TransitionGroupMapType& transition_group_map);
 
     /** @brief Prepares the internal mappings of peptides and proteins.
@@ -220,8 +224,8 @@ public:
      * @param rt_extraction_window The used retention time extraction window
      *
     */
-    void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
-                                       OpenSwath::LightTargetedExperiment& transition_exp,
+    void mapExperimentToTransitionList(const OpenSwath::SpectrumAccessPtr input,
+                                       const OpenSwath::LightTargetedExperiment& transition_exp,
                                        TransitionGroupMapType& transition_group_map,
                                        TransformationDescription trafo,
                                        double rt_extraction_window);
