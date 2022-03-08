@@ -510,13 +510,14 @@ namespace OpenMS
     }
 
     // split the formula
-    vector<String> splitter;
+    std::vector<std::string> splitter;
+    splitter.reserve(formula.size() / 2); // reasonable estimate for small formulae like C6H12O6
     if (!formula.empty())
     {
       if (!isdigit(formula[0]) || formula[0] == '(')
       {
         bool is_isotope(false), is_symbol(false);
-        String split;
+        std::string split;
         for (Size i = 0; i < formula.size(); ++i)
         {
           if ((isupper(formula[i]) && (!is_isotope || is_symbol))
@@ -524,15 +525,15 @@ namespace OpenMS
           {
             if (!split.empty())
             {
-              splitter.push_back(split);
+              splitter.push_back(std::move(split));
               is_isotope = false;
               is_symbol = false;
             }
-            split = String(1, formula[i]);
+            split = std::string(1, formula[i]);
           }
           else
           {
-            split += String(1, formula[i]);
+            split += std::string(1, formula[i]);
           }
           if (formula[i] == '(')
           {
@@ -543,7 +544,7 @@ namespace OpenMS
             is_symbol = true;
           }
         }
-        splitter.push_back(split);
+        splitter.push_back(std::move(split));
       }
       else
       {
