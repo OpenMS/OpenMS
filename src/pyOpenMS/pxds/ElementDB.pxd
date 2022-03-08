@@ -3,6 +3,7 @@ from libcpp cimport bool
 from String cimport *
 from Map cimport *
 from Element cimport *
+from Isotope cimport *
 from IsotopeDistribution cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS":
@@ -22,6 +23,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS":
         # const Map[unsigned int, Element * ] getAtomicNumbers() nogil except +
         const Element * getElement(const String & name) nogil except +
         const Element * getElement(UInt atomic_number) nogil except +
+        const Isotope * getIsotope(const String & name) nogil except +
         void addElement(libcpp_string name, libcpp_string symbol,
                         unsigned int an,
                         libcpp_map[unsigned int, double] abundance,

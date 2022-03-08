@@ -118,6 +118,9 @@ public:
 
     /// returns symbol of the element
     const std::string & getSymbol() const;
+
+    /// Whether this is an Isotope or an Element (for casting)
+    virtual bool isIsotope() const {return false;}
     //@}
 
     /** @name Assignment

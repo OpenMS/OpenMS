@@ -17,6 +17,7 @@ DigestionEnzyme.h
 DigestionEnzymeProtein.h
 DigestionEnzymeRNA.h
 DigestionEnzymeDB.h
+Isotope.h
 ModificationDefinition.h
 ModificationDefinitionsSet.h
 ModifiedNASequenceGenerator.h

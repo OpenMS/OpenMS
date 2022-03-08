@@ -104,6 +104,14 @@ START_SECTION(const Element* getElement(const string& name) const)
   TEST_NOT_EQUAL(e1, elem_nullPointer);
 END_SECTION
 
+START_SECTION(const Isotope* getIsotope(const string& name) const)
+  const Isotope * e1 = e_ptr->getIsotope("(14)C");
+  const Isotope * e2 = e_ptr->getIsotope("(14)Carbon");
+  TEST_EQUAL(e1, e2);
+  TEST_NOT_EQUAL(e1, elem_nullPointer);
+  TEST_EQUAL(e1->getNeutrons(), 8);
+END_SECTION
+
 START_SECTION(const Element* getElement(unsigned int atomic_number) const)
   const Element * e1 = e_ptr->getElement("Carbon");
   const Element * e2 = e_ptr->getElement(6);

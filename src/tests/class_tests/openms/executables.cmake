@@ -410,6 +410,7 @@ set(chemistry_executables_list
   IMSIsotopeDistribution_test
   IntegerMassDecomposer_test
   IsoSpec_test
+  Isotope_test
   IsotopeDistribution_test
   MassDecomposer_test
   ModificationDefinition_test

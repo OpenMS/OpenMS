@@ -54,3 +54,5 @@ cdef extern from "<OpenMS/CHEMISTRY/Element.h>" namespace "OpenMS":
         # returns symbol of the element
         String getSymbol() nogil except + # wrap-doc:Returns symbol of the element
 
+        virtual bool isIsotope() nogil except + # wrap-doc: Whether this is an Isotope or an Element (for casting)
+

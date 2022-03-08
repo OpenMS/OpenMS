@@ -36,6 +36,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/Isotope.h>
 
 #include <map>
 #include <unordered_map>
@@ -44,6 +45,7 @@
 namespace OpenMS
 {
   class Element;
+  class Isotope;
 
   /** @ingroup Chemistry
 
@@ -85,11 +87,20 @@ public:
     /// returns a hashmap that contains atomic numbers mapped to pointers of the elements
     const std::unordered_map<unsigned int, const Element*>& getAtomicNumbers() const;
 
+    /// returns a hashmap that contains atomic numbers mapped to pointers of the isotopes
+    const std::unordered_map<std::string, const Isotope*>& getIsotopeSymbols() const;
+
     /** returns a pointer to the element with name or symbol given in parameter name;
-        *	if no element exists with that name or symbol 0 is returned
-        *	@param name: name or symbol of the element
+        *	if no element exists with that name or symbol, a nullptr is returned
+        *	@param name: name or symbol of the element (e.g. "C" for carbon)
     */
     const Element* getElement(const std::string& name) const;
+
+    /** returns a pointer to the isotope with symbol given in parameter name;
+        *	if no element exists with that symbol, a nullptr is returned
+        *	@param name: symbol of the element (e.g. "(14)C" for carbon-14)
+    */
+    const Isotope* getIsotope(const std::string& name) const;
 
     /// returns a pointer to the element of atomic number; if no element is found 0 is returned
     const Element* getElement(unsigned int atomic_number) const;
@@ -145,11 +156,16 @@ protected:
     /// build element objects from given abundances, masses, name, symbol, and atomic number
     void buildElement_(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
+    void buildIsotopes_(const std::string& name, const std::string& symbol, const unsigned int an,
+                        const std::map<unsigned int, double>& mass,
+                        const std::map<unsigned int, double>& half_life,
+                        const std::map<unsigned int, Isotope::DecayMode>& decay);
+
     /// add element objects to documentation maps
     void addElementToMaps_(const std::string& name, const std::string& symbol, const unsigned int an, const Element* e);
 
-    /// constructs isotope objects
-    void storeIsotopes_(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& Z_to_mass, const IsotopeDistribution& isotopes);
+    /// constructs stable isotope objects
+    void storeStableIsotopes_(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& Z_to_mass, const IsotopeDistribution& isotopes);
 
     /**_ resets all containers
     **/
@@ -160,6 +176,8 @@ protected:
     std::unordered_map<std::string, const Element*> symbols_;
 
     std::unordered_map<unsigned int, const Element*> atomic_numbers_;
+
+    std::unordered_map<std::string, const Isotope*> isotopes_;
 
 private:
     ElementDB();
