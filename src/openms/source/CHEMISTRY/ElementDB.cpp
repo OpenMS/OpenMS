@@ -35,6 +35,8 @@
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <iostream>
 #include <cmath>
@@ -107,6 +109,20 @@ namespace OpenMS
   bool ElementDB::hasElement(unsigned int atomic_number) const
   {
     return atomic_numbers_.find(atomic_number) != atomic_numbers_.end();
+  }
+
+  void ElementDB::addElement(const std::string& name,
+                             const std::string& symbol,
+                             const unsigned int an,
+                             const std::map<unsigned int, double>& abundance,
+                             const std::map<unsigned int, double>& mass,
+                             bool replace_existing)
+  {
+    if (hasElement(an) && !replace_existing)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Element with atomic number ") + an + " already exists");
+    }
+    buildElement_(name, symbol, an, abundance, mass);
   }
 
   double ElementDB::calculateAvgWeight_(const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)

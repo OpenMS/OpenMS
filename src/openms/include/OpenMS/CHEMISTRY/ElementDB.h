@@ -35,11 +35,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/CHEMISTRY/Element.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 #include <map>
 #include <unordered_map>
@@ -47,6 +43,7 @@
 
 namespace OpenMS
 {
+  class Element;
 
   /** @ingroup Chemistry
 
@@ -114,15 +111,7 @@ public:
                     const unsigned int an,
                     const std::map<unsigned int, double>& abundance,
                     const std::map<unsigned int, double>& mass,
-                    bool replace_existing)
-    {
-      if (hasElement(an) && !replace_existing)
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Element with atomic number ") + an + " already exists");
-      }
-      buildElement_(name, symbol, an, abundance, mass);
-    }
-
+                    bool replace_existing);
     //@}
 
     /** @name Predicates
@@ -137,9 +126,8 @@ public:
 
 protected:
 
-    /** parses a Histogram given as a OpenMS String and return the distribution
+    /** parses a isotope distribution of abundances and masses
 
-            @throw throws exception ParseError
     **/
     IsotopeDistribution parseIsotopeDistribution_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
