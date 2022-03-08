@@ -428,7 +428,7 @@ namespace OpenMS
     {
       if (!isalpha(formula[reverse_i]))
       {
-        suffix = formula[reverse_i] + suffix;
+        suffix.insert(0,1, formula[reverse_i]); // pre-pend
       }
       else
       {
