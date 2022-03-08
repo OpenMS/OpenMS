@@ -580,38 +580,7 @@ namespace OpenMS
 
       const ElementDB* db = ElementDB::getInstance();
       const Element* e = db->getElement(symbol);
-      // TODO: instead of comparing D/T, add them to the element table!
-      if (symbol == "D") // Deuterium is represented as (2)H in DB.
-      {
-        if (num != 0)
-        {
-          const Element* e = db->getElement("(2)H");
-          if (auto it = ef.find(e); it != ef.end())
-          {
-            it->second += num;
-          }
-          else
-          {
-            ef.insert({e, num});
-          }
-        }
-      }
-      else if (symbol == "T") // Tritium is represented as (3)H in DB
-      {
-        if (num != 0)
-        {
-          const Element* e = db->getElement("(3)H");
-          if (auto it = ef.find(e); it != ef.end())
-          {
-            it->second += num;
-          }
-          else
-          {
-            ef.insert({e, num});
-          }
-        }
-      } 
-      else if (e != nullptr)
+      if (e != nullptr)
       {
         if (num != 0)
         {

@@ -555,6 +555,11 @@ namespace OpenMS
     map<unsigned int, double> uranium_mass = {{234u,  234.040950}, {235u,  235.043928}, {238u,   238.05079}};
     buildElement_("Uranium", "U", 92u, uranium_abundance, uranium_mass);
 
+    // special case for deuterium and tritium
+    const Element* deuterium = getElement("(2)H");
+    symbols_["D"] = deuterium;
+    const Element* tritium = getElement("(3)H");
+    symbols_["T"] = tritium;
   }
 
   void ElementDB::buildElement_(const string& name, const string& symbol, const unsigned int an, const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
