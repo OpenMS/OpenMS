@@ -1,16 +1,16 @@
-PrecursorMz,ProductMz,PeptideSequence,ProteinId,UniprotId,FragmentType,FragmentSeriesNumber,PrecursorIonMobility,TransitionGroupId,NormalizedRetentionTime,LibraryIntensity,PrecursorCharge,ProductCharge,ModifiedPeptideSequence,PeptideGroupLabel,LabelType,CompoundName,SumFormula,SMILES,Annotation,CollisionEnergy,Decoy,DetectingTransition,IdentifyingTransition,QuantifyingTransition
-412.5,100,PEPTIDEA,ProteinA,uniprot_nr_1,b,1,0.72,PEPTIDEA,0.5,2,2,2,PEPTIDEA,light,,,,,y5,1,0,1,0,1
-412.5,101,PEPTIDEA,ProteinA,uniprot_nr_1,b,2,0.72,PEPTIDEA,0.5,4,2,2,PEPTIDEA,light,,,,,y5,1,0,1,0,1
-412.5,102,PEPTIDEA,ProteinA,uniprot_nr_1,b,3,0.72,PEPTIDEA,0.5,6,2,2,PEPTIDEA,light,,,,,y5,1,0,1,0,1
-412.5,103,PEPTIDEA,ProteinA,uniprot_nr_1,b,4,0.72,PEPTIDEA,0.5,8,2,2,PEPTIDEA,light,,,,,y5,1,0,1,0,1
-412.5,104,PEPTIDEA,ProteinA,uniprot_nr_1,b,5,0.72,PEPTIDEA,0.5,10,2,2,PEPTIDEA,light,,,,,y5,1,0,1,0,1
-417.5,100,PEPTIDEB,ProteinB,uniprot_nr_2,b,1,0.93,PEPTIDEB,0.5,2,2,2,PEPTIDEA,light,,,,,y5,1,0,1,0,1
-417.5,101,PEPTIDEB,ProteinB,uniprot_nr_2,b,2,0.93,PEPTIDEB,0.5,4,2,2,PEPTIDEA,light,,,,,y5,1,0,1,0,1
-417.5,102,PEPTIDEB,ProteinB,uniprot_nr_2,b,3,0.93,PEPTIDEB,0.5,6,2,2,PEPTIDEA,light,,,,,y5,1,0,1,0,1
-417.5,103,PEPTIDEB,ProteinB,uniprot_nr_2,b,4,0.93,PEPTIDEB,0.5,8,2,2,PEPTIDEA,light,,,,,y5,1,0,1,0,1
-417.5,104,PEPTIDEB,ProteinB,uniprot_nr_2,b,5,0.93,PEPTIDEB,0.5,10,2,2,PEPTIDEA,light,,,,,y5,1,0,1,0,1
-422.5,100,PEPTIDEC,ProteinC,uniprot_nr_3,b,1,1.11,PEPTIDEC,0.5,2,2,2,PEPTIDEA,light,,,,,y5,1,0,1,0,1
-422.5,101,PEPTIDEC,ProteinC,uniprot_nr_3,b,2,1.11,PEPTIDEC,0.5,4,2,2,PEPTIDEA,light,,,,,y5,1,0,1,0,1
-422.5,102,PEPTIDEC,ProteinC,uniprot_nr_3,b,3,1.11,PEPTIDEC,0.5,6,2,2,PEPTIDEA,light,,,,,y5,1,0,1,0,1
-422.5,103,PEPTIDEC,ProteinC,uniprot_nr_3,b,4,1.11,PEPTIDEC,0.5,8,2,2,PEPTIDEA,light,,,,,y5,1,0,1,0,1
-422.5,104,PEPTIDEC,ProteinC,uniprot_nr_3,b,5,1.11,PEPTIDEC,0.5,10,2,2,PEPTIDEA,light,,,,,y5,1,0,1,0,1
+PrecursorMz	ProductMz	PeptideSequence	ModifiedPeptideSequence	ProteinId	UniprotId	FragmentType	FragmentSeriesNumber	PrecursorIonMobility	TransitionGroupId	NormalizedRetentionTime	TransitionId	LibraryIntensity	PrecursorCharge	ProductCharge	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	Annotation	CollisionEnergy	Decoy	DetectingTransition	IdentifyingTransition	QuantifyingTransition
+412.5	100	PEPTIDEA	PEPTIDEA	ProteinA	uniprot_nr_1	b	1	0.72	PEPTIDEA	0.5	PEPTIDEA_1	2	2	2						y5	1	0	1	0	1
+412.5	101	PEPTIDEA	PEPTIDEA	ProteinA	uniprot_nr_1	b	2	0.72	PEPTIDEA	0.5	PEPTIDEA_2	4	2	2						y5	1	0	1	0	1
+412.5	102	PEPTIDEA	PEPTIDEA	ProteinA	uniprot_nr_1	b	3	0.72	PEPTIDEA	0.5	PEPTIDEA_3	6	2	2						y5	1	0	1	0	1
+412.5	103	PEPTIDEA	PEPTIDEA	ProteinA	uniprot_nr_1	b	4	0.72	PEPTIDEA	0.5	PEPTIDEA_4	8	2	2						y5	1	0	1	0	1
+412.5	104	PEPTIDEA	PEPTIDEA	ProteinA	uniprot_nr_1	b	5	0.72	PEPTIDEA	0.5	PEPTIDEA_5	10	2	2						y5	1	0	1	0	1
+417.5	100	PEPTIDEB	PEPTIDEB	ProteinB	uniprot_nr_2	b	1	0.93	PEPTIDEB	0.5	PEPTIDEB_1	2	2	2						y5	1	0	1	0	1
+417.5	101	PEPTIDEB	PEPTIDEB	ProteinB	uniprot_nr_2	b	2	0.93	PEPTIDEB	0.5	PEPTIDEB_2	4	2	2						y5	1	0	1	0	1
+417.5	102	PEPTIDEB	PEPTIDEB	ProteinB	uniprot_nr_2	b	3	0.93	PEPTIDEB	0.5	PEPTIDEB_3	6	2	2						y5	1	0	1	0	1
+417.5	103	PEPTIDEB	PEPTIDEB	ProteinB	uniprot_nr_2	b	4	0.93	PEPTIDEB	0.5	PEPTIDEB_4	8	2	2						y5	1	0	1	0	1
+417.5	104	PEPTIDEB	PEPTIDEB	ProteinB	uniprot_nr_2	b	5	0.93	PEPTIDEB	0.5	PEPTIDEB_5	10	2	2						y5	1	0	1	0	1
+422.5	100	PEPTIDEC	PEPTIDEC	ProteinC	uniprot_nr_3	b	1	1.11	PEPTIDEC	0.5	PEPTIDEC_1	2	2	2						y5	1	0	1	0	1
+422.5	101	PEPTIDEC	PEPTIDEC	ProteinC	uniprot_nr_3	b	2	1.11	PEPTIDEC	0.5	PEPTIDEC_2	4	2	2						y5	1	0	1	0	1
+422.5	102	PEPTIDEC	PEPTIDEC	ProteinC	uniprot_nr_3	b	3	1.11	PEPTIDEC	0.5	PEPTIDEC_3	6	2	2						y5	1	0	1	0	1
+422.5	103	PEPTIDEC	PEPTIDEC	ProteinC	uniprot_nr_3	b	4	1.11	PEPTIDEC	0.5	PEPTIDEC_4	8	2	2						y5	1	0	1	0	1
+422.5	104	PEPTIDEC	PEPTIDEC	ProteinC	uniprot_nr_3	b	5	1.11	PEPTIDEC	0.5	PEPTIDEC_5	10	2	2						y5	1	0	1	0	1
