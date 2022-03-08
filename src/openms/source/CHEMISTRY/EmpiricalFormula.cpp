@@ -579,7 +579,8 @@ namespace OpenMS
       }
 
       const ElementDB* db = ElementDB::getInstance();
-      // support D and T for Deuterium and Tritium
+      const Element* e = db->getElement(symbol);
+      // TODO: instead of comparing D/T, add them to the element table!
       if (symbol == "D") // Deuterium is represented as (2)H in DB.
       {
         if (num != 0)
@@ -610,12 +611,11 @@ namespace OpenMS
           }
         }
       } 
-      else if (db->hasElement(symbol))
+      else if (e != nullptr)
       {
         if (num != 0)
         {
-          const Element* e = db->getElement(symbol);
-          std::map<const Element*, SignedSize>::iterator it = ef.find(e);
+          auto it = ef.find(e);
           if (it != ef.end())
           {
             it->second += num;
@@ -633,7 +633,7 @@ namespace OpenMS
     }
 
     // remove elements with 0 counts
-    std::map<const Element*, SignedSize>::iterator it = ef.begin();
+    auto it = ef.begin();
     while (it != ef.end())
     {
       if (it->second == 0)
