@@ -318,7 +318,7 @@ namespace OpenMS
   void FLASHDeconvAlgorithm::updateMzBins_(const Size& bin_number,
                                            std::vector<float>& mz_bin_intensities)
   {
-    mz_bins_for_edge_effect_ = boost::dynamic_bitset<>(bin_number);
+    //mz_bins_for_edge_effect_ = boost::dynamic_bitset<>(bin_number);
     mz_bins_ = boost::dynamic_bitset<>(bin_number);
     double bin_width = bin_width_[ms_level_ - 1];
     for (auto& p : log_mz_peaks_)
@@ -329,11 +329,12 @@ namespace OpenMS
         continue;
       }
       mz_bins_.set(bi);
-      mz_bins_for_edge_effect_.set(bi);
+      //mz_bins_for_edge_effect_.set(bi);
 
       mz_bin_intensities[bi] += p.intensity;
     }
-
+    mz_bins_for_edge_effect_ = mz_bins_;
+    /*
     for (auto& p : log_mz_peaks_)
     {
       Size bi = getBinNumber_(p.logMz, mz_bin_min_value_, bin_width);
@@ -355,7 +356,7 @@ namespace OpenMS
           mz_bin_intensities[bi - 1] += p.intensity;
         }
       }
-    }
+    }*/
   }
 
   //take the mass bins from previous overlapping spectra and put them in the candidate mass bins. Only for MS1
@@ -721,7 +722,7 @@ namespace OpenMS
 
           int abs_charge = (j + current_min_charge_);
 
-          if (abs_charge <= low_charge_)// for low charges, include all masses.
+          if (ms_level_ > 1)// for ms n, include all masses.
           {
             abs_charge_ranges
                 .setValue(0, mass_bin_index,
@@ -736,7 +737,7 @@ namespace OpenMS
           {
             bool artifact = false;
             // mass level harmonic, charge off by n artifact removal
-            //if(abs_charge > low_charge_)
+            if(abs_charge > low_charge_)
             {
               double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width);
               double mass = exp(original_log_mass);
