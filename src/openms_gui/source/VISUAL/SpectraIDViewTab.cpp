@@ -839,8 +839,8 @@ namespace OpenMS
             for (const PeptideEvidence& ev : pevids)
             {
               protein_accessions.push_back(ev.getProteinAccession());
-              protein_starts.push_back(ev.getStart());
-              protein_ends.push_back(ev.getEnd());
+              protein_starts.push_back(ev.getStart() + 1);
+              protein_ends.push_back(ev.getEnd() + 1);
             }
 
             String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
