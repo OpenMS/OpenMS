@@ -95,7 +95,7 @@ namespace OpenMS
                              bool replace_existing)
   {
     if (hasElement(an) && !replace_existing)
-    {      
+    {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Element with atomic number ") + an + " already exists");
     }
     buildElement_(name, symbol, an, abundance, mass);

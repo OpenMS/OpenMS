@@ -107,7 +107,6 @@ protected:
 
     /** parses a isotope distribution of abundances and masses
 
-
     **/
     IsotopeDistribution parseIsotopeDistribution_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
