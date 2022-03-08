@@ -76,13 +76,13 @@ namespace OpenMS
 
   const Element* ElementDB::getElement(const string& name) const
   {
-    if (auto entry = names_.find(name); entry != names_.end())
+    if (auto entry = symbols_.find(name); entry != symbols_.end())
     {
       return entry->second;
     }
     else
     {
-      if (auto entry = symbols_.find(name); entry != symbols_.end())
+      if (auto entry = names_.find(name); entry != names_.end())
       {
         return entry->second;
       }
