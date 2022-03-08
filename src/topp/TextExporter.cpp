@@ -174,33 +174,12 @@ namespace OpenMS
     return out;
   }
 
-  // if a ConsensusMap contains "best ion" and "partners" mvs, all necessary information for
-  // ion identity molecular networking (IIMN) by GNPS will be exported.
-  bool incl_IIMN = false;
-
   // general stream output operator for features and consensus features
   SVOutStream& operator<<(SVOutStream& out, const BaseFeature& feature)
   {
     writeFeature(out, feature.getRT(), feature.getMZ(), feature.getIntensity(),
                  feature.getCharge(), feature.getWidth());
     out.writeValueOrNan(feature.getQuality());
-    if (incl_IIMN)
-    {
-      for (const auto& k: {Constants::UserParam::IIMN_ROW_ID,
-                           Constants::UserParam::IIMN_BEST_ION,
-                           Constants::UserParam::IIMN_ADDUCT_PARTNERS,
-                           Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER})
-      {
-        if (feature.metaValueExists(k))
-        {
-          out.write(String("\t") + String(feature.getMetaValue(k)));
-        }
-        else 
-        {
-          out.write("\t");
-        }
-      }
-    }
     return out;
   }
 
@@ -218,8 +197,7 @@ namespace OpenMS
 
   // write the header for feature data
   void writeFeatureHeader(SVOutStream& out, const String& suffix = "",
-                          bool incl_quality = true, bool comment = true,
-                          bool write_IIMN = false)
+                          bool incl_quality = true, bool comment = true)
   {
     StringList elements = ListUtils::create<String>("#rt,mz,intensity,charge,width");
     if (!comment)
@@ -234,14 +212,6 @@ namespace OpenMS
     for (const String& str : elements)
     {
       out << str + suffix;
-    }
-    if (incl_IIMN & write_IIMN)
-    {
-      for (const auto& k: {Constants::UserParam::IIMN_ROW_ID,
-                           Constants::UserParam::IIMN_BEST_ION,
-                           Constants::UserParam::IIMN_ADDUCT_PARTNERS,
-                           Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER})
-      out << k;
     }
     out.modifyStrings(old);
   }
@@ -877,19 +847,6 @@ protected:
 
         consensus_xml_file.load(in, consensus_map);
 
-        // check if any ConsensusFeature has a MetaValue "best_ion", "partners" or "annotation network number"
-        // if one is found information for IIMN will be exported
-        for (ConsensusFeature cf: consensus_map)
-        {
-          if (cf.metaValueExists(Constants::UserParam::IIMN_BEST_ION) || 
-              cf.metaValueExists(Constants::UserParam::IIMN_ADDUCT_PARTNERS) ||
-              cf.metaValueExists(Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER))
-          {
-            incl_IIMN = true;
-            break;
-          }
-        }
-
         // extract common id and hit meta values
         StringList peptide_id_meta_keys;
         StringList peptide_hit_meta_keys;
@@ -1262,7 +1219,7 @@ protected:
             output << nl;
           }
           output << "#CONSENSUS";
-          writeFeatureHeader(output, "_cf", true, false, true);
+          writeFeatureHeader(output, "_cf", true, false);
           for (Size fhindex = 0; fhindex < map_num_to_map_id.size();
                ++fhindex)
           {
