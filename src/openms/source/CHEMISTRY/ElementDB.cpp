@@ -566,14 +566,26 @@ namespace OpenMS
 
   void ElementDB::addElementToMaps_(const string& name, const string& symbol, const unsigned int an, const Element* e)
   {
-    // delete existing element before adding a new one
-    if (atomic_numbers_.find(an) != atomic_numbers_.end())
+    #pragma omp critical(OpenMS_ElementDB)
     {
-      delete atomic_numbers_[an];
+      // overwrite existing element if it already exists
+      // find() has to be protected here in a parallel context
+      if (atomic_numbers_.find(an) != atomic_numbers_.end())
+      {
+        // in order to ensure that existing elements are still valid and memory
+        // addresses do not change, we have to modify the Element in place
+        // instead of replacing it.
+        const Element* const_ele = atomic_numbers_[an];
+        Element* element = const_cast<Element*>(const_ele);
+        *element = *e; // copy all data from input to the existing element
+      }
+      else
+      {
+        names_[name] = e;
+        symbols_[symbol] = e;
+        atomic_numbers_[an] = e;
+      }
     }
-    names_[name] = e;
-    symbols_[symbol] = e;
-    atomic_numbers_[an] = e;
   }
 
   void ElementDB::storeIsotopes_(const string& name, const string& symbol, const unsigned int an, const map<unsigned int, double>& mass, const IsotopeDistribution& isotopes)

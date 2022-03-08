@@ -105,6 +105,8 @@ public:
      * @param an Atomic number (number of protons)
      * @param abundance List of abundances for each isotope (e.g. {{12u, 0.9893}, {13u, 0.0107}} for Carbon)
      * @param abundance List of masses for each isotope (e.g. {{12u, 12.0}, {13u, 13.003355}} for Carbon)
+     *
+     * @note Do not use this function inside parallel code as it modifies a singleton that is shared between threads.
     */
     void addElement(const std::string& name,
                     const std::string& symbol,
