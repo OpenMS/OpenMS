@@ -106,7 +106,7 @@ namespace OpenMS
     "S:-C5H8O4-H2S"
   };
 
-  static constexpr std::array<const char*, 11> modifications_RNA_UV_4SU_EXTENDED
+  static constexpr std::array<const char*, 14> modifications_RNA_UV_4SU_EXTENDED
   {   
     "S:",
     "S:-H2O",
@@ -114,11 +114,14 @@ namespace OpenMS
     "S:-HPO3",
     "S:-H2S",
     "S:+HPO3-H2S", // P1 artefact?
+    "S:-HPO3-H2S", //pRBSID
+    "S:+HPO3", //iTRAPP
 
     "S:-C5H8O4",
     "S:-C5H8O4-H2O",
     "S:-C5H8O4-H3PO4",
     "S:-C5H8O4-HPO3",
+    "S:-C5H8O4-HPO3-H2S", ///pRBSID
     "S:-C5H8O4-H2S"
   };
 
@@ -132,7 +135,7 @@ namespace OpenMS
     "X:-C5H8O4-H2S"
   };
 
-  static constexpr std::array<const char*, 11> modifications_RNA_UV_6SG_EXTENDED
+  static constexpr std::array<const char*, 13> modifications_RNA_UV_6SG_EXTENDED
   {   
     "X:",
     "X:-H2O",
@@ -140,11 +143,14 @@ namespace OpenMS
     "X:-HPO3",
     "X:-H2S",
     "X:+HPO3-H2S", // P1 artefact?
+    "X:-HPO3-H2S", //pRBSID
+    
 
     "X:-C5H8O4",
     "X:-C5H8O4-H2O",
     "X:-C5H8O4-H3PO4",
     "X:-C5H8O4-HPO3",
+    "X:-C5H8O4-HPO3-H2S", ///pRBSID
     "X:-C5H8O4-H2S"    
   };
 
@@ -245,6 +251,30 @@ namespace OpenMS
     "A:+C4H6O2-NH3-HPO3",
     "A:+C4H6O2-NH3-H3PO4"
   };  
+    
+  static constexpr std::array<const char*, 18> modifications_RNA_FA
+  {
+    "G:C",
+    "G:C-HPO3",
+    "G:C-H2O",
+    "G:C2",
+    "G:C2-HPO3",
+    "G:C2-H2O",
+    
+    "C:C",
+    "C:C-H2O",
+    "C:C-HPO3",
+    "C:C2",
+    "C:C2-HPO3",
+    "C:C2-H2O",
+    
+    "A:C",
+    "A:C-HPO3",
+    "A:C-H2O",
+    "A:C2",
+    "A:C2-HPO3",
+    "A:C2-H2O"
+  };
 
   static constexpr std::array<const char*, 12> modifications_DNA_UV
   {
@@ -787,6 +817,39 @@ namespace OpenMS
     "A:C15H18N5O6P1;NM+A-NH3-H2O"
   };
 
+  static constexpr std::array<const char*, 27> fragments_RNA_FA
+  {
+    "G:C;FA",
+    "G:C5H5N5O;G'",
+    "G:C6H5N5O;G'+FA",
+    "G:C7H5N5O;G'+2FA",
+    "G:C10H14N5O8P;G",
+    "G:C11H14N5O8P;G+FA",
+    "G:C11H13N5O5;G+FA-HPO3",
+    "G:C12H14N5O8P;G+2FA",
+    "G:C12H13N5O5;G+2FA-HPO3",
+    
+    "C:C;FA",
+    "C:C4H5N3O;C'",
+    "C:C5H5N3O;C'+FA",
+    "C:C6H5N3O;C'+2FA",
+    "C:C9H14N3O8P;C",
+    "C:C10H14N3O8P;C+FA",
+    "C:C10H13N3O5;C+FA-HPO3",
+    "C:C11H14N3O8P;C+2FA",
+    "C:C11H13N3O5;C+2FA-HPO3",
+    
+    "A:C;FA",
+    "A:C5H5N5;A'",
+    "A:C6H5N5;A'+FA",
+    "A:C7H5N5;A'+2FA",
+    "A:C10H14N5O7P;A",
+    "A:C11H14N5O7P;A+FA",
+    "A:C11H13N5O4;A+FA-HPO3",
+    "A:C12H14N5O7P;A+2FA",
+    "A:C12H13N5O4;A+2FA-HPO3"
+  };
+    
   // shared by default and Extended
   static constexpr std::array<const char*, 46> fragments_DNA_NM
   { 
@@ -848,7 +911,7 @@ namespace OpenMS
     static constexpr std::array<const char*, 5> DNA_mapping {"A->A", "C->C", "G->G", "T->T", "d->d"};
     static constexpr std::array<const char*, 4> RNA_mapping {"A->A", "C->C", "G->G", "U->U"};
 
-    static constexpr std::array<const char*, 19> presets_names {
+    static constexpr std::array<const char*, 20> presets_names {
       "none", 
       "RNA-UV (U)", 
       "RNA-UV (UCGA)",
@@ -867,7 +930,8 @@ namespace OpenMS
       "DNA-DEB", 
       "DNA-DEB Extended",
       "DNA-NM",
-      "DNA-NM Extended"
+      "DNA-NM Extended",
+      "RNA-FA"
    };
 
   void getPresets(const String& p, 
@@ -933,9 +997,13 @@ namespace OpenMS
     StringList DNA_NM_EXTENDED_modifications(modifications_DNA_NM_EXTENDED.begin(), modifications_DNA_NM_EXTENDED.end());
     StringList DNA_NM_fragments(fragments_DNA_NM.begin(), fragments_DNA_NM.end());
     
+    StringList RNA_FA_modifications(modifications_RNA_FA.begin(), modifications_RNA_FA.end());
+    StringList RNA_FA_fragments(fragments_RNA_FA.begin(), fragments_RNA_FA.end());
+    
     const String RNA_U = "U";
     const String RNA_UCGA = "UCGA";
     const String DNA_TCGAd = "TCGAd";
+    const String RNA_CGA = "CGA";
 
     // set precursor + fragment adducts and cross-linked nucleotide
     if (p == "RNA-UV (U)" || p  == "RNA-UV (UCGA)")
@@ -1000,6 +1068,13 @@ namespace OpenMS
       modifications = DNA_UV_EXTENDED_modifications;
       fragment_adducts = DNA_UV_fragments;
       can_cross_link = DNA_TCGAd;
+      return;
+    }
+    else if (p == "RNA-FA")
+    {
+      modifications = RNA_FA_modifications;     
+      fragment_adducts = RNA_FA_fragments;
+      can_cross_link = RNA_CGA;
       return;
     }
     else if (p == "RNA-DEB")
