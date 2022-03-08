@@ -517,11 +517,13 @@ namespace OpenMS
       if (!isdigit(formula[0]) || formula[0] == '(')
       {
         bool is_isotope(false), is_symbol(false);
+        bool char_is_upper, is_bracket;
         std::string split;
-        for (Size i = 0; i < formula.size(); ++i)
+        for (const auto& curr : formula)
         {
-          if ((isupper(formula[i]) && (!is_isotope || is_symbol))
-             || formula[i] == '(')
+          char_is_upper = isupper(curr);
+          is_bracket = (curr == '(');
+          if ((char_is_upper && (!is_isotope || is_symbol)) || is_bracket)
           {
             if (!split.empty())
             {
@@ -529,17 +531,17 @@ namespace OpenMS
               is_isotope = false;
               is_symbol = false;
             }
-            split = std::string(1, formula[i]);
+            split = curr;
           }
           else
           {
-            split += std::string(1, formula[i]);
+            split += curr;
           }
-          if (formula[i] == '(')
+          if (is_bracket)
           {
             is_isotope = true;
           }
-          if (isupper(formula[i]))
+          if (char_is_upper)
           {
             is_symbol = true;
           }
@@ -553,9 +555,10 @@ namespace OpenMS
     }
 
     // add up the elements
+    const ElementDB* db = ElementDB::getInstance();
     for (Size i = 0; i != splitter.size(); ++i)
     {
-      String split = splitter[i];
+      const String& split = splitter[i];
       String number;
       String symbol;
       bool had_symbol(false);
@@ -578,7 +581,6 @@ namespace OpenMS
         num = number.toInt();
       }
 
-      const ElementDB* db = ElementDB::getInstance();
       const Element* e = db->getElement(symbol);
       if (e != nullptr)
       {
