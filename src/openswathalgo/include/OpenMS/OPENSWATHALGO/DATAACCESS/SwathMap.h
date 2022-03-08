@@ -56,8 +56,8 @@ namespace OpenSwath
       lower(0.0),
       upper(0.0),
       center(0.0),
-      imLower(0.0),
-      imUpper(0.0),
+      imLower(-1),
+      imUpper(-1),
       ms1(false)
     {}
 
