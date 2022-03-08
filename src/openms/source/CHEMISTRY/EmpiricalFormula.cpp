@@ -563,11 +563,11 @@ namespace OpenMS
       {
         if (!had_symbol && (isdigit(split[j]) || split[j] == '-'))
         {
-          number = split[j] + number;
+          number.insert(0,1, split[j]); // pre-pend
         }
         else
         {
-          symbol = split[j] + symbol;
+          symbol.insert(0,1, split[j]); // pre-pend
           had_symbol = true;
         }
       }
