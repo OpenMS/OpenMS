@@ -56,6 +56,27 @@ namespace OpenMS
   {
   }
 
+  Isotope::Isotope(const std::string & name,
+            const std::string & symbol,
+            unsigned int atomic_number,
+            unsigned int neutrons,
+            double mono_weight,
+            double abundance,
+            double half_life,
+            Isotope::DecayMode dm) :
+    Element(name, symbol, atomic_number, mono_weight, mono_weight),
+    neutrons_(neutrons),
+    abundance_(abundance),
+    half_life_(half_life),
+    decay_mode_(dm)
+  {
+    IsotopeDistribution iso_isotopes;
+    IsotopeDistribution::ContainerType iso_container;
+    iso_container.push_back(Peak1D(mono_weight, 1.0));
+    iso_isotopes.set(iso_container);
+    setIsotopeDistribution(iso_isotopes);
+  }
+
   Isotope::~Isotope()
   {
   }
@@ -101,5 +122,25 @@ namespace OpenMS
     decay_mode_ = dm;
   }
 
+  std::ostream & operator<<(std::ostream & os, const Isotope & isotope)
+  {
+    os  << isotope.name_ << " "
+    << isotope.symbol_ << " Z="
+    << isotope.atomic_number_ << " N="
+    << isotope.neutrons_ << " : "
+    << isotope.mono_weight_ << " "
+    << isotope.abundance_ *100 << "% : ";
+    if (isotope.isStable())
+    {
+      os << "stable";
+    }
+    else
+    {
+      os << " half life: " << isotope.half_life_ << " s "
+      << isotope.decay_mode_;
+    }
+
+    return os;
+  }
 } // namespace OpenMS
 

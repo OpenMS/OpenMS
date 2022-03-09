@@ -114,6 +114,7 @@ public:
      * @param an Atomic number (number of protons)
      * @param abundance List of abundances for each isotope (e.g. {{12u, 0.9893}, {13u, 0.0107}} for Carbon)
      * @param abundance List of masses for each isotope (e.g. {{12u, 12.0}, {13u, 13.003355}} for Carbon)
+     * @param replace_existing Whether to replace an existing element
      *
      * @note Do not use this function inside parallel code as it modifies a singleton that is shared between threads.
     */
@@ -122,6 +123,30 @@ public:
                     const unsigned int an,
                     const std::map<unsigned int, double>& abundance,
                     const std::map<unsigned int, double>& mass,
+                    bool replace_existing);
+
+    /** Adds or replaces a new isotope in the database
+     *
+     * Adds a new isotope (or replaces an existing one if @em replace_existing is true). 
+     *
+     * @param name Common name of the element
+     * @param symbol Element symbol (one or two letter)
+     * @param an Atomic number (number of protons)
+     * @param abundance natural abundance of the isotope (use 0 for unstable isotopes)
+     * @param mass mass of the isotope
+     * @param half_life Half life of the isotope in seconds (use -1 for stable isotopes)
+     * @param decay Main decay mode for unstable isotopes (use NONE for stable isotopes)
+     * @param replace_existing Whether to replace an existint isotope
+     *
+     * @note Do not use this function inside parallel code as it modifies a singleton that is shared between threads.
+    */
+    void addIsotope(const std::string& name,
+                    const std::string& symbol,
+                    const unsigned int an,
+                    double abundance,
+                    double mass,
+                    double half_life,
+                    Isotope::DecayMode decay,
                     bool replace_existing);
     //@}
 
@@ -137,11 +162,6 @@ public:
 
 protected:
 
-    /** parses a isotope distribution of abundances and masses
-
-    **/
-    IsotopeDistribution parseIsotopeDistribution_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
-
     /** calculates the average weight based on isotope abundance and mass
      **/
     double calculateAvgWeight_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
@@ -153,19 +173,31 @@ protected:
 	  /// constructs element objects
     void storeElements_();
 
-    /// build element objects from given abundances, masses, name, symbol, and atomic number
-    void buildElement_(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
+    /// build element objects from given abundances, masses, half lifes, decay mode name, symbol, and atomic number
+    void buildElement_(const std::string& name,
+                       const std::string& symbol,
+                       const unsigned int an,
+                       const std::map<unsigned int, double>& abundance,
+                       const std::map<unsigned int, double>& mass,
+                       const std::map<unsigned int, double>& half_lifes = 
+                         std::map<unsigned int, double>(),
+                       const std::map<unsigned int, Isotope::DecayMode>& decay_modes =
+                         std::map<unsigned int, Isotope::DecayMode>());
 
-    void buildIsotopes_(const std::string& name, const std::string& symbol, const unsigned int an,
+    /// helper to build all isotopes from an input list
+    std::vector<const Isotope *> buildIsotopes_(const std::string& name,
+                        const std::string& symbol,
+                        const unsigned int an,
+                        const std::map<unsigned int, double>& abundance,
                         const std::map<unsigned int, double>& mass,
                         const std::map<unsigned int, double>& half_life,
                         const std::map<unsigned int, Isotope::DecayMode>& decay);
 
     /// add element objects to documentation maps
-    void addElementToMaps_(const std::string& name, const std::string& symbol, const unsigned int an, const Element* e);
+    Element* addElementToMaps_(const std::string& name, const std::string& symbol, const unsigned int an, Element* e);
 
-    /// constructs stable isotope objects
-    void storeStableIsotopes_(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& Z_to_mass, const IsotopeDistribution& isotopes);
+    /// add element objects to documentation maps
+    Isotope* addIsotopeToMaps_(const std::string& name, const std::string& symbol, Isotope* e);
 
     /**_ resets all containers
     **/

@@ -127,12 +127,8 @@ START_SECTION(bool hasElement(unsigned int atomic_number) const)
   TEST_EQUAL(e_ptr->hasElement(6), true)
 END_SECTION
 
-START_SECTION(void addElement(const std::string& name,
-                    const std::string& symbol,
-                    const unsigned int an,
-                    const std::map<unsigned int, double>& abundance,
-                    const std::map<unsigned int, double>& mass,
-                    bool replace_existing))
+
+START_SECTION(void addElement(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass, bool replace_existing))
 {
   const Element * oxygen = e_ptr->getElement(8);
   TEST_REAL_SIMILAR(oxygen->getAverageWeight(), 15.99940532316)
@@ -144,6 +140,53 @@ START_SECTION(void addElement(const std::string& name,
   // ptr addresses cannot change, otherwise we are in trouble since EmpiricalFormula uses those
   TEST_EQUAL(oxygen, new_oxygen)
   TEST_REAL_SIMILAR(oxygen->getAverageWeight(), 16.8994405) // average weight has changed
+
+  TEST_EQUAL(e_ptr->getElement(800), nullptr)
+  e_ptr->addElement("NewElement", "NE", 800u, oxygen_abundance, oxygen_mass, false);
+  const Element * new_ele = e_ptr->getElement(800);
+  TEST_REAL_SIMILAR(new_ele->getAverageWeight(), 16.8994405) // average weight of new element
+}
+END_SECTION
+
+START_SECTION( void addIsotope(const std::string& name, const std::string& symbol, const unsigned int an, double abundance, double mass, double half_life, Isotope::DecayMode decay, bool replace_existing))
+{
+  const Isotope * carbon14 = e_ptr->getIsotope("(14)C");
+  e_ptr->addIsotope("Carbon", "C", 6u, 0.3, 14.0, 1e5, Isotope::DecayMode::UNKNOWN, true);
+
+  const Isotope * new_carbon14 = e_ptr->getIsotope("(14)C");
+  // ptr addresses cannot change, otherwise we are in trouble since EmpiricalFormula uses those
+  TEST_EQUAL(carbon14, new_carbon14)
+  TEST_REAL_SIMILAR(carbon14->getAbundance(), 0.3) // natural abundance has changed
+
+  // we have now managed to have 130% natural abundance for Carbon
+  // NOTE: this is a major problem for average weight calculations etc
+  const Element* carbon = e_ptr->getElement(6);
+  double sum = 0;
+  for (auto& iso : carbon->getIsotopeDistribution()) {sum += iso.getIntensity();}
+  TEST_REAL_SIMILAR(sum, 1.30000002495944);
+
+  // new carbon isotope added
+  TEST_EQUAL(e_ptr->getIsotope("(114)C"), nullptr)
+  int nr_isotopes = carbon->getIsotopes().size();
+  e_ptr->addIsotope("Carbon", "C", 6u, 0.3, 114.0, 1e5, Isotope::DecayMode::UNKNOWN, false);
+  const Isotope * new_iso = e_ptr->getIsotope("(114)C");
+  TEST_EQUAL( new_iso->getElement(), carbon)
+  TEST_EQUAL( carbon->getIsotopes().size(), nr_isotopes+1)
+
+  // we have now managed to have 160% natural abundance for Carbon
+  // NOTE: this is a major problem for average weight calculations etc
+  sum = 0;
+  for (auto& iso : carbon->getIsotopeDistribution()) {sum += iso.getIntensity();}
+  TEST_REAL_SIMILAR(sum, 1.60000002495944);
+}
+END_SECTION
+
+START_SECTION([extra] cout)
+{
+  std::cout << *(e_ptr->getElement(8)) << std::endl;
+  std::cout << *(e_ptr->getElement(6)) << std::endl;
+  std::cout << *(e_ptr->getElement(92)) << std::endl;
+  NOT_TESTABLE
 }
 END_SECTION
 
