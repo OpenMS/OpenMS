@@ -136,8 +136,6 @@ protected:
     gnps.setParameters(getParam_()); // copy tool parameter to library class/algorithm
     gnps.run(consensus_file_path, mzml_file_paths, out);
 
-    IonIdentityMolecularNetworking iimn;
-    iimn.logString("banana");
     return EXECUTION_OK;
   }
 };

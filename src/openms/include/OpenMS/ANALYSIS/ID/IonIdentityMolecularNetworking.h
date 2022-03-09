@@ -47,5 +47,8 @@ namespace OpenMS
       /// This method requires the features annotated with the Constants::UserParams::IIMN_LINKED_GROUPS meta value.
       //  If at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN.
       void annotateConsensusMap(ConsensusMap& out) const;
+
+      // write feature quantification table
+      void writeFeatureQuantificationTable(const String& consensus_file, const String& output_file, bool iimn) const;
   };
 } // closing namespace OpenMS

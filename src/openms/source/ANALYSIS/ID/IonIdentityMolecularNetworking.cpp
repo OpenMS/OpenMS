@@ -34,6 +34,11 @@
 
 #include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/SVOutStream.h>
+
+#include <fstream>
 #include <iostream>
 #include <set>
 #include <unordered_map>
@@ -141,5 +146,67 @@ namespace OpenMS
     {
       out[i].removeMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS);
     }
+ }
+
+ void IonIdentityMolecularNetworking::writeFeatureQuantificationTable(const String& consensus_file, const String& output_file, bool iimn) const
+ {
+   // load ConsensusMap from file
+   ConsensusMap cm;
+   ConsensusXMLFile().load(consensus_file, cm);
+   
+   // meta values for ion identity molecular networking
+   std::vector<String> iimn_mvs{Constants::UserParam::IIMN_ROW_ID,
+                                Constants::UserParam::IIMN_BEST_ION,
+                                Constants::UserParam::IIMN_ADDUCT_PARTNERS,
+                                Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER};
+   
+   // initialize SVOutStream with tab separation
+   std::ofstream outstr(output_file.c_str());
+   SVOutStream out(outstr, "\t", "_", String::NONE);
+   
+   // write headers for MAP and CONSENSUS
+   out << "#MAP" << "id" << "filename" << "label" << "size" << std::endl;
+   out << "#CONSENSUS" << "rt_cf" << "mz_cf" << "intensity_cf" << "charge_cf" << "width_cf" << "quality_cf";
+   if (iimn)
+   {
+     for (const auto& mv : iimn_mvs) out << mv;
+   }
+   for (size_t i = 0; i < cm.getColumnHeaders().size(); i++)
+   {
+     out << "rt_" + String(i) << "mz_" + String(i) << "intensity_" + String(i) << "charge_" + String(i) << "width_" + String(i);
+   }
+   out << std::endl;
+
+   // write MAP information
+   for (const auto& h: cm.getColumnHeaders())
+   {
+     out << "MAP" << h.first << h.second.filename << h.second.label << h.second.size << std::endl;
+   }
+
+   // write ConsensusFeature information
+   for (const auto& cf: cm)
+   {
+     out << "CONSENSUS" << cf.getRT() << cf.getMZ() << cf.getIntensity() << cf.getCharge() << cf.getWidth() << cf.getQuality();
+     if (iimn)
+     {
+       for (const auto& mv : iimn_mvs) out << cf.getMetaValue(mv, "");
+     }
+     // map index to feature handle and write feature information on correct position, if feature is missing write empty strings
+     std::unordered_map<size_t, FeatureHandle> index_to_feature;
+     for (const auto& fh: cf.getFeatures()) index_to_feature[fh.getMapIndex()] = fh;
+     for (size_t i = 0; i < cm.getColumnHeaders().size(); i++)
+     {
+       if (index_to_feature.count(i))
+       {
+       out << index_to_feature[i].getRT() << index_to_feature[i].getMZ() << index_to_feature[i].getIntensity() << index_to_feature[i].getCharge() << index_to_feature[i].getWidth();
+       }
+       else
+       {
+         out << "" << "" << "" << "" << "";
+       }
+     }
+     out << std::endl;
+   }
+   outstr.close();
  }
 } // closing namespace OpenMS
