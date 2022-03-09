@@ -722,7 +722,7 @@ namespace OpenMS
 
           int abs_charge = (j + current_min_charge_);
 
-          if (ms_level_ > 1)// for ms n, include all masses.
+          if (false)// for ms n, include all masses.
           {
             abs_charge_ranges
                 .setValue(0, mass_bin_index,
@@ -1168,7 +1168,7 @@ namespace OpenMS
 
     scoreAndFilterPeakGroups_();
 
-    removeOverlappingPeakGroups_(tolerance_[ms_level_ - 1], ms_level_ == 1 ? 1 : 0);
+    removeOverlappingPeakGroups_(tolerance_[ms_level_ - 1], 1);
     removeHarmonicsPeakGroups_();
 
     if (ms_level_ == 1)
