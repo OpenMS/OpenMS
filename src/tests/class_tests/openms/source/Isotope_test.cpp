@@ -127,6 +127,14 @@ START_SECTION(int getDecayMode() const)
 	TEST_EQUAL(e_ptr->getDecayMode(), Isotope::DecayMode::ALPHA)
 END_SECTION
 
+START_SECTION( virtual bool isIsotope() )
+  TEST_EQUAL(e_ptr->isIsotope(), true)
+END_SECTION
+
+START_SECTION(bool isStable() const)
+  TEST_EQUAL(e_ptr->isStable(), false)
+END_SECTION
+
 START_SECTION(Isotope& operator = (const Isotope& Isotope))
 	Isotope e = *e_ptr;
 	TEST_EQUAL(e == *e_ptr, true)

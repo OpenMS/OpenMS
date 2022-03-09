@@ -246,6 +246,21 @@ START_SECTION(( [EXTRA CH]IsotopeDistribution run(const EmpiricalFormula&) const
                    gen.run(ef)); // negative charge not allowed
   }
 
+  {
+    EmpiricalFormula mw = EmpiricalFormula("CH3OH") + EmpiricalFormula("H2O");
+    FineIsotopePatternGenerator gen(1e-20, false, false);
+    IsotopeDistribution id = gen.run(mw);
+    TEST_EQUAL(id.size(), 56)
+
+    FineIsotopePatternGenerator gen2(1e-200, false, false);
+    id = gen2.run(mw);
+    TEST_EQUAL(id.size(), 84)
+
+    {
+      auto iso_dist = mw.getIsotopeDistribution(FineIsotopePatternGenerator(1e-20, false, false));
+      TEST_EQUAL(iso_dist.size(), 56)
+    }
+  }
 }
 END_SECTION
 
