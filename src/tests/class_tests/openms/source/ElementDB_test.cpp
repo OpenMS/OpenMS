@@ -105,11 +105,11 @@ START_SECTION(const Element* getElement(const string& name) const)
 END_SECTION
 
 START_SECTION(const Isotope* getIsotope(const string& name) const)
-  const Isotope * e1 = e_ptr->getIsotope("(14)C");
-  const Isotope * e2 = e_ptr->getIsotope("(14)Carbon");
+  const Isotope * e1 = e_ptr->getIsotope("(238)U");
+  const Isotope * e2 = e_ptr->getIsotope("(238)Uranium");
   TEST_EQUAL(e1, e2);
   TEST_NOT_EQUAL(e1, elem_nullPointer);
-  TEST_EQUAL(e1->getNeutrons(), 8);
+  TEST_EQUAL(e1->getNeutrons(), 146);
 END_SECTION
 
 START_SECTION(const Element* getElement(unsigned int atomic_number) const)
@@ -127,6 +127,14 @@ START_SECTION(bool hasElement(unsigned int atomic_number) const)
   TEST_EQUAL(e_ptr->hasElement(6), true)
 END_SECTION
 
+START_SECTION([extra] output generation)
+{
+  std::cout << *(e_ptr->getElement(8)) << std::endl;
+  std::cout << *(e_ptr->getElement(6)) << std::endl;
+  std::cout << *(e_ptr->getElement(92)) << std::endl;
+  NOT_TESTABLE
+}
+END_SECTION
 
 START_SECTION(void addElement(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass, bool replace_existing))
 {
@@ -145,48 +153,65 @@ START_SECTION(void addElement(const std::string& name, const std::string& symbol
   e_ptr->addElement("NewElement", "NE", 800u, oxygen_abundance, oxygen_mass, false);
   const Element * new_ele = e_ptr->getElement(800);
   TEST_REAL_SIMILAR(new_ele->getAverageWeight(), 16.8994405) // average weight of new element
+
+  // Test that we cannot add elements twice with replace=false 
+  TEST_EXCEPTION(Exception::IllegalArgument, e_ptr->addElement("NewElement", "NE", 800u, oxygen_abundance, oxygen_mass, false))
+
+  // Test that we can add elements twice with replace=true 
+  e_ptr->addElement("NewElement", "NE", 800u, oxygen_abundance, oxygen_mass, true);
 }
 END_SECTION
 
 START_SECTION( void addIsotope(const std::string& name, const std::string& symbol, const unsigned int an, double abundance, double mass, double half_life, Isotope::DecayMode decay, bool replace_existing))
 {
-  const Isotope * carbon14 = e_ptr->getIsotope("(14)C");
-  e_ptr->addIsotope("Carbon", "C", 6u, 0.3, 14.0, 1e5, Isotope::DecayMode::UNKNOWN, true);
+  const Isotope * iso1 = e_ptr->getIsotope("(238)U");
+  e_ptr->addIsotope("Uranium", "U", 92u, 1.3, 238.05, 1e5, Isotope::DecayMode::UNKNOWN, true);
 
-  const Isotope * new_carbon14 = e_ptr->getIsotope("(14)C");
+  const Isotope * iso2 = e_ptr->getIsotope("(238)U");
   // ptr addresses cannot change, otherwise we are in trouble since EmpiricalFormula uses those
-  TEST_EQUAL(carbon14, new_carbon14)
-  TEST_REAL_SIMILAR(carbon14->getAbundance(), 0.3) // natural abundance has changed
+  TEST_EQUAL(iso1, iso2)
+  TEST_REAL_SIMILAR(iso1->getAbundance(), 1.3) // natural abundance has changed
 
-  // we have now managed to have 130% natural abundance for Carbon
+  // we have now managed to have 130% natural abundance for Uranium
   // NOTE: this is a major problem for average weight calculations etc
-  const Element* carbon = e_ptr->getElement(6);
+  const Element* element = e_ptr->getElement(92);
   double sum = 0;
-  for (auto& iso : carbon->getIsotopeDistribution()) {sum += iso.getIntensity();}
-  TEST_REAL_SIMILAR(sum, 1.30000002495944);
+  for (auto& iso : element->getIsotopeDistribution()) {sum += iso.getIntensity();}
+  TEST_REAL_SIMILAR(sum, 1.30725795222315);
 
-  // new carbon isotope added
-  TEST_EQUAL(e_ptr->getIsotope("(114)C"), nullptr)
-  int nr_isotopes = carbon->getIsotopes().size();
-  e_ptr->addIsotope("Carbon", "C", 6u, 0.3, 114.0, 1e5, Isotope::DecayMode::UNKNOWN, false);
-  const Isotope * new_iso = e_ptr->getIsotope("(114)C");
-  TEST_EQUAL( new_iso->getElement(), carbon)
-  TEST_EQUAL( carbon->getIsotopes().size(), nr_isotopes+1)
+  // new Uranium isotope added
+  TEST_EQUAL(e_ptr->getIsotope("(314)C"), nullptr)
+  int nr_isotopes = element->getIsotopes().size();
+  e_ptr->addIsotope("Uranium", "U", 92u, 0.3, 314.0, 1e5, Isotope::DecayMode::UNKNOWN, false);
+  const Isotope * new_iso = e_ptr->getIsotope("(314)U");
+  TEST_NOT_EQUAL( new_iso, nullptr)
+  TEST_EQUAL( new_iso->getElement(), element)
+  TEST_EQUAL( element->getIsotopes().size(), nr_isotopes+1) // increased number of isotopes by one
+  TEST_EQUAL( element->getIsotopeDistribution().getContainer().size(), nr_isotopes+1) // increased number of isotopes by one
 
-  // we have now managed to have 160% natural abundance for Carbon
+  // we have now managed to have 160% natural abundance for Uranium
   // NOTE: this is a major problem for average weight calculations etc
   sum = 0;
-  for (auto& iso : carbon->getIsotopeDistribution()) {sum += iso.getIntensity();}
-  TEST_REAL_SIMILAR(sum, 1.60000002495944);
-}
-END_SECTION
+  for (auto& iso : element->getIsotopeDistribution()) {sum += iso.getIntensity();}
+  TEST_REAL_SIMILAR(sum, 1.60725795222315);
 
-START_SECTION([extra] cout)
-{
-  std::cout << *(e_ptr->getElement(8)) << std::endl;
-  std::cout << *(e_ptr->getElement(6)) << std::endl;
-  std::cout << *(e_ptr->getElement(92)) << std::endl;
-  NOT_TESTABLE
+  // Test that we cannot add isotopes for elements that dont exist
+  TEST_EXCEPTION(Exception::IllegalArgument, e_ptr->addIsotope("NewElement", "NE", 300, 0.5, 404, 100, Isotope::DecayMode::UNKNOWN, false))
+
+  {
+    // Test that we cannot add twice with replace=false
+    e_ptr->addIsotope("NewElement", "NE", 800, 0.5, 404, 100, Isotope::DecayMode::UNKNOWN, false);
+    TEST_EXCEPTION(Exception::IllegalArgument, e_ptr->addIsotope("NewElement", "NE", 800, 0.5, 404, 100, Isotope::DecayMode::UNKNOWN, false))
+    const Isotope* new_iso = e_ptr->getIsotope("(404)NE");
+    TEST_NOT_EQUAL( new_iso, nullptr);
+    TEST_REAL_SIMILAR( new_iso->getAbundance(), 0.5)
+
+    // we should be able to add the same one again with replace=true
+    e_ptr->addIsotope("NewElement", "NE", 800, 0.6, 404, 100, Isotope::DecayMode::UNKNOWN, true);
+    new_iso = e_ptr->getIsotope("(404)NE");
+    TEST_NOT_EQUAL( new_iso, nullptr);
+    TEST_REAL_SIMILAR( new_iso->getAbundance(), 0.6)
+  }
 }
 END_SECTION
 
