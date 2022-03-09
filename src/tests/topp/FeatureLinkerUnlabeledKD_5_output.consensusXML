@@ -57,7 +57,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="3"/>
 			<UserParam type="int" name="annotation network number" value="3"/>
-			<UserParam type="int" name="partners" value="603"/>
+			<UserParam type="string" name="partners" value="603"/>
 		</consensusElement>
 		<consensusElement id="e_15004869347769368353" quality="5.15047e-05" charge="1">
 			<centroid rt="503.173314678848783" mz="355.078889292411873" it="297.057465"/>
@@ -224,7 +224,7 @@
 			<UserParam type="string" name="best ion" value="[M+4H+N]+"/>
 			<UserParam type="int" name="row ID" value="16"/>
 			<UserParam type="int" name="annotation network number" value="16"/>
-			<UserParam type="int" name="partners" value="317"/>
+			<UserParam type="string" name="partners" value="317"/>
 		</consensusElement>
 		<consensusElement id="e_1755235105885170967" quality="3.844626e-04" charge="1">
 			<centroid rt="662.800706631900198" mz="394.272963588936364" it="2053.841064"/>
@@ -265,7 +265,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="19"/>
 			<UserParam type="int" name="annotation network number" value="19"/>
-			<UserParam type="int" name="partners" value="128"/>
+			<UserParam type="string" name="partners" value="128"/>
 		</consensusElement>
 		<consensusElement id="e_8119044117483804262" quality="2.0666e-03" charge="1">
 			<centroid rt="977.452677120635258" mz="805.718939896181951" it="7557.600586"/>
@@ -292,7 +292,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="21"/>
 			<UserParam type="int" name="annotation network number" value="21"/>
-			<UserParam type="int" name="partners" value="29"/>
+			<UserParam type="string" name="partners" value="29"/>
 		</consensusElement>
 		<consensusElement id="e_3023658190814908261" quality="3.246772e-05" charge="1">
 			<centroid rt="829.875758647520343" mz="313.220351307305123" it="187.304169"/>
@@ -306,7 +306,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="22"/>
 			<UserParam type="int" name="annotation network number" value="22"/>
-			<UserParam type="int" name="partners" value="232"/>
+			<UserParam type="string" name="partners" value="232"/>
 		</consensusElement>
 		<consensusElement id="e_7898004582401008768" quality="4.096184e-05">
 			<centroid rt="574.466401331932275" mz="490.208212208641839" it="236.262375"/>
@@ -358,7 +358,7 @@
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
 			<UserParam type="int" name="row ID" value="26"/>
 			<UserParam type="int" name="annotation network number" value="26"/>
-			<UserParam type="int" name="partners" value="51"/>
+			<UserParam type="string" name="partners" value="51"/>
 		</consensusElement>
 		<consensusElement id="e_16177748921272733768" quality="1.672109e-04" charge="1">
 			<centroid rt="963.387502377285955" mz="502.326903722219981" it="746.732056"/>
@@ -400,7 +400,7 @@
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
 			<UserParam type="int" name="row ID" value="29"/>
 			<UserParam type="int" name="annotation network number" value="21"/>
-			<UserParam type="int" name="partners" value="21"/>
+			<UserParam type="string" name="partners" value="21"/>
 		</consensusElement>
 		<consensusElement id="e_11115414975438642789" quality="2.203382e-05">
 			<centroid rt="781.097780006202697" mz="388.306310564711566" it="127.133682"/>
@@ -414,7 +414,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="30"/>
 			<UserParam type="int" name="annotation network number" value="28"/>
-			<UserParam type="int" name="partners" value="719"/>
+			<UserParam type="string" name="partners" value="719"/>
 		</consensusElement>
 		<consensusElement id="e_14509930621887606273" quality="1.148558e-04" charge="1">
 			<centroid rt="929.201993709781164" mz="361.274196674453378" it="554.590698"/>
@@ -748,7 +748,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
 			<UserParam type="int" name="row ID" value="55"/>
 			<UserParam type="int" name="annotation network number" value="50"/>
-			<UserParam type="int" name="partners" value="297"/>
+			<UserParam type="string" name="partners" value="297"/>
 		</consensusElement>
 		<consensusElement id="e_17671779025680303814" quality="1.8964e-03" charge="1">
 			<centroid rt="941.251687013150104" mz="526.294067080487025" it="8285.720703"/>
@@ -815,7 +815,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="60"/>
 			<UserParam type="int" name="annotation network number" value="53"/>
-			<UserParam type="int" name="partners" value="123"/>
+			<UserParam type="string" name="partners" value="123"/>
 		</consensusElement>
 		<consensusElement id="e_7316644956366259183" quality="7.379548e-05" charge="1">
 			<centroid rt="540.477798855904211" mz="460.234630692373685" it="425.641266"/>
@@ -829,7 +829,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="61"/>
 			<UserParam type="int" name="annotation network number" value="54"/>
-			<UserParam type="int" name="partners" value="127"/>
+			<UserParam type="string" name="partners" value="127"/>
 		</consensusElement>
 		<consensusElement id="e_6182960951962378739" quality="2.8166e-03" charge="1">
 			<centroid rt="985.953469860877931" mz="922.700308339987032" it="9533.914063"/>
@@ -1024,7 +1024,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="76"/>
 			<UserParam type="int" name="annotation network number" value="69"/>
-			<UserParam type="int" name="partners" value="306"/>
+			<UserParam type="string" name="partners" value="306"/>
 		</consensusElement>
 		<consensusElement id="e_6878260161865568505" quality="3.663765e-05">
 			<centroid rt="847.733113031943276" mz="361.274184497096485" it="211.487946"/>
@@ -1063,7 +1063,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
 			<UserParam type="int" name="row ID" value="79"/>
 			<UserParam type="int" name="annotation network number" value="72"/>
-			<UserParam type="int" name="partners" value="824"/>
+			<UserParam type="string" name="partners" value="824"/>
 		</consensusElement>
 		<consensusElement id="e_13574947772324278593" quality="3.804534e-05" charge="1">
 			<centroid rt="978.557153360392817" mz="566.329717514548747" it="219.429718"/>
@@ -1130,7 +1130,7 @@
 			<UserParam type="string" name="best ion" value="[M+5H+N+Na]3+"/>
 			<UserParam type="int" name="row ID" value="84"/>
 			<UserParam type="int" name="annotation network number" value="76"/>
-			<UserParam type="int" name="partners" value="172"/>
+			<UserParam type="string" name="partners" value="172"/>
 		</consensusElement>
 		<consensusElement id="e_5805590394902791448" quality="5.573275e-05">
 			<centroid rt="933.399720586312696" mz="568.341618308638203" it="277.607269"/>
@@ -1210,7 +1210,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="90"/>
 			<UserParam type="int" name="annotation network number" value="82"/>
-			<UserParam type="int" name="partners" value="99"/>
+			<UserParam type="string" name="partners" value="99"/>
 		</consensusElement>
 		<consensusElement id="e_1339341489815824759" quality="1.9862e-03" charge="1">
 			<centroid rt="959.547419520137169" mz="544.341205377412052" it="8562.416016"/>
@@ -1368,7 +1368,7 @@
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
 			<UserParam type="int" name="row ID" value="102"/>
 			<UserParam type="int" name="annotation network number" value="92"/>
-			<UserParam type="int" name="partners" value="469"/>
+			<UserParam type="string" name="partners" value="469"/>
 		</consensusElement>
 		<consensusElement id="e_7283948392886265699" quality="2.85308e-05">
 			<centroid rt="896.699356666681297" mz="385.274741538745388" it="164.547272"/>
@@ -1408,7 +1408,7 @@
 			<UserParam type="string" name="best ion" value="[M-H+Na-O]2+"/>
 			<UserParam type="int" name="row ID" value="105"/>
 			<UserParam type="int" name="annotation network number" value="95"/>
-			<UserParam type="int" name="partners" value="374"/>
+			<UserParam type="string" name="partners" value="374"/>
 		</consensusElement>
 		<consensusElement id="e_12049315334424432437" quality="2.500342e-05">
 			<centroid rt="626.648397438845791" mz="314.232502947180819" it="144.228012"/>
@@ -1550,7 +1550,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="116"/>
 			<UserParam type="int" name="annotation network number" value="105"/>
-			<UserParam type="int" name="partners" value="825"/>
+			<UserParam type="string" name="partners" value="825"/>
 		</consensusElement>
 		<consensusElement id="e_17876486934271562208" quality="1.098055e-04">
 			<centroid rt="406.098044997008969" mz="304.211472652169959" it="633.46698"/>
@@ -1602,7 +1602,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
 			<UserParam type="int" name="row ID" value="120"/>
 			<UserParam type="int" name="annotation network number" value="108"/>
-			<UserParam type="int" name="partners" value="579"/>
+			<UserParam type="string" name="partners" value="579"/>
 		</consensusElement>
 		<consensusElement id="e_3607574553438867574" quality="4.951974e-04" charge="1">
 			<centroid rt="503.220707424406555" mz="339.10427743791206" it="2362.505859"/>
@@ -1642,7 +1642,7 @@
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
 			<UserParam type="int" name="row ID" value="123"/>
 			<UserParam type="int" name="annotation network number" value="53"/>
-			<UserParam type="int" name="partners" value="60"/>
+			<UserParam type="string" name="partners" value="60"/>
 		</consensusElement>
 		<consensusElement id="e_9672067365742190701" quality="4.902663e-05">
 			<centroid rt="903.90880859579579" mz="502.296816041719637" it="282.884949"/>
@@ -1668,7 +1668,7 @@
 			<UserParam type="string" name="best ion" value="[M+4H+K+N]2+"/>
 			<UserParam type="int" name="row ID" value="125"/>
 			<UserParam type="int" name="annotation network number" value="111"/>
-			<UserParam type="int" name="partners" value="289"/>
+			<UserParam type="string" name="partners" value="289"/>
 		</consensusElement>
 		<consensusElement id="e_3279626156608649238" quality="4.827628e-04" charge="1">
 			<centroid rt="945.958938485736667" mz="424.341955413606399" it="2262.268799"/>
@@ -1695,7 +1695,7 @@
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
 			<UserParam type="int" name="row ID" value="127"/>
 			<UserParam type="int" name="annotation network number" value="54"/>
-			<UserParam type="int" name="partners" value="61"/>
+			<UserParam type="string" name="partners" value="61"/>
 		</consensusElement>
 		<consensusElement id="e_10231321952512194787" quality="3.315881e-04" charge="1">
 			<centroid rt="947.252280845340465" mz="484.28361274824357" it="1490.411865"/>
@@ -1709,7 +1709,7 @@
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
 			<UserParam type="int" name="row ID" value="128"/>
 			<UserParam type="int" name="annotation network number" value="19"/>
-			<UserParam type="int" name="partners" value="19"/>
+			<UserParam type="string" name="partners" value="19"/>
 		</consensusElement>
 		<consensusElement id="e_2067209405782217684" quality="7.511504e-05">
 			<centroid rt="982.210924391638969" mz="313.273452236484047" it="433.128937"/>
@@ -1774,7 +1774,7 @@
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
 			<UserParam type="int" name="row ID" value="133"/>
 			<UserParam type="int" name="annotation network number" value="117"/>
-			<UserParam type="int" name="partners" value="249"/>
+			<UserParam type="string" name="partners" value="249"/>
 		</consensusElement>
 		<consensusElement id="e_15595829921891090644" quality="1.018234e-04" charge="1">
 			<centroid rt="877.162333916945499" mz="312.159471298987455" it="513.105957"/>
@@ -1890,7 +1890,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="142"/>
 			<UserParam type="int" name="annotation network number" value="126"/>
-			<UserParam type="int" name="partners" value="279"/>
+			<UserParam type="string" name="partners" value="279"/>
 		</consensusElement>
 		<consensusElement id="e_3110306690676341028" quality="7.066576e-05" charge="1">
 			<centroid rt="970.350235667905849" mz="550.330568992564281" it="340.940674"/>
@@ -1944,7 +1944,7 @@
 			<UserParam type="string" name="best ion" value="[M-H+Na-O]2+"/>
 			<UserParam type="int" name="row ID" value="146"/>
 			<UserParam type="int" name="annotation network number" value="129"/>
-			<UserParam type="int" name="partners" value="752"/>
+			<UserParam type="string" name="partners" value="752"/>
 		</consensusElement>
 		<consensusElement id="e_15974525296577096328" quality="3.086152e-05">
 			<centroid rt="815.279671822346131" mz="466.295967993739112" it="178.016006"/>
@@ -1970,7 +1970,7 @@
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
 			<UserParam type="int" name="row ID" value="148"/>
 			<UserParam type="int" name="annotation network number" value="131"/>
-			<UserParam type="int" name="partners" value="698"/>
+			<UserParam type="string" name="partners" value="698"/>
 		</consensusElement>
 		<consensusElement id="e_14745721201431314415" quality="1.374062e-04" charge="1">
 			<centroid rt="890.846644350057204" mz="518.326292202069226" it="609.806763"/>
@@ -2010,7 +2010,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="151"/>
 			<UserParam type="int" name="annotation network number" value="134"/>
-			<UserParam type="int" name="partners" value="570"/>
+			<UserParam type="string" name="partners" value="570"/>
 		</consensusElement>
 		<consensusElement id="e_16987762588190708774" quality="3.308277e-04" charge="1">
 			<centroid rt="773.943610969341535" mz="356.27831843652433" it="1483.924439"/>
@@ -2115,7 +2115,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="159"/>
 			<UserParam type="int" name="annotation network number" value="141"/>
-			<UserParam type="int" name="partners" value="643"/>
+			<UserParam type="string" name="partners" value="643"/>
 		</consensusElement>
 		<consensusElement id="e_8226270557132872791" quality="5.533101e-05">
 			<centroid rt="744.014830513173365" mz="589.403603713910911" it="319.387634"/>
@@ -2232,7 +2232,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="168"/>
 			<UserParam type="int" name="annotation network number" value="148"/>
-			<UserParam type="int" name="partners" value="198"/>
+			<UserParam type="string" name="partners" value="198"/>
 		</consensusElement>
 		<consensusElement id="e_15012949867540041090" quality="1.042323e-03" charge="1">
 			<centroid rt="982.547751999716297" mz="482.325916618794849" it="4905.533691"/>
@@ -2246,7 +2246,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="169"/>
 			<UserParam type="int" name="annotation network number" value="149"/>
-			<UserParam type="int" name="partners" value="200"/>
+			<UserParam type="string" name="partners" value="200"/>
 		</consensusElement>
 		<consensusElement id="e_276808963686810837" quality="5.484164e-05">
 			<centroid rt="826.613474776426074" mz="526.297866012221675" it="316.373932"/>
@@ -2285,7 +2285,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="172"/>
 			<UserParam type="int" name="annotation network number" value="76"/>
-			<UserParam type="int" name="partners" value="84"/>
+			<UserParam type="string" name="partners" value="84"/>
 		</consensusElement>
 		<consensusElement id="e_3985464472191994486" quality="4.649489e-05">
 			<centroid rt="994.880349172539013" mz="399.251249014802511" it="268.053467"/>
@@ -2377,7 +2377,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="179"/>
 			<UserParam type="int" name="annotation network number" value="156"/>
-			<UserParam type="int" name="partners" value="255"/>
+			<UserParam type="string" name="partners" value="255"/>
 		</consensusElement>
 		<consensusElement id="e_3109052061041085863" quality="2.466935e-05">
 			<centroid rt="865.591893718794154" mz="385.274826166945502" it="142.21167"/>
@@ -2493,7 +2493,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="188"/>
 			<UserParam type="int" name="annotation network number" value="163"/>
-			<UserParam type="int" name="partners" value="595"/>
+			<UserParam type="string" name="partners" value="595"/>
 		</consensusElement>
 		<consensusElement id="e_7207371083159283456" quality="3.42398e-05">
 			<centroid rt="904.099215395112196" mz="361.274778040738056" it="197.474564"/>
@@ -2649,7 +2649,7 @@
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
 			<UserParam type="int" name="row ID" value="200"/>
 			<UserParam type="int" name="annotation network number" value="149"/>
-			<UserParam type="int" name="partners" value="169"/>
+			<UserParam type="string" name="partners" value="169"/>
 		</consensusElement>
 		<consensusElement id="e_17757401347613427925" quality="3.908868e-05">
 			<centroid rt="783.835141261984063" mz="506.283534664277909" it="225.525528"/>
@@ -2689,7 +2689,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="203"/>
 			<UserParam type="int" name="annotation network number" value="173"/>
-			<UserParam type="int" name="partners" value="707"/>
+			<UserParam type="string" name="partners" value="707"/>
 		</consensusElement>
 		<consensusElement id="e_4349546871070693707" quality="6.794752e-05" charge="1">
 			<centroid rt="858.537461207689148" mz="370.295477859021275" it="330.207123"/>
@@ -2703,7 +2703,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="204"/>
 			<UserParam type="int" name="annotation network number" value="174"/>
-			<UserParam type="int" name="partners" value="383"/>
+			<UserParam type="string" name="partners" value="383"/>
 		</consensusElement>
 		<consensusElement id="e_3103608995878612024" quality="2.849297e-04" charge="1">
 			<centroid rt="834.290492853909427" mz="454.311234890801813" it="1240.70105"/>
@@ -2816,7 +2816,7 @@
 			<UserParam type="string" name="best ion" value="[M+H-O]3+"/>
 			<UserParam type="int" name="row ID" value="213"/>
 			<UserParam type="int" name="annotation network number" value="182"/>
-			<UserParam type="int" name="partners" value="247"/>
+			<UserParam type="string" name="partners" value="247"/>
 		</consensusElement>
 		<consensusElement id="e_2935923263525422257" quality="2.733207e-04">
 			<centroid rt="911.365062785713008" mz="341.284123216759213" it="1576.463379"/>
@@ -2911,7 +2911,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="221"/>
 			<UserParam type="int" name="annotation network number" value="190"/>
-			<UserParam type="int" name="partners" value="661"/>
+			<UserParam type="string" name="partners" value="661"/>
 		</consensusElement>
 		<consensusElement id="e_14086301720075657476" quality="5.788908e-05">
 			<centroid rt="988.815415872937138" mz="808.963568960470639" it="333.388123"/>
@@ -2948,7 +2948,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
 			<UserParam type="int" name="row ID" value="224"/>
 			<UserParam type="int" name="annotation network number" value="192"/>
-			<UserParam type="int" name="partners" value="352"/>
+			<UserParam type="string" name="partners" value="352"/>
 		</consensusElement>
 		<consensusElement id="e_6485175442085010172" quality="2.299989e-05">
 			<centroid rt="618.501257094827679" mz="464.120519122415089" it="132.462051"/>
@@ -2985,7 +2985,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="227"/>
 			<UserParam type="int" name="annotation network number" value="194"/>
-			<UserParam type="int" name="partners" value="307"/>
+			<UserParam type="string" name="partners" value="307"/>
 		</consensusElement>
 		<consensusElement id="e_13980879381374140731" quality="2.985285e-04">
 			<centroid rt="740.247988205323054" mz="474.134183594015269" it="1719.06958"/>
@@ -3043,7 +3043,7 @@
 			<UserParam type="string" name="best ion" value="[M+4H+N]+"/>
 			<UserParam type="int" name="row ID" value="232"/>
 			<UserParam type="int" name="annotation network number" value="22"/>
-			<UserParam type="int" name="partners" value="22"/>
+			<UserParam type="string" name="partners" value="22"/>
 		</consensusElement>
 		<consensusElement id="e_11486987517808453959" quality="1.10646e-04">
 			<centroid rt="976.735624461249017" mz="403.112617251071356" it="637.463867"/>
@@ -3115,7 +3115,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="238"/>
 			<UserParam type="int" name="annotation network number" value="204"/>
-			<UserParam type="int" name="partners" value="654"/>
+			<UserParam type="string" name="partners" value="654"/>
 		</consensusElement>
 		<consensusElement id="e_13171818018686116661" quality="5.32293e-05">
 			<centroid rt="977.337488929716983" mz="402.765050433398983" it="307.122559"/>
@@ -3201,7 +3201,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="245"/>
 			<UserParam type="int" name="annotation network number" value="210"/>
-			<UserParam type="int" name="partners" value="360"/>
+			<UserParam type="string" name="partners" value="360"/>
 		</consensusElement>
 		<consensusElement id="e_17523294400186120337" quality="6.162555e-05">
 			<centroid rt="660.897043099108032" mz="607.266723878108678" it="354.97052"/>
@@ -3226,7 +3226,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="247"/>
 			<UserParam type="int" name="annotation network number" value="182"/>
-			<UserParam type="int" name="partners" value="213"/>
+			<UserParam type="string" name="partners" value="213"/>
 		</consensusElement>
 		<consensusElement id="e_8416276272241661922" quality="8.110609e-05">
 			<centroid rt="547.178280418058762" mz="332.243283391547777" it="466.72348"/>
@@ -3249,7 +3249,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="249"/>
 			<UserParam type="int" name="annotation network number" value="117"/>
-			<UserParam type="int" name="partners" value="133"/>
+			<UserParam type="string" name="partners" value="133"/>
 		</consensusElement>
 		<consensusElement id="e_8895517416657908109" quality="4.432167e-05">
 			<centroid rt="810.408944903633369" mz="502.296123719368552" it="255.085281"/>
@@ -3271,7 +3271,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H+N-O]2+"/>
 			<UserParam type="int" name="row ID" value="251"/>
 			<UserParam type="int" name="annotation network number" value="214"/>
-			<UserParam type="int" name="partners" value="732"/>
+			<UserParam type="string" name="partners" value="732"/>
 		</consensusElement>
 		<consensusElement id="e_5044655372998579004" quality="3.676809e-05">
 			<centroid rt="660.701262858158316" mz="635.299188791308893" it="211.62825"/>
@@ -3316,7 +3316,7 @@
 			<UserParam type="string" name="best ion" value="[M+H+K]2+"/>
 			<UserParam type="int" name="row ID" value="255"/>
 			<UserParam type="int" name="annotation network number" value="156"/>
-			<UserParam type="int" name="partners" value="179"/>
+			<UserParam type="string" name="partners" value="179"/>
 		</consensusElement>
 		<consensusElement id="e_1510041322410100755" quality="1.32817e-04" charge="1">
 			<centroid rt="572.050381567932277" mz="302.233016344144744" it="680.251648"/>
@@ -3381,7 +3381,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="261"/>
 			<UserParam type="int" name="annotation network number" value="222"/>
-			<UserParam type="int" name="partners" value="355"/>
+			<UserParam type="string" name="partners" value="355"/>
 		</consensusElement>
 		<consensusElement id="e_17198820827940555384" quality="3.289393e-05">
 			<centroid rt="739.837020711885657" mz="471.376653064222865" it="189.372025"/>
@@ -3414,7 +3414,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="264"/>
 			<UserParam type="int" name="annotation network number" value="225"/>
-			<UserParam type="int" name="partners" value="706"/>
+			<UserParam type="string" name="partners" value="706"/>
 		</consensusElement>
 		<consensusElement id="e_16929718536696058955" quality="2.482559e-05">
 			<centroid rt="978.436315058106743" mz="572.301764846736546" it="142.806534"/>
@@ -3426,7 +3426,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H+N-O]2+"/>
 			<UserParam type="int" name="row ID" value="265"/>
 			<UserParam type="int" name="annotation network number" value="226"/>
-			<UserParam type="int" name="partners" value="806"/>
+			<UserParam type="string" name="partners" value="806"/>
 		</consensusElement>
 		<consensusElement id="e_9429020594666658834" quality="2.190068e-05">
 			<centroid rt="950.404522898741561" mz="417.243064427459331" it="126.089211"/>
@@ -3498,7 +3498,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="272"/>
 			<UserParam type="int" name="annotation network number" value="233"/>
-			<UserParam type="int" name="partners" value="836"/>
+			<UserParam type="string" name="partners" value="836"/>
 		</consensusElement>
 		<consensusElement id="e_2027900418508605084" quality="1.669816e-04" charge="3">
 			<centroid rt="740.314849687266474" mz="472.832969337123359" it="961.201538"/>
@@ -3510,7 +3510,7 @@
 			<UserParam type="string" name="best ion" value="[M+Na-O]3+"/>
 			<UserParam type="int" name="row ID" value="273"/>
 			<UserParam type="int" name="annotation network number" value="234"/>
-			<UserParam type="int" name="partners" value="479"/>
+			<UserParam type="string" name="partners" value="479"/>
 		</consensusElement>
 		<consensusElement id="e_1306039369812879929" quality="3.267161e-04" charge="3">
 			<centroid rt="987.754480577636059" mz="523.513847451950824" it="1065.709595"/>
@@ -3522,7 +3522,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="274"/>
 			<UserParam type="int" name="annotation network number" value="235"/>
-			<UserParam type="int" name="partners" value="733"/>
+			<UserParam type="string" name="partners" value="733"/>
 		</consensusElement>
 		<consensusElement id="e_14356764654261201422" quality="1.012431e-03">
 			<centroid rt="960.146702300655647" mz="341.28645825776772" it="5813.78125"/>
@@ -3545,7 +3545,7 @@
 			<UserParam type="string" name="best ion" value="[M-H+Na-O]2+"/>
 			<UserParam type="int" name="row ID" value="276"/>
 			<UserParam type="int" name="annotation network number" value="237"/>
-			<UserParam type="int" name="partners" value="379"/>
+			<UserParam type="string" name="partners" value="379"/>
 		</consensusElement>
 		<consensusElement id="e_2652253729487148893" quality="1.184382e-04">
 			<centroid rt="544.379578972324453" mz="363.216446091498995" it="681.735657"/>
@@ -3577,7 +3577,7 @@
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
 			<UserParam type="int" name="row ID" value="279"/>
 			<UserParam type="int" name="annotation network number" value="126"/>
-			<UserParam type="int" name="partners" value="142"/>
+			<UserParam type="string" name="partners" value="142"/>
 		</consensusElement>
 		<consensusElement id="e_655481111622903641" quality="1.654982e-05">
 			<centroid rt="736.714389534985799" mz="605.469246499318274" it="95.852486"/>
@@ -3664,7 +3664,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="287"/>
 			<UserParam type="int" name="annotation network number" value="247"/>
-			<UserParam type="int" name="partners" value="294"/>
+			<UserParam type="string" name="partners" value="294"/>
 		</consensusElement>
 		<consensusElement id="e_17518854626305524736" quality="1.156864e-04" charge="1">
 			<centroid rt="925.333473840371994" mz="494.325537498771666" it="534.245117"/>
@@ -3687,7 +3687,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="289"/>
 			<UserParam type="int" name="annotation network number" value="111"/>
-			<UserParam type="int" name="partners" value="125"/>
+			<UserParam type="string" name="partners" value="125"/>
 		</consensusElement>
 		<consensusElement id="e_7924899341108903907" quality="3.301721e-05" charge="1">
 			<centroid rt="987.298930754255821" mz="519.607309479971264" it="191.206772"/>
@@ -3699,7 +3699,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
 			<UserParam type="int" name="row ID" value="290"/>
 			<UserParam type="int" name="annotation network number" value="249"/>
-			<UserParam type="int" name="partners" value="635"/>
+			<UserParam type="string" name="partners" value="635"/>
 		</consensusElement>
 		<consensusElement id="e_11321705335266637823" quality="3.906148e-05" charge="3">
 			<centroid rt="987.218214798926169" mz="519.679644925538355" it="226.193069"/>
@@ -3744,7 +3744,7 @@
 			<UserParam type="string" name="best ion" value="[M-H+Na-O]2+"/>
 			<UserParam type="int" name="row ID" value="294"/>
 			<UserParam type="int" name="annotation network number" value="247"/>
-			<UserParam type="int" name="partners" value="287"/>
+			<UserParam type="string" name="partners" value="287"/>
 		</consensusElement>
 		<consensusElement id="e_1276068484780993272" quality="2.280365e-04" charge="1">
 			<centroid rt="882.115980889019738" mz="544.341326889266497" it="1002.688782"/>
@@ -3778,7 +3778,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="297"/>
 			<UserParam type="int" name="annotation network number" value="50"/>
-			<UserParam type="int" name="partners" value="55"/>
+			<UserParam type="string" name="partners" value="55"/>
 		</consensusElement>
 		<consensusElement id="e_17435873260432890273" quality="2.407346e-05">
 			<centroid rt="713.8081595133375" mz="534.317347880944453" it="139.419632"/>
@@ -3800,7 +3800,7 @@
 			<UserParam type="string" name="best ion" value="[M-H+Na-O]2+"/>
 			<UserParam type="int" name="row ID" value="299"/>
 			<UserParam type="int" name="annotation network number" value="255"/>
-			<UserParam type="int" name="partners" value="308"/>
+			<UserParam type="string" name="partners" value="308"/>
 		</consensusElement>
 		<consensusElement id="e_7063966219209930662" quality="8.441176e-05">
 			<centroid rt="856.091985034330605" mz="520.340464736366698" it="488.841278"/>
@@ -3812,7 +3812,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
 			<UserParam type="int" name="row ID" value="300"/>
 			<UserParam type="int" name="annotation network number" value="256"/>
-			<UserParam type="int" name="partners" value="841"/>
+			<UserParam type="string" name="partners" value="841"/>
 		</consensusElement>
 		<consensusElement id="e_16290421735094563442" quality="2.68312e-05">
 			<centroid rt="821.112796561012487" mz="338.258630200436926" it="155.361771"/>
@@ -3867,7 +3867,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="305"/>
 			<UserParam type="int" name="annotation network number" value="261"/>
-			<UserParam type="int" name="partners" value="753"/>
+			<UserParam type="string" name="partners" value="753"/>
 		</consensusElement>
 		<consensusElement id="e_4169697051499708787" quality="6.856339e-05" charge="2">
 			<centroid rt="342.966713099322249" mz="337.107586388775132" it="397.047119"/>
@@ -3879,7 +3879,7 @@
 			<UserParam type="string" name="best ion" value="[M+H+Na]2+"/>
 			<UserParam type="int" name="row ID" value="306"/>
 			<UserParam type="int" name="annotation network number" value="69"/>
-			<UserParam type="int" name="partners" value="76"/>
+			<UserParam type="string" name="partners" value="76"/>
 		</consensusElement>
 		<consensusElement id="e_16007354456047415681" quality="2.540678e-05" charge="1">
 			<centroid rt="950.276062462635423" mz="972.621278523664046" it="147.139999"/>
@@ -3891,7 +3891,7 @@
 			<UserParam type="string" name="best ion" value="[M+4H+N]+"/>
 			<UserParam type="int" name="row ID" value="307"/>
 			<UserParam type="int" name="annotation network number" value="194"/>
-			<UserParam type="int" name="partners" value="227"/>
+			<UserParam type="string" name="partners" value="227"/>
 		</consensusElement>
 		<consensusElement id="e_9206404168793008851" quality="2.396342e-04">
 			<centroid rt="987.458320996831958" mz="522.534095989281695" it="1387.941162"/>
@@ -3903,7 +3903,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="308"/>
 			<UserParam type="int" name="annotation network number" value="255"/>
-			<UserParam type="int" name="partners" value="299"/>
+			<UserParam type="string" name="partners" value="299"/>
 		</consensusElement>
 		<consensusElement id="e_7215943084481145332" quality="2.338742e-05">
 			<centroid rt="970.706221720808571" mz="572.353442750391991" it="135.431839"/>
@@ -3946,7 +3946,7 @@
 			<UserParam type="string" name="best ion" value="[M-H+Na-O]2+"/>
 			<UserParam type="int" name="row ID" value="312"/>
 			<UserParam type="int" name="annotation network number" value="27"/>
-			<UserParam type="int" name="partners" value="28"/>
+			<UserParam type="string" name="partners" value="28"/>
 		</consensusElement>
 		<consensusElement id="e_7139870933477615878" quality="1.177076e-04" charge="1">
 			<centroid rt="900.148816067756684" mz="520.340819380831249" it="566.173584"/>
@@ -3969,7 +3969,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="314"/>
 			<UserParam type="int" name="annotation network number" value="266"/>
-			<UserParam type="int" name="partners" value="606"/>
+			<UserParam type="string" name="partners" value="606"/>
 		</consensusElement>
 		<consensusElement id="e_3070492751474283061" quality="1.951937e-05" charge="1">
 			<centroid rt="740.394401863430971" mz="966.622811043201978" it="113.049057"/>
@@ -3981,7 +3981,7 @@
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
 			<UserParam type="int" name="row ID" value="315"/>
 			<UserParam type="int" name="annotation network number" value="267"/>
-			<UserParam type="int" name="partners" value="614"/>
+			<UserParam type="string" name="partners" value="614"/>
 		</consensusElement>
 		<consensusElement id="e_10666771715999960526" quality="1.074412e-04">
 			<centroid rt="868.247337960028631" mz="357.278451624067429" it="622.20874"/>
@@ -4003,7 +4003,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="317"/>
 			<UserParam type="int" name="annotation network number" value="16"/>
-			<UserParam type="int" name="partners" value="16"/>
+			<UserParam type="string" name="partners" value="16"/>
 		</consensusElement>
 		<consensusElement id="e_17351069880123432645" quality="3.189671e-04" charge="1">
 			<centroid rt="986.333999633789063" mz="522.767098934946375" it="1639.556397"/>
@@ -4053,7 +4053,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="322"/>
 			<UserParam type="int" name="annotation network number" value="273"/>
-			<UserParam type="int" name="partners" value="410"/>
+			<UserParam type="string" name="partners" value="410"/>
 		</consensusElement>
 		<consensusElement id="e_14545089398880866717" quality="6.376677e-05" charge="2">
 			<centroid rt="741.210994720458984" mz="471.904994211953067" it="365.641571"/>
@@ -4064,7 +4064,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="323"/>
 			<UserParam type="int" name="annotation network number" value="274"/>
-			<UserParam type="int" name="partners" value="409"/>
+			<UserParam type="string" name="partners" value="409"/>
 		</consensusElement>
 		<consensusElement id="e_1710461392160758637" quality="1.881037e-04">
 			<centroid rt="985.376014709472656" mz="522.906531221190221" it="1078.595093"/>
@@ -4200,7 +4200,7 @@
 			<UserParam type="string" name="best ion" value="[M+4H+N-O]3+"/>
 			<UserParam type="int" name="row ID" value="337"/>
 			<UserParam type="int" name="annotation network number" value="288"/>
-			<UserParam type="int" name="partners" value="427"/>
+			<UserParam type="string" name="partners" value="427"/>
 		</consensusElement>
 		<consensusElement id="e_5529354363062563465" quality="5.175371e-05">
 			<centroid rt="740.247974395751953" mz="471.767578128765138" it="296.758148"/>
@@ -4249,7 +4249,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
 			<UserParam type="int" name="row ID" value="342"/>
 			<UserParam type="int" name="annotation network number" value="293"/>
-			<UserParam type="int" name="partners" value="447"/>
+			<UserParam type="string" name="partners" value="447"/>
 		</consensusElement>
 		<consensusElement id="e_13675702441979559036" quality="1.816817e-04">
 			<centroid rt="741.210994720458984" mz="475.949671930371096" it="1041.770996"/>
@@ -4348,7 +4348,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="352"/>
 			<UserParam type="int" name="annotation network number" value="192"/>
-			<UserParam type="int" name="partners" value="224"/>
+			<UserParam type="string" name="partners" value="224"/>
 		</consensusElement>
 		<consensusElement id="e_9054074110186170608" quality="1.266568e-04">
 			<centroid rt="978.939056396484375" mz="406.829192716736486" it="726.255981"/>
@@ -4377,7 +4377,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H+N-O]2+"/>
 			<UserParam type="int" name="row ID" value="355"/>
 			<UserParam type="int" name="annotation network number" value="222"/>
-			<UserParam type="int" name="partners" value="261"/>
+			<UserParam type="string" name="partners" value="261"/>
 		</consensusElement>
 		<consensusElement id="e_3493140189087918189" quality="2.288313e-05">
 			<centroid rt="923.850002288818359" mz="320.254713765230235" it="131.212921"/>
@@ -4407,7 +4407,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="358"/>
 			<UserParam type="int" name="annotation network number" value="306"/>
-			<UserParam type="int" name="partners" value="361"/>
+			<UserParam type="string" name="partners" value="361"/>
 		</consensusElement>
 		<consensusElement id="e_698165093650093409" quality="3.749253e-05">
 			<centroid rt="994.737968444824219" mz="406.677613321385877" it="214.983871"/>
@@ -4427,7 +4427,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H+N-O]2+"/>
 			<UserParam type="int" name="row ID" value="360"/>
 			<UserParam type="int" name="annotation network number" value="210"/>
-			<UserParam type="int" name="partners" value="245"/>
+			<UserParam type="string" name="partners" value="245"/>
 		</consensusElement>
 		<consensusElement id="e_4552078778429781211" quality="1.033573e-04" charge="1">
 			<centroid rt="635.358982086181641" mz="609.541622616258451" it="592.655212"/>
@@ -4438,7 +4438,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
 			<UserParam type="int" name="row ID" value="361"/>
 			<UserParam type="int" name="annotation network number" value="306"/>
-			<UserParam type="int" name="partners" value="358"/>
+			<UserParam type="string" name="partners" value="358"/>
 		</consensusElement>
 		<consensusElement id="e_12443978693414558718" quality="1.524148e-04">
 			<centroid rt="976.299018859863281" mz="406.70203188530985" it="873.953491"/>
@@ -4478,7 +4478,7 @@
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
 			<UserParam type="int" name="row ID" value="365"/>
 			<UserParam type="int" name="annotation network number" value="311"/>
-			<UserParam type="int" name="partners" value="399"/>
+			<UserParam type="string" name="partners" value="399"/>
 		</consensusElement>
 		<consensusElement id="e_14330533564863596576" quality="1.825491e-04" charge="1">
 			<centroid rt="935.809020996093864" mz="411.255171288239183" it="1046.744751"/>
@@ -4489,7 +4489,7 @@
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
 			<UserParam type="int" name="row ID" value="366"/>
 			<UserParam type="int" name="annotation network number" value="312"/>
-			<UserParam type="int" name="partners" value="444"/>
+			<UserParam type="string" name="partners" value="444"/>
 		</consensusElement>
 		<consensusElement id="e_7749446350751358817" quality="3.3152e-05">
 			<centroid rt="635.358982086181641" mz="608.920241278507433" it="190.095047"/>
@@ -4555,7 +4555,7 @@
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
 			<UserParam type="int" name="row ID" value="373"/>
 			<UserParam type="int" name="annotation network number" value="148"/>
-			<UserParam type="int" name="partners" value="198"/>
+			<UserParam type="string" name="partners" value="198"/>
 		</consensusElement>
 		<consensusElement id="e_535894999922013045" quality="1.990351e-05" charge="2">
 			<centroid rt="989.695014953613281" mz="546.805013936566866" it="114.127625"/>
@@ -4566,7 +4566,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="374"/>
 			<UserParam type="int" name="annotation network number" value="95"/>
-			<UserParam type="int" name="partners" value="105"/>
+			<UserParam type="string" name="partners" value="105"/>
 		</consensusElement>
 		<consensusElement id="e_10708745507622811418" quality="2.944188e-05">
 			<centroid rt="988.015022277832031" mz="407.036597910700948" it="168.821091"/>
@@ -4615,7 +4615,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="379"/>
 			<UserParam type="int" name="annotation network number" value="237"/>
-			<UserParam type="int" name="partners" value="276"/>
+			<UserParam type="string" name="partners" value="276"/>
 		</consensusElement>
 		<consensusElement id="e_17623414133510866146" quality="5.521323e-05">
 			<centroid rt="343.798999786376953" mz="300.04522097941674" it="316.595184"/>
@@ -4635,7 +4635,7 @@
 			<UserParam type="string" name="best ion" value="[M+4H+N-O]3+"/>
 			<UserParam type="int" name="row ID" value="381"/>
 			<UserParam type="int" name="annotation network number" value="324"/>
-			<UserParam type="int" name="partners" value="421"/>
+			<UserParam type="string" name="partners" value="421"/>
 		</consensusElement>
 		<consensusElement id="e_8521521804453648145" quality="1.00674e-04" charge="3">
 			<centroid rt="503.721027374267578" mz="318.542180377332954" it="577.269165"/>
@@ -4646,7 +4646,7 @@
 			<UserParam type="string" name="best ion" value="[M+4H+N-O]3+"/>
 			<UserParam type="int" name="row ID" value="382"/>
 			<UserParam type="int" name="annotation network number" value="325"/>
-			<UserParam type="int" name="partners" value="400"/>
+			<UserParam type="string" name="partners" value="400"/>
 		</consensusElement>
 		<consensusElement id="e_10911976627736443251" quality="2.479018e-05" charge="1">
 			<centroid rt="858.485012054443473" mz="371.286075656997696" it="142.148041"/>
@@ -4657,7 +4657,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="383"/>
 			<UserParam type="int" name="annotation network number" value="174"/>
-			<UserParam type="int" name="partners" value="204"/>
+			<UserParam type="string" name="partners" value="204"/>
 		</consensusElement>
 		<consensusElement id="e_10655081126782733365" quality="1.97472e-04" charge="2">
 			<centroid rt="740.488986968994141" mz="475.708516543570568" it="1132.313477"/>
@@ -4668,7 +4668,7 @@
 			<UserParam type="string" name="best ion" value="[M-H+Na-O]2+"/>
 			<UserParam type="int" name="row ID" value="384"/>
 			<UserParam type="int" name="annotation network number" value="326"/>
-			<UserParam type="int" name="partners" value="385"/>
+			<UserParam type="string" name="partners" value="385"/>
 		</consensusElement>
 		<consensusElement id="e_1730470373859067269" quality="3.245776e-04" charge="2">
 			<centroid rt="741.210994720458984" mz="473.706190432568633" it="1861.1427"/>
@@ -4679,7 +4679,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="385"/>
 			<UserParam type="int" name="annotation network number" value="326"/>
-			<UserParam type="int" name="partners" value="384"/>
+			<UserParam type="string" name="partners" value="384"/>
 		</consensusElement>
 		<consensusElement id="e_18148742099053868226" quality="1.069608e-04">
 			<centroid rt="982.016029357910156" mz="407.306502930723411" it="613.318176"/>
@@ -4811,7 +4811,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="399"/>
 			<UserParam type="int" name="annotation network number" value="311"/>
-			<UserParam type="int" name="partners" value="365"/>
+			<UserParam type="string" name="partners" value="365"/>
 		</consensusElement>
 		<consensusElement id="e_6937595060035157365" quality="9.38886e-05" charge="3">
 			<centroid rt="504.442977905273381" mz="318.876669050896624" it="538.36145"/>
@@ -4822,7 +4822,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="400"/>
 			<UserParam type="int" name="annotation network number" value="325"/>
-			<UserParam type="int" name="partners" value="382"/>
+			<UserParam type="string" name="partners" value="382"/>
 		</consensusElement>
 		<consensusElement id="e_9980591491151092836" quality="4.137398e-05">
 			<centroid rt="989.21905517578125" mz="519.491123733306722" it="237.240311"/>
@@ -4863,7 +4863,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="404"/>
 			<UserParam type="int" name="annotation network number" value="341"/>
-			<UserParam type="int" name="partners" value="465"/>
+			<UserParam type="string" name="partners" value="465"/>
 		</consensusElement>
 		<consensusElement id="e_11247118806392514785" quality="3.494848e-05">
 			<centroid rt="986.814994812011832" mz="309.642422726972029" it="200.396149"/>
@@ -4892,7 +4892,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
 			<UserParam type="int" name="row ID" value="407"/>
 			<UserParam type="int" name="annotation network number" value="344"/>
-			<UserParam type="int" name="partners" value="495"/>
+			<UserParam type="string" name="partners" value="495"/>
 		</consensusElement>
 		<consensusElement id="e_17335195571373876892" quality="4.843219e-05">
 			<centroid rt="986.098022460937614" mz="519.852796841396071" it="277.712372"/>
@@ -4912,7 +4912,7 @@
 			<UserParam type="string" name="best ion" value="[M-H+Na-O]2+"/>
 			<UserParam type="int" name="row ID" value="409"/>
 			<UserParam type="int" name="annotation network number" value="274"/>
-			<UserParam type="int" name="partners" value="323"/>
+			<UserParam type="string" name="partners" value="323"/>
 		</consensusElement>
 		<consensusElement id="e_3761493319490060591" quality="1.698618e-04" charge="1">
 			<centroid rt="635.123004913330078" mz="611.072797529909394" it="973.995544"/>
@@ -4923,7 +4923,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
 			<UserParam type="int" name="row ID" value="410"/>
 			<UserParam type="int" name="annotation network number" value="273"/>
-			<UserParam type="int" name="partners" value="322"/>
+			<UserParam type="string" name="partners" value="322"/>
 		</consensusElement>
 		<consensusElement id="e_5930089466193586468" quality="2.907617e-05">
 			<centroid rt="963.852996826171875" mz="523.591129812466761" it="166.72406"/>
@@ -5031,7 +5031,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="421"/>
 			<UserParam type="int" name="annotation network number" value="324"/>
-			<UserParam type="int" name="partners" value="381"/>
+			<UserParam type="string" name="partners" value="381"/>
 		</consensusElement>
 		<consensusElement id="e_10723273230193029788" quality="8.709e-05">
 			<centroid rt="978.45703125" mz="546.777355767369727" it="499.378021"/>
@@ -5089,7 +5089,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="427"/>
 			<UserParam type="int" name="annotation network number" value="288"/>
-			<UserParam type="int" name="partners" value="337"/>
+			<UserParam type="string" name="partners" value="337"/>
 		</consensusElement>
 		<consensusElement id="e_9813207267145607284" quality="3.008591e-05">
 			<centroid rt="960.971946716308594" mz="395.289690215706457" it="172.513977"/>
@@ -5163,7 +5163,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
 			<UserParam type="int" name="row ID" value="435"/>
 			<UserParam type="int" name="annotation network number" value="367"/>
-			<UserParam type="int" name="partners" value="488"/>
+			<UserParam type="string" name="partners" value="488"/>
 		</consensusElement>
 		<consensusElement id="e_2547597046393019773" quality="1.186857e-04">
 			<centroid rt="469.003000259399414" mz="585.273235499311795" it="680.549316"/>
@@ -5249,7 +5249,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="444"/>
 			<UserParam type="int" name="annotation network number" value="312"/>
-			<UserParam type="int" name="partners" value="366"/>
+			<UserParam type="string" name="partners" value="366"/>
 		</consensusElement>
 		<consensusElement id="e_10110888475853982524" quality="4.825521e-04" charge="3">
 			<centroid rt="741.210994720458984" mz="474.945523769699207" it="2261.991699"/>
@@ -5280,7 +5280,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="447"/>
 			<UserParam type="int" name="annotation network number" value="293"/>
-			<UserParam type="int" name="partners" value="342"/>
+			<UserParam type="string" name="partners" value="342"/>
 		</consensusElement>
 		<consensusElement id="e_10959714027095477006" quality="5.073689e-05">
 			<centroid rt="977.973976135253906" mz="402.591248808098953" it="290.927643"/>
@@ -5301,7 +5301,7 @@
 			<UserParam type="string" name="best ion" value="[M-2H+Na-O]+"/>
 			<UserParam type="int" name="row ID" value="449"/>
 			<UserParam type="int" name="annotation network number" value="379"/>
-			<UserParam type="int" name="partners" value="476"/>
+			<UserParam type="string" name="partners" value="476"/>
 		</consensusElement>
 		<consensusElement id="e_1361844436498977223" quality="1.153468e-04" charge="2">
 			<centroid rt="979.654998779296875" mz="545.588162293836717" it="661.403687"/>
@@ -5312,7 +5312,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="450"/>
 			<UserParam type="int" name="annotation network number" value="202"/>
-			<UserParam type="int" name="partners" value="236"/>
+			<UserParam type="string" name="partners" value="236"/>
 		</consensusElement>
 		<consensusElement id="e_3523979636841659648" quality="4.993599e-05">
 			<centroid rt="970.056953430175781" mz="569.641165931071555" it="286.335266"/>
@@ -5454,7 +5454,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
 			<UserParam type="int" name="row ID" value="465"/>
 			<UserParam type="int" name="annotation network number" value="341"/>
-			<UserParam type="int" name="partners" value="404"/>
+			<UserParam type="string" name="partners" value="404"/>
 		</consensusElement>
 		<consensusElement id="e_13361075786540783043" quality="3.000376e-04" charge="1">
 			<centroid rt="753.890991210937386" mz="414.300398792658086" it="1379.07605"/>
@@ -5465,7 +5465,7 @@
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
 			<UserParam type="int" name="row ID" value="466"/>
 			<UserParam type="int" name="annotation network number" value="26"/>
-			<UserParam type="int" name="partners" value="51"/>
+			<UserParam type="string" name="partners" value="51"/>
 		</consensusElement>
 		<consensusElement id="e_12607494802897024926" quality="8.758249e-05">
 			<centroid rt="963.611984252929688" mz="521.542775817487154" it="502.202026"/>
@@ -5494,7 +5494,7 @@
 			<UserParam type="string" name="best ion" value="[M+K]+"/>
 			<UserParam type="int" name="row ID" value="469"/>
 			<UserParam type="int" name="annotation network number" value="92"/>
-			<UserParam type="int" name="partners" value="102"/>
+			<UserParam type="string" name="partners" value="102"/>
 		</consensusElement>
 		<consensusElement id="e_15082330577368273211" quality="1.15753e-04">
 			<centroid rt="925.053977966308594" mz="395.25893793110447" it="663.732788"/>
@@ -5561,7 +5561,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="476"/>
 			<UserParam type="int" name="annotation network number" value="379"/>
-			<UserParam type="int" name="partners" value="449"/>
+			<UserParam type="string" name="partners" value="449"/>
 		</consensusElement>
 		<consensusElement id="e_1090432643375316849" quality="3.067029e-05">
 			<centroid rt="828.088016510009766" mz="385.271277753331162" it="175.864838"/>
@@ -5590,7 +5590,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="479"/>
 			<UserParam type="int" name="annotation network number" value="234"/>
-			<UserParam type="int" name="partners" value="273"/>
+			<UserParam type="string" name="partners" value="273"/>
 		</consensusElement>
 		<consensusElement id="e_7505511087755778962" quality="1.525392e-04">
 			<centroid rt="740.011997222900391" mz="473.125141141753772" it="874.666809"/>
@@ -5630,7 +5630,7 @@
 			<UserParam type="string" name="best ion" value="[M-H+Na-O]2+"/>
 			<UserParam type="int" name="row ID" value="483"/>
 			<UserParam type="int" name="annotation network number" value="27"/>
-			<UserParam type="int" name="partners" value="28"/>
+			<UserParam type="string" name="partners" value="28"/>
 		</consensusElement>
 		<consensusElement id="e_16357745513372733051" quality="2.170848e-05">
 			<centroid rt="738.330001831054688" mz="356.267244396212789" it="124.47744"/>
@@ -5678,7 +5678,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="488"/>
 			<UserParam type="int" name="annotation network number" value="367"/>
-			<UserParam type="int" name="partners" value="435"/>
+			<UserParam type="string" name="partners" value="435"/>
 		</consensusElement>
 		<consensusElement id="e_3198207704187700000" quality="8.455389e-05">
 			<centroid rt="977.258033752441293" mz="402.977202427988459" it="484.835846"/>
@@ -5745,7 +5745,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="495"/>
 			<UserParam type="int" name="annotation network number" value="344"/>
-			<UserParam type="int" name="partners" value="407"/>
+			<UserParam type="string" name="partners" value="407"/>
 		</consensusElement>
 		<consensusElement id="e_18235641642581839427" quality="2.298841e-04">
 			<centroid rt="956.655979156494027" mz="352.340351495506638" it="1318.165894"/>
@@ -5794,7 +5794,7 @@
 			<UserParam type="string" name="best ion" value="[M+4H+N]+"/>
 			<UserParam type="int" name="row ID" value="500"/>
 			<UserParam type="int" name="annotation network number" value="82"/>
-			<UserParam type="int" name="partners" value="99"/>
+			<UserParam type="string" name="partners" value="99"/>
 		</consensusElement>
 		<consensusElement id="e_14923090814818281245" quality="4.70914e-05">
 			<centroid rt="902.765979766845703" mz="321.257240591818118" it="270.024261"/>
@@ -5892,7 +5892,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H+N-O]2+"/>
 			<UserParam type="int" name="row ID" value="510"/>
 			<UserParam type="int" name="annotation network number" value="430"/>
-			<UserParam type="int" name="partners" value="546"/>
+			<UserParam type="string" name="partners" value="546"/>
 		</consensusElement>
 		<consensusElement id="e_10351964903210282848" quality="2.434349e-04">
 			<centroid rt="740.007065513178532" mz="473.502862474112476" it="1408.984863"/>
@@ -6055,7 +6055,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="527"/>
 			<UserParam type="int" name="annotation network number" value="447"/>
-			<UserParam type="int" name="partners" value="584"/>
+			<UserParam type="string" name="partners" value="584"/>
 		</consensusElement>
 		<consensusElement id="e_15374377338258053169" quality="3.617352e-05">
 			<centroid rt="987.454973431998951" mz="519.5082982856934" it="209.369873"/>
@@ -6169,7 +6169,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="539"/>
 			<UserParam type="int" name="annotation network number" value="459"/>
-			<UserParam type="int" name="partners" value="585"/>
+			<UserParam type="string" name="partners" value="585"/>
 		</consensusElement>
 		<consensusElement id="e_6445088760942018319" quality="1.150838e-04">
 			<centroid rt="634.913274858395312" mz="613.066048508232143" it="666.097229"/>
@@ -6210,7 +6210,7 @@
 			<UserParam type="string" name="best ion" value="[M+4H+N-O]3+"/>
 			<UserParam type="int" name="row ID" value="543"/>
 			<UserParam type="int" name="annotation network number" value="463"/>
-			<UserParam type="int" name="partners" value="666"/>
+			<UserParam type="string" name="partners" value="666"/>
 		</consensusElement>
 		<consensusElement id="e_2642159821420111281" quality="1.059269e-04">
 			<centroid rt="978.375808770948879" mz="545.85141523545542" it="613.097778"/>
@@ -6239,7 +6239,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="546"/>
 			<UserParam type="int" name="annotation network number" value="430"/>
-			<UserParam type="int" name="partners" value="510"/>
+			<UserParam type="string" name="partners" value="510"/>
 		</consensusElement>
 		<consensusElement id="e_10059465453553650768" quality="1.668547e-04">
 			<centroid rt="739.76715865463234" mz="472.977228056182014" it="965.743835"/>
@@ -6365,7 +6365,7 @@
 			<UserParam type="string" name="best ion" value="[M+4H+N+Na]2+"/>
 			<UserParam type="int" name="row ID" value="559"/>
 			<UserParam type="int" name="annotation network number" value="478"/>
-			<UserParam type="int" name="partners" value="656"/>
+			<UserParam type="string" name="partners" value="656"/>
 		</consensusElement>
 		<consensusElement id="e_12923096997984025955" quality="6.024669e-05">
 			<centroid rt="503.794623862407548" mz="317.409338633261939" it="348.703827"/>
@@ -6385,7 +6385,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H+N-O]2+"/>
 			<UserParam type="int" name="row ID" value="561"/>
 			<UserParam type="int" name="annotation network number" value="480"/>
-			<UserParam type="int" name="partners" value="583"/>
+			<UserParam type="string" name="partners" value="583"/>
 		</consensusElement>
 		<consensusElement id="e_3512127394556698048" quality="1.754e-05">
 			<centroid rt="910.159317466282005" mz="565.311705421394436" it="101.520348"/>
@@ -6435,7 +6435,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="566"/>
 			<UserParam type="int" name="annotation network number" value="484"/>
-			<UserParam type="int" name="partners" value="574"/>
+			<UserParam type="string" name="partners" value="574"/>
 		</consensusElement>
 		<consensusElement id="e_14695680667750760385" quality="2.711856e-04">
 			<centroid rt="987.214036930283214" mz="521.872212975695902" it="1569.604248"/>
@@ -6474,7 +6474,7 @@
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
 			<UserParam type="int" name="row ID" value="570"/>
 			<UserParam type="int" name="annotation network number" value="134"/>
-			<UserParam type="int" name="partners" value="151"/>
+			<UserParam type="string" name="partners" value="151"/>
 		</consensusElement>
 		<consensusElement id="e_11471876308000197376" quality="8.665488e-05">
 			<centroid rt="979.097588632926772" mz="545.144063313802121" it="501.552673"/>
@@ -6503,7 +6503,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="573"/>
 			<UserParam type="int" name="annotation network number" value="202"/>
-			<UserParam type="int" name="partners" value="236"/>
+			<UserParam type="string" name="partners" value="236"/>
 		</consensusElement>
 		<consensusElement id="e_12422149900288344057" quality="2.825276e-04" charge="1">
 			<centroid rt="740.729817815927845" mz="473.7541993806297" it="1635.251221"/>
@@ -6514,7 +6514,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
 			<UserParam type="int" name="row ID" value="574"/>
 			<UserParam type="int" name="annotation network number" value="484"/>
-			<UserParam type="int" name="partners" value="566"/>
+			<UserParam type="string" name="partners" value="566"/>
 		</consensusElement>
 		<consensusElement id="e_7740632647483763374" quality="1.492661e-04">
 			<centroid rt="982.415556544970286" mz="406.486808334383113" it="863.942383"/>
@@ -6543,7 +6543,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="577"/>
 			<UserParam type="int" name="annotation network number" value="492"/>
-			<UserParam type="int" name="partners" value="624"/>
+			<UserParam type="string" name="partners" value="624"/>
 		</consensusElement>
 		<consensusElement id="e_3054052967356658050" quality="1.042444e-04">
 			<centroid rt="987.214036930283214" mz="523.930069933569826" it="603.359619"/>
@@ -6564,7 +6564,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="579"/>
 			<UserParam type="int" name="annotation network number" value="108"/>
-			<UserParam type="int" name="partners" value="120"/>
+			<UserParam type="string" name="partners" value="120"/>
 		</consensusElement>
 		<consensusElement id="e_8188542940886812797" quality="2.173331e-05">
 			<centroid rt="740.970754317643696" mz="471.198841852321493" it="125.790962"/>
@@ -6603,7 +6603,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="583"/>
 			<UserParam type="int" name="annotation network number" value="480"/>
-			<UserParam type="int" name="partners" value="561"/>
+			<UserParam type="string" name="partners" value="561"/>
 		</consensusElement>
 		<consensusElement id="e_12180978197535888471" quality="1.463838e-04" charge="3">
 			<centroid rt="978.857681774380581" mz="547.338272424237175" it="847.259705"/>
@@ -6614,7 +6614,7 @@
 			<UserParam type="string" name="best ion" value="[M+Na-O]3+"/>
 			<UserParam type="int" name="row ID" value="584"/>
 			<UserParam type="int" name="annotation network number" value="447"/>
-			<UserParam type="int" name="partners" value="527"/>
+			<UserParam type="string" name="partners" value="527"/>
 		</consensusElement>
 		<consensusElement id="e_11625588717950903329" quality="3.954367e-05" charge="3">
 			<centroid rt="962.821675834678672" mz="522.884852745385047" it="228.876114"/>
@@ -6625,7 +6625,7 @@
 			<UserParam type="string" name="best ion" value="[M+Na-O]3+"/>
 			<UserParam type="int" name="row ID" value="585"/>
 			<UserParam type="int" name="annotation network number" value="459"/>
-			<UserParam type="int" name="partners" value="539"/>
+			<UserParam type="string" name="partners" value="539"/>
 		</consensusElement>
 		<consensusElement id="e_8959998433554030450" quality="5.61768e-05">
 			<centroid rt="795.276594792117862" mz="520.340649631164411" it="325.147552"/>
@@ -6720,7 +6720,7 @@
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
 			<UserParam type="int" name="row ID" value="595"/>
 			<UserParam type="int" name="annotation network number" value="163"/>
-			<UserParam type="int" name="partners" value="188"/>
+			<UserParam type="string" name="partners" value="188"/>
 		</consensusElement>
 		<consensusElement id="e_674294355242276269" quality="2.00526e-04">
 			<centroid rt="740.488938516610119" mz="472.559515563147556" it="1160.631226"/>
@@ -6797,7 +6797,7 @@
 			<UserParam type="string" name="best ion" value="[M+K]+"/>
 			<UserParam type="int" name="row ID" value="603"/>
 			<UserParam type="int" name="annotation network number" value="3"/>
-			<UserParam type="int" name="partners" value="3"/>
+			<UserParam type="string" name="partners" value="3"/>
 		</consensusElement>
 		<consensusElement id="e_11853100618574357339" quality="3.419916e-05">
 			<centroid rt="653.59134517161408" mz="412.283580434487476" it="197.942459"/>
@@ -6827,7 +6827,7 @@
 			<UserParam type="string" name="best ion" value="[M-2H+Na-O]+"/>
 			<UserParam type="int" name="row ID" value="606"/>
 			<UserParam type="int" name="annotation network number" value="266"/>
-			<UserParam type="int" name="partners" value="314"/>
+			<UserParam type="string" name="partners" value="314"/>
 		</consensusElement>
 		<consensusElement id="e_14748226108516668205" quality="4.853486e-05">
 			<centroid rt="504.275524425067886" mz="316.912710614606283" it="280.916504"/>
@@ -6905,7 +6905,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="614"/>
 			<UserParam type="int" name="annotation network number" value="267"/>
-			<UserParam type="int" name="partners" value="315"/>
+			<UserParam type="string" name="partners" value="315"/>
 		</consensusElement>
 		<consensusElement id="e_16751501909221499676" quality="3.325469e-05">
 			<centroid rt="988.170689839755141" mz="406.596571260242456" it="192.475922"/>
@@ -7003,7 +7003,7 @@
 			<UserParam type="string" name="best ion" value="[M-H+Na-O]2+"/>
 			<UserParam type="int" name="row ID" value="624"/>
 			<UserParam type="int" name="annotation network number" value="492"/>
-			<UserParam type="int" name="partners" value="577"/>
+			<UserParam type="string" name="partners" value="577"/>
 		</consensusElement>
 		<consensusElement id="e_11314912903430373362" quality="3.293983e-05">
 			<centroid rt="787.155169886107956" mz="780.55437807183489" it="190.653488"/>
@@ -7080,7 +7080,7 @@
 			<UserParam type="string" name="best ion" value="[M+4H+N-O]3+"/>
 			<UserParam type="int" name="row ID" value="632"/>
 			<UserParam type="int" name="annotation network number" value="536"/>
-			<UserParam type="int" name="partners" value="665"/>
+			<UserParam type="string" name="partners" value="665"/>
 		</consensusElement>
 		<consensusElement id="e_6787214389126543652" quality="1.199408e-04">
 			<centroid rt="504.992270475993792" mz="318.022317382350082" it="694.20929"/>
@@ -7110,7 +7110,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="635"/>
 			<UserParam type="int" name="annotation network number" value="249"/>
-			<UserParam type="int" name="partners" value="290"/>
+			<UserParam type="string" name="partners" value="290"/>
 		</consensusElement>
 		<consensusElement id="e_1030380145289255108" quality="1.588829e-05">
 			<centroid rt="721.092062866126071" mz="536.335101862420515" it="91.960373"/>
@@ -7189,7 +7189,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="643"/>
 			<UserParam type="int" name="annotation network number" value="141"/>
-			<UserParam type="int" name="partners" value="159"/>
+			<UserParam type="string" name="partners" value="159"/>
 		</consensusElement>
 		<consensusElement id="e_8222469570793235534" quality="3.105194e-05">
 			<centroid rt="823.746628851828518" mz="394.289339820650582" it="179.726547"/>
@@ -7294,7 +7294,7 @@
 			<UserParam type="string" name="best ion" value="[M+Na-O]3+"/>
 			<UserParam type="int" name="row ID" value="654"/>
 			<UserParam type="int" name="annotation network number" value="204"/>
-			<UserParam type="int" name="partners" value="238"/>
+			<UserParam type="string" name="partners" value="238"/>
 		</consensusElement>
 		<consensusElement id="e_15236473171735957623" quality="1.913259e-04" charge="1">
 			<centroid rt="924.510827180312276" mz="520.338736326404501" it="919.24408"/>
@@ -7315,7 +7315,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="656"/>
 			<UserParam type="int" name="annotation network number" value="478"/>
-			<UserParam type="int" name="partners" value="559"/>
+			<UserParam type="string" name="partners" value="559"/>
 		</consensusElement>
 		<consensusElement id="e_6699336601954801733" quality="2.236017e-05">
 			<centroid rt="880.967560746991694" mz="490.347170513119693" it="129.419205"/>
@@ -7363,7 +7363,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="661"/>
 			<UserParam type="int" name="annotation network number" value="190"/>
-			<UserParam type="int" name="partners" value="221"/>
+			<UserParam type="string" name="partners" value="221"/>
 		</consensusElement>
 		<consensusElement id="e_11540486723677585095" quality="5.677269e-05">
 			<centroid rt="976.460443665665252" mz="402.570629187554346" it="328.596497"/>
@@ -7403,7 +7403,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="665"/>
 			<UserParam type="int" name="annotation network number" value="536"/>
-			<UserParam type="int" name="partners" value="632"/>
+			<UserParam type="string" name="partners" value="632"/>
 		</consensusElement>
 		<consensusElement id="e_4828427118049836167" quality="1.757059e-04" charge="3">
 			<centroid rt="986.012443351212937" mz="522.962191090158285" it="1016.973999"/>
@@ -7414,7 +7414,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="666"/>
 			<UserParam type="int" name="annotation network number" value="463"/>
-			<UserParam type="int" name="partners" value="543"/>
+			<UserParam type="string" name="partners" value="543"/>
 		</consensusElement>
 		<consensusElement id="e_10954876114766616926" quality="8.053099e-05">
 			<centroid rt="837.662256290674691" mz="520.340227965208555" it="466.10791"/>
@@ -7444,7 +7444,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H+N-O]2+"/>
 			<UserParam type="int" name="row ID" value="669"/>
 			<UserParam type="int" name="annotation network number" value="565"/>
-			<UserParam type="int" name="partners" value="677"/>
+			<UserParam type="string" name="partners" value="677"/>
 		</consensusElement>
 		<consensusElement id="e_9750368078767298483" quality="8.287466e-05">
 			<centroid rt="503.794623862407548" mz="319.752596367828232" it="479.672974"/>
@@ -7523,7 +7523,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="677"/>
 			<UserParam type="int" name="annotation network number" value="565"/>
-			<UserParam type="int" name="partners" value="669"/>
+			<UserParam type="string" name="partners" value="669"/>
 		</consensusElement>
 		<consensusElement id="e_11127573391577597988" quality="4.547072e-05">
 			<centroid rt="941.744365328803724" mz="495.534858203550698" it="263.181488"/>
@@ -7704,7 +7704,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="698"/>
 			<UserParam type="int" name="annotation network number" value="131"/>
-			<UserParam type="int" name="partners" value="148"/>
+			<UserParam type="string" name="partners" value="148"/>
 		</consensusElement>
 		<consensusElement id="e_12751666269820925800" quality="1.844921e-04">
 			<centroid rt="740.923532265219251" mz="473.157969819627056" it="1069.568115"/>
@@ -7775,7 +7775,7 @@
 			<UserParam type="string" name="best ion" value="[M-H+Na-O]2+"/>
 			<UserParam type="int" name="row ID" value="706"/>
 			<UserParam type="int" name="annotation network number" value="225"/>
-			<UserParam type="int" name="partners" value="264"/>
+			<UserParam type="string" name="partners" value="264"/>
 		</consensusElement>
 		<consensusElement id="e_15085648740817197571" quality="4.452578e-05" charge="1">
 			<centroid rt="885.577189764950731" mz="482.270308649437936" it="258.132233"/>
@@ -7785,7 +7785,7 @@
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
 			<UserParam type="int" name="row ID" value="707"/>
 			<UserParam type="int" name="annotation network number" value="173"/>
-			<UserParam type="int" name="partners" value="203"/>
+			<UserParam type="string" name="partners" value="203"/>
 		</consensusElement>
 		<consensusElement id="e_17788212256207815233" quality="2.096896e-04">
 			<centroid rt="739.487067689856531" mz="475.607048814741177" it="1215.647339"/>
@@ -7888,7 +7888,7 @@
 			<UserParam type="string" name="best ion" value="[M+H-O]3+"/>
 			<UserParam type="int" name="row ID" value="719"/>
 			<UserParam type="int" name="annotation network number" value="28"/>
-			<UserParam type="int" name="partners" value="30"/>
+			<UserParam type="string" name="partners" value="30"/>
 		</consensusElement>
 		<consensusElement id="e_882800209331905022" quality="1.836236e-05" charge="2">
 			<centroid rt="739.727821690550172" mz="471.221545407812414" it="106.453293"/>
@@ -8001,7 +8001,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="732"/>
 			<UserParam type="int" name="annotation network number" value="214"/>
-			<UserParam type="int" name="partners" value="251"/>
+			<UserParam type="string" name="partners" value="251"/>
 		</consensusElement>
 		<consensusElement id="e_3953131727213755540" quality="1.819474e-04" charge="3">
 			<centroid rt="987.949197540337309" mz="523.827850198718579" it="1054.815308"/>
@@ -8011,7 +8011,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="733"/>
 			<UserParam type="int" name="annotation network number" value="235"/>
-			<UserParam type="int" name="partners" value="274"/>
+			<UserParam type="string" name="partners" value="274"/>
 		</consensusElement>
 		<consensusElement id="e_11958238578913070902" quality="1.251872e-04" charge="3">
 			<centroid rt="979.118692894770447" mz="545.521327443196242" it="725.756104"/>
@@ -8021,7 +8021,7 @@
 			<UserParam type="string" name="best ion" value="[M+4H+N-O]3+"/>
 			<UserParam type="int" name="row ID" value="734"/>
 			<UserParam type="int" name="annotation network number" value="621"/>
-			<UserParam type="int" name="partners" value="754"/>
+			<UserParam type="string" name="partners" value="754"/>
 		</consensusElement>
 		<consensusElement id="e_567600789060125956" quality="6.64352e-05">
 			<centroid rt="804.300479652887475" mz="411.252322338616466" it="385.149139"/>
@@ -8101,7 +8101,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="743"/>
 			<UserParam type="int" name="annotation network number" value="630"/>
-			<UserParam type="int" name="partners" value="796"/>
+			<UserParam type="string" name="partners" value="796"/>
 		</consensusElement>
 		<consensusElement id="e_17125608434295001792" quality="1.195261e-04">
 			<centroid rt="740.205328557072676" mz="472.967851594666627" it="692.93634"/>
@@ -8146,7 +8146,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="748"/>
 			<UserParam type="int" name="annotation network number" value="635"/>
-			<UserParam type="int" name="partners" value="784"/>
+			<UserParam type="string" name="partners" value="784"/>
 		</consensusElement>
 		<consensusElement id="e_6987137006667678206" quality="5.206445e-05" charge="2">
 			<centroid rt="739.966575123811253" mz="471.723770206369409" it="301.836639"/>
@@ -8183,7 +8183,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="752"/>
 			<UserParam type="int" name="annotation network number" value="129"/>
-			<UserParam type="int" name="partners" value="146"/>
+			<UserParam type="string" name="partners" value="146"/>
 		</consensusElement>
 		<consensusElement id="e_8982249770138808551" quality="2.456415e-04" charge="3">
 			<centroid rt="976.477486611759559" mz="406.543358493721712" it="1424.073486"/>
@@ -8193,7 +8193,7 @@
 			<UserParam type="string" name="best ion" value="[M+Na-O]3+"/>
 			<UserParam type="int" name="row ID" value="753"/>
 			<UserParam type="int" name="annotation network number" value="261"/>
-			<UserParam type="int" name="partners" value="305"/>
+			<UserParam type="string" name="partners" value="305"/>
 		</consensusElement>
 		<consensusElement id="e_14047876158672874337" quality="9.908278e-05" charge="3">
 			<centroid rt="979.118692894770447" mz="545.828022451836887" it="574.419067"/>
@@ -8203,7 +8203,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="754"/>
 			<UserParam type="int" name="annotation network number" value="621"/>
-			<UserParam type="int" name="partners" value="734"/>
+			<UserParam type="string" name="partners" value="734"/>
 		</consensusElement>
 		<consensusElement id="e_15658321954095522912" quality="1.919641e-04">
 			<centroid rt="741.405040266605965" mz="475.788669368228113" it="1112.885986"/>
@@ -8282,7 +8282,7 @@
 			<UserParam type="string" name="best ion" value="[M+Na-O]3+"/>
 			<UserParam type="int" name="row ID" value="763"/>
 			<UserParam type="int" name="annotation network number" value="646"/>
-			<UserParam type="int" name="partners" value="772"/>
+			<UserParam type="string" name="partners" value="772"/>
 		</consensusElement>
 		<consensusElement id="e_10456593414727933644" quality="7.0672e-05">
 			<centroid rt="505.376494166087014" mz="319.371327963254998" it="409.711426"/>
@@ -8317,7 +8317,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="767"/>
 			<UserParam type="int" name="annotation network number" value="207"/>
-			<UserParam type="int" name="partners" value="291"/>
+			<UserParam type="string" name="partners" value="291"/>
 		</consensusElement>
 		<consensusElement id="e_18267342391176846178" quality="3.685473e-05">
 			<centroid rt="992.744043243606257" mz="407.056686865088693" it="213.660355"/>
@@ -8363,7 +8363,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="772"/>
 			<UserParam type="int" name="annotation network number" value="646"/>
-			<UserParam type="int" name="partners" value="763"/>
+			<UserParam type="string" name="partners" value="763"/>
 		</consensusElement>
 		<consensusElement id="e_14505758658531155631" quality="8.519375e-05">
 			<centroid rt="978.638213756634514" mz="545.150597764339864" it="493.899292"/>
@@ -8466,7 +8466,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H+N-O]2+"/>
 			<UserParam type="int" name="row ID" value="784"/>
 			<UserParam type="int" name="annotation network number" value="635"/>
-			<UserParam type="int" name="partners" value="748"/>
+			<UserParam type="string" name="partners" value="748"/>
 		</consensusElement>
 		<consensusElement id="e_1184736711159741066" quality="1.42648e-04">
 			<centroid rt="634.959362767710331" mz="611.650963750429014" it="826.982544"/>
@@ -8568,7 +8568,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
 			<UserParam type="int" name="row ID" value="796"/>
 			<UserParam type="int" name="annotation network number" value="630"/>
-			<UserParam type="int" name="partners" value="743"/>
+			<UserParam type="string" name="partners" value="743"/>
 		</consensusElement>
 		<consensusElement id="e_6247753806067192326" quality="2.621156e-04">
 			<centroid rt="740.442024263832309" mz="475.066316045489032" it="1519.5802"/>
@@ -8628,7 +8628,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H]3+"/>
 			<UserParam type="int" name="row ID" value="803"/>
 			<UserParam type="int" name="annotation network number" value="681"/>
-			<UserParam type="int" name="partners" value="838"/>
+			<UserParam type="string" name="partners" value="838"/>
 		</consensusElement>
 		<consensusElement id="e_7102293623057552816" quality="1.110744e-04" charge="2">
 			<centroid rt="634.483856468619933" mz="610.078319185952637" it="643.93866"/>
@@ -8638,7 +8638,7 @@
 			<UserParam type="string" name="best ion" value="[M+3H+N-O]2+"/>
 			<UserParam type="int" name="row ID" value="804"/>
 			<UserParam type="int" name="annotation network number" value="682"/>
-			<UserParam type="int" name="partners" value="810"/>
+			<UserParam type="string" name="partners" value="810"/>
 		</consensusElement>
 		<consensusElement id="e_14344258354653971634" quality="2.457999e-04">
 			<centroid rt="976.958994613146501" mz="404.67572100634527" it="1424.991943"/>
@@ -8656,7 +8656,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="806"/>
 			<UserParam type="int" name="annotation network number" value="226"/>
-			<UserParam type="int" name="partners" value="265"/>
+			<UserParam type="string" name="partners" value="265"/>
 		</consensusElement>
 		<consensusElement id="e_18117870770726447137" quality="1.413328e-04">
 			<centroid rt="976.718240612453087" mz="406.027853388610993" it="819.357788"/>
@@ -8692,7 +8692,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H]2+"/>
 			<UserParam type="int" name="row ID" value="810"/>
 			<UserParam type="int" name="annotation network number" value="682"/>
-			<UserParam type="int" name="partners" value="804"/>
+			<UserParam type="string" name="partners" value="804"/>
 		</consensusElement>
 		<consensusElement id="e_2384010898642797449" quality="1.892427e-05">
 			<centroid rt="866.961166740771887" mz="318.242205919647688" it="109.710938"/>
@@ -8810,7 +8810,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="824"/>
 			<UserParam type="int" name="annotation network number" value="72"/>
-			<UserParam type="int" name="partners" value="79"/>
+			<UserParam type="string" name="partners" value="79"/>
 		</consensusElement>
 		<consensusElement id="e_14278385886037625618" quality="1.83579e-05" charge="1">
 			<centroid rt="990.585373825233205" mz="571.365072781281242" it="106.427444"/>
@@ -8820,7 +8820,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="825"/>
 			<UserParam type="int" name="annotation network number" value="105"/>
-			<UserParam type="int" name="partners" value="116"/>
+			<UserParam type="string" name="partners" value="116"/>
 		</consensusElement>
 		<consensusElement id="e_11829386337538787089" quality="9.651733e-05">
 			<centroid rt="978.397459755940986" mz="546.497701962735846" it="559.546265"/>
@@ -8914,7 +8914,7 @@
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
 			<UserParam type="int" name="row ID" value="836"/>
 			<UserParam type="int" name="annotation network number" value="233"/>
-			<UserParam type="int" name="partners" value="272"/>
+			<UserParam type="string" name="partners" value="272"/>
 		</consensusElement>
 		<consensusElement id="e_15163354132418671717" quality="4.60155e-05">
 			<centroid rt="987.227964401507847" mz="519.532298212118121" it="266.768707"/>
@@ -8933,7 +8933,7 @@
 			<UserParam type="string" name="best ion" value="[M+4H+N-O]3+"/>
 			<UserParam type="int" name="row ID" value="838"/>
 			<UserParam type="int" name="annotation network number" value="681"/>
-			<UserParam type="int" name="partners" value="803"/>
+			<UserParam type="string" name="partners" value="803"/>
 		</consensusElement>
 		<consensusElement id="e_17897184236792016214" quality="1.635683e-04">
 			<centroid rt="739.246313689163344" mz="472.513033353443916" it="948.265015"/>
@@ -8960,7 +8960,7 @@
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
 			<UserParam type="int" name="row ID" value="841"/>
 			<UserParam type="int" name="annotation network number" value="256"/>
-			<UserParam type="int" name="partners" value="300"/>
+			<UserParam type="string" name="partners" value="300"/>
 		</consensusElement>
 		<consensusElement id="e_9693664699860960721" quality="3.315204e-04" charge="2">
 			<centroid rt="977.916980617805052" mz="404.533205000125463" it="1921.945068"/>

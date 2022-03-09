@@ -43,31 +43,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
-#include <unordered_set>
-#include <regex>
-#include <unordered_map>
-
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/connected_components.hpp>
-
-// VertexLabel is used for IINM to build a bipartite graph using UndirectedOSMIdGraph
-struct VertexLabel
-{
-    VertexLabel() = default;
-    VertexLabel(OpenMS::String u, bool is_feat):uid(u), is_feature(is_feat) {}
-    // if feature vertex: index (0 to n) for a feature in ConsensusMap; 
-    // if group vertex: Constants::UserParam::ADDUCT_GROUP from ConsensusFeature Constants::UserParam::IIMN_LINKED_GROUPS
-    OpenMS::String uid = "0"; 
-    // false = vertex represents a group, true = vertex represents a feature   
-    bool is_feature = false;
-};
-
-using UndirectedOSMIdGraph = boost::adjacency_list<
-    boost::vecS,
-    boost::vecS, 
-    boost::undirectedS,
-    VertexLabel>;
-
 using namespace std;
 
 namespace OpenMS
@@ -194,88 +169,6 @@ namespace OpenMS
       }
     }
   }
-
-  void FeatureGroupingAlgorithm::annotateIonIdentityNetworks(ConsensusMap& out) const
-  {
-    // bipartite graph with ConsensusFeature indexes and Groups from Features
-    // Vertexes contain uid (index/Group) and is_feature (bool)
-    // e.g. 
-    // ConsensusFeature0 contains Feature (Group = 1) and Feature (Group = 2)
-    // ConsensusFeature1 contains Feature (Group = 2) and Feature (Group = 3)
-    // ConsensusFeature2 contains Feature (Group = 4) and Feature (Group = 5)
-    // graph looks like (Vertex of ConsensusFeature <--> Vertex of Group; component_number)
-    // 0, true <--> 1, false; 0
-    // 0, true <--> 2, false; 0
-    // 1, true <--> 2, false; 0
-    // 1, true <--> 3, false; 0
-    // 2, true <--> 4, false; 1
-    // 2, true <--> 5, false; 1
-    // Total number of components: 2
-    UndirectedOSMIdGraph g;
-
-    // For each ConsensusFeature: add Constants::UserParam::IIMN_ROW_ID and if Constants::UserParam::IIMN_LINKED_GROUPS is present
-    // add a Vertex for the ConsensusFeature and all corresponding Groups to bipartite graph.
-    // Check if a Group Vertex has been added already to the graph, since the same Group can occur multiple times.
-    unordered_map<String, size_t> already_in_graph; // <group_uid, vertex_index>
-    for (size_t i = 0; i < out.size(); i++)
-    {
-      out[i].setMetaValue(Constants::UserParam::IIMN_ROW_ID, i+1);
-      if (!out[i].metaValueExists(Constants::UserParam::IIMN_LINKED_GROUPS)) continue;
-      auto feature_vertex = add_vertex(VertexLabel(String(i), true), g);
-      for (const auto& group: out[i].getMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS).toStringList())
-      {
-        for (auto i : boost::make_iterator_range(vertices(g)))
-        {
-            if (already_in_graph[i]) 
-            {
-              boost::add_edge(feature_vertex, i, g);
-            }
-            else boost::add_edge(feature_vertex, add_vertex(VertexLabel(group, false), g), g);
-        }
-      }
-    }
-
-    // represents the component number for each vertex
-    std::vector<int> components (boost::num_vertices (g));
-    boost::connected_components (g, &components[0]);
-
-    // annotate network number and create a map with feature ID and partner IDs
-    // partner feature vertexes are connected via a group vertex
-    unordered_map<size_t, set<size_t>> partner_map;
-    for (auto i : boost::make_iterator_range(vertices(g)))
-    {
-      if (!g[i].is_feature) continue;
-      out[stoi(g[i].uid)].setMetaValue(Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER, components[i]+1);
-      auto group_neighbours = boost::adjacent_vertices(i, g);
-      for (auto gn : make_iterator_range(group_neighbours))
-      {
-        auto feature_partners = boost::adjacent_vertices(gn, g);
-        for (auto partner : make_iterator_range(feature_partners))
-        {
-          if (i == partner) continue;
-          partner_map[stoi(g[i].uid)].insert(stoi(g[partner].uid));
-        }
-      }
-    }
-
-    // annotate partners
-    for (const auto& i : partner_map)
-    {
-      String partners;
-      for (const auto& j : i.second)
-      {
-        if (partners.size() > 0) partners += ";";
-        partners += out[j].getMetaValue(Constants::UserParam::IIMN_ROW_ID).toString();
-      }
-      out[i.first].setMetaValue(Constants::UserParam::IIMN_ADDUCT_PARTNERS, partners);
-    }
-
-    // remove Constants::UserParam::IIMN_LINKED_GROUPS meta values
-    for (size_t i = 0; i < out.size(); i++)
-    {
-      out[i].removeMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS);
-    }
- }
 
   FeatureGroupingAlgorithm::~FeatureGroupingAlgorithm()
   {

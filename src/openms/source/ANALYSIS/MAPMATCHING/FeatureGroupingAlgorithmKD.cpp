@@ -34,9 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h>
-
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
-
+#include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -286,7 +285,8 @@ namespace OpenMS
     {
       if (f.metaValueExists(Constants::UserParam::IIMN_LINKED_GROUPS))
       {
-        FeatureGroupingAlgorithm::annotateIonIdentityNetworks(out);
+        IonIdentityMolecularNetworking iimn;
+        iimn.annotateConsensusMap(out);
         break;
       }
     }
