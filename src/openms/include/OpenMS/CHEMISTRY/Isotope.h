@@ -75,6 +75,15 @@ namespace OpenMS
             double abundance,
             const IsotopeDistribution & isotopes);
 
+    Isotope(const std::string & name,
+            const std::string & symbol,
+            unsigned int atomic_number,
+            unsigned int neutrons,
+            double mono_weight,
+            double abundance,
+            double half_life,
+            Isotope::DecayMode dm);
+
     Isotope & operator=(const Isotope & element) = default;
     Isotope(const Isotope & element) = default;
 
@@ -107,6 +116,9 @@ namespace OpenMS
     /// Whether this is a stable isotope
     bool isStable() const {return half_life_ < 0;}
 
+    /// writes the isotope to an output stream
+    friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Isotope & isotope);
+
   protected:
 
     int neutrons_ = -1;
@@ -114,6 +126,8 @@ namespace OpenMS
     double half_life_ = -1; ///< half life in seconds
     DecayMode decay_mode_ = DecayMode::NONE;
   };
+
+  OPENMS_DLLAPI std::ostream & operator<<(std::ostream &, const Isotope &);
 
 } // namespace OpenMS
 

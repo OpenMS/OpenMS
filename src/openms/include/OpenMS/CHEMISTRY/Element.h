@@ -23,6 +23,8 @@
 
 namespace OpenMS
 {
+  class Isotope;
+
   /** @ingroup Chemistry
 
       @brief Representation of an element
@@ -50,7 +52,7 @@ public:
             unsigned int atomic_number,
             double average_weight,
             double mono_weight,
-            const IsotopeDistribution & isotopes);
+            const IsotopeDistribution & isotopes = IsotopeDistribution());
 
     /// destructor
     virtual ~Element();
@@ -82,6 +84,12 @@ public:
 
     /// returns the isotope distribution of the element
     const IsotopeDistribution & getIsotopeDistribution() const;
+
+    /// sets the list of isotopes of the element
+    void setIsotopes(const std::vector<const Isotope*>& isotopes);
+
+    /// returns the list of isotopes of the element
+    const std::vector<const Isotope*>& getIsotopes() const;
 
     /// set the name of the element
     void setName(const std::string & name);
@@ -122,6 +130,9 @@ public:
     /// writes the element to an output stream
     friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Element & element);
 
+    /// Update cached isotope distribution in case any of the isotopes has been changed
+    void updateIsotopeDistr();
+
 protected:
 
     /// name of the element
@@ -140,7 +151,10 @@ protected:
     double mono_weight_;
 
     /// distribution of the isotopes (mass and natural frequency)
-    IsotopeDistribution isotopes_;
+    IsotopeDistribution isotope_distr_;
+
+    /// list of isotopes
+    std::vector<const Isotope*> isotopes_;
   };
 
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream &, const Element &);
