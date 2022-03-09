@@ -47,7 +47,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <vector>
-#include <vector>
 
 namespace OpenMS
 {
