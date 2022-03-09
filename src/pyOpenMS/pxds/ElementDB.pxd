@@ -24,10 +24,19 @@ cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS":
         const Element * getElement(const String & name) nogil except +
         const Element * getElement(UInt atomic_number) nogil except +
         const Isotope * getIsotope(const String & name) nogil except +
-        void addElement(libcpp_string name, libcpp_string symbol,
+        void addElement(String name,
+                        String symbol,
                         unsigned int an,
                         libcpp_map[unsigned int, double] abundance,
                         libcpp_map[unsigned int, double] mass,
+                        bool replace_existing) nogil except +
+        void addIsotope(String name,
+                        String symbol,
+                        unsigned int an,
+                        double abundance,
+                        double mass,
+                        double half_life,
+                        DecayMode decay,
                         bool replace_existing) nogil except +
         bool hasElement(const String & name) nogil except + # wrap-doc:Returns true if the db contains an element with the given name, else false
         bool hasElement(UInt atomic_number) nogil except + # wrap-doc:Returns true if the db contains an element with the given atomic_number, else false
