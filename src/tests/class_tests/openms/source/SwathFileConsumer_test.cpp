@@ -65,8 +65,8 @@ void getSwathFile(PeakMap& exp, int nr_swathes=32, bool ms1=true, bool im=false)
     // add ion mobility (if needed)
     if (im)
     {
-            s.setMetaValue("ion mobility lower offset", 0.6);
-            s.setMetaValue("ion mobility upper offset", 1.5);
+      s.setMetaValue("ion mobility lower offset", 0.6);
+      s.setMetaValue("ion mobility upper offset", 1.5);
     }
     s.push_back(p);
     exp.addSpectrum(s);
@@ -75,38 +75,39 @@ void getSwathFile(PeakMap& exp, int nr_swathes=32, bool ms1=true, bool im=false)
   // if im then add 2*nr_swathes every swath has a corresponding swath with the same m/z isolation but distinct IM
   if (im)
   {
-          for (int scheme=0; scheme<2; scheme++)
-          {
-                  for (int i = 0; i< nr_swathes; i++)
-                  {
-                    MSSpectrum s;
-                    s.setMSLevel(2);
-                    std::vector<Precursor> prec(1);
-                    prec[0].setIsolationWindowLowerOffset(12.5);
-                    prec[0].setIsolationWindowUpperOffset(12.5);
-                    prec[0].setMZ(400 + i*25 + 12.5);
-                    s.setPrecursors(prec);
-                    Peak1D p; p.setMZ(101 + i); p.setIntensity(201 + i);
-                    s.push_back(p);
-                    s.setMetaValue("ion mobility lower limit", 0.6 + i *0.05 + scheme*0.1);
-                    s.setMetaValue("ion mobility upper limit", 0.6 + i *0.05 + scheme*0.1);
-                    exp.addSpectrum(s);
-                  }
-          }
-  } else {  // add MS2 (without IM)
-          for (int i = 0; i< nr_swathes; i++)
-          {
-            MSSpectrum s;
-            s.setMSLevel(2);
-            std::vector<Precursor> prec(1);
-            prec[0].setIsolationWindowLowerOffset(12.5);
-            prec[0].setIsolationWindowUpperOffset(12.5);
-            prec[0].setMZ(400 + i*25 + 12.5);
-            s.setPrecursors(prec);
-            Peak1D p; p.setMZ(101 + i); p.setIntensity(201 + i);
-            s.push_back(p);
-            exp.addSpectrum(s);
-          }
+    for (int scheme=0; scheme<2; scheme++)
+    {
+      for (int i = 0; i< nr_swathes; i++)
+      {
+        MSSpectrum s;
+        s.setMSLevel(2);
+        std::vector<Precursor> prec(1);
+        prec[0].setIsolationWindowLowerOffset(12.5);
+        prec[0].setIsolationWindowUpperOffset(12.5);
+        prec[0].setMZ(400 + i*25 + 12.5);
+        s.setPrecursors(prec);
+        Peak1D p; p.setMZ(101 + i); p.setIntensity(201 + i);
+        s.push_back(p);
+        s.setMetaValue("ion mobility lower limit", 0.6 + i *0.05 + scheme*0.1);
+        s.setMetaValue("ion mobility upper limit", 0.6 + i *0.05 + scheme*0.1);
+        exp.addSpectrum(s);
+      }
+    }
+  } else 
+  {  // add MS2 (without IM)
+    for (int i = 0; i< nr_swathes; i++)
+    {
+      MSSpectrum s;
+      s.setMSLevel(2);
+      std::vector<Precursor> prec(1);
+      prec[0].setIsolationWindowLowerOffset(12.5);
+      prec[0].setIsolationWindowUpperOffset(12.5);
+      prec[0].setMZ(400 + i*25 + 12.5);
+      s.setPrecursors(prec);
+      Peak1D p; p.setMZ(101 + i); p.setIntensity(201 + i);
+      s.push_back(p);
+      exp.addSpectrum(s);
+    }
   }
 
 }
@@ -594,18 +595,18 @@ START_SECTION(([EXTRA] consumeAndRetrieve_with_ion_mobility))
   // for a scheme there are 32 swath windows cycling from 400-1200. a new scheme is the same m/z windows however im is shifted
   for (int scheme =0; scheme<2; scheme++)
   {
-          for (Size i = 0; i< 32; i++)
-          {
-            TEST_EQUAL(maps[i+1+scheme*32].ms1, false)
-            TEST_EQUAL(maps[i+1+scheme*32].sptr->getNrSpectra(), 1)
-            TEST_EQUAL(maps[i+1+scheme*32].sptr->getSpectrumById(0)->getMZArray()->data.size(), 1)
-            TEST_REAL_SIMILAR(maps[i+1+scheme*32].sptr->getSpectrumById(0)->getMZArray()->data[0], 101.0+i)
-            TEST_REAL_SIMILAR(maps[i+1+scheme*32].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201.0+i)
-            TEST_REAL_SIMILAR(maps[i+1+scheme*32].lower, 400+i*25.0)
-            TEST_REAL_SIMILAR(maps[i+1+scheme*32].upper, 425+i*25.0)
-            TEST_REAL_SIMILAR(maps[i+1+scheme*32].imLower, 0.6+i*0.05 + scheme *0.1)
-            TEST_REAL_SIMILAR(maps[i+1+scheme*32].imUpper, 0.6 + i*0.05 + scheme*0.1)
-          }
+    for (Size i = 0; i< 32; i++)
+    {
+      TEST_EQUAL(maps[i+1+scheme*32].ms1, false)
+      TEST_EQUAL(maps[i+1+scheme*32].sptr->getNrSpectra(), 1)
+      TEST_EQUAL(maps[i+1+scheme*32].sptr->getSpectrumById(0)->getMZArray()->data.size(), 1)
+      TEST_REAL_SIMILAR(maps[i+1+scheme*32].sptr->getSpectrumById(0)->getMZArray()->data[0], 101.0+i)
+      TEST_REAL_SIMILAR(maps[i+1+scheme*32].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201.0+i)
+      TEST_REAL_SIMILAR(maps[i+1+scheme*32].lower, 400+i*25.0)
+      TEST_REAL_SIMILAR(maps[i+1+scheme*32].upper, 425+i*25.0)
+      TEST_REAL_SIMILAR(maps[i+1+scheme*32].imLower, 0.6+i*0.05 + scheme *0.1)
+      TEST_REAL_SIMILAR(maps[i+1+scheme*32].imUpper, 0.6 + i*0.05 + scheme*0.1)
+    }
   }
   delete regular_sfc_ptr;
 }

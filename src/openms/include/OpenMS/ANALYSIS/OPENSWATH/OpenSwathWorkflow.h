@@ -202,10 +202,24 @@ protected:
     /// Whether to use ion mobility extraction on MS1 traces
     bool use_ms1_ion_mobility_;
 
-    /// Whether data is acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows
+    /** @brief Whether data is acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows
+     *
+     * If set to true, a precursor will only be extracted from a single window
+     * that matches in m/z and whose m/z center is *closest* to the library m/z
+     * of the precursor. This is required if windows overlap in m/z as is the
+     * case for SRM / PRM data where often multiple windows with similar (or
+     * overlaping) m/z are used to target different precursors at different RT.
+    */
     bool prm_;
 
-    /// Whether data is diaPASEF data
+    /** @brief Whether data is diaPASEF data
+     *
+     * If set to true, a precursor will only be extracted from a single window
+     * that matches both in m/z and whose ion mobility (drift time) center is
+     * *closest* to the library ion mobility of the precursor. This is required
+     * if windows overlap in m/z or in ion mobility, as is the case for
+     * diaPASEF data.
+    */
     bool pasef_;
 
     /** @brief How many threads should be used for the outer loop

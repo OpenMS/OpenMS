@@ -54,8 +54,8 @@ namespace OpenMS
   using Interfaces::IMSDataConsumer;
 
   /// Loads a Swath run from a list of split mzML files
-  std::vector<OpenSwath::SwathMap> SwathFile::loadSplit(StringList file_list, 
-	String tmp,
+  std::vector<OpenSwath::SwathMap> SwathFile::loadSplit(StringList file_list,
+        String tmp,
     boost::shared_ptr<ExperimentalSettings>& exp_meta,
     String readoptions)
   {
@@ -146,8 +146,7 @@ namespace OpenMS
                                                        const String& tmp,
                                                        boost::shared_ptr<ExperimentalSettings>& exp_meta,
                                                        const String& readoptions,
-                                                       Interfaces::IMSDataConsumer* plugin_consumer
-						       )
+                                                       Interfaces::IMSDataConsumer* plugin_consumer)
   {
     std::cout << "Loading mzML file " << file << " using readoptions " << readoptions << std::endl;
     String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : ""; // use tmp-filename if just a directory was given
@@ -190,8 +189,8 @@ namespace OpenMS
 
     std::vector<Interfaces::IMSDataConsumer *> consumer_list;
     // only use plugin if non-empty
-    if (plugin_consumer) 
-    {  
+    if (plugin_consumer)
+    {
       exp_meta->setMetaValue("nr_ms1_spectra", nr_ms1_spectra); // required for SwathQC::getExpSettingsFunc()
       plugin_consumer->setExperimentalSettings(*exp_meta.get());
       exp_meta->removeMetaValue("nr_ms1_spectra"); // served its need. remove
@@ -353,16 +352,16 @@ namespace OpenMS
           double center = prec[0].getMZ();
 
 
-	  // check if ion mobility is present 
-	  double lowerIm = -1;
-	  double upperIm = -1; // these initial values assume ion mobility is not present
+          // check if ion mobility is present
+          double lowerIm = -1;
+          double upperIm = -1; // these initial values assume ion mobility is not present
 
-	  if (s.metaValueExists("ion mobility lower limit"))
-	  {
-		  lowerIm = s.getMetaValue("ion mobility lower limit"); // want this to be -1  if no ion mobility 
-		  upperIm = s.getMetaValue("ion mobility upper limit");
+          if (s.metaValueExists("ion mobility lower limit"))
+          {
+            lowerIm = s.getMetaValue("ion mobility lower limit"); // want this to be -1  if no ion mobility
+            upperIm = s.getMetaValue("ion mobility upper limit");
 
-	  }
+          }
 
           bool found = false;
 
@@ -370,7 +369,7 @@ namespace OpenMS
           {
             // We group by the precursor mz (center of the window) since this
             // should be present
-	    // for ion mobility, since the center value is not present in the raw data (it is computed) we use the imLower and upper bounds
+            // for ion mobility, since the center value is not present in the raw data (it is computed) we use the imLower and upper bounds
             if ((std::fabs(center - known_window_boundaries[j].center) < 1e-6) && (std::fabs(lowerIm - known_window_boundaries[j].imLower) < 1e-6) && (std::fabs(upperIm - known_window_boundaries[j].imUpper < 1e-6)))
             {
               found = true;
@@ -389,9 +388,9 @@ namespace OpenMS
             boundary.upper = upper;
             boundary.center = center;
 
-	    // set IM boundaries (if present)
-	    boundary.imLower = lowerIm;
-	    boundary.imUpper = upperIm;
+            // set IM boundaries (if present)
+            boundary.imLower = lowerIm;
+            boundary.imUpper = upperIm;
 
             known_window_boundaries.push_back(boundary);
 
