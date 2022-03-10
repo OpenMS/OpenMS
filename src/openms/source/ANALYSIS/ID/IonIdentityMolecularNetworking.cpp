@@ -50,10 +50,10 @@
 struct VertexLabel
 {
   VertexLabel() = default;
-  VertexLabel(OpenMS::String u, bool is_feat):uid(u), is_feature(is_feat) {}
+  VertexLabel(size_t u, bool is_feat):uid(u), is_feature(is_feat) {}
   // if feature vertex: index (0 to n) for a feature in ConsensusMap; 
   // if group vertex: Constants::UserParam::ADDUCT_GROUP from ConsensusFeature Constants::UserParam::IIMN_LINKED_GROUPS
-  OpenMS::String uid = "0"; 
+  size_t uid = 0; 
   // false = vertex represents a group, true = vertex represents a feature   
   bool is_feature = false;
 };
@@ -92,12 +92,12 @@ namespace OpenMS
     {
       out[i].setMetaValue(Constants::UserParam::IIMN_ROW_ID, i+1);
       if (!out[i].metaValueExists(Constants::UserParam::IIMN_LINKED_GROUPS)) continue;
-      auto feature_vertex = add_vertex(VertexLabel(String(i), true), g);
+      auto feature_vertex = add_vertex(VertexLabel(i, true), g);
       for (const auto& group: out[i].getMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS).toStringList())
       {
         if (!already_in_graph[group])
         {
-          add_edge(feature_vertex, add_vertex(VertexLabel(group, false), g), g);
+          add_edge(feature_vertex, add_vertex(VertexLabel(std::stoi(group), false), g), g);
           already_in_graph[group] = boost::num_vertices(g);
           continue;
         }
@@ -115,7 +115,7 @@ namespace OpenMS
     for (auto i : boost::make_iterator_range(vertices(g)))
     {
       if (!g[i].is_feature) continue;
-      out[stoi(g[i].uid)].setMetaValue(Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER, components[i]+1);
+      out[g[i].uid].setMetaValue(Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER, components[i]+1);
       auto group_neighbours = boost::adjacent_vertices(i, g);
       for (auto gn : make_iterator_range(group_neighbours))
       {
@@ -124,7 +124,7 @@ namespace OpenMS
         for (auto partner : make_iterator_range(feature_partners))
         {
           if (i == partner) continue;
-          partner_map[stoi(g[i].uid)].insert(stoi(g[partner].uid));
+          partner_map[g[i].uid].insert(g[partner].uid);
         }
       }
     }
