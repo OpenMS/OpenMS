@@ -190,7 +190,7 @@ namespace OpenMS
     map<unsigned int, double> neon_mass = {{20u,  19.99244018}, {21u, 20.9938467}, {22u, 21.9913851}};
     buildElement_("Neon", "Ne", 10u, neon_abundance, neon_mass);
 
-    
+
     map<unsigned int, double> sodium_abundance = {{23u, 1.0}};
     map<unsigned int, double> sodium_mass = {{23u, 22.989769280899999}};
     buildElement_("Sodium", "Na", 11u, sodium_abundance, sodium_mass);
@@ -497,7 +497,7 @@ namespace OpenMS
     buildElement_("Hafnium", "Hf", 72u, hafnium_abundance, hafnium_mass);
 
 
-    map<unsigned int, double> tantalum_abundance = {{180u, 0.0001176}, {181u, 1.0}};
+    map<unsigned int, double> tantalum_abundance = {{180u, 0.0001176}, {181u, 0.99988}};
     map<unsigned int, double> tantalum_mass = {{180u, 179.94747}, {181u, 180.947995800000001}};
     buildElement_("Tantalum", "Ta", 73u, tantalum_abundance, tantalum_mass);
 
@@ -552,17 +552,11 @@ namespace OpenMS
     buildElement_("Bismuth", "Bi", 83u, bismuth_abundance, bismuth_mass);
 
 
-    map<unsigned int, double> polonium_abundance = {{210u, 0.99998}};
-    map<unsigned int, double> polonium_mass = {{210u, 209.9828741}};
-    buildElement_("Polonium", "Po", 84u, polonium_abundance, polonium_mass);
-
+    // Polonium (Pb) abundance is not known.
 
     // Astatine(At) abundance is not known.
-  
 
-    map<unsigned int, double> radon_abundance = {{220u, 0.09}, {222u, 0.900000001}};
-    map<unsigned int, double> radon_mass = {{220u, 220.0113941}, {222u, 222.0175782}};
-    buildElement_("Radon", "Rn", 86u, radon_abundance, radon_mass);
+    // Radon(Rn) abundance is not known.
 
     // Radium(Ra) abundance is not known.
 
@@ -570,7 +564,7 @@ namespace OpenMS
     map<unsigned int, double> thorium_mass = {{230u, 230.033133800000002}, {232u, 232.038055299999996}};
     buildElement_("Thorium", "Th", 90u, thorium_abundance, thorium_mass);
 
-    
+
     map<unsigned int, double> protactinium_abundance = {{231u, 1.0}};
     map<unsigned int, double> protactinium_mass = {{231u, 231.03588}};
     buildElement_("Protactinium", "Pa", 91u, protactinium_abundance, protactinium_mass);
