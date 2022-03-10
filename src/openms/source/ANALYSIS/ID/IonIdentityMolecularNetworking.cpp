@@ -148,12 +148,16 @@ namespace OpenMS
     }
   }
 
-  void IonIdentityMolecularNetworking::writeFeatureQuantificationTable(const String& consensus_file, const String& output_file, bool iimn) const
+  void IonIdentityMolecularNetworking::writeFeatureQuantificationTable(const String& consensus_file, const String& output_file) const
   {
     // load ConsensusMap from file
     ConsensusMap cm;
     ConsensusXMLFile().load(consensus_file, cm);
     
+    // IIMN meta values will be exported, if first feature contains mv Constants::UserParam::IIMN_ROW_ID
+    bool iimn = false;
+    if (cm[0].metaValueExists(Constants::UserParam::IIMN_ROW_ID)) iimn = true;
+
     // meta values for ion identity molecular networking
     std::vector<String> iimn_mvs{Constants::UserParam::IIMN_ROW_ID,
                                 Constants::UserParam::IIMN_BEST_ION,
@@ -232,7 +236,7 @@ namespace OpenMS
 
     // initialize SVOutStream with tab separation
     std::ofstream outstr(output_file.c_str());
-    SVOutStream out(outstr, "\t", "_", String::NONE);
+    SVOutStream out(outstr, ",", "_", String::NONE);
     
     // write table header
     out << "ID 1" << "ID 2" << "EdgeType" << "Score" << "Annotation" << std::endl;

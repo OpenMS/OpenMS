@@ -114,7 +114,13 @@ protected:
     setValidFormats_("in_mzml", ListUtils::create<String>("mzML"));
 
     registerOutputFile_("out", "<file>", "", "Output MGF file");
-    setValidFormats_("out", ListUtils::create<String>("mgf"));
+    setValidFormats_("out_mgf", ListUtils::create<String>("mgf"));
+
+    registerOutputFile_("out_quantification", "<file>", "", "Output feature quantification table.", false);
+    setValidFormats_("out_quantification", ListUtils::create<String>("txt"));
+
+    registerOutputFile_("out_pairs", "<file>", "", "Output supplementary pairs table for IIMN", false);
+    setValidFormats_("out_pairs", ListUtils::create<String>("csv"));
 
     addEmptyLine_();
 
@@ -130,6 +136,12 @@ protected:
     String consensus_file_path(getStringOption_("in_cm"));
     StringList mzml_file_paths = getStringList_("in_mzml");
     String out(getStringOption_("out"));
+    String out_quantification(getStringOption_("out_quantification"));
+    String out_pairs(getStringOption_("out_pairs"));
+
+    IonIdentityMolecularNetworking iimn;
+    if (!out_pairs.empty()) iimn.writeSupplementaryPairTable(consensus_file_path, out_pairs);
+    if (!out_quantification.empty()) iimn.writeFeatureQuantificationTable(consensus_file_path, out_quantification);
 
     GNPSMGFFile gnps;
     gnps.setLogType(log_type_);
