@@ -17,6 +17,7 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 
 - Deisotoping algorithm using KL
 - Resolve compatibility issues between IDRipper and IDMerger #4957
+- OpenSwath: Add support for diaPASEF data with overlapping m/z and IM windows 
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.7                                        ----
