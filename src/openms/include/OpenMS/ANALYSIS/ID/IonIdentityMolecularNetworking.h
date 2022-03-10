@@ -50,5 +50,8 @@ namespace OpenMS
 
       // write feature quantification table
       void writeFeatureQuantificationTable(const String& consensus_file, const String& output_file, bool iimn) const;
+
+      // write supplementary pair table
+      void writeSupplementaryPairTable(const String& consensus_file, const String& output_file) const;
   };
 } // closing namespace OpenMS

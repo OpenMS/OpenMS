@@ -49,20 +49,20 @@
 // VertexLabel is used for IINM to build a bipartite graph using UndirectedOSMIdGraph
 struct VertexLabel
 {
-    VertexLabel() = default;
-    VertexLabel(OpenMS::String u, bool is_feat):uid(u), is_feature(is_feat) {}
-    // if feature vertex: index (0 to n) for a feature in ConsensusMap; 
-    // if group vertex: Constants::UserParam::ADDUCT_GROUP from ConsensusFeature Constants::UserParam::IIMN_LINKED_GROUPS
-    OpenMS::String uid = "0"; 
-    // false = vertex represents a group, true = vertex represents a feature   
-    bool is_feature = false;
+  VertexLabel() = default;
+  VertexLabel(OpenMS::String u, bool is_feat):uid(u), is_feature(is_feat) {}
+  // if feature vertex: index (0 to n) for a feature in ConsensusMap; 
+  // if group vertex: Constants::UserParam::ADDUCT_GROUP from ConsensusFeature Constants::UserParam::IIMN_LINKED_GROUPS
+  OpenMS::String uid = "0"; 
+  // false = vertex represents a group, true = vertex represents a feature   
+  bool is_feature = false;
 };
 
 using UndirectedOSMIdGraph = boost::adjacency_list<
-    boost::vecS,
-    boost::vecS, 
-    boost::undirectedS,
-    VertexLabel>;
+      boost::vecS,
+      boost::vecS, 
+      boost::undirectedS,
+      VertexLabel>;
 
 namespace OpenMS
 {
@@ -146,67 +146,115 @@ namespace OpenMS
     {
       out[i].removeMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS);
     }
- }
+  }
 
- void IonIdentityMolecularNetworking::writeFeatureQuantificationTable(const String& consensus_file, const String& output_file, bool iimn) const
- {
-   // load ConsensusMap from file
-   ConsensusMap cm;
-   ConsensusXMLFile().load(consensus_file, cm);
-   
-   // meta values for ion identity molecular networking
-   std::vector<String> iimn_mvs{Constants::UserParam::IIMN_ROW_ID,
+  void IonIdentityMolecularNetworking::writeFeatureQuantificationTable(const String& consensus_file, const String& output_file, bool iimn) const
+  {
+    // load ConsensusMap from file
+    ConsensusMap cm;
+    ConsensusXMLFile().load(consensus_file, cm);
+    
+    // meta values for ion identity molecular networking
+    std::vector<String> iimn_mvs{Constants::UserParam::IIMN_ROW_ID,
                                 Constants::UserParam::IIMN_BEST_ION,
                                 Constants::UserParam::IIMN_ADDUCT_PARTNERS,
                                 Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER};
-   
-   // initialize SVOutStream with tab separation
-   std::ofstream outstr(output_file.c_str());
-   SVOutStream out(outstr, "\t", "_", String::NONE);
-   
-   // write headers for MAP and CONSENSUS
-   out << "#MAP" << "id" << "filename" << "label" << "size" << std::endl;
-   out << "#CONSENSUS" << "rt_cf" << "mz_cf" << "intensity_cf" << "charge_cf" << "width_cf" << "quality_cf";
-   if (iimn)
-   {
-     for (const auto& mv : iimn_mvs) out << mv;
-   }
-   for (size_t i = 0; i < cm.getColumnHeaders().size(); i++)
-   {
-     out << "rt_" + String(i) << "mz_" + String(i) << "intensity_" + String(i) << "charge_" + String(i) << "width_" + String(i);
-   }
-   out << std::endl;
+    
+    // initialize SVOutStream with tab separation
+    std::ofstream outstr(output_file.c_str());
+    SVOutStream out(outstr, "\t", "_", String::NONE);
+    
+    // write headers for MAP and CONSENSUS
+    out << "#MAP" << "id" << "filename" << "label" << "size" << std::endl;
+    out << "#CONSENSUS" << "rt_cf" << "mz_cf" << "intensity_cf" << "charge_cf" << "width_cf" << "quality_cf";
+    if (iimn)
+    {
+      for (const auto& mv : iimn_mvs) out << mv;
+    }
+    for (size_t i = 0; i < cm.getColumnHeaders().size(); i++)
+    {
+      out << "rt_" + String(i) << "mz_" + String(i) << "intensity_" + String(i) << "charge_" + String(i) << "width_" + String(i);
+    }
+    out << std::endl;
 
-   // write MAP information
-   for (const auto& h: cm.getColumnHeaders())
-   {
-     out << "MAP" << h.first << h.second.filename << h.second.label << h.second.size << std::endl;
-   }
+    // write MAP information
+    for (const auto& h: cm.getColumnHeaders())
+    {
+      out << "MAP" << h.first << h.second.filename << h.second.label << h.second.size << std::endl;
+    }
 
-   // write ConsensusFeature information
-   for (const auto& cf: cm)
-   {
-     out << "CONSENSUS" << cf.getRT() << cf.getMZ() << cf.getIntensity() << cf.getCharge() << cf.getWidth() << cf.getQuality();
-     if (iimn)
-     {
-       for (const auto& mv : iimn_mvs) out << cf.getMetaValue(mv, "");
-     }
-     // map index to feature handle and write feature information on correct position, if feature is missing write empty strings
-     std::unordered_map<size_t, FeatureHandle> index_to_feature;
-     for (const auto& fh: cf.getFeatures()) index_to_feature[fh.getMapIndex()] = fh;
-     for (size_t i = 0; i < cm.getColumnHeaders().size(); i++)
-     {
-       if (index_to_feature.count(i))
-       {
-       out << index_to_feature[i].getRT() << index_to_feature[i].getMZ() << index_to_feature[i].getIntensity() << index_to_feature[i].getCharge() << index_to_feature[i].getWidth();
-       }
-       else
-       {
-         out << "" << "" << "" << "" << "";
-       }
-     }
-     out << std::endl;
-   }
-   outstr.close();
- }
+    // write ConsensusFeature information
+    for (const auto& cf: cm)
+    {
+      out << "CONSENSUS" << cf.getRT() << cf.getMZ() << cf.getIntensity() << cf.getCharge() << cf.getWidth() << cf.getQuality();
+      if (iimn)
+      {
+        for (const auto& mv : iimn_mvs) out << cf.getMetaValue(mv, "");
+      }
+      // map index to feature handle and write feature information on correct position, if feature is missing write empty strings
+      std::unordered_map<size_t, FeatureHandle> index_to_feature;
+      for (const auto& fh: cf.getFeatures()) index_to_feature[fh.getMapIndex()] = fh;
+      for (size_t i = 0; i < cm.getColumnHeaders().size(); i++)
+      {
+        if (index_to_feature.count(i))
+        {
+        out << index_to_feature[i].getRT() << index_to_feature[i].getMZ() << index_to_feature[i].getIntensity() << index_to_feature[i].getCharge() << index_to_feature[i].getWidth();
+        }
+        else
+        {
+          out << "" << "" << "" << "" << "";
+        }
+      }
+      out << std::endl;
+    }
+    outstr.close();
+  }
+
+ void IonIdentityMolecularNetworking::writeSupplementaryPairTable(const String& consensus_file, const String& output_file) const
+ {
+    // load ConsensusMap from file
+    ConsensusMap cm;
+    ConsensusXMLFile().load(consensus_file, cm);
+
+    // generate unordered map with feature index and partner feature indices
+    std::unordered_map<size_t, std::set<size_t>> feature_partners; // map<feature_index, partner_feature_indices>
+    for (size_t i = 0; i < cm.size(); i++)
+    {
+      if (!cm[i].metaValueExists(Constants::UserParam::IIMN_ADDUCT_PARTNERS)) continue;
+      std::stringstream ss(cm[i].getMetaValue(Constants::UserParam::IIMN_ADDUCT_PARTNERS));
+      while(ss.good())
+      {
+        String substr;
+        getline(ss, substr, ';');
+        feature_partners[i].insert(stoi(substr)-1);
+      }
+    }
+
+    // initialize SVOutStream with tab separation
+    std::ofstream outstr(output_file.c_str());
+    SVOutStream out(outstr, "\t", "_", String::NONE);
+    
+    // write table header
+    out << "ID 1" << "ID 2" << "EdgeType" << "Score" << "Annotation" << std::endl;
+
+    // write edge annotation for each feature / partner feature pair
+    for (const auto& entry: feature_partners)
+    {
+      for (const auto& partner_index: entry.second)
+      {
+        out << cm[entry.first].getMetaValue(Constants::UserParam::IIMN_ROW_ID);
+        out << cm[partner_index].getMetaValue(Constants::UserParam::IIMN_ROW_ID);
+        out << "MS1 annotation";
+        out << "score"; // TODO: add real score
+        std::stringstream annotation;
+        annotation << cm[entry.first].getMetaValue(Constants::UserParam::IIMN_BEST_ION) << " "
+                   << cm[partner_index].getMetaValue(Constants::UserParam::IIMN_BEST_ION) << " "
+                   << "dm/z=" << String(std::abs(cm[entry.first].getMZ() - cm[partner_index].getMZ()));
+        out << annotation.str();
+        out << std::endl;
+        feature_partners[partner_index].erase(entry.first); // remove other direction to avoid duplicates
+      }
+    }
+    outstr.close();
+  }
 } // closing namespace OpenMS
