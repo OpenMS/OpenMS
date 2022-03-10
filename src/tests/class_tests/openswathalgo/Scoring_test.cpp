@@ -53,6 +53,7 @@
 
 #else
 
+#include <algorithm>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #define BOOST_AUTO_TEST_CASE START_SECTION
 using namespace OpenMS;
@@ -376,7 +377,7 @@ BOOST_AUTO_TEST_CASE(test_MRMFeatureScoring_calcxcorr_legacy_mquest_)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_computeRank)
+BOOST_AUTO_TEST_CASE(test_computeAndAppendRank)
 {
 /*
 * Requires Octave with installed MIToolbox
@@ -384,7 +385,7 @@ BOOST_AUTO_TEST_CASE(test_computeRank)
 y = [5.97543668746948 4.2749171257019 3.3301842212677 4.08597040176392 5.50307035446167 5.24326848983765 8.40812492370605 2.83419919013977 6.94378805160522 7.69957494735718 4.08597040176392]';
 
 [~, ~, y_ranking] = unique(y);
-% Note: Matlab handles ties differently than Scoring::computeRank, but this makes no difference for MI estimation.
+% Note: Matlab handles ties differently than Scoring::computeAndAppendRank, but this makes no difference for MI estimation.
 
 */
 
@@ -401,7 +402,8 @@ y = [5.97543668746948 4.2749171257019 3.3301842212677 4.08597040176392 5.5030703
   std::vector<double> data2 {15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
                              121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108};
 
-  auto result = Scoring::computeRank(data1);
+  std::vector<unsigned int> result;
+  Scoring::computeAndAppendRank(data1, result);
 
   TEST_EQUAL (result[0],7);
   TEST_EQUAL (result[1],4);
@@ -432,22 +434,49 @@ x = [15.8951349258423 41.5446395874023 76.0746307373047 109.069435119629 111.903
 m1 = mi(x_ranking,y_ranking)
 */
 
-  static const double arr1[] =
-  {
-    5.97543668746948, 4.2749171257019, 3.3301842212677, 4.08597040176392, 5.50307035446167, 5.24326848983765,
-    8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392
-  };
-  static const double arr2[] =
-  {
-    15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
-    121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108
-  };
-  std::vector<double> data1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
-  std::vector<double> data2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
+  std::vector<double> data1 = {5.97543668746948, 4.2749171257019, 3.3301842212677, 4.08597040176392, 5.50307035446167, 5.24326848983765,
+                                 8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392};
+  std::vector<double> data2 = {15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
+                               121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108};
+  std::vector<unsigned int> rank_vec1, rank_vec2;
+  unsigned int max_rank1 = Scoring::computeAndAppendRank(data1, rank_vec1);
+  unsigned int max_rank2 = Scoring::computeAndAppendRank(data2, rank_vec2);
 
-  double result = Scoring::rankedMutualInformation(data1, data2);
+  unsigned int max_rank_check1 = *std::max_element(rank_vec1.begin(), rank_vec1.end());
+  unsigned int max_rank_check2 = *std::max_element(rank_vec2.begin(), rank_vec2.end());
+
+  TEST_EQUAL (max_rank1, max_rank_check1);
+  TEST_EQUAL (max_rank2, max_rank_check2);
+
+  double result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2, max_rank1, max_rank2);
 
   TEST_REAL_SIMILAR (result, 3.2776);
+
+  rank_vec1 = {0};
+  rank_vec2 = {0};
+  result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2, 0, 0);
+  TEST_REAL_SIMILAR (result, 0);
+
+  rank_vec1 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  rank_vec2 = {0, 1, 5, 4, 4, 2, 3, 1, 0, 2};
+  result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2, 0, 5);
+  TEST_REAL_SIMILAR (result, 0);
+
+  double result_symmetric = Scoring::rankedMutualInformation(rank_vec2, rank_vec1, 5, 0);
+  TEST_REAL_SIMILAR (result, result_symmetric);
+
+  rank_vec1 = {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7};
+  rank_vec2 = {0, 1, 5, 4, 4, 2, 3, 1, 0, 2, 6, 7, 7, 6, 5, 3};
+  result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2, 7, 7);
+  TEST_REAL_SIMILAR (result, 2);
+
+  rank_vec1 = {0, 1, 2, 3, 4, 4, 5, 6, 5, 1};
+  rank_vec2 = {6, 7, 8, 4, 5, 1, 2, 0, 3, 0};
+  result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2, 6, 8);
+  TEST_REAL_SIMILAR (result, 2.52193);
+
+  result_symmetric = Scoring::rankedMutualInformation(rank_vec2, rank_vec1, 8, 6);
+  TEST_REAL_SIMILAR (result, result_symmetric);
 }
 END_SECTION
 

@@ -151,12 +151,7 @@ public:
   template <class Key, class T>
   T& Map<Key, T>::operator[](const Key& key)
   {
-    Iterator it = this->find(key);
-    if (it == Base::end())
-    {
-      it = this->insert(ValueType(key, T())).first;
-    }
-    return it->second;
+    return this->try_emplace(key).first->second;
   }
 
 } // namespace OPENMS

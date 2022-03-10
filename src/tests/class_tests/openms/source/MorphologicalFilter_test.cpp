@@ -285,10 +285,10 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 
     for ( Int struc_length = 3; struc_length <= 2 * data_size + 2; struc_length += 2 )
     {
-      STATUS("data_size: " << data_size);
-      STATUS("struc_elem_length: " << struc_length);
+      //STATUS("data_size: " << data_size);
+      //STATUS("struc_elem_length: " << struc_length);
       {
-        STATUS("erosion");
+        //STATUS("erosion");
         filtered.clear();
         filtered.resize(data_size);
         simple_filtered_1.clear();
@@ -309,13 +309,13 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
                      );
         for ( Int i = 0; i != data_size; ++i )
         {
-          STATUS(i);
+          //STATUS(i);
           TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
         }
       }
 
       {
-        STATUS("dilation");
+        //STATUS("dilation");
         filtered.clear();
         filtered.resize(data_size);
         simple_filtered_1.clear();
@@ -336,11 +336,10 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
                       );
         for ( Int i = 0; i != data_size; ++i )
         {
-          STATUS(i);
+          //STATUS(i);
           TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
         }
       }
-
     }
   }
 
@@ -364,10 +363,10 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 
     for ( Int struc_length = 3; struc_length <= 2 * data_size + 2; struc_length += 2 )
     {
-      STATUS("data_size: " << data_size);
-      STATUS("struc_elem_length: " << struc_length);
+      //STATUS("data_size: " << data_size);
+      //STATUS("struc_elem_length: " << struc_length);
       {
-        STATUS("erosion");
+        //STATUS("erosion");
         filtered.clear();
         filtered.resize(data_size);
         simple_filtered_1.clear();
@@ -388,13 +387,13 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
                      );
         for ( Int i = 0; i != data_size; ++i )
         {
-          STATUS(i);
+          //STATUS(i);
           TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
         }
       }
 
       {
-        STATUS("dilation");
+        //STATUS("dilation");
         filtered.clear();
         filtered.resize(data_size);
         simple_filtered_1.clear();
@@ -415,7 +414,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
                       );
         for ( Int i = 0; i != data_size; ++i )
         {
-          STATUS(i);
+          //STATUS(i);
           TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
         }
       }
@@ -446,10 +445,9 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
   MorphologicalFilter mf;
   for ( UInt struc_length = 3; struc_length <= 2 * data_size + 2; struc_length += 2 )
   {
-    STATUS("struc_elem_length: " << struc_length);
-
+    //STATUS("struc_elem_length: " << struc_length);
     {
-      STATUS("erosion");
+      //STATUS("erosion");
       filtered.clear();
       filtered.resize(data_size);
       simple_filtered_1.clear();
@@ -467,11 +465,11 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
       STHF::erosion(inputf,simple_filtered_1,struc_length);
       for ( UInt i = 0; i != data_size; ++i )
       {
-        STATUS(i);
+        //STATUS(i);
         TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
       }
 
-      STATUS("erosion_simple");
+      //STATUS("erosion_simple");
       filtered.clear();
       filtered.resize(data_size);
       simple_filtered_1.clear();
@@ -491,7 +489,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
         TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
       }
 
-      STATUS("opening");
+      //STATUS("opening");
       filtered.clear();
       filtered.resize(data_size);
       simple_filtered_2.clear();
@@ -511,7 +509,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
         TEST_REAL_SIMILAR(filtered[i],simple_filtered_2[i]);
       }
 
-      STATUS("tophat");
+      //STATUS("tophat");
       filtered.clear();
       filtered.resize(data_size);
       simple_filtered_3.clear();
@@ -533,7 +531,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
     }
 
     {
-      STATUS("dilation");
+      //STATUS("dilation");
       filtered.clear();
       filtered.resize(data_size);
       simple_filtered_1.clear();
@@ -554,7 +552,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
         TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
       }
 
-      STATUS("dilation_simple");
+      //STATUS("dilation_simple");
       filtered.clear();
       filtered.resize(data_size);
       simple_filtered_1.clear();
@@ -574,7 +572,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
         TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
       }
 
-      STATUS("closing");
+      //STATUS("closing");
       filtered.clear();
       filtered.resize(data_size);
       simple_filtered_2.clear();
@@ -594,7 +592,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
         TEST_REAL_SIMILAR(filtered[i],simple_filtered_2[i]);
       }
 
-      STATUS("bothat");
+      //STATUS("bothat");
       filtered.clear();
       filtered.resize(data_size);
       simple_filtered_3.clear();
@@ -645,8 +643,8 @@ START_SECTION((template <typename PeakType> void filter(MSSpectrum& spectrum)))
     UInt struc_size_datapoints = UInt ( ceil ( struc_size / spacing ) );
     if ( !Math::isOdd(struc_size_datapoints) ) ++struc_size_datapoints;
     STH::dilation( input, dilation, struc_size_datapoints );
-    STATUS( "struc_size: " << struc_size << "  struc_size_datapoints: " << struc_size_datapoints );
-     for ( UInt i = 0; i != data_size; ++i )
+    //STATUS( "struc_size: " << struc_size << "  struc_size_datapoints: " << struc_size_datapoints );
+    for ( UInt i = 0; i != data_size; ++i )
     {
       STATUS("i: " << i);
       TEST_REAL_SIMILAR(filtered[i].getIntensity(),dilation[i]);
@@ -687,13 +685,13 @@ START_SECTION((template <typename PeakType > void filterExperiment(MSExperiment<
     UInt struc_size_datapoints = UInt ( ceil ( struc_size / spacing ) );
     if ( !Math::isOdd(struc_size_datapoints) ) ++struc_size_datapoints;
     STH::dilation( input, dilation, struc_size_datapoints );
-    STATUS( "struc_size: " << struc_size << "  struc_size_datapoints: " << struc_size_datapoints );
+    //STATUS( "struc_size: " << struc_size << "  struc_size_datapoints: " << struc_size_datapoints );
     for ( UInt scan = 0; scan < 3; ++scan )
     {
       TEST_STRING_EQUAL(mse_raw[scan].getComment(),"Let's see if this comment is copied by the filter.");
       for ( UInt i = 0; i != data_size; ++i )
       {
-        STATUS("i: " << i);
+        //STATUS("i: " << i);
         TEST_REAL_SIMILAR(mse_raw[scan][i].getIntensity(),dilation[i]);
       }
     }

@@ -41,6 +41,8 @@
 #include <boost/bind.hpp>
 #include <boost/random/discrete_distribution.hpp>
 
+#include "svm.h"
+
 // #define DEBUG
 
 namespace OpenMS
@@ -171,7 +173,7 @@ namespace OpenMS
       initializeMaps_();
 
     defaults_.setValue("svm_mode", 1, "whether to predict abundant/missing using SVC (0) or predict intensities using SVR (1)");
-    defaults_.setValue("model_file_name", "examples/simulation/SvmMSim.model", "Name of the probabilistic Model file");
+    defaults_.setValue("model_file_name", "SIMULATION/SvmMSim.model", "Name of the probabilistic Model file");
 
     defaults_.setValue("add_isotopes", "false", "If set to 1 isotope peaks of the product ion peaks are added");
     defaults_.setValidStrings("add_isotopes", {"true","false"});

@@ -58,6 +58,8 @@ namespace OpenMS
     /// move assignment
     LayerDataConsensus& operator=(LayerDataConsensus&& ld) = default;
 
+    std::unique_ptr<Painter1DBase> getPainter1D() const override;
+
     void updateRanges() override
     {
       consensus_map_->updateRanges();

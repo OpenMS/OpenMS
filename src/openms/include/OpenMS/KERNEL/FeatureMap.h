@@ -330,7 +330,6 @@ public:
     ///@}
 
 protected:
-
     /// protein identifications
     std::vector<ProteinIdentification> protein_identifications_;
 

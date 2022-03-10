@@ -29,32 +29,20 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Andreas Bertsch, Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-#include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringUtilsSimple.h>
-#include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
-#include <OpenMS/SYSTEM/SysInfo.h>
-
-#include <atomic>
-#include <algorithm>
-#include <fstream>
-
 
 namespace OpenMS
 {
@@ -69,7 +57,7 @@ namespace OpenMS
   (For FDR calculations, "target+decoy" peptide hits count as target hits.)
 
   @note Make sure that your protein names in the database contain a correctly formatted decoy string. This can be ensured by using @ref UTILS_DecoyDatabase.
-        If the decoy identifier is not recognized successfully all proteins will be assumed to stem from the target-part of the query.<br>
+        If the decoy identifier is not recognized successfully, all proteins will be assumed to stem from the target-part of the query.<br>
         E.g., "sw|P33354_DECOY|YEHR_ECOLI Uncharacterized lipop..." is <b>invalid</b>, since the tool has no knowledge of how SwissProt entries are build up.
         A correct identifier could be "DECOY_sw|P33354|YEHR_ECOLI Uncharacterized li ..." or "sw|P33354|YEHR_ECOLI_DECOY Uncharacterized li", depending on whether you are
         using prefix or suffix annotation.<br>
@@ -79,10 +67,11 @@ namespace OpenMS
   By default this tool will fail if an unmatched peptide occurs, i.e. if the database does not contain the corresponding protein.
   You can force it to return successfully in this case by setting @p '-unmatched_action' to accept or even remove those hits.
 
-  Search engines (such as Mascot) will replace ambiguous amino acids ('B', 'J', 'Z' and 'X') in the protein database with unambiguous amino acids in the reported peptides, e.g. exchange 'X' with 'H'.
+  Search engines (such as X!Tandem) will replace ambiguous amino acids ('B', 'J', 'Z' and 'X') in the protein database with unambiguous amino 
+  acids in the reported peptides, e.g. exchange 'X' with 'H'.
   This will cause such peptides to not be found by exactly matching their sequences to the protein database.
-  However, we can recover these cases by using tolerant search for ambiguous amino acids in the protein sequence. This is done by default with up to four amino acids
-  per peptide hit. If you only want exact matches, set @p aaa_max to zero (but expect that unmatched peptides might occur)!
+  However, we can recover these cases by using tolerant search for ambiguous amino acids in the protein sequence. This is done by default with
+  up to three amino acids per peptide hit. If you only want exact matches, set @p aaa_max to zero (but expect that unmatched peptides might occur)!
 
   Leucine/Isoleucine:
   Further complications can arise due to the presence of the isobaric amino acids isoleucine ('I') and leucine ('L') in protein sequences.
@@ -125,9 +114,8 @@ namespace OpenMS
     public DefaultParamHandler, public ProgressLogger
   {
 public:
-
-  /// name of enzyme/specificity which signals that the enzyme/specificity should be taken from meta information
-  static char const* const AUTO_MODE; /* = 'auto' */ 
+    /// name of enzyme/specificity which signals that the enzyme/specificity should be taken from meta information
+    static char const* const AUTO_MODE; /* = 'auto' */ 
 
     /// Exit codes
     enum ExitCodes
@@ -164,7 +152,7 @@ public:
     /// Default destructor
     ~PeptideIndexing() override;
 
-    /// forward for old interface and pyOpenMS; use run<T>() for more control
+    /// forward for old interface and pyOpenMS; use other run() methods for more control
     ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
 
     /**
@@ -202,16 +190,21 @@ public:
     @return Exit status codes.
 
     */
-    template<typename T>
-    ExitCodes run(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+    ExitCodes run(FASTAContainer<TFI_File>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
 
+    /// Same as run() with TFI_File, but for proteins which are already in memory
+    ExitCodes run(FASTAContainer<TFI_Vector>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+
+    /// Which string is used to determine if a protein is a decoy or not
     const String& getDecoyString() const;
 
+    /// Is the decoy string position a prefix or suffix?
     bool isPrefix() const;
 
  protected:
-
     void updateMembers_() override;
+
+    template<typename T> ExitCodes run_(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
 
     String decoy_string_{};
     bool prefix_{ false };
@@ -224,6 +217,7 @@ public:
     bool keep_unreferenced_proteins_{ false };
     Unmatched unmatched_action_ = Unmatched::IS_ERROR;
     bool IL_equivalent_{ false };
+    bool allow_nterm_protein_cleavage_{ true };
 
     Int aaa_max_{0};
     Int mm_max_{0};

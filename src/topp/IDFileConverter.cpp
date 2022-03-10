@@ -57,6 +57,9 @@
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+
+#include <QtCore/QCoreApplication>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -820,6 +823,8 @@ protected:
 
 int main(int argc, const char** argv)
 {
+  QCoreApplication a(argc, const_cast<char**>(argv)); // required on Win64 to find the qsqlite.dll in OpenMS/bin/sqldrivers/ if Qt is not installed
+
   TOPPIDFileConverter tool;
   return tool.main(argc, argv);
 }

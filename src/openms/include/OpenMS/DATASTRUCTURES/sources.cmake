@@ -39,10 +39,11 @@ OSWData.h
 Param.h
 ParamValue.h
 QTCluster.h
-SeqanIncludeWrapper.h
 String.h
 StringUtils.h
+StringUtilsSimple.h
 StringListUtils.h
+StringView.h
 ToolDescription.h
 )
 

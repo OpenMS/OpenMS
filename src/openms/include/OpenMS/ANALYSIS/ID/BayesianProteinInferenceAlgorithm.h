@@ -42,7 +42,7 @@
 
 #include <vector>
 #include <functional>
-#include <boost/optional.hpp>
+#include <optional>
 
 namespace OpenMS
 {
@@ -115,7 +115,7 @@ namespace OpenMS
         std::vector<ProteinIdentification>& proteinIDs,
         std::vector<PeptideIdentification>& peptideIDs,
         bool greedy_group_resolution,
-        boost::optional<const ExperimentalDesign> exp_des = boost::optional<const ExperimentalDesign>());
+        std::optional<const ExperimentalDesign> exp_des = std::optional<const ExperimentalDesign>());
 
     /**
      * @brief Perform inference. Filter, build graph, run the private inferPosteriorProbabilities_ function.
@@ -131,7 +131,7 @@ namespace OpenMS
     void inferPosteriorProbabilities(
         ConsensusMap& cmap,
         bool greedy_group_resolution,
-        boost::optional<const ExperimentalDesign> exp_des = boost::optional<const ExperimentalDesign>());
+        std::optional<const ExperimentalDesign> exp_des = std::optional<const ExperimentalDesign>());
 
   private:
 

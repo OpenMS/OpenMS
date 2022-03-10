@@ -696,7 +696,7 @@ namespace OpenMS
 #endif
 
     // take shape with higher correlation (Sech2 can be NaN, so Lorentzian might be the only option)
-    if ((lorentz.r_value > sech.r_value) || boost::math::isnan(sech.r_value))
+    if ((lorentz.r_value > sech.r_value) || std::isnan(sech.r_value))
     {
       return lorentz;
     }
@@ -983,7 +983,7 @@ namespace OpenMS
       }
       dif /= peaks - 1;
       charge = (Int) Math::round(1 / dif);
-      if (boost::math::isnan((double)charge) || boost::math::isinf((double)charge))
+      if (std::isnan((double)charge) || std::isinf((double)charge))
       {
         charge = 0;
       }

@@ -127,7 +127,7 @@ namespace OpenMS
   bool EnzymaticDigestion::isValidProduct(const String& sequence,
                                           int pos,
                                           int length,
-    bool ignore_missed_cleavages) const
+                                          bool ignore_missed_cleavages) const
   {
     return isValidProduct_(sequence, pos, length, ignore_missed_cleavages, false, false);
   }
@@ -143,7 +143,7 @@ namespace OpenMS
                                            bool ignore_missed_cleavages,
                                            bool allow_nterm_protein_cleavage,
                                            bool allow_random_asp_pro_cleavage) const
-    {
+  {
     // for XTandem specific rules (see https://github.com/OpenMS/OpenMS/issues/2497)
     // M or MX at the N-terminus might have been cleaved off 
     if (allow_nterm_protein_cleavage && (pos <= 2) && (sequence[0] == 'M'))
@@ -180,7 +180,7 @@ namespace OpenMS
       const std::vector<int> cleavage_positions = tokenize_(sequence, pos, end); // has 'pos' as first site
       return (cleavage_positions.size() - 1) <= missed_cleavages_;
     }
-    
+
     // either SPEC_SEMI or SPEC_FULL
     bool spec_c = false, spec_n = false;
     // tokenize_ is really slow, so reduce work by working on substring with +-2 chars margin:

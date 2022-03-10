@@ -97,13 +97,6 @@ namespace OpenMS
     }
   }
 
-
-  /// add annotation from an OSW sqlite file.
-
-
-  /// get annotation (e.g. to build a hierachical ID View)
-  /// Not const, because we might have incomplete data, which needs to be loaded from sql source
-
   LayerDataBase::OSWDataSharedPtrType& LayerDataBase::getChromatogramAnnotation()
   {
     return chrom_annotation_;
@@ -153,7 +146,6 @@ namespace OpenMS
     return cached_spectrum_;
   }
 
-  /// Returns a const-copy of the required spectrum which is guaranteed to be populated with raw data
 
   const LayerDataBase::ExperimentType::SpectrumType LayerDataBase::getSpectrum(Size spectrum_idx) const
   {
@@ -453,7 +445,7 @@ namespace OpenMS
     }
   }
 
-  LayerAnnotatorBase::LayerAnnotatorBase(const FileTypes::FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock) :
+  LayerAnnotatorBase::LayerAnnotatorBase(const FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock) :
       supported_types_(supported_types),
       file_dialog_text_(file_dialog_text),
       gui_lock_(gui_lock)
@@ -473,7 +465,7 @@ namespace OpenMS
     QString fname = QFileDialog::getOpenFileName(nullptr,
                                                  file_dialog_text_.toQString(),
                                                  current_path.toQString(),
-                                                 supported_types_.toFileDialogFilter(FileTypes::Filter::BOTH, true).toQString());
+                                                 supported_types_.toFileDialogFilter(FilterLayout::BOTH, true).toQString());
 
     bool success = annotateWithFilename(layer, log, fname);
 

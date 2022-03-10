@@ -54,11 +54,13 @@ namespace OpenMS
     LayerDataFeature(const LayerDataFeature& ld) = delete;
     /// no assignment operator (should not be needed)
     LayerDataFeature& operator=(const LayerDataFeature& ld) = delete;
-    /// move Ctor
+    /// move C'tor
     LayerDataFeature(LayerDataFeature&& ld) = default;
     /// move assignment
     LayerDataFeature& operator=(LayerDataFeature&& ld) = default;
 
+    std::unique_ptr<Painter1DBase> getPainter1D() const override;
+    
     void updateRanges() override
     {
       features_->updateRanges();

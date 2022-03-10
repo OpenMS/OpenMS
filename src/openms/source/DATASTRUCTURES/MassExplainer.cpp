@@ -40,6 +40,8 @@
 
 #include <iostream>
 
+#undef DEBUG_FD
+
 namespace OpenMS
 {
 
@@ -276,20 +278,21 @@ namespace OpenMS
       }
     }
 
-
     // sort according to (in-order) net-charge, mass, probability
     std::sort(explanations_.begin(), explanations_.end());
 
     // set Ids of compomers, which allows to uniquely identify them (for later lookup)
     for (size_t i = 0; i < explanations_.size(); ++i)
+    {
       explanations_[i].setID(i);
+    }      
 
-    //#if DEBUG_FD
+    #ifdef DEBUG_FD
     for (size_t ci = 0; ci < explanations_.size(); ++ci)
     {
       std::cerr << explanations_[ci] << " ";
     }
-    //#endif
+    #endif
 
     std::cout << "MassExplainer table size: " << explanations_.size() << "\n";
 

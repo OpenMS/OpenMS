@@ -81,7 +81,7 @@ using namespace std;
   Protein sequences (including amino acid modifications) can be provided as FASTA file.
   We allow a special tag in the description of each entry to specify protein abundance.
   If you want to create a complex FASTA file with a Gaussian protein abundance model in log space,
-  see our Python script shipping with your OpenMS installation (e.g., <OpenMS-dir>/share/OpenMS/examples/simulation/FASTAProteinAbundanceSampling.py).
+  see our Python script shipping with your OpenMS installation (e.g., <OpenMS-dir>/share/OpenMS/SIMULATION/FASTAProteinAbundanceSampling.py).
   It supports (random) sampling from a large FASTA file, protein weight filtering and adds an
   intensity tag to each entry.
 

@@ -50,7 +50,7 @@ endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 
-  add_compile_options(-Wall -Wextra 
+  add_compile_options(-Wall -Wextra
     #-fvisibility=hidden # This is now added as a target property for each library.
     -Wno-non-virtual-dtor 
     -Wno-unknown-pragmas

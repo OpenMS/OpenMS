@@ -36,14 +36,7 @@
 #include <OpenMS/OPENSWATHALGO/Macros.h>
 #include <cmath>
 #include <algorithm>
-
-#include <boost/numeric/conversion/cast.hpp>
-
-// Import dependencies from MIToolbox
-#include <ArrayOperations.c>
-#include <CalculateProbability.c>
-#include <Entropy.c>
-#include <MutualInformation.c>
+#include <unordered_map>
 
 namespace OpenSwath::Scoring
 {
@@ -160,29 +153,36 @@ namespace OpenSwath::Scoring
     }
 
     XCorrArrayType normalizedCrossCorrelation(std::vector<double>& data1,
-                                              std::vector<double>& data2, int maxdelay, int lag = 1)
+                                              std::vector<double>& data2, const int maxdelay, const int lag = 1)
     {
       OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
       // normalize the data
       standardize_data(data1);
       standardize_data(data2);
-      XCorrArrayType result = calculateCrossCorrelation(data1, data2, maxdelay, lag);
+      return normalizedCrossCorrelationPost(data1, data2, maxdelay, lag);
+    }
+
+    XCorrArrayType normalizedCrossCorrelationPost(std::vector<double>& normalized_data1,
+                                                  std::vector<double>& normalized_data2, const int maxdelay, const int lag = 1)
+    {
+      XCorrArrayType result = calculateCrossCorrelation(normalized_data1, normalized_data2, maxdelay, lag);
+
       for (XCorrArrayType::iterator it = result.begin(); it != result.end(); ++it)
       {
-        it->second = it->second / data1.size();
+        it->second /= normalized_data1.size();
       }
       return result;
     }
 
     XCorrArrayType calculateCrossCorrelation(const std::vector<double>& data1,
-                                             const std::vector<double>& data2, int maxdelay, int lag)
+                                             const std::vector<double>& data2, const int maxdelay, const int lag)
     {
       OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
       XCorrArrayType result;
       result.data.reserve( (size_t)std::ceil((2*maxdelay + 1) / lag));
-      int datasize = boost::numeric_cast<int>(data1.size());
+      int datasize = static_cast<int>(data1.size());
       int i, j, delay;
 
       for (delay = -maxdelay; delay <= maxdelay; delay = delay + lag)
@@ -206,13 +206,13 @@ namespace OpenSwath::Scoring
                                             std::vector<double>& data2, bool normalize)
     {
       OPENSWATH_PRECONDITION(!data1.empty() && data1.size() == data2.size(), "Both data vectors need to have the same length");
-      int maxdelay = boost::numeric_cast<int>(data1.size());
+      int maxdelay = static_cast<int>(data1.size());
       int lag = 1;
 
       double mean1 = std::accumulate(data1.begin(), data1.end(), 0.) / (double)data1.size();
       double mean2 = std::accumulate(data2.begin(), data2.end(), 0.) / (double)data2.size();
       double denominator = 1.0;
-      int datasize = boost::numeric_cast<int>(data1.size());
+      int datasize = static_cast<int>(data1.size());
       int i, j, delay;
 
       // Normalized cross-correlation = subtract the mean and divide by the standard deviation
@@ -232,7 +232,8 @@ namespace OpenSwath::Scoring
         // sigma_1 * sigma_2 * n
         denominator = sqrt(sqsum1 * sqsum2);
       }
-      denominator = 1/denominator; // inverse denominator for faster calculation 
+      //avoids division in the for loop
+      denominator = 1/denominator;
       XCorrArrayType result;
       result.data.reserve( (size_t)std::ceil((2*maxdelay + 1) / lag));
       int cnt = 0;
@@ -269,43 +270,66 @@ namespace OpenSwath::Scoring
       return result;
     }
 
-    std::vector<unsigned int> computeRank(const std::vector<double>& v_temp)
+    unsigned int computeAndAppendRank(const std::vector<double>& v_temp, std::vector<unsigned int>& ranks_out)
     {
-      std::vector<std::pair<float, unsigned int> > v_sort(v_temp.size());
-
-      for (unsigned int i = 0; i < v_sort.size(); ++i) {
-        v_sort[i] = std::make_pair(v_temp[i], i);
-      }
-
-      std::sort(v_sort.begin(), v_sort.end());
-
-      std::pair<double, unsigned int> rank;
-      std::vector<unsigned int> result(v_temp.size());
-
-      for (unsigned int i = 0; i < v_sort.size(); ++i)
+      std::vector<unsigned int> ranks{};
+      ranks.resize(v_temp.size());
+      std::iota(ranks.begin(), ranks.end(), 0);
+      std::sort(ranks.begin(), ranks.end(),
+                [&v_temp](unsigned int i, unsigned int j) { return v_temp[i] < v_temp[j]; });
+      ranks_out.resize(v_temp.size());
+      double x = 0;
+      unsigned int y = 0;
+      for(unsigned int i = 0; i < ranks.size();++i)
       {
-        if (v_sort[i].first != rank.first)
+        if(v_temp[ranks[i]] != x)
         {
-          rank = std::make_pair(v_sort[i].first, i);
+          x = v_temp[ranks[i]];
+          y = i;
         }
-        result[v_sort[i].second] = rank.second;
+        ranks_out[ranks[i]] = y;
       }
-      return result;
+      return y;
     }
 
-    double rankedMutualInformation(std::vector<double>& data1, std::vector<double>& data2)
+    std::vector<unsigned int> computeRankVector(const std::vector<std::vector<double>>& intensity, std::vector<std::vector<unsigned int>>& ranks)
     {
-      OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
+      unsigned int pre_rank_size = ranks.size();
+      ranks.resize(pre_rank_size + intensity.size());
+      std::vector<unsigned int> max_rank_vec(intensity.size());
+      for (std::size_t i = 0; i < intensity.size(); i++)
+      {
+        max_rank_vec[i] = computeAndAppendRank(intensity[i], ranks[pre_rank_size + i]);
+      }
+      return max_rank_vec;
+    }
 
-      // rank the data
-      std::vector<unsigned int> int_data1 = computeRank(data1);
-      std::vector<unsigned int> int_data2 = computeRank(data2);
+    double rankedMutualInformation(std::vector<unsigned int>& ranked_data1, std::vector<unsigned int>& ranked_data2, const unsigned int max_rank1, const unsigned int max_rank2)
+    {
+      OPENSWATH_PRECONDITION(ranked_data1.size() != 0 && ranked_data1.size() == ranked_data2.size(), "Both data vectors need to have the same length");
 
-      unsigned int* arr_int_data1 = &int_data1[0];
-      unsigned int* arr_int_data2 = &int_data2[0];
+      unsigned int inputVectorlength = ranked_data1.size();
+      unsigned int firstNumStates = max_rank1 + 1;
+      unsigned int secondNumStates = max_rank2 + 1;
+      std::vector<double> firstStateCounts(firstNumStates,0);
+      std::vector<double> secondStateCounts(secondNumStates,0);
+      std::unordered_map<pos2D, double, pair_hash> jointStateCounts{};
 
-      double result = calcMutualInformation(arr_int_data1, arr_int_data2, int_data1.size());
+      for (unsigned int i = 0; i < inputVectorlength; i++) {
+        firstStateCounts[ranked_data1[i]] += 1;
+        secondStateCounts[ranked_data2[i]] += 1;
+        jointStateCounts[std::make_pair(ranked_data1[i], ranked_data2[i])] += 1;
+      }
 
-      return result;
+      double mutualInformation = 0.0;
+      for (const auto &[pos, jointStateCount_val]: jointStateCounts) {
+        mutualInformation += jointStateCount_val * log(jointStateCount_val / firstStateCounts[pos.first] / secondStateCounts[pos.second]);
+      }
+
+      mutualInformation /= inputVectorlength;
+      mutualInformation += log(inputVectorlength);
+      mutualInformation /= log(2.0);
+
+      return mutualInformation;
     }
 }      //namespace OpenMS  // namespace Scoring

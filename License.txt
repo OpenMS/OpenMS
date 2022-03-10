@@ -46,12 +46,6 @@ The respective license files for the contrib libraries
 can be found in the "contrib" package root directory or online
 (see below).
 
-SeqAn
-  - URL:
-  https://www.seqan.de/
-  - License:
-  https://github.com/seqan/seqan/blob/master/LICENSE
-
 libSVM
   - URL:
   http://www.csie.ntu.edu.tw/~cjlin/libsvm/

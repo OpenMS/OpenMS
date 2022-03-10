@@ -21,7 +21,7 @@ def id_mapper(in_file, id_file, out_file, params, use_centroid_rt,
         map_ = pms.ConsensusMap()
         file_.load(in_file, map_)
         mapper.annotate(map_, peptide_ids, protein_ids, use_subelements)
-        addDataProcessing(map_, params, pms.ProcessingAction.IDENTIFICATION_MAPPING)
+        addDataProcessing(map_, params, pms.DataProcessing.ProcessingAction.IDENTIFICATION_MAPPING)
         file_.store(out_file, map_)
 
     elif in_type == pms.Type.FEATUREXML:
@@ -30,7 +30,7 @@ def id_mapper(in_file, id_file, out_file, params, use_centroid_rt,
         file_.load(in_file, map_)
         mapper.annotate(map_, peptide_ids, protein_ids, use_centroid_rt,
                 use_centroid_mz)
-        addDataProcessing(map_, params, pms.ProcessingAction.IDENTIFICATION_MAPPING)
+        addDataProcessing(map_, params, pms.DataProcessing.ProcessingAction.IDENTIFICATION_MAPPING)
         file_.store(out_file, map_)
 
     elif in_type == pms.Type.MZQ:
@@ -40,7 +40,7 @@ def id_mapper(in_file, id_file, out_file, params, use_centroid_rt,
         maps = msq.getConsensusMaps()
         for map_ in maps:
             mapper.annotate(map_, peptide_ids, protein_ids, use_subelements)
-            addDataProcessing(map_, params, pms.ProcessingAction.IDENTIFICATION_MAPPING)
+            addDataProcessing(map_, params, pms.DataProcessing.ProcessingAction.IDENTIFICATION_MAPPING)
         msq.setConsensusMaps(maps)
         file_.store(out_file, msq)
 

@@ -95,7 +95,7 @@ namespace OpenMS
 
   protected:
 
-    using StepOpt = boost::optional<IdentificationData::ProcessingStepRef>;
+    using StepOpt = std::optional<IdentificationData::ProcessingStepRef>;
 
     /// Functor for ordering @p StepOpt (by date of the steps, if available):
     struct StepOptCompare
@@ -139,14 +139,15 @@ namespace OpenMS
         {
           if (right.hasMZ())
           {
-              return left.getMZ() < right.getMZ();
+            return left.getMZ() < right.getMZ();
           }
           else
           {
             return false;
           }
         }
-        return true;
+        // if both PI's have nothing, return false (to ensure 'x < x' is false for strict weak ordering)
+        return right.hasMZ();
       }
     };
 

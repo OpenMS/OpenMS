@@ -34,8 +34,9 @@
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 
-#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <iostream>
 #include <fstream>
@@ -212,6 +213,21 @@ namespace OpenMS
       {
         continue;
       }
+
+      if (line_wo_spaces.hasPrefix("data-version:"))
+      {
+        version_ = line.substr(line.find(':') + 1).trim();
+      }
+      if (line_wo_spaces.hasPrefix("default-namespace:"))
+      {
+        label_ = line.substr(line.find(':') + 1).trim();
+      }
+      if (line_wo_spaces.hasPrefix("remark:URL:"))
+      {
+        // https://
+        url_ = line.substr(line.find_first_of('/') - 7).trim();
+      }
+
       //********************************************************************************
       //stanza line
       if (line_wo_spaces[0] == '[')
@@ -558,6 +574,21 @@ namespace OpenMS
   const String& ControlledVocabulary::name() const
   {
     return name_;
+  }
+
+  const String& ControlledVocabulary::label() const
+  {
+    return label_;
+  }
+
+  const String& ControlledVocabulary::version() const
+  {
+    return version_;
+  }
+
+  const String& ControlledVocabulary::url() const
+  {
+    return url_;
   }
 
   const ControlledVocabulary& ControlledVocabulary::getPSIMSCV()
