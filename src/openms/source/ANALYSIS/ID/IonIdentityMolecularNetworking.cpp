@@ -241,15 +241,24 @@ namespace OpenMS
     // write table header
     out << "ID 1" << "ID 2" << "EdgeType" << "Score" << "Annotation" << std::endl;
 
+    // get number of partners for each feature to later calculate score of annotation
+    std::unordered_map<size_t, size_t> num_partners;
+    for (const auto& entry: feature_partners)
+    {
+      num_partners[entry.first] = entry.second.size();
+    }
+
     // write edge annotation for each feature / partner feature pair
     for (const auto& entry: feature_partners)
     {
+      std::cout << entry.first << ": ";
       for (const auto& partner_index: entry.second)
       {
+        std::cout << partner_index << ", ";
         out << cm[entry.first].getMetaValue(Constants::UserParam::IIMN_ROW_ID);
         out << cm[partner_index].getMetaValue(Constants::UserParam::IIMN_ROW_ID);
         out << "MS1 annotation";
-        out << "score"; // TODO: add real score
+        out << num_partners[entry.first] + num_partners[partner_index] - 2; // total number of direct partners from both features minus themselves
         std::stringstream annotation;
         annotation << cm[entry.first].getMetaValue(Constants::UserParam::IIMN_BEST_ION) << " "
                    << cm[partner_index].getMetaValue(Constants::UserParam::IIMN_BEST_ION) << " "
@@ -258,6 +267,7 @@ namespace OpenMS
         out << std::endl;
         feature_partners[partner_index].erase(entry.first); // remove other direction to avoid duplicates
       }
+      std::cout << std::endl;
     }
     outstr.close();
   }

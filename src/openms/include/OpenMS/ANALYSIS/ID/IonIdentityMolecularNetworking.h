@@ -54,8 +54,9 @@ namespace OpenMS
       /// added for each original feature in the consensus feature.
       static void writeFeatureQuantificationTable(const String& consensus_file, const String& output_file);
 
-      /// Write supplementary pair table (csv file) from a consensusXML file. Required for GNPS IIMN.
-      /// The table contains information on the adducts and delta m/z between two connected features.
+      /// Write supplementary pair table (csv file) from a consensusXML file with edge annotations for connected features. Required for GNPS IIMN.
+      /// The table contains the columns "ID 1" (row ID of first feature), "ID 2" (row ID of second feature), "EdgeType" (MS1/2 annotation),
+      /// "Score" (the number of direct partners from both connected features) and "Annotation" (adducts and delta m/z between two connected features).
       static void writeSupplementaryPairTable(const String& consensus_file, const String& output_file);
   };
 } // closing namespace OpenMS

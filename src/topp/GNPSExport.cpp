@@ -114,7 +114,7 @@ protected:
     setValidFormats_("in_mzml", ListUtils::create<String>("mzML"));
 
     registerOutputFile_("out", "<file>", "", "Output MGF file");
-    setValidFormats_("out_mgf", ListUtils::create<String>("mgf"));
+    setValidFormats_("out", ListUtils::create<String>("mgf"));
 
     registerOutputFile_("out_quantification", "<file>", "", "Output feature quantification table.", false);
     setValidFormats_("out_quantification", ListUtils::create<String>("txt"));
