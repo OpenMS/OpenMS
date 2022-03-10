@@ -113,13 +113,13 @@ protected:
     registerInputFileList_("in_mzml", "<files>", ListUtils::create<String>(""), "Original mzml files containing the ms2 spectra (aka peptide annotation). \nMust be in order that the consensusXML file maps the original mzML files.");
     setValidFormats_("in_mzml", ListUtils::create<String>("mzML"));
 
-    registerOutputFile_("out", "<file>", "", "Output MGF file");
+    registerOutputFile_("out", "<file>", "", "Output MGF file.");
     setValidFormats_("out", ListUtils::create<String>("mgf"));
 
-    registerOutputFile_("out_quantification", "<file>", "", "Output feature quantification table.", false);
+    registerOutputFile_("out_quantification", "<file>", "", "Output feature quantification table.");
     setValidFormats_("out_quantification", ListUtils::create<String>("txt"));
 
-    registerOutputFile_("out_pairs", "<file>", "", "Output supplementary pairs table for IIMN", false);
+    registerOutputFile_("out_pairs", "<file>", "", "Output supplementary pairs table for IIMN.", false);
     setValidFormats_("out_pairs", ListUtils::create<String>("csv"));
 
     addEmptyLine_();
