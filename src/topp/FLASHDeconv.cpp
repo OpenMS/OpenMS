@@ -213,6 +213,12 @@ protected:
                             false);
     */
 
+    registerStringOption_("target_mass", "<target monoisotopic masses or file name containing target masses>", "", "Target monoisotopic masses for deconvolution or a txt file containing target masses. Masses are separated by commas. "
+                                                                                                               "For instance, 100.0,200.0 will target 100.0 and 200.0 Da masses. "
+                                                                                                                   "A plane text file containing the same target mass information may be used instead. "
+                                                                                                                   "For each targeted mass, FLASHDeconv attempts to find the mass from input spectrum file. "
+                                                                                                                   "If spectral peaks corresponding to the target mass, the target mass will be reported regardless of its quality (e.g., IsotopeCosine score). ", false, false);
+
     registerIntOption_("use_RNA_averagine", "", 0, "if set to 1, RNA averagine model is used", false, true);
     setMinInt_("use_RNA_averagine", 0);
     setMaxInt_("use_RNA_averagine", 1);
@@ -430,6 +436,38 @@ protected:
     return precursor_map_for_real_time_acquisition;
   }
 
+  static std::vector<double> getTargetMasses(String targets)
+  {
+    String target_masses;
+    if(isdigit(targets[0]))
+    {
+      target_masses = targets;
+    }else // if it is a file
+    {
+      std::ifstream in_trainstream(targets);
+      String line;
+      bool start = false;
+      while (std::getline(in_trainstream, line))
+      {
+        target_masses.append(line);
+      }
+    }
+
+    vector<double> result;
+
+    std::cout<<"Monoisotopic masses ";
+    stringstream s_stream(target_masses); //create string stream from the string
+    while(s_stream.good()) {
+      String substr;
+      getline(s_stream, substr, ','); //get first string delimited by comma
+      result.push_back(std::stod(substr));
+      std::cout<<std::stod(substr)<< " ";
+    }
+    std::cout<<" Da are targeted." << std::endl;
+
+    return result;
+  }
+
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
   {
@@ -459,6 +497,9 @@ protected:
     int mzml_charge = getIntOption_("mzml_mass_charge");
     double min_rt = getDoubleOption_("Algorithm:min_rt");
     double max_rt = getDoubleOption_("Algorithm:max_rt");
+    String targets = getStringOption_("target_mass");
+
+
 
     #ifdef DEBUG_EXTRA_PARAMTER
     auto out_topfd_file_log =  out_topfd_file[1] + ".log";
@@ -678,6 +719,8 @@ protected:
 
     fd.setParameters(fd_param);
     fd.calculateAveragine(use_RNA_averagine);
+    fd.setTargetMasses(getTargetMasses(targets), 1);
+
     auto avg = fd.getAveragine();
     auto mass_tracer = MassFeatureTrace();
     Param mf_param = getParam_().copy("FeatureTracing:", true);
