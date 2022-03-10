@@ -46,16 +46,16 @@ namespace OpenMS
       /// and Constants::UserParams::IIMN_ANNOTATION_NETWORK_NUMBER (all related features with different adduct states) get the same network number).
       /// This method requires the features annotated with the Constants::UserParams::IIMN_LINKED_GROUPS meta value.
       //  If at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN.
-      void annotateConsensusMap(ConsensusMap& out) const;
+      static void annotateConsensusMap(ConsensusMap& out);
 
       /// Write feature quantification table (txt file) from a consensusXML file. Required for GNPS FBMN.
       /// The table contains map information on the featureXML files from which the consensusXML file was generated as well as
       /// a row for every consensus feature with information on rt, mz, intensity, width and quality. The same information is
       /// added for each original feature in the consensus feature.
-      void writeFeatureQuantificationTable(const String& consensus_file, const String& output_file) const;
+      static void writeFeatureQuantificationTable(const String& consensus_file, const String& output_file);
 
       /// Write supplementary pair table (csv file) from a consensusXML file. Required for GNPS IIMN.
       /// The table contains information on the adducts and delta m/z between two connected features.
-      void writeSupplementaryPairTable(const String& consensus_file, const String& output_file) const;
+      static void writeSupplementaryPairTable(const String& consensus_file, const String& output_file);
   };
 } // closing namespace OpenMS

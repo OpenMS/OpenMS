@@ -66,7 +66,7 @@ using UndirectedOSMIdGraph = boost::adjacency_list<
 
 namespace OpenMS
 {
-  void IonIdentityMolecularNetworking::annotateConsensusMap(ConsensusMap& out) const
+  void IonIdentityMolecularNetworking::annotateConsensusMap(ConsensusMap& out)
   {
     // bipartite graph with ConsensusFeature indexes and Groups from Features
     // Vertexes contain uid (index/Group) and is_feature (bool)
@@ -148,7 +148,7 @@ namespace OpenMS
     }
   }
 
-  void IonIdentityMolecularNetworking::writeFeatureQuantificationTable(const String& consensus_file, const String& output_file) const
+  void IonIdentityMolecularNetworking::writeFeatureQuantificationTable(const String& consensus_file, const String& output_file)
   {
     // load ConsensusMap from file
     ConsensusMap cm;
@@ -214,8 +214,8 @@ namespace OpenMS
     outstr.close();
   }
 
- void IonIdentityMolecularNetworking::writeSupplementaryPairTable(const String& consensus_file, const String& output_file) const
- {
+  void IonIdentityMolecularNetworking::writeSupplementaryPairTable(const String& consensus_file, const String& output_file)
+  {
     // load ConsensusMap from file
     ConsensusMap cm;
     ConsensusXMLFile().load(consensus_file, cm);

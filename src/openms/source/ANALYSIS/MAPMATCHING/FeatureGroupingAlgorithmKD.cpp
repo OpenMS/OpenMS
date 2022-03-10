@@ -285,8 +285,7 @@ namespace OpenMS
     {
       if (f.metaValueExists(Constants::UserParam::IIMN_LINKED_GROUPS))
       {
-        IonIdentityMolecularNetworking iimn;
-        iimn.annotateConsensusMap(out);
+        IonIdentityMolecularNetworking::annotateConsensusMap(out);
         break;
       }
     }

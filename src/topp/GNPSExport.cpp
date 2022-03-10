@@ -139,9 +139,8 @@ protected:
     String out_quantification(getStringOption_("out_quantification"));
     String out_pairs(getStringOption_("out_pairs"));
 
-    IonIdentityMolecularNetworking iimn;
-    if (!out_pairs.empty()) iimn.writeSupplementaryPairTable(consensus_file_path, out_pairs);
-    if (!out_quantification.empty()) iimn.writeFeatureQuantificationTable(consensus_file_path, out_quantification);
+    if (!out_pairs.empty()) IonIdentityMolecularNetworking::writeSupplementaryPairTable(consensus_file_path, out_pairs);
+    if (!out_quantification.empty()) IonIdentityMolecularNetworking::writeFeatureQuantificationTable(consensus_file_path, out_quantification);
 
     GNPSMGFFile gnps;
     gnps.setLogType(log_type_);
