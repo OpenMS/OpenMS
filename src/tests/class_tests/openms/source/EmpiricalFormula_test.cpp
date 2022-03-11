@@ -46,6 +46,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 
 #include <sstream>
+#include <map>
 
 using namespace OpenMS;
 using namespace std;
@@ -403,7 +404,7 @@ END_SECTION
 
 START_SECTION(ConstIterator begin() const)
   EmpiricalFormula ef("C6H12O6");
-  Map<String, SignedSize> formula;
+  std::map<String, SignedSize> formula;
   formula["C"] = 6;
   formula["H"] = 12;
   formula["O"] = 6;
