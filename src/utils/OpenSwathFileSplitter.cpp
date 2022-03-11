@@ -93,8 +93,7 @@ protected:
   {
     registerInputFile_("in", "<files>", "", "Input file (SWATH/DIA file)");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML"));
-
-    registerStringOption_("outputDirectory", "<output>", "./", "Output path to store the split files", false, true);
+    registerOutputPrefix_("outputDirectory", "<output>", "./", "Output file prefix", false, true);
     
     // additional QC data
     registerOutputFile_("out_qc", "<file>", "", "Optional QC meta data (charge distribution in MS1). Only works with mzML input files.", false, true);
