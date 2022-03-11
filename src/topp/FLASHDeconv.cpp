@@ -438,6 +438,12 @@ protected:
 
   static std::vector<double> getTargetMasses(String targets)
   {
+    vector<double> result;
+    if(targets.empty())
+    {
+      return result;
+    }
+
     String target_masses;
     if(isdigit(targets[0]))
     {
@@ -453,7 +459,7 @@ protected:
       }
     }
 
-    vector<double> result;
+
 
     std::cout<<"Monoisotopic masses ";
     stringstream s_stream(target_masses); //create string stream from the string
