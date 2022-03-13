@@ -189,7 +189,7 @@ protected:
         << " with lower " << swath_maps[i].lower
         << " and upper " << swath_maps[i].upper
         << " and im Lower bounds of " << swath_maps[i].imLower
-        << " and imUpper bounds of " << swath_maps[i].imUpper
+        << " and im Upper bounds of " << swath_maps[i].imUpper
         << " and " << swath_maps[i].sptr->getNrSpectra()
         << " spectra." << std::endl;
     }
