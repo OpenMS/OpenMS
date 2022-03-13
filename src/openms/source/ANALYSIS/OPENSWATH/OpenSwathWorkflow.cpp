@@ -542,7 +542,7 @@ namespace OpenMS
 
     if (pasef_)
     {
-      // For PASEF experiments it is possible that have DIA windows with the same m/z however different IM.
+      // For PASEF experiments it is possible to have DIA windows with the same m/z however different IM.
       // Extract from the DIA window in which the precursor is more centered across its IM.
 
       tr_win_map.resize(transition_exp.transitions.size(), -1);
