@@ -62,11 +62,11 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         bool operator!=(EmpiricalFormula) nogil except + # wrap-doc:Returns true if the formulas differ in elements composition
 
         EmpiricalFormula operator+(EmpiricalFormula) nogil except +
-        # EmpiricalFormula operator-(EmpiricalFormula) nogil except +
-        # EmpiricalFormula operator*(EmpiricalFormula) nogil except +
+        EmpiricalFormula operator-(EmpiricalFormula) nogil except +
+        EmpiricalFormula operator*(EmpiricalFormula) nogil except +
 
         EmpiricalFormula iadd(EmpiricalFormula)   nogil except + # wrap-as:operator+=
-        # EmpiricalFormula iminus(EmpiricalFormula)   nogil except + # wrap-as:operator-=
+        EmpiricalFormula iminus(EmpiricalFormula)   nogil except + # wrap-as:operator-=
 
         double calculateTheoreticalIsotopesNumber() nogil except +
         
