@@ -246,7 +246,7 @@ for rt_idx in range(NR_RT_SAMPLES):
 
 
 
-############# EXPOERT MZML FILE ##########################
+############# EXPORT MZML FILE ##########################
 
 f = MzMLFile()
 pf = f.getOptions()
