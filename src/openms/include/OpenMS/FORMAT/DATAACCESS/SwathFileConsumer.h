@@ -289,7 +289,7 @@ public:
 
             OPENMS_LOG_DEBUG << "Adding Swath centered at " << center
               << " m/z with an isolation window of " << lower << " to " << upper
-              << " m/z." << " and IM lower limit of " <<  lowerIm << " and upper limit of " << upperIm << std::endl;
+              << " m/z and IM lower limit of " <<  lowerIm << " and upper limit of " << upperIm << std::endl;
           }
         }
       }
