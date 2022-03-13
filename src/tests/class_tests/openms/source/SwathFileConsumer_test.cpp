@@ -93,7 +93,8 @@ void getSwathFile(PeakMap& exp, int nr_swathes=32, bool ms1=true, bool im=false)
         exp.addSpectrum(s);
       }
     }
-  } else 
+  } 
+  else 
   {  // add MS2 (without IM)
     for (int i = 0; i< nr_swathes; i++)
     {
