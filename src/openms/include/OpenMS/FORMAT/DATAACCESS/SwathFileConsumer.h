@@ -257,7 +257,7 @@ public:
           // We group by the precursor mz (center of the window) since this
           // should be present in all SWATH scans.
           // also specify ion mobility, if ion mobility not present will just be -1
-          if ((std::fabs(center - swath_map_boundaries_[i].center) < 1e-6) && (std::fabs(lowerIm - swath_map_boundaries_[i].imLower) < 1e-6) && (std::fabs(upperIm - swath_map_boundaries_[i].imUpper < 1e-6)))
+          if ( (std::fabs(center - swath_map_boundaries_[i].center) < 1e-6) && (std::fabs(lowerIm - swath_map_boundaries_[i].imLower) < 1e-6) && ( std::fabs(upperIm - swath_map_boundaries_[i].imUpper) < 1e-6))
           {
             found = true;
             consumeSwathSpectrum_(s, i);
