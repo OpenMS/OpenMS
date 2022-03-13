@@ -396,7 +396,7 @@ namespace OpenMS
 
             OPENMS_LOG_DEBUG << "Adding Swath centered at " << center
               << " m/z with an isolation window of " << lower << " to " << upper
-              << " m/z." <<  " and start of " << lowerIm << " and IM end of " << upperIm << std::endl;
+              << " m/z and start of " << lowerIm << " and IM end of " << upperIm << std::endl;
           }
         }
       }
