@@ -84,7 +84,6 @@ protected:
   // it gets automatically called on tool execution
   void registerOptionsAndFlags_() override
   {
-
     registerInputFile_("in", "<file>", "", "Input file (mzML)");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
@@ -193,7 +192,8 @@ protected:
 */
     registerIntOption_("merging_method", "<0: None 1: gaussian averaging 2: block method>", 0,
                                             "Method of spectra merging which should be used. 0: No merging "
-                                                                "1: Average gaussian method to perform moving gaussian averaging of spectra per MS level (e.g., for QTOF datasets). "
+                                                                "1: Average gaussian method to perform moving gaussian averaging of spectra per MS level. Effective to increase proteoform ID sensitivity "
+                       "(in particular for Q-TOF datasets). "
                                                                 "2: Block method to perform merging of all spectra into a single one per MS level (e.g., for NativeMS datasets)", false);
     setMinInt_("merging_method", 0);
     setMaxInt_("merging_method", 2);
@@ -853,7 +853,7 @@ protected:
       }
       if (out_topfd_streams.size() > ms_level - 1)
       {
-        deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], avg, topFD_SNR_threshold);
+        deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], avg, topFD_SNR_threshold);//, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
         #ifdef DEBUG_EXTRA_PARAMTER
         if(ms_level ==2 && !deconvoluted_spectrum.getPrecursorPeakGroup().empty()){
             f_out_topfd_file_log << scan_number <<","<<deconvoluted_spectrum.getPrecursorPeakGroup().getMonoMass()
