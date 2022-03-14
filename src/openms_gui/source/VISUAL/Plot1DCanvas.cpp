@@ -35,22 +35,23 @@
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 // OpenMS
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
-#include <OpenMS/CONCEPT/RAIICleanup.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/VISUAL/AxisWidget.h>
-#include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/DIALOGS/Plot1DPrefDialog.h>
+#include <OpenMS/VISUAL/ColorSelector.h>
+#include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
-#include <OpenMS/VISUAL/DIALOGS/Plot1DPrefDialog.h>
-
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
+#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/RAIICleanup.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 
 // Qt
 #include <QMouseEvent>
@@ -1382,39 +1383,10 @@ namespace OpenMS
       proposed_name = layer.filename;
     }
 
-    QString selected_filter;
-    QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(), "mzML files (*.mzML);;mzData files (*.mzData);;mzXML files (*.mzXML);;All files (*)", &selected_filter);
+    QString file_name = GUIHelpers::getSaveFilename(this, "Save file", proposed_name.toQString(), FileTypeList({FileTypes::MZML, FileTypes::MZDATA, FileTypes::MZXML}), true, FileTypes::MZML);
     if (file_name.isEmpty())
     {
       return;
-    }
-
-    // check whether a file type suffix has been given
-    // first check mzData and mzXML then mzML
-    // if the setting is at "All files"
-    // mzML will be used
-    String upper_filename = file_name;
-    upper_filename.toUpper();
-    if (selected_filter == "mzData files (*.mzData)")
-    {
-      if (!upper_filename.hasSuffix(".MZDATA"))
-      {
-        file_name += ".mzData";
-      }
-    }
-    else if (selected_filter == "mzXML files (*.mzXML)")
-    {
-      if (!upper_filename.hasSuffix(".MZXML"))
-      {
-        file_name += ".mzXML";
-      }
-    }
-    else
-    {
-      if (!upper_filename.hasSuffix(".MZML"))
-      {
-        file_name += ".mzML";
-      }
     }
 
     if (visible)

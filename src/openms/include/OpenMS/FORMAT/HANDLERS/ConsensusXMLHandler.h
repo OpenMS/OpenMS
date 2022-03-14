@@ -42,6 +42,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <unordered_map>
+#include <map>
 
 namespace OpenMS
 {
@@ -131,13 +132,13 @@ protected:
     /// Temporary peptide evidences
     std::vector<PeptideEvidence> peptide_evidences_;
     /// Map from protein id to accession
-    Map<String, String> proteinid_to_accession_;
+    std::map<String, String> proteinid_to_accession_;
     /// Map from search identifier concatenated with protein accession to id
     std::unordered_map<std::string, UInt> accession_to_id_;
     /// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
-    Map<String, String> identifier_id_;
+    std::map<String, String> identifier_id_;
     /// Map from file xs:id to identification run identifier (for linking peptide identifications to the corresponding run)
-    Map<String, String> id_identifier_;
+    std::map<String, String> id_identifier_;
     /// Temporary search parameters file
     ProteinIdentification::SearchParameters search_param_;
 

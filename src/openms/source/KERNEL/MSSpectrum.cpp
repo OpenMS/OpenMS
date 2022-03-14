@@ -368,6 +368,8 @@ namespace OpenMS
 
   void MSSpectrum::sortByPositionPresorted(const std::vector<Chunk>& chunks)
   {
+    if (chunks.empty()) return;
+
     if (chunks.size() == 1 && chunks[0].is_sorted)
     {
       return;

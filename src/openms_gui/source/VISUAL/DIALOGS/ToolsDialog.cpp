@@ -51,8 +51,6 @@
 #include <QtWidgets/QCheckBox>
 #include <QProcess>
 
-
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>

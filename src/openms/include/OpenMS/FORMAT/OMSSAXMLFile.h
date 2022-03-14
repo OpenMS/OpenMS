@@ -38,7 +38,6 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 
@@ -146,10 +145,10 @@ private:
     bool load_empty_hits_;
 
     /// modifications mapping file from OMSSA mod num to UniMod accession
-    Map<UInt, std::vector<const ResidueModification*> > mods_map_;
+    std::map<UInt, std::vector<const ResidueModification*> > mods_map_;
 
     /// modification mapping reverse, from the modification to the mod_num
-    Map<String, UInt> mods_to_num_;
+    std::map<String, UInt> mods_to_num_;
 
     /// modification definitions set of the search, needed to annotate fixed modifications
     ModificationDefinitionsSet mod_def_set_;

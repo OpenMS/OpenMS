@@ -53,6 +53,7 @@
 #include <QtCore/QRegExp>
 
 #include <QSvgRenderer>
+#include <map>
 
 namespace OpenMS
 {
@@ -762,7 +763,7 @@ namespace OpenMS
     QStringList files = this->getFileNames();
 
     std::map<String, NameComponent> name_old_to_new;
-    Map<String, int> name_new_count, name_new_idx; // count occurrence (for optional counter infix)
+    std::map<String, int> name_new_count, name_new_idx; // count occurrence (for optional counter infix)
 
     // a first round to find which filenames are not unique (and require augmentation with a counter)
 
