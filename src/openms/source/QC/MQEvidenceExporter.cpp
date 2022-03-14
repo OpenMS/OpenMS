@@ -44,8 +44,6 @@
 #include <cmath> // isnan
 #include <fstream>
 
-#include <cmath> // isnan
-#include <fstream>
 
 using namespace OpenMS;
 
