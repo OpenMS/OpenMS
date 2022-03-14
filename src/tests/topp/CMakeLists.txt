@@ -797,7 +797,12 @@ set_tests_properties("TOPP_GNPSExport_2_out" PROPERTIES DEPENDS "TOPP_GNPSExport
 add_test("TOPP_GNPSExport_3" ${TOPP_BIN_PATH}/GNPSExport -test -ini ${DATA_DIR_TOPP}/GNPSExport_3_binsize.ini -in_cm ${DATA_DIR_TOPP}/GNPSExport_cons1.consensusXML -in_mzml ${DATA_DIR_TOPP}/GNPSExport_mzml1.mzML ${DATA_DIR_TOPP}/GNPSExport_mzml2.mzML -out GNPSExport_3_out.tmp -out_quantification GNPSExport_3_out_quant.tmp)
 add_test("TOPP_GNPSExport_3_out" ${DIFF} -in1 GNPSExport_3_out.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_3_out.mgf)
 set_tests_properties("TOPP_GNPSExport_3_out" PROPERTIES DEPENDS "TOPP_GNPSExport_3")
-
+# test output for IonIdentityMolecularNetworking
+add_test("TOPP_GNPSExport_4" ${TOPP_BIN_PATH}/GNPSExport -test -in_cm ${DATA_DIR_TOPP}/GNPSExport_cons2.consensusXML -in_mzml ${DATA_DIR_TOPP}/GNPSExport_mzml1.mzML ${DATA_DIR_TOPP}/GNPSExport_mzml2.mzML -out GNPSExport_4_out.tmp -out_quantification GNPSExport_4_out_quant.tmp -out_pairs GNPSExport_4_out_pairs.tmp)
+add_test("TOPP_GNPSExport_4_out_quant" ${DIFF} -in1 GNPSExport_4_out_quant.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_4_out_quant.txt)
+set_tests_properties("TOPP_GNPSExport_4_out_quant" PROPERTIES DEPENDS "TOPP_GNPSExport_4")
+add_test("TOPP_GNPSExport_4_out_pairs" ${DIFF} -in1 GNPSExport_4_out_pairs.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_4_out_pairs.csv)
+set_tests_properties("TOPP_GNPSExport_4_out_pairs" PROPERTIES DEPENDS "TOPP_GNPSExport_4")
 #------------------------------------------------------------------------------ 
 # HighResPrecursorMassCorrector tests
 add_test("TOPP_HighResPrecursorMassCorrector_1"

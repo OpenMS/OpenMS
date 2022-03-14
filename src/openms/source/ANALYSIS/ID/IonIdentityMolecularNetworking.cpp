@@ -50,10 +50,10 @@
 struct VertexLabel
 {
   VertexLabel() = default;
-  VertexLabel(size_t u, bool is_feat):uid(u), is_feature(is_feat) {}
+  VertexLabel(OpenMS::String u, bool is_feat):uid(u), is_feature(is_feat) {}
   // if feature vertex: index (0 to n) for a feature in ConsensusMap; 
   // if group vertex: Constants::UserParam::ADDUCT_GROUP from ConsensusFeature Constants::UserParam::IIMN_LINKED_GROUPS
-  size_t uid = 0; 
+  OpenMS::String uid = "0"; 
   // false = vertex represents a group, true = vertex represents a feature   
   bool is_feature = false;
 };
@@ -92,12 +92,12 @@ namespace OpenMS
     {
       out[i].setMetaValue(Constants::UserParam::IIMN_ROW_ID, i+1);
       if (!out[i].metaValueExists(Constants::UserParam::IIMN_LINKED_GROUPS)) continue;
-      auto feature_vertex = add_vertex(VertexLabel(i, true), g);
+      auto feature_vertex = add_vertex(VertexLabel(String(i), true), g);
       for (const auto& group: out[i].getMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS).toStringList())
       {
         if (!already_in_graph[group])
         {
-          add_edge(feature_vertex, add_vertex(VertexLabel(std::stoi(group), false), g), g);
+          add_edge(feature_vertex, add_vertex(VertexLabel(group, false), g), g);
           already_in_graph[group] = boost::num_vertices(g);
           continue;
         }
@@ -115,7 +115,7 @@ namespace OpenMS
     for (auto i : boost::make_iterator_range(vertices(g)))
     {
       if (!g[i].is_feature) continue;
-      out[g[i].uid].setMetaValue(Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER, components[i]+1);
+      out[stoi(g[i].uid)].setMetaValue(Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER, components[i]+1);
       auto group_neighbours = boost::adjacent_vertices(i, g);
       for (auto gn : make_iterator_range(group_neighbours))
       {
@@ -124,7 +124,7 @@ namespace OpenMS
         for (auto partner : make_iterator_range(feature_partners))
         {
           if (i == partner) continue;
-          partner_map[g[i].uid].insert(g[partner].uid);
+          partner_map[stoi(g[i].uid)].insert(stoi(g[partner].uid));
         }
       }
     }
@@ -202,7 +202,7 @@ namespace OpenMS
       {
         if (index_to_feature.count(i))
         {
-        out << index_to_feature[i].getRT() << index_to_feature[i].getMZ() << index_to_feature[i].getIntensity() << index_to_feature[i].getCharge() << index_to_feature[i].getWidth();
+          out << index_to_feature[i].getRT() << index_to_feature[i].getMZ() << index_to_feature[i].getIntensity() << index_to_feature[i].getCharge() << index_to_feature[i].getWidth();
         }
         else
         {
@@ -220,7 +220,17 @@ namespace OpenMS
     ConsensusMap cm;
     ConsensusXMLFile().load(consensus_file, cm);
 
-    // generate unordered map with feature index and partner feature indices
+    // exit early if there is no IIMN annotations (first feature has no Constants::UserParam::IIMN_ROW_ID)
+    if (!cm[0].metaValueExists(Constants::UserParam::IIMN_ROW_ID)) return;
+
+    // map feature Constants::UserParam::IIMN_ROW_ID to it's index
+    std::unordered_map<size_t, size_t> row_id_to_index; // map<feature_row_id, feature_index>
+    for (size_t i = 0; i < cm.size(); i++)
+    {
+      row_id_to_index[cm[i].getMetaValue(Constants::UserParam::IIMN_ROW_ID)] = i;
+    }
+
+    // generate unordered map with feature id and partner feature ids
     std::unordered_map<size_t, std::set<size_t>> feature_partners; // map<feature_index, partner_feature_indices>
     for (size_t i = 0; i < cm.size(); i++)
     {
@@ -230,8 +240,15 @@ namespace OpenMS
       {
         String substr;
         getline(ss, substr, ';');
-        feature_partners[i].insert(stoi(substr)-1);
+        if (row_id_to_index[stoi(substr)]) feature_partners[i].insert(row_id_to_index[stoi(substr)]);
       }
+    }
+    
+    // get number of partners for each feature to later calculate score of annotation
+    std::unordered_map<size_t, size_t> num_partners;
+    for (const auto& entry: feature_partners)
+    {
+      num_partners[entry.first] = entry.second.size();
     }
 
     // initialize SVOutStream with tab separation
@@ -241,33 +258,23 @@ namespace OpenMS
     // write table header
     out << "ID 1" << "ID 2" << "EdgeType" << "Score" << "Annotation" << std::endl;
 
-    // get number of partners for each feature to later calculate score of annotation
-    std::unordered_map<size_t, size_t> num_partners;
-    for (const auto& entry: feature_partners)
-    {
-      num_partners[entry.first] = entry.second.size();
-    }
-
     // write edge annotation for each feature / partner feature pair
     for (const auto& entry: feature_partners)
     {
-      std::cout << entry.first << ": ";
       for (const auto& partner_index: entry.second)
       {
-        std::cout << partner_index << ", ";
         out << cm[entry.first].getMetaValue(Constants::UserParam::IIMN_ROW_ID);
         out << cm[partner_index].getMetaValue(Constants::UserParam::IIMN_ROW_ID);
         out << "MS1 annotation";
         out << num_partners[entry.first] + num_partners[partner_index] - 2; // total number of direct partners from both features minus themselves
         std::stringstream annotation;
-        annotation << cm[entry.first].getMetaValue(Constants::UserParam::IIMN_BEST_ION) << " "
-                   << cm[partner_index].getMetaValue(Constants::UserParam::IIMN_BEST_ION) << " "
+        annotation << cm[entry.first].getMetaValue(Constants::UserParam::IIMN_BEST_ION, String("default")) << " "
+                   << cm[partner_index].getMetaValue(Constants::UserParam::IIMN_BEST_ION, String("default")) << " "
                    << "dm/z=" << String(std::abs(cm[entry.first].getMZ() - cm[partner_index].getMZ()));
         out << annotation.str();
         out << std::endl;
         feature_partners[partner_index].erase(entry.first); // remove other direction to avoid duplicates
       }
-      std::cout << std::endl;
     }
     outstr.close();
   }
