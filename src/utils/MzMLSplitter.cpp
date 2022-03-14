@@ -102,7 +102,9 @@ protected:
     String in = getStringOption_("in"), out = getStringOption_("out");
 
     if (out.empty())
+    {
       out = FileHandler::stripExtension(in);
+    }
 
     bool no_chrom = getFlag_("no_chrom"), no_spec = getFlag_("no_spec");
     if (no_chrom && no_spec)
