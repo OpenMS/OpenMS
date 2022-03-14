@@ -189,6 +189,8 @@ protected:
     setValidFormats_("lib_out", ListUtils::create<String>("traML"));
     registerOutputFile_("chrom_out", "<file>", "", "Output file: Chromatograms", false);
     setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
+    registerOutputFile_("candidates_out", "<file>", "", "Output file: Feature candidates (before filtering and model fitting)", false);
+    setValidFormats_("candidates_out", ListUtils::create<String>("featureXML"));
     registerInputFile_("candidates_in", "<file>", "",
                        "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.",
                        false, true);
@@ -196,6 +198,7 @@ protected:
 
     Param algo_with_subsection;
     Param subsection = FeatureFinderIdentificationAlgorithm().getDefaults();
+    subsection.remove("candidates_out");
     algo_with_subsection.insert("", subsection);
     registerFullParam_(algo_with_subsection);
   }
@@ -208,6 +211,7 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
     String out = getStringOption_("out");
+    String candidates_out = getStringOption_("candidates_out");
 
     String candidates_in = getStringOption_("candidates_in");
 
