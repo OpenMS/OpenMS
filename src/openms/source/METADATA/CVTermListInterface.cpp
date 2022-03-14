@@ -36,11 +36,12 @@
 
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/CONCEPT/Helpers.h>
+#include <map>
 
 namespace OpenMS
 {
 
-  static const Map<String, std::vector<CVTerm> > empty_cvterm_map = Map<String, std::vector<CVTerm> >();
+  static const std::map<String, std::vector<CVTerm> > empty_cvterm_map = std::map<String, std::vector<CVTerm> >();
 
   CVTermListInterface::CVTermListInterface() :
       MetaInfoInterface(),
@@ -116,7 +117,7 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  void CVTermListInterface::replaceCVTerms(Map<String, std::vector<CVTerm> > & cv_terms)
+  void CVTermListInterface::replaceCVTerms(std::map<String, std::vector<CVTerm> > & cv_terms)
   {
     createIfNotExists_();
     cvt_ptr_->replaceCVTerms(cv_terms);
@@ -153,19 +154,19 @@ namespace OpenMS
     cvt_ptr_->replaceCVTerms(cv_terms, accession);
   }
 
-  void CVTermListInterface::replaceCVTerms(const Map<String, std::vector<CVTerm> >& cv_term_map)
+  void CVTermListInterface::replaceCVTerms(const std::map<String, std::vector<CVTerm> >& cv_term_map)
   {
     createIfNotExists_();
     cvt_ptr_->replaceCVTerms(cv_term_map);
   }
 
-  void CVTermListInterface::consumeCVTerms(const Map<String, std::vector<CVTerm> >& cv_term_map)
+  void CVTermListInterface::consumeCVTerms(const std::map<String, std::vector<CVTerm> >& cv_term_map)
   {
     createIfNotExists_();
     cvt_ptr_->consumeCVTerms(cv_term_map);
   }
 
-  const Map<String, std::vector<CVTerm> >& CVTermListInterface::getCVTerms() const
+  const std::map<String, std::vector<CVTerm> >& CVTermListInterface::getCVTerms() const
   {
     if (!cvt_ptr_)
     {

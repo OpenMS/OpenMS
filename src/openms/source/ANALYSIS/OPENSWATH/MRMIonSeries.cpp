@@ -317,7 +317,7 @@ namespace OpenMS
 
       if (interpretation.hasCVTerm("MS:1001524") && (enable_specific_losses || enable_unspecific_losses)) // fragment ion neutral loss
       {
-        double nl = interpretation.getCVTerms()["MS:1001524"][0].getValue().toString().toDouble();
+        double nl = interpretation.getCVTerms().at("MS:1001524")[0].getValue().toString().toDouble();
         // SpectraST style neutral losses
         if (nl == -18)
         {

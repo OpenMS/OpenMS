@@ -35,8 +35,9 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <map>
 
 class QStringList;
 
@@ -70,7 +71,7 @@ namespace OpenMS
   */
 
   /// map each TOPP/UTIL to its ToolDescription
-  typedef Map<String, Internal::ToolDescription> ToolListType;
+  typedef std::map<String, Internal::ToolDescription> ToolListType;
 
   class OPENMS_DLLAPI ToolHandler
   {

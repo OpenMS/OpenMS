@@ -125,7 +125,7 @@ namespace OpenMS
     // Painting tick levels
     for (Size i = 0; i != grid.size(); i++)
     {
-      // Just draw text on big intervalls
+      // Just draw text on big intervals
       if (is_log && i > 0)
       {
         break;

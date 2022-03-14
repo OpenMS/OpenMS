@@ -34,10 +34,11 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -46,7 +47,7 @@ namespace OpenMS
   */
 
   /// map each old TOPP/UTIL to its new Name
-  typedef Map<Internal::ToolDescriptionInternal, Internal::ToolDescriptionInternal> ToolMapping;
+  typedef std::map<Internal::ToolDescriptionInternal, Internal::ToolDescriptionInternal> ToolMapping;
 
   class OPENMS_DLLAPI INIUpdater
   {

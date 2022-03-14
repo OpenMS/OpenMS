@@ -36,7 +36,7 @@
 
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <map>
 
 namespace OpenMS
 {
@@ -89,13 +89,13 @@ public:
     void replaceCVTerms(const std::vector<CVTerm>& cv_terms, const String& accession);
 
     /// replaces all cv terms with a map (can be obtained via getCVTerms)
-    void replaceCVTerms(const Map<String, std::vector<CVTerm> >& cv_term_map);
+    void replaceCVTerms(const std::map<String, std::vector<CVTerm> >& cv_term_map);
 
     /// merges the given map into the member map, no duplicate checking
-    void consumeCVTerms(const Map<String, std::vector<CVTerm> >& cv_term_map);
+    void consumeCVTerms(const std::map<String, std::vector<CVTerm> >& cv_term_map);
 
     /// returns the accession string of the term
-    const Map<String, std::vector<CVTerm> >& getCVTerms() const;
+    const std::map<String, std::vector<CVTerm> >& getCVTerms() const;
 
     /// adds a CV term
     void addCVTerm(const CVTerm& term);
@@ -129,7 +129,7 @@ public:
 
 protected:
 
-    Map<String, std::vector<CVTerm> > cv_terms_;
+  std::map<String, std::vector<CVTerm> > cv_terms_;
 
   };
 

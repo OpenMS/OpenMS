@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Exception.h>

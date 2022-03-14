@@ -160,6 +160,14 @@ namespace OpenMS
         return 1;
         #endif
       }
+      /// @brief Set the number of threads that OpenMP will use (including hyperthreads)
+      /// Note: Can be initialized by the OMP_NUM_THREADS environment variable. This function can overwrite this at runtime.
+      static void setOpenMPNumThreads(Int num_threads)
+      {
+        #ifdef _OPENMP
+        omp_set_num_threads(num_threads);
+        #endif
+      }
     };
 
   } // NS Internal

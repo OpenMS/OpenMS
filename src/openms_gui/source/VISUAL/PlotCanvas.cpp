@@ -486,8 +486,8 @@ namespace OpenMS
     // add 4% margin (2% left, 2% right) to RT, m/z and intensity
     layer_range.scaleBy(1.04);
 
-    // set minimum intensity to 0
-    layer_range.extendIntensity(0);
+    // set minimum intensity to 0 (avoid negative intensities!)
+    layer_range.RangeIntensity::setMin(0);
 
     overall_data_range_ = DRange<3>::empty;
     DRange<3>::PositionType m_min = overall_data_range_.minPosition();
