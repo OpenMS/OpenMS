@@ -2538,7 +2538,6 @@ namespace OpenMS
           }
         }
       }
-
     }
     catch (Exception::BaseException& e)
     {

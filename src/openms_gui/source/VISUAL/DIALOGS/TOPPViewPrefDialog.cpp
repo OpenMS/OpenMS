@@ -173,7 +173,6 @@ namespace OpenMS
       {
         ui_->plugins_path->setText(path);
       }
-
     }
 
   }   //namespace Internal

@@ -62,7 +62,6 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI TVToolDiscovery
   {
   public:
-
     TVToolDiscovery() :
       plugin_path_() {};
 
@@ -84,7 +83,7 @@ namespace OpenMS
     void waitForPluginParams();
 
     /**
-       @brief Returns a param containing the params for each tool/util.
+       @brief Returns a Param object containing the params for each tool/util.
        @details
        Note that it is possible that not all param futures have been finished (or loaded) yet if this function is called.
        In that case, the function starts param parsing (loadParam()) and waits for completion (waitForToolParams())

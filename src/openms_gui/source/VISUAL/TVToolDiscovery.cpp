@@ -57,13 +57,13 @@ namespace OpenMS
       const auto &tools = ToolHandler::getTOPPToolList();
       const auto &utils = ToolHandler::getUtilList();
       // Launch threads for loading tool/util params.
-      for (const auto& [name, _] : tools)
+      for (const auto& tool : tools)
       {
-        tool_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, name, false));
+        tool_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, tool.first, false));
       }
-      for (const auto& [name, _] : utils)
+      for (const auto& util : utils)
       {
-        tool_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, name, false));
+        tool_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, util.first, false));
       }
       return true;
     }();
@@ -184,16 +184,16 @@ namespace OpenMS
       return tool_param;
     }
     
-    if (plugins) {
+    if (plugins)
+    {
       auto tool_name = tool_param.begin().getTrace().begin()->name;
       auto filename = tool_path.substr(tool_path.find_first_of('/') + 1);
-      tool_param.setValue(tool_name + ":filename", filename, "The filename of the plugin executable, this entry is automatically generated");
+      tool_param.setValue(tool_name + ":filename", filename, "The filename of the plugin executable. This entry is automatically generated.");
     }
 
     return tool_param;
   }
 
-  // MAYBE USE THIS TO GET THE PLUGINS IN TOOLSDIALOG
   const std::vector<std::string>& TVToolDiscovery::getPlugins()
   {
     return plugins_;

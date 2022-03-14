@@ -124,14 +124,14 @@ private:
     Param tool_params_;
     /// Param object containing all plugin params
     Param plugin_params_;
-    ///Pointer to the tool scanner for access to the plugins and to rerun the plugins detection
+    /// Pointer to the tool scanner for access to the plugins and to rerun the plugins detection
     TVToolDiscovery* tool_scanner_;
-    ///The layer type of the current layer to determine all usable plugins
+    /// The layer type of the current layer to determine all usable plugins
     LayerDataBase::DataType layer_type_;
 
-      ///Disables the ok button and input/output comboboxes
+    /// Disables the ok button and input/output comboboxes
     void disable_();
-    ///Enables the ok button and input/output comboboxes
+    /// Enables the ok button and input/output comboboxes
     void enable_();
     /// Determine all types a tool is compatible with by mapping each file extensions in a tools param
     std::vector<LayerDataBase::DataType> getTypesFromParam_(const Param& p) const;
@@ -146,9 +146,9 @@ protected slots:
     void setTool_(int i);
     /// Slot that retrieves and displays the defaults
     void createINI_();
-    /// loads an ini-file into the editor_
+    /// loads an ini-file into the editor
     void loadINI_();
-    /// stores an ini-file from the editor_
+    /// stores an ini-file from the editor
     void storeINI_();
     /// rerun the automatic plugin detection
     void reloadPlugins_();

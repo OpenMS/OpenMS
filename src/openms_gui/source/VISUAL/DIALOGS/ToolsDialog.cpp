@@ -486,7 +486,6 @@ namespace OpenMS
       tools_combo_->setCurrentIndex(selected_index);
       createINI_();
     }
-
   }
 
   String ToolsDialog::getOutput()
