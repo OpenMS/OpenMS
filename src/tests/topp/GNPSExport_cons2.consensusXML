@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
-<consensusXML version="1.7" id="cm_1943568652285422466" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<dataProcessing completion_time="2022-03-11T10:25:34">
-		<software name="FeatureLinkerUnlabeledKD" version="3.0.0-pre-feature-annotations-for-IIMN-2022-03-10" />
+<consensusXML version="1.7" id="cm_15374811847567427634" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2022-03-14T14:28:11">
+		<software name="FeatureLinkerUnlabeledKD" version="3.0.0-pre-feature-annotations-for-IIMN-2022-03-14" />
 		<processingAction name="Feature grouping" />
 		<UserParam type="stringList" name="parameter: in" value="[MAD_1.featureXML,MAD_2.featureXML]"/>
-		<UserParam type="string" name="parameter: out" value="GNPSExport_cons2.consensusXML"/>
+		<UserParam type="string" name="parameter: out" value="FL.consensusXML"/>
 		<UserParam type="string" name="parameter: log" value=""/>
 		<UserParam type="int" name="parameter: debug" value="0"/>
 		<UserParam type="int" name="parameter: threads" value="1"/>
@@ -39,8 +39,8 @@
 		<UserParam type="string" name="parameter: algorithm:LOWESS:interpolation_type" value="cspline"/>
 		<UserParam type="string" name="parameter: algorithm:LOWESS:extrapolation_type" value="four-point-linear"/>
 	</dataProcessing>
-	<dataProcessing completion_time="2022-03-11T10:33:55">
-		<software name="FileFilter" version="3.0.0-pre-feature-annotations-for-IIMN-2022-03-10" />
+	<dataProcessing completion_time="2022-03-14T14:28:12">
+		<software name="FileFilter" version="3.0.0-pre-feature-annotations-for-IIMN-2022-03-14" />
 		<processingAction name="Data filtering" />
 		<UserParam type="string" name="parameter: in" value="FL.consensusXML"/>
 		<UserParam type="string" name="parameter: out" value="GNPSExport_cons2.consensusXML"/>
@@ -144,7 +144,7 @@
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="e_12110219259477702827" quality="2.546016e-04" charge="1">
+		<consensusElement id="e_9102089280068826926" quality="2.546016e-04" charge="1">
 			<centroid rt="257.596471976230532" mz="468.248870497886116" it="2.989855e07"/>
 			<groupedElementList>
 				<element map="0" id="42168973554289115" rt="257.586882000000003" mz="468.248791660804841" it="4.189745e07" charge="1"/>
@@ -155,11 +155,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="4"/>
-			<UserParam type="int" name="annotation network number" value="4"/>
-			<UserParam type="string" name="partners" value="648"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11229209690513141596,12528755362984058928]"/>
 		</consensusElement>
-		<consensusElement id="e_11292010857594900532" quality="1.543777e-03" charge="1">
+		<consensusElement id="e_3302167176923631230" quality="1.543777e-03" charge="1">
 			<centroid rt="240.082027076956052" mz="500.30409570573056" it="1.673655e08"/>
 			<groupedElementList>
 				<element map="0" id="205467838936975545" rt="239.856497999999988" mz="500.304404390935417" it="1.874058e08" charge="1"/>
@@ -174,11 +172,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="15"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="118;124;656;1113;1809;3598"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[735737247912008587,2286768050468062794]"/>
 		</consensusElement>
-		<consensusElement id="e_13352014805820566776" quality="6.035621e-04" charge="1">
+		<consensusElement id="e_1618287015542431867" quality="6.035621e-04" charge="1">
 			<centroid rt="230.440887420428794" mz="303.170245008252778" it="7.698664e07"/>
 			<groupedElementList>
 				<element map="0" id="284564770123434102" rt="230.646683999999993" mz="303.170295056605141" it="9.809345e07" charge="1"/>
@@ -193,10 +189,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="18"/>
-			<UserParam type="int" name="annotation network number" value="17"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[241239333919126660,372525208186227432]"/>
 		</consensusElement>
-		<consensusElement id="e_16644853619072330166" quality="2.483261e-04" charge="1">
+		<consensusElement id="e_15461586889649193735" quality="2.483261e-04" charge="1">
 			<centroid rt="283.389982451057506" mz="268.263737441868216" it="3.13803e07"/>
 			<groupedElementList>
 				<element map="0" id="548474104065901691" rt="283.112334000000033" mz="268.263713148038164" it="4.070253e07" charge="1"/>
@@ -211,11 +206,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="45"/>
-			<UserParam type="int" name="annotation network number" value="40"/>
-			<UserParam type="string" name="partners" value="1196;1624"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1345986327182921390,16998904185450037717]"/>
 		</consensusElement>
-		<consensusElement id="e_14879134680398725134" quality="5.252306e-04" charge="1">
+		<consensusElement id="e_18225355624057284049" quality="5.252306e-04" charge="1">
 			<centroid rt="213.609841385114748" mz="623.306711370001494" it="5.171418e07"/>
 			<groupedElementList>
 				<element map="0" id="592180884986409953" rt="213.06267600000001" mz="623.30707953035369" it="6.009863e07" charge="1"/>
@@ -226,11 +219,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="52"/>
-			<UserParam type="int" name="annotation network number" value="46"/>
-			<UserParam type="string" name="partners" value="3100;3132;3611"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2549349621450648520,2127869807431228868]"/>
 		</consensusElement>
-		<consensusElement id="e_5240026042491718058" quality="3.050804e-04" charge="1">
+		<consensusElement id="e_10168104592673455088" quality="3.050804e-04" charge="1">
 			<centroid rt="274.754372475227115" mz="321.257856703464199" it="4.019407e07"/>
 			<groupedElementList>
 				<element map="0" id="618561137274096590" rt="274.867518000000018" mz="321.257880800096643" it="5.275001e07" charge="1"/>
@@ -241,11 +232,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="55"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="106;1382"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1197336708354711828,9928792169409448781]"/>
 		</consensusElement>
-		<consensusElement id="e_13810303685265339050" quality="1.266756e-03" charge="1">
+		<consensusElement id="e_12882302879615889882" quality="1.266756e-03" charge="1">
 			<centroid rt="231.069110172173509" mz="343.263315001487399" it="1.595449e08"/>
 			<groupedElementList>
 				<element map="0" id="710851663798033806" rt="231.150684000000012" mz="343.263381080906981" it="1.836827e08" charge="1"/>
@@ -260,10 +249,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="59"/>
-			<UserParam type="int" name="annotation network number" value="50"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10526890595062972682,7670435046626724939]"/>
 		</consensusElement>
-		<consensusElement id="e_16487138181263791672" quality="3.266204e-04" charge="1">
+		<consensusElement id="e_2538145749919745514" quality="3.266204e-04" charge="1">
 			<centroid rt="217.923985029352139" mz="413.266273840211625" it="3.535108e07"/>
 			<groupedElementList>
 				<element map="0" id="712280558656463415" rt="217.816271999999998" mz="413.266310808947765" it="3.297943e07" charge="1"/>
@@ -274,11 +262,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="60"/>
-			<UserParam type="int" name="annotation network number" value="51"/>
-			<UserParam type="string" name="partners" value="508;1406;2076;2233;2670;2677;2744"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1558915521823244276,10318065514837802653]"/>
 		</consensusElement>
-		<consensusElement id="e_14313539339714159480" quality="3.039367e-04" charge="1">
+		<consensusElement id="e_5980382535614534293" quality="3.039367e-04" charge="1">
 			<centroid rt="226.880959891731436" mz="381.315142577558618" it="3.703409e07"/>
 			<groupedElementList>
 				<element map="0" id="722910202699177085" rt="226.908209999999997" mz="381.315223528082925" it="4.430945e07" charge="1"/>
@@ -289,11 +275,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-3H-2O]+"/>
-			<UserParam type="int" name="row ID" value="61"/>
-			<UserParam type="int" name="annotation network number" value="52"/>
-			<UserParam type="string" name="partners" value="525;675;3290"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[4065385324609064435,13908184340540837776]"/>
 		</consensusElement>
-		<consensusElement id="e_15236734466693785023" quality="5.450034e-03" charge="1">
+		<consensusElement id="e_9269614395700032277" quality="5.450034e-03" charge="1">
 			<centroid rt="276.075195272824885" mz="391.284420603854187" it="6.178249e08"/>
 			<groupedElementList>
 				<element map="0" id="1028571992244395463" rt="275.756010000000003" mz="391.284490948561484" it="7.474218e08" charge="1"/>
@@ -308,11 +292,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="90"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="293;392;517;567;713;735;1337;1617;1807;2932;3517;3946"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14539804607486901846,10404483201216448258]"/>
 		</consensusElement>
-		<consensusElement id="e_11731200559398610008" quality="4.102796e-04" charge="1">
+		<consensusElement id="e_10061334681697722814" quality="4.102796e-04" charge="1">
 			<centroid rt="203.702872545564617" mz="335.237425025012499" it="4.704346e07"/>
 			<groupedElementList>
 				<element map="0" id="1122835438619801303" rt="202.721124000000003" mz="335.237508394597569" it="5.44683e07" charge="1"/>
@@ -327,11 +309,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+K]+"/>
-			<UserParam type="int" name="row ID" value="101"/>
-			<UserParam type="int" name="annotation network number" value="81"/>
-			<UserParam type="string" name="partners" value="93;3816"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6388315258634680093,4292789746479685893]"/>
 		</consensusElement>
-		<consensusElement id="e_14126525227759372152" quality="3.157506e-03" charge="1">
+		<consensusElement id="e_14649877787598414293" quality="3.157506e-03" charge="1">
 			<centroid rt="220.982612172173504" mz="480.27821726131998" it="3.190392e08"/>
 			<groupedElementList>
 				<element map="0" id="1136903113702231625" rt="210.977688000000001" mz="480.278275290092324" it="2.222618e08" charge="1"/>
@@ -346,11 +326,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-2H+Na-O]+"/>
-			<UserParam type="int" name="row ID" value="103"/>
-			<UserParam type="int" name="annotation network number" value="66"/>
-			<UserParam type="string" name="partners" value="75;415;874;1028;2842"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[8465441082957135995,10258156179270919590]"/>
 		</consensusElement>
-		<consensusElement id="e_7164072786722861635" quality="2.808948e-03" charge="1">
+		<consensusElement id="e_2744777241538423180" quality="2.808948e-03" charge="1">
 			<centroid rt="212.544154321384383" mz="371.258147580191121" it="3.573371e08"/>
 			<groupedElementList>
 				<element map="0" id="1272405432698412911" rt="212.155680000000018" mz="371.258212247245808" it="5.398702e08" charge="1"/>
@@ -365,11 +343,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-3H-2O]+"/>
-			<UserParam type="int" name="row ID" value="117"/>
-			<UserParam type="int" name="annotation network number" value="97"/>
-			<UserParam type="string" name="partners" value="256;263;1423;1516;1520"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11509720332233479859,15537923199014164268]"/>
 		</consensusElement>
-		<consensusElement id="e_15964088422673275863" quality="1.115292e-03" charge="1">
+		<consensusElement id="e_14049755927606119892" quality="1.115292e-03" charge="1">
 			<centroid rt="231.069110172173509" mz="839.563382656972635" it="1.111917e08"/>
 			<groupedElementList>
 				<element map="0" id="1303470849584330371" rt="231.150684000000012" mz="839.563470132927023" it="1.098836e08" charge="1"/>
@@ -384,10 +360,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="120"/>
-			<UserParam type="int" name="annotation network number" value="99"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[4292016890223834078,12944241235659900281]"/>
 		</consensusElement>
-		<consensusElement id="e_5447596085626088336" quality="3.888265e-04" charge="1">
+		<consensusElement id="e_9958978068351737184" quality="3.888265e-04" charge="1">
 			<centroid rt="219.931628784375135" mz="429.300065380222577" it="4.526772e07"/>
 			<groupedElementList>
 				<element map="0" id="1326252794848716434" rt="219.526763999999986" mz="429.300093457029732" it="5.756982e07" charge="1"/>
@@ -402,11 +377,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="123"/>
-			<UserParam type="int" name="annotation network number" value="73"/>
-			<UserParam type="string" name="partners" value="82;448;633;791;883;1232;2465;2621;3402"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[18134854686010738612,11863983822799064158]"/>
 		</consensusElement>
-		<consensusElement id="e_1481257783920635340" quality="7.478477e-04" charge="1">
+		<consensusElement id="e_11239879178364937316" quality="7.478477e-04" charge="1">
 			<centroid rt="276.075195272824885" mz="337.252823225246914" it="8.682216e07"/>
 			<groupedElementList>
 				<element map="0" id="1627396718120454855" rt="275.756010000000003" mz="337.252883592267153" it="1.048434e08" charge="1"/>
@@ -417,11 +390,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="148"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="292;440;741;828;1382;1572;1617"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2742617040394196557,17521057431835351828]"/>
 		</consensusElement>
-		<consensusElement id="e_6155595994926342654" quality="2.917123e-03" charge="1">
+		<consensusElement id="e_15291767452725033475" quality="2.917123e-03" charge="1">
 			<centroid rt="249.505215966237046" mz="389.268827723623929" it="3.491014e08"/>
 			<groupedElementList>
 				<element map="0" id="1765461423588997904" rt="250.070183999999955" mz="389.268865489330096" it="3.95353e08" charge="1"/>
@@ -432,11 +403,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-2H+Na-O]+"/>
-			<UserParam type="int" name="row ID" value="162"/>
-			<UserParam type="int" name="annotation network number" value="132"/>
-			<UserParam type="string" name="partners" value="303;358;382;711;944"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15887138217931755940,6431048200889793990]"/>
 		</consensusElement>
-		<consensusElement id="e_16762645699138426697" quality="4.080052e-04" charge="1">
+		<consensusElement id="e_50791852352880247" quality="4.080052e-04" charge="1">
 			<centroid rt="237.789733758242392" mz="431.315402467381773" it="5.336443e07"/>
 			<groupedElementList>
 				<element map="0" id="1770074732405483313" rt="237.79889399999999" mz="431.315523442974097" it="5.08654e07" charge="1"/>
@@ -451,11 +420,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="163"/>
-			<UserParam type="int" name="annotation network number" value="133"/>
-			<UserParam type="string" name="partners" value="1706;1754;3091"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9190324478433363483,8137116456158973969]"/>
 		</consensusElement>
-		<consensusElement id="e_12758244590664333342" quality="1.03548e-03" charge="1">
+		<consensusElement id="e_4031225001625216178" quality="1.03548e-03" charge="1">
 			<centroid rt="239.738303745119566" mz="799.571521552108493" it="1.054037e08"/>
 			<groupedElementList>
 				<element map="0" id="1772013841665990886" rt="239.856497999999988" mz="799.571822185151063" it="1.253201e08" charge="1"/>
@@ -470,11 +437,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="164"/>
-			<UserParam type="int" name="annotation network number" value="84"/>
-			<UserParam type="string" name="partners" value="96;111;697;982;1056;1109;1417;1720;3013;3231;3396;3726"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17200423832801852707,15203073830231708158]"/>
 		</consensusElement>
-		<consensusElement id="e_14373230840207892160" quality="2.046477e-04" charge="1">
+		<consensusElement id="e_17713571490302851379" quality="2.046477e-04" charge="1">
 			<centroid rt="272.499675239000396" mz="344.280189167762444" it="2.286964e07"/>
 			<groupedElementList>
 				<element map="0" id="1780646729292844297" rt="272.772155999999995" mz="344.280184158701957" it="2.88379e07" charge="1"/>
@@ -489,10 +454,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="165"/>
-			<UserParam type="int" name="annotation network number" value="134"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3941421755157419397,14826190327101939209]"/>
 		</consensusElement>
-		<consensusElement id="e_13126367951144033504" quality="4.230727e-04" charge="1">
+		<consensusElement id="e_9982940841308374788" quality="4.230727e-04" charge="1">
 			<centroid rt="247.67183557694699" mz="445.256359189149975" it="4.930506e07"/>
 			<groupedElementList>
 				<element map="0" id="1900496045141425314" rt="247.268202000000002" mz="445.256376702460614" it="4.71829e07" charge="1"/>
@@ -507,11 +471,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="174"/>
-			<UserParam type="int" name="annotation network number" value="132"/>
-			<UserParam type="string" name="partners" value="303"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16149879025908179647,2767307671807942527]"/>
 		</consensusElement>
-		<consensusElement id="e_7542594983446291604" quality="5.645253e-04" charge="1">
+		<consensusElement id="e_11865507930142904291" quality="5.645253e-04" charge="1">
 			<centroid rt="251.738338147827051" mz="431.276752780422953" it="6.216447e07"/>
 			<groupedElementList>
 				<element map="0" id="1981808256707059397" rt="251.935674000000006" mz="431.276872985572425" it="6.376081e07" charge="1"/>
@@ -526,11 +488,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="181"/>
-			<UserParam type="int" name="annotation network number" value="148"/>
-			<UserParam type="string" name="partners" value="651;795;805;838;1022;1186;1499;1633;2924;3647"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[840721652604494424,13255477343899883452]"/>
 		</consensusElement>
-		<consensusElement id="e_12253391369763935993" quality="5.58981e-04" charge="1">
+		<consensusElement id="e_4682372002118336786" quality="5.58981e-04" charge="1">
 			<centroid rt="290.481995228168898" mz="401.33736847057969" it="6.524268e07"/>
 			<groupedElementList>
 				<element map="0" id="2381032416876160618" rt="290.658659999999998" mz="401.337465780334298" it="7.228422e07" charge="1"/>
@@ -545,11 +505,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="219"/>
-			<UserParam type="int" name="annotation network number" value="176"/>
-			<UserParam type="string" name="partners" value="1731;2438"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10242622382585244441,4482558462632584240]"/>
 		</consensusElement>
-		<consensusElement id="e_13497078808017329703" quality="4.495831e-04">
+		<consensusElement id="e_6752125609150030463" quality="4.495831e-04">
 			<centroid rt="238.245478758242427" mz="447.271906784905411" it="4.863006e07"/>
 			<groupedElementList>
 				<element map="0" id="2401119501942306947" rt="238.710384000000005" mz="447.272033166188407" it="4.46257e07" charge="1"/>
@@ -560,10 +518,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="221"/>
-			<UserParam type="int" name="annotation network number" value="178"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[12322467321965947888,2623684948781607645]"/>
 		</consensusElement>
-		<consensusElement id="e_15132217202823378664" quality="1.378119e-04" charge="1">
+		<consensusElement id="e_6441084148400027" quality="1.378119e-04" charge="1">
 			<centroid rt="285.116965789668143" mz="429.261815546199387" it="1.281031e07"/>
 			<groupedElementList>
 				<element map="0" id="2498901918600757732" rt="285.350819999999999" mz="429.261863126357866" it="1.257293e07" charge="1"/>
@@ -574,10 +531,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="231"/>
-			<UserParam type="int" name="annotation network number" value="186"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3738519209210834137,11883835266449621335]"/>
 		</consensusElement>
-		<consensusElement id="e_6836975906815872442" quality="2.537627e-04" charge="1">
+		<consensusElement id="e_4928920294555141202" quality="2.537627e-04" charge="1">
 			<centroid rt="242.614408599894176" mz="303.170120526553205" it="3.27576e07"/>
 			<groupedElementList>
 				<element map="0" id="2561895438769539346" rt="242.745353999999963" mz="303.17025592321022" it="4.648936e07" charge="1"/>
@@ -588,10 +544,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="235"/>
-			<UserParam type="int" name="annotation network number" value="189"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6387835203777247141,16685414760871955967]"/>
 		</consensusElement>
-		<consensusElement id="e_12801788951936200001" quality="2.290894e-04">
+		<consensusElement id="e_4872594042383589044" quality="2.290894e-04">
 			<centroid rt="293.497282960247333" mz="252.268540771483686" it="2.975626e07"/>
 			<groupedElementList>
 				<element map="0" id="2648367692485431010" rt="294.031139999999994" mz="252.268553558562815" it="3.505048e07"/>
@@ -602,11 +557,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+4H+N]+"/>
-			<UserParam type="int" name="row ID" value="240"/>
-			<UserParam type="int" name="annotation network number" value="101"/>
-			<UserParam type="string" name="partners" value="519;908;1772"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10083126428116438734,6463516134728952714]"/>
 		</consensusElement>
-		<consensusElement id="e_17300151769339407329" quality="7.737916e-04" charge="1">
+		<consensusElement id="e_15985659129136750892" quality="7.737916e-04" charge="1">
 			<centroid rt="242.916157599894206" mz="295.144051417666276" it="9.927983e07"/>
 			<groupedElementList>
 				<element map="0" id="2801334189236487376" rt="243.348852000000022" mz="295.144162670863466" it="1.460025e08" charge="1"/>
@@ -621,10 +574,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="255"/>
-			<UserParam type="int" name="annotation network number" value="198"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9669451473481091291,14028467469828910722]"/>
 		</consensusElement>
-		<consensusElement id="e_2108971527897721510" quality="3.786593e-04" charge="1">
+		<consensusElement id="e_15710955872309736467" quality="3.786593e-04" charge="1">
 			<centroid rt="286.28013805046686" mz="370.295778826346009" it="4.510734e07"/>
 			<groupedElementList>
 				<element map="0" id="2819768133089336721" rt="286.515810000000045" mz="370.295837893535747" it="5.859447e07" charge="1"/>
@@ -635,11 +587,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="258"/>
-			<UserParam type="int" name="annotation network number" value="200"/>
-			<UserParam type="string" name="partners" value="3469"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9392621009699529967,9956531075220818452]"/>
 		</consensusElement>
-		<consensusElement id="e_3529153283961887136" quality="2.528448e-04">
+		<consensusElement id="e_6979434008759461282" quality="2.528448e-04">
 			<centroid rt="291.015590256652104" mz="215.179405429658175" it="3.307164e07"/>
 			<groupedElementList>
 				<element map="0" id="2920833214797223392" rt="291.287531999999999" mz="215.1794331855005" it="4.056729e07" charge="1"/>
@@ -650,10 +600,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="268"/>
-			<UserParam type="int" name="annotation network number" value="207"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3535092188814232886,4217298923689620791]"/>
 		</consensusElement>
-		<consensusElement id="e_14084063119509520668" quality="1.860431e-04" charge="1">
+		<consensusElement id="e_5306726336801745759" quality="1.860431e-04" charge="1">
 			<centroid rt="276.413631272824887" mz="538.352939228495416" it="2.015441e07"/>
 			<groupedElementList>
 				<element map="0" id="2940482594108977901" rt="276.432882000000006" mz="538.353292218905608" it="2.703842e07" charge="1"/>
@@ -664,11 +613,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="273"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="152;336;1184;3911"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15528669513539323068,17378199340722049076]"/>
 		</consensusElement>
-		<consensusElement id="e_6299168663028825398" quality="4.169797e-03" charge="1">
+		<consensusElement id="e_14972929275187742671" quality="4.169797e-03" charge="1">
 			<centroid rt="275.93564245105722" mz="803.543210305422008" it="4.140687e08"/>
 			<groupedElementList>
 				<element map="0" id="3011641558925341946" rt="276.432882000000006" mz="803.5434709723163" it="4.556799e08" charge="1"/>
@@ -683,11 +630,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="277"/>
-			<UserParam type="int" name="annotation network number" value="212"/>
-			<UserParam type="string" name="partners" value="441;661;797;990;1200;3325;3422;3879"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1166662764143292727,1229027248657415969]"/>
 		</consensusElement>
-		<consensusElement id="e_10069805337211754730" quality="0.068015" charge="1">
+		<consensusElement id="e_8660929578929364077" quality="0.068015" charge="1">
 			<centroid rt="231.069110172173509" mz="355.263156677030395" it="7.829594e09"/>
 			<groupedElementList>
 				<element map="0" id="3086477218453585713" rt="231.150684000000012" mz="355.263221814486428" it="8.681897e09" charge="1"/>
@@ -702,11 +647,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-3H-2O]+"/>
-			<UserParam type="int" name="row ID" value="285"/>
-			<UserParam type="int" name="annotation network number" value="125"/>
-			<UserParam type="string" name="partners" value="176;354;831;899;1870;3518;3813"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17859876595212835447,8600836864356691446]"/>
 		</consensusElement>
-		<consensusElement id="e_1569886358420112971" quality="3.661746e-03" charge="1">
+		<consensusElement id="e_1718599075442405383" quality="3.661746e-03" charge="1">
 			<centroid rt="291.280901256652101" mz="767.581840928045949" it="3.844029e08"/>
 			<groupedElementList>
 				<element map="0" id="3222299148711154489" rt="291.818153999999993" mz="767.581859333236821" it="4.814477e08" charge="1"/>
@@ -721,11 +664,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="299"/>
-			<UserParam type="int" name="annotation network number" value="12"/>
-			<UserParam type="string" name="partners" value="12;40;211;521;913;1063;1082;1703;1878;1959;2588;3798;3818"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[834265897073005913,2480591179696070255]"/>
 		</consensusElement>
-		<consensusElement id="e_15521207552901073554" quality="7.366045e-04" charge="1">
+		<consensusElement id="e_384530865859149392" quality="7.366045e-04" charge="1">
 			<centroid rt="248.130019576947007" mz="423.274099720814831" it="8.798924e07"/>
 			<groupedElementList>
 				<element map="0" id="3292196855760909573" rt="248.184570000000008" mz="423.274134829455022" it="1.042669e08" charge="1"/>
@@ -740,11 +681,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="303"/>
-			<UserParam type="int" name="annotation network number" value="132"/>
-			<UserParam type="string" name="partners" value="162;174;358;382;711;944"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16149879025908179647,6431048200889793990]"/>
 		</consensusElement>
-		<consensusElement id="e_13041660124303790859" quality="3.060652e-04" charge="1">
+		<consensusElement id="e_2067939319773856284" quality="3.060652e-04" charge="1">
 			<centroid rt="240.082027076956052" mz="309.257638938684181" it="3.689084e07"/>
 			<groupedElementList>
 				<element map="0" id="3528744485571506188" rt="239.856497999999988" mz="309.257774856713581" it="4.188792e07" charge="1"/>
@@ -755,10 +694,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="328"/>
-			<UserParam type="int" name="annotation network number" value="246"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15566495802943470674,6912054524958066292]"/>
 		</consensusElement>
-		<consensusElement id="e_11594954877775555814" quality="4.339486e-03" charge="1">
+		<consensusElement id="e_5149807064284957539" quality="4.339486e-03" charge="1">
 			<centroid rt="239.503931745119559" mz="431.276778732094556" it="5.151288e08"/>
 			<groupedElementList>
 				<element map="0" id="3537173797415624472" rt="239.387754000000001" mz="431.276922071915976" it="4.998318e08" charge="1"/>
@@ -773,11 +711,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
-			<UserParam type="int" name="row ID" value="329"/>
-			<UserParam type="int" name="annotation network number" value="247"/>
-			<UserParam type="string" name="partners" value="522;1718;3095;3793;3874"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3309640009007707324,16213684170986410165]"/>
 		</consensusElement>
-		<consensusElement id="e_8376085532316650926" quality="7.367988e-04" charge="1">
+		<consensusElement id="e_7805594631535355474" quality="7.367988e-04" charge="1">
 			<centroid rt="239.738303745119566" mz="343.263391968667975" it="9.16534e07"/>
 			<groupedElementList>
 				<element map="0" id="3642119712779773844" rt="239.856497999999988" mz="343.263535210051089" it="1.124078e08" charge="1"/>
@@ -792,10 +728,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="344"/>
-			<UserParam type="int" name="annotation network number" value="253"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[5446514973817717896,1177165568996353364]"/>
 		</consensusElement>
-		<consensusElement id="e_16533318662644403179" quality="4.879699e-04" charge="1">
+		<consensusElement id="e_13366548631323590611" quality="4.879699e-04" charge="1">
 			<centroid rt="240.758675257126015" mz="426.321639927243666" it="5.479817e07"/>
 			<groupedElementList>
 				<element map="0" id="3668414778572647115" rt="240.466620000000006" mz="426.321915521006758" it="4.992033e07" charge="1"/>
@@ -810,10 +745,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="348"/>
-			<UserParam type="int" name="annotation network number" value="256"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[5120832817446198742,17595321204784983927]"/>
 		</consensusElement>
-		<consensusElement id="e_7573488088434327823" quality="0.021583" charge="1">
+		<consensusElement id="e_12974114663045778900" quality="0.021583" charge="1">
 			<centroid rt="233.789582263085322" mz="817.582116552576508" it="2.144191e09"/>
 			<groupedElementList>
 				<element map="0" id="3891173647707771170" rt="233.498916000000008" mz="817.582262092605674" it="2.310705e09" charge="1"/>
@@ -828,10 +762,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="365"/>
-			<UserParam type="int" name="annotation network number" value="266"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16228382277878587868,16184699114695902632]"/>
 		</consensusElement>
-		<consensusElement id="e_3845229174739603093" quality="2.564618e-03" charge="1">
+		<consensusElement id="e_13162370761346664757" quality="2.564618e-03" charge="1">
 			<centroid rt="291.015590256652104" mz="415.281579918512307" it="3.096028e08"/>
 			<groupedElementList>
 				<element map="0" id="3988511053422752884" rt="291.287531999999999" mz="415.281646683839142" it="3.313002e08" charge="1"/>
@@ -846,11 +779,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="376"/>
-			<UserParam type="int" name="annotation network number" value="156"/>
-			<UserParam type="string" name="partners" value="190;3288"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2594407212458788535,11979244933910423293]"/>
 		</consensusElement>
-		<consensusElement id="e_16300649179541731942" quality="5.14966e-03" charge="1">
+		<consensusElement id="e_5655235048289275341" quality="5.14966e-03" charge="1">
 			<centroid rt="275.597206451057218" mz="413.266297193869093" it="5.998818e08"/>
 			<groupedElementList>
 				<element map="0" id="4176545694060459124" rt="275.756010000000003" mz="413.266378571063342" it="6.934412e08" charge="1"/>
@@ -865,11 +796,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="392"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="90;293;517;567;713;735;1337;1617;1807;2932;3517;3946"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14539804607486901846,10404483201216448258]"/>
 		</consensusElement>
-		<consensusElement id="e_8473074096589657246" quality="3.48609e-04" charge="1">
+		<consensusElement id="e_5188739691554053975" quality="3.48609e-04" charge="1">
 			<centroid rt="291.015590256652104" mz="514.351059046548016" it="3.851628e07"/>
 			<groupedElementList>
 				<element map="0" id="4567787361933460354" rt="291.287531999999999" mz="514.351074935703991" it="4.909598e07" charge="1"/>
@@ -880,11 +809,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="421"/>
-			<UserParam type="int" name="annotation network number" value="294"/>
-			<UserParam type="string" name="partners" value="1312;1474;1542;2008;2359"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16873160249165502838,17544057862147979393]"/>
 		</consensusElement>
-		<consensusElement id="e_10328662024727003148" quality="1.785161e-04" charge="1">
+		<consensusElement id="e_4162801903388687584" quality="1.785161e-04" charge="1">
 			<centroid rt="275.597206451057218" mz="319.24237508872244" it="2.084641e07"/>
 			<groupedElementList>
 				<element map="0" id="4790117604860337869" rt="275.756010000000003" mz="319.242475027500802" it="2.557256e07" charge="1"/>
@@ -895,11 +822,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="440"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="148;292;741;828;1382;1572;1617"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2742617040394196557,17521057431835351828]"/>
 		</consensusElement>
-		<consensusElement id="e_5940816134140006793" quality="2.577626e-04" charge="1">
+		<consensusElement id="e_10594958489719701797" quality="2.577626e-04" charge="1">
 			<centroid rt="212.544154321384383" mz="504.265278314233115" it="2.65609e07"/>
 			<groupedElementList>
 				<element map="0" id="5268409245378012063" rt="212.155680000000018" mz="504.266242867561573" it="2.524838e07" charge="1"/>
@@ -914,10 +839,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="485"/>
-			<UserParam type="int" name="annotation network number" value="331"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1062932368271291179,6903137161745255902]"/>
 		</consensusElement>
-		<consensusElement id="e_5370429790217308011" quality="2.443349e-04" charge="1">
+		<consensusElement id="e_14422138875040084649" quality="2.443349e-04" charge="1">
 			<centroid rt="271.834179239000378" mz="466.299317592508373" it="2.664069e07"/>
 			<groupedElementList>
 				<element map="0" id="5278416229576661712" rt="271.441164000000015" mz="466.299327280374541" it="3.405695e07" charge="1"/>
@@ -932,11 +856,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="486"/>
-			<UserParam type="int" name="annotation network number" value="158"/>
-			<UserParam type="string" name="partners" value="693;901;1059;1098;2167"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[4919861835200904655,17850796386621745099]"/>
 		</consensusElement>
-		<consensusElement id="e_18054244039352832580" quality="3.163138e-04" charge="1">
+		<consensusElement id="e_14825090454830714383" quality="3.163138e-04" charge="1">
 			<centroid rt="288.645649736922906" mz="633.357480803599401" it="3.219104e07"/>
 			<groupedElementList>
 				<element map="0" id="5595356332700879915" rt="288.995297999999991" mz="633.357547174930346" it="4.30988e07" charge="1"/>
@@ -951,10 +873,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="512"/>
-			<UserParam type="int" name="annotation network number" value="342"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16443084505427490650,11620497841728976162]"/>
 		</consensusElement>
-		<consensusElement id="e_8148779006163109583" quality="0.066566" charge="1">
+		<consensusElement id="e_13653365639041177344" quality="0.066566" charge="1">
 			<centroid rt="291.015590256652104" mz="785.592380160100902" it="6.430025e09"/>
 			<groupedElementList>
 				<element map="0" id="5668475276240206060" rt="291.287531999999999" mz="785.592367557030229" it="7.574824e09" charge="1"/>
@@ -969,11 +890,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="521"/>
-			<UserParam type="int" name="annotation network number" value="12"/>
-			<UserParam type="string" name="partners" value="12;40;211;299;913;1063;1082;1703;1878;1959;2588;3798;3818"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[834265897073005913,2480591179696070255]"/>
 		</consensusElement>
-		<consensusElement id="e_4964263792736632415" quality="4.85466e-04" charge="1">
+		<consensusElement id="e_8900329394257224032" quality="4.85466e-04" charge="1">
 			<centroid rt="226.880959891731436" mz="399.325767171639086" it="5.751882e07"/>
 			<groupedElementList>
 				<element map="0" id="5725547447130286175" rt="226.908209999999997" mz="399.325800681819032" it="6.079084e07" charge="1"/>
@@ -984,11 +903,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="525"/>
-			<UserParam type="int" name="annotation network number" value="52"/>
-			<UserParam type="string" name="partners" value="61;675;3290"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[4065385324609064435,13908184340540837776]"/>
 		</consensusElement>
-		<consensusElement id="e_14342873106854744478" quality="1.928405e-04">
+		<consensusElement id="e_12469599188007784948" quality="1.928405e-04">
 			<centroid rt="206.638791752283169" mz="428.210292260023834" it="2.5149e07"/>
 			<groupedElementList>
 				<element map="0" id="5825096254475749511" rt="206.120099999999979" mz="428.210359697726744" it="3.198333e07" charge="1"/>
@@ -999,11 +916,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="539"/>
-			<UserParam type="int" name="annotation network number" value="242"/>
-			<UserParam type="string" name="partners" value="501;1154"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[12485583898312960357,1480281442906295444]"/>
 		</consensusElement>
-		<consensusElement id="e_16955448990304258590" quality="4.916047e-04">
+		<consensusElement id="e_9998750508494250462" quality="4.916047e-04">
 			<centroid rt="293.497282960247333" mz="473.241135421736601" it="4.705861e07"/>
 			<groupedElementList>
 				<element map="0" id="5861142574945207455" rt="294.031139999999994" mz="473.2411532130767" it="2.817015e07"/>
@@ -1014,11 +929,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="545"/>
-			<UserParam type="int" name="annotation network number" value="358"/>
-			<UserParam type="string" name="partners" value="934;1797;2925;3039;3073"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11323045511350642330,12629891524066416723]"/>
 		</consensusElement>
-		<consensusElement id="e_14936687576534933502" quality="6.798744e-04" charge="1">
+		<consensusElement id="e_4345350385183033911" quality="6.798744e-04" charge="1">
 			<centroid rt="239.503931745119559" mz="472.303634558542228" it="6.882062e07"/>
 			<groupedElementList>
 				<element map="0" id="5923024688406677688" rt="239.387754000000001" mz="472.303925261698794" it="6.015773e07" charge="1"/>
@@ -1029,11 +942,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+4H+N]+"/>
-			<UserParam type="int" name="row ID" value="549"/>
-			<UserParam type="int" name="annotation network number" value="362"/>
-			<UserParam type="string" name="partners" value="696;1006"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15218337383961625451,16001890699613016534]"/>
 		</consensusElement>
-		<consensusElement id="e_9675383051017690724" quality="6.542095e-04" charge="1">
+		<consensusElement id="e_6753123911133778162" quality="6.542095e-04" charge="1">
 			<centroid rt="218.92743838904903" mz="641.317600595602926" it="6.012223e07"/>
 			<groupedElementList>
 				<element map="0" id="6383110744988638659" rt="218.655767999999995" mz="641.318034861022625" it="7.633314e07" charge="1"/>
@@ -1048,11 +959,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="593"/>
-			<UserParam type="int" name="annotation network number" value="393"/>
-			<UserParam type="string" name="partners" value="1618;1834;2239"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10629590781651630892,6481759204580161760]"/>
 		</consensusElement>
-		<consensusElement id="e_9645870521512619043" quality="7.37994e-04" charge="1">
+		<consensusElement id="e_16144064408563141827" quality="7.37994e-04" charge="1">
 			<centroid rt="226.880959891731436" mz="387.25307472158903" it="8.318292e07"/>
 			<groupedElementList>
 				<element map="0" id="6587312006334521886" rt="226.908209999999997" mz="387.253096918993265" it="9.28067e07" charge="1"/>
@@ -1063,11 +972,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="611"/>
-			<UserParam type="int" name="annotation network number" value="287"/>
-			<UserParam type="string" name="partners" value="405;1374;1817;2104;2247;2273;2499;3056"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2981414289417175243,3061274420997220902]"/>
 		</consensusElement>
-		<consensusElement id="e_3668619719867570448" quality="3.110599e-04" charge="1">
+		<consensusElement id="e_15667431971660482848" quality="3.110599e-04" charge="1">
 			<centroid rt="220.876623085247445" mz="415.320844940069378" it="3.455652e07"/>
 			<groupedElementList>
 				<element map="0" id="6607255092294709686" rt="220.820748000000009" mz="415.320882091537271" it="4.407208e07" charge="1"/>
@@ -1082,11 +989,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="612"/>
-			<UserParam type="int" name="annotation network number" value="381"/>
-			<UserParam type="string" name="partners" value="572;673"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17260562071883578065,1155381408624890471]"/>
 		</consensusElement>
-		<consensusElement id="e_10228677410249283684" quality="3.943015e-03" charge="1">
+		<consensusElement id="e_14907399951544057142" quality="3.943015e-03" charge="1">
 			<centroid rt="217.923985029352139" mz="373.273719301587391" it="4.583502e08"/>
 			<groupedElementList>
 				<element map="0" id="6720821374214318748" rt="217.816271999999998" mz="373.273720074052278" it="5.237883e08" charge="1"/>
@@ -1101,11 +1006,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+K]+"/>
-			<UserParam type="int" name="row ID" value="618"/>
-			<UserParam type="int" name="annotation network number" value="262"/>
-			<UserParam type="string" name="partners" value="383;2061"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3706727963417952024,3871427090572071724]"/>
 		</consensusElement>
-		<consensusElement id="e_11975216847144172443" quality="3.191626e-04" charge="1">
+		<consensusElement id="e_11305380376773717755" quality="3.191626e-04" charge="1">
 			<centroid rt="202.875984574927145" mz="597.288796283852207" it="3.005276e07"/>
 			<groupedElementList>
 				<element map="0" id="6858451121767280778" rt="201.964127999999988" mz="597.289271910876437" it="2.538129e07" charge="1"/>
@@ -1116,10 +1019,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="624"/>
-			<UserParam type="int" name="annotation network number" value="408"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3539808146052724692,15489199832785904443]"/>
 		</consensusElement>
-		<consensusElement id="e_7454921802319876498" quality="3.310537e-03" charge="1">
+		<consensusElement id="e_14185535307325335627" quality="3.310537e-03" charge="1">
 			<centroid rt="251.738338147827051" mz="799.571547531274746" it="3.561141e08"/>
 			<groupedElementList>
 				<element map="0" id="6890672639098101658" rt="251.935674000000006" mz="799.571631661797369" it="4.538483e08" charge="1"/>
@@ -1134,11 +1036,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-3H-2O]+"/>
-			<UserParam type="int" name="row ID" value="625"/>
-			<UserParam type="int" name="annotation network number" value="106"/>
-			<UserParam type="string" name="partners" value="129;667;909;1296;1302;1347;1377;2241;2545;2564;2641;2738"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[13428172553962707415,2161565166301927141]"/>
 		</consensusElement>
-		<consensusElement id="e_14703696295469002525" quality="4.783439e-04" charge="1">
+		<consensusElement id="e_6080404059405843112" quality="4.783439e-04" charge="1">
 			<centroid rt="263.773228118890188" mz="482.329760550685137" it="5.366986e07"/>
 			<groupedElementList>
 				<element map="0" id="6946029074492124446" rt="263.983841999999982" mz="482.329700507866107" it="7.454143e07" charge="1"/>
@@ -1153,11 +1053,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="628"/>
-			<UserParam type="int" name="annotation network number" value="85"/>
-			<UserParam type="string" name="partners" value="98;719;1620;1741"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[7410401347699001992,6228833527632885114]"/>
 		</consensusElement>
-		<consensusElement id="e_10689484022140046742" quality="2.688321e-04" charge="1">
+		<consensusElement id="e_15097502757138089557" quality="2.688321e-04" charge="1">
 			<centroid rt="268.668383780000113" mz="402.231339614788112" it="3.088623e07"/>
 			<groupedElementList>
 				<element map="0" id="6980301791923128955" rt="268.818060000000003" mz="402.231303387699825" it="4.152017e07" charge="1"/>
@@ -1172,11 +1070,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="632"/>
-			<UserParam type="int" name="annotation network number" value="412"/>
-			<UserParam type="string" name="partners" value="1166;1328;1395;1825;2400;2886"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[8369220827831433415,1868739139310086376]"/>
 		</consensusElement>
-		<consensusElement id="e_17032382483338445532" quality="0.027428" charge="1">
+		<consensusElement id="e_9321911552572909901" quality="0.027428" charge="1">
 			<centroid rt="239.738303745119566" mz="373.273708868807375" it="3.204876e09"/>
 			<groupedElementList>
 				<element map="0" id="7167039231681362318" rt="239.856497999999988" mz="373.273821725802634" it="3.754215e09" charge="1"/>
@@ -1191,11 +1087,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="652"/>
-			<UserParam type="int" name="annotation network number" value="307"/>
-			<UserParam type="string" name="partners" value="442;1083;1245;3667"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3494212972555797350,7657259359718302430]"/>
 		</consensusElement>
-		<consensusElement id="e_3970069158227465850" quality="8.175081e-04" charge="1">
+		<consensusElement id="e_5972843510092208749" quality="8.175081e-04" charge="1">
 			<centroid rt="239.738303745119566" mz="522.285776897211917" it="9.170062e07"/>
 			<groupedElementList>
 				<element map="0" id="7190797958459122019" rt="239.856497999999988" mz="522.286032527992347" it="1.085707e08" charge="1"/>
@@ -1210,11 +1104,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="656"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="15;118;124;1113;1809"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[735737247912008587,5525485116875960277]"/>
 		</consensusElement>
-		<consensusElement id="e_2554357552255889922" quality="1.915587e-03" charge="1">
+		<consensusElement id="e_11530437556868990916" quality="1.915587e-03" charge="1">
 			<centroid rt="233.273408550706392" mz="431.276907217221321" it="2.221646e08"/>
 			<groupedElementList>
 				<element map="0" id="7262511437375687557" rt="233.498916000000008" mz="431.277007102866094" it="2.105949e08" charge="1"/>
@@ -1229,10 +1121,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="670"/>
-			<UserParam type="int" name="annotation network number" value="425"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14833751151552903329,15620152206340883874]"/>
 		</consensusElement>
-		<consensusElement id="e_13332767724783010281" quality="7.511183e-04" charge="1">
+		<consensusElement id="e_3717530695113303534" quality="7.511183e-04" charge="1">
 			<centroid rt="251.738338147827051" mz="337.25260154806756" it="8.866213e07"/>
 			<groupedElementList>
 				<element map="0" id="7266641153331323797" rt="251.935674000000006" mz="337.252622099736527" it="1.083426e08" charge="1"/>
@@ -1247,10 +1138,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="671"/>
-			<UserParam type="int" name="annotation network number" value="426"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14782085917186727603,3373054759529421605]"/>
 		</consensusElement>
-		<consensusElement id="e_4217525392413265703" quality="3.373334e-04" charge="1">
+		<consensusElement id="e_16195578416421259779" quality="3.373334e-04" charge="1">
 			<centroid rt="220.876623085247445" mz="397.310106037656794" it="3.905432e07"/>
 			<groupedElementList>
 				<element map="0" id="7324348139134475719" rt="220.820748000000009" mz="397.310235410025882" it="4.745561e07" charge="1"/>
@@ -1265,11 +1155,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="673"/>
-			<UserParam type="int" name="annotation network number" value="381"/>
-			<UserParam type="string" name="partners" value="572;612"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17260562071883578065,306556140900120247]"/>
 		</consensusElement>
-		<consensusElement id="e_3064385832649147209" quality="9.977303e-04" charge="1">
+		<consensusElement id="e_10889443682280414465" quality="9.977303e-04" charge="1">
 			<centroid rt="239.738303745119566" mz="319.242081206672026" it="1.16135e08"/>
 			<groupedElementList>
 				<element map="0" id="7383692006599090366" rt="239.856497999999988" mz="319.242145431224458" it="1.430501e08" charge="1"/>
@@ -1284,11 +1172,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-2H+Na-O]+"/>
-			<UserParam type="int" name="row ID" value="681"/>
-			<UserParam type="int" name="annotation network number" value="432"/>
-			<UserParam type="string" name="partners" value="777;879;1677;3520"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1429303946713700963,10148564477707746978]"/>
 		</consensusElement>
-		<consensusElement id="e_1716210345301757228" quality="1.934805e-03" charge="1">
+		<consensusElement id="e_4988611551051031725" quality="1.934805e-03" charge="1">
 			<centroid rt="241.793052167185977" mz="839.563575267201259" it="1.775445e08"/>
 			<groupedElementList>
 				<element map="0" id="7505421239391171800" rt="241.787988000000013" mz="839.563831662384246" it="1.582102e08" charge="1"/>
@@ -1303,11 +1189,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="697"/>
-			<UserParam type="int" name="annotation network number" value="84"/>
-			<UserParam type="string" name="partners" value="96;111;164;982;1056;1109;1417;1720;3013;3231;3396;3726"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[4761884352828049232,15203073830231708158]"/>
 		</consensusElement>
-		<consensusElement id="e_2367347714076873821" quality="9.247592e-03" charge="1">
+		<consensusElement id="e_13428211223799423291" quality="9.247592e-03" charge="1">
 			<centroid rt="263.773228118890188" mz="357.279039398095847" it="1.055054e09"/>
 			<groupedElementList>
 				<element map="0" id="7567998322925167412" rt="263.983841999999982" mz="357.279035966629067" it="1.251434e09" charge="1"/>
@@ -1322,11 +1206,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="700"/>
-			<UserParam type="int" name="annotation network number" value="326"/>
-			<UserParam type="string" name="partners" value="475;710;2693;2856"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6104139543594215763,14204144793108318485]"/>
 		</consensusElement>
-		<consensusElement id="e_8620870773767242589" quality="1.117967e-03" charge="1">
+		<consensusElement id="e_11449089522896260587" quality="1.117967e-03" charge="1">
 			<centroid rt="248.927532966237067" mz="407.279404304809589" it="1.349189e08"/>
 			<groupedElementList>
 				<element map="0" id="7700206086244241921" rt="248.914817999999997" mz="407.279442214043513" it="1.579614e08" charge="1"/>
@@ -1341,11 +1223,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="711"/>
-			<UserParam type="int" name="annotation network number" value="132"/>
-			<UserParam type="string" name="partners" value="162;303;358;382;944"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11939876267690134372,6431048200889793990]"/>
 		</consensusElement>
-		<consensusElement id="e_12404995563368946596" quality="1.896872e-04">
+		<consensusElement id="e_16031776555338431014" quality="1.896872e-04">
 			<centroid rt="212.448022808798555" mz="631.310520816189523" it="2.397636e07"/>
 			<groupedElementList>
 				<element map="0" id="7706403089458395990" rt="209.640702000000005" mz="631.310507644084737" it="3.064356e07"/>
@@ -1356,11 +1236,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="712"/>
-			<UserParam type="int" name="annotation network number" value="448"/>
-			<UserParam type="string" name="partners" value="976"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16844872383227501655,92174494237378506]"/>
 		</consensusElement>
-		<consensusElement id="e_8859564410667048152" quality="3.504878e-04" charge="1">
+		<consensusElement id="e_6560107183161724386" quality="3.504878e-04" charge="1">
 			<centroid rt="263.773228118890188" mz="504.311813555431513" it="4.040794e07"/>
 			<groupedElementList>
 				<element map="0" id="7773426427806772239" rt="263.983841999999982" mz="504.311776032412922" it="4.697844e07" charge="1"/>
@@ -1375,11 +1253,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="719"/>
-			<UserParam type="int" name="annotation network number" value="85"/>
-			<UserParam type="string" name="partners" value="98;628;1620;1741"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[7410401347699001992,6228833527632885114]"/>
 		</consensusElement>
-		<consensusElement id="e_4724812373736142554" quality="2.077365e-03" charge="1">
+		<consensusElement id="e_10648500282618055472" quality="2.077365e-03" charge="1">
 			<centroid rt="291.015590256652104" mz="375.289377273615514" it="2.349921e08"/>
 			<groupedElementList>
 				<element map="0" id="7836318445395427684" rt="291.287531999999999" mz="375.289378633489207" it="2.864359e08" charge="1"/>
@@ -1394,11 +1270,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="722"/>
-			<UserParam type="int" name="annotation network number" value="392"/>
-			<UserParam type="string" name="partners" value="592;653;849;1197;1390"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1409011418554798432,12464762207469046434]"/>
 		</consensusElement>
-		<consensusElement id="e_10711460792522246897" quality="1.22998e-03" charge="1">
+		<consensusElement id="e_16511928440875288096" quality="1.22998e-03" charge="1">
 			<centroid rt="233.789582263085322" mz="799.571511843844746" it="1.302944e08"/>
 			<groupedElementList>
 				<element map="0" id="7907987499147723734" rt="233.498916000000008" mz="799.571632172286627" it="1.496183e08" charge="1"/>
@@ -1413,11 +1287,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="729"/>
-			<UserParam type="int" name="annotation network number" value="117"/>
-			<UserParam type="string" name="partners" value="196;389;582;756;2411"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3896940598370744873,16505887109876417334]"/>
 		</consensusElement>
-		<consensusElement id="e_2398773586796848788" quality="7.949582e-03" charge="1">
+		<consensusElement id="e_647824065245865367" quality="7.949582e-03" charge="1">
 			<centroid rt="257.596471976230532" mz="593.333515415430611" it="9.034621e08"/>
 			<groupedElementList>
 				<element map="0" id="7955397103966732392" rt="257.586882000000003" mz="593.3335719342831" it="1.292621e09" charge="1"/>
@@ -1440,11 +1312,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="734"/>
-			<UserParam type="int" name="annotation network number" value="334"/>
-			<UserParam type="string" name="partners" value="492;953;1534;3308"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14725628821979497822,15877551624512223830]"/>
 		</consensusElement>
-		<consensusElement id="e_13800062487721883764" quality="1.976145e-04" charge="1">
+		<consensusElement id="e_18178818541833742962" quality="1.976145e-04" charge="1">
 			<centroid rt="276.413631272824887" mz="408.311049444348839" it="2.344948e07"/>
 			<groupedElementList>
 				<element map="0" id="7960243432885033604" rt="276.432882000000006" mz="408.311199838676828" it="3.078153e07" charge="1"/>
@@ -1459,11 +1329,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+4H+N]+"/>
-			<UserParam type="int" name="row ID" value="735"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="90;293;392;517;567;713;1337;1617;1807;2932;3517;3946"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14539804607486901846,10404483201216448258]"/>
 		</consensusElement>
-		<consensusElement id="e_3870982855473820174" quality="8.330316e-04" charge="1">
+		<consensusElement id="e_16243645158603185467" quality="8.330316e-04" charge="1">
 			<centroid rt="274.966994475227068" mz="375.289707122847176" it="9.312891e07"/>
 			<groupedElementList>
 				<element map="0" id="8040234783983131436" rt="275.292761999999982" mz="375.289731606843077" it="1.118871e08" charge="1"/>
@@ -1474,11 +1342,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+K]+"/>
-			<UserParam type="int" name="row ID" value="741"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="148;292;440;1234;1382;1572"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2742617040394196557,911976538070479319]"/>
 		</consensusElement>
-		<consensusElement id="e_7561671091195484450" quality="1.226474e-03" charge="1">
+		<consensusElement id="e_15796334800849270039" quality="1.226474e-03" charge="1">
 			<centroid rt="291.015590256652104" mz="1177.885550910617894" it="9.520582e07"/>
 			<groupedElementList>
 				<element map="0" id="8172413102449349420" rt="291.287531999999999" mz="1177.885764185535891" it="1.039106e08" charge="1"/>
@@ -1493,11 +1359,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="753"/>
-			<UserParam type="int" name="annotation network number" value="467"/>
-			<UserParam type="string" name="partners" value="1536"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[33577007110618813,3412390371564545577]"/>
 		</consensusElement>
-		<consensusElement id="e_10550897277069007655" quality="1.572309e-04" charge="1">
+		<consensusElement id="e_17019445306992864576" quality="1.572309e-04" charge="1">
 			<centroid rt="259.987564424701304" mz="386.290325341574089" it="1.727382e07"/>
 			<groupedElementList>
 				<element map="0" id="8204172546480546278" rt="259.861368000000027" mz="386.290374624515096" it="2.232975e07" charge="1"/>
@@ -1512,11 +1376,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="755"/>
-			<UserParam type="int" name="annotation network number" value="469"/>
-			<UserParam type="string" name="partners" value="3820"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14253851114074685207,17738617044504290518]"/>
 		</consensusElement>
-		<consensusElement id="e_17816863956640251727" quality="3.998096e-04" charge="1">
+		<consensusElement id="e_1696521501671685407" quality="3.998096e-04" charge="1">
 			<centroid rt="253.408990422776526" mz="274.273954419408256" it="4.931778e07"/>
 			<groupedElementList>
 				<element map="0" id="8398824374698150330" rt="253.461785999999989" mz="274.273948110153412" it="5.073426e07" charge="1"/>
@@ -1531,10 +1393,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="768"/>
-			<UserParam type="int" name="annotation network number" value="476"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2889310943158225998,16906007009627736895]"/>
 		</consensusElement>
-		<consensusElement id="e_15744293866456594359" quality="4.762503e-03" charge="1">
+		<consensusElement id="e_2269948169762232914" quality="4.762503e-03" charge="1">
 			<centroid rt="239.738303745119566" mz="337.252554824904564" it="5.65463e08"/>
 			<groupedElementList>
 				<element map="0" id="8465063211551671404" rt="239.856497999999988" mz="337.252657162689786" it="7.013648e08" charge="1"/>
@@ -1553,11 +1414,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="777"/>
-			<UserParam type="int" name="annotation network number" value="432"/>
-			<UserParam type="string" name="partners" value="681;879;1677;3520"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1429303946713700963,10148564477707746978]"/>
 		</consensusElement>
-		<consensusElement id="e_16405288026922714951" quality="2.162009e-04">
+		<consensusElement id="e_13249526217776887014" quality="2.162009e-04">
 			<centroid rt="250.045300093226302" mz="482.329760183778603" it="2.691402e07"/>
 			<groupedElementList>
 				<element map="0" id="8466959348355998261" rt="250.070183999999955" mz="482.329741645090223" it="3.948616e07" charge="1"/>
@@ -1568,11 +1427,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="778"/>
-			<UserParam type="int" name="annotation network number" value="482"/>
-			<UserParam type="string" name="partners" value="1102"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[5911658819102039565,11064594794095801680]"/>
 		</consensusElement>
-		<consensusElement id="e_16086423895227455019" quality="4.336991e-04">
+		<consensusElement id="e_6754565349530333145" quality="4.336991e-04">
 			<centroid rt="228.278803008576205" mz="629.295215882758271" it="4.565465e07"/>
 			<groupedElementList>
 				<element map="0" id="8478907918118633495" rt="227.650080000000003" mz="629.295441527515209" it="3.697472e07"/>
@@ -1583,11 +1440,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="780"/>
-			<UserParam type="int" name="annotation network number" value="483"/>
-			<UserParam type="string" name="partners" value="826"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15859845277342042577,8095394896012030173]"/>
 		</consensusElement>
-		<consensusElement id="e_16719088649525870033" quality="1.879884e-04">
+		<consensusElement id="e_606400574804443188" quality="1.879884e-04">
 			<centroid rt="257.596471976230532" mz="431.316354129548301" it="2.325899e07"/>
 			<groupedElementList>
 				<element map="0" id="8664611208663808218" rt="257.586882000000003" mz="431.316278693717493" it="2.932787e07"/>
@@ -1598,10 +1453,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="802"/>
-			<UserParam type="int" name="annotation network number" value="492"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17963521165968146622,10212919092874987273]"/>
 		</consensusElement>
-		<consensusElement id="e_1963061267507636970" quality="6.106356e-04" charge="1">
+		<consensusElement id="e_9964872953389472988" quality="6.106356e-04" charge="1">
 			<centroid rt="231.069110172173509" mz="313.216211347333172" it="6.99504e07"/>
 			<groupedElementList>
 				<element map="0" id="8809705205123910081" rt="231.150684000000012" mz="313.216270002619069" it="8.324481e07" charge="1"/>
@@ -1616,11 +1470,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="812"/>
-			<UserParam type="int" name="annotation network number" value="370"/>
-			<UserParam type="string" name="partners" value="557;3696"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16203454574933515980,1454355103691390304]"/>
 		</consensusElement>
-		<consensusElement id="e_8348585536929270456" quality="7.953146e-03" charge="1">
+		<consensusElement id="e_10213440422142224157" quality="7.953146e-03" charge="1">
 			<centroid rt="231.069110172173509" mz="337.2525530242321" it="9.259586e08"/>
 			<groupedElementList>
 				<element map="0" id="8896226651319322827" rt="231.150684000000012" mz="337.252609680770263" it="1.050161e09" charge="1"/>
@@ -1635,10 +1487,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="818"/>
-			<UserParam type="int" name="annotation network number" value="499"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11714624836524369765,17461486284165629621]"/>
 		</consensusElement>
-		<consensusElement id="e_12235327262263288064" quality="1.431984e-03" charge="1">
+		<consensusElement id="e_17829668607298787345" quality="1.431984e-03" charge="1">
 			<centroid rt="291.280901256652101" mz="321.25758095338216" it="1.737132e08"/>
 			<groupedElementList>
 				<element map="0" id="8920086946741526259" rt="291.818153999999993" mz="321.25757420923668" it="2.056335e08" charge="1"/>
@@ -1653,10 +1504,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="821"/>
-			<UserParam type="int" name="annotation network number" value="501"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[8678654967754108549,15629600292230971443]"/>
 		</consensusElement>
-		<consensusElement id="e_18132022711111583449" quality="1.715885e-03" charge="1">
+		<consensusElement id="e_1538665532667041438" quality="1.715885e-03" charge="1">
 			<centroid rt="227.857348585630462" mz="607.312459588481943" it="1.958673e08"/>
 			<groupedElementList>
 				<element map="0" id="8975221421316188978" rt="227.650080000000003" mz="607.31253684326316" it="2.413594e08" charge="1"/>
@@ -1671,11 +1521,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="826"/>
-			<UserParam type="int" name="annotation network number" value="483"/>
-			<UserParam type="string" name="partners" value="780;1170;1836"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9044235981727260326,8095394896012030173]"/>
 		</consensusElement>
-		<consensusElement id="e_342629733411848729" quality="0.067919" charge="1">
+		<consensusElement id="e_3570256649179256369" quality="0.067919" charge="1">
 			<centroid rt="231.069110172173509" mz="373.273676832952788" it="7.82208e09"/>
 			<groupedElementList>
 				<element map="0" id="9079052973028227876" rt="231.150684000000012" mz="373.273734880323048" it="8.784106e09" charge="1"/>
@@ -1694,11 +1542,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="831"/>
-			<UserParam type="int" name="annotation network number" value="125"/>
-			<UserParam type="string" name="partners" value="176;285;354;899;1870;3518;3813"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17859876595212835447,8600836864356691446]"/>
 		</consensusElement>
-		<consensusElement id="e_2887265770481194842" quality="9.106407e-04" charge="1">
+		<consensusElement id="e_10131568051180339063" quality="9.106407e-04" charge="1">
 			<centroid rt="228.843862008576195" mz="521.39526189352091" it="9.959565e07"/>
 			<groupedElementList>
 				<element map="0" id="9147337021114967553" rt="228.780198000000013" mz="521.395340312084613" it="1.137394e08" charge="1"/>
@@ -1709,11 +1555,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="835"/>
-			<UserParam type="int" name="annotation network number" value="298"/>
-			<UserParam type="string" name="partners" value="1247"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1315790977826257709,14764831747889768878]"/>
 		</consensusElement>
-		<consensusElement id="e_12019661026626279688" quality="3.615221e-04" charge="1">
+		<consensusElement id="e_9733878192677285345" quality="3.615221e-04" charge="1">
 			<centroid rt="251.738338147827051" mz="466.352525492992697" it="4.146979e07"/>
 			<groupedElementList>
 				<element map="0" id="9227191168606248824" rt="251.935674000000006" mz="466.352454705303501" it="4.693815e07" charge="1"/>
@@ -1728,10 +1572,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="839"/>
-			<UserParam type="int" name="annotation network number" value="505"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9768486906919913493,14721904759668347165]"/>
 		</consensusElement>
-		<consensusElement id="e_6835689438337561565" quality="5.932426e-04" charge="1">
+		<consensusElement id="e_1573920682035419289" quality="5.932426e-04" charge="1">
 			<centroid rt="237.789733758242392" mz="563.334271965048288" it="6.208451e07"/>
 			<groupedElementList>
 				<element map="0" id="9586592041932706405" rt="237.79889399999999" mz="563.333615878468891" it="7.702658e07" charge="1"/>
@@ -1746,11 +1589,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="872"/>
-			<UserParam type="int" name="annotation network number" value="518"/>
-			<UserParam type="string" name="partners" value="1507;1819;1958"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2565650356248730779,10011993059563091229]"/>
 		</consensusElement>
-		<consensusElement id="e_228249143702271552" quality="7.331989e-04" charge="1">
+		<consensusElement id="e_8079649520877815191" quality="7.331989e-04" charge="1">
 			<centroid rt="248.130019576947007" mz="550.385307282998156" it="8.161026e07"/>
 			<groupedElementList>
 				<element map="0" id="9590556583701577433" rt="248.184570000000008" mz="550.385379470645262" it="1.037562e08" charge="1"/>
@@ -1765,11 +1606,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="873"/>
-			<UserParam type="int" name="annotation network number" value="519"/>
-			<UserParam type="string" name="partners" value="977;1681"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16315407410559956068,17729502453412209457]"/>
 		</consensusElement>
-		<consensusElement id="e_17175822257907980151" quality="2.059951e-03" charge="1">
+		<consensusElement id="e_1515126542717856202" quality="2.059951e-03" charge="1">
 			<centroid rt="217.923985029352139" mz="994.522180028122648" it="1.660556e08"/>
 			<groupedElementList>
 				<element map="0" id="9730829443914793516" rt="217.816271999999998" mz="994.522251561233929" it="1.837138e08" charge="1"/>
@@ -1784,11 +1623,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+4H+N]+"/>
-			<UserParam type="int" name="row ID" value="888"/>
-			<UserParam type="int" name="annotation network number" value="395"/>
-			<UserParam type="string" name="partners" value="598;1295"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3841607502541629920,16251004265266622321]"/>
 		</consensusElement>
-		<consensusElement id="e_9105133408873213344" quality="2.844527e-04" charge="1">
+		<consensusElement id="e_10343429093469772268" quality="2.844527e-04" charge="1">
 			<centroid rt="217.923985029352139" mz="408.310606180335526" it="3.250538e07"/>
 			<groupedElementList>
 				<element map="0" id="9782153701128693960" rt="217.816271999999998" mz="408.310597927404217" it="2.920309e07" charge="1"/>
@@ -1803,11 +1640,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="895"/>
-			<UserParam type="int" name="annotation network number" value="351"/>
-			<UserParam type="string" name="partners" value="531;1473;2786"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2301278554782945176,15035823326563044665]"/>
 		</consensusElement>
-		<consensusElement id="e_10209906391081820790" quality="5.270184e-03" charge="1">
+		<consensusElement id="e_12634245439048824083" quality="5.270184e-03" charge="1">
 			<centroid rt="231.069110172173509" mz="391.284223058049975" it="6.287104e08"/>
 			<groupedElementList>
 				<element map="0" id="9834285069750206588" rt="231.150684000000012" mz="391.284281605594856" it="6.774925e08" charge="1"/>
@@ -1822,11 +1657,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="899"/>
-			<UserParam type="int" name="annotation network number" value="125"/>
-			<UserParam type="string" name="partners" value="176;285;354;831;1870;3518;3813"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17859876595212835447,8600836864356691446]"/>
 		</consensusElement>
-		<consensusElement id="e_1154181132399170601" quality="0.019117" charge="1">
+		<consensusElement id="e_1711003995312304618" quality="0.019117" charge="1">
 			<centroid rt="252.147680175180028" mz="817.582074394903543" it="1.870486e09"/>
 			<groupedElementList>
 				<element map="0" id="9898878928823459002" rt="251.935674000000006" mz="817.58211973533264" it="2.191104e09" charge="1"/>
@@ -1841,11 +1674,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="909"/>
-			<UserParam type="int" name="annotation network number" value="106"/>
-			<UserParam type="string" name="partners" value="129;625;667;1296;1302;1347;1377;2241;2545;2564;2641;2738"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[13428172553962707415,2161565166301927141]"/>
 		</consensusElement>
-		<consensusElement id="e_472334634151706865" quality="0.01222" charge="1">
+		<consensusElement id="e_10296105162729692241" quality="0.01222" charge="1">
 			<centroid rt="291.280901256652101" mz="807.573873389025039" it="1.125149e09"/>
 			<groupedElementList>
 				<element map="0" id="9919141372381531580" rt="291.818153999999993" mz="807.573831047014096" it="1.111895e09" charge="1"/>
@@ -1860,11 +1691,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="913"/>
-			<UserParam type="int" name="annotation network number" value="12"/>
-			<UserParam type="string" name="partners" value="12;40;211;299;521;1063;1082;1703;1878;1959;2588;3798;3818"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[834265897073005913,2480591179696070255]"/>
 		</consensusElement>
-		<consensusElement id="e_2590374991847632100" quality="3.133292e-04" charge="1">
+		<consensusElement id="e_6489823455225599390" quality="3.133292e-04" charge="1">
 			<centroid rt="287.379409757547933" mz="300.289803158945063" it="3.880162e07"/>
 			<groupedElementList>
 				<element map="0" id="9926743615549627825" rt="287.699184000000003" mz="300.289908872287128" it="4.056883e07" charge="1"/>
@@ -1879,11 +1708,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="914"/>
-			<UserParam type="int" name="annotation network number" value="455"/>
-			<UserParam type="string" name="partners" value="723;1498"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[4749853212513578694,11863234177829475871]"/>
 		</consensusElement>
-		<consensusElement id="e_4787360226761797083" quality="2.174125e-04" charge="1">
+		<consensusElement id="e_17848301380491503619" quality="2.174125e-04" charge="1">
 			<centroid rt="266.37543179019076" mz="526.2487347986646" it="2.35812e07"/>
 			<groupedElementList>
 				<element map="0" id="9934496052706785298" rt="266.732820000000004" mz="526.248188169626474" it="3.172981e07" charge="1"/>
@@ -1894,11 +1721,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="916"/>
-			<UserParam type="int" name="annotation network number" value="534"/>
-			<UserParam type="string" name="partners" value="1778"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[5445433585858682599,16411018606002908975]"/>
 		</consensusElement>
-		<consensusElement id="e_15911127061865447110" quality="1.5398e-03" charge="1">
+		<consensusElement id="e_11512300584920212674" quality="1.5398e-03" charge="1">
 			<centroid rt="239.738303745119566" mz="482.293494671644737" it="1.695845e08"/>
 			<groupedElementList>
 				<element map="0" id="10050046212895817333" rt="239.856497999999988" mz="482.293647524272785" it="2.16286e08" charge="1"/>
@@ -1913,11 +1738,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+4H+N]+"/>
-			<UserParam type="int" name="row ID" value="931"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="118;414;478;875;1343;1366;1497;1546;1664;1809;2307;2439;2464;2870;3712"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10593648637373885559,4922294197197405497]"/>
 		</consensusElement>
-		<consensusElement id="e_9571279292405681872" quality="7.085104e-04" charge="1">
+		<consensusElement id="e_8313935330298517409" quality="7.085104e-04" charge="1">
 			<centroid rt="247.67183557694699" mz="405.263826221125669" it="8.535349e07"/>
 			<groupedElementList>
 				<element map="0" id="10207830017738021952" rt="247.268202000000002" mz="405.263888248694514" it="9.973625e07" charge="1"/>
@@ -1932,11 +1755,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+4H+N]+"/>
-			<UserParam type="int" name="row ID" value="944"/>
-			<UserParam type="int" name="annotation network number" value="132"/>
-			<UserParam type="string" name="partners" value="162;303;358;382;523;658;711;1189"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9834786464735149795,6431048200889793990]"/>
 		</consensusElement>
-		<consensusElement id="e_8115967872280316103" quality="3.418679e-04" charge="1">
+		<consensusElement id="e_12933112313676288323" quality="3.418679e-04" charge="1">
 			<centroid rt="229.760872627144323" mz="572.358120663855743" it="3.638544e07"/>
 			<groupedElementList>
 				<element map="0" id="10213991521902052118" rt="229.804314000000005" mz="572.357953507324737" it="4.455467e07" charge="1"/>
@@ -1947,10 +1768,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="946"/>
-			<UserParam type="int" name="annotation network number" value="549"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[7715422297792077039,14839110057775839197]"/>
 		</consensusElement>
-		<consensusElement id="e_8723055639840424502" quality="3.356136e-03" charge="1">
+		<consensusElement id="e_17950097220137067911" quality="3.356136e-03" charge="1">
 			<centroid rt="257.596471976230532" mz="615.315950590816328" it="3.444516e08"/>
 			<groupedElementList>
 				<element map="0" id="10346187560203916455" rt="257.586882000000003" mz="615.315920667184969" it="3.618821e08" charge="1"/>
@@ -1965,11 +1785,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="953"/>
-			<UserParam type="int" name="annotation network number" value="334"/>
-			<UserParam type="string" name="partners" value="492;734;1534;3308"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14725628821979497822,15877551624512223830]"/>
 		</consensusElement>
-		<consensusElement id="e_14405560545639476599" quality="2.740679e-04" charge="1">
+		<consensusElement id="e_685770096559001967" quality="2.740679e-04" charge="1">
 			<centroid rt="284.823096294557104" mz="415.321140408678161" it="3.35694e07"/>
 			<groupedElementList>
 				<element map="0" id="10468877206332727527" rt="289.99042199999991" mz="415.321294222732888" it="4.522356e07" charge="1"/>
@@ -1980,11 +1798,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="972"/>
-			<UserParam type="int" name="annotation network number" value="561"/>
-			<UserParam type="string" name="partners" value="1038;1435"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[97689023116872235,15157172235013918160]"/>
 		</consensusElement>
-		<consensusElement id="e_10575100131919220901" quality="2.597612e-03" charge="1">
+		<consensusElement id="e_7940680134011882925" quality="2.597612e-03" charge="1">
 			<centroid rt="215.291443808798562" mz="609.328468081402662" it="3.254924e08"/>
 			<groupedElementList>
 				<element map="0" id="10509934415162971907" rt="215.327543999999989" mz="609.328523627378218" it="3.883881e08" charge="1"/>
@@ -1995,11 +1811,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="976"/>
-			<UserParam type="int" name="annotation network number" value="448"/>
-			<UserParam type="string" name="partners" value="712"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17709374598641025154,92174494237378506]"/>
 		</consensusElement>
-		<consensusElement id="e_11458642227771910893" quality="1.028624e-04" charge="1">
+		<consensusElement id="e_15416609493801737327" quality="1.028624e-04" charge="1">
 			<centroid rt="224.864205281736417" mz="484.244029246734328" it="1.164646e07"/>
 			<groupedElementList>
 				<element map="0" id="10633117459715106677" rt="225.10560000000001" mz="484.243935672989721" it="1.500411e07" charge="1"/>
@@ -2010,11 +1824,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="983"/>
-			<UserParam type="int" name="annotation network number" value="119"/>
-			<UserParam type="string" name="partners" value="145;419;560;2392;2592;2874;2981"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14342161042684455046,11261537743032974000]"/>
 		</consensusElement>
-		<consensusElement id="e_1666439788233541429" quality="1.128563e-04" charge="1">
+		<consensusElement id="e_14385044932629624280" quality="1.128563e-04" charge="1">
 			<centroid rt="269.997748118890172" mz="414.304716481759442" it="1.355476e07"/>
 			<groupedElementList>
 				<element map="0" id="10798240698763855189" rt="276.432882000000006" mz="414.306603217621614" it="5.415001e06" charge="1"/>
@@ -2025,11 +1837,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-3H-2O]+"/>
-			<UserParam type="int" name="row ID" value="1003"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="22;41;193;725;1775;3912"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[4190333318256419840,388279834127228244]"/>
 		</consensusElement>
-		<consensusElement id="e_12354319426723209964" quality="1.188038e-03" charge="1">
+		<consensusElement id="e_6867723402375384006" quality="1.188038e-03" charge="1">
 			<centroid rt="267.61930416526377" mz="391.284604898227826" it="1.4715e08"/>
 			<groupedElementList>
 				<element map="0" id="10917451270219115002" rt="267.843192000000045" mz="391.284606230535303" it="1.881732e08" charge="1"/>
@@ -2044,10 +1854,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1014"/>
-			<UserParam type="int" name="annotation network number" value="579"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1435041019977314352,14559380442668927445]"/>
 		</consensusElement>
-		<consensusElement id="e_9571391144504976183" quality="7.90759e-04" charge="1">
+		<consensusElement id="e_7354417499556194055" quality="7.90759e-04" charge="1">
 			<centroid rt="251.506087147827031" mz="413.305245339074702" it="9.574247e07"/>
 			<groupedElementList>
 				<element map="0" id="10978678167865422726" rt="251.471171999999996" mz="413.305304527792771" it="1.119545e08" charge="1"/>
@@ -2062,11 +1871,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="1022"/>
-			<UserParam type="int" name="annotation network number" value="148"/>
-			<UserParam type="string" name="partners" value="181;651;795;805;836;838;1193;1267;1499;1629;1633;1637;1777;3553;3725"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[840721652604494424,2241364242521384849]"/>
 		</consensusElement>
-		<consensusElement id="e_5861113514068679317" quality="1.849837e-03" charge="1">
+		<consensusElement id="e_1361485863966393792" quality="1.849837e-03" charge="1">
 			<centroid rt="276.413631272824887" mz="309.257703492459143" it="2.214591e08"/>
 			<groupedElementList>
 				<element map="0" id="11053215543454295819" rt="276.432882000000006" mz="309.257782245368787" it="2.706786e08" charge="1"/>
@@ -2081,10 +1888,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1037"/>
-			<UserParam type="int" name="annotation network number" value="591"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3765660627722085099,3330996294229758459]"/>
 		</consensusElement>
-		<consensusElement id="e_2067235845190072620" quality="8.210244e-04" charge="1">
+		<consensusElement id="e_4396122464582285167" quality="8.210244e-04" charge="1">
 			<centroid rt="298.485858947157851" mz="440.277538133249323" it="9.74868e07"/>
 			<groupedElementList>
 				<element map="0" id="11180121846054262586" rt="298.637358000000006" mz="440.2775016617598" it="1.092398e08" charge="1"/>
@@ -2099,11 +1905,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1045"/>
-			<UserParam type="int" name="annotation network number" value="5"/>
-			<UserParam type="string" name="partners" value="1103"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3014913674200889147,9444656218819644894]"/>
 		</consensusElement>
-		<consensusElement id="e_4566588142413533756" quality="6.711378e-04" charge="1">
+		<consensusElement id="e_14945134909563346826" quality="6.711378e-04" charge="1">
 			<centroid rt="233.789582263085322" mz="623.302106007916336" it="6.313085e07"/>
 			<groupedElementList>
 				<element map="0" id="11239762530305646393" rt="233.498916000000008" mz="623.302301620815115" it="8.43973e07" charge="1"/>
@@ -2114,11 +1918,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-2H+Na-O]+"/>
-			<UserParam type="int" name="row ID" value="1051"/>
-			<UserParam type="int" name="annotation network number" value="1"/>
-			<UserParam type="string" name="partners" value="655;1124;1148;1359;1600;1771;2348;2671"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[12527529017289099690,1716286295887859994]"/>
 		</consensusElement>
-		<consensusElement id="e_17968895046151765735" quality="2.394831e-04" charge="1">
+		<consensusElement id="e_7638014329343951801" quality="2.394831e-04" charge="1">
 			<centroid rt="224.864205281736417" mz="833.5770072949731" it="2.33906e07"/>
 			<groupedElementList>
 				<element map="0" id="11261336731241920107" rt="225.10560000000001" mz="833.576690366334674" it="2.796481e07" charge="1"/>
@@ -2129,11 +1931,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1054"/>
-			<UserParam type="int" name="annotation network number" value="477"/>
-			<UserParam type="string" name="partners" value="769;2879"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10437076828378090935,8214598939306468773]"/>
 		</consensusElement>
-		<consensusElement id="e_5071943711666327399" quality="0.020977" charge="1">
+		<consensusElement id="e_17629624734358912440" quality="0.020977" charge="1">
 			<centroid rt="239.738303745119566" mz="817.582168917183026" it="2.08452e09"/>
 			<groupedElementList>
 				<element map="0" id="11264576065568351813" rt="239.856497999999988" mz="817.582478331070433" it="2.477322e09" charge="1"/>
@@ -2148,11 +1948,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="1056"/>
-			<UserParam type="int" name="annotation network number" value="84"/>
-			<UserParam type="string" name="partners" value="96;111;164;697;982;1109;1417;1720;2153;2538;2650;3013;3231;3396;3726"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11356928275599484215,15203073830231708158]"/>
 		</consensusElement>
-		<consensusElement id="e_9133355821457214056" quality="1.453841e-04" charge="1">
+		<consensusElement id="e_9244329682397898701" quality="1.453841e-04" charge="1">
 			<centroid rt="260.511496424701363" mz="619.345090842165632" it="1.504595e07"/>
 			<groupedElementList>
 				<element map="0" id="11400326382109356859" rt="260.909232000000031" mz="619.34549628506511" it="1.600334e07" charge="1"/>
@@ -2163,10 +1961,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1072"/>
-			<UserParam type="int" name="annotation network number" value="604"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6038593675733688361,8682735584656624790]"/>
 		</consensusElement>
-		<consensusElement id="e_1604328974569854651" quality="5.213139e-03" charge="1">
+		<consensusElement id="e_10603470923496144687" quality="5.213139e-03" charge="1">
 			<centroid rt="217.923985029352139" mz="355.263204395156095" it="6.096266e08"/>
 			<groupedElementList>
 				<element map="0" id="11490342285177663275" rt="217.816271999999998" mz="355.263214065298712" it="7.087045e08" charge="1"/>
@@ -2181,11 +1978,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1078"/>
-			<UserParam type="int" name="annotation network number" value="607"/>
-			<UserParam type="string" name="partners" value="1519;3113;3889"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14867702925743773592,17177921511586461337]"/>
 		</consensusElement>
-		<consensusElement id="e_1253809466032494621" quality="0.033543" charge="1">
+		<consensusElement id="e_10541494636020678939" quality="0.033543" charge="1">
 			<centroid rt="239.738303745119566" mz="355.263154748872978" it="3.927059e09"/>
 			<groupedElementList>
 				<element map="0" id="11515140485025311441" rt="239.856497999999988" mz="355.263276147122838" it="4.632264e09" charge="1"/>
@@ -2204,11 +1999,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="1083"/>
-			<UserParam type="int" name="annotation network number" value="307"/>
-			<UserParam type="string" name="partners" value="442;652;1245;3667"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3494212972555797350,7657259359718302430]"/>
 		</consensusElement>
-		<consensusElement id="e_1752479188873770939" quality="2.382903e-04" charge="1">
+		<consensusElement id="e_3486623033905448467" quality="2.382903e-04" charge="1">
 			<centroid rt="202.875984574927145" mz="504.275204200622397" it="2.81011e07"/>
 			<groupedElementList>
 				<element map="0" id="11622429459860486155" rt="201.964127999999988" mz="504.275372157546485" it="2.673509e07" charge="1"/>
@@ -2219,11 +2012,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-2H+Na-O]+"/>
-			<UserParam type="int" name="row ID" value="1096"/>
-			<UserParam type="int" name="annotation network number" value="43"/>
-			<UserParam type="string" name="partners" value="48;830;1211;2218;2962"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3082208556794698230,12091371544815174652]"/>
 		</consensusElement>
-		<consensusElement id="e_4178503049037207683" quality="9.132129e-04" charge="1">
+		<consensusElement id="e_16435575261058878267" quality="9.132129e-04" charge="1">
 			<centroid rt="264.787300384986793" mz="456.332325017965673" it="9.1572e07"/>
 			<groupedElementList>
 				<element map="0" id="11851696787749699353" rt="264.833454000000018" mz="456.332387065014586" it="1.104284e08" charge="1"/>
@@ -2238,11 +2029,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1110"/>
-			<UserParam type="int" name="annotation network number" value="148"/>
-			<UserParam type="string" name="partners" value="266;795;1091;3459"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17423965749004544129,17523049907919585872]"/>
 		</consensusElement>
-		<consensusElement id="e_8694655090807876181" quality="3.16985e-04" charge="1">
+		<consensusElement id="e_12226105777602740432" quality="3.16985e-04" charge="1">
 			<centroid rt="222.335822467496797" mz="537.319489774869453" it="3.45333e07"/>
 			<groupedElementList>
 				<element map="0" id="12096789867915233071" rt="222.289242000000002" mz="537.318548542900203" it="4.398242e07" charge="1"/>
@@ -2253,11 +2042,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1132"/>
-			<UserParam type="int" name="annotation network number" value="493"/>
-			<UserParam type="string" name="partners" value="803;1451;2647;3199;3287"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[12709363536984905049,6545110197956865540]"/>
 		</consensusElement>
-		<consensusElement id="e_7810521799640142685" quality="6.184954e-04" charge="1">
+		<consensusElement id="e_12020039926069946529" quality="6.184954e-04" charge="1">
 			<centroid rt="212.096627403420115" mz="535.304378688743327" it="6.027284e07"/>
 			<groupedElementList>
 				<element map="0" id="12203977203653539763" rt="212.155680000000018" mz="535.304653319250406" it="7.977943e07" charge="1"/>
@@ -2272,11 +2059,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1143"/>
-			<UserParam type="int" name="annotation network number" value="627"/>
-			<UserParam type="string" name="partners" value="1414;2973;3222"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3732727278657356844,11728900166233227676]"/>
 		</consensusElement>
-		<consensusElement id="e_15676240702981998867" quality="3.422482e-04" charge="1">
+		<consensusElement id="e_12119230097542016061" quality="3.422482e-04" charge="1">
 			<centroid rt="270.421014936431334" mz="397.310386967958721" it="3.9245e07"/>
 			<groupedElementList>
 				<element map="0" id="12206834584538744428" rt="270.135552000000018" mz="397.310372780608702" it="5.471733e07" charge="1"/>
@@ -2291,10 +2076,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1144"/>
-			<UserParam type="int" name="annotation network number" value="628"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[8375895427294532673,14788390704903691885]"/>
 		</consensusElement>
-		<consensusElement id="e_18259035876334906445" quality="1.411279e-03" charge="1">
+		<consensusElement id="e_5190571067239705035" quality="1.411279e-03" charge="1">
 			<centroid rt="298.485858947157851" mz="302.305551778561039" it="1.771579e08"/>
 			<groupedElementList>
 				<element map="0" id="12476731236856829031" rt="298.637358000000006" mz="302.305542219716699" it="1.888872e08" charge="1"/>
@@ -2305,11 +2089,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1177"/>
-			<UserParam type="int" name="annotation network number" value="642"/>
-			<UserParam type="string" name="partners" value="1740"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3679034483189221016,8019489081897324441]"/>
 		</consensusElement>
-		<consensusElement id="e_15091927310987964635" quality="2.933603e-04" charge="1">
+		<consensusElement id="e_3961126405907798432" quality="2.933603e-04" charge="1">
 			<centroid rt="276.413631272824887" mz="556.363624678709925" it="2.829636e07"/>
 			<groupedElementList>
 				<element map="0" id="12594936605582450894" rt="276.432882000000006" mz="556.363766479080141" it="3.608885e07" charge="1"/>
@@ -2324,11 +2106,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+K]+"/>
-			<UserParam type="int" name="row ID" value="1184"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="7;152;273;336;423;514;1243;1896;3911"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2288453815695612291,17378199340722049076]"/>
 		</consensusElement>
-		<consensusElement id="e_2426500852175417979" quality="1.643112e-04">
+		<consensusElement id="e_2501328486413526809" quality="1.643112e-04">
 			<centroid rt="247.119333575240091" mz="387.253109713732783" it="2.245547e07"/>
 			<groupedElementList>
 				<element map="0" id="12673265083471177278" rt="247.268202000000002" mz="387.253200653159297" it="2.740624e07" charge="1"/>
@@ -2343,11 +2123,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
-			<UserParam type="int" name="row ID" value="1189"/>
-			<UserParam type="int" name="annotation network number" value="132"/>
-			<UserParam type="string" name="partners" value="523;658;944"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9834786464735149795,7832248979099653649]"/>
 		</consensusElement>
-		<consensusElement id="e_14855758013360612505" quality="2.047078e-04" charge="1">
+		<consensusElement id="e_13117698455430920509" quality="2.047078e-04" charge="1">
 			<centroid rt="211.507631403420135" mz="413.305977885569689" it="2.168482e07"/>
 			<groupedElementList>
 				<element map="0" id="12694593626160417056" rt="210.977688000000001" mz="413.30593794089458" it="2.376309e07" charge="1"/>
@@ -2362,11 +2140,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1191"/>
-			<UserParam type="int" name="annotation network number" value="650"/>
-			<UserParam type="string" name="partners" value="1480"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[5467161451373150409,11346308957089945604]"/>
 		</consensusElement>
-		<consensusElement id="e_16360511861734086410" quality="1.226825e-03" charge="1">
+		<consensusElement id="e_5614065518168357296" quality="1.226825e-03" charge="1">
 			<centroid rt="236.781254516069197" mz="429.261372121930776" it="1.325889e08"/>
 			<groupedElementList>
 				<element map="0" id="12763753799301288157" rt="236.283899999999989" mz="429.261448149875264" it="1.269713e08" charge="1"/>
@@ -2377,11 +2153,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1198"/>
-			<UserParam type="int" name="annotation network number" value="485"/>
-			<UserParam type="string" name="partners" value="966;1560;1610;1619"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15563080394001268283,1920177032610651872]"/>
 		</consensusElement>
-		<consensusElement id="e_6280888641510646584" quality="9.033178e-04" charge="1">
+		<consensusElement id="e_15011103358900380340" quality="9.033178e-04" charge="1">
 			<centroid rt="276.413631272824887" mz="798.587989975256051" it="8.192952e07"/>
 			<groupedElementList>
 				<element map="0" id="12791722429609179873" rt="276.432882000000006" mz="798.588218205382304" it="1.054941e08" charge="1"/>
@@ -2396,11 +2170,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1200"/>
-			<UserParam type="int" name="annotation network number" value="212"/>
-			<UserParam type="string" name="partners" value="277;441;661;797;990;3325;3422;3879"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17863178619993634300,1229027248657415969]"/>
 		</consensusElement>
-		<consensusElement id="e_11142509096921432876" quality="2.228534e-04" charge="1">
+		<consensusElement id="e_2384616121169246879" quality="2.228534e-04" charge="1">
 			<centroid rt="272.942172239000399" mz="504.314169980650775" it="2.265716e07"/>
 			<groupedElementList>
 				<element map="0" id="12815631291076886544" rt="273.657150000000002" mz="504.314024064448063" it="2.985673e07" charge="1"/>
@@ -2411,11 +2183,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+4H+N]+"/>
-			<UserParam type="int" name="row ID" value="1201"/>
-			<UserParam type="int" name="annotation network number" value="158"/>
-			<UserParam type="string" name="partners" value="398;1081;1725;1842;2788;3054;3367"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17925807167837514350,9148490812727012039]"/>
 		</consensusElement>
-		<consensusElement id="e_3219235444778682086" quality="4.744646e-04" charge="1">
+		<consensusElement id="e_717440624375121619" quality="4.744646e-04" charge="1">
 			<centroid rt="222.335822467496797" mz="369.242736446134757" it="5.862861e07"/>
 			<groupedElementList>
 				<element map="0" id="12835532732199346386" rt="222.289242000000002" mz="369.242805801756845" it="6.938642e07" charge="1"/>
@@ -2426,11 +2196,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1207"/>
-			<UserParam type="int" name="annotation network number" value="167"/>
-			<UserParam type="string" name="partners" value="207;1841;2124"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1094241089873274386,10742745575779423795]"/>
 		</consensusElement>
-		<consensusElement id="e_7699478742911046257" quality="5.016583e-04" charge="1">
+		<consensusElement id="e_1661907624501624045" quality="5.016583e-04" charge="1">
 			<centroid rt="266.37543179019076" mz="413.266664418375569" it="5.732049e07"/>
 			<groupedElementList>
 				<element map="0" id="12885303956700525207" rt="266.732820000000004" mz="413.266733655711732" it="5.502949e07" charge="1"/>
@@ -2441,11 +2209,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1215"/>
-			<UserParam type="int" name="annotation network number" value="659"/>
-			<UserParam type="string" name="partners" value="3815"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1525961023658572974,10664765844794926534]"/>
 		</consensusElement>
-		<consensusElement id="e_16531467179788765798" quality="2.54673e-04" charge="1">
+		<consensusElement id="e_10776561737214969132" quality="2.54673e-04" charge="1">
 			<centroid rt="283.841668451057444" mz="427.357538839696247" it="3.007851e07"/>
 			<groupedElementList>
 				<element map="0" id="12959499666710111362" rt="284.015705999999966" mz="427.357540423549494" it="4.217196e07" charge="1"/>
@@ -2456,11 +2222,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="1226"/>
-			<UserParam type="int" name="annotation network number" value="157"/>
-			<UserParam type="string" name="partners" value="191;506;1622;1698;3707"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[8817746754717297773,12205041288773447076]"/>
 		</consensusElement>
-		<consensusElement id="e_8006773578259406129" quality="2.313706e-03" charge="1">
+		<consensusElement id="e_11937643917140804200" quality="2.313706e-03" charge="1">
 			<centroid rt="294.043977892764588" mz="300.289682316467349" it="2.865098e08"/>
 			<groupedElementList>
 				<element map="0" id="13000271266339189379" rt="294.031139999999994" mz="300.289660799279375" it="3.2428e08" charge="1"/>
@@ -2475,11 +2239,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1233"/>
-			<UserParam type="int" name="annotation network number" value="205"/>
-			<UserParam type="string" name="partners" value="967;1488"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[5238434752029001796,7721753274195899387]"/>
 		</consensusElement>
-		<consensusElement id="e_3774285815162742138" quality="0.027087" charge="1">
+		<consensusElement id="e_10975342079357915732" quality="0.027087" charge="1">
 			<centroid rt="239.738303745119566" mz="391.284240136616745" it="3.20174e09"/>
 			<groupedElementList>
 				<element map="0" id="13132366103651385414" rt="239.856497999999988" mz="391.284362066111385" it="3.89884e09" charge="1"/>
@@ -2490,11 +2252,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1245"/>
-			<UserParam type="int" name="annotation network number" value="307"/>
-			<UserParam type="string" name="partners" value="442;652;1083;3667"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[4399825295891529911,7657259359718302430]"/>
 		</consensusElement>
-		<consensusElement id="e_2833136032381607289" quality="1.720126e-03" charge="1">
+		<consensusElement id="e_17957666736095765535" quality="1.720126e-03" charge="1">
 			<centroid rt="231.069110172173509" mz="319.2421242605879" it="1.961226e08"/>
 			<groupedElementList>
 				<element map="0" id="13176192910094058150" rt="231.150684000000012" mz="319.242176256945527" it="2.290292e08" charge="1"/>
@@ -2509,10 +2269,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1252"/>
-			<UserParam type="int" name="annotation network number" value="676"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[272129145064983105,1070144355090624222]"/>
 		</consensusElement>
-		<consensusElement id="e_7997873765588412254" quality="2.183886e-03" charge="1">
+		<consensusElement id="e_17399522649797485621" quality="2.183886e-03" charge="1">
 			<centroid rt="219.931628784375135" mz="589.302000027668555" it="2.433459e08"/>
 			<groupedElementList>
 				<element map="0" id="13442456509281419863" rt="219.526763999999986" mz="589.302154077326577" it="3.1383e08" charge="1"/>
@@ -2523,11 +2282,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="1272"/>
-			<UserParam type="int" name="annotation network number" value="576"/>
-			<UserParam type="string" name="partners" value="1011;1280;3389"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[18198377149689400978,3331503838334459894]"/>
 		</consensusElement>
-		<consensusElement id="e_8433892840296857934" quality="3.884188e-03" charge="1">
+		<consensusElement id="e_13738877980904894389" quality="3.884188e-03" charge="1">
 			<centroid rt="291.280901256652101" mz="339.268254493881614" it="4.572557e08"/>
 			<groupedElementList>
 				<element map="0" id="13483347577109505248" rt="291.818153999999993" mz="339.268263272844138" it="5.546144e08" charge="1"/>
@@ -2542,10 +2299,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1277"/>
-			<UserParam type="int" name="annotation network number" value="682"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6644399298944242171,4079882733464028481]"/>
 		</consensusElement>
-		<consensusElement id="e_2183292612680674779" quality="4.227464e-04" charge="1">
+		<consensusElement id="e_13462023469497161039" quality="4.227464e-04" charge="1">
 			<centroid rt="217.923985029352139" mz="999.476581300553107" it="3.399974e07"/>
 			<groupedElementList>
 				<element map="0" id="13636610021923646234" rt="217.816271999999998" mz="999.476510705074134" it="3.709181e07" charge="1"/>
@@ -2560,11 +2316,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1295"/>
-			<UserParam type="int" name="annotation network number" value="395"/>
-			<UserParam type="string" name="partners" value="598;888;2988;3117"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3841607502541629920,13468501192298264547]"/>
 		</consensusElement>
-		<consensusElement id="e_6779410406801346376" quality="4.410291e-04" charge="1">
+		<consensusElement id="e_9162739856486457911" quality="4.410291e-04" charge="1">
 			<centroid rt="252.147680175180028" mz="781.561066644553193" it="4.030085e07"/>
 			<groupedElementList>
 				<element map="0" id="13637781933101895216" rt="251.935674000000006" mz="781.561044268160913" it="5.148767e07" charge="1"/>
@@ -2575,11 +2329,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1296"/>
-			<UserParam type="int" name="annotation network number" value="106"/>
-			<UserParam type="string" name="partners" value="625;667;909;1302;1377"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[829004013593818866,2161565166301927141]"/>
 		</consensusElement>
-		<consensusElement id="e_9839972788562082746" quality="1.758549e-03" charge="1">
+		<consensusElement id="e_7482361919846384338" quality="1.758549e-03" charge="1">
 			<centroid rt="252.147680175180028" mz="834.608255732872294" it="1.98339e08"/>
 			<groupedElementList>
 				<element map="0" id="13701967159306613188" rt="251.935674000000006" mz="834.608354655263725" it="2.035873e08" charge="1"/>
@@ -2590,11 +2342,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+4H+N]+"/>
-			<UserParam type="int" name="row ID" value="1302"/>
-			<UserParam type="int" name="annotation network number" value="106"/>
-			<UserParam type="string" name="partners" value="129;625;667;909;1296;1347;1377;2241;2545;2564;2641;2738"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[13428172553962707415,2161565166301927141]"/>
 		</consensusElement>
-		<consensusElement id="e_6709684605386747464" quality="7.132476e-04" charge="1">
+		<consensusElement id="e_17983066987179957701" quality="7.132476e-04" charge="1">
 			<centroid rt="226.376899891731426" mz="520.309000538501437" it="7.617847e07"/>
 			<groupedElementList>
 				<element map="0" id="13928382633199901155" rt="225.900090000000006" mz="520.308977940007139" it="9.345969e07" charge="1"/>
@@ -2609,11 +2359,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="1331"/>
-			<UserParam type="int" name="annotation network number" value="693"/>
-			<UserParam type="string" name="partners" value="1314;1318;1994;3512"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[8992380181129975988,157908633833993291]"/>
 		</consensusElement>
-		<consensusElement id="e_3572343835964678064" quality="2.659442e-03" charge="1">
+		<consensusElement id="e_7491172730248955464" quality="2.659442e-03" charge="1">
 			<centroid rt="276.075195272824885" mz="373.273893007447384" it="3.193436e08"/>
 			<groupedElementList>
 				<element map="0" id="13952649183555658067" rt="275.756010000000003" mz="373.2739427477768" it="3.926931e08" charge="1"/>
@@ -2628,11 +2376,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="1337"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="90;293;392;517;567;713;735;1617;1807;2932;3517;3946"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14539804607486901846,10404483201216448258]"/>
 		</consensusElement>
-		<consensusElement id="e_6081183572146336696" quality="4.179965e-03" charge="1">
+		<consensusElement id="e_4412135876038674026" quality="4.179965e-03" charge="1">
 			<centroid rt="252.147680175180028" mz="839.5633070458166" it="3.839831e08"/>
 			<groupedElementList>
 				<element map="0" id="14061656379286661648" rt="251.935674000000006" mz="839.56324713068193" it="3.754467e08" charge="1"/>
@@ -2647,11 +2393,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1347"/>
-			<UserParam type="int" name="annotation network number" value="106"/>
-			<UserParam type="string" name="partners" value="129;625;667;909;1173;1302;1377;2241;2545;2564;2641;2738;2949;3383;3387;3938"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[13428172553962707415,2826814428620399183]"/>
 		</consensusElement>
-		<consensusElement id="e_5190742548548356508" quality="7.250074e-04" charge="1">
+		<consensusElement id="e_2187466970112378186" quality="7.250074e-04" charge="1">
 			<centroid rt="243.733927418970382" mz="442.210130344078152" it="8.079112e07"/>
 			<groupedElementList>
 				<element map="0" id="14167103552200891365" rt="243.915102000000019" mz="442.210229961359573" it="7.740879e07" charge="1"/>
@@ -2666,11 +2410,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1360"/>
-			<UserParam type="int" name="annotation network number" value="707"/>
-			<UserParam type="string" name="partners" value="1643"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[5777050041806990167,15631268574898162737]"/>
 		</consensusElement>
-		<consensusElement id="e_5904981479208777826" quality="7.74401e-03" charge="1">
+		<consensusElement id="e_1586711737547693340" quality="7.74401e-03" charge="1">
 			<centroid rt="239.738303745119566" mz="464.283419221457621" it="8.190464e08"/>
 			<groupedElementList>
 				<element map="0" id="14236207869583796639" rt="239.856497999999988" mz="464.28351028733249" it="1.031658e09" charge="1"/>
@@ -2685,11 +2427,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
-			<UserParam type="int" name="row ID" value="1366"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="118;414;478;875;931;1343;1497;1546;1664;1809;2307;2439;2464;2870;3712"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10593648637373885559,4922294197197405497]"/>
 		</consensusElement>
-		<consensusElement id="e_18402909954748340634" quality="2.880997e-04" charge="1">
+		<consensusElement id="e_17246001669774228892" quality="2.880997e-04" charge="1">
 			<centroid rt="278.555705261780872" mz="387.322102992580938" it="3.242154e07"/>
 			<groupedElementList>
 				<element map="0" id="14280208042496814003" rt="278.768867999999998" mz="387.322115222430398" it="3.876768e07" charge="1"/>
@@ -2704,10 +2444,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1370"/>
-			<UserParam type="int" name="annotation network number" value="710"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3524072863095879498,12770179035893448847]"/>
 		</consensusElement>
-		<consensusElement id="e_17073110289098982734" quality="1.501953e-03" charge="1">
+		<consensusElement id="e_5519829909963254962" quality="1.501953e-03" charge="1">
 			<centroid rt="224.864205281736417" mz="817.582162408901922" it="1.555292e08"/>
 			<groupedElementList>
 				<element map="0" id="14295394197022956579" rt="225.10560000000001" mz="817.582121070971084" it="1.857339e08" charge="1"/>
@@ -2722,11 +2461,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1372"/>
-			<UserParam type="int" name="annotation network number" value="593"/>
-			<UserParam type="string" name="partners" value="1041;2462"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[4049660399494378862,7438401886563711776]"/>
 		</consensusElement>
-		<consensusElement id="e_5135603088850791794" quality="1.868051e-03">
+		<consensusElement id="e_16235474232510911658" quality="1.868051e-03">
 			<centroid rt="222.335822467496797" mz="498.288808959522157" it="2.12623e08"/>
 			<groupedElementList>
 				<element map="0" id="14317959434759746580" rt="222.289242000000002" mz="498.288850454965825" it="2.172161e08"/>
@@ -2737,10 +2474,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1376"/>
-			<UserParam type="int" name="annotation network number" value="714"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[8065603810822176667,7866393063641939668]"/>
 		</consensusElement>
-		<consensusElement id="e_1790819782536760093" quality="3.08645e-04" charge="1">
+		<consensusElement id="e_15824984979029523683" quality="3.08645e-04" charge="1">
 			<centroid rt="263.773228118890188" mz="431.277364963554533" it="3.143126e07"/>
 			<groupedElementList>
 				<element map="0" id="14369207792308457788" rt="263.983841999999982" mz="431.277523020262549" it="2.772111e07" charge="1"/>
@@ -2751,11 +2487,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-2H+Na-O]+"/>
-			<UserParam type="int" name="row ID" value="1380"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="959;1404;1523;1611;1664;3079;3245;3460;3822"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[7290588347876571782,3521482694488203071]"/>
 		</consensusElement>
-		<consensusElement id="e_7941461981640594472" quality="1.065962e-03" charge="1">
+		<consensusElement id="e_13181931477936505667" quality="1.065962e-03" charge="1">
 			<centroid rt="274.966994475227068" mz="339.268658502183314" it="1.226337e08"/>
 			<groupedElementList>
 				<element map="0" id="14407159966864073471" rt="275.292761999999982" mz="339.268678564552829" it="1.559125e08" charge="1"/>
@@ -2770,11 +2504,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-4H+K-2O]+"/>
-			<UserParam type="int" name="row ID" value="1382"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="55;106;148;292;440;741;1572"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2742617040394196557,9928792169409448781]"/>
 		</consensusElement>
-		<consensusElement id="e_10705245964337698835" quality="0.06503" charge="1">
+		<consensusElement id="e_949980772197594249" quality="0.06503" charge="1">
 			<centroid rt="291.015590256652104" mz="357.278786205003144" it="7.49338e09"/>
 			<groupedElementList>
 				<element map="0" id="14459155386077341526" rt="291.287531999999999" mz="357.278796673686372" it="9.054843e09" charge="1"/>
@@ -2785,11 +2517,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1390"/>
-			<UserParam type="int" name="annotation network number" value="392"/>
-			<UserParam type="string" name="partners" value="592;653;722;849;1197"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2993059925242412569,12464762207469046434]"/>
 		</consensusElement>
-		<consensusElement id="e_12044961586863621017" quality="1.862737e-03">
+		<consensusElement id="e_11545998165256971108" quality="1.862737e-03">
 			<centroid rt="297.246859584357082" mz="372.311112283925297" it="2.411442e08"/>
 			<groupedElementList>
 				<element map="0" id="14464822981124996477" rt="296.938247999999987" mz="372.311121607814357" it="3.039708e08"/>
@@ -2800,11 +2530,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1393"/>
-			<UserParam type="int" name="annotation network number" value="336"/>
-			<UserParam type="string" name="partners" value="494"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6622503426670410788,13879955647639784679]"/>
 		</consensusElement>
-		<consensusElement id="e_3262263369305488359" quality="1.00957e-03" charge="1">
+		<consensusElement id="e_5728792908993216438" quality="1.00957e-03" charge="1">
 			<centroid rt="213.609841385114748" mz="700.337225986920089" it="1.023818e08"/>
 			<groupedElementList>
 				<element map="0" id="14767477032503140030" rt="213.06267600000001" mz="700.337257597420376" it="1.292835e08" charge="1"/>
@@ -2819,11 +2547,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1425"/>
-			<UserParam type="int" name="annotation network number" value="723"/>
-			<UserParam type="string" name="partners" value="1397"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[13487121098051225971,16840161595923568767]"/>
 		</consensusElement>
-		<consensusElement id="e_1678894819257759601" quality="4.528224e-04" charge="1">
+		<consensusElement id="e_9723188018890186578" quality="4.528224e-04" charge="1">
 			<centroid rt="291.663120889858249" mz="839.510988718541512" it="4.356814e07"/>
 			<groupedElementList>
 				<element map="0" id="14877783728891884795" rt="291.818153999999993" mz="839.510835767170192" it="3.765849e07" charge="1"/>
@@ -2834,11 +2560,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1432"/>
-			<UserParam type="int" name="annotation network number" value="12"/>
-			<UserParam type="string" name="partners" value="40;49;211;1210"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14793185342723724592,14315818322791863643]"/>
 		</consensusElement>
-		<consensusElement id="e_17781352498879451212" quality="3.852896e-04">
+		<consensusElement id="e_4585090521515429921" quality="3.852896e-04">
 			<centroid rt="239.503931745119559" mz="479.271297294493934" it="5.331124e07"/>
 			<groupedElementList>
 				<element map="0" id="14932427697727712634" rt="239.387754000000001" mz="479.272256558009417" it="6.897101e07" charge="1"/>
@@ -2849,11 +2573,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+K]+"/>
-			<UserParam type="int" name="row ID" value="1438"/>
-			<UserParam type="int" name="annotation network number" value="546"/>
-			<UserParam type="string" name="partners" value="941;2199;2368;2602;2699"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16139133985258322521,17503300256293964117]"/>
 		</consensusElement>
-		<consensusElement id="e_6044853087295916620" quality="2.33635e-04" charge="1">
+		<consensusElement id="e_15618896806433724316" quality="2.33635e-04" charge="1">
 			<centroid rt="209.195063672807777" mz="474.32205308890758" it="2.6484e07"/>
 			<groupedElementList>
 				<element map="0" id="15015423555084770757" rt="208.680084000000022" mz="474.322046712636279" it="3.154951e07" charge="1"/>
@@ -2864,11 +2586,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-4H+Na-2O]+"/>
-			<UserParam type="int" name="row ID" value="1448"/>
-			<UserParam type="int" name="annotation network number" value="223"/>
-			<UserParam type="string" name="partners" value="295;482;956;1150;1254"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1472890166571048099,6965482970256701147]"/>
 		</consensusElement>
-		<consensusElement id="e_12615856894957167689" quality="3.928661e-04" charge="1">
+		<consensusElement id="e_12290273245469948822" quality="3.928661e-04" charge="1">
 			<centroid rt="291.280901256652101" mz="275.200552335192128" it="4.784002e07"/>
 			<groupedElementList>
 				<element map="0" id="15148569450486779631" rt="291.818153999999993" mz="275.200558984826216" it="6.016253e07" charge="1"/>
@@ -2879,11 +2599,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1466"/>
-			<UserParam type="int" name="annotation network number" value="753"/>
-			<UserParam type="string" name="partners" value="2944"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[955981915467811613,15589920535357973884]"/>
 		</consensusElement>
-		<consensusElement id="e_4831502311813781224" quality="3.111116e-04" charge="1">
+		<consensusElement id="e_5180503652423977053" quality="3.111116e-04" charge="1">
 			<centroid rt="256.34304839286051" mz="407.279361335184774" it="3.742818e07"/>
 			<groupedElementList>
 				<element map="0" id="15218591961666831076" rt="256.567385999999999" mz="407.279358811921895" it="4.401093e07" charge="1"/>
@@ -2898,10 +2616,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1475"/>
-			<UserParam type="int" name="annotation network number" value="757"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15640014970448767056,15851442434939432045]"/>
 		</consensusElement>
-		<consensusElement id="e_5709145263377898468" quality="4.611587e-03" charge="1">
+		<consensusElement id="e_1594573869668687359" quality="4.611587e-03" charge="1">
 			<centroid rt="293.497282960247333" mz="282.279124503221396" it="5.706445e08"/>
 			<groupedElementList>
 				<element map="0" id="15346653841116012650" rt="294.031139999999994" mz="282.279114466051965" it="6.696038e08" charge="1"/>
@@ -2920,11 +2637,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="1488"/>
-			<UserParam type="int" name="annotation network number" value="205"/>
-			<UserParam type="string" name="partners" value="967;1233;3440"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[5238434752029001796,2383441019628369909]"/>
 		</consensusElement>
-		<consensusElement id="e_13178152035350178374" quality="2.747431e-03" charge="1">
+		<consensusElement id="e_14286789571681500125" quality="2.747431e-03" charge="1">
 			<centroid rt="287.379409757547933" mz="318.300489815174501" it="3.307997e08"/>
 			<groupedElementList>
 				<element map="0" id="15470362774726694239" rt="287.699184000000003" mz="318.300498615221159" it="3.845476e08" charge="1"/>
@@ -2939,11 +2654,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1498"/>
-			<UserParam type="int" name="annotation network number" value="455"/>
-			<UserParam type="string" name="partners" value="723;914"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[4749853212513578694,11863234177829475871]"/>
 		</consensusElement>
-		<consensusElement id="e_9254428957054036707" quality="1.258169e-03" charge="1">
+		<consensusElement id="e_13826039635949104786" quality="1.258169e-03" charge="1">
 			<centroid rt="211.507631403420135" mz="498.288968816068632" it="1.343575e08"/>
 			<groupedElementList>
 				<element map="0" id="15581106198688419538" rt="210.977688000000001" mz="498.289104851116122" it="1.55164e08" charge="1"/>
@@ -2962,11 +2675,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1508"/>
-			<UserParam type="int" name="annotation network number" value="296"/>
-			<UserParam type="string" name="partners" value="425;1676;1861"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9689676033644193634,10674140202495565400]"/>
 		</consensusElement>
-		<consensusElement id="e_10038359143763215304" quality="3.064832e-04" charge="1">
+		<consensusElement id="e_14516467852543000027" quality="3.064832e-04" charge="1">
 			<centroid rt="212.997652321384379" mz="407.279155155238186" it="3.61451e07"/>
 			<groupedElementList>
 				<element map="0" id="15696691347287808854" rt="213.06267600000001" mz="407.279208263686144" it="3.813103e07" charge="1"/>
@@ -2981,11 +2692,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1520"/>
-			<UserParam type="int" name="annotation network number" value="97"/>
-			<UserParam type="string" name="partners" value="117;256;263;1423;1516"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11509720332233479859,15537923199014164268]"/>
 		</consensusElement>
-		<consensusElement id="e_12102873974456820863" quality="1.815128e-04" charge="1">
+		<consensusElement id="e_4346366689165239799" quality="1.815128e-04" charge="1">
 			<centroid rt="220.876623085247445" mz="468.368083100027206" it="1.941566e07"/>
 			<groupedElementList>
 				<element map="0" id="15859837208273837034" rt="220.820748000000009" mz="468.368223273220337" it="2.175825e07" charge="1"/>
@@ -2996,11 +2705,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1532"/>
-			<UserParam type="int" name="annotation network number" value="772"/>
-			<UserParam type="string" name="partners" value="1728"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11202758284344599640,2051989019156007064]"/>
 		</consensusElement>
-		<consensusElement id="e_9001811840087532466" quality="4.716296e-04" charge="1">
+		<consensusElement id="e_571262818378003005" quality="4.716296e-04" charge="1">
 			<centroid rt="252.936241422776533" mz="655.276322915491278" it="4.845211e07"/>
 			<groupedElementList>
 				<element map="0" id="16060787278587803170" rt="252.516287999999975" mz="655.276264000117862" it="6.651592e07" charge="1"/>
@@ -3015,11 +2722,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1551"/>
-			<UserParam type="int" name="annotation network number" value="86"/>
-			<UserParam type="string" name="partners" value="99;991;1069;3566"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[5688139014743748396,13821208402773335408]"/>
 		</consensusElement>
-		<consensusElement id="e_603971655342098072" quality="1.858089e-03" charge="1">
+		<consensusElement id="e_12734154037445384519" quality="1.858089e-03" charge="1">
 			<centroid rt="251.738338147827051" mz="426.321302297989973" it="1.996607e08"/>
 			<groupedElementList>
 				<element map="0" id="16100043513572036583" rt="251.935674000000006" mz="426.321310079111413" it="2.023036e08" charge="1"/>
@@ -3034,10 +2739,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1557"/>
-			<UserParam type="int" name="annotation network number" value="781"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16956823446758509634,14002494483767718661]"/>
 		</consensusElement>
-		<consensusElement id="e_11511087407365172545" quality="1.303527e-03" charge="1">
+		<consensusElement id="e_14480116256719099925" quality="1.303527e-03" charge="1">
 			<centroid rt="237.789733758242392" mz="389.268745224198142" it="1.576396e08"/>
 			<groupedElementList>
 				<element map="0" id="16105339501932386583" rt="237.79889399999999" mz="389.268799907367281" it="1.873536e08" charge="1"/>
@@ -3048,11 +2752,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="1560"/>
-			<UserParam type="int" name="annotation network number" value="485"/>
-			<UserParam type="string" name="partners" value="966;1198;1610;1619"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15563080394001268283,7007145139197257110]"/>
 		</consensusElement>
-		<consensusElement id="e_17243912256163226301" quality="1.038458e-03" charge="1">
+		<consensusElement id="e_13514105406972729450" quality="1.038458e-03" charge="1">
 			<centroid rt="217.923985029352139" mz="611.342693309963465" it="1.095962e08"/>
 			<groupedElementList>
 				<element map="0" id="16189140056363682087" rt="217.816271999999998" mz="611.342815587009227" it="1.319143e08" charge="1"/>
@@ -3063,10 +2765,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1571"/>
-			<UserParam type="int" name="annotation network number" value="786"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[5401615180160689392,5293146167296955767]"/>
 		</consensusElement>
-		<consensusElement id="e_3265145684651150372" quality="0.016987" charge="1">
+		<consensusElement id="e_6513189600431716632" quality="0.016987" charge="1">
 			<centroid rt="274.966994475227068" mz="357.279021964130436" it="2.127642e09"/>
 			<groupedElementList>
 				<element map="0" id="16190268101081291012" rt="275.292761999999982" mz="357.279042269329636" it="2.736174e09" charge="1"/>
@@ -3077,11 +2778,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-2H+K-O]+"/>
-			<UserParam type="int" name="row ID" value="1572"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="148;292;440;741;1234;1382"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2742617040394196557,911976538070479319]"/>
 		</consensusElement>
-		<consensusElement id="e_16582541191623721022" quality="4.970045e-04" charge="1">
+		<consensusElement id="e_10866569959404847156" quality="4.970045e-04" charge="1">
 			<centroid rt="279.816000294557171" mz="415.211981395106704" it="6.479118e07"/>
 			<groupedElementList>
 				<element map="0" id="16231398537565534314" rt="279.976230000000044" mz="415.211906569024109" it="9.196262e07" charge="1"/>
@@ -3096,11 +2795,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1576"/>
-			<UserParam type="int" name="annotation network number" value="788"/>
-			<UserParam type="string" name="partners" value="1686;1690"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15878988776219450225,4101677574392432621]"/>
 		</consensusElement>
-		<consensusElement id="e_9609002230268083387" quality="6.566343e-04" charge="1">
+		<consensusElement id="e_16713247605224352855" quality="6.566343e-04" charge="1">
 			<centroid rt="292.000909622384938" mz="373.273985873903655" it="7.25275e07"/>
 			<groupedElementList>
 				<element map="0" id="16249457087392399157" rt="291.818153999999993" mz="373.274063202841717" it="8.293873e07" charge="1"/>
@@ -3111,11 +2808,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1578"/>
-			<UserParam type="int" name="annotation network number" value="415"/>
-			<UserParam type="string" name="partners" value="639;1719;3316"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[12575431947130062336,10325420244349075767]"/>
 		</consensusElement>
-		<consensusElement id="e_10285523978745888969" quality="1.949068e-03" charge="1">
+		<consensusElement id="e_12017282730479013096" quality="1.949068e-03" charge="1">
 			<centroid rt="225.816918100189838" mz="591.317377290414925" it="2.163968e08"/>
 			<groupedElementList>
 				<element map="0" id="16371807028382771141" rt="225.900090000000006" mz="591.317357501181618" it="2.507058e08" charge="1"/>
@@ -3130,11 +2825,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1589"/>
-			<UserParam type="int" name="annotation network number" value="195"/>
-			<UserParam type="string" name="partners" value="247;1913;1964;2762"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[8733396199458614434,2673495744229312262]"/>
 		</consensusElement>
-		<consensusElement id="e_1964651736517597526" quality="1.043525e-03" charge="1">
+		<consensusElement id="e_4733659105707191159" quality="1.043525e-03" charge="1">
 			<centroid rt="237.111125516069194" mz="407.279315128240512" it="1.219904e08"/>
 			<groupedElementList>
 				<element map="0" id="16555304785663893104" rt="236.943642000000011" mz="407.279500682948196" it="1.351105e08" charge="1"/>
@@ -3149,11 +2842,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1610"/>
-			<UserParam type="int" name="annotation network number" value="485"/>
-			<UserParam type="string" name="partners" value="966;1198;1560;1619"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15563080394001268283,2245125369076089170]"/>
 		</consensusElement>
-		<consensusElement id="e_9757931641729043937" quality="4.33887e-03" charge="1">
+		<consensusElement id="e_14829603279783232459" quality="4.33887e-03" charge="1">
 			<centroid rt="276.075195272824885" mz="355.263403147871031" it="5.136328e08"/>
 			<groupedElementList>
 				<element map="0" id="16633532678384110691" rt="275.756010000000003" mz="355.263474763713475" it="6.197706e08" charge="1"/>
@@ -3164,11 +2855,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-3H-2O]+"/>
-			<UserParam type="int" name="row ID" value="1617"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="90;148;392;440;517;713;735;828;1337"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[14539804607486901846,17521057431835351828]"/>
 		</consensusElement>
-		<consensusElement id="e_14401990027551533063" quality="0.018753" charge="1">
+		<consensusElement id="e_6813064633129416344" quality="0.018753" charge="1">
 			<centroid rt="251.738338147827051" mz="373.273694152462383" it="2.203187e09"/>
 			<groupedElementList>
 				<element map="0" id="16780583262430213358" rt="251.935674000000006" mz="373.273698929243267" it="2.685949e09" charge="1"/>
@@ -3183,11 +2872,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1629"/>
-			<UserParam type="int" name="annotation network number" value="148"/>
-			<UserParam type="string" name="partners" value="836;1022;1193;1267;1499;1637;1777;3553;3725"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9146900735801263536,2241364242521384849]"/>
 		</consensusElement>
-		<consensusElement id="e_12172213247571685107" quality="0.011438" charge="1">
+		<consensusElement id="e_952916434622011822" quality="0.011438" charge="1">
 			<centroid rt="252.147680175180028" mz="355.263196044428582" it="1.361857e09"/>
 			<groupedElementList>
 				<element map="0" id="16855125916295094684" rt="251.935674000000006" mz="355.263208838748994" it="1.611149e09" charge="1"/>
@@ -3202,11 +2889,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="1637"/>
-			<UserParam type="int" name="annotation network number" value="148"/>
-			<UserParam type="string" name="partners" value="836;1022;1193;1267;1499;1629;1777;3553;3725"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[9146900735801263536,2241364242521384849]"/>
 		</consensusElement>
-		<consensusElement id="e_854854730367412933" quality="3.768236e-04" charge="1">
+		<consensusElement id="e_6749528834952113322" quality="3.768236e-04" charge="1">
 			<centroid rt="242.916157599894206" mz="420.228340537094141" it="4.344218e07"/>
 			<groupedElementList>
 				<element map="0" id="16899837324372749442" rt="243.348852000000022" mz="420.228365167916252" it="6.490193e07" charge="1"/>
@@ -3217,11 +2902,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1643"/>
-			<UserParam type="int" name="annotation network number" value="707"/>
-			<UserParam type="string" name="partners" value="1360"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[5777050041806990167,15173467561581123006]"/>
 		</consensusElement>
-		<consensusElement id="e_2575200826588007589" quality="3.944758e-04" charge="1">
+		<consensusElement id="e_8788321665297056942" quality="3.944758e-04" charge="1">
 			<centroid rt="294.590412892764562" mz="415.321164776210765" it="4.620336e07"/>
 			<groupedElementList>
 				<element map="0" id="16904692652650617004" rt="295.124009999999998" mz="415.321184519981443" it="3.878559e07" charge="1"/>
@@ -3232,11 +2915,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1644"/>
-			<UserParam type="int" name="annotation network number" value="811"/>
-			<UserParam type="string" name="partners" value="1932;3666"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6675311171494029578,15700816752433958163]"/>
 		</consensusElement>
-		<consensusElement id="e_6640341133989326141" quality="4.284333e-04" charge="1">
+		<consensusElement id="e_3290483879404211264" quality="4.284333e-04" charge="1">
 			<centroid rt="234.951667458641509" mz="504.312745882456795" it="4.341475e07"/>
 			<groupedElementList>
 				<element map="0" id="17016744409540330963" rt="234.689658000000009" mz="504.313030232046856" it="5.442936e07" charge="1"/>
@@ -3247,11 +2928,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1656"/>
-			<UserParam type="int" name="annotation network number" value="111"/>
-			<UserParam type="string" name="partners" value="136;2375"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1357967742926468394,8718696464892570487]"/>
 		</consensusElement>
-		<consensusElement id="e_2592868377907500030" quality="2.389483e-04">
+		<consensusElement id="e_8189597616894815447" quality="2.389483e-04">
 			<centroid rt="263.773228118890188" mz="428.298456095746587" it="2.454314e07"/>
 			<groupedElementList>
 				<element map="0" id="17270527116038492280" rt="263.983841999999982" mz="428.298470101735859" it="3.452637e07" charge="1"/>
@@ -3262,11 +2941,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1685"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="41;1287;1404;1611;1775;1899;2808"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[12306365722869725897,5835242028042913935]"/>
 		</consensusElement>
-		<consensusElement id="e_11161386294924672100" quality="3.592782e-04" charge="1">
+		<consensusElement id="e_17085692208350478870" quality="3.592782e-04" charge="1">
 			<centroid rt="279.816000294557171" mz="437.19385455629839" it="4.648005e07"/>
 			<groupedElementList>
 				<element map="0" id="17309401994099920066" rt="279.976230000000044" mz="437.193825838247506" it="6.004449e07" charge="1"/>
@@ -3277,11 +2954,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="1690"/>
-			<UserParam type="int" name="annotation network number" value="788"/>
-			<UserParam type="string" name="partners" value="1576;1686"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[15878988776219450225,4101677574392432621]"/>
 		</consensusElement>
-		<consensusElement id="e_8580132361310051818" quality="1.847641e-04" charge="1">
+		<consensusElement id="e_1957703159682833220" quality="1.847641e-04" charge="1">
 			<centroid rt="229.248814627144327" mz="554.347796167854085" it="2.135588e07"/>
 			<groupedElementList>
 				<element map="0" id="17310883047102303911" rt="228.780198000000013" mz="554.347711794658608" it="2.506179e07" charge="1"/>
@@ -3292,11 +2967,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1691"/>
-			<UserParam type="int" name="annotation network number" value="15"/>
-			<UserParam type="string" name="partners" value="16;809;922;1264;1268;1289;3206;3223;3433;3765;3869"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1251795449337419654,8736194301539362703]"/>
 		</consensusElement>
-		<consensusElement id="e_2208851620063212553" quality="8.185628e-04" charge="1">
+		<consensusElement id="e_11539619143959107441" quality="8.185628e-04" charge="1">
 			<centroid rt="291.663120889858249" mz="355.263388156787414" it="9.838528e07"/>
 			<groupedElementList>
 				<element map="0" id="17591387440363721979" rt="291.818153999999993" mz="355.263427678401513" it="1.1892e08" charge="1"/>
@@ -3307,11 +2980,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="1719"/>
-			<UserParam type="int" name="annotation network number" value="415"/>
-			<UserParam type="string" name="partners" value="639;1578;3316"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[12575431947130062336,10325420244349075767]"/>
 		</consensusElement>
-		<consensusElement id="e_16452702841156020253" quality="2.198209e-04" charge="1">
+		<consensusElement id="e_5879720691123293281" quality="2.198209e-04" charge="1">
 			<centroid rt="269.761002077663534" mz="557.325703090979573" it="2.383046e07"/>
 			<groupedElementList>
 				<element map="0" id="17701495716763741255" rt="270.135552000000018" mz="557.325608100968225" it="3.241371e07" charge="1"/>
@@ -3326,11 +2997,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1732"/>
-			<UserParam type="int" name="annotation network number" value="1"/>
-			<UserParam type="string" name="partners" value="307;1141;1951;2885;3101"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6482931397728967895,899402498282631163]"/>
 		</consensusElement>
-		<consensusElement id="e_14734326370139921694" quality="5.815331e-04" charge="1">
+		<consensusElement id="e_8910764765495821062" quality="5.815331e-04" charge="1">
 			<centroid rt="293.497282960247333" mz="865.532454572529105" it="3.77893e07"/>
 			<groupedElementList>
 				<element map="0" id="17710390093437312289" rt="294.031139999999994" mz="865.531747053887898" it="2.627722e07" charge="1"/>
@@ -3341,11 +3010,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+Na]+"/>
-			<UserParam type="int" name="row ID" value="1733"/>
-			<UserParam type="int" name="annotation network number" value="12"/>
-			<UserParam type="string" name="partners" value="49;110;209;985;1210;1274;1773;2996;3568;3760;3762;3841"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10649003594486583870,2018010570932300066]"/>
 		</consensusElement>
-		<consensusElement id="e_11278351798438363459" quality="1.650025e-04" charge="1">
+		<consensusElement id="e_12533691109693639740" quality="1.650025e-04" charge="1">
 			<centroid rt="285.116965789668143" mz="383.331179943951781" it="2.013506e07"/>
 			<groupedElementList>
 				<element map="0" id="17727107979809906563" rt="285.350819999999999" mz="383.331219905243472" it="3.059735e07" charge="1"/>
@@ -3356,11 +3023,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1735"/>
-			<UserParam type="int" name="annotation network number" value="7"/>
-			<UserParam type="string" name="partners" value="890;1553"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[18415334138481826981,18094481148842186962]"/>
 		</consensusElement>
-		<consensusElement id="e_3512493637497929895" quality="6.589236e-04" charge="1">
+		<consensusElement id="e_13326439771931812062" quality="6.589236e-04" charge="1">
 			<centroid rt="298.144362947157788" mz="284.295017497398817" it="7.563287e07"/>
 			<groupedElementList>
 				<element map="0" id="17782377803409909993" rt="297.954365999999993" mz="284.294987585795241" it="8.251666e07" charge="1"/>
@@ -3375,11 +3040,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="1740"/>
-			<UserParam type="int" name="annotation network number" value="642"/>
-			<UserParam type="string" name="partners" value="1177"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[3679034483189221016,8019489081897324441]"/>
 		</consensusElement>
-		<consensusElement id="e_3283626347618570815" quality="1.442062e-03" charge="1">
+		<consensusElement id="e_2276844014683387248" quality="1.442062e-03" charge="1">
 			<centroid rt="261.083649928170587" mz="345.21756498016839" it="1.747874e08"/>
 			<groupedElementList>
 				<element map="0" id="17791724446372563488" rt="260.909232000000031" mz="345.217604526750108" it="2.153755e08" charge="1"/>
@@ -3394,11 +3057,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1742"/>
-			<UserParam type="int" name="annotation network number" value="285"/>
-			<UserParam type="string" name="partners" value="403"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10475032151026329410,5559920242637998045]"/>
 		</consensusElement>
-		<consensusElement id="e_15886252952044706298" quality="4.019959e-04" charge="1">
+		<consensusElement id="e_13562319194607596069" quality="4.019959e-04" charge="1">
 			<centroid rt="209.675372672807782" mz="484.244245500265947" it="4.863347e07"/>
 			<groupedElementList>
 				<element map="0" id="18033804497188472262" rt="209.640702000000005" mz="484.244314893723868" it="6.103745e07" charge="1"/>
@@ -3413,11 +3074,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+K]+"/>
-			<UserParam type="int" name="row ID" value="1767"/>
-			<UserParam type="int" name="annotation network number" value="535"/>
-			<UserParam type="string" name="partners" value="917;2521;3312"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[114393569221077951,17088939188988360410]"/>
 		</consensusElement>
-		<consensusElement id="e_3241044094995423223" quality="2.028445e-04">
+		<consensusElement id="e_2745419295681908515" quality="2.028445e-04">
 			<centroid rt="293.497282960247333" mz="473.324187256469259" it="2.34135e07"/>
 			<groupedElementList>
 				<element map="0" id="18318606617131334491" rt="294.031139999999994" mz="473.324141262208343" it="2.621328e07"/>
@@ -3428,11 +3087,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="1797"/>
-			<UserParam type="int" name="annotation network number" value="358"/>
-			<UserParam type="string" name="partners" value="545;934;2925;3039;3073"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2546407288559976313,12629891524066416723]"/>
 		</consensusElement>
-		<consensusElement id="e_2007945976497562665" quality="5.147681e-04" charge="1">
+		<consensusElement id="e_14224832679615999541" quality="5.147681e-04" charge="1">
 			<centroid rt="282.727499066939913" mz="503.370508228694007" it="4.801702e07"/>
 			<groupedElementList>
 				<element map="0" id="18336958655119662271" rt="283.112334000000033" mz="503.370428777277937" it="5.244726e07" charge="1"/>
@@ -3447,10 +3104,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="1799"/>
-			<UserParam type="int" name="annotation network number" value="859"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10009589664919440197,15808789376166245176]"/>
 		</consensusElement>
-		<consensusElement id="e_3658828538925513790" quality="2.095725e-04" charge="1">
+		<consensusElement id="e_14154749084850305256" quality="2.095725e-04" charge="1">
 			<centroid rt="222.289242000000002" mz="407.279467090007017" it="2.908676e07"/>
 			<groupedElementList>
 				<element map="0" id="5348829413927522396" rt="222.289242000000002" mz="407.279467090007017" it="2.908676e07" charge="1"/>
@@ -3460,11 +3116,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-2H+K-O]+"/>
-			<UserParam type="int" name="row ID" value="2124"/>
-			<UserParam type="int" name="annotation network number" value="167"/>
-			<UserParam type="string" name="partners" value="207;1207;1841"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[1094241089873274386]"/>
 		</consensusElement>
-		<consensusElement id="e_4602421370633455744" quality="1.916882e-03" charge="1">
+		<consensusElement id="e_12823835076094550924" quality="1.916882e-03" charge="1">
 			<centroid rt="276.432882000000006" mz="613.283085468796685" it="2.403975e08"/>
 			<groupedElementList>
 				<element map="0" id="12109433341019140307" rt="276.432882000000006" mz="613.283085468796685" it="2.403975e08" charge="1"/>
@@ -3474,11 +3128,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-2H+Na-O]+"/>
-			<UserParam type="int" name="row ID" value="2542"/>
-			<UserParam type="int" name="annotation network number" value="953"/>
-			<UserParam type="string" name="partners" value="2001;2098;2418;2640"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[11875214863536690059]"/>
 		</consensusElement>
-		<consensusElement id="e_2776175122783525232" quality="1.948731e-04" charge="3">
+		<consensusElement id="e_732882726501109016" quality="1.948731e-04" charge="3">
 			<centroid rt="232.819170000000014" mz="341.247754487612326" it="3.064341e07"/>
 			<groupedElementList>
 				<element map="0" id="13335076756770249062" rt="232.819170000000014" mz="341.247754487612326" it="3.064341e07" charge="3"/>
@@ -3488,11 +3140,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+6H+N]3+"/>
-			<UserParam type="int" name="row ID" value="2615"/>
-			<UserParam type="int" name="annotation network number" value="602"/>
-			<UserParam type="string" name="partners" value="1065;1655"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[16176550101101871179]"/>
 		</consensusElement>
-		<consensusElement id="e_116645414329437250" quality="5.122484e-04" charge="1">
+		<consensusElement id="e_13328276535326812145" quality="5.122484e-04" charge="1">
 			<centroid rt="263.983841999999982" mz="339.268729646293707" it="7.050671e07"/>
 			<groupedElementList>
 				<element map="0" id="17339234303406007956" rt="263.983841999999982" mz="339.268729646293707" it="7.050671e07" charge="1"/>
@@ -3502,11 +3152,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M-H-O]+"/>
-			<UserParam type="int" name="row ID" value="2856"/>
-			<UserParam type="int" name="annotation network number" value="326"/>
-			<UserParam type="string" name="partners" value="475;700;710;2693"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[6104139543594215763]"/>
 		</consensusElement>
-		<consensusElement id="e_16925962944976074711" quality="2.472714e-04" charge="2">
+		<consensusElement id="e_187732272176723424" quality="2.472714e-04" charge="2">
 			<centroid rt="252.516287999999975" mz="430.31645704106279" it="3.888295e07"/>
 			<groupedElementList>
 				<element map="0" id="18331652642152678826" rt="252.516287999999975" mz="430.31645704106279" it="3.888295e07" charge="2"/>
@@ -3516,11 +3164,9 @@
 				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+2Na]2+"/>
-			<UserParam type="int" name="row ID" value="2912"/>
-			<UserParam type="int" name="annotation network number" value="151"/>
-			<UserParam type="string" name="partners" value="242;634;1593;2374;2424;2510;2667"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[7766185849756911518]"/>
 		</consensusElement>
-		<consensusElement id="e_13113535653795811303" quality="1.122683e-03" charge="1">
+		<consensusElement id="e_7081247084728563074" quality="1.122683e-03" charge="1">
 			<centroid rt="203.787841149854273" mz="389.2685838246976" it="1.138213e08"/>
 			<groupedElementList>
 				<element map="1" id="2667944806982531961" rt="203.787841149854273" mz="389.2685838246976" it="1.138213e08" charge="1"/>
@@ -3530,11 +3176,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="3067"/>
-			<UserParam type="int" name="annotation network number" value="437"/>
-			<UserParam type="string" name="partners" value="688;1204;1308"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10844294735321271783]"/>
 		</consensusElement>
-		<consensusElement id="e_12589210598928671966" quality="5.391314e-04" charge="1">
+		<consensusElement id="e_6265949769729827640" quality="5.391314e-04" charge="1">
 			<centroid rt="275.43840290211449" mz="454.292860071908478" it="5.029711e07"/>
 			<groupedElementList>
 				<element map="1" id="5201811601374304614" rt="275.43840290211449" mz="454.292860071908478" it="5.029711e07" charge="1"/>
@@ -3544,11 +3188,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+2H+N-O]+"/>
-			<UserParam type="int" name="row ID" value="3209"/>
-			<UserParam type="int" name="annotation network number" value="449"/>
-			<UserParam type="string" name="partners" value="714;1085;1613;1798;3000;3344;3945"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[17529601653636693111]"/>
 		</consensusElement>
-		<consensusElement id="e_9375834133722175427" quality="4.79729e-04" charge="1">
+		<consensusElement id="e_16490969387257278086" quality="4.79729e-04" charge="1">
 			<centroid rt="226.853709783462847" mz="417.336343758576561" it="4.923498e07"/>
 			<groupedElementList>
 				<element map="1" id="6779970073562529266" rt="226.853709783462847" mz="417.336343758576561" it="4.923498e07" charge="1"/>
@@ -3558,11 +3200,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="3290"/>
-			<UserParam type="int" name="annotation network number" value="52"/>
-			<UserParam type="string" name="partners" value="61;525"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[13908184340540837776]"/>
 		</consensusElement>
-		<consensusElement id="e_10317118599860947414" quality="8.643957e-04" charge="1">
+		<consensusElement id="e_13867619788030395037" quality="8.643957e-04" charge="1">
 			<centroid rt="251.541002295654067" mz="391.284329481994803" it="8.650851e07"/>
 			<groupedElementList>
 				<element map="1" id="14436141272198196054" rt="251.541002295654067" mz="391.284329481994803" it="8.650851e07" charge="1"/>
@@ -3572,11 +3212,9 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="3725"/>
-			<UserParam type="int" name="annotation network number" value="148"/>
-			<UserParam type="string" name="partners" value="836;1022;1193;1267;1499;1629;1637;1777;3553"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[2241364242521384849]"/>
 		</consensusElement>
-		<consensusElement id="e_14058274721379328807" quality="9.812106e-04" charge="1">
+		<consensusElement id="e_15553736987013580280" quality="9.812106e-04" charge="1">
 			<centroid rt="204.68462109112923" mz="470.228486950765387" it="9.873303e07"/>
 			<groupedElementList>
 				<element map="1" id="16411511938600337669" rt="204.68462109112923" mz="470.228486950765387" it="9.873303e07" charge="1"/>
@@ -3586,8 +3224,7 @@
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="best ion" value="[M+H]+"/>
-			<UserParam type="int" name="row ID" value="3848"/>
-			<UserParam type="int" name="annotation network number" value="1724"/>
+			<UserParam type="stringList" name="LinkedGroups" value="[10507728726584654021]"/>
 		</consensusElement>
 	</consensusElementList>
 </consensusXML>

@@ -36,6 +36,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/GNPSMGFFile.h>
 #include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -139,8 +141,22 @@ protected:
     String out_quantification(getStringOption_("out_quantification"));
     String out_pairs(getStringOption_("out_pairs"));
 
-    if (!out_pairs.empty()) IonIdentityMolecularNetworking::writeSupplementaryPairTable(consensus_file_path, out_pairs);
-    if (!out_quantification.empty()) IonIdentityMolecularNetworking::writeFeatureQuantificationTable(consensus_file_path, out_quantification);
+    // load ConsensusMap from file
+    ConsensusMap cm;
+    ConsensusXMLFile().load(consensus_file_path, cm);
+
+    // if at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN
+    for (const auto& f: cm)
+    {
+      if (f.metaValueExists(Constants::UserParam::IIMN_LINKED_GROUPS))
+      {
+        IonIdentityMolecularNetworking::annotateConsensusMap(cm);
+        break;
+      }
+    }
+
+    if (!out_pairs.empty()) IonIdentityMolecularNetworking::writeSupplementaryPairTable(cm, out_pairs);
+    if (!out_quantification.empty()) IonIdentityMolecularNetworking::writeFeatureQuantificationTable(cm, out_quantification);
 
     GNPSMGFFile gnps;
     gnps.setLogType(log_type_);

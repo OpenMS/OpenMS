@@ -279,16 +279,6 @@ namespace OpenMS
     endProgress();
     
     postprocess_(input_maps, out);
-    
-    // if at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN
-    for (const auto& f: out)
-    {
-      if (f.metaValueExists(Constants::UserParam::IIMN_LINKED_GROUPS))
-      {
-        IonIdentityMolecularNetworking::annotateConsensusMap(out);
-        break;
-      }
-    }
   }
 
   void FeatureGroupingAlgorithmKD::group(const std::vector<FeatureMap>& maps,

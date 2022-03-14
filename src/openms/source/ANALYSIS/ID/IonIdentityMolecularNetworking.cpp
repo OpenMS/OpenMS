@@ -34,8 +34,6 @@
 
 #include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 
 #include <fstream>
@@ -97,7 +95,7 @@ namespace OpenMS
       {
         if (!already_in_graph[group])
         {
-          add_edge(feature_vertex, add_vertex(VertexLabel(stoull(group), false), g), g);
+          add_edge(feature_vertex, add_vertex(VertexLabel(std::stoull(group), false), g), g);
           already_in_graph[group] = boost::num_vertices(g);
           continue;
         }
@@ -148,15 +146,11 @@ namespace OpenMS
     }
   }
 
-  void IonIdentityMolecularNetworking::writeFeatureQuantificationTable(const String& consensus_file, const String& output_file)
-  {
-    // load ConsensusMap from file
-    ConsensusMap cm;
-    ConsensusXMLFile().load(consensus_file, cm);
-    
+  void IonIdentityMolecularNetworking::writeFeatureQuantificationTable(const ConsensusMap& consensus_map, const String& output_file)
+  {    
     // IIMN meta values will be exported, if first feature contains mv Constants::UserParam::IIMN_ROW_ID
     bool iimn = false;
-    if (cm[0].metaValueExists(Constants::UserParam::IIMN_ROW_ID)) iimn = true;
+    if (consensus_map[0].metaValueExists(Constants::UserParam::IIMN_ROW_ID)) iimn = true;
 
     // meta values for ion identity molecular networking
     std::vector<String> iimn_mvs{Constants::UserParam::IIMN_ROW_ID,
@@ -175,20 +169,20 @@ namespace OpenMS
     {
       for (const auto& mv : iimn_mvs) out << mv;
     }
-    for (size_t i = 0; i < cm.getColumnHeaders().size(); i++)
+    for (size_t i = 0; i < consensus_map.getColumnHeaders().size(); i++)
     {
       out << "rt_" + String(i) << "mz_" + String(i) << "intensity_" + String(i) << "charge_" + String(i) << "width_" + String(i);
     }
     out << std::endl;
 
     // write MAP information
-    for (const auto& h: cm.getColumnHeaders())
+    for (const auto& h: consensus_map.getColumnHeaders())
     {
       out << "MAP" << h.first << h.second.filename << h.second.label << h.second.size << std::endl;
     }
 
     // write ConsensusFeature information
-    for (const auto& cf: cm)
+    for (const auto& cf: consensus_map)
     {
       out << "CONSENSUS" << cf.getRT() << cf.getMZ() << cf.getIntensity() << cf.getCharge() << cf.getWidth() << cf.getQuality();
       if (iimn)
@@ -198,7 +192,7 @@ namespace OpenMS
       // map index to feature handle and write feature information on correct position, if feature is missing write empty strings
       std::unordered_map<size_t, FeatureHandle> index_to_feature;
       for (const auto& fh: cf.getFeatures()) index_to_feature[fh.getMapIndex()] = fh;
-      for (size_t i = 0; i < cm.getColumnHeaders().size(); i++)
+      for (size_t i = 0; i < consensus_map.getColumnHeaders().size(); i++)
       {
         if (index_to_feature.count(i))
         {
@@ -214,33 +208,22 @@ namespace OpenMS
     outstr.close();
   }
 
-  void IonIdentityMolecularNetworking::writeSupplementaryPairTable(const String& consensus_file, const String& output_file)
+  void IonIdentityMolecularNetworking::writeSupplementaryPairTable(const ConsensusMap& consensus_map, const String& output_file)
   {
-    // load ConsensusMap from file
-    ConsensusMap cm;
-    ConsensusXMLFile().load(consensus_file, cm);
-
     // exit early if there is no IIMN annotations (first feature has no Constants::UserParam::IIMN_ROW_ID)
-    if (!cm[0].metaValueExists(Constants::UserParam::IIMN_ROW_ID)) return;
-
-    // map feature Constants::UserParam::IIMN_ROW_ID to it's index
-    std::unordered_map<size_t, size_t> row_id_to_index; // map<feature_row_id, feature_index>
-    for (size_t i = 0; i < cm.size(); i++)
-    {
-      row_id_to_index[cm[i].getMetaValue(Constants::UserParam::IIMN_ROW_ID)] = i;
-    }
+    if (!consensus_map[0].metaValueExists(Constants::UserParam::IIMN_ROW_ID)) return;
 
     // generate unordered map with feature id and partner feature ids
     std::unordered_map<size_t, std::set<size_t>> feature_partners; // map<feature_index, partner_feature_indices>
-    for (size_t i = 0; i < cm.size(); i++)
+    for (size_t i = 0; i < consensus_map.size(); i++)
     {
-      if (!cm[i].metaValueExists(Constants::UserParam::IIMN_ADDUCT_PARTNERS)) continue;
-      std::stringstream ss(cm[i].getMetaValue(Constants::UserParam::IIMN_ADDUCT_PARTNERS));
+      if (!consensus_map[i].metaValueExists(Constants::UserParam::IIMN_ADDUCT_PARTNERS)) continue;
+      std::stringstream ss(consensus_map[i].getMetaValue(Constants::UserParam::IIMN_ADDUCT_PARTNERS));
       while(ss.good())
       {
         String substr;
         getline(ss, substr, ';');
-        if (row_id_to_index[stoi(substr)]) feature_partners[i].insert(row_id_to_index[stoi(substr)]);
+        feature_partners[i].insert(std::stoi(substr));
       }
     }
     
@@ -256,21 +239,21 @@ namespace OpenMS
     SVOutStream out(outstr, ",", "_", String::NONE);
     
     // write table header
-    out << "ID 1" << "ID 2" << "EdgeType" << "Score" << "Annotation" << std::endl;
+    out << "ID1" << "ID2" << "EdgeType" << "Score" << "Annotation" << std::endl;
 
     // write edge annotation for each feature / partner feature pair
     for (const auto& entry: feature_partners)
     {
       for (const auto& partner_index: entry.second)
       {
-        out << cm[entry.first].getMetaValue(Constants::UserParam::IIMN_ROW_ID);
-        out << cm[partner_index].getMetaValue(Constants::UserParam::IIMN_ROW_ID);
+        out << consensus_map[entry.first].getMetaValue(Constants::UserParam::IIMN_ROW_ID);
+        out << consensus_map[partner_index].getMetaValue(Constants::UserParam::IIMN_ROW_ID);
         out << "MS1 annotation";
         out << num_partners[entry.first] + num_partners[partner_index] - 2; // total number of direct partners from both features minus themselves
         std::stringstream annotation;
-        annotation << cm[entry.first].getMetaValue(Constants::UserParam::IIMN_BEST_ION, String("default")) << " "
-                   << cm[partner_index].getMetaValue(Constants::UserParam::IIMN_BEST_ION, String("default")) << " "
-                   << "dm/z=" << String(std::abs(cm[entry.first].getMZ() - cm[partner_index].getMZ()));
+        annotation << consensus_map[entry.first].getMetaValue(Constants::UserParam::IIMN_BEST_ION, String("default")) << " "
+                   << consensus_map[partner_index].getMetaValue(Constants::UserParam::IIMN_BEST_ION, String("default")) << " "
+                   << "dm/z=" << String(std::abs(consensus_map[entry.first].getMZ() - consensus_map[partner_index].getMZ()));
         out << annotation.str();
         out << std::endl;
         feature_partners[partner_index].erase(entry.first); // remove other direction to avoid duplicates
