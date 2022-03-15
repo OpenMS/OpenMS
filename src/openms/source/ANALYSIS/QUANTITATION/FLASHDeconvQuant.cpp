@@ -145,7 +145,8 @@ namespace OpenMS
                   // "quant_of_apices_of_cs\tsummed_inty_of_apices_of_cs\t"
                   //           "quant_of_top_three_cs\tsummed_inty_of_top_three_cs\tarea_of_top_three_cs\t"
                   "all_area_under_the_curve\t"
-                  // "charge_score\tiso_cosine\tweighted_iso_score\t"
+                  // "charge_score\t
+                  "iso_cosine\tweighted_iso_score\t"
                   "fwhm_start\tfwhm_end\n"; // fwhm_avg_length\trt_start\trt_end\tcentroid_rt_of_apices\trt_of_apex\t"
     // "iso_length\tperIsotopeIntensity\n"; //	is_shared
 
@@ -246,8 +247,8 @@ namespace OpenMS
                  //                  << std::to_string(top3_area_all) << "\t"
                  << std::to_string(area_under_the_curve) << "\t"
                  //                  << std::to_string(fg.getChargeScore()) << "\t"
-                 //                  << std::to_string(fg.getIsotopeCosine()) << "\t"
-                 //                  << std::to_string(fg.getFeatureGroupScore()) << "\t"
+                 << std::to_string(fg.getIsotopeCosine()) << "\t"
+                 << std::to_string(fg.getFeatureGroupScore()) << "\t"
                  << std::to_string(fg.getFwhmRange().first) << "\t"
                  << std::to_string(fg.getFwhmRange().second) << std::endl;
       //                  << std::to_string(fg.getAvgFwhmLength()) << "\t"
@@ -422,215 +423,6 @@ namespace OpenMS
     //    return std::vector<int>{max_intensity_charge_index, max_intensity_iso_index};
   }
 
-  double FLASHDeconvQuant::getChargeFitScore_(const std::vector<double> &per_charge_intensity) const
-  {
-    double max_per_charge_intensity = .0;
-    double summed_intensity = .0;
-    int max_index = -1;
-    int first_index = -1;
-    int last_index = charge_range_ - 1;
-
-    for (int i = 0; i < charge_range_; i++)
-    {
-      summed_intensity += per_charge_intensity[i];
-      if (per_charge_intensity[i] <= 0)
-      {
-        if (first_index < 0)
-        {
-          first_index = i;
-        }
-        last_index = i;
-      }
-
-      if (max_per_charge_intensity > per_charge_intensity[i])
-      {
-        continue;
-      }
-      max_per_charge_intensity = per_charge_intensity[i];
-      max_index = i;
-    }
-    first_index = first_index < 0 ? 0 : first_index;
-
-    double p = .0;
-    for (int i = max_index; i < last_index - 1; i++)
-    {
-      double diff = per_charge_intensity[i + 1] - per_charge_intensity[i];
-      //      double ratio = per_charge_intensity[i] / (.1 + per_charge_intensity[i + 1]);
-      if (diff <= 0)
-      {
-        continue;
-      }
-      p += abs(diff);
-    }
-
-    for (int i = max_index; i > first_index; i--)
-    {
-      double diff = per_charge_intensity[i - 1] - per_charge_intensity[i];
-      //      double ratio = per_charge_intensity[i] / (.1 + per_charge_intensity[i - 1]);
-
-      if (diff <= 0)
-      {
-        continue;
-      }
-      p += abs(diff);
-    }
-    return std::max(.0, 1.0 - p / summed_intensity);
-  }
-
-  double FLASHDeconvQuant::getShapeDiff_(const std::vector<double> &a,
-                                         const int &a_start,
-                                         const int &a_end,
-                                         const IsotopeDistribution &b,
-                                         const int &b_size,
-                                         const int max_b_index,
-                                         const int offset) const
-  {
-    double a_norm = .0, b_norm = .0;
-    double diff = 0;
-
-    for (int j = a_start; j <= a_end; j++)
-    {
-      int i = j - offset;
-
-      if (i < 0 || i >= b_size || b[i].getIntensity() <= 0)
-      {
-        continue;
-      }
-
-      if (i < max_b_index - 2 || i > max_b_index + 2)
-      {
-        continue;
-      }
-
-      a_norm += a[j] * a[j];
-      b_norm += b[i].getIntensity() * b[i].getIntensity();
-    }
-
-    if (a_norm <= 0 || b_norm <= 0)
-    {
-      return -1;
-    }
-    a_norm = sqrt(a_norm);
-    b_norm = sqrt(b_norm);
-
-    for (int j = a_start; j <= a_end; j++)
-    {
-      int i = j - offset;
-      if (i < 0 || i >= b_size || b[i].getIntensity() <= 0)
-      {
-        continue;
-      }
-
-      double t_diff = (a[j] / a_norm - b[i].getIntensity() / b_norm);
-      diff += (t_diff * t_diff);
-    }
-
-    return diff;
-  }
-
-  double FLASHDeconvQuant::getCosine_(const std::vector<double> &a,
-                                      const int &a_start,
-                                      const int &a_end,
-                                      const IsotopeDistribution &b,
-                                      const int &b_size,
-                                      const int offset) const
-  {
-    double n = .0, a_norm = .0;
-    //int c = 0;
-    for (int j = a_start; j <= a_end; j++)
-    {
-      int i = j - offset;
-      a_norm += a[j] * a[j];
-
-      if (i < 0 || i >= b_size || b[i].getIntensity() <= 0)
-      {
-        continue;
-      }
-      n += a[j] * b[i].getIntensity(); //
-    }
-    if (a_norm <= 0)
-    {
-      return 0;
-    }
-    return n / sqrt(a_norm);
-  }
-
-  double FLASHDeconvQuant::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
-                                                                    const std::vector<double> &per_isotope_intensities,
-                                                                    int &offset) const
-  {
-    auto iso = iso_model_.get(mono_mass);
-
-    int iso_size = (int) iso.size();
-    int apex_index = iso_model_.getApexIndex(mono_mass);
-    int iso_range = iso_model_.getRightCountFromApex(mono_mass) + iso_model_.getLeftCountFromApex(mono_mass);
-
-    offset = 0;
-    double min_diff = -1000;
-    int max_isotope_index = 0, min_isotope_index = -1;
-
-    for (int i = 0; i < iso_model_.getMaxIsotopeIndex(); i++)
-    {
-      if (per_isotope_intensities[i] <= 0)
-      {
-        continue;
-      }
-      //isotope_length++;
-      max_isotope_index = i;
-      if (min_isotope_index < 0)
-      {
-        min_isotope_index = i;
-      }
-    }
-
-    for (int tmp_offset = -apex_index - 1; tmp_offset <= -apex_index + max_isotope_index + 1; tmp_offset++)
-    {
-      double tmp_cos = getCosine_(per_isotope_intensities,
-                                  min_isotope_index,
-                                  max_isotope_index,
-                                  iso,
-                                  iso_size, //apex_index,
-                                  tmp_offset);
-
-      if (min_diff < tmp_cos)
-      {
-        min_diff = tmp_cos;
-        offset = tmp_offset;
-      }
-    }
-
-    min_diff = 1e10;
-    int final_offset = offset;
-
-    for (int tmp_offset = offset - iso_range / 4; tmp_offset <= offset + iso_range / 4; tmp_offset++)
-    {
-      double tmp_diff = getShapeDiff_(per_isotope_intensities,
-                                      min_isotope_index,
-                                      max_isotope_index,
-                                      iso,
-                                      iso_size, apex_index,
-                                      tmp_offset);
-      if (tmp_diff < 0)
-      {
-        continue;
-      }
-
-      if (min_diff > tmp_diff)
-      {
-        min_diff = tmp_diff;
-        final_offset = tmp_offset;
-      }
-    }
-    offset = final_offset;
-
-    return getCosine_(per_isotope_intensities,
-                      min_isotope_index,
-                      max_isotope_index,
-                      iso,
-                      iso_size,
-                      final_offset);
-  }
-
    void FLASHDeconvQuant::makeMSSpectrum_(std::vector<FeatureSeed *> &local_traces, MSSpectrum &spec, const double &rt) const
   {
     for (auto &tmp_trace : local_traces)
@@ -683,6 +475,130 @@ namespace OpenMS
        local_fgroup.push_back(fg);
      }
   }
+
+  double FLASHDeconvQuant::getCosine_(const std::vector<double> &a,
+                                      const int &a_start,
+                                      const int &a_end,
+                                      const IsotopeDistribution &b,
+                                      const int &b_size,
+                                      const int offset)
+  {
+    double n = .0, a_norm = .0;
+    //int c = 0;
+    for (int j = a_start; j <= a_end; j++)
+    {
+      int i = j - offset;
+      a_norm += a[j] * a[j];
+
+      if (i < 0 || i >= b_size || b[i].getIntensity() <= 0)
+      {
+        continue;
+      }
+      n += a[j] * b[i].getIntensity();//
+    }
+    if (a_norm <= 0)
+    {
+      return 0;
+    }
+    return n / sqrt(a_norm);
+  }
+
+  double FLASHDeconvQuant::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
+  {
+    double diff_mz(std::fabs(tr2.getCentroidMZ() - tr1.getCentroidMZ()));
+
+    double mt_sigma1(tr1.getCentroidSD());
+    double mt_sigma2(tr2.getCentroidSD());
+    double mt_variances(std::exp(2 * std::log(mt_sigma1)) + std::exp(2 * std::log(mt_sigma2)));
+
+    double mz_score(0.0);
+    /// mz scoring by expected mean w/ C13
+    double mu = (Constants::C13C12_MASSDIFF_U * iso_pos) / charge; // using '1.0033548378'
+    double sd = .0;
+    double sigma_mult(3.0);
+
+    //standard deviation including the estimated isotope deviation
+    double score_sigma(std::sqrt(std::exp(2 * std::log(sd)) + mt_variances));
+
+    if ((diff_mz < mu + sigma_mult * score_sigma) && (diff_mz > mu - sigma_mult * score_sigma))
+    {
+      double tmp_exponent((diff_mz - mu) / score_sigma);
+      mz_score = std::exp(-0.5 * tmp_exponent * tmp_exponent);
+    }
+
+    return mz_score;
+  }
+
+  double FLASHDeconvQuant::scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const
+  {
+    std::map<double, std::vector<double> > coinciding_rts;
+
+    std::pair<Size, Size> tr1_fwhm_idx(tr1.getFWHMborders());
+    std::pair<Size, Size> tr2_fwhm_idx(tr2.getFWHMborders());
+
+    double tr1_length(tr1.getFWHM());
+    double tr2_length(tr2.getFWHM());
+    double max_length = (tr1_length > tr2_length) ? tr1_length : tr2_length;
+
+    // Extract peak shape between FWHM borders for both peaks
+    for (Size i = tr1_fwhm_idx.first; i <= tr1_fwhm_idx.second; ++i)
+    {
+      coinciding_rts[tr1[i].getRT()].push_back(tr1[i].getIntensity());
+    }
+    for (Size i = tr2_fwhm_idx.first; i <= tr2_fwhm_idx.second; ++i)
+    {
+      coinciding_rts[tr2[i].getRT()].push_back(tr2[i].getIntensity());
+    }
+
+    // Look at peaks at the same RT
+    std::vector<double> x, y, overlap_rts;
+    for (std::map<double, std::vector<double> >::const_iterator m_it = coinciding_rts.begin(); m_it != coinciding_rts.end(); ++m_it)
+    {
+      if (m_it->second.size() == 2)
+      {
+        x.push_back(m_it->second[0]);
+        y.push_back(m_it->second[1]);
+        overlap_rts.push_back(m_it->first);
+      }
+    }
+
+    double overlap(0.0);
+    if (overlap_rts.size() > 0)
+    {
+      double start_rt(*(overlap_rts.begin())), end_rt(*(overlap_rts.rbegin()));
+      overlap = std::fabs(end_rt - start_rt);
+    }
+
+    double proportion(overlap / max_length);
+    if (proportion < 0.7)
+    {
+      return 0.0;
+    }
+    return computeCosineSim_(x, y);
+  }
+
+  double FLASHDeconvQuant::computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const
+  {
+    if (x.size() != y.size())
+    {
+      return 0.0;
+    }
+
+    double mixed_sum(0.0);
+    double x_squared_sum(0.0);
+    double y_squared_sum(0.0);
+
+    for (Size i = 0; i < x.size(); ++i)
+    {
+      mixed_sum += x[i] * y[i];
+      x_squared_sum += x[i] * x[i];
+      y_squared_sum += y[i] * y[i];
+    }
+
+    double denom(std::sqrt(x_squared_sum) * std::sqrt(y_squared_sum));
+    return (denom > 0.0) ? mixed_sum / denom : 0.0;
+  }
+
 
   bool FLASHDeconvQuant::doFWHMbordersOverlap(const std::pair<double, double> &border1,
                                               const std::pair<double, double> &border2) const
@@ -792,18 +708,21 @@ namespace OpenMS
 
     /// isotope cosine calculation
     int offset = 0;
-    double isotope_score = getIsotopeCosineAndDetermineIsotopeIndex(fg.getMonoisotopicMass(),
-                                                                    per_isotope_intensities,
-                                                                    offset);
+    double isotope_score =
+        FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(fg.getMonoisotopicMass(),
+                                                                       per_isotope_intensities,
+                                                                       offset,
+                                                                       iso_model_,
+                                                                       true);
     fg.setIsotopeCosine(isotope_score);
     if ( isNotTarget && isotope_score < min_isotope_cosine_ )
     {
       return false;
     }
 
-    // TODO : remove? does charge distribution makes big difference?
-    double cs = getChargeFitScore_(per_charge_intensities);
-    fg.setChargeScore(cs);
+    // TODO : remove? does charge distribution make a big difference?
+//    double cs = FLASHDeconvAlgorithm::getChargeFitScore_(per_charge_intensities);
+//    fg.setChargeScore(cs);
     //    // NOTE : if not using cs dist, too many harmonics
     //    bool is_charge_well_distributed = checkChargeDistribution_(per_charge_intensities);
     //    //double tmp = getChargeFitScore_(per_abs_charge_intensities, charge_range);
@@ -826,7 +745,9 @@ namespace OpenMS
     // initialize private vectors
     fg.initializePerChargeVectors();
 
-    double weighted_iso_score = fg.getIntensity() / total_intensity_;
+    // setting for feature group score
+    double feature_score = .0;
+//    double weighted_iso_score = fg.getIntensity() / total_intensity_;
 
     for (int abs_charge = fg.getMinCharge();
          abs_charge <= fg.getMaxCharge();
@@ -837,13 +758,11 @@ namespace OpenMS
       {
         continue;
       }
-      auto current_per_isotope_intensities = std::vector<double>(iso_model_.getMaxIsotopeIndex(), 0);
-
-      int min_isotope_index = iso_model_.getMaxIsotopeIndex();
-      int max_isotope_index = 0;
 
       double max_intensity = .0;
-
+      std::vector<FeatureSeed*> traces_in_this_charge;
+      FeatureSeed* apex_trace;
+      // find the apex trace in this charge
       for (auto &peak: fg)
       {
         if (peak.getCharge() != abs_charge)
@@ -856,21 +775,50 @@ namespace OpenMS
           continue;
         }
 
-        current_per_isotope_intensities[peak.getIsotopeIndex()] += peak.getIntensity();
-        //sumIntensity += p.intensity;
-        min_isotope_index = min_isotope_index < peak.getIsotopeIndex() ? min_isotope_index : peak.getIsotopeIndex();
-        max_isotope_index = max_isotope_index < peak.getIsotopeIndex() ? peak.getIsotopeIndex() : max_isotope_index;
-
         if (max_intensity < peak.getIntensity())
         {
           max_intensity = peak.getIntensity();
+          apex_trace = &peak;
         }
+        traces_in_this_charge.push_back(&peak);
       }
-      if (max_intensity <= 0)
+
+      // if no trace is collected
+      if (max_intensity == .0)
       {
         continue;
       }
 
+      auto current_per_isotope_intensities = std::vector<double>(iso_model_.getMaxIsotopeIndex(), 0);
+
+      int min_isotope_index = iso_model_.getMaxIsotopeIndex();
+      int max_isotope_index = 0;
+      double per_charge_score = .0;
+      // loop over traces with this charge to collect scores
+      for(auto &trace_ptr : traces_in_this_charge)
+      {
+        current_per_isotope_intensities[trace_ptr->getIsotopeIndex()] += trace_ptr->getIntensity();
+        min_isotope_index = min_isotope_index < trace_ptr->getIsotopeIndex() ? min_isotope_index : trace_ptr->getIsotopeIndex();
+        max_isotope_index = max_isotope_index < trace_ptr->getIsotopeIndex() ? trace_ptr->getIsotopeIndex() : max_isotope_index;
+
+        // if apex trace, no further scoring
+        if (trace_ptr == apex_trace)
+        {
+          per_charge_score += apex_trace->getIntensity() / fg.getIntensity();
+          continue;
+        }
+
+        // score per pair between this trace and the apex
+        double mz_score(scoreMZ_(*(trace_ptr->getMassTrace()), *(apex_trace->getMassTrace()),
+                                 std::abs(trace_ptr->getIsotopeIndex()-apex_trace->getIsotopeIndex()), abs_charge));
+        double rt_score(scoreRT_(*(trace_ptr->getMassTrace()), *(apex_trace->getMassTrace())));
+        double inty_score(trace_ptr->getIntensity() / fg.getIntensity());
+        double total_pair_score = std::exp(std::log(rt_score) + log(mz_score) + log(inty_score));
+
+        per_charge_score += total_pair_score;
+      }
+
+      // isotope cosine score for only this charge
       double cos_score = getCosine_(current_per_isotope_intensities,
                                     min_isotope_index,
                                     max_isotope_index,
@@ -878,13 +826,13 @@ namespace OpenMS
                                     iso_size,
                                     0);
 
-      weighted_iso_score += (per_charge_intensities[j] / total_intensity_) * cos_score;
-
+//      weighted_iso_score += (per_charge_intensities[j] / total_intensity_) * cos_score;
+      feature_score += per_charge_score;
       fg.setChargeIsotopeCosine(abs_charge, cos_score);
       fg.setChargeIntensity(abs_charge, per_charge_intensities[j]);
     }
 
-    fg.setFeatureGroupScore(weighted_iso_score);
+    fg.setFeatureGroupScore(feature_score);
 
     return true;
   }
@@ -925,17 +873,14 @@ namespace OpenMS
 
       // get all features within mass_tol from candidate FeatureGroup
       std::vector<FeatureGroup>::iterator low_it, up_it;
-      //      double mass_tolerance = .0;
-      //      if (candidate_fg->getMonoisotopicMass() > 10000)
-      //      {
-      //        mass_tolerance = mass_tolerance_da_;
-      //      }
-      //      else{
-      //        mass_tolerance = candidate_fg->getMonoisotopicMass() * mass_tolerance_ppm_ * 1e-6;
-      //      }
-      //
-      //      if (candidate_fg->getMonoisotopicMass() < 7734  && candidate_fg->getMonoisotopicMass() > 7730)
-      //        auto& here = candidate_fg;
+//      double mass_tolerance = .0;
+//      if (candidate_fg->getMonoisotopicMass() > 10000)
+//      {
+//        mass_tolerance = mass_tolerance_da_;
+//      }
+//      else{
+//        mass_tolerance = candidate_fg->getMonoisotopicMass() * mass_tolerance_ppm_ * 1e-6;
+//      }
 
       FeatureGroup lower_fg(candidate_fg->getMonoisotopicMass() - mass_tolerance_da_);
       FeatureGroup upper_fg(candidate_fg->getMonoisotopicMass() + mass_tolerance_da_);
@@ -2158,7 +2103,8 @@ namespace OpenMS
   void FLASHDeconvQuant::getFLASHDeconvConsensusResult()
   {
     std::fstream fin;
-    fin.open("/Users/jeek/Documents/A4B/FDQ/Kiel-Human/FD_consensus.csv", std::ios::in);
+//    fin.open("/Users/jeek/Documents/A4B/FDQ/Kiel-Human/FD_consensus.csv", std::ios::in);
+    fin.open("/Users/jeek/Documents/A4B/FDQ/Kiel-Human/ProSightPD_concensus.csv", std::ios::in);
 
     std::string line;
     std::getline(fin, line); // skip the first line

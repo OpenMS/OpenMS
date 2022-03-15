@@ -752,30 +752,22 @@ namespace OpenMS
                                                         const int max_isotope_count,
                                                         FeatureGroup &fg) const;
 
-    double getChargeFitScore_(const std::vector<double> &per_charge_intensity) const;
-
-    double getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
-                                                    const std::vector<double> &per_isotope_intensities,
-                                                    int &offset) const;
-
-    double getCosine_(const std::vector<double> &a,
-                      const int &a_start,
-                      const int &a_end,
-                      const IsotopeDistribution &b,
-                      const int &b_size,
-                      const int offset) const;
-
-    double getShapeDiff_(const std::vector<double> &a,
-                         const int &a_start,
-                         const int &a_end,
-                         const IsotopeDistribution &b,
-                         const int &b_size,
-                         const int max_b_index,
-                         const int offset) const;
-
     void refineFeatureGroups_(std::vector<FeatureGroup>& features);
 
     bool rescoreFeatureGroup_(FeatureGroup& fg) const;
+
+    static double getCosine_(const std::vector<double> &a,
+                             const int &a_start,
+                             const int &a_end,
+                             const IsotopeDistribution &b,
+                             const int &b_size,
+                             const int offset);
+
+    double scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const;
+
+    double scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const;
+
+    double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const;
 
     bool doFWHMbordersOverlap(const std::pair<double, double>& border1, const std::pair<double, double>& border2) const;
 
