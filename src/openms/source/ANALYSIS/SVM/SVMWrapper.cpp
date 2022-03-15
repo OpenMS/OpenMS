@@ -581,9 +581,13 @@ namespace OpenMS
     vector<Size> indices;
     vector<Size>::iterator indices_iterator;
 
-    for (Size i = 0; i < problems.size(); ++i)
+    // Note: delete the structures, but not the individual X's as these are owned by someone else
+    for (Size k = 0; k < problems.size(); k++)
     {
-      delete problems[i];
+      delete[] problems[k]->y;
+      delete[] problems[k]->x;
+      delete problems[k];
+      problems[k] = nullptr;
     }
     problems.clear();
 
