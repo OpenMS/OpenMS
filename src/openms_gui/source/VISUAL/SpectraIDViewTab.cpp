@@ -251,6 +251,7 @@ namespace OpenMS
         }
       }
     }
+    return {};
   }
 
   void SpectraIDViewTab::openUniProtSiteWithAccession_(const QString& accession)
@@ -321,8 +322,6 @@ namespace OpenMS
 
       if (item_pepid)
       {
-        int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
-        int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
         //array to store object of start-end postions, sequence and mod data of peptides;
         QJsonArray peptides_data;
@@ -397,7 +396,7 @@ namespace OpenMS
     if (table_widget_->selectionModel()->selectedRows().empty())
     {
       // deselect whatever is currently shown
-      int last_spectrum_index = int(layer_->getCurrentSpectrumIndex());
+      layer_->getCurrentSpectrumIndex();
       // Deselecting spectrum does not do what you think it does. It still paints stuff. Without annotations..
       // so just leave it for now.
       //
@@ -971,8 +970,6 @@ namespace OpenMS
     // synchronize PeptideHits with the annotations in the spectrum
     layer_->synchronizePeakAnnotations();
 
-    QString selectedFilter;
-    QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "idXML file (*.idXML);;mzIdentML file (*.mzid)", &selectedFilter);
     vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
     vector<PeptideIdentification> all_pep_ids;
 
@@ -996,29 +993,23 @@ namespace OpenMS
       copy(pep_id.begin(), pep_id.end(), back_inserter(all_pep_ids));
     }
 
-    if (String(filename).hasSuffix(String(".mzid")))
+    QString filename = GUIHelpers::getSaveFilename(this, "Save file", "", FileTypeList({FileTypes::IDXML, FileTypes::MZIDENTML}), true, FileTypes::IDXML);
+    if (filename.isEmpty())
+    {
+      return;
+    }      
+    if (FileHandler::getTypeByFileName(filename) == FileTypes::MZIDENTML)
     {
       MzIdentMLFile().store(filename, prot_id, all_pep_ids);
     }
-    else if (String(filename).hasSuffix(String(".idXML")))
+    else 
     {
-      IdXMLFile().store(filename, prot_id, all_pep_ids);
-    }
-    else if (String(selectedFilter).hasSubstring(String(".mzid")))
-    {
-      filename = filename + ".mzid";
-      MzIdentMLFile().store(filename, prot_id, all_pep_ids);
-    }
-    else
-    {
-      filename = filename + ".idXML";
       IdXMLFile().store(filename, prot_id, all_pep_ids);
     }
   }
 
-  void SpectraIDViewTab::updatedSingleProteinCell_(QTableWidgetItem* item)
-  {
-    
+  void SpectraIDViewTab::updatedSingleProteinCell_(QTableWidgetItem* /*item*/)
+  {    
   }
 
   // Upon changes in the table data (only possible by checking or unchecking a checkbox right now),

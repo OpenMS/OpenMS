@@ -35,6 +35,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationDefinition.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 using namespace std;
 

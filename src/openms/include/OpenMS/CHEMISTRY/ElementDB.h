@@ -36,7 +36,6 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 
@@ -119,9 +118,9 @@ protected:
      */
     double calculateAvgWeight_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
-    /*_ calculates the mono weight based on the smallest isotope mass
-     */
-    double calculateMonoWeight_(const std::map<unsigned int, double>& Z_to_mass);
+    /**_ calculates the mono weight based on the most abundant isotope 
+     **/
+    double calculateMonoWeight_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
 	// constructs element objects
     void storeElements_();

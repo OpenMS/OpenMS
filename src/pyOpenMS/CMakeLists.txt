@@ -36,12 +36,17 @@ project("pyOpenMS" LANGUAGES C CXX)
 
 if(NOT TARGET OpenMS)
   find_package(OpenMS)
+  #TODO when separating pyopenms from OpenMS, specify a pyopenms version and the compatible OpenMS version to be searched above.
+  # For now we just hope that the right OpenMS version from this same git repo is installed and found and
+  # therefore give pyopenms here the same version. CF_OPENMS_PACKAGE_VERSION is used in env.py for setup.py
+  set(CF_OPENMS_PACKAGE_VERSION ${OpenMS_VERSION})
   #TODO create own module copy under pyopenms or somehow point to installed copy based on the found OpenMS variables
   include(../../cmake/Modules/GetGitRevisionDescription.cmake)
   git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE)
 endif()
 
 option(NO_DEPENDENCIES "Do not bundle dependencies into pyOpenMS build folder and wheel" OFF)
+option(NO_SHARE "Do not bundle share into pyOpenMS build folder and wheel" OFF)
 
 #------------------------------------------------------------------------------
 # helper to copy/configure files from source to build
@@ -352,7 +357,6 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/share)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/extra_includes)
 
@@ -363,7 +367,12 @@ _copy_assets("${PROJECT_SOURCE_DIR}/tests/unittests/" "*" ${CMAKE_BINARY_DIR}/py
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/" "*.mzXML" ${CMAKE_BINARY_DIR}/pyOpenMS/tests)
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/memoryleaktests/" "*" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/integration_tests/" "*" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
-file(COPY ${PROJECT_SOURCE_DIR}/../../share DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
+
+
+if(NOT NO_SHARE)
+  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/share)
+  file(COPY ${OPENMS_SHARE_DIR} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/share)
+endif()
 
 # list of files required for the pyOpenMS build system
 set(_pyopenms_files

@@ -39,6 +39,8 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 
+#include <map>
+
 // #define MIN_DOUBLE_MZ 900.0
 
 // #define SELECT_PIVOT_DEBUG
@@ -346,7 +348,7 @@ namespace OpenMS
     //static Map<double, vector<MassDecomposition> > decomp_cache;
     if (!no_caching)
     {
-      if (decomp_cache_.has(mass))
+      if (decomp_cache_.find(mass) != decomp_cache_.end())
       {
         decomps = decomp_cache_[mass];
         return;
@@ -362,7 +364,7 @@ namespace OpenMS
     }
   }
 
-  void CompNovoIdentificationBase::selectPivotIons_(vector<Size> & pivots, Size left, Size right, Map<double, CompNovoIonScoringBase::IonScore> & ion_scores, const PeakSpectrum & CID_spec, double precursor_weight, bool full_range)
+  void CompNovoIdentificationBase::selectPivotIons_(vector<Size> & pivots, Size left, Size right, std::map<double, CompNovoIonScoringBase::IonScore> & ion_scores, const PeakSpectrum & CID_spec, double precursor_weight, bool full_range)
   {
 #ifdef SELECT_PIVOT_DEBUG
     cerr << "void selectPivotIons(pivots[" << pivots.size() << "], " << left << "[" << CID_spec[left].getPosition()[0] << "]" << ", " << right << "[" << CID_spec[right].getPosition()[0]  << "])" << endl;
@@ -593,7 +595,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     AASequence seq;
     for (String::ConstIterator it = sequence.begin(); it != sequence.end(); ++it)
     {
-      if (name_to_residue_.has(*it))
+      if (name_to_residue_.find(*it) != name_to_residue_.end())
       {
         seq += name_to_residue_[*it];
       }
@@ -611,7 +613,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     String seq;
     for (const Residue& res : sequence)
     {
-      if (residue_to_name_.has(&res))
+      if (residue_to_name_.find(&res) != residue_to_name_.end())
       {
         seq += residue_to_name_[&res];
       }
@@ -748,7 +750,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     mass_decomp_algorithm_.setParameters(decomp_param);
 
     min_aa_weight_ = numeric_limits<double>::max();
-    for (Map<char, double>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
+    for (std::map<char, double>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
     {
       if (min_aa_weight_ > it->second)
       {

@@ -37,8 +37,8 @@
 
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <map>
 
 //Qt
 #include <QtCore/QFileSystemWatcher>
@@ -104,7 +104,7 @@ protected slots:
 
 protected:
     /// A map that links timer name and file
-    Map<QString, QString> timers_;
+    std::map<QString, QString> timers_;
     /// Delay (seconds)
     double delay_in_seconds_;
   };

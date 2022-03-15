@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/AcqusHandler.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <fstream>
 #include <cmath>

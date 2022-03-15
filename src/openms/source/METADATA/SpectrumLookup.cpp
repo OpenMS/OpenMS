@@ -350,7 +350,14 @@ namespace OpenMS
         try
         {
           String value = String(matches[0]);
-          return value.toInt();
+          if (native_id_type_accession == "MS:1000774")
+          {
+            return value.toInt() + 1; // if the native ID is index=.., the scan number is usually considered index+1 (especially for pepXML)
+          }
+          else
+          {
+            return value.toInt();
+          }
         }
         catch (Exception::ConversionError&)
         {

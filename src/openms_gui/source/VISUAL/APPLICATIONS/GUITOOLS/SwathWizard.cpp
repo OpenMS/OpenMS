@@ -121,7 +121,6 @@
 //OpenMS
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/VISUAL/APPLICATIONS/SwathWizardBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 

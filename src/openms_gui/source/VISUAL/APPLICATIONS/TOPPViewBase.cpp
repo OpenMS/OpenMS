@@ -110,10 +110,10 @@ namespace OpenMS
   const std::string user_section = "preferences:user:";
 
   /// supported types which can be opened with File-->Open
-  const FileTypes::FileTypeList supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
-                                                  FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
-                                                  FileTypes::DTA, FileTypes::DTA2D, FileTypes::MGF, FileTypes::MS2,
-                                                  FileTypes::MSP, FileTypes::BZ2, FileTypes::GZ });
+  const FileTypeList supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
+                                       FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
+                                       FileTypes::DTA, FileTypes::DTA2D, FileTypes::MGF, FileTypes::MS2,
+                                       FileTypes::MSP, FileTypes::BZ2, FileTypes::GZ });
 
   TOPPViewBase::TOPPViewBase(TOOL_SCAN scan_mode, QWidget* parent) :
     QMainWindow(parent),
@@ -855,7 +855,7 @@ namespace OpenMS
     if (mergeable && target_window != nullptr) //TODO merge
     {
       PlotCanvas* open_canvas = target_window->canvas();
-      Map<Size, String> layers;
+      std::map<Size, String> layers;
       for (Size i = 0; i < open_canvas->getLayerCount(); ++i)
       {
         if (data_type == open_canvas->getLayer(i).type)
@@ -1489,12 +1489,11 @@ namespace OpenMS
     if (!ws_.currentSubWindow())
     {
       // TODO think about using lastActivatedSubwindow_
-      const auto id = tab_bar_.currentIndex();
-      if (id < (Size) ws_.subWindowList().size())
-      {
-        return qobject_cast<PlotWidget*>(ws_.subWindowList()[id]->widget());
-      }
-      return nullptr;
+      const int id = tab_bar_.currentIndex();
+
+      if (id < 0 || id >= ws_.subWindowList().size()) return nullptr;
+      
+      return qobject_cast<PlotWidget*>(ws_.subWindowList()[id]->widget());
     }
     return qobject_cast<PlotWidget*>(ws_.currentSubWindow()->widget());
   }
@@ -1646,7 +1645,7 @@ namespace OpenMS
     // we use the QT file dialog instead of using QFileDialog::Names(...)
     // On Windows and Mac OS X, this static function will use the native file dialog and not a QFileDialog,
     // which prevents us from doing GUI testing on it.
-    QFileDialog dialog(this, "Open file(s)", open_path, supported_types.toFileDialogFilter(FileTypes::Filter::BOTH, true).toQString());
+    QFileDialog dialog(this, "Open file(s)", open_path, supported_types.toFileDialogFilter(FilterLayout::BOTH, true).toQString());
     dialog.setFileMode(QFileDialog::ExistingFiles);
     if (dialog.exec())
     {
@@ -1989,74 +1988,11 @@ namespace OpenMS
 
   void TOPPViewBase::showSpectrumGenerationDialog()
   {
-    TheoreticalSpectrumGenerationDialog spec_gen_dialog;
-    if (spec_gen_dialog.exec())
+    //TheoreticalSpectrumGenerationDialog spec_gen_dialog;
+    if (spec_gen_dialog_.exec())
     {
-      String seq_string(spec_gen_dialog.getSequence());
-      if (seq_string == "")
-      {
-        QMessageBox::warning(this, "Error", "You must enter a peptide sequence!");
-        return;
-      }
-      AASequence aa_sequence;
-      try
-      {
-        aa_sequence = AASequence::fromString(seq_string);
-      }
-      catch (Exception::BaseException& e)
-      {
-        QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + ")");
-        return;
-      }
-
-      PeakSpectrum spectrum;
-      Param p = spec_gen_dialog.getParam();
-      Int charge = p.getValue("charge");
-
-      p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-
-      // these two are true by default, initialize to false here and set to true in the loop below
-      p.setValue("add_y_ions", "false", "Add peaks of y-ions to the spectrum");
-      p.setValue("add_b_ions", "false", "Add peaks of b-ions to the spectrum");
-
-      // for losses, isotopes, abundant_immonium_ions see getParam
-      if (p.getValue("has_A").toBool()) // "A-ions"
-      {
-        p.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
-      }
-      if (p.getValue("has_B").toBool()) // "B-ions"
-      {
-        p.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
-      }
-      if (p.getValue("has_C").toBool()) // "C-ions"
-      {
-        p.setValue("add_c_ions", "true", "Add peaks of c-ions to the spectrum");
-      }
-      if (p.getValue("has_X").toBool()) // "X-ions"
-      {
-        p.setValue("add_x_ions", "true", "Add peaks of x-ions to the spectrum");
-      }
-      if (p.getValue("has_Y").toBool()) // "Y-ions"
-      {
-        p.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
-      }
-      if (p.getValue("has_Z").toBool()) // "Z-ions"
-      {
-        p.setValue("add_z_ions", "true", "Add peaks of z-ions to the spectrum");
-      }
-
-      TheoreticalSpectrumGenerator generator;
-      generator.setParameters(p);
-
-      try
-      {
-        generator.getSpectrum(spectrum, aa_sequence, charge, charge);
-      }
-      catch (Exception::BaseException& e)
-      {
-        QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + "). Please report this to the developers (specify what input you used)!");
-        return;
-      }
+      // spectrum is generated in the dialog, so just receive it here
+      PeakSpectrum spectrum = spec_gen_dialog_.getSpectrum();
 
       PeakMap new_exp;
       new_exp.addSpectrum(spectrum);
@@ -2065,7 +2001,7 @@ namespace OpenMS
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
       ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
       vector<PeptideIdentification> p_dummy;
-      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerDataBase::DT_PEAK, false, true, true, "", seq_string + " (theoretical)");
+      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerDataBase::DT_PEAK, false, true, true, "", spec_gen_dialog_.getSequence() + " (theoretical)");
 
       // ensure spectrum is drawn as sticks
       draw_group_1d_->button(Plot1DCanvas::DM_PEAKS)->setChecked(true);
