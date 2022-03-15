@@ -34,14 +34,15 @@
 
 #pragma once
 
-#include <vector>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <vector>
 
 namespace OpenMS
 {
 
   /**
-  @brief Abstract base class which defines an interface for obtained PeptideIdentifications
+  @brief Abstract base class which defines an interface for PeptideIdentifications
   */
   class OPENMS_GUI_DLLAPI IPeptideIds
   {
