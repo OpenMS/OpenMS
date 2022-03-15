@@ -646,7 +646,7 @@ namespace OpenMS
   }
 
   void SVMWrapper::createRandomPartitions(const SVMData& problem,
-                                          Size                                  number,
+                                          Size number,
                                           vector<SVMData>& problems)
   {
     vector<Size> indices;
@@ -916,9 +916,13 @@ namespace OpenMS
       }
       double max_performance = 0;
       if (is_labeled)
+      {
         createRandomPartitions(problem_l, number_of_partitions, partitions_l);
+      }
       else
+      {
         createRandomPartitions(problem_ul, number_of_partitions, partitions_ul);
+      }
 
       counter = 0;
       found = true;
@@ -1088,6 +1092,7 @@ namespace OpenMS
           delete training_data_ul[k]; // delete individual objects
         }
         delete[] training_data_ul; // delete array of pointers
+        SVMWrapper().createRandomPartitions(problem_ul, 1, partitions_ul); // cleanup ... 
       }
 
       // not essential...
