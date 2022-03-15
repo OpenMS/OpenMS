@@ -593,7 +593,7 @@ namespace OpenMS
 
     if (number == 1)
     {
-      problems.push_back(problem);
+      problems.push_back(problem); // ouch, terrible idea? who owns this now?
     }
     else if (number > 1)
     {
