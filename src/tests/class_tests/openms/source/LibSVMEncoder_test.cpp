@@ -596,6 +596,8 @@ START_SECTION(static void destroyProblem(svm_problem *problem))
 
   LibSVMEncoder::destroyProblem(problem); // cleanup
   TEST_EQUAL(problem, nullptr)
+
+  LibSVMEncoder::destroyProblem(problem); // should be NOP
 END_SECTION
 
 /////////////////////////////////////////////////////////////
