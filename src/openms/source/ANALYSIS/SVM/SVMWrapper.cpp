@@ -367,7 +367,6 @@ namespace OpenMS
           SVMWrapper::calculateGaussTable(border_length_, sigma_, gauss_table_);
         }
         training_problem_ = computeKernelMatrix(problem, problem);
-        LibSVMEncoder::destroyProblem(problem); // ensure old problem is destroyed
         problem = training_problem_;
       }
 

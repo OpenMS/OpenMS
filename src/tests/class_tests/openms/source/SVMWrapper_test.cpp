@@ -590,6 +590,7 @@ START_SECTION((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_probl
   TEST_EQUAL(kernel_matrix->y[1], 2)
 
   LibSVMEncoder::destroyProblem(kernel_matrix);
+  LibSVMEncoder::destroyProblem(data);
 END_SECTION
 
 START_SECTION((svm_problem* computeKernelMatrix(const SVMData &problem1, const SVMData &problem2)))
