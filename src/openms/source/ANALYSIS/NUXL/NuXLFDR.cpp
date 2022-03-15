@@ -146,19 +146,49 @@ namespace OpenMS
     // calculate separate FDRs
     calculatePeptideAndXLQValueAtPSMLevel(peptide_ids, pep_pi, xl_pi);
 
-    // add a very small value to q-value to break ties between same q-value but different NuXL:score
+    double max_score = -1;
     for (auto & pi : xl_pi)
     {
       for (auto & p : pi.getHits())
       {
-        p.setScore(p.getScore() + (double)p.getMetaValue("NuXL:score") * 1e-5);
+        if (p.metaValueExists("svm_score"))
+        {
+          max_score = (double)p.getMetaValue("svm_score");
+        }
+        else
+        {
+          max_score = (double)p.getMetaValue("NuXL:score");
+        }
+      }
+    }
+
+    // add a very small value to q-value to break ties between same q-value but different main score
+    for (auto & pi : xl_pi)
+    {
+      for (auto & p : pi.getHits())
+      {
+        if (p.metaValueExists("svm_score"))
+        {
+          p.setScore(p.getScore() + (1.0 - (double)p.getMetaValue("svm_score") / max_score) * 1e-5);
+        }
+        else 
+        {
+          p.setScore(p.getScore() + (1.0 - (double)p.getMetaValue("NuXL:score") / max_score) * 1e-5);
+        }
       }
     }
     for (auto & pi : pep_pi)
     {
       for (auto & p : pi.getHits())
       {
-        p.setScore(p.getScore() + (double)p.getMetaValue("NuXL:score") * 1e-5);
+        if (p.metaValueExists("svm_score"))
+        {
+          p.setScore(p.getScore() + (1.0 - (double)p.getMetaValue("svm_score") / max_score) * 1e-5);
+        }
+        else 
+        {
+          p.setScore(p.getScore() + (1.0 - (double)p.getMetaValue("NuXL:score") / max_score) * 1e-5);
+        }
       }
     }
 
