@@ -574,7 +574,28 @@ START_SECTION((void libSVMVectorsToString(svm_problem* vector, String& output)))
 END_SECTION
 
 START_SECTION(static void destroyProblem(svm_problem *problem))
-	NOT_TESTABLE
+  svm_problem* problem = new svm_problem();
+  UInt count = 4;
+  svm_node** nodes = new svm_node*[count];
+  double* labels = new double[count];
+  std::vector<double> label_vector1;
+  label_vector1.reserve(count);
+  std::vector<double> label_vector2;
+  label_vector2.reserve(count);
+
+  for (Size i = 0; i < count; i++)
+  {
+    nodes[i] = new svm_node[count];
+    nodes[i][count - 1].index = -1;
+    labels[i] = i * 2 / 3 + 0.03;
+    label_vector1.push_back(labels[i]);
+  }
+  problem->x = nodes;
+  problem->l = count;
+  problem->y = labels;
+
+  LibSVMEncoder::destroyProblem(problem); // cleanup
+  TEST_EQUAL(problem, nullptr)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

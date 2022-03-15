@@ -754,7 +754,7 @@ namespace OpenMS
     return (a.second == b.second) ? (a.first < b.first) : (a.second < b.second);
   }
 
-  void LibSVMEncoder::destroyProblem(svm_problem* problem)
+  void LibSVMEncoder::destroyProblem(svm_problem* &problem)
   {
     if (problem != nullptr)
     {
