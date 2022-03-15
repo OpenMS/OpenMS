@@ -867,6 +867,7 @@ Output format:
 
     // calculate indistinguishable groups
     vector<ProteinIdentification::ProteinGroup> ipg;
+    if (!prot_id.getHits().empty())
     {
       vector<PeptideIdentification> pep_copy{peps}; // TODO: why copy needed?
       IDBoostGraph ibg{prot_id, pep_copy, true, false, false}; // only consider top hit
