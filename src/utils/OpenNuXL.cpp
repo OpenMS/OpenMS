@@ -3109,7 +3109,7 @@ static void scoreXLIons_(
       ph.setMetaValue("nucleotide_mass_tags", (double)spec.getFloatDataArrays()[2][0]);
       int maxtag = spec.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX][0];
       ph.setMetaValue("NuXL:aminoacid_max_tag", maxtag);
-      const double id2maxtag = maxtag == 0 ? 0 : (ah.ladder_score * s.size()) / (double)maxtag; 
+      const double id2maxtag = maxtag == 0 ? 0 : (ah.sequence_score * s.size()) / (double)maxtag; 
       ph.setMetaValue("NuXL:aminoacid_id_to_max_tag_ratio", id2maxtag);
       ph.setMetaValue("nr_candidates", nr_candidates[scan_index]);
       ph.setMetaValue("NuXL:explained_peak_fraction", ah.explained_peak_fraction);
