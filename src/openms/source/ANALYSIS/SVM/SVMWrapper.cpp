@@ -584,13 +584,10 @@ namespace OpenMS
     vector<Size> indices;
     vector<Size>::iterator indices_iterator;
 
-    // Note: delete the structures, but not the individual X's as these are owned by someone else
+    // Note: delete the structures, but keep the nodes
     for (Size k = 0; k < problems.size(); k++)
     {
-      delete[] problems[k]->y;
-      delete[] problems[k]->x;
-      delete problems[k];
-      problems[k] = nullptr;
+      LibSVMEncoder::destroyProblem(problems[k], false);
     }
     problems.clear();
 
