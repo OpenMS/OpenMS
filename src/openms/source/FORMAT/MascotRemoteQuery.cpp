@@ -171,6 +171,7 @@ namespace OpenMS
     QNetworkRequest request(url);
 
     QString boundary = boundary_.toQString();
+    boundary = boundary.toUtf8();
     request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data, boundary=" + boundary);
 
     // header
@@ -181,54 +182,54 @@ namespace OpenMS
     // content
     QByteArray loginbytes;
     QString boundary_string("--" + boundary + "\r\n");
-    loginbytes.append(boundary_string);
+    loginbytes.append(boundary_string.toUtf8());
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"username\"\r\n");
     loginbytes.append("\r\n");
-    loginbytes.append(String(param_.getValue("username").toString()).toQString());
+    loginbytes.append(String(param_.getValue("username").toString()).toQString().toUtf8());
     loginbytes.append("\r\n");
-    loginbytes.append(boundary_string);
+    loginbytes.append(boundary_string.toUtf8());
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"password\"\r\n");
     loginbytes.append("\r\n");
-    loginbytes.append(String(param_.getValue("password").toString()).toQString());
+    loginbytes.append(String(param_.getValue("password").toString()).toQString().toUtf8());
     loginbytes.append("\r\n");
-    loginbytes.append(boundary_string);
+    loginbytes.append(boundary_string.toUtf8());
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"submit\"\r\n");
     loginbytes.append("\r\n");
     loginbytes.append("Login\r\n");
-    loginbytes.append(boundary_string);
+    loginbytes.append(boundary_string.toUtf8());
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"referer\"\r\n");
     loginbytes.append("\r\n");
     loginbytes.append("\r\n");
-    loginbytes.append(boundary_string);
+    loginbytes.append(boundary_string.toUtf8());
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"display\"\r\n");
     loginbytes.append("\r\n");
     loginbytes.append("nothing\r\n");
-    loginbytes.append(boundary_string);
+    loginbytes.append(boundary_string.toUtf8());
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"savecookie\"\r\n");
     loginbytes.append("\r\n");
     loginbytes.append("1\r\n");
-    loginbytes.append(boundary_string);
+    loginbytes.append(boundary_string.toUtf8());
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"action\"\r\n");
     loginbytes.append("\r\n");
     loginbytes.append("login\r\n");
-    loginbytes.append(boundary_string);
+    loginbytes.append(boundary_string.toUtf8());
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"userid\"\r\n");
     loginbytes.append("\r\n");
     loginbytes.append("\r\n");
-    loginbytes.append(boundary_string);
+    loginbytes.append(boundary_string.toUtf8());
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"onerrdisplay\"\r\n");
     loginbytes.append("\r\n");
     loginbytes.append("login_prompt\r\n");
-    loginbytes.append("--" + boundary + "--\r\n");
+    loginbytes.append(("--" + boundary + "--\r\n").toUtf8());
 
     request.setHeader(QNetworkRequest::ContentLengthHeader, loginbytes.length());
     QNetworkReply* pReply = manager_->post(request, loginbytes);
@@ -340,6 +341,7 @@ namespace OpenMS
     QNetworkRequest request(url);
 
     QString boundary = boundary_.toQString();
+    boundary = boundary.toUtf8();
     request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data, boundary=" + boundary);
 
     // header
@@ -354,12 +356,12 @@ namespace OpenMS
     }
 
     QByteArray querybytes;
-    querybytes.append("--" + boundary + "--\n");
+    querybytes.append(("--" + boundary + "--\n").toUtf8());
     querybytes.append("Content-Disposition: ");
     querybytes.append("form-data; name=\"QUE\"\n");
     querybytes.append("\n");
     querybytes.append(query_spectra_.c_str());
-    querybytes.append("--" + boundary + "--\n");
+    querybytes.append(("--" + boundary + "--\n").toUtf8());
 
     querybytes.replace("\n", "\r\n");
 
