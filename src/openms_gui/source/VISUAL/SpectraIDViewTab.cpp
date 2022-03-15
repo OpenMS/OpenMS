@@ -322,8 +322,6 @@ namespace OpenMS
 
       if (item_pepid)
       {
-        int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
-        int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
         //array to store object of start-end postions, sequence and mod data of peptides;
         QJsonArray peptides_data;

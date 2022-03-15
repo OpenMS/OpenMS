@@ -35,11 +35,12 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -68,7 +69,7 @@ public:
     };
 
     /// maps iTRAQ channel (e.g. 117) to more information
-    typedef Map<Int, ChannelInfo> ChannelMapType;
+    typedef std::map<Int, ChannelInfo> ChannelMapType;
 
     /// (user defined?) isotope correction matrix in (-2, -1, +1, +2) row style
     typedef std::vector<Matrix<double> > IsotopeMatrices;

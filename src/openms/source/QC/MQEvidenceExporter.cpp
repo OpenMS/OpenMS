@@ -41,11 +41,9 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QtCore/QDir>
-#include <boost/math/special_functions/fpclassify.hpp> // isnan
+#include <cmath> // isnan
 #include <fstream>
 
-#include <boost/math/special_functions/fpclassify.hpp> // isnan
-#include <fstream>
 
 using namespace OpenMS;
 
@@ -315,7 +313,7 @@ void MQEvidence::exportRowFromFeature_(
   const double& uncalibrated_mz_error_ppm = ptr_best_hit->getMetaValue("uncalibrated_mz_error_ppm", NAN);
   const double& calibrated_mz_error_ppm = ptr_best_hit->getMetaValue("calibrated_mz_error_ppm", NAN);
 
-  if (isnan(uncalibrated_mz_error_ppm) && isnan(calibrated_mz_error_ppm))
+  if (std::isnan(uncalibrated_mz_error_ppm) && std::isnan(calibrated_mz_error_ppm))
   {
     file_ << "NA" << "\t"; // Mass error [ppm]
     file_ << "NA" << "\t"; // Uncalibrated Mass error [ppm]
@@ -324,7 +322,7 @@ void MQEvidence::exportRowFromFeature_(
     file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
     file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [mDa]
   }
-  else if (isnan(calibrated_mz_error_ppm))
+  else if (std::isnan(calibrated_mz_error_ppm))
     {
       file_ << "NA" << "\t"; // Mass error [ppm]
       file_ << uncalibrated_mz_error_ppm << "\t"; // Uncalibrated Mass error [ppm]
@@ -333,7 +331,7 @@ void MQEvidence::exportRowFromFeature_(
       file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
       file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [mDa]
     }
-    else if (isnan(uncalibrated_mz_error_ppm))
+    else if (std::isnan(uncalibrated_mz_error_ppm))
       {
         file_ << calibrated_mz_error_ppm << "\t"; // Mass error [ppm]
         file_ << "NA" << "\t"; // Uncalibrated Mass error [ppm]

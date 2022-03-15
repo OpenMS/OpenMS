@@ -39,6 +39,8 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <map>
+
 using namespace std;
 
 namespace OpenMS

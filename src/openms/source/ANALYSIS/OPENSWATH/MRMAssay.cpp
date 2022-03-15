@@ -39,6 +39,7 @@
 #include <boost/lexical_cast.hpp>
 #include <regex>
 #include <unordered_set>
+#include <map>
 
 using namespace std;
 
@@ -889,7 +890,7 @@ namespace OpenMS
     std::unordered_set<String> peptide_ids;
     std::unordered_set<String> ProteinList;
 
-    Map<String, TransitionVectorType> TransitionsMap;
+    std::map<String, TransitionVectorType> TransitionsMap;
 
     // Generate a map of peptides to transitions for easy access
     for (Size i = 0; i < exp.getTransitions().size(); ++i)
@@ -906,7 +907,7 @@ namespace OpenMS
 
     Size progress = 0;
     startProgress(0, TransitionsMap.size() + exp.getPeptides().size() + exp.getProteins().size(), "Select detecting transitions");
-    for (Map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
+    for (std::map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
          m != TransitionsMap.end(); ++m)
     {
       setProgress(++progress);
@@ -1055,7 +1056,7 @@ namespace OpenMS
     std::vector<String> compound_ids;
     TransitionVectorType transitions;
 
-    Map<String, TransitionVectorType> TransitionsMap;
+    std::map<String, TransitionVectorType> TransitionsMap;
 
     // Generate a map of compounds to transitions for easy access
     for (Size i = 0; i < exp.getTransitions().size(); ++i)
@@ -1070,7 +1071,7 @@ namespace OpenMS
       TransitionsMap[tr.getCompoundRef()].push_back(tr);
     }
 
-    for (Map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
+    for (std::map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
          m != TransitionsMap.end(); ++m)
     {
         // Ensure that all precursors have the minimum number of transitions or are a decoy transitions

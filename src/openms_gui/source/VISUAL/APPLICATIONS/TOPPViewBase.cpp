@@ -855,7 +855,7 @@ namespace OpenMS
     if (mergeable && target_window != nullptr) //TODO merge
     {
       PlotCanvas* open_canvas = target_window->canvas();
-      Map<Size, String> layers;
+      std::map<Size, String> layers;
       for (Size i = 0; i < open_canvas->getLayerCount(); ++i)
       {
         if (data_type == open_canvas->getLayer(i).type)
