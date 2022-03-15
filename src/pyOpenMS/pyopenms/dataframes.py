@@ -224,6 +224,8 @@ class FeatureMapDF(FeatureMap):
                     if len(hits) > 0:
                         besthit = hits[0]
                         pep_values = (besthit.getSequence().toString(), besthit.getScore(), ID_filename, f.getMetaValue('spectrum_native_id'))
+                    else:
+                        pep_values = (None, None, None, None)
                 else:
                     pep_values = (None, None, None, None)
             else:
