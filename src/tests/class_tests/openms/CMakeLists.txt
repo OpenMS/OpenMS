@@ -83,10 +83,7 @@ foreach(_class_test ${TEST_executables})
   target_link_libraries(${_class_test} ${OpenMS_LIBRARIES})
 
   if (_class_test STREQUAL "MSSpectrum_test" OR _class_test STREQUAL "MSChromatogram_test")
-    message("-- I captured the two tests")
     target_compile_options(${_class_test} PUBLIC -Wno-pessimizing-move)
-    get_target_property(TMP_CFLAGS ${_class_test} COMPILE_OPTIONS)
-    message("-- Target compiler flags are: ${TMP_CFLAGS}")
   endif()
 
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
