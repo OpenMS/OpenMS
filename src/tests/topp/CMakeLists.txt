@@ -225,6 +225,14 @@ add_test("TOPP_MapNormalizer_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 
 set_tests_properties("TOPP_MapNormalizer_1_out1" PROPERTIES DEPENDS "TOPP_MapNormalizer_1")
 
 #------------------------------------------------------------------------------
+# DatabaseSuitability tests
+# test with diasabled correction (not depending on Comet)
+# remaining tests are found in /THIRDPARTY and are only executed if the Comet executable was found
+add_test("TOPP_DatabaseSuitability" ${TOPP_BIN_PATH}/DatabaseSuitability -test -in_id ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_id.idXML -in_spec ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML -in_novo ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_novo.idXML -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta -novo_database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_novo_database.FASTA -algorithm:disable_correction -out DatabaseSuitability.tmp)
+add_test("TOPP_DatabaseSuitability_out" ${DIFF} -in1 DatabaseSuitability.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_out.tsv )
+set_tests_properties("TOPP_DatabaseSuitability_out" PROPERTIES DEPENDS "TOPP_DatabaseSuitability")
+
+#------------------------------------------------------------------------------
 # Decharger tests
 add_test("TOPP_Decharger_1" ${TOPP_BIN_PATH}/Decharger -test -in ${DATA_DIR_TOPP}/Decharger_input.featureXML -ini ${DATA_DIR_TOPP}/Decharger_input.ini -out_fm Decharger_output_fm.tmp -out_cm Decharger_output.tmp -outpairs Decharger_p_output.tmp)
 add_test("TOPP_Decharger_1_out1" ${DIFF} -whitelist "id=" "href=" -in1 Decharger_output.tmp -in2 ${DATA_DIR_TOPP}/Decharger_output.consensusXML )
