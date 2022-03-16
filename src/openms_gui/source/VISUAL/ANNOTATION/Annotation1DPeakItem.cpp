@@ -158,7 +158,7 @@ namespace OpenMS
       bool found_intersection = false;
 
       // intersection with top
-      itype = line.intersect(top, ip);
+      itype = line.intersects(top, ip);
       if (itype == QLineF::BoundedIntersection &&
           QLineF(peak_position_widget, *ip).length() < QLineF(peak_position_widget, *closest_ip).length())
       {
@@ -166,7 +166,7 @@ namespace OpenMS
         *closest_ip = *ip;
       }
       // intersection with left
-      itype = line.intersect(left, ip);
+      itype = line.intersects(left, ip);
       if (itype == QLineF::BoundedIntersection &&
           QLineF(peak_position_widget, *ip).length() < QLineF(peak_position_widget, *closest_ip).length())
       {
@@ -175,7 +175,7 @@ namespace OpenMS
       }
 
       // intersection with right
-      itype = line.intersect(right, ip);
+      itype = line.intersects(right, ip);
       if (itype == QLineF::BoundedIntersection &&
           QLineF(peak_position_widget, *ip).length() < QLineF(peak_position_widget, *closest_ip).length())
       {
@@ -184,7 +184,7 @@ namespace OpenMS
       }
 
       // intersection with bottom
-      itype = line.intersect(bottom, ip);
+      itype = line.intersects(bottom, ip);
       if (itype == QLineF::BoundedIntersection &&
           QLineF(peak_position_widget, *ip).length() < QLineF(peak_position_widget, *closest_ip).length())
       {
