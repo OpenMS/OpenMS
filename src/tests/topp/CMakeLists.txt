@@ -226,7 +226,7 @@ set_tests_properties("TOPP_MapNormalizer_1_out1" PROPERTIES DEPENDS "TOPP_MapNor
 
 #------------------------------------------------------------------------------
 # DatabaseSuitability tests
-# test with diasabled correction (not depending on Comet)
+# test with disabled correction (not depending on Comet)
 # remaining tests are found in /THIRDPARTY and are only executed if the Comet executable was found
 add_test("TOPP_DatabaseSuitability" ${TOPP_BIN_PATH}/DatabaseSuitability -test -in_id ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_id.idXML -in_spec ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML -in_novo ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_novo.idXML -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta -novo_database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_novo_database.FASTA -algorithm:disable_correction -out DatabaseSuitability.tmp)
 add_test("TOPP_DatabaseSuitability_out" ${DIFF} -in1 DatabaseSuitability.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_out.tsv )
