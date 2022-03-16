@@ -218,7 +218,7 @@ namespace OpenMS
     for (size_t i = 0; i < consensus_map.size(); i++)
     {
       if (!consensus_map[i].metaValueExists(Constants::UserParam::IIMN_ADDUCT_PARTNERS)) continue;
-      std::stringstream ss(consensus_map[i].getMetaValue(Constants::UserParam::IIMN_ADDUCT_PARTNERS));
+      std::stringstream ss(consensus_map[i].getMetaValue(Constants::UserParam::IIMN_ADDUCT_PARTNERS).toChar());
       while(ss.good())
       {
         String substr;
