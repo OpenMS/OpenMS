@@ -34,7 +34,8 @@
 //
 
 #pragma once
-#include <OpenMS/DATASTRUCTURES/Map.h>
+
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 #include <map>

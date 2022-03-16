@@ -40,7 +40,6 @@
 
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 
 using namespace OpenMS;
 using namespace std;

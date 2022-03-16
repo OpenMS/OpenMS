@@ -1,5 +1,4 @@
 from Types cimport *
-from Map cimport *
 from String cimport *
 from ResidueModification cimport *
 #from libcpp.memory cimport unique_ptr as libcpp_unique_ptr

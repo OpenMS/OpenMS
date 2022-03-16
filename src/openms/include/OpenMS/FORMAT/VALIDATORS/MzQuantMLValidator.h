@@ -38,6 +38,8 @@
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 
+#include <map>
+
 
 namespace OpenMS
 {
@@ -65,7 +67,7 @@ public:
 
 protected:
       ///CV terms which can have a value (term => value type) - see MzMLValidator impl.
-      Map<String, std::vector<CVTerm> > param_groups_;
+      std::map<String, std::vector<CVTerm> > param_groups_;
 
 private:
 

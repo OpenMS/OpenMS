@@ -35,11 +35,11 @@
 #pragma once
 
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <vector>
 #include <set>
+#include <map>
 
 namespace OpenMS
 {
@@ -86,7 +86,7 @@ private:
     /// calculate a score for the i_th edge
     double getLogScore_(const PairsType::value_type& pair, const FeatureMap& fm) const;
 
-    typedef Map<String, std::set<Size> > FeatureType_;
+    typedef std::map<String, std::set<Size> > FeatureType_;
 
     // add another charge annotation variant for a feature
     void updateFeatureVariant_(FeatureType_& f_set, const String& rota_l, const Size& v) const;
