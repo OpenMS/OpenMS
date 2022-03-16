@@ -99,6 +99,8 @@
 #include <QtWidgets/QWhatsThis>
 #include <QtWidgets/QMdiSubWindow>
 
+//STL
+#include <algorithm>
 
 using namespace std;
 using namespace OpenMS;
@@ -485,7 +487,7 @@ namespace OpenMS
       category_set << String(it->second.category).toQString();
     }
     QStringList category_list = category_set.values();
-    std::sort(category_list);
+    std::sort(category_list.begin(), category_list.end(), std::less<QString>());
     std::map<QString, QTreeWidgetItem*> category_map;
 
     foreach(const QString &category, category_list)
@@ -1512,7 +1514,7 @@ namespace OpenMS
       if (ret == QMessageBox::Cancel) return; // Escape was pressed
       if (ret == QMessageBox::Yes)
       {
-        files = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", QString::SkipEmptyParts);
+        files = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", Qt::SkipEmptyParts);
       }
     }
     
