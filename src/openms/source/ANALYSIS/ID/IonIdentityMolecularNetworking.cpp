@@ -223,7 +223,7 @@ namespace OpenMS
       {
         String substr;
         getline(ss, substr, ';');
-        feature_partners[i].insert(std::stoi(substr));
+        feature_partners[i].insert(std::stoi(substr)-1);
       }
     }
     
