@@ -41,13 +41,12 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
-namespace Ui
-{
-  class TheoreticalSpectrumGenerationDialogTemplate;
-}
+#include <ui_TheoreticalSpectrumGenerationDialog.h>
 
 namespace OpenMS
 {
+  class TestTSGDialog;
+
   /**
       @brief Dialog which allows to enter an AA sequence and generates a theoretical spectrum for it.
 
@@ -58,7 +57,9 @@ namespace OpenMS
   {
     Q_OBJECT
 
-public:
+  public:
+    
+    friend class TestTSGDialog;
 
     /// Constructor
     TheoreticalSpectrumGenerationDialog();
@@ -80,7 +81,7 @@ protected slots:
 protected:
 
 private:
-    Ui::TheoreticalSpectrumGenerationDialogTemplate* ui_;
+    Ui::TheoreticalSpectrumGenerationDialogTemplate ui_;
 
     MSSpectrum spec_;
   };
