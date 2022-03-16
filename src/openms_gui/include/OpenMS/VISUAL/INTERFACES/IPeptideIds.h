@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h> 
 
 #include <vector>
 
