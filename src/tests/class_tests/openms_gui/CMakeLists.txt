@@ -72,6 +72,7 @@ endforeach(_class_test)
 if(HAS_XSERVER)
   set(GUI_executables_list
     TOPPView_test
+    TSGDialog_test
   )
 
   #------------------------------------------------------------------------------
