@@ -82,6 +82,7 @@ foreach(_class_test ${TEST_executables})
   add_executable(${_class_test} source/${_class_test}.cpp)
   target_link_libraries(${_class_test} ${OpenMS_LIBRARIES})
 
+  # Suppress std::move warning for MSSpectrum_test and MSChromatogram_test
   if (_class_test STREQUAL "MSSpectrum_test" OR _class_test STREQUAL "MSChromatogram_test")
     target_compile_options(${_class_test} PUBLIC -Wno-pessimizing-move)
   endif()
