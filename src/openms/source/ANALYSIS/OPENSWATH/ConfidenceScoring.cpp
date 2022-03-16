@@ -44,6 +44,7 @@
 #include <numeric> // for "accumulate"
 #include <ctime> // for "time" (random number seed)
 #include <random>
+#include <map>
 
 using namespace std;
 
@@ -191,7 +192,7 @@ namespace OpenMS
       BimapType intensity_map;
       // for the "true" assay, we need to make sure we compare based on the same
       // transitions, so keep track of them:
-      Map<double, String> trans_id_map; // Q3 m/z -> transition ID
+      std::map<double, String> trans_id_map; // Q3 m/z -> transition ID
       for (vector<Feature>::iterator sub_it = feature.getSubordinates().begin();
            sub_it != feature.getSubordinates().end(); ++sub_it)
       {

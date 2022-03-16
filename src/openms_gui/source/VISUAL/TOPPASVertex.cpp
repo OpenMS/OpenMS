@@ -45,6 +45,7 @@
 #include <QtCore/QFileInfo>
 
 #include <iostream>
+#include <map>
 
 namespace OpenMS
 {
@@ -101,7 +102,7 @@ namespace OpenMS
   QStringList TOPPASVertex::TOPPASFilenames::getSuffixCounts() const
   {
     // display file type(s)
-    Map<QString, Size> suffices;
+    std::map<QString, Size> suffices;
     for (const QString& fn : filenames_)
     {
       QStringList l = QFileInfo(fn).completeSuffix().split('.');
@@ -109,7 +110,7 @@ namespace OpenMS
       ++suffices[suf];
     }
     QStringList text_l;
-    for (Map<QString, Size>::const_iterator sit = suffices.begin(); sit != suffices.end(); ++sit)
+    for (std::map<QString, Size>::const_iterator sit = suffices.begin(); sit != suffices.end(); ++sit)
     {
       if (suffices.size() > 1)
         text_l.push_back("." + sit->first + "(" + String(sit->second).toQString() + ")");

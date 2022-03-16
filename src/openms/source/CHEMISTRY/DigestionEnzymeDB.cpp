@@ -36,3 +36,6 @@
 #include <OpenMS/CHEMISTRY/DigestionEnzymeDB.h>
 
 // implementation of template class is in the header file
+namespace OpenMS
+{
+}
