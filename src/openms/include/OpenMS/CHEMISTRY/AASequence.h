@@ -36,13 +36,13 @@
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <vector>
 #include <iosfwd>
+#include <map>
 
 namespace OpenMS
 {
@@ -563,7 +563,7 @@ protected:
     AASequence getSubsequence(Size index, UInt number) const;
 
     /// compute frequency table of amino acids
-    void getAAFrequencies(Map<String, Size>& frequency_table) const;
+    void getAAFrequencies(std::map<String, Size>& frequency_table) const;
 
     //@}
 

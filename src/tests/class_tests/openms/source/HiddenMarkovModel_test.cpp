@@ -39,6 +39,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <map>
 
 #include <OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -285,12 +286,12 @@ START_SECTION((void disableTransitions()))
 END_SECTION
 
 START_SECTION((void calculateEmissionProbabilities(Map<HMMState*, double>& emission_probs)))
-	Map<HMMState*, double> emission_probs;
+	std::map<HMMState*, double> emission_probs;
 	the_hmm.calculateEmissionProbabilities(emission_probs);
 	TEST_EQUAL(emission_probs.size(), 3)
 	double sum(0);
 	TOLERANCE_ABSOLUTE(0.01)
-	for (Map<HMMState*, double>::ConstIterator it = emission_probs.begin(); it != emission_probs.end(); ++it)
+	for (std::map<HMMState*, double>::const_iterator it = emission_probs.begin(); it != emission_probs.end(); ++it)
 	{
 		if (it->first->getName() == "end")
 		{
@@ -333,12 +334,12 @@ START_SECTION((void estimateUntrainedTransitions()))
 END_SECTION
 
 START_SECTION(([EXTRA] void calculateEmissionProbabilities(Map<HMMState*, double>& emission_probs)))
-	Map<HMMState*, double> emission_probs;
+  std::map<HMMState*, double> emission_probs;
   the_hmm.calculateEmissionProbabilities(emission_probs);
   TEST_EQUAL(emission_probs.size(), 3)
   double sum(0);
 	TOLERANCE_ABSOLUTE(0.01)
-  for (Map<HMMState*, double>::ConstIterator it = emission_probs.begin(); it != emission_probs.end(); ++it)
+  for (std::map<HMMState*, double>::const_iterator it = emission_probs.begin(); it != emission_probs.end(); ++it)
   {
     if (it->first->getName() == "end")
     {

@@ -187,80 +187,79 @@ namespace OpenMS
 
     int ms_level = spectrum.getMSLevel();
 
-    if (ms_level == 2)
-    {
-      // store user fragment annotations
-      vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
+    if (ms_level != 2) return;
 
-      // no ID selected
-      if (peptide_id_index == -1 || peptide_hit_index == -1)
+    // store user fragment annotations
+    vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
+
+    // no ID selected
+    if (peptide_id_index == -1 || peptide_hit_index == -1)
+    {
+      return;
+    }
+
+    if (!pep_ids.empty())
+    {
+      vector<PeptideHit>& hits = pep_ids[peptide_id_index].getHits();
+
+      if (!hits.empty())
+      {
+        PeptideHit& hit = hits[peptide_hit_index];
+        updatePeptideHitAnnotations_(hit);
+      }
+      else
+      {// no hits? add empty hit
+        PeptideHit hit;
+        updatePeptideHitAnnotations_(hit);
+        hits.push_back(hit);
+      }
+    }
+    else// PeptideIdentifications are empty, create new PepIDs and PeptideHits to store the PeakAnnotations
+    {
+      // copy user annotations to fragment annotation vector
+      const Annotations1DContainer& las = getAnnotations(current_spectrum_idx_);
+
+      // no annotations so we don't need to synchronize
+      bool has_peak_annotation(false);
+      for (auto& a : las)
+      {
+        // only store peak annotations
+        Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(a);
+        if (pa != nullptr)
+        {
+          has_peak_annotation = true;
+          break;
+        }
+      }
+      if (has_peak_annotation == false)
       {
         return;
       }
+      PeptideIdentification pep_id;
+      pep_id.setIdentifier("Unknown");
 
-      if (!pep_ids.empty())
+      // create a dummy ProteinIdentification for all ID-less PeakAnnotations
+      vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getProteinIdentifications();
+      if (prot_ids.empty() || prot_ids.back().getIdentifier() != String("Unknown"))
       {
-        vector<PeptideHit>& hits = pep_ids[peptide_id_index].getHits();
-
-        if (!hits.empty())
-        {
-          PeptideHit& hit = hits[peptide_hit_index];
-          updatePeptideHitAnnotations_(hit);
-        }
-        else
-        {// no hits? add empty hit
-          PeptideHit hit;
-          updatePeptideHitAnnotations_(hit);
-          hits.push_back(hit);
-        }
+        ProteinIdentification prot_id;
+        prot_id.setIdentifier("Unknown");
+        prot_ids.push_back(prot_id);
       }
-      else// PeptideIdentifications are empty, create new PepIDs and PeptideHits to store the PeakAnnotations
+
+      PeptideHit hit;
+      if (spectrum.getPrecursors().empty() == false)
       {
-        // copy user annotations to fragment annotation vector
-        const Annotations1DContainer& las = getAnnotations(current_spectrum_idx_);
-
-        // no annotations so we don't need to synchronize
-        bool has_peak_annotation(false);
-        for (auto& a : las)
-        {
-          // only store peak annotations
-          Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(a);
-          if (pa != nullptr)
-          {
-            has_peak_annotation = true;
-            break;
-          }
-        }
-        if (has_peak_annotation == false)
-        {
-          return;
-        }
-        PeptideIdentification pep_id;
-        pep_id.setIdentifier("Unknown");
-
-        // create a dummy ProteinIdentification for all ID-less PeakAnnotations
-        vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getProteinIdentifications();
-        if (prot_ids.empty() || prot_ids.back().getIdentifier() != String("Unknown"))
-        {
-          ProteinIdentification prot_id;
-          prot_id.setIdentifier("Unknown");
-          prot_ids.push_back(prot_id);
-        }
-
-        PeptideHit hit;
-        if (spectrum.getPrecursors().empty() == false)
-        {
-          pep_id.setMZ(spectrum.getPrecursors()[0].getMZ());
-          hit.setCharge(spectrum.getPrecursors()[0].getCharge());
-        }
-        pep_id.setRT(spectrum.getRT());
-
-        updatePeptideHitAnnotations_(hit);
-        std::vector<PeptideHit> hits;
-        hits.push_back(hit);
-        pep_id.setHits(hits);
-        pep_ids.push_back(pep_id);
+        pep_id.setMZ(spectrum.getPrecursors()[0].getMZ());
+        hit.setCharge(spectrum.getPrecursors()[0].getCharge());
       }
+      pep_id.setRT(spectrum.getRT());
+
+      updatePeptideHitAnnotations_(hit);
+      std::vector<PeptideHit> hits;
+      hits.push_back(hit);
+      pep_id.setHits(hits);
+      pep_ids.push_back(pep_id);
     }
   }
 
@@ -275,86 +274,16 @@ namespace OpenMS
     // do not change PeptideHit annotations, if there are no annotations on the spectrum
     bool annotations_changed(false);
 
-    // regular expression for a charge at the end of the annotation
-    QRegExp reg_exp(R"(([\+|\-]\d+)$)");
-
     // for each annotation item on the canvas
     for (auto& a : las)
     {
-      // only store peak annotations (skip general lables and distance annotations)
+      // only store peak annotations (skip general labels and distance annotations)
       Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(a);
       if (pa == nullptr)
       {
         continue;
       }
-
-      // add new fragment annotation
-      QString peak_anno = pa->getText().trimmed();
-
-      // check for newlines in the label and only continue with the first line for charge determination
-      QStringList lines = peak_anno.split(QRegExp("[\r\n]"), QString::SkipEmptyParts);
-      if (lines.size() > 1)
-      {
-        peak_anno = lines[0];
-      }
-
-      // read charge and text from annotation item string
-      // we support two notations for the charge suffix: '2+' or '++'
-      // cut and convert the trailing + or - to a proper charge
-      int match_pos = reg_exp.indexIn(peak_anno);
-      int tmp_charge(0);
-      if (match_pos >= 0)
-      {
-        tmp_charge = reg_exp.cap(1).toInt();
-        peak_anno = peak_anno.left(match_pos);
-      }
-      else
-      {
-        // count number of + and - in suffix (e.g., to support "++" as charge 2 anotation)
-        int plus(0), minus(0);
-
-        for (int p = (int) peak_anno.size() - 1; p >= 0; --p)
-        {
-          if (peak_anno[p] == '+')
-          {
-            ++plus;
-            continue;
-          }
-          else if (peak_anno[p] == '-')
-          {
-            ++minus;
-            continue;
-          }
-          else// not '+' or '-'?
-          {
-            if (plus > 0 && minus == 0)// found pluses?
-            {
-              tmp_charge = plus;
-              peak_anno = peak_anno.left(peak_anno.size() - plus);
-              break;
-            }
-            else if (minus > 0 && plus == 0)// found minuses?
-            {
-              tmp_charge = -minus;
-              peak_anno = peak_anno.left(peak_anno.size() - minus);
-              break;
-            }
-            break;
-          }
-        }
-      }
-
-      PeptideHit::PeakAnnotation fa;
-      fa.charge = tmp_charge;
-      fa.mz = pa->getPeakPosition()[0];
-      fa.intensity = pa->getPeakPosition()[1];
-      if (lines.size() > 1)
-      {
-        peak_anno.append("\n").append(lines[1]);
-      }
-      fa.annotation = peak_anno;
-
-      fas.push_back(fa);
+      fas.push_back(pa->toPeakAnnotation());
       annotations_changed = true;
     }
 

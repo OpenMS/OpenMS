@@ -40,7 +40,6 @@
 
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -136,7 +135,12 @@ START_SECTION([extra] output generation)
 }
 END_SECTION
 
-START_SECTION(void addElement(const std::string& name, const std::string& symbol, const unsigned int an, const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass, bool replace_existing))
+START_SECTION(void addElement(const std::string& name,
+                    const std::string& symbol,
+                    const unsigned int an,
+                    const std::map<unsigned int, double>& abundance,
+                    const std::map<unsigned int, double>& mass,
+                    bool replace_existing))
 {
   const Element * oxygen = e_ptr->getElement(8);
   TEST_REAL_SIMILAR(oxygen->getAverageWeight(), 15.99940532316)

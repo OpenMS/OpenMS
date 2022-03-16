@@ -263,7 +263,7 @@ namespace OpenMS
       text.replace("H3N1","NH<sub>3</sub>");
       text.replace("C1H4O1S1", "H<sub>4</sub>COS");  // methionine sulfoxide loss
 
-      // nucleotide XL realted losses
+      // nucleotide XL related losses
       text.replace("H3PO4","H<sub>3</sub>PO<sub>4</sub>");
       text.replace("HPO3","HPO<sub>3</sub>");
       text.replace("C3O","C<sub>3</sub>O");
@@ -367,6 +367,80 @@ namespace OpenMS
   const QColor & Annotation1DPeakItem::getColor() const
   {
     return color_;
+  }
+
+  PeptideHit::PeakAnnotation Annotation1DPeakItem::toPeakAnnotation() const
+  {
+    // add new fragment annotation
+    QString peak_anno = this->getText().trimmed();
+
+    // regular expression for a charge at the end of the annotation
+    QRegExp reg_exp(R"(([\+|\-]\d+)$)");
+
+    // check for newlines in the label and only continue with the first line for charge determination
+    QStringList lines = peak_anno.split(QRegExp("[\r\n]"), QString::SkipEmptyParts);
+    if (lines.size() > 1)
+    {
+      peak_anno = lines[0];
+    }
+
+    // read charge and text from annotation item string
+    // we support two notations for the charge suffix: '+2' or '++'
+    // cut and convert the trailing + or - to a proper charge
+    int match_pos = reg_exp.indexIn(peak_anno);
+    int tmp_charge(0);
+    if (match_pos >= 0)
+    {
+      tmp_charge = reg_exp.cap(1).toInt();
+      peak_anno = peak_anno.left(match_pos);
+    }
+    else
+    {
+      // count number of + and - in suffix (e.g., to support "++" as charge 2 annotation)
+      int plus(0), minus(0);
+
+      for (int p = (int)peak_anno.size() - 1; p >= 0; --p)
+      {
+        if (peak_anno[p] == '+')
+        {
+          ++plus;
+          continue;
+        }
+        else if (peak_anno[p] == '-')
+        {
+          ++minus;
+          continue;
+        }
+        else // not '+' or '-'?
+        {
+          if (plus > 0 && minus == 0) // found pluses?
+          {
+            tmp_charge = plus;
+            peak_anno = peak_anno.left(peak_anno.size() - plus);
+            break;
+          }
+          else if (minus > 0 && plus == 0) // found minuses?
+          {
+            tmp_charge = -minus;
+            peak_anno = peak_anno.left(peak_anno.size() - minus);
+            break;
+          }
+          break;
+        }
+      }
+    }
+
+    PeptideHit::PeakAnnotation fa;
+    fa.charge = tmp_charge;
+    fa.mz = this->getPeakPosition()[0];
+    fa.intensity = this->getPeakPosition()[1];
+    if (lines.size() > 1)
+    {
+      peak_anno.append("\n").append(lines[1]);
+    }
+    fa.annotation = peak_anno;
+
+    return fa;
   }
 
 } // Namespace

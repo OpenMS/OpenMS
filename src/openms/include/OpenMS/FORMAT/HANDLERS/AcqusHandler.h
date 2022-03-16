@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <map>
 
 namespace OpenMS
 {
@@ -81,7 +81,7 @@ private:
       AcqusHandler();
 
       /// Map for params saving
-      Map<String, String> params_;
+      std::map<String, String> params_;
 
       /**@name Internal params for calibration */
       //@{

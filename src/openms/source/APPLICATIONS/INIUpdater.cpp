@@ -102,7 +102,7 @@ namespace OpenMS
     // try with type (as some new tools for one type might have the exact same name as old ones with several types
     //                e.g., CompNovo
     TDE old_withtype(old_name, ListUtils::create<String>(tools_type));
-    if (map_.has(old_withtype))
+    if (map_.find(old_withtype) != map_.end())
     {
       new_name = map_[old_withtype].name;
       return true;
@@ -110,14 +110,16 @@ namespace OpenMS
 
     // try without type
     TDE old_notype(old_name, StringList());
-    if (map_.has(old_notype))
+    if (map_.find(old_notype) != map_.end())
     {
       new_name = map_[old_notype].name;
       return true;
     }
 
     // default to ToolHandler
-    if (ToolHandler::getTOPPToolList(true).has(old_name) || ToolHandler::getUtilList().has(old_name))
+    const auto& topp = ToolHandler::getTOPPToolList(true);
+    const auto& utils = ToolHandler::getUtilList();
+    if (topp.find(old_name) != topp.end() || utils.find(old_name) != utils.end())
     {
       new_name = old_name;
       return true;
