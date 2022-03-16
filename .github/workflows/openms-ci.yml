@@ -166,7 +166,7 @@ jobs:
       run: |
           shopt -s nullglob # ensure that for loop is only executated if there is at least one .dylib file
           for lib in $GITHUB_WORKSPACE/OpenMS/contrib/lib/*.dylib
-          do          
+          do
             install_name_tool -id $lib $lib
           done
 
