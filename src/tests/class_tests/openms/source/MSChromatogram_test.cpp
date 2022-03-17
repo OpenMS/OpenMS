@@ -32,6 +32,10 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
+#pragma clang diagnostic push
+// Ignore -Wpessimizing-move, becuase it's intentional
+#pragma clang diagnostic ignored "-Wpessimizing-move"
+
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
@@ -1125,5 +1129,4 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 END_TEST
 
-
-
+#pragma clang diagnostic pop
