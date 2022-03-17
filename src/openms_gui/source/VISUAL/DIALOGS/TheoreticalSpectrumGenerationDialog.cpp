@@ -222,7 +222,7 @@ namespace OpenMS
     String seq_string(this->getSequence());
     if (seq_string.empty())
     {
-      QMessageBox::warning(this, "Error", QString("You must enter a") + (peptide_input ? "peptide" : "RNA") + " sequence!");
+      QMessageBox::warning(this, "Error", QString("You must enter a ") + (peptide_input ? "peptide" : "RNA") + " sequence!");
       return;
     }
     
