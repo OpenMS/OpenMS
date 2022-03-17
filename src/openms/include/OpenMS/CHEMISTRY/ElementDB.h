@@ -87,7 +87,7 @@ public:
     /// returns a hashmap that contains atomic numbers mapped to pointers of the elements
     const std::unordered_map<unsigned int, const Element*>& getAtomicNumbers() const;
 
-    /// returns a hashmap that contains atomic numbers mapped to pointers of the isotopes
+    /// returns a hashmap that contains isotopic names mapped to pointers of the isotopes
     const std::unordered_map<std::string, const Isotope*>& getIsotopeSymbols() const;
 
     /** returns a pointer to the element with name or symbol given in parameter name;
