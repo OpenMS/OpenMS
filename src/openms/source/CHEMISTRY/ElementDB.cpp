@@ -29,19 +29,17 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch, Timo Sachsenberg, Chris Bielow, Jang Jang Jin‚$
+// $Authors: Andreas Bertsch, Timo Sachsenberg, Chris Bielow, Jang Jang Jin$
 // --------------------------------------------------------------------------
 //
+
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/Element.h>
-
-#include <OpenMS/DATASTRUCTURES/Param.h>
-
-#include <OpenMS/FORMAT/ParamXMLFile.h>
-
-#include <OpenMS/SYSTEM/File.h>
-
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 
@@ -57,36 +55,36 @@ namespace OpenMS
     clear_();
   }
 
-  const ElementDB* ElementDB::getInstance()
+  ElementDB* ElementDB::getInstance()
   {
     static ElementDB* db_ = new ElementDB;
     return db_;
   }
 
-  const map<string, const Element*>& ElementDB::getNames() const
+  const unordered_map<string, const Element*>& ElementDB::getNames() const
   {
     return names_;
   }
 
-  const map<string, const Element*>& ElementDB::getSymbols() const
+  const unordered_map<string, const Element*>& ElementDB::getSymbols() const
   {
     return symbols_;
   }
 
-  const map<unsigned int, const Element*>& ElementDB::getAtomicNumbers() const
+  const unordered_map<unsigned int, const Element*>& ElementDB::getAtomicNumbers() const
   {
     return atomic_numbers_;
   }
 
   const Element* ElementDB::getElement(const string& name) const
   {
-    if (auto entry = names_.find(name); entry != names_.end())
+    if (auto entry = symbols_.find(name); entry != symbols_.end())
     {
       return entry->second;
     }
     else
     {
-      if (auto entry = symbols_.find(name); entry != symbols_.end())
+      if (auto entry = names_.find(name); entry != names_.end())
       {
         return entry->second;
       }
@@ -111,6 +109,20 @@ namespace OpenMS
   bool ElementDB::hasElement(unsigned int atomic_number) const
   {
     return atomic_numbers_.find(atomic_number) != atomic_numbers_.end();
+  }
+
+  void ElementDB::addElement(const std::string& name,
+                             const std::string& symbol,
+                             const unsigned int an,
+                             const std::map<unsigned int, double>& abundance,
+                             const std::map<unsigned int, double>& mass,
+                             bool replace_existing)
+  {
+    if (hasElement(an) && !replace_existing)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Element with atomic number ") + an + " already exists");
+    }
+    buildElement_(name, symbol, an, abundance, mass);
   }
 
   double ElementDB::calculateAvgWeight_(const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
@@ -578,6 +590,12 @@ namespace OpenMS
     map<unsigned int, double> uranium_mass = {{234u,  234.040950}, {235u,  235.043928}, {238u,   238.05079}};
     buildElement_("Uranium", "U", 92u, uranium_abundance, uranium_mass);
 
+    // special case for deuterium and tritium
+    const Element* deuterium = getElement("(2)H");
+    symbols_["D"] = deuterium;
+    const Element* tritium = getElement("(3)H");
+    symbols_["T"] = tritium;
+
     // Pu, Am, Cm, Bk, Cf, Es, Fm, Md, No, Lr, Rf, Db, Sg, Bh, Hs, Mt, Ds, Rg, Cn, Nh, Fl, Mc, Lv, Ts and Og Abundances are not known.
 
   }
@@ -595,9 +613,26 @@ namespace OpenMS
 
   void ElementDB::addElementToMaps_(const string& name, const string& symbol, const unsigned int an, const Element* e)
   {
-    names_[name] = e;
-    symbols_[symbol] = e;
-    atomic_numbers_[an] = e;
+    #pragma omp critical(OpenMS_ElementDB)
+    {
+      // overwrite existing element if it already exists
+      // find() has to be protected here in a parallel context
+      if (atomic_numbers_.find(an) != atomic_numbers_.end())
+      {
+        // in order to ensure that existing elements are still valid and memory
+        // addresses do not change, we have to modify the Element in place
+        // instead of replacing it.
+        const Element* const_ele = atomic_numbers_[an];
+        Element* element = const_cast<Element*>(const_ele);
+        *element = *e; // copy all data from input to the existing element
+      }
+      else
+      {
+        names_[name] = e;
+        symbols_[symbol] = e;
+        atomic_numbers_[an] = e;
+      }
+    }
   }
 
   void ElementDB::storeIsotopes_(const string& name, const string& symbol, const unsigned int an, const map<unsigned int, double>& mass, const IsotopeDistribution& isotopes)
@@ -605,7 +640,7 @@ namespace OpenMS
     for (const auto& isotope : isotopes)
     {
       double atomic_mass = isotope.getMZ();
-      unsigned int mass_number = round(atomic_mass);
+      unsigned int mass_number = std::round(atomic_mass);
       string iso_name = "(" + std::to_string(mass_number) + ")" + name;
       string iso_symbol = "(" + std::to_string(mass_number) + ")" + symbol;
 
