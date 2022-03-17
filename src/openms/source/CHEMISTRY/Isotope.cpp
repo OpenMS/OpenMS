@@ -129,14 +129,14 @@ namespace OpenMS
     << isotope.atomic_number_ << " N="
     << isotope.neutrons_ << " : "
     << isotope.mono_weight_ << " "
-    << isotope.abundance_ *100 << "% : ";
+    << isotope.abundance_ * 100 << "% : ";
     if (isotope.isStable())
     {
       os << "stable";
     }
     else
     {
-      os << " half life: " << isotope.half_life_ << " s "
+      os << "half life: " << isotope.half_life_ << " s "
       << isotope.decay_mode_;
     }
 
