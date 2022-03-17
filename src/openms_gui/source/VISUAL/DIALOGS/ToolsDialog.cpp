@@ -70,13 +70,13 @@ namespace OpenMS
           LayerDataBase::DataType layer_type,
           const String& layer_name,
           TVToolDiscovery* tool_scanner) :
-          QDialog(parent),
-          ini_file_(std::move(ini_file)),
-          default_dir_(std::move(default_dir)),
-          tool_params_(params.copy("tool_params:", true)),
-          plugin_params_(),
-          tool_scanner_(tool_scanner),
-          layer_type_(layer_type)
+            QDialog(parent),
+            ini_file_(ini_file),
+            default_dir_(default_dir),
+            tool_params_(params.copy("tool_params:", true)),
+            plugin_params_(),
+            tool_scanner_(tool_scanner),
+            layer_type_(layer_type)
   {
     auto main_grid = new QGridLayout(this);
 
@@ -88,7 +88,6 @@ namespace OpenMS
 
     auto label = new QLabel("TOPP tool:");
     main_grid->addWidget(label, 1, 0);
-    QStringList list;
 
     // Determine all available tools compatible with the layer_type
     tool_map_ = {
@@ -98,41 +97,9 @@ namespace OpenMS
             {FileTypes::Type::CONSENSUSXML, LayerDataBase::DataType::DT_CONSENSUS},
             {FileTypes::Type::IDXML, LayerDataBase::DataType::DT_IDENT}
     };
-    const auto& tools = ToolHandler::getTOPPToolList();
-    const auto& utils = ToolHandler::getUtilList();
 
-    tool_scanner_->setPluginPath(params.getValue("preferences:user:plugins_path").toString());
-    plugin_params_ = tool_scanner_->getPluginParams();
+    QStringList list = createToolsList_();
 
-    for (auto& pair : tools)
-    {
-      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ':'));
-      if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
-      {
-        list << pair.first.toQString();
-      }
-    }
-    for (auto& pair : utils)
-    {
-      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ":"));
-      if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
-      {
-        list << pair.first.toQString();
-      }
-    }
-    //TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
-    for (const auto& name : tool_scanner->getPlugins())
-    {
-      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
-      if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
-      {
-        list << String(name).toQString();
-      }
-    }
-
-    //sort list alphabetically
-    list.sort();
-    list.push_front("<select tool>");
     tools_combo_ = new QComboBox;
     tools_combo_->setMinimumWidth(150);
     tools_combo_->addItems(list);
@@ -262,6 +229,47 @@ namespace OpenMS
     {
       output_combo_->setCurrentIndex(pos);
     }
+  }
+
+  QStringList ToolsDialog::createToolsList_()
+  {
+    //Make sure the list is empty
+    QStringList list;
+
+    const auto& tools = ToolHandler::getTOPPToolList();
+    const auto& utils = ToolHandler::getUtilList();
+    plugin_params_ = tool_scanner_->getPluginParams();
+
+    for (auto& pair : tools)
+    {
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ':'));
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
+      {
+        list << pair.first.toQString();
+      }
+    }
+    for (auto& pair : utils)
+    {
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ":"));
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
+      {
+        list << pair.first.toQString();
+      }
+    }
+    //TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
+    for (const auto& name : tool_scanner_->getPlugins())
+    {
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
+      {
+        list << String(name).toQString();
+      }
+    }
+
+    //sort list alphabetically
+    list.sort();
+    list.push_front("<select tool>");
+    return list;
   }
 
   void ToolsDialog::createINI_()
@@ -427,49 +435,11 @@ namespace OpenMS
 
   void ToolsDialog::reloadPlugins_()
   {
-    const auto& tools = ToolHandler::getTOPPToolList();
-    const auto& utils = ToolHandler::getUtilList();
-    plugin_params_ = tool_scanner_->getPluginParams();
+    QStringList list = createToolsList_();
 
-    QStringList list;
-    for (auto& pair : tools)
-    {
-      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ':'));
-      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
-      {
-        list << pair.first.toQString();
-      }
-    }
-    for (auto& pair : utils)
-    {
-      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ":"));
-      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
-      {
-        list << pair.first.toQString();
-      }
-    }
-    //TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
-    for (String name : tool_scanner_->getPlugins())
-    {
-      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
-      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
-      {
-        list << name.toQString();
-      }
-    }
+    int32_t selected_index = list.indexOf(tools_combo_->currentText());
 
-    list.sort();
-    list.push_front("<select tool>");
-    int32_t selected_index = 0;
-    for (int32_t i = 0; i < list.size(); ++i)
-    {
-      if (list.at(i) == tools_combo_->currentText())
-      {
-        selected_index = i;
-        break;
-      }
-    }
-    if (selected_index == 0)
+    if (selected_index < 1)
     {
       tool_desc_->clear();
       arg_param_.clear();

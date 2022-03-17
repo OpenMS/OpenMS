@@ -137,6 +137,8 @@ private:
     std::vector<LayerDataBase::DataType> getTypesFromParam_(const Param& p) const;
     /// Fill input_combo_ and output_combo_ box with the appropriate entries from the specified param object.
     void setInputOutputCombo_(const Param& p);
+    /// Create a list of all TOPP tool/util/plugins that are compatible with the active layer type
+    QStringList createToolsList_();
 
 protected slots:
 
