@@ -29,21 +29,24 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: David Voigt $
-// $Authors: David Voigt $
+// $Authors: David Voigt, Ruben Grünberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TVToolDiscovery.h>
+
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/ExternalProcess.h>
-#include <OpenMS/FORMAT/ParamXMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <iostream>
-#include <filesystem>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
+
+#include <filesystem>
 #include <QCoreApplication>
+#include <QDir>
 
 
 namespace OpenMS
@@ -139,7 +142,7 @@ namespace OpenMS
     return plugin_params_;
   }
 
-  Param TVToolDiscovery::getParamFromIni_(const String &tool_path, bool plugins)
+  Param TVToolDiscovery::getParamFromIni_(const String& tool_path, bool plugins)
   {
     FileHandler fh;
     // Temporary file path and arguments
@@ -187,7 +190,7 @@ namespace OpenMS
     if (plugins)
     {
       auto tool_name = tool_param.begin().getTrace().begin()->name;
-      auto filename = tool_path.substr(tool_path.find_first_of('/') + 1);
+      auto filename = std::filesystem::path(static_cast<std::string>(tool_path)).filename().string();
       tool_param.setValue(tool_name + ":filename", filename, "The filename of the plugin executable. This entry is automatically generated.");
     }
 
@@ -219,12 +222,40 @@ namespace OpenMS
     return plugins;
   }
 
-  void TVToolDiscovery::setPluginPath(const std::string &path)
+  bool TVToolDiscovery::setPluginPath(const String& plugin_path, bool create)
   {
-    plugin_path_ = path;
+    if (!File::exists(plugin_path))
+    {
+      if (create)
+      {
+        QDir path = QDir(plugin_path.toQString());
+        QString dir = path.dirName();
+        path.cdUp();
+
+        if (!path.mkdir(dir))
+        {
+          OPENMS_LOG_WARN << "Unable to create plugin directory " << plugin_path << std::endl;
+          //plugin_path_ = ".";
+          plugin_path_ = plugin_path;
+          return false;
+        }
+      } else
+      {
+        OPENMS_LOG_WARN << "Unable to set plugin directory: " << plugin_path << " does not exist." << std::endl;
+        return false;
+      }
+    }
+
+    plugin_path_ = plugin_path;
+    return true;
   }
 
-  std::string TVToolDiscovery::findPluginExecutable(const std::string &name)
+  const std::string TVToolDiscovery::getPluginPath()
+  {
+    return plugin_path_;
+  }
+
+  std::string TVToolDiscovery::findPluginExecutable(const std::string& name)
   {
     //TODO: At the moment the usage of subdirectories in the plugin path are not possible
     //To change that, the tool scanner has to recursively search all directories in the plugin path

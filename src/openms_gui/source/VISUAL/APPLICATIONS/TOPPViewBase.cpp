@@ -431,21 +431,7 @@ namespace OpenMS
 
     // set plugin search path, create it if it does not already exist
     String plugin_path = String(param_.getValue(user_section + "plugins_path").toString());
-    if (!File::exists(plugin_path))
-    {
-      QString dir = plugin_path.suffix('/').toQString();
-      QDir path = QDir(plugin_path.toQString());
-      path.cdUp();
-      printf("Dir: %s\n", dir.toStdString().c_str());
-      printf("Path: %s\n", path.absolutePath().toStdString().c_str());
-      if (!path.mkdir(dir))
-      {
-        OPENMS_LOG_WARN << "Unable to create plugin directory at " << path.absolutePath().toStdString() << "\n";
-        param_.setValue(user_section + "plugins_path", ".");
-        plugin_path = ".";
-      }
-    }
-    tool_scanner_.setPluginPath(plugin_path);
+    tool_scanner_.setPluginPath(plugin_path, true);
 
     // update the menu
     updateMenu();
@@ -1584,12 +1570,6 @@ namespace OpenMS
       {
         error = true;
       }
-      // Load tool/util params
-      if (!error && scan_mode_ != TOOL_SCAN::FORCE_SCAN && tmp.hasSection("tool_params:"))
-      {
-        param_.insert("tool_params:", tmp.copy("tool_params:", true));
-        tool_params_added = true;
-      }
 
       // set parameters to defaults when something is fishy with the parameters file
       if (error)
@@ -1597,6 +1577,20 @@ namespace OpenMS
         // reset parameters (they will be stored again when TOPPView quits)
         setParameters(Param());
         cerr << "The TOPPView preferences files '" << filename << "' was ignored. It is no longer compatible with this TOPPView version and will be replaced." << endl;
+      } else
+      {
+        // Load tool/util params
+        if (scan_mode_ != TOOL_SCAN::FORCE_SCAN && tmp.hasSection("tool_params:"))
+        {
+          param_.insert("tool_params:", tmp.copy("tool_params:", true));
+          tool_params_added = true;
+        }
+        // If the saved plugin path does not exist
+        if (!tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString()))
+        {
+          // reset it to the default
+          param_.setValue(user_section + "plugins_path", File::getUserDirectory() + "OpenMS_Plugins");
+        }
       }
     }
     else if (filename != default_ini_file)
@@ -1606,7 +1600,6 @@ namespace OpenMS
     // Scan for tools/utils if scan_mode is set to FORCE_SCAN or if the tool/util params could not be added for whatever reason
     if (!tool_params_added && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
     {
-      tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString());
       tool_scanner_.loadToolParams();
     }
 
@@ -1630,6 +1623,13 @@ namespace OpenMS
       tool_scanner_.waitForToolParams();
       param_.insert("tool_params:", tool_scanner_.getToolParams());
     }
+    // check if the plugin path exists
+    if (!tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString()))
+    {
+      // reset if it does not
+      param_.setValue(user_section + "plugins_path", tool_scanner_.getPluginPath());
+    }
+
     // save only the subsection that begins with "preferences:" and all tool params ("tool_params:")
     try
     {

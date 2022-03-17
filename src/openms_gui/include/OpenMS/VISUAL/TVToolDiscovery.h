@@ -65,9 +65,9 @@ namespace OpenMS
     TVToolDiscovery() :
       plugin_path_() {};
 
-    TVToolDiscovery(const TVToolDiscovery &) = delete;
+    TVToolDiscovery(const TVToolDiscovery&) = delete;
 
-    TVToolDiscovery &operator=(const TVToolDiscovery &) = delete;
+    TVToolDiscovery& operator=(const TVToolDiscovery&) = delete;
 
     ~TVToolDiscovery() = default;
 
@@ -101,8 +101,16 @@ namespace OpenMS
     /// Returns the list of read plugin names as saved in the ini.
     const std::vector<std::string>& getPlugins();
 
-    /// Set the path where to search for plugins
-    void setPluginPath(const std::string& path);
+    /**
+     * @brief Sets the path that will be searched for Plugins
+     * @param path The new path to set
+     * @param create Attempt to create the directory if it does not already exist
+     * @returns False if setting/creating the path fails. True otherwise.
+     */
+    [[maybe_unused]] bool setPluginPath(const String& path, bool create=false);
+
+    /// Returns the current set path to search plugins in
+    const std::string getPluginPath();
 
     /// Returns the path to the plugin executable or an empty string if the plugin name is unknown
     std::string findPluginExecutable(const std::string& name);
@@ -111,7 +119,7 @@ namespace OpenMS
     /** Returns param for a given tool/util. This function is thread-safe. Additionally inserts names of tools into 
         plugin list
      */
-    static Param getParamFromIni_(const String &tool_path, bool plugins=false);
+    static Param getParamFromIni_(const String& tool_path, bool plugins=false);
 
     /** Start creating params for each plugin in the set plugin path asynchronously
      *  This should only be called from waitForPluginParams() or the names in the plugins vector are not correct

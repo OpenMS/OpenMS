@@ -77,6 +77,7 @@ namespace OpenMS
       // general tab
       ui_->default_path->setText(String(param_.getValue("default_path").toString()).toQString());
       ui_->default_path_current->setChecked(param_.getValue("default_path_current").toBool());
+      ui_->plugins_path->setText(String(param_.getValue("plugins_path").toString()).toQString());
       ui_->use_cached_ms1->setChecked(param_.getValue("use_cached_ms1").toBool());
       ui_->use_cached_ms2->setChecked(param_.getValue("use_cached_ms2").toBool());
 
