@@ -122,7 +122,7 @@ namespace OpenMS
   protected:
 
     int neutrons_ = -1;
-    double abundance_; // has to consistent with getIsotopeDistribution()
+    double abundance_ = -1; // has to consistent with getIsotopeDistribution()
     double half_life_ = -1; ///< half life in seconds
     DecayMode decay_mode_ = DecayMode::NONE;
   };

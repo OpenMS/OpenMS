@@ -142,7 +142,7 @@ public:
     */
     void addIsotope(const std::string& name,
                     const std::string& symbol,
-                    const unsigned int an,
+                    unsigned int an,
                     double abundance,
                     double mass,
                     double half_life,
