@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 import argparse
-import os
-import sys
 
-from pyopenms import Param
-from pyopenms import ParamXMLFile
+from pyopenms import Param, ParamXMLFile, MSExperiment, MzMLFile
 
 '''
 The tool needs basic parameter parsing. The following parameters are required to be supported:
@@ -17,14 +14,18 @@ The tool needs basic parameter parsing. The following parameters are required to
 def main():
     parser = argparse.ArgumentParser(description="Test tool for prototyping TOPPView-plugins")
     parser.add_argument("-write_ini", help="Writes ini to specified path and exits.")
+    parser.add_argument("-ini", help="The ini file to load")
+    parser.add_argument("-in", help="The input file")
+    parser.add_argument("-out", help="The output file")
+    parser.add_argument("-no_progress", action="store_false", help="Turn of output to the command line")
 
-    args = parser.parse_args()
+    args = vars(parser.parse_args())
 
-    ini_path = args.write_ini
+    ini_path = args["write_ini"]
 
     # create ini at path
     if ini_path is not None:
-        #Create the default parameters
+        # create the default parameters
         param = Param()
         # this will create the param structure that is mandatory for all plugins
         param.initPluginParam("ExamplePlugin", "0.0.1")
@@ -37,11 +38,21 @@ def main():
         param.setValidStrings("ExamplePlugin:1:Text", [b"option 1", b"option 2", b"option 3"])
         param.setValue("ExamplePlugin:1:Required", "", "This is an additional required parameter", [b"required"])
 
-        #Write them to the given filepath
+        # write them to the given filepath
         file = ParamXMLFile()
         file.store(ini_path, param)
 
         exit()
+
+    # this is an example for loading and saving an experiment from a mzML file
+    MzML = MzMLFile()
+    exp = MSExperiment()
+
+    input_file = args["in"]
+    output_file = args["out"]
+    MzML.load(input_file, exp)
+    # we save it here without doing anything
+    MzML.store(output_file, exp)
 
     
 if __name__ == "__main__":
