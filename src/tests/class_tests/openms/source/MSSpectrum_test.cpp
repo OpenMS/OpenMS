@@ -32,11 +32,6 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_WINDOWSPLATFORM
-#pragma clang diagnostic push
-// Ignore -Wpessimizing-move, becuase it's intentional
-#pragma clang diagnostic ignored "-Wpessimizing-move"
-#endif
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
@@ -499,7 +494,15 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum&& source)))
 
   //Assignment of empty object
   //normal assignment
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic push
+// Ignore -Wpessimizing-move, becuase it's intentional
+#pragma clang diagnostic ignored "-Wpessimizing-move"
+#endif
   tmp2 = std::move(MSSpectrum());
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic pop
+#endif
   TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),0);
   TEST_EQUAL(tmp2.metaValueExists("label"), false)
   TEST_EQUAL(tmp2.getMSLevel(),1)
@@ -1495,7 +1498,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-#ifndef OPENMS_WINDOWSPLATFORM
-#pragma clang diagnostic pop
-#endif
