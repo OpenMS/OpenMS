@@ -116,6 +116,8 @@ public:
      * @param abundance List of masses for each isotope (e.g. {{12u, 12.0}, {13u, 13.003355}} for Carbon)
      * @param replace_existing Whether to replace an existing element
      *
+     * @exception Exception::IllegalArgument is thrown if an element with the same atomic number already exists
+     *
      * @note Do not use this function inside parallel code as it modifies a singleton that is shared between threads.
     */
     void addElement(const std::string& name,
