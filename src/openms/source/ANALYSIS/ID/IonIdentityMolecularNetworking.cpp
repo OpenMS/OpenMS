@@ -40,6 +40,7 @@
 #include <iostream>
 #include <set>
 #include <unordered_map>
+#include <map>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/connected_components.hpp>
@@ -214,7 +215,7 @@ namespace OpenMS
     if (!consensus_map[0].metaValueExists(Constants::UserParam::IIMN_ROW_ID)) return;
 
     // generate unordered map with feature id and partner feature ids
-    std::unordered_map<size_t, std::set<size_t>> feature_partners; // map<feature_index, partner_feature_indices>
+    std::map<size_t, std::set<size_t>> feature_partners; // map<feature_index, partner_feature_indices>
     for (size_t i = 0; i < consensus_map.size(); i++)
     {
       if (!consensus_map[i].metaValueExists(Constants::UserParam::IIMN_ADDUCT_PARTNERS)) continue;
