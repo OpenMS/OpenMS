@@ -906,7 +906,7 @@ START_SECTION((MSChromatogram& operator=(const MSChromatogram &&source)))
   //normal assignment
 #ifndef OPENMS_WINDOWSPLATFORM
 #pragma clang diagnostic push
-// Ignore -Wpessimizing-move, becuase it's intentional
+// Ignore -Wpessimizing-move, because we want to test the move assignment operator.
 #pragma clang diagnostic ignored "-Wpessimizing-move"
 #endif
   tmp2 = std::move(MSChromatogram());
