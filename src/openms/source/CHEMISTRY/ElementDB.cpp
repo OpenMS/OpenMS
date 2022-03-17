@@ -159,7 +159,7 @@ namespace OpenMS
     {
       if (!replace_existing)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Element with atomic number ") + an + " already exists");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Isotope with symbol ") + iso_symbol + " already exists and replace_existing is set to false.");
       }
       Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, mass, abundance, half_life, decay);
       addIsotopeToMaps_(iso_name, iso_symbol, isotope);

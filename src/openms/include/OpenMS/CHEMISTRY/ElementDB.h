@@ -136,7 +136,9 @@ public:
      * @param mass mass of the isotope
      * @param half_life Half life of the isotope in seconds (use -1 for stable isotopes)
      * @param decay Main decay mode for unstable isotopes (use NONE for stable isotopes)
-     * @param replace_existing Whether to replace an existint isotope
+     * @param replace_existing Whether to replace an existing isotope
+     *
+     * @exception Exception::IllegalArgument is thrown if the isotope already exists
      *
      * @note Do not use this function inside parallel code as it modifies a singleton that is shared between threads.
     */
