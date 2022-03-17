@@ -46,9 +46,12 @@ namespace OpenMS
 
       @brief Representation of an isotope
 
-      This class represents a single isotope
+      This class represents a single isotope of an Element. Stable isotopes are
+      expected to contain abundances while unstable isotopes generally do not
+      have natural abundances but contain information about half life and decay
+      mode.
   */
-  class OPENMS_DLLAPI Isotope : 
+  class OPENMS_DLLAPI Isotope :
     public Element
   {
     public:
@@ -93,9 +96,9 @@ namespace OpenMS
     void setAbundance(double ab);
     /// get isotope natural abundance
     double getAbundance() const;
-    /// set number of neutrons 
+    /// set number of neutrons
     void setNeutrons(int ne);
-    /// get number of neutrons 
+    /// get number of neutrons
     int getNeutrons() const;
     /// set primary decay mode (for unstable isotopes)
     void setDecayMode(DecayMode dm);

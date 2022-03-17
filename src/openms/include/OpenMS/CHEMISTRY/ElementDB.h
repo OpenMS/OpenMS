@@ -60,12 +60,12 @@ namespace OpenMS
           Pure Appl. Chem., 2003, Vol. 75, No. 6, pp. 683-799
           doi:10.1351/pac200375060683
 
-      Specific isotopes of elements can be accessed by writing the atomic number of the isotope
-      in brackets followed by the element name, e.g. "(2)H" for deuterium.
+      Individual elements can be accessed through getElement(). Specific
+      isotopes of elements can be accessed through getIsotope() by writing the
+      atomic number of the isotope in brackets followed by the element name,
+      e.g. "(2)H" for deuterium.
 
-      @improvement include exact mass values for the isotopes (done) and update IsotopeDistribution (Andreas)
-      @improvement add exact isotope distribution based on exact isotope values (Andreas)
-*/
+  */
 
   class OPENMS_DLLAPI ElementDB
   {
@@ -107,7 +107,7 @@ public:
 
     /** Adds or replaces a new element to the database
      *
-     * Adds a new element (or replaces an existing one if @em replace_existing is true). 
+     * Adds a new element (or replaces an existing one if @em replace_existing is true).
      *
      * @param name Common name of the element
      * @param symbol Element symbol (one or two letter)
@@ -129,7 +129,7 @@ public:
 
     /** Adds or replaces a new isotope in the database
      *
-     * Adds a new isotope (or replaces an existing one if @em replace_existing is true). 
+     * Adds a new isotope (or replaces an existing one if @em replace_existing is true).
      *
      * @param name Common name of the element
      * @param symbol Element symbol (one or two letter)
@@ -170,7 +170,7 @@ protected:
      **/
     double calculateAvgWeight_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
-    /**_ calculates the mono weight based on the most abundant isotope 
+    /**_ calculates the mono weight based on the most abundant isotope
      **/
     double calculateMonoWeight_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
@@ -183,7 +183,7 @@ protected:
                        const unsigned int an,
                        const std::map<unsigned int, double>& abundance,
                        const std::map<unsigned int, double>& mass,
-                       const std::map<unsigned int, double>& half_lifes = 
+                       const std::map<unsigned int, double>& half_lifes =
                          std::map<unsigned int, double>(),
                        const std::map<unsigned int, Isotope::DecayMode>& decay_modes =
                          std::map<unsigned int, Isotope::DecayMode>());

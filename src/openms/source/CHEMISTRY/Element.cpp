@@ -192,20 +192,20 @@ namespace OpenMS
   bool Element::operator<(const Element & rhs) const
   {
     return std::tie(
-     atomic_number_, 
-     mono_weight_, 
-     symbol_, 
-     name_, 
-     average_weight_, 
+     atomic_number_,
+     mono_weight_,
+     symbol_,
+     name_,
+     average_weight_,
      isotope_distr_,
-     isotopes_) 
-     < 
+     isotopes_)
+     <
      std::tie(
-      rhs.atomic_number_, 
-      rhs.mono_weight_, 
-      rhs.symbol_, 
-      rhs.name_, 
-      rhs.average_weight_, 
+      rhs.atomic_number_,
+      rhs.mono_weight_,
+      rhs.symbol_,
+      rhs.name_,
+      rhs.average_weight_,
       rhs.isotope_distr_,
       rhs.isotopes_);
   }

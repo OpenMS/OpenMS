@@ -54,13 +54,14 @@ namespace OpenMS
       @brief Representation of an element
 
       This contains information on an element and its isotopes, including a
-      common name, atomic symbol and mass/abundance of its isotopes.
+      common name, atomic symbol and mass/abundance of its isotopes. Individual
+      isotopes are represented using Isotope.
   */
   class OPENMS_DLLAPI Element
   {
 public:
 
-   
+
     /** @name Constructor and Destructors
     */
     //@{

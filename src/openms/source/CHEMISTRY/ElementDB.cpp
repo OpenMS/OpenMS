@@ -676,7 +676,7 @@ namespace OpenMS
                                 const string& symbol,
                                 const unsigned int an,
                                 const map<unsigned int, double>& abundance,
-                                const map<unsigned int, double>& mass, 
+                                const map<unsigned int, double>& mass,
                                 const std::map<unsigned int, double>& half_lifes,
                                 const std::map<unsigned int, Isotope::DecayMode>& decay_modes)
   {
