@@ -611,7 +611,7 @@ START_SECTION(static void destroyProblem(svm_problem *problem))
   problem->y = labels;
 
   LibSVMEncoder::destroyProblem(problem); // cleanup
-  TEST_EQUAL(problem, nullptr)
+  TEST_EQUAL(problem, nullPointer)
 
   LibSVMEncoder::destroyProblem(problem); // should be NOP
 END_SECTION
