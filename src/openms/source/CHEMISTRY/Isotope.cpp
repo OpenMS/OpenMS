@@ -80,7 +80,7 @@ namespace OpenMS
   }
 
   double Isotope::getHalfLife() const
-  { 
+  {
     return half_life_;
   }
   void Isotope::setAbundance(double ab)
