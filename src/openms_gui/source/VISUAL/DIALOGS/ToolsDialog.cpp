@@ -103,7 +103,6 @@ namespace OpenMS
     tools_combo_ = new QComboBox;
     tools_combo_->setMinimumWidth(150);
     tools_combo_->addItems(list);
-    //connect(tools_combo_, SIGNAL(activated(int)), this, SLOT(setTool_(int)));
     connect(tools_combo_, CONNECTCAST(QComboBox, activated, (int)), this, &ToolsDialog::setTool_);
 
     main_grid->addWidget(tools_combo_, 1, 1);
@@ -134,22 +133,18 @@ namespace OpenMS
 
     auto hbox = new QHBoxLayout;
     auto load_button = new QPushButton(tr("&Load"));
-    //connect(load_button, SIGNAL(clicked()), this, SLOT(loadINI_()));
     connect(load_button, &QPushButton::clicked, this, &ToolsDialog::loadINI_);
     hbox->addWidget(load_button);
     auto store_button = new QPushButton(tr("&Store"));
-    //connect(store_button, SIGNAL(clicked()), this, SLOT(storeINI_()));
     connect(store_button, &QPushButton::clicked, this, &ToolsDialog::storeINI_);
     hbox->addWidget(store_button);
     hbox->addStretch();
 
     ok_button_ = new QPushButton(tr("&Ok"));
-    //connect(ok_button_, SIGNAL(clicked()), this, SLOT(ok_()));
     connect(ok_button_, &QPushButton::clicked, this, &ToolsDialog::ok_);
     hbox->addWidget(ok_button_);
 
     auto cancel_button = new QPushButton(tr("&Cancel"));
-    //connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
     connect(cancel_button, &QPushButton::clicked, this, &ToolsDialog::reject);
     hbox->addWidget(cancel_button);
     main_grid->addLayout(hbox, 5, 0, 1, 5);

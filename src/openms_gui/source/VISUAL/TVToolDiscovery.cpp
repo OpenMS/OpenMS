@@ -126,7 +126,6 @@ namespace OpenMS
     }
   }
 
-  //const std::vector<std::pair<String, Param>> &TVToolDiscovery::getToolParams()
   const Param& TVToolDiscovery::getToolParams()
   {
     // Make sure threads have been launched and waited for before accessing results
@@ -134,7 +133,6 @@ namespace OpenMS
     return tool_params_;
   }
 
-  //const std::vector<std::pair<String, Param>> &TVToolDiscovery::getPluginParams()
   const Param& TVToolDiscovery::getPluginParams()
   {
     plugin_params_.clear();
@@ -235,11 +233,11 @@ namespace OpenMS
         if (!path.mkdir(dir))
         {
           OPENMS_LOG_WARN << "Unable to create plugin directory " << plugin_path << std::endl;
-          //plugin_path_ = ".";
-          plugin_path_ = plugin_path;
+          //plugin_path_ = plugin_path;
           return false;
         }
-      } else
+      }
+      else
       {
         OPENMS_LOG_WARN << "Unable to set plugin directory: " << plugin_path << " does not exist." << std::endl;
         return false;
