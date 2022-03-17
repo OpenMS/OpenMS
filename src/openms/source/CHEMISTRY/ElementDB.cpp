@@ -155,6 +155,12 @@ namespace OpenMS
     string iso_name = "(" + std::to_string(mass_number) + ")" + name;
     string iso_symbol = "(" + std::to_string(mass_number) + ")" + symbol;
 
+    if (!hasElement( an )  )
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Cannot add isotope ") +
+          name + " since the element with  atomic number " + an + " does not yet exsist -- create it first!");
+    }
+
     if (hasElement( iso_symbol )  )
     {
       if (!replace_existing)

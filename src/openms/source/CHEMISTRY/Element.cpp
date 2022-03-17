@@ -133,6 +133,7 @@ namespace OpenMS
   {
     auto dist = isotope_distr_.getContainer();
     dist.clear();
+    dist.reserve(isotopes_.size());
     for (const auto& isotope : isotopes_)
     {
       dist.emplace_back(isotope->getMonoWeight(), isotope->getAbundance());
