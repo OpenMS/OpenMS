@@ -73,14 +73,6 @@ namespace OpenMS
             unsigned int neutrons,
             double mono_weight,
             double abundance,
-            const IsotopeDistribution & isotopes);
-
-    Isotope(const std::string & name,
-            const std::string & symbol,
-            unsigned int atomic_number,
-            unsigned int neutrons,
-            double mono_weight,
-            double abundance,
             double half_life,
             Isotope::DecayMode dm);
 

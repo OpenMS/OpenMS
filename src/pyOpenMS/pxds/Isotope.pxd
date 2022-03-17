@@ -15,14 +15,6 @@ cdef extern from "<OpenMS/CHEMISTRY/Isotope.h>" namespace "OpenMS":
                 String symbol,
                 UInt atomic_number,
                 UInt neutrons,
-                double average_weight,
-                double abundance,
-                IsotopeDistribution isotopes) nogil except +
-
-        Isotope(String name,
-                String symbol,
-                UInt atomic_number,
-                UInt neutrons,
                 double mono_weight,
                 double abundance,
                 double half_life,

@@ -63,7 +63,7 @@ END_SECTION
 
 IsotopeDistribution dist;
 string name("Name"), symbol("Symbol");
-unsigned int atomic_number(43);
+unsigned int atomic_number(15);
 double mono_weight(0.123456789);
 
 e_ptr = nullptr;
@@ -73,14 +73,16 @@ START_SECTION((Isotope(const std::string & name,
             unsigned int neutrons,
             double mono_weight,
             double abundance,
-            const IsotopeDistribution & isotopes)))
-	e_ptr = new Isotope(name, symbol, atomic_number, 10u, mono_weight, 0.6, dist);	
+            double half_life,
+            Isotope::DecayMode dm)))
+	e_ptr = new Isotope(name, symbol, atomic_number, 10u, mono_weight, 0.6, 42, Isotope::DecayMode::UNKNOWN);	
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION( const Element* getElement() const)
   const Element* el = e_ptr->getElement();
-  TEST_EQUAL(el->getSymbol(), "Tc")
+  TEST_NOT_EQUAL(el, nullptr)
+  TEST_EQUAL(el->getSymbol(), "P")
 END_SECTION
 
 START_SECTION(Isotope(const Isotope& Isotope))
