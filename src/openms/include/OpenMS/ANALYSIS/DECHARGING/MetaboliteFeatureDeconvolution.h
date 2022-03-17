@@ -43,6 +43,8 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
+#include <map>
+
 namespace OpenMS
 {
 
@@ -122,9 +124,9 @@ protected:
     /// (more difficult explanation) supported by neighboring edges
     /// e.g. (.)   -> (H+) might be augmented to
     ///      (Na+) -> (H+Na+)
-    void inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_>>& feature_adducts);
+    void inferMoreEdges_(PairsType& edges, std::map<Size, std::set<CmpInfo_>>& feature_adducts);
 
-    void candidateEdges_(FeatureMap& fm_out, const Adduct& default_adduct, PairsType& feature_relation, Map<Size, std::set<CmpInfo_>>& feature_adducts);
+    void candidateEdges_(FeatureMap& fm_out, const Adduct& default_adduct, PairsType& feature_relation, std::map<Size, std::set<CmpInfo_>>& feature_adducts);
 
     void annotate_feature_(FeatureMap& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt side, const Int new_q, const Int old_q);
 
@@ -150,9 +152,9 @@ protected:
     /// List of adducts used to explain mass differences
     MassExplainer::AdductsType potential_adducts_;
     /// labeling table
-    Map<Size, String> map_label_;
+    std::map<Size, String> map_label_;
     /// labeling table inverse
-    Map<String, Size> map_label_inverse_;
+    std::map<String, Size> map_label_inverse_;
     /// status of intensity filter for edges
     bool enable_intensity_filter_;
     /// status of ionization mode

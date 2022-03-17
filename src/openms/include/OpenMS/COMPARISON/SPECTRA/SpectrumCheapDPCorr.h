@@ -36,10 +36,11 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -99,7 +100,7 @@ public:
     const PeakSpectrum & lastconsensus() const;
 
     ///
-    Map<UInt, UInt> getPeakMap() const;
+    std::map<UInt, UInt> getPeakMap() const;
 
     /// set weighting of the second spectrum for consensus from next function call operator
     void setFactor(double f);
@@ -125,7 +126,7 @@ private:
     mutable double factor_;
 
     /// last peak map
-    mutable Map<UInt, UInt> peak_map_;
+    mutable std::map<UInt, UInt> peak_map_;
   };
 
 }

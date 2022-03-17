@@ -36,6 +36,7 @@
 
 #include <cmath> // for "exp"
 #include <limits> // for "infinity"
+#include <map>
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -93,7 +94,7 @@ namespace OpenMS
 
       Size n_decoys_; ///< number of decoys to use (per feature/true assay)
 
-      Map<String, IntList> transition_map_; ///< assay (ID) -> transitions (indexes)
+      std::map<String, IntList> transition_map_; ///< assay (ID) -> transitions (indexes)
 
       Size n_transitions_; ///< number of transitions to consider
 

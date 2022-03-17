@@ -37,6 +37,8 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <map>
+
 using namespace std;
 
 namespace OpenMS
@@ -128,7 +130,7 @@ namespace OpenMS
       if ((pos + i >= 0) && (pos + i < (SignedSize) protein.size()))
       {
         BindingSite_ bs(i, protein[pos + i].getOneLetterCode());
-        Map<BindingSite_, CleavageModel_>::const_iterator pos_it =
+        std::map<BindingSite_, CleavageModel_>::const_iterator pos_it =
         model_data_.find(bs);
         if (pos_it != model_data_.end()) // no data for non-std. amino acids
         {

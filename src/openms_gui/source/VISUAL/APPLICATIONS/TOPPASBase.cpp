@@ -57,6 +57,8 @@
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASWidget.h>
 
+#include <map>
+
 //Qt
 #include <QApplication>
 #include <QtCore/QDir>
@@ -464,27 +466,27 @@ namespace OpenMS
     ToolListType tools_list = ToolHandler::getTOPPToolList(true);
     ToolListType util_list = ToolHandler::getUtilList();
     // append utils
-    for (ToolListType::Iterator it = util_list.begin(); it != util_list.end(); ++it)
+    for (ToolListType::iterator it = util_list.begin(); it != util_list.end(); ++it)
     {
       it->second.category = "Utils";
       tools_list.insert(*it);
     }
 
     // any tool without a category gets into "unassigned" bin
-    for (ToolListType::Iterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    for (ToolListType::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
       if (it->second.category.trim().empty())
         it->second.category = "Unassigned";
     }
 
     QSet<QString> category_set;
-    for (ToolListType::ConstIterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    for (ToolListType::const_iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
       category_set << String(it->second.category).toQString();
     }
     QStringList category_list = category_set.toList();
     qSort(category_list);
-    Map<QString, QTreeWidgetItem*> category_map;
+    std::map<QString, QTreeWidgetItem*> category_map;
 
     foreach(const QString &category, category_list)
     {
