@@ -94,6 +94,8 @@ public:
      *
      * @throw Exception::IllegalArgument if element already exists in DB, but @p replace_existing is false
      *
+     * @exception Exception::IllegalArgument is thrown if an element with the same atomic number already exists
+     *
      * @note Do not use this function inside parallel code as it modifies a singleton that is shared between threads.
     */
     void addElement(const std::string& name,
