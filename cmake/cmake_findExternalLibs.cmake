@@ -151,7 +151,7 @@ endif()
 #------------------------------------------------------------------------------
 # QT
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "5.5.0")
+SET(QT_MIN_VERSION "5.6.0")
 
 # find qt
 set(OpenMS_QT_COMPONENTS Core Network Sql CACHE INTERNAL "QT components for core lib")
