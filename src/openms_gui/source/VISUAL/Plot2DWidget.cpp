@@ -208,8 +208,6 @@ namespace OpenMS
     projection_horz_->canvas()->setSwappedAxis(true);
 
     projection_horz_->showLegend(false);
-    Plot1DCanvas::IntensityModes intensity = projection_horz_->canvas()->getIntensityMode();
-    projection_horz_->canvas()->setIntensityMode(intensity);
 
     projection_horz_->canvas()->removeLayer(0);
     projection_horz_->canvas()->addLayer(exp, od_dummy);
@@ -244,8 +242,6 @@ namespace OpenMS
     projection_vert_->canvas()->setSwappedAxis(true);
 
     projection_vert_->showLegend(false);
-    Plot1DCanvas::IntensityModes intensity = projection_vert_->canvas()->getIntensityMode();
-    projection_vert_->canvas()->setIntensityMode(intensity);
 
     projection_vert_->canvas()->removeLayer(0);
     projection_vert_->canvas()->addLayer(exp, od_dummy);
