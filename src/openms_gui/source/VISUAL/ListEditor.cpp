@@ -45,6 +45,7 @@
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QDialogButtonBox>
 #include <QtWidgets/QFileDialog>
+#include <QListWidgetItem>
 
 #include <vector>
 
@@ -276,7 +277,7 @@ namespace OpenMS
     //LISTTABLE
     //////////////////////////////////////////////////////////////
     ListTable::ListTable(QWidget * parent) :
-      QListWidget(parent)
+      QListWidgetItem(parent)
     {
     }
 
@@ -331,7 +332,7 @@ namespace OpenMS
       item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
       item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
       addItem(item);
-      setItemSelected(item, true);
+      setSelected(item, true);
       setCurrentRow(row(item));
       itemActivated(item);
       edit(currentIndex());
