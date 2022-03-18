@@ -72,7 +72,7 @@ public:
     typedef std::vector<std::vector<double> > GridVector;
 
     /// constructor
-    AxisWidget(AxisPainter::Alignment alignment, const char * legend = "", QWidget * parent = nullptr);
+    AxisWidget(const AxisPainter::Alignment alignment, const char * legend = "", QWidget * parent = nullptr);
 
     /// destructor
     ~AxisWidget() override;

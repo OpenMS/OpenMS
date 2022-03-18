@@ -854,7 +854,7 @@ protected:
     bool mz_to_x_axis_ = true;
 
     /**
-        @brief Stores the currently visible area.
+        @brief Stores the currently visible area in data units (e.g. seconds, m/z, intensity etc).
 
         Dimension 0 is the m/z dimension.@n
         Dimension 1 is the RT dimension (2D and 3D view) or the intensity dimension (1D view).

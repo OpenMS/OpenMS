@@ -49,7 +49,6 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
-//#include <OpenMS/VISUAL/Painter1DBase.h>
 #include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 

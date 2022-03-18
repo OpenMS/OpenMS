@@ -54,7 +54,7 @@ namespace OpenMS
 {
   using namespace Math;
 
-  AxisWidget::AxisWidget(AxisPainter::Alignment alignment, const char * legend, QWidget * parent) :
+  AxisWidget::AxisWidget(const AxisPainter::Alignment alignment, const char * legend, QWidget * parent) :
     QWidget(parent),
     is_log_(false),
     show_legend_(true),
