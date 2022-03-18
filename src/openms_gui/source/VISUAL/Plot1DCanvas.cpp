@@ -1032,10 +1032,6 @@ namespace OpenMS
     {
       return;
     }
-    //determine coordinates;
-    double mz;
-    float it;
-    float ppm;
 
     if (getCurrentLayer().type != LayerDataBase::DT_PEAK)
     {
@@ -1043,18 +1039,20 @@ namespace OpenMS
       return;
     }
 
+    Peak1D peak_start = getCurrentLayer().getCurrentSpectrum()[start.peak];
+    Peak1D peak_end;
     if (end.isValid())
     {
-      mz = getCurrentLayer().getCurrentSpectrum()[end.peak].getMZ() - getCurrentLayer().getCurrentSpectrum()[start.peak].getMZ();
-      it = getCurrentLayer().getCurrentSpectrum()[end.peak].getIntensity() - getCurrentLayer().getCurrentSpectrum()[start.peak].getIntensity();
+      peak_end = getCurrentLayer().getCurrentSpectrum()[end.peak];
     }
     else
     {
       PointType point = widgetToData_(last_mouse_pos_);
-      mz = point[0] - getCurrentLayer().getCurrentSpectrum()[start.peak].getMZ();
-      it = std::numeric_limits<double>::quiet_NaN();
+      peak_end = Peak1D(point[0], std::numeric_limits<float>::quiet_NaN());
     }
-    ppm = (mz / getCurrentLayer().getCurrentSpectrum()[start.peak].getMZ()) * 1e6;
+    double mz = peak_end.getMZ() - peak_start.getMZ();
+    double it = peak_end.getIntensity() - peak_start.getIntensity();
+    float ppm = Math::getPPM(mz, peak_start.getMZ());
 
     //draw text
     QStringList lines;
