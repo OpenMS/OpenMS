@@ -110,19 +110,19 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in_cm", "<file>", "", "Input consensusXML file containing only consensusElements with \"peptide\" annotations.");
-    setValidFormats_("in_cm", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("in_cm", {"consensusXML"});
 
     registerInputFileList_("in_mzml", "<files>", ListUtils::create<String>(""), "Original mzml files containing the ms2 spectra (aka peptide annotation). \nMust be in order that the consensusXML file maps the original mzML files.");
-    setValidFormats_("in_mzml", ListUtils::create<String>("mzML"));
+    setValidFormats_("in_mzml", {"mzML"});
 
     registerOutputFile_("out", "<file>", "", "Output MGF file.");
-    setValidFormats_("out", ListUtils::create<String>("mgf"));
+    setValidFormats_("out", {"mgf"});
 
     registerOutputFile_("out_quantification", "<file>", "", "Output feature quantification table.");
-    setValidFormats_("out_quantification", ListUtils::create<String>("txt"));
+    setValidFormats_("out_quantification", {"txt"});
 
     registerOutputFile_("out_pairs", "<file>", "", "Output supplementary pairs table for IIMN.", false);
-    setValidFormats_("out_pairs", ListUtils::create<String>("csv"));
+    setValidFormats_("out_pairs", {"csv"});
 
     addEmptyLine_();
 
