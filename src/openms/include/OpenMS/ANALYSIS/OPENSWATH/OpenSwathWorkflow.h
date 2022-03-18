@@ -380,7 +380,10 @@ protected:
    * The workflow will perform a complete OpenSWATH analysis. Optionally, 
    * a calibration of m/z and retention time (mapping peptides to normalized 
    * space and correcting m/z error) can be performed beforehand using the 
-   * OpenSwathCalibrationWorkflow class.
+   * OpenSwathCalibrationWorkflow class. 
+   *
+   * For diaPASEF workflows where ion mobility windows are overlapping, precursors may be found in multiple SWATHs.
+   * In this case, precursors are only extracted from the SWATH in which they are most centered across ion mobility. 
    *
    * The overall execution flow in this class is as follows (see performExtraction() function)
    *
