@@ -66,7 +66,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # find and handle python (Development for macros to build python modules)
-find_package(Python COMPONENTS Interpreter Development)
+find_package(Python COMPONENTS Interpreter Development.Module)
 
 message(STATUS "Python found at ${Python_EXECUTABLE} with version ${Python_VERSION} (if this is wrong, see https://cmake.org/cmake/help/latest/module/FindPython.html and configure with e.g. -DPython_EXECUTABLE:=/path/to/python)")
 
