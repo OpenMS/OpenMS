@@ -864,8 +864,7 @@ namespace OpenMS
     // paint the cross-hair only for currently selected peaks of the current layer
     if (layer_index == getCurrentLayerIndex() && (peak == measurement_start_ || peak == selected_peak_))
     {
-      painter.drawLine(begin.x(), begin.y() - 4, begin.x(), begin.y() + 4);
-      painter.drawLine(begin.x() - 4, begin.y(), begin.x() + 4, begin.y());
+      Painter1DBase::drawCross(begin, &painter, 8);
     }
     // draw elongation as dashed line (while in measure mode and for all existing distance annotations)
     if (draw_elongation)
@@ -908,14 +907,13 @@ namespace OpenMS
 
     getCurrentLayer().updateRanges();
 
+    const MSSpectrum& spectrum = getCurrentLayer().getCurrentSpectrum();
     // Abort if no data points are contained (note that all data could be on disk)
-    if (getCurrentLayer().getCurrentSpectrum().empty())
+    if (spectrum.empty())
     {
       popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
       return false;
-    }
-
-    const MSSpectrum& spectrum = getCurrentLayer().getCurrentSpectrum();
+    }               
 
     // add new draw mode and style (default: peaks)
     draw_modes_.push_back(DM_PEAKS);

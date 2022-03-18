@@ -61,6 +61,9 @@ namespace OpenMS
 
     /// static method to draw a dashed line
     static void drawDashedLine(const QPoint& from, const QPoint& to, QPainter* painter, QColor color);
+
+    /// draw a cross at @p position, using a certain size (= width = height) of the cross
+    static void drawCross(const QPoint& position, QPainter* painter, const int size = 8);
   };
 
   /**

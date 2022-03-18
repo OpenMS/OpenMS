@@ -70,6 +70,13 @@ namespace OpenMS
     painter->restore();
   }
 
+  void Painter1DBase::drawCross(const QPoint& pos, QPainter* painter, const int size)
+  {
+    const int half_size = size / 2;
+    painter->drawLine(pos.x(), pos.y() - half_size, pos.x(), pos.y() + half_size);
+    painter->drawLine(pos.x() - half_size, pos.y(), pos.x() + half_size, pos.y());
+  }
+
   Painter1DPeak::Painter1DPeak(const LayerDataPeak* parent) : layer_(parent)
   {
   }
