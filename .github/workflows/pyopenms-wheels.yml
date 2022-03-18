@@ -346,7 +346,7 @@ jobs:
               PYBIN="${py_paths[${#py_paths[@]}-i]}"
 
               # configure
-              cmake -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN $GITHUB_WORKSPACE/OpenMS
+              cmake -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_EXECUTABLE=$PYBIN/bin/python $GITHUB_WORKSPACE/OpenMS
               make -j4 pyopenms
 
               pushd pyOpenMS
