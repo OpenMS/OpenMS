@@ -355,8 +355,8 @@ jobs:
                 rm -rf pyopenms/lib*
                 rm -rf build/lib*/pyopenms/lib*
                 find . -name "pyopenms*.so" -exec rm -rf {} \; # not sure if that works here?! 
-                # create wheel without libraries
-                "$PYBIN/bin/pip" wheel . -w wheelhouse_tmp
+                # create wheel without libraries and do not rebuild pyopenms
+                "$PYBIN/bin/pip" wheel . -w wheelhouse_tmp --no-binary=pyopenms
               popd
             done
 
