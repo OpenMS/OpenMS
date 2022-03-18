@@ -35,11 +35,11 @@
 #include <QtTest/QtTest>
 #include <QtGui>
 
+#include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
+
 namespace OpenMS
 {
-  class TheoreticalSpectrumGenerationDialog;
-
-	class TestTSGDialog : public QObject
+  class TestTSGDialog : public QObject
   {
     Q_OBJECT
 

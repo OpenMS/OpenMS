@@ -37,8 +37,6 @@
 #include <qcombobox.h>
 #include <qlistview.h>
 
-#include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
-
 using namespace OpenMS;
 
 constexpr int DELAY {1000};
