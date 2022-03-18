@@ -383,7 +383,8 @@ protected:
    * OpenSwathCalibrationWorkflow class. 
    *
    * For diaPASEF workflows where ion mobility windows are overlapping, precursors may be found in multiple SWATHs.
-   * In this case, precursors are only extracted from the SWATH in which they are most centered across ion mobility. 
+   * In this case, precursors are only extracted from the SWATH in which they are most centered across ion mobility
+   * (Provided -pasef flag is set).
    *
    * The overall execution flow in this class is as follows (see performExtraction() function)
    *
