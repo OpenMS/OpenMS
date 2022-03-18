@@ -65,7 +65,7 @@ using UndirectedOSMIdGraph = boost::adjacency_list<
 
 namespace OpenMS
 {
-  void IonIdentityMolecularNetworking::annotateConsensusMap(ConsensusMap& out)
+  void IonIdentityMolecularNetworking::annotateConsensusMap(ConsensusMap& consensus_map)
   {
     // bipartite graph with ConsensusFeature indexes and Groups from Features
     // Vertexes contain uid (index/Group) and is_feature (bool)
@@ -87,12 +87,12 @@ namespace OpenMS
     // add a Vertex for the ConsensusFeature and all corresponding Groups to bipartite graph.
     // Check if a Group Vertex has been added already to the graph, since the same Group can occur multiple times.
     std::unordered_map<String, size_t> already_in_graph; // <group_uid, vertex_index>
-    for (size_t i = 0; i < out.size(); i++)
+    for (size_t i = 0; i < consensus_map.size(); i++)
     {
-      out[i].setMetaValue(Constants::UserParam::IIMN_ROW_ID, i+1);
-      if (!out[i].metaValueExists(Constants::UserParam::IIMN_LINKED_GROUPS)) continue;
+      consensus_map[i].setMetaValue(Constants::UserParam::IIMN_ROW_ID, i+1);
+      if (!consensus_map[i].metaValueExists(Constants::UserParam::IIMN_LINKED_GROUPS)) continue;
       auto feature_vertex = add_vertex(VertexLabel(i, true), g);
-      for (const auto& group: out[i].getMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS).toStringList())
+      for (const auto& group: consensus_map[i].getMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS).toStringList())
       {
         if (!already_in_graph[group])
         {
@@ -114,7 +114,7 @@ namespace OpenMS
     for (auto i : boost::make_iterator_range(vertices(g)))
     {
       if (!g[i].is_feature) continue;
-      out[g[i].uid].setMetaValue(Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER, components[i]+1);
+      consensus_map[g[i].uid].setMetaValue(Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER, components[i]+1);
       auto group_neighbours = boost::adjacent_vertices(i, g);
       for (auto gn : make_iterator_range(group_neighbours))
       {
@@ -135,15 +135,15 @@ namespace OpenMS
       for (const auto& j : i.second)
       {
         if (partners.size() > 0) partners += ";";
-        partners += out[j].getMetaValue(Constants::UserParam::IIMN_ROW_ID).toString();
+        partners += consensus_map[j].getMetaValue(Constants::UserParam::IIMN_ROW_ID).toString();
       }
-      out[i.first].setMetaValue(Constants::UserParam::IIMN_ADDUCT_PARTNERS, partners);
+      consensus_map[i.first].setMetaValue(Constants::UserParam::IIMN_ADDUCT_PARTNERS, partners);
     }
 
     // remove Constants::UserParam::IIMN_LINKED_GROUPS meta values
-    for (size_t i = 0; i < out.size(); i++)
+    for (size_t i = 0; i < consensus_map.size(); i++)
     {
-      out[i].removeMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS);
+      consensus_map[i].removeMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS);
     }
   }
 

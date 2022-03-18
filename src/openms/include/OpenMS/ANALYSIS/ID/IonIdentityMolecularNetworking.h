@@ -45,8 +45,8 @@ namespace OpenMS
       /// Adds meta values Constants::UserParams::IIMN_ROW_ID (unique index for each feature), Constants::UserParams::IIMN_ADDUCT_PARTNERS (related features row IDs)
       /// and Constants::UserParams::IIMN_ANNOTATION_NETWORK_NUMBER (all related features with different adduct states) get the same network number).
       /// This method requires the features annotated with the Constants::UserParams::IIMN_LINKED_GROUPS meta value.
-      //  If at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN.
-      static void annotateConsensusMap(ConsensusMap& out);
+      ///  If at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN.
+      static void annotateConsensusMap(ConsensusMap& consensus_map);
 
       /// Write feature quantification table (txt file) from a consensusXML file. Required for GNPS FBMN.
       /// The table contains map information on the featureXML files from which the consensusXML file was generated as well as
