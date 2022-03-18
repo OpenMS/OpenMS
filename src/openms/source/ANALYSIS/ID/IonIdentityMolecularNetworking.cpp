@@ -215,7 +215,7 @@ namespace OpenMS
     if (!consensus_map[0].metaValueExists(Constants::UserParam::IIMN_ROW_ID)) return;
 
     // generate unordered map with feature id and partner feature ids
-    std::map<size_t, std::set<size_t>> feature_partners; // map<feature_index, partner_feature_indices>
+    std::unordered_map<size_t, std::set<size_t>> feature_partners; // map<feature_index, partner_feature_indices>
     for (size_t i = 0; i < consensus_map.size(); i++)
     {
       if (!consensus_map[i].metaValueExists(Constants::UserParam::IIMN_ADDUCT_PARTNERS)) continue;
@@ -227,10 +227,17 @@ namespace OpenMS
         feature_partners[i].insert(std::stoi(substr)-1);
       }
     }
-    
+
+    // sort feature partners in new map and swap values (this will give reproducible results across different runs)
+    std::map<size_t, std::set<size_t>> sorted;
+    for (auto& [key, value] : feature_partners)
+    {
+    sorted[key].swap(value);
+    }
+
     // get number of partners for each feature to later calculate score of annotation
     std::unordered_map<size_t, size_t> num_partners;
-    for (const auto& entry: feature_partners)
+    for (const auto& entry: sorted)
     {
       num_partners[entry.first] = entry.second.size();
     }
@@ -242,8 +249,8 @@ namespace OpenMS
     // write table header
     out << "ID1" << "ID2" << "EdgeType" << "Score" << "Annotation" << std::endl;
 
-    // write edge annotation for each feature / partner feature pair
-    for (const auto& entry: feature_partners)
+    // write edge annotation for each feature / partner feature pair (sorted)
+    for (const auto& entry: sorted)
     {
       for (const auto& partner_index: entry.second)
       {
@@ -257,7 +264,7 @@ namespace OpenMS
                    << "dm/z=" << String(std::abs(consensus_map[entry.first].getMZ() - consensus_map[partner_index].getMZ()));
         out << annotation.str();
         out << std::endl;
-        feature_partners[partner_index].erase(entry.first); // remove other direction to avoid duplicates
+        sorted[partner_index].erase(entry.first); // remove other direction to avoid duplicates
       }
     }
     outstr.close();
