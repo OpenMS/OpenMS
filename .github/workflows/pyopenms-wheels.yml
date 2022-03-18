@@ -304,11 +304,12 @@ jobs:
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v1.9
       with:
-        cmake-version: '3.20.x'
+        cmake-version: '3.23.x'
 
     - name: Build on manylinux2014
       shell: bash
       run: |
+            cmake --version
             # build an array based the python versions in /opt/python
             py_paths=()
             for PYBIN in /opt/python/cp*
