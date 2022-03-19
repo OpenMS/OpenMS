@@ -134,6 +134,7 @@ namespace OpenMS
     defaults_.setValue("max_neutrals", 1, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
 
     defaults_.setValue("use_minority_bound", "true", "Prune the considered adduct transitions by transition probabilities.");
+    defaults_.setValidStrings("use_minority_bound", {"true","false"});
     defaults_.setValue("max_minority_bound", 3, "Limits allowed adduct compositions and changes between compositions in the underlying graph optimization problem by introducing a probability-based threshold: the minority bound sets the maximum count of the least probable adduct (according to 'potential_adducts' param) within a charge variant with maximum charge only containing the most likely adduct otherwise. E.g., for 'charge_max' 4 and 'max_minority_bound' 2 with most probable adduct being H+ and least probable adduct being Na+, this will allow adduct compositions of '2(H+),2(Na+)' but not of '1(H+),3(Na+)'. Further, adduct compositions/changes less likely than '2(H+),2(Na+)' will be discarded as well.");
     defaults_.setMinInt("max_minority_bound", 0);
 
@@ -145,6 +146,7 @@ namespace OpenMS
     defaults_.setValidStrings("intensity_filter", {"true","false"});
 
     defaults_.setValue("negative_mode", "false", "Enable negative ionization mode.");
+    defaults_.setValidStrings("negative_mode", {"true","false"});
 
     defaults_.setValue("default_map_label", "decharged features", "Label of map in output consensus file where all features are put by default", {"advanced"});
 
