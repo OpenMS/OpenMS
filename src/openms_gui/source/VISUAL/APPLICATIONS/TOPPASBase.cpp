@@ -1512,7 +1512,10 @@ namespace OpenMS
       if (ret == QMessageBox::Cancel) return; // Escape was pressed
       if (ret == QMessageBox::Yes)
       {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignore "-Wdeprecated-declarations"
         files = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", QString::SkipEmptyParts);
+#pragma GCC diagnostic pop
       }
     }
     
