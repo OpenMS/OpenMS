@@ -617,6 +617,13 @@ else()
   set(INLINES_HIDDEN 1)
 endif()
 
+
+if(LINUX OR APPLE)
+  set(EXTRA_WARNINGS "-Wno-unused-member-function" "-Wno-builtin-macro-redefined" "-Wno-unused" "-Wno-zero-as-null-pointer-constant")
+else()
+  set(EXTRA_WARNINGS "")
+endif()
+
 if ("${PY_NUM_MODULES}" GREATER "1")
     add_custom_target(pyopenms_compile)
     foreach(nr RANGE 1 ${PY_NUM_MODULES})
@@ -624,7 +631,7 @@ if ("${PY_NUM_MODULES}" GREATER "1")
       Python_add_library(pyopenms_${nr} MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.cpp" )
       target_link_libraries(pyopenms_${nr} PRIVATE OpenMS)
       target_include_directories(pyopenms_${nr} SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
-      target_compile_options(pyopenms_${nr} PRIVATE -Wno-unused-member-function -Wno-builtin-macro-redefined -Wno-unused -Wno-zero-as-null-pointer-constant)
+      target_compile_options(pyopenms_${nr} PRIVATE ${EXTRA_WARNINGS})
       set_target_properties(pyopenms_${nr} PROPERTIES
         OUTPUT_NAME pyopenms_${nr}
         PREFIX "" # if you build a shared module it adds lib as prefix
@@ -645,7 +652,7 @@ else()
     Python_add_library(pyopenms_compile MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.cpp" )
     target_link_libraries(pyopenms_compile PRIVATE OpenMS)
     target_include_directories(pyopenms_compile SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
-    target_compile_options(pyopenms_compile PRIVATE -Wno-unused-member-function -Wno-builtin-macro-redefined -Wno-unused -Wno-zero-as-null-pointer-constant)
+    target_compile_options(pyopenms_compile PRIVATE ${EXTRA_WARNINGS})
     set_target_properties(pyopenms_compile PROPERTIES
         OUTPUT_NAME pyopenms
         PREFIX "" # if you build a shared module it adds lib as prefix
