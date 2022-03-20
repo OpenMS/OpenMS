@@ -1513,7 +1513,7 @@ namespace OpenMS
       if (ret == QMessageBox::Yes)
       {
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignore "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         files = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", QString::SkipEmptyParts);
 #pragma GCC diagnostic pop
       }
