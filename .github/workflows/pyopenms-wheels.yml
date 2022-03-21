@@ -347,7 +347,7 @@ jobs:
               PYBIN="${py_paths[${#py_paths[@]}-i]}"
 
               # configure (don't copy deps since we use auditwheel)
-              cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_EXECUTABLE=$PYBIN/bin/python $GITHUB_WORKSPACE/OpenMS
+              cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" $GITHUB_WORKSPACE/OpenMS
               make -j4 pyopenms
             done
 
