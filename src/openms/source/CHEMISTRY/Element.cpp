@@ -110,7 +110,7 @@ namespace OpenMS
     dist.clear();
     for (const auto& isotope : isotopes_)
     {
-      dist.emplace_back({isotope->getMonoWeight(), isotope->getAbundance()});
+      dist.emplace_back(isotope->getMonoWeight(), isotope->getAbundance());
     }
     isotope_distr_.set(dist);
   }
