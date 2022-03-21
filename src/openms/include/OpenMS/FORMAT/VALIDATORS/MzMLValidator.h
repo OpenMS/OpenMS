@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
+#include <map>
 
 namespace OpenMS
 {
@@ -72,7 +73,7 @@ protected:
       void handleTerm_(const String & path, const CVTerm & parsed_term) override;
 
       ///CV terms which can have a value (term => value type)
-      Map<String, std::vector<CVTerm> > param_groups_;
+      std::map<String, std::vector<CVTerm> > param_groups_;
 
       ///Current referenceableParamGroup identifier
       String current_id_;

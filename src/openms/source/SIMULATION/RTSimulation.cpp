@@ -43,6 +43,8 @@
 #include <boost/random/cauchy_distribution.hpp>
 #include <boost/random/uniform_real.hpp>
 
+#include <map>
+
 using std::vector;
 using std::cout;
 using std::endl;
@@ -353,10 +355,10 @@ namespace OpenMS
   }
 
   /// PKA values as given in Rickard1991
-  void RTSimulation::getChargeContribution_(Map<String, double>& q_cterm,
-                                            Map<String, double>& q_nterm,
-                                            Map<String, double>& q_aa_basic,
-                                            Map<String, double>& q_aa_acidic)
+  void RTSimulation::getChargeContribution_(std::map<String, double>& q_cterm,
+                                            std::map<String, double>& q_nterm,
+                                            std::map<String, double>& q_aa_basic,
+                                            std::map<String, double>& q_aa_acidic)
   {
     // the actual constants from the paper:
     String aas = "ARNDCQEGHILKMFPSTWYVBZ";
@@ -405,7 +407,7 @@ namespace OpenMS
 
   void RTSimulation::calculateMT_(SimTypes::FeatureMapSim& features, std::vector<double>& predicted_retention_times)
   {
-    Map<String, double> q_cterm, q_nterm, q_aa_basic, q_aa_acidic;
+    std::map<String, double> q_cterm, q_nterm, q_aa_basic, q_aa_acidic;
     getChargeContribution_(q_cterm, q_nterm, q_aa_basic, q_aa_acidic);
 
     double alpha = param_.getValue("CE:alpha");
@@ -422,24 +424,24 @@ namespace OpenMS
 
       double charge = 0;
       // C&N term charge contribution
-      if (q_nterm.has(seq[0]))
+      if (q_nterm.find(seq[0]) != q_nterm.end())
       {
         charge +=  q_nterm[seq[0]];
       }
-      if (q_cterm.has(seq.suffix(1)))
+      if (q_cterm.find(seq.suffix(1)) != q_cterm.end())
       {
         charge +=  q_cterm[seq.suffix(1)];
       }
       // sidechains ...
-      Map<String, Size> frequency_table;
+      std::map<String, Size> frequency_table;
       features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().getAAFrequencies(frequency_table);
-      for (Map<String, Size>::const_iterator it = frequency_table.begin(); it != frequency_table.end(); ++it)
+      for (std::map<String, Size>::const_iterator it = frequency_table.begin(); it != frequency_table.end(); ++it)
       {
-        if (q_aa_basic.has(it->first))
+        if (q_aa_basic.find(it->first) != q_aa_basic.end())
         {
           charge +=  q_aa_basic[it->first] * it->second;
         }
-        if (q_aa_acidic.has(it->first))
+        if (q_aa_acidic.find(it->first) != q_aa_acidic.end())
         {
           charge +=  q_aa_acidic[it->first] * it->second;
         }

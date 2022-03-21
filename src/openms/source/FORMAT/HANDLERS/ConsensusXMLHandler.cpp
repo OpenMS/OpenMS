@@ -40,6 +40,8 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <fstream>
 
+#include <map>
+
 using namespace std;
 
 namespace OpenMS::Internal
@@ -362,7 +364,7 @@ namespace OpenMS::Internal
         // Note: technically, it would be preferable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
         String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date") + '_' + String(UniqueIdGenerator::getUniqueId());
 
-        if (!id_identifier_.has(id))
+        if (id_identifier_.find(id) == id_identifier_.end())
         {
           prot_id_.setIdentifier(identifier);
           id_identifier_[id] = identifier;
@@ -461,7 +463,7 @@ namespace OpenMS::Internal
     else if (tag == "PeptideIdentification" || tag == "UnassignedPeptideIdentification")
     {
       String id = attributeAsString_(attributes, "identification_run_ref");
-      if (!id_identifier_.has(id))
+      if (id_identifier_.find(id) == id_identifier_.end())
       {
         warning(LOAD, String("Peptide identification without ProteinIdentification found (id: '") + id + "')!");
       }
@@ -520,7 +522,7 @@ namespace OpenMS::Internal
 
         for (vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
         {
-          Map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
+          std::map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
             PeptideEvidence pe;
@@ -853,7 +855,7 @@ namespace OpenMS::Internal
   {
     String indent = String(indentation_level, '\t');
 
-    if (!identifier_id_.has(id.getIdentifier()))
+    if (identifier_id_.find(id.getIdentifier()) == identifier_id_.end())
     {
       warning(STORE, String("Omitting peptide identification because of missing ProteinIdentification with identifier '") + id.getIdentifier()
               + "' while writing '" + filename + "'!");

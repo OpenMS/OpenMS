@@ -1,5 +1,4 @@
 from libcpp.vector cimport vector as libcpp_vector
-from libcpp.map cimport map as libcpp_map
 from libcpp.pair cimport pair as libcpp_pair
 from ConsensusMap cimport *
 from String cimport *

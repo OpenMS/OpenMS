@@ -49,6 +49,8 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 
+#include <map>
+
 
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)
@@ -428,19 +430,19 @@ protected:
       /// Id of the current list. Used for referencing param group, source file, sample, software, ...
       String current_id_;
       /// The referencing param groups: id => array (accession, value)
-      Map<String, std::vector<SemanticValidator::CVTerm> > ref_param_;
+      std::map<String, std::vector<SemanticValidator::CVTerm> > ref_param_;
       /// The source files: id => SourceFile
-      Map<String, SourceFile> source_files_;
+      std::map<String, SourceFile> source_files_;
       /// The sample list: id => Sample
-      Map<String, Sample> samples_;
+      std::map<String, Sample> samples_;
       /// The software list: id => Software
-      Map<String, Software> software_;
+      std::map<String, Software> software_;
       /// The data processing list: id => Instrument
-      Map<String, Instrument> instruments_;
+      std::map<String, Instrument> instruments_;
       /// CV terms-path-combinations that have been checked in validateCV_()
-      mutable Map<std::pair<String, String>, bool> cached_terms_;
+      mutable std::map<std::pair<String, String>, bool> cached_terms_;
       /// The data processing list: id => Instrument
-      Map<String, std::vector< DataProcessingPtr > > processing_;
+      std::map<String, std::vector< DataProcessingPtr > > processing_;
       /// id of the default data processing (used when no processing is defined)
       String default_processing_;
       /// Count of selected ions

@@ -36,7 +36,6 @@
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 

@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/WeightWrapper.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS
 {

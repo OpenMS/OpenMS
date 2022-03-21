@@ -46,6 +46,7 @@ if(NOT TARGET OpenMS)
 endif()
 
 option(NO_DEPENDENCIES "Do not bundle dependencies into pyOpenMS build folder and wheel" OFF)
+option(NO_SHARE "Do not bundle share into pyOpenMS build folder and wheel" OFF)
 
 #------------------------------------------------------------------------------
 # helper to copy/configure files from source to build
@@ -65,7 +66,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # find and handle python (Development for macros to build python modules)
-find_package(Python COMPONENTS Interpreter Development)
+find_package(Python COMPONENTS Interpreter Development.Module)
 
 message(STATUS "Python found at ${Python_EXECUTABLE} with version ${Python_VERSION} (if this is wrong, see https://cmake.org/cmake/help/latest/module/FindPython.html and configure with e.g. -DPython_EXECUTABLE:=/path/to/python)")
 
@@ -356,7 +357,6 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/share)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/extra_includes)
 
@@ -367,7 +367,12 @@ _copy_assets("${PROJECT_SOURCE_DIR}/tests/unittests/" "*" ${CMAKE_BINARY_DIR}/py
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/" "*.mzXML" ${CMAKE_BINARY_DIR}/pyOpenMS/tests)
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/memoryleaktests/" "*" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/integration_tests/" "*" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
-file(COPY ${PROJECT_SOURCE_DIR}/../../share DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
+
+
+if(NOT NO_SHARE)
+  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/share)
+  file(COPY ${OPENMS_SHARE_DIR} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/share)
+endif()
 
 # list of files required for the pyOpenMS build system
 set(_pyopenms_files
@@ -612,6 +617,13 @@ else()
   set(INLINES_HIDDEN 1)
 endif()
 
+
+if(LINUX OR APPLE)
+  set(EXTRA_WARNINGS "-Wno-unused-member-function" "-Wno-builtin-macro-redefined" "-Wno-unused" "-Wno-zero-as-null-pointer-constant")
+else()
+  set(EXTRA_WARNINGS "")
+endif()
+
 if ("${PY_NUM_MODULES}" GREATER "1")
     add_custom_target(pyopenms_compile)
     foreach(nr RANGE 1 ${PY_NUM_MODULES})
@@ -619,14 +631,14 @@ if ("${PY_NUM_MODULES}" GREATER "1")
       Python_add_library(pyopenms_${nr} MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.cpp" )
       target_link_libraries(pyopenms_${nr} PRIVATE OpenMS)
       target_include_directories(pyopenms_${nr} SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
-      target_compile_options(pyopenms_${nr} PRIVATE -Wno-unused-member-function -Wno-builtin-macro-redefined -Wno-unused -Wno-zero-as-null-pointer-constant)
+      target_compile_options(pyopenms_${nr} PRIVATE ${EXTRA_WARNINGS})
       set_target_properties(pyopenms_${nr} PROPERTIES
         OUTPUT_NAME pyopenms_${nr}
         PREFIX "" # if you build a shared module it adds lib as prefix
         SUFFIX ${PYTHON_EXT_SUFFIX} # since CMake 3.17 you can add WITH_SOABI to Python_add_library
         CXX_VISIBILITY_PRESET ${VIS_PRESET}
         VISIBILITY_INLINES_HIDDEN ${INLINES_HIDDEN}
-        INSTALL_RPATH ${PY_RPATH}
+        INSTALL_RPATH "${PY_RPATH}"
         BUILD_WITH_INSTALL_RPATH 1
         BUILD_WITH_INSTALL_NAME_DIR 1
         ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
@@ -640,14 +652,14 @@ else()
     Python_add_library(pyopenms_compile MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.cpp" )
     target_link_libraries(pyopenms_compile PRIVATE OpenMS)
     target_include_directories(pyopenms_compile SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
-    target_compile_options(pyopenms_compile PRIVATE -Wno-unused-member-function -Wno-builtin-macro-redefined -Wno-unused -Wno-zero-as-null-pointer-constant)
+    target_compile_options(pyopenms_compile PRIVATE ${EXTRA_WARNINGS})
     set_target_properties(pyopenms_compile PROPERTIES
         OUTPUT_NAME pyopenms
         PREFIX "" # if you build a shared module it adds lib as prefix
         SUFFIX ${PYTHON_EXT_SUFFIX} # since CMake 3.17 you can add WITH_SOABI to Python_add_library
         CXX_VISIBILITY_PRESET ${VIS_PRESET}
         VISIBILITY_INLINES_HIDDEN ${INLINES_HIDDEN}
-        INSTALL_RPATH ${PY_RPATH}
+        INSTALL_RPATH "${PY_RPATH}"
         BUILD_WITH_INSTALL_RPATH 1
         BUILD_WITH_INSTALL_NAME_DIR 1
         ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
