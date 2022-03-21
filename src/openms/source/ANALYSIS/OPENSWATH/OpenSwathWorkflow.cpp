@@ -506,7 +506,13 @@ namespace OpenMS
     // non-trivial (e.g. when there is m/z overlap and a transition could be
     // extracted from more than one window
     std::vector<int> tr_win_map; // maps transition k to dia map i from which it should be extracted
-    if (prm_)
+    //
+    // currently not supported to do PASEF and PRM
+    if (prm_ & pasef_) {
+	    std::cerr << "Setting -pasef and -matching_window_only flags simultaneously is not currently supported." << std::endl;
+	    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    else if (prm_)
     {
       // Here we deal with overlapping PRM / DIA windows: we only want to extract
       // each peptide from a single window and we assume that PRM windows are
@@ -539,8 +545,7 @@ namespace OpenMS
         }
       }
     }
-
-    if (pasef_)
+    else if (pasef_)
     {
       // For PASEF experiments it is possible to have DIA windows with the same m/z however different IM.
       // Extract from the DIA window in which the precursor is more centered across its IM.
@@ -577,6 +582,8 @@ namespace OpenMS
         }
       }
     }
+    else {
+    };
 
     // (iv) Perform extraction and scoring of fragment ion chromatograms (MS2)
     // We set dynamic scheduling such that the maps are worked on in the order
