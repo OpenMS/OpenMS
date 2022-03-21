@@ -153,7 +153,7 @@ START_SECTION(void addElement(const std::string& name,
   TEST_EQUAL(oxygen, new_oxygen)
   TEST_REAL_SIMILAR(oxygen->getAverageWeight(), 16.8994405) // average weight has changed
 
-  TEST_EQUAL(e_ptr->getElement(800), nullptr)
+  TEST_EQUAL(e_ptr->getElement(800), elem_nullPointer)
   e_ptr->addElement("NewElement", "NE", 800u, oxygen_abundance, oxygen_mass, false);
   const Element * new_ele = e_ptr->getElement(800);
   TEST_REAL_SIMILAR(new_ele->getAverageWeight(), 16.8994405) // average weight of new element
@@ -184,11 +184,11 @@ START_SECTION( void addIsotope(const std::string& name, const std::string& symbo
   TEST_REAL_SIMILAR(sum, 1.30725795222315);
 
   // new Uranium isotope added
-  TEST_EQUAL(e_ptr->getIsotope("(314)C"), nullptr)
+  TEST_EQUAL(e_ptr->getIsotope("(314)C") == nullptr, true)
   int nr_isotopes = element->getIsotopes().size();
   e_ptr->addIsotope("Uranium", "U", 92u, 0.3, 314.0, 1e5, Isotope::DecayMode::UNKNOWN, false);
   const Isotope * new_iso = e_ptr->getIsotope("(314)U");
-  TEST_NOT_EQUAL( new_iso, nullptr)
+  TEST_EQUAL( new_iso != nullptr, true)
   TEST_EQUAL( new_iso->getElement(), element)
   TEST_EQUAL( element->getIsotopes().size(), nr_isotopes+1) // increased number of isotopes by one
   TEST_EQUAL( element->getIsotopeDistribution().getContainer().size(), nr_isotopes+1) // increased number of isotopes by one
@@ -207,13 +207,13 @@ START_SECTION( void addIsotope(const std::string& name, const std::string& symbo
     e_ptr->addIsotope("NewElement", "NE", 800, 0.5, 404, 100, Isotope::DecayMode::UNKNOWN, false);
     TEST_EXCEPTION(Exception::IllegalArgument, e_ptr->addIsotope("NewElement", "NE", 800, 0.5, 404, 100, Isotope::DecayMode::UNKNOWN, false))
     const Isotope* new_iso = e_ptr->getIsotope("(404)NE");
-    TEST_NOT_EQUAL( new_iso, nullptr);
+    TEST_EQUAL( new_iso != nullptr, true);
     TEST_REAL_SIMILAR( new_iso->getAbundance(), 0.5)
 
     // we should be able to add the same one again with replace=true
     e_ptr->addIsotope("NewElement", "NE", 800, 0.6, 404, 100, Isotope::DecayMode::UNKNOWN, true);
     new_iso = e_ptr->getIsotope("(404)NE");
-    TEST_NOT_EQUAL( new_iso, nullptr);
+    TEST_EQUAL( new_iso != nullptr, true);
     TEST_REAL_SIMILAR( new_iso->getAbundance(), 0.6)
   }
 }
