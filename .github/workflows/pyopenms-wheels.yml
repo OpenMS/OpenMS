@@ -360,7 +360,7 @@ jobs:
 
             pushd pyOpenMS
               # Bundle stripped plus external shared libraries into the wheels
-              for whl in wheel/pyopenms*.whl; do
+              for whl in dist/pyopenms*.whl; do
                 auditwheel repair "$whl" -w wheelhouse/
               done
               
