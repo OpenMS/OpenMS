@@ -81,7 +81,7 @@ END_SECTION
 
 START_SECTION( const Element* getElement() const)
   const Element* el = e_ptr->getElement();
-  TEST_NOT_EQUAL(el, nullptr)
+  TEST_NOT_EQUAL(el, e_nullPointer)
   TEST_EQUAL(el->getSymbol(), "P")
 END_SECTION
 
