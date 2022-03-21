@@ -326,12 +326,6 @@ if(PYTHON_EXT_SUFFIX_NOT_FOUND)
 endif()
 
 
-# This goes after, since it uses PythonInterp as a hint
-if(WIN32)
-    find_package(PythonLibs 3.5 REQUIRED)
-endif()
-
-
 #------------------------------------------------------------------------------
 # clean python build directory from former cmake run (if exists)
 # this can contain older versions of openms shared lib and might confuse
