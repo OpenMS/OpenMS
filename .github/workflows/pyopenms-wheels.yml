@@ -346,18 +346,9 @@ jobs:
             do
               PYBIN="${py_paths[${#py_paths[@]}-i]}"
 
-              # configure
-              cmake -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_EXECUTABLE=$PYBIN/bin/python $GITHUB_WORKSPACE/OpenMS
+              # configure (don't copy deps since we use auditwheel)
+              cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_EXECUTABLE=$PYBIN/bin/python $GITHUB_WORKSPACE/OpenMS
               make -j4 pyopenms
-
-              pushd pyOpenMS
-                # remove the libraries as auditwheel will take care of linked libs
-                rm -rf pyopenms/lib*
-                rm -rf build/lib*/pyopenms/lib*
-                find . -name "pyopenms*.so" -exec rm -rf {} \; # not sure if that works here?! 
-                # create wheel without libraries and do not rebuild pyopenms
-                "$PYBIN/bin/pip" wheel --no-binary=pyopenms -w wheelhouse_tmp .
-              popd
             done
 
             # ensure auditwheel can find the libraries
@@ -369,7 +360,7 @@ jobs:
 
             pushd pyOpenMS
               # Bundle stripped plus external shared libraries into the wheels
-              for whl in wheelhouse_tmp/pyopenms*.whl; do
+              for whl in wheel/pyopenms*.whl; do
                 auditwheel repair "$whl" -w wheelhouse/
               done
               
