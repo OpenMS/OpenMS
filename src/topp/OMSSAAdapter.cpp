@@ -55,6 +55,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <map>
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
@@ -574,7 +575,7 @@ protected:
     String file = File::find("CHEMISTRY/OMSSA_modification_mapping");
 
     TextFile infile(file);
-    Map<String, UInt> mods_map;
+    std::map<String, UInt> mods_map;
     for (TextFile::ConstIterator it = infile.begin(); it != infile.end(); ++it)
     {
       vector<String> split;
@@ -609,7 +610,7 @@ protected:
       StringList mod_list;
       for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
       {
-        if (mods_map.has(*it))
+        if (mods_map.find(*it) != mods_map.end())
         {
           mod_list.push_back(String(mods_map[*it]));
         }
@@ -634,7 +635,7 @@ protected:
 
       for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
       {
-        if (mods_map.has(*it))
+        if (mods_map.find(*it) != mods_map.end())
         {
           mod_list.push_back(String(mods_map[*it]));
         }
@@ -764,7 +765,7 @@ protected:
     // OMSSA does not write fixed modifications so we need to add them to the sequences
     set<String> fixed_mod_names = mod_set.getFixedModificationNames();
     vector<String> fixed_nterm_mods, fixed_cterm_mods;
-    Map<String, String> fixed_residue_mods;
+    std::map<String, String> fixed_residue_mods;
     writeDebug_("Splitting modification into N-Term, C-Term and anywhere specificity", 1);
     for (set<String>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)
     {
@@ -937,7 +938,7 @@ protected:
           UInt pos = 0;
           for (const Residue& mm : seq)
           {
-            if (fixed_residue_mods.has(mm.getOneLetterCode()))
+            if (fixed_residue_mods.find(mm.getOneLetterCode()) != fixed_residue_mods.end())
             {
               seq.setModification(pos, fixed_residue_mods[mm.getOneLetterCode()]);
             }

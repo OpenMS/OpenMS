@@ -89,6 +89,9 @@ namespace OpenMS
     /// Default constructor
     DataSelectionTabs(QWidget* parent, TOPPViewBase* tv);
 
+    /// Destructor
+    ~DataSelectionTabs();
+
     /// Update items in the tabs according to the currently selected layer.
     /// Tabs which have data to show are automatically enabled. Others are disabled.
     /// If the currently visible tab would have to data to show, we pick the highest (rightmost) tab

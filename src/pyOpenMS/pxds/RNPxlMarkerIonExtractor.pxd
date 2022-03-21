@@ -1,6 +1,7 @@
 from Types cimport *
 from MSSpectrum cimport *
 from String cimport *
+from libcpp.map cimport map as libcpp_map
 
 # typedef std::map<String, std::vector<std::pair<double, double> > > MarkerIonsType;
 

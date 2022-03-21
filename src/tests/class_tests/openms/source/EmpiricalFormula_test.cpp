@@ -46,6 +46,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 
 #include <sstream>
+#include <map>
 
 using namespace OpenMS;
 using namespace std;
@@ -77,6 +78,7 @@ START_SECTION(EmpiricalFormula(const String& rhs))
   // all spaces, tabs and newlines from the provided formula
   e_ptr = new EmpiricalFormula("C4 ");
   TEST_NOT_EQUAL(e_ptr, e_nullPointer)
+  // test isotopes (Carbon 13)
   EmpiricalFormula e0("C5(13)C4H2 ");
   EmpiricalFormula e1("C5(13)C4\n\n ");
   EmpiricalFormula e2("(12)C5(13)C4\t\n ");
@@ -402,7 +404,7 @@ END_SECTION
 
 START_SECTION(ConstIterator begin() const)
   EmpiricalFormula ef("C6H12O6");
-  Map<String, SignedSize> formula;
+  std::map<String, SignedSize> formula;
   formula["C"] = 6;
   formula["H"] = 12;
   formula["O"] = 6;

@@ -396,7 +396,7 @@ public:
 
       // search for each EIC and add up
       Int not_found(0);
-      Map<Size, double> quant;
+      std::map<Size, double> quant;
 
       String description;
       if (fi < in_header.size())

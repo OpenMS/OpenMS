@@ -109,6 +109,7 @@ namespace OpenMS
     defaults_.setValue("im_extra_drift", 0.0, "Extra drift time to extract for IM scoring (as a fraction, e.g. 0.25 means 25% extra on each side)", {"advanced"});
     defaults_.setMinFloat("im_extra_drift", 0.0);
     defaults_.setValue("strict", "true", "Whether to error (true) or skip (false) if a transition in a transition group does not have a corresponding chromatogram.", {"advanced"});
+    defaults_.setValidStrings("strict", {"true","false"});
 
     defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());
 
@@ -168,9 +169,11 @@ namespace OpenMS
   {
   }
 
-  void MRMFeatureFinderScoring::pickExperiment(PeakMap& chromatograms,
-                                               FeatureMap& output, TargetedExperiment& transition_exp_,
-                                               TransformationDescription trafo, PeakMap& swath_map)
+  void MRMFeatureFinderScoring::pickExperiment(const PeakMap& chromatograms,
+                                               FeatureMap& output,
+                                               const TargetedExperiment& transition_exp_,
+                                               const TransformationDescription& trafo,
+                                               const PeakMap& swath_map)
   {
     OpenSwath::LightTargetedExperiment transition_exp;
     OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
@@ -190,10 +193,11 @@ namespace OpenMS
     pickExperiment(chromatogram_ptr, output, transition_exp, trafo, swath_ptrs, transition_group_map);
   }
 
-  void MRMFeatureFinderScoring::pickExperiment(OpenSwath::SpectrumAccessPtr input,
-                                               FeatureMap& output, OpenSwath::LightTargetedExperiment& transition_exp,
-                                               TransformationDescription trafo, 
-                                               std::vector<OpenSwath::SwathMap> swath_maps,
+  void MRMFeatureFinderScoring::pickExperiment(const OpenSwath::SpectrumAccessPtr input,
+                                               FeatureMap& output,
+                                               const OpenSwath::LightTargetedExperiment& transition_exp,
+                                               const TransformationDescription& trafo, 
+                                               const std::vector<OpenSwath::SwathMap>& swath_maps,
                                                TransitionGroupMapType& transition_group_map)
   {
     //
@@ -223,9 +227,9 @@ namespace OpenMS
     // Create all MRM transition groups from the individual transitions.
     mapExperimentToTransitionList(input, transition_exp, transition_group_map, trafo, rt_extraction_window_);
     int counter = 0;
-    for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
+    for (const auto& trgroup : transition_group_map)
     {
-      if (!trgroup_it->second.getChromatograms().empty()) {counter++; }
+      if (!trgroup.second.getChromatograms().empty()) {counter++; }
     }
     OPENMS_LOG_INFO << "Will analyse " << counter << " peptides with a total of " << transition_exp.getTransitions().size() << " transitions " << std::endl;
 
@@ -1077,8 +1081,8 @@ namespace OpenMS
     su_.use_ms2_isotope_scores   = param_.getValue("Scores:use_ms2_isotope_scores").toBool();
   }
 
-  void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
-                                                              TargetedExpType& transition_exp,
+  void MRMFeatureFinderScoring::mapExperimentToTransitionList(const OpenSwath::SpectrumAccessPtr input,
+                                                              const TargetedExpType& transition_exp,
                                                               TransitionGroupMapType& transition_group_map,
                                                               TransformationDescription trafo,
                                                               double rt_extraction_window)
