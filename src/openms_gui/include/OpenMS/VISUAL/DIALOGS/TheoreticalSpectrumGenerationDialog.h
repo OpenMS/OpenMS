@@ -41,7 +41,10 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
-#include <ui_TheoreticalSpectrumGenerationDialog.h>
+namespace Ui
+{
+  class TheoreticalSpectrumGenerationDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -81,7 +84,7 @@ protected slots:
 protected:
 
 private:
-    Ui::TheoreticalSpectrumGenerationDialogTemplate ui_;
+    Ui::TheoreticalSpectrumGenerationDialogTemplate* ui_;
 
     MSSpectrum spec_;
   };

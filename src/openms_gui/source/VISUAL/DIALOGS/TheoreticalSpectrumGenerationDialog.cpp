@@ -34,6 +34,7 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
+#include <ui_TheoreticalSpectrumGenerationDialog.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
@@ -89,27 +90,27 @@ namespace OpenMS
   const std::vector<Checkbox> rna_specific_ions {Checkbox::A_b_Ions, Checkbox::D_Ions, Checkbox::W_Ions};
   const std::vector<Checkbox> peptide_specific_ions {Checkbox::Neutral_losses, Checkbox::Abundant_Immonium_Ions};
 
-  TheoreticalSpectrumGenerationDialog::TheoreticalSpectrumGenerationDialog()
+  TheoreticalSpectrumGenerationDialog::TheoreticalSpectrumGenerationDialog() : ui_(new Ui::TheoreticalSpectrumGenerationDialogTemplate)
   {
-    ui_.setupUi(this);
+    ui_->setupUi(this);
 
     // if dialog is accepted, try generating a spectrum, only close dialog on success
-    connect(ui_.button_box, &QDialogButtonBox::accepted, this, &TheoreticalSpectrumGenerationDialog::calculateSpectrum);
+    connect(ui_->button_box, &QDialogButtonBox::accepted, this, &TheoreticalSpectrumGenerationDialog::calculateSpectrum);
 
     // signals for changing isotope model interface
-    connect(ui_.model_none, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
-    connect(ui_.model_coarse, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
-    connect(ui_.model_fine, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
+    connect(ui_->model_none, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
+    connect(ui_->model_coarse, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
+    connect(ui_->model_fine, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
 
     // don't add any isotopes by default and update interface
-    ui_.model_none->setChecked(true);
+    ui_->model_none->setChecked(true);
     modelChanged();
 
     // signal for changing interface depending on sequence type
-    connect(ui_.seq_type, &QComboBox::currentTextChanged, this, &TheoreticalSpectrumGenerationDialog::seqTypeSwitch);
+    connect(ui_->seq_type, &QComboBox::currentTextChanged, this, &TheoreticalSpectrumGenerationDialog::seqTypeSwitch);
 
     // select peptide sequence by default and update interface
-    ui_.seq_type->setCurrentText("Peptide");
+    ui_->seq_type->setCurrentText("Peptide");
     seqTypeSwitch();
 
     // select b- and y-ions as residue types by default
@@ -117,10 +118,10 @@ namespace OpenMS
     {
       if (c == Checkbox::B_Ions || c == Checkbox::Y_Ions)
       {
-        ui_.list_widget->item(int(c))->setCheckState(Qt::Checked);
+        ui_->list_widget->item(int(c))->setCheckState(Qt::Checked);
         continue;
       }
-      ui_.list_widget->item(int(c))->setCheckState(Qt::Unchecked);
+      ui_->list_widget->item(int(c))->setCheckState(Qt::Unchecked);
     }
 
     // automatic layout
@@ -128,18 +129,21 @@ namespace OpenMS
     layout()->setSizeConstraint(QLayout::SetFixedSize);
   }
 
-  TheoreticalSpectrumGenerationDialog::~TheoreticalSpectrumGenerationDialog() {}
+  TheoreticalSpectrumGenerationDialog::~TheoreticalSpectrumGenerationDialog()
+  {
+    delete ui_;
+  }
 
   String TheoreticalSpectrumGenerationDialog::getSequence() const
   {
-    return ui_.line_edit->text();
+    return ui_->line_edit->text();
   }
 
   Param TheoreticalSpectrumGenerationDialog::getParam() const
   {
     Param p;
 
-    bool peptide_input = ui_.seq_type->currentText() == "Peptide";
+    bool peptide_input = ui_->seq_type->currentText() == "Peptide";
 
     // add checkboxes to parameters, i.e. ion types
     for (const Checkbox& c : check_box_names)
@@ -150,28 +154,28 @@ namespace OpenMS
       // for rna input skip peptide specific ions
       if (!peptide_input && (std::find(peptide_specific_ions.begin(), peptide_specific_ions.end(), c) != peptide_specific_ions.end())) continue;
 
-      bool status = (ui_.list_widget->item(int(c))->checkState() == Qt::Checked);
+      bool status = (ui_->list_widget->item(int(c))->checkState() == Qt::Checked);
       String status_str = status ? "true" : "false";
       p.setValue(checkbox_to_param.at(c).first, status_str, checkbox_to_param.at(c).second);
     }
 
     // charge
-    p.setValue("charge", ui_.spin_box->value());
+    p.setValue("charge", ui_->spin_box->value());
 
     // add intensities
-    p.setValue("a_intensity", ui_.a_intensity->value(), "Intensity of the a-ions");
-    p.setValue("b_intensity", ui_.b_intensity->value(), "Intensity of the b-ions");
-    p.setValue("c_intensity", ui_.c_intensity->value(), "Intensity of the c-ions");
-    p.setValue("x_intensity", ui_.x_intensity->value(), "Intensity of the x-ions");
-    p.setValue("y_intensity", ui_.y_intensity->value(), "Intensity of the y-ions");
-    p.setValue("z_intensity", ui_.z_intensity->value(), "Intensity of the z-ions");
+    p.setValue("a_intensity", ui_->a_intensity->value(), "Intensity of the a-ions");
+    p.setValue("b_intensity", ui_->b_intensity->value(), "Intensity of the b-ions");
+    p.setValue("c_intensity", ui_->c_intensity->value(), "Intensity of the c-ions");
+    p.setValue("x_intensity", ui_->x_intensity->value(), "Intensity of the x-ions");
+    p.setValue("y_intensity", ui_->y_intensity->value(), "Intensity of the y-ions");
+    p.setValue("z_intensity", ui_->z_intensity->value(), "Intensity of the z-ions");
 
     if (peptide_input) // peptide specific settings (TheoreticalSpectrumGenerator)
     {
       // isotopes
-      if (!ui_.model_none->isChecked()) // add isotopes if any other model than 'None' is chosen
+      if (!ui_->model_none->isChecked()) // add isotopes if any other model than 'None' is chosen
       {
-        bool coarse_model = ui_.model_coarse->isChecked();
+        bool coarse_model = ui_->model_coarse->isChecked();
         String model = coarse_model ? "coarse" : "fine";
         p.setValue("isotope_model", model,
                    "Model to use for isotopic peaks ('none' means no isotopic peaks are added, 'coarse' adds isotopic peaks in unit mass distance, 'fine' uses the hyperfine isotopic generator to add "
@@ -179,12 +183,12 @@ namespace OpenMS
 
         if (coarse_model)
         {
-          Size max_iso_count = (Size)ui_.max_iso_spinbox->value();
+          Size max_iso_count = (Size)ui_->max_iso_spinbox->value();
           p.setValue("max_isotope", max_iso_count, "Defines the maximal isotopic peak which is added if 'isotope_model' is 'coarse'");
         }
         else
         {
-          double max_iso_prob = (double)ui_.max_iso_prob_spinbox->value() / 100.;
+          double max_iso_prob = (double)ui_->max_iso_prob_spinbox->value() / 100.;
           p.setValue("max_isotope_probability", max_iso_prob, "Defines the maximal isotopic probability to cover if 'isotope_model' is 'fine'");
         }
       }
@@ -196,15 +200,15 @@ namespace OpenMS
       }
 
       // loss intensity
-      double rel_loss_int = (double)(ui_.rel_loss_intensity->value()) / 100.0;
+      double rel_loss_int = (double)(ui_->rel_loss_intensity->value()) / 100.0;
       p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
     }
     else // rna specific settings (NucleicAcidSpectrumGenerator)
     {
       // specific ion intensities
-      p.setValue("a-B_intensity", ui_.a_b_intensity->value(), "Intensity of the a-B-ions");
-      p.setValue("d_intensity", ui_.d_intensity->value(), "Intensity of the d-ions");
-      p.setValue("w_intensity", ui_.w_intensity->value(), "Intensity of the w-ions");
+      p.setValue("a-B_intensity", ui_->a_b_intensity->value(), "Intensity of the a-B-ions");
+      p.setValue("d_intensity", ui_->d_intensity->value(), "Intensity of the d-ions");
+      p.setValue("w_intensity", ui_->w_intensity->value(), "Intensity of the w-ions");
     }
 
     return p;
@@ -217,7 +221,7 @@ namespace OpenMS
 
   void TheoreticalSpectrumGenerationDialog::calculateSpectrum()
   {
-    bool peptide_input = ui_.seq_type->currentText() == "Peptide";
+    bool peptide_input = ui_->seq_type->currentText() == "Peptide";
 
     String seq_string(this->getSequence());
     if (seq_string.empty())
@@ -285,97 +289,97 @@ namespace OpenMS
 
   void TheoreticalSpectrumGenerationDialog::modelChanged()
   {    
-    if (ui_.model_none->isChecked())
+    if (ui_->model_none->isChecked())
     {
-      ui_.max_iso_label->setEnabled(false);
-      ui_.max_iso_spinbox->setEnabled(false);
-      ui_.max_iso_prob_label->setEnabled(false);
-      ui_.max_iso_prob_spinbox->setEnabled(false);
+      ui_->max_iso_label->setEnabled(false);
+      ui_->max_iso_spinbox->setEnabled(false);
+      ui_->max_iso_prob_label->setEnabled(false);
+      ui_->max_iso_prob_spinbox->setEnabled(false);
     }
-    else if (ui_.model_coarse->isChecked())
+    else if (ui_->model_coarse->isChecked())
     {
-      ui_.max_iso_label->setEnabled(true);
-      ui_.max_iso_spinbox->setEnabled(true);
-      ui_.max_iso_prob_label->setEnabled(false);
-      ui_.max_iso_prob_spinbox->setEnabled(false);
+      ui_->max_iso_label->setEnabled(true);
+      ui_->max_iso_spinbox->setEnabled(true);
+      ui_->max_iso_prob_label->setEnabled(false);
+      ui_->max_iso_prob_spinbox->setEnabled(false);
     }
-    else if (ui_.model_fine->isChecked())
+    else if (ui_->model_fine->isChecked())
     {
-      ui_.max_iso_label->setEnabled(false);
-      ui_.max_iso_spinbox->setEnabled(false);
-      ui_.max_iso_prob_label->setEnabled(true);
-      ui_.max_iso_prob_spinbox->setEnabled(true);
+      ui_->max_iso_label->setEnabled(false);
+      ui_->max_iso_spinbox->setEnabled(false);
+      ui_->max_iso_prob_label->setEnabled(true);
+      ui_->max_iso_prob_spinbox->setEnabled(true);
     }
 
   }
 
   void TheoreticalSpectrumGenerationDialog::seqTypeSwitch()
   {
-    bool peptide_input = ui_.seq_type->currentText() == "Peptide";
+    bool peptide_input = ui_->seq_type->currentText() == "Peptide";
 
-    QListWidgetItem* a_b = ui_.list_widget->item(int(Checkbox::A_b_Ions));
-    QListWidgetItem* d = ui_.list_widget->item(int(Checkbox::D_Ions));
-    QListWidgetItem* w = ui_.list_widget->item(int(Checkbox::W_Ions));
-    QListWidgetItem* losses = ui_.list_widget->item(int(Checkbox::Neutral_losses));
-    QListWidgetItem* abundant_i = ui_.list_widget->item(int(Checkbox::Abundant_Immonium_Ions));
+    QListWidgetItem* a_b = ui_->list_widget->item(int(Checkbox::A_b_Ions));
+    QListWidgetItem* d = ui_->list_widget->item(int(Checkbox::D_Ions));
+    QListWidgetItem* w = ui_->list_widget->item(int(Checkbox::W_Ions));
+    QListWidgetItem* losses = ui_->list_widget->item(int(Checkbox::Neutral_losses));
+    QListWidgetItem* abundant_i = ui_->list_widget->item(int(Checkbox::Abundant_Immonium_Ions));
 
     if (peptide_input)
     {
       // enable isotopes
-      ui_.isotope_model->setHidden(false);
-      ui_.max_iso_label->setHidden(false);
-      ui_.max_iso_spinbox->setHidden(false);
-      ui_.max_iso_prob_label->setHidden(false);
-      ui_.max_iso_prob_spinbox->setHidden(false);
+      ui_->isotope_model->setHidden(false);
+      ui_->max_iso_label->setHidden(false);
+      ui_->max_iso_spinbox->setHidden(false);
+      ui_->max_iso_prob_label->setHidden(false);
+      ui_->max_iso_prob_spinbox->setHidden(false);
       modelChanged();
       
       // ensable losses and immonium ions
-      ui_.rel_loss_intensity->setHidden(false);
-      ui_.rel_loss_label->setHidden(false);
+      ui_->rel_loss_intensity->setHidden(false);
+      ui_->rel_loss_label->setHidden(false);
       losses->setHidden(false);
       abundant_i->setHidden(false);
 
       // disable a-B-, D- and W-Ions
 
-      ui_.a_b_intensity->setHidden(true);
-      ui_.a_b_label->setHidden(true);
+      ui_->a_b_intensity->setHidden(true);
+      ui_->a_b_label->setHidden(true);
       a_b->setHidden(true);
 
-      ui_.d_intensity->setHidden(true);
-      ui_.d_label->setHidden(true);
+      ui_->d_intensity->setHidden(true);
+      ui_->d_label->setHidden(true);
       d->setHidden(true);
 
-      ui_.w_intensity->setHidden(true);
-      ui_.w_label->setHidden(true);
+      ui_->w_intensity->setHidden(true);
+      ui_->w_label->setHidden(true);
       w->setHidden(true);
     }
     else // rna input
     {
       // disable isotopes
-      ui_.isotope_model->setHidden(true);
-      ui_.max_iso_label->setHidden(true);
-      ui_.max_iso_spinbox->setHidden(true);
-      ui_.max_iso_prob_label->setHidden(true);
-      ui_.max_iso_prob_spinbox->setHidden(true);
+      ui_->isotope_model->setHidden(true);
+      ui_->max_iso_label->setHidden(true);
+      ui_->max_iso_spinbox->setHidden(true);
+      ui_->max_iso_prob_label->setHidden(true);
+      ui_->max_iso_prob_spinbox->setHidden(true);
 
       // disable losses and immonium ions
-      ui_.rel_loss_intensity->setHidden(true);
-      ui_.rel_loss_label->setHidden(true);
+      ui_->rel_loss_intensity->setHidden(true);
+      ui_->rel_loss_label->setHidden(true);
       losses->setHidden(true);
       abundant_i->setHidden(true);
 
       // enable a-B-, D- and W-Ions
 
-      ui_.a_b_intensity->setHidden(false);
-      ui_.a_b_label->setHidden(false);
+      ui_->a_b_intensity->setHidden(false);
+      ui_->a_b_label->setHidden(false);
       a_b->setHidden(false);
 
-      ui_.d_intensity->setHidden(false);
-      ui_.d_label->setHidden(false);
+      ui_->d_intensity->setHidden(false);
+      ui_->d_label->setHidden(false);
       d->setHidden(false);
 
-      ui_.w_intensity->setHidden(false);
-      ui_.w_label->setHidden(false);
+      ui_->w_intensity->setHidden(false);
+      ui_->w_label->setHidden(false);
       w->setHidden(false);
 
       //this->resize(QSize(150, 300));

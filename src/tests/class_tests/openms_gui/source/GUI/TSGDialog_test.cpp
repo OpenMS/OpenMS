@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <TSGDialog_test.h>
+#include <ui_TheoreticalSpectrumGenerationDialog.h>
 
 #include <qcombobox.h>
 #include <qlistview.h>
@@ -56,9 +57,9 @@ void clickDropDown(int row, QComboBox* comboBox)
 
 void TestTSGDialog::testGui()
 {
-  QVERIFY(dialog_.ui_.button_box, "Buttonbox not created.");
-  //clickDropDown(0, dialog_.ui_.seq_type); // select 'Peptide'
-  //clickDropDown(1, dialog_.ui_.seq_type); // select 'RNA'
+  //QVERIFY(dialog_.ui_->button_box, "Buttonbox not created.");
+  clickDropDown(0, dialog_.ui_->seq_type); // select 'Peptide'
+  clickDropDown(1, dialog_.ui_->seq_type); // select 'RNA'
 }
 
 // expands to a simple main() method that runs all the test functions
