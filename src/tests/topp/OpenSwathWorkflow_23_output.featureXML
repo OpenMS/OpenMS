@@ -175,7 +175,7 @@
 			<subordinate>
 				<feature id="f_15157403601844400700_6408859317243173796">
 					<position dim="0">25.299999523162843</position>
-					<position dim="1">100.0</position>
+					<position dim="1">100.010000000000005</position>
 					<intensity>4.2849e04</intensity>
 					<quality dim="0">0.0</quality>
 					<quality dim="1">0.0</quality>
@@ -191,7 +191,7 @@
 				</feature>
 				<feature id="f_15157403601844400700_474525871221756682">
 					<position dim="0">25.299999523162843</position>
-					<position dim="1">101.0</position>
+					<position dim="1">101.010000000000005</position>
 					<intensity>8.5698e04</intensity>
 					<quality dim="0">0.0</quality>
 					<quality dim="1">0.0</quality>
@@ -207,7 +207,7 @@
 				</feature>
 				<feature id="f_15157403601844400700_12999979801269632061">
 					<position dim="0">25.299999523162843</position>
-					<position dim="1">102.0</position>
+					<position dim="1">102.010000000000005</position>
 					<intensity>1.28547e05</intensity>
 					<quality dim="0">0.0</quality>
 					<quality dim="1">0.0</quality>
@@ -223,7 +223,7 @@
 				</feature>
 				<feature id="f_15157403601844400700_17413765565443951891">
 					<position dim="0">25.299999523162843</position>
-					<position dim="1">103.0</position>
+					<position dim="1">103.010000000000005</position>
 					<intensity>1.71396e05</intensity>
 					<quality dim="0">0.0</quality>
 					<quality dim="1">0.0</quality>
@@ -239,7 +239,7 @@
 				</feature>
 				<feature id="f_15157403601844400700_2927519776102075938">
 					<position dim="0">25.299999523162843</position>
-					<position dim="1">104.0</position>
+					<position dim="1">104.010000000000005</position>
 					<intensity>2.14245e05</intensity>
 					<quality dim="0">0.0</quality>
 					<quality dim="1">0.0</quality>
@@ -273,7 +273,7 @@
 			<UserParam type="float" name="leftWidth" value="2.299999952316284"/>
 			<UserParam type="float" name="rightWidth" value="48.299999237060547"/>
 			<UserParam type="float" name="peak_apices_sum" value="2.5875e04"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[100.0, 0.0, 101.0, 0.0, 102.0, 0.0, 103.0, 0.0, 104.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[100.010000000000005, 0.0, 101.010000000000005, 0.0, 102.010000000000005, 1.393084473600824e-10, 103.010000000000005, 0.0, 104.010000000000005, 0.0]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="1.0"/>
@@ -296,20 +296,20 @@
 			<UserParam type="float" name="xx_lda_prelim_score" value="4.853113243883652"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.465697732516052"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.0"/>
-			<UserParam type="float" name="var_massdev_score" value="0.0"/>
-			<UserParam type="float" name="var_massdev_score_weighted" value="0.0"/>
+			<UserParam type="float" name="var_massdev_score" value="2.786168947201647e-11"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="2.786168947201647e-11"/>
 			<UserParam type="float" name="var_bseries_score" value="0.0"/>
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.286000290978012"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.12746562658117"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape_contrast" value="0.779735299678631"/>
-			<UserParam type="float" name="var_ms1_xcorr_shape_combined" value="0.947556023733008"/>
+			<UserParam type="float" name="var_ms1_xcorr_shape_combined" value="0.947556023733007"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution_contrast" value="2.0"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution_combined" value="1.349062037134446"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="4.79041916169952"/>
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.923248056662411"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0.0"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.702851381069019"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.702851381066563"/>
 			<UserParam type="float" name="var_im_xcorr_shape" value="1.0"/>
 			<UserParam type="float" name="var_im_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_im_delta_score" value="0.025855071060899"/>
@@ -333,7 +333,7 @@
 			<subordinate>
 				<feature id="f_10306100746905639127_12524258085768770586">
 					<position dim="0">25.300000476837159</position>
-					<position dim="1">100.0</position>
+					<position dim="1">100.019999999999996</position>
 					<intensity>2.484e04</intensity>
 					<quality dim="0">0.0</quality>
 					<quality dim="1">0.0</quality>
@@ -349,7 +349,7 @@
 				</feature>
 				<feature id="f_10306100746905639127_1755235105885170967">
 					<position dim="0">25.300000476837159</position>
-					<position dim="1">101.0</position>
+					<position dim="1">101.019999999999996</position>
 					<intensity>4.968e04</intensity>
 					<quality dim="0">0.0</quality>
 					<quality dim="1">0.0</quality>
@@ -365,7 +365,7 @@
 				</feature>
 				<feature id="f_10306100746905639127_14811341817612382122">
 					<position dim="0">25.300000476837159</position>
-					<position dim="1">102.0</position>
+					<position dim="1">102.019999999999996</position>
 					<intensity>7.452e04</intensity>
 					<quality dim="0">0.0</quality>
 					<quality dim="1">0.0</quality>
@@ -381,7 +381,7 @@
 				</feature>
 				<feature id="f_10306100746905639127_2684106197423007927">
 					<position dim="0">25.300000476837159</position>
-					<position dim="1">103.0</position>
+					<position dim="1">103.019999999999996</position>
 					<intensity>9.936e04</intensity>
 					<quality dim="0">0.0</quality>
 					<quality dim="1">0.0</quality>
@@ -397,7 +397,7 @@
 				</feature>
 				<feature id="f_10306100746905639127_8119044117483804262">
 					<position dim="0">25.300000476837159</position>
-					<position dim="1">104.0</position>
+					<position dim="1">104.019999999999996</position>
 					<intensity>1.242e05</intensity>
 					<quality dim="0">0.0</quality>
 					<quality dim="1">0.0</quality>
@@ -431,7 +431,7 @@
 			<UserParam type="float" name="leftWidth" value="2.299999952316284"/>
 			<UserParam type="float" name="rightWidth" value="48.299999237060547"/>
 			<UserParam type="float" name="peak_apices_sum" value="1.5e04"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[100.0, 0.0, 101.0, 0.0, 102.0, 0.0, 103.0, 0.0, 104.0, 0.0]"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[100.019999999999996, 0.0, 101.019999999999996, 0.0, 102.019999999999996, 0.0, 103.019999999999996, 0.0, 104.019999999999996, 0.0]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="1.0"/>

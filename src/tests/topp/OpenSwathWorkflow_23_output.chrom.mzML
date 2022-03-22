@@ -369,7 +369,7 @@
 					</precursor>
 					<product>
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="100" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="100.01" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
@@ -407,7 +407,7 @@
 					</precursor>
 					<product>
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="100" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="100.02" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
@@ -445,7 +445,7 @@
 					</precursor>
 					<product>
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="101" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="101.01" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
@@ -483,7 +483,7 @@
 					</precursor>
 					<product>
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="101" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="101.02" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
@@ -521,7 +521,7 @@
 					</precursor>
 					<product>
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="102" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="102.01" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
@@ -559,7 +559,7 @@
 					</precursor>
 					<product>
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="102" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="102.02" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
@@ -597,7 +597,7 @@
 					</precursor>
 					<product>
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="103" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="103.01" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
@@ -635,7 +635,7 @@
 					</precursor>
 					<product>
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="103" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="103.02" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
@@ -673,7 +673,7 @@
 					</precursor>
 					<product>
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="104" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="104.01" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
@@ -711,7 +711,7 @@
 					</precursor>
 					<product>
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="104" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="104.02" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
@@ -743,17 +743,17 @@
 		<offset idRef="PEPTIDEB_Precursor_i0">17974</offset>
 		<offset idRef="PEPTIDEC_Precursor_i0">20270</offset>
 		<offset idRef="PEPTIDEB_1">22566</offset>
-		<offset idRef="PEPTIDEC_1">25048</offset>
-		<offset idRef="PEPTIDEB_2">27530</offset>
-		<offset idRef="PEPTIDEC_2">30013</offset>
-		<offset idRef="PEPTIDEB_3">32496</offset>
-		<offset idRef="PEPTIDEC_3">34979</offset>
-		<offset idRef="PEPTIDEB_4">37462</offset>
-		<offset idRef="PEPTIDEC_4">39945</offset>
-		<offset idRef="PEPTIDEB_5">42428</offset>
-		<offset idRef="PEPTIDEC_5">44911</offset>
+		<offset idRef="PEPTIDEC_1">25051</offset>
+		<offset idRef="PEPTIDEB_2">27536</offset>
+		<offset idRef="PEPTIDEC_2">30022</offset>
+		<offset idRef="PEPTIDEB_3">32508</offset>
+		<offset idRef="PEPTIDEC_3">34994</offset>
+		<offset idRef="PEPTIDEB_4">37480</offset>
+		<offset idRef="PEPTIDEC_4">39966</offset>
+		<offset idRef="PEPTIDEB_5">42452</offset>
+		<offset idRef="PEPTIDEC_5">44938</offset>
 	</index>
 </indexList>
-<indexListOffset>47428</indexListOffset>
+<indexListOffset>47458</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

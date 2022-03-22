@@ -31,8 +31,8 @@ OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------
-$Maintainer: Hannes Roest $
-$Authors: Hannes Roest $
+$Maintainer: Hannes Roest, Joshua Charkow $
+$Authors: Hannes Roest, Joshua Charkow $
 --------------------------------------------------------------------------
 """
 from __future__ import division
@@ -149,10 +149,10 @@ for rt_idx in range(NR_RT_SAMPLES):
     
     # peaks of a precursor at 412.5 m/z : 100, 101, 102, .. 100 + NR_PEAKS
     # and ion mobility 100
-    createMS2Precursor(allmz, allint, allim, imCenterIdx=350, imWidth=10, base_int=base_int)
-    # peaks of a precursor at 417.5 m/z : 100, 101, 102, .. 100 + NR_PEAKS
+    createMS2Precursor(allmz, allint, allim, imCenterIdx=350, imWidth=10, base_int=base_int, baseFragmentMz=100)
+    # peaks of a precursor at 417.5 m/z : 100.01, 101.01, 102.01, .. 100 + NR_PEAKS. Slight offset so chromatograms can be sorted unambiguously 
     # and ion mobility 150
-    createMS2Precursor(allmz, allint, allim, imCenterIdx=450, imWidth=20, base_int=base_int, imWinLim=(300, 450))
+    createMS2Precursor(allmz, allint, allim, imCenterIdx=450, imWidth=20, base_int=base_int, imWinLim=(300, 450), baseFragmentMz=100.01)
 
     fda = pyopenms.FloatDataArray()
     fda.setName("Ion Mobility")
@@ -198,15 +198,15 @@ for rt_idx in range(NR_RT_SAMPLES):
     # and ion mobility 100
     createMS2Precursor(allmz, allint, allim, imCenterIdx=350, imWidth=10, base_int=base_int, imWinLim=(350, 600))
 
-    # peaks of a precursor at 417.5 m/z : 100, 101, 102, .. 100 + NR_PEAKS
+    # peaks of a precursor at 417.5 m/z : 100.01, 101.01, 102.01, .. 100.01 + NR_PEAKS
     # and ion mobility 150
 
-    createMS2Precursor(allmz, allint, allim, imCenterIdx=450, imWidth=20, base_int=base_int, imWinLim=(350, 600))
+    createMS2Precursor(allmz, allint, allim, imCenterIdx=450, imWidth=20, base_int=base_int, imWinLim=(350, 600), baseFragmentMz=100.01)
 
-    # peaks of a precursor at 417.5 m/z : 100, 101, 102, .. 100 + NR_PEAKS
+    # peaks of a precursor at 422.5 m/z : 100.02, 101.02, 102.02, .. 100.02 + NR_PEAKS
     # and ion mobility 150
 
-    createMS2Precursor(allmz, allint, allim, imCenterIdx=550, imWidth=10, base_int=base_int, imWinLim=(350, 600))
+    createMS2Precursor(allmz, allint, allim, imCenterIdx=550, imWidth=10, base_int=base_int, imWinLim=(350, 600), baseFragmentMz=100.02)
 
     fda = pyopenms.FloatDataArray()
     fda.setName("Ion Mobility")
@@ -246,7 +246,7 @@ for rt_idx in range(NR_RT_SAMPLES):
 
 
 
-############# EXPORT MZML FILE ##########################
+############# EXPOERT MZML FILE ##########################
 
 f = MzMLFile()
 pf = f.getOptions()
