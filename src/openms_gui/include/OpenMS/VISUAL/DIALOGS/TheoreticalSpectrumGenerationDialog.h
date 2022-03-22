@@ -80,6 +80,8 @@ protected slots:
 protected:
 
 private:
+    QString seq_type_;
+
     Ui::TheoreticalSpectrumGenerationDialogTemplate* ui_;
 
     MSSpectrum spec_;
