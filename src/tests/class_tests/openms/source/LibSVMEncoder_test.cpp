@@ -540,7 +540,7 @@ START_SECTION((void libSVMVectorToString(svm_node* vector, String& output)))
 	String allowed_characters = "ACNGT";
 	vector< pair<Int, double> > encoded_sequence;
 	svm_node* nodes;
-	vector<svm_node*>::iterator it;
+	[[maybe_unused]] vector<svm_node*>::iterator it;
 	String output;	
 	String correct_output = "(1, 0.1) (2, 0.2) (4, 0.3) (5, 0.4) ";
 	
