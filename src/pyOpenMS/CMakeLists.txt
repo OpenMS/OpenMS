@@ -31,7 +31,8 @@
 # $Maintainer: Hannes Röst $
 # $Authors: Hannes Röst, Uwe Schmitt, Stephan Aiche $
 # --------------------------------------------------------------------------
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+## 3.15 for FindPython
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("pyOpenMS" LANGUAGES C CXX)
 
 if(NOT TARGET OpenMS)
