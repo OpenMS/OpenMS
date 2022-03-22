@@ -484,7 +484,7 @@ namespace OpenMS
     {
       category_set << String(it->second.category).toQString();
     }
-    QStringList category_list = category_set.toList();
+    QStringList category_list(category_list.begin(), category_list.end());
     qSort(category_list);
     std::map<QString, QTreeWidgetItem*> category_map;
 
