@@ -49,7 +49,7 @@ namespace OpenMS
   typedef boost::shared_ptr< const Eigen::MatrixXd > EigenMatrixXdPtr;
   typedef boost::shared_ptr< Eigen::MatrixXd > MutableEigenMatrixXdPtr;
 
-  static EigenMatrixXdPtr
+  __attribute__ ((unused)) static EigenMatrixXdPtr
   convertOpenMSMatrix2EigenMatrixXd( const Matrix<double>& m )
   {
     MutableEigenMatrixXdPtr em ( new Eigen::MatrixXd(m.rows(), m.cols()) );
@@ -63,7 +63,7 @@ namespace OpenMS
     return em;
   }
 
-  static bool
+  __attribute__ ((unused)) static bool
   matrixIsIdentityMatrix(const Matrix<double>& channel_frequency)
   {
     for (Matrix<double>::SizeType i = 0; i < channel_frequency.rows(); ++i)
