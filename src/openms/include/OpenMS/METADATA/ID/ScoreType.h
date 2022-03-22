@@ -90,6 +90,22 @@ namespace OpenMS
 
     typedef std::set<ScoreType> ScoreTypes;
     typedef ScoreTypes::iterator setSTit;
-    typedef IteratorWrapper<ScoreTypes::iterator, ScoreType> ScoreTypeRef;
+    typedef IteratorWrapper<ScoreTypes::iterator, ScoreType> STRef;
+
+    struct ScoreTypeRef: public STRef
+    {
+      ScoreTypeRef(): STRef()
+      {}
+      ScoreTypeRef(const ScoreTypeRef & other) : STRef(other)
+      {}
+      ScoreTypeRef(const STRef & other) : STRef(other)
+      {}
+      ScoreTypeRef(const std::_Rb_tree<OpenMS::IdentificationDataInternal::ScoreType, OpenMS::IdentificationDataInternal::ScoreType, std::_Identity<OpenMS::IdentificationDataInternal::ScoreType>, std::less<OpenMS::IdentificationDataInternal::ScoreType>, std::allocator<OpenMS::IdentificationDataInternal::ScoreType> >::const_iterator& other): STRef(other)
+      {}
+      ScoreTypeRef operator=(const ScoreTypeRef& other)
+      {
+        return STRef::operator=(other);
+      }
+    };
   }
 }

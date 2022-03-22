@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/METADATA/ID/ParentGroup.h>" namespace "OpenMS::Identif
   cdef cppclass ParentGroup(MetaInfoInterface):
     ParentGroup() nogil except +
     ParentGroup(ParentGroup other) nogil except +
-    libcpp_map[IteratorWrapper[ setSTit, ScoreType ], double] scores
+    libcpp_map[ScoreTypeRef, double] scores
     libcpp_set[ParentSequenceRef] parent_refs
   
   cdef cppclass ParentGroups:

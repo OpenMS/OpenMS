@@ -12,14 +12,14 @@ cdef extern from "<OpenMS/METADATA/ID/ProcessingStep.h>" namespace "OpenMS::Iden
 
     ProcessingStep() nogil except +
     
-    IteratorWrapper[setPSit,ProcessingSoftware] software_ref
+    ProcessingSoftwareRef software_ref
     
     libcpp_vector[InputFileRef] input_file_refs
 
     DateTime date_time
     libcpp_set[ProcessingAction] actions
 
-    ProcessingStep(IteratorWrapper[setPSit,ProcessingSoftware] software_ref, \
+    ProcessingStep(ProcessingSoftwareRef software_ref, \
       libcpp_vector[InputFileRef] input_file_refs, \
       DateTime & date_time, \
       libcpp_set[ProcessingAction] actions) #Note that we don't have default args
@@ -29,4 +29,10 @@ cdef extern from "<OpenMS/METADATA/ID/ProcessingStep.h>" namespace "OpenMS::Iden
     bool operator<(ProcessingStep & other) nogil except +
     bool operator==(ProcessingStep & other) nogil except +
   ctypedef libcpp_set[ProcessingStep] ProcessingSteps
-  ctypedef libcpp_set[ProcessingStep].iterator setPSoftSit
+
+  cdef cppclass ProcessingStepRef:
+    ProcessingStepRef() nogil except +
+    ProcessingStepRef(const ProcessingStepRef & other) nogil except +
+    bool operator!=(const ProcessingStepRef & other) nogil except +
+    bool operator<(const ProcessingStepRef & other) nogil except +
+    ProcessingStep deref() nogil except +

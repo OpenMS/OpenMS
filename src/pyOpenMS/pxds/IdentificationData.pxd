@@ -22,9 +22,9 @@ cdef extern from "<OpenMS/METADATA/ID/IdentificationData.h>" namespace "OpenMS":
 
       IdentificationData(IdentificationData &) nogil except + # wrap-doc:Copy constructor
 
-      IteratorWrapper[setSTit, ScoreType] registerScoreType(ScoreType & score) nogil except +
+      ScoreTypeRef registerScoreType(ScoreType & score) nogil except +
 
-      IteratorWrapper[setPSit, ProcessingSoftware] registerProcessingSoftware(ProcessingSoftware & software) nogil except +
+      ProcessingSoftwareRef registerProcessingSoftware(ProcessingSoftware & software) nogil except +
 
       libcpp_set[ScoreType] getScoreTypes() nogil except +
 
@@ -36,4 +36,4 @@ cdef extern from "<OpenMS/METADATA/ID/IdentificationData.h>" namespace "OpenMS":
 
       ProcessingSteps & getProcessingSteps() nogil except +
 
-      IteratorWrapper[setPSoftSit, ProcessingStep] registerProcessingStep(ProcessingStep & step) nogil except +
+      ProcessingStepRef registerProcessingStep(ProcessingStep & step) nogil except +

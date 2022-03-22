@@ -67,7 +67,23 @@ namespace OpenMS
     // ordering is done using "operator<" inherited from "Software":
     typedef std::set<ProcessingSoftware> ProcessingSoftwares;
     typedef ProcessingSoftwares::iterator setPSit;
-    typedef IteratorWrapper<ProcessingSoftwares::iterator, ProcessingSoftware> ProcessingSoftwareRef;
+    typedef IteratorWrapper<ProcessingSoftwares::iterator, ProcessingSoftware> PSoftRef;
+
+    struct ProcessingSoftwareRef: public PSoftRef
+    {
+      ProcessingSoftwareRef(): PSoftRef()
+      {}
+      ProcessingSoftwareRef(const ProcessingSoftwareRef & other) : PSoftRef(other)
+      {}
+      ProcessingSoftwareRef(const PSoftRef & other) : PSoftRef(other)
+      {}
+      ProcessingSoftwareRef(const std::_Rb_tree_const_iterator<OpenMS::IdentificationDataInternal::ProcessingSoftware>& other) : PSoftRef(other)
+      {}
+      ProcessingSoftwareRef operator=(const ProcessingSoftwareRef& other)
+      {
+        return PSoftRef::operator=(other);
+      }
+    };
 
   }
 }

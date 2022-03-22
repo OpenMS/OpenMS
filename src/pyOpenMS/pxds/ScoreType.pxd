@@ -6,7 +6,7 @@ from MetaInfoInterface cimport *
 
 cdef extern from "<OpenMS/METADATA/ID/ScoreType.h>" namespace "OpenMS::IdentificationDataInternal":
 
-  ctypedef libcpp_set[ ScoreType ].iterator setSTit
+  #ctypedef libcpp_set[ ScoreType ].iterator setSTit
 
   cdef cppclass ScoreType(MetaInfoInterface):
     CVTerm cv_term
@@ -28,4 +28,12 @@ cdef extern from "<OpenMS/METADATA/ID/ScoreType.h>" namespace "OpenMS::Identific
     bool isBetterScore(double first, double second) nogil except +
 
   ctypedef libcpp_set[ ScoreType ] ScoreTypes
+
+  cdef cppclass ScoreTypeRef:
+    ScoreTypeRef() nogil except +
+    ScoreTypeRef(const ScoreTypeRef & other) nogil except +
+    bool operator!=(const ScoreTypeRef & other) nogil except +
+    bool operator<(const ScoreTypeRef & other) nogil except +
+    ScoreType deref() nogil except +
+  
 

@@ -125,7 +125,25 @@ namespace OpenMS
 
     typedef std::set<DBSearchParam> DBSearchParams;
     typedef DBSearchParams::iterator setDBSPit;
-    typedef IteratorWrapper<DBSearchParams::iterator, DBSearchParam> SearchParamRef;
+    typedef IteratorWrapper<DBSearchParams::iterator, DBSearchParam> SPRef;
+
+    struct SearchParamRef: public SPRef
+    {
+      SearchParamRef(): SPRef()
+      {}
+      SearchParamRef(const SearchParamRef & other) : SPRef(other)
+      {}
+      SearchParamRef(const SPRef & other) : SPRef(other)
+      {}
+      SearchParamRef(const std::_Rb_tree_const_iterator<OpenMS::IdentificationDataInternal::DBSearchParam>& other) : SPRef(other)
+      {}
+      SearchParamRef operator=(const SearchParamRef& other)
+      {
+        return SPRef::operator=(other);
+      }
+    };
+
+
     typedef std::map<ProcessingStepRef, SearchParamRef> DBSearchSteps;
 
   }

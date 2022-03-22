@@ -90,7 +90,23 @@ namespace OpenMS
 
     typedef std::set<ProcessingStep> ProcessingSteps;
     typedef std::set<ProcessingStep>::iterator setPSoftSit;
-    typedef IteratorWrapper<ProcessingSteps::iterator, ProcessingStep> ProcessingStepRef;
+    typedef IteratorWrapper<ProcessingSteps::iterator, ProcessingStep> PStRef;
+
+    struct ProcessingStepRef: public PStRef
+    {
+      ProcessingStepRef(): PStRef()
+      {}
+      ProcessingStepRef(const ProcessingStepRef & other) : PStRef(other)
+      {}
+      ProcessingStepRef(const PStRef & other) : PStRef(other)
+      {}
+      ProcessingStepRef(const std::_Rb_tree_const_iterator<OpenMS::IdentificationDataInternal::ProcessingStep>& other) : PStRef(other)
+      {}
+      ProcessingStepRef operator=(const ProcessingStepRef& other)
+      {
+        return PStRef::operator=(other);
+      }
+    };
 
   }
 }

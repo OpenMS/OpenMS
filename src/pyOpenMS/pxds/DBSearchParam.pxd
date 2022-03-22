@@ -43,5 +43,10 @@ cdef extern from "<OpenMS/METADATA/ID/DBSearchParam.h>" namespace "OpenMS::Ident
     bool operator==(const DBSearchParam & other) nogil except +
 
   ctypedef libcpp_set[ DBSearchParam ] DBSearchParams
-  ctypedef libcpp_set[ DBSearchParam ].iterator setDBSPit
-  ctypedef libcpp_map[IteratorWrapper[setPSoftSit, ProcessingStep], IteratorWrapper[setDBSPit, DBSearchParam]] DBSearchSteps
+  cdef cppclass SearchParamRef:
+    SearchParamRef() nogil except +
+    SearchParamRef(const SearchParamRef & other) nogil except +
+    bool operator!=(const SearchParamRef & other) nogil except +
+    bool operator<(const SearchParamRef & other) nogil except +
+    DBSearchParam deref() nogil except +
+  ctypedef libcpp_map[ProcessingSoftwareRef, SearchParamRef] DBSearchSteps

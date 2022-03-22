@@ -14,7 +14,7 @@ from DateTime cimport *
 cdef extern from "<OpenMS/METADATA/ID/AppliedProcessingStep.h>" namespace "OpenMS::IdentificationDataInternal":
   cdef cppclass AppliedProcessingStep:
 
-    libcpp_map[IteratorWrapper[setSTit, ScoreType], double] scores
+    libcpp_map[ScoreTypeRef, double] scores
 
     # boost_optional[IteratorWrapper[setPSoftSit, ProcessingStep]] processing_step_opt #FIXME
 
@@ -22,11 +22,11 @@ cdef extern from "<OpenMS/METADATA/ID/AppliedProcessingStep.h>" namespace "OpenM
     
     AppliedProcessingStep(AppliedProcessingStep & other)
 
-    # AppliedProcessingStep(boost_optional[IteratorWrapper[setPSoftSit, ProcessingStep]]& processing_step_opt, libcpp_map[IteratorWrapper[setSTit, ScoreType], double] scores)
+    # AppliedProcessingStep(boost_optional[IteratorWrapper[setPSoftSit, ProcessingStep]]& processing_step_opt, libcpp_map[ScoreTypeRef, double] scores)
 
     bool operator==(AppliedProcessingStep & other) nogil except +
 
-  #  libcpp_vector[libcpp_pair[IteratorWrapper[setSTit, ScoreType],double]] getScoresInOrder(bool primary_only) nogil except + #FIXME
+  #  libcpp_vector[libcpp_pair[ScoreTypeRef,double]] getScoresInOrder(bool primary_only) nogil except + #FIXME
 
   cdef cppclass AppliedProcessingSteps:
     AppliedProcessingSteps() nogil except +

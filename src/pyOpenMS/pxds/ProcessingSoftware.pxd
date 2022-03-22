@@ -13,9 +13,18 @@ cdef extern from "<OpenMS/METADATA/ID/ProcessingSoftware.h>" namespace "OpenMS::
 
     ProcessingSoftware(ProcessingSoftware other) nogil except +
 
-    libcpp_vector[ IteratorWrapper[setSTit,ScoreType]] assigned_scores 
+    libcpp_vector[ ScoreTypeRef] assigned_scores 
 
-    ProcessingSoftware(String name, String version, libcpp_vector[ IteratorWrapper[setSTit, ScoreType] ] assigned_scores) nogil except +
+    ProcessingSoftware(String name, String version, libcpp_vector[ ScoreTypeRef ] assigned_scores) nogil except +
 
   ctypedef libcpp_set[ ProcessingSoftware ] ProcessingSoftwares
-  ctypedef libcpp_set[ ProcessingSoftware ].iterator setPSit
+  #ctypedef libcpp_set[ ProcessingSoftware ].iterator 
+
+  cdef cppclass ProcessingSoftwareRef:
+    ProcessingSoftwareRef() nogil except +
+    ProcessingSoftwareRef(const ProcessingSoftwareRef & other) nogil except +
+    bool operator!=(const ProcessingSoftwareRef & other) nogil except +
+    bool operator<(const ProcessingSoftwareRef & other) nogil except +
+    ProcessingSoftware deref() nogil except +
+
+
