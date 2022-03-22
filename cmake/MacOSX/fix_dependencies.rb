@@ -131,6 +131,7 @@ def handleDependencies(otool_out, targetPath, currentLib)
         if not fix_lib.start_with?($executableId)
           puts "Warning: (#{fix_lib}) does not match the requested prefix, though."
         end
+      end
     elsif not fix_lib.match(/\//) # we need a path here, otherwise it is a lib in the same directory
       # TODO combine with previous if-case? this is basically relative
       debug "We do not fix libs which are in the same directory: #{fix_lib}"
