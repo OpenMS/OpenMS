@@ -31,7 +31,8 @@
 # $Maintainer: Hannes Röst $
 # $Authors: Hannes Röst, Uwe Schmitt, Stephan Aiche $
 # --------------------------------------------------------------------------
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+## 3.15 for FindPython (note the discussion in https://gitlab.kitware.com/cmake/cmake/-/issues/21186)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("pyOpenMS" LANGUAGES C CXX)
 
 if(NOT TARGET OpenMS)
@@ -323,12 +324,6 @@ exec_program(${Python_EXECUTABLE}
     )
 if(PYTHON_EXT_SUFFIX_NOT_FOUND)
     message(FATAL_ERROR "Could not determine suffix for Python C extensions.")
-endif()
-
-
-# This goes after, since it uses PythonInterp as a hint
-if(WIN32)
-    find_package(PythonLibs 3.5 REQUIRED)
 endif()
 
 
@@ -644,6 +639,12 @@ if ("${PY_NUM_MODULES}" GREATER "1")
         ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
       )
       add_dependencies(pyopenms_${nr} compile_pxds) # this is necessary for make (not ninja), to avoid race conditions
       add_dependencies(pyopenms_compile pyopenms_${nr})
@@ -665,6 +666,12 @@ else()
         ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
     )
 endif()
 
