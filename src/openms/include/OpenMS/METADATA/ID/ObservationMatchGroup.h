@@ -96,7 +96,35 @@ namespace OpenMS
         boost::multi_index::ordered_unique<
           boost::multi_index::member<ObservationMatchGroup, std::set<ObservationMatchRef>,
                                      &ObservationMatchGroup::observation_match_refs>>>
-      > ObservationMatchGroups;
-    typedef IteratorWrapper<ObservationMatchGroups::iterator, ObservationMatch> MatchGroupRef;
+      > ObsMatchGroups;
+
+    struct ObservationMatchGroups: public ObsMatchGroups
+    {
+      ObservationMatchGroups(): ObsMatchGroups()
+      {}
+      ObservationMatchGroups(const ObservationMatchGroups& other): ObsMatchGroups(other)
+      {}
+      ObservationMatchGroups(const ObsMatchGroups & other): ObsMatchGroups(other)
+      {}
+    };
+
+
+    typedef IteratorWrapper<ObservationMatchGroups::iterator, ObservationMatchGroup> MatGroupRef;
+
+    struct MatchGroupRef: public MatGroupRef
+    {
+      MatchGroupRef(): MatGroupRef()
+      {}
+      MatchGroupRef(const MatchGroupRef & other) : MatGroupRef(other)
+      {}
+      MatchGroupRef(const MatGroupRef & other) : MatGroupRef(other)
+      {}
+      MatchGroupRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::ObservationMatchGroup, std::allocator<OpenMS::IdentificationDataInternal::ObservationMatchGroup> > > >& other): MatGroupRef(other)
+      {}
+      MatchGroupRef operator=(const MatchGroupRef& other)
+      {
+        return MatGroupRef::operator=(other);
+      }
+    };
   }
 }
