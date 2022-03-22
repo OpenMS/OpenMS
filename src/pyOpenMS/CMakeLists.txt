@@ -31,7 +31,7 @@
 # $Maintainer: Hannes Röst $
 # $Authors: Hannes Röst, Uwe Schmitt, Stephan Aiche $
 # --------------------------------------------------------------------------
-## 3.15 for FindPython
+## 3.15 for FindPython (note the discussion in https://gitlab.kitware.com/cmake/cmake/-/issues/21186)
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("pyOpenMS" LANGUAGES C CXX)
 
