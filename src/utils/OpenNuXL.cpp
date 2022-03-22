@@ -1112,7 +1112,10 @@ protected:
           const double abs_err_Da = std::abs(theo_mz - exp_mz);
           if (exp_z == z && abs_err_Da < max_dist_dalton)
           {
-            z_fa++;
+            if (!peak_matched[index]) // not already matched (e.g., by unshifted peak)
+            {
+              z_fa++;
+            }
           }
         }
         if (z_fa != 0)
@@ -1141,7 +1144,10 @@ protected:
           const double abs_err_Da = std::abs(theo_mz - exp_mz);
           if (exp_z == z && abs_err_Da < max_dist_dalton)
           {
-            z_fa++;
+            if (!peak_matched[index]) // not already matched (e.g., by unshifted peak)
+            {
+              z_fa++;
+            }
           }
         }
         if (z_fa != 0)
@@ -1170,7 +1176,7 @@ protected:
           const double abs_err_Da = std::abs(theo_mz - exp_mz);
           if (exp_z == z && abs_err_Da < max_dist_dalton)
           {
-            if (!peak_matched[index])
+            if (!peak_matched[index]) // not already matched (e.g., by unshifted peak)
             {
               z_fa++;
             }
@@ -2281,6 +2287,8 @@ static void scoreXLIons_(
 
       // count how often a shift matches a residue + adduct mass (including mass 0 for unmodified residue)
       size_t aa_plus_adduct_in_mass_range(0);
+      size_t aa_plus_adduct_match(0);
+      
       for (Size i = 0; i != mzs.size(); ++i)
       {
         for (Size j = i+1; j < mzs.size(); ++j)
