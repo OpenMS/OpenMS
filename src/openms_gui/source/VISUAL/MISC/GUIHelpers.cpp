@@ -192,7 +192,13 @@ namespace OpenMS
     int width = 4;
     for (int i = 0; i < text.size(); ++i)
     {
+      /*
+       * QFontMetrics::width() is deprecated after Qt 5.11. Use QFontMetrics::horizontalAdvance()
+       */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
       width = std::max(width, 4 + metrics.width(text[i]));
+#pragma GCC diagnostic pop
     }
     return QRectF(0, 0, width, height);
   }

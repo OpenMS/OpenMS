@@ -73,6 +73,7 @@ namespace OpenMS {
                                                                                   "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", {"advanced"});
 
     defaults_.setValue("store_progress", "true", "If the intermediate files should be stored in the output directory");
+    defaults_.setValidStrings("store_progress", {"true","false"});
     
     defaults_.setValue("sgf:frame_length", 11, "SavitzkyGolayFilter parameter. The number of subsequent data points used for smoothing");
     defaults_.setValue("sgf:polynomial_order", 4, "SavitzkyGolayFilter parameter. Order or the polynomial that is fitted");

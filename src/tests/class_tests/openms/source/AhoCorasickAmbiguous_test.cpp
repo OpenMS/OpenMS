@@ -428,7 +428,7 @@ START_SECTION(constexpr AA())
   // make sure ctor is constexpr
   static_assert(AA('?').isValid() == false);
 
-  static_assert(AA('?')() == CharToAA['?']);
+  static_assert(AA('?')() == CharToAA[(unsigned char)'?']);
 
   static_assert(AA('G') <= AA('B'));
   

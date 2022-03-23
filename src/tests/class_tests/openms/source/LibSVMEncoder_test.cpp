@@ -548,11 +548,11 @@ START_SECTION((void encodeOligo(const AASequence &sequence, UInt k_mer_length, c
 END_SECTION
 
 START_SECTION((void libSVMVectorToString(svm_node* vector, String& output)))
+
   vector<String> sequences;
   String allowed_characters = "ACNGT";
   vector< pair<Int, double> > encoded_sequence;
   svm_node* nodes;
-  vector<svm_node*>::iterator it;
   String output;  
   String correct_output = "(1, 0.1) (2, 0.2) (4, 0.3) (5, 0.4) ";
   

@@ -28,86 +28,35 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow $
+// $Maintainer: Axel Walter $
+// $Authors: Axel Walter $
 // --------------------------------------------------------------------------
 
-// OpenMS includes
-#include <OpenMS/VISUAL/OutputDirectory.h>
-#include <ui_OutputDirectory.h>
+#pragma once
 
-
-#include <OpenMS/SYSTEM/File.h>
-
-#include <QtWidgets/QMessageBox>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QCompleter>
-#include <QFileSystemModel>
-
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 namespace OpenMS
 {
-  OutputDirectory::OutputDirectory(QWidget* parent)
-    : QWidget(parent),
-      ui_(new Ui::OutputDirectoryTemplate)
+  class OPENMS_DLLAPI IonIdentityMolecularNetworking
   {
-    ui_->setupUi(this);
-    QCompleter* completer = new QCompleter(this);
-    QFileSystemModel* dir_model = new QFileSystemModel(completer);
-    dir_model->setFilter(QDir::AllDirs);
-    completer->setModel(dir_model);
-    ui_->line_edit->setCompleter(completer);
+    public:
+      /// Annotate ConsensusMap for ion identity molecular networking (IIMN) workflow by GNPS.
+      /// Adds meta values Constants::UserParams::IIMN_ROW_ID (unique index for each feature), Constants::UserParams::IIMN_ADDUCT_PARTNERS (related features row IDs)
+      /// and Constants::UserParams::IIMN_ANNOTATION_NETWORK_NUMBER (all related features with different adduct states) get the same network number).
+      /// This method requires the features annotated with the Constants::UserParams::IIMN_LINKED_GROUPS meta value.
+      ///  If at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN.
+      static void annotateConsensusMap(ConsensusMap& consensus_map);
 
-    connect(ui_->browse_button, &QPushButton::clicked, this, &OutputDirectory::showFileDialog);
-    connect(ui_->line_edit, &QLineEdit::textChanged, this, &OutputDirectory::textEditChanged_);
-  }
+      /// Write feature quantification table (txt file) from a consensusXML file. Required for GNPS FBMN.
+      /// The table contains map information on the featureXML files from which the consensusXML file was generated as well as
+      /// a row for every consensus feature with information on rt, mz, intensity, width and quality. The same information is
+      /// added for each original feature in the consensus feature.
+      static void writeFeatureQuantificationTable(const ConsensusMap& consensus_map, const String& output_file);
 
-  OutputDirectory::~OutputDirectory()
-  {
-    delete ui_;
-  }
-
-  void OutputDirectory::setDirectory(const QString& dir)
-  {
-    ui_->line_edit->setText(dir);
-    emit directoryChanged(dir);
-  }
-
-  QString OutputDirectory::getDirectory() const
-  {
-    return ui_->line_edit->text();
-  }
-
-  void OutputDirectory::showFileDialog()
-  {
-    QString dir = File::exists(File::path(getDirectory())) ? File::path(getDirectory()).toQString() : "";
-    QString selected_dir = QFileDialog::getExistingDirectory(this, tr("Select output directory"), dir);
-    if (!selected_dir.isEmpty())
-    {
-      setDirectory(selected_dir); // emits directoryChanged()
-    }
-  }
-  
-  void OutputDirectory::textEditChanged_(const QString& /*new_text*/)
-  {
-    emit directoryChanged(getDirectory());
-  }
-  
-
-  bool OutputDirectory::dirNameValid() const
-  {
-    if (!QFileInfo(getDirectory()).isDir())
-    {
-      return false;
-    }
-    QString file_name = getDirectory();
-    if (!file_name.endsWith(QDir::separator()))
-    {
-      file_name += QDir::separator();
-    }
-    file_name += "test_file";
-    return File::writable(file_name);
-  }
-
-
-} // namespace
+      /// Write supplementary pair table (csv file) from a consensusXML file with edge annotations for connected features. Required for GNPS IIMN.
+      /// The table contains the columns "ID 1" (row ID of first feature), "ID 2" (row ID of second feature), "EdgeType" (MS1/2 annotation),
+      /// "Score" (the number of direct partners from both connected features) and "Annotation" (adducts and delta m/z between two connected features).
+      static void writeSupplementaryPairTable(const ConsensusMap& consensus_map, const String& output_file);
+  };
+} // closing namespace OpenMS
