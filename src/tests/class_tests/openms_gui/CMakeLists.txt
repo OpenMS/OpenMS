@@ -52,6 +52,8 @@ include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
 # add include to find moced files
 include_directories(${PROJECT_BINARY_DIR})
 
+# required for GUI tests to find the ui_foo.h files (e.g. TSGDialog_test)
+include_directories(${CMAKE_BINARY_DIR}/src/openms_gui)
 
 #------------------------------------------------------------------------------
 # VISUAL
@@ -78,7 +80,10 @@ if(HAS_XSERVER)
   #------------------------------------------------------------------------------
   # Use QtTest lib
 
-  find_package(Qt5 COMPONENTS Test REQUIRED)
+  find_package(Qt5 REQUIRED
+    Widgets 
+    Test
+  )
   if (NOT Qt5Test_FOUND)
     message(STATUS "QtTest module not found!")
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
@@ -92,7 +97,7 @@ if(HAS_XSERVER)
     # add headers
     target_include_directories(${_gui_test} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/GUI)
     # link against openms_gui and qt
-    target_link_libraries(${_gui_test} ${OpenMS_GUI_LIBRARIES} ${QT_LIBRARIES} Qt5::Test)
+    target_link_libraries(${_gui_test} ${OpenMS_GUI_LIBRARIES} ${QT_LIBRARIES} Qt5::Test Qt5::Widgets)
     # add the test
     add_test(${_gui_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_gui_test})
   endforeach(_gui_test)

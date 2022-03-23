@@ -93,7 +93,7 @@ namespace OpenMS
   TheoreticalSpectrumGenerationDialog::TheoreticalSpectrumGenerationDialog() : ui_(new Ui::TheoreticalSpectrumGenerationDialogTemplate)
   {
     ui_->setupUi(this);
-
+    
     // if dialog is accepted, try generating a spectrum, only close dialog on success
     connect(ui_->button_box, &QDialogButtonBox::accepted, this, &TheoreticalSpectrumGenerationDialog::calculateSpectrum);
 

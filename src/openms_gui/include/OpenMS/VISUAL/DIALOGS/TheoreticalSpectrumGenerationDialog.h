@@ -34,6 +34,7 @@
 
 
 #pragma once
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QtWidgets/QDialog>
 
@@ -55,7 +56,7 @@ namespace OpenMS
 
       @ingroup Dialogs
   */
-  class TheoreticalSpectrumGenerationDialog :
+  class OPENMS_GUI_DLLAPI TheoreticalSpectrumGenerationDialog :
     public QDialog
   {
     Q_OBJECT

@@ -60,5 +60,7 @@ namespace OpenMS
 
     private:
       TheoreticalSpectrumGenerationDialog dialog_;
+
+      void clickIsotopeModel_();
   };
 }

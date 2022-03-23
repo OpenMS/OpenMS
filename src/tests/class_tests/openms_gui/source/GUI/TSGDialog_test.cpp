@@ -38,10 +38,18 @@
 #include <qcombobox.h>
 #include <qlistview.h>
 
+#define UI dialog_.ui_
+
 using namespace OpenMS;
 
 constexpr int DELAY {1000};
 
+// Sadly this doesn't work and yields a seq fault, when trying to access the dropDownList.
+// That's why the spinbox is set manually and therefore not actually tested here.
+// I was unable to fix this, but maybe someone else will get this to work..
+// sources:
+// https://gist.github.com/peteristhegreat/cbd8eaa0e565d0b82dbfb5c7fdc61c8d
+// https://vicrucann.github.io/tutorials/qttest-signals-qtreewidget/
 void clickDropDown(int row, QComboBox* comboBox)
 {
   QListView* dropDownList = comboBox->findChild<QListView*>();
@@ -55,54 +63,83 @@ void clickDropDown(int row, QComboBox* comboBox)
   QTest::qWait(DELAY); // waits 1 second
 }
 
+void TestTSGDialog::clickIsotopeModel_()
+{
+  QTest::mouseClick(UI->model_none, Qt::LeftButton);
+  QVERIFY(!(UI->max_iso_spinbox->isEnabled()));
+  QVERIFY(!(UI->max_iso_label->isEnabled()));
+  QVERIFY(!(UI->max_iso_prob_spinbox->isEnabled()));
+  QVERIFY(!(UI->max_iso_prob_label->isEnabled()));
+
+  QTest::mouseClick(UI->model_coarse, Qt::LeftButton);
+  QVERIFY(UI->max_iso_spinbox->isEnabled());
+  QVERIFY(UI->max_iso_label->isEnabled());
+  QVERIFY(!(UI->max_iso_prob_spinbox->isEnabled()));
+  QVERIFY(!(UI->max_iso_prob_label->isEnabled()));
+
+  QTest::mouseClick(UI->model_fine, Qt::LeftButton);
+  QVERIFY(!(UI->max_iso_spinbox->isEnabled()));
+  QVERIFY(!(UI->max_iso_label->isEnabled()));
+  QVERIFY(UI->max_iso_prob_spinbox->isEnabled());
+  QVERIFY(UI->max_iso_prob_label->isEnabled());
+}
+
 void TestTSGDialog::testConstruction()
 {
   // editable/interactable GUI parts
-  QVERIFY(dialog_.ui_->seq_type, "Sequence selection combo box not created.");
-  QVERIFY(dialog_.ui_->seq_input, "Sequence input line edit not created.");
-  QVERIFY(dialog_.ui_->charge_spinbox, "Charge spin box not created.");
-  QVERIFY(dialog_.ui_->max_iso_spinbox, "Max. isotope model spin box not created.");
-  QVERIFY(dialog_.ui_->max_iso_prob_spinbox, "Max. isotope probability spin box not created.");
-  QVERIFY(dialog_.ui_->list_widget, "Ion list widget not created.");
-  QVERIFY(dialog_.ui_->a_intensity, "A ion intensity spin box not created.");
-  QVERIFY(dialog_.ui_->a_b_intensity, "A-b ion intensity spin box not created.");
-  QVERIFY(dialog_.ui_->b_intensity, "B ion intensity spin box not created.");
-  QVERIFY(dialog_.ui_->c_intensity, "C ion intensity spin box not created.");
-  QVERIFY(dialog_.ui_->d_intensity, "D ion intensity spin box not created.");
-  QVERIFY(dialog_.ui_->w_intensity, "W ion intensity spin box not created.");
-  QVERIFY(dialog_.ui_->x_intensity, "X ion intensity spin box not created.");
-  QVERIFY(dialog_.ui_->y_intensity, "Y ion intensity spin box not created.");
-  QVERIFY(dialog_.ui_->z_intensity, "Z ion intensity spin box not created.");
-  QVERIFY(dialog_.ui_->rel_loss_intensity, "Relative loss intensity spin box not created.");
-  QVERIFY(dialog_.ui_->button_box, "Buttonbox not created.");
+  QVERIFY2(UI->seq_type, "Sequence selection combo box not created.");
+  QVERIFY2(UI->seq_input, "Sequence input line edit not created.");
+  QVERIFY2(UI->charge_spinbox, "Charge spin box not created.");
+  QVERIFY2(UI->max_iso_spinbox, "Max. isotope model spin box not created.");
+  QVERIFY2(UI->max_iso_prob_spinbox, "Max. isotope probability spin box not created.");
+  QVERIFY2(UI->list_widget, "Ion list widget not created.");
+  QVERIFY2(UI->a_intensity, "A ion intensity spin box not created.");
+  QVERIFY2(UI->a_b_intensity, "A-b ion intensity spin box not created.");
+  QVERIFY2(UI->b_intensity, "B ion intensity spin box not created.");
+  QVERIFY2(UI->c_intensity, "C ion intensity spin box not created.");
+  QVERIFY2(UI->d_intensity, "D ion intensity spin box not created.");
+  QVERIFY2(UI->w_intensity, "W ion intensity spin box not created.");
+  QVERIFY2(UI->x_intensity, "X ion intensity spin box not created.");
+  QVERIFY2(UI->y_intensity, "Y ion intensity spin box not created.");
+  QVERIFY2(UI->z_intensity, "Z ion intensity spin box not created.");
+  QVERIFY2(UI->rel_loss_intensity, "Relative loss intensity spin box not created.");
+  QVERIFY2(UI->button_box, "Buttonbox not created.");
 
   // labels
-  QVERIFY(dialog_.ui_->enter_seq_label, "'Enter sequence' label not created.");
-  QVERIFY(dialog_.ui_->charge_label, "'Charge' label not created.");
-  QVERIFY(dialog_.ui_->generate_label, "'Generate' label not created.");
-  QVERIFY(dialog_.ui_->max_iso_label, "'Max. Isotope' label not created.");
-  QVERIFY(dialog_.ui_->max_iso_prob_label, "'Max. Isotope Probability in %' label not created.");
-  QVERIFY(dialog_.ui_->a_label, "'A-ions' label not created.");
-  QVERIFY(dialog_.ui_->a_b_label, "'A-b-ions' label not created.");
-  QVERIFY(dialog_.ui_->b_label, "'B-ions' label not created.");
-  QVERIFY(dialog_.ui_->c_label, "'C-ions' label not created.");
-  QVERIFY(dialog_.ui_->d_label, "'D-ions' label not created.");
-  QVERIFY(dialog_.ui_->w_label, "'W-ions' label not created.");
-  QVERIFY(dialog_.ui_->x_label, "'X-ions' label not created.");
-  QVERIFY(dialog_.ui_->y_label, "'Y-ions' label not created.");
-  QVERIFY(dialog_.ui_->z_label, "'Z-ions' label not created.");
-  QVERIFY(dialog_.ui_->rel_loss_label, "'Relative loss in %' label not created.");
+  QVERIFY2(UI->enter_seq_label, "'Enter sequence' label not created.");
+  QVERIFY2(UI->charge_label, "'Charge' label not created.");
+  QVERIFY2(UI->generate_label, "'Generate' label not created.");
+  QVERIFY2(UI->max_iso_label, "'Max. Isotope' label not created.");
+  QVERIFY2(UI->max_iso_prob_label, "'Max. Isotope Probability in %' label not created.");
+  QVERIFY2(UI->a_label, "'A-ions' label not created.");
+  QVERIFY2(UI->a_b_label, "'A-b-ions' label not created.");
+  QVERIFY2(UI->b_label, "'B-ions' label not created.");
+  QVERIFY2(UI->c_label, "'C-ions' label not created.");
+  QVERIFY2(UI->d_label, "'D-ions' label not created.");
+  QVERIFY2(UI->w_label, "'W-ions' label not created.");
+  QVERIFY2(UI->x_label, "'X-ions' label not created.");
+  QVERIFY2(UI->y_label, "'Y-ions' label not created.");
+  QVERIFY2(UI->z_label, "'Z-ions' label not created.");
+  QVERIFY2(UI->rel_loss_label, "'Relative loss in %' label not created.");
   
   // group boxes
-  QVERIFY(dialog_.ui_->isotope_model, "Isotope model group box not created.");
-  QVERIFY(dialog_.ui_->intensities, "Intensity group box not created.");
+  QVERIFY2(UI->isotope_model, "Isotope model group box not created.");
+  QVERIFY2(UI->intensities, "Intensity group box not created.");
+}
+
+void TestTSGDialog::testSpectrumCalculation()
+{
 }
 
 void TestTSGDialog::testGui()
 {
-  //QVERIFY(dialog_.ui_->button_box, "Buttonbox not created.");
-  clickDropDown(0, dialog_.ui_->seq_type); // select 'Peptide'
-  clickDropDown(1, dialog_.ui_->seq_type); // select 'RNA'
+  UI->seq_type->setCurrentText("Peptide");
+  clickIsotopeModel_();
+
+  UI->seq_type->setCurrentText("RNA");
+
+  UI->seq_type->setCurrentText("Metabolite");
+  clickIsotopeModel_();
 }
 
 // expands to a simple main() method that runs all the test functions
