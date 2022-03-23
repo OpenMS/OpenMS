@@ -714,7 +714,7 @@ namespace OpenMS::Internal
       constexpr XMLCh s_data_processing_ref[] = { 'd','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
       constexpr XMLCh s_start_time_stamp[] = { 's','t','a','r','t','T','i','m','e','S','t','a','m','p' , 0};
       constexpr XMLCh s_external_spectrum_id[] = { 'e','x','t','e','r','n','a','l','S','p','e','c','t','r','u','m','I','D' , 0};
-      //constexpr XMLCh s_default_source_file_ref[] = { 'd','e','f','a','u','l','t','S','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
+      constexpr XMLCh s_default_source_file_ref[] = { 'd','e','f','a','u','l','t','S','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
       constexpr XMLCh s_scan_settings_ref[] = { 's','c','a','n','S','e','t','t','i','n','g','s','R','e','f' , 0};
       String tag = sm_.convert(qname);
       open_tags_.push_back(tag);
@@ -1076,6 +1076,14 @@ namespace OpenMS::Internal
         {
           exp_->setDateTime(asDateTime_(start_time));
         }
+        /*
+        //defaultSourceFileRef
+        String default_source_file_ref;
+        if (optionalAttributeAsString_(default_source_file_ref, attributes, s_default_source_file_ref))
+        {
+          exp_->getSourceFiles().push_back(source_files_[default_source_file_ref]);
+        } 
+        */       
       }
       else if (tag == "software")
       {
@@ -1326,18 +1334,19 @@ namespace OpenMS::Internal
         logger_.endProgress();
       }
       else if (equal_(qname, s_sourceFileList ))
-      {
+      {        
         for (auto const& ref_sourcefile : source_files_)
         {
-          exp_->getSourceFiles().push_back(ref_sourcefile.second);
+          auto& sfs = exp_->getSourceFiles();
+          // only store source files once
+          if (std::find(sfs.begin(), sfs.end(), ref_sourcefile.second) == sfs.end())
+          {
+            exp_->getSourceFiles().push_back(ref_sourcefile.second);
+          }
         }
       }
       else if (equal_(qname, s_mzml))
       {
-        for (auto const& ref_sourcefile : source_files_)
-        {
-          exp_->getSourceFiles().push_back(ref_sourcefile.second);
-        }
         ref_param_.clear();
         current_id_ = "";
         source_files_.clear();

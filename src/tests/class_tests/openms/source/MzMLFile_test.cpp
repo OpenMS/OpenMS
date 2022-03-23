@@ -906,7 +906,7 @@ START_SECTION([EXTRA] load only meta data)
   TEST_EQUAL(exp.size(),0)
   TEST_EQUAL(exp.getIdentifier(),"document_accession");
   TEST_EQUAL(exp.getContacts().size(),2)
-  TEST_EQUAL(exp.getSourceFiles().size(),1);
+  TEST_EQUAL(exp.getSourceFiles().size(),5);
   TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
 }
 END_SECTION
