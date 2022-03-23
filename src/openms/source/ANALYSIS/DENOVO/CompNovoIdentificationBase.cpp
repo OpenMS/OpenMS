@@ -64,6 +64,7 @@ namespace OpenMS
   {
     defaults_.setValue("max_number_aa_per_decomp", 4, "maximal amino acid frequency per decomposition", {"advanced"});
     defaults_.setValue("tryptic_only", "true", "if set to true only tryptic peptides are reported");
+    defaults_.setValidStrings("tryptic_only", {"true","false"});
     defaults_.setValue("precursor_mass_tolerance", 1.5, "precursor mass tolerance");
     defaults_.setValue("fragment_mass_tolerance", 0.3, "fragment mass tolerance");
     defaults_.setValue("max_number_pivot", 9, "maximal number of pivot ions to be used", {"advanced"});

@@ -32,29 +32,27 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-
-#include <cstdlib> // for "rand"
-#include <ctime> // for "time" (seeding of random number generator)
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
+#include <cstdlib>  // for "rand"
+#include <ctime>    // for "time" (seeding of random number generator)
 #include <iterator> // for "inserter", "back_inserter"
 
 using namespace OpenMS;
 using namespace std;
 
 //-------------------------------------------------------------
-//Doxygen docu
+// Doxygen docu
 //-------------------------------------------------------------
 
 /**
@@ -86,7 +84,8 @@ using namespace std;
    It uses algorithms for targeted data analysis from the OpenSWATH pipeline.
 
    The aim is to detect features that enable the quantification of (ideally) all peptides in the identification input.
-   This is based on the following principle: When a high-confidence identification (ID) of a peptide was made based on an MS2 spectrum from a certain (precursor) position in the LC-MS map, this indicates that the particular peptide is present at that position, so a feature for it should be detectable there.
+   This is based on the following principle: When a high-confidence identification (ID) of a peptide was made based on an MS2 spectrum from a certain (precursor) position in the LC-MS map, this
+   indicates that the particular peptide is present at that position, so a feature for it should be detectable there.
 
    @note It is important that only high-confidence (i.e. reliable) peptide identifications are used as input!
 
@@ -101,20 +100,19 @@ using namespace std;
    First, retention times may be shifted between the run being quantified and the run that gave rise to the ID.
    Such shifts can be corrected (see @ref TOPP_MapAlignerIdentification), but only to an extent.
    Thus, the RT location of the inferred ID may not necessarily lie within the RT range of the correct feature.
-   Second, since the peptide in question was not directly identified in the run being quantified, it may not actually be present in detectable amounts in that sample, e.g. due to differential regulation of the corresponding protein.
-   There is thus a risk of introducing false-positive features.
+   Second, since the peptide in question was not directly identified in the run being quantified, it may not actually be present in detectable amounts in that sample, e.g. due to differential
+   regulation of the corresponding protein. There is thus a risk of introducing false-positive features.
 
-   FeatureFinderIdentification deals with these challenges by explicitly distinguishing between internal IDs (derived from the LC-MS/MS run being quantified) and external IDs (inferred from related runs).
-   Features derived from internal IDs give rise to a training dataset for an SVM classifier.
-   The SVM is then used to predict which feature candidates derived from external IDs are most likely to be correct.
-   See steps 4 and 5 below for more details.
+   FeatureFinderIdentification deals with these challenges by explicitly distinguishing between internal IDs (derived from the LC-MS/MS run being quantified) and external IDs (inferred from related
+   runs). Features derived from internal IDs give rise to a training dataset for an SVM classifier. The SVM is then used to predict which feature candidates derived from external IDs are most likely
+   to be correct. See steps 4 and 5 below for more details.
 
    <B>1. Assay generation</B>
 
-   Feature detection is based on assays for identified peptides, each of which incorporates the retention time (RT), mass-to-charge ratio (m/z), and isotopic distribution (derived from the sequence) of a peptide.
-   Peptides with different modifications are considered different peptides.
-   One assay will be generated for every combination of (modified) peptide sequence, charge state, and RT region that has been identified.
-   The RT regions arise by pooling all identifications of the same peptide, considering a window of size @p extract:rt_window around every RT location that gave rise to an ID, and then merging overlapping windows.
+   Feature detection is based on assays for identified peptides, each of which incorporates the retention time (RT), mass-to-charge ratio (m/z), and isotopic distribution (derived from the sequence)
+   of a peptide. Peptides with different modifications are considered different peptides. One assay will be generated for every combination of (modified) peptide sequence, charge state, and RT region
+   that has been identified. The RT regions arise by pooling all identifications of the same peptide, considering a window of size @p extract:rt_window around every RT location that gave rise to an
+   ID, and then merging overlapping windows.
 
    <B>2. Ion chromatogram extraction</B>
 
@@ -132,10 +130,10 @@ using namespace std;
 
    <B>4. Feature classification</B>
 
-   Feature candidates derived from assays with "internal" IDs are classed as "negative" (candidates without matching internal IDs), "positive" (the single best candidate per assay with matching internal IDs), and "ambiguous" (other candidates with matching internal IDs).
-   If "external" IDs were given as input, features based on them are initially classed as "unknown".
-   Also in this case, a support vector machine (SVM) is trained on the "positive" and "negative" candidates, to distinguish between the two classes based on the different OpenSWATH quality scores (plus an RT deviation score).
-   After parameter optimization by cross-validation, the resulting SVM is used to predict the probability of "unknown" feature candidates being positives.
+   Feature candidates derived from assays with "internal" IDs are classed as "negative" (candidates without matching internal IDs), "positive" (the single best candidate per assay with matching
+   internal IDs), and "ambiguous" (other candidates with matching internal IDs). If "external" IDs were given as input, features based on them are initially classed as "unknown". Also in this case, a
+   support vector machine (SVM) is trained on the "positive" and "negative" candidates, to distinguish between the two classes based on the different OpenSWATH quality scores (plus an RT deviation
+   score). After parameter optimization by cross-validation, the resulting SVM is used to predict the probability of "unknown" feature candidates being positives.
 
    <B>5. Feature filtering</B>
 
@@ -165,22 +163,14 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 
-class TOPPFeatureFinderIdentification :
-  public TOPPBase
+class TOPPFeatureFinderIdentification : public TOPPBase
 {
 public:
-
   // TODO
   // cppcheck-suppress uninitMemberVar
   TOPPFeatureFinderIdentification() :
-    TOPPBase("FeatureFinderIdentification",
-             "Detects features in MS1 data based on peptide identifications.",
-             true,
-             { {"Weisser H, Choudhary JS",
-                "Targeted Feature Detection for Data-Dependent Shotgun Proteomics",
-                "J. Proteome Res. 2017; 16, 8:2964-2974",
-                "10.1021/acs.jproteome.7b00248"} 
-             })
+      TOPPBase("FeatureFinderIdentification", "Detects features in MS1 data based on peptide identifications.", true,
+               {{"Weisser H, Choudhary JS", "Targeted Feature Detection for Data-Dependent Shotgun Proteomics", "J. Proteome Res. 2017; 16, 8:2964-2974", "10.1021/acs.jproteome.7b00248"}})
   {
   }
 
@@ -201,7 +191,9 @@ protected:
     setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
     registerOutputFile_("candidates_out", "<file>", "", "Output file: Feature candidates (before filtering and model fitting)", false);
     setValidFormats_("candidates_out", ListUtils::create<String>("featureXML"));
-    registerInputFile_("candidates_in", "<file>", "", "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.", false, true);
+    registerInputFile_("candidates_in", "<file>", "",
+                       "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.",
+                       false, true);
     setValidFormats_("candidates_in", ListUtils::create<String>("featureXML"));
 
     Param algo_with_subsection;
@@ -274,9 +266,7 @@ protected:
       // keep chromatogram data for output?
       if (keep_chromatograms)
       {
-        addDataProcessing_(
-          ffid_algo.getChromatograms(),
-          getProcessingInfo_(DataProcessing::FILTERING));
+        addDataProcessing_(ffid_algo.getChromatograms(), getProcessingInfo_(DataProcessing::FILTERING));
         MzMLFile().store(chrom_out, ffid_algo.getChromatograms());
         ffid_algo.getChromatograms().clear(true);
       }
@@ -290,8 +280,7 @@ protected:
       //-------------------------------------------------------------
       OPENMS_LOG_INFO << "Reading feature candidates from a previous run..." << endl;
       FeatureXMLFile().load(candidates_in, features);
-      OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."
-               << endl;
+      OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total." << endl;
       ffid_algo.runOnCandidates(features);
     }
 
@@ -305,7 +294,6 @@ protected:
 
     return EXECUTION_OK;
   }
-
 };
 
 

@@ -484,8 +484,10 @@ namespace OpenMS
     {
       category_set << String(it->second.category).toQString();
     }
-    QStringList category_list = category_set.toList();
-    qSort(category_list);
+
+    QStringList category_list = category_set.values();
+    std::sort(category_list.begin(), category_list.end());
+
     std::map<QString, QTreeWidgetItem*> category_map;
 
     foreach(const QString &category, category_list)
@@ -1512,7 +1514,14 @@ namespace OpenMS
       if (ret == QMessageBox::Cancel) return; // Escape was pressed
       if (ret == QMessageBox::Yes)
       {
+        /*
+         * Suppressed warning QSTring::SkipEmptyParts and QString::SplitBehaviour is deprecated
+         * QT::SkipEmptyParts and QT::SplitBehaviour is added or modified at Qt 5.14
+         */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         files = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", QString::SkipEmptyParts);
+#pragma GCC diagnostic pop
       }
     }
     

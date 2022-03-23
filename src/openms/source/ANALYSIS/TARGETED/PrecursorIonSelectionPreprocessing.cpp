@@ -79,6 +79,7 @@ namespace OpenMS
     defaults_.setValue("taxonomy", "", "Taxonomy");
     defaults_.setValue("tmp_dir", "", "Absolute path to tmp data directory used to store files needed for rt and dt prediction.");
     defaults_.setValue("store_peptide_sequences", "false", "Flag if peptide sequences should be stored.");
+    defaults_.setValidStrings("store_peptide_sequences", {"true","false"});
     defaultsToParam_();
     updateMembers_();
   }

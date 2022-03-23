@@ -304,11 +304,12 @@ jobs:
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v1.9
       with:
-        cmake-version: '3.20.x'
+        cmake-version: '3.23.x'
 
     - name: Build on manylinux2014
       shell: bash
       run: |
+            cmake --version
             # build an array based the python versions in /opt/python
             py_paths=()
             for PYBIN in /opt/python/cp*
@@ -321,6 +322,7 @@ jobs:
             for i in 0{1..3}
             do
               PYBIN="${py_paths[${#py_paths[@]}-i]}"
+              "$PYBIN/bin/pip" install -U pip
               "$PYBIN/bin/pip" install -U Cython
               "$PYBIN/bin/pip" install -U setuptools
               "$PYBIN/bin/pip" install -U wheel==0.31.1
@@ -344,18 +346,9 @@ jobs:
             do
               PYBIN="${py_paths[${#py_paths[@]}-i]}"
 
-              # configure
-              cmake -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPYTHON_EXECUTABLE:FILEPATH=$PYBIN/bin/python $GITHUB_WORKSPACE/OpenMS
+              # configure (don't copy deps since we use auditwheel)
+              cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" $GITHUB_WORKSPACE/OpenMS
               make -j4 pyopenms
-
-              pushd pyOpenMS
-                # remove the libraries as auditwheel will take care of linked libs
-                rm -rf pyopenms/lib*
-                rm -rf build/lib*/pyopenms/lib*
-                find . -name "pyopenms*.so" -exec rm -rf {} \; # not sure if that works here?! 
-                # create wheel without libraries
-                "$PYBIN/bin/pip" wheel . -w wheelhouse_tmp
-              popd
             done
 
             # ensure auditwheel can find the libraries
@@ -367,7 +360,7 @@ jobs:
 
             pushd pyOpenMS
               # Bundle stripped plus external shared libraries into the wheels
-              for whl in wheelhouse_tmp/pyopenms*.whl; do
+              for whl in dist/pyopenms*.whl; do
                 auditwheel repair "$whl" -w wheelhouse/
               done
               
