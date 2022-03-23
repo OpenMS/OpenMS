@@ -30,6 +30,7 @@ IDMergerAlgorithm.h
 IDRipper.h
 IDScoreGetterSetter.h
 IDScoreSwitcherAlgorithm.h
+IonIdentityMolecularNetworking
 MessagePasserFactory.h
 MetaboliteSpectralMatching.h
 PeptideProteinResolution.h

@@ -28,64 +28,35 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Steffen Sass, Hendrik Weisser $
+// $Maintainer: Axel Walter $
+// $Authors: Axel Walter $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
-#include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#pragma once
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
-
-using namespace std;
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 namespace OpenMS
 {
-
-  FeatureGroupingAlgorithmQT::FeatureGroupingAlgorithmQT() :
-    FeatureGroupingAlgorithm()
+  class OPENMS_DLLAPI IonIdentityMolecularNetworking
   {
-    setName("FeatureGroupingAlgorithmQT");
-    defaults_.insert("", QTClusterFinder().getParameters());
-    defaultsToParam_();
-  }
+    public:
+      /// Annotate ConsensusMap for ion identity molecular networking (IIMN) workflow by GNPS.
+      /// Adds meta values Constants::UserParams::IIMN_ROW_ID (unique index for each feature), Constants::UserParams::IIMN_ADDUCT_PARTNERS (related features row IDs)
+      /// and Constants::UserParams::IIMN_ANNOTATION_NETWORK_NUMBER (all related features with different adduct states) get the same network number).
+      /// This method requires the features annotated with the Constants::UserParams::IIMN_LINKED_GROUPS meta value.
+      ///  If at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN.
+      static void annotateConsensusMap(ConsensusMap& consensus_map);
 
-  FeatureGroupingAlgorithmQT::~FeatureGroupingAlgorithmQT()
-  {
-  }
+      /// Write feature quantification table (txt file) from a consensusXML file. Required for GNPS FBMN.
+      /// The table contains map information on the featureXML files from which the consensusXML file was generated as well as
+      /// a row for every consensus feature with information on rt, mz, intensity, width and quality. The same information is
+      /// added for each original feature in the consensus feature.
+      static void writeFeatureQuantificationTable(const ConsensusMap& consensus_map, const String& output_file);
 
-  template <typename MapType>
-  void FeatureGroupingAlgorithmQT::group_(const vector<MapType>& maps,
-                                          ConsensusMap& out)
-  {
-    // check that the number of maps is ok:
-    if (maps.size() < 2)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "At least two maps must be given!");
-    }
-
-    QTClusterFinder cluster_finder;
-    cluster_finder.setParameters(param_.copy("", true));
-
-    cluster_finder.run(maps, out);
-    
-    postprocess_(maps, out);
-  }
-
-  void FeatureGroupingAlgorithmQT::group(const std::vector<FeatureMap>& maps,
-                                         ConsensusMap& out)
-  {
-    group_(maps, out);
-  }
-
-  void FeatureGroupingAlgorithmQT::group(const std::vector<ConsensusMap>& maps,
-                                         ConsensusMap& out)
-  {
-    group_(maps, out);
-  }
-
-} // namespace OpenMS
+      /// Write supplementary pair table (csv file) from a consensusXML file with edge annotations for connected features. Required for GNPS IIMN.
+      /// The table contains the columns "ID 1" (row ID of first feature), "ID 2" (row ID of second feature), "EdgeType" (MS1/2 annotation),
+      /// "Score" (the number of direct partners from both connected features) and "Annotation" (adducts and delta m/z between two connected features).
+      static void writeSupplementaryPairTable(const ConsensusMap& consensus_map, const String& output_file);
+  };
+} // closing namespace OpenMS
