@@ -604,14 +604,14 @@ if (APPLE)
  list(APPEND PY_RPATH "@loader_path/")
 endif()
 
-if (LINUX) # see https://github.com/cython/cython/issues/3380
+# actually on my Mac I didnt need that but on GH actions it fails
+if (LINUX OR APPLE) # see https://github.com/cython/cython/issues/3380
   set(VIS_PRESET "default")
   set(INLINES_HIDDEN 0)
 else()
   set(VIS_PRESET "hidden")
   set(INLINES_HIDDEN 1)
 endif()
-
 
 if(LINUX OR APPLE)
   set(EXTRA_WARNINGS "-Wno-unused-member-function" "-Wno-builtin-macro-redefined" "-Wno-unused" "-Wno-zero-as-null-pointer-constant")
