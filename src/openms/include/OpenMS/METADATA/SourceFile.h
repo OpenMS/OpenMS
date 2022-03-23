@@ -71,7 +71,7 @@ public:
     /// Assignment operator
     SourceFile& operator=(const SourceFile&) = default;
     /// Move assignment operator
-    SourceFile& operator=(SourceFile&&) & = default;
+    SourceFile& operator=(SourceFile&&) = default;
 
     /// Equality operator
     bool operator==(const SourceFile& rhs) const;
