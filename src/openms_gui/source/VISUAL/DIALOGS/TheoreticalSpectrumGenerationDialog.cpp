@@ -136,7 +136,7 @@ namespace OpenMS
 
   String TheoreticalSpectrumGenerationDialog::getSequence() const
   {
-    return ui_->line_edit->text();
+    return ui_->seq_input->text();
   }
 
   Param TheoreticalSpectrumGenerationDialog::getParam() const
@@ -160,7 +160,7 @@ namespace OpenMS
     }
 
     // charge
-    p.setValue("charge", ui_->spin_box->value());
+    p.setValue("charge", ui_->charge_spinbox->value());
 
     // add intensities
     p.setValue("a_intensity", ui_->a_intensity->value(), "Intensity of the a-ions");

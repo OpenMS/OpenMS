@@ -48,7 +48,7 @@
       </layout>
      </item>
      <item>
-      <widget class="QLineEdit" name="line_edit">
+      <widget class="QLineEdit" name="seq_input">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -70,16 +70,13 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
-        <layout class="QFormLayout" name="formLayout"/>
-       </item>
-       <item>
         <layout class="QVBoxLayout" name="verticalLayout_8">
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_14">
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
-              <widget class="QLabel" name="spin_label">
+              <widget class="QLabel" name="charge_label">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -98,7 +95,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QSpinBox" name="spin_box">
+              <widget class="QSpinBox" name="charge_spinbox">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -364,7 +361,7 @@ Probability in %</string>
       </layout>
      </item>
      <item>
-      <widget class="QGroupBox" name="groupBox">
+      <widget class="QGroupBox" name="intensities">
        <property name="title">
         <string>Intensities</string>
        </property>
@@ -372,7 +369,7 @@ Probability in %</string>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QLabel" name="label">
+           <widget class="QLabel" name="a_label">
             <property name="text">
              <string>A-ions</string>
             </property>
@@ -408,7 +405,7 @@ Probability in %</string>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
-           <widget class="QLabel" name="label_2">
+           <widget class="QLabel" name="b_label">
             <property name="text">
              <string>B-ions</string>
             </property>
@@ -426,7 +423,7 @@ Probability in %</string>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
-           <widget class="QLabel" name="label_3">
+           <widget class="QLabel" name="c_label">
             <property name="text">
              <string>C-ions</string>
             </property>
@@ -480,7 +477,7 @@ Probability in %</string>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
-           <widget class="QLabel" name="label_4">
+           <widget class="QLabel" name="x_label">
             <property name="text">
              <string>X-ions</string>
             </property>
@@ -498,7 +495,7 @@ Probability in %</string>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_7">
           <item>
-           <widget class="QLabel" name="label_5">
+           <widget class="QLabel" name="y_label">
             <property name="text">
              <string>Y-ions</string>
             </property>
@@ -516,7 +513,7 @@ Probability in %</string>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_8">
           <item>
-           <widget class="QLabel" name="label_6">
+           <widget class="QLabel" name="z_label">
             <property name="text">
              <string>Z-ions</string>
             </property>
