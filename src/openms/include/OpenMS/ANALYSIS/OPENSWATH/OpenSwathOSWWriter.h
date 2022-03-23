@@ -119,7 +119,6 @@ namespace OpenMS
     OpenMS::UInt64 run_id_;
     bool doWrite_;
     bool use_ms1_traces_;
-    bool sonar_;
     bool enable_uis_scoring_;
 
   public:
