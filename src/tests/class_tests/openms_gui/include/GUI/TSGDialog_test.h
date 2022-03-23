@@ -52,7 +52,11 @@ namespace OpenMS
     }
 
     private slots:
+      void testConstruction();
+      
       void testGui();
+
+      void testSpectrumCalculation();
 
     private:
       TheoreticalSpectrumGenerationDialog dialog_;
