@@ -38,9 +38,9 @@
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/OpenMSConfig.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <vector>
+#include <map>
 
 namespace OpenMS
 {
@@ -77,7 +77,7 @@ public:
     typedef PointArrayType::size_type SizeType;
     typedef PointArrayType::const_iterator PointArrayTypeConstIterator;
 
-    typedef Map<PointType::CoordinateType, DBoundingBox<1> > HullPointType;
+    typedef std::map<PointType::CoordinateType, DBoundingBox<1> > HullPointType;
 
     /// default constructor
     ConvexHull2D();

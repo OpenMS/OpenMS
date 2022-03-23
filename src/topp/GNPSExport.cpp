@@ -51,32 +51,44 @@ using namespace std;
 GNPS (Global Natural Products Social Molecular Networking, http://gnps.ucsd.edu) is an open-access knowledge base for community-wide organization and sharing of raw, processed or identified tandem mass (MS/MS) spectrometry data. The GNPS web-platform makes it possible to perform spectral library search against public MS/MS spectral libraries, as well as to perform various data analysis such as MS/MS molecular networking, network annotation propagation, and the Dereplicator-based annotation. The GNPS manuscript is available here: https://www.nature.com/articles/nbt.3597
 This tool was developed for the Feature Based Molecular Networking (FBMN) workflow (https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/)
 
-### Please cite:
-    Nothias, L.-F., Petras, D., Schmid, R. et al. [Feature-based molecular networking in the GNPS analysis environment](https://www.nature.com/articles/s41592-020-0933-6). Nat. Methods 17, 905–908 (2020).
+Please cite:
+Nothias, L.-F., Petras, D., Schmid, R. et al. [Feature-based molecular networking in the GNPS analysis environment](https://www.nature.com/articles/s41592-020-0933-6). Nat. Methods 17, 905–908 (2020).
 
-In brief, after running an OpenMS metabolomics pipeline, the **GNPSExport**, together with the **TextExporter** TOPP tool, can be used on the consensusXML file and the mzML files to generate the files needed for FBMN.
+In brief, after running an OpenMS metabolomics pipeline, the <b>GNPSExport</b> together with the <b>TextExporter</b> TOPP tool, can be used on the consensusXML file and the mzML files to generate the files needed for FBMN.
 Those files are:
-- A **MS/MS spectral data file** (.MGF format) which is generated  with the GNPSExport util.
-- A **feature quantification table** (.TXT format) which is generated with the TextExport util.
+- A <b>MS/MS spectral data file</b> (.MGF format) which is generated  with the GNPSExport util.
+- A <b>feature quantification table</b> (.TXT format) which is generated with the TextExport util.
 
 A representative OpenMS-GNPS workflow would use the following OpenMS TOPP tools sequentially:
 - Input mzML files
 - Run the @ref TOPP_FeatureFinderMetabo tool on the mzML files.
 - Run the @ref TOPP_MapAlignerPoseClustering tool on the featureXML files.
-  	`MapAlignerPoseClustering -in FFM_inputFile0.featureXML FFM_inputFile1.featureXML -out MapAlignerPoseClustering_inputFile0.featureXML MapAlignerPoseClustering_inputFile1.featureXML`
+@code
+	MapAlignerPoseClustering -in FFM_inputFile0.featureXML FFM_inputFile1.featureXML -out MapAlignerPoseClustering_inputFile0.featureXML MapAlignerPoseClustering_inputFile1.featureXML
+@endcode
 - Run the @ref TOPP_IDMapper tool on the featureXML and mzML files.
-  	`IDMapper -id emptyfile.idXML -in MapAlignerPoseClustering_inputFile0.featureXML -spectra:in MapAlignerPoseClustering_inputFile0.mzML -out IDMapper_inputFile0.featureXML`
-	`IDMapper -id emptyfile.idXML -in MapAlignerPoseClustering_inputFile1.featureXML -spectra:in MapAlignerPoseClustering_inputFile1.mzML -out IDMapper_inputFile1.featureXML`
-- Run the *MetaboliteAdductDecharger* tool on the featureXML files.
+@code
+  	IDMapper -id emptyfile.idXML -in MapAlignerPoseClustering_inputFile0.featureXML -spectra:in MapAlignerPoseClustering_inputFile0.mzML -out IDMapper_inputFile0.featureXML
+	IDMapper -id emptyfile.idXML -in MapAlignerPoseClustering_inputFile1.featureXML -spectra:in MapAlignerPoseClustering_inputFile1.mzML -out IDMapper_inputFile1.featureXML
+@endcode
+- Run the @ref UTILS_MetaboliteAdductDecharger tool on the featureXML files.
 - Run the @ref TOPP_FeatureLinkerUnlabeledKD tool or FeatureLinkerUnlabeledQT, on the featureXML files and output a consensusXML file.
-  	`FeatureLinkerUnlabeledKD -in IDMapper_inputFile0.featureXML IDMapper_inputFile1.featureXML -out FeatureLinkerUnlabeledKD.consensusXML`
+@code
+  	FeatureLinkerUnlabeledKD -in IDMapper_inputFile0.featureXML IDMapper_inputFile1.featureXML -out FeatureLinkerUnlabeledKD.consensusXML
+@endcode
 - Run the @ref TOPP_FileFilter on the consensusXML file to keep only consensusElements with at least MS/MS scan (peptide identification). 
-  	`FileFilter -id:remove_unannotated_features -in FeatureLinkerUnlabeledKD.consensusXML -out FileFilter.consensusXML`
+@code
+  	FileFilter -id:remove_unannotated_features -in FeatureLinkerUnlabeledKD.consensusXML -out FileFilter.consensusXML
+@endcode
 - Run the @ref TOPP_GNPSExport on the "filtered consensusXML file" to export an .MGF file. For each consensusElement in the consensusXML file, the GNPSExport command produces one representative consensus MS/MS spectrum (named peptide annotation in OpenMS jargon) which is appended in the MS/MS spectral file (.MGF file).
 (Note that the parameters for the spectral file generation are defined in the GNPSExport INI parameters file, available here: https://ccms-ucsd.github.io/GNPSDocumentation/openms_gnpsexport/GNPSExport.ini
-  	`GNPSExport -ini iniFile-GNPSExport.ini -in_cm filtered.consensusXML -in_mzml inputFile0.mzML inputFile1.mzML -out GNPSExport_output.mgf`
+@code 
+	GNPSExport -ini iniFile-GNPSExport.ini -in_cm filtered.consensusXML -in_mzml inputFile0.mzML inputFile1.mzML -out GNPSExport_output.mgf
+@endcode
 - Run the @ref TOPP_TextExporter on the "filtered consensusXML file" to export a .TXT file.
-  	`TextExporter -in FileFilter.consensusXML -out FeatureQuantificationTable.txt`
+@code 
+  	TextExporter -in FileFilter.consensusXML -out FeatureQuantificationTable.txt
+@endcode
 - Upload your files to GNPS and run the Feature-Based Molecular Networking workflow. Instructions can be found here: https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/
 
 The GitHub page for the ProteoSAFe workflow and the OpenMS python wrappers is available here: https://github.com/Bioinformatic-squad-DorresteinLab/openms-gnps-workflow

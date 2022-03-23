@@ -37,13 +37,14 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/TOPPASResource.h>
 
 #include <QtCore/QString>
 #include <QtCore/QObject>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -81,7 +82,7 @@ public:
 protected:
 
     /// The dictionary
-    Map<QString, QList<TOPPASResource> > map_;
+    std::map<QString, QList<TOPPASResource> > map_;
     /// The empty list
     QList<TOPPASResource> empty_list_;
   };

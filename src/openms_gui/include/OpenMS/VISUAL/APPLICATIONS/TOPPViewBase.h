@@ -49,6 +49,7 @@
 #include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/TOPPViewMenu.h>
 #include <OpenMS/VISUAL/TVToolDiscovery.h>
+#include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 
 //STL
 #include <map>
@@ -59,6 +60,7 @@
 #include <QtWidgets/QActionGroup>
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
+#include <QElapsedTimer>
 
 class QAction;
 class QComboBox;
@@ -522,7 +524,7 @@ protected:
       UInt window_id;
       Size spectrum_id;
       QProcess* process = nullptr;
-      QTime timer;
+      QElapsedTimer timer;
       bool visible_area_only;
     } topp_;
     //@}
@@ -550,6 +552,9 @@ protected:
 private:
     /// Suffix appended to caption of tabs when layer is shown in 3D
     static const String CAPTION_3D_SUFFIX_;
+
+    /// This dialog is a member so that its settings can be perserved upon closing.
+    TheoreticalSpectrumGenerationDialog spec_gen_dialog_;
   }; //class
 
 } //namespace
