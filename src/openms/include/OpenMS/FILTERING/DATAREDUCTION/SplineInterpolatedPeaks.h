@@ -157,7 +157,6 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         /**
         * @brief m/z (or RT) limits of the spectrum (or chromatogram)
         */
-        double pos_min_;
         double pos_max_;
         
         /**
