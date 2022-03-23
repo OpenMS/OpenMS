@@ -231,7 +231,13 @@ namespace OpenMS
     intensity_button_group_->addButton(b, PlotCanvas::IM_LOG);
     tool_bar_->addWidget(b);
 
+    /*
+     * Suppressed warning QButtonGroup buttonClicked(int) till Qt 5.15
+     */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     connect(intensity_button_group_, CONNECTCAST(QButtonGroup,buttonClicked,(int)), this, &TOPPViewBase::setIntensityMode);
+#pragma GCC diagnostic pop
     tool_bar_->addSeparator();
 
     //common buttons
@@ -266,7 +272,14 @@ namespace OpenMS
     draw_group_1d_->addButton(b, Plot1DCanvas::DM_CONNECTEDLINES);
     tool_bar_1d_->addWidget(b);
 
+    /*
+     * Suppressed warning QButtonGroup buttonClicked(int) till Qt 5.15
+     */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     connect(draw_group_1d_, CONNECTCAST(QButtonGroup, buttonClicked, (int)), this, &TOPPViewBase::setDrawMode1D);
+#pragma GCC diagnostic pop
+
     tool_bar_->addSeparator();
 
     //--2D peak toolbar--
