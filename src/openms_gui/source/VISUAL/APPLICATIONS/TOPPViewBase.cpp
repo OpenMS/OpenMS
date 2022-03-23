@@ -88,7 +88,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QSettings>
 #include <QtCore/QUrl>
-#include <QtWidgets/QDesktopWidget>
+#include <QGuiApplication>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
@@ -129,7 +129,7 @@ namespace OpenMS
     setAcceptDrops(true); // enable drag-and-drop
 
     // get geometry of first screen
-    QRect screen_geometry = QApplication::desktop()->screenGeometry();
+    QRect screen_geometry = QGuiApplication::primaryScreen()->geometry();
     // center main window
     setGeometry(
       (int)(0.1 * screen_geometry.width()),
