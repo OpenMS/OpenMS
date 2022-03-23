@@ -50,6 +50,8 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI Painter1DBase
   {
   public:
+    virtual ~Painter1DBase() = default;
+
     /**
        @brief Paints items using the given painter onto the canvas.
  
