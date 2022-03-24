@@ -47,30 +47,6 @@
 
 namespace OpenMS
 {
-  // Note: If an additional checkbox is added all of the following three objects have to be edited!
-  //
-  //
-  // enum to get ion checkbox index (Ordering has to be the same as in the ui!)
-  enum class Checkbox
-  {
-    A_Ions,
-    A_b_Ions,
-    B_Ions,
-    C_Ions,
-    D_Ions,
-    W_Ions,
-    X_Ions,
-    Y_Ions,
-    Z_Ions,
-    Precursor,
-    Neutral_losses,
-    Abundant_Immonium_Ions
-  };
-
-  // vector of all enum entries for iteration
-  const std::vector<Checkbox> check_box_names {Checkbox::A_Ions, Checkbox::A_b_Ions, Checkbox::B_Ions, Checkbox::C_Ions,    Checkbox::D_Ions,         Checkbox::W_Ions,
-                                               Checkbox::X_Ions, Checkbox::Y_Ions,   Checkbox::Z_Ions, Checkbox::Precursor, Checkbox::Neutral_losses, Checkbox::Abundant_Immonium_Ions};
-
   // map from checkbox (index) to corresponding parameter with description
   const std::map<Checkbox, std::pair<String, String>> checkbox_to_param {
     {Checkbox::A_Ions, {"add_a_ions", "Add peaks of a-ions to the spectrum"}},
@@ -101,6 +77,9 @@ namespace OpenMS
     connect(ui_->model_none, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
     connect(ui_->model_coarse, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
     connect(ui_->model_fine, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
+
+    // for the list widget items are checked/unchecked if they are clicked on (disables clicking on the checkbox though ..)
+    connect(ui_->list_widget, &QListWidget::itemClicked, this, &TheoreticalSpectrumGenerationDialog::listWidgetItemClicked);
 
     // don't add any isotopes by default and update interface
     ui_->model_none->setChecked(true);
@@ -386,4 +365,14 @@ namespace OpenMS
     }
   }
 
+  void TheoreticalSpectrumGenerationDialog::listWidgetItemClicked(QListWidgetItem* item)
+  {
+    if (item->checkState() == Qt::CheckState::Checked)
+    {
+      item->setCheckState(Qt::CheckState::Unchecked);
+      return;
+    }
+    item->setCheckState(Qt::CheckState::Checked);
+    return;
+  }
 } // namespace

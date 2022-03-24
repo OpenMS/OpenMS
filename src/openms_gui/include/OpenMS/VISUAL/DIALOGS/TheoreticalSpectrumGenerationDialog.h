@@ -47,9 +47,35 @@ namespace Ui
   class TheoreticalSpectrumGenerationDialogTemplate;
 }
 
+class QListWidgetItem;
+
 namespace OpenMS
 {
-  class TestTSGDialog;
+  class TestTSGDialog; // fwd declaring test class
+
+  // Note: If an additional checkbox is added all of the following three objects have to be edited!
+  //
+  //
+  // enum to get ion checkbox index (Ordering has to be the same as in the ui!)
+  enum class Checkbox
+  {
+    A_Ions,
+    A_b_Ions,
+    B_Ions,
+    C_Ions,
+    D_Ions,
+    W_Ions,
+    X_Ions,
+    Y_Ions,
+    Z_Ions,
+    Precursor,
+    Neutral_losses,
+    Abundant_Immonium_Ions
+  };
+
+  // vector of all enum entries for iteration
+  const std::vector<Checkbox> check_box_names {Checkbox::A_Ions, Checkbox::A_b_Ions, Checkbox::B_Ions, Checkbox::C_Ions,    Checkbox::D_Ions,         Checkbox::W_Ions,
+                                               Checkbox::X_Ions, Checkbox::Y_Ions,   Checkbox::Z_Ions, Checkbox::Precursor, Checkbox::Neutral_losses, Checkbox::Abundant_Immonium_Ions};
 
   /**
       @brief Dialog which allows to enter an AA sequence and generates a theoretical spectrum for it.
@@ -63,7 +89,7 @@ namespace OpenMS
 
   public:
     
-    friend class TestTSGDialog;
+    friend class TestTSGDialog; // to test the GUI expressed in the private member ui
 
     /// Constructor
     TheoreticalSpectrumGenerationDialog();
@@ -81,6 +107,7 @@ protected slots:
     void modelChanged();
     void calculateSpectrum();
     void seqTypeSwitch();
+    void listWidgetItemClicked(QListWidgetItem* item);
 
 protected:
 
