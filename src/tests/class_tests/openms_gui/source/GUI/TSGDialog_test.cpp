@@ -78,9 +78,30 @@ void clickDropDown(int row, QComboBox* comboBox)
   QTest::qWait(DELAY); // waits 1 second
 }
 
+template<typename T>
+void TestTSGDialog::testSpinBox_(T* box, string str_value)
+{
+  if (box == nullptr) return;
+  
+  double value = stod(str_value);
+
+  // skip illegal input
+  if (!(value >= box->minimum() && value <= box->maximum())) return;
+  
+  box->clear();
+
+  // simulate keyboard input
+  QTest::keyClicks(box, QString::fromStdString(str_value));
+  QTest::qWait(DELAY);
+
+  // verify change
+  QVERIFY(value == double(box->value())); // double cast needed because of template
+}
+
 void TestTSGDialog::clickIsotopeModel_()
 {
   // QTest::mouseClick needs the exact position of the interactable part of the button
+  // If someone knows how to get this position, please adapt this code.
   UI->model_none->click();
   QTest::qWait(DELAY);
   QVERIFY(!(UI->max_iso_spinbox->isEnabled()));
@@ -94,6 +115,7 @@ void TestTSGDialog::clickIsotopeModel_()
   QVERIFY(UI->max_iso_label->isEnabled());
   QVERIFY(!(UI->max_iso_prob_spinbox->isEnabled()));
   QVERIFY(!(UI->max_iso_prob_label->isEnabled()));
+  testSpinBox_(UI->max_iso_spinbox);
 
   UI->model_fine->click();
   QTest::qWait(DELAY);
@@ -101,6 +123,7 @@ void TestTSGDialog::clickIsotopeModel_()
   QVERIFY(!(UI->max_iso_label->isEnabled()));
   QVERIFY(UI->max_iso_prob_spinbox->isEnabled());
   QVERIFY(UI->max_iso_prob_label->isEnabled());
+  testSpinBox_(UI->max_iso_prob_spinbox);
 }
 
 void TestTSGDialog::testConstruction()
@@ -152,26 +175,30 @@ void TestTSGDialog::testSpectrumCalculation()
 
 void TestTSGDialog::testGui()
 {
-  const map<Checkbox, QDoubleSpinBox*> checkbox_to_intensity_ {{Checkbox::A_Ions, UI->a_intensity},
-                                                               {Checkbox::A_b_Ions, UI->a_b_intensity},
-                                                               {Checkbox::B_Ions, UI->b_intensity},
-                                                               {Checkbox::C_Ions, UI->c_intensity},
-                                                               {Checkbox::D_Ions, UI->d_intensity},
-                                                               {Checkbox::W_Ions, UI->w_intensity},
-                                                               {Checkbox::X_Ions, UI->x_intensity},
-                                                               {Checkbox::Y_Ions, UI->y_intensity},
-                                                               {Checkbox::Z_Ions, UI->z_intensity},
-                                                               {Checkbox::Precursor, nullptr},
-                                                               {Checkbox::Neutral_losses, nullptr}, // UI->rel_loss_intensity is a normal spin box
-                                                               {Checkbox::Abundant_Immonium_Ions, nullptr}};
+  const map<Checkbox, QDoubleSpinBox*> checkbox_to_intensity_ {
+    {Checkbox::A_Ions, UI->a_intensity},
+    {Checkbox::A_b_Ions, UI->a_b_intensity},
+    {Checkbox::B_Ions, UI->b_intensity},
+    {Checkbox::C_Ions, UI->c_intensity},
+    {Checkbox::D_Ions, UI->d_intensity},
+    {Checkbox::W_Ions, UI->w_intensity},
+    {Checkbox::X_Ions, UI->x_intensity},
+    {Checkbox::Y_Ions, UI->y_intensity},
+    {Checkbox::Z_Ions, UI->z_intensity},
+    {Checkbox::Precursor, nullptr},
+    {Checkbox::Neutral_losses, nullptr}, // UI->rel_loss_intensity is a normal spin box
+    {Checkbox::Abundant_Immonium_Ions, nullptr}};
 
-  dialog_.show();
+  //dialog_.show();
 
   //////////////////////////////////////////////////////
   //                     PEPTIDE                      //
   //////////////////////////////////////////////////////
   UI->seq_type->setCurrentText("Peptide");
   QTest::qWait(DELAY);
+
+  // charge
+  testSpinBox_(UI->charge_spinbox);
 
   // isotope model
   QVERIFY2(!UI->isotope_model->isHidden(), "Isotope model hidden for 'Peptide' setting.");
@@ -203,13 +230,7 @@ void TestTSGDialog::testGui()
       QVERIFY(prev != item->checkState());
 
       if (spin == nullptr) continue;
-
-      // simulate keyboard input
-      spin->clear();
-      QTest::keyClicks(spin, "2");
-      QTest::qWait(DELAY);
-
-      QVERIFY(2.0 == spin->value());
+      testSpinBox_(spin);
     }
     else
     {
@@ -230,6 +251,9 @@ void TestTSGDialog::testGui()
   //////////////////////////////////////////////////////
   UI->seq_type->setCurrentText("RNA");
   QTest::qWait(DELAY);
+
+  // charge
+  testSpinBox_(UI->charge_spinbox);
 
   // isotope model
   QVERIFY2(UI->isotope_model->isHidden(), "Isotope model not hidden for 'Peptide' setting.");
@@ -263,15 +287,8 @@ void TestTSGDialog::testGui()
       // verfiy the check state changed
       QVERIFY(prev != item->checkState());
 
-      if (spin == nullptr)
-        continue;
-
-      // simulate keyboard input
-      spin->clear();
-      QTest::keyClicks(spin, "2");
-      QTest::qWait(DELAY);
-
-      QVERIFY(2.0 == spin->value());
+      if (spin == nullptr) continue;
+      testSpinBox_(spin);
     }
     else
     {
@@ -284,7 +301,6 @@ void TestTSGDialog::testGui()
   // check relative loss intensity manually
   QVERIFY(UI->rel_loss_intensity->isHidden());
   QVERIFY(UI->rel_loss_label->isHidden());
-
 }
 
 // expands to a simple main() method that runs all the private slots (test functions)

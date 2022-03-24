@@ -64,6 +64,9 @@ namespace OpenMS
     private:
       TheoreticalSpectrumGenerationDialog dialog_;
 
+      template<typename T> // template for QSpinBox and QDoubleSpinBox
+      void testSpinBox_(T* box, std::string str_value = "2");
+
       void clickIsotopeModel_();
   };
 }
