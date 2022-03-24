@@ -189,8 +189,8 @@ namespace OpenMS
     svm.getSVCProbabilities(prediction_data, detectabilities, labels);
 
     // clean up when finished with prediction
-    LibSVMEncoder::destroyProblem(prediction_data);
-    LibSVMEncoder::destroyProblem(training_data);
+    delete prediction_data;
+    delete training_data;
   }
 
   void DetectabilitySimulation::svmFilter_(SimTypes::FeatureMapSim& features)

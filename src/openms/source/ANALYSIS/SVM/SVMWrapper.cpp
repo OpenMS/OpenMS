@@ -581,16 +581,15 @@ namespace OpenMS
     vector<Size> indices;
     vector<Size>::iterator indices_iterator;
 
-    // Note: delete the structures, but keep the nodes
-    for (Size k = 0; k < problems.size(); k++)
+    for (Size i = 0; i < problems.size(); ++i)
     {
-      LibSVMEncoder::destroyProblem(problems[k], false);
+      delete problems[i];
     }
     problems.clear();
 
     if (number == 1)
     {
-      problems.push_back(problem); // ouch, terrible idea? who owns this now?
+      problems.push_back(problem);
     }
     else if (number > 1)
     {
@@ -643,7 +642,7 @@ namespace OpenMS
   }
 
   void SVMWrapper::createRandomPartitions(const SVMData& problem,
-                                          Size number,
+                                          Size                                  number,
                                           vector<SVMData>& problems)
   {
     vector<Size> indices;
@@ -913,13 +912,9 @@ namespace OpenMS
       }
       double max_performance = 0;
       if (is_labeled)
-      {
         createRandomPartitions(problem_l, number_of_partitions, partitions_l);
-      }
       else
-      {
         createRandomPartitions(problem_ul, number_of_partitions, partitions_ul);
-      }
 
       counter = 0;
       found = true;
@@ -1089,7 +1084,6 @@ namespace OpenMS
           delete training_data_ul[k]; // delete individual objects
         }
         delete[] training_data_ul; // delete array of pointers
-        SVMWrapper().createRandomPartitions(problem_ul, 1, partitions_ul); // cleanup ... 
       }
 
       // not essential...

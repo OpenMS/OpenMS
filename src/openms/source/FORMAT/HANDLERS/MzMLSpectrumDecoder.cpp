@@ -600,14 +600,7 @@ namespace OpenMS
     for (Size i = 0; i < li->getLength(); i++)
     {
       // Will append one single BinaryData object to data
-      try
-      {
-        handleBinaryDataArray_(li->item(i), data);
-      } catch (OpenMS::Exception::ParseError &err) 
-      {
-        delete parser;
-        throw err;
-      }
+      handleBinaryDataArray_(li->item(i), data);
       // Set the size correctly (otherwise MzMLHandlerHelper complains).
       data.back().size = default_array_length;
     }

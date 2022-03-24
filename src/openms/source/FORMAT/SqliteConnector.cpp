@@ -49,11 +49,7 @@ namespace OpenMS
   }
   SqliteConnector::~SqliteConnector()
   {
-    int rc = sqlite3_close_v2(db_);
-    if (rc != SQLITE_OK)
-    {
-      std::cout << " Encountered error in ~SqliteConnector: " << rc << std::endl;
-    }
+    sqlite3_close(db_);
   }
 
   void SqliteConnector::openDatabase_(const String& filename, const SqlOpenMode mode)
