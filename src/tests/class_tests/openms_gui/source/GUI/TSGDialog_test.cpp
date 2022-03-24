@@ -41,30 +41,9 @@
 using namespace OpenMS;
 using namespace std;
 
-constexpr int DELAY {500};
-
-// Sadly this doesn't work and yields a seq fault, when trying to access the dropDownList.
-// That's why the spinbox is set manually and therefore not actually tested here.
-// I was unable to fix this, but maybe someone else will get this to work..
-// sources:
-// https://gist.github.com/peteristhegreat/cbd8eaa0e565d0b82dbfb5c7fdc61c8d
-// https://vicrucann.github.io/tutorials/qttest-signals-qtreewidget/
-// 
-// #include <qcombobox.h>
-// #include <qlistview.h>
-// 
-//void TestTSGDialog::clickDropDown_(int row, QComboBox* comboBox)
-//{
-//  QListView* dropDownList = comboBox->findChild<QListView*>();
-//  QModelIndex foundIndex {dropDownList->model()->index(row, 0)};
-//
-//  QRect foundDropDownItem = dropDownList->visualRect(foundIndex);
-//  QPoint foundDropDownItemPosition = foundDropDownItem.center();
-//
-//  QWidget* activeWidget = dropDownList->viewport();
-//  QTest::mouseClick(activeWidget, Qt::LeftButton, Qt::NoModifier, foundDropDownItemPosition);
-//  QTest::qWait(DELAY);
-//}
+// delay in ms
+// higher values together with 'dialog_.show();' can be usefull for debugging this test
+constexpr int DELAY {5};
 
 template<typename T>
 void TestTSGDialog::testSpinBox_(T* box, string str_value)
@@ -211,7 +190,6 @@ void TestTSGDialog::testConstruction()
 
 void TestTSGDialog::testGui()
 {
-  //dialog_.show();
   //////////////////////////////////////////////////////
   //                     PEPTIDE                      //
   //////////////////////////////////////////////////////
@@ -344,7 +322,7 @@ void TestTSGDialog::testSpectrumCalculation()
 {
   // Spectrum generation settings don't really matter, since the dialog test shouldn't test the generators.
   // Hence, it is only checked if a spectrum was produced.
-
+  
   UI->seq_type->setCurrentText("Peptide");
   QTest::qWait(DELAY);
   UI->seq_input->setText("PEPTIDE");
@@ -364,3 +342,26 @@ void TestTSGDialog::testSpectrumCalculation()
 
 // expands to a simple main() method that runs all the private slots (test functions)
 QTEST_MAIN(TestTSGDialog)
+
+// Sadly this doesn't work and yields a seq fault, when trying to access the dropDownList.
+// That's why the spinbox is set manually and therefore not actually tested here.
+// I was unable to fix this, but maybe someone else will get this to work..
+// sources:
+// https://gist.github.com/peteristhegreat/cbd8eaa0e565d0b82dbfb5c7fdc61c8d
+// https://vicrucann.github.io/tutorials/qttest-signals-qtreewidget/
+//
+// #include <qcombobox.h>
+// #include <qlistview.h>
+//
+// void TestTSGDialog::clickDropDown_(int row, QComboBox* comboBox)
+//{
+//  QListView* dropDownList = comboBox->findChild<QListView*>();
+//  QModelIndex foundIndex {dropDownList->model()->index(row, 0)};
+//
+//  QRect foundDropDownItem = dropDownList->visualRect(foundIndex);
+//  QPoint foundDropDownItemPosition = foundDropDownItem.center();
+//
+//  QWidget* activeWidget = dropDownList->viewport();
+//  QTest::mouseClick(activeWidget, Qt::LeftButton, Qt::NoModifier, foundDropDownItemPosition);
+//  QTest::qWait(DELAY);
+//}
