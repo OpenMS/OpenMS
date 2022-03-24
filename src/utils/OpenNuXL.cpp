@@ -1627,8 +1627,8 @@ static void scoreXLIons_(
                          float &plss_modds,
                          float &plss_pc_MIC,
                          float &plss_im_MIC,
-                         size_t &n_theoretical_peaks/*,
-                         bool is_decoy*/)
+                         size_t &n_theoretical_peaks,
+                         const PeakSpectrum &all_possible_marker_ion_sub_score_spectrum_z1)
   {
     OPENMS_PRECONDITION(!partial_loss_template_z1_b_ions.empty(), "Empty partial loss spectrum provided.");
     OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_b_ions.size(), "Sum array needs to be of same size as b-ion array");
@@ -1637,14 +1637,14 @@ static void scoreXLIons_(
     const SignedSize& exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
     //const double exp_pc_mz = exp_spectrum.getPrecursors()[0].getMZ();
 
-    if (!marker_ions_sub_score_spectrum_z1.empty())
+    if (!all_possible_marker_ion_sub_score_spectrum_z1.empty())
     {
       auto const & r = MorpheusScore::compute(fragment_mass_tolerance * 2.0,
                                              fragment_mass_tolerance_unit_ppm,
                                              exp_spectrum,
                                              exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
-                                             marker_ions_sub_score_spectrum_z1,
-                                             marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX]);
+                                             all_possible_marker_ion_sub_score_spectrum_z1,
+                                             all_possible_marker_ion_sub_score_spectrum_z1.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX]);
       marker_ions_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
 
       // count marker ions
@@ -4487,6 +4487,17 @@ static void scoreXLIons_(
 
     // calculate all feasible fragment adducts from all possible precursor adducts
     NuXLParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = NuXLParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl_, true, isRNA);
+    
+    std::vector<NuXLFragmentAdductDefinition> all_possible_marker_ion_masses = NuXLParameterParsing::getMarkerIonsMassSet(all_feasible_fragment_adducts);
+    PeakSpectrum all_possible_marker_ion_sub_score_spectrum_z1;   
+    // add shifted marker ions of charge 1
+    all_possible_marker_ion_sub_score_spectrum_z1.getStringDataArrays().resize(1); // annotation
+    all_possible_marker_ion_sub_score_spectrum_z1.getIntegerDataArrays().resize(1); // annotation                   
+    NuXLFragmentIonGenerator::addMS2MarkerIons(
+      all_possible_marker_ion_masses,
+      all_possible_marker_ion_sub_score_spectrum_z1,
+      all_possible_marker_ion_sub_score_spectrum_z1.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
+      all_possible_marker_ion_sub_score_spectrum_z1.getStringDataArrays()[0]);
 
     NuXLFDR fdr(report_top_hits);
 
@@ -4956,8 +4967,18 @@ static void scoreXLIons_(
                   // get NA fragment shifts in the MS2 (based on the precursor RNA/DNA)
                   auto const & all_NA_adducts = all_feasible_fragment_adducts.at(precursor_na_adduct);
                   const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_NA_adducts.feasible_adducts;
+
                   // get marker ions
                   const vector<NuXLFragmentAdductDefinition>& marker_ions = all_NA_adducts.marker_ions;
+                  PeakSpectrum marker_ions_sub_score_spectrum_z1;                  
+                  // add shifted marker ions of charge 1
+                  marker_ions_sub_score_spectrum_z1.getStringDataArrays().resize(1); // annotation
+                  marker_ions_sub_score_spectrum_z1.getIntegerDataArrays().resize(1); // annotation                   
+                  NuXLFragmentIonGenerator::addMS2MarkerIons(
+                    marker_ions,
+                    marker_ions_sub_score_spectrum_z1,
+                    marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
+                    marker_ions_sub_score_spectrum_z1.getStringDataArrays()[0]);
 
                   //cout << "'" << precursor_na_adduct << "'" << endl;
                   //OPENMS_POSTCONDITION(!feasible_MS2_adducts.empty(),
@@ -4981,16 +5002,6 @@ static void scoreXLIons_(
                     assert(!partial_loss_modification.empty());
 
                     if (partial_loss_modification.empty()) OPENMS_LOG_ERROR << "Empty partial loss modification" << endl;
-
-                    PeakSpectrum marker_ions_sub_score_spectrum_z1;
-                    // add shifted marker ions of charge 1
-                    marker_ions_sub_score_spectrum_z1.getStringDataArrays().resize(1); // annotation
-                    marker_ions_sub_score_spectrum_z1.getIntegerDataArrays().resize(1); // annotation                   
-                    NuXLFragmentIonGenerator::addMS2MarkerIons(
-                      marker_ions,
-                      marker_ions_sub_score_spectrum_z1,
-                      marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
-                      marker_ions_sub_score_spectrum_z1.getStringDataArrays()[0]);
 
                     // nucleotide is associated with certain NA-related fragment losses?
                     vector<double> partial_loss_template_z1_bions, partial_loss_template_z1_yions;
@@ -5101,8 +5112,9 @@ static void scoreXLIons_(
                                   plss_modds,
                                   plss_pc_MIC,
                                   plss_im_MIC,
-                                  n_theoretical_peaks/*,
-                                  is_decoy*/);
+                                  n_theoretical_peaks,
+                                  all_possible_marker_ion_sub_score_spectrum_z1 // for better MIC calculation
+                                  );
 
                       const double total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC)) + plss_MIC + (plss_pc_MIC - floor(plss_pc_MIC)) + plss_im_MIC + marker_ions_sub_score;
 
@@ -5997,6 +6009,7 @@ static void scoreXLIons_(
     return EXECUTION_OK;
   }
 
+  // only used for fast scoring
   static void postScorePartialLossFragments_(const Size peptide_size,
                                   const PeakSpectrum &exp_spectrum,
                                   double fragment_mass_tolerance,

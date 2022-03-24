@@ -90,6 +90,9 @@ struct OPENMS_DLLAPI NuXLParameterParsing
   // Maps a precursor adduct (e.g.: "UU-H2O") to all chemically feasible fragment adducts.
   using PrecursorsToMS2Adducts = std::map<std::string, MS2AdductsOfSinglePrecursorAdduct>;
 
+  // @brief extract all marker ions into a vector and make it unique according to mass. (e.g., used for matching agains all possible marker ions for MIC calculation)
+  static std::vector<NuXLFragmentAdductDefinition> getMarkerIonsMassSet(const PrecursorsToMS2Adducts& pc2adducts);
+
   // @brief Calculate all chemically feasible fragment adducts for all possible precursor adducts
   // Same as getFeasibleFragmentAdducts but calculated from all precursor adducts
   static PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts(

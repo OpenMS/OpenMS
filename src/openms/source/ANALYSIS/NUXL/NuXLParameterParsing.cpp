@@ -39,11 +39,40 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <algorithm>
+
 using namespace std;
 
 namespace OpenMS
 {
-	
+
+// extract all possible marker ions and make them unique by mass
+std::vector<NuXLFragmentAdductDefinition> NuXLParameterParsing::getMarkerIonsMassSet(const NuXLParameterParsing::PrecursorsToMS2Adducts& pc2adducts)
+{  
+  std::vector<NuXLFragmentAdductDefinition> marker_ions_unique_by_mass;
+  for (const auto& p2a : pc2adducts)
+  { // for all precursor adducts (e.g.: "UU-H2O") to all chemically feasible fragment adducts
+    for (const NuXLFragmentAdductDefinition& f : p2a.second.marker_ions)
+    { // add all marker ions
+      marker_ions_unique_by_mass.push_back(f);
+    }
+  }
+  // NuXLFragmentAdductDefinition has formula, name and mass. 
+  // We are only interested in unique masses for spectra generation so we need to make the.
+
+  auto less_by_mass = [](const NuXLFragmentAdductDefinition & a, const NuXLFragmentAdductDefinition & b) -> bool
+    { 
+      return a.mass < b.mass; 
+    };
+
+  sort(marker_ions_unique_by_mass.begin(), marker_ions_unique_by_mass.end(), less_by_mass);
+  marker_ions_unique_by_mass.erase(
+    unique(marker_ions_unique_by_mass.begin(), marker_ions_unique_by_mass.end(), less_by_mass), 
+    marker_ions_unique_by_mass.end());
+
+  return marker_ions_unique_by_mass;
+}
+
 NuXLParameterParsing::PrecursorsToMS2Adducts
 NuXLParameterParsing::getAllFeasibleFragmentAdducts(
   const NuXLModificationMassesResult & precursor_adducts,
@@ -235,6 +264,9 @@ NuXLParameterParsing::getTargetNucleotideToFragmentAdducts(StringList fragment_a
   return nucleotide_to_fragment_adducts;
 }
 
+
+
+
 MS2AdductsOfSinglePrecursorAdduct
 NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
                                                   const String &exp_pc_formula,
@@ -329,14 +361,14 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
         ret.feasible_adducts.emplace_back(make_pair(nucleotide, faa));
       }
     }
-
-    // Create set of marker ions for all nucleotides contained in the precursor (including those that do not cross-link.)
+    
+    // Create set of marker ions for *all* nucleotides contained in the precursor adduct (including those that do not cross-link.)
     // Note: The non-cross-linked nt in the precursor adduct are more likely to produce the marker ions (=more fragile than the cross-linked nt).
     set<NuXLFragmentAdductDefinition> marker_ion_set;
     for (auto const & n2fa : nucleotide_to_fragment_adducts)
     {
       const char & nucleotide = n2fa.first; // the nucleotide without any associated loss
-      if (exp_pc_nucleotide_count.find(nucleotide) != exp_pc_nucleotide_count.end()) 
+      if (exp_pc_nucleotide_count.find(nucleotide) != exp_pc_nucleotide_count.end())
       { 
         marker_ion_set.insert(n2fa.second.begin(), n2fa.second.end()); 
       }
@@ -379,8 +411,8 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
         std::copy(fas.begin(), fas.end(), back_inserter(faa));
         ret.feasible_adducts.emplace_back(make_pair(nucleotide, faa));
 
-        // store feasible marker ions (in this case (monomer) we also restrict them on the nt on the precursor)
-        // Note that these peaks are likely missing or of very low intensity,
+        // We only have one nucleotide in the precursor adduct (the cross-linked one)
+        // Note: marker ions of the cross-linked nucleotide are often missing or of very low intensity
         std::copy(std::begin(fas), std::end(fas), std::back_inserter(ret.marker_ions));
       }
     }
