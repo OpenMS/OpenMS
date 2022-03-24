@@ -28,58 +28,35 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Maintainer: Axel Walter $
+// $Authors: Axel Walter $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
-namespace OpenSwath
+namespace OpenMS
 {
-  /**
-   * @brief Data structure to hold one SWATH map with information about upper /
-   * lower isolation window and whether the map is MS1 or MS2.
-   */
-  struct SwathMap
+  class OPENMS_DLLAPI IonIdentityMolecularNetworking
   {
-    OpenSwath::SpectrumAccessPtr sptr;
-    double lower;
-    double upper;
-    double center;
-    double imLower;
-    double imUpper;
-    bool ms1;
+    public:
+      /// Annotate ConsensusMap for ion identity molecular networking (IIMN) workflow by GNPS.
+      /// Adds meta values Constants::UserParams::IIMN_ROW_ID (unique index for each feature), Constants::UserParams::IIMN_ADDUCT_PARTNERS (related features row IDs)
+      /// and Constants::UserParams::IIMN_ANNOTATION_NETWORK_NUMBER (all related features with different adduct states) get the same network number).
+      /// This method requires the features annotated with the Constants::UserParams::IIMN_LINKED_GROUPS meta value.
+      ///  If at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN.
+      static void annotateConsensusMap(ConsensusMap& consensus_map);
 
-    SwathMap() :
-      lower(0.0),
-      upper(0.0),
-      center(0.0),
-      imLower(-1),
-      imUpper(-1),
-      ms1(false)
-    {}
+      /// Write feature quantification table (txt file) from a consensusXML file. Required for GNPS FBMN.
+      /// The table contains map information on the featureXML files from which the consensusXML file was generated as well as
+      /// a row for every consensus feature with information on rt, mz, intensity, width and quality. The same information is
+      /// added for each original feature in the consensus feature.
+      static void writeFeatureQuantificationTable(const ConsensusMap& consensus_map, const String& output_file);
 
-    SwathMap(double mz_start, double mz_end, double mz_center, bool is_ms1)
-      : lower(mz_start),
-        upper(mz_end),
-        center(mz_center),
-        ms1(is_ms1)
-    {}
-
-
-    SwathMap(double mz_start, double mz_end, double mz_center, double imLower, double imUpper, bool is_ms1)
-      : lower(mz_start),
-        upper(mz_end),
-        center(mz_center),
-	imLower(imLower),
-	imUpper(imUpper),
-        ms1(is_ms1)
-    {}
-
-
+      /// Write supplementary pair table (csv file) from a consensusXML file with edge annotations for connected features. Required for GNPS IIMN.
+      /// The table contains the columns "ID 1" (row ID of first feature), "ID 2" (row ID of second feature), "EdgeType" (MS1/2 annotation),
+      /// "Score" (the number of direct partners from both connected features) and "Annotation" (adducts and delta m/z between two connected features).
+      static void writeSupplementaryPairTable(const ConsensusMap& consensus_map, const String& output_file);
   };
-
-} //end Namespace OpenSwath
-
+} // closing namespace OpenMS
