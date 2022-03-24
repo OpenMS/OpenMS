@@ -33,31 +33,15 @@
 // --------------------------------------------------------------------------
 
 #include <TSGDialog_test.h>
-#include <ui_TheoreticalSpectrumGenerationDialog.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
-#include <qcombobox.h>
-#include <qlistview.h>
+#include <qpushbutton.h>
 
 using namespace OpenMS;
 using namespace std;
 
-constexpr int DELAY {1000};
-
-// does the checkbox exist for <'Peptide','RNA'>
-const map<Checkbox, pair<bool, bool>> intensity_ion_exists {
-  {Checkbox::A_Ions, {1, 1}},
-  {Checkbox::A_b_Ions, {0, 1}},
-  {Checkbox::B_Ions, {1, 1}},
-  {Checkbox::C_Ions, {1, 1}},
-  {Checkbox::D_Ions, {0, 1}},
-  {Checkbox::W_Ions, {0, 1}},
-  {Checkbox::X_Ions, {1, 1}},
-  {Checkbox::Y_Ions, {1, 1}},
-  {Checkbox::Z_Ions, {1, 1}},
-  {Checkbox::Precursor, {1, 1}},
-  {Checkbox::Neutral_losses, {1, 0}},
-  {Checkbox::Abundant_Immonium_Ions, {1, 0}}
-};
+constexpr int DELAY {500};
 
 // Sadly this doesn't work and yields a seq fault, when trying to access the dropDownList.
 // That's why the spinbox is set manually and therefore not actually tested here.
@@ -65,18 +49,22 @@ const map<Checkbox, pair<bool, bool>> intensity_ion_exists {
 // sources:
 // https://gist.github.com/peteristhegreat/cbd8eaa0e565d0b82dbfb5c7fdc61c8d
 // https://vicrucann.github.io/tutorials/qttest-signals-qtreewidget/
-void clickDropDown(int row, QComboBox* comboBox)
-{
-  QListView* dropDownList = comboBox->findChild<QListView*>();
-  QModelIndex foundIndex {dropDownList->model()->index(row, 0)};
-
-  QRect foundDropDownItem = dropDownList->visualRect(foundIndex);
-  QPoint foundDropDownItemPosition = foundDropDownItem.center();
-
-  QWidget* activeWidget = dropDownList->viewport();
-  QTest::mouseClick(activeWidget, Qt::LeftButton, Qt::NoModifier, foundDropDownItemPosition);
-  QTest::qWait(DELAY); // waits 1 second
-}
+// 
+// #include <qcombobox.h>
+// #include <qlistview.h>
+// 
+//void TestTSGDialog::clickDropDown_(int row, QComboBox* comboBox)
+//{
+//  QListView* dropDownList = comboBox->findChild<QListView*>();
+//  QModelIndex foundIndex {dropDownList->model()->index(row, 0)};
+//
+//  QRect foundDropDownItem = dropDownList->visualRect(foundIndex);
+//  QPoint foundDropDownItemPosition = foundDropDownItem.center();
+//
+//  QWidget* activeWidget = dropDownList->viewport();
+//  QTest::mouseClick(activeWidget, Qt::LeftButton, Qt::NoModifier, foundDropDownItemPosition);
+//  QTest::qWait(DELAY);
+//}
 
 template<typename T>
 void TestTSGDialog::testSpinBox_(T* box, string str_value)
@@ -98,7 +86,7 @@ void TestTSGDialog::testSpinBox_(T* box, string str_value)
   QVERIFY(value == double(box->value())); // double cast needed because of template
 }
 
-void TestTSGDialog::clickIsotopeModel_()
+void TestTSGDialog::testIsotopeModel_()
 {
   // QTest::mouseClick needs the exact position of the interactable part of the button
   // If someone knows how to get this position, please adapt this code.
@@ -124,6 +112,58 @@ void TestTSGDialog::clickIsotopeModel_()
   QVERIFY(UI->max_iso_prob_spinbox->isEnabled());
   QVERIFY(UI->max_iso_prob_label->isEnabled());
   testSpinBox_(UI->max_iso_prob_spinbox);
+}
+
+void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
+{
+  for (const Checkbox& c : check_box_names)
+  {
+    // get the item
+    QListWidgetItem* item = UI->list_widget->item(int(c));
+    QVERIFY(item);
+
+    // get intensity spin box corresponding to current check box
+    QDoubleSpinBox* spin = checkbox_to_intensity_.at(c);
+
+    bool ion_allowed;
+    if (peptide_input) ion_allowed = intensity_ion_exists.at(c).first;
+    else ion_allowed = intensity_ion_exists.at(c).second;
+
+    if (ion_allowed)
+    {
+      // check state before clicking
+      Qt::CheckState prev = item->checkState();
+
+      // get the rectangular coordinates of the item
+      QRect rect = UI->list_widget->visualItemRect(item);
+
+      // imitate the click on checkbox c
+      QTest::mouseClick(UI->list_widget->viewport(), Qt::LeftButton, 0, rect.center());
+      QTest::qWait(DELAY);
+
+      // verfiy the check state changed
+      QVERIFY(prev != item->checkState());
+
+      // test cooresponding spin box
+      if (spin == nullptr)
+        continue;
+      testSpinBox_(spin);
+    }
+    else
+    {
+      // if ion type isn't supported, check if the ion and its intensity are hidden
+      QVERIFY(item->isHidden());
+      if (spin == nullptr) continue;
+      QVERIFY(spin->isHidden());
+    }
+  }
+}
+
+void OpenMS::TestTSGDialog::testSequenceInput_(QString input)
+{
+  QTest::keyClicks(UI->seq_input, input);
+  String read_seq = dialog_.getSequence();
+  QVERIFY(read_seq == UI->seq_input->text());
 }
 
 void TestTSGDialog::testConstruction()
@@ -169,77 +209,28 @@ void TestTSGDialog::testConstruction()
   QVERIFY2(UI->intensities, "Intensity group box not created.");
 }
 
-void TestTSGDialog::testSpectrumCalculation()
-{
-}
-
 void TestTSGDialog::testGui()
 {
-  const map<Checkbox, QDoubleSpinBox*> checkbox_to_intensity_ {
-    {Checkbox::A_Ions, UI->a_intensity},
-    {Checkbox::A_b_Ions, UI->a_b_intensity},
-    {Checkbox::B_Ions, UI->b_intensity},
-    {Checkbox::C_Ions, UI->c_intensity},
-    {Checkbox::D_Ions, UI->d_intensity},
-    {Checkbox::W_Ions, UI->w_intensity},
-    {Checkbox::X_Ions, UI->x_intensity},
-    {Checkbox::Y_Ions, UI->y_intensity},
-    {Checkbox::Z_Ions, UI->z_intensity},
-    {Checkbox::Precursor, nullptr},
-    {Checkbox::Neutral_losses, nullptr}, // UI->rel_loss_intensity is a normal spin box
-    {Checkbox::Abundant_Immonium_Ions, nullptr}};
-
   //dialog_.show();
-
   //////////////////////////////////////////////////////
   //                     PEPTIDE                      //
   //////////////////////////////////////////////////////
   UI->seq_type->setCurrentText("Peptide");
   QTest::qWait(DELAY);
 
+  // sequence input
+  testSequenceInput_("PEPTIDE");
+
   // charge
   testSpinBox_(UI->charge_spinbox);
 
   // isotope model
   QVERIFY2(!UI->isotope_model->isHidden(), "Isotope model hidden for 'Peptide' setting.");
-  clickIsotopeModel_();
+  testIsotopeModel_();
 
   // ion types and intensities
-  for (const Checkbox& c : check_box_names)
-  {
-    // get the item
-    QListWidgetItem* item = UI->list_widget->item(int(c));
-    QVERIFY(item);
+  testIonsIntensities_(true);
 
-    // get intensity spin box corresponding to current check box
-    QDoubleSpinBox* spin = checkbox_to_intensity_.at(c);
-    
-    if(intensity_ion_exists.at(c).first)
-    {
-      // check state before clicking
-      Qt::CheckState prev = item->checkState();
-
-      // get the rectangular coordinates of the item
-      QRect rect = UI->list_widget->visualItemRect(item);
-
-      // imitate the click on checkbox c
-      QTest::mouseClick(UI->list_widget->viewport(), Qt::LeftButton, 0, rect.center());
-      QTest::qWait(DELAY);
-
-      // verfiy the check state changed
-      QVERIFY(prev != item->checkState());
-
-      if (spin == nullptr) continue;
-      testSpinBox_(spin);
-    }
-    else
-    {
-      // if ion type isn't supported, check if the ion and its intensity are hidden
-      QVERIFY(item->isHidden());
-      if (spin == nullptr) continue;
-      QVERIFY(spin->isHidden());
-    }
-  }
   // check relative loss intensity manually
   UI->rel_loss_intensity->clear();
   QTest::keyClicks(UI->rel_loss_intensity, "2");
@@ -252,6 +243,9 @@ void TestTSGDialog::testGui()
   UI->seq_type->setCurrentText("RNA");
   QTest::qWait(DELAY);
 
+  // sequence input
+  testSequenceInput_("ACGUGCA");
+
   // charge
   testSpinBox_(UI->charge_spinbox);
 
@@ -263,44 +257,109 @@ void TestTSGDialog::testGui()
   QVERIFY(UI->max_iso_prob_label->isHidden());
 
   // ion types and intensities
-  for (const Checkbox& c : check_box_names)
-  {
-    // get the item
-    QListWidgetItem* item = UI->list_widget->item(int(c));
-    QVERIFY(item);
-
-    // get intensity spin box corresponding to current check box
-    QDoubleSpinBox* spin = checkbox_to_intensity_.at(c);
-
-    if (intensity_ion_exists.at(c).second)
-    {
-      // check state before clicking
-      Qt::CheckState prev = item->checkState();
-
-      // get the rectangular coordinates of the item
-      QRect rect = UI->list_widget->visualItemRect(item);
-
-      // imitate the click on checkbox c
-      QTest::mouseClick(UI->list_widget->viewport(), Qt::LeftButton, 0, rect.center());
-      QTest::qWait(DELAY);
-
-      // verfiy the check state changed
-      QVERIFY(prev != item->checkState());
-
-      if (spin == nullptr) continue;
-      testSpinBox_(spin);
-    }
-    else
-    {
-      // if ion type isn't supported, check if the ion and its intensity are hidden
-      QVERIFY(item->isHidden());
-      if (spin == nullptr) continue;
-      QVERIFY(spin->isHidden());
-    }
-  }
+  testIonsIntensities_(false);
   // check relative loss intensity manually
   QVERIFY(UI->rel_loss_intensity->isHidden());
   QVERIFY(UI->rel_loss_label->isHidden());
+}
+
+void TestTSGDialog::testParameterImport()
+{
+  // set some parameters
+  UI->seq_type->setCurrentText("Peptide");
+  UI->charge_spinbox->setValue(3);
+  UI->model_coarse->click();
+  UI->max_iso_spinbox->setValue(5);
+  for (const Checkbox& c : check_box_names)
+  {
+    UI->list_widget->item(int(c))->setCheckState(Qt::CheckState::Checked); // just check all boxes
+
+    // get intensity spin box corresponding to current check box
+    QDoubleSpinBox* spin = checkbox_to_intensity_.at(c);
+    if (spin == nullptr) continue;
+
+    spin->setValue(1.23);
+  }
+  UI->rel_loss_intensity->setValue(16);
+
+  // get the parameters from the dialog
+  Param p = dialog_.getParam();
+
+  // check if the returned parameters are correct
+  QVERIFY2(int(p.getValue("charge")) == 3, "Parameter 'charge' wasn't set correctly.");
+  QVERIFY2(string(p.getValue("isotope_model")) == "coarse", "Parameter 'isotope_model' wasn't set correctly. Expected 'coarse'.");
+  QVERIFY2(int(p.getValue("max_isotope")) == 5, "Parameter 'max_isotope' wasn't set correctly.");
+  QVERIFY2(string(p.getValue("add_a_ions")) == "true", "Parameter 'add_a_ions' wasn't set correctly.");
+  QVERIFY2(double(p.getValue("a_intensity")) == 1.23, "Parameter 'a_intensity' wasn't set correctly.");
+
+  QVERIFY2(string(p.getValue("add_b_ions")) == "true", "Parameter 'add_b_ions' wasn't set correctly.");
+  QVERIFY2(double(p.getValue("b_intensity")) == 1.23, "Parameter 'b_intensity' wasn't set correctly.");
+
+  QVERIFY2(string(p.getValue("add_c_ions")) == "true", "Parameter 'add_c_ions' wasn't set correctly.");
+  QVERIFY2(double(p.getValue("c_intensity")) == 1.23, "Parameter 'c_intensity' wasn't set correctly.");
+
+  QVERIFY2(string(p.getValue("add_x_ions")) == "true", "Parameter 'add_x_ions' wasn't set correctly.");
+  QVERIFY2(double(p.getValue("x_intensity")) == 1.23, "Parameter 'x_intensity' wasn't set correctly.");
+
+  QVERIFY2(string(p.getValue("add_y_ions")) == "true", "Parameter 'add_x_ions' wasn't set correctly.");
+  QVERIFY2(double(p.getValue("y_intensity")) == 1.23, "Parameter 'x_intensity' wasn't set correctly.");
+
+  QVERIFY2(string(p.getValue("add_z_ions")) == "true", "Parameter 'add_z_ions' wasn't set correctly.");
+  QVERIFY2(double(p.getValue("z_intensity")) == 1.23, "Parameter 'z_intensity' wasn't set correctly.");
+
+  QVERIFY2(string(p.getValue("add_losses")) == "true", "Parameter 'add_losses' wasn't set correctly.");
+  QVERIFY2(double(p.getValue("relative_loss_intensity")) == 0.16, "Parameter 'relative_loss_intensity' wasn't set correctly.");
+
+  QVERIFY2(string(p.getValue("add_abundant_immonium_ions")) == "true", "Parameter 'add_a_ions' wasn't set correctly.");
+  QVERIFY2(string(p.getValue("add_precursor_peaks")) == "true", "Parameter 'add_precursor_peaks' wasn't set correctly.");
+
+  // try the other isotope models
+  UI->model_none->click();
+  p.clear();
+  p = dialog_.getParam();
+  QVERIFY2(string(p.getValue("isotope_model")) == "none", "Parameter 'isotope_model' wasn't set correctly. Expected 'none'.");
+
+  UI->model_fine->click();
+  UI->max_iso_prob_spinbox->setValue(16);
+  p.clear();
+  p = dialog_.getParam();
+  QVERIFY2(string(p.getValue("isotope_model")) == "fine", "Parameter 'isotope_model' wasn't set correctly. Expected 'fine'.");
+  QVERIFY2(double(p.getValue("max_isotope_probability")) == 0.16, "Parameter 'max_isotope_probability' wasn't set correctly.");
+
+  // check remaining ions for RNA input
+  UI->seq_type->setCurrentText("RNA");
+  p.clear();
+  p = dialog_.getParam();
+  QVERIFY2(string(p.getValue("add_a-B_ions")) == "true", "Parameter 'add_a-B_ions' wasn't set correctly.");
+  QVERIFY2(double(p.getValue("a-B_intensity")) == 1.23, "Parameter 'a-B_intensity' wasn't set correctly.");
+
+  QVERIFY2(string(p.getValue("add_d_ions")) == "true", "Parameter 'add_d_ions' wasn't set correctly.");
+  QVERIFY2(double(p.getValue("d_intensity")) == 1.23, "Parameter 'd_intensity' wasn't set correctly.");
+
+  QVERIFY2(string(p.getValue("add_w_ions")) == "true", "Parameter 'add_w_ions' wasn't set correctly.");
+  QVERIFY2(double(p.getValue("w_intensity")) == 1.23, "Parameter 'w_intensity' wasn't set correctly.");
+}
+
+void TestTSGDialog::testSpectrumCalculation()
+{
+  // Spectrum generation settings don't really matter, since the dialog test shouldn't test the generators.
+  // Hence, it is only checked if a spectrum was produced.
+
+  UI->seq_type->setCurrentText("Peptide");
+  QTest::qWait(DELAY);
+  UI->seq_input->setText("PEPTIDE");
+  QTest::qWait(DELAY);
+  QTest::mouseClick(UI->button_box->button(QDialogButtonBox::Ok), Qt::LeftButton);
+  MSSpectrum pep_spec = dialog_.getSpectrum();
+  QVERIFY2(!pep_spec.empty(), "Peptide input didn't produce a spectrum.");
+  
+  UI->seq_type->setCurrentText("RNA");
+  QTest::qWait(DELAY);
+  UI->seq_input->setText("AGUCCG");
+  QTest::qWait(DELAY);
+  QTest::mouseClick(UI->button_box->button(QDialogButtonBox::Ok), Qt::LeftButton);
+  MSSpectrum rna_spec = dialog_.getSpectrum();
+  QVERIFY2(!rna_spec.empty(), "RNA input didn't produce a spectrum.");
 }
 
 // expands to a simple main() method that runs all the private slots (test functions)

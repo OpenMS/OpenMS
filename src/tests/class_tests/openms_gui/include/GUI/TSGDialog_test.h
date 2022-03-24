@@ -37,6 +37,7 @@
 #include <qspinbox.h>
 
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
+#include <ui_TheoreticalSpectrumGenerationDialog.h>
 
 #define UI dialog_.ui_
 
@@ -59,14 +60,52 @@ namespace OpenMS
       
       void testGui();
 
+      void testParameterImport();
+
       void testSpectrumCalculation();
 
     private:
-      TheoreticalSpectrumGenerationDialog dialog_;
-
       template<typename T> // template for QSpinBox and QDoubleSpinBox
       void testSpinBox_(T* box, std::string str_value = "2");
 
-      void clickIsotopeModel_();
+      void testIonsIntensities_(bool peptide_input);
+
+      void testSequenceInput_(QString input);
+
+      void testIsotopeModel_();
+
+      TheoreticalSpectrumGenerationDialog dialog_;
+
+      // for each check box map its intensity spin box
+      const std::map<Checkbox, QDoubleSpinBox*> checkbox_to_intensity_ {
+        {Checkbox::A_Ions, UI->a_intensity},
+        {Checkbox::A_b_Ions, UI->a_b_intensity},
+        {Checkbox::B_Ions, UI->b_intensity},
+        {Checkbox::C_Ions, UI->c_intensity},
+        {Checkbox::D_Ions, UI->d_intensity},
+        {Checkbox::W_Ions, UI->w_intensity},
+        {Checkbox::X_Ions, UI->x_intensity},
+        {Checkbox::Y_Ions, UI->y_intensity},
+        {Checkbox::Z_Ions, UI->z_intensity},
+        {Checkbox::Precursor, nullptr},
+        {Checkbox::Neutral_losses, nullptr}, // UI->rel_loss_intensity is a normal spin box
+        {Checkbox::Abundant_Immonium_Ions, nullptr}
+      };
+
+      // is the check box enabled for <'Peptide','RNA'>
+      const std::map<Checkbox, std::pair<bool, bool>> intensity_ion_exists {
+        {Checkbox::A_Ions, {1, 1}},
+        {Checkbox::A_b_Ions, {0, 1}},
+        {Checkbox::B_Ions, {1, 1}},
+        {Checkbox::C_Ions, {1, 1}},
+        {Checkbox::D_Ions, {0, 1}},
+        {Checkbox::W_Ions, {0, 1}},
+        {Checkbox::X_Ions, {1, 1}},
+        {Checkbox::Y_Ions, {1, 1}},
+        {Checkbox::Z_Ions, {1, 1}},
+        {Checkbox::Precursor, {1, 1}},
+        {Checkbox::Neutral_losses, {1, 0}},
+        {Checkbox::Abundant_Immonium_Ions, {1, 0}}
+       };
   };
 }
