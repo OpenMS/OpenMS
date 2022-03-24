@@ -663,6 +663,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     }
     else
     {
+      OPENMS_LOG_WARN << "Can not store features to " << filename << ". Unknown file extension" << endl;
       return false;
     }
 

@@ -492,9 +492,9 @@ namespace OpenMS
     std::vector<AccurateMassSearchResult> results_part;
 
     bool use_feature_adducts = param_.getValue("use_feature_adducts").toString() == "true";
-    if (use_feature_adducts && feature.metaValueExists("dc_charge_adducts"))
+    if (use_feature_adducts && feature.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
     {
-      queryByMZ(feature.getMZ(), feature.getCharge(), ion_mode, results_part, EmpiricalFormula(feature.getMetaValue("dc_charge_adducts")));
+      queryByMZ(feature.getMZ(), feature.getCharge(), ion_mode, results_part, EmpiricalFormula(feature.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)));
     }
     else
     {

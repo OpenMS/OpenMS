@@ -89,6 +89,9 @@ public:
 
     const double& getRTShift() const;
     const String& getLabel() const;
+
+    // convert a ion string to adduct string with charge information (eg. ion_string = "Na1", charge = "1" --> "[M+Na]+")
+    String toAdductString(const String& ion_string, const Int& charge);
     //}
 
 private:
