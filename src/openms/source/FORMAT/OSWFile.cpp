@@ -307,6 +307,8 @@ namespace OpenMS
         swath_result.addProtein(OSWProtein(std::move(accession), id, {}));
         rc = Sql::nextRow(stmt, rc); // next row
       }
+
+      sqlite3_finalize(stmt);
     }
 
 

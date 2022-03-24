@@ -40,6 +40,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 namespace OpenMS
 {
@@ -134,7 +135,7 @@ protected:
     /// Threshold to decide if position is cleaved or missed (only for the model)
     double log_model_threshold_;
     /// Holds the cleavage model
-    Map<BindingSite_, CleavageModel_> model_data_;
+    std::map<BindingSite_, CleavageModel_> model_data_;
   };
 
 } // namespace OpenMS

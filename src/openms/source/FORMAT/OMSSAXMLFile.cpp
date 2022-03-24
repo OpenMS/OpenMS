@@ -155,7 +155,7 @@ namespace OpenMS
           </MSModHit_modtype>
         </MSModHit>
       */
-      if (mods_map_.has(actual_mod_type_.toInt()) && !mods_map_[actual_mod_type_.toInt()].empty())
+      if (mods_map_.find(actual_mod_type_.toInt()) != mods_map_.end() && !mods_map_[actual_mod_type_.toInt()].empty())
       {
         if (mods_map_[actual_mod_type_.toInt()].size() > 1)
         {
@@ -416,7 +416,7 @@ namespace OpenMS
     set<String> mod_names = mod_set.getVariableModificationNames();
     for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
     {
-      if (!mods_to_num_.has(*it))
+      if (!(mods_to_num_.find(*it) != mods_to_num_.end()))
       {
         mods_map_[omssa_mod_num].push_back(ModificationsDB::getInstance()->getModification(*it));
         mods_to_num_[*it] = omssa_mod_num;

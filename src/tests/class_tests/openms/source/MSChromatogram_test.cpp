@@ -32,6 +32,12 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic push
+// Ignore -Wpessimizing-move, becuase it's intentional
+#pragma clang diagnostic ignored "-Wpessimizing-move"
+#endif
+
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
@@ -898,7 +904,15 @@ START_SECTION((MSChromatogram& operator=(const MSChromatogram &&source)))
 
   //Assignment of empty object
   //normal assignment
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic push
+// Ignore -Wpessimizing-move, because we want to test the move assignment operator.
+#pragma clang diagnostic ignored "-Wpessimizing-move"
+#endif
   tmp2 = std::move(MSChromatogram());
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic pop
+#endif
   TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),0);
   TEST_EQUAL(tmp2.metaValueExists("label"), false)
   TEST_REAL_SIMILAR(tmp2.getMZ(), 0.0)
@@ -1125,5 +1139,6 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 END_TEST
 
-
-
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic pop
+#endif

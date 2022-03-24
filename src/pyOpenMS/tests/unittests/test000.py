@@ -368,9 +368,9 @@ def testFineIsotopePatternGenerator():
     water = pyopenms.EmpiricalFormula("H2O")
     mw = methanol + water
     iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-20, False, False))
-    assert len(iso_dist.getContainer()) == 56
+    assert len(iso_dist.getContainer()) == 56 # now 33 ?
     iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
-    assert len(iso_dist.getContainer()) == 84
+    assert len(iso_dist.getContainer()) == 88 # now 42
 
     c100 = pyopenms.EmpiricalFormula("C100")
     iso_dist = c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
@@ -5250,6 +5250,19 @@ def testElementDB():
     assert e2.getName() == "Oxygen"
     assert e2.getSymbol() == "O"
     assert e2.getIsotopeDistribution()
+
+    # assume we discovered a new element
+    e2 = edb.addElement(b"NewElement", b"NE", 300, {400 : 1.0}, {400 : 400.1}, False)
+    e2 = edb.getElement(pyopenms.String("NE"))
+    assert e2.getName() == "NewElement"
+
+    # replace oxygen
+    e2 = edb.addElement(b"Oxygen", b"O", 8, {16 : 0.7, 19 : 0.3}, {16 : 16.01, 19 : 19.01}, True)
+    e2 = edb.getElement(pyopenms.String("O"))
+    assert e2.getName() == "Oxygen"
+    assert e2.getIsotopeDistribution()
+    assert len(e2.getIsotopeDistribution().getContainer()) == 2
+    assert abs(e2.getIsotopeDistribution().getContainer()[1].getIntensity() - 0.3) < 1e-5
 
     # assert e == e2
 

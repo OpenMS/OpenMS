@@ -1243,7 +1243,7 @@ namespace OpenMS
           mytransition.ProteinName.push_back(prot.id);
           if (prot.hasCVTerm("MS:1000885"))
           {
-            mytransition.uniprot_id.push_back(prot.getCVTerms()["MS:1000885"][0].getValue().toString());
+            mytransition.uniprot_id.push_back(prot.getCVTerms().at("MS:1000885")[0].getValue().toString());
           }
         }
       }
@@ -1382,7 +1382,7 @@ namespace OpenMS
     mytransition.CE = -1;
     if (it->hasCVTerm("MS:1000045"))
     {
-      mytransition.CE = it->getCVTerms()["MS:1000045"][0].getValue().toString().toDouble();
+      mytransition.CE = it->getCVTerms().at("MS:1000045")[0].getValue().toString().toDouble();
     }
     mytransition.library_intensity = -1;
     if (it->getLibraryIntensity() > -100)
