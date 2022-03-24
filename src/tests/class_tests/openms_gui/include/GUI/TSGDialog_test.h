@@ -34,8 +34,11 @@
 
 #include <QtTest/QtTest>
 #include <QtGui>
+#include <qspinbox.h>
 
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
+
+#define UI dialog_.ui_
 
 namespace OpenMS
 {
