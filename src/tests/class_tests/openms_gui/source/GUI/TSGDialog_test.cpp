@@ -98,7 +98,7 @@ void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
   for (const Checkbox& c : check_box_names)
   {
     // get the item
-    QListWidgetItem* item = UI->list_widget->item(int(c));
+    QListWidgetItem* item = UI->ion_types->item(int(c));
     QVERIFY(item);
 
     // get intensity spin box corresponding to current check box
@@ -114,10 +114,10 @@ void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
       Qt::CheckState prev = item->checkState();
 
       // get the rectangular coordinates of the item
-      QRect rect = UI->list_widget->visualItemRect(item);
+      QRect rect = UI->ion_types->visualItemRect(item);
 
       // imitate the click on checkbox c
-      QTest::mouseClick(UI->list_widget->viewport(), Qt::LeftButton, 0, rect.center());
+      QTest::mouseClick(UI->ion_types->viewport(), Qt::LeftButton, 0, rect.center());
       QTest::qWait(DELAY);
 
       // verfiy the check state changed
@@ -153,7 +153,7 @@ void TestTSGDialog::testConstruction()
   QVERIFY2(UI->charge_spinbox, "Charge spin box not created.");
   QVERIFY2(UI->max_iso_spinbox, "Max. isotope model spin box not created.");
   QVERIFY2(UI->max_iso_prob_spinbox, "Max. isotope probability spin box not created.");
-  QVERIFY2(UI->list_widget, "Ion list widget not created.");
+  QVERIFY2(UI->ion_types, "Ion list widget not created.");
   QVERIFY2(UI->a_intensity, "A ion intensity spin box not created.");
   QVERIFY2(UI->a_b_intensity, "A-b ion intensity spin box not created.");
   QVERIFY2(UI->b_intensity, "B ion intensity spin box not created.");
@@ -164,7 +164,7 @@ void TestTSGDialog::testConstruction()
   QVERIFY2(UI->y_intensity, "Y ion intensity spin box not created.");
   QVERIFY2(UI->z_intensity, "Z ion intensity spin box not created.");
   QVERIFY2(UI->rel_loss_intensity, "Relative loss intensity spin box not created.");
-  QVERIFY2(UI->button_box, "Buttonbox not created.");
+  QVERIFY2(UI->dialog_buttons, "Buttonbox not created.");
 
   // labels
   QVERIFY2(UI->enter_seq_label, "'Enter sequence' label not created.");
@@ -250,7 +250,7 @@ void TestTSGDialog::testParameterImport()
   UI->max_iso_spinbox->setValue(5);
   for (const Checkbox& c : check_box_names)
   {
-    UI->list_widget->item(int(c))->setCheckState(Qt::CheckState::Checked); // just check all boxes
+    UI->ion_types->item(int(c))->setCheckState(Qt::CheckState::Checked); // just check all boxes
 
     // get intensity spin box corresponding to current check box
     QDoubleSpinBox* spin = checkbox_to_intensity_.at(c);
@@ -327,7 +327,7 @@ void TestTSGDialog::testSpectrumCalculation()
   QTest::qWait(DELAY);
   UI->seq_input->setText("PEPTIDE");
   QTest::qWait(DELAY);
-  QTest::mouseClick(UI->button_box->button(QDialogButtonBox::Ok), Qt::LeftButton);
+  QTest::mouseClick(UI->dialog_buttons->button(QDialogButtonBox::Ok), Qt::LeftButton);
   MSSpectrum pep_spec = dialog_.getSpectrum();
   QVERIFY2(!pep_spec.empty(), "Peptide input didn't produce a spectrum.");
   
@@ -335,7 +335,7 @@ void TestTSGDialog::testSpectrumCalculation()
   QTest::qWait(DELAY);
   UI->seq_input->setText("AGUCCG");
   QTest::qWait(DELAY);
-  QTest::mouseClick(UI->button_box->button(QDialogButtonBox::Ok), Qt::LeftButton);
+  QTest::mouseClick(UI->dialog_buttons->button(QDialogButtonBox::Ok), Qt::LeftButton);
   MSSpectrum rna_spec = dialog_.getSpectrum();
   QVERIFY2(!rna_spec.empty(), "RNA input didn't produce a spectrum.");
 }

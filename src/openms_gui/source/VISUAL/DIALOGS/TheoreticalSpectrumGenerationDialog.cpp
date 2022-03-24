@@ -71,7 +71,7 @@ namespace OpenMS
     ui_->setupUi(this);
     
     // if dialog is accepted, try generating a spectrum, only close dialog on success
-    connect(ui_->button_box, &QDialogButtonBox::accepted, this, &TheoreticalSpectrumGenerationDialog::calculateSpectrum);
+    connect(ui_->dialog_buttons, &QDialogButtonBox::accepted, this, &TheoreticalSpectrumGenerationDialog::calculateSpectrum);
 
     // signals for changing isotope model interface
     connect(ui_->model_none, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
@@ -79,7 +79,7 @@ namespace OpenMS
     connect(ui_->model_fine, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
 
     // for the list widget items are checked/unchecked if they are clicked on (disables clicking on the checkbox though ..)
-    connect(ui_->list_widget, &QListWidget::itemClicked, this, &TheoreticalSpectrumGenerationDialog::listWidgetItemClicked);
+    connect(ui_->ion_types, &QListWidget::itemClicked, this, &TheoreticalSpectrumGenerationDialog::listWidgetItemClicked);
 
     // don't add any isotopes by default and update interface
     ui_->model_none->setChecked(true);
@@ -97,10 +97,10 @@ namespace OpenMS
     {
       if (c == Checkbox::B_Ions || c == Checkbox::Y_Ions)
       {
-        ui_->list_widget->item(int(c))->setCheckState(Qt::Checked);
+        ui_->ion_types->item(int(c))->setCheckState(Qt::Checked);
         continue;
       }
-      ui_->list_widget->item(int(c))->setCheckState(Qt::Unchecked);
+      ui_->ion_types->item(int(c))->setCheckState(Qt::Unchecked);
     }
 
     // automatic layout
@@ -133,7 +133,7 @@ namespace OpenMS
       // for rna input skip peptide specific ions
       if (!peptide_input && (std::find(peptide_specific_ions.begin(), peptide_specific_ions.end(), c) != peptide_specific_ions.end())) continue;
 
-      bool status = (ui_->list_widget->item(int(c))->checkState() == Qt::Checked);
+      bool status = (ui_->ion_types->item(int(c))->checkState() == Qt::Checked);
       String status_str = status ? "true" : "false";
       p.setValue(checkbox_to_param.at(c).first, status_str, checkbox_to_param.at(c).second);
     }
@@ -296,11 +296,11 @@ namespace OpenMS
   {
     bool peptide_input = ui_->seq_type->currentText() == "Peptide";
 
-    QListWidgetItem* a_b = ui_->list_widget->item(int(Checkbox::A_b_Ions));
-    QListWidgetItem* d = ui_->list_widget->item(int(Checkbox::D_Ions));
-    QListWidgetItem* w = ui_->list_widget->item(int(Checkbox::W_Ions));
-    QListWidgetItem* losses = ui_->list_widget->item(int(Checkbox::Neutral_losses));
-    QListWidgetItem* abundant_i = ui_->list_widget->item(int(Checkbox::Abundant_Immonium_Ions));
+    QListWidgetItem* a_b = ui_->ion_types->item(int(Checkbox::A_b_Ions));
+    QListWidgetItem* d = ui_->ion_types->item(int(Checkbox::D_Ions));
+    QListWidgetItem* w = ui_->ion_types->item(int(Checkbox::W_Ions));
+    QListWidgetItem* losses = ui_->ion_types->item(int(Checkbox::Neutral_losses));
+    QListWidgetItem* abundant_i = ui_->ion_types->item(int(Checkbox::Abundant_Immonium_Ions));
 
     if (peptide_input)
     {

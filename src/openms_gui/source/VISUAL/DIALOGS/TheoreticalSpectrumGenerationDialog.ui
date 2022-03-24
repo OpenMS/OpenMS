@@ -278,7 +278,7 @@ Probability in %</string>
           </widget>
          </item>
          <item>
-          <widget class="QListWidget" name="list_widget">
+          <widget class="QListWidget" name="ion_types">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
              <horstretch>0</horstretch>
@@ -555,7 +555,7 @@ Probability in %</string>
     </layout>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="button_box">
+    <widget class="QDialogButtonBox" name="dialog_buttons">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -575,7 +575,7 @@ Probability in %</string>
  <resources/>
  <connections>
   <connection>
-   <sender>button_box</sender>
+   <sender>dialog_buttons</sender>
    <signal>rejected()</signal>
    <receiver>TheoreticalSpectrumGenerationDialogTemplate</receiver>
    <slot>reject()</slot>
