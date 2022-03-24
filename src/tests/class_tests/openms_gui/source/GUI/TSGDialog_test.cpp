@@ -67,7 +67,7 @@ void TestTSGDialog::testSpinBox_(T* box, string str_value)
 
 void TestTSGDialog::testIsotopeModel_()
 {
-  // QTest::mouseClick needs the exact position of the interactable part of the button
+  // QTest::mouseClick needs the exact position of the interactable part of the radio button
   // If someone knows how to get this position, please adapt this code.
   UI->model_none->click();
   QTest::qWait(DELAY);
@@ -340,11 +340,11 @@ void TestTSGDialog::testSpectrumCalculation()
   QVERIFY2(!rna_spec.empty(), "RNA input didn't produce a spectrum.");
 }
 
-// expands to a simple main() method that runs all the private slots (test functions)
+// expands to a simple main() method that runs all the private slots
 QTEST_MAIN(TestTSGDialog)
 
-// Sadly this doesn't work and yields a seq fault, when trying to access the dropDownList.
-// That's why the spinbox is set manually and therefore not actually tested here.
+// Sadly this doesn't work and yields a seq fault, when trying to access any member of the dropDownList.
+// That's why the combo box ('seq_type') is set manually and therefore not actually tested in this test.
 // I was unable to fix this, but maybe someone else will get this to work..
 // sources:
 // https://gist.github.com/peteristhegreat/cbd8eaa0e565d0b82dbfb5c7fdc61c8d
