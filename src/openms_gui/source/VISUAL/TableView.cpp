@@ -194,7 +194,13 @@ namespace OpenMS
 
   void TableView::hideColumns(const QStringList& header_names)
   {
+     /*
+       * Suppressing warning toSet() deprecated till Qt 5.14
+       */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     auto hset = header_names.toSet();
+#pragma GCC diagnostic pop
     // add actions which show/hide columns
     for (int i = 0; i != columnCount(); ++i)
     {
