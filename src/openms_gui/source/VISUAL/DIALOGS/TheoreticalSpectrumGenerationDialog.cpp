@@ -205,7 +205,7 @@ namespace OpenMS
   {
     bool peptide_input = ui_->seq_type->currentText() == "Peptide";
 
-    String seq_string(this->getSequence_());
+    String seq_string(this->getSequence());
     if (seq_string.empty())
     {
       QMessageBox::warning(this, "Error", QString("You must enter a ") + (peptide_input ? "peptide" : "RNA") + " sequence!");
