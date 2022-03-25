@@ -116,12 +116,12 @@ namespace OpenMS
     delete ui_;
   }
 
-  String TheoreticalSpectrumGenerationDialog::getSequence() const
+  const String TheoreticalSpectrumGenerationDialog::getSequence() const
   {
     return ui_->seq_input->text();
   }
 
-  Param TheoreticalSpectrumGenerationDialog::getParam() const
+  Param TheoreticalSpectrumGenerationDialog::getParam_() const
   {
     Param p;
 
@@ -205,7 +205,7 @@ namespace OpenMS
   {
     bool peptide_input = ui_->seq_type->currentText() == "Peptide";
 
-    String seq_string(this->getSequence());
+    String seq_string(this->getSequence_());
     if (seq_string.empty())
     {
       QMessageBox::warning(this, "Error", QString("You must enter a ") + (peptide_input ? "peptide" : "RNA") + " sequence!");
@@ -232,7 +232,7 @@ namespace OpenMS
       return;
     }
 
-    Param p = this->getParam();
+    Param p = this->getParam_();
     Int charge = p.getValue("charge");
     p.remove("charge"); // "charge" isn't a parameter of TheoreticalSpectrumGenerator
 

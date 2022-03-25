@@ -96,11 +96,9 @@ namespace OpenMS
     /// Destructor
     ~TheoreticalSpectrumGenerationDialog() override;
 
-    String getSequence() const;
-
-    Param getParam() const;
-
     const MSSpectrum& getSpectrum() const;
+
+    const String getSequence() const;
 
 protected slots:
 
@@ -112,6 +110,8 @@ protected slots:
 protected:
 
 private:
+    Param getParam_() const;
+
     Ui::TheoreticalSpectrumGenerationDialogTemplate* ui_;
 
     MSSpectrum spec_;

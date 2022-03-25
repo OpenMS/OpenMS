@@ -261,7 +261,7 @@ void TestTSGDialog::testParameterImport()
   UI->rel_loss_intensity->setValue(16);
 
   // get the parameters from the dialog
-  Param p = dialog_.getParam();
+  Param p = dialog_.getParam_();
 
   // check if the returned parameters are correct
   QVERIFY2(int(p.getValue("charge")) == 3, "Parameter 'charge' wasn't set correctly.");
@@ -294,20 +294,20 @@ void TestTSGDialog::testParameterImport()
   // try the other isotope models
   UI->model_none->click();
   p.clear();
-  p = dialog_.getParam();
+  p = dialog_.getParam_();
   QVERIFY2(string(p.getValue("isotope_model")) == "none", "Parameter 'isotope_model' wasn't set correctly. Expected 'none'.");
 
   UI->model_fine->click();
   UI->max_iso_prob_spinbox->setValue(16);
   p.clear();
-  p = dialog_.getParam();
+  p = dialog_.getParam_();
   QVERIFY2(string(p.getValue("isotope_model")) == "fine", "Parameter 'isotope_model' wasn't set correctly. Expected 'fine'.");
   QVERIFY2(double(p.getValue("max_isotope_probability")) == 0.16, "Parameter 'max_isotope_probability' wasn't set correctly.");
 
   // check remaining ions for RNA input
   UI->seq_type->setCurrentText("RNA");
   p.clear();
-  p = dialog_.getParam();
+  p = dialog_.getParam_();
   QVERIFY2(string(p.getValue("add_a-B_ions")) == "true", "Parameter 'add_a-B_ions' wasn't set correctly.");
   QVERIFY2(double(p.getValue("a-B_intensity")) == 1.23, "Parameter 'a-B_intensity' wasn't set correctly.");
 
