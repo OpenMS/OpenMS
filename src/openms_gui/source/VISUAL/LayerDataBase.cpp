@@ -268,6 +268,9 @@ namespace OpenMS
     // copy user annotations to fragment annotation vector
     const Annotations1DContainer& las = getCurrentAnnotations();
 
+
+    const vector<PeptideHit::PeakAnnotation>& old_fas = hit.getPeakAnnotations();
+
     // initialize with an empty vector
     vector<PeptideHit::PeakAnnotation> fas;
 
@@ -283,8 +286,20 @@ namespace OpenMS
       {
         continue;
       }
-      fas.push_back(pa->toPeakAnnotation());
-      annotations_changed = true;
+      
+      auto fa = pa->toPeakAnnotation();
+
+      // check if peptide hit alread contains the annotation 
+      // Note: we only match by m/z and label. Intensity is ignored to prevent updates from switching 
+      // between relative and absolute mode change the annotation in unpredictable ways.
+      auto it = std::find_if(old_fas.begin(), old_fas.end(),
+       [&fa](const PeptideHit::PeakAnnotation& old_fa) { return std::abs(old_fa.mz - fa.mz) < 0.0001 && old_fa.annotation == fa.annotation ;});
+
+      if (it == old_fas.end())
+      {
+        fas.push_back(fa);
+        annotations_changed = true;
+      }      
     }
 
     if (annotations_changed)
