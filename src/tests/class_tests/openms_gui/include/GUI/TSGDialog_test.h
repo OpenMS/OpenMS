@@ -76,36 +76,42 @@ namespace OpenMS
 
       TheoreticalSpectrumGenerationDialog dialog_;
 
-      // for each check box map its intensity spin box
-      const std::map<Checkbox, QDoubleSpinBox*> checkbox_to_intensity_ {
-        {Checkbox::A_Ions, UI->a_intensity},
-        {Checkbox::A_b_Ions, UI->a_b_intensity},
-        {Checkbox::B_Ions, UI->b_intensity},
-        {Checkbox::C_Ions, UI->c_intensity},
-        {Checkbox::D_Ions, UI->d_intensity},
-        {Checkbox::W_Ions, UI->w_intensity},
-        {Checkbox::X_Ions, UI->x_intensity},
-        {Checkbox::Y_Ions, UI->y_intensity},
-        {Checkbox::Z_Ions, UI->z_intensity},
-        {Checkbox::Precursor, nullptr},
-        {Checkbox::Neutral_losses, nullptr}, // UI->rel_loss_intensity is a normal spin box
-        {Checkbox::Abundant_Immonium_Ions, nullptr}
+      // For each check box get its intensity spin box.
+      // Order is important here!
+      // To access the right entry for each check box
+      // use int(TheoreticalSpectrumGenerationDialog::Checkbox).
+      const std::vector<QDoubleSpinBox*> checkbox_to_intensity_ {
+        UI->a_intensity,        // A-Ion
+        UI->a_b_intensity,      // a-B-Ion
+        UI->b_intensity,        // B-Ion
+        UI->c_intensity,        // C-Ion
+        UI->d_intensity,        // D-Ion
+        UI->w_intensity,        // W-Ion
+        UI->x_intensity,        // X-Ion
+        UI->y_intensity,        // Y-Ion
+        UI->z_intensity,        // Z-Ion
+        nullptr,                // Precursor
+        nullptr,                // Neutral losses: UI->rel_loss_intensity is a normal spin box
+        nullptr                 // Abundant Immonium Ions
       };
 
-      // is the check box enabled for <'Peptide','RNA'>
-      const std::map<Checkbox, std::pair<bool, bool>> intensity_ion_exists {
-        {Checkbox::A_Ions, {1, 1}},
-        {Checkbox::A_b_Ions, {0, 1}},
-        {Checkbox::B_Ions, {1, 1}},
-        {Checkbox::C_Ions, {1, 1}},
-        {Checkbox::D_Ions, {0, 1}},
-        {Checkbox::W_Ions, {0, 1}},
-        {Checkbox::X_Ions, {1, 1}},
-        {Checkbox::Y_Ions, {1, 1}},
-        {Checkbox::Z_Ions, {1, 1}},
-        {Checkbox::Precursor, {1, 1}},
-        {Checkbox::Neutral_losses, {1, 0}},
-        {Checkbox::Abundant_Immonium_Ions, {1, 0}}
+      // To check if the check box is enabled for <'Peptide','RNA'>
+      // Order is important here!
+      // To access the right entry for each check box
+      // use int(TheoreticalSpectrumGenerationDialog::Checkbox).
+      const std::vector<std::pair<bool, bool>> intensity_ion_exists {
+        {1, 1},        // A-Ion
+        {0, 1},        // a-B-Ion
+        {1, 1},        // B-Ion
+        {1, 1},        // C-Ion
+        {0, 1},        // D-Ion
+        {0, 1},        // W-Ion
+        {1, 1},        // X-Ion
+        {1, 1},        // Y-Ion
+        {1, 1},        // Z-Ion
+        {1, 1},        // Precursor
+        {1, 0},        // Neutral losses
+        {1, 0}         // Abundant Immonium Ions
        };
   };
 }

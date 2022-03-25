@@ -102,11 +102,11 @@ void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
     QVERIFY(item);
 
     // get intensity spin box corresponding to current check box
-    QDoubleSpinBox* spin = checkbox_to_intensity_.at(c);
+    QDoubleSpinBox* spin = checkbox_to_intensity_.at(int(c));
 
     bool ion_allowed;
-    if (peptide_input) ion_allowed = intensity_ion_exists.at(c).first;
-    else ion_allowed = intensity_ion_exists.at(c).second;
+    if (peptide_input) ion_allowed = intensity_ion_exists.at(int(c)).first;
+    else ion_allowed = intensity_ion_exists.at(int(c)).second;
 
     if (ion_allowed)
     {
@@ -253,7 +253,7 @@ void TestTSGDialog::testParameterImport()
     UI->ion_types->item(int(c))->setCheckState(Qt::CheckState::Checked); // just check all boxes
 
     // get intensity spin box corresponding to current check box
-    QDoubleSpinBox* spin = checkbox_to_intensity_.at(c);
+    QDoubleSpinBox* spin = checkbox_to_intensity_.at(int(c));
     if (spin == nullptr) continue;
 
     spin->setValue(1.23);
