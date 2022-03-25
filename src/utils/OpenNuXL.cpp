@@ -2554,9 +2554,10 @@ static void scoreXLIons_(
 
     filterPeakInterference_(exp, purities);
 
+/*
     SqrtMower sqrt_mower_filter;
     sqrt_mower_filter.filterPeakMap(exp);
-
+*/
     Normalizer normalizer;
     normalizer.filterPeakMap(exp);
 
