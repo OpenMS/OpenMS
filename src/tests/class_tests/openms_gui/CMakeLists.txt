@@ -81,7 +81,6 @@ if(HAS_XSERVER)
   # Use QtTest lib
 
   find_package(Qt5 REQUIRED
-    Widgets 
     Test
   )
   if (NOT Qt5Test_FOUND)
@@ -97,7 +96,7 @@ if(HAS_XSERVER)
     # add headers
     target_include_directories(${_gui_test} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/GUI)
     # link against openms_gui and qt
-    target_link_libraries(${_gui_test} ${OpenMS_GUI_LIBRARIES} ${QT_LIBRARIES} Qt5::Test Qt5::Widgets)
+    target_link_libraries(${_gui_test} ${OpenMS_GUI_LIBRARIES} ${QT_LIBRARIES} Qt5::Test)
     # add the test
     add_test(${_gui_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_gui_test})
   endforeach(_gui_test)
