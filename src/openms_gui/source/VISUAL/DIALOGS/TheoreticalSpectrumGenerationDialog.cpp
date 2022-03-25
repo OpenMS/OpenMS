@@ -47,24 +47,27 @@
 
 namespace OpenMS
 {
-  // map from checkbox (index) to corresponding parameter with description
-  const std::map<Checkbox, std::pair<String, String>> checkbox_to_param {
-    {Checkbox::A_Ions, {"add_a_ions", "Add peaks of a-ions to the spectrum"}},
-    {Checkbox::A_b_Ions, {"add_a-B_ions", "Add peaks of a-B-ions to the spectrum (nucleotide sequences only)"}},
-    {Checkbox::B_Ions, {"add_b_ions", "Add peaks of b-ions to the spectrum"}},
-    {Checkbox::C_Ions, {"add_c_ions", "Add peaks of c-ions to the spectrum"}},
-    {Checkbox::D_Ions, {"add_d_ions", "Add peaks of d-ions to the spectrum (nucleotide sequences only)"}},
-    {Checkbox::W_Ions, {"add_w_ions", "Add peaks of w-ions to the spectrum (nucleotide sequences only)"}},
-    {Checkbox::X_Ions, {"add_x_ions", "Add peaks of x-ions to the spectrum"}},
-    {Checkbox::Y_Ions, {"add_y_ions", "Add peaks of y-ions to the spectrum"}},
-    {Checkbox::Z_Ions, {"add_z_ions", "Add peaks of z-ions to the spectrum"}},
-    {Checkbox::Precursor, {"add_precursor_peaks", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes"}},
-    {Checkbox::Neutral_losses, {"add_losses", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered (peptide sequences only)"}},
-    {Checkbox::Abundant_Immonium_Ions, {"add_abundant_immonium_ions", "Add most abundant immonium ions (peptide sequences only)"}}};
+  // for each check box (index) get corresponding parameter with description
+  // Order is important here!
+  // To access the right entry for each check box
+  // use int(TheoreticalSpectrumGenerationDialog::CheckBox).
+  const std::vector<std::pair<String, String>> check_box_to_param {
+    {"add_a_ions", "Add peaks of a-ions to the spectrum"},
+    {"add_a-B_ions", "Add peaks of a-B-ions to the spectrum (nucleotide sequences only)"},
+    {"add_b_ions", "Add peaks of b-ions to the spectrum"},
+    {"add_c_ions", "Add peaks of c-ions to the spectrum"},
+    {"add_d_ions", "Add peaks of d-ions to the spectrum (nucleotide sequences only)"},
+    {"add_w_ions", "Add peaks of w-ions to the spectrum (nucleotide sequences only)"},
+    {"add_x_ions", "Add peaks of x-ions to the spectrum"},
+    {"add_y_ions", "Add peaks of y-ions to the spectrum"},
+    {"add_z_ions", "Add peaks of z-ions to the spectrum"},
+    {"add_precursor_peaks", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes"},
+    {"add_losses", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered (peptide sequences only)"},
+    {"add_abundant_immonium_ions", "Add most abundant immonium ions (peptide sequences only)"}};
 
-  // specific checkboxes (TheoreticalSpectrumGenerator (peptide) vs. NucleicAcidSpectrumGenerator (rna))
-  const std::vector<Checkbox> rna_specific_ions {Checkbox::A_b_Ions, Checkbox::D_Ions, Checkbox::W_Ions};
-  const std::vector<Checkbox> peptide_specific_ions {Checkbox::Neutral_losses, Checkbox::Abundant_Immonium_Ions};
+  // specific check boxes (TheoreticalSpectrumGenerator (peptide) vs. NucleicAcidSpectrumGenerator (rna))
+  const std::vector<CheckBox> rna_specific_ions {CheckBox::A_b_Ions, CheckBox::D_Ions, CheckBox::W_Ions};
+  const std::vector<CheckBox> peptide_specific_ions {CheckBox::Neutral_losses, CheckBox::Abundant_Immonium_Ions};
 
   TheoreticalSpectrumGenerationDialog::TheoreticalSpectrumGenerationDialog() : ui_(new Ui::TheoreticalSpectrumGenerationDialogTemplate)
   {
@@ -78,7 +81,7 @@ namespace OpenMS
     connect(ui_->model_coarse, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
     connect(ui_->model_fine, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
 
-    // for the list widget items are checked/unchecked if they are clicked on (disables clicking on the checkbox though ..)
+    // for the list widget items are checked/unchecked if they are clicked on (disables clicking on the check box though ..)
     connect(ui_->ion_types, &QListWidget::itemClicked, this, &TheoreticalSpectrumGenerationDialog::listWidgetItemClicked);
 
     // don't add any isotopes by default and update interface
@@ -93,9 +96,9 @@ namespace OpenMS
     seqTypeSwitch();
 
     // select b- and y-ions as residue types by default
-    for (const Checkbox& c : check_box_names)
+    for (const CheckBox& c : check_box_names)
     {
-      if (c == Checkbox::B_Ions || c == Checkbox::Y_Ions)
+      if (c == CheckBox::B_Ions || c == CheckBox::Y_Ions)
       {
         ui_->ion_types->item(int(c))->setCheckState(Qt::Checked);
         continue;
@@ -124,8 +127,8 @@ namespace OpenMS
 
     bool peptide_input = ui_->seq_type->currentText() == "Peptide";
 
-    // add checkboxes to parameters, i.e. ion types
-    for (const Checkbox& c : check_box_names)
+    // add check boxes to parameters, i.e. ion types
+    for (const CheckBox& c : check_box_names)
     {
       // for peptide input skip rna specific ions
       if (peptide_input && (std::find(rna_specific_ions.begin(), rna_specific_ions.end(), c) != rna_specific_ions.end())) continue;
@@ -135,7 +138,7 @@ namespace OpenMS
 
       bool status = (ui_->ion_types->item(int(c))->checkState() == Qt::Checked);
       String status_str = status ? "true" : "false";
-      p.setValue(checkbox_to_param.at(c).first, status_str, checkbox_to_param.at(c).second);
+      p.setValue(check_box_to_param.at(int(c)).first, status_str, check_box_to_param.at(int(c)).second);
     }
 
     // charge
@@ -296,11 +299,11 @@ namespace OpenMS
   {
     bool peptide_input = ui_->seq_type->currentText() == "Peptide";
 
-    QListWidgetItem* a_b = ui_->ion_types->item(int(Checkbox::A_b_Ions));
-    QListWidgetItem* d = ui_->ion_types->item(int(Checkbox::D_Ions));
-    QListWidgetItem* w = ui_->ion_types->item(int(Checkbox::W_Ions));
-    QListWidgetItem* losses = ui_->ion_types->item(int(Checkbox::Neutral_losses));
-    QListWidgetItem* abundant_i = ui_->ion_types->item(int(Checkbox::Abundant_Immonium_Ions));
+    QListWidgetItem* a_b = ui_->ion_types->item(int(CheckBox::A_b_Ions));
+    QListWidgetItem* d = ui_->ion_types->item(int(CheckBox::D_Ions));
+    QListWidgetItem* w = ui_->ion_types->item(int(CheckBox::W_Ions));
+    QListWidgetItem* losses = ui_->ion_types->item(int(CheckBox::Neutral_losses));
+    QListWidgetItem* abundant_i = ui_->ion_types->item(int(CheckBox::Abundant_Immonium_Ions));
 
     if (peptide_input)
     {

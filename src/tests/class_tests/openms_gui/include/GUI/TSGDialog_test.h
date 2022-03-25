@@ -79,8 +79,8 @@ namespace OpenMS
       // For each check box get its intensity spin box.
       // Order is important here!
       // To access the right entry for each check box
-      // use int(TheoreticalSpectrumGenerationDialog::Checkbox).
-      const std::vector<QDoubleSpinBox*> checkbox_to_intensity_ {
+      // use int(TheoreticalSpectrumGenerationDialog::CheckBox).
+      const std::vector<QDoubleSpinBox*> check_box_to_intensity_ {
         UI->a_intensity,        // A-Ion
         UI->a_b_intensity,      // a-B-Ion
         UI->b_intensity,        // B-Ion
@@ -98,7 +98,7 @@ namespace OpenMS
       // To check if the check box is enabled for <'Peptide','RNA'>
       // Order is important here!
       // To access the right entry for each check box
-      // use int(TheoreticalSpectrumGenerationDialog::Checkbox).
+      // use int(TheoreticalSpectrumGenerationDialog::CheckBox).
       const std::vector<std::pair<bool, bool>> intensity_ion_exists {
         {1, 1},        // A-Ion
         {0, 1},        // a-B-Ion

@@ -53,11 +53,11 @@ namespace OpenMS
 {
   class TestTSGDialog; // fwd declaring test class
 
-  // Note: If an additional checkbox is added all of the following three objects have to be edited!
+  // Note: If an additional check box is added all of the following three objects have to be edited!
   //
   //
-  // enum to get ion checkbox index (Ordering has to be the same as in the ui!)
-  enum class Checkbox
+  // enum to get ion check box index (Ordering has to be the same as in the ui!)
+  enum class CheckBox
   {
     A_Ions,
     A_b_Ions,
@@ -74,11 +74,11 @@ namespace OpenMS
   };
 
   // vector of all enum entries for iteration
-  const std::vector<Checkbox> check_box_names {Checkbox::A_Ions, Checkbox::A_b_Ions, Checkbox::B_Ions, Checkbox::C_Ions,    Checkbox::D_Ions,         Checkbox::W_Ions,
-                                               Checkbox::X_Ions, Checkbox::Y_Ions,   Checkbox::Z_Ions, Checkbox::Precursor, Checkbox::Neutral_losses, Checkbox::Abundant_Immonium_Ions};
+  const std::vector<CheckBox> check_box_names {CheckBox::A_Ions, CheckBox::A_b_Ions, CheckBox::B_Ions, CheckBox::C_Ions,    CheckBox::D_Ions,         CheckBox::W_Ions,
+                                               CheckBox::X_Ions, CheckBox::Y_Ions,   CheckBox::Z_Ions, CheckBox::Precursor, CheckBox::Neutral_losses, CheckBox::Abundant_Immonium_Ions};
 
   /**
-      @brief Dialog which allows to enter an AA sequence and generates a theoretical spectrum for it.
+      @brief Dialog which allows to enter an AA or NA sequence and generates a theoretical spectrum for it.
 
       @ingroup Dialogs
   */

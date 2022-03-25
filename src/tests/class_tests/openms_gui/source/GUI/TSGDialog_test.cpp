@@ -95,14 +95,14 @@ void TestTSGDialog::testIsotopeModel_()
 
 void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
 {
-  for (const Checkbox& c : check_box_names)
+  for (const CheckBox& c : check_box_names)
   {
     // get the item
     QListWidgetItem* item = UI->ion_types->item(int(c));
     QVERIFY(item);
 
     // get intensity spin box corresponding to current check box
-    QDoubleSpinBox* spin = checkbox_to_intensity_.at(int(c));
+    QDoubleSpinBox* spin = check_box_to_intensity_.at(int(c));
 
     bool ion_allowed;
     if (peptide_input) ion_allowed = intensity_ion_exists.at(int(c)).first;
@@ -116,7 +116,7 @@ void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
       // get the rectangular coordinates of the item
       QRect rect = UI->ion_types->visualItemRect(item);
 
-      // imitate the click on checkbox c
+      // imitate the click on check box c
       QTest::mouseClick(UI->ion_types->viewport(), Qt::LeftButton, 0, rect.center());
       QTest::qWait(DELAY);
 
@@ -248,12 +248,12 @@ void TestTSGDialog::testParameterImport()
   UI->charge_spinbox->setValue(3);
   UI->model_coarse->click();
   UI->max_iso_spinbox->setValue(5);
-  for (const Checkbox& c : check_box_names)
+  for (const CheckBox& c : check_box_names)
   {
     UI->ion_types->item(int(c))->setCheckState(Qt::CheckState::Checked); // just check all boxes
 
     // get intensity spin box corresponding to current check box
-    QDoubleSpinBox* spin = checkbox_to_intensity_.at(int(c));
+    QDoubleSpinBox* spin = check_box_to_intensity_.at(int(c));
     if (spin == nullptr) continue;
 
     spin->setValue(1.23);
