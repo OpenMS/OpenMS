@@ -149,7 +149,7 @@
              <property name="title">
               <string>Isotope Model:</string>
              </property>
-             <widget class="QRadioButton" name="model_none">
+             <widget class="QRadioButton" name="model_none_button">
               <property name="geometry">
                <rect>
                 <x>0</x>
@@ -165,7 +165,7 @@
                <bool>true</bool>
               </property>
              </widget>
-             <widget class="QRadioButton" name="model_coarse">
+             <widget class="QRadioButton" name="model_coarse_button">
               <property name="geometry">
                <rect>
                 <x>0</x>
@@ -178,7 +178,7 @@
                <string>Coarse</string>
               </property>
              </widget>
-             <widget class="QRadioButton" name="model_fine">
+             <widget class="QRadioButton" name="model_fine_button">
               <property name="geometry">
                <rect>
                 <x>0</x>

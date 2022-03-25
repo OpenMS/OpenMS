@@ -78,15 +78,15 @@ namespace OpenMS
     connect(ui_->dialog_buttons, &QDialogButtonBox::accepted, this, &TheoreticalSpectrumGenerationDialog::calculateSpectrum_);
 
     // signals for changing isotope model interface
-    connect(ui_->model_none, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged_);
-    connect(ui_->model_coarse, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged_);
-    connect(ui_->model_fine, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged_);
+    connect(ui_->model_none_button, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged_);
+    connect(ui_->model_coarse_button, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged_);
+    connect(ui_->model_fine_button, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged_);
 
     // for the list widget items are checked/unchecked if they are clicked on (disables clicking on the check box though ..)
     connect(ui_->ion_types, &QListWidget::itemClicked, this, &TheoreticalSpectrumGenerationDialog::listWidgetItemClicked_);
 
     // don't add any isotopes by default and update interface
-    ui_->model_none->setChecked(true);
+    ui_->model_none_button->setChecked(true);
     modelChanged_();
 
     // signal for changing interface depending on sequence type
@@ -156,9 +156,9 @@ namespace OpenMS
     if (peptide_input) // peptide specific settings (TheoreticalSpectrumGenerator)
     {
       // isotopes
-      if (!ui_->model_none->isChecked()) // add isotopes if any other model than 'None' is chosen
+      if (!ui_->model_none_button->isChecked()) // add isotopes if any other model than 'None' is chosen
       {
-        bool coarse_model = ui_->model_coarse->isChecked();
+        bool coarse_model = ui_->model_coarse_button->isChecked();
         String model = coarse_model ? "coarse" : "fine";
         p.setValue("isotope_model", model,
                    "Model to use for isotopic peaks ('none' means no isotopic peaks are added, 'coarse' adds isotopic peaks in unit mass distance, 'fine' uses the hyperfine isotopic generator to add "
@@ -272,21 +272,21 @@ namespace OpenMS
 
   void TheoreticalSpectrumGenerationDialog::modelChanged_()
   {    
-    if (ui_->model_none->isChecked())
+    if (ui_->model_none_button->isChecked())
     {
       ui_->max_iso_label->setEnabled(false);
       ui_->max_iso_spinbox->setEnabled(false);
       ui_->max_iso_prob_label->setEnabled(false);
       ui_->max_iso_prob_spinbox->setEnabled(false);
     }
-    else if (ui_->model_coarse->isChecked())
+    else if (ui_->model_coarse_button->isChecked())
     {
       ui_->max_iso_label->setEnabled(true);
       ui_->max_iso_spinbox->setEnabled(true);
       ui_->max_iso_prob_label->setEnabled(false);
       ui_->max_iso_prob_spinbox->setEnabled(false);
     }
-    else if (ui_->model_fine->isChecked())
+    else if (ui_->model_fine_button->isChecked())
     {
       ui_->max_iso_label->setEnabled(false);
       ui_->max_iso_spinbox->setEnabled(false);

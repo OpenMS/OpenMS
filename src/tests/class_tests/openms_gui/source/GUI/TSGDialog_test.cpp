@@ -69,14 +69,14 @@ void TestTSGDialog::testIsotopeModel_()
 {
   // QTest::mouseClick needs the exact position of the interactable part of the radio button
   // If someone knows how to get this position, please adapt this code.
-  UI->model_none->click();
+  UI->model_none_button->click();
   QTest::qWait(DELAY);
   QVERIFY(!(UI->max_iso_spinbox->isEnabled()));
   QVERIFY(!(UI->max_iso_label->isEnabled()));
   QVERIFY(!(UI->max_iso_prob_spinbox->isEnabled()));
   QVERIFY(!(UI->max_iso_prob_label->isEnabled()));
 
-  UI->model_coarse->click();
+  UI->model_coarse_button->click();
   QTest::qWait(DELAY);
   QVERIFY(UI->max_iso_spinbox->isEnabled());
   QVERIFY(UI->max_iso_label->isEnabled());
@@ -84,7 +84,7 @@ void TestTSGDialog::testIsotopeModel_()
   QVERIFY(!(UI->max_iso_prob_label->isEnabled()));
   testSpinBox_(UI->max_iso_spinbox);
 
-  UI->model_fine->click();
+  UI->model_fine_button->click();
   QTest::qWait(DELAY);
   QVERIFY(!(UI->max_iso_spinbox->isEnabled()));
   QVERIFY(!(UI->max_iso_label->isEnabled()));
@@ -246,7 +246,7 @@ void TestTSGDialog::testParameterImport()
   // set some parameters
   UI->seq_type->setCurrentText("Peptide");
   UI->charge_spinbox->setValue(3);
-  UI->model_coarse->click();
+  UI->model_coarse_button->click();
   UI->max_iso_spinbox->setValue(5);
   for (size_t i = 0; i < int(CheckBox::NUMBER_OF_CHECK_BOXES); ++i)
   {
@@ -292,12 +292,12 @@ void TestTSGDialog::testParameterImport()
   QVERIFY2(string(p.getValue("add_precursor_peaks")) == "true", "Parameter 'add_precursor_peaks' wasn't set correctly.");
 
   // try the other isotope models
-  UI->model_none->click();
+  UI->model_none_button->click();
   p.clear();
   p = dialog_.getParam_();
   QVERIFY2(string(p.getValue("isotope_model")) == "none", "Parameter 'isotope_model' wasn't set correctly. Expected 'none'.");
 
-  UI->model_fine->click();
+  UI->model_fine_button->click();
   UI->max_iso_prob_spinbox->setValue(16);
   p.clear();
   p = dialog_.getParam_();
