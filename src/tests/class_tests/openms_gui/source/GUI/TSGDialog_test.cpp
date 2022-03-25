@@ -42,7 +42,7 @@ using namespace OpenMS;
 using namespace std;
 
 // delay in ms
-// higher values together with 'dialog_.show();' can be usefull for debugging this test
+// higher values together with 'dialog_.show();' can be useful for debugging this test
 constexpr int DELAY {5};
 
 template<typename T>
@@ -95,18 +95,18 @@ void TestTSGDialog::testIsotopeModel_()
 
 void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
 {
-  for (const CheckBox& c : check_box_names)
+  for (size_t i = 0; i < int(CheckBox::NUMBER_OF_CHECK_BOXES); ++i)
   {
     // get the item
-    QListWidgetItem* item = UI->ion_types->item(int(c));
+    QListWidgetItem* item = UI->ion_types->item(i);
     QVERIFY(item);
 
     // get intensity spin box corresponding to current check box
-    QDoubleSpinBox* spin = check_box_to_intensity_.at(int(c));
+    QDoubleSpinBox* spin = check_box_to_intensity_.at(i);
 
     bool ion_allowed;
-    if (peptide_input) ion_allowed = intensity_ion_exists.at(int(c)).first;
-    else ion_allowed = intensity_ion_exists.at(int(c)).second;
+    if (peptide_input) ion_allowed = intensity_ion_exists.at(i).first;
+    else ion_allowed = intensity_ion_exists.at(i).second;
 
     if (ion_allowed)
     {
@@ -248,12 +248,12 @@ void TestTSGDialog::testParameterImport()
   UI->charge_spinbox->setValue(3);
   UI->model_coarse->click();
   UI->max_iso_spinbox->setValue(5);
-  for (const CheckBox& c : check_box_names)
+  for (size_t i = 0; i < int(CheckBox::NUMBER_OF_CHECK_BOXES); ++i)
   {
-    UI->ion_types->item(int(c))->setCheckState(Qt::CheckState::Checked); // just check all boxes
+    UI->ion_types->item(i)->setCheckState(Qt::CheckState::Checked); // just check all boxes
 
     // get intensity spin box corresponding to current check box
-    QDoubleSpinBox* spin = check_box_to_intensity_.at(int(c));
+    QDoubleSpinBox* spin = check_box_to_intensity_.at(i);
     if (spin == nullptr) continue;
 
     spin->setValue(1.23);
@@ -279,8 +279,8 @@ void TestTSGDialog::testParameterImport()
   QVERIFY2(string(p.getValue("add_x_ions")) == "true", "Parameter 'add_x_ions' wasn't set correctly.");
   QVERIFY2(double(p.getValue("x_intensity")) == 1.23, "Parameter 'x_intensity' wasn't set correctly.");
 
-  QVERIFY2(string(p.getValue("add_y_ions")) == "true", "Parameter 'add_x_ions' wasn't set correctly.");
-  QVERIFY2(double(p.getValue("y_intensity")) == 1.23, "Parameter 'x_intensity' wasn't set correctly.");
+  QVERIFY2(string(p.getValue("add_y_ions")) == "true", "Parameter 'add_y_ions' wasn't set correctly.");
+  QVERIFY2(double(p.getValue("y_intensity")) == 1.23, "Parameter 'y_intensity' wasn't set correctly.");
 
   QVERIFY2(string(p.getValue("add_z_ions")) == "true", "Parameter 'add_z_ions' wasn't set correctly.");
   QVERIFY2(double(p.getValue("z_intensity")) == 1.23, "Parameter 'z_intensity' wasn't set correctly.");
@@ -288,7 +288,7 @@ void TestTSGDialog::testParameterImport()
   QVERIFY2(string(p.getValue("add_losses")) == "true", "Parameter 'add_losses' wasn't set correctly.");
   QVERIFY2(double(p.getValue("relative_loss_intensity")) == 0.16, "Parameter 'relative_loss_intensity' wasn't set correctly.");
 
-  QVERIFY2(string(p.getValue("add_abundant_immonium_ions")) == "true", "Parameter 'add_a_ions' wasn't set correctly.");
+  QVERIFY2(string(p.getValue("add_abundant_immonium_ions")) == "true", "Parameter 'add_abundant_immonium_ions' wasn't set correctly.");
   QVERIFY2(string(p.getValue("add_precursor_peaks")) == "true", "Parameter 'add_precursor_peaks' wasn't set correctly.");
 
   // try the other isotope models
@@ -325,7 +325,7 @@ void TestTSGDialog::testSpectrumCalculation()
   
   UI->seq_type->setCurrentText("Peptide");
   QTest::qWait(DELAY);
-  UI->seq_input->setText("PEPTIDE");
+  UI->seq_input->setText("PEPTIDE"); // set peptide sequence to 'PEPTIDE'
   QTest::qWait(DELAY);
   QTest::mouseClick(UI->dialog_buttons->button(QDialogButtonBox::Ok), Qt::LeftButton);
   MSSpectrum pep_spec = dialog_.getSpectrum();

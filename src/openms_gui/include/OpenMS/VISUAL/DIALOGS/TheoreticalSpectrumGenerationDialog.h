@@ -70,12 +70,9 @@ namespace OpenMS
     Z_Ions,
     Precursor,
     Neutral_losses,
-    Abundant_Immonium_Ions
+    Abundant_Immonium_Ions,
+    NUMBER_OF_CHECK_BOXES
   };
-
-  // vector of all enum entries for iteration
-  const std::vector<CheckBox> check_box_names {CheckBox::A_Ions, CheckBox::A_b_Ions, CheckBox::B_Ions, CheckBox::C_Ions,    CheckBox::D_Ions,         CheckBox::W_Ions,
-                                               CheckBox::X_Ions, CheckBox::Y_Ions,   CheckBox::Z_Ions, CheckBox::Precursor, CheckBox::Neutral_losses, CheckBox::Abundant_Immonium_Ions};
 
   /**
       @brief Dialog which allows to enter an AA or NA sequence and generates a theoretical spectrum for it.
@@ -102,10 +99,10 @@ namespace OpenMS
 
 protected slots:
 
-    void modelChanged();
-    void calculateSpectrum();
-    void seqTypeSwitch();
-    void listWidgetItemClicked(QListWidgetItem* item);
+    void modelChanged_();
+    void calculateSpectrum_();
+    void seqTypeSwitch_();
+    void listWidgetItemClicked_(QListWidgetItem* item);
 
 protected:
 

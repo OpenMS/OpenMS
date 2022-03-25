@@ -44,6 +44,7 @@
 #include <QtWidgets/QMessageBox>
 #include <qflags.h>
 
+#include <array>
 
 namespace OpenMS
 {
@@ -66,44 +67,44 @@ namespace OpenMS
     {"add_abundant_immonium_ions", "Add most abundant immonium ions (peptide sequences only)"}};
 
   // specific check boxes (TheoreticalSpectrumGenerator (peptide) vs. NucleicAcidSpectrumGenerator (rna))
-  const std::vector<CheckBox> rna_specific_ions {CheckBox::A_b_Ions, CheckBox::D_Ions, CheckBox::W_Ions};
-  const std::vector<CheckBox> peptide_specific_ions {CheckBox::Neutral_losses, CheckBox::Abundant_Immonium_Ions};
+  const std::array<int, 3> rna_specific_ions {int(CheckBox::A_b_Ions), int(CheckBox::D_Ions), int(CheckBox::W_Ions)};
+  const std::array<int, 2> peptide_specific_ions {int(CheckBox::Neutral_losses), int(CheckBox::Abundant_Immonium_Ions)};
 
   TheoreticalSpectrumGenerationDialog::TheoreticalSpectrumGenerationDialog() : ui_(new Ui::TheoreticalSpectrumGenerationDialogTemplate)
   {
     ui_->setupUi(this);
     
     // if dialog is accepted, try generating a spectrum, only close dialog on success
-    connect(ui_->dialog_buttons, &QDialogButtonBox::accepted, this, &TheoreticalSpectrumGenerationDialog::calculateSpectrum);
+    connect(ui_->dialog_buttons, &QDialogButtonBox::accepted, this, &TheoreticalSpectrumGenerationDialog::calculateSpectrum_);
 
     // signals for changing isotope model interface
-    connect(ui_->model_none, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
-    connect(ui_->model_coarse, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
-    connect(ui_->model_fine, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged);
+    connect(ui_->model_none, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged_);
+    connect(ui_->model_coarse, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged_);
+    connect(ui_->model_fine, &QRadioButton::toggled, this, &TheoreticalSpectrumGenerationDialog::modelChanged_);
 
     // for the list widget items are checked/unchecked if they are clicked on (disables clicking on the check box though ..)
-    connect(ui_->ion_types, &QListWidget::itemClicked, this, &TheoreticalSpectrumGenerationDialog::listWidgetItemClicked);
+    connect(ui_->ion_types, &QListWidget::itemClicked, this, &TheoreticalSpectrumGenerationDialog::listWidgetItemClicked_);
 
     // don't add any isotopes by default and update interface
     ui_->model_none->setChecked(true);
-    modelChanged();
+    modelChanged_();
 
     // signal for changing interface depending on sequence type
-    connect(ui_->seq_type, &QComboBox::currentTextChanged, this, &TheoreticalSpectrumGenerationDialog::seqTypeSwitch);
+    connect(ui_->seq_type, &QComboBox::currentTextChanged, this, &TheoreticalSpectrumGenerationDialog::seqTypeSwitch_);
 
     // select peptide sequence by default and update interface
     ui_->seq_type->setCurrentText("Peptide");
-    seqTypeSwitch();
+    seqTypeSwitch_();
 
     // select b- and y-ions as residue types by default
-    for (const CheckBox& c : check_box_names)
+    for (size_t i = 0; i < int(CheckBox::NUMBER_OF_CHECK_BOXES); ++i)
     {
-      if (c == CheckBox::B_Ions || c == CheckBox::Y_Ions)
+      if (i == int(CheckBox::B_Ions) || i == int(CheckBox::Y_Ions))
       {
-        ui_->ion_types->item(int(c))->setCheckState(Qt::Checked);
+        ui_->ion_types->item(i)->setCheckState(Qt::Checked);
         continue;
       }
-      ui_->ion_types->item(int(c))->setCheckState(Qt::Unchecked);
+      ui_->ion_types->item(i)->setCheckState(Qt::Unchecked);
     }
 
     // automatic layout
@@ -128,17 +129,17 @@ namespace OpenMS
     bool peptide_input = ui_->seq_type->currentText() == "Peptide";
 
     // add check boxes to parameters, i.e. ion types
-    for (const CheckBox& c : check_box_names)
+    for (size_t i = 0; i < int(CheckBox::NUMBER_OF_CHECK_BOXES); ++i)
     {
       // for peptide input skip rna specific ions
-      if (peptide_input && (std::find(rna_specific_ions.begin(), rna_specific_ions.end(), c) != rna_specific_ions.end())) continue;
+      if (peptide_input && (std::find(rna_specific_ions.begin(), rna_specific_ions.end(), i) != rna_specific_ions.end())) continue;
 
       // for rna input skip peptide specific ions
-      if (!peptide_input && (std::find(peptide_specific_ions.begin(), peptide_specific_ions.end(), c) != peptide_specific_ions.end())) continue;
+      if (!peptide_input && (std::find(peptide_specific_ions.begin(), peptide_specific_ions.end(), i) != peptide_specific_ions.end())) continue;
 
-      bool status = (ui_->ion_types->item(int(c))->checkState() == Qt::Checked);
+      bool status = (ui_->ion_types->item(i)->checkState() == Qt::Checked);
       String status_str = status ? "true" : "false";
-      p.setValue(check_box_to_param.at(int(c)).first, status_str, check_box_to_param.at(int(c)).second);
+      p.setValue(check_box_to_param.at(i).first, status_str, check_box_to_param.at(i).second);
     }
 
     // charge
@@ -201,7 +202,7 @@ namespace OpenMS
     return spec_;
   }
 
-  void TheoreticalSpectrumGenerationDialog::calculateSpectrum()
+  void TheoreticalSpectrumGenerationDialog::calculateSpectrum_()
   {
     bool peptide_input = ui_->seq_type->currentText() == "Peptide";
 
@@ -269,7 +270,7 @@ namespace OpenMS
     this->accept();
   }
 
-  void TheoreticalSpectrumGenerationDialog::modelChanged()
+  void TheoreticalSpectrumGenerationDialog::modelChanged_()
   {    
     if (ui_->model_none->isChecked())
     {
@@ -295,7 +296,7 @@ namespace OpenMS
 
   }
 
-  void TheoreticalSpectrumGenerationDialog::seqTypeSwitch()
+  void TheoreticalSpectrumGenerationDialog::seqTypeSwitch_()
   {
     bool peptide_input = ui_->seq_type->currentText() == "Peptide";
 
@@ -313,7 +314,7 @@ namespace OpenMS
       ui_->max_iso_spinbox->setHidden(false);
       ui_->max_iso_prob_label->setHidden(false);
       ui_->max_iso_prob_spinbox->setHidden(false);
-      modelChanged();
+      modelChanged_();
       
       // ensable losses and immonium ions
       ui_->rel_loss_intensity->setHidden(false);
@@ -368,7 +369,7 @@ namespace OpenMS
     }
   }
 
-  void TheoreticalSpectrumGenerationDialog::listWidgetItemClicked(QListWidgetItem* item)
+  void TheoreticalSpectrumGenerationDialog::listWidgetItemClicked_(QListWidgetItem* item)
   {
     if (item->checkState() == Qt::CheckState::Checked)
     {
