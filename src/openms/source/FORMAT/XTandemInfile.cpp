@@ -674,12 +674,12 @@ namespace OpenMS
     return number_of_threads_;
   }
 
-  XTandemInfile::MassType XTandemInfile::getPrecursorErrorType() const
+  XTandemInfile::XMassType XTandemInfile::getPrecursorErrorType() const
   {
     return precursor_mass_type_;
   }
 
-  void XTandemInfile::setPrecursorErrorType(const MassType mass_type)
+  void XTandemInfile::setPrecursorErrorType(const XMassType mass_type)
   {
     precursor_mass_type_ = mass_type;
   }

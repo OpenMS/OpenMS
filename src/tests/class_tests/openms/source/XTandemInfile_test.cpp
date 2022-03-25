@@ -192,16 +192,16 @@ START_SECTION(double getMaxValidEValue() const)
 	NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(void setPrecursorErrorType(MassType mono_isotopic))
-	XTandemInfile::MassType mono = XTandemInfile::MONOISOTOPIC;
-	XTandemInfile::MassType average = XTandemInfile::AVERAGE;
+START_SECTION(void setPrecursorErrorType(XMassType mono_isotopic))
+	XTandemInfile::XMassType mono = XTandemInfile::MONOISOTOPIC;
+	XTandemInfile::XMassType average = XTandemInfile::AVERAGE;
 	xml_file.setPrecursorErrorType(mono);
 	TEST_EQUAL(xml_file.getPrecursorErrorType(), mono)
 	xml_file.setPrecursorErrorType(average);
 	TEST_EQUAL(xml_file.getPrecursorErrorType(), average)
 END_SECTION
 
-START_SECTION(MassType getPrecursorErrorType() const)
+START_SECTION(XMassType getPrecursorErrorType() const)
   NOT_TESTABLE // tested above
 END_SECTION
 

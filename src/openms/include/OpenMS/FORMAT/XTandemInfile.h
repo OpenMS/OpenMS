@@ -66,7 +66,7 @@ public:
     };
 
     /// Mass type of the precursor, either monoisotopic or average
-    enum MassType
+    enum XMassType
     {
       MONOISOTOPIC = 0,
       AVERAGE
@@ -97,10 +97,10 @@ public:
     double getPrecursorMassToleranceMinus() const;
 
     /// sets the precursor mass type
-    void setPrecursorErrorType(MassType mono_isotopic);
+    void setPrecursorErrorType(XMassType mono_isotopic);
 
     /// returns the precursor mass type
-    MassType getPrecursorErrorType() const;
+    XMassType getPrecursorErrorType() const;
 
     /// sets the fragment mass error unit (Da, ppm)
     void setFragmentMassErrorUnit(ErrorUnit unit);
@@ -251,9 +251,9 @@ protected:
 
     ErrorUnit precursor_mass_error_unit_;
 
-    MassType fragment_mass_type_;
+    XMassType fragment_mass_type_;
 
-    MassType precursor_mass_type_;
+    XMassType precursor_mass_type_;
 
     UInt max_precursor_charge_;
 
