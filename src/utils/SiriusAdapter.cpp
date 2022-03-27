@@ -34,12 +34,14 @@
 
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
+#include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
+#include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -142,6 +144,9 @@ protected:
     registerOutputFile_("out_ms","<file>", "", "Internal SIRIUS .ms format after OpenMS preprocessing", false);
     setValidFormats_("out_ms", ListUtils::create<String>("ms"));
 
+    registerOutputFile_("out_annotated_spectra","<file>", "", "Export spectra with fragment annotations from SIRIUS", false);
+    setValidFormats_("out_annotated_spectra", ListUtils::create<String>("mzML"));
+
     registerStringOption_("out_project_space", "<directory>", "", "Output directory for SIRIUS project space", false);
 
     registerFlag_("converter_mode", "Use this flag in combination with the out_ms file to convert the input mzML and featureXML to a .ms file. Without further SIRIUS processing.", true);
@@ -162,6 +167,7 @@ protected:
     String out_csifingerid = getStringOption_("out_fingerid");
     String featureinfo = getStringOption_("in_featureinfo");
     String out_ms = getStringOption_("out_ms");
+    String out_ann_spectra = getStringOption_("out_annotated_spectra");
     String sirius_workspace_directory = getStringOption_("out_project_space");
     bool converter_mode = getFlag_("converter_mode");
 
@@ -232,6 +238,22 @@ protected:
 
     // sort vector path list
     SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(subdirs);
+    double score_threshold = 0.0;
+    bool use_exact_mass = false;
+    if (!out_ann_spectra.empty())
+    {
+      // extract Sirius/Passatutto FragmentAnnotation and DecoyAnnotation from subdirs
+      // and resolve ambiguous identifications in one file based on the native_id_ids and the SIRIUS IsotopeTree_Score
+      MSExperiment annotations{};
+      annotations.setSpectra(SiriusFragmentAnnotation::extractAndResolveSiriusAnnotationsTgtOnly(subdirs, score_threshold, use_exact_mass));
+      MzMLFile().store(out_ann_spectra, annotations);
+
+      //TODO remove or use it to add more info to the spectra
+
+      // combine compound information (SiriusMSFile) with annotated spectra (SiriusFragmentAnnotation)
+      //vector<MetaboTargetedAssay::CompoundSpectrumPair> v_cmp_spec = MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(v_cmpinfo, annotated_spectra);
+
+    }
 
     // convert sirius_output to mztab and store file
     const int candidates = algorithm.getNumberOfSiriusCandidates();

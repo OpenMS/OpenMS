@@ -327,7 +327,7 @@ if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
   if (ENABLE_SIRIUS_TEST)
     # add dependencies for one test at a time to reduce memory and cpu consumption
     # test mzMl as input
-    add_test("TOPP_SiriusAdapter_1" ${TOPP_BIN_PATH}/SiriusAdapter -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_input.mzML -out_sirius SiriusAdapter_1_output.tmp -sirius:profile qtof -sirius:db all -project:processors 1)
+    add_test("TOPP_SiriusAdapter_1" ${TOPP_BIN_PATH}/SiriusAdapter -test -sirius_executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_input.mzML -out_sirius SiriusAdapter_1_output.tmp -sirius:profile qtof -sirius:db all -project:processors 1 -out_annotated_spectra spec.mzML -debug 1000)
     add_test("TOPP_SiriusAdapter_1_out" ${DIFF} -in1 SiriusAdapter_1_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_output.mzTab -whitelist "MTD" "295.18707248574799") # ranks of the compound at "295.18707248574799" m/z shifts depending on OS (unix or windows)
     set_tests_properties("TOPP_SiriusAdapter_1_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_1")
     # test mzML and featureXML with feature_only

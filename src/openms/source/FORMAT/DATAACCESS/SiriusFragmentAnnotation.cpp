@@ -44,21 +44,61 @@ using namespace std;
 namespace OpenMS
 {
 
+  std::vector<MSSpectrum> SiriusFragmentAnnotation::extractAndResolveSiriusAnnotationsTgtOnly
+    (const std::vector<String>& sirius_workspace_subdirs, const double& score_threshold, bool use_exact_mass)
+  {
+    std::unordered_map<String, MSSpectrum> native_ids_annotated_spectra;
+    std::vector<MSSpectrum> annotated_spectra;
+    for (const auto& subdir : sirius_workspace_subdirs)
+    {
+      std::cout << subdir << std::endl;
+      MSSpectrum annotated_spectrum = extractAnnotationsFromSiriusFile_
+      (
+        subdir,
+        1,
+        false,
+        use_exact_mass
+      )[0];
+
+      // only use spectra over a certain score threshold (0-1)
+      if (double(annotated_spectrum.getMetaValue("score")) >= score_threshold)
+      {
+        // resolve multiple use of the same concatenated nativeids based on the sirius score (used for multiple features/identifications)
+        unordered_map<String, MSSpectrum>::iterator it;
+        it = native_ids_annotated_spectra.find(annotated_spectrum.getNativeID());
+        if (it != native_ids_annotated_spectra.end())
+        {
+          if (double(annotated_spectrum.getMetaValue("score")) >= double(it->second.getMetaValue("score")))
+          {
+            it->second = annotated_spectrum;
+          }
+        }
+        else
+        {
+          native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), annotated_spectrum));
+        }
+      }
+    }
+
+    // convert to vector
+    annotated_spectra.reserve(native_ids_annotated_spectra.size());
+    for (auto& id_spec : native_ids_annotated_spectra)
+    {
+      annotated_spectra.emplace_back(std::move(id_spec.second));
+    }
+
+    return annotated_spectra;
+  }
+
   std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(const std::vector<String>& sirius_workspace_subdirs, const double& score_threshold, bool use_exact_mass)
   {
     std::map<String, SiriusFragmentAnnotation::SiriusTargetDecoySpectra> native_ids_annotated_spectra;
     std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra;
     for (const auto& subdir : sirius_workspace_subdirs)
     {
-      MSSpectrum annotated_spectrum;
-      MSSpectrum annotated_decoy;
-
-      SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(subdir,
-                                                                       annotated_spectrum,
-                                                                       use_exact_mass);
-
-      SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(subdir,
-                                                                    annotated_decoy);
+      std::cout << subdir << std::endl;
+      MSSpectrum annotated_spectrum = extractAnnotationsFromSiriusFile_(subdir, 1, false, use_exact_mass)[0];
+      MSSpectrum annotated_decoy = extractAnnotationsFromSiriusFile_(subdir, 1, true, use_exact_mass)[0];
 
       // if no target was generated - no decoy will be available (due to SIRIUS)
       if (annotated_spectrum.empty())
@@ -78,7 +118,7 @@ namespace OpenMS
             if (double(annotated_spectrum.getMetaValue("score")) >= double(it->second.target.getMetaValue("score")))
             {
               SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy(annotated_spectrum, annotated_decoy);
-              native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), target_decoy));
+              it->second = target_decoy;
             }
           }
           else
@@ -100,6 +140,7 @@ namespace OpenMS
     return annotated_spectra;
   }
 
+  //TODO remove the next two. unused
   void SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
   {
     OpenMS::String concat_native_ids = SiriusFragmentAnnotation::extractConcatNativeIDsFromSiriusMS_(path_to_sirius_workspace);
@@ -240,8 +281,125 @@ namespace OpenMS
     fcandidates.close();
     return rank_score;
   }
-  
-  // use the first ranked sumformula (works for known and known_unkowns)
+
+  std::vector<MSSpectrum> SiriusFragmentAnnotation::extractAnnotationsFromSiriusFile_(const String& path_to_sirius_workspace, Size max_rank, bool decoy, bool use_exact_mass)
+  {
+    if (decoy) use_exact_mass = false;
+    OpenMS::String concat_native_ids = SiriusFragmentAnnotation::extractConcatNativeIDsFromSiriusMS_(path_to_sirius_workspace);
+    OpenMS::String concat_m_ids = SiriusFragmentAnnotation::extractConcatMIDsFromSiriusMS_(path_to_sirius_workspace);
+    std::vector<MSSpectrum> result;
+    std::string subfolder = decoy ? "/decoys/" : "/spectra/";
+    const std::string sirius_spectra_dir = path_to_sirius_workspace + subfolder;
+    QDir dir(QString::fromStdString(sirius_spectra_dir));
+
+    if (dir.exists())
+    {
+      std::map< Size, String > rank_filename = SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(path_to_sirius_workspace);
+      std::map< Size, double > rank_score = SiriusFragmentAnnotation::extractCompoundRankingAndScore_(path_to_sirius_workspace);
+      Size max_found_rank = rank_filename.rbegin()->first;
+      if (rank_filename.empty() || rank_score.empty())
+      {
+        OPENMS_LOG_WARN << "Extraction of the compound ranking, filename and score failed for, please check if the SIRIUS project space is correct for." << sirius_spectra_dir << std::endl;
+      }
+      else
+      {
+        result.resize(std::min(max_rank, max_found_rank));
+      }
+
+      String suffix = "";
+      for (unsigned int i = 1; i <= result.size(); ++i)
+      {
+        MSSpectrum& msspectrum_to_fill = result[i-1];
+        // to be backwards compatible, the best rank does not have a suffix
+        // TODO should be changed. But I need to figure out where.
+        if (i > 1)
+        {
+          suffix = "_" + String(i);
+        }
+        msspectrum_to_fill.setNativeID(concat_native_ids + suffix);
+        msspectrum_to_fill.setName(concat_m_ids + suffix);
+        String filename = rank_filename.at(i); // rank 1
+        double score = rank_score.at(i); // rank 1
+        QFileInfo sirius_result_file(dir,filename.toQString());
+
+        if (use_exact_mass)
+        {
+          msspectrum_to_fill.setMetaValue("peak_mz", DataValue("exact_mass"));
+        }
+        else
+        {
+          msspectrum_to_fill.setMetaValue("peak_mz", DataValue("mz"));
+        }
+
+        // filename: sumformula_adduct.csv - save sumformula and adduct as metavalue
+        String current_sumformula = filename.substr(0, filename.find_last_of("_"));
+        String current_adduct = filename.substr(filename.find_last_of("_") + 1, filename.find_last_of(".") - filename.find_last_of("_") - 1);
+        msspectrum_to_fill.setMetaValue("annotated_sumformula", DataValue(current_sumformula));
+        msspectrum_to_fill.setMetaValue("annotated_adduct", DataValue(current_adduct));
+        msspectrum_to_fill.setMetaValue("decoy", decoy);
+
+        // read file and save in MSSpectrum
+        ifstream fragment_annotation_file(sirius_result_file.absoluteFilePath().toStdString());
+        if (fragment_annotation_file)
+        {
+          //mz  intensity   rel.intensity   exactmass   formula ionization
+          //51.023137   713.15  9.36    51.022927   C4H2    [M + H]+
+
+          std::vector<Peak1D> fragments_mzs_ints;
+          MSSpectrum::FloatDataArray fragments_exactmasses;
+          MSSpectrum::StringDataArray fragments_explanations;
+          MSSpectrum::StringDataArray fragments_ionization;
+          if (use_exact_mass)
+          {
+            fragments_exactmasses.setName("mz");
+          }
+          else
+          {
+            fragments_exactmasses.setName("exact_mass");
+          }
+          fragments_explanations.setName("explanation");
+          String line;
+          std::getline(fragment_annotation_file, line); // skip header
+          while (std::getline(fragment_annotation_file, line))
+          {
+            Peak1D fragment_mz_int;
+            StringList splitted_line;
+            line.split("\t",splitted_line);
+            // option to use the exact mass as peak MZ (e.g. for library preparation).
+            if (use_exact_mass)
+            {
+              fragment_mz_int.setMZ(splitted_line[3].toDouble());
+              fragments_exactmasses.push_back(splitted_line[0].toFloat());
+            }
+            else
+            {
+              fragment_mz_int.setMZ(splitted_line[0].toDouble());
+              fragments_exactmasses.push_back(splitted_line[3].toFloat());
+            }
+            fragment_mz_int.setIntensity(splitted_line[1].toFloat());
+            fragments_mzs_ints.push_back(fragment_mz_int);
+            fragments_explanations.push_back(splitted_line[4]);
+            fragments_ionization.push_back(splitted_line[5]);
+          }
+          msspectrum_to_fill.setMetaValue("score", DataValue(score));
+
+          msspectrum_to_fill.setMSLevel(2);
+          msspectrum_to_fill.swap(fragments_mzs_ints);
+          msspectrum_to_fill.getFloatDataArrays().push_back(fragments_exactmasses);
+          msspectrum_to_fill.getStringDataArrays().push_back(fragments_explanations);
+          msspectrum_to_fill.getStringDataArrays().push_back(fragments_ionization);
+        }
+      }
+    }
+    else
+    {
+      OPENMS_LOG_DEBUG << "Directory '" + subfolder + "' was not found for: " << sirius_spectra_dir << std::endl;
+    }
+    return result;
+  }
+
+  //TODO remove the next two. unused
+  // use the first ranked sumformula (works for known and known_unknowns)
   // currently only supports sumformula from rank 1
   void SiriusFragmentAnnotation::extractAnnotationFromSiriusFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
   { 
@@ -259,7 +417,7 @@ namespace OpenMS
 
       if (rank_filename.empty() || rank_score.empty())
       {
-        OPENMS_LOG_WARN << "Extraction of the compound ranking, filename and score failed for, please check if the SIRIUS project space is correct for." << sirius_spectra_dir << std::endl;
+        OPENMS_LOG_WARN << "Extraction of the compound ranking, filename and score failed. Please check if the SIRIUS project space is correct for " << sirius_spectra_dir << std::endl;
       }
 
       // use first file in folder (rank 1)
@@ -314,14 +472,14 @@ namespace OpenMS
           if (use_exact_mass)
           {
             fragment_mz_int.setMZ(splitted_line[3].toDouble());
-            fragments_exactmasses.push_back(splitted_line[0].toDouble());
+            fragments_exactmasses.push_back(splitted_line[0].toFloat());
           }
           else
           {
             fragment_mz_int.setMZ(splitted_line[0].toDouble());
-            fragments_exactmasses.push_back(splitted_line[3].toDouble());
+            fragments_exactmasses.push_back(splitted_line[3].toFloat());
           }
-          fragment_mz_int.setIntensity(splitted_line[1].toDouble());
+          fragment_mz_int.setIntensity(splitted_line[1].toFloat());
           fragments_mzs_ints.push_back(fragment_mz_int);
           fragments_explanations.push_back(splitted_line[4]);
           fragments_ionization.push_back(splitted_line[5]);
@@ -340,7 +498,7 @@ namespace OpenMS
     }
   }
 
-  // use the first ranked sumformula (works for known and known_unkowns)
+  // use the first ranked sumformula (works for known and known_unknowns)
   // currently only supports sumformula from rank 1
   void SiriusFragmentAnnotation::extractAnnotationFromDecoyFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill)
   {
@@ -358,7 +516,7 @@ namespace OpenMS
 
       if (rank_filename.empty() || rank_score.empty())
       {
-        OPENMS_LOG_WARN << "Extraction of the compound ranking, filename and score failed for, please check if the SIRIUS project space is correct for." << sirius_spectra_dir << std::endl;
+        OPENMS_LOG_WARN << "Extraction of the compound ranking, filename and score failed. Please check if the SIRIUS project space is correct for " << sirius_spectra_dir << std::endl;
       }
 
       // use first file in folder (rank 1)
@@ -395,7 +553,7 @@ namespace OpenMS
           StringList splitted_line;
           line.split("\t",splitted_line);
           fragment_mz_int.setMZ(splitted_line[0].toDouble());
-          fragment_mz_int.setIntensity(splitted_line[1].toDouble());
+          fragment_mz_int.setIntensity(splitted_line[1].toFloat());
           fragments_mzs_ints.push_back(fragment_mz_int);
           fragments_explanations.push_back(splitted_line[2]);
           fragments_ionization.push_back(splitted_line[3]);

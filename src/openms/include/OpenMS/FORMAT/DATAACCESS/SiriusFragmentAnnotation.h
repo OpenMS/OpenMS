@@ -53,7 +53,7 @@ namespace OpenMS
             MSSpectrum decoy;
 
             SiriusTargetDecoySpectra() = default;
-            SiriusTargetDecoySpectra(MSSpectrum target_spectrum, MSSpectrum decoy_spectrum) : target(target_spectrum), decoy(decoy_spectrum) {}
+            SiriusTargetDecoySpectra(MSSpectrum target_spectrum, MSSpectrum decoy_spectrum) : target(std::move(target_spectrum)), decoy(std::move(decoy_spectrum)) {}
           };
 
           /**
@@ -69,6 +69,8 @@ namespace OpenMS
           @param use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
           */
           static std::vector<SiriusTargetDecoySpectra> extractAndResolveSiriusAnnotations(const std::vector<String>& sirius_workspace_subdirs, const double& score_threshold, bool use_exact_mass);
+          static std::vector<MSSpectrum> extractAndResolveSiriusAnnotationsTgtOnly(const std::vector<String>& sirius_workspace_subdirs, const double& score_threshold, bool use_exact_mass);
+
 
           /**
           @brief extractSiriusFragmentAnnotationMapping  
@@ -157,6 +159,8 @@ namespace OpenMS
           @param use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
           */
           static void extractAnnotationFromSiriusFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass = false);
+          static std::vector<MSSpectrum> extractAnnotationsFromSiriusFile_(const String& path_to_sirius_workspace, Size max_rank = 1, bool decoy = false, bool use_exact_mass = false);
+
 
           /**
           @brief extractCompoundRankingAndFilename
