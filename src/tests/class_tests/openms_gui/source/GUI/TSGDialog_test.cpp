@@ -36,7 +36,8 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
-#include <qpushbutton.h>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QMessageBox>
 
 using namespace OpenMS;
 using namespace std;
@@ -105,8 +106,10 @@ void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
     QDoubleSpinBox* spin = check_box_to_intensity_.at(i);
 
     bool ion_allowed;
-    if (peptide_input) ion_allowed = intensity_ion_exists.at(i).first;
-    else ion_allowed = intensity_ion_exists.at(i).second;
+    if (peptide_input)
+      ion_allowed = intensity_ion_exists.at(i).first;
+    else
+      ion_allowed = intensity_ion_exists.at(i).second;
 
     if (ion_allowed)
     {
@@ -132,7 +135,8 @@ void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
     {
       // if ion type isn't supported, check if the ion and its intensity are hidden
       QVERIFY(item->isHidden());
-      if (spin == nullptr) continue;
+      if (spin == nullptr)
+        continue;
       QVERIFY(spin->isHidden());
     }
   }
@@ -143,6 +147,41 @@ void OpenMS::TestTSGDialog::testSequenceInput_(QString input)
   QTest::keyClicks(UI->seq_input, input);
   String read_seq = dialog_.getSequence();
   QVERIFY(read_seq == UI->seq_input->text());
+}
+
+void OpenMS::TestTSGDialog::checkMessageBoxExists_()
+{
+  // get the active window
+  QWidget* active_widget = QApplication::activeModalWidget();
+  if (active_widget->inherits("QMessageBox")) // if it's a message box, close it
+  {
+    QMessageBox* mb = qobject_cast<QMessageBox*>(active_widget);
+    QTest::keyClick(mb, Qt::Key_Enter);
+    QVERIFY(true);
+    return;
+  }
+  QVERIFY(false);
+}
+
+void TestTSGDialog::testMessageBoxes_()
+{
+  // check empty sequence input
+  UI->seq_input->clear();
+  QTimer::singleShot(DELAY, this, &TestTSGDialog::checkMessageBoxExists_); // calls the SLOT after DELAY ms passed
+  UI->dialog_buttons->button(QDialogButtonBox::Ok)->click();
+
+  // check unparsible sequence input
+  UI->seq_input->setText("J+-5!");
+  QTimer::singleShot(DELAY, this, &TestTSGDialog::checkMessageBoxExists_);
+  UI->dialog_buttons->button(QDialogButtonBox::Ok)->click();
+
+  // unselect all ions to produce empty spectrum
+  for (size_t i = 0; i < int(CheckBox::NUMBER_OF_CHECK_BOXES); ++i)
+  {
+    UI->ion_types->item(i)->setCheckState(Qt::CheckState::Unchecked);
+  }
+  QTimer::singleShot(DELAY, this, &TestTSGDialog::checkMessageBoxExists_);
+  UI->dialog_buttons->button(QDialogButtonBox::Ok)->click();
 }
 
 void TestTSGDialog::testConstruction()
@@ -328,6 +367,7 @@ void TestTSGDialog::testSpectrumCalculation()
   UI->seq_input->setText("PEPTIDE"); // set peptide sequence to 'PEPTIDE'
   QTest::qWait(DELAY);
   QTest::mouseClick(UI->dialog_buttons->button(QDialogButtonBox::Ok), Qt::LeftButton);
+  QTest::qWait(DELAY);
   MSSpectrum pep_spec = dialog_.getSpectrum();
   QVERIFY2(!pep_spec.empty(), "Peptide input didn't produce a spectrum.");
   
@@ -336,8 +376,18 @@ void TestTSGDialog::testSpectrumCalculation()
   UI->seq_input->setText("AGUCCG");
   QTest::qWait(DELAY);
   QTest::mouseClick(UI->dialog_buttons->button(QDialogButtonBox::Ok), Qt::LeftButton);
+  QTest::qWait(DELAY);
   MSSpectrum rna_spec = dialog_.getSpectrum();
   QVERIFY2(!rna_spec.empty(), "RNA input didn't produce a spectrum.");
+}
+
+void TestTSGDialog::testErrors()
+{
+  UI->seq_type->setCurrentText("Peptide");
+  testMessageBoxes_();
+
+  UI->seq_type->setCurrentText("RNA");
+  testMessageBoxes_();
 }
 
 // expands to a simple main() method that runs all the private slots
@@ -349,6 +399,7 @@ QTEST_MAIN(TestTSGDialog)
 // sources:
 // https://gist.github.com/peteristhegreat/cbd8eaa0e565d0b82dbfb5c7fdc61c8d
 // https://vicrucann.github.io/tutorials/qttest-signals-qtreewidget/
+// https://stackoverflow.com/questions/69283103/qts-qtest-doesnt-select-an-item-in-a-drop-down-list-with-a-click
 //
 // #include <qcombobox.h>
 // #include <qlistview.h>

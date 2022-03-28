@@ -34,7 +34,7 @@
 
 #include <QtTest/QtTest>
 #include <QtGui>
-#include <qspinbox.h>
+#include <QtWidgets/QSpinBox>
 
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 #include <ui_TheoreticalSpectrumGenerationDialog.h>
@@ -64,6 +64,8 @@ namespace OpenMS
 
       void testSpectrumCalculation();
 
+      void testErrors();
+
     private:
       template<typename T> // template for QSpinBox and QDoubleSpinBox
       void testSpinBox_(T* box, std::string str_value = "2");
@@ -73,6 +75,10 @@ namespace OpenMS
       void testSequenceInput_(QString input);
 
       void testIsotopeModel_();
+
+      void checkMessageBoxExists_();
+
+      void testMessageBoxes_();
 
       TheoreticalSpectrumGenerationDialog dialog_;
 
