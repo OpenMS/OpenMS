@@ -250,7 +250,7 @@ jobs:
   build-lnx:
     runs-on: ubuntu-latest
     continue-on-error: true
-    container: openms/manylinux:latest
+    container: ghcr.io/openms/contrib_manylinux2014:latest
 
     steps:
     # Cancels older builds if still running
