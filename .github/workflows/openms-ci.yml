@@ -125,7 +125,7 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
-    continue-on-error: true    
+    continue-on-error: true
     steps:
     - uses: actions/checkout@v2
       with:
