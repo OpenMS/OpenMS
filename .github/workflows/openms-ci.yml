@@ -125,7 +125,7 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
-    continue-on-error: true
+    continue-on-error: true    
     steps:
     - uses: actions/checkout@v2
       with:
@@ -140,6 +140,7 @@ jobs:
         install-deps: 'true'
         modules: 'qtsvg'
         cached: 'false'
+        setup-python: 'false' # fixes an error with newer qt versions
 
     - name: Install build tools
       run: brew install autoconf automake libtool
