@@ -154,7 +154,7 @@ jobs:
         install-deps: 'true'
         modules: 'qtsvg'
         cached: 'false'
-        setup-python: 'false' # fixes an error with newer qt versions
+        setup-python: 'false' # https://github.com/jurplel/install-qt-action/issues/130
 
     - name: Install Miniconda
       shell: bash
