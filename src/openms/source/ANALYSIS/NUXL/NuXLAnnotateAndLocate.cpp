@@ -185,12 +185,18 @@ namespace OpenMS
                                     partial_loss_template_z3,
                                     partial_loss_spectrum);
 
-         // add shifted marker ions
-         NuXLFragmentIonGenerator::addMS2MarkerIons(
-           marker_ions,
-           partial_loss_spectrum,
-           partial_loss_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
-           partial_loss_spectrum.getStringDataArrays()[0]);
+        // add shifted marker ions
+        NuXLFragmentIonGenerator::addMS2MarkerIons(
+          marker_ions,
+          partial_loss_spectrum,
+          partial_loss_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
+          partial_loss_spectrum.getStringDataArrays()[0]);
+
+        // add special methionine related immonium ions
+        NuXLFragmentIonGenerator::addDEBandNMImmoniumIons(
+          partial_loss_spectrum,
+          partial_loss_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
+          partial_loss_spectrum.getStringDataArrays()[0]);      
 
         partial_loss_spectrum.sortByPosition(); // need to resort after adding marker ions
 

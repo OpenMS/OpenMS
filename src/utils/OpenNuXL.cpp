@@ -953,7 +953,7 @@ protected:
     static const double imH = EmpiricalFormula("C5H8N3").getMonoWeight(); // 70%
     static const double imC = EmpiricalFormula("C2H6NS").getMonoWeight(); // CaC 61%
     static const double imK1 = EmpiricalFormula("C5H13N2").getMonoWeight(); // 2%
-    static const double imP = EmpiricalFormula("C4H8N").getMonoWeight(); //?
+    static const double imP = EmpiricalFormula("C4H8N").getMonoWeight(); //?    
     static const double imQ = 101.0715; // 52%
     static const double imE = 102.0555; // 37%
     static const double imM = 104.0534; // 3%
@@ -1568,6 +1568,24 @@ protected:
       {
         match_one_peak_z1(imE + fa.mass, plss_im_MIC);
       }
+    }
+
+    // special immonium ions with very specific shift
+    // TODO: these could be stored in the datastructure for fragment / markerion definitions and filled dependent on the protocol (DEB or NM)
+    static const double imM_CH4S_DEB_H = EmpiricalFormula("C5H11O2S1").getMonoWeight(); // CH4S (methionine remnant) + C4H6O6 (DEB) +H    TOTAL C5H11O2S1 (135.0480)
+    static const double imM_CH4S_DEB_Gbase = EmpiricalFormula("C10H16N5O3S1").getMonoWeight(); // CH4S + C4H6O6 (DEB) + C5H5N5O1 (Gbase)    TOTAL C10H16N5O3S1 
+    static const double imM_CH4S_DEB_Abase = EmpiricalFormula("C10H16N5O2S1").getMonoWeight(); // CH4S + C4H6O6 (DEB) + C5H5N5 (Abase)  TOTAL C10H16N5O2S1
+    static const double imM_CH4S_NM_H = EmpiricalFormula("C6H14N1S1").getMonoWeight(); // CH4S (methionine remnant) + C5H9N1 (NM) +H   TOTAL C6H14N1S1 (132.0847)
+    static const double imM_CH4S_NM_Gbase = EmpiricalFormula("C11H18N6O1S1").getMonoWeight(); // CH4S (methionine remnant) + C5H9N1 (NM) + C5H5N5O1 (Gbase)  TOTAL C11H18N6O1S1 
+    static const double imM_CH4S_NM_Abase = EmpiricalFormula("C11H18N6S1").getMonoWeight(); // CH4S (methionine remnant) + C5H9N1 (NM) + C5H5N5 (Abase)  TOTAL C11H18N6S1
+    if (iip.M) 
+    {
+      match_one_peak_z1(imM_CH4S_DEB_H, plss_im_MIC);
+      match_one_peak_z1(imM_CH4S_DEB_Gbase, plss_im_MIC);
+      match_one_peak_z1(imM_CH4S_DEB_Abase, plss_im_MIC);
+      match_one_peak_z1(imM_CH4S_NM_H, plss_im_MIC);
+      match_one_peak_z1(imM_CH4S_NM_Gbase, plss_im_MIC);
+      match_one_peak_z1(imM_CH4S_NM_Abase, plss_im_MIC);
     }
     plss_im_MIC /= TIC;
 
