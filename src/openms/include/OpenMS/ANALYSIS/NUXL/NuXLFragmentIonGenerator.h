@@ -94,11 +94,5 @@ class OPENMS_DLLAPI NuXLFragmentIonGenerator
                                     PeakSpectrum &spectrum,
                                     PeakSpectrum::IntegerDataArray &spectrum_charge, 
                                     PeakSpectrum::StringDataArray &spectrum_annotation);
-
-  // add the methionine related immonium ions
-  static void addDEBandNMImmoniumIons(
-                                    PeakSpectrum &spectrum,
-                                    PeakSpectrum::IntegerDataArray &spectrum_charge, 
-                                    PeakSpectrum::StringDataArray &spectrum_annotation);
   };
 }

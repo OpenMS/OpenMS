@@ -170,51 +170,21 @@ void NuXLFragmentIonGenerator::addShiftedImmoniumIons(const String &unmodified_s
   }
   else if (unmodified_sequence.hasSubstring("M"))
   {
-    const double immonium_ion_mz = 104.05285 + fragment_shift_mass;
-    partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
-    partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('M', fragment_shift_name));
+    {
+      const double immonium_ion_mz = 104.05285 + fragment_shift_mass;
+      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+      partial_loss_spectrum_charge.emplace_back(1);
+      partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('M', fragment_shift_name));
+    }
+
+    {
+      const double immonium_ion_mz = EmpiricalFormula("CH5S").getMonoWeight() + fragment_shift_mass; // methionine related fragment
+      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+      partial_loss_spectrum_charge.emplace_back(1);
+      partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('M*', fragment_shift_name));
+    }
   }
 }
-
-void NuXLFragmentIonGenerator::addDEBandNMImmoniumIons(
-          PeakSpectrum &spectrum,
-          PeakSpectrum::IntegerDataArray &spectrum_charge, 
-          PeakSpectrum::StringDataArray &spectrum_annotation)
-{
-  // special immonium ions with very specific shift
-  // TODO: these could be stored in the datastructure for fragment / markerion definitions and filled dependent on the protocol (DEB or NM)
-  const double imM_CH4S_DEB_H = EmpiricalFormula("C5H11O2S1").getMonoWeight(); // CH4S (methionine remnant) + C4H6O6 (DEB) +H    TOTAL C5H11O2S1 (135.0480)
-  const double imM_CH4S_DEB_Gbase = EmpiricalFormula("C10H16N5O3S1").getMonoWeight(); // CH4S + C4H6O6 (DEB) + C5H5N5O1 (Gbase)    TOTAL C10H16N5O3S1 
-  const double imM_CH4S_DEB_Abase = EmpiricalFormula("C10H16N5O2S1").getMonoWeight(); // CH4S + C4H6O6 (DEB) + C5H5N5 (Abase)  TOTAL C10H16N5O2S1
-  const double imM_CH4S_NM_H = EmpiricalFormula("C6H14N1S1").getMonoWeight(); // CH4S (methionine remnant) + C5H9N1 (NM) +H   TOTAL C6H14N1S1 (132.0847)
-  const double imM_CH4S_NM_Gbase = EmpiricalFormula("C11H18N6O1S1").getMonoWeight(); // CH4S (methionine remnant) + C5H9N1 (NM) + C5H5N5O1 (Gbase)  TOTAL C11H18N6O1S1 
-  const double imM_CH4S_NM_Abase = EmpiricalFormula("C11H18N6S1").getMonoWeight(); // CH4S (methionine remnant) + C5H9N1 (NM) + C5H5N5 (Abase)  TOTAL C11H18N6S1
-  
-  spectrum.emplace_back(imM_CH4S_DEB_H, 1.0);
-  spectrum_charge.emplace_back(1);
-  spectrum_annotation.emplace_back("iM(CH4S+DEB+H)"); // Note: second character needs to be amino acid (M)
-
-  spectrum.emplace_back(imM_CH4S_DEB_Gbase, 1.0);
-  spectrum_charge.emplace_back(1);
-  spectrum_annotation.emplace_back("iM(CH4S+DEB+Gbase)");
-
-  spectrum.emplace_back(imM_CH4S_DEB_Abase, 1.0);
-  spectrum_charge.emplace_back(1);
-  spectrum_annotation.emplace_back("iM(CH4S+DEB+Abase)");
-
-  spectrum.emplace_back(imM_CH4S_NM_H, 1.0);
-  spectrum_charge.emplace_back(1);
-  spectrum_annotation.emplace_back("iM(CH4S+NM+H)");
-
-  spectrum.emplace_back(imM_CH4S_NM_Gbase, 1.0);
-  spectrum_charge.emplace_back(1);
-  spectrum_annotation.emplace_back("iM(CH4S+NM+Gbase)");
-
-  spectrum.emplace_back(imM_CH4S_NM_Abase, 1.0);
-  spectrum_charge.emplace_back(1);
-  spectrum_annotation.emplace_back("iM(CH4S+NM+ABase)");
-}    
 
   /* 
   * Add peaks with shifts induced by the RNA/DNA:
