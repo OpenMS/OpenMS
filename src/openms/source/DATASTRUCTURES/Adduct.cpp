@@ -34,9 +34,13 @@
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 
+#include <OpenMS/CHEMISTRY/Element.h>
+
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <iostream>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -168,6 +172,33 @@ namespace OpenMS
   const String& Adduct::getLabel() const
   {
     return label_;
+  }
+  
+  String Adduct::toAdductString(const String& ion_string, const Int& charge)
+  {
+    EmpiricalFormula ef(ion_string);
+    String charge_sign = charge >= 0 ? "+" : "-";
+    String s("[M");
+
+    //need elements sorted canonically (by string)
+    std::map<String, String> sorted_elem_map;
+    for (const auto& element_count : ef)
+    {
+      String e_symbol(element_count.first->getSymbol());
+      String tmp = element_count.second > 0 ? "+" : "-";
+      tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
+      tmp += e_symbol;
+      sorted_elem_map[e_symbol] = std::move(tmp);
+    }
+    for (const auto& sorted_e_cnt : sorted_elem_map)
+    {
+      s += sorted_e_cnt.second;
+    }
+    s += String("]");
+    s += abs(charge) > 1 ? String(abs(charge)) : "";
+    s += charge_sign;
+
+    return s;
   }
 
   String Adduct::checkFormula_(const String& formula)

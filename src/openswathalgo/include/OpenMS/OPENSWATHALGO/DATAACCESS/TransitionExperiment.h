@@ -47,6 +47,7 @@ namespace OpenSwath
 public:
 
     LightTransition() :
+      precursor_im(-1),
       fragment_charge(0)
     {
     }
@@ -56,6 +57,7 @@ public:
     double library_intensity;
     double product_mz;
     double precursor_mz;
+    double precursor_im;
     int fragment_charge;
     bool decoy;
     bool detecting_transition;
@@ -70,6 +72,11 @@ public:
     bool isProductChargeStateSet() const
     {
       return !(fragment_charge == 0);
+    }
+
+    bool isPrecursorImSet() const
+    {
+      return !(precursor_im == -1);
     }
 
     std::string getNativeID() const
@@ -105,6 +112,11 @@ public:
     double getPrecursorMZ() const
     {
       return precursor_mz;
+    }
+
+    double getPrecursorIM() const
+    {
+      return precursor_im;
     }
 
     void setDetectingTransition (bool d)

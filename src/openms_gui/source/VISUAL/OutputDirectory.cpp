@@ -42,7 +42,7 @@
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QCompleter>
-#include <QtWidgets/QDirModel>
+#include <QFileSystemModel>
 
 
 namespace OpenMS
@@ -53,7 +53,7 @@ namespace OpenMS
   {
     ui_->setupUi(this);
     QCompleter* completer = new QCompleter(this);
-    QDirModel* dir_model = new QDirModel(completer);
+    QFileSystemModel* dir_model = new QFileSystemModel(completer);
     dir_model->setFilter(QDir::AllDirs);
     completer->setModel(dir_model);
     ui_->line_edit->setCompleter(completer);

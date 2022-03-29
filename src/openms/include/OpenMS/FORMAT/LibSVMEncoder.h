@@ -184,7 +184,7 @@ public:
 
               This function is used to free all the memory used by 'problem'
           */
-    static void destroyProblem(svm_problem * problem);
+    static void destroyProblem(svm_problem* &problem, bool free_nodes = true);
 
     static std::vector<double> predictPeptideRT(const std::vector<String> & sequences,
                                                 SVMWrapper& svm,

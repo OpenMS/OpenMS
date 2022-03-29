@@ -187,6 +187,7 @@ protected:
 
     //TODO test rigorously
     registerStringOption_("picked_proteinFDR", "<choice>", "false", "Use a picked protein FDR?", false);
+    setValidStrings_("picked_proteinFDR", {"true","false"});
 
     registerDoubleOption_("psmFDR", "<threshold>", 1.0, "PSM FDR threshold (e.g. 0.05=5%)."
                           " If Bayesian inference was chosen, it is equivalent with a peptide FDR", false);

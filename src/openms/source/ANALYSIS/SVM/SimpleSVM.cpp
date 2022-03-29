@@ -78,11 +78,15 @@ SimpleSVM::SimpleSVM():
 
 SimpleSVM::~SimpleSVM()
 {
-  if (model_ != nullptr) svm_free_model_content(model_);
+  clear_();
+}
+
+void SimpleSVM::clear_()
+{
+  if (model_ != nullptr) svm_free_and_destroy_model(&model_); // frees model *and* sets ptr to zero
   delete[] data_.x;
   delete[] data_.y;
 }
-
 
 void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
 {
@@ -93,6 +97,9 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
   }
   Size n_obs = predictors.begin()->second.size();
   n_parts_ = param_.getValue("xval");
+
+  // clear old models
+  clear_();
 
   scaleData_(predictors);
   convertData_(predictors);
@@ -149,13 +156,10 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
 
   optimizeParameters_();
   svm_params_.probability = 1;
-  // in case "setup" was called before:
-  if (model_ != nullptr) svm_free_model_content(model_);
   model_ = svm_train(&data_, &svm_params_);
   OPENMS_LOG_INFO << "Number of support vectors in the final model: " << model_->l
            << endl;
 }
-
 
 void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) const
 {
@@ -198,7 +202,6 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) c
   }
 }
 
-
 void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
 {
   if (model_ == nullptr)
@@ -230,7 +233,6 @@ void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
     }
   }
 }
-
 
 void SimpleSVM::scaleData_(PredictorMap& predictors)
 {
@@ -296,7 +298,6 @@ void SimpleSVM::convertData_(const PredictorMap& predictors)
   }
 }
 
-
 void SimpleSVM::writeXvalResults(const String& path) const
 {
   SVOutStream output(path);
@@ -311,7 +312,6 @@ void SimpleSVM::writeXvalResults(const String& path) const
     }
   }
 }
-
 
 pair<double, double> SimpleSVM::chooseBestParameters_() const
 {
@@ -375,7 +375,6 @@ pair<double, double> SimpleSVM::chooseBestParameters_() const
   const pair<Size, Size>& indexes = best_indexes[tiebreaker.rbegin()->second];
   return make_pair(log2_C_[indexes.second], log2_gamma_[indexes.first]);
 }
-
 
 void SimpleSVM::optimizeParameters_()
 {
