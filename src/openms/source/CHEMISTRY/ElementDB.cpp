@@ -167,7 +167,7 @@ namespace OpenMS
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Isotope with symbol ") + iso_symbol + " already exists and replace_existing is set to false.");
       }
-      Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, mass, abundance, half_life, decay);
+      const Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, mass, abundance, half_life, decay);
       addIsotopeToMaps_(iso_name, iso_symbol, isotope);
       // we changed/updated the isotopes, so we need to update
       const Element* const_ele = isotope->getElement();
@@ -176,7 +176,7 @@ namespace OpenMS
     }
     else
     {
-      Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, mass, abundance, half_life, decay);
+      const Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, mass, abundance, half_life, decay);
       isotope = addIsotopeToMaps_(iso_name, iso_symbol, isotope);
 
       // we added a new isotope, so we need to add it to the element
@@ -741,14 +741,14 @@ namespace OpenMS
         dm = decay_modes.at(m.first);
       }
 
-      Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, atomic_mass, abundance.at(m.first), half_life, dm);
+      const Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, atomic_mass, abundance.at(m.first), half_life, dm);
       isotope = addIsotopeToMaps_(iso_name, iso_symbol, isotope);
       isotopes.push_back(isotope);
     }
     return isotopes;
   }
 
-  Isotope* ElementDB::addIsotopeToMaps_(const std::string& iso_name, const std::string& iso_symbol, Isotope* isotope)
+  const Isotope* ElementDB::addIsotopeToMaps_(const std::string& iso_name, const std::string& iso_symbol, const Isotope* isotope)
   {
     if (isotopes_.find(iso_symbol) != isotopes_.end())
     {

@@ -201,7 +201,7 @@ protected:
     Element* addElementToMaps_(const std::string& name, const std::string& symbol, const unsigned int an, Element* e);
 
     /// add element objects to documentation maps
-    Isotope* addIsotopeToMaps_(const std::string& name, const std::string& symbol, Isotope* e);
+    const Isotope* addIsotopeToMaps_(const std::string& name, const std::string& symbol, const Isotope* e);
 
     /**_ resets all containers
     **/
