@@ -170,7 +170,7 @@ protected:
      **/
     double calculateAvgWeight_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 
-    /**_ calculates the mono weight based on the most abundant isotope
+    /** Calculates the mono weight based on the most abundant isotope
      **/
     double calculateMonoWeight_(const std::map<unsigned int, double>& abundance, const std::map<unsigned int, double>& mass);
 

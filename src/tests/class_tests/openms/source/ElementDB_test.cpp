@@ -169,6 +169,7 @@ END_SECTION
 START_SECTION( void addIsotope(const std::string& name, const std::string& symbol, const unsigned int an, double abundance, double mass, double half_life, Isotope::DecayMode decay, bool replace_existing))
 {
   const Isotope * iso1 = e_ptr->getIsotope("(238)U");
+  TEST_REAL_SIMILAR(iso1->getAbundance(), 0.992742) // test natural abundance 
   e_ptr->addIsotope("Uranium", "U", 92u, 1.3, 238.05, 1e5, Isotope::DecayMode::UNKNOWN, true);
 
   const Isotope * iso2 = e_ptr->getIsotope("(238)U");
