@@ -139,11 +139,9 @@ namespace OpenMS
             pen.setColor(layer_->peak_colors_1d[peak_index]);
             painter->setPen(pen);
           }
-
-          // Warn if non-empty peak color array present but size doesn't match number of peaks
-          // This indicates a bug but we gracefully just issue a warning
-          if (!layer_->peak_colors_1d.empty() && layer_->peak_colors_1d.size() < spectrum.size())
-          {
+          else if (!layer_->peak_colors_1d.empty())
+          { // Warn if non-empty peak color array present but size doesn't match number of peaks
+            // This indicates a bug but we gracefully just issue a warning
             OPENMS_LOG_ERROR << "Peak color array size (" << layer_->peak_colors_1d.size() << ") doesn't match number of peaks (" << spectrum.size() << ") in spectrum." << endl;
           }
           canvas->dataToWidget(*it, end, layer_->flipped);

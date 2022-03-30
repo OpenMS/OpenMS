@@ -337,7 +337,8 @@ namespace OpenMS
       //-----------------------------------------------------------------------------------------------
       // Determine number of shown scans (MS1)
       std::vector<Size> rt_indices; // list of visible RT scans in MS1 with at least 2 points
-      for (ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min); it != peak_map.RTEnd(rt_max); ++it)
+      const auto rt_end = peak_map.RTEnd(rt_max);
+      for (ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min); it != rt_end; ++it)
       {
         if (it->getMSLevel() == 1 && it->size() > 1)
         {
@@ -352,7 +353,7 @@ namespace OpenMS
         // and take the median value
         Size n_peaks_in_scan(0);
         {
-          double quantiles[] = {0.25, 0.50, 0.75};
+          constexpr double quantiles[] = {0.25, 0.50, 0.75};
           std::vector<Size> n_s;
           for (Size i=0; i<sizeof(quantiles)/sizeof(double); ++i)
           {
@@ -577,9 +578,9 @@ namespace OpenMS
     const double mz_max = visible_area_.maxPosition()[0];
 
     double snap_factor = snap_factors_[layer_index];
-
+    const auto end_area = map.areaEndConst();
     for (ExperimentType::ConstAreaIterator i = map.areaBeginConst(rt_min, rt_max, mz_min, mz_max);
-         i != map.areaEndConst();
+         i != end_area;
          ++i)
     {
       PeakIndex pi = i.getPeakIndex();
@@ -587,7 +588,7 @@ namespace OpenMS
       {
         QPoint pos;
         dataToWidget_(i->getMZ(), i.getRT(), pos);
-        if (pos.x() > 0 && pos.y() > 0 && pos.x() < image_width - 1 && pos.y() < image_height - 1)
+        if (pos.x() > 0 & pos.y() > 0 & pos.x() < image_width - 1 & pos.y() < image_height - 1)
         {
           // store point in the array of its color
           Int colorIndex = precalculatedColorIndex_(i->getIntensity(), layer.gradient, snap_factor);
@@ -620,7 +621,7 @@ namespace OpenMS
     Int image_height = buffer_.height();
 
     const LayerDataBase& layer = getLayer(layer_index);
-    const ExperimentType & map = *layer.getPeakData();
+    const ExperimentType& map = *layer.getPeakData();
     const double rt_min = visible_area_.minPosition()[1];
     const double rt_max = visible_area_.maxPosition()[1];
     const double mz_min = visible_area_.minPosition()[0];
@@ -628,13 +629,16 @@ namespace OpenMS
 
     double snap_factor = snap_factors_[layer_index];
 
+    double max_data_RT = map.getMaxRT();
+
     //calculate pixel size in data coordinates
     double rt_step_size = (rt_max - rt_min) / rt_pixel_count;
     double mz_step_size = (mz_max - mz_min) / mz_pixel_count;
 
     // start at first visible RT scan
     Size scan_index = std::distance(map.begin(), map.RTBegin(rt_min));
-    //iterate over all pixels (RT dimension)
+    vector<Size> scan_indices, peak_indices;
+    // iterate over all pixels (RT dimension)
     for (Size rt = 0; rt < rt_pixel_count; ++rt)
     {
       // interval in data coordinates for the current pixel
@@ -643,23 +647,25 @@ namespace OpenMS
       //cout << "rt: " << rt << " (" << rt_start << " - " << rt_end << ")" << endl;
 
       // reached the end of data
-      if (rt_end >= (--map.end())->getRT())
+      if (rt_end >= max_data_RT)
       {
         break;
       }
-      //determine the relevant spectra and reserve an array for the peak indices
-      vector<Size> scan_indices, peak_indices;
+      // determine the relevant spectra and reserve an array for the peak indices
+      scan_indices.clear();
+      peak_indices.clear();
       for (Size i = scan_index; i < map.size(); ++i)
       {
-        if (map[i].getRT() >= rt_end)
+        const auto& spec = map[i];
+        if (spec.getRT() >= rt_end)
         {
           scan_index = i;   //store last scan index for next RT pixel
           break;
         }
-        if (map[i].getMSLevel() == 1 && !map[i].empty())
+        if (spec.getMSLevel() == 1 && !spec.empty())
         {
           scan_indices.push_back(i);
-          peak_indices.push_back(map[i].MZBegin(mz_min) - map[i].begin());
+          peak_indices.push_back(spec.MZBegin(mz_min) - spec.begin());
         }
       }
       //cout << "  scans: " << scan_indices.size() << endl;
@@ -668,7 +674,8 @@ namespace OpenMS
       {
         continue;
       }
-      //iterate over all pixels (m/z dimension)
+      QPoint pos;
+      // iterate over all pixels (m/z dimension)
       for (Size mz = 0; mz < mz_pixel_count; ++mz)
       {
         double mz_start = mz_min + mz_step_size * mz;
@@ -680,24 +687,24 @@ namespace OpenMS
         {
           Size s = scan_indices[i];
           Size p = peak_indices[i];
-          for (; p < map[s].size(); ++p)
+          const auto& spec = map[s];
+          for (; p < spec.size(); ++p)
           {
-            if (map[s][p].getMZ() >= mz_end)
+            if (spec[p].getMZ() >= mz_end)
             {
               break;
             }
-            if (map[s][p].getIntensity() > max && layer.filters.passes(map[s], p))
+            if (spec[p].getIntensity() > max && layer.filters.passes(spec, p))
             {
-              max = map[s][p].getIntensity();
+              max = spec[p].getIntensity();
             }
           }
-          peak_indices[i] = p;   //store last peak index for next m/z pixel
+          peak_indices[i] = p;   // store last peak index for next m/z pixel
         }
 
-        //draw to buffer
+        // draw to buffer
         if (max >= 0.0)
         {
-          QPoint pos;
           dataToWidget_(mz_start + 0.5 * mz_step_size, rt_start + 0.5 * rt_step_size, pos);
           if (pos.y() < image_height && pos.x() < image_width)
           {
