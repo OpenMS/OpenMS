@@ -245,12 +245,12 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
         return colors.get(None), zorders.get(None)
     # Else: Add the textual annotation.
     ion_type = annotation[0]
-    if ion_type not in colors:
+    if ion_type not in colors and color_ions:
         raise ValueError('Ion type not supported')
 
     color = (colors[ion_type] if color_ions else
              colors[None])
-    zorder = zorders[ion_type]
+    zorder = (1 if ion_type not in zorders else zorders[ion_type])
 
     if matched is not None and not matched:
         color = '#aaaaaa'
@@ -276,7 +276,7 @@ def plot_spectrum(spectrum: MSSpectrum, color_ions: bool = True,
     Parameters
     ----------
     spectrum : MSSpectrum
-        The spectrum to be plotted.
+        The spectrum to be plotted. Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
     color_ions : bool, optional
         Flag indicating whether or not to color annotated fragment ions. The
         default is True.
@@ -317,6 +317,7 @@ def plot_spectrum(spectrum: MSSpectrum, color_ions: bool = True,
     ax.set_ylim(*(0, y_max) if not mirror_intensity else (-y_max, 0))
 
     max_intensity = intensity.max()
+    if max_intensity == 0: max_intensity = 1
     if len(spectrum.getStringDataArrays()) > 0 and len(list(spectrum.getStringDataArrays()[0])) == len(mz):
         annotations = [ion.decode() for ion in spectrum.getStringDataArrays()[0]]
     else:
@@ -368,16 +369,16 @@ def mirror_plot_spectrum(spec_top: MSSpectrum, spec_bottom: MSSpectrum, alignmen
 
     Parameters
     ----------
-    spec_top : MsmsSpectrum
-        The spectrum to be plotted on the top.
-    spec_bottom : MsmsSpectrum
-        The spectrum to be plotted on the bottom.
+    spec_top : MSSpectrum
+        The spectrum to be plotted on the top. Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
+    spec_bottom : MSSpectrum
+        The spectrum to be plotted on the bottom. Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
     alignment : Optional[List], optional
         List of aligned peak pairs.
     spectrum_top_kws : Optional[Dict], optional
-        Keyword arguments for `plot.spectrum` of top spepctrum.
+        Keyword arguments for `Plotting.plot_spectrum` of top spectrum.
     spectrum_bottom_kws : Optional[Dict], optional
-        Keyword arguments for `plot.spectrum` of bottom spectrum.
+        Keyword arguments for `Plotting.plot_spectrum` of bottom spectrum.
     ax : Optional[plt.Axes], optional
         Axes instance on which to plot the spectrum. If None the current Axes
         instance is used.
