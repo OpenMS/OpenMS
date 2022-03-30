@@ -44,7 +44,7 @@
 
 using namespace std;
 
-int SECONDS_PER_YEAR = 31556952; // Gregorian year
+constexpr int SECONDS_PER_YEAR = 31556952; // Gregorian year
 
 namespace OpenMS
 {

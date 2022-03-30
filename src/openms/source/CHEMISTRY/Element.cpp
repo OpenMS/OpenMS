@@ -138,7 +138,7 @@ namespace OpenMS
     {
       dist.emplace_back(isotope->getMonoWeight(), isotope->getAbundance());
     }
-    isotope_distr_.set(dist);
+    isotope_distr_.set(std::move(dist));
   }
 
   const std::vector<const Isotope*>& Element::getIsotopes() const
@@ -222,11 +222,11 @@ namespace OpenMS
     << element.atomic_number_ << " "
     << element.average_weight_ << " "
     << element.mono_weight_;
-    os << "\nIsotopes: " << std::endl;
+    os << "\nIsotopes: \n";
 
     for (const auto& isotope : element.isotopes_)
     {
-      os << (*isotope) << std::endl;;
+      os << (*isotope) << "\n";;
     }
     return os;
   }
