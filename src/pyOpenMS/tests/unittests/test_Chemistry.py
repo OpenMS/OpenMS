@@ -192,18 +192,6 @@ def testElementDB():
 
 
 @report
-def testDPosition():
-    dp = pyopenms.DPosition1()
-    dp = pyopenms.DPosition1(1.0)
-    assert dp[0] == 1.0
-
-    dp = pyopenms.DPosition2()
-    dp = pyopenms.DPosition2(1.0, 2.0)
-
-    assert dp[0] == 1.0
-    assert dp[1] == 2.0
-
-@report
 def testResidueDB():
     rdb = pyopenms.ResidueDB()
     del rdb
@@ -309,7 +297,6 @@ def testRNaseDB():
     assert db.hasRegEx(u'(?<=G)')
     assert db.hasEnzyme("RNase_T1")
     
-
 @report
 def testRibonucleotideDB():
     """
@@ -342,7 +329,6 @@ def testRibonucleotide():
     r.setNewCode(b"A")
     assert r.getNewCode() == "A"
 
-
 @report
 def testRNaseDigestion():
     """
@@ -358,7 +344,6 @@ def testRNaseDigestion():
     result = []
     dig.digest(oligo, result)
     assert len(result) == 3
-
 
 @report
 def testNASequence():
