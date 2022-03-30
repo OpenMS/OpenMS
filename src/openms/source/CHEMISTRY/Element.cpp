@@ -126,10 +126,10 @@ namespace OpenMS
   void Element::setIsotopes(const std::vector<const Isotope*>& isotopes)
   {
     isotopes_ = isotopes;
-    updateIsotopeDistr(); // calculate new cached distribution
+    updateIsotopeDistr_(); // calculate new cached distribution
   }
 
-  void Element::updateIsotopeDistr()
+  void Element::updateIsotopeDistr_()
   {
     auto dist = isotope_distr_.getContainer();
     dist.clear();

@@ -155,10 +155,10 @@ public:
     /// writes the element to an output stream
     friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Element & element);
 
-    /// Update cached isotope distribution in case any of the isotopes has been changed
-    void updateIsotopeDistr();
-
 protected:
+
+    /// Update cached isotope distribution in case any of the isotopes has been changed
+    void updateIsotopeDistr_();
 
     /// name of the element
     std::string name_;

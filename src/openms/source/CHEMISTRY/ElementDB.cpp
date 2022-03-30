@@ -169,10 +169,10 @@ namespace OpenMS
       }
       Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, mass, abundance, half_life, decay);
       addIsotopeToMaps_(iso_name, iso_symbol, isotope);
-      // we changed the isotopes, so we need to update
+      // we changed/updated the isotopes, so we need to update
       const Element* const_ele = isotope->getElement();
       Element* element = const_cast<Element*>(const_ele);
-      element->updateIsotopeDistr();
+      element->setIsotopes(element->getIsotopes());
     }
     else
     {
