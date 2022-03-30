@@ -16,5 +16,5 @@ endforeach(i)
 set(OpenMSVisual_sources ${OpenMSVisual_sources} ${sources})
 
 ### source group definition
-source_group("Source Files\\VISUAL\\VISTORS" FILES ${sources})
+source_group("Source Files\\VISUAL\\VISITORS" FILES ${sources})
 

@@ -18,5 +18,5 @@ set(OpenMSVisual_sources ${OpenMSVisual_sources} ${sources_h})
 set(OpenMSVisual_sources_h ${OpenMSVisual_sources_h} ${sources_h})
 
 ### header group definition for IDE's
-source_group("Header Files\\OpenMS\\VISUAL\\VISTORS" FILES ${sources_h})
+source_group("Header Files\\OpenMS\\VISUAL\\VISITORS" FILES ${sources_h})
 
