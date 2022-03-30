@@ -34,6 +34,7 @@
 
 
 #pragma once
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QtWidgets/QDialog>
 
@@ -46,41 +47,69 @@ namespace Ui
   class TheoreticalSpectrumGenerationDialogTemplate;
 }
 
+class QListWidgetItem;
+
 namespace OpenMS
 {
+  class TestTSGDialog; // fwd declaring test class
+
+  // Note: If an additional check box is added all of the following three objects have to be edited!
+  //
+  //
+  // enum to get ion check box index (Ordering has to be the same as in the ui!)
+  enum class CheckBox
+  {
+    A_Ions,
+    A_b_Ions,
+    B_Ions,
+    C_Ions,
+    D_Ions,
+    W_Ions,
+    X_Ions,
+    Y_Ions,
+    Z_Ions,
+    Precursor,
+    Neutral_losses,
+    Abundant_Immonium_Ions,
+    NUMBER_OF_CHECK_BOXES
+  };
+
   /**
-      @brief Dialog which allows to enter an AA sequence and generates a theoretical spectrum for it.
+      @brief Dialog which allows to enter an AA or NA sequence and generates a theoretical spectrum for it.
 
       @ingroup Dialogs
   */
-  class TheoreticalSpectrumGenerationDialog :
+  class OPENMS_GUI_DLLAPI TheoreticalSpectrumGenerationDialog :
     public QDialog
   {
     Q_OBJECT
 
-public:
+  public:
+    
+    friend class TestTSGDialog; // to test the GUI expressed in the private member ui
 
     /// Constructor
     TheoreticalSpectrumGenerationDialog();
     /// Destructor
     ~TheoreticalSpectrumGenerationDialog() override;
 
-    String getSequence() const;
-
-    Param getParam() const;
-
     const MSSpectrum& getSpectrum() const;
+
+    const String getSequence() const;
 
 protected slots:
 
-    void modelChanged();
-    void calculateSpectrum();
-    void seqTypeSwitch();
+    void modelChanged_();
+    void calculateSpectrum_();
+    void seqTypeSwitch_();
+    void listWidgetItemClicked_(QListWidgetItem* item);
 
 protected:
 
 private:
     QString seq_type_;
+
+    Param getParam_() const;
 
     Ui::TheoreticalSpectrumGenerationDialogTemplate* ui_;
 
