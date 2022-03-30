@@ -146,48 +146,57 @@ namespace OpenMS
     // calculate separate FDRs
     calculatePeptideAndXLQValueAtPSMLevel(peptide_ids, pep_pi, xl_pi);
 
-    double max_score = -1;
+    // q-values might not be unique so we choose a second score to make them slightly different
+    
+    bool svm_score_exists = false;
+    for (auto & pi : xl_pi)
+    {
+      if (svm_score_exists) break;
+      for (auto & p : pi.getHits())
+      {
+        if (p.metaValueExists("svm_score")) 
+        {
+          svm_score_exists = true;
+          break;
+        }
+      }      
+    }
+
+    // maximum value of the "main" score besides the q-value
+    double max_score = -1e10;    
+    double min_score = 1e10; 
     for (auto & pi : xl_pi)
     {
       for (auto & p : pi.getHits())
       {
-        if (p.metaValueExists("svm_score"))
+        if (svm_score_exists)
         {
-          max_score = (double)p.getMetaValue("svm_score");
+          max_score = std::max(max_score, (double)p.getMetaValue("svm_score"));
+          min_score = std::min(min_score, (double)p.getMetaValue("svm_score"));
         }
         else
         {
-          max_score = (double)p.getMetaValue("NuXL:score");
+          max_score = std::max(max_score, (double)p.getMetaValue("NuXL:score"));
+          min_score = std::min(min_score, (double)p.getMetaValue("NuXL:score"));
         }
       }
     }
 
     // add a very small value to q-value to break ties between same q-value but different main score
+    double score_range = max_score - min_score;
     for (auto & pi : xl_pi)
     {
       for (auto & p : pi.getHits())
       {
-        if (p.metaValueExists("svm_score"))
+        if (svm_score_exists)
         {
-          p.setScore(p.getScore() + (1.0 - (double)p.getMetaValue("svm_score") / max_score) * 1e-5);
+          double small_value = (1.0 - ((double)p.getMetaValue("svm_score") - min_score) / score_range) * 1e-5; // a high score will not or only slightly increase the q-value, lower scores will increase it more
+          p.setScore(p.getScore() + small_value);
         }
         else 
         {
-          p.setScore(p.getScore() + (1.0 - (double)p.getMetaValue("NuXL:score") / max_score) * 1e-5);
-        }
-      }
-    }
-    for (auto & pi : pep_pi)
-    {
-      for (auto & p : pi.getHits())
-      {
-        if (p.metaValueExists("svm_score"))
-        {
-          p.setScore(p.getScore() + (1.0 - (double)p.getMetaValue("svm_score") / max_score) * 1e-5);
-        }
-        else 
-        {
-          p.setScore(p.getScore() + (1.0 - (double)p.getMetaValue("NuXL:score") / max_score) * 1e-5);
+          double small_value = (1.0 - ((double)p.getMetaValue("NuXL:score") - min_score) / score_range) * 1e-5; // a high score will not or only slightly increase the q-value, lower scores will increase it more          
+          p.setScore(p.getScore() + small_value);
         }
       }
     }
