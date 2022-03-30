@@ -105,49 +105,56 @@ void NuXLFragmentIonGenerator::addShiftedImmoniumIons(const String &unmodified_s
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('Y', fragment_shift_name));
   }
-  else if (unmodified_sequence.hasSubstring("W"))
+
+  if (unmodified_sequence.hasSubstring("W"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C10H11N2").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('W', fragment_shift_name));
   }
-  else if (unmodified_sequence.hasSubstring("F"))
+
+  if (unmodified_sequence.hasSubstring("F"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C8H10N").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('F', fragment_shift_name));
   }
-  else if (unmodified_sequence.hasSubstring("H"))
+
+  if (unmodified_sequence.hasSubstring("H"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C5H8N3").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('H', fragment_shift_name));
   }
-  else if (unmodified_sequence.hasSubstring("C"))
+
+  if (unmodified_sequence.hasSubstring("C"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C2H6NS").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('C', fragment_shift_name));
   }
-  else if (unmodified_sequence.hasSubstring("P"))
+
+  if (unmodified_sequence.hasSubstring("P"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C4H8N").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('P', fragment_shift_name));
   }
-  else if (unmodified_sequence.hasSubstring("L") || unmodified_sequence.hasSubstring("I"))
+
+  if (unmodified_sequence.hasSubstring("L") || unmodified_sequence.hasSubstring("I"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C5H12N").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('L', fragment_shift_name));
   }
-  else if (unmodified_sequence.hasSubstring("K"))
+
+  if (unmodified_sequence.hasSubstring("K"))
   {
     // classical immonium ion
     const double immonium_ion_mz = EmpiricalFormula("C5H13N2").getMonoWeight() + fragment_shift_mass;
@@ -168,7 +175,8 @@ void NuXLFragmentIonGenerator::addShiftedImmoniumIons(const String &unmodified_s
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(String("iK(C6H13N2O)" + fragment_shift_name));
   }
-  else if (unmodified_sequence.hasSubstring("M"))
+
+  if (unmodified_sequence.hasSubstring("M"))
   {
     {
       const double immonium_ion_mz = 104.05285 + fragment_shift_mass;
@@ -181,7 +189,7 @@ void NuXLFragmentIonGenerator::addShiftedImmoniumIons(const String &unmodified_s
       const double immonium_ion_mz = EmpiricalFormula("CH5S").getMonoWeight() + fragment_shift_mass; // methionine related fragment
       partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
       partial_loss_spectrum_charge.emplace_back(1);
-      partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('M*', fragment_shift_name));
+      partial_loss_spectrum_annotation.emplace_back(NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon('M', fragment_shift_name));
     }
   }
 }
@@ -231,7 +239,6 @@ void NuXLFragmentIonGenerator::generatePartialLossSpectrum(const String &unmodif
     PeakSpectrum shifted_series_peaks;
     shifted_series_peaks.getStringDataArrays().resize(1); // annotation
     shifted_series_peaks.getIntegerDataArrays().resize(1); // charge
-
     PeakSpectrum::StringDataArray& shifted_series_annotations = shifted_series_peaks.getStringDataArrays()[0];
     PeakSpectrum::IntegerDataArray& shifted_series_charges = shifted_series_peaks.getIntegerDataArrays()[0];
 

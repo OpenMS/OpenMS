@@ -166,24 +166,27 @@ namespace OpenMS
           total_loss_spectrum.getStringDataArrays()[0]);
         total_loss_spectrum.sortByPosition(); // need to resort after adding special immonium ions
 
-        PeakSpectrum partial_loss_spectrum, 
-          partial_loss_template_z1, 
-          partial_loss_template_z2, 
-          partial_loss_template_z3;
+        PeakSpectrum partial_loss_spectrum;
+
+        {
+          PeakSpectrum partial_loss_template_z1, 
+                      partial_loss_template_z2, 
+                      partial_loss_template_z3;
        
-        partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z1, fixed_and_variable_modified_peptide, 1, 1); 
-        partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z2, fixed_and_variable_modified_peptide, 2, 2); 
-        partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z3, fixed_and_variable_modified_peptide, 3, 3); 
-        NuXLFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
-                                    fixed_and_variable_modified_peptide_weight,
-                                    precursor_na_adduct,
-                                    precursor_na_mass,
-                                    precursor_charge,
-                                    partial_loss_modification,
-                                    partial_loss_template_z1,
-                                    partial_loss_template_z2,
-                                    partial_loss_template_z3,
-                                    partial_loss_spectrum);
+          partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z1, fixed_and_variable_modified_peptide, 1, 1);
+          partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z2, fixed_and_variable_modified_peptide, 2, 2);
+          partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z3, fixed_and_variable_modified_peptide, 3, 3);
+          NuXLFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
+                                      fixed_and_variable_modified_peptide_weight,
+                                      precursor_na_adduct,
+                                      precursor_na_mass,
+                                      precursor_charge,
+                                      partial_loss_modification,
+                                      partial_loss_template_z1,
+                                      partial_loss_template_z2,
+                                      partial_loss_template_z3,
+                                      partial_loss_spectrum);
+        }
 
         // add shifted marker ions
         NuXLFragmentIonGenerator::addMS2MarkerIons(
@@ -503,9 +506,14 @@ namespace OpenMS
               fa.annotation = ion_name;
               annotated_marker_ions.push_back(fa);
             }
+            else
+            {
+              OPENMS_LOG_ERROR << "Unexpected marker ion charge." << endl;
+            }            
           }
           else if (ion_name.hasPrefix("i"))
           {
+            OPENMS_LOG_DEBUG << "Immonium ion aligned: " << ion_name << " fragment_mz: " << fragment_mz << " fragment_charge: " << fragment_charge << endl;            
             if (fragment_charge == 1)
             {
               PeptideHit::PeakAnnotation fa;
@@ -514,6 +522,10 @@ namespace OpenMS
               fa.charge = 1;
               fa.annotation = ion_name;
               shifted_immonium_ions.push_back(fa);
+            }
+            else
+            {
+              OPENMS_LOG_ERROR << "Unexpected immonium ion charge." << endl;
             }
           }
           else if (ion_name.hasPrefix("[M+"))
