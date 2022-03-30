@@ -36,6 +36,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <QDir>
+#include <array>
 
 using std::vector;
 using std::string;
