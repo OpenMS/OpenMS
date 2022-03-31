@@ -61,14 +61,14 @@ START_SECTION(void getTag(const MSSpectrum& spec, std::set<std::string>& tags))
   AASequence test_sequence = AASequence::fromString("PEPTIDETESTTHISTAGGER");
   PeakSpectrum spec;
   tsg.getSpectrum(spec, test_sequence, 1, 2);
-  TEST_EQUAL(spec.size(), 357);
+  TEST_EQUAL(spec.size(), 317);
 
   std::vector<std::string> tags;
 
   // tagger searching only for charge +1
   Tagger tagger = Tagger(2, 10, 5, 1, 1);
   tagger.getTag(spec, tags);
-  TEST_EQUAL(tags.size(), 890);
+  TEST_EQUAL(tags.size(), 802);
 
   // first aa in prefixes is not recognized yet, unless as false positive
   TEST_EQUAL(std::find(tags.begin(), tags.end(), "PEPT") != tags.end(), false)
@@ -99,7 +99,7 @@ START_SECTION(void getTag(const MSSpectrum& spec, std::set<std::string>& tags))
   Tagger tagger2 = Tagger(2, 10, 5, 2, 2);
   tags.clear();
   tagger2.getTag(spec, tags);
-  TEST_EQUAL(tags.size(), 1006);
+  TEST_EQUAL(tags.size(), 900);
 
   TEST_EQUAL(std::find(tags.begin(), tags.end(), "PEPT") != tags.end(), false)
   TEST_EQUAL(std::find(tags.begin(), tags.end(), "PEPTI") != tags.end(), false)
@@ -127,7 +127,7 @@ START_SECTION(void getTag(const MSSpectrum& spec, std::set<std::string>& tags))
   Tagger tagger3 = Tagger(2, 10, 5, 1, 2);
   tags.clear();
   tagger3.getTag(spec, tags);
-  TEST_EQUAL(tags.size(), 1094);
+  TEST_EQUAL(tags.size(), 981);
 
   TEST_EQUAL(std::find(tags.begin(), tags.end(), "PEPT") != tags.end(), false)
   TEST_EQUAL(std::find(tags.begin(), tags.end(), "PEPTI") != tags.end(), false)
@@ -155,11 +155,11 @@ START_SECTION(void getTag(const MSSpectrum& spec, std::set<std::string>& tags))
   AASequence test_sequence2 = AASequence::fromString("PEPTID(Oxidation)ETESTTHISTAGGER");
   PeakSpectrum spec2;
   tsg.getSpectrum(spec2, test_sequence2, 2, 2);
-  TEST_EQUAL(spec2.size(), 180);
+  TEST_EQUAL(spec2.size(), 160);
 
   tags.clear();
   tagger3.getTag(spec2, tags);
-  TEST_EQUAL(tags.size(), 545);
+  TEST_EQUAL(tags.size(), 484);
 
   TEST_EQUAL(std::find(tags.begin(), tags.end(), "PEPT") != tags.end(), false)
   TEST_EQUAL(std::find(tags.begin(), tags.end(), "PEPTI") != tags.end(), false)
@@ -189,7 +189,7 @@ START_SECTION(void getTag(const MSSpectrum& spec, std::set<std::string>& tags))
   Tagger tagger4 = Tagger(2, 10, 5, 2, 2, ListUtils::create<String>("Oxidation (D)"));
   tags.clear();
   tagger4.getTag(spec2, tags);
-  TEST_EQUAL(tags.size(), 667);
+  TEST_EQUAL(tags.size(), 584);
 
   TEST_EQUAL(std::find(tags.begin(), tags.end(), "PEPT") != tags.end(), false)
   TEST_EQUAL(std::find(tags.begin(), tags.end(), "PEPTI") != tags.end(), false)
