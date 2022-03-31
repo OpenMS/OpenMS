@@ -588,7 +588,7 @@ namespace OpenMS
       {
         QPoint pos;
         dataToWidget_(i->getMZ(), i.getRT(), pos);
-        if (pos.x() > 0 & pos.y() > 0 & pos.x() < image_width - 1 & pos.y() < image_height - 1)
+        if ((pos.x() > 0) & (pos.y() > 0) & (pos.x() < image_width - 1) & (pos.y() < image_height - 1))
         {
           // store point in the array of its color
           Int colorIndex = precalculatedColorIndex_(i->getIntensity(), layer.gradient, snap_factor);
