@@ -659,9 +659,9 @@ namespace OpenMS
         if (file_type == FileTypes::MZML)
         {
           // Load index only and check success (is it indexed?)
-          Internal::IndexedMzMLHandler indexed_mzml_file_;
-          indexed_mzml_file_.openFile(filename);
-          if ( indexed_mzml_file_.getParsingSuccess() && cache_ms2_on_disc)
+          Internal::IndexedMzMLHandler indexed_mzml_file;
+          indexed_mzml_file.openFile(filename);
+          if ( indexed_mzml_file.getParsingSuccess() && cache_ms2_on_disc)
           {
             // If it has an index, now load index and meta data
             on_disc_peaks->openFile(filename, false);
@@ -681,17 +681,16 @@ namespace OpenMS
             // with actual spectra including raw data (allowing us to only
             // populate MS1 spectra with actual data).
 
-            // peak_map_sptr = boost::static_pointer_cast<ExperimentSharedPtrType>(on_disc_peaks->getMetaData());
             peak_map_sptr = on_disc_peaks->getMetaData();
 
-            for (Size k = 0; k < indexed_mzml_file_.getNrSpectra() && !cache_ms1_on_disc; k++)
+            for (Size k = 0; k < indexed_mzml_file.getNrSpectra() && !cache_ms1_on_disc; k++)
             {
               if ( peak_map_sptr->getSpectrum(k).getMSLevel() == 1)
               {
                 peak_map_sptr->getSpectrum(k) = on_disc_peaks->getSpectrum(k);
               }
             }
-            for (Size k = 0; k < indexed_mzml_file_.getNrChromatograms() && !cache_ms2_on_disc; k++)
+            for (Size k = 0; k < indexed_mzml_file.getNrChromatograms() && !cache_ms2_on_disc; k++)
             {
               peak_map_sptr->getChromatogram(k) = on_disc_peaks->getChromatogram(k);
             }
@@ -723,7 +722,7 @@ namespace OpenMS
       return LOAD_RESULT::LOAD_ERROR;
     }
 
-    // sort for mz and update ranges of newly loaded data
+    // sort for m/z and update ranges of newly loaded data
     peak_map_sptr->sortSpectra(true);
     peak_map_sptr->updateRanges(1);
 
@@ -766,9 +765,9 @@ namespace OpenMS
       peak_map_sptr, 
       on_disc_peaks, 
       data_type, 
-      false, 
+      false,   // show as 1D
       show_options, 
-      true, 
+      true,    // as new window
       abs_filename, 
       caption, 
       window_id, 
@@ -834,38 +833,33 @@ namespace OpenMS
     TOPPViewOpenDialog dialog(caption, as_new_window, maps_as_2d, use_intensity_cutoff, this);
 
     //disable opening in new window when there is no active window or feature/ID data is to be opened, but the current window is a 3D window
-    if (target_window == nullptr || (mergeable && dynamic_cast<Plot3DWidget*>(target_window) != nullptr))
+    if (target_window == nullptr || (mergeable && dynamic_cast<Plot3DWidget*>(target_window)))
     {
       dialog.disableLocation(true);
     }
 
-    //disable 1d/2d/3d option for feature/consensus/identification maps
-    if (mergeable)
+    // for feature/consensus/identification maps
+    if (mergeable) 
     {
-      dialog.disableDimension(true);
-    }
-
-    //disable cutoff for feature/consensus/identification maps
-    if (mergeable)
-    {
+      dialog.disableDimension(true); // disable 1d/2d/3d option
       dialog.disableCutoff(false);
-    }
 
-    //enable merge layers if a feature layer is opened and there are already features layers to merge it to
-    if (mergeable && target_window != nullptr) //TODO merge
-    {
-      PlotCanvas* open_canvas = target_window->canvas();
-      std::map<Size, String> layers;
-      for (Size i = 0; i < open_canvas->getLayerCount(); ++i)
+      // enable merge layers if a feature layer is opened and there are already features layers to merge it to
+      if (target_window)
       {
-        if (data_type == open_canvas->getLayer(i).type)
+        PlotCanvas* open_canvas = target_window->canvas();
+        std::map<Size, String> layers;
+        for (Size i = 0; i < open_canvas->getLayerCount(); ++i)
         {
-          layers[i] = open_canvas->getLayer(i).getName();
+          if (data_type == open_canvas->getLayer(i).type)
+          {
+            layers[i] = open_canvas->getLayer(i).getName();
+          }
         }
+        dialog.setMergeLayers(layers); // adds a dropdown
       }
-      dialog.setMergeLayers(layers);
     }
-
+    
     //show options if requested
     if (show_options && !dialog.exec())
     {
@@ -908,7 +902,7 @@ namespace OpenMS
       }
     }
 
-    if (merge_layer == -1) //add layer to the window
+    if (merge_layer == -1) //add new layer to the window
     {
       if (data_type == LayerDataBase::DT_FEATURE) //features
       {
