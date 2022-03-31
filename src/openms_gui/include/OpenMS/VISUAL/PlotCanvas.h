@@ -394,16 +394,17 @@ public:
         @param map Shared pointer to input map. It can be performed in constant time and does not double the required memory.
         @param od_map Shared pointer to on disk data which potentially caches some data to save memory (the map can be empty, but do not pass nullptr).
         @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+        @param use_noise_cutoff Add a noise filter which removes low-intensity peaks
 
         @return If a new layer was created
     */
-    bool addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String & filename = "");
+    bool addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String& filename = "", const bool use_noise_cutoff = false);
 
     /**
         @brief Add a feature data layer
 
-  @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
-  @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+        @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
+        @param filename This @em absolute filename is used to monitor changes in the file and reload the data
 
         @return If a new layer was created
     */

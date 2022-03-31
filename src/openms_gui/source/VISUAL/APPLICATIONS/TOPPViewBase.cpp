@@ -40,7 +40,6 @@
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -923,27 +922,8 @@ namespace OpenMS
       }
       else //peaks
       {
-        if (!target_window->canvas()->addLayer(peak_map, on_disc_peak_map, filename))
+        if (!target_window->canvas()->addLayer(peak_map, on_disc_peak_map, filename, use_intensity_cutoff))
           return;
-
-        //calculate noise
-        if (use_intensity_cutoff)
-        {
-          double cutoff = estimateNoiseFromRandomScans(*(target_window->canvas()->getCurrentLayer().getPeakData()), 1, 10, 80);
-          DataFilters filters;
-          filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, cutoff));
-          target_window->canvas()->setFilters(filters);
-        }
-        else // no mower, hide zeros if wanted
-        {
-          if (target_window->canvas()->getCurrentLayer().getPeakData()->hasZeroIntensities(1))
-          {
-            statusBar()->showMessage("Note: Data contains zero values.\nA filter will be added to hide these values.\nYou can reenable data points with zero intensity by removing the filter.");
-            DataFilters filters;
-            filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, 0.001));
-            target_window->canvas()->setFilters(filters);
-          }
-        }
 
         Plot1DWidget* open_1d_window = dynamic_cast<Plot1DWidget*>(target_window);
         if (open_1d_window)

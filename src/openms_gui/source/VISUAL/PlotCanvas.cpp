@@ -34,6 +34,7 @@
 
 // OpenMS
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/LayerDataChrom.h>
@@ -370,7 +371,7 @@ namespace OpenMS
     new_layer->setName(QFileInfo(filename.toQString()).completeBaseName());
   }
 
-  bool PlotCanvas::addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String& filename)
+  bool PlotCanvas::addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String& filename, const bool use_noise_cutoff)
   {
     // both empty
     if (!map->getChromatograms().empty() && !map->empty())
@@ -391,6 +392,24 @@ namespace OpenMS
     }
     new_layer->setPeakData(map);
     new_layer->setOnDiscPeakData(od_map);
+
+    // calculate noise
+    if (use_noise_cutoff)
+    {
+      double cutoff = estimateNoiseFromRandomScans(*map, 1, 10, 5); // 5% of low intensity data is considered noise
+      DataFilters filters;
+      filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, cutoff));
+      setFilters(filters);
+    }
+    else // no mower, hide zeros if wanted
+    {
+      if (map->hasZeroIntensities(1))
+      {
+        DataFilters filters;
+        filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, 0.001));
+        setFilters(filters);
+      }
+    }
 
     setBaseLayerParameters(new_layer.get(), param_, filename);
     layers_.addLayer(std::move(new_layer));
