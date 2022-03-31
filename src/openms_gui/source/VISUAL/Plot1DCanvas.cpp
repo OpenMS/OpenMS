@@ -122,7 +122,8 @@ namespace OpenMS
     alignment_score_(0),
     is_swapped_(true),
     ion_ladder_visible_(true),
-    draw_interesting_MZs_(false)
+    draw_interesting_MZs_(false), 
+    unit_mapper_({DIM_UNITS::RT, DIM_UNITS::MZ})
   {
     //Parameter handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");

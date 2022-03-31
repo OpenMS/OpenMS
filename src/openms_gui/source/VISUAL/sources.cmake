@@ -9,6 +9,7 @@ AxisWidget.cpp
 ColorSelector.cpp
 DataSelectionTabs.cpp
 DIATreeTab.cpp
+DimMapper.cpp
 EnhancedTabBar.cpp
 EnhancedTabBarWidgetInterface.cpp
 EnhancedWorkspace.cpp

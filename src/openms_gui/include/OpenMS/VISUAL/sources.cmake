@@ -9,6 +9,7 @@ AxisWidget.h
 ColorSelector.h
 DataSelectionTabs.h
 DIATreeTab.h
+DimMapper.h
 EnhancedTabBar.h
 EnhancedTabBarWidgetInterface.h
 EnhancedWorkspace.h

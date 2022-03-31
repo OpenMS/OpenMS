@@ -38,6 +38,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // OpenMS
+#include <OpenMS/VISUAL/DimMapper.h>
 #include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/Painter1DBase.h>
 
@@ -310,6 +311,8 @@ protected:
     bool ion_ladder_visible_;
     /// annotate interesting peaks with m/z's
     bool draw_interesting_MZs_;
+    /// Mapper for X and Y axis
+    DimMapper<2> unit_mapper_;
 
     /// Find peak next to the given position
     PeakIndex findPeakAtPosition_(QPoint);
