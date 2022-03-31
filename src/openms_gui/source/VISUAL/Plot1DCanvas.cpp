@@ -739,7 +739,7 @@ namespace OpenMS
     {
       updatePercentageFactor_(i);
       auto paint_1d = getLayer(i).getPainter1D();
-      paint_1d->paint(painter, this, i);      
+      paint_1d->paint(painter, this, (int)i);      
     }
 
     if (show_alignment_)
