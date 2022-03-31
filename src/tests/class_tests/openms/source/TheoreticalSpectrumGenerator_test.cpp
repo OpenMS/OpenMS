@@ -544,7 +544,7 @@ START_SECTION(([EXTRA] bugfix test where losses lead to formulae with negative e
   t_gen.setParameters(params);
 
   t_gen.getSpectrum(tmp, tmp_aa, 1, 1);
-  TEST_EQUAL(tmp.size(), 212)
+  TEST_EQUAL(tmp.size(), 178)
 
   tmp.clear(true);
   params.setValue("isotope_model", "coarse");
@@ -554,7 +554,7 @@ START_SECTION(([EXTRA] bugfix test where losses lead to formulae with negative e
   t_gen.setParameters(params);
   t_gen.getSpectrum(tmp, tmp_aa, 1, 1);
   TEST_EQUAL(tmp_aa[0].hasNeutralLoss(), true)
-  TEST_EQUAL(tmp.size(), 198)
+  TEST_EQUAL(tmp.size(), 166)
 
   tmp_aa = AASequence::fromString("RDK");
   tmp.clear(true);
@@ -729,7 +729,7 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
   params.setValue("add_b_ions", "false");
   t_gen.setParameters(params);
   t_gen.getSpectrum(spec, tmp_aa, 1, 2);
-  TEST_EQUAL(spec.size(), 40)
+  TEST_EQUAL(spec.size(), 32)
 
   double proton_shift = Constants::PROTON_MASS_U;
   // 10 monoisotopic peaks with charge=1, 10 second peaks, 20 with charge=2
