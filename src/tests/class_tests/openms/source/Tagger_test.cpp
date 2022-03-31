@@ -218,7 +218,7 @@ START_SECTION(void getTag(const MSSpectrum& spec, std::set<std::string>& tags))
   Tagger tagger5 = Tagger(2, 10, 5, 2, 2, StringList(), ListUtils::create<String>("Oxidation (D)"));
   tags.clear();
   tagger5.getTag(spec2, tags);
-  TEST_EQUAL(tags.size(), 739);
+  TEST_EQUAL(tags.size(), 658);
 
   TEST_EQUAL(std::find(tags.begin(), tags.end(), "PEPT") != tags.end(), false)
   TEST_EQUAL(std::find(tags.begin(), tags.end(), "PEPTI") != tags.end(), false)
