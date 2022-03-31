@@ -145,7 +145,7 @@ void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
 void OpenMS::TestTSGDialog::testSequenceInput_(QString input)
 {
   QTest::keyClicks(UI->seq_input, input);
-  String read_seq = dialog_.getSequence();
+  QString read_seq = QString::fromStdString(std::string(dialog_.getSequence()));
   QVERIFY(read_seq == UI->seq_input->text());
 }
 
