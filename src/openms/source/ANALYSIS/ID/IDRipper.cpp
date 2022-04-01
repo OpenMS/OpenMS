@@ -38,7 +38,6 @@
 #include <QDir>
 
 #include <array>
-#include <string>
 
 using std::vector;
 using std::string;
