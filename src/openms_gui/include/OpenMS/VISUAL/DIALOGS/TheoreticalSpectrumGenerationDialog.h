@@ -37,10 +37,13 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QtWidgets/QDialog>
+#include <QtWidgets/qspinbox.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+
+#include <array>
 
 namespace Ui
 {
@@ -74,6 +77,13 @@ namespace OpenMS
     NUMBER_OF_CHECK_BOXES
   };
 
+  enum class State
+  {
+    HIDDEN,
+    ENABLED,
+    PRECHECKED
+  };
+
   /**
       @brief Dialog which allows to enter an AA or NA sequence and generates a theoretical spectrum for it.
 
@@ -85,6 +95,17 @@ namespace OpenMS
     Q_OBJECT
 
   public:
+    struct CheckBox_ {
+      CheckBox_(QDoubleSpinBox** p, std::array<State, 3> s, std::pair<String, String> p_t, std::pair<String, String> p_s);
+
+      QDoubleSpinBox** ptr_to_spin_box;
+
+      std::array<State, 3> state;
+
+      std::pair<String, String> param_this;
+
+      std::pair<String, String> param_spin;
+    };
     
     friend class TestTSGDialog; // to test the GUI expressed in the private member ui
 
@@ -114,6 +135,34 @@ private:
     Ui::TheoreticalSpectrumGenerationDialogTemplate* ui_;
 
     MSSpectrum spec_;
+
+    const std::array<CheckBox_, 12> check_boxes_;
+
+    // For each check box get its intensity spin box and its ion name aka parameter prefix.
+    // Order is important here!
+    // To access the right entry for each check box
+    // use int(TheoreticalSpectrumGenerationDialog::CheckBox).
+    const std::vector<std::pair<QDoubleSpinBox**, String>> check_box_to_intensity_;
+
+    // To check if the check box is enabled for <'Peptide','RNA'>
+    // Note that for metabolite input there are no ions.
+    // Order is important here!
+    // To access the right entry for each check box
+    // use int(TheoreticalSpectrumGenerationDialog::CheckBox).
+    const std::vector<std::pair<bool, bool>> intensity_ion_exists {
+      {1, 1}, // A-Ion
+      {0, 1}, // a-B-Ion
+      {1, 1}, // B-Ion
+      {1, 1}, // C-Ion
+      {0, 1}, // D-Ion
+      {0, 1}, // W-Ion
+      {1, 1}, // X-Ion
+      {1, 1}, // Y-Ion
+      {1, 1}, // Z-Ion
+      {1, 1}, // Precursor
+      {1, 0}, // Neutral losses
+      {1, 0}  // Abundant Immonium Ions
+    };
   };
 
 }

@@ -68,11 +68,34 @@ namespace OpenMS
     {"add_losses", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered (peptide sequences only)"},
     {"add_abundant_immonium_ions", "Add most abundant immonium ions (peptide sequences only)"}};
 
-  // specific check boxes (TheoreticalSpectrumGenerator (peptide) vs. NucleicAcidSpectrumGenerator (rna))
-  const std::array<int, 3> rna_specific_ions {int(CheckBox::A_b_Ions), int(CheckBox::D_Ions), int(CheckBox::W_Ions)};
-  const std::array<int, 2> peptide_specific_ions {int(CheckBox::Neutral_losses), int(CheckBox::Abundant_Immonium_Ions)};
-
-  TheoreticalSpectrumGenerationDialog::TheoreticalSpectrumGenerationDialog() : ui_(new Ui::TheoreticalSpectrumGenerationDialogTemplate)
+  TheoreticalSpectrumGenerationDialog::TheoreticalSpectrumGenerationDialog() : 
+    ui_(new Ui::TheoreticalSpectrumGenerationDialogTemplate), check_box_to_intensity_{
+                                                                  {&(ui_->a_intensity), "a"}, // A-Ion
+                                                                  {&(ui_->a_b_intensity), "a-B"}, // a-B-Ion
+                                                                  {&(ui_->b_intensity), "b"},   // B-Ion
+                                                                  {&(ui_->c_intensity), "c"},   // C-Ion
+                                                                  {&(ui_->d_intensity), "d"},   // D-Ion
+                                                                  {&(ui_->w_intensity), "w"},   // W-Ion
+                                                                  {&(ui_->x_intensity), "x"},   // X-Ion
+                                                                  {&(ui_->y_intensity), "y"},   // Y-Ion
+                                                                  {&(ui_->z_intensity), "z"},   // Z-Ion
+                                                                  {nullptr, ""},            // Precursor
+                                                                  {nullptr, ""},            // Neutral losses: ui_->rel_loss_intensity is a normal spin box
+                                                                  {nullptr, ""}                // Abundant Immonium Ions
+                                                                  },
+      check_boxes_{CheckBox_(&(ui_->a_intensity), {State::ENABLED, State::ENABLED, State::HIDDEN}, {"add_a_ions", "Add peaks of a-ions to the spectrum"}, {"a_intensity", "Intensity of the a-ions"}),
+                   CheckBox_(&(ui_->a_b_intensity), {State::HIDDEN, State::ENABLED, State::HIDDEN}, {"add_a-B_ions", "Add peaks of a-B-ions to the spectrum (nucleotide sequences only)"}, {"a-B_intensity", "Intensity of the a-B-ions"}),
+                   CheckBox_(&(ui_->b_intensity), {State::PRECHECKED, State::ENABLED, State::HIDDEN}, {"add_b_ions", "Add peaks of b-ions to the spectrum"}, {"b_intensity", "Intensity of the b-ions"}),
+                   CheckBox_(&(ui_->c_intensity), {State::ENABLED, State::ENABLED, State::HIDDEN}, {"add_c_ions", "Add peaks of c-ions to the spectrum"}, {"c_intensity", "Intensity of the c-ions"}),
+                   CheckBox_(&(ui_->d_intensity), {State::HIDDEN, State::ENABLED, State::HIDDEN}, {"add_d_ions", "Add peaks of d-ions to the spectrum (nucleotide sequences only)"}, {"d_intensity", "Intensity of the d-ions"}),
+                   CheckBox_(&(ui_->w_intensity), {State::HIDDEN, State::ENABLED, State::HIDDEN}, {"add_w_ions", "Add peaks of w-ions to the spectrum (nucleotide sequences only)"}, {"w_intensity", "Intensity of the w-ions"}),
+                   CheckBox_(&(ui_->x_intensity), {State::ENABLED, State::ENABLED, State::HIDDEN}, {"add_x_ions", "Add peaks of x-ions to the spectrum"}, {"x_intensity", "Intensity of the x-ions"}),
+                   CheckBox_(&(ui_->y_intensity), {State::PRECHECKED, State::ENABLED, State::HIDDEN}, {"add_y_ions", "Add peaks of y-ions to the spectrum"}, {"y_intensity", "Intensity of the y-ions"}),
+                   CheckBox_(&(ui_->z_intensity), {State::ENABLED, State::ENABLED, State::HIDDEN}, {"add_z_ions", "Add peaks of z-ions to the spectrum"}, {"z_intensity", "Intensity of the z-ions"}),
+                   CheckBox_(nullptr, {State::ENABLED, State::ENABLED, State::HIDDEN}, {"add_precursor_peaks", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes"}, {"", ""}),
+                   // Neutral losses: ui_->rel_loss_intensity is a normal spin box
+                   CheckBox_(nullptr, {State::ENABLED, State::HIDDEN, State::HIDDEN}, {"add_losses", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered (peptide sequences only)"}, {"", ""}),
+                   CheckBox_(nullptr, {State::ENABLED, State::HIDDEN, State::HIDDEN}, {"add_abundant_immonium_ions", "Add most abundant immonium ions (peptide sequences only)"}, {"", ""})}
   {
     ui_->setupUi(this);
     
@@ -128,20 +151,33 @@ namespace OpenMS
   {
     Param p;
 
-    bool peptide_input = ui_->seq_type->currentText() == "Peptide";
-
-    // add check boxes to parameters, i.e. ion types
-    for (size_t i = 0; i < int(CheckBox::NUMBER_OF_CHECK_BOXES); ++i)
+    if (seq_type_ != "Metabolite") // no ions for metabolite input
     {
-      // for peptide input skip rna specific ions
-      if (peptide_input && (std::find(rna_specific_ions.begin(), rna_specific_ions.end(), i) != rna_specific_ions.end())) continue;
+      // add check boxes to parameters, i.e. ion types
+      for (size_t i = 0; i < int(CheckBox::NUMBER_OF_CHECK_BOXES); ++i)
+      {
+        // for peptide input skip rna specific ions
+        if (seq_type_ == "Peptide" && (check_boxes_.at(i).state.at(0) == State::HIDDEN))
+          continue;
 
-      // for rna input skip peptide specific ions
-      if (!peptide_input && (std::find(peptide_specific_ions.begin(), peptide_specific_ions.end(), i) != peptide_specific_ions.end())) continue;
+        // for rna input skip peptide specific ions
+        if (seq_type_ == "RNA" && (check_boxes_.at(i).state.at(1) == State::HIDDEN))
+          continue;
 
-      bool status = (ui_->ion_types->item(i)->checkState() == Qt::Checked);
-      String status_str = status ? "true" : "false";
-      p.setValue(check_box_to_param.at(i).first, status_str, check_box_to_param.at(i).second);
+        // set ion itself
+        bool status = (ui_->ion_types->item(i)->checkState() == Qt::Checked);
+        p.setValue(check_boxes_.at(i).param_this.first, status ? "true" : "false", check_boxes_.at(i).param_this.second);
+
+        // set intensity of ion
+        if (status)
+        {
+          QDoubleSpinBox** spin_ptr = check_boxes_.at(i).ptr_to_spin_box;
+          if (spin_ptr == nullptr)
+            continue;
+
+          p.setValue(check_boxes_.at(i).param_spin.first, (*spin_ptr)->value(), check_boxes_.at(i).param_spin.second);
+        }
+      }
     }
 
     // charge
@@ -176,16 +212,12 @@ namespace OpenMS
                    "accurate isotopic peaks. Note that adding isotopic peaks is very slow.");
       }
 
-      // loss intensity
-      double rel_loss_int = (double)(ui_->rel_loss_intensity->value()) / 100.0;
-      p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
-    }
-    else // rna specific settings (NucleicAcidSpectrumGenerator)
-    {
-      // specific ion intensities
-      p.setValue("a-B_intensity", ui_->a_b_intensity->value(), "Intensity of the a-B-ions");
-      p.setValue("d_intensity", ui_->d_intensity->value(), "Intensity of the d-ions");
-      p.setValue("w_intensity", ui_->w_intensity->value(), "Intensity of the w-ions");
+      if (seq_type_ == "Peptide")
+      {
+        // loss intensity
+        double rel_loss_int = (double)(ui_->rel_loss_intensity->value()) / 100.0;
+        p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
+      }
     }
 
     return p;
@@ -321,12 +353,6 @@ namespace OpenMS
   {
     seq_type_ = ui_->seq_type->currentText(); // save current seq type setting in member
 
-    QListWidgetItem* a_b = ui_->ion_types->item(int(CheckBox::A_b_Ions));
-    QListWidgetItem* d = ui_->ion_types->item(int(CheckBox::D_Ions));
-    QListWidgetItem* w = ui_->ion_types->item(int(CheckBox::W_Ions));
-    QListWidgetItem* losses = ui_->ion_types->item(int(CheckBox::Neutral_losses));
-    QListWidgetItem* abundant_i = ui_->ion_types->item(int(CheckBox::Abundant_Immonium_Ions));
-
     if (seq_type_ == "Peptide")
     {
       // enable ion types and intensities
@@ -341,6 +367,9 @@ namespace OpenMS
       ui_->max_iso_prob_label->setHidden(false);
       ui_->max_iso_prob_spinbox->setHidden(false);
       modelChanged_();
+
+      // enable isotope model 'none'
+      ui_->model_none_button->setEnabled(true);
       
       // ensable losses and immonium ions
       ui_->rel_loss_intensity->setHidden(false);
@@ -407,7 +436,14 @@ namespace OpenMS
         ui_->max_iso_prob_label->setHidden(false);
         ui_->max_iso_prob_spinbox->setHidden(false);
         modelChanged_();
-          
+        
+        // disable isotope model 'none'
+        ui_->model_none_button->setEnabled(false);
+        if (ui_->model_none_button->isChecked())
+        {
+          ui_->model_fine_button->setChecked(Qt::CheckState::Checked);
+        }
+
         // disable ion types and intensities
         ui_->ion_types->setHidden(true);
         ui_->ion_types_label->setHidden(true);
@@ -426,4 +462,12 @@ namespace OpenMS
     item->setCheckState(Qt::CheckState::Checked);
     return;
   }
-} // namespace
+  
+  TheoreticalSpectrumGenerationDialog::CheckBox_::CheckBox_(QDoubleSpinBox** p, std::array<State, 3> s, std::pair<String, String> p_t, std::pair<String, String> p_s)
+  {
+    ptr_to_spin_box = p;
+    state = s;
+    param_this = p_t;
+    param_spin = p_s;
+  }
+} // namespace OpenMS
