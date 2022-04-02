@@ -127,7 +127,8 @@ namespace OpenSwath::Scoring
 
     void standardize_data(std::vector<double>& data)
     {
-      if (data.size() == 0){
+      if (data.empty())
+      {
 	      return;
       }
 
