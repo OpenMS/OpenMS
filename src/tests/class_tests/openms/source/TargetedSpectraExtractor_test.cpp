@@ -1110,7 +1110,7 @@ START_SECTION(annotateSpectra(const std::vector<MSSpectrum>& spectra, const Feat
 }
 END_SECTION
 
-START_SECTION(storeSpectraTraML(const String& filename, const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features) const)
+START_SECTION(constructTransitionsList(const String& filename, const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features) const)
 {
   OpenMS::FeatureMap ms1_features;
   OpenMS::Feature ms1_f1;

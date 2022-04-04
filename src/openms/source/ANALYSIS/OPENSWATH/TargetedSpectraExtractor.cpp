@@ -846,7 +846,6 @@ namespace OpenMS
 
     std::vector<ReactionMonitoringTransition> v_rmt_all;
     std::vector<TargetedExperiment::Peptide> peptides;
-
     for (const auto& ms1_feature : ms1_features)
     {
       std::string peptide_ref = ms1_feature.getMetaValue("PeptideRef");
