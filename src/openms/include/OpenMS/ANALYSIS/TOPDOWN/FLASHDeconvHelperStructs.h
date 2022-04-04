@@ -97,28 +97,28 @@ namespace OpenMS
                              CoarseIsotopePatternGenerator *generator,
                              const bool use_RNA_averagine);
 
-      /// get distribution for input mass
+      /// get distribution for input mass. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       IsotopeDistribution get(const double mass) const;
 
       /// get max isotope index
       int getMaxIsotopeIndex() const;
 
-      /// get max isotope index
+      /// set max isotope index
       void setMaxIsotopeIndex(const int index);
 
-      /// get isotope start index
+      /// get isotope distance (from apex to the left direction) to consider. This is specified in the constructor. index. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       Size getLeftCountFromApex(const double mass) const;
 
-      /// get isotope end index
+      /// get isotope distance (from apex to the rigth direction) to consider. This is specified in the constructor. index. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       Size getRightCountFromApex(const double mass) const;
 
-      /// get index of most abundant isotope
+      /// get index of most abundant isotope. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       Size getApexIndex(const double mass) const;
 
-      /// get mass difference between avg and mono masses
+      /// get mass difference between avg and mono masses. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       double getAverageMassDelta(const double mass) const;
 
-      /// get mass difference between most abundant mass and mono masses
+      /// get mass difference between most abundant mass and mono masses. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       double getMostAbundantMassDelta(const double mass) const;
     };
 
@@ -128,7 +128,11 @@ namespace OpenMS
     public:
       TopPicItem() = default;
 
-      /// parse a single line of TopPIC output
+      /// parse a single line of TopPIC output. Header includes:
+      /// Data file name	Prsm ID	Spectrum ID	Fragmentation	Scan(s)	Retention time	#peaks	Charge	Precursor mass
+      /// Adjusted precursor mass	Proteoform ID	Feature intensity	Feature score	Protein accession	Protein description
+      /// First residue	Last residue	Proteoform	#unexpected modifications	MIScore	#variable PTMs	#matched peaks
+      /// #matched fragment ions	E-value	Spectrum-level Q-value	Proteoform-level Q-value
       explicit TopPicItem(String in);
 
       /// the line string
@@ -208,12 +212,6 @@ namespace OpenMS
       bool operator==(const LogMzPeak& other) const;
 
     };
-
-    /**
-        //       @brief Static function to calculate averagines. PrecalculatedAveragine class is constructed inside for the calculation.
-        //       @param max_mass max mass
-        //       @param use_RNA_averagine if set, nucleotide-based averagines are calculated */
-    static PrecalculatedAveragine calculateAveragines(const double max_mass, const bool use_RNA_averagine);
 
     /**
         //       @brief calculate log mzs from mzs

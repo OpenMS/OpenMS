@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <sstream>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 namespace OpenMS
 {
@@ -69,6 +70,8 @@ namespace OpenMS
       int most_abundant_index_ = 0;
       double most_abundant_int = 0;
 
+      /// sum of squared intensities to see the total power of isotope pattern. The range of isotope pattern is
+      /// determined so those within range cover min_pwr of the total power.
       for (Size k = 0; k < iso.size(); k++)
       {
         total_pwr += iso[k].getIntensity() * iso[k].getIntensity();
@@ -148,13 +151,6 @@ namespace OpenMS
     return max_isotope_index_;
   }
 
-
-  //double FLASHDeconvHelperStructs::PrecalculatedAveragine::getNorm(const double mass) const {
-  //    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
-  //    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
-  //    return norms_[i];
-  //}
-
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getLeftCountFromApex(const double mass) const
   {
     Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
@@ -233,23 +229,6 @@ namespace OpenMS
     return this->logMz == a.logMz;
   }
 
-  FLASHDeconvHelperStructs::PrecalculatedAveragine
-  FLASHDeconvHelperStructs::calculateAveragines(const double max_mass,
-                                                const bool use_RNA_averagine)
-  {
-    auto generator = new CoarseIsotopePatternGenerator();
-
-    auto iso = use_RNA_averagine ?
-               generator->estimateFromRNAWeight(max_mass) :
-               generator->estimateFromPeptideWeight(max_mass);
-    iso.trimRight(0.01 * iso.getMostAbundant().getIntensity());
-
-    generator->setMaxIsotope(iso.size());
-    auto avg = FLASHDeconvHelperStructs::PrecalculatedAveragine(50, max_mass, 25, generator, use_RNA_averagine);
-    avg.setMaxIsotopeIndex(iso.size() - 1);
-    return avg;
-  }
-
   double FLASHDeconvHelperStructs::getChargeMass(const bool positive)
   {
     return (positive ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U);
@@ -261,16 +240,13 @@ namespace OpenMS
     return std::log(mz - getChargeMass(positive));
   }
 
+
   FLASHDeconvHelperStructs::TopPicItem::TopPicItem(String in)
   {
     str = in;
     std::vector<String> results;
     std::stringstream tmp_stream(in);
     String str;
-    //Data file name	Prsm ID	Spectrum ID	Fragmentation	Scan(s)	Retention time	#peaks	Charge	Precursor mass
-    // Adjusted precursor mass	Proteoform ID	Feature intensity	Feature score	Protein accession	Protein description
-    // First residue	Last residue	Proteoform	#unexpected modifications	MIScore	#variable PTMs	#matched peaks
-    // #matched fragment ions	E-value	Spectrum-level Q-value	Proteoform-level Q-value
 
     while (getline(tmp_stream, str, '\t'))
     {
@@ -319,22 +295,9 @@ namespace OpenMS
         {
           mmass = stod(sub);
         }
-        else if (sub == "Acetyl")
-        {
-          mmass = 42.010565;
-        }
-        else if (sub == "Phospho")
-        {
-          mmass = 79.966331;
-        }
-        else if (sub == "Oxidation")
-        {
-          mmass = 15.994915;
-        }
-        else if (sub == "Methyl")
-        {
-          mmass = 14.015650;
-        }
+
+        auto mdb = ModificationsDB::initializeModificationsDB();
+        mmass = mdb->getModification(sub)->getDiffMonoMass();
         unexp_mod.push_back(mmass);
         loc++;
       }

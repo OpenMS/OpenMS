@@ -41,6 +41,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -180,7 +181,8 @@ START_SECTION((void findFeatures(const String &file_name, const bool promex_out,
   NEW_TMP_FILE(tmp_out_file);
   fsf.open(tmp_out_file, fstream::out);
   FLASHDeconvHelperStructs::PrecalculatedAveragine averagine;
-  averagine = FLASHDeconvHelperStructs::calculateAveragines(20000, false);
+  FLASHDeconvAlgorithm fd = FLASHDeconvAlgorithm();
+  averagine = fd.getAveragine();
 
   MassFeatureTrace mass_tracer;
   mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec1);

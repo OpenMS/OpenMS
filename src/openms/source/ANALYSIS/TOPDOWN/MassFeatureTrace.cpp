@@ -77,8 +77,7 @@ namespace OpenMS
                                       int& feature_index,
                                       std::fstream& fsf,
                                       std::fstream& fsp,
-                                      std::vector<std::fstream>& fst
-                                      )
+                                      std::vector<std::fstream>& fst)
   {
     MSExperiment map;
     std::map<int, MSSpectrum> index_spec_map;

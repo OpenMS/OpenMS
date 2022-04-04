@@ -275,7 +275,8 @@ protected:
     mf_defaults.remove("chrom_peak_snr");
 
     DoubleList tols = fd_defaults.getValue("tol");
-    mf_defaults.setValue("mass_error_ppm", tols[0]);
+    mf_defaults.setValue("mass_error", tols[0]);
+    mf_defaults.setValue("mass_error_unit", "ppm");
     mf_defaults.setValue("min_sample_rate", 0.2);
 
     /*

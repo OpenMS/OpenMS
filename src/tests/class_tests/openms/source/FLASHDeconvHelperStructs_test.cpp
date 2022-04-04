@@ -227,18 +227,6 @@ END_SECTION
 ///
 
 
-START_SECTION((static PrecalculatedAveragine calculateAveragines(const double max_mass, const bool use_RNA_averagine)))
-{
-  PrecalculatedAveragine pavg = FLASHDeconvHelperStructs::calculateAveragines(100, false);
-
-  TEST_EQUAL(pavg.getMaxIsotopeIndex(), 1);
-  TEST_EQUAL(pavg.getApexIndex(50), 0);
-  TEST_REAL_SIMILAR(pavg.getAverageMassDelta(50), 0.025145817950033234);
-  TEST_EQUAL(pavg.getLeftCountFromApex(50), 1);
-  TEST_EQUAL(pavg.getRightCountFromApex(50), 2);
-}
-END_SECTION
-
 
 /// testing TopPicItem part is skipped
 

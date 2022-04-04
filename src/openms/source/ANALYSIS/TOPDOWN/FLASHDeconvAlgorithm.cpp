@@ -217,7 +217,16 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::calculateAveragine(const bool use_RNA_averagine)
   {
-    avg_ = FLASHDeconvHelperStructs::calculateAveragines(max_mass_, use_RNA_averagine);
+    auto generator = new CoarseIsotopePatternGenerator();
+
+    auto iso = use_RNA_averagine ?
+                   generator->estimateFromRNAWeight(max_mass_) :
+                   generator->estimateFromPeptideWeight(max_mass_);
+    iso.trimRight(0.01 * iso.getMostAbundant().getIntensity());
+
+    generator->setMaxIsotope(iso.size());
+    avg_ = FLASHDeconvHelperStructs::PrecalculatedAveragine(50, max_mass_, 25, generator, use_RNA_averagine);
+    avg_.setMaxIsotopeIndex(iso.size() - 1);
   }
 
   // generate filters

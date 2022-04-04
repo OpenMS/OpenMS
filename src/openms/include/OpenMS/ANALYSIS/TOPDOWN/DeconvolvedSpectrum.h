@@ -47,7 +47,7 @@ namespace OpenMS
        @brief A class representing a deconvolved spectrum.
        DeconvolvedSpectrum consists of PeakGroups representing masses.
        For MSn n>1, a PeakGroup representing the precursor mass is also added in this class. Properly assigning a precursor mass
-       from the orgianl precusor peak and its deconvolution result is very important in top down proteomics. This assignment is
+       from the original precursor peak and its deconvolution result is very important in top down proteomics. This assignment is
        performed here for conventional datasets. But for FLASHIda acquired datasets, the assignment is already done by FLASHIda.
        So this class simply use the results from FLASHIda log file for assignment. The parsing of FLASHIda log file is done
        in FLASHDeconv tool class.

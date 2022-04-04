@@ -94,7 +94,7 @@ namespace OpenMS
     PeakGroup& operator=(const PeakGroup& t) = default;
 
     /**
-           @brief add monoisotopic indices of peaks by offset and discard negative isotpe peaks. Total intensity is also updated
+           @brief add monoisotopic indices of peaks by offset and discard negative isotope peaks. Total intensity is also updated
            @param offset isotope index offset
            @param max_isotope_index max isotopic index
       */
