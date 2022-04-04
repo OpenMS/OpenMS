@@ -62,8 +62,9 @@ namespace OpenMS
                  generator->estimateFromRNAWeight(mass) :
                  generator->estimateFromPeptideWeight(mass);
 
-      const double min_pwr = .9995;
-      const Size min_iso_length = 5;
+      const double min_pwr = .9999;
+      const Size min_iso_length = 3;
+      const int min_left_right_count = 3;
       double total_pwr = .0;
       int most_abundant_index_ = 0;
       double most_abundant_int = 0;
@@ -123,12 +124,12 @@ namespace OpenMS
         double ori_int = iso[k].getIntensity();
         iso[k].setIntensity(ori_int / sqrt(total_pwr));
       }
-      left_count = left_count < 0 ? 0 : left_count;
-      right_count = right_count < 0 ? 0 : right_count;
+      left_count = left_count < min_left_right_count ? min_left_right_count : left_count;
+      right_count = right_count < min_left_right_count ? min_left_right_count : right_count;
 
       apex_index_.push_back(most_abundant_index_);
-      right_count_from_apex_.push_back(1 + right_count);
-      left_count_from_apex_.push_back(1 + left_count);
+      right_count_from_apex_.push_back(right_count);
+      left_count_from_apex_.push_back(left_count);
       average_mono_mass_difference_.push_back(iso.averageMass() - iso[0].getMZ());
       abundant_mono_mass_difference_.push_back(iso.getMostAbundant().getMZ() - iso[0].getMZ());
       isotopes_.push_back(iso);

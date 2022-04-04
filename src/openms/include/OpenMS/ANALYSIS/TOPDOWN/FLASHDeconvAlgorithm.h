@@ -180,7 +180,7 @@ namespace OpenMS
     std::vector<double> target_masses_;
 
     /// harmonic charge factors that will be considered for harmonic mass reduction. For example, 2 is for 1/2 charge harmonic component reduction
-    const std::vector<int> harmonic_charges_{2, 3, 5};
+    const std::vector<int> harmonic_charges_{2, 3, 5, 7};
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;
     /// deconvoluted_spectrum_ stores the decovnoluted mass peak groups
@@ -211,10 +211,10 @@ namespace OpenMS
     int ms_level_;
 
     /// high and low charges are differently deconvoluted. This vale determines the (includisve) threshold for low charge.
-    const int low_charge_ = 6; // inclusive
+    const int low_charge_ = 10; // inclusive
 
     /// allowed maximum peak count per spectrum - intensity based.
-    const int max_peak_count_ = 30000;
+    const int max_peak_count_ = 30000;//30000
 
     /** @brief static function that converts bin to value
         @param bin bin number
@@ -263,10 +263,10 @@ namespace OpenMS
     Matrix<int> filterMassBins_(const std::vector<float> &mass_intensities);
 
     /** @brief Subfunction of updateMassBins_. It select candidate masses and update mass_bins_ using the universal pattern, eliminate possible harmonic masses
-        @param mass_intensitites mass bin intensities which are updated in te function
+        @param mass_intensities mass bin intensities which are updated in this function
         @param mz_intensities mz bin intensities
      */
-    void updateCandidateMassBins_(std::vector<float> &mass_intensitites, const std::vector<float> &mz_intensities);
+    void updateCandidateMassBins_(std::vector<float> & mass_intensities, const std::vector<float> &mz_intensities);
 
     /** @brief For selected masses in mass_bins_, select the peaks from the original spectrum. Also isotopic peaks are clustered in this function.
         @param per_mass_abs_charge_ranges charge range per mass
