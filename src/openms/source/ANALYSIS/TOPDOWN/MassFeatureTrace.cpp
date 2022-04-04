@@ -523,11 +523,11 @@ namespace OpenMS
 
   }
 
-  void MassFeatureTrace::storeInformationFromDeconvolutedSpectrum(DeconvolutedSpectrum &deconvoluted_spectrum)
+  void MassFeatureTrace::storeInformationFromDeconvolvedSpectrum(DeconvolvedSpectrum &deconvolved_spectrum)
   {
-    double rt = deconvoluted_spectrum.getOriginalSpectrum().getRT();
-    scan_rt_map[deconvoluted_spectrum.getScanNumber()] = rt;
-    if (deconvoluted_spectrum.getOriginalSpectrum().getMSLevel() != 1)
+    double rt = deconvolved_spectrum.getOriginalSpectrum().getRT();
+    scan_rt_map[deconvolved_spectrum.getScanNumber()] = rt;
+    if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != 1)
     {
       return;
     }
@@ -536,11 +536,11 @@ namespace OpenMS
 
       peak_group_map_[rt] = std::unordered_map<double, PeakGroup>();
       auto &sub_pg_map = peak_group_map_[rt];
-      for (auto &pg: deconvoluted_spectrum)
+      for (auto &pg: deconvolved_spectrum)
       {
         sub_pg_map[pg.getMonoMass()] = pg;
       }
-      //scan_rt_map[deconvoluted_spectrum.getScanNumber()] = rt;
+      //scan_rt_map[deconvolved_spectrum.getScanNumber()] = rt;
     }
   }
 

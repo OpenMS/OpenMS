@@ -32,17 +32,17 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include "include/OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h"
+#include "include/OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h"
 
 namespace OpenMS
 {
-  DeconvolutedSpectrum::DeconvolutedSpectrum(const MSSpectrum &spectrum, const int scan_number) :
+  DeconvolvedSpectrum::DeconvolvedSpectrum(const MSSpectrum &spectrum, const int scan_number) :
       scan_number_(scan_number)
   {
     spec_ = spectrum;
   }
 
-  MSSpectrum DeconvolutedSpectrum::toSpectrum(const int mass_charge)
+  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int mass_charge)
   {
     auto out_spec = MSSpectrum(spec_);
     out_spec.clear(false);
@@ -70,7 +70,7 @@ namespace OpenMS
     return out_spec;
   }
 
-  void DeconvolutedSpectrum::writeDeconvolutedMasses(std::fstream &fs,
+  void DeconvolvedSpectrum::writeDeconvolvedMasses(std::fstream &fs,
                                                      const String &file_name,
                                                      const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                                      const bool write_detail)
@@ -209,7 +209,7 @@ namespace OpenMS
   }
 
 
-  void DeconvolutedSpectrum::writeDeconvolutedMassesHeader(std::fstream &fs, const int ms_level, const bool detail)
+  void DeconvolvedSpectrum::writeDeconvolvedMassesHeader(std::fstream &fs, const int ms_level, const bool detail)
   {
     if (detail)
     {
@@ -255,7 +255,7 @@ namespace OpenMS
     }
   }
 
-  void DeconvolutedSpectrum::writeTopFD(std::fstream &fs,
+  void DeconvolvedSpectrum::writeTopFD(std::fstream &fs,
                                         const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                         const double snr_threshold,
                                         const double harmonic_factor,
@@ -381,7 +381,7 @@ namespace OpenMS
   }
 
 
-  bool DeconvolutedSpectrum::registerPrecursor(const std::vector<DeconvolutedSpectrum> &survey_scans,
+  bool DeconvolvedSpectrum::registerPrecursor(const std::vector<DeconvolvedSpectrum> &survey_scans,
                                                const bool is_positive, double isolation_window_size_,
                                                const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition)
   {
@@ -625,12 +625,12 @@ namespace OpenMS
     return precursor_peak_group_.empty();
   }
 
-  const MSSpectrum &DeconvolutedSpectrum::getOriginalSpectrum() const
+  const MSSpectrum &DeconvolvedSpectrum::getOriginalSpectrum() const
   {
     return spec_;
   }
 
-  PeakGroup DeconvolutedSpectrum::getPrecursorPeakGroup() const
+  PeakGroup DeconvolvedSpectrum::getPrecursorPeakGroup() const
   {
     if (precursor_peak_group_.empty())
     {
@@ -639,12 +639,12 @@ namespace OpenMS
     return precursor_peak_group_;
   }
 
-  int DeconvolutedSpectrum::getPrecursorCharge() const
+  int DeconvolvedSpectrum::getPrecursorCharge() const
   {
     return precursor_peak_.getCharge();
   }
 
-  double DeconvolutedSpectrum::getCurrentMaxMass(const double max_mass) const
+  double DeconvolvedSpectrum::getCurrentMaxMass(const double max_mass) const
   {
     if (spec_.getMSLevel() == 1 || precursor_peak_group_.empty())
     {
@@ -653,7 +653,7 @@ namespace OpenMS
     return precursor_peak_group_.getMonoMass();
   }
 
-  double DeconvolutedSpectrum::getCurrentMinMass(const double min_mass) const
+  double DeconvolvedSpectrum::getCurrentMinMass(const double min_mass) const
   {
     if (spec_.getMSLevel() == 1)
     {
@@ -662,7 +662,7 @@ namespace OpenMS
     return 50.0;
   }
 
-  int DeconvolutedSpectrum::getCurrentMaxAbsCharge(const int max_abs_charge) const
+  int DeconvolvedSpectrum::getCurrentMaxAbsCharge(const int max_abs_charge) const
   {
     if (spec_.getMSLevel() == 1 || precursor_peak_group_.empty())
     {
@@ -671,17 +671,17 @@ namespace OpenMS
     return abs(precursor_peak_.getCharge());
   }
 
-  const Precursor DeconvolutedSpectrum::getPrecursor() const
+  const Precursor DeconvolvedSpectrum::getPrecursor() const
   {
     return precursor_peak_;
   }
 
-  int DeconvolutedSpectrum::getScanNumber() const
+  int DeconvolvedSpectrum::getScanNumber() const
   {
     return scan_number_;
   }
 
-  int DeconvolutedSpectrum::getPrecursorScanNumber() const
+  int DeconvolvedSpectrum::getPrecursorScanNumber() const
   {
     return precursor_scan_number_;
   }

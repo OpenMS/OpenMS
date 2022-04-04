@@ -42,13 +42,13 @@
 #include <OpenMS/DATASTRUCTURES//Matrix.h>
 #include "boost/dynamic_bitset.hpp"
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 
 namespace OpenMS
 {
   /**
   @brief FLASHDeocnv algorithm: ultrafast mass deconvolution algorithm for top down mass spectrometry dataset
-  From MSSPectrum, this class outputs DeconvolutedSpectrum.
+  From MSSPectrum, this class outputs DeconvolvedSpectrum.
   Deconvolution takes three steps:
    i) decharging and select candidate masses - speed up via binning
    ii) collecting isotopes from the candidate masses and deisotope - peak groups are defined here
@@ -79,16 +79,16 @@ namespace OpenMS
     FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);
 
     /**
-      @brief main deconvolution function that generates the deconvoluted spectrum from the original spectrum.
+      @brief main deconvolution function that generates the deconvolved spectrum from the original spectrum.
       @param spec the original spectrum
-      @param survey_scans the survey scans to assign precursor mass to the deconvoluted spectrum.
+      @param survey_scans the survey scans to assign precursor mass to the deconvolved spectrum.
       @param scan_number scan number can be retrieved from the spectrum in most cases.
       But this parameter is put for real time deconvolution where scan number may be put separately.
-      @param precursor_map_for_FLASHIda deconvoluted precursor information from FLASHIda
-      @return the deconvoluted spectrum (as DeconvolutedSpectrum class)
+      @param precursor_map_for_FLASHIda deconvolved precursor information from FLASHIda
+      @return the deconvolved spectrum (as DeconvolvedSpectrum class)
  */
-    DeconvolutedSpectrum &getDeconvolutedSpectrum(const MSSpectrum &spec,
-                                                  const std::vector<DeconvolutedSpectrum> &survey_scans,
+    DeconvolvedSpectrum & getDeconvolvedSpectrum(const MSSpectrum &spec,
+                                                  const std::vector<DeconvolvedSpectrum> &survey_scans,
                                                   const int scan_number,
                                                   const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_FLASHIda);
 
@@ -142,7 +142,7 @@ namespace OpenMS
     int min_abs_charge_, max_abs_charge_;
     /// is positive mode
     bool is_positive_;
-    /// when a spectrum is deconvoluted, the deconvoluted masses within the this rt window are favorably considered.
+    /// when a spectrum is deconvolved, the deconvolved masses within the this rt window are favorably considered.
     double rt_window_;
     /// mass ranges of deconvolution, set by users
     double min_mass_, max_mass_;
@@ -183,8 +183,8 @@ namespace OpenMS
     const std::vector<int> harmonic_charges_{2, 3, 5, 7};
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;
-    /// deconvoluted_spectrum_ stores the decovnoluted mass peak groups
-    DeconvolutedSpectrum deconvoluted_spectrum_;
+    /// deconvolved_spectrum_ stores the decovnoluted mass peak groups
+    DeconvolvedSpectrum deconvolved_spectrum_;
 
     /// mass_bins_ stores the selected bins for this spectrum + overlapped spectrum (previous a few spectra).
     boost::dynamic_bitset<> mass_bins_;
@@ -210,7 +210,7 @@ namespace OpenMS
     /// current ms Level
     int ms_level_;
 
-    /// high and low charges are differently deconvoluted. This vale determines the (includisve) threshold for low charge.
+    /// high and low charges are differently deconvolved. This vale determines the (includisve) threshold for low charge.
     const int low_charge_ = 10; // inclusive
 
     /// default precursor isolation window size.

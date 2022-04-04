@@ -39,7 +39,7 @@
 #include <iostream>
 #include <iomanip>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -47,10 +47,10 @@ namespace OpenMS
 {
   /**
   @brief Feature trace in mass dimension for FLASHDeconv
-  This class performs mass tracing on the deconvoluted masses by FLASHDeconvAlgorithm
-  In otherwords, per spectrum deconvoluted masses are converted into deconvoluted features
+  This class performs mass tracing on the deconvolved masses by FLASHDeconvAlgorithm
+  In otherwords, per spectrum deconvolved masses are converted into deconvolved features
   Currently only works for MS1 spectra. (Top-down DIA is not yet used much).
-  Every time an MS1 spectrum is deconvoluted, the relevant information is stored in this class.
+  Every time an MS1 spectrum is deconvolved, the relevant information is stored in this class.
   Tracing is performed at the end of FLASHDeconv run.
   This class also comes with tsv, TOpFD, Promex format output functions.
   @ingroup Topdown
@@ -78,8 +78,8 @@ namespace OpenMS
     /// assignment operator
     MassFeatureTrace &operator=(const MassFeatureTrace &fd) = default;
 
-    /// Obtain and store information from deconvoluted_spectrum (necessary information for mass tracing afterwards)
-    void storeInformationFromDeconvolutedSpectrum(DeconvolutedSpectrum &deconvoluted_spectrum);
+    /// Obtain and store information from deconvolved_spectrum (necessary information for mass tracing afterwards)
+    void storeInformationFromDeconvolvedSpectrum(DeconvolvedSpectrum &deconvolved_spectrum);
 
     /**
        @brief Find mass features and write features in output files.

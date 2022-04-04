@@ -37,7 +37,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 
 namespace OpenMS
 {
@@ -71,7 +71,7 @@ namespace OpenMS
     FLASHIda &operator=(const FLASHIda &fd) = default;
 
     /**
-           @brief get peak groups (deconvoluted masses) from input spectrum, specified by mzs and intensities (due to C# interface it is necessary)
+           @brief get peak groups (deconvolved masses) from input spectrum, specified by mzs and intensities (due to C# interface it is necessary)
            @param mzs mz values of the input spectrum
            @param intensities intensities of the input spectrum
            @param length length of mzs and ints
@@ -161,8 +161,8 @@ namespace OpenMS
                                       const int ms_level,
                                       const char *name);
 
-    /// deconvoluted spectrum that contains the peak group
-    DeconvolutedSpectrum deconvoluted_spectrum_;
+    /// deconvolved spectrum that contains the peak group
+    DeconvolvedSpectrum deconvolved_spectrum_;
     /// peakGroup charges to be triggered
     std::vector<int> trigger_charges;
     /// peakGroup isolation window ranges

@@ -37,7 +37,7 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
@@ -73,7 +73,7 @@ MassFeatureTrace mass_tracer;
 MSSpectrum sample_spec;
 sample_spec.setRT(50.0);
 sample_spec.setMSLevel(1);
-DeconvolutedSpectrum deconv_spec1(sample_spec, 1);
+DeconvolvedSpectrum deconv_spec1(sample_spec, 1);
 
 PeakGroup tmp_pg = PeakGroup(15, 18, true);
 auto p1 = new Peak1D(1000.8455675085044, 8347717.5);
@@ -152,17 +152,17 @@ tmp_pg.push_back(tmp_p1);
 deconv_spec1.push_back(tmp_pg);
 
 sample_spec.setRT(55.0);
-    DeconvolutedSpectrum deconv_spec2(sample_spec, 2);
+    DeconvolvedSpectrum deconv_spec2(sample_spec, 2);
     deconv_spec2.push_back(tmp_pg);
 
     sample_spec.setRT(61.0);
-    DeconvolutedSpectrum deconv_spec3(sample_spec, 3);
+    DeconvolvedSpectrum deconv_spec3(sample_spec, 3);
     deconv_spec3.push_back(tmp_pg);
 //////////////////////////////
 
 
 /// < public methods without tests >
-/// - storeInformationFromDeconvolutedSpectrum : only private variables are affected
+/// - storeInformationFromDeconvolvedSpectrum : only private variables are affected
 /// - writing headers are not worth testing (writeHeader, writePromexHeader, writeTopFDFeatureHeader)
 /// - copy, assignment, move constructor -> not used.
 
@@ -183,9 +183,9 @@ START_SECTION((void findFeatures(const String &file_name, const bool promex_out,
   averagine = FLASHDeconvHelperStructs::calculateAveragines(20000, false);
 
   MassFeatureTrace mass_tracer;
-  mass_tracer.storeInformationFromDeconvolutedSpectrum(deconv_spec1);
-  mass_tracer.storeInformationFromDeconvolutedSpectrum(deconv_spec2);
-  mass_tracer.storeInformationFromDeconvolutedSpectrum(deconv_spec3);
+  mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec1);
+  mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec2);
+  mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec3);
 
   mass_tracer.writeHeader(fsf);
   mass_tracer.findFeatures("tmp_file", false, false, null_map, feature_count, feature_index,

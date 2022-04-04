@@ -39,11 +39,11 @@
 namespace OpenMS
 {
   /**
-@brief  Class describing a deconvoluted mass.
+@brief  Class describing a deconvolved mass.
    A mass contains multiple peaks of different charges and isotope indices.
    PeakGroup is the set of such peaks representing a single monoisotopic mass.
    PeakGroup also contains features that define the quality of it. It is used by QScore calculation
-   DeconvolutedSpectrum consists of PeakGroups.
+   DeconvolvedSpectrum consists of PeakGroups.
 @ingroup Topdown
 */
 

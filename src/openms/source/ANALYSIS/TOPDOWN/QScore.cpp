@@ -118,27 +118,27 @@ namespace OpenMS
     f << "Class\n";
   }
 
-  void QScore::writeAttTsv(const DeconvolutedSpectrum &deconvoluted_spectrum,
+  void QScore::writeAttTsv(const DeconvolvedSpectrum & deconvolved_spectrum,
                            const FLASHDeconvHelperStructs::TopPicItem &top_id,
                            const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                            std::fstream &f,
                            bool write_detail)
   {
-    int scan_number = deconvoluted_spectrum.getScanNumber();
-    double pmz = deconvoluted_spectrum.getPrecursor().getMZ();
-    auto pg = deconvoluted_spectrum.getPrecursorPeakGroup();
+    int scan_number = deconvolved_spectrum.getScanNumber();
+    double pmz = deconvolved_spectrum.getPrecursor().getMZ();
+    auto pg = deconvolved_spectrum.getPrecursorPeakGroup();
     double pmass = //pg.getMonoMass();
         top_id.proteform_id_ < 0 ? pg.getMonoMass()
                                  : top_id.adj_precursor_mass_;
-    double precursor_intensity = deconvoluted_spectrum.getPrecursor().getIntensity();
+    double precursor_intensity = deconvolved_spectrum.getPrecursor().getIntensity();
     int fr = top_id.first_residue_;
     int lr = top_id.last_residue_;
     String acc = top_id.protein_acc_;
     int proID = top_id.proteform_id_;
-    double rt = deconvoluted_spectrum.getOriginalSpectrum().getRT();
-    double pscan = deconvoluted_spectrum.getPrecursorScanNumber();
+    double rt = deconvolved_spectrum.getOriginalSpectrum().getRT();
+    double pscan = deconvolved_spectrum.getPrecursorScanNumber();
     double fintensity = top_id.intensity_;
-    int charge = deconvoluted_spectrum.getPrecursorCharge();
+    int charge = deconvolved_spectrum.getPrecursorCharge();
 
     double e_value = top_id.e_value_;
     double q_value = top_id.proteofrom_q_value_;

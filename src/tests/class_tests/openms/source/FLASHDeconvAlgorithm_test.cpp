@@ -169,7 +169,7 @@ START_SECTION((static double getIsotopeCosineAndDetermineIsotopeIndex(const doub
 }
 END_SECTION
 
-START_SECTION((DeconvolutedSpectrum& getDeconvolutedSpectrum(const MSSpectrum &spec, const std::vector< DeconvolutedSpectrum > &survey_scans, const int scan_number, const std::map< int, std::vector< std::vector< double >>> &precursor_map_for_FLASHIda)))
+START_SECTION((DeconvolvedSpectrum& getDeconvolvedSpectrum(const MSSpectrum &spec, const std::vector< DeconvolvedSpectrum > &survey_scans, const int scan_number, const std::map< int, std::vector< std::vector< double >>> &precursor_map_for_FLASHIda)))
 {
   // load test data
   PeakMap input;
@@ -180,15 +180,15 @@ START_SECTION((DeconvolutedSpectrum& getDeconvolutedSpectrum(const MSSpectrum &s
   fd_algo.setParameters(fd_param);
   fd_algo.calculateAveragine(false);
 
-  std::vector<DeconvolutedSpectrum> survey_specs;
+  std::vector<DeconvolvedSpectrum> survey_specs;
   const std::map<int, std::vector<std::vector<double>>> null_map;
 
-  DeconvolutedSpectrum d_spec_1 = fd_algo.getDeconvolutedSpectrum(input[1], survey_specs, 2, null_map);
-  DeconvolutedSpectrum d_spec_2 = fd_algo.getDeconvolutedSpectrum(input[3], survey_specs, 4, null_map);
+  DeconvolvedSpectrum d_spec_1 = fd_algo.getDeconvolvedSpectrum(input[1], survey_specs, 2, null_map);
+  DeconvolvedSpectrum d_spec_2 = fd_algo.getDeconvolvedSpectrum(input[3], survey_specs, 4, null_map);
 
   survey_specs.push_back(d_spec_1);
   survey_specs.push_back(d_spec_2);
-  DeconvolutedSpectrum d_spec_3 = fd_algo.getDeconvolutedSpectrum(input[5], survey_specs, 6, null_map);
+  DeconvolvedSpectrum d_spec_3 = fd_algo.getDeconvolvedSpectrum(input[5], survey_specs, 6, null_map);
 
   TEST_EQUAL(d_spec_1.getScanNumber(), 2);
   TEST_EQUAL(d_spec_1.size(), 3);

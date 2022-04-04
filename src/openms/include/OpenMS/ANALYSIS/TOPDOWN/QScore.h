@@ -37,7 +37,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 
 namespace OpenMS
 {
@@ -62,7 +62,7 @@ namespace OpenMS
     static double getQScore(const PeakGroup *pg, const int abs_charge);
 
     /// function to generate attribute tsv file for weka interface
-    static void writeAttTsv(const DeconvolutedSpectrum &deconvoluted_spectrum,
+    static void writeAttTsv(const DeconvolvedSpectrum & deconvolved_spectrum,
                             const FLASHDeconvHelperStructs::TopPicItem &top_id,
                             const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                             std::fstream &f,
