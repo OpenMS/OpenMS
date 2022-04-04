@@ -360,16 +360,6 @@ namespace OpenMS
       monoisotopic_mass_ = nominator / intensity_;
     }
 
-    void updateIntensity()
-    {
-      double tmp_inty = .0;
-      for (auto &p: *this)
-      {
-        tmp_inty += p.getIntensity();
-      }
-      intensity_ = tmp_inty;
-    }
-
     double getMonoisotopicMass() const
     {
       return monoisotopic_mass_;
@@ -423,6 +413,20 @@ namespace OpenMS
     float getIsotopeCosineOfCharge(const int &abs_charge) const
     {
       return per_charge_cos_[abs_charge];
+    }
+
+    float getIntensityOfCharge(const int &abs_charge) const
+    {
+      return per_charge_int_[abs_charge];
+    }
+
+    bool hasPerChargeVector() const
+    {
+      if (per_charge_int_.empty())
+      {
+        return false;
+      }
+      return true;
     }
 
     double getCentroidRtOfApices() const
@@ -519,9 +523,9 @@ namespace OpenMS
       {
         cs_set.insert(lmt.getCharge());
       }
-//      std::vector<int> out_vec(cs_set.size());
       charges_ = std::vector<int>(cs_set.size());
       std::copy(cs_set.begin(), cs_set.end(), charges_.begin());
+      std::sort(charges_.begin(), charges_.end());
     }
 
     void setChargeIsotopeCosine(const int abs_charge, const float cos)
@@ -567,14 +571,14 @@ namespace OpenMS
       fwhm_range_ = std::make_pair(min_fwhm, max_fwhm);
     }
 
-    void initializePerChargeVectors()
-    {
-      per_charge_cos_.clear();
-      per_charge_int_.clear();
-      per_charge_cos_ = std::vector<float>(1 + max_abs_charge_, .0);
-      per_charge_int_ = std::vector<float>(1 + max_abs_charge_, .0);
-      // other vectors (per_charge_pwr_, per_charge_signal_pwr_, per_charge_snr_) don't need to be initialized
-    }
+//    void initializePerChargeVectors()
+//    {
+//      per_charge_cos_.clear();
+//      per_charge_int_.clear();
+//      per_charge_cos_ = std::vector<float>(1 + max_abs_charge_, .0);
+//      per_charge_int_ = std::vector<float>(1 + max_abs_charge_, .0);
+//      // other vectors (per_charge_pwr_, per_charge_signal_pwr_, per_charge_snr_) don't need to be initialized
+//    }
 
     void setTraceIndices()
     {
@@ -673,24 +677,7 @@ namespace OpenMS
       }
 
       return x.getIntensity() < y.getIntensity();
-
-//      if(x.getIsotopeCosine() == y.getIsotopeCosine()){
-//        return x.getIntensity() < x.getIntensity();
-//      }
-//
-//      return x.getIsotopeCosine() < y.getIsotopeCosine();
     }
-
-//    bool operator()(const FeatureGroup* x, const FeatureGroup* y) const
-//    {
-//      // descending order
-//      if(x->getIsotopeCosine() == y->getIsotopeCosine()){
-//        return x->getIntensity() < y->getIntensity();
-//      }
-//
-//      return x->getIsotopeCosine() < y->getIsotopeCosine();
-//    }
-
   };
 
   struct OPENMS_DLLAPI FeatureElement
@@ -754,7 +741,9 @@ namespace OpenMS
 
     void refineFeatureGroups_(std::vector<FeatureGroup>& features);
 
-    bool rescoreFeatureGroup_(FeatureGroup& fg) const;
+    bool rescoreFeatureGroup_(FeatureGroup& fg, bool score_always = false) const;
+
+    void setFeatureGroupScore_(FeatureGroup &fg) const;
 
     static double getCosine_(const std::vector<double> &a,
                              const int &a_start,
@@ -776,12 +765,6 @@ namespace OpenMS
     void clusterFeatureGroups_(std::vector<FeatureGroup>& fgroups,
                                std::vector<MassTrace>& input_mtraces) const;
 
-    void resolveSharedMassTraces(std::vector<FeatureGroup>& fgroups, std::vector<std::vector<Size>>& shared_m_traces,
-                                 std::vector<MassTrace>& input_mtraces) const;
-
-    void resolveSharedMassTraces_simple(std::vector<FeatureGroup>& fgroups, std::vector<std::vector<Size>>& shared_m_traces,
-                                        std::vector<MassTrace>& input_mtraces) const;
-
     void resolveConflictInCluster_(std::vector<FeatureGroup>& feature_groups,
                                    const std::vector<MassTrace> & input_masstraces,
                                    const std::vector<std::vector<Size> >& shared_m_traces_indices,
@@ -792,7 +775,13 @@ namespace OpenMS
                                        const std::vector<std::vector<Size> >& shared_m_traces_indices,
                                        std::fstream& out) const;
 
-    void writeFeatureGroupsInFile(std::vector<FeatureGroup>& feat, std::vector<MassTrace>& input_mtraces);
+    void writeFeatureGroupsInFile(std::vector<FeatureGroup>& feat, std::vector<MassTrace>& input_mtraces) const;
+
+    void writeOutputInFeatureXML_(const std::vector<FeatureGroup> &feature_groups,
+                                  const std::vector<std::vector<Size>> &shared_m_traces_indices) const;
+
+    void storeFeatureGroupInOpenMSFeature(std::vector<FeatureGroup> &feature_groups,
+                                          FeatureMap &out_featmap) const;
 
     void resolveConflictRegion_(std::vector<FeatureElement> &feat,
                                 const std::vector<Size> &feature_idx_in_current_conflict_region,
@@ -843,6 +832,7 @@ namespace OpenMS
 
     // loop up table
     std::vector<std::pair<double, double>> target_masses_; // mass and rt
-    bool with_target_masses_ = false;
+    bool with_target_masses_ = true;
+
   };
 }
