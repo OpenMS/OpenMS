@@ -335,17 +335,6 @@ namespace OpenMS
 
   void switchKR(OpenMS::TargetedExperiment::Peptide& peptide)
   {
-    static std::string aa[] =
-    {
-      "A", "N", "D", "C", "E", "Q", "G", "H", "I", "L", "M", "F", "S", "T", "W",
-      "Y", "V"
-    };
-    int aa_size = 17;
-
-    static boost::mt19937 generator(42);
-    static boost::uniform_int<> uni_dist;
-    static boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
-
     Size lastAA = peptide.sequence.size() -1;
     if (peptide.sequence[lastAA] == 'K')
     {
@@ -355,11 +344,9 @@ namespace OpenMS
     {
        peptide.sequence[lastAA] = 'K';
     }
-    else
+    else // this means that the peptide does not end in K or R, in this case just leave the sequence be
     {
-      // randomize
-      int res_pos = (pseudoRNG() % aa_size);
-      peptide.sequence[lastAA] = (char)aa[res_pos][0];
+      return;
     }
   }
 
