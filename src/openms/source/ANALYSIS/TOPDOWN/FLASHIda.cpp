@@ -67,7 +67,7 @@ namespace OpenMS
       {
         double num = atof(token_string.c_str());
 
-        if (num == 0 && !isdigit(token_string[token_string.size() - 1]))
+        if (num == 0&&  !isdigit(token_string[token_string.size() - 1]))
         {
           key = token_string;
           inputs[key] = DoubleList();
@@ -103,7 +103,7 @@ namespace OpenMS
       mass_count_.push_back((int) j);
     }
 
-    for (auto &log_file: log_files)
+    for (auto& log_file: log_files)
     {
       std::ifstream instream(log_file);
       if (instream.good())
@@ -146,7 +146,7 @@ namespace OpenMS
       }
     }
 
-    for (auto &log_file: out_files)
+    for (auto& log_file: out_files)
     {
       std::ifstream instream(log_file);
 
@@ -281,7 +281,7 @@ namespace OpenMS
     new_mass_rt_map_.swap(tqscore_exceeding_mass_rt_map_);
     std::unordered_map<int, double>().swap(new_mass_rt_map_);
 
-    for (auto &item: all_mass_rt_map_)
+    for (auto& item: all_mass_rt_map_)
     {
       if (rt - item.second > rt_window_)
       {
@@ -302,7 +302,7 @@ namespace OpenMS
     //when selection_phase == 1, consider all other masses for selection
     for (int selection_phase = selection_phase_start; selection_phase < selection_phase_end; selection_phase++)
     {
-      for (auto &pg: deconvolved_spectrum_)
+      for (auto& pg: deconvolved_spectrum_)
       {
 
         if (filtered_peakgroups.size() >= mass_count)
@@ -325,7 +325,7 @@ namespace OpenMS
           double delta = 2 * tol_[0] * mass * 1e-6;
           auto ub = std::upper_bound(target_masses_.begin(), target_masses_.end(), mass + delta);
 
-          while (ub != target_masses_.begin() && !include && *ub > mass - delta)
+          while (ub != target_masses_.begin()&&  !include&&  *ub > mass - delta)
           {
             --ub;
             if (std::abs(*ub - mass) < delta)
@@ -343,7 +343,7 @@ namespace OpenMS
           }
         }
 
-        if (!include && qscore < qscore_threshold_)
+        if (!include&&  qscore < qscore_threshold_)
         {
           break;
         }

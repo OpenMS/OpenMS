@@ -78,20 +78,20 @@ namespace OpenMS
     ~PeakGroup();
 
     /// copy constructor
-    PeakGroup(const PeakGroup &) = default;
+    PeakGroup(const PeakGroup& ) = default;
 
     /// move constructor
-    PeakGroup(PeakGroup &&other) = default;
+    PeakGroup(PeakGroup&& other) = default;
 
     /// comparison operators
-    bool operator<(const PeakGroup &a) const;
+    bool operator<(const PeakGroup& a) const;
 
-    bool operator>(const PeakGroup &a) const;
+    bool operator>(const PeakGroup& a) const;
 
-    bool operator==(const PeakGroup &a) const;
+    bool operator==(const PeakGroup& a) const;
 
     /// assignment operator
-    PeakGroup &operator=(const PeakGroup &t) = default;
+    PeakGroup& operator=(const PeakGroup& t) = default;
 
     /**
            @brief add monoisotopic indices of peaks by offset and discard negative isotpe peaks. Total intensity is also updated
@@ -155,7 +155,7 @@ namespace OpenMS
     /// get scan number
     int getScanNumber() const;
 
-    /// get monoisotoopic mass
+    /// get monoisotopic mass
     double getMonoMass() const;
 
     /// get intensity
@@ -223,7 +223,7 @@ namespace OpenMS
     bool is_positive_;
     /// if this peak group has been targeted
     bool is_targeted_ = false;
-    /// information on the deconvouted mass
+    /// information on the deconvolved mass
     double monoisotopic_mass_ = -1.0;
     double intensity_;// total intensity
 

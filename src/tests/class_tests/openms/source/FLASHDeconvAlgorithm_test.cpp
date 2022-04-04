@@ -117,32 +117,6 @@ START_SECTION((PrecalculatedAveragine getAveragine()))
 }
 END_SECTION
 
-START_SECTION((static double getChargeFitScore(const std::vector< double > &per_charge_intensity, const int charge_range)))
-{
-  std::vector<double> tmp_inty_vec1;
-  tmp_inty_vec1.push_back(10.);
-  tmp_inty_vec1.push_back(15.);
-  tmp_inty_vec1.push_back(10.);
-  tmp_inty_vec1.push_back(0.);
-
-  std::vector<double> tmp_inty_vec2;
-  tmp_inty_vec2.push_back(10.);
-  tmp_inty_vec2.push_back(0.);
-  tmp_inty_vec2.push_back(100.);
-  tmp_inty_vec2.push_back(1.);
-  tmp_inty_vec2.push_back(100.);
-  tmp_inty_vec2.push_back(5.);
-
-  double score1 = fd_algo.getChargeFitScore(tmp_inty_vec1, 4);
-  double score2 = fd_algo.getChargeFitScore(tmp_inty_vec2, 6);
-  double score3 = fd_algo.getChargeFitScore(tmp_inty_vec2, 3);
-
-  TEST_REAL_SIMILAR(score1, 1.);
-  TEST_REAL_SIMILAR(score2, 0.541666666666667);
-  TEST_REAL_SIMILAR(score3, 1.);
-}
-END_SECTION
-
 START_SECTION((static double getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector< double > &per_isotope_intensities, int &offset, const PrecalculatedAveragine &avg, bool use_shape_diff=true)))
 {
   std::vector<double> tmp_iso_inty;

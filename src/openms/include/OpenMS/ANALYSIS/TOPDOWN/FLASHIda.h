@@ -62,13 +62,13 @@ namespace OpenMS
     ~FLASHIda() = default;
 
     /// copy constructor
-    FLASHIda(const FLASHIda &) = default;
+    FLASHIda(const FLASHIda& ) = default;
 
     /// move constructor
-    FLASHIda(FLASHIda &&other) = default;
+    FLASHIda(FLASHIda&& other) = default;
 
     /// assignment operator
-    FLASHIda &operator=(const FLASHIda &fd) = default;
+    FLASHIda& operator=(const FLASHIda& fd) = default;
 
     /**
            @brief get peak groups (deconvolved masses) from input spectrum, specified by mzs and intensities (due to C# interface it is necessary)
@@ -125,7 +125,7 @@ namespace OpenMS
     /// PeakGroup comparator for soring by QScore
     struct
     {
-      bool operator()(const PeakGroup &a, const PeakGroup &b) const
+      bool operator()(const PeakGroup& a, const PeakGroup& b) const
       {
         return a.getQScore() > b.getQScore();
       }

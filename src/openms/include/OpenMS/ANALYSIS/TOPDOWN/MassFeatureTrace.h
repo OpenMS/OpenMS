@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-#include "boost/dynamic_bitset.hpp"
 #include <iostream>
 #include <iomanip>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
@@ -67,19 +66,19 @@ namespace OpenMS
     MassFeatureTrace();
 
     /// destructor
-    ~MassFeatureTrace() override;
+    ~MassFeatureTrace() override = default;
 
     /// copy constructor
-    MassFeatureTrace(const MassFeatureTrace &) = default;
+    MassFeatureTrace(const MassFeatureTrace& ) = default;
 
     /// move constructor
-    MassFeatureTrace(MassFeatureTrace &&other) = default;
+    MassFeatureTrace(MassFeatureTrace&& other) = default;
 
     /// assignment operator
-    MassFeatureTrace &operator=(const MassFeatureTrace &fd) = default;
+    MassFeatureTrace& operator=(const MassFeatureTrace& fd) = default;
 
     /// Obtain and store information from deconvolved_spectrum (necessary information for mass tracing afterwards)
-    void storeInformationFromDeconvolvedSpectrum(DeconvolvedSpectrum &deconvolved_spectrum);
+    void storeInformationFromDeconvolvedSpectrum(DeconvolvedSpectrum& deconvolved_spectrum);
 
     /**
        @brief Find mass features and write features in output files.
@@ -87,30 +86,31 @@ namespace OpenMS
        @param promex_out whether promex format output should be generated
        @param topfd_feature_out whether topfd feature output should be generated
        @param precursor_peak_groups precursor peak groups of MSn spectra that are used only when topfd_feature_out is set
+       @param averagine precalculated averagine for cosine calculation
        @param feature_cntr total number of features, updated in this function
        @param feature_index index to features, updated in this function
        @param fsf file stream for feature tsv output
        @param fsp file stream for promex output
        @param fst file streams for topfd output tsv, feature files
-       @param averagine precalculated averagine for cosine calculation
        */
-    void findFeatures(const String &file_name, const bool promex_out, const bool topfd_feature_out,
-                      const std::unordered_map<int, PeakGroup> &precursor_peak_groups,
-                      int &feature_cntr,
-                      int &feature_index,
-                      std::fstream &fsf,
-                      std::fstream &fsp,
-                      std::vector<std::fstream> &fst,
-                      const PrecalculatedAveragine &averagine);
+    void findFeatures(const String& file_name, const bool promex_out, const bool topfd_feature_out,
+                      const std::unordered_map<int, PeakGroup>& precursor_peak_groups,
+                      const PrecalculatedAveragine& averagine,
+                      int& feature_cntr,
+                      int& feature_index,
+                      std::fstream& fsf,
+                      std::fstream& fsp,
+                      std::vector<std::fstream>& fst
+                      );
 
     /// write header line for regular file output
-    static void writeHeader(std::fstream &fs);
+    static void writeHeader(std::fstream& fs);
 
     /// write header line for promex file output
-    static void writePromexHeader(std::fstream &fs);
+    static void writePromexHeader(std::fstream& fs);
 
     /// write header line for topFD feature files
-    static void writeTopFDFeatureHeader(std::vector<std::fstream> &fs);
+    static void writeTopFDFeatureHeader(std::vector<std::fstream>& fs);
 
   protected:
     void updateMembers_() override;

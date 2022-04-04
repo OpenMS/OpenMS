@@ -302,7 +302,7 @@ protected:
     registerFullParam_(combined);
   }
 
-  static std::map<int, std::vector<std::vector<double>>> read_FLASHIda_log_(const String &in_log_file)
+  static std::map<int, std::vector<std::vector<double>>> read_FLASHIda_log_(const String& in_log_file)
   {
     std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition; // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
     if (!in_log_file.empty())
@@ -576,7 +576,7 @@ protected:
         }
 
         auto tp = FLASHDeconvHelperStructs::TopPicItem(line);
-        top_pic_map[tp.scan_] = tp;
+        top_pic_map[tp.scan] = tp;
       }
       in_trainstream.close();
     }
@@ -626,7 +626,7 @@ protected:
 
     // read input dataset once to count spectra
     double gradient_rt = .0;
-    for (auto &it: map)
+    for (auto& it: map)
     {
       gradient_rt = it.getRT();
       if (it.empty())
@@ -866,9 +866,9 @@ protected:
     if (merge != 2)
     {
       mass_tracer.findFeatures(in_file, !out_promex_file.empty(), !out_topfd_feature_file.empty(),
-                               precursor_peak_groups,
-                               feature_cntr, feature_index, out_stream, out_promex_stream, out_topfd_feature_streams,
-                               fd.getAveragine());
+                               precursor_peak_groups, fd.getAveragine(),
+                               feature_cntr, feature_index, out_stream, out_promex_stream, out_topfd_feature_streams
+                               );
     }
     if (!out_mzml_file.empty())
     {
@@ -941,7 +941,7 @@ protected:
     }
     if (!out_topfd_feature_file.empty())
     {
-      for (auto &out_topfd_feature_stream: out_topfd_feature_streams)
+      for (auto& out_topfd_feature_stream: out_topfd_feature_streams)
       {
         out_topfd_feature_stream.close();
       }
@@ -950,7 +950,7 @@ protected:
 
     if (!out_topfd_file.empty())
     {
-      for (auto &out_topfd_stream: out_topfd_streams)
+      for (auto& out_topfd_stream: out_topfd_streams)
       {
         out_topfd_stream.close();
       }
@@ -958,7 +958,7 @@ protected:
     if (!out_spec_file.empty())
     {
       int j = 0;
-      for (auto &out_spec_stream: out_spec_streams)
+      for (auto& out_spec_stream: out_spec_streams)
       {
         out_spec_stream.close();
         if (spec_cntr[j] <= 0)

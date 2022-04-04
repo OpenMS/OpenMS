@@ -195,7 +195,7 @@ namespace OpenMS
     max_isotope_index_ = index;
   }
 
-  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(const Peak1D &peak, const bool positive) :
+  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(const Peak1D& peak, const bool positive) :
       mz(peak.getMZ()),
       intensity(peak.getIntensity()),
       logMz(getLogMz(peak.getMZ(), positive)),
@@ -218,17 +218,17 @@ namespace OpenMS
     return mass;
   }
 
-  bool FLASHDeconvHelperStructs::LogMzPeak::operator<(const LogMzPeak &a) const
+  bool FLASHDeconvHelperStructs::LogMzPeak::operator<(const LogMzPeak& a) const
   {
     return this->logMz < a.logMz;
   }
 
-  bool FLASHDeconvHelperStructs::LogMzPeak::operator>(const LogMzPeak &a) const
+  bool FLASHDeconvHelperStructs::LogMzPeak::operator>(const LogMzPeak& a) const
   {
     return this->logMz > a.logMz;
   }
 
-  bool FLASHDeconvHelperStructs::LogMzPeak::operator==(const LogMzPeak &a) const
+  bool FLASHDeconvHelperStructs::LogMzPeak::operator==(const LogMzPeak& a) const
   {
     return this->logMz == a.logMz;
   }
@@ -263,7 +263,7 @@ namespace OpenMS
 
   FLASHDeconvHelperStructs::TopPicItem::TopPicItem(String in)
   {
-    str_ = in;
+    str = in;
     std::vector<String> results;
     std::stringstream tmp_stream(in);
     String str;
@@ -276,32 +276,32 @@ namespace OpenMS
     {
       results.push_back(str);
     }
-    prsm_id_ = stoi(results[1]);
-    spec_id_ = stoi(results[2]);
-    scan_ = stoi(results[4]);
-    rt_ = stod(results[5]);
-    peak_count_ = stoi(results[6]);
-    charge_ = stoi(results[7]);
-    precursor_mass_ = stod(results[8]);
-    adj_precursor_mass_ = stod(results[9]);
-    proteform_id_ = stoi(results[10]);
+    prsm_id = stoi(results[1]);
+    spec_id = stoi(results[2]);
+    scan = stoi(results[4]);
+    rt = stod(results[5]);
+    peak_count = stoi(results[6]);
+    charge = stoi(results[7]);
+    precursor_mass = stod(results[8]);
+    adj_precursor_mass = stod(results[9]);
+    proteform_id = stoi(results[10]);
     if (results[11].hasPrefix("-"))
     {
-      intensity_ = 0;
+      intensity = 0;
     }
     else
     {
-      intensity_ = stod(results[11]);
+      intensity = stod(results[11]);
     }
     String acc = results[13];
     int first = acc.find("|");
     int second = acc.find("|", first + 1);
-    protein_acc_ = acc.substr(first + 1, second - first - 1);
-    first_residue_ = stoi(results[15]);
-    last_residue_ = stoi(results[16]);
+    protein_acc = acc.substr(first + 1, second - first - 1);
+    first_residue = stoi(results[15]);
+    last_residue = stoi(results[16]);
     if (stoi(results[18]) == 0)
     {
-      //unexp_mod_ = .0;
+      //unexp_mod = .0;
     }
     else
     {
@@ -335,34 +335,34 @@ namespace OpenMS
         {
           mmass = 14.015650;
         }
-        unexp_mod_.push_back(mmass);
+        unexp_mod.push_back(mmass);
         loc++;
       }
     }
 
 
-    matched_peaks_ = stoi(results[21]);
-    matched_frags_ = stoi(results[22]);
-    e_value_ = stod(results[23]);
+    matched_peaks = stoi(results[21]);
+    matched_frags = stoi(results[22]);
+    e_value = stod(results[23]);
     if (results[24] != "-")
     {
-      spec_q_value_ = stod(results[24]);
-      proteofrom_q_value_ = stod(results[25]);
+      spec_q_value = stod(results[24]);
+      proteofrom_q_value = stod(results[25]);
     }
   }
 
-  bool FLASHDeconvHelperStructs::TopPicItem::operator<(const FLASHDeconvHelperStructs::TopPicItem &a) const
+  bool FLASHDeconvHelperStructs::TopPicItem::operator<(const FLASHDeconvHelperStructs::TopPicItem& a) const
   {
-    return this->scan_ < a.scan_;
+    return this->scan < a.scan;
   }
 
-  bool FLASHDeconvHelperStructs::TopPicItem::operator>(const FLASHDeconvHelperStructs::TopPicItem &a) const
+  bool FLASHDeconvHelperStructs::TopPicItem::operator>(const FLASHDeconvHelperStructs::TopPicItem& a) const
   {
-    return this->scan_ > a.scan_;
+    return this->scan > a.scan;
   }
 
-  bool FLASHDeconvHelperStructs::TopPicItem::operator==(const FLASHDeconvHelperStructs::TopPicItem &other) const
+  bool FLASHDeconvHelperStructs::TopPicItem::operator==(const FLASHDeconvHelperStructs::TopPicItem& other) const
   {
-    return this->scan_ == other.scan_;
+    return this->scan == other.scan;
   }
 }

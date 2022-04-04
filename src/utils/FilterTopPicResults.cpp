@@ -197,30 +197,30 @@ protected:
 
             FLASHDeconvHelperStructs::TopPicItem item(line);
 
-            auto avgpmass = avg.getAverageMassDelta(item.precursor_mass_) + item.precursor_mass_;
-            attstream0 << item.protein_acc_ << "," << item.first_residue_ << "," << item.last_residue_ << ","
-                       << item.proteform_id_
-                       << "," << item.rt_ << "," << item.scan_ << "," <<  scan_to_prescan[item.scan_]  << "," << item.adj_precursor_mass_ << ","
-                       << item.precursor_mass_ << "," << avgpmass << ",0,0,0," << item.intensity_ << "," << item.charge_
+            auto avgpmass = avg.getAverageMassDelta(item.precursor_mass) + item.precursor_mass;
+            attstream0 << item.protein_acc << "," << item.first_residue << "," << item.last_residue << ","
+                       << item.proteform_id
+                       << "," << item.rt << "," << item.scan << "," <<  scan_to_prescan[item.scan]  << "," << item.adj_precursor_mass << ","
+                       << item.precursor_mass << "," << avgpmass << ",0,0,0," << item.intensity << "," << item.charge
                        << ","
-                       << std::max(1, item.charge_ - 3) << "," << std::min(50, item.charge_ + 3) << ","
-                       << (item.unexp_mod_.size())
+                       << std::max(1, item.charge - 3) << "," << std::min(50, item.charge + 3) << ","
+                       << (item.unexp_mod.size())
                        <<",";
             for(int k=0;k<3;k++){
-                if(k < item.unexp_mod_.size()){
-                    attstream0<<item.unexp_mod_[k]<<",";
+                if(k < item.unexp_mod.size()){
+                    attstream0<<item.unexp_mod[k]<<",";
                 }else{
                     attstream0<<"nan,";
                 }
             }
 
-            attstream0<<"0,0,0,0,0,0,0,"<<item.e_value_<< ","<<  item.proteofrom_q_value_ <<  ",T\n";
+            attstream0<<"0,0,0,0,0,0,0,"<<item.e_value << ","<<  item.proteofrom_q_value <<  ",T\n";
 
             cntr++;
-            if(results.find(item.protein_acc_) == results.end()){
-                results[item.protein_acc_] = vector<FLASHDeconvHelperStructs::TopPicItem>();
+            if(results.find(item.protein_acc) == results.end()){
+                results[item.protein_acc] = vector<FLASHDeconvHelperStructs::TopPicItem>();
             }
-            results[item.protein_acc_].push_back(item);
+            results[item.protein_acc].push_back(item);
 
 
         }
@@ -235,17 +235,17 @@ protected:
             {
                 auto &ps = item.second;
                 for(int i=0;i<ps.size();i++) {
-                    double p_mass = ps[i].adj_precursor_mass_;
-                    int charge = ps[i].charge_;
+                    double p_mass = ps[i].adj_precursor_mass;
+                    int charge = ps[i].charge;
 
-                    int pre_scan = scan_to_prescan[ps[i].scan_];
+                    int pre_scan = scan_to_prescan[ps[i].scan];
 
                     auto pre_spec = scan_spec_map[pre_scan];
                     //double min_mz = (avg.getAverageMassDelta(p_mass) - avg.getLeftCountFromApex(p_mass)* Constants::ISOTOPE_MASSDIFF_55K_U + p_mass)/charge + Constants::PROTON_MASS_U;
                     // double max_mz = (avg.getAverageMassDelta(p_mass) + avg.getRightCountFromApex(p_mass)* Constants::ISOTOPE_MASSDIFF_55K_U + p_mass)/charge + Constants::PROTON_MASS_U;
                     double noise = 0, signal = 0;
 
-                    auto spec = scan_spec_map[ps[i].scan_];
+                    auto spec = scan_spec_map[ps[i].scan];
                     double start_mz = spec.getPrecursors()[0].getIsolationWindowLowerOffset() > 100.0 ?
                                       spec.getPrecursors()[0].getIsolationWindowLowerOffset() :
                                       -spec.getPrecursors()[0].getIsolationWindowLowerOffset() +
@@ -327,52 +327,52 @@ protected:
         //std::sort(to_out2.begin(), to_out2.end());
         int qq = 0;
         for (auto &item : to_out1) {
-            outstream1 << item.str_ << "\n";
-            auto avgpmass = avg.getAverageMassDelta(item.adj_precursor_mass_) + item.adj_precursor_mass_;
-            attstream1 << item.protein_acc_ << "," << item.first_residue_ << "," << item.last_residue_ << ","
-                       << item.proteform_id_
-                       << "," << item.rt_ << "," << item.scan_ << "," << scan_to_prescan[item.scan_] << ","
-                       << item.adj_precursor_mass_ << ","
-                       << item.precursor_mass_ << "," << avgpmass << ",0,0,0," << item.intensity_ << "," << item.charge_
+            outstream1 << item.str << "\n";
+            auto avgpmass = avg.getAverageMassDelta(item.adj_precursor_mass) + item.adj_precursor_mass;
+            attstream1 << item.protein_acc << "," << item.first_residue << "," << item.last_residue << ","
+                       << item.proteform_id
+                       << "," << item.rt << "," << item.scan << "," << scan_to_prescan[item.scan] << ","
+                       << item.adj_precursor_mass << ","
+                       << item.precursor_mass << "," << avgpmass << ",0,0,0," << item.intensity << "," << item.charge
                        << ","
-                       << std::max(1, item.charge_ - 3) << "," << std::min(50, item.charge_ + 3) << ","
-                       << (item.unexp_mod_.size())
+                       << std::max(1, item.charge - 3) << "," << std::min(50, item.charge + 3) << ","
+                       << (item.unexp_mod.size())
                        << ",";
             for (int k = 0; k < 3; k++) {
-                if (k < item.unexp_mod_.size()) {
-                    attstream1 << item.unexp_mod_[k] << ",";
+                if (k < item.unexp_mod.size()) {
+                    attstream1 << item.unexp_mod[k] << ",";
                 } else {
                     attstream1 << "nan,";
                 }
             }
 
             attstream1 << to_out1_cos[qq] << "," << to_out1_snr[qq] << "," << to_out1_mz1[qq] << "," << to_out1_mz2[qq]
-                       << ",0,0,0," << item.e_value_ << "," << item.spec_q_value_ << ",T\n";
+                       << ",0,0,0," << item.e_value << "," << item.spec_q_value << ",T\n";
             qq++;
         }
         qq = 0;
         for(auto &item : to_out2){
-            outstream2<<item.str_<<"\n";
+            outstream2<<item.str <<"\n";
 
-            auto avgpmass = avg.getAverageMassDelta(item.adj_precursor_mass_) + item.adj_precursor_mass_;
-            attstream2 << item.protein_acc_ << "," << item.first_residue_ << "," << item.last_residue_ << ","
-                       << item.proteform_id_
-                       << "," << item.rt_ << "," << item.scan_ << "," <<  scan_to_prescan[item.scan_]  << "," << item.adj_precursor_mass_ << ","
-                       << item.precursor_mass_ << "," << avgpmass << ",0,0,0," << item.intensity_ << "," << item.charge_
+            auto avgpmass = avg.getAverageMassDelta(item.adj_precursor_mass) + item.adj_precursor_mass;
+            attstream2 << item.protein_acc << "," << item.first_residue << "," << item.last_residue << ","
+                       << item.proteform_id
+                       << "," << item.rt << "," << item.scan << "," <<  scan_to_prescan[item.scan]  << "," << item.adj_precursor_mass << ","
+                       << item.precursor_mass << "," << avgpmass << ",0,0,0," << item.intensity << "," << item.charge
                        << ","
-                       << std::max(1, item.charge_ - 3) << "," << std::min(50, item.charge_ + 3) << ","
-                       << (item.unexp_mod_.size())
+                       << std::max(1, item.charge - 3) << "," << std::min(50, item.charge + 3) << ","
+                       << (item.unexp_mod.size())
                        <<",";
             for(int k=0;k<3;k++){
-                if(k < item.unexp_mod_.size()){
-                    attstream2<<item.unexp_mod_[k]<<",";
+                if(k < item.unexp_mod.size()){
+                    attstream2<<item.unexp_mod[k]<<",";
                 }else{
                     attstream2<<"nan,";
                 }
             }
 
             attstream2 << to_out2_cos[qq] << "," << to_out2_snr[qq] << "," << to_out2_mz1[qq] << "," << to_out2_mz2[qq]
-                       << ",0,0,0," << item.e_value_ << "," << item.spec_q_value_ << ",T\n";
+                       << ",0,0,0," << item.e_value << "," << item.spec_q_value << ",T\n";
         }
 
         attstream1.close();

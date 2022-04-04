@@ -97,7 +97,7 @@ protected:
       {
         results.push_back(str);
       }
-      //cout<<str_<<endl;
+      //cout<<str<<endl;
       protein_acc_ = results[0];
       proteform_id_ = stoi(results[1]);
       rt_ = stod(results[2]);
@@ -311,7 +311,7 @@ protected:
         }
         TopPicItem item(line);
 
-        //if (item.e_value_ > 1e-2)
+        //if (item.e_value > 1e-2)
         //{ //
         //  continue;
         //}

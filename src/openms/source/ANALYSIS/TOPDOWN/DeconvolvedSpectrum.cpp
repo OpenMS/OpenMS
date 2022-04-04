@@ -36,17 +36,17 @@
 
 namespace OpenMS
 {
-  DeconvolvedSpectrum::DeconvolvedSpectrum(const MSSpectrum &spectrum, const int scan_number) :
+  DeconvolvedSpectrum::DeconvolvedSpectrum(const MSSpectrum& spectrum, const int scan_number) :
       scan_number_(scan_number)
   {
     spec_ = spectrum;
   }
 
-  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int mass_charge)
+  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge)
   {
     auto out_spec = MSSpectrum(spec_);
     out_spec.clear(false);
-    for (auto &pg: *this)
+    for (auto& pg: *this)
     {
       if (pg.empty())
       {
@@ -54,15 +54,15 @@ namespace OpenMS
       }
       out_spec.emplace_back(pg.getMonoMass(), pg.getIntensity());
     }
-    if (!precursor_peak_group_.empty() && !spec_.getPrecursors().empty())
+    if (!precursor_peak_group_.empty()&&  !spec_.getPrecursors().empty())
     {
       Precursor precursor(spec_.getPrecursors()[0]);
       //precursor.setCharge((precursor_peak_group_.isPositive() ?
       //                     precursor_peak_group_.getRepAbsCharge() :
       //                     -precursor_peak_group_.getRepAbsCharge()));//getChargeMass
-      precursor.setCharge(mass_charge);
+      precursor.setCharge(to_charge);
       precursor.setMZ(precursor_peak_group_.getMonoMass() +
-                      mass_charge * FLASHDeconvHelperStructs::getChargeMass(mass_charge >= 0));
+                      to_charge * FLASHDeconvHelperStructs::getChargeMass(to_charge >= 0));
       precursor.setIntensity(precursor_peak_group_.getIntensity());
       out_spec.getPrecursors().clear();
       out_spec.getPrecursors().emplace_back(precursor);
@@ -70,9 +70,9 @@ namespace OpenMS
     return out_spec;
   }
 
-  void DeconvolvedSpectrum::writeDeconvolvedMasses(std::fstream &fs,
-                                                     const String &file_name,
-                                                     const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
+  void DeconvolvedSpectrum::writeDeconvolvedMasses(std::fstream& fs,
+                                                     const String& file_name,
+                                                     const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                                                      const bool write_detail)
   {
     if (empty())
@@ -80,7 +80,7 @@ namespace OpenMS
       return;
     }
 
-    for (auto &pg: *this)
+    for (auto& pg: *this)
     {
       if (pg.empty())
       {
@@ -104,37 +104,37 @@ namespace OpenMS
       if (write_detail)
       {
         fs << std::fixed << std::setprecision(2);
-        for (auto &p: pg)
+        for (auto& p: pg)
         {
           fs << p.mz << " ";
         }
         fs << ";\t";
 
         fs << std::fixed << std::setprecision(1);
-        for (auto &p: pg)
+        for (auto& p: pg)
         {
           fs << p.intensity << " ";
         }
         fs << ";\t";
         fs << std::setprecision(-1);
 
-        for (auto &p: pg)
+        for (auto& p: pg)
         {
           fs << (p.is_positive ? p.abs_charge : -p.abs_charge) << " ";
         }
         fs << ";\t";
-        for (auto &p: pg)
+        for (auto& p: pg)
         {
           fs << p.getUnchargedMass() << " ";
         }
         fs << ";\t";
-        for (auto &p: pg)
+        for (auto& p: pg)
         {
           fs << p.isotopeIndex << " ";
         }
         fs << ";\t";
 
-        for (auto &p: pg)
+        for (auto& p: pg)
         {
           double average_mass = pg.getMonoMass() + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
           double mass_error =
@@ -185,12 +185,12 @@ namespace OpenMS
       fs << "\t";
       int isotope_end_index = 0;
 
-      for (auto &p: pg)
+      for (auto& p: pg)
       {
         isotope_end_index = isotope_end_index < p.isotopeIndex ? p.isotopeIndex : isotope_end_index;
       }
       auto per_isotope_intensity = std::vector<double>(isotope_end_index + 1, .0);
-      for (auto &p: pg)
+      for (auto& p: pg)
       {
         per_isotope_intensity[p.isotopeIndex] += p.intensity;
       }
@@ -209,7 +209,7 @@ namespace OpenMS
   }
 
 
-  void DeconvolvedSpectrum::writeDeconvolvedMassesHeader(std::fstream &fs, const int ms_level, const bool detail)
+  void DeconvolvedSpectrum::writeDeconvolvedMassesHeader(std::fstream& fs, const int ms_level, const bool detail)
   {
     if (detail)
     {
@@ -255,11 +255,11 @@ namespace OpenMS
     }
   }
 
-  void DeconvolvedSpectrum::writeTopFD(std::fstream &fs,
-                                        const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
+  void DeconvolvedSpectrum::writeTopFD(std::fstream& fs,
+                                        const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                                         const double snr_threshold,
-                                        const double harmonic_factor,
-                                        const double precursor_offset)//, fstream& fsm, fstream& fsp)
+                                        const double decoy_harmonic_factor,
+                                        const double decoy_precursor_offset)//, fstream& fsm, fstream& fsp)
   {
     UInt ms_level = spec_.getMSLevel();
 
@@ -292,9 +292,9 @@ namespace OpenMS
            << "MS_ONE_SCAN=" << precursor_scan_number_ << "\n"
            << "PRECURSOR_MZ="
            << std::to_string(precursor_peak_.getMZ()) << "\n"
-           << "PRECURSOR_CHARGE=" << (int) (precursor_peak_.getCharge() * harmonic_factor) << "\n"
+           << "PRECURSOR_CHARGE=" << (int) (precursor_peak_.getCharge() * decoy_harmonic_factor) << "\n"
            << "PRECURSOR_MASS="
-           << std::to_string(precursor_peak_group_.getMonoMass() * harmonic_factor + precursor_offset) << "\n"
+           << std::to_string(precursor_peak_group_.getMonoMass() * decoy_harmonic_factor + decoy_precursor_offset) << "\n"
            << "PRECURSOR_INTENSITY=" << precursor_peak_.getIntensity() << "\n";
       }
       else
@@ -302,13 +302,13 @@ namespace OpenMS
         double average_mass =
             (precursor_peak_.getMZ() -
              FLASHDeconvHelperStructs::getChargeMass(precursor_peak_.getCharge() > 0)) *
-            abs(precursor_peak_.getCharge() * harmonic_factor);
-        double mono_mass = average_mass - avg.getAverageMassDelta(average_mass) + precursor_offset;
+            abs(precursor_peak_.getCharge() * decoy_harmonic_factor);
+        double mono_mass = average_mass - avg.getAverageMassDelta(average_mass) + decoy_precursor_offset;
         fs << "MS_ONE_ID=" << precursor_scan_number_ << "\n"
            << "MS_ONE_SCAN=" << precursor_scan_number_ << "\n"
            << "PRECURSOR_MZ="
            << std::to_string(precursor_peak_.getMZ()) << "\n"
-           << "PRECURSOR_CHARGE=" << (int) (precursor_peak_.getCharge() * harmonic_factor) << "\n"
+           << "PRECURSOR_CHARGE=" << (int) (precursor_peak_.getCharge() * decoy_harmonic_factor) << "\n"
            << "PRECURSOR_MASS=" << std::to_string(mono_mass) << "\n"
            << "PRECURSOR_INTENSITY=" << precursor_peak_.getIntensity() << "\n";
       }
@@ -321,7 +321,7 @@ namespace OpenMS
     if (size() > topFD_max_peak_count_)// max peak count for TopPic = 500
     {
       isotope_scores.reserve(size());
-      for (auto &pg: *this)
+      for (auto& pg: *this)
       {
         isotope_scores.push_back(pg.getIsotopeCosine());
       }
@@ -331,7 +331,7 @@ namespace OpenMS
     }
 
     int size = 0;
-    for (auto &pg: *this)
+    for (auto& pg: *this)
     {
       if (pg.getIsotopeCosine() < isotope_score_threshold)
       {
@@ -354,7 +354,7 @@ namespace OpenMS
 
       // peaks of different charges are separately recorded even if they represent the same mass..
       /*std::set<int> charges;
-      for (auto &peaks : pg)
+      for (auto& peaks : pg)
       {
         charges.insert(peaks.abs_charge);
       }
@@ -381,17 +381,17 @@ namespace OpenMS
   }
 
 
-  bool DeconvolvedSpectrum::registerPrecursor(const std::vector<DeconvolvedSpectrum> &survey_scans,
+  bool DeconvolvedSpectrum::registerPrecursor(const std::vector<DeconvolvedSpectrum>& survey_scans,
                                                const bool is_positive, double isolation_window_size_,
-                                               const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition)
+                                               const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_real_time_acquisition)
   {
     precursor_peak_.setIntensity(.0);
     double start_mz = 0;
     double end_mz = 0;
     //int target_precursor_scan = -1;
-    for (auto &precursor: spec_.getPrecursors())
+    for (auto& precursor: spec_.getPrecursors())
     {
-      for (auto &activation_method: precursor.getActivationMethods())
+      for (auto& activation_method: precursor.getActivationMethods())
       {
         activation_method_ = Precursor::NamesOfActivationMethodShort[activation_method];
         if (!activation_method_.compare("HCID"))
@@ -416,7 +416,7 @@ namespace OpenMS
                    uoffest + precursor.getMZ();
       //std::cout<<  precursor.getIsolationWindowLowerOffset()  << " " << precursor.getIsolationWindowUpperOffset() << std::endl;
     }
-    if (!precursor_map_for_real_time_acquisition.empty() && precursor_peak_group_.empty())
+    if (!precursor_map_for_real_time_acquisition.empty()&&  precursor_peak_group_.empty())
     {
       auto map = precursor_map_for_real_time_acquisition.lower_bound(scan_number_);
       while (map != precursor_map_for_real_time_acquisition.begin())
@@ -429,9 +429,9 @@ namespace OpenMS
 
         if (map != precursor_map_for_real_time_acquisition.end())
         {
-          for (auto &smap: map->second)
+          for (auto& smap: map->second)
           {
-            if (abs(start_mz - smap[3]) < .001 && abs(end_mz - smap[4]) < .001)
+            if (abs(start_mz - smap[3]) < .001&&  abs(end_mz - smap[4]) < .001)
             {
               LogMzPeak precursor_log_mz_peak(precursor_peak_, is_positive);
               precursor_log_mz_peak.abs_charge = (int) smap[1];
@@ -466,14 +466,14 @@ namespace OpenMS
 
                 auto o_spec = precursor_spectrum.getOriginalSpectrum();
                 auto spec_iterator = o_spec.PosBegin(start_mz);
-                while (spec_iterator != o_spec.end() && spec_iterator->getMZ() < end_mz)
+                while (spec_iterator != o_spec.end()&&  spec_iterator->getMZ() < end_mz)
                 {
                   double intensity = spec_iterator->getIntensity();
                   spec_iterator++;
                 }
 
                 double max_score = -1.0;
-                for (auto &pg: precursor_spectrum)
+                for (auto& pg: precursor_spectrum)
                 {
                   if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz)
                   {
@@ -486,7 +486,7 @@ namespace OpenMS
                   double max_intensity = .0;
                   const LogMzPeak *tmp_precursor = nullptr;
                   // double power = .0;
-                  for (auto &tmp_peak: pg)
+                  for (auto& tmp_peak: pg)
                   {
                     if (tmp_peak.mz < start_mz)
                     {
@@ -503,7 +503,7 @@ namespace OpenMS
                       continue;
                     }
                     max_intensity = tmp_peak.intensity;
-                    tmp_precursor = &tmp_peak;
+                    tmp_precursor =& tmp_peak;
                     //sum_int += tmp_peak.intensity * tmp_peak.intensity;
                   }
 
@@ -550,12 +550,12 @@ namespace OpenMS
       auto spec_iterator = o_spec.PosBegin(start_mz);
 
       // double total_power = .0;
-      while (spec_iterator != o_spec.end() && spec_iterator->getMZ() < end_mz)
+      while (spec_iterator != o_spec.end()&&  spec_iterator->getMZ() < end_mz)
       {
         //total_power += spec_iterator->getIntensity() * spec_iterator->getIntensity();
         spec_iterator++;
       }
-      for (auto &pg: precursor_spectrum)
+      for (auto& pg: precursor_spectrum)
       {
         //std::sort(pg.begin(),pg.end());
         if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz)
@@ -571,7 +571,7 @@ namespace OpenMS
         //bool contained = true;
         //double power = 0;
         //double i_sum = 0;
-        for (auto &tmp_peak: pg)
+        for (auto& tmp_peak: pg)
         {
           if (tmp_peak.abs_charge != c)
           {
@@ -590,7 +590,7 @@ namespace OpenMS
             continue;
           }
           max_intensity = tmp_peak.intensity;
-          tmp_precursor = &tmp_peak;
+          tmp_precursor =& tmp_peak;
         }
 
         if (tmp_precursor == nullptr)// || i_sum <= 0 || sum < start_mz || sum > end_mz)
@@ -625,7 +625,7 @@ namespace OpenMS
     return precursor_peak_group_.empty();
   }
 
-  const MSSpectrum &DeconvolvedSpectrum::getOriginalSpectrum() const
+  const MSSpectrum& DeconvolvedSpectrum::getOriginalSpectrum() const
   {
     return spec_;
   }

@@ -76,19 +76,19 @@ namespace OpenMS
        @param spectrum spectrum for which the deconvolution will be performed
        @param scan_number scan number of the spectrum: this argument is put here for real time case where scan number should be input separately.
   */
-    explicit DeconvolvedSpectrum(const MSSpectrum &spectrum, const int scan_number);
+    explicit DeconvolvedSpectrum(const MSSpectrum& spectrum, const int scan_number);
 
     /// default deconstructor
     ~DeconvolvedSpectrum() = default;
 
     /// copy constructor
-    DeconvolvedSpectrum(const DeconvolvedSpectrum &) = default;
+    DeconvolvedSpectrum(const DeconvolvedSpectrum& ) = default;
 
     /// move constructor
-    DeconvolvedSpectrum(DeconvolvedSpectrum &&other) = default;
+    DeconvolvedSpectrum(DeconvolvedSpectrum&& other) = default;
 
     /// assignment operator
-    DeconvolvedSpectrum &operator=(const DeconvolvedSpectrum &deconvolved_spectrum) = default;
+    DeconvolvedSpectrum& operator=(const DeconvolvedSpectrum& deconvolved_spectrum) = default;
 
     /**
         @brief write the header in the tsv output file (spectrum level)
@@ -96,7 +96,7 @@ namespace OpenMS
         @param ms_level ms level of the spectrum
         @param detail if set true, detailed information of the mass (e.g., peak list for the mass) is written
    */
-    static void writeDeconvolvedMassesHeader(std::fstream &fs,
+    static void writeDeconvolvedMassesHeader(std::fstream& fs,
                                               const int ms_level,
                                               const bool detail);
 
@@ -104,12 +104,22 @@ namespace OpenMS
       @brief write the deconvolved masses in the output file (spectrum level)
       @param fs file stream to the output file
       @param file_name the output file name that the deconvolved masses will be written.
-      @param avg averagine information to calculate monoisotopic and average mass difference. In PeakGroup (peaks of DeconvolvedSpectrum) only monoisotopic mass is recorded. To write both monoisotopic and average masses, their mass difference should be calculated using averagine information.
-      @param write_detail if this is set, more detailed information on each mass will be written in the output file
+      @param avg averagine information to calculate monoisotopic and average mass difference within this function. In PeakGroup (peaks of DeconvolvedSpectrum) only monoisotopic mass is recorded. To write both monoisotopic and average masses, their mass difference should be calculated using this averagine information.
+      @param write_detail if this is set, more detailed information on each mass will be written in the output file.
+      Default MS1 headers are:
+        FileName, ScanNum, RetentionTime, MassCountInSpec, AverageMass, MonoisotopicMass,
+        SumIntensity, MinCharge, MaxCharge,
+        PeakCount, IsotopeCosine, ChargeScore, MassSNR, ChargeSNR, RepresentativeCharge, RepresentativeMzStart, RepresentativeMzEnd, QScore, PerChargeIntensity, PerIsotopeIntensity
+
+      Default MS2 headers include MS1 headers plus:
+        PrecursorScanNum, PrecursorMz, PrecursorIntensity, PrecursorCharge, PrecursorSNR, PrecursorMonoisotopicMass, PrecursorQScore
+
+      Detailed MS1 and MS2 headers include all corresponding headers above plus:
+        PeakMZs, PeakIntensities, PeakCharges, PeakMasses, PeakIsotopeIndices, PeakPPMErrors
     */
-    void writeDeconvolvedMasses(std::fstream &fs,
-                                 const String &file_name,
-                                 const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
+    void writeDeconvolvedMasses(std::fstream& fs,
+                                 const String& file_name,
+                                 const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                                  const bool write_detail);
 
     /**
@@ -117,18 +127,18 @@ namespace OpenMS
       @param fs file stream to the output file
       @param avg averagine information to calculate monoisotopic and average mass difference
       @param snr_threshold SNR threshold to filter out low SNR precursors. Even if a PeakGroup has a high deconvolution quality, it should be still discarded for identification when its precursor SNR (SNR within the isolation window) is too low.
-      @param harmonic_factor this factor will be multiplied to precursor mass and charge. To generate decoy spectra
-      @param precursor_offset this value will be added to precursor mass. To generate decoy spectra
+      @param decoy_harmonic_factor this factor will be multiplied to precursor mass and charge. To generate decoy spectra
+      @param decoy_precursor_offset this value will be added to precursor mass. To generate decoy spectra
     */
-    void writeTopFD(std::fstream &fs,
-                    const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
+    void writeTopFD(std::fstream& fs,
+                    const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                     const double snr_threshold = 1.0,
-                    const double harmonic_factor = 1.0,
-                    const double precursor_offset = .0);
+                    const double decoy_harmonic_factor = 1.0,
+                    const double decoy_precursor_offset = .0);
 
-    /// cast DeconvolvedSpectrum into MSSpectrum object to write in mzml format
-    /// @param mass_charge the charge of each peak in mzml output.
-    MSSpectrum toSpectrum(const int mass_charge);
+    /// Convert DeconvolutedSpectrum to MSSpectrum (e.g., used to store in mzML format).
+    /// @param to_charge the charge of each peak in mzml output.
+    MSSpectrum toSpectrum(const int to_charge);
 
     /**
     @brief register the precursor peak as well as the precursor peak group (or mass) if possible for MSn (n>1) spectrum.
@@ -140,12 +150,12 @@ namespace OpenMS
     @param isolation_window_size_ default isolation window size for precursor.
     @param precursor_map_for_real_time_acquisition this contains the deconvolved mass information from FLASHIda runs.
     */
-    bool registerPrecursor(const std::vector<DeconvolvedSpectrum> &survey_scans,
+    bool registerPrecursor(const std::vector<DeconvolvedSpectrum>& survey_scans,
                            const bool is_positive, double isolation_window_size_,
-                           const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition);
+                           const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_real_time_acquisition);
 
     /// original spectrum getter
-    const MSSpectrum &getOriginalSpectrum() const;
+    const MSSpectrum& getOriginalSpectrum() const;
 
     /// get precursor peak group for MSn (n>1) spectrum. It returns an empty peak group if no peak group is registered (by registerPrecursor)
     PeakGroup getPrecursorPeakGroup() const;
@@ -177,7 +187,7 @@ namespace OpenMS
     int getPrecursorScanNumber() const;
 
     /// get activation method
-    std::string getActivation_method();
+    //std::string getActivation_method();
 
   private:
     /// the original raw spectrum (not deconvolved)
