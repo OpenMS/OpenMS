@@ -63,8 +63,8 @@ namespace OpenMS
                  generator->estimateFromPeptideWeight(mass);
 
       const double min_pwr = .9999;
-      const Size min_iso_length = 3;
-      const int min_left_right_count = 3;
+      const Size min_iso_length = 2;
+      const int min_left_right_count = 2;
       double total_pwr = .0;
       int most_abundant_index_ = 0;
       double most_abundant_int = 0;

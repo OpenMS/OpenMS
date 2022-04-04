@@ -452,14 +452,11 @@ protected:
     {
       std::ifstream in_trainstream(targets);
       String line;
-      bool start = false;
       while (std::getline(in_trainstream, line))
       {
         target_masses.append(line);
       }
     }
-
-
 
     std::cout<<"Monoisotopic masses ";
     stringstream s_stream(target_masses); //create string stream from the string
@@ -470,7 +467,6 @@ protected:
       std::cout<<std::stod(substr)<< " ";
     }
     std::cout<<" Da are targeted." << std::endl;
-
     return result;
   }
 
@@ -722,10 +718,9 @@ protected:
       fd_param.setValue("max_rt", .0);
     }
 
-
     fd.setParameters(fd_param);
     fd.calculateAveragine(use_RNA_averagine);
-    fd.setTargetMasses(getTargetMasses(targets), 1);
+    fd.setTargetMasses(getTargetMasses(targets));
 
     auto avg = fd.getAveragine();
     auto mass_tracer = MassFeatureTrace();

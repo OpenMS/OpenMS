@@ -382,7 +382,7 @@ namespace OpenMS
 
 
   bool DeconvolutedSpectrum::registerPrecursor(const std::vector<DeconvolutedSpectrum> &survey_scans,
-                                               const bool is_positive, double min_peak_intensity,
+                                               const bool is_positive, double isolation_window_size_,
                                                const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition)
   {
     precursor_peak_.setIntensity(.0);
@@ -401,12 +401,20 @@ namespace OpenMS
         break;
       }
       precursor_peak_ = precursor;
-      start_mz = precursor.getIsolationWindowLowerOffset() > 100.0 ?
-                 precursor.getIsolationWindowLowerOffset() :
-                 -precursor.getIsolationWindowLowerOffset() + precursor.getMZ();
-      end_mz = precursor.getIsolationWindowUpperOffset() > 100.0 ?
-               precursor.getIsolationWindowUpperOffset() :
-               precursor.getIsolationWindowUpperOffset() + precursor.getMZ();
+
+      double loffset = precursor.getIsolationWindowLowerOffset();
+      double uoffest = precursor.getIsolationWindowUpperOffset();
+      loffset = loffset <=0? isolation_window_size_/2.0 : loffset;
+      uoffest = uoffest <=0? isolation_window_size_/2.0 : uoffest;
+
+
+      start_mz = loffset > 100.0 ?
+                     loffset :
+                 -loffset + precursor.getMZ();
+      end_mz = uoffest > 100.0 ?
+                   uoffest:
+                   uoffest + precursor.getMZ();
+      //std::cout<<  precursor.getIsolationWindowLowerOffset()  << " " << precursor.getIsolationWindowUpperOffset() << std::endl;
     }
     if (!precursor_map_for_real_time_acquisition.empty() && precursor_peak_group_.empty())
     {
@@ -599,7 +607,6 @@ namespace OpenMS
         {
           continue;
         }
-
         precursor_peak_
             .setCharge(tmp_precursor->is_positive ? tmp_precursor->abs_charge
                                                   : -tmp_precursor->abs_charge);

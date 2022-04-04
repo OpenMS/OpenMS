@@ -65,6 +65,9 @@ namespace OpenMS
     defaults_.setValue("min_rt", -1.0, "if set to positive value, minimum RT to deconvolute.");
     defaults_.setValue("max_rt", -1.0, "if set to positive value, maximum RT to deconvolute.");
 
+    defaults_.setValue("isolation_window", 5.0, "default isolation window with. If the input mzML file does not contain isolation window width information, this width will be used.");
+    defaults_.addTag("isolation_window", "advanced");
+
     defaults_.setValue("min_isotope_cosine",
                        DoubleList{.85, .85},
                        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... (e.g., -min_isotope_cosine_ 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
@@ -128,7 +131,7 @@ namespace OpenMS
     if (ms_level_ > 1 && (!survey_scans.empty() || !precursor_map_for_FLASHIda.empty()))
     {
       deconvoluted_spectrum_
-          .registerPrecursor(survey_scans, is_positive_, 0, precursor_map_for_FLASHIda);
+          .registerPrecursor(survey_scans, is_positive_, isolation_window_size_, precursor_map_for_FLASHIda);
     }
     //rt range of analysis
     if (min_rt_ > 0 && spec.getRT() < min_rt_)
@@ -187,6 +190,8 @@ namespace OpenMS
 
     max_mass_ = param_.getValue("max_mass");
     min_mass_ = param_.getValue("min_mass");
+
+    isolation_window_size_ = param_.getValue("isolation_window");
 
     intensity_threshold_ = param_.getValue("min_intensity");
     min_support_peak_count_ = param_.getValue("min_peaks");
@@ -394,35 +399,6 @@ namespace OpenMS
           mass_bins_[j + 1] = true;
         }
       }
-      //if (ms_level_ == 1) // for now only MS1
-      target_mass_bins_.clear();
-      if (target_masses_.size() > 0)
-      {
-        target_mass_bins_ = boost::dynamic_bitset<>(mass_bins_.size());
-        for (Size i = 0; i < target_masses_.size(); i++)
-        {
-          double& tm = target_masses_[i];
-          for (int off = -1; off < 2; off++)
-          {
-            double m = tm + off * Constants::ISOTOPE_MASSDIFF_55K_U;
-            double mass_delta = avg_.getMostAbundantMassDelta(m);
-            Size j = getBinNumber_(log(m + mass_delta), mass_bin_min_value_, bin_width_[0]);
-            if (j < 1)
-            {
-              continue;
-            }
-
-            if (j >= target_mass_bins_.size() - 1)
-            {
-              break;
-            }
-
-            target_mass_bins_[j - 1] = true;
-            target_mass_bins_[j] = true;
-            target_mass_bins_[j + 1] = true;
-          }
-        }
-      }
     }
     else if (ms_level_ == 2)
     {
@@ -455,6 +431,36 @@ namespace OpenMS
           mass_bins_[j - 1] = true;
           mass_bins_[j] = true;
           mass_bins_[j + 1] = true;
+        }
+      }
+    }
+
+    target_mass_bins_.clear();
+    if (target_masses_.size() > 0)
+    {
+      target_mass_bins_ = boost::dynamic_bitset<>(mass_bins_.size());
+      for (Size i = 0; i < target_masses_.size(); i++)
+      {
+        double& tm = target_masses_[i];
+        for (int off = -1; off < 2; off++)
+        {
+          double m = tm + off * Constants::ISOTOPE_MASSDIFF_55K_U;
+          double mass_delta = avg_.getMostAbundantMassDelta(m);
+
+          Size j = getBinNumber_(log(m + mass_delta), mass_bin_min_value_, bin_width_[ms_level_ - 1]);
+          if (j < 1)
+          {
+            continue;
+          }
+
+          if (j >= target_mass_bins_.size() - 1)
+          {
+            break;
+          }
+
+          target_mass_bins_[j - 1] = true;
+          target_mass_bins_[j] = true;
+          target_mass_bins_[j + 1] = true;
         }
       }
     }
@@ -520,7 +526,7 @@ namespace OpenMS
         bool pass_first_check = false;
 
         // intensity ratio between consecutive charges should not exceed the factor.
-        float factor = abs_charge <= low_charge_ ? 10.0f : 5.0f + 50.0f / abs_charge;
+        float factor = abs_charge <= low_charge_ ? 10.0f : 5.0f + 5.0f * low_charge_ / abs_charge;
         // intensity ratio between consecutive charges for possible harmonic should be within this factor
         float hfactor = factor / 2.0f;
         // intensity of previous charge
@@ -545,40 +551,54 @@ namespace OpenMS
         }
 
         // for low charges, check isotope peak presence.
+        double max_h_intensity = 0;
         if (!pass_first_check && abs_charge <= low_charge_)
         {// for low charges
-          double diff = Constants::ISOTOPE_MASSDIFF_55K_U / abs_charge / mz;
-          Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, bin_width);
-
-          if (next_iso_bin < mz_bins_for_edge_effect_.size() && mz_bins_for_edge_effect_[next_iso_bin])
+          for(int d=1;d>=-1;d-=2)
           {
-            pass_first_check = true;
-            support_peak_intensity = mz_intensities[next_iso_bin];
-            //harmonic check
-            for (int hc : harmonic_charges_)
+            bool iso_exist = false;
+            double diff = d * Constants::C13C12_MASSDIFF_U / abs_charge / mz;
+            Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, bin_width);
+            if (next_iso_bin > 0 && next_iso_bin < mz_bins_for_edge_effect_.size() && mz_bins_for_edge_effect_[next_iso_bin])
             {
-              double hdiff = diff / hc * (hc / 2);
-              //for (int off = 0; off <= 0; off++)
+              iso_exist = true;
+              pass_first_check = true;
+            }
+
+            //harmonic check
+            if (iso_exist)
+            {
+              for (int hc : harmonic_charges_)
               {
-                Size next_harmonic_iso_bin = getBinNumber_(log_mz + hdiff, mz_bin_min_value_, bin_width);
-                double harmonic_intensity = mz_intensities[next_harmonic_iso_bin];
-                if (
-                    next_harmonic_iso_bin < mz_bins_for_edge_effect_.size() &&
-                    mz_bins_for_edge_effect_[next_harmonic_iso_bin] &&
-                    (support_peak_intensity / 2.0 < harmonic_intensity ||
-                     intensity / 2.0 < harmonic_intensity))
+                double hdiff = diff / hc * (hc / 2);
                 {
-                  mass_intensities[mass_bin_index] -= intensity + harmonic_intensity;
-                  pass_first_check = false;
-                  //break;
+                  Size next_harmonic_iso_bin = getBinNumber_(log_mz + hdiff, mz_bin_min_value_, bin_width);
+                  double harmonic_intensity = mz_intensities[next_harmonic_iso_bin];
+                  if (
+                      next_harmonic_iso_bin < mz_bins_for_edge_effect_.size() &&
+                      mz_bins_for_edge_effect_[next_harmonic_iso_bin] &&
+                      intensity / 2.0 < harmonic_intensity )
+                  {
+                    max_h_intensity = max_h_intensity < harmonic_intensity ? harmonic_intensity : max_h_intensity;
+                  }
                 }
               }
+              if(max_h_intensity > 0) // harmonic
+              {
+                pass_first_check = false;
+              }
+              else
+              {
+                support_peak_intensity += mz_intensities[next_iso_bin];
+              }
+              break;
             }
           }
         }
 
         if (pass_first_check)
         {
+
           if (prev_charge - j == -1)//prev_charge - j == -1)//check harmonic artifacts for high charge ranges
           {
             float max_intensity = intensity;
@@ -641,14 +661,14 @@ namespace OpenMS
             mass_intensities[mass_bin_index] += intensity + support_peak_intensity;
             spc++;
             {
-              double tm = exp(getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width));
+              //double tm = exp(getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width));
               mass_bins_[mass_bin_index] = true;
             }
           }
         }
-        else if (abs_charge <= low_charge_)// if, for low charge, no isotope peak exists..
+        else if (abs_charge <= low_charge_)// if, for low charge, no isotope peak exists or is harmonic..
         {
-          mass_intensities[mass_bin_index] -= intensity;
+          mass_intensities[mass_bin_index] -= intensity + max_h_intensity;
         }
         prev_intensity = intensity;
         prev_charge = j;
@@ -714,11 +734,28 @@ namespace OpenMS
 
           float t = mass_intensities[mass_bin_index];
 
+/*
+          std::set<int> unseen({1709, 3084,
+                                3212,
+                                3474,
+                                16730,
+                                16413,
+                                15794,
+                                15495});
+          double tm = exp(getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width));//
+          if (unseen.find(FLASHDeconvAlgorithm::getNominalMass(tm)) != unseen.end())
+          {
+            std::cout << "2:  " << tm << std::endl;
+          }
+
+*/
+
           if (t <= 0)
           {// no signal
             continue;
           }
-          double tm = exp(getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width));
+
+
 
           int abs_charge = (j + current_min_charge_);
 
@@ -737,7 +774,7 @@ namespace OpenMS
           {
             bool artifact = false;
             // mass level harmonic, charge off by n artifact removal
-            if(abs_charge > low_charge_)
+            if (abs_charge > low_charge_)
             {
               double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width);
               double mass = exp(original_log_mass);
@@ -2057,7 +2094,7 @@ namespace OpenMS
     return n == 0 ? .0 : sqrt(accumulate(diffs.begin(), diffs.end(), 0.0) / n);
   }
 
-  void FLASHDeconvAlgorithm::setTargetMasses(const std::vector<double>& masses, int ms_level)
+  void FLASHDeconvAlgorithm::setTargetMasses(const std::vector<double>& masses)
   {
     target_masses_ = masses;
   }

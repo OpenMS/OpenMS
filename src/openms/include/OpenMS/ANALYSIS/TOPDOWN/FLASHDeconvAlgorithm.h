@@ -95,8 +95,8 @@ namespace OpenMS
     /// get calculated averagine
     PrecalculatedAveragine getAveragine();
 
-
-    void setTargetMasses(const std::vector<double> &masses, int ms_level);
+    /// set targeted masses for targeted deconvolution. Masses are targeted in all ms levels
+    void setTargetMasses(const std::vector<double> &masses);
 
     /** @brief precalculate averagine (for predifined mass bins) to speed up averagine generation
         @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calcualted
@@ -212,6 +212,9 @@ namespace OpenMS
 
     /// high and low charges are differently deconvoluted. This vale determines the (includisve) threshold for low charge.
     const int low_charge_ = 10; // inclusive
+
+    /// default precursor isolation window size.
+    double isolation_window_size_;
 
     /// allowed maximum peak count per spectrum - intensity based.
     const int max_peak_count_ = 30000;//30000

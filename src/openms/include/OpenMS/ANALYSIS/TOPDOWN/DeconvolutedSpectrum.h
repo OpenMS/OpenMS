@@ -137,10 +137,11 @@ namespace OpenMS
     If no such mass exists, only the precursor peak is registered.
     @param survey_scans the candidate precursor spectra - the user may allow search of previous N survey scans.
     @param is_positive if MS mode is positive
+    @param isolation_window_size_ default isolation window size for precursor.
     @param precursor_map_for_real_time_acquisition this contains the deconvoluted mass information from FLASHIda runs.
     */
     bool registerPrecursor(const std::vector<DeconvolutedSpectrum> &survey_scans,
-                           const bool is_positive, double min_peak_intensity,
+                           const bool is_positive, double isolation_window_size_,
                            const std::map<int, std::vector<std::vector<double>>> &precursor_map_for_real_time_acquisition);
 
     /// original spectrum getter
