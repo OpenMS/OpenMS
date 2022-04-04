@@ -38,6 +38,7 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -349,39 +350,19 @@ namespace OpenMS
   void MetaboliteFeatureDeconvolution::annotate_feature_(FeatureMap& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt comp_side, const Int new_q, const Int old_q)
   {
     StringList labels;
+    Adduct adduct;
     fm_out[f_idx].setMetaValue("map_idx", 0);
 
     EmpiricalFormula ef_(c.getAdductsAsString(comp_side));
-    if (fm_out[f_idx].metaValueExists("dc_charge_adducts"))
+    if (fm_out[f_idx].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
     {
-      if (ef_.toString() != fm_out[f_idx].getMetaValue("dc_charge_adducts"))
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f_idx].getMetaValue("dc_charge_adducts")) + "]", ef_.toString());
+      if (ef_.toString() != fm_out[f_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_.toString());
     }
-    else
+    else // set DC_CHARGE_ADDUCTS meta value and set it to the formula from EmpiricalFormula, also set the adduct string in "adducts" meta value
     {
-      fm_out[f_idx].setMetaValue("dc_charge_adducts", ef_.toString());
-      String charge_sign = new_q >= 0 ? "+" : "-";
-      String s("[M");
-
-      //need elements sorted canonically (by string)
-      map<String, String> sorted_elem_map;
-      for (const auto& element_count : ef_)
-      {
-        String e_symbol(element_count.first->getSymbol());
-        String tmp = element_count.second > 0 ? "+" : "-";
-        tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
-        tmp += e_symbol;
-        sorted_elem_map[e_symbol] = std::move(tmp);
-      }
-      for (const auto& sorted_e_cnt : sorted_elem_map)
-      {
-        s += sorted_e_cnt.second;
-      }
-      s += String("]");
-      s += abs(new_q) > 1 ? String(abs(new_q)) : "";
-      s += charge_sign;
-
-      StringList dc_new_adducts = ListUtils::create<String>(s);
+      fm_out[f_idx].setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, ef_.toString());
+      StringList dc_new_adducts = ListUtils::create<String>(adduct.toAdductString(ef_.toString(), new_q));
       fm_out[f_idx].setMetaValue("adducts", dc_new_adducts);
     }
     fm_out[f_idx].setMetaValue("dc_charge_adduct_mass", ef_.getMonoWeight());
@@ -838,8 +819,8 @@ namespace OpenMS
     // fresh start for meta annotation
     for (Size i = 0; i < fm_out.size(); ++i)
     {
-      if (fm_out[i].metaValueExists("dc_charge_adducts"))
-        fm_out[i].removeMetaValue("dc_charge_adducts");
+      if (fm_out[i].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+        fm_out[i].removeMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS);
     }
 
     // write groups to consensusXML (with type="charge_groups")
@@ -895,8 +876,8 @@ namespace OpenMS
           cf.removeMetaValue(*it);
         }
         cf.setMetaValue("Old_charges", String(old_q0) + ":" + String(old_q1));
-        cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "):"
-                        + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + ") "
+        cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "):"
+                        + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + ") "
                         + String("Delta M: ") + feature_relation[i].getMassDiff()
                         + String(" Score: ") + feature_relation[i].getEdgeScore());
         //cf.computeDechargeConsensus(fm_out);
@@ -996,12 +977,12 @@ namespace OpenMS
       // store element adducts
       for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h)
       {
-        if (fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].metaValueExists("dc_charge_adducts"))
+        if (fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
-          it->setMetaValue(String(it_h->getUniqueId()), fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].getMetaValue("dc_charge_adducts"));
+          it->setMetaValue(String(it_h->getUniqueId()), fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
         }
         // also add consensusID of group to all feature_relation
-        fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].setMetaValue("Group", String(it->getUniqueId()));
+        fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].setMetaValue(Constants::UserParam::ADDUCT_GROUP, String(it->getUniqueId()));
       }
 
       // store number of distinct charges
@@ -1059,7 +1040,7 @@ namespace OpenMS
       if (f_single.getCharge() != 0)
       {
         EmpiricalFormula default_ef(default_adduct.getFormula());
-        f_single.setMetaValue("dc_charge_adducts", (default_ef  * abs(f_single.getCharge())).toString());
+        f_single.setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, (default_ef  * abs(f_single.getCharge())).toString());
         f_single.setMetaValue("dc_charge_adduct_mass", (default_adduct.getSingleMass() * abs(f_single.getCharge())));
       }
 
@@ -1080,7 +1061,7 @@ namespace OpenMS
         cf.removeMetaValue(*it);
       }
       // Need to set userParam Group output feature map features for singletons here
-      fm_out[i].setMetaValue("Group", String(cf.getUniqueId()));
+      fm_out[i].setMetaValue(Constants::UserParam::ADDUCT_GROUP, String(cf.getUniqueId()));
 
 
       cons_map.push_back(cf);
