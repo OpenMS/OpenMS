@@ -127,7 +127,10 @@ namespace OpenSwath::Scoring
 
     void standardize_data(std::vector<double>& data)
     {
-      OPENSWATH_PRECONDITION(data.size() > 0, "Need non-empty array.");
+      if (data.empty())
+      {
+	      return;
+      }
 
       // subtract the mean and divide by the standard deviation
       double mean = std::accumulate(data.begin(), data.end(), 0.0) / (double) data.size();
@@ -178,7 +181,7 @@ namespace OpenSwath::Scoring
     XCorrArrayType calculateCrossCorrelation(const std::vector<double>& data1,
                                              const std::vector<double>& data2, const int maxdelay, const int lag)
     {
-      OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
+      OPENSWATH_PRECONDITION(data1.size() == data2.size(), "Both data vectors need to have the same length");
 
       XCorrArrayType result;
       result.data.reserve( (size_t)std::ceil((2*maxdelay + 1) / lag));

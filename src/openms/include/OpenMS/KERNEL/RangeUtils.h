@@ -184,7 +184,7 @@ public:
     {
       Int tmp = s.getMSLevel();
       // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
-      return reverse_ ^ std::find(levels_.begin(), levels_.end(), tmp) != levels_.end();
+      return reverse_ ^ (std::find(levels_.begin(), levels_.end(), tmp) != levels_.end());
     }
 
 protected:

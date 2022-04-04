@@ -68,7 +68,7 @@ namespace OpenMS
       {
       }
 
-      IdentifiedCompound(); //FOR PYOPENMS Only FIXME
+      IdentifiedCompound(); //FOR PYOPENMS Only FIXME make private.
 
       IdentifiedCompound(const IdentifiedCompound& other) = default;
     };
