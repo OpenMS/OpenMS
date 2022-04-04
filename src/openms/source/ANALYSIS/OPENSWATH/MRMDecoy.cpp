@@ -332,21 +332,22 @@ namespace OpenMS
     return MRMDecoy::reversePeptide(peptide, false, false);
   }
 
-
-  void switchKR(OpenMS::TargetedExperiment::Peptide& peptide)
+  OpenMS::TargetedExperiment::Peptide MRMDecoy::switchKR(OpenMS::TargetedExperiment::Peptide& peptide) const
   {
     Size lastAA = peptide.sequence.size() -1;
     if (peptide.sequence[lastAA] == 'K')
     {
       peptide.sequence[lastAA] = 'R';
+      return peptide;
     }
     else if (peptide.sequence[lastAA] == 'R')
     {
        peptide.sequence[lastAA] = 'K';
+       return peptide;
     }
     else // this means that the peptide does not end in K or R, in this case just leave the sequence be
     {
-      return;
+      return peptide;
     }
   }
 
@@ -439,7 +440,9 @@ namespace OpenMS
         else
         {
           peptide = MRMDecoy::pseudoreversePeptide_(peptide);
-          if (do_switchKR) switchKR(peptide);
+          if (do_switchKR){
+		 peptide =  MRMDecoy::switchKR(peptide);
+	  }
         }
       }
       else if (method == "reverse")
@@ -463,7 +466,9 @@ namespace OpenMS
           OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
           exclusion_peptides.insert(peptide.id);
         }
-        else if (do_switchKR) switchKR(peptide);
+        else if (do_switchKR){
+		peptide = MRMDecoy::switchKR(peptide);
+	}
       }
 
       for (Size prot_idx = 0; prot_idx < peptide.protein_refs.size(); ++prot_idx)

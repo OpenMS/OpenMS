@@ -178,6 +178,14 @@ public:
     static IndexType findFixedResidues(const std::string& sequence,
         bool keepN, bool keepC, const OpenMS::String& keep_const_pattern);
 
+    /**
+       @brief Swtich the final Amino Acid of a tryptic peptide.
+       E.g. If the last Amino Acid is "K" switch to "R" (and visa versa).
+
+       @note If the last Amino Acid is neither "K" or "R", this method does nothing.
+    */
+    OpenMS::TargetedExperiment::Peptide switchKR(OpenMS::TargetedExperiment::Peptide& peptide) const;
+
 protected:
 
     /**
