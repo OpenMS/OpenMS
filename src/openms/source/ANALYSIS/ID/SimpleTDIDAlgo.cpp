@@ -546,7 +546,9 @@ void SimpleTDIDAlgo::postProcessHits_(const PeakMap& exp,
       }
 
       vector<StringView> current_digest;
-      digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, peptide_min_size_, peptide_max_size_);
+      //digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, peptide_min_size_, peptide_max_size_);
+      current_digest.push_back(StringView(fasta_db[fasta_index].sequence));
+
 
       for (auto const & c : current_digest)
       {
@@ -708,6 +710,7 @@ void SimpleTDIDAlgo::postProcessHits_(const PeakMap& exp,
     param_pi.setValue("enzyme:name", enzyme_);
     param_pi.setValue("enzyme:specificity", "full");
     param_pi.setValue("missing_decoy_action", "silent");
+    param_pi.setValue("unmatched_action", "warn");
     indexer.setParameters(param_pi);
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);

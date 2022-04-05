@@ -247,6 +247,7 @@ namespace OpenMS
     util_map["SpecLibCreator"] = Internal::ToolDescription("SpecLibCreator", util_category);
     util_map["SpectraSTSearchAdapter"] = Internal::ToolDescription("SpectraSTSearchAdapter", util_category);
     util_map["SimpleSearchEngine"] = Internal::ToolDescription("SimpleSearchEngine", util_category);
+    util_map["SimpleTDID"] = Internal::ToolDescription("SimpleTDID", util_category);
     util_map["SiriusAdapter"] = Internal::ToolDescription("SiriusAdapter", util_category);
     util_map["StaticModification"] = Internal::ToolDescription("StaticModification", util_category);
     util_map["SvmTheoreticalSpectrumGeneratorTrainer"] = Internal::ToolDescription("SvmTheoreticalSpectrumGeneratorTrainer", util_category);
