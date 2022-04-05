@@ -104,25 +104,29 @@ void TestTSGDialog::testIsotopeModel_(bool skip_none)
 
 void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
 {
-  for (size_t i = 0; i < int(CheckBox::NUMBER_OF_CHECK_BOXES); ++i)
+  for (size_t i = 0; i < dialog_.check_boxes_.size(); ++i)
   {
     // get the item
     QListWidgetItem* item = UI->ion_types->item(i);
     QVERIFY(item);
 
+    const TheoreticalSpectrumGenerationDialog::CheckBox_* curr_box = &dialog_.check_boxes_.at(i);
+
     // get intensity spin box corresponding to current check box
-    QDoubleSpinBox** spin_ptr = dialog_.check_box_to_intensity_.at(i).first;
+    QDoubleSpinBox** spin_ptr = curr_box->ptr_to_spin_box;
     if (spin_ptr == nullptr)
       continue;
     QDoubleSpinBox* spin = *spin_ptr;
 
-    bool ion_allowed;
-    if (peptide_input)
-      ion_allowed = dialog_.intensity_ion_exists.at(i).first;
-    else
-      ion_allowed = dialog_.intensity_ion_exists.at(i).second;
+    int input_type;
+    if (dialog_.seq_type_ == "Peptide")
+      input_type = 0;
+    else if (dialog_.seq_type_ == "RNA")
+      input_type = 1;
+    else // Metabolite
+      input_type = 2;
 
-    if (ion_allowed)
+    if (curr_box->state.at(input_type) != State::HIDDEN)
     {
       // check state before clicking
       Qt::CheckState prev = item->checkState();
@@ -185,7 +189,7 @@ void TestTSGDialog::testMessageBoxes_()
   UI->dialog_buttons->button(QDialogButtonBox::Ok)->click();
 
   // unselect all ions to produce empty spectrum
-  for (size_t i = 0; i < int(CheckBox::NUMBER_OF_CHECK_BOXES); ++i)
+  for (size_t i = 0; i < dialog_.check_boxes_.size(); ++i)
   {
     UI->ion_types->item(i)->setCheckState(Qt::CheckState::Unchecked);
   }
@@ -312,12 +316,12 @@ void TestTSGDialog::testParameterImport()
   UI->charge_spinbox->setValue(3);
   UI->model_coarse_button->click();
   UI->max_iso_spinbox->setValue(5);
-  for (size_t i = 0; i < int(CheckBox::NUMBER_OF_CHECK_BOXES); ++i)
+  for (size_t i = 0; i < dialog_.check_boxes_.size(); ++i)
   {
     UI->ion_types->item(i)->setCheckState(Qt::CheckState::Checked); // just check all boxes
 
     // get intensity spin box corresponding to current check box
-    QDoubleSpinBox** spin_ptr = dialog_.check_box_to_intensity_.at(i).first;
+    QDoubleSpinBox** spin_ptr = dialog_.check_boxes_.at(i).ptr_to_spin_box;
     if (spin_ptr == nullptr) continue;
 
     (*spin_ptr)->setValue(1.23);
