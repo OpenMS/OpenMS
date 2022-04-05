@@ -38,6 +38,7 @@
 
 #include <QtWidgets/QDialog>
 #include <QtWidgets/qspinbox.h>
+#include <QtWidgets/qlabel.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -56,27 +57,7 @@ namespace OpenMS
 {
   class TestTSGDialog; // fwd declaring test class
 
-  // Note: If an additional check box is added all of the following three objects have to be edited!
-  //
-  //
-  // enum to get ion check box index (Ordering has to be the same as in the ui!)
-  enum class CheckBox
-  {
-    A_Ions,
-    A_b_Ions,
-    B_Ions,
-    C_Ions,
-    D_Ions,
-    W_Ions,
-    X_Ions,
-    Y_Ions,
-    Z_Ions,
-    Precursor,
-    Neutral_losses,
-    Abundant_Immonium_Ions,
-    NUMBER_OF_CHECK_BOXES
-  };
-
+  // state of an ion (and its intensity)
   enum class State
   {
     HIDDEN,
@@ -95,15 +76,24 @@ namespace OpenMS
     Q_OBJECT
 
   public:
+    // struct with all information about a check box of an ion
     struct CheckBox_ {
-      CheckBox_(QDoubleSpinBox** p, std::array<State, 3> s, std::pair<String, String> p_t, std::pair<String, String> p_s);
+      // Constructor
+      CheckBox_(QDoubleSpinBox** sb, QLabel** l, std::array<State, 3> s, std::pair<String, String> p_t, std::pair<String, String> p_s);
 
+      // pointer to the corresponding ion intensity spin box
       QDoubleSpinBox** ptr_to_spin_box;
 
+      // pointer to the label of the spin box
+      QLabel** ptr_to_spin_label;
+
+      // State of this check box depending on sequence type ("Peptide", "RNA", "Metabolite")
       std::array<State, 3> state;
 
+      // parameter with description of this ion
       std::pair<String, String> param_this;
 
+      // parameter with description of the ion intensity
       std::pair<String, String> param_spin;
     };
     
@@ -114,55 +104,46 @@ namespace OpenMS
     /// Destructor
     ~TheoreticalSpectrumGenerationDialog() override;
 
+    // returns the calculated spectrum
     const MSSpectrum& getSpectrum() const;
 
+    // returns the input sequence (is public for TOPPView)
     const String getSequence() const;
 
 protected slots:
 
+    // for isotope model changes
     void modelChanged_();
-    void calculateSpectrum_();
+    // for sequence type changes (combo box)
     void seqTypeSwitch_();
+    // change check state of check box on click
     void listWidgetItemClicked_(QListWidgetItem* item);
+    // calculates the spectrum
+    void calculateSpectrum_();
 
 protected:
 
 private:
-    QString seq_type_;
-
+    // calculate parameters from UI elements
     Param getParam_() const;
 
+    // iterates through 'check_boxes_' and en-/disables
+    // check boxes and corresponding spin boxes (with labels)
+    void updateIonTypes_();
+
+    // UI
     Ui::TheoreticalSpectrumGenerationDialogTemplate* ui_;
 
-    MSSpectrum spec_;
+    // save current sequence setting
+    String seq_type_;
 
+    // array of TSGDialog::CheckBox
+    // 
+    // Note: Ordering has to be the same as in the UI!
     const std::array<CheckBox_, 12> check_boxes_;
 
-    // For each check box get its intensity spin box and its ion name aka parameter prefix.
-    // Order is important here!
-    // To access the right entry for each check box
-    // use int(TheoreticalSpectrumGenerationDialog::CheckBox).
-    const std::vector<std::pair<QDoubleSpinBox**, String>> check_box_to_intensity_;
-
-    // To check if the check box is enabled for <'Peptide','RNA'>
-    // Note that for metabolite input there are no ions.
-    // Order is important here!
-    // To access the right entry for each check box
-    // use int(TheoreticalSpectrumGenerationDialog::CheckBox).
-    const std::vector<std::pair<bool, bool>> intensity_ion_exists {
-      {1, 1}, // A-Ion
-      {0, 1}, // a-B-Ion
-      {1, 1}, // B-Ion
-      {1, 1}, // C-Ion
-      {0, 1}, // D-Ion
-      {0, 1}, // W-Ion
-      {1, 1}, // X-Ion
-      {1, 1}, // Y-Ion
-      {1, 1}, // Z-Ion
-      {1, 1}, // Precursor
-      {1, 0}, // Neutral losses
-      {1, 0}  // Abundant Immonium Ions
-    };
+    // member to save the calculated spectrum to
+    MSSpectrum spec_;
   };
 
 }
