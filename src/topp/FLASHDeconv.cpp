@@ -594,10 +594,6 @@ protected:
     MSExperiment map;
     MzMLFile mzml;
 
-    // all for measure elapsed cup wall time
-    double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
-
-
     double expected_identification_count = .0;
 
     // feature number per input file
@@ -606,11 +602,7 @@ protected:
     // feature index written in the output file
     int feature_index = 0;
 
-    auto begin = clock();
-    auto t_start = chrono::high_resolution_clock::now();
-
     OPENMS_LOG_INFO << "Processing : " << in_file << endl;
-
 
     mzml.setLogType(log_type_);
     mzml.load(in_file, map);
@@ -664,7 +656,6 @@ protected:
     // Run FLASHDeconv here
 
     int scan_number = 0;
-    float prev_progress = .0;
     int num_last_deconvolved_spectra = getIntOption_("preceding_MS1_count");
     if (!in_log_file.empty())
     {
@@ -683,7 +674,7 @@ protected:
     // if a merged spectrum is analyzed, replace the input dataset with the merged one
     if (merge == 1)
     {
-      std::cout<< "Merging spectra using gaussian averaging... "<<std::endl;
+      OPENMS_LOG_INFO << "Merging spectra using gaussian averaging... " << endl;
       SpectraMerger merger;
       merger.setLogType(log_type_);
       Param sm_param = merger.getDefaults();
@@ -701,7 +692,7 @@ protected:
     else if(merge == 2)
     {
       //mz_binning_width - ms tols
-      std::cout<< "Merging spectra into a single spectrum per MS level... "<<std::endl;
+      OPENMS_LOG_INFO << "Merging spectra into a single spectrum per MS level... "<< endl;
       SpectraMerger merger;
       merger.setLogType(log_type_);
       Param sm_param = merger.getDefaults();
@@ -742,8 +733,9 @@ protected:
 
     unordered_map<int, PeakGroup> precursor_peak_groups; // MS2 scan number, peak group
 
-    OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
-
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+    progresslogger.startProgress(0, map.size(), "running FLASHDeconv");
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       scan_number = SpectrumLookup::extractScanNumber(it->getNativeID(),
@@ -751,13 +743,6 @@ protected:
       if (it->empty())
       {
         continue;
-      }
-
-      float progress = (float) (it - map.begin()) / map.size();
-      if (progress > prev_progress + .05)
-      {
-        printProgress_(progress);
-        prev_progress = progress;
       }
 
       int ms_level = it->getMSLevel();
@@ -858,10 +843,9 @@ protected:
         }
         #endif
       }
+      progresslogger.nextProgress();
     }
-
-    printProgress_(1); //
-    std::cout << std::endl;
+    progresslogger.endProgress();
 
     // mass_tracer run
     if (merge != 2)
@@ -902,16 +886,6 @@ protected:
       OPENMS_LOG_INFO << "Mass tracer found " << feature_cntr << " features" << endl;
     }
 
-    auto t_end = chrono::high_resolution_clock::now();
-    auto end = clock();
-
-    elapsed_cpu_secs = double(end - begin) / CLOCKS_PER_SEC;
-    elapsed_wall_secs = chrono::duration<double>(t_end - t_start).count();
-
-    OPENMS_LOG_INFO << "-- done [took " << elapsed_cpu_secs << " s (CPU), " << elapsed_wall_secs
-                    << " s (Wall)] --"
-                    << endl;
-
     int total_spec_cntr = 0;
     for (int j = 0; j < (int) current_max_ms_level; j++)
     {
@@ -948,7 +922,6 @@ protected:
       }
     }
 
-
     if (!out_topfd_file.empty())
     {
       for (auto& out_topfd_stream: out_topfd_streams)
@@ -975,32 +948,7 @@ protected:
       out_train_stream.close();
     }
 
-
     return EXECUTION_OK;
-  }
-
-  static void printProgress_(float progress)
-  {
-    float bar_width = 70;
-    std::cout << "[";
-    int pos = (int) (bar_width * progress);
-    for (int i = 0; i < bar_width; ++i)
-    {
-      if (i < pos)
-      {
-        std::cout << "=";
-      }
-      else if (i == pos)
-      {
-        std::cout << ">";
-      }
-      else
-      {
-        std::cout << " ";
-      }
-    }
-    std::cout << "] " << int(progress * 100.0) << " %\r";
-    std::cout.flush();
   }
 };
 
