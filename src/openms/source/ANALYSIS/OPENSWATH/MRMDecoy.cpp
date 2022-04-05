@@ -410,6 +410,14 @@ namespace OpenMS
       selection_list = item_list;
     }
 
+    // Create an unordered_map of all peptide sequences and their IDs, this will be used to search if a decoy sequence is also a target sequence
+    std::unordered_map<std::string, std::string> allPeptideSequences;
+    for (const auto& pep_idx: selection_list)
+    {
+	    OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[pep_idx];
+	    allPeptideSequences[peptide.sequence] = peptide.id;
+    }
+
     std::unordered_set<String> exclusion_peptides;
     // Go through all peptides and apply the decoy method to the sequence
     // (pseudo-reverse, reverse or shuffle). Then set the peptides and proteins of the decoy
@@ -472,14 +480,9 @@ namespace OpenMS
       }
 
       // Check that the decoy sequence computed does not happen to be a target sequence
-      for (const auto& pep_idx : selection_list)
-      {
-	      OpenMS::TargetedExperiment::Peptide curPeptide = exp.getPeptides()[pep_idx];
-	      if (curPeptide.sequence == peptide.sequence){
-		      OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " since decoy sequence is also a target peptide" << std::endl;
-		      exclusion_peptides.insert(peptide.id);
-		      break;
-	      }
+      if (allPeptideSequences.find(peptide.sequence) != allPeptideSequences.end()){
+              OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " since decoy peptide is also a target peptide" << std::endl;
+	      exclusion_peptides.insert(peptide.id);
       }
 
       for (Size prot_idx = 0; prot_idx < peptide.protein_refs.size(); ++prot_idx)
