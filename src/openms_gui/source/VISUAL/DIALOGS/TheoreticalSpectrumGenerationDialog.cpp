@@ -340,7 +340,7 @@ namespace OpenMS
 
   void TheoreticalSpectrumGenerationDialog::seqTypeSwitch_()
   {
-    // save current seq type setting in member
+    // save current sequence type setting in member
     String tmp = ui_->seq_type->currentText();
     if (tmp == "Peptide")
     {
@@ -356,6 +356,7 @@ namespace OpenMS
     }
     else
     {
+      // this will be reached if the entries of the sequence type combo box are changed
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Setting for the sequence type unkown! Was: " + tmp);
     }
 

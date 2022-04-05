@@ -97,7 +97,7 @@ namespace OpenMS
       const std::pair<String, String> param_spin;
     };
 
-    /// type of the input sequence (corresponds to the value combo box 'ui_->seq_type')
+    /// type of the input sequence (corresponds to the value of the combo box 'ui_->seq_type')
     enum class SequenceType
     {
       PEPTIDE,
@@ -124,7 +124,7 @@ protected slots:
     void modelChanged_();
     /// for sequence type changes (combo box)
     void seqTypeSwitch_();
-    /// change check state of check box on click
+    /// change check state of check box on widget click
     void listWidgetItemClicked_(QListWidgetItem* item);
     /// calculates the spectrum
     void calculateSpectrum_();
@@ -136,7 +136,7 @@ private:
     Param getParam_() const;
 
     /// iterates through 'check_boxes_' and en-/disables
-    /// check boxes and corresponding spin boxes (with labels)
+    /// check boxes and corresponding spin boxes (and their labels)
     void updateIonTypes_();
 
     /// UI
