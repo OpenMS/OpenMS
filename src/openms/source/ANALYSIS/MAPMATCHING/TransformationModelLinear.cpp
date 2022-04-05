@@ -78,30 +78,27 @@ namespace OpenMS
         slope_ = 1.0;
         intercept_ = data_weighted[0].second - data_weighted[0].first;
       }
+      else if (size == 2)
+      {
+        // if the two points are too close, Wm5::HeightLineFit2 can't fit a line
+        // but in the special case of two points, there is an exact solution and we don't need a least-sqaures fit
+        slope_ = (data_weighted[1].second - data_weighted[0].second) / (data_weighted[1].first - data_weighted[0].first);
+        intercept_ = data_weighted[0].second - (slope_ * data_weighted[0].first);
+
+        if (std::isinf(slope_) || std::isnan(slope_) || std::isinf(intercept_) || std::isnan(intercept_))
+        {
+          throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TransformationModelLinear", "Unable to fit linear transformation to the two data points.");
+        }
+      }
       else // compute least-squares fit
       {
         for (size_t i = 0; i < size; ++i)
         {
           points.push_back(Wm5::Vector2d(data_weighted[i].first, data_weighted[i].second));
         }
-        if (size == 2)
+        if (!Wm5::HeightLineFit2<double>(static_cast<int>(size), &points.front(), slope_, intercept_))
         {
-          // if the two points are too close, Wm5::HeightLineFit2 can't fit a line
-          // but in the special case of two points, there is an exact solution and we don't need a least-sqaures fit
-          slope_ = (data_weighted[1].second - data_weighted[0].second) / (data_weighted[1].first - data_weighted[0].first);
-          intercept_ = data_weighted[0].second - (slope_ * data_weighted[0].first);
-
-          if (std::isinf(slope_) || std::isnan(slope_) || std::isinf(intercept_) || std::isnan(intercept_))
-          {
-            throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TransformationModelLinear", "Unable to fit linear transformation to the two data points.");
-          }
-        }
-        else
-        {
-          if (!Wm5::HeightLineFit2<double>(static_cast<int>(size), &points.front(), slope_, intercept_))
-          {
-            throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TransformationModelLinear", "Unable to fit linear transformation to data points.");
-          }
+          throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TransformationModelLinear", "Unable to fit linear transformation to data points.");
         }
       }
       // update params
