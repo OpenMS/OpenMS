@@ -153,6 +153,10 @@ namespace OpenMS
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getLeftCountFromApex(const double mass) const
   {
+    if(isotopes_.size() == 0)
+    {
+      return 0;
+    }
     Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
     i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
     return (Size) left_count_from_apex_[i];
@@ -160,6 +164,10 @@ namespace OpenMS
 
   double FLASHDeconvHelperStructs::PrecalculatedAveragine::getAverageMassDelta(const double mass) const
   {
+    if(isotopes_.size() == 0)
+    {
+      return 0;
+    }
     Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
     i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
     return average_mono_mass_difference_[i];
@@ -167,6 +175,10 @@ namespace OpenMS
 
   double FLASHDeconvHelperStructs::PrecalculatedAveragine::getMostAbundantMassDelta(const double mass) const
   {
+    if(isotopes_.size() == 0)
+    {
+      return 0;
+    }
     Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
     i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
     return abundant_mono_mass_difference_[i];
@@ -174,6 +186,10 @@ namespace OpenMS
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getRightCountFromApex(const double mass) const
   {
+    if(isotopes_.size() == 0)
+    {
+      return 0;
+    }
     Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
     i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
     return (Size) right_count_from_apex_[i];
@@ -181,6 +197,10 @@ namespace OpenMS
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getApexIndex(const double mass) const
   {
+    if(isotopes_.size() == 0)
+    {
+      return 0;
+    }
     Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
     i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
     return apex_index_[i];

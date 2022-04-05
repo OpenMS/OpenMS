@@ -225,7 +225,7 @@ protected:
 
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
     fd_defaults.setValue("tol", DoubleList{10.0, 10.0, 10.0}, "ppm tolerance for MS1, MS2, ... ");
-    fd_defaults.setValue("min_charge", 2);
+    fd_defaults.setValue("min_charge", 1);
     fd_defaults.setValue("max_charge", 100);
     fd_defaults.setValue("min_mz", -1.0);
     fd_defaults.addTag("min_mz", "advanced");
@@ -710,11 +710,12 @@ protected:
 
       for(int ml = 1; ml<=current_max_ms_level; ml++)
       {
-        sm_param.setValue("mz_binning_width", tols[ml - 1] / 2);
+        sm_param.setValue("mz_binning_width", tols[ml - 1]/2.0);
         sm_param.setValue("block_method:ms_levels", IntList{ml});
         merger.setParameters(sm_param);
         merger.mergeSpectraBlockWise(map);
       }
+
       fd_param.setValue("min_rt", .0);
       fd_param.setValue("max_rt", .0);
     }
