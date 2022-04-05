@@ -128,7 +128,7 @@ START_SECTION((void addPoints(const PointArrayType &points)))
 	ConvexHull2D tmp;
 	TEST_EQUAL(tmp.getHullPoints().size(),0)
 	tmp.addPoints(vec);
-	TEST_EQUAL(tmp.getHullPoints().size()!=0,true)
+	TEST_EQUAL(!tmp.getHullPoints().empty(),true)
 END_SECTION
 
 

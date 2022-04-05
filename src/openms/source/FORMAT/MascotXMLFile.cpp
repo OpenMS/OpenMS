@@ -156,11 +156,11 @@ namespace OpenMS
         lookup.addReferenceFormat("[Ss]can( [Nn]umber)?s?[=:]? *(?<SCAN>\\d+)");
         // - with .dta input to Mascot:
         // <...>/path/to/FTAC05_13.673.673.2.dta</...> -> 673
-        lookup.addReferenceFormat("\\.(?<SCAN>\\d+)\\.\\d+\\.(?<CHARGE>\\d+)(\\.dta)?");
+        lookup.addReferenceFormat(R"(\.(?<SCAN>\d+)\.\d+\.(?<CHARGE>\d+)(\.dta)?)");
       }
       // title containing RT and MZ instead of scan number:
       // <...>575.848571777344_5018.0811_controllerType=0 controllerNumber=1 scan=11515_EcoliMS2small</...>
-      lookup.addReferenceFormat("^(?<MZ>\\d+(\\.\\d+)?)_(?<RT>\\d+(\\.\\d+)?)");
+      lookup.addReferenceFormat(R"(^(?<MZ>\d+(\.\d+)?)_(?<RT>\d+(\.\d+)?))");
     }
     else // use only user-defined format
     {

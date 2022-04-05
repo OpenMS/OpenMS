@@ -51,7 +51,6 @@
 #include <QtWidgets/QCheckBox>
 #include <QProcess>
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
@@ -66,7 +65,7 @@ namespace OpenMS
           const Param& params,
           String ini_file,
           String default_dir,
-          LayerData::DataType layer_type,
+          LayerDataBase::DataType layer_type,
           String layer_name
     ) :
     QDialog(parent),
@@ -88,17 +87,17 @@ namespace OpenMS
 
     // Determine all available tools compatible with the layer_type
     tool_map_ = {
-            {FileTypes::Type::MZML, LayerData::DataType::DT_PEAK},
-            {FileTypes::Type::MZXML, LayerData::DataType::DT_PEAK},
-            {FileTypes::Type::FEATUREXML, LayerData::DataType::DT_FEATURE},
-            {FileTypes::Type::CONSENSUSXML, LayerData::DataType::DT_CONSENSUS},
-            {FileTypes::Type::IDXML, LayerData::DataType::DT_IDENT}
+            {FileTypes::Type::MZML, LayerDataBase::DataType::DT_PEAK},
+            {FileTypes::Type::MZXML, LayerDataBase::DataType::DT_PEAK},
+            {FileTypes::Type::FEATUREXML, LayerDataBase::DataType::DT_FEATURE},
+            {FileTypes::Type::CONSENSUSXML, LayerDataBase::DataType::DT_CONSENSUS},
+            {FileTypes::Type::IDXML, LayerDataBase::DataType::DT_IDENT}
     };
     const auto& tools = ToolHandler::getTOPPToolList();
     const auto& utils = ToolHandler::getUtilList();
     for (auto& pair : tools)
     {
-      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(params.copy(pair.first + ":"));
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(params.copy(pair.first + ":"));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
       {
         list << pair.first.toQString();
@@ -106,7 +105,7 @@ namespace OpenMS
     }
     for (auto& pair : utils)
     {
-      std::vector<LayerData::DataType> tool_types = getTypesFromParam_(params.copy(pair.first + ":"));
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(params.copy(pair.first + ":"));
       if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
       {
         list << pair.first.toQString();
@@ -171,15 +170,15 @@ namespace OpenMS
   {
   }
 
-  std::vector<LayerData::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const
+  std::vector<LayerDataBase::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const
   {
     // Containing all types a tool is compatible with
-    std::vector<LayerData::DataType> types;
+    std::vector<LayerDataBase::DataType> types;
     for (const auto& entry : p)
     {
       if (entry.name == "in")
       {
-        // Map all file extension to a LayerData::DataType
+        // Map all file extension to a LayerDataBase::DataType
         for (auto& file_extension : entry.valid_strings)
         {
           // a file extension in valid_strings is of form "*.TYPE" -> convert to substr "TYPE".

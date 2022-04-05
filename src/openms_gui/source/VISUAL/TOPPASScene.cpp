@@ -47,7 +47,6 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
@@ -58,6 +57,8 @@
 #include <QtCore/QSet>
 #include <QtCore/QTextStream>
 #include <QtWidgets/QMessageBox>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -340,7 +341,7 @@ namespace OpenMS
   void TOPPASScene::copySelected()
   {
     TOPPASScene* tmp_scene = new TOPPASScene(nullptr, this->getTempDir(), false);
-    Map<TOPPASVertex*, TOPPASVertex*> vertex_map;
+    std::map<TOPPASVertex*, TOPPASVertex*> vertex_map;
 
     foreach(TOPPASVertex* v, vertices_)
     {
@@ -406,7 +407,7 @@ namespace OpenMS
       //check if both source and target node were also selected (otherwise don't copy)
       TOPPASVertex* old_source = e->getSourceVertex();
       TOPPASVertex* old_target = e->getTargetVertex();
-      if (!(vertex_map.has(old_source) && vertex_map.has(old_target)))
+      if (vertex_map.find(old_source) == vertex_map.end())
       {
         continue;
       }
@@ -1176,7 +1177,7 @@ namespace OpenMS
       x_offset = pos.x() - new_bounding_rect.left();
       y_offset = pos.y() - new_bounding_rect.top();
     }
-    Map<TOPPASVertex*, TOPPASVertex*> vertex_map;
+    std::map<TOPPASVertex*, TOPPASVertex*> vertex_map;
 
     for (VertexIterator it = tmp_scene->verticesBegin(); it != tmp_scene->verticesEnd(); ++it)
     {
@@ -1261,7 +1262,7 @@ namespace OpenMS
 
     // select new items (so the user can move them); edges do not need to be selected, only vertices
     unselectAll();
-    for (Map<TOPPASVertex*, TOPPASVertex*>::Iterator it = vertex_map.begin(); it != vertex_map.end(); ++it)
+    for (std::map<TOPPASVertex*, TOPPASVertex*>::iterator it = vertex_map.begin(); it != vertex_map.end(); ++it)
     {
       it->second->setSelected(true);
     }
@@ -1382,7 +1383,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1404,7 +1405,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1426,7 +1427,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1448,7 +1449,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1627,7 +1628,7 @@ namespace OpenMS
     // Save changes
     if (gui_ && changed_)
     {
-      QString name = file_name_ == "" ? "Untitled" : File::basename(file_name_).toQString();
+      QString name = file_name_.empty() ? "Untitled" : File::basename(file_name_).toQString();
       QMessageBox::StandardButton ret;
       ret = QMessageBox::warning(views().first(), "Save changes?", "'" + name + "' has been modified.\n\nDo you want to save your changes?", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
       if (ret == QMessageBox::Save)
@@ -1656,12 +1657,12 @@ namespace OpenMS
     }
   }
 
-  bool TOPPASScene::wasChanged()
+  bool TOPPASScene::wasChanged() const
   {
     return changed_;
   }
 
-  bool TOPPASScene::isPipelineRunning()
+  bool TOPPASScene::isPipelineRunning() const
   {
     return running_;
   }
@@ -1851,7 +1852,8 @@ namespace OpenMS
       {
         supported_actions_set.intersect(action_set);
       }
-      QList<QString> supported_actions = supported_actions_set.toList();
+
+      QList<QString> supported_actions = supported_actions_set.values();
       supported_actions << "Copy" << "Cut" << "Remove";
       foreach(const QString &supported_action, supported_actions)
       {

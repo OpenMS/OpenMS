@@ -55,6 +55,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <map>
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
@@ -574,13 +575,13 @@ protected:
     String file = File::find("CHEMISTRY/OMSSA_modification_mapping");
 
     TextFile infile(file);
-    Map<String, UInt> mods_map;
+    std::map<String, UInt> mods_map;
     for (TextFile::ConstIterator it = infile.begin(); it != infile.end(); ++it)
     {
       vector<String> split;
       it->split(',', split);
 
-      if (it->size() > 0 && (*it)[0] != '#')
+      if (!it->empty() && (*it)[0] != '#')
       {
         if (split.size() < 2)
         {
@@ -609,7 +610,7 @@ protected:
       StringList mod_list;
       for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
       {
-        if (mods_map.has(*it))
+        if (mods_map.find(*it) != mods_map.end())
         {
           mod_list.push_back(String(mods_map[*it]));
         }
@@ -621,7 +622,7 @@ protected:
           writeDebug_("Inserting unknown fixed modification: '" + *it + "' into OMSSA", 1);
         }
       }
-      if (mod_list.size() > 0)
+      if (!mod_list.empty())
       {
         parameters << "-mf" << ListUtils::concatenate(mod_list, ",");
       }
@@ -634,7 +635,7 @@ protected:
 
       for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
       {
-        if (mods_map.has(*it))
+        if (mods_map.find(*it) != mods_map.end())
         {
           mod_list.push_back(String(mods_map[*it]));
         }
@@ -647,7 +648,7 @@ protected:
         }
       }
 
-      if (mod_list.size() > 0)
+      if (!mod_list.empty())
       {
         parameters << "-mv" << ListUtils::concatenate(mod_list, ",");
       }
@@ -660,7 +661,7 @@ protected:
       parameters << "-mux" << File::absolutePath(unique_usermod_name);
       ofstream out(unique_usermod_name.c_str());
       out << "<?xml version=\"1.0\"?>" << "\n";
-      out << "<MSModSpecSet xmlns=\"http://www.ncbi.nlm.nih.gov\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\" xs:schemaLocation=\"http://www.ncbi.nlm.nih.gov OMSSA.xsd\">" << "\n";
+      out << R"(<MSModSpecSet xmlns="http://www.ncbi.nlm.nih.gov" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.ncbi.nlm.nih.gov OMSSA.xsd">)" << "\n";
 
       UInt user_mod_count(1);
       for (vector<pair<UInt, String> >::const_iterator it = user_mods.begin(); it != user_mods.end(); ++it)
@@ -694,7 +695,7 @@ protected:
         }
         if (ts == ResidueModification::C_TERM)
         {
-          if (origin == "" || origin == "X")
+          if (origin.empty() || origin == "X")
           {
             out << "\t\t<MSModType value=\"modcp\">7</MSModType>" << "\n";
           }
@@ -705,7 +706,7 @@ protected:
         }
         if (ts == ResidueModification::N_TERM)
         {
-          if (origin == "" || origin == "X")
+          if (origin.empty() || origin == "X")
           {
             out << "\t\t<MSModType value=\"modnp\">5</MSModType>" << "\n";
           }
@@ -721,7 +722,7 @@ protected:
         out << "\t<MSModSpec_averagemass>" << ModificationsDB::getInstance()->getModification(it->second)->getDiffAverageMass() << "</MSModSpec_averagemass>" << "\n";
         out << "\t<MSModSpec_n15mass>0</MSModSpec_n15mass>" << "\n";
 
-        if (origin != "")
+        if (!origin.empty())
         {
           out << "\t<MSModSpec_residues>" << "\n";
           out << "\t\t<MSModSpec_residues_E>" << origin << "</MSModSpec_residues_E>" << "\n";
@@ -764,7 +765,7 @@ protected:
     // OMSSA does not write fixed modifications so we need to add them to the sequences
     set<String> fixed_mod_names = mod_set.getFixedModificationNames();
     vector<String> fixed_nterm_mods, fixed_cterm_mods;
-    Map<String, String> fixed_residue_mods;
+    std::map<String, String> fixed_residue_mods;
     writeDebug_("Splitting modification into N-Term, C-Term and anywhere specificity", 1);
     for (set<String>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)
     {
@@ -937,7 +938,7 @@ protected:
           UInt pos = 0;
           for (const Residue& mm : seq)
           {
-            if (fixed_residue_mods.has(mm.getOneLetterCode()))
+            if (fixed_residue_mods.find(mm.getOneLetterCode()) != fixed_residue_mods.end())
             {
               seq.setModification(pos, fixed_residue_mods[mm.getOneLetterCode()]);
             }

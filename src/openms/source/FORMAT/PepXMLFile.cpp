@@ -32,6 +32,10 @@
 // $Authors: Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/CHEMISTRY/AASequence.h"
+#include "OpenMS/CHEMISTRY/Residue.h"
+#include "OpenMS/CONCEPT/Constants.h"
+#include "OpenMS/CONCEPT/Exception.h"
 #include <OpenMS/FORMAT/PepXMLFile.h>
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
@@ -194,7 +198,7 @@ namespace OpenMS
 
     // BIG NOTE: According to the pepXML schema specification, protein terminus is either "c" or "n" if set.
     // BUT: Many tools will put "Y" or "N" there in conjunction with the terminus attribute.
-    // Unfortunately there is an overlap for the letter "n". We will try to handle both based on the case:
+    // Unfortunately there is an overlap for the letter "n". We will try to handle both based on upper/lower case:
     String protein_terminus_lower = protein_terminus;
     protein_terminus_lower = protein_terminus_lower.toLower();
 
@@ -238,6 +242,24 @@ namespace OpenMS
       else
       {
         term_spec_ = ResidueModification::C_TERM;
+      }
+    }
+
+    if (mass_ == massdiff_)
+    {
+      errors_.emplace_back("Warning: For modification with mass " + mass + ", mass == massdiff. This is wrong. "
+       "Please report it to the maintainer of the tool that wrote the pepXML. OpenMS will try to calculate it manually, assuming massdiff is correct.");
+      if (term_spec_ == ResidueModification::N_TERM || term_spec_ == ResidueModification::PROTEIN_N_TERM)
+      {
+        mass_ = massdiff_ + Residue::getInternalToNTerm().getMonoWeight();
+      }
+      else if (term_spec_ == ResidueModification::C_TERM || term_spec_ == ResidueModification::PROTEIN_C_TERM)
+      {
+        mass_ = massdiff_ + Residue::getInternalToCTerm().getMonoWeight();
+      }
+      else
+      {
+        mass_ = massdiff_ + ResidueDB::getInstance()->getResidue(aminoacid_)->getMonoWeight(Residue::ResidueType::Internal);
       }
     }
 
@@ -415,14 +437,14 @@ namespace OpenMS
       replace(base_name.begin(), base_name.end(), '.', '_');
     }
 
-    f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
-    f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd\" summary_xml=\".xml\">" << "\n";
-    f << "<msms_run_summary base_name=\"" << base_name << "\" raw_data_type=\"raw\" raw_data=\"." << raw_data << "\" search_engine=\"" << search_engine_name << "\">" << "\n";
+    f << R"(<?xml version="1.0" encoding="UTF-8"?>)" << "\n";
+    f << R"(<msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd" summary_xml=".xml">)" << "\n";
+    f << "<msms_run_summary base_name=\"" << base_name << R"(" raw_data_type="raw" raw_data=".)" << raw_data << "\" search_engine=\"" << search_engine_name << "\">" << "\n";
     String enzyme_name = search_params.digestion_enzyme.getName();
     f << "\t<sample_enzyme name=\"";
     f << enzyme_name.toLower() << "\">" << "\n";
     f << "\t\t<specificity cut=\"";
-    if (search_params.digestion_enzyme.getRegEx() != "")
+    if (!search_params.digestion_enzyme.getRegEx().empty())
     {
       vector<String> sub_regex;
       search_params.digestion_enzyme.getRegEx().split(")",sub_regex);
@@ -437,7 +459,7 @@ namespace OpenMS
         f << "\" no_cut=\"P";
       }
     }
-    f << "\" sense=\"C\"/>" << "\n";
+    f << R"(" sense="C"/>)" << "\n";
     f << "\t</sample_enzyme>" << "\n";
 
     f << "\t<search_summary base_name=\"" << base_name;
@@ -460,8 +482,8 @@ namespace OpenMS
     {
       f << "average";
     }
-    f << "\" out_data_type=\"\" out_data=\"\" search_id=\"1\">" << "\n";
-    f << "\t\t<search_database local_path=\"" << search_params.db << "\" type=\"AA\"/>" << "\n";
+    f << R"(" out_data_type="" out_data="" search_id="1">)" << "\n";
+    f << "\t\t<search_database local_path=\"" << search_params.db << R"(" type="AA"/>)" << "\n";
 
 
     // register modifications
@@ -512,7 +534,7 @@ namespace OpenMS
         << "<aminoacid_modification aminoacid=\"" << mod->getOrigin()
         << "\" massdiff=\"" << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\""
         << precisionWrapper(ef.getMonoWeight())
-        << "\" variable=\"Y\" binary=\"N\" description=\"" << *it << "\"/>"
+        << R"(" variable="Y" binary="N" description=")" << *it << "\"/>"
         << "\n";
     }
 
@@ -520,20 +542,20 @@ namespace OpenMS
     {
       const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::N_TERM);
       f << "\t\t"
-        << "<terminal_modification terminus=\"n\" massdiff=\""
+        << R"(<terminal_modification terminus="n" massdiff=")"
         << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod->getMonoMass())
-        << "\" variable=\"Y\" description=\"" << *it
-        << "\" protein_terminus=\"\"/>" << "\n";
+        << R"(" variable="Y" description=")" << *it
+        << R"(" protein_terminus=""/>)" << "\n";
     }
 
     for (set<String>::const_iterator it = c_term_mods.begin(); it != c_term_mods.end(); ++it)
     {
       const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::C_TERM);
       f << "\t\t"
-        << "<terminal_modification terminus=\"c\" massdiff=\""
+        << R"(<terminal_modification terminus="c" massdiff=")"
         << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod->getMonoMass())
-        << "\" variable=\"Y\" description=\"" << *it
-        << "\" protein_terminus=\"\"/>" << "\n";
+        << R"(" variable="Y" description=")" << *it
+        << R"(" protein_terminus=""/>)" << "\n";
     }
 
     f << "\t</search_summary>" << "\n";
@@ -573,6 +595,7 @@ namespace OpenMS
         {
           if (pep.metaValueExists("spectrum_reference"))
           {
+            //findByNativeID will fall back to RT lookup if none of the regexes registered in lookup can extract a meaningful ID or scan nr
             scan_index = lookup.findByNativeID(pep.getMetaValue("spectrum_reference"));
           }
           else
@@ -650,15 +673,15 @@ namespace OpenMS
 
         f << pe.getProteinAccession();
 
-        f << "\" num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
-          << "\" massdiff=\"0.0\" num_tol_term=\"";
+        f << R"(" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass=")" << precisionWrapper(precursor_neutral_mass)
+          << R"(" massdiff="0.0" num_tol_term=")";
         Int num_tol_term = 1;
         if ((pe.getAABefore() == 'R' || pe.getAABefore() == 'K') && search_params.digestion_enzyme.getName() == "Trypsin")
         {
           num_tol_term = 2;
         }
         f << num_tol_term;
-        f << "\" num_missed_cleavages=\"0\" is_rejected=\"0\" protein_descr=\"Protein No. 1\">" << "\n";
+        f << R"(" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">)" << "\n";
 
         // multiple protein hits: <alternative_protein protein="sp|P0CZ86|GLS24_STRP3" num_tol_term="2" peptide_prev_aa="K" peptide_next_aa="-"/>
         if (pes.size() > 1)
@@ -796,8 +819,8 @@ namespace OpenMS
             // check if score type is XTandem or qvalue/fdr
             if (pep.getScoreType() == "XTandem")
             {
-              f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getScore() << "\"" << "/>\n";
-              f << "\t\t\t<search_score" << " name=\"nextscore\" value=\"";
+              f << "\t\t\t<search_score" << R"( name="hyperscore" value=")" << h.getScore() << "\"" << "/>\n";
+              f << "\t\t\t<search_score" << R"( name="nextscore" value=")";
               if (h.metaValueExists("nextscore"))
               {
                 f << h.getMetaValue("nextscore") << "\"" << "/>\n";
@@ -809,8 +832,8 @@ namespace OpenMS
             }
             else if (h.metaValueExists("XTandem_score"))
             {
-              f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
-              f << "\t\t\t<search_score" << " name=\"nextscore\" value=\"";
+              f << "\t\t\t<search_score" << R"( name="hyperscore" value=")" << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
+              f << "\t\t\t<search_score" << R"( name="nextscore" value=")";
               if (h.metaValueExists("nextscore"))
               {
                 f << h.getMetaValue("nextscore") << "\"" << "/>\n";
@@ -820,29 +843,29 @@ namespace OpenMS
                 f << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
               }
             }
-            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("E-Value") << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("E-Value") << "\"" << "/>\n";
           }
           else if (search_engine_name == "Comet")
           {
-            f << "\t\t\t<search_score" << " name=\"xcorr\" value=\"" << h.getMetaValue("MS:1002252") << "\"" << "/>\n"; // name: Comet:xcorr
-            f << "\t\t\t<search_score" << " name=\"deltacn\" value=\"" << h.getMetaValue("MS:1002253") << "\"" << "/>\n"; // name: Comet:deltacn
-            f << "\t\t\t<search_score" << " name=\"deltacnstar\" value=\"" << h.getMetaValue("MS:1002254") << "\"" << "/>\n"; // name: Comet:deltacnstar
-            f << "\t\t\t<search_score" << " name=\"spscore\" value=\"" << h.getMetaValue("MS:1002255") << "\"" << "/>\n"; // name: Comet:spscore
-            f << "\t\t\t<search_score" << " name=\"sprank\" value=\"" << h.getMetaValue("MS:1002256") << "\"" << "/>\n"; // name: Comet:sprank
-            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("MS:1002257") << "\"" << "/>\n"; // name: Comet:expect
+            f << "\t\t\t<search_score" << R"( name="xcorr" value=")" << h.getMetaValue("MS:1002252") << "\"" << "/>\n"; // name: Comet:xcorr
+            f << "\t\t\t<search_score" << R"( name="deltacn" value=")" << h.getMetaValue("MS:1002253") << "\"" << "/>\n"; // name: Comet:deltacn
+            f << "\t\t\t<search_score" << R"( name="deltacnstar" value=")" << h.getMetaValue("MS:1002254") << "\"" << "/>\n"; // name: Comet:deltacnstar
+            f << "\t\t\t<search_score" << R"( name="spscore" value=")" << h.getMetaValue("MS:1002255") << "\"" << "/>\n"; // name: Comet:spscore
+            f << "\t\t\t<search_score" << R"( name="sprank" value=")" << h.getMetaValue("MS:1002256") << "\"" << "/>\n"; // name: Comet:sprank
+            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("MS:1002257") << "\"" << "/>\n"; // name: Comet:expect
           }
           else if (search_engine_name == "MASCOT")
           {
-            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("EValue") << "\"" << "/>\n";
-            f << "\t\t\t<search_score" << " name=\"ionscore\" value=\"" << h.getScore() << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("EValue") << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << R"( name="ionscore" value=")" << h.getScore() << "\"" << "/>\n";
           }
           else if (search_engine_name == "OMSSA")
           {
-            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getScore() << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getScore() << "\"" << "/>\n";
           }
           else if (search_engine_name == "MSGFPlus")
           {
-            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getScore() << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getScore() << "\"" << "/>\n";
           }
           else if (search_engine_name == "Percolator")
           {
@@ -850,24 +873,24 @@ namespace OpenMS
             if (h.metaValueExists("MS:1001492"))
             {
               svm_score = static_cast<double>(h.getMetaValue("MS:1001492"));
-              f << "\t\t\t<search_score" << " name=\"Percolator_score\" value=\"" << svm_score << "\"" << "/>\n";
+              f << "\t\t\t<search_score" << R"( name="Percolator_score" value=")" << svm_score << "\"" << "/>\n";
             }
             else if (h.metaValueExists("Percolator_score"))
             {
               svm_score = static_cast<double>(h.getMetaValue("Percolator_score"));
-              f << "\t\t\t<search_score" << " name=\"Percolator_score\" value=\"" << svm_score << "\"" << "/>\n";
+              f << "\t\t\t<search_score" << R"( name="Percolator_score" value=")" << svm_score << "\"" << "/>\n";
             }
 
             double qval_score = 0.0;
             if (h.metaValueExists("MS:1001491"))
             {
               qval_score = static_cast<double>(h.getMetaValue("MS:1001491"));
-              f << "\t\t\t<search_score" << " name=\"Percolator_qvalue\" value=\"" << qval_score << "\"" << "/>\n";
+              f << "\t\t\t<search_score" << R"( name="Percolator_qvalue" value=")" << qval_score << "\"" << "/>\n";
             }
             else if (h.metaValueExists("Percolator_qvalue"))
             {
               qval_score = static_cast<double>(h.getMetaValue("Percolator_qvalue"));
-              f << "\t\t\t<search_score" << " name=\"Percolator_qvalue\" value=\"" << qval_score << "\"" << "/>\n";
+              f << "\t\t\t<search_score" << R"( name="Percolator_qvalue" value=")" << qval_score << "\"" << "/>\n";
             }
 
             double pep_score = 0.0;
@@ -887,7 +910,7 @@ namespace OpenMS
                 throw Exception::MissingInformation(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION,"Percolator PEP score missing for pepXML export of Percolator results.");
               }
             }
-            f << "\t\t\t<search_score" << " name=\"Percolator_PEP\" value=\"" << pep_score << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << R"( name="Percolator_PEP" value=")" << pep_score << "\"" << "/>\n";
 
             f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
             f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << 1. - pep_score << "\"";
@@ -929,6 +952,14 @@ namespace OpenMS
     charge_ = attributeAsInt_(attributes, "assumed_charge");
     mz_ = (mass + hydrogen_mass_ * charge_) / charge_;
     rt_ = 0;
+    // assume only one scan, i.e. ignore "end_scan":
+    // "start and end_scan" are 1-based. "index" is 0-based
+    scannr_ = attributeAsInt_(attributes, "start_scan");
+    Size endscan = attributeAsInt_(attributes, "start_scan");
+    if (scannr_ != endscan)
+    {
+      error(LOAD, "endscan not equal to startscan. Merged spectrum queries not supported. Parsing start scan nr. only.");
+    }
 
     bool rt_present = optionalAttributeAsDouble_(rt_, attributes, "retention_time_sec");
 
@@ -941,9 +972,7 @@ namespace OpenMS
         return;
       }
 
-      // assume only one scan, i.e. ignore "end_scan":
-      Size scan = attributeAsInt_(attributes, "start_scan");
-      Size index = (scan != 0) ? lookup_->findByScanNumber(scan) :
+      Size index = (scannr_ != 0) ? lookup_->findByScanNumber(scannr_) :
         lookup_->findByReference(attributeAsString_(attributes, "spectrum"));
       SpectrumMetaDataLookup::SpectrumMetaData meta;
       lookup_->getSpectrumMetaData(index, meta);
@@ -958,9 +987,15 @@ namespace OpenMS
     }
   }
 
+  void PepXMLFile::setParseUnknownScores(bool parse_unknown_scores)
+  {
+    this->parse_unknown_scores_ = parse_unknown_scores;
+  }
+
   void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
                         proteins, vector<PeptideIdentification>& peptides,
-                        const String& experiment_name)
+                        const String& experiment_name
+                        )
   {
     SpectrumMetaDataLookup lookup;
     load(filename, proteins, peptides, experiment_name, lookup);
@@ -1141,7 +1176,7 @@ namespace OpenMS
         {
           peptide_hit_.setMetaValue("MS:1002257", value); // name: Comet:expectation value
         }
-        else if (search_engine_ == "X! Tandem")
+        else if (search_engine_ == "X! Tandem" || search_engine_ == "MSFragger") // TODO check if there are separate CVs?
         {
           peptide_hit_.setMetaValue("MS:1001330", value); // name: X\!Tandem:expect
         }
@@ -1202,30 +1237,48 @@ namespace OpenMS
         value = attributeAsDouble_(attributes, "value");
         peptide_hit_.setMetaValue("nextscore", value);
       }
-      else
+      else if (search_engine_ == "Comet")
       {
-        if (search_engine_ == "Comet")
+        if (name == "deltacn")
         {
-          if (name == "deltacn")
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("MS:1002253", value); // name: Comet:deltacn
+        }
+        else if (name == "spscore")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("MS:1002255", value); // name: Comet:spscore
+        }
+        else if (name == "sprank")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("MS:1002256", value); // name: Comet:sprank
+        }
+        else if (name == "deltacnstar")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("MS:1002254", value); // name: Comet:deltacnstar
+        }
+      }
+      else if (parse_unknown_scores_)
+      {
+        String strvval = attributeAsString_(attributes, "value");
+        if(name.hasSuffix("_ions")) //TODO create a dictionary of which known scores are which type?
+        {
+          peptide_hit_.setMetaValue(name, attributeAsInt_(attributes, "value")); // e.g. name: Comet:matched_b1_ions
+        }
+        else
+        {
+          try
           {
-            value = attributeAsDouble_(attributes, "value");
-            peptide_hit_.setMetaValue("MS:1002253", value); // name: Comet:deltacn
+            peptide_hit_.setMetaValue(name, attributeAsDouble_(attributes, "value")); // Any other generic score
           }
-          else if (name == "spscore")
+          catch (Exception::ConversionError&)
           {
-            value = attributeAsDouble_(attributes, "value");
-            peptide_hit_.setMetaValue("MS:1002255", value); // name: Comet:spscore
+            //TODO warn about non-numeric score? Or even do not catch the conversion error?
+            peptide_hit_.setMetaValue(name, attributeAsString_(attributes, "value")); // Any other generic score (fallback String)
           }
-          else if (name == "sprank")
-          {
-            value = attributeAsDouble_(attributes, "value");
-            peptide_hit_.setMetaValue("MS:1002256", value); // name: Comet:sprank
-          }
-          else if (name == "deltacnstar")
-          {
-            value = attributeAsDouble_(attributes, "value");
-            peptide_hit_.setMetaValue("MS:1002254", value); // name: Comet:deltacnstar
-          }
+          
         }
       }
     }
@@ -1264,6 +1317,10 @@ namespace OpenMS
           peptide_hit_.setMetaValue("num_matched_peptides", value);
         }
       }
+
+      double pepmassdiff = attributeAsDouble_(attributes, "massdiff");
+      peptide_hit_.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, std::lrint(pepmassdiff/Constants::C13C12_MASSDIFF_U));
+
       String protein = attributeAsString_(attributes, "protein");
       protein.trim();
       pe.setProteinAccession(protein);
@@ -1320,11 +1377,18 @@ namespace OpenMS
       {
         current_peptide_.setMetaValue("pepxml_spectrum_name", native_spectrum_name_);
       }
-      if (search_engine_ == "Comet")
+      //TODO: we really need something uniform here, like scan number - and not in metainfointerface
+      if (SpectrumLookup::isNativeID(native_spectrum_name_))
       {
-        current_peptide_.setMetaValue("spectrum_reference", native_spectrum_name_);
-        //TODO: we really need something uniform here, like scan number - and not in metainfointerface
+        current_peptide_.setMetaValue("spectrum_reference", native_spectrum_name_); 
       }
+      else if (scannr_ != 0)
+      {
+        current_peptide_.setMetaValue("spectrum_reference", String("scan=") + String(scannr_));
+      }
+      //TODO else error?
+      
+        
       if (!experiment_label_.empty())
       {
         current_peptide_.setExperimentLabel(experiment_label_);
@@ -1353,7 +1417,7 @@ namespace OpenMS
       experiment_label_ = "";
       swath_assay_ = "";
       status_ = "";
-      optionalAttributeAsString_(native_spectrum_name_, attributes, "spectrum");
+      optionalAttributeAsString_(native_spectrum_name_, attributes, "spectrum"); //TODO store separately? Do we ever need the pepXML internal ref?
       optionalAttributeAsString_(native_spectrum_name_, attributes, "spectrumNativeID"); //some engines write that optional attribute - is preferred to spectrum
       optionalAttributeAsString_(experiment_label_, attributes, "experiment_label");
       optionalAttributeAsString_(swath_assay_, attributes, "swath_assay");
@@ -1462,29 +1526,40 @@ namespace OpenMS
         {
           if ((fabs(mod_nterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "n")
           {
-            current_modifications_.emplace_back(it.getRegisteredMod(), 42); // position not needed for terminus
+            current_modifications_.emplace_back(it.getRegisteredMod(), Size(-1)); // position not needed for terminus
             found = true;
             break; // only one modification should match, so we can stop the loop here
           }
         }
-        //TODO why only look in variable mods?
+        if (!found)
+        {
+          for (const AminoAcidModification& it : fixed_modifications_)
+          {
+            if ((fabs(mod_nterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "n")
+            {
+              current_modifications_.emplace_back(it.getRegisteredMod(), Size(-1)); // position not needed for terminus
+              found = true;
+              break; // only one modification should match, so we can stop the loop here
+            }
+          }
+        }
 
         if (!found)
         {
-          // It was not registered in the pepXML header. Search it in DB.
+          // It was not registered in the pepXML header. Search it in DB by massdiff = mod_nterm_mass - orig_nterm_mass.
           std::vector<const ResidueModification*> mods;
           try
           {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass, mod_tol_, "", ResidueModification::N_TERM);
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass - Residue::getInternalToNTerm().getMonoWeight(), mod_tol_, "", ResidueModification::N_TERM);
           }
           catch(...)
           {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass, mod_tol_, "", ResidueModification::PROTEIN_N_TERM);
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass - Residue::getInternalToNTerm().getMonoWeight(), mod_tol_, "", ResidueModification::PROTEIN_N_TERM);
           }
 
           if (!mods.empty())
           {
-            current_modifications_.emplace_back(mods[0], 42); // 42, because position does not matter
+            current_modifications_.emplace_back(mods[0], Size(-1)); // -1, because position does not matter
           }
           else
           {
@@ -1504,12 +1579,23 @@ namespace OpenMS
         {
           if ((fabs(mod_cterm_mass - amino.getMass()) < mod_tol_) && amino.getTerminus() == "c")
           {
-            current_modifications_.emplace_back(amino.getRegisteredMod(), 42); // position not needed for terminus
+            current_modifications_.emplace_back(amino.getRegisteredMod(), Size(-1)); // position not needed for terminus
             found = true;
             break; // only one modification should match, so we can stop the loop here
           }
         }
-        //TODO why only look in variable mods?
+        if (!found)
+        {
+          for (const AminoAcidModification& amino : fixed_modifications_)
+          {
+            if ((fabs(mod_cterm_mass - amino.getMass()) < mod_tol_) && amino.getTerminus() == "c")
+            {
+              current_modifications_.emplace_back(amino.getRegisteredMod(), Size(-1)); // position not needed for terminus
+              found = true;
+              break; // only one modification should match, so we can stop the loop here
+            }
+          }
+        }
 
         if (!found)
         {
@@ -1517,16 +1603,16 @@ namespace OpenMS
           std::vector<const ResidueModification*> mods;
           try
           {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass, mod_tol_, "", ResidueModification::C_TERM);
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_cterm_mass - Residue::getInternalToCTerm().getMonoWeight(), mod_tol_, "", ResidueModification::C_TERM);
           }
           catch(...)
           {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass, mod_tol_, "", ResidueModification::PROTEIN_C_TERM);
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_cterm_mass - Residue::getInternalToCTerm().getMonoWeight(), mod_tol_, "", ResidueModification::PROTEIN_C_TERM);
           }
 
           if (!mods.empty())
           {
-            current_modifications_.emplace_back(mods[0], 42); // 42, because position does not matter
+            current_modifications_.emplace_back(mods[0], Size(-1)); // -1, because position does not matter
           }
           else
           {
@@ -1584,7 +1670,6 @@ namespace OpenMS
       // the modification position is 1-based
       String origin = String(current_sequence_[modification_position - 1]);
       String temp_description = "";
-
 
       //TODO can we infer fixed/variable from the static/variable (diffmass) attributes in pepXML?
       // Only in some cases probably, since it is an optional attribute
@@ -1686,6 +1771,8 @@ namespace OpenMS
 
         optionalAttributeAsString_(aminoacid, attributes, "aminoacid");
         terminus = attributeAsString_(attributes, "terminus");
+        // WARNING: Many search engines annotate this wrong! This is supposed to be empty or "n" or "c".
+        // But many SEs annotate it as "Y" and "N" for Yes and No. We handle this in the AAMod ctor
         protein_terminus_entry = attributeAsString_(attributes, "protein_terminus");
       }
 
@@ -1774,6 +1861,17 @@ namespace OpenMS
       }
 
       search_engine_ = attributeAsString_(attributes, "search_engine");
+
+      //TODO why do we not store versions?
+      if (search_engine_ == "X! Tandem")
+      {
+        String ver;
+        optionalAttributeAsString_(ver, attributes, "search_engine_version");
+        if (ver.hasPrefix("MSFragger"))
+        {
+          search_engine_ = "MSFragger";
+        }
+      }
 
       // generate a unique identifier for every search engine run.
       prot_id_ = search_engine_ + "_" + date_.getDate() + "_" + date_.getTime();
@@ -1929,6 +2027,7 @@ namespace OpenMS
       //Note: using our AASequence::fromString on the modified_sequence of
       // the modification_info element is probably not possible since modifications may have special
       // symbols that we would need to save and lookup additionally
+      //TODO one might argue that mods from XML attributes are better specified and should be preferred
 
       // Modifications explicitly annotated at the current search_hit take preference over
       // implicit fixed mods
@@ -2059,5 +2158,12 @@ namespace OpenMS
   {
     preferred_variable_modifications_ = mods;
   }
+
+  /*std::vector<int> PepXMLFile::getIsotopeErrorsFromIntSetting_(int intSetting)
+  {
+    static std::vector<std::vector<int>> cometIsoLists_{{},{1},{1,2},{1,2,3},{-8,-4,4,8},{-1,1,2,3}};
+    return cometIsoLists_[intSetting];
+  }
+  */
 
 } // namespace OpenMS

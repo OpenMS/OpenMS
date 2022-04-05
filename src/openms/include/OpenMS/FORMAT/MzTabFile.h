@@ -41,10 +41,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <boost/math/special_functions/fpclassify.hpp>
-
 #include <vector>
-#include <algorithm>
 
 namespace OpenMS
 {
@@ -229,6 +226,8 @@ namespace OpenMS
                                   const std::map<String, Size>& map_run_to_num_sub
                                   );
 
+  private:
+    friend class MzTabMFile;
   };
 
 } // namespace OpenMS

@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -571,7 +572,7 @@ namespace OpenMS
   {
     return id_.empty() && !full_id_.empty();
   }
-
+  
   const ResidueModification* ResidueModification::createUnknownFromMassString(const String& mod,
                                                                               const double mass,
                                                                               const bool delta_mass,

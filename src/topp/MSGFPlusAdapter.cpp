@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -233,6 +234,9 @@ protected:
     registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, {"is_executable"});
     registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
     registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
+
+    // register peptide indexing parameter (with defaults for this search engine) TODO: check if search engine defaults are needed
+    registerPeptideIndexingParameter_(PeptideIndexing().getParameters()); 
   }
 
   // The following sequence modification methods are used to modify the sequence stored in the TSV such that it can be used by AASequence
@@ -343,7 +347,7 @@ protected:
       for (MSSpectrum& ms : exp)
       {
         String id = ms.getNativeID(); // expected format: "... scan=#"
-        if (id != "")
+        if (!id.empty())
         {
           rt_mapping[id].push_back(ms.getRT());
           rt_mapping[id].push_back(ms.getPrecursors()[0].getMZ());
@@ -655,7 +659,7 @@ protected:
           }
 
           int scan_number = 0;
-          if ((elements[2] == "") || (elements[2] == "-1"))
+          if ((elements[2].empty()) || (elements[2] == "-1"))
           {
             scan_number = elements[1].suffix('=').toInt();
           }
@@ -788,6 +792,7 @@ protected:
         for (PeptideHit& psm : pid.getHits())
         {
           auto v = psm.getMetaValue("IsotopeError");
+          // TODO cast to Int!
           psm.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, v);
           psm.removeMetaValue("IsotopeError");
         }
@@ -798,6 +803,9 @@ protected:
       {
         DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_ids[0].getSearchParameters(), this->getToolPrefix());
       }
+
+      // if "reindex" parameter is set to true will perform reindexing
+      if (auto ret = reindex_(protein_ids, peptide_ids); ret != EXECUTION_OK) return ret;
 
       IdXMLFile().store(out, protein_ids, peptide_ids);
     }

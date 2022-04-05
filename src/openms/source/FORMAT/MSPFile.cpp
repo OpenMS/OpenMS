@@ -40,6 +40,7 @@
 
 #include <fstream>
 #include <regex>
+#include <map>
 
 using namespace std;
 
@@ -101,7 +102,7 @@ namespace OpenMS
     String line;
     ifstream is(filename.c_str());
 
-    Map<String, String> modname_to_unimod;
+    std::map<String, String> modname_to_unimod;
     modname_to_unimod["Pyro-glu"] = "Gln->pyro-Glu";
     modname_to_unimod["CAM"] = "Carbamidomethyl";
     modname_to_unimod["AB_old_ICATd8"] = "ICAT-D:2H(8)";
@@ -206,7 +207,7 @@ namespace OpenMS
               mod_split[i].split(',', single_mod);
 
               String mod_name = single_mod[2];
-              if (modname_to_unimod.has(mod_name))
+              if (modname_to_unimod.find(mod_name) != modname_to_unimod.end())
               {
                 mod_name = modname_to_unimod[mod_name];
               }
@@ -286,7 +287,7 @@ namespace OpenMS
             if (iter == end)
             {
               throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          line, "not <mz><tab/spaces><intensity><tab/spaces>\"<annotation>\"<tab/spaces>\"<comment>\" in line " + String(line_number));
+                                          line, R"(not <mz><tab/spaces><intensity><tab/spaces>"<annotation>"<tab/spaces>"<comment>" in line )" + String(line_number));
             }
             Peak1D peak;
             float mz = String(iter->str()).toFloat();
@@ -295,7 +296,7 @@ namespace OpenMS
             if (iter == end)
             {
               throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          line, "not <mz><tab/spaces><intensity><tab/spaces>\"<annotation>\"<tab/spaces>\"<comment>\" in line " + String(line_number));
+                                          line, R"(not <mz><tab/spaces><intensity><tab/spaces>"<annotation>"<tab/spaces>"<comment>" in line )" + String(line_number));
             }
             float ity = String(iter->str()).toFloat();
             peak.setIntensity(ity);
@@ -385,7 +386,7 @@ namespace OpenMS
 
     for (const MSSpectrum& it : exp)
     {
-      if (it.getPeptideIdentifications().size() > 0 && it.getPeptideIdentifications().begin()->getHits().size() > 0)
+      if (!it.getPeptideIdentifications().empty() && !it.getPeptideIdentifications().begin()->getHits().empty())
       {
         PeptideHit hit = *it.getPeptideIdentifications().begin()->getHits().begin();
         String peptide;

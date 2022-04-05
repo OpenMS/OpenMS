@@ -249,7 +249,7 @@ END_SECTION
 
 START_SECTION(static Param getSystemParameters())
   Param p = File::getSystemParameters();
-  TEST_EQUAL(p.size()>0, true)
+  TEST_EQUAL(!p.empty(), true)
   TEST_EQUAL(p.getValue("version"), VersionInfo::getVersion())
 END_SECTION
 

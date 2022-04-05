@@ -76,11 +76,12 @@ namespace OpenMS
     }
 
     // fill up the PeakMaps by moving spectra from the input PeakMap
-    for (const MSSpectrum& it : exp)
+    for (MSSpectrum& it : exp)
     {
       split_peakmap[cv2index[it.getDriftTime()]].addSpectrum(std::move(it));
     }
-
+    
+    exp.clear(true);
     return split_peakmap;
   }
 
@@ -185,7 +186,7 @@ namespace OpenMS
       // collapse for scans that actually have a float data array).
       if (in[k].containsIMData())
       {
-        MSExperiment frame = IMDataConverter::splitByIonMobility(in[k], number_of_bins);
+        MSExperiment frame = IMDataConverter::splitByIonMobility(std::move(in[k]), number_of_bins);
         // move into result
         for (auto&& spec : frame)
         {
@@ -197,6 +198,8 @@ namespace OpenMS
         result.addSpectrum(std::move(in[k]));
       }
     }
+    result.ExperimentalSettings::operator=(std::move(in));
+    in.clear(true);
     return result;
   }
 
@@ -254,8 +257,7 @@ namespace OpenMS
     if (exp.empty())
     {
       return result;
-    }
-      
+    }      
 
     std::vector<const MSSpectrum*> stack;
     double curr_rt = std::numeric_limits<double>::max();
@@ -297,7 +299,8 @@ namespace OpenMS
         return;
       default:
         // invalid enum ...
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unit is not a valid IM unit", toString(unit));
+        // There is no CV term which can be used to describe the FDA
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unit is not a valid IM unit for float data arrays", toString(unit));
     }
   }
 

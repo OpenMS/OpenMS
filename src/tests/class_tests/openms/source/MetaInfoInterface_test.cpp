@@ -143,7 +143,7 @@ START_SECTION(( MetaInfoInterface(MetaInfoInterface&&) noexcept ))
 }
 END_SECTION
 
-START_SECTION((MetaInfoInterface& operator = (const MetaInfoInterface& rhs)))
+START_SECTION((MetaInfoInterface& operator=(const MetaInfoInterface& rhs)))
 {
 	//test if copy worked
 	MetaInfoInterface mi3,mi4;
@@ -168,7 +168,7 @@ START_SECTION((MetaInfoInterface& operator = (const MetaInfoInterface& rhs)))
 }
 END_SECTION
 
-START_SECTION((MetaInfoInterface& operator = (MetaInfoInterface&& rhs)))
+START_SECTION((MetaInfoInterface& operator=(MetaInfoInterface&& rhs)))
 {
   // Ensure that MetaInfoInterface has a no-except move assignment operator.
   TEST_EQUAL(noexcept(declval<MetaInfoInterface&>() = declval<MetaInfoInterface &&>()), true)
@@ -353,7 +353,19 @@ START_SECTION((void removeMetaValue(const String& name)))
 	i.removeMetaValue("icon");
 END_SECTION
 
+START_SECTION((void swap(MetaInfoInterface&& rhs)))
+{
+  MetaInfoInterface mi1, mi2;
+  mi1.setMetaValue("a", 1);
+  mi2.setMetaValue("b", 2);
+  mi1.swap(mi2);
+  TEST_EQUAL(mi1.metaValueExists("a"), false);
+  TEST_EQUAL(mi2.metaValueExists("b"), false);
+  TEST_EQUAL(mi1.getMetaValue("b"), 2);
+  TEST_EQUAL(mi2.getMetaValue("a"), 1);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-

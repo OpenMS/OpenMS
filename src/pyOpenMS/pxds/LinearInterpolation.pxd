@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/MATH/MISC/LinearInterpolation.h>" namespace "OpenMS::M
             #   -----
             #   Using the value() and derivative() methods you can sample linearly
             #   interpolated values for a given x-coordinate position of the data and
-            #   the derivative of the data.
+            #   the derivative of the data
 
         # wrap-instances:
         #   LinearInterpolation := LinearInterpolation[double, double]

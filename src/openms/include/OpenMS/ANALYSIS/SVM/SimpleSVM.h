@@ -129,6 +129,9 @@ namespace OpenMS
     /// Get data range of predictors before scaling to [0, 1]
     const ScaleMap& getScaling() const;
   protected:
+
+    void clear_();
+
     /// Classification performance for different param. combinations (C/gamma):
     typedef std::vector<std::vector<double> > SVMPerformance;
 

@@ -35,7 +35,7 @@
 #include <TOPPView_test.h>
 
 #include <QTimer>
-
+#include <QElapsedTimer>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
@@ -71,7 +71,7 @@ void TestTOPPView::waitForModalWidget(const int max_wait, const String& line)
   }
 
 
-  QTime t;
+  QElapsedTimer t;
   t.start();
   while (!modal_key_sequence_.isEmpty () && max_wait > t.elapsed())
   {

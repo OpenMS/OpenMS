@@ -60,7 +60,8 @@ namespace OpenMS
       symmetric_ = params_.getValue("symmetric_regression") == "true";
       // weight the data (if weighting is specified)
       TransformationModel::DataPoints data_weighted = data;
-      if ((params.exists("x_weight") && params.getValue("x_weight") != "") || (params.exists("y_weight") && params.getValue("y_weight") != ""))
+      if ((params.exists("x_weight") && params.getValue("x_weight") != "x") 
+       || (params.exists("y_weight") && params.getValue("y_weight") != "y"))
       {
         weightData(data_weighted);
       }
@@ -92,10 +93,6 @@ namespace OpenMS
       params_.setValue("slope", slope_);
       params_.setValue("intercept", intercept_);
     }
-  }
-
-  TransformationModelLinear::~TransformationModelLinear()
-  {
   }
 
   double TransformationModelLinear::evaluate(double value) const
@@ -156,12 +153,12 @@ namespace OpenMS
                                                      " on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
     params.setValidStrings("symmetric_regression",
                            {"true","false"});
-    params.setValue("x_weight", "", "Weight x values");
+    params.setValue("x_weight", "x", "Weight x values");
     params.setValidStrings("x_weight",
-                           {"1/x","1/x2","ln(x)",""});
-    params.setValue("y_weight", "", "Weight y values");
+                           {"1/x","1/x2","ln(x)","x"});
+    params.setValue("y_weight", "y", "Weight y values");
     params.setValidStrings("y_weight",
-                           {"1/y","1/y2","ln(y)",""});
+                           {"1/y","1/y2","ln(y)","y"});
     params.setValue("x_datum_min", 1e-15, "Minimum x value");
     params.setValue("x_datum_max", 1e15, "Maximum x value");
     params.setValue("y_datum_min", 1e-15, "Minimum y value");

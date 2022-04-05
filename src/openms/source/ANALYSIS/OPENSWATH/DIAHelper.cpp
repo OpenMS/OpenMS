@@ -45,9 +45,7 @@
 #include <utility>
 #include <boost/bind.hpp>
 
-namespace OpenMS
-{
-  namespace DIAHelpers
+namespace OpenMS::DIAHelpers
   {
 
     void adjustExtractionWindow(double& right, double& left, const double& mz_extract_window, const bool& mz_extraction_ppm)
@@ -408,4 +406,3 @@ namespace OpenMS
 //std::vector<std::pair<double, double> > & isotopeMasses, uint32_t charge)
 
   }
-}

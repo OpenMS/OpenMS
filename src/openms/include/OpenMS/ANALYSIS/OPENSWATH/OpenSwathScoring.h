@@ -117,7 +117,7 @@ namespace OpenMS
                                         const std::vector<std::string>& precursor_ids,
                                         const std::vector<double>& normalized_library_intensity,
                                         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-                                        OpenSwath_Scores & scores);
+                                        OpenSwath_Scores & scores) const;
 
     /** @brief Score identification transitions against detection transitions of a single peakgroup 
      * in a chromatogram using only chromatographic properties.
@@ -141,7 +141,7 @@ namespace OpenMS
                                           const std::vector<std::string>& native_ids_identification,
                                           const std::vector<std::string>& native_ids_detection,
                                           std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-                                          OpenSwath_Ind_Scores & scores);
+                                          OpenSwath_Ind_Scores & scores) const;
 
     /** @brief Score a single chromatographic feature against a spectral library
      *

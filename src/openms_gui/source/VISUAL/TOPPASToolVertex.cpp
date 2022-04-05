@@ -53,6 +53,7 @@
 #include <QtCore/QRegExp>
 
 #include <QSvgRenderer>
+#include <map>
 
 namespace OpenMS
 {
@@ -123,7 +124,7 @@ namespace OpenMS
     QStringList arguments;
     arguments << "-write_ini" << ini_file;
 
-    if (type_ != "")
+    if (!type_.empty())
     {
       arguments << "-type";
       arguments << type_.toQString();
@@ -348,7 +349,7 @@ namespace OpenMS
   {
     TOPPASVertex::paint(painter, option, widget, false);
 
-    QString draw_str = (type_ == "" ? name_ : name_ + " (" + type_ + ")").toQString();
+    QString draw_str = (type_.empty() ? name_ : name_ + " (" + type_ + ")").toQString();
     for (int i = 0; i < 10; ++i)
     {
       QString prev_str = draw_str;
@@ -408,8 +409,14 @@ namespace OpenMS
   QString TOPPASToolVertex::toolnameWithWhitespacesForFancyWordWrapping_(QPainter* painter, const QString& str)
   {
     qreal max_width = 130;
-
+/*
+         * Suppressed warning QSTring::SkipEmptyParts and QString::SplitBehaviour is deprecated
+         * QT::SkipEmptyParts and QT::SplitBehaviour is added or modified at Qt 5.14
+         */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     QStringList parts = str.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+#pragma GCC diagnostic pop
     QStringList new_parts;
 
     foreach(QString part, parts)
@@ -484,7 +491,7 @@ namespace OpenMS
                        + getOutputDir().toQString()
                        + QDir::separator()
                        + name_.toQString();
-    if (type_ != "")
+    if (!type_.empty())
     {
       ini_file += "_" + type_.toQString();
     }
@@ -516,7 +523,7 @@ namespace OpenMS
     round_counter_ = 0; // once round_counter_ reaches round_total_, we are done
 
     QStringList shared_args;
-    if (type_ != "")
+    if (!type_.empty())
     {
       shared_args << "-type" << type_.toQString();
     }
@@ -762,7 +769,7 @@ namespace OpenMS
     QStringList files = this->getFileNames();
 
     std::map<String, NameComponent> name_old_to_new;
-    Map<String, int> name_new_count, name_new_idx; // count occurrence (for optional counter infix)
+    std::map<String, int> name_new_count, name_new_idx; // count occurrence (for optional counter infix)
 
     // a first round to find which filenames are not unique (and require augmentation with a counter)
 
@@ -1165,7 +1172,7 @@ namespace OpenMS
     TOPPASVertex::outEdgeHasChanged();
   }
 
-  void TOPPASToolVertex::openContainingFolder()
+  void TOPPASToolVertex::openContainingFolder() const
   {
     QString path = getFullOutputDirectory().toQString();
     GUIHelpers::openFolder(path);
@@ -1181,14 +1188,14 @@ namespace OpenMS
   {
     TOPPASScene* ts = getScene_();
     String workflow_dir = FileHandler::stripExtension(File::basename(ts->getSaveFileName()));
-    if (workflow_dir == "")
+    if (workflow_dir.empty())
     {
       workflow_dir = "Untitled_workflow";
     }
     String dir = workflow_dir +
                  String(QDir::separator()) +
                  get3CharsNumber_(topo_nr_) + "_" + getName();
-    if (getType() != "")
+    if (!getType().empty())
     {
       dir += "_" + getType();
     }
@@ -1256,7 +1263,7 @@ namespace OpenMS
   {
     TOPPASScene* ts = getScene_();
     QString old_ini_file = ts->getTempDir() + QDir::separator() + "TOPPAS_" + name_.toQString() + "_";
-    if (type_ != "")
+    if (!type_.empty())
     {
       old_ini_file += type_.toQString() + "_";
     }

@@ -39,20 +39,12 @@
 #include <iostream>
 #include <fstream>
 
+#include "svm.h"
+
 using namespace std;
 
 namespace OpenMS
 {
-  LibSVMEncoder::LibSVMEncoder()
-  {
-
-  }
-
-  LibSVMEncoder::~LibSVMEncoder()
-  {
-
-  }
-
   void LibSVMEncoder::encodeCompositionVector(const String& sequence,
                                               vector<pair<Int, double> >& composition_vector,
                                               const String& allowed_characters)
@@ -762,11 +754,11 @@ namespace OpenMS
     return (a.second == b.second) ? (a.first < b.first) : (a.second < b.second);
   }
 
-  void LibSVMEncoder::destroyProblem(svm_problem* problem)
+  void LibSVMEncoder::destroyProblem(svm_problem* &problem, bool free_nodes)
   {
     if (problem != nullptr)
     {
-      for (Int  i = 0; i < problem->l; i++)
+      for (Int i = 0; free_nodes && i < problem->l; i++)
       {
         delete[] problem->x[i];
       }

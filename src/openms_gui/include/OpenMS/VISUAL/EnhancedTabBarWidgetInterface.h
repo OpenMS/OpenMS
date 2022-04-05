@@ -94,7 +94,7 @@ namespace OpenMS
     void addToTabBar(EnhancedTabBar* const parent, const String& caption, const bool make_active_tab = true);
 
     /// get the EnhancedTabBar unique window id
-    Int getWindowId();
+    Int getWindowId() const;
 
     /// the first object to be created will get this ID
     static Int getFirstWindowID();

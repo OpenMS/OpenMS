@@ -1,10 +1,10 @@
 from libcpp cimport bool
+from libcpp.map cimport map as libcpp_map
 from Types cimport *
 from String cimport *
 from Residue cimport *
 from EmpiricalFormula cimport *
 from ResidueModification cimport *
-from Map cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
 
@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         AASequence iadd(AASequence) nogil except + # wrap-as:operator+=
 
         # Note that this is a const-ref, so we cannot easily set residues
-        Residue operator[](int) nogil except + # wrap-upper-limit:size()
+        Residue operator[](size_t) nogil except + # wrap-upper-limit:size()
 
         # check if sequence is empty
         bool empty() nogil except + # wrap-doc:Check if sequence is empty
@@ -43,24 +43,31 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         String toBracketString(bool integer_mass, bool mass_delta) nogil except + #wrap-doc:Create a TPP compatible string of the modified sequence using bracket notation.
         String toBracketString(bool integer_mass, bool mass_delta, libcpp_vector[String] fixed_modifications) nogil except + # wrap-doc:Create a TPP compatible string of the modified sequence using bracket notation
 
-        # set the modification of the residue at position index
-        void setModification(Size index, String modification) nogil except + # wrap-doc:Sets the modification of the residue at position index
+        void setModification(Size index, const String& modification) nogil except + # wrap-doc:Sets the modification of the residue at position index. If an empty string is passed replaces the residue with its unmodified version
 
-        # sets the N-terminal modification
-        void setNTerminalModification(String modification) nogil except + # wrap-doc:Sets the N-terminal modification
+        void setModification(Size index, const ResidueModification& modification) nogil except + # wrap-doc:Sets the modification of AA at index by providing a ResidueModification object. Stricter than just looking for the name and adds the Modification to the DB if not present
 
-        # returns the name (ID) of the N-terminal modification, or an empty string if none is set
+        void setModificationByDiffMonoMass(Size index, double diffMonoMass) nogil except + # wrap-doc:Modifies the residue at index in the sequence and potentially in the ResidueDB
+
+        void setNTerminalModification(String modification) nogil except + # wrap-doc:Sets the N-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)
+
+        void setNTerminalModification(const ResidueModification& mod) nogil except + # wrap-doc:Sets the N-terminal modification (copies and adds to database if not present)
+
+        void setNTerminalModificationByDiffMonoMass(double diffMonoMass, bool protein_term) nogil except + # wrap-doc:Sets the N-terminal modification by the monoisotopic mass difference it introduces (creates a "user-defined" mod if not present)
+
+        void setCTerminalModification(String modification) nogil except + # wrap-doc:Sets the C-terminal modification (by lookup in the mod names of the ModificationsDB). Throws if nothing is found (since the name is not enough information to create a new mod)
+
+        void setCTerminalModification(const ResidueModification& mod) nogil except + # wrap-doc:Sets the C-terminal modification (copies and adds to database if not present)
+
+        void setCTerminalModificationByDiffMonoMass(double diffMonoMass, bool protein_term) nogil except + # wrap-doc:Sets the C-terminal modification by the monoisotopic mass difference it introduces (creates a "user-defined" mod if not present)
+
         String getNTerminalModificationName() nogil except + # wrap-doc:Returns the name (ID) of the N-terminal modification, or an empty string if none is set
 
-        # sets the C-terminal modification
-        void setCTerminalModification(String modification) nogil except + # wrap-doc:Sets the C-terminal modification
+        const ResidueModification * getNTerminalModification() nogil except + # wrap-doc:Returns a copy of the name N-terminal modification object, or None
 
-        const ResidueModification * getNTerminalModification() nogil except +
-
-        # returns the name (ID) of the C-terminal modification, or an empty string if none is set
         String getCTerminalModificationName() nogil except + # wrap-doc:Returns the name (ID) of the C-terminal modification, or an empty string if none is set
 
-        const ResidueModification * getCTerminalModification() nogil except +
+        const ResidueModification * getCTerminalModification() nogil except + # wrap-doc:Returns a copy of the name C-terminal modification object, or None
 
         # returns the residue at position index
         Residue getResidue(Size index) nogil except + # wrap-doc:Returns the residue at position index
@@ -94,7 +101,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         AASequence getSubsequence(Size index, UInt number) nogil except + # wrap-doc:Returns a peptide sequence of number residues, beginning at position index
 
         # compute frequency table of amino acids
-        void getAAFrequencies(Map[String, size_t]) nogil except + # wrap-ignore
+        void getAAFrequencies(libcpp_map[String, size_t]) nogil except + # wrap-ignore
 
         # returns true if the peptide contains the given residue
         bool has(Residue residue) nogil except + # wrap-doc:Returns true if the peptide contains the given residue

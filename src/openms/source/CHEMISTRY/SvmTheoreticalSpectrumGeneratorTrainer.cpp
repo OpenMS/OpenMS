@@ -39,8 +39,11 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+
 #include <cstdio>
 #include <sstream>
+
+#include "svm.h"
 
 using namespace std;
 

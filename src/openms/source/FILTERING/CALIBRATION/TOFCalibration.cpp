@@ -194,8 +194,6 @@ namespace OpenMS
 
   void TOFCalibration::getMonoisotopicPeaks_(PeakMap & calib_peaks, std::vector<std::vector<unsigned int> > & monoiso_peaks)
   {
-
-    PeakMap::iterator spec_iter;
     PeakMap::SpectrumType::iterator peak_iter, help_iter;
 
 #ifdef DEBUG_CALIBRATION

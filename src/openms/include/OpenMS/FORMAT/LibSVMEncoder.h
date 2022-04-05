@@ -37,10 +37,13 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
-#include <svm.h>
 
 #include <vector>
 #include <utility>
+
+struct svm_problem;
+struct svm_parameter;
+struct svm_model;
 
 namespace OpenMS
 {
@@ -56,9 +59,9 @@ namespace OpenMS
   {
 public:
     /// Constructor
-    LibSVMEncoder();
+    LibSVMEncoder() = default;
     /// Destructor
-    ~LibSVMEncoder();
+    ~LibSVMEncoder() = default;
 
     /**
               @brief stores a composition vector of 'sequence' in 'encoded_vector'
@@ -181,7 +184,7 @@ public:
 
               This function is used to free all the memory used by 'problem'
           */
-    static void destroyProblem(svm_problem * problem);
+    static void destroyProblem(svm_problem* &problem, bool free_nodes = true);
 
     static std::vector<double> predictPeptideRT(const std::vector<String> & sequences,
                                                 SVMWrapper& svm,

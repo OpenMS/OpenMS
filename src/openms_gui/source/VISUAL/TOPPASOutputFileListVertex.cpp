@@ -288,7 +288,7 @@ namespace OpenMS
     TOPPASVertex::inEdgeHasChanged();
   }
 
-  void TOPPASOutputFileListVertex::openContainingFolder()
+  void TOPPASOutputFileListVertex::openContainingFolder() const
   {
     QString path = getFullOutputDirectory().toQString();
     GUIHelpers::openFolder(path);
@@ -329,7 +329,7 @@ namespace OpenMS
     return dir;
   }
 
-  String TOPPASOutputFileListVertex::createOutputDir()
+  String TOPPASOutputFileListVertex::createOutputDir() const
   {
     String full_dir = getFullOutputDirectory();
     if (!File::exists(full_dir))

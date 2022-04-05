@@ -219,7 +219,7 @@ protected:
 
     //load seeds
     FeatureMap seeds;
-    if (getStringOption_("seeds") != "")
+    if (!getStringOption_("seeds").empty())
     {
       FeatureXMLFile().load(getStringOption_("seeds"), seeds);
     }

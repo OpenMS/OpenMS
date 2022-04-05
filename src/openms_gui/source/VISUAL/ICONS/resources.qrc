@@ -30,4 +30,7 @@
         <file>tile_vertical.png</file>
         <file>unassigned.png</file>
     </qresource>
+    <qresource prefix="/new">
+        <file>sequence_viz.html</file>
+    </qresource>
 </RCC>

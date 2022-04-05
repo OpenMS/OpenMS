@@ -104,7 +104,7 @@ namespace OpenMS
     hasFollowUpScan = followUpScan != baseExperiment.end();
   }
 
-  bool IsobaricChannelExtractor::PuritySate_::followUpValid(const double rt)
+  bool IsobaricChannelExtractor::PuritySate_::followUpValid(const double rt) const
   {
     return hasFollowUpScan ? rt < followUpScan->getRT() : true;
   }
@@ -112,7 +112,7 @@ namespace OpenMS
   IsobaricChannelExtractor::IsobaricChannelExtractor(const IsobaricQuantitationMethod* const quant_method) :
     DefaultParamHandler("IsobaricChannelExtractor"),
     quant_method_(quant_method),
-    selected_activation_(""),
+    selected_activation_("any"),
     reporter_mass_shift_(0.1),
     min_precursor_intensity_(1.0),
     keep_unannotated_precursor_(true),
@@ -162,10 +162,11 @@ namespace OpenMS
 
   void IsobaricChannelExtractor::setDefaultParams_()
   {
-    defaults_.setValue("select_activation", Precursor::NamesOfActivationMethod[Precursor::HCID], "Operate only on MSn scans where any of its precursors features a certain activation method (e.g., usually HCD for iTRAQ). Set to empty string if you want to disable filtering.");
+    defaults_.setValue("select_activation", "auto", "Operate only on MSn scans where any of its precursors features a certain activation method. Setting to \"auto\" uses HCD and HCID spectra. Set to empty string if you want to disable filtering.");
     std::vector<std::string> activation_list;
-    activation_list.insert(activation_list.begin(), Precursor::NamesOfActivationMethod, Precursor::NamesOfActivationMethod + Precursor::SIZE_OF_ACTIVATIONMETHOD - 1);
-    activation_list.push_back(""); // allow disabling this
+    activation_list.push_back("auto");
+    activation_list.insert(activation_list.end(), Precursor::NamesOfActivationMethod, Precursor::NamesOfActivationMethod + Precursor::SIZE_OF_ACTIVATIONMETHOD - 1);
+    activation_list.push_back("any"); // allow disabling this
 
     defaults_.setValidStrings("select_activation", activation_list);
 
@@ -471,7 +472,14 @@ namespace OpenMS
     consensus_map.setExperimentType("labeled_MS2");
 
     // create predicate for spectrum checking
-    OPENMS_LOG_INFO << "Selecting scans with activation mode: " << (selected_activation_ == "" ? "any" : selected_activation_) << std::endl;
+    OPENMS_LOG_INFO << "Selecting scans with activation mode: " << selected_activation_ << std::endl;
+    
+    // Select the two possible HCD activation modes according to PSI-MS ontology: HCID and HCD
+    if (selected_activation_ == "auto") 
+    {
+      selected_activation_ = Precursor::NamesOfActivationMethod[Precursor::HCID] + "," + Precursor::NamesOfActivationMethod[Precursor::HCD];
+    }
+
     HasActivationMethod<PeakMap::SpectrumType> isValidActivation(ListUtils::create<String>(selected_activation_));
 
     // walk through spectra and count the number of scans with valid activation method per MS-level
@@ -482,7 +490,7 @@ namespace OpenMS
     {
       if (it->getMSLevel() == 1) continue; // never report MS1
       ++activation_modes[getActivationMethod_(*it)]; // count HCD, CID, ...
-      if (selected_activation_ == "" || isValidActivation(*it))
+      if (selected_activation_ == "any" || isValidActivation(*it))
       {
         ++ms_level[it->getMSLevel()];
       }
@@ -520,7 +528,7 @@ namespace OpenMS
     Size number_of_channels = quant_method_->getNumberOfChannels();
 
     PeakMap::ConstIterator it_last_MS2 = ms_exp_data.end(); // remember last MS2 spec, to get precursor in MS1 (also if quant is in MS3)
-
+    bool ms3 = false;
     for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
     {
       // remember the last MS1 spectra as we assume it to be the precursor spectrum
@@ -535,7 +543,7 @@ namespace OpenMS
 
       if (it->getMSLevel() != quant_ms_level) continue;
       if ((*it).empty()) continue; // skip empty spectra
-      if (!(selected_activation_.empty() || isValidActivation(*it))) continue;
+      if (!(selected_activation_ == "any" || isValidActivation(*it))) continue;
 
       // find following ms1 scan (needed for purity computation)
       if (!pState.followUpValid(it->getRT()))
@@ -570,6 +578,7 @@ namespace OpenMS
 
       if (it->getMSLevel() == 3)
       {
+        ms3 = true;
         // we cannot save just the last MS2 but need to compare to the precursor info stored in the (potential MS3 spectrum)
         it_last_MS2 = ms_exp_data.getPrecursorSpectrum(it);
 
@@ -674,10 +683,16 @@ namespace OpenMS
 
       // embed the id of the scan from which the quantitative information was extracted
       cf.setMetaValue("scan_id", it->getNativeID());
+      // embed the id of the scan from which the ID information should be extracted
+      // helpful for mapping later
+      if (ms3)
+      {
+        cf.setMetaValue("id_scan_id", it_last_MS2->getNativeID());
+      }
       // ...as well as additional meta information
       cf.setMetaValue("precursor_intensity", it->getPrecursors()[0].getIntensity());
 
-      cf.setCharge(it->getPrecursors()[0].getCharge());
+      cf.setCharge(it_last_MS2->getPrecursors()[0].getCharge());
       cf.setIntensity(overall_intensity);
       consensus_map.push_back(cf);
 

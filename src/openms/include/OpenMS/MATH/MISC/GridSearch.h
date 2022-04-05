@@ -35,7 +35,6 @@
 #pragma once
 
 #include <array>
-#include <iostream>
 #include <vector>
 #include <cmath>
 #include <tuple>

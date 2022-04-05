@@ -91,7 +91,7 @@ START_SECTION(Acquisition(Acquisition&&) = default)
   Acquisition ef_mv(std::move(ef));
   TEST_EQUAL(ef_mv == ef2, true)
   TEST_EQUAL(ef == empty, true)
-  TEST_EQUAL(ef.getIdentifier() == "", true)
+  TEST_EQUAL(ef.getIdentifier().empty(), true)
 END_SECTION
 
 START_SECTION(Acquisition& operator= (const Acquisition& source))

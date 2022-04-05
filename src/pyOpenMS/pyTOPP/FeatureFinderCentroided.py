@@ -21,7 +21,7 @@ def run_featurefinder_centroided(input_path, params, seeds, out_path):
     ff.run(name, input_map, features, params, seeds)
 
     features.setUniqueIds()
-    addDataProcessing(features, params, pms.ProcessingAction.QUANTITATION)
+    addDataProcessing(features, params, pms.DataProcessing.ProcessingAction.QUANTITATION)
 
     fh = pms.FeatureXMLFile()
     fh.store(out_path, features)

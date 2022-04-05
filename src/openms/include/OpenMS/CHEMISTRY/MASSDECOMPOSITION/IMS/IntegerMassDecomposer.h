@@ -118,7 +118,7 @@ public:
       decompositions_type getAllDecompositions(value_type mass) override;
 
       /**
-        Gets number of all possible decompositions for a given @c mass.
+        Gets number of all possible decompositions for a given @p mass.
         Since using getAllDecomposition() the usage of this function could
         be @b consuming.
 

@@ -33,13 +33,17 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
 #include <fstream>
 
 #include <boost/dynamic_bitset.hpp>
+
+#include "svm.h"
 
 #ifdef _OPENMP
 #endif
@@ -470,6 +474,10 @@ namespace OpenMS
     std::string model_filename = File::find(search_name + ".svm");
     std::string scale_filename = File::find(search_name + ".scale");
 
+    if (isotope_filt_svm_ != nullptr)
+    {
+      svm_free_and_destroy_model(&isotope_filt_svm_);
+    }
     isotope_filt_svm_ = svm_load_model(model_filename.c_str());
     if (isotope_filt_svm_ == nullptr)
     {
@@ -672,7 +680,7 @@ namespace OpenMS
 
 
     double overlap(0.0);
-    if (overlap_rts.size() > 0)
+    if (!overlap_rts.empty())
     {
       double start_rt(*(overlap_rts.begin())), end_rt(*(overlap_rts.rbegin()));
       overlap = std::fabs(end_rt - start_rt);

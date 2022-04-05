@@ -36,6 +36,8 @@
 #include <OpenMS/ANALYSIS/TARGETED/PSProteinInference.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 
+#undef DEBUG_OPS
+
 #ifdef DEBUG_OPS
 #include <OpenMS/SYSTEM/StopWatch.h>
 #endif
@@ -46,7 +48,7 @@ namespace OpenMS
   PSLPFormulation::PSLPFormulation() :
     DefaultParamHandler("PSLPFormulation"), solver_(LPWrapper::SOLVER_GLPK)
   {
-    //model_ = new LPWrapper();
+    model_ = nullptr;
 
     defaults_.setValue("rt:min_rt", 960., "Minimal rt in seconds.");
     defaults_.setMinFloat("rt:min_rt", 0.);
@@ -123,7 +125,7 @@ namespace OpenMS
 
   PSLPFormulation::~PSLPFormulation()
   {
-    //delete model_;
+    delete model_;
   }
 
   void PSLPFormulation::createAndSolveILP_(const FeatureMap& features, std::vector<std::vector<double> >& intensity_weights,
@@ -133,6 +135,7 @@ namespace OpenMS
                                            Size number_of_scans)
   {
     Int counter = 0;
+    delete model_;
     model_ = new LPWrapper();
     //#define DEBUG_OPS
 #ifdef DEBUG_OPS
@@ -440,6 +443,7 @@ namespace OpenMS
     const std::map<String, std::vector<double> >& pt_prot_map = preprocessing.getProteinPTMap();
     std::map<String, std::vector<double> >::const_iterator map_iter = pt_prot_map.begin();
 
+    delete model_;
     model_ = new LPWrapper();
     model_->setObjectiveSense(LPWrapper::MAX); // maximize
 
@@ -1031,6 +1035,7 @@ namespace OpenMS
 #ifdef DEBUG_OPS
     std::cout << "k2: " << k2 << std::endl;
 #endif
+    delete model_;
     model_ = new LPWrapper();
     Int counter = 0;
 
@@ -1068,7 +1073,7 @@ namespace OpenMS
 #endif
       if (charges_set.count(features[i].getCharge()) < 1)
         continue;
-      if (mass_ranges[i].size() == 0)
+      if (mass_ranges[i].empty())
       {
         std::cout << "No mass ranges for " << features[i].getRT() << " " << features[i].getMZ() << std::endl;
       }
@@ -1485,7 +1490,7 @@ namespace OpenMS
     StopWatch timer;
     timer.start();
 #endif
-    if (new_feature.getPeptideIdentifications().size() > 0 && new_feature.getPeptideIdentifications()[0].getHits().size() > 0)
+    if (!new_feature.getPeptideIdentifications().empty() && !new_feature.getPeptideIdentifications()[0].getHits().empty())
     {
       // if a selected feature yielded a peptide id, the peptide probability needs to be considered in the protein constraint
       double pep_score = new_feature.getPeptideIdentifications()[0].getHits()[0].getScore();

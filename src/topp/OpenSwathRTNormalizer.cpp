@@ -210,7 +210,7 @@ protected:
     // If we have a transformation file, trafo will transform the RT in the
     // scoring according to the model. If we don't have one, it will apply the
     // null transformation.
-    if (getStringOption_("rt_norm").size() > 0)
+    if (!getStringOption_("rt_norm").empty())
     {
       String trafo_in = getStringOption_("rt_norm");
       String model_type = "linear"; //getStringOption_("model:type");

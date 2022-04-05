@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <algorithm>

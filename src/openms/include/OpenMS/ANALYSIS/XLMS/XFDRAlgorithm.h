@@ -111,11 +111,11 @@ private:
     void initDataStructures_(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id);
 
     /**
-     * @brief Inspects PeptideIdentification pep_id and assigns all cross-link types that this identification belongs to
+     * @brief Inspects a PeptideIdentification and assigns all cross-link types that this identification belongs to
      * @param pep_id Peptide ID to be assigned.
      * @param types Result vector containing the names of the crosslink classes
      */
-    static void assignTypes_(PeptideHit& ph, StringList& types);
+    static void assignTypes_(PeptideHit& pep_id, StringList& types);
 
     /** Target counting as performed by the xProphet software package
      *
@@ -124,7 +124,7 @@ private:
      */
     void fdr_xprophet_(std::map< String, Math::Histogram<> >& cum_histograms,
                       const String& targetclass, const String& decoyclass, const String& fulldecoyclass,
-                      std::vector< double >& fdr, bool mono);
+                      std::vector< double >& fdr, bool mono) const;
 
     /**
     * @brief Calculates the qFDR values for the provided FDR values, assuming that the FDRs are sorted by score in the input vector

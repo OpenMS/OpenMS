@@ -3,16 +3,14 @@
 name: openms-ci
 
 # Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
-on:
-  push:
-    branches: [ develop, add/openms_ci_thirdparty_tests ]
+# events
+on: [push]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
 
   build-win:
-    runs-on: windows-latest
+    runs-on: windows-2022
     continue-on-error: true
     steps:
     - uses: actions/checkout@v2
@@ -20,7 +18,7 @@ jobs:
         path: OpenMS
 
     - name: Reduce PATH
-      run: echo "PATH=C:\hostedtoolcache\windows\Python\3.7.9\x64\Scripts;C:\hostedtoolcache\windows\Python\3.7.9\x64;C:\hostedtoolcache\windows\Ruby\2.5.8\x64\bin;C:\Program Files\Java\jdk8u265-b01\bin;C:\ProgramData\kind;C:\vcpkg;C:\cf-cli;C:\Program Files (x86)\NSIS;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0;C:\windows\System32\OpenSSH;C:\ProgramData\Chocolatey\bin;C:\Program Files\Docker;C:\Program Files\PowerShell\7;C:\Program Files\OpenSSL\bin;C:\Strawberry\c\bin;C:\Strawberry\perl\site\bin;C:\Strawberry\perl\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Program Files (x86)\Microsoft Visual Studio\2019\\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      run: echo "PATH=C:\hostedtoolcache\windows\Python\3.7.9\x64\Scripts;C:\hostedtoolcache\windows\Python\3.7.9\x64;C:\hostedtoolcache\windows\Ruby\2.5.8\x64\bin;C:\Program Files\Java\jdk8u265-b01\bin;C:\ProgramData\kind;C:\vcpkg;C:\cf-cli;C:\Program Files (x86)\NSIS;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0;C:\windows\System32\OpenSSH;C:\ProgramData\Chocolatey\bin;C:\Program Files\Docker;C:\Program Files\PowerShell\7;C:\Program Files\OpenSSL\bin;C:\Strawberry\c\bin;C:\Strawberry\perl\site\bin;C:\Strawberry\perl\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Program Files (x86)\Microsoft Visual Studio\2022\\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
@@ -43,7 +41,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ github.workspace }}/OpenMS/contrib
-        key: ${{ runner.os }}-contrib
+        key: ${{ runner.os }}-contrib2
 
     - name: Load contrib build
       if: steps.cache-contrib-win.outputs.cache-hit != 'true'
@@ -71,9 +69,9 @@ jobs:
       id: extract_pr
 
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.8
+      uses: jwlawson/actions-setup-cmake@v1.12
       with:
-        cmake-version: '3.20.x'
+        cmake-version: 'latest'
 
     - name: Add THIRDPARTY
       shell: bash
@@ -109,7 +107,7 @@ jobs:
           fi
 
       env:
-          CMAKE_GENERATOR: "Visual Studio 16 2019"
+          CMAKE_GENERATOR: "Visual Studio 17 2022"
           CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
@@ -142,6 +140,7 @@ jobs:
         install-deps: 'true'
         modules: 'qtsvg'
         cached: 'false'
+        setup-python: 'false' # see https://github.com/jurplel/install-qt-action/issues/130
 
     - name: Install build tools
       run: brew install autoconf automake libtool
@@ -151,7 +150,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ github.workspace }}/OpenMS/contrib
-        key: ${{ runner.os }}-contrib
+        key: ${{ runner.os }}-contrib2
 
     - name: Load contrib build
       if: steps.cache-contrib-os.outputs.cache-hit != 'true'
@@ -164,6 +163,7 @@ jobs:
     - name: Fix contrib install names
       shell: bash 
       run: |
+          shopt -s nullglob # ensure that for loop is only executated if there is at least one .dylib file
           for lib in $GITHUB_WORKSPACE/OpenMS/contrib/lib/*.dylib
           do
             install_name_tool -id $lib $lib
@@ -251,7 +251,7 @@ jobs:
   build-lnx:
     runs-on: ubuntu-latest
     continue-on-error: true
-    container: openms/manylinux:latest
+    container: ghcr.io/openms/contrib_manylinux2014:latest
 
     steps:
     # Cancels older builds if still running
@@ -269,7 +269,6 @@ jobs:
       if: github.event_name == 'push'
       shell: bash
       run: |
-        yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
         yum -y install jq
         ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
         ref=${ref#"refs/heads/"}
@@ -282,7 +281,6 @@ jobs:
       if: github.event_name == 'pull_request'
       shell: bash
       run: |
-        yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
         yum -y install jq
         echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr

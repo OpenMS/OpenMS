@@ -33,14 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
-
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <QtCore/QString>
@@ -48,6 +46,8 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <iomanip>     // setw
+
+#include <map>
 
 using namespace OpenMS;
 using namespace std;
@@ -300,26 +300,26 @@ protected:
       //-------------------------------------------------------------
       // Content statistics
       //-------------------------------------------------------------
-      Map<String, int> meta_names;
+      std::map<String, int> meta_names;
       if (in_type == FileTypes::FEATUREXML) //features
       {
         os << "Number of features: " << feat.size() << endl
            << endl
            << "Ranges:" << endl
-           << "  retention time:  " << String::number(feat.getMin()[Peak2D::RT], 2) << " : " << String::number(feat.getMax()[Peak2D::RT], 2) << endl
-           << "  mass-to-charge:  " << String::number(feat.getMin()[Peak2D::MZ], 2) << " : " << String::number(feat.getMax()[Peak2D::MZ], 2) << endl
-           << "  intensity:       " << String::number(feat.getMinInt(), 2) << " : " << String::number(feat.getMaxInt(), 2) << endl
+           << "  retention time:  " << String::number(feat.getMinRT(), 2) << " : " << String::number(feat.getMaxRT(), 2) << endl
+           << "  mass-to-charge:  " << String::number(feat.getMinMZ(), 2) << " : " << String::number(feat.getMaxMZ(), 2) << endl
+           << "  intensity:       " << String::number(feat.getMinIntensity(), 2) << " : " << String::number(feat.getMaxIntensity(), 2) << endl
            << endl;
 
         // Charge distribution
-        Map<UInt, UInt> charges;
+        std::map<UInt, UInt> charges;
         for (Size i = 0; i < feat.size(); ++i)
         {
           charges[feat[i].getCharge()]++;
         }
 
         os << "Charge distribution" << endl;
-        for (Map<UInt, UInt>::const_iterator it = charges.begin();
+        for (std::map<UInt, UInt>::const_iterator it = charges.begin();
              it != charges.end(); ++it)
         {
           os << "charge " << it->first << ": " << it->second << endl;
@@ -342,9 +342,9 @@ protected:
         os << "  total:      " << setw(6) << cons.size() << endl << endl;
 
         os << "Ranges:" << endl
-           << "  retention time:  " << String::number(cons.getMin()[Peak2D::RT], 2) << " : " << String::number(cons.getMax()[Peak2D::RT], 2) << endl
-           << "  mass-to-charge:  " << String::number(cons.getMin()[Peak2D::MZ], 2) << " : " << String::number(cons.getMax()[Peak2D::MZ], 2) << endl
-           << "  intensity:       " << String::number(cons.getMinInt(), 2) << " : " << String::number(cons.getMaxInt(), 2) << endl;
+           << "  retention time:  " << String::number(cons.getMinRT(), 2) << " : " << String::number(cons.getMaxRT(), 2) << endl
+           << "  mass-to-charge:  " << String::number(cons.getMinMZ(), 2) << " : " << String::number(cons.getMaxMZ(), 2) << endl
+           << "  intensity:       " << String::number(cons.getMinIntensity(), 2) << " : " << String::number(cons.getMaxIntensity(), 2) << endl;
 
         // file descriptions
         const ConsensusMap::ColumnHeaders& descs = cons.getColumnHeaders();

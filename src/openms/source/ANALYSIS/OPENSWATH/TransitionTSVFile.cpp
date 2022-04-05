@@ -351,7 +351,7 @@ namespace OpenMS
       String proteins;
       void(!extractName(proteins, "ProteinName", tmp_line, header_dict) &&
       !extractName(proteins, "ProteinId", tmp_line, header_dict)); // Spectronaut
-      if (proteins != "NA" && proteins != "")
+      if (proteins != "NA" && !proteins.empty())
       {
         proteins.split(';', mytransition.ProteinName);
       }
@@ -397,7 +397,7 @@ namespace OpenMS
       String uniprot_ids;
       void(!extractName(uniprot_ids, "UniprotId", tmp_line, header_dict) &&
       !extractName(uniprot_ids, "UniprotID", tmp_line, header_dict));
-      if (uniprot_ids != "NA" && uniprot_ids != "")
+      if (uniprot_ids != "NA" && !uniprot_ids.empty())
       {
         uniprot_ids.split(';', mytransition.uniprot_id);
       }
@@ -689,6 +689,7 @@ namespace OpenMS
       transition.library_intensity  = tr_it->library_intensity;
       transition.precursor_mz  = tr_it->precursor;
       transition.product_mz  = tr_it->product;
+      transition.precursor_im = tr_it->drift_time;
       transition.fragment_charge = 0; // use zero for charge that is not set
       if (!tr_it->fragment_charge.empty() && tr_it->fragment_charge != "NA")
       {
@@ -839,7 +840,7 @@ namespace OpenMS
     if (tr_it->fragment_nr != -1 ||
         tr_it->fragment_mzdelta != -1 ||
         tr_it->fragment_modification < 0 ||
-        tr_it->fragment_type != "" )
+        !tr_it->fragment_type.empty() )
     {
       interpretation_set = true;
     }
@@ -928,7 +929,7 @@ namespace OpenMS
       // unknown means that we should write CV Term "1001240"
       interpretation.iontype = TargetedExperiment::IonType::NonIdentified;
     }
-    else if (tr_it->fragment_type == "")
+    else if (tr_it->fragment_type.empty())
     {
       // empty means that we have no information whatsoever
       interpretation.iontype = TargetedExperiment::IonType::Unannotated;
@@ -1242,7 +1243,7 @@ namespace OpenMS
           mytransition.ProteinName.push_back(prot.id);
           if (prot.hasCVTerm("MS:1000885"))
           {
-            mytransition.uniprot_id.push_back(prot.getCVTerms()["MS:1000885"][0].getValue().toString());
+            mytransition.uniprot_id.push_back(prot.getCVTerms().at("MS:1000885")[0].getValue().toString());
           }
         }
       }
@@ -1260,7 +1261,7 @@ namespace OpenMS
         mytransition.precursor_charge = String(pep.getChargeState());
       }
       mytransition.peptide_group_label = "NA";
-      if (pep.getPeptideGroupLabel() != "")
+      if (!pep.getPeptideGroupLabel().empty())
       {
         mytransition.peptide_group_label = pep.getPeptideGroupLabel();
       }
@@ -1381,7 +1382,7 @@ namespace OpenMS
     mytransition.CE = -1;
     if (it->hasCVTerm("MS:1000045"))
     {
-      mytransition.CE = it->getCVTerms()["MS:1000045"][0].getValue().toString().toDouble();
+      mytransition.CE = it->getCVTerms().at("MS:1000045")[0].getValue().toString().toDouble();
     }
     mytransition.library_intensity = -1;
     if (it->getLibraryIntensity() > -100)

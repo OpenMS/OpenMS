@@ -16,11 +16,11 @@
 
 #pragma once
 
-#include <string.h>
-#include "platform.h"
 #include "conf.h"
 #include "isoMath.h"
 #include "misc.h"
+#include "platform.h"
+#include <cstring>
 
 namespace IsoSpec
 {

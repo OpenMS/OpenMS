@@ -34,6 +34,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 
+#include <unsupported/Eigen/NonLinearOptimization>
+#include <Eigen/Core>
+
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <numeric> // for "accumulate"

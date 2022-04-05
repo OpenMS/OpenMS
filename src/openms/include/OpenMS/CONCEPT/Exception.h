@@ -38,7 +38,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <iosfwd>
-#include <new>
 #include <string>
 #include <stdexcept>
 
@@ -279,6 +278,7 @@ public:
     {
 public:
       InvalidRange(const char* file, int line, const char* function) noexcept;
+      InvalidRange(const char* file, int line, const char* function, const std::string& message) noexcept;
     };
 
 
@@ -456,19 +456,13 @@ public:
 
       @ingroup Exceptions
     */
-#ifdef _MSC_VER // disable some seqan warnings that distract from ours
-#   pragma warning( push ) // save warning state
-#   pragma warning( disable : 4275 )
-#endif
     class OPENMS_DLLAPI OutOfMemory :
       public BaseException, public std::bad_alloc
     {
 public:
       OutOfMemory(const char* file, int line, const char* function, Size size = 0) noexcept;
     };
-#ifdef _MSC_VER
-#   pragma warning( pop ) // restore old warning state
-#endif
+
     /**
       @brief Buffer overflow exception.
 
@@ -656,6 +650,18 @@ public:
     {
 public:
       IllegalArgument(const char* file, int line, const char* function, const std::string& error_message) noexcept;
+    };
+
+    /**
+      @brief A tool or algorithm which was called internally raised an exception
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI InternalToolError :
+      public BaseException
+    {
+    public:
+      InternalToolError(const char* file, int line, const char* function, const std::string& error_message) noexcept;
     };
 
     /**

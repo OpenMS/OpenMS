@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_doc")
-cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.9.0 FATAL_ERROR)
 
 #------------------------------------------------------------------------------
 # helper macro
@@ -68,38 +68,26 @@ if(ENABLE_DOCS)
   #------------------------------------------------------------------------------
   # doc programs
   #------------------------------------------------------------------------------
+  # TODO switch to target based linking and avoid re-searching Qt.
+  # At least reuse the COMPONENT variables
   set(OpenMS_doc_executables)
   include(doxygen/parameters/executables.cmake)
 
   set(OPENMS_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "doxygen/parameters")
 
-  # check whether OpenMS_GUI is available or not
-  set(_doc_progs_include )
-  set(_doc_progs_link_libraries )
-  if(WITH_GUI)
-    #------------------------------------------------------------------------------
-    # QT dependencies
-    find_package(Qt5 COMPONENTS Core Network Svg OpenGL REQUIRED)
-    set(_doc_progs_include ${OpenMS_GUI_INCLUDE_DIRECTORIES})
-    set(_doc_progs_link_libraries ${OpenMS_GUI_LIBRARIES})
-  else()
-    find_package(Qt5 COMPONENTS Core Network REQUIRED)
-    set(_doc_progs_include ${OpenMS_INCLUDE_DIRECTORIES})
-    set(_doc_progs_link_libraries ${OpenMS_LIBRARIES})
-  endif()
-
-  include_directories(SYSTEM ${_doc_progs_include})
   add_definitions(/DBOOST_ALL_NO_LIB)
 
   # build doc executables
   foreach(i ${OpenMS_doc_executables})
     add_executable(${i} EXCLUDE_FROM_ALL doxygen/parameters/${i}.cpp)
-    target_link_libraries(${i} ${_doc_progs_link_libraries})
-
+    
     # let the doc progs decide how to handle a missing OpenMS_GUI library
     if(WITH_GUI)
       set_target_properties(${i} PROPERTIES COMPILE_DEFINITIONS "WITH_GUI=1")
+      target_link_libraries(${i} OpenMS OpenMS_GUI)
+    else()
+      target_link_libraries(${i} OpenMS)
     endif()
   endforeach(i)
 

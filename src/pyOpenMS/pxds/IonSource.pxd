@@ -12,19 +12,13 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS":
         IonSource() nogil except + # wrap-doc:Description of an ion source (part of a MS Instrument)
         IonSource(IonSource &) nogil except +
 
-        # returns the ionization mode
         Polarity getPolarity() nogil except + # wrap-doc:Returns the ionization mode
-        # sets the ionization mode
         void setPolarity(Polarity polarity) nogil except + # wrap-doc:Sets the ionization mode
 
-        # returns the inlet type
         InletType getInletType() nogil except + # wrap-doc:Returns the inlet type
-        # sets the  inlet type
         void setInletType(InletType inlet_type) nogil except + # wrap-doc:Sets the  inlet type
 
-        # returns the ionization method
         IonizationMethod getIonizationMethod() nogil except + # wrap-doc:Returns the ionization method
-        # sets the ionization method
         void setIonizationMethod(IonizationMethod ionization_type) nogil except + # wrap-doc:Sets the ionization method
 
         Int getOrder() nogil except +
@@ -38,7 +32,6 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS":
                 #   -----
                 #   For more complex instruments, the order should be defined.
 
-        # sets the order
         void setOrder(Int order) nogil except + # wrap-doc:Sets the order
 
 cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS::IonSource":

@@ -41,8 +41,6 @@
 
 namespace OpenMS
 {
-
-  static FileTypes::FileTypeList test_type_list({ FileTypes::MZML });
   /// connect the type to some other information
   /// We could also use paired arrays, but this way, its less likely to have mismatches if a new type is added
   struct TypeNameBinding
@@ -55,7 +53,7 @@ namespace OpenMS
     {
     }
   };
-  
+
   /// Maps the FileType::Type to the preferred extension.
   static const std::array<TypeNameBinding, FileTypes::SIZE_OF_TYPE> type_with_annotation__ =
   {
@@ -102,7 +100,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::XSD, "xsd", "XSD schema format"),
     TypeNameBinding(FileTypes::PSQ, "psq", "NCBI binary blast db"),
     TypeNameBinding(FileTypes::MRM, "mrm", "SpectraST MRM list"),
-    TypeNameBinding(FileTypes::SQMASS, "sqMass", "SqLite format for mass and chromatograms"),
+    TypeNameBinding(FileTypes::SQMASS, "sqMass", "SQLite format for mass and chromatograms"),
     TypeNameBinding(FileTypes::PQP, "pqp", "pqp file"),
     TypeNameBinding(FileTypes::MS, "ms", "SIRIUS file"),
     TypeNameBinding(FileTypes::OSW, "osw", "OpenSwath output files"),
@@ -115,19 +113,19 @@ namespace OpenMS
     TypeNameBinding(FileTypes::SPECXML, "spec.xml", "spec.xml file"),
     TypeNameBinding(FileTypes::JSON, "json", "JavaScript Object Notation file"),
     TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file"),
+    TypeNameBinding(FileTypes::OMS, "oms", "OpenMS SQLite file"),
     TypeNameBinding(FileTypes::EXE, "exe", "Windows executable"),
     TypeNameBinding(FileTypes::BZ2, "bz2", "bzip2 compressed file"),
     TypeNameBinding(FileTypes::GZ, "gz", "gzip compressed file"),
     TypeNameBinding(FileTypes::XML, "xml", "any XML file")  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
   };
 
-  FileTypes::FileTypeList::FileTypeList(const std::vector<Type>& types)
+  FileTypeList::FileTypeList(const std::vector<FileTypes::Type>& types)
     : type_list_(types)
   {
   }
 
-  /// check if @p type is contained in this array
-  bool FileTypes::FileTypeList::contains(const Type& type) const
+  bool FileTypeList::contains(const FileTypes::Type& type) const
   {
     for (const auto& t : type_list_)
     {
@@ -139,41 +137,55 @@ namespace OpenMS
     return false;
   }
 
-  /// converts the array into a Qt-compatible filter for selecting files in a user dialog.
-  /// e.g. "all readable files (*.mzML *.mzXML);;". See Filter enum.
-  /// @param style Create a combined filter, or single filters, or both
-  /// @param add_all_filter Add 'all files (*)' as a single filter at the end?
-  String FileTypes::FileTypeList::toFileDialogFilter(const Filter style, bool add_all_filter) const
+  String FileTypeList::toFileDialogFilter(const FilterLayout style, bool add_all_filter) const
   {
-    String out;
-    if (style == Filter::COMPACT || style == Filter::BOTH)
+    return ListUtils::concatenate(asFilterElements_(style, add_all_filter).items, ";;");
+  }
+
+  FileTypes::Type FileTypeList::fromFileDialogFilter(const String& filter, const FileTypes::Type fallback) const
+  {
+    auto candidates = asFilterElements_(FilterLayout::BOTH, true); // may add more filters than needed, but that's fine
+
+    auto where = std::find(candidates.items.begin(), candidates.items.end(), filter);
+    if (where == candidates.items.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filter);
+    }
+    const FileTypes::Type r = candidates.types[where - candidates.items.begin()];
+    return r == FileTypes::Type::UNKNOWN ? fallback : r;
+  }
+
+  
+  FileTypeList::FilterElements_ FileTypeList::asFilterElements_(const FilterLayout style, bool add_all_filter) const
+  {
+    FilterElements_ result;
+
+    if (style == FilterLayout::COMPACT || style == FilterLayout::BOTH)
     {
       StringList items;
       for (const auto& t : type_list_)
       {
         items.push_back("*." + FileTypes::typeToName(t));
       }
-      out += "all readable files (" + ListUtils::concatenate(items, " ") + ");;";
-    }
-    if (style == Filter::ONE_BY_ONE || style == Filter::BOTH)
+      result.items.push_back("all readable files (" + ListUtils::concatenate(items, " ") + ")");
+      result.types.push_back(FileTypes::Type::UNKNOWN); // cannot associate a single type to a collection
+    }                                     
+    if (style == FilterLayout::ONE_BY_ONE || style == FilterLayout::BOTH)
     {
       StringList items;
       for (const auto& t : type_list_)
       {
-        items.push_back(FileTypes::typeToDescription(t) + " (*." + FileTypes::typeToName(t) + ");;");
+        result.items.push_back(FileTypes::typeToDescription(t) + " (*." + FileTypes::typeToName(t) + ")");
+        result.types.push_back(t);
       }
-      out += ListUtils::concatenate(items, "");
     }
     if (add_all_filter)
     {
-      out += "all files (*);;";
+      result.items.push_back("all files (*)");
+      result.types.push_back(FileTypes::Type::UNKNOWN); // cannot associate a single type to a collection
     }
-    // remove the last ";;", since this will be interpreted as ' (*)' by Qt
-    out = out.chop(2);
-
-    return out;
+    return result;
   }
-
 
   String FileTypes::typeToName(FileTypes::Type type)
   {
@@ -200,7 +212,7 @@ namespace OpenMS
   FileTypes::Type FileTypes::nameToType(const String& name)
   {
     String name_upper = String(name).toUpper();
-    
+
     for (const auto& t_info : type_with_annotation__)
     {
       if (String(t_info.name).toUpper() == name_upper)

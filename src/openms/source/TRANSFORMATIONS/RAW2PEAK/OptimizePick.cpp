@@ -31,13 +31,16 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
+
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
+
+#include <Eigen/Core>
+#include <unsupported/Eigen/NonLinearOptimization>
+
 #include <algorithm>
 #include <cmath>
 
 #include <boost/math/special_functions/acosh.hpp>
-
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
-
 
 using std::max;
 
@@ -88,12 +91,12 @@ namespace OpenMS
       double wl = current_peak.left_width;
       double wr = current_peak.right_width;
       double p  = current_peak.mz_position;
-      if (boost::math::isnan(wl))
+      if (std::isnan(wl))
       {
         data.peaks[i].left_width = 1;
         wl = 1.;
       }
-      if (boost::math::isnan(wr))
+      if (std::isnan(wr))
       {
         data.peaks[i].right_width = 1;
         wr = 1.;
@@ -146,8 +149,8 @@ namespace OpenMS
       else  //It's a Sech - Peak
       {
         PeakShape p = peaks[global_peak_number + current_peak];
-        double x_left_endpoint = p.mz_position - 1 / p.left_width * boost::math::acosh(sqrt(p.height / 0.001));
-        double x_right_endpoint = p.mz_position + 1 / p.right_width * boost::math::acosh(sqrt(p.height / 0.001));
+        double x_left_endpoint = p.mz_position - 1 / p.left_width * std::acosh(sqrt(p.height / 0.001));
+        double x_right_endpoint = p.mz_position + 1 / p.right_width * std::acosh(sqrt(p.height / 0.001));
         double area_left = p.height / p.left_width * (sinh(p.left_width * (p.mz_position - x_left_endpoint)) / cosh(p.left_width * (p.mz_position - x_left_endpoint)));
         double area_right = -p.height / p.right_width * (sinh(p.right_width * (p.mz_position - x_right_endpoint)) / cosh(p.right_width * (p.mz_position - x_right_endpoint)));
         peaks[global_peak_number + current_peak].area = area_left + area_right;

@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
+#include <map>
 
 namespace OpenMS
 {
@@ -91,7 +92,7 @@ protected:
 
     void addLabelToProteinHits_(SimTypes::FeatureMapSim& features, const String& label) const;
 
-    Feature mergeFeatures_(Feature& labeled_channel_feature, const AASequence& unmodified_sequence, Map<String, Feature>& unlabeled_features_index) const;
+    Feature mergeFeatures_(Feature& labeled_channel_feature, const AASequence& unmodified_sequence, std::map<String, Feature>& unlabeled_features_index) const;
 
     String light_channel_label_;
     String medium_channel_label_;

@@ -50,11 +50,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -262,7 +260,18 @@ protected:
     mzml.load(in, ff_mident.getMSData());
 
     FeatureMap features;
-    ff_mident.run(table, features);
+    ff_mident.run(table, features, in);
+    
+    // annotate "spectra_data" metavalue
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      features.setPrimaryMSRunPath({"file://" + File::basename(in)});
+    }
+    else
+    {
+      features.setPrimaryMSRunPath({in}, ff_mident.getMSData());
+    }    
 
     addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
 

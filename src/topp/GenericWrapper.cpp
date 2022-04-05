@@ -43,7 +43,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QProcess>
 #include <QFileInfo>
@@ -237,7 +236,7 @@ protected:
       param_names.push_back(it->name);
     }
     // sort by length
-    std::sort(param_names.begin(), param_names.end(), reverseComparator(StringSizeLess()));
+    std::sort(param_names.begin(), param_names.end(), [](auto &left, auto &right) {StringSizeLess cmp; return cmp(right, left);});
 
     // iterate through all input params and replace with values:
     SignedSize allowed_percent(0); // filenames might contain '%', which are allowed to remain there (and even must remain)
@@ -332,7 +331,7 @@ protected:
 
   Internal::ToolExternalDetails tde_;
 
-  ExitCodes wrapExit(const ExitCodes return_code)
+  ExitCodes wrapExit(const ExitCodes return_code) const
   {
     if (return_code != EXECUTION_OK)
     {
@@ -417,7 +416,7 @@ protected:
       if (type == gw.types[i])
       {
         tde_ = gw.external_details[i];
-        if (tde_.working_directory.trim() == "")
+        if (tde_.working_directory.trim().empty())
         {
           tde_.working_directory = ".";
         }

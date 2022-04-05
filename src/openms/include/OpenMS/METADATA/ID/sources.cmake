@@ -5,19 +5,21 @@ set(directory include/OpenMS/METADATA/ID)
 set(sources_list_h
 AppliedProcessingStep.h
 DBSearchParam.h
-DataProcessingSoftware.h
-DataProcessingStep.h
-DataQuery.h
+ProcessingSoftware.h
+ProcessingStep.h
+Observation.h
 IdentificationData.h
 IdentificationDataConverter.h
 IdentifiedCompound.h
+IdentifiedMolecule.h
 IdentifiedSequence.h
+InputFile.h
 MetaData.h
-MoleculeParentMatch.h
-MoleculeQueryMatch.h
-ParentMolecule.h
-ParentMoleculeGroup.h
-QueryMatchGroup.h
+ParentMatch.h
+ObservationMatch.h
+ParentSequence.h
+ParentGroup.h
+ObservationMatchGroup.h
 ScoreType.h
 ScoredProcessingResult.h
 )
@@ -32,4 +34,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\METADATA\\ID" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

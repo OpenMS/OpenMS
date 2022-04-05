@@ -124,10 +124,10 @@ namespace OpenMS
   public:
 
     /// blocks of spectra (master-spectrum index to sacrifice-spectra(the ones being merged into the master-spectrum))
-    typedef Map<Size, std::vector<Size> > MergeBlocks;
+    typedef std::map<Size, std::vector<Size> > MergeBlocks;
 
     /// blocks of spectra (master-spectrum index to update to spectra to average over)
-    typedef Map<Size, std::vector<std::pair<Size, double> > > AverageBlocks;
+    typedef std::map<Size, std::vector<std::pair<Size, double> > > AverageBlocks;
 
     // @name Constructors and Destructors
     // @{
@@ -208,7 +208,7 @@ namespace OpenMS
       // convert spectra's precursors to clusterizable data
       Size data_size;
       std::vector<BinaryTreeNode> tree;
-      Map<Size, Size> index_mapping;
+      std::map<Size, Size> index_mapping;
       // local scope to save memory - we do not need the clustering stuff later
       {
         std::vector<BaseFeature> data;
@@ -520,7 +520,7 @@ namespace OpenMS
                                           "Input mzML does not have any spectra of MS level specified by ms_level.");
       }
       // normalize weights
-      for (AverageBlocks::Iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      for (AverageBlocks::iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         double sum(0.0);
         for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin();
@@ -592,7 +592,7 @@ namespace OpenMS
       // merge spectra
       MapType merged_spectra;
 
-      Map<Size, Size> cluster_sizes;
+      std::map<Size, Size> cluster_sizes;
       std::set<Size> merged_indices;
 
       // set up alignment
@@ -660,7 +660,7 @@ namespace OpenMS
           Size spec_a = consensus_spec.size(), spec_b = exp[*sit].size(), align_size = alignment.size();
           for (auto pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
           {
-            if (alignment.size() == 0 || alignment[align_index].second != spec_b_index)
+            if (alignment.empty() || alignment[align_index].second != spec_b_index)
               // ... add unaligned peak
             {
               consensus_spec.push_back(*pit);
@@ -671,16 +671,16 @@ namespace OpenMS
               Size counter(0);
               Size copy_of_align_index(align_index);
 
-              while (alignment.size() > 0 &&
-                     copy_of_align_index < alignment.size() &&
+              while (!alignment.empty() && 
+                     copy_of_align_index < alignment.size() && 
                      alignment[copy_of_align_index].second == spec_b_index)
               {
                 ++copy_of_align_index;
                 ++counter;
               } // Count the number of peaks in a which correspond to a single b peak.
 
-              while (alignment.size() > 0 &&
-                     align_index < alignment.size() &&
+              while (!alignment.empty() &&
+                     align_index < alignment.size() &&  
                      alignment[align_index].second == spec_b_index)
               {
                 consensus_spec[alignment[align_index].first]
@@ -730,7 +730,7 @@ namespace OpenMS
       }
 
       OPENMS_LOG_INFO << "Cluster sizes:\n";
-      for (Map<Size, Size>::const_iterator it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
+      for (std::map<Size, Size>::const_iterator it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
       {
         OPENMS_LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
       }
@@ -798,7 +798,7 @@ namespace OpenMS
       startProgress(0, spectra_to_average_over.size(), progress_message.str());
 
       // loop over blocks
-      for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      for (AverageBlocks::const_iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         setProgress(++progress);
 
@@ -873,7 +873,7 @@ namespace OpenMS
       // loop over blocks
       int n(0);
       //typename MapType::SpectrumType empty_spec;
-      for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      for (AverageBlocks::const_iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         exp[it->first] = exp_tmp[n];
         //exp_tmp[n] = empty_spec;
@@ -912,7 +912,7 @@ namespace OpenMS
       logger.startProgress(0, spectra_to_average_over.size(), progress_message.str());
 
       // loop over blocks
-      for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      for (AverageBlocks::const_iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         logger.setProgress(++progress);
 
@@ -991,7 +991,7 @@ namespace OpenMS
 
       // loop over blocks
       int n(0);
-      for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      for (AverageBlocks::const_iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         exp[it->first] = exp_tmp[n];
         ++n;

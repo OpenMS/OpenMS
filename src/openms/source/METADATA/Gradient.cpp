@@ -84,7 +84,7 @@ namespace OpenMS
 
   void Gradient::addTimepoint(Int timepoint)
   {
-    if ((times_.size() > 0) && (timepoint <= times_[times_.size() - 1]))
+    if ((!times_.empty()) && (timepoint <= times_[times_.size() - 1]))
     {
       throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }

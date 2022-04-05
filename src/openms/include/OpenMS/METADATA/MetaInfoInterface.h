@@ -75,6 +75,9 @@ public:
     /// Move assignment operator
     MetaInfoInterface& operator=(MetaInfoInterface&&) noexcept;
 
+    /// Swap contents
+    void swap(MetaInfoInterface& rhs);
+
     /// Equality operator
     bool operator==(const MetaInfoInterface& rhs) const;
     /// Equality operator
@@ -128,4 +131,3 @@ protected:
   };
 
 } // namespace OpenMS
-

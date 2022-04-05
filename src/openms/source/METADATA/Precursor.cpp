@@ -39,8 +39,44 @@ using namespace std;
 namespace OpenMS
 {
 
-  const std::string Precursor::NamesOfActivationMethod[] = {"Collision-induced dissociation", "Post-source decay", "Plasma desorption", "Surface-induced dissociation", "Blackbody infrared radiative dissociation", "Electron capture dissociation", "Infrared multiphoton dissociation", "Sustained off-resonance irradiation", "High-energy collision-induced dissociation", "Low-energy collision-induced dissociation", "Photodissociation", "Electron transfer dissociation", "Pulsed q dissociation"};
-  const std::string Precursor::NamesOfActivationMethodShort[] = { "CID", "PSD", "PD", "SID", "BIRD", "ECD", "IMD", "SORI", "HCID", "LCID", "PHD", "ETD", "PQD" };
+  const std::string Precursor::NamesOfActivationMethod[] = {
+    "Collision-induced dissociation", 
+    "Post-source decay", 
+    "Plasma desorption", 
+    "Surface-induced dissociation", 
+    "Blackbody infrared radiative dissociation", 
+    "Electron capture dissociation", 
+    "Infrared multiphoton dissociation", 
+    "Sustained off-resonance irradiation", 
+    "High-energy collision-induced dissociation", 
+    "Low-energy collision-induced dissociation", 
+    "Photodissociation", 
+    "Electron transfer dissociation", 
+    "Pulsed q dissociation",
+    "trap-type collision-induced dissociation",
+    "beam-type collision-induced dissociation", // == HCD
+    "in-source collision-induced dissociation",
+    "Bruker proprietary method"
+    };
+  const std::string Precursor::NamesOfActivationMethodShort[] = { 
+    "CID", 
+    "PSD", 
+    "PD", 
+    "SID", 
+    "BIRD", 
+    "ECD", 
+    "IMD", 
+    "SORI", 
+    "HCID", 
+    "LCID", 
+    "PHD", 
+    "ETD", 
+    "PQD",
+    "TRAP",
+    "HCD",
+    "INSOURCE",
+    "LIFT"
+    };
 
   Precursor::Precursor(Precursor&& rhs) noexcept :
       CVTermList(std::move(rhs)),
