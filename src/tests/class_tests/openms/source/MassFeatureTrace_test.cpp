@@ -176,13 +176,14 @@ START_SECTION((void findFeatures(const String &file_name, const bool promex_out,
   int feature_index = 1;
   std::fstream fsf; // feature output stream
   std::fstream fsp; // promex output stream (null)
-  std::vector<fstream> topfd_streams; // TopFD output streams (null)
+  std::vector<std::fstream> topfd_streams; // TopFD output streams (null)
   String tmp_out_file;
   NEW_TMP_FILE(tmp_out_file);
   fsf.open(tmp_out_file, fstream::out);
-  FLASHDeconvHelperStructs::PrecalculatedAveragine averagine;
+  CoarseIsotopePatternGenerator *generator = new CoarseIsotopePatternGenerator();
+  FLASHDeconvHelperStructs::PrecalculatedAveragine averagine(17000, 19000, 1000, generator, false);
   FLASHDeconvAlgorithm fd = FLASHDeconvAlgorithm();
-  averagine = fd.getAveragine();
+//  averagine = ;
 
   MassFeatureTrace mass_tracer;
   mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec1);

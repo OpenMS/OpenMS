@@ -99,7 +99,7 @@ START_SECTION((void calculateAveragine(const bool use_RNA_averagine)))
 
   TEST_EQUAL(precalculated_avg.getMaxIsotopeIndex(), 5);
   TEST_EQUAL(precalculated_avg.getApexIndex(50), 0);
-  TEST_REAL_SIMILAR(precalculated_avg.getAverageMassDelta(50), 0.0296591659229435);
+  TEST_REAL_SIMILAR(precalculated_avg.getAverageMassDelta(50), 0.0251458164883118);
 
   TEST_EQUAL(precalculated_avg_tmp.getMaxIsotopeIndex(), 1);
   TEST_EQUAL(precalculated_avg_tmp.getApexIndex(50), 0);
@@ -113,7 +113,7 @@ START_SECTION((PrecalculatedAveragine getAveragine()))
 
   TEST_EQUAL(precalculated_avg.getMaxIsotopeIndex(), 5);
   TEST_EQUAL(precalculated_avg.getApexIndex(50), 0);
-  TEST_REAL_SIMILAR(precalculated_avg.getAverageMassDelta(50), 0.0296591659229435);
+  TEST_REAL_SIMILAR(precalculated_avg.getAverageMassDelta(50), 0.0251458164883118);
 }
 END_SECTION
 
@@ -137,9 +137,9 @@ START_SECTION((static double getIsotopeCosineAndDetermineIsotopeIndex(const doub
   double tmp_iso_3 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1500., tmp_iso_inty, offset,
                                                                       fd_algo.getAveragine(), false);
 
-  TEST_REAL_SIMILAR(tmp_iso_1, 0.99999997024829767);
-  TEST_REAL_SIMILAR(tmp_iso_2, 0.99999997024829767);
-  TEST_REAL_SIMILAR(tmp_iso_3, 0.96541073936218491);
+  TEST_REAL_SIMILAR(tmp_iso_1, 0.999980489974582);
+  TEST_REAL_SIMILAR(tmp_iso_2, 0.999980489974582);
+  TEST_REAL_SIMILAR(tmp_iso_3, 0.965410739362185);
 }
 END_SECTION
 
@@ -165,10 +165,10 @@ START_SECTION((DeconvolvedSpectrum& getDeconvolvedSpectrum(const MSSpectrum &spe
   DeconvolvedSpectrum d_spec_3 = fd_algo.getDeconvolvedSpectrum(input[5], survey_specs, 6, null_map);
 
   TEST_EQUAL(d_spec_1.getScanNumber(), 2);
-  TEST_EQUAL(d_spec_1.size(), 3);
+  TEST_EQUAL(d_spec_1.size(), 1);
   TEST_EQUAL(d_spec_2.getPrecursorPeakGroup().size(), 0);
   TEST_REAL_SIMILAR(d_spec_2.getPrecursor().getIntensity(), .0);
-  TEST_EQUAL(d_spec_3.getPrecursorPeakGroup().size(), 39);
+  TEST_EQUAL(d_spec_3.getPrecursorPeakGroup().size(), 0);
   TEST_EQUAL(d_spec_3.getPrecursor().getCharge(), 9);
 }
 END_SECTION

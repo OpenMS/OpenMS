@@ -120,7 +120,7 @@ START_SECTION((bool registerPrecursor(const std::vector< DeconvolvedSpectrum > &
   Size precursor_pg_size = ms2_deconv_spec.getPrecursorPeakGroup().size();
 
   TEST_EQUAL(is_not_registered, false);
-  TEST_EQUAL(precursor_pg_size, 39);
+  TEST_EQUAL(precursor_pg_size, 31);
 }
 END_SECTION
 
@@ -129,7 +129,7 @@ START_SECTION((double getCurrentMaxMass(const double max_mass) const))
   double ms1_max_mass = test_deconv_spec.getCurrentMaxMass(1000.);
   double ms2_max_mass = ms2_deconv_spec.getCurrentMaxMass(1000.);
   TEST_REAL_SIMILAR(ms1_max_mass, 1000.);
-  TEST_REAL_SIMILAR(ms2_max_mass, 13673.076424825478);
+  TEST_REAL_SIMILAR(ms2_max_mass, 13673.239337872);
 }
 END_SECTION
 
@@ -145,7 +145,7 @@ END_SECTION
 START_SECTION((MSSpectrum toSpectrum(const int mass_charge)))
 {
   MSSpectrum peakgroup_spec = prec_deconv_spec_1.toSpectrum(9);
-  TEST_EQUAL(peakgroup_spec.size(), 3);
+  TEST_EQUAL(peakgroup_spec.size(), 1);
   TEST_REAL_SIMILAR(peakgroup_spec.getRT(), 251.72280736002);
 }
 END_SECTION
@@ -154,9 +154,9 @@ START_SECTION((PeakGroup getPrecursorPeakGroup() const))
 {
   PeakGroup tmp_precursor_pgs = ms2_deconv_spec.getPrecursorPeakGroup();
 
-  TEST_EQUAL(tmp_precursor_pgs.size(), 39);
-  TEST_REAL_SIMILAR(tmp_precursor_pgs.getMonoMass(), 13673.076424825478);
-  TEST_REAL_SIMILAR(tmp_precursor_pgs.getIntensity(), 90717.793212890625);
+  TEST_EQUAL(tmp_precursor_pgs.size(), 31);
+  TEST_REAL_SIMILAR(tmp_precursor_pgs.getMonoMass(), 13673.239337872);
+  TEST_REAL_SIMILAR(tmp_precursor_pgs.getIntensity(), 114155.274536133);
   TEST_EQUAL(tmp_precursor_pgs.getScanNumber(), 4);
 }
 END_SECTION
@@ -166,7 +166,7 @@ START_SECTION((const Precursor getPrecursor() const))
   Precursor tmp_precursor = ms2_deconv_spec.getPrecursor();
   TEST_EQUAL(tmp_precursor.getCharge(), 9);
   TEST_REAL_SIMILAR(tmp_precursor.getUnchargedMass(), 13682.3053614085);
-  TEST_REAL_SIMILAR(tmp_precursor.getIntensity(), 12293.3936);
+  TEST_REAL_SIMILAR(tmp_precursor.getIntensity(), 12031);
 }
 END_SECTION
 
