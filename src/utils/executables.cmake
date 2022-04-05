@@ -56,6 +56,7 @@ RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
+SimpleTDID
 SiriusAdapter
 SpecLibCreator
 SpectraSTSearchAdapter
