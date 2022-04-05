@@ -95,6 +95,41 @@ cdef extern from "<OpenMS/METADATA/ID/IdentificationData.h>" namespace "OpenMS":
       ObservationMatches& getObservationMatches() nogil except +
 
       ObservationMatchGroups& getObservationMatchGroups() nogil except +
+      
+      void addScore(ObservationMatchRef match_ref, ScoreTypeRef score_ref, double value) nogil except +
+
+      void setCurrentProcessingStep(ProcessingStepRef step_ref) nogil except +
+
+      ProcessingStepRef getCurrentProcessingStep() nogil except +
+
+      void clearCurrentProcessingStep() nogil except +
+
+      libcpp_vector[ObservationMatchRef] getBestMatchPerObservation(ScoreTypeRef score_ref,bool require_score) nogil except +
+      
+      libcpp_pair[ObservationMatchRef, ObservationMatchRef] getMatchesForObservation(ObservationRef obs_ref) nogil except +
+
+      ScoreTypeRef findScoreType(const String& score_name) nogil except +
+
+      void calculateCoverages(bool check_molecule_length) nogil except +
+
+      void cleanup(bool require_observation_match, bool require_identified_sequence, bool require_parent_match, bool require_parent_group, bool require_match_group) nogil except +
+
+      bool empty() nogil except +
+
+      #RefTranslator merge(const IdentificationData& other) nogil except + #FIXME needs RefTranslator
+
+      void swap(IdentificationData& other) nogil except +
+
+      void clear() nogil except +
+
+      #ScoreTypeRef pickScoreType(const ScoredProcessingResults& container,bool all_elements = false, bool any_score = false) nogil except +
+
+      void setMetaValue(const ObservationMatchRef ref, const String& key, const DataValue& value) nogil except +
+
+      void setMetaValue(const ObservationRef ref, const String& key, const DataValue& value) nogil except +
+
+      void setMetaValue(const IdentifiedMolecule& var, const String& key, const DataValue& value) nogil except +     
+
 
   #cdef cppclass RefTranslator:
   #  libcpp_map[InputFileRef,InputFileRef] input_file_refs
