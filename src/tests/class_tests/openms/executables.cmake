@@ -469,7 +469,7 @@ set(analysis_executables_list
   ConsensusMapNormalizerAlgorithmQuantile_test
   ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
-  DeconvolutedSpectrum_test
+  DeconvolvedSpectrum_test
   DeNovoAlgorithm_test
   DeNovoIdentification_test
   DeNovoIonScoring_test

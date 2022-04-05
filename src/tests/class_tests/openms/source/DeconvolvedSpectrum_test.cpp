@@ -36,7 +36,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 ///////////////////////////
@@ -44,21 +44,21 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(DeconvolutedSpectrum, "$Id$")
+START_TEST(DeconvolvedSpectrum, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-DeconvolutedSpectrum* ptr = 0;
-DeconvolutedSpectrum* null_ptr = 0;
-START_SECTION(DeconvolutedSpectrum())
+DeconvolvedSpectrum* ptr = 0;
+DeconvolvedSpectrum* null_ptr = 0;
+START_SECTION(DeconvolvedSpectrum())
 {
-  ptr = new DeconvolutedSpectrum();
+  ptr = new DeconvolvedSpectrum();
   TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
-START_SECTION(~DeconvolutedSpectrum())
+START_SECTION(~DeconvolvedSpectrum())
 {
   delete ptr;
 }
@@ -71,9 +71,9 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FLASHDeconv_sample_input1.mzML"), inp
 
 /// detailed constructor
 MSSpectrum test_spec = input[0];
-START_SECTION((DeconvolutedSpectrum(const MSSpectrum &spectrum, const int scan_number)))
+START_SECTION((DeconvolvedSpectrum(const MSSpectrum &spectrum, const int scan_number)))
 {
-  DeconvolutedSpectrum tmp_spec = DeconvolutedSpectrum(test_spec, 1);
+  DeconvolvedSpectrum tmp_spec = DeconvolvedSpectrum(test_spec, 1);
   TEST_EQUAL(tmp_spec.getScanNumber(), 1);
   TEST_EQUAL(tmp_spec.getOriginalSpectrum().size(), test_spec.size());
 }
@@ -81,7 +81,7 @@ END_SECTION
 
 
 ////////
-DeconvolutedSpectrum test_deconv_spec = DeconvolutedSpectrum(test_spec, 1);
+DeconvolvedSpectrum test_deconv_spec = DeconvolvedSpectrum(test_spec, 1);
 START_SECTION((int getScanNumber() const))
 {
   int tmp_num = test_deconv_spec.getScanNumber();
@@ -103,17 +103,17 @@ fd_param.setValue("min_charge", 5);
 fd_param.setValue("max_charge", 20);
 fd_algo.setParameters(fd_param);
 fd_algo.calculateAveragine(false);
-std::vector<DeconvolutedSpectrum> null_specs;
+std::vector<DeconvolvedSpectrum> null_specs;
 const std::map<int, std::vector<std::vector<double>>> null_map;
 
-DeconvolutedSpectrum prec_deconv_spec_1 = fd_algo.getDeconvolutedSpectrum(input[1], null_specs, 2, null_map);
-DeconvolutedSpectrum prec_deconv_spec_2 = fd_algo.getDeconvolutedSpectrum(input[3], null_specs, 4, null_map);
-DeconvolutedSpectrum ms2_deconv_spec = DeconvolutedSpectrum(input[5], 6);
+DeconvolvedSpectrum prec_deconv_spec_1 = fd_algo.getDeconvolvedSpectrum(input[1], null_specs, 2, null_map);
+DeconvolvedSpectrum prec_deconv_spec_2 = fd_algo.getDeconvolvedSpectrum(input[3], null_specs, 4, null_map);
+DeconvolvedSpectrum ms2_deconv_spec = DeconvolvedSpectrum(input[5], 6);
 
-START_SECTION((bool registerPrecursor(const std::vector< DeconvolutedSpectrum > &survey_scans, const std::map< int, std::vector< std::vector< double >>> &precursor_map_for_real_time_acquisition)))
+START_SECTION((bool registerPrecursor(const std::vector< DeconvolvedSpectrum > &survey_scans, const std::map< int, std::vector< std::vector< double >>> &precursor_map_for_real_time_acquisition)))
 {
   // prepare arguments
-  std::vector<DeconvolutedSpectrum> survey_specs;
+  std::vector<DeconvolvedSpectrum> survey_specs;
   survey_specs.push_back(prec_deconv_spec_1);
   survey_specs.push_back(prec_deconv_spec_2);
   bool is_not_registered = ms2_deconv_spec.registerPrecursor(survey_specs, true, .0, null_map);
@@ -200,9 +200,9 @@ END_SECTION
 
 
 /// < public methods without tests >
-/// - writeDeconvolutedMassesHeader : writing headers are not worth testing
+/// - writeDeconvolvedMassesHeader : writing headers are not worth testing
 /// - default constructors and operators are not used (copy, move, assignment)
-/// - writeTopFD, writeDeconvolutedMasses : method for writing files only
+/// - writeTopFD, writeDeconvolvedMasses : method for writing files only
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

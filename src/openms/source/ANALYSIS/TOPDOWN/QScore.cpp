@@ -105,7 +105,7 @@ namespace OpenMS
     return fvector;
   }
 
-  void QScore::writeAttHeader(std::fstream &f, bool write_detail)
+  void QScore::writeAttHeader(std::fstream& f, bool write_detail)
   {
     f
         << "ACC,FirstResidue,LastResidue,ProID,RT,ScanNumber,PrecursorScanNumber,PrecursorMonoMass,PrecursorOriginalMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,"
@@ -118,32 +118,32 @@ namespace OpenMS
     f << "Class\n";
   }
 
-  void QScore::writeAttTsv(const DeconvolutedSpectrum &deconvoluted_spectrum,
-                           const FLASHDeconvHelperStructs::TopPicItem &top_id,
-                           const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
-                           std::fstream &f,
+  void QScore::writeAttTsv(const DeconvolvedSpectrum&  deconvolved_spectrum,
+                           const FLASHDeconvHelperStructs::TopPicItem& top_id,
+                           const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
+                           std::fstream& f,
                            bool write_detail)
   {
-    int scan_number = deconvoluted_spectrum.getScanNumber();
-    double pmz = deconvoluted_spectrum.getPrecursor().getMZ();
-    auto pg = deconvoluted_spectrum.getPrecursorPeakGroup();
+    int scan_number = deconvolved_spectrum.getScanNumber();
+    double pmz = deconvolved_spectrum.getPrecursor().getMZ();
+    auto pg = deconvolved_spectrum.getPrecursorPeakGroup();
     double pmass = //pg.getMonoMass();
-        top_id.proteform_id_ < 0 ? pg.getMonoMass()
-                                 : top_id.adj_precursor_mass_;
-    double precursor_intensity = deconvoluted_spectrum.getPrecursor().getIntensity();
-    int fr = top_id.first_residue_;
-    int lr = top_id.last_residue_;
-    String acc = top_id.protein_acc_;
-    int proID = top_id.proteform_id_;
-    double rt = deconvoluted_spectrum.getOriginalSpectrum().getRT();
-    double pscan = deconvoluted_spectrum.getPrecursorScanNumber();
-    double fintensity = top_id.intensity_;
-    int charge = deconvoluted_spectrum.getPrecursorCharge();
+        top_id.proteform_id < 0 ? pg.getMonoMass()
+                                 : top_id.adj_precursor_mass;
+    double precursor_intensity = deconvolved_spectrum.getPrecursor().getIntensity();
+    int fr = top_id.first_residue;
+    int lr = top_id.last_residue;
+    String acc = top_id.protein_acc;
+    int proID = top_id.proteform_id;
+    double rt = deconvolved_spectrum.getOriginalSpectrum().getRT();
+    double pscan = deconvolved_spectrum.getPrecursorScanNumber();
+    double fintensity = top_id.intensity;
+    int charge = deconvolved_spectrum.getPrecursorCharge();
 
-    double e_value = top_id.e_value_;
-    double q_value = top_id.proteofrom_q_value_;
-    bool is_identified = top_id.proteform_id_ >= 0;
-    auto ptm_mass = top_id.unexp_mod_;
+    double e_value = top_id.e_value;
+    double q_value = top_id.proteofrom_q_value;
+    bool is_identified = top_id.proteform_id >= 0;
+    auto ptm_mass = top_id.unexp_mod;
 
     auto avgpmass = avg.getAverageMassDelta(pmass) + pmass;
     if (pg.empty())
@@ -175,7 +175,7 @@ namespace OpenMS
         }
       }
 
-      for (auto &item: fv)
+      for (auto& item: fv)
       {
         f << item << ",";
       }
@@ -184,14 +184,14 @@ namespace OpenMS
       if (write_detail)
       {
         f << std::fixed << std::setprecision(2);
-        for (auto &p: pg)
+        for (auto& p: pg)
         {
           f << p.mz << " ";
         }
         f << ";,";
 
         f << std::fixed << std::setprecision(1);
-        for (auto &p: pg)
+        for (auto& p: pg)
         {
           f << p.intensity << " ";
         }
@@ -199,19 +199,19 @@ namespace OpenMS
         f << std::setprecision(-1);
 
 
-        for (auto &p: pg)
+        for (auto& p: pg)
         {
           f << p.getUnchargedMass() << " ";
         }
         f << ";,";
 
-        for (auto &p: pg)
+        for (auto& p: pg)
         {
           f << (p.is_positive ? p.abs_charge : -p.abs_charge) << " ";
         }
         f << ";,";
 
-        for (auto &p: pg)
+        for (auto& p: pg)
         {
           f << p.isotopeIndex << " ";
         }

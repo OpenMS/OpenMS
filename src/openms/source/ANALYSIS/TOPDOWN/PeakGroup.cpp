@@ -50,7 +50,7 @@ namespace OpenMS
   {
   }
 
-  bool PeakGroup::operator<(const PeakGroup &a) const
+  bool PeakGroup::operator<(const PeakGroup& a) const
   {
     //if(this->spec->getRT() == a.spec->getRT()){
     if (this->monoisotopic_mass_ == a.monoisotopic_mass_)
@@ -62,7 +62,7 @@ namespace OpenMS
     //return this->spec->getRT() < a.spec->getRT();
   }
 
-  bool PeakGroup::operator>(const PeakGroup &a) const
+  bool PeakGroup::operator>(const PeakGroup& a) const
   {
     if (this->monoisotopic_mass_ == a.monoisotopic_mass_)
     {
@@ -71,11 +71,11 @@ namespace OpenMS
     return this->monoisotopic_mass_ > a.monoisotopic_mass_;
   }
 
-  bool PeakGroup::operator==(const PeakGroup &a) const
+  bool PeakGroup::operator==(const PeakGroup& a) const
   {
     return
         this->monoisotopic_mass_ == a.monoisotopic_mass_
-        && this->intensity_ == a.intensity_;
+&&        this->intensity_ == a.intensity_;
   }
 
   void PeakGroup::updateMassesAndIntensity(const int offset,
@@ -87,7 +87,7 @@ namespace OpenMS
       tmpPeaks.swap(*this);
       reserve(tmpPeaks.size());
 
-      for (auto &p: tmpPeaks)
+      for (auto& p: tmpPeaks)
       {
         p.isotopeIndex -= offset;
         if (p.isotopeIndex < 0 || p.isotopeIndex >= max_isotope_index)
@@ -101,7 +101,7 @@ namespace OpenMS
     intensity_ = .0;
     double nominator = .0;
 
-    for (auto &p: *this)
+    for (auto& p: *this)
     {
       double pi = p.intensity + 1;
       intensity_ += pi;
@@ -114,7 +114,7 @@ namespace OpenMS
 
   bool PeakGroup::isSignalMZ(const double mz, const double tol) const
   {
-    for (auto &p: *this)
+    for (auto& p: *this)
     {
       if (abs(p.mz - mz) < p.mz * tol * 1e-6)
       {
@@ -253,7 +253,7 @@ namespace OpenMS
     double mz_end = -10;
     if (!(abs_charge > max_abs_charge_ || abs_charge < min_abs_charge_))
     {
-      for (auto &tmp_p: *this)
+      for (auto& tmp_p: *this)
       {
         if (tmp_p.abs_charge != abs_charge)
         {
