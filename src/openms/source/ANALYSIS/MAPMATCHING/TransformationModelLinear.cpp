@@ -60,7 +60,7 @@ namespace OpenMS
       symmetric_ = params_.getValue("symmetric_regression") == "true";
       // weight the data (if weighting is specified)
       TransformationModel::DataPoints data_weighted = data;
-      if ((params.exists("x_weight") && params.getValue("x_weight") != "x") 
+      if ((params.exists("x_weight") && params.getValue("x_weight") != "x")
        || (params.exists("y_weight") && params.getValue("y_weight") != "y"))
       {
         weightData(data_weighted);
@@ -74,7 +74,7 @@ namespace OpenMS
                                          "no data points for 'linear' model");
       }
       else if (size == 1) // degenerate case, but we can still do something
-      {               
+      {
         slope_ = 1.0;
         intercept_ = data_weighted[0].second - data_weighted[0].first;
       }
@@ -84,9 +84,22 @@ namespace OpenMS
         {
           points.push_back(Wm5::Vector2d(data_weighted[i].first, data_weighted[i].second));
         }
-        if (!Wm5::HeightLineFit2<double>(static_cast<int>(size), &points.front(), slope_, intercept_))
+        if (size == 2)
         {
-          throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TransformationModelLinear", "Unable to fit linear transformation to data points.");
+          if (!Wm5::HeightLineFit2<double>(static_cast<int>(size), &points.front(), slope_, intercept_))
+          {
+            // if the two points are too close, Wm5::HeightLineFit2 can't fit a line
+            // but in the special case of two points, there is an exact solution and we don't need a least-sqaures fit
+            slope_ = (data_weighted[1].second - data_weighted[0].second) / (data_weighted[1].first - data_weighted[0].first);
+            intercept_ = data_weighted[0].second - (slope_ * data_weighted[0].first);
+          }
+        }
+        else
+        {
+          if (!Wm5::HeightLineFit2<double>(static_cast<int>(size), &points.front(), slope_, intercept_))
+          {
+            throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TransformationModelLinear", "Unable to fit linear transformation to data points.");
+          }
         }
       }
       // update params
@@ -97,7 +110,7 @@ namespace OpenMS
 
   double TransformationModelLinear::evaluate(double value) const
   {
-    if (!weighting_) 
+    if (!weighting_)
     {
       return slope_ * value + intercept_;
     }
@@ -117,7 +130,7 @@ namespace OpenMS
     }
     intercept_ = -intercept_ / slope_;
     slope_ = 1.0 / slope_;
-    
+
     // invert the weights:
     std::swap(x_datum_min_,y_datum_min_);
     std::swap(x_datum_max_,y_datum_max_);
