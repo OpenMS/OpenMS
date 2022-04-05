@@ -154,7 +154,7 @@ void OpenMS::TestTSGDialog::testSequenceInput_(QString input)
 {
   UI->seq_input->clear();
   QTest::keyClicks(UI->seq_input, input);
-  String read_seq = dialog_.getSequence();
+  QString read_seq = QString::fromStdString(std::string(dialog_.getSequence()));
   QVERIFY(read_seq == UI->seq_input->text());
 }
 

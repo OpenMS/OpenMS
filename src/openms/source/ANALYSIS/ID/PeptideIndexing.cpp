@@ -44,7 +44,7 @@
 #include <atomic>
 #include <map>
 #include <array>
-#include <string>
+
 
 #ifdef _OPENMP 
 #include <omp.h>

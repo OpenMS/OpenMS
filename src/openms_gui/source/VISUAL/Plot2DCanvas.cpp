@@ -57,7 +57,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPolygon>
-#include <QtCore/QTime>
+#include <QElapsedTimer>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMessageBox>
@@ -1448,7 +1448,7 @@ namespace OpenMS
 #endif
 
     //timing
-    QTime overall_timer;
+    QElapsedTimer overall_timer;
     if (show_timing_)
     {
       overall_timer.start();
@@ -1472,7 +1472,7 @@ namespace OpenMS
 
       buffer_.fill(QColor(String(param_.getValue("background_color").toString()).toQString()).rgb());
       painter.begin(&buffer_);
-      QTime layer_timer;
+      QElapsedTimer layer_timer;
 
       for (Size i = 0; i < getLayerCount(); i++)
       {

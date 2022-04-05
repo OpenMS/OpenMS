@@ -409,8 +409,14 @@ namespace OpenMS
   QString TOPPASToolVertex::toolnameWithWhitespacesForFancyWordWrapping_(QPainter* painter, const QString& str)
   {
     qreal max_width = 130;
-
+/*
+         * Suppressed warning QSTring::SkipEmptyParts and QString::SplitBehaviour is deprecated
+         * QT::SkipEmptyParts and QT::SplitBehaviour is added or modified at Qt 5.14
+         */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     QStringList parts = str.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+#pragma GCC diagnostic pop
     QStringList new_parts;
 
     foreach(QString part, parts)

@@ -31,7 +31,8 @@
 # $Maintainer: Hannes Röst $
 # $Authors: Hannes Röst, Uwe Schmitt, Stephan Aiche $
 # --------------------------------------------------------------------------
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+## 3.15 for FindPython (note the discussion in https://gitlab.kitware.com/cmake/cmake/-/issues/21186)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("pyOpenMS" LANGUAGES C CXX)
 
 if(NOT TARGET OpenMS)
@@ -326,12 +327,6 @@ if(PYTHON_EXT_SUFFIX_NOT_FOUND)
 endif()
 
 
-# This goes after, since it uses PythonInterp as a hint
-if(WIN32)
-    find_package(PythonLibs 3.5 REQUIRED)
-endif()
-
-
 #------------------------------------------------------------------------------
 # clean python build directory from former cmake run (if exists)
 # this can contain older versions of openms shared lib and might confuse
@@ -362,6 +357,7 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/extra_includes)
 
 _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.py" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
 _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.sh" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
+_copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "py.typed" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
 _copy_assets("${PROJECT_SOURCE_DIR}/pyTOPP/" "*.py" ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP/)
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/unittests/" "*" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/" "*.mzXML" ${CMAKE_BINARY_DIR}/pyOpenMS/tests)
@@ -609,14 +605,14 @@ if (APPLE)
  list(APPEND PY_RPATH "@loader_path/")
 endif()
 
-if (LINUX) # see https://github.com/cython/cython/issues/3380
+# actually on my Mac I didnt need that but on GH actions it fails
+if (LINUX OR APPLE) # see https://github.com/cython/cython/issues/3380
   set(VIS_PRESET "default")
   set(INLINES_HIDDEN 0)
 else()
   set(VIS_PRESET "hidden")
   set(INLINES_HIDDEN 1)
 endif()
-
 
 if(LINUX OR APPLE)
   set(EXTRA_WARNINGS "-Wno-unused-member-function" "-Wno-builtin-macro-redefined" "-Wno-unused" "-Wno-zero-as-null-pointer-constant")
@@ -644,6 +640,12 @@ if ("${PY_NUM_MODULES}" GREATER "1")
         ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
       )
       add_dependencies(pyopenms_${nr} compile_pxds) # this is necessary for make (not ninja), to avoid race conditions
       add_dependencies(pyopenms_compile pyopenms_${nr})
@@ -665,6 +667,12 @@ else()
         ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
     )
 endif()
 
@@ -672,7 +680,7 @@ endif()
 IF(LINUX AND PY_NO_OUTPUT)
     add_custom_target(pyopenms
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg 2> /dev/null
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-binary=pyopenms . 2> /dev/null
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms . 2> /dev/null
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip 2> /dev/null
             #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace 2> /dev/null
             COMMENT "Packaging pyopenms wheel."
@@ -692,7 +700,7 @@ ELSE()
     ELSE()
         add_custom_target(pyopenms
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
-            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-binary=pyopenms .
+            COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip
             #COMMAND ${Python_EXECUTABLE} setup.py build_ext --inplace
             COMMENT "Packaging pyopenms wheel."
