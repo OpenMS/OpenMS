@@ -50,44 +50,39 @@
 
 namespace OpenMS
 {
-  TheoreticalSpectrumGenerationDialog::CheckBox_::CheckBox_(QDoubleSpinBox** sb, QLabel** l, std::array<State, 3> s, std::pair<String, String> p_t, std::pair<String, String> p_s)
-  {
-    ptr_to_spin_box = sb;
-    ptr_to_spin_label = l;
-    state = s;
-    param_this = p_t;
-    param_spin = p_s;
-  }
+  TheoreticalSpectrumGenerationDialog::CheckBox::CheckBox(QDoubleSpinBox** sb, QLabel** l, std::array<CheckBoxState, 3> s, std::pair<String, String> p_t, std::pair<String, String> p_s) :
+      ptr_to_spin_box(sb), ptr_to_spin_label(l), state(s), param_this(p_t), param_spin(p_s)
+  {}
 
   TheoreticalSpectrumGenerationDialog::TheoreticalSpectrumGenerationDialog() : 
     ui_(new Ui::TheoreticalSpectrumGenerationDialogTemplate),
 
     // Order has to be the same as in the UI!
     check_boxes_ {
-        CheckBox_(&(ui_->a_intensity), &(ui_->a_label), {State::ENABLED, State::ENABLED, State::HIDDEN}, {"add_a_ions", "Add peaks of a-ions to the spectrum"},
+        CheckBox(&(ui_->a_intensity), &(ui_->a_label), {CheckBoxState::ENABLED, CheckBoxState::ENABLED, CheckBoxState::HIDDEN}, {"add_a_ions", "Add peaks of a-ions to the spectrum"},
                   {"a_intensity", "Intensity of the a-ions"}),
-        CheckBox_(&(ui_->a_b_intensity), &(ui_->a_b_label), {State::HIDDEN, State::ENABLED, State::HIDDEN}, {"add_a-B_ions", "Add peaks of a-B-ions to the spectrum (nucleotide sequences only)"},
+        CheckBox(&(ui_->a_b_intensity), &(ui_->a_b_label), {CheckBoxState::HIDDEN, CheckBoxState::ENABLED, CheckBoxState::HIDDEN}, {"add_a-B_ions", "Add peaks of a-B-ions to the spectrum (nucleotide sequences only)"},
                   {"a-B_intensity", "Intensity of the a-B-ions"}),
-        CheckBox_(&(ui_->b_intensity), &(ui_->b_label), {State::PRECHECKED, State::PRECHECKED, State::HIDDEN}, {"add_b_ions", "Add peaks of b-ions to the spectrum"},
+        CheckBox(&(ui_->b_intensity), &(ui_->b_label), {CheckBoxState::PRECHECKED, CheckBoxState::PRECHECKED, CheckBoxState::HIDDEN}, {"add_b_ions", "Add peaks of b-ions to the spectrum"},
                   {"b_intensity", "Intensity of the b-ions"}),
-        CheckBox_(&(ui_->c_intensity), &(ui_->c_label), {State::ENABLED, State::ENABLED, State::HIDDEN}, {"add_c_ions", "Add peaks of c-ions to the spectrum"},
+        CheckBox(&(ui_->c_intensity), &(ui_->c_label), {CheckBoxState::ENABLED, CheckBoxState::ENABLED, CheckBoxState::HIDDEN}, {"add_c_ions", "Add peaks of c-ions to the spectrum"},
                   {"c_intensity", "Intensity of the c-ions"}),
-        CheckBox_(&(ui_->d_intensity), &(ui_->d_label), {State::HIDDEN, State::ENABLED, State::HIDDEN}, {"add_d_ions", "Add peaks of d-ions to the spectrum (nucleotide sequences only)"},
+        CheckBox(&(ui_->d_intensity), &(ui_->d_label), {CheckBoxState::HIDDEN, CheckBoxState::ENABLED, CheckBoxState::HIDDEN}, {"add_d_ions", "Add peaks of d-ions to the spectrum (nucleotide sequences only)"},
                   {"d_intensity", "Intensity of the d-ions"}),
-        CheckBox_(&(ui_->w_intensity), &(ui_->w_label), {State::HIDDEN, State::ENABLED, State::HIDDEN}, {"add_w_ions", "Add peaks of w-ions to the spectrum (nucleotide sequences only)"},
+        CheckBox(&(ui_->w_intensity), &(ui_->w_label), {CheckBoxState::HIDDEN, CheckBoxState::ENABLED, CheckBoxState::HIDDEN}, {"add_w_ions", "Add peaks of w-ions to the spectrum (nucleotide sequences only)"},
                   {"w_intensity", "Intensity of the w-ions"}),
-        CheckBox_(&(ui_->x_intensity), &(ui_->x_label), {State::ENABLED, State::ENABLED, State::HIDDEN}, {"add_x_ions", "Add peaks of x-ions to the spectrum"},
+        CheckBox(&(ui_->x_intensity), &(ui_->x_label), {CheckBoxState::ENABLED, CheckBoxState::ENABLED, CheckBoxState::HIDDEN}, {"add_x_ions", "Add peaks of x-ions to the spectrum"},
                   {"x_intensity", "Intensity of the x-ions"}),
-        CheckBox_(&(ui_->y_intensity), &(ui_->y_label), {State::PRECHECKED, State::PRECHECKED, State::HIDDEN}, {"add_y_ions", "Add peaks of y-ions to the spectrum"},
+        CheckBox(&(ui_->y_intensity), &(ui_->y_label), {CheckBoxState::PRECHECKED, CheckBoxState::PRECHECKED, CheckBoxState::HIDDEN}, {"add_y_ions", "Add peaks of y-ions to the spectrum"},
                   {"y_intensity", "Intensity of the y-ions"}),
-        CheckBox_(&(ui_->z_intensity), &(ui_->z_label), {State::ENABLED, State::ENABLED, State::HIDDEN}, {"add_z_ions", "Add peaks of z-ions to the spectrum"},
+        CheckBox(&(ui_->z_intensity), &(ui_->z_label), {CheckBoxState::ENABLED, CheckBoxState::ENABLED, CheckBoxState::HIDDEN}, {"add_z_ions", "Add peaks of z-ions to the spectrum"},
                   {"z_intensity", "Intensity of the z-ions"}),
-        CheckBox_(nullptr, nullptr, {State::ENABLED, State::ENABLED, State::HIDDEN},
+        CheckBox(nullptr, nullptr, {CheckBoxState::ENABLED, CheckBoxState::ENABLED, CheckBoxState::HIDDEN},
                               {"add_precursor_peaks", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes"}, {"", ""}),
         // Neutral losses: ui_->rel_loss_intensity is a normal spin box and has to be checked manually
-        CheckBox_(nullptr, nullptr, {State::ENABLED, State::HIDDEN, State::HIDDEN},
+        CheckBox(nullptr, nullptr, {CheckBoxState::ENABLED, CheckBoxState::HIDDEN, CheckBoxState::HIDDEN},
                   {"add_losses", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered (peptide sequences only)"}, {"", ""}),
-        CheckBox_(nullptr, nullptr, {State::ENABLED, State::HIDDEN, State::HIDDEN},
+        CheckBox(nullptr, nullptr, {CheckBoxState::ENABLED, CheckBoxState::HIDDEN, CheckBoxState::HIDDEN},
                   {"add_abundant_immonium_ions", "Add most abundant immonium ions (peptide sequences only)"}, {"", ""})}
   {
     ui_->setupUi(this);
@@ -112,10 +107,10 @@ namespace OpenMS
 
     // select peptide sequence by default and update interface
     ui_->seq_type->setCurrentText("Peptide");
-    seqTypeSwitch_();
+    
     for (size_t i = 0; i < check_boxes_.size(); ++i)
     {
-      if (check_boxes_.at(i).state.at(0) == State::PRECHECKED) // 'state.at(0)' because seq type was just set to "Peptide"
+      if (check_boxes_.at(i).state.at(0) == CheckBoxState::PRECHECKED) // 'state.at(0)' because seq type was just set to "Peptide"
       {
         ui_->ion_types->item(i)->setCheckState(Qt::Checked);
       }
@@ -144,17 +139,17 @@ namespace OpenMS
   {
     Param p;
 
-    if (seq_type_ != "Metabolite") // no ions for metabolite input
+    if (seq_type_ != SequenceType::METABOLITE) // no ions for metabolite input
     {
       // add check boxes to parameters, i.e. ion types
       for (size_t i = 0; i < check_boxes_.size(); ++i)
       {
         // for peptide input skip rna specific ions
-        if (seq_type_ == "Peptide" && (check_boxes_.at(i).state.at(0) == State::HIDDEN))
+        if (seq_type_ == SequenceType::PEPTIDE && (check_boxes_.at(i).state.at(0) == CheckBoxState::HIDDEN))
           continue;
 
         // for rna input skip peptide specific ions
-        if (seq_type_ == "RNA" && (check_boxes_.at(i).state.at(1) == State::HIDDEN))
+        if (seq_type_ == SequenceType::RNA && (check_boxes_.at(i).state.at(1) == CheckBoxState::HIDDEN))
           continue;
 
         // set ion itself
@@ -176,7 +171,7 @@ namespace OpenMS
     // charge
     p.setValue("charge", ui_->charge_spinbox->value());
 
-    if (!(seq_type_ == "RNA")) // skip isotope pattern for RNA input
+    if (!(seq_type_ == SequenceType::RNA)) // skip isotope pattern for RNA input
     {
       // isotopes
       if (!ui_->model_none_button->isChecked()) // add isotopes if any other model than 'None' is chosen
@@ -205,7 +200,7 @@ namespace OpenMS
                    "accurate isotopic peaks. Note that adding isotopic peaks is very slow.");
       }
 
-      if (seq_type_ == "Peptide")
+      if (seq_type_ == SequenceType::PEPTIDE)
       {
         // loss intensity
         double rel_loss_int = (double)(ui_->rel_loss_intensity->value()) / 100.0;
@@ -228,7 +223,8 @@ namespace OpenMS
     String seq_string(this->getSequence());
     if (seq_string.empty())
     {
-      QMessageBox::warning(this, "Error", QString("You must enter a ") + QString::fromStdString(seq_type_) + " sequence!");
+      const std::array<String, 3> types{"Peptide", "RNA", "Metabolite"};
+      QMessageBox::warning(this, "Error", QString("You must enter a ") + QString::fromStdString(types.at(int(seq_type_))) + " sequence!");
       return;
     }
     
@@ -238,11 +234,11 @@ namespace OpenMS
 
     try
     {
-      if (seq_type_ == "Peptide")
+      if (seq_type_ == SequenceType::PEPTIDE)
       {
         aa_sequence = AASequence::fromString(seq_string);
       }
-      else if (seq_type_ == "RNA")
+      else if (seq_type_ == SequenceType::RNA)
       {
         na_sequence = NASequence::fromString(seq_string);
       }
@@ -268,12 +264,12 @@ namespace OpenMS
 
     try
     {
-      if (seq_type_ == "Peptide")
+      if (seq_type_ == SequenceType::PEPTIDE)
       {
         pep_generator.setParameters(p);
         pep_generator.getSpectrum(spec_, aa_sequence, charge, charge);
       }
-      else if (seq_type_ == "RNA")
+      else if (seq_type_ == SequenceType::RNA)
       {
         na_generator.setParameters(p);
         na_generator.getSpectrum(spec_, na_sequence, charge, charge);
@@ -344,10 +340,30 @@ namespace OpenMS
 
   void TheoreticalSpectrumGenerationDialog::seqTypeSwitch_()
   {
-    seq_type_ = ui_->seq_type->currentText(); // save current seq type setting in member
-
-    if (seq_type_ == "Peptide")
+    // save current seq type setting in member
+    String tmp = ui_->seq_type->currentText();
+    if (tmp == "Peptide")
     {
+      seq_type_ = SequenceType::PEPTIDE;
+    }
+    else if (tmp == "RNA")
+    {
+      seq_type_ = SequenceType::RNA;
+    }
+    else if (tmp == "Metabolite")
+    {
+      seq_type_ = SequenceType::METABOLITE;
+    }
+    else
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Setting for the sequence type unkown! Was: " + tmp);
+    }
+
+    if (seq_type_ == SequenceType::PEPTIDE)
+    {
+      // change sequence label
+      ui_->enter_seq_label->setText("Enter sequence: ");
+
       // enable ion types and intensities
       ui_->ion_types->setHidden(false);
       ui_->ion_types_label->setHidden(false);
@@ -367,8 +383,11 @@ namespace OpenMS
     }
     else
     {
-      if (seq_type_ == "RNA") // rna input
+      if (seq_type_ == SequenceType::RNA) // rna input
       {
+        // change sequence label
+        ui_->enter_seq_label->setText("Enter sequence: ");
+
         // enable ion types and intensities
         ui_->ion_types->setHidden(false);
         ui_->ion_types_label->setHidden(false);
@@ -384,6 +403,9 @@ namespace OpenMS
       }
       else // metabolite input
       {
+        // change sequence label
+        ui_->enter_seq_label->setText("Enter empirical formula (e.g. C6H12O6): ");
+
         // enable isotopes
         ui_->isotope_model->setHidden(false);
         ui_->max_iso_label->setHidden(false);
@@ -403,7 +425,6 @@ namespace OpenMS
         ui_->ion_types->setHidden(true);
         ui_->ion_types_label->setHidden(true);
         ui_->intensities->setHidden(true);
-
       }
     }
   }
@@ -422,22 +443,18 @@ namespace OpenMS
   void TheoreticalSpectrumGenerationDialog::updateIonTypes_()
   {
     int input_type;
-    if (seq_type_ == "Peptide")
+    if (seq_type_ == SequenceType::PEPTIDE)
       input_type = 0;
-    else if (seq_type_ == "RNA")
+    else if (seq_type_ == SequenceType::RNA)
       input_type = 1;
     else // Metabolite
       input_type = 2;
 
     for (size_t i = 0; i < check_boxes_.size(); ++i)
     {
-      const CheckBox_* curr_box = &check_boxes_.at(i);
+      const CheckBox* curr_box = &check_boxes_.at(i);
 
-      bool hidden = false;
-      if (curr_box->state.at(input_type) == State::HIDDEN)
-      {
-        hidden = true;
-      }
+      bool hidden(curr_box->state.at(input_type) == CheckBoxState::HIDDEN);
 
       // activate check box
       ui_->ion_types->item(i)->setHidden(hidden);

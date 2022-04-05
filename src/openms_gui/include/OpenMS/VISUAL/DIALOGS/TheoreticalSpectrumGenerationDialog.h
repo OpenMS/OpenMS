@@ -57,12 +57,12 @@ namespace OpenMS
 {
   class TestTSGDialog; // fwd declaring test class
 
-  // state of an ion (and its intensity)
-  enum class State
+  /// state of an ion (and its intensity)
+  enum class CheckBoxState
   {
-    HIDDEN,
-    ENABLED,
-    PRECHECKED
+    HIDDEN,    ///< check box hidden (invisible)
+    ENABLED,   ///< check box enabled (visible, but not checked)
+    PRECHECKED ///< check box enabled and checked by default
   };
 
   /**
@@ -76,25 +76,33 @@ namespace OpenMS
     Q_OBJECT
 
   public:
-    // struct with all information about a check box of an ion
-    struct CheckBox_ {
-      // Constructor
-      CheckBox_(QDoubleSpinBox** sb, QLabel** l, std::array<State, 3> s, std::pair<String, String> p_t, std::pair<String, String> p_s);
+    /// struct for all information about a check box of an ion
+    struct CheckBox {
+      /// Constructor
+      CheckBox(QDoubleSpinBox** sb, QLabel** l, std::array<CheckBoxState, 3> s, std::pair<String, String> p_t, std::pair<String, String> p_s);
 
-      // pointer to the corresponding ion intensity spin box
+      /// pointer to the corresponding ion intensity spin box
       QDoubleSpinBox** ptr_to_spin_box;
 
-      // pointer to the label of the spin box
+      /// pointer to the label of the spin box
       QLabel** ptr_to_spin_label;
 
-      // State of this check box depending on sequence type ("Peptide", "RNA", "Metabolite")
-      std::array<State, 3> state;
+      /// State of this check box depending on sequence type ("Peptide", "RNA", "Metabolite")
+      const std::array<CheckBoxState, 3> state;
 
-      // parameter with description of this ion
-      std::pair<String, String> param_this;
+      /// parameter with description of this ion
+      const std::pair<String, String> param_this;
 
-      // parameter with description of the ion intensity
-      std::pair<String, String> param_spin;
+      /// parameter with description of the ion intensity
+      const std::pair<String, String> param_spin;
+    };
+
+    /// type of the input sequence (corresponds to the value combo box 'ui_->seq_type')
+    enum class SequenceType
+    {
+      PEPTIDE,
+      RNA,
+      METABOLITE
     };
     
     friend class TestTSGDialog; // to test the GUI expressed in the private member ui
@@ -104,45 +112,45 @@ namespace OpenMS
     /// Destructor
     ~TheoreticalSpectrumGenerationDialog() override;
 
-    // returns the calculated spectrum
+    /// returns the calculated spectrum
     const MSSpectrum& getSpectrum() const;
 
-    // returns the input sequence (is public for TOPPView)
+    /// returns the input sequence (is public for TOPPView)
     const String getSequence() const;
 
 protected slots:
 
-    // for isotope model changes
+    /// for isotope model changes
     void modelChanged_();
-    // for sequence type changes (combo box)
+    /// for sequence type changes (combo box)
     void seqTypeSwitch_();
-    // change check state of check box on click
+    /// change check state of check box on click
     void listWidgetItemClicked_(QListWidgetItem* item);
-    // calculates the spectrum
+    /// calculates the spectrum
     void calculateSpectrum_();
 
 protected:
 
 private:
-    // calculate parameters from UI elements
+    /// calculate parameters from UI elements
     Param getParam_() const;
 
-    // iterates through 'check_boxes_' and en-/disables
-    // check boxes and corresponding spin boxes (with labels)
+    /// iterates through 'check_boxes_' and en-/disables
+    /// check boxes and corresponding spin boxes (with labels)
     void updateIonTypes_();
 
-    // UI
+    /// UI
     Ui::TheoreticalSpectrumGenerationDialogTemplate* ui_;
 
-    // save current sequence setting
-    String seq_type_;
+    /// save current sequence setting
+    SequenceType seq_type_;
 
-    // array of TSGDialog::CheckBox
-    // 
-    // Note: Ordering has to be the same as in the UI!
-    const std::array<CheckBox_, 12> check_boxes_;
+    /// array of TSGDialog::CheckBox
+    /// 
+    /// Note: Ordering has to be the same as in the UI!
+    const std::array<CheckBox, 12> check_boxes_;
 
-    // member to save the calculated spectrum to
+    /// member to save the calculated spectrum to
     MSSpectrum spec_;
   };
 

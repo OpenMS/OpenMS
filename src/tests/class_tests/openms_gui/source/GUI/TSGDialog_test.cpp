@@ -110,7 +110,7 @@ void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
     QListWidgetItem* item = UI->ion_types->item(i);
     QVERIFY(item);
 
-    const TheoreticalSpectrumGenerationDialog::CheckBox_* curr_box = &dialog_.check_boxes_.at(i);
+    const TheoreticalSpectrumGenerationDialog::CheckBox* curr_box = &dialog_.check_boxes_.at(i);
 
     // get intensity spin box corresponding to current check box
     QDoubleSpinBox** spin_ptr = curr_box->ptr_to_spin_box;
@@ -119,14 +119,14 @@ void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
     QDoubleSpinBox* spin = *spin_ptr;
 
     int input_type;
-    if (dialog_.seq_type_ == "Peptide")
+    if (dialog_.seq_type_ == TheoreticalSpectrumGenerationDialog::SequenceType::PEPTIDE)
       input_type = 0;
-    else if (dialog_.seq_type_ == "RNA")
+    else if (dialog_.seq_type_ == TheoreticalSpectrumGenerationDialog::SequenceType::RNA)
       input_type = 1;
     else // Metabolite
       input_type = 2;
 
-    if (curr_box->state.at(input_type) != State::HIDDEN)
+    if (curr_box->state.at(input_type) != CheckBoxState::HIDDEN)
     {
       // check state before clicking
       Qt::CheckState prev = item->checkState();
