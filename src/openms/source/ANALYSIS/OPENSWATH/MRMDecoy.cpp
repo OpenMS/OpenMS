@@ -471,6 +471,17 @@ namespace OpenMS
 	}
       }
 
+      // Check that the decoy sequence computed does not happen to be a target sequence
+      for (const auto& pep_idx : selection_list)
+      {
+	      OpenMS::TargetedExperiment::Peptide curPeptide = exp.getPeptides()[pep_idx];
+	      if (curPeptide.sequence == peptide.sequence){
+		      OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " since decoy sequence is also a target peptide" << std::endl;
+		      exclusion_peptides.insert(peptide.id);
+		      break;
+	      }
+      }
+
       for (Size prot_idx = 0; prot_idx < peptide.protein_refs.size(); ++prot_idx)
       {
         peptide.protein_refs[prot_idx] = decoy_tag + peptide.protein_refs[prot_idx];

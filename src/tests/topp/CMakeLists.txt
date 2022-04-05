@@ -1359,6 +1359,10 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
     ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_4.tsv -out OpenSwathDecoyGenerator_4.TraML.tmp -out_type TraML -method pseudo-reverse -separate -switchKR true -enable_detection_unspecific_losses  -enable_detection_specific_losses -min_decoy_fraction 0.4)
   add_test("TOPP_OpenSwathDecoyGenerator_test_4_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_4.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_4.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_4")
+  add_test("TOPP_OpenSwathDecoyGenerator_test_5"
+    ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_5.tsv -out OpenSwathDecoyGenerator_5.TraML.tmp -out_type TraML -method pseudo-reverse -switchKR true -min_decoy_fraction 0.4)
+  add_test("TOPP_OpenSwathDecoyGenerator_test_5_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_5.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_5.TraML)
+  set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_5_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_5")
 
   # TargetedFileConverter : convert from and to different targeted files
   # Contains heavy and light transitions in 2 different notations
