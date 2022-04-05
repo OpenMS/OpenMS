@@ -49,4 +49,4 @@ cdef extern from "<OpenMS/METADATA/ID/DBSearchParam.h>" namespace "OpenMS::Ident
     bool operator!=(const SearchParamRef & other) nogil except +
     bool operator<(const SearchParamRef & other) nogil except +
     DBSearchParam deref() nogil except +
-  ctypedef libcpp_map[ProcessingSoftwareRef, SearchParamRef] DBSearchSteps
+  #ctypedef libcpp_map[ProcessingSoftwareRef, SearchParamRef] DBSearchSteps

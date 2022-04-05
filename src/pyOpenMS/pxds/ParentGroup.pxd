@@ -28,6 +28,7 @@ cdef extern from "<OpenMS/METADATA/ID/ParentGroup.h>" namespace "OpenMS::Identif
 
   cdef cppclass ParentGroupSet(ScoredProcessingResult):
     ParentGroupSet() nogil except +
+    ParentGroupSet(ParentGroupSet other) nogil except +
     String label
     ParentGroups groups
     

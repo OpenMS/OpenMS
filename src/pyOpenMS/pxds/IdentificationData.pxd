@@ -3,7 +3,7 @@ from libcpp cimport bool
 from libcpp.pair cimport pair as libcpp_pair
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp.set cimport set as libcpp_set
-from libcpp.map cimport map as libcpp_map
+#from libcpp.map cimport map as libcpp_map
 from MetaInfoInterface cimport *
 from MetaData cimport *
 from ScoreType cimport *
@@ -66,14 +66,35 @@ cdef extern from "<OpenMS/METADATA/ID/IdentificationData.h>" namespace "OpenMS":
 
       MatchGroupRef registerObservationMatchGroup(const ObservationMatchGroup& group)
 
-      libcpp_set[ScoreType] getScoreTypes() nogil except +
+      InputFiles& getInputFiles() nogil except +
 
       libcpp_set[ProcessingSoftware] getProcessingSoftwares() nogil except +
 
-      InputFiles & getInputFiles() nogil except +
+      ProcessingSteps& getProcessingSteps() nogil except +
 
-      ProcessingSteps & getProcessingSteps() nogil except +
+      DBSearchParams& getDBSearchParams() nogil except +
 
+      #DBSearchSteps& getDBSearchSteps() nogil except +
+
+      libcpp_set[ScoreType] getScoreTypes() nogil except +
+
+      Observations& getObservations() nogil except +
+
+      ParentSequences& getParentSequences() nogil except +
+
+      ParentGroupSets& getParentGroupSets() nogil except +
+
+      #IdentifiedPeptides& getIdentifiedPeptides() nogil except +
+
+      IdentifiedCompounds& getIdentifiedCompounds() nogil except +
+
+      #IdentifiedOligos& getIdentifiedOligos() nogil except +
+
+      #Adducts& getAdducts() nogil except +
+
+      ObservationMatches& getObservationMatches() nogil except +
+
+      ObservationMatchGroups& getObservationMatchGroups() nogil except +
 
   #cdef cppclass RefTranslator:
   #  libcpp_map[InputFileRef,InputFileRef] input_file_refs
