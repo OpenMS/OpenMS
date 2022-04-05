@@ -124,23 +124,21 @@ START_SECTION((Int getIntParameter(SVM_parameter_type type)))
 END_SECTION
 
 START_SECTION((Int train(struct svm_problem *problem)))
-  SVMWrapper svm;
-  svm_problem* problem = new svm_problem();
-  UInt count = 4;
-  svm_node** nodes = new svm_node*[count];
-  double* labels = new double[count];
+	svm_problem* problem = new svm_problem();
+	UInt count = 4;
+	svm_node** nodes = new svm_node*[count];
+	double* labels = new double[count];
 
-  for (Size i = 0; i < count; i++)
-  {
-    nodes[i] = new svm_node[count];
-    nodes[i][count - 1].index = -1;
-    labels[i] = i * 2 / 3 + 0.03;
-  }
-  problem->x = nodes;
-  problem->l = count;
-  problem->y = labels;
-  TEST_EQUAL(svm.train(problem), 1)
-  LibSVMEncoder::destroyProblem(problem);
+	for (Size i = 0; i < count; i++)
+	{
+		nodes[i] = new svm_node[count];
+		nodes[i][count - 1].index = -1;
+		labels[i] = i * 2 / 3 + 0.03;
+	}
+	problem->x = nodes;
+	problem->l = count;
+	problem->y = labels;
+	TEST_EQUAL(svm.train(problem), 1)
 END_SECTION
 
 START_SECTION((Int train(SVMData &problem)))
