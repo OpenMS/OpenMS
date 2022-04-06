@@ -107,6 +107,7 @@ namespace OpenMS
 
     // select peptide sequence by default and update interface
     ui_->seq_type->setCurrentText("Peptide");
+    seqTypeSwitch_();
     
     for (size_t i = 0; i < check_boxes_.size(); ++i)
     {

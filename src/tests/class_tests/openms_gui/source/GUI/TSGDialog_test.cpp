@@ -39,6 +39,8 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QMessageBox>
 
+#include <qdebug.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -114,9 +116,6 @@ void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
 
     // get intensity spin box corresponding to current check box
     QDoubleSpinBox** spin_ptr = curr_box->ptr_to_spin_box;
-    if (spin_ptr == nullptr)
-      continue;
-    QDoubleSpinBox* spin = *spin_ptr;
 
     int input_type;
     if (dialog_.seq_type_ == TheoreticalSpectrumGenerationDialog::SequenceType::PEPTIDE)
@@ -139,17 +138,19 @@ void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
       QTest::qWait(DELAY);
 
       // verfiy the check state changed
-      QVERIFY(prev != item->checkState());
+      QVERIFY2(prev != item->checkState(), qPrintable("Clicking on '" + item->text() + "' didn't change its state."));
 
-      testSpinBox_(spin);
+      if (spin_ptr == nullptr)
+        continue;
+      testSpinBox_(*spin_ptr);
     }
     else
     {
       // if ion type isn't supported, check if the ion and its intensity are hidden
-      QVERIFY(item->isHidden());
-      if (spin == nullptr)
+      QVERIFY2(item->isHidden(), qPrintable(item->text() + " wasn't hidden."));
+      if (spin_ptr == nullptr)
         continue;
-      QVERIFY(spin->isHidden());
+      QVERIFY2((*spin_ptr)->isHidden(), qPrintable("Spin box of '" + item->text() + "' wasn't hidden."));
     }
   }
 }
@@ -159,7 +160,7 @@ void OpenMS::TestTSGDialog::testSequenceInput_(QString input)
   UI->seq_input->clear();
   QTest::keyClicks(UI->seq_input, input);
   QString read_seq = QString::fromStdString(std::string(dialog_.getSequence()));
-  QVERIFY(read_seq == UI->seq_input->text());
+  QVERIFY2(read_seq == UI->seq_input->text(), "Test of sequence input failed!");
 }
 
 void OpenMS::TestTSGDialog::checkMessageBoxExists_()
@@ -173,7 +174,7 @@ void OpenMS::TestTSGDialog::checkMessageBoxExists_()
     QVERIFY(true);
     return;
   }
-  QVERIFY(false);
+  QVERIFY2(false, "Expected message box wasn't produced!");
 }
 
 void TestTSGDialog::testMessageBoxes_()
