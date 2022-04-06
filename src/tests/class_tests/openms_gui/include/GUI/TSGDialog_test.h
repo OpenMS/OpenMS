@@ -70,7 +70,7 @@ namespace OpenMS
       template<typename T> // template for QSpinBox and QDoubleSpinBox
       void testSpinBox_(T* box, std::string str_value = "2");
 
-      void testIonsIntensities_(bool peptide_input);
+      void testIonsIntensities_();
 
       void testSequenceInput_(QString input);
 

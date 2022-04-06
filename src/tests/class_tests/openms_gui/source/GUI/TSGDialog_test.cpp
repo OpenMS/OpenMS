@@ -104,8 +104,16 @@ void TestTSGDialog::testIsotopeModel_(bool skip_none)
   testSpinBox_(UI->max_iso_prob_spinbox);
 }
 
-void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
+void OpenMS::TestTSGDialog::testIonsIntensities_()
 {
+  int input_type;
+  if (dialog_.seq_type_ == TheoreticalSpectrumGenerationDialog::SequenceType::PEPTIDE)
+    input_type = 0;
+  else if (dialog_.seq_type_ == TheoreticalSpectrumGenerationDialog::SequenceType::RNA)
+    input_type = 1;
+  else // Metabolite
+    input_type = 2;
+
   for (size_t i = 0; i < dialog_.check_boxes_.size(); ++i)
   {
     // get the item
@@ -116,14 +124,6 @@ void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
 
     // get intensity spin box corresponding to current check box
     QDoubleSpinBox** spin_ptr = curr_box->ptr_to_spin_box;
-
-    int input_type;
-    if (dialog_.seq_type_ == TheoreticalSpectrumGenerationDialog::SequenceType::PEPTIDE)
-      input_type = 0;
-    else if (dialog_.seq_type_ == TheoreticalSpectrumGenerationDialog::SequenceType::RNA)
-      input_type = 1;
-    else // Metabolite
-      input_type = 2;
 
     if (curr_box->state.at(input_type) != CheckBoxState::HIDDEN)
     {
@@ -260,7 +260,7 @@ void TestTSGDialog::testGui()
   testIsotopeModel_();
 
   // ion types and intensities
-  testIonsIntensities_(true);
+  testIonsIntensities_();
 
   // check relative loss intensity manually
   UI->rel_loss_intensity->clear();
@@ -284,7 +284,7 @@ void TestTSGDialog::testGui()
   QVERIFY2(UI->isotope_model->isHidden(), "Isotope model not hidden for 'Peptide' setting.");
 
   // ion types and intensities
-  testIonsIntensities_(false);
+  testIonsIntensities_();
   // check relative loss intensity manually
   QVERIFY(UI->rel_loss_intensity->isHidden());
   QVERIFY(UI->rel_loss_label->isHidden());
@@ -304,6 +304,9 @@ void TestTSGDialog::testGui()
   // isotope model
   QVERIFY2(!UI->isotope_model->isHidden(), "Isotope model hidden for 'Metabolite' setting.");
   testIsotopeModel_(true);
+
+  // ion types and intensities
+  //testIonsIntensities_();
 }
 
 void TestTSGDialog::testParameterImport()
