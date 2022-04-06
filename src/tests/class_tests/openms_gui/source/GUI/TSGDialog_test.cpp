@@ -282,10 +282,6 @@ void TestTSGDialog::testGui()
 
   // isotope model
   QVERIFY2(UI->isotope_model->isHidden(), "Isotope model not hidden for 'Peptide' setting.");
-  QVERIFY(UI->max_iso_spinbox->isHidden());
-  QVERIFY(UI->max_iso_label->isHidden());
-  QVERIFY(UI->max_iso_prob_spinbox->isHidden());
-  QVERIFY(UI->max_iso_prob_label->isHidden());
 
   // ion types and intensities
   testIonsIntensities_(false);

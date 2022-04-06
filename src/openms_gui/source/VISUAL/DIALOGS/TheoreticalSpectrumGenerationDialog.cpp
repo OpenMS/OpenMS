@@ -374,10 +374,6 @@ namespace OpenMS
 
       // enable isotopes
       ui_->isotope_model->setHidden(false);
-      ui_->max_iso_label->setHidden(false);
-      ui_->max_iso_spinbox->setHidden(false);
-      ui_->max_iso_prob_label->setHidden(false);
-      ui_->max_iso_prob_spinbox->setHidden(false);
       modelChanged_();
 
       // enable isotope model 'none'
@@ -398,10 +394,6 @@ namespace OpenMS
 
         // disable isotopes
         ui_->isotope_model->setHidden(true);
-        ui_->max_iso_label->setHidden(true);
-        ui_->max_iso_spinbox->setHidden(true);
-        ui_->max_iso_prob_label->setHidden(true);
-        ui_->max_iso_prob_spinbox->setHidden(true);
       }
       else // metabolite input
       {
@@ -410,10 +402,6 @@ namespace OpenMS
 
         // enable isotopes
         ui_->isotope_model->setHidden(false);
-        ui_->max_iso_label->setHidden(false);
-        ui_->max_iso_spinbox->setHidden(false);
-        ui_->max_iso_prob_label->setHidden(false);
-        ui_->max_iso_prob_spinbox->setHidden(false);
         modelChanged_();
         
         // disable isotope model 'none'
