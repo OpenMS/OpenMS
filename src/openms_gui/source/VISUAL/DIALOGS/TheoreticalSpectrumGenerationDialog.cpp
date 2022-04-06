@@ -100,14 +100,14 @@ namespace OpenMS
 
     // don't add any isotopes by default and update interface
     ui_->model_none_button->setChecked(true);
-    modelChanged_();
+    modelChanged_(); //because setting the check state of the button doesn't call 'toggled'
 
     // signal for changing interface depending on sequence type
     connect(ui_->seq_type, &QComboBox::currentTextChanged, this, &TheoreticalSpectrumGenerationDialog::seqTypeSwitch_);
 
-    // select peptide sequence by default and update interface
-    ui_->seq_type->setCurrentText("Peptide");
+    // To set the interface and members
     seqTypeSwitch_();
+
     
     for (size_t i = 0; i < check_boxes_.size(); ++i)
     {
