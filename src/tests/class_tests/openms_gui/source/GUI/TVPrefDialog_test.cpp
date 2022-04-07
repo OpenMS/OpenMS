@@ -28,59 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Maintainer: Tom Waschischeck $
+// $Authors: Tom Waschischeck $
 // --------------------------------------------------------------------------
 
-#pragma once
-
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+#include <TestTVPrefDialog.h>
 
 
-#include <OpenMS/DATASTRUCTURES/Param.h>
-
-#include <QtWidgets/QDialog>
-
-namespace Ui
-{
-  class TOPPViewPrefDialogTemplate;
-}
-
-namespace OpenMS
-{
-  class TestTVPrefDialog; // fwd declaring test class
-
-  namespace Internal
-  {
-    /**
-        @brief Preferences dialog for TOPPView
-
-        @ingroup TOPPView_elements
-    */
-    class OPENMS_GUI_DLLAPI TOPPViewPrefDialog :
-      public QDialog
-    {
-      Q_OBJECT
-
-public:
-      friend class TestTVPrefDialog;  // to test the GUI expressed in the private member ui_
-
-      TOPPViewPrefDialog(QWidget * parent);
-      ~TOPPViewPrefDialog() override;
-
-      /// initialize GUI values with these parameters
-      void setParam(const Param& param);
-
-      /// update the parameters given the current GUI state.
-      /// Can be used to obtain default parameters and their names.
-      Param getParam() const;
-
-protected slots:
-      void browseDefaultPath_();
-private:
-      Ui::TOPPViewPrefDialogTemplate* ui_;
-      mutable Param param_; ///< is updated in getParam()
-      Param tsg_param_; ///< params for TheoreticalSpectrumGenerator in the TSG tab
-    };
-  }
-}
+// expands to a simple main() method that runs all the private slots
+QTEST_MAIN(TestTSGDialog)

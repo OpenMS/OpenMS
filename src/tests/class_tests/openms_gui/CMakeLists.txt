@@ -75,6 +75,7 @@ if(HAS_XSERVER)
   set(GUI_executables_list
     TOPPView_test
     TSGDialog_test
+    TVPrefDialog_test
   )
 
   #------------------------------------------------------------------------------
