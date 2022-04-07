@@ -43,9 +43,8 @@ namespace OpenMS
     MassTraceDetection::MassTraceDetection() :
             DefaultParamHandler("MassTraceDetection"), ProgressLogger()
     {
-      defaults_.setValue("mass_error", 20.0, "Allowed mass deviation. Unit is determined by -mass_error_unit.");
-      defaults_.setValue("mass_error_unit", "ppm", "Mass error unit.  ppm (default) or da");
-      defaults_.setValidStrings("mass_error_unit", {"ppm", "da"});
+      defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass deviation (in ppm).");
+      defaults_.setValue("mass_error_da", -0.1, "Allowed mass deviation (in dalton); not used by default.");
       defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are removed as noise.");
       defaults_.setValue("chrom_peak_snr", 3.0, "Minimum intensity above noise_threshold_int (signal-to-noise) a peak should have to be considered an apex.");
 
@@ -579,17 +578,8 @@ namespace OpenMS
 
     void MassTraceDetection::updateMembers_()
     {
-      mass_error_ppm_ = mass_error_da_ = -1;
-      String mass_error_unit = param_.getValue("mass_error_unit").toString();
-      if(mass_error_unit == "ppm")
-      {
-        mass_error_ppm_ = (double)param_.getValue("mass_error");
-      }
-      else
-      {
-        mass_error_da_ = (double) param_.getValue("mass_error");
-      }
-
+      mass_error_ppm_ = (double)param_.getValue("mass_error_ppm");
+      mass_error_da_ = (double) param_.getValue("mass_error_da");
       noise_threshold_int_ = (double)param_.getValue("noise_threshold_int");
       chrom_peak_snr_ = (double)param_.getValue("chrom_peak_snr");
       quant_method_ = MassTrace::getQuantMethod((String)param_.getValue("quant_method").toString());
