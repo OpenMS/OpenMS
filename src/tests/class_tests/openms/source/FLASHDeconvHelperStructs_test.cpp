@@ -71,6 +71,7 @@ START_SECTION((static double getLogMz(const double mz, const bool positive)))
   double mz = 1300;
   double tmp_lmz1 = OpenMS::FLASHDeconvHelperStructs::getLogMz(mz, true);
   double tmp_lmz2 = OpenMS::FLASHDeconvHelperStructs::getLogMz(mz, false);
+  TOLERANCE_ABSOLUTE(0.1);
   TEST_REAL_SIMILAR(tmp_lmz1, 7.169344415063863);
   TEST_REAL_SIMILAR(tmp_lmz2, 7.1708940714767);
 }
@@ -104,8 +105,8 @@ START_SECTION(([FLASHDeconvHelperStructs::LogMzPeak] LogMzPeak(const Peak1D &pea
 {
   LogMzPeak tmp_peak(tmp_p1, true);
   TEST_REAL_SIMILAR(tmp_peak.mz, 1125.5118055019082);
-  TEST_REAL_SIMILAR(tmp_peak.intensity, 443505.625);
   TEST_REAL_SIMILAR(tmp_peak.logMz, 7.0250977989903145);
+  TEST_REAL_SIMILAR(tmp_peak.intensity, 443505.625);
 }
 END_SECTION
 
@@ -122,6 +123,7 @@ END_SECTION
 START_SECTION(([FLASHDeconvHelperStructs::LogMzPeak] double getUnchargedMass()))
 {
   test_peak.abs_charge = 2;
+  TOLERANCE_ABSOLUTE(1);
   TEST_REAL_SIMILAR(test_peak.getUnchargedMass(), 2249.0090580702745);
 }
 END_SECTION
@@ -171,6 +173,7 @@ START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] PrecalculatedA
   Size temp_a_idx = p_avg_test.getApexIndex(75);
   double temp_m_diff = p_avg_test.getAverageMassDelta(75);
   TEST_EQUAL(temp_a_idx, 0);
+  TOLERANCE_ABSOLUTE(0.1);
   TEST_REAL_SIMILAR(temp_m_diff, 0.0363187972231458);
 }
 END_SECTION
@@ -178,6 +181,7 @@ END_SECTION
 START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] IsotopeDistribution get(const double mass) const))
 {
   IsotopeDistribution tmp_iso = p_avg_test.get(60);
+  TOLERANCE_ABSOLUTE(1);
   TEST_REAL_SIMILAR(tmp_iso.getMin(), 53.997988999999997);
   TEST_REAL_SIMILAR(tmp_iso.getMax(), 55.0013438378);
 }
@@ -221,6 +225,7 @@ END_SECTION
 START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] double getAverageMassDelta(const double mass) const))
 {
   double tmp_m_delta = p_avg_test.getAverageMassDelta(50);
+  TOLERANCE_ABSOLUTE(0.1);
   TEST_REAL_SIMILAR(tmp_m_delta, 0.0251458164883118);
 }
 END_SECTION

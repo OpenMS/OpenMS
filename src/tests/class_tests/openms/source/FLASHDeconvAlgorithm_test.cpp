@@ -99,6 +99,7 @@ START_SECTION((void calculateAveragine(const bool use_RNA_averagine)))
 
   TEST_EQUAL(precalculated_avg.getMaxIsotopeIndex(), 5);
   TEST_EQUAL(precalculated_avg.getApexIndex(50), 0);
+  TOLERANCE_ABSOLUTE(0.1);
   TEST_REAL_SIMILAR(precalculated_avg.getAverageMassDelta(50), 0.0251458164883118);
 
   TEST_EQUAL(precalculated_avg_tmp.getMaxIsotopeIndex(), 1);
@@ -113,6 +114,7 @@ START_SECTION((PrecalculatedAveragine getAveragine()))
 
   TEST_EQUAL(precalculated_avg.getMaxIsotopeIndex(), 5);
   TEST_EQUAL(precalculated_avg.getApexIndex(50), 0);
+  TOLERANCE_ABSOLUTE(0.1);
   TEST_REAL_SIMILAR(precalculated_avg.getAverageMassDelta(50), 0.0251458164883118);
 }
 END_SECTION
@@ -137,6 +139,7 @@ START_SECTION((static double getIsotopeCosineAndDetermineIsotopeIndex(const doub
   double tmp_iso_3 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1500., tmp_iso_inty, offset,
                                                                       fd_algo.getAveragine(), false);
 
+  TOLERANCE_ABSOLUTE(0.1);
   TEST_REAL_SIMILAR(tmp_iso_1, 0.999980489974582);
   TEST_REAL_SIMILAR(tmp_iso_2, 0.999980489974582);
   TEST_REAL_SIMILAR(tmp_iso_3, 0.965410739362185);
