@@ -41,6 +41,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 
 #include <vector>
@@ -52,37 +53,42 @@ namespace OpenMS
   class IsotopeDistribution;
 
 
-
 class OPENMS_DLLAPI FeatureFinderIdentificationAlgorithm :
   public DefaultParamHandler
 {
 public:
   /// default constructor
-  FeatureFinderIdentificationAlgorithm(); 
+  FeatureFinderIdentificationAlgorithm();
 
-  /// Main method for actual FeatureFinder
-  /// External IDs (@p peptides_ext, @p proteins_ext) may be empty, 
-  /// in which case no machine learning or FDR estimation will be performed.
-  /// Optional seeds from e.g. untargeted FeatureFinders can be added with
-  /// @p seeds.
-  /// Results will be written to @p features. 
-  /// Note: The primaryMSRunPath of features will be updated to the primaryMSRunPath 
-  /// stored in the MSExperiment.
-  /// If that path is not a valid and readable mzML @p spectra_file 
-  /// will be annotated as a fall-back.
-  /// Caution: peptide IDs will be shrunk to best hit, FFid metavalues added
-  /// and potential seed IDs added.
-  void run(
-    std::vector<PeptideIdentification> peptides,
-    const std::vector<ProteinIdentification>& proteins,
-    std::vector<PeptideIdentification> peptides_ext,
-    std::vector<ProteinIdentification> proteins_ext,
-    FeatureMap& features,
-    const FeatureMap& seeds = FeatureMap(),
-    const String spectra_file = ""
-    );
+  /**
+     @brief Run feature detection
 
-  void runOnCandidates(FeatureMap& features);
+     @param features Output feature map
+     @param id_data Primary ("internal") identifications as targets for feature detection
+     @param id_data_ext Additional ("external") identifications as targets for feature detection
+     @param spectra_file Fall-back value for setting @p primaryMSRunPath in the output (by default set based on the MS data being processed)
+
+     External IDs (@p id_data_ext) may be empty, in which case no machine learning or FDR estimation will be performed.
+  */
+  void run(FeatureMap& features,
+           IdentificationData& id_data,
+           IdentificationData& id_data_ext,
+           const String& spectra_file = "");
+
+  /// Version of run() for legacy identification formats
+  void run(FeatureMap& features,
+           const std::vector<PeptideIdentification>& peptides,
+           const std::vector<ProteinIdentification>& proteins,
+           const std::vector<PeptideIdentification>& peptides_ext,
+           const std::vector<ProteinIdentification>& proteins_ext,
+           const FeatureMap& seeds = FeatureMap(),
+           const String& spectra_file = "");
+
+  /// Convert seeds to an IdentificationData representation
+  void convertSeeds(const FeatureMap& seeds, IdentificationData& id_data,
+                    const String& input_file = "", Size n_overlap_traces = 6);
+
+  // void runOnCandidates(FeatureMap& features);
 
   PeakMap& getMSData();
   const PeakMap& getMSData() const;
@@ -104,29 +110,61 @@ protected:
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
-  /// mapping: RT (not necessarily unique) -> pointer to peptide
-  typedef std::multimap<double, PeptideIdentification*> RTMap;
-  /// mapping: charge -> internal/external: (RT -> pointer to peptide)
-  typedef std::map<Int, std::pair<RTMap, RTMap> > ChargeMap;
-  /// mapping: sequence -> charge -> internal/external ID information
-  typedef std::map<AASequence, ChargeMap> PeptideMap;
-  /// mapping: peptide ref. -> int./ext.: (RT -> pointer to peptide)
-  typedef std::map<String, std::pair<RTMap, RTMap> > PeptideRefRTMap;
+  // aggregate all search hits (internal and external) grouped by molecule (e.g.
+  // peptide) and charge state, ordered by RT:
+  /// mapping: RT (not necessarily unique) -> reference to search hit
+  typedef std::multimap<double, IdentificationData::ObservationMatchRef> RTMap;
+  /// mapping: charge -> internal/external: (RT -> ref. to search hit)
+  typedef std::map<Int, std::pair<RTMap, RTMap>> ChargeMap;
 
-  PeptideMap peptide_map_;
+  struct TargetData
+  {
+    IdentificationData::IdentifiedMolecule molecule;
+    IdentificationData::AdductOpt adduct;
+    ChargeMap hits_by_charge;
+  };
+  /// mapping: target ion ID -> associated data
+  typedef std::map<String, TargetData> TargetMap;
 
-  Size n_internal_peps_; ///< number of internal peptide
-  Size n_external_peps_; ///< number of external peptides
+  /// region in RT in which a target elutes:
+  struct RTRegion
+  {
+    double start, end;
+    ChargeMap ids; ///< internal/external IDs (per charge) in this region
+  };
 
-  Size batch_size_; ///< nr of peptides to use at the same time during chromatogram extraction
-  double rt_window_; ///< RT window width
+  /// comparison functor for features
+  struct FeatureCompare
+  {
+    bool operator()(const Feature& f1, const Feature& f2)
+    {
+      const String& ref1 = f1.getMetaValue("CompoundRef");
+      const String& ref2 = f2.getMetaValue("CompoundRef");
+      if (ref1 == ref2)
+      {
+        return f1.getRT() < f2.getRT();
+      }
+      return ref1 < ref2;
+    }
+  } feature_compare_;
+
+  TargetMap target_map_; ///< aggregated IDs for each identified molecule
+
+  Size n_internal_targets_; ///< number of internal target molecules
+  Size n_external_targets_; ///< number of external target molecules
+  Size n_seed_targets_; ///< number of targets derived from seeds
+
+  Size batch_size_; ///< number of target molecules to consider together during chromatogram extraction
   double mz_window_; ///< m/z window width
   bool mz_window_ppm_; ///< m/z window width is given in PPM (not Da)?
+  double rt_window_; ///< RT window width (for "proper" IDs)
+  double rt_window_seeds_; ///< RT window width for seeds
 
   double mapping_tolerance_; ///< RT tolerance for mapping IDs to features
 
-  double isotope_pmin_; ///< min. isotope probability for peptide assay
-  Size n_isotopes_; ///< number of isotopes for peptide assay
+  Size n_isotopes_; ///< number of isotopes for assay
+  bool max_isotopes_; ///< consider most abundant isotopes?
+  double isotope_pmin_; ///< min. isotope probability for assay
 
   double rt_quantile_;
 
@@ -149,77 +187,12 @@ protected:
 
   Size debug_level_;
 
-  void updateMembers_() override;
-
-  /// region in RT in which a peptide elutes:
-  struct RTRegion
-  {
-    double start, end;
-    ChargeMap ids; ///< internal/external peptide IDs (per charge) in this region
-  };
-
-  /// predicate for filtering features by overall quality:
-  struct FeatureFilterQuality
-  {
-    bool operator()(const Feature& feature)
-    {
-      return feature.getOverallQuality() == 0.0;
-    }
-  } feature_filter_quality_;
-
-  /// predicate for filtering features by assigned peptides:
-  struct FeatureFilterPeptides
-  {
-    bool operator()(const Feature& feature)
-    {
-      return feature.getPeptideIdentifications().empty();
-    }
-  } feature_filter_peptides_;
-
-  /// comparison functor for (unassigned) peptide IDs
-  struct PeptideCompare
-  {
-    bool operator()(const PeptideIdentification& p1,
-                    const PeptideIdentification& p2)
-    {
-      const String& seq1 = p1.getHits()[0].getSequence().toString();
-      const String& seq2 = p2.getHits()[0].getSequence().toString();
-      if (seq1 == seq2)
-      {
-        Int charge1 = p1.getHits()[0].getCharge();
-        Int charge2 = p2.getHits()[0].getCharge();
-        if (charge1 == charge2)
-        {
-          return p1.getRT() < p2.getRT();
-        }
-        return charge1 < charge2;
-      }
-      return seq1 < seq2;
-    }
-  } peptide_compare_;
-
-  /// comparison functor for features
-  struct FeatureCompare
-  {
-    bool operator()(const Feature& f1, const Feature& f2)
-    {
-      const String& ref1 = f1.getMetaValue("PeptideRef");
-      const String& ref2 = f2.getMetaValue("PeptideRef");
-      if (ref1 == ref2)
-      {
-        return f1.getRT() < f2.getRT();
-      }
-      return ref1 < ref2;
-    }
-  } feature_compare_;
-
   PeakMap ms_data_; ///< input LC-MS data
   PeakMap chrom_data_; ///< accumulated chromatograms (XICs)
-  TargetedExperiment library_; ///< accumulated assays for peptides
+  TargetedExperiment library_; ///< accumulated assays for targets (one chunk)
+  TargetedExperiment combined_library_; ///< accumulated assays for targets (all chunks)
 
   bool quantify_decoys_;
-
-  const double seed_rt_window_ = 60.0; ///< extraction window used for seeds (smaller than rt_window_ as we know the exact apex positions)
 
   /// SVM probability -> number of pos./neg. features (for FDR calculation):
   std::map<double, std::pair<Size, Size> > svm_probs_internal_;
@@ -234,45 +207,43 @@ protected:
 
   ProgressLogger prog_log_;
 
-  /// generate transitions (isotopic traces) for a peptide ion and add them to the library:
-  void generateTransitions_(const String& peptide_id, double mz, Int charge,
-                            const IsotopeDistribution& iso_dist);
+  void updateMembers_() override;
 
-  void addPeptideRT_(TargetedExperiment::Peptide& peptide, double rt) const;
+  /// generate transitions (isotopic traces) for an ion and add them to the library:
+  void generateTransitions_(const String& target_id, double target_mass,
+                            Int charge, const IsotopeDistribution& iso_dist);
 
-  /// get regions in which peptide eludes (ideally only one) by clustering RT elution times
-  void getRTRegions_(ChargeMap& peptide_data, std::vector<RTRegion>& rt_regions, bool clear_IDs = true) const;
+  void addTargetRT_(TargetedExperiment::Compound& target, double rt) const;
 
-  void annotateFeaturesFinalizeAssay_(
-    FeatureMap& features,
-    std::map<Size, std::vector<PeptideIdentification*> >& feat_ids,
-    RTMap& rt_internal);
+  /// get regions in which target elutes (ideally only one) by clustering RT elution times
+  void makeRTRegions_(const ChargeMap& charge_data, std::vector<RTRegion>& rt_regions,
+                      bool is_seed = false) const;
 
   /// annotate identified features with m/z, isotope probabilities, etc.
-  void annotateFeatures_(FeatureMap& features, PeptideRefRTMap& ref_rt_map);
+  void annotateFeatures_(FeatureMap& features);
+
+  void annotateFeaturesOneTarget_(FeatureMap& features, const String& target_id,
+                                  Int charge, const std::vector<Size>& indexes);
 
   void ensureConvexHulls_(Feature& feature) const;
 
   void postProcess_(FeatureMap& features, bool with_external_ids);
 
-  /// some statistics on detected features
-  void statistics_(const FeatureMap& features) const;
+  /// print some statistics on detected features
+  void statistics_(const FeatureMap& features, bool with_external_ids) const;
 
-  /// creates an assay library out of the peptide sequences and their RT elution windows
-  /// the PeptideMap is mutable since we clear it on-the-go
-  /// @param clear_IDs set to false to keep IDs in internal charge maps (only needed for debugging purposes)
-  void createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map, bool clear_IDs = true);
+  /*!
+    @brief Creates an assay library given target molecule information
 
-  /// CAUTION: This method stores a pointer to the given @p peptide reference in internals
-  /// Make sure it stays valid until destruction of the class.
-  /// @todo find better solution
-  void addPeptideToMap_(PeptideIdentification& peptide,
-    PeptideMap& peptide_map,
-    bool external = false) const;
+    @p MoleculeMap will be (partially) cleared and thus has to be mutable.
+  */
+  void createAssayLibrary_(TargetMap::iterator begin, TargetMap::iterator end);
+
+  void addMatchToTargetMap_(IdentificationData::ObservationMatchRef ref, bool external = false);
 
   void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "") const;
 
-  void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
+  void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool>>& valid_obs,
                           std::map<Size, Int>& training_labels);
 
   void getRandomSample_(std::map<Size, Int>& training_labels) const;
@@ -280,13 +251,15 @@ protected:
   void classifyFeatures_(FeatureMap& features);
 
   void filterFeaturesFinalizeAssay_(Feature& best_feature, double best_quality,
-                                    const double quality_cutoff);
+                                    const double quality_cutoff, const String& target_id);
 
   void filterFeatures_(FeatureMap& features, bool classified);
 
   void calculateFDR_(FeatureMap& features);
 
-  /// Chunks an iterator range (allowing advance and distance) into batches of size batch_size.
+  static std::pair<String, Int> extractTargetID_(const Feature& feature, bool extract_charge = false);
+
+  /// Chunks an iterator range (allowing advance and distance) into batches of size @p batch_size.
   /// Last batch might be smaller.
   template <typename It>
   std::vector<std::pair<It,It>>
@@ -333,4 +306,3 @@ protected:
 } // namespace OpenMS
 
 #endif
- 
