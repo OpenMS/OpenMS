@@ -5609,7 +5609,6 @@ def testString():
 
 @report
 def testIIMN():
-    iimn = pyopenms.IonIdentityMolecularNetworking()
     cm = pyopenms.ConsensusMap()
     
     for mz, rt, ion, linked_groups in [(222.08, 62.0, "[M+H]+", ["1","2","3"]),
@@ -5626,9 +5625,9 @@ def testIIMN():
         cm.push_back(f)
     cm.setUniqueIds()
 
-    iimn.annotateConsensusMap(cm)
+    pyopenms.IonIdentityMolecularNetworking.annotateConsensusMap(cm)
 
-    iimn.writeSupplementaryPairTable(cm, "SupplementaryPairsTable.csv")
+    pyopenms.IonIdentityMolecularNetworking.writeSupplementaryPairTable(cm, "SupplementaryPairsTable.csv")
 
     with open("SupplementaryPairsTable.csv", "r") as f:
         assert f.read() == """ID1,ID2,EdgeType,Score,Annotation
@@ -5637,7 +5636,7 @@ def testIIMN():
 """
     os.remove("SupplementaryPairsTable.csv")
 
-    iimn.writeFeatureQuantificationTable(cm, "FeatureQuantificationTable.txt")
+    pyopenms.IonIdentityMolecularNetworking.writeFeatureQuantificationTable(cm, "FeatureQuantificationTable.txt")
     with open("FeatureQuantificationTable.txt", "r") as f:
         assert f.read() == """#MAP	id	filename	label	size
 #CONSENSUS	rt_cf	mz_cf	intensity_cf	charge_cf	width_cf	quality_cf	row ID	best ion	partners	annotation network number

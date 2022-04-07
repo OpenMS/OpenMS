@@ -3,15 +3,16 @@ from String cimport *
 from ConsensusMap cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>" namespace "OpenMS":
-
     cdef cppclass IonIdentityMolecularNetworking "OpenMS::IonIdentityMolecularNetworking":
         # wrap-doc:
         #  Includes the necessary functions to generate filed required for GNPS ion identity molecular networking (IIMN).
 
         IonIdentityMolecularNetworking() nogil except +
 
-        # wrap static method:
-        void annotateConsensusMap(ConsensusMap& consensus_map) nogil except +
+# wrap static methods:
+cdef extern from "<OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>" namespace "OpenMS::IonIdentityMolecularNetworking":
+
+        void annotateConsensusMap(ConsensusMap& consensus_map) nogil except + #wrap-attach:IonIdentityMolecularNetworking
         # wrap-doc:
         #  Annotate ConsensusMap for ion identity molecular networking (IIMN) workflow by GNPS.
         #  
@@ -25,8 +26,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>" namespa
         #  consensus_map : ConsensusMap
         #    Input ConsensusMap without IIMN annotations.
 
-        # wrap static method:
-        void writeFeatureQuantificationTable(const ConsensusMap& consensus_map, const String& output_file) nogil except +
+        void writeFeatureQuantificationTable(const ConsensusMap& consensus_map, const String& output_file) nogil except + #wrap-attach:IonIdentityMolecularNetworking
         # wrap-doc:
         #  Write feature quantification table (txt file) from a ConsensusMap. Required for GNPS FBMN.
         #  
@@ -42,8 +42,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>" namespa
         #  output_file : str
         #    Output file path for the feature quantification table.
 
-        # wrap static method:
-        void writeSupplementaryPairTable(const ConsensusMap& consensus_map, const String& output_file) nogil except +
+        void writeSupplementaryPairTable(const ConsensusMap& consensus_map, const String& output_file) nogil except + #wrap-attach:IonIdentityMolecularNetworking
         # wrap-doc:
         #  Write supplementary pair table (csv file) from a ConsensusMap with edge annotations for connected features. Required for GNPS IIMN.
         #  
