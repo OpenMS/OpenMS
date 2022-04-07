@@ -331,7 +331,7 @@ namespace OpenMS
       item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
       item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
       addItem(item);
-      setItemSelected(item, true);
+      item->setSelected(true);
       setCurrentRow(row(item));
       itemActivated(item);
       edit(currentIndex());

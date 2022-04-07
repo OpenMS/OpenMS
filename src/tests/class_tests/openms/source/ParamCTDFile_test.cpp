@@ -61,6 +61,7 @@ START_SECTION((ParamCTDFile()))
 {
   ptr = new ParamCTDFile();
   TEST_NOT_EQUAL(ptr, nullPtr)
+  delete ptr;
 }
 END_SECTION
 
