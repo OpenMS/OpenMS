@@ -201,7 +201,7 @@ namespace OpenMS
       /// destructor
       ~LogMzPeak() = default;
 
-      /// get uncharged mass of this peak. It is NOT monoisotopic mass. Returns 0 if no charge set
+      /// get uncharged mass of this peak. It is NOT a monoisotopic mass of a PeakGroup, rather a monoisotopic mass of each LogMzPeak. Returns 0 if no charge set
       double getUnchargedMass();
 
       /// log mz values are compared

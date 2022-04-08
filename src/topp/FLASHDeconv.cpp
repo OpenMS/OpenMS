@@ -770,7 +770,6 @@ protected:
       auto deconv_begin = clock();
       auto deconv_t_start = chrono::high_resolution_clock::now();
 
-      //auto deconvolved_spectrum = DeconvolvedSpectrum(*it, scan_number);
       // for MS>1 spectrum, register precursor
       std::vector<DeconvolvedSpectrum> precursor_specs;
 

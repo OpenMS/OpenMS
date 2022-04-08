@@ -236,17 +236,25 @@ namespace OpenMS
 
   bool FLASHDeconvHelperStructs::LogMzPeak::operator<(const LogMzPeak& a) const
   {
+    if(this->logMz == a.logMz)
+    {
+      return this->intensity < a.intensity;
+    }
     return this->logMz < a.logMz;
   }
 
   bool FLASHDeconvHelperStructs::LogMzPeak::operator>(const LogMzPeak& a) const
   {
+    if(this->logMz == a.logMz)
+    {
+      return this->intensity > a.intensity;
+    }
     return this->logMz > a.logMz;
   }
 
   bool FLASHDeconvHelperStructs::LogMzPeak::operator==(const LogMzPeak& a) const
   {
-    return this->logMz == a.logMz;
+    return this->logMz == a.logMz && this->intensity == a.intensity;
   }
 
   double FLASHDeconvHelperStructs::getChargeMass(const bool positive)

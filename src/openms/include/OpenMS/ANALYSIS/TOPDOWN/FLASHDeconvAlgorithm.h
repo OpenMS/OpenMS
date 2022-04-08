@@ -66,9 +66,6 @@ namespace OpenMS
     /// default constructor
     FLASHDeconvAlgorithm();
 
-    /// default destructor
-    ~FLASHDeconvAlgorithm() override;
-
     /// copy constructor
     FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm& ) = default;
 
@@ -87,13 +84,13 @@ namespace OpenMS
       @param precursor_map_for_FLASHIda deconvolved precursor information from FLASHIda
       @return the deconvolved spectrum (as DeconvolvedSpectrum class)
  */
-    DeconvolvedSpectrum&  getDeconvolvedSpectrum(const MSSpectrum& spec,
+    const DeconvolvedSpectrum&  getDeconvolvedSpectrum(const MSSpectrum& spec,
                                                   const std::vector<DeconvolvedSpectrum>& survey_scans,
                                                   const int scan_number,
                                                   const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_FLASHIda);
 
     /// get calculated averagine
-    PrecalculatedAveragine getAveragine();
+    const PrecalculatedAveragine& getAveragine();
 
     /// set targeted masses for targeted deconvolution. Masses are targeted in all ms levels
     void setTargetMasses(const std::vector<double>& masses);
@@ -343,6 +340,18 @@ namespace OpenMS
                                 const int& b_size,
                                 const int max_offset,
                                 const int offset);
+
+
+    /**
+    @brief register the precursor peak as well as the precursor peak group (or mass) if possible for MSn (n>1) spectrum.
+    Given a precursor peak (found in the original MS n-1 Spectrum) the masses containing the precursor peak are searched.
+    If multiple masses are detected, the one with the best QScore is selected. For the selected mass, its corresponding peak group (along with precursor peak) is registered.
+    If no such mass exists, only the precursor peak is registered.
+    @param survey_scans the candidate precursor spectra - the user may allow search of previous N survey scans.
+    @param precursor_map_for_real_time_acquisition this contains the deconvolved mass information from FLASHIda runs.
+    */
+    bool registerPrecursor(const std::vector<DeconvolvedSpectrum>& survey_scans,
+                                  const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_real_time_acquisition);
 
   };
 }

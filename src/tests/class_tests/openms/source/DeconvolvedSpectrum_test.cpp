@@ -110,20 +110,6 @@ DeconvolvedSpectrum prec_deconv_spec_1 = fd_algo.getDeconvolvedSpectrum(input[1]
 DeconvolvedSpectrum prec_deconv_spec_2 = fd_algo.getDeconvolvedSpectrum(input[3], null_specs, 4, null_map);
 DeconvolvedSpectrum ms2_deconv_spec = DeconvolvedSpectrum(input[5], 6);
 
-START_SECTION((bool registerPrecursor(const std::vector< DeconvolvedSpectrum > &survey_scans, const std::map< int, std::vector< std::vector< double >>> &precursor_map_for_real_time_acquisition)))
-{
-  // prepare arguments
-  std::vector<DeconvolvedSpectrum> survey_specs;
-  survey_specs.push_back(prec_deconv_spec_1);
-  survey_specs.push_back(prec_deconv_spec_2);
-  bool is_not_registered = ms2_deconv_spec.registerPrecursor(survey_specs, true, .0, null_map);
-  Size precursor_pg_size = ms2_deconv_spec.getPrecursorPeakGroup().size();
-
-  TEST_EQUAL(is_not_registered, false);
-  TEST_EQUAL(precursor_pg_size, 39);
-}
-END_SECTION
-
 START_SECTION((double getCurrentMaxMass(const double max_mass) const))
 {
   double ms1_max_mass = test_deconv_spec.getCurrentMaxMass(1000.);

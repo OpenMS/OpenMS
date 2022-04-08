@@ -242,7 +242,7 @@ namespace OpenMS
   void FLASHIda::filterPeakGroupsUsingMassExclusion_(const int ms_level, const double rt)
   {
     std::vector<PeakGroup> filtered_peakgroups;
-    std::sort(deconvolved_spectrum_.begin(), deconvolved_spectrum_.end(), QscoreComparator_);
+    deconvolved_spectrum_.sort();
     int mass_count = mass_count_[ms_level - 1];
     trigger_charges.clear();
     trigger_charges.reserve(mass_count);

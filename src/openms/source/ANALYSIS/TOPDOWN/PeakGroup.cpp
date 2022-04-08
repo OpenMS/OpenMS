@@ -32,7 +32,7 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include "include/OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h"
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 
 namespace OpenMS
 {
@@ -41,9 +41,6 @@ namespace OpenMS
       max_abs_charge_(max_abs_charge),
       is_positive_(is_positive)
   {
-    //
-    //per_charge_int_ = std::vector<float>(1 + max_abs_charge, .0);
-    //per_charge_cos_ = std::vector<float>(1 + max_abs_charge, .0);
   }
 
   PeakGroup::~PeakGroup()
@@ -52,7 +49,6 @@ namespace OpenMS
 
   bool PeakGroup::operator<(const PeakGroup& a) const
   {
-    //if(this->spec->getRT() == a.spec->getRT()){
     if (this->monoisotopic_mass_ == a.monoisotopic_mass_)
     {
       return this->intensity_ < a.intensity_;
@@ -84,7 +80,7 @@ namespace OpenMS
     if (offset != 0)
     {
       std::vector<LogMzPeak> tmpPeaks;
-      tmpPeaks.swap(*this);
+      tmpPeaks.swap(logMzpeaks_);
       reserve(tmpPeaks.size());
 
       for (auto& p: tmpPeaks)
@@ -398,4 +394,68 @@ namespace OpenMS
     return is_positive_;
   }
 
+  std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator PeakGroup::begin() const noexcept
+  {
+    return logMzpeaks_.begin();
+  }
+
+  std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator PeakGroup::end() const noexcept
+  {
+    return logMzpeaks_.end();
+  }
+
+  std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator PeakGroup::begin() noexcept
+  {
+    return logMzpeaks_.begin();
+  }
+
+  std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator PeakGroup::end() noexcept
+  {
+    return logMzpeaks_.end();
+  }
+
+  const FLASHDeconvHelperStructs::LogMzPeak& PeakGroup::operator[](const Size i) const
+  {
+    return logMzpeaks_[i];
+  }
+
+  void PeakGroup::push_back (const FLASHDeconvHelperStructs::LogMzPeak& pg)
+  {
+    logMzpeaks_.push_back(pg);
+  }
+
+  Size PeakGroup::size() const noexcept
+  {
+    return logMzpeaks_.size();
+  }
+
+  void PeakGroup::clear()
+  {
+    logMzpeaks_.clear();
+  }
+
+  void PeakGroup::reserve (Size n)
+  {
+    logMzpeaks_.reserve(n);
+  }
+
+  bool PeakGroup::empty() const
+  {
+    return logMzpeaks_.empty();
+  }
+
+  void PeakGroup::swap (std::vector<FLASHDeconvHelperStructs::LogMzPeak>& x)
+  {
+    logMzpeaks_.swap(x);
+  }
+
+  void PeakGroup::shrink_to_fit()
+  {
+    logMzpeaks_.shrink_to_fit();
+  }
+
+  void PeakGroup::sort()
+  {
+    std::sort(logMzpeaks_.begin(), logMzpeaks_.end());
+  }
 }
