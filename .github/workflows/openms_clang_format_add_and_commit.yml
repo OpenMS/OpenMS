@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.issue.pull_request.head.sha }}
           fetch-depth: 0
 
 # Get files changed in the PR
