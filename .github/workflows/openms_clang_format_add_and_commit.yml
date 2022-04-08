@@ -10,10 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.issue.pull_request != '' && contains(github.event.comment.body, '/reformat')
     steps:
-      - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.issue.pull_request.head.sha }}
-          fetch-depth: 0
+      # Checkout source code
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Checkout Pull Request
+        run: hub pr checkout ${{ github.event.issue.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 # Get files changed in the PR
       - name: Get changed files
