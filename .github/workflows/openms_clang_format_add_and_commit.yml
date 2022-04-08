@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.issue.pull_request.head.sha }}
           fetch-depth: 0
 
 # Get files changed in the PR
@@ -32,8 +32,9 @@ jobs:
           source: ${{ steps.changed-files.outputs.all_modified_files }}
           clangFormatVersion: 13
           inplace: True
-      - uses: EndBug/add-and-commit@v4
+      - uses: EndBug/add-and-commit@v9
         with:
           message: 'Committing clang-format changes'
+          push: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
