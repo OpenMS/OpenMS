@@ -32,15 +32,20 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/DimMapper.h>
+#include <OpenMS/KERNEL/DimMapper.h>
 
 using namespace std;
 
 
 namespace OpenMS
 {
-  namespace {
-    DimMapper<1> dims({DIM_UNITS::RT});
+  namespace
+  {
+    DimMapper<1> dims({DIM_UNIT::RT});
+    DimMapper<1> d({DIM_UNIT::RT});
+    DimMapper<1> d2(d);
+    bool x = (d == dims);
+    Area<2> area(nullptr);
   }
   
 } // namespace OpenMS

@@ -8,6 +8,7 @@ BaseFeature.cpp
 ConsensusFeature.cpp
 ConsensusMap.cpp
 ConversionHelper.cpp
+DimMapper.cpp
 DPeak.cpp
 Feature.cpp
 FeatureHandle.cpp

@@ -1,0 +1,290 @@
+// --------------------------------------------------------------------------
+//                   OpenMS -- Open-Source Mass Spectrometry
+// --------------------------------------------------------------------------
+// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+//
+// This software is released under a three-clause BSD license:
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission.
+// For a full list of authors, refer to the file AUTHORS.
+// --------------------------------------------------------------------------
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
+
+///////////////////////////
+#include <OpenMS/KERNEL/DimMapper.h>
+///////////////////////////
+
+#include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/Peak2D.h>
+
+#include <limits>
+
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(DimMapper, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+using DimMapper3 = DimMapper<3>;
+
+DimMapper3* ptr = nullptr;
+DimMapper3* null_ptr = nullptr;
+
+const DIM_UNIT unitsIMR[3] {DIM_UNIT::INT, DIM_UNIT::MZ, DIM_UNIT::RT};
+const DIM_UNIT unitsRMI[3] {DIM_UNIT::RT, DIM_UNIT::MZ, DIM_UNIT::INT};
+
+START_SECTION(DimMapper(const DIM_UNIT (&units)[N_DIM]))
+{
+  ptr = new DimMapper3(unitsIMR);
+  TEST_NOT_EQUAL(ptr, null_ptr)
+  delete ptr;
+}
+END_SECTION
+
+START_SECTION(DimMapper(const DimMapper& rhs))
+{
+  DimMapper3 d1(unitsIMR);
+  auto d2(d1);
+  TEST_EQUAL(d2 == d1, true);
+}
+END_SECTION
+
+
+START_SECTION(DimMapper& operator=(const DimMapper& rhs))
+{
+  DimMapper3 d1(unitsIMR);
+  DimMapper3 d2(unitsRMI);
+  TEST_EQUAL(d2 == d1, false);
+  d1 = d2;
+  TEST_EQUAL(d2 == d1, true);
+}
+END_SECTION
+
+START_SECTION(bool operator==(const DimMapper& rhs) const)
+{
+  DimMapper3 d1(unitsIMR);
+  DimMapper3 d2(unitsIMR);
+  TEST_TRUE(d2 == d1);
+  DimMapper3 d3(unitsRMI);
+  TEST_TRUE(d3 != d1);
+}
+END_SECTION
+
+START_SECTION(bool operator!=(const DimMapper& rhs) const)
+{
+  DimMapper3 d1(unitsIMR);
+  DimMapper3 d2(unitsIMR);
+  TEST_FALSE(d2 != d1);
+  DimMapper3 d3(unitsRMI);
+  TEST_FALSE(d3 == d1);
+}
+END_SECTION
+
+
+START_SECTION(template<typename T> Point map(const T& data))
+{
+  DimMapper3 d1(unitsIMR);
+  Feature f1;
+  f1.setRT(1);
+  f1.setMZ(2);
+  f1.setIntensity(3);
+
+  TEST_EQUAL(d1.map(f1), DimMapper3::Point(3, 2, 1))
+
+}
+END_SECTION
+
+using FullRange = RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>;
+
+auto na = nan("");
+constexpr auto dmax = std::numeric_limits<double>::max();
+
+START_SECTION(template<typename... Ranges> DRange<N_DIM> mapRange(const RangeManager<Ranges...>& ranges) const)
+{
+  FullRange fr;
+  fr.extendMobility(4); // not considered
+  fr.extendRT(1);
+  fr.extendRT(1.1);
+  DimMapper3 d1(unitsIMR);
+  auto areaXY = d1.mapRange(fr);
+  // RT is Z-dimension:
+  DRange<3> resXY;
+  resXY.setDimMinMax(2, {1, 1.1});
+  TEST_EQUAL(areaXY, resXY)
+}
+END_SECTION
+
+START_SECTION(template<typename... Ranges> void fromXY(const DRange<N_DIM>& in, const RangeManager<Ranges...>& output) const)
+{
+  FullRange fr;
+  fr.extendMobility(-4); // not considered
+  fr.extendRT(12134);
+  DimMapper3 d1(unitsIMR);
+  // RT is Z-dimension:
+  DRange<3> areaXY(DPosition<3>(77, 99, 1), DPosition<3>(777, 999, 1.1));
+  d1.fromXY(areaXY, fr);
+  TEST_EQUAL(fr.getMinRT(), 1)         // overwritten
+  TEST_EQUAL(fr.getMaxRT(), 1.1)
+  TEST_EQUAL(fr.getMinMZ(), 99)        // overwritten
+  TEST_EQUAL(fr.getMaxMZ(), 999)
+  TEST_EQUAL(fr.getMinIntensity(), 77)  // overwritten
+  TEST_EQUAL(fr.getMaxIntensity(), 777)
+  TEST_EQUAL(fr.getMinMobility(), -4)   // not modified
+  TEST_EQUAL(fr.getMaxMobility(), -4)
+}
+END_SECTION
+
+
+START_SECTION(const DimBase& getDim(DIM d) const)
+{
+  DimMapper3 d1(unitsIMR);
+  TEST_TRUE(d1.getDim(DIM::X).getUnit() == DIM_UNIT::INT)
+  TEST_TRUE(d1.getDim(DIM::Y).getUnit() == DIM_UNIT::MZ)
+  TEST_TRUE(d1.getDim(DIM::Z).getUnit() == DIM_UNIT::RT)
+}
+END_SECTION
+
+DimMapper3 dm_IMR(unitsIMR);
+DimMapper3 dm_RMI(unitsRMI);
+using Area3 = Area<3>;
+
+/////// TEST for Area class
+START_SECTION(Area(const DimMapper<N_DIM>* const dims))
+{
+  Area3 a(&dm_IMR);
+  NOT_TESTABLE // tested below
+}
+END_SECTION
+
+START_SECTION(Area(const Area& range) = default)
+{
+  Area3 a(&dm_IMR);
+  Area3 o(a);
+  TEST_TRUE(a == o)
+}
+END_SECTION
+
+START_SECTION(Area& operator=(const Area& rhs) = default)
+{
+  Area3 a(&dm_IMR);
+  Area3 o(&dm_RMI);
+  TEST_TRUE(a != o)
+  o = a;
+  TEST_TRUE(a == o)
+}
+END_SECTION
+
+START_SECTION(bool operator==(const Area& rhs) const)
+{
+  FullRange fr;
+  fr.extendRT(1);
+  Area3 a(&dm_IMR);
+  Area3 o(&dm_RMI);
+  TEST_TRUE(a != o)
+  o = a;
+  TEST_TRUE(a == o)
+  a.setArea(fr);
+  TEST_TRUE(a != o)
+  o = a;
+  TEST_TRUE(a == o)
+  DRange<3> areaXY(DPosition<3>(77, 99, 1), DPosition<3>(777, 999, 1.1));
+  a.setArea(areaXY);
+  TEST_TRUE(a != o)
+}
+END_SECTION
+
+START_SECTION(bool operator!=(const Area& rhs) const)
+{
+  NOT_TESTABLE // tested above
+}
+END_SECTION
+
+const auto min_value = -std::numeric_limits<DRange<3>::CoordinateType>::max();
+const auto max_value = std::numeric_limits<DRange<3>::CoordinateType>::max();
+
+START_SECTION(const Area& setArea(const UnitRange& data))
+{
+  FullRange fr;
+  fr.RangeRT::assign({1, 1.1});
+  fr.RangeMobility::assign({4, 4.4});  // not considered by DimMapper
+  fr.RangeIntensity::assign({2, 2.2});
+  Area3 a(&dm_IMR);
+  a.setArea(fr);
+  TEST_EQUAL(fr, a.getAreaUnit()) // unchanged; just what we put in
+  DRange<3> areaXY;
+  areaXY.setDimMinMax(2, {1, 1.1}); // RT is mapped to dim2
+  areaXY.setDimMinMax(0, {2, 2.2}); // Intensity is mapped to dim0
+  TEST_EQUAL(a.getAreaXY(), areaXY)
+}
+END_SECTION
+
+
+START_SECTION(const Area& setArea(const AreaXYType& data))
+{
+  DRange<3> areaXY;
+  areaXY.setDimMinMax(2, {1, 1.1}); // RT is mapped to dim2
+  areaXY.setDimMinMax(0, {2, 2.2}); // Intensity is mapped to dim0
+  Area3 a(&dm_IMR);
+  a.setArea(areaXY);
+  TEST_EQUAL(a.getAreaXY(), areaXY) // unchanged; just what we put in
+
+  FullRange fr;
+  fr.RangeRT::assign({1, 1.1});
+  fr.RangeMobility::assign({4, 4.4}); // not considered by DimMapper
+  fr.RangeIntensity::assign({2, 2.2});
+  TEST_EQUAL((RangeRT)fr, (RangeRT)a.getAreaUnit())
+  TEST_EQUAL((RangeIntensity)fr, (RangeIntensity)a.getAreaUnit())
+  TEST_NOT_EQUAL(fr, a.getAreaUnit()) // due to mobility
+}
+END_SECTION
+
+
+START_SECTION(const AreaXYType& getAreaXY() const)
+{
+  NOT_TESTABLE // tested above
+}
+END_SECTION
+
+
+START_SECTION(const UnitRange& getAreaUnit() const)
+{
+  NOT_TESTABLE // tested above
+}
+END_SECTION
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
+

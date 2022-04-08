@@ -11,6 +11,7 @@ ConsensusFeature.h
 ConversionHelper.h
 ConsensusMap.h
 ConversionHelper.h
+DimMapper.h
 DPeak.h
 Feature.h
 FeatureHandle.h
