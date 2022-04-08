@@ -741,7 +741,7 @@ protected:
     }
     mass_tracer.setParameters(mf_param);
 
-    unordered_map<int, PeakGroup> precursor_peak_groups; // MS2 scan number, peak group
+    std::unordered_map<int, PeakGroup> precursor_peak_groups; // MS2 scan number, peak group
 
     OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
 

@@ -115,7 +115,7 @@ namespace OpenMS
                                                            const std::vector<double>& per_isotope_intensities,
                                                            int& offset,
                                                            const PrecalculatedAveragine& avg,
-                                                           bool use_shape_diff = true);
+                                                           bool use_shape_diff = false);
 
 
   protected:

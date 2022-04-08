@@ -100,7 +100,6 @@ namespace OpenMS
         Peak1D tp(pg.first, (float) pg.second.getIntensity());
         deconv_spec.push_back(tp);
       }
-      deconv_spec.sortByIntensity(); // this is necessary to avoid intensity ambiguity.
       map.addSpectrum(deconv_spec);
     }
 
@@ -109,7 +108,6 @@ namespace OpenMS
       return;
     }
 
-    map.sortSpectra();
     MassTraceDetection mtdet;
     Param mtd_param = getParameters().copy("");
     mtd_param.remove("min_isotope_cosine");
@@ -188,8 +186,10 @@ namespace OpenMS
       double mass = mt.getCentroidMZ();
       double isotope_score = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(mass,
                                                                                             per_isotope_intensity,
-                                                                                            offset, averagine);
+                                                                                            offset, averagine, false);
 
+      //isotope_score = 1;
+      //offset = 0;
       if (isotope_score < min_isotope_cosine_)
       {
         continue;
