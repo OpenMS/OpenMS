@@ -175,7 +175,7 @@ public:
       /**
           @brief Assignment from a DIntervalBase of different dimensions.
 
-          Only the dimensions 0 upto min(D,D2)-1 are copied.
+          Only the dimensions 0 up to min(D,D2)-1 are copied.
       */
       template <UInt D2>
       void assign(const DIntervalBase<D2> rhs)
@@ -208,6 +208,29 @@ public:
       {
         *this = empty;
       }
+      
+      /// Is the interval completely empty? i.e. clear()'d or default constructed
+      /// If min==max, the interval is NOT empty!
+      bool isFullyEmpty() const
+      {
+        return *this == empty;
+      }
+
+      /// Is the dimension @p dim empty? If min==max, the interval is NOT empty!
+      bool isEmpty(UInt dim) const
+      {
+        return DIntervalBase<1>(make_pair(min_[dim], max_[dim])) == DIntervalBase<1>::empty;
+      }
+
+      /// only set interval for a single dimension 
+      void setDimMinMax(UInt dim, const DIntervalBase<1>& min_max)
+      {
+        min_[dim] = min_max.min_[0];
+        max_[dim] = min_max.max_[0];
+      }
+
+      // make all other templates friends to allow accessing min_ and max_ in setDimMinMax 
+      template<UInt> friend class DIntervalBase; 
 
       //@}
 

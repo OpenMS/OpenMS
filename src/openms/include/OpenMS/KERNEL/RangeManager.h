@@ -161,6 +161,14 @@ namespace OpenMS
       max_ += extension;
     }
 
+    /// Compute the center point of the range
+    /// If range is empty(), 'nan' will be returned
+    double center() const
+    {
+      if (isEmpty()) return nan("");
+      return min_ + (max_ - min_) / 2.0;
+    }
+
     void assign(const RangeBase& rhs)
     {
       *this = rhs;

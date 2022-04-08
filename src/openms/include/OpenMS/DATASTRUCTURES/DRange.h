@@ -292,19 +292,6 @@ public:
       return true;
     }
 
-    /// Checks if the range is empty
-    bool isEmpty() const
-    {
-      for (UInt i = 0; i != D; i++)
-      {
-        if (max_[i] <= min_[i])
-        {
-          return true;
-        }
-      }
-      return false;
-    }
-
     /**
          @brief Extends the range in all dimensions by a certain multiplier.
 
@@ -315,8 +302,9 @@ public:
            factor = 2.00 doubles the total range, e.g. from [0,100] to [-50,150]
 
          @param factor Multiplier (allowed is [0, inf)).
+         @return A reference to self
     */
-    void extend(double factor)
+    DRange<D>& extend(double factor)
     {
       if (factor < 0)
       {
@@ -329,6 +317,7 @@ public:
         min_[i] -= extra;
         max_[i] += extra;
       }
+      return *this;
     }
 
     /// swaps dimensions for 2D data (i.e. x and y coordinates)
@@ -347,10 +336,10 @@ public:
   template <UInt D>
   std::ostream& operator<<(std::ostream& os, const DRange<D>& area)
   {
-    os << "--DRANGE BEGIN--" << std::endl;
-    os << "MIN --> " << area.min_ << std::endl;
-    os << "MAX --> " << area.max_ << std::endl;
-    os << "--DRANGE END--" << std::endl;
+    os << "--DRANGE BEGIN--\n";
+    os << "MIN --> " << area.min_ << '\n';
+    os << "MAX --> " << area.max_ << '\n';
+    os << "--DRANGE END--\n";
     return os;
   }
 

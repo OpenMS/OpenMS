@@ -143,7 +143,7 @@ namespace OpenMS
   void PeakFileOptions::setRTRange(const DRange<1>& range)
   {
     rt_range_ = range;
-    has_rt_range_ = !rt_range_.isEmpty();
+    has_rt_range_ = !rt_range_.isFullyEmpty();
   }
 
   bool PeakFileOptions::hasRTRange() const

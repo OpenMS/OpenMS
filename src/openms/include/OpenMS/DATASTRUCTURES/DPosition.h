@@ -118,9 +118,18 @@ public:
     /// Constructor only for DPosition<2> that takes two Coordinates.
     DPosition(CoordinateType x, CoordinateType y)
     {
-      OPENMS_PRECONDITION(D == 2, "DPosition<D, TCoordinateType>:DPosition(x,y): index overflow!");
+      static_assert(D == 2, "DPosition<D, TCoordinateType>:DPosition(x,y): index overflow!");
       coordinate_[0] = x;
       coordinate_[1] = y;
+    }
+
+    /// Constructor only for DPosition<2> that takes two Coordinates.
+    DPosition(CoordinateType x, CoordinateType y, CoordinateType z)
+    {
+      static_assert(D == 3, "DPosition<D, TCoordinateType>:DPosition(x,y,z): index overflow!");
+      coordinate_[0] = x;
+      coordinate_[1] = y;
+      coordinate_[2] = z;
     }
 
     /// Assignment operator
@@ -364,25 +373,25 @@ public:
     /** @name Static values */
     //@{
     /// all zero
-    inline static const DPosition zero()
+    inline static constexpr DPosition zero()
     {
       return DPosition(0);
     }
 
     /// smallest positive
-    inline static const DPosition minPositive()
+    inline static constexpr DPosition minPositive()
     {
       return DPosition((std::numeric_limits<typename DPosition::CoordinateType>::min)());
     }
 
     /// smallest negative
-    inline static const DPosition minNegative()
+    inline static constexpr DPosition minNegative()
     {
       return DPosition(-(std::numeric_limits<typename DPosition::CoordinateType>::max)());
     }
 
     /// largest positive
-    inline static const DPosition maxPositive()
+    inline static constexpr DPosition maxPositive()
     {
       return DPosition((std::numeric_limits<typename DPosition::CoordinateType>::max)());
     }

@@ -411,17 +411,8 @@ START_SECTION(bool encloses(CoordinateType x, CoordinateType y) const)
 	TEST_EQUAL(r2.encloses(5.0f,-3.0f),false);
 END_SECTION
 
-START_SECTION(bool isEmpty() const)
-	DRange<2> tmp;
-	TEST_EQUAL(tmp.isEmpty(), true);
-	tmp = DRange<2>::zero;
-	TEST_EQUAL(tmp.isEmpty(), true);
-	tmp = DRange<2>(p1,p2);		
-	TEST_EQUAL(tmp.isEmpty(), false);
-END_SECTION
 
-
-START_SECTION(void extend(double factor))
+START_SECTION(DRange<D>& extend(double factor))
   DRange<2> r(p1,p2);
 /*
 p1[0]=-1.0f;
