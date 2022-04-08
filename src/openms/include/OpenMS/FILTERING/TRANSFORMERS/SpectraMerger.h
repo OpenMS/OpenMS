@@ -214,6 +214,7 @@ public:
 
         for (Size i = 0; i < exp.size(); ++i)
         {
+          //TODO - this expression evaluates to nothing?!
           if (exp[i].getMSLevel() != 2)
           {
             continue;
@@ -225,16 +226,17 @@ public:
           // make cluster element
           BaseFeature bf;
           bf.setRT(exp[i].getRT());
-          std::vector<Precursor> pcs = exp[i].getPrecursors();
-          if (pcs.empty())
+          //[x] - could make this an r-value in the code down below
+          //exp[i].getPrecursors() == std::vector<Precursor>
+          if (exp[i].getPrecursors().empty())
           {
             throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Scan #") + String(i) + " does not contain any precursor information! Unable to cluster!");
           }
-          if (pcs.size() > 1)
+          if (exp[i].getPrecursors().size() > 1)
           {
             OPENMS_LOG_WARN << "More than one precursor found. Using first one!" << std::endl;
           }
-          bf.setMZ(pcs[0].getMZ());
+          bf.setMZ(exp[i].getPrecursors()[0].getMZ());
           data.push_back(bf);
         }
         data_size = data.size();
@@ -276,18 +278,20 @@ public:
 
       for (Size i_outer = 0; i_outer < clusters.size(); ++i_outer)
       {
-        if (clusters[i_outer].size() <= 1)
+        //TODO - this expression evaluates to nothing?!
+        /*if (clusters[i_outer].size() <= 1)
         {
           continue;
         }
+        */
         // init block with first cluster element
         Size cl_index0 = clusters[i_outer][0];
         spectra_to_merge[index_mapping[cl_index0]] = std::vector<Size>();
         // add all other elements
         for (Size i_inner = 1; i_inner < clusters[i_outer].size(); ++i_inner)
         {
-          Size cl_index = clusters[i_outer][i_inner];
-          spectra_to_merge[index_mapping[cl_index0]].push_back(index_mapping[cl_index]);
+          //[x] - done allocation 
+          spectra_to_merge[index_mapping[cl_index0]].push_back(index_mapping[clusters[i_outer][i_inner]]);
         }
       }
 
@@ -361,15 +365,18 @@ public:
               double weight = 1;
               if (average_type == "gaussian")
               {
+                //TODO maybe just : (it_rt_2->getRT() - it_rt->getRT()) * (it_rt_2->getRT() - it_rt->getRT())
                 weight = std::exp(factor * pow(it_rt_2->getRT() - it_rt->getRT(), 2));
               }
               std::pair<Size, double> p(m, weight);
-              spectra_to_average_over[n].push_back(p);
+              //[x] emplace back
+              spectra_to_average_over[n].emplace_back(std::pair<Size, double> (m, weight));
               ++steps;
             }
             if (average_type == "gaussian")
             {
               // Gaussian
+              //TODO maybe just : (it_rt_2->getRT() - it_rt->getRT()) * (it_rt_2->getRT() - it_rt->getRT())
               terminate_now = std::exp(factor * pow(it_rt_2->getRT() - it_rt->getRT(), 2)) < cutoff;
             }
             else if (unit)
@@ -397,11 +404,12 @@ public:
             {
               double weight = 1;
               if (average_type == "gaussian")
-              {
+              {  
+                //TODO maybe just : (it_rt_2->getRT() - it_rt->getRT()) * (it_rt_2->getRT() - it_rt->getRT())
                 weight = std::exp(factor * pow(it_rt_2->getRT() - it_rt->getRT(), 2));
               }
-              std::pair<Size, double> p(m, weight);
-              spectra_to_average_over[n].push_back(p);
+              //[x] emplace_back
+              spectra_to_average_over[n].emplace_back(std::pair<Size, double> (m, weight));
               ++steps;
             }
             if (average_type == "gaussian")
@@ -431,12 +439,14 @@ public:
       for (AverageBlocks::iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         double sum(0.0);
-        for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+      //[x] auto it  
+        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
           sum += it2->second;
         }
 
-        for (std::vector<std::pair<Size, double> >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+      //[x] auto it  
+        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
           (*it2).second /= sum;
         }
@@ -629,12 +639,14 @@ protected:
         }
         else
         {
-          merged_spectra.addSpectrum(consensus_spec);
+          //[x] std::move it & addSpectrum has an r-val-ref overload!
+          merged_spectra.addSpectrum(std::move(consensus_spec));
         }
       }
 
       OPENMS_LOG_INFO << "Cluster sizes:\n";
-      for (std::map<Size, Size>::const_iterator it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
+      //[x] const auto& it
+      for (auto it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
       {
         OPENMS_LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
       }
@@ -645,6 +657,7 @@ protected:
       OPENMS_LOG_INFO << "Number of merged peaks: " << String(buffer) << "\n";
 
       // remove all spectra that were within a cluster
+      //TODO std::move or exp_tmp.swap()
       typename MapType::SpectrumType empty_spec;
       MapType exp_tmp;
       for (Size i = 0; i < exp.size(); ++i)
@@ -658,6 +671,8 @@ protected:
 
       //typedef std::vector<typename MapType::SpectrumType> Base;
       //exp.Base::operator=(exp_tmp);
+      //TODO CLEAN THIS UP
+      //Meta_Data will not be cleared
       exp.clear(false);
       exp.getSpectra().insert(exp.end(), exp_tmp.begin(), exp_tmp.end());
 
@@ -708,7 +723,8 @@ protected:
 
         // loop over spectra in blocks
         std::vector<double> mz_positions_all; // m/z positions from all spectra
-        for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        //[x] const auto
+        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
           // loop over m/z positions
           for (typename MapType::SpectrumType::ConstIterator it_mz = exp[it2->first].begin(); it_mz < exp[it2->first].end(); ++it_mz)
@@ -723,8 +739,10 @@ protected:
         std::vector<double> intensities;
         double last_mz = std::numeric_limits<double>::min(); // last m/z position pushed through from mz_position to mz_position_2
         double delta_mz(mz_binning_width); // for m/z unit Da
-        for (std::vector<double>::iterator it_mz = mz_positions_all.begin(); it_mz < mz_positions_all.end(); ++it_mz)
+        //[x]: done auto
+        for (auto it_mz = mz_positions_all.begin(); it_mz < mz_positions_all.end(); ++it_mz)
         {
+          //TODO branch out of loop
           if (mz_binning_unit == "ppm")
           {
             delta_mz = mz_binning_width * (*it_mz) / 1000000;
@@ -733,19 +751,23 @@ protected:
           if (((*it_mz) - last_mz) > delta_mz)
           {
             mz_positions.push_back(*it_mz);
+            //TODO resize after loop with size of mz_positions
             intensities.push_back(0.0);
             last_mz = *it_mz;
           }
         }
+        std::cout << intensities.size() << "...." << mz_positions.size() << '\n';
 
         // loop over spectra in blocks
-        for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        //[x] const auto
+        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
           SplineInterpolatedPeaks spline(exp[it2->first]);
           SplineInterpolatedPeaks::Navigator nav = spline.getNavigator();
 
           // loop over m/z positions
-          for (Size i = 0; i < mz_positions.size(); ++i)
+          //[x] start loop with spline.getPOSMIN(), instead of 0
+          for (Size i = spline.getPosMin(); i < mz_positions.size(); ++i)
           {
             if ((spline.getPosMin() < mz_positions[i]) && (mz_positions[i] < spline.getPosMax()))
             {
@@ -765,10 +787,12 @@ protected:
           typename MapType::PeakType peak;
           peak.setMZ(mz_positions[i]);
           peak.setIntensity(intensities[i]);
+          //TODO emplace_back or std::move
           average_spec.push_back(peak);
         }
 
         // store spectrum temporarily
+        //TODO std::move
         exp_tmp.addSpectrum(average_spec);
       }
 
@@ -777,7 +801,8 @@ protected:
       // loop over blocks
       int n(0);
       //typename MapType::SpectrumType empty_spec;
-      for (AverageBlocks::const_iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      //[x] auto
+      for (auto it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         exp[it->first] = exp_tmp[n];
         //exp_tmp[n] = empty_spec;
@@ -823,16 +848,20 @@ protected:
         // collect peaks from all spectra
         // loop over spectra in blocks
         std::vector<std::pair<double, double> > mz_intensity_all; // m/z positions and peak intensities from all spectra
-        for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        //[x] const auto
+        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
           // loop over m/z positions
           for (typename MapType::SpectrumType::ConstIterator it_mz = exp[it2->first].begin(); it_mz < exp[it2->first].end(); ++it_mz)
           {
+            //TODO emplace_back
             std::pair<double, double> mz_intensity(it_mz->getMZ(), (it_mz->getIntensity() * it2->second)); // m/z, intensity * weight
             mz_intensity_all.push_back(mz_intensity);
           }
         }
 
+
+        //TODO tuples can be sortes without helper
         sort(mz_intensity_all.begin(), mz_intensity_all.end(), SpectraMerger::compareByFirst);
 
         // generate new spectrum
@@ -843,8 +872,10 @@ protected:
         double sum_mz(0);
         double sum_intensity(0);
         Size count(0);
-        for (std::vector<std::pair<double, double> >::const_iterator it_mz = mz_intensity_all.begin(); it_mz != mz_intensity_all.end(); ++it_mz)
+        //[x] const auto
+        for (auto it_mz = mz_intensity_all.begin(); it_mz != mz_intensity_all.end(); ++it_mz)
         {
+          //TODO move if out of loop
           if (mz_binning_unit == "ppm")
           {
             delta_mz = mz_binning_width * (it_mz->first) / 1000000;
@@ -852,6 +883,7 @@ protected:
 
           if (((it_mz->first - last_mz) > delta_mz) && (count > 0))
           {
+            //TODO emplace_back ?? does it make sense on doubles
             mz_new.push_back(sum_mz / count);
             intensity_new.push_back(sum_intensity); // intensities already weighted
 
@@ -868,6 +900,7 @@ protected:
         }
         if (count > 0)
         {
+          //TODO emplace_back ?? does it make sense on doubles
           mz_new.push_back(sum_mz / count);
           intensity_new.push_back(sum_intensity); // intensities already weighted
         }
@@ -877,6 +910,7 @@ protected:
         average_spec.clear(false); // Precursors are part of the meta data, which are not deleted.
         //average_spec.setMSLevel(ms_level);
 
+        //TODO std::moves or swap
         // refill spectrum
         for (Size i = 0; i < mz_new.size(); ++i)
         {
