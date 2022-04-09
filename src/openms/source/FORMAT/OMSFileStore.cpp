@@ -176,65 +176,6 @@ namespace OpenMS::Internal
     }
   }
 
-
-  void OMSFileStore::createTableDataValue_()
-  {
-    createTable_("DataValue_DataType",
-                 "id INTEGER PRIMARY KEY NOT NULL, "  \
-                 "data_type TEXT UNIQUE NOT NULL");
-    QString sql_insert =
-      "INSERT INTO DataValue_DataType VALUES " \
-      "(1, 'STRING_VALUE'), "                  \
-      "(2, 'INT_VALUE'), "                     \
-      "(3, 'DOUBLE_VALUE'), "                  \
-      "(4, 'STRING_LIST'), "                   \
-      "(5, 'INT_LIST'), "                      \
-      "(6, 'DOUBLE_LIST')";
-    QSqlQuery query(QSqlDatabase::database(db_name_));
-    if (!query.exec(sql_insert))
-    {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error inserting data");
-    }
-    createTable_(
-      "DataValue",
-      "id INTEGER PRIMARY KEY NOT NULL, "                               \
-      "data_type_id INTEGER, "                                          \
-      "value TEXT, "                                                    \
-      "FOREIGN KEY (data_type_id) REFERENCES DataValue_DataType (id)");
-    // @TODO: add support for units
-    // prepare query for inserting data:
-    query.prepare("INSERT INTO DataValue VALUES ("           \
-                  "NULL, "                                   \
-                  ":data_type, "                             \
-                  ":value)");
-    prepared_queries_["DataValue"] = query;
-  }
-
-
-  OMSFileStore::Key OMSFileStore::storeDataValue_(const DataValue& value)
-  {
-    // this assumes the "DataValue" table exists already!
-    // @TODO: split this up and make several tables for different types?
-    QSqlQuery& query = prepared_queries_["DataValue"];
-    if (value.isEmpty()) // use NULL as the type for empty values
-    {
-      query.bindValue(":data_type", QVariant(QVariant::Int));
-    }
-    else
-    {
-      query.bindValue(":data_type", int(value.valueType()) + 1);
-    }
-    query.bindValue(":value", value.toQString());
-    if (!query.exec())
-    {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error inserting data");
-    }
-    return query.lastInsertId().toLongLong();
-  }
-
-
   void OMSFileStore::createTableCVTerm_()
   {
     createTable_("CVTerm",
@@ -307,7 +248,26 @@ namespace OpenMS::Internal
   void OMSFileStore::createTableMetaInfo_(const String& parent_table,
                                           const String& key_column)
   {
-    if (!tableExists_(db_name_, "DataValue")) createTableDataValue_();
+    if (!tableExists_(db_name_, "DataValue_DataType"))
+    {
+      createTable_("DataValue_DataType",
+                   "id INTEGER PRIMARY KEY NOT NULL, "  \
+                   "data_type TEXT UNIQUE NOT NULL");
+      QString sql_insert =
+        "INSERT INTO DataValue_DataType VALUES " \
+        "(1, 'STRING_VALUE'), "                  \
+        "(2, 'INT_VALUE'), "                     \
+        "(3, 'DOUBLE_VALUE'), "                  \
+        "(4, 'STRING_LIST'), "                   \
+        "(5, 'INT_LIST'), "                      \
+        "(6, 'DOUBLE_LIST')";
+      QSqlQuery query(QSqlDatabase::database(db_name_));
+      if (!query.exec(sql_insert))
+      {
+          raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                            "error inserting data");
+      }
+    }
 
     String parent_ref = parent_table + " (" + key_column + ")";
     String table = parent_table + "_MetaInfo";
@@ -315,9 +275,10 @@ namespace OpenMS::Internal
       table,
       "parent_id INTEGER NOT NULL, "                            \
       "name TEXT NOT NULL, "                                    \
-      "data_value_id INTEGER NOT NULL, "                        \
+      "data_type_id INTEGER, "                                  \
+      "value TEXT, "                                            \
       "FOREIGN KEY (parent_id) REFERENCES " + parent_ref + ", " \
-      "FOREIGN KEY (data_value_id) REFERENCES DataValue (id), " \
+      "FOREIGN KEY (data_type_id) REFERENCES DataValue_DataType (id), " \
       "PRIMARY KEY (parent_id, name)");
 
     // prepare query for inserting data:
@@ -325,7 +286,8 @@ namespace OpenMS::Internal
     query.prepare("INSERT INTO " + table.toQString() + " VALUES ("  \
                   ":parent_id, "                                    \
                   ":name, "                                         \
-                  ":data_value_id)");
+                  ":data_type_id, "                                 \
+                  ":value)");
     prepared_queries_[table] = query;
   }
 
@@ -345,8 +307,16 @@ namespace OpenMS::Internal
     for (const String& info_key : info_keys)
     {
       query.bindValue(":name", info_key.toQString());
-      Key value_id = storeDataValue_(info.getMetaValue(info_key));
-      query.bindValue(":data_value_id", value_id);
+      const DataValue& value = info.getMetaValue(info_key);
+      if (value.isEmpty()) // use NULL as the type for empty values
+      {
+        query.bindValue(":data_type_id", QVariant(QVariant::Int));
+      }
+      else
+      {
+        query.bindValue(":data_type_id", int(value.valueType()) + 1);
+      }
+      query.bindValue(":value", value.toQString());
       if (!query.exec())
       {
         raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -354,7 +324,6 @@ namespace OpenMS::Internal
       }
     }
   }
-
 
   void OMSFileStore::createTableAppliedProcessingStep_(const String& parent_table)
   {

@@ -236,7 +236,7 @@ namespace OpenMS::Internal
     query.setForwardOnly(true);
     QString sql_select =
       "SELECT * FROM " + table_name.toQString() + " AS MI " \
-      "JOIN DataValue AS DV ON MI.data_value_id = DV.id "   \
+      //"JOIN DataValue AS DV ON MI.data_value_id = DV.id "
       "WHERE MI.parent_id = :id";
     query.prepare(sql_select);
     return true;
@@ -449,6 +449,7 @@ namespace OpenMS::Internal
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
                                                 "ID_Observation");
 
+    // TODO add all observation_refs_[id] in one go
     while (query.next())
     {
       QVariant input_file_id = query.value("input_file_id");
