@@ -4,6 +4,11 @@ on:
   issue_comment:
     types: [created]
 
+
+permissions:
+  checks: write
+  contents: write
+
 jobs:
   lint:
     name: Automatic clang format linting
@@ -17,6 +22,7 @@ jobs:
         run: hub pr checkout ${{ github.event.issue.number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
 # Get files changed in the PR
       - name: Get changed files
