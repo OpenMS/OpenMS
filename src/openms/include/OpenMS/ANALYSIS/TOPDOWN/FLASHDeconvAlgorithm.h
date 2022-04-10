@@ -241,7 +241,7 @@ namespace OpenMS
         @param bin_number number of mz bins
         @param mz_bin_intensities intensity per mz bin
      */
-    void updateMzBins_(const Size& bin_number, std::vector<float>& mz_bin_intensities);
+    void updateMzBins_(const Size bin_number, std::vector<float>& mz_bin_intensities);
 
     ///this function takes the previous deconvolution results (from ovelapped spectra) for sensitive deconvolution of the current spectrum
     void unionPrevMassBins_();

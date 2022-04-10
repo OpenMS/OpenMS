@@ -79,6 +79,8 @@ namespace OpenMS
       double mass_interval_;
       /// min mass for calculation
       double min_mass_;
+      /// calculate the mass bin index from mass
+      Size massToIndex_(double const mass) const;
     public:
       /// default constructor
       PrecalculatedAveragine() = default;
@@ -224,5 +226,6 @@ namespace OpenMS
             //       @brief get charge carrier mass
             //       @param positive determines the charge carrier mass*/
     static double getChargeMass(const bool positive);
+
   };
 }

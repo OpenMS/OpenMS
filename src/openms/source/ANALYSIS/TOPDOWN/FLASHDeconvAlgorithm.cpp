@@ -319,7 +319,7 @@ namespace OpenMS
   }
 
   // From log mz to mz bins. To reduce edge effect, its adjacent bin is set when a bin is set.
-  void FLASHDeconvAlgorithm::updateMzBins_(const Size& bin_number,
+  void FLASHDeconvAlgorithm::updateMzBins_(const Size bin_number,
                                            std::vector<float>& mz_bin_intensities)
   {
     //mz_bins_for_edge_effect_ = boost::dynamic_bitset<>(bin_number);
