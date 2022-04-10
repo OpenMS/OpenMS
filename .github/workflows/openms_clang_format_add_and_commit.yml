@@ -37,7 +37,7 @@ jobs:
           inplace: True
       - name: commit
         run: |
-          git commit -ma "fix lint"
+          git commit -am "fix lint"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
