@@ -408,7 +408,7 @@ namespace OpenMS
         ui_->model_none_button->setEnabled(false);
         if (ui_->model_none_button->isChecked())
         {
-          ui_->model_fine_button->setChecked(Qt::CheckState::Checked);
+          ui_->model_fine_button->setChecked(true);
         }
 
         // disable ion types and intensities
