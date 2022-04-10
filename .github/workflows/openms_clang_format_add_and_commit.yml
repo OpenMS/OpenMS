@@ -35,9 +35,9 @@ jobs:
           source: ${{ steps.changed-files.outputs.all_modified_files }}
           clangFormatVersion: 13
           inplace: True
-      - uses: EndBug/add-and-commit@v9
-        with:
-          message: 'Committing clang-format changes'
-          push: true
+      - name: commit
+        run: |
+          git commit -ma "fix lint"
+          git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
