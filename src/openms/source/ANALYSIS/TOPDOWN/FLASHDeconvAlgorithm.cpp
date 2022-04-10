@@ -60,10 +60,10 @@ namespace OpenMS
     defaults_.setValue("max_charge", 100,
                        "maximum charge state for MS1 spectra (can be negative for negative mode)");
 
-    defaults_.setValue("min_mz", -1.0, "if set to positive value, minimum m/z to deconvolute.");
-    defaults_.setValue("max_mz", -1.0, "if set to positive value, maximum m/z to deconvolute.");
-    defaults_.setValue("min_rt", -1.0, "if set to positive value, minimum RT to deconvolute.");
-    defaults_.setValue("max_rt", -1.0, "if set to positive value, maximum RT to deconvolute.");
+    defaults_.setValue("min_mz", -1.0, "if set to positive value, minimum m/z to deconvolve.");
+    defaults_.setValue("max_mz", -1.0, "if set to positive value, maximum m/z to deconvolve.");
+    defaults_.setValue("min_rt", -1.0, "if set to positive value, minimum RT to deconvolve.");
+    defaults_.setValue("max_rt", -1.0, "if set to positive value, maximum RT to deconvolve.");
 
     defaults_.setValue("isolation_window", 5.0, "default isolation window with. If the input mzML file does not contain isolation window width information, this width will be used.");
     defaults_.addTag("isolation_window", "advanced");
@@ -1614,7 +1614,7 @@ namespace OpenMS
         continue;
       }
 
-      double cs = getChargeFitScore_(per_abs_charge_intensities);
+      double cs = getChargeFitScore_(per_abs_charge_intensities, 1 + std::get<1>(peak_group.getAbsChargeRange()) - std::get<0>(peak_group.getAbsChargeRange())  );
 
       peak_group.setChargeScore(cs);
 
@@ -1980,7 +1980,7 @@ namespace OpenMS
       per_charge_intensity[index] += p.intensity;
     }
     pg.setAbsChargeRange(min_pg_charge, max_pg_charge);
-
+    //std::cout<<" * " << min_pg_charge << " " << max_pg_charge<<std::endl;
     return std::vector<int>{max_intensity_charge_index, max_intensity_iso_index};
   }
 
@@ -2007,15 +2007,15 @@ namespace OpenMS
     return n / sqrt(d);
   }
 
-  double FLASHDeconvAlgorithm::getChargeFitScore_(const std::vector<double>& per_charge_intensity)
+  double FLASHDeconvAlgorithm::getChargeFitScore_(const std::vector<double>& per_charge_intensity, Size len)
   {
     double max_per_charge_intensity = .0;
     double summed_intensity = .0;
     int max_index = -1;
     int first_index = -1;
-    int last_index = per_charge_intensity.size() - 1;
+    int last_index = -1;
 
-    for (int i = 0; i <= last_index; i++)
+    for (int i = 0; i < len; i++)
     {
       summed_intensity += per_charge_intensity[i];
       if (per_charge_intensity[i] <= 0)
@@ -2034,6 +2034,12 @@ namespace OpenMS
       max_per_charge_intensity = per_charge_intensity[i];
       max_index = i;
     }
+
+    if(summed_intensity <= 0)
+    {
+      return .0;
+    }
+
     first_index = first_index < 0 ? 0 : first_index;
 
     double p = .0;

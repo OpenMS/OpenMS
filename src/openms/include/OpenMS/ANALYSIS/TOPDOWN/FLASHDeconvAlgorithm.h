@@ -213,7 +213,7 @@ namespace OpenMS
         @per_charge_intensity per charge intensity - aggregated through isotope indices
         @return calculated charge fit score (0 - 1)
      */
-    double getChargeFitScore_(const std::vector<double>& per_charge_intensity);
+    double getChargeFitScore_(const std::vector<double>& per_charge_intensity, Size len);
 
     /** @brief static function that converts bin to value
         @param bin bin number
