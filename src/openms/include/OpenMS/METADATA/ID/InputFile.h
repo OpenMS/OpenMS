@@ -35,11 +35,9 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/member.hpp>
-
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index_container.hpp>
 #include <set>
 
 namespace OpenMS
@@ -47,25 +45,21 @@ namespace OpenMS
   namespace IdentificationDataInternal
   {
     /// Information about input files that were processed
-    struct InputFile
-    {
+    struct InputFile {
       String name;
 
       String experimental_design_id;
 
       std::set<String> primary_files;
 
-      explicit InputFile(const String& name,
-                         const String& experimental_design_id = "",
-                         const std::set<String>& primary_files =
-                         std::set<String>()):
-        name(name), experimental_design_id(experimental_design_id),
-        primary_files(primary_files)
+      explicit InputFile(const String& name, const String& experimental_design_id = "", const std::set<String>& primary_files = std::set<String>()) :
+          name(name), experimental_design_id(experimental_design_id), primary_files(primary_files)
       {
       }
-      
+
       InputFile()
-      {} //FIXME make dependent on PyopenMS compilation
+      {
+      } // FIXME make dependent on PyopenMS compilation
 
       InputFile(const InputFile& other) = default;
 
@@ -78,42 +72,53 @@ namespace OpenMS
         }
         else if (!other.experimental_design_id.empty() && experimental_design_id != other.experimental_design_id)
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__,
-                                        OPENMS_PRETTY_FUNCTION, 
-                                        "Trying to overwrite InputFile experimental design id with conflicting value.", 
-                                        experimental_design_id);
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Trying to overwrite InputFile experimental design id with conflicting value.", experimental_design_id);
         }
-        primary_files.insert(other.primary_files.begin(),
-                             other.primary_files.end());
+        primary_files.insert(other.primary_files.begin(), other.primary_files.end());
         return *this;
       }
     };
 
-    //typedef boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>> InputFiles;
+    // typedef boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>> InputFiles;
 
-    struct InputFiles : public boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>> {
+    struct InputFiles :
+        public boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>> {
       InputFiles() : boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>>()
-      {}
+      {
+      }
 
-      InputFiles(const InputFiles& other) : boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>>(other)
-      {}
-      InputFiles(const  boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>>& other ):  boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>>(other)
-      {}
+      InputFiles(const InputFiles& other) :
+          boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>>(other)
+      {
+      }
+      InputFiles(
+        const boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>>& other) :
+          boost::multi_index_container<InputFile, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<InputFile, String, &InputFile::name>>>>(other)
+      {
+      }
     };
 
     typedef InputFiles::iterator setIFit;
 
     typedef IteratorWrapper<InputFiles::iterator, InputFile> IFR;
 
-     struct InputFileRef : public IFR
-     {
+    struct InputFileRef : public IFR {
       InputFileRef() : IFR()
-        {}
-      InputFileRef(const IFR other) :  IFR(other)
-        {}
-      InputFileRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::InputFile, std::allocator<OpenMS::IdentificationDataInternal::InputFile> > > >& other) : IteratorWrapper<boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::InputFile, std::allocator<OpenMS::IdentificationDataInternal::InputFile> > > >, InputFile>(other)
-        {}
-      };
+      {
+      }
+      InputFileRef(const IFR other) : IFR(other)
+      {
+      }
+      InputFileRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<
+                     boost::multi_index::detail::null_augment_policy,
+                     boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::InputFile, std::allocator<OpenMS::IdentificationDataInternal::InputFile>>>>& other) :
+          IteratorWrapper<boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<
+                            boost::multi_index::detail::null_augment_policy,
+                            boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::InputFile, std::allocator<OpenMS::IdentificationDataInternal::InputFile>>>>,
+                          InputFile>(other)
+      {
+      }
+    };
 
   } // namespace IdentificationDataInternal
-}
+} // namespace OpenMS

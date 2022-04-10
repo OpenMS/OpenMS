@@ -41,25 +41,21 @@ namespace OpenMS
   namespace IdentificationDataInternal
   {
     /** @brief Information about a score type.
-    */
-    struct ScoreType: public MetaInfoInterface
-    {
+     */
+    struct ScoreType : public MetaInfoInterface {
       CVTerm cv_term; // @TODO: derive from CVTerm instead?
 
       bool higher_better;
 
-      ScoreType():
-        higher_better(true)
+      ScoreType() : higher_better(true)
       {
       }
 
-      explicit ScoreType(const CVTerm& cv_term, bool higher_better):
-        cv_term(cv_term), higher_better(higher_better)
+      explicit ScoreType(const CVTerm& cv_term, bool higher_better) : cv_term(cv_term), higher_better(higher_better)
       {
       }
 
-      explicit ScoreType(const String& name, bool higher_better):
-        cv_term(), higher_better(higher_better)
+      explicit ScoreType(const String& name, bool higher_better) : cv_term(), higher_better(higher_better)
       {
         cv_term.setName(name);
       }
@@ -70,9 +66,7 @@ namespace OpenMS
       bool operator<(const ScoreType& other) const
       {
         // @TODO: implement/use "CVTerm::operator<"?
-        return (std::tie(cv_term.getAccession(), cv_term.getName()) <
-                std::tie(other.cv_term.getAccession(),
-                         other.cv_term.getName()));
+        return (std::tie(cv_term.getAccession(), cv_term.getName()) < std::tie(other.cv_term.getAccession(), other.cv_term.getName()));
       }
 
       // don't include "higher_better" in the comparison:
@@ -83,7 +77,8 @@ namespace OpenMS
 
       bool isBetterScore(double first, double second) const
       {
-        if (higher_better) return first > second;
+        if (higher_better)
+          return first > second;
         return first < second;
       }
     };
@@ -92,20 +87,25 @@ namespace OpenMS
     typedef ScoreTypes::iterator setSTit;
     typedef IteratorWrapper<ScoreTypes::iterator, ScoreType> STRef;
 
-    struct ScoreTypeRef: public STRef
-    {
-      ScoreTypeRef(): STRef()
-      {}
-      ScoreTypeRef(const ScoreTypeRef & other) : STRef(other)
-      {}
-      ScoreTypeRef(const STRef & other) : STRef(other)
-      {}
-      ScoreTypeRef(const std::_Rb_tree<OpenMS::IdentificationDataInternal::ScoreType, OpenMS::IdentificationDataInternal::ScoreType, std::_Identity<OpenMS::IdentificationDataInternal::ScoreType>, std::less<OpenMS::IdentificationDataInternal::ScoreType>, std::allocator<OpenMS::IdentificationDataInternal::ScoreType> >::const_iterator& other): STRef(other)
-      {}
+    struct ScoreTypeRef : public STRef {
+      ScoreTypeRef() : STRef()
+      {
+      }
+      ScoreTypeRef(const ScoreTypeRef& other) : STRef(other)
+      {
+      }
+      ScoreTypeRef(const STRef& other) : STRef(other)
+      {
+      }
+      ScoreTypeRef(const std::_Rb_tree<OpenMS::IdentificationDataInternal::ScoreType, OpenMS::IdentificationDataInternal::ScoreType, std::_Identity<OpenMS::IdentificationDataInternal::ScoreType>,
+                                       std::less<OpenMS::IdentificationDataInternal::ScoreType>, std::allocator<OpenMS::IdentificationDataInternal::ScoreType>>::const_iterator& other) :
+          STRef(other)
+      {
+      }
       ScoreTypeRef operator=(const ScoreTypeRef& other)
       {
         return STRef::operator=(other);
       }
     };
-  }
-}
+  } // namespace IdentificationDataInternal
+} // namespace OpenMS

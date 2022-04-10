@@ -41,8 +41,7 @@ namespace OpenMS
   namespace IdentificationDataInternal
   {
     /// Base class for ID data with scores and processing steps (and meta info)
-    struct ScoredProcessingResult: public MetaInfoInterface
-    {
+    struct ScoredProcessingResult : public MetaInfoInterface {
       AppliedProcessingSteps steps_and_scores;
 
       /// Return the applied processing steps (incl. scores) as a set ordered by processing step reference (option)
@@ -52,8 +51,7 @@ namespace OpenMS
       }
 
       /// Return the applied processing steps (incl. scores) as a set ordered by processing step reference (option) - const variant
-      const AppliedProcessingSteps::nth_index<1>::type&
-      getStepsAndScoresByStep() const
+      const AppliedProcessingSteps::nth_index<1>::type& getStepsAndScoresByStep() const
       {
         return steps_and_scores.get<1>();
       }
@@ -65,38 +63,31 @@ namespace OpenMS
       */
       void addProcessingStep(const AppliedProcessingStep& step)
       {
-        auto step_pos =
-          steps_and_scores.get<1>().find(step.processing_step_opt);
+        auto step_pos = steps_and_scores.get<1>().find(step.processing_step_opt);
         if (step_pos == steps_and_scores.get<1>().end()) // new step
         {
           steps_and_scores.push_back(step);
         }
         else // existing step - add or update scores
         {
-          steps_and_scores.get<1>().modify(
-            step_pos, [&](AppliedProcessingStep& old_step)
+          steps_and_scores.get<1>().modify(step_pos, [&](AppliedProcessingStep& old_step) {
+            for (const auto& pair : step.scores)
             {
-              for (const auto& pair : step.scores)
-              {
-                old_step.scores[pair.first] = pair.second;
-              }
-            });
+              old_step.scores[pair.first] = pair.second;
+            }
+          });
         }
       }
 
       /// Add a processing step (and associated scores, if any)
-      void addProcessingStep(ProcessingStepRef step_ref,
-                             const std::map<ScoreTypeRef, double>& scores =
-                             std::map<ScoreTypeRef, double>())
+      void addProcessingStep(ProcessingStepRef step_ref, const std::map<ScoreTypeRef, double>& scores = std::map<ScoreTypeRef, double>())
       {
         AppliedProcessingStep applied(step_ref, scores);
         addProcessingStep(applied);
       }
 
       /// Add a score (possibly connected to a processing step)
-      void addScore(ScoreTypeRef score_type, double score,
-                    const std::optional<ProcessingStepRef>&
-                    processing_step_opt = std::nullopt)
+      void addScore(ScoreTypeRef score_type, double score, const std::optional<ProcessingStepRef>& processing_step_opt = std::nullopt)
       {
         AppliedProcessingStep applied(processing_step_opt);
         applied.scores[score_type] = score;
@@ -126,8 +117,7 @@ namespace OpenMS
       */
       std::pair<double, bool> getScore(ScoreTypeRef score_ref) const
       {
-        std::tuple<double, std::optional<ProcessingStepRef>, bool> result =
-          getScoreAndStep(score_ref);
+        std::tuple<double, std::optional<ProcessingStepRef>, bool> result = getScoreAndStep(score_ref);
         return std::make_pair(std::get<0>(result), std::get<2>(result));
       }
 
@@ -136,9 +126,7 @@ namespace OpenMS
 
         @return A pair: score (or NaN), success indicator
       */
-      std::pair<double, bool> getScore(ScoreTypeRef score_ref,
-                                       std::optional<ProcessingStepRef>
-                                       processing_step_opt) const
+      std::pair<double, bool> getScore(ScoreTypeRef score_ref, std::optional<ProcessingStepRef> processing_step_opt) const
       {
         auto step_pos = steps_and_scores.get<1>().find(processing_step_opt);
         if (step_pos != steps_and_scores.get<1>().end())
@@ -160,8 +148,7 @@ namespace OpenMS
 
         @return A tuple: score (or NaN), processing step reference (option), success indicator
       */
-      std::tuple<double, std::optional<ProcessingStepRef>, bool>
-      getScoreAndStep(ScoreTypeRef score_ref) const
+      std::tuple<double, std::optional<ProcessingStepRef>, bool> getScoreAndStep(ScoreTypeRef score_ref) const
       {
         // give priority to scores from later processing steps:
         for (const auto& step : boost::adaptors::reverse(steps_and_scores))
@@ -173,8 +160,7 @@ namespace OpenMS
           }
         }
         // not found:
-        return std::make_tuple(std::numeric_limits<double>::quiet_NaN(),
-                               std::nullopt, false);
+        return std::make_tuple(std::numeric_limits<double>::quiet_NaN(), std::nullopt, false);
       }
 
       /*!
@@ -184,8 +170,7 @@ namespace OpenMS
 
         @return A tuple: score (or NaN), score type reference (option), success indicator
         */
-      std::tuple<double, std::optional<ScoreTypeRef>, bool>
-      getMostRecentScore() const
+      std::tuple<double, std::optional<ScoreTypeRef>, bool> getMostRecentScore() const
       {
         // check steps starting with most recent:
         for (const auto& step : boost::adaptors::reverse(steps_and_scores))
@@ -193,12 +178,10 @@ namespace OpenMS
           auto top_score = step.getScoresInOrder(true);
           if (!top_score.empty())
           {
-            return std::make_tuple(top_score[0].second, top_score[0].first,
-                                   true);
+            return std::make_tuple(top_score[0].second, top_score[0].first, true);
           }
         }
-        return std::make_tuple(std::numeric_limits<double>::quiet_NaN(),
-                               std::nullopt, false); // no score available
+        return std::make_tuple(std::numeric_limits<double>::quiet_NaN(), std::nullopt, false); // no score available
       }
 
       /// Return the number of scores associated with this result
@@ -212,20 +195,15 @@ namespace OpenMS
         return counter;
       }
 
-            /// Copy c'tor
+      /// Copy c'tor
       ScoredProcessingResult(const ScoredProcessingResult&) = default;
 
     protected:
       /// Constructor
-      explicit ScoredProcessingResult(
-        const AppliedProcessingSteps& steps_and_scores =
-        AppliedProcessingSteps()):
-        steps_and_scores(steps_and_scores)
+      explicit ScoredProcessingResult(const AppliedProcessingSteps& steps_and_scores = AppliedProcessingSteps()) : steps_and_scores(steps_and_scores)
       {
       }
-
-
     };
 
-  }
-}
+  } // namespace IdentificationDataInternal
+} // namespace OpenMS

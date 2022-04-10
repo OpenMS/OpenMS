@@ -43,9 +43,8 @@ namespace OpenMS
   namespace IdentificationDataInternal
   {
     /** @brief Parameters specific to a database search step.
-    */
-    struct DBSearchParam: public MetaInfoInterface
-    {
+     */
+    struct DBSearchParam : public MetaInfoInterface {
       enum MoleculeType molecule_type;
       enum MassType mass_type;
 
@@ -70,13 +69,9 @@ namespace OpenMS
       Size min_length;
       Size max_length;
 
-      DBSearchParam():
-          molecule_type(MoleculeType::PROTEIN),
-          mass_type(MassType::MONOISOTOPIC),
-          precursor_mass_tolerance(0.0), fragment_mass_tolerance(0.0),
-          precursor_tolerance_ppm(false), fragment_tolerance_ppm(false),
-          digestion_enzyme(nullptr), enzyme_term_specificity(EnzymaticDigestion::SPEC_UNKNOWN),
-          missed_cleavages(0), min_length(0), max_length(0)
+      DBSearchParam() :
+          molecule_type(MoleculeType::PROTEIN), mass_type(MassType::MONOISOTOPIC), precursor_mass_tolerance(0.0), fragment_mass_tolerance(0.0), precursor_tolerance_ppm(false),
+          fragment_tolerance_ppm(false), digestion_enzyme(nullptr), enzyme_term_specificity(EnzymaticDigestion::SPEC_UNKNOWN), missed_cleavages(0), min_length(0), max_length(0)
       {
       }
 
@@ -84,42 +79,20 @@ namespace OpenMS
 
       bool operator<(const DBSearchParam& other) const
       {
-        return (std::tie(molecule_type, mass_type, database,
-                         database_version, taxonomy, charges, fixed_mods,
-                         variable_mods, fragment_mass_tolerance,
-                         precursor_mass_tolerance, fragment_tolerance_ppm,
-                         precursor_tolerance_ppm, digestion_enzyme,
-                         enzyme_term_specificity, missed_cleavages, min_length, max_length) <
-                std::tie(other.molecule_type, other.mass_type,
-                         other.database, other.database_version, other.taxonomy,
-                         other.charges, other.fixed_mods, other.variable_mods,
-                         other.fragment_mass_tolerance,
-                         other.precursor_mass_tolerance,
-                         other.fragment_tolerance_ppm,
-                         other.precursor_tolerance_ppm,
-                         other.digestion_enzyme,
-                         other.enzyme_term_specificity, other.missed_cleavages,
-                         other.min_length, other.max_length));
+        return (std::tie(molecule_type, mass_type, database, database_version, taxonomy, charges, fixed_mods, variable_mods, fragment_mass_tolerance, precursor_mass_tolerance, fragment_tolerance_ppm,
+                         precursor_tolerance_ppm, digestion_enzyme, enzyme_term_specificity, missed_cleavages, min_length,
+                         max_length) < std::tie(other.molecule_type, other.mass_type, other.database, other.database_version, other.taxonomy, other.charges, other.fixed_mods, other.variable_mods,
+                                                other.fragment_mass_tolerance, other.precursor_mass_tolerance, other.fragment_tolerance_ppm, other.precursor_tolerance_ppm, other.digestion_enzyme,
+                                                other.enzyme_term_specificity, other.missed_cleavages, other.min_length, other.max_length));
       }
 
       bool operator==(const DBSearchParam& other) const
       {
-        return (std::tie(molecule_type, mass_type, database,
-                         database_version, taxonomy, charges, fixed_mods,
-                         variable_mods, fragment_mass_tolerance,
-                         precursor_mass_tolerance, fragment_tolerance_ppm,
-                         precursor_tolerance_ppm, digestion_enzyme, enzyme_term_specificity,
-                         missed_cleavages, min_length, max_length) ==
-                std::tie(other.molecule_type, other.mass_type,
-                         other.database, other.database_version, other.taxonomy,
-                         other.charges, other.fixed_mods, other.variable_mods,
-                         other.fragment_mass_tolerance,
-                         other.precursor_mass_tolerance,
-                         other.fragment_tolerance_ppm,
-                         other.precursor_tolerance_ppm,
-                         other.digestion_enzyme, other.enzyme_term_specificity,
-                         other.missed_cleavages,
-                         other.min_length, other.max_length));
+        return (std::tie(molecule_type, mass_type, database, database_version, taxonomy, charges, fixed_mods, variable_mods, fragment_mass_tolerance, precursor_mass_tolerance, fragment_tolerance_ppm,
+                         precursor_tolerance_ppm, digestion_enzyme, enzyme_term_specificity, missed_cleavages, min_length,
+                         max_length) == std::tie(other.molecule_type, other.mass_type, other.database, other.database_version, other.taxonomy, other.charges, other.fixed_mods, other.variable_mods,
+                                                 other.fragment_mass_tolerance, other.precursor_mass_tolerance, other.fragment_tolerance_ppm, other.precursor_tolerance_ppm, other.digestion_enzyme,
+                                                 other.enzyme_term_specificity, other.missed_cleavages, other.min_length, other.max_length));
       }
     };
 
@@ -127,16 +100,19 @@ namespace OpenMS
     typedef DBSearchParams::iterator setDBSPit;
     typedef IteratorWrapper<DBSearchParams::iterator, DBSearchParam> SPRef;
 
-    struct SearchParamRef: public SPRef
-    {
-      SearchParamRef(): SPRef()
-      {}
-      SearchParamRef(const SearchParamRef & other) : SPRef(other)
-      {}
-      SearchParamRef(const SPRef & other) : SPRef(other)
-      {}
+    struct SearchParamRef : public SPRef {
+      SearchParamRef() : SPRef()
+      {
+      }
+      SearchParamRef(const SearchParamRef& other) : SPRef(other)
+      {
+      }
+      SearchParamRef(const SPRef& other) : SPRef(other)
+      {
+      }
       SearchParamRef(const std::_Rb_tree_const_iterator<OpenMS::IdentificationDataInternal::DBSearchParam>& other) : SPRef(other)
-      {}
+      {
+      }
       SearchParamRef operator=(const SearchParamRef& other)
       {
         return SPRef::operator=(other);
@@ -146,5 +122,5 @@ namespace OpenMS
 
     typedef std::map<ProcessingStepRef, SearchParamRef> DBSearchSteps;
 
-  }
-}
+  } // namespace IdentificationDataInternal
+} // namespace OpenMS

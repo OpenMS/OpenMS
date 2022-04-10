@@ -35,19 +35,16 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/MISC/ExternalProcessMBox.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <OpenMS/VISUAL/TableView.h>
-
 #include <QTabWidget> // our base class
-
+#include <utility>    // for std::pair
 #include <vector>
-#include <utility> // for std::pair
 
 namespace Ui
 {
@@ -71,9 +68,10 @@ namespace OpenMS
       Q_OBJECT
 
     public:
-      template <typename> friend class WizardGUILock;
+      template<typename>
+      friend class WizardGUILock;
 
-      explicit SwathTabWidget(QWidget *parent = nullptr);
+      explicit SwathTabWidget(QWidget* parent = nullptr);
       ~SwathTabWidget();
 
       StringList getMzMLInputFiles() const;
@@ -128,16 +126,16 @@ namespace OpenMS
       /// If anything is missing: show a Messagebox and return false.
       bool checkOSWInputReady_();
 
-      Ui::SwathTabWidget *ui;
-      Param swath_param_; ///< the global Swath parameters which will be passed to OpenSwathWorkflow.exe, once updated with parameters the Wizard holds separately
+      Ui::SwathTabWidget* ui;
+      Param swath_param_;        ///< the global Swath parameters which will be passed to OpenSwathWorkflow.exe, once updated with parameters the Wizard holds separately
       Param swath_param_wizard_; ///< small selection of important parameters which the user can directly change in the Wizard
 
       StringList osw_result_files_; ///< list of .osw files produced by OSW which are currently available
-      ExternalProcessMBox ep_; ///< to run external programs and pipe their output into our log
+      ExternalProcessMBox ep_;      ///< to run external programs and pipe their output into our log
     };
 
-  }
-} // ns OpenMS
+  } // namespace Internal
+} // namespace OpenMS
 
 // this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a InputFile member
 using InputFile = OpenMS::InputFile;

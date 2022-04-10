@@ -34,28 +34,25 @@
 
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-
 #include <QDir>
 #include <array>
 
-using std::vector;
-using std::string;
+using std::make_pair;
 using std::map;
 using std::pair;
-using std::make_pair;
+using std::string;
+using std::vector;
 
 namespace OpenMS
 {
 
   const std::array<std::string, IDRipper::SIZE_OF_ORIGIN_ANNOTATION_FORMAT> IDRipper::names_of_OriginAnnotationFormat = {"file_origin", "map_index", "id_merge_index", "unknown"};
 
-  IDRipper::IDRipper() :
-    DefaultParamHandler("IDRipper")
+  IDRipper::IDRipper() : DefaultParamHandler("IDRipper")
   {
   }
 
-  IDRipper::IDRipper(const IDRipper& cp) :
-    DefaultParamHandler(cp)
+  IDRipper::IDRipper(const IDRipper& cp) : DefaultParamHandler(cp)
   {
   }
 
@@ -87,98 +84,91 @@ namespace OpenMS
       this->index_map[id_run_id] = idx;
       const DataValue& mv_spectra_data = prot_id.getMetaValue("spectra_data");
       spectra_data.push_back(mv_spectra_data.isEmpty() ? StringList() : mv_spectra_data.toStringList());
-      }
+    }
   }
 
   bool IDRipper::RipFileIdentifierIdxComparator::operator()(const RipFileIdentifier& left, const RipFileIdentifier& right) const
   {
-    return std::tie(left.ident_run_idx, left.file_origin_idx)
-      < std::tie(right.ident_run_idx, right.file_origin_idx);
+    return std::tie(left.ident_run_idx, left.file_origin_idx) < std::tie(right.ident_run_idx, right.file_origin_idx);
   }
 
   // Identify the output file name features associated via spectra_data or file_origin
-  IDRipper::RipFileIdentifier::RipFileIdentifier(const IDRipper::IdentificationRuns& id_runs, const PeptideIdentification& pep_id, const map<String, UInt>& file_origin_map, const IDRipper::OriginAnnotationFormat origin_annotation_fmt, bool split_ident_runs)
+  IDRipper::RipFileIdentifier::RipFileIdentifier(const IDRipper::IdentificationRuns& id_runs, const PeptideIdentification& pep_id, const map<String, UInt>& file_origin_map,
+                                                 const IDRipper::OriginAnnotationFormat origin_annotation_fmt, bool split_ident_runs)
   {
-      try
-      {
-          // Numerical identifier of the Identification Run
-          this->ident_run_idx   = id_runs.index_map.at(pep_id.getIdentifier());
+    try
+    {
+      // Numerical identifier of the Identification Run
+      this->ident_run_idx = id_runs.index_map.at(pep_id.getIdentifier());
 
-          // Numerical identifier of the PeptideIdentification origin
-          this->file_origin_idx = (origin_annotation_fmt == MAP_INDEX || origin_annotation_fmt == ID_MERGE_INDEX)
-              ? pep_id.getMetaValue(names_of_OriginAnnotationFormat[origin_annotation_fmt]).toString().toInt()
-              : file_origin_map.at(pep_id.getMetaValue("file_origin").toString());
+      // Numerical identifier of the PeptideIdentification origin
+      this->file_origin_idx = (origin_annotation_fmt == MAP_INDEX || origin_annotation_fmt == ID_MERGE_INDEX) ?
+                                pep_id.getMetaValue(names_of_OriginAnnotationFormat[origin_annotation_fmt]).toString().toInt() :
+                                file_origin_map.at(pep_id.getMetaValue("file_origin").toString());
 
-          // Store the origin full name
-          this->origin_fullname = (origin_annotation_fmt == MAP_INDEX || origin_annotation_fmt == ID_MERGE_INDEX)
-              ? id_runs.spectra_data.at(this->ident_run_idx).at(this->file_origin_idx)
-              : pep_id.getMetaValue("file_origin").toString();
+      // Store the origin full name
+      this->origin_fullname = (origin_annotation_fmt == MAP_INDEX || origin_annotation_fmt == ID_MERGE_INDEX) ? id_runs.spectra_data.at(this->ident_run_idx).at(this->file_origin_idx) :
+                                                                                                                pep_id.getMetaValue("file_origin").toString();
 
-          // Extract the basename, used for output files when --numeric_filenames is not set
-          this->out_basename = QFileInfo(this->origin_fullname.toQString()).completeBaseName().toStdString();
+      // Extract the basename, used for output files when --numeric_filenames is not set
+      this->out_basename = QFileInfo(this->origin_fullname.toQString()).completeBaseName().toStdString();
 
-          // Drop the identification run identifier if we're not splitting by identification runs
-          if (!split_ident_runs)
-              this->ident_run_idx = -1u;
-      }
-      catch (const std::out_of_range& e)
-      {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "input file",
-                  "Failed to identify corresponding spectra_data element for PeptideIdentification element.");
-      }
+      // Drop the identification run identifier if we're not splitting by identification runs
+      if (!split_ident_runs)
+        this->ident_run_idx = -1u;
+    }
+    catch (const std::out_of_range& e)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "input file", "Failed to identify corresponding spectra_data element for PeptideIdentification element.");
+    }
   }
 
   UInt IDRipper::RipFileIdentifier::getIdentRunIdx()
   {
-      return this->ident_run_idx;
+    return this->ident_run_idx;
   }
 
   UInt IDRipper::RipFileIdentifier::getFileOriginIdx()
   {
-      return this->file_origin_idx;
+    return this->file_origin_idx;
   }
 
-  const String & IDRipper::RipFileIdentifier::getOriginFullname()
+  const String& IDRipper::RipFileIdentifier::getOriginFullname()
   {
-      return this->origin_fullname;
+    return this->origin_fullname;
   }
 
-  const String & IDRipper::RipFileIdentifier::getOutputBasename()
+  const String& IDRipper::RipFileIdentifier::getOutputBasename()
   {
-      return this->out_basename;
+    return this->out_basename;
   }
 
-  const std::vector<ProteinIdentification> & IDRipper::RipFileContent::getProteinIdentifications()
+  const std::vector<ProteinIdentification>& IDRipper::RipFileContent::getProteinIdentifications()
   {
-      return this->prot_idents;
+    return this->prot_idents;
   }
 
-  const std::vector<PeptideIdentification> & IDRipper::RipFileContent::getPeptideIdentifications()
+  const std::vector<PeptideIdentification>& IDRipper::RipFileContent::getPeptideIdentifications()
   {
-      return this->pep_idents;
+    return this->pep_idents;
   }
 
-  bool IDRipper::registerBasename_(map<String, pair<UInt, UInt> >& basename_to_numeric, const IDRipper::RipFileIdentifier& rfi)
+  bool IDRipper::registerBasename_(map<String, pair<UInt, UInt>>& basename_to_numeric, const IDRipper::RipFileIdentifier& rfi)
   {
-      auto it = basename_to_numeric.find(rfi.out_basename);
-      auto p  = make_pair(rfi.ident_run_idx, rfi.file_origin_idx);
+    auto it = basename_to_numeric.find(rfi.out_basename);
+    auto p = make_pair(rfi.ident_run_idx, rfi.file_origin_idx);
 
-      // If we have not seen this basename before, store it in the map
-      if (it == basename_to_numeric.end())
-      {
-          basename_to_numeric[rfi.out_basename] = p;
-          return true;
-      }
-      // Otherwise, check if we save it in the context of the same IdentificationRun and potentially spectra_data position
-      return it->second == p;
+    // If we have not seen this basename before, store it in the map
+    if (it == basename_to_numeric.end())
+    {
+      basename_to_numeric[rfi.out_basename] = p;
+      return true;
+    }
+    // Otherwise, check if we save it in the context of the same IdentificationRun and potentially spectra_data position
+    return it->second == p;
   }
 
-  void IDRipper::rip(
-          RipFileMap& ripped,
-          vector<ProteinIdentification>& proteins,
-          vector<PeptideIdentification>& peptides,
-          bool numeric_filenames,
-          bool split_ident_runs)
+  void IDRipper::rip(RipFileMap& ripped, vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides, bool numeric_filenames, bool split_ident_runs)
   {
     // Detect file format w.r.t. origin annotation
     map<String, UInt> file_origin_map;
@@ -186,8 +176,7 @@ namespace OpenMS
 
     if (origin_annotation_fmt == UNKNOWN_OAF)
     {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "input file",
-        "Unable to detect origin annotation format of provided input file.");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "input file", "Unable to detect origin annotation format of provided input file.");
     }
 
     OPENMS_LOG_DEBUG << "Detected file origin annotation format: " << names_of_OriginAnnotationFormat[origin_annotation_fmt] << std::endl;
@@ -201,12 +190,12 @@ namespace OpenMS
     {
       // remove protein identification file origin
       prot.removeMetaValue(names_of_OriginAnnotationFormat[origin_annotation_fmt]);
-      vector<ProteinHit>& protein_hits  = prot.getHits();
+      vector<ProteinHit>& protein_hits = prot.getHits();
       all_protein_hits.insert(all_protein_hits.end(), protein_hits.begin(), protein_hits.end());
     }
 
-    map<String, pair<UInt, UInt> > basename_to_numeric;
-    //store protein and peptides identifications for each file origin
+    map<String, pair<UInt, UInt>> basename_to_numeric;
+    // store protein and peptides identifications for each file origin
     for (PeptideIdentification& pep : peptides)
     {
       // Build the output file identifier
@@ -216,10 +205,9 @@ namespace OpenMS
       // file_origin, make sure they are unique
       if (!numeric_filenames && !registerBasename_(basename_to_numeric, rfi))
       {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Autodetected output file names are not unique. Use -numeric_filenames.");
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Autodetected output file names are not unique. Use -numeric_filenames.");
       }
-      
+
       // remove file origin annotation
       pep.removeMetaValue(names_of_OriginAnnotationFormat[origin_annotation_fmt]);
 
@@ -279,11 +267,11 @@ namespace OpenMS
         prot_ident.setHits(protein2accessions);
         protein_idents.push_back(prot_ident);
 
-        //create new peptide identification
+        // create new peptide identification
         vector<PeptideIdentification> peptide_idents;
         peptide_idents.push_back(pep);
 
-        //create and insert new map entry
+        // create and insert new map entry
         ripped.insert(make_pair(rfi, RipFileContent(protein_idents, peptide_idents)));
       }
     }
@@ -294,7 +282,7 @@ namespace OpenMS
       for (it = ripped.begin(); it != ripped.end(); ++it)
       {
         const RipFileIdentifier& rfi = it->first;
-        RipFileContent&          rfc = it->second;
+        RipFileContent& rfc = it->second;
 
         for (ProteinIdentification& prot_id : rfc.prot_idents)
         {
@@ -308,38 +296,33 @@ namespace OpenMS
     }
   }
 
-  void IDRipper::rip(
-            std::vector<RipFileIdentifier> & rfis,
-            std::vector<RipFileContent> & rfcs,
-            std::vector<ProteinIdentification> & proteins,
-            std::vector<PeptideIdentification> & peptides,
-            bool numeric_filenames,
-            bool split_ident_runs)
+  void IDRipper::rip(std::vector<RipFileIdentifier>& rfis, std::vector<RipFileContent>& rfcs, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides,
+                     bool numeric_filenames, bool split_ident_runs)
   {
-      RipFileMap rfm;
-      this->rip(rfm, proteins, peptides, numeric_filenames, split_ident_runs);
+    RipFileMap rfm;
+    this->rip(rfm, proteins, peptides, numeric_filenames, split_ident_runs);
 
-      rfis.clear();
-      rfcs.clear();
-      for (RipFileMap::iterator it = rfm.begin(); it != rfm.end(); ++it)
-      {
-          rfis.push_back(it->first);
-          rfcs.push_back(it->second);
-      }
+    rfis.clear();
+    rfcs.clear();
+    for (RipFileMap::iterator it = rfm.begin(); it != rfm.end(); ++it)
+    {
+      rfis.push_back(it->first);
+      rfcs.push_back(it->second);
+    }
   }
 
 
-bool IDRipper::setOriginAnnotationMode_(short& mode, short const new_value)
-{
-  if (mode != -1 && mode != new_value)
+  bool IDRipper::setOriginAnnotationMode_(short& mode, short const new_value)
   {
-    return false;
+    if (mode != -1 && mode != new_value)
+    {
+      return false;
+    }
+    mode = new_value;
+    return true;
   }
-  mode = new_value;
-  return true;
-}
 
-IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<String, UInt>& file_origin_map, const std::vector<PeptideIdentification>& peptide_idents)
+  IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<String, UInt>& file_origin_map, const std::vector<PeptideIdentification>& peptide_idents)
   {
     // In case we observe 'file_origin' meta values, we assign an index to every unique meta value
     file_origin_map.clear();
@@ -348,7 +331,7 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
     for (vector<PeptideIdentification>::const_iterator it = peptide_idents.begin(); it != peptide_idents.end(); ++it)
     {
       bool mode_identified = false;
-      for (size_t i = 0; i<SIZE_OF_ORIGIN_ANNOTATION_FORMAT; ++i)
+      for (size_t i = 0; i < SIZE_OF_ORIGIN_ANNOTATION_FORMAT; ++i)
       {
         if (it->metaValueExists(names_of_OriginAnnotationFormat[i]))
         {
@@ -417,7 +400,7 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
   {
     const String& identifier = pep_ident.getIdentifier();
 
-    for (ProteinIdentification& prot: prot_idents)
+    for (ProteinIdentification& prot : prot_idents)
     {
       if (identifier.compare(prot.getIdentifier()) == 0)
       {

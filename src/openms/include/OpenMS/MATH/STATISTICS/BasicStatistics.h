@@ -35,10 +35,10 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <vector>
-#include <ostream>
 #include <cmath>
 #include <numeric>
+#include <ostream>
+#include <vector>
 
 namespace OpenMS
 {
@@ -63,13 +63,10 @@ namespace OpenMS
 
          @ingroup Math
     */
-    template <typename RealT = double>
-    class
-    BasicStatistics
+    template<typename RealT = double>
+    class BasicStatistics
     {
-
-public:
-
+    public:
       /// The real type specified as template argument.
       typedef RealT RealType;
 
@@ -77,25 +74,21 @@ public:
       typedef std::vector<RealType> coordinate_container;
 
       /// Default constructor.
-      BasicStatistics() :
-        mean_(0),
-        variance_(0),
-        sum_(0)
-      {}
+      BasicStatistics() : mean_(0), variance_(0), sum_(0)
+      {
+      }
 
       /// Copy constructor.
-      BasicStatistics(BasicStatistics const & arg) :
-        mean_(arg.mean_),
-        variance_(arg.variance_),
-        sum_(arg.sum_)
-      {}
+      BasicStatistics(BasicStatistics const& arg) : mean_(arg.mean_), variance_(arg.variance_), sum_(arg.sum_)
+      {
+      }
 
       /// Assignment.
-      BasicStatistics & operator=(BasicStatistics const & arg)
+      BasicStatistics& operator=(BasicStatistics const& arg)
       {
-        mean_      = arg.mean_;
-        variance_  = arg.variance_;
-        sum_       = arg.sum_;
+        mean_ = arg.mean_;
+        variance_ = arg.variance_;
+        sum_ = arg.sum_;
         return *this;
       }
 
@@ -109,10 +102,8 @@ public:
 
       /// This does the actual calculation.
       /** You can call this as often as you like, using different input vectors. */
-      template <typename ProbabilityIterator>
-      void update(ProbabilityIterator probability_begin,
-                  ProbabilityIterator const probability_end
-                  )
+      template<typename ProbabilityIterator>
+      void update(ProbabilityIterator probability_begin, ProbabilityIterator const probability_end)
       {
         clear();
         unsigned pos = 0;
@@ -120,7 +111,7 @@ public:
 
         for (; iter != probability_end; ++iter, ++pos)
         {
-          sum_  += *iter;
+          sum_ += *iter;
           mean_ += *iter * pos;
         }
         mean_ /= sum_;
@@ -133,7 +124,7 @@ public:
         }
         variance_ /= sum_;
 
-        if (sum_ == 0 && (std::isnan(mean_) || std::isinf(mean_)) )
+        if (sum_ == 0 && (std::isnan(mean_) || std::isinf(mean_)))
         {
           mean_ = 0;
           variance_ = 0;
@@ -142,27 +133,21 @@ public:
 
       /// This does the actual calculation.
       /** You can call this as often as you like, using different input vectors. */
-      template <typename ProbabilityIterator, typename CoordinateIterator>
-      void update(ProbabilityIterator const probability_begin,
-                  ProbabilityIterator const probability_end,
-                  CoordinateIterator  const coordinate_begin
-                  )
+      template<typename ProbabilityIterator, typename CoordinateIterator>
+      void update(ProbabilityIterator const probability_begin, ProbabilityIterator const probability_end, CoordinateIterator const coordinate_begin)
       {
         clear();
         ProbabilityIterator prob_iter = probability_begin;
-        CoordinateIterator  coord_iter = coordinate_begin;
+        CoordinateIterator coord_iter = coordinate_begin;
 
         for (; prob_iter != probability_end; ++prob_iter, ++coord_iter)
         {
-          sum_  += *prob_iter;
+          sum_ += *prob_iter;
           mean_ += *prob_iter * *coord_iter;
         }
         mean_ /= sum_;
 
-        for (prob_iter = probability_begin, coord_iter = coordinate_begin;
-             prob_iter != probability_end;
-             ++prob_iter, ++coord_iter
-             )
+        for (prob_iter = probability_begin, coord_iter = coordinate_begin; prob_iter != probability_end; ++prob_iter, ++coord_iter)
         {
           RealType diff = *coord_iter - mean_;
           diff *= diff;
@@ -173,16 +158,34 @@ public:
       }
 
       /// Returns the mean.
-      RealType mean() const { return mean_; }
-      void setMean(RealType const & mean) { mean_ = mean; }
+      RealType mean() const
+      {
+        return mean_;
+      }
+      void setMean(RealType const& mean)
+      {
+        mean_ = mean;
+      }
 
       /// Returns the variance.
-      RealType variance() const { return variance_; }
-      void setVariance(RealType const & variance) { variance_ = variance; }
+      RealType variance() const
+      {
+        return variance_;
+      }
+      void setVariance(RealType const& variance)
+      {
+        variance_ = variance;
+      }
 
       /// Returns the sum.
-      RealType sum() const { return sum_; }
-      void setSum(RealType const & sum) { sum_ = sum; }
+      RealType sum() const
+      {
+        return sum_;
+      }
+      void setSum(RealType const& sum)
+      {
+        sum_ = sum;
+      }
 
 
       /**@brief Returns the density of the normal approximation at point,
@@ -197,7 +200,10 @@ public:
       }
 
       /// Returns sqrt( 2 * pi ), which is useful to normalize the result of normalDensity_sqrt2pi().
-      static RealType sqrt2pi() { return 2.50662827463100050240; }
+      static RealType sqrt2pi()
+      {
+        return 2.50662827463100050240;
+      }
 
       /**@brief See normalDensity_sqrt2pi().  Returns the density of the normal
            distribution at point.
@@ -211,7 +217,7 @@ public:
            the normal approximation.  Its \c size() is not changed.  The
            approximation takes place at coordinate positions 0, 1, ..., size()-1.
       */
-      void normalApproximation(probability_container & probability)
+      void normalApproximation(probability_container& probability)
       {
         normalApproximationHelper_(probability, probability.size());
         return;
@@ -221,9 +227,7 @@ public:
               normal approximation.  Its size() is set to \c size.  The
               approximation takes place at coordinate positions 0, 1, ..., size-1.
       */
-      void normalApproximation(probability_container & probability,
-                               typename probability_container::size_type const size
-                               )
+      void normalApproximation(probability_container& probability, typename probability_container::size_type const size)
       {
         probability.resize(size);
         normalApproximationHelper_(probability, size);
@@ -235,9 +239,7 @@ public:
            positions where the approximation takes place.  probability.size() is
            set to coordinate.size().
       */
-      void normalApproximation(probability_container & probability,
-                               coordinate_container  const & coordinate
-                               )
+      void normalApproximation(probability_container& probability, coordinate_container const& coordinate)
       {
         probability.resize(coordinate.size());
         normalApproximationHelper_(probability, coordinate);
@@ -248,14 +250,13 @@ public:
 
       @relatesalso BasicStatistics
       */
-      friend std::ostream & operator<<(std::ostream & os, BasicStatistics & arg)
+      friend std::ostream& operator<<(std::ostream& os, BasicStatistics& arg)
       {
         os << "BasicStatistics:  mean=" << arg.mean() << "  variance=" << arg.variance() << "  sum=" << arg.sum();
         return os;
       }
 
-protected:
-
+    protected:
       /// @name Protected Members
       //@{
 
@@ -263,15 +264,13 @@ protected:
       RealType variance_;
       RealType sum_;
 
-private:
+    private:
       //@}
 
       /// @name Private Methods
       //@{
 
-      void normalApproximationHelper_(probability_container & probability,
-                                      typename probability_container::size_type const size
-                                      )
+      void normalApproximationHelper_(probability_container& probability, typename probability_container::size_type const size)
       {
         RealType gaussSum = 0;
         typename coordinate_container::size_type i;
@@ -289,9 +288,7 @@ private:
         return;
       }
 
-      void normalApproximationHelper_(probability_container & probability,
-                                      coordinate_container const & coordinate
-                                      )
+      void normalApproximationHelper_(probability_container& probability, coordinate_container const& coordinate)
       {
         RealType gaussSum = 0;
         typename coordinate_container::size_type i;
@@ -310,9 +307,8 @@ private:
       }
 
       //@}
-
     };
 
-  }   // namespace Math
+  } // namespace Math
 
 } // namespace OpenMS

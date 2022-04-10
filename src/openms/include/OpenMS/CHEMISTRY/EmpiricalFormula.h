@@ -34,12 +34,11 @@
 //
 #pragma once
 
+#include <OpenMS/CONCEPT/Types.h>
 #include <iosfwd>
 #include <map>
 #include <set>
 #include <string>
-
-#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {
@@ -83,14 +82,13 @@ namespace OpenMS
 
   class OPENMS_DLLAPI EmpiricalFormula
   {
+  protected:
+    /// Internal typedef for the used map type
+    typedef std::map<const Element*, SignedSize> MapType_;
 
-protected:
-	  /// Internal typedef for the used map type
-	  typedef std::map<const Element*, SignedSize> MapType_;
-
-public:
+  public:
     /** @name Typedefs
-    */
+     */
     //@{
     /// Iterators
     typedef MapType_::const_iterator ConstIterator;
@@ -100,7 +98,7 @@ public:
     //@}
 
     /** @name Constructors and Destructors
-    */
+     */
     //@{
     /// Default constructor
     EmpiricalFormula();
@@ -125,13 +123,13 @@ public:
     virtual ~EmpiricalFormula();
     //@}
 
-     /**
-     @brief create EmpiricalFormular object by parsing an OpenMS string
+    /**
+    @brief create EmpiricalFormular object by parsing an OpenMS string
 
-     @param s Input string
+    @param s Input string
 
-     @throws Exception::ParseError if the formula cannot be parsed
-   */
+    @throws Exception::ParseError if the formula cannot be parsed
+  */
     static EmpiricalFormula fromString(const String& rhs)
     {
       EmpiricalFormula ef(rhs);
@@ -139,7 +137,7 @@ public:
     }
 
     /** @name Accessors
-    */
+     */
     //@{
     /// returns the mono isotopic weight of the formula (includes proton charges)
     double getMonoWeight() const;
@@ -201,9 +199,7 @@ public:
       @param method: the method that will be used for the calculation of the IsotopeDistribution
       @return the conditional IsotopeDistribution of the fragment
     */
-    IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor,
-                                                          const std::set<UInt>& precursor_isotopes,
-                                                          const CoarseIsotopePatternGenerator& method) const;
+    IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes, const CoarseIsotopePatternGenerator& method) const;
 
     /// returns the number of atoms for a certain @p element (can be negative)
     SignedSize getNumberOf(const Element* element) const;
@@ -225,7 +221,7 @@ public:
     //@}
 
     /** Assignment
-    */
+     */
     //@{
 
     /// Assignment operator
@@ -252,7 +248,7 @@ public:
     //@}
 
     /**@name Predicates
-    */
+     */
     //@{
     /// returns true if the formula does not contain a element
     bool isEmpty() const;
@@ -281,15 +277,27 @@ public:
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
 
     /** @name Iterators
-    */
+     */
     //@{
-    inline ConstIterator begin() const { return formula_.begin(); }
+    inline ConstIterator begin() const
+    {
+      return formula_.begin();
+    }
 
-    inline ConstIterator end() const { return formula_.end(); }
+    inline ConstIterator end() const
+    {
+      return formula_.end();
+    }
 
-    inline Iterator begin() { return formula_.begin(); }
+    inline Iterator begin()
+    {
+      return formula_.begin();
+    }
 
-    inline Iterator end() { return formula_.end(); }
+    inline Iterator end()
+    {
+      return formula_.end();
+    }
     //@}
 
     /** @name Static member functions
@@ -303,8 +311,7 @@ public:
     static EmpiricalFormula water(int n_molecules = 1);
     //@}
 
-protected:
-
+  protected:
     /// remove elements with count 0
     void removeZeroedElements_();
 
@@ -313,7 +320,6 @@ protected:
     Int charge_;
 
     Int parseFormula_(std::map<const Element*, SignedSize>& ef, const String& formula) const;
-
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);

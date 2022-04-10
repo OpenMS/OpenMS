@@ -34,19 +34,17 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/ScoredProcessingResult.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
+#include <OpenMS/METADATA/ID/ScoredProcessingResult.h>
 #include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index_container.hpp>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    struct IdentifiedCompound: public ScoredProcessingResult
-    {
+    struct IdentifiedCompound : public ScoredProcessingResult {
       String identifier;
 
       EmpiricalFormula formula;
@@ -57,55 +55,57 @@ namespace OpenMS
 
       String inchi;
 
-      explicit IdentifiedCompound(
-        const String& identifier,
-        const EmpiricalFormula& formula = EmpiricalFormula(),
-        const String& name = "", const String& smile = "",
-        const String& inchi = "", const AppliedProcessingSteps&
-        steps_and_scores = AppliedProcessingSteps()):
-        ScoredProcessingResult(steps_and_scores), identifier(identifier),
-        formula(formula), name(name), smile(smile), inchi(inchi)
+      explicit IdentifiedCompound(const String& identifier, const EmpiricalFormula& formula = EmpiricalFormula(), const String& name = "", const String& smile = "", const String& inchi = "",
+                                  const AppliedProcessingSteps& steps_and_scores = AppliedProcessingSteps()) :
+          ScoredProcessingResult(steps_and_scores),
+          identifier(identifier), formula(formula), name(name), smile(smile), inchi(inchi)
       {
       }
 
-      IdentifiedCompound(); //FOR PYOPENMS Only FIXME make private.
+      IdentifiedCompound(); // FOR PYOPENMS Only FIXME make private.
 
       IdentifiedCompound(const IdentifiedCompound& other) = default;
     };
 
     // identified compounds indexed by their identifiers:
-    typedef boost::multi_index_container<
-      IdentifiedCompound,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::member<
-          IdentifiedCompound, String, &IdentifiedCompound::identifier>>>
-      > ICs;
-    
-    struct IdentifiedCompounds: public ICs
-    {
-      IdentifiedCompounds(): ICs()
-      {}
-      IdentifiedCompounds(const IdentifiedCompounds& other): ICs(other)
-      {}
-      IdentifiedCompounds(const ICs & other): ICs(other)
-      {}
+    typedef boost::multi_index_container<IdentifiedCompound,
+                                         boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<IdentifiedCompound, String, &IdentifiedCompound::identifier>>>>
+      ICs;
+
+    struct IdentifiedCompounds : public ICs {
+      IdentifiedCompounds() : ICs()
+      {
+      }
+      IdentifiedCompounds(const IdentifiedCompounds& other) : ICs(other)
+      {
+      }
+      IdentifiedCompounds(const ICs& other) : ICs(other)
+      {
+      }
     };
     typedef IteratorWrapper<IdentifiedCompounds::iterator, IdentifiedCompound> ICref;
-    
-    struct IdentifiedCompoundRef: public ICref
-    {
-      IdentifiedCompoundRef(): ICref()
-      {}
-      IdentifiedCompoundRef(const IdentifiedCompoundRef & other) : ICref(other)
-      {}
-      IdentifiedCompoundRef(const ICref & other) : ICref(other)
-      {}
-      IdentifiedCompoundRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::IdentifiedCompound, std::allocator<OpenMS::IdentificationDataInternal::IdentifiedCompound> > > >& other): ICref(other)
-      {}
+
+    struct IdentifiedCompoundRef : public ICref {
+      IdentifiedCompoundRef() : ICref()
+      {
+      }
+      IdentifiedCompoundRef(const IdentifiedCompoundRef& other) : ICref(other)
+      {
+      }
+      IdentifiedCompoundRef(const ICref& other) : ICref(other)
+      {
+      }
+      IdentifiedCompoundRef(
+        const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<
+          boost::multi_index::detail::null_augment_policy,
+          boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::IdentifiedCompound, std::allocator<OpenMS::IdentificationDataInternal::IdentifiedCompound>>>>& other) :
+          ICref(other)
+      {
+      }
       IdentifiedCompoundRef operator=(const IdentifiedCompoundRef& other)
       {
         return ICref::operator=(other);
       }
     };
-  }
-}
+  } // namespace IdentificationDataInternal
+} // namespace OpenMS

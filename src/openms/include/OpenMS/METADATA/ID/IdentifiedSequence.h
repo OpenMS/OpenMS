@@ -38,34 +38,27 @@
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/METADATA/ID/ParentMatch.h>
 #include <OpenMS/METADATA/ID/ScoredProcessingResult.h>
-
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index_container.hpp>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
     /// Representation of an identified sequence (peptide or oligonucleotide)
-    template <typename SeqType>
-    struct IdentifiedSequence: public ScoredProcessingResult
-    {
+    template<typename SeqType>
+    struct IdentifiedSequence : public ScoredProcessingResult {
       SeqType sequence;
 
       ParentMatches parent_matches;
 
-      explicit IdentifiedSequence(
-        const SeqType& sequence,
-        const ParentMatches& parent_matches = ParentMatches(),
-        const AppliedProcessingSteps& steps_and_scores =
-        AppliedProcessingSteps()):
-        ScoredProcessingResult(steps_and_scores), sequence(sequence),
-        parent_matches(parent_matches)
+      explicit IdentifiedSequence(const SeqType& sequence, const ParentMatches& parent_matches = ParentMatches(), const AppliedProcessingSteps& steps_and_scores = AppliedProcessingSteps()) :
+          ScoredProcessingResult(steps_and_scores), sequence(sequence), parent_matches(parent_matches)
       {
       }
 
-      IdentifiedSequence(); //Null constructor for use with PyOpenMS only FIXME
+      IdentifiedSequence(); // Null constructor for use with PyOpenMS only FIXME
 
       IdentifiedSequence(const IdentifiedSequence& other) = default;
 
@@ -94,12 +87,12 @@ namespace OpenMS
         if (parent_matches.empty())
         {
           String msg = "no parent found for identified molecule";
-          throw Exception::MissingInformation(__FILE__, __LINE__,
-                                              OPENMS_PRETTY_FUNCTION, msg);
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
         }
         for (const auto& pair : parent_matches)
         {
-          if (!pair.first->is_decoy) return false;
+          if (!pair.first->is_decoy)
+            return false;
         }
         return true;
       }
@@ -109,35 +102,42 @@ namespace OpenMS
     typedef IdentifiedSequence<NASequence> IdentifiedOligo;
 
     // identified peptides indexed by their sequences:
-    typedef boost::multi_index_container<
-      IdentifiedPeptide,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::member<
-          IdentifiedPeptide, AASequence, &IdentifiedPeptide::sequence>>>
-      > IPeps;
+    typedef boost::multi_index_container<IdentifiedPeptide,
+                                         boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<IdentifiedPeptide, AASequence, &IdentifiedPeptide::sequence>>>>
+      IPeps;
 
-    struct IdentifiedPeptides: public IPeps
-    {
-      IdentifiedPeptides(): IPeps()
-      {}
-      IdentifiedPeptides(const IdentifiedPeptides& other): IPeps(other)
-      {}
-      IdentifiedPeptides(const IPeps & other): IPeps(other)
-      {}
+    struct IdentifiedPeptides : public IPeps {
+      IdentifiedPeptides() : IPeps()
+      {
+      }
+      IdentifiedPeptides(const IdentifiedPeptides& other) : IPeps(other)
+      {
+      }
+      IdentifiedPeptides(const IPeps& other) : IPeps(other)
+      {
+      }
     };
 
     typedef IteratorWrapper<IdentifiedPeptides::iterator, IdentifiedPeptide> IPepR;
 
-    struct IdentifiedPeptideRef: public IPepR
-    {
-      IdentifiedPeptideRef(): IPepR()
-      {}
-      IdentifiedPeptideRef(const IdentifiedPeptideRef & other) : IPepR(other)
-      {}
-      IdentifiedPeptideRef(const IPepR & other) : IPepR(other)
-      {}
-      IdentifiedPeptideRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::IdentifiedSequence<OpenMS::AASequence>, std::allocator<OpenMS::IdentificationDataInternal::IdentifiedSequence<OpenMS::AASequence> > > > >& other): IPepR(other)
-      {}
+    struct IdentifiedPeptideRef : public IPepR {
+      IdentifiedPeptideRef() : IPepR()
+      {
+      }
+      IdentifiedPeptideRef(const IdentifiedPeptideRef& other) : IPepR(other)
+      {
+      }
+      IdentifiedPeptideRef(const IPepR& other) : IPepR(other)
+      {
+      }
+      IdentifiedPeptideRef(
+        const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<
+          boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::IdentifiedSequence<OpenMS::AASequence>,
+                                                                                                       std::allocator<OpenMS::IdentificationDataInternal::IdentifiedSequence<OpenMS::AASequence>>>>>&
+          other) :
+          IPepR(other)
+      {
+      }
 
       IdentifiedPeptideRef operator=(const IdentifiedPeptideRef& other)
       {
@@ -146,41 +146,48 @@ namespace OpenMS
     };
 
     // identified oligos indexed by their sequences:
-    typedef boost::multi_index_container<
-      IdentifiedOligo,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::member<
-          IdentifiedOligo, NASequence, &IdentifiedOligo::sequence>>>
-      > IOligos;
+    typedef boost::multi_index_container<IdentifiedOligo,
+                                         boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<IdentifiedOligo, NASequence, &IdentifiedOligo::sequence>>>>
+      IOligos;
 
-    struct IdentifiedOligos: public IOligos
-    {
-      IdentifiedOligos(): IOligos()
-      {}
-      IdentifiedOligos(const IdentifiedOligos& other): IOligos(other)
-      {}
-      IdentifiedOligos(const IOligos & other): IOligos(other)
-      {}
+    struct IdentifiedOligos : public IOligos {
+      IdentifiedOligos() : IOligos()
+      {
+      }
+      IdentifiedOligos(const IdentifiedOligos& other) : IOligos(other)
+      {
+      }
+      IdentifiedOligos(const IOligos& other) : IOligos(other)
+      {
+      }
     };
 
 
-    typedef IteratorWrapper<IdentifiedOligos::iterator, IdentifiedPeptide> IOligoR; //FIXME shouldn't this be IdentifiedOligo?
+    typedef IteratorWrapper<IdentifiedOligos::iterator, IdentifiedPeptide> IOligoR; // FIXME shouldn't this be IdentifiedOligo?
 
-    struct IdentifiedOligoRef: public IOligoR
-    {
-      IdentifiedOligoRef(): IOligoR()
-      {}
-      IdentifiedOligoRef(const IdentifiedOligoRef & other) : IOligoR(other)
-      {}
-      IdentifiedOligoRef(const IOligoR & other) : IOligoR(other)
-      {}
-      IdentifiedOligoRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::IdentifiedSequence<OpenMS::NASequence>, std::allocator<OpenMS::IdentificationDataInternal::IdentifiedSequence<OpenMS::NASequence> > > > >& other): IOligoR(other)
-      {}
+    struct IdentifiedOligoRef : public IOligoR {
+      IdentifiedOligoRef() : IOligoR()
+      {
+      }
+      IdentifiedOligoRef(const IdentifiedOligoRef& other) : IOligoR(other)
+      {
+      }
+      IdentifiedOligoRef(const IOligoR& other) : IOligoR(other)
+      {
+      }
+      IdentifiedOligoRef(
+        const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<
+          boost::multi_index::detail::null_augment_policy, boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::IdentifiedSequence<OpenMS::NASequence>,
+                                                                                                       std::allocator<OpenMS::IdentificationDataInternal::IdentifiedSequence<OpenMS::NASequence>>>>>&
+          other) :
+          IOligoR(other)
+      {
+      }
       IdentifiedOligoRef operator=(const IdentifiedOligoRef& other)
       {
         return IOligoR::operator=(other);
       }
     };
 
-  }
-}
+  } // namespace IdentificationDataInternal
+} // namespace OpenMS

@@ -32,13 +32,11 @@
 // $Authors: Tom Waschischeck $
 // --------------------------------------------------------------------------
 
-#include <TSGDialog_test.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-
-#include <QtWidgets/QPushButton>
 #include <QtWidgets/QMessageBox>
-
+#include <QtWidgets/QPushButton>
+#include <TSGDialog_test.h>
 #include <qdebug.h>
 
 using namespace OpenMS;
@@ -51,13 +49,15 @@ constexpr int DELAY {5};
 template<typename T>
 void TestTSGDialog::testSpinBox_(T* box, string str_value)
 {
-  if (box == nullptr) return;
-  
+  if (box == nullptr)
+    return;
+
   double value = stod(str_value);
 
   // skip illegal input
-  if (!(value >= box->minimum() && value <= box->maximum())) return;
-  
+  if (!(value >= box->minimum() && value <= box->maximum()))
+    return;
+
   box->clear();
 
   // simulate keyboard input
@@ -235,7 +235,7 @@ void TestTSGDialog::testConstruction()
   QVERIFY2(UI->y_label, "'Y-ions' label not created.");
   QVERIFY2(UI->z_label, "'Z-ions' label not created.");
   QVERIFY2(UI->rel_loss_label, "'Relative loss in %' label not created.");
-  
+
   // group boxes
   QVERIFY2(UI->isotope_model, "Isotope model group box not created.");
   QVERIFY2(UI->intensities, "Intensity group box not created.");
@@ -306,7 +306,7 @@ void TestTSGDialog::testGui()
   testIsotopeModel_(true);
 
   // ion types and intensities
-  //testIonsIntensities_();
+  // testIonsIntensities_();
 }
 
 void TestTSGDialog::testParameterImport()
@@ -322,7 +322,8 @@ void TestTSGDialog::testParameterImport()
 
     // get intensity spin box corresponding to current check box
     QDoubleSpinBox** spin_ptr = dialog_.check_boxes_.at(i).ptr_to_spin_box;
-    if (spin_ptr == nullptr) continue;
+    if (spin_ptr == nullptr)
+      continue;
 
     (*spin_ptr)->setValue(1.23);
   }
@@ -392,7 +393,7 @@ void TestTSGDialog::testSpectrumCalculation()
 {
   // Spectrum generation settings don't really matter, since the dialog test shouldn't test the generators.
   // Hence, it is only checked if a spectrum was produced.
-  
+
   UI->seq_type->setCurrentText("Peptide");
   QTest::qWait(DELAY);
   UI->seq_input->setText("PEPTIDE"); // set peptide sequence to 'PEPTIDE'
@@ -401,7 +402,7 @@ void TestTSGDialog::testSpectrumCalculation()
   QTest::qWait(DELAY);
   MSSpectrum pep_spec = dialog_.getSpectrum();
   QVERIFY2(!pep_spec.empty(), "Peptide input didn't produce a spectrum.");
-  
+
   UI->seq_type->setCurrentText("RNA");
   QTest::qWait(DELAY);
   UI->seq_input->setText("AGUCCG");
@@ -410,7 +411,7 @@ void TestTSGDialog::testSpectrumCalculation()
   QTest::qWait(DELAY);
   MSSpectrum rna_spec = dialog_.getSpectrum();
   QVERIFY2(!rna_spec.empty(), "RNA input didn't produce a spectrum.");
-  
+
   UI->seq_type->setCurrentText("Metabolite");
   QTest::qWait(DELAY);
   UI->seq_input->setText("C100H70N2O6");

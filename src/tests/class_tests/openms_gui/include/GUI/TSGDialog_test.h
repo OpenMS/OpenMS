@@ -32,11 +32,10 @@
 // $Authors: Tom Waschischeck $
 // --------------------------------------------------------------------------
 
-#include <QtTest/QtTest>
-#include <QtGui>
-#include <QtWidgets/QSpinBox>
-
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
+#include <QtGui>
+#include <QtTest/QtTest>
+#include <QtWidgets/QSpinBox>
 #include <ui_TheoreticalSpectrumGenerationDialog.h>
 
 #define UI dialog_.ui_
@@ -47,39 +46,41 @@ namespace OpenMS
   {
     Q_OBJECT
 
-    public:
-    TestTSGDialog() : dialog_() {}
+  public:
+    TestTSGDialog() : dialog_()
+    {
+    }
 
     ~TestTSGDialog()
     {
       dialog_.destroy();
     }
 
-    private slots:
-      void testConstruction();
-      
-      void testGui();
+  private slots:
+    void testConstruction();
 
-      void testParameterImport();
+    void testGui();
 
-      void testSpectrumCalculation();
+    void testParameterImport();
 
-      void testErrors();
+    void testSpectrumCalculation();
 
-    private:
-      template<typename T> // template for QSpinBox and QDoubleSpinBox
-      void testSpinBox_(T* box, std::string str_value = "2");
+    void testErrors();
 
-      void testIonsIntensities_();
+  private:
+    template<typename T> // template for QSpinBox and QDoubleSpinBox
+    void testSpinBox_(T* box, std::string str_value = "2");
 
-      void testSequenceInput_(QString input);
+    void testIonsIntensities_();
 
-      void testIsotopeModel_(bool skip_none = false);
+    void testSequenceInput_(QString input);
 
-      void checkMessageBoxExists_();
+    void testIsotopeModel_(bool skip_none = false);
 
-      void testMessageBoxes_();
+    void checkMessageBoxExists_();
 
-      TheoreticalSpectrumGenerationDialog dialog_;
+    void testMessageBoxes_();
+
+    TheoreticalSpectrumGenerationDialog dialog_;
   };
-}
+} // namespace OpenMS
