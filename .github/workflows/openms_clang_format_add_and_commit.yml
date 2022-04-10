@@ -43,6 +43,8 @@ jobs:
           inplace: True
       - name: commit
         run: |
+          git config --global user.email "lint@github.com"
+          git config --global user.name "GitHub Linter"
           git commit -am "fix lint"
           git push
         env:
