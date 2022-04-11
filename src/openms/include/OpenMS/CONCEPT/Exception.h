@@ -721,6 +721,20 @@ public:
       DepletedIDPool(const char* file, int line, const char* function, const std::string& name, const std::string& message) noexcept;
     };
 
+    /**
+      @brief Invalid input exception.
+
+      Use this exception to indicate that a given input is not valid for the intended task.
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI InvalidInput :
+      public BaseException
+    {
+public:
+      InvalidInput(const char* file, int line, const char* function, const std::string& message, const std::string& filename) noexcept;
+    };
+
   } // namespace Exception
 
   /**

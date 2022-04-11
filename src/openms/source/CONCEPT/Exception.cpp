@@ -297,6 +297,11 @@ namespace OpenMS
     {
     }
 
+    InvalidInput::InvalidInput(const char* file, int line, const char* function, const string& message, const string& filename) noexcept :
+        BaseException(file, line, function, "InvalidInput", "invalid input in " + filename + ": " + message)
+    {
+    }
+
     DEF_EXCEPTION(DivisionByZero, "a division by zero was requested")
 
     DEF_EXCEPTION(OutOfRange, "the argument was not in range")
