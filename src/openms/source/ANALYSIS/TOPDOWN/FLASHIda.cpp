@@ -396,11 +396,11 @@ namespace OpenMS
           {
             if (pg.isSignalMZ(ospec[tindexl].getMZ(), tol_[ospec.getMSLevel() - 1]))//
             {
-              sig_pwr += pg.getIntensity() * pg.getIntensity();
+              sig_pwr += ospec[tindexl].getIntensity() * ospec[tindexl].getIntensity();
             }
             else
             {
-              noise_pwr += pg.getIntensity() * pg.getIntensity();
+              noise_pwr += ospec[tindexl].getIntensity() * ospec[tindexl].getIntensity();
             }
           }
           if (tindexr >= ospec.size() ||
@@ -412,11 +412,11 @@ namespace OpenMS
           {
             if (pg.isSignalMZ(ospec[tindexr].getMZ(), tol_[ospec.getMSLevel() - 1]))//
             {
-              sig_pwr += pg.getIntensity() * pg.getIntensity();
+              sig_pwr += ospec[tindexr].getIntensity() * ospec[tindexr].getIntensity();
             }
             else
             {
-              noise_pwr += pg.getIntensity() * pg.getIntensity();
+              noise_pwr += ospec[tindexr].getIntensity() * ospec[tindexr].getIntensity();
             }
           }
 
@@ -439,8 +439,14 @@ namespace OpenMS
           }
           else
           {
-            lmz = std::max(center_mz - max_isolation_window_half_, ospec[tindexl + 1].getMZ());
-            rmz = std::min(center_mz + max_isolation_window_half_, ospec[tindexr - 1].getMZ());
+            if (tindexl < ospec.size() - 1)
+            {
+              lmz = std::max(center_mz - max_isolation_window_half_, ospec[tindexl + 1].getMZ());
+            }
+            if (tindexr > 0)
+            {
+              rmz = std::min(center_mz + max_isolation_window_half_, ospec[tindexr - 1].getMZ());
+            }
             //final_snr = sig_pwr / noise_pwr;
           }
         }
