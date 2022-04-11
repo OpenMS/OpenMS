@@ -527,4 +527,10 @@ namespace OpenMS
     std::sort(peak_groups.begin(), peak_groups.end());
   }
 
+  void DeconvolvedSpectrum::sortByQScore()
+  {
+    std::sort(peak_groups.begin(), peak_groups.end(), [](const PeakGroup & p1, const PeakGroup & p2){return p1.getQScore() < p2.getQScore();});
+  }
+
+
 }

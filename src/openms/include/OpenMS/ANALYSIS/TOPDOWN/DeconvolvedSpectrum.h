@@ -197,7 +197,7 @@ namespace OpenMS
     void swap (std::vector<PeakGroup>& x);
 
     void sort();
-
+    void sortByQScore();
   private:
     /// peak groups (deconvolved masses)
     std::vector<PeakGroup> peak_groups;
