@@ -298,9 +298,11 @@ namespace OpenMS
         {
           mmass = stod(sub);
         }
-
-        auto mdb = ModificationsDB::initializeModificationsDB();
-        mmass = mdb->getModification(sub)->getDiffMonoMass();
+        else
+        {
+          auto mdb = ModificationsDB::initializeModificationsDB();
+          mmass = mdb->getModification(sub)->getDiffMonoMass();
+        }
         unexp_mod.push_back(mmass);
         loc++;
       }

@@ -47,18 +47,17 @@ namespace OpenMS
     { // all zero
       return .0;
     }
-    const double th = 2;
+    //const double th = 2;
     //const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
-    const std::vector<double> weights({0.4074, -1.5867, -22.1376, 0.4664, -0.4767, 0.541, 20.248});
-    const std::vector<double> weights_h({-0.7461, -1.8176, -1.4793, -0.3707, -0.0881, 0.0623, 2.9463});
+    const std::vector<double> weights({ 1.5049, -1.9119, -13.9324, -1.2432, 0.0, 0.0523, 14.5349});
+    //const std::vector<double> weights_h({-0.7461, -1.8176, -1.4793, -0.3707, -0.0881, 0.0623, 2.9463});
 
-    //ChargeCos      -3.0238
-    //ChargeSNR      -4.7978
-    //Cos              2.734
-    //SNR            -0.5589
-    //ChargeScore    -1.1258
-    //AvgPPMerror     0.0875
-    //Intercept       4.976
+    //ChargeCos        1.5049
+    //ChargeSNR       -1.9119
+    //Cos            -13.9324
+    //SNR             -1.2432
+    //AvgPPMerror      0.0523
+    //Intercept       14.5349
 
     double score = weights[weights.size() - 1];
     auto fv = toFeatureVector_(pg, abs_charge);
@@ -68,7 +67,7 @@ namespace OpenMS
       score += fv[i] * weights[i];
     }
     double qscore = 1.0 / (1.0 + exp(score));
-    if (qscore < th)
+    /*if (qscore < th)
     {
       return qscore;
     }
@@ -80,7 +79,7 @@ namespace OpenMS
       score += fv[i] * weights_h[i];
     }
     qscore = 1.0 / (1.0 + exp(score));
-
+*/
     return qscore;
   }
 

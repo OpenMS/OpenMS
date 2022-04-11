@@ -97,7 +97,7 @@ namespace OpenMS
     intensity_ = .0;
     double nominator = .0;
 
-    for (auto& p: *this)
+    for (auto& p: logMzpeaks_)
     {
       double pi = p.intensity + 1;
       intensity_ += pi;
@@ -110,7 +110,7 @@ namespace OpenMS
 
   bool PeakGroup::isSignalMZ(const double mz, const double tol) const
   {
-    for (auto& p: *this)
+    for (auto& p: logMzpeaks_)
     {
       if (abs(p.mz - mz) < p.mz * tol * 1e-6)
       {
@@ -249,7 +249,7 @@ namespace OpenMS
     double mz_end = -10;
     if (!(abs_charge > max_abs_charge_ || abs_charge < min_abs_charge_))
     {
-      for (auto& tmp_p: *this)
+      for (auto& tmp_p: logMzpeaks_)
       {
         if (tmp_p.abs_charge != abs_charge)
         {

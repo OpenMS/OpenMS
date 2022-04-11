@@ -90,7 +90,7 @@ protected:
     #ifdef DEBUG_EXTRA_PARAMTER
     registerInputFile_("in_train", "<file>", "", "topPIC result *prsm.tsv file for QScore training", false, true);
     setValidFormats_("in_train", ListUtils::create<String>("tsv"));
-    registerOutputFile_("out_train", "<file>", "", "train result csv file for QScore training", false, true);
+    registerOutputFile_("out_train", "<file>", "", "train result csv file for QScore training by weka", false, true);
     setValidFormats_("out_train", ListUtils::create<String>("csv"));
     #endif
 
@@ -483,9 +483,15 @@ protected:
 
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
-    String in_train_file = "";//getStringOption_("in_train");
+    String in_train_file = "";
     String in_log_file = getStringOption_("in_log");
-    String out_train_file = "";//getStringOption_("out_train");
+    String out_train_file = "";
+
+#ifdef DEBUG_EXTRA_PARAMTER
+    in_train_file = getStringOption_("in_train");
+    out_train_file = getStringOption_("out_train");
+#endif
+
     auto out_spec_file = getStringList_("out_spec");
     String out_mzml_file = getStringOption_("out_mzml");
     String out_promex_file = getStringOption_("out_promex");

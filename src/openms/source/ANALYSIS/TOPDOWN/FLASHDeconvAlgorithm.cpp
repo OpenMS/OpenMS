@@ -1614,7 +1614,7 @@ namespace OpenMS
         continue;
       }
 
-      double cs = getChargeFitScore_(per_abs_charge_intensities, 1 + std::get<1>(peak_group.getAbsChargeRange()) - std::get<0>(peak_group.getAbsChargeRange())  );
+      double cs = getChargeFitScore_(per_abs_charge_intensities, 1 + std::get<1>(peak_group.getAbsChargeRange()));
 
       peak_group.setChargeScore(cs);
 
