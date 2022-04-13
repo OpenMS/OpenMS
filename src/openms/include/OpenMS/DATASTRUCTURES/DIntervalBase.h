@@ -203,6 +203,14 @@ public:
         return !(operator==(rhs));
       }
 
+      DIntervalBase operator+(const PositionType& point) const
+      {
+        DIntervalBase result(*this);
+        result.min_ += point;
+        result.max_ += point;
+        return result;
+      }
+
       /// Make the interval empty
       inline void clear()
       {
