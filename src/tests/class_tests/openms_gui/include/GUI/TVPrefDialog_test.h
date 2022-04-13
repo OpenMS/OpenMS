@@ -56,9 +56,9 @@ namespace OpenMS
   private slots:
     void testConstruction();
 
-    void testGui();
-
     void testParamExport();
+
+    void testGui();
 
   private:
     void checkFileDialog_();

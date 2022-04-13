@@ -135,9 +135,12 @@ void TestTVPrefDialog::testGui()
   QTest::qWait(DELAY);
 
   // line edit
-  QTest::keyClicks(UI->default_path, "C:\dev");
-  QVERIFY2(UI->default_path->text() == "C:\dev", "Line edit for default path broken.");
+  UI->default_path->clear();
+  QTest::keyClicks(UI->default_path, "C:\\dev");
+  QVERIFY2(UI->default_path->text() == "C:\\dev", "Line edit for default path broken.");
   QTest::qWait(DELAY);
+  UI->default_path->clear();
+
 
   // test check boxes
   testCheckBox(UI->default_path_current);
@@ -219,16 +222,66 @@ void TestTVPrefDialog::testGui()
 
 void OpenMS::TestTVPrefDialog::testParamExport()
 {
-  // set some parameters
+  // check default parameters
+  Param dialog_param = dialog_.getParam(); 
+  
+#define PARAM(a) dialog_param.getValue(a)
+
+  QVERIFY2(PARAM("default_path") == "", "'Default path' param value not exported correctly.");
+  QVERIFY2(PARAM("default_path_current") == "false", "'Use current path' param value not exported correctly.");
+  QVERIFY2(PARAM("use_cached_ms1") == "false", "'Cache ms1 spectra' param value not exported correctly.");
+  QVERIFY2(PARAM("use_cached_ms2") == "false", "'Cache ms2 spectra' param value not exported correctly.");
+  QVERIFY2(PARAM("default_map_view") == "2d", "'Default map view' param value not exported correctly.");
+  QVERIFY2(PARAM("intensity_cutoff") == "on", "'Itensity cutoff' param value not exported correctly.");
+  QVERIFY2(PARAM("on_file_change") == "none", "'Action when file changes' param value not exported correctly.");
+
+  QVERIFY2(PARAM("1d:peak_color") == "#ffffff", "'1D peak color' param value not exported correctly.");
+  QVERIFY2(PARAM("1d:highlighted_peak_color") == "#ffffff", "'1D highlighted peak color' param value not exported correctly.");
+  QVERIFY2(PARAM("1d:icon_color") == "#ffffff", "'1D icon color' param value not exported correctly.");
+
+  QVERIFY2(PARAM("2d:dot:gradient") == "Linear|0,#ffffff;100,#000000", "'2D peak gradient' param value not exported correctly.");
+  QVERIFY2(PARAM("2d:mapping_of_mz_to") == "x_axis", "'2D mapping of mz to' param value not exported correctly.");
+  QVERIFY2(PARAM("2d:dot:feature_icon") == "diamond", "'2D feature icon' param value not exported correctly.");
+  QVERIFY2(int(PARAM("2d:dot:feature_icon_size")) == 3, "'2D feature icon size' param value not exported correctly.");
+
+  QVERIFY2(PARAM("3d:dot:gradient") == "Linear|0,#ffffff;100,#000000", "'3D peak gradient' param value not exported correctly.");
+  QVERIFY2(int(PARAM("3d:dot:shade_mode")) == 0, "'3D shade mode' param value not exported correctly.");
+  QVERIFY2(int(PARAM("3d:dot:line_width")) == 1, "'3D line width' param value not exported correctly.");
+
+  QVERIFY2(PARAM("idview:tsg:isotope_model") == "none", "TSG: 'isotope model' param value not exported correctly.");
+  QVERIFY2(int(PARAM("idview:tsg:max_isotope")) == 2, "TSG: 'max isotope' param value not exported correctly.");
+  QVERIFY2(double(PARAM("idview:tsg:max_isotope_probability")) == 0.05, "TSG: 'max isotope probability' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_metainfo") == "false", "TSG: 'add metainfo' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_losses") == "false", "TSG: 'add losses' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:sort_by_position") == "true", "TSG: 'sort by position' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_precursor_peaks") == "false", "TSG: 'add precursor peaks' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_all_precursor_charges") == "false", "TSG: 'add all precursor charges' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_abundant_immonium_ions") == "false", "TSG: 'add abundant immonium ions' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_first_prefix_ion") == "false", "TSG: 'add first prefix ion' param value not exported correctly.");
+  for (String s : {'a', 'c', 'x', 'x', 'z'})
+  {
+    QVERIFY2(PARAM("idview:tsg:add_" + s + "_ions") == "false", qPrintable("TSG: 'add " + s.toQString() + " ions' param value not exported correctly."));
+    QVERIFY2(double(PARAM("idview:tsg:" + s + "_intensity")) == 1.0, qPrintable("TSG: '" + s.toQString() + " intensity' param value not exported correctly."));
+  }
+  QVERIFY2(PARAM("idview:tsg:add_b_ions") == "true", "TSG: 'add b ions' param value not exported correctly.");
+  QVERIFY2(double(PARAM("idview:tsg:b_intensity")) == 1.0, "TSG: 'b intensity' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_y_ions") == "true", "TSG: 'add y ions' param value not exported correctly.");
+  QVERIFY2(double(PARAM("idview:tsg:y_intensity")) == 1.0, "TSG: 'y intensity' param value not exported correctly.");
+  QVERIFY2(double(PARAM("idview:tsg:relative_loss_intensity")) == 0.1, "TSG: 'relative loss intensity' param value not exported correctly.");
+  QVERIFY2(double(PARAM("idview:tsg:precursor_intensity")) == 1.0, "TSG: 'precursor intensity' param value not exported correctly.");
+  QVERIFY2(double(PARAM("idview:tsg:precursor_H2O_intensity")) == 1.0, "TSG: 'precursor H2O intensity' param value not exported correctly.");
+  QVERIFY2(double(PARAM("idview:tsg:precursor_NH3_intensity")) == 1.0, "TSG: 'precursor NH3 intensity' param value not exported correctly.");
+  
+  // set some custom parameters (different from the default)
   
   // General
-  UI->default_path->setText("C:\dev");                          // 'C:\dev' default path
-  UI->default_path_current->setCheckState(Qt::CheckState::Unchecked); // don't use current path
-  UI->map_default->setCurrentIndex(1);                          // 3D default
-  UI->map_cutoff->setCurrentIndex(0);                           // cut off 'on'
+  UI->default_path->setText("C:\\dev");                          // 'C:\dev' default path
+  UI->default_path_current->setCheckState(Qt::CheckState::Checked); // use current path
+  UI->map_default->setCurrentIndex(1);                          // 3D
+  UI->map_cutoff->setCurrentIndex(1);                           // cut off 'off'
   UI->on_file_change->setCurrentIndex(2);                       // 'update automtically'
   UI->use_cached_ms1->setCheckState(Qt::CheckState::Checked);   // cache ms1
-  UI->use_cached_ms2->setCheckState(Qt::CheckState::Unchecked); // not cache ms2
+  UI->use_cached_ms2->setCheckState(Qt::CheckState::Checked);   // cache ms2
 
   // 1D
   UI->color_1D->setColor(QColor("#ff0000"));        // peak 1D 'red' ("#ff0000")
@@ -237,7 +290,7 @@ void OpenMS::TestTVPrefDialog::testParamExport()
 
   // 2D
   UI->peak_2D->gradient().fromString("Linear|0,#ffaa00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000"); // peak 2D: orange - red - purple - blue - black
-  UI->mapping_2D->setCurrentIndex(0);       // x-axis
+  UI->mapping_2D->setCurrentIndex(1);       // y-axis
   UI->feature_icon_2D->setCurrentIndex(2);  // circle
   UI->feature_icon_size_2D->setValue(5);    // size: 5
 
@@ -251,20 +304,24 @@ void OpenMS::TestTVPrefDialog::testParamExport()
   p.setValue("isotope_model", "coarse");
   p.setValue("max_isotope", 1);
   p.setValue("max_isotope_probability", 0.01);
-  p.setValue("add_metainfo", "false");
-  p.setValue("add_losses", "false");
-  p.setValue("sort_by_position", "true");
+  p.setValue("add_metainfo", "true");
+  p.setValue("add_losses", "true");
+  p.setValue("sort_by_position", "false");
   p.setValue("add_precursor_peaks", "true");
-  p.setValue("add_all_precursor_charges", "false");
+  p.setValue("add_all_precursor_charges", "true");
   p.setValue("add_abundant_immonium_ions", "true");
-  p.setValue("add_first_prefix_ion", "false");
-  for (String s : {'a', 'b', 'c', 'x', 'y', 'x', 'z'})
+  p.setValue("add_first_prefix_ion", "true");
+  for (String s : {'a', 'c', 'x', 'x', 'z'})
   {
     p.setValue("add_" + s + "_ions", "true");
     p.setValue(s + "_intensity", 0.8);
   }
+  p.setValue("add_b_ions", "false");
+  p.setValue("b_intensity", 0.8);
+  p.setValue("add_y_ions", "false");
+  p.setValue("y_intensity", 0.8);
   p.setValue("relative_loss_intensity", 0.2);
-  p.setValue("precursor_intensity", 1.0);
+  p.setValue("precursor_intensity", 0.99);
   p.setValue("precursor_H2O_intensity", 0.95);
   p.setValue("precursor_NH3_intensity", 0.9);
 
@@ -276,17 +333,15 @@ void OpenMS::TestTVPrefDialog::testParamExport()
   QTest::mouseClick(UI->buttonBox->button(QDialogButtonBox::Ok), Qt::LeftButton);
 
   // get parameters
-  Param dialog_param = dialog_.getParam();
+  dialog_param = dialog_.getParam();
 
   // check validity
-#define PARAM(a) dialog_param.getValue(a)
-
-  QVERIFY2(PARAM("default_path") == "C:\dev", "'Default path' param value not exported correctly.");
-  QVERIFY2(PARAM("default_path_current") == "false", "'Use current path' param value not exported correctly.");
+  QVERIFY2(PARAM("default_path") == "C:\\dev", "'Default path' param value not exported correctly.");
+  QVERIFY2(PARAM("default_path_current") == "true", "'Use current path' param value not exported correctly.");
   QVERIFY2(PARAM("use_cached_ms1") == "true", "'Cache ms1 spectra' param value not exported correctly.");
-  QVERIFY2(PARAM("use_cached_ms2") == "false", "'Cache ms2 spectra' param value not exported correctly.");
+  QVERIFY2(PARAM("use_cached_ms2") == "true", "'Cache ms2 spectra' param value not exported correctly.");
   QVERIFY2(PARAM("default_map_view") == "3d", "'Default map view' param value not exported correctly.");
-  QVERIFY2(PARAM("intensity_cutoff") == "on", "'Itensity cutoff' param value not exported correctly.");
+  QVERIFY2(PARAM("intensity_cutoff") == "off", "'Itensity cutoff' param value not exported correctly.");
   QVERIFY2(PARAM("on_file_change") == "update automatically", "'Action when file changes' param value not exported correctly.");
 
   QVERIFY2(PARAM("1d:peak_color") == "#ff0000", "'1D peak color' param value not exported correctly.");
@@ -294,7 +349,7 @@ void OpenMS::TestTVPrefDialog::testParamExport()
   QVERIFY2(PARAM("1d:icon_color") == "#660000", "'1D icon color' param value not exported correctly.");
 
   QVERIFY2(PARAM("2d:dot:gradient") == "Linear|0,#ffaa00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000", "'2D peak gradient' param value not exported correctly.");
-  QVERIFY2(PARAM("2d:mapping_of_mz_to") == "x_axis", "'2D mapping of mz to' param value not exported correctly.");
+  QVERIFY2(PARAM("2d:mapping_of_mz_to") == "y_axis", "'2D mapping of mz to' param value not exported correctly.");
   QVERIFY2(PARAM("2d:dot:feature_icon") == "circle", "'2D feature icon' param value not exported correctly.");
   QVERIFY2(int(PARAM("2d:dot:feature_icon_size")) == 5, "'2D feature icon size' param value not exported correctly.");
 
@@ -305,20 +360,24 @@ void OpenMS::TestTVPrefDialog::testParamExport()
   QVERIFY2(PARAM("idview:tsg:isotope_model") == "coarse", "TSG: 'isotope model' param value not exported correctly.");
   QVERIFY2(int(PARAM("idview:tsg:max_isotope")) == 1, "TSG: 'max isotope' param value not exported correctly.");
   QVERIFY2(double(PARAM("idview:tsg:max_isotope_probability")) == 0.01, "TSG: 'max isotope probability' param value not exported correctly.");
-  QVERIFY2(PARAM("idview:tsg:add_metainfo") == "false", "TSG: 'add metainfo' param value not exported correctly.");
-  QVERIFY2(PARAM("idview:tsg:add_losses") == "false", "TSG: 'add losses' param value not exported correctly.");
-  QVERIFY2(PARAM("idview:tsg:sort_by_position") == "true", "TSG: 'sort by position' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_metainfo") == "true", "TSG: 'add metainfo' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_losses") == "true", "TSG: 'add losses' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:sort_by_position") == "false", "TSG: 'sort by position' param value not exported correctly.");
   QVERIFY2(PARAM("idview:tsg:add_precursor_peaks") == "true", "TSG: 'add precursor peaks' param value not exported correctly.");
-  QVERIFY2(PARAM("idview:tsg:add_all_precursor_charges") == "false", "TSG: 'add all precursor charges' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_all_precursor_charges") == "true", "TSG: 'add all precursor charges' param value not exported correctly.");
   QVERIFY2(PARAM("idview:tsg:add_abundant_immonium_ions") == "true", "TSG: 'add abundant immonium ions' param value not exported correctly.");
-  QVERIFY2(PARAM("idview:tsg:add_first_prefix_ion") == "false", "TSG: 'add first prefix ion' param value not exported correctly.");
-  for (String s : {'a', 'b', 'c', 'x', 'y', 'x', 'z'})
+  QVERIFY2(PARAM("idview:tsg:add_first_prefix_ion") == "true", "TSG: 'add first prefix ion' param value not exported correctly.");
+  for (String s : {'a', 'c', 'x', 'x', 'z'})
   {
     QVERIFY2(PARAM("idview:tsg:add_" + s + "_ions") == "true", qPrintable("TSG: 'add " + s.toQString() + " ions' param value not exported correctly."));
     QVERIFY2(double(PARAM("idview:tsg:" + s + "_intensity")) == 0.8, qPrintable("TSG: '" + s.toQString() + " intensity' param value not exported correctly."));
   }
+  QVERIFY2(PARAM("idview:tsg:add_b_ions") == "false", "TSG: 'add b ions' param value not exported correctly.");
+  QVERIFY2(double(PARAM("idview:tsg:b_intensity")) == 0.8, "TSG: 'b intensity' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_y_ions") == "false", "TSG: 'add y ions' param value not exported correctly.");
+  QVERIFY2(double(PARAM("idview:tsg:y_intensity")) == 0.8, "TSG: 'y intensity' param value not exported correctly.");
   QVERIFY2(double(PARAM("idview:tsg:relative_loss_intensity")) == 0.2, "TSG: 'relative loss intensity' param value not exported correctly.");
-  QVERIFY2(double(PARAM("idview:tsg:precursor_intensity")) == 1.0, "TSG: 'precursor intensity' param value not exported correctly.");
+  QVERIFY2(double(PARAM("idview:tsg:precursor_intensity")) == 0.99, "TSG: 'precursor intensity' param value not exported correctly.");
   QVERIFY2(double(PARAM("idview:tsg:precursor_H2O_intensity")) == 0.95, "TSG: 'precursor H2O intensity' param value not exported correctly.");
   QVERIFY2(double(PARAM("idview:tsg:precursor_NH3_intensity")) == 0.9, "TSG: 'precursor NH3 intensity' param value not exported correctly.");
 }
