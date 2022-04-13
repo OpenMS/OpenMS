@@ -32,8 +32,297 @@
 // $Authors: Tom Waschischeck $
 // --------------------------------------------------------------------------
 
-#include <TestTVPrefDialog.h>
+#include <TVPrefDialog_test.h>
 
+#include <qcheckbox.h>
+
+using namespace OpenMS;
+
+// delay in ms
+// higher values together with 'dialog_.show();' can be useful for debugging this test
+constexpr int DELAY {5};
+
+void testCheckBox(QCheckBox* cb)
+{
+  Qt::CheckState prev_state = cb->checkState();
+  QTest::mouseClick(cb, Qt::LeftButton, 0, cb->rect().bottomLeft());
+  QTest::qWait(DELAY);
+  QVERIFY2(prev_state != cb->checkState(), qPrintable("'" + cb->objectName() + "' check box didn't change its state by clicking on it."));
+}
+
+void TestTVPrefDialog::testConstruction()
+{
+  QVERIFY2(UI->tabWidget, "Tab widget not created.");
+  QVERIFY2(UI->buttonBox, "Dialog button box not created.");
+
+  // General tab
+  QVERIFY2(UI->browse_default, "'Browse' button not created.");
+  QVERIFY2(UI->default_path, "Default path line edit not created.");
+  QVERIFY2(UI->default_path_current, "'Use current path' check box not created.");
+  QVERIFY2(UI->map_default, "'Default map view' combo box not created.");
+  QVERIFY2(UI->map_cutoff, "'Low intensity cutoff' combo box not created.");
+  QVERIFY2(UI->on_file_change, "'Action when file changes' combo box not created.");
+  QVERIFY2(UI->use_cached_ms1, "'Cache MS1 spectra to disk' check box not created.");
+  QVERIFY2(UI->use_cached_ms2, "'Cache MS2 spectra to disk' check box not created.");
+  QVERIFY2(UI->label_5, "'Default path:' label not created.");
+  QVERIFY2(UI->label_8, "'Default map view:' label not created.");
+  QVERIFY2(UI->label_9, "'Low intensity cutoff:' label not created.");
+  QVERIFY2(UI->label_14, "'Action when file changes:' label not created.");
+  QVERIFY2(UI->label, "'Caching Strategy:' label not created.");
+
+  // 1D tab
+  QVERIFY2(UI->color_1D, "Peak color color selector not created.");
+  QVERIFY2(UI->selected_1D, "Selected peak color color selector not created.");
+  QVERIFY2(UI->icon_1D, "Icon color color selector not created.");
+  QVERIFY2(UI->label_11, "'Peak color:' label not created.");
+  QVERIFY2(UI->label_10, "'Selected peak color:' label not created.");
+  QVERIFY2(UI->label_12, "'Icon color:' label not created.");
+
+  // 2D tab
+  QVERIFY2(UI->peak_2D, "Peak 2D multi gradient selector not created.");
+  QVERIFY2(UI->mapping_2D, "'m/z axis' combo box not created.");
+  QVERIFY2(UI->feature_icon_2D, "'feature icon' combo box not created.");
+  QVERIFY2(UI->feature_icon_size_2D, "'feature icon size' spin box not created.");
+  QVERIFY2(UI->label_13, "'Peak gradient:' label not created.");
+  QVERIFY2(UI->label_17, "'m/z axis:' label not created.");
+  QVERIFY2(UI->label_21, "'feature icon:' label not created.");
+  QVERIFY2(UI->label_22, "'feature icon size:' label not created.");
+
+  // 3D tab
+  QVERIFY2(UI->peak_3D, "Peak 3D multi gradient selector not created.");
+  QVERIFY2(UI->shade_3D, "Shade mode combo box not created.");
+  QVERIFY2(UI->line_width_3D, "Line width spin box not created.");
+  QVERIFY2(UI->label_18, "'Peak colors:' label not created.");
+  QVERIFY2(UI->label_19, "'Shade mode:' label not created.");
+  QVERIFY2(UI->label_20, "'Line width:' label not created.");
+
+  // TSG tab
+  QVERIFY2(UI->param_editor_spec_gen_, "Parameter editor not created.");
+  QVERIFY2(UI->tolerance, "Tolerance double spin box not created.");
+  QVERIFY2(UI->unit, "Unit combo box not created.");
+  QVERIFY2(UI->label_2, "'Alignment Tolerance:' label not created.");
+}
+
+void TestTVPrefDialog::testGui()
+{
+  // TODO: currently Qt::ComboBox, OpenMS::MultiGradientSelector, OpenMS::ColorSelector and OpenMS::ParamEditor are not tested!
+
+  enum
+  {
+    GENERAL,
+    ONE_D,
+    TWO_D,
+    THREE_D,
+    TSG
+  };
+
+  QTabBar* tab_bar = UI->tabWidget->tabBar();
+
+  /////////////////////////////////////////////
+  //             'General' tab               //
+  /////////////////////////////////////////////
+
+  // click on tab
+  QTest::mouseClick(tab_bar, Qt::LeftButton, 0, tab_bar->tabRect(GENERAL).center());
+  QTest::qWait(DELAY);
+
+  // test path input methods
+  
+  // file dialog
+  QTimer::singleShot(1000, this, &TestTVPrefDialog::checkFileDialog_);
+  QTest::mouseClick(UI->browse_default, Qt::LeftButton, 0, QPoint());
+  QTest::qWait(DELAY);
+
+  // line edit
+  QTest::keyClicks(UI->default_path, "C:\dev");
+  QVERIFY2(UI->default_path->text() == "C:\dev", "Line edit for default path broken.");
+  QTest::qWait(DELAY);
+
+  // test check boxes
+  testCheckBox(UI->default_path_current);
+  testCheckBox(UI->use_cached_ms1);
+  testCheckBox(UI->use_cached_ms2);
+
+  // TODO: 'map_default' (Qt::ComboBox), 'map_cutoff' (Qt::ComboBox), 'on_file_change' (Qt::ComboBox)
+
+  /////////////////////////////////////////////
+  //             '1D view' tab               //
+  /////////////////////////////////////////////
+
+  // click on tab
+  QTest::mouseClick(tab_bar, Qt::LeftButton, 0, tab_bar->tabRect(ONE_D).center());
+  QTest::qWait(DELAY);
+
+  // TODO: 'peak_1D' (OpenMS::ColorSelector), 'selected_1D' (OpenMS::ColorSelector), 'color_1D' (OpenMS::ColorSelector)
+
+  /////////////////////////////////////////////
+  //             '2D view' tab               //
+  /////////////////////////////////////////////
+
+  // click on tab
+  QTest::mouseClick(tab_bar, Qt::LeftButton, 0, tab_bar->tabRect(TWO_D).center());
+  QTest::qWait(DELAY);
+
+  // test spin box
+  UI->feature_icon_size_2D->clear();
+  QTest::keyClicks(UI->feature_icon_size_2D, "5");
+  QTest::qWait(DELAY);
+  QVERIFY(5 == UI->feature_icon_size_2D->value());
+
+  // TODO:: 'peak_2D' (OpenMS::MultiGradientSelector), 'mapping_2D' (Qt::ComboBox), 'feature_icon_2D' (Qt::ComboBox)
+  
+  /////////////////////////////////////////////
+  //             '3D view' tab               //
+  /////////////////////////////////////////////
+
+  // click on tab
+  QTest::mouseClick(tab_bar, Qt::LeftButton, 0, tab_bar->tabRect(THREE_D).center());
+  QTest::qWait(DELAY);
+
+  // test spin box
+  UI->line_width_3D->clear();
+  QTest::keyClicks(UI->line_width_3D, "2");
+  QTest::qWait(DELAY);
+  QVERIFY(2 == UI->line_width_3D->value());
+
+  // TODO: 'shade_3D' (Qt::ComboBox), 'peak_3D' (OpenMS::MultiGradientSelector)
+
+  /////////////////////////////////////////////
+  //               'TSG' tab                 //
+  /////////////////////////////////////////////
+
+  // click on tab
+  QTest::mouseClick(tab_bar, Qt::LeftButton, 0, tab_bar->tabRect(TSG).center());
+  QTest::qWait(DELAY);
+
+  // test spin box
+  UI->tolerance->clear();
+  QTest::keyClicks(UI->tolerance, "0,5");
+  QTest::qWait(DELAY);
+  QVERIFY(0.5 == UI->tolerance->value());
+
+  // TODO: 'param_editor_spec_gen_' (OpenMS::ParamEditor), 'unit' (Qt::ComboBox)
+}
+
+void OpenMS::TestTVPrefDialog::testParamExport()
+{
+  // set some parameters
+  
+  // General
+  UI->default_path->setText("C:\dev");                          // 'C:\dev' default path
+  UI->default_path_current->setCheckState(Qt::CheckState::Unchecked); // don't use current path
+  UI->map_default->setCurrentIndex(1);                          // 3D default
+  UI->map_cutoff->setCurrentIndex(0);                           // cut off 'on'
+  UI->on_file_change->setCurrentIndex(2);                       // 'update automtically'
+  UI->use_cached_ms1->setCheckState(Qt::CheckState::Checked);   // cache ms1
+  UI->use_cached_ms2->setCheckState(Qt::CheckState::Unchecked); // not cache ms2
+
+  // 1D
+  UI->color_1D->setColor(QColor("#ff0000"));        // peak 1D 'red' ("#ff0000")
+  UI->selected_1D->setColor(QColor("#8b0000"));     // selected peak 1D 'darkred' ("#8b0000")
+  UI->icon_1D->setColor(QColor("#660000"));         // icon 1D 'crimson' ("#660000")
+
+  // 2D
+  UI->peak_2D->gradient().fromString("Linear|0,#ffaa00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000"); // peak 2D: orange - red - purple - blue - black
+  UI->mapping_2D->setCurrentIndex(0);       // x-axis
+  UI->feature_icon_2D->setCurrentIndex(2);  // circle
+  UI->feature_icon_size_2D->setValue(5);    // size: 5
+
+  // 3D
+  UI->peak_3D->gradient().fromString("Linear|0,#ffea00;6,#ffaa00;100,#ff0000"); // peak 3D: yellow - orange - red
+  UI->shade_3D->setCurrentIndex(1); // smooth (index 1)
+  UI->line_width_3D->setValue(2);   // line width: 2
+
+  // TSG
+  Param p;
+  p.setValue("isotope_model", "coarse");
+  p.setValue("max_isotope", 1);
+  p.setValue("max_isotope_probability", 0.01);
+  p.setValue("add_metainfo", "false");
+  p.setValue("add_losses", "false");
+  p.setValue("sort_by_position", "true");
+  p.setValue("add_precursor_peaks", "true");
+  p.setValue("add_all_precursor_charges", "false");
+  p.setValue("add_abundant_immonium_ions", "true");
+  p.setValue("add_first_prefix_ion", "false");
+  for (String s : {'a', 'b', 'c', 'x', 'y', 'x', 'z'})
+  {
+    p.setValue("add_" + s + "_ions", "true");
+    p.setValue(s + "_intensity", 0.8);
+  }
+  p.setValue("relative_loss_intensity", 0.2);
+  p.setValue("precursor_intensity", 1.0);
+  p.setValue("precursor_H2O_intensity", 0.95);
+  p.setValue("precursor_NH3_intensity", 0.9);
+
+  dialog_.setParam(p);
+  UI->tolerance->setValue(0.2); // tolerance: 0.2
+  UI->unit->setCurrentIndex(0); // Dalton
+
+  // accept the dialog to save the parameters
+  QTest::mouseClick(UI->buttonBox->button(QDialogButtonBox::Ok), Qt::LeftButton);
+
+  // get parameters
+  Param dialog_param = dialog_.getParam();
+
+  // check validity
+#define PARAM(a) dialog_param.getValue(a)
+
+  QVERIFY2(PARAM("default_path") == "C:\dev", "'Default path' param value not exported correctly.");
+  QVERIFY2(PARAM("default_path_current") == "false", "'Use current path' param value not exported correctly.");
+  QVERIFY2(PARAM("use_cached_ms1") == "true", "'Cache ms1 spectra' param value not exported correctly.");
+  QVERIFY2(PARAM("use_cached_ms2") == "false", "'Cache ms2 spectra' param value not exported correctly.");
+  QVERIFY2(PARAM("default_map_view") == "3d", "'Default map view' param value not exported correctly.");
+  QVERIFY2(PARAM("intensity_cutoff") == "on", "'Itensity cutoff' param value not exported correctly.");
+  QVERIFY2(PARAM("on_file_change") == "update automatically", "'Action when file changes' param value not exported correctly.");
+
+  QVERIFY2(PARAM("1d:peak_color") == "#ff0000", "'1D peak color' param value not exported correctly.");
+  QVERIFY2(PARAM("1d:highlighted_peak_color") == "#8b0000", "'1D highlighted peak color' param value not exported correctly.");
+  QVERIFY2(PARAM("1d:icon_color") == "#660000", "'1D icon color' param value not exported correctly.");
+
+  QVERIFY2(PARAM("2d:dot:gradient") == "Linear|0,#ffaa00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000", "'2D peak gradient' param value not exported correctly.");
+  QVERIFY2(PARAM("2d:mapping_of_mz_to") == "x_axis", "'2D mapping of mz to' param value not exported correctly.");
+  QVERIFY2(PARAM("2d:dot:feature_icon") == "circle", "'2D feature icon' param value not exported correctly.");
+  QVERIFY2(int(PARAM("2d:dot:feature_icon_size")) == 5, "'2D feature icon size' param value not exported correctly.");
+
+  QVERIFY2(PARAM("3d:dot:gradient") == "Linear|0,#ffea00;6,#ffaa00;100,#ff0000", "'3D peak gradient' param value not exported correctly.");
+  QVERIFY2(int(PARAM("3d:dot:shade_mode")) == 1, "'3D shade mode' param value not exported correctly.");
+  QVERIFY2(int(PARAM("3d:dot:line_width")) == 2, "'3D line width' param value not exported correctly.");
+
+  QVERIFY2(PARAM("idview:tsg:isotope_model") == "coarse", "TSG: 'isotope model' param value not exported correctly.");
+  QVERIFY2(int(PARAM("idview:tsg:max_isotope")) == 1, "TSG: 'max isotope' param value not exported correctly.");
+  QVERIFY2(double(PARAM("idview:tsg:max_isotope_probability")) == 0.01, "TSG: 'max isotope probability' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_metainfo") == "false", "TSG: 'add metainfo' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_losses") == "false", "TSG: 'add losses' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:sort_by_position") == "true", "TSG: 'sort by position' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_precursor_peaks") == "true", "TSG: 'add precursor peaks' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_all_precursor_charges") == "false", "TSG: 'add all precursor charges' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_abundant_immonium_ions") == "true", "TSG: 'add abundant immonium ions' param value not exported correctly.");
+  QVERIFY2(PARAM("idview:tsg:add_first_prefix_ion") == "false", "TSG: 'add first prefix ion' param value not exported correctly.");
+  for (String s : {'a', 'b', 'c', 'x', 'y', 'x', 'z'})
+  {
+    QVERIFY2(PARAM("idview:tsg:add_" + s + "_ions") == "true", qPrintable("TSG: 'add " + s.toQString() + " ions' param value not exported correctly."));
+    QVERIFY2(double(PARAM("idview:tsg:" + s + "_intensity")) == 0.8, qPrintable("TSG: '" + s.toQString() + " intensity' param value not exported correctly."));
+  }
+  QVERIFY2(double(PARAM("idview:tsg:relative_loss_intensity")) == 0.2, "TSG: 'relative loss intensity' param value not exported correctly.");
+  QVERIFY2(double(PARAM("idview:tsg:precursor_intensity")) == 1.0, "TSG: 'precursor intensity' param value not exported correctly.");
+  QVERIFY2(double(PARAM("idview:tsg:precursor_H2O_intensity")) == 0.95, "TSG: 'precursor H2O intensity' param value not exported correctly.");
+  QVERIFY2(double(PARAM("idview:tsg:precursor_NH3_intensity")) == 0.9, "TSG: 'precursor NH3 intensity' param value not exported correctly.");
+}
+
+void OpenMS::TestTVPrefDialog::checkFileDialog_()
+{
+  // get the active window
+  QWidget* active_widget = QApplication::activeModalWidget();
+  if (active_widget->inherits("QFileDialog")) // if it's a file dialog, close it
+  {
+    QFileDialog* fd = qobject_cast<QFileDialog*>(active_widget);
+    fd->close(); // for some reason closing it with 'Qt::Key_Enter' doesn't work
+    QVERIFY(true);
+    return;
+  }
+  QVERIFY(false);
+}
 
 // expands to a simple main() method that runs all the private slots
-QTEST_MAIN(TestTSGDialog)
+QTEST_MAIN(TestTVPrefDialog)

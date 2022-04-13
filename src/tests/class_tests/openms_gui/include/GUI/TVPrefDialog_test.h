@@ -35,8 +35,9 @@
 #include <QtGui>
 
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
+#include <ui_TOPPViewPrefDialog.h>
 
-#define UI dialog.ui_
+#define UI dialog_.ui_
 
 namespace OpenMS
 {
@@ -45,16 +46,23 @@ namespace OpenMS
     Q_OBJECT
 
   public:
-    TestTVPrefDialog();
+    TestTVPrefDialog() : dialog_(NULL) {}
 
-    ~TestTVPrefDialog();
+    ~TestTVPrefDialog()
+    {
+      dialog_.destroy();
+    }
 
   private slots:
     void testConstruction();
 
     void testGui();
 
+    void testParamExport();
+
   private:
-    TOPPViewPrefDialog dialog_;
+    void checkFileDialog_();
+
+    Internal::TOPPViewPrefDialog dialog_;
   };
 }
