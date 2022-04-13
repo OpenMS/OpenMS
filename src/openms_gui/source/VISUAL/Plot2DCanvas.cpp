@@ -99,8 +99,6 @@ namespace OpenMS
     defaults_.setValue("dot:feature_icon_size", 4, "Icon size used for features and consensus features.");
     defaults_.setMinInt("dot:feature_icon_size", 1);
     defaults_.setMaxInt("dot:feature_icon_size", 999);
-    defaults_.setValue("mapping_of_mz_to", "y_axis", "Determines which axis is the m/z axis.");
-    defaults_.setValidStrings("mapping_of_mz_to", {"x_axis","y_axis"});
     defaultsToParam_();
     setName("Plot2DCanvas");
     setParameters(preferences);
@@ -110,12 +108,7 @@ namespace OpenMS
     projection_mz_.resize(1);
     projection_rt_.resize(1);
 
-    //set preferences and update widgets accordingly
-    if (param_.getValue("mapping_of_mz_to") != "x_axis")
-    {
-      mzToXAxis(false);
-    }
-    //connect preferences change to the right slot
+    // connect preferences change to the right slot
     connect(this, SIGNAL(preferencesChange()), this, SLOT(currentLayerParametersChanged_()));
   }
 
@@ -167,10 +160,9 @@ namespace OpenMS
       const LayerDataBase& layer = getCurrentLayer();
       const ConstExperimentSharedPtrType exp = layer.getPeakData();
 
-      vector<MSChromatogram >::const_iterator iter = exp->getChromatograms().begin();
-      iter += peak.spectrum;
+      vector<MSChromatogram>::const_iterator iter = exp->getChromatograms().begin() + peak.spectrum;
 
-      painter.drawRect(pos.x() - 5, pos.y() - 5, (int((iter->back().getRT() - iter->front().getRT()) / visible_area_.height() * width())) + 10, 10);
+      painter.drawRect(pos.x() - 5, pos.y() - 5, (int((iter->back().getRT() - iter->front().getRT()) / visible_area_.getAreaXY().height() * width())) + 10, 10);
     }
     else // highlight: peak, feature, consensus feature
     {
@@ -181,24 +173,26 @@ namespace OpenMS
     painter.restore();
   }
 
-  PeakIndex Plot2DCanvas::findNearestPeak_(const QPoint & pos)
+  PeakIndex Plot2DCanvas::findNearestPeak_(const QPoint& pos)
   {
-    ///no layers => return invalid peak index
+    // no layers => return invalid peak index
     if (layers_.empty())
     {
       return PeakIndex();
     }
-    const auto center = widgetToData_(pos);
-    //Constructing the area corrects swapped mapping of RT and m/z
-    AreaType area(widgetToData_(pos - QPoint(5, 5)), widgetToData_(pos + QPoint(5, 5)));
+    // constructing area around the current mouse position
+    auto a = visible_area_;
+    a.setArea(VisibleArea::AreaXYType(widgetToData_(pos - QPoint(5, 5)), widgetToData_(pos + QPoint(5, 5))));
 
-    float max_int = -1 * numeric_limits<float>::max();
+    float max_int = numeric_limits<float>::lowest();
     PeakIndex max_pi;
-
+    const auto& searched_area = a.getAreaUnit();
     if (getCurrentLayer().type == LayerDataBase::DT_PEAK)
     {
-      for (ExperimentType::ConstAreaIterator i = getCurrentLayer().getPeakData()->areaBeginConst(area.minPosition()[1], area.maxPosition()[1],
-                                                                                                 area.minPosition()[0], area.maxPosition()[0]);
+      for (ExperimentType::ConstAreaIterator i = getCurrentLayer().getPeakData()->areaBeginConst(searched_area.getMinRT(),
+                                                                                                 searched_area.getMaxRT(),
+                                                                                                 searched_area.getMinMZ(),
+                                                                                                 searched_area.getMaxMZ());
            i != getCurrentLayer().getPeakData()->areaEndConst();
            ++i)
       {
@@ -217,10 +211,8 @@ namespace OpenMS
            i != getCurrentLayer().getFeatureMap()->end();
            ++i)
       {
-        if (i->getRT() >= area.minPosition()[1] &&
-            i->getRT() <= area.maxPosition()[1] &&
-            i->getMZ() >= area.minPosition()[0] &&
-            i->getMZ() <= area.maxPosition()[0] &&
+        if (searched_area.containsRT(i->getRT()) &&
+            searched_area.containsMZ(i->getMZ()) &&
             getCurrentLayer().filters.passes(*i))
         {
           if (i->getIntensity() > max_int)
@@ -238,10 +230,8 @@ namespace OpenMS
            ++i)
       {
         // consensus feature in visible area?
-        if (i->getRT() >= area.minPosition()[1] &&
-            i->getRT() <= area.maxPosition()[1] &&
-            i->getMZ() >= area.minPosition()[0] &&
-            i->getMZ() <= area.maxPosition()[0] &&
+        if (searched_area.containsRT(i->getRT()) &&
+            searched_area.containsMZ(i->getMZ()) &&
             getCurrentLayer().filters.passes(*i))
         {
           if (i->getIntensity() > max_int)
@@ -255,11 +245,8 @@ namespace OpenMS
     else if (getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM)
     {
       const LayerDataBase& layer = getCurrentLayer();
-
       const PeakMap& exp = *layer.getPeakData();
-      float mz_origin = 0.0;
-      auto rt_area = area; // check overlap with chrom's RT
-
+      
       int count {-1};
       for (const auto& chrom : exp.getChromatograms())
       {
@@ -269,17 +256,15 @@ namespace OpenMS
           continue;   // ensure that empty chromatograms are not examined (iter->front = segfault)
         } 
 
-        mz_origin = chrom.getPrecursor().getMZ();
+        auto mz_origin = chrom.getPrecursor().getMZ();
 
         // check m/z first
-        if (mz_origin >= area.minPosition()[0] &&
-            mz_origin <= area.maxPosition()[0])
+        if (searched_area.containsMZ(mz_origin))
         {
-          rt_area.setMinY(chrom.front().getRT());
-          rt_area.setMaxY(chrom.back().getRT());
-          if (rt_area.encloses(center))
+          // the center point's RT should be inside the RT range of the chromatogram
+          if (RangeRT(chrom.front().getRT(), chrom.back().getRT()).containsRT(searched_area.RangeRT::center()))
           {
-            return PeakIndex(count, chrom.findNearest(center.getY()));
+            return PeakIndex(count, 0); // we only care about the chrom, not the peak inside
           }
         }
       }
@@ -303,22 +288,14 @@ namespace OpenMS
     {
       if (layer.getMaxIntensity() > 0.0)
       {
-        percentage_factor_ = overall_data_range_.maxPosition()[2] / layer.getMaxIntensity();
+        percentage_factor_ = overall_data_range_.getMaxIntensity() / layer.getMaxIntensity();
       }
     }
-
-    //temporary variables
-    Int image_width = buffer_.width();
-    Int image_height = buffer_.height();
 
     if (layer.type == LayerDataBase::DT_PEAK)   //peaks
     {
       // renaming some values for readability
       const ExperimentType & peak_map = *layer.getPeakData();
-      const double rt_min = visible_area_.minPosition()[1];
-      const double rt_max = visible_area_.maxPosition()[1];
-      const double mz_min = visible_area_.minPosition()[0];
-      const double mz_max = visible_area_.maxPosition()[0];
 
       // skip empty peak maps
       if (peak_map.empty())
@@ -326,13 +303,10 @@ namespace OpenMS
         return;
       }
 
-      //determine number of pixels for each dimension
-      Size rt_pixel_count = image_height;
-      Size mz_pixel_count = image_width;
-      if (!isMzToXAxis())
-      {
-        swap(rt_pixel_count, mz_pixel_count);
-      }
+      const double rt_min = visible_area_.getAreaUnit().getMinRT();
+      const double rt_max = visible_area_.getAreaUnit().getMaxRT();
+      const double mz_min = visible_area_.getAreaUnit().getMinMZ();
+      const double mz_max = visible_area_.getAreaUnit().getMaxMZ();
 
       //-----------------------------------------------------------------------------------------------
       // Determine number of shown scans (MS1)
@@ -364,6 +338,12 @@ namespace OpenMS
           n_peaks_in_scan = n_s[1]; // median
         }
 
+        int rt_pixel_count, mz_pixel_count;
+        { // obtain number of pixels in RT and MZ dimension
+          auto tmp = getPixelRange();
+          rt_pixel_count = tmp.getAreaUnit().getMaxRT();
+          mz_pixel_count = tmp.getAreaUnit().getMaxMZ();
+        }
         double ratio_data2pixel_rt = n_ms1_scans / (double)rt_pixel_count;
         double ratio_data2pixel_mz = n_peaks_in_scan / (double)mz_pixel_count;
 
@@ -430,35 +410,27 @@ namespace OpenMS
       String icon = layer.param.getValue("dot:feature_icon").toString();
       Size icon_size = layer.param.getValue("dot:feature_icon_size");
 
-      for (ConsensusMapType::ConstIterator i = layer.getConsensusMap()->begin();
-           i != layer.getConsensusMap()->end();
-           ++i)
+      for (const auto& cf : *layer.getConsensusMap())
       {
-        if (i->getRT() >= visible_area_.minPosition()[1] &&
-            i->getRT() <= visible_area_.maxPosition()[1] &&
-            i->getMZ() >= visible_area_.minPosition()[0] &&
-            i->getMZ() <= visible_area_.maxPosition()[0] &&
-            layer.filters.passes(*i))
+        if (visible_area_.getAreaUnit().containsRT(cf.getRT()) &&
+            visible_area_.getAreaUnit().containsMZ(cf.getMZ()) &&
+            layer.filters.passes(cf))
         {
           // determine color
           QColor color;
-          if (i->metaValueExists(5))
+          if (cf.metaValueExists(5))
           {
-            color = QColor(i->getMetaValue(5).toQString());
+            color = cf.getMetaValue(5).toQString();
           }
           else
           {
             // use intensity as color
-            color = heightColor_(i->getIntensity(), layer.gradient, snap_factor);
+            color = heightColor_(cf.getIntensity(), layer.gradient, snap_factor);
           }
 
           // paint
-          QPoint pos;
-          dataToWidget_(i->getMZ(), i->getRT(), pos);
-          if (pos.x() > 0 && pos.y() > 0 && pos.x() < image_width - 1 && pos.y() < image_height - 1)
-          {
-            paintIcon_(pos, color.rgb(), icon, icon_size, painter);
-          }
+          auto pos_unit = unit_mapper_.map(cf);
+          paintIcon_(dataToWidget_(pos_unit), color.rgb(), icon, icon_size, painter);
         }
       }
     }
@@ -479,9 +451,8 @@ namespace OpenMS
           continue;
         }
         mz_origin = chrom.getPrecursor().getMZ();
-        dataToWidget_(mz_origin, chrom.front().getRT(), posi);
-        dataToWidget_(mz_origin, chrom.back().getRT(), posi2);
-
+        dataToWidget_(unit_mapper_.map(Peak2D {{chrom.front().getRT(), mz_origin}, 0}), posi);
+        dataToWidget_(unit_mapper_.map(Peak2D {{chrom.back().getRT(), mz_origin}, 0}), posi2);
         painter.drawLine(posi.x(), posi.y(), posi2.x(), posi2.y());
       }
     }
@@ -493,7 +464,7 @@ namespace OpenMS
 
   double Plot2DCanvas::adaptPenScaling_(double ratio_data2pixel, double& pen_width) const
   {
-    // is the coverage ok using current pen width?
+    // is the coverage OK using current pen width?
     bool has_low_pixel_coverage_withpen = ratio_data2pixel*pen_width < canvas_coverage_min_;
     int merge_factor(1);
     if (has_low_pixel_coverage_withpen)
@@ -523,8 +494,8 @@ namespace OpenMS
     painter.setPen(p);
 
     ExperimentType::ConstIterator it_prec = peak_map.end();
-    ExperimentType::ConstIterator it_end = peak_map.RTEnd(visible_area_.maxPosition()[1]);
-    for (ExperimentType::ConstIterator it = peak_map.RTBegin(visible_area_.minPosition()[1]);
+    ExperimentType::ConstIterator it_end = peak_map.RTEnd(visible_area_.getAreaUnit().getMaxRT());
+    for (ExperimentType::ConstIterator it = peak_map.RTBegin(visible_area_.getAreaUnit().getMinRT());
          it != it_end;
          ++it)
     {
@@ -571,11 +542,11 @@ namespace OpenMS
     Int image_height = buffer_.height();
     QVector<QPolygon> coloredPoints( (int)layer.gradient.precalculatedSize() );
 
-    const ExperimentType & map = *layer.getPeakData();
-    const double rt_min = visible_area_.minPosition()[1];
-    const double rt_max = visible_area_.maxPosition()[1];
-    const double mz_min = visible_area_.minPosition()[0];
-    const double mz_max = visible_area_.maxPosition()[0];
+    const ExperimentType& map = *layer.getPeakData();
+    const double rt_min = visible_area_.getAreaUnit().getMinRT();
+    const double rt_max = visible_area_.getAreaUnit().getMaxRT();
+    const double mz_min = visible_area_.getAreaUnit().getMinMZ();
+    const double mz_max = visible_area_.getAreaUnit().getMaxMZ();
 
     double snap_factor = snap_factors_[layer_index];
     const auto end_area = map.areaEndConst();
@@ -586,14 +557,10 @@ namespace OpenMS
       PeakIndex pi = i.getPeakIndex();
       if (layer.filters.passes(map[pi.spectrum], pi.peak))
       {
-        QPoint pos;
-        dataToWidget_(i->getMZ(), i.getRT(), pos);
-        if ((pos.x() > 0) & (pos.y() > 0) & (pos.x() < image_width - 1) & (pos.y() < image_height - 1))
-        {
-          // store point in the array of its color
-          Int colorIndex = precalculatedColorIndex_(i->getIntensity(), layer.gradient, snap_factor);
-          coloredPoints[ colorIndex ].push_back( pos );
-        }
+        QPoint pos = dataToWidget_(unit_mapper_.map(i));
+        // store point in the array of its color
+        Int colorIndex = precalculatedColorIndex_(i->getIntensity(), layer.gradient, snap_factor);
+        coloredPoints[ colorIndex ].push_back( pos );
       }
     }
     // draw point arrays from minimum to maximum intensity,
@@ -612,20 +579,17 @@ namespace OpenMS
     painter.restore();
   }
 
-  void Plot2DCanvas::paintMaximumIntensities_(Size layer_index, Size rt_pixel_count, Size mz_pixel_count, QPainter & painter)
+  void Plot2DCanvas::paintMaximumIntensities_(Size layer_index, Size rt_pixel_count, Size mz_pixel_count, QPainter& painter)
   {
     //set painter to black (we operate directly on the pixels for all colored data)
     painter.setPen(Qt::black);
-    //temporary variables
-    Int image_width = buffer_.width();
-    Int image_height = buffer_.height();
 
     const LayerDataBase& layer = getLayer(layer_index);
     const ExperimentType& map = *layer.getPeakData();
-    const double rt_min = visible_area_.minPosition()[1];
-    const double rt_max = visible_area_.maxPosition()[1];
-    const double mz_min = visible_area_.minPosition()[0];
-    const double mz_max = visible_area_.maxPosition()[0];
+    const double rt_min = visible_area_.getAreaUnit().getMinRT();
+    const double rt_max = visible_area_.getAreaUnit().getMaxRT();
+    const double mz_min = visible_area_.getAreaUnit().getMinMZ();
+    const double mz_max = visible_area_.getAreaUnit().getMaxMZ();
 
     double snap_factor = snap_factors_[layer_index];
 
@@ -705,11 +669,9 @@ namespace OpenMS
         // draw to buffer
         if (max >= 0.0)
         {
-          dataToWidget_(mz_start + 0.5 * mz_step_size, rt_start + 0.5 * rt_step_size, pos);
-          if (pos.y() < image_height && pos.x() < image_width)
-          {
-            buffer_.setPixel(pos.x(), pos.y(), heightColor_(max, layer.gradient, snap_factor).rgb());
-          }
+          Peak2D mz_peak { {rt_start + 0.5 * rt_step_size, mz_start + 0.5 * mz_step_size}, 0};
+          dataToWidget_(unit_mapper_.map(mz_peak), pos);
+          buffer_.setPixel(pos.x(), pos.y(), heightColor_(max, layer.gradient, snap_factor).rgb());
         }
       }
     }
@@ -727,32 +689,25 @@ namespace OpenMS
     Size icon_size = layer.param.getValue("dot:feature_icon_size");
     bool show_label = (layer.label != LayerDataBase::L_NONE);
     UInt num = 0;
-    for (FeatureMapType::ConstIterator i = layer.getFeatureMap()->begin();
-         i != layer.getFeatureMap()->end(); ++i)
+    for (const auto& f : *layer.getFeatureMap())
     {
-      if (i->getRT() >= visible_area_.minPosition()[1] &&
-          i->getRT() <= visible_area_.maxPosition()[1] &&
-          i->getMZ() >= visible_area_.minPosition()[0] &&
-          i->getMZ() <= visible_area_.maxPosition()[0] &&
-          layer.filters.passes(*i))
+      if (visible_area_.getAreaUnit().containsRT(f.getRT()) &&
+          visible_area_.getAreaUnit().containsMZ(f.getMZ()) &&
+          layer.filters.passes(f))
       {
         // determine color
         QColor color;
-        if (i->metaValueExists(5))
+        if (f.metaValueExists(5))
         {
-          color = QColor(i->getMetaValue(5).toQString());
+          color = QColor(f.getMetaValue(5).toQString());
         }
         else
         {
-          color = heightColor_(i->getIntensity(), layer.gradient, snap_factor);
+          color = heightColor_(f.getIntensity(), layer.gradient, snap_factor);
         }
         // paint
-        QPoint pos;
-        dataToWidget_(i->getMZ(), i->getRT(), pos);
-        if (pos.x() > 0 && pos.y() > 0 && pos.x() < image_width - 1 && pos.y() < image_height - 1)
-        {
-          paintIcon_(pos, color.rgb(), icon, icon_size, painter);
-        }
+        QPoint pos = dataToWidget_(unit_mapper_.map(f));
+        paintIcon_(pos, color.rgb(), icon, icon_size, painter);
         // labels
         if (show_label)
         {
@@ -761,19 +716,19 @@ namespace OpenMS
             painter.setPen(Qt::darkBlue);
             painter.drawText(pos.x() + 10, pos.y() + 10, QString::number(num));
           }
-          else if ((layer.label == LayerDataBase::L_ID || layer.label == LayerDataBase::L_ID_ALL) && !i->getPeptideIdentifications().empty() && !i->getPeptideIdentifications()[0].getHits().empty())
+          else if ((layer.label == LayerDataBase::L_ID || layer.label == LayerDataBase::L_ID_ALL) && !f.getPeptideIdentifications().empty() && !f.getPeptideIdentifications()[0].getHits().empty())
           {
             painter.setPen(Qt::darkGreen);
-            Size maxHits = (layer.label == LayerDataBase::L_ID_ALL) ? i->getPeptideIdentifications()[0].getHits().size() : 1;
+            Size maxHits = (layer.label == LayerDataBase::L_ID_ALL) ? f.getPeptideIdentifications()[0].getHits().size() : 1;
             for (Size j = 0; j < maxHits; ++j)
             {
-              painter.drawText(pos.x() + 10, pos.y() + 10 + int(j) * line_spacing, i->getPeptideIdentifications()[0].getHits()[j].getSequence().toString().toQString());
+              painter.drawText(pos.x() + 10, pos.y() + 10 + int(j) * line_spacing, f.getPeptideIdentifications()[0].getHits()[j].getSequence().toString().toQString());
             }
           }
           else if (layer.label == LayerDataBase::L_META_LABEL)
           {
             painter.setPen(Qt::darkBlue);
-            painter.drawText(pos.x() + 10, pos.y() + 10, i->getMetaValue(3).toQString());
+            painter.drawText(pos.x() + 10, pos.y() + 10, f.getMetaValue(3).toQString());
           }
         }
       }
@@ -781,7 +736,7 @@ namespace OpenMS
     }
   }
 
-  void Plot2DCanvas::paintIcon_(const QPoint & pos, const QRgb & color, const String & icon, Size s, QPainter & p) const
+  void Plot2DCanvas::paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p) const
   {
     p.save();
     p.setPen(color);
@@ -827,18 +782,16 @@ namespace OpenMS
     painter.setPen(Qt::black);
 
     const LayerDataBase& layer = getLayer(layer_index);
-    for (FeatureMapType::ConstIterator i = layer.getFeatureMap()->begin(); i != layer.getFeatureMap()->end(); ++i)
+    for (const auto& f : *layer.getFeatureMap())
     {
-      if (i->getRT() >= visible_area_.minPosition()[1] &&
-          i->getRT() <= visible_area_.maxPosition()[1] &&
-          i->getMZ() >= visible_area_.minPosition()[0] &&
-          i->getMZ() <= visible_area_.maxPosition()[0] &&
-          layer.filters.passes(*i)
+      if (visible_area_.getAreaUnit().containsRT(f.getRT()) &&
+          visible_area_.getAreaUnit().containsMZ(f.getMZ()) &&
+          layer.filters.passes(f)
           )
       {
-        bool hasIdentifications = !i->getPeptideIdentifications().empty()
-                               && !i->getPeptideIdentifications()[0].getHits().empty();
-        paintConvexHulls_(i->getConvexHulls(), hasIdentifications, painter);
+        bool hasIdentifications = !f.getPeptideIdentifications().empty()
+                               && !f.getPeptideIdentifications()[0].getHits().empty();
+        paintConvexHulls_(f.getConvexHulls(), hasIdentifications, painter);
       }
     }
   }
@@ -846,34 +799,14 @@ namespace OpenMS
   void Plot2DCanvas::paintFeatureConvexHulls_(Size layer_index, QPainter & painter)
   {
     const LayerDataBase& layer = getLayer(layer_index);
-    for (FeatureMapType::ConstIterator i = layer.getFeatureMap()->begin(); i != layer.getFeatureMap()->end(); ++i)
+    for (const auto& f : *layer.getFeatureMap())
     {
-      if (i->getRT() >= visible_area_.minPosition()[1] &&
-          i->getRT() <= visible_area_.maxPosition()[1] &&
-          i->getMZ() >= visible_area_.minPosition()[0] &&
-          i->getMZ() <= visible_area_.maxPosition()[0] &&
-          layer.filters.passes(*i))
+      if (visible_area_.getAreaUnit().containsRT(f.getRT()) &&
+          visible_area_.getAreaUnit().containsMZ(f.getMZ()) &&
+          layer.filters.passes(f)
+          )
       {
-        //paint hull points
-        ConvexHull2D hull = i->getConvexHull();
-        ConvexHull2D::PointArrayType ch_points = hull.getHullPoints();
-        QPolygon points;
-        points.resize((int)ch_points.size());
-
-        UInt index = 0;
-        QPoint pos;
-        //iterate over hull points
-
-        for (ConvexHull2D::PointArrayType::const_iterator it = ch_points.begin(); it != ch_points.end(); ++it, ++index)
-        {
-          dataToWidget_(it->getY(), it->getX(), pos);
-          points.setPoint(index, pos);
-        }
-        //cout << "Hull: " << hull << " Points: " << points.size()<<endl;
-        bool hasIdentifications = !i->getPeptideIdentifications().empty()
-                               && !i->getPeptideIdentifications()[0].getHits().empty();
-        painter.setPen( hasIdentifications ? Qt::darkGreen : Qt::darkBlue );
-        painter.drawPolygon(points);
+        paintConvexHull_(f.getConvexHull(), !f.getPeptideIdentifications().empty() && !f.getPeptideIdentifications()[0].getHits().empty(), painter);
       }
     }
   }
@@ -898,22 +831,21 @@ namespace OpenMS
           continue;
         }
         double rt = id.getRT();
-        if (rt < visible_area_.minPosition()[1] || rt > visible_area_.maxPosition()[1])
+        if (!visible_area_.getAreaUnit().containsRT(rt))
         {
           continue;
         }
         double mz = getIdentificationMZ_(layer_index, id);
-        if (mz < visible_area_.minPosition()[0] || mz > visible_area_.maxPosition()[0])
+        if (!visible_area_.getAreaUnit().containsMZ(mz))
         {
           continue;
         }
-        //draw dot
-        QPoint pos;
-        dataToWidget_(mz, rt, pos);
+        // draw dot
+        QPoint pos = dataToWidget_(unit_mapper_.map(id));
         painter.drawLine(pos.x(), pos.y() - 1.0, pos.x(), pos.y() + 1.0);
         painter.drawLine(pos.x() - 1.0, pos.y(), pos.x() + 1.0, pos.y());
 
-        //draw sequence
+        // draw sequence
         String sequence;
         if (show_labels)
         {
@@ -933,93 +865,82 @@ namespace OpenMS
     }
   }
 
-  void Plot2DCanvas::paintConvexHulls_(const vector<ConvexHull2D> & hulls, bool has_identifications, QPainter & painter)
+  void Plot2DCanvas::paintConvexHull_(const ConvexHull2D& hull, bool has_identifications, QPainter& painter)
   {
     QPolygon points;
-
-    //iterate over all convex hulls
-    for (Size hull = 0; hull < hulls.size(); ++hull)
+    ConvexHull2D::PointArrayType ch_points = hull.getHullPoints();
+    points.resize((int)ch_points.size());
+    UInt index = 0;
+    QPoint pos;
+    // iterate over hull points
+    for (ConvexHull2D::PointArrayType::const_iterator it = ch_points.begin(); it != ch_points.end(); ++it, ++index)
     {
-      ConvexHull2D::PointArrayType ch_points = hulls[hull].getHullPoints();
-      points.resize((int)ch_points.size());
-      UInt index = 0;
-      QPoint pos;
-      //iterate over hull points
-      for (ConvexHull2D::PointArrayType::const_iterator it = ch_points.begin(); it != ch_points.end(); ++it, ++index)
-      {
-        dataToWidget_(it->getY(), it->getX(), pos);
-        points.setPoint(index, pos);
-      }
-      painter.setPen(QPen(Qt::white, 5, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin));
-      painter.drawPolygon(points);
-      painter.setPen(QPen( has_identifications ? Qt::green : Qt::blue, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-      painter.drawPolygon(points);
+      Peak2D ms_peak({it->getX(), it->getY()}, 0); // assume that CH of a feature is RT and m/z
+      points.setPoint(index, dataToWidget_(unit_mapper_.map(ms_peak)));
+    }
+    painter.setPen(QPen(Qt::white, 5, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin));
+    painter.drawPolygon(points);
+    painter.setPen(QPen(has_identifications ? Qt::green : Qt::blue, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    painter.drawPolygon(points);
+  }
+
+  void Plot2DCanvas::paintConvexHulls_(const vector<ConvexHull2D>& hulls, bool has_identifications, QPainter& painter)
+  {
+    for (const auto& hull : hulls)
+    {
+      paintConvexHull_(hull, has_identifications, painter);
     }
   }
 
-  void Plot2DCanvas::paintConsensusElements_(Size layer_index, QPainter & p)
+  void Plot2DCanvas::paintConsensusElements_(Size layer_index, QPainter& p)
   {
     const LayerDataBase& layer = getLayer(layer_index);
-
-    for (ConsensusMapType::ConstIterator i = layer.getConsensusMap()->begin(); i != layer.getConsensusMap()->end(); ++i)
+    for (const auto& cf : *layer.getConsensusMap())
     {
-      paintConsensusElement_(layer_index, *i, p, true);
+      paintConsensusElement_(layer_index, cf, p, true);
     }
   }
 
-  void Plot2DCanvas::paintConsensusElement_(Size layer_index, const ConsensusFeature & cf, QPainter & p, bool use_buffer)
+  void Plot2DCanvas::paintConsensusElement_(Size layer_index, const ConsensusFeature& cf, QPainter& p, bool use_buffer)
   {
-    Int image_width = buffer_.width();
-    Int image_height = buffer_.height();
-
     const LayerDataBase& layer = getLayer(layer_index);
+    // Is CF or any of its handles visible?
+    if (!isConsensusFeatureVisible_(cf, layer_index) && layer.filters.passes(cf)) return;
 
-    if (isConsensusFeatureVisible_(cf, layer_index) && layer.filters.passes(cf))
+    // calculate position of consensus feature (centroid)
+    QPoint consensus_pos = dataToWidget_(unit_mapper_.map(cf));
+    // iterate over elements
+    for (const FeatureHandle& element : cf)
     {
-      //calculate position of consensus feature (centroid)
-      QPoint consensus_pos;
-      dataToWidget_(cf.getMZ(), cf.getRT(), consensus_pos);
-      //iterate over elements
-      for (const FeatureHandle& element : cf)
+      // calculate position of consensus element
+      QPoint pos = dataToWidget_(unit_mapper_.map(element));
+      // paint line
+      p.drawLine(consensus_pos, pos);
+      // use buffer only when not highlighting
+      if (use_buffer)
       {
-        //calculate position of consensus element
-        QPoint pos;
-        dataToWidget_(element.getMZ(), element.getRT(), pos);
-        //paint line
-        p.drawLine(consensus_pos, pos);
-        //paint point
-        if (pos.x() > 0 && pos.y() > 0 && pos.x() < image_width - 1 && pos.y() < image_height - 1)
-        {
-          // use buffer only when not highlighting
-          if (use_buffer)
-          {
-            buffer_.setPixel(pos.x(), pos.y(), Qt::black);
-            buffer_.setPixel(pos.x() - 1, pos.y(), Qt::black);
-            buffer_.setPixel(pos.x() + 1, pos.y(), Qt::black);
-            buffer_.setPixel(pos.x(), pos.y() - 1, Qt::black);
-            buffer_.setPixel(pos.x(), pos.y() + 1, Qt::black);
-          }
-          else
-          {
-            p.drawPoint(pos.x(), pos.y());
-            p.drawPoint(pos.x() - 1, pos.y());
-            p.drawPoint(pos.x() + 1, pos.y());
-            p.drawPoint(pos.x(), pos.y() - 1);
-            p.drawPoint(pos.x(), pos.y() + 1);
-          }
-        }
+        buffer_.setPixel(pos.x(), pos.y(), Qt::black);
+        buffer_.setPixel(pos.x() - 1, pos.y(), Qt::black);
+        buffer_.setPixel(pos.x() + 1, pos.y(), Qt::black);
+        buffer_.setPixel(pos.x(), pos.y() - 1, Qt::black);
+        buffer_.setPixel(pos.x(), pos.y() + 1, Qt::black);
+      }
+      else
+      {
+        p.drawPoint(pos.x(), pos.y());
+        p.drawPoint(pos.x() - 1, pos.y());
+        p.drawPoint(pos.x() + 1, pos.y());
+        p.drawPoint(pos.x(), pos.y() - 1);
+        p.drawPoint(pos.x(), pos.y() + 1);
       }
     }
-
   }
 
-  bool Plot2DCanvas::isConsensusFeatureVisible_(const ConsensusFeature & ce, Size layer_index)
+  bool Plot2DCanvas::isConsensusFeatureVisible_(const ConsensusFeature& cf, Size layer_index)
   {
     // check the centroid first
-    if (ce.getRT() >= visible_area_.minPosition()[1] &&
-        ce.getRT() <= visible_area_.maxPosition()[1] &&
-        ce.getMZ() >= visible_area_.minPosition()[0] &&
-        ce.getMZ() <= visible_area_.maxPosition()[0])
+    if (visible_area_.getAreaUnit().containsRT(cf.getRT()) &&
+        visible_area_.getAreaUnit().containsMZ(cf.getMZ()))
     {
       return true;
     }
@@ -1027,13 +948,10 @@ namespace OpenMS
     // if element-flag is set, check if any of the consensus elements is visible
     if (getLayerFlag(layer_index, LayerDataBase::C_ELEMENTS))
     {
-      ConsensusFeature::HandleSetType::const_iterator element = ce.getFeatures().begin();
-      for (; element != ce.getFeatures().end(); ++element)
+      for (const auto& ce : cf.getFeatures())
       {
-        if (element->getRT() >= visible_area_.minPosition()[1] &&
-            element->getRT() <= visible_area_.maxPosition()[1] &&
-            element->getMZ() >= visible_area_.minPosition()[0] &&
-            element->getMZ() <= visible_area_.maxPosition()[0])
+        if (visible_area_.getAreaUnit().containsRT(ce.getRT()) &&
+            visible_area_.getAreaUnit().containsMZ(ce.getMZ()))
         {
           return true;
         }
@@ -1071,11 +989,11 @@ namespace OpenMS
     getLayer(layer).gradient.fromString(getLayer(layer).param.getValue("dot:gradient"));
     if (intensity_mode_ == IM_LOG)
     {
-      getLayer(layer).gradient.activatePrecalculationMode(0.0, std::log1p(overall_data_range_.maxPosition()[2]), param_.getValue("interpolation_steps"));
+      getLayer(layer).gradient.activatePrecalculationMode(0.0, std::log1p(overall_data_range_.getMaxIntensity()), param_.getValue("interpolation_steps"));
     }
     else
     {
-      getLayer(layer).gradient.activatePrecalculationMode(0.0, overall_data_range_.maxPosition()[2], param_.getValue("interpolation_steps"));
+      getLayer(layer).gradient.activatePrecalculationMode(0.0, overall_data_range_.getMaxIntensity(), param_.getValue("interpolation_steps"));
     }
   }
 
@@ -1144,10 +1062,13 @@ namespace OpenMS
     double total_intensity_sum = 0.0; // double because sum could get large
 
     // divide visible range into 100 bins (much faster than using a constant, e.g. 0.05, leading to many peaks for large maps without more information)
-    float mz_range = visible_area_.maxPosition()[0] - visible_area_.minPosition()[0];
-    float mult = 100.0f / (mz_range <= 0 ? 1 : mz_range);
+    float mz_range = visible_area_.getAreaUnit().RangeMZ::getSpan();
+    float mult = 100.0f / (std::isnan(mz_range) ? 1 : mz_range);
 
-    for (auto i = layer->getPeakData()->areaBeginConst(visible_area_.minPosition()[1], visible_area_.maxPosition()[1], visible_area_.minPosition()[0], visible_area_.maxPosition()[0]);
+    for (auto i = layer->getPeakData()->areaBeginConst(visible_area_.getAreaUnit().getMinRT(), 
+                                                       visible_area_.getAreaUnit().getMaxRT(),
+                                                       visible_area_.getAreaUnit().getMinMZ(),
+                                                       visible_area_.getAreaUnit().getMaxMZ());
          i != layer->getPeakData()->areaEndConst();
          ++i)
     {
@@ -1172,14 +1093,14 @@ namespace OpenMS
 
     // write to spectra
     projection_mz_[0].resize(mzint.size() + 2);
-    projection_mz_[0][0].setMZ(visible_area_.minPosition()[0]);
+    projection_mz_[0][0].setMZ(visible_area_.getAreaUnit().getMinMZ());
     projection_mz_[0][0].setIntensity(0.0);
-    projection_mz_[0][1].setMZ(visible_area_.maxPosition()[0]);
+    projection_mz_[0][1].setMZ(visible_area_.getAreaUnit().getMaxMZ());
     projection_mz_[0][1].setIntensity(0.0);
     projection_rt_[0].resize(rt.size() + 2);
-    projection_rt_[0][0].setMZ(visible_area_.minPosition()[1]);
+    projection_rt_[0][0].setMZ(visible_area_.getAreaUnit().getMinRT());
     projection_rt_[0][0].setIntensity(0.0);
-    projection_rt_[0][1].setMZ(visible_area_.maxPosition()[1]);
+    projection_rt_[0][1].setMZ(visible_area_.getAreaUnit().getMaxRT());
     projection_rt_[0][1].setIntensity(0.0);
 
     Size i = 2;
@@ -1205,7 +1126,7 @@ namespace OpenMS
     ExperimentSharedPtrType projection_mz_sptr(new ExperimentType(projection_mz_));
     ExperimentSharedPtrType projection_rt_sptr(new ExperimentType(projection_rt_));
 
-    if (isMzToXAxis())
+    if (unit_mapper_.getDim(DIM::X).getUnit() == DIM_UNIT::MZ)
     {
       emit showProjectionHorizontal(projection_mz_sptr);
       emit showProjectionVertical(projection_rt_sptr);
@@ -1220,7 +1141,7 @@ namespace OpenMS
 
   bool Plot2DCanvas::finishAdding_()
   {
-    // unselect all peaks
+    // deselect all peaks
     selected_peak_.clear();
     measurement_start_.clear();
 
@@ -1234,7 +1155,7 @@ namespace OpenMS
     update_buffer_ = true;
 
     // overall values update
-    recalculateRanges_(0, 1, 2);
+    recalculateRanges_();
     if (layers_.getLayerCount() == 1)
     {
       resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
@@ -1268,8 +1189,8 @@ namespace OpenMS
     layers_.removeLayer(layer_index);
 
     // update visible area and boundaries
-    DRange<3> old_data_range = overall_data_range_;
-    recalculateRanges_(0, 1, 2);
+    auto old_data_range = overall_data_range_;
+    recalculateRanges_();
 
     // only reset zoom if data range has been changed
     if (old_data_range != overall_data_range_)
@@ -1279,7 +1200,7 @@ namespace OpenMS
 
     if (layers_.empty())
     {
-      overall_data_range_ = DRange<3>::empty;
+      overall_data_range_.clearRanges();
       update_buffer_ = true;
       update_(OPENMS_PRETTY_FUNCTION);
       return;
@@ -1317,10 +1238,11 @@ namespace OpenMS
       {
         if (getLayer(i).visible)
         {
-          double local_max  = -numeric_limits<double>::max();
+          auto local_max  = -numeric_limits<Peak1D::IntensityType>::max();
           if (getLayer(i).type == LayerDataBase::DT_PEAK)
           {
-            for (ExperimentType::ConstAreaIterator it = getLayer(i).getPeakData()->areaBeginConst(visible_area_.minPosition()[1], visible_area_.maxPosition()[1], visible_area_.minPosition()[0], visible_area_.maxPosition()[0]);
+            for (ExperimentType::ConstAreaIterator it = getLayer(i).getPeakData()->areaBeginConst(visible_area_.getAreaUnit().getMinRT(), visible_area_.getAreaUnit().getMaxRT(),
+                                                                                                  visible_area_.getAreaUnit().getMinMZ(), visible_area_.getAreaUnit().getMaxMZ());
                  it != getLayer(i).getPeakData()->areaEndConst();
                  ++it)
             {
@@ -1337,14 +1259,11 @@ namespace OpenMS
                  it != getLayer(i).getFeatureMap()->end();
                  ++it)
             {
-              if (it->getRT() >= visible_area_.minPosition()[1] &&
-                  it->getRT() <= visible_area_.maxPosition()[1] &&
-                  it->getMZ() >= visible_area_.minPosition()[0] &&
-                  it->getMZ() <= visible_area_.maxPosition()[0] &&
-                  getLayer(i).filters.passes(*it) &&
-                  it->getIntensity() > local_max)
+              if (visible_area_.getAreaUnit().containsRT(it->getRT()) &&
+                  visible_area_.getAreaUnit().containsMZ(it->getMZ()) &&
+                  getLayer(i).filters.passes(*it))
               {
-                local_max = it->getIntensity();
+                local_max = std::max(local_max, it->getIntensity());
               }
             }
           }
@@ -1354,10 +1273,8 @@ namespace OpenMS
                  it != getLayer(i).getConsensusMap()->end();
                  ++it)
             {
-              if (it->getRT() >= visible_area_.minPosition()[1] &&
-                  it->getRT() <= visible_area_.maxPosition()[1] &&
-                  it->getMZ() >= visible_area_.minPosition()[0] &&
-                  it->getMZ() <= visible_area_.maxPosition()[0] &&
+              if (visible_area_.getAreaUnit().containsRT(it->getRT()) &&
+                  visible_area_.getAreaUnit().containsMZ(it->getMZ()) &&
                   getLayer(i).filters.passes(*it) &&
                   it->getIntensity() > local_max)
               {
@@ -1365,7 +1282,7 @@ namespace OpenMS
               }
             }
           }
-          else if (getLayer(i).type == LayerDataBase::DT_CHROMATOGRAM)         // chromatogr.
+          else if (getLayer(i).type == LayerDataBase::DT_CHROMATOGRAM)  // chromatogram
           {
             //TODO CHROM
           }
@@ -1376,7 +1293,7 @@ namespace OpenMS
 
           if (local_max > 0.0)
           {
-            snap_factors_[i] = overall_data_range_.maxPosition()[2] / local_max;
+            snap_factors_[i] = overall_data_range_.getMaxIntensity() / local_max;
           }
         }
       }
@@ -1385,53 +1302,34 @@ namespace OpenMS
 
   void Plot2DCanvas::updateScrollbars_()
   {
-    if (isMzToXAxis())
-    {
-      emit updateHScrollbar(overall_data_range_.minPosition()[0], visible_area_.minPosition()[0], visible_area_.maxPosition()[0], overall_data_range_.maxPosition()[0]);
-      emit updateVScrollbar(overall_data_range_.minPosition()[1], visible_area_.minPosition()[1], visible_area_.maxPosition()[1], overall_data_range_.maxPosition()[1]);
-    }
-    else
-    {
-      emit updateVScrollbar(overall_data_range_.minPosition()[0], visible_area_.minPosition()[0], visible_area_.maxPosition()[0], overall_data_range_.maxPosition()[0]);
-      emit updateHScrollbar(overall_data_range_.minPosition()[1], visible_area_.minPosition()[1], visible_area_.maxPosition()[1], overall_data_range_.maxPosition()[1]);
-    }
+    GenericArea ga(&unit_mapper_);
+    auto all = ga.setArea(overall_data_range_).getAreaXY();
+    const auto& vis = visible_area_.getAreaXY();
+    emit updateHScrollbar(all.minX(), vis.minX(), vis.maxX(), all.maxX());
+    emit updateVScrollbar(all.minY(), vis.minY(), vis.maxY(), all.maxY());
   }
 
   void Plot2DCanvas::horizontalScrollBarChange(int value)
   {
-    AreaType new_area = visible_area_;
-    if (!isMzToXAxis())
-    {
-      new_area.setMinY(value);
-      new_area.setMaxY(value + (visible_area_.height()));
-    }
-    else
-    {
-      new_area.setMinX(value);
-      new_area.setMaxX(value + (visible_area_.width()));
-    }
-    //cout << OPENMS_PRETTY_FUNCTION << endl;
+    auto new_area = visible_area_;
+    auto new_XY = new_area.getAreaXY();
+    auto X_width = new_XY.width();
+    new_XY.setMinX(value);
+    new_XY.setMaxX(value + X_width);
+    new_area.setArea(new_XY);
     changeVisibleArea_(new_area);
   }
 
   void Plot2DCanvas::verticalScrollBarChange(int value)
   {
     // invert 'value' (since the VERTICAL(!) scrollbar's range is negative -- see PlotWidget::updateVScrollbar())
-    // this is independent on isMzToXAxis()!
     value *= -1;
-
-    AreaType new_area = visible_area_;
-    if (!isMzToXAxis())
-    {
-      new_area.setMinX(value);
-      new_area.setMaxX(value + visible_area_.width());
-    }
-    else
-    {
-      new_area.setMinY(value);
-      new_area.setMaxY(value + (visible_area_.height()));
-    }
-    //cout << OPENMS_PRETTY_FUNCTION << endl;
+    auto new_area = visible_area_;
+    auto new_XY = new_area.getAreaXY();
+    auto Y_height = new_XY.height();
+    new_XY.setMinY(value);
+    new_XY.setMaxY(value + Y_height);
+    new_area.setArea(new_XY);
     changeVisibleArea_(new_area);
   }
 
@@ -1987,65 +1885,33 @@ namespace OpenMS
     {
       if (e->buttons() & Qt::LeftButton)
       {
-        if (getCurrentLayer().modifiable && getCurrentLayer().type == LayerDataBase::DT_FEATURE && selected_peak_.isValid())       //move feature
+        // move feature
+        if (getCurrentLayer().modifiable && getCurrentLayer().type == LayerDataBase::DT_FEATURE && selected_peak_.isValid())
         {
-          PointType new_data = widgetToData_(pos);
-          double mz = new_data[0];
-          double rt = new_data[1];
-
-          //restrict the movement to the data range
-          mz = max(mz, overall_data_range_.minPosition()[0]);
-          mz = min(mz, overall_data_range_.maxPosition()[0]);
-          rt = max(rt, overall_data_range_.minPosition()[1]);
-          rt = min(rt, overall_data_range_.maxPosition()[1]);
-
-          (*getCurrentLayer().getFeatureMap())[selected_peak_.peak].setRT(rt);
-          (*getCurrentLayer().getFeatureMap())[selected_peak_.peak].setMZ(mz);
+          RangeType dr;
+          unit_mapper_.fromXY(widgetToData_(pos), dr);
+          // restrict the movement to the data range
+          dr.clampTo(overall_data_range_);
+          (*getCurrentLayer().getFeatureMap())[selected_peak_.peak].setRT(dr.getMinRT());
+          (*getCurrentLayer().getFeatureMap())[selected_peak_.peak].setMZ(dr.getMinMZ());
 
           update_buffer_ = true;
           update_(OPENMS_PRETTY_FUNCTION);
           modificationStatus_(layers_.getCurrentLayerIndex(), true);
         }
-        else         //translate
-        {
-          //calculate data coordinates of shift
+        else // translate
+        { // calculate data coordinates of shift
           PointType old_data = widgetToData_(last_mouse_pos_);
           PointType new_data = widgetToData_(pos);
-          //calculate x shift
-          double shift = old_data.getX() - new_data.getX();
-          double newLoX = visible_area_.minX() + shift;
-          double newHiX = visible_area_.maxX() + shift;
-          // check if we are falling out of bounds
-          if (newLoX < overall_data_range_.minX())
-          {
-            newLoX = overall_data_range_.minX();
-            newHiX = newLoX + visible_area_.width();
-          }
-          if (newHiX > overall_data_range_.maxX())
-          {
-            newHiX = overall_data_range_.maxX();
-            newLoX = newHiX - visible_area_.width();
-          }
-          //calculate y shift
-          shift = old_data.getY() - new_data.getY();
-          double newLoY = visible_area_.minY() + shift;
-          double newHiY = visible_area_.maxY() + shift;
-          // check if we are falling out of bounds
-          if (newLoY < overall_data_range_.minY())
-          {
-            newLoY = overall_data_range_.minY();
-            newHiY = newLoY + visible_area_.height();
-          }
-          if (newHiY > overall_data_range_.maxY())
-          {
-            newHiY = overall_data_range_.maxY();
-            newLoY = newHiY - visible_area_.height();
-          }
+          // compute new area
+          auto new_visible_area = visible_area_;
+          new_visible_area.setArea(new_visible_area.getAreaXY() + (new_data - old_data));
+          // make sure its within global data range
+          auto au = new_visible_area.getAreaUnit();
+          au.pushInto(overall_data_range_);
+          new_visible_area.setArea(au);
 
-          //change area
-          //cout << "New area: x " << newLoX <<"-"<< newHiX << " - y "<<newLoY <<"-"<< newHiY << endl;
-          //cout << OPENMS_PRETTY_FUNCTION << endl;
-          changeVisibleArea_(AreaType(newLoX, newLoY, newHiX, newHiY));
+          changeVisibleArea_(new_visible_area);
           last_mouse_pos_ = pos;
         }
       }
@@ -2071,9 +1937,8 @@ namespace OpenMS
         QRect rect = rubber_band_.geometry();
         if (rect.width() != 0 && rect.height() != 0)
         {
-          AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
-          //cout << OPENMS_PRETTY_FUNCTION << endl;
-          changeVisibleArea_(area, true, true);
+          auto new_area = visible_area_.cloneWith(AreaXYType(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight())));
+          changeVisibleArea_(new_area, true, true);
         }
       }
     }
@@ -2081,21 +1946,17 @@ namespace OpenMS
 
   void Plot2DCanvas::contextMenuEvent(QContextMenuEvent * e)
   {
-    //Abort if there are no layers
+    // abort if there are no layers
     if (layers_.empty())
     {
       return;
     }
-
-    double mz = widgetToData_(e->pos())[0];
-    double rt = widgetToData_(e->pos())[1];
-
     const LayerDataBase& layer = getCurrentLayer();
 
-    QMenu * context_menu = new QMenu(this);
+    QMenu* context_menu = new QMenu(this);
 
-    QAction * a = nullptr;
-    QAction * result = nullptr;
+    QAction* a = nullptr;
+    QAction* result = nullptr;
 
     //Display name and warn if current layer invisible
     String layer_name = String("Layer: ") + layer.getName();
@@ -2115,6 +1976,14 @@ namespace OpenMS
 
     context_menu->addAction("Switch to 3D view");
 
+    const RangeType e_units = [&](){ // mouse position in units
+      RangeType r;
+      unit_mapper_.fromXY(widgetToData_(e->pos()), r);
+      return r; }();
+
+    // a small 10x10 pixel area around the current mouse position
+    auto check_area = visible_area_.cloneWith({widgetToData_(e->pos() - QPoint(10, 10)), widgetToData_(e->pos() + QPoint(10, 10))}).getAreaUnit();
+
     //-------------------PEAKS----------------------------------
     if (layer.type == LayerDataBase::DT_PEAK)
     {
@@ -2126,7 +1995,7 @@ namespace OpenMS
       //add surrounding survey scans
       //find nearest survey scan
       SignedSize size = getCurrentLayer().getPeakData()->size();
-      Int current = getCurrentLayer().getPeakData()->RTBegin(rt) - getCurrentLayer().getPeakData()->begin();
+      Int current = getCurrentLayer().getPeakData()->RTBegin(e_units.getMinRT()) - getCurrentLayer().getPeakData()->begin();
       if (current == size)  // if only one element is present RTBegin points to one after the last element (see RTBegin implementation)
       {
         current = 0;
@@ -2137,12 +2006,12 @@ namespace OpenMS
       {
         if (current + i < size && (*getCurrentLayer().getPeakData())[current + i].getMSLevel() == 1)
         {
-          current = current + i;
+          current += i;
           break;
         }
         if (current - i >= 0 && (*getCurrentLayer().getPeakData())[current - i].getMSLevel() == 1)
         {
-          current = current - i;
+          current -= i;
           break;
         }
         ++i;
@@ -2169,8 +2038,8 @@ namespace OpenMS
         ++i;
       }
       sort(indices.rbegin(), indices.rend());
-      QMenu * ms1_scans = context_menu->addMenu("Survey scan in 1D");
-      QMenu * ms1_meta = context_menu->addMenu("Survey scan meta data");
+      QMenu* ms1_scans = context_menu->addMenu("Survey scan in 1D");
+      QMenu* ms1_meta = context_menu->addMenu("Survey scan meta data");
       context_menu->addSeparator();
       for (i = 0; i < (Int)indices.size(); ++i)
       {
@@ -2201,37 +2070,23 @@ namespace OpenMS
       // - We first attempt to look at the position where the user clicked
       // - Next we look within the +/- 5 scans around that position
       // - Next we look within the whole visible area
-      QMenu * msn_scans = new QMenu("fragment scan in 1D");
-      QMenu * msn_meta = new QMenu("fragment scan meta data");
-      DPosition<2> p1 = widgetToData_(e->pos() + QPoint(10, 10));
-      DPosition<2> p2 = widgetToData_(e->pos() - QPoint(10, 10));
-      double rt_min = min(p1[1], p2[1]);
-      double rt_max = max(p1[1], p2[1]);
-      double mz_min = min(p1[0], p2[0]);
-      double mz_max = max(p1[0], p2[0]);
-      bool item_added = collectFragmentScansInArea(rt_min, rt_max, mz_min, mz_max, a, msn_scans, msn_meta);
+      QMenu* msn_scans = new QMenu("fragment scan in 1D");
+      QMenu* msn_meta = new QMenu("fragment scan meta data");
+      bool item_added = collectFragmentScansInArea_(check_area, a, msn_scans, msn_meta);
       if (!item_added)
       {
         // Now simply go for the 5 closest points in RT and check whether there
         // are any scans.
         // NOTE: that if we go for the visible area, we run the
         // risk of iterating through *all* the scans.
-
-        const AreaType & area = getVisibleArea();
-        double mz_min_vis = area.minPosition()[0];
-        double mz_max_vis = area.maxPosition()[0];
-
-        double rt5s_min = getCurrentLayer().getPeakData()->getSpectra()[ indices[indices.size()-1] ].getRT();
-        double rt5s_max = getCurrentLayer().getPeakData()->getSpectra()[ indices[0] ].getRT();
-
-        item_added = collectFragmentScansInArea(rt5s_min, rt5s_max, mz_min_vis, mz_max_vis, a, msn_scans, msn_meta);
+        check_area.RangeMZ::extend((RangeMZ)visible_area_.getAreaUnit());
+        const auto& specs = getCurrentLayer().getPeakData()->getSpectra();
+        check_area.RangeRT::operator=({specs[indices.back()].getRT(), specs[indices.front()].getRT()});
+        item_added = collectFragmentScansInArea_(check_area, a, msn_scans, msn_meta);
 
         if (!item_added)
-        {
-          // ok, now lets search the whole visible area (may be large!)
-          double rt_min_vis = area.minPosition()[1];
-          double rt_max_vis = area.maxPosition()[1];
-          item_added = collectFragmentScansInArea(rt_min_vis, rt_max_vis, mz_min_vis, mz_max_vis, a, msn_scans, msn_meta);
+        { // OK, now lets search the whole visible area (may be large!)
+          item_added = collectFragmentScansInArea_(visible_area_.getAreaUnit(), a, msn_scans, msn_meta);
         }
       }
       if (item_added)
@@ -2243,7 +2098,7 @@ namespace OpenMS
 
       finishContextMenu_(context_menu, settings_menu);
 
-      //evaluate menu
+      // evaluate menu
       if ((result = context_menu->exec(mapToGlobal(e->pos()))))
       {
         if (result->parent() == ms1_scans  || result->parent() == msn_scans)
@@ -2267,39 +2122,30 @@ namespace OpenMS
       settings_menu->addAction("Show/hide unassigned peptide hits");
 
       // search for nearby features
-      DPosition<2> p1 = widgetToData_(e->pos() + QPoint(10, 10));
-      DPosition<2> p2 = widgetToData_(e->pos() - QPoint(10, 10));
-      double rt_min = min(p1[1], p2[1]);
-      double rt_max = max(p1[1], p2[1]);
-      double mz_min = min(p1[0], p2[0]);
-      double mz_max = max(p1[0], p2[0]);
-
       QMenu* meta = new QMenu("Feature meta data");
-      bool present = false;
-      FeatureMapType& features = *getCurrentLayer().getFeatureMap();
+      const FeatureMapType& features = *getCurrentLayer().getFeatureMap();
       // feature meta data menu
-      for (FeatureMapType::Iterator it = features.begin(); it != features.end(); ++it)
+      for (auto it = features.cbegin(); it != features.cend(); ++it)
       {
-        if (it->getMZ() <= mz_max && it->getMZ() >= mz_min && it->getRT() <= rt_max && it->getRT() >= rt_min)
+        if (check_area.containsMZ(it->getMZ()) && check_area.containsRT(it->getRT()))
         {
-          present = true;
           a = meta->addAction(QString("RT: ") + QString::number(it->getRT()) + "  m/z:" + QString::number(it->getMZ()) + "  charge:" + QString::number(it->getCharge()));
           a->setData((int)(it - features.begin()));
         }
       }
-      if (present)
+      if (!meta->actions().empty())
       {
         context_menu->addMenu(meta);
         context_menu->addSeparator();
       }
 
-      //add modifiable flag
+      // add modifiable flag
       settings_menu->addSeparator();
       settings_menu->addAction("Toggle edit/view mode");
 
       finishContextMenu_(context_menu, settings_menu);
 
-      //evaluate menu
+      // evaluate menu
       if ((result = context_menu->exec(mapToGlobal(e->pos()))))
       {
         if (result->text().left(3) == "RT:")
@@ -2311,33 +2157,23 @@ namespace OpenMS
     //-------------------CONSENSUS FEATURES----------------------------------
     else if (layer.type == LayerDataBase::DT_CONSENSUS)
     {
-      //add settings
+      // add settings
       settings_menu->addSeparator();
       settings_menu->addAction("Show/hide elements");
 
-      //search for nearby features
-      DPosition<2> p1 = widgetToData_(e->pos() + QPoint(10, 10));
-      DPosition<2> p2 = widgetToData_(e->pos() - QPoint(10, 10));
-      double rt_min = min(p1[1], p2[1]);
-      double rt_max = max(p1[1], p2[1]);
-      double mz_min = min(p1[0], p2[0]);
-      double mz_max = max(p1[0], p2[0]);
-
-      QMenu * consens_meta = new QMenu("Consensus meta data");
-      bool present = false;
-      ConsensusMapType & features = *getCurrentLayer().getConsensusMap();
-      //consensus feature meta data menu
-      for (ConsensusMapType::Iterator it = features.begin(); it != features.end(); ++it)
+      // search for nearby features
+      QMenu* consens_meta = new QMenu("Consensus meta data");
+      const ConsensusMapType& features = *getCurrentLayer().getConsensusMap();
+      // consensus feature meta data menu
+      for (auto it = features.cbegin(); it != features.cend(); ++it)
       {
-        if (it->getMZ() <= mz_max && it->getMZ() >= mz_min && it->getRT() <= rt_max && it->getRT() >= rt_min)
+        if (check_area.containsMZ(it->getMZ()) && check_area.containsRT(it->getRT()))
         {
-          present = true;
-
           a = consens_meta->addAction(QString("RT: ") + QString::number(it->getRT()) + "  m/z:" + QString::number(it->getMZ()) + "  charge:" + QString::number(it->getCharge()));
           a->setData((int)(it - features.begin()));
         }
       }
-      if (present)
+      if (!consens_meta->actions().empty())
       {
         context_menu->addMenu(consens_meta);
         context_menu->addSeparator();
@@ -2360,20 +2196,19 @@ namespace OpenMS
       settings_menu->addAction("Show/hide projections");
       settings_menu->addAction("Show/hide MS/MS precursors");
 
-      PeakMap exp;
-      exp = *layer.getPeakData();
+      const PeakMap& exp = *layer.getPeakData();
 
-      int CHROMATOGRAM_SHOW_MZ_RANGE = 10;
+      constexpr int CHROMATOGRAM_SHOW_MZ_RANGE = 10;
+      auto search_area = e_units;
+      search_area.RangeMZ::extendLeftRight(CHROMATOGRAM_SHOW_MZ_RANGE);
 
       // collect all precursor that fall into the mz rt window
       typedef std::set<Precursor, Precursor::MZLess> PCSetType;
       PCSetType precursor_in_rt_mz_window;
-      for (vector<MSChromatogram >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
+      for (auto iter = exp.getChromatograms().cbegin(); iter != exp.getChromatograms().cend(); ++iter)
       {
-        if (mz + CHROMATOGRAM_SHOW_MZ_RANGE >= iter->getPrecursor().getMZ() &&
-            mz - CHROMATOGRAM_SHOW_MZ_RANGE <= iter->getPrecursor().getMZ() &&
-            rt >= iter->front().getRT() &&
-            rt <= iter->back().getRT())
+        if (search_area.containsMZ(iter->getPrecursor().getMZ()) &&
+            RangeBase{iter->front().getRT(), iter->back().getRT()}.contains(search_area.getRangeForDim(MSDim::MZ)))
         {
           precursor_in_rt_mz_window.insert(iter->getPrecursor());
         }
@@ -2392,20 +2227,8 @@ namespace OpenMS
         }
       }
 
-      /*
-        // dump precursor and associated products
-        for (map<Precursor, vector<Size>, Precursor::MZLess >::iterator mit = map_precursor_to_chrom_idx.begin(); mit != map_precursor_to_chrom_idx.end(); ++mit)
-        {
-          cout << "Precursor: " << mit->first << endl;
-          for (vector<Size>::iterator vit = mit->second.begin(); vit != mit->second.end(); ++vit)
-          {
-            cout << "  Product mz: " << exp.getChromatograms()[*vit].getMZ() << endl;
-          }
-        }
-        */
-
-      QMenu * msn_chromatogram  = nullptr;
-      QMenu * msn_chromatogram_meta = nullptr;
+      QMenu* msn_chromatogram  = nullptr;
+      QMenu* msn_chromatogram_meta = nullptr;
 
       if (!map_precursor_to_chrom_idx.empty())
       {
@@ -2413,7 +2236,7 @@ namespace OpenMS
         msn_chromatogram_meta = context_menu->addMenu("Chromatogram meta data");
         context_menu->addSeparator();
 
-        for (map<Precursor, vector<Size>, Precursor::MZLess>::iterator mit = map_precursor_to_chrom_idx.begin(); mit != map_precursor_to_chrom_idx.end(); ++mit)
+        for (auto mit = map_precursor_to_chrom_idx.cbegin(); mit != map_precursor_to_chrom_idx.cend(); ++mit)
         {
           // Show the peptide sequence if available, otherwise show the m/z and charge only
           QString precursor_string = QString("Precursor m/z: (")  + String(mit->first.getCharge()).toQString() + ") " + QString::number(mit->first.getMZ());
@@ -2426,16 +2249,16 @@ namespace OpenMS
           // Show all: iterate over all chromatograms corresponding to the current precursor and add action containing all chromatograms
           a = msn_precursor->addAction(QString("Show all"));
           QList<QVariant> chroms_idx;
-          for (vector<Size>::iterator vit = mit->second.begin(); vit != mit->second.end(); ++vit)
+          for (auto vit = mit->second.cbegin(); vit != mit->second.cend(); ++vit)
           {
             chroms_idx.push_back((unsigned int)*vit);
           }
           a->setData(chroms_idx);
 
           // Show single chromatogram: iterate over all chromatograms corresponding to the current precursor and add action for the single chromatogram
-          for (vector<Size>::iterator vit = mit->second.begin(); vit != mit->second.end(); ++vit)
+          for (auto vit = mit->second.cbegin(); vit != mit->second.cend(); ++vit)
           {
-            a = msn_precursor->addAction(QString("Chromatogram m/z: ") + QString::number(exp.getChromatograms()[*vit].getMZ())); // Precursor => Chromatogram MZ Werte eintragen
+            a = msn_precursor->addAction(QString("Chromatogram m/z: ") + QString::number(exp.getChromatograms()[*vit].getMZ())); // Precursor => Chromatogram MZ
             a->setData((int)(*vit));
           }
         }
@@ -2451,11 +2274,10 @@ namespace OpenMS
           if (result->text() == "Show all")
           {
             std::vector<int> chrom_indices;
-            const QList<QVariant> & res = result->data().toList();
-            for (Int i = 0; i != res.size(); ++i)
+            for (const auto var : result->data().toList())
             {
-              chrom_indices.push_back(res[i].toInt());
-              cout << "chrom_indices: " << res[i].toInt() << std::endl;
+              chrom_indices.push_back(var.toInt());
+              cout << "chrom_indices: " << var.toInt() << std::endl;
             }
             emit showChromatogramsAsNew1D(chrom_indices);
           }
@@ -2472,7 +2294,7 @@ namespace OpenMS
       }
     }
 
-    //common actions of peaks and features
+    // common actions of peaks and features
     if (result)
     {
       if (result->text() == "Preferences")
@@ -2547,14 +2369,14 @@ namespace OpenMS
     e->accept();
   }
 
-  void Plot2DCanvas::finishContextMenu_(QMenu * context_menu, QMenu * settings_menu)
+  void Plot2DCanvas::finishContextMenu_(QMenu* context_menu, QMenu* settings_menu)
   {
-    //finish settings menu
+    // finish settings menu
     settings_menu->addSeparator();
     settings_menu->addAction("Preferences");
 
-    //create save menu
-    QMenu * save_menu = new QMenu("Save");
+    // create save menu
+    QMenu* save_menu = new QMenu("Save");
     save_menu->addAction("Layer");
     save_menu->addAction("Visible layer data");
     save_menu->addAction("As image");
@@ -2577,20 +2399,11 @@ namespace OpenMS
     LayerDataBase& layer = getCurrentLayer();
 
     ColorSelector * bg_color = dlg.findChild<ColorSelector *>("bg_color");
-    QComboBox * mapping = dlg.findChild<QComboBox *>("mapping");
     MultiGradientSelector * gradient = dlg.findChild<MultiGradientSelector *>("gradient");
     QComboBox * feature_icon = dlg.findChild<QComboBox *>("feature_icon");
     QSpinBox * feature_icon_size = dlg.findChild<QSpinBox *>("feature_icon_size");
 
     bg_color->setColor(QColor(String(param_.getValue("background_color").toString()).toQString()));
-    if (isMzToXAxis())
-    {
-      mapping->setCurrentIndex(0);
-    }
-    else
-    {
-      mapping->setCurrentIndex(1);
-    }
     gradient->gradient().fromString(layer.param.getValue("dot:gradient"));
     feature_icon->setCurrentIndex(feature_icon->findText(String(layer.param.getValue("dot:feature_icon").toString()).toQString()));
     feature_icon_size->setValue((int)layer.param.getValue("dot:feature_icon_size"));
@@ -2600,12 +2413,7 @@ namespace OpenMS
       param_.setValue("background_color", bg_color->getColor().name().toStdString());
       layer.param.setValue("dot:feature_icon", feature_icon->currentText().toStdString());
       layer.param.setValue("dot:feature_icon_size", feature_icon_size->value());
-      if ((mapping->currentIndex() == 0 && !isMzToXAxis()) || (mapping->currentIndex() == 1 && isMzToXAxis()))
-      {
-        mzToXAxis(!isMzToXAxis());
-      }
       layer.param.setValue("dot:gradient", gradient->gradient().toString());
-
       emit preferencesChange();
     }
   }
@@ -2652,16 +2460,11 @@ namespace OpenMS
     }
     else if (layer.type == LayerDataBase::DT_FEATURE) //features
     {
-      QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(), "featureXML files (*.featureXML);;All files (*)");
-      if (!file_name.isEmpty())
+      String file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(), "featureXML files (*.featureXML);;All files (*)");
+      if (!file_name.empty())
       {
         // add suffix ".featureXML" if not given
-        String upper_filename = file_name;
-        upper_filename.toUpper();
-        if (!upper_filename.hasSuffix(".FEATUREXML"))
-        {
-          file_name += ".featureXML";
-        }
+        file_name = FileHandler::swapExtension(file_name, FileTypes::FEATUREXML);
         if (visible)     //only visible data
         {
           FeatureMapType out;
@@ -2677,16 +2480,11 @@ namespace OpenMS
     }
     else if (layer.type == LayerDataBase::DT_CONSENSUS) //consensus feature data
     {
-      QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(), "consensusXML files (*.consensusXML);;All files (*)");
-      if (!file_name.isEmpty())
+      String file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(), "consensusXML files (*.consensusXML);;All files (*)");
+      if (!file_name.empty())
       {
         // add suffix ".consensusXML" if not given
-        String upper_filename = file_name;
-        upper_filename.toUpper();
-        if (!upper_filename.hasSuffix(".CONSENSUSXML"))
-        {
-          file_name += ".consensusXML";
-        }
+        file_name = FileHandler::swapExtension(file_name, FileTypes::CONSENSUSXML);
 
         if (visible)     //only visible data
         {
@@ -2711,82 +2509,41 @@ namespace OpenMS
   {
     //update nearest peak
     selected_peak_.clear();
-    recalculateRanges_(0, 1, 2);
+    recalculateRanges_();
     resetZoom(false);     //no repaint as this is done in intensityModeChange_() anyway
     intensityModeChange_();
     modificationStatus_(i, false);
   }
 
-  void Plot2DCanvas::translateVisibleArea_( double mzShiftRel, double rtShiftRel )
+  void Plot2DCanvas::translateVisibleArea_(double x_axis_rel, double y_axis_rel)
   {
-    double rtShift = rtShiftRel * visible_area_.height();
-    double mzShift = mzShiftRel * visible_area_.width();
-    AreaType newArea( visible_area_ );
-    // shift the visible area avoiding moving out data range bounds
-    if ( mzShift > 0 ) {
-        newArea.setMaxX( qMin( overall_data_range_.maxX(), visible_area_.maxX() + mzShift ) );
-        newArea.setMinX( qMax( overall_data_range_.minX(), newArea.maxX() - visible_area_.width() ) );
-    } else {
-        newArea.setMinX( qMax( overall_data_range_.minX(), visible_area_.minX() + mzShift ) );
-        newArea.setMaxX( qMin( overall_data_range_.maxX(), newArea.minX() + visible_area_.width() ) );
-    }
-    if ( rtShift > 0 ) {
-        newArea.setMaxY( qMin( overall_data_range_.maxY(), visible_area_.maxY() + rtShift ) );
-        newArea.setMinY( qMax( overall_data_range_.minY(), newArea.maxY() - visible_area_.height() ) );
-    } else {
-        newArea.setMinY( qMax( overall_data_range_.minY(), visible_area_.minY() + rtShift ) );
-        newArea.setMaxY( qMin( overall_data_range_.maxY(), newArea.minY() + visible_area_.height() ) );
-    }
+    auto xy = visible_area_.getAreaXY();
+    const auto shift = xy.diagonal() * AreaXYType::PositionType{x_axis_rel, y_axis_rel};
+    auto new_area = visible_area_.cloneWith(xy + shift).getAreaUnit();
+    // avoid moving out data range bounds
+    new_area.pushInto(overall_data_range_);
     //change visible area
-    changeVisibleArea_(newArea);
+    changeVisibleArea_(visible_area_.cloneWith(new_area));
   }
 
   void Plot2DCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
   {
-    if ( isMzToXAxis() )
-    {
-      translateVisibleArea_( -0.05, 0.0 );
-    }
-    else
-    {
-      translateVisibleArea_( 0.0, -0.05 );
-    }
+    translateVisibleArea_( -0.05, 0.0 );
   }
 
   void Plot2DCanvas::translateRight_(Qt::KeyboardModifiers /*m*/)
   {
-    if ( isMzToXAxis() )
-    {
-      translateVisibleArea_( 0.05, 0.0 );
-    }
-    else
-    {
-      translateVisibleArea_( 0.0, 0.05 );
-    }
+    translateVisibleArea_( 0.05, 0.0 );
   }
 
   void Plot2DCanvas::translateForward_()
   {
-    if ( isMzToXAxis() )
-    {
-      translateVisibleArea_( 0.0, 0.05 );
-    }
-    else 
-    {
-      translateVisibleArea_( 0.05, 0.0 );
-    }
+    translateVisibleArea_( 0.0, 0.05 );
   }
 
   void Plot2DCanvas::translateBackward_()
   {
-    if ( isMzToXAxis() )
-    {
-      translateVisibleArea_( 0.0, -0.05 );
-    }
-    else
-    {
-      translateVisibleArea_( -0.05, 0.0 );
-    }
+    translateVisibleArea_(0.0, -0.05);
   }
 
   void Plot2DCanvas::keyPressEvent(QKeyEvent * e)
@@ -2854,8 +2611,8 @@ namespace OpenMS
       QRect rect = rubber_band_.geometry();
       if (rect.width() != 0 && rect.height() != 0)
       {
-        AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
-        changeVisibleArea_(area, true, true);
+        AreaXYType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
+        changeVisibleArea_(visible_area_.cloneWith(area), true, true);
       }
     }
     else if (action_mode_ == AM_MEASURE)
@@ -2902,7 +2659,7 @@ namespace OpenMS
       if (!current_layer.getFeatureMap()->getRange().containsIntensity(tmp.getIntensity()))
       {
         current_layer.getFeatureMap()->updateRanges();
-        recalculateRanges_(0, 1, 2);
+        recalculateRanges_();
         intensityModeChange_();
       }
       else // just repaint to show the changes
@@ -2937,7 +2694,7 @@ namespace OpenMS
     old_range.RangeIntensity::clear();
     if (!old_range.containsAll(layer.getFeatureMap()->getRange()))
     {
-      recalculateRanges_(0, 1, 2);
+      recalculateRanges_();
       resetZoom(true);
     }
   }
@@ -2964,7 +2721,7 @@ namespace OpenMS
     old_range.RangeIntensity::clear();
     if (!old_range.containsAll(layer.getConsensusMap()->getRange()))
     {
-      recalculateRanges_(0, 1, 2);
+      recalculateRanges_();
       resetZoom(true);
     }
   }
@@ -2981,23 +2738,21 @@ namespace OpenMS
     layer_peptides.insert(layer_peptides.end(), peptides.begin(),
                                peptides.end());
     // update the layer and overall ranges
-    recalculateRanges_(0, 1, 2);
+    recalculateRanges_();
     resetZoom(true);
   }
 
-    bool Plot2DCanvas::collectFragmentScansInArea(double rt_min, double rt_max, double mz_min, double mz_max, QAction* a, QMenu * msn_scans, QMenu * msn_meta)
+    bool Plot2DCanvas::collectFragmentScansInArea_(const RangeType& range, QAction* a, QMenu* msn_scans, QMenu* msn_meta)
     {
-
       bool item_added = false;
-      for (ExperimentType::ConstIterator it = getCurrentLayer().getPeakData()->RTBegin(rt_min); it != getCurrentLayer().getPeakData()->RTEnd(rt_max); ++it)
+      const auto last_RT = getCurrentLayer().getPeakData()->RTEnd(range.getMaxRT());
+      for (ExperimentType::ConstIterator it = getCurrentLayer().getPeakData()->RTBegin(range.getMinRT());
+                                         it != last_RT; ++it)
       {
-        double mz = 0.0;
-        if (!it->getPrecursors().empty())
-        {
-          mz = it->getPrecursors()[0].getMZ();
-        }
+        if (it->getPrecursors().empty()) continue;
 
-        if (it->getMSLevel() > 1 && mz >= mz_min && mz <= mz_max)
+        double mz = it->getPrecursors()[0].getMZ();
+        if (it->getMSLevel() > 1 && range.containsMZ(mz))
         {
           a = msn_scans->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
           a->setData((int)(it - getCurrentLayer().getPeakData()->begin()));

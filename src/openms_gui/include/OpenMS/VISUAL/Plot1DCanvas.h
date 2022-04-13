@@ -38,7 +38,6 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // OpenMS
-#include <OpenMS/VISUAL/DimMapper.h>
 #include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/Painter1DBase.h>
 
@@ -201,6 +200,16 @@ public:
     // Returns true if ion ladder is visible
     bool isIonLadderVisible() const;
 
+    const DimMapper<2>& getDims() const
+    {
+      return unit_mapper_;
+    }
+
+    void setDims(const DimMapper<2>& dims)
+    {
+      unit_mapper_ = dims;
+    }
+
 signals:
     /// Requests to display all spectra in 2D plot
     void showCurrentPeaksAs2D();
@@ -272,7 +281,7 @@ protected:
         @param repaint if repainting of the widget should be triggered
         @param add_to_stack If the new area is to add to the zoom_stack_
     */
-    void changeVisibleArea_(const AreaType& new_area, bool repaint = true, bool add_to_stack = false) override;
+    void changeVisibleArea_(const VisibleArea& new_area, bool repaint = true, bool add_to_stack = false) override;
     // Docu in base class
     void recalculateSnapFactor_() override;
     // Docu in base class
@@ -305,14 +314,10 @@ protected:
     std::vector<std::pair<Size, Size> > aligned_peaks_indices_;
     /// Stores the score of the last alignment
     double alignment_score_;
-    /// is this widget showing data with swapped m/z and RT axis? (for drawCoordinates_ only)
-    bool is_swapped_;
     /// whether the ion ladder is displayed on the top right corner in ID view
     bool ion_ladder_visible_;
     /// annotate interesting peaks with m/z's
     bool draw_interesting_MZs_;
-    /// Mapper for X and Y axis
-    DimMapper<2> unit_mapper_;
 
     /// Find peak next to the given position
     PeakIndex findPeakAtPosition_(QPoint);

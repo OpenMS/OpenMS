@@ -120,10 +120,9 @@ namespace OpenMS
     show_alignment_(false),
     aligned_peaks_mz_delta_(),
     alignment_score_(0),
-    is_swapped_(true),
     ion_ladder_visible_(true),
     draw_interesting_MZs_(false), 
-    unit_mapper_({DIM_UNITS::RT, DIM_UNITS::MZ})
+    unit_mapper_({DIM_UNIT::RT, DIM_UNIT::MZ})
   {
     //Parameter handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
@@ -131,7 +130,6 @@ namespace OpenMS
     defaults_.setValue("peak_color", "#0000ff", "Peak color.");
     defaults_.setValue("annotation_color", "#000055", "Annotation color.");
     defaults_.setValue("background_color", "#ffffff", "Background color.");
-    defaults_.setValue("show_legend", "false", "Annotate each layer with its name on the canvas.");
     defaultsToParam_();
     setName("Plot1DCanvas");
     setParameters(preferences);
@@ -372,13 +370,13 @@ namespace OpenMS
           updatePercentageFactor_(getCurrentLayerIndex());
 
           dataToWidget(peak, measurement_start_point_, getCurrentLayer().flipped);
-          if (isMzToXAxis())
+          if (unit_mapper_.getDim(DIM::X).getUnit() == DIM_UNIT::INT)
           {
-            measurement_start_point_.setY(last_mouse_pos_.y());
+            measurement_start_point_.setX(last_mouse_pos_.x());
           }
           else
           {
-            measurement_start_point_.setX(last_mouse_pos_.x());
+            measurement_start_point_.setY(last_mouse_pos_.y());
           }
         }
         else

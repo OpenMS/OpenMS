@@ -129,9 +129,9 @@ namespace OpenMS
     update_(OPENMS_PRETTY_FUNCTION);
   }
 
-  void PlotCanvas::mzToXAxis(bool mz_to_x_axis)
+  void PlotCanvas::dimensionsChanged_()
   {
-    mz_to_x_axis_ = mz_to_x_axis;
+    zoom_stack_.clear(); // any zoom history is bogus
 
     // swap axes if necessary
     if (spectrum_widget_)
@@ -144,13 +144,13 @@ namespace OpenMS
     update_(OPENMS_PRETTY_FUNCTION);
   }
 
-  void PlotCanvas::changeVisibleArea_(const AreaType& new_area, bool repaint, bool add_to_stack)
+  void PlotCanvas::changeVisibleArea_(const VisibleArea& new_area, bool repaint, bool add_to_stack)
   {
     // store old zoom state
     if (add_to_stack)
     {
       // if we scrolled in between zooming we want to store the last position before zooming as well
-      if ((zoom_stack_.size() > 0) && (zoom_stack_.back() != visible_area_))
+      if ((!zoom_stack_.empty()) && (zoom_stack_.back() != visible_area_))
       {
         zoomAdd_(visible_area_);
       }
@@ -186,7 +186,7 @@ namespace OpenMS
   void PlotCanvas::zoom_(int x, int y, bool zoom_in)
   {
     const PointType::CoordinateType zoom_factor = zoom_in ? 0.8 : 1.0 / 0.8;
-    AreaType new_area;
+    VisibleArea new_area;
     for (int dim = 0; dim < AreaType::DIMENSION; dim++)
     {
       // don't assign to "new_area.min_"/"max_" immediately, as this can lead to strange crashes at the min/max calls below on some platforms
@@ -200,7 +200,7 @@ namespace OpenMS
     if (new_area != visible_area_)
     {
       zoomAdd_(new_area);
-      zoom_pos_ = --zoom_stack_.end(); // set to last position
+      zoom_pos_ = zoom_stack_.; // set to last position
       changeVisibleArea_(*zoom_pos_);
     }
   }
@@ -227,15 +227,9 @@ namespace OpenMS
     // if at end of zoom level then simply add a new zoom
     if (zoom_pos_ == zoom_stack_.end() || (zoom_pos_ + 1) == zoom_stack_.end())
     {
-      AreaType new_area;
-      // distance of areas center to border times a zoom factor of 0.8
-      AreaType::CoordinateType size0 = visible_area_.width() / 2 * 0.8;
-      AreaType::CoordinateType size1 = visible_area_.height() / 2 * 0.8;
-      new_area.setMinX(visible_area_.center()[0] - size0);
-      new_area.setMinY(visible_area_.center()[1] - size1);
-      new_area.setMaxX(visible_area_.center()[0] + size0);
-      new_area.setMaxY(visible_area_.center()[1] + size1);
-      zoomAdd_(new_area);
+      auto new_area = visible_area_;
+      auto xy = new_area.getAreaXY();
+      zoomAdd_(new_area.setArea(xy.extend(0.8)));
       zoom_pos_ = --zoom_stack_.end(); // set to last position
     }
     else // goto next zoom level
@@ -247,7 +241,7 @@ namespace OpenMS
     // cout << " - pos after:" << (zoom_pos_-zoom_stack_.begin()) << endl;
   }
 
-  void PlotCanvas::zoomAdd_(const AreaType& area)
+  void PlotCanvas::zoomAdd_(const VisibleArea& area)
   {
     // cout << "Adding to stack" << endl;
     // cout << " - pos before:" << (zoom_pos_-zoom_stack_.begin()) << endl;
@@ -272,15 +266,14 @@ namespace OpenMS
 
   void PlotCanvas::resetZoom(bool repaint)
   {
-    AreaType tmp;
+    AreaXYType tmp;
     tmp.assign(overall_data_range_);
     zoomClear_();
-    changeVisibleArea_(tmp, repaint, true);
+    changeVisibleArea_(VisibleArea(visible_area_).setArea(tmp), repaint, true);
   }
 
-  void PlotCanvas::setVisibleArea(const AreaType& area)
+  void PlotCanvas::setVisibleArea(const VisibleArea& area)
   {
-    // cout << OPENMS_PRETTY_FUNCTION << endl;
     changeVisibleArea_(area);
   }
 
@@ -487,15 +480,15 @@ namespace OpenMS
     }
   }
 
-  const DRange<3>& PlotCanvas::getDataRange()
+  const RangeType& PlotCanvas::getDataRange()
   {
     return overall_data_range_;
   }
 
-  void PlotCanvas::recalculateRanges_(UInt mz_dim, UInt rt_dim, UInt it_dim)
+  void PlotCanvas::recalculateRanges_()
   {
-    RangeType layer_range; // temporary, until we switch overall_data_range_ to a RangeType
-    // overall_data_range_.clearRanges();
+    RangeType& layer_range = overall_data_range_; 
+    layer_range.clearRanges();
 
     for (Size layer_index = 0; layer_index < getLayerCount(); ++layer_index)
     {
@@ -507,18 +500,6 @@ namespace OpenMS
 
     // set minimum intensity to 0 (avoid negative intensities!)
     layer_range.RangeIntensity::setMin(0);
-
-    overall_data_range_ = DRange<3>::empty;
-    DRange<3>::PositionType m_min = overall_data_range_.minPosition();
-    DRange<3>::PositionType m_max = overall_data_range_.maxPosition();
-    m_min[rt_dim] = layer_range.getMinRT();
-    m_min[mz_dim] = layer_range.getMinMZ();
-    m_min[it_dim] = layer_range.getMinIntensity();
-    m_max[rt_dim] = layer_range.getMaxRT();
-    m_max[mz_dim] = layer_range.getMaxMZ();
-    m_max[it_dim] = layer_range.getMaxIntensity();
-    overall_data_range_.setMin(m_min);
-    overall_data_range_.setMax(m_max);
   }
 
   double PlotCanvas::getSnapFactor()
@@ -672,14 +653,14 @@ namespace OpenMS
     const LayerDataBase& layer = getCurrentLayer();
     if (layer.type == LayerDataBase::DT_PEAK)
     {
-      const AreaType& area = getVisibleArea();
+      const auto& area = getVisibleArea();
       const ExperimentType& peaks = *layer.getPeakData();
       // copy experimental settings
       map.ExperimentalSettings::operator=(peaks);
       // get begin / end of the range
       ExperimentType::ConstIterator peak_start = layer.getPeakData()->begin();
-      ExperimentType::ConstIterator begin = layer.getPeakData()->RTBegin(area.minPosition()[1]);
-      ExperimentType::ConstIterator end = layer.getPeakData()->RTEnd(area.maxPosition()[1]);
+      ExperimentType::ConstIterator begin = layer.getPeakData()->RTBegin(area.getAreaUnit().getMinRT());
+      ExperimentType::ConstIterator end = layer.getPeakData()->RTEnd(area.getAreaUnit().getMaxRT());
       Size begin_idx = std::distance(peak_start, begin);
       Size end_idx = std::distance(peak_start, end);
 
@@ -707,7 +688,7 @@ namespace OpenMS
         if (!is_1d && spectrum_ref.getMSLevel() > 1 && !spectrum_ref.getPrecursors().empty())
         {
           // MS^n (n>1) spectra are copied if their precursor is in the m/z range
-          if (spectrum_ref.getPrecursors()[0].getMZ() >= area.minPosition()[0] && spectrum_ref.getPrecursors()[0].getMZ() <= area.maxPosition()[0])
+          if (area.getAreaUnit().containsMZ(spectrum_ref.getPrecursors()[0].getMZ()))
           {
             spectrum.insert(spectrum.begin(), spectrum_ref.begin(), spectrum_ref.end());
             map.addSpectrum(spectrum);
@@ -716,7 +697,8 @@ namespace OpenMS
         else
         {
           // MS1 spectra are cropped to the m/z range
-          for (SpectrumType::ConstIterator it2 = spectrum_ref.MZBegin(area.minPosition()[0]); it2 != spectrum_ref.MZEnd(area.maxPosition()[0]); ++it2)
+          auto it_end = spectrum_ref.MZEnd(area.getAreaUnit().getMaxMZ());
+          for (SpectrumType::ConstIterator it2 = spectrum_ref.MZBegin(area.getAreaUnit().getMinMZ()); it2 != it_end; ++it2)
           {
             if (layer.filters.passes(spectrum_ref, it2 - spectrum_ref.begin()))
             {
@@ -745,15 +727,12 @@ namespace OpenMS
       // copy meta data
       map.setIdentifier(layer.getFeatureMap()->getIdentifier());
       map.setProteinIdentifications(layer.getFeatureMap()->getProteinIdentifications());
-      // Visible area
-      double min_rt = getVisibleArea().minPosition()[1];
-      double max_rt = getVisibleArea().maxPosition()[1];
-      double min_mz = getVisibleArea().minPosition()[0];
-      double max_mz = getVisibleArea().maxPosition()[0];
       // copy features
       for (FeatureMapType::ConstIterator it = layer.getFeatureMap()->begin(); it != layer.getFeatureMap()->end(); ++it)
       {
-        if (layer.filters.passes(*it) && it->getRT() >= min_rt && it->getRT() <= max_rt && it->getMZ() >= min_mz && it->getMZ() <= max_mz)
+        if (layer.filters.passes(*it) &&
+            getVisibleArea().getAreaUnit().containsRT(it->getRT()) &&
+            getVisibleArea().getAreaUnit().containsMZ(it->getMZ()))
         {
           map.push_back(*it);
         }
@@ -771,15 +750,12 @@ namespace OpenMS
     {
       // copy file descriptions
       map.getColumnHeaders() = layer.getConsensusMap()->getColumnHeaders();
-      // Visible area
-      double min_rt = getVisibleArea().minPosition()[1];
-      double max_rt = getVisibleArea().maxPosition()[1];
-      double min_mz = getVisibleArea().minPosition()[0];
-      double max_mz = getVisibleArea().maxPosition()[0];
       // copy features
       for (ConsensusMapType::ConstIterator it = layer.getConsensusMap()->begin(); it != layer.getConsensusMap()->end(); ++it)
       {
-        if (layer.filters.passes(*it) && it->getRT() >= min_rt && it->getRT() <= max_rt && it->getMZ() >= min_mz && it->getMZ() <= max_mz)
+        if (layer.filters.passes(*it) &&
+            getVisibleArea().getAreaUnit().containsRT(it->getRT()) &&
+            getVisibleArea().getAreaUnit().containsMZ(it->getMZ()))
         {
           map.push_back(*it);
         }
@@ -801,7 +777,8 @@ namespace OpenMS
       double rt = p.getRT();
       double mz = getIdentificationMZ_(layers_.getCurrentLayerIndex(), p);
       // TODO: if (layer.filters.passes(*it) && ...)
-      if (getVisibleArea().encloses(mz, rt))
+      if (getVisibleArea().getAreaUnit().containsRT(rt) &&
+          getVisibleArea().getAreaUnit().containsMZ(mz))
       {
         peptides.push_back(p);
       }

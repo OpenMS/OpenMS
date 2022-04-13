@@ -248,14 +248,6 @@ namespace OpenMS
 
   void PlotWidget::updateAxes()
   {
-    //change axis labels if necessary
-    if ((canvas()->isMzToXAxis() == true && x_axis_->getLegend().size() >= 2 && x_axis_->getLegend() == PlotWidget::RT_AXIS_TITLE)
-       || (canvas()->isMzToXAxis() == false && y_axis_->getLegend().size() >= 2 && y_axis_->getLegend() == PlotWidget::RT_AXIS_TITLE))
-    {
-      std::string tmp = x_axis_->getLegend();
-      x_axis_->setLegend(y_axis_->getLegend());
-      y_axis_->setLegend(tmp);
-    }
     recalculateAxes_();
   }
 
@@ -266,7 +258,7 @@ namespace OpenMS
 
   bool PlotWidget::isLegendShown() const
   {
-    //Both are shown or hidden, so we simply return the label of the x-axis
+    // Both are shown or hidden, so we simply return the state of the x-axis
     return x_axis_->isLegendShown();
   }
 

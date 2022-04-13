@@ -145,7 +145,7 @@ protected:
     bool finishAdding_() override;
 
     /// Collects fragment ion scans in the indicated RT/mz area and adds them to the indicated action
-    bool collectFragmentScansInArea(double rt_min, double rt_max, double mz_min, double mz_max, QAction* a, QMenu * msn_scans, QMenu * msn_meta);
+    bool collectFragmentScansInArea_(const RangeType& range, QAction* a, QMenu* msn_scans, QMenu* msn_meta);
 
     /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
     void drawCoordinates_(QPainter& painter, const PeakIndex& peak);
@@ -259,6 +259,15 @@ protected:
     bool isConsensusFeatureVisible_(const ConsensusFeature& ce, Size layer_index);
 
     /**
+      @brief Paints a convex hull.
+
+      @param hulls Reference to convex hull
+      @param has_identifications Draw hulls in green (true) or blue color (false)
+      @param p The QPainter to paint on
+    */
+    void paintConvexHull_(const ConvexHull2D& hull, bool has_identifications, QPainter& p);
+
+    /**
       @brief Paints convex hulls (one for each mass trace) for a single feature.
 
       @param hulls Reference to convex hull vector
@@ -266,6 +275,7 @@ protected:
       @param p The QPainter to paint on
     */
     void paintConvexHulls_(const std::vector<ConvexHull2D>& hulls, bool has_identifications, QPainter& p);
+
 
     // Docu in base class
     void intensityModeChange_() override;
@@ -311,28 +321,6 @@ protected:
       return gradient.precalculatedColorByIndex(precalculatedColorIndex_(val, gradient, snap_factor));
     }
 
-    /**
-      @brief Convert chart to widget coordinates
-
-      Translates chart coordinates to widget coordinates.
-      @param x the chart coordinate x
-      @param y the chart coordinate y
-      @param point returned widget coordinates
-    */
-    inline void dataToWidget_(double x, double y, QPoint& point)
-    {
-      if (!isMzToXAxis())
-      {
-        point.setX(int((y - visible_area_.minY()) / visible_area_.height() * width()));
-        point.setY(height() - int((x - visible_area_.minX()) / visible_area_.width() * height()));
-      }
-      else
-      {
-        point.setX(int((x - visible_area_.minX()) / visible_area_.width() * width()));
-        point.setY(height() - int((y - visible_area_.minY()) / visible_area_.height() * height()));
-      }
-    }
-
     /** 
       @brief For a certain dimension: computes the size a data point would need, such that the image
              reaches a certain coverage
@@ -346,7 +334,7 @@ protected:
     */
     double adaptPenScaling_(double ratio_data2pixel, double& pen_size) const;
     
-    /// recalculates the dot gradient of a layer
+    /// Recalculates the dot gradient of a layer
     void recalculateDotGradient_(Size layer);
 
     /// Highlights a single peak and prints coordinates to screen
@@ -358,8 +346,8 @@ protected:
     /// Paints a peak icon for feature and consensus feature peaks
     void paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p) const;
 
-    /// translates the visible area by a given offset specified in fractions of current visible area
-    virtual void translateVisibleArea_(double mzShiftRel, double rtShiftRel);
+    /// Translates the visible area by a given offset specified in fractions of current visible area
+    void translateVisibleArea_(double x_axis_rel, double y_axis_rel);
 
     //docu in base class
     void translateLeft_(Qt::KeyboardModifiers m) override;
@@ -374,7 +362,7 @@ protected:
     void finishContextMenu_(QMenu* context_menu, QMenu* settings_menu);
 
     /// m/z projection data
-    ExperimentType projection_mz_;
+    ExperimentType projection_mz_;       // FIXME: make this a layer, which can hold arbitrary marginal data (e.g. chromatograms, mobilograms etc)
     /// RT projection data
     ExperimentType projection_rt_;
     

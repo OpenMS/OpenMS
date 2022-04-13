@@ -101,20 +101,17 @@ namespace OpenMS
     QColor color = String(canvas->param_.getValue("highlighted_peak_color").toString()).toQString();
     for (auto& it : layer_->getCurrentAnnotations())
     {
-      Annotation1DDistanceItem* distance_item = dynamic_cast<Annotation1DDistanceItem*>(it);
-      if (distance_item)
-      {
-        QPoint from, to;
-        canvas->dataToWidget(distance_item->getStartPoint().getX(), 0, from, layer_->flipped);
+      auto distance_item = dynamic_cast<Annotation1DDistanceItem*>(it);
+      if (!distance_item) continue;
 
-        canvas->dataToWidget(distance_item->getStartPoint().getX(), canvas->visible_area_.maxY(), to, layer_->flipped);
-        drawDashedLine(from, to, painter, color);
+      QPoint from, to;
+      canvas->dataToWidget(distance_item->getStartPoint().getX(), 0, from, layer_->flipped);
+      canvas->dataToWidget(distance_item->getStartPoint().getX(), canvas->visible_area_.maxY(), to, layer_->flipped);
+      drawDashedLine(from, to, painter, color);
 
-        canvas->dataToWidget(distance_item->getEndPoint().getX(), 0, from, layer_->flipped);
-
-        canvas->dataToWidget(distance_item->getEndPoint().getX(), canvas->visible_area_.maxY(), to, layer_->flipped);
-        drawDashedLine(from, to, painter, color);
-      }
+      canvas->dataToWidget(distance_item->getEndPoint().getX(), 0, from, layer_->flipped);
+      canvas->dataToWidget(distance_item->getEndPoint().getX(), canvas->visible_area_.maxY(), to, layer_->flipped);
+      drawDashedLine(from, to, painter, color);
     }
    
     auto vbegin = spectrum.MZBegin(canvas->visible_area_.minX());
@@ -135,7 +132,7 @@ namespace OpenMS
           if (layer_->peak_colors_1d.size() == spectrum.size())
           {
             // find correct peak index
-            Size peak_index = std::distance(spectrum.begin(), it);
+            Size peak_index = std::distance(spectrum.cbegin(), it);
             pen.setColor(layer_->peak_colors_1d[peak_index]);
             painter->setPen(pen);
           }
@@ -177,7 +174,7 @@ namespace OpenMS
         painter->drawPath(path);
 
         // clipping on left side
-        if (vbegin != spectrum.begin() && vbegin != spectrum.end())
+        if (vbegin != spectrum.cbegin() && vbegin != spectrum.cend())
         {
           canvas->dataToWidget(*(vbegin - 1), begin, layer_->flipped);
           canvas->dataToWidget(*(vbegin), end, layer_->flipped);
@@ -185,7 +182,7 @@ namespace OpenMS
         }
 
         // clipping on right side
-        if (vend != spectrum.end() && vend != spectrum.begin())
+        if (vend != spectrum.end() && vend != spectrum.cbegin())
         {
           canvas->dataToWidget(*(vend - 1), begin, layer_->flipped);
           canvas->dataToWidget(*(vend), end, layer_->flipped);
@@ -207,22 +204,7 @@ namespace OpenMS
 
     // draw all annotation items
     drawAnnotations_(*painter, canvas);
-
-    // draw a legend
-    if (canvas->param_.getValue("show_legend").toBool())
-    {
-      double xpos = canvas->getVisibleArea().maxX() - (canvas->getVisibleArea().maxX() - canvas->getVisibleArea().minX()) * 0.1;
-      auto tmp = max_element(spectrum.MZBegin(canvas->visible_area_.minX()), spectrum.MZEnd(xpos), Plot1DCanvas::PeakType::IntensityLess());
-      if (tmp != spectrum.end())
-      {
-        Plot1DCanvas::PointType position(xpos, std::max<double>(tmp->getIntensity() - 100, tmp->getIntensity() * 0.8));
-        Annotation1DPeakItem item = Annotation1DPeakItem(position, layer_->getName().toQString(), QColor(String(layer_->param.getValue("peak_color").toString()).toQString()));
-        item.draw(canvas, *painter);
-      }
-    }
   }
-  
-
 
   void Painter1DPeak::drawAnnotations_(QPainter& painter, Plot1DCanvas* canvas)
   {
@@ -282,7 +264,7 @@ namespace OpenMS
 
     NLargest nlargest_filter(10); // maximum number of annotated m/z's in visible area
     nlargest_filter.filterPeakSpectrum(spec);
-    spec.sortByPosition(); // nlargest changes order
+    spec.sortByPosition(); // n-largest changes order
 
     for (size_t i = 0; i < spec.size(); ++i)
     {

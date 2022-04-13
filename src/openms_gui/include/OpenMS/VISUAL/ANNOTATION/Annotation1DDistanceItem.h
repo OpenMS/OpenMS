@@ -70,9 +70,9 @@ public:
     /// Set tick lines for the distance item
     void setTicks(const std::vector<double> & ticks);
 protected:
-    /// The start point of the measured distance line
+    /// The start point of the measured distance line (in X/Y axis order)
     PointType start_point_;
-    /// The end point of the measured distance line
+    /// The end point of the measured distance line (in X/Y axis order)
     PointType end_point_;
     /// Additional tick lines for the distance item
     std::vector<double> ticks_;

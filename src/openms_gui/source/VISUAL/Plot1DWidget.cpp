@@ -80,76 +80,50 @@ namespace OpenMS
 
   void Plot1DWidget::recalculateAxes_()
   {
-    AxisWidget* mz_axis;
-    AxisWidget* it_axis;
+    // set names
+    x_axis_->setLegend(string(canvas()->getDims().getDim(DIM::X).getDimName()));
+    y_axis_->setLegend(string(canvas()->getDims().getDim(DIM::Y).getDimName()));
 
-    //determine axes
-    if (canvas()->isMzToXAxis())
+
+    // determine which is the intensity axis (for LOG mode)
+    AxisWidget* other_axis = x_axis_;
+    AxisWidget* int_axis = y_axis_;
+    if (canvas()->getDims().getDim(DIM::X).getUnit() == DIM_UNIT::INT)
     {
-      mz_axis = x_axis_;
-      it_axis = y_axis_;
+      swap(other_axis, int_axis);
     }
-    else
-    {
-      mz_axis = y_axis_;
-      it_axis = x_axis_;
-    }
+
+    // deal with log scaling for intensity axis
+    int_axis->setLogScale(canvas()->getIntensityMode() == PlotCanvas::IM_LOG);
 
     // recalculate gridlines
-    mz_axis->setAxisBounds(canvas()->getVisibleArea().minX(), canvas()->getVisibleArea().maxX());
+    other_axis->setAxisBounds(canvas()->getVisibleArea().minX(), canvas()->getVisibleArea().maxX());
     switch (canvas()->getIntensityMode())
     {
       case PlotCanvas::IM_NONE:
-        if (it_axis->isLogScale())
-        {
-          it_axis->setLogScale(false);
-          flipped_y_axis_->setLogScale(false);
-        }
-
-        it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
-        flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
+        int_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
         break;
 
       case PlotCanvas::IM_PERCENTAGE:
-      {
-        if (it_axis->isLogScale())
-        {
-          it_axis->setLogScale(false);
-          flipped_y_axis_->setLogScale(false);
-        }
-
-        double min_y = canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY();
-        double max_y = canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * Plot1DCanvas::TOP_MARGIN;
-
-        it_axis->setAxisBounds(min_y * 100.0, max_y * 100.0);
-        flipped_y_axis_->setAxisBounds(min_y * 100.0, max_y * 100.0);
+        int_axis->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY() * 100.0,
+                                canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * Plot1DCanvas::TOP_MARGIN * 100.0);
         break;
-      }
-    case PlotCanvas::IM_SNAP:
-      if (it_axis->isLogScale())
-      {
-        it_axis->setLogScale(false);
-        flipped_y_axis_->setLogScale(false);
-      }
 
-      it_axis->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getSnapFactor(), canvas()->getVisibleArea().maxY() / canvas()->getSnapFactor());
-      flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getSnapFactor(), canvas()->getVisibleArea().maxY() / canvas()->getSnapFactor());
+    case PlotCanvas::IM_SNAP:
+      int_axis->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getSnapFactor(), canvas()->getVisibleArea().maxY() / canvas()->getSnapFactor());
       break;
 
     case PlotCanvas::IM_LOG:
-      if (!it_axis->isLogScale())
-      {
-        it_axis->setLogScale(true);
-        flipped_y_axis_->setLogScale(true);
-      }
-
-      it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
-      flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
+      int_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
       break;
 
     default:
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
+
+    // assume flipped-y-axis is identical
+    flipped_y_axis_->setLogScale(int_axis->isLogScale());
+    flipped_y_axis_->setAxisBounds(int_axis->getAxisMinimum(), int_axis->getAxisMaximum());
   }
 
   Plot1DWidget::~Plot1DWidget()

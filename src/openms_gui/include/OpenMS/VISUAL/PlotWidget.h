@@ -214,7 +214,7 @@ protected:
     /// recalculates the Axis ticks
     virtual void recalculateAxes_() = 0;
     /// correct given area X/Y-values if the values under-/overflow the min-/max values of the data
-    void correctAreaToObeyMinMaxRanges_(PlotCanvas::AreaType& area);
+    void correctAreaToObeyMinMaxRanges_(PlotCanvas::VisibleArea& area);
 
     ///@name reimplemented Qt events
     //@{
@@ -226,17 +226,17 @@ protected:
     //@}
 
     /// Pointer to the canvas widget
-    PlotCanvas * canvas_;
-    ///Main layout
-    QGridLayout * grid_;
+    PlotCanvas* canvas_;
+    /// Main layout
+    QGridLayout* grid_;
     /// Vertical axis
-    AxisWidget * y_axis_;
+    AxisWidget* y_axis_;
     /// Horizontal axis
-    AxisWidget * x_axis_;
+    AxisWidget* x_axis_;
     /// Horizontal scrollbar
-    QScrollBar * x_scrollbar_;
+    QScrollBar* x_scrollbar_;
     /// Vertical scrollbar
-    QScrollBar * y_scrollbar_;
+    QScrollBar* y_scrollbar_;
   };
 }
 

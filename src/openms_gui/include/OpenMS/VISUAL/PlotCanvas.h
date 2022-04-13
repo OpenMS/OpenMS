@@ -40,9 +40,10 @@
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/VISUAL/LayerDataBase.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/KERNEL/DimMapper.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 
 //QT
 #include <QtWidgets>
@@ -165,12 +166,24 @@ public:
     /// Peak type
     typedef SpectrumType::PeakType PeakType;
 
-    ///Type of the Points
+    /// Type of the Points
     typedef DPosition<2> PointType;
-    ///Types of Ranges/Areas
-    typedef DRange<2> AreaType;
+    /// a generic range for the most common units
+    using RangeType = RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>;
+   
+    /// The range of data shown on the X and Y axis (unit depends on runtime config)
+    using AreaXYType = Area<2>::AreaXYType;
+    /// The visible range of data on X and Y axis as shown on plot axis (not necessarily the range of actual data, e.g. no data to show).
+    using VisibleArea = Area<2>;
 
-    using RangeType = RangeManager<RangeRT, RangeMZ, RangeIntensity>;
+    /// A generic range of data on X and Y axis as shown on plot axis
+    using GenericArea = Area<2>;
+
+    /// The number of pixels on the axis. The lower point of the area will be zero. The maxima will reflect the number of pixels
+    /// in either dimension. Note that the unit of RT etc is NOT in seconds, but in pixels.
+    using PixelArea = Area<2>;
+
+    using PointOnAxis = DimMapper<2>::Point;
 
     /// Mouse action modes
     enum ActionModes
@@ -215,7 +228,7 @@ public:
         Returns the enclosing spectrum widget
         @return the spectrum widget
     */
-    inline PlotWidget * getPlotWidget() const
+    inline PlotWidget* getPlotWidget() const
     {
       return spectrum_widget_;
     }
@@ -339,24 +352,33 @@ public:
 
         @see visible_area_
     */
-    inline const AreaType & getVisibleArea() const
+    const VisibleArea& getVisibleArea() const
     {
       return visible_area_;
+    }
+
+    /// Given a 2D axis coordinate, is it in the currently visible area? (useful to avoid plotting stuff outside the visible area)
+    /// Note: The input @p p must have unit coordinates (i.e. the result of widgetToData_), not pixel coordinates.
+    bool isVisible(const PointOnAxis& p) const
+    {
+      return visible_area_.getAreaXY().encloses(p);
+    }
+
+    /// Get the number of pixels of the current canvas (this is independent of the current visible area and zoom level).
+    /// It's just the size of the canvas.
+    PixelArea getPixelRange() const
+    {
+      int X_pixel_count = buffer_.width();
+      int Y_pixel_count = buffer_.height();
+      PixelArea area(&unit_mapper_);
+      area.setArea(AreaXYType(0, 0, X_pixel_count, Y_pixel_count));
+      return area;
     }
 
     /**
         @brief Sets the filters applied to the data before drawing (for the current layer)
     */
     virtual void setFilters(const DataFilters & filters);
-
-    /// Returns the mapping of m/z to axes
-    inline bool isMzToXAxis() const
-    {
-      return mz_to_x_axis_;
-    }
-
-    /// Sets the mapping of m/z to axes
-    void mzToXAxis(bool mz_to_x_axis);
 
     /**
         @name Dataset handling methods
@@ -474,7 +496,7 @@ public:
 
         @see overall_data_range_
     */
-    const DRange<3> & getDataRange();
+    const RangeType& getDataRange();
 
     /**
         @brief Returns the first intensity scaling factor for 'snap to maximum intensity mode'.
@@ -545,7 +567,7 @@ public slots:
         Sets the visible area to a new value. Note that it does not emit visibleAreaChanged()
         @param area the new visible area
     */
-    void setVisibleArea(const AreaType& area);
+    void setVisibleArea(const VisibleArea& area);
 
     /**
         @brief Notifies the canvas that the horizontal scrollbar has been moved.
@@ -611,19 +633,19 @@ public slots:
     inline void dataToWidgetDistance(double x, double y, QPoint& point)
     {
       dataToWidget_(x, y, point);
-      // substract the 'offset'
+      // subtract the 'offset'
       QPoint zero;
       dataToWidget_(0, 0, zero);
       point -= zero;
     }
 
     /**
-      @brief compute distance in widget coordinates (unit axis as shown) when moving @p x/y px in chart coordinates
+      @brief compute distance in widget coordinates (unit axis as shown) when moving @p x/y pixel in chart coordinates
     */
     inline PointType widgetToDataDistance(double x, double y)
     {
       PointType point = widgetToData_(x, y);
-      // substract the 'offset'
+      // subtract the 'offset'
       PointType zero = widgetToData_(0, 0);
       point -= zero;
       return point;
@@ -646,7 +668,7 @@ signals:
         Signal emitted whenever the visible area changes.
         @param area The new visible area.
     */
-    void visibleAreaChanged(DRange<2> area);     //Do not change this to AreaType! QT needs the exact type...
+    void visibleAreaChanged(const VisibleArea& area);
 
     /// Emitted when the cursor position changes (for displaying e.g. in status bar)
     void sendCursorStatus(double mz = -1.0, double rt = -1.0);
@@ -707,6 +729,9 @@ protected:
     ///This method is called whenever the intensity mode changes. Reimplement if you need to react on such changes.
     virtual void intensityModeChange_();
 
+    /// Call this whenever the DimMapper receives new dimensions; will update the axes and scrollbars
+    void dimensionsChanged_();
+
     /**
         @brief Sets the visible area
 
@@ -717,7 +742,7 @@ protected:
         @param repaint If @em true, a complete repaint is forced.
         @param add_to_stack If @em true the new area is to add to the zoom_stack_.
     */
-    virtual void changeVisibleArea_(const AreaType & new_area, bool repaint = true, bool add_to_stack = false);
+    virtual void changeVisibleArea_(const VisibleArea& new_area, bool repaint = true, bool add_to_stack = false);
 
     /**
         @brief Recalculates the intensity scaling factor for 'snap to maximum intensity mode'.
@@ -735,7 +760,7 @@ protected:
     ///Go forward in zoom history
     virtual void zoomForward_();
     /// Add a visible area to the zoom stack
-    void zoomAdd_(const AreaType & area);
+    void zoomAdd_(const VisibleArea& area);
     /// Clears the zoom stack and invalidates the current zoom position. After calling this, a valid zoom position has to be added immediately.
     void zoomClear_();
     //@}
@@ -760,7 +785,7 @@ protected:
     virtual void updateScrollbars_();
 
     /**
-        @brief Convert widget to chart coordinates
+        @brief Convert widget (pixel) to chart (unit) coordinates
 
         Translates widget coordinates to chart coordinates.
 
@@ -770,24 +795,15 @@ protected:
     */
     inline PointType widgetToData_(double x, double y)
     {
-      if (!isMzToXAxis())
-      {
-        return PointType(
-                 visible_area_.minX() + (height() - y) / height()  * visible_area_.width(),
-                 visible_area_.minY() + x  / width() * visible_area_.height()
-                 );
-      }
-      else
-      {
-        return PointType(
-                 visible_area_.minX() + x / width() * visible_area_.width(),
-                 visible_area_.minY() + (height() - y) / height() * visible_area_.height()
-                 );
-      }
+      const auto& xy = visible_area_.getAreaXY();
+      return PointType(
+                xy.minX() + x / width() * xy.width(),
+                xy.minY() + (height() - y) / height() * xy.height()
+                );
     }
 
     /// Calls widgetToData_ with x and y position of @p pos
-    inline PointType widgetToData_(const QPoint & pos)
+    inline PointType widgetToData_(const QPoint& pos)
     {
       return widgetToData_(pos.x(), pos.y());
     }
@@ -795,45 +811,38 @@ protected:
     /**
         @brief Convert chart to widget coordinates
 
-        Translates chart coordinates to widget coordinates.
+        Translates chart (unit) coordinates to widget (pixel) coordinates.
         @param x the chart coordinate x
         @param y the chart coordinate y
         @param point returned widget coordinates
     */
-    inline void dataToWidget_(double x, double y, QPoint & point)
+    inline void dataToWidget_(double x, double y, QPoint& point)
     {
-      if (!isMzToXAxis())
+      const auto& xy = visible_area_.getAreaXY();
+      point.setX(int((x - xy.minX()) / xy.width() * width()));
+
+      if (intensity_mode_ != PlotCanvas::IM_LOG)
       {
-
-
-        if (intensity_mode_ != PlotCanvas::IM_LOG)
-        {
-          point.setX(int((y - visible_area_.minY()) / visible_area_.height() * width()));
-        }
-        else    // IM_LOG
-        {
-          point.setX(int(
-                       std::log10((y - visible_area_.minY()) + 1) / std::log10(visible_area_.height() + 1) * width())
-                     );
-        }
-
-        point.setY(height() - int((x - visible_area_.minX()) / visible_area_.width() * height()));
+        point.setY(height() - int((y - xy.minY()) / xy.height() * height()));
       }
-      else
+      else // IM_LOG
       {
-        point.setX(int((x - visible_area_.minX()) / visible_area_.width() * width()));
-
-        if (intensity_mode_ != PlotCanvas::IM_LOG)
-        {
-          point.setY(height() - int((y - visible_area_.minY()) / visible_area_.height() * height()));
-        }
-        else    // IM_LOG
-        {
-          point.setY(height() - int(
-                       std::log10((y - visible_area_.minY()) + 1) / std::log10(visible_area_.height() + 1) * height()
-                       ));
-        }
+        point.setY(height() - int(
+                      std::log10((y - xy.minY()) + 1) / std::log10(xy.height() + 1) * height()
+                      ));
       }
+    }
+
+    void dataToWidget_(const DPosition<2>& xy, QPoint& point)
+    {
+      dataToWidget_(xy.getX(), xy.getY(), point);
+    }
+
+    QPoint dataToWidget_(const DPosition<2>& xy)
+    {
+      QPoint point;
+      dataToWidget_(xy.getX(), xy.getY(), point);
+      return point;
     }
 
     /// Helper function to paint grid lines
@@ -841,6 +850,9 @@ protected:
 
     /// Buffer that stores the actual peak information
     QImage buffer_;
+
+    /// Mapper for X and Y axis
+    DimMapper<2> unit_mapper_;
 
     /// Stores the current action mode (Pick, Zoom, Translate)
     ActionModes action_mode_ = AM_TRANSLATE;
@@ -851,44 +863,30 @@ protected:
     /// Layer data
     LayerStack layers_;
 
-    /// Stores the mapping of m/z
-    bool mz_to_x_axis_ = true;
-
     /**
-        @brief Stores the currently visible area in data units (e.g. seconds, m/z, intensity etc).
-
-        Dimension 0 is the m/z dimension.@n
-        Dimension 1 is the RT dimension (2D and 3D view) or the intensity dimension (1D view).
+        @brief Stores the currently visible area in data units (e.g. seconds, m/z, intensity etc) and axis (X,Y) area.
     */
-    AreaType visible_area_ = AreaType::empty;
+    VisibleArea visible_area_;
 
     /**
         @brief Recalculates the overall_data_range_
 
         A small margin is added to each side of the range in order to display all data.
-
-        @param mz_dim Int of m/z in overall_data_range_
-        @param rt_dim Int of RT in overall_data_range_
-        @param it_dim Int of intensity in overall_data_range_
     */
-    void recalculateRanges_(UInt mz_dim, UInt rt_dim, UInt it_dim);
+    void recalculateRanges_();
 
     /**
         @brief Stores the data range (m/z, RT and intensity) of all layers
-
-        Dimension 0 is the m/z dimension.@n
-        Dimension 1 is the RT dimension (2D and 3D view) or the intensity dimension (1D view).@n
-        Dimension 2 is the intensity dimension (2D and 3D view) or the RT dimension (1D view).
     */
-    DRange<3> overall_data_range_ = DRange<3>::empty;
+    RangeType overall_data_range_;
 
     /// Stores whether or not to show a grid.
     bool show_grid_ = true;
 
     /// The zoom stack.
-    std::vector<AreaType> zoom_stack_;
+    std::vector<VisibleArea> zoom_stack_;
     /// The current position in the zoom stack
-    std::vector<AreaType>::iterator zoom_pos_ = zoom_stack_.end();
+    std::vector<VisibleArea>::iterator zoom_pos_ = zoom_stack_.end();
 
     /**
         @brief Updates the displayed data
@@ -899,7 +897,7 @@ protected:
 
         @param caller_name Name of the calling function (use OPENMS_PRETTY_FUNCTION).
     */
-    virtual void update_(const char * caller_name);
+    virtual void update_(const char* caller_name);
 
     /// Takes all actions necessary when the modification status of a layer changes (signals etc.)
     void modificationStatus_(Size layer_index, bool modified);
