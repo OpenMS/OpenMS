@@ -41,7 +41,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ github.workspace }}/OpenMS/contrib
-        key: ${{ runner.os }}-contrib2
+        key: ${{ runner.os }}-contrib3
 
     - name: Load contrib build
       if: steps.cache-contrib-win.outputs.cache-hit != 'true'
@@ -150,7 +150,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ github.workspace }}/OpenMS/contrib
-        key: ${{ runner.os }}-contrib2
+        key: ${{ runner.os }}-contrib3
 
     - name: Load contrib build
       if: steps.cache-contrib-os.outputs.cache-hit != 'true'
@@ -245,7 +245,7 @@ jobs:
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
           OPENMP: "On"
-          USE_STATIC_BOOST: "Off"
+          USE_STATIC_BOOST: "On"
           BUILD_FLAGS: "-j3"
 
   build-lnx:
@@ -352,5 +352,5 @@ jobs:
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
           OPENMP: "On"
-          USE_STATIC_BOOST: "Off"
+          USE_STATIC_BOOST: "On"
           BUILD_FLAGS: "-j2"

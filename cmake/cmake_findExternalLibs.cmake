@@ -48,7 +48,7 @@ find_package(XercesC REQUIRED)
 
 #------------------------------------------------------------------------------
 # BOOST
-set(OpenMS_BOOST_COMPONENTS date_time math_c99 regex CACHE INTERNAL "Boost components for core lib")
+set(OpenMS_BOOST_COMPONENTS date_time regex CACHE INTERNAL "Boost components for core lib")
 find_boost(iostreams ${OpenMS_BOOST_COMPONENTS})
 
 if(Boost_FOUND)
