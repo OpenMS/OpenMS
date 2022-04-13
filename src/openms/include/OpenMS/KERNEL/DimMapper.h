@@ -99,9 +99,16 @@ namespace OpenMS
 
     virtual ValueType map(const Peak1D& p) const = 0;
     virtual ValueType map(const Peak2D& p) const = 0;
+    virtual ValueType map(MSExperiment::ConstAreaIterator it) const = 0;
+    
     /// obtain vector of same length as @p spec; one element per peak
     /// @throw Exception::InvalidRange if elements do not support the dimension
     virtual ValueTypes map(const MSSpectrum& spec) const = 0;
+
+    virtual ValueType map(const BaseFeature& bf) const = 0;
+
+    virtual ValueType map(const PeptideIdentification& pi) const = 0;
+
 
     /// Return the min/max (range) for a certain dimension
     virtual RangeBase map(const RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const = 0;
@@ -147,7 +154,21 @@ namespace OpenMS
     ValueTypes map(const MSSpectrum& spec) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-    }        
+    }
+    ValueType map(MSExperiment::ConstAreaIterator it) const override
+    {
+      return it.getRT();
+    }
+
+    ValueType map(const BaseFeature& bf) const override
+    {
+      return bf.getRT();
+    }
+
+    ValueType map(const PeptideIdentification& pi) const override
+    {
+      return pi.getRT();
+    }
 
     RangeBase map(const RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const override
     {
@@ -156,7 +177,7 @@ namespace OpenMS
 
     void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const
     {
-      rm.RangeRT::assign(in);
+      rm.RangeRT::operator=(in);
     }
 
   };
@@ -178,6 +199,11 @@ namespace OpenMS
     {
       return p.getMZ();
     }
+    ValueType map(MSExperiment::ConstAreaIterator it) const override
+    {
+      return it->getMZ();
+    }
+
     ValueTypes map(const MSSpectrum& spec) const override
     {
       ValueTypes res;
@@ -186,6 +212,16 @@ namespace OpenMS
         res.push_back(p.getMZ());
       return res;
     }  
+    
+    ValueType map(const BaseFeature& bf) const override
+    {
+      return bf.getMZ();
+    }
+
+    ValueType map(const PeptideIdentification& pi) const override
+    {
+      return pi.getMZ();
+    }
 
     RangeBase map(const RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const override
     {
@@ -194,7 +230,7 @@ namespace OpenMS
 
     void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const
     {
-      rm.RangeMZ::assign(in);
+      rm.RangeMZ::operator=(in);
     }
 
 
@@ -217,6 +253,11 @@ namespace OpenMS
     {
       return p.getIntensity();
     }
+    ValueType map(MSExperiment::ConstAreaIterator it) const override
+    {
+      return it->getIntensity();
+    }
+
     ValueTypes map(const MSSpectrum& spec) const override
     {
       ValueTypes res;
@@ -224,6 +265,16 @@ namespace OpenMS
       for (const auto& p : spec)
         res.push_back(p.getIntensity());
       return res;
+    }
+
+    ValueType map(const BaseFeature& bf) const override
+    {
+      return bf.getIntensity();
+    }
+
+    ValueType map(const PeptideIdentification& pi) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     
     RangeBase map(const RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const override
@@ -233,7 +284,7 @@ namespace OpenMS
 
     void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const
     {
-      rm.RangeIntensity::assign(in);
+      rm.RangeIntensity::operator=(in);
     }
   };
   
@@ -319,7 +370,7 @@ namespace OpenMS
       return pr;
     }
 
-    /// convert Range to an N_DIM-dimensional area (min and max for each dimension)
+    /// Convert Range to an N_DIM-dimensional area (min and max for each dimension)
     template<typename ...Ranges>
     DRange<N_DIM> mapRange(const RangeManager<Ranges...>& ranges) const
     {
@@ -334,7 +385,7 @@ namespace OpenMS
       return res;
     }
 
-    /// Convert Range to an N_DIM-dimensional area (min and max for each dimension).
+    /// Convert an N_DIM-dimensional area (min and max for each dimension) to a Range.
     /// Empty dimensions in the input @p in, will also be made empty in @p output.
     /// Dimensions not contained in this DimMapper will remain untouched in @p output
     template<typename... Ranges>
@@ -346,6 +397,17 @@ namespace OpenMS
           dims_[i]->setRange(RangeBase(), output);
         else
           dims_[i]->setRange({in.minPosition()[i], in.maxPosition()[i]}, output);
+      }
+    }
+
+    /// Convert an N_DIM-Point to a Range.
+    /// Dimensions not contained in this DimMapper will remain untouched in @p output
+    template<typename... Ranges>
+    void fromXY(const Point& in, RangeManager<Ranges...>& output) const
+    {
+      for (int i = 0; i < N_DIM; ++i)
+      {
+        dims_[i]->setRange({in[i], in[i]}, output);
       }
     }
 
@@ -414,9 +476,9 @@ namespace OpenMS
     }
 
     /**
-       @brief Set the visible area using unit data (RT, m/z, ...)
+       @brief Set the area using unit data (RT, m/z, ...)
 
-       @param data Visible area in units
+       @param data Area in units
     */
     const Area& setArea(const UnitRange& data)
     {
@@ -434,7 +496,7 @@ namespace OpenMS
     const Area& setArea(const AreaXYType& data)
     {
       visible_area_ = data;
-      // update range view from XY visible area using dims
+      // update range view from XY area using dims
       mapper_->fromXY(visible_area_, data_range_);
       return *this;
     }
@@ -447,6 +509,30 @@ namespace OpenMS
     const UnitRange& getAreaUnit() const
     {
       return data_range_;
+    }
+
+    /**
+      @brief Clone the current object, set the area of the clone using axis data (X and Y) and return the clone.
+
+      @param data New area as displayed on the axis
+    */
+    Area cloneWith(const AreaXYType& data) const
+    {
+      Area clone(*this);
+      clone.setArea(data);
+      return clone;
+    }
+
+    /**
+      @brief Clone the current object, set the area of the clone using unit data (RT, m/z, ...) and return the clone.
+
+      @param data New area in units
+    */
+    Area cloneWith(const UnitRange& data) const
+    {
+      Area clone(*this);
+      clone.setArea(data);
+      return clone;
     }
 
   private:
