@@ -64,43 +64,44 @@ void TestTVPrefDialog::testConstruction()
   QVERIFY2(UI->on_file_change, "'Action when file changes' combo box not created.");
   QVERIFY2(UI->use_cached_ms1, "'Cache MS1 spectra to disk' check box not created.");
   QVERIFY2(UI->use_cached_ms2, "'Cache MS2 spectra to disk' check box not created.");
-  QVERIFY2(UI->label_5, "'Default path:' label not created.");
-  QVERIFY2(UI->label_8, "'Default map view:' label not created.");
-  QVERIFY2(UI->label_9, "'Low intensity cutoff:' label not created.");
-  QVERIFY2(UI->label_14, "'Action when file changes:' label not created.");
-  QVERIFY2(UI->label, "'Caching Strategy:' label not created.");
+  QVERIFY2(UI->default_path_label, "'Default path:' label not created.");
+  QVERIFY2(UI->default_map_label, "'Default map view:' label not created.");
+  QVERIFY2(UI->intensity_cutoff_label, "'Low intensity cutoff:' label not created.");
+  QVERIFY2(UI->file_change_label, "'Action when file changes:' label not created.");
+  QVERIFY2(UI->caching_label, "'Caching Strategy:' label not created.");
 
   // 1D tab
   QVERIFY2(UI->color_1D, "Peak color color selector not created.");
   QVERIFY2(UI->selected_1D, "Selected peak color color selector not created.");
   QVERIFY2(UI->icon_1D, "Icon color color selector not created.");
-  QVERIFY2(UI->label_11, "'Peak color:' label not created.");
-  QVERIFY2(UI->label_10, "'Selected peak color:' label not created.");
-  QVERIFY2(UI->label_12, "'Icon color:' label not created.");
+  QVERIFY2(UI->peak_1D_label, "'Peak color:' label not created.");
+  QVERIFY2(UI->selected_1D_label, "'Selected peak color:' label not created.");
+  QVERIFY2(UI->icon_1D_label, "'Icon color:' label not created.");
 
   // 2D tab
   QVERIFY2(UI->peak_2D, "Peak 2D multi gradient selector not created.");
   QVERIFY2(UI->mapping_2D, "'m/z axis' combo box not created.");
   QVERIFY2(UI->feature_icon_2D, "'feature icon' combo box not created.");
   QVERIFY2(UI->feature_icon_size_2D, "'feature icon size' spin box not created.");
-  QVERIFY2(UI->label_13, "'Peak gradient:' label not created.");
-  QVERIFY2(UI->label_17, "'m/z axis:' label not created.");
-  QVERIFY2(UI->label_21, "'feature icon:' label not created.");
-  QVERIFY2(UI->label_22, "'feature icon size:' label not created.");
+  QVERIFY2(UI->peak_2D_label, "'Peak gradient:' label not created.");
+  QVERIFY2(UI->mz_axis_label, "'m/z axis:' label not created.");
+  QVERIFY2(UI->feature_icon_2D_label, "'feature icon:' label not created.");
+  QVERIFY2(UI->feature_icon_size_2D_label, "'feature icon size:' label not created.");
 
   // 3D tab
   QVERIFY2(UI->peak_3D, "Peak 3D multi gradient selector not created.");
   QVERIFY2(UI->shade_3D, "Shade mode combo box not created.");
   QVERIFY2(UI->line_width_3D, "Line width spin box not created.");
-  QVERIFY2(UI->label_18, "'Peak colors:' label not created.");
-  QVERIFY2(UI->label_19, "'Shade mode:' label not created.");
-  QVERIFY2(UI->label_20, "'Line width:' label not created.");
+  QVERIFY2(UI->peak_3D_label, "'Peak colors:' label not created.");
+  QVERIFY2(UI->shade_3D_label, "'Shade mode:' label not created.");
+  QVERIFY2(UI->line_width_3D_label, "'Line width:' label not created.");
 
   // TSG tab
   QVERIFY2(UI->param_editor_spec_gen_, "Parameter editor not created.");
   QVERIFY2(UI->tolerance, "Tolerance double spin box not created.");
   QVERIFY2(UI->unit, "Unit combo box not created.");
-  QVERIFY2(UI->label_2, "'Alignment Tolerance:' label not created.");
+  QVERIFY2(UI->tolerance_label, "'Alignment Tolerance:' label not created.");
+  QVERIFY2(UI->param_usage_label, "'These settings aare used to ...' label not created.");
 }
 
 void TestTVPrefDialog::testGui()
