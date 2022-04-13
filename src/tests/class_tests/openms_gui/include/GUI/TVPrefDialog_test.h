@@ -62,6 +62,7 @@ namespace OpenMS
 
   private:
     void checkFileDialog_();
+    void checkColorDialog_();
 
     Internal::TOPPViewPrefDialog dialog_;
   };

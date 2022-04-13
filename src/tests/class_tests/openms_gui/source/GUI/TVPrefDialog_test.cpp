@@ -105,7 +105,7 @@ void TestTVPrefDialog::testConstruction()
 
 void TestTVPrefDialog::testGui()
 {
-  // TODO: currently Qt::ComboBox, OpenMS::MultiGradientSelector, OpenMS::ColorSelector and OpenMS::ParamEditor are not tested!
+  // TODO: currently Qt::ComboBox, OpenMS::MultiGradientSelector and OpenMS::ParamEditor are not tested!
 
   enum
   {
@@ -129,7 +129,7 @@ void TestTVPrefDialog::testGui()
   // test path input methods
   
   // file dialog
-  QTimer::singleShot(1000, this, &TestTVPrefDialog::checkFileDialog_);
+  QTimer::singleShot(DELAY, this, &TestTVPrefDialog::checkFileDialog_);
   QTest::mouseClick(UI->browse_default, Qt::LeftButton, 0, QPoint());
   QTest::qWait(DELAY);
 
@@ -153,7 +153,18 @@ void TestTVPrefDialog::testGui()
   QTest::mouseClick(tab_bar, Qt::LeftButton, 0, tab_bar->tabRect(ONE_D).center());
   QTest::qWait(DELAY);
 
-  // TODO: 'peak_1D' (OpenMS::ColorSelector), 'selected_1D' (OpenMS::ColorSelector), 'color_1D' (OpenMS::ColorSelector)
+  // test color selectors
+  QTimer::singleShot(DELAY, this, &TestTVPrefDialog::checkColorDialog_);
+  QTest::mouseClick(UI->color_1D, Qt::LeftButton, 0, QPoint());
+  QTest::qWait(DELAY);
+
+  QTimer::singleShot(DELAY, this, &TestTVPrefDialog::checkColorDialog_);
+  QTest::mouseClick(UI->selected_1D, Qt::LeftButton, 0, QPoint());
+  QTest::qWait(DELAY);
+
+  QTimer::singleShot(DELAY, this, &TestTVPrefDialog::checkColorDialog_);
+  QTest::mouseClick(UI->icon_1D, Qt::LeftButton, 0, QPoint());
+  QTest::qWait(DELAY);
 
   /////////////////////////////////////////////
   //             '2D view' tab               //
@@ -318,6 +329,19 @@ void OpenMS::TestTVPrefDialog::checkFileDialog_()
   {
     QFileDialog* fd = qobject_cast<QFileDialog*>(active_widget);
     fd->close(); // for some reason closing it with 'Qt::Key_Enter' doesn't work
+    QVERIFY(true);
+    return;
+  }
+  QVERIFY(false);
+}
+void OpenMS::TestTVPrefDialog::checkColorDialog_()
+{
+  // get the active window
+  QWidget* active_widget = QApplication::activeModalWidget();
+  if (active_widget->inherits("QColorDialog")) // if it's a file dialog, close it
+  {
+    QColorDialog* cd = qobject_cast<QColorDialog*>(active_widget);
+    QTest::keyClick(cd, Qt::Key_Enter);
     QVERIFY(true);
     return;
   }
