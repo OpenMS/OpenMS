@@ -204,8 +204,8 @@ namespace OpenMS
       }
     }
 
-    // sort result
-    std::sort(coordinates.begin(), coordinates.end(), ChromatogramExtractor::ExtractionCoordinates::SortExtractionCoordinatesByMZ);
+    // sort result, use stable_sort to ensure that ordering is preserved 
+    std::stable_sort(coordinates.begin(), coordinates.end(), ChromatogramExtractor::ExtractionCoordinates::SortExtractionCoordinatesByMZ);
   }
 
   void ChromatogramExtractor::prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,

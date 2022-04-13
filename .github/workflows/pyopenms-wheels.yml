@@ -154,6 +154,7 @@ jobs:
         install-deps: 'true'
         modules: 'qtsvg'
         cached: 'false'
+        setup-python: 'false' # https://github.com/jurplel/install-qt-action/issues/130
 
     - name: Install Miniconda
       shell: bash
@@ -287,7 +288,7 @@ jobs:
 
   build-lnx:
     runs-on: ubuntu-latest
-    container: openms/manylinux:latest
+    container: ghcr.io/openms/contrib_manylinux2014:latest
 
     steps:
     # Cancels older builds if still running
@@ -349,23 +350,24 @@ jobs:
               # configure (don't copy deps since we use auditwheel)
               cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" $GITHUB_WORKSPACE/OpenMS
               make -j4 pyopenms
-            done
-
-            # ensure auditwheel can find the libraries
-            export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
-
-            # strip the libraries before repairing
-            strip --strip-all lib/libOpenMS.so
-            strip --strip-all lib/libOpenSwathAlgo.so
-
-            pushd pyOpenMS
-              # Bundle stripped plus external shared libraries into the wheels
-              for whl in dist/pyopenms*.whl; do
-                auditwheel repair "$whl" -w wheelhouse/
-              done
               
-              mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
-            popd
+              # ensure auditwheel can find the libraries
+              export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
+
+              # strip the libraries before repairing
+              strip --strip-all lib/libOpenMS.so
+              strip --strip-all lib/libOpenSwathAlgo.so
+
+              pushd pyOpenMS
+                # Bundle stripped plus external shared libraries into the wheels
+                for whl in dist/pyopenms*.whl; do
+                  auditwheel repair "$whl" -w wheelhouse/
+                done
+
+                mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
+              popd
+              export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
+            done
 
     - uses: actions/upload-artifact@v1
       name: Upload artifacts

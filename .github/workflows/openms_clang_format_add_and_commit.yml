@@ -4,16 +4,27 @@ on:
   issue_comment:
     types: [created]
 
+
+permissions:
+  checks: write
+  contents: write
+
 jobs:
   lint:
     name: Automatic clang format linting
     runs-on: ubuntu-latest
     if: github.event.issue.pull_request != '' && contains(github.event.comment.body, '/reformat')
     steps:
-      - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
+      # Checkout source code
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Checkout Pull Request
+        run: |
+          git config --global hub.protocol https
+          hub pr checkout ${{ github.event.issue.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
 # Get files changed in the PR
       - name: Get changed files
@@ -32,8 +43,11 @@ jobs:
           source: ${{ steps.changed-files.outputs.all_modified_files }}
           clangFormatVersion: 13
           inplace: True
-      - uses: EndBug/add-and-commit@v4
-        with:
-          message: 'Committing clang-format changes'
+      - name: commit
+        run: |
+          git config --global user.email "lint@github.com"
+          git config --global user.name "GitHub Linter"
+          git commit -am "fix lint"
+          git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -28,6 +28,7 @@ TOPPViewOpenDialog.h
 TOPPViewPrefDialog.h
 TheoreticalSpectrumGenerationDialog.h
 ToolsDialog.h
+WizardHelper.h
 )
 
 ### add path to the filenames
