@@ -57,16 +57,27 @@ namespace OpenMS
   struct OPENMS_DLLAPI RangeBase
   {
   public:
-    /// Ctor: initialize with empty range
+    /// C'tor: initialize with empty range
     RangeBase() = default;
     
-    /// set min and max
+    /// Custom C'tor to set min and max
     /// @throws Exception::InvalidRange if min > max
     RangeBase(const double min, const double max) :
         min_(min), max_(max)
     {
       if (min_ > max_)
         throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid initialization of range");
+    }
+
+    /// Copy C'tor
+    RangeBase(const RangeBase& rhs) = default;
+
+    /// Assignment operator
+    RangeBase& operator=(const RangeBase& rhs)
+    {
+      min_ = rhs.min_;
+      max_ = rhs.max_;
+      return *this;
     }
 
     /// make the range empty, i.e. isEmpty() will be true
@@ -134,13 +145,59 @@ namespace OpenMS
       min_ = std::min(min_, other.min_);
       max_ = std::max(max_, other.max_);
     }
-
+    
     /// extend the range such that it includes the given @p value
     void extend(const double value)
     {
       min_ = std::min(min_, value);
       max_ = std::max(max_, value);
     }
+
+    /// Extend the range by @p by units to left and right
+    /// Calling this on an empty range will not have any effect.
+    void extendLeftRight(const double by)
+    {
+      if (isEmpty()) return;
+      min_ -= by;
+      max_ += by;
+    }
+
+    /// Ensure the range of this does not exceed the range of @p other (may tighten the range)
+    /// If the old interval is entirely outside the range of @p other,
+    /// both min and max will be a single point on the outer edge of @p other.
+    void clampTo(const RangeBase& other)
+    {
+      min_ = std::min(other.max_, std::max(min_, other.min_));
+      max_ = std::max(other.min_, std::min(max_, other.max_));
+    }
+
+    /// Move range of *this to min/max of @p sandbox, without changing the span, if possible.
+    /// This does tighten the range unless @p sandbox's ranges are smaller than *this.
+    /// Empty ranges are not modified.
+    /// @param sandbox Range to translate/move the current range into
+    /// @throw Exception::InvalidRange if no dimensions overlapped
+    void pushInto(const RangeBase& sandbox)
+    {
+      if (isEmpty()) return;
+
+      if (!sandbox.contains(*this))
+      {
+        if (getSpan() > sandbox.getSpan())
+        { // make interval fit into sandbox (= ensure full containment)
+          max_ = min_ + sandbox.getSpan();
+        }
+        if (min_ < sandbox.min_)
+        { // need to shift right
+          shift(sandbox.min_ - min_);
+        }
+        else if (max_ > sandbox.max_)
+        { // need to shift left
+          shift(max_ - sandbox.max_);
+        }
+      }
+
+    }
+
 
     /**
        @brief Scale the range of the dimension by a @p factor. A factor > 1 increases the range; factor < 1 decreases it.
@@ -161,6 +218,14 @@ namespace OpenMS
       max_ += extension;
     }
 
+    /// Move the range by @p distance (negative values shift left)
+    /// Shifting an empty range will not have any effect.
+    void shift(const double distance)
+    {
+      min_ += distance;
+      max_ += distance;
+    }
+
     /// Compute the center point of the range
     /// If range is empty(), 'nan' will be returned
     double center() const
@@ -169,9 +234,12 @@ namespace OpenMS
       return min_ + (max_ - min_) / 2.0;
     }
 
-    void assign(const RangeBase& rhs)
+    /// Get the 'width' of the range
+    /// If range is empty(), 'nan' will be returned
+    double getSpan() const
     {
-      *this = rhs;
+      if (isEmpty()) return nan("");
+      return max_ - min_;
     }
 
     bool operator==(const RangeBase& rhs) const
@@ -182,7 +250,7 @@ namespace OpenMS
   protected:
     // make members non-accessible to maintain invariant: min <= max  (unless uninitialized)
     double min_ = std::numeric_limits<double>::max();
-    double max_ = -std::numeric_limits<double>::max();
+    double max_ = std::numeric_limits<double>::lowest();
   };
   
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& out, const RangeBase& b);
@@ -195,6 +263,11 @@ namespace OpenMS
     RangeRT(const double min, const double max) :
         RangeBase(min, max)
     {
+    }
+
+    RangeRT& operator=(const RangeBase& rhs)
+    {
+      RangeBase::operator=(rhs);
     }
 
     /** @name Accessors for min and max
@@ -260,6 +333,11 @@ namespace OpenMS
     {
     }
 
+    RangeMZ& operator=(const RangeBase& rhs)
+    {
+      RangeBase::operator=(rhs);
+    }
+
     /** @name Accessors for min and max
       
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
@@ -319,6 +397,11 @@ namespace OpenMS
     RangeIntensity(const double min, const double max) :
         RangeBase(min, max)
     {
+    }
+
+    RangeIntensity& operator=(const RangeBase& rhs)
+    {
+      RangeBase::operator=(rhs);
     }
 
     /** @name Accessors for min and max
@@ -381,6 +464,11 @@ namespace OpenMS
     RangeMobility(const double min, const double max) :
         RangeBase(min, max)
     {
+    }
+
+    RangeMobility& operator=(const RangeBase& rhs)
+    {
+      RangeBase::operator=(rhs);
     }
 
     /** @name Accessors for min and max
@@ -446,7 +534,7 @@ namespace OpenMS
   /**
     @brief Handles the management of a multidimensional range, e.g. RangeMZ and RangeIntensity for spectra.
 
-    Instanciate it with the dimensions which are supported/required, e.g.
+    Instantiate it with the dimensions which are supported/required, e.g.
     <tt>RangeManager<RangeRT, RangeMZ> range_spec</tt> for a spectrum and use the strongly typed features, such as
     range_spec.getMaxRT()/setMaxRT(500.0) or range_spec.extend(RangeMZ{100, 1500});
 
@@ -475,6 +563,10 @@ namespace OpenMS
       return equal;
     }
 
+    bool operator!=(const RangeManager& rhs) const
+    {
+      return !operator==(rhs);
+    }
 
     /// copy all overlapping dimensions from @p rhs to this instance.
     /// Dimensions which are not contained in @p rhs are left untouched.
@@ -548,6 +640,72 @@ namespace OpenMS
         base->scaleBy(factor);
       });
     }
+
+    /// Move range of *this to min/max of @p sandbox, without changing the span, if possible.
+    /// This does tighten the range unless @p sandbox's ranges are smaller than *this.
+    /// Dimensions which are not contained in @p sandbox or are empty are left untouched.
+    /// @param sandbox Range to translate/move the current range into
+    template<typename... RangeBasesOther>
+    bool pushIntoUnsafe(const RangeManager<RangeBasesOther...>& rhs)
+    {
+      bool found = false;
+      for_each_base_([&](auto* base) {
+        using T_BASE = std::decay_t<decltype(*base)>; // remove const/ref qualifiers
+        if constexpr (std::is_base_of_v<T_BASE, RangeManager<RangeBasesOther...>>)
+        {
+          base->pushInto((T_BASE&)rhs);
+          found = true;
+        }
+      });
+      return found;
+    }
+
+    /// Move range of *this to min/max of @p sandbox, without changing the span, if possible.
+    /// This does tighten the range unless @p sandbox's ranges are smaller than *this.
+    /// Dimensions which are not contained in @p sandbox or are empty are left untouched.
+    /// @param sandbox Range to translate/move the current range into
+    /// @throw Exception::InvalidRange if no dimensions overlapped
+    template<typename... RangeBasesOther>
+    void pushInto(const RangeManager<RangeBasesOther...>& sandbox)
+    {
+      if (!pushIntoUnsafe(sandbox))
+      {
+        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No assignment took place (no dimensions in common!);");
+      }
+    }
+
+    /// Clamp min/max of all overlapping dimensions to min/max of @p rhs.
+    /// This may tighten the range (even to a single point).
+    /// Dimensions which are not contained in @p rhs are left untouched.
+    /// @param rhs Range to clamp to
+    /// @throw Exception::InvalidRange if no dimensions overlapped
+    template<typename... RangeBasesOther>
+    void clampTo(const RangeManager<RangeBasesOther...>& rhs)
+    {
+      if (!clampToUnsafe(rhs))
+      {
+        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No assignment took place (no dimensions in common!);");
+      }
+    }
+
+    /// Clamp min/max of all overlapping dimensions to min/max of @p rhs
+    /// Dimensions which are not contained in @p rhs are left untouched.
+    /// @param rhs Range to clamp to
+    template<typename... RangeBasesOther>
+    bool clampToUnsafe(const RangeManager<RangeBasesOther...>& rhs)
+    {
+      bool found = false;
+      for_each_base_([&](auto* base) {
+        using T_BASE = std::decay_t<decltype(*base)>; // remove const/ref qualifiers
+        if constexpr (std::is_base_of_v<T_BASE, RangeManager<RangeBasesOther...>>)
+        {
+          base->clampTo((T_BASE&)rhs);
+          found = true;
+        }
+      });
+      return found;
+    }
+
 
     /// obtain a range dimension at runtime using @p dim
     RangeBase& getRangeForDim(MSDim dim)
