@@ -106,6 +106,7 @@ void TestTVPrefDialog::testConstruction()
 void TestTVPrefDialog::testGui()
 {
   // TODO: currently Qt::ComboBox, OpenMS::MultiGradientSelector and OpenMS::ParamEditor are not tested!
+  // I was unable to get the positions of the interactable parts of these objects for a 'QTest::mouseClick'
 
   enum
   {
@@ -338,7 +339,7 @@ void OpenMS::TestTVPrefDialog::checkColorDialog_()
 {
   // get the active window
   QWidget* active_widget = QApplication::activeModalWidget();
-  if (active_widget->inherits("QColorDialog")) // if it's a file dialog, close it
+  if (active_widget->inherits("QColorDialog")) // if it's a color dialog, close it
   {
     QColorDialog* cd = qobject_cast<QColorDialog*>(active_widget);
     QTest::keyClick(cd, Qt::Key_Enter);
