@@ -155,6 +155,7 @@ void TestTVPrefDialog::testGui()
   QTest::qWait(DELAY);
 
   // test color selectors
+  // Opening a dialog stops the test until it's closed. Therefore use 'singleShot' to call a function with a delay.
   QTimer::singleShot(DELAY, this, &TestTVPrefDialog::checkColorDialog_);
   QTest::mouseClick(UI->color_1D, Qt::LeftButton, 0, QPoint());
   QTest::qWait(DELAY);
@@ -209,7 +210,7 @@ void TestTVPrefDialog::testGui()
 
   // test spin box
   UI->tolerance->clear();
-  QTest::keyClicks(UI->tolerance, "0,5");
+  QTest::keyClicks(UI->tolerance, QLocale::system().toString(0.5));
   QTest::qWait(DELAY);
   QVERIFY(0.5 == UI->tolerance->value());
 
