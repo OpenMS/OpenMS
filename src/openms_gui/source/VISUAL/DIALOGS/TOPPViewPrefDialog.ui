@@ -29,7 +29,7 @@
      <property name="currentIndex">
       <number>4</number>
      </property>
-     <widget class="QWidget" name="tab">
+     <widget class="QWidget" name="general_tab">
       <attribute name="title">
        <string>General</string>
       </attribute>
@@ -218,7 +218,7 @@ p, li { white-space: pre-wrap; }
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_3">
+     <widget class="QWidget" name="oneD_tab">
       <attribute name="title">
        <string>1D View</string>
       </attribute>
@@ -281,7 +281,7 @@ p, li { white-space: pre-wrap; }
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_5">
+     <widget class="QWidget" name="twoD_tab">
       <attribute name="title">
        <string>2D View</string>
       </attribute>
@@ -399,7 +399,7 @@ p, li { white-space: pre-wrap; }
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_4">
+     <widget class="QWidget" name="threeD_tab">
       <attribute name="title">
        <string>3D View</string>
       </attribute>
@@ -489,12 +489,12 @@ p, li { white-space: pre-wrap; }
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_6">
+     <widget class="QWidget" name="TSG_tab">
       <attribute name="title">
        <string>Theoretical Spectra Generation</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="1" column="3">
+       <item row="3" column="3">
         <widget class="QDoubleSpinBox" name="tolerance">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
@@ -513,14 +513,7 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="1" column="2" alignment="Qt::AlignRight">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Alignment Tolerance  </string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="4">
+       <item row="3" column="4">
         <widget class="QComboBox" name="unit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -540,8 +533,27 @@ p, li { white-space: pre-wrap; }
          </item>
         </widget>
        </item>
+       <item row="3" column="2" alignment="Qt::AlignRight">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Alignment Tolerance  </string>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="0" colspan="5">
-        <widget class="OpenMS::ParamEditor" name="param_editor_spec_gen_" native="true"/>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>These settings are used to generate theoretical spectra of peptide identifications to align them
+and use them for spectra annotation. (i.e. &quot;Tools&quot; -&gt; &quot;Annotate with peptide identifications&quot;)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="OpenMS::ParamEditor" name="param_editor_spec_gen_" native="true"/>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>
@@ -584,8 +596,8 @@ p, li { white-space: pre-wrap; }
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>227</x>
-     <y>424</y>
+     <x>236</x>
+     <y>400</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -600,8 +612,8 @@ p, li { white-space: pre-wrap; }
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>295</x>
-     <y>430</y>
+     <x>304</x>
+     <y>400</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
