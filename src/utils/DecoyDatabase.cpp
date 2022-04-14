@@ -72,7 +72,8 @@ using namespace std;
 
   The tool will keep track of all protein identifiers and report duplicates.
 
-  Also the tool automatically checks for decoys already in the input files (based on most common pre-/suffixes).
+  Also the tool automatically checks for decoys already in the input files (based on most common pre-/suffixes)
+  and terminates the program if decoys are found.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_DecoyDatabase.cli
@@ -198,66 +199,40 @@ protected:
       digestion.setEnzyme(enzyme);
     }
 
+    // check if decoy_string is common decoy string (e.g. decoy, rev, ...)
+    String decoy_string_lower = decoy_string;
+    decoy_string_lower.toLower();
+    bool is_common = false;
+    for (const auto& a :  DecoyHelper::affixes)
+    {
+      if((decoy_string_lower.hasPrefix(a) && decoy_string_position_prefix) || (decoy_string_lower.hasSuffix(a) && !decoy_string_position_prefix))
+      {
+        is_common = true;
+      }
+    }
+    // terminate, if decoy_string is not one of the allowed decoy strings (exit code 11)
+    if(!is_common)
+    {
+      OPENMS_LOG_FATAL_ERROR << "Given decoy string is not allowed. Please use one of the strings in DecoyHelper::affixes as either prefix or suffix (case insensitive): \n";
+      return INCOMPATIBLE_INPUT_DATA;
+    }
+
     MRMDecoy m;
     m.setParameters(decoy_param);
 
     Math::RandomShuffler shuffler(seed);
     for (Size i = 0; i < in.size(); ++i)
     {
-      // check if decoy_string is common decoy string (e.g. decoy, rev, ...)
-      try
-      {
-        String decoy_string_lower = decoy_string;
-        decoy_string_lower.toLower();
-        bool is_common = 0;
-        for (auto a :  DecoyHelper::affixes){
-          if((decoy_string_lower.hasPrefix(a) && decoy_string_position_prefix) || (decoy_string_lower.hasSuffix(a) && !decoy_string_position_prefix))
-          {
-            is_common = 1;
-          }
-        }
-        // throw exception, if decoy_string is not one of the allowed decoy strings
-        if(!is_common)
-        {
-          throw OpenMS::Exception::IllegalArgument(
-            __FILE__,
-            __LINE__,
-            OPENMS_PRETTY_FUNCTION,
-            "Given decoy string is not allowed. Please use one of the following strings as either prefix or suffix (case insensitive): \n"
-            "decoy, dec, reverse, rev, reversed, __id_decoy, xxx, shuffled, shuffle, pseudo, random"
-          );
-        }
-      }
-      catch(OpenMS::Exception::IllegalArgument& e)
-      {
-        // if decoy_string is not one of the allowed decoy strings, program terminates with exit code 11
-        OPENMS_LOG_FATAL_ERROR << "DecoyDatabase failed due to: " << e.what() << '\n';
-        return INCOMPATIBLE_INPUT_DATA;
-      }
-
       // check input files for decoys
-      try
-      {
-        std::vector<FASTAFile::FASTAEntry> data;
-        f.load(in[i], data);
-        FASTAContainer<TFI_Vector> in_entries = data;
-        auto r = DecoyHelper::countDecoys(in_entries);
-        // if decoys found, throw exception
-        if (static_cast<double>(r.all_prefix_occur + r.all_suffix_occur) >= 0.4 * static_cast<double>(r.all_proteins_count))
-      {
-        throw OpenMS::Exception::InvalidInput(
-            __FILE__,
-            __LINE__,
-            OPENMS_PRETTY_FUNCTION,
-            "Input file already contains decoys.",
-            in[i]
-            );
-        }
-      }
-      catch(Exception::InvalidInput& e)
+      std::vector<FASTAFile::FASTAEntry> data;
+      f.load(in[i], data);
+      FASTAContainer<TFI_Vector> in_entries = data;
+      auto r = DecoyHelper::countDecoys(in_entries);
+      // if decoys found, throw exception
+      if (static_cast<double>(r.all_prefix_occur + r.all_suffix_occur) >= 0.4 * static_cast<double>(r.all_proteins_count))
       {
         // if decoys found, program terminates with exit code 11
-        OPENMS_LOG_FATAL_ERROR << "DecoyDatabase failed due to " << e.what() << '\n';
+        OPENMS_LOG_FATAL_ERROR << "Invalid input in " + in[i] + ": Input file already contains decoys." << '\n';
         return INCOMPATIBLE_INPUT_DATA;
       }
 
