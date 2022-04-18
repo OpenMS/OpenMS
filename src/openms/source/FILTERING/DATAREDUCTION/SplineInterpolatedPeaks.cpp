@@ -207,7 +207,6 @@ namespace OpenMS
   SplineInterpolatedPeaks::Navigator::Navigator(const std::vector<SplinePackage>* packages, double pos_min, double pos_max, double scaling) :
     packages_(packages),
     last_package_(0),
-    pos_min_(pos_min),
     pos_max_(pos_max),
     pos_step_width_scaling_(scaling)
   {
