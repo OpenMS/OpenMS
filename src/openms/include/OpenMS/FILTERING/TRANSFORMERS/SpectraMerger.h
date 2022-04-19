@@ -647,21 +647,20 @@ protected:
       OPENMS_LOG_INFO << "Number of merged peaks: " << String(buffer) << "\n";
 
       // remove all spectra that were within a cluster
-      //TODO std::move or exp_tmp.swap()
       typename MapType::SpectrumType empty_spec;
       MapType exp_tmp;
       for (Size i = 0; i < exp.size(); ++i)
       {
         if (merged_indices.count(i) == 0) // save unclustered ones
         {
-          exp_tmp.addSpectrum(exp[i]);
+          exp_tmp.addSpectrum(std::move(exp[i]));
           exp[i] = empty_spec;
         }
       }
 
       //typedef std::vector<typename MapType::SpectrumType> Base;
       //exp.Base::operator=(exp_tmp);
-      //TODO CLEAN THIS UP
+      //TODO CLEAN THIS UP!
       //Meta_Data will not be cleared
       exp.clear(false);
       exp.getSpectra().insert(exp.end(), exp_tmp.begin(), exp_tmp.end());
