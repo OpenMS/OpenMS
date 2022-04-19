@@ -1891,7 +1891,7 @@ namespace OpenMS
           RangeType dr;
           unit_mapper_.fromXY(widgetToData_(pos), dr);
           // restrict the movement to the data range
-          dr.clampTo(overall_data_range_);
+          dr.pushInto(overall_data_range_);
           (*getCurrentLayer().getFeatureMap())[selected_peak_.peak].setRT(dr.getMinRT());
           (*getCurrentLayer().getFeatureMap())[selected_peak_.peak].setMZ(dr.getMinMZ());
 

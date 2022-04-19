@@ -37,6 +37,8 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/Peak2D.h>
@@ -172,7 +174,7 @@ namespace OpenMS
 
     RangeBase map(const RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const override
     {
-      return (RangeRT)rm;
+      return rm.getRangeForDim(MSDim::RT);
     }
 
     void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const
@@ -209,7 +211,9 @@ namespace OpenMS
       ValueTypes res;
       res.reserve(spec.size());
       for (const auto& p : spec)
+      {
         res.push_back(p.getMZ());
+      }
       return res;
     }  
     
@@ -225,7 +229,7 @@ namespace OpenMS
 
     RangeBase map(const RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const override
     {
-      return RangeMZ(rm);
+      return rm.getRangeForDim(MSDim::MZ);
     }
 
     void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const
@@ -263,7 +267,9 @@ namespace OpenMS
       ValueTypes res;
       res.reserve(spec.size());
       for (const auto& p : spec)
+      {
         res.push_back(p.getIntensity());
+      }
       return res;
     }
 
@@ -279,7 +285,7 @@ namespace OpenMS
     
     RangeBase map(const RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const override
     {
-      return RangeIntensity(rm);
+      return rm.getRangeForDim(MSDim::INT);
     }
 
     void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const
@@ -401,6 +407,7 @@ namespace OpenMS
     }
 
     /// Convert an N_DIM-Point to a Range.
+    /// The range will only span a single value in each dimension covered by this mapper.
     /// Dimensions not contained in this DimMapper will remain untouched in @p output
     template<typename... Ranges>
     void fromXY(const Point& in, RangeManager<Ranges...>& output) const

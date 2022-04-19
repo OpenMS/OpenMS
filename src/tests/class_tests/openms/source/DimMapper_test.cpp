@@ -54,6 +54,98 @@ START_TEST(DimMapper, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+
+START_SECTION(DimRT())
+{
+  DimRT rt;
+  TEST_TRUE(rt.clone()->getUnit() == DIM_UNIT::RT);
+}
+END_SECTION
+
+START_SECTION(std::unique_ptr<DimBase> clone() const override)
+{
+  DimRT rt;
+  TEST_TRUE(rt.clone()->getUnit() == DIM_UNIT::RT);
+}
+END_SECTION
+
+START_SECTION(ValueType map(const Peak1D& p) const override)
+{
+  DimRT rt;
+  TEST_EXCEPTION(Exception::InvalidRange, rt.map(Peak1D{1, 2}));
+}
+END_SECTION
+
+START_SECTION(ValueType map(const Peak2D& p) const override)
+{
+  DimRT rt;
+  TEST_EQUAL(rt.map(Peak2D({1, 2}, 3)), 1.0)
+}
+END_SECTION
+
+START_SECTION(ValueTypes map(const MSSpectrum& spec) const override)
+{
+  DimRT rt;
+  TEST_EXCEPTION(Exception::InvalidRange, rt.map(MSSpectrum()))
+}
+END_SECTION
+
+START_SECTION(ValueType map(MSExperiment::ConstAreaIterator it) const override)
+{
+  DimRT rt;
+  MSSpectrum spec;
+  spec.push_back({1, 2});
+  spec.setRT(5);
+  MSExperiment exp;
+  exp.addSpectrum(spec);
+  TEST_EQUAL(rt.map(exp.areaBeginConst(4, 6, 0, 2)), 5)
+}
+END_SECTION
+
+START_SECTION(ValueType map(const BaseFeature& bf) const override)
+{
+  DimRT rt;
+  TEST_EQUAL(rt.map(BaseFeature{Peak2D({1, 2}, 3)}), 1)
+}
+END_SECTION
+
+START_SECTION(ValueType map(const PeptideIdentification& pi) const override)
+{
+  DimRT rt;
+  PeptideIdentification pi;
+  pi.setRT(1);
+  TEST_EQUAL(rt.map(pi), 1)
+}
+END_SECTION
+
+START_SECTION(RangeBase map(const RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const override)
+{
+  DimRT rt;
+  RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility> rm;
+  rm.extendRT(1);
+  rm.extendRT(1.1);
+  rm.extendMZ(2);
+  rm.extendIntensity(3);
+  TEST_EQUAL(rt.map(rm), RangeBase(1, 1.1));
+}
+END_SECTION
+
+START_SECTION(void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const)
+{
+  DimRT rt;
+  RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility> rm;
+  rm.extendRT(1);
+  rm.extendRT(1.1);
+  rm.extendMZ(2);
+  rm.extendIntensity(3);
+  auto rm_old = rm;
+  rt.setRange(RangeBase {10, 10.1}, rm);
+  rm_old.RangeRT::operator=({10, 10.1});
+  TEST_TRUE(rm == rm_old);
+}
+END_SECTION
+
+
 using DimMapper3 = DimMapper<3>;
 
 DimMapper3* ptr = nullptr;
@@ -163,6 +255,26 @@ START_SECTION(template<typename... Ranges> void fromXY(const DRange<N_DIM>& in, 
 }
 END_SECTION
 
+START_SECTION(template<typename... Ranges> void fromXY(const Point& in, RangeManager<Ranges...>& output) const)
+{
+  FullRange fr;
+  fr.extendMobility(-4); // not considered
+  fr.extendRT(12134);
+  DimMapper3 d1(unitsIMR);
+  // RT is Z-dimension:
+  DRange<3> areaXY(DPosition<3>(77, 99, 1), DPosition<3>(777, 999, 1.1));
+  d1.fromXY(DimMapper3::Point{2, 3, 1}, fr);
+  TEST_EQUAL(fr.getMinRT(), 1) // overwritten
+  TEST_EQUAL(fr.getMaxRT(), 1)
+  TEST_EQUAL(fr.getMinMZ(), 3) // overwritten
+  TEST_EQUAL(fr.getMaxMZ(), 3)
+  TEST_EQUAL(fr.getMinIntensity(), 2) // overwritten
+  TEST_EQUAL(fr.getMaxIntensity(), 2)
+  TEST_EQUAL(fr.getMinMobility(), -4) // not modified
+  TEST_EQUAL(fr.getMaxMobility(), -4)
+}
+END_SECTION
+
 
 START_SECTION(const DimBase& getDim(DIM d) const)
 {
@@ -228,15 +340,15 @@ START_SECTION(bool operator!=(const Area& rhs) const)
 }
 END_SECTION
 
-const auto min_value = -std::numeric_limits<DRange<3>::CoordinateType>::max();
-const auto max_value = std::numeric_limits<DRange<3>::CoordinateType>::max();
+constexpr auto min_value = -std::numeric_limits<DRange<3>::CoordinateType>::max();
+constexpr auto max_value = std::numeric_limits<DRange<3>::CoordinateType>::max();
 
 START_SECTION(const Area& setArea(const UnitRange& data))
 {
   FullRange fr;
-  fr.RangeRT::assign({1, 1.1});
-  fr.RangeMobility::assign({4, 4.4});  // not considered by DimMapper
-  fr.RangeIntensity::assign({2, 2.2});
+  fr.RangeRT::operator=({1, 1.1});
+  fr.RangeMobility::operator=({4, 4.4}); // not considered by DimMapper
+  fr.RangeIntensity::operator=({2, 2.2});
   Area3 a(&dm_IMR);
   a.setArea(fr);
   TEST_EQUAL(fr, a.getAreaUnit()) // unchanged; just what we put in
@@ -258,9 +370,9 @@ START_SECTION(const Area& setArea(const AreaXYType& data))
   TEST_EQUAL(a.getAreaXY(), areaXY) // unchanged; just what we put in
 
   FullRange fr;
-  fr.RangeRT::assign({1, 1.1});
-  fr.RangeMobility::assign({4, 4.4}); // not considered by DimMapper
-  fr.RangeIntensity::assign({2, 2.2});
+  fr.RangeRT::operator=({1, 1.1});
+  fr.RangeMobility::operator=({4, 4.4}); // not considered by DimMapper
+  fr.RangeIntensity::operator=({2, 2.2});
   TEST_EQUAL((RangeRT)fr, (RangeRT)a.getAreaUnit())
   TEST_EQUAL((RangeIntensity)fr, (RangeIntensity)a.getAreaUnit())
   TEST_NOT_EQUAL(fr, a.getAreaUnit()) // due to mobility
@@ -281,7 +393,41 @@ START_SECTION(const UnitRange& getAreaUnit() const)
 }
 END_SECTION
 
+START_SECTION(Area cloneWith(const AreaXYType& data) const)
+{
+  FullRange fr;
+  fr.RangeRT::operator=({1, 1.1});
+  fr.RangeMobility::operator=({4, 4.4}); // not considered by DimMapper
+  fr.RangeIntensity::operator=({2, 2.2});
+  Area3 a_old(&dm_IMR);
+  auto a = a_old.cloneWith(fr);
+  TEST_EQUAL(fr, a.getAreaUnit()) // unchanged; just what we put in
+  DRange<3> areaXY;
+  areaXY.setDimMinMax(2, {1, 1.1}); // RT is mapped to dim2
+  areaXY.setDimMinMax(0, {2, 2.2}); // Intensity is mapped to dim0
+  TEST_EQUAL(a.getAreaXY(), areaXY)
+}
+END_SECTION
 
+
+START_SECTION(Area cloneWith(const UnitRange& data) const)
+{
+  DRange<3> areaXY;
+  areaXY.setDimMinMax(2, {1, 1.1}); // RT is mapped to dim2
+  areaXY.setDimMinMax(0, {2, 2.2}); // Intensity is mapped to dim0
+  Area3 a_old(&dm_IMR);
+  auto a = a_old.cloneWith(areaXY);
+  TEST_EQUAL(a.getAreaXY(), areaXY) // unchanged; just what we put in
+
+  FullRange fr;
+  fr.RangeRT::operator=({1, 1.1});
+  fr.RangeMobility::operator=({4, 4.4}); // not considered by DimMapper
+  fr.RangeIntensity::operator=({2, 2.2});
+  TEST_EQUAL((RangeRT)fr, (RangeRT)a.getAreaUnit())
+  TEST_EQUAL((RangeIntensity)fr, (RangeIntensity)a.getAreaUnit())
+  TEST_NOT_EQUAL(fr, a.getAreaUnit()) // due to mobility
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
