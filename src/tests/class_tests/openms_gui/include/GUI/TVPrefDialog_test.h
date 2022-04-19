@@ -34,6 +34,7 @@
 #include <QtTest/QtTest>
 #include <QtGui>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <ui_TOPPViewPrefDialog.h>
 
@@ -46,7 +47,10 @@ namespace OpenMS
     Q_OBJECT
 
   public:
-    TestTVPrefDialog() : dialog_(NULL) {}
+    TestTVPrefDialog() : dialog_(NULL)
+    {
+      OPENMS_LOG_INFO.remove(std::cout);
+    }
 
     ~TestTVPrefDialog()
     {
