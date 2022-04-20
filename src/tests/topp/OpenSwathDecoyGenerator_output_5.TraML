@@ -103,7 +103,7 @@
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
-    <Peptide id="DECOY_QRIDEFEAM_2" sequence="AEFEDIRQM">
+    <Peptide id="DECOY_QRIDEFEAM_2" sequence="AEFEDIRQC">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_QRIDEFEAM_2"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.860080798094116" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
@@ -804,7 +804,7 @@
     </Transition>
     <Transition id="DECOY_1339522" peptideRef="DECOY_QRIDEFEAM_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763509028021076" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="555.747858964220995" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -823,7 +823,7 @@
     </Transition>
     <Transition id="DECOY_1339525" peptideRef="DECOY_QRIDEFEAM_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763509028021076" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="555.747858964220995" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
@@ -842,7 +842,7 @@
     </Transition>
     <Transition id="DECOY_1339526" peptideRef="DECOY_QRIDEFEAM_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763509028021076" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="555.747858964220995" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
@@ -861,7 +861,7 @@
     </Transition>
     <Transition id="DECOY_1339527" peptideRef="DECOY_QRIDEFEAM_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763509028021076" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="555.747858964220995" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
@@ -880,7 +880,7 @@
     </Transition>
     <Transition id="DECOY_1339528" peptideRef="DECOY_QRIDEFEAM_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763509028021076" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="555.747858964220995" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
@@ -899,7 +899,7 @@
     </Transition>
     <Transition id="DECOY_1339529" peptideRef="DECOY_QRIDEFEAM_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763509028021076" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="555.747858964220995" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
