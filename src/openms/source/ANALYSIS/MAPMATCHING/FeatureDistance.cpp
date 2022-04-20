@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace std;
 
@@ -165,9 +166,9 @@ namespace OpenMS
 
     if (!ignore_adduct_)
     {
-      if (left.metaValueExists("dc_charge_adducts") && right.metaValueExists("dc_charge_adducts"))
+      if (left.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) && right.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
       {
-        if (EmpiricalFormula(left.getMetaValue("dc_charge_adducts")) != EmpiricalFormula(right.getMetaValue("dc_charge_adducts")))
+        if (EmpiricalFormula(left.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) != EmpiricalFormula(right.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)))
         {
           return make_pair(false, infinity);
         }

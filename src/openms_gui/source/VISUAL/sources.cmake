@@ -34,6 +34,7 @@ MultiGradient.cpp
 MultiGradientSelector.cpp
 OutputDirectory.cpp
 OutputDirectory.ui
+Painter1DBase.cpp
 ParamEditor.cpp
 ParamEditor.ui
 Plot1DCanvas.cpp

@@ -41,6 +41,8 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <map>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -414,13 +416,13 @@ protected:
     }
 
     // now calculate the final quantitation values from the quantlets
-    Map<Size, vector<SILACQuantitation> > idx_to_quantlet;
+    std::map<Size, vector<SILACQuantitation> > idx_to_quantlet;
     for (vector<SILACQuantitation>::const_iterator it = quantlets.begin(); it != quantlets.end(); ++it)
     {
       idx_to_quantlet[it->idx].push_back(*it);
     }
 
-    for (Map<Size, vector<SILACQuantitation> >::ConstIterator it1 = idx_to_quantlet.begin(); it1 != idx_to_quantlet.end(); ++it1)
+    for (std::map<Size, vector<SILACQuantitation> >::const_iterator it1 = idx_to_quantlet.begin(); it1 != idx_to_quantlet.end(); ++it1)
     {
       SILAC_pair silac_pair = pairs[it1->first];
 

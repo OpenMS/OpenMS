@@ -558,7 +558,7 @@ protected:
     const vector<const ResidueModification*> fixed_modifications = getModifications_(fixed_modifications_names);
 
     // merge duplicates, targeting the same AA
-    Map<String, double> mods;
+    std::map<String, double> mods;
     // Comet sets Carbamidometyl (C) as modification as default even if not specified.
     // Therefore there is the need to set it to 0, unless its set as flag (see loop below)
     mods["add_C_cysteine"] = 0;

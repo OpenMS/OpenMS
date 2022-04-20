@@ -428,7 +428,7 @@ namespace OpenMS
     {
       if (!isalpha(formula[reverse_i]))
       {
-        suffix = formula[reverse_i] + suffix;
+        suffix.insert(0,1, formula[reverse_i]); // pre-pend
       }
       else
       {
@@ -510,40 +510,43 @@ namespace OpenMS
     }
 
     // split the formula
-    vector<String> splitter;
+    std::vector<std::string> splitter;
+    splitter.reserve(formula.size() / 2); // reasonable estimate for small formulae like C6H12O6
     if (!formula.empty())
     {
       if (!isdigit(formula[0]) || formula[0] == '(')
       {
         bool is_isotope(false), is_symbol(false);
-        String split;
-        for (Size i = 0; i < formula.size(); ++i)
+        bool char_is_upper, is_bracket;
+        std::string split;
+        for (const auto& curr : formula)
         {
-          if ((isupper(formula[i]) && (!is_isotope || is_symbol))
-             || formula[i] == '(')
+          char_is_upper = isupper(curr);
+          is_bracket = (curr == '(');
+          if ((char_is_upper && (!is_isotope || is_symbol)) || is_bracket)
           {
             if (!split.empty())
             {
-              splitter.push_back(split);
+              splitter.push_back(std::move(split));
               is_isotope = false;
               is_symbol = false;
             }
-            split = String(1, formula[i]);
+            split = curr;
           }
           else
           {
-            split += String(1, formula[i]);
+            split += curr;
           }
-          if (formula[i] == '(')
+          if (is_bracket)
           {
             is_isotope = true;
           }
-          if (isupper(formula[i]))
+          if (char_is_upper)
           {
             is_symbol = true;
           }
         }
-        splitter.push_back(split);
+        splitter.push_back(std::move(split));
       }
       else
       {
@@ -552,9 +555,10 @@ namespace OpenMS
     }
 
     // add up the elements
+    const ElementDB* db = ElementDB::getInstance();
     for (Size i = 0; i != splitter.size(); ++i)
     {
-      String split = splitter[i];
+      const String& split = splitter[i];
       String number;
       String symbol;
       bool had_symbol(false);
@@ -562,11 +566,11 @@ namespace OpenMS
       {
         if (!had_symbol && (isdigit(split[j]) || split[j] == '-'))
         {
-          number = split[j] + number;
+          number.insert(0,1, split[j]); // pre-pend
         }
         else
         {
-          symbol = split[j] + symbol;
+          symbol.insert(0,1, split[j]); // pre-pend
           had_symbol = true;
         }
       }
@@ -577,44 +581,12 @@ namespace OpenMS
         num = number.toInt();
       }
 
-      const ElementDB* db = ElementDB::getInstance();
-      // support D and T for Deuterium and Tritium
-      if (symbol == "D") // Deuterium is represented as (2)H in DB.
+      const Element* e = db->getElement(symbol);
+      if (e != nullptr)
       {
         if (num != 0)
         {
-          const Element* e = db->getElement("(2)H");
-          if (auto it = ef.find(e); it != ef.end())
-          {
-            it->second += num;
-          }
-          else
-          {
-            ef.insert({e, num});
-          }
-        }
-      }
-      else if (symbol == "T") // Tritium is represented as (3)H in DB
-      {
-        if (num != 0)
-        {
-          const Element* e = db->getElement("(3)H");
-          if (auto it = ef.find(e); it != ef.end())
-          {
-            it->second += num;
-          }
-          else
-          {
-            ef.insert({e, num});
-          }
-        }
-      } 
-      else if (db->hasElement(symbol))
-      {
-        if (num != 0)
-        {
-          const Element* e = db->getElement(symbol);
-          std::map<const Element*, SignedSize>::iterator it = ef.find(e);
+          auto it = ef.find(e);
           if (it != ef.end())
           {
             it->second += num;
@@ -632,7 +604,7 @@ namespace OpenMS
     }
 
     // remove elements with 0 counts
-    std::map<const Element*, SignedSize>::iterator it = ef.begin();
+    auto it = ef.begin();
     while (it != ef.end())
     {
       if (it->second == 0)

@@ -441,6 +441,42 @@ namespace OpenMS
               String
       */
       inline const std::string   XFDR_FDR = "XFDR:FDR";
+
+      /** User parameter name for best ion annotation in a ConsensusFeature, taken from the best quality feature. (Required for IIMN)
+              String
+      */
+      inline const std::string   IIMN_BEST_ION = "best ion";
+
+      /** User parameter name for a ConsensusFeature. Represents the IIMN_ROW_IDs of related ConsensusFeatures defined by MetaboliteAdductDecharger.
+       *  Partners are separated by semin colon. (Required for IIMN)
+              List of String
+      */
+      inline const std::string   IIMN_ADDUCT_PARTNERS = "partners";
+
+      /** User parameter name for a unique ConsensusFeature index in a ConsensusMap. (Required for IIMN)
+              String
+      */
+      inline const std::string   IIMN_ROW_ID = "row ID";
+
+      /** User parameter name for a ConsensusFeature to indicate a metabolite with different adduct states. (Required for IIMN)
+              String
+      */
+      inline const std::string   IIMN_ANNOTATION_NETWORK_NUMBER = "annotation network number";
+
+      /** User parameter name for group annotation in Feature by MetaboliteAdductDecharger to indicate matching Features with different adducts.
+              String
+      */
+      inline const std::string   ADDUCT_GROUP = "Group";
+
+      /** User parameter name for a list of ADDUCT_GROUP annotations in a ConsensusFeature. (Required for IIMN)
+              vector<String>
+      */
+      inline const std::string   IIMN_LINKED_GROUPS = "LinkedGroups";
+
+      /** User parameter name for adduct annotation in Feature by MetaboliteAdductDecharger.
+              String
+      */
+      inline const std::string   DC_CHARGE_ADDUCTS = "dc_charge_adducts";
     }
 
     //@}

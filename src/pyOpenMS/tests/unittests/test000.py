@@ -236,7 +236,7 @@ def testAASequence():
         print("Error: Exception not triggered.")
         assert False
     assert seq.getFormula(pyopenms.Residue.ResidueType.Full, 0) == pyopenms.EmpiricalFormula("C75H122N20O32S2Se1")
-    assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1952.7200317517998) < 1e-5
+    assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1958.7140766518) < 1e-5
     # assert seq.has(pyopenms.ResidueDB.getResidue("P"))
 
     
@@ -368,9 +368,9 @@ def testFineIsotopePatternGenerator():
     water = pyopenms.EmpiricalFormula("H2O")
     mw = methanol + water
     iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-20, False, False))
-    assert len(iso_dist.getContainer()) == 56
+    assert len(iso_dist.getContainer()) == 56 # now 33 ?
     iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
-    assert len(iso_dist.getContainer()) == 84
+    assert len(iso_dist.getContainer()) == 88 # now 42
 
     c100 = pyopenms.EmpiricalFormula("C100")
     iso_dist = c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
@@ -3226,6 +3226,59 @@ def testMSSpectrum():
     assert spec.getFloatDataArrays()[0][2] == 42.0
     assert len(f_da[0].get_data() ) == 3
 
+    spec = pyopenms.MSSpectrum()
+    dfunit = spec.getDriftTimeUnit()
+    assert pyopenms.DriftTimeUnit().getMapping()[dfunit]  == "NONE"
+    assert dfunit == pyopenms.DriftTimeUnit.NONE
+    assert spec.getDriftTimeUnitAsString() == '<NONE>'
+    spec.setDriftTimeUnit( pyopenms.DriftTimeUnit.MILLISECOND )
+
+    dfunit = spec.getDriftTimeUnit()
+    assert dfunit == pyopenms.DriftTimeUnit.MILLISECOND
+    assert pyopenms.DriftTimeUnit().getMapping()[dfunit]  == "MILLISECOND"
+    assert spec.getDriftTimeUnitAsString() == 'ms'
+
+    spec = pyopenms.MSSpectrum()
+    spec.setDriftTime(6.0)
+    assert spec.getDriftTime() == 6.0
+
+    spec = pyopenms.MSSpectrum()
+    assert not spec.containsIMData()
+    data = np.array( [5, 8, 42] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    f_da[0].setName("Ion Mobility")
+    spec.setFloatDataArrays( f_da )
+    assert spec.containsIMData()
+    assert spec.getIMData()[0] == 0
+    f_da = [ pyopenms.FloatDataArray(), pyopenms.FloatDataArray() ]
+    f_da[0].setName("test")
+    f_da[0].set_data(data)
+    f_da[1].set_data(data)
+    f_da[1].setName("Ion Mobility")
+    spec.setFloatDataArrays( f_da )
+    assert spec.containsIMData()
+    assert spec.getIMData()[0] == 1
+
+    # Ensure that "set_peaks()" doesnt clear the float data arrays
+    spec = pyopenms.MSSpectrum()
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    f_da[0].setName("Ion Mobility")
+    spec.setFloatDataArrays( f_da )
+    spec.set_peaks( [data_mz,data_i] )
+    assert spec.containsIMData()
+    assert spec.getIMData()[0] == 0
+    assert len(spec.getFloatDataArrays()) == 1
+
+    f = spec.getFloatDataArrays()[0]
+    assert len(f.get_data()) == 3
+    assert f.get_data()[0] == 5
+    assert spec.size() == len(data_mz)
+    assert spec.size() == len(data_i)
+
 @report
 def testStringDataArray():
     """
@@ -3424,6 +3477,31 @@ def testMSChromatogram():
     assert mz[1] == 8.0
     assert ii[0] == 50.0
     assert ii[1] == 80.0
+
+    # test float data
+    chrom = pyopenms.MSChromatogram()
+    data = np.array( [5, 8, 42] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    f_da[0].setName("Test Data")
+    chrom.setFloatDataArrays( f_da )
+    assert len(chrom.getFloatDataArrays()) == 1
+    f = chrom.getFloatDataArrays()[0]
+    assert f.get_data()[0] == 5
+    assert f.getName() == "Test Data"
+
+    # Ensure that "set_peaks()" doesnt clear the float data arrays
+    chrom = pyopenms.MSChromatogram()
+    chrom.setFloatDataArrays( f_da )
+    chrom.set_peaks( [data_mz,data_i] )
+    assert len(chrom.getFloatDataArrays()) == 1
+
+    f = chrom.getFloatDataArrays()[0]
+    assert len(f.get_data()) == 3
+    assert f.get_data()[0] == 5
+    assert chrom.size() == len(data_mz)
+    assert chrom.size() == len(data_i)
+
 
 @report
 def testMRMFeature():
@@ -5173,6 +5251,19 @@ def testElementDB():
     assert e2.getSymbol() == "O"
     assert e2.getIsotopeDistribution()
 
+    # assume we discovered a new element
+    e2 = edb.addElement(b"NewElement", b"NE", 300, {400 : 1.0}, {400 : 400.1}, False)
+    e2 = edb.getElement(pyopenms.String("NE"))
+    assert e2.getName() == "NewElement"
+
+    # replace oxygen
+    e2 = edb.addElement(b"Oxygen", b"O", 8, {16 : 0.7, 19 : 0.3}, {16 : 16.01, 19 : 19.01}, True)
+    e2 = edb.getElement(pyopenms.String("O"))
+    assert e2.getName() == "Oxygen"
+    assert e2.getIsotopeDistribution()
+    assert len(e2.getIsotopeDistribution().getContainer()) == 2
+    assert abs(e2.getIsotopeDistribution().getContainer()[1].getIntensity() - 0.3) < 1e-5
+
     # assert e == e2
 
     #  not yet implemented
@@ -5516,5 +5607,42 @@ def testString():
     # assert( isinstance(r, bytes) )
     assert(r.decode("iso8859_15") == u"bläh")
 
-
+@report
+def testIIMN():
+    cm = pyopenms.ConsensusMap()
     
+    for mz, rt, ion, linked_groups in [(222.08, 62.0, "[M+H]+", ["1","2","3"]),
+                                        (244.08, 62.0, "[M+Na]+", ["1","2"]),
+                                        (204.08, 62.0, "[M-H-O]+", ["3"]),
+                                        (294.1, 62.0, "[M+H]+", ["4","5"])]:
+        f = pyopenms.ConsensusFeature()
+        f.setMZ(mz)
+        f.setRT(rt)
+        f.setCharge(1)
+        f.setQuality(2.0)
+        f.setMetaValue("best ion", ion)
+        f.setMetaValue("LinkedGroups", linked_groups)
+        cm.push_back(f)
+    cm.setUniqueIds()
+
+    pyopenms.IonIdentityMolecularNetworking.annotateConsensusMap(cm)
+
+    pyopenms.IonIdentityMolecularNetworking.writeSupplementaryPairTable(cm, "SupplementaryPairsTable.csv")
+
+    with open("SupplementaryPairsTable.csv", "r") as f:
+        assert f.read() == """ID1,ID2,EdgeType,Score,Annotation
+1,2,MS1 annotation,1,[M+H]+ [M+Na]+ dm/z=22.0
+1,3,MS1 annotation,1,[M+H]+ [M-H-O]+ dm/z=18.0
+"""
+    os.remove("SupplementaryPairsTable.csv")
+
+    pyopenms.IonIdentityMolecularNetworking.writeFeatureQuantificationTable(cm, "FeatureQuantificationTable.txt")
+    with open("FeatureQuantificationTable.txt", "r") as f:
+        assert f.read() == """#MAP	id	filename	label	size
+#CONSENSUS	rt_cf	mz_cf	intensity_cf	charge_cf	width_cf	quality_cf	row ID	best ion	partners	annotation network number
+CONSENSUS	62.0	222.080000000000013	0.0	1	0.0	2.0	1	[M+H]+	2;3	1
+CONSENSUS	62.0	244.080000000000013	0.0	1	0.0	2.0	2	[M+Na]+	1	1
+CONSENSUS	62.0	204.080000000000013	0.0	1	0.0	2.0	3	[M-H-O]+	1	1
+CONSENSUS	62.0	294.100000000000023	0.0	1	0.0	2.0	4	[M+H]+		2
+"""
+    os.remove("FeatureQuantificationTable.txt")

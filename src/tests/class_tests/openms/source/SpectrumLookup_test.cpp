@@ -174,7 +174,7 @@ START_SECTION((static Int extractScanNumber(const String&,
   TEST_EQUAL(SpectrumLookup::extractScanNumber("sample=1 period=1 cycle=42 experiment=1", "MS:1000770"), 42001);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("file=42", "MS:1000773"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("file=42", "MS:1000775"), 42);
-  TEST_EQUAL(SpectrumLookup::extractScanNumber("index=42", "MS:1000774"), 42);
+  TEST_EQUAL(SpectrumLookup::extractScanNumber("index=42", "MS:1000774"), 43);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("scanId=42", "MS:1001508"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("spectrum=42", "MS:1000777"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("42", "MS:1001530"), 42);

@@ -101,6 +101,8 @@ using namespace OpenMS;
   Step 2 is performed by finding the largest peak overall and use this to
   create a feature, propagating this through all chromatograms.
 
+  This tool will not compute any scores for the peaks, in order to do peak picking please use TOPP_OpenSwathAnalyzer
+
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_MRMTransitionGroupPicker.cli
   <B>INI file documentation of this tool:</B>

@@ -68,9 +68,12 @@ namespace OpenMS
     but a natural distribution or different isotopes. This distribution can be accessed via the
     member getIsotopeDistribution().
 
-    If one wants only use a specific isotope, it can be specified using "(",")" brackets. For example,
-    to specify 14C a heavy isotope of carbon it is expressed as "(14)C". The isotope distribution
-    of that instance contains only one isotope, 14C itself with a frequency of 100%.
+    If one wants only use a specific isotope, it can be specified using "(",")"
+    brackets. For example, to specify 13C a heavy isotope of carbon it is
+    expressed as "(13)C". The isotope distribution of that instance contains
+    only one isotope, 13C itself with a frequency of 100%. It is possible to
+    mix isotopes, for example "(13)C1CH6O" specifies an ethanol molecule with
+    one 12C and one 13C isotope.
 
     Instances EmpiricalFormula support a (limited) set of mathematical operations. Additions and subtractions
     are supported in different flavors. However, one must be careful, because this can lead to negative
@@ -121,6 +124,19 @@ public:
     /// Destructor
     virtual ~EmpiricalFormula();
     //@}
+
+     /**
+     @brief create EmpiricalFormular object by parsing an OpenMS string
+
+     @param s Input string
+
+     @throws Exception::ParseError if the formula cannot be parsed
+   */
+    static EmpiricalFormula fromString(const String& rhs)
+    {
+      EmpiricalFormula ef(rhs);
+      return ef;
+    }
 
     /** @name Accessors
     */

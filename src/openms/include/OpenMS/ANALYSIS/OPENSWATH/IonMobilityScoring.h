@@ -53,7 +53,13 @@ namespace OpenMS
 
   /** @brief A class that calls the ion mobility scoring routines
    *
-   * Use this class to invoke the individual OpenSWATH ion mobility scoring routines.
+   * Use this class to invoke the individual OpenSWATH ion mobility scoring
+   * routines. These scores use the ion mobilograms from individual peptides in
+   * one (or more) frames to compute additional scores.
+   *
+   * - driftScoring() performs scoring on fragment ion mobilograms extracted from a DIA frame
+   * - driftScoringMS1() performs scoring on precursor ion mobilograms extracted from a MS1 frame
+   * - driftScoringMS1Contrast() performs cross correlation (contrast) scoring between precursor and fragment ion mobilograms
    *
   */
   class OPENMS_DLLAPI IonMobilityScoring

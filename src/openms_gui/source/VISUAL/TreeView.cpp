@@ -84,7 +84,13 @@ namespace OpenMS
 
   void TreeView::hideColumns(const QStringList& header_names)
   {
+     /*
+       * Suppressing warning toSet() deprecated till Qt 5.14
+       */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     auto hset = header_names.toSet();
+#pragma GCC diagnostic pop
     // add actions which show/hide columns
     const auto& header = this->headerItem();
 
@@ -98,7 +104,7 @@ namespace OpenMS
     }
     if (!hset.empty())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.toList().join(", ")));
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.values().join(", ")));
     }
   }
 

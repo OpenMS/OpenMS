@@ -340,16 +340,26 @@ START_SECTION(bool nextHits(ACTrieState& state) const)
   
   ///
   /// TEST if offsets into proteins are correct in the presence of non-AA characters like '*'
-  /// 
+  ///        NOTE: offsets will be incorrect if a hit overlaps with a '*', since the trie only knows the length of a hit and the end position
+  ///              in the protein, thus computing the start will be off by the amount of '*'s
   t = ACTrie(0, 0);
   needles = {"MLTEAEK"};
   t.addNeedlesAndCompress(needles);
-  testCase(t, "*MLT*EAXK", "", needles, __LINE__);
+  testCase(t, "*MLTEAXK*", "", needles, __LINE__);
 
   t = ACTrie(1, 0);
   needles = {"MLTEAEK"};
   t.addNeedlesAndCompress(needles);
   testCase(t, "*MLTEAXK*", "MLTEAEK@1", needles, __LINE__);
+
+  ///
+  /// test if spawn does not report hits which do not cover its first AAA
+  /// 
+  t = ACTrie(4, 0);
+  needles = {"MDDDEADC", "MDD", "DD", "DEADC"};
+  t.addNeedlesAndCompress(needles);
+  testCase(t, "MBBDEABCRAFG", "MDDDEADC@0, MDD@0, DD@1, DD@2, DEADC@3", needles, __LINE__);
+             //MDDDEADC
 }
 END_SECTION
 
@@ -418,7 +428,7 @@ START_SECTION(constexpr AA())
   // make sure ctor is constexpr
   static_assert(AA('?').isValid() == false);
 
-  static_assert(AA('?')() == CharToAA['?']);
+  static_assert(AA('?')() == CharToAA[(unsigned char)'?']);
 
   static_assert(AA('G') <= AA('B'));
   

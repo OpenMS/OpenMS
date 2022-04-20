@@ -38,6 +38,8 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/METADATA/MSQuantifications.h>
 
+#include <map>
+
 namespace OpenMS
 {
   class ProgressLogger;
@@ -102,7 +104,7 @@ protected:
       /// Write CV term
       //~ TODO rewirte writeCVParams_ in baseclass to be more convenient
       //~ void MzQuantMLHandler::writeCVParams_(std::ostream& os, const Map< String, std::vector < CVTerm > > & , UInt indent);
-      void writeCVParams_(String & s, const Map<String, std::vector<CVTerm> > &, UInt indent);
+      void writeCVParams_(String & s, const std::map<String, std::vector<CVTerm> > &, UInt indent);
 
       /// Writes user terms
       void writeUserParams_(std::ostream & os, const MetaInfoInterface & meta, UInt indent);

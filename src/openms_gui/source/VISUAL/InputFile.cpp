@@ -41,7 +41,7 @@
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QCompleter>
-#include <QtWidgets/QDirModel>
+#include <QFileSystemModel>
 #include <QDragEnterEvent>
 #include <QMimeData>
 
@@ -54,7 +54,7 @@ namespace OpenMS
   {
     ui_->setupUi(this);
     QCompleter* completer = new QCompleter(this);
-    completer->setModel(new QDirModel(completer));
+    completer->setModel(new QFileSystemModel(completer));
     ui_->line_edit->setCompleter(completer);
     connect(ui_->browse_button, SIGNAL(clicked()), this, SLOT(showFileDialog()));
   }

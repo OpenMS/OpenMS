@@ -39,6 +39,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/UnimodXMLFile.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <vector>
 
@@ -78,6 +79,12 @@ START_SECTION(void load(const String& filename, vector<ResidueModification*>& mo
 	//}
 
 	TEST_EQUAL(modifications.size() > 1, true)
+
+  // cleanup
+  for (Size k = 0; k < modifications.size(); k++)
+  {
+    delete modifications[k];
+  }
 END_SECTION
 
 delete ptr;

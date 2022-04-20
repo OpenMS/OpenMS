@@ -199,15 +199,16 @@ namespace OpenMS
       // only need to grab the one with the desired index
       ExperimentSharedPtrType exp_sptr = layer.getChromatogramData();
       auto ondisc_sptr = layer.getOnDiscPeakData();
+      auto annotation = layer.getChromatogramAnnotation();
+      String fname = layer.filename;
 
       widget_1d->canvas()->removeLayers();
 
       // fix legend and set layer name
-      String fname = layer.filename;
       String caption = fname + "[" + index + "]";
 
       // add chromatogram data as peak spectrum and update other controls
-      widget_1d->canvas()->addChromLayer(exp_sptr, ondisc_sptr, layer.getChromatogramAnnotation(), index, fname, caption, false);
+      widget_1d->canvas()->addChromLayer(exp_sptr, ondisc_sptr, annotation, index, fname, caption, false);
 
       tv_->updateBarsAndMenus(); // needed since we blocked update above (to avoid repeated layer updates for many layers!)
     }
@@ -236,13 +237,14 @@ namespace OpenMS
       // first get raw data (the full experiment with all chromatograms), we
       // only need to grab the ones with the desired indices
       ExperimentSharedPtrType exp_sptr = layer.getChromatogramData();
-      auto ondisc_sptr = layer.getOnDiscPeakData();
 
-      widget_1d->canvas()->removeLayers();
+      String fname = layer.filename;
+      auto annotation = layer.getChromatogramAnnotation();
+      auto ondisc_sptr = layer.getOnDiscPeakData();
+      widget_1d->canvas()->removeLayers(); // this actually deletes layer, make sure its not used any more
 
       widget_1d->canvas()->blockSignals(true);
       RAIICleanup clean([&]() {widget_1d->canvas()->blockSignals(false); });
-      String fname = layer.filename;
       for (const auto& index : indices)
       {
         // get caption (either chromatogram idx or peptide sequence, if available)
@@ -253,7 +255,7 @@ namespace OpenMS
         }
         ((caption += "[") += index) += "]";
         // add chromatogram data as peak spectrum
-        widget_1d->canvas()->addChromLayer(exp_sptr, ondisc_sptr, layer.getChromatogramAnnotation(), index, fname, caption, true);
+        widget_1d->canvas()->addChromLayer(exp_sptr, ondisc_sptr, annotation, index, fname, caption, true);
       }
 
       tv_->updateBarsAndMenus(); // needed since we blocked update above (to avoid repeated layer updates for many layers!)

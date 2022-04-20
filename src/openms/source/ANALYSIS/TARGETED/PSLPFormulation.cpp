@@ -48,7 +48,7 @@ namespace OpenMS
   PSLPFormulation::PSLPFormulation() :
     DefaultParamHandler("PSLPFormulation"), solver_(LPWrapper::SOLVER_GLPK)
   {
-    //model_ = new LPWrapper();
+    model_ = nullptr;
 
     defaults_.setValue("rt:min_rt", 960., "Minimal rt in seconds.");
     defaults_.setMinFloat("rt:min_rt", 0.);
@@ -125,7 +125,7 @@ namespace OpenMS
 
   PSLPFormulation::~PSLPFormulation()
   {
-    //delete model_;
+    delete model_;
   }
 
   void PSLPFormulation::createAndSolveILP_(const FeatureMap& features, std::vector<std::vector<double> >& intensity_weights,
@@ -135,6 +135,7 @@ namespace OpenMS
                                            Size number_of_scans)
   {
     Int counter = 0;
+    delete model_;
     model_ = new LPWrapper();
     //#define DEBUG_OPS
 #ifdef DEBUG_OPS
@@ -442,6 +443,7 @@ namespace OpenMS
     const std::map<String, std::vector<double> >& pt_prot_map = preprocessing.getProteinPTMap();
     std::map<String, std::vector<double> >::const_iterator map_iter = pt_prot_map.begin();
 
+    delete model_;
     model_ = new LPWrapper();
     model_->setObjectiveSense(LPWrapper::MAX); // maximize
 
@@ -1033,6 +1035,7 @@ namespace OpenMS
 #ifdef DEBUG_OPS
     std::cout << "k2: " << k2 << std::endl;
 #endif
+    delete model_;
     model_ = new LPWrapper();
     Int counter = 0;
 
