@@ -357,9 +357,9 @@ public:
   {
     std::unordered_map<std::string, std::pair<Size, Size>> decoy_count; ///< map decoys to counts of occurrences as prefix/suffix
     std::unordered_map<std::string, std::string> decoy_case_sensitive; ///< map case insensitive strings back to original case (as used in fasta)
-    Size all_prefix_occur; ///< number of proteins with found decoy_prefix
-    Size all_suffix_occur; ///< number of proteins with found decoy_suffix
-    Size all_proteins_count; ///< number of all checked proteins
+    Size all_prefix_occur{0}; ///< number of proteins with found decoy_prefix
+    Size all_suffix_occur{0}; ///< number of proteins with found decoy_suffix
+    Size all_proteins_count{0}; ///< number of all checked proteins
   };
 
   // decoy strings
@@ -459,9 +459,6 @@ public:
     // note: decoy prefixes/suffices must be provided in lower case
 
     DecoyStatistics ds;
-    ds.all_prefix_occur = 0;
-    ds.all_suffix_occur = 0;
-    ds.all_proteins_count = 0;
 
     // setup regexes
     const boost::regex pattern_prefix(regexstr_prefix);

@@ -224,9 +224,7 @@ protected:
     for (Size i = 0; i < in.size(); ++i)
     {
       // check input files for decoys
-      std::vector<FASTAFile::FASTAEntry> data;
-      f.load(in[i], data);
-      FASTAContainer<TFI_Vector> in_entries = data;
+      FASTAContainer<TFI_File> in_entries{in[i]};
       auto r = DecoyHelper::countDecoys(in_entries);
       // if decoys found, throw exception
       if (static_cast<double>(r.all_prefix_occur + r.all_suffix_occur) >= 0.4 * static_cast<double>(r.all_proteins_count))
