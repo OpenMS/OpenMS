@@ -48,11 +48,11 @@
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
-    <Peptide id="LEEQLKEK_2" sequence="LEEQLKEK">
+    <Peptide id="LEEQLKEK_2" sequence="LEEQLKER">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="LEEQLKEK_2"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.849558031417467" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-      <userParam name="full_peptide_name" type="xsd:string" value="LEEQLKEK"/>
+      <userParam name="full_peptide_name" type="xsd:string" value="LEEQLKER"/>
       <userParam name="GeneName" type="xsd:string" value="EEA1"/>
       <ProteinRef ref="Q15075"/>
       <RetentionTimeList>
@@ -90,7 +90,20 @@
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
-    <Peptide id="DECOY_AAVEQEKR_2" sequence="KEQEVAAK">
+    <Peptide id="QRIDEFEAM_2_DUP" sequence="QRIDEFEAM">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="QRIDEFEAM_2"/>
+      <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.860080798094116" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
+      <userParam name="full_peptide_name" type="xsd:string" value="QRIDEFEAM"/>
+      <userParam name="GeneName" type="xsd:string" value="GENE"/>
+      <ProteinRef ref="P35241"/>
+      <RetentionTimeList>
+        <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard" value="67.9894384939365"/>
+        </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="DECOY_AAVEQEKR_2" sequence="KEQEVAAR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_AAVEQEKR_2"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.838920544625305" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
@@ -103,7 +116,23 @@
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
-    <Peptide id="DECOY_QRIDEFEAM_2" sequence="AEFEDIRQC">
+    <Peptide id="DECOY_QRIDEFEAM(Oxidation)_2" sequence="AEFEDIRQM">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_QRIDEFEAM(Oxidation)_2"/>
+      <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.861850331595122" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
+      <userParam name="full_peptide_name" type="xsd:string" value="QRIDEFEAM(UniMod:35)"/>
+      <userParam name="GeneName" type="xsd:string" value="RDX"/>
+      <ProteinRef ref="DECOY_P35241"/>
+      <Modification location="9" monoisotopicMassDelta="15.994915" averageMassDelta="15.9994">
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:35" name="Oxidation"/>
+      </Modification>
+      <RetentionTimeList>
+        <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard" value="45.8666735395333"/>
+        </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="DECOY_QRIDEFEAM_2" sequence="AEFEDIRQM">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_QRIDEFEAM_2"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.860080798094116" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
@@ -688,13 +717,108 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b8^1"/>
     </Transition>
+    <Transition id="1" peptideRef="QRIDEFEAM_2_DUP">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763500000000022" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="513.278" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="3210.4037265"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="annotation" type="xsd:string" value="b4^1"/>
+    </Transition>
+    <Transition id="2" peptideRef="QRIDEFEAM_2_DUP">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763500000000022" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="642.3206" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="8143.562959"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="annotation" type="xsd:string" value="b5^1"/>
+    </Transition>
+    <Transition id="3" peptideRef="QRIDEFEAM_2_DUP">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763500000000022" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="789.389" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="5487.5070585"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="annotation" type="xsd:string" value="b6^1"/>
+    </Transition>
+    <Transition id="4" peptideRef="QRIDEFEAM_2_DUP">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763500000000022" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="918.4316" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="10000"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="annotation" type="xsd:string" value="b7^1"/>
+    </Transition>
+    <Transition id="5" peptideRef="QRIDEFEAM_2_DUP">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763500000000022" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="989.4687" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="3516.3749295"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="annotation" type="xsd:string" value="b8^1"/>
+    </Transition>
     <Transition id="DECOY_535961" peptideRef="DECOY_AAVEQEKR_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="451.750727035421051" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="465.75380103542102" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="323.1819" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="337.185" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
@@ -709,11 +833,11 @@
     </Transition>
     <Transition id="DECOY_535963" peptideRef="DECOY_AAVEQEKR_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="451.750727035421051" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="465.75380103542102" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="289.187" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="317.1932" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
@@ -728,11 +852,11 @@
     </Transition>
     <Transition id="DECOY_535964" peptideRef="DECOY_AAVEQEKR_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="451.750727035421051" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="465.75380103542102" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="388.2554" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="416.2616" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
@@ -747,11 +871,11 @@
     </Transition>
     <Transition id="DECOY_535965" peptideRef="DECOY_AAVEQEKR_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="451.750727035421051" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="465.75380103542102" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="517.298" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="545.3042" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
@@ -766,7 +890,7 @@
     </Transition>
     <Transition id="DECOY_535966" peptideRef="DECOY_AAVEQEKR_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="451.750727035421051" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="465.75380103542102" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
@@ -785,11 +909,11 @@
     </Transition>
     <Transition id="DECOY_535967" peptideRef="DECOY_AAVEQEKR_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="451.750727035421051" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="465.75380103542102" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="645.3566" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="673.3628" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
@@ -802,9 +926,123 @@
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6^1"/>
     </Transition>
+    <Transition id="DECOY_1405897" peptideRef="DECOY_QRIDEFEAM(Oxidation)_2">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="577.760966528020958" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="563.297" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="942.061035"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="annotation" type="xsd:string" value="y4^1"/>
+    </Transition>
+    <Transition id="DECOY_1405898" peptideRef="DECOY_QRIDEFEAM(Oxidation)_2">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="577.760966528020958" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="477.198" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="3272.888103"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="annotation" type="xsd:string" value="b4^1"/>
+    </Transition>
+    <Transition id="DECOY_1405899" peptideRef="DECOY_QRIDEFEAM(Oxidation)_2">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="577.760966528020958" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="592.2249" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="6797.877046"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="annotation" type="xsd:string" value="b5^1"/>
+    </Transition>
+    <Transition id="DECOY_1405901" peptideRef="DECOY_QRIDEFEAM(Oxidation)_2">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="577.760966528020958" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="705.309" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="5904.46705"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="annotation" type="xsd:string" value="b6^1"/>
+    </Transition>
+    <Transition id="DECOY_1405902" peptideRef="DECOY_QRIDEFEAM(Oxidation)_2">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="577.760966528020958" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="861.4101" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="10000"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="annotation" type="xsd:string" value="b7^1"/>
+    </Transition>
+    <Transition id="DECOY_1405903" peptideRef="DECOY_QRIDEFEAM(Oxidation)_2">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="577.760966528020958" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="989.4687" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="4971.251659"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="annotation" type="xsd:string" value="b8^1"/>
+    </Transition>
     <Transition id="DECOY_1339522" peptideRef="DECOY_QRIDEFEAM_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="555.747858964220995" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763509028021076" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -823,7 +1061,7 @@
     </Transition>
     <Transition id="DECOY_1339525" peptideRef="DECOY_QRIDEFEAM_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="555.747858964220995" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763509028021076" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
@@ -842,7 +1080,7 @@
     </Transition>
     <Transition id="DECOY_1339526" peptideRef="DECOY_QRIDEFEAM_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="555.747858964220995" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763509028021076" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
@@ -861,7 +1099,7 @@
     </Transition>
     <Transition id="DECOY_1339527" peptideRef="DECOY_QRIDEFEAM_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="555.747858964220995" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763509028021076" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
@@ -880,7 +1118,7 @@
     </Transition>
     <Transition id="DECOY_1339528" peptideRef="DECOY_QRIDEFEAM_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="555.747858964220995" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763509028021076" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
@@ -899,7 +1137,7 @@
     </Transition>
     <Transition id="DECOY_1339529" peptideRef="DECOY_QRIDEFEAM_2">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="555.747858964220995" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="569.763509028021076" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>

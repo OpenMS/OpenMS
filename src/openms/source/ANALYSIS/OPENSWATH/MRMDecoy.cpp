@@ -378,6 +378,29 @@ namespace OpenMS
     return false;
   }
 
+  String MRMDecoy::getModifiedPeptideSequence_(const OpenMS::TargetedExperiment::Peptide& pep) const
+  {
+          String full_peptide_name = "";
+          for (int loc = -1; loc <= (int)pep.sequence.size(); loc++)
+          {
+            if (loc > -1 && loc < (int)pep.sequence.size())
+            {
+              full_peptide_name += pep.sequence[loc];
+            }
+            // C-terminal and N-terminal modifications may be at positions -1 or pep.sequence
+            for (Size modloc = 0; modloc < pep.mods.size(); modloc++)
+            {
+              if (pep.mods[modloc].location == loc)
+              {
+                full_peptide_name += "(UniMod:" + String(pep.mods[modloc].unimod_id) + ")";
+              }
+            }
+          }
+	  return full_peptide_name;
+  }
+
+
+
   void MRMDecoy::generateDecoys(const OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
                                 const String& method, const double aim_decoy_fraction, const bool do_switchKR,
                                 const String& decoy_tag, const int max_attempts, const double identity_threshold,
@@ -426,7 +449,9 @@ namespace OpenMS
     for (const auto& pep_idx: selection_list)
     {
 	    OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[pep_idx];
-	    allPeptideSequences[peptide.sequence] = peptide.id;
+
+	    // create a modified peptide sequence string 
+	    allPeptideSequences[MRMDecoy::getModifiedPeptideSequence_(peptide)] = peptide.id;
     }
 
     std::unordered_set<String> exclusion_peptides;
@@ -490,10 +515,17 @@ namespace OpenMS
 	}
       }
 
-      // Check that the decoy sequence computed does not happen to be a target sequence
+      // Check that the decoy sequence computed does not happen to be a target sequence AND does not happen to be already present
+      // decoy can be already present if there are two peptides exactly the same expect for the last amino acid and pseudo-reverse and swtichKR are enabled and not a tryptic peptide 
+      // (e.g. PEPTIDE --> DITPEPQ,  PEPTIDA --> DITPEPQ) 
       if (allPeptideSequences.find(peptide.sequence) != allPeptideSequences.end()){
-              OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " since decoy peptide is also a target peptide" << std::endl;
+              OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " since decoy peptide is also a target peptide or this decoy peptide is already present" << std::endl;
 	      exclusion_peptides.insert(peptide.id);
+      }
+      else {
+	      // Since this decoy will be added, add it to the peptide map so that the same decoy is not added twice
+	      OPENMS_LOG_DEBUG << "[peptide] adding " << peptide.id << " to master list of peptides " << std::endl;
+	      allPeptideSequences[MRMDecoy::getModifiedPeptideSequence_(peptide)] = peptide.id;
       }
 
       for (Size prot_idx = 0; prot_idx < peptide.protein_refs.size(); ++prot_idx)

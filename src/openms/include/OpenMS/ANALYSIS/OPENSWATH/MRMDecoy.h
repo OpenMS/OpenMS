@@ -224,6 +224,12 @@ protected:
     OpenMS::TargetedExperiment::Peptide reversePeptide_(
       const OpenMS::TargetedExperiment::Peptide& peptide) const;
 
+    /**
+     @breif Convert a peptide to a string which contains the peptide sequence and modifications
+    **/
+    String getModifiedPeptideSequence_(const OpenMS::TargetedExperiment::Peptide& pep) const;
+
+
     /// Synchronize members with param class
     void updateMembers_() override;
 
