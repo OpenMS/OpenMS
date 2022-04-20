@@ -128,6 +128,14 @@ public:
                         const bool enable_unspecific_losses,
                         const int round_decPow = -4) const;
 
+    /**
+       @brief Swtich the final Amino Acid of a tryptic peptide.
+       E.g. If the last Amino Acid is "K" switch to "R" (and visa versa).
+
+       @note If the last Amino Acid is neither "K" or "R", the last Amino Acid is changed to a random Amino Acid .
+    */
+    void switchKR(OpenMS::TargetedExperiment::Peptide& peptide) const;
+
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
@@ -177,14 +185,6 @@ public:
     */
     static IndexType findFixedResidues(const std::string& sequence,
         bool keepN, bool keepC, const OpenMS::String& keep_const_pattern);
-
-    /**
-       @brief Swtich the final Amino Acid of a tryptic peptide.
-       E.g. If the last Amino Acid is "K" switch to "R" (and visa versa).
-
-       @note If the last Amino Acid is neither "K" or "R", this method does nothing.
-    */
-    OpenMS::TargetedExperiment::Peptide switchKR(OpenMS::TargetedExperiment::Peptide& peptide) const;
 
 protected:
 
