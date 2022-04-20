@@ -399,8 +399,6 @@ namespace OpenMS
 	  return full_peptide_name;
   }
 
-
-
   void MRMDecoy::generateDecoys(const OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
                                 const String& method, const double aim_decoy_fraction, const bool do_switchKR,
                                 const String& decoy_tag, const int max_attempts, const double identity_threshold,
@@ -484,9 +482,7 @@ namespace OpenMS
         else
         {
           peptide = MRMDecoy::pseudoreversePeptide_(peptide);
-          if (do_switchKR){
-		 switchKR(peptide);
-	  }
+          if (do_switchKR) switchKR(peptide);
         }
       }
       else if (method == "reverse")
@@ -510,14 +506,10 @@ namespace OpenMS
           OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
           exclusion_peptides.insert(peptide.id);
         }
-        else if (do_switchKR){
-		switchKR(peptide);
-	}
+        else if (do_switchKR) switchKR(peptide);
       }
 
-      // Check that the decoy sequence computed does not happen to be a target sequence AND does not happen to be already present
-      // decoy can be already present if there are two peptides exactly the same expect for the last amino acid and pseudo-reverse and swtichKR are enabled and not a tryptic peptide 
-      // (e.g. PEPTIDE --> DITPEPQ,  PEPTIDA --> DITPEPQ) 
+      // Check that the decoy sequence does not happen to be a target sequence AND is not already present 
       if (allPeptideSequences.find(peptide.sequence) != allPeptideSequences.end()){
               OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " since decoy peptide is also a target peptide or this decoy peptide is already present" << std::endl;
 	      exclusion_peptides.insert(peptide.id);
