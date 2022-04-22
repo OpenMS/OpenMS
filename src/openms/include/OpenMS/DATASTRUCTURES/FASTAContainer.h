@@ -348,6 +348,13 @@ public:
     bool success; ///< did more than 40% of proteins have the *same* prefix or suffix
     String name; ///< on success, what was the decoy string?
     bool is_prefix; ///< on success, was it a prefix or suffix
+
+    bool operator==(const Result& rhs) const
+    {
+      return success == rhs.success
+             && name == rhs.name
+             && is_prefix == rhs.is_prefix;
+    }
   };
 
   /**
@@ -360,6 +367,15 @@ public:
     Size all_prefix_occur{0}; ///< number of proteins with found decoy_prefix
     Size all_suffix_occur{0}; ///< number of proteins with found decoy_suffix
     Size all_proteins_count{0}; ///< number of all checked proteins
+
+    bool operator==(const DecoyStatistics& rhs) const
+    {
+      return decoy_count == rhs.decoy_count
+             && decoy_case_sensitive == rhs.decoy_case_sensitive
+             && all_prefix_occur == rhs.all_prefix_occur
+             && all_suffix_occur == rhs.all_suffix_occur
+             && all_proteins_count == rhs.all_proteins_count;
+    }
   };
 
   // decoy strings
