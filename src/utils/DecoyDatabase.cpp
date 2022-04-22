@@ -198,25 +198,30 @@ protected:
     {
       digestion.setEnzyme(enzyme);
     }
-
     // check if decoy_string is common decoy string (e.g. decoy, rev, ...)
     String decoy_string_lower = decoy_string;
     decoy_string_lower.toLower();
     bool is_common = false;
-    for (const auto& a :  DecoyHelper::affixes)
+    for (const auto& a : DecoyHelper::affixes)
     {
-      if((decoy_string_lower.hasPrefix(a) && decoy_string_position_prefix) || (decoy_string_lower.hasSuffix(a) && !decoy_string_position_prefix))
+      if ((decoy_string_lower.hasPrefix(a) && decoy_string_position_prefix) || (decoy_string_lower.hasSuffix(a) && !decoy_string_position_prefix))
       {
         is_common = true;
       }
     }
     // terminate, if decoy_string is not one of the allowed decoy strings (exit code 11)
-    if(!is_common)
+    if (!is_common)
     {
-      OPENMS_LOG_FATAL_ERROR << "Given decoy string is not allowed. Please use one of the strings in DecoyHelper::affixes as either prefix or suffix (case insensitive): \n";
-      return INCOMPATIBLE_INPUT_DATA;
+      if (getFlag_("force"))
+      {
+        OPENMS_LOG_WARN << "Force Flag is enabled, decoys with custom decoy string (not in DecoyHelper::affixes) will not be detected.\n";
+      }
+      else
+      {
+        OPENMS_LOG_FATAL_ERROR << "Given decoy string is not allowed. Please use one of the strings in DecoyHelper::affixes as either prefix or suffix (case insensitive): \n";
+        return INCOMPATIBLE_INPUT_DATA;
+      }
     }
-
     MRMDecoy m;
     m.setParameters(decoy_param);
 
