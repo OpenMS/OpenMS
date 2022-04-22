@@ -951,11 +951,15 @@ namespace OpenMS
           }
 
           // Search for local max.
-          if (peak_bin_numbers[max_peak_index - 1] == b_index - 1&&  (max_peak_index > 0&&  log_mz_peaks_[max_peak_index - 1].intensity > max_intensity))
+          if (max_peak_index > 0 && max_peak_index <= log_mz_peak_size &&
+              peak_bin_numbers[max_peak_index - 1] == b_index - 1 &&
+              log_mz_peaks_[max_peak_index - 1].intensity > max_intensity)
           {
             continue;
           }
-          if (peak_bin_numbers[max_peak_index + 1] == b_index + 1&&  (max_peak_index < log_mz_peaks_.size() - 1&&  log_mz_peaks_[max_peak_index + 1].intensity > max_intensity))
+          if (max_peak_index >= 0 && max_peak_index < log_mz_peak_size - 1 &&
+              peak_bin_numbers[max_peak_index + 1] == b_index + 1 &&
+              log_mz_peaks_[max_peak_index + 1].intensity > max_intensity)
           {
             continue;
           }
