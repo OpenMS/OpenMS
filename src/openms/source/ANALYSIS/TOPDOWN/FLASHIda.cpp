@@ -394,41 +394,45 @@ namespace OpenMS
           }
           else
           {
+            double power = pow(ospec[tindexl].getIntensity(), 2);
             if (pg.isSignalMZ(ospec[tindexl].getMZ(), tol_[ospec.getMSLevel() - 1]))//
             {
-              sig_pwr += ospec[tindexl].getIntensity() * ospec[tindexl].getIntensity();
+              sig_pwr += power;
             }
             else
             {
-              noise_pwr += ospec[tindexl].getIntensity() * ospec[tindexl].getIntensity();
+              noise_pwr += power;
             }
           }
-          if (tindexr >= ospec.size() ||
-              ospec[tindexr].getMZ() > center_mz + max_isolation_window_half_)// right side done
+          if (tindexr >= ospec.size() || ospec[tindexr].getMZ() > center_mz + max_isolation_window_half_)// right side done
           {
             rkeep = false;
           }
           else
           {
+            double power = pow(ospec[tindexr].getIntensity(), 2);
             if (pg.isSignalMZ(ospec[tindexr].getMZ(), tol_[ospec.getMSLevel() - 1]))//
             {
-              sig_pwr += ospec[tindexr].getIntensity() * ospec[tindexr].getIntensity();
+              sig_pwr += power;
             }
             else
             {
-              noise_pwr += ospec[tindexr].getIntensity() * ospec[tindexr].getIntensity();
+              noise_pwr += power;
             }
           }
+
+          double tlmz = ospec[tindexl].getMZ();
+          double trmz = ospec[tindexr].getMZ();
 
           tindexl--;
           tindexr++;
 
-          if (ospec[tindexr - 1].getMZ() < pmzr + min_isolation_window_half_)
+          if (trmz < pmzr + min_isolation_window_half_)
           {
             continue;
           }
 
-          if (ospec[tindexl + 1].getMZ() > pmzl - min_isolation_window_half_)
+          if (tlmz > pmzl - min_isolation_window_half_)
           {
             continue;
           }
@@ -439,19 +443,20 @@ namespace OpenMS
           }
           else
           {
-            if (tindexl < ospec.size() - 1)
+            if (tindexl >=0 && tindexl < ospec.size() - 1)
             {
-              lmz = std::max(center_mz - max_isolation_window_half_, ospec[tindexl + 1].getMZ());
+              lmz = std::max(center_mz - max_isolation_window_half_, tlmz);
             }
-            if (tindexr > 0)
+            if (tindexr > 0 && tindexr < ospec.size())
             {
-              rmz = std::min(center_mz + max_isolation_window_half_, ospec[tindexr - 1].getMZ());
+              rmz = std::min(center_mz + max_isolation_window_half_, trmz);
             }
             //final_snr = sig_pwr / noise_pwr;
           }
         }
 
-        if (lmz < 0 || rmz < 0)
+
+        if (lmz < ospec[0].getMZ() - max_isolation_window_half_ || rmz > ospec.back().getMZ() + max_isolation_window_half_ || lmz + 2 * min_isolation_window_half_ > rmz || rmz - lmz > 2 * max_isolation_window_half_)
         {
           continue;
         }
