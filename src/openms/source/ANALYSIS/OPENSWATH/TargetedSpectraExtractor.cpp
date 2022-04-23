@@ -228,6 +228,11 @@ namespace OpenMS
         for (const auto& subordinate : feature.getSubordinates())
         {
           const auto& peptide_ref = subordinate.getMetaValue("PeptideRef");
+
+          // check for null annotations resulting from unnanotated features
+          if (peptide_ref == "null")
+            break;
+
           const double target_mz = subordinate.getMZ();
           const double target_rt = subordinate.getRT();
           if (target_rt >= rt_left_lim && target_rt <= rt_right_lim)
