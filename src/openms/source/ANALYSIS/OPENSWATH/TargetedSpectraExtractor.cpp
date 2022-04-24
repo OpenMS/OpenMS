@@ -906,7 +906,7 @@ namespace OpenMS
         {
           std::string native_id = ms2_feature->getMetaValue("native_id");
           OpenMS::ReactionMonitoringTransition rmt;
-          rmt.setLibraryIntensity(ms2_feature.getIntensity());
+          rmt.setLibraryIntensity(ms2_feature->getIntensity());
           rmt.setName(ms2_feature->getMetaValue("native_id"));
           std::ostringstream os;
           os << ms2_feature->getMetaValue("native_id") << "_" << peptide_ref;
