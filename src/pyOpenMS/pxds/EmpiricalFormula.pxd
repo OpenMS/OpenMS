@@ -66,7 +66,8 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         EmpiricalFormula operator*(EmpiricalFormula) nogil except +
 
         EmpiricalFormula iadd(EmpiricalFormula)   nogil except + # wrap-as:operator+=
-        EmpiricalFormula iminus(EmpiricalFormula)   nogil except + # wrap-as:operator-=
+        EmpiricalFormula isub(EmpiricalFormula)   nogil except + # wrap-as:operator-=
+        EmpiricalFormula imul(EmpiricalFormula)   nogil except + # wrap-as:operator*=
 
         double calculateTheoreticalIsotopesNumber() nogil except +
         
