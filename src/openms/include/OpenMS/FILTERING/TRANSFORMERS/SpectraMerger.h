@@ -136,6 +136,9 @@ public:
     /// copy constructor
     SpectraMerger(const SpectraMerger& source);
 
+    /// move constructor
+    SpectraMerger(SpectraMerger&& source) = default;
+
     /// destructor
     ~SpectraMerger() override;
     // @}
@@ -144,6 +147,9 @@ public:
     // @{
     /// assignment operator
     SpectraMerger& operator=(const SpectraMerger& source);
+
+    /// move-assignment operator
+    SpectraMerger& operator=(SpectraMerger&& source) = default;
     // @}
 
     // @name Merging functions
@@ -225,16 +231,17 @@ public:
           // make cluster element
           BaseFeature bf;
           bf.setRT(exp[i].getRT());
+          const auto& pcs = exp[i].getPrecursors(); 
           // keep the first Precursor
-          if (exp[i].getPrecursors().empty())
+          if (pcs.empty())
           {
             throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Scan #") + String(i) + " does not contain any precursor information! Unable to cluster!");
           }
-          if (exp[i].getPrecursors().size() > 1)
+          if (pcs.size() > 1)
           {
             OPENMS_LOG_WARN << "More than one precursor found. Using first one!" << std::endl;
           }
-          bf.setMZ(exp[i].getPrecursors()[0].getMZ());
+          bf.setMZ(pcs[0].getMZ());
           data.push_back(bf);
         }
         data_size = data.size();
@@ -361,7 +368,8 @@ public:
               if (average_type == "gaussian")
               {
                 //factor * (rt_2 -rt)^2
-                weight = std::exp(factor * (it_rt_2->getRT() - it_rt->getRT()) * (it_rt_2->getRT() - it_rt->getRT()));
+                double base = it_rt_2->getRT() - it_rt->getRT();
+                weight = std::exp(factor * base * base);
               }
               std::pair<Size, double> p(m, weight);
               spectra_to_average_over[n].push_back(p);
@@ -370,8 +378,8 @@ public:
             if (average_type == "gaussian")
             {
               // Gaussian
-              terminate_now = std::exp(factor * (it_rt_2->getRT() - it_rt->getRT()) *
-                                      (it_rt_2->getRT() - it_rt->getRT())) < cutoff;
+              double base = it_rt_2->getRT() - it_rt->getRT();
+              terminate_now = std::exp(factor * base * base);
             }
             else if (unit)
             {
@@ -399,8 +407,8 @@ public:
               double weight = 1;
               if (average_type == "gaussian")
               {  
-                weight = std::exp(factor * (it_rt_2->getRT() - it_rt->getRT()) *
-                                            (it_rt_2->getRT() - it_rt->getRT()));
+                double base = it_rt_2->getRT() - it_rt->getRT();
+                weight = std::exp(factor * base * base); 
               }
               std::pair<Size, double> p (m, weight);
               spectra_to_average_over[n].push_back(p);
@@ -433,14 +441,14 @@ public:
       for (AverageBlocks::iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         double sum(0.0);
-        for (auto it2 = it->second.cbegin(); it2 != it->second.cend(); ++it2)
+        for (const auto& it2 : it->second)
         {
-          sum += it2->second;
+          sum += it2.second;
         }
 
-        for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        for (auto& it2 : it->second)
         {
-          (*it2).second /= sum;
+          it2.second /= sum;
         }
       }
 
@@ -618,11 +626,10 @@ protected:
           {
             precursor_mz_average /= precursor_count;
           }
-          std::vector<Precursor> pcs = consensus_spec.getPrecursors();
+          auto & pcs = consensus_spec.getPrecursors();
           //if (pcs.size()>1) OPENMS_LOG_WARN << "Removing excessive precursors - leaving only one per MS2 spectrum.\n";
           pcs.resize(1);
           pcs[0].setMZ(precursor_mz_average);
-          consensus_spec.setPrecursors(pcs);
         }
 
         if (consensus_spec.empty())
@@ -636,9 +643,9 @@ protected:
       }
 
       OPENMS_LOG_INFO << "Cluster sizes:\n";
-      for (auto it = cluster_sizes.cbegin(); it != cluster_sizes.cend(); ++it)
+      for (const auto& it : cluster_sizes)
       {
-        OPENMS_LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
+        OPENMS_LOG_INFO << "  size " << it.first << ": " << it.second << "x\n";
       }
 
       char buffer[200];
@@ -653,22 +660,23 @@ protected:
       {
         if (merged_indices.count(i) == 0) // save unclustered ones
         {
-          exp_tmp.addSpectrum(std::move(exp[i]));
+          exp_tmp.addSpectrum(exp[i]);
           exp[i] = empty_spec;
         }
       }
 
       //typedef std::vector<typename MapType::SpectrumType> Base;
       //exp.Base::operator=(exp_tmp);
-      //TODO CLEAN THIS UP!
       //Meta_Data will not be cleared
       exp.clear(false);
-      exp.getSpectra().insert(exp.end(), exp_tmp.begin(), exp_tmp.end());
+      exp.getSpectra().insert(exp.end(), std::make_move_iterator(exp_tmp.begin()),
+                                         std::make_move_iterator(exp_tmp.end()));
 
       // exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<typename MapType::SpectrumType>(ListUtils::create<int>(String(ms_level)), false)), exp.end());
 
       // ... and add consensus spectra
-      exp.getSpectra().insert(exp.end(), merged_spectra.begin(), merged_spectra.end());
+      exp.getSpectra().insert(exp.end(), std::make_move_iterator(merged_spectra.begin()),
+                                         std::make_move_iterator(merged_spectra.end()));
 
     }
 
@@ -712,10 +720,10 @@ protected:
 
         // loop over spectra in blocks
         std::vector<double> mz_positions_all; // m/z positions from all spectra
-        for (auto it2 = it->second.cbegin(); it2 != it->second.cend(); ++it2)
+        for (const auto& it2 : it->second)
         {
           // loop over m/z positions
-          for (typename MapType::SpectrumType::ConstIterator it_mz = exp[it2->first].begin(); it_mz < exp[it2->first].end(); ++it_mz)
+          for (typename MapType::SpectrumType::ConstIterator it_mz = exp[it2.first].begin(); it_mz < exp[it2.first].end(); ++it_mz)
           {
             mz_positions_all.push_back(it_mz->getMZ());
           }
@@ -727,25 +735,25 @@ protected:
         std::vector<double> intensities;
         double last_mz = std::numeric_limits<double>::min(); // last m/z position pushed through from mz_position to mz_position_2
         double delta_mz(mz_binning_width); // for m/z unit Da
-        for (auto it_mz = mz_positions_all.begin(); it_mz < mz_positions_all.end(); ++it_mz)
+        for (const auto it_mz : mz_positions_all)
         {
           if (mz_binning_unit == "ppm")
           {
-            delta_mz = mz_binning_width * (*it_mz) / 1000000;
+            delta_mz = mz_binning_width * it_mz / 1000000;
           }
 
-          if (((*it_mz) - last_mz) > delta_mz)
+          if ((it_mz - last_mz) > delta_mz)
           {
-            mz_positions.push_back(*it_mz);
-            last_mz = *it_mz;
+            mz_positions.push_back(it_mz);
+            intensities.push_back(0.0);
+            last_mz = it_mz;
           }
         }
-        intensities.resize(mz_positions.size());
 
         // loop over spectra in blocks
-        for (auto it2 = it->second.cbegin(); it2 != it->second.cend(); ++it2)
+        for (const auto& it2 : it->second)
         {
-          SplineInterpolatedPeaks spline(exp[it2->first]);
+          SplineInterpolatedPeaks spline(exp[it2.first]);
           SplineInterpolatedPeaks::Navigator nav = spline.getNavigator();
 
           // loop over m/z positions
@@ -753,7 +761,7 @@ protected:
           {
             if ((spline.getPosMin() < mz_positions[i]) && (mz_positions[i] < spline.getPosMax()))
             {
-              intensities[i] += nav.eval(mz_positions[i]) * (it2->second); // spline-interpolated intensity * weight
+              intensities[i] += nav.eval(mz_positions[i]) * (it2.second); // spline-interpolated intensity * weight
             }
           }
         }
@@ -769,7 +777,7 @@ protected:
           typename MapType::PeakType peak;
           peak.setMZ(mz_positions[i]);
           peak.setIntensity(intensities[i]);
-          average_spec.push_back(std::move(peak));
+          average_spec.push_back(peak);
         }
 
         // store spectrum temporarily
@@ -827,12 +835,12 @@ protected:
         // collect peaks from all spectra
         // loop over spectra in blocks
         std::vector<std::pair<double, double> > mz_intensity_all; // m/z positions and peak intensities from all spectra
-        for (auto it2 = it->second.cbegin(); it2 != it->second.cend(); ++it2)
+        for (const auto it2 : it->second)
         {
           // loop over m/z positions
-          for (typename MapType::SpectrumType::ConstIterator it_mz = exp[it2->first].begin(); it_mz < exp[it2->first].end(); ++it_mz)
+          for (typename MapType::SpectrumType::ConstIterator it_mz = exp[it2.first].begin(); it_mz < exp[it2.first].end(); ++it_mz)
           {
-            std::pair<double, double> mz_intensity(it_mz->getMZ(), (it_mz->getIntensity() * it2->second)); // m/z, intensity * weight
+            std::pair<double, double> mz_intensity(it_mz->getMZ(), (it_mz->getIntensity() * it2.second)); // m/z, intensity * weight
             mz_intensity_all.push_back(mz_intensity);
           }
         }
@@ -848,14 +856,14 @@ protected:
         double sum_mz(0);
         double sum_intensity(0);
         Size count(0);
-        for (auto it_mz = mz_intensity_all.cbegin(); it_mz != mz_intensity_all.cend(); ++it_mz)
+        for (const auto& it_mz : mz_intensity_all)
         {
           if (mz_binning_unit == "ppm")
           {
-            delta_mz = mz_binning_width * (it_mz->first) / 1000000;
+            delta_mz = mz_binning_width * (it_mz.first) / 1000000;
           }
 
-          if (((it_mz->first - last_mz) > delta_mz) && (count > 0))
+          if (((it_mz.first - last_mz) > delta_mz) && (count > 0))
           {
             mz_new.push_back(sum_mz / count);
             intensity_new.push_back(sum_intensity); // intensities already weighted
@@ -863,12 +871,12 @@ protected:
             sum_mz = 0;
             sum_intensity = 0;
 
-            last_mz = it_mz->first;
+            last_mz = it_mz.first;
             count = 0;
           }
 
-          sum_mz += it_mz->first;
-          sum_intensity += it_mz->second;
+          sum_mz += it_mz.first;
+          sum_intensity += it_mz.second;
           ++count;
         }
         if (count > 0)
@@ -888,7 +896,7 @@ protected:
           typename MapType::PeakType peak;
           peak.setMZ(mz_new[i]);
           peak.setIntensity(intensity_new[i]);
-          average_spec.push_back(std::move(peak));
+          average_spec.push_back(peak);
         }
 
         // store spectrum temporarily
@@ -900,9 +908,9 @@ protected:
 
       // loop over blocks
       int n(0);
-      for (auto it = spectra_to_average_over.cbegin(); it != spectra_to_average_over.cend(); ++it)
+      for (const auto it : spectra_to_average_over)
       {
-        exp[it->first] = exp_tmp[n];
+        exp[it.first] = std::move(exp_tmp[n]);
         ++n;
       }
 
