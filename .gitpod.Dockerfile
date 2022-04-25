@@ -3,7 +3,7 @@ FROM ghcr.io/openms/contrib:latest
 #USER gitpod
 # Avoid user input
 ARG DEBIAN_FRONTEND=noninteractive
-ARG CLANGDVER=12.0.1
+ARG CLANGDVER=14.0.0
 
 # Install tools for VSCode, Intellisense, JRE for Thirdparties, etc. using apt-get
 RUN apt-get -q update && apt-get install -yq gdb unzip wget php openjdk-11-jre python3-pip && rm -rf /var/lib/apt/lists/*
