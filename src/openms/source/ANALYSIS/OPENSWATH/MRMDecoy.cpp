@@ -380,25 +380,25 @@ namespace OpenMS
 
   String MRMDecoy::getModifiedPeptideSequence_(const OpenMS::TargetedExperiment::Peptide& pep) const
   {
-          String full_peptide_name;
-          for (int loc = -1; loc <= (int)pep.sequence.size(); loc++)
-          {
-            if (loc > -1 && loc < (int)pep.sequence.size())
-            {
-              full_peptide_name += pep.sequence[loc];
-            }
-            // C-terminal and N-terminal modifications may be at positions -1 or pep.sequence
-            for (Size modloc = 0; modloc < pep.mods.size(); modloc++)
-            {
-              if (pep.mods[modloc].location == loc)
-              {
-                full_peptide_name += "(UniMod:" + String(pep.mods[modloc].unimod_id) + ")";
-              }
-            }
-          }
-	  return full_peptide_name;
+    String full_peptide_name;
+    for (int loc = -1; loc <= (int)pep.sequence.size(); loc++)
+    {
+      if (loc > -1 && loc < (int)pep.sequence.size())
+      {
+        full_peptide_name += pep.sequence[loc];
+      }
+      // C-terminal and N-terminal modifications may be at positions -1 or pep.sequence
+      for (Size modloc = 0; modloc < pep.mods.size(); modloc++)
+      {
+        if (pep.mods[modloc].location == loc)
+        {
+  	full_peptide_name += "(UniMod:" + String(pep.mods[modloc].unimod_id) + ")";
+        }
+      }
+    }
+    return full_peptide_name;
   }
-
+  
   void MRMDecoy::generateDecoys(const OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
                                 const String& method, const double aim_decoy_fraction, const bool do_switchKR,
                                 const String& decoy_tag, const int max_attempts, const double identity_threshold,
