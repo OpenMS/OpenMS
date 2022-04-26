@@ -129,7 +129,7 @@ public:
                         const int round_decPow = -4) const;
 
     /**
-       @brief Swtich the final Amino Acid of a tryptic peptide.
+       @brief Switch the final Amino Acid of a tryptic peptide.
        E.g. If the last Amino Acid is "K" switch to "R" (and visa versa).
 
        @note If the last Amino Acid is neither "K" or "R", the last Amino Acid is changed to a random Amino Acid .
