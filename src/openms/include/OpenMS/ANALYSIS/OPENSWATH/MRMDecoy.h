@@ -225,7 +225,7 @@ protected:
       const OpenMS::TargetedExperiment::Peptide& peptide) const;
 
     /**
-     @breif Convert a peptide to a string which contains the peptide sequence and modifications
+     @brief Convert a peptide to a string which contains the peptide sequence and modifications
     **/
     String getModifiedPeptideSequence_(const OpenMS::TargetedExperiment::Peptide& pep) const;
 
