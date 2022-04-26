@@ -380,7 +380,7 @@ namespace OpenMS
 
   String MRMDecoy::getModifiedPeptideSequence_(const OpenMS::TargetedExperiment::Peptide& pep) const
   {
-          String full_peptide_name = "";
+          String full_peptide_name;
           for (int loc = -1; loc <= (int)pep.sequence.size(); loc++)
           {
             if (loc > -1 && loc < (int)pep.sequence.size())
