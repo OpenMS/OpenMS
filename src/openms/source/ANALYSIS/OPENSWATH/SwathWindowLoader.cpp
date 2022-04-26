@@ -115,10 +115,19 @@ namespace OpenMS
   {
     std::ifstream data(filename.c_str());
     std::string line;
-    std::getline(data, line); //skip header
-    std::cout << "Read Swath window header: '" << line << "'\n";
+
+    // check for presence of header, a header is present if the first line contains alphabetic characters
     double lower, upper;
-    while (std::getline(data, line))
+    std::getline(data, line); // possible header (or first line)
+    if (std::any_of(line.begin(), line.end(), [](char const &c) { return std::isalpha(c); })){ // if any of the characters are alphabetical then there is a header
+      std::cout << "Read Swath window header: '" << line << "'\n";
+      std::getline(data, line); // first line of swath window
+     }
+    else {
+      std::cout << "Swath Header not found'\n";
+    }
+
+    do
     {
       std::stringstream lineStream(line);
 
@@ -131,7 +140,8 @@ namespace OpenMS
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Swath window file contains illegal ranges", line);
       }
-    }
+    } while (std::getline(data, line));
+
     assert(swath_prec_lower_.size() == swath_prec_upper_.size());
     std::cout << "Read Swath window file with " << swath_prec_lower_.size() << " SWATH windows." << std::endl;
   }
