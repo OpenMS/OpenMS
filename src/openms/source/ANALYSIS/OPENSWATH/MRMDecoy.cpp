@@ -510,7 +510,8 @@ namespace OpenMS
       }
 
       // Check that the decoy sequence does not happen to be a target sequence AND is not already present 
-      if (allPeptideSequences.find(peptide.sequence) != allPeptideSequences.end()){
+      if (allPeptideSequences.find(peptide.sequence) != allPeptideSequences.end())
+      {
               OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " since decoy peptide is also a target peptide or this decoy peptide is already present" << std::endl;
 	      exclusion_peptides.insert(peptide.id);
       }
