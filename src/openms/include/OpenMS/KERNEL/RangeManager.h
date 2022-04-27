@@ -867,4 +867,8 @@ namespace OpenMS
     
   };
 
+  /// Range which contains all known dimensions
+  using RangeAllType = RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>;
+
+
 }  // namespace OpenMS

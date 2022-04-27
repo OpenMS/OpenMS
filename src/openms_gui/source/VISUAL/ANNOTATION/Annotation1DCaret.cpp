@@ -86,60 +86,43 @@ namespace OpenMS
     canvas->dataToWidget(position_.getX(), position_.getY(), position_widget, flipped, true);
     canvas->dataToWidget(caret_positions_[0].getX(), caret_positions_[0].getY(), caret_position_widget, flipped, true);
 
-    //std::cerr << "color" << color_.value() << " ";
-    // draw ticks (for now)
-    if (!caret_positions_.empty())
+    // draw carets '^'
+    for (const auto& pos : caret_positions_)
     {
-      QPoint caret;        // draw ^ to indicate theoretical position
-      for (PositionsType::iterator it = caret_positions_.begin(); it != caret_positions_.end(); ++it)
-      {
-        canvas->dataToWidget(it->getX(), it->getY(), caret, flipped, true);
-        painter.drawLine(caret.x(), caret.y(), caret.x()+4, caret.y() + 4);
-        painter.drawLine(caret.x(), caret.y(), caret.x()-4, caret.y() + 4);
-        //std::cout << "caret: " << caret.x() << "," << caret.y() << "\n";
-      }
+      QPoint caret;
+      canvas->dataToWidget(pos.getX(), pos.getY(), caret, flipped, true);
+      Painter1DBase::drawCaret(caret, &painter);
     }
 
     // compute bounding box of text_item on the specified painter
     bounding_box_ = QRectF(position_widget, st_.size());
-    //std::cout << "posP: " << position_.getX() << "," << position_.getY() << "\n";
-    //std::cout << "posW: " << position_widget.x() << "," << position_widget.y() << "\n";
-    //std::cout <<"init BB topleft: " << bounding_box_.topLeft().x()  << "," << bounding_box_.topLeft().y() <<"\n";
 
     double vertical_shift = 0;
     double horizontal_shift = 0;
 
-    if (canvas->isMzToXAxis())
+    // shift pos - annotation should be over peak or, if not possible, next to it
+    vertical_shift = bounding_box_.height() / 2 + 5;
+    if (!flipped)
     {
-      // shift pos - annotation should be over peak or, if not possible, next to it
-      vertical_shift = bounding_box_.height() / 2 + 5;
-      if (!flipped)
-      {
-        vertical_shift *= -1;
-      }
-
-      bounding_box_.translate(0.0, vertical_shift);
-
-      if (flipped && bounding_box_.bottom() > canvas->height())
-      {
-        bounding_box_.moveBottom(canvas->height());
-        bounding_box_.moveLeft(position_widget.x() + 5.0);
-      }
-      else if (!flipped && bounding_box_.top() < 0.0)
-      {
-        bounding_box_.moveTop(0.0);
-        bounding_box_.moveLeft(position_widget.x() + 5.0);
-      }
+      vertical_shift *= -1;
     }
-    else
+
+    bounding_box_.translate(0.0, vertical_shift);
+
+    if (flipped && bounding_box_.bottom() > canvas->height())
     {
-      // annotation should be next to the peak (to its right)
-      horizontal_shift = bounding_box_.width() / 2 + 5;
-      bounding_box_.translate(horizontal_shift, 0.0);
-      if (bounding_box_.right() > canvas->width())
-      {
-        bounding_box_.moveRight(canvas->width());
-      }
+      bounding_box_.moveBottom(canvas->height());
+      bounding_box_.moveLeft(position_widget.x() + 5.0);
+    }
+    else if (!flipped && bounding_box_.top() < 0.0)
+    {
+      bounding_box_.moveTop(0.0);
+      bounding_box_.moveLeft(position_widget.x() + 5.0);
+    }
+    // keep inside canvas
+    if (bounding_box_.right() > canvas->width())
+    {
+      bounding_box_.moveRight(canvas->width());
     }
 
     // draw connection line between anchor point and current position if pixel coordinates differ significantly
@@ -253,7 +236,7 @@ namespace OpenMS
 
   void Annotation1DCaret::ensureWithinDataRange(Plot1DCanvas* const canvas)
   {
-    DRange<3> data_range = canvas->getDataRange();
+    const auto& data_range = canvas->getDataRange();
 
     CoordinateType x_pos = position_.getX();
     CoordinateType y_pos = position_.getY() * canvas->getPercentageFactor();

@@ -57,13 +57,16 @@ namespace OpenMS
        @param canvas The canvas to paint onto (should expose all the details needed, like canvas size, draw mode, colors etc)
        @param layer_index Which layer is currently painted (FIXME: remove when Canvas1D::DrawMode and PenStyle are factored out) 
     */
-    virtual void paint(QPainter*, Plot1DCanvas* canvas, int layer_index) = 0;
+    virtual void paint(QPainter* painter, Plot1DCanvas* canvas, int layer_index) = 0;
 
     /// static method to draw a dashed line
-    static void drawDashedLine(const QPoint& from, const QPoint& to, QPainter* painter, QColor color);
+    static void drawDashedLine(const QPoint& from, const QPoint& to, QPainter* painter, const QColor color);
 
     /// draw a cross at @p position, using a certain size (= width = height) of the cross
     static void drawCross(const QPoint& position, QPainter* painter, const int size = 8);
+
+    /// draw a caret '^' at @p position, using a certain size (= width) of the caret
+    static void drawCaret(const QPoint& position, QPainter* painter, const int size = 8);
   };
 
   /**
@@ -81,9 +84,9 @@ namespace OpenMS
 
   protected:
     /// draw all Annotation1DItems attached to the layer
-    void drawAnnotations_(QPainter& painter, Plot1DCanvas* canvas);
+    void drawAnnotations_(QPainter& painter, Plot1DCanvas* canvas) const;
     /// annotate up to 10 interesting peaks in the range @p vbegin to @pvend with their m/z values (using deisotoping and intensity filtering)
-    void drawMZAtInterestingPeaks_(QPainter& painter, Plot1DCanvas* canvas, MSSpectrum::ConstIterator vbegin, MSSpectrum::ConstIterator vend);
+    void drawMZAtInterestingPeaks_(QPainter& painter, Plot1DCanvas* canvas, MSSpectrum::ConstIterator v_begin, MSSpectrum::ConstIterator v_end) const;
 
     const LayerDataPeak* layer_; ///< the data to paint
   };

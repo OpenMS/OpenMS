@@ -1906,11 +1906,7 @@ namespace OpenMS
           // compute new area
           auto new_visible_area = visible_area_;
           new_visible_area.setArea(new_visible_area.getAreaXY() + (new_data - old_data));
-          // make sure its within global data range
-          auto au = new_visible_area.getAreaUnit();
-          au.pushInto(overall_data_range_);
-          new_visible_area.setArea(au);
-
+          // publish (bounds checking is done inside changeVisibleArea_)
           changeVisibleArea_(new_visible_area);
           last_mouse_pos_ = pos;
         }
@@ -2519,11 +2515,8 @@ namespace OpenMS
   {
     auto xy = visible_area_.getAreaXY();
     const auto shift = xy.diagonal() * AreaXYType::PositionType{x_axis_rel, y_axis_rel};
-    auto new_area = visible_area_.cloneWith(xy + shift).getAreaUnit();
-    // avoid moving out data range bounds
-    new_area.pushInto(overall_data_range_);
-    //change visible area
-    changeVisibleArea_(visible_area_.cloneWith(new_area));
+    // publish (bounds checking is done inside changeVisibleArea_)
+    changeVisibleArea_(visible_area_.cloneWith(xy + shift));
   }
 
   void Plot2DCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)

@@ -1361,7 +1361,7 @@ namespace OpenMS
     if (!windows.count()) return;
 
     PlotWidget* w = getActivePlotWidget();
-    DRange<2> new_visible_area = w->canvas()->getVisibleArea();
+    auto new_visible_area = w->canvas()->getVisibleArea();
     // only zoom if other window is also (not) a chromatogram
     bool sender_is_chrom = w->canvas()->getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM ||
                            w->canvas()->getCurrentLayer().chromatogram_flag_set();

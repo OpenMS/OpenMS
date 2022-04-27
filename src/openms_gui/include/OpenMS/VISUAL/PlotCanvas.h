@@ -169,7 +169,7 @@ public:
     /// Type of the Points
     typedef DPosition<2> PointType;
     /// a generic range for the most common units
-    using RangeType = RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>;
+    using RangeType = RangeAllType;
    
     /// The range of data shown on the X and Y axis (unit depends on runtime config)
     using AreaXYType = Area<2>::AreaXYType;
@@ -182,6 +182,8 @@ public:
     /// The number of pixels on the axis. The lower point of the area will be zero. The maxima will reflect the number of pixels
     /// in either dimension. Note that the unit of RT etc is NOT in seconds, but in pixels.
     using PixelArea = Area<2>;
+
+    using UnitRange = RangeAllType;
 
     using PointOnAxis = DimMapper<2>::Point;
 
@@ -564,7 +566,8 @@ public slots:
     /**
         @brief Sets the visible area.
 
-        Sets the visible area to a new value. Note that it does not emit visibleAreaChanged()
+        Sets the visible area to a new value and emits visibleAreaChanged() if the area is different from the old one.
+
         @param area the new visible area
     */
     void setVisibleArea(const VisibleArea& area);
@@ -736,13 +739,13 @@ protected:
         @brief Sets the visible area
 
         Changes the visible area, adjusts the zoom stack and notifies interested clients about the change.
-        If parts of the area are outside of the data area, the new area will be adjusted.
+        If the area is outside the overall data range, the new area is pushed back into the overall range.
 
         @param new_area The new visible area.
         @param repaint If @em true, a complete repaint is forced.
         @param add_to_stack If @em true the new area is to add to the zoom_stack_.
     */
-    virtual void changeVisibleArea_(const VisibleArea& new_area, bool repaint = true, bool add_to_stack = false);
+    virtual void changeVisibleArea_(VisibleArea new_area, bool repaint = true, bool add_to_stack = false);
 
     /**
         @brief Recalculates the intensity scaling factor for 'snap to maximum intensity mode'.
@@ -845,6 +848,15 @@ protected:
       return point;
     }
 
+    /**
+     * \brief Get the Area in pixel coordinates of the current canvas for X and Y axis.
+     * \return 
+     */
+    AreaXYType canvasPixelArea() const
+    {
+      return AreaXYType({0, 0}, {(float)width(), (float)height()});
+    }
+
     /// Helper function to paint grid lines
     virtual void paintGridLines_(QPainter & painter);
 
@@ -915,6 +927,7 @@ protected:
         @brief Intensity scaling factor for relative scale with multiple layers.
 
         In this mode all layers are scaled to the same maximum.
+        FIXME: this factor changes, depending on the layer which is currently plotted! Ouch!
     */
     double percentage_factor_ = 1.0;
 

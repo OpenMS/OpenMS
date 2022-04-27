@@ -43,6 +43,7 @@
 
 // QT
 #include <QTextDocument>
+#include <QPoint>
 
 // STL
 #include <vector>
@@ -53,6 +54,136 @@ class QAction;
 
 namespace OpenMS
 {
+  /**
+   * \brief Manipulates X or Y component of points in the X-Y plane, by assuming one axis (either X or Y axis) has gravity acting upon it.
+   *
+   * Example: Assume there is a X-Y plane with RT(on X axis) and Intensity(on Y axis). Given a point on the plane, you can make it 'drop down',
+   *          to a minimum intensity, by applying a gravity on the Y axis. You can also make the point 'fly up'.
+   */
+  class Gravitator
+  {
+  public:
+
+    using AreaXYType = PlotCanvas::GenericArea::AreaXYType;
+
+    Gravitator(DIM axis)
+    {
+      setGravityAxis(axis);
+    }
+
+    /**
+     * \brief Convenience c'tor, which picks the Intensity dimension from a DimMapper as gravity axis
+     * \param unit_mapper Pick the Intensity axis from this mapper (or throw exception). See setGravityAxis().
+     */
+    Gravitator(const DimMapper<2>& unit_mapper)
+    {
+      setGravityAxis(unit_mapper);
+    }
+
+    /// Which axis is pulling a point downwards (e.g. when plotting sticks)
+    /// Note that pulling (see gravitateDown()) will only change the value for the gravity axis.
+    /// E.g. with gravity on Y, an Point(X=10, Y=10), will be pulled to Point(X=10, Y=min)
+    /// @param axis Either X, or Y
+    /// @throws Exception::InvalidValue if @p axis is not X or Y
+    void setGravityAxis(DIM axis)
+    {
+      if (axis != DIM::X && axis != DIM::Y)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not a valid axis for 1D plotting", String((int)axis));
+      }
+      gravity_axis_ = axis;
+    }
+
+    /**
+     * \brief Convenience function, which picks the Intensity dimension from a DimMapper as gravity axis
+     * \param unit_mapper
+     * @throw Exception::NotImplemented if @p unit_mapper does not have an Intensity dimension
+     */
+    void setGravityAxis(const DimMapper<2>& unit_mapper)
+    {
+      if (unit_mapper.getDim(DIM::X).getUnit() == DIM_UNIT::INT)
+      {
+        setGravityAxis(DIM::X);
+      }
+      if (unit_mapper.getDim(DIM::Y).getUnit() == DIM_UNIT::INT)
+      {
+        setGravityAxis(DIM::Y);
+      }
+      /// if 1D view has no intensity dimension, go think about what dimension should be the gravitational...
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);      
+    }
+
+    /// Which axis is affected by gravity?
+    DIM getGravityAxis() const
+    {
+      return gravity_axis_;
+    }
+
+    /// Pull the point @p p to the current gravity axis, i.e. the lowest point on the Area
+    ///
+    /// @param A X-Y data point with data coordinates (not widget(=pixel) coordinates)
+    /// @return A X-Y data point in pixel coordinates
+    QPoint gravitateMin(QPoint p, const AreaXYType& area) const
+    {
+      if (gravity_axis_ == DIM::X)
+      {
+        p.rx() = area.minX();
+      }
+      else if (gravity_axis_ == DIM::Y)
+      {
+        p.ry() = area.minY();
+      }
+      return p;
+    }
+
+    QPoint gravitateMax(QPoint p, const AreaXYType& area) const
+    {
+      if (gravity_axis_ == DIM::X)
+      {
+        p.rx() = area.maxX();
+      }
+      else if (gravity_axis_ == DIM::Y)
+      {
+        p.ry() = area.maxY();
+      }
+      return p;
+    }
+
+    QPoint gravitateZero(QPoint p, const AreaXYType& area) const
+    {
+      if (gravity_axis_ == DIM::X)
+      {
+        p.rx() = 0;
+      }
+      else if (gravity_axis_ == DIM::Y)
+      {
+        p.ry() = 0;
+      }
+      return p;
+    }
+    QPoint gravitateNAN(QPoint p) const
+    {
+      if (gravity_axis_ == DIM::X)
+      {
+        p.rx() = std::numeric_limits<float>::quiet_NaN();
+      }
+      else if (gravity_axis_ == DIM::Y)
+      {
+        p.ry() = std::numeric_limits<float>::quiet_NaN();
+      }
+      return p;
+    }
+    template<int D>
+    DPosition<D> gravitateNAN(DPosition<D> p) const
+    {
+      p[(int)gravity_axis_] = std::numeric_limits<float>::quiet_NaN();
+      return p;
+    }
+
+  private:
+    /// Where are points in the X-Y plane projected onto when drawing lines?
+    DIM gravity_axis_;
+  };
 
   /**
       @brief Canvas for visualization of one or several spectra.
@@ -60,8 +191,6 @@ namespace OpenMS
       @image html Plot1DCanvas.png
 
       The example image shows %Plot1DCanvas displaying a raw data layer and a peak data layer.
-
-      @todo Use spectrum StringDataArray with name 'label' for peak annotations (Hiwi, Johannes)
 
       @htmlinclude OpenMS_Plot1DCanvas.parameters
 
@@ -179,9 +308,6 @@ public:
     /// Sets current spectrum index of current layer to @p index
     void activateSpectrum(Size index, bool repaint = true);
 
-    /// is the widget shown vertically? (for projections)
-    void setSwappedAxis(bool swapped);
-
     /// Set's the Qt PenStyle of the active layer
     void setCurrentLayerPeakPenStyle(Qt::PenStyle ps);
 
@@ -230,14 +356,6 @@ public slots:
     void removeLayer(Size layer_index) override;
     // Docu in base class
     void updateLayer(Size i) override;
-
-    /**
-        @brief Sets the visible area.
-
-        Sets the visible area to a new value. Note that it does not emit visibleAreaChanged()
-        @param range the new visible area
-    */
-    void setVisibleArea(DRange<2> range);         //Do not change this to AreaType the signal needs QT needs the exact type...
     // Docu in base class
     void horizontalScrollBarChange(int value) override;
 
@@ -261,9 +379,17 @@ protected:
     /**
         @brief Changes visible area interval
 
-        This method is for convenience only. It calls changeVisibleArea_(const AreaType&, bool, bool) .
+        This method is for convenience only. It calls changeVisibleArea_(const VisibleArea&, bool, bool) .
     */
-    void changeVisibleArea_(double lo, double hi, bool repaint = true, bool add_to_stack = false);
+    void changeVisibleArea_(const AreaXYType& new_area, bool repaint = true, bool add_to_stack = false);
+
+    /**
+        @brief Changes visible area interval
+
+        This method is for convenience only. It calls changeVisibleArea_(const VisibleArea&, bool, bool) .
+    */
+    void changeVisibleArea_(const UnitRange& new_area, bool repaint = true, bool add_to_stack = false);
+
 
     /// Draws a highlighted peak; if draw_elongation is true, the elongation line is drawn (for measuring)
     void drawHighlightedPeak_(Size layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation = false);
@@ -271,17 +397,6 @@ protected:
     /// Recalculates the current scale factor based on the specified layer (= 1.0 if intensity mode != IM_PERCENTAGE)
     void updatePercentageFactor_(Size layer_index);
 
-    /**
-        @brief Sets the visible area
-
-        Changes the visible area, adjusts the zoom stack and notifies interested clients about the change.
-        If parts of the area are outside of the data area, the new area will be adjusted.
-
-        @param new_area The new visible area.
-        @param repaint if repainting of the widget should be triggered
-        @param add_to_stack If the new area is to add to the zoom_stack_
-    */
-    void changeVisibleArea_(const VisibleArea& new_area, bool repaint = true, bool add_to_stack = false) override;
     // Docu in base class
     void recalculateSnapFactor_() override;
     // Docu in base class
@@ -289,35 +404,32 @@ protected:
     // Docu in base class
     void intensityModeChange_() override;
 
-    /// Draw modes (for each layer)
-    std::vector<DrawModes> draw_modes_;
-    /// Draw style (for each layer)
-    std::vector<Qt::PenStyle> peak_penstyle_;
+    
+    /** @name Reimplemented QT events */
+    //@{
+    void paintEvent(QPaintEvent* e) override;
+    void mousePressEvent(QMouseEvent* e) override;
+    void mouseReleaseEvent(QMouseEvent* e) override;
+    void mouseMoveEvent(QMouseEvent* e) override;
+    void keyPressEvent(QKeyEvent* e) override;
+    void contextMenuEvent(QContextMenuEvent* e) override;
+    //@}
 
-    /// start point of "ruler" for measure mode
-    QPoint measurement_start_point_;
-    /// Indicates whether this widget is currently in mirror mode
-    bool mirror_mode_;
+    // docu in base class
+    void zoomForward_() override;
+    // docu in base class
+    void zoom_(int x, int y, bool zoom_in) override;
+    // docu in base class
+    void translateLeft_(Qt::KeyboardModifiers m) override;
+    // docu in base class
+    void translateRight_(Qt::KeyboardModifiers m) override;
+    // docu in base class
+    void translateForward_() override;
+    // docu in base class
+    void translateBackward_() override;
 
-    /// Indicates whether annotation items are just being moved on the canvas
-    bool moving_annotations_;
-
-    /// Indicates whether an alignment is currently visualized
-    bool show_alignment_;
-    /// Layer index of the first alignment layer
-    Size alignment_layer_1_;
-    /// Layer index of the second alignment layer
-    Size alignment_layer_2_;
-    /// Stores the alignment as MZ values of pairs of aligned peaks in both spectra
-    std::vector<std::pair<double, double> > aligned_peaks_mz_delta_;
-    /// Stores the peak indices of pairs of aligned peaks in both spectra
-    std::vector<std::pair<Size, Size> > aligned_peaks_indices_;
-    /// Stores the score of the last alignment
-    double alignment_score_;
-    /// whether the ion ladder is displayed on the top right corner in ID view
-    bool ion_ladder_visible_;
-    /// annotate interesting peaks with m/z's
-    bool draw_interesting_MZs_;
+    // docu in base class
+    void paintGridLines_(QPainter& painter) override;
 
     /// Find peak next to the given position
     PeakIndex findPeakAtPosition_(QPoint);
@@ -332,31 +444,47 @@ protected:
     /// Ensure that all annotations are within data range
     void ensureAnnotationsWithinDataRange_();
 
-    QTextDocument text_box_content_;
-
-    /** @name Reimplemented QT events */
-    //@{
-    void paintEvent(QPaintEvent* e) override;
-    void mousePressEvent(QMouseEvent* e) override;
-    void mouseReleaseEvent(QMouseEvent* e) override;
-    void mouseMoveEvent(QMouseEvent* e) override;
-    void keyPressEvent(QKeyEvent* e) override;
-    void contextMenuEvent(QContextMenuEvent* e) override;
-    //@}
-
-    ///Go forward in zoom history
-    void zoomForward_() override;
-    /// docu in base class
-    void zoom_(int x, int y, bool zoom_in) override;
-    //docu in base class
-    void translateLeft_(Qt::KeyboardModifiers m) override;
-    //docu in base class
-    void translateRight_(Qt::KeyboardModifiers m) override;
-    //docu in base class
-    void paintGridLines_(QPainter& painter) override;
-
     friend class Painter1DPeak;
 
+    /////////////////////
+    ////// data members
+    /////////////////////
+
+    /// Draw modes (for each layer)
+    std::vector<DrawModes> draw_modes_;
+    /// Draw style (for each layer)
+    std::vector<Qt::PenStyle> peak_penstyle_;
+
+    /// start point of "ruler" for measure mode
+    QPoint measurement_start_point_;
+    /// Indicates whether this widget is currently in mirror mode
+    bool mirror_mode_ = false;
+    /// Indicates whether annotation items are just being moved on the canvas
+    bool moving_annotations_ = false;
+    /// Indicates whether an alignment is currently visualized
+    bool show_alignment_ = false;
+    /// Layer index of the first alignment layer
+    Size alignment_layer_1_;
+    /// Layer index of the second alignment layer
+    Size alignment_layer_2_;
+    /// Stores the alignment as MZ values of pairs of aligned peaks in both spectra
+    std::vector<std::pair<double, double> > aligned_peaks_mz_delta_;
+    /// Stores the peak indices of pairs of aligned peaks in both spectra
+    std::vector<std::pair<Size, Size> > aligned_peaks_indices_;
+    /// Stores the score of the last alignment
+    double alignment_score_ = 0.0;
+    /// whether the ion ladder is displayed on the top right corner in ID view
+    bool ion_ladder_visible_ = true;
+    /// annotate interesting peaks with m/z's
+    bool draw_interesting_MZs_ = false;
+    /// The text box in the upper left corner with the current data coordinates of the cursor
+    QTextDocument text_box_content_;
+    /// handles pulling/pushing of points to the edges of the widget
+    Gravitator gr_;
   };
+
+
+
+
 } // namespace OpenMS
 

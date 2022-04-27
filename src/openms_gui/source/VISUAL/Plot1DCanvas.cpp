@@ -115,14 +115,7 @@ namespace OpenMS
 
   Plot1DCanvas::Plot1DCanvas(const Param& preferences, QWidget* parent) :
     PlotCanvas(preferences, parent),
-    mirror_mode_(false),
-    moving_annotations_(false),
-    show_alignment_(false),
-    aligned_peaks_mz_delta_(),
-    alignment_score_(0),
-    ion_ladder_visible_(true),
-    draw_interesting_MZs_(false), 
-    unit_mapper_({DIM_UNIT::RT, DIM_UNIT::MZ})
+    gr_(unit_mapper_)
   {
     //Parameter handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
@@ -134,7 +127,7 @@ namespace OpenMS
     setName("Plot1DCanvas");
     setParameters(preferences);
 
-    //connect preferences change to the right slot
+    // connect preferences change to the right slot
     connect(this, SIGNAL(preferencesChange()), this, SLOT(currentLayerParamtersChanged_()));
   }
 
@@ -193,14 +186,14 @@ namespace OpenMS
     emit layerActivated(this);
   }
 
-  void Plot1DCanvas::setVisibleArea(DRange<2> range)
+  void Plot1DCanvas::changeVisibleArea_(const AreaXYType& new_area, bool repaint, bool add_to_stack)
   {
-    changeVisibleArea_(AreaType(range.minX(), visible_area_.minY(), range.maxX(), visible_area_.maxY()));
+    PlotCanvas::changeVisibleArea_(visible_area_.cloneWith(new_area), repaint, add_to_stack);
+    emit layerZoomChanged(this);
   }
-
-  void Plot1DCanvas::changeVisibleArea_(double lo, double hi, bool repaint, bool add_to_stack)
+  void Plot1DCanvas::changeVisibleArea_(const UnitRange& new_area, bool repaint, bool add_to_stack)
   {
-    changeVisibleArea_(AreaType(lo, visible_area_.minY(), hi, visible_area_.maxY()), repaint, add_to_stack);
+    PlotCanvas::changeVisibleArea_(visible_area_.cloneWith(new_area), repaint, add_to_stack);
     emit layerZoomChanged(this);
   }
 
@@ -423,23 +416,11 @@ namespace OpenMS
       else if (action_mode_ == AM_TRANSLATE)
       {
         // translation in data metric
-        double shift = widgetToData(last_mouse_pos_).getX() - widgetToData(p).getX();
-        double newLo = visible_area_.minX() + shift;
-        double newHi = visible_area_.maxX() + shift;
-        // check if we are falling out of bounds
-        if (newLo < overall_data_range_.minX())
-        {
-          newLo = overall_data_range_.minX();
-          newHi = newLo + visible_area_.width();
-        }
-        if (newHi > overall_data_range_.maxX())
-        {
-          newHi = overall_data_range_.maxX();
-          newLo = newHi - visible_area_.width();
-        }
+        const double shift = widgetToData(last_mouse_pos_).getX() - widgetToData(p).getX();
+        auto new_va = visible_area_.cloneWith(visible_area_.getAreaXY() + PointType(shift, 0)).getAreaUnit();
 
         // change data area
-        changeVisibleArea_(newLo, newHi);
+        changeVisibleArea_(new_va);
         last_mouse_pos_ = p;
       }
       else if (action_mode_ == AM_MEASURE)
@@ -453,17 +434,11 @@ namespace OpenMS
       }
       else if (action_mode_ == AM_ZOOM)
       {
-        PointType pos = widgetToData(p);
-
-        if (isMzToXAxis())
-        {
-          rubber_band_.setGeometry(QRect(last_mouse_pos_.x(), 0, p.x() - last_mouse_pos_.x(), height()).normalized());
-        }
-        else
-        {
-          rubber_band_.setGeometry(QRect(0, last_mouse_pos_.y(), width(), p.y() - last_mouse_pos_.y()).normalized());
-        }
-        rubber_band_.show();         //if the mouse button is pressed before the zoom key is pressed
+        const auto pixel_area = canvasPixelArea();
+        auto r_start = gr_.gravitateMin(last_mouse_pos_, pixel_area);
+        auto r_end = gr_.gravitateMax(p, pixel_area);
+        rubber_band_.setGeometry(QRect(r_start, r_end).normalized());
+        rubber_band_.show(); // if the mouse button is pressed before the zoom key is pressed
 
         update_(OPENMS_PRETTY_FUNCTION);
       }
@@ -514,8 +489,8 @@ namespace OpenMS
         QRect rect = rubber_band_.geometry();
         if (rect.width() != 0)
         {
-          AreaType area(widgetToData(rect.topLeft()), widgetToData(rect.bottomRight()));
-          changeVisibleArea_(area.minX(), area.maxX(), true, true);
+          AreaXYType area(widgetToData(rect.topLeft()), widgetToData(rect.bottomRight()));
+          changeVisibleArea_(area, true, true);
         }
       }
       else if (action_mode_ == AM_MEASURE)
@@ -612,24 +587,13 @@ namespace OpenMS
       return PeakIndex(spectrum_index, left_it - spectrum.begin());
     }
 
-    SpectrumConstIteratorType nearest_it = left_it;
-
-    // select source interval start and end depending on diagram orientation
     updatePercentageFactor_(getCurrentLayerIndex());
-    QPoint tmp;
-    dataToWidget(0, overall_data_range_.minY(), tmp, getCurrentLayer().flipped, true);
-    double dest_interval_start = tmp.y();
-    dataToWidget(0, overall_data_range_.maxY(), tmp, getCurrentLayer().flipped, true);
-    double dest_interval_end = tmp.y();
-
-    int nearest_intensity = std::numeric_limits<int>::lowest() + p.y();
-    for (SpectrumConstIteratorType it = left_it; it != right_it; it++)
+    SpectrumConstIteratorType nearest_it = left_it;
+    auto intensity_at_p = unit_mapper_.fromXY(widgetToData_(p)).getMinIntensity(); // min and max are identical
+    for (SpectrumConstIteratorType it = left_it; it != right_it; ++it)
     {
-      int current_intensity = static_cast<int>(intervalTransformation(it->getIntensity(), visible_area_.minY(), visible_area_.maxY(),
-                                                                  dest_interval_start, dest_interval_end));
-      if (abs(current_intensity - p.y()) < abs(nearest_intensity - p.y()))
+      if (abs(intensity_at_p - it->getIntensity()) < abs(intensity_at_p - nearest_it->getIntensity()))
       {
-        nearest_intensity = current_intensity;
         nearest_it = it;
       }
     }
@@ -641,18 +605,18 @@ namespace OpenMS
 
   void Plot1DCanvas::removeLayer(Size layer_index)
   {
-    //remove settings
+    // remove settings
     layers_.removeLayer(layer_index);
     draw_modes_.erase(draw_modes_.begin() + layer_index);
     peak_penstyle_.erase(peak_penstyle_.begin() + layer_index);
 
-    //update nearest peak
+    // update nearest peak
     selected_peak_.clear();
 
-    //abort if there are no layers anymore
+    // abort if there are no layers anymore
     if (layers_.empty())
     {
-      overall_data_range_ = DRange<3>::empty;
+      overall_data_range_.clearRanges();
       update_(OPENMS_PRETTY_FUNCTION);
       return;
     }
@@ -662,23 +626,10 @@ namespace OpenMS
       setMirrorModeActive(false);
     }
 
-    //update range area
-    recalculateRanges_(0, 2, 1);
-
+    // update range area
+    recalculateRanges_();
     zoomClear_();
-
-    if (overall_data_range_.maxX() - overall_data_range_.minX() < 1.0)
-    {
-      AreaType new_area(overall_data_range_.minX() - 1.0, overall_data_range_.minY(),
-                        overall_data_range_.maxX() + 1.0, overall_data_range_.maxY());
-      changeVisibleArea_(new_area, true, true);
-    }
-    else
-    {
-      AreaType new_area(overall_data_range_.minX(), overall_data_range_.minY(),
-                        overall_data_range_.maxX(), overall_data_range_.maxY());
-      changeVisibleArea_(new_area, true, true);
-    }
+    changeVisibleArea_(overall_data_range_, true, true);
     update_(OPENMS_PRETTY_FUNCTION);
   }
 
@@ -819,7 +770,6 @@ namespace OpenMS
   void Plot1DCanvas::drawHighlightedPeak_(Size layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation)
   {
     if (!peak.isValid()) return;
-    QPoint begin;
     const auto& spec = getLayer(layer_index).getCurrentSpectrum();
     if (peak.peak >= spec.size())
     {
@@ -833,32 +783,8 @@ namespace OpenMS
 
     updatePercentageFactor_(layer_index);
 
+    QPoint begin;
     dataToWidget(sel, begin, getLayer(layer_index).flipped);
-    QPoint top_end(begin);
-
-    bool layer_flipped = getLayer(layer_index).flipped;
-    if (isMzToXAxis())
-    {
-      if (layer_flipped)
-      {
-        top_end.setY(height());
-      }
-      else
-      {
-        top_end.setY(0);
-      }
-    }
-    else
-    {
-      if (!layer_flipped)
-      {
-        top_end.setX(width());
-      }
-      else // should not happen
-      {
-        top_end.setX(0);
-      }
-    }
 
     // paint the cross-hair only for currently selected peaks of the current layer
     if (layer_index == getCurrentLayerIndex() && (peak == measurement_start_ || peak == selected_peak_))
@@ -868,31 +794,8 @@ namespace OpenMS
     // draw elongation as dashed line (while in measure mode and for all existing distance annotations)
     if (draw_elongation)
     {
+      QPoint top_end = (getLayer(layer_index).flipped) ? gr_.gravitateMin(begin, canvasPixelArea()) : gr_.gravitateMax(begin, canvasPixelArea());
       Painter1DBase::drawDashedLine(begin, top_end, &painter, String(param_.getValue("highlighted_peak_color").toString()).toQString());
-    }
-  }
-
-  
-  void Plot1DCanvas::changeVisibleArea_(const AreaType& new_area, bool repaint, bool add_to_stack)
-  {
-    // set new visible area (if changed)
-    if (new_area != visible_area_)
-    {
-      visible_area_ = new_area;
-      updateScrollbars_();
-      recalculateSnapFactor_();
-      emit visibleAreaChanged(new_area);
-    }
-
-    // store old zoom state
-    if (add_to_stack)
-    { 
-      zoomAdd_(new_area);
-    }
-    // repaint
-    if (repaint)
-    { 
-      update_(OPENMS_PRETTY_FUNCTION);
     }
   }
 
@@ -968,7 +871,7 @@ namespace OpenMS
     selected_peak_.clear();
 
     // update ranges
-    recalculateRanges_(0, 2, 1);
+    recalculateRanges_();
 
     resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
 
@@ -988,6 +891,21 @@ namespace OpenMS
     return true;
   }
 
+
+  // decide on precision depending on unit; add more units if you have some intuition
+  auto precision_for_unit = [](DIM_UNIT u) {
+    switch (u)
+    {
+      case DIM_UNIT::RT:
+      case DIM_UNIT::INT:
+        return 2;
+      case DIM_UNIT::MZ:
+        return 8;
+      default:
+        return 4;
+    }
+  };
+
   void Plot1DCanvas::drawCoordinates_(QPainter& painter, const PeakIndex& peak)
   {
     if (!peak.isValid() || peak.peak >= getCurrentLayer().getCurrentSpectrum().size())
@@ -1000,28 +918,15 @@ namespace OpenMS
       QMessageBox::critical(this, "Error", "This widget supports peak data only. Aborting!");
       return;
     }
-
-    //determine coordinates;
-    double mz = getCurrentLayer().getCurrentSpectrum()[peak.peak].getMZ();
-    double it = getCurrentLayer().getCurrentSpectrum()[peak.peak].getIntensity();
-
-    //draw text
+   
+    const auto xy_point = unit_mapper_.map(getCurrentLayer().getCurrentSpectrum()[peak.peak]);
+    const auto& x_axis = unit_mapper_.getDim(DIM::X);
+    const auto& y_axis = unit_mapper_.getDim(DIM::Y);
+    
+    // hint: QLocale::c().toString adds group separators to better visualize large numbers (e.g. 23.009.646.54,3)
     QStringList lines;
-    String text;
-    int precision(2);
-
-    if (isMzToXAxis() ^ is_swapped_) // XOR
-    { // only if either one of the conditions holds
-      text = "RT:  "; // two spaces, ensuring same indentation as "m/z: " and "int: "
-      precision = 2;
-    }
-    else // only if none or both are true
-    {
-      text = "m/z: ";
-      precision = 8;
-    }
-    lines.push_back(text.c_str() +  QLocale::c().toString(mz, 'f', precision));  // adds group separators (consistency with intensity)
-    lines.push_back("Int: " + QLocale::c().toString(it, 'f', 2));                // adds group separators (every 1e3), to better visualize large numbers (e.g. 23.009.646.54,3));
+    lines << QString(string(x_axis.getDimName()).c_str()) + QLocale::c().toString(xy_point.getX(), 'f', precision_for_unit(x_axis.getUnit()));
+    lines << QString(string(y_axis.getDimName()).c_str()) + QLocale::c().toString(xy_point.getY(), 'f', precision_for_unit(y_axis.getUnit()));
     drawText_(painter, lines);
   }
 
@@ -1038,45 +943,41 @@ namespace OpenMS
       return;
     }
 
-    Peak1D peak_start = getCurrentLayer().getCurrentSpectrum()[start.peak];
-    Peak1D peak_end;
+    const auto peak_start = unit_mapper_.map(getCurrentLayer().getCurrentSpectrum()[start.peak]);
+    auto peak_end = decltype(peak_start){}; // same as peak_start but without the const
     if (end.isValid())
     {
-      peak_end = getCurrentLayer().getCurrentSpectrum()[end.peak];
+      peak_end = unit_mapper_.map(getCurrentLayer().getCurrentSpectrum()[end.peak]);
     }
     else
     {
-      PointType point = widgetToData_(last_mouse_pos_);
-      peak_end = Peak1D(point[0], std::numeric_limits<float>::quiet_NaN());
+      peak_end = widgetToData_(last_mouse_pos_);
+      peak_end = gr_.gravitateNAN(peak_end);
     }
-    double mz = peak_end.getMZ() - peak_start.getMZ();
-    double it = peak_end.getIntensity() - peak_start.getIntensity();
-    float ppm = Math::getPPM(mz, peak_start.getMZ());
 
-    //draw text
+    auto dim_text = [](const DimBase& dim, double start_pos, double end_pos, bool ratio /*or difference*/)
+    {
+      QString result;
+      if (ratio)
+      {
+        result = String(string(dim.getDimName()) + " ratio: ").toQString() + QLocale::c().toString(end_pos / start_pos, 'f', precision_for_unit(dim.getUnit()));
+      }
+      else
+      {
+        result = String(string(dim.getDimName()) + " delta: ").toQString() + QLocale::c().toString(end_pos - start_pos, 'f', precision_for_unit(dim.getUnit()));
+        if (dim.getUnit() == DIM_UNIT::MZ)
+        {
+          auto ppm = Math::getPPM(end_pos, start_pos);
+          result += " (" + QString::number(ppm, 'f', 1) + " ppm)";
+        }
+      }
+      return result;
+    };
+
+    // hint: QLocale::c().toString adds group separators to better visualize large numbers (e.g. 23.009.646.54,3)
     QStringList lines;
-    String text;
-    int precision(2);
-    if (isMzToXAxis() ^ is_swapped_) // XOR
-    { // only if either one of the conditions holds
-      text = "RT delta: ";
-      precision = 2;
-    }
-    else // only if none or both are true
-    {
-      text = "m/z delta: ";
-      precision = 6;
-    }
-    lines.push_back(text.c_str() + QString::number(mz, 'f', precision) + " (" + QString::number(ppm, 'f', 1) +" ppm)");
-
-    if (std::isinf(it) || std::isnan(it))
-    {
-      lines.push_back("Int ratio: n/a");
-    }
-    else
-    {
-      lines.push_back("Int ratio: " + QString::number(it, 'f', 2));
-    }
+    lines << dim_text(unit_mapper_.getDim(DIM::X), peak_start.getX(), peak_end.getX(), gr_.getGravityAxis() == DIM::X);
+    lines << dim_text(unit_mapper_.getDim(DIM::Y), peak_start.getY(), peak_end.getY(), gr_.getGravityAxis() == DIM::Y);
     drawText_(painter, lines);
   }
 
@@ -1088,7 +989,7 @@ namespace OpenMS
       for (Size i = 0; i < getLayerCount(); ++i)
       {
         const SpectrumType & spectrum = getLayer(i).getCurrentSpectrum();
-        SpectrumConstIteratorType tmp = max_element(spectrum.MZBegin(visible_area_.minX()), spectrum.MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
+        SpectrumConstIteratorType tmp = max_element(spectrum.MZBegin(visible_area_.getAreaUnit().getMinMZ()), spectrum.MZEnd(visible_area_.getAreaUnit().getMaxMZ()), PeakType::IntensityLess());
         if (tmp != spectrum.end() && tmp->getIntensity() > local_max)
         {
           local_max = tmp->getIntensity();
@@ -1096,7 +997,7 @@ namespace OpenMS
       }
 
       // add some margin on top of local maximum to be sure we are able to draw labels inside the view
-      snap_factors_[0] = overall_data_range_.maxPosition()[1] / (local_max * TOP_MARGIN);
+      snap_factors_[0] = overall_data_range_.getMaxIntensity() / (local_max * TOP_MARGIN);
     }
     else if (intensity_mode_ == IM_PERCENTAGE)
     {
@@ -1110,13 +1011,16 @@ namespace OpenMS
 
   void Plot1DCanvas::updateScrollbars_()
   {
-    emit updateHScrollbar(overall_data_range_.minPosition()[0], visible_area_.minPosition()[0], visible_area_.maxPosition()[0], overall_data_range_.maxPosition()[0]);
+    auto xy_overall_area = visible_area_.cloneWith(overall_data_range_).getAreaXY();
+    emit updateHScrollbar(xy_overall_area.minPosition()[0], visible_area_.getAreaXY().minPosition()[0], visible_area_.getAreaXY().maxPosition()[0], xy_overall_area.maxPosition()[0]);
     emit updateVScrollbar(1, 1, 1, 1);
   }
 
   void Plot1DCanvas::horizontalScrollBarChange(int value)
   {
-    changeVisibleArea_(value, value + (visible_area_.maxPosition()[0] - visible_area_.minPosition()[0]));
+    auto new_area = visible_area_.getAreaXY();
+    new_area += decltype(new_area)::PositionType(value, 0);
+    changeVisibleArea_(new_area);
   }
 
   void Plot1DCanvas::showCurrentLayerPreferences()
@@ -1416,7 +1320,7 @@ namespace OpenMS
     selected_peak_.clear();
 
     //update ranges
-    recalculateRanges_(0, 2, 1);
+    recalculateRanges_();
 
     resetZoom();
     modificationStatus_(i, false);
@@ -1429,20 +1333,19 @@ namespace OpenMS
       zoomBack_();
     }
     else
-    {
-      const PointType::CoordinateType zoom_factor = 0.8;
-      double factor = isMzToXAxis() ? (PointType::CoordinateType)x / width() : (PointType::CoordinateType)(height() - y) / height();
-      AreaType new_area;
-      new_area.setMinX(visible_area_.min_[0] + (1.0 - zoom_factor) * (visible_area_.max_[0] - visible_area_.min_[0]) * factor);
-      new_area.setMaxX(new_area.min_[0] + zoom_factor * (visible_area_.max_[0] - visible_area_.min_[0]));
-      new_area.setMinY(visible_area_.minY());
-      new_area.setMaxY(visible_area_.maxY());
+    { // only zoom the non-gravity axis
+      constexpr PointType::CoordinateType zoom_factor = 0.8;
+      double factor = gr_.getGravityAxis() == DIM::Y ? (PointType::CoordinateType)x / width() : (PointType::CoordinateType)(height() - y) / height();
+      auto new_area = visible_area_.getAreaXY();
+      if (gr_.getGravityAxis() == DIM::X) new_area.swapDimensions(); // temporarily swap X<>Y if gravity acts on X
+      new_area.setMinX(new_area.minX() + (1.0 - zoom_factor) * new_area.width() * factor);
+      new_area.setMaxX(new_area.minX() + zoom_factor * new_area.width());
+      if (gr_.getGravityAxis() == DIM::X) new_area.swapDimensions(); // swap back
 
-      if (new_area != visible_area_)
+      if (new_area != visible_area_.getAreaXY())
       {
-        zoomAdd_(new_area);
-        zoom_pos_ = --zoom_stack_.end(); // set to last position
-        changeVisibleArea_(*zoom_pos_);
+        zoomAdd_(visible_area_.cloneWith(new_area));
+        PlotCanvas::changeVisibleArea_(*zoom_pos_);
       }
     }
   }
@@ -1453,92 +1356,46 @@ namespace OpenMS
     // if at end of zoom level then simply add a new zoom
     if (zoom_pos_ == zoom_stack_.end() || (zoom_pos_ + 1) == zoom_stack_.end())
     {
-      AreaType new_area;
-      // distance of areas center to border times a zoom factor of 0.8
-      AreaType::CoordinateType size0 = visible_area_.width() / 2 * 0.8;
-      new_area.setMinX(visible_area_.center()[0] - size0);
-      new_area.setMaxX(visible_area_.center()[0] + size0);
-      new_area.setMinY(visible_area_.minY());
-      new_area.setMaxY(visible_area_.maxY());
-      zoomAdd_(new_area);
-      zoom_pos_ = --zoom_stack_.end(); // set to last position
+      const auto a = canvasPixelArea();
+      zoom_(a.center().getX(), a.center().getY(), true); // calls changeVisibleArea_
+      return; 
     }
-    else
-    {
-      // goto next zoom level
-      ++zoom_pos_;
-    }
-    changeVisibleArea_(*zoom_pos_);
+
+    // goto next zoom level
+    ++zoom_pos_;
+    PlotCanvas::changeVisibleArea_(*zoom_pos_);
   }
 
   void Plot1DCanvas::translateLeft_(Qt::KeyboardModifiers m)
   {
-    double newLo = visible_area_.minX();
-    double newHi = visible_area_.maxX();
-    if (m == Qt::NoModifier)
-    { // 5% shift
-      double shift = 0.05 * visible_area_.width();
-      newLo -= shift;
-      newHi -= shift;
-    }
-    else if (m == Qt::ShiftModifier)
-    { // jump to the next peak (useful for sparse data)
-      const LayerDataBase::ExperimentType::SpectrumType& spec = getCurrentLayer().getCurrentSpectrum();
-      PeakType p_temp(visible_area_.minX(), 0);
-      SpectrumConstIteratorType it_next = lower_bound(spec.begin(), spec.end(), p_temp, PeakType::MZLess()); // find first peak in current range
-      if (it_next != spec.begin())
-      {
-        --it_next; // move one peak left
-      }
-      if (it_next == spec.end())
-      {
-        return;
-      }
-      newLo = it_next->getMZ() - visible_area_.width() / 2; // center the next peak to the left
-      newHi = it_next->getMZ() + visible_area_.width() / 2;
-    }
-
-    // check if we are falling out of bounds
-    if (newLo < overall_data_range_.minX())
-    {
-      newLo = overall_data_range_.minX();
-      newHi = newLo + visible_area_.width();
-    }
-    // change data area
-    changeVisibleArea_(newLo, newHi);
+    auto xy = visible_area_.getAreaXY();
+    // -5% shift in X
+    xy -= decltype(xy)::PositionType(0.05 * xy.width(), 0);
+    changeVisibleArea_(xy);
   }
 
   void Plot1DCanvas::translateRight_(Qt::KeyboardModifiers m)
   {
-    double newLo = visible_area_.minX();
-    double newHi = visible_area_.maxX();
-    if (m == Qt::NoModifier)
-    { // 5% shift
-      double shift = 0.05 * visible_area_.width();
-      newLo += shift;
-      newHi += shift;
-    }
-    else if (m == Qt::ShiftModifier)
-    { // jump to the next peak (useful for sparse data)
-      const LayerDataBase::ExperimentType::SpectrumType& spec = getCurrentLayer().getCurrentSpectrum();
-      PeakType p_temp(visible_area_.maxX(), 0);
-      SpectrumConstIteratorType it_next = upper_bound(spec.begin(), spec.end(), p_temp, PeakType::MZLess()); // first right-sided peak outside the current range
-      if (it_next == spec.end())
-      {
-        return;
-      }
-      newLo = it_next->getMZ() - visible_area_.width() / 2; // center the next peak to the right
-      newHi = it_next->getMZ() + visible_area_.width() / 2;
-    }
+    auto xy = visible_area_.getAreaXY();
+    // +5% shift in X
+    xy += decltype(xy)::PositionType(0.05 * xy.width(), 0);
+    changeVisibleArea_(xy);
+  }
 
-    // check if we are falling out of bounds
-    if (newHi > overall_data_range_.maxX())
-    {
-      newHi = overall_data_range_.maxX();
-      newLo = newHi - visible_area_.width();
-    }
-    // change data area
-    changeVisibleArea_(newLo, newHi);
+  void Plot1DCanvas::translateForward_()
+  {
+    auto xy = visible_area_.getAreaXY();
+    // +5% shift in Y
+    xy += decltype(xy)::PositionType(0, 0.05 * xy.height());
+    changeVisibleArea_(xy);
+  }
+
+  void Plot1DCanvas::translateBackward_()
+  {
+    auto xy = visible_area_.getAreaXY();
+    // -5% shift in Y
+    xy -= decltype(xy)::PositionType(0, 0.05 * xy.height());
+    changeVisibleArea_(xy);
   }
 
   /// Returns whether this widget is currently in mirror mode
@@ -1764,7 +1621,10 @@ namespace OpenMS
   {
     if (intensity_mode_ == IM_PERCENTAGE)
     {
-      percentage_factor_ = overall_data_range_.maxPosition()[1] / getLayer(layer_index).getCurrentSpectrum().getMaxIntensity();
+      // maximum value in data (usually intensity) 
+      auto max_data_gravity = unit_mapper_.mapRange(getLayer(layer_index).getCurrentSpectrum().getRange()).maxPosition()[(int)gr_.getGravityAxis()];
+      auto max_all_data     = unit_mapper_.mapRange(overall_data_range_).maxPosition()[(int)gr_.getGravityAxis()];
+      percentage_factor_ = max_all_data / max_data_gravity;
     }
     else
     {
@@ -1796,11 +1656,6 @@ namespace OpenMS
         update_(OPENMS_PRETTY_FUNCTION);
       }
     }
-  }
-
-  void Plot1DCanvas::setSwappedAxis(bool swapped)
-  {
-    is_swapped_ = swapped;
   }
 
   void Plot1DCanvas::setCurrentLayerPeakPenStyle(Qt::PenStyle ps)

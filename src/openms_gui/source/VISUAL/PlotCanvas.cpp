@@ -61,11 +61,15 @@ using namespace std;
 
 namespace OpenMS
 {
-  PlotCanvas::PlotCanvas(const Param& /*preferences*/, QWidget* parent) : QWidget(parent), DefaultParamHandler("PlotCanvas"), rubber_band_(QRubberBand::Rectangle, this)
+  PlotCanvas::PlotCanvas(const Param& /*preferences*/, QWidget* parent)
+    : QWidget(parent),
+      DefaultParamHandler("PlotCanvas"),
+      rubber_band_(QRubberBand::Rectangle, this),
+      unit_mapper_({DIM_UNIT::RT, DIM_UNIT::MZ})
   {
     // Prevent filling background
     setAttribute(Qt::WA_OpaquePaintEvent);
-    // get mouse coordinates while mouse moves over diagramm and for focus handling
+    // get mouse coordinates while mouse moves over diagram and for focus handling
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
 
@@ -144,8 +148,11 @@ namespace OpenMS
     update_(OPENMS_PRETTY_FUNCTION);
   }
 
-  void PlotCanvas::changeVisibleArea_(const VisibleArea& new_area, bool repaint, bool add_to_stack)
+  void PlotCanvas::changeVisibleArea_(VisibleArea new_area, bool repaint, bool add_to_stack)
   {
+    // make sure we stay inside the overall data range
+    new_area.pushInto(overall_data_range_);
+
     // store old zoom state
     if (add_to_stack)
     {
@@ -266,10 +273,8 @@ namespace OpenMS
 
   void PlotCanvas::resetZoom(bool repaint)
   {
-    AreaXYType tmp;
-    tmp.assign(overall_data_range_);
     zoomClear_();
-    changeVisibleArea_(VisibleArea(visible_area_).setArea(tmp), repaint, true);
+    changeVisibleArea_(visible_area_.cloneWith(overall_data_range_), repaint, true);
   }
 
   void PlotCanvas::setVisibleArea(const VisibleArea& area)

@@ -206,9 +206,29 @@ public:
       DIntervalBase operator+(const PositionType& point) const
       {
         DIntervalBase result(*this);
-        result.min_ += point;
-        result.max_ += point;
+        result += point;
         return result;
+      }
+
+      DIntervalBase& operator+=(const PositionType& point)
+      {
+        this->min_ += point;
+        this->max_ += point;
+        return *this;
+      }
+
+      DIntervalBase operator-(const PositionType& point) const
+      {
+        DIntervalBase result(*this);
+        result -= point;
+        return result;
+      }
+
+      DIntervalBase& operator-=(const PositionType& point)
+      {
+        this->min_ -= point;
+        this->max_ -= point;
+        return *this;
       }
 
       /// Make the interval empty
@@ -227,7 +247,7 @@ public:
       /// Is the dimension @p dim empty? If min==max, the interval is NOT empty!
       bool isEmpty(UInt dim) const
       {
-        return DIntervalBase<1>(make_pair(min_[dim], max_[dim])) == DIntervalBase<1>::empty;
+        return DIntervalBase<1>(std::make_pair(min_[dim], max_[dim])) == DIntervalBase<1>::empty;
       }
 
       /// only set interval for a single dimension 

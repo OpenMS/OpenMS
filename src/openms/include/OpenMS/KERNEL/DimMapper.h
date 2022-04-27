@@ -46,7 +46,6 @@
 
 #include <array>
 #include <memory>
-#include <string_view>
 
 
 namespace OpenMS
@@ -65,6 +64,8 @@ namespace OpenMS
   };
   std::string_view DIM_NAMES[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT [s]", "m/z [Th]", "intensity", "IM [milliseconds]", "IM [vs / cm2]", "FAIMS CV"};
 
+
+  
 
   /**
     @brief A base class for a dimension which represents a certain unit (e.g. RT or m/z).
@@ -113,10 +114,10 @@ namespace OpenMS
 
 
     /// Return the min/max (range) for a certain dimension
-    virtual RangeBase map(const RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const = 0;
+    virtual RangeBase map(const RangeAllType& rm) const = 0;
 
     /// Set the min/max (range) in @p rm for a certain dimension
-    virtual void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& out) const = 0;
+    virtual void setRange(const RangeBase& in, RangeAllType& out) const = 0;
 
     /// Name of the dimension, e.g. 'RT [s]' 
     std::string_view getDimName() const
@@ -172,12 +173,12 @@ namespace OpenMS
       return pi.getRT();
     }
 
-    RangeBase map(const RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const override
+    RangeBase map(const RangeAllType& rm) const override
     {
       return rm.getRangeForDim(MSDim::RT);
     }
 
-    void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const
+    void setRange(const RangeBase& in, RangeAllType& rm) const
     {
       rm.RangeRT::operator=(in);
     }
@@ -227,12 +228,12 @@ namespace OpenMS
       return pi.getMZ();
     }
 
-    RangeBase map(const RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const override
+    RangeBase map(const RangeAllType& rm) const override
     {
       return rm.getRangeForDim(MSDim::MZ);
     }
 
-    void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const
+    void setRange(const RangeBase& in, RangeAllType& rm) const
     {
       rm.RangeMZ::operator=(in);
     }
@@ -283,22 +284,23 @@ namespace OpenMS
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     
-    RangeBase map(const RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const override
+    RangeBase map(const RangeAllType& rm) const override
     {
       return rm.getRangeForDim(MSDim::INT);
     }
 
-    void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const
+    void setRange(const RangeBase& in, RangeAllType& rm) const
     {
       rm.RangeIntensity::operator=(in);
     }
   };
   
-  /// make axis label of returned Point explicit
+  /// Declare Dimensions for referencing dimensions in plotting etc
   /// e.g. Point[X], Point[Y]
+  /// The order X,Y,Z,... is important here. Some classes rely upon it.
   enum class DIM
   {
-    X = 0,
+    X = 0,  
     Y = 1,
     Z = 2
   };
@@ -381,10 +383,11 @@ namespace OpenMS
     DRange<N_DIM> mapRange(const RangeManager<Ranges...>& ranges) const
     {
       DRange<N_DIM> res;
-      using Coord = typename DRange<N_DIM>::PositionType;
+      RangeAllType all;
+      all.assign(ranges);
       for (int i = 0; i < N_DIM; ++i)
       {
-        RangeBase mm = dims_[i]->map(ranges);
+        RangeBase mm = dims_[i]->map(all);
         if (mm.isEmpty()) continue;
         res.setDimMinMax(i, {mm.getMin(), mm.getMax()});
       }
@@ -416,6 +419,19 @@ namespace OpenMS
       {
         dims_[i]->setRange({in[i], in[i]}, output);
       }
+    }
+
+    /// Convert an N_DIM-Point to a Range with all known dimensions.
+    /// The range will only span a single value in each dimension covered by this mapper.
+    /// Dimensions not contained in this DimMapper will remain empty.
+    RangeAllType fromXY(const Point& in) const
+    {
+      RangeAllType output;
+      for (int i = 0; i < N_DIM; ++i)
+      {
+        dims_[i]->setRange({in[i], in[i]}, output);
+      }
+      return output;
     }
 
     /// obtain unit/name for X/Y/Z dimension.
@@ -452,7 +468,6 @@ namespace OpenMS
   class Area
   {
   public:
-    using UnitRange = RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>;
     /// The Area in X,Y,(Z)... dimension (number of dimensions depends on N_DIM)
     using AreaXYType = DRange<N_DIM>;
 
@@ -487,7 +502,7 @@ namespace OpenMS
 
        @param data Area in units
     */
-    const Area& setArea(const UnitRange& data)
+    const Area& setArea(const RangeAllType& data)
     {
       data_range_ = data;
       // update axis view using dims
@@ -513,7 +528,7 @@ namespace OpenMS
       return visible_area_;
     }
 
-    const UnitRange& getAreaUnit() const
+    const RangeAllType& getAreaUnit() const
     {
       return data_range_;
     }
@@ -535,16 +550,27 @@ namespace OpenMS
 
       @param data New area in units
     */
-    Area cloneWith(const UnitRange& data) const
+    Area cloneWith(const RangeAllType& data) const
     {
       Area clone(*this);
       clone.setArea(data);
       return clone;
     }
 
+    /**
+     * \brief Push the area into a sandbox (if its outside the sandbox). See UnitRange::pushInto()
+     * \param sandbox The sandbox which delimits the range of this area
+     */
+    void pushInto(const RangeAllType& sandbox)
+    {
+      auto a = data_range_;
+      a.pushInto(sandbox);
+      setArea(a);
+    }
+
   private:
     /* two sides of the same coin... */
-    UnitRange data_range_;                        ///< range in units
+    RangeAllType data_range_;                     ///< range in units
     AreaXYType visible_area_ = AreaXYType::empty; ///< range in terms of axis (X and Y axis)
     /// and a mapper (non-owning pointer) to translate between the two
     const DimMapper<N_DIM>* mapper_;

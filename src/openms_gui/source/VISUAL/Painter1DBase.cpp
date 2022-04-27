@@ -57,7 +57,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  void Painter1DBase::drawDashedLine(const QPoint& from, const QPoint& to, QPainter* painter, QColor color)
+  void Painter1DBase::drawDashedLine(const QPoint& from, const QPoint& to, QPainter* painter, const QColor color)
   {
     QPen pen;
     QVector<qreal> dashes;
@@ -77,6 +77,13 @@ namespace OpenMS
     painter->drawLine(pos.x() - half_size, pos.y(), pos.x() + half_size, pos.y());
   }
 
+  void Painter1DBase::drawCaret(const QPoint& caret, QPainter* painter, const int size)
+  {
+    const int half_size = size / 2;
+    painter->drawLine(caret.x(), caret.y(), caret.x() + half_size, caret.y() + half_size);
+    painter->drawLine(caret.x(), caret.y(), caret.x() - half_size, caret.y() + half_size);
+  }
+
   Painter1DPeak::Painter1DPeak(const LayerDataPeak* parent) : layer_(parent)
   {
   }
@@ -90,41 +97,38 @@ namespace OpenMS
     
     const auto& spectrum = layer_->getCurrentSpectrum();
 
-    // get default icon and peak color
-    //QPen icon_pen = QPen(QColor(String(layer_->param.getValue("icon_color").toString()).toQString()), 1);
+    // get default peak color
     QPen pen(QColor(String(layer_->param.getValue("peak_color").toString()).toQString()), 1);
-    Qt::PenStyle pen_style = canvas->peak_penstyle_[layer_index];
-    pen.setStyle(pen_style);
-
+    pen.setStyle(canvas->peak_penstyle_[layer_index]);
     painter->setPen(pen);
+
     // draw dashed elongations for pairs of peaks annotated with a distance
-    QColor color = String(canvas->param_.getValue("highlighted_peak_color").toString()).toQString();
+    const QColor color = String(canvas->param_.getValue("highlighted_peak_color").toString()).toQString();
     for (auto& it : layer_->getCurrentAnnotations())
     {
-      auto distance_item = dynamic_cast<Annotation1DDistanceItem*>(it);
+      const auto distance_item = dynamic_cast<Annotation1DDistanceItem*>(it);
       if (!distance_item) continue;
 
       QPoint from, to;
       canvas->dataToWidget(distance_item->getStartPoint().getX(), 0, from, layer_->flipped);
-      canvas->dataToWidget(distance_item->getStartPoint().getX(), canvas->visible_area_.maxY(), to, layer_->flipped);
+      canvas->dataToWidget(distance_item->getStartPoint().getX(), canvas->visible_area_.getAreaXY().maxY(), to, layer_->flipped);
       drawDashedLine(from, to, painter, color);
 
       canvas->dataToWidget(distance_item->getEndPoint().getX(), 0, from, layer_->flipped);
-      canvas->dataToWidget(distance_item->getEndPoint().getX(), canvas->visible_area_.maxY(), to, layer_->flipped);
+      canvas->dataToWidget(distance_item->getEndPoint().getX(), canvas->visible_area_.getAreaXY().maxY(), to, layer_->flipped);
       drawDashedLine(from, to, painter, color);
     }
    
-    auto vbegin = spectrum.MZBegin(canvas->visible_area_.minX());
-    auto vend = spectrum.MZEnd(canvas->visible_area_.maxX());
+    const auto v_begin = spectrum.MZBegin(canvas->visible_area_.getAreaUnit().getMinMZ());
+    const auto v_end = spectrum.MZEnd(canvas->visible_area_.getAreaUnit().getMaxMZ());
     QPoint begin, end;
-    Plot1DCanvas::DrawModes line_mode = canvas->draw_modes_[layer_index];
-    switch (line_mode)
+    switch (canvas->draw_modes_[layer_index])
     {
       case Plot1DCanvas::DrawModes::DM_PEAKS:
       {
         //---------------------DRAWING PEAKS---------------------
 
-        for (auto it = vbegin; it != vend; ++it)
+        for (auto it = v_begin; it != v_end; ++it)
         {
           if (!layer_->filters.passes(spectrum, it - spectrum.begin())) continue;
           
@@ -132,7 +136,7 @@ namespace OpenMS
           if (layer_->peak_colors_1d.size() == spectrum.size())
           {
             // find correct peak index
-            Size peak_index = std::distance(spectrum.cbegin(), it);
+            const Size peak_index = std::distance(spectrum.cbegin(), it);
             pen.setColor(layer_->peak_colors_1d[peak_index]);
             painter->setPen(pen);
           }
@@ -156,7 +160,7 @@ namespace OpenMS
 
         // connect peaks in visible area; (no clipping needed)
         bool first_point = true;
-        for (auto it = vbegin; it != vend; it++)
+        for (auto it = v_begin; it != v_end; ++it)
         {
           canvas->dataToWidget(*it, begin, layer_->flipped);
 
@@ -174,18 +178,18 @@ namespace OpenMS
         painter->drawPath(path);
 
         // clipping on left side
-        if (vbegin != spectrum.cbegin() && vbegin != spectrum.cend())
+        if (v_begin != spectrum.cbegin() && v_begin != spectrum.cend())
         {
-          canvas->dataToWidget(*(vbegin - 1), begin, layer_->flipped);
-          canvas->dataToWidget(*(vbegin), end, layer_->flipped);
+          canvas->dataToWidget(*(v_begin - 1), begin, layer_->flipped);
+          canvas->dataToWidget(*(v_begin), end, layer_->flipped);
           painter->drawLine(begin, end);
         }
 
         // clipping on right side
-        if (vend != spectrum.end() && vend != spectrum.cbegin())
+        if (v_end != spectrum.end() && v_end != spectrum.cbegin())
         {
-          canvas->dataToWidget(*(vend - 1), begin, layer_->flipped);
-          canvas->dataToWidget(*(vend), end, layer_->flipped);
+          canvas->dataToWidget(*(v_end - 1), begin, layer_->flipped);
+          canvas->dataToWidget(*(v_end), end, layer_->flipped);
           painter->drawLine(begin, end);
         }
 
@@ -199,18 +203,18 @@ namespace OpenMS
     // annotate interesting m/z's
     if (canvas->draw_interesting_MZs_)
     {
-      drawMZAtInterestingPeaks_(*painter, canvas, vbegin, vend);
+      drawMZAtInterestingPeaks_(*painter, canvas, v_begin, v_end);
     }
 
     // draw all annotation items
     drawAnnotations_(*painter, canvas);
   }
 
-  void Painter1DPeak::drawAnnotations_(QPainter& painter, Plot1DCanvas* canvas)
+  void Painter1DPeak::drawAnnotations_(QPainter& painter, Plot1DCanvas* canvas) const
   {
-    QColor col {QColor(String(layer_->param.getValue("annotation_color").toString()).toQString())};
+    const QColor col {QColor(String(layer_->param.getValue("annotation_color").toString()).toQString())};
     // 0: default pen; 1: selected pen
-    QPen pen[2] = {col, col.lighter()};
+    const QPen pen[2] = {col, col.lighter()};
 
     for (const auto& c : layer_->getCurrentAnnotations())
     {
@@ -219,9 +223,9 @@ namespace OpenMS
     }
   }
 
-  void Painter1DPeak::drawMZAtInterestingPeaks_(QPainter& painter, Plot1DCanvas* canvas, MSSpectrum::ConstIterator vbegin, MSSpectrum::ConstIterator vend)
+  void Painter1DPeak::drawMZAtInterestingPeaks_(QPainter& painter, Plot1DCanvas* canvas, MSSpectrum::ConstIterator v_begin, MSSpectrum::ConstIterator v_end) const
   {
-    if (vbegin == vend)
+    if (v_begin == v_end)
     {
       return;
     }
@@ -229,14 +233,14 @@ namespace OpenMS
 
     // copy visible peaks into spec
     MSSpectrum spec;
-    for (auto it(vbegin); it != vend; ++it)
+    for (auto it(v_begin); it != v_end; ++it)
     {
       spec.push_back(*it);
     }
 
     // calculate distance between first and last peak
-    --vend;
-    double visible_range = vend->getMZ() - vbegin->getMZ();
+    --v_end;
+    double visible_range = v_end->getMZ() - v_begin->getMZ();
 
     // remove 0 intensities
     ThresholdMower threshold_mower_filter;
@@ -262,8 +266,8 @@ namespace OpenMS
     window_mower_filter.setParameters(filter_param);
     window_mower_filter.filterPeakSpectrum(spec);
 
-    NLargest nlargest_filter(10); // maximum number of annotated m/z's in visible area
-    nlargest_filter.filterPeakSpectrum(spec);
+    // maximum number of annotated m/z's in visible area
+    NLargest(10).filterPeakSpectrum(spec);
     spec.sortByPosition(); // n-largest changes order
 
     for (size_t i = 0; i < spec.size(); ++i)
