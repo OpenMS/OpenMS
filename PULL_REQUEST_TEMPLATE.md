@@ -18,6 +18,6 @@ If your PR is failing you can check out
 - Once you opened a PR try to minimize the number of *pushes* to it as every push will trigger CI (automated builds and test) and is rather heavy on our infrastructure (e.g., if several pushes per day are performed).
 
 # Advanced commands (admins / reviewer only):
-- `/reformat` (experimental) applies the clang-format style changes as additional commit
+- `/reformat` (experimental) applies the clang-format style changes as additional commit. Note: your branch must have a different name (e.g., yourrepo:feature/XYZ) than the receiving branch (e.g., OpenMS:develop). Otherwise, reformat fails to push.
 - setting the label "NoJenkins" will skip tests for this PR on jenkins (saves resources e.g., on edits that do not affect tests)
 - commenting with `rebuild jenkins` will retrigger Jenkins-based CI builds
