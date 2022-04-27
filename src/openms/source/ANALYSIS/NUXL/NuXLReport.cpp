@@ -736,8 +736,7 @@ Output format:
   void RNPxlProteinReport::annotateProteinModificationForTopHits(
     vector<ProteinIdentification>& prot_ids, 
     const vector<PeptideIdentification>& peps, 
-    TextFile& tsv_file, 
-    bool report_decoys)
+    TextFile& tsv_file)
   {
     assert(prot_ids.size() == 1); // support for one run only
 

@@ -103,8 +103,7 @@ struct OPENMS_DLLAPI RNPxlProteinReport
 {
   static void annotateProteinModificationForTopHits(std::vector<ProteinIdentification>& prot_ids, 
     const std::vector<PeptideIdentification>& peps, 
-    TextFile& tsv_file,
-    bool report_decoys = false);
+    TextFile& tsv_file);
 
   // crosslink efficiency = frequency of the crosslinked amino acid / frequency of the amino acid in all crosslink spectrum matches
   static std::map<char, double> getCrossLinkEfficiency(const std::vector<PeptideIdentification>& peps);
@@ -116,5 +115,3 @@ struct OPENMS_DLLAPI RNPxlProteinReport
 };
 
 }
-
-

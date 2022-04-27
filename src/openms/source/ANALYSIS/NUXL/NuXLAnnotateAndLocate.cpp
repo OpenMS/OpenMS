@@ -90,6 +90,8 @@ namespace OpenMS
         // get unmodified string
         const String unmodified_sequence = a.sequence.getString();
 
+        const bool contains_Methionine = unmodified_sequence.has('M');
+
         // initialize result fields
         a.best_localization = unmodified_sequence;
         a.best_localization_score = 0;
@@ -156,6 +158,19 @@ namespace OpenMS
           new_param.setValue("add_internal_fragments", "true");
           tmp_generator.setParameters(new_param);
           tmp_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
+                    
+          if (contains_Methionine) // add mainly DEB + NM related precursor losses 
+          {
+            static const double M_star_pc_loss = EmpiricalFormula("CH4S").getMonoWeight(); // methionine related loss on precursor (see OpenNuXL for scoring related code)
+            for (size_t charge = 1; charge <= precursor_charge; ++charge)
+            {
+              String ion_name = (charge == 1) ? "[M+H]-CH4S" : "[M+" + String(charge) + "H]-CH4S";              
+              total_loss_spectrum.getStringDataArrays()[0].push_back(ion_name);
+              total_loss_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX].push_back(charge);      
+              double mono_pos = fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge) - M_star_pc_loss; // precursor peak
+              total_loss_spectrum.emplace_back(mono_pos / (double)charge, 1.0);
+            }
+          }          
         }
 
         // add special immonium ions

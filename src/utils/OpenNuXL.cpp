@@ -231,7 +231,8 @@ struct ImmoniumIonsInPeptide
          - Apply fixed modification(s) to peptide
          - Apply variable modifications(s) to peptide to get modification peptidoforms
          - For all modified peptide sequences (of current peptide)
-           - 
+           -
+           - For peptides with methionine try to also score plain precursors - CH4S (NM and DEB related methionie cross-link)
 
 
     <B>The command line parameters of this tool are:</B>
@@ -895,9 +896,17 @@ protected:
       err = (y_mean_err + b_mean_err)/(b_ion_count + y_ion_count);
     }
 
+
+    static const double M_star_pc_loss = EmpiricalFormula("CH4S").getMonoWeight(); // methionine related loss on precursor (see NuXLAnnotateAndLocate for annotation related code)
+    vector<double> precursor_losses = {0.0, -18.010565, -17.026548}; // normal, loss of water, loss of ammonia
+    if (iip.M) 
+    {
+      precursor_losses.push_back(M_star_pc_loss);
+    }
+
     // match precusor ions z = 1..pc_charge
     double pc_match_count(0);
-    for (double pc_loss : {0.0, -18.010565, -17.026548} ) // normal, loss of water, loss of ammonia
+    for (double pc_loss : precursor_losses ) // normal, loss of water, loss of ammonia
     { 
       for (Size z = 1; z <= pc_charge; ++z)
       {
@@ -1443,6 +1452,9 @@ protected:
     
     // match (partially) shifted precusor ions z = 1..pc_charge
     double pc_match_count(0);
+    
+    static const double M_star_pc_loss = EmpiricalFormula("CH4S").getMonoWeight(); // methionine related loss on precursor
+
     for (double pc_loss : {0.0, -18.010565, -17.026548} ) // normal, loss of water, loss of ammonia
     { 
       const double peptide_mass = peptide_mass_without_NA + pc_loss;
