@@ -731,9 +731,6 @@ namespace OpenMS
     const bool compute_features
   ) const
   {
-    // get the spectra from the experiment
-    const std::vector<MSSpectrum>& spectra = experiment.getSpectra();
-
     // annotate spectra
     std::vector<OpenMS::MSSpectrum> annotated_spectra;
     OpenMS::FeatureMap ms2_features;
