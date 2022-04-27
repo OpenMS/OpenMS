@@ -379,7 +379,7 @@ public:
             {
               // Gaussian
               double base = it_rt_2->getRT() - it_rt->getRT();
-              terminate_now = std::exp(factor * base * base);
+              terminate_now = std::exp(factor * base * base) < cutoff;
             }
             else if (unit)
             {
@@ -417,7 +417,8 @@ public:
             if (average_type == "gaussian")
             {
               // Gaussian
-              terminate_now = std::exp(factor * pow(it_rt_2->getRT() - it_rt->getRT(), 2)) < cutoff;
+              double base = it_rt_2->getRT() - it_rt->getRT();
+              terminate_now = std::exp(factor * base * base) < cutoff;
             }
             else if (unit)
             {
