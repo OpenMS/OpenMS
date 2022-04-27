@@ -33,25 +33,17 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <iostream>     // std::cout
-#include <algorithm>    // std::find
-#include <cmath>    // std::log
+#include <algorithm> // std::find
+#include <cmath>     // std::log
+#include <iostream>  // std::cout
 
 namespace OpenMS
 {
 
   TransformationModel::TransformationModel(const TransformationModel::DataPoints&, const Param& p) :
-    params_(p),
-    x_weight_("x"),
-    x_datum_min_(0),
-    x_datum_max_(0),
-    y_weight_("y"),
-    y_datum_min_(0),
-    y_datum_max_(0),
-    weighting_(false)
+      params_(p), x_weight_("x"), x_datum_min_(0), x_datum_max_(0), y_weight_("y"), y_datum_min_(0), y_datum_max_(0), weighting_(false)
   {
     // get x datum ranges
     x_datum_min_ = params_.exists("x_datum_min") ? (double)params_.getValue("x_datum_min") : 1e-15;
@@ -76,7 +68,7 @@ namespace OpenMS
     }
 
     // easily remember whether we do weighting or not
-    weighting_ = !(x_weight_ == "x" && y_weight_ == "y"); 
+    weighting_ = !(x_weight_ == "x" && y_weight_ == "y");
   }
 
   TransformationModel::~TransformationModel()
@@ -97,18 +89,19 @@ namespace OpenMS
   {
     params.clear();
   }
-  
+
   void TransformationModel::weightData(TransformationModel::DataPoints& data)
   {
-    if (!weighting_ ) return;
+    if (!weighting_)
+      return;
 
-    // weight x values 
+    // weight x values
     if (x_weight_ != "x" && !data.empty())
     {
       for (size_t i = 0; i < data.size(); ++i)
       {
         // check x datum ranges
-        data[i].first = checkDatumRange(data[i].first,x_datum_min_,x_datum_max_);
+        data[i].first = checkDatumRange(data[i].first, x_datum_min_, x_datum_max_);
         // weight x datum
         data[i].first = weightDatum(data[i].first, x_weight_);
       }
@@ -120,18 +113,19 @@ namespace OpenMS
       for (size_t i = 0; i < data.size(); ++i)
       {
         // check y datum ranges
-        data[i].second = checkDatumRange(data[i].second,y_datum_min_, y_datum_max_);
+        data[i].second = checkDatumRange(data[i].second, y_datum_min_, y_datum_max_);
         // weight y datum
         data[i].second = weightDatum(data[i].second, y_weight_);
       }
-    } 
+    }
   }
-  
+
   void TransformationModel::unWeightData(TransformationModel::DataPoints& data)
   {
-    if (!weighting_ ) return;
+    if (!weighting_)
+      return;
 
-    // unweight x values 
+    // unweight x values
     if (x_weight_ != "x" && !data.empty())
     {
       for (size_t i = 0; i < data.size(); ++i)
@@ -146,15 +140,15 @@ namespace OpenMS
       {
         data[i].second = unWeightDatum(data[i].second, y_weight_);
       }
-    }  
+    }
   }
 
   bool TransformationModel::checkValidWeight(const String& weight, const std::vector<String>& valid_weights) const
-  {    
+  {
     bool valid = false;
     if (std::find(valid_weights.begin(), valid_weights.end(), weight) != valid_weights.end())
     {
-      valid=true;
+      valid = true;
     }
     else
     {
@@ -164,7 +158,7 @@ namespace OpenMS
   }
 
   double TransformationModel::checkDatumRange(const double& datum, const double& datum_min, const double& datum_max)
-  {    
+  {
     double datum_checked = datum;
     if (datum >= datum_max)
     {
@@ -180,22 +174,22 @@ namespace OpenMS
     }
     return datum_checked;
   }
-  
+
   std::vector<String> TransformationModel::getValidXWeights() const
   {
-    std::vector<String> valid_weights{"1/x","1/x2","ln(x)","x"}; // == 1 disables weights
+    std::vector<String> valid_weights {"1/x", "1/x2", "ln(x)", "x"}; // == 1 disables weights
     return valid_weights;
   }
-  
+
   std::vector<String> TransformationModel::getValidYWeights() const
   {
-    std::vector<String> valid_weights{"1/y","1/y2","ln(y)","y"}; // == 1 disables weights
+    std::vector<String> valid_weights {"1/y", "1/y2", "ln(y)", "y"}; // == 1 disables weights
     return valid_weights;
   }
 
   double TransformationModel::weightDatum(const double& datum, const String& weight) const
-  { 
-    double datum_weighted = 0;   
+  {
+    double datum_weighted = 0;
     if (weight == "ln(x)")
     {
       datum_weighted = std::log(datum);
@@ -206,59 +200,19 @@ namespace OpenMS
     }
     else if (weight == "1/x")
     {
-      datum_weighted = 1/std::abs(datum);
+      datum_weighted = 1 / std::abs(datum);
     }
     else if (weight == "1/y")
     {
-      datum_weighted = 1/std::abs(datum);
+      datum_weighted = 1 / std::abs(datum);
     }
     else if (weight == "1/x2")
     {
-      datum_weighted = 1/std::pow(datum,2);
+      datum_weighted = 1 / std::pow(datum, 2);
     }
     else if (weight == "1/y2")
     {
-      datum_weighted = 1/std::pow(datum,2);
-    }
-    else if (weight == "x" || weight == "y" )
-    {
-      datum_weighted = datum;
-    }
-    else
-    {
-      datum_weighted = datum;
-      OPENMS_LOG_INFO << "weight " + weight + " not supported.";
-      OPENMS_LOG_INFO << "no weighting will be applied.";
-    }
-    return datum_weighted;
-  } 
-
-  double TransformationModel::unWeightDatum(const double& datum, const String& weight) const
-  { 
-    double datum_weighted = 0;   
-    if (weight == "ln(x)")
-    {
-      datum_weighted = std::exp(datum);
-    }
-    else if (weight == "ln(y)")
-    {
-      datum_weighted = std::exp(datum);
-    }
-    else if (weight == "1/x")
-    {
-      datum_weighted = 1/std::abs(datum);
-    }
-    else if (weight == "1/y")
-    {
-      datum_weighted = 1/std::abs(datum);
-    }
-    else if (weight == "1/x2")
-    {
-      datum_weighted = std::sqrt(1/std::abs(datum));
-    }
-    else if (weight == "1/y2")
-    {
-      datum_weighted = std::sqrt(1/std::abs(datum));
+      datum_weighted = 1 / std::pow(datum, 2);
     }
     else if (weight == "x" || weight == "y")
     {
@@ -273,4 +227,44 @@ namespace OpenMS
     return datum_weighted;
   }
 
-}
+  double TransformationModel::unWeightDatum(const double& datum, const String& weight) const
+  {
+    double datum_weighted = 0;
+    if (weight == "ln(x)")
+    {
+      datum_weighted = std::exp(datum);
+    }
+    else if (weight == "ln(y)")
+    {
+      datum_weighted = std::exp(datum);
+    }
+    else if (weight == "1/x")
+    {
+      datum_weighted = 1 / std::abs(datum);
+    }
+    else if (weight == "1/y")
+    {
+      datum_weighted = 1 / std::abs(datum);
+    }
+    else if (weight == "1/x2")
+    {
+      datum_weighted = std::sqrt(1 / std::abs(datum));
+    }
+    else if (weight == "1/y2")
+    {
+      datum_weighted = std::sqrt(1 / std::abs(datum));
+    }
+    else if (weight == "x" || weight == "y")
+    {
+      datum_weighted = datum;
+    }
+    else
+    {
+      datum_weighted = datum;
+      OPENMS_LOG_INFO << "weight " + weight + " not supported.";
+      OPENMS_LOG_INFO << "no weighting will be applied.";
+    }
+    return datum_weighted;
+  }
+
+} // namespace OpenMS
