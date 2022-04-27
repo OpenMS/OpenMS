@@ -1453,8 +1453,6 @@ protected:
     // match (partially) shifted precusor ions z = 1..pc_charge
     double pc_match_count(0);
     
-    static const double M_star_pc_loss = EmpiricalFormula("CH4S").getMonoWeight(); // methionine related loss on precursor
-
     for (double pc_loss : {0.0, -18.010565, -17.026548} ) // normal, loss of water, loss of ammonia
     { 
       const double peptide_mass = peptide_mass_without_NA + pc_loss;
