@@ -36,7 +36,7 @@
 
   @page Quickstart User Quickstart Guide
 
-Read the User Quickstart guide to gain a brief understanding of key concepts and how to use tools. For more in-depth information, you should consult the entire documentation.
+  Read the User Quickstart guide to gain a brief understanding of key concepts and how to use tools. For more in-depth information, you should consult the entire documentation.
 	
 	@section what_is_openms What is OpenMS
 	OpenMS is an open-source C++ library that provides functions that are commonly used in computational liquid chromatography-mass spectrometry (LC-MS) data analysis. OpenMS is specifically designed for data analyses in proteomics and metabolomics research. 
