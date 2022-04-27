@@ -706,6 +706,7 @@ endif(NOT DISABLE_OPENSWATH)
 set(Boost_dependent_tests
   DIAHelper_test
   EmgModel_test
+  FASTAContainer_test
   LogConfigHandler_test
   LogStream_test
   MRMDecoy_test
