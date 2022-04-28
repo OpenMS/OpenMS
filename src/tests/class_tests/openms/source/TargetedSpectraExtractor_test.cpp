@@ -764,6 +764,49 @@ START_SECTION(void extractSpectra(
 }
 END_SECTION
 
+START_SECTION(void extractSpectra(
+  const MSExperiment& experiment,
+  const FeatureMap& ms1_features,
+  std::vector<MSSpectrum>& extracted_spectra,
+  FeatureMap& extracted_features,
+  const bool compute_features) const)
+{
+  TargetedSpectraExtractor tse;
+  Param params = tse.getParameters();
+  params.setValue("min_select_score", 15.0);
+  params.setValue("GaussFilter:gaussian_width", 0.25);
+  params.setValue("peak_height_min", 15000.0);
+  params.setValue("peak_height_max", 110000.0);
+  params.setValue("fwhm_threshold", 0.23);
+  tse.setParameters(params);
+
+  const String msp_path = OPENMS_GET_TEST_DATA_PATH("Germicidin_A_standard.msp");
+  MSExperiment spectrum;
+  MSPGenericFile mse(msp_path, spectrum);
+  for (OpenMS::MSSpectrum& spec : spectrum)
+  {
+    spec.setMSLevel(2);
+  }
+
+  const String featurexml_path = OPENMS_GET_TEST_DATA_PATH("Germicidin_A_standard.featureXML");
+  OpenMS::FeatureXMLFile featurexml;
+  OpenMS::FeatureMap ms1_features;
+  featurexml.load(featurexml_path, ms1_features);
+
+  std::vector<OpenMS::MSSpectrum> annotated_spectra;
+  OpenMS::FeatureMap extracted_features;
+  tse.extractSpectra(spectrum, ms1_features, annotated_spectra, extracted_features, true);
+
+  TEST_EQUAL(annotated_spectra.size(), 1)
+  TEST_EQUAL(annotated_spectra.front().getName(), "HMDB:HMDB0000001")
+
+  TEST_EQUAL(extracted_features.size(), 1)
+  const auto& extracted_feature = extracted_features[0];
+  TEST_EQUAL(extracted_feature.getRT(), 391.75)
+  TEST_EQUAL(extracted_feature.getIntensity(), 90780.0f)
+}
+END_SECTION
+
 START_SECTION(void matchSpectrum(
   const MSSpectrum& input_spectrum,
   const MSExperiment& library,
