@@ -541,7 +541,7 @@ protected:
 #ifdef OPENMS_WINDOWSPLATFORM
         call = String("export_dat.pl ") +
 #else
-        call =  String("./export_dat_2.pl ") +
+        call =  String("export_dat_2.pl ") +
 #endif
                " do_export=1 export_format=XML file=" + mascot_data_dir +
                "/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) +
