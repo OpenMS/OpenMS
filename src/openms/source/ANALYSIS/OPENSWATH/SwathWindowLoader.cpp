@@ -119,11 +119,13 @@ namespace OpenMS
     // check for presence of header, a header is present if the first line contains alphabetic characters
     double lower, upper;
     std::getline(data, line); // possible header (or first line)
-    if (std::any_of(line.begin(), line.end(), [](char const &c) { return std::isalpha(c); })){ // if any of the characters are alphabetical then there is a header
+    if (std::any_of(line.begin(), line.end(), [](char const &c) { return std::isalpha(c); }))
+    { // if any of the characters are alphabetical then there is a header
       std::cout << "Read Swath window header: '" << line << "'\n";
       std::getline(data, line); // first line of swath window
      }
-    else {
+    else 
+    {
       std::cout << "Swath Header not found'\n";
     }
 
