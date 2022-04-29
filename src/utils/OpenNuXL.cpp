@@ -429,6 +429,7 @@ protected:
 
     registerStringOption_("RNPxl:decoys", "<bool>", "true", "Generate decoys internally (recommended).", false, false);
     setValidStrings_("RNPxl:decoys", {"true", "false"});
+    registerIntOption_("RNPxl:decoy_factor", "<num>", 1, "Ratio of decoys to targets.", false, true);
 
     registerFlag_("RNPxl:CysteineAdduct", "Use this flag if the +152 adduct is expected.", true);
     registerFlag_("RNPxl:filter_fractional_mass", "Use this flag to filter non-crosslinks by fractional mass.", true);
@@ -4066,6 +4067,7 @@ static void scoreXLIons_(
     double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
     double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
     bool generate_decoys = getStringOption_("RNPxl:decoys") == "true";
+    int decoy_factor = getIntOption_("RNPxl:decoy_factor");
 
     StringList filter = getStringList_("filter");
     bool filter_pc_mass_error = find(filter.begin(), filter.end(), "filter_pc_mass_error") != filter.end();
@@ -4660,7 +4662,10 @@ static void scoreXLIons_(
           
           DecoyGenerator dg; // important to create inside the loop with same seed. Otherwise same peptides end up creating different decoys -> much more decoys than targets
           dg.setSeed(4711);
-          e.sequence += dg.shufflePeptides(aas, enzyme).toUnmodifiedString();
+          for (Size i = 0; i < decoy_factor; ++i) // decoy_factor = how many decoys to generate per target
+          {
+            e.sequence += dg.shufflePeptides(aas, enzyme).toUnmodifiedString();
+          }            
         }
         e.identifier = "DECOY_" + e.identifier;
         fasta_db.push_back(e);
@@ -5867,7 +5872,7 @@ static void scoreXLIons_(
       vector<PeptideIdentification> pep_pi, xl_pi;
       if (extra_output_directory.empty())
       {
-        fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, original_PSM_output_filename);
+        fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, original_PSM_output_filename, decoy_factor);
         // copy XL results (with highest threshold=little filtering) to output
         if (!out_xl_idxml.empty())
         {
@@ -5877,7 +5882,7 @@ static void scoreXLIons_(
       else
       { // use output_folder
         String b = extra_output_directory + "/" + File::basename(out_idxml).substitute(".idXML", "_");
-        fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, b);
+        fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, b, decoy_factor);
         // copy XL results (with highest threshold=little filtering) to output
         if (!out_xl_idxml.empty())
         {
@@ -5964,7 +5969,7 @@ static void scoreXLIons_(
 
           if (extra_output_directory.empty())
           {
-            fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, percolator_PSM_output_filename);
+            fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, percolator_PSM_output_filename, decoy_factor);
 
             // copy XL results (with highest threshold=little filtering) to outut TODO: first copy would not be needed
             if (!out_xl_idxml.empty())
@@ -5975,7 +5980,7 @@ static void scoreXLIons_(
           else
           { // use output_folder
             String b = extra_output_directory + "/" + File::basename(out_idxml).substitute(".idXML", "_perc_");
-            fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, b);
+            fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, b, decoy_factor);
 
             // copy XL results (with highest threshold=little filtering) to output TODO: first copy would not be needed if percolator succeeds
             if (!out_xl_idxml.empty())

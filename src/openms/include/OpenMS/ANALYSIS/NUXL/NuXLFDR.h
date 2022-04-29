@@ -75,7 +75,8 @@ class OPENMS_DLLAPI NuXLFDR
       double peptide_PSM_qvalue_threshold,
       std::vector<PeptideIdentification>& xl,
       std::vector<double> xl_PSM_qvalue_thresholds,
-      const String& out_idxml) const;
+      const String& out_idxml,
+      int decoy_factor) const;
   private:
     size_t report_top_hits_;
 };

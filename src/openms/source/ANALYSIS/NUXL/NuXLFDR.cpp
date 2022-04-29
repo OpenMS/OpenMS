@@ -141,13 +141,25 @@ namespace OpenMS
       double peptide_PSM_qvalue_threshold,
       vector<PeptideIdentification>& xl_pi,
       vector<double> xl_PSM_qvalue_thresholds,
-      const String& out_idxml) const
+      const String& out_idxml,
+      int decoy_factor) const
   {
     // calculate separate FDRs
     calculatePeptideAndXLQValueAtPSMLevel(peptide_ids, pep_pi, xl_pi);
 
-    // q-values might not be unique so we choose a second score to make them slightly different
-    
+    // correct for decoy factor
+    if (decoy_factor != 1)
+    {
+      for (auto & pi : xl_pi)
+      {
+        for (auto & p : pi.getHits())
+        {
+          p.setScore(p.getScore() / (double)decoy_factor);
+        }      
+      }
+    }
+
+    // q-values might not be unique so we choose a second score to make them slightly different    
     bool svm_score_exists = false;
     for (auto & pi : xl_pi)
     {
