@@ -880,7 +880,7 @@ namespace OpenMS
     {
       for (const auto& subordinate : feature.getSubordinates())
       {
-        ms1_to_ms2[subordinate.getMetaValue("PeptideRef")].push_back(&subordinate); // TODO: "transition_name"
+        ms1_to_ms2[subordinate.getMetaValue("PeptideRef")].push_back(&subordinate);
       }
     }
 
