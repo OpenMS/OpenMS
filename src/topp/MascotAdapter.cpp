@@ -539,7 +539,7 @@ protected:
         }
 
 #ifdef OPENMS_WINDOWSPLATFORM
-        call = String("perl export_dat.pl ") +
+        call = String("export_dat.pl ") +
 #else
         call =  String("./export_dat_2.pl ") +
 #endif
@@ -559,8 +559,8 @@ protected:
                " prot_score=" + String(prot_score) + " pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) +
                " pep_homol=" + String(pep_homol) + " pep_ident=" + String(pep_ident) + " pep_seq=1 report=0 " +
                "show_params=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + pepXML_file_name;
-        writeDebug_("CALLING: " + call + "\nCALL Done!    ", 10);
-        status = qp.execute(call.toQString());
+        writeDebug_("CALLING: perl " + call + "\nCALL Done!    ", 10);
+        status = qp.execute("perl", QStringList() << call.toQString());
 
         if (status != 0)
         {
