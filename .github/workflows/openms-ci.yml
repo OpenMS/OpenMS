@@ -95,10 +95,10 @@ jobs:
       shell: bash
       run: |
           cmake --version
-          
+
           #run openms tests
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
-          ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/travis/cibuild.cmake
+          ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
 
           FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
           if [ "$FAILED_TEST" -gt "0" ] ; then
@@ -161,7 +161,7 @@ jobs:
           rm contribbld.tar.gz
 
     - name: Fix contrib install names
-      shell: bash 
+      shell: bash
       run: |
           shopt -s nullglob # ensure that for loop is only executated if there is at least one .dylib file
           for lib in $GITHUB_WORKSPACE/OpenMS/contrib/lib/*.dylib
@@ -224,7 +224,7 @@ jobs:
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ## TODO allow changing of ctest build site in cmake
           ## TODO potentially parse some OS infos and add to build name
-          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
+          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
 
           FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
           if [ "$FAILED_TEST" -gt "0" ] ; then
@@ -284,7 +284,7 @@ jobs:
         yum -y install jq
         echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
-      
+
       #  open step log to get ssh access
       #  If the CI has failed and the branch is ci-debug then start a tmate
       #  session. SSH rendezvous point is emited continuously in the job output.
@@ -292,8 +292,8 @@ jobs:
 #    - name: "Debug: Package dependancies for tmate"
 #      run: |
 #        yum install -y xz
-#        ln -s /bin/true /bin/apt-get      
-#      
+#        ln -s /bin/true /bin/apt-get
+#
 #    - name: "Debug: Start tmate"
 #      uses: mxschmitt/action-tmate@v3.3
 #      with:
@@ -330,7 +330,7 @@ jobs:
             ## TODO potentially parse some OS infos and add to build name
             ## TODO allow changing Contrib path to get rid of the extra cmake file!
             dbus-uuidgen > /var/lib/dbus/machine-id
-            xvfb-run ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/travis/cibuild.cmake
+            xvfb-run ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
 
             FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
             if [ "$FAILED_TEST" -gt "0" ] ; then
