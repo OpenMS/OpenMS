@@ -39,6 +39,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
+//#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 
 #include <QtCore/QDir>
 #include <cmath> // isnan
@@ -81,41 +82,84 @@ bool MQEvidence::isValid()
 
 void MQEvidence::exportHeader_()
 {
-  file_ << "id" << "\t";
-  file_ << "Sequence" << "\t";
-  file_ << "Length" << "\t";
-  file_ << "Acetyl (Protein N-term)" << "\t";
-  file_ << "Oxidation (M)" << "\t";
-  file_ << "Modification" << "\t";
-  file_ << "Modified Sequence" << "\t";
-  file_ << "Mass" << "\t";
-  file_ << "Score" << "\t";
-  file_ << "Proteins" << "\t";
-  file_ << "Protein group IDs" << "\t";
-  file_ << "Charge" << "\t";
-  file_ << "M/Z" << "\t";
-  file_ << "Retention Time" << "\t";
-  file_ << "Retention Length" << "\t";
-  file_ << "Intensity" << "\t";
-  file_ << "Resolution" << "\t";
-  file_ << "Reverse" << "\t";
-  file_ << "Potential contaminant" << "\t";
-  file_ << "Type" << "\t";
-  file_ << "Missed cleavages" << "\t";
-  file_ << "Mass error [ppm]" << "\t";
-  file_ << "Uncalibrated Mass error [ppm]" << "\t";
-  file_ << "Mass error [Da]" << "\t";
-  file_ << "Uncalibrated Mass error [Da]" << "\t";
-  file_ << "Uncalibrated - Calibrated m/z [ppm]" << "\t";
-  file_ << "Uncalibrated - Calibrated m/z [Da]" << "\t";
-  file_ << "Calibrated retention time start" << "\t";
-  file_ << "Calibrated retention time end" << "\t";
-  file_ << "Calibrated Retention Time" << "\t";
-  file_ << "Retention time calibration" << "\t";
-  file_ << "MS/MS count" << "\t";
-  file_ << "Match time difference" << "\t";
-  file_ << "Match m/z difference" << "\t";
-  file_ << "Raw file" << "\n";
+
+  file_ << "Sequence" << "\t"; // ok
+  file_ << "Length" << "\t"; // ok
+  file_ << "Modifications" << "\t"; // ok
+  file_ << "Modified sequence" << "\t"; // ok
+  file_ << "Oxidation (M) Probabilities" << "\t"; // wahrscheinlich nicht in OpenM, geschaut in ModificationsDB, ResidueModification, AASequence, Residue, Unimod
+  file_ << "Oxidation (M) Score Diffs" << "\t"; // siehe Probabilities
+  file_ << "Acetyl (Protein N-term)" << "\t"; // ok (in beiden keine)
+  file_ << "Oxidation (M)" << "\t"; // ok
+  file_ << "Missed cleavages" << "\t"; // könnte richtig sein (aber schon anders)
+  file_ << "Proteins" << "\t"; // ok
+  file_ << "Leading Proteins" << "\t"; // - erledigt
+  file_ << "Leading Razor Protein" << "\t"; // - erledigt
+  file_ << "Gene Names" << "\t"; // noch unklar, ob in OpenMS, Light Compound, Peptide
+  file_ << "Protein Names" << "\t"; // noch unklar, ob in OpenMS
+  file_ << "Type" << "\t"; // ok
+  file_ << "Raw file" << "\t"; // (wahrscheinlich) ok
+  file_ << "Fraction" << "\t"; // noch unklar, ob in OpenMS
+  file_ << "MS/MS m/z" << "\t"; // noch unklar, ob in OpenMS
+  file_ << "Charge" << "\t"; // ok (unterschied recht gross aber andere Daten)
+  file_ << "m/z" << "\t"; // ok
+  file_ << "Mass" << "\t"; // wahrscheinlich falsch (ca. 1000 (OpenMS) vs ca. 100000000 (MQ))
+  file_ << "Resolution" << "\t"; // wahrscheinlich falsch (ca. 0.16 (OpenMS) vs ca. 50000 (MQ))
+  file_ << "Uncalibrated - Calibrated m/z [ppm]" << "\t"; // ok
+  file_ << "Uncalibrated - Calibrated m/z [Da]" << "\t"; // ok
+  file_ << "Mass Error [ppm]" << "\t"; // sehr unterschiedlich (0.8 vs 300000), aber nicht klar was falsch
+  file_ << "Mass Error [Da]" << "\t"; // sehr unterschiedlich, aber nicht klar was falsch
+  file_ << "Uncalibrated Mass Error [ppm]" << "\t"; // ok
+  file_ << "Uncalibrated Mass Error [Da]" << "\t"; //ok
+  file_ << "Max intensity m/z 0" << "\t"; // unklar, Summed up eXtracted Ion Current (XIC) of all isotopic clusters associated with the identified AA sequence. In case of a labeled experiment this is the total intensity of all the isotopic patterns in the label cluster.
+  file_ << "Retention time" << "\t"; // sehr unterschiedlich, könnte aber passen
+  file_ << "Retention length" << "\t"; // ok
+  file_ << "Calibrated retention time" << "\t"; // ok
+  file_ << "Calibrated retention time start" << "\t"; // ok
+  file_ << "Calibrated retention time finish" << "\t"; // ok
+  file_ << "Retention time calibration" << "\t"; // sehr unterschiedlich (0.1 vs ca. 15000)
+  file_ << "Match time difference" << "\t"; // ok
+  file_ << "Match m/z difference" << "\t"; // ok
+  file_ << "Match q-value" << "\t"; // vermutlich nicht in OpenMS
+  file_ << "Match score" << "\t"; // vermutlich nicht in OpenMS (andromeda)
+  file_ << "Number of data points" << "\t"; // number of peak centroids collected for this peptide feature (vermutlich in PeakPickerCWT)
+  file_ << "Number of scans" << "\t"; // number of MS scans that the 3d peaks of this peptide feature are overlapping with, (simpel falls MSMS.txt implementiert)
+  file_ << "Number of isotopic peaks" << "\t"; // number of isotopic peaks contained in this peptide feature (Feature, convexHull) - erledigt
+  file_ << "PIF" << "\t"; // Parent Ion Fraction; indicates the fraction the target peak makes up of the total intensity in the inclusion window (mögl. MaxQuant spezifisch)
+  file_ << "Fraction of total spectrum" << "\t"; // The percentage the ion intensity makes up of the total intensity of the whole spectrum (wahrscheinlich in OpenMS)
+  file_ << "Base peak fraction" << "\t"; // The percentage the parent ion intensity in comparison to the highest peak in the MS spectrum (wahrscheinlich in OpenMS)
+  file_ << "PEP" << "\t"; // Posterior Error Probability of the identification. This value essentially operates as a p-value, where smaller is more significant (wahrscheinlich in OpenMS)
+  file_ << "MS/MS Count" << "\t"; // (wahrscheinlich) ok
+  file_ << "MS/MS Scan Number" << "\t"; // (simpel falls MSMS.txt implementiert), Metadaden vom file?
+  file_ << "Score" << "\t"; // wahrscheinlich falsch (ca. 0.02 (OpenMS) vs ca. 100 (MQ)), Andromeda benötigt
+  file_ << "Delta score" << "\t"; // wahrscheinlich nicht möglich (Andromeda benötigt)
+  file_ << "Combinatorics" << "\t"; // Number of possible distributions of the modifications over the peptide sequence., unklar, ob in OpenMS
+  file_ << "Intensity" << "\t"; // Summed up eXtracted Ion Current (XIC) of all isotopic clusters associated with the identified AA sequence.
+                                // In case of a labeled experiment this is the total intensity of all the isotopic patterns in the label cluster
+  file_ << "Reporter intensity 0" << "\t"; // unklar, was das ist und wo es herkommt (keine Dokumentation in MQ), Ionen?
+  file_ << "Reporter intensity 1" << "\t";
+  file_ << "Reporter intensity 2" << "\t";
+  file_ << "Reporter intensity 3" << "\t";
+  file_ << "Reporter intensity 4" << "\t";
+  file_ << "Reporter intensity 5" << "\t";
+  file_ << "Reporter intensity not corrected 0" << "\t"; // unklar, was das ist und wo es herkommt (keine Dokumentation in MQ)
+  file_ << "Reporter intensity not corrected 1" << "\t";
+  file_ << "Reporter intensity not corrected 2" << "\t";
+  file_ << "Reporter intensity not corrected 3" << "\t";
+  file_ << "Reporter intensity not corrected 4" << "\t";
+  file_ << "Reporter intensity not corrected 5" << "\t";
+  file_ << "Reporter PIF" << "\t"; // wahrscheinlich falsch (NA vs ca. 0.8)
+  file_ << "Reporter fraction" << "\t";
+  file_ << "Reverse" << "\t"; // ok
+  file_ << "Potential contaminant" << "\t"; // ok
+  file_ << "id" << "\t"; // ok
+  file_ << "Protein group IDs" << "\t"; // ok, aber letztes ; weg
+  file_ << "Peptide ID" << "\t"; // The identifier of the non-redundant peptide sequence, (in FeatureMap, wenn das die richtige id ist)
+  file_ << "Mod. peptide ID" << "\t"; // unklar (vielleicht selbst implementierbar), in 'modificationSpecificPeptides.txt'
+  file_ << "MS/MS IDs" << "\t"; // Identifier(s) of the associated MS/MS summary(s) stored in the file 'msms.txt', unklar (vielleicht selbst implementierbar)
+  file_ << "Best MS/MS" << "\t"; // Identifier(s) of the best MS/MS associated spectrum stored in the file 'msms.txt', unklar (vielleicht selbst implementierbar)
+  file_ << "AIF MS/MS IDs" << "\t"; //Identifier(s) of the associated All Ion Fragmentation MS/MS summary(s) stored in the file 'aifMsms.txt'., unklar (vielleicht selbst implementierbar)
+  file_ << "Oxidation (M) site IDs" << "\n"; // unklar (vielleicht selbst implementierbar)
 }
 
 Size MQEvidence::proteinGroupID_(const String& protein_accession)
@@ -204,21 +248,21 @@ void MQEvidence::exportRowFromFeature_(
     {
       if (!f.getPeptideIdentifications()[i].getHits().empty())
       {
-        if (f.getPeptideIdentifications()[i].getHits()[0].getSequence() ==
-            f.getPeptideIdentifications()[0].getHits()[0].getSequence())
+        if (f.getPeptideIdentifications()[i].getHits()[0].getSequence() == f.getPeptideIdentifications()[0].getHits()[0].getSequence())
         {
           ++pep_ids_size;
         }
-        else break;
+        else
+          break;
       }
     }
     type = "MULTI-MSMS";
-     ptr_best_hit = &f.getPeptideIdentifications()[0].getHits()[0];
+    ptr_best_hit = &f.getPeptideIdentifications()[0].getHits()[0];
   }
   else if (hasPeptideIdentifications_(cf))
   {
     type = "MULTI-MATCH";
-     ptr_best_hit = &cf.getPeptideIdentifications()[0].getHits()[0];
+    ptr_best_hit = &cf.getPeptideIdentifications()[0].getHits()[0];
   }
   else
   {
@@ -231,21 +275,15 @@ void MQEvidence::exportRowFromFeature_(
   {
     return;
   }
-  file_ << id_ << "\t";
-  ++id_;
+
   file_ << pep_seq.toUnmodifiedString() << "\t"; // Sequence
-  file_ << pep_seq.size() << "\t"; // Length
+  file_ << pep_seq.size() << "\t";               // Length
 
   std::map<String, Size> modifications;
   if (pep_seq.hasNTerminalModification())
   {
     const String& n_terminal_modification = pep_seq.getNTerminalModificationName();
     modifications.emplace(std::make_pair(n_terminal_modification, 1));
-    n_terminal_modification.hasSubstring("Acetyl") ? file_ << 1 << "\t" : file_ << 0 << "\t"; // Acetyl (Protein N-term)
-  }
-  else
-  {
-    file_ << 0 << "\t"; // Acetyl (Protein N-term)
   }
   if (pep_seq.hasCTerminalModification())
   {
@@ -253,18 +291,16 @@ void MQEvidence::exportRowFromFeature_(
   }
   for (Size i = 0; i < pep_seq.size(); ++i)
   {
-
     if (pep_seq.getResidue(i).isModified())
     {
       ++modifications[pep_seq.getResidue(i).getModification()->getFullId()];
     }
   }
-  modifications.find("Oxidation (M)") == modifications.end() ? file_ << "0" << "\t" : file_
-          << modifications.find("Oxidation (M)")->second << "\t";
 
   if (modifications.empty())
   {
-    file_ << "Unmodified" << "\t";
+    file_ << "Unmodified"
+          << "\t";
   }
   else
   {
@@ -275,142 +311,239 @@ void MQEvidence::exportRowFromFeature_(
     file_ << "\t";
   }
   file_ << "_" << pep_seq << "_" << "\t"; // Modified Sequence
-  file_ << pep_seq.getMonoWeight() << "\t"; // Mass
-  file_ << max_score << "\t"; // Score
-  const std::set<String>& accessions = ptr_best_hit->extractProteinAccessionsSet();
-  for (const String& p : accessions)
-  {
-    file_ << p << ";"; // Protein
-  }
-  file_ << "\t";
-  for (const String& p : accessions)
-  {
-    file_ << proteinGroupID_(p) << ";"; // Protein group ids
-  }
-  file_ << "\t";
-  file_ << f.getCharge() << "\t"; // Charge
-  file_ << f.getMZ() << "\t"; // MZ
-  file_ << f.getRT() / 60 << "\t"; // Retention time in min.
-  f.metaValueExists("rt_raw_end") && f.metaValueExists("rt_raw_start") ?
-  file_ << (double(f.getMetaValue("rt_raw_end")) - double(f.getMetaValue("rt_raw_start"))) / 60 << "\t" : file_
-          << "NA" << "\t";
-  file_ << f.getIntensity() << "\t"; // Intensity
-  file_ << f.getWidth() / 60 << "\t";  // Resolution in min.
-  ptr_best_hit->getMetaValue("target_decoy") == "decoy" ? file_ << "1" << "\t" : file_ << "\t"; //reverse
 
-  String pot_containment = ptr_best_hit->getMetaValue("is_contaminant", "NA");
-  if (pot_containment == "1")
+  file_ << "NA" << "\t"; // Oxidation (M) Probabilities
+  file_ << "NA" << "\t"; // Oxidation (M) Score Diffs
+
+  if (pep_seq.hasNTerminalModification())
   {
-    file_ << "+" << "\t";   // Potential contaminant
+    const String& n_terminal_modification = pep_seq.getNTerminalModificationName();
+    n_terminal_modification.hasSubstring("Acetyl") ? file_ << 1 << "\t" : file_ << 0 << "\t"; // Acetyl (Protein N-term)
   }
   else
   {
-    file_ << "\t";
+    file_ << 0 << "\t"; // Acetyl (Protein N-term)
   }
-  file_ << type << "\t"; // Type
-  file_ << ptr_best_hit->getMetaValue("missed_cleavages", "NA") << "\t"; // missed cleavages
-
-  const double& uncalibrated_mz_error_ppm = ptr_best_hit->getMetaValue("uncalibrated_mz_error_ppm", NAN);
-  const double& calibrated_mz_error_ppm = ptr_best_hit->getMetaValue("calibrated_mz_error_ppm", NAN);
-
-  if (std::isnan(uncalibrated_mz_error_ppm) && std::isnan(calibrated_mz_error_ppm))
-  {
-    file_ << "NA" << "\t"; // Mass error [ppm]
-    file_ << "NA" << "\t"; // Uncalibrated Mass error [ppm]
-    file_ << "NA" << "\t"; // Mass error [Da]
-    file_ << "NA" << "\t"; // Uncalibrated Mass error [Da]
-    file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
-    file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [mDa]
-  }
-  else if (std::isnan(calibrated_mz_error_ppm))
+    modifications.find("Oxidation (M)") == modifications.end() ? file_ << "0"
+                                                                       << "\t" :
+                                                                 file_ << modifications.find("Oxidation (M)")->second << "\t";
+    file_ << ptr_best_hit->getMetaValue("missed_cleavages", "NA") << "\t"; // missed cleavages
+    const std::set<String>& accessions = ptr_best_hit->extractProteinAccessionsSet();
+    for (const String& p : accessions)
     {
-      file_ << "NA" << "\t"; // Mass error [ppm]
-      file_ << uncalibrated_mz_error_ppm << "\t"; // Uncalibrated Mass error [ppm]
-      file_ << "NA" << "\t"; // Mass error [Da]
+      file_ << p << ";"; // Protein
+    }
+    file_ << "\t";
+    file_ << ptr_best_hit << "\t"; // Leading Proteins
+    file_ << ptr_best_hit << "\t"; // Leading Razor Proteins
+    file_ << "NA" << "\t"; // Gene Names
+    file_ << "NA" << "\t"; // Proteins Names
+    file_ << type << "\t"; // type
+
+    file_ << raw_file << "\t"; // Raw File
+
+    file_ << "NA" << "\t"; // Fraction
+    file_ << "NA" << "\t"; // MS/MS m/z
+
+    file_ << f.getCharge() << "\t";           // Charge
+    file_ << f.getMZ() << "\t";               // MZ
+    file_ << pep_seq.getMonoWeight() << "\t"; // Mass
+    file_ << f.getWidth() / 60 << "\t";       // Resolution in min.
+
+    const double& uncalibrated_mz_error_ppm = ptr_best_hit->getMetaValue("uncalibrated_mz_error_ppm", NAN);
+    const double& calibrated_mz_error_ppm = ptr_best_hit->getMetaValue("calibrated_mz_error_ppm", NAN);
+
+    if (std::isnan(uncalibrated_mz_error_ppm) && std::isnan(calibrated_mz_error_ppm))
+    {
+      file_ << "NA"
+            << "\t"; // Uncalibrated - Calibrated m/z [ppm]
+      file_ << "NA"
+            << "\t"; // Uncalibrated - Calibrated m/z [mDa]
+      file_ << "NA"
+            << "\t"; // Mass error [ppm]
+      file_ << "NA"
+            << "\t"; // Mass error [Da]
+      file_ << "NA"
+            << "\t"; // Uncalibrated Mass error [ppm]
+      file_ << "NA"
+            << "\t"; // Uncalibrated Mass error [Da]
+    }
+    else if (std::isnan(calibrated_mz_error_ppm))
+    {
+      file_ << "NA"
+            << "\t"; // Uncalibrated - Calibrated m/z [ppm]
+      file_ << "NA"
+            << "\t"; // Uncalibrated - Calibrated m/z [mDa]
+      file_ << "NA"
+            << "\t"; // Mass error [ppm]
+      file_ << "NA"
+            << "\t";                                                                  // Mass error [Da]
+      file_ << uncalibrated_mz_error_ppm << "\t";                                     // Uncalibrated Mass error [ppm]
       file_ << OpenMS::Math::ppmToMass(uncalibrated_mz_error_ppm, f.getMZ()) << "\t"; // Uncalibrated Mass error [Da]
-      file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
-      file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [mDa]
     }
     else if (std::isnan(uncalibrated_mz_error_ppm))
-      {
-        file_ << calibrated_mz_error_ppm << "\t"; // Mass error [ppm]
-        file_ << "NA" << "\t"; // Uncalibrated Mass error [ppm]
-        file_ << OpenMS::Math::ppmToMass(calibrated_mz_error_ppm, f.getMZ()) << "\t"; // Mass error [Da]
-        file_ << "NA" << "\t"; // Uncalibrated Mass error [Da]
-        file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
-        file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [mDa]
-      }
-      else
-      {
-        file_ << calibrated_mz_error_ppm << "\t";   //Mass error [ppm]
-        file_ << uncalibrated_mz_error_ppm << "\t"; // Uncalibrated Mass error [ppm]
-        file_ << OpenMS::Math::ppmToMass(calibrated_mz_error_ppm, f.getMZ()) << "\t"; // Mass error [Da]
-        file_ << OpenMS::Math::ppmToMass(uncalibrated_mz_error_ppm, f.getMZ()) << "\t"; // Uncalibrated Mass error [Da]
-        file_ << uncalibrated_mz_error_ppm - calibrated_mz_error_ppm << "\t"; // Uncalibrated - Calibrated m/z [ppm]
-        file_ << OpenMS::Math::ppmToMass((uncalibrated_mz_error_ppm - calibrated_mz_error_ppm), f.getMZ())
-              << "\t"; // Uncalibrated - Calibrated m/z [Da]
-      }
-  f.metaValueExists("rt_align_start") ? file_ << double(f.getMetaValue("rt_align_start")) / 60 << "\t" : file_ << "NA"
-                                                                                                               << "\t"; //  Calibrated retention time start
-  f.metaValueExists("rt_align_end") ? file_ << double(f.getMetaValue("rt_align_end")) / 60 << "\t" : file_ << "NA"
-                                                                                                           << "\t"; // Calibrated retention time end
-  if (f.metaValueExists("rt_align"))
-  {
-    file_ << double(f.getMetaValue("rt_align")) / 60 << "\t"; // Calibrated Retention Time
-    file_ << (f.getRT() - double(f.getMetaValue("rt_align"))) / 60 << "\t"; // Retention time calibration
-  }
-  else
-  {
-    file_ << "NA" << "\t"; // calibrated retention time
-    file_ << "NA" << "\t"; // Retention time calibration
-  }
-  file_ << pep_ids_size << "\t"; // MS/MS count
-  if (type == "MULTI-MSMS")
-  {
-    file_ << "NA" << "\t"; // Match time diff
-    file_ << "NA" << "\t"; // Match mz diff
-  }
-  else
-  {
-    f.metaValueExists("rt_align") ? file_ << double(f.getMetaValue("rt_align")) - cmap[c_feature_number].getRT()
-                                          << "\t" : file_ << "NA" << "\t"; // Match time diff
-    file_ << f.getMZ() - cmap[c_feature_number].getMZ() << "\t";    //Match mz diff
-  }
-  file_ << raw_file << "\n"; // Raw File
-}
-
-void MQEvidence::exportFeatureMap(
-        const FeatureMap& feature_map,
-        const ConsensusMap& cmap)
-{
-  if (!isValid())
-  {
-    OPENMS_LOG_ERROR << "MqEvidence object is not valid." << std::endl;
-    throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_);
-  }
-  const std::map<Size, Size>& fTc = makeFeatureUIDtoConsensusMapIndex_(cmap);
-  StringList spectra_data;
-  feature_map.getPrimaryMSRunPath(spectra_data);
-  String raw_file = File::basename(spectra_data.empty() ? feature_map.getLoadedFilePath() : spectra_data[0]);
-
-  ProteinIdentification::Mapping mp_f;
-  mp_f.create(feature_map.getProteinIdentifications());
-
-  std::multimap<String, std::pair<Size, Size>> UIDs = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
-
-  for (const Feature& f : feature_map)
-  {
-    const Size& f_id = f.getUniqueId();
-    const auto& c_id = fTc.find(f_id);
-    if (c_id != fTc.end())
     {
-      exportRowFromFeature_(f, cmap, c_id->second, raw_file, UIDs, mp_f);
+      file_ << "NA"
+            << "\t"; // Uncalibrated - Calibrated m/z [ppm]
+      file_ << "NA"
+            << "\t";                                                                // Uncalibrated - Calibrated m/z [mDa]
+      file_ << calibrated_mz_error_ppm << "\t";                                     // Mass error [ppm]
+      file_ << OpenMS::Math::ppmToMass(calibrated_mz_error_ppm, f.getMZ()) << "\t"; // Mass error [Da]
+      file_ << "NA"
+            << "\t"; // Uncalibrated Mass error [ppm]
+      file_ << "NA"
+            << "\t"; // Uncalibrated Mass error [Da]
     }
     else
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Feature in FeatureMap has no associated ConsensusFeature.");
+      file_ << uncalibrated_mz_error_ppm - calibrated_mz_error_ppm << "\t";                                       // Uncalibrated - Calibrated m/z [ppm]
+      file_ << OpenMS::Math::ppmToMass((uncalibrated_mz_error_ppm - calibrated_mz_error_ppm), f.getMZ()) << "\t"; // Uncalibrated - Calibrated m/z [Da]
+      file_ << calibrated_mz_error_ppm << "\t";                                                                   // Mass error [ppm]
+      file_ << OpenMS::Math::ppmToMass(calibrated_mz_error_ppm, f.getMZ()) << "\t";                               // Mass error [Da]
+      file_ << uncalibrated_mz_error_ppm << "\t";                                                                 // Uncalibrated Mass error [ppm]
+      file_ << OpenMS::Math::ppmToMass(uncalibrated_mz_error_ppm, f.getMZ()) << "\t";                             // Uncalibrated Mass error [Da]
     }
-  }
-  file_.flush();
+
+    file_ << "NA" << "\t"; // Max intensity m/z 0
+    file_ << f.getRT() / 60 << "\t"; // Retention time in min.
+
+    // RET LENGTH
+    f.metaValueExists("rt_raw_end") && f.metaValueExists("rt_raw_start") ?
+      file_ << (double(f.getMetaValue("rt_raw_end")) - double(f.getMetaValue("rt_raw_start"))) / 60 << "\t" : file_
+            << "NA" << "\t";
+
+    if (f.metaValueExists("rt_align"))
+    {
+      file_ << double(f.getMetaValue("rt_align")) / 60 << "\t";   // Calibrated Retention Time
+    }
+    f.metaValueExists("rt_align_start") ? file_ << double(f.getMetaValue("rt_align_start")) / 60 << "\t" :
+                                          file_ << "NA" << "\t"; //  Calibrated retention time start
+    f.metaValueExists("rt_align_end") ? file_ << double(f.getMetaValue("rt_align_end")) / 60 << "\t" :
+                                        file_ << "NA" << "\t"; // Calibrated retention time end
+    if (f.metaValueExists("rt_align"))
+    {
+      file_ << (f.getRT() - double(f.getMetaValue("rt_align"))) / 60 << "\t"; // Retention time calibration
+    }
+    else
+    {
+      file_ << "NA" << "\t"; // calibrated retention time
+      file_ << "NA" << "\t"; // Retention time calibration
+    }
+
+    if (type == "MULTI-MSMS")
+    {
+      file_ << "NA" << "\t"; // Match time diff
+      file_ << "NA" << "\t"; // Match mz diff
+    }
+    else
+    {
+      f.metaValueExists("rt_align") ? file_ << double(f.getMetaValue("rt_align")) - cmap[c_feature_number].getRT() << "\t" :
+                                      file_ << "NA"
+                                            << "\t";               // Match time diff
+      file_ << f.getMZ() - cmap[c_feature_number].getMZ() << "\t"; // Match mz diff
+    }
+
+    file_ << "NA" << "\t"; // Match q-value
+    file_ << "NA" << "\t"; // Match score
+    /*PeakPickerCWT::PeakArea_& area;
+    PeakPickerCWT::getPeakCentroid_(PeakPickerCWT::PeakArea_& area)
+    file_ << area.size() << "\t"; // Number of data points*/ // -> Problem: Sachen sind protected
+    file_ << "NA" << "\t"; // Number of data points
+    file_ << "NA" << "\t"; // Number of scans
+    file_ << f.getConvexHulls().size() << "\t"; // Number of isotopic peaks
+    file_ << "NA" << "\t"; // PIF
+    file_ << "NA" << "\t"; // Fraction of total spectrum
+    file_ << "NA" << "\t"; // Base peak fraction
+    file_ << "NA" << "\t"; // PEP
+
+    file_ << pep_ids_size << "\t"; // MS/MS count
+    file_ << "NA" << "\t"; // MS/MS Scan Number
+    file_ << max_score << "\t"; // Score
+
+    file_ << "NA" << "\t"; // Delta score
+    file_ << "NA" << "\t"; // Combinatorics
+
+    file_ << f.getIntensity() << "\t"; // Intensity
+
+    file_ << "NA" << "\t"; // Reporter intensity 0
+    file_ << "NA" << "\t"; // Reporter intensity 1
+    file_ << "NA" << "\t"; // Reporter intensity 2
+    file_ << "NA" << "\t"; // Reporter intensity 3
+    file_ << "NA" << "\t"; // Reporter intensity 4
+    file_ << "NA" << "\t"; // Reporter intensity 5
+    file_ << "NA" << "\t"; // Reporter intensity not corrected 0
+    file_ << "NA" << "\t"; // Reporter intensity not corrected 1
+    file_ << "NA" << "\t"; // Reporter intensity not corrected 2
+    file_ << "NA" << "\t"; // Reporter intensity not corrected 3
+    file_ << "NA" << "\t"; // Reporter intensity not corrected 4
+    file_ << "NA" << "\t"; // Reporter intensity not corrected 5
+    file_ << "NA" << "\t"; // Reporter PIF
+    file_ << "NA" << "\t"; // Reporter fraction
+
+
+    ptr_best_hit->getMetaValue("target_decoy") == "decoy" ? file_ << "1"
+                                                                  << "\t" :
+                                                            file_ << "\t"; // reverse
+
+
+    String pot_containment = ptr_best_hit->getMetaValue("is_contaminant", "NA");
+    if (pot_containment == "1")
+    {
+      file_ << "+"
+            << "\t"; // Potential contaminant
+    }
+    else
+    {
+      file_ << "\t";
+    }
+
+    file_ << id_ << "\t"; // ID
+    ++id_;
+
+    for (const String& p : accessions)
+    {
+      file_ << proteinGroupID_(p) << ";"; // Protein group ids
+    }
+    file_ << "\t";
+
+    file_ << "NA" << "\t"; // Peptide ID
+    file_ << "NA" << "\t"; // Mod peptide ID
+    file_ << "NA" << "\t"; // MS/MS IDs
+    file_ << "NA" << "\t"; // Best MS/MS
+    file_ << "NA" << "\t"; // AIF MS/MS IDs
+    file_ << "NA" << "\n"; // Oxidation site IDs
+
+}
+
+void MQEvidence::exportFeatureMap(const FeatureMap& feature_map, const ConsensusMap& cmap)
+{
+    if (!isValid())
+    {
+      OPENMS_LOG_ERROR << "MqEvidence object is not valid." << std::endl;
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_);
+    }
+    const std::map<Size, Size>& fTc = makeFeatureUIDtoConsensusMapIndex_(cmap);
+    StringList spectra_data;
+    feature_map.getPrimaryMSRunPath(spectra_data);
+    String raw_file = File::basename(spectra_data.empty() ? feature_map.getLoadedFilePath() : spectra_data[0]);
+
+    ProteinIdentification::Mapping mp_f;
+    mp_f.create(feature_map.getProteinIdentifications());
+
+    std::multimap<String, std::pair<Size, Size>> UIDs = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
+
+    for (const Feature& f : feature_map)
+    {
+      const Size& f_id = f.getUniqueId();
+      const auto& c_id = fTc.find(f_id);
+      if (c_id != fTc.end())
+      {
+        exportRowFromFeature_(f, cmap, c_id->second, raw_file, UIDs, mp_f);
+      }
+      else
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature in FeatureMap has no associated ConsensusFeature.");
+      }
+    }
+    file_.flush();
 }
