@@ -39,13 +39,13 @@
   Read the User Quickstart guide to gain a brief understanding of key concepts and how to use tools. For more in-depth information, you should consult the entire documentation.
 	
 	@section what_is_openms What is OpenMS
-	OpenMS is an open-source C++ library that provides functions that are commonly used in computational liquid chromatography-mass spectrometry (LC-MS) data analysis. OpenMS is specifically designed for data analyses in proteomics and metabolomics research. 
+	OpenMS is a free, open-source C++ library with Python bindings. It is commonly used for liquid chromatography-mass spectrometry (LC-MS) data management and analyses. OpenMS provides an infrastructure for the rapid development of mass spectrometry related software as well as a rich toolset built on top of it. OpenMS is available under the three clause BSD licence and runs under Windows, macOS and Linux operating systems.
 	
 	@section background Background
 	Mass spectometry is a sensitive, high-throughput technique used for the quantitative and qualitative measurement of molecules including nucleic acids, proteins and metabolites. 
 
 	@section basic_Concepts Basic Concepts of OpenMS/TOPP
-	Before using OpenMS, you need to be familiar with the following terms:
+	Before using OpenMS, you need to be familiar with the following terms:<br>
 	@b TOPPView: A design tool that is used to view and explore LC-MS data, alignments, groups, peptide identifications and more.<br>
 	@b TOPPAS: A graphical workflow design tool that is used to create pipelines from all TOPP tools (and UTILS).<br>
 	@b TOPP @b tools: A set of command line tools. Each of these command line tools is a building block of an analysis pipeline and are chained together in a way that fits the requirements of the user.
