@@ -8,7 +8,6 @@ set(sources_list
   ConsensusXMLHandler.cpp
   FidHandler.cpp
   FeatureXMLHandler.cpp
-  GraphMLHandler.cpp
   IndexedMzMLDecoder.cpp
   IndexedMzMLHandler.cpp
   MascotXMLHandler.cpp

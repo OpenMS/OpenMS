@@ -411,9 +411,9 @@ namespace OpenMS
      makeMSSpectrum_(local_traces, spec, rt);
 
      // run deconvolution
-     std::vector<DeconvolutedSpectrum> tmp;
+     std::vector<DeconvolvedSpectrum> tmp;
      std::map<int, std::vector<std::vector<double>>> empty;
-     DeconvolutedSpectrum deconv_spec = fd_.getDeconvolutedSpectrum(spec, tmp, 0, empty);
+    DeconvolvedSpectrum deconv_spec = fd_.getDeconvolvedSpectrum(spec, tmp, 0, empty);
 
      if (deconv_spec.empty()) // if no result was found
      {
