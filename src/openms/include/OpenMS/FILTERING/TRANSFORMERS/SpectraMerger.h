@@ -627,7 +627,7 @@ protected:
           {
             precursor_mz_average /= precursor_count;
           }
-          auto & pcs = consensus_spec.getPrecursors();
+          auto& pcs = consensus_spec.getPrecursors();
           //if (pcs.size()>1) OPENMS_LOG_WARN << "Removing excessive precursors - leaving only one per MS2 spectrum.\n";
           pcs.resize(1);
           pcs[0].setMZ(precursor_mz_average);
@@ -644,9 +644,9 @@ protected:
       }
 
       OPENMS_LOG_INFO << "Cluster sizes:\n";
-      for (const auto& it : cluster_sizes)
+      for (const auto& cl_size : cluster_sizes)
       {
-        OPENMS_LOG_INFO << "  size " << it.first << ": " << it.second << "x\n";
+        OPENMS_LOG_INFO << "  size " << cl_size.first << ": " << cl_size.second << "x\n";
       }
 
       char buffer[200];
@@ -721,10 +721,10 @@ protected:
 
         // loop over spectra in blocks
         std::vector<double> mz_positions_all; // m/z positions from all spectra
-        for (const auto& it2 : it->second)
+        for (const auto& spec : it->second)
         {
           // loop over m/z positions
-          for (typename MapType::SpectrumType::ConstIterator it_mz = exp[it2.first].begin(); it_mz < exp[it2.first].end(); ++it_mz)
+          for (typename MapType::SpectrumType::ConstIterator it_mz = exp[spec.first].begin(); it_mz < exp[spec.first].end(); ++it_mz)
           {
             mz_positions_all.push_back(it_mz->getMZ());
           }
@@ -736,25 +736,25 @@ protected:
         std::vector<double> intensities;
         double last_mz = std::numeric_limits<double>::min(); // last m/z position pushed through from mz_position to mz_position_2
         double delta_mz(mz_binning_width); // for m/z unit Da
-        for (const auto it_mz : mz_positions_all)
+        for (const auto mz_pos : mz_positions_all)
         {
           if (mz_binning_unit == "ppm")
           {
-            delta_mz = mz_binning_width * it_mz / 1000000;
+            delta_mz = mz_binning_width * mz_pos / 1000000;
           }
 
-          if ((it_mz - last_mz) > delta_mz)
+          if ((mz_pos - last_mz) > delta_mz)
           {
-            mz_positions.push_back(it_mz);
+            mz_positions.push_back(mz_pos);
             intensities.push_back(0.0);
-            last_mz = it_mz;
+            last_mz = mz_pos;
           }
         }
 
         // loop over spectra in blocks
-        for (const auto& it2 : it->second)
+        for (const auto& spec : it->second)
         {
-          SplineInterpolatedPeaks spline(exp[it2.first]);
+          SplineInterpolatedPeaks spline(exp[spec.first]);
           SplineInterpolatedPeaks::Navigator nav = spline.getNavigator();
 
           // loop over m/z positions
@@ -762,7 +762,7 @@ protected:
           {
             if ((spline.getPosMin() < mz_positions[i]) && (mz_positions[i] < spline.getPosMax()))
             {
-              intensities[i] += nav.eval(mz_positions[i]) * (it2.second); // spline-interpolated intensity * weight
+              intensities[i] += nav.eval(mz_positions[i]) * (spec.second); // spline-interpolated intensity * weight
             }
           }
         }
@@ -857,14 +857,14 @@ protected:
         double sum_mz(0);
         double sum_intensity(0);
         Size count(0);
-        for (const auto& it_mz : mz_intensity_all)
+        for (const auto& mz_pos : mz_intensity_all)
         {
           if (mz_binning_unit == "ppm")
           {
-            delta_mz = mz_binning_width * (it_mz.first) / 1000000;
+            delta_mz = mz_binning_width * (mz_pos.first) / 1000000;
           }
 
-          if (((it_mz.first - last_mz) > delta_mz) && (count > 0))
+          if (((mz_pos.first - last_mz) > delta_mz) && (count > 0))
           {
             mz_new.push_back(sum_mz / count);
             intensity_new.push_back(sum_intensity); // intensities already weighted
@@ -872,12 +872,12 @@ protected:
             sum_mz = 0;
             sum_intensity = 0;
 
-            last_mz = it_mz.first;
+            last_mz = mz_pos.first;
             count = 0;
           }
 
-          sum_mz += it_mz.first;
-          sum_intensity += it_mz.second;
+          sum_mz += mz_pos.first;
+          sum_intensity += mz_pos.second;
           ++count;
         }
         if (count > 0)
@@ -909,7 +909,7 @@ protected:
 
       // loop over blocks
       int n(0);
-      for (const auto it : spectra_to_average_over)
+      for (const auto& it : spectra_to_average_over)
       {
         exp[it.first] = std::move(exp_tmp[n]);
         ++n;
