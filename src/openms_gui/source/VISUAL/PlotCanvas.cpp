@@ -178,7 +178,13 @@ namespace OpenMS
 
   void PlotCanvas::wheelEvent(QWheelEvent* e)
   {
+     /* Supressed warning int QWheelEvent::x() const and y() deprecated
+     * Use position() instead, from Qt 5.14
+     */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     zoom_(e->x(), e->y(), e->delta() > 0);
+#pragma GCC diagnostic pop
     e->accept();
   }
 

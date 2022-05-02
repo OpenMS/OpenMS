@@ -5,6 +5,6 @@
 	path = THIRDPARTY
 	url = https://github.com/OpenMS/THIRDPARTY
 	shallow = true
-[submodule "src/pyOpenMS/pyopenms-extra"]
-	path = src/pyOpenMS/pyopenms-extra
-	url = https://github.com/OpenMS/pyopenms-extra.git
+[submodule "src/pyOpenMS/pyopenms-docs"]
+	path = src/pyOpenMS/pyopenms-docs
+	url = https://github.com/OpenMS/pyopenms-docs.git
