@@ -633,6 +633,7 @@ protected:
 
     // read input dataset once to count spectra
     double gradient_rt = .0;
+    int max_precursor_c = 0;
     for (auto& it: map)
     {
       gradient_rt = it.getRT();
@@ -643,6 +644,10 @@ protected:
       if (it.getMSLevel() > max_ms_level)
       {
         continue;
+      }
+      if(it.getMSLevel() ==2 )
+      {
+        max_precursor_c =std::max(max_precursor_c, it.getPrecursors()[0].getCharge());
       }
 
       // if forced_ms_level > 0, force MS level of all spectra to 1.
@@ -663,7 +668,7 @@ protected:
         break;
       }
     }
-
+std::cout<<max_precursor_c<<std::endl;
     // Max MS Level is adjusted according to the input dataset
     current_max_ms_level = current_max_ms_level > max_ms_level ? max_ms_level : current_max_ms_level;
 
