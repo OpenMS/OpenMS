@@ -39,11 +39,11 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
-
 
 namespace OpenMS
 {
@@ -117,21 +117,24 @@ namespace OpenMS
     std::vector<double> & swath_prec_upper_ )
   {
     std::ifstream data(filename.c_str());
-    std::string line;
-
-    // check for presence of header, a header is present if the first line contains alphabetic characters
+    String line;
+    std::vector<String> headerSubstrings;
     double lower, upper;
-    std::getline(data, line); // possible header (or first line)
-    if (std::any_of(line.begin(), line.end(), [](char const &c) { return std::isalpha(c); }))
-    { // if any of the characters are alphabetical then there is a header
-      OPENMS_LOG_INFO << "Read Swath window header: '" << line << "'\n";
-      std::getline(data, line); // first line of swath window
-     }
-    else 
+
+    // Check for presence of header
+    std::getline(data, line);
+    try { // If string can be successfully converted to double (excluding initial spaces) then the first line is not a header
+      StringUtils::split(line.trim(), ' ', headerSubstrings);
+      StringUtils::toDouble(headerSubstrings[0]);
+      std::cout << "Swath Header not found \n";
+    }
+    catch (Exception::ConversionError)
     {
-      OPENMS_LOG_INFO << "Swath Header not found'\n";
+      std::cout << "Read Swath window header: '" << line << "'\n";
+      std::getline(data, line);
     }
 
+    // read the rest of the SWATH window file
     do
     {
       std::stringstream lineStream(line);
@@ -152,4 +155,3 @@ namespace OpenMS
   }
 
 }
-
