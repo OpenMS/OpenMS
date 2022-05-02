@@ -1,15 +1,15 @@
-# Description
+## Description
 
 <!-- Please include a summary of the change and which issue is fixed here. -->
 
-# Checklist
+## Checklist
 - [ ] Make sure that you are listed in the AUTHORS file
 - [ ] Add relevant changes and new features to the CHANGELOG file
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] New and existing unit tests pass locally with my changes
 - [ ] Updated or added python bindings for changed or new classes. (Tick if no updates were necessary.)
 
-## How can I get additional information on failed tests during CI
+### How can I get additional information on failed tests during CI
 <details>
   <summary>Click to expand</summary>
 If your PR is failing you can check out 
@@ -18,7 +18,7 @@ If your PR is failing you can check out
 
 </details>
 
-## Advanced commands (admins / reviewer only)
+### Advanced commands (admins / reviewer only)
 <details>
   <summary>Click to expand</summary>
   
