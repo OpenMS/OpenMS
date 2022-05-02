@@ -47,22 +47,11 @@ namespace OpenMS
 @ingroup Topdown
 */
 
-  class OPENMS_DLLAPI PeakGroup :
-      private std::vector<FLASHDeconvHelperStructs::LogMzPeak>
+  class OPENMS_DLLAPI PeakGroup
   {
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
   public:
-    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::push_back;
-    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::operator[];
-    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::empty;
-    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::begin;
-    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::end;
-    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::size;
-    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::reserve;
-    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::swap;
-    using std::vector<FLASHDeconvHelperStructs::LogMzPeak>::shrink_to_fit;
-
     /// default constructor
     PeakGroup() = default;
 
@@ -206,7 +195,26 @@ namespace OpenMS
     /// get if it is targeted
     bool isTargeted() const;
 
+    std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator begin() const noexcept;
+    std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator end() const noexcept;
+
+    std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator begin() noexcept;
+    std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator end() noexcept;
+
+    const FLASHDeconvHelperStructs::LogMzPeak& operator[](const Size i) const;
+
+    void push_back (const FLASHDeconvHelperStructs::LogMzPeak& pg);
+    Size size() const noexcept;
+    void clear();
+    void reserve (Size n);
+    bool empty() const;
+    void swap (std::vector<FLASHDeconvHelperStructs::LogMzPeak>& x);
+    void shrink_to_fit();
+    void sort();
+
   private:
+    /// log Mz peaks
+    std::vector<FLASHDeconvHelperStructs::LogMzPeak> logMzpeaks_;
     /// per charge SNR, isotope cosine, and intensity vectors
     std::vector<float> per_charge_signal_pwr_;
     std::vector<float> per_charge_pwr_;

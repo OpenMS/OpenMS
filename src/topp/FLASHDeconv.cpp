@@ -90,7 +90,7 @@ protected:
     #ifdef DEBUG_EXTRA_PARAMTER
     registerInputFile_("in_train", "<file>", "", "topPIC result *prsm.tsv file for QScore training", false, true);
     setValidFormats_("in_train", ListUtils::create<String>("tsv"));
-    registerOutputFile_("out_train", "<file>", "", "train result csv file for QScore training", false, true);
+    registerOutputFile_("out_train", "<file>", "", "train result csv file for QScore training by weka", false, true);
     setValidFormats_("out_train", ListUtils::create<String>("csv"));
     #endif
 
@@ -225,7 +225,7 @@ protected:
 
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
     fd_defaults.setValue("tol", DoubleList{10.0, 10.0, 10.0}, "ppm tolerance for MS1, MS2, ... ");
-    fd_defaults.setValue("min_charge", 2);
+    fd_defaults.setValue("min_charge", 1);
     fd_defaults.setValue("max_charge", 100);
     fd_defaults.setValue("min_mz", -1.0);
     fd_defaults.addTag("min_mz", "advanced");
@@ -483,9 +483,15 @@ protected:
 
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
-    String in_train_file = "";//getStringOption_("in_train");
+    String in_train_file = "";
     String in_log_file = getStringOption_("in_log");
-    String out_train_file = "";//getStringOption_("out_train");
+    String out_train_file = "";
+
+#ifdef DEBUG_EXTRA_PARAMTER
+    in_train_file = getStringOption_("in_train");
+    out_train_file = getStringOption_("out_train");
+#endif
+
     auto out_spec_file = getStringList_("out_spec");
     String out_mzml_file = getStringOption_("out_mzml");
     String out_promex_file = getStringOption_("out_promex");
@@ -619,6 +625,7 @@ protected:
 
     // read input dataset once to count spectra
     double gradient_rt = .0;
+    int max_precursor_c = 0;
     for (auto& it: map)
     {
       gradient_rt = it.getRT();
@@ -629,6 +636,10 @@ protected:
       if (it.getMSLevel() > max_ms_level)
       {
         continue;
+      }
+      if(it.getMSLevel() ==2 )
+      {
+        max_precursor_c =std::max(max_precursor_c, it.getPrecursors()[0].getCharge());
       }
 
       // if forced_ms_level > 0, force MS level of all spectra to 1.
@@ -649,7 +660,7 @@ protected:
         break;
       }
     }
-
+std::cout<<max_precursor_c<<std::endl;
     // Max MS Level is adjusted according to the input dataset
     current_max_ms_level = current_max_ms_level > max_ms_level ? max_ms_level : current_max_ms_level;
 
@@ -701,11 +712,12 @@ protected:
 
       for(int ml = 1; ml<=current_max_ms_level; ml++)
       {
-        sm_param.setValue("mz_binning_width", tols[ml - 1] / 2);
+        sm_param.setValue("mz_binning_width", tols[ml - 1]/2.0);
         sm_param.setValue("block_method:ms_levels", IntList{ml});
         merger.setParameters(sm_param);
         merger.mergeSpectraBlockWise(map);
       }
+
       fd_param.setValue("min_rt", .0);
       fd_param.setValue("max_rt", .0);
     }
@@ -731,7 +743,7 @@ protected:
     }
     mass_tracer.setParameters(mf_param);
 
-    unordered_map<int, PeakGroup> precursor_peak_groups; // MS2 scan number, peak group
+    std::unordered_map<int, PeakGroup> precursor_peak_groups; // MS2 scan number, peak group
 
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
@@ -754,7 +766,6 @@ protected:
       auto deconv_begin = clock();
       auto deconv_t_start = chrono::high_resolution_clock::now();
 
-      //auto deconvolved_spectrum = DeconvolvedSpectrum(*it, scan_number);
       // for MS>1 spectrum, register precursor
       std::vector<DeconvolvedSpectrum> precursor_specs;
 

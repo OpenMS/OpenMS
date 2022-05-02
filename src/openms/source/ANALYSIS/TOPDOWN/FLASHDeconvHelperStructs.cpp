@@ -139,11 +139,16 @@ namespace OpenMS
     }
   }
 
-  IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(const double mass) const
+  Size FLASHDeconvHelperStructs::PrecalculatedAveragine::massToIndex_(const double mass) const
   {
-    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
-    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
-    return isotopes_[i];
+    Size i = (Size) round(std::max(.0, mass - min_mass_) / mass_interval_);
+    i = std::min(i, isotopes_.size() - 1);
+    return i;
+  }
+
+      IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(const double mass) const
+  {
+    return isotopes_[massToIndex_(mass)];
   }
 
   int FLASHDeconvHelperStructs::PrecalculatedAveragine::getMaxIsotopeIndex() const
@@ -153,37 +158,27 @@ namespace OpenMS
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getLeftCountFromApex(const double mass) const
   {
-    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
-    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
-    return (Size) left_count_from_apex_[i];
+    return (Size) left_count_from_apex_[massToIndex_(mass)];
   }
 
   double FLASHDeconvHelperStructs::PrecalculatedAveragine::getAverageMassDelta(const double mass) const
   {
-    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
-    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
-    return average_mono_mass_difference_[i];
+    return average_mono_mass_difference_[massToIndex_(mass)];
   }
 
   double FLASHDeconvHelperStructs::PrecalculatedAveragine::getMostAbundantMassDelta(const double mass) const
   {
-    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
-    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
-    return abundant_mono_mass_difference_[i];
+    return abundant_mono_mass_difference_[massToIndex_(mass)];
   }
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getRightCountFromApex(const double mass) const
   {
-    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
-    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
-    return (Size) right_count_from_apex_[i];
+    return (Size) right_count_from_apex_[massToIndex_(mass)];
   }
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getApexIndex(const double mass) const
   {
-    Size i = (Size) (.5 + std::max(.0, mass - min_mass_) / mass_interval_);
-    i = i >= isotopes_.size() ? isotopes_.size() - 1 : i;
-    return apex_index_[i];
+    return apex_index_[massToIndex_(mass)];
   }
 
   void FLASHDeconvHelperStructs::PrecalculatedAveragine::setMaxIsotopeIndex(const int index)
@@ -216,17 +211,25 @@ namespace OpenMS
 
   bool FLASHDeconvHelperStructs::LogMzPeak::operator<(const LogMzPeak& a) const
   {
+    if(this->logMz == a.logMz)
+    {
+      return this->intensity < a.intensity;
+    }
     return this->logMz < a.logMz;
   }
 
   bool FLASHDeconvHelperStructs::LogMzPeak::operator>(const LogMzPeak& a) const
   {
+    if(this->logMz == a.logMz)
+    {
+      return this->intensity > a.intensity;
+    }
     return this->logMz > a.logMz;
   }
 
   bool FLASHDeconvHelperStructs::LogMzPeak::operator==(const LogMzPeak& a) const
   {
-    return this->logMz == a.logMz;
+    return this->logMz == a.logMz && this->intensity == a.intensity;
   }
 
   double FLASHDeconvHelperStructs::getChargeMass(const bool positive)
@@ -295,9 +298,11 @@ namespace OpenMS
         {
           mmass = stod(sub);
         }
-
-        auto mdb = ModificationsDB::initializeModificationsDB();
-        mmass = mdb->getModification(sub)->getDiffMonoMass();
+        else
+        {
+          auto mdb = ModificationsDB::initializeModificationsDB();
+          mmass = mdb->getModification(sub)->getDiffMonoMass();
+        }
         unexp_mod.push_back(mmass);
         loc++;
       }
@@ -328,4 +333,5 @@ namespace OpenMS
   {
     return this->scan == other.scan;
   }
+
 }

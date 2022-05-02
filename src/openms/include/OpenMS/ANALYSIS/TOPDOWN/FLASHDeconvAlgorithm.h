@@ -66,9 +66,6 @@ namespace OpenMS
     /// default constructor
     FLASHDeconvAlgorithm();
 
-    /// default destructor
-    ~FLASHDeconvAlgorithm() override;
-
     /// copy constructor
     FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm& ) = default;
 
@@ -87,13 +84,13 @@ namespace OpenMS
       @param precursor_map_for_FLASHIda deconvolved precursor information from FLASHIda
       @return the deconvolved spectrum (as DeconvolvedSpectrum class)
  */
-    DeconvolvedSpectrum&  getDeconvolvedSpectrum(const MSSpectrum& spec,
+    const DeconvolvedSpectrum&  getDeconvolvedSpectrum(const MSSpectrum& spec,
                                                   const std::vector<DeconvolvedSpectrum>& survey_scans,
                                                   const int scan_number,
                                                   const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_FLASHIda);
 
     /// get calculated averagine
-    PrecalculatedAveragine getAveragine();
+    const PrecalculatedAveragine& getAveragine();
 
     /// set targeted masses for targeted deconvolution. Masses are targeted in all ms levels
     void setTargetMasses(const std::vector<double>& masses);
@@ -118,7 +115,7 @@ namespace OpenMS
                                                            const std::vector<double>& per_isotope_intensities,
                                                            int& offset,
                                                            const PrecalculatedAveragine& avg,
-                                                           bool use_shape_diff = true);
+                                                           bool use_shape_diff = false);
 
 
   protected:
@@ -216,7 +213,7 @@ namespace OpenMS
         @per_charge_intensity per charge intensity - aggregated through isotope indices
         @return calculated charge fit score (0 - 1)
      */
-    double getChargeFitScore_(const std::vector<double>& per_charge_intensity);
+    double getChargeFitScore_(const std::vector<double>& per_charge_intensity, Size len);
 
     /** @brief static function that converts bin to value
         @param bin bin number
@@ -244,7 +241,7 @@ namespace OpenMS
         @param bin_number number of mz bins
         @param mz_bin_intensities intensity per mz bin
      */
-    void updateMzBins_(const Size& bin_number, std::vector<float>& mz_bin_intensities);
+    void updateMzBins_(const Size bin_number, std::vector<float>& mz_bin_intensities);
 
     ///this function takes the previous deconvolution results (from ovelapped spectra) for sensitive deconvolution of the current spectrum
     void unionPrevMassBins_();
@@ -343,6 +340,18 @@ namespace OpenMS
                                 const int& b_size,
                                 const int max_offset,
                                 const int offset);
+
+
+    /**
+    @brief register the precursor peak as well as the precursor peak group (or mass) if possible for MSn (n>1) spectrum.
+    Given a precursor peak (found in the original MS n-1 Spectrum) the masses containing the precursor peak are searched.
+    If multiple masses are detected, the one with the best QScore is selected. For the selected mass, its corresponding peak group (along with precursor peak) is registered.
+    If no such mass exists, only the precursor peak is registered.
+    @param survey_scans the candidate precursor spectra - the user may allow search of previous N survey scans.
+    @param precursor_map_for_real_time_acquisition this contains the deconvolved mass information from FLASHIda runs.
+    */
+    bool registerPrecursor(const std::vector<DeconvolvedSpectrum>& survey_scans,
+                                  const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_real_time_acquisition);
 
   };
 }

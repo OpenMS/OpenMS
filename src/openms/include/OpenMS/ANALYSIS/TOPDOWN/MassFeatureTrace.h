@@ -119,7 +119,7 @@ namespace OpenMS
     /// cosine thresholds for scoring and filtering
     double min_isotope_cosine_;
     /// peak group information is stored in here for traciing
-    std::unordered_map<double, std::unordered_map<double, PeakGroup>> peak_group_map_; // rt , mono mass, peakgroup
-    std::unordered_map<int, double> scan_rt_map;
+    std::map<double, std::map<double, PeakGroup>> peak_group_map_; // rt , mono mass, peakgroup
+    std::map<int, double> scan_rt_map;
   };
 }
