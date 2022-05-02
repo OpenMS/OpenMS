@@ -35,13 +35,16 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <QFileInfo>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+//#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+//#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -55,14 +58,14 @@ using namespace std;
   @page TOPP_FLASHDeconv TOPP_FLASHDeconv
 
   @brief FLASHDeconv performs ultrafast deconvolution of top down proteomics MS datasets.
-  FLASHDeconv takes mzML file as input and outputs deconvoluted feature list (.tsv) and
-  deconvoluted spectra files (.tsv, .mzML, .msalign, .ms1ft).
+  FLASHDeconv takes mzML file as input and outputs deconvolved feature list (.tsv) and
+  deconvolved spectra files (.tsv, .mzML, .msalign, .ms1ft).
   FLASHDeconv uses FLASHDeconvAlgorithm for spectral level deconvolution and MassFeatureTracer to detect mass features.
   Also for MSn spectra, the precursor masses (not peak m/zs) should be determined and assigned in most cases. This assignment
   can be done by tracking MSn-1 spectra deconvolution information. Thus FLASHDeconv class keeps MSn-1 spectra deconvolution information
-  for a certain period for precursor mass assignment in DeconvolutedSpectrum class.
+  for a certain period for precursor mass assignment in DeconvolvedSpectrum class.
   In case of FLASHIda runs, this precursor mass assignment is done by FLASHIda. Thus FLASHDeconv class simply parses the log file
-  from FLASHIda runs and pass the parsed information to DeconvolutedSpectrum class.
+  from FLASHIda runs and pass the parsed information to DeconvolvedSpectrum class.
 */
 
 
@@ -81,7 +84,6 @@ protected:
   // it gets automatically called on tool execution
   void registerOptionsAndFlags_() override
   {
-
     registerInputFile_("in", "<file>", "", "Input file (mzML)");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
@@ -104,7 +106,7 @@ protected:
     registerOutputFile_("out",
                         "<file>",
                         "",
-                        "feature level deconvolution output tsv file (or ensemble spectrum level deconvluted mass if use_ensemble_spectrum is set to 1) ");
+                        "feature level deconvolution output tsv file");
     setValidFormats_("out", ListUtils::create<String>("tsv"));
 
     registerOutputFileList_("out_spec", "<file for MS1, file for MS2, ...>", {""},
@@ -149,7 +151,7 @@ protected:
     registerIntOption_("mzml_mass_charge",
                        "<0:uncharged 1: +1 charged -1: -1 charged>",
                        0,
-                       "Charge status of deconvoluted masses in mzml output (specified by out_mzml)",
+                       "Charge status of deconvolved masses in mzml output (specified by out_mzml)",
                        false);
 
     setMinInt_("mzml_mass_charge", -1);
@@ -159,7 +161,7 @@ protected:
                        "<number>",
                        3,
                        "Specifies the number of preceding MS1 spectra for MS2 precursor determination. In TDP, some precursor peaks in MS2 are not part of "
-                       "the deconvoluted masses in MS1 immediately preceding the MS2. In this case, increasing this parameter allows for the search in further preceding "
+                       "the deconvolved masses in MS1 immediately preceding the MS2. In this case, increasing this parameter allows for the search in further preceding "
                        "MS1 spectra and helps determine exact precursor masses.",
                        false,
                        false);
@@ -169,7 +171,7 @@ protected:
     registerIntOption_("write_detail",
                        "<1:true 0:false>",
                        0,
-                       "to write peak info per deconvoluted mass in detail or not in spectrum level tsv files. If set to 1, all peak information (m/z, intensity, charge, "
+                       "to write peak info per deconvolved mass in detail or not in spectrum level tsv files. If set to 1, all peak information (m/z, intensity, charge, "
                        "and isotope index) per mass is reported.",
                        false,
                        false);
@@ -177,29 +179,24 @@ protected:
     setMinInt_("write_detail", 0);
     setMaxInt_("write_detail", 1);
 
-    registerIntOption_("max_MS_level", "", 2, "maximum MS level (inclusive) for deconvolution.", false, true);
+    registerIntOption_("max_MS_level", "", 3, "maximum MS level (inclusive) for deconvolution.", false, true);
     setMinInt_("max_MS_level", 1);
 
-    registerIntOption_("forced_MS_level",
+    /*registerIntOption_("forced_MS_level",
                        "",
                        0,
                        "if set to an integer N, MS level of all spectra will be set to N regardless of original MS level",
                        false,
                        true);
     setMinInt_("forced_MS_level", 0);
-
-    registerIntOption_("use_ensemble_spectrum",
-                       "",
-                       0,
-                       "if set to 1, all spectra will add up to a single ensemble spectrum (per MS level) "
-                       "for which the deconvolution is performed. out_spec should specify the output spectrum level deconvolution tsv files."
-                       "This mode is not fully developed yet.",
-                       false,
-                       false);
-
-    setMinInt_("use_ensemble_spectrum", 0);
-    setMaxInt_("use_ensemble_spectrum", 1);
-
+*/
+    registerIntOption_("merging_method", "<0: None 1: gaussian averaging 2: block method>", 0,
+                                            "Method of spectra merging which should be used. 0: No merging "
+                                                                "1: Average gaussian method to perform moving gaussian averaging of spectra per MS level. Effective to increase proteoform ID sensitivity "
+                       "(in particular for Q-TOF datasets). "
+                                                                "2: Block method to perform merging of all spectra into a single one per MS level (e.g., for NativeMS datasets)", false);
+    setMinInt_("merging_method", 0);
+    setMaxInt_("merging_method", 2);
     /*
         registerIntOption_("isobaric_labeling_option",
                            "",
@@ -216,12 +213,18 @@ protected:
                             false);
     */
 
+    registerStringOption_("target_mass", "<target monoisotopic masses or file name containing target masses>", "", "Target monoisotopic masses for deconvolution or a txt file containing target masses. Masses are separated by commas. "
+                                                                                                               "For instance, 100.0,200.0 will target 100.0 and 200.0 Da masses. "
+                                                                                                                   "A plane text file containing the same target mass information may be used instead. "
+                                                                                                                   "For each targeted mass, FLASHDeconv attempts to find the mass from input spectrum file. "
+                                                                                                                   "If spectral peaks corresponding to the target mass, the target mass will be reported regardless of its quality (e.g., IsotopeCosine score). ", false, false);
+
     registerIntOption_("use_RNA_averagine", "", 0, "if set to 1, RNA averagine model is used", false, true);
     setMinInt_("use_RNA_averagine", 0);
     setMaxInt_("use_RNA_averagine", 1);
 
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
-    fd_defaults.setValue("tol", DoubleList{10.0, 10.0}, "ppm tolerance");
+    fd_defaults.setValue("tol", DoubleList{10.0, 10.0, 10.0}, "ppm tolerance for MS1, MS2, ... ");
     fd_defaults.setValue("min_charge", 2);
     fd_defaults.setValue("max_charge", 100);
     fd_defaults.setValue("min_mz", -1.0);
@@ -235,17 +238,17 @@ protected:
     fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
     //fd_defaults.addTag("tol", "advanced"); // hide entry
-    fd_defaults.setValue("min_peaks", IntList{3, 3});
+    fd_defaults.setValue("min_peaks", IntList{3, 3, 3});
     fd_defaults.addTag("min_peaks", "advanced");
     fd_defaults.setValue("min_intensity", 100.0, "Intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
     fd_defaults.setValue("min_isotope_cosine",
-                         DoubleList{.85, .85},
+                         DoubleList{.85, .85, .85},
                          "cosine similarity thresholds "
                          "between avg. and observed isotope patterns for MS1, 2, ... "
                          "(e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
     fd_defaults.setValue("max_mass_count",
-                         IntList{-1, -1},
+                         IntList{-1, -1, -1},
                          "maximum mass counts per spec for MS1, 2, ... "
                          "(e.g., -max_mass_count_ 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
     fd_defaults.addTag("max_mass_count", "advanced");
@@ -253,7 +256,7 @@ protected:
     fd_defaults.setValue("rt_window",
                          180.0,
                          "RT window for MS1 deconvolution. Spectra within RT window are considered together for deconvolution."
-                         "When an MS1 spectrum is deconvoluted, the masses found in previous MS1 spectra within RT window are favorably considered.");
+                         "When an MS1 spectrum is deconvolved, the masses found in previous MS1 spectra within RT window are favorably considered.");
     fd_defaults.addTag("rt_window", "advanced");
 
     fd_defaults.remove("max_mass_count");
@@ -272,19 +275,35 @@ protected:
     mf_defaults.remove("chrom_peak_snr");
 
     DoubleList tols = fd_defaults.getValue("tol");
-    mf_defaults.setValue("mass_error_ppm", tols[0]);
-
-    //mf_defaults.remove("mass_error_ppm"); // hide entry
+    mf_defaults.setValue("mass_error", tols[0]);
+    mf_defaults.setValue("mass_error_unit", "ppm");
     mf_defaults.setValue("min_sample_rate", 0.2);
 
+    /*
+    Param sm_defaults = SpectraMerger().getDefaults();
+    sm_defaults.remove("mz_binning_width");
+    sm_defaults.remove("mz_binning_width_unit");
+    sm_defaults.remove("sort_blocks");
+
+    sm_defaults.remove("average_gaussian:spectrum_type");
+    sm_defaults.remove("average_gaussian:rt_FWHM");
+    sm_defaults.remove("average_gaussian:cutoff");
+    sm_defaults.remove("block_method:rt_max_length");
+
+    sm_defaults.remove("average_gaussian:ms_level");
+    sm_defaults.remove("block_method:ms_levels");
+
+    sm_defaults.removeAll("precursor_method");
+    sm_defaults.removeAll("average_tophat");
+*/
     Param combined;
     combined.insert("Algorithm:", fd_defaults);
     combined.insert("FeatureTracing:", mf_defaults);
+    //combined.insert("SpectraMerger:", sm_defaults);
     registerFullParam_(combined);
   }
 
-
-  static std::map<int, std::vector<std::vector<double>>> read_FLASHIda_log_(const String &in_log_file)
+  static std::map<int, std::vector<std::vector<double>>> read_FLASHIda_log_(const String& in_log_file)
   {
     std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition; // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
     if (!in_log_file.empty())
@@ -418,6 +437,40 @@ protected:
     return precursor_map_for_real_time_acquisition;
   }
 
+  static std::vector<double> getTargetMasses(String targets)
+  {
+    vector<double> result;
+    if(targets.empty())
+    {
+      return result;
+    }
+
+    String target_masses;
+    if(isdigit(targets[0]))
+    {
+      target_masses = targets;
+    }else // if it is a file
+    {
+      std::ifstream in_trainstream(targets);
+      String line;
+      while (std::getline(in_trainstream, line))
+      {
+        target_masses.append(line);
+      }
+    }
+
+    std::cout<<"Monoisotopic masses ";
+    stringstream s_stream(target_masses); //create string stream from the string
+    while(s_stream.good()) {
+      String substr;
+      getline(s_stream, substr, ','); //get first string delimited by comma
+      result.push_back(std::stod(substr));
+      std::cout<<std::stod(substr)<< " ";
+    }
+    std::cout<<" Da are targeted." << std::endl;
+    return result;
+  }
+
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
   {
@@ -441,12 +494,15 @@ protected:
     double topFD_SNR_threshold = in_log_file.length() > 0 ? .0 : getDoubleOption_("min_precursor_snr");
     bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
     int max_ms_level = getIntOption_("max_MS_level");
-    int forced_ms_level = getIntOption_("forced_MS_level");
-    bool ensemble = getIntOption_("use_ensemble_spectrum") > 0;
+    int forced_ms_level = 0;//getIntOption_("forced_MS_level");
+    int merge = getIntOption_("merging_method");
     bool write_detail = getIntOption_("write_detail") > 0;
     int mzml_charge = getIntOption_("mzml_mass_charge");
     double min_rt = getDoubleOption_("Algorithm:min_rt");
     double max_rt = getDoubleOption_("Algorithm:max_rt");
+    String targets = getStringOption_("target_mass");
+
+
 
     #ifdef DEBUG_EXTRA_PARAMTER
     auto out_topfd_file_log =  out_topfd_file[1] + ".log";
@@ -495,7 +551,7 @@ protected:
       for (int i = 0; i < out_spec_file.size(); i++)
       {
         out_spec_streams[i].open(out_spec_file[i], fstream::out);
-        DeconvolutedSpectrum::writeDeconvolutedMassesHeader(out_spec_streams[i], i + 1, write_detail);
+        DeconvolvedSpectrum::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail);
       }
     }
 
@@ -521,7 +577,7 @@ protected:
         }
 
         auto tp = FLASHDeconvHelperStructs::TopPicItem(line);
-        top_pic_map[tp.scan_] = tp;
+        top_pic_map[tp.scan] = tp;
       }
       in_trainstream.close();
     }
@@ -538,11 +594,6 @@ protected:
     MSExperiment map;
     MzMLFile mzml;
 
-
-    // all for measure elapsed cup wall time
-    double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
-
-
     double expected_identification_count = .0;
 
     // feature number per input file
@@ -551,48 +602,26 @@ protected:
     // feature index written in the output file
     int feature_index = 0;
 
-    auto begin = clock();
-    auto t_start = chrono::high_resolution_clock::now();
-
     OPENMS_LOG_INFO << "Processing : " << in_file << endl;
-
 
     mzml.setLogType(log_type_);
     mzml.load(in_file, map);
 
-
     int current_max_ms_level = 0;
 
-
     auto spec_cntr = std::vector<int>(max_ms_level, 0);
-    // spectrum number with at least one deconvoluted mass per ms level per input file
+    // spectrum number with at least one deconvolved mass per ms level per input file
     auto qspec_cntr = std::vector<int>(max_ms_level, 0);
     // mass number per ms level per input file
     auto mass_cntr = std::vector<int>(max_ms_level, 0);
     auto elapsed_deconv_cpu_secs = std::vector<double>(max_ms_level, .0);
     auto elapsed_deconv_wall_secs = std::vector<double>(max_ms_level, .0);
 
-    MSExperiment ensemble_map;
-    // generate ensemble spectrum if param.ensemble is set
-    if (ensemble)
+    // read input dataset once to count spectra
+    double gradient_rt = .0;
+    for (auto& it: map)
     {
-      for (int i = 0; i < max_ms_level; i++)
-      {
-        auto spec = MSSpectrum();
-        spec.setMSLevel(i + 1);
-        std::ostringstream name;
-        name << "ensemble MS" << (i + 1) << " spectrum";
-        spec.setName(name.str());
-        ensemble_map.addSpectrum(spec);
-      }
-    }
-    //      double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
-    int ms1_cntr = 0;
-    double ms2_cntr = .0; // for debug...
-
-    // read input dataset once to count spectra and generate ensemble spectrum if necessary
-    for (auto &it: map)
-    {
+      gradient_rt = it.getRT();
       if (it.empty())
       {
         continue;
@@ -619,76 +648,72 @@ protected:
       {
         break;
       }
-      if (ensemble)
-      {
-        auto &espec = ensemble_map[it.getMSLevel() - 1];
-        for (auto &p: it)
-        {
-          espec.push_back(p);
-        }
-      }
-
-      if (it.getMSLevel() == 1)
-      {
-        ms1_cntr++;
-      }
-      if (it.getMSLevel() == 2)
-      {
-        ms2_cntr++;
-      }
     }
 
     // Max MS Level is adjusted according to the input dataset
     current_max_ms_level = current_max_ms_level > max_ms_level ? max_ms_level : current_max_ms_level;
-    // if an ensemble spectrum is analyzed, replace the input dataset with the ensemble one
-    if (ensemble)
-    {
-      for (int i = 0; i < current_max_ms_level; ++i)
-      {
-        ensemble_map[i].sortByPosition();
-        //spacing_difference_gap
-        PeakPickerHiRes pickerHiRes;
-        auto pickParam = pickerHiRes.getParameters();
-        //pickParam.setValue("spacing_difference_gap", 1e-1);
-        //pickParam.setValue("spacing_difference", 2.0);
-        //pickParam.setValue("missing", 0);
 
-        pickerHiRes.setParameters(pickParam);
-        auto tmp_spec = ensemble_map[i];
-        pickerHiRes.pick(tmp_spec, ensemble_map[i]);
-
-        // PeakPickerCWT picker;
-        // tmp_spec = ensemble_map[i];
-        //picker.pick(tmp_spec, ensemble_map[i]);
-      }
-
-      map = ensemble_map;
-    }
     // Run FLASHDeconv here
 
     int scan_number = 0;
-    float prev_progress = .0;
-    int num_last_deconvoluted_spectra = getIntOption_("preceding_MS1_count");
+    int num_last_deconvolved_spectra = getIntOption_("preceding_MS1_count");
     if (!in_log_file.empty())
     {
-      num_last_deconvoluted_spectra = 50; // if FLASHIda log file exists, keep up to 50 survey scans.
+      num_last_deconvolved_spectra = 50; // if FLASHIda log file exists, keep up to 50 survey scans.
     }
 
-    auto last_deconvoluted_spectra = std::unordered_map<UInt, std::vector<DeconvolutedSpectrum>>();
-    //auto lastlast_deconvoluted_spectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
+    auto last_deconvolved_spectra = std::unordered_map<UInt, std::vector<DeconvolvedSpectrum>>();
+    //auto lastlast_deconvolved_spectra = std::unordered_map<UInt, DeconvolvedSpectrum>();
     MSExperiment exp;
 
     auto fd = FLASHDeconvAlgorithm();
     Param fd_param = getParam_().copy("Algorithm:", true);
     DoubleList tols = fd_param.getValue("tol");
     //fd_param.setValue("tol", getParam_().getValue("tol"));
-    if (ensemble)
+
+    // if a merged spectrum is analyzed, replace the input dataset with the merged one
+    if (merge == 1)
     {
+      OPENMS_LOG_INFO << "Merging spectra using gaussian averaging... " << endl;
+      SpectraMerger merger;
+      merger.setLogType(log_type_);
+      Param sm_param = merger.getDefaults();
+      sm_param.setValue("average_gaussian:precursor_mass_tol", tols[0]);
+      sm_param.setValue("average_gaussian:precursor_max_charge", (int)fd_param.getValue("max_charge"));
+
+      merger.setParameters(sm_param);
+      map.sortSpectra();
+
+      for (int tmp_ms_level = 1; tmp_ms_level <= current_max_ms_level; tmp_ms_level++)
+      {
+        merger.average(map, "gaussian", tmp_ms_level);
+      }
+    }
+    else if(merge == 2)
+    {
+      //mz_binning_width - ms tols
+      OPENMS_LOG_INFO << "Merging spectra into a single spectrum per MS level... "<< endl;
+      SpectraMerger merger;
+      merger.setLogType(log_type_);
+      Param sm_param = merger.getDefaults();
+      sm_param.setValue("block_method:rt_block_size", (int)gradient_rt);
+      map.sortSpectra();
+
+      for(int ml = 1; ml<=current_max_ms_level; ml++)
+      {
+        sm_param.setValue("mz_binning_width", tols[ml - 1] / 2);
+        sm_param.setValue("block_method:ms_levels", IntList{ml});
+        merger.setParameters(sm_param);
+        merger.mergeSpectraBlockWise(map);
+      }
       fd_param.setValue("min_rt", .0);
       fd_param.setValue("max_rt", .0);
     }
+
     fd.setParameters(fd_param);
     fd.calculateAveragine(use_RNA_averagine);
+    fd.setTargetMasses(getTargetMasses(targets));
+
     auto avg = fd.getAveragine();
     auto mass_tracer = MassFeatureTrace();
     Param mf_param = getParam_().copy("FeatureTracing:", true);
@@ -708,8 +733,9 @@ protected:
 
     unordered_map<int, PeakGroup> precursor_peak_groups; // MS2 scan number, peak group
 
-    OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
-
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+    progresslogger.startProgress(0, map.size(), "running FLASHDeconv");
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       scan_number = SpectrumLookup::extractScanNumber(it->getNativeID(),
@@ -717,13 +743,6 @@ protected:
       if (it->empty())
       {
         continue;
-      }
-
-      float progress = (float) (it - map.begin()) / map.size();
-      if (progress > prev_progress + .05)
-      {
-        printProgress_(progress);
-        prev_progress = progress;
       }
 
       int ms_level = it->getMSLevel();
@@ -735,34 +754,34 @@ protected:
       auto deconv_begin = clock();
       auto deconv_t_start = chrono::high_resolution_clock::now();
 
-      //auto deconvoluted_spectrum = DeconvolutedSpectrum(*it, scan_number);
+      //auto deconvolved_spectrum = DeconvolvedSpectrum(*it, scan_number);
       // for MS>1 spectrum, register precursor
-      std::vector<DeconvolutedSpectrum> precursor_specs;
+      std::vector<DeconvolvedSpectrum> precursor_specs;
 
-      if (ms_level > 1 && last_deconvoluted_spectra.find(ms_level - 1) != last_deconvoluted_spectra.end())
+      if (ms_level > 1 && last_deconvolved_spectra.find(ms_level - 1) != last_deconvolved_spectra.end())
       {
-        precursor_specs = (last_deconvoluted_spectra[ms_level - 1]);
+        precursor_specs = (last_deconvolved_spectra[ms_level - 1]);
       }
-      auto deconvoluted_spectrum = fd.getDeconvolutedSpectrum(*it,
-                                                              precursor_specs,
-                                                              scan_number,
-                                                              precursor_map_for_real_time_acquisition);
+      auto deconvolved_spectrum = fd.getDeconvolvedSpectrum(*it,
+                                                             precursor_specs,
+                                                             scan_number,
+                                                             precursor_map_for_real_time_acquisition);
 
-      if (it->getMSLevel() > 1 && !deconvoluted_spectrum.getPrecursorPeakGroup().empty())
+      if (it->getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
       {
-        precursor_peak_groups[scan_number] = deconvoluted_spectrum.getPrecursorPeakGroup();
-        if (deconvoluted_spectrum.getPrecursorPeakGroup().getChargeSNR(deconvoluted_spectrum.getPrecursorCharge()) >
+        precursor_peak_groups[scan_number] = deconvolved_spectrum.getPrecursorPeakGroup();
+        if (deconvolved_spectrum.getPrecursorPeakGroup().getChargeSNR(deconvolved_spectrum.getPrecursorCharge()) >
             topFD_SNR_threshold)
         {
-          expected_identification_count += deconvoluted_spectrum.getPrecursorPeakGroup().getQScore();
+          expected_identification_count += deconvolved_spectrum.getPrecursorPeakGroup().getQScore();
         }
       }
 
       if (it->getMSLevel() == 2 && !in_train_file.empty() && !out_train_file.empty()
-          && !deconvoluted_spectrum.getPrecursorPeakGroup().empty()
+          && !deconvolved_spectrum.getPrecursorPeakGroup().empty()
           )
       {
-        QScore::writeAttTsv(deconvoluted_spectrum,
+        QScore::writeAttTsv(deconvolved_spectrum,
                             top_pic_map[scan_number],
                             avg,
                             out_train_stream,
@@ -772,11 +791,11 @@ protected:
 
       if (!out_mzml_file.empty())
       {
-        //if (it->getMSLevel() == 1)// || !deconvoluted_spectrum.getPrecursorPeakGroup().empty())
+        //if (it->getMSLevel() == 1)// || !deconvolved_spectrum.getPrecursorPeakGroup().empty())
         //{
-        if (!deconvoluted_spectrum.empty())
+        if (!deconvolved_spectrum.empty())
         {
-          exp.addSpectrum(deconvoluted_spectrum.toSpectrum(mzml_charge));
+          exp.addSpectrum(deconvolved_spectrum.toSpectrum(mzml_charge));
         }
         //}
       }
@@ -786,56 +805,55 @@ protected:
 
       if (ms_level < current_max_ms_level)
       {
-        if (last_deconvoluted_spectra[ms_level].size() >= num_last_deconvoluted_spectra)
+        if (last_deconvolved_spectra[ms_level].size() >= num_last_deconvolved_spectra)
         {
-          last_deconvoluted_spectra.erase(last_deconvoluted_spectra.begin());
+          last_deconvolved_spectra.erase(last_deconvolved_spectra.begin());
         }
-        last_deconvoluted_spectra[ms_level].push_back(deconvoluted_spectrum);
+        last_deconvolved_spectra[ms_level].push_back(deconvolved_spectrum);
       }
 
-      if (!ensemble)
+      if (merge != 2)
       {
-        mass_tracer.storeInformationFromDeconvolutedSpectrum(
-            deconvoluted_spectrum);// add deconvoluted mass in mass_tracer
+        mass_tracer.storeInformationFromDeconvolvedSpectrum(
+            deconvolved_spectrum);// add deconvolved mass in mass_tracer
       }
 
-      if (deconvoluted_spectrum.empty())
+      if (deconvolved_spectrum.empty())
       {
         continue;
       }
 
       qspec_cntr[ms_level - 1]++;
-      mass_cntr[ms_level - 1] += deconvoluted_spectrum.size();
+      mass_cntr[ms_level - 1] += deconvolved_spectrum.size();
 
       DoubleList iso_intensities;
       if (out_spec_streams.size() > ms_level - 1)
       {
-        deconvoluted_spectrum
-            .writeDeconvolutedMasses(out_spec_streams[ms_level - 1], in_file, avg, write_detail);
+        deconvolved_spectrum
+            .writeDeconvolvedMasses(out_spec_streams[ms_level - 1], in_file, avg, write_detail);
       }
       if (out_topfd_streams.size() > ms_level - 1)
       {
-        deconvoluted_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], avg, topFD_SNR_threshold);
+        deconvolved_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], avg, topFD_SNR_threshold);//, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
         #ifdef DEBUG_EXTRA_PARAMTER
-        if(ms_level ==2 && !deconvoluted_spectrum.getPrecursorPeakGroup().empty()){
-            f_out_topfd_file_log << scan_number <<","<<deconvoluted_spectrum.getPrecursorPeakGroup().getMonoMass()
-            <<","<<deconvoluted_spectrum.getPrecursorPeakGroup().getRepAbsCharge()<<","
-            <<deconvoluted_spectrum.getPrecursorPeakGroup().getIntensity()<<"\n";
+        if(ms_level ==2 && !deconvolved_spectrum.getPrecursorPeakGroup().empty()){
+            f_out_topfd_file_log << scan_number <<","<<deconvolved_spectrum.getPrecursorPeakGroup().getMonoMass()
+            <<","<<deconvolved_spectrum.getPrecursorPeakGroup().getRepAbsCharge()<<","
+            <<deconvolved_spectrum.getPrecursorPeakGroup().getIntensity()<<"\n";
         }
         #endif
       }
+      progresslogger.nextProgress();
     }
-
-    printProgress_(1); //
-    std::cout << std::endl;
+    progresslogger.endProgress();
 
     // mass_tracer run
-    if (!ensemble)
+    if (merge != 2)
     {
       mass_tracer.findFeatures(in_file, !out_promex_file.empty(), !out_topfd_feature_file.empty(),
-                               precursor_peak_groups,
-                               feature_cntr, feature_index, out_stream, out_promex_stream, out_topfd_feature_streams,
-                               fd.getAveragine());
+                               precursor_peak_groups, fd.getAveragine(),
+                               feature_cntr, feature_index, out_stream, out_promex_stream, out_topfd_feature_streams
+                               );
     }
     if (!out_mzml_file.empty())
     {
@@ -850,9 +868,9 @@ protected:
         continue;
       }
 
-      if (ensemble)
+      if (merge == 2)
       {
-        OPENMS_LOG_INFO << "So far, FLASHDeconv found " << mass_cntr[j] << " masses in the ensemble MS"
+        OPENMS_LOG_INFO << "So far, FLASHDeconv found " << mass_cntr[j] << " masses in the merged MS"
                         << (j + 1) << " spectrum" << endl;
 
       }
@@ -867,16 +885,6 @@ protected:
     {
       OPENMS_LOG_INFO << "Mass tracer found " << feature_cntr << " features" << endl;
     }
-
-    auto t_end = chrono::high_resolution_clock::now();
-    auto end = clock();
-
-    elapsed_cpu_secs = double(end - begin) / CLOCKS_PER_SEC;
-    elapsed_wall_secs = chrono::duration<double>(t_end - t_start).count();
-
-    OPENMS_LOG_INFO << "-- done [took " << elapsed_cpu_secs << " s (CPU), " << elapsed_wall_secs
-                    << " s (Wall)] --"
-                    << endl;
 
     int total_spec_cntr = 0;
     for (int j = 0; j < (int) current_max_ms_level; j++)
@@ -908,16 +916,15 @@ protected:
     }
     if (!out_topfd_feature_file.empty())
     {
-      for (auto &out_topfd_feature_stream: out_topfd_feature_streams)
+      for (auto& out_topfd_feature_stream: out_topfd_feature_streams)
       {
         out_topfd_feature_stream.close();
       }
     }
 
-
     if (!out_topfd_file.empty())
     {
-      for (auto &out_topfd_stream: out_topfd_streams)
+      for (auto& out_topfd_stream: out_topfd_streams)
       {
         out_topfd_stream.close();
       }
@@ -925,7 +932,7 @@ protected:
     if (!out_spec_file.empty())
     {
       int j = 0;
-      for (auto &out_spec_stream: out_spec_streams)
+      for (auto& out_spec_stream: out_spec_streams)
       {
         out_spec_stream.close();
         if (spec_cntr[j] <= 0)
@@ -941,32 +948,7 @@ protected:
       out_train_stream.close();
     }
 
-
     return EXECUTION_OK;
-  }
-
-  static void printProgress_(float progress)
-  {
-    float bar_width = 70;
-    std::cout << "[";
-    int pos = (int) (bar_width * progress);
-    for (int i = 0; i < bar_width; ++i)
-    {
-      if (i < pos)
-      {
-        std::cout << "=";
-      }
-      else if (i == pos)
-      {
-        std::cout << ">";
-      }
-      else
-      {
-        std::cout << " ";
-      }
-    }
-    std::cout << "] " << int(progress * 100.0) << " %\r";
-    std::cout.flush();
   }
 };
 

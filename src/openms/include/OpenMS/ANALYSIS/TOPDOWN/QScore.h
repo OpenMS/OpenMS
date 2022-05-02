@@ -37,7 +37,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 
 namespace OpenMS
 {
@@ -46,7 +46,7 @@ namespace OpenMS
   /**
 @brief   QScore : quality score for PeakGroup. This class is being updated.
    For now, simply it calculate the QScore using a fixed weight vector.
-   The vector is determined by logistric regression outside.
+   The weight vector has been determined by logistic regression.
    But afterwards, the training part for the QScore should be added in here.
    Or other technique such as deep learning would be used.
    This class also contains tsv output function. The tsv file contains features of PeakGroups which are used for training.
@@ -62,14 +62,14 @@ namespace OpenMS
     static double getQScore(const PeakGroup *pg, const int abs_charge);
 
     /// function to generate attribute tsv file for weka interface
-    static void writeAttTsv(const DeconvolutedSpectrum &deconvoluted_spectrum,
-                            const FLASHDeconvHelperStructs::TopPicItem &top_id,
-                            const FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
-                            std::fstream &f,
+    static void writeAttTsv(const DeconvolvedSpectrum&  deconvolved_spectrum,
+                            const FLASHDeconvHelperStructs::TopPicItem& top_id,
+                            const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
+                            std::fstream& f,
                             bool write_detail = false);
 
     /// write header for attirbute tsv file
-    static void writeAttHeader(std::fstream &f, bool write_detail = false);
+    static void writeAttHeader(std::fstream& f, bool write_detail = false);
 
   private:
     /// convert a peak group to a feature vector for QScore calculation

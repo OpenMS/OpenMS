@@ -560,6 +560,12 @@ public:
     /**
       @brief Clears all data and meta data
 
+      Will delete (clear) all peaks contained in the spectrum as well as any
+      associated data arrays (FloatDataArrays, IntegerDataArrays,
+      StringDataArrays) by default. If @em clear_meta_data is @em true, then
+      also all meta data (such as RT, drift time, ms level etc) will be
+      deleted.
+
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data);

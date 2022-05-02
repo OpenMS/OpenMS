@@ -1,6 +1,5 @@
 from Types cimport *
 from Matrix cimport *
-from libcpp.map cimport map as libcpp_map
 from DoubleList cimport *
 from String cimport *
 from Feature cimport *

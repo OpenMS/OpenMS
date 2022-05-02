@@ -35,77 +35,20 @@
 project("OpenMS_GUI")
 cmake_minimum_required(VERSION 3.9.0 FATAL_ERROR)
 
-# --------------------------------------------------------------------------
-# Find Qt
-#---------------------------------------------------------------------------
-set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Network Svg)
-
-# On macOS the platform plugin of QT requires PrintSupport. We link
-# so it's packaged via the bundling/dependency tools/scripts
-if (APPLE)
-  set (TEMP_OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} PrintSupport)
-endif()
-
-set(OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} CACHE INTERNAL "QT components for GUI lib")
-
-set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
-
-find_package(Qt5 COMPONENTS ${OpenMS_GUI_QT_COMPONENTS} REQUIRED)
-
-find_package(Qt5 COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
-
-
-IF (NOT Qt5Widgets_FOUND)
-  message(STATUS "Qt5Widgets not found!")
-	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
-ENDIF()
-
-if(Qt5_WebEngineWidgets_NOTFOUND)
-  message(WARNING "Qt5WebEngineWidgets not found, disabling JS Views in TOPPView!")
-  set(OpenMS_GUI_QT_COMPONENTS_OPT "")
-endif()
-
 set(CMAKE_AUTOUIC OFF) # leave off since this is broken, see qt5_wrap_ui below
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-# We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
-# TODO use the imported targets (e.g. Qt5::Widgets) instead, which add all defs, compile options, include dirs, etc
-# by just adding them to the target_link_libraries command
-add_definitions(${Qt5Widgets_DEFINITIONS})
-add_definitions(${Qt5Svg_DEFINITIONS})
-add_definitions(${Qt5Network_DEFINITIONS})
-add_definitions(${Qt5WebEngineWidgets_DEFINITIONS})
-
-# Executables fail to build with Qt 5 in the default configuration
-# without -fPIE. We add that here.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
 # --------------------------------------------------------------------------
 # include custom macros for openms_gui lib
 #include(qt_wrap_ui.cmake)
 include(add_mac_bundle.cmake)
 
-#------------------------------------------------------------------------------
-# Find boost
-find_boost()
-if(NOT Boost_FOUND)
-  message(FATAL_ERROR "Boost was not found!")
-endif()
-
 # --------------------------------------------------------------------------
 # big include file for headers and cpp files
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 # --------------------------------------------------------------------------
-# collect link dependencies
-set(OpenMS_GUI_DEP_LIBRARIES OpenMS
-                             ${Qt5Widgets_LIBRARIES}
-                             ${Qt5Svg_LIBRARIES}
-                             ${Qt5Network_LIBRARIES}
-                             ${Qt5WebEngineWidgets_LIBRARIES}
-                            )
-set(OpenMS_GUI_PRIVATE_DEP_LIBRARIES "")
 
 # manually extract .ui files and track them (trigger rebuild of ui_CLASS.h upon changing CLASS.ui)
 # see https://gitlab.kitware.com/cmake/cmake/issues/18741
@@ -119,22 +62,15 @@ openms_add_library(TARGET_NAME OpenMS_GUI
                    SOURCE_FILES ${OpenMSVisual_sources}
                    HEADER_FILES ${OpenMSVisual_sources_h}
                    INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
-                   EXTERNAL_INCLUDES ${OpenMS_INCLUDE_DIRECTORIES}
-		   # The Qt5Widgets_INCLUDES also includes the include directories for
-		   # dependencies QtCore and QtGui
-                                     ${Qt5Widgets_INCLUDE_DIRS}
-				                     ${Qt5Svg_INCLUDE_DIRS}
-				                     ${Qt5Network_INCLUDE_DIRS}
-                                     ${Qt5WebEngineWidgets_INCLUDE_DIRS}
+                   EXTERNAL_INCLUDES
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
-                   PRIVATE_LINK_LIBRARIES ${OpenMS_GUI_PRIVATE_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/VISUAL/")
 
 # --------------------------------------------------------------------------
 # additional linker flags required by openms_gui
 if (MSVC)
   set (GUI_lnk_flags "/FORCE:MULTIPLE /INCREMENTAL:NO /ignore:4006 /ignore:4088")
-  set_target_properties(OpenMS_GUI PROPERTIES LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
+  set_property(TARGET OpenMS_GUI APPEND PROPERTY LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
 endif()
 
 #------------------------------------------------------------------------------
@@ -167,10 +103,7 @@ foreach(i ${GUI_executables})
   endif()
 
   ## append visual lib as dependency for GUI tools
-  target_link_libraries(${i} ${OpenMS_GUI_LIBRARIES})
-  if (OPENMP_FOUND AND NOT MSVC)
-    set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
-  endif()
+  target_link_libraries(${i} OpenMS_GUI)
 endforeach(i)
 
   ## install platform plugins. On Mac this is handled for every GUI app inside its app bundle.

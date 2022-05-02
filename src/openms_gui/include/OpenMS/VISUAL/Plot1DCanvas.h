@@ -39,7 +39,9 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/PlotCanvas.h>
+#include <OpenMS/VISUAL/Painter1DBase.h>
 
+// QT
 #include <QTextDocument>
 
 // STL
@@ -51,6 +53,7 @@ class QAction;
 
 namespace OpenMS
 {
+
   /**
       @brief Canvas for visualization of one or several spectra.
 
@@ -157,19 +160,12 @@ public:
     /// Add an annotation item for the given peak
     Annotation1DItem* addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color);
 
-    /// Draws all annotation items of @p layer_index on @p painter
-    void drawAnnotations(Size layer_index, QPainter& painter);
-
     /// ----- Alignment
-
     /// Performs an alignment of the layers with @p layer_index_1 and @p layer_index_2
     void performAlignment(Size layer_index_1, Size layer_index_2, const Param& param);
 
     /// Resets alignment_
     void resetAlignment();
-
-    /// Draws the alignment on @p painter
-    void drawAlignment(QPainter& painter);
 
     /// Returns the number of aligned pairs of peaks
     Size getAlignmentSize();
@@ -248,9 +244,9 @@ protected:
     void drawCoordinates_(QPainter& painter, const PeakIndex& peak);
     /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
     void drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end);
-
-    /// annotate interesting peaks in visible area with m/z
-    void drawMZAtInterestingPeaks_(Size layer_index, QPainter& painter);
+    
+    /// Draws the alignment on @p painter
+    void drawAlignment_(QPainter& painter);
 
     /**
         @brief Changes visible area interval
@@ -261,9 +257,6 @@ protected:
 
     /// Draws a highlighted peak; if draw_elongation is true, the elongation line is drawn (for measuring)
     void drawHighlightedPeak_(Size layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation = false);
-
-    /// Draws a dashed line using the highlighted peak color parameter
-    void drawDashedLine_(const QPoint& from, const QPoint& to, QPainter& painter);
 
     /// Recalculates the current scale factor based on the specified layer (= 1.0 if intensity mode != IM_PERCENTAGE)
     void updatePercentageFactor_(Size layer_index);
@@ -353,6 +346,9 @@ protected:
     void translateRight_(Qt::KeyboardModifiers m) override;
     //docu in base class
     void paintGridLines_(QPainter& painter) override;
+
+    friend class Painter1DPeak;
+
   };
 } // namespace OpenMS
 

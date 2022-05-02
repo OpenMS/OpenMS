@@ -319,7 +319,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   TEST_STRING_EQUAL(exp.getContacts()[1].getURL(),"")
   TEST_STRING_EQUAL(exp.getContacts()[1].getAddress(),"")
   //source files
-  TEST_EQUAL(exp.getSourceFiles().size(),1);
+  TEST_EQUAL(exp.getSourceFiles().size(),5);
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNameOfFile(),"tiny1.RAW")
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getPathToFile(),"file:///F:/data/Exp01")
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(),"71be39fb2700ab2f3c8b2234b91274968b6899b1")
@@ -857,10 +857,11 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     }
   }
   //Testing corrupted files
+  // Note: the following two statements will trigger the AddressSanitizer
   PeakMap exp_cor;
-  TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.MzML.gz"),exp_cor))
+  TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.MzML.gz"),exp_cor)) // ASan says this leaks memory
   PeakMap exp_cor2;
-  TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.bz2"),exp_cor2))
+  TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.bz2"),exp_cor2)) // ASan says this leaks memory
 
   {
     //Testing automated sorting of files
@@ -906,7 +907,7 @@ START_SECTION([EXTRA] load only meta data)
   TEST_EQUAL(exp.size(),0)
   TEST_EQUAL(exp.getIdentifier(),"document_accession");
   TEST_EQUAL(exp.getContacts().size(),2)
-  TEST_EQUAL(exp.getSourceFiles().size(),1);
+  TEST_EQUAL(exp.getSourceFiles().size(),5);
   TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
 }
 END_SECTION
@@ -1087,9 +1088,9 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     // store map in our output buffer
     std::string out;
     file.storeBuffer(out, exp_original);
-    TEST_EQUAL(out.size(), 36859)
+    TEST_EQUAL(out.size(), 38406)
     TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
-    TEST_EQUAL(out.substr(36859 - 99, 36859 - 1), "</indexList>\n<indexListOffset>36411</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+    TEST_EQUAL(out.substr(38406 - 99, 38406 - 1), "</indexList>\n<indexListOffset>37958</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
 
     TEST_EQUAL(String(out).hasSubstring("<spectrumList count=\"4\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
     TEST_EQUAL(String(out).hasSubstring("<chromatogramList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">"), true)

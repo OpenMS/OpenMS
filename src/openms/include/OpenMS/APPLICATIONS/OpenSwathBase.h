@@ -147,7 +147,7 @@ protected:
    * @param exp_meta The output (meta data about experiment)
    * @param swath_maps The output (ptr to raw data)
    * @param file_list The input file(s)
-   * @param split_file If loading a single file that contains a single SWATH window 
+   * @param split_file If loading a single file that contains a single SWATH window
    * @param tmp Temporary directory
    * @param readoptions Description on how to read the data ("normal", "cache")
    * @param swath_windows_file Provided file containing the SWATH windows which will be mapped to the experimental windows
@@ -171,6 +171,7 @@ protected:
                       const bool sort_swath_maps,
                       const bool sonar,
                       const bool prm,
+                      const bool pasef,
                       Interfaces::IMSDataConsumer* plugin_consumer = nullptr)
   {
     // (i) Load files
@@ -187,6 +188,8 @@ protected:
       OPENMS_LOG_DEBUG << "Found swath map " << i
         << " with lower " << swath_maps[i].lower
         << " and upper " << swath_maps[i].upper
+        << " and im Lower bounds of " << swath_maps[i].imLower
+        << " and im Upper bounds of " << swath_maps[i].imUpper
         << " and " << swath_maps[i].sptr->getNrSpectra()
         << " spectra." << std::endl;
     }
@@ -223,12 +226,15 @@ protected:
 
       if (sonar) {continue;} // skip next step as expect them to overlap ...
 
+      if (pasef) {continue;} // skip this step, expect there to be overlap ...
+
       if (lower_map_end - upper_map_start > 0.01)
       {
         OPENMS_LOG_WARN << "Extraction will overlap between " << lower_map_end << " and " << upper_map_start << "!\n"
                  << "This will lead to multiple extraction of the transitions in the overlapping region "
                  << "which will lead to duplicated output. It is very unlikely that you want this." << "\n"
-                 << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << std::endl;
+                 << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << "\n"
+                 << "Did you mean to set the -sonar or -pasef Flag?" << std::endl;
         if (!force)
         {
           OPENMS_LOG_ERROR << "Extraction windows overlap. Will abort (override with -force)" << std::endl;
@@ -248,11 +254,11 @@ protected:
    *
    * @param chromatogramConsumer The consumer to process chromatograms
    * @param exp_meta meta data about experiment
-   * @param transition_exp The spectral library 
+   * @param transition_exp The spectral library
    * @param out_chrom The output file for the chromatograms
    * @param run_id Unique identifier which links the sqMass and OSW file
    */
-  void prepareChromOutput(Interfaces::IMSDataConsumer ** chromatogramConsumer, 
+  void prepareChromOutput(Interfaces::IMSDataConsumer ** chromatogramConsumer,
                           const boost::shared_ptr<ExperimentalSettings>& exp_meta,
                           const OpenSwath::LightTargetedExperiment& transition_exp,
                           const String& out_chrom,

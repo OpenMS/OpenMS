@@ -52,7 +52,7 @@ import numpy as np
 
         cdef _MSChromatogram * chrom_ = self.inst.get()
 
-        chrom_.clear(0) # empty vector , keep meta data
+        chrom_.resize(0) # empty vector, keep meta data and data arrays
         chrom_.reserve(<int>len(data_rt)) # allocate space for incoming data
         cdef _ChromatogramPeak p = _ChromatogramPeak()
         cdef double rt
@@ -74,7 +74,7 @@ import numpy as np
 
         cdef _MSChromatogram * chrom_ = self.inst.get()
 
-        chrom_.clear(0) # empty vector , keep meta data
+        chrom_.resize(0) # empty vector, keep meta data and data arrays
         chrom_.reserve(<int>len(data_rt)) # allocate space for incoming data
         cdef _ChromatogramPeak p = _ChromatogramPeak()
         cdef double rt
@@ -97,7 +97,7 @@ import numpy as np
 
         cdef _MSChromatogram * chrom_ = self.inst.get()
 
-        chrom_.clear(0) # empty vector , keep meta data
+        chrom_.resize(0) # empty vector, keep meta data and data arrays
         chrom_.reserve(<int>len(rts)) # allocate space for incoming data
         cdef _ChromatogramPeak p = _ChromatogramPeak()
         cdef double rt

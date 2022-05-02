@@ -1,6 +1,5 @@
 from Types cimport *
 from libcpp cimport bool
-from Map cimport *
 from String cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>" namespace "OpenMS":

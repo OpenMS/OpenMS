@@ -54,8 +54,8 @@ namespace OpenMS
   using Interfaces::IMSDataConsumer;
 
   /// Loads a Swath run from a list of split mzML files
-  std::vector<OpenSwath::SwathMap> SwathFile::loadSplit(StringList file_list, 
-	String tmp,
+  std::vector<OpenSwath::SwathMap> SwathFile::loadSplit(StringList file_list,
+        String tmp,
     boost::shared_ptr<ExperimentalSettings>& exp_meta,
     String readoptions)
   {
@@ -160,6 +160,7 @@ namespace OpenMS
     std::vector<int> swath_counter;
     int nr_ms1_spectra;
     std::vector<OpenSwath::SwathMap> known_window_boundaries;
+
     countScansInSwath_(exp_stripped->getSpectra(), swath_counter, nr_ms1_spectra, known_window_boundaries);
     std::cout << "Determined there to be " << swath_counter.size()
               << " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra" << std::endl;
@@ -188,8 +189,8 @@ namespace OpenMS
 
     std::vector<Interfaces::IMSDataConsumer *> consumer_list;
     // only use plugin if non-empty
-    if (plugin_consumer) 
-    {  
+    if (plugin_consumer)
+    {
       exp_meta->setMetaValue("nr_ms1_spectra", nr_ms1_spectra); // required for SwathQC::getExpSettingsFunc()
       plugin_consumer->setExperimentalSettings(*exp_meta.get());
       exp_meta->removeMetaValue("nr_ms1_spectra"); // served its need. remove
@@ -326,7 +327,6 @@ namespace OpenMS
     f.load(file, *experiment_metadata);
     return experiment_metadata;
   }
-
   /// Counts the number of scans in a full Swath file (e.g. concatenated non-split file)
   void SwathFile::countScansInSwath_(const std::vector<MSSpectrum>& exp,
                                      std::vector<int>& swath_counter, int& nr_ms1_spectra,
@@ -350,12 +350,27 @@ namespace OpenMS
           }
           const std::vector<Precursor> prec = s.getPrecursors();
           double center = prec[0].getMZ();
+
+
+          // check if ion mobility is present
+          double lowerIm = -1;
+          double upperIm = -1; // these initial values assume ion mobility is not present
+
+          if (s.metaValueExists("ion mobility lower limit"))
+          {
+            lowerIm = s.getMetaValue("ion mobility lower limit"); // want this to be -1  if no ion mobility
+            upperIm = s.getMetaValue("ion mobility upper limit");
+
+          }
+
           bool found = false;
+
           for (Size j = 0; j < known_window_boundaries.size(); j++)
           {
             // We group by the precursor mz (center of the window) since this
             // should be present
-            if (std::fabs(center - known_window_boundaries[j].center) < 1e-6)
+            // for ion mobility, since the center value is not present in the raw data (it is computed) we use the imLower and upper bounds
+            if ((std::fabs(center - known_window_boundaries[j].center) < 1e-6) && (std::fabs(lowerIm - known_window_boundaries[j].imLower) < 1e-6) && (std::fabs(upperIm - known_window_boundaries[j].imUpper < 1e-6)))
             {
               found = true;
               swath_counter[j]++;
@@ -367,15 +382,21 @@ namespace OpenMS
             swath_counter.push_back(1);
             double lower = prec[0].getMZ() - prec[0].getIsolationWindowLowerOffset();
             double upper = prec[0].getMZ() + prec[0].getIsolationWindowUpperOffset();
+
             OpenSwath::SwathMap boundary;
             boundary.lower = lower;
             boundary.upper = upper;
             boundary.center = center;
+
+            // set IM boundaries (if present)
+            boundary.imLower = lowerIm;
+            boundary.imUpper = upperIm;
+
             known_window_boundaries.push_back(boundary);
 
             OPENMS_LOG_DEBUG << "Adding Swath centered at " << center
               << " m/z with an isolation window of " << lower << " to " << upper
-              << " m/z." << std::endl;
+              << " m/z and start of " << lowerIm << " and IM end of " << upperIm << std::endl;
           }
         }
       }
@@ -386,5 +407,3 @@ namespace OpenMS
       " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra" << std::endl;
   }
 }
-
-

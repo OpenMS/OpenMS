@@ -40,7 +40,7 @@ if(NOT multiConfig AND NOT DEFINED CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
 endif()
 
-project("OpenMS_host")
+project("OpenMS_host" LANGUAGES C CXX)
 
 # required for cmake < 3.13 if ccache is used
 set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
@@ -96,7 +96,7 @@ endif()
 if(NOT CMAKE_MODULE_PATH)
 	set(CMAKE_MODULE_PATH)
 endif()
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
 ## CMake looks for the NSIS script in the module path.
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 
@@ -104,8 +104,8 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 # OpenMS Version Information
 #------------------------------------------------------------------------------
 
-set(OPENMS_PACKAGE_VERSION_MAJOR "2")
-set(OPENMS_PACKAGE_VERSION_MINOR "7")
+set(OPENMS_PACKAGE_VERSION_MAJOR "3")
+set(OPENMS_PACKAGE_VERSION_MINOR "0")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 set(OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
 
@@ -352,6 +352,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/lib")
 set(OPENMS_BINARY_DIR "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
+set(OPENMS_SHARE_DIR "${PROJECT_SOURCE_DIR}/share/OpenMS")
 set(OPENMS_WIN32_DLL_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 #------------------------------------------------------------------------------
@@ -427,6 +428,12 @@ if (MSVC)
 		file(COPY "${PROJECT_SOURCE_DIR}/tools/build.bat" DESTINATION "${PROJECT_BINARY_DIR}")
 	endif()
 endif()
+
+
+# Find core dependencies here, so all projects have access to the same variables and
+# do not have to re-search for the core components
+
+include(cmake/cmake_findExternalLibs.cmake)
 
 #------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)

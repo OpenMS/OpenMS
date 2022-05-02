@@ -40,6 +40,8 @@
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
+#include <map>
+
 
 #undef DC_DEVEL
 //#define DC_DEVEL 1
@@ -395,7 +397,7 @@ namespace OpenMS
     // edges
     PairsType feature_relation;
     // for each feature, hold the explicit adduct type induced by edges
-    Map<Size, std::set<CmpInfo_> > feature_adducts;
+    std::map<Size, std::set<CmpInfo_> > feature_adducts;
 
     // # compomer results that either passed or failed the feature charge constraints
     Size no_cmp_hit(0), cmp_hit(0);
@@ -624,7 +626,7 @@ namespace OpenMS
     // -------------------------- //
 
     //printEdgesOfConnectedFeatures_(888, 889, feature_relation);
-    Map<Size, Size> features_aes, features_des; // count of adjacent active and dead edges
+    std::map<Size, Size> features_aes, features_des; // count of adjacent active and dead edges
     UInt agreeing_fcharge = 0;
     std::vector<Size> f_idx_v(2);
     Size aedges = 0;
@@ -736,8 +738,8 @@ namespace OpenMS
     // fresh start for meta annotation
     for (Size i = 0; i < fm_out.size(); ++i)
     {
-      if (fm_out[i].metaValueExists("dc_charge_adducts"))
-        fm_out[i].removeMetaValue("dc_charge_adducts");
+      if (fm_out[i].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+        fm_out[i].removeMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS);
     }
 
     // write groups to consensusXML (with type="charge_groups")
@@ -781,14 +783,14 @@ namespace OpenMS
 
         // - left
         EmpiricalFormula ef_l(c.getAdductsAsString(Compomer::LEFT));
-        if (fm_out[f0_idx].metaValueExists("dc_charge_adducts"))
+        if (fm_out[f0_idx].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
-          if (ef_l.toString() != fm_out[f0_idx].getMetaValue("dc_charge_adducts"))
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "]", ef_l.toString());
+          if (ef_l.toString() != fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_l.toString());
         }
         else
         {
-          fm_out[f0_idx].setMetaValue("dc_charge_adducts", ef_l.toString());
+          fm_out[f0_idx].setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, ef_l.toString());
         }
         fm_out[f0_idx].setMetaValue("dc_charge_adduct_mass", ef_l.getMonoWeight());
         fm_out[f0_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(default_adduct, Compomer::LEFT) ? 1 : 0));
@@ -805,14 +807,14 @@ namespace OpenMS
 
         // - right
         EmpiricalFormula ef_r(c.getAdductsAsString(Compomer::RIGHT));
-        if (fm_out[f1_idx].metaValueExists("dc_charge_adducts"))
+        if (fm_out[f1_idx].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
-          if (ef_r.toString() != fm_out[f1_idx].getMetaValue("dc_charge_adducts"))
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + "]", ef_r.toString());
+          if (ef_r.toString() != fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_r.toString());
         }
         else
         {
-          fm_out[f1_idx].setMetaValue("dc_charge_adducts", ef_r.toString());
+          fm_out[f1_idx].setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, ef_r.toString());
         }
         fm_out[f1_idx].setMetaValue("dc_charge_adduct_mass", ef_r.getMonoWeight());
         fm_out[f1_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(default_adduct, Compomer::RIGHT) ? 1 : 0));
@@ -850,8 +852,8 @@ namespace OpenMS
         cf.insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
         cf.insert((UInt64) fm_out[f1_idx].getMetaValue("map_idx"), fm_out[f1_idx]);
         cf.setMetaValue("Local", String(old_q0) + ":" + String(old_q1));
-        cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "):"
-                        + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + ") "
+        cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "):"
+                        + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + ") "
                         + String("Score: ") + feature_relation[i].getEdgeScore());
         //cf.computeDechargeConsensus(fm_out);
 #if 1
@@ -910,8 +912,8 @@ namespace OpenMS
         cf.insert(0, fm_out[f0_idx].getUniqueId(), fm_out[f0_idx]);
         cf.insert(0, fm_out[f1_idx].getUniqueId(), fm_out[f1_idx]);
         cf.setMetaValue("Local", String(old_q0) + ":" + String(old_q1));
-        cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "):"
-                        + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + ") "
+        cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "):"
+                        + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + ") "
                         + String("Score: ") + feature_relation[i].getEdgeScore());
         cf.setUniqueId();
 
@@ -1057,7 +1059,7 @@ namespace OpenMS
   /// (more difficult explanation) supported by neighboring edges
   /// e.g. (.)   -> (H+) might be augmented to
   ///      (Na+) -> (H+Na+)
-  void FeatureDeconvolution::inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_> >& feature_adducts)
+  void FeatureDeconvolution::inferMoreEdges_(PairsType& edges, std::map<Size, std::set<CmpInfo_> >& feature_adducts)
   {
     Adduct default_adduct;
 

@@ -39,6 +39,11 @@ using namespace std;
 
 namespace OpenMS
 {
+  std::unique_ptr<Painter1DBase> LayerDataIdent::getPainter1D() const
+  {
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+  }
+
   std::unique_ptr<LayerStatistics> LayerDataIdent::getStats() const
   {
     return make_unique<LayerStatisticsIdent>(peptides_);

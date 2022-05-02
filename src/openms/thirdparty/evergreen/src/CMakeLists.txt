@@ -36,8 +36,23 @@ project("OpenMS-evergreen")
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 # export include directory
-set(EVERGREEN_INCLUDE_DIRECTORY
-  ${PROJECT_SOURCE_DIR}
-  CACHE
-  INTERNAL "evergreen include directories" FORCE
-)
+add_library(Evergreen INTERFACE)
+target_include_directories(Evergreen SYSTEM INTERFACE 
+                            "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>"
+                            "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}/thirdparty/evergreen/src>")
+
+# Export it under OpenMSTargets.cmake instead of a separate EvergreenTargets file
+#install(EXPORT EvergreenTargets DESTINATION lib/cmake/evergreen)
+#install(TARGETS Evergreen EXPORT EvergreenTargets PUBLIC_HEADER DESTINATION ${INSTALL_INCLUDE_DIR}/thirdparty/evergreen COMPONENT library)
+
+install_library(Evergreen)
+openms_register_export_target(Evergreen)
+
+get_filename_component(EVERGREEN_HEADERS "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(EVERGREEN_HEADERS "${EVERGREEN_HEADERS}" PATH)
+
+# Install headers
+install_directory(${EVERGREEN_HEADERS} ${INSTALL_INCLUDE_DIR}/thirdparty thirdparty_headers)
+
+
+

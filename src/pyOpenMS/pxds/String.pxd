@@ -31,7 +31,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/String.h>" namespace "OpenMS":
         # Rather perform string operations in Python (you will have a bad time
         # with unicode strings otherwise).
         size_t length() nogil except + # wrap-ignore
-        # libcpp_string operator[](int) nogil except + # wrap-upper-limit:length()
+        # libcpp_string operator[](size_t) nogil except + # wrap-upper-limit:length()
 
 cdef extern from "<OpenMS/DATASTRUCTURES/String.h>" namespace "OpenMS::String":
     

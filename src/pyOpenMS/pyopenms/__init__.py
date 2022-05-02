@@ -32,15 +32,22 @@ here = os.path.abspath(os.path.dirname(__file__))
 default_openms_data_path = os.path.join(here, "share/OpenMS")
 env_openms_data_path = os.environ.get("OPENMS_DATA_PATH")
 
-if not env_openms_data_path:
-    os.environ["OPENMS_DATA_PATH"] = default_openms_data_path
+if os.path.exists(default_openms_data_path):
+    if not env_openms_data_path:
+        os.environ["OPENMS_DATA_PATH"] = default_openms_data_path
+    else:
+        print(
+            "Warning: OPENMS_DATA_PATH environment variable already exists. "
+            "pyOpenMS will use it ({env}) to locate data in the OpenMS share folder "
+            "(e.g., the unimod database), instead of the default ({default})."
+            .format(env=env_openms_data_path, default=default_openms_data_path)
+        )
 else:
-    print(
-        "Warning: OPENMS_DATA_PATH environment variable already exists. "
-        "pyOpenMS will use it ({env}) to locate data in the OpenMS share folder "
-        "(e.g., the unimod database), instead of the default ({default})."
-        .format(env=env_openms_data_path, default=default_openms_data_path)
-    )
+    if not env_openms_data_path:
+         print(
+            "Warning: OPENMS_DATA_PATH environment variable not found and no share directory was installed. "
+            "Some functionality might not work as expected."
+        )
 
 import sys
 # on conda the libs will be installed to the general conda lib path which is available during load.

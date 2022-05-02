@@ -520,7 +520,7 @@ namespace OpenMS
           item = new QTreeWidgetItem(parent);
           //name
           item->setText(0, String(par.name).toQString());
-          item->setTextColor(0, Qt::darkGray);  // color of nodes with children
+          item->setForeground(0, Qt::darkGray);  // color of nodes with children
 
           //description
           item->setData(1, Qt::UserRole, String(par.description).toQString());
@@ -554,15 +554,15 @@ namespace OpenMS
       bool is_required = it->tags.find("required") != it->tags.end();
       if (is_required)  // special color for required parameters
       {
-        item->setTextColor(0, QColor(255, 140, 0, 255)); // orange
-        item->setTextColor(2, QColor(255, 140, 0, 255));
-        item->setTextColor(3, QColor(255, 140, 0, 255));
+        item->setForeground(0, QColor(255, 140, 0, 255)); // orange
+        item->setForeground(2, QColor(255, 140, 0, 255));
+        item->setForeground(3, QColor(255, 140, 0, 255));
       }
       else
       {
-        item->setTextColor(0, Qt::darkGray);
-        item->setTextColor(2, Qt::darkGray);
-        item->setTextColor(3, Qt::darkGray);
+        item->setForeground(0, Qt::darkGray);
+        item->setForeground(2, Qt::darkGray);
+        item->setForeground(3, Qt::darkGray);
       }
 
       // advanced parameter

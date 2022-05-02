@@ -99,7 +99,8 @@ START_SECTION((void calculateAveragine(const bool use_RNA_averagine)))
 
   TEST_EQUAL(precalculated_avg.getMaxIsotopeIndex(), 5);
   TEST_EQUAL(precalculated_avg.getApexIndex(50), 0);
-  TEST_REAL_SIMILAR(precalculated_avg.getAverageMassDelta(50), 0.0296591659229435);
+  TOLERANCE_ABSOLUTE(0.1);
+  TEST_REAL_SIMILAR(precalculated_avg.getAverageMassDelta(50), 0.0251458164883118);
 
   TEST_EQUAL(precalculated_avg_tmp.getMaxIsotopeIndex(), 1);
   TEST_EQUAL(precalculated_avg_tmp.getApexIndex(50), 0);
@@ -113,33 +114,8 @@ START_SECTION((PrecalculatedAveragine getAveragine()))
 
   TEST_EQUAL(precalculated_avg.getMaxIsotopeIndex(), 5);
   TEST_EQUAL(precalculated_avg.getApexIndex(50), 0);
-  TEST_REAL_SIMILAR(precalculated_avg.getAverageMassDelta(50), 0.0296591659229435);
-}
-END_SECTION
-
-START_SECTION((static double getChargeFitScore(const std::vector< double > &per_charge_intensity, const int charge_range)))
-{
-  std::vector<double> tmp_inty_vec1;
-  tmp_inty_vec1.push_back(10.);
-  tmp_inty_vec1.push_back(15.);
-  tmp_inty_vec1.push_back(10.);
-  tmp_inty_vec1.push_back(0.);
-
-  std::vector<double> tmp_inty_vec2;
-  tmp_inty_vec2.push_back(10.);
-  tmp_inty_vec2.push_back(0.);
-  tmp_inty_vec2.push_back(100.);
-  tmp_inty_vec2.push_back(1.);
-  tmp_inty_vec2.push_back(100.);
-  tmp_inty_vec2.push_back(5.);
-
-  double score1 = fd_algo.getChargeFitScore(tmp_inty_vec1, 4);
-  double score2 = fd_algo.getChargeFitScore(tmp_inty_vec2, 6);
-  double score3 = fd_algo.getChargeFitScore(tmp_inty_vec2, 3);
-
-  TEST_REAL_SIMILAR(score1, 1.);
-  TEST_REAL_SIMILAR(score2, 0.541666666666667);
-  TEST_REAL_SIMILAR(score3, 1.);
+  TOLERANCE_ABSOLUTE(0.1);
+  TEST_REAL_SIMILAR(precalculated_avg.getAverageMassDelta(50), 0.0251458164883118);
 }
 END_SECTION
 
@@ -163,13 +139,14 @@ START_SECTION((static double getIsotopeCosineAndDetermineIsotopeIndex(const doub
   double tmp_iso_3 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1500., tmp_iso_inty, offset,
                                                                       fd_algo.getAveragine(), false);
 
-  TEST_REAL_SIMILAR(tmp_iso_1, 0.99999997024829767);
-  TEST_REAL_SIMILAR(tmp_iso_2, 0.99999997024829767);
-  TEST_REAL_SIMILAR(tmp_iso_3, 0.96541073936218491);
+  TOLERANCE_ABSOLUTE(0.1);
+  TEST_REAL_SIMILAR(tmp_iso_1, 0.999980489974582);
+  TEST_REAL_SIMILAR(tmp_iso_2, 0.999980489974582);
+  TEST_REAL_SIMILAR(tmp_iso_3, 0.965410739362185);
 }
 END_SECTION
 
-START_SECTION((DeconvolutedSpectrum& getDeconvolutedSpectrum(const MSSpectrum &spec, const std::vector< DeconvolutedSpectrum > &survey_scans, const int scan_number, const std::map< int, std::vector< std::vector< double >>> &precursor_map_for_FLASHIda)))
+START_SECTION((DeconvolvedSpectrum& getDeconvolvedSpectrum(const MSSpectrum &spec, const std::vector< DeconvolvedSpectrum > &survey_scans, const int scan_number, const std::map< int, std::vector< std::vector< double >>> &precursor_map_for_FLASHIda)))
 {
   // load test data
   PeakMap input;
@@ -180,21 +157,21 @@ START_SECTION((DeconvolutedSpectrum& getDeconvolutedSpectrum(const MSSpectrum &s
   fd_algo.setParameters(fd_param);
   fd_algo.calculateAveragine(false);
 
-  std::vector<DeconvolutedSpectrum> survey_specs;
+  std::vector<DeconvolvedSpectrum> survey_specs;
   const std::map<int, std::vector<std::vector<double>>> null_map;
 
-  DeconvolutedSpectrum d_spec_1 = fd_algo.getDeconvolutedSpectrum(input[1], survey_specs, 2, null_map);
-  DeconvolutedSpectrum d_spec_2 = fd_algo.getDeconvolutedSpectrum(input[3], survey_specs, 4, null_map);
+  DeconvolvedSpectrum d_spec_1 = fd_algo.getDeconvolvedSpectrum(input[1], survey_specs, 2, null_map);
+  DeconvolvedSpectrum d_spec_2 = fd_algo.getDeconvolvedSpectrum(input[3], survey_specs, 4, null_map);
 
   survey_specs.push_back(d_spec_1);
   survey_specs.push_back(d_spec_2);
-  DeconvolutedSpectrum d_spec_3 = fd_algo.getDeconvolutedSpectrum(input[5], survey_specs, 6, null_map);
+  DeconvolvedSpectrum d_spec_3 = fd_algo.getDeconvolvedSpectrum(input[5], survey_specs, 6, null_map);
 
   TEST_EQUAL(d_spec_1.getScanNumber(), 2);
-  TEST_EQUAL(d_spec_1.size(), 3);
+  TEST_EQUAL(d_spec_1.size(), 1);
   TEST_EQUAL(d_spec_2.getPrecursorPeakGroup().size(), 0);
   TEST_REAL_SIMILAR(d_spec_2.getPrecursor().getIntensity(), .0);
-  TEST_EQUAL(d_spec_3.getPrecursorPeakGroup().size(), 39);
+  TEST_EQUAL(d_spec_3.getPrecursorPeakGroup().size(), 0);
   TEST_EQUAL(d_spec_3.getPrecursor().getCharge(), 9);
 }
 END_SECTION

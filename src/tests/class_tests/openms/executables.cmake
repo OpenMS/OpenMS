@@ -62,7 +62,6 @@ set(datastructures_executables_list
   ListUtils_test
   ListUtilsIO_test
   LPWrapper_test
-  Map_test
   MassExplainer_test
   MatchedIterator_test
   Matrix_test
@@ -298,7 +297,6 @@ set(math_executables_list
   NonNegativeLeastSquaresSolver_test
   PosteriorErrorProbabilityModel_test
   QuadraticRegression_test
-  #RegressionUtils_test
   RANSAC_test
   RANSACModel_test
   RANSACModelLinear_test
@@ -472,7 +470,7 @@ set(analysis_executables_list
   ConsensusMapNormalizerAlgorithmQuantile_test
   ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
-  DeconvolutedSpectrum_test
+  DeconvolvedSpectrum_test
   DeNovoAlgorithm_test
   DeNovoIdentification_test
   DeNovoIonScoring_test
@@ -713,6 +711,8 @@ endif(NOT DISABLE_OPENSWATH)
 set(Boost_dependent_tests
   DIAHelper_test
   EmgModel_test
+  LogConfigHandler_test
+  LogStream_test
   MRMDecoy_test
   MRMFeatureFinderScoring_test
   MRMTransitionGroupPicker_test
@@ -721,6 +721,8 @@ set(Boost_dependent_tests
   OpenSwathMRMFeatureAccessOpenMS_test
   OpenSwathSpectrumAccessOpenMS_test
   PeakPickerMRM_test
+  SpectrumLookup_test
+  SpectrumMetaDataLookup_test
   StatisticFunctions_test
   String_test
   TransitionTSVFile_test

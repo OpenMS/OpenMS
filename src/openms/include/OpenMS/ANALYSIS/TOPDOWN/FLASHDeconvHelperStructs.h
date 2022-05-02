@@ -97,28 +97,28 @@ namespace OpenMS
                              CoarseIsotopePatternGenerator *generator,
                              const bool use_RNA_averagine);
 
-      /// get distribution for input mass
+      /// get distribution for input mass. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       IsotopeDistribution get(const double mass) const;
 
       /// get max isotope index
       int getMaxIsotopeIndex() const;
 
-      /// get max isotope index
+      /// set max isotope index
       void setMaxIsotopeIndex(const int index);
 
-      /// get isotope start index
+      /// get isotope distance (from apex to the left direction) to consider. This is specified in the constructor. index. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       Size getLeftCountFromApex(const double mass) const;
 
-      /// get isotope end index
+      /// get isotope distance (from apex to the rigth direction) to consider. This is specified in the constructor. index. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       Size getRightCountFromApex(const double mass) const;
 
-      /// get index of most abundant isotope
+      /// get index of most abundant isotope. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       Size getApexIndex(const double mass) const;
 
-      /// get mass difference between avg and mono masses
+      /// get mass difference between avg and mono masses. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       double getAverageMassDelta(const double mass) const;
 
-      /// get mass difference between most abundant mass and mono masses
+      /// get mass difference between most abundant mass and mono masses. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       double getMostAbundantMassDelta(const double mass) const;
     };
 
@@ -128,37 +128,42 @@ namespace OpenMS
     public:
       TopPicItem() = default;
 
-      /// parse a single line of TopPIC output
+      /// parse a single line of TopPIC output. Header includes:
+      /// Data file name	Prsm ID	Spectrum ID	Fragmentation	Scan(s)	Retention time	#peaks	Charge	Precursor mass
+      /// Adjusted precursor mass	Proteoform ID	Feature intensity	Feature score	Protein accession	Protein description
+      /// First residue	Last residue	Proteoform	#unexpected modifications	MIScore	#variable PTMs	#matched peaks
+      /// #matched fragment ions	E-value	Spectrum-level Q-value	Proteoform-level Q-value
       explicit TopPicItem(String in);
 
       /// the line string
-      String str_;
+      String str;
       /// information from each column
-      int prsm_id_;
-      int spec_id_;
-      int scan_;
-      double rt_;
-      int peak_count_;
-      int charge_;
-      double precursor_mass_;
-      double adj_precursor_mass_;
-      int proteform_id_ = -1;
-      String protein_acc_ = "";
-      int first_residue_;
-      int last_residue_;
-      std::vector<double> unexp_mod_;
-      int matched_peaks_;
-      int matched_frags_;
-      double e_value_;
-      double spec_q_value_;
-      double proteofrom_q_value_;
-      double intensity_;
+      int prsm_id;
+      int spec_id;
+      int scan;
+      double rt;
+      int peak_count;
+      int charge;
+      double precursor_mass;
+      double adj_precursor_mass;
+      int proteform_id = -1;
+      String protein_acc = "";
+      int first_residue;
+      int last_residue;
+      std::vector<double> unexp_mod;
+      int matched_peaks;
+      int matched_frags;
+      double e_value;
+      double spec_q_value;
+      double proteofrom_q_value;
+      double intensity;
 
-      bool operator<(const TopPicItem &a) const;
+      /// scan numbers are compared
+      bool operator<(const TopPicItem& a) const;
 
-      bool operator>(const TopPicItem &a) const;
+      bool operator>(const TopPicItem& a) const;
 
-      bool operator==(const TopPicItem &other) const;
+      bool operator==(const TopPicItem& other) const;
     };
 
 
@@ -188,30 +193,25 @@ namespace OpenMS
                @brief constructor from Peak1D.
               @param positive determines the charge carrier mass
         */
-      explicit LogMzPeak(const Peak1D &peak, const bool positive);
+      explicit LogMzPeak(const Peak1D& peak, const bool positive);
 
       /// copy constructor
-      LogMzPeak(const LogMzPeak &) = default;
+      LogMzPeak(const LogMzPeak& ) = default;
 
       /// destructor
       ~LogMzPeak() = default;
 
-      /// get uncharged mass of this peak. It is NOT monoisotopic mass. Valid only when charge is set
+      /// get uncharged mass of this peak. It is NOT monoisotopic mass. Returns 0 if no charge set
       double getUnchargedMass();
 
-      bool operator<(const LogMzPeak &a) const;
+      /// log mz values are compared
+      bool operator<(const LogMzPeak& a) const;
 
-      bool operator>(const LogMzPeak &a) const;
+      bool operator>(const LogMzPeak& a) const;
 
-      bool operator==(const LogMzPeak &other) const;
+      bool operator==(const LogMzPeak& other) const;
 
     };
-
-    /**
-        //       @brief Static function to calculate averagines. PrecalculatedAveragine class is constructed inside for the calculation.
-        //       @param max_mass max mass
-        //       @param use_RNA_averagine if set, nucleotide-based averagines are calculated */
-    static PrecalculatedAveragine calculateAveragines(const double max_mass, const bool use_RNA_averagine);
 
     /**
         //       @brief calculate log mzs from mzs

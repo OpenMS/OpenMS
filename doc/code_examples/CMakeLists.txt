@@ -45,17 +45,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # get the actual code examples
 include(${CMAKE_CURRENT_LIST_DIR}/executables.cmake)
 
-# add OpenMS includes
-include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
-
-#------------------------------------------------------------------------------
-# QT dependencies
-find_package(Qt5 COMPONENTS Core Network Sql REQUIRED)
 
 # add the targets
 foreach(i ${EXAMPLES_executables})
   add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.cpp)
-  target_link_libraries(${i} ${OpenMS_LIBRARIES})
+  target_link_libraries(${i} OpenMS)
 
   # if not GUI and no style tests requested -> add as test
   if(NOT ENABLE_STYLE_TESTING)
@@ -69,15 +63,11 @@ add_custom_target(Tutorials_build)
 add_dependencies(Tutorials_build ${EXAMPLES_executables})
 
 if(WITH_GUI)
-  find_package(Qt5 COMPONENTS Core Network OpenGL Svg REQUIRED)
-  find_package(Qt5 COMPONENTS WebEngineWidgets)
-  # add OpenMS GUI includes
-  include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
 
   # add the GUI tutorials -- no tests
   foreach(i ${GUI_EXAMPLES_executables})
     add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.cpp)
-    target_link_libraries(${i} ${OpenMS_GUI_LIBRARIES})
+    target_link_libraries(${i} OpenMS OpenMS_GUI)
   endforeach(i)
 
   add_dependencies(Tutorials_build ${GUI_EXAMPLES_executables})

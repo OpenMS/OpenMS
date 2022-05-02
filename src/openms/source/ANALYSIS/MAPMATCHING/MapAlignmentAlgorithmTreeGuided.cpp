@@ -62,6 +62,8 @@ namespace OpenMS
     defaults_.setValidStrings("model_type", {"linear","b_spline","lowess","interpolated"});
     defaults_.insert("align_algorithm:", MapAlignmentAlgorithmIdentification().getDefaults());
     defaults_.setValue("align_algorithm:use_feature_rt", "true", "When aligning feature or consensus maps, don't use the retention time of a peptide identification directly; instead, use the retention time of the centroid of the feature (apex of the elution profile) that the peptide was matched to. If different identifications are matched to one feature, only the peptide closest to the centroid in RT is used.\nPrecludes 'use_unassigned_peptides'.");
+    defaults_.setValidStrings("align_algorithm:use_feature_rt", {"true","false"});
+
     defaultsToParam_();
   }
 

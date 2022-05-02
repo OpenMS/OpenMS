@@ -44,6 +44,11 @@ namespace OpenMS
   {
     flags.set(LayerDataBase::F_HULL);
   }
+  
+  std::unique_ptr<Painter1DBase> LayerDataFeature::getPainter1D() const
+  {
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+  }
 
   std::unique_ptr<LayerStatistics> LayerDataFeature::getStats() const
   {

@@ -162,6 +162,14 @@ namespace OpenSwath
         */
         double calcXcorrPrecursorContrastCoelutionScore();
 
+        /**
+           @brief Calculate the precursor cross-correlation contrast score against the sum of transitions
+	   implemented the same as calcXcorrPrecursorCoelutionScore(), however assertion is different.
+
+           The score is a distance where zero indicates perfect coelution.
+        */
+        double calcXcorrPrecursorContrastSumFragCoelutionScore();
+
         /// calculate the precursor cross-correlation coelution score including the transitions
         double calcXcorrPrecursorCombinedCoelutionScore();
 
@@ -194,6 +202,14 @@ namespace OpenSwath
 
         /// calculate the precursor cross-correlation shape score against the transitions
         double calcXcorrPrecursorContrastShapeScore();
+
+        /**
+           @brief Calculate the precursor cross-correlation contrast score against the sum of transitions
+	   implemented the same as calcXcorrPrecursorContrastShapeScore(), however assertion is different.
+
+           The score is a distance where zero indicates perfect coelution.
+        */
+        double calcXcorrPrecursorContrastSumFragShapeScore();
 
         /// calculate the precursor cross-correlation shape score including the transitions
         double calcXcorrPrecursorCombinedShapeScore();

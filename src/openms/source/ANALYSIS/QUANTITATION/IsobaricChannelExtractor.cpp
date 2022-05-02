@@ -112,7 +112,7 @@ namespace OpenMS
   IsobaricChannelExtractor::IsobaricChannelExtractor(const IsobaricQuantitationMethod* const quant_method) :
     DefaultParamHandler("IsobaricChannelExtractor"),
     quant_method_(quant_method),
-    selected_activation_(""),
+    selected_activation_("any"),
     reporter_mass_shift_(0.1),
     min_precursor_intensity_(1.0),
     keep_unannotated_precursor_(true),
@@ -166,7 +166,7 @@ namespace OpenMS
     std::vector<std::string> activation_list;
     activation_list.push_back("auto");
     activation_list.insert(activation_list.end(), Precursor::NamesOfActivationMethod, Precursor::NamesOfActivationMethod + Precursor::SIZE_OF_ACTIVATIONMETHOD - 1);
-    activation_list.push_back(""); // allow disabling this
+    activation_list.push_back("any"); // allow disabling this
 
     defaults_.setValidStrings("select_activation", activation_list);
 
@@ -472,7 +472,7 @@ namespace OpenMS
     consensus_map.setExperimentType("labeled_MS2");
 
     // create predicate for spectrum checking
-    OPENMS_LOG_INFO << "Selecting scans with activation mode: " << (selected_activation_.empty() ? "any" : selected_activation_) << std::endl;
+    OPENMS_LOG_INFO << "Selecting scans with activation mode: " << selected_activation_ << std::endl;
     
     // Select the two possible HCD activation modes according to PSI-MS ontology: HCID and HCD
     if (selected_activation_ == "auto") 
@@ -490,7 +490,7 @@ namespace OpenMS
     {
       if (it->getMSLevel() == 1) continue; // never report MS1
       ++activation_modes[getActivationMethod_(*it)]; // count HCD, CID, ...
-      if (selected_activation_.empty() || isValidActivation(*it))
+      if (selected_activation_ == "any" || isValidActivation(*it))
       {
         ++ms_level[it->getMSLevel()];
       }
@@ -543,7 +543,7 @@ namespace OpenMS
 
       if (it->getMSLevel() != quant_ms_level) continue;
       if ((*it).empty()) continue; // skip empty spectra
-      if (!(selected_activation_.empty() || isValidActivation(*it))) continue;
+      if (!(selected_activation_ == "any" || isValidActivation(*it))) continue;
 
       // find following ms1 scan (needed for purity computation)
       if (!pState.followUpValid(it->getRT()))

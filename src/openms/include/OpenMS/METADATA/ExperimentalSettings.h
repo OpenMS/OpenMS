@@ -67,14 +67,14 @@ public:
     /// Copy constructor
     ExperimentalSettings(const ExperimentalSettings &) = default;
     /// Move constructor
-    ExperimentalSettings(ExperimentalSettings&&) = default;
+    ExperimentalSettings(ExperimentalSettings &&) = default;
     /// Destructor
     ~ExperimentalSettings() override;
 
     /// Assignment operator
     ExperimentalSettings & operator=(const ExperimentalSettings &) = default;
     /// Move assignment operator
-    ExperimentalSettings& operator=(ExperimentalSettings&&) & = default;
+    ExperimentalSettings & operator=(ExperimentalSettings &&) = default;
 
     /// Equality operator
     bool operator==(const ExperimentalSettings & rhs) const;
