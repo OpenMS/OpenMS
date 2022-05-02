@@ -84,6 +84,7 @@ namespace OpenMS
     int min_abs_charge = INT_MAX;
     int max_abs_charge = INT_MIN;
     bool is_positive = true;
+
     for (auto& item: peak_group_map_)
     {
       double rt = item.first;
@@ -101,12 +102,12 @@ namespace OpenMS
       }
       map.addSpectrum(deconv_spec);
     }
+
     if (map.size() < 3)
     {
       return;
     }
 
-    map.sortSpectra();
     MassTraceDetection mtdet;
     Param mtd_param = getParameters().copy("");
     mtd_param.remove("min_isotope_cosine");
@@ -115,7 +116,6 @@ namespace OpenMS
     std::vector<MassTrace> m_traces;
 
     mtdet.run(map, m_traces);  // m_traces : output of this function
-
     int charge_range = max_abs_charge - min_abs_charge + 1;
 
     for (auto& mt: m_traces)
@@ -136,6 +136,8 @@ namespace OpenMS
       double max_intensity = 0;
       double max_iso = 0;
       boost::dynamic_bitset<> charges(charge_range + 1);
+      std::vector<PeakGroup> pgs;
+      pgs.reserve(mt.getSize());
 
       for (auto& p2: mt)
       {
@@ -153,7 +155,12 @@ namespace OpenMS
         {
           max_iso = pg.getIsotopeCosine();
         }
+        pgs.push_back(pg);
+      }
+      //std::sort(pgs.begin(), pgs.end());
 
+      for(auto& pg: pgs)
+      {
         for (auto& p: pg)
         {
           if (p.isotopeIndex < 0 || p.isotopeIndex >= averagine.getMaxIsotopeIndex() || p.abs_charge < min_abs_charge ||
@@ -163,8 +170,8 @@ namespace OpenMS
           }
 
           charges[p.abs_charge - min_abs_charge] = true;
-          per_charge_intensity[p.abs_charge - min_abs_charge] += p.intensity;
-          per_isotope_intensity[p.isotopeIndex] += p.intensity;
+          per_charge_intensity[p.abs_charge - min_abs_charge] += (p.intensity);
+          per_isotope_intensity[p.isotopeIndex] += (p.intensity);
           if (per_charge_max_intensity[p.abs_charge - min_abs_charge] > p.intensity)
           {
             continue;
@@ -176,16 +183,19 @@ namespace OpenMS
       }
 
       int offset = 0;
-
       double mass = mt.getCentroidMZ();
       double isotope_score = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(mass,
                                                                                             per_isotope_intensity,
-                                                                                            offset, averagine);
+                                                                                            offset, averagine, false);
+
+      //isotope_score = 1;
+      //offset = 0;
       if (isotope_score < min_isotope_cosine_)
       {
         continue;
       }
 
+      mass += offset * Constants::C13C12_MASSDIFF_U;
       double sum_intensity = .0;
 
       for (auto& p: mt)
@@ -214,7 +224,7 @@ namespace OpenMS
       {
         for (int i = min_feature_abs_charge; i <= max_feature_abs_charge; i++)
         {
-          fsf << per_charge_intensity[i - min_abs_charge];
+          fsf << per_charge_intensity[i - min_abs_charge - offset];
           if (i < max_feature_abs_charge)
           {
             fsf << ";";
@@ -243,10 +253,17 @@ namespace OpenMS
         }
         iso_end_index = i;
       }
-      for (int i = 0; i <= iso_end_index; i++)
+      for (int i = offset; i <= iso_end_index; i++)
       {
-        fsf << per_isotope_intensity[i];
-        if (i < iso_end_index)
+        if(i < 0)
+        {
+          fsf << 0;
+        }
+        else
+        {
+          fsf << per_isotope_intensity[i - offset];
+        }
+        if (i < iso_end_index - offset)
         {
           fsf << ";";
         }
@@ -506,14 +523,15 @@ namespace OpenMS
   {
     double rt = deconvolved_spectrum.getOriginalSpectrum().getRT();
     scan_rt_map[deconvolved_spectrum.getScanNumber()] = rt;
+
     if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != 1)
     {
       return;
     }
     else
     {
-
-      peak_group_map_[rt] = std::unordered_map<double, PeakGroup>();
+      //deconvolved_spectrum.sort();
+      peak_group_map_[rt] = std::map<double, PeakGroup>();
       auto& sub_pg_map = peak_group_map_[rt];
       for (auto& pg: deconvolved_spectrum)
       {

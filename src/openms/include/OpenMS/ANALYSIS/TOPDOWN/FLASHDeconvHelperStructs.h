@@ -79,6 +79,8 @@ namespace OpenMS
       double mass_interval_;
       /// min mass for calculation
       double min_mass_;
+      /// calculate the mass bin index from mass
+      Size massToIndex_(double const mass) const;
     public:
       /// default constructor
       PrecalculatedAveragine() = default;
@@ -201,7 +203,7 @@ namespace OpenMS
       /// destructor
       ~LogMzPeak() = default;
 
-      /// get uncharged mass of this peak. It is NOT monoisotopic mass. Returns 0 if no charge set
+      /// get uncharged mass of this peak. It is NOT a monoisotopic mass of a PeakGroup, rather a monoisotopic mass of each LogMzPeak. Returns 0 if no charge set
       double getUnchargedMass();
 
       /// log mz values are compared
@@ -224,5 +226,6 @@ namespace OpenMS
             //       @brief get charge carrier mass
             //       @param positive determines the charge carrier mass*/
     static double getChargeMass(const bool positive);
+
   };
 }

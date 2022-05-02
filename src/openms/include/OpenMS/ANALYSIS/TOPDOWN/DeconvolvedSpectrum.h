@@ -53,20 +53,10 @@ namespace OpenMS
        in FLASHDeconv tool class.
        It also contains functions to write in different formats and a function to export this class into MSSpectrum.
   */
-  class OPENMS_DLLAPI DeconvolvedSpectrum :
-      private std::vector<PeakGroup>
+  class OPENMS_DLLAPI DeconvolvedSpectrum
   {
   public:
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
-    using std::vector<PeakGroup>::push_back;
-    using std::vector<PeakGroup>::operator[];
-    using std::vector<PeakGroup>::size;
-    using std::vector<PeakGroup>::begin;
-    using std::vector<PeakGroup>::end;
-    using std::vector<PeakGroup>::swap;
-    using std::vector<PeakGroup>::empty;
-    using std::vector<PeakGroup>::reserve;
-    using std::vector<PeakGroup>::clear;
 
     /// default constructor
     DeconvolvedSpectrum() = default;
@@ -76,7 +66,7 @@ namespace OpenMS
        @param spectrum spectrum for which the deconvolution will be performed
        @param scan_number scan number of the spectrum: this argument is put here for real time case where scan number should be input separately.
   */
-    explicit DeconvolvedSpectrum(const MSSpectrum& spectrum, const int scan_number);
+    DeconvolvedSpectrum(const MSSpectrum& spectrum, const int scan_number);
 
     /// default deconstructor
     ~DeconvolvedSpectrum() = default;
@@ -140,30 +130,17 @@ namespace OpenMS
     /// @param to_charge the charge of each peak in mzml output.
     MSSpectrum toSpectrum(const int to_charge);
 
-    /**
-    @brief register the precursor peak as well as the precursor peak group (or mass) if possible for MSn (n>1) spectrum.
-    Given a precursor peak (found in the original MS n-1 Spectrum) the masses containing the precursor peak are searched.
-    If multiple masses are detected, the one with the best QScore is selected. For the selected mass, its corresponding peak group (along with precursor peak) is registered.
-    If no such mass exists, only the precursor peak is registered.
-    @param survey_scans the candidate precursor spectra - the user may allow search of previous N survey scans.
-    @param is_positive if MS mode is positive
-    @param isolation_window_size_ default isolation window size for precursor.
-    @param precursor_map_for_real_time_acquisition this contains the deconvolved mass information from FLASHIda runs.
-    */
-    bool registerPrecursor(const std::vector<DeconvolvedSpectrum>& survey_scans,
-                           const bool is_positive, double isolation_window_size_,
-                           const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_real_time_acquisition);
-
     /// original spectrum getter
     const MSSpectrum& getOriginalSpectrum() const;
 
     /// get precursor peak group for MSn (n>1) spectrum. It returns an empty peak group if no peak group is registered (by registerPrecursor)
-    PeakGroup getPrecursorPeakGroup() const;
+    const PeakGroup& getPrecursorPeakGroup() const;
 
     /// precursor charge getter (set in registerPrecursor)
     int getPrecursorCharge() const;
 
-    const Precursor getPrecursor() const;
+    /// get precursor peak
+    const Precursor& getPrecursor() const;
 
     /// get possible max mass of the deconvolved masses - for MS1, max mass specified by user
     /// for MSn, min value between max mass specified by the user and precursor mass
@@ -187,9 +164,43 @@ namespace OpenMS
     int getPrecursorScanNumber() const;
 
     /// get activation method
-    //std::string getActivation_method();
+    const String& getActivationMethod() const;
 
+    /// set max isotope index
+    void setPrecursor(const Precursor& precursor);
+
+    /// set precursor peak intensity
+    void setPrecursorIntensity(const double i);
+
+    /// set max isotope index
+    void setPrecursorScanNumber(const int scan_number);
+
+    /// set activation method
+    void setActivationMethod(const String& method);
+
+    /// set precusor peakGroup
+    void setPrecursorPeakGroup(const PeakGroup& pg);
+
+    std::vector<PeakGroup>::const_iterator begin() const noexcept;
+    std::vector<PeakGroup>::const_iterator end() const noexcept;
+
+    std::vector<PeakGroup>::iterator begin() noexcept;
+    std::vector<PeakGroup>::iterator end() noexcept;
+
+
+    const PeakGroup& operator[](Size i) const;
+    void push_back (const PeakGroup& pg);
+    Size size() const noexcept;
+    void clear();
+    void reserve (Size n);
+    bool empty() const;
+    void swap (std::vector<PeakGroup>& x);
+
+    void sort();
+    void sortByQScore();
   private:
+    /// peak groups (deconvolved masses)
+    std::vector<PeakGroup> peak_groups;
     /// the original raw spectrum (not deconvolved)
     MSSpectrum spec_;
     /// precursor peakGroup (or mass)
@@ -204,5 +215,6 @@ namespace OpenMS
     int topFD_min_peak_count_ = 3;
     /// number of maximum peak count in topFD msalign file
     int topFD_max_peak_count_ = 500;
+
   };
 }
