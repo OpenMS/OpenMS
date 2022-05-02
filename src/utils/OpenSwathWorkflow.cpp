@@ -479,6 +479,7 @@ protected:
     // misc options
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the upper edge of a Swath window to still consider a precursor, in Thomson", false, true);
     registerFlag_("sonar", "data is scanning SWATH data");
+    registerFlag_("pasef", "data is PASEF data");
 
     // RT, mz and IM windows
     registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
@@ -686,6 +687,7 @@ protected:
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool force = getFlag_("force");
     bool sonar = getFlag_("sonar");
+    bool pasef = getFlag_("pasef");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
     bool use_ms1_traces = getStringOption_("enable_ms1") == "true";
     bool enable_uis_scoring = getStringOption_("enable_ipf") == "true";
@@ -834,7 +836,7 @@ protected:
       qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
       if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions, 
                           swath_windows_file, min_upper_edge_dist, force,
-                          sort_swath_maps, sonar, prm, &qc_consumer))
+                          sort_swath_maps, sonar, prm, pasef, &qc_consumer))
       {
         return PARSE_ERROR;
       }
@@ -844,7 +846,7 @@ protected:
     {
       if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions, 
                           swath_windows_file, min_upper_edge_dist, force,
-                          sort_swath_maps, sonar, prm))
+                          sort_swath_maps, sonar, prm, pasef))
       {
         return PARSE_ERROR;
       }
@@ -949,7 +951,7 @@ protected:
     }
     else
     {
-      OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, outer_loop_threads);
+      OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, outer_loop_threads);
       wf.setLogType(log_type_);
       wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
           out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory);

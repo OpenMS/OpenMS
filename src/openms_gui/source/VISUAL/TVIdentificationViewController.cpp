@@ -1203,8 +1203,14 @@ namespace OpenMS
 #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "Adding annotation item based on fragment annotations: " << label << endl;
 #endif
-
+        /*
+         * Suppressed warning QSTring::SkipEmptyParts and QString::SplitBehaviour is deprecated
+         * QT::SkipEmptyParts and QT::SplitBehaviour is added or modified at Qt 5.14
+         */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
       QStringList lines = label.toQString().split(QRegExp("[\r\n]"), QString::SkipEmptyParts);
+#pragma GCC diagnostic pop
       if (lines.size() > 1)
       {
         label = String(lines[0]);

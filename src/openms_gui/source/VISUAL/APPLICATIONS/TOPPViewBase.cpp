@@ -88,7 +88,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QSettings>
 #include <QtCore/QUrl>
-#include <QtWidgets/QDesktopWidget>
+#include <QGuiApplication>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
@@ -129,7 +129,7 @@ namespace OpenMS
     setAcceptDrops(true); // enable drag-and-drop
 
     // get geometry of first screen
-    QRect screen_geometry = QApplication::desktop()->screenGeometry();
+    QRect screen_geometry = QGuiApplication::primaryScreen()->geometry();
     // center main window
     setGeometry(
       (int)(0.1 * screen_geometry.width()),
@@ -231,7 +231,13 @@ namespace OpenMS
     intensity_button_group_->addButton(b, PlotCanvas::IM_LOG);
     tool_bar_->addWidget(b);
 
+    /*
+     * Suppressed warning QButtonGroup buttonClicked(int) till Qt 5.15
+     */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     connect(intensity_button_group_, CONNECTCAST(QButtonGroup,buttonClicked,(int)), this, &TOPPViewBase::setIntensityMode);
+#pragma GCC diagnostic pop
     tool_bar_->addSeparator();
 
     //common buttons
@@ -266,7 +272,14 @@ namespace OpenMS
     draw_group_1d_->addButton(b, Plot1DCanvas::DM_CONNECTEDLINES);
     tool_bar_1d_->addWidget(b);
 
+    /*
+     * Suppressed warning QButtonGroup buttonClicked(int) till Qt 5.15
+     */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     connect(draw_group_1d_, CONNECTCAST(QButtonGroup, buttonClicked, (int)), this, &TOPPViewBase::setDrawMode1D);
+#pragma GCC diagnostic pop
+
     tool_bar_->addSeparator();
 
     //--2D peak toolbar--

@@ -35,6 +35,9 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/GNPSMGFFile.h>
+#include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -101,7 +104,7 @@ class TOPPGNPSExport : public TOPPBase
 public:
   TOPPGNPSExport() : TOPPBase(
     "GNPSExport",
-    "Tool to export representative consensus MS/MS scan per consensusElement into a .MGF file format.\nSee the documentation on https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking_with_openms",
+    "Tool to export representative consensus MS/MS scan per consensusElement into a .MGF file format.\nSee the documentation on https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking-with-openms",
     true,
     {
       {
@@ -119,13 +122,19 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in_cm", "<file>", "", "Input consensusXML file containing only consensusElements with \"peptide\" annotations.");
-    setValidFormats_("in_cm", ListUtils::create<String>("consensusXML"));
+    setValidFormats_("in_cm", {"consensusXML"});
 
     registerInputFileList_("in_mzml", "<files>", ListUtils::create<String>(""), "Original mzml files containing the ms2 spectra (aka peptide annotation). \nMust be in order that the consensusXML file maps the original mzML files.");
-    setValidFormats_("in_mzml", ListUtils::create<String>("mzML"));
+    setValidFormats_("in_mzml", {"mzML"});
 
-    registerOutputFile_("out", "<file>", "", "Output MGF file");
-    setValidFormats_("out", ListUtils::create<String>("mgf"));
+    registerOutputFile_("out", "<file>", "", "Output MGF file.");
+    setValidFormats_("out", {"mgf"});
+
+    registerOutputFile_("out_quantification", "<file>", "", "Output feature quantification table.");
+    setValidFormats_("out_quantification", {"txt"});
+
+    registerOutputFile_("out_pairs", "<file>", "", "Output supplementary pairs table for IIMN.", false);
+    setValidFormats_("out_pairs", {"csv"});
 
     addEmptyLine_();
 
@@ -141,6 +150,25 @@ protected:
     String consensus_file_path(getStringOption_("in_cm"));
     StringList mzml_file_paths = getStringList_("in_mzml");
     String out(getStringOption_("out"));
+    String out_quantification(getStringOption_("out_quantification"));
+    String out_pairs(getStringOption_("out_pairs"));
+
+    // load ConsensusMap from file
+    ConsensusMap cm;
+    ConsensusXMLFile().load(consensus_file_path, cm);
+
+    // if at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN
+    for (const auto& f: cm)
+    {
+      if (f.metaValueExists(Constants::UserParam::IIMN_LINKED_GROUPS))
+      {
+        IonIdentityMolecularNetworking::annotateConsensusMap(cm);
+        break;
+      }
+    }
+
+    if (!out_pairs.empty()) IonIdentityMolecularNetworking::writeSupplementaryPairTable(cm, out_pairs);
+    if (!out_quantification.empty()) IonIdentityMolecularNetworking::writeFeatureQuantificationTable(cm, out_quantification);
 
     GNPSMGFFile gnps;
     gnps.setLogType(log_type_);

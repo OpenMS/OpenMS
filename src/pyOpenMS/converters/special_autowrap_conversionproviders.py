@@ -14,6 +14,9 @@ class OpenMSDPosition2(TypeConverterBase):
 
     def matching_python_type(self, cpp_type):
         return ""
+    
+    def matching_python_type_full(self, cpp_type):
+        return "Union[Sequence[int], Sequence[float]]"
 
     def type_check_expression(self, cpp_type, argument_var):
         return "len(%s) == 2 and isinstance(%s[0], (int, float)) "\
@@ -55,6 +58,13 @@ class OpenMSDPosition2Vector(TypeConverterBase):
 
     def matching_python_type(self, cpp_type):
         return "np.ndarray[np.float32_t,ndim=2]"
+    
+    def matching_python_type_full(self, cpp_type):
+        # TODO figure out the best way to do numpy typing.
+        # Note that using e.g. the nptyping package will need a top-of-file import which we cannot inject.
+        # This means we would either need to support injection or import per default in autowraps pyi files
+        # For now, write a string which just serves as documentation
+        return "'np.ndarray[np.float32_t,ndim=2]'"
 
     def type_check_expression(self, cpp_type, argument_var):
         return "%s.shape[1] == 2" % argument_var
@@ -125,6 +135,9 @@ class OpenMSDataValue(TypeConverterBase):
     def matching_python_type(self, cpp_type):
         return ""
 
+    def matching_python_type_full(self, cpp_type):
+        return "Union[int, long, float, bytes, str, unicode, List[int], List[long], List[float], List[bytes]]"
+
     def type_check_expression(self, cpp_type, argument_var):
         return "isinstance(%s, (int, long, float, list, bytes, str, unicode))" % argument_var
 
@@ -168,6 +181,9 @@ class OpenMSParamValue(TypeConverterBase):
 
     def matching_python_type(self, cpp_type):
         return ""
+      
+    def matching_python_type_full(self, cpp_type):
+        return "Union[int, long, float, bytes, str, unicode, List[int], List[long], List[float], List[bytes]]"
 
     def type_check_expression(self, cpp_type, argument_var):
         return "isinstance(%s, (int, long, float, list, bytes, str, unicode))" % argument_var
@@ -214,6 +230,9 @@ class OpenMSStringConverter(TypeConverterBase):
     def matching_python_type(self, cpp_type):
         # We allow bytes, unicode, str and String
         return ""
+      
+    def matching_python_type_full(self, cpp_type):
+        return "Union[bytes, unicode, str, String]"
 
     def type_check_expression(self, cpp_type, argument_var):
         # Need to treat ptr and reference differently as these may be modified
@@ -258,6 +277,9 @@ class AbstractOpenMSListConverter(TypeConverterBase):
 
     def matching_python_type(self, cpp_type):
         return "list"
+      
+    def matching_python_type_full(self, cpp_type):
+        return "List[%s]" % (self.inner_py_type)
 
     def type_check_expression(self, cpp_type, argument_var):
         return\
@@ -327,6 +349,9 @@ class StdVectorStringConverter(TypeConverterBase):
 
     def matching_python_type(self, cpp_type):
         return "list"
+      
+    def matching_python_type_full(self, cpp_type):
+        return "List[bytes]"
 
     def type_check_expression(self, cpp_type, arg_var):
         return Code().add("""
@@ -398,6 +423,9 @@ class OpenMSStringListConverter(StdVectorStringConverter):
 
     def matching_python_type(self, cpp_type):
         return "list"
+      
+    def matching_python_type_full(self, cpp_type):
+        return "List[%s]" % (self.inner_py_type)
 
     def type_check_expression(self, cpp_type, argument_var):
         return\
@@ -415,6 +443,9 @@ class StdSetStringConverter(TypeConverterBase):
 
     def matching_python_type(self, cpp_type):
         return "set"
+    
+    def matching_python_type_full(self, cpp_type):
+        return "Set[bytes]"
 
     def type_check_expression(self, cpp_type, arg_var):
         return Code().add("""
@@ -481,6 +512,9 @@ class CVTermMapConverter(TypeConverterBase):
 
     def matching_python_type(self, cpp_type):
         return "dict"
+      
+    def matching_python_type_full(self, cpp_type):
+        return "Dict[bytes,List[CVTerm]]"
 
     def type_check_expression(self, cpp_type, arg_var):
         return Code().add("""
