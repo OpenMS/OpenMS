@@ -37,10 +37,13 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
+
 
 namespace OpenMS
 {
@@ -121,12 +124,12 @@ namespace OpenMS
     std::getline(data, line); // possible header (or first line)
     if (std::any_of(line.begin(), line.end(), [](char const &c) { return std::isalpha(c); }))
     { // if any of the characters are alphabetical then there is a header
-      std::cout << "Read Swath window header: '" << line << "'\n";
+      OPENMS_LOG_INFO << "Read Swath window header: '" << line << "'\n";
       std::getline(data, line); // first line of swath window
      }
     else 
     {
-      std::cout << "Swath Header not found'\n";
+      OPENMS_LOG_INFO << "Swath Header not found'\n";
     }
 
     do
