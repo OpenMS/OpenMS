@@ -42,14 +42,6 @@ set (CONFIGURED_TEST_CONFIG_H "${PROJECT_BINARY_DIR}/include/OpenMS/test_config.
 configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/test_config.h.in ${CONFIGURED_TEST_CONFIG_H})
 
 #------------------------------------------------------------------------------
-# Some tests have a link dependency to boost so we find our own boost here
-find_boost(math_c99)
-
-if(NOT Boost_FOUND)
-  message(FATAL_ERROR "Boost was not found!")
-endif()
-
-#------------------------------------------------------------------------------
 # get the test executables
 include(executables.cmake)
 
@@ -66,14 +58,6 @@ include_directories(SYSTEM ${OPENMS_CLASS_TESTS_EXTERNAL_INCLUDE_DIRECTORIES})
 if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
   set(_TMP_CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
   set(CMAKE_CXX_FLAGS_RELEASE "-O0")
-endif()
-
-#------------------------------------------------------------------------------
-# QT dependencies
-find_package(Qt5 COMPONENTS Core Network Sql REQUIRED)
-if (NOT Qt5Network_FOUND)
-  message(STATUS "QtNetwork module not found!")
-  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
 endif()
 
 #------------------------------------------------------------------------------

@@ -649,6 +649,10 @@ if ("${PY_NUM_MODULES}" GREATER "1")
       )
       add_dependencies(pyopenms_${nr} compile_pxds) # this is necessary for make (not ninja), to avoid race conditions
       add_dependencies(pyopenms_compile pyopenms_${nr})
+      add_custom_command(TARGET pyopenms_${nr}
+                   POST_BUILD
+                   COMMAND ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/fix_pyi_imports.py ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.pyi
+                   COMMENT "Fixing typing information for pyopenms_${nr}")
     endforeach()
 else()
     Python_add_library(pyopenms_compile MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.cpp" )

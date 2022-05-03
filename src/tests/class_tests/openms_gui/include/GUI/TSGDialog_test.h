@@ -70,54 +70,16 @@ namespace OpenMS
       template<typename T> // template for QSpinBox and QDoubleSpinBox
       void testSpinBox_(T* box, std::string str_value = "2");
 
-      void testIonsIntensities_(bool peptide_input);
+      void testIonsIntensities_();
 
       void testSequenceInput_(QString input);
 
-      void testIsotopeModel_();
+      void testIsotopeModel_(bool skip_none = false);
 
       void checkMessageBoxExists_();
 
       void testMessageBoxes_();
 
       TheoreticalSpectrumGenerationDialog dialog_;
-
-      // For each check box get its intensity spin box.
-      // Order is important here!
-      // To access the right entry for each check box
-      // use int(TheoreticalSpectrumGenerationDialog::CheckBox).
-      const std::vector<QDoubleSpinBox*> check_box_to_intensity_ {
-        UI->a_intensity,        // A-Ion
-        UI->a_b_intensity,      // a-B-Ion
-        UI->b_intensity,        // B-Ion
-        UI->c_intensity,        // C-Ion
-        UI->d_intensity,        // D-Ion
-        UI->w_intensity,        // W-Ion
-        UI->x_intensity,        // X-Ion
-        UI->y_intensity,        // Y-Ion
-        UI->z_intensity,        // Z-Ion
-        nullptr,                // Precursor
-        nullptr,                // Neutral losses: UI->rel_loss_intensity is a normal spin box
-        nullptr                 // Abundant Immonium Ions
-      };
-
-      // To check if the check box is enabled for <'Peptide','RNA'>
-      // Order is important here!
-      // To access the right entry for each check box
-      // use int(TheoreticalSpectrumGenerationDialog::CheckBox).
-      const std::vector<std::pair<bool, bool>> intensity_ion_exists {
-        {1, 1},        // A-Ion
-        {0, 1},        // a-B-Ion
-        {1, 1},        // B-Ion
-        {1, 1},        // C-Ion
-        {0, 1},        // D-Ion
-        {0, 1},        // W-Ion
-        {1, 1},        // X-Ion
-        {1, 1},        // Y-Ion
-        {1, 1},        // Z-Ion
-        {1, 1},        // Precursor
-        {1, 0},        // Neutral losses
-        {1, 0}         // Abundant Immonium Ions
-       };
   };
 }

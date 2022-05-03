@@ -65,28 +65,13 @@ namespace OpenMS
   {
     class SwathTabWidget;
 
-    /**
-      @brief RAII class to switch to certain TabWidget, disable the GUI and go back to the orignal Tab when this class is destroyed
-    */
-    class SwathGUILock
-    {
-      public:
-        SwathGUILock(SwathTabWidget* stw);
-
-      ~SwathGUILock();
-      private:
-        SwathTabWidget* stw_;
-        QWidget* old_;
-        GUIHelpers::GUILock glock_;
-    };
-
     /// A multi-tabbed widget for the SwathWizard offering setting of parameters, input-file specification and running Swath and more
     class OPENMS_GUI_DLLAPI SwathTabWidget : public QTabWidget
     {
       Q_OBJECT
 
     public:
-      friend class SwathGUILock;
+      template <typename> friend class WizardGUILock;
 
       explicit SwathTabWidget(QWidget *parent = nullptr);
       ~SwathTabWidget();
