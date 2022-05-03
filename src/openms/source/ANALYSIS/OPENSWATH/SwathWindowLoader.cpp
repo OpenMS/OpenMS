@@ -126,7 +126,7 @@ namespace OpenMS
     std::getline(data, line);
     try 
     { // If string can be successfully converted to double (excluding initial spaces) then the first line is not a header
-      StringUtils::split(line.trim(), ' ', headerSubstrings);
+      StringUtils::split(line.trim().substitute('\t', ' '), ' ', headerSubstrings);
       StringUtils::toDouble(headerSubstrings[0]);
       OPENMS_LOG_INFO << "Swath Header not found" << std::endl;
     }
