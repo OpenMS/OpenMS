@@ -50,8 +50,11 @@ using namespace OpenMS;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+/*
 File::TempDir dir;
 const String path = dir.getPath();
+ */
+const String path = "/buffer/ag_bsc/pmsb_22";
 
 START_SECTION(MQEvidence())
 {
@@ -94,7 +97,7 @@ START_SECTION((void exportFeatureMap(
     evd.exportFeatureMap(fmap_six, cmap_one);
   }
   String filename = path + "/evidence.txt";
-  TEST_FILE_SIMILAR(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("MQEvidence_result.txt"));
+  TEST_FILE_SIMILAR(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("evidence_.txt"));
 }
 END_SECTION
 /////////////////////////////////////////////////////////////
