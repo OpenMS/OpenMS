@@ -48,13 +48,17 @@ namespace OpenMS
     DefaultParamHandler("PeptideAndProteinQuant"), stats_(), pep_quant_(),
     prot_quant_()
   {
+    std::vector<std::string> true_false = {"true","false"};
+
+    defaults_.setValue("iBAQ", "false", "Use intensity based absolute quantification (iBAQ) instead of TOP3. Setting to true will override top with 0 and average with sum.");
+    defaults_.setValidStrings("iBAQ", true_false);
+
     defaults_.setValue("top", 3, "Calculate protein abundance from this number of proteotypic peptides (most abundant first; '0' for all)");
     defaults_.setMinInt("top", 0);
 
     defaults_.setValue("average", "median", "Averaging method used to compute protein abundances from peptide abundances");
     defaults_.setValidStrings("average", {"median","mean","weighted_mean","sum"});
 
-    std::vector<std::string> true_false = {"true","false"};
 
     defaults_.setValue("include_all", "false", "Include results for proteins with fewer proteotypic peptides than indicated by 'top' (no effect if 'top' is 0 or 1)");
     defaults_.setValidStrings("include_all", true_false);
@@ -416,10 +420,17 @@ namespace OpenMS
       }
     }
 
+    bool ibaq = param_.getValue("iBAQ") == "true";
     Size top = param_.getValue("top");
     std::string average = param_.getValue("average");
     bool include_all = param_.getValue("include_all") == "true";
     bool fix_peptides = param_.getValue("consensus:fix_peptides") == "true";
+
+    if (ibaq) // TODO: replace override with new default for top and average when iBAQ is true
+    {
+      top = 0;
+      average = "sum";
+    }
 
     for (auto & prot_q : prot_quant_)
     {
@@ -527,6 +538,13 @@ namespace OpenMS
         prot_q.second.total_abundances[ab.first] = abundance_result;
       }
 
+      if (ibaq)
+      {
+        cout << prot_q.second << endl;
+        //prot_q holds accession (first) & PeptideAndProteinQuant (second)
+        //search in proteins.getHits() for correct accession
+      }
+
       // update statistics:
       if (prot_q.second.total_abundances.empty()) 
       { 
@@ -536,6 +554,7 @@ namespace OpenMS
       {
         stats_.quant_proteins++;
       }
+
     }
   }
 
