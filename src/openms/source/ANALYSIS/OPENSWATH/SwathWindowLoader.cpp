@@ -34,12 +34,12 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
 
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <fstream>
 #include <iostream>
@@ -57,9 +57,10 @@ namespace OpenMS
     // Sort the windows by the start of the lower window
     if (do_sort)
     {
-      std::sort(swath_maps.begin(), swath_maps.end(), [](const OpenSwath::SwathMap& left, const OpenSwath::SwathMap& right) {
-        return left.upper < right.upper;
-      });
+      std::sort(swath_maps.begin(), swath_maps.end(), [](const OpenSwath::SwathMap& left, const OpenSwath::SwathMap& right)
+        {
+          return left.upper < right.upper;
+        });
     }
 
     Size i = 0, j = 0;
@@ -123,7 +124,8 @@ namespace OpenMS
 
     // Check for presence of header
     std::getline(data, line);
-    try { // If string can be successfully converted to double (excluding initial spaces) then the first line is not a header
+    try 
+    { // If string can be successfully converted to double (excluding initial spaces) then the first line is not a header
       StringUtils::split(line.trim(), ' ', headerSubstrings);
       StringUtils::toDouble(headerSubstrings[0]);
       OPENMS_LOG_INFO << "Swath Header not found" << std::endl;
