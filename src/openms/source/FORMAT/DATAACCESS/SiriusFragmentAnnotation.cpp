@@ -132,12 +132,22 @@ namespace OpenMS
       }
 
       ann_spec_tmp = extractAnnotationsFromSiriusFile_(subdir, 1, true, use_exact_mass);
-      if (ann_spec_tmp.empty())
+      // if no spectrum can be extracted we add an empty spectrum
+      //  to the TD pair for backwards compatibility with AssayGeneratorMetabo
+      MSSpectrum annotated_decoy_for_best_tgt = MSSpectrum();
+      if (!ann_spec_tmp.empty())
       {
-        continue;
+        //I ASSUME that decoys are in the same ranking order as their corresponding targets.
+        annotated_decoy_for_best_tgt = ann_spec_tmp[0];
       }
-      //I ASSUME that decoys are in the same ranking order as their corresponding targets.
-      MSSpectrum annotated_decoy_for_best_tgt = ann_spec_tmp[0];
+      else // fill with basics for backwards-compatibility. IMHO this should be solved differently.
+      {
+        OpenMS::String concat_native_ids = SiriusFragmentAnnotation::extractConcatNativeIDsFromSiriusMS_(subdir);
+        OpenMS::String concat_m_ids = SiriusFragmentAnnotation::extractConcatMIDsFromSiriusMS_(subdir);
+        annotated_decoy_for_best_tgt.setNativeID(concat_native_ids);
+        annotated_decoy_for_best_tgt.setName(concat_m_ids);
+      }
+
       // only use spectra over a certain score threshold (0-1)
       if (double(best_annotated_spectrum.getMetaValue("score")) >= score_threshold)
       {
@@ -417,50 +427,57 @@ namespace OpenMS
         ifstream fragment_annotation_file(sirius_result_file.absoluteFilePath().toStdString());
         if (fragment_annotation_file)
         {
+          // Target schema
           //mz  intensity   rel.intensity   exactmass   formula ionization
           //51.023137   713.15  9.36    51.022927   C4H2    [M + H]+
 
+          //Decoy schema
+          //mz	      rel.intensity	formula	ionization
+          //46.994998	0.71	        CH2S	  [M + H]+
+
           std::vector<Peak1D> fragments_mzs_ints;
-          MSSpectrum::FloatDataArray fragments_exactmasses;
+          MSSpectrum::FloatDataArray fragments_extra_masses;
           MSSpectrum::StringDataArray fragments_explanations;
           MSSpectrum::StringDataArray fragments_ionization;
+          Size main_mz_col = 0;
+          Size extra_mz_col = 3;
+
+          // option to use the exact mass as peak MZ (e.g. for library preparation).
           if (use_exact_mass)
           {
-            fragments_exactmasses.setName("mz");
+            main_mz_col = 3;
+            extra_mz_col = 0;
+            fragments_extra_masses.setName("mz");
           }
           else
           {
-            fragments_exactmasses.setName("exact_mass");
+            fragments_extra_masses.setName("exact_mass");
           }
+
           fragments_explanations.setName("explanation");
           String line;
           std::getline(fragment_annotation_file, line); // skip header
           while (std::getline(fragment_annotation_file, line))
           {
-            Peak1D fragment_mz_int;
+            //Peak1D fragment_mz_int;
             StringList splitted_line;
             line.split("\t",splitted_line);
-            // option to use the exact mass as peak MZ (e.g. for library preparation).
-            if (use_exact_mass)
+
+            if (!decoy)
             {
-              fragment_mz_int.setMZ(splitted_line[3].toDouble());
-              fragments_exactmasses.push_back(splitted_line[0].toFloat());
+              fragments_extra_masses.push_back(splitted_line[extra_mz_col].toFloat());
             }
-            else
-            {
-              fragment_mz_int.setMZ(splitted_line[0].toDouble());
-              fragments_exactmasses.push_back(splitted_line[3].toFloat());
-            }
-            fragment_mz_int.setIntensity(splitted_line[1].toFloat());
-            fragments_mzs_ints.push_back(fragment_mz_int);
-            fragments_explanations.push_back(splitted_line[4]);
-            fragments_ionization.push_back(splitted_line[5]);
+            //fragment_mz_int.setMZ(splitted_line[main_mz_col].toDouble());
+            //fragment_mz_int.setIntensity(splitted_line[1].toFloat());
+            fragments_mzs_ints.emplace_back(splitted_line[main_mz_col].toDouble(), splitted_line[1].toFloat());
+            fragments_explanations.push_back(splitted_line[splitted_line.size() - 2]);
+            fragments_ionization.push_back(splitted_line[splitted_line.size() - 1]);
           }
           msspectrum_to_fill.setMetaValue("score", DataValue(score));
 
           msspectrum_to_fill.setMSLevel(2);
           msspectrum_to_fill.swap(fragments_mzs_ints);
-          msspectrum_to_fill.getFloatDataArrays().push_back(fragments_exactmasses);
+          msspectrum_to_fill.getFloatDataArrays().push_back(fragments_extra_masses);
           msspectrum_to_fill.getStringDataArrays().push_back(fragments_explanations);
           msspectrum_to_fill.getStringDataArrays().push_back(fragments_ionization);
         }
