@@ -67,6 +67,39 @@ namespace OpenMS
 
     /// draw a caret '^' at @p position, using a certain size (= width) of the caret
     static void drawCaret(const QPoint& position, QPainter* painter, const int size = 8);
+
+    static QPainterPath getOpenArrow(int arrow_width)
+    { // arrow definition
+      QPainterPath arrow;
+      arrow.moveTo(QPointF(0, 0));
+      arrow.lineTo(QPointF(-arrow_width, 4));
+      arrow.moveTo(QPointF(0, 0));
+      arrow.lineTo(QPointF(-arrow_width, -4));
+      return arrow;
+    }
+    static QPainterPath getClosedArrow(int arrow_width)
+    { // arrow definition
+      QPainterPath arrow;
+      arrow.moveTo(QPointF(0, 0));
+      arrow.lineTo(QPointF(-arrow_width, 4));
+      arrow.lineTo(QPointF(-arrow_width, -4));
+      arrow.closeSubpath();
+      return arrow;
+    }
+
+    /**
+     * \brief 
+     * \param painter The painter to paint with
+     * \param pen For setting line width and color
+     * \param start Start position of the line
+     * \param end End position of the line
+     * \param arrow_start An (optional) arrow head. Use 'getOpenArrow' or 'getClosedArrow' for predefined arrows
+     * \param arrow_end  An (optional) arrow tail. Use 'getOpenArrow' or 'getClosedArrow' for predefined arrows
+     * \return The bounding rectangle of the line and arrows (if any)
+     */
+    static QRectF drawLineWithArrows(QPainter* painter, const QPen& pen, const QPoint& start, const QPoint& end, 
+                                     const QPainterPath& arrow_start = QPainterPath(),
+                                     const QPainterPath& arrow_end = QPainterPath());
   };
 
   /**

@@ -72,7 +72,9 @@ namespace OpenMS
            Derived classes implement virtual functions, which receive a well-defined data type,
            e.g. a Feature, and return the appropriate value for their dimension (the DimRT class would return the RT of the feature).
            This makes it possible to extract dimensions using a runtime configuration of DimBase instances.
-           Very useful when mapping units (RT, m/z) to axis when plotting etc.  
+           Very useful when mapping units (RT, m/z) to axis when plotting etc.
+
+           The reverse (X-Y coordinates to data type, e.g. Peak1D) is also possible using 'from...()' methods
   */
   class OPENMS_DLLAPI DimBase
   {
@@ -112,12 +114,19 @@ namespace OpenMS
 
     virtual ValueType map(const PeptideIdentification& pi) const = 0;
 
-
     /// Return the min/max (range) for a certain dimension
     virtual RangeBase map(const RangeAllType& rm) const = 0;
 
     /// Set the min/max (range) in @p rm for a certain dimension
     virtual void setRange(const RangeBase& in, RangeAllType& out) const = 0;
+
+
+    // from XY to a type
+
+    /// set the dimension of a Peak1D
+    virtual void fromXY(const ValueType in, Peak1D& p) const = 0;
+    /// set the dimension of a ChromatogramPeak
+    virtual void fromXY(const ValueType in, ChromatogramPeak& p) const = 0;
 
     /// Name of the dimension, e.g. 'RT [s]' 
     std::string_view getDimName() const
@@ -183,6 +192,19 @@ namespace OpenMS
       rm.RangeRT::operator=(in);
     }
 
+    /// set the RT of a Peak1D (throws)
+    void fromXY(const ValueType in, Peak1D& p) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    /// set the RT of a ChromatogramPeak
+    void fromXY(const ValueType in, ChromatogramPeak& p) const override
+    {
+      p.setRT(in);
+    }
+
+
   };
   class OPENMS_DLLAPI DimMZ final : public DimBase
   {
@@ -238,7 +260,17 @@ namespace OpenMS
       rm.RangeMZ::operator=(in);
     }
 
+    /// set the MZ of a Peak1D
+    void fromXY(const ValueType in, Peak1D& p) const override
+    {
+      p.setMZ(in);
+    }
 
+    /// set the MZ of a ChromatogramPeak (throws)
+    void fromXY(const ValueType in, ChromatogramPeak& p) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
   };
   class OPENMS_DLLAPI DimINT final : public DimBase
   {
@@ -292,6 +324,18 @@ namespace OpenMS
     void setRange(const RangeBase& in, RangeAllType& rm) const
     {
       rm.RangeIntensity::operator=(in);
+    }
+
+    /// set the intensity of a Peak1D
+    void fromXY(const ValueType in, Peak1D& p) const override
+    {
+      p.setIntensity(in);
+    }
+
+    /// set the intensity of a ChromatogramPeak
+    void fromXY(const ValueType in, ChromatogramPeak& p) const override
+    {
+      p.setIntensity(in);
     }
   };
   
@@ -371,7 +415,7 @@ namespace OpenMS
 
     /// convert an OpenMS datatype (such as Feature) to an N_DIM-dimensional point
     template <typename T>
-    Point map(const T& data)
+    Point map(const T& data) const
     {
       Point pr;
       for (int i = 0; i < N_DIM; ++i) pr[i] = dims_[i]->map(data);
@@ -418,6 +462,18 @@ namespace OpenMS
       for (int i = 0; i < N_DIM; ++i)
       {
         dims_[i]->setRange({in[i], in[i]}, output);
+      }
+    }
+
+    /// Convert an N_DIM-Point to a Peak1D or ChromatogramPeak.
+    /// Dimensions not contained in this DimMapper will remain untouched in @p out
+    /// @throw Exception::InvalidRange if DimMapper has a dimension not supported by T
+    template<typename T>
+    void fromXY(const Point& in, T& out) const
+    {
+      for (int i = 0; i < N_DIM; ++i)
+      {
+        dims_[i]->fromXY(in[i], out);
       }
     }
 

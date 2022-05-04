@@ -107,7 +107,7 @@ namespace OpenMS
     painter.restore();
   }
 
-  void Annotation1DVerticalLineItem::move(const PointType& delta)
+  void Annotation1DVerticalLineItem::move(const PointVarType& delta)
   {
     x_ += delta.getX();
   }

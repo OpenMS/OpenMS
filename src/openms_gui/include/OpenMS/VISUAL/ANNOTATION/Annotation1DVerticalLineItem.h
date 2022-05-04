@@ -76,7 +76,7 @@ namespace OpenMS
     // Docu in base class
     void draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped = false) override;
     // Docu in base class
-    void move(const PointType& delta) override;
+    void move(const PointVarType& delta) override;
     /// Sets the uppermost position of the line
     void setPosition(const double& x);
     /// Returns the position

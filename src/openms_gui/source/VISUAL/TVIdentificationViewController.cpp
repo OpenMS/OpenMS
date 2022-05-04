@@ -267,7 +267,7 @@ namespace OpenMS
         Size itic(0);
         for (const Peak1D& iso : id)
         {
-          points.push_back(Annotation1DCaret::PointType(mz + itic*Constants::C13C12_MASSDIFF_U, iso.getIntensity() * int_factor));
+          points.push_back(Annotation1DCaret::PointVarType(mz + itic*Constants::C13C12_MASSDIFF_U, iso.getIntensity() * int_factor));
           ++itic;
         }
         Annotation1DCaret* ditem = new Annotation1DCaret(points,

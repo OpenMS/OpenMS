@@ -197,9 +197,17 @@ namespace OpenMS
     emit layerZoomChanged(this);
   }
 
-  void Plot1DCanvas::dataToWidget(const PeakType& peak, QPoint& point, bool flipped, bool percentage)
+  void Plot1DCanvas::dataToWidget(const DPosition<2>& xy_point, QPoint& point, bool flipped, bool percentage)
   {
-    dataToWidget(peak.getMZ(), peak.getIntensity(), point, flipped, percentage);
+    dataToWidget(xy_point.getX(), xy_point.getY(), point, flipped, percentage);
+  }
+
+  void Plot1DCanvas::dataToWidget(const DPosition<2>& xy_point, DPosition<2>& point, bool flipped, bool percentage)
+  {
+    QPoint p;
+    dataToWidget(xy_point.getX(), xy_point.getY(), p, flipped, percentage);
+    point.setX(p.x());
+    point.setY(p.y());
   }
 
   void Plot1DCanvas::dataToWidget(double x, double y, QPoint& point, bool flipped, bool percentage)
@@ -207,7 +215,7 @@ namespace OpenMS
     QPoint tmp;
     if (percentage)
     {
-      y *= getSnapFactor() * percentage_factor_;
+      y *= percentage_factor_ * getSnapFactor();
     }
     PlotCanvas::dataToWidget_(x, y, tmp);
     point.setX(tmp.x());
@@ -247,12 +255,12 @@ namespace OpenMS
     }
   }
 
-  PlotCanvas::PointType Plot1DCanvas::widgetToData(const QPoint& pos, bool percentage)
+  PlotCanvas::PointXYType Plot1DCanvas::widgetToData(const QPoint& pos, bool percentage)
   {
     return widgetToData(pos.x(), pos.y(), percentage);
   }
 
-  PlotCanvas::PointType Plot1DCanvas::widgetToData(double x, double y, bool percentage)
+  PlotCanvas::PointXYType Plot1DCanvas::widgetToData(double x, double y, bool percentage)
   {
     double actual_y;
     double alignment_shrink_factor = 1.0;
@@ -290,7 +298,7 @@ namespace OpenMS
     {
       actual_y = y;
     }
-    PointType p = PlotCanvas::widgetToData_(x, actual_y);
+    PointXYType p = PlotCanvas::widgetToData_(x, actual_y);
     if (percentage)
     {
       p.setY(p.getY() / (getSnapFactor() * percentage_factor_));
@@ -385,7 +393,7 @@ namespace OpenMS
   {
     // mouse position relative to the diagram widget
     QPoint p = e->pos();
-    PointType data_pos = widgetToData(p);
+    PointXYType data_pos = widgetToData(p);
     emit sendCursorStatus(data_pos.getX(), getCurrentLayer().getCurrentSpectrum().getRT());
 
     PeakIndex near_peak = findPeakAtPosition_(p);
@@ -400,14 +408,14 @@ namespace OpenMS
       if (move)
       {
         updatePercentageFactor_(getCurrentLayerIndex());
-        PointType delta = widgetToData(p, true) - widgetToData(last_mouse_pos_, true);
+        PointXYType delta = widgetToData(p, true) - widgetToData(last_mouse_pos_, true);
 
         Annotations1DContainer& ann_1d = getCurrentLayer().getCurrentAnnotations();
         for (Annotations1DContainer::Iterator it = ann_1d.begin(); it != ann_1d.end(); ++it)
         {
           if ((*it)->isSelected())
           {
-            (*it)->move(delta);
+            (*it)->move(delta, gr_, unit_mapper_);         
           }
         }
         update_(OPENMS_PRETTY_FUNCTION);
@@ -417,7 +425,7 @@ namespace OpenMS
       {
         // translation in data metric
         const double shift = widgetToData(last_mouse_pos_).getX() - widgetToData(p).getX();
-        auto new_va = visible_area_.cloneWith(visible_area_.getAreaXY() + PointType(shift, 0)).getAreaUnit();
+        auto new_va = visible_area_.cloneWith(visible_area_.getAreaXY() + PointXYType(shift, 0)).getAreaUnit();
 
         // change data area
         changeVisibleArea_(new_va);
@@ -504,20 +512,20 @@ namespace OpenMS
           const ExperimentType::PeakType& peak_1 = getCurrentLayer().getCurrentSpectrum()[measurement_start_.peak];
           const ExperimentType::PeakType& peak_2 = getCurrentLayer().getCurrentSpectrum()[selected_peak_.peak];
           updatePercentageFactor_(getCurrentLayerIndex());
-          PointType p = widgetToData(measurement_start_point_, true);
+          PointXYType p = widgetToData(measurement_start_point_, true);
           bool peak_1_less = peak_1.getMZ() < peak_2.getMZ();
           double start_mz = peak_1_less ? peak_1.getMZ() : peak_2.getMZ();
           double end_mz = peak_1_less ? peak_2.getMZ() : peak_1.getMZ();
           double distance = end_mz - start_mz;
-          PointType start_p(start_mz, p.getY());
-          PointType end_p(end_mz, p.getY());
+          PointXYType start_p(start_mz, p.getY());
+          PointXYType end_p(end_mz, p.getY());
           // draw line for measured distance between two peaks and annotate with distance in m/z -- use 4 digits to resolve 13C distances between isotopes
-          Annotation1DItem * item = new Annotation1DDistanceItem(QString::number(distance, 'f', 4), start_p, end_p);
+          Annotation1DItem* item = new Annotation1DDistanceItem(QString::number(distance, 'f', 4), start_p, end_p);
+          item->ensureWithinDataRange(this, getCurrentLayer().flipped, intensity_mode_ == IM_PERCENTAGE);
           getCurrentLayer().getCurrentAnnotations().push_front(item);
         }
       }
 
-      ensureAnnotationsWithinDataRange_();
       moving_annotations_ = false;
 
       measurement_start_.clear();
@@ -565,8 +573,8 @@ namespace OpenMS
     Size spectrum_index = getCurrentLayer().getCurrentSpectrumIndex();
 
     // get the interval (in diagram metric) that will be projected on screen coordinate p.x() or p.y() (depending on orientation)
-    PointType lt = widgetToData(p - QPoint(2, 2), true);
-    PointType rb = widgetToData(p + QPoint(2, 2), true);
+    PointXYType lt = widgetToData(p - QPoint(2, 2), true);
+    PointXYType rb = widgetToData(p + QPoint(2, 2), true);
 
     // get iterator on first peak with lower position than interval_start
     PeakType temp;
@@ -724,8 +732,8 @@ namespace OpenMS
       QPoint measurement_end_point(last_mouse_pos_.x(), measurement_start_point_.y());
       // draw a complete temporary Annotation1DDistanceItem which includes the distance;
       // as an alternative to a simple line: painter->drawLine(measurement_start_point_, measurement_end_point);
-      Annotation1DDistanceItem::PointType ps(widgetToData(measurement_start_point_, true));
-      Annotation1DDistanceItem::PointType pe(widgetToData(measurement_end_point, true));
+      Annotation1DDistanceItem::PointVarType ps(widgetToData(measurement_start_point_, true));
+      Annotation1DDistanceItem::PointVarType pe(widgetToData(measurement_end_point, true));
       Annotation1DDistanceItem(QString::number(pe.getX() - ps.getX(), 'f', 4), ps, pe).draw(this, *painter, false);
     }
     // draw highlighted measurement start peak and selected peak
@@ -1243,7 +1251,7 @@ namespace OpenMS
   {
     updatePercentageFactor_(getCurrentLayerIndex());
 
-    PointType position = widgetToData(screen_position, true);
+    PointXYType position = widgetToData(screen_position, true);
     Annotation1DItem* item = new Annotation1DTextItem(position, text);
     getCurrentLayer().getCurrentAnnotations().push_front(item);
 
@@ -1263,7 +1271,7 @@ namespace OpenMS
   Annotation1DItem* Plot1DCanvas::addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color)
   {
     PeakType peak = getCurrentLayer().getCurrentSpectrum()[peak_index.peak];
-    PointType position(peak.getMZ(), peak.getIntensity());
+    PointXYType position(peak.getMZ(), peak.getIntensity());
     Annotation1DItem* item = new Annotation1DPeakItem(position, text, color);
     item->setSelected(false);
     getCurrentLayer().getCurrentAnnotations().push_front(item);
@@ -1334,8 +1342,8 @@ namespace OpenMS
     }
     else
     { // only zoom the non-gravity axis
-      constexpr PointType::CoordinateType zoom_factor = 0.8;
-      double factor = gr_.getGravityAxis() == DIM::Y ? (PointType::CoordinateType)x / width() : (PointType::CoordinateType)(height() - y) / height();
+      constexpr PointXYType::CoordinateType zoom_factor = 0.8;
+      double factor = gr_.getGravityAxis() == DIM::Y ? (PointXYType::CoordinateType)x / width() : (PointXYType::CoordinateType)(height() - y) / height();
       auto new_area = visible_area_.getAreaXY();
       if (gr_.getGravityAxis() == DIM::X) new_area.swapDimensions(); // temporarily swap X<>Y if gravity acts on X
       new_area.setMinX(new_area.minX() + (1.0 - zoom_factor) * new_area.width() * factor);
@@ -1612,7 +1620,7 @@ namespace OpenMS
       Annotations1DContainer& ann_1d = getLayer(i).getCurrentAnnotations();
       for (Annotations1DContainer::Iterator it = ann_1d.begin(); it != ann_1d.end(); ++it)
       {
-        (*it)->ensureWithinDataRange(this);
+        (*it)->ensureWithinDataRange(this, getLayer(i).flipped, intensity_mode_ == IM_PERCENTAGE);
       }
     }
   }

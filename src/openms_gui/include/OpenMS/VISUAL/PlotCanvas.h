@@ -167,7 +167,7 @@ public:
     typedef SpectrumType::PeakType PeakType;
 
     /// Type of the Points
-    typedef DPosition<2> PointType;
+    typedef DPosition<2> PointXYType;
     /// a generic range for the most common units
     using RangeType = RangeAllType;
    
@@ -180,7 +180,7 @@ public:
     using GenericArea = Area<2>;
 
     /// The number of pixels on the axis. The lower point of the area will be zero. The maxima will reflect the number of pixels
-    /// in either dimension. Note that the unit of RT etc is NOT in seconds, but in pixels.
+    /// in either dimension. Note that the unit of the Axis etc is in PIXELS (-> *not* in seconds, m/z or whatever)
     using PixelArea = Area<2>;
 
     using UnitRange = RangeAllType;
@@ -207,7 +207,7 @@ public:
     //@}
 
     /// Default constructor
-    PlotCanvas(const Param & preferences, QWidget * parent = nullptr);
+    PlotCanvas(const Param& preferences, QWidget* parent = nullptr);
 
     /// Destructor
     ~PlotCanvas() override;
@@ -219,7 +219,7 @@ public:
         PlotWidget derived class.
         @param widget the spectrum widget
     */
-    inline void setPlotWidget(PlotWidget * widget)
+    inline void setPlotWidget(PlotWidget* widget)
     {
       spectrum_widget_ = widget;
     }
@@ -645,13 +645,31 @@ public slots:
     /**
       @brief compute distance in widget coordinates (unit axis as shown) when moving @p x/y pixel in chart coordinates
     */
-    inline PointType widgetToDataDistance(double x, double y)
+    inline PointXYType widgetToDataDistance(double x, double y)
     {
-      PointType point = widgetToData_(x, y);
+      PointXYType point = widgetToData_(x, y);
       // subtract the 'offset'
-      PointType zero = widgetToData_(0, 0);
+      PointXYType zero = widgetToData_(0, 0);
       point -= zero;
       return point;
+    }
+
+        /**
+     * \brief Get the Area in pixel coordinates of the current canvas for X and Y axis.
+     * \return
+     */
+    AreaXYType canvasPixelArea() const
+    {
+      return AreaXYType({0, 0}, {(float)width(), (float)height()});
+    }
+
+    /**
+     * \brief Get Mapper to translate between values for axis (X/Y) and units (m/z, RT, intensity, ...)
+     * \return The translation from axis to units
+     */
+    const DimMapper<2>& getMapper() const
+    {
+      return unit_mapper_;
     }
 
 signals:
@@ -796,17 +814,17 @@ protected:
         @param y the widget coordinate y
         @return chart coordinates
     */
-    inline PointType widgetToData_(double x, double y)
+    inline PointXYType widgetToData_(double x, double y)
     {
       const auto& xy = visible_area_.getAreaXY();
-      return PointType(
+      return PointXYType(
                 xy.minX() + x / width() * xy.width(),
                 xy.minY() + (height() - y) / height() * xy.height()
                 );
     }
 
     /// Calls widgetToData_ with x and y position of @p pos
-    inline PointType widgetToData_(const QPoint& pos)
+    inline PointXYType widgetToData_(const QPoint& pos)
     {
       return widgetToData_(pos.x(), pos.y());
     }
@@ -846,15 +864,6 @@ protected:
       QPoint point;
       dataToWidget_(xy.getX(), xy.getY(), point);
       return point;
-    }
-
-    /**
-     * \brief Get the Area in pixel coordinates of the current canvas for X and Y axis.
-     * \return 
-     */
-    AreaXYType canvasPixelArea() const
-    {
-      return AreaXYType({0, 0}, {(float)width(), (float)height()});
     }
 
     /// Helper function to paint grid lines

@@ -192,7 +192,7 @@ namespace OpenMS
 
   void PlotCanvas::zoom_(int x, int y, bool zoom_in)
   {
-    const PointType::CoordinateType zoom_factor = zoom_in ? 0.8 : 1.0 / 0.8;
+    const PointXYType::CoordinateType zoom_factor = zoom_in ? 0.8 : 1.0 / 0.8;
     VisibleArea new_area;
     for (int dim = 0; dim < AreaType::DIMENSION; dim++)
     {

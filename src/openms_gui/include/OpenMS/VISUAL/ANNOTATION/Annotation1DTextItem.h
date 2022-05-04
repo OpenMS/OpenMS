@@ -47,7 +47,7 @@ namespace OpenMS
 public:
 
     /// Constructor
-    Annotation1DTextItem(const PointType & position, const QString & text, const int flags = Qt::AlignCenter);
+    Annotation1DTextItem(const PointVarType & position, const QString & text, const int flags = Qt::AlignCenter);
 
     /// Copy constructor
     Annotation1DTextItem(const Annotation1DTextItem & rhs);
@@ -62,13 +62,13 @@ public:
     void draw(Plot1DCanvas * const canvas, QPainter & painter, bool flipped = false) override;
 
     // Docu in base class
-    void move(const PointType & delta) override;
+    void move(const PointVarType & delta) override;
 
     /// Sets the position of the item (in MZ / intensity coordinates)
-    void setPosition(const PointType & position);
+    void setPosition(const PointVarType & position);
 
     /// Returns the position of the item (in MZ / intensity coordinates)
-    const PointType & getPosition() const;
+    const PointVarType & getPosition() const;
 
     /// Set Qt flags (default: Qt::AlignCenter)
     void setFlags(int flags);
@@ -79,7 +79,7 @@ public:
 protected:
 
     /// The position of the item (in MZ / intensity coordinates)
-    PointType position_;
+    PointVarType position_;
 
     int flags_;
   };

@@ -329,6 +329,18 @@ public:
       return *this;
     }
 
+    /**
+     * @brief Make sure @p point is inside the current area
+     * @param point A point potentially outside the current range, which will be pulled into the current range.
+     */
+    void pullIn(DPosition<D>& point) const
+    {
+      for (UInt i = 0; i != D; ++i)
+      {
+        point[i] = std::max(min_[i], std::min(point[i], max_[i]));
+      }
+    }
+
     //@}
   };
 

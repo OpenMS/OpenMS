@@ -84,6 +84,43 @@ namespace OpenMS
     painter->drawLine(caret.x(), caret.y(), caret.x() - half_size, caret.y() + half_size);
   }
 
+  QRectF Painter1DBase::drawLineWithArrows(QPainter* painter, const QPen& pen, const QPoint& start, const QPoint& end, const QPainterPath& arrow_start, const QPainterPath& arrow_end)
+  {
+    painter->setPen(pen);
+
+    auto line = QLineF(start, end);
+    // angle of line
+    qreal angle = -line.angle() + 180; // negate since angle() reports counter-clockwise; +180 since painter.rotate() is more intuitive then
+    QRectF bounding_rect = QRectF(line.p1(), line.p2()).normalized();
+    // draw the actual line
+    painter->drawLine(line);
+
+    //painter->save();
+    // draw arrow heads
+    if (!arrow_start.isEmpty())
+    {
+      //painter->translate(start);
+      //painter->rotate(angle);
+      QMatrix rotationMatrix;
+      rotationMatrix.translate(start.x(), start.y());
+      rotationMatrix.rotate(angle);
+      QPainterPath path = rotationMatrix.map(arrow_start);
+      painter->drawPath(path);
+      bounding_rect = bounding_rect.united(path.boundingRect());
+      //painter->restore();
+    }
+    if (!arrow_end.isEmpty())
+    {
+      QMatrix rotationMatrix;
+      rotationMatrix.translate(end.x(), end.y());
+      rotationMatrix.rotate(angle + 180);
+      QPainterPath path = rotationMatrix.map(arrow_end);
+      painter->drawPath(path);
+      bounding_rect = bounding_rect.united(path.boundingRect());
+    }
+    return bounding_rect;
+  }
+
   Painter1DPeak::Painter1DPeak(const LayerDataPeak* parent) : layer_(parent)
   {
   }
@@ -289,7 +326,7 @@ namespace OpenMS
         }
       }
 
-      Annotation1DPeakItem item({mz, intensity}, label, Qt::darkGray);
+      Annotation1DPeakItem item(Peak1D{mz, intensity}, label, Qt::darkGray);
       item.setSelected(false);
       item.draw(canvas, painter, layer_->flipped);
     }

@@ -39,11 +39,9 @@
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 
 #include <QtCore/QPoint>
-#include <QtCore/QObject>
 #include <QtCore/QRectF>
 #include <QtGui/QPainter>
 
-#include <iostream>
 
 namespace OpenMS
 {

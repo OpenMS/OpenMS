@@ -67,7 +67,7 @@ namespace OpenMS
     painter.fillRect((int)(bounding_box_.bottomLeft().x()) - 3, (int)(bounding_box_.bottomLeft().y()), 3, 3, painter.pen().color());
   }
 
-  const QRectF & Annotation1DItem::boundingBox() const
+  const QRectF& Annotation1DItem::boundingBox() const
   {
     return bounding_box_;
   }

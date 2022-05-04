@@ -66,6 +66,10 @@ namespace OpenMS
 
     using AreaXYType = PlotCanvas::GenericArea::AreaXYType;
 
+    /**
+     * \brief C'tor to apply gravity on any axis
+     * \param axis Which axis
+     */
     Gravitator(DIM axis)
     {
       setGravityAxis(axis);
@@ -77,7 +81,7 @@ namespace OpenMS
      */
     Gravitator(const DimMapper<2>& unit_mapper)
     {
-      setGravityAxis(unit_mapper);
+      setIntensityAsGravity(unit_mapper);
     }
 
     /// Which axis is pulling a point downwards (e.g. when plotting sticks)
@@ -95,11 +99,11 @@ namespace OpenMS
     }
 
     /**
-     * \brief Convenience function, which picks the Intensity dimension from a DimMapper as gravity axis
-     * \param unit_mapper
+     * @brief Convenience function, which picks the Intensity dimension from a DimMapper as gravity axis
+     * @param unit_mapper
      * @throw Exception::NotImplemented if @p unit_mapper does not have an Intensity dimension
      */
-    void setGravityAxis(const DimMapper<2>& unit_mapper)
+    void setIntensityAsGravity(const DimMapper<2>& unit_mapper)
     {
       if (unit_mapper.getDim(DIM::X).getUnit() == DIM_UNIT::INT)
       {
@@ -109,7 +113,7 @@ namespace OpenMS
       {
         setGravityAxis(DIM::Y);
       }
-      /// if 1D view has no intensity dimension, go think about what dimension should be the gravitational...
+      /// if 1D view has no intensity dimension, go think about what dimension should be gravitational...
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);      
     }
 
@@ -121,8 +125,9 @@ namespace OpenMS
 
     /// Pull the point @p p to the current gravity axis, i.e. the lowest point on the Area
     ///
-    /// @param A X-Y data point with data coordinates (not widget(=pixel) coordinates)
-    /// @return A X-Y data point in pixel coordinates
+    /// @param p A X-Y data point 
+    /// @param area An area which contains the min/max range of X and Y axis
+    /// @return A X-Y data point identical to @p p, but with its gravity-axis value changed to the minimum given in @p area
     QPoint gravitateMin(QPoint p, const AreaXYType& area) const
     {
       if (gravity_axis_ == DIM::X)
@@ -136,6 +141,60 @@ namespace OpenMS
       return p;
     }
 
+    /// Add value of @p delta's gravity dimension to the gravity dimension of point @p p. Other dimensions remain untouched.
+    ///
+    /// @param p A X-Y data point
+    /// @param delta A distance, of which we only use the gravity dimension's part.
+    /// @return A X-Y data point identical to @p p, but with its gravity-axis value changed by adding delta.
+    QPoint gravitateWith(QPoint p, const QPoint& delta) const
+    {
+      if (gravity_axis_ == DIM::X)
+      {
+        p.rx() += delta.x();
+      }
+      else if (gravity_axis_ == DIM::Y)
+      {
+        p.ry() += delta.y();
+      }
+      return p;
+    }
+
+    /// Same as gravitateWith()
+    template<int D>
+    DPosition<D> gravitateWith(DPosition<D> p, const DPosition<D>& delta) const
+    {
+      p[(int)gravity_axis_] += delta[(int)gravity_axis_];
+      return p;
+    }
+
+    /// Change the value of @p p's gravity dimension to the value of @p targets'. Other dimensions remain untouched.
+    ///
+    /// @param p A X-Y data point
+    /// @param target A target value, of which we only use the gravity dimension's part.
+    /// @return A X-Y data point identical to @p p, but with its gravity-axis value changed by target's value.
+    QPoint gravitateTo(QPoint p, const QPoint& target) const
+    {
+      if (gravity_axis_ == DIM::X)
+      {
+        p.rx() = target.x();
+      }
+      else if (gravity_axis_ == DIM::Y)
+      {
+        p.ry() = target.y();
+      }
+      return p;
+    }
+    
+    /// Same as gravitateTo()
+    template<int D>
+    DPosition<D> gravitateTo(DPosition<D> p, const DPosition<D>& target) const
+    {
+      p[(int)gravity_axis_] = target[(int)gravity_axis_];
+      return p;
+    }
+
+
+    /// Opposite of gravitateMin()
     QPoint gravitateMax(QPoint p, const AreaXYType& area) const
     {
       if (gravity_axis_ == DIM::X)
@@ -149,7 +208,11 @@ namespace OpenMS
       return p;
     }
 
-    QPoint gravitateZero(QPoint p, const AreaXYType& area) const
+    /// Pull the point @p p to zero (0) on the current gravity axis.
+    ///
+    /// @param p A X-Y data point
+    /// @return A X-Y data point with its gravity axis set to '0'
+    QPoint gravitateZero(QPoint p) const
     {
       if (gravity_axis_ == DIM::X)
       {
@@ -161,6 +224,22 @@ namespace OpenMS
       }
       return p;
     }
+
+    /// Pull the point @p p to zero (0) on the current gravity axis.
+    ///
+    /// @param p A X-Y data point
+    /// @return A X-Y data point with its gravity axis set to '0'
+    template<int D>
+    DPosition<D> gravitateZero(DPosition<D> p) const
+    {
+      p[(int)gravity_axis_] = 0;
+      return p;
+    }
+
+    /// Pull the point @p p to NAN on the current gravity axis.
+    ///
+    /// @param p A X-Y data point
+    /// @return A X-Y data point with its gravity axis set to NAN
     QPoint gravitateNAN(QPoint p) const
     {
       if (gravity_axis_ == DIM::X)
@@ -173,6 +252,11 @@ namespace OpenMS
       }
       return p;
     }
+
+    /// Pull the point @p p to NAN on the current gravity axis.
+    ///
+    /// @param p A X-Y data point
+    /// @return A X-Y data point with its gravity axis set to NAN
     template<int D>
     DPosition<D> gravitateNAN(DPosition<D> p) const
     {
@@ -270,16 +354,36 @@ public:
     void setMirrorModeActive(bool b);
 
     /// For convenience - calls dataToWidget
-    void dataToWidget(const PeakType& peak, QPoint& point, bool flipped = false, bool percentage = true);
+    void dataToWidget(const DPosition<2>& peak, QPoint& point, bool flipped = false, bool percentage = true);
+    /// For convenience - calls dataToWidget
+    void dataToWidget(const DPosition<2>& xy_point, DPosition<2>& point, bool flipped, bool percentage);
 
     /// Calls PlotCanvas::dataToWidget_(), takes mirror mode into account
     void dataToWidget(double x, double y, QPoint& point, bool flipped = false, bool percentage = false);
 
     /// For convenience - calls widgetToData
-    PointType widgetToData(const QPoint& pos, bool percentage = false);
+    PointXYType widgetToData(const QPoint& pos, bool percentage = false);
 
     /// Calls PlotCanvas::widgetToData_(), takes mirror mode into account
-    PointType widgetToData(double x, double y, bool percentage = false);
+    PointXYType widgetToData(double x, double y, bool percentage = false);
+
+    /**
+     * \brief Pushes a data point back into the valid data range of the current layer area. Useful for annotation items which were mouse-dragged outside the range by the user.
+     * \tparam T A data point, e.g. Peak1D, which may be outside the data area
+     * \param data_point
+     * \param layer_index The layer of the above data_point (to obtain the data range of the layer)
+     */
+    template <class T>
+    void pushIntoDataRange(T& data_point, const int layer_index)
+    { // note: if this is needed for anything other than the 1D Canvas, you need to make sure to call the correct widgetToData/ etc functions --- they work a bit different, depending on Canvas
+      auto xy_unit = unit_mapper_.map(data_point);
+      auto p_range = unit_mapper_.fromXY(xy_unit);
+      const auto& all_range = getLayer(layer_index).getCurrentSpectrum().getRange();
+      p_range.pushInto(all_range);
+      auto pushed_xy = unit_mapper_.mapRange(p_range).minPosition();
+      unit_mapper_.fromXY(pushed_xy, data_point);
+    }
+
 
     /// Display a static text box on the top right
     void setTextBox(const QString& html);
@@ -334,6 +438,15 @@ public:
     void setDims(const DimMapper<2>& dims)
     {
       unit_mapper_ = dims;
+    }
+
+    /**
+     * \brief Get gravity manipulation object to apply gravity to points
+     * \return Gravitator
+     */
+    const Gravitator& getGravitator() const
+    {
+      return gr_;
     }
 
 signals:

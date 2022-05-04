@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/DPosition.h>
+#include "OpenMS/VISUAL/Plot1DCanvas.h"
 
 #include <QtCore/QRectF>
 #include <QtCore/QString>
@@ -58,22 +58,15 @@ namespace OpenMS
     */
   class Annotation1DItem
   {
-
-public:
-    /// Type of the Points
-    typedef DPosition<2> PointType;
-
-    /// Intensity type
-    typedef float IntensityType;
-
-    /// Coordinate type
-    typedef double CoordinateType;
+  public:
+    /// A point the X-Y plane (usually in data coordinates, not pixels)
+    using PointXYType  = Plot1DCanvas::PointXYType;
 
     /// Destructor
     virtual ~Annotation1DItem();
 
     /// Returns the current bounding box of this item on the canvas where it has last been drawn
-    const QRectF & boundingBox() const;
+    const QRectF& boundingBox() const;
 
     /// Returns true if this item is currently selected on the canvas, else false
     bool isSelected() const;
@@ -85,22 +78,22 @@ public:
     void setText(const QString & text);
 
     /// Returns the text of the item
-    const QString & getText() const;
+    const QString& getText() const;
 
     /// open a GUI input field and let the user edit the text
     /// If the text was changed, true is returned; otherwise false.
     bool editText();
 
     /// Ensures that the item has coordinates within the visible area of the canvas
-    virtual void ensureWithinDataRange(Plot1DCanvas * const canvas) = 0;
+    virtual void ensureWithinDataRange(Plot1DCanvas* const canvas, const int layer_index) = 0;
 
     /// Draws the item on @p painter
-    virtual void draw(Plot1DCanvas * const canvas, QPainter & painter, bool flipped = false) = 0;
+    virtual void draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped = false) = 0;
 
-    /// Moves the item; behaviour depends on item type and is implemented in the subclasses
-    virtual void move(const PointType & delta) = 0;
+    /// Moves the item; behavior depends on item type and is implemented in the subclasses
+    virtual void move(PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) = 0;
 
-protected:
+  protected:
     /// Constructor
     Annotation1DItem(const QString & text);
 

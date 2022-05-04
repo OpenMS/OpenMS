@@ -1678,7 +1678,7 @@ namespace OpenMS
       }
       else
       {
-        PointType point = widgetToData_(last_mouse_pos_);
+        PointXYType point = widgetToData_(last_mouse_pos_);
         mz = point[0] - start.getFeature(*getCurrentLayer().getFeatureMap()).getMZ();
         rt = point[1] - start.getFeature(*getCurrentLayer().getFeatureMap()).getRT();
         it = std::numeric_limits<double>::quiet_NaN();
@@ -1695,7 +1695,7 @@ namespace OpenMS
       }
       else
       {
-        PointType point = widgetToData_(last_mouse_pos_);
+        PointXYType point = widgetToData_(last_mouse_pos_);
         mz = point[0] - start.getPeak(*getCurrentLayer().getPeakData()).getMZ();
         rt = point[1] - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
         it = std::numeric_limits<double>::quiet_NaN();
@@ -1712,7 +1712,7 @@ namespace OpenMS
       }
       else
       {
-        PointType point = widgetToData_(last_mouse_pos_);
+        PointXYType point = widgetToData_(last_mouse_pos_);
         mz = point[0] - start.getFeature(*getCurrentLayer().getConsensusMap()).getMZ();
         rt = point[1] - start.getFeature(*getCurrentLayer().getConsensusMap()).getRT();
         it = std::numeric_limits<double>::quiet_NaN();
@@ -1776,7 +1776,7 @@ namespace OpenMS
   {
     grabKeyboard();     // (re-)grab keyboard after it has been released by unhandled key
     QPoint pos = e->pos();
-    PointType data_pos = widgetToData_(pos);
+    PointXYType data_pos = widgetToData_(pos);
     emit sendCursorStatus(data_pos[0], data_pos[1]);
 
     PeakIndex near_peak = findNearestPeak_(pos);
@@ -1901,8 +1901,8 @@ namespace OpenMS
         }
         else // translate
         { // calculate data coordinates of shift
-          PointType old_data = widgetToData_(last_mouse_pos_);
-          PointType new_data = widgetToData_(pos);
+          PointXYType old_data = widgetToData_(last_mouse_pos_);
+          PointXYType new_data = widgetToData_(pos);
           // compute new area
           auto new_visible_area = visible_area_;
           new_visible_area.setArea(new_visible_area.getAreaXY() + (new_data - old_data));

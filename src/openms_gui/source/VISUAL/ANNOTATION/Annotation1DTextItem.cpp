@@ -41,7 +41,7 @@
 namespace OpenMS
 {
 
-  Annotation1DTextItem::Annotation1DTextItem(const PointType & position, const QString & text, int flags) :
+  Annotation1DTextItem::Annotation1DTextItem(const PointVarType & position, const QString & text, int flags) :
     Annotation1DItem(text),
     position_(position),
     flags_(flags)
@@ -75,18 +75,18 @@ namespace OpenMS
     }
   }
 
-  void Annotation1DTextItem::move(const PointType & delta)
+  void Annotation1DTextItem::move(const PointVarType & delta)
   {
     position_.setX(position_.getX() + delta.getX());
     position_.setY(position_.getY() + delta.getY());
   }
 
-  void Annotation1DTextItem::setPosition(const Annotation1DTextItem::PointType & position)
+  void Annotation1DTextItem::setPosition(const Annotation1DTextItem::PointVarType & position)
   {
     position_ = position;
   }
 
-  const Annotation1DTextItem::PointType & Annotation1DTextItem::getPosition() const
+  const Annotation1DTextItem::PointVarType & Annotation1DTextItem::getPosition() const
   {
     return position_;
   }
@@ -101,7 +101,7 @@ namespace OpenMS
     return flags_;
   }
 
-  void Annotation1DTextItem::ensureWithinDataRange(Plot1DCanvas * const canvas)
+  void Annotation1DTextItem::ensureWithinDataRange(Plot1DCanvas* const canvas)
   {
     DRange<3> data_range = canvas->getDataRange();
 
