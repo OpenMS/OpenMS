@@ -67,7 +67,7 @@ namespace OpenMS
       ID::ProcessingSoftware software(prot.getSearchEngine(),
                                           prot.getSearchEngineVersion());
 
-      bool missing_protein_score_type = prot.getScoreType().empty();
+      const bool missing_protein_score_type = prot.getScoreType().empty();
       ID::ScoreType score_type;
       ID::ScoreTypeRef prot_score_ref;
       if (!missing_protein_score_type)
