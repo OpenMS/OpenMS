@@ -44,90 +44,121 @@ using namespace std;
 namespace OpenMS
 {
 
-  std::vector<MSSpectrum> SiriusFragmentAnnotation::extractAndResolveSiriusAnnotationsTgtOnly
-    (const std::vector<String>& sirius_workspace_subdirs, const double& score_threshold, bool use_exact_mass)
+  std::vector<MSSpectrum> SiriusFragmentAnnotation::extractSiriusAnnotationsTgtOnly
+    (const std::vector<String>& sirius_workspace_subdirs, double score_threshold, bool use_exact_mass, bool resolve = true)
   {
+    Size max_rank = 10000; // this should be enough for any search
+    if (resolve) max_rank = 1;
     std::unordered_map<String, MSSpectrum> native_ids_annotated_spectra;
     std::vector<MSSpectrum> annotated_spectra;
+    // There is one subdir for every candidate that we pass to Sirius
+    // Currently it is not possible to run Sirius with multiple candidates, see https://github.com/OpenMS/OpenMS/issues/5882
     for (const auto& subdir : sirius_workspace_subdirs)
     {
-      std::cout << subdir << std::endl;
-      MSSpectrum annotated_spectrum = extractAnnotationsFromSiriusFile_
+      std::vector<MSSpectrum> best_annotated_spectra = extractAnnotationsFromSiriusFile_
       (
         subdir,
-        1,
+        max_rank,
         false,
         use_exact_mass
-      )[0];
+      );
 
-      // only use spectra over a certain score threshold (0-1)
-      if (double(annotated_spectrum.getMetaValue("score")) >= score_threshold)
+      if (!resolve) annotated_spectra.reserve(sirius_workspace_subdirs.size());
+
+      for (auto& spectrum : best_annotated_spectra)
       {
-        // resolve multiple use of the same concatenated nativeids based on the sirius score (used for multiple features/identifications)
-        unordered_map<String, MSSpectrum>::iterator it;
-        it = native_ids_annotated_spectra.find(annotated_spectrum.getNativeID());
-        if (it != native_ids_annotated_spectra.end())
+        // only use spectra over a certain score threshold (0-1)
+        if (double(spectrum.getMetaValue("score")) >= score_threshold)
         {
-          if (double(annotated_spectrum.getMetaValue("score")) >= double(it->second.getMetaValue("score")))
+          if (resolve)
           {
-            it->second = annotated_spectrum;
+            // resolve multiple use of the same concatenated native ids based on the sirius score (used for multiple features/identifications)
+            unordered_map<String, MSSpectrum>::iterator it;
+            it = native_ids_annotated_spectra.find(spectrum.getNativeID());
+            if (it != native_ids_annotated_spectra.end())
+            {
+              if (double(spectrum.getMetaValue("score")) >= double(it->second.getMetaValue("score")))
+              {
+                it->second = spectrum;
+              }
+            }
+            else
+            {
+              native_ids_annotated_spectra.insert(make_pair(spectrum.getNativeID(), spectrum));
+            }
           }
-        }
-        else
-        {
-          native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), annotated_spectrum));
+          else
+          {
+            annotated_spectra.push_back(std::move(spectrum));
+          }
         }
       }
     }
 
-    // convert to vector
-    annotated_spectra.reserve(native_ids_annotated_spectra.size());
-    for (auto& id_spec : native_ids_annotated_spectra)
+    if (resolve)
     {
-      annotated_spectra.emplace_back(std::move(id_spec.second));
+      // convert temporary map to vector
+      annotated_spectra.reserve(native_ids_annotated_spectra.size());
+      for (auto& id_spec : native_ids_annotated_spectra)
+      {
+        annotated_spectra.emplace_back(std::move(id_spec.second));
+      }
+    }
+    else
+    {
+      annotated_spectra.shrink_to_fit();
     }
 
     return annotated_spectra;
   }
 
-  std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(const std::vector<String>& sirius_workspace_subdirs, const double& score_threshold, bool use_exact_mass)
+  std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(
+    const std::vector<String>& sirius_workspace_subdirs, double score_threshold, bool use_exact_mass)
   {
     std::map<String, SiriusFragmentAnnotation::SiriusTargetDecoySpectra> native_ids_annotated_spectra;
     std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra;
+    MSSpectrum best_annotated_spectrum;
     for (const auto& subdir : sirius_workspace_subdirs)
     {
-      std::cout << subdir << std::endl;
-      MSSpectrum annotated_spectrum = extractAnnotationsFromSiriusFile_(subdir, 1, false, use_exact_mass)[0];
-      MSSpectrum annotated_decoy = extractAnnotationsFromSiriusFile_(subdir, 1, true, use_exact_mass)[0];
-
-      // if no target was generated - no decoy will be available (due to SIRIUS)
-      if (annotated_spectrum.empty())
+      std::vector<MSSpectrum> ann_spec_tmp = extractAnnotationsFromSiriusFile_(subdir, 1, false, use_exact_mass);
+      if (ann_spec_tmp.empty())
       {
         continue;
       }
       else
       {
-        // only use spectra over a certain score threshold (0-1)
-        if (double(annotated_spectrum.getMetaValue("score")) >= score_threshold)
+        // max_rank 1 will get the best.
+        best_annotated_spectrum = extractAnnotationsFromSiriusFile_(subdir, 1, false, use_exact_mass)[0];
+      }
+
+      ann_spec_tmp = extractAnnotationsFromSiriusFile_(subdir, 1, true, use_exact_mass);
+      if (ann_spec_tmp.empty())
+      {
+        continue;
+      }
+      //I ASSUME that decoys are in the same ranking order as their corresponding targets.
+      MSSpectrum annotated_decoy_for_best_tgt = ann_spec_tmp[0];
+      // only use spectra over a certain score threshold (0-1)
+      if (double(best_annotated_spectrum.getMetaValue("score")) >= score_threshold)
+      {
+        // resolve multiple use of the same concatenated nativeids based on the sirius score (used for multiple features/identifications)
+        map<String, SiriusFragmentAnnotation::SiriusTargetDecoySpectra>::iterator it;
+        it = native_ids_annotated_spectra.find(best_annotated_spectrum.getNativeID());
+        if (it != native_ids_annotated_spectra.end())
         {
-          // resolve multiple use of the same concatenated nativeids based on the sirius score (used for multiple features/identifications)
-          map<String, SiriusFragmentAnnotation::SiriusTargetDecoySpectra>::iterator it;
-          it = native_ids_annotated_spectra.find(annotated_spectrum.getNativeID());
-          if (it != native_ids_annotated_spectra.end())
+          if (double(best_annotated_spectrum.getMetaValue("score")) >= double(it->second.target.getMetaValue("score")))
           {
-            if (double(annotated_spectrum.getMetaValue("score")) >= double(it->second.target.getMetaValue("score")))
-            {
-              SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy(annotated_spectrum, annotated_decoy);
-              it->second = target_decoy;
-            }
-          }
-          else
-          {
-            SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy(annotated_spectrum, annotated_decoy);
-            native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), target_decoy));
+            SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy(best_annotated_spectrum, annotated_decoy_for_best_tgt);
+            it->second = target_decoy;
           }
         }
+        else
+        {
+          SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy(best_annotated_spectrum, annotated_decoy_for_best_tgt);
+          native_ids_annotated_spectra.insert(make_pair(best_annotated_spectrum.getNativeID(), target_decoy));
+        }
       }
+
     }
 
     // convert to vector
@@ -140,23 +171,33 @@ namespace OpenMS
     return annotated_spectra;
   }
 
-  //TODO remove the next two. unused
+  //TODO remove the next two functions? only used for testing now
   void SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
   {
     OpenMS::String concat_native_ids = SiriusFragmentAnnotation::extractConcatNativeIDsFromSiriusMS_(path_to_sirius_workspace);
     OpenMS::String concat_m_ids = SiriusFragmentAnnotation::extractConcatMIDsFromSiriusMS_(path_to_sirius_workspace);
+    OpenMS::String fid = SiriusFragmentAnnotation::extractFeatureIDFromSiriusMS_(path_to_sirius_workspace);
     SiriusFragmentAnnotation::extractAnnotationFromSiriusFile_(path_to_sirius_workspace, msspectrum_to_fill, use_exact_mass);
     msspectrum_to_fill.setNativeID(concat_native_ids);
     msspectrum_to_fill.setName(concat_m_ids);
+    if (!fid.empty())
+    {
+      msspectrum_to_fill.setMetaValue("feat_id", fid);
+    }
   }
 
   void SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill)
   {
     OpenMS::String concat_native_ids = SiriusFragmentAnnotation::extractConcatNativeIDsFromSiriusMS_(path_to_sirius_workspace);
     OpenMS::String concat_m_ids = SiriusFragmentAnnotation::extractConcatMIDsFromSiriusMS_(path_to_sirius_workspace);
+    OpenMS::String fid = SiriusFragmentAnnotation::extractFeatureIDFromSiriusMS_(path_to_sirius_workspace);
     SiriusFragmentAnnotation::extractAnnotationFromDecoyFile_(path_to_sirius_workspace, msspectrum_to_fill);
     msspectrum_to_fill.setNativeID(concat_native_ids);
     msspectrum_to_fill.setName(concat_m_ids);
+    if (!fid.empty())
+    {
+      msspectrum_to_fill.setMetaValue("feat_id", fid);
+    }
   }
   
   // extract native id from SIRIUS spectrum.ms output file (workspace - compound specific)
@@ -190,6 +231,34 @@ namespace OpenMS
     return ext_n_id;
   }
 
+  // extract native id from SIRIUS spectrum.ms output file (workspace - compound specific)
+  // first native id in the spectrum.ms
+  OpenMS::String SiriusFragmentAnnotation::extractFeatureIDFromSiriusMS_(const String& path_to_sirius_workspace)
+  {
+    String fid = "";
+    const String sirius_spectrum_ms = path_to_sirius_workspace + "/spectrum.ms";
+    ifstream spectrum_ms_file(sirius_spectrum_ms);
+    if (spectrum_ms_file)
+    {
+      const OpenMS::String fid_prefix = "##fid ";
+      String line;
+      while (getline(spectrum_ms_file, line))
+      {
+        if (line.hasPrefix(fid_prefix))
+        {
+          fid = line.erase(line.find(fid_prefix), fid_prefix.size());
+          break; // one file can only have one fid
+        }
+        else if (spectrum_ms_file.eof())
+        {
+          return ""; // fid is optional and only there if the origin of the sirius run was an OpenMS feature (not a single MS2).
+        }
+      }
+      spectrum_ms_file.close();
+    }
+    return fid;
+  }
+
   // extract m_id from SIRIUS spectrum.ms output file (workspace - compound specific)
   // and concatenates them if multiple spectra have been used in case of the compound.
   OpenMS::String SiriusFragmentAnnotation::extractConcatMIDsFromSiriusMS_(const String& path_to_sirius_workspace)
@@ -221,8 +290,8 @@ namespace OpenMS
     return ext_m_id;
   }
 
-   // provides a mapping of rank and the file it belongs to since this is not encoded in the directory structure/filename
-   std::map< Size, String > SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(const String& path_to_sirius_workspace)
+  // provides a mapping of rank and the file it belongs to since this is not encoded in the directory structure/filename
+  std::map< Size, String > SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(const String& path_to_sirius_workspace)
   {
     map< Size, String > rank_filename;
     String line;
@@ -285,8 +354,6 @@ namespace OpenMS
   std::vector<MSSpectrum> SiriusFragmentAnnotation::extractAnnotationsFromSiriusFile_(const String& path_to_sirius_workspace, Size max_rank, bool decoy, bool use_exact_mass)
   {
     if (decoy) use_exact_mass = false;
-    OpenMS::String concat_native_ids = SiriusFragmentAnnotation::extractConcatNativeIDsFromSiriusMS_(path_to_sirius_workspace);
-    OpenMS::String concat_m_ids = SiriusFragmentAnnotation::extractConcatMIDsFromSiriusMS_(path_to_sirius_workspace);
     std::vector<MSSpectrum> result;
     std::string subfolder = decoy ? "/decoys/" : "/spectra/";
     const std::string sirius_spectra_dir = path_to_sirius_workspace + subfolder;
@@ -294,6 +361,10 @@ namespace OpenMS
 
     if (dir.exists())
     {
+      // TODO this probably can and should be extracted in one go.
+      OpenMS::String concat_native_ids = SiriusFragmentAnnotation::extractConcatNativeIDsFromSiriusMS_(path_to_sirius_workspace);
+      OpenMS::String concat_m_ids = SiriusFragmentAnnotation::extractConcatMIDsFromSiriusMS_(path_to_sirius_workspace);
+      OpenMS::String fid = SiriusFragmentAnnotation::extractFeatureIDFromSiriusMS_(path_to_sirius_workspace);
       std::map< Size, String > rank_filename = SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(path_to_sirius_workspace);
       std::map< Size, double > rank_score = SiriusFragmentAnnotation::extractCompoundRankingAndScore_(path_to_sirius_workspace);
       Size max_found_rank = rank_filename.rbegin()->first;
@@ -337,6 +408,10 @@ namespace OpenMS
         msspectrum_to_fill.setMetaValue("annotated_sumformula", DataValue(current_sumformula));
         msspectrum_to_fill.setMetaValue("annotated_adduct", DataValue(current_adduct));
         msspectrum_to_fill.setMetaValue("decoy", decoy);
+        if (!fid.empty())
+        {
+          msspectrum_to_fill.setMetaValue("feat_id", fid);
+        }
 
         // read file and save in MSSpectrum
         ifstream fragment_annotation_file(sirius_result_file.absoluteFilePath().toStdString());

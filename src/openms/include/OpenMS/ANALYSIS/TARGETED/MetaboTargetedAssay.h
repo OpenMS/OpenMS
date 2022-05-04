@@ -166,7 +166,8 @@ namespace OpenMS
                                                                                          const unsigned int& file_counter);
 
     /**
-    @brief Pair compound information (SiriusMSFile) with the annotated target and decoy spectrum from SIRIUS/Passatutto based on the m_id (unique identifier composed of description_filepath_native_id_k introduced in the SiriusMSConverter)
+    @brief Pair compound information (SiriusMSFile) with the annotated target and decoy spectrum from SIRIUS/Passatutto
+     based on the m_id (unique identifier composed of description_filepath_native_id_k introduced in the SiriusMSConverter)
 
     @return Vector of MetaboTargetedAssay::CompoundTargetDecoyPair
 

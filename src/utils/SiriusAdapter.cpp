@@ -102,11 +102,11 @@ class TOPPSiriusAdapter :
   TOPPSiriusAdapter() :
     TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false,
       {
-        {"Kai Dührkop and Sebastian Böcker",
+        {"Kai Duehrkop and Sebastian Boecker",
          "Fragmentation trees reloaded",
          "J Cheminform; 2016",
          "10.1186/s13321-016-0116-8"},
-        {"Kai Dührkop, Huibin Shen, Marvin Meusel, Juho Rousu, and Sebastian Böcker",
+        {"Kai Duehrkop, Huibin Shen, Marvin Meusel, Juho Rousu, and Sebastian Boecker",
          "Searching molecular structure databases with tandem mass spectra using CSI:FingerID",
          "Proceedings of the National Academy of Sciences; 2015",
          "10.1073/pnas.1509788112"}
@@ -212,20 +212,18 @@ protected:
     {
       QFile::copy(sirius_tmp.getTmpMsFile().toQString(), out_ms.toQString());
       
-      OPENMS_LOG_WARN << "SiriusAdapter was used in converter mode and is terminated after openms preprocessing. \n"
+      OPENMS_LOG_WARN << "SiriusAdapter was used in converter mode and is terminated after OpenMS preprocessing. \n"
                          "If you would like to run SIRIUS internally please disable the converter mode." << std::endl;
       
       return EXECUTION_OK;
     }
 
     // calls Sirius and returns vector of paths to sirius folder structure
-    std::vector<String> subdirs;
-    bool decoy_generation = false;
-    subdirs = algorithm.callSiriusQProcess(sirius_tmp.getTmpMsFile(),
+    std::vector<String> subdirs = algorithm.callSiriusQProcess(sirius_tmp.getTmpMsFile(),
                                            sirius_tmp.getTmpOutDir(),
                                            sirius_executable,
                                            out_csifingerid,
-                                           decoy_generation);
+                                           false);
     
     //-------------------------------------------------------------
     // writing output
@@ -238,21 +236,22 @@ protected:
 
     // sort vector path list
     SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(subdirs);
+    // TODO make parameter(s)?
     double score_threshold = 0.0;
     bool use_exact_mass = false;
     if (!out_ann_spectra.empty())
     {
-      // extract Sirius/Passatutto FragmentAnnotation and DecoyAnnotation from subdirs
-      // and resolve ambiguous identifications in one file based on the native_id_ids and the SIRIUS IsotopeTree_Score
       MSExperiment annotations{};
-      annotations.setSpectra(SiriusFragmentAnnotation::extractAndResolveSiriusAnnotationsTgtOnly(subdirs, score_threshold, use_exact_mass));
+      // extract Sirius FragmentAnnotations from subdirs
+      // do not resolve for concat native IDs (i.e., per feature) since we want to write the annotated spectrum for every candidate
+      // use 0.0 to not have a score_threshold
+      annotations.setSpectra(SiriusFragmentAnnotation::extractSiriusAnnotationsTgtOnly(subdirs, score_threshold, use_exact_mass, false));
+      // TODO check if we have duplicate native IDs without resolution and if this is a problem
       MzMLFile().store(out_ann_spectra, annotations);
 
-      //TODO remove or use it to add more info to the spectra
-
+      // TODO remove the following or use it to add more info to the spectra
       // combine compound information (SiriusMSFile) with annotated spectra (SiriusFragmentAnnotation)
       //vector<MetaboTargetedAssay::CompoundSpectrumPair> v_cmp_spec = MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(v_cmpinfo, annotated_spectra);
-
     }
 
     // convert sirius_output to mztab and store file
@@ -283,11 +282,11 @@ protected:
       bool copy_status = File::copyDirRecursively(sirius_tmp.getTmpDir().toQString(), sirius_workspace_directory.toQString());
       if (copy_status)
       { 
-        OPENMS_LOG_INFO << "Sirius Workspace was successfully copied to " << sirius_workspace_directory << std::endl;
+        OPENMS_LOG_INFO << "Sirius workspace was successfully copied to " << sirius_workspace_directory << std::endl;
       }
       else
       {
-        OPENMS_LOG_INFO << "Sirius Workspace could not be copied to " << sirius_workspace_directory << ". Please run SiriusAdapter with debug >= 2." << std::endl;
+        OPENMS_LOG_INFO << "Sirius workspace could not be copied to " << sirius_workspace_directory << ". Please run SiriusAdapter with debug >= 2." << std::endl;
       }
     }
    
@@ -295,7 +294,7 @@ protected:
     if (!out_ms.empty())
     {  
       QFile::copy(sirius_tmp.getTmpMsFile().toQString(), out_ms.toQString());
-      OPENMS_LOG_INFO << "Preprocessed .ms files was moved to " << out_ms << std::endl; 
+      OPENMS_LOG_INFO << "Preprocessed .ms files were moved to " << out_ms << std::endl;
     }
     return EXECUTION_OK;
   }

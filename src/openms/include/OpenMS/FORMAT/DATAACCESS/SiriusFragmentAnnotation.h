@@ -68,8 +68,9 @@ namespace OpenMS
           @param sirius_workspace_subdirs Vector of paths to SIRIUS subdirectories.
           @param use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
           */
-          static std::vector<SiriusTargetDecoySpectra> extractAndResolveSiriusAnnotations(const std::vector<String>& sirius_workspace_subdirs, const double& score_threshold, bool use_exact_mass);
-          static std::vector<MSSpectrum> extractAndResolveSiriusAnnotationsTgtOnly(const std::vector<String>& sirius_workspace_subdirs, const double& score_threshold, bool use_exact_mass);
+          static std::vector<SiriusTargetDecoySpectra> extractAndResolveSiriusAnnotations(const std::vector<String>& sirius_workspace_subdirs, double score_threshold,
+                                                                                          bool use_exact_mass);
+          static std::vector<MSSpectrum> extractSiriusAnnotationsTgtOnly(const std::vector<String>& sirius_workspace_subdirs, double score_threshold, bool use_exact_mass, bool resolve);
 
 
           /**
@@ -143,6 +144,16 @@ namespace OpenMS
           @param path_to_sirius_workspace Path to SIRIUS workspace.
           */
           static OpenMS::String extractConcatMIDsFromSiriusMS_(const String& path_to_sirius_workspace);
+
+          /**
+          @brief extractConcatMIDsFromSiriusMS
+          Extract fid (i.e. original OpenMS feature ID) from SIRIUS output (./spectrum.ms).
+
+          @return String fid of current SIRIUS workspace
+
+          @param path_to_sirius_workspace Path to SIRIUS workspace.
+          */
+          static OpenMS::String extractFeatureIDFromSiriusMS_(const String& path_to_sirius_workspace);
 
           /**
           @brief extractAnnotationFromSiriusFile  
