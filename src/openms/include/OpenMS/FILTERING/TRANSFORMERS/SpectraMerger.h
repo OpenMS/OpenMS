@@ -836,7 +836,7 @@ protected:
         // collect peaks from all spectra
         // loop over spectra in blocks
         std::vector<std::pair<double, double> > mz_intensity_all; // m/z positions and peak intensities from all spectra
-        for (const auto it2 : it->second)
+        for (const auto& it2 : it->second)
         {
           // loop over m/z positions
           for (typename MapType::SpectrumType::ConstIterator it_mz = exp[it2.first].begin(); it_mz < exp[it2.first].end(); ++it_mz)
