@@ -63,7 +63,10 @@ namespace OpenMS
     {
       proteins_counter++;
       progresslogger.setProgress(proteins_counter);
-      
+
+      ID::ProcessingSoftware software(prot.getSearchEngine(),
+                                          prot.getSearchEngineVersion());
+
       bool missing_protein_score_type = prot.getScoreType().empty();
       ID::ScoreType score_type;
       ID::ScoreTypeRef prot_score_ref;
@@ -71,15 +74,13 @@ namespace OpenMS
       {
         score_type = ID::ScoreType(prot.getScoreType(), prot.isHigherScoreBetter());
         prot_score_ref = id_data.registerScoreType(score_type);
+        software.assigned_scores.push_back(prot_score_ref);
       }
       else
       {
         OPENMS_LOG_WARN << "Missing protein score type. All protein scores without score type will be removed during conversion." << std::endl;
       }
 
-      ID::ProcessingSoftware software(prot.getSearchEngine(),
-                                          prot.getSearchEngineVersion());
-      software.assigned_scores.push_back(prot_score_ref);
       ID::ProcessingSoftwareRef software_ref =
         id_data.registerProcessingSoftware(software);
 
