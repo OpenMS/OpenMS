@@ -40,8 +40,8 @@
 namespace OpenMS
 {
   /**
-   @brief This class serves for the calculation of the global alignment score of two amino acid sequences
-   by using the Needleman-Wunsch-Algorithm. For match and mismatch it uses a similarity scoring matrix.
+   @brief This class contains functions that are used to calculate the global alignment score of two amino acid sequences. 
+   This class uses the Needleman-Wunsch algorithm. For match and mismatch it uses a similarity scoring matrix.
    */
   class OPENMS_DLLAPI NeedlemanWunsch
   {
