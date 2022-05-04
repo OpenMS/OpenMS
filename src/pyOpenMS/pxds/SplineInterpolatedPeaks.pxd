@@ -35,7 +35,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>" na
             SplineSpectrum_Navigator() nogil except +
             SplineSpectrum_Navigator(SplineSpectrum_Navigator) nogil except + # compiler
             
-            SplineSpectrum_Navigator(libcpp_vector[SplinePackage]* packages, double posMin, double posMax, double scaling)  nogil except +
+            SplineSpectrum_Navigator(libcpp_vector[SplinePackage]* packages, double posMax, double scaling)  nogil except +
 
             double eval(double pos) nogil except +
 
