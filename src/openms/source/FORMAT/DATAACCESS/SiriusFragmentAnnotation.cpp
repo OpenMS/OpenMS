@@ -55,13 +55,7 @@ namespace OpenMS
     // Currently it is not possible to run Sirius with multiple candidates, see https://github.com/OpenMS/OpenMS/issues/5882
     for (const auto& subdir : sirius_workspace_subdirs)
     {
-      std::vector<MSSpectrum> best_annotated_spectra = extractAnnotationsFromSiriusFile_
-      (
-        subdir,
-        max_rank,
-        false,
-        use_exact_mass
-      );
+      std::vector<MSSpectrum> best_annotated_spectra = extractAnnotationsFromSiriusFile(subdir, max_rank, false, use_exact_mass);
 
       if (!resolve) annotated_spectra.reserve(sirius_workspace_subdirs.size());
 
@@ -120,7 +114,7 @@ namespace OpenMS
     MSSpectrum best_annotated_spectrum;
     for (const auto& subdir : sirius_workspace_subdirs)
     {
-      std::vector<MSSpectrum> ann_spec_tmp = extractAnnotationsFromSiriusFile_(subdir, 1, false, use_exact_mass);
+      std::vector<MSSpectrum> ann_spec_tmp = extractAnnotationsFromSiriusFile(subdir, 1, false, use_exact_mass);
       if (ann_spec_tmp.empty())
       {
         continue;
@@ -128,10 +122,10 @@ namespace OpenMS
       else
       {
         // max_rank 1 will get the best.
-        best_annotated_spectrum = extractAnnotationsFromSiriusFile_(subdir, 1, false, use_exact_mass)[0];
+        best_annotated_spectrum = extractAnnotationsFromSiriusFile(subdir, 1, false, use_exact_mass)[0];
       }
 
-      ann_spec_tmp = extractAnnotationsFromSiriusFile_(subdir, 1, true, use_exact_mass);
+      ann_spec_tmp = extractAnnotationsFromSiriusFile(subdir, 1, true, use_exact_mass);
       // if no spectrum can be extracted we add an empty spectrum
       //  to the TD pair for backwards compatibility with AssayGeneratorMetabo
       MSSpectrum annotated_decoy_for_best_tgt = MSSpectrum();
@@ -179,35 +173,6 @@ namespace OpenMS
     }
 
     return annotated_spectra;
-  }
-
-  //TODO remove the next two functions? only used for testing now
-  void SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
-  {
-    OpenMS::String concat_native_ids = SiriusFragmentAnnotation::extractConcatNativeIDsFromSiriusMS_(path_to_sirius_workspace);
-    OpenMS::String concat_m_ids = SiriusFragmentAnnotation::extractConcatMIDsFromSiriusMS_(path_to_sirius_workspace);
-    OpenMS::String fid = SiriusFragmentAnnotation::extractFeatureIDFromSiriusMS_(path_to_sirius_workspace);
-    SiriusFragmentAnnotation::extractAnnotationFromSiriusFile_(path_to_sirius_workspace, msspectrum_to_fill, use_exact_mass);
-    msspectrum_to_fill.setNativeID(concat_native_ids);
-    msspectrum_to_fill.setName(concat_m_ids);
-    if (!fid.empty())
-    {
-      msspectrum_to_fill.setMetaValue("feat_id", fid);
-    }
-  }
-
-  void SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill)
-  {
-    OpenMS::String concat_native_ids = SiriusFragmentAnnotation::extractConcatNativeIDsFromSiriusMS_(path_to_sirius_workspace);
-    OpenMS::String concat_m_ids = SiriusFragmentAnnotation::extractConcatMIDsFromSiriusMS_(path_to_sirius_workspace);
-    OpenMS::String fid = SiriusFragmentAnnotation::extractFeatureIDFromSiriusMS_(path_to_sirius_workspace);
-    SiriusFragmentAnnotation::extractAnnotationFromDecoyFile_(path_to_sirius_workspace, msspectrum_to_fill);
-    msspectrum_to_fill.setNativeID(concat_native_ids);
-    msspectrum_to_fill.setName(concat_m_ids);
-    if (!fid.empty())
-    {
-      msspectrum_to_fill.setMetaValue("feat_id", fid);
-    }
   }
   
   // extract native id from SIRIUS spectrum.ms output file (workspace - compound specific)
@@ -361,7 +326,7 @@ namespace OpenMS
     return rank_score;
   }
 
-  std::vector<MSSpectrum> SiriusFragmentAnnotation::extractAnnotationsFromSiriusFile_(const String& path_to_sirius_workspace, Size max_rank, bool decoy, bool use_exact_mass)
+  std::vector<MSSpectrum> SiriusFragmentAnnotation::extractAnnotationsFromSiriusFile(const String& path_to_sirius_workspace, Size max_rank, bool decoy, bool use_exact_mass)
   {
     if (decoy) use_exact_mass = false;
     std::vector<MSSpectrum> result;
@@ -459,7 +424,6 @@ namespace OpenMS
           std::getline(fragment_annotation_file, line); // skip header
           while (std::getline(fragment_annotation_file, line))
           {
-            //Peak1D fragment_mz_int;
             StringList splitted_line;
             line.split("\t",splitted_line);
 
@@ -467,8 +431,6 @@ namespace OpenMS
             {
               fragments_extra_masses.push_back(splitted_line[extra_mz_col].toFloat());
             }
-            //fragment_mz_int.setMZ(splitted_line[main_mz_col].toDouble());
-            //fragment_mz_int.setIntensity(splitted_line[1].toFloat());
             fragments_mzs_ints.emplace_back(splitted_line[main_mz_col].toDouble(), splitted_line[1].toFloat());
             fragments_explanations.push_back(splitted_line[splitted_line.size() - 2]);
             fragments_ionization.push_back(splitted_line[splitted_line.size() - 1]);
@@ -488,179 +450,6 @@ namespace OpenMS
       OPENMS_LOG_DEBUG << "Directory '" + subfolder + "' was not found for: " << sirius_spectra_dir << std::endl;
     }
     return result;
-  }
-
-  //TODO remove the next two. unused
-  // use the first ranked sumformula (works for known and known_unknowns)
-  // currently only supports sumformula from rank 1
-  void SiriusFragmentAnnotation::extractAnnotationFromSiriusFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
-  { 
-    if (!msspectrum_to_fill.empty())
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Non empty MSSpectrum was provided");
-    }
-
-    const std::string sirius_spectra_dir = path_to_sirius_workspace + "/spectra/";
-    QDir dir(QString::fromStdString(sirius_spectra_dir));
-    if (dir.exists())
-    {
-      std::map< Size, String > rank_filename = SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(path_to_sirius_workspace);
-      std::map< Size, double > rank_score = SiriusFragmentAnnotation::extractCompoundRankingAndScore_(path_to_sirius_workspace);
-
-      if (rank_filename.empty() || rank_score.empty())
-      {
-        OPENMS_LOG_WARN << "Extraction of the compound ranking, filename and score failed. Please check if the SIRIUS project space is correct for " << sirius_spectra_dir << std::endl;
-      }
-
-      // use first file in folder (rank 1)
-      String filename = rank_filename.at(1); // rank 1
-      double score = rank_score.at(1); // rank 1
-      QFileInfo firstfile(dir,filename.toQString());
-
-      if (use_exact_mass)
-      {
-        msspectrum_to_fill.setMetaValue("peak_mz", DataValue("exact_mass"));
-      }
-      else
-      {
-        msspectrum_to_fill.setMetaValue("peak_mz", DataValue("mz"));
-      }
-
-      // filename: sumformula_adduct.csv - save sumformula and adduct as metavalue
-      String current_sumformula = filename.substr(0, filename.find_last_of("_"));
-      String current_adduct = filename.substr(filename.find_last_of("_") + 1, filename.find_last_of(".") - filename.find_last_of("_") - 1);
-      msspectrum_to_fill.setMetaValue("annotated_sumformula", DataValue(current_sumformula));
-      msspectrum_to_fill.setMetaValue("annotated_adduct", DataValue(current_adduct));
-      msspectrum_to_fill.setMetaValue("decoy",0);
-
-      // read file and save in MSSpectrum
-      ifstream fragment_annotation_file(firstfile.absoluteFilePath().toStdString());
-      if (fragment_annotation_file)
-      {
-        //mz  intensity   rel.intensity   exactmass   formula ionization
-        //51.023137   713.15  9.36    51.022927   C4H2    [M + H]+
-
-        std::vector<Peak1D> fragments_mzs_ints;
-        MSSpectrum::FloatDataArray fragments_exactmasses;
-        MSSpectrum::StringDataArray fragments_explanations;
-        MSSpectrum::StringDataArray fragments_ionization;
-        if (use_exact_mass)
-        {
-          fragments_exactmasses.setName("mz");
-        }
-        else
-        {
-          fragments_exactmasses.setName("exact_mass");
-        }
-        fragments_explanations.setName("explanation");
-        String line;
-        std::getline(fragment_annotation_file, line); // skip header
-        while (std::getline(fragment_annotation_file, line))
-        {
-          Peak1D fragment_mz_int;
-          StringList splitted_line;
-          line.split("\t",splitted_line);     
-          // option to use the exact mass as peak MZ (e.g. for library preparation).
-          if (use_exact_mass)
-          {
-            fragment_mz_int.setMZ(splitted_line[3].toDouble());
-            fragments_exactmasses.push_back(splitted_line[0].toFloat());
-          }
-          else
-          {
-            fragment_mz_int.setMZ(splitted_line[0].toDouble());
-            fragments_exactmasses.push_back(splitted_line[3].toFloat());
-          }
-          fragment_mz_int.setIntensity(splitted_line[1].toFloat());
-          fragments_mzs_ints.push_back(fragment_mz_int);
-          fragments_explanations.push_back(splitted_line[4]);
-          fragments_ionization.push_back(splitted_line[5]);
-        }
-        msspectrum_to_fill.setMSLevel(2);
-        msspectrum_to_fill.setMetaValue("score", DataValue(score));
-        msspectrum_to_fill.insert(msspectrum_to_fill.begin(), fragments_mzs_ints.begin(), fragments_mzs_ints.end());
-        msspectrum_to_fill.getFloatDataArrays().push_back(fragments_exactmasses);
-        msspectrum_to_fill.getStringDataArrays().push_back(fragments_explanations);
-        msspectrum_to_fill.getStringDataArrays().push_back(fragments_ionization);
-      } 
-    }
-    else
-    {
-      OPENMS_LOG_DEBUG << "Directory 'spectra' was not found for: " << sirius_spectra_dir << std::endl;
-    }
-  }
-
-  // use the first ranked sumformula (works for known and known_unknowns)
-  // currently only supports sumformula from rank 1
-  void SiriusFragmentAnnotation::extractAnnotationFromDecoyFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill)
-  {
-    if (!msspectrum_to_fill.empty())
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Non empty MSSpectrum was provided");
-    }
-
-    const std::string sirius_spectra_dir = path_to_sirius_workspace + "/decoys/";
-    QDir dir(QString::fromStdString(sirius_spectra_dir));
-    if (dir.exists())
-    {
-      std::map< Size, String > rank_filename = SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(path_to_sirius_workspace);
-      std::map< Size, double > rank_score = SiriusFragmentAnnotation::extractCompoundRankingAndScore_(path_to_sirius_workspace);
-
-      if (rank_filename.empty() || rank_score.empty())
-      {
-        OPENMS_LOG_WARN << "Extraction of the compound ranking, filename and score failed. Please check if the SIRIUS project space is correct for " << sirius_spectra_dir << std::endl;
-      }
-
-      // use first file in folder (rank 1)
-      String filename = rank_filename.at(1); // rank 1
-      double score = rank_score.at(1); // rank 1
-      QFileInfo firstfile(dir,filename.toQString());
-
-      msspectrum_to_fill.setMetaValue("peak_mz", DataValue("mz"));
-
-      // filename: sumformula_adduct.csv - save sumformula and adduct as metavalue
-      String current_sumformula = filename.substr(0, filename.find_last_of("_"));
-      String current_adduct = filename.substr(filename.find_last_of("_") + 1, filename.find_last_of(".") - filename.find_last_of("_") - 1);
-      msspectrum_to_fill.setMetaValue("annotated_sumformula", DataValue(current_sumformula));
-      msspectrum_to_fill.setMetaValue("annotated_adduct", DataValue(current_adduct));
-      msspectrum_to_fill.setMetaValue("decoy",1);
-
-      // read file and save in MSSpectrum
-      ifstream fragment_annotation_file(firstfile.absoluteFilePath().toStdString());
-      if (fragment_annotation_file)
-      {
-        //mz	      rel.intensity	formula	ionization
-        //46.994998	0.71	        CH2S	  [M + H]+
-
-        std::vector<Peak1D> fragments_mzs_ints;
-        MSSpectrum::StringDataArray fragments_explanations;
-        MSSpectrum::StringDataArray fragments_ionization;
-
-        fragments_explanations.setName("explanation");
-        String line;
-        std::getline(fragment_annotation_file, line); // skip header
-        while (std::getline(fragment_annotation_file, line))
-        {
-          Peak1D fragment_mz_int;
-          StringList splitted_line;
-          line.split("\t",splitted_line);
-          fragment_mz_int.setMZ(splitted_line[0].toDouble());
-          fragment_mz_int.setIntensity(splitted_line[1].toFloat());
-          fragments_mzs_ints.push_back(fragment_mz_int);
-          fragments_explanations.push_back(splitted_line[2]);
-          fragments_ionization.push_back(splitted_line[3]);
-        }
-        msspectrum_to_fill.setMSLevel(2);
-        msspectrum_to_fill.setMetaValue("score", DataValue(score));
-        msspectrum_to_fill.insert(msspectrum_to_fill.begin(), fragments_mzs_ints.begin(), fragments_mzs_ints.end());
-        msspectrum_to_fill.getStringDataArrays().push_back(fragments_explanations);
-        msspectrum_to_fill.getStringDataArrays().push_back(fragments_ionization);
-      }
-    }
-    else
-    {
-      OPENMS_LOG_DEBUG << "Directory 'decoys' was not found for: " << sirius_spectra_dir << std::endl;
-    }
   }
 
 } // namespace OpenMS
