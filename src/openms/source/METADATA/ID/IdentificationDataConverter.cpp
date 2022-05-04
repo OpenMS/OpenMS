@@ -63,8 +63,19 @@ namespace OpenMS
     {
       proteins_counter++;
       progresslogger.setProgress(proteins_counter);
-      ID::ScoreType score_type(prot.getScoreType(), prot.isHigherScoreBetter());
-      ID::ScoreTypeRef prot_score_ref = id_data.registerScoreType(score_type);
+      
+      bool missing_protein_score_type = prot.getScoreType().empty();
+      ID::ScoreType score_type;
+      ID::ScoreTypeRef prot_score_ref;
+      if (!missing_protein_score_type)
+      {
+        score_type = ID::ScoreType(prot.getScoreType(), prot.isHigherScoreBetter());
+        prot_score_ref = id_data.registerScoreType(score_type);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "Missing protein score type. All protein scores without score type will be removed during conversion." << std::endl;
+      }
 
       ID::ProcessingSoftware software(prot.getSearchEngine(),
                                           prot.getSearchEngineVersion());
@@ -123,7 +134,10 @@ namespace OpenMS
         parent.coverage = max(hit.getCoverage(), 0.0) / 100.0;
         parent.addMetaValues(hit);
         ID::AppliedProcessingStep applied(step_ref);
-        applied.scores[prot_score_ref] = hit.getScore();
+        if (!missing_protein_score_type)
+        { // discard scores without proper CV term
+          applied.scores[prot_score_ref] = hit.getScore();
+        }
         parent.steps_and_scores.push_back(applied);
         id_data.registerParentSequence(parent);
       }
