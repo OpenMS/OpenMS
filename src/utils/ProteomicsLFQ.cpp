@@ -26,7 +26,7 @@
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//  
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Timo Sachsenberg $
@@ -81,6 +81,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -104,7 +105,7 @@ using Internal::IDBoostGraph;
            2. PSMFeatureExtractor to annotate percolator features.
            3. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)
            4. IDFilter (pep:score = 0.01) to filter PSMs at 1% FDR
-           
+
          - An experimental design file: @n
            (see @ref OpenMS::ExperimentalDesign "ExperimentalDesign" for details) @n
          - A protein database in with appended decoy sequences in FASTA format @n
@@ -146,12 +147,12 @@ public:
   {
   }
 
-protected:  
+protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file list>", StringList(), "Input files");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerInputFileList_("ids", "<file list>", StringList(), 
+    registerInputFileList_("ids", "<file list>", StringList(),
       "Identifications filtered at PSM level (e.g., q-value < 0.01)."
       "And annotated with PEP as main score.\n"
       "We suggest using:\n"
@@ -196,7 +197,7 @@ protected:
 
     //TODO expose all parameters of the inference algorithms (e.g. aggregation methods etc.)?
     registerStringOption_("protein_inference", "<option>", "aggregation",
-      "Infer proteins:\n" 
+      "Infer proteins:\n"
       "aggregation  = aggregates all peptide scores across a protein (using the best score) \n"
       "bayesian     = computes a posterior probability for every protein based on a Bayesian network.\n"
       "               Note: 'bayesian' only uses and reports the best PSM per peptide.",
@@ -210,19 +211,19 @@ protected:
       "strictly_unique_peptides = use peptides mapping to a unique single protein only.\n"
       "shared_peptides = use shared peptides only for its best group (by inference score)", false, true);
     setValidStrings_("protein_quantification", ListUtils::create<String>("unique_peptides,strictly_unique_peptides,shared_peptides"));
-    registerStringOption_("quantification_method", "<option>", 
-      "feature_intensity", 
+    registerStringOption_("quantification_method", "<option>",
+      "feature_intensity",
       "feature_intensity: MS1 signal.\n"
       "spectral_counting: PSM counts.", false, false);
     setValidStrings_("quantification_method", ListUtils::create<String>("feature_intensity,spectral_counting"));
 
-    registerStringOption_("targeted_only", "<option>", "false", 
+    registerStringOption_("targeted_only", "<option>", "false",
       "true: Only ID based quantification.\n"
       "false: include unidentified features so they can be linked to identified ones (=match between runs).", false, false);
     setValidStrings_("targeted_only", ListUtils::create<String>("true,false"));
 
     // TODO: support transfer with SVM if we figure out a computational efficient way to do it.
-    registerStringOption_("transfer_ids", "<option>", "false", 
+    registerStringOption_("transfer_ids", "<option>", "false",
       "Requantification using mean of aligned RTs of a peptide feature.\n"
       "Only applies to peptides that were quantified in more than 50% of all runs (of a fraction).", false, false);
     setValidStrings_("transfer_ids", ListUtils::create<String>("false,mean"));
@@ -253,8 +254,8 @@ protected:
 
     Param ffi_defaults = FeatureFinderIdentificationAlgorithm().getDefaults();
     ffi_defaults.setValue("svm:samples", 10000); // restrict number of samples for training
-    ffi_defaults.setValue("svm:log2_C", DoubleList({-2.0, 5.0, 15.0})); 
-    ffi_defaults.setValue("svm:log2_gamma", DoubleList({-3.0, -1.0, 2.0})); 
+    ffi_defaults.setValue("svm:log2_C", DoubleList({-2.0, 5.0, 15.0}));
+    ffi_defaults.setValue("svm:log2_gamma", DoubleList({-3.0, -1.0, 2.0}));
     ffi_defaults.setValue("svm:min_prob", 0.9); // keep only feature candidates with > 0.9 probability of correctness
 
     // hide entries
@@ -282,8 +283,8 @@ protected:
     fl_defaults.setValue("distance_MZ:max_difference", 10.0);
     fl_defaults.setValue("distance_MZ:unit", "ppm");
     fl_defaults.setValue("distance_MZ:weight", 5.0);
-    fl_defaults.setValue("distance_intensity:weight", 0.1); 
-    fl_defaults.setValue("use_identifications", "true"); 
+    fl_defaults.setValue("distance_intensity:weight", 0.1);
+    fl_defaults.setValue("use_identifications", "true");
     fl_defaults.remove("distance_RT:max_difference"); // estimated from data
     for (const auto& s : {"distance_MZ:weight", "distance_intensity:weight", "use_identifications", "ignore_charge", "ignore_adduct"} )
     {
@@ -292,7 +293,7 @@ protected:
 
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
-    pq_defaults.setValue("include_all", "true"); 
+    pq_defaults.setValue("include_all", "true");
     pq_defaults.addTag("include_all", "advanced");
 
     // combine parameters of the individual algorithms
@@ -323,7 +324,7 @@ protected:
     {
       const String& in_abs_path = File::absolutePath(in[i]);
       const String& id_abs_path = File::absolutePath(in_ids[i]);
-      mzfile2idfile[in_abs_path] = id_abs_path;      
+      mzfile2idfile[in_abs_path] = id_abs_path;
       writeDebug_("Spectra: " + in[i] + "\t Ids: " + in_ids[i],  1);
     }
     return mzfile2idfile;
@@ -341,7 +342,7 @@ protected:
   }
 
   ExitCodes centroidAndCorrectPrecursors_(const String & mz_file, MSExperiment & ms_centroided)
-  { 
+  {
     Param pp_param = getParam_().copy("Centroiding:", true);
     writeDebug_("Parameters passed to PeakPickerHiRes algorithm", pp_param, 3);
 
@@ -381,19 +382,19 @@ protected:
     pp.setLogType(log_type_);
     pp.setParameters(pp_param);
     pp.pickExperiment(ms_raw, ms_centroided, true);
-      
+
     //-------------------------------------------------------------
     // HighRes Precursor Mass Correction
     //-------------------------------------------------------------
     std::vector<double> deltaMZs, mzs, rts;
     std::set<Size> corrected_to_highest_intensity_peak = PrecursorCorrection::correctToHighestIntensityMS1Peak(
-      ms_centroided, 
+      ms_centroided,
       0.01, // check if we can estimate this from data (here it is given in m/z not ppm)
       false, // is ppm = false
-      deltaMZs, 
-      mzs, 
+      deltaMZs,
+      mzs,
       rts
-      );      
+      );
     writeLog_("Info: Corrected " + String(corrected_to_highest_intensity_peak.size()) + " precursors.");
     if (!deltaMZs.empty())
     {
@@ -408,9 +409,9 @@ protected:
       double MAD =  Math::MAD(deltaMZs_ppm.begin(), deltaMZs_ppm.end(), median);
       double median_abs = Math::median(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end());
       double MAD_abs = Math::MAD(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end(), median_abs);
-      writeLog_("Precursor correction:\n  median        = " 
+      writeLog_("Precursor correction:\n  median        = "
         + String(median) + " ppm  MAD = " + String(MAD)
-        + "\n  median (abs.) = " + String(median_abs) 
+        + "\n  median (abs.) = " + String(median_abs)
         + " ppm  MAD = " + String(MAD_abs));
     }
     return EXECUTION_OK;
@@ -436,7 +437,7 @@ protected:
     Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
     MZTrafoModel::setRANSACParams(p);
     // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
-    MZTrafoModel::setCoefficientLimits(25.0, 25.0, 0.5); 
+    MZTrafoModel::setCoefficientLimits(25.0, 25.0, 0.5);
 
     IntList ms_level = {1};
     double rt_chunk = 300.0; // 5 minutes
@@ -446,12 +447,12 @@ protected:
       const String & id_basename = File::basename(id_file_abs_path);
       qc_residual_path = id_basename + "qc_residuals.tsv";
       qc_residual_png_path = id_basename + "qc_residuals.png";
-    } 
+    }
 
-    if (!ic.calibrate(ms_centroided, ms_level, md, rt_chunk, use_RANSAC, 
+    if (!ic.calibrate(ms_centroided, ms_level, md, rt_chunk, use_RANSAC,
                   10.0,
-                  5.0, 
-                  "",                      
+                  5.0,
+                  "",
                   "",
                   qc_residual_path,
                   qc_residual_png_path,
@@ -492,9 +493,9 @@ protected:
     //TODO: Actually FFM provides a parameter for minimum intensity. Also it copies the full experiment again once or twice.
     MSExperiment e;
     for (const auto& s : ms_centroided)
-    { 
-      if (s.getMSLevel() == 1) 
-      {              
+    {
+      if (s.getMSLevel() == 1)
+      {
         e.addSpectrum(s);
       }
     }
@@ -517,14 +518,14 @@ protected:
     //FIXME progress of FFM is not printed at all
     const bool progress(true);
     algorithm.run(e, progress);
-    seeds = algorithm.getFeatureMap(); 
+    seeds = algorithm.getFeatureMap();
     OPENMS_LOG_INFO << "Using " << seeds.size() << " seeds from untargeted feature extraction." << endl;
   }
 
 
-  // aligns the feature maps 
+  // aligns the feature maps
   double align_(
-    vector<FeatureMap> & feature_maps, 
+    vector<FeatureMap> & feature_maps,
     vector<TransformationDescription>& transformations
   )
   {
@@ -577,7 +578,7 @@ protected:
       vector<TransformationDescription::TransformationStatistics> alignment_stats;
       for (TransformationDescription & t : transformations)
       {
-        writeDebug_("Using " + String() + " points in fit.", 1); 
+        writeDebug_("Using " + String(t.getDataPoints().size()) + " points in fit.", 1);
         if (t.getDataPoints().size() > 10)
         {
           t.fitModel(model_type, model_params);
@@ -586,7 +587,7 @@ protected:
         alignment_stats.emplace_back(t.getStatistics());
       }
 
-      // determine maximum RT shift after transformation that includes all high confidence IDs 
+      // determine maximum RT shift after transformation that includes all high confidence IDs
       using TrafoStat = TransformationDescription::TransformationStatistics;
       for (auto & s : alignment_stats)
       {
@@ -608,7 +609,7 @@ protected:
       }
 
       double max_alignment_diff = std::max_element(alignment_stats.begin(), alignment_stats.end(),
-              [](TrafoStat a, TrafoStat b) 
+              [](TrafoStat a, TrafoStat b)
               { return a.percentiles_after[100] < b.percentiles_after[100]; })->percentiles_after[100];
       // sometimes, very good alignments might lead to bad overall performance. Choose 2 minutes as minimum.
       OPENMS_LOG_INFO << "Max alignment difference (seconds): " << max_alignment_diff << endl;
@@ -620,7 +621,7 @@ protected:
   }
 
   void transform_(
-    vector<FeatureMap>& feature_maps, 
+    vector<FeatureMap>& feature_maps,
     vector<TransformationDescription>& transformations
   )
   {
@@ -629,7 +630,7 @@ protected:
       // Apply transformations
       for (Size i = 0; i < feature_maps.size(); ++i)
       {
-        try 
+        try
         {
           MapAlignmentTransformer::transformRetentionTimes(feature_maps[i],
             transformations[i]);
@@ -637,7 +638,7 @@ protected:
         {
           OPENMS_LOG_WARN << e.what() << endl;
         }
-          
+
         if (debug_level_ > 666)
         {
           // plot with e.g.:
@@ -652,7 +653,7 @@ protected:
   // Link all features of this fraction
   //-------------------------------------------------------------
   void link_(
-    vector<FeatureMap> & feature_maps, 
+    vector<FeatureMap> & feature_maps,
     double median_fwhm,
     double max_alignment_diff,
     ConsensusMap & consensus_fraction
@@ -666,14 +667,14 @@ protected:
     // grouping tolerance = max alignment error + median FWHM
     FeatureGroupingAlgorithmQT linker;
     fl_param.setValue("distance_RT:max_difference", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
-    linker.setParameters(fl_param);      
+    linker.setParameters(fl_param);
 /*
     FeatureGroupingAlgorithmKD linker;
     fl_param.setValue("warp:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
     fl_param.setValue("link:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
     fl_param.setValue("link:mz_tol", 10.0);
     fl_param.setValue("mz_unit", "ppm");
-    linker.setParameters(fl_param);      
+    linker.setParameters(fl_param);
 */
     linker.group(feature_maps, consensus_fraction);
     OPENMS_LOG_INFO << "Size of consensus fraction: " << consensus_fraction.size() << endl;
@@ -683,7 +684,7 @@ protected:
   // Align and link.
   // @return maximum alignment difference observed (to guide linking)
   double alignAndLink_(
-    vector<FeatureMap> & feature_maps, 
+    vector<FeatureMap> & feature_maps,
     ConsensusMap & consensus_fraction,
     vector<TransformationDescription>& transformations,
     const double median_fwhm)
@@ -697,20 +698,20 @@ protected:
       transform_(feature_maps, transformations);
 
       link_(feature_maps,
-        median_fwhm, 
-        max_alignment_diff, 
-        consensus_fraction);
+            median_fwhm,
+            max_alignment_diff,
+            consensus_fraction);
     }
     else // only one feature map
     {
-      MapConversion::convert(0, feature_maps.back(), consensus_fraction);                           
+      MapConversion::convert(0, feature_maps.back(), consensus_fraction);
     }
 
     return max_alignment_diff;
   }
 
   // determine cooccurance of peptide in different runs
-  // returns map sequence+charge -> map index in consensus map 
+  // returns map sequence+charge -> map index in consensus map
   map<pair<String, UInt>, vector<int> > getPeptideOccurrence_(const ConsensusMap &cons)
   {
     map<Size, UInt> num_consfeat_of_size;
@@ -781,7 +782,7 @@ protected:
     for (auto & c : consensus_fraction)
     {
       const auto& pids = c.getPeptideIdentifications();
-      if (pids.empty()) continue; // skip consensus feature without IDs 
+      if (pids.empty()) continue; // skip consensus feature without IDs
 
       const vector<PeptideHit>& phits = pids[0].getHits();
       if (phits.empty()) continue; // skip no PSM annotated
@@ -825,7 +826,7 @@ protected:
     {
       OPENMS_LOG_WARN << "Warning: No mzML origin annotated in ID file. This can lead to errors or unexpected behaviour later: " << id_file_abs_path << endl;
     }
-    
+
     return EXECUTION_OK;
   }
 
@@ -851,7 +852,7 @@ protected:
     const String& mz_file,
     const Size& fraction_group,
     const Size& fraction,
-    vector<ProteinIdentification>& protein_ids, 
+    vector<ProteinIdentification>& protein_ids,
     vector<PeptideIdentification>& peptide_ids,
     set<String>& fixed_modifications,  // adds to
     set<String>& variable_modifications) // adds to
@@ -864,8 +865,8 @@ protected:
 
     e = switchScoreType_(peptide_ids, id_file_abs_path);
     if (e != EXECUTION_OK) return e;
-  
-    // TODO we could think about removing this limitation 
+
+    // TODO we could think about removing this limitation
     IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
     if (!getFlag_("PeptideQuantification:quantify_decoys"))
     {
@@ -880,12 +881,12 @@ protected:
       OPENMS_LOG_FATAL_ERROR << "No peptide identifications present after removing decoys " << id_file_abs_path << endl;
       return ExitCodes::INCOMPATIBLE_INPUT_DATA;
     }
- 
+
     // add to the (global) set of fixed and variable modifications
     const vector<String>& var_mods = protein_ids[0].getSearchParameters().variable_modifications;
     const vector<String>& fixed_mods = protein_ids[0].getSearchParameters().fixed_modifications;
-    std::copy(var_mods.begin(), var_mods.end(), std::inserter(variable_modifications, variable_modifications.begin())); 
-    std::copy(fixed_mods.begin(), fixed_mods.end(), std::inserter(fixed_modifications, fixed_modifications.end())); 
+    std::copy(var_mods.begin(), var_mods.end(), std::inserter(variable_modifications, variable_modifications.begin()));
+    std::copy(fixed_mods.begin(), fixed_mods.end(), std::inserter(fixed_modifications, fixed_modifications.end()));
 
     // delete meta info to free some space
     for (PeptideIdentification & pid : peptide_ids)
@@ -900,11 +901,11 @@ protected:
         ph.getKeys(keys);
         for (const auto& k : keys)
         {
-          if (!(k.hasSubstring("_score") 
-            || k.hasSubstring("q-value") 
+          if (!(k.hasSubstring("_score")
+            || k.hasSubstring("q-value")
             || k.hasPrefix("Luciphor_global_flr")
             || k == "target_decoy") // keep target_decoy information for QC
-            )            
+            )
           {
             ph.removeMetaValue(k);
           }
@@ -969,9 +970,9 @@ protected:
     bool missing_spec_ref(false);
     for (const PeptideIdentification & pid : peptide_ids)
     {
-      if (!pid.metaValueExists("spectrum_reference") 
-        || pid.getMetaValue("spectrum_reference").toString().empty()) 
-      {          
+      if (!pid.metaValueExists("spectrum_reference")
+        || pid.getMetaValue("spectrum_reference").toString().empty())
+      {
         missing_spec_ref = true;
         break;
       }
@@ -983,17 +984,44 @@ protected:
                          "OpenMS will try to reannotate them by matching retention times between id and spectra." << endl;
 
       SpectrumMetaDataLookup::addMissingSpectrumReferences(
-        peptide_ids, 
+        peptide_ids,
         mz_file_abs_path,
         true);
     }
 
     return EXECUTION_OK;
   }
- 
+
+  void removeUnvalidatedTransferIDs_(FeatureMap& fm)
+  {
+    set<IdentificationData::ObservationMatchRef> matchesWFeat;
+    for (const auto& feat : fm)
+    {
+      for (const auto& match : feat.getIDMatches())
+      {
+        matchesWFeat.insert(match);
+      }
+    }
+    Size c = 0;
+    IDFilter::filterObservationMatchesByFunctor(fm.getIdentificationData(), [&](IdentificationData::ObservationMatchRef obs_match)
+    {
+     if ((obs_match->getMetaValue("FFId_category","") == "transfer") &&
+      (matchesWFeat.find(obs_match) == matchesWFeat.end()) )
+     {
+       c++;
+       return true;
+     }
+     else
+     {
+       return false;
+     }
+    });
+    OPENMS_LOG_DEBUG << "Removed " << c << " unvalidated transferred IDs!" << std::endl;
+  }
+
   ExitCodes quantifyFraction_(
-    const pair<unsigned int, std::vector<String> > & ms_files, 
-    const map<String, String>& mzfile2idfile, 
+    const pair<unsigned int, std::vector<String> > & ms_files,
+    const map<String, String>& mzfile2idfile,
     double median_fwhm,
     const multimap<Size, PeptideIdentification> & transfered_ids,
     ConsensusMap & consensus_fraction,
@@ -1015,13 +1043,13 @@ protected:
     StringList id_MS_run_ref;
     StringList in_MS_run = ms_files.second;
 
-    // for each MS file of current fraction (e.g., all MS files that measured the n-th fraction) 
+    // for each MS file of current fraction (e.g., all MS files that measured the n-th fraction)
     Size fraction_group{1};
     for (String const & mz_file : ms_files.second)
     {
       writeDebug_("Processing file: " + mz_file,  1);
       // centroid spectra (if in profile mode) and correct precursor masses
-      MSExperiment ms_centroided;    
+      MSExperiment ms_centroided;
 
       {
         ExitCodes e = centroidAndCorrectPrecursors_(mz_file, ms_centroided);
@@ -1042,7 +1070,7 @@ protected:
       StringList id_msfile_ref;
       protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
       id_MS_run_ref.push_back(id_msfile_ref[0]);
-     
+
       //-------------------------------------------------------------
       // Internal Calibration of spectra peaks and precursor peaks with high-confidence IDs
       //-------------------------------------------------------------
@@ -1054,9 +1082,12 @@ protected:
       vector<ProteinIdentification> ext_protein_ids;
       vector<PeptideIdentification> ext_peptide_ids;
 
+      IdentificationData id_data, id_data_ext;
+
       //////////////////////////////////////////////////////
       // Transfer aligned IDs
       //////////////////////////////////////////////////////
+      Size c = 0;
       if (!transfered_ids.empty())
       {
         OPENMS_PRECONDITION(is_already_aligned, "Data has not been aligned.")
@@ -1065,14 +1096,31 @@ protected:
         MapAlignmentTransformer::transformRetentionTimes(peptide_ids, transformations[fraction_group - 1]);
         MapAlignmentTransformer::transformRetentionTimes(ms_centroided, transformations[fraction_group - 1]);
 
-        // copy the (already) aligned, consensus feature derived ids that are to be transferred to this map to peptide_ids
+        //consensus_fraction.getIdentifier and getLoadedFilePath seems to be empty. Create temporary string.
+        //TODO use same name as potential debug output file?
+        auto tmpfileref = id_data.registerInputFile(IdentificationData::InputFile("fraction" + String(fraction) + ".consensusXML")); // "temporary" ConsensusXML for this fraction
+        // copy the (already) aligned, consensus feature derived ids that are to be transferred to this map to (internal) id_data
         auto range = transfered_ids.equal_range(fraction_group - 1);
         for (auto& it = range.first; it != range.second; ++it)
         {
-           PeptideIdentification trans = it->second;
-           trans.setIdentifier(protein_ids[0].getIdentifier());
-           peptide_ids.push_back(trans);
+          //TODO refactor into member of IDDataConverter "convertPeptideID" or something (with option for number of exported hits)? But we would need to allow passing metavals.
+          IdentificationData::Observation obs{it->second.getMetaValue("feature_id"), tmpfileref, it->second.getMZ(), it->second.getRT()};
+          auto obs_ref = id_data.registerObservation(obs);
+          IdentificationData::IdentifiedPeptide pep{it->second.getHits()[0].getSequence()};
+          for (const auto& ev : it->second.getHits()[0].getPeptideEvidences())
+          {
+            IdentificationData::ParentSequence prot {ev.getProteinAccession()}; //TODO add more information about the proteins if available (TD, coverage, processing ..)
+            auto prot_ref = id_data.registerParentSequence(prot);
+            IdentificationData::ParentMatch pm {static_cast<Size>(ev.getStart()), static_cast<Size>(ev.getEnd()), ev.getAABefore(), ev.getAAAfter()};
+            pep.parent_matches[prot_ref].insert(pm);
+          }
+          auto pep_ref = id_data.registerIdentifiedPeptide(pep);
+          IdentificationData::ObservationMatch obs_match{pep_ref, obs_ref, it->second.getHits()[0].getCharge()}; //TODO add processing steps?
+          obs_match.setMetaValue("FFId_category", "transfer");
+          id_data.registerObservationMatch(obs_match);
+          c++;
         }
+        OPENMS_LOG_INFO << "Transferring " << c << "IDs to this file." << std::endl;
       }
 
       //////////////////////////////////////////
@@ -1082,7 +1130,7 @@ protected:
 
       //-------------------------------------------------------------
       // Feature detection
-      //-------------------------------------------------------------   
+      //-------------------------------------------------------------
       ///////////////////////////////////////////////
 
       // Run MTD before FFM
@@ -1093,13 +1141,12 @@ protected:
 
       if (getStringOption_("targeted_only") == "false")
       {
-        calculateSeeds_(ms_centroided, seeds, median_fwhm);
+        calculateSeeds_(ms_centroided, seeds, median_fwhm); // resets LoadedFilePath()
         if (debug_level_ > 666)
         {
           FeatureXMLFile().store("debug_seeds_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", seeds);
         }
       }
-
       /////////////////////////////////////////////////
       // Run FeatureFinderIdentification
 
@@ -1118,19 +1165,31 @@ protected:
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
-      FeatureMap tmp = fm;
+      if (c > 0)
+      {
+        IdXMLFile().store("debug_fraction_" + String(ms_files.first) + "_IDs_after_transfer.idXML", protein_ids, peptide_ids);
+      }
 
-      ffi.run(peptide_ids, 
-        protein_ids, 
-        ext_peptide_ids, 
-        ext_protein_ids, 
-        tmp,
-        seeds,
-        mz_file);
+      ffi.run(fm, peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, seeds, mz_file);
+
+        /*
+      IdentificationDataConverter::importIDs(id_data, protein_ids, peptide_ids);
+      IdentificationDataConverter::importIDs(id_data_ext, ext_protein_ids, ext_peptide_ids);
+
+      if (!seeds.empty())
+      {
+        ffi.convertSeeds(seeds, id_data);
+      }
+
+      ffi.run(fm, id_data, id_data_ext, mz_file);
+
+      // convert IDs in feature map to Peptide-/ProteinIdentification:
+      IdentificationDataConverter::exportFeatureIDs(fm);
+        */
 
       // TODO: consider moving this to FFid
       // free parts of feature map not needed for further processing (e.g., subfeatures...)
-      for (auto & f : tmp)
+      for (auto & f : fm)
       {
         //TODO keep FWHM meta value for QC
         f.clearMetaInfo();
@@ -1138,11 +1197,11 @@ protected:
         f.setConvexHulls({});
       }
 
-      IDConflictResolverAlgorithm::resolve(tmp,
+      IDConflictResolverAlgorithm::resolve(fm,
           getStringOption_("keep_feature_top_psm_only") == "false"); // keep only best peptide per feature per file
 
-      feature_maps.push_back(tmp);
-      
+      feature_maps.push_back(std::move(fm));
+
       if (debug_level_ > 666)
       {
         FeatureXMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back());
@@ -1170,8 +1229,8 @@ protected:
     if (!is_already_aligned)
     {
       max_alignment_diff = alignAndLink_(
-        feature_maps, 
-        consensus_fraction, 
+        feature_maps,
+        consensus_fraction,
         transformations,
         median_fwhm);
     }
@@ -1197,7 +1256,7 @@ protected:
     ////////////////////////////////////////////////////////////
     Size j(0);
     // for each MS file (as provided in the experimental design)
-    for (String const & mz_file : ms_files.second) 
+    for (String const & mz_file : ms_files.second)
     {
       const Size curr_fraction_group = j + 1;
       consensus_fraction.getColumnHeaders()[j].label = "label-free";
@@ -1228,13 +1287,13 @@ protected:
     //-------------------------------------------------------------
     // ConsensusMap normalization (basic)
     //-------------------------------------------------------------
-    if (getStringOption_("out_msstats").empty() 
+    if (getStringOption_("out_msstats").empty()
     && getStringOption_("out_triqler").empty())  // only normalize if no MSstats/Triqler output is generated
     {
       ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(
-        consensus_fraction, 
-        ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, 
-        "", 
+        consensus_fraction,
+        ConsensusMapNormalizerAlgorithmMedian::NM_SCALE,
+        "",
         "");
     }
 
@@ -1248,13 +1307,13 @@ protected:
   ExitCodes inferProteinGroups_(const StringList in_ids,
     const String& in_db,
     const map<String, String>& idfile2mzfile,
-    const set<String>& fixed_modifications, 
-    vector<ProteinIdentification>& inferred_protein_ids, 
+    const set<String>& fixed_modifications,
+    vector<ProteinIdentification>& inferred_protein_ids,
     vector<PeptideIdentification>& inferred_peptide_ids)
   {
     // load the IDs again and merge
     IDMergerAlgorithm merger{String("all_merged")};
-    
+
     for (const auto& idfile : in_ids)
     {
       vector<ProteinIdentification> protein_ids;
@@ -1287,8 +1346,8 @@ protected:
       {
         id_msfile_ref.push_back(idfile2mzfile.at(idfile));
         protein_ids[0].setPrimaryMSRunPath(id_msfile_ref);
-      }     
- 
+      }
+
       // TODO: Filter for a PSM FDR? Better on an experiment-level though
       merger.insertRuns(std::move(protein_ids), std::move(peptide_ids));
     }
@@ -1444,7 +1503,7 @@ protected:
     {
       IDFilter::filterHitsByScore(inferred_protein_ids, max_fdr);
       IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-    } 
+    }
 
     if (max_psm_fdr < 1.)
     {
@@ -1506,7 +1565,7 @@ protected:
         if (pep2prot_it != pep2prot_inferred.end())
         {
           const auto accs = pep2prot_it->second;
-          pes.erase(std::remove_if(pes.begin(), 
+          pes.erase(std::remove_if(pes.begin(),
                               pes.end(),
                               [&accs](PeptideEvidence& x){
                                 return accs.find(x.getProteinAccession()) == accs.end();
@@ -1525,7 +1584,7 @@ protected:
             hits.end());
     }
     // erase peptide ids without peptide hits
-    pids.erase(std::remove_if(pids.begin(), 
+    pids.erase(std::remove_if(pids.begin(),
                     pids.end(),
                     [](PeptideIdentification& x){ return x.getHits().empty(); }),
           pids.end());
@@ -1535,7 +1594,7 @@ protected:
   {
     //-------------------------------------------------------------
     // Parameter handling
-    //-------------------------------------------------------------    
+    //-------------------------------------------------------------
 
     // Read tool parameters
     StringList in = getStringList_("in");
@@ -1549,7 +1608,7 @@ protected:
     // Validate parameters
     if (in.size() != in_ids.size())
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, 
+      throw Exception::FileNotFound(__FILE__, __LINE__,
         OPENMS_PRETTY_FUNCTION, "Number of spectra file (" + String(in.size()) + ") must match number of ID files (" + String(in_ids.size()) + ").");
     }
 
@@ -1557,19 +1616,19 @@ protected:
     {
       if (!out_msstats.empty())
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, 
+        throw Exception::FileNotFound(__FILE__, __LINE__,
           OPENMS_PRETTY_FUNCTION, "MSstats export for spectral counting data not supported. Please remove output file.");
       }
       if (!out_triqler.empty())
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, 
+        throw Exception::FileNotFound(__FILE__, __LINE__,
           OPENMS_PRETTY_FUNCTION, "Triqler export for spectral counting data not supported. Please remove output file.");
       }
     }
 
     //-------------------------------------------------------------
     // Experimental design: read or generate default
-    //-------------------------------------------------------------      
+    //-------------------------------------------------------------
     ExperimentalDesign design;
     if (!design_file.empty())
     { // load from file
@@ -1594,13 +1653,13 @@ protected:
         e.sample = count;
         msfs.push_back(e);
         ++count;
-      }      
+      }
       design.setMSFileSection(msfs);
     }
 
     // some sanity checks
     // extract basenames from experimental design and input files
-    const auto& pl2fg = design.getPathLabelToFractionGroupMapping(true);      
+    const auto& pl2fg = design.getPathLabelToFractionGroupMapping(true);
     set<String> ed_basenames;
     for (const auto& p : pl2fg)
     {
@@ -1629,15 +1688,15 @@ protected:
 
     if (design.getNumberOfLabels() != 1)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, 
-        OPENMS_PRETTY_FUNCTION, "Experimental design is not label-free as it contains multiple labels.");          
+      throw Exception::InvalidParameter(__FILE__, __LINE__,
+        OPENMS_PRETTY_FUNCTION, "Experimental design is not label-free as it contains multiple labels.");
     }
     if (!design.sameNrOfMSFilesPerFraction())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, 
-        OPENMS_PRETTY_FUNCTION, "Different number of fractions for different samples provided. This is currently not supported by ProteomicsLFQ.");          
+      throw Exception::InvalidParameter(__FILE__, __LINE__,
+        OPENMS_PRETTY_FUNCTION, "Different number of fractions for different samples provided. This is currently not supported by ProteomicsLFQ.");
     }
-   
+
     std::map<unsigned int, std::vector<String> > frac2ms = design.getFractionToMSFilesMapping();
 
     // experimental design file could contain URLs etc. that we want to overwrite with the actual input files
@@ -1647,7 +1706,7 @@ protected:
       { // for all ms files of current fraction number
         // if basename in experimental design matches to basename in input file
         // overwrite experimental design to point to existing file (and only if they were different)
-        if (auto it = std::find_if(in.begin(), in.end(), 
+        if (auto it = std::find_if(in.begin(), in.end(),
               [&s] (const String& in_filename) { return File::basename(in_filename) == File::basename(s); }); // basename matches?
                  it != in.end() && s != *it) // and differ?
         {
@@ -1656,8 +1715,8 @@ protected:
           s = *it; // overwrite filename in design with filename in input files
         }
       }
-      
-    } 
+
+    }
 
     for (auto & f : frac2ms)
     {
@@ -1672,9 +1731,6 @@ protected:
     // Here we currently assume that these are provided in the exact same order.
     map<String, String> mzfile2idfile = mapMzML2Ids_(in, in_ids);
     map<String, String> idfile2mzfile = mapId2MzMLs_(mzfile2idfile);
-
-    // check if mzMLs in experimental design match to mzMLs passed as in parameter
-    
 
     Param pep_param = getParam_().copy("Posterior Error Probability:", true);
     writeDebug_("Parameters passed to PEP algorithm", pep_param, 3);
@@ -1703,26 +1759,26 @@ protected:
       OPENMS_LOG_INFO << "Performing feature intensity-based quantification." << endl;
       double median_fwhm(0);
       for (auto const & ms_files : frac2ms) // for each fraction->ms file(s)
-      {      
+      {
         ConsensusMap consensus_fraction; // quantitative result for this fraction identifier
         vector<TransformationDescription> transformations; // filled by RT alignment
         double max_alignment_diff(0.0);
 
         ExitCodes e = quantifyFraction_(
-          ms_files, 
+          ms_files,
           mzfile2idfile,
-          median_fwhm, 
+          median_fwhm,
           multimap<Size, PeptideIdentification>(),
-          consensus_fraction, 
+          consensus_fraction,
           transformations,  // transformations are empty, will be filled by alignment
           max_alignment_diff,  // max_alignment_diff not yet determined, will be filled by alignment
-          fixed_modifications, 
+          fixed_modifications,
           variable_modifications);
 
         if (e != EXECUTION_OK) { return e; }
-        
+
         if (getStringOption_("transfer_ids") != "false" && ms_files.second.size() > 1)
-        {  
+        {
           OPENMS_LOG_INFO << "Transferring identification data between runs of the same fraction." << endl;
           // needs to occur in >= 50% of all runs for transfer
           const Size min_occurrance = (ms_files.second.size() + 1) / 2;
@@ -1732,11 +1788,11 @@ protected:
           // The transferred IDs were calculated on the aligned data
           // So we make sure we use the aligned IDs and peak maps in the re-quantification step
           e = quantifyFraction_(
-            ms_files, 
-            mzfile2idfile, 
-            median_fwhm, 
-            transfered_ids, 
-            consensus_fraction, 
+            ms_files,
+            mzfile2idfile,
+            median_fwhm,
+            transfered_ids,
+            consensus_fraction,
             transformations,  // transformations as determined by alignment
             max_alignment_diff, // max_alignment_error as determined by alignment
             fixed_modifications,
@@ -1779,10 +1835,10 @@ protected:
         StringList id_MS_run_ref;
         StringList in_MS_run = ms_files.second;
 
-        // for each MS file of current fraction (e.g., all MS files that measured the n-th fraction) 
+        // for each MS file of current fraction (e.g., all MS files that measured the n-th fraction)
         Size fraction_group{1};
         for (String const & mz_file : ms_files.second)
-        { 
+        {
           // load and clean identification data associated with MS run
           vector<ProteinIdentification> protein_ids;
           vector<PeptideIdentification> peptide_ids;
@@ -1800,8 +1856,8 @@ protected:
 
           // append to consensus map
           all_protein_ids.emplace_back(std::move(protein_ids[0]));
-          all_peptide_ids.insert(all_peptide_ids.end(), 
-            std::make_move_iterator(peptide_ids.begin()), 
+          all_peptide_ids.insert(all_peptide_ids.end(),
+            std::make_move_iterator(peptide_ids.begin()),
             std::make_move_iterator(peptide_ids.end()));
         }
 
@@ -1810,7 +1866,7 @@ protected:
         ////////////////////////////////////////////////////////////
         Size j(0);
         // for each MS file (as provided in the experimental design)
-        for (String const & mz_file : ms_files.second) 
+        for (String const & mz_file : ms_files.second)
         {
           const Size curr_fraction_group = j + 1;
           consensus.getColumnHeaders()[run_index].label = "label-free";
@@ -1834,7 +1890,7 @@ protected:
     vector<PeptideIdentification> inferred_peptide_ids;
     ExitCodes e = inferProteinGroups_(in_ids, in_db, idfile2mzfile, fixed_modifications, inferred_protein_ids, inferred_peptide_ids);
     if (e != EXECUTION_OK) return e;
-   
+
     // references from PSM to Protein that got removed during inference need to be also removed in the consensus map
     {
       unordered_map<String,set<String>> pep2prot_inferred;
@@ -1874,8 +1930,8 @@ protected:
     }
     else if (getStringOption_("quantification_method") == "spectral_counting")
     {
-      pq_param.setValue("average", "sum"); 
-      pq_param.setValue("top", 0); // all 
+      pq_param.setValue("average", "sum");
+      pq_param.setValue("top", 0); // all
       pq_param.setValue("consensus:normalize", "false");
       quantifier.setParameters(pq_param);
 
@@ -1895,16 +1951,16 @@ protected:
     if (inferred_protein_ids[0].getIndistinguishableProteins().empty())
     {
       throw Exception::MissingInformation(
-       __FILE__, 
-       __LINE__, 
-       OPENMS_PRETTY_FUNCTION, 
+       __FILE__,
+       __LINE__,
+       OPENMS_PRETTY_FUNCTION,
        "No information on indistinguishable protein groups found.");
     }
 
     quantifier.quantifyProteins(inferred_protein_ids[0]);
     auto const & protein_quants = quantifier.getProteinResults();
     if (protein_quants.empty())
-    {        
+    {
      OPENMS_LOG_WARN << "Warning: No proteins were quantified." << endl;
     }
 
@@ -1946,10 +2002,10 @@ protected:
     const bool report_unidentified_features(false);
 
     MzTab m = MzTab::exportConsensusMapToMzTab(
-      consensus, 
+      consensus,
       String("null"),
       true,
-      report_unidentified_features, 
+      report_unidentified_features,
       report_unmapped,
       "Export from ProteomicsLFQ workflow in OpenMS.");
     MzTabFile().store(out, m);
@@ -1963,13 +2019,13 @@ protected:
       consensus.getProteinIdentifications().resize(1);
 
       msstats.storeLFQ(
-        out_msstats, 
-        consensus, 
-        design, 
-        StringList(), 
-        false, 
-        "MSstats_BioReplicate", 
-        "MSstats_Condition", 
+        out_msstats,
+        consensus,
+        design,
+        StringList(),
+        false,
+        "MSstats_BioReplicate",
+        "MSstats_Condition",
         "max");
     }
 
@@ -1987,13 +2043,13 @@ protected:
       switcher.switchToGeneralScoreType(consensus, IDScoreSwitcherAlgorithm::ScoreType::PEP, c);
 
       tf.storeLFQ(
-        out_triqler, 
-        consensus, 
-        design, 
-        StringList(), 
+        out_triqler,
+        consensus,
+        design,
+        StringList(),
         "MSstats_Condition" // TODO: choose something more generic like "Condition" for both MSstats and Triqler export
         );
-    }    
+    }
 
     return EXECUTION_OK;
   }
