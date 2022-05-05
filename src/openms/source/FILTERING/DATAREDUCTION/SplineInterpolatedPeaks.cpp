@@ -201,13 +201,12 @@ namespace OpenMS
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
     }
-    return Navigator(&packages_, pos_min_, pos_max_, scaling);
+    return Navigator(&packages_, pos_max_, scaling);
   }
 
-  SplineInterpolatedPeaks::Navigator::Navigator(const std::vector<SplinePackage>* packages, double pos_min, double pos_max, double scaling) :
+  SplineInterpolatedPeaks::Navigator::Navigator(const std::vector<SplinePackage>* packages, double pos_max, double scaling) :
     packages_(packages),
     last_package_(0),
-    pos_min_(pos_min),
     pos_max_(pos_max),
     pos_step_width_scaling_(scaling)
   {
