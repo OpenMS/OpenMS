@@ -41,7 +41,7 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   # add compiler flag
   # -> requires clang > 3.1 or gcc > 4.8
   if (MSVC)
-    message(WARNING "AddressSanitizer can only be enabled for GCC and Clang")
+    message(WARNING "AddressSanitizer can only be enabled for GCC and Clang.")
   else()
     # add AddressSanitizer also for compiler
     add_compile_options( -fsanitize=address
@@ -50,8 +50,10 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
     set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -fsanitize=address")
+    message(STATUS "AddressSanitizer is on.")
   endif()
 else()
-  message(WARNING "AddressSanitizer is supported for OpenMS debug mode only")
+  message(WARNING "AddressSanitizer is supported for OpenMS debug mode only.")
+  message(WARNING "Build type is ${CMAKE_BUILD_TYPE}")
 endif()
 

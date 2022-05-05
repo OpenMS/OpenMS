@@ -202,7 +202,7 @@ namespace OpenMS
               }
             }
 
-            for (const std::pair<String, std::pair<double, double>>& kv : filter_criteria.component_group_qcs.at(cg_qc_it).meta_value_qc)
+            for (const std::pair<const String, std::pair<double, double>>& kv : filter_criteria.component_group_qcs.at(cg_qc_it).meta_value_qc)
             {
               bool metavalue_exists{ false };
               if (!checkMetaValue(features.at(feature_it), kv.first, kv.second.first, kv.second.second, metavalue_exists))
@@ -396,7 +396,7 @@ namespace OpenMS
               ++cg_tests_count;
             }
 
-            for (const std::pair<String, std::pair<double, double>>& kv : filter_criteria.component_group_qcs.at(cg_qc_it).meta_value_qc)
+            for (const std::pair<const String, std::pair<double, double>>& kv : filter_criteria.component_group_qcs.at(cg_qc_it).meta_value_qc)
             {
               if (!checkRange(filter_values.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).second,
                 kv.second.first,

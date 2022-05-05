@@ -253,6 +253,9 @@ setup(
     name=package_name,
     packages=["pyopenms"],
     ext_package="pyopenms",
+    package_data= {
+        'pyopenms': ['py.typed']
+    },
 	install_requires=[
           'numpy',
           'pandas'

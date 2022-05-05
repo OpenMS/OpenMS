@@ -67,6 +67,7 @@ namespace OpenMS
 
     defaults_.insert("AccurateMassSearchEngine:", AccurateMassSearchEngine().getDefaults());
     defaults_.setValue("AccurateMassSearchEngine:keep_unidentified_masses", "false");
+    defaults_.setValidStrings("AccurateMassSearchEngine:keep_unidentified_masses", {"true","false"});
 
     // write defaults into Param object param_
     defaultsToParam_();

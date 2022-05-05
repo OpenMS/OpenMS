@@ -290,14 +290,14 @@ namespace OpenMS
     {
       // This stores the complete accession, eg, "tr|A9GID7|A9GID7_SORC5"
       QString accession = protein_table_widget_->item(row, ProteinClmn::ACCESSION)->data(Qt::DisplayRole).toString();
-      // As with the current logic, we have only one accession per row, we can directy use that accession 
+      // As with the current logic, we have only one accession per row, we can directly use that accession 
       // while opening the window instead of showing another widget that lists all accessions
       openUniProtSiteWithAccession_(accession);
     }
 
     //
     // Check if Qt WebEngineWidgets is installed on user's machine and if so,
-    // open a new window to visualize protein sequece
+    // open a new window to visualize protein sequence
     #ifdef QT_WEBENGINEWIDGETS_LIB
     if (column == ProteinClmn::SEQUENCE)
     {
@@ -323,7 +323,7 @@ namespace OpenMS
       if (item_pepid)
       {
 
-        //array to store object of start-end postions, sequence and mod data of peptides;
+        //array to store object of start-end positions, sequence and mod data of peptides;
         QJsonArray peptides_data;
        
         //use data from the protein_to_peptide_id_map map and store the start/end position to the QJsonArray
@@ -351,7 +351,7 @@ namespace OpenMS
                 // contains key-value of modName and vector of indices
                 QJsonObject mod_data;
 
-                for (int i = 0; i < aaseq.size(); ++i)
+                for (int i = 0; i < (int)aaseq.size(); ++i)
                 {
                   if (aaseq[i].isModified())
                   {

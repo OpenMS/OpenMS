@@ -57,7 +57,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPolygon>
-#include <QtCore/QTime>
+#include <QElapsedTimer>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMessageBox>
@@ -1448,7 +1448,7 @@ namespace OpenMS
 #endif
 
     //timing
-    QTime overall_timer;
+    QElapsedTimer overall_timer;
     if (show_timing_)
     {
       overall_timer.start();
@@ -1472,7 +1472,7 @@ namespace OpenMS
 
       buffer_.fill(QColor(String(param_.getValue("background_color").toString()).toQString()).rgb());
       painter.begin(&buffer_);
-      QTime layer_timer;
+      QElapsedTimer layer_timer;
 
       for (Size i = 0; i < getLayerCount(); i++)
       {
@@ -1533,7 +1533,14 @@ namespace OpenMS
     painter.begin(this);
 
     //copy peak data from buffer
+     /*
+         * Suppressed warning QVector<QRect> QRegion::rects() const is deprecated
+         * Use begin()/end() instead, from Qt 5.8
+         */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     QVector<QRect> rects = e->region().rects();
+#pragma GCC diagnostic pop
     for (int i = 0; i < (int)rects.size(); ++i)
     {
       painter.drawImage(rects[i].topLeft(), buffer_, rects[i]);

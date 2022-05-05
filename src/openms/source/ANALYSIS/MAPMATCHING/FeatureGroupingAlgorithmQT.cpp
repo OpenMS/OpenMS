@@ -34,8 +34,11 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
+#include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 
 using namespace std;
 
@@ -69,7 +72,7 @@ namespace OpenMS
     cluster_finder.setParameters(param_.copy("", true));
 
     cluster_finder.run(maps, out);
-
+    
     postprocess_(maps, out);
   }
 

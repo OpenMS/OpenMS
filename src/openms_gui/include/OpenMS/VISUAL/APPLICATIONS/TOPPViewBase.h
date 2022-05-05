@@ -60,6 +60,7 @@
 #include <QtWidgets/QActionGroup>
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
+#include <QElapsedTimer>
 
 class QAction;
 class QComboBox;
@@ -523,7 +524,7 @@ protected:
       UInt window_id;
       Size spectrum_id;
       QProcess* process = nullptr;
-      QTime timer;
+      QElapsedTimer timer;
       bool visible_area_only;
     } topp_;
     //@}

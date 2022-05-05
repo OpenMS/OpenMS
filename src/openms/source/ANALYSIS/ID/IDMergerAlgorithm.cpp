@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <unordered_map>
+#include <array>
 
 using namespace std;
 namespace OpenMS

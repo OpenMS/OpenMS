@@ -374,7 +374,7 @@ namespace OpenMS
       OPENMS_LOG_ERROR << "An error occured while running " << adapter_name << "." << endl;
       OPENMS_LOG_ERROR << "Standard output: " << proc_stdout << endl;
       OPENMS_LOG_ERROR << "Standard error: " << proc_stderr << endl;
-      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + static_cast<Int>(rt));
+      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + String(static_cast<Int>(rt)));
     }
     // search was successful
 
@@ -394,7 +394,7 @@ namespace OpenMS
     if (indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK)
     {
       OPENMS_LOG_ERROR << "An error occured while trying to index the search results." << endl;
-      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + static_cast<Int>(indexer_exit));
+      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + String(static_cast<Int>(indexer_exit)));
     }
 
     if (keep_files)
