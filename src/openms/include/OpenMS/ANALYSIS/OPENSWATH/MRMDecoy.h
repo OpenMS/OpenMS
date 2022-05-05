@@ -237,4 +237,3 @@ protected:
     bool keepC_;
   };
 }
-
