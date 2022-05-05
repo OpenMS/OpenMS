@@ -39,8 +39,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-#include <boost/lexical_cast.hpp>
 #include <boost/assign.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
@@ -80,7 +80,7 @@ namespace OpenMS
     MRMDecoy::IndexType idx;
     for (size_t i = 0; i < sequence.size(); i++)
     {
-      if ( (keepN && i == 0) || (keepC && i + 1 == sequence.size()) )
+      if ( (keepN && i == 0) || (keepC && i + 1 == sequence.size()))
       {
         idx.push_back(i);
         continue;
