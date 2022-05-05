@@ -199,7 +199,13 @@ public:
       text_ = text; // this is just to keep the base class consistent.. we don't really use text_
     }
 
-protected:
+    // Docu in base class
+    Annotation1DItem* clone() const override
+    {
+      return new Annotation1DCaret(*this);
+    }
+
+  protected:
     /// The positions of points (in unit coordinates)
     /// Ensure positions are sorted by m/z axis (or equivalent) when assigning
     PositionsType caret_positions_;

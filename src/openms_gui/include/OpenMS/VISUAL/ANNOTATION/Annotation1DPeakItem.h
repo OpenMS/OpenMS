@@ -66,7 +66,6 @@ public:
 
     // Docu in base class
     void draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped = false) override
-
     {
       painter.save();
 
@@ -74,7 +73,7 @@ public:
 
       QPoint position_widget, peak_position_widget;
 
-      // translate mz/intensity to pixel coordinates
+      // translate units to pixel coordinates
       canvas->dataToWidget(canvas->getMapper().map(position_), position_widget, flipped);
       canvas->dataToWidget(canvas->getMapper().map(peak_position_), peak_position_widget, flipped);
 
@@ -299,6 +298,12 @@ public:
       fa.annotation = peak_anno;
 
       return fa;
+    }
+
+    // Docu in base class
+    Annotation1DItem* clone() const override
+    {
+      return new Annotation1DPeakItem(*this);
     }
 
   protected:

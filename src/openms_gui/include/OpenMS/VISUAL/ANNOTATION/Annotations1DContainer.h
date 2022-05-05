@@ -115,6 +115,10 @@ public:
     /// Returns the selected_pen_
     const QPen & getSelectedPen() const;
 
+  protected:
+    /// call delete on all pointers in the container, without modifying the container
+    void deleteAllItems_() const;
+
     /// The pen used to draw items
     QPen pen_;
 

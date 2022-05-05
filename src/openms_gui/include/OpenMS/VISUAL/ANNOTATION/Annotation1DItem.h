@@ -93,6 +93,9 @@ namespace OpenMS
     /// Moves the item; behavior depends on item type and is implemented in the subclasses
     virtual void move(PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) = 0;
 
+    /// Creates a copy of the item on the heap and returns a pointer
+    virtual Annotation1DItem* clone() const = 0;
+
   protected:
     /// Constructor
     Annotation1DItem(const QString & text);

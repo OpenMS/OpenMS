@@ -123,6 +123,17 @@ namespace OpenMS
       return gravity_axis_;
     }
 
+    /**
+     * \brief Swap gravity axis (from X to Y, or vice versa)
+     * \return An orthogonal gravity model
+     */
+    Gravitator swap() const
+    {
+      auto r = *this;
+      r.setGravityAxis( (r.getGravityAxis() == DIM::X) ? DIM::Y : DIM::X);
+      return r;
+    }
+
     /// Pull the point @p p to the current gravity axis, i.e. the lowest point on the Area
     ///
     /// @param p A X-Y data point 
@@ -264,6 +275,24 @@ namespace OpenMS
       return p;
     }
 
+    /// Get the value of the gravity dimension
+    ///
+    /// @param p A X-Y data point
+    /// @return Either the X or Y component, depending on gravity
+    int gravityValue(const QPoint& p) const
+    {
+      if (gravity_axis_ == DIM::X)
+      {
+        return p.x();
+      }
+      else if (gravity_axis_ == DIM::Y)
+      {
+        return p.y();
+      }
+      // never reached, but make compilers happy
+      return 0;
+    }
+
   private:
     /// Where are points in the X-Y plane projected onto when drawing lines?
     DIM gravity_axis_;
@@ -376,15 +405,20 @@ public:
     template <class T>
     void pushIntoDataRange(T& data_point, const int layer_index)
     { // note: if this is needed for anything other than the 1D Canvas, you need to make sure to call the correct widgetToData/ etc functions --- they work a bit different, depending on Canvas
-      auto xy_unit = unit_mapper_.map(data_point);
+      auto xy_unit = unit_mapper_.map(data_point); // datatype to xy
+      pushIntoDataRange(xy_unit, layer_index);
+      unit_mapper_.fromXY(xy_unit, data_point);    // xy to datatype
+    }
+
+    template<>
+    void pushIntoDataRange<PointXYType>(PointXYType& xy_unit, const int layer_index)
+    { // note: if this is needed for anything other than the 1D Canvas, you need to make sure to call the correct widgetToData/ etc functions --- they work a bit different, depending on Canvas
       auto p_range = unit_mapper_.fromXY(xy_unit);
       const auto& all_range = getLayer(layer_index).getCurrentSpectrum().getRange();
       p_range.pushInto(all_range);
-      auto pushed_xy = unit_mapper_.mapRange(p_range).minPosition();
-      unit_mapper_.fromXY(pushed_xy, data_point);
+      xy_unit = unit_mapper_.mapRange(p_range).minPosition();
     }
-
-
+    
     /// Display a static text box on the top right
     void setTextBox(const QString& html);
 

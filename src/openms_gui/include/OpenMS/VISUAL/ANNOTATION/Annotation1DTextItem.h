@@ -41,45 +41,87 @@ namespace OpenMS
   /** @brief An annotation item which represents an arbitrary text on the canvas.
           @see Annotation1DItem
   */
+  template <class DataPoint>
   class Annotation1DTextItem :
     public Annotation1DItem
   {
 public:
 
     /// Constructor
-    Annotation1DTextItem(const PointVarType & position, const QString & text, const int flags = Qt::AlignCenter);
-
+    Annotation1DTextItem(const DataPoint& position, const QString& text, const int flags = Qt::AlignCenter)
+      : Annotation1DItem(text), position_(position), flags_(flags)
+    {
+    }
     /// Copy constructor
-    Annotation1DTextItem(const Annotation1DTextItem & rhs);
+    Annotation1DTextItem(const Annotation1DTextItem & rhs) = default;
 
     /// Destructor
-    ~Annotation1DTextItem() override;
+    ~Annotation1DTextItem() override = default;
 
     // Docu in base class
-    void ensureWithinDataRange(Plot1DCanvas * const canvas) override;
+    void ensureWithinDataRange(Plot1DCanvas* const canvas, const int layer_index) override
+    {
+      canvas->pushIntoDataRange(position_, layer_index);
+    }
 
     // Docu in base class
-    void draw(Plot1DCanvas * const canvas, QPainter & painter, bool flipped = false) override;
+    void draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped = false) override
+    {
+      // translate units to pixel coordinates
+      QPoint pos_text;
+      canvas->dataToWidget(canvas->getMapper().map(position_), pos_text, flipped);
+
+      // compute bounding box of text_item on the specified painter
+      bounding_box_ = painter.boundingRect(QRectF(pos_text, pos_text), flags_, text_);
+
+      painter.drawText(bounding_box_, flags_, text_);
+      if (selected_)
+      {
+        drawBoundingBox_(painter);
+      }
+    }
 
     // Docu in base class
-    void move(const PointVarType & delta) override;
+    void move(PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override
+    {
+      auto pos_xy = dim_mapper.map(position_);
+      pos_xy += delta;
+      dim_mapper.fromXY(pos_xy, position_);
+    }
 
     /// Sets the position of the item (in MZ / intensity coordinates)
-    void setPosition(const PointVarType & position);
+    void setPosition(const DataPoint& position)
+    {
+      position_ = position;
+    }
 
     /// Returns the position of the item (in MZ / intensity coordinates)
-    const PointVarType & getPosition() const;
+    const DataPoint& getPosition() const
+    {
+      return position_;
+    }
 
     /// Set Qt flags (default: Qt::AlignCenter)
-    void setFlags(int flags);
+    void setFlags(int flags)
+    {
+      flags_ = flags;
+    }
 
     /// Get Qt flags
-    int getFlags() const;
+    int getFlags() const
+    {
+      return flags_;
+    }
 
-protected:
+    // Docu in base class
+    Annotation1DItem* clone() const override
+    {
+      return new Annotation1DTextItem(*this);
+    }
 
-    /// The position of the item (in MZ / intensity coordinates)
-    PointVarType position_;
+  protected:
+    /// The position of the item as a datatype, e.g. Peak1D
+    DataPoint position_;
 
     int flags_;
   };

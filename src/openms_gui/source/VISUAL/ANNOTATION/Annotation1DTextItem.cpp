@@ -33,97 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
-#include <OpenMS/VISUAL/Plot1DCanvas.h>
-
-#include <QtGui/QPainter>
-#include <QtCore/QPoint>
+#include <OpenMS/KERNEL/Peak1D.h>
 
 namespace OpenMS
 {
-
-  Annotation1DTextItem::Annotation1DTextItem(const PointVarType & position, const QString & text, int flags) :
-    Annotation1DItem(text),
-    position_(position),
-    flags_(flags)
+  namespace
   {
-  }
-
-  Annotation1DTextItem::Annotation1DTextItem(const Annotation1DTextItem & rhs) :
-    Annotation1DItem(rhs)
-  {
-    position_ = rhs.getPosition();
-    flags_ = rhs.getFlags();
-  }
-
-  Annotation1DTextItem::~Annotation1DTextItem()
-  {
-  }
-
-  void Annotation1DTextItem::draw(Plot1DCanvas * const canvas, QPainter & painter, bool flipped)
-  {
-    //translate mz/intensity to pixel coordinates
-    QPoint pos;
-    canvas->dataToWidget(position_.getX(), position_.getY(), pos, flipped, true);
-
-    // compute bounding box of text_item on the specified painter
-    bounding_box_ = painter.boundingRect(QRectF(pos, pos), flags_, text_);
-
-    painter.drawText(bounding_box_, flags_, text_);
-    if (selected_)
-    {
-      drawBoundingBox_(painter);
-    }
-  }
-
-  void Annotation1DTextItem::move(const PointVarType & delta)
-  {
-    position_.setX(position_.getX() + delta.getX());
-    position_.setY(position_.getY() + delta.getY());
-  }
-
-  void Annotation1DTextItem::setPosition(const Annotation1DTextItem::PointVarType & position)
-  {
-    position_ = position;
-  }
-
-  const Annotation1DTextItem::PointVarType & Annotation1DTextItem::getPosition() const
-  {
-    return position_;
-  }
-
-  void Annotation1DTextItem::setFlags(int flags)
-  {
-    flags_ = flags;
-  }
-
-  int Annotation1DTextItem::getFlags() const
-  {
-    return flags_;
-  }
-
-  void Annotation1DTextItem::ensureWithinDataRange(Plot1DCanvas* const canvas)
-  {
-    DRange<3> data_range = canvas->getDataRange();
-
-    CoordinateType x_pos = position_.getX();
-    CoordinateType y_pos = position_.getY() * canvas->getPercentageFactor();
-
-    if (x_pos < data_range.minPosition()[0])
-    {
-      position_.setX(data_range.minPosition()[0]);
-    }
-    if (x_pos > data_range.maxPosition()[0])
-    {
-      position_.setX(data_range.maxPosition()[0]);
-    }
-    if (y_pos < data_range.minPosition()[1])
-    {
-      position_.setY(data_range.minPosition()[1] / canvas->getPercentageFactor());
-    }
-    if (y_pos > data_range.maxPosition()[1])
-    {
-      position_.setY(data_range.maxPosition()[1] / canvas->getPercentageFactor());
-    }
+    Annotation1DTextItem<Peak1D> p(Peak1D(0, 0), "test");
   }
 
 } // namespace OpenMS

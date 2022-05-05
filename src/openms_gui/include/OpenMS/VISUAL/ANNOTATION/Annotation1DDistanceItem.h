@@ -136,6 +136,12 @@ public:
       ticks_ = ticks;
     }
 
+    // Docu in base class
+    Annotation1DItem* clone() const override
+    {
+      return new Annotation1DDistanceItem(*this);
+    }
+
   protected:
     /// The start point of the measured distance line (in data coordinates)
     DataPoint start_point_;
