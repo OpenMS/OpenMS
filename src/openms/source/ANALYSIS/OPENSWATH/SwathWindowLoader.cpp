@@ -130,7 +130,7 @@ namespace OpenMS
       StringUtils::toDouble(headerSubstrings[0]);
       OPENMS_LOG_INFO << "Swath Header not found" << std::endl;
     }
-    catch (Exception::ConversionError)
+    catch (const Exception::ConversionError &)
     {
       OPENMS_LOG_INFO << "Read Swath window header: '" << line << std::endl;
       std::getline(data, line);
