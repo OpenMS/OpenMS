@@ -796,7 +796,6 @@ protected:
         //exp_tmp[n] = empty_spec;
         ++n;
       }
-
     }
 
     /**
@@ -839,7 +838,7 @@ protected:
         for (const auto& weightedMZ: it->second)
         {
           // loop over m/z positions
-          for (typename MapType::SpectrumType::ConstIterator it_mz = exp[weightedMz.first].begin(); it_mz < exp[weightedMZ.first].end(); ++it_mz)
+          for (typename MapType::SpectrumType::ConstIterator it_mz = exp[weightedMZ.first].begin(); it_mz < exp[weightedMZ.first].end(); ++it_mz)
           {
             std::pair<double, double> mz_intensity(it_mz->getMZ(), (it_mz->getIntensity() * weightedMZ.second)); // m/z, intensity * weight
             mz_intensity_all.push_back(mz_intensity);
@@ -901,14 +900,13 @@ protected:
 
         // store spectrum temporarily
         exp_tmp.addSpectrum(std::move(average_spec));
-
       }
 
       logger.endProgress();
 
       // loop over blocks
       int n(0);
-      for (const auto& spectral_i : spectra_to_average_over)
+      for (const auto& spectral_index : spectra_to_average_over)
       {
         exp[spectral_index.first] = std::move(exp_tmp[n]);
         ++n;
