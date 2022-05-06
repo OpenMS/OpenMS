@@ -282,7 +282,7 @@ namespace OpenMS
     "A:C2-H3PO4"
   };
 
-  static constexpr std::array<const char*, 24> modifications_DNA_FA
+  static constexpr std::array<const char*, 28> modifications_DNA_FA
   {
     "G:C",
     "G:C-HPO3",
@@ -309,7 +309,12 @@ namespace OpenMS
     "A:C2",
     "A:C2-HPO3",
     "A:C2-H3PO4",
-    "A:C2-H2O"
+    "A:C2-H2O",
+
+    "d:",
+    "d:-H2O",
+    "d:-H3PO4",
+    "d:-HPO3"
   };
 
   static constexpr std::array<const char*, 12> modifications_DNA_UV
