@@ -442,14 +442,14 @@ public:
       for (AverageBlocks::iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         double sum(0.0);
-        for (const auto& it2 : it->second)
+        for (const auto& weight: it->second)
         {
-          sum += it2.second;
+          sum += weight.second;
         }
 
-        for (auto& it2 : it->second)
+        for (auto& weight: it->second)
         {
-          it2.second /= sum;
+          weight.second /= sum;
         }
       }
 
@@ -836,16 +836,15 @@ protected:
         // collect peaks from all spectra
         // loop over spectra in blocks
         std::vector<std::pair<double, double> > mz_intensity_all; // m/z positions and peak intensities from all spectra
-        for (const auto& it2 : it->second)
+        for (const auto& weightedMZ: it->second)
         {
           // loop over m/z positions
-          for (typename MapType::SpectrumType::ConstIterator it_mz = exp[it2.first].begin(); it_mz < exp[it2.first].end(); ++it_mz)
+          for (typename MapType::SpectrumType::ConstIterator it_mz = exp[weightedMz.first].begin(); it_mz < exp[weightedMZ.first].end(); ++it_mz)
           {
-            std::pair<double, double> mz_intensity(it_mz->getMZ(), (it_mz->getIntensity() * it2.second)); // m/z, intensity * weight
+            std::pair<double, double> mz_intensity(it_mz->getMZ(), (it_mz->getIntensity() * weightedMZ.second)); // m/z, intensity * weight
             mz_intensity_all.push_back(mz_intensity);
           }
         }
-
 
         sort(mz_intensity_all.begin(), mz_intensity_all.end());
 
@@ -909,14 +908,11 @@ protected:
 
       // loop over blocks
       int n(0);
-      for (const auto& it : spectra_to_average_over)
+      for (const auto& spectral_i : spectra_to_average_over)
       {
-        exp[it.first] = std::move(exp_tmp[n]);
+        exp[spectral_index.first] = std::move(exp_tmp[n]);
         ++n;
       }
-
     }
-
   };
-
 }
