@@ -68,7 +68,7 @@ namespace OpenMS::Internal
     }
     // read version number:
     QSqlQuery query(db);
-    if (!query.exec("SELECT OMSFile FROM version"))
+    if (!(query.exec("SELECT OMSFile FROM version") && query.first()))
     {
       raiseDBError_(db.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading file format version number");
