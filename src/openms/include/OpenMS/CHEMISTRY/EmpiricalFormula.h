@@ -125,6 +125,19 @@ public:
     virtual ~EmpiricalFormula();
     //@}
 
+     /**
+     @brief create EmpiricalFormular object by parsing an OpenMS string
+
+     @param s Input string
+
+     @throws Exception::ParseError if the formula cannot be parsed
+   */
+    static EmpiricalFormula fromString(const String& rhs)
+    {
+      EmpiricalFormula ef(rhs);
+      return ef;
+    }
+
     /** @name Accessors
     */
     //@{

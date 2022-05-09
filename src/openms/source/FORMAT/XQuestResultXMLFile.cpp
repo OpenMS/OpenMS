@@ -238,7 +238,7 @@ namespace OpenMS
     double precursor_z = 0;
     if (!spec.getPrecursors().empty())
     {
-      precursor_mz = Math::roundDecimal(spec.getPrecursors()[0].getMZ(), -9);
+      precursor_mz = Math::roundDecimal(spec.getPrecursors()[0].getMZ(), -6);
       precursor_z = spec.getPrecursors()[0].getCharge();
     }
 
@@ -264,8 +264,8 @@ namespace OpenMS
     for (Size i = 0; i != spec.size(); ++i)
     {
       String s;
-      s += String(Math::roundDecimal(spec[i].getMZ(), -9)) + "\t";
-      s += String(spec[i].getIntensity()) + "\t";
+      s += String(Math::roundDecimal(spec[i].getMZ(), -6)) + "\t";
+      s += String(Math::roundDecimal(spec[i].getIntensity(), -4)) + "\t";
 
       if (!charges.empty())
       {

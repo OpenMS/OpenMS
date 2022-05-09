@@ -110,7 +110,7 @@ Some more details and tips are collected here.
 <br>
 
 <b>Conventions</b><br>
-See the manual for proper coding style: <a href="https://github.com/OpenMS/OpenMS/wiki/Coding-conventions">Coding conventions</a> also see: <a href="https://github.com/OpenMS/OpenMS/wiki/C&%2343;&%2343;-Guide">C++ Guide</a>.
+See the manual for proper coding style: <a href="https://github.com/OpenMS/OpenMS/wiki/Coding-conventions">Coding conventions</a> also see: <a href="https://github.com/OpenMS/OpenMS/wiki/Cpp-Guide">C++ Guide</a>.
 We automatically test for common coding convention violations using a modified version of cpplint. Style testing can be enabled using CMake options. We also provide a configuration file for Uncrustify for automated style corrections (see "tools/uncrustify.cfg").
 <br>
 
