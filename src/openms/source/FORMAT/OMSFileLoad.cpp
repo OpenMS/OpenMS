@@ -41,8 +41,12 @@
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlQuery>
+#include <QtSql/QSqlRecord>
 // strangely, this is needed for type conversions in "QSqlQuery::bindValue":
 #include <QtSql/QSqlQueryModel>
+// JSON export:
+#include <QtCore/QJsonDocument>
+#include <QtCore/QJsonObject>
 
 using namespace std;
 
@@ -1129,5 +1133,76 @@ namespace OpenMS::Internal
     nextProgress();
     loadFeatures_(features);
     endProgress();
+  }
+
+
+  QJsonArray OMSFileLoad::exportQueryToJSON_(const QString& sql, const QStringList& exclude_fields)
+  {
+    // code based on: https://stackoverflow.com/a/18067555
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.setForwardOnly(true);
+    if (!query.exec(sql)) {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+
+    QJsonArray array;
+    while(query.next())
+    {
+      QJsonObject record;
+      for (int i = 0; i < query.record().count(); ++i)
+      {
+        // @TODO: this will repeat field names for every row -
+        // avoid this with separate "header" and "rows" (array)?
+        QString field = query.record().fieldName(i);
+        if (!exclude_fields.contains(field))
+        {
+          record.insert(field, QJsonValue::fromVariant(query.value(i)));
+        }
+      }
+      array.push_back(record);
+    }
+    return array;
+  }
+
+
+  void OMSFileLoad::exportToJSON(ostream& output)
+  {
+    // @TODO: this constructs the whole JSON file in memory - write directly to stream instead?
+    // (more code, but would use less memory)
+    QJsonObject json_data;
+    // input files:
+    if (tableExists_(db_name_, "ID_InputFile"))
+    {
+      QString sql = "SELECT * FROM ID_InputFile ORDER BY name";
+      json_data.insert("ID_InputFile", exportQueryToJSON_(sql));
+    }
+    // score types:
+    if (tableExists_(db_name_, "ID_ScoreType") && tableExists_(db_name_, "CVTerm"))
+    {
+      QString sql = "SELECT * FROM ID_ScoreType JOIN CVTerm ON cv_term_id = CVTerm.id ORDER BY accession, name";
+      json_data.insert("ID_ScoreType", exportQueryToJSON_(sql, {"id", "cv_term_id"}));
+    }
+    // processing software:
+    if (tableExists_(db_name_, "ID_ProcessingSoftware"))
+    {
+      QString sql = "SELECT * FROM ID_ProcessingSoftware ORDER BY name, version";
+      json_data.insert("ID_ProcessingSoftware", exportQueryToJSON_(sql));
+    }
+    // DB search params.:
+    if (tableExists_(db_name_, "ID_DBSearchParam"))
+    {
+      QString sql = "SELECT * FROM ID_DBSearchParam JOIN ID_MoleculeType ON molecule_type_id = ID_MoleculeType.id ORDER BY molecule_type_id, mass_type_average, database, database_version, taxonomy, charges, fixed_mods, variable_mods, precursor_mass_tolerance, fragment_mass_tolerance, precursor_tolerance_ppm, fragment_tolerance_ppm, digestion_enzyme, ";
+      if (version_number_ > 1)
+      {
+        sql += "enzyme_term_specificity, ";
+      }
+      sql += "missed_cleavages, min_length, max_length";
+      json_data.insert("ID_DBSearchParam", exportQueryToJSON_(sql, {"id", "molecule_type_id"}));
+    }
+
+    QJsonDocument json_doc;
+    json_doc.setObject(json_data);
+    output << json_doc.toJson().toStdString();
   }
 }

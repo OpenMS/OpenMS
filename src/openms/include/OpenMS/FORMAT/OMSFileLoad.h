@@ -38,6 +38,8 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
+#include <QtCore/QJsonArray> // for JSON export
+
 class QSqlQuery;
 
 namespace OpenMS
@@ -78,6 +80,9 @@ namespace OpenMS
 
       /// Load data from database and populate a FeatureMap object
       void load(FeatureMap& features);
+
+      /// Export database contents in JSON format, write to stream
+      void exportToJSON(std::ostream& output);
 
     private:
       // static CVTerm loadCVTerm_(int id);
@@ -139,6 +144,8 @@ namespace OpenMS
       void handleQueryPeakAnnotation_(
         QSqlQuery& query, IdentificationData::ObservationMatch& match,
         Key parent_id);
+
+      QJsonArray exportQueryToJSON_(const QString& sql, const QStringList& exclude_fields = {"id"});
 
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
