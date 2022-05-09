@@ -577,7 +577,7 @@ namespace OpenMS::Internal
       "precursor_tolerance_ppm NUMERIC NOT NULL CHECK (precursor_tolerance_ppm in (0, 1)) DEFAULT 0, " \
       "fragment_tolerance_ppm NUMERIC NOT NULL CHECK (fragment_tolerance_ppm in (0, 1)) DEFAULT 0, " \
       "digestion_enzyme TEXT, "                                         \
-      "enzyme_term_specificity TEXT, " \ // new in version 2!
+      "enzyme_term_specificity TEXT, " // new in version 2!
       "missed_cleavages NUMERIC, "                                      \
       "min_length NUMERIC, "                                            \
       "max_length NUMERIC, "                                            \
