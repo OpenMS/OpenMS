@@ -140,6 +140,8 @@ protected:
     registerDoubleOption_("FragmentMassError:tolerance", "<double>", 20, "m/z search window for matching peaks in two spectra", false);
     registerInputFile_("in_contaminants", "<file>", "", "Proteins considered contaminants", false);
     setValidFormats_("in_contaminants", {"fasta"});
+    registerInputFile_("Test_file", "<file>", "", "TemporaryFile for TESTING (rightnow)", false);
+    setValidFormats_("Test_file", {"fasta"});
     registerInputFileList_("in_trafo", "<file>", {}, "trafoXMLs from MapAligners", false);
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
@@ -420,11 +422,46 @@ protected:
 
       if (export_evidence.isValid())
       {
-        //get additonal information for our proteins
+        // THIS IS OUR FALLBACK IF THE USER PROVIDED NO .fasta
+        // -> for now we ignore the fasta....
+        /*
+        const String& fileName = cmap.getProteinIdentifications()[0].getSearchParameters().db;
+        vector<FASTAFile::FASTAEntry> protDescription;
+        //the amount of protIds in our cmap should be lower than the amount in the fasta
+        protDescription.reserve(cmap.getProteinIdentifications().size());
+        //check for cmap.getProteinIdentifications()[0].empty()?
+        FASTAFile().load(fileName, protDescription);
+         /*
+
+        /*TODO :
+         * index fasta, so that we can map the proteinidentifier from the cmap to the ones in the fasta ...
+         * get the fallback to default location if the fasta is not passed by user
+         * implement exp as arg for exportFeatureMap(*fmap,cmap,exp)
+        */
+        //check for existing description in hit & only if that doesnt exist -> extract it from fasta
+        auto& cmapProtIds = cmap.getProteinIdentifications();
+        for(auto& protId : cmapProtIds)
+        {
+          auto& cmapProtHits = protId.getHits();
+          for(auto& hit : cmapProtHits)
+          {
+            //check if hit has alrdy a description...
+            if(! hit.getDescription().empty())
+            {
+              continue;
+            }
+            //if not we have to get the info out of the fasta
+            else
+            {
+              //SET THE ADDITIONAL DESCRIPTION
+              //hit.setDescription(mapToFASTA[hit.getIdentifier()].description);
+              hit.setDescription("lenny");
+            }
+          }
+        }
         gatherProtInfo_(cmap);
         //extract the proteindescription here? Shouldnt it be automatically be passed with the cmap?
-        //and export exp ...
-        export_evidence.exportFeatureMap(*fmap,cmap);
+        export_evidence.exportFeatureMap(*fmap,cmap, exp);
       }
     }
 
@@ -547,34 +584,10 @@ private:
     }
   }
 
-  void gatherProtInfo_(ConsensusMap& cmap)
+/*  void gatherProtInfo_(ConsensusMap& cmap)
   {
-    //location of the .fasta file 
-    const String& fileName = cmap.getProteinIdentifications()[0].getSearchParameters().db;
-    //the amount of protIds in our cmap should be lower than the amount in the fasta
-    vector<FASTAFile::FASTAEntry> protDescription;
-    protDescription.reserve(cmap.getProteinIdentifications().size());
-    //check for cmap.getProteinIdentifications()[0].empty()?
-    //FASTAFile().load(cmap.getProteinIdentifications()[0].getSearchParameters().db(), protDescription);
-    FASTAFile().load(fileName, protDescription);
-    //match proteinIdentifications from protDescription to the existing prots in cmap
-    auto& cmapProtIds = cmap.getProteinIdentifications();
-    for(auto& protId : cmapProtIds)
-    {
-      for(const auto& entry: protDescription)
-      {
-        if(protId.getIdentifier() == entry.identifier)
-        {
-          //set description for all hits
-          std::vector<ProteinHit>& protHits = protId.getHits();
-          for(auto& hit : protHits)
-          {
-            hit.setDescription(entry.description);
-          }
-        }
-      }
-    }
   }
+*/
 };
 
 // the actual main function needed to create an executable
