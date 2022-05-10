@@ -41,14 +41,13 @@ namespace OpenMS
   /** @brief An annotation item which represents an arbitrary text on the canvas.
           @see Annotation1DItem
   */
-  template <class DataPoint>
   class Annotation1DTextItem :
     public Annotation1DItem
   {
 public:
 
     /// Constructor
-    Annotation1DTextItem(const DataPoint& position, const QString& text, const int flags = Qt::AlignCenter)
+    Annotation1DTextItem(const PointXYType& position, const QString& text, const int flags = Qt::AlignCenter)
       : Annotation1DItem(text), position_(position), flags_(flags)
     {
     }
@@ -69,7 +68,7 @@ public:
     {
       // translate units to pixel coordinates
       QPoint pos_text;
-      canvas->dataToWidget(canvas->getMapper().map(position_), pos_text, flipped);
+      canvas->dataToWidget(position_, pos_text, flipped);
 
       // compute bounding box of text_item on the specified painter
       bounding_box_ = painter.boundingRect(QRectF(pos_text, pos_text), flags_, text_);
@@ -84,19 +83,17 @@ public:
     // Docu in base class
     void move(PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override
     {
-      auto pos_xy = dim_mapper.map(position_);
-      pos_xy += delta;
-      dim_mapper.fromXY(pos_xy, position_);
+      position_ += delta;
     }
 
-    /// Sets the position of the item (in MZ / intensity coordinates)
-    void setPosition(const DataPoint& position)
+    /// Sets the position of the item (in X-Y coordinates)
+    void setPosition(const PointXYType& position)
     {
       position_ = position;
     }
 
-    /// Returns the position of the item (in MZ / intensity coordinates)
-    const DataPoint& getPosition() const
+    /// Returns the position of the item (in X-Y coordinates)
+    const PointXYType& getPosition() const
     {
       return position_;
     }
@@ -121,7 +118,7 @@ public:
 
   protected:
     /// The position of the item as a datatype, e.g. Peak1D
-    DataPoint position_;
+    PointXYType position_;
 
     int flags_;
   };

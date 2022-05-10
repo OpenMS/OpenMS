@@ -40,6 +40,6 @@ namespace OpenMS
 {
   namespace
   {
-    Annotation1DDistanceItem<Peak1D> p("test", {0, 0}, {0, 0});  
+    Annotation1DDistanceItem p("test", {0, 0}, {0, 0});  
   }   
 } // namespace OpenMS

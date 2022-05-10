@@ -88,7 +88,7 @@ namespace OpenMS
       break;
 
     case PlotCanvas::IM_NONE:
-      AxisTickCalculator::calcGridLines(0.0, canvas_3d_.overall_data_range_.max_[2], grid_intensity_);
+      AxisTickCalculator::calcGridLines(0.0, canvas_3d_.overall_data_range_.getMaxIntensity(), grid_intensity_);
       break;
 
     case PlotCanvas::IM_PERCENTAGE:
@@ -96,12 +96,12 @@ namespace OpenMS
       break;
 
     case PlotCanvas::IM_LOG:
-      AxisTickCalculator::calcLogGridLines(0.0, log10(1 + max(0.0, canvas_3d_.overall_data_range_.max_[2])), grid_intensity_);
+      AxisTickCalculator::calcLogGridLines(0.0, log10(1 + max(0.0, canvas_3d_.overall_data_range_.getMaxIntensity())), grid_intensity_);
       break;
     }
 
-    AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[1], canvas_3d_.visible_area_.max_[1], grid_rt_);
-    AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[0], canvas_3d_.visible_area_.max_[0], grid_mz_);
+    AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.getAreaUnit().getMinRT(), canvas_3d_.visible_area_.getAreaUnit().getMaxRT(), grid_rt_);
+    AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.getAreaUnit().getMinMZ(), canvas_3d_.visible_area_.getAreaUnit().getMaxMZ(), grid_mz_);
   }
 
   void Plot3DOpenGLCanvas::transformPoint_(GLdouble out[4], const GLdouble m[16], const GLdouble in[4])
@@ -554,7 +554,8 @@ namespace OpenMS
           glShadeModel(GL_FLAT);
         }
 
-        auto begin_it = layer.getPeakData()->areaBeginConst(canvas_3d_.visible_area_.min_[1], canvas_3d_.visible_area_.max_[1], canvas_3d_.visible_area_.min_[0], canvas_3d_.visible_area_.max_[0]);
+        const auto area = canvas_3d_.visible_area_.getAreaUnit();
+        auto begin_it = layer.getPeakData()->areaBeginConst(area.getMinRT(), area.getMaxRT(), area.getMinMZ(), area.getMaxMZ());
         auto end_it = layer.getPeakData()->areaEndConst();
 
         // count peaks in area
@@ -642,7 +643,8 @@ namespace OpenMS
 
         glLineWidth(layer.param.getValue("dot:line_width"));
 
-        auto begin_it = layer.getPeakData()->areaBeginConst(canvas_3d_.visible_area_.min_[1], canvas_3d_.visible_area_.max_[1], canvas_3d_.visible_area_.min_[0], canvas_3d_.visible_area_.max_[0]);
+        const auto area = canvas_3d_.visible_area_.getAreaUnit();
+        auto begin_it = layer.getPeakData()->areaBeginConst(area.getMinRT(), area.getMaxRT(), area.getMinMZ(), area.getMaxMZ());
         auto end_it = layer.getPeakData()->areaEndConst();
         // count peaks in area
         int count = std::distance(begin_it, end_it);
@@ -923,32 +925,32 @@ namespace OpenMS
 
   double Plot3DOpenGLCanvas::scaledRT_(double rt)
   {
-    double scaledrt = rt - canvas_3d_.visible_area_.min_[1];
-    scaledrt = scaledrt * 2.0 * corner_ / (canvas_3d_.visible_area_.max_[1] - canvas_3d_.visible_area_.min_[1]);
+    double scaledrt = rt - canvas_3d_.visible_area_.getAreaUnit().getMinRT();
+    scaledrt = scaledrt * 2.0 * corner_ / canvas_3d_.visible_area_.getAreaUnit().RangeRT::getSpan();
     return scaledrt;
   }
 
   double Plot3DOpenGLCanvas::scaledInversRT_(double rt)
   {
-    double i_rt = (rt * canvas_3d_.visible_area_.max_[1] - canvas_3d_.visible_area_.min_[1] * rt);
+    double i_rt = rt * canvas_3d_.visible_area_.getAreaUnit().RangeRT::getSpan();
     i_rt = i_rt / 200.0;
-    i_rt = i_rt + canvas_3d_.visible_area_.min_[1];
+    i_rt = i_rt + canvas_3d_.visible_area_.getAreaUnit().getMinRT();
     // cout<<"rt"<<rt<<"  "<<"scaledinver"<<i_rt<<endl;
     return i_rt;
   }
 
   double Plot3DOpenGLCanvas::scaledMZ_(double mz)
   {
-    double scaledmz = mz - canvas_3d_.visible_area_.min_[0];
-    scaledmz = scaledmz * 2.0 * corner_ / (canvas_3d_.visible_area_.max_[0] - canvas_3d_.visible_area_.min_[0]) /*dis_mz_*/;
+    double scaledmz = mz - canvas_3d_.visible_area_.getAreaUnit().getMinMZ();
+    scaledmz = scaledmz * 2.0 * corner_ / canvas_3d_.visible_area_.getAreaUnit().RangeMZ::getSpan() /*dis_mz_*/;
     return scaledmz;
   }
 
   double Plot3DOpenGLCanvas::scaledInversMZ_(double mz)
   {
-    double i_mz = (mz * canvas_3d_.visible_area_.max_[0] - mz * canvas_3d_.visible_area_.min_[0]);
+    double i_mz = mz * canvas_3d_.visible_area_.getAreaUnit().RangeMZ::getSpan();
     i_mz = i_mz / 200;
-    i_mz = i_mz + canvas_3d_.visible_area_.min_[0];
+    i_mz = i_mz + canvas_3d_.visible_area_.getAreaUnit().getMinMZ();
     return i_mz;
   }
 
@@ -962,7 +964,7 @@ namespace OpenMS
       break;
 
     case PlotCanvas::IM_NONE:
-      scaledintensity /= canvas_3d_.overall_data_range_.max_[2];
+      scaledintensity /= canvas_3d_.overall_data_range_.getMaxIntensity();
       break;
 
     case PlotCanvas::IM_PERCENTAGE:
@@ -970,7 +972,7 @@ namespace OpenMS
       break;
 
     case PlotCanvas::IM_LOG:
-      scaledintensity = log10(1 + max(0.0, (double)intensity)) * 2.0 * corner_ / log10(1 + max(0.0, canvas_3d_.overall_data_range_.max_[2]));
+      scaledintensity = log10(1 + max(0.0, (double)intensity)) * 2.0 * corner_ / log10(1 + max(0.0, canvas_3d_.overall_data_range_.getMaxIntensity()));
       break;
     }
     return scaledintensity;
@@ -1109,23 +1111,24 @@ namespace OpenMS
       new_area_.min_[1] = scale_y2;
       new_area_.max_[1] = scale_y1;
     }
-    canvas_3d_.changeVisibleArea_(new_area_, true, true);
+    canvas_3d_.changeVisibleArea_(canvas_3d_.visible_area_.cloneWith(new_area_), true, true);
   }
 
   void Plot3DOpenGLCanvas::updateIntensityScale()
   {
-    int_scale_.min_[0] = canvas_3d_.overall_data_range_.max_[2];
-    int_scale_.max_[0] = canvas_3d_.overall_data_range_.min_[2];
+    int_scale_.min_[0] = canvas_3d_.overall_data_range_.getMaxIntensity();
+    int_scale_.max_[0] = canvas_3d_.overall_data_range_.getMinIntensity();
 
+    const auto area = canvas_3d_.visible_area_.getAreaUnit();
     for (Size i = 0; i < canvas_3d_.getLayerCount(); i++)
     {
-      auto rt_begin_it = canvas_3d_.getLayer(i).getPeakData()->RTBegin(canvas_3d_.visible_area_.min_[1]);
-      auto rt_end_it = canvas_3d_.getLayer(i).getPeakData()->RTEnd(canvas_3d_.visible_area_.max_[1]);
+      auto rt_begin_it = canvas_3d_.getLayer(i).getPeakData()->RTBegin(area.getMinRT());
+      auto rt_end_it = canvas_3d_.getLayer(i).getPeakData()->RTEnd(area.getMaxRT());
 
       for (auto spec_it = rt_begin_it; spec_it != rt_end_it; ++spec_it)
       {
-        auto mz_end = spec_it->MZEnd(canvas_3d_.visible_area_.max_[0]);
-        for (auto it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[0]); it != mz_end; ++it)
+        auto mz_end = spec_it->MZEnd(area.getMinMZ());
+        for (auto it = spec_it->MZBegin(area.getMaxMZ()); it != mz_end; ++it)
         {
           Math::extendRange(int_scale_.min_[0], int_scale_.max_[0], (double)it->getIntensity());
         }
@@ -1143,7 +1146,7 @@ namespace OpenMS
       break;
 
     case PlotCanvas::IM_NONE:
-      layer.gradient.activatePrecalculationMode(0.0, canvas_3d_.overall_data_range_.max_[2], UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
+      layer.gradient.activatePrecalculationMode(0.0, canvas_3d_.overall_data_range_.getMaxIntensity(), UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
       break;
 
     case PlotCanvas::IM_PERCENTAGE:
@@ -1151,7 +1154,7 @@ namespace OpenMS
       break;
 
     case PlotCanvas::IM_LOG:
-      layer.gradient.activatePrecalculationMode(0.0, log10(1 + max(0.0, canvas_3d_.overall_data_range_.max_[2])), UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
+      layer.gradient.activatePrecalculationMode(0.0, log10(1 + max(0.0, canvas_3d_.overall_data_range_.getMaxIntensity())), UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
       break;
     }
   }

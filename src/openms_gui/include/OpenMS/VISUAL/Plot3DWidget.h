@@ -63,9 +63,15 @@ public:
     ~Plot3DWidget() override;
 
     /// This method is overwritten to make the class specific members accessible
-    inline Plot3DCanvas * canvas()
+    Plot3DCanvas * canvas()
     {
       return static_cast<Plot3DCanvas *>(canvas_);
+    }
+
+    // Docu in base class
+    void setMapper(const DimMapper<2>& mapper) override
+    { // 3D widget currently only handles MSExperiment. That's it.
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     // Docu in base class

@@ -289,8 +289,8 @@ public:
 
       PeptideHit::PeakAnnotation fa;
       fa.charge = tmp_charge;
-      fa.mz = this->getPeakPosition()[0];
-      fa.intensity = this->getPeakPosition()[1];
+      fa.mz = this->getPeakPosition().getMZ();
+      fa.intensity = this->getPeakPosition().getIntensity();
       if (lines.size() > 1)
       {
         peak_anno.append("\n").append(lines[1]);

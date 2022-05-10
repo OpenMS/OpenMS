@@ -224,7 +224,7 @@ namespace OpenMS
       for (auto& a : las)
       {
         // only store peak annotations
-        Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(a);
+        auto pa = dynamic_cast<Annotation1DPeakItem<Peak1D>*>(a);
         if (pa != nullptr)
         {
           has_peak_annotation = true;
@@ -278,7 +278,7 @@ namespace OpenMS
     for (auto& a : las)
     {
       // only store peak annotations (skip general labels and distance annotations)
-      Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(a);
+      auto pa = dynamic_cast<Annotation1DPeakItem<Peak1D>*>(a);
       if (pa == nullptr)
       {
         continue;
@@ -340,25 +340,24 @@ namespace OpenMS
 
     // all requirements fulfilled, PH in hit and annotations in selected_annotations
     vector<PeptideHit::PeakAnnotation> to_remove;
-    bool annotations_changed(false);
-
     // collect annotations, that have to be removed
     for (auto const& tmp_a : fas)
     {
       for (auto const& it : selected_annotations)
       {
-        Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(it);
+        using ItemType = Peak1D;
+        auto pa = dynamic_cast<Annotation1DPeakItem<ItemType>*>(it);
         // only search for peak annotations
         if (pa == nullptr)
         {
           continue;
         }
-        if (fabs(tmp_a.mz - pa->getPeakPosition()[0]) < 1e-6)
+
+        if (fabs(tmp_a.mz - pa->getPeakPosition().getMZ()) < 1e-6)
         {
           if (String(pa->getText()).hasPrefix(tmp_a.annotation))
           {
             to_remove.push_back(tmp_a);
-            annotations_changed = true;
           }
         }
       }
@@ -368,7 +367,7 @@ namespace OpenMS
     {
       fas.erase(std::remove(fas.begin(), fas.end(), tmp_a), fas.end());
     }
-    if (annotations_changed)
+    if (!to_remove.empty())
     {
       hit.setPeakAnnotations(fas);
     }

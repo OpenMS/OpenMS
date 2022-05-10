@@ -196,6 +196,12 @@ public slots:
     /// Toggles the axis legend visibility
     void changeLegendVisibility();
 
+    /**
+     * \brief Set a new mapper for the canvas and axis. Internally, all dependent components are updated (e.g. projections in 2D View)
+     * \param mapper The new mapper for translating between units and axis
+     */
+    virtual void setMapper(const DimMapper<2>& mapper) = 0;
+
 protected:
     /// @name Reimplemented Qt events
     //@{
@@ -213,8 +219,6 @@ protected:
     virtual void intensityModeChange_();
     /// recalculates the Axis ticks
     virtual void recalculateAxes_() = 0;
-    /// correct given area X/Y-values if the values under-/overflow the min-/max values of the data
-    void correctAreaToObeyMinMaxRanges_(PlotCanvas::VisibleArea& area);
 
     ///@name reimplemented Qt events
     //@{

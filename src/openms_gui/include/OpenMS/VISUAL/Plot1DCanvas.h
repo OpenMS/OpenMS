@@ -293,6 +293,17 @@ namespace OpenMS
       return 0;
     }
 
+    /// Get the difference of values in the gravity dimension
+    ///
+    /// @param start The start point in XY coordinates
+    /// @param end The end point in XY coordinates
+    /// @return The difference of (end-start) in the X or Y component, depending on gravity
+    template<int D>
+    auto gravityDiff(const DPosition<D>& start, const DPosition<D>& end) const
+    {
+      return end[(int)gravity_axis_] - start[(int)gravity_axis_];
+    }
+
   private:
     /// Where are points in the X-Y plane projected onto when drawing lines?
     DIM gravity_axis_;
@@ -328,7 +339,7 @@ public:
     constexpr static double TOP_MARGIN{1.09};
 
     /// Default constructor
-    Plot1DCanvas(const Param & preferences, QWidget* parent = nullptr);
+    Plot1DCanvas(const Param& preferences, const DIM gravity_axis = DIM::Y, QWidget* parent = nullptr);
     /// Destructor
     ~Plot1DCanvas() override;
 
@@ -463,16 +474,6 @@ public:
 
     // Returns true if ion ladder is visible
     bool isIonLadderVisible() const;
-
-    const DimMapper<2>& getDims() const
-    {
-      return unit_mapper_;
-    }
-
-    void setDims(const DimMapper<2>& dims)
-    {
-      unit_mapper_ = dims;
-    }
 
     /**
      * \brief Get gravity manipulation object to apply gravity to points

@@ -86,7 +86,7 @@ namespace OpenMS
     if (layer.type == LayerDataBase::DT_PEAK)
     {
       // open new 1D widget with the current default parameters
-      Plot1DWidget* w = new Plot1DWidget(tv_->getCanvasParameters(1), (QWidget*)tv_->getWorkspace());
+      Plot1DWidget* w = new Plot1DWidget(tv_->getCanvasParameters(1), DIM::Y, (QWidget*)tv_->getWorkspace());
 
       // add data and return if something went wrong
       if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename)
@@ -105,8 +105,7 @@ namespace OpenMS
       if (ms_level == 1)
       {
         // set visible area to visible area in 2D view
-        PlotCanvas::AreaType a = tv_->getActiveCanvas()->getVisibleArea();
-        w->canvas()->setVisibleArea(a);
+        w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
       }
 
       String caption = layer.getName();
@@ -213,8 +212,8 @@ namespace OpenMS
 
       double peak_int = getCurrentLayer().getCurrentSpectrum()[peak_idx].getIntensity();
 
-      Annotation1DCaret* first_dit(nullptr);
-      // we could have many many hits for different compounds which have the exact same sum formula... so first group by sum formula
+      Annotation1DCaret<Peak1D>* first_dit(nullptr);
+      // we could have many hits for different compounds which have the exact same sum formula... so first group by sum formula
       map<String, StringList> formula_to_names;
       for (const PeptideHit& pep : it->getHits())
       {
@@ -263,17 +262,17 @@ namespace OpenMS
         EmpiricalFormula ef(ith->first);
         IsotopeDistribution id = ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(3)); // three isotopes at most
         double int_factor = peak_int / id.begin()->getIntensity();
-        Annotation1DCaret::PositionsType points;
+        Annotation1DCaret<Peak1D>::PositionsType points;
         Size itic(0);
         for (const Peak1D& iso : id)
         {
-          points.push_back(Annotation1DCaret::PointVarType(mz + itic*Constants::C13C12_MASSDIFF_U, iso.getIntensity() * int_factor));
+          points.push_back(Annotation1DCaret<Peak1D>::PointType(mz + itic * Constants::C13C12_MASSDIFF_U, iso.getIntensity() * int_factor));
           ++itic;
         }
-        Annotation1DCaret* ditem = new Annotation1DCaret(points,
-                                                         QString(),
-                                                         cols[i],
-                                                         String(getCurrentLayer().param.getValue("peak_color").toString()).toQString());
+        auto ditem = new Annotation1DCaret<Peak1D>(points,
+                                                   QString(),
+                                                   cols[i],
+                                                   String(getCurrentLayer().param.getValue("peak_color").toString()).toQString());
         ditem->setSelected(false);
         temporary_annotations_.push_back(ditem); // for removal (no ownership)
         getCurrentLayer().getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
@@ -895,8 +894,8 @@ namespace OpenMS
 
         Annotation1DDistanceItem* item = new Annotation1DDistanceItem(QString::number(pre.getCharge()), lower_position, upper_position);
         // add additional tick at precursor target position (e.g. to show if isolation window is asymmetric)
-        vector<double> ticks;
-        ticks.push_back(pre.getMZ());
+        vector<Annotation1DItem::PointXYType> ticks;
+        ticks.push_back({pre.getMZ(), 0});
         item->setTicks(ticks);
         item->setSelected(false);
 
@@ -950,9 +949,9 @@ namespace OpenMS
     tag_params.setValue("add_metainfo", "true");
 
     PeakSpectrum theo_spectrum;
-    TheoreticalSpectrumGenerator generator;
     try
     {
+      TheoreticalSpectrumGenerator generator;
       Int max_charge = max(1, ph.getCharge()); // at least generate charge 1 if no charge (0) is annotated
 
       // generate mass ladder for all charge states
@@ -1022,13 +1021,9 @@ namespace OpenMS
       tv_->getActive1DWidget()->canvas()->getCurrentLayer().setCurrentSpectrumIndex(current_spectrum_index);
 
       // zoom to maximum visible area in real data (as theoretical might be much larger and therefor squeezes the interesting part)
-      DRange<2> visible_area = tv_->getActive1DWidget()->canvas()->getVisibleArea();
       auto spec_range = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getRange();
       spec_range.scaleBy(1.2);
-      visible_area.setMinX(spec_range.getMinMZ());
-      visible_area.setMaxX(spec_range.getMaxMZ());
-
-      tv_->getActive1DWidget()->canvas()->setVisibleArea(visible_area);
+      tv_->getActive1DWidget()->canvas()->setVisibleArea(RangeAllType().assign(spec_range));
 
       // spectra alignment
       Param p_align = tv_params.copy("preferences:user:idview:align", true);
@@ -1110,7 +1105,7 @@ namespace OpenMS
                               #ifdef DEBUG_IDENTIFICATION_VIEW
                               cout << a->getText().toStdString() << endl;
                               #endif
-                              return dynamic_cast<const Annotation1DPeakItem*>(a) != nullptr;
+                              return dynamic_cast<const Annotation1DPeakItem<Peak1D>*>(a) != nullptr;
                             });
     las.erase(new_end, las.end());
 
@@ -1271,12 +1266,9 @@ namespace OpenMS
     RAIICleanup cleanup([&]() {spec_id_view_->ignore_update = false; });
 
     // zoom visible area to real data range:
-    DRange<2> visible_area = tv_->getActive1DWidget()->canvas()->getVisibleArea();
     auto spec_range = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getRange();
     spec_range.scaleBy(1.2);
-    visible_area.setMinX(spec_range.getMinMZ());
-    visible_area.setMaxX(spec_range.getMaxMZ());
-    tv_->getActive1DWidget()->canvas()->setVisibleArea(visible_area);
+    tv_->getActive1DWidget()->canvas()->setVisibleArea(RangeAllType().assign(spec_range));
 
     tv_->updateLayerBar();
   }
@@ -1367,10 +1359,9 @@ namespace OpenMS
     {
       return;
     }
-    DRange<2> range = tv_->getActive1DWidget()->canvas()->getVisibleArea();
+    DRange<2> range = tv_->getActive1DWidget()->canvas()->getVisibleArea().getAreaXY();
     range.setMinX(l);
     range.setMaxX(h);
     tv_->getActive1DWidget()->canvas()->setVisibleArea(range);
-    tv_->getActive1DWidget()->canvas()->repaint();
   }
 }

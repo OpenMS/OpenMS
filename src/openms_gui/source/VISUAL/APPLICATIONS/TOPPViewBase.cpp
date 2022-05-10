@@ -884,7 +884,7 @@ namespace OpenMS
     {
       if (maps_as_1d) // 2d in 1d window
       {
-        target_window = new Plot1DWidget(getCanvasParameters(1), &ws_);
+        target_window = new Plot1DWidget(getCanvasParameters(1), DIM::Y, &ws_);
       }
       else if (maps_as_2d || mergeable) //2d or features/IDs
       {

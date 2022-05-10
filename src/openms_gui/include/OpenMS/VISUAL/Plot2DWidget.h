@@ -74,9 +74,9 @@ public:
     ~Plot2DWidget() override;
 
     /// This method is overwritten to make the class specific members accessible
-    inline Plot2DCanvas * canvas()
+    inline Plot2DCanvas* canvas()
     {
-      return static_cast<Plot2DCanvas *>(canvas_);
+      return static_cast<Plot2DCanvas*>(canvas_);
     }
 
     /// const reference to the horizontal projection
@@ -87,6 +87,14 @@ public:
     /// Returns if one of the projections is visible (or both are visible)
     bool projectionsVisible() const;
 
+    // Docu in base class
+    void setMapper(const DimMapper<2>& mapper) override
+    {
+      canvas_->setMapper(mapper); // update canvas
+      // ... and projections: the projected Dim becomes intensity
+      projection_vert_->setMapper(DimMapper<2>({mapper.getDim(DIM::X).getUnit(), DIM_UNIT::INT}));
+      projection_horz_->setMapper(DimMapper<2>({DIM_UNIT::INT, mapper.getDim(DIM::Y).getUnit()}));
+    }
 
 public slots:
     // Docu in base class

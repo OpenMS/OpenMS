@@ -57,6 +57,7 @@ namespace OpenMS
   {
 public:
     typedef std::vector<DataPoint> PositionsType;
+    using PointType = DataPoint;
 
     /// Constructor
     Annotation1DCaret(const PositionsType& caret_positions, const QString& text, const QColor& color, const QColor& connection_line_color) :

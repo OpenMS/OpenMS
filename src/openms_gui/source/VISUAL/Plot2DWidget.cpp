@@ -60,44 +60,47 @@ namespace OpenMS
     setCanvas_(new Plot2DCanvas(preferences, this), 1, 2);
 
     // add axes
-    x_axis_->setLegend(PlotWidget::MZ_AXIS_TITLE);
-    y_axis_->setLegend(PlotWidget::RT_AXIS_TITLE);
     y_axis_->setMinimumWidth(50);
 
     // add projections
     grid_->setColumnStretch(2, 3);
     grid_->setRowStretch(1, 3);
 
-    PlotCanvas::ExperimentSharedPtrType shr_ptr = PlotCanvas::ExperimentSharedPtrType(new PlotCanvas::ExperimentType());
+    /*PlotCanvas::ExperimentSharedPtrType shr_ptr = PlotCanvas::ExperimentSharedPtrType(new PlotCanvas::ExperimentType());
     LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
     MSSpectrum dummy_spec;
     dummy_spec.push_back(Peak1D());
-    shr_ptr->addSpectrum(dummy_spec);
+    shr_ptr->addSpectrum(dummy_spec);*/
 
-    projection_vert_ = new  Plot1DWidget(Param(), this);
+    projection_vert_ = new Plot1DWidget(Param(), DIM::Y, this);
     projection_vert_->hide();
-    projection_vert_->canvas()->addLayer(shr_ptr, od_dummy);
+    //projection_vert_->canvas()->addLayer(shr_ptr, od_dummy);
     grid_->addWidget(projection_vert_, 1, 3, 2, 1);
 
-    projection_horz_ = new Plot1DWidget(Param(), this);
-    projection_horz_->canvas()->addLayer(shr_ptr, od_dummy);
+    projection_horz_ = new Plot1DWidget(Param(), DIM::X, this);
     projection_horz_->hide();
+    // projection_horz_->canvas()->addLayer(shr_ptr, od_dummy);
     grid_->addWidget(projection_horz_, 0, 1, 1, 2);
 
-    if (canvas()->isMzToXAxis())
+    // decide on default draw mode, depending on axis unit
+    auto set_style = [&](const DIM_UNIT unit, Plot1DCanvas* canvas)
     {
-      projection_horz_->canvas()->setDrawMode(Plot1DCanvas::DM_PEAKS);
-      projection_horz_->canvas()->setIntensityMode(PlotCanvas::IM_PERCENTAGE);
-      projection_vert_->canvas()->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-      projection_vert_->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
-    }
-    else
-    {
-      projection_horz_->canvas()->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-      projection_horz_->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
-      projection_vert_->canvas()->setDrawMode(Plot1DCanvas::DM_PEAKS);
-      projection_vert_->canvas()->setIntensityMode(PlotCanvas::IM_PERCENTAGE);
-    }
+      switch (unit)
+      { // this may not be optimal for every unit. Feel free to change behavior.
+        case DIM_UNIT::MZ:
+          // to show isotope distributions as sticks
+          canvas->setDrawMode(Plot1DCanvas::DM_PEAKS);
+          canvas->setIntensityMode(PlotCanvas::IM_PERCENTAGE);
+          break;
+        // all other units
+        default:
+          canvas->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
+          canvas->setIntensityMode(PlotCanvas::IM_SNAP);
+          break;
+      }
+    };
+    set_style(canvas_->getMapper().getDim(DIM::X).getUnit(), projection_horz_->canvas());
+    set_style(canvas_->getMapper().getDim(DIM::Y).getUnit(), projection_vert_->canvas());
 
     connect(canvas(), SIGNAL(showProjectionHorizontal(ExperimentSharedPtrType)), this, SLOT(horizontalProjection(ExperimentSharedPtrType)));
     connect(canvas(), SIGNAL(showProjectionVertical(ExperimentSharedPtrType)), this, SLOT(verticalProjection(ExperimentSharedPtrType)));
@@ -149,7 +152,6 @@ namespace OpenMS
 
   Plot2DWidget::~Plot2DWidget()
   {
-    //cout << "DEST Plot2DWidget" << endl;
   }
 
   void Plot2DWidget::projectionInfo(int peaks, double intensity, double max)
@@ -161,18 +163,9 @@ namespace OpenMS
 
   void Plot2DWidget::recalculateAxes_()
   {
-    const PlotCanvas::AreaType area = canvas()->getVisibleArea();
-
-    if (canvas()->isMzToXAxis())
-    {
-      x_axis_->setAxisBounds(area.minX(), area.maxX());
-      y_axis_->setAxisBounds(area.minY(), area.maxY());
-    }
-    else
-    {
-      x_axis_->setAxisBounds(area.minY(), area.maxY());
-      y_axis_->setAxisBounds(area.minX(), area.maxX());
-    }
+    const auto& area = canvas()->getVisibleArea().getAreaXY();
+    x_axis_->setAxisBounds(area.minX(), area.maxX());
+    y_axis_->setAxisBounds(area.minY(), area.maxY());
   }
 
   void Plot2DWidget::updateProjections()
@@ -203,32 +196,13 @@ namespace OpenMS
   {
     LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
 
-    // print horizontal (note that m/z in the projection could actually be RT - this only determines the orientation)
-    projection_horz_->canvas()->mzToXAxis(true);
-    projection_horz_->canvas()->setSwappedAxis(true);
-
     projection_horz_->showLegend(false);
 
-    projection_horz_->canvas()->removeLayer(0);
+    projection_horz_->canvas()->removeLayers();
     projection_horz_->canvas()->addLayer(exp, od_dummy);
 
     grid_->setColumnStretch(3, 2);
 
-    if (canvas()->isMzToXAxis())
-    {
-      projection_horz_->canvas()->setDrawMode(Plot1DCanvas::DM_PEAKS);
-      projection_horz_->canvas()->setIntensityMode(PlotCanvas::IM_PERCENTAGE);
-      projection_vert_->canvas()->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-      projection_vert_->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
-    }
-    else
-    {
-      projection_horz_->canvas()->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-      projection_horz_->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
-      projection_vert_->canvas()->setDrawMode(Plot1DCanvas::DM_PEAKS);
-      projection_vert_->canvas()->setIntensityMode(PlotCanvas::IM_PERCENTAGE);
-      projection_horz_->canvas()->setSwappedAxis(false);
-    }
     projection_horz_->show();
     projection_box_->show();
   }
@@ -237,32 +211,14 @@ namespace OpenMS
   void Plot2DWidget::verticalProjection(ExperimentSharedPtrType exp)
   {
     LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
-    // print vertically (note that m/z in the projection could actually be RT - this only determines the orientation)
-    projection_vert_->canvas()->mzToXAxis(false);
-    projection_vert_->canvas()->setSwappedAxis(true);
 
     projection_vert_->showLegend(false);
 
-    projection_vert_->canvas()->removeLayer(0);
+    projection_vert_->canvas()->removeLayers();
     projection_vert_->canvas()->addLayer(exp, od_dummy);
 
     grid_->setRowStretch(0, 2);
-
-    if (canvas()->isMzToXAxis())
-    {
-      projection_horz_->canvas()->setDrawMode(Plot1DCanvas::DM_PEAKS);
-      projection_horz_->canvas()->setIntensityMode(PlotCanvas::IM_PERCENTAGE);
-      projection_vert_->canvas()->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-      projection_vert_->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
-    }
-    else
-    {
-      projection_horz_->canvas()->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-      projection_horz_->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
-      projection_vert_->canvas()->setDrawMode(Plot1DCanvas::DM_PEAKS);
-      projection_vert_->canvas()->setIntensityMode(PlotCanvas::IM_PERCENTAGE);
-      projection_vert_->canvas()->setSwappedAxis(false);
-    }
+    
     projection_box_->show();
     projection_vert_->show();
   }
@@ -281,23 +237,21 @@ namespace OpenMS
   {
     Plot2DGoToDialog goto_dialog(this);
     //set range
-    const DRange<2>& area = canvas()->getVisibleArea();
+    const auto& area = canvas()->getVisibleArea().getAreaXY();
     goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
-    goto_dialog.setMinMaxOfRange(canvas()->getDataRange().minY(), canvas()->getDataRange().maxY(), canvas()->getDataRange().minX(), canvas()->getDataRange().maxX());
+
+    auto all_area_xy = canvas_->getMapper().mapRange(canvas_->getDataRange());
+    goto_dialog.setMinMaxOfRange(all_area_xy.minX(), all_area_xy.maxX(), all_area_xy.minY(), all_area_xy.maxY());
     // feature numbers only for consensus&feature maps
     goto_dialog.enableFeatureNumber(canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE || canvas()->getCurrentLayer().type == LayerDataBase::DT_CONSENSUS);
-    //execute
+    // execute
     if (goto_dialog.exec())
     {
       if (goto_dialog.showRange())
       {
         goto_dialog.fixRange();
-        PlotCanvas::AreaType area(goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
-        if (goto_dialog.checked())
-        {
-          correctAreaToObeyMinMaxRanges_(area);
-        }
-        canvas()->setVisibleArea(area);
+        PlotCanvas::AreaXYType area_new(goto_dialog.getMinRT(), goto_dialog.getMinMZ(), goto_dialog.getMaxRT(), goto_dialog.getMaxMZ());
+        canvas()->setVisibleArea(area_new);
       }
       else
       {
@@ -338,19 +292,21 @@ namespace OpenMS
         if (canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE)
         {
           const FeatureMap& map = *canvas()->getCurrentLayer().getFeatureMap();
-          DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();
-          double rt_margin = (bb.maxPosition()[0] - bb.minPosition()[0]) * 0.5;
-          double mz_margin = (bb.maxPosition()[1] - bb.minPosition()[1]) * 2;
-          PlotCanvas::AreaType narea(bb.minPosition()[1] - mz_margin, bb.minPosition()[0] - rt_margin, bb.maxPosition()[1] + mz_margin, bb.maxPosition()[0] + rt_margin);
-          canvas()->setVisibleArea(narea);
+          const DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();
+          RangeAllType range;
+          range.RangeRT::operator=(RangeBase{bb.minPosition()[0], bb.maxPosition()[0]});
+          range.RangeMZ::operator=(RangeBase{bb.minPosition()[1], bb.maxPosition()[1]});
+          range.RangeRT::scaleBy(2);
+          range.RangeRT::scaleBy(5);
+          canvas()->setVisibleArea(range);
         }
         else // Consensus Feature
         {
           const ConsensusFeature& cf = (*canvas()->getCurrentLayer().getConsensusMap())[feature_index];
-          double rt_margin = 30;
-          double mz_margin = 5;
-          PlotCanvas::AreaType narea(cf.getMZ() - mz_margin, cf.getRT() - rt_margin, cf.getMZ() + mz_margin, cf.getRT() + rt_margin);
-          canvas()->setVisibleArea(narea);
+          auto range = canvas_->getMapper().fromXY(canvas_->getMapper().map(cf));
+          range.RangeRT::extendLeftRight(30);
+          range.RangeMZ::extendLeftRight(5);
+          canvas()->setVisibleArea(range);
         }
 
       }

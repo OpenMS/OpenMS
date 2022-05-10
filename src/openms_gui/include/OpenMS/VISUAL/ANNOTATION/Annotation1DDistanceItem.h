@@ -42,14 +42,13 @@ namespace OpenMS
   /** @brief An annotation item which represents a measured distance between two peaks.
       @see Annotation1DItem
   */
-  template<class DataPoint>
   class Annotation1DDistanceItem :
     public Annotation1DItem
   {
 
 public:
     /// Constructor
-    Annotation1DDistanceItem(const QString & text, const DataPoint& start_point, const DataPoint& end_point)
+    Annotation1DDistanceItem(const QString & text, const PointXYType& start_point, const PointXYType& end_point)
       : Annotation1DItem(text), start_point_(start_point), end_point_(end_point)
     {
     }
@@ -70,8 +69,8 @@ public:
     {
       // translate mz/intensity to pixel coordinates
       QPoint start_p, end_p;
-      canvas->dataToWidget(canvas->getMapper().map(start_point_), start_p, flipped, true);
-      canvas->dataToWidget(canvas->getMapper().map(end_point_), end_p, flipped, true);
+      canvas->dataToWidget(start_point_, start_p, flipped, true);
+      canvas->dataToWidget(end_point_, end_p, flipped, true);
 
       // draw arrow heads and the ends if they won't overlap
       const auto arrow = ((start_p - end_p).manhattanLength() > 10) ? Painter1DBase::getClosedArrow(4) : QPainterPath();
@@ -87,11 +86,9 @@ public:
       // draw ticks
       if (!ticks_.empty())
       {
-        auto pos_xy = canvas->getMapper().map(start_point_);
-        for (const auto tick : ticks_)
+        for (auto tick_xy : ticks_)
         {
-          auto tick_xy = canvas->getMapper().map(tick);
-          tick_xy = canvas->getGravitator().gravitateTo(tick_xy, pos_xy); // move to same level as line
+          tick_xy = canvas->getGravitator().gravitateTo(tick_xy, start_point_); // move to same level as line
           QPoint tick_px;
           canvas->dataToWidget(tick_xy, tick_px, flipped, true);
           QPoint tick_px_start = canvas->getGravitator().gravitateWith(tick_px, {4, 4});
@@ -111,27 +108,24 @@ public:
 
     void move(PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override
     {
-      auto new_start_xy = gr.gravitateWith(dim_mapper.map(start_point_), delta); // only change the gravity axis
-      dim_mapper.fromXY(new_start_xy, start_point_);
-
-      auto new_end_xy = gr.gravitateWith(dim_mapper.map(end_point_), delta); // only change the gravity axis
-      dim_mapper.fromXY(new_end_xy, end_point_);
+      start_point_ = gr.gravitateWith(start_point_, delta); // only change the gravity axis
+      end_point_ = gr.gravitateWith(end_point_, delta); // only change the gravity axis
     }
                            
     /// Returns the start point
-    const DataPoint& getStartPoint() const
+    const PointXYType& getStartPoint() const
     {
       return start_point_;
     }
 
     /// Returns the end point
-    const DataPoint& getEndPoint() const
+    const PointXYType& getEndPoint() const
     {
       return end_point_;
     }
 
-    /// Set tick lines for the distance item (the gravity dimension is ignored)
-    void setTicks(const std::vector<DataPoint>& ticks)
+    /// Set tick lines for the distance item in unit XY coordinates (the gravity dimension is ignored)
+    void setTicks(const std::vector<PointXYType>& ticks)
     {
       ticks_ = ticks;
     }
@@ -143,12 +137,12 @@ public:
     }
 
   protected:
-    /// The start point of the measured distance line (in data coordinates)
-    DataPoint start_point_;
-    /// The end point of the measured distance line (in data coordinates)
-    DataPoint end_point_;
+    /// The start point of the measured distance line (in XY data coordinates)
+    PointXYType start_point_;
+    /// The end point of the measured distance line (in XY data coordinates)
+    PointXYType end_point_;
     /// Additional tick lines for the distance item (the gravity dimension is ignored)
-    std::vector<DataPoint> ticks_;
+    std::vector<PointXYType> ticks_;
 
   };
 } // namespace OpenMS

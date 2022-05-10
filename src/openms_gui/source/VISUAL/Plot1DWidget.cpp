@@ -34,8 +34,10 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/Plot1DWidget.h>
+
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot1DGoToDialog.h>
+
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QScrollBar>
 #include <QtWidgets/QFileDialog>
@@ -51,19 +53,18 @@ namespace OpenMS
   using namespace Internal;
   using namespace Math;
 
-  Plot1DWidget::Plot1DWidget(const Param& preferences, QWidget* parent) :
+  Plot1DWidget::Plot1DWidget(const Param& preferences, const DIM gravity_axis, QWidget* parent) :
     PlotWidget(preferences, parent)
   {
     //set the label mode for the axes  - side effect
-    setCanvas_(new Plot1DCanvas(preferences, this));
+    setCanvas_(new Plot1DCanvas(preferences, gravity_axis, this));
 
-    x_axis_->setLegend(PlotWidget::MZ_AXIS_TITLE);
     x_axis_->setAllowShortNumbers(false);
-    y_axis_->setLegend(PlotWidget::INTENSITY_AXIS_TITLE);
+
     y_axis_->setAllowShortNumbers(true);
     y_axis_->setMinimumWidth(50);
 
-    flipped_y_axis_ = new AxisWidget(AxisPainter::LEFT, PlotWidget::INTENSITY_AXIS_TITLE, this);
+    flipped_y_axis_ = new AxisWidget(AxisPainter::LEFT, "", this);
     flipped_y_axis_->setInverseOrientation(true);
     flipped_y_axis_->setAllowShortNumbers(true);
     flipped_y_axis_->setMinimumWidth(50);
@@ -81,49 +82,53 @@ namespace OpenMS
   void Plot1DWidget::recalculateAxes_()
   {
     // set names
-    x_axis_->setLegend(string(canvas()->getDims().getDim(DIM::X).getDimName()));
-    y_axis_->setLegend(string(canvas()->getDims().getDim(DIM::Y).getDimName()));
+    x_axis_->setLegend(string(canvas()->getMapper().getDim(DIM::X).getDimName()));
+    y_axis_->setLegend(string(canvas()->getMapper().getDim(DIM::Y).getDimName()));
 
-
-    // determine which is the intensity axis (for LOG mode)
+    // determine which is the gravity axis (usually equals intensity axis (for LOG mode))
     AxisWidget* other_axis = x_axis_;
     AxisWidget* int_axis = y_axis_;
-    if (canvas()->getDims().getDim(DIM::X).getUnit() == DIM_UNIT::INT)
+    auto vis_area_xy = canvas_->getVisibleArea().getAreaXY();
+    auto all_area_xy = canvas_->getMapper().mapRange(canvas_->getDataRange());
+    // in the unusual case: gravity is on X axis
+    if (canvas()->getGravitator().getGravityAxis() == DIM::X)
     {
       swap(other_axis, int_axis);
+      vis_area_xy.swapDimensions();
+      all_area_xy.swapDimensions();
     }
+    // from now on, we can assume X-dim = data; Y-dim = gravity=intensity
 
     // deal with log scaling for intensity axis
     int_axis->setLogScale(canvas()->getIntensityMode() == PlotCanvas::IM_LOG);
 
     // recalculate gridlines
-    other_axis->setAxisBounds(canvas()->getVisibleArea().minX(), canvas()->getVisibleArea().maxX());
+    other_axis->setAxisBounds(vis_area_xy.minX(), vis_area_xy.maxX());
     switch (canvas()->getIntensityMode())
     {
       case PlotCanvas::IM_NONE:
-        int_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
+      case PlotCanvas::IM_LOG:
+        int_axis->setAxisBounds(vis_area_xy.minY(), vis_area_xy.maxY());
         break;
 
       case PlotCanvas::IM_PERCENTAGE:
-        int_axis->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY() * 100.0,
-                                canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * Plot1DCanvas::TOP_MARGIN * 100.0);
+        int_axis->setAxisBounds(vis_area_xy.minY() / all_area_xy.maxY() * 100.0,
+                                vis_area_xy.maxY() / all_area_xy.maxY() * Plot1DCanvas::TOP_MARGIN * 100.0);
         break;
 
     case PlotCanvas::IM_SNAP:
-      int_axis->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getSnapFactor(), canvas()->getVisibleArea().maxY() / canvas()->getSnapFactor());
+        int_axis->setAxisBounds(vis_area_xy.minY() / canvas()->getSnapFactor(), vis_area_xy.maxY() / canvas()->getSnapFactor());
       break;
 
-    case PlotCanvas::IM_LOG:
-      int_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
-      break;
 
     default:
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     // assume flipped-y-axis is identical
-    flipped_y_axis_->setLogScale(int_axis->isLogScale());
-    flipped_y_axis_->setAxisBounds(int_axis->getAxisMinimum(), int_axis->getAxisMaximum());
+    flipped_y_axis_->setLegend(y_axis_->getLegend());
+    flipped_y_axis_->setLogScale(y_axis_->isLogScale());
+    flipped_y_axis_->setAxisBounds(y_axis_->getAxisMinimum(), y_axis_->getAxisMaximum());
   }
 
   Plot1DWidget::~Plot1DWidget()
@@ -134,17 +139,26 @@ namespace OpenMS
   void Plot1DWidget::showGoToDialog()
   {
     Plot1DGoToDialog goto_dialog(this);
-    goto_dialog.setRange(canvas()->getVisibleArea().minX(), canvas()->getVisibleArea().maxX());
-    goto_dialog.setMinMaxOfRange(canvas()->getDataRange().minX(), canvas()->getDataRange().maxX());
+    auto vis_area_xy = canvas_->getVisibleArea().getAreaXY();
+    auto all_area_xy = canvas_->getMapper().mapRange(canvas_->getDataRange());
+    // in the unusual case: gravity is on X axis
+    if (canvas()->getGravitator().getGravityAxis() == DIM::X)
+    {
+      vis_area_xy.swapDimensions();
+      all_area_xy.swapDimensions();
+    }
+    goto_dialog.setRange(vis_area_xy.minX(), vis_area_xy.maxX());
+    goto_dialog.setMinMaxOfRange(all_area_xy.minX(), all_area_xy.maxX());
     if (goto_dialog.exec())
     {
       goto_dialog.fixRange();
-      PlotCanvas::AreaType area(goto_dialog.getMin(), 0, goto_dialog.getMax(), 0);
-      if (goto_dialog.checked())
+      PlotCanvas::AreaXYType area(goto_dialog.getMin(), 0, goto_dialog.getMax(), 0);
+      if (canvas()->getGravitator().getGravityAxis() == DIM::X)
       {
-        correctAreaToObeyMinMaxRanges_(area);
+        area.swapDimensions();
       }
-      canvas()->setVisibleArea(area);
+      auto va_new = canvas_->getVisibleArea().cloneWith(area);
+      canvas()->setVisibleArea(va_new);
     }
   }
 

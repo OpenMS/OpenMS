@@ -113,9 +113,9 @@ namespace OpenMS
   }
 
 
-  Plot1DCanvas::Plot1DCanvas(const Param& preferences, QWidget* parent) :
+  Plot1DCanvas::Plot1DCanvas(const Param& preferences, const DIM gravity_axis, QWidget* parent) :
     PlotCanvas(preferences, parent),
-    gr_(unit_mapper_)
+    gr_(gravity_axis)
   {
     //Parameter handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
@@ -134,6 +134,7 @@ namespace OpenMS
   Plot1DCanvas::~Plot1DCanvas()
   {
   }
+
 
   bool Plot1DCanvas::addChromLayer(ExperimentSharedPtrType chrom_exp_sptr,
                                    ODExperimentSharedPtrType ondisc_sptr,
@@ -367,18 +368,12 @@ namespace OpenMS
         if (selected_peak_.isValid())
         {
           measurement_start_ = selected_peak_;
-          const ExperimentType::PeakType & peak = getCurrentLayer().getCurrentSpectrum()[measurement_start_.peak];
+          auto peak_xy = unit_mapper_.map(getCurrentLayer().getCurrentSpectrum()[measurement_start_.peak]);
           updatePercentageFactor_(getCurrentLayerIndex());
 
-          dataToWidget(peak, measurement_start_point_, getCurrentLayer().flipped);
-          if (unit_mapper_.getDim(DIM::X).getUnit() == DIM_UNIT::INT)
-          {
-            measurement_start_point_.setX(last_mouse_pos_.x());
-          }
-          else
-          {
-            measurement_start_point_.setY(last_mouse_pos_.y());
-          }
+          dataToWidget(peak_xy, measurement_start_point_, getCurrentLayer().flipped);
+          // use intensity (usually) of mouse, not of the peak
+          measurement_start_point_ = gr_.gravitateTo(measurement_start_point_, last_mouse_pos_);
         }
         else
         {
@@ -521,7 +516,7 @@ namespace OpenMS
           PointXYType end_p(end_mz, p.getY());
           // draw line for measured distance between two peaks and annotate with distance in m/z -- use 4 digits to resolve 13C distances between isotopes
           Annotation1DItem* item = new Annotation1DDistanceItem(QString::number(distance, 'f', 4), start_p, end_p);
-          item->ensureWithinDataRange(this, getCurrentLayer().flipped, intensity_mode_ == IM_PERCENTAGE);
+          item->ensureWithinDataRange(this, getCurrentLayerIndex());
           getCurrentLayer().getCurrentAnnotations().push_front(item);
         }
       }
@@ -729,12 +724,13 @@ namespace OpenMS
     // draw measuring line when in measure mode and valid measurement start peak selected
     if (action_mode_ == AM_MEASURE && measurement_start_.isValid())
     {
-      QPoint measurement_end_point(last_mouse_pos_.x(), measurement_start_point_.y());
+      // use start-point + mouse position of non-gravity axis
+      QPoint measurement_end_point = gr_.swap().gravitateTo(measurement_start_point_, last_mouse_pos_);
       // draw a complete temporary Annotation1DDistanceItem which includes the distance;
       // as an alternative to a simple line: painter->drawLine(measurement_start_point_, measurement_end_point);
-      Annotation1DDistanceItem::PointVarType ps(widgetToData(measurement_start_point_, true));
-      Annotation1DDistanceItem::PointVarType pe(widgetToData(measurement_end_point, true));
-      Annotation1DDistanceItem(QString::number(pe.getX() - ps.getX(), 'f', 4), ps, pe).draw(this, *painter, false);
+      auto ps = widgetToData(measurement_start_point_, true);
+      auto pe = widgetToData(measurement_end_point, true);
+      Annotation1DDistanceItem(QString::number(gr_.swap().gravityDiff(ps, pe), 'f', 4), ps, pe).draw(this, *painter, false);
     }
     // draw highlighted measurement start peak and selected peak
     bool with_elongation = (action_mode_ == AM_MEASURE);
@@ -785,7 +781,7 @@ namespace OpenMS
       // but it's hard to reproduce (changing spectra in 1D view using arrow keys while hovering over the spectrum with the mouse?).
       return;
     }
-    const ExperimentType::PeakType& sel = spec[peak.peak];
+    auto sel = unit_mapper_.map(spec[peak.peak]);
 
     painter.setPen(QPen(QColor(String(param_.getValue("highlighted_peak_color").toString()).toQString()), 2));
 
@@ -1252,7 +1248,7 @@ namespace OpenMS
     updatePercentageFactor_(getCurrentLayerIndex());
 
     PointXYType position = widgetToData(screen_position, true);
-    Annotation1DItem* item = new Annotation1DTextItem(position, text);
+    auto item = new Annotation1DTextItem(position, text);
     getCurrentLayer().getCurrentAnnotations().push_front(item);
 
     update_(OPENMS_PRETTY_FUNCTION);
@@ -1271,8 +1267,7 @@ namespace OpenMS
   Annotation1DItem* Plot1DCanvas::addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color)
   {
     PeakType peak = getCurrentLayer().getCurrentSpectrum()[peak_index.peak];
-    PointXYType position(peak.getMZ(), peak.getIntensity());
-    Annotation1DItem* item = new Annotation1DPeakItem(position, text, color);
+    auto* item = new Annotation1DPeakItem<PeakType>(peak, text, color);
     item->setSelected(false);
     getCurrentLayer().getCurrentAnnotations().push_front(item);
     update_(OPENMS_PRETTY_FUNCTION);
@@ -1343,10 +1338,11 @@ namespace OpenMS
     else
     { // only zoom the non-gravity axis
       constexpr PointXYType::CoordinateType zoom_factor = 0.8;
-      double factor = gr_.getGravityAxis() == DIM::Y ? (PointXYType::CoordinateType)x / width() : (PointXYType::CoordinateType)(height() - y) / height();
+      // we want to zoom into (x,y), which is in pixel units, hence we need to know the relative position of (x,y) in the widget
+      double rel_pos = gr_.getGravityAxis() == DIM::Y ? (PointXYType::CoordinateType)x / width() : (PointXYType::CoordinateType)(height() - y) / height();
       auto new_area = visible_area_.getAreaXY();
       if (gr_.getGravityAxis() == DIM::X) new_area.swapDimensions(); // temporarily swap X<>Y if gravity acts on X
-      new_area.setMinX(new_area.minX() + (1.0 - zoom_factor) * new_area.width() * factor);
+      new_area.setMinX(new_area.minX() + (1.0 - zoom_factor) * new_area.width() * rel_pos);
       new_area.setMaxX(new_area.minX() + zoom_factor * new_area.width());
       if (gr_.getGravityAxis() == DIM::X) new_area.swapDimensions(); // swap back
 
@@ -1620,7 +1616,7 @@ namespace OpenMS
       Annotations1DContainer& ann_1d = getLayer(i).getCurrentAnnotations();
       for (Annotations1DContainer::Iterator it = ann_1d.begin(); it != ann_1d.end(); ++it)
       {
-        (*it)->ensureWithinDataRange(this, getLayer(i).flipped, intensity_mode_ == IM_PERCENTAGE);
+        (*it)->ensureWithinDataRange(this, i);
       }
     }
   }

@@ -494,11 +494,11 @@ public:
     }
 
     /**
-        @brief Returns the area which encloses all data points.
+        @brief Returns the area which encloses all data points of all layers.
 
         @see overall_data_range_
     */
-    const RangeType& getDataRange();
+    const RangeType& getDataRange() const;
 
     /**
         @brief Returns the first intensity scaling factor for 'snap to maximum intensity mode'.
@@ -571,6 +571,24 @@ public slots:
         @param area the new visible area
     */
     void setVisibleArea(const VisibleArea& area);
+
+    /**
+        @brief Sets the visible area.
+
+        Sets the visible area to a new value and emits visibleAreaChanged() if the area is different from the old one.
+
+        @param area the new visible area
+    */
+    void setVisibleArea(const RangeAllType& area);
+
+    /**
+        @brief Sets the visible area.
+
+        Sets the visible area to a new value and emits visibleAreaChanged() if the area is different from the old one.
+
+        @param area the new visible area
+    */
+    void setVisibleArea(const AreaXYType& area);
 
     /**
         @brief Notifies the canvas that the horizontal scrollbar has been moved.
@@ -667,10 +685,14 @@ public slots:
      * \brief Get Mapper to translate between values for axis (X/Y) and units (m/z, RT, intensity, ...)
      * \return The translation from axis to units
      */
-    const DimMapper<2>& getMapper() const
-    {
-      return unit_mapper_;
-    }
+    const DimMapper<2>& getMapper() const;
+
+    /**
+     * \brief Set a new mapper for the canvas.
+     * \param mapper The new mapper for translating between units and axis
+     */
+    void setMapper(const DimMapper<2>& mapper);
+
 
 signals:
 

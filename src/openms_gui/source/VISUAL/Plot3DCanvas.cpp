@@ -120,7 +120,7 @@ namespace OpenMS
       return false;
     }
 
-    recalculateRanges_(0, 1, 2);
+    recalculateRanges_();
     resetZoom(false);
 
     //Warn if negative intensities are contained
@@ -153,10 +153,10 @@ namespace OpenMS
 
     layers_.removeLayer(layer_index);
 
-    recalculateRanges_(0, 1, 2);
+    recalculateRanges_();
     if (layers_.empty())
     {
-      overall_data_range_ = DRange<3>::empty;
+      overall_data_range_.clearRanges();
       update_buffer_ = true;
       update_(OPENMS_PRETTY_FUNCTION);
       return;
@@ -227,7 +227,7 @@ namespace OpenMS
   void Plot3DCanvas::currentLayerParamtersChanged_()
   {
     openglwidget()->recalculateDotGradient_(layers_.getCurrentLayer());
-    recalculateRanges_(0, 1, 2);
+    recalculateRanges_();
 
     update_buffer_ = true;
     update_(OPENMS_PRETTY_FUNCTION);
@@ -337,7 +337,7 @@ namespace OpenMS
   void Plot3DCanvas::updateLayer(Size i)
   {
     selected_peak_.clear();
-    recalculateRanges_(0, 1, 2);
+    recalculateRanges_();
     resetZoom(false); // no repaint as this is done in intensityModeChange_() anyway
     openglwidget()->recalculateDotGradient_(layers_.getLayer(i));
     intensityModeChange_();

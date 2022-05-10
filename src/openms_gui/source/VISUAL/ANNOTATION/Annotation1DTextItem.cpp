@@ -39,7 +39,7 @@ namespace OpenMS
 {
   namespace
   {
-    Annotation1DTextItem<Peak1D> p(Peak1D(0, 0), "test");
+    Annotation1DTextItem p({0, 0}, "test");
   }
 
 } // namespace OpenMS

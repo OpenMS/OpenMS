@@ -606,12 +606,13 @@ namespace OpenMS
     /// @param rhs Range to copy from
     /// @throw Exception::InvalidRange if no dimensions overlapped
     template<typename... RangeBasesOther>
-    void assign(const RangeManager<RangeBasesOther...>& rhs)
+    auto& assign(const RangeManager<RangeBasesOther...>& rhs)
     {
       if (!assignUnsafe(rhs))
       {
         throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION , "No assignment took place (no dimensions in common!);");
       }
+      return *this;
     }                 
 
     /// extend all dimensions which overlap with @p rhs to contain the range of @p rhs

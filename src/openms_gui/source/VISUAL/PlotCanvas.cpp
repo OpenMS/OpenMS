@@ -64,8 +64,8 @@ namespace OpenMS
   PlotCanvas::PlotCanvas(const Param& /*preferences*/, QWidget* parent)
     : QWidget(parent),
       DefaultParamHandler("PlotCanvas"),
-      rubber_band_(QRubberBand::Rectangle, this),
-      unit_mapper_({DIM_UNIT::RT, DIM_UNIT::MZ})
+      unit_mapper_({{DIM_UNIT::RT, DIM_UNIT::MZ}}),
+      rubber_band_(QRubberBand::Rectangle, this)
   {
     // Prevent filling background
     setAttribute(Qt::WA_OpaquePaintEvent);
@@ -192,45 +192,40 @@ namespace OpenMS
 
   void PlotCanvas::zoom_(int x, int y, bool zoom_in)
   {
-    const PointXYType::CoordinateType zoom_factor = zoom_in ? 0.8 : 1.0 / 0.8;
-    VisibleArea new_area;
-    for (int dim = 0; dim < AreaType::DIMENSION; dim++)
+    if (!zoom_in)
     {
-      // don't assign to "new_area.min_"/"max_" immediately, as this can lead to strange crashes at the min/max calls below on some platforms
-      // (GCC 4.6.3; faulty out-of-order execution?):
-      AreaType::CoordinateType coef = ((dim == 0) == isMzToXAxis()) ? (AreaType::CoordinateType(x) / width()) : (AreaType::CoordinateType(height() - y) / height());
-      AreaType::CoordinateType min_pos = visible_area_.min_[dim] + (1.0 - zoom_factor) * (visible_area_.max_[dim] - visible_area_.min_[dim]) * coef;
-      AreaType::CoordinateType max_pos = min_pos + zoom_factor * (visible_area_.max_[dim] - visible_area_.min_[dim]);
-      new_area.min_[dim] = max(min_pos, overall_data_range_.min_[dim]);
-      new_area.max_[dim] = min(max_pos, overall_data_range_.max_[dim]);
+      zoomBack_();
     }
-    if (new_area != visible_area_)
-    {
-      zoomAdd_(new_area);
-      zoom_pos_ = zoom_stack_.; // set to last position
-      changeVisibleArea_(*zoom_pos_);
+    else
+    { // we want to zoom into (x,y), which is in pixel units, hence we need to know the relative position of (x,y) in the widget
+      constexpr PointXYType::CoordinateType zoom_factor = 0.8;
+      const double rel_pos_x = (PointXYType::CoordinateType)x / width();
+      const double rel_pos_y = (PointXYType::CoordinateType)(height() - y) / height();
+      auto new_area = visible_area_.getAreaXY();
+      new_area.setMinX(new_area.minX() + (1.0 - zoom_factor) * new_area.width() * rel_pos_x);
+      new_area.setMaxX(new_area.minX() + zoom_factor * new_area.width());
+      new_area.setMinY(new_area.minY() + (1.0 - zoom_factor) * new_area.height() * rel_pos_y);
+      new_area.setMaxY(new_area.minY() + zoom_factor * new_area.height());
+
+      if (new_area != visible_area_.getAreaXY())
+      {
+        zoomAdd_(visible_area_.cloneWith(new_area));
+        PlotCanvas::changeVisibleArea_(*zoom_pos_);
+      }
     }
   }
 
   void PlotCanvas::zoomBack_()
   {
-    // cout << "Zoom out" << endl;
-    // cout << " - pos before:" << (zoom_pos_-zoom_stack_.begin()) << endl;
-    // cout << " - size before:" << zoom_stack_.size() << endl;
     if (zoom_pos_ != zoom_stack_.begin())
     {
       --zoom_pos_;
       changeVisibleArea_(*zoom_pos_);
     }
-    // cout << " - pos after:" << (zoom_pos_-zoom_stack_.begin()) << endl;
   }
 
   void PlotCanvas::zoomForward_()
   {
-    // cout << "Zoom in" << endl;
-    // cout << " - pos before:" << (zoom_pos_-zoom_stack_.begin()) << endl;
-    // cout << " - size before:" << zoom_stack_.size() <<endl;
-
     // if at end of zoom level then simply add a new zoom
     if (zoom_pos_ == zoom_stack_.end() || (zoom_pos_ + 1) == zoom_stack_.end())
     {
@@ -244,25 +239,17 @@ namespace OpenMS
       ++zoom_pos_;
     }
     changeVisibleArea_(*zoom_pos_);
-
-    // cout << " - pos after:" << (zoom_pos_-zoom_stack_.begin()) << endl;
   }
 
   void PlotCanvas::zoomAdd_(const VisibleArea& area)
   {
-    // cout << "Adding to stack" << endl;
-    // cout << " - pos before:" << (zoom_pos_-zoom_stack_.begin()) << endl;
-    // cout << " - size before:" << zoom_stack_.size() <<endl;
     if (zoom_pos_ != zoom_stack_.end() && (zoom_pos_ + 1) != zoom_stack_.end())
     {
-      // cout << " - removing from:" << ((zoom_pos_+1)-zoom_stack_.begin()) << endl;
       zoom_stack_.erase(zoom_pos_ + 1, zoom_stack_.end());
     }
     zoom_stack_.push_back(area);
     zoom_pos_ = zoom_stack_.end();
     --zoom_pos_;
-    // cout << " - pos after:" << (zoom_pos_-zoom_stack_.begin()) << endl;
-    // cout << " - size after:" << zoom_stack_.size() <<endl;
   }
 
   void PlotCanvas::zoomClear_()
@@ -280,6 +267,16 @@ namespace OpenMS
   void PlotCanvas::setVisibleArea(const VisibleArea& area)
   {
     changeVisibleArea_(area);
+  }
+
+  void PlotCanvas::setVisibleArea(const RangeAllType& area)
+  {
+    changeVisibleArea_(visible_area_.cloneWith(area));
+  }
+
+  void PlotCanvas::setVisibleArea(const AreaXYType& area)
+  {
+    changeVisibleArea_(visible_area_.cloneWith(area));
   }
 
   void PlotCanvas::paintGridLines_(QPainter& painter)
@@ -485,7 +482,7 @@ namespace OpenMS
     }
   }
 
-  const RangeType& PlotCanvas::getDataRange()
+  const PlotCanvas::RangeType& PlotCanvas::getDataRange() const
   {
     return overall_data_range_;
   }
@@ -788,6 +785,17 @@ namespace OpenMS
         peptides.push_back(p);
       }
     }
+  }
+
+  const DimMapper<2>& PlotCanvas::getMapper() const
+  {
+    return unit_mapper_;
+  }
+
+  
+  void PlotCanvas::setMapper(const DimMapper<2>& mapper)
+  {
+    unit_mapper_ = mapper;
   }
 
   void PlotCanvas::showMetaData(bool modifiable, Int index)

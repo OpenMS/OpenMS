@@ -146,14 +146,15 @@ namespace OpenMS
       const auto distance_item = dynamic_cast<Annotation1DDistanceItem*>(it);
       if (!distance_item) continue;
 
-      QPoint from, to;
-      canvas->dataToWidget(distance_item->getStartPoint().getX(), 0, from, layer_->flipped);
-      canvas->dataToWidget(distance_item->getStartPoint().getX(), canvas->visible_area_.getAreaXY().maxY(), to, layer_->flipped);
-      drawDashedLine(from, to, painter, color);
-
-      canvas->dataToWidget(distance_item->getEndPoint().getX(), 0, from, layer_->flipped);
-      canvas->dataToWidget(distance_item->getEndPoint().getX(), canvas->visible_area_.getAreaXY().maxY(), to, layer_->flipped);
-      drawDashedLine(from, to, painter, color);
+      auto draw_line_ = [&](const Annotation1DItem::PointXYType& p) {
+        QPoint from;
+        canvas->dataToWidget(p, from, layer_->flipped);
+        from = canvas->getGravitator().gravitateZero(from);
+        QPoint to = canvas->getGravitator().gravitateMax(from, canvas->canvasPixelArea());
+        drawDashedLine(from, to, painter, color);
+      };
+      draw_line_(distance_item->getStartPoint());
+      draw_line_(distance_item->getEndPoint());
     }
    
     const auto v_begin = spectrum.MZBegin(canvas->visible_area_.getAreaUnit().getMinMZ());
@@ -182,9 +183,10 @@ namespace OpenMS
             // This indicates a bug but we gracefully just issue a warning
             OPENMS_LOG_ERROR << "Peak color array size (" << layer_->peak_colors_1d.size() << ") doesn't match number of peaks (" << spectrum.size() << ") in spectrum." << endl;
           }
-          canvas->dataToWidget(*it, end, layer_->flipped);
-          canvas->dataToWidget(it->getMZ(), 0.0f, begin, layer_->flipped);
-          // draw peak
+          // draw stick
+          auto p_xy = canvas->getMapper().map(*it);
+          canvas->dataToWidget(p_xy, end, layer_->flipped);
+          canvas->dataToWidget(canvas->getGravitator().gravitateZero(p_xy), begin, layer_->flipped);
           painter->drawLine(begin, end);
         }
         break;
@@ -195,11 +197,19 @@ namespace OpenMS
 
         QPainterPath path;
 
-        // connect peaks in visible area; (no clipping needed)
+        // connect peaks in visible area; 
+        // clipping on left and right side
+        auto v_begin_cl = v_begin;
+        if (v_begin_cl != spectrum.cbegin() && v_begin_cl != spectrum.cend())
+          --v_begin_cl;
+        auto v_end_cl = v_end;
+        if (v_end_cl != spectrum.cbegin() && v_end_cl != spectrum.cend())
+          ++v_end_cl;
+
         bool first_point = true;
-        for (auto it = v_begin; it != v_end; ++it)
+        for (auto it = v_begin_cl; it != v_end_cl; ++it)
         {
-          canvas->dataToWidget(*it, begin, layer_->flipped);
+          canvas->dataToWidget(canvas->getMapper().map(*it), begin, layer_->flipped);
 
           // connect lines
           if (first_point)
@@ -213,23 +223,6 @@ namespace OpenMS
           }
         }
         painter->drawPath(path);
-
-        // clipping on left side
-        if (v_begin != spectrum.cbegin() && v_begin != spectrum.cend())
-        {
-          canvas->dataToWidget(*(v_begin - 1), begin, layer_->flipped);
-          canvas->dataToWidget(*(v_begin), end, layer_->flipped);
-          painter->drawLine(begin, end);
-        }
-
-        // clipping on right side
-        if (v_end != spectrum.end() && v_end != spectrum.cbegin())
-        {
-          canvas->dataToWidget(*(v_end - 1), begin, layer_->flipped);
-          canvas->dataToWidget(*(v_end), end, layer_->flipped);
-          painter->drawLine(begin, end);
-        }
-
         break;
       }
 

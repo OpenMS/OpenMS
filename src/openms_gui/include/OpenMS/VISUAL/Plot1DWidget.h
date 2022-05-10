@@ -69,14 +69,20 @@ namespace OpenMS
 
 public:    
     /// Default constructor
-    Plot1DWidget(const Param & preferences, QWidget * parent = nullptr);
+    Plot1DWidget(const Param& preferences, const DIM gravity_axis = DIM::Y, QWidget* parent = nullptr);
     ///Destructor
     ~Plot1DWidget() override;
 
     /// This method is overwritten to make the class specific members accessible
-    inline Plot1DCanvas * canvas()
+    Plot1DCanvas* canvas()
     {
-      return static_cast<Plot1DCanvas *>(canvas_);
+      return static_cast<Plot1DCanvas*>(canvas_);
+    }
+
+    // Docu in base class
+    void setMapper(const DimMapper<2>& mapper) override
+    {
+      canvas_->setMapper(mapper); // update canvas
     }
 
     // Docu in base class
