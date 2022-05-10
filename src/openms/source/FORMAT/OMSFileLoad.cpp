@@ -1171,45 +1171,53 @@ namespace OpenMS::Internal
     // @TODO: this constructs the whole JSON file in memory - write directly to stream instead?
     // (more code, but would use less memory)
     QJsonObject json_data;
+    QString sql;
     // input files:
     if (tableExists_(db_name_, "ID_InputFile"))
     {
-      QString sql = "SELECT * FROM ID_InputFile ORDER BY name";
+      sql = "SELECT * FROM ID_InputFile ORDER BY name";
       json_data.insert("ID_InputFile", exportQueryToJSON_(sql));
     }
     // score types:
     if (tableExists_(db_name_, "ID_ScoreType") && tableExists_(db_name_, "CVTerm"))
     {
-      QString sql = "SELECT * FROM ID_ScoreType JOIN CVTerm ON cv_term_id = CVTerm.id ORDER BY accession, name";
+      sql = "SELECT * FROM ID_ScoreType JOIN CVTerm ON cv_term_id = CVTerm.id ORDER BY accession, name";
       json_data.insert("ID_ScoreType", exportQueryToJSON_(sql, {"id", "cv_term_id"}));
     }
     // processing software:
     if (tableExists_(db_name_, "ID_ProcessingSoftware"))
     {
-      QString sql = "SELECT * FROM ID_ProcessingSoftware ORDER BY name, version";
-      QJsonArray softwares = exportQueryToJSON_(sql, {});
-      // add assigned scores:
-      for (int i = 0; i < softwares.size(); i++)
-      {
-        QJsonObject temp = softwares[i].toObject(); // can't modify elements of the array in-place
-        Key id = temp["id"].toVariant().toLongLong();
-        sql = "SELECT accession, name, score_type_order FROM ID_ProcessingSoftware_AssignedScore JOIN (SELECT ID_ScoreType.id, accession, name FROM ID_ScoreType JOIN CVTerm ON cv_term_id = CVTerm.id) ON score_type_id = id WHERE software_id = " + QString::number(id) + " ORDER BY score_type_order";
-        temp.insert("assigned_scores", exportQueryToJSON_(sql, {}));
-        temp.remove("id");
-        softwares.replace(i, temp);
-      }
-      json_data.insert("ID_ProcessingSoftware", softwares);
+      sql = "SELECT * FROM ID_ProcessingSoftware ORDER BY name, version";
+      json_data.insert("ID_ProcessingSoftware", exportQueryToJSON_(sql));
+    }
+    // processing software - assigned scores:
+    if (tableExists_(db_name_, "ID_ProcessingSoftware_AssignedScore"))
+    {
+      // need to replace DB keys for both software and score type with corresponding values:
+      QString subquery_software = "SELECT id AS sw_id, name AS software_name, version AS software_version FROM ID_ProcessingSoftware";
+      QString subquery_score = "SELECT ID_ScoreType.id AS st_id, accession AS score_type_accession, name AS score_type_name FROM ID_ScoreType JOIN CVTerm ON cv_term_id = CVTerm.id";
+      sql = "SELECT software_name, software_version, score_type_accession, score_type_name, score_type_order FROM ID_ProcessingSoftware_AssignedScore JOIN (" + subquery_software + ") ON software_id = sw_id JOIN (" + subquery_score + ") ON score_type_id = st_id ORDER BY software_name, software_version, score_type_order";
+      json_data.insert("ID_ProcessingSoftware_AssignedScore", exportQueryToJSON_(sql, {}));
     }
     // processing steps:
     if (tableExists_(db_name_, "ID_ProcessingStep"))
     {
-      QString sql = "SELECT * FROM ID_ProcessingStep JOIN ID_ProcessingSoftware ON software_id = ID_ProcessingSoftware.id ORDER BY date_time, name, version";
-      json_data.insert("ID_ProcessingStep", exportQueryToJSON_(sql, {"id", "software_id"}));
+      if (tableExists_(db_name_, "ID_ProcessingStep_InputFile"))
+      {
+        QString subquery_step = "SELECT ID_ProcessingStep.id AS ps_id, date_time, name AS software_name, version AS software_version FROM ID_ProcessingStep JOIN ID_ProcessingSoftware ON software_id = ID_ProcessingSoftware.id";
+        // include all input file names in one field (via 'GROUP_CONCAT'):
+        sql = "SELECT software_name, software_version, date_time, GROUP_CONCAT(name) AS input_file_names FROM ID_ProcessingStep_InputFile JOIN (" + subquery_step + ") ON processing_step_id = ps_id JOIN ID_InputFile ON input_file_id = ID_InputFile.id GROUP BY ps_id ORDER BY software_name, software_version, input_file_names, date_time";
+      }
+      else
+      {
+        sql = "SELECT date_time, name AS software_name, version AS software_version FROM ID_ProcessingStep JOIN ID_ProcessingSoftware ON software_id = ID_ProcessingSoftware.id ORDER BY software_name, software_version, date_time";
+      }
+      json_data.insert("ID_ProcessingStep", exportQueryToJSON_(sql, {"ps_id"}));
     }
     // DB search params.:
     if (tableExists_(db_name_, "ID_DBSearchParam"))
     {
-      QString sql = "SELECT * FROM ID_DBSearchParam JOIN ID_MoleculeType ON molecule_type_id = ID_MoleculeType.id ORDER BY molecule_type_id, mass_type_average, database, database_version, taxonomy, charges, fixed_mods, variable_mods, precursor_mass_tolerance, fragment_mass_tolerance, precursor_tolerance_ppm, fragment_tolerance_ppm, digestion_enzyme, ";
+      sql = "SELECT * FROM ID_DBSearchParam JOIN ID_MoleculeType ON molecule_type_id = ID_MoleculeType.id ORDER BY molecule_type_id, mass_type_average, database, database_version, taxonomy, charges, fixed_mods, variable_mods, precursor_mass_tolerance, fragment_mass_tolerance, precursor_tolerance_ppm, fragment_tolerance_ppm, digestion_enzyme, ";
       if (version_number_ > 1)
       {
         sql += "enzyme_term_specificity, ";
