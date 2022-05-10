@@ -1187,7 +1187,24 @@ namespace OpenMS::Internal
     if (tableExists_(db_name_, "ID_ProcessingSoftware"))
     {
       QString sql = "SELECT * FROM ID_ProcessingSoftware ORDER BY name, version";
-      json_data.insert("ID_ProcessingSoftware", exportQueryToJSON_(sql));
+      QJsonArray softwares = exportQueryToJSON_(sql, {});
+      // add assigned scores:
+      for (int i = 0; i < softwares.size(); i++)
+      {
+        QJsonObject temp = softwares[i].toObject(); // can't modify elements of the array in-place
+        Key id = temp["id"].toVariant().toLongLong();
+        sql = "SELECT accession, name, score_type_order FROM ID_ProcessingSoftware_AssignedScore JOIN (SELECT ID_ScoreType.id, accession, name FROM ID_ScoreType JOIN CVTerm ON cv_term_id = CVTerm.id) ON score_type_id = id WHERE software_id = " + QString::number(id) + " ORDER BY score_type_order";
+        temp.insert("assigned_scores", exportQueryToJSON_(sql, {}));
+        temp.remove("id");
+        softwares.replace(i, temp);
+      }
+      json_data.insert("ID_ProcessingSoftware", softwares);
+    }
+    // processing steps:
+    if (tableExists_(db_name_, "ID_ProcessingStep"))
+    {
+      QString sql = "SELECT * FROM ID_ProcessingStep JOIN ID_ProcessingSoftware ON software_id = ID_ProcessingSoftware.id ORDER BY date_time, name, version";
+      json_data.insert("ID_ProcessingStep", exportQueryToJSON_(sql, {"id", "software_id"}));
     }
     // DB search params.:
     if (tableExists_(db_name_, "ID_DBSearchParam"))
