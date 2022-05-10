@@ -117,6 +117,9 @@ namespace OpenMS
     PlotCanvas(preferences, parent),
     gr_(gravity_axis)
   {
+    // for now, default to mz x int
+    unit_mapper_ = DimMapper<2>({DIM_UNIT::MZ, DIM_UNIT::INT});
+
     //Parameter handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
     defaults_.setValue("icon_color", "#000000", "Peak icon color.");

@@ -998,18 +998,18 @@ namespace OpenMS
 
       for (Size i = 0; i != theo_spectrum.size(); ++i)
       {
-        DPosition<2> position = DPosition<2>(theo_spectrum[i].getMZ(), theo_spectrum[i].getIntensity());
+        Peak1D position(theo_spectrum[i].getMZ(), theo_spectrum[i].getIntensity());
         QString s(sa[i].c_str());
 
         if (s.at(0) == 'y')
         {
-          Annotation1DItem* item = new Annotation1DPeakItem(position, s, Qt::darkRed);
+          auto item = new Annotation1DPeakItem<Peak1D>(position, s, Qt::darkRed);
           item->setSelected(false);
           tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
         }
         else if (s.at(0) == 'b')
         {
-          Annotation1DItem* item = new Annotation1DPeakItem(position, s, Qt::darkGreen);
+          auto item = new Annotation1DPeakItem<Peak1D>(position, s, Qt::darkGreen);
           item->setSelected(false);
           tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
         }
@@ -1240,7 +1240,7 @@ namespace OpenMS
         peak_color = (label.at(0) < 'n') ? Qt::red : Qt::green;
       }
 
-      DPosition<2> position(current_spectrum[peak_idx].getMZ(),
+      Peak1D position(current_spectrum[peak_idx].getMZ(),
         current_spectrum[peak_idx].getIntensity());
 
       if (lines.size() > 1)
@@ -1248,7 +1248,7 @@ namespace OpenMS
         label.append("\n").append(String(lines[1]));
       }
 
-      Annotation1DItem* item = new Annotation1DPeakItem(
+      auto item = new Annotation1DPeakItem<Peak1D>(
         position,
         label.toQString(),
         color);

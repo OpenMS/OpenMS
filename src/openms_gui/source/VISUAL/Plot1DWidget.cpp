@@ -56,9 +56,6 @@ namespace OpenMS
   Plot1DWidget::Plot1DWidget(const Param& preferences, const DIM gravity_axis, QWidget* parent) :
     PlotWidget(preferences, parent)
   {
-    //set the label mode for the axes  - side effect
-    setCanvas_(new Plot1DCanvas(preferences, gravity_axis, this));
-
     x_axis_->setAllowShortNumbers(false);
 
     y_axis_->setAllowShortNumbers(true);
@@ -72,7 +69,10 @@ namespace OpenMS
 
     spacer_ = new QSpacerItem(0, 0);
 
-    //Delegate signals
+    // set the label mode for the axes  - side effect
+    setCanvas_(new Plot1DCanvas(preferences, gravity_axis, this));
+
+    // Delegate signals
     connect(canvas(), SIGNAL(showCurrentPeaksAs2D()), this, SIGNAL(showCurrentPeaksAs2D()));
     connect(canvas(), SIGNAL(showCurrentPeaksAs3D()), this, SIGNAL(showCurrentPeaksAs3D()));
     connect(canvas(), SIGNAL(showCurrentPeaksAsIonMobility()), this, SIGNAL(showCurrentPeaksAsIonMobility()));

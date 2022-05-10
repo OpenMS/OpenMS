@@ -63,7 +63,7 @@ namespace OpenMS
     auto ondisc_sptr = layer.getOnDiscPeakData();
 
     // create new 1D widget; if we return due to error, the widget will be cleaned up automatically
-    unique_ptr<Plot1DWidget> wp(new Plot1DWidget(tv_->getCanvasParameters(1), (QWidget*)tv_->getWorkspace()));
+    unique_ptr<Plot1DWidget> wp(new Plot1DWidget(tv_->getCanvasParameters(1), DIM::Y, (QWidget*)tv_->getWorkspace()));
     Plot1DWidget* w = wp.get();
 
     if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
@@ -79,9 +79,7 @@ namespace OpenMS
       w->canvas()->activateSpectrum(index);
       
       // set visible area to visible area in 2D view
-      // switch X/Y because now we want to have RT on the x-axis and not m/z
-      DRange<2> visible_area = tv_->getActiveCanvas()->getVisibleArea();
-      w->canvas()->setVisibleArea(visible_area.swapDimensions());
+      w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
     }
     else if (layer.type == LayerDataBase::DT_PEAK)
     {
@@ -140,7 +138,7 @@ namespace OpenMS
     String caption = layer.getName();
 
     //open new 1D widget
-    Plot1DWidget* w = new Plot1DWidget(tv_->getCanvasParameters(1), (QWidget *)tv_->getWorkspace());
+    Plot1DWidget* w = new Plot1DWidget(tv_->getCanvasParameters(1), DIM::Y, (QWidget *)tv_->getWorkspace());
 
     for (const auto& index : indices)
     {
@@ -157,9 +155,7 @@ namespace OpenMS
         }
 
         // set visible area to visible area in 2D view
-        // switch X/Y because now we want to have RT on the x-axis and not m/z
-        DRange<2> visible_area = tv_->getActiveCanvas()->getVisibleArea();
-        w->canvas()->setVisibleArea(visible_area.swapDimensions());
+        w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
       }
     }
 

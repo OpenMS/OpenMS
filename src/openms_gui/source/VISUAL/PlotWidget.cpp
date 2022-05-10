@@ -66,6 +66,18 @@ namespace OpenMS
     grid_ = new QGridLayout(this);
     grid_->setSpacing(0);
     grid_->setMargin(1);
+    // axes
+    y_axis_ = new AxisWidget(AxisPainter::LEFT, "", this);
+    x_axis_ = new AxisWidget(AxisPainter::BOTTOM, "", this);
+    // scrollbars
+    x_scrollbar_ = new QScrollBar(Qt::Horizontal, this); // left is small value, right is high value
+    y_scrollbar_ = new QScrollBar(Qt::Vertical, this);   // top is low value, bottom is high value (however, our coordinate system is inverse for the y-Axis!)
+    // We achieve the desired behavior by setting negative min/max ranges within the scrollbar when updateVScrollbar() is called.
+    // Thus, y_scrollbar_->valueChanged() will report negative values (which you need to multiply by -1 to get the correct value).
+    // Remember this when implementing verticalScrollBarChange() in your canvas class (currently only used in Plot2DCanvas)
+    // Do NOT use the build-in functions to invert a scrollbar, since implementation can be incomplete depending on style and platform
+    // y_scrollbar_->setInvertedAppearance(true);
+    // y_scrollbar_->setInvertedControls(true);
 
     setMinimumSize(250, 250); //Canvas (200) + AxisWidget (30) + ScrollBar (20)
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
@@ -78,23 +90,12 @@ namespace OpenMS
     canvas_ = canvas;
     setFocusProxy(canvas_);
     grid_->addWidget(canvas_, row, col);
-    //axes
-    y_axis_ = new AxisWidget(AxisPainter::LEFT, "", this);
-    x_axis_ = new AxisWidget(AxisPainter::BOTTOM, "", this);
     grid_->addWidget(y_axis_, row, col - 1);
     grid_->addWidget(x_axis_, row + 1, col);
     connect(canvas_, SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(updateAxes()));
     connect(canvas_, SIGNAL(recalculateAxes()), this, SLOT(updateAxes()));
     connect(canvas_, SIGNAL(changeLegendVisibility()), this, SLOT(changeLegendVisibility()));
-    //scrollbars
-    x_scrollbar_ = new QScrollBar(Qt::Horizontal, this); // left is small value, right is high value
-    y_scrollbar_ = new QScrollBar(Qt::Vertical, this); // top is low value, bottom is high value (however, our coordinate system is inverse for the y-Axis!)
-    // We achieve the desired behavior by setting negative min/max ranges within the scrollbar when updateVScrollbar() is called.
-    // Thus, y_scrollbar_->valueChanged() will report negative values (which you need to multiply by -1 to get the correct value).
-    // Remember this when implementing verticalScrollBarChange() in your canvas class (currently only used in Plot2DCanvas)
-    // Do NOT use the build-in functions to invert a scrollbar, since implementation can be incomplete depending on style and platform
-    //y_scrollbar_->setInvertedAppearance(true);
-    //y_scrollbar_->setInvertedControls(true);
+
     grid_->addWidget(y_scrollbar_, row, col - 2);
     grid_->addWidget(x_scrollbar_, row + 2, col);
     x_scrollbar_->hide();
@@ -105,9 +106,6 @@ namespace OpenMS
     connect(y_scrollbar_, SIGNAL(valueChanged(int)), canvas_, SLOT(verticalScrollBarChange(int)));
     connect(canvas_, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)), this, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)));
     connect(canvas_, SIGNAL(sendCursorStatus(double, double)), this, SIGNAL(sendCursorStatus(double, double)));
-
-    //swap axes if necessary
-    updateAxes();
 
     canvas_->setPlotWidget(this);
   }

@@ -72,12 +72,12 @@ namespace OpenMS
     dummy_spec.push_back(Peak1D());
     shr_ptr->addSpectrum(dummy_spec);*/
 
-    projection_vert_ = new Plot1DWidget(Param(), DIM::Y, this);
+    projection_vert_ = new Plot1DWidget(Param(), DIM::X, this);
     projection_vert_->hide();
     //projection_vert_->canvas()->addLayer(shr_ptr, od_dummy);
     grid_->addWidget(projection_vert_, 1, 3, 2, 1);
 
-    projection_horz_ = new Plot1DWidget(Param(), DIM::X, this);
+    projection_horz_ = new Plot1DWidget(Param(), DIM::Y, this);
     projection_horz_->hide();
     // projection_horz_->canvas()->addLayer(shr_ptr, od_dummy);
     grid_->addWidget(projection_horz_, 0, 1, 1, 2);

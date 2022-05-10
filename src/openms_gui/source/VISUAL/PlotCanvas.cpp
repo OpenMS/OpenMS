@@ -64,7 +64,8 @@ namespace OpenMS
   PlotCanvas::PlotCanvas(const Param& /*preferences*/, QWidget* parent)
     : QWidget(parent),
       DefaultParamHandler("PlotCanvas"),
-      unit_mapper_({{DIM_UNIT::RT, DIM_UNIT::MZ}}),
+      unit_mapper_({DIM_UNIT::RT, DIM_UNIT::MZ}),
+      visible_area_(&unit_mapper_),
       rubber_band_(QRubberBand::Rectangle, this)
   {
     // Prevent filling background
@@ -388,6 +389,9 @@ namespace OpenMS
     new_layer->setPeakData(map);
     new_layer->setOnDiscPeakData(od_map);
 
+    setBaseLayerParameters(new_layer.get(), param_, filename);
+    layers_.addLayer(std::move(new_layer));
+
     // calculate noise
     if (use_noise_cutoff)
     {
@@ -406,8 +410,6 @@ namespace OpenMS
       }
     }
 
-    setBaseLayerParameters(new_layer.get(), param_, filename);
-    layers_.addLayer(std::move(new_layer));
     return finishAdding_();
   }
 

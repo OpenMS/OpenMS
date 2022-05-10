@@ -150,7 +150,7 @@ namespace OpenMS
       // translate to axis units (our native 'data'):
       auto p_text = w->canvas()->widgetToDataDistance(text_size.width(), 0);
       auto chunk = od.placeItem(feature.getRTLeftWidth(), feature.getRTLeftWidth() + p_text.getX());
-      item->setTextYOffset(chunk * text_size.height());
+      item->setTextOffset(chunk * text_size.height());
 
       w->canvas()->getCurrentLayer().getCurrentAnnotations().push_back(item);
     }
@@ -173,7 +173,7 @@ namespace OpenMS
     LayerDataBase& layer = const_cast<LayerDataBase&>(tv_->getActiveCanvas()->getCurrentLayer());
     MiniLayer ml(layer);
     // create new 1D widget; if we return due to error, the widget will be cleaned up
-    unique_ptr<Plot1DWidget> w(new Plot1DWidget(tv_->getCanvasParameters(1), (QWidget*)tv_->getWorkspace()));
+    unique_ptr<Plot1DWidget> w(new Plot1DWidget(tv_->getCanvasParameters(1), DIM::Y, (QWidget*)tv_->getWorkspace()));
 
     if (showChromatogramsInCanvas_(trace, ml, w.get()))
     { // success!
