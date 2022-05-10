@@ -63,9 +63,7 @@ namespace OpenMS
     SIZE_OF_DIM_UNITS
   };
   std::string_view DIM_NAMES[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT [s]", "m/z [Th]", "intensity", "IM [milliseconds]", "IM [vs / cm2]", "FAIMS CV"};
-
-
-  
+  std::string_view DIM_NAMES_SHORT[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT", "m/z", "int", "IM", "IM", "FCV"};
 
   /**
     @brief A base class for a dimension which represents a certain unit (e.g. RT or m/z).
@@ -134,15 +132,33 @@ namespace OpenMS
       return DIM_NAMES[(int)unit_];
     }
 
+    /// Name of the dimension, e.g. 'RT'
+    std::string_view getDimNameShort() const
+    {
+      return DIM_NAMES_SHORT[(int)unit_];
+    }
+
     /// The unit of the dimension
     DIM_UNIT getUnit() const
     {
       return unit_;
     }
 
+    /**
+     * \brief Creates a short string representation with "UNIT: value", where value has a predefined precision (2 digits for RT, 8 for m/z, etc)
+     * \param value The value of this Dim to format
+     * \return A formatted string, e.g. "RT: 45.32"
+     */
+    String formattedValue(const ValueType value) const;
+
+    /// like formattedValue() but with a custom unit prefix instead of the default one for the dim, e.g. "myText: 45.32" 
+    String formattedValue(ValueType value, const String& prefix) const;
+
+
   protected:
     DIM_UNIT unit_; ///< the unit of this dimension    
   };
+
 
 
   class OPENMS_DLLAPI DimRT final : public DimBase
@@ -539,8 +555,18 @@ namespace OpenMS
     /// Copy C'tor
     Area(const Area& range) = default;
 
-    /// Assignment operator
-    Area& operator=(const Area& rhs) = default; 
+    /// Assignment operator - which checks for identical DimMappers and throws otherwise
+    Area& operator=(const Area& rhs)
+    {
+      // check that Dims are identical, otherwise this is very dangerous (the user probably only wanted to update the area, not change its mapping).
+      if (mapper_ != rhs.mapper_ && *mapper_ != *rhs.mapper_)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Assignment of Areas using different mappers!");
+      }
+      data_range_ = rhs.data_range_;
+      visible_area_ = rhs.visible_area_;
+      return *this;
+    } 
 
     bool operator==(const Area& rhs) const
     {

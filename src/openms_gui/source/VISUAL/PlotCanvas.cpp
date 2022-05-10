@@ -266,8 +266,9 @@ namespace OpenMS
   }
 
   void PlotCanvas::setVisibleArea(const VisibleArea& area)
-  {
-    changeVisibleArea_(area);
+  { // do not simply call "changeVisibleArea_(area);", since this will choke on different
+    // internal DimMappers (and you probably do not want to change the DimMapping. E.g. when calling this from a 2DCanvas (RT,mz) to display a 1DCanvas (mz,int))
+    changeVisibleArea_(visible_area_.cloneWith(area.getAreaUnit()));
   }
 
   void PlotCanvas::setVisibleArea(const RangeAllType& area)

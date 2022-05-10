@@ -392,7 +392,8 @@ namespace OpenMS
     // mouse position relative to the diagram widget
     QPoint p = e->pos();
     PointXYType data_pos = widgetToData(p);
-    emit sendCursorStatus(data_pos.getX(), getCurrentLayer().getCurrentSpectrum().getRT());
+    emit sendCursorStatus(unit_mapper_.getDim(DIM::X).formattedValue(data_pos[0]),
+                          unit_mapper_.getDim(DIM::Y).formattedValue(data_pos[1]));
 
     PeakIndex near_peak = findPeakAtPosition_(p);
 
@@ -899,20 +900,6 @@ namespace OpenMS
   }
 
 
-  // decide on precision depending on unit; add more units if you have some intuition
-  auto precision_for_unit = [](DIM_UNIT u) {
-    switch (u)
-    {
-      case DIM_UNIT::RT:
-      case DIM_UNIT::INT:
-        return 2;
-      case DIM_UNIT::MZ:
-        return 8;
-      default:
-        return 4;
-    }
-  };
-
   void Plot1DCanvas::drawCoordinates_(QPainter& painter, const PeakIndex& peak)
   {
     if (!peak.isValid() || peak.peak >= getCurrentLayer().getCurrentSpectrum().size())
@@ -929,11 +916,10 @@ namespace OpenMS
     const auto xy_point = unit_mapper_.map(getCurrentLayer().getCurrentSpectrum()[peak.peak]);
     const auto& x_axis = unit_mapper_.getDim(DIM::X);
     const auto& y_axis = unit_mapper_.getDim(DIM::Y);
-    
-    // hint: QLocale::c().toString adds group separators to better visualize large numbers (e.g. 23.009.646.54,3)
+
     QStringList lines;
-    lines << QString(string(x_axis.getDimName()).c_str()) + QLocale::c().toString(xy_point.getX(), 'f', precision_for_unit(x_axis.getUnit()));
-    lines << QString(string(y_axis.getDimName()).c_str()) + QLocale::c().toString(xy_point.getY(), 'f', precision_for_unit(y_axis.getUnit()));
+    lines << x_axis.formattedValue(xy_point.getX()).toQString();
+    lines << y_axis.formattedValue(xy_point.getY()).toQString();
     drawText_(painter, lines);
   }
 
@@ -967,11 +953,11 @@ namespace OpenMS
       QString result;
       if (ratio)
       {
-        result = String(string(dim.getDimName()) + " ratio: ").toQString() + QLocale::c().toString(end_pos / start_pos, 'f', precision_for_unit(dim.getUnit()));
+        result = dim.formattedValue(end_pos / start_pos, " ratio: ").toQString();
       }
       else
       {
-        result = String(string(dim.getDimName()) + " delta: ").toQString() + QLocale::c().toString(end_pos - start_pos, 'f', precision_for_unit(dim.getUnit()));
+        result = dim.formattedValue(end_pos - start_pos, " delta: ").toQString();
         if (dim.getUnit() == DIM_UNIT::MZ)
         {
           auto ppm = Math::getPPM(end_pos, start_pos);
@@ -981,7 +967,6 @@ namespace OpenMS
       return result;
     };
 
-    // hint: QLocale::c().toString adds group separators to better visualize large numbers (e.g. 23.009.646.54,3)
     QStringList lines;
     lines << dim_text(unit_mapper_.getDim(DIM::X), peak_start.getX(), peak_end.getX(), gr_.getGravityAxis() == DIM::X);
     lines << dim_text(unit_mapper_.getDim(DIM::Y), peak_start.getY(), peak_end.getY(), gr_.getGravityAxis() == DIM::Y);

@@ -1127,8 +1127,8 @@ namespace OpenMS
 
       for (auto spec_it = rt_begin_it; spec_it != rt_end_it; ++spec_it)
       {
-        auto mz_end = spec_it->MZEnd(area.getMinMZ());
-        for (auto it = spec_it->MZBegin(area.getMaxMZ()); it != mz_end; ++it)
+        auto mz_end = spec_it->MZEnd(area.getMaxMZ());
+        for (auto it = spec_it->MZBegin(area.getMinMZ()); it != mz_end; ++it)
         {
           Math::extendRange(int_scale_.min_[0], int_scale_.max_[0], (double)it->getIntensity());
         }

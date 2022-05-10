@@ -93,7 +93,7 @@ public:
     void setLegend(const String & legend);
 
     /// returns the actual legend text
-    const String & getLegend();
+    const String & getLegend() const;
 
     /// returns the currently used grid lines
     const GridVector & gridLines() const;

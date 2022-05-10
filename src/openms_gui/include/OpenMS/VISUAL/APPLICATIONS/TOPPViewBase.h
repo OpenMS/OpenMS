@@ -317,11 +317,9 @@ public slots:
       If @p time is 0 the status message is displayed until showStatusMessage is called with an empty message or a new message.
       Otherwise the message is displayed for @p time ms.
     */
-    void showStatusMessage(std::string msg, OpenMS::UInt time);
-    /// shows m/z and rt in the status bar
-    void showCursorStatus(double mz, double rt);
-    /// shows m/z and rt in the status bar (inverting RT and m/z)
-    void showCursorStatusInvert(double mz, double rt);
+    void showStatusMessage(const std::string& msg, OpenMS::UInt time);
+    /// shows X/Y axis mouse values in the status bar
+    void showCursorStatus(const String& x, const String& y);
     /// Apply TOPP tool
     void showTOPPDialog();
     /// Annotates current layer with ID data from AccurateMassSearch
@@ -493,10 +491,10 @@ protected:
     //@{
     /// Label for messages in the status bar
     QLabel* message_label_;
-    /// m/z label for messages in the status bar
-    QLabel* mz_label_;
-    /// RT label for messages in the status bar
-    QLabel* rt_label_;
+    /// x-axis label for messages in the status bar
+    QLabel* x_label_;
+    /// y-axis label for messages in the status bar
+    QLabel* y_label_;
     //@}
 
     /// @name Recent files

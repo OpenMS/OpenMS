@@ -164,14 +164,14 @@ namespace OpenMS
     message_label_ = new QLabel(statusBar());
     statusBar()->addWidget(message_label_, 1);
 
-    rt_label_ = new QLabel("RT: 12345678", statusBar());
-    rt_label_->setMinimumSize(rt_label_->sizeHint());
-    rt_label_->setText("");
-    statusBar()->addPermanentWidget(rt_label_, 0);
-    mz_label_ = new QLabel("m/z: 123456780912", statusBar());
-    mz_label_->setMinimumSize(mz_label_->sizeHint());
-    mz_label_->setText("");
-    statusBar()->addPermanentWidget(mz_label_, 0);
+    x_label_ = new QLabel("RT: 12345678", statusBar());
+    x_label_->setMinimumSize(x_label_->sizeHint());
+    x_label_->setText("");
+    statusBar()->addPermanentWidget(x_label_, 0);
+    y_label_ = new QLabel("m/z: 123456780912", statusBar());
+    y_label_->setMinimumSize(y_label_->sizeHint());
+    y_label_->setText("");
+    statusBar()->addPermanentWidget(y_label_, 0);
 
     //################## TOOLBARS #################
     //create toolbars and connect signals
@@ -1004,7 +1004,7 @@ namespace OpenMS
     getActivePlotWidget()->showStatistics();
   }
 
-  void TOPPViewBase::showStatusMessage(string msg, OpenMS::UInt time)
+  void TOPPViewBase::showStatusMessage(const string& msg, OpenMS::UInt time)
   {
     if (time == 0)
     {
@@ -1017,40 +1017,11 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::showCursorStatusInvert(double mz, double rt)
-  {
-    // swap rt vs mz (for vertical projection)
-    showCursorStatus(rt, mz);
-  }
-
-  void TOPPViewBase::showCursorStatus(double mz, double rt)
+  void TOPPViewBase::showCursorStatus(const String& x, const String& y)
   {
     message_label_->setText("");
-    if (mz == -1)
-    {
-      mz_label_->setText("m/z: ");
-    }
-    else if (isinf(mz) || isnan(mz))
-    {
-      mz_label_->setText("m/z: n/a");
-    }
-    else
-    {
-      mz_label_->setText((String("m/z: ") + String::number(mz, 6).fillLeft(' ', 8)).toQString());
-    }
-
-    if (rt == -1)
-    {
-      rt_label_->setText("RT: ");
-    }
-    else if (isinf(rt) || isnan(rt))
-    {
-      rt_label_->setText("RT: n/a");
-    }
-    else
-    {
-      rt_label_->setText((String("RT: ") + String::number(rt, 1).fillLeft(' ', 8)).toQString());
-    }
+    x_label_->setText(x.toQString());
+    y_label_->setText(y.toQString());
     statusBar()->update();
   }
 
@@ -1407,7 +1378,7 @@ namespace OpenMS
     if (sw2 != nullptr)
     {
       connect(sw2->getHorizontalProjection(), &Plot2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
-      connect(sw2->getVerticalProjection(), &Plot2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatusInvert);
+      connect(sw2->getVerticalProjection(), &Plot2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
       connect(sw2, &Plot2DWidget::showSpectrumAsNew1D, selection_view_, &DataSelectionTabs::showSpectrumAsNew1D);
       connect(sw2, &Plot2DWidget::showCurrentPeaksAs3D , this, &TOPPViewBase::showCurrentPeaksAs3D);
     }

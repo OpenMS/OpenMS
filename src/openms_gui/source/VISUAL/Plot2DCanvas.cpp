@@ -1772,12 +1772,13 @@ namespace OpenMS
     }
   }
 
-  void Plot2DCanvas::mouseMoveEvent(QMouseEvent * e)
+  void Plot2DCanvas::mouseMoveEvent(QMouseEvent* e)
   {
     grabKeyboard();     // (re-)grab keyboard after it has been released by unhandled key
     QPoint pos = e->pos();
     PointXYType data_pos = widgetToData_(pos);
-    emit sendCursorStatus(data_pos[0], data_pos[1]);
+    emit sendCursorStatus(unit_mapper_.getDim(DIM::X).formattedValue(data_pos[0]),
+                          unit_mapper_.getDim(DIM::Y).formattedValue(data_pos[1]));
 
     PeakIndex near_peak = findNearestPeak_(pos);
 

@@ -74,18 +74,20 @@ namespace OpenMS
 
     projection_vert_ = new Plot1DWidget(Param(), DIM::X, this);
     projection_vert_->hide();
+    projection_vert_->setMapper(DimMapper<2>({DIM_UNIT::INT, canvas_->getMapper().getDim(DIM::X).getUnit()}));
     //projection_vert_->canvas()->addLayer(shr_ptr, od_dummy);
     grid_->addWidget(projection_vert_, 1, 3, 2, 1);
 
     projection_horz_ = new Plot1DWidget(Param(), DIM::Y, this);
     projection_horz_->hide();
+    projection_horz_->setMapper(DimMapper<2>({canvas_->getMapper().getDim(DIM::Y).getUnit(), DIM_UNIT::INT}));
     // projection_horz_->canvas()->addLayer(shr_ptr, od_dummy);
     grid_->addWidget(projection_horz_, 0, 1, 1, 2);
 
-    // decide on default draw mode, depending on axis unit
-    auto set_style = [&](const DIM_UNIT unit, Plot1DCanvas* canvas)
+    // decide on default draw mode, depending on main axis unit (e.g. m/z or RT)
+    auto set_style = [&](const DIM_UNIT main_unit_1d, Plot1DCanvas* canvas)
     {
-      switch (unit)
+      switch (main_unit_1d)
       { // this may not be optimal for every unit. Feel free to change behavior.
         case DIM_UNIT::MZ:
           // to show isotope distributions as sticks
@@ -102,15 +104,15 @@ namespace OpenMS
     set_style(canvas_->getMapper().getDim(DIM::X).getUnit(), projection_horz_->canvas());
     set_style(canvas_->getMapper().getDim(DIM::Y).getUnit(), projection_vert_->canvas());
 
-    connect(canvas(), SIGNAL(showProjectionHorizontal(ExperimentSharedPtrType)), this, SLOT(horizontalProjection(ExperimentSharedPtrType)));
-    connect(canvas(), SIGNAL(showProjectionVertical(ExperimentSharedPtrType)), this, SLOT(verticalProjection(ExperimentSharedPtrType)));
-    connect(canvas(), SIGNAL(showProjectionInfo(int, double, double)), this, SLOT(projectionInfo(int, double, double)));
-    connect(canvas(), SIGNAL(toggleProjections()), this, SLOT(toggleProjections()));
-    connect(canvas(), SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(autoUpdateProjections()));
+    connect(canvas(), &Plot2DCanvas::showProjectionHorizontal, this, &Plot2DWidget::horizontalProjection);
+    connect(canvas(), &Plot2DCanvas::showProjectionVertical, this, &Plot2DWidget::verticalProjection);
+    connect(canvas(), &Plot2DCanvas::showProjectionInfo, this, &Plot2DWidget::projectionInfo);
+    connect(canvas(), &Plot2DCanvas::toggleProjections, this, &Plot2DWidget::toggleProjections);
+    connect(canvas(), &Plot2DCanvas::visibleAreaChanged, this, &Plot2DWidget::autoUpdateProjections);
     // delegate signals from canvas
-    connect(canvas(), SIGNAL(showSpectrumAsNew1D(int)), this, SIGNAL(showSpectrumAsNew1D(int)));
-    connect(canvas(), SIGNAL(showChromatogramsAsNew1D(std::vector<int, std::allocator<int> >)), this, SIGNAL(showChromatogramsAsNew1D(std::vector<int, std::allocator<int> >)));
-    connect(canvas(), SIGNAL(showCurrentPeaksAs3D()), this, SIGNAL(showCurrentPeaksAs3D()));
+    connect(canvas(), &Plot2DCanvas::showSpectrumAsNew1D, this, &Plot2DWidget::showSpectrumAsNew1D);
+    connect(canvas(), &Plot2DCanvas::showChromatogramsAsNew1D, this, &Plot2DWidget::showChromatogramsAsNew1D);
+    connect(canvas(), &Plot2DCanvas::showCurrentPeaksAs3D, this, &Plot2DWidget::showCurrentPeaksAs3D);
     // add projections box
     projection_box_ = new QGroupBox("Projections", this);
     projection_box_->hide();
@@ -163,6 +165,10 @@ namespace OpenMS
 
   void Plot2DWidget::recalculateAxes_()
   {
+    // set names
+    x_axis_->setLegend(string(canvas()->getMapper().getDim(DIM::X).getDimName()));
+    y_axis_->setLegend(string(canvas()->getMapper().getDim(DIM::Y).getDimName()));
+
     const auto& area = canvas()->getVisibleArea().getAreaXY();
     x_axis_->setAxisBounds(area.minX(), area.maxX());
     y_axis_->setAxisBounds(area.minY(), area.maxY());

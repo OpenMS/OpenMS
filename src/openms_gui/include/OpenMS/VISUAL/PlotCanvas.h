@@ -714,7 +714,7 @@ signals:
     void visibleAreaChanged(const VisibleArea& area);
 
     /// Emitted when the cursor position changes (for displaying e.g. in status bar)
-    void sendCursorStatus(double mz = -1.0, double rt = -1.0);
+    void sendCursorStatus(const String& x_value, const String& y_value);
 
     /// Emits a status message that should be displayed for @p time ms. If @p time is 0 the message should be displayed until the next message is emitted.
     void sendStatusMessage(std::string message, OpenMS::UInt time);

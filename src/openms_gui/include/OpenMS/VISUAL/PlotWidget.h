@@ -156,13 +156,13 @@ signals:
     /// Emits a status message that should be displayed for @p time ms. If @p time is 0 the message should be displayed until the next message is emitted.
     void sendStatusMessage(std::string, OpenMS::UInt);
     /// Emitted when the cursor position changes (for displaying e.g. in status bar)
-    void sendCursorStatus(double mz = -1.0, double rt = -1.0);
+    void sendCursorStatus(const String& x_value, const String& y_value);
     /// Message about the destruction of this widget
     void aboutToBeDestroyed(int window_id);
     /// Shows the main preferences dialog
     void openPreferences();
     /// Signal that is emitted, when a drag-and-drop action ends on this widget
-    void dropReceived(const QMimeData * data, QWidget * source, int id);
+    void dropReceived(const QMimeData* data, QWidget* source, int id);
 
 public slots:
     /// Shows statistics about the data (count, min, max, avg of intensity, charge, quality and meta data)

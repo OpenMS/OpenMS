@@ -92,20 +92,20 @@ namespace OpenMS
     grid_->addWidget(canvas_, row, col);
     grid_->addWidget(y_axis_, row, col - 1);
     grid_->addWidget(x_axis_, row + 1, col);
-    connect(canvas_, SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(updateAxes()));
-    connect(canvas_, SIGNAL(recalculateAxes()), this, SLOT(updateAxes()));
-    connect(canvas_, SIGNAL(changeLegendVisibility()), this, SLOT(changeLegendVisibility()));
+    connect(canvas_, &PlotCanvas::visibleAreaChanged, this, &PlotWidget::updateAxes);
+    connect(canvas_, &PlotCanvas::recalculateAxes, this, &PlotWidget::updateAxes);
+    connect(canvas_, &PlotCanvas::changeLegendVisibility, this, &PlotWidget::changeLegendVisibility);
 
     grid_->addWidget(y_scrollbar_, row, col - 2);
     grid_->addWidget(x_scrollbar_, row + 2, col);
     x_scrollbar_->hide();
     y_scrollbar_->hide();
-    connect(canvas_, SIGNAL(updateHScrollbar(float, float, float, float)), this, SLOT(updateHScrollbar(float, float, float, float)));
-    connect(canvas_, SIGNAL(updateVScrollbar(float, float, float, float)), this, SLOT(updateVScrollbar(float, float, float, float)));
-    connect(x_scrollbar_, SIGNAL(valueChanged(int)), canvas_, SLOT(horizontalScrollBarChange(int)));
-    connect(y_scrollbar_, SIGNAL(valueChanged(int)), canvas_, SLOT(verticalScrollBarChange(int)));
-    connect(canvas_, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)), this, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)));
-    connect(canvas_, SIGNAL(sendCursorStatus(double, double)), this, SIGNAL(sendCursorStatus(double, double)));
+    connect(canvas_, &PlotCanvas::updateHScrollbar, this, &PlotWidget::updateHScrollbar);
+    connect(canvas_, &PlotCanvas::updateVScrollbar, this, &PlotWidget::updateVScrollbar);
+    connect(x_scrollbar_, &QScrollBar::valueChanged, canvas_, &PlotCanvas::horizontalScrollBarChange);
+    connect(y_scrollbar_, &QScrollBar::valueChanged, canvas_, &PlotCanvas::verticalScrollBarChange);
+    connect(canvas_, &PlotCanvas::sendStatusMessage, this, &PlotWidget::sendStatusMessage);
+    connect(canvas_, &PlotCanvas::sendCursorStatus, this, &PlotWidget::sendCursorStatus);
 
     canvas_->setPlotWidget(this);
   }
