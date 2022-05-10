@@ -420,6 +420,10 @@ protected:
 
       if (export_evidence.isValid())
       {
+        //get additonal information for our proteins
+        gatherProtInfo_(cmap);
+        //extract the proteindescription here? Shouldnt it be automatically be passed with the cmap?
+        //and export exp ...
         export_evidence.exportFeatureMap(*fmap,cmap);
       }
     }
@@ -538,6 +542,35 @@ private:
         {
           cmap.getUnassignedPeptideIdentifications()[pi_index].addMetaValues(f_pep_id);
           cmap.getUnassignedPeptideIdentifications()[pi_index].getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
+        }
+      }
+    }
+  }
+
+  void gatherProtInfo_(ConsensusMap& cmap)
+  {
+    //location of the .fasta file 
+    const String& fileName = cmap.getProteinIdentifications()[0].getSearchParameters().db;
+    //the amount of protIds in our cmap should be lower than the amount in the fasta
+    vector<FASTAFile::FASTAEntry> protDescription;
+    protDescription.reserve(cmap.getProteinIdentifications().size());
+    //check for cmap.getProteinIdentifications()[0].empty()?
+    //FASTAFile().load(cmap.getProteinIdentifications()[0].getSearchParameters().db(), protDescription);
+    FASTAFile().load(fileName, protDescription);
+    //match proteinIdentifications from protDescription to the existing prots in cmap
+    auto& cmapProtIds = cmap.getProteinIdentifications();
+    for(auto& protId : cmapProtIds)
+    {
+      for(const auto& entry: protDescription)
+      {
+        if(protId.getIdentifier() == entry.identifier)
+        {
+          //set description for all hits
+          std::vector<ProteinHit>& protHits = protId.getHits();
+          for(auto& hit : protHits)
+          {
+            hit.setDescription(entry.description);
+          }
         }
       }
     }
