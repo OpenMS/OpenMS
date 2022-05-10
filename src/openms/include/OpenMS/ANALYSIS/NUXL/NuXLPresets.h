@@ -1102,7 +1102,7 @@ namespace OpenMS
     const String RNA_UCGA = "UCGA";
     const String DNA_TCGAd = "TCGAd";
     const String RNA_CGA = "CGA";
-    const String DNA_CGA = "CGAd";
+    const String DNA_CGAd = "CGAd";
 
     // set precursor + fragment adducts and cross-linked nucleotide
     if (p == "RNA-UV (U)" || p  == "RNA-UV (UCGA)")
