@@ -131,8 +131,21 @@ jobs:
       with:
         path: OpenMS
 
-    - name: ccache
-      uses: hendrikmuhs/ccache-action@v1.2
+    - name: Install ccache
+      run: |
+        conda install --yes --override-channels --channel conda-forge ccache
+        sudo ln -s $CONDA/bin/ccache /usr/bin/ccache
+
+    - name: Load ccache
+      uses: actions/cache@v2
+      with:
+        path: .ccache
+        key: ${{ runner.os }}-ccache-${{ github.ref }}-${{ github.run_number }}
+        # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
+        restore-keys: |
+          ${{ runner.os }}-ccache-${{ github.ref }}
+          ${{ runner.os }}-ccache-${{ github.base_ref }}
+          ${{ runner.os }}-ccache-
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
@@ -269,8 +282,21 @@ jobs:
       with:
         path: OpenMS
 
-    - name: ccache
-      uses: hendrikmuhs/ccache-action@v1.2
+    - name: Install ccache
+      run: |
+        conda install --yes --override-channels --channel conda-forge ccache
+        sudo ln -s $CONDA/bin/ccache /usr/bin/ccache
+
+    - name: Load ccache
+      uses: actions/cache@v2
+      with:
+        path: .ccache
+        key: ${{ runner.os }}-ccache-${{ github.ref }}-${{ github.run_number }}
+        # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
+        restore-keys: |
+          ${{ runner.os }}-ccache-${{ github.ref }}
+          ${{ runner.os }}-ccache-${{ github.base_ref }}
+          ${{ runner.os }}-ccache-
 
     - name: Extract branch name
       if: github.event_name == 'push'
