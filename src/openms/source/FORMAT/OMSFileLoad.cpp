@@ -1262,6 +1262,51 @@ namespace OpenMS::Internal
         }
       }
     }
+    // identified molecule:
+    // this query is used in multiple joins below (@TODO: replace with DB view?):
+    QString subquery_molecule = "SELECT ID_IdentifiedMolecule.id AS im_id, molecule_type, identifier FROM ID_IdentifiedMolecule JOIN ID_MoleculeType ON molecule_type_id = ID_MoleculeType.id";
+    if (tableExists_(db_name_, "ID_IdentifiedMolecule"))
+    {
+      sql = "SELECT molecule_type, identifier FROM ID_IdentifiedMolecule JOIN ID_MoleculeType ON molecule_type_id = ID_MoleculeType.id ORDER BY molecule_type, identifier";
+      json_data.insert("ID_IdentifiedMolecule", exportQueryToJSON_(sql, {}));
+      // identified compound:
+      if (tableExists_(db_name_, "ID_IdentifiedCompound"))
+      {
+        sql = "SELECT * FROM ID_IdentifiedCompound JOIN ID_IdentifiedMolecule ON molecule_id = ID_IdentifiedMolecule.id ORDER BY identifier";
+        json_data.insert("ID_IdentifiedCompound", exportQueryToJSON_(sql, {"id", "molecule_id"}));
+      }
+      // parent matches:
+      if (tableExists_(db_name_, "ID_ParentMatch"))
+      {
+        sql = "SELECT * FROM ID_ParentMatch JOIN (" + subquery_molecule + ") ON molecule_id = im_id JOIN (SELECT id AS p_id, accession FROM ID_ParentSequence) ON parent_id = p_id ORDER BY molecule_type, identifier, accession, start_pos, end_pos";
+        json_data.insert("ID_ParentMatch", exportQueryToJSON_(sql, {"im_id", "molecule_id", "parent_id", "p_id"}));
+      }
+    }
+    // adducts:
+    bool with_adducts = false;
+    if (tableExists_(db_name_, "AdductInfo"))
+    {
+      with_adducts = true;
+      sql = "SELECT * FROM AdductInfo ORDER BY formula, charge";
+      json_data.insert("AdductInfo", exportQueryToJSON_(sql));
+    }
+    // observation matches:
+    if (tableExists_(db_name_, "ID_ObservationMatch"))
+    {
+      QString subquery_obs = "SELECT ID_Observation.id AS o_id, input_file_name, data_id FROM ID_Observation JOIN (SELECT id AS if_id, name AS input_file_name FROM ID_InputFile) ON input_file_id = if_id";
+      if (with_adducts)
+      {
+        sql = "SELECT ID_ObservationMatch.id, input_file_name, data_id, molecule_type, identifier, formula AS adduct_formula, AdductInfo.charge AS adduct_charge, ID_ObservationMatch.charge, ROW_NUMBER() OVER (ORDER BY input_file_name, data_id, molecule_type, identifier, ID_ObservationMatch.charge, formula, AdductInfo.charge) AS observation_match_index FROM ID_ObservationMatch JOIN (" + subquery_molecule + ") ON identified_molecule_id = im_id JOIN (" + subquery_obs + ") ON observation_id = o_id JOIN AdductInfo ON adduct_id = AdductInfo.id";
+      }
+      else
+      {
+        sql = "SELECT ID_ObservationMatch.id, input_file_name, data_id, molecule_type, identifier, ID_ObservationMatch.charge, ROW_NUMBER() OVER (ORDER BY input_file_name, data_id, molecule_type, identifier, ID_ObservationMatch.charge) AS observation_match_index FROM ID_ObservationMatch JOIN (" + subquery_molecule + ") ON identified_molecule_id = im_id JOIN (" + subquery_obs + ") ON observation_id = o_id";
+      }
+      createView_("match_view", sql);
+      sql = "SELECT * FROM match_view";
+      json_data.insert("ID_ObservationMatch", exportQueryToJSON_(sql));
+    }
+
 
     QJsonDocument json_doc;
     json_doc.setObject(json_data);
