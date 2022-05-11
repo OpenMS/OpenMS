@@ -1136,6 +1136,16 @@ namespace OpenMS::Internal
   }
 
 
+  void OMSFileLoad::createView_(const QString& name, const QString& select)
+  {
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    if (!query.exec("CREATE TEMP VIEW " + name + " AS " + select))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error creating database view");
+    }
+  }
+
+
   QJsonArray OMSFileLoad::exportQueryToJSON_(const QString& sql, const QStringList& exclude_fields)
   {
     // code based on: https://stackoverflow.com/a/18067555
@@ -1205,12 +1215,7 @@ namespace OpenMS::Internal
     {
       // processing steps potentially get referenced a lot, but their "identity" is complex
       // (software + input files + timestamp) - create a view that includes an index number for referencing:
-      QSqlQuery query(QSqlDatabase::database(db_name_));
-      sql = "CREATE TEMP VIEW steps_view AS SELECT ID_ProcessingStep.id, date_time, name AS software_name, version AS software_version, search_param_id, ROW_NUMBER() OVER (ORDER BY name, version, date_time) processing_step_index FROM ID_ProcessingStep JOIN ID_ProcessingSoftware ON software_id = ID_ProcessingSoftware.id";
-      if (!query.exec(sql))
-      {
-        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error creating database view");
-      }
+      createView_("steps_view", "SELECT ID_ProcessingStep.id, date_time, name AS software_name, version AS software_version, search_param_id, ROW_NUMBER() OVER (ORDER BY name, version, date_time) processing_step_index FROM ID_ProcessingStep JOIN ID_ProcessingSoftware ON software_id = ID_ProcessingSoftware.id");
       sql = "SELECT * FROM steps_view";
       json_data.insert("ID_ProcessingStep", exportQueryToJSON_(sql, {"search_param_id"}));
       // processing steps - input files:
@@ -1246,13 +1251,8 @@ namespace OpenMS::Internal
       // parent groups:
       if (tableExists_(db_name_, "ID_ParentGroup"))
       {
-        QSqlQuery query(QSqlDatabase::database(db_name_));
         // @TODO: with duplicate scores this ordering is not reproducible!
-        sql = "CREATE TEMP VIEW groups_view AS SELECT ID_ParentGroup.id, label, score_type_accession, score_type_name, score, ROW_NUMBER() OVER(ORDER BY label, score_type_accession, score_type_name, score) AS parent_group_index FROM ID_ParentGroup JOIN (" + subquery_score + ") ON score_type_id = st_id JOIN ID_ParentGroupSet ON grouping_id = ID_ParentGroupSet.id";
-        if (!query.exec(sql))
-        {
-          raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error creating database view");
-        }
+        createView_("groups_view", "SELECT ID_ParentGroup.id, label, score_type_accession, score_type_name, score, ROW_NUMBER() OVER(ORDER BY label, score_type_accession, score_type_name, score) AS parent_group_index FROM ID_ParentGroup JOIN (" + subquery_score + ") ON score_type_id = st_id JOIN ID_ParentGroupSet ON grouping_id = ID_ParentGroupSet.id");
         sql = "SELECT * FROM groups_view";
         json_data.insert("ID_ParentGroup", exportQueryToJSON_(sql));
         if (tableExists_(db_name_, "ID_ParentGroup_ParentSequence"))

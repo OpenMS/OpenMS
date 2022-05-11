@@ -145,6 +145,8 @@ namespace OpenMS
         QSqlQuery& query, IdentificationData::ObservationMatch& match,
         Key parent_id);
 
+      void createView_(const QString& name, const QString& select);
+
       QJsonArray exportQueryToJSON_(const QString& sql, const QStringList& exclude_fields = {"id"});
 
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
