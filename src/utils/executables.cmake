@@ -18,7 +18,6 @@ ERPairFinder
 FeatureFinderMetaboIdent
 FFEval
 FuzzyDiff
-iBAQQuantitation
 IDDecoyProbability
 IDExtractor
 IDMassAccuracy
