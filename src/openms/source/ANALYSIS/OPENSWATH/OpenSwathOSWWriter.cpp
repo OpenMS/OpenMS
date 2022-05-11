@@ -288,9 +288,9 @@ namespace OpenMS
         "VAR_MI_SCORE, VAR_MI_WEIGHTED_SCORE, VAR_MI_RATIO_SCORE, VAR_NORM_RT_SCORE, "\
         "VAR_XCORR_COELUTION,VAR_XCORR_COELUTION_WEIGHTED, VAR_XCORR_SHAPE, "\
         "VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, "\
-        "VAR_IM_XCORR_SHAPE, VAR_IM_XCORR_COELUTION, VAR_IM_DELTA_SCORE, " \
-        "VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ "\
-        ") VALUES ("
+        "VAR_IM_XCORR_SHAPE, VAR_IM_XCORR_COELUTION, VAR_IM_DELTA_SCORE"
+        << (sonar_ ? ", VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ " : "")
+        << ") VALUES ("
                       << feature_id << ", "
                       << feature_it.getIntensity() << ", "
                       << getScore(feature_it, "total_xic") << ", "
@@ -323,13 +323,16 @@ namespace OpenMS
                       << getScore(feature_it, "var_elution_model_fit_score") << ", "
                       << getScore(feature_it, "var_im_xcorr_shape") << ", "
                       << getScore(feature_it, "var_im_xcorr_coelution") << ", "
-                      << getScore(feature_it, "var_im_delta_score") << ", "
-                      << getScore(feature_it, "var_sonar_lag") << ", "
-                      << getScore(feature_it, "var_sonar_shape") << ", "
-                      << getScore(feature_it, "var_sonar_log_sn") << ", "
-                      << getScore(feature_it, "var_sonar_log_diff") << ", "
-                      << getScore(feature_it, "var_sonar_log_trend") << ", "
-                      << getScore(feature_it, "var_sonar_rsq") << "); ";
+                      << getScore(feature_it, "var_im_delta_score");
+      if (sonar_) {
+        sql_feature_ms2 << ", " << getScore(feature_it, "var_sonar_lag")
+                        << ", " << getScore(feature_it, "var_sonar_shape")
+                        << ", " << getScore(feature_it, "var_sonar_log_sn")
+                        << ", " << getScore(feature_it, "var_sonar_log_diff")
+                        << ", " << getScore(feature_it, "var_sonar_log_trend")
+                        << ", " << getScore(feature_it, "var_sonar_rsq");
+      }
+      sql_feature_ms2 << "); ";
 
       if (use_ms1_traces_)
       {

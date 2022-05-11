@@ -115,7 +115,7 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         * @param scaling    The step width can be scaled by this factor. Often it is advantageous to iterate
         * in slightly smaller steps over the spectrum (or chromatogram).
         */
-        Navigator(const std::vector<SplinePackage> * packages, double posMin, double posMax, double scaling);
+        Navigator(const std::vector<SplinePackage> * packages, double posMax, double scaling);
 
         /**
         * @brief constructor (for pyOpenMS)
@@ -157,7 +157,6 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         /**
         * @brief m/z (or RT) limits of the spectrum (or chromatogram)
         */
-        double pos_min_;
         double pos_max_;
         
         /**
