@@ -140,8 +140,8 @@ protected:
     registerDoubleOption_("FragmentMassError:tolerance", "<double>", 20, "m/z search window for matching peaks in two spectra", false);
     registerInputFile_("in_contaminants", "<file>", "", "Proteins considered contaminants", false);
     setValidFormats_("in_contaminants", {"fasta"});
-    registerInputFile_("Test_file", "<file>", "", "TemporaryFile for TESTING (rightnow)", false);
-    setValidFormats_("Test_file", {"fasta"});
+    registerInputFile_("test_file", "<file>", "", "TemporaryFile for TESTING (rightnow)", false);
+    setValidFormats_("test_file", {"fasta"});
     registerInputFileList_("in_trafo", "<file>", {}, "trafoXMLs from MapAligners", false);
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
@@ -174,6 +174,14 @@ protected:
       FASTAFile().load(in_contaminants, contaminants);
       status |= QCBase::Requires::CONTAMINANTS;
     }
+
+    //TODO filename & how to pass?
+    //the additional file the user passed, with annotate genenames & protnames
+    String test_file = getStringOption_("test_file");
+    vector<FASTAFile::FASTAEntry> protDescription;
+    OPENMS_LOG_INFO << "Loading test_file.fast!" << std::endl;
+    FASTAFile().load(test_file, protDescription);
+
     ConsensusMap cmap;
     String in_cm = getStringOption_("in_cm");
     ConsensusXMLFile().load(in_cm, cmap);
@@ -423,15 +431,15 @@ protected:
       if (export_evidence.isValid())
       {
         // THIS IS OUR FALLBACK IF THE USER PROVIDED NO .fasta
-        // -> for now we ignore the fasta....
-        /*
-        const String& fileName = cmap.getProteinIdentifications()[0].getSearchParameters().db;
-        vector<FASTAFile::FASTAEntry> protDescription;
-        //the amount of protIds in our cmap should be lower than the amount in the fasta
-        protDescription.reserve(cmap.getProteinIdentifications().size());
-        //check for cmap.getProteinIdentifications()[0].empty()?
-        FASTAFile().load(fileName, protDescription);
-         /*
+        // TODO check for cmap.getProteinIdentifications()[0].empty()?
+        if(protDescription.empty())
+        {
+          OPENMS_LOG_INFO << "No FASTA passed, looking for the default search parameters in consensusXML" << std::endl;
+          const String& fileName = cmap.getProteinIdentifications()[0].getSearchParameters().db;
+          //the amount of protIds in our cmap should be lower than the amount in the fasta
+          protDescription.reserve(cmap.getProteinIdentifications().size());
+          FASTAFile().load(fileName, protDescription);
+        }
 
         /*TODO :
          * index fasta, so that we can map the proteinidentifier from the cmap to the ones in the fasta ...
@@ -439,6 +447,9 @@ protected:
          * implement exp as arg for exportFeatureMap(*fmap,cmap,exp)
         */
         //check for existing description in hit & only if that doesnt exist -> extract it from fasta
+        
+
+
         auto& cmapProtIds = cmap.getProteinIdentifications();
         for(auto& protId : cmapProtIds)
         {
@@ -455,13 +466,13 @@ protected:
             {
               //SET THE ADDITIONAL DESCRIPTION
               //hit.setDescription(mapToFASTA[hit.getIdentifier()].description);
-              hit.setDescription("lenny");
+              hit.setDescription(protDescription[0].description);
             }
           }
         }
-        gatherProtInfo_(cmap);
+        OPENMS_LOG_INFO << cmap.getProteinIdentifications()[0].getHits()[0].getDescription() << std::endl;
         //extract the proteindescription here? Shouldnt it be automatically be passed with the cmap?
-        export_evidence.exportFeatureMap(*fmap,cmap, exp);
+        export_evidence.exportFeatureMap(*fmap,cmap,exp);
       }
     }
 
@@ -583,11 +594,6 @@ private:
       }
     }
   }
-
-/*  void gatherProtInfo_(ConsensusMap& cmap)
-  {
-  }
-*/
 };
 
 // the actual main function needed to create an executable
@@ -598,4 +604,3 @@ int main(int argc, const char ** argv)
 }
 
 /// @endcond
-
