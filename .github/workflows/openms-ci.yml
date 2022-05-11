@@ -131,6 +131,9 @@ jobs:
       with:
         path: OpenMS
 
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
       with:
@@ -247,6 +250,7 @@ jobs:
           OPENMP: "On"
           USE_STATIC_BOOST: "On"
           BUILD_FLAGS: "-j3"
+          CMAKE_CXX_COMPILER_LAUNCHER: "ccache"
 
   build-lnx:
     runs-on: ubuntu-latest
@@ -264,6 +268,9 @@ jobs:
       name: Checkout sources
       with:
         path: OpenMS
+
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2
 
     - name: Extract branch name
       if: github.event_name == 'push'
@@ -354,3 +361,4 @@ jobs:
           OPENMP: "On"
           USE_STATIC_BOOST: "On"
           BUILD_FLAGS: "-j2"
+          CMAKE_CXX_COMPILER_LAUNCHER: "ccache"
