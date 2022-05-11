@@ -38,7 +38,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include "OpenMS/DATASTRUCTURES/StringView.h"
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 
 using namespace std;
 
@@ -51,8 +51,8 @@ namespace OpenMS
   {
     std::vector<std::string> true_false = {"true","false"};
 
-    defaults_.setValue("method", "TOP3", "- TOP3 - quantify based on three most abundant peptides (number can be changed in 'top').\n- iBAQ (intensity based absolute quantification), will override top with 0 and average with sum.");
-    defaults_.setValidStrings("method", {"TOP3","iBAQ"});
+    defaults_.setValue("method", "top", "- top - quantify based on three most abundant peptides (number can be changed in 'top').\n- iBAQ (intensity based absolute quantification), will override top with 0 and average with sum.");
+    defaults_.setValidStrings("method", {"top","iBAQ"});
 
     defaults_.setValue("top", 3, "Calculate protein abundance from this number of proteotypic peptides (most abundant first; '0' for all)");
     defaults_.setMinInt("top", 0);
@@ -422,17 +422,16 @@ namespace OpenMS
     }
 
     std::string method = param_.getValue("method");
-
-    if (method == "iBAQ")  // TODO: parameter override too late - ProteinQuantifier reads parameters earlier, meaning output file contains incorrect parameters
-    {
-      param_.setValue("top", 0);
-      param_.setValue("average", "sum");
-    }
-
     Size top = param_.getValue("top");
     std::string average = param_.getValue("average");
     bool include_all = param_.getValue("include_all") == "true";
     bool fix_peptides = param_.getValue("consensus:fix_peptides") == "true";
+
+    if (method == "iBAQ")
+    {
+      top = 0;
+      average = "sum";
+    }
 
     for (auto& prot_q : prot_quant_)
     {
