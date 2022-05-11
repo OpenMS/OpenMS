@@ -51,4 +51,4 @@ namespace OpenMS
 
   */
   using ParamCTDFile = tdl::ParamCTDFile;
-}
+} // namespace OpenMS

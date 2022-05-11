@@ -56,9 +56,7 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI DataValue
   {
-
-public:
-
+  public:
     /// Empty data value for comparisons
     static const DataValue EMPTY;
 
@@ -66,12 +64,12 @@ public:
     enum DataType : unsigned char
     {
       STRING_VALUE, ///< string value
-      INT_VALUE, ///< integer value
+      INT_VALUE,    ///< integer value
       DOUBLE_VALUE, ///< double value
-      STRING_LIST, ///< string list
-      INT_LIST, ///< integer list
-      DOUBLE_LIST, ///< double list
-      EMPTY_VALUE, ///< empty 
+      STRING_LIST,  ///< string list
+      INT_LIST,     ///< integer list
+      DOUBLE_LIST,  ///< double list
+      EMPTY_VALUE,  ///< empty
       SIZE_OF_DATATYPE
     };
 
@@ -80,10 +78,10 @@ public:
 
     /// Supported types for DataValue
     enum UnitType : unsigned char
-    { 
+    {
       UNIT_ONTOLOGY, ///< unit.ontology UO
-      MS_ONTOLOGY, ///< ms.ontology MS
-      OTHER ///< undefined ontology
+      MS_ONTOLOGY,   ///< ms.ontology MS
+      OTHER          ///< undefined ontology
     };
 
     /// @name Constructors and destructors
@@ -137,8 +135,10 @@ public:
     //@}
 
     ///@name Cast operators
-    ///These methods are used when the DataType is known.
-    ///If they are applied to a DataValue with the wrong DataType, an exception (Exception::ConversionError) is thrown. In particular, none of these operators will work for an empty DataValue (DataType EMPTY_VALUE) - except toChar(), which will return 0.
+    /// These methods are used when the DataType is known.
+    /// If they are applied to a DataValue with the wrong DataType, an exception (Exception::ConversionError) is thrown.
+    /// In particular, none of these operators will work for an empty DataValue (DataType EMPTY_VALUE)
+    /// - except toChar(), which will return 0.
     //@{
 
     /**
@@ -314,7 +314,7 @@ public:
     //@}
 
     ///@name Assignment operators
-    ///These methods are used to assign supported types directly to a DataValue object.
+    /// These methods are used to assign supported types directly to a DataValue object.
     //@{
     /// Assignment operator
     DataValue& operator=(const DataValue&);
@@ -359,7 +359,7 @@ public:
     //@}
 
     ///@name Conversion operators
-    ///These methods can be used independent of the DataType. If you already know the DataType, you should use a cast operator!
+    /// These methods can be used independent of the DataType. If you already know the DataType, you should use a cast operator!
     /// <BR>For conversion of string DataValues to numeric types, first use toString() and then the conversion methods of String.
     //@{
 
@@ -369,7 +369,7 @@ public:
     **/
     String toString(bool full_precision = true) const;
 
-    ///Conversion to QString
+    /// Conversion to QString
     QString toQString() const;
     //@}
 
@@ -390,7 +390,7 @@ public:
     }
 
     ///@name Methods to handle units
-    ///These methods are used when the DataValue has an associated unit.
+    /// These methods are used when the DataValue has an associated unit.
     //@{
 
     /// returns the type of value stored
@@ -399,7 +399,7 @@ public:
       return unit_type_;
     }
 
-    inline void setUnitType(const UnitType & u)
+    inline void setUnitType(const UnitType& u)
     {
       unit_type_ = u;
     }
@@ -411,10 +411,10 @@ public:
     }
 
     /// Return the unit associated to this DataValue.
-    const int32_t & getUnit() const;
+    const int32_t& getUnit() const;
 
     /// Sets the unit to the given String.
-    void setUnit(const int32_t & unit);
+    void setUnit(const int32_t& unit);
 
     //@}
 
@@ -433,8 +433,7 @@ public:
     /// Equality comparator
     friend OPENMS_DLLAPI bool operator!=(const DataValue&, const DataValue&);
 
-protected:
-
+  protected:
     /// Type of the currently stored value
     DataType value_type_;
 
@@ -455,10 +454,8 @@ protected:
       DoubleList* dou_list_;
     } data_;
 
-private:
-
+  private:
     /// Clears the current state of the DataValue and release every used memory.
     void clear_() noexcept;
   };
-}
-
+} // namespace OpenMS

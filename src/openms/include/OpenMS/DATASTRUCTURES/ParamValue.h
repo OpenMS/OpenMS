@@ -47,4 +47,4 @@ namespace OpenMS
     @ingroup Datastructures
   */
   using ParamValue = tdl::ParamValue;
-}
+} // namespace OpenMS

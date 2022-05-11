@@ -52,19 +52,16 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI File
   {
-public:
-
+  public:
     friend class TOPPBase;
 
     /**
       @brief Class representing a temporary directory
-    
     */
 
     class OPENMS_DLLAPI TempDir
     {
     public:
-      
       /// Construct temporary folder
       /// If keep_dir is set to true, the folder will not be deleted on destruction of the object.
       TempDir(bool keep_dir = false);
@@ -100,12 +97,12 @@ public:
 
     /**
        @brief Rename a file
-       
+
        If @p from and @p to point to the same file (symlinks are resolved),
        no action will be taken and true is returned.
        If the target already exists (and is not identical to the source),
        this function will fail unless @p overwrite_existing is true.
-       
+
        @param from Source filename
        @param to Target filename
        @param overwrite_existing Delete already existing target, before renaming
@@ -116,11 +113,11 @@ public:
 
     /**
        @brief Copy directory recursively
-       
+
        Copies a source directory to a new target directory (recursive).
        If the target directory already exists, files will be added.
        If files from the source already exist in the target, @p option allows for the following behaviour:
-       
+
        OVERWRITE: Overwrite the file in the target directory if it already exists.
        SKIP: Skip the file in the target directory if it already exists.
        CANCEL: Cancel the copy process if file already exists in target directory - return false.
@@ -130,8 +127,13 @@ public:
        @param option Specify the copy option (OVERWRITE, SKIP, CANCEL)
        @return True on success
     */
-    enum class CopyOptions {OVERWRITE,SKIP,CANCEL};
-    static bool copyDirRecursively(const QString &from_dir, const QString &to_dir, File::CopyOptions option = CopyOptions::OVERWRITE);
+    enum class CopyOptions
+    {
+      OVERWRITE,
+      SKIP,
+      CANCEL
+    };
+    static bool copyDirRecursively(const QString& from_dir, const QString& to_dir, File::CopyOptions option = CopyOptions::OVERWRITE);
 
     /**
       @brief Removes a file (if it exists).
@@ -199,14 +201,14 @@ public:
       Will return the String with the full path to the local documentation. If
       this call fails, try the web documentation
       (http://www.openms.de/current_doxygen/) instead.
-     
+
       @param String The doc file name to find.
       @return The full path to the requested file.
 
       @exception FileNotFound is thrown, if the file is not found
     */
     static String findDoc(const String& filename);
-    
+
     /**
       @brief Returns a string, consisting of date, time, hostname, process id, and a incrementing number. This can be used for temporary files.
 
@@ -255,7 +257,7 @@ public:
       E.g. for 'PATH=/usr/bin:/home/unicorn' the result is {"/usr/bin/", "/home/unicorn/"}
             or 'PATH=c:\temp;c:\Windows' the result is {"c:/temp/", "c:/Windows/"}
 
-      Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).  
+      Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).
     */
     static StringList getPathLocations(const String& path = std::getenv("PATH"));
 
@@ -286,7 +288,7 @@ public:
       @brief Obtain a temporary filename, ensuring automatic deletion upon exit
 
       The file is not actually created and only deleted at exit if it exists.
-      
+
       However, if 'alternative_file' is given and not empty, no temporary filename
       is created and 'alternative_file' is returned (and not destroyed upon exit).
       This is useful if you have an optional
@@ -308,21 +310,21 @@ public:
       - if both file lists have the same length (returns false otherwise)
       - if the content is the same and provided in exactly the same order (returns false otherwise)
 
-      Note: Because workflow systems may assign file names randomly a non-strict comparison mode is enabled by default.      
-      Instead of the strict comparison (which returns false if there is a single mismatch), the non-strict comparison mode 
+      Note: Because workflow systems may assign file names randomly a non-strict comparison mode is enabled by default.
+      Instead of the strict comparison (which returns false if there is a single mismatch), the non-strict comparison mode
       only returns false if the unique set of filenames match but some positions differ, i.e., only the order has been mixed up.
 
       @param sl1 First StringList with filenames
       @param sl2 Second StringList with filenames
       @param basename If set to true, only basenames are compared
       @param ignore_extension If set to true, extensions are ignored (e.g., useful to compare spectra filenames to ID filenames)
-      @param strict If set to true, no mismatches (respecting basename and ignore_extension parameter) are allowed. 
+      @param strict If set to true, no mismatches (respecting basename and ignore_extension parameter) are allowed.
                     If set to false, only the order is compared if both share the same filenames.
       @return False, if both StringLists are different (respecting the parameters)
     */
     static bool validateMatchingFileNames(const StringList& sl1, const StringList& sl2, bool basename = true, bool ignore_extension = true, bool strict = false);
-private:
 
+  private:
     /// get defaults for the system's Temp-path, user home directory etc.
     static Param getSystemParameterDefaults_();
 
@@ -348,22 +350,22 @@ private:
     */
     class TemporaryFiles_
     {
-      public:
-        TemporaryFiles_(const TemporaryFiles_&) = delete; // copy is forbidden
-        TemporaryFiles_& operator=(const TemporaryFiles_&) = delete;
-        TemporaryFiles_();
-        /// create a new filename and queue internally for deletion
-        String newFile();
+    public:
+      TemporaryFiles_(const TemporaryFiles_&) = delete; // copy is forbidden
+      TemporaryFiles_& operator=(const TemporaryFiles_&) = delete;
+      TemporaryFiles_();
+      /// create a new filename and queue internally for deletion
+      String newFile();
 
-        ~TemporaryFiles_();
-      private:
-        StringList filenames_;
-        std::mutex mtx_;
+      ~TemporaryFiles_();
+
+    private:
+      StringList filenames_;
+      std::mutex mtx_;
     };
 
 
     /// private list of temporary filenames, which are deleted upon program exit
     static TemporaryFiles_ temporary_files_;
   };
-}
-
+} // namespace OpenMS

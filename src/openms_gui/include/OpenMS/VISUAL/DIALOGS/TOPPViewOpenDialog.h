@@ -56,14 +56,13 @@ namespace OpenMS
 
       @ingroup TOPPView_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPViewOpenDialog :
-    public QDialog
+  class OPENMS_GUI_DLLAPI TOPPViewOpenDialog : public QDialog
   {
     Q_OBJECT
 
-public:
+  public:
     /// Constructor
-    TOPPViewOpenDialog(const String & data_name, bool as_window, bool as_2d, bool cutoff, QWidget * parent = nullptr);
+    TOPPViewOpenDialog(const String& data_name, bool as_window, bool as_2d, bool cutoff, QWidget* parent = nullptr);
     /// Destructor
     ~TOPPViewOpenDialog() override;
 
@@ -77,7 +76,7 @@ public:
     bool isDataDIA() const;
     /// Returns true, if the data should be opened in a new window
     bool openAsNewWindow() const;
-    ///Returns the index of the selected merge layer. If the option is not selected -1 is returned.
+    /// Returns the index of the selected merge layer. If the option is not selected -1 is returned.
     Int getMergeLayer() const;
 
     /// Disables view dimension section and sets the selected option
@@ -91,18 +90,18 @@ public:
 
         It is deactivated by default and can be deactivated manually by passing an empty list.
     */
-    void setMergeLayers(const std::map<Size, String> & layers);
+    void setMergeLayers(const std::map<Size, String>& layers);
 
-protected slots:
-    ///slot that disables 2D/3D options, when as layer is selected
-    void updateViewMode_(QAbstractButton * button);
+  protected slots:
+    /// slot that disables 2D/3D options, when as layer is selected
+    void updateViewMode_(QAbstractButton* button);
 
-protected:
-    ///Stores if this option is disabled, to avoid activating it in updateViewMode_()
+  protected:
+    /// Stores if this option is disabled, to avoid activating it in updateViewMode_()
     bool map_as_2d_disabled_;
 
-private: 
+  private:
     Ui::TOPPViewOpenDialogTemplate* ui_;
   };
 
-}
+} // namespace OpenMS
