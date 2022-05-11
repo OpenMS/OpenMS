@@ -133,8 +133,7 @@ jobs:
 
     - name: Install ccache
       run: |
-        conda install --yes --override-channels --channel conda-forge ccache
-        sudo ln -s $CONDA/bin/ccache /usr/bin/ccache
+        brew install ccache && brew link --overwrite ccache
 
     - name: Load ccache
       uses: actions/cache@v2
@@ -284,8 +283,7 @@ jobs:
 
     - name: Install ccache
       run: |
-        conda install --yes --override-channels --channel conda-forge ccache
-        sudo ln -s $CONDA/bin/ccache /usr/bin/ccache
+        yum -y install ccache
 
     - name: Load ccache
       uses: actions/cache@v2
