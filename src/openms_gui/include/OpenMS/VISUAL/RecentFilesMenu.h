@@ -34,16 +34,13 @@
 
 #pragma once
 
-// OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <OpenMS/DATASTRUCTURES/Param.h>
-
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <QMenu>
 #include <QStringList>
-
 #include <vector>
 
 class QAction;

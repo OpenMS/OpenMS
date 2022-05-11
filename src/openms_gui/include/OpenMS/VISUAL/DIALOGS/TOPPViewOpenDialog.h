@@ -34,14 +34,13 @@
 
 #pragma once
 
-// OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/CONCEPT/Types.h>
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <QtWidgets/QDialog>
-
 #include <map>
+
 class QAbstractButton;
 
 namespace Ui

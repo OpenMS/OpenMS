@@ -34,8 +34,8 @@
 
 #pragma once
 
-#include <tdl/Param.h>
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
+#include <tdl/Param.h>
 
 namespace OpenMS
 {

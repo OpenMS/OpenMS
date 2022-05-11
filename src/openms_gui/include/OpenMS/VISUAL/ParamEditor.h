@@ -34,14 +34,14 @@
 
 #pragma once
 
-// OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
-#include <QtWidgets/QLineEdit>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <QtWidgets/QItemDelegate>
+#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QTreeWidget>
 
 class QModelIndex;
