@@ -179,7 +179,7 @@ protected:
     //the additional file the user passed, with annotate genenames & protnames
     String test_file = getStringOption_("test_file");
     vector<FASTAFile::FASTAEntry> protDescription;
-    OPENMS_LOG_INFO << "Loading test_file.fast!" << std::endl;
+    OPENMS_LOG_INFO << "Loading FASTA ... " << test_file << std::endl;
     FASTAFile().load(test_file, protDescription);
 
     ConsensusMap cmap;
@@ -443,17 +443,17 @@ protected:
 
         /*TODO :
          * index fasta, so that we can map the proteinidentifier from the cmap to the ones in the fasta ...
-         * get the fallback to default location if the fasta is not passed by user
-         * implement exp as arg for exportFeatureMap(*fmap,cmap,exp)
+         * the identifier is in the hits and needs to be modified: hit.getAccession()
+         * do we compare hit.getAccession ==  protDescription[i].identifier
         */
         //check for existing description in hit & only if that doesnt exist -> extract it from fasta
-        
-
+        OPENMS_LOG_INFO << "Annotating description to hits..." << std::endl;
 
         auto& cmapProtIds = cmap.getProteinIdentifications();
         for(auto& protId : cmapProtIds)
         {
           auto& cmapProtHits = protId.getHits();
+          OPENMS_LOG_INFO << cmapProtHits.size() << std::endl;
           for(auto& hit : cmapProtHits)
           {
             //check if hit has alrdy a description...
@@ -465,12 +465,10 @@ protected:
             else
             {
               //SET THE ADDITIONAL DESCRIPTION
-              //hit.setDescription(mapToFASTA[hit.getIdentifier()].description);
-              hit.setDescription(protDescription[0].description);
+              hit.setDescription("lenny");
             }
           }
         }
-        OPENMS_LOG_INFO << cmap.getProteinIdentifications()[0].getHits()[0].getDescription() << std::endl;
         //extract the proteindescription here? Shouldnt it be automatically be passed with the cmap?
         export_evidence.exportFeatureMap(*fmap,cmap,exp);
       }

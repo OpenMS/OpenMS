@@ -144,6 +144,7 @@ private:
     const OpenMS::Size c_feature_number,
     const OpenMS::String& raw_file,
     const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
+    const OpenMS::ProteinIdentification::Mapping& mp_f,
     const OpenMS::MSExperiment& exp= {});
 
 public:
