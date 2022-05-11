@@ -34,10 +34,11 @@
 //
 
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
-
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include "OpenMS/DATASTRUCTURES/StringView.h"
 
 using namespace std;
 
@@ -50,8 +51,8 @@ namespace OpenMS
   {
     std::vector<std::string> true_false = {"true","false"};
 
-    defaults_.setValue("iBAQ", "false", "Use intensity based absolute quantification (iBAQ) instead of TOP3. Setting to true will override top with 0 and average with sum.");
-    defaults_.setValidStrings("iBAQ", true_false);
+    defaults_.setValue("method", "TOP3", "- TOP3 - quantify based on three most abundant peptides (number can be changed in 'top').\n- iBAQ (intensity based absolute quantification), will override top with 0 and average with sum.");
+    defaults_.setValidStrings("method", {"TOP3","iBAQ"});
 
     defaults_.setValue("top", 3, "Calculate protein abundance from this number of proteotypic peptides (most abundant first; '0' for all)");
     defaults_.setMinInt("top", 0);
@@ -381,9 +382,9 @@ namespace OpenMS
     map<String, String> accession_to_leader;
     if (!proteins.getIndistinguishableProteins().empty())
     {
-      for (auto const & pg : proteins.getIndistinguishableProteins())
+      for (auto const& pg : proteins.getIndistinguishableProteins())
       {
-        for (auto const & acc : pg.accessions)
+        for (auto const& acc : pg.accessions)
         {
           // each accession should only occur once, but we don't check...
           accession_to_leader[acc] = pg.accessions[0];
@@ -395,12 +396,12 @@ namespace OpenMS
 
     for (auto const& pep_q : pep_quant_)
     {
-      String accession = getAccession_(pep_q.second.accessions,
-                                       accession_to_leader);
+      String accession = getAccession_(pep_q.second.accessions, accession_to_leader);
       OPENMS_LOG_DEBUG << "Peptide id mapped to leader: " << accession << endl;
 
       // not enough evidence or mapping to multiple groups
-      if (accession.empty()) continue;
+      if (accession.empty())
+        continue;
 
       // proteotypic peptide
       const String peptide = pep_q.first.toUnmodifiedString();
@@ -408,59 +409,64 @@ namespace OpenMS
       prot_quant_[accession].psm_count += pep_q.second.psm_count;
 
       // transfer abundances and counts from peptides->protein
-      // summarize abundances and counts between different peptidoforms       
-      for (auto const & sta : pep_q.second.total_abundances)
+      // summarize abundances and counts between different peptidoforms
+      for (auto const& sta : pep_q.second.total_abundances)
       {
         prot_quant_[accession].abundances[peptide][sta.first] += sta.second;
       }
 
-      for (auto const & sta : pep_q.second.total_psm_counts)
+      for (auto const& sta : pep_q.second.total_psm_counts)
       {
         prot_quant_[accession].psm_counts[peptide][sta.first] += sta.second;
       }
     }
 
-    bool ibaq = param_.getValue("iBAQ") == "true";
+    std::string method = param_.getValue("method");
+
+    if (method == "iBAQ")  // TODO: parameter override too late - ProteinQuantifier reads parameters earlier, meaning output file contains incorrect parameters
+    {
+      param_.setValue("top", 0);
+      param_.setValue("average", "sum");
+    }
+
     Size top = param_.getValue("top");
     std::string average = param_.getValue("average");
     bool include_all = param_.getValue("include_all") == "true";
     bool fix_peptides = param_.getValue("consensus:fix_peptides") == "true";
 
-    if (ibaq) // TODO: replace override with new default for top and average when iBAQ is true
-    {
-      top = 0;
-      average = "sum";
-    }
-
-    for (auto & prot_q : prot_quant_)
+    for (auto& prot_q : prot_quant_)
     {
       const ProteinData& pd = prot_q.second;
 
       // calculate PSM counts based on all (!) peptides of a protein (group)
-      for (auto const & pep2sa : pd.psm_counts)
+      for (auto const& pep2sa : pd.psm_counts)
       { // for all peptides of this protein (group)
         const SampleAbundances& sas = pep2sa.second;
-        for (auto const & sa : sas)
+        for (auto const& sa : sas)
         {
           const Size& sample_id = sa.first;
           const Size& psms = sa.second;
-          if (psms > 0) prot_q.second.total_distinct_peptides[sample_id]++; // count this peptide sequence once if observed in sample
-          prot_q.second.total_psm_counts[sample_id] += psms; // count all PSMs of this protein in this sample
+          if (psms > 0)
+            prot_q.second.total_distinct_peptides[sample_id]++; // count this peptide sequence once if observed in sample
+          prot_q.second.total_psm_counts[sample_id] += psms;    // count all PSMs of this protein in this sample
         }
       }
 
-      // select which peptides of the current protein (group) are quantified 
+      // select which peptides of the current protein (group) are quantified
       if ((top > 0) && (prot_q.second.abundances.size() < top))
       { // not enough proteotypic peptides? skip protein (except if user chose to include the nevertheless)
         stats_.too_few_peptides++;
-        if (!include_all) { continue; }
+        if (!include_all)
+        {
+          continue;
+        }
       }
 
       vector<String> peptides; // peptides selected for quantification
       if (fix_peptides && (top == 0))
       {
         // consider all peptides that occur in every sample:
-        for (auto const & ab : prot_q.second.abundances)
+        for (auto const& ab : prot_q.second.abundances)
         {
           if (ab.second.size() == stats_.n_samples)
           {
@@ -468,8 +474,7 @@ namespace OpenMS
           }
         }
       }
-      else if (fix_peptides && (top > 0) &&
-               (prot_q.second.abundances.size() > top))
+      else if (fix_peptides && (top > 0) && (prot_q.second.abundances.size() > top))
       {
         orderBest_(prot_q.second.abundances, peptides);
         peptides.resize(top);
@@ -477,7 +482,7 @@ namespace OpenMS
       else
       {
         // consider all peptides of the protein:
-        for (auto const & ab : prot_q.second.abundances)
+        for (auto const& ab : prot_q.second.abundances)
         {
           peptides.push_back(ab.first);
         }
@@ -486,15 +491,15 @@ namespace OpenMS
 
       // consider only the selected peptides for quantification:
       map<UInt64, DoubleList> abundances; // all peptide abundances by sample
-      for (const auto & pep : peptides) // for all selected peptides
-      { 
-        for (auto & sa : prot_q.second.abundances[pep]) // copy over abundances
+      for (const auto& pep : peptides)    // for all selected peptides
+      {
+        for (auto& sa : prot_q.second.abundances[pep]) // copy over abundances
         {
           abundances[sa.first].push_back(sa.second);
         }
       }
 
-      for (auto & ab : abundances)
+      for (auto& ab : abundances)
       {
         // check if the protein has enough peptides in this sample
         if (!include_all && (top > 0) && (ab.second.size() < top))
@@ -523,7 +528,7 @@ namespace OpenMS
         {
           double sum_intensities = 0;
           double sum_intensities_squared = 0;
-          for (auto const & in : ab.second)
+          for (auto const& in : ab.second)
           {
             sum_intensities += in;
             sum_intensities_squared += in * in;
@@ -534,27 +539,46 @@ namespace OpenMS
         {
           abundance_result = Math::sum(ab.second.begin(), ab.second.end());
         }
-        
+
         prot_q.second.total_abundances[ab.first] = abundance_result;
       }
 
-      if (ibaq)
-      {
-        cout << prot_q.second << endl;
-        //prot_q holds accession (first) & PeptideAndProteinQuant (second)
-        //search in proteins.getHits() for correct accession
-      }
-
       // update statistics:
-      if (prot_q.second.total_abundances.empty()) 
-      { 
-        stats_.too_few_peptides++; 
+      if (prot_q.second.total_abundances.empty())
+      {
+        stats_.too_few_peptides++;
       }
-      else 
+      else
       {
         stats_.quant_proteins++;
       }
+    }
+    if (method == "iBAQ")
+    {
+      EnzymaticDigestion digest{};
+      for (auto & hit : proteins.getHits())
+      {
+        const OpenMS::String & hit_accession = hit.getAccession();
+        const OpenMS::String & hit_sequence = hit.getSequence();
 
+        if (prot_quant_.find(hit_accession) != prot_quant_.end())
+        {
+          if (hit_sequence.empty())
+          {
+            prot_quant_.erase(hit_accession);
+            OPENMS_LOG_WARN << "Removed " << hit_accession <<  ", no protein sequence found!" << endl;
+          }
+          else
+          {
+            std::vector<StringView> peptides {};
+            digest.digestUnmodified(StringView(hit_sequence), peptides);
+            for (auto& total_abundance : prot_quant_[hit_accession].total_abundances)
+            {
+              total_abundance.second /= double(peptides.size());
+            }
+          }
+        }
+      }
     }
   }
 

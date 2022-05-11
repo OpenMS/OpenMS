@@ -595,6 +595,7 @@ protected:
     StringList relevant_params;
     if (proteins) // parameters relevant only for protein output
     {
+      relevant_params.push_back("method");
       relevant_params.push_back("top");
       Size top = algo_params_.getValue("top");
       if (top != 1)
