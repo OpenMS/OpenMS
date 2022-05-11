@@ -801,6 +801,13 @@ namespace OpenMS
           f.setMZ(mono_mz);
         }
 
+        uint number_of_datapoints = 0;
+        for(size_t t = 0; t < traces.size(); i++)
+        {
+          number_of_datapoints += traces[t].peaks.size();
+        }
+        f.setMetaValue("number_of_datapoints", number_of_datapoints);
+
         // Calculate intensity based on model only
         // - the model does not include the baseline, so we ignore it here
         // - as we scaled the isotope distribution to
