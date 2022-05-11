@@ -44,7 +44,6 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 
-#include <filesystem>
 #include <QCoreApplication>
 #include <QDir>
 
@@ -188,7 +187,7 @@ namespace OpenMS
     if (plugins)
     {
       auto tool_name = tool_param.begin().getTrace().begin()->name;
-      auto filename = std::filesystem::path(static_cast<std::string>(tool_path)).filename().string();
+      auto filename = File::basename(tool_path);
       tool_param.setValue(tool_name + ":filename", filename, "The filename of the plugin executable. This entry is automatically generated.");
     }
 
@@ -209,7 +208,7 @@ namespace OpenMS
     const auto comparator = [valid_extensions](const std::string& plugin) -> bool
     {
         return !File::executable(plugin) ||
-          (std::find(valid_extensions.begin(), valid_extensions.end(), std::filesystem::path(plugin).extension()) == valid_extensions.end());
+          (std::find(valid_extensions.begin(), valid_extensions.end(), plugin.substr(plugin.find_last_of('.'))) == valid_extensions.end());
     };
 
     if (File::fileList(plugin_path_, "*", plugins, true))
