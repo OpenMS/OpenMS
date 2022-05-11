@@ -1179,6 +1179,8 @@ namespace OpenMS::Internal
       json_data.insert("ID_InputFile", exportQueryToJSON_(sql));
     }
     // score types:
+    // this query is used in multiple joins below (@TODO: replace with DB view?):
+    QString subquery_score = "SELECT ID_ScoreType.id AS st_id, accession AS score_type_accession, name AS score_type_name FROM ID_ScoreType JOIN CVTerm ON cv_term_id = CVTerm.id";
     if (tableExists_(db_name_, "ID_ScoreType") && tableExists_(db_name_, "CVTerm"))
     {
       sql = "SELECT * FROM ID_ScoreType JOIN CVTerm ON cv_term_id = CVTerm.id ORDER BY accession, name";
@@ -1194,7 +1196,6 @@ namespace OpenMS::Internal
       {
         // need to replace DB keys for both software and score type with corresponding values:
         QString subquery_software = "SELECT id AS sw_id, name AS software_name, version AS software_version FROM ID_ProcessingSoftware";
-        QString subquery_score = "SELECT ID_ScoreType.id AS st_id, accession AS score_type_accession, name AS score_type_name FROM ID_ScoreType JOIN CVTerm ON cv_term_id = CVTerm.id";
         sql = "SELECT software_name, software_version, score_type_accession, score_type_name, score_type_order FROM ID_ProcessingSoftware_AssignedScore JOIN (" + subquery_software + ") ON software_id = sw_id JOIN (" + subquery_score + ") ON score_type_id = st_id ORDER BY software_name, software_version, score_type_order";
         json_data.insert("ID_ProcessingSoftware_AssignedScore", exportQueryToJSON_(sql, {}));
       }
@@ -1223,6 +1224,42 @@ namespace OpenMS::Internal
       {
         sql = "SELECT * FROM ID_DBSearchParam INNER JOIN (SELECT search_param_id, processing_step_index FROM steps_view) ON ID_DBSearchParam.id = search_param_id JOIN ID_MoleculeType ON molecule_type_id = ID_MoleculeType.id ORDER BY processing_step_index";
         json_data.insert("ID_DBSearchParam", exportQueryToJSON_(sql, {"id", "molecule_type_id", "search_param_id"}));
+      }
+    }
+    // observations:
+    if (tableExists_(db_name_, "ID_Observation"))
+    {
+      sql = "SELECT * FROM ID_Observation JOIN (SELECT id AS if_id, name AS input_file_name FROM ID_InputFile) ON input_file_id = if_id ORDER BY input_file_name, data_id";
+      json_data.insert("ID_Observation", exportQueryToJSON_(sql, {"id", "if_id", "input_file_id"}));
+    }
+    // parent sequences:
+    if (tableExists_(db_name_, "ID_ParentSequence"))
+    {
+      sql = "SELECT * FROM ID_ParentSequence JOIN ID_MoleculeType ON molecule_type_id = ID_MoleculeType.id ORDER BY accession";
+      json_data.insert("ID_ParentSequence", exportQueryToJSON_(sql, {"id", "molecule_type_id"}));
+    }
+    // parent group sets:
+    if (tableExists_(db_name_, "ID_ParentGroupSet"))
+    {
+      sql = "SELECT * FROM ID_ParentGroupSet ORDER BY grouping_order";
+      json_data.insert("ID_ParentGroupSet", exportQueryToJSON_(sql));
+      // parent groups:
+      if (tableExists_(db_name_, "ID_ParentGroup"))
+      {
+        QSqlQuery query(QSqlDatabase::database(db_name_));
+        // @TODO: with duplicate scores this ordering is not reproducible!
+        sql = "CREATE TEMP VIEW groups_view AS SELECT ID_ParentGroup.id, label, score_type_accession, score_type_name, score, ROW_NUMBER() OVER(ORDER BY label, score_type_accession, score_type_name, score) AS parent_group_index FROM ID_ParentGroup JOIN (" + subquery_score + ") ON score_type_id = st_id JOIN ID_ParentGroupSet ON grouping_id = ID_ParentGroupSet.id";
+        if (!query.exec(sql))
+        {
+          raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error creating database view");
+        }
+        sql = "SELECT * FROM groups_view";
+        json_data.insert("ID_ParentGroup", exportQueryToJSON_(sql));
+        if (tableExists_(db_name_, "ID_ParentGroup_ParentSequence"))
+        {
+          sql = "SELECT parent_group_index, accession FROM ID_ParentGroup_ParentSequence JOIN groups_view ON group_id = groups_view.id JOIN ID_ParentSequence ON parent_id = ID_ParentSequence.id ORDER BY parent_group_index, accession";
+          json_data.insert("ID_ParentGroup_ParentSequence", exportQueryToJSON_(sql, {}));
+        }
       }
     }
 
