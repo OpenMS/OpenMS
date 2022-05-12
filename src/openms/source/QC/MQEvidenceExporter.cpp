@@ -81,7 +81,6 @@ bool MQEvidence::isValid()
 
 void MQEvidence::exportHeader_()
 {
- //OPENMS_LOG_WARN << "HALLO\n";
   file_ << "Sequence" << "\t";
   file_ << "Length" << "\t";
   file_ << "Modifications" << "\t";
@@ -110,7 +109,7 @@ void MQEvidence::exportHeader_()
   file_ << "Mass Error [Da]" << "\t";
   file_ << "Uncalibrated Mass Error [ppm]" << "\t";
   file_ << "Uncalibrated Mass Error [Da]" << "\t";
-  // file_ << "Max intensity m/z 0" << "\t"; not clear what value is expected
+  // file_ << "Max intensity m/z 0" << "\t";
   file_ << "Retention time" << "\t";
   file_ << "Retention length" << "\t";
   file_ << "Calibrated retention time" << "\t";
@@ -119,15 +118,15 @@ void MQEvidence::exportHeader_()
   file_ << "Retention time calibration" << "\t";
   file_ << "Match time difference" << "\t";
   file_ << "Match m/z difference" << "\t";
-  file_ << "Match q-value" << "\t"; //TODO check if name in TOPPAS workflow
+  file_ << "Match q-value" << "\t";
   file_ << "Match score" << "\t";
-  file_ << "Number of data points" << "\t"; // TODO, in Featurefinder die Werte als Metadaten anhängen
-  // file_ << "Number of scans" << "\t"; not practical?
+  file_ << "Number of data points" << "\t"; // in progress
+  // file_ << "Number of scans" << "\t"; not practical to implement
   file_ << "Number of isotopic peaks" << "\t";
-  // file_ << "PIF" << "\t"; not practical?
+  // file_ << "PIF" << "\t"; not practical to implement
   file_ << "Fraction of total spectrum" << "\t";
   file_ << "Base peak fraction" << "\t";
-  file_ << "PEP" << "\t"; //TODO check if name in TOPPAS workflow
+  file_ << "PEP" << "\t";
   file_ << "MS/MS Count" << "\t";
   file_ << "MS/MS Scan Number" << "\t";
   file_ << "Score" << "\t";
@@ -257,7 +256,6 @@ void MQEvidence::exportRowFromFeature_(
     }
     type = "MULTI-MSMS";
     ptr_best_hit = &f.getPeptideIdentifications()[0].getHits()[0];
-    //OPENMS_LOG_WARN << cmap.getProteinIdentifications()[0].getHits()[0].getDescription() << std::endl;
   }
   else if (hasPeptideIdentifications_(cf))
   {
@@ -320,34 +318,42 @@ void MQEvidence::exportRowFromFeature_(
   {
     file_ << 0 << "\t"; // Acetyl (Protein N-term)
   }
-  modifications.find("Oxidation (M)") == modifications.end() ? file_ << "0"
-                                                                     << "\t" :
-                                                               file_ << modifications.find("Oxidation (M)")->second << "\t";
+  modifications.find("Oxidation (M)") == modifications.end() ? file_ << "0" << "\t" :
+                                                                  file_ << modifications.find("Oxidation (M)")->second << "\t";
 
   file_ << ptr_best_hit->getMetaValue("missed_cleavages", "NA") << "\t"; // missed cleavages
   const std::set<String>& accessions = ptr_best_hit->extractProteinAccessionsSet();
-
   file_ << ListUtils::concatenate(accessions, ";") << "\t";  // Proteins
-  file_ << ptr_best_hit << "\t"; // Leading Proteins
-  file_ << ptr_best_hit << "\t"; // Leading Razor Proteins
+  file_ << ptr_best_hit->getPeptideEvidences()[0].getProteinAccession() << "\t"; // Leading Proteins
+  file_ << ptr_best_hit->getPeptideEvidences()[0].getProteinAccession() << "\t"; // Leading Razor Proteins
 
-  //OPENMS_LOG_WARN << ptr_best_hit->getD
+  // TODO we need to map the peptideidentifications to a proteinhit to get the description -> protein/gene name
+  //ProteinIdentification accession = cmap.getProteinIdentifications()[0]; // TODO needs work-around, so no copy is needed, Problem: findHit is not const
+  //const auto it_to_hit =
+  //if(!f.getPeptideIdentifications().empty()) accession.findHit(f.getPeptideIdentifications()[0].getIdentifier())->getDescription(); // TODO
 
-  file_ << "NA" << "\t"; // Gene Names
+  //file_ << accession.findHit(f.getPeptideIdentifications()[0].getIdentifier())->getDescription() << "\t";
+  file_ << "NA" << "\t"; //cmap.getProteinIdentifications()[2].getHits()[c_feature_number].getDescription() << "\t"; //  TODO Gene Names*/
   file_ << "NA" << "\t"; // Proteins Names
   file_ << type << "\t"; // type
 
   file_ << raw_file << "\t"; // Raw File
-
-  //const MSSpectrum& ms2_spec = exp[f.getMetaValue("spectrum_index")];
-  file_ << "\t"; // ms2_spec.getPrecursors()[0].getMZ() << "\t"; // MS/MS m/z
+  if(f.metaValueExists("spectrum_index")  &&
+      !exp.empty() && exp.getNrSpectra() >= (Size)f.getMetaValue("spectrum_index") &&
+      !exp[f.getMetaValue("spectrum_index")].empty())
+  {
+    const MSSpectrum& ms2_spec = exp[f.getMetaValue("spectrum_index")];
+    if(!ms2_spec.getPrecursors().empty())
+    {
+      file_ << ms2_spec.getPrecursors()[0].getMZ(); // MS/MS m/z
+    }
+  }
+  file_ << "\t"; // tab after MS/MS m/z
 
   file_ << f.getCharge() << "\t";           // Charge
   file_ << f.getMZ() << "\t";               // MZ
   file_ << pep_seq.getMonoWeight() << "\t"; // Mass
-
   file_ << f.getMZ() / f.getWidth() << "\t"; // Resolution
-// file_ << f.getMZ() / f.getMetaValue("width_at_50") << "\t";       // Resolution
   const double& uncalibrated_mz_error_ppm = ptr_best_hit->getMetaValue("uncalibrated_mz_error_ppm", NAN);
   const double& calibrated_mz_error_ppm = ptr_best_hit->getMetaValue("calibrated_mz_error_ppm", NAN);
 
@@ -401,7 +407,6 @@ void MQEvidence::exportRowFromFeature_(
     file_ << uncalibrated_mz_error_ppm << "\t";                                                                 // Uncalibrated Mass error [ppm]
     file_ << OpenMS::Math::ppmToMass(uncalibrated_mz_error_ppm, f.getMZ()) << "\t";                             // Uncalibrated Mass error [Da]
   }
-
   file_ << f.getRT() / 60 << "\t"; // Retention time in min.
 
   // RET LENGTH
@@ -445,35 +450,26 @@ void MQEvidence::exportRowFromFeature_(
 
   file_ << cf_ptr_best_hit->getScore() << "\t"; // Match score
 
-  f.metaValueExists("number_of_datapoints") ? file_ << (f.getMetaValue("number_of_datapoints")) << "\t":
-  //file_ << "NA" << "\t"; // Number of data points
-  file_ << "NA" << "\t"; // Number of scans
+  f.metaValueExists("number_of_datapoints") ? file_ << (f.getMetaValue("number_of_datapoints")) << "\t": file_ << "\t"; // Number of data points
   file_ << f.getConvexHulls().size() << "\t"; // Number of isotopic peaks
 
-  //OPENMS_LOG_WARN << getParameters().getValue("min_precursor_purity") << std::endl;
+  f.metaValueExists(Constants::UserParam::PSM_EXPLAINED_ION_CURRENT_USERPARAM) ? file_ << (f.getMetaValue(Constants::UserParam::PSM_EXPLAINED_ION_CURRENT_USERPARAM)) << "\t": file_ << "\t"; // Fraction of total spectrum
 
-  f.metaValueExists(Constants::UserParam::PSM_EXPLAINED_ION_CURRENT_USERPARAM) ? file_ << (f.getMetaValue(Constants::UserParam::PSM_EXPLAINED_ION_CURRENT_USERPARAM)) << "\t":
-                                                                                      file_ << "\t"; // Fraction of total spectrum
-  f.metaValueExists("base_peak_intensity") ? file_ << (f.getMetaValue("base_peak_intensity")) << "\t" : file_ << "\t"; // Base peak fraction
+  if(f.metaValueExists("spectrum_index") && f.metaValueExists("base_peak_intensity") && !exp.empty())
+  {
+    const MSSpectrum& ms2_spec = exp[f.getMetaValue("spectrum_index")];
+    file_ << (ms2_spec.getPrecursors()[0].getIntensity() / (double)f.getMetaValue("base_peak_intensity")) << "\t"; // Base peak fraction
+  }
+  else
+  {
+    file_ << "\t"; // Base peak fraction
+  }
 
-  PeptideHit::PepXMLAnalysisResult r = cf.getPeptideIdentifications()[0].getHits()[0].getAnalysisResults()[0];
-
-  cf_ptr_best_hit->metaValueExists("PEP")? file_ << cf_ptr_best_hit->getMetaValue("PEP") << "\t" : file_ << "\t"; // PEP
+  ptr_best_hit->metaValueExists("PEP")? file_ << ptr_best_hit->getMetaValue("PEP") << "\t" : file_ << "\t"; // PEP
 
   file_ << pep_ids_size << "\t"; // MS/MS count
   f.metaValueExists("spectrum_index") ? file_ << (f.getMetaValue("spectrum_index")) << "\t" : file_ << "\t";// MS/MS Scan Number
   file_ << ptr_best_hit->getScore() << "\t"; // Score
-
-  /* for tests only
-  if(cf.getPeptideIdentifications()[0].getHits().size() > 1)
-  {
-    auto ptr_second_hit = &cf.getPeptideIdentifications()[0].getHits()[1];
-    file_ << ptr_best_hit->getScore() - ptr_second_hit->getScore() << "\t"; // Delta score
-  }
-  else
-  {
-    file_ << "NA" << "\t"; // Delta score
-  }*/
 
   f.metaValueExists("delta") ? file_ << (f.getMetaValue("delta")) << "\t" : file_ << "\t"; // Delta score
 
@@ -497,7 +493,7 @@ void MQEvidence::exportRowFromFeature_(
   file_ << id_ << "\t"; // ID
   ++id_;
 
-  file_ << ListUtils::concatenate(accessions, ";")  << "\n"; // Protein group ids
+  file_ << ListUtils::concatenate(accessions, ";")  << "\n"; // Protein group IDs
 
 }
 
