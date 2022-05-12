@@ -244,7 +244,7 @@ namespace OpenMS
                 OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl;
                 MSSpectrum annotated_spectrum = spectrum;
                 annotated_spectrum.setName(peptide_ref_s);
-                annotated_spectra.push_back(annotated_spectrum);
+                annotated_spectra.push_back(std::move(annotated_spectrum));
                 // fill the ms2 features map
                 Feature ms2_feature;
                 ms2_feature.setRT(spectrum_rt);
