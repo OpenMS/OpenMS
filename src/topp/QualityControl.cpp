@@ -430,46 +430,46 @@ protected:
 
       if (export_evidence.isValid())
       {
+        auto& cmapProtIds = cmap.getProteinIdentifications();
+        map<String,String> fastaMap {};
+        //map the identifier to the description so that we can access the description via the cmap-identifier
+        for(const auto& entry : protDescription)
+        {
+          fastaMap.emplace(entry.identifier, entry.description);
+        }
+
+        if(cmapProtIds.empty())
+        {
+          OPENMS_LOG_ERROR << "No ProteinIdentifications in consensusmap... aboarting" << std::endl;
+        }
+
         // THIS IS OUR FALLBACK IF THE USER PROVIDED NO .fasta
-        // TODO check for cmap.getProteinIdentifications()[0].empty()?
         if(protDescription.empty())
         {
           OPENMS_LOG_INFO << "No FASTA passed, looking for the default search parameters in consensusXML" << std::endl;
-          const String& fileName = cmap.getProteinIdentifications()[0].getSearchParameters().db;
-          //the amount of protIds in our cmap should be lower than the amount in the fasta
-          protDescription.reserve(cmap.getProteinIdentifications().size());
+          const String& fileName = cmapProtIds[0].getSearchParameters().db;
           FASTAFile().load(fileName, protDescription);
         }
 
-        /*TODO :
-         * index fasta, so that we can map the proteinidentifier from the cmap to the ones in the fasta ...
-         * the identifier is in the hits and needs to be modified: hit.getAccession()
-         * do we compare hit.getAccession ==  protDescription[i].identifier
-        */
-        //check for existing description in hit & only if that doesnt exist -> extract it from fasta
         OPENMS_LOG_INFO << "Annotating description to hits..." << std::endl;
-
-        auto& cmapProtIds = cmap.getProteinIdentifications();
+        //check for existing description in hit & only if that doesnt exist -> extract it from fasta
         for(auto& protId : cmapProtIds)
         {
           auto& cmapProtHits = protId.getHits();
-          OPENMS_LOG_INFO << cmapProtHits.size() << std::endl;
           for(auto& hit : cmapProtHits)
           {
             //check if hit has alrdy a description...
-            if(! hit.getDescription().empty())
+            if(hit.getDescription().empty())
+            {
+              //set the additional description from the corresponding fasta entry
+              hit.setDescription(fastaMap[hit.getAccession()]);
+            }
+            else
             {
               continue;
             }
-            //if not we have to get the info out of the fasta
-            else
-            {
-              //SET THE ADDITIONAL DESCRIPTION
-              hit.setDescription("lenny");
-            }
           }
         }
-        //extract the proteindescription here? Shouldnt it be automatically be passed with the cmap?
         export_evidence.exportFeatureMap(*fmap,cmap,exp);
       }
     }
