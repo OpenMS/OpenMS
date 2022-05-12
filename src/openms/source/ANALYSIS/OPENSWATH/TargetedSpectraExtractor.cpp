@@ -898,15 +898,34 @@ namespace OpenMS
     }
 
     std::vector<ReactionMonitoringTransition> v_rmt_all;
+    //std::vector<TargetedExperiment::Compound> compounds;
     std::vector<TargetedExperiment::Peptide> peptides;
+    std::vector<TargetedExperiment::Protein> proteins;
     for (const auto& ms1_feature : ms1_features)
     {
       std::string peptide_ref = ms1_feature.getMetaValue("PeptideRef");
+      OpenMS::TargetedExperiment::Protein protein;
+      protein.id = peptide_ref;
+      protein.addMetaValues(ms1_feature);
+      proteins.push_back(protein);
+
+      OpenMS::ReactionMonitoringTransition::RetentionTime rt;
+      rt.setRT(ms1_feature.getRT());
+
       OpenMS::TargetedExperiment::Peptide peptide;
       peptide.id = peptide_ref;
       peptide.setChargeState(ms1_feature.getCharge());
       peptide.addMetaValues(ms1_feature);
+      peptide.protein_refs.push_back(peptide_ref);
+      peptide.rts.push_back(rt);
       peptides.push_back(peptide);
+
+      //OpenMS::TargetedExperiment::Compound compound;
+      //compound.id = peptide_ref;
+      //compound.setChargeState(ms1_feature.getCharge());
+      //compound.addMetaValues(ms1_feature);
+      //compound.rts.push_back(rt);
+      //compounds.push_back(compound);
       
       for (const auto& ms2_feature : ms1_to_ms2[peptide_ref])
       {
@@ -915,22 +934,27 @@ namespace OpenMS
             (current_mz < ms1_feature.getMZ() + relative_allowable_product_mass_))
         {
           std::string native_id = ms2_feature->getMetaValue("native_id");
+          std::ostringstream os;
+          os << ms2_feature->getMetaValue("native_id") << "_" << peptide_ref;
+
           OpenMS::ReactionMonitoringTransition rmt;
           rmt.setLibraryIntensity(ms2_feature->getIntensity());
           rmt.setName(ms2_feature->getMetaValue("native_id"));
-          std::ostringstream os;
-          os << ms2_feature->getMetaValue("native_id") << "_" << peptide_ref;
           rmt.setNativeID(os.str());
+          //rmt.setCompoundRef(peptide_ref);
           rmt.setPeptideRef(peptide_ref);
           rmt.setPrecursorMZ(ms1_feature.getMZ());
           rmt.setProductMZ(ms2_feature->getMZ());
           rmt.addMetaValues(*ms2_feature);
+          rmt.setRetentionTime(rt);
           v_rmt_all.push_back(rmt);
         }
       }
     }
 
+    t_exp.setProteins(proteins);
     t_exp.setPeptides(peptides);
+    //t_exp.setCompounds(compounds);
     t_exp.setTransitions(v_rmt_all);
 
     // validate
