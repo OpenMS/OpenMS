@@ -431,24 +431,21 @@ protected:
       if (export_evidence.isValid())
       {
         auto& cmapProtIds = cmap.getProteinIdentifications();
-        map<String,String> fastaMap {};
-        //map the identifier to the description so that we can access the description via the cmap-identifier
-        for(const auto& entry : protDescription)
-        {
-          fastaMap.emplace(entry.identifier, entry.description);
-        }
 
         if(cmapProtIds.empty())
         {
           OPENMS_LOG_ERROR << "No ProteinIdentifications in consensusmap... aboarting" << std::endl;
         }
 
-        // THIS IS OUR FALLBACK IF THE USER PROVIDED NO .fasta
+        // Index the fasta file for constant access
+        map<String,String> fastaMap {};
+        indexFasta_(protDescription, fastaMap);
+
+        // if the user provided no .fasta, we can try this as a last resort
+        const String& fileName = cmapProtIds[0].getSearchParameters().db;
         if(protDescription.empty())
         {
-          OPENMS_LOG_INFO << "No FASTA passed, looking for the default search parameters in consensusXML" << std::endl;
-          const String& fileName = cmapProtIds[0].getSearchParameters().db;
-          FASTAFile().load(fileName, protDescription);
+          fallbackFasta(fileName, protDescription);
         }
 
         OPENMS_LOG_INFO << "Annotating description to hits..." << std::endl;
@@ -458,10 +455,10 @@ protected:
           auto& cmapProtHits = protId.getHits();
           for(auto& hit : cmapProtHits)
           {
-            //check if hit has alrdy a description...
+            // if hit has no description, set the additional from the fasta
+            //hit.getDescription().empty() ? hit.setDescription(fastaMap[hit.getAccession()]) : continue; //<--- WARUM KLAPPT DAS NICHT?
             if(hit.getDescription().empty())
             {
-              //set the additional description from the corresponding fasta entry
               hit.setDescription(fastaMap[hit.getAccession()]);
             }
             else
@@ -591,6 +588,21 @@ private:
         }
       }
     }
+  }
+
+  void indexFasta_(std::vector<FASTAFile::FASTAEntry>& protDescription, std::map<String, String>& fastaMap)
+  {
+    //map the identifier to the description so that we can access the description via the cmap-identifier
+    for(const auto& entry : protDescription)
+    {
+      fastaMap.emplace(entry.identifier, entry.description);
+    }
+  }
+
+  void fallbackFasta(const String& fileName, std::vector<FASTAFile::FASTAEntry>& protDescription)
+  {
+    OPENMS_LOG_INFO << "No FASTA passed, looking for the default search parameters in consensusXML" << std::endl;
+    FASTAFile().load(fileName, protDescription);
   }
 };
 
