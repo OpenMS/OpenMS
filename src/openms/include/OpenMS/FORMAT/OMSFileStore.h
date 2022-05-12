@@ -176,7 +176,6 @@ namespace OpenMS
                            const String& parent_table)
       {
         bool table_created = false;
-        QSqlQuery query; // prepare query only once and only if needed
         for (const auto& element : container)
         {
           if (!element.isMetaEmpty())
