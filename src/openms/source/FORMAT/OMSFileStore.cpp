@@ -829,7 +829,7 @@ namespace OpenMS::Internal
 
     createTable_("ID_ParentGroupSet",
                  "id INTEGER PRIMARY KEY NOT NULL, "  \
-                 "label TEXT, "                       \
+                 "label TEXT UNIQUE, "                \
                  "grouping_order INTEGER NOT NULL");
 
     createTable_(
