@@ -503,7 +503,7 @@ protected:
     void removeMS2SpectraPeaks_(MSExperiment& experiment) const;
 
     /// organize into a map by combining features and subordinates with the same `identifier`
-    void organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<std::string, std::vector<OpenMS::Feature>>& fmapmap) const;
+    void organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<OpenMS::String, std::vector<OpenMS::Feature>>& fmapmap) const;
 
   private:
     /**

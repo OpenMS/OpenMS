@@ -943,7 +943,7 @@ namespace OpenMS
     try
     {
       // Pass 1: organize into a map by combining features and subordinates with the same `identifier`
-      std::map<std::string, std::vector<OpenMS::Feature>> fmapmap;
+      std::map<OpenMS::String, std::vector<OpenMS::Feature>> fmapmap;
       organizeMapWithSameIdentifier(fmap_input, fmapmap);
 
       // Pass 2: compute the consensus manually
@@ -986,9 +986,7 @@ namespace OpenMS
         std::string id_f;
         try
         {
-          std::string str = f_map.first;
-          std::string delimiter = "_";
-          id_f = str.substr(0, str.find(delimiter));
+          id_f = f_map.first.prefix('_');
         }
         catch (const std::exception& e)
         {
@@ -1078,7 +1076,7 @@ namespace OpenMS
     }
   }
 
-  void TargetedSpectraExtractor::organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<std::string, std::vector<OpenMS::Feature>>& fmapmap) const
+  void TargetedSpectraExtractor::organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<OpenMS::String, std::vector<OpenMS::Feature>>& fmapmap) const
   {
     for (const OpenMS::Feature& f : fmap_input)
     {
