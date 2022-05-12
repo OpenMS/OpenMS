@@ -372,8 +372,7 @@ namespace OpenMS
               s.setMetaValue("mz_error_ppm", 0);
               s.setMetaValue("mz_error_Da", 0);
               // s.setCharge(hit.getCharge()); // The polarity should have been set during peak picking
-              std::vector<OpenMS::Feature> subs = {s};
-              f.setSubordinates(subs);
+              f.setSubordinates({s});
               feat_map_output.push_back(f);
             }
           }
