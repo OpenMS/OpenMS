@@ -188,7 +188,7 @@ namespace OpenMS
           output_file << "CAS#: " << spectrum.getMetaValue("CAS#") << ";  NIST#: " << spectrum.getMetaValue("NIST#") << '\n';
         }
         // Other metadata
-        const std::vector<std::string> ignore_metadata = {"Synon", "CAS#", "NIST#", "Num Peaks"};
+        constexpr std::array<std::string, 4> ignore_metadata = {"Synon", "CAS#", "NIST#", "Num Peaks"};
         std::vector<String> keys;
         spectrum.getKeys(keys);
         for (const auto& key : keys)
