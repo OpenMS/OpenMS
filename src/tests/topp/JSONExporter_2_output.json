@@ -1,0 +1,417 @@
+{
+    "ID_DBSearchParam": [
+        {
+            "charges": "-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2",
+            "database": "/home/hendrik.weisser/Software/OpenMS/src/tests/topp/NucleicAcidSearchEngine_1.fasta",
+            "database_version": "",
+            "digestion_enzyme": "no cleavage",
+            "fixed_mods": "",
+            "fragment_mass_tolerance": 5,
+            "fragment_tolerance_ppm": 1,
+            "mass_type_average": 0,
+            "max_length": 0,
+            "min_length": 5,
+            "missed_cleavages": 22,
+            "molecule_type": "RNA",
+            "precursor_mass_tolerance": 5,
+            "precursor_tolerance_ppm": 1,
+            "processing_step_index": 1,
+            "taxonomy": "",
+            "variable_mods": ""
+        }
+    ],
+    "ID_IdentifiedMolecule": [
+        {
+            "identifier": "UGAGGUAGUAGGUUGUAUAGU",
+            "molecule_type": "RNA"
+        }
+    ],
+    "ID_IdentifiedMolecule_AppliedProcessingStep": [
+        {
+            "identifier": "UGAGGUAGUAGGUUGUAUAGU",
+            "molecule_type": "RNA",
+            "processing_step_index": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_accession": "",
+            "score_type_name": ""
+        }
+    ],
+    "ID_InputFile": [
+        {
+            "experimental_design_id": "",
+            "name": "NucleicAcidSearchEngine_1.mzML",
+            "primary_files": "file:///U:\\Byron\\DATA\\20180522_Let7-+Um_mixture_ramp_02\\minimal_01a.raw"
+        }
+    ],
+    "ID_Observation": [
+        {
+            "data_id": "controllerType=0 controllerNumber=1 scan=88",
+            "input_file_name": "NucleicAcidSearchEngine_1.mzML",
+            "mz": 2263.62036132812,
+            "rt": 14.10438
+        }
+    ],
+    "ID_ObservationMatch": [
+        {
+            "charge": -3,
+            "data_id": "controllerType=0 controllerNumber=1 scan=88",
+            "identifier": "UGAGGUAGUAGGUUGUAUAGU",
+            "input_file_name": "NucleicAcidSearchEngine_1.mzML",
+            "molecule_type": "RNA",
+            "observation_match_index": 1
+        }
+    ],
+    "ID_ObservationMatch_AppliedProcessingStep": [
+        {
+            "observation_match_index": 1,
+            "processing_step_index": 1,
+            "processing_step_order": 1,
+            "score": 50.529285659036816,
+            "score_type_accession": "",
+            "score_type_name": "hyperscore"
+        },
+        {
+            "observation_match_index": 1,
+            "processing_step_index": 1,
+            "processing_step_order": 1,
+            "score": 0,
+            "score_type_accession": "MS:1002354",
+            "score_type_name": "PSM-level q-value"
+        }
+    ],
+    "ID_ObservationMatch_MetaInfo": [
+        {
+            "data_type": "INT_VALUE",
+            "data_value_id": 4,
+            "name": "isotope_offset",
+            "observation_match_index": 1,
+            "value": "2"
+        },
+        {
+            "data_type": "DOUBLE_VALUE",
+            "data_value_id": 3,
+            "name": "precursor_mz_error_ppm",
+            "observation_match_index": 1,
+            "value": "-1.851164946914477"
+        }
+    ],
+    "ID_ObservationMatch_PeakAnnotation": [
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "c1",
+            "peak_charge": -1,
+            "peak_intensity": 0.5293034315109253,
+            "peak_mz": 305.0178527832031,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "w1",
+            "peak_charge": -1,
+            "peak_intensity": 0.3863510489463806,
+            "peak_mz": 323.02838134765625,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "a2-B",
+            "peak_charge": -1,
+            "peak_intensity": 0.11688584089279175,
+            "peak_mz": 419.0491943359375,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "y2",
+            "peak_charge": -1,
+            "peak_intensity": 0.6373841762542725,
+            "peak_mz": 588.109619140625,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "c2",
+            "peak_charge": -1,
+            "peak_intensity": 1,
+            "peak_mz": 650.0650024414062,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "w2",
+            "peak_charge": -1,
+            "peak_intensity": 0.5689578652381897,
+            "peak_mz": 668.0756225585938,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "a3-B",
+            "peak_charge": -1,
+            "peak_intensity": 0.28203728795051575,
+            "peak_mz": 764.0960693359375,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "y3",
+            "peak_charge": -1,
+            "peak_intensity": 0.909805417060852,
+            "peak_mz": 917.1616821289062,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "w6",
+            "peak_charge": -2,
+            "peak_intensity": 0.017355190590023994,
+            "peak_mz": 968.6085205078125,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "c3",
+            "peak_charge": -1,
+            "peak_intensity": 0.9582672119140625,
+            "peak_mz": 979.1174926757812,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "w3",
+            "peak_charge": -1,
+            "peak_intensity": 0.5009950399398804,
+            "peak_mz": 997.1272583007812,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "a4-B",
+            "peak_charge": -1,
+            "peak_intensity": 0.5524331331253052,
+            "peak_mz": 1093.14892578125,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "y4",
+            "peak_charge": -1,
+            "peak_intensity": 0.3624410331249237,
+            "peak_mz": 1223.1878662109375,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "w4",
+            "peak_charge": -1,
+            "peak_intensity": 0.21477065980434418,
+            "peak_mz": 1303.155029296875,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "w12",
+            "peak_charge": -3,
+            "peak_intensity": 0.04326445981860161,
+            "peak_mz": 1304.15869140625,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "c12",
+            "peak_charge": -3,
+            "peak_intensity": 0.3037600517272949,
+            "peak_mz": 1324.1654052734375,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "c8",
+            "peak_charge": -2,
+            "peak_intensity": 0.3037600517272949,
+            "peak_mz": 1324.1654052734375,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "c4",
+            "peak_charge": -1,
+            "peak_intensity": 0.3037600517272949,
+            "peak_mz": 1324.1654052734375,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "a5-B",
+            "peak_charge": -1,
+            "peak_intensity": 0.10165958106517792,
+            "peak_mz": 1438.1990966796875,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "y5",
+            "peak_charge": -1,
+            "peak_intensity": 0.16087540984153748,
+            "peak_mz": 1552.240966796875,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "w5",
+            "peak_charge": -1,
+            "peak_intensity": 0.023151108995079994,
+            "peak_mz": 1632.19970703125,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "c5",
+            "peak_charge": -1,
+            "peak_intensity": 0.048696476966142654,
+            "peak_mz": 1669.2105712890625,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "y6",
+            "peak_charge": -1,
+            "peak_intensity": 0.02509678527712822,
+            "peak_mz": 1858.262939453125,
+            "processing_step_index": 1
+        },
+        {
+            "observation_match_index": 1,
+            "p_id": 94716585744336,
+            "peak_annotation": "w6",
+            "peak_charge": -1,
+            "peak_intensity": 0.08761914074420929,
+            "peak_mz": 1938.2255859375,
+            "processing_step_index": 1
+        }
+    ],
+    "ID_Observation_MetaInfo": [
+        {
+            "data_id": "controllerType=0 controllerNumber=1 scan=88",
+            "data_type": "DOUBLE_VALUE",
+            "data_value_id": 2,
+            "input_file_name": "NucleicAcidSearchEngine_1.mzML",
+            "name": "precursor_intensity",
+            "value": "3.688524e06"
+        },
+        {
+            "data_id": "controllerType=0 controllerNumber=1 scan=88",
+            "data_type": "INT_VALUE",
+            "data_value_id": 1,
+            "input_file_name": "NucleicAcidSearchEngine_1.mzML",
+            "name": "scan_index",
+            "value": "0"
+        }
+    ],
+    "ID_ParentMatch": [
+        {
+            "accession": "dme-let-7-5p",
+            "end_pos": 20,
+            "identifier": "UGAGGUAGUAGGUUGUAUAGU",
+            "left_neighbor": "[",
+            "molecule_type": "RNA",
+            "right_neighbor": "]",
+            "start_pos": 0
+        }
+    ],
+    "ID_ParentSequence": [
+        {
+            "accession": "dme-let-7-5p",
+            "coverage": 1,
+            "description": "MIMAT0000396 Drosophila melanogaster let-7-5p",
+            "is_decoy": 0,
+            "molecule_type": "RNA",
+            "sequence": "UGAGGUAGUAGGUUGUAUAGU"
+        }
+    ],
+    "ID_ParentSequence_AppliedProcessingStep": [
+        {
+            "accession": "dme-let-7-5p",
+            "processing_step_index": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_accession": "",
+            "score_type_name": ""
+        }
+    ],
+    "ID_ProcessingSoftware": [
+        {
+            "name": "NucleicAcidSearchEngine",
+            "version": "test"
+        }
+    ],
+    "ID_ProcessingSoftware_AssignedScore": [
+        {
+            "score_type_accession": "",
+            "score_type_name": "hyperscore",
+            "score_type_order": 1,
+            "software_name": "NucleicAcidSearchEngine",
+            "software_version": "test"
+        },
+        {
+            "score_type_accession": "MS:1002354",
+            "score_type_name": "PSM-level q-value",
+            "score_type_order": 2,
+            "software_name": "NucleicAcidSearchEngine",
+            "software_version": "test"
+        }
+    ],
+    "ID_ProcessingStep": [
+        {
+            "date_time": "2022-04-14 13:03:26",
+            "id": 94716584900768,
+            "processing_step_index": 1,
+            "software_name": "NucleicAcidSearchEngine",
+            "software_version": "test"
+        }
+    ],
+    "ID_ProcessingStep_InputFile": [
+        {
+            "input_file_name": "NucleicAcidSearchEngine_1.mzML",
+            "processing_step_index": 1
+        }
+    ],
+    "ID_ScoreType": [
+        {
+            "accession": "",
+            "cv_identifier_ref": "",
+            "higher_better": 1,
+            "name": "hyperscore"
+        },
+        {
+            "accession": "MS:1002354",
+            "cv_identifier_ref": "MS",
+            "higher_better": 0,
+            "name": "PSM-level q-value"
+        }
+    ]
+}

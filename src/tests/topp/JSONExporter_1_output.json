@@ -1,0 +1,460 @@
+{
+    "ID_DBSearchParam": [
+        {
+            "charges": "1,2",
+            "database": "MSDB",
+            "database_version": "1.0",
+            "digestion_enzyme": "Trypsin",
+            "fixed_mods": "",
+            "fragment_mass_tolerance": 0.3,
+            "fragment_tolerance_ppm": 0,
+            "mass_type_average": 1,
+            "max_length": 0,
+            "min_length": 0,
+            "missed_cleavages": 0,
+            "molecule_type": "PROTEIN",
+            "precursor_mass_tolerance": 1,
+            "precursor_tolerance_ppm": 0,
+            "processing_step_index": 1,
+            "taxonomy": "",
+            "variable_mods": ""
+        },
+        {
+            "charges": "1,2,3",
+            "database": "MSDB",
+            "database_version": "1.1",
+            "digestion_enzyme": "",
+            "fixed_mods": "Fixed,Fixed2",
+            "fragment_mass_tolerance": 0.3,
+            "fragment_tolerance_ppm": 0,
+            "mass_type_average": 0,
+            "max_length": 0,
+            "min_length": 0,
+            "missed_cleavages": 0,
+            "molecule_type": "PROTEIN",
+            "precursor_mass_tolerance": 1,
+            "precursor_tolerance_ppm": 0,
+            "processing_step_index": 2,
+            "taxonomy": "",
+            "variable_mods": "Variable,Variable2"
+        }
+    ],
+    "ID_IdentifiedMolecule": [
+        {
+            "identifier": "PEPTIDER",
+            "molecule_type": "PROTEIN"
+        },
+        {
+            "identifier": "PEPTIDERR",
+            "molecule_type": "PROTEIN"
+        },
+        {
+            "identifier": "PEPTIDERRR",
+            "molecule_type": "PROTEIN"
+        },
+        {
+            "identifier": "PEPTIDERRRR",
+            "molecule_type": "PROTEIN"
+        },
+        {
+            "identifier": "PEPTIDERRRRR",
+            "molecule_type": "PROTEIN"
+        }
+    ],
+    "ID_IdentifiedMolecule_AppliedProcessingStep": [
+        {
+            "identifier": "PEPTIDER",
+            "molecule_type": "PROTEIN",
+            "processing_step_index": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_accession": "",
+            "score_type_name": ""
+        },
+        {
+            "identifier": "PEPTIDERR",
+            "molecule_type": "PROTEIN",
+            "processing_step_index": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_accession": "",
+            "score_type_name": ""
+        },
+        {
+            "identifier": "PEPTIDERRR",
+            "molecule_type": "PROTEIN",
+            "processing_step_index": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_accession": "",
+            "score_type_name": ""
+        },
+        {
+            "identifier": "PEPTIDERRRR",
+            "molecule_type": "PROTEIN",
+            "processing_step_index": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_accession": "",
+            "score_type_name": ""
+        },
+        {
+            "identifier": "PEPTIDERRRRR",
+            "molecule_type": "PROTEIN",
+            "processing_step_index": 2,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_accession": "",
+            "score_type_name": ""
+        }
+    ],
+    "ID_InputFile": [
+        {
+            "experimental_design_id": "",
+            "name": "UNKNOWN_INPUT_FILE_Mascot_2006-01-12T12:13:14_5233264595117471314",
+            "primary_files": ""
+        },
+        {
+            "experimental_design_id": "",
+            "name": "UNKNOWN_INPUT_FILE_Mascot_2007-01-12T12:13:14_4835329514588776807",
+            "primary_files": ""
+        }
+    ],
+    "ID_Observation": [
+        {
+            "data_id": "17",
+            "input_file_name": "UNKNOWN_INPUT_FILE_Mascot_2006-01-12T12:13:14_5233264595117471314",
+            "mz": 675.9,
+            "rt": 1234.5
+        },
+        {
+            "data_id": "UNKNOWN_OBSERVATION_1",
+            "input_file_name": "UNKNOWN_INPUT_FILE_Mascot_2006-01-12T12:13:14_5233264595117471314",
+            "mz": "",
+            "rt": ""
+        },
+        {
+            "data_id": "UNKNOWN_OBSERVATION_2",
+            "input_file_name": "UNKNOWN_INPUT_FILE_Mascot_2007-01-12T12:13:14_4835329514588776807",
+            "mz": "",
+            "rt": ""
+        }
+    ],
+    "ID_ObservationMatch": [
+        {
+            "charge": 1,
+            "data_id": "17",
+            "identifier": "PEPTIDER",
+            "input_file_name": "UNKNOWN_INPUT_FILE_Mascot_2006-01-12T12:13:14_5233264595117471314",
+            "molecule_type": "PROTEIN",
+            "observation_match_index": 1
+        },
+        {
+            "charge": 1,
+            "data_id": "17",
+            "identifier": "PEPTIDERR",
+            "input_file_name": "UNKNOWN_INPUT_FILE_Mascot_2006-01-12T12:13:14_5233264595117471314",
+            "molecule_type": "PROTEIN",
+            "observation_match_index": 2
+        },
+        {
+            "charge": 2,
+            "data_id": "UNKNOWN_OBSERVATION_1",
+            "identifier": "PEPTIDERRR",
+            "input_file_name": "UNKNOWN_INPUT_FILE_Mascot_2006-01-12T12:13:14_5233264595117471314",
+            "molecule_type": "PROTEIN",
+            "observation_match_index": 3
+        },
+        {
+            "charge": 2,
+            "data_id": "UNKNOWN_OBSERVATION_1",
+            "identifier": "PEPTIDERRRR",
+            "input_file_name": "UNKNOWN_INPUT_FILE_Mascot_2006-01-12T12:13:14_5233264595117471314",
+            "molecule_type": "PROTEIN",
+            "observation_match_index": 4
+        },
+        {
+            "charge": 1,
+            "data_id": "UNKNOWN_OBSERVATION_2",
+            "identifier": "PEPTIDERRRRR",
+            "input_file_name": "UNKNOWN_INPUT_FILE_Mascot_2007-01-12T12:13:14_4835329514588776807",
+            "molecule_type": "PROTEIN",
+            "observation_match_index": 5
+        }
+    ],
+    "ID_ObservationMatch_AppliedProcessingStep": [
+        {
+            "observation_match_index": 1,
+            "processing_step_index": 1,
+            "processing_step_order": 1,
+            "score": 0.9,
+            "score_type_accession": "",
+            "score_type_name": "MOWSE_reversed"
+        },
+        {
+            "observation_match_index": 2,
+            "processing_step_index": 1,
+            "processing_step_order": 1,
+            "score": 1.4,
+            "score_type_accession": "",
+            "score_type_name": "MOWSE_reversed"
+        },
+        {
+            "observation_match_index": 3,
+            "processing_step_index": 1,
+            "processing_step_order": 1,
+            "score": 44.4,
+            "score_type_accession": "",
+            "score_type_name": "MOWSE"
+        },
+        {
+            "observation_match_index": 4,
+            "processing_step_index": 1,
+            "processing_step_order": 1,
+            "score": 33.3,
+            "score_type_accession": "",
+            "score_type_name": "MOWSE"
+        },
+        {
+            "observation_match_index": 5,
+            "processing_step_index": 2,
+            "processing_step_order": 1,
+            "score": 1.4,
+            "score_type_accession": "",
+            "score_type_name": "MOWSE"
+        }
+    ],
+    "ID_ObservationMatch_MetaInfo": [
+        {
+            "data_type": "STRING_VALUE",
+            "data_value_id": 3,
+            "name": "name",
+            "observation_match_index": 1,
+            "value": "PeptideHit"
+        }
+    ],
+    "ID_Observation_MetaInfo": [
+        {
+            "data_id": "17",
+            "data_type": "STRING_VALUE",
+            "data_value_id": 1,
+            "input_file_name": "UNKNOWN_INPUT_FILE_Mascot_2006-01-12T12:13:14_5233264595117471314",
+            "name": "name",
+            "value": "PeptideIdentification"
+        }
+    ],
+    "ID_ParentGroup": [
+        {
+            "label": "indistinguishable proteins",
+            "parent_group_index": 1,
+            "score": 0,
+            "score_type_accession": "",
+            "score_type_name": "probability"
+        },
+        {
+            "label": "protein groups",
+            "parent_group_index": 2,
+            "score": 0.88,
+            "score_type_accession": "",
+            "score_type_name": "probability"
+        }
+    ],
+    "ID_ParentGroupSet": [
+        {
+            "grouping_order": 1,
+            "label": "indistinguishable proteins"
+        },
+        {
+            "grouping_order": 2,
+            "label": "protein groups"
+        }
+    ],
+    "ID_ParentGroupSet_AppliedProcessingStep": [
+        {
+            "label": "indistinguishable proteins",
+            "processing_step_index": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_accession": "",
+            "score_type_name": ""
+        },
+        {
+            "label": "protein groups",
+            "processing_step_index": 1,
+            "processing_step_order": 1,
+            "score": "",
+            "score_type_accession": "",
+            "score_type_name": ""
+        }
+    ],
+    "ID_ParentGroup_ParentSequence": [
+        {
+            "accession": "PROT1",
+            "parent_group_index": 1
+        },
+        {
+            "accession": "PROT2",
+            "parent_group_index": 1
+        },
+        {
+            "accession": "PROT1",
+            "parent_group_index": 2
+        },
+        {
+            "accession": "PROT2",
+            "parent_group_index": 2
+        }
+    ],
+    "ID_ParentMatch": [
+        {
+            "accession": "PROT1",
+            "end_pos": "",
+            "identifier": "PEPTIDER",
+            "left_neighbor": "A",
+            "molecule_type": "PROTEIN",
+            "right_neighbor": "B",
+            "start_pos": ""
+        },
+        {
+            "accession": "PROT2",
+            "end_pos": "",
+            "identifier": "PEPTIDER",
+            "left_neighbor": "X",
+            "molecule_type": "PROTEIN",
+            "right_neighbor": "X",
+            "start_pos": ""
+        },
+        {
+            "accession": "PROT3",
+            "end_pos": "",
+            "identifier": "PEPTIDERRRRR",
+            "left_neighbor": "X",
+            "molecule_type": "PROTEIN",
+            "right_neighbor": "X",
+            "start_pos": ""
+        }
+    ],
+    "ID_ParentSequence": [
+        {
+            "accession": "PROT1",
+            "coverage": 0,
+            "description": "",
+            "is_decoy": 0,
+            "molecule_type": "PROTEIN",
+            "sequence": "ABCDEFG"
+        },
+        {
+            "accession": "PROT2",
+            "coverage": 0,
+            "description": "",
+            "is_decoy": 0,
+            "molecule_type": "PROTEIN",
+            "sequence": "ABCDEFG"
+        },
+        {
+            "accession": "PROT3",
+            "coverage": 0,
+            "description": "",
+            "is_decoy": 0,
+            "molecule_type": "PROTEIN",
+            "sequence": ""
+        }
+    ],
+    "ID_ParentSequence_AppliedProcessingStep": [
+        {
+            "accession": "PROT1",
+            "processing_step_index": 1,
+            "processing_step_order": 1,
+            "score": 34.4000015258789,
+            "score_type_accession": "",
+            "score_type_name": "MOWSE"
+        },
+        {
+            "accession": "PROT2",
+            "processing_step_index": 1,
+            "processing_step_order": 1,
+            "score": 24.3999996185303,
+            "score_type_accession": "",
+            "score_type_name": "MOWSE"
+        },
+        {
+            "accession": "PROT3",
+            "processing_step_index": 2,
+            "processing_step_order": 1,
+            "score": 100,
+            "score_type_accession": "",
+            "score_type_name": "MOWSE"
+        }
+    ],
+    "ID_ParentSequence_MetaInfo": [
+        {
+            "accession": "PROT1",
+            "data_type": "STRING_VALUE",
+            "data_value_id": 2,
+            "name": "name",
+            "value": "ProteinHit"
+        }
+    ],
+    "ID_ProcessingSoftware": [
+        {
+            "name": "Mascot",
+            "version": "2.1.0"
+        },
+        {
+            "name": "Mascot",
+            "version": "2.1.1"
+        }
+    ],
+    "ID_ProcessingSoftware_AssignedScore": [
+        {
+            "score_type_accession": "",
+            "score_type_name": "MOWSE",
+            "score_type_order": 1,
+            "software_name": "Mascot",
+            "software_version": "2.1.0"
+        },
+        {
+            "score_type_accession": "",
+            "score_type_name": "MOWSE",
+            "score_type_order": 1,
+            "software_name": "Mascot",
+            "software_version": "2.1.1"
+        }
+    ],
+    "ID_ProcessingStep": [
+        {
+            "date_time": "2006-01-12 12:13:14",
+            "id": 94136766157568,
+            "processing_step_index": 1,
+            "software_name": "Mascot",
+            "software_version": "2.1.0"
+        },
+        {
+            "date_time": "2007-01-12 12:13:14",
+            "id": 94136765429824,
+            "processing_step_index": 2,
+            "software_name": "Mascot",
+            "software_version": "2.1.1"
+        }
+    ],
+    "ID_ScoreType": [
+        {
+            "accession": "",
+            "cv_identifier_ref": "",
+            "higher_better": 1,
+            "name": "MOWSE"
+        },
+        {
+            "accession": "",
+            "cv_identifier_ref": "",
+            "higher_better": 0,
+            "name": "MOWSE_reversed"
+        },
+        {
+            "accession": "",
+            "cv_identifier_ref": "",
+            "higher_better": 1,
+            "name": "probability"
+        }
+    ]
+}
