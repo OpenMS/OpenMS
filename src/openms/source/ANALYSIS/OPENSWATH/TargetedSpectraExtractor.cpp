@@ -344,8 +344,7 @@ namespace OpenMS
               s.setMetaValue("mz_error_ppm", hit.getMetaValue("mz_error_ppm"));
               s.setMetaValue("mz_error_Da", hit.getMetaValue("mz_error_Da"));
               s.setCharge(hit.getCharge());
-              std::vector<OpenMS::Feature> subs = {s};
-              f.setSubordinates(subs);
+              f.setSubordinates({s});
               feat_map_output.push_back(f);
             }
             else if (add_unknown_features)
