@@ -717,6 +717,26 @@ namespace OpenMS
   void TargetedSpectraExtractor::extractSpectra(
     const MSExperiment& experiment,
     const FeatureMap& ms1_features,
+    std::vector<MSSpectrum>& extracted_spectra
+  ) const
+  {
+    FeatureMap extracted_features;
+    extractSpectra(experiment, ms1_features, extracted_spectra, extracted_features, false);
+  }
+
+  void TargetedSpectraExtractor::extractSpectra(
+    const MSExperiment& experiment,
+    const FeatureMap& ms1_features,
+    std::vector<MSSpectrum>& extracted_spectra,
+    FeatureMap& extracted_features
+  ) const
+  {
+    extractSpectra(experiment, ms1_features, extracted_spectra, extracted_features, true);
+  }
+
+  void TargetedSpectraExtractor::extractSpectra(
+    const MSExperiment& experiment,
+    const FeatureMap& ms1_features,
     std::vector<MSSpectrum>& extracted_spectra,
     FeatureMap& extracted_features,
     const bool compute_features

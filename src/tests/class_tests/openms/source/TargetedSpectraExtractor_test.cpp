@@ -795,7 +795,7 @@ START_SECTION(void extractSpectra(
 
   std::vector<OpenMS::MSSpectrum> annotated_spectra;
   OpenMS::FeatureMap extracted_features;
-  tse.extractSpectra(spectrum, ms1_features, annotated_spectra, extracted_features, true);
+  tse.extractSpectra(spectrum, ms1_features, annotated_spectra, extracted_features);
 
   TEST_EQUAL(annotated_spectra.size(), 1)
   TEST_EQUAL(annotated_spectra.front().getName(), "HMDB:HMDB0000001")

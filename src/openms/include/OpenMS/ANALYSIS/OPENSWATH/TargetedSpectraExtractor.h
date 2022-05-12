@@ -369,16 +369,34 @@ public:
       @param[in] experiment The input experiment
       @param[in] ms1_features The MS1 features map
       @param[out] extracted_spectra The spectra related to the transitions
-      @param[out] extracted_features The features related to the output spectra
-      @param[in] compute_features If false, `extracted_features` will be ignored
     */
     void extractSpectra(
-        const MSExperiment& experiment,
-        const FeatureMap& ms1_features,
-        std::vector<MSSpectrum>& extracted_spectra,
-        FeatureMap& extracted_features,
-        const bool compute_features
+      const MSExperiment& experiment,
+      const FeatureMap& ms1_features,
+      std::vector<MSSpectrum>& extracted_spectra
     ) const;
+    
+    /**
+      @brief Combines the functionalities given by all the other methods implemented
+      in this class.
+
+      The method expects an experiment and MS1 features in input,
+      and constructs the extracted spectra and features.
+      For each transition of the target list, the method tries to find its best
+      spectrum match. A FeatureMap is also filled with informations about the
+      extracted spectra.
+
+      @param[in] experiment The input experiment
+      @param[in] ms1_features The MS1 features map
+      @param[out] extracted_spectra The spectra related to the transitions
+      @param[out] extracted_features The features related to the output spectra
+    */
+    void extractSpectra(
+      const MSExperiment& experiment,
+      const FeatureMap& ms1_features,
+      std::vector<MSSpectrum>& extracted_spectra,
+      FeatureMap& extracted_features
+    ) const; 
     
     /**
       @brief Searches the spectral library for the top scoring candidates that
@@ -486,6 +504,31 @@ protected:
 
     /// organize into a map by combining features and subordinates with the same `identifier`
     void organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<std::string, std::vector<OpenMS::Feature>>& fmapmap) const;
+
+  private:
+    /**
+      @brief Combines the functionalities given by all the other methods implemented
+      in this class.
+
+      The method expects an experiment and MS1 features in input,
+      and constructs the extracted spectra and features.
+      For each transition of the target list, the method tries to find its best
+      spectrum match. A FeatureMap is also filled with informations about the
+      extracted spectra.
+
+      @param[in] experiment The input experiment
+      @param[in] ms1_features The MS1 features map
+      @param[out] extracted_spectra The spectra related to the transitions
+      @param[out] extracted_features The features related to the output spectra
+      @param[in] compute_features If false, `extracted_features` will be ignored
+    */
+    void extractSpectra(
+      const MSExperiment& experiment,
+      const FeatureMap& ms1_features,
+      std::vector<MSSpectrum>& extracted_spectra,
+      FeatureMap& extracted_features,
+      const bool compute_features
+    ) const;
 
   private:
     /**
