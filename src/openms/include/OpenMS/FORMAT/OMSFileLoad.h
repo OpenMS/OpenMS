@@ -149,10 +149,18 @@ namespace OpenMS
 
       QJsonArray exportQueryToJSON_(const QString& sql, const QStringList& exclude_fields = {"id"});
 
+      void exportMetaInfoToJSON_(QJsonObject& json_data, const QString& parent_table,
+                                 const QString& join, const QString& order, const QString& join_key = "p_id");
+
+      void exportScoredResultToJSON_(QJsonObject& json_data, const QString& parent_table,
+                                     const QString& join, const QString& order, const QString& join_key = "p_id");
+
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
 
       int version_number_; ///< schema version number
+
+      QString subquery_score_; ///< query for score types used in JSON export
 
       // mappings between database keys and loaded data:
       std::unordered_map<Key, IdentificationData::ScoreTypeRef> score_type_refs_;

@@ -1176,6 +1176,34 @@ namespace OpenMS::Internal
   }
 
 
+  void OMSFileLoad::exportMetaInfoToJSON_(QJsonObject& json_data, const QString& parent_table,
+                                          const QString& join, const QString& order, const QString& join_key)
+  {
+    QString table = parent_table + "_MetaInfo";
+    if (tableExists_(db_name_, table))
+    {
+      QString sql = "SELECT * FROM " + table + " JOIN (SELECT DataValue.id AS dv_id, value, data_type FROM DataValue JOIN DataValue_DataType ON data_type_id = DataValue_DataType.id) ON data_value_id = dv_id JOIN (" + join + ") ON parent_id = " + join_key + " ORDER BY " + order + ", name";
+      json_data.insert(table, exportQueryToJSON_(sql, {"id", "parent_id", "dv_id", "data_type_id", join_key}));
+    }
+  }
+
+
+  void OMSFileLoad::exportScoredResultToJSON_(QJsonObject& json_data, const QString& parent_table,
+                                              const QString& join, const QString& order, const QString& join_key)
+  {
+    QString table = parent_table + "_AppliedProcessingStep";
+    if (tableExists_(db_name_, table))
+    {
+      // "LEFT JOIN" for score types is important because scores may be missing:
+      QString sql = "SELECT * FROM " + table + " JOIN (SELECT id AS ps_id, processing_step_index FROM steps_view) ON processing_step_id = ps_id LEFT JOIN (" + subquery_score_ + ") ON score_type_id = st_id JOIN (" + join + ") ON parent_id = " + join_key + " ORDER BY " + order + ", processing_step_order, score_type_accession, score_type_name";
+      json_data.insert(table, exportQueryToJSON_(sql, {"id", "parent_id", "ps_id", "processing_step_id", "st_id",
+                                                       "score_type_id", join_key}));
+    }
+
+    exportMetaInfoToJSON_(json_data, parent_table, join, order, join_key);
+  }
+
+
   void OMSFileLoad::exportToJSON(ostream& output)
   {
     // @TODO: this constructs the whole JSON file in memory - write directly to stream instead?
@@ -1190,7 +1218,7 @@ namespace OpenMS::Internal
     }
     // score types:
     // this query is used in multiple joins below (@TODO: replace with DB view?):
-    QString subquery_score = "SELECT ID_ScoreType.id AS st_id, accession AS score_type_accession, name AS score_type_name FROM ID_ScoreType JOIN CVTerm ON cv_term_id = CVTerm.id";
+    subquery_score_ = "SELECT ID_ScoreType.id AS st_id, accession AS score_type_accession, name AS score_type_name FROM ID_ScoreType JOIN CVTerm ON cv_term_id = CVTerm.id";
     if (tableExists_(db_name_, "ID_ScoreType") && tableExists_(db_name_, "CVTerm"))
     {
       sql = "SELECT * FROM ID_ScoreType JOIN CVTerm ON cv_term_id = CVTerm.id ORDER BY accession, name";
@@ -1206,7 +1234,7 @@ namespace OpenMS::Internal
       {
         // need to replace DB keys for both software and score type with corresponding values:
         QString subquery_software = "SELECT id AS sw_id, name AS software_name, version AS software_version FROM ID_ProcessingSoftware";
-        sql = "SELECT software_name, software_version, score_type_accession, score_type_name, score_type_order FROM ID_ProcessingSoftware_AssignedScore JOIN (" + subquery_software + ") ON software_id = sw_id JOIN (" + subquery_score + ") ON score_type_id = st_id ORDER BY software_name, software_version, score_type_order";
+        sql = "SELECT software_name, software_version, score_type_accession, score_type_name, score_type_order FROM ID_ProcessingSoftware_AssignedScore JOIN (" + subquery_software + ") ON software_id = sw_id JOIN (" + subquery_score_ + ") ON score_type_id = st_id ORDER BY software_name, software_version, score_type_order";
         json_data.insert("ID_ProcessingSoftware_AssignedScore", exportQueryToJSON_(sql, {}));
       }
     }
@@ -1218,6 +1246,8 @@ namespace OpenMS::Internal
       createView_("steps_view", "SELECT ID_ProcessingStep.id, date_time, name AS software_name, version AS software_version, search_param_id, ROW_NUMBER() OVER (ORDER BY name, version, date_time) processing_step_index FROM ID_ProcessingStep JOIN ID_ProcessingSoftware ON software_id = ID_ProcessingSoftware.id");
       sql = "SELECT * FROM steps_view";
       json_data.insert("ID_ProcessingStep", exportQueryToJSON_(sql, {"search_param_id"}));
+      exportMetaInfoToJSON_(json_data, "ID_ProcessingStep",
+                            "SELECT id AS p_id, processing_step_index FROM steps_view", "processing_step_index");
       // processing steps - input files:
       if (tableExists_(db_name_, "ID_ProcessingStep_InputFile"))
       {
@@ -1227,32 +1257,39 @@ namespace OpenMS::Internal
       // DB search params.:
       if (tableExists_(db_name_, "ID_DBSearchParam"))
       {
-        sql = "SELECT * FROM ID_DBSearchParam INNER JOIN (SELECT search_param_id, processing_step_index FROM steps_view) ON ID_DBSearchParam.id = search_param_id JOIN ID_MoleculeType ON molecule_type_id = ID_MoleculeType.id ORDER BY processing_step_index";
+        sql = "SELECT * FROM ID_DBSearchParam JOIN (SELECT search_param_id, processing_step_index FROM steps_view) ON ID_DBSearchParam.id = search_param_id JOIN ID_MoleculeType ON molecule_type_id = ID_MoleculeType.id ORDER BY processing_step_index";
         json_data.insert("ID_DBSearchParam", exportQueryToJSON_(sql, {"id", "molecule_type_id", "search_param_id"}));
       }
     }
     // observations:
+    // this query is used in multiple joins below (@TODO: replace with DB view?):
+    QString subquery_obs = "SELECT ID_Observation.id AS o_id, input_file_name, data_id FROM ID_Observation JOIN (SELECT id AS if_id, name AS input_file_name FROM ID_InputFile) ON input_file_id = if_id";
     if (tableExists_(db_name_, "ID_Observation"))
     {
       sql = "SELECT * FROM ID_Observation JOIN (SELECT id AS if_id, name AS input_file_name FROM ID_InputFile) ON input_file_id = if_id ORDER BY input_file_name, data_id";
       json_data.insert("ID_Observation", exportQueryToJSON_(sql, {"id", "if_id", "input_file_id"}));
+      exportMetaInfoToJSON_(json_data, "ID_Observation", subquery_obs, "input_file_name, data_id", "o_id");
     }
     // parent sequences:
     if (tableExists_(db_name_, "ID_ParentSequence"))
     {
       sql = "SELECT * FROM ID_ParentSequence JOIN ID_MoleculeType ON molecule_type_id = ID_MoleculeType.id ORDER BY accession";
       json_data.insert("ID_ParentSequence", exportQueryToJSON_(sql, {"id", "molecule_type_id"}));
+      exportScoredResultToJSON_(json_data, "ID_ParentSequence",
+                                "SELECT id AS p_id, accession FROM ID_ParentSequence", "accession");
     }
     // parent group sets:
     if (tableExists_(db_name_, "ID_ParentGroupSet"))
     {
       sql = "SELECT * FROM ID_ParentGroupSet ORDER BY grouping_order";
       json_data.insert("ID_ParentGroupSet", exportQueryToJSON_(sql));
+      exportScoredResultToJSON_(json_data, "ID_ParentGroupSet", "SELECT id AS p_id, label FROM ID_ParentGroupSet",
+                                "label");
       // parent groups:
       if (tableExists_(db_name_, "ID_ParentGroup"))
       {
         // @TODO: with duplicate scores this ordering is not reproducible!
-        createView_("groups_view", "SELECT ID_ParentGroup.id, label, score_type_accession, score_type_name, score, ROW_NUMBER() OVER(ORDER BY label, score_type_accession, score_type_name, score) AS parent_group_index FROM ID_ParentGroup JOIN (" + subquery_score + ") ON score_type_id = st_id JOIN ID_ParentGroupSet ON grouping_id = ID_ParentGroupSet.id");
+        createView_("groups_view", "SELECT ID_ParentGroup.id, label, score_type_accession, score_type_name, score, ROW_NUMBER() OVER(ORDER BY label, score_type_accession, score_type_name, score) AS parent_group_index FROM ID_ParentGroup JOIN (" + subquery_score_ + ") ON score_type_id = st_id JOIN ID_ParentGroupSet ON grouping_id = ID_ParentGroupSet.id");
         sql = "SELECT * FROM groups_view";
         json_data.insert("ID_ParentGroup", exportQueryToJSON_(sql));
         if (tableExists_(db_name_, "ID_ParentGroup_ParentSequence"))
@@ -1269,6 +1306,8 @@ namespace OpenMS::Internal
     {
       sql = "SELECT molecule_type, identifier FROM ID_IdentifiedMolecule JOIN ID_MoleculeType ON molecule_type_id = ID_MoleculeType.id ORDER BY molecule_type, identifier";
       json_data.insert("ID_IdentifiedMolecule", exportQueryToJSON_(sql, {}));
+      exportScoredResultToJSON_(json_data, "ID_IdentifiedMolecule", subquery_molecule, "molecule_type, identifier",
+                                "im_id");
       // identified compound:
       if (tableExists_(db_name_, "ID_IdentifiedCompound"))
       {
@@ -1293,7 +1332,6 @@ namespace OpenMS::Internal
     // observation matches:
     if (tableExists_(db_name_, "ID_ObservationMatch"))
     {
-      QString subquery_obs = "SELECT ID_Observation.id AS o_id, input_file_name, data_id FROM ID_Observation JOIN (SELECT id AS if_id, name AS input_file_name FROM ID_InputFile) ON input_file_id = if_id";
       if (with_adducts)
       {
         sql = "SELECT ID_ObservationMatch.id, input_file_name, data_id, molecule_type, identifier, formula AS adduct_formula, AdductInfo.charge AS adduct_charge, ID_ObservationMatch.charge, ROW_NUMBER() OVER (ORDER BY input_file_name, data_id, molecule_type, identifier, ID_ObservationMatch.charge, formula, AdductInfo.charge) AS observation_match_index FROM ID_ObservationMatch JOIN (" + subquery_molecule + ") ON identified_molecule_id = im_id JOIN (" + subquery_obs + ") ON observation_id = o_id JOIN AdductInfo ON adduct_id = AdductInfo.id";
@@ -1305,6 +1343,16 @@ namespace OpenMS::Internal
       createView_("match_view", sql);
       sql = "SELECT * FROM match_view";
       json_data.insert("ID_ObservationMatch", exportQueryToJSON_(sql));
+      exportScoredResultToJSON_(json_data, "ID_ObservationMatch",
+                                "SELECT id AS p_id, observation_match_index FROM match_view",
+                                "observation_match_index");
+      // peak annotations:
+      if (tableExists_(db_name_, "ID_ObservationMatch_PeakAnnotation"))
+      {
+        sql = "SELECT * FROM ID_ObservationMatch_PeakAnnotation JOIN (SELECT id AS p_id, observation_match_index FROM match_view) ON parent_id = p_id JOIN (SELECT id AS s_id, processing_step_index FROM steps_view) ON processing_step_id = s_id ORDER BY observation_match_index, processing_step_index, peak_mz";
+        json_data.insert("ID_ObservationMatch_PeakAnnotation",
+                         exportQueryToJSON_(sql, {"m_id", "s_id", "parent_id", "processing_step_id"}));
+      }
     }
 
 
