@@ -328,6 +328,8 @@ namespace OpenMS
               std::string adducts;
               try
               {
+                // Extract adduct: the first letter stands for the actual metabolite and then everything after are the abducts up until the ";"
+                // For example, M-H;1- will give -H
                 std::string str = hit.getMetaValue("modifications").toString();
                 std::string delimiter = ";";
                 adducts = str.substr(1, str.find(delimiter) - 1);
