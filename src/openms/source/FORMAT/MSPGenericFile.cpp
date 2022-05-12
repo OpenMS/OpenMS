@@ -38,6 +38,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <boost/regex.hpp>
 #include <fstream>
+#include <array>
 
 namespace OpenMS
 {
@@ -188,7 +189,7 @@ namespace OpenMS
           output_file << "CAS#: " << spectrum.getMetaValue("CAS#") << ";  NIST#: " << spectrum.getMetaValue("NIST#") << '\n';
         }
         // Other metadata
-        constexpr std::array<std::string, 4> ignore_metadata = {"Synon", "CAS#", "NIST#", "Num Peaks"};
+        static const std::array<std::string, 4> ignore_metadata = {"Synon", "CAS#", "NIST#", "Num Peaks"};
         std::vector<String> keys;
         spectrum.getKeys(keys);
         for (const auto& key : keys)
