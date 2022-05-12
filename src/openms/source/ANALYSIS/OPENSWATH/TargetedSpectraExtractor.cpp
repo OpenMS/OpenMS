@@ -252,7 +252,7 @@ namespace OpenMS
                 ms2_feature.setIntensity(subordinate.getIntensity());
                 ms2_feature.setMetaValue("native_id", native_id_s);
                 ms2_feature.setMetaValue("PeptideRef", peptide_ref_s); // TODO: "transition_name"
-                ms2_features.push_back(ms2_feature);
+                ms2_features.push_back(std::move(ms2_feature));
               }
             }
           }
