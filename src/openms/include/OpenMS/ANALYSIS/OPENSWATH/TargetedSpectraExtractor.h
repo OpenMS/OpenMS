@@ -210,12 +210,12 @@ public:
 
       @param[in] feat_map The feature map to search in
       @param[out] feat_map_output The output feature map, with peptide identifaction as sub features
-      @param[in] add_unknown_features Adds unknown features to the feature map
+      @param[in] add_unidentified_features Adds unidentified features to the feature map
     */
     void searchSpectrum(
         OpenMS::FeatureMap& feat_map,
         OpenMS::FeatureMap& feat_map_output,
-        bool add_unknown_features = false) const;
+        bool add_unidentified_features = false) const;
 
     /**
       @brief Picks a spectrum's peaks and saves them in picked_spectrum.

@@ -293,7 +293,7 @@ namespace OpenMS
   void TargetedSpectraExtractor::searchSpectrum(
       OpenMS::FeatureMap& feat_map,
       OpenMS::FeatureMap& feat_map_output,
-      bool add_unknown_features) const
+      bool add_unidentified_features) const
   {
     OpenMS::AccurateMassSearchEngine ams;
     OpenMS::MzTab output;
@@ -347,18 +347,11 @@ namespace OpenMS
               f.setSubordinates({s});
               feat_map_output.push_back(f);
             }
-            else if (add_unknown_features)
+            else if (add_unidentified_features)
             {
               //// "PeptideRef" metavalue should have been set during peak picking, but if not...
               std::ostringstream mass_of_the_peak;
               mass_of_the_peak << s.getMZ();
-              //f.setMetaValue("PeptideRef", mass_of_the_peak.str());
-              //s.setMetaValue("PeptideRef", mass_of_the_peak.str());
-
-              //// "native_id" metavalue should have been set during peak picking, but if not...
-              //std::ostringstream native_id;
-              //native_id << "Unknown " << unknown_feature_counter++;
-              //s.setMetaValue("native_id", native_id.str());
 
               // Fill in accurateMassSearch metavalues
               DataValue identifiers(std::vector<std::string>({mass_of_the_peak.str()}));
