@@ -38,6 +38,7 @@
 #include <OpenMS/APPLICATIONS/ParameterInformation.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 
+#include <OpenMS/CONCEPT/Colorizer.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
@@ -253,7 +254,9 @@ namespace OpenMS
     // test if no options were given
     if (argc == 1)
     {
+      cout << red();
       writeLog_("No options given. Aborting!");
+      cout << reset_color();
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -574,7 +577,7 @@ namespace OpenMS
       }
     }
 
-    cerr << "Options (mandatory options marked with '*'):" << "\n";
+    cerr << magenta("Options (mandatory options marked with '*'):") << "\n";
 
     //determine max length of parameters (including argument) for indentation
     UInt max_size = 0;
@@ -748,7 +751,7 @@ namespace OpenMS
 
       //output
       cerr << "\n"
-           << "The following configuration subsections are valid:" << "\n";
+           << green("The following configuration subsections are valid:") << "\n";
       for (map<String, String>::const_iterator it = subsections_.begin(); it != subsections_.end(); ++it)
       {
         String tmp = String(" - ") + it->first;
@@ -756,11 +759,11 @@ namespace OpenMS
         cerr << ConsoleUtils::breakString(tmp  + it->second, indent, 10);
         cerr << "\n";
       }
-      cerr << "\n"
+      cerr << blue() << "\n"
            << ConsoleUtils::breakString("You can write an example INI file using the '-write_ini' option.", 0, 10) << "\n"
            << ConsoleUtils::breakString("Documentation of subsection parameters can be found in the doxygen documentation or the INIFileEditor.", 0, 10) << "\n"
            << ConsoleUtils::breakString("For more information, please consult the online documentation for this tool:", 0, 10) << "\n"
-           << ConsoleUtils::breakString("  - " + docurl, 0, 10) << "\n";
+           << ConsoleUtils::breakString("  - " + docurl, 0, 10) << reset_color() << "\n";
     }
     cerr << endl;
   }
