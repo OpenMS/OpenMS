@@ -29,5 +29,5 @@ jobs:
       if: steps.changed_files.outputs.any_modified == 'true'
       uses: DoozyX/clang-format-lint-action@v0.13
       with:
-        source: ${{ steps.changed_files.outputs.all_modified_files }}
+        source: ${{ steps.changed_files.outputs.all_changed_files }}
         clangFormatVersion: 13
