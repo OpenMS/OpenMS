@@ -328,13 +328,16 @@ void MQEvidence::exportRowFromFeature_(
   file_ << ptr_best_hit->getPeptideEvidences()[0].getProteinAccession() << "\t"; // Leading Razor Proteins
 
   // TODO we need to map the peptideidentifications to a proteinhit to get the description -> protein/gene name
-  //ProteinIdentification accession = cmap.getProteinIdentifications()[0]; // TODO needs work-around, so no copy is needed, Problem: findHit is not const
-  //const auto it_to_hit =
-  //if(!f.getPeptideIdentifications().empty()) accession.findHit(f.getPeptideIdentifications()[0].getIdentifier())->getDescription(); // TODO
+  const ProteinIdentification& accession =  cmap.getProteinIdentifications()[0];
+  const PeptideHit* cf_ptr_best_hit = &cf.getPeptideIdentifications()[0].getHits()[0];
+  auto protein_description =  accession.findHit(cf_ptr_best_hit->getPeptideEvidences()[0].getProteinAccession())->getDescription(); // TODO
+  //std::string protein_description = "sp|P00797-2|RENI_HUMAN Isoform 2 of Renin OS=Homo sapiens GN=REN OS=Homo";
 
-  //file_ << accession.findHit(f.getPeptideIdentifications()[0].getIdentifier())->getDescription() << "\t";
-  file_ << "NA" << "\t"; //cmap.getProteinIdentifications()[2].getHits()[c_feature_number].getDescription() << "\t"; //  TODO Gene Names*/
-  file_ << "NA" << "\t"; // Proteins Names
+  auto gene_name = protein_description.substr(protein_description.find("GN=") + 3);
+  gene_name = gene_name.substr(0,gene_name.find(" "));
+
+  file_ << gene_name << "\t"; //  TODO Gene Names
+  file_ << protein_description << "\t"; // Proteins Names
   file_ << type << "\t"; // type
 
   file_ << raw_file << "\t"; // Raw File
@@ -445,7 +448,6 @@ void MQEvidence::exportRowFromFeature_(
     file_ << f.getMZ() - cmap[c_feature_number].getMZ() << "\t"; // Match mz diff
   }
 
-  const PeptideHit* cf_ptr_best_hit = &cf.getPeptideIdentifications()[0].getHits()[0];
   cf_ptr_best_hit->metaValueExists("qvalue")? file_ << cf_ptr_best_hit->getMetaValue("qvalue") << "\t" : file_ << "\t"; // Match q-value
 
   file_ << cf_ptr_best_hit->getScore() << "\t"; // Match score

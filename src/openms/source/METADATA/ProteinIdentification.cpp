@@ -318,7 +318,13 @@ namespace OpenMS
   vector<ProteinHit>::iterator ProteinIdentification::findHit(
     const String& accession)
   {
-    vector<ProteinHit>::iterator pos = protein_hits_.begin();
+    return findHit(accession);
+  }
+
+  vector<ProteinHit>::const_iterator ProteinIdentification::findHit(
+    const String& accession) const
+  {
+    auto pos = protein_hits_.cbegin();
     for (; pos != protein_hits_.end(); ++pos)
     {
       if (pos->getAccession() == accession)
