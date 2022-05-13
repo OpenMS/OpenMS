@@ -898,7 +898,6 @@ namespace OpenMS
     }
 
     std::vector<ReactionMonitoringTransition> v_rmt_all;
-    //std::vector<TargetedExperiment::Compound> compounds;
     std::vector<TargetedExperiment::Peptide> peptides;
     std::vector<TargetedExperiment::Protein> proteins;
     for (const auto& ms1_feature : ms1_features)
@@ -919,14 +918,6 @@ namespace OpenMS
       peptide.protein_refs.push_back(peptide_ref);
       peptide.rts.push_back(rt);
       peptides.push_back(peptide);
-
-      //OpenMS::TargetedExperiment::Compound compound;
-      //compound.id = peptide_ref;
-      //compound.setChargeState(ms1_feature.getCharge());
-      //compound.addMetaValues(ms1_feature);
-      //compound.rts.push_back(rt);
-      //compounds.push_back(compound);
-      
       for (const auto& ms2_feature : ms1_to_ms2[peptide_ref])
       {
         auto current_mz = ms2_feature->getMZ();
@@ -941,7 +932,6 @@ namespace OpenMS
           rmt.setLibraryIntensity(ms2_feature->getIntensity());
           rmt.setName(ms2_feature->getMetaValue("native_id"));
           rmt.setNativeID(os.str());
-          //rmt.setCompoundRef(peptide_ref);
           rmt.setPeptideRef(peptide_ref);
           rmt.setPrecursorMZ(ms1_feature.getMZ());
           rmt.setProductMZ(ms2_feature->getMZ());
@@ -954,7 +944,6 @@ namespace OpenMS
 
     t_exp.setProteins(proteins);
     t_exp.setPeptides(peptides);
-    //t_exp.setCompounds(compounds);
     t_exp.setTransitions(v_rmt_all);
 
     // validate
