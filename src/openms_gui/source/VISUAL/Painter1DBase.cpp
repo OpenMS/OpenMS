@@ -37,9 +37,7 @@
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 
@@ -121,7 +119,7 @@ namespace OpenMS
     return bounding_rect;
   }
 
-  Painter1DPeak::Painter1DPeak(const LayerDataPeak* parent) : layer_(parent)
+  Painter1DPeak::Painter1DPeak(const LayerData1DPeak* parent) : layer_(parent)
   {
   }
 

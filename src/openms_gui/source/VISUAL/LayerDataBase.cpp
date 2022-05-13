@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 //#include <iostream>
@@ -74,27 +75,11 @@ namespace OpenMS
   String LayerDataBase::getDecoratedName() const
   {
     String n = name_;
-    if (flipped)
-    {
-      n += " [flipped]";
-    }
     if (modified)
     {
       n += '*';
     }
     return n;
-  }
-
-  void LayerDataBase::updateCache_()
-  {
-    if (peak_map_->getNrSpectra() > current_spectrum_idx_ && (*peak_map_)[current_spectrum_idx_].size() > 0)
-    {
-      cached_spectrum_ = (*peak_map_)[current_spectrum_idx_];
-    }
-    else if (on_disc_peaks->getNrSpectra() > current_spectrum_idx_)
-    {
-      cached_spectrum_ = on_disc_peaks->getSpectrum(current_spectrum_idx_);
-    }
   }
 
   LayerDataBase::OSWDataSharedPtrType& LayerDataBase::getChromatogramAnnotation()
@@ -141,28 +126,6 @@ namespace OpenMS
     return true;
   }
 
-  const LayerDataBase::ExperimentType::SpectrumType& LayerDataBase::getCurrentSpectrum() const
-  {
-    return cached_spectrum_;
-  }
-
-
-  const LayerDataBase::ExperimentType::SpectrumType LayerDataBase::getSpectrum(Size spectrum_idx) const
-  {
-    if (spectrum_idx == current_spectrum_idx_)
-    {
-      return cached_spectrum_;
-    }
-    if ((*peak_map_)[spectrum_idx].size() > 0)
-    {
-      return (*peak_map_)[spectrum_idx];
-    }
-    else if (!on_disc_peaks->empty())
-    {
-      return on_disc_peaks->getSpectrum(spectrum_idx);
-    }
-    return (*peak_map_)[spectrum_idx];
-  }
 
   float LayerDataBase::getMinIntensity() const
   {
@@ -172,205 +135,6 @@ namespace OpenMS
   float LayerDataBase::getMaxIntensity() const
   {
     return getRange().getMaxIntensity();
-  }
-
-  void LayerDataBase::synchronizePeakAnnotations()
-  {
-    // Return if no valid peak layer attached
-    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerDataBase::DT_PEAK)
-    {
-      return;
-    }
-
-    // get mutable access to the spectrum
-    MSSpectrum& spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_idx_);
-
-    int ms_level = spectrum.getMSLevel();
-
-    if (ms_level != 2) return;
-
-    // store user fragment annotations
-    vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
-
-    // no ID selected
-    if (peptide_id_index == -1 || peptide_hit_index == -1)
-    {
-      return;
-    }
-
-    if (!pep_ids.empty())
-    {
-      vector<PeptideHit>& hits = pep_ids[peptide_id_index].getHits();
-
-      if (!hits.empty())
-      {
-        PeptideHit& hit = hits[peptide_hit_index];
-        updatePeptideHitAnnotations_(hit);
-      }
-      else
-      {// no hits? add empty hit
-        PeptideHit hit;
-        updatePeptideHitAnnotations_(hit);
-        hits.push_back(hit);
-      }
-    }
-    else// PeptideIdentifications are empty, create new PepIDs and PeptideHits to store the PeakAnnotations
-    {
-      // copy user annotations to fragment annotation vector
-      const Annotations1DContainer& las = getAnnotations(current_spectrum_idx_);
-
-      // no annotations so we don't need to synchronize
-      bool has_peak_annotation(false);
-      for (auto& a : las)
-      {
-        // only store peak annotations
-        auto pa = dynamic_cast<Annotation1DPeakItem<Peak1D>*>(a);
-        if (pa != nullptr)
-        {
-          has_peak_annotation = true;
-          break;
-        }
-      }
-      if (has_peak_annotation == false)
-      {
-        return;
-      }
-      PeptideIdentification pep_id;
-      pep_id.setIdentifier("Unknown");
-
-      // create a dummy ProteinIdentification for all ID-less PeakAnnotations
-      vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getProteinIdentifications();
-      if (prot_ids.empty() || prot_ids.back().getIdentifier() != String("Unknown"))
-      {
-        ProteinIdentification prot_id;
-        prot_id.setIdentifier("Unknown");
-        prot_ids.push_back(prot_id);
-      }
-
-      PeptideHit hit;
-      if (spectrum.getPrecursors().empty() == false)
-      {
-        pep_id.setMZ(spectrum.getPrecursors()[0].getMZ());
-        hit.setCharge(spectrum.getPrecursors()[0].getCharge());
-      }
-      pep_id.setRT(spectrum.getRT());
-
-      updatePeptideHitAnnotations_(hit);
-      std::vector<PeptideHit> hits;
-      hits.push_back(hit);
-      pep_id.setHits(hits);
-      pep_ids.push_back(pep_id);
-    }
-  }
-
-  void LayerDataBase::updatePeptideHitAnnotations_(PeptideHit& hit)
-  {
-    // copy user annotations to fragment annotation vector
-    const Annotations1DContainer& las = getCurrentAnnotations();
-
-    // initialize with an empty vector
-    vector<PeptideHit::PeakAnnotation> fas;
-
-    // do not change PeptideHit annotations, if there are no annotations on the spectrum
-    bool annotations_changed(false);
-
-    // for each annotation item on the canvas
-    for (auto& a : las)
-    {
-      // only store peak annotations (skip general labels and distance annotations)
-      auto pa = dynamic_cast<Annotation1DPeakItem<Peak1D>*>(a);
-      if (pa == nullptr)
-      {
-        continue;
-      }
-      fas.push_back(pa->toPeakAnnotation());
-      annotations_changed = true;
-    }
-
-    if (annotations_changed)
-    {
-      hit.setPeakAnnotations(fas);
-    }
-  }
-
-  void LayerDataBase::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
-  {
-    // Return if no valid peak layer attached
-    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerDataBase::DT_PEAK)
-    {
-      return;
-    }
-
-    // no ID selected
-    if (peptide_id_index == -1 || peptide_hit_index == -1)
-    {
-      return;
-    }
-
-    // get mutable access to the spectrum
-    MSSpectrum& spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_idx_);
-    int ms_level = spectrum.getMSLevel();
-
-    // wrong MS level
-    if (ms_level < 2)
-    {
-      return;
-    }
-
-    // extract PeptideIdentification and PeptideHit if possible.
-    // that this function returns prematurely is unlikely,
-    // since we are deleting existing annotations,
-    // that have to be somewhere, but better make sure
-    vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
-    if (pep_ids.empty())
-    {
-      return;
-    }
-    vector<PeptideHit>& hits = pep_ids[peptide_id_index].getHits();
-    if (hits.empty())
-    {
-      return;
-    }
-    PeptideHit& hit = hits[peptide_hit_index];
-    vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
-    if (fas.empty())
-    {
-      return;
-    }
-
-    // all requirements fulfilled, PH in hit and annotations in selected_annotations
-    vector<PeptideHit::PeakAnnotation> to_remove;
-    // collect annotations, that have to be removed
-    for (auto const& tmp_a : fas)
-    {
-      for (auto const& it : selected_annotations)
-      {
-        using ItemType = Peak1D;
-        auto pa = dynamic_cast<Annotation1DPeakItem<ItemType>*>(it);
-        // only search for peak annotations
-        if (pa == nullptr)
-        {
-          continue;
-        }
-
-        if (fabs(tmp_a.mz - pa->getPeakPosition().getMZ()) < 1e-6)
-        {
-          if (String(pa->getText()).hasPrefix(tmp_a.annotation))
-          {
-            to_remove.push_back(tmp_a);
-          }
-        }
-      }
-    }
-    // remove the collected annotations from the PeptideHit annotations
-    for (auto const& tmp_a : to_remove)
-    {
-      fas.erase(std::remove(fas.begin(), fas.end(), tmp_a), fas.end());
-    }
-    if (!to_remove.empty())
-    {
-      hit.setPeakAnnotations(fas);
-    }
   }
 
   LayerAnnotatorBase::LayerAnnotatorBase(const FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock) :

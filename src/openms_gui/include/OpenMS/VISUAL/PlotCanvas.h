@@ -166,8 +166,9 @@ public:
     /// Peak type
     typedef SpectrumType::PeakType PeakType;
 
-    /// Type of the Points
-    typedef DPosition<2> PointXYType;
+    /// Type of the Points in a 'flat' canvas (1D and 2D)
+    using PointXYType = LayerDataDefs::PointXYType;
+
     /// a generic range for the most common units
     using RangeType = RangeAllType;
    
@@ -284,23 +285,23 @@ public:
     }
 
     /// returns the layer data with index @p index
-    inline const LayerDataBase& getLayer(Size index) const
+    virtual const LayerDataBase& getLayer(Size index) const
     {
       return layers_.getLayer(index);
     }
     /// returns the layer data with index @p index
-    inline LayerDataBase& getLayer(Size index)
+    LayerDataBase& getLayer(Size index)
     {
       return layers_.getLayer(index);
     }
 
     /// returns the layer data of the active layer
-    inline const LayerDataBase& getCurrentLayer() const
+    virtual const LayerDataBase& getCurrentLayer() const
     {
       return layers_.getCurrentLayer();
     }
     /// returns the layer data of the active layer
-    inline LayerDataBase& getCurrentLayer()
+    LayerDataBase& getCurrentLayer()
     {
       return layers_.getCurrentLayer();
     }

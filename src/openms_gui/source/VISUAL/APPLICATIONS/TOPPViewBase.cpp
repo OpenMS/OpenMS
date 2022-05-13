@@ -1684,7 +1684,7 @@ namespace OpenMS
     //Store data
     topp_.layer_name = layer.getName();
     topp_.window_id = getActivePlotWidget()->getWindowId();
-    topp_.spectrum_id = layer.getCurrentSpectrumIndex();
+    //topp_.spectrum_id = layer.getCurrentSpectrumIndex();
     if (layer.type == LayerDataBase::DT_PEAK  && !(layer.chromatogram_flag_set()))
     {
       MzMLFile f;
@@ -2013,14 +2013,14 @@ namespace OpenMS
   }
 
 
-  void TOPPViewBase::showCurrentPeaksAsIonMobility()
+  void TOPPViewBase::showCurrentPeaksAsIonMobility(const MSSpectrum& spec)
   {
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
 
     // Get current spectrum
     auto spidx = layer.getCurrentSpectrumIndex();
     
-    ExperimentSharedPtrType exp(new MSExperiment(IMDataConverter::splitByIonMobility(layer.getCurrentSpectrum())));
+    ExperimentSharedPtrType exp(new MSExperiment(IMDataConverter::splitByIonMobility(spec)));
     // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
     for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
 

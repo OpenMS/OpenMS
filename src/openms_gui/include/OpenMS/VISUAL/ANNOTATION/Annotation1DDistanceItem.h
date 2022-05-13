@@ -47,10 +47,22 @@ namespace OpenMS
   {
 
 public:
-    /// Constructor
-    Annotation1DDistanceItem(const QString & text, const PointXYType& start_point, const PointXYType& end_point)
+    /**
+     * \brief 
+     * \param text The text to display between the two points
+     * \param start_point Start point in XY unit coordinates
+     * \param end_point End point in XY unit coordinates 
+     * \param swap_ends_if_negative Make sure the distance is positive when creating the distance item?
+     */
+    Annotation1DDistanceItem(const QString & text, const PointXYType& start_point, const PointXYType& end_point, const bool swap_ends_if_negative = true)
       : Annotation1DItem(text), start_point_(start_point), end_point_(end_point)
     {
+      if (swap_ends_if_negative && start_point_ > end_point_)
+      {
+        { // make sure the distance is positive when creating the distance item
+          start_point_.swap(end_point_);
+        }
+      }
     }
     /// Copy constructor
     Annotation1DDistanceItem(const Annotation1DDistanceItem & rhs) = default;
@@ -122,6 +134,20 @@ public:
     const PointXYType& getEndPoint() const
     {
       return end_point_;
+    }
+
+    /**
+     * \brief Compute the (negative) euclidean distance between start and endpoint.
+     *
+     * If the startpoint is closer to (0,0) than the endpoint, the distance will be positive; otherwise negative.
+     *
+     * \return sign * sqrt(deltaX^2 + deltaY^2), where deltaX/Y is the difference between start and endpoint in dimension X/Y
+     */
+    double getDistance() const
+    {
+      const auto delta = end_point_ - start_point_;
+      const auto dist = std::sqrt(delta.getX() * delta.getX() + delta.getY() * delta.getY());
+      return std::copysign(1, delta.getX() + delta.getY()) * dist;  
     }
 
     /// Set tick lines for the distance item in unit XY coordinates (the gravity dimension is ignored)

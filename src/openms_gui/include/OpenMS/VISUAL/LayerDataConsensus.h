@@ -44,7 +44,7 @@ namespace OpenMS
 
   @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI LayerDataConsensus : public LayerDataBase
+  class OPENMS_GUI_DLLAPI LayerDataConsensus : public virtual LayerDataBase
   {
   public:
     /// Default constructor
@@ -57,8 +57,6 @@ namespace OpenMS
     LayerDataConsensus(LayerDataConsensus&& ld) = default;
     /// move assignment
     LayerDataConsensus& operator=(LayerDataConsensus&& ld) = default;
-
-    std::unique_ptr<Painter1DBase> getPainter1D() const override;
 
     void updateRanges() override
     {

@@ -28,68 +28,92 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #pragma once
 
+#include "Plot1DCanvas.h"
+
 #include <OpenMS/VISUAL/LayerDataBase.h>
-#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
+
+class QWidget;
 
 namespace OpenMS
 {
+  class Annotations1DContainer;
+  class Annotation1DItem;
 
   /**
-  @brief Class that stores the data for one layer of type FeatureMap
-
-  @ingroup PlotWidgets
-  */
-  class OPENMS_GUI_DLLAPI LayerDataFeature : public LayerDataBase, public IPeptideIds
+   * \brief Base class for all 1D layers, a special case of LayerData.
+   *
+   * 1D is a bit special because we need to remember which spectrum/chrom/IM is currently shown (there are usually many of them to choose from).
+   *
+   *
+   */
+  class OPENMS_DLLAPI LayerData1DBase : public virtual LayerDataBase
   {
   public:
-    /// Default constructor
-    LayerDataFeature();
-    /// no Copy-ctor (should not be needed)
-    LayerDataFeature(const LayerDataFeature& ld) = delete;
-    /// no assignment operator (should not be needed)
-    LayerDataFeature& operator=(const LayerDataFeature& ld) = delete;
-    /// move C'tor
-    LayerDataFeature(LayerDataFeature&& ld) = default;
-    /// move assignment
-    LayerDataFeature& operator=(LayerDataFeature&& ld) = default;
+    LayerData1DBase() {};
 
-    void updateRanges() override
+    virtual std::unique_ptr<Painter1DBase> getPainter1D() const = 0;
+
+    /// get name augmented with attributes, e.g. '*' if modified
+    String getDecoratedName() const override;
+        
+    /// Returns a const reference to the annotations of the current spectrum (1D view)
+    const Annotations1DContainer& getCurrentAnnotations() const
     {
-      features_->updateRanges();
+      return annotations_1d_[current_idx_];
     }
 
-    RangeAllType getRange() const override
+    /// Returns a mutable reference to the annotations of the current spectrum (1D view)
+    Annotations1DContainer& getCurrentAnnotations()
     {
-      RangeAllType r;
-      r.assign(*getFeatureMap());
-      return r;
+      return annotations_1d_[current_idx_];
     }
 
-    std::unique_ptr<LayerStatistics> getStats() const override;
-
-    const PepIds& getPeptideIds() const override
+    /// Returns a const reference to the annotations of the @p spectrum_index's spectrum (1D view)
+    const Annotations1DContainer& getAnnotations(Size spectrum_index) const
     {
-      return getFeatureMap()->getUnassignedPeptideIdentifications();
-    }
-    PepIds& getPeptideIds() override
-    {
-      return getFeatureMap()->getUnassignedPeptideIdentifications();
+      return annotations_1d_[spectrum_index];
     }
 
-    void setPeptideIds(const PepIds& ids) override
+    /// Returns a mutable reference to the annotations of the @p spectrum_index's spectrum (1D view)
+    Annotations1DContainer& getAnnotations(Size spectrum_index)
     {
-      getFeatureMap()->getUnassignedPeptideIdentifications() = ids;
+      return annotations_1d_[spectrum_index];
     }
-    void setPeptideIds(PepIds&& ids) override
+    /// Get the index of the current spectrum (1D view)
+    Size getCurrentIndex() const
     {
-      getFeatureMap()->getUnassignedPeptideIdentifications() = std::move(ids);
+      return current_idx_;
     }
+
+    /// Set the index of the current spectrum (1D view)
+    void setCurrentIndex(Size index)
+    {
+      current_idx_ = index;
+    }
+
+
+    /// if this layer is flipped (1d mirror view)
+    bool flipped = false;
+
+    /// Peak colors of the currently shown spectrum
+    std::vector<QColor> peak_colors_1d;
+
+  protected:
+    /// Index of the current spectrum/chromatogram etc
+    Size current_idx_ = -1;
+
+    /// Annotations of all spectra of the experiment (1D view)
+    std::vector<Annotations1DContainer> annotations_1d_ = std::vector<Annotations1DContainer>(1);
+
+
   };
 
+
 }// namespace OpenMS
+

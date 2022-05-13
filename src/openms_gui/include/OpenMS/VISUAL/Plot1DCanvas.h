@@ -38,6 +38,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // OpenMS
+#include <OpenMS/VISUAL/LayerData1DBase.h>
 #include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/Painter1DBase.h>
 
@@ -54,6 +55,9 @@ class QAction;
 
 namespace OpenMS
 {
+
+  class Annotation1DItem;
+
   /**
    * \brief Manipulates X or Y component of points in the X-Y plane, by assuming one axis (either X or Y axis) has gravity acting upon it.
    *
@@ -342,6 +346,42 @@ public:
     Plot1DCanvas(const Param& preferences, const DIM gravity_axis = DIM::Y, QWidget* parent = nullptr);
     /// Destructor
     ~Plot1DCanvas() override;
+    
+    /// returns the layer data of the active layer
+    /// @throws std::bad_cast exception if the current layer is not a LayerData1DBase
+    const LayerData1DBase& getLayer(Size index) const override
+    {
+      return dynamic_cast<const LayerData1DBase&>(layers_.getLayer(index));
+    }
+    /// returns the layer data of the active layer
+    /// @throws std::bad_cast exception if the current layer is not a LayerData1DBase
+    LayerData1DBase& getCurrentLayer(Size index)
+    {
+      return dynamic_cast<LayerData1DBase&>(layers_.getLayer(index));
+    }
+
+    /// returns the layer data of the active layer
+    /// @throws std::bad_cast exception if the current layer is not a LayerData1DBase 
+    const LayerData1DBase& getCurrentLayer() const override
+    {
+      return dynamic_cast<const LayerData1DBase&>(layers_.getCurrentLayer());
+    }
+    /// returns the layer data of the active layer
+    /// @throws std::bad_cast exception if the current layer is not a LayerData1DBase
+    LayerData1DBase& getCurrentLayer()
+    {
+      return dynamic_cast<LayerData1DBase&>(layers_.getCurrentLayer());
+    }
+
+    const DimBase& getGravityDim() const
+    {
+      return unit_mapper_.getDim(getGravitator().getGravityAxis());
+    }
+
+    const DimBase& getNonGravityDim() const
+    {
+      return unit_mapper_.getDim(getGravitator().swap().getGravityAxis());
+    }
 
     /// add a chromatogram layer
     /// @param chrom_exp_sptr An MSExperiment with chromatograms
@@ -425,7 +465,7 @@ public:
     void pushIntoDataRange<PointXYType>(PointXYType& xy_unit, const int layer_index)
     { // note: if this is needed for anything other than the 1D Canvas, you need to make sure to call the correct widgetToData/ etc functions --- they work a bit different, depending on Canvas
       auto p_range = unit_mapper_.fromXY(xy_unit);
-      const auto& all_range = getLayer(layer_index).getCurrentSpectrum().getRange();
+      const auto& all_range = getLayer(layer_index).getRange();
       p_range.pushInto(all_range);
       xy_unit = unit_mapper_.mapRange(p_range).minPosition();
     }
@@ -492,7 +532,7 @@ signals:
     void showCurrentPeaksAs3D();
 
     /// Requests to display all spectra in ion mobility plot
-    void showCurrentPeaksAsIonMobility();
+    void showCurrentPeaksAsIonMobility(const MSSpectrum& spec);
 
     /// Requests to display all spectra as DIA
     void showCurrentPeaksAsDIA();
@@ -598,13 +638,13 @@ protected:
     ////// data members
     /////////////////////
 
-    /// Draw modes (for each layer)
+    /// Draw modes (for each layer) - sticks or connected lines
     std::vector<DrawModes> draw_modes_;
     /// Draw style (for each layer)
     std::vector<Qt::PenStyle> peak_penstyle_;
 
-    /// start point of "ruler" for measure mode
-    QPoint measurement_start_point_;
+    /// start point of "ruler" in pixel coordinates for measure mode
+    QPoint measurement_start_point_px_;
     /// Indicates whether this widget is currently in mirror mode
     bool mirror_mode_ = false;
     /// Indicates whether annotation items are just being moved on the canvas

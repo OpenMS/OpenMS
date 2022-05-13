@@ -39,10 +39,10 @@ using namespace std;
 
 namespace OpenMS
 {
-  std::unique_ptr<Painter1DBase> LayerDataChrom::getPainter1D() const
+  /*std::unique_ptr<Painter1DBase> LayerDataChrom::getPainter1D() const
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-  }
+  } */
 
   std::unique_ptr<LayerStatistics> LayerDataChrom::getStats() const
   {

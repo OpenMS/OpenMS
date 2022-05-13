@@ -54,10 +54,16 @@ namespace OpenMS
 
   String DimBase::formattedValue(const ValueType value) const
   {
-    return formattedValue(value, String(string(this->getDimNameShort())) + ": ");
+    return formattedValue(value, String(this->getDimNameShort()) + ": ");
   }
 
   String DimBase::formattedValue(const ValueType value, const String& prefix) const
+  {
+    // hint: QLocale::c().toString adds group separators to better visualize large numbers (e.g. 23.009.646.54,3)
+    return prefix + QLocale::c().toString(value, 'f', valuePrecision());
+  }
+
+  int DimBase::valuePrecision() const
   {
     // decide on precision depending on unit; add more units if you have some intuition
     constexpr auto precision_for_unit = [](DIM_UNIT u) {
@@ -72,7 +78,6 @@ namespace OpenMS
           return 4;
       }
     };
-    // hint: QLocale::c().toString adds group separators to better visualize large numbers (e.g. 23.009.646.54,3)
-    return prefix + QLocale::c().toString(value, 'f', precision_for_unit(this->getUnit()));
+    return precision_for_unit(this->getUnit());
   }
 } // namespace OpenMS

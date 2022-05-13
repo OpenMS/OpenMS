@@ -48,7 +48,6 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 #include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 
@@ -65,77 +64,45 @@ namespace OpenMS
   class OnDiscMSExperiment;
   class OSWData;
   class Painter1DBase;
+  template <int N_DIM> class DimMapper;
 
-  /**
-  @brief Class that stores the data for one layer
-
-  The data for a layer can be peak data, feature data (feature, consensus),
-  chromatogram or peptide identification data. 
-
-  For 2D and 3D data, the data is generally accessible through getPeakData()
-  while features are accessible through getFeatureMap() and getConsensusMap().
-  For 1D data, the current spectrum must be accessed through
-  getCurrentSpectrum().
-
-  Peak data is stored using a shared pointer to an MSExperiment data structure
-  as well as a shared pointer to a OnDiscMSExperiment data structure. Note that
-  the actual data may not be in memory as this is not efficient for large files
-  and therefore may have to be retrieved from disk on-demand. 
-
-  @note The spectrum for 1D viewing retrieved through getCurrentSpectrum() is a
-  copy of the actual raw data and *different* from the one retrieved through
-  getPeakData()[index]. Any changes to applied to getCurrentSpectrum() are
-  non-persistent and will be gone the next time the cache is updated.
-  Persistent changes can be applied to getPeakDataMuteable() and will be
-  available on the next cache update.
-
-  @note Layer is mainly used as a member variable of PlotCanvas which holds
-  a vector of LayerDataBase objects.
-
-  @ingroup PlotWidgets
-  */
-  class OPENMS_GUI_DLLAPI LayerDataBase
-  {
-  public:
+  struct LayerDataDefs {
     /** @name Type definitions */
     //@{
     /// Dataset types.
     /// Order in the enum determines the order in which layer types are drawn.
     enum DataType
     {
-      DT_PEAK,        ///< Spectrum profile or centroided data
-      DT_CHROMATOGRAM,///< Chromatogram data
-      DT_FEATURE,     ///< Feature data
-      DT_CONSENSUS,   ///< Consensus feature data
-      DT_IDENT,       ///< Peptide identification data
-      DT_UNKNOWN      ///< Undefined data type indicating an error
+      DT_PEAK,         ///< Spectrum profile or centroided data
+      DT_CHROMATOGRAM, ///< Chromatogram data
+      DT_FEATURE,      ///< Feature data
+      DT_CONSENSUS,    ///< Consensus feature data
+      DT_IDENT,        ///< Peptide identification data
+      DT_UNKNOWN       ///< Undefined data type indicating an error
     };
 
     /// Flags that determine which information is shown.
     enum Flags
     {
-      F_HULL,       ///< Features: Overall convex hull
-      F_HULLS,      ///< Features: Convex hulls of single mass traces
-      F_UNASSIGNED, ///< Features: Unassigned peptide hits
-      P_PRECURSORS, ///< Peaks: Mark precursor peaks of MS/MS scans
-      P_PROJECTIONS,///< Peaks: Show projections
-      C_ELEMENTS,   ///< Consensus features: Show elements
-      I_PEPTIDEMZ,  ///< Identifications: m/z source
-      I_LABELS,     ///< Identifications: Show labels (not sequences)
+      F_HULL,        ///< Features: Overall convex hull
+      F_HULLS,       ///< Features: Convex hulls of single mass traces
+      F_UNASSIGNED,  ///< Features: Unassigned peptide hits
+      P_PRECURSORS,  ///< Peaks: Mark precursor peaks of MS/MS scans
+      P_PROJECTIONS, ///< Peaks: Show projections
+      C_ELEMENTS,    ///< Consensus features: Show elements
+      I_PEPTIDEMZ,   ///< Identifications: m/z source
+      I_LABELS,      ///< Identifications: Show labels (not sequences)
       SIZE_OF_FLAGS
     };
-
-    /// Actual state of each flag
-    std::bitset<SIZE_OF_FLAGS> flags;
 
     /// Label used in visualization
     enum LabelType
     {
-      L_NONE,      ///< No label is displayed
-      L_INDEX,     ///< The element number is used
-      L_META_LABEL,///< The 'label' meta information is used
-      L_ID,        ///< The best peptide hit of the first identification run is used
-      L_ID_ALL,    ///< All peptide hits of the first identification run are used
+      L_NONE,       ///< No label is displayed
+      L_INDEX,      ///< The element number is used
+      L_META_LABEL, ///< The 'label' meta information is used
+      L_ID,         ///< The best peptide hit of the first identification run is used
+      L_ID_ALL,     ///< All peptide hits of the first identification run are used
       SIZE_OF_LABEL_TYPE
     };
 
@@ -168,10 +135,49 @@ namespace OpenMS
     /// SharedPtr on OSWData
     typedef boost::shared_ptr<OSWData> OSWDataSharedPtrType;
 
+    /// Type of the Points in a 'flat' canvas (1D and 2D)
+    using PointXYType = DPosition<2>;
+    
+  };
+
+  /**
+  @brief Class that stores the data for one layer
+
+  The data for a layer can be peak data, feature data (feature, consensus),
+  chromatogram or peptide identification data. 
+
+  For 2D and 3D data, the data is generally accessible through getPeakData()
+  while features are accessible through getFeatureMap() and getConsensusMap().
+  For 1D data, the current spectrum must be accessed through
+  getCurrentSpectrum().
+
+  Peak data is stored using a shared pointer to an MSExperiment data structure
+  as well as a shared pointer to a OnDiscMSExperiment data structure. Note that
+  the actual data may not be in memory as this is not efficient for large files
+  and therefore may have to be retrieved from disk on-demand. 
+
+  @note The spectrum for 1D viewing retrieved through getCurrentSpectrum() is a
+  copy of the actual raw data and *different* from the one retrieved through
+  getPeakData()[index]. Any changes to applied to getCurrentSpectrum() are
+  non-persistent and will be gone the next time the cache is updated.
+  Persistent changes can be applied to getPeakDataMuteable() and will be
+  available on the next cache update.
+
+  @note Layer is mainly used as a member variable of PlotCanvas which holds
+  a vector of LayerDataBase objects.
+
+  @ingroup PlotWidgets
+  */
+  class OPENMS_GUI_DLLAPI LayerDataBase : public LayerDataDefs
+  {
+  public:
+    /// Actual state of each flag
+    std::bitset<SIZE_OF_FLAGS> flags;
+
     //@}
 
-    /// Default constructor
-    LayerDataBase() = delete;
+    /// Default constructor (for virtual inheritance)
+    LayerDataBase() = default;
     /// C'tor for child classes
     LayerDataBase(const DataType type) : type(type) {};
     /// no Copy-ctor (should not be needed)
@@ -185,7 +191,40 @@ namespace OpenMS
     /// D'tor
     virtual ~LayerDataBase() = default;
 
-    virtual std::unique_ptr<Painter1DBase> getPainter1D() const = 0;
+
+    /**
+     * \brief Find the closest datapoint within the given range and return a proxy to that datapoint
+     * \param area Range to search in. Only dimensions used in the canvas are populated.
+     * \return A proxy (e.g. scan + peak index in an MSExperiment) which points to the data
+     */
+    virtual PeakIndex findClosestDataPoint(const RangeAllType& area) const
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    /**
+     * \brief Convert a PeakIndex to a XY coordinate (via @p mapper).
+     * \param peak The Peak to convert
+     * \param mapper Converts the internal representation (e.g. Peak1D) to an XY coordinate
+     * \return XY coordinate in data units (e.g. X=m/z, Y=intensity)
+     */
+    virtual PointXYType peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    /**
+     * \brief Get name and value of all data-arrays corresponding to the given datapoint
+     *
+     * Empty (or shorter) data-arrays are skipped.
+     *
+     * \param peak_index The datapoint
+     * \return A string, e.g. "fwhm: 20, im: 3.3", depending on which float/string dataarrays are populated for the given datapoint
+     */
+    virtual String getDataArrayDescription(const PeakIndex& peak_index)
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
 
 
     /// Returns a const reference to the current feature data
@@ -243,7 +282,6 @@ namespace OpenMS
     void setPeakData(ExperimentSharedPtrType p)
     {
       peak_map_ = p;
-      updateCache_();
     }
 
     /// Set the current on-disc data
@@ -286,59 +324,6 @@ namespace OpenMS
     /// Will return false otherwise.
     bool annotate(const std::vector<PeptideIdentification>& identifications,
                   const std::vector<ProteinIdentification>& protein_identifications);
-
-
-    /// Returns a const reference to the annotations of the current spectrum (1D view)
-    const Annotations1DContainer& getCurrentAnnotations() const
-    {
-      return annotations_1d[current_spectrum_idx_];
-    }
-
-    /// Returns a mutable reference to the annotations of the current spectrum (1D view)
-    Annotations1DContainer& getCurrentAnnotations()
-    {
-      return annotations_1d[current_spectrum_idx_];
-    }
-
-    /// Returns a const reference to the annotations of the current spectrum (1D view)
-    const Annotations1DContainer& getAnnotations(Size spectrum_index) const
-    {
-      return annotations_1d[spectrum_index];
-    }
-
-    /// Returns a mutable reference to the annotations of the current spectrum (1D view)
-    Annotations1DContainer& getAnnotations(Size spectrum_index)
-    {
-      return annotations_1d[spectrum_index];
-    }
-
-    /**
-    @brief Returns a const reference to the current spectrum (1D view)
-
-    @note Only use this function to access the current spectrum for the 1D view
-    */
-    const ExperimentType::SpectrumType& getCurrentSpectrum() const;
-
-    void sortCurrentSpectrumByPosition()
-    {
-      cached_spectrum_.sortByPosition();
-    }
-
-    /// Returns a const-copy of the required spectrum which is guaranteed to be populated with raw data
-    const ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const;
-
-    /// Get the index of the current spectrum (1D view)
-    Size getCurrentSpectrumIndex() const
-    {
-      return current_spectrum_idx_;
-    }
-
-    /// Set the index of the current spectrum (1D view)
-    void setCurrentSpectrumIndex(Size index)
-    {
-      current_spectrum_idx_ = index;
-      updateCache_();
-    }
 
 
     /// get the full chromExperiment
@@ -430,20 +415,10 @@ namespace OpenMS
     /// compute layer statistics (via visitor)
     virtual std::unique_ptr<LayerStatistics> getStats() const = 0;
 
-    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
-    /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
-    void synchronizePeakAnnotations();
-
-    /// remove peak annotations in the given list from the currently active PeptideHit
-    void removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations);
-
     /// if this layer is visible
     bool visible = true;
 
-    /// if this layer is flipped (1d mirror view)
-    bool flipped = false;
-
-    /// data type (peak or feature data)
+    /// data type (peak or feature data, etc)
     DataType type = DT_UNKNOWN;
 
   private:
@@ -472,12 +447,6 @@ namespace OpenMS
     /// Filters to apply before painting
     DataFilters filters;
 
-    /// Annotations of all spectra of the experiment (1D view)
-    std::vector<Annotations1DContainer> annotations_1d = std::vector<Annotations1DContainer>(1);
-
-    /// Peak colors of the currently shown spectrum
-    std::vector<QColor> peak_colors_1d;
-
     /// Flag that indicates if the layer data can be modified (so far used for features only)
     bool modifiable = false;
 
@@ -491,16 +460,10 @@ namespace OpenMS
     int peptide_id_index = -1;
     int peptide_hit_index = -1;
 
-    /// get name augmented with attributes, e.g. [flipped], or '*' if modified
-    String getDecoratedName() const;
+    /// get name augmented with attributes, e.g. '*' if modified
+    virtual String getDecoratedName() const;
 
   protected:
-    /// Update current cached spectrum for easy retrieval
-    void updateCache_();
-
-    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
-    void updatePeptideHitAnnotations_(PeptideHit& hit);
-
     /// feature data
     FeatureMapSharedPtrType features_ = FeatureMapSharedPtrType(new FeatureMapType());
 
@@ -519,11 +482,6 @@ namespace OpenMS
     /// Chromatogram annotation data
     OSWDataSharedPtrType chrom_annotation_;
 
-    /// Index of the current spectrum
-    Size current_spectrum_idx_ = 0;
-
-    /// Current cached spectrum
-    ExperimentType::SpectrumType cached_spectrum_;
   };
 
   /// A base class to annotate layers of specific types with (identification) data

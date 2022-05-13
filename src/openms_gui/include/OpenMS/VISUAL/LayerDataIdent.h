@@ -60,8 +60,6 @@ namespace OpenMS
     /// move assignment
     LayerDataIdent& operator=(LayerDataIdent&& ld) = default;
 
-    std::unique_ptr<Painter1DBase> getPainter1D() const override;
-
     void updateRanges() override
     {
       // nothing to do...

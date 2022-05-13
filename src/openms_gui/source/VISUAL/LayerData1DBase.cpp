@@ -28,19 +28,30 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/LayerDataIdent.h>
-#include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
+#include <OpenMS/VISUAL/LayerData1DBase.h>
 
+#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+                                                        
 using namespace std;
 
 namespace OpenMS
 {
-  std::unique_ptr<LayerStatistics> LayerDataIdent::getStats() const
+
+  String LayerData1DBase::getDecoratedName() const
   {
-    return make_unique<LayerStatisticsIdent>(peptides_);
+    String n = LayerDataBase::getDecoratedName();
+    if (flipped)
+    {
+      n += " [flipped]";
+    }
+    return n;
   }
-} // namespace OpenMS
+
+  
+
+}// namespace OpenMS

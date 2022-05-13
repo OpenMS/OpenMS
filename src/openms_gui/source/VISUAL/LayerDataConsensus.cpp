@@ -45,10 +45,10 @@ namespace OpenMS
     consensus_map_ = map;
   }
   
-  std::unique_ptr<Painter1DBase> LayerDataConsensus::getPainter1D() const
+  /*std::unique_ptr<Painter1DBase> LayerDataConsensus::getPainter1D() const
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-  }
+  } */
   
   std::unique_ptr<LayerStatistics> LayerDataConsensus::getStats() const
   {

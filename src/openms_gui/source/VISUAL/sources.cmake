@@ -21,6 +21,7 @@ InputFile.ui
 InputFileList.cpp
 InputFileList.ui
 LayerListView.cpp
+LayerData1DBase.cpp
 LayerDataBase.cpp
 LayerDataChrom.cpp
 LayerDataConsensus.cpp

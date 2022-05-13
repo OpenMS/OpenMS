@@ -59,8 +59,6 @@ public:
     /// move assignment
     LayerDataChrom& operator=(LayerDataChrom&& ld) = default;
 
-    std::unique_ptr<Painter1DBase> getPainter1D() const override;
-
     void updateRanges() override
     {
       peak_map_->updateRanges();

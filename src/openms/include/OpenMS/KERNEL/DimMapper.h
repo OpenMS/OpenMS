@@ -145,7 +145,7 @@ namespace OpenMS
     }
 
     /**
-     * \brief Creates a short string representation with "UNIT: value", where value has a predefined precision (2 digits for RT, 8 for m/z, etc)
+     * \brief Creates a short string representation with "UNIT: value", where value has a predefined precision (see valuePrecision())
      * \param value The value of this Dim to format
      * \return A formatted string, e.g. "RT: 45.32"
      */
@@ -154,6 +154,8 @@ namespace OpenMS
     /// like formattedValue() but with a custom unit prefix instead of the default one for the dim, e.g. "myText: 45.32" 
     String formattedValue(ValueType value, const String& prefix) const;
 
+    /// return the recommended precision for the current unit (2 digits for RT, 8 for m/z, etc)
+    int valuePrecision() const;
 
   protected:
     DIM_UNIT unit_; ///< the unit of this dimension    

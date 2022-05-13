@@ -95,6 +95,15 @@ public:
     {
     }
 
+    /// Swap the two points
+    void swap(DPosition& rhs)
+    {
+      for (Size i = 0; i < D; i++)
+      {
+        swap(coordinate_[i], rhs.coordinate_[i]);
+      }      
+    }
+
     /// Constructor that fills all dimensions with the value @p x
     DPosition(CoordinateType x)
     {

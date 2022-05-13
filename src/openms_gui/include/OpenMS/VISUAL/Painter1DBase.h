@@ -34,14 +34,12 @@
 
 #pragma once
 
-#include <OpenMS/VISUAL/LayerDataBase.h>
-
 class QPainter;
 class QPenStyle;
 
 namespace OpenMS
 {
-  class LayerDataPeak;
+  class LayerData1DPeak;
   class Plot1DCanvas;
 
   /**
@@ -110,7 +108,7 @@ namespace OpenMS
   {
   public:
     /// C'tor which remembers the layer to paint
-    Painter1DPeak(const LayerDataPeak* parent);
+    Painter1DPeak(const LayerData1DPeak* parent);
 
     /// Implementation of base class
     void paint(QPainter*, Plot1DCanvas* canvas, int layer_index) override;
@@ -121,7 +119,7 @@ namespace OpenMS
     /// annotate up to 10 interesting peaks in the range @p vbegin to @pvend with their m/z values (using deisotoping and intensity filtering)
     void drawMZAtInterestingPeaks_(QPainter& painter, Plot1DCanvas* canvas, MSSpectrum::ConstIterator v_begin, MSSpectrum::ConstIterator v_end) const;
 
-    const LayerDataPeak* layer_; ///< the data to paint
+    const LayerData1DPeak* layer_; ///< the data to paint
   };
 
 } // namespace OpenMS

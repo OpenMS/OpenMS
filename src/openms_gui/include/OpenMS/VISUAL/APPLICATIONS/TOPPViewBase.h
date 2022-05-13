@@ -337,7 +337,7 @@ public slots:
     /// Shows the current peak data of the active layer in 3D
     void showCurrentPeaksAs3D();
     /// Shows the current peak data of the active layer as ion mobility
-    void showCurrentPeaksAsIonMobility();
+    void showCurrentPeaksAsIonMobility(const MSSpectrum& spec);
     /// Shows the current peak data of the active layer as DIA data
     void showCurrentPeaksAsDIA();
     /// Saves the whole current layer data
@@ -519,7 +519,7 @@ protected:
       String file_name;
       String layer_name;
       UInt window_id;
-      Size spectrum_id;
+      //Size spectrum_id;
       QProcess* process = nullptr;
       QTime timer;
       bool visible_area_only;

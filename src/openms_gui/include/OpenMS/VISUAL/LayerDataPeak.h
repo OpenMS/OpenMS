@@ -35,18 +35,24 @@
 #pragma once
 
 #include <OpenMS/VISUAL/LayerDataBase.h>
+#include <OpenMS/VISUAL/LayerData1DBase.h>
 
 namespace OpenMS
 {
+  class Annotation1DItem;
 
   /**
   @brief Class that stores the data for one layer of type PeakMap
 
   @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI LayerDataPeak : public LayerDataBase
+  class OPENMS_GUI_DLLAPI LayerDataPeak : public virtual LayerDataBase
   {
   public:
+
+    using SpectrumType = ExperimentType::SpectrumType;
+    using PeakType = SpectrumType::PeakType;
+
     /// Default constructor
     LayerDataPeak();
     /// no Copy-ctor (should not be needed)
@@ -57,14 +63,11 @@ namespace OpenMS
     LayerDataPeak(LayerDataPeak&& ld) = default;
     /// move assignment
     LayerDataPeak& operator=(LayerDataPeak&& ld) = default;
-    
-    std::unique_ptr<Painter1DBase> getPainter1D() const override;
 
     void updateRanges() override
     {
       peak_map_->updateRanges();
       // on_disc_peaks->updateRanges(); // note: this is not going to work since its on disk! We currently don't have a good way to access these ranges
-      cached_spectrum_.updateRanges();
     }
 
     RangeAllType getRange() const override
@@ -74,7 +77,115 @@ namespace OpenMS
       return r;
     }
 
+    const ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const
+    {
+      if ((*peak_map_)[spectrum_idx].size() > 0)
+      {
+        return (*peak_map_)[spectrum_idx];
+      }
+      else if (!on_disc_peaks->empty())
+      {
+        return on_disc_peaks->getSpectrum(spectrum_idx);
+      }
+      return (*peak_map_)[spectrum_idx];
+    }
+
+    PointXYType peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const override
+    {
+      return mapper.map(getSpectrum(peak.spectrum)[peak.peak]);
+    }
+
+    String getDataArrayDescription(const PeakIndex& peak_index) override
+    {
+      String status;
+      const ExperimentType::SpectrumType& s = getSpectrum(peak_index.spectrum);
+      for (Size m = 0; m < s.getFloatDataArrays().size(); ++m)
+      {
+        if (peak_index.peak < s.getFloatDataArrays()[m].size())
+        {
+          status += s.getFloatDataArrays()[m].getName() + ": " + s.getFloatDataArrays()[m][peak_index.peak] + " ";
+        }
+      }
+      for (Size m = 0; m < s.getIntegerDataArrays().size(); ++m)
+      {
+        if (peak_index.peak < s.getIntegerDataArrays()[m].size())
+        {
+          status += s.getIntegerDataArrays()[m].getName() + ": " + s.getIntegerDataArrays()[m][peak_index.peak] + " ";
+        }
+      }
+      for (Size m = 0; m < s.getStringDataArrays().size(); ++m)
+      {
+        if (peak_index.peak < s.getStringDataArrays()[m].size())
+        {
+          status += s.getStringDataArrays()[m].getName() + ": " + s.getStringDataArrays()[m][peak_index.peak] + " ";
+        }
+      }
+      return status;
+    }
+
     std::unique_ptr<LayerStatistics> getStats() const override;
+  };
+
+
+  
+  class LayerData1DPeak : public LayerData1DBase, public LayerDataPeak
+  {
+  public:
+    LayerData1DPeak()
+      : LayerDataBase(DT_PEAK)
+    {
+    }
+
+    std::unique_ptr<Painter1DBase> getPainter1D() const override;
+
+    const ExperimentType::SpectrumType& getCurrentSpectrum() const
+    {
+      return cached_spectrum_;
+    }
+
+    void sortCurrentSpectrumByPosition()
+    {
+      cached_spectrum_.sortByPosition();
+    }
+
+    void updateRanges() override
+    {
+      pd.updateRanges();
+      cached_spectrum_.updateRanges();
+    }
+
+    RangeAllType getRange() const override
+    {
+      return RangeAllType().assign(getCurrentSpectrum().getRange());
+    }
+
+    PeakIndex findClosestDataPoint(const RangeAllType& area) const override;
+
+    const ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const
+    {
+      if (spectrum_idx == current_idx_)
+      {
+        return cached_spectrum_;
+      }
+      return LayerDataPeak::getSpectrum(spectrum_idx);
+    }
+
+
+    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
+    /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
+    void synchronizePeakAnnotations();
+
+    /// remove peak annotations in the given list from the currently active PeptideHit
+    void removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations);
+
+    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
+    void updatePeptideHitAnnotations_(PeptideHit& hit);
+
+  protected:
+    /// Current cached spectrum
+    ExperimentType::SpectrumType cached_spectrum_;
+
+
   };
 
 }// namespace OpenMS
