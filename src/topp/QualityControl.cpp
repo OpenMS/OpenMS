@@ -430,9 +430,9 @@ protected:
 
       if (export_evidence.isValid())
       {
-        auto& cmapProtIds = cmap.getProteinIdentifications();
+        auto& fmapProtIds = fmap->getProteinIdentifications();
 
-        if(cmapProtIds.empty())
+        if(fmapProtIds.empty())
         {
           OPENMS_LOG_ERROR << "No ProteinIdentifications in consensusmap... aboarting" << std::endl;
         }
@@ -442,7 +442,7 @@ protected:
         indexFasta_(protDescription, fastaMap);
 
         // if the user provided no .fasta, we can try this as a last resort
-        const String& fileName = cmapProtIds[0].getSearchParameters().db;
+        const String& fileName = fmapProtIds[0].getSearchParameters().db;
         if(protDescription.empty())
         {
           fallbackFasta(fileName, protDescription);
@@ -450,13 +450,23 @@ protected:
 
         OPENMS_LOG_INFO << "Annotating description to hits..." << std::endl;
         //check for existing description in hit & only if that doesnt exist -> extract it from fasta
-        for(auto& protId : cmapProtIds)
+
+        Size count_missed_accessions = 0;
+        for(auto& protId : fmapProtIds)
         {
-          auto& cmapProtHits = protId.getHits();
-          for(auto& hit : cmapProtHits)
+          auto& fmapProtHits = protId.getHits();
+          for(auto& hit : fmapProtHits)
           {
-            // if hit has no description, set the additional from the fasta
-            //hit.getDescription().empty() ? hit.setDescription(fastaMap[hit.getAccession()]) : continue; //<--- WARUM KLAPPT DAS NICHT?
+            //check if all accessions are in the fastaMap
+            auto it_acc_description = fastaMap.find(hit.getAccession());
+            if(it_acc_description == fastaMap.end())
+            {
+              count_missed_accessions++;
+              if(count_missed_accessions < 10)
+              {
+                OPENMS_LOG_WARN << "Protein with accession: " << hit.getAccession() << " not found in given fasta: " << fileName << std::endl;
+              }
+            }
             if(hit.getDescription().empty())
             {
               hit.setDescription(fastaMap[hit.getAccession()]);
@@ -467,7 +477,12 @@ protected:
             }
           }
         }
+        if(count_missed_accessions > 0)
+        {
+          OPENMS_LOG_WARN << "Warning: " << count_missed_accessions << " many accessions in the fasta not found. (" << fileName << ")" << std::endl;
+        }
         export_evidence.exportFeatureMap(*fmap,cmap,exp);
+
       }
     }
 
