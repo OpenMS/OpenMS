@@ -236,7 +236,6 @@ namespace OpenMS::Internal
     query.setForwardOnly(true);
     QString sql_select =
       "SELECT * FROM " + table_name.toQString() + " AS MI " \
-      //"JOIN DataValue AS DV ON MI.data_value_id = DV.id "
       "WHERE MI.parent_id = :id";
     query.prepare(sql_select);
     return true;
