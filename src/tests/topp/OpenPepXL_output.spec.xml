@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><xquest_spectra author="Eugen Netz" deffile="xquest.def" >
 <spectrum filename="OpenPepXL_input.light.44.dta" type="light">
-[541.064880000000016	4.0
+541.064880000000016	4.0
 185.093140000000005	0.019	0
 213.124602999999979	0.06	0
 233.215239999999994	0.0971	0
@@ -47,9 +47,9 @@
 1402.468261999999868	2.7e-03	0
 1504.976439999999911	3.600000000000001e-03	0
 1600.789184999999861	3.0000000000000000e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.heavy.32.dta" type="heavy">
-[544.084228999999937	4.0
+544.084228999999937	4.0
 175.077147999999994	0.0143	0
 213.137603999999982	0.0628	0
 233.154404	0.0804	0
@@ -99,9 +99,9 @@
 1440.001220999999987	2.3e-03	0
 1494.784668000000011	2.3e-03	0
 1563.694702000000007	2.0000000000000000e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.44_OpenPepXL_input.heavy.32_common.txt" type="common">
-[OpenPepXL_input.light.44.dta,OpenPepXL_input.heavy.32.dta
+OpenPepXL_input.light.44.dta,OpenPepXL_input.heavy.32.dta
 541.064880000000016
 4.0
 213.124602999999979	0.06	0
@@ -115,9 +115,9 @@
 464.282836999999972	0.5889	0
 503.178283999999962	0.4054	0
 574.27526899999998	0.4356	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.44_OpenPepXL_input.heavy.32_xlinker.txt" type="xlinker">
-[OpenPepXL_input.light.44.dta,OpenPepXL_input.heavy.32.dta
+OpenPepXL_input.light.44.dta,OpenPepXL_input.heavy.32.dta
 541.064880000000016
 4.0
 258.172271999999964	0.1274	4
@@ -136,9 +136,9 @@
 1124.529297000000042	5.9e-03	1
 1225.732056000000057	3.0000000000000000e-03	1
 1257.505736999999954	3.2e-03	3
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.44.dta" type="light">
-[541.064880000000016	4.0
+541.064880000000016	4.0
 185.093140000000005	0.019	0
 213.124602999999979	0.06	0
 233.215239999999994	0.0971	0
@@ -185,9 +185,9 @@
 1402.468261999999868	2.7e-03	0
 1504.976439999999911	3.600000000000001e-03	0
 1600.789184999999861	3.0000000000000000e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.heavy.98.dta" type="heavy">
-[544.082763999999997	4.0
+544.082763999999997	4.0
 175.087097	0.0201	0
 213.201354999999978	0.0449	0
 233.176375999999976	0.0634	0
@@ -236,9 +236,9 @@
 1340.023803999999927	1.5e-03	0
 1386.842772999999852	1.8e-03	0
 1390.498779000000013	4.3e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.44_OpenPepXL_input.heavy.98_common.txt" type="common">
-[OpenPepXL_input.light.44.dta,OpenPepXL_input.heavy.98.dta
+OpenPepXL_input.light.44.dta,OpenPepXL_input.heavy.98.dta
 541.064880000000016
 4.0
 213.124602999999979	0.06	0
@@ -255,9 +255,9 @@
 503.178283999999962	0.4054	0
 574.27526899999998	0.4356	0
 1225.732056000000057	3.0000000000000000e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.44_OpenPepXL_input.heavy.98_xlinker.txt" type="xlinker">
-[OpenPepXL_input.light.44.dta,OpenPepXL_input.heavy.98.dta
+OpenPepXL_input.light.44.dta,OpenPepXL_input.heavy.98.dta
 541.064880000000016
 4.0
 258.172271999999964	0.1274	4
@@ -273,9 +273,9 @@
 944.733581999999956	0.016	3
 1124.529297000000042	5.9e-03	1
 1193.492675999999847	5.1e-03	4
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.108.dta" type="light">
-[541.064880000000016	4.0
+541.064880000000016	4.0
 185.195221000000004	0.0117	0
 213.176833999999985	0.0511	0
 233.239409999999992	0.0761	0
@@ -323,9 +323,9 @@
 1355.803345000000036	4.9e-03	0
 1411.222045999999864	3.2e-03	0
 1587.120971999999938	3.100000000000001e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.heavy.32.dta" type="heavy">
-[544.084228999999937	4.0
+544.084228999999937	4.0
 175.077147999999994	0.0143	0
 213.137603999999982	0.0628	0
 233.154404	0.0804	0
@@ -375,9 +375,9 @@
 1440.001220999999987	2.3e-03	0
 1494.784668000000011	2.3e-03	0
 1563.694702000000007	2.0000000000000000e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.108_OpenPepXL_input.heavy.32_common.txt" type="common">
-[OpenPepXL_input.light.108.dta,OpenPepXL_input.heavy.32.dta
+OpenPepXL_input.light.108.dta,OpenPepXL_input.heavy.32.dta
 541.064880000000016
 4.0
 213.176833999999985	0.0511	0
@@ -392,9 +392,9 @@
 464.260741999999993	0.6392	0
 503.174315999999976	0.3681	0
 574.307067999999958	0.2797	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.108_OpenPepXL_input.heavy.32_xlinker.txt" type="xlinker">
-[OpenPepXL_input.light.108.dta,OpenPepXL_input.heavy.32.dta
+OpenPepXL_input.light.108.dta,OpenPepXL_input.heavy.32.dta
 541.064880000000016
 4.0
 258.161224000000004	0.118	4
@@ -409,9 +409,9 @@
 793.169738999999936	0.174	2
 888.877929999999992	0.0117	3
 1181.442992999999888	8.6e-03	4
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.108.dta" type="light">
-[541.064880000000016	4.0
+541.064880000000016	4.0
 185.195221000000004	0.0117	0
 213.176833999999985	0.0511	0
 233.239409999999992	0.0761	0
@@ -459,9 +459,9 @@
 1355.803345000000036	4.9e-03	0
 1411.222045999999864	3.2e-03	0
 1587.120971999999938	3.100000000000001e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.heavy.98.dta" type="heavy">
-[544.082763999999997	4.0
+544.082763999999997	4.0
 175.087097	0.0201	0
 213.201354999999978	0.0449	0
 233.176375999999976	0.0634	0
@@ -510,9 +510,9 @@
 1340.023803999999927	1.5e-03	0
 1386.842772999999852	1.8e-03	0
 1390.498779000000013	4.3e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.108_OpenPepXL_input.heavy.98_common.txt" type="common">
-[OpenPepXL_input.light.108.dta,OpenPepXL_input.heavy.98.dta
+OpenPepXL_input.light.108.dta,OpenPepXL_input.heavy.98.dta
 541.064880000000016
 4.0
 213.176833999999985	0.0511	0
@@ -527,9 +527,9 @@
 464.260741999999993	0.6392	0
 503.174315999999976	0.3681	0
 574.307067999999958	0.2797	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.108_OpenPepXL_input.heavy.98_xlinker.txt" type="xlinker">
-[OpenPepXL_input.light.108.dta,OpenPepXL_input.heavy.98.dta
+OpenPepXL_input.light.108.dta,OpenPepXL_input.heavy.98.dta
 541.064880000000016
 4.0
 258.161224000000004	0.118	4
@@ -541,9 +541,9 @@
 887.023499000000015	0.0147	2
 887.872863999999936	0.0147	3
 888.877929999999992	0.0117	3
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.42.dta" type="light">
-[721.084655999999995	3.0
+721.084655999999995	3.0
 261.165648999999974	0.0636	0
 276.123779000000013	0.0307	0
 277.191101000000003	0.0134	0
@@ -609,9 +609,9 @@
 1668.724486999999954	1.8e-03	0
 1681.802367999999888	2.4e-03	0
 1730.673949999999877	2.3e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.heavy.18.dta" type="heavy">
-[725.108947999999941	3.0
+725.108947999999941	3.0
 233.276320999999996	0.065	0
 261.060027999999988	0.0964	0
 272.213225999999963	0.0428	0
@@ -671,9 +671,9 @@
 1749.884887999999819	3.2e-03	0
 1761.048949999999877	2.8e-03	0
 1821.774535999999898	1.7e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.42_OpenPepXL_input.heavy.18_common.txt" type="common">
-[OpenPepXL_input.light.42.dta,OpenPepXL_input.heavy.18.dta
+OpenPepXL_input.light.42.dta,OpenPepXL_input.heavy.18.dta
 721.084655999999995
 3.0
 261.165648999999974	0.0636	0
@@ -683,9 +683,9 @@
 464.272094999999979	0.2999	0
 503.233581999999956	0.2849	0
 574.276183999999944	0.3942	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.42_OpenPepXL_input.heavy.18_xlinker.txt" type="xlinker">
-[OpenPepXL_input.light.42.dta,OpenPepXL_input.heavy.18.dta
+OpenPepXL_input.light.42.dta,OpenPepXL_input.heavy.18.dta
 721.084655999999995
 3.0
 303.287902999999972	9.300000000000001e-03	1
@@ -702,9 +702,9 @@
 1124.706420999999864	0.024	1
 1183.567260999999917	0.0132	1
 1282.633910999999898	0.0206	1
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.42.dta" type="light">
-[721.084655999999995	3.0
+721.084655999999995	3.0
 261.165648999999974	0.0636	0
 276.123779000000013	0.0307	0
 277.191101000000003	0.0134	0
@@ -770,9 +770,9 @@
 1668.724486999999954	1.8e-03	0
 1681.802367999999888	2.4e-03	0
 1730.673949999999877	2.3e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.heavy.92.dta" type="heavy">
-[725.109252999999967	3.0
+725.109252999999967	3.0
 233.202453999999989	0.0584	0
 261.106139999999982	0.0373	0
 276.196715999999981	0.0265	0
@@ -841,9 +841,9 @@
 1684.951049999999896	3.600000000000001e-03	0
 1691.864867999999888	2.4e-03	0
 1777.11560099999997	5.0000000000000000e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.42_OpenPepXL_input.heavy.92_common.txt" type="common">
-[OpenPepXL_input.light.42.dta,OpenPepXL_input.heavy.92.dta
+OpenPepXL_input.light.42.dta,OpenPepXL_input.heavy.92.dta
 721.084655999999995
 3.0
 261.165648999999974	0.0636	0
@@ -855,9 +855,9 @@
 503.233581999999956	0.2849	0
 574.276183999999944	0.3942	0
 1500.842650999999933	5.300000000000001e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.42_OpenPepXL_input.heavy.92_xlinker.txt" type="xlinker">
-[OpenPepXL_input.light.42.dta,OpenPepXL_input.heavy.92.dta
+OpenPepXL_input.light.42.dta,OpenPepXL_input.heavy.92.dta
 721.084655999999995
 3.0
 548.842956999999956	0.0895	3
@@ -884,9 +884,9 @@
 1282.633910999999898	0.0206	1
 1382.758422999999993	4.800000000000001e-03	1
 1428.649291999999832	8.1e-03	1
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.107.dta" type="light">
-[721.084594999999922	3.0
+721.084594999999922	3.0
 233.062835999999976	0.0821	0
 261.180999999999983	0.1024	0
 276.242278999999996	0.0542	0
@@ -949,9 +949,9 @@
 1659.624145999999882	4.2e-03	0
 1674.684691999999814	2.5e-03	0
 1728.609740999999985	3.4e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.heavy.18.dta" type="heavy">
-[725.108947999999941	3.0
+725.108947999999941	3.0
 233.276320999999996	0.065	0
 261.060027999999988	0.0964	0
 272.213225999999963	0.0428	0
@@ -1011,9 +1011,9 @@
 1749.884887999999819	3.2e-03	0
 1761.048949999999877	2.8e-03	0
 1821.774535999999898	1.7e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.107_OpenPepXL_input.heavy.18_common.txt" type="common">
-[OpenPepXL_input.light.107.dta,OpenPepXL_input.heavy.18.dta
+OpenPepXL_input.light.107.dta,OpenPepXL_input.heavy.18.dta
 721.084594999999922
 3.0
 261.180999999999983	0.1024	0
@@ -1027,9 +1027,9 @@
 503.325561999999991	0.3666	0
 574.280884000000015	0.6843	0
 1195.579101999999921	0.0234	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.107_OpenPepXL_input.heavy.18_xlinker.txt" type="xlinker">
-[OpenPepXL_input.light.107.dta,OpenPepXL_input.heavy.18.dta
+OpenPepXL_input.light.107.dta,OpenPepXL_input.heavy.18.dta
 721.084594999999922
 3.0
 548.872680999999943	0.1981	3
@@ -1050,9 +1050,9 @@
 1264.664062999999942	9.000000000000002e-03	1
 1470.71984899999984	7.000000000000001e-03	1
 1659.624145999999882	4.2e-03	1
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.107.dta" type="light">
-[721.084594999999922	3.0
+721.084594999999922	3.0
 233.062835999999976	0.0821	0
 261.180999999999983	0.1024	0
 276.242278999999996	0.0542	0
@@ -1115,9 +1115,9 @@
 1659.624145999999882	4.2e-03	0
 1674.684691999999814	2.5e-03	0
 1728.609740999999985	3.4e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.heavy.92.dta" type="heavy">
-[725.109252999999967	3.0
+725.109252999999967	3.0
 233.202453999999989	0.0584	0
 261.106139999999982	0.0373	0
 276.196715999999981	0.0265	0
@@ -1186,9 +1186,9 @@
 1684.951049999999896	3.600000000000001e-03	0
 1691.864867999999888	2.4e-03	0
 1777.11560099999997	5.0000000000000000e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.107_OpenPepXL_input.heavy.92_common.txt" type="common">
-[OpenPepXL_input.light.107.dta,OpenPepXL_input.heavy.92.dta
+OpenPepXL_input.light.107.dta,OpenPepXL_input.heavy.92.dta
 721.084594999999922
 3.0
 233.062835999999976	0.0821	0
@@ -1200,9 +1200,9 @@
 464.295043999999962	0.4362	0
 503.325561999999991	0.3666	0
 574.280884000000015	0.6843	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.107_OpenPepXL_input.heavy.92_xlinker.txt" type="xlinker">
-[OpenPepXL_input.light.107.dta,OpenPepXL_input.heavy.92.dta
+OpenPepXL_input.light.107.dta,OpenPepXL_input.heavy.92.dta
 721.084594999999922
 3.0
 315.209075999999982	0.0202	1
@@ -1226,9 +1226,9 @@
 1183.606444999999894	0.0328	1
 1195.579101999999921	0.0234	1
 1228.60314900000003	0.0124	1
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.101.dta" type="light">
-[467.945617999999968	3.0
+467.945617999999968	3.0
 147.129929000000004	0.0284	0
 196.19026199999999	0.0232	0
 216.29482999999999	0.0265	0
@@ -1278,9 +1278,9 @@
 1141.546509000000015	9.1e-03	0
 1148.425658999999996	1.2e-03	0
 1226.639525999999933	4.4e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.heavy.63.dta" type="heavy">
-[471.971282999999971	3.0
+471.971282999999971	3.0
 147.165358999999995	0.0294	0
 199.182770000000005	0.084	0
 234.189269999999993	0.1069	0
@@ -1333,9 +1333,9 @@
 1210.701293999999962	3.600000000000001e-03	0
 1246.213256999999885	3.3e-03	0
 1372.328002999999853	1.8e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.101_OpenPepXL_input.heavy.63_common.txt" type="common">
-[OpenPepXL_input.light.101.dta,OpenPepXL_input.heavy.63.dta
+OpenPepXL_input.light.101.dta,OpenPepXL_input.heavy.63.dta
 467.945617999999968
 3.0
 147.129929000000004	0.0284	0
@@ -1346,9 +1346,9 @@
 484.207610999999986	0.2156	0
 555.274353000000019	0.2972	0
 668.345276000000013	0.2436	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.101_OpenPepXL_input.heavy.63_xlinker.txt" type="xlinker">
-[OpenPepXL_input.light.101.dta,OpenPepXL_input.heavy.63.dta
+OpenPepXL_input.light.101.dta,OpenPepXL_input.heavy.63.dta
 467.945617999999968
 3.0
 334.956237999999985	0.0647	2
@@ -1368,9 +1368,9 @@
 955.391173999999978	9.5e-03	1
 1042.611449999999877	7.3e-03	2
 1055.617553999999927	6.0000000000000000e-03	1
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.152.dta" type="light">
-[671.844909999999914	4.0
+671.844909999999914	4.0
 215.179519999999997	7.000000000000001e-03	0
 242.766845999999987	1.0e-03	0
 270.267089999999996	1.5e-03	0
@@ -1426,9 +1426,9 @@
 1827.699584999999843	6.000000000000001e-04	0
 1884.126586999999972	3.0000000000000000e-04	0
 1944.109618999999839	0.0	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.heavy.142.dta" type="heavy">
-[674.863524999999982	4.0
+674.863524999999982	4.0
 215.199370999999985	0.0117	0
 249.160064999999975	7.0000000000000000e-04	0
 269.199432000000002	2.2e-03	0
@@ -1485,9 +1485,9 @@
 1627.955199999999877	7.0000000000000000e-04	0
 1650.630126999999902	3.0000000000000000e-04	0
 1777.950316999999814	6.000000000000001e-04	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.152_OpenPepXL_input.heavy.142_common.txt" type="common">
-[OpenPepXL_input.light.152.dta,OpenPepXL_input.heavy.142.dta
+OpenPepXL_input.light.152.dta,OpenPepXL_input.heavy.142.dta
 671.844909999999914
 4.0
 215.179519999999997	7.000000000000001e-03	0
@@ -1495,9 +1495,9 @@
 383.268493999999976	1.0e-03	0
 401.311217999999997	3.4e-03	0
 1099.566894999999931	8.0000000000000000e-04	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.152_OpenPepXL_input.heavy.142_xlinker.txt" type="xlinker">
-[OpenPepXL_input.light.152.dta,OpenPepXL_input.heavy.142.dta
+OpenPepXL_input.light.152.dta,OpenPepXL_input.heavy.142.dta
 671.844909999999914
 4.0
 686.304137999999966	0.0118	3
@@ -1505,9 +1505,9 @@
 800.508483999999953	0.096	3
 824.327392999999915	1.0	3
 1377.291381999999885	6.000000000000001e-04	1
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.154.dta" type="light">
-[895.45660399999997	3.0
+895.45660399999997	3.0
 286.30981399999996	0.0148	0
 321.298401000000013	0.0103	0
 338.134917999999971	0.0566	0
@@ -1588,9 +1588,9 @@
 1925.729736000000003	0.0158	0
 1944.254516999999851	5.6e-03	0
 1996.886107999999922	4.500000000000001e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.heavy.143.dta" type="heavy">
-[899.483581999999956	3.0
+899.483581999999956	3.0
 303.274474999999995	0.0206	0
 338.370116999999993	0.0811	0
 341.33898899999997	0.063	0
@@ -1663,9 +1663,9 @@
 1938.957641999999851	6.9e-03	0
 1940.781127999999853	5.2e-03	0
 1959.723266999999851	3.7e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.154_OpenPepXL_input.heavy.143_common.txt" type="common">
-[OpenPepXL_input.light.154.dta,OpenPepXL_input.heavy.143.dta
+OpenPepXL_input.light.154.dta,OpenPepXL_input.heavy.143.dta
 895.45660399999997
 3.0
 383.339843999999971	0.0307	0
@@ -1681,9 +1681,9 @@
 758.543395999999916	0.1918	0
 1308.491577000000007	0.1137	0
 1309.501708999999892	0.0626	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.154_OpenPepXL_input.heavy.143_xlinker.txt" type="xlinker">
-[OpenPepXL_input.light.154.dta,OpenPepXL_input.heavy.143.dta
+OpenPepXL_input.light.154.dta,OpenPepXL_input.heavy.143.dta
 895.45660399999997
 3.0
 762.283507999999983	0.2121	3
@@ -1705,9 +1705,9 @@
 1593.662963999999874	0.0182	1
 1652.663452000000007	0.0458	1
 1925.729736000000003	0.0158	1
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.195.dta" type="light">
-[656.050902999999948	3.0
+656.050902999999948	3.0
 222.122741999999988	0.0136	0
 243.229309000000001	0.035	0
 288.28677399999998	0.0196	0
@@ -1771,9 +1771,9 @@
 1566.768798999999945	3.4e-03	0
 1582.645385999999917	1.2e-03	0
 1641.906371999999919	1.3e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.heavy.180.dta" type="heavy">
-[660.072449000000006	3.0
+660.072449000000006	3.0
 243.14799499999998	0.031	0
 288.171538999999996	0.0547	0
 324.136718999999971	0.0423	0
@@ -1824,9 +1824,9 @@
 1544.962279999999964	2.9e-03	0
 1567.686889999999949	6.000000000000001e-04	0
 1691.838745000000017	2.4e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.195_OpenPepXL_input.heavy.180_common.txt" type="common">
-[OpenPepXL_input.light.195.dta,OpenPepXL_input.heavy.180.dta
+OpenPepXL_input.light.195.dta,OpenPepXL_input.heavy.180.dta
 656.050902999999948
 3.0
 243.229309000000001	0.035	0
@@ -1843,9 +1843,9 @@
 888.390136999999982	0.3568	0
 924.305480999999986	0.015	0
 1449.350220000000036	2.4e-03	0
-]</spectrum>
+</spectrum>
 <spectrum filename="OpenPepXL_input.light.195_OpenPepXL_input.heavy.180_xlinker.txt" type="xlinker">
-[OpenPepXL_input.light.195.dta,OpenPepXL_input.heavy.180.dta
+OpenPepXL_input.light.195.dta,OpenPepXL_input.heavy.180.dta
 656.050902999999948
 3.0
 495.384887999999989	0.0519	1
@@ -1868,5 +1868,5 @@
 1208.42810099999997	0.0113	1
 1304.835814999999911	2.4e-03	3
 1532.63793899999996	4.6e-03	1
-]</spectrum>
+</spectrum>
 </xquest_spectra>

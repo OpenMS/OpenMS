@@ -293,9 +293,9 @@ namespace OpenMS
       wrap_(out_encoded, 76, out_wrapped);
       return out_wrapped;
     }
-    else
+    else // skip base64 encoding in test mode
     {
-      return in_strings;
+      return out;
     }
   }
 
