@@ -801,8 +801,8 @@ namespace OpenMS
           f.setMZ(mono_mz);
         }
 
-        uint number_of_datapoints = 0;
-        for(size_t t = 0; t < traces.size(); i++)
+        int number_of_datapoints = 0;
+        for(size_t t = 0; t < traces.size(); ++t)
         {
           number_of_datapoints += traces[t].peaks.size();
         }
