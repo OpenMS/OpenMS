@@ -33,13 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/QC/MQMsmsExporter.h>
+#include <OpenMS/QC/MQExporterHelper.h>
 
-#include <OpenMS/QC/MQEvidenceExporter.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <QtCore/QDir>
 #include <cmath> // isnan
@@ -77,49 +78,43 @@ MQMsms::~MQMsms()
 }
 
 
-bool MQMsms::isValid()
-{
-  return File::writable(filename_);
-}
-
-
 void MQMsms::exportHeader_()
 {
 
-  file_ << "Raw file" << "\t"; // ok
+  file_ << "Raw file" << "\t"; // also in Evidence
   file_ << "Scan number" << "\t";
   file_ << "Scan index" << "\t";
-  file_ << "Sequence" << "\t"; // ok
-  file_ << "Length" << "\t"; // ok
-  file_ << "Missed cleavages" << "\t"; // vermutlich ok
-  file_ << "Modifications" << "\t"; // ok
-  file_ << "Modified sequence" << "\t"; // ok
-  file_ << "Oxidation (M) Probabilities" << "\t";
-  file_ << "Oxidation (M) Score diffs" << "\t";
-  file_ << "Acetyl (Protein N-term)" << "\t"; // vermutlich ok
-  file_ << "Oxidation (M)" << "\t"; // ok
-  file_ << "Proteins" << "\t"; // ok
-  file_ << "Charge" << "\t"; // ok
+  file_ << "Sequence" << "\t"; // also in Evidence
+  file_ << "Length" << "\t"; // also in Evidence
+  file_ << "Missed cleavages" << "\t"; // also in Evidence
+  file_ << "Modifications" << "\t"; // also in Evidence
+  file_ << "Modified sequence" << "\t"; // also in Evidence
+  //file_ << "Oxidation (M) Probabilities" << "\t"; --> not supported by OpenMS
+  //file_ << "Oxidation (M) Score diffs" << "\t"; --> not supported by OpenMS
+  file_ << "Acetyl (Protein N-term)" << "\t"; // also in Evidence
+  file_ << "Oxidation (M)" << "\t"; // also in Evidence
+  file_ << "Proteins" << "\t"; // also in Evidence
+  file_ << "Charge" << "\t"; // also in Evidence
   file_ << "Fragmentation" << "\t";
   file_ << "Mass analyzer" << "\t";
-  file_ << "Type" << "\t"; // ok
+  file_ << "Type" << "\t"; // also in Evidence
   file_ << "Scan event number" << "\t";
   file_ << "Isotope index" << "\t";
-  file_ << "m/z" << "\t"; // ok
-  file_ << "Mass" << "\t"; 
-  file_ << "Mass error [ppm]" << "\t";
-  file_ << "Mass error [Da]" << "\t";
+  file_ << "m/z" << "\t"; // also in Evidence
+  file_ << "Mass" << "\t"; // also in Evidence
+  file_ << "Mass error [ppm]" << "\t"; // also in Evidence
+  file_ << "Mass error [Da]" << "\t"; // also in Evidence
   file_ << "Simple mass error [ppm]" << "\t";
-  file_ << "Retention time" << "\t"; // vermutlich ok
-  file_ << "PEP" << "\t";
-  file_ << "Score" << "\t"; 
-  file_ << "Delta score" << "\t";
+  file_ << "Retention time" << "\t"; // also in Evidence
+  file_ << "PEP" << "\t"; // also in Evidence
+  file_ << "Score" << "\t"; // also in Evidence
+  file_ << "Delta score" << "\t"; // also in Evidence
   file_ << "Score diff" << "\t";
   file_ << "Localization prob" << "\t";
-  file_ << "Combinatorics" << "\t";
-  file_ << "PIF" << "\t";
+  //file_ << "Combinatorics" << "\t"; --> not supported by OpenMS
+  // file_ << "PIF" << "\t"; --> not practical to implement
   file_ << "Fraction of total spectrum" << "\t";
-  file_ << "Base peak fraction" << "\t";
+  file_ << "Base peak fraction" << "\t"; // also in Evidence
   file_ << "Precursor full scan number" << "\t";
   file_ << "Precursor Intensity" << "\t";
   file_ << "Precursor apex fraction" << "\t";
@@ -134,38 +129,36 @@ void MQMsms::exportHeader_()
   file_ << "Peak coverage" << "\t";
   file_ << "Neutral loss level" << "\t";
   file_ << "ETD identification type" << "\t";
-  file_ << "Reverse" << "\t"; // ok
+  file_ << "Reverse" << "\t"; // also in Evidence
   file_ << "All scores" << "\t";
   file_ << "All sequences" << "\t";
   file_ << "All modified sequences" << "\t";
-  file_ << "Reporter PIF" << "\t";
-  file_ << "Reporter fraction" << "\t";
-  file_ << "id" << "\t"; // ok
-  file_ << "Protein group IDs" << "\t"; // ok
-  file_ << "Peptide ID" << "\t";
-  file_ << "Mod. peptide ID" << "\t";
-  file_ << "Evidence ID" << "\t";
-  file_ << "Oxidation (M) site IDs" << "\n";
+  //file_ << "Reporter PIF" << "\t"; --> not supported by OpenMS
+  //file_ << "Reporter fraction" << "\t"; --> not supported by OpenMS
+  file_ << "id" << "\t"; // also in Evidence
+  file_ << "Protein group IDs" << "\n"; // also in Evidence
+  //file_ << "Peptide ID" << "\t"; --> not useful without the other MQ files
+  //file_ << "Mod. peptide ID" << "\t"; --> not useful without the other MQ files
+  //file_ << "Evidence ID" << "\t"; // vermutlich in evidence.txt
+  //file_ << "Oxidation (M) site IDs" << "\n"; --> not useful without the other MQ files
   
 }
 
-// folgendes funktioniert nur, wenn MQEvidenceExporter nicht private ist, 
-// sonst müsste man die restlichen Funktionen vermutlich kopieren
-
-void MQEvidence::exportRowFromFeature_(
+void MQMsms::exportRowFromFeature_(
         const Feature& f,
         const ConsensusMap& cmap,
         const Size c_feature_number,
         const String& raw_file,
         const std::multimap<String, std::pair<Size, Size>>& UIDs,
-        const ProteinIdentification::Mapping& mp_f)
+        const ProteinIdentification::Mapping& mp_f,
+        const OpenMS::MSExperiment& exp = {})
 {
 
   const PeptideHit* ptr_best_hit; // the best hit referring to score
   const ConsensusFeature& cf = cmap[c_feature_number];
   Size pep_ids_size = 0;
   String type;
-  if (MQEvidence::hasValidPepID_(f, c_feature_number, UIDs, mp_f))
+  if (MQExportHelper::hasValidPepID_(f, c_feature_number, UIDs, mp_f))
   {
     for (Size i = 1; i < f.getPeptideIdentifications().size(); ++i) // for msms-count
     {
@@ -182,7 +175,7 @@ void MQEvidence::exportRowFromFeature_(
     type = "MULTI-MSMS";
     ptr_best_hit = &f.getPeptideIdentifications()[0].getHits()[0];
   }
-    else if (MQEvidence::hasPeptideIdentifications_(cf))
+    else if (MQExportHelper::hasPeptideIdentifications_(cf))
   {
     type = "MULTI-MATCH";
     ptr_best_hit = &cf.getPeptideIdentifications()[0].getHits()[0];
@@ -192,7 +185,7 @@ void MQEvidence::exportRowFromFeature_(
     return; // no valid PepID; nothing to export
   }
   
-  const double& max_score = ptr_best_hit->getScore(); // entfällt, falls score in MQEvidence falsch ist (also vermutlich)
+  const double& max_score = ptr_best_hit->getScore();
   const AASequence& pep_seq = ptr_best_hit->getSequence();
 
   if (pep_seq.empty())
@@ -241,10 +234,7 @@ void MQEvidence::exportRowFromFeature_(
     file_ << "\t";
   }
   file_ << "_" << pep_seq << "_" << "\t"; // Modified Sequence
-  
-  file_ << "Oxidation (M) Probabilities" << "\t"; // Oxidation (M) Probabilities
-  file_ << "Oxidation (M) Score diffs" << "\t"; // Oxidation (M) Score diffs
-  
+
   if (pep_seq.hasNTerminalModification())
   {
   const String& n_terminal_modification = pep_seq.getNTerminalModificationName();
@@ -284,8 +274,6 @@ void MQEvidence::exportRowFromFeature_(
   file_ << "Delta score" << "\t";
   file_ << "Score diff" << "\t";
   file_ << "Localization prob" << "\t";
-  file_ << "Combinatorics" << "\t";
-  file_ << "PIF" << "\t";
   file_ << "Fraction of total spectrum" << "\t";
   file_ << "Base peak fraction" << "\t";
   file_ << "Precursor full scan number" << "\t";
@@ -309,26 +297,18 @@ void MQEvidence::exportRowFromFeature_(
   file_ << "All scores" << "\t";
   file_ << "All sequences" << "\t";
   file_ << "All modified sequences" << "\t";
-  file_ << "Reporter PIF" << "\t";
-  file_ << "Reporter fraction" << "\t"; 
   
   file_ << id_ << "\t"; // ID
   ++id_;
   
-  file_ << MQEvidence::proteinGroupID_(acessions(0)); // nicht sicher
+  file_ << MQExportHelper::proteinGroupID_(acessions(0)); // nicht sicher
   for (const String& p : accessions)
   {
-    file_ << ";" << MQEvidence::proteinGroupID_(p+1); // Protein group ids
+    file_ << ";" << MQExportHelper::proteinGroupID_(p+1); // Protein group ids
   }
   file_ << "\t";
-  
-  file_ << "Peptide ID" << "\t";
-  file_ << "Mod. peptide ID" << "\t";
-  file_ << "Evidence ID" << "\t";
-  file_ << "Oxidation (M) site IDs" << "\n";
 
-  
-  
+  file_ << "Evidence ID" << "\t";
 
 
 }
