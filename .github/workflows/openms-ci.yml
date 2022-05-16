@@ -262,7 +262,7 @@ jobs:
           OPENMP: "On"
           USE_STATIC_BOOST: "On"
           BUILD_FLAGS: "-j3"
-          CMAKE_CXX_COMPILER_LAUNCHER: "ccache"
+          CMAKE_CCACHE_EXE: "ccache"
           CCACHE_BASEDIR: ${{ github.workspace }}
           CCACHE_DIR: ${{ github.workspace }}/.ccache
           CCACHE_COMPRESS: true
@@ -397,7 +397,7 @@ jobs:
           OPENMP: "On"
           USE_STATIC_BOOST: "On"
           BUILD_FLAGS: "-j2"
-          CMAKE_CXX_COMPILER_LAUNCHER: "ccache"
+          CMAKE_CCACHE_EXE: "ccache"
           CCACHE_BASEDIR: "${{ github.workspace }}"
           CCACHE_DIR: "${{ github.workspace }}/.ccache"
           CCACHE_COMPRESS: true
