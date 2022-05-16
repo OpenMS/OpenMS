@@ -174,14 +174,11 @@ namespace OpenMS
         const auto& synonyms = spectrum.getMetaValue("Synon");
         if (synonyms.valueType() == OpenMS::DataValue::DataType::STRING_VALUE)
         {
-          size_t start;
-          size_t end = 0;
-          std::string synonyms_str(synonyms);
-          std::string separator(synonyms_separator_);
-          while ((start = synonyms_str.find_first_not_of(separator, end)) != std::string::npos)
+          StringList list;
+          synonyms.toString().split(synonyms_separator_, list);
+          for (const auto& syn : list)
           {
-            end = synonyms_str.find(separator, start);
-            output_file << "Synon: " << synonyms_str.substr(start, end - start) << '\n';
+            output_file << "Synon: " << syn << '\n';
           }
         }
         if (spectrum.metaValueExists("CAS#") && spectrum.metaValueExists("NIST#"))
