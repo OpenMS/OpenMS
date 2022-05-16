@@ -64,7 +64,6 @@ public:
       peak_map_->updateRanges();
       // on_disc_peaks->updateRanges(); // note: this is not going to work since its on disk! We currently don't have a good way to access these ranges
       chromatogram_map_->updateRanges();
-      cached_spectrum_.updateRanges();
     }
 
     RangeAllType getRange() const override

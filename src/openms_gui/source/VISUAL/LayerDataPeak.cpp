@@ -32,6 +32,8 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h"
+
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 
@@ -48,9 +50,33 @@ namespace OpenMS
     flags.set(LayerDataBase::P_PRECURSORS);
   }
 
+  LayerDataDefs::PointXYType LayerDataPeak::peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const
+  {
+    return mapper.map(getSpectrum(peak.spectrum)[peak.peak]);
+  }
+
   std::unique_ptr<LayerStatistics> LayerDataPeak::getStats() const
   {
     return make_unique<LayerStatisticsPeakMap>(*peak_map_);
+  }
+
+  QMenu* LayerData1DPeak::getContextMenuAnnotation(Annotation1DItem* annot_item, bool& need_repaint)
+  {
+    QMenu* context_menu = new QMenu("Peak1D", nullptr);
+    context_menu->addAction("Edit", [&]() {
+      annot_item->editText();
+      synchronizePeakAnnotations();
+      need_repaint = true;
+    });
+    context_menu->addAction("Delete", [&]() {
+      vector<Annotation1DItem*> as;
+      as.push_back(annot_item);
+      removePeakAnnotationsFromPeptideHit(as);
+      getCurrentAnnotations().removeSelectedItems();
+      need_repaint = true;
+    });
+
+    return context_menu;
   }
 
   PeakIndex LayerData1DPeak::findClosestDataPoint(const RangeAllType& area) const
@@ -93,6 +119,15 @@ namespace OpenMS
     return make_unique<Painter1DPeak>(this);
   }
 
+  Annotation1DItem* LayerData1DPeak::addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color)
+  {
+    PeakType peak = getCurrentSpectrum()[peak_index.peak];
+    auto* item = new Annotation1DPeakItem<PeakType>(peak, text, color);
+    item->setSelected(false);
+    getCurrentAnnotations().push_front(item);
+    return item;
+  }
+
   void LayerData1DPeak::synchronizePeakAnnotations()
   {
     // Return if no valid peak layer attached
@@ -102,7 +137,7 @@ namespace OpenMS
     }
 
     // get mutable access to the spectrum
-    MSSpectrum& spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_idx_);
+    MSSpectrum& spectrum = getPeakDataMuteable()->getSpectrum(current_idx_);
 
     int ms_level = spectrum.getMSLevel();
 
@@ -137,7 +172,7 @@ namespace OpenMS
     else // PeptideIdentifications are empty, create new PepIDs and PeptideHits to store the PeakAnnotations
     {
       // copy user annotations to fragment annotation vector
-      const Annotations1DContainer& las = getAnnotations(current_spectrum_idx_);
+      const Annotations1DContainer& las = getAnnotations(current_idx_);
 
       // no annotations so we don't need to synchronize
       bool has_peak_annotation(false);

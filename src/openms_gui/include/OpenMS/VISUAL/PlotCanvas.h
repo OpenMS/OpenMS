@@ -285,7 +285,7 @@ public:
     }
 
     /// returns the layer data with index @p index
-    virtual const LayerDataBase& getLayer(Size index) const
+    const LayerDataBase& getLayer(Size index) const
     {
       return layers_.getLayer(index);
     }
@@ -296,7 +296,7 @@ public:
     }
 
     /// returns the layer data of the active layer
-    virtual const LayerDataBase& getCurrentLayer() const
+    const LayerDataBase& getCurrentLayer() const
     {
       return layers_.getCurrentLayer();
     }

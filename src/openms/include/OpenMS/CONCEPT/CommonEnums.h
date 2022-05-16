@@ -28,29 +28,31 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/LayerData1DBase.h>
+#pragma once
 
-#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-                                                        
-using namespace std;
+#include <string_view>
 
 namespace OpenMS
 {
-  String LayerData1DBase::getDecoratedName() const
+  // add common enums here to avoid big includes of large classes and break circular dependencies
+
+  /// Enum for different units which can be displayed on a plotting axis
+  /// The order is arbitrary.
+  enum class DIM_UNIT
   {
-    String n = LayerDataBase::getDecoratedName();
-    if (flipped)
-    {
-      n += " [flipped]";
-    }
-    return n;
-  }
+    RT = 0,   ///< RT in seconds
+    MZ,       ///< m/z
+    INT,      ///< intensity
+    IM_MS,    ///< ion mobility milliseconds
+    IM_VSSC,  ///< volt-second per square centimeter (i.e. 1/K_0)
+    FAIMS_CM, ///< FAIMS compensation voltage
+    SIZE_OF_DIM_UNITS
+  };
+  inline std::string_view DIM_NAMES[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT [s]", "m/z [Th]", "intensity", "IM [milliseconds]", "IM [vs / cm2]", "FAIMS CV"};
+  inline std::string_view DIM_NAMES_SHORT[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT", "m/z", "int", "IM", "IM", "FCV"};
 
-  
-
-}// namespace OpenMS
+} // namespace OpenMS

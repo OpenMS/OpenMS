@@ -57,7 +57,7 @@ namespace OpenMS
 {
 
   class Annotation1DItem;
-
+  
   /**
    * \brief Manipulates X or Y component of points in the X-Y plane, by assuming one axis (either X or Y axis) has gravity acting upon it.
    *
@@ -296,6 +296,15 @@ namespace OpenMS
       // never reached, but make compilers happy
       return 0;
     }
+    /// Get the value of the gravity dimension
+    ///
+    /// @param p A X-Y data point
+    /// @return Either the X or Y component, depending on gravity
+    template<int D>
+    int gravityValue(const DPosition<D>& p) const
+    {
+      return p[(int)gravity_axis_];
+    }
 
     /// Get the difference of values in the gravity dimension
     ///
@@ -347,41 +356,25 @@ public:
     /// Destructor
     ~Plot1DCanvas() override;
     
-    /// returns the layer data of the active layer
+    /// returns the layer data of the layer @p index
     /// @throws std::bad_cast exception if the current layer is not a LayerData1DBase
-    const LayerData1DBase& getLayer(Size index) const override
-    {
-      return dynamic_cast<const LayerData1DBase&>(layers_.getLayer(index));
-    }
-    /// returns the layer data of the active layer
+    const LayerData1DBase& getLayer(Size index) const;
+    /// returns the layer data of the layer @p index
     /// @throws std::bad_cast exception if the current layer is not a LayerData1DBase
-    LayerData1DBase& getCurrentLayer(Size index)
-    {
-      return dynamic_cast<LayerData1DBase&>(layers_.getLayer(index));
-    }
+    LayerData1DBase& getLayer(Size index);
 
     /// returns the layer data of the active layer
     /// @throws std::bad_cast exception if the current layer is not a LayerData1DBase 
-    const LayerData1DBase& getCurrentLayer() const override
-    {
-      return dynamic_cast<const LayerData1DBase&>(layers_.getCurrentLayer());
-    }
+    const LayerData1DBase& getCurrentLayer() const;
     /// returns the layer data of the active layer
     /// @throws std::bad_cast exception if the current layer is not a LayerData1DBase
-    LayerData1DBase& getCurrentLayer()
-    {
-      return dynamic_cast<LayerData1DBase&>(layers_.getCurrentLayer());
-    }
+    LayerData1DBase& getCurrentLayer();
 
-    const DimBase& getGravityDim() const
-    {
-      return unit_mapper_.getDim(getGravitator().getGravityAxis());
-    }
+    /// Get the dimension on which gravity is currently acting upon (usually it's the Y axis' unit)
+    const DimBase& getGravityDim() const;
 
-    const DimBase& getNonGravityDim() const
-    {
-      return unit_mapper_.getDim(getGravitator().swap().getGravityAxis());
-    }
+    /// Get the dimension on which gravity is currently not acting upon (the orthogonal axis; usually it's the X axis' unit)
+    const DimBase& getNonGravityDim() const;
 
     /// add a chromatogram layer
     /// @param chrom_exp_sptr An MSExperiment with chromatograms
@@ -465,7 +458,7 @@ public:
     void pushIntoDataRange<PointXYType>(PointXYType& xy_unit, const int layer_index)
     { // note: if this is needed for anything other than the 1D Canvas, you need to make sure to call the correct widgetToData/ etc functions --- they work a bit different, depending on Canvas
       auto p_range = unit_mapper_.fromXY(xy_unit);
-      const auto& all_range = getLayer(layer_index).getRange();
+      const auto all_range = getLayer(layer_index).getRange();
       p_range.pushInto(all_range);
       xy_unit = unit_mapper_.mapRange(p_range).minPosition();
     }

@@ -53,6 +53,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 
+#include <OpenMS/VISUAL/LayerData1DBase.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 
 // Qt
@@ -137,6 +138,36 @@ namespace OpenMS
 
   Plot1DCanvas::~Plot1DCanvas()
   {
+  }
+
+  const LayerData1DBase& Plot1DCanvas::getLayer(Size index) const
+  {
+    return dynamic_cast<const LayerData1DBase&>(layers_.getLayer(index));
+  }
+
+  LayerData1DBase& Plot1DCanvas::getLayer(Size index)
+  {
+    return dynamic_cast<LayerData1DBase&>(layers_.getLayer(index));
+  }
+
+  const LayerData1DBase& Plot1DCanvas::getCurrentLayer() const
+  {
+    return dynamic_cast<const LayerData1DBase&>(layers_.getCurrentLayer());
+  }
+
+  LayerData1DBase& Plot1DCanvas::getCurrentLayer()
+  {
+    return dynamic_cast<LayerData1DBase&>(layers_.getCurrentLayer());
+  }
+
+  const DimBase& Plot1DCanvas::getGravityDim() const
+  {
+    return unit_mapper_.getDim(getGravitator().getGravityAxis());
+  }
+
+  const DimBase& Plot1DCanvas::getNonGravityDim() const
+  {
+    return unit_mapper_.getDim(getGravitator().swap().getGravityAxis());
   }
 
 
@@ -776,7 +807,7 @@ namespace OpenMS
       break;
     }
     
-    getCurrentLayer().annotations_1d.resize(getCurrentLayer().getPeakData()->size());
+    getCurrentLayer().getCurrentAnnotations().resize(getCurrentLayer().getPeakData()->size());
 
     // update nearest peak
     selected_peak_.clear();
@@ -805,24 +836,14 @@ namespace OpenMS
 
   void Plot1DCanvas::drawCoordinates_(QPainter& painter, const PeakIndex& peak)
   {
-    if (!peak.isValid() || peak.peak >= getCurrentLayer().getCurrentSpectrum().size())
+    if (!peak.isValid())
     {
       return;
     }              
-    // only peak data is supported here
-    if (getCurrentLayer().type != LayerDataBase::DT_PEAK)
-    {
-      QMessageBox::critical(this, "Error", "This widget supports peak data only. Aborting!");
-      return;
-    }
-   
-    const auto xy_point = unit_mapper_.map(getCurrentLayer().getCurrentSpectrum()[peak.peak]);
-    const auto& x_axis = unit_mapper_.getDim(DIM::X);
-    const auto& y_axis = unit_mapper_.getDim(DIM::Y);
-
+    const auto xy_point = getCurrentLayer().peakIndexToXY(peak, unit_mapper_);
     QStringList lines;
-    lines << x_axis.formattedValue(xy_point.getX()).toQString();
-    lines << y_axis.formattedValue(xy_point.getY()).toQString();
+    lines << unit_mapper_.getDim(DIM::X).formattedValue(xy_point.getX()).toQString();
+    lines << unit_mapper_.getDim(DIM::Y).formattedValue(xy_point.getY()).toQString();
     drawText_(painter, lines);
   }
 
@@ -839,11 +860,11 @@ namespace OpenMS
       return;
     }
 
-    const auto peak_start = unit_mapper_.map(getCurrentLayer().getCurrentSpectrum()[start.peak]);
+    const auto peak_start = getCurrentLayer().peakIndexToXY(start, unit_mapper_);
     auto peak_end = decltype(peak_start){}; // same as peak_start but without the const
     if (end.isValid())
     {
-      peak_end = unit_mapper_.map(getCurrentLayer().getCurrentSpectrum()[end.peak]);
+      peak_end = getCurrentLayer().peakIndexToXY(end, unit_mapper_);
     }
     else
     {
@@ -883,12 +904,9 @@ namespace OpenMS
       double local_max  = -numeric_limits<double>::max();
       for (Size i = 0; i < getLayerCount(); ++i)
       {
-        const SpectrumType & spectrum = getLayer(i).getCurrentSpectrum();
-        SpectrumConstIteratorType tmp = max_element(spectrum.MZBegin(visible_area_.getAreaUnit().getMinMZ()), spectrum.MZEnd(visible_area_.getAreaUnit().getMaxMZ()), PeakType::IntensityLess());
-        if (tmp != spectrum.end() && tmp->getIntensity() > local_max)
-        {
-          local_max = tmp->getIntensity();
-        }
+        auto filter_area = visible_area_.getAreaUnit();
+        const auto updated_area = getLayer(i).getRangeForArea(filter_area.clear(getGravityDim().getUnit()));
+        local_max = std::max(local_max, updated_area.getMaxIntensity());
       }
 
       // add some margin on top of local maximum to be sure we are able to draw labels inside the view
@@ -960,24 +978,15 @@ namespace OpenMS
 
     Annotations1DContainer& annots_1d = getCurrentLayer().getCurrentAnnotations();
     Annotation1DItem* annot_item = annots_1d.getItemAt(e->pos());
+    bool need_repaint = false; /// will get updated by context menu actions
     if (annot_item)
     {
       annots_1d.deselectAll();
       annots_1d.selectItemAt(e->pos());
       update_(OPENMS_PRETTY_FUNCTION);
 
-      context_menu->addAction("Edit", [&]() {
-          annot_item->editText();
-          getCurrentLayer().synchronizePeakAnnotations();
-          update_(OPENMS_PRETTY_FUNCTION);
-      });
-      context_menu->addAction("Delete", [&]() {
-        vector<Annotation1DItem*> as;
-        as.push_back(annot_item);
-        getCurrentLayer().removePeakAnnotationsFromPeptideHit(as);
-        annots_1d.removeSelectedItems();
-        update_(OPENMS_PRETTY_FUNCTION);
-      });
+      context_menu->addMenu(getCurrentLayer()
+        .getContextMenuAnnotation(annot_item, need_repaint));
     }
     else // !annot_item
     {
@@ -1000,8 +1009,9 @@ namespace OpenMS
         addUserPeakAnnotation_(near_peak);
       })->setEnabled(near_peak.isValid());
       
-      context_menu->addAction("Add peak annotation mz", [&]() {
-        QString label = String::number(getCurrentLayer().getCurrentSpectrum()[near_peak.peak].getMZ(), 4).toQString();
+      context_menu->addAction((String("Add peak annotation ") + String(getNonGravityDim().getDimNameShort())).toQString(), [&]() {
+        const auto xy_point = getCurrentLayer().peakIndexToXY(near_peak, unit_mapper_);
+        QString label = getNonGravityDim().formattedValue(gr_.swap().gravityValue(xy_point)).toQString();
         addPeakAnnotation(near_peak, label, String(getCurrentLayer().param.getValue("peak_color").toString()).toQString());
       })->setEnabled(near_peak.isValid());
       
@@ -1091,12 +1101,12 @@ namespace OpenMS
         });
       }
 
-      if (getCurrentLayer().getCurrentSpectrum().containsIMData())
+      /*if (getCurrentLayer().getCurrentSpectrum().containsIMData())
       {
         context_menu->addAction("Switch to ion mobility view", [&]() {
           emit showCurrentPeaksAsIonMobility();
         });
-      }
+      }*/
 
       if (getCurrentLayer().isDIAData())
       {
@@ -1115,6 +1125,11 @@ namespace OpenMS
 
     // evaluate menu
     context_menu->exec(mapToGlobal(e->pos()));
+    // .. and repaint, depending on action taken
+    if (need_repaint)
+    {
+      update_(OPENMS_PRETTY_FUNCTION);
+    }
 
     e->accept();
   }
@@ -1157,10 +1172,7 @@ namespace OpenMS
 
   Annotation1DItem* Plot1DCanvas::addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color)
   {
-    PeakType peak = getCurrentLayer().getCurrentSpectrum()[peak_index.peak];
-    auto* item = new Annotation1DPeakItem<PeakType>(peak, text, color);
-    item->setSelected(false);
-    getCurrentLayer().getCurrentAnnotations().push_front(item);
+    auto item = getCurrentLayer().addPeakAnnotation(peak_index, text, color);
     update_(OPENMS_PRETTY_FUNCTION);
     return item;
   }
@@ -1200,7 +1212,7 @@ namespace OpenMS
   {
     for (Size i = 0; i < getLayerCount(); ++i)
     {
-      if (layers_.getLayer(i).flipped)
+      if (getLayer(i).flipped)
       {
         return true;
       }
@@ -1417,10 +1429,14 @@ namespace OpenMS
     {
       return;
     }
-    LayerDataBase& layer_1 = getLayer(layer_index_1);
-    LayerDataBase& layer_2 = getLayer(layer_index_2);
-    const ExperimentType::SpectrumType& spectrum_1 = layer_1.getCurrentSpectrum();
-    const ExperimentType::SpectrumType& spectrum_2 = layer_2.getCurrentSpectrum();
+    auto ptr_layer_1 = dynamic_cast<const LayerData1DPeak*>(&getLayer(layer_index_1));
+    auto ptr_layer_2 = dynamic_cast<const LayerData1DPeak*>(&getLayer(layer_index_2));
+    if (ptr_layer_1 == nullptr || ptr_layer_2 == nullptr)
+    {
+      return;
+    }
+    const ExperimentType::SpectrumType& spectrum_1 = ptr_layer_1->getCurrentSpectrum();
+    const ExperimentType::SpectrumType& spectrum_2 = ptr_layer_2->getCurrentSpectrum();
 
     SpectrumAlignment aligner;
     aligner.setParameters(param);
@@ -1470,7 +1486,12 @@ namespace OpenMS
     }
     else
     {
-      const ExperimentType::SpectrumType& spectrum_1 = getLayer(alignment_layer_1_).getCurrentSpectrum();
+      auto ptr_layer_1 = dynamic_cast<const LayerData1DPeak*>(&getLayer(alignment_layer_1_));
+      if (ptr_layer_1 == nullptr)
+      {
+        return;
+      }
+      const ExperimentType::SpectrumType& spectrum_1 = ptr_layer_1->getCurrentSpectrum();
       updatePercentageFactor_(alignment_layer_1_);
       for (Size i = 0; i < getAlignmentSize(); ++i)
       {
@@ -1517,7 +1538,7 @@ namespace OpenMS
     if (intensity_mode_ == IM_PERCENTAGE)
     {
       // maximum value in data (usually intensity) 
-      auto max_data_gravity = unit_mapper_.mapRange(getLayer(layer_index).getCurrentSpectrum().getRange()).maxPosition()[(int)gr_.getGravityAxis()];
+      auto max_data_gravity = unit_mapper_.mapRange(getLayer(layer_index).getRange()).maxPosition()[(int)gr_.getGravityAxis()];
       auto max_all_data     = unit_mapper_.mapRange(overall_data_range_).maxPosition()[(int)gr_.getGravityAxis()];
       percentage_factor_ = max_all_data / max_data_gravity;
     }
@@ -1547,7 +1568,7 @@ namespace OpenMS
     
     if (index < getCurrentLayer().getPeakData()->size())
     {
-      getCurrentLayer().setCurrentSpectrumIndex(index);
+      getCurrentLayer().setCurrentIndex(index);
       recalculateSnapFactor_();
       if (repaint)
       {

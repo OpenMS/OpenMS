@@ -2016,9 +2016,6 @@ namespace OpenMS
   void TOPPViewBase::showCurrentPeaksAsIonMobility(const MSSpectrum& spec)
   {
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
-
-    // Get current spectrum
-    auto spidx = layer.getCurrentSpectrumIndex();
     
     ExperimentSharedPtrType exp(new MSExperiment(IMDataConverter::splitByIonMobility(spec)));
     // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
@@ -2034,18 +2031,13 @@ namespace OpenMS
     }
     w->xAxis()->setLegend("Ion Mobility [" + exp->getSpectra()[0].getDriftTimeUnitAsString() + "]");
 
-    String caption = layer.getName() + " (Ion Mobility Scan " + String(spidx) + ")";
-    // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
-    if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
-    {
-      caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
-    }
+    String caption = layer.getName() + " (Ion Mobility Scan)";
     w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
     showPlotWidgetInWindow(w, caption);
     updateMenu();
   }
 
-  void TOPPViewBase::showCurrentPeaksAsDIA()
+  void TOPPViewBase::showCurrentPeaksAsDIA(const Precursor& pc, const MSExperiment& exp)
   {
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
 
@@ -2055,55 +2047,48 @@ namespace OpenMS
       return;
     }
 
-    // Get current spectrum
-    MSSpectrum tmps = layer.getCurrentSpectrum();
-
     // Add spectra into a MSExperiment, sort and prepare it for display
     ExperimentSharedPtrType tmpe(new OpenMS::MSExperiment() );
 
     // Collect all MS2 spectra with the same precursor as the current spectrum
     // (they are in the same SWATH window)
     String caption_add = "";
-    if (!tmps.getPrecursors().empty())
-    {
-      // Get precursor isolation windows
-      const auto& prec = tmps.getPrecursors()[0];
-      double lower = prec.getMZ() - prec.getIsolationWindowLowerOffset();
-      double upper = prec.getMZ() + prec.getIsolationWindowUpperOffset();
 
-      Size k = 0;
-      for (const auto& spec : (*layer.getPeakData() ) )
+    double lower = pc.getMZ() - pc.getIsolationWindowLowerOffset();
+    double upper = pc.getMZ() + pc.getIsolationWindowUpperOffset();
+
+    Size k = 0;
+    for (const auto& spec : exp)
+    {
+      if (spec.getMSLevel() == 2 && !spec.getPrecursors().empty() )
       {
-        if (spec.getMSLevel() == 2 && !spec.getPrecursors().empty() )
+        if (fabs(spec.getPrecursors()[0].getMZ() - pc.getMZ()) < 1e-4)
         {
-          if (fabs(spec.getPrecursors()[0].getMZ() - tmps.getPrecursors()[0].getMZ() ) < 1e-4 )
+          // Get the spectrum in question (from memory or disk) and add to
+          // the newly created MSExperiment
+          if (spec.size() > 0)
           {
-            // Get the spectrum in question (from memory or disk) and add to
-            // the newly created MSExperiment
-            if (spec.size() > 0)
-            {
-              // Get data from memory - copy data and tell TOPPView that this
-              // is MS1 data so that it will be displayed properly in 2D and 3D
-              // view
-              MSSpectrum t = spec;
-              t.setMSLevel(1);
-              tmpe->addSpectrum(t);
-            }
-            else if (layer.getOnDiscPeakData()->getNrSpectra() > k)
-            {
-              // Get data from disk - copy data and tell TOPPView that this is
-              // MS1 data so that it will be displayed properly in 2D and 3D
-              // view
-              MSSpectrum t = layer.getOnDiscPeakData()->getSpectrum(k);
-              t.setMSLevel(1);
-              tmpe->addSpectrum(t);
-            }
+            // Get data from memory - copy data and tell TOPPView that this
+            // is MS1 data so that it will be displayed properly in 2D and 3D
+            // view
+            MSSpectrum t = spec;
+            t.setMSLevel(1);
+            tmpe->addSpectrum(t);
+          }
+          else if (layer.getOnDiscPeakData()->getNrSpectra() > k)
+          {
+            // Get data from disk - copy data and tell TOPPView that this is
+            // MS1 data so that it will be displayed properly in 2D and 3D
+            // view
+            MSSpectrum t = layer.getOnDiscPeakData()->getSpectrum(k);
+            t.setMSLevel(1);
+            tmpe->addSpectrum(t);
           }
         }
-        k++;
       }
-      caption_add = "(DIA window " + String(lower) + " - " + String(upper) + ")";
+      k++;
     }
+    caption_add = "(DIA window " + String(lower) + " - " + String(upper) + ")";
     
     tmpe->sortSpectra();
     tmpe->updateRanges();
@@ -2119,11 +2104,6 @@ namespace OpenMS
 
     String caption = layer.getName();
     caption += caption_add;
-    // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
-    if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
-    {
-      caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
-    }
     w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
     showPlotWidgetInWindow(w, caption);
     updateMenu();

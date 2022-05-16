@@ -339,7 +339,7 @@ public slots:
     /// Shows the current peak data of the active layer as ion mobility
     void showCurrentPeaksAsIonMobility(const MSSpectrum& spec);
     /// Shows the current peak data of the active layer as DIA data
-    void showCurrentPeaksAsDIA();
+    void showCurrentPeaksAsDIA(const Precursor& pc, const MSExperiment& exp);
     /// Saves the whole current layer data
     void saveLayerAll() const;
     /// Saves the visible layer data

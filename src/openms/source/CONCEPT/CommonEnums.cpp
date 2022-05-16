@@ -28,29 +28,15 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/LayerData1DBase.h>
+#pragma once
 
-#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-                                                        
-using namespace std;
+#include <OpenMS/CONCEPT/CommonEnums.h>
 
 namespace OpenMS
 {
-  String LayerData1DBase::getDecoratedName() const
-  {
-    String n = LayerDataBase::getDecoratedName();
-    if (flipped)
-    {
-      n += " [flipped]";
-    }
-    return n;
-  }
-
   
-
-}// namespace OpenMS
+}

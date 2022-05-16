@@ -100,7 +100,7 @@ public:
     {
       for (Size i = 0; i < D; i++)
       {
-        swap(coordinate_[i], rhs.coordinate_[i]);
+        std::swap(coordinate_[i], rhs.coordinate_[i]);
       }      
     }
 

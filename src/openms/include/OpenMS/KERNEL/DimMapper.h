@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/CommonEnums.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
@@ -50,21 +51,6 @@
 
 namespace OpenMS
 {
-  /// Enum for different units which can be displayed on a plotting axis
-  /// The order is arbitrary.
-  enum class DIM_UNIT
-  {
-    RT = 0,     ///< RT in seconds
-    MZ,         ///< m/z
-    INT,        ///< intensity
-    IM_MS,      ///< ion mobility milliseconds
-    IM_VSSC,    ///< volt-second per square centimeter (i.e. 1/K_0)
-    FAIMS_CM,   ///< FAIMS compensation voltage
-    SIZE_OF_DIM_UNITS
-  };
-  std::string_view DIM_NAMES[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT [s]", "m/z [Th]", "intensity", "IM [milliseconds]", "IM [vs / cm2]", "FAIMS CV"};
-  std::string_view DIM_NAMES_SHORT[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT", "m/z", "int", "IM", "IM", "FCV"};
-
   /**
     @brief A base class for a dimension which represents a certain unit (e.g. RT or m/z).
            Derived classes implement virtual functions, which receive a well-defined data type,

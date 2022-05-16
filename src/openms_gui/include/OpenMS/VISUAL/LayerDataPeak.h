@@ -128,7 +128,7 @@ namespace OpenMS
 
 
   
-  class LayerData1DPeak : public LayerData1DBase, public LayerDataPeak
+  class OPENMS_GUI_DLLAPI LayerData1DPeak : public LayerData1DBase, public LayerDataPeak
   {
   public:
     LayerData1DPeak()
@@ -137,6 +137,16 @@ namespace OpenMS
     }
 
     std::unique_ptr<Painter1DBase> getPainter1D() const override;
+
+    
+    RangeAllType getRangeForArea(const RangeAllType partial_range) const override
+    {
+      const auto& spec = getCurrentSpectrum();
+      auto spec_filtered = SpectrumType();
+      spec_filtered.insert(spec_filtered.begin(), spec.MZBegin(partial_range.getMinMZ()), spec.MZEnd(partial_range.getMaxMZ()));
+      spec_filtered.updateRanges();
+      return RangeAllType().assign(spec_filtered.getRange());
+    }
 
     const ExperimentType::SpectrumType& getCurrentSpectrum() const
     {
@@ -150,7 +160,7 @@ namespace OpenMS
 
     void updateRanges() override
     {
-      pd.updateRanges();
+      LayerDataPeak::updateRanges();
       cached_spectrum_.updateRanges();
     }
 
@@ -158,6 +168,9 @@ namespace OpenMS
     {
       return RangeAllType().assign(getCurrentSpectrum().getRange());
     }
+
+    // docu in base class
+    QMenu* getContextMenuAnnotation(Annotation1DItem* annot_item, bool& need_repaint) override;
 
     PeakIndex findClosestDataPoint(const RangeAllType& area) const override;
 
@@ -170,6 +183,8 @@ namespace OpenMS
       return LayerDataPeak::getSpectrum(spectrum_idx);
     }
 
+    // docu in base class
+    Annotation1DItem* addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color) override;
 
     /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
     /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated

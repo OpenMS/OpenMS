@@ -36,11 +36,11 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/CommonEnums.h>
 
 #include <algorithm> // for min/max
 #include <cassert>
 #include <iosfwd>  // for std::ostream
-
 
 namespace OpenMS
 {
@@ -563,6 +563,7 @@ namespace OpenMS
   class RangeManager : public RangeBases...
   {
   public:
+    using ThisRangeType = RangeManager<RangeBases...>;
     // rule of 0 -- no need for a virtual d'tor or anything fancy
     // ...
 
@@ -806,6 +807,34 @@ namespace OpenMS
       });
     }
 
+    /// Resets the dimension of the given @p range. Any type of ion mobility in @p range will clear the RTMobility dimension.
+    /// If the @p range is not contained in this class, then nothing happens.
+    ThisRangeType& clear(const DIM_UNIT range)
+    {
+      switch (range)
+      {
+        case DIM_UNIT::RT:
+          if constexpr (std::is_base_of_v<RangeRT, ThisRangeType>) this->RangeRT::clear();
+          break;
+        case DIM_UNIT::MZ:
+          if constexpr (std::is_base_of_v<RangeMZ, ThisRangeType>) this->RangeMZ::clear();
+          break;
+        case DIM_UNIT::INT:
+          if constexpr (std::is_base_of_v<RangeIntensity, ThisRangeType>) this->RangeIntensity::clear();
+          break;
+        // assume all ion mobility ranges are the same and never occur together. If this is violated at some point, then split RangeMobility into subclasses...
+        case DIM_UNIT::IM_MS:
+        case DIM_UNIT::IM_VSSC:
+        case DIM_UNIT::FAIMS_CM:
+          if constexpr (std::is_base_of_v<RangeMobility, ThisRangeType>) this->RangeMobility::clear();
+          break;
+        default:
+          // all cases should be covered above
+          assert(false && "This should never be reached. Did you forget to implement a new DIM_UNIT?");
+      }
+      return *this;
+    }
+
     /// print each dimension (base classes) to a stream
     void printRange(std::ostream& out) const
     {
@@ -855,15 +884,15 @@ namespace OpenMS
     virtual void updateRanges() = 0;
 
     /// get range of current data (call updateRanges() before to ensure the range is accurate)
-    const RangeManager<RangeBases...>& getRange() const
+    const ThisRangeType& getRange() const
     {
-      return (RangeManager<RangeBases...>&) *this;
+      return (ThisRangeType&)*this;
     }
 
     /// get mutable range, provided for efficiency reasons (avoid updateRanges(), if only minor changes were made)
-    RangeManager<RangeBases...>& getRange()
+    ThisRangeType& getRange()
     {
-      return (RangeManager<RangeBases...>&)*this;
+      return (ThisRangeType&)*this;
     }
     
   };
