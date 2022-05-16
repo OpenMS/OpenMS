@@ -367,6 +367,9 @@ jobs:
             ## TODO potentially parse some OS infos and add to build name
             ## TODO allow changing Contrib path to get rid of the extra cmake file!
             dbus-uuidgen > /var/lib/dbus/machine-id
+            mkdir -p $GITHUB_WORKSPACE/OpenMS/testbld/ && cd $GITHUB_WORKSPACE/OpenMS/testbld/
+            cmake ..
+            cd ..
             xvfb-run ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
             
             cat $GITHUB_WORKSPACE/OpenMS/bld/CMakeFiles/CMakeError.log
