@@ -34,7 +34,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/GNPSMetaValueFile.h>
 #include <OpenMS/FORMAT/GNPSMGFFile.h>
+#include <OpenMS/FORMAT/GNPSQuantificationFile.h>
 #include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -136,6 +138,9 @@ protected:
     registerOutputFile_("out_pairs", "<file>", "", "Output supplementary pairs table for IIMN.", false);
     setValidFormats_("out_pairs", {"csv"});
 
+    registerOutputFile_("out_meta_values", "<file>", "", "Output meta value file.", false);
+    setValidFormats_("out_meta_values", {"tsv"});
+
     addEmptyLine_();
 
     registerFullParam_(GNPSMGFFile().getDefaults());
@@ -152,6 +157,7 @@ protected:
     String out(getStringOption_("out"));
     String out_quantification(getStringOption_("out_quantification"));
     String out_pairs(getStringOption_("out_pairs"));
+    String out_meta(getStringOption_("out_meta_values"));
 
     // load ConsensusMap from file
     ConsensusMap cm;
@@ -167,14 +173,16 @@ protected:
       }
     }
 
-    if (!out_pairs.empty()) IonIdentityMolecularNetworking::writeSupplementaryPairTable(cm, out_pairs);
-    if (!out_quantification.empty()) IonIdentityMolecularNetworking::writeFeatureQuantificationTable(cm, out_quantification);
 
     GNPSMGFFile gnps;
     gnps.setLogType(log_type_);
     gnps.setParameters(getParam_()); // copy tool parameter to library class/algorithm
     gnps.run(consensus_file_path, mzml_file_paths, out);
 
+    if (!out_pairs.empty()) IonIdentityMolecularNetworking::writeSupplementaryPairTable(cm, out_pairs);
+    if (!out_quantification.empty()) GNPSQuantificationFile::run(cm, out_quantification);
+    if (!out_meta.empty()) GNPSMetaValueFile::run(mzml_file_paths, out_meta);
+    
     return EXECUTION_OK;
   }
 };
