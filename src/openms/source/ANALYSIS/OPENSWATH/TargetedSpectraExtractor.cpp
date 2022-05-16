@@ -223,6 +223,42 @@ namespace OpenMS
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
 
+      auto construct_feature = [rt_left_lim,
+                                rt_right_lim,
+                                spectrum_rt,
+                                spectrum_mz,
+                                &ms2_features,
+                                &annotated_spectra,
+                                &spectrum]
+                                (const OpenMS::Feature& feature) 
+      {
+        const auto& peptide_ref_s = feature.getMetaValue("PeptideRef");
+        const auto& native_id_s = feature.getMetaValue("native_id");
+
+        // check for null annotations resulting from unnanotated features
+        if (peptide_ref_s != "null")
+        {
+          const double target_mz = feature.getMZ();
+          const double target_rt = feature.getRT();
+          if (target_rt >= rt_left_lim && target_rt <= rt_right_lim)
+          {
+            OPENMS_LOG_DEBUG << "annotateSpectra(): " << peptide_ref_s << "]";
+            OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl;
+            MSSpectrum annotated_spectrum = spectrum;
+            annotated_spectrum.setName(peptide_ref_s);
+            annotated_spectra.push_back(std::move(annotated_spectrum));
+            // fill the ms2 features map
+            Feature ms2_feature;
+            ms2_feature.setRT(spectrum_rt);
+            ms2_feature.setMZ(spectrum_mz);
+            ms2_feature.setIntensity(feature.getIntensity());
+            ms2_feature.setMetaValue("native_id", native_id_s);
+            ms2_feature.setMetaValue("PeptideRef", peptide_ref_s);
+            ms2_features.push_back(std::move(ms2_feature));
+          }
+        }
+      };
+
       for (const auto& feature : ms1_features)
       {
         if (!feature.getSubordinates().empty())
@@ -230,61 +266,12 @@ namespace OpenMS
           // iterate through the subordinate level
           for (const auto& subordinate : feature.getSubordinates())
           {
-            const auto& peptide_ref_s = subordinate.getMetaValue("PeptideRef");
-            const auto& native_id_s = subordinate.getMetaValue("native_id");
-
-            // check for null annotations resulting from unnanotated features
-            if (peptide_ref_s != "null")
-            {
-              const double target_mz = subordinate.getMZ();
-              const double target_rt = subordinate.getRT();
-              if (target_rt >= rt_left_lim && target_rt <= rt_right_lim)
-              {
-                OPENMS_LOG_DEBUG << "annotateSpectra(): " << peptide_ref_s << "]";
-                OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl;
-                MSSpectrum annotated_spectrum = spectrum;
-                annotated_spectrum.setName(peptide_ref_s);
-                annotated_spectra.push_back(std::move(annotated_spectrum));
-                // fill the ms2 features map
-                Feature ms2_feature;
-                ms2_feature.setRT(spectrum_rt);
-                ms2_feature.setMZ(spectrum_mz);
-                ms2_feature.setIntensity(subordinate.getIntensity());
-                ms2_feature.setMetaValue("native_id", native_id_s);
-                ms2_feature.setMetaValue("PeptideRef", peptide_ref_s);
-                ms2_features.push_back(std::move(ms2_feature));
-              }
-            }
+            construct_feature(subordinate);
           }
         }
         else
         {
-          // iterate through the feature level
-          const auto& peptide_ref_f = feature.getMetaValue("PeptideRef");
-          const auto& native_id_f = feature.getMetaValue("native_id");
-
-          // check for null annotations resulting from unnanotated features
-          if (peptide_ref_f != "null")
-          {
-            const double target_mz = feature.getMZ();
-            const double target_rt = feature.getRT();
-            if (target_rt >= rt_left_lim && target_rt <= rt_right_lim)
-            {
-              OPENMS_LOG_DEBUG << "annotateSpectra(): " << peptide_ref_f << "]";
-              OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl;
-              MSSpectrum annotated_spectrum = spectrum;
-              annotated_spectrum.setName(peptide_ref_f);
-              annotated_spectra.push_back(annotated_spectrum);
-              // fill the ms2 features map
-              Feature ms2_feature;
-              ms2_feature.setRT(spectrum_rt);
-              ms2_feature.setMZ(spectrum_mz);
-              ms2_feature.setIntensity(feature.getIntensity());
-              ms2_feature.setMetaValue("native_id", native_id_f);
-              ms2_feature.setMetaValue("PeptideRef", peptide_ref_f);
-              ms2_features.push_back(ms2_feature);
-            }
-          }
+          construct_feature(feature);
         }
       }
     }
