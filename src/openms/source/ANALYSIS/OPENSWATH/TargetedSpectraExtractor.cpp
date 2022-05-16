@@ -1078,30 +1078,25 @@ namespace OpenMS
 
   void TargetedSpectraExtractor::organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<OpenMS::String, std::vector<OpenMS::Feature>>& fmapmap) const
   {
-    for (const OpenMS::Feature& f : fmap_input)
+    auto construct_feature = [&fmapmap](const OpenMS::Feature& feature)
     {
-      if (f.metaValueExists("PeptideRef") && f.metaValueExists("identifier"))
+      if (feature.metaValueExists("PeptideRef") && feature.metaValueExists("identifier"))
       {
-        std::string id = std::string(f.getMetaValue("PeptideRef")) + std::string("_") + std::string(f.getMetaValue("identifier").toStringList().at(0));
-        std::string id_f = id + std::string("_") + std::to_string(f.getRT());
-        auto found_f = fmapmap.emplace(id_f, std::vector<OpenMS::Feature>({f}));
+        std::string id = std::string(feature.getMetaValue("PeptideRef")) + std::string("_") + std::string(feature.getMetaValue("identifier").toStringList().at(0));
+        std::string id_f = id + std::string("_") + std::to_string(feature.getRT());
+        auto found_f = fmapmap.emplace(id_f, std::vector<OpenMS::Feature>({feature}));
         if (!found_f.second)
         {
-          fmapmap.at(id_f).push_back(f);
+          fmapmap.at(id_f).push_back(feature);
         }
       }
+    };
+    for (const OpenMS::Feature& f : fmap_input)
+    {
+      construct_feature(f);
       for (const OpenMS::Feature& s : f.getSubordinates())
       {
-        if (s.metaValueExists("PeptideRef") && s.metaValueExists("identifier"))
-        {
-          std::string id = std::string(s.getMetaValue("PeptideRef")) + std::string("_") + std::string(s.getMetaValue("identifier").toStringList().at(0));
-          std::string id_s = id + std::string("_") + std::to_string(s.getRT());
-          auto found_s = fmapmap.emplace(id_s, std::vector<OpenMS::Feature>({s}));
-          if (!found_s.second)
-          {
-            fmapmap.at(id_s).push_back(s);
-          }
-        }
+        construct_feature(s);
       }
     }
   }
