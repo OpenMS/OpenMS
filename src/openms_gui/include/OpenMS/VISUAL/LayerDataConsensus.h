@@ -58,6 +58,10 @@ namespace OpenMS
     /// move assignment
     LayerDataConsensus& operator=(LayerDataConsensus&& ld) = default;
 
+    std::unique_ptr<LayerVisibleData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
+
+    std::unique_ptr<LayerVisibleData> storeFullData() const override;
+
     void updateRanges() override
     {
       consensus_map_->updateRanges();

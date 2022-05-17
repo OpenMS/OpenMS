@@ -34,22 +34,19 @@
 
 #pragma once
 
-// OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
+#include "OpenMS/CONCEPT/ProgressLogger.h"
 #include <OpenMS/DATASTRUCTURES/String.h>
-
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -60,6 +57,7 @@ class QWidget;
 
 namespace OpenMS
 {
+  class LayerVisibleData;
   class LayerStatistics;
   class OnDiscMSExperiment;
   class OSWData;
@@ -191,6 +189,16 @@ namespace OpenMS
     /// D'tor
     virtual ~LayerDataBase() = default;
 
+    /// Returns a visitor which contains the current visible data and can write the data to disk
+    virtual std::unique_ptr<LayerVisibleData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    /// Returns a visitor which contains the current visible data and can write the data to disk
+    virtual std::unique_ptr<LayerVisibleData> storeFullData() const
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
 
     /**
      * \brief Find the closest datapoint within the given range and return a proxy to that datapoint

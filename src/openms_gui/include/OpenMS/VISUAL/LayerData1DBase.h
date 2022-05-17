@@ -35,12 +35,12 @@
 #pragma once
 
 #include <OpenMS/VISUAL/LayerDataBase.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 
 class QWidget;
 
 namespace OpenMS
 {
-  class Annotations1DContainer;
   class Annotation1DItem;
 
   /**

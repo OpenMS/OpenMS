@@ -76,6 +76,7 @@
 #include <OpenMS/VISUAL/Plot3DWidget.h>
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/SpectraTreeTab.h>
+#include <OpenMS/VISUAL/VISITORS/LayerVisibleData.h>
 
 //Qt
 #include <QCloseEvent>
@@ -1665,11 +1666,11 @@ namespace OpenMS
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
 
 
-    //delete old input and output file
+    // delete old input and output file
     File::remove(topp_.file_name + "_in");
     File::remove(topp_.file_name + "_out");
 
-    //test if files are writable
+    // test if files are writable
     if (!File::writable(topp_.file_name + "_in"))
     {
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "_in'!");
@@ -1681,73 +1682,21 @@ namespace OpenMS
       return;
     }
 
-    //Store data
+    // store data
     topp_.layer_name = layer.getName();
     topp_.window_id = getActivePlotWidget()->getWindowId();
-    //topp_.spectrum_id = layer.getCurrentSpectrumIndex();
-    if (layer.type == LayerDataBase::DT_PEAK  && !(layer.chromatogram_flag_set()))
+    if (auto layer_1d = dynamic_cast<const LayerData1DBase*>(&layer))
     {
-      MzMLFile f;
-      f.setLogType(ProgressLogger::GUI);
-      if (topp_.visible_area_only)
-      {
-        ExperimentType exp;
-        getActiveCanvas()->getVisiblePeakData(exp);
-        f.store(topp_.file_name + "_in", exp);
-      }
-      else
-      {
-        f.store(topp_.file_name + "_in", *layer.getPeakData());
-      }
+      topp_.spectrum_id = layer_1d->getCurrentIndex();
     }
-    else if (layer.type == LayerDataBase::DT_CHROMATOGRAM || layer.chromatogram_flag_set())
-    {
-      MzMLFile f;
-      // This means we have chromatogram data, either as DT_CHROMATOGRAM or as
-      // DT_PEAK with the chromatogram flag set. To run the TOPPTool we need to
-      // remove the flag and add the newly generated layer as spectrum data
-      // (otherwise we run into problems with SpectraTreeTab::updateEntries
-      // which assumes that all chromatogram data has chromatograms).
-      getActiveCanvas()->getCurrentLayer().remove_chromatogram_flag(); // removing the flag is not constant
-      //getActiveCanvas()->getCurrentLayer().getPeakData()->setMetaValue("chromatogram_passed_through_TOPP", "true");
 
-      f.setLogType(ProgressLogger::GUI);
-      if (topp_.visible_area_only)
-      {
-        ExperimentType exp;
-        getActiveCanvas()->getVisiblePeakData(exp);
-        f.store(topp_.file_name + "_in", exp);
-      }
-      else
-      {
-        f.store(topp_.file_name + "_in", *layer.getPeakData());
-      }
-    }
-    else if (layer.type == LayerDataBase::DT_FEATURE)
-    {
-      if (topp_.visible_area_only)
-      {
-        FeatureMapType map;
-        getActiveCanvas()->getVisibleFeatureData(map);
-        FeatureXMLFile().store(topp_.file_name + "_in", map);
-      }
-      else
-      {
-        FeatureXMLFile().store(topp_.file_name + "_in", *layer.getFeatureMap());
-      }
-    }
-    else
-    {
-      if (topp_.visible_area_only)
-      {
-        ConsensusMapType map;
-        getActiveCanvas()->getVisibleConsensusData(map);
-        ConsensusXMLFile().store(topp_.file_name + "_in", map);
-      }
-      else
-      {
-        ConsensusXMLFile().store(topp_.file_name + "_in", *layer.getConsensusMap());
-      }
+    { // just a local scope
+      auto visitor_data = topp_.visible_area_only
+                          ? layer.storeVisibleData(getActiveCanvas()->getVisibleArea().getAreaUnit(), layer.filters)
+                          : layer.storeFullData();
+      auto saved_path = visitor_data->saveToFile(File::path(topp_.file_name), ProgressLogger::GUI);
+      // visitor saves the file using a unique name; TOPPView wants a fixed one... so rename it
+      File::rename(saved_path, topp_.file_name + "_in");
     }
 
     // compose argument list
@@ -1764,7 +1713,7 @@ namespace OpenMS
     }
 
     // start log and show it
-    log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("Starting '%1'").arg(topp_.tool.toQString()), ""); // tool + args.join(" "));
+    log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("Starting '%1'").arg(topp_.tool.toQString()), "");
 
     // initialize process
     topp_.process = new QProcess();
@@ -1800,12 +1749,10 @@ namespace OpenMS
       // ensure that all tool output is emitted into log screen
       updateProcessLog();
 
-      // re-enable Apply TOPP tool menues
+      // re-enable Apply TOPP tool menus
       delete topp_.process;
       topp_.process = nullptr;
       updateMenu();
-
-      return;
     }
   }
 

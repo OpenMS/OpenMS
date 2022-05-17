@@ -73,10 +73,10 @@ namespace OpenMS
     setCanvas_(new Plot1DCanvas(preferences, gravity_axis, this));
 
     // Delegate signals
-    connect(canvas(), SIGNAL(showCurrentPeaksAs2D()), this, SIGNAL(showCurrentPeaksAs2D()));
-    connect(canvas(), SIGNAL(showCurrentPeaksAs3D()), this, SIGNAL(showCurrentPeaksAs3D()));
-    connect(canvas(), SIGNAL(showCurrentPeaksAsIonMobility()), this, SIGNAL(showCurrentPeaksAsIonMobility()));
-    connect(canvas(), SIGNAL(showCurrentPeaksAsDIA()), this, SIGNAL(showCurrentPeaksAsDIA()));
+    connect(canvas(), &Plot1DCanvas::showCurrentPeaksAs2D, this, &Plot1DWidget::showCurrentPeaksAs2D);
+    connect(canvas(), &Plot1DCanvas::showCurrentPeaksAs3D, this, &Plot1DWidget::showCurrentPeaksAs3D);
+    connect(canvas(), &Plot1DCanvas::showCurrentPeaksAsIonMobility, this, &Plot1DWidget::showCurrentPeaksAsIonMobility);
+    connect(canvas(), &Plot1DCanvas::showCurrentPeaksAsDIA, this, &Plot1DWidget::showCurrentPeaksAsDIA);
   }
 
   void Plot1DWidget::recalculateAxes_()

@@ -64,6 +64,10 @@ namespace OpenMS
     /// move assignment
     LayerDataPeak& operator=(LayerDataPeak&& ld) = default;
 
+    std::unique_ptr<LayerVisibleData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
+    std::unique_ptr<LayerVisibleData> storeFullData() const override;
+
+
     void updateRanges() override
     {
       peak_map_->updateRanges();
@@ -90,10 +94,7 @@ namespace OpenMS
       return (*peak_map_)[spectrum_idx];
     }
 
-    PointXYType peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const override
-    {
-      return mapper.map(getSpectrum(peak.spectrum)[peak.peak]);
-    }
+    PointXYType peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const override;
 
     String getDataArrayDescription(const PeakIndex& peak_index) override
     {
@@ -135,6 +136,9 @@ namespace OpenMS
       : LayerDataBase(DT_PEAK)
     {
     }
+
+    std::unique_ptr<LayerVisibleData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
+    std::unique_ptr<LayerVisibleData> storeFullData() const override;
 
     std::unique_ptr<Painter1DBase> getPainter1D() const override;
 

@@ -43,7 +43,6 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 //#include <iostream>

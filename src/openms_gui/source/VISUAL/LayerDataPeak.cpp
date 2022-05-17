@@ -36,18 +36,32 @@
 
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
+#include <OpenMS/VISUAL/VISITORS/LayerVisibleData.h>
 
 #include <OpenMS/VISUAL/Painter1DBase.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-
-
-using namespace std;
+          
+ using namespace std;
 
 namespace OpenMS
 {
   LayerDataPeak::LayerDataPeak() : LayerDataBase(LayerDataBase::DT_PEAK)
   {
     flags.set(LayerDataBase::P_PRECURSORS);
+  }
+
+  std::unique_ptr<LayerVisibleData> LayerDataPeak::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
+  {
+    auto ret = std::unique_ptr<LayerVisibleDataPeakMap>();
+    ret->storeVisibleExperiment(*peak_map_.get(), visible_range, layer_filters);
+    return ret;
+  }
+
+  std::unique_ptr<LayerVisibleData> LayerDataPeak::storeFullData() const
+  {
+    auto ret = std::unique_ptr<LayerFullDataPeakMap>();
+    ret->storeFullExperiment(*peak_map_.get());
+    return ret;
   }
 
   LayerDataDefs::PointXYType LayerDataPeak::peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const
@@ -58,6 +72,18 @@ namespace OpenMS
   std::unique_ptr<LayerStatistics> LayerDataPeak::getStats() const
   {
     return make_unique<LayerStatisticsPeakMap>(*peak_map_);
+  }
+
+  std::unique_ptr<LayerVisibleData> LayerData1DPeak::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
+  {
+    auto ret = std::unique_ptr<LayerVisibleDataPeakMap>();
+    ret->storeVisibleSpectrum(getCurrentSpectrum(), visible_range, layer_filters);
+    return ret;
+  }
+
+  std::unique_ptr<LayerVisibleData> LayerData1DPeak::storeFullData() const
+  {
+    return LayerDataPeak::storeFullData(); // just forward
   }
 
   QMenu* LayerData1DPeak::getContextMenuAnnotation(Annotation1DItem* annot_item, bool& need_repaint)

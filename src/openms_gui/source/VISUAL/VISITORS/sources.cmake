@@ -4,6 +4,7 @@ set(directory source/VISUAL/VISITORS)
 ### list all filenames of the directory here
 set(sources_list
 LayerStatistics.cpp
+LayerVisibleData.cpp
 )
 
 ### add path to the filenames

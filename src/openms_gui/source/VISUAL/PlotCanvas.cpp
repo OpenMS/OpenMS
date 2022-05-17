@@ -86,7 +86,7 @@ namespace OpenMS
     setWhatsThis(
       "Translate: Translate mode is activated by default. Hold down the left mouse key and move the mouse to translate. Arrow keys can be used for translation independent of the current mode.\n\n"
       "Zoom: Zoom mode is activated with the CTRL key. CTRL+/CTRL- are used to traverse the zoom stack (or mouse wheel). Pressing Backspace resets the zoom.\n\n"
-      "Measure: Measure mode is activated with the SHIFT key. To measure the distace between data points, press the left mouse button on a point and drag the mouse to another point.\n\n");
+      "Measure: Measure mode is activated with the SHIFT key. To measure the distance between data points, press the left mouse button on a point and drag the mouse to another point.\n\n");
 
     // set move cursor and connect signal that updates the cursor automatically
     updateCursor_();
@@ -650,151 +650,10 @@ namespace OpenMS
     context_add_ = menu;
   }
 
-  void PlotCanvas::getVisiblePeakData(ExperimentType& map) const
-  {
-    // clear output experiment
-    map.clear(true);
-
-    const LayerDataBase& layer = getCurrentLayer();
-    if (layer.type == LayerDataBase::DT_PEAK)
-    {
-      const auto& area = getVisibleArea();
-      const ExperimentType& peaks = *layer.getPeakData();
-      // copy experimental settings
-      map.ExperimentalSettings::operator=(peaks);
-      // get begin / end of the range
-      ExperimentType::ConstIterator peak_start = layer.getPeakData()->begin();
-      ExperimentType::ConstIterator begin = layer.getPeakData()->RTBegin(area.getAreaUnit().getMinRT());
-      ExperimentType::ConstIterator end = layer.getPeakData()->RTEnd(area.getAreaUnit().getMaxRT());
-      Size begin_idx = std::distance(peak_start, begin);
-      Size end_idx = std::distance(peak_start, end);
-
-      // Exception for Plot1DCanvas, here we copy the currently visualized spectrum
-      bool is_1d = (getName() == "Plot1DCanvas");
-      if (is_1d)
-      {
-        begin_idx = layer.getCurrentSpectrumIndex();
-        end_idx = begin_idx + 1;
-      }
-
-      // reserve space for the correct number of spectra in RT range
-      map.reserve(end - begin);
-      // copy spectra
-      for (Size it_idx = begin_idx; it_idx < end_idx; ++it_idx)
-      {
-        SpectrumType spectrum;
-        SpectrumType spectrum_ref = layer.getSpectrum(it_idx);
-        // copy spectrum meta information
-        spectrum.SpectrumSettings::operator=(spectrum_ref);
-        spectrum.setRT(spectrum_ref.getRT());
-        spectrum.setMSLevel(spectrum_ref.getMSLevel());
-        spectrum.setPrecursors(spectrum_ref.getPrecursors());
-        // copy peak information
-        if (!is_1d && spectrum_ref.getMSLevel() > 1 && !spectrum_ref.getPrecursors().empty())
-        {
-          // MS^n (n>1) spectra are copied if their precursor is in the m/z range
-          if (area.getAreaUnit().containsMZ(spectrum_ref.getPrecursors()[0].getMZ()))
-          {
-            spectrum.insert(spectrum.begin(), spectrum_ref.begin(), spectrum_ref.end());
-            map.addSpectrum(spectrum);
-          }
-        }
-        else
-        {
-          // MS1 spectra are cropped to the m/z range
-          auto it_end = spectrum_ref.MZEnd(area.getAreaUnit().getMaxMZ());
-          for (SpectrumType::ConstIterator it2 = spectrum_ref.MZBegin(area.getAreaUnit().getMinMZ()); it2 != it_end; ++it2)
-          {
-            if (layer.filters.passes(spectrum_ref, it2 - spectrum_ref.begin()))
-            {
-              spectrum.push_back(*it2);
-            }
-          }
-          map.addSpectrum(spectrum);
-        }
-        // do not use map.addSpectrum() here, otherwise empty spectra which did not pass the filters above will be added
-      }
-    }
-    else if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
-    {
-      // TODO CHROM
-    }
-  }
-
-  void PlotCanvas::getVisibleFeatureData(FeatureMapType& map) const
-  {
-    // clear output experiment
-    map.clear(true);
-
-    const LayerDataBase& layer = getCurrentLayer();
-    if (layer.type == LayerDataBase::DT_FEATURE)
-    {
-      // copy meta data
-      map.setIdentifier(layer.getFeatureMap()->getIdentifier());
-      map.setProteinIdentifications(layer.getFeatureMap()->getProteinIdentifications());
-      // copy features
-      for (FeatureMapType::ConstIterator it = layer.getFeatureMap()->begin(); it != layer.getFeatureMap()->end(); ++it)
-      {
-        if (layer.filters.passes(*it) &&
-            getVisibleArea().getAreaUnit().containsRT(it->getRT()) &&
-            getVisibleArea().getAreaUnit().containsMZ(it->getMZ()))
-        {
-          map.push_back(*it);
-        }
-      }
-    }
-  }
-
-  void PlotCanvas::getVisibleConsensusData(ConsensusMapType& map) const
-  {
-    // clear output experiment
-    map.clear(true);
-
-    const LayerDataBase& layer = getCurrentLayer();
-    if (layer.type == LayerDataBase::DT_CONSENSUS)
-    {
-      // copy file descriptions
-      map.getColumnHeaders() = layer.getConsensusMap()->getColumnHeaders();
-      // copy features
-      for (ConsensusMapType::ConstIterator it = layer.getConsensusMap()->begin(); it != layer.getConsensusMap()->end(); ++it)
-      {
-        if (layer.filters.passes(*it) &&
-            getVisibleArea().getAreaUnit().containsRT(it->getRT()) &&
-            getVisibleArea().getAreaUnit().containsMZ(it->getMZ()))
-        {
-          map.push_back(*it);
-        }
-      }
-    }
-  }
-
-  void PlotCanvas::getVisibleIdentifications(vector<PeptideIdentification>& peptides) const
-  {
-    peptides.clear();
-
-    auto p = dynamic_cast<const IPeptideIds*>(&getCurrentLayer());
-    if (p == nullptr)
-      return;
-
-    // copy peptides, if visible
-    for (const auto& p : p->getPeptideIds())
-    {
-      double rt = p.getRT();
-      double mz = getIdentificationMZ_(layers_.getCurrentLayerIndex(), p);
-      // TODO: if (layer.filters.passes(*it) && ...)
-      if (getVisibleArea().getAreaUnit().containsRT(rt) &&
-          getVisibleArea().getAreaUnit().containsMZ(mz))
-      {
-        peptides.push_back(p);
-      }
-    }
-  }
-
   const DimMapper<2>& PlotCanvas::getMapper() const
   {
     return unit_mapper_;
   }
-
   
   void PlotCanvas::setMapper(const DimMapper<2>& mapper)
   {
@@ -812,9 +671,9 @@ namespace OpenMS
       {
         dlg.add(*layer.getPeakDataMuteable());
         // Exception for Plot1DCanvas, here we add the meta data of the one spectrum
-        if (getName() == "Plot1DCanvas")
+        if (auto lp = dynamic_cast<LayerData1DPeak*>(&layer))
         {
-          dlg.add((*layer.getPeakDataMuteable())[layer.getCurrentSpectrumIndex()]);
+          dlg.add((*lp->getPeakDataMuteable())[lp->getCurrentIndex()]);
         }
       }
       else if (layer.type == LayerDataBase::DT_FEATURE)

@@ -120,7 +120,7 @@ signals:
     void showCurrentPeaksAsIonMobility(const MSSpectrum& spec);
 
     /// Requests to display a full DIA window
-    void showCurrentPeaksAsDIA();
+    void showCurrentPeaksAsDIA(const Precursor& pc, const MSExperiment& exp);
 
 public slots:
     // Docu in base class

@@ -1110,8 +1110,9 @@ namespace OpenMS
 
       if (getCurrentLayer().isDIAData())
       {
+        auto l = dynamic_cast<const LayerData1DPeak*>(&getCurrentLayer());
         context_menu->addAction("Switch to DIA-MS view", [&]() {
-          emit showCurrentPeaksAsDIA();
+          emit showCurrentPeaksAsDIA(l->getCurrentSpectrum().getPrecursors()[0], *l->getPeakData().get());
         });
       }
 
@@ -1188,24 +1189,16 @@ namespace OpenMS
       proposed_name = layer.filename;
     }
 
-    QString file_name = GUIHelpers::getSaveFilename(this, "Save file", proposed_name.toQString(), FileTypeList({FileTypes::MZML, FileTypes::MZDATA, FileTypes::MZXML}), true, FileTypes::MZML);
+    QString file_name = GUIHelpers::getSaveFilename(this, "Save file", proposed_name.toQString(), FileTypeList({FileTypes::MZML}), true, FileTypes::MZML);
     if (file_name.isEmpty())
     {
       return;
     }
 
-    if (visible)
-    {
-      ExperimentType out;
-      getVisiblePeakData(out);
-      addDataProcessing_(out, DataProcessing::FILTERING);
-      FileHandler().storeExperiment(file_name, out, ProgressLogger::GUI);
-    }
-    else
-    {
-      // TODO: this will not work if the data is cached on disk
-      FileHandler().storeExperiment(file_name, *layer.getPeakData(), ProgressLogger::GUI);
-    }
+        auto visitor_data = visible ? layer.storeVisibleData(getVisibleArea().getAreaUnit(), layer.filters) : layer.storeFullData();
+    auto saved_path = visitor_data->saveToFile(File::path(file_name), ProgressLogger::GUI);
+    // visitor saves the file using a unique name; user chose a fixed one ... so rename it
+    File::rename(saved_path, file_name);
   }
 
   bool Plot1DCanvas::flippedLayersExist()

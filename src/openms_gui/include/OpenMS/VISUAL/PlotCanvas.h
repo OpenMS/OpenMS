@@ -438,8 +438,8 @@ public:
     /**
         @brief Add a consensus feature data layer
 
-  @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
-  @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+        @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
+        @param filename This @em absolute filename is used to monitor changes in the file and reload the data
 
         @return If a new layer was created
     */
@@ -605,47 +605,10 @@ public slots:
     */
     virtual void verticalScrollBarChange(int value);
 
-    ///Sets the additional context menu. If not 0, this menu is added to the context menu of the canvas
+    /// Sets the additional context menu. If not 0, this menu is added to the context menu of the canvas
     void setAdditionalContextMenu(QMenu * menu);
 
-    /**
-        @brief Fills the handed over @p map with the visible peaks of the current layer.
-
-        Takes zoom area and data filters into account.
-
-        If the current layer is not a peak layer, @p map is cleared only.
-    */
-    void getVisiblePeakData(ExperimentType & map) const;
-
-
-    /**
-        @brief Fills the handed over @p map with the visible features of the current layer.
-
-        Takes zoom area and data filters into account.
-
-        If the current layer is not a feature layer, @p map is cleared only.
-    */
-    void getVisibleFeatureData(FeatureMapType & map) const;
-
-    /**
-        @brief Fills the handed over @p map with the visible consensus features of the current layer.
-
-        Takes zoom area and data filters into account.
-
-        If the current layer is not a consensus feature layer, @p map is cleared only.
-    */
-    void getVisibleConsensusData(ConsensusMapType & map) const;
-
-    /**
-        @brief Fills the handed over @p peptides with the visible peptide identifications of the current layer.
-
-        Takes zoom area into account.
-
-        If the current layer is not an identification data layer, @p peptides is cleared only.
-    */
-    void getVisibleIdentifications(std::vector<PeptideIdentification> & peptides) const;
-
-    ///Updates layer @p i when the data in the corresponding file changes
+    /// Updates layer @p i when the data in the corresponding file changes
     virtual void updateLayer(Size i) = 0;
 
 
@@ -673,7 +636,7 @@ public slots:
       return point;
     }
 
-        /**
+    /**
      * \brief Get the Area in pixel coordinates of the current canvas for X and Y axis.
      * \return
      */
@@ -694,9 +657,7 @@ public slots:
      */
     void setMapper(const DimMapper<2>& mapper);
 
-
-signals:
-
+  signals:
     /// Signal emitted whenever the modification status of a layer changes (editing and storing)
     void layerModficationChange(Size layer, bool modified);
 

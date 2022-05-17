@@ -519,7 +519,7 @@ protected:
       String file_name;
       String layer_name;
       UInt window_id;
-      //Size spectrum_id;
+      Size spectrum_id;
       QProcess* process = nullptr;
       QTime timer;
       bool visible_area_only;
