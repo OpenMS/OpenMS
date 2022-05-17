@@ -44,6 +44,6 @@ namespace OpenMS
       /// The table contains map information on the featureXML files from which the consensusXML file was generated as well as
       /// a row for every consensus feature with information on rt, mz, intensity, width and quality. The same information is
       /// added for each original feature in the consensus feature.
-      static void run(const ConsensusMap& consensus_map, const String& output_file);
+      static void store(const ConsensusMap& consensus_map, const String& output_file);
   };
 }
