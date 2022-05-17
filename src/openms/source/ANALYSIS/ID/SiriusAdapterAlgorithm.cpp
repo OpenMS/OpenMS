@@ -564,6 +564,7 @@ namespace OpenMS
       // the actual process
       QProcess qp;
       QString executable_qstring = SiriusAdapterAlgorithm::determineSiriusExecutable(executable).toQString();
+
       qp.start(executable_qstring, command_line); // does automatic escaping etc... start
 
       std::stringstream ss;

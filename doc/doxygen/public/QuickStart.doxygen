@@ -29,24 +29,27 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow $
+// $Authors: Chris Bielow Christina Kumar$
 // --------------------------------------------------------------------------
 
 /**
 
   @page Quickstart User Quickstart Guide
 
-  If you want a short glance at the most important concepts and how to use tools quickly, this guide is right for you.
-	You should still read the whole documentation at some point though.
+  Read the User Quickstart guide to gain a brief understanding of key concepts and how to use tools. For more in-depth information, you should consult the entire documentation.
+	
+	@section what_is_openms What is OpenMS
+	OpenMS is a free, open-source C++ library with Python bindings. It is commonly used for liquid chromatography-mass spectrometry (LC-MS) data management and analyses. OpenMS provides an infrastructure for the rapid development of mass spectrometry related software as well as a rich toolset built on top of it. OpenMS is available under the three clause BSD licence and runs under Windows, macOS and Linux operating systems.
+	
+	@section background Background
+	Mass spectometry is a sensitive, high-throughput technique used for the quantitative and qualitative measurement of molecules including nucleic acids, proteins and metabolites. 
 
 	@section basic_Concepts Basic Concepts of OpenMS/TOPP
-
-  @b %OpenMS: The name of our library, which contains the algorithms. You cannot use this directly, unless you are a programmer.<br>
-	@b TOPPView: View and explore LC-MS data, alignments, groups, peptide identifications and more!<br>
-	@b TOPPAS: A graphical workflow design tool, which allows to create pipelines from all TOPP tools (and UTILS).<br>
-	@b TOPP @b tools: A set of command line tools, each of which is a building block of an analysis pipeline.
-	         These tools chained together in a way that fits the requirements of the user.
-					 Accessible from a command prompt/shell or via TOPPAS.
+	Before using OpenMS, you need to be familiar with the following terms:<br>
+	@b TOPPView: A design tool that is used to view and explore LC-MS data, alignments, groups, peptide identifications and more.<br>
+	@b TOPPAS: A graphical workflow design tool that is used to create pipelines from all TOPP tools (and UTILS).<br>
+	@b TOPP @b tools: A set of command line tools. Each of these command line tools is a building block of an analysis pipeline and are chained together in a way that fits the requirements of the user.
+					 The TOPP tools are accessible from a command prompt/shell or via TOPPAS.
 					 See also: @subpage TOPP_tutorial and @subpage TOPP_documentation <br>
 	@b UTILS: Similar to TOPP tools, but with more supporting character, which you'd rarely use in a productive pipeline - but rather during pipeline construction or
 						parameter optimization.
