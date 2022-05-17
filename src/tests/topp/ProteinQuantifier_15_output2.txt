@@ -1,0 +1,17 @@
+# Peptide abundances computed from file '/home/matteo/TOPPAS/TOPPAS_out/006-IDFilter-out/ProteinQuantifier_input2.idXML'
+# Parameters (relevant only): (none)
+"peptide"	"protein"	"n_proteins"	"charge"	"abundance"	"fraction"
+"LVTDLTK"	"sp|P02768ups|ALBU_HUMAN_UPS"	1	0	4.0	"all"
+"DDNPNLPR"	"sp|P02768ups|ALBU_HUMAN_UPS"	1	0	4.0	"all"
+"FQNALLVR"	"sp|P02768ups|ALBU_HUMAN_UPS"	1	0	3.0	"all"
+"LC(Carbamidomethyl)TVATLR"	"sp|P02768ups|ALBU_HUMAN_UPS"	1	0	2.0	"all"
+"C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR"	"sp|P02768ups|ALBU_HUMAN_UPS"	1	0	4.0	"all"
+"LVNEVTEFAK"	"sp|P02768ups|ALBU_HUMAN_UPS"	1	0	2.0	"all"
+"HPDYSVVLLLR"	"sp|P02768ups|ALBU_HUMAN_UPS"	1	0	1.0	"all"
+"AAFTEC(Carbamidomethyl)C(Carbamidomethyl)QAADK"	"sp|P02768ups|ALBU_HUMAN_UPS"	1	0	1.0	"all"
+"ETYGEMADC(Carbamidomethyl)C(Carbamidomethyl)AK"	"sp|P02768ups|ALBU_HUMAN_UPS"	1	0	1.0	"all"
+"YIC(Carbamidomethyl)ENQDSISSK"	"sp|P02768ups|ALBU_HUMAN_UPS"	1	0	1.0	"all"
+"C(Carbamidomethyl)C(Carbamidomethyl)AAADPHEC(Carbamidomethyl)YAK"	"sp|P02768ups|ALBU_HUMAN_UPS"	1	0	3.0	"all"
+"KVPQVSTPTLVEVSR"	"sp|P02768ups|ALBU_HUMAN_UPS"	1	0	1.0	"all"
+"RPC(Carbamidomethyl)FSALEVDETYVPK"	"sp|P02768ups|ALBU_HUMAN_UPS"	1	0	1.0	"all"
+"EQLKAVMDDFAAFVEKC(Carbamidomethyl)C(Carbamidomethyl)K"	"sp|P02768ups|ALBU_HUMAN_UPS"	1	0	1.0	"all"

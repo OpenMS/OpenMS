@@ -51,18 +51,18 @@ namespace OpenMS
   {
     std::vector<std::string> true_false = {"true","false"};
 
-    defaults_.setValue("method", "top", "- top - quantify based on three most abundant peptides (number can be changed in 'top').\n- iBAQ (intensity based absolute quantification), will override top with 0 and average with sum.");
+    defaults_.setValue("method", "top", "- top - quantify based on three most abundant peptides (number can be changed in 'top').\n- iBAQ (intensity based absolute quantification), calculate the sum of all peptide peak intensities divided by the number of theoretically observable tryptic peptides (https://rdcu.be/cND1J).");
     defaults_.setValidStrings("method", {"top","iBAQ"});
 
-    defaults_.setValue("top", 3, "Calculate protein abundance from this number of proteotypic peptides (most abundant first; '0' for all)");
-    defaults_.setMinInt("top", 0);
+    defaults_.setValue("top:N", 3, "Calculate protein abundance from this number of proteotypic peptides (most abundant first; '0' for all)");
+    defaults_.setMinInt("top:N", 0);
 
-    defaults_.setValue("average", "median", "Averaging method used to compute protein abundances from peptide abundances");
-    defaults_.setValidStrings("average", {"median","mean","weighted_mean","sum"});
+    defaults_.setValue("top:average", "median", "Averaging method used to compute protein abundances from peptide abundances");
+    defaults_.setValidStrings("top:average", {"median","mean","weighted_mean","sum"});
 
 
-    defaults_.setValue("include_all", "false", "Include results for proteins with fewer proteotypic peptides than indicated by 'top' (no effect if 'top' is 0 or 1)");
-    defaults_.setValidStrings("include_all", true_false);
+    defaults_.setValue("top:include_all", "false", "Include results for proteins with fewer proteotypic peptides than indicated by 'N' (no effect if 'N' is 0 or 1)");
+    defaults_.setValidStrings("top:include_all", true_false);
 
     defaults_.setValue("best_charge_and_fraction", "false", "Distinguish between fraction and charge states of a peptide. For peptides, abundances will be reported separately for each fraction and charge;\nfor proteins, abundances will be computed based only on the most prevalent charge observed of each peptide (over all fractions).\nBy default, abundances are summed over all charge states.");
     defaults_.setValidStrings("best_charge_and_fraction", true_false);
@@ -70,8 +70,8 @@ namespace OpenMS
     defaults_.setValue("consensus:normalize", "false", "Scale peptide abundances so that medians of all samples are equal");
     defaults_.setValidStrings("consensus:normalize", true_false);
 
-    defaults_.setValue("consensus:fix_peptides", "false", "Use the same peptides for protein quantification across all samples.\nWith 'top 0',"
-     "all peptides that occur in every sample are considered.\nOtherwise ('top N'), the N peptides that occur in the most samples (independently of each other) are selected,\nbreaking ties by total abundance (there is no guarantee that the best co-ocurring peptides are chosen!).");
+    defaults_.setValue("consensus:fix_peptides", "false", "Use the same peptides for protein quantification across all samples.\nWith 'N 0',"
+     "all peptides that occur in every sample are considered.\nOtherwise ('N'), the N peptides that occur in the most samples (independently of each other) are selected,\nbreaking ties by total abundance (there is no guarantee that the best co-ocurring peptides are chosen!).");
     defaults_.setValidStrings("consensus:fix_peptides", true_false);
 
     defaults_.setSectionDescription("consensus", "Additional options for consensus maps (and identification results comprising multiple runs)");
@@ -422,14 +422,14 @@ namespace OpenMS
     }
 
     std::string method = param_.getValue("method");
-    Size top = param_.getValue("top");
-    std::string average = param_.getValue("average");
-    bool include_all = param_.getValue("include_all") == "true";
+    Size top_n = param_.getValue("top:N");
+    std::string average = param_.getValue("top:average");
+    bool include_all = param_.getValue("top:include_all") == "true";
     bool fix_peptides = param_.getValue("consensus:fix_peptides") == "true";
 
     if (method == "iBAQ")
     {
-      top = 0;
+      top_n = 0;
       average = "sum";
     }
 
@@ -452,7 +452,7 @@ namespace OpenMS
       }
 
       // select which peptides of the current protein (group) are quantified
-      if ((top > 0) && (prot_q.second.abundances.size() < top))
+      if ((top_n > 0) && (prot_q.second.abundances.size() < top_n))
       { // not enough proteotypic peptides? skip protein (except if user chose to include the nevertheless)
         stats_.too_few_peptides++;
         if (!include_all)
@@ -462,7 +462,7 @@ namespace OpenMS
       }
 
       vector<String> peptides; // peptides selected for quantification
-      if (fix_peptides && (top == 0))
+      if (fix_peptides && (top_n == 0))
       {
         // consider all peptides that occur in every sample:
         for (auto const& ab : prot_q.second.abundances)
@@ -473,10 +473,10 @@ namespace OpenMS
           }
         }
       }
-      else if (fix_peptides && (top > 0) && (prot_q.second.abundances.size() > top))
+      else if (fix_peptides && (top_n > 0) && (prot_q.second.abundances.size() > top_n))
       {
         orderBest_(prot_q.second.abundances, peptides);
-        peptides.resize(top);
+        peptides.resize(top_n);
       }
       else
       {
@@ -501,17 +501,17 @@ namespace OpenMS
       for (auto& ab : abundances)
       {
         // check if the protein has enough peptides in this sample
-        if (!include_all && (top > 0) && (ab.second.size() < top))
+        if (!include_all && (top_n > 0) && (ab.second.size() < top_n))
         {
           continue;
         }
 
         // if we have more than "top", reduce to the top ones
-        if ((top > 0) && (ab.second.size() > top))
+        if ((top_n > 0) && (ab.second.size() > top_n))
         {
           // sort descending:
           sort(ab.second.begin(), ab.second.end(), greater<double>());
-          ab.second.resize(top); // remove all but best "top" values
+          ab.second.resize(top_n); // remove all but best N values
         }
 
         double abundance_result;

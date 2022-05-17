@@ -590,20 +590,24 @@ protected:
   {
     String what = (proteins ? "Protein" : "Peptide");
     bool old = out.modifyStrings(false);
+    bool is_ibaq = algo_params_.getValue("method") == "iBAQ";
     out << "# " + what + " abundances computed from file '" +
       getStringOption_("in") + "'" << endl;
     StringList relevant_params;
     if (proteins) // parameters relevant only for protein output
     {
       relevant_params.push_back("method");
-      relevant_params.push_back("top");
-      Size top = algo_params_.getValue("top");
-      if (top != 1)
+      if (!is_ibaq)
       {
-        relevant_params.push_back("average");
-        if (top != 0)
+        relevant_params.push_back("top:N");
+        Size top = algo_params_.getValue("top:N");
+        if (top != 1)
         {
-          relevant_params.push_back("include_all");
+          relevant_params.push_back("top:average");
+          if (top != 0)
+          {
+            relevant_params.push_back("top:include_all");
+          }
         }
       }
     }
@@ -682,11 +686,11 @@ protected:
     }
     if (!getStringOption_("out").empty())
     {
-      bool include_all = algo_params_.getValue("include_all") == "true";
-      Size top = algo_params_.getValue("top");
+      bool include_all = algo_params_.getValue("top:include_all") == "true";
+      Size top_n = algo_params_.getValue("top:N");
       OPENMS_LOG_INFO << "\n...proteins/protein groups: " << stats.quant_proteins
                << " quantified";
-      if (top > 1)
+      if (top_n > 1)
       {
         if (include_all)
         {
@@ -696,7 +700,7 @@ protected:
         {
           OPENMS_LOG_INFO << ", ";
         }
-        OPENMS_LOG_INFO << stats.too_few_peptides << " with fewer than " << top
+        OPENMS_LOG_INFO << stats.too_few_peptides << " with fewer than " << top_n
                  << " peptides";
         if (stats.n_samples > 1)
         {

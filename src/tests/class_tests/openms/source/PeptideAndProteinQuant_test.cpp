@@ -99,7 +99,7 @@ START_SECTION((void readQuantData(vector<ProteinIdentification>& proteins, vecto
 {
   vector<ProteinIdentification> proteins;
   vector<PeptideIdentification> peptides;
-  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.idXML"), proteins, peptides);
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input1.idXML"), proteins, peptides);
   TEST_EQUAL(quantifier_identifications.getPeptideResults().empty(), true);
   ExperimentalDesign design = ExperimentalDesign::fromIdentifications(proteins);
   quantifier_identifications.readQuantData(proteins, peptides, design);
