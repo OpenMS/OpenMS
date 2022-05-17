@@ -40,7 +40,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-class OPENMS_DLLAPI MQMsmsExporter
+class OPENMS_DLLAPI MQMsms
 
 
 /**
@@ -58,89 +58,58 @@ class OPENMS_DLLAPI MQMsmsExporter
 */
 
 {
-//private: braucht man das private dringend?
+private:
+  std::fstream file_;                                 ///< Stream where the data is added to create msms.txt
+  OpenMS::Size id_ = 0;                               ///< number of rows in msms.txt to give each row a specific id
+  std::map<OpenMS::String, OpenMS::Size> protein_id_; ///< map that maps each accession to its distinct number in this msms.txt
+  OpenMS::String filename_;                           ///< path and name of the msms.txt
 
-    std::fstream file_; ///< Stream where the data is added to create msms.txt
-    OpenMS::Size id_ = 0; ///< number of rows in msms.txt to give each row a specific id
-    std::map<OpenMS::String, OpenMS::Size> protein_id_; ///< map that maps each accession to its distinct number in this msms.txt
-    OpenMS::String filename_; ///< path and name of the msms.txt
+  /**
+    @brief Writes the header of msms.txt (Names of columns)
+  */
+  void exportHeader_();
 
-	/**
-	  @brief Writes the header of msms.txt (Names of columns)
-	*/
-    void exportHeader_();
-    
+  /**
+@brief Export one Feature as a row in MQMsms.txt
 
-    /**
-	  @brief Checks if evidence.txt is writable
-			 (i.e. the path in the ctor was not empty and could be created)
+    If the feature has no PepID's or the corresponding CF has no PepIDs,
+    no row will be exported
 
-	  @return Returns true if evidence.txt is writable
-    */
-    bool isValid();
-    
-    // braucht man std::map<Size, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex_(const ConsensusMap& cmap)??
+  @param f Feature to extract evidence data
+  @param cmap ConsensusMap to extract evidence data if Feature has no valid PeptideIdentifications
+  @param c_feature_number Index of corresponding ConsensusFeature in ConsensusMap
+  @param raw_file is specifying the raw_file the feature belongs to
+  @param UIDs UIDs of all PeptideIdentifications of the ConsensusMap
+  @param mp_f Mapping between the FeatureMap and ProteinIdentifications for the UID
+         from PeptideIdenfitication::buildUIDfromAllPepIds
+*/
 
-    /**
-      @brief Export one Feature as a row in MQEvidence.txt
+  void exportRowFromFeature_(const OpenMS::Feature& f,
+                             const OpenMS::ConsensusMap& cmap,
+                             const OpenMS::Size c_feature_number,
+                             const OpenMS::String& raw_file,
+                             const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
+                             const OpenMS::ProteinIdentification::Mapping& mp_f,
+                             const OpenMS::MSExperiment& exp = {});
 
-        If the feature has no PepID's or the corresponding CF has no PepIDs,
-        no row will be exported
+public:
+  /**
+    @brief Creates MQMsms object and msms.txt in given path
 
-      @param f Feature to extract evidence data
-      @param cmap ConsensusMap to extract evidence data if Feature has no valid PeptideIdentifications
-      @param c_feature_number Index of corresponding ConsensusFeature in ConsensusMap
-      @param raw_file is specifying the raw_file the feature belongs to
-      @param UIDs UIDs of all PeptideIdentifications of the ConsensusMap
-      @param mp_f Mapping between the FeatureMap and ProteinIdentifications for the UID
-             from PeptideIdenfitication::buildUIDfromAllPepIds
-    */
+      If the path for the constructor is empty (path not valid), no evidence.txt is created.
+      If the creation of the fstream object is successful a constant header is added to the evidence.txt
+      If the path does not exist, it will be created
 
-    void exportRowFromFeature_(
-            const OpenMS::Feature& f,
-            const OpenMS::ConsensusMap& cmap,
-            const OpenMS::Size c_feature_number,
-            const OpenMS::String& raw_file,
-            const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
-            const OpenMS::ProteinIdentification::Mapping& mp_f);
-            
-            
-            
-	/**
-	  @brief Creates MQMsms object and msms.txt in given path
+    @throw Exception::FileNotWritable if msms.txt could not be created
 
-			If the path for the constructor is empty (path not valid), no evidence.txt is created.
-			If the creation of the fstream object is successful a constant header is added to the evidence.txt
-			If the path does not exist, it will be created
+    @param path that is the path where msms.txt has to be stored
 
-	  @throw Exception::FileNotWritable if msms.txt could not be created
+  */
+  explicit MQMsms(const OpenMS::String& path);
 
-	  @param path that is the path where msms.txt has to be stored
+  /**
+    @brief Closes f_stream
+  */
+  ~MQMsms();
 
-	*/
-    explicit MQMsms(const OpenMS::String& path);
-
-    /**
-      @brief Closes f_stream
-    */
-    ~MQMsms();
-    
-    
-    /**
-      @brief Exports a FeatureMap to the evidence.txt
-
-        Exports one row per feature from the FeatureMap to the evidence.txt file.
-
-      @throw Exception::FileNotWritable if evidence.txt is not writable
-      @throw Exception::MissingInformation if Feature_map has no corresponding ConsensusFeature
-
-      @param feature_map which contains Features to extract evidence data
-      @param cmap ConsensusMap to extract evidence data if Feature has no valid PeptideIdentifications
-    */
-    void exportFeatureMap(
-            const OpenMS::FeatureMap& feature_map,
-            const OpenMS::ConsensusMap& cmap);
-
-
-
-}
+};
