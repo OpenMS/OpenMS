@@ -7,14 +7,16 @@
 - [ ] Add relevant changes and new features to the CHANGELOG file
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] New and existing unit tests pass locally with my changes
-- [ ] Updated or added python bindings for changed or new classes. (Tick if no updates were necessary.)
+- [ ] Updated or added python bindings for changed or new classes (Tick if no updates were necessary.)
 
 ### How can I get additional information on failed tests during CI
 <details>
   <summary>Click to expand</summary>
-If your PR is failing you can check out 
-- http://cdash.openms.de/index.php?project=OpenMS and look for your PR. If you click in the column that lists the failed tests you will get detailed error messages.
-- Or click on the action: e.g., for clang-format linting
+If your PR is failing you can check out
+
+- The details of the action statuses at the end of the PR or the "Checks" tab.
+- http://cdash.openms.de/index.php?project=OpenMS and look for your PR. Use the "Show filters" capability on the top right to search for your PR number.
+  If you click in the column that lists the failed tests you will get detailed error messages.
 
 </details>
 
