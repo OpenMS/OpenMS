@@ -42,7 +42,7 @@
 
 namespace OpenMS
 {
-    void GNPSQuantificationFile::run(const ConsensusMap& consensus_map, const String& output_file)
+    void GNPSQuantificationFile::store(const ConsensusMap& consensus_map, const String& output_file)
     {
         // IIMN meta values will be exported, if first feature contains mv Constants::UserParam::IIMN_ROW_ID
         bool iimn = false;

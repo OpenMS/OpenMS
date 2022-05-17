@@ -42,7 +42,7 @@
 
 namespace OpenMS
 {
-    void GNPSMetaValueFile::run(const StringList& mzml_file_paths, const String& output_file)
+    void GNPSMetaValueFile::store(const StringList& mzml_file_paths, const String& output_file)
     {
         std::ofstream outstr(output_file.c_str());
         SVOutStream out(outstr, "\t", "_", String::NONE);
