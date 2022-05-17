@@ -79,6 +79,22 @@ START_SECTION( static void readSwathWindows(const std::string& filename, std::ve
   TEST_REAL_SIMILAR(swath_prec_upper[1], 450)
   TEST_REAL_SIMILAR(swath_prec_upper[2], 475)
   TEST_REAL_SIMILAR(swath_prec_upper[3], 500)
+  
+  // test without header
+  std::vector<double> swath_prec_lower_no_head;
+  std::vector<double> swath_prec_upper_no_head;
+  SwathWindowLoader::readSwathWindows(OPENMS_GET_TEST_DATA_PATH("SwathWindowFileNoHeader.txt"), swath_prec_lower_no_head, swath_prec_upper_no_head);
+
+  TEST_EQUAL(swath_prec_lower_no_head.size(), swath_prec_upper.size())
+  TEST_REAL_SIMILAR(swath_prec_lower_no_head[0], 400)
+  TEST_REAL_SIMILAR(swath_prec_lower_no_head[1], 425)
+  TEST_REAL_SIMILAR(swath_prec_lower_no_head[2], 450)
+  TEST_REAL_SIMILAR(swath_prec_lower_no_head[3], 475)
+
+  TEST_REAL_SIMILAR(swath_prec_upper_no_head[0], 425)
+  TEST_REAL_SIMILAR(swath_prec_upper_no_head[1], 450)
+  TEST_REAL_SIMILAR(swath_prec_upper_no_head[2], 475)
+  TEST_REAL_SIMILAR(swath_prec_upper_no_head[3], 500)
 }
 END_SECTION
 

@@ -66,6 +66,14 @@ namespace OpenMS::Internal
       // if d'tor doesn't get called, DB connection (db_name_) doesn't get
       // removed, but that shouldn't be a big problem
     }
+    // read version number:
+    QSqlQuery query(db);
+    if (!(query.exec("SELECT OMSFile FROM version") && query.first()))
+    {
+      raiseDBError_(db.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading file format version number");
+    }
+    version_number_ = query.value(0).toInt();
   }
 
 
@@ -356,6 +364,11 @@ namespace OpenMS::Internal
         {
           param.digestion_enzyme = RNaseDB::getInstance()->getEnzyme(enzyme);
         }
+      }
+      if (version_number_ > 1)
+      {
+        String spec = query.value("enzyme_term_specificity").toString();
+        param.enzyme_term_specificity = EnzymaticDigestion::getSpecificityByName(spec);
       }
       param.missed_cleavages = query.value("missed_cleavages").toUInt();
       param.min_length = query.value("min_length").toUInt();

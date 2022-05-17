@@ -5032,8 +5032,14 @@ namespace OpenMS::Internal
       {
         for (Size m = 0; m < exp[s].getFloatDataArrays().size(); ++m)
         {
-          writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m,
+          // if a DataArray has dataProcessing information, write it, otherwise we assume it has the
+          // same processing as the rest of the spectra and use the implicit referencing of mzML
+          // to the first entry (which is a dummy if none exists; see above)
+          if (!exp[s].getFloatDataArrays()[m].getDataProcessing().empty())
+          {
+            writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m,
               exp[s].getFloatDataArrays()[m].getDataProcessing(), validator);
+          }
         }
       }
 

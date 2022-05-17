@@ -546,9 +546,6 @@ protected:
     /// Depending on the preferences this is static or changes with the current window/layer.
     String current_path_;
 
-    /// Adds tool/util params to param_ object by querying them from TVToolDiscovery
-    void addToolParamsToIni_();
-
 private:
     /// Suffix appended to caption of tabs when layer is shown in 3D
     static const String CAPTION_3D_SUFFIX_;

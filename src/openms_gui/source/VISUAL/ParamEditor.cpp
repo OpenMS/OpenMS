@@ -737,10 +737,7 @@ namespace OpenMS
       }
     }
 
-    if (!has_advanced_item)
-    {
-      ui_->advanced_->setVisible(false);
-    }
+    ui_->advanced_->setVisible(has_advanced_item);
 
     tree_->expandAll();
     toggleAdvancedMode(advanced_mode_);
