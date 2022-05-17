@@ -48,8 +48,88 @@
 using namespace OpenMS;
 using namespace std;
 
+/* TO-DO
++ Check if string inputs are unchanged, and ANSI codes inside/not inside
+- Windows test - define, copy, TEST if works
++/- Test every color function for all variable sets
+- Test every other public function
+- Test background color change test case - DEFINE functionality first
+- ConsoleUtils Erweiterung
+- mention "NOT TESTABLE" methods in sections
+*/
+
 
 START_TEST(Colorizer(),"$Id$")
+
+ //Test variables
+char tchar = 'a';
+unsigned char unsignedChar = 'i';
+signed char signedChar = 's';
+short int shortInt = 32766;
+unsigned short int unsShortInt = 600;
+signed short int signShortInt = -32560;
+unsigned long int unsLongInt = 40000000000;
+long long int longLongInt = 981278728478274;
+unsigned long long int unsLongLongInt = -78273829375;
+float flt = 2094.5892;
+double dbl = -253575634.98925;
+long double longDbl= 135315.2929849375;
+wchar_t wideChar = L'S';
+
+/*
+//////Functions to replace manual creation of stringstreams
+//////and comparison strings for TEST_EQUAL for coloured outputs for Linux
+//////
+//////UNFINISHED!!!
+
+template<typename T>
+stringstream colorStream(T const& testVariable, Colorizer)
+//saves a colored output of an instance of Colorizer into a stream 
+{
+    stringstream coloredStream;
+    stringstream outputStream;
+
+    coloredStream << Colorizer(testVariable);
+    coloredStream >> outputStream;
+
+    return outputStream; 
+}
+
+string createComparisonANSIString(string testVariable,Colorizer){
+    //creates a model string with according ANSI codes to be
+    //compared to stream created by colorStream
+    
+    string comparisonString;   
+    comparisonString.append(blackANSI);
+    comparisonString.append(to_string(tchar)); 
+    //to_string is causing formatting issues with char variables,
+    // -> improve
+    comparisonString.append(resetColorANSI);
+
+  return conparisonString;
+}
+
+*/
+
+START_SECTION(Colorizer::colorStream(ostream& stream) const)
+{
+    NOT_TESTABLE //is testable?
+}
+END_SECTION
+
+START_SECTION(outputToStream(ostream& o_stream))
+{
+    NOT_TESTABLE //is testable?
+}
+END_SECTION
+
+START_SECTION(resetColor(ostream& stream))
+{
+    NOT_TESTABLE //is testable?
+}
+END_SECTION
+
+
 
 //    string asciiString = " !#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
@@ -107,6 +187,17 @@ END_SECTION
 
 #elif defined(__linux__) || defined(__OSX__)
 
+//ANSI codes
+string blackANSI        = "\e[30m";
+string redANSI          = "\e[31m";
+string greenANSI        = "\e[32m";
+string yellowANSI       = "\e[33m";
+string blueANSI         = "\e[34m";
+string magentaANSI      = "\e[35m";
+string cyanANSI         = "\e[36m";;
+string whiteANSI        = "\e[37m";
+string resetColorANSI   = "\e[0m";
+
  //Check that the colorized input contains the original text and according ASCI codes
 START_SECTION(Colorizer)
 {
@@ -159,43 +250,193 @@ START_SECTION(Colorizer)
 END_SECTION
 
 //testing various inputs for colorizing
-START_SECTION(Colorizer black)
+START_SECTION(Colorizer::black())
 {
-    //Test variables
-    char tchar = 'a';
-    // unsigned char unsignedChar = 'i';
-    // signed char signedChar = 's';
-    // short int shortInt = 32766;
-    // unsigned short int unsShortInt = 600;
-    // signed short int signShortInt = -32560;
-    // unsigned long int unsLongInt = 40000000000;
-    // long long int longLongInt = 981278728478274;
-    // unsigned long long int unsLongLongInt = -78273829375;
-    // float flt = 2094.5892;
-    // double dbl = -253575634.98925;
-    // long double longDbl= 135315.2929849375;
-    // wchar_t wideChar = L'S';
 
-    string outStream;
-    string outString;
+    string coloredStream;
+    string comparisonString;
     stringstream blackStream;
 
+    //char////////////////////////////////////
     blackStream << black(tchar);
-    blackStream >> outStream;
-    outString = "\e[30m" + tchar;
-    outString.append("\e[0m");
-    TEST_EQUAL(outStream, outString)
+    blackStream >> coloredStream;
+    comparisonString.append(blackANSI);
+    comparisonString.append(to_string(tchar));
+    comparisonString.append(resetColorANSI);
+    TEST_EQUAL(coloredStream, comparisonString)
+
+    //clearing streams
+    coloredStream.clear();
+    comparisonString = "";
+    blackStream.clear();
+
+    //unsignedChar////////////////////////////
+    blackStream << black(unsignedChar);
+    blackStream >> coloredStream;
+    comparisonString.append(blackANSI);
+    comparisonString.append(to_string(unsignedChar));
+    comparisonString.append(resetColorANSI);
+    TEST_EQUAL(coloredStream, comparisonString)
+
+    //clearing streams
+    coloredStream.clear();
+    comparisonString = "";
+    blackStream.clear();
+
+    //signed char///////////////////////////////
+    blackStream << black(signedChar);
+    blackStream >> coloredStream;
+    comparisonString.append(blackANSI);
+    comparisonString.append(to_string(signedChar));
+    comparisonString.append(resetColorANSI);
+    TEST_EQUAL(coloredStream, comparisonString)
+
+    //clearing streams
+    coloredStream.clear();
+    comparisonString = "";
+    blackStream.clear();
+
+    //wide char///////////////////////////////
+    blackStream << black(wideChar);
+    blackStream >> coloredStream;
+    comparisonString.append(blackANSI);
+    comparisonString.append(to_string(wideChar));
+    comparisonString.append(resetColorANSI);
+    TEST_EQUAL(coloredStream, comparisonString)
+
+    //clearing streams
+    coloredStream.clear();
+    comparisonString = "";
+    blackStream.clear();
+
+    //short int///////////////////////////////
+    blackStream << black(shortInt);
+    blackStream >> coloredStream;
+    comparisonString.append(blackANSI);
+    comparisonString.append(to_string(shortInt));
+    comparisonString.append(resetColorANSI);
+    TEST_EQUAL(coloredStream, comparisonString)
+
+    //clearing streams
+    coloredStream.clear();
+    comparisonString = "";
+    blackStream.clear();
+
+    //unsigned short int///////////////////////////////
+    blackStream << black(unsShortInt);
+    blackStream >> coloredStream;
+    comparisonString.append(blackANSI);
+    comparisonString.append(to_string(unsShortInt));
+    comparisonString.append(resetColorANSI);
+    TEST_EQUAL(coloredStream, comparisonString)
+
+    //clearing streams
+    coloredStream.clear();
+    comparisonString = "";
+    blackStream.clear();
+
+    //signed short int///////////////////////////////
+    blackStream << black(signShortInt);
+    blackStream >> coloredStream;
+    comparisonString.append(blackANSI);
+    comparisonString.append(to_string(signShortInt));
+    comparisonString.append(resetColorANSI);
+    TEST_EQUAL(coloredStream, comparisonString)
+
+    //clearing streams
+    coloredStream.clear();
+    comparisonString = "";
+    blackStream.clear();
+
+    //unsigned long int///////////////////////////////
+    blackStream << black(unsLongInt);
+    blackStream >> coloredStream;
+    comparisonString.append(blackANSI);
+    comparisonString.append(to_string(unsLongInt));
+    comparisonString.append(resetColorANSI);
+    TEST_EQUAL(coloredStream, comparisonString)
+
+    //clearing streams
+    coloredStream.clear();
+    comparisonString = "";
+    blackStream.clear();
+
+    //long long int///////////////////////////////
+    blackStream << black(longLongInt);
+    blackStream >> coloredStream;
+    comparisonString.append(blackANSI);
+    comparisonString.append(to_string(longLongInt));
+    comparisonString.append(resetColorANSI);
+    TEST_EQUAL(coloredStream, comparisonString)
+
+    //clearing streams
+    coloredStream.clear();
+    comparisonString = "";
+    blackStream.clear();
+
+    //unsigned long long int///////////////////////////////
+    blackStream << black(unsLongLongInt);
+    blackStream >> coloredStream;
+    comparisonString.append(blackANSI);
+    comparisonString.append(to_string(unsLongLongInt));
+    comparisonString.append(resetColorANSI);
+    TEST_EQUAL(coloredStream, comparisonString)
+
+    //clearing streams
+    coloredStream.clear();
+    comparisonString = "";
+    blackStream.clear();
+
+    //float///////////////////////////////
+    blackStream << black(flt);
+    blackStream >> coloredStream;
+    comparisonString.append(blackANSI);
+    comparisonString.append(to_string(flt));
+    comparisonString.append(resetColorANSI);
+    TEST_EQUAL(coloredStream, comparisonString)
+
+    //clearing streams
+    coloredStream.clear();
+    comparisonString = "";
+    blackStream.clear();
+
+    //double///////////////////////////////
+    blackStream << black(dbl);
+    blackStream >> coloredStream;
+    comparisonString.append(blackANSI);
+    comparisonString.append(to_string(dbl));
+    comparisonString.append(resetColorANSI);
+    TEST_EQUAL(coloredStream, comparisonString)
+
+    //clearing streams
+    coloredStream.clear();
+    comparisonString = "";
+    blackStream.clear();
+
+    //long double///////////////////////////////
+    blackStream << black(longDbl);
+    blackStream >> coloredStream;
+    comparisonString.append(blackANSI);
+    comparisonString.append(to_string(longDbl));
+    comparisonString.append(resetColorANSI);
+    TEST_EQUAL(coloredStream, comparisonString)
+
+    //clearing streams
+    coloredStream.clear();
+    comparisonString = "";
+    blackStream.clear();
+
 
 
 }
 END_SECTION
 
+//test case - resetting color only for given stream - implement?
+//Or is testing of only class methods sufficient?
+
+
 #endif
 
 
-
-//Testing other variables
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 END_TEST
 
