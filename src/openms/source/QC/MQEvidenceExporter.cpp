@@ -234,7 +234,8 @@ void MQEvidence::exportRowFromFeature_(
         const String& raw_file,
         const std::multimap<String, std::pair<Size, Size>>& UIDs,
         const ProteinIdentification::Mapping& mp_f,
-        const MSExperiment& exp)
+        const MSExperiment& exp,
+        const std::map<String,String>& prot_mapper)
 {
   const PeptideHit* ptr_best_hit; // the best hit referring to score
   const ConsensusFeature& cf = cmap[c_feature_number];
@@ -321,24 +322,33 @@ void MQEvidence::exportRowFromFeature_(
   modifications.find("Oxidation (M)") == modifications.end() ? file_ << "0" << "\t" :
                                                                   file_ << modifications.find("Oxidation (M)")->second << "\t";
 
+  //get all peptide-evidences for the best hit
+  const auto& pep_evidences = ptr_best_hit->getPeptideEvidences();
+
   file_ << ptr_best_hit->getMetaValue("missed_cleavages", "NA") << "\t"; // missed cleavages
   const std::set<String>& accessions = ptr_best_hit->extractProteinAccessionsSet();
   file_ << ListUtils::concatenate(accessions, ";") << "\t";  // Proteins
-  file_ << ptr_best_hit->getPeptideEvidences()[0].getProteinAccession() << "\t"; // Leading Proteins
-  file_ << ptr_best_hit->getPeptideEvidences()[0].getProteinAccession() << "\t"; // Leading Razor Proteins
+  file_ << pep_evidences[0].getProteinAccession() << "\t"; // Leading Proteins
+  file_ << pep_evidences[0].getProteinAccession() << "\t"; // Leading Razor Proteins
 
-  // TODO we need to map the peptideidentifications to a proteinhit to get the description -> protein/gene name
-  const ProteinIdentification& accession =  cmap.getProteinIdentifications()[0];
-  const PeptideHit* cf_ptr_best_hit = &cf.getPeptideIdentifications()[0].getHits()[0];
-  auto protein_description =  accession.findHit(cf_ptr_best_hit->getPeptideEvidences()[0].getProteinAccession())->getDescription(); // TODO
-  //std::string protein_description = "sp|P00797-2|RENI_HUMAN Isoform 2 of Renin OS=Homo sapiens GN=REN OS=Homo";
+  //TODO should we only consider the first evidence or all evidences?
+  const auto& prot_mapper_it = prot_mapper.find(pep_evidences[0].getProteinAccession());
+  if(prot_mapper_it == prot_mapper.end())
+  {
+    file_ << "NA" << "\t"; //Gene Names
+    file_ << "NA" << "\t"; //Protein Names
+  }
+  else
+  {
+    auto protein_description = prot_mapper_it->second; 
+    auto gene_name = protein_description.substr(protein_description.find("GN=") + 3);
+    gene_name = gene_name.substr(0,gene_name.find(" "));
 
-  auto gene_name = protein_description.substr(protein_description.find("GN=") + 3);
-  gene_name = gene_name.substr(0,gene_name.find(" "));
-
-  file_ << gene_name << "\t"; //  TODO Gene Names
-  file_ << protein_description << "\t"; // Proteins Names
-  file_ << type << "\t"; // type
+    file_ << gene_name << "\t";           //Gene Names
+    file_ << protein_description << "\t"; //Protein Names
+  }
+  
+  file_ << type << "\t"; //type
 
   file_ << raw_file << "\t"; // Raw File
   if(f.metaValueExists("spectrum_index")  &&
@@ -448,6 +458,7 @@ void MQEvidence::exportRowFromFeature_(
     file_ << f.getMZ() - cmap[c_feature_number].getMZ() << "\t"; // Match mz diff
   }
 
+  const PeptideHit* cf_ptr_best_hit = &cf.getPeptideIdentifications()[0].getHits()[0];
   cf_ptr_best_hit->metaValueExists("qvalue")? file_ << cf_ptr_best_hit->getMetaValue("qvalue") << "\t" : file_ << "\t"; // Match q-value
 
   file_ << cf_ptr_best_hit->getScore() << "\t"; // Match score
@@ -499,7 +510,7 @@ void MQEvidence::exportRowFromFeature_(
 
 }
 
-void MQEvidence::exportFeatureMap(const FeatureMap& feature_map, const ConsensusMap& cmap, const MSExperiment& exp)
+void MQEvidence::exportFeatureMap(const FeatureMap& feature_map, const ConsensusMap& cmap, const MSExperiment& exp, const std::map<String,String>& prot_mapper)
 {
     if (!isValid())
     {
@@ -522,7 +533,7 @@ void MQEvidence::exportFeatureMap(const FeatureMap& feature_map, const Consensus
       const auto& c_id = fTc.find(f_id);
       if (c_id != fTc.end())
       {
-        exportRowFromFeature_(f, cmap, c_id->second, raw_file, UIDs, mp_f, exp);
+        exportRowFromFeature_(f, cmap, c_id->second, raw_file, UIDs, mp_f, exp, prot_mapper);
       }
       else
       {

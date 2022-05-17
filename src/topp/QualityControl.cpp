@@ -140,8 +140,8 @@ protected:
     registerDoubleOption_("FragmentMassError:tolerance", "<double>", 20, "m/z search window for matching peaks in two spectra", false);
     registerInputFile_("in_contaminants", "<file>", "", "Proteins considered contaminants", false);
     setValidFormats_("in_contaminants", {"fasta"});
-    registerInputFile_("test_file", "<file>", "", "TemporaryFile for TESTING (rightnow)", false);
-    setValidFormats_("test_file", {"fasta"});
+    registerInputFile_("in_additional_info", "<file>", "", "Fastafile containing protein-description & gene-names", false);
+    setValidFormats_("in_additional_info", {"fasta"});
     registerInputFileList_("in_trafo", "<file>", {}, "trafoXMLs from MapAligners", false);
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
@@ -175,12 +175,11 @@ protected:
       status |= QCBase::Requires::CONTAMINANTS;
     }
 
-    //TODO filename & how to pass?
     //the additional file the user passed, with annotate genenames & protnames
-    String test_file = getStringOption_("test_file");
-    vector<FASTAFile::FASTAEntry> protDescription;
+    String test_file = getStringOption_("in_additional_info");
+    vector<FASTAFile::FASTAEntry> prot_description;
     OPENMS_LOG_INFO << "Loading FASTA ... " << test_file << std::endl;
-    FASTAFile().load(test_file, protDescription);
+    FASTAFile().load(test_file, prot_description);
 
     ConsensusMap cmap;
     String in_cm = getStringOption_("in_cm");
@@ -430,59 +429,23 @@ protected:
 
       if (export_evidence.isValid())
       {
-        auto& fmapProtIds = fmap->getProteinIdentifications();
-
-        if(fmapProtIds.empty())
-        {
-          OPENMS_LOG_ERROR << "No ProteinIdentifications in consensusmap... aboarting" << std::endl;
-        }
-
         // Index the fasta file for constant access
-        map<String,String> fastaMap {};
-        indexFasta_(protDescription, fastaMap);
+        map<String,String> fasta_map {};
+        indexFasta_(prot_description, fasta_map);
 
-        // if the user provided no .fasta, we can try this as a last resort
-        const String& fileName = fmapProtIds[0].getSearchParameters().db;
-        if(protDescription.empty())
+        //if the user provided no fastafile, we can try this as a last resort
+        const auto& cmap_prot_ids = cmap.getProteinIdentifications();
+        if(!cmap_prot_ids.empty())
         {
-          fallbackFasta(fileName, protDescription);
-        }
-
-        OPENMS_LOG_INFO << "Annotating description to hits..." << std::endl;
-        //check for existing description in hit & only if that doesnt exist -> extract it from fasta
-
-        Size count_missed_accessions = 0;
-        for(auto& protId : fmapProtIds)
-        {
-          auto& fmapProtHits = protId.getHits();
-          for(auto& hit : fmapProtHits)
+          const String& file_name = cmap_prot_ids[0].getSearchParameters().db;
+          if(prot_description.empty())
           {
-            //check if all accessions are in the fastaMap
-            auto it_acc_description = fastaMap.find(hit.getAccession());
-            if(it_acc_description == fastaMap.end())
-            {
-              count_missed_accessions++;
-              if(count_missed_accessions < 10)
-              {
-                OPENMS_LOG_WARN << "Protein with accession: " << hit.getAccession() << " not found in given fasta: " << fileName << std::endl;
-              }
-            }
-            if(hit.getDescription().empty())
-            {
-              hit.setDescription(fastaMap[hit.getAccession()]);
-            }
-            else
-            {
-              continue;
-            }
+            fallbackFasta(file_name, prot_description);
           }
         }
-        if(count_missed_accessions > 0)
-        {
-          OPENMS_LOG_WARN << "Warning: " << count_missed_accessions << " many accessions in the fasta not found. (" << fileName << ")" << std::endl;
-        }
-        export_evidence.exportFeatureMap(*fmap,cmap,exp);
 
+        OPENMS_LOG_INFO << "Exporting FeatureMap..." << std::endl;
+        export_evidence.exportFeatureMap(*fmap,cmap,exp,fasta_map);
       }
     }
 
@@ -605,19 +568,19 @@ private:
     }
   }
 
-  void indexFasta_(std::vector<FASTAFile::FASTAEntry>& protDescription, std::map<String, String>& fastaMap)
+  void indexFasta_(std::vector<FASTAFile::FASTAEntry>& prot_description, std::map<String, String>& fasta_map)
   {
     //map the identifier to the description so that we can access the description via the cmap-identifier
-    for(const auto& entry : protDescription)
+    for(const auto& entry : prot_description)
     {
-      fastaMap.emplace(entry.identifier, entry.description);
+      fasta_map.emplace(entry.identifier, entry.description);
     }
   }
 
-  void fallbackFasta(const String& fileName, std::vector<FASTAFile::FASTAEntry>& protDescription)
+  void fallbackFasta(const String& file_name, std::vector<FASTAFile::FASTAEntry>& prot_description)
   {
     OPENMS_LOG_INFO << "No FASTA passed, looking for the default search parameters in consensusXML" << std::endl;
-    FASTAFile().load(fileName, protDescription);
+    FASTAFile().load(file_name, prot_description);
   }
 };
 

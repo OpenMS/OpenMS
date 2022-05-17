@@ -41,6 +41,8 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <map>
+
 class OPENMS_DLLAPI MQEvidence
 /**
 @brief Builds a MaxQuant Evidence.txt
@@ -137,6 +139,7 @@ private:
     @param UIDs UIDs of all PeptideIdentifications of the ConsensusMap
     @param mp_f Mapping between the FeatureMap and ProteinIdentifications for the UID
            from PeptideIdenfitication::buildUIDfromAllPepIds
+    @param prot_map Mapping a protein_accession to its description(proteinname, genename...)
   */
   void exportRowFromFeature_(
     const OpenMS::Feature& f,
@@ -145,7 +148,8 @@ private:
     const OpenMS::String& raw_file,
     const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
     const OpenMS::ProteinIdentification::Mapping& mp_f,
-    const OpenMS::MSExperiment& exp= {});
+    const OpenMS::MSExperiment& exp= {},
+    const std::map<OpenMS::String,OpenMS::String>& prot_map = {});
 
 public:
   /**
@@ -185,9 +189,11 @@ public:
 
     @param feature_map which contains Features to extract evidence data
     @param cmap ConsensusMap to extract evidence data if Feature has no valid PeptideIdentifications
+    @param prot_map Mapping a protein_accession to its description(proteinname, genename...)
   */
   void exportFeatureMap(
     const OpenMS::FeatureMap& feature_map,
     const OpenMS::ConsensusMap& cmap,
-    const OpenMS::MSExperiment& exp= {});
+    const OpenMS::MSExperiment& exp= {},
+    const std::map<OpenMS::String,OpenMS::String>& prot_map = {});
 };
