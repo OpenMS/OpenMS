@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FORMAT/GNPSQuantificationFile.h>" namespace "OpenMS":
         GNPSQuantificationFile() nogil except +
         GNPSQuantificationFile(GNPSQuantificationFile &) nogil except +
 
-        void run(const ConsensusMap& consensus_map, const String& output_file) nogil except +
+        void store(const ConsensusMap& consensus_map, const String& output_file) nogil except +
         # wrap-doc:
         #  Write feature quantification table (txt file) from a ConsensusMap. Required for GNPS FBMN.
         #  

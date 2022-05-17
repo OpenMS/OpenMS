@@ -41,6 +41,6 @@ namespace OpenMS
   {
     public:
       /// Generate a meta value table (tsv file) for GNPS FBMN with information on the input mzML files.
-      static void run(const StringList& mzml_file_paths, const String& output_file);
+      static void store(const StringList& mzml_file_paths, const String& output_file);
   };
 }

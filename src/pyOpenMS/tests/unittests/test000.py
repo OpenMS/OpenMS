@@ -5636,7 +5636,7 @@ def testIIMN():
 """
     os.remove("SupplementaryPairsTable.csv")
 
-    pyopenms.GNPSQuantificationFile.run(cm, "FeatureQuantificationTable.txt")
+    pyopenms.GNPSQuantificationFile.store(cm, "FeatureQuantificationTable.txt")
     with open("FeatureQuantificationTable.txt", "r") as f:
         assert f.read() == """#MAP	id	filename	label	size
 #CONSENSUS	rt_cf	mz_cf	intensity_cf	charge_cf	width_cf	quality_cf	row ID	best ion	partners	annotation network number
