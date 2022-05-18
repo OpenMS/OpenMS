@@ -755,6 +755,8 @@ namespace OpenMS
         sub.setMetaValue("isotope_probability", isotope_probs_[native_id]);
         sub.removeMetaValue("FeatureLevel"); // value "MS2" is misleading
       }
+      // annotate num_mass_traces, required for SIRIUS
+      feat.setMetaValue("num_mass_traces", feat.getSubordinates().size());
     }
     features.getProteinIdentifications().clear();
   }
