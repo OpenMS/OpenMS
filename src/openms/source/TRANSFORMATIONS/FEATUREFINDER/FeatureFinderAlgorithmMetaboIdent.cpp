@@ -756,7 +756,7 @@ namespace OpenMS
         sub.removeMetaValue("FeatureLevel"); // value "MS2" is misleading
       }
       // annotate num_mass_traces, required for SIRIUS
-      feat.setMetaValue("num_mass_traces", feat.getSubordinates().size());
+      feat.setMetaValue("num_of_masstraces", feat.getSubordinates().size());
     }
     features.getProteinIdentifications().clear();
   }
