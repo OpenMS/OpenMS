@@ -496,7 +496,8 @@ protected:
     String out_promex_file = getStringOption_("out_promex");
     auto out_topfd_file = getStringList_("out_topFD");
     auto out_topfd_feature_file = getStringList_("out_topFD_feature");
-    double topFD_SNR_threshold = in_log_file.length() > 0 ? .0 : getDoubleOption_("min_precursor_snr");
+    double topFD_SNR_threshold = //in_log_file.length() > 0 ? .0 :
+                                                            getDoubleOption_("min_precursor_snr");
     bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
     int max_ms_level = getIntOption_("max_MS_level");
     int forced_ms_level = 0;//getIntOption_("forced_MS_level");
