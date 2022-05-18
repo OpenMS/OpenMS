@@ -45,6 +45,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <vector>
@@ -756,7 +757,7 @@ namespace OpenMS
         sub.removeMetaValue("FeatureLevel"); // value "MS2" is misleading
       }
       // annotate num_mass_traces, required for SIRIUS
-      feat.setMetaValue("num_of_masstraces", feat.getSubordinates().size());
+      feat.setMetaValue(Constants::UserParam::NUM_OF_MASSTRACES, feat.getSubordinates().size());
     }
     features.getProteinIdentifications().clear();
   }

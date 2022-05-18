@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
@@ -473,7 +474,7 @@ namespace OpenMS
           auto map_it = remove_if(feature_map.begin(), feature_map.end(),
                                   [&num_masstrace_filter](const Feature &feat) -> bool
                                   {
-                                    unsigned int n_masstraces = feat.getMetaValue("num_of_masstraces");
+                                    unsigned int n_masstraces = feat.getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES);
                                     return n_masstraces < num_masstrace_filter;
                                   });
           feature_map.erase(map_it, feature_map.end());
