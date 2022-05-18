@@ -185,7 +185,7 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="sum_formula" value="C10H15N3O5"/>
-			<UserParam type="int" name="num_mass_traces" value="2"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="rt_deviation" value="2.115801640542941"/>
 			<UserParam type="float" name="model_height" value="2.493446424795956e07"/>
 			<UserParam type="float" name="model_FWHM" value="4.019001182515445"/>
@@ -373,7 +373,7 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="sum_formula" value="C10O6N3H13"/>
-			<UserParam type="int" name="num_mass_traces" value="2"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="rt_deviation" value="-0.532560022364578"/>
 			<UserParam type="float" name="model_height" value="6.546078303797204e06"/>
 			<UserParam type="float" name="model_FWHM" value="3.533855131796461"/>
@@ -563,7 +563,7 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="sum_formula" value="C10H14N2O6"/>
-			<UserParam type="int" name="num_mass_traces" value="2"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="rt_deviation" value="0.37453002891823"/>
 			<UserParam type="float" name="model_height" value="4.182421931348601e06"/>
 			<UserParam type="float" name="model_FWHM" value="3.651902200574407"/>
@@ -753,7 +753,7 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="sum_formula" value="C10H13N5O4"/>
-			<UserParam type="int" name="num_mass_traces" value="2"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="rt_deviation" value="1.298415608239225"/>
 			<UserParam type="float" name="model_height" value="1.025959073233156e08"/>
 			<UserParam type="float" name="model_FWHM" value="3.648883517714524"/>
@@ -955,7 +955,7 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="sum_formula" value="C10H13N5O3"/>
-			<UserParam type="int" name="num_mass_traces" value="2"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="rt_deviation" value="1.546419010828998"/>
 			<UserParam type="float" name="model_height" value="3.787427548877572e07"/>
 			<UserParam type="float" name="model_FWHM" value="4.133368397673732"/>
@@ -1139,7 +1139,7 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="sum_formula" value="C10H12N4O5"/>
-			<UserParam type="int" name="num_mass_traces" value="2"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="rt_deviation" value="0.697462246069904"/>
 			<UserParam type="float" name="model_height" value="6.380144938211543e06"/>
 			<UserParam type="float" name="model_FWHM" value="3.635998523789232"/>
