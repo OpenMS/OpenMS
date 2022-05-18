@@ -1694,9 +1694,7 @@ namespace OpenMS
       auto visitor_data = topp_.visible_area_only
                           ? layer.storeVisibleData(getActiveCanvas()->getVisibleArea().getAreaUnit(), layer.filters)
                           : layer.storeFullData();
-      auto saved_path = visitor_data->saveToFile(File::path(topp_.file_name), ProgressLogger::GUI);
-      // visitor saves the file using a unique name; TOPPView wants a fixed one... so rename it
-      File::rename(saved_path, topp_.file_name + "_in");
+      visitor_data->saveToFile(topp_.file_name, ProgressLogger::GUI);
     }
 
     // compose argument list

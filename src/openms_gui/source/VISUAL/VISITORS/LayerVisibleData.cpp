@@ -33,14 +33,13 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
-#include "OpenMS/FORMAT/ConsensusXMLFile.h"
-#include "OpenMS/FORMAT/FeatureXMLFile.h"
-#include "OpenMS/FORMAT/FileHandler.h"
-#include "OpenMS/FORMAT/IdXMLFile.h"
-#include "OpenMS/FORMAT/MzMLFile.h"
-
 #include <OpenMS/VISUAL/VISITORS/LayerVisibleData.h>
 
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>

@@ -102,9 +102,6 @@ public:
     // docu in base class
     void showCurrentLayerPreferences() override;
 
-    // Docu in base class
-    void saveCurrentLayer(bool visible) override;
-
 signals:
 
     /// Requests to display all spectra in 2D plot

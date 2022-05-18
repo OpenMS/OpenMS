@@ -82,9 +82,6 @@ public:
     // Docu in base class
     void showCurrentLayerPreferences() override;
 
-    // Docu in base class
-    void saveCurrentLayer(bool visible) override;
-
     /// Merges the features in @p map into the features layer @p i
     void mergeIntoLayer(Size i, FeatureMapSharedPtrType map);
 

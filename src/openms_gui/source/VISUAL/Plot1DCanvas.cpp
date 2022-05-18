@@ -43,10 +43,7 @@
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
-#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -1176,29 +1173,6 @@ namespace OpenMS
     auto item = getCurrentLayer().addPeakAnnotation(peak_index, text, color);
     update_(OPENMS_PRETTY_FUNCTION);
     return item;
-  }
-
-  void Plot1DCanvas::saveCurrentLayer(bool visible)
-  {
-    const LayerDataBase& layer = getCurrentLayer();
-
-    //determine proposed filename
-    String proposed_name = param_.getValue("default_path").toString();
-    if (!visible && !layer.filename.empty())
-    {
-      proposed_name = layer.filename;
-    }
-
-    QString file_name = GUIHelpers::getSaveFilename(this, "Save file", proposed_name.toQString(), FileTypeList({FileTypes::MZML}), true, FileTypes::MZML);
-    if (file_name.isEmpty())
-    {
-      return;
-    }
-
-        auto visitor_data = visible ? layer.storeVisibleData(getVisibleArea().getAreaUnit(), layer.filters) : layer.storeFullData();
-    auto saved_path = visitor_data->saveToFile(File::path(file_name), ProgressLogger::GUI);
-    // visitor saves the file using a unique name; user chose a fixed one ... so rename it
-    File::rename(saved_path, file_name);
   }
 
   bool Plot1DCanvas::flippedLayersExist()

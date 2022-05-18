@@ -32,16 +32,15 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h"
-
 #include <OpenMS/VISUAL/LayerDataPeak.h>
+
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
+#include <OpenMS/VISUAL/Painter1DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 #include <OpenMS/VISUAL/VISITORS/LayerVisibleData.h>
 
-#include <OpenMS/VISUAL/Painter1DBase.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-          
- using namespace std;
+using namespace std;
 
 namespace OpenMS
 {

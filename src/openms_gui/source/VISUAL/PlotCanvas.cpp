@@ -42,19 +42,16 @@
 #include <OpenMS/VISUAL/LayerDataFeature.h>
 #include <OpenMS/VISUAL/LayerDataIdent.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
-#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
+#include <OpenMS/VISUAL/VISITORS/LayerVisibleData.h>
 
 // QT
-#include <QBitmap>
-#include <QFontMetrics>
 #include <QPaintEvent>
 #include <QPainter>
-#include <QWheelEvent>
 #include <QtWidgets/QMessageBox>
-#include <QtWidgets/QPushButton>
 #include <iostream>
 
 using namespace std;
@@ -279,6 +276,30 @@ namespace OpenMS
   void PlotCanvas::setVisibleArea(const AreaXYType& area)
   {
     changeVisibleArea_(visible_area_.cloneWith(area));
+  }
+
+  
+  void PlotCanvas::saveCurrentLayer(bool visible)
+  {
+    const LayerDataBase& layer = getCurrentLayer();
+
+    // determine proposed filename
+    String proposed_name = param_.getValue("default_path").toString();
+    if (visible == false && layer.filename != "")
+    {
+      proposed_name = layer.filename;
+    }
+
+    auto formats = layer.storeFullData()->getSupportedFileFormats(); // storeFullData() is cheap; we just want the formats...
+    QString file_name = GUIHelpers::getSaveFilename(this, "Save file", proposed_name.toQString(), formats, true, formats.getTypes().front());
+    if (file_name.isEmpty())
+    {
+      return;
+    }
+
+    auto visitor_data = visible ? layer.storeVisibleData(getVisibleArea().getAreaUnit(), layer.filters) : layer.storeFullData();
+    visitor_data->saveToFile(file_name, ProgressLogger::GUI);
+    modificationStatus_(getCurrentLayerIndex(), false);
   }
 
   void PlotCanvas::paintGridLines_(QPainter& painter)

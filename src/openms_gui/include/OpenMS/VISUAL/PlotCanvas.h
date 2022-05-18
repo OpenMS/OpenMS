@@ -522,13 +522,6 @@ public:
     */
     virtual void showMetaData(bool modifiable = false, Int index = -1);
 
-    /**
-        @brief Saves the current layer data.
-
-        @param visible If true, only the visible data is stored. Otherwise the whole data is stored.
-    */
-    virtual void saveCurrentLayer(bool visible) = 0;
-
 public slots:
 
     /**
@@ -590,6 +583,13 @@ public slots:
         @param area the new visible area
     */
     void setVisibleArea(const AreaXYType& area);
+
+    /**
+        @brief Saves the current layer data.
+
+        @param visible If true, only the visible data is stored. Otherwise the whole data is stored.
+    */
+    void saveCurrentLayer(bool visible);
 
     /**
         @brief Notifies the canvas that the horizontal scrollbar has been moved.

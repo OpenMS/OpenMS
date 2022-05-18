@@ -36,16 +36,12 @@
 
 // OpenMS_GUI config
 
-#include "OpenMS/FILTERING/DATAREDUCTION/DataFilters.h"
-#include "OpenMS/KERNEL/ConsensusMap.h"
-#include "OpenMS/KERNEL/FeatureMap.h"
-
+#include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include "OpenMS/KERNEL/RangeManager.h"
-
-
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
+#include <OpenMS/KERNEL/RangeManager.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
 
 namespace OpenMS

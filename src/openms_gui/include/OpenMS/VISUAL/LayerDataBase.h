@@ -34,7 +34,6 @@
 
 #pragma once
 
-#include "OpenMS/CONCEPT/ProgressLogger.h"
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>

@@ -411,9 +411,6 @@ public:
     // Docu in base class
     void showCurrentLayerPreferences() override;
 
-    // Docu in base class
-    void saveCurrentLayer(bool visible) override;
-
     /// Returns whether flipped layers exist or not
     bool flippedLayersExist();
 

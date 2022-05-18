@@ -33,25 +33,23 @@
 // --------------------------------------------------------------------------
 
 //OpenMS
-#include "OpenMS/SYSTEM/File.h"
-#include "OpenMS/VISUAL/VISITORS/LayerVisibleData.h"
+#include <OpenMS/VISUAL/Plot3DCanvas.h>
 
-#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot3DPrefDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
-#include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
 
 #include <QResizeEvent>
 #include <QtWidgets/QComboBox>
-#include <QtWidgets/QSpinBox>
-#include <QtWidgets/QMenu>
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMenu>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QSpinBox>
 
 using namespace std;
 
@@ -306,30 +304,6 @@ namespace OpenMS
       }
     }
     e->accept();
-  }
-
-  void Plot3DCanvas::saveCurrentLayer(bool visible)
-  {
-    const LayerDataBase& layer = getCurrentLayer();
-
-    //determine proposed filename
-    String proposed_name = param_.getValue("default_path").toString();
-    if (visible == false && layer.filename != "")
-    {
-      proposed_name = layer.filename;
-    }
-
-    auto formats = layer.storeFullData()->getSupportedFileFormats(); // storeFullData() is cheap; we just want the formats... 
-    QString file_name = GUIHelpers::getSaveFilename(this, "Save file", proposed_name.toQString(), formats, true, formats.getTypes().front());
-    if (file_name.isEmpty())
-    {
-      return;
-    }
-
-    { // just a local scope
-      auto visitor_data = visible ? layer.storeVisibleData(getVisibleArea().getAreaUnit(), layer.filters) : layer.storeFullData();
-      visitor_data->saveToFile(file_name, ProgressLogger::GUI);
-    }
   }
 
   void Plot3DCanvas::updateLayer(Size i)
