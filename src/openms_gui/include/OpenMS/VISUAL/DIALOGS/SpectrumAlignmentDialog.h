@@ -62,7 +62,7 @@ public:
 
     /// Constructor
     SpectrumAlignmentDialog(Plot1DWidget * parent);
-    ~SpectrumAlignmentDialog();
+    ~SpectrumAlignmentDialog() override;
   
     double getTolerance() const;
     bool isPPM() const;

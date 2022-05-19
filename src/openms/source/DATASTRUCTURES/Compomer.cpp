@@ -318,7 +318,7 @@ namespace OpenMS
 
     for (CompomerSide::const_iterator it = this->cmp_[side].begin(); it != this->cmp_[side].end(); ++it)
     {
-      if (it->second.getLabel() != "")
+      if (!it->second.getLabel().empty())
       {
         tmp.push_back(it->second.getLabel());
       }

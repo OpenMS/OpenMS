@@ -249,6 +249,23 @@ namespace OpenMS
     annotate(map, peptide_ids, protein_ids, clear_ids, map_ms1);
   }
 
+  bool isMatchByNativeID(const PeptideIdentification& id, ConsensusFeature& cf)
+  {
+    // check if the native id of an identifying spectrum is annotated            
+    String ref_mv;
+    if (cf.metaValueExists("id_scan_id")) // identifying MS2 spectrum in MS3 TMT
+    {
+      ref_mv = "id_scan_id";
+    }
+    else if (cf.metaValueExists("scan_id")) // identifying MS2 spectrum in standard TMT
+    {
+      ref_mv = "scan_id";
+    }
+
+    // return if no meta info to match ids between spectra and consensus features?
+    if (ref_mv.empty() || !id.metaValueExists("spectrum_reference")) return false;
+    return id.getMetaValue("spectrum_reference") == cf.getMetaValue(ref_mv);
+  }
 
   void IDMapper::annotate(
     ConsensusMap& map,
@@ -322,7 +339,8 @@ namespace OpenMS
           //check if we compare distance from centroid or subelements
           if (!measure_from_subelements)
           {
-            if (isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, map[cm_index].getCharge())))
+            if (isMatchByNativeID(ids[i], map[cm_index]) || // can we match by native ids? if not, match by rt/mz
+               (isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, map[cm_index].getCharge()))))
             {
               id_mapped = true;
               was_added = true;
@@ -336,7 +354,7 @@ namespace OpenMS
                  it_handle != map[cm_index].getFeatures().end();
                  ++it_handle)
             {
-              if (isMatch_(rt_pep - it_handle->getRT(), mz_pep, it_handle->getMZ())  && (ignore_charge_ || ListUtils::contains(current_charges, it_handle->getCharge())))
+              if (isMatch_(rt_pep - it_handle->getRT(), mz_pep, it_handle->getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, it_handle->getCharge())))
               {
                 id_mapped = true;
                 was_added = true;
@@ -600,7 +618,7 @@ namespace OpenMS
     // in the beginning:
     SignedSize offset(0);
 
-    if (map.size() > 0)
+    if (!map.empty())
     {
       // cout << "Setting up hash table..." << endl;
       offset = SignedSize(floor(min_rt));

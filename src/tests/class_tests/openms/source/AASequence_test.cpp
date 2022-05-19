@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <map>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -46,6 +47,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <iostream>
 #include <OpenMS/SYSTEM/StopWatch.h>
 
@@ -285,6 +287,21 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
     seq4 = AASequence::fromString("PEPTIDEK(UniMod:313)");
     TEST_STRING_EQUAL(seq4.getCTerminalModification()->getFullId(), "Lys-loss (Protein C-term K)");
   }
+
+  // test with Selenocysteine
+  {
+    AASequence seq = AASequence::fromString("PEPTIDESEKUEM(Oxidation)CER");
+    TEST_EQUAL(seq.toUniModString(), "PEPTIDESEKUEM(UniMod:35)CER")
+    TEST_EQUAL(seq.getFormula(), EmpiricalFormula("C75H122N20O32S2Se1"))
+    TEST_REAL_SIMILAR(EmpiricalFormula("C75H122N20O32S2").getMonoWeight(), 1878.7975553518002)
+
+    // note that the monoisotopic weight of Selenium is 80 and not 74
+    TEST_REAL_SIMILAR(EmpiricalFormula("C75H122N20O32S2Se1").getAverageWeight(), 1958.981404189803)
+    TEST_REAL_SIMILAR(EmpiricalFormula("C75H122N20O32S2Se1").getMonoWeight(), 1958.7140766518)
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), 1958.7140766518)
+    TEST_REAL_SIMILAR(seq.getAverageWeight(), 1958.981404189803)
+  }
+
 }
 END_SECTION
 
@@ -626,12 +643,26 @@ START_SECTION(String toBracketString(const std::vector<String> & fixed_modificat
 END_SECTION
 
 START_SECTION(void setModification(Size index, const String &modification))
-  AASequence seq1 = AASequence::fromString("ACDEFNK");
+  AASequence seq1 = AASequence::fromString("ACDEFNEK");
   seq1.setModification(5, "Deamidated");
   TEST_STRING_EQUAL(seq1[5].getModificationName(), "Deamidated");
   // remove modification
   seq1.setModification(5, "");
-  TEST_STRING_EQUAL(seq1.toString(), "ACDEFNK")
+  TEST_STRING_EQUAL(seq1.toString(), "ACDEFNEK")
+
+  seq1.setModificationByDiffMonoMass(5, 0.984);
+  TEST_STRING_EQUAL(seq1.toString(), "ACDEFN(Deamidated)EK")
+
+  seq1.setModificationByDiffMonoMass(3, -1.234);
+  TEST_STRING_EQUAL(seq1.toString(), "ACDE[-1.234]FN(Deamidated)EK")
+
+  TEST_PRECONDITION_VIOLATED(seq1.setModification(1, seq1[3].getModification()))
+
+  seq1.setModificationByDiffMonoMass(1, seq1[3].getModification()->getDiffMonoMass());
+  TEST_STRING_EQUAL(seq1.toString(), "AC[-1.234]DE[-1.234]FN(Deamidated)EK")
+
+  seq1.setModification(6, seq1[3].getModification()); // now the AA origin fits
+  TEST_STRING_EQUAL(seq1.toString(), "AC[-1.234]DE[-1.234]FN(Deamidated)E[-1.234]K")
 END_SECTION
 
 START_SECTION(void setNTerminalModification(const String &modification))
@@ -831,7 +862,7 @@ END_SECTION
 
 START_SECTION(void getAAFrequencies(Map<String, Size>& frequency_table) const)
   AASequence a = AASequence::fromString("THREEAAAWITHYYY");
-  Map<String, Size> table;
+  std::map<String, Size> table;
   a.getAAFrequencies(table);
 
   TEST_EQUAL(table["T"]==2, true);
@@ -1262,6 +1293,13 @@ START_SECTION([EXTRA] Test integer vs float tags)
   TEST_EQUAL(seq12.isModified(), true);
   TEST_STRING_EQUAL(seq12[3].getModificationName(), "Sulfo")
 
+  AASequence seqUnk = AASequence::fromString("PEPTTIDEK[+79957.0]");
+  TEST_EQUAL(seqUnk.isModified(), true);
+  TEST_STRING_EQUAL(seqUnk[8].getModificationName(), "");  //this is how "user-defined" mods are defined
+  TEST_EQUAL(seqUnk[8].getModification()->isUserDefined(), true);
+  TEST_STRING_EQUAL(seqUnk[8].getModification()->getFullName(), "[+79957.0]");
+  TEST_STRING_EQUAL(seqUnk[8].getModification()->getFullId(), "K[+79957.0]");
+
   AASequence seq13 = AASequence::fromString("PEPY[+79.9568]TIDEK");
   TEST_EQUAL(seq13.isModified(), true);
   TEST_STRING_EQUAL(seq13[3].getModificationName(), "Sulfo")
@@ -1528,6 +1566,7 @@ END_SECTION
 
 START_SECTION([EXTRA] multithreaded example)
 {
+  OPENMS_LOG_WARN.remove(std::cout);
   // All measurements are best of three (wall time, Linux, 8 threads)
   //
   // Serial execution of code:

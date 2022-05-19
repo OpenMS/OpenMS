@@ -105,7 +105,7 @@ namespace OpenMS
      * @param beta Spurious peptide emission probability
      * @param gamma Protein prior
      * @param p Marginalization norm
-     * @param pepPrior Peptide prior (defines at which evidence probability, additional evidence is beneficial)
+     * @param pep_prior Peptide prior (defines at which evidence probability, additional evidence is beneficial)
      */
     MessagePasserFactory<Label>(double alpha, double beta, double gamma, double p, double pep_prior);
 

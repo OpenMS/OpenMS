@@ -34,6 +34,7 @@
 
 #include <OpenMS/QC/PSMExplainedIonCurrent.h>
 
+#include <cfloat>
 #include <numeric>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -62,7 +63,7 @@ namespace OpenMS
   {
     if (pep_id.getHits().empty())
     {
-      OPENMS_LOG_WARN << "PeptideHits of PeptideIdentification with RT: " << pep_id.getRT() << " and MZ: " << pep_id.getMZ() << " is empty.";
+      OPENMS_LOG_DEBUG << "PeptideHits of PeptideIdentification with RT: " << pep_id.getRT() << " and MZ: " << pep_id.getMZ() << " is empty.";
       return DBL_MAX;
     }
 

@@ -132,6 +132,12 @@ public:
           variance_ += *iter * diff;
         }
         variance_ /= sum_;
+
+        if (sum_ == 0 && (std::isnan(mean_) || std::isinf(mean_)) )
+        {
+          mean_ = 0;
+          variance_ = 0;
+        }
       }
 
       /// This does the actual calculation.
@@ -310,4 +316,3 @@ private:
   }   // namespace Math
 
 } // namespace OpenMS
-

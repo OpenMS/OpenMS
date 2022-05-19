@@ -35,6 +35,7 @@
 #include <OpenMS/SIMULATION/LABELING/SILACLabeler.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <map>
 
 using std::vector;
 
@@ -132,7 +133,7 @@ namespace OpenMS
     }
 
     SimTypes::FeatureMapSim& medium_channel = features_to_simulate[1];
-    if (medium_channel.getProteinIdentifications().size() > 0)
+    if (!medium_channel.getProteinIdentifications().empty())
     {
       applyLabelToProteinHit_(medium_channel, medium_channel_arginine_label_, medium_channel_lysine_label_);
     }
@@ -141,7 +142,7 @@ namespace OpenMS
     if (features_to_simulate.size() == 3)
     {
       SimTypes::FeatureMapSim& heavy_channel = features_to_simulate[2];
-      if (heavy_channel.getProteinIdentifications().size() > 0)
+      if (!heavy_channel.getProteinIdentifications().empty())
       {
         applyLabelToProteinHit_(heavy_channel, heavy_channel_arginine_label_, heavy_channel_lysine_label_);
       }
@@ -180,7 +181,7 @@ namespace OpenMS
 
     if (features_to_simulate.size() == 2)
     {
-      Map<String, Feature> unlabeled_features_index;
+      std::map<String, Feature> unlabeled_features_index;
       for (Feature& unlabeled_feature : light_channel_features)
       {
         unlabeled_feature.ensureUniqueId();
@@ -200,7 +201,7 @@ namespace OpenMS
         labeled_feature.ensureUniqueId();
 
         // check if we have a pair
-        if (unlabeled_features_index.has(unmodified_sequence))
+        if (unlabeled_features_index.find(unmodified_sequence) != unlabeled_features_index.end())
         {
           // own scope as we don't know what happens to 'f_modified' once we call erase() below
           Feature& unlabeled_feature = unlabeled_features_index[unmodified_sequence];
@@ -239,7 +240,7 @@ namespace OpenMS
 
       // add singletons from unlabeled channel
       // clean up unlabeled_index
-      for (Map<String, Feature>::iterator unlabeled_index_iter = unlabeled_features_index.begin(); unlabeled_index_iter != unlabeled_features_index.end(); ++unlabeled_index_iter)
+      for (std::map<String, Feature>::iterator unlabeled_index_iter = unlabeled_features_index.begin(); unlabeled_index_iter != unlabeled_features_index.end(); ++unlabeled_index_iter)
       {
         // the single ones from c0
         final_feature_map.push_back(unlabeled_index_iter->second);
@@ -251,7 +252,7 @@ namespace OpenMS
     {
 
       // index of unlabeled channel unlabeled_feature
-      Map<String, Feature> unlabeled_features_index;
+      std::map<String, Feature> unlabeled_features_index;
       for (Feature& unlabeled_features : light_channel_features)
       {
         unlabeled_features.ensureUniqueId();
@@ -263,7 +264,7 @@ namespace OpenMS
       }
 
       // index of labeled channel
-      Map<String, Feature> medium_features_index;
+      std::map<String, Feature> medium_features_index;
       for (Feature& labeled_features : medium_channel_features)
       {
         labeled_features.ensureUniqueId();
@@ -283,7 +284,8 @@ namespace OpenMS
 
         String heavy_feature_unmodified_sequence = getUnmodifiedSequence_(heavy_feature, heavy_channel_arginine_label_, heavy_channel_lysine_label_);
 
-        if (unlabeled_features_index.has(heavy_feature_unmodified_sequence) && medium_features_index.has(heavy_feature_unmodified_sequence))
+        if (unlabeled_features_index.find(heavy_feature_unmodified_sequence) != unlabeled_features_index.end() &&
+            medium_features_index.find(heavy_feature_unmodified_sequence) != medium_features_index.end())
         {
           // it is a triplet
           // c2 & c1 modified
@@ -312,7 +314,7 @@ namespace OpenMS
           unlabeled_features_index.erase(heavy_feature_unmodified_sequence);
           medium_features_index.erase(heavy_feature_unmodified_sequence);
         }
-        else if (unlabeled_features_index.has(heavy_feature_unmodified_sequence))
+        else if (unlabeled_features_index.find(heavy_feature_unmodified_sequence) != unlabeled_features_index.end())
         {
           // 2nd case light and heavy pair
           if (heavy_feature_unmodified_sequence != heavy_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().toString())
@@ -337,7 +339,7 @@ namespace OpenMS
           // remove features from indices
           unlabeled_features_index.erase(heavy_feature_unmodified_sequence);
         }
-        else if (medium_features_index.has(heavy_feature_unmodified_sequence))
+        else if (medium_features_index.find(heavy_feature_unmodified_sequence) != medium_features_index.end())
         {
           // 3rd case medium and heavy pair
           if (heavy_feature_unmodified_sequence != heavy_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().toString())
@@ -370,14 +372,14 @@ namespace OpenMS
       }
 
       // clean up labeled_index
-      for (Map<String, Feature>::iterator medium_channle_index_iterator = medium_features_index.begin(); medium_channle_index_iterator != medium_features_index.end(); ++medium_channle_index_iterator)
+      for (std::map<String, Feature>::iterator medium_channle_index_iterator = medium_features_index.begin(); medium_channle_index_iterator != medium_features_index.end(); ++medium_channle_index_iterator)
       {
         Feature& medium_channel_feature = medium_channle_index_iterator->second;
         medium_channel_feature.ensureUniqueId();
 
         String medium_channel_feature_unmodified_sequence = getUnmodifiedSequence_(medium_channel_feature, medium_channel_arginine_label_, medium_channel_lysine_label_);
 
-        if (unlabeled_features_index.has(medium_channel_feature_unmodified_sequence))
+        if (unlabeled_features_index.find(medium_channel_feature_unmodified_sequence) != unlabeled_features_index.end())
         {
           // 1. case: pair between c0 and c1
           if (medium_channel_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().isModified())
@@ -410,7 +412,7 @@ namespace OpenMS
       }
 
       // clean up unlabeled_index
-      for (Map<String, Feature>::iterator unlabeled_index_iter = unlabeled_features_index.begin(); unlabeled_index_iter != unlabeled_features_index.end(); ++unlabeled_index_iter)
+      for (std::map<String, Feature>::iterator unlabeled_index_iter = unlabeled_features_index.begin(); unlabeled_index_iter != unlabeled_features_index.end(); ++unlabeled_index_iter)
       {
         // the single ones from c0
         final_feature_map.push_back(unlabeled_index_iter->second);
@@ -427,7 +429,7 @@ namespace OpenMS
     consensus_.getColumnHeaders()[0] = map_description;
   }
 
-  Feature SILACLabeler::mergeFeatures_(Feature& labeled_feature, const String& unmodified_feature_sequence, Map<String, Feature>& feature_index, Int index_channel_id, Int labeled_channel_id) const
+  Feature SILACLabeler::mergeFeatures_(Feature& labeled_feature, const String& unmodified_feature_sequence, std::map<String, Feature>& feature_index, Int index_channel_id, Int labeled_channel_id) const
   {
     // merge with feature from first map
     Feature merged_feature = feature_index[unmodified_feature_sequence];
@@ -444,7 +446,7 @@ namespace OpenMS
     return merged_feature;
   }
 
-  Feature SILACLabeler::mergeAllChannelFeatures_(Feature& heavy_channel_feature, const String& unmodified_feature_sequence, Map<String, Feature>& light_channel_feature_index, Map<String, Feature>& medium_channel_feature_index) const
+  Feature SILACLabeler::mergeAllChannelFeatures_(Feature& heavy_channel_feature, const String& unmodified_feature_sequence, std::map<String, Feature>& light_channel_feature_index, std::map<String, Feature>& medium_channel_feature_index) const
   {
     // merge with feature from first map
     Feature merged_feature = light_channel_feature_index[unmodified_feature_sequence];
@@ -479,7 +481,7 @@ namespace OpenMS
     if (rt_shift != 0.0)
     {
       // create map of all available features
-      Map<UInt64, Feature*> id_map;
+      std::map<UInt64, Feature*> id_map;
       SimTypes::FeatureMapSim& feature_map = features_to_simulate[0];
       for (Feature& feat : feature_map)
       {
@@ -495,7 +497,7 @@ namespace OpenMS
         ConsensusFeature& cf = cons;
         for (const FeatureHandle& cfit : cf)
         {
-          if (id_map.has(cfit.getUniqueId()))
+          if (id_map.find(cfit.getUniqueId()) != id_map.end())
           {
             original_features.push_back(id_map[cfit.getUniqueId()]);
           }

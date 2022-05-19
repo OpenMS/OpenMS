@@ -35,9 +35,9 @@
 
 #pragma once
 
+#include <algorithm> // std::min
 #include <vector>
 #include <iosfwd>
-#include <algorithm>
 
 #include <OpenMS/config.h>
 

@@ -3,7 +3,6 @@ from libcpp.set cimport set as libcpp_set
 from libcpp cimport bool
 
 from String cimport *
-from Map cimport *
 from StringList cimport *
 from CVMappings cimport *
 from DataValue cimport *

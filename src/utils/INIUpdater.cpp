@@ -169,7 +169,7 @@ protected:
       if (p.exists(sec_inst + "tool_type")) ttype = p.getValue(sec_inst + "tool_type").toString();
       if (!updater.getNewToolName(old_name, ttype, new_tool))
       {
-        String type_text = ((ttype == "") ? "" : " with type '" + ttype + "' ");
+        String type_text = ((ttype.empty()) ? "" : " with type '" + ttype + "' ");
         writeLog_("Update for file " + infile + " failed because the tool '" + old_name + "'" + type_text + "is unknown. TOPPAS file seems to be corrupted!");
         update_success = false;
         break;
@@ -303,7 +303,7 @@ protected:
       if (p.exists(sec_inst + "type")) ttype = p.getValue(sec_inst + "type").toString();
       if (!updater.getNewToolName(sections[s], ttype, new_tool))
       {
-        String type_text = ((ttype == "") ? "" : " with type '" + ttype + "' ");
+        String type_text = ((ttype.empty()) ? "" : " with type '" + ttype + "' ");
         writeLog_("Update for file '" + infile + "' failed because the tool '" + sections[s] + "'" + type_text + "is unknown. TOPPAS file seems to be corrupted!");
         update_success = false;
         break;
@@ -369,7 +369,7 @@ protected:
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
-    if (out.size() > 0 && inplace)
+    if (!out.empty() && inplace)
     {
       writeLog_("Two incompatible arguments given (-out and -i). Use either of them, but not both!");
       printUsage_();
@@ -399,7 +399,7 @@ protected:
     }
 
 
-    if (failed_.size() > 0)
+    if (!failed_.empty())
     {
       writeLog_("The following INI/TOPPAS files could not be updated:\n  " + ListUtils::concatenate(failed_, "\n  "));
       return INPUT_FILE_CORRUPT;

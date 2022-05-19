@@ -30,4 +30,4 @@ cdef extern from "<OpenMS/FORMAT/MzXMLFile.h>" namespace "OpenMS":
         void transform(String, IMSDataConsumer[Peak1D, ChromatogramPeak] *) nogil except + # wrap-ignore
 
         PeakFileOptions getOptions() nogil except + # wrap-doc:Returns the options for loading/storing
-        void setOptions(PeakFileOptions) nogil except + # wrap-doc:Set options for loading/storing
+        void setOptions(PeakFileOptions) nogil except + # wrap-doc:Sets options for loading/storing

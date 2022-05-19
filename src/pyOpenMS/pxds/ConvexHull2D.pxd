@@ -28,4 +28,3 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ConvexHull2D.h>" namespace "OpenMS":
         libcpp_vector[DPosition2] getHullPoints() nogil except + # wrap-doc:Accessor for the outer points
         void setHullPoints(libcpp_vector[DPosition2] ) nogil except + # wrap-doc:Accessor for the outer(!) points (no checking is performed if this is actually a convex hull) 
         DBoundingBox2 getBoundingBox() nogil except + # wrap-doc:Returns the bounding box of the feature hull points
-

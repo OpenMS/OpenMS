@@ -36,6 +36,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringConversions.h>
 
 #include <boost/functional/hash.hpp>
 

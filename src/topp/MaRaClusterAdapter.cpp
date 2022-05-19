@@ -48,6 +48,7 @@
 #include <cmath>
 #include <string>
 #include <set>
+#include <map>
 
 #include <QtCore/QProcess>
 #include <boost/algorithm/clamp.hpp>
@@ -209,7 +210,7 @@ protected:
   }
 
   // read and parse clustering output csv to store specnumber and clusterid associations
-  void readMClusterOutputAsMap_(String mcout_file, Map<MaRaClusterResult, Int>& specid_to_clusterid_map, const std::map<String, Int>& filename_to_idx_map)
+  void readMClusterOutputAsMap_(String mcout_file, std::map<MaRaClusterResult, Int>& specid_to_clusterid_map, const std::map<String, Int>& filename_to_idx_map)
   {
     CsvFile csv_file(mcout_file, '\t');
     StringList row;
@@ -218,7 +219,7 @@ protected:
     for (Size i = 0; i < csv_file.rowCount(); ++i)
     {
       csv_file.getRow(i, row);
-      if (row.size() > 0)
+      if (!row.empty())
       {
         row[0] = String(filename_to_idx_map.at(row[0]));
 
@@ -376,7 +377,7 @@ protected:
     //-------------------------------------------------------------
     // reintegrate clustering results 
     //-------------------------------------------------------------
-    Map<MaRaClusterResult, Int> specid_to_clusterid_map;
+    std::map<MaRaClusterResult, Int> specid_to_clusterid_map;
     readMClusterOutputAsMap_(consensus_output_file, specid_to_clusterid_map, filename_to_file_idx);
     file_idx = 0;
 
@@ -428,7 +429,7 @@ protected:
       }
       else
       {
-        for (Map<MaRaClusterResult,Int>::iterator sid = specid_to_clusterid_map.begin(); sid != specid_to_clusterid_map.end(); ++sid) {
+        for (std::map<MaRaClusterResult,Int>::iterator sid = specid_to_clusterid_map.begin(); sid != specid_to_clusterid_map.end(); ++sid) {
           Int scan_nr = sid->first.scan_nr;
           Int file_id = sid->first.file_idx;
           Int cluster_id = sid->second;
@@ -443,7 +444,7 @@ protected:
         }
       }
 
-      if (all_protein_ids.size() == 0)
+      if (all_protein_ids.empty())
       {
         ProteinIdentification protid;
         all_protein_ids.push_back(protid);

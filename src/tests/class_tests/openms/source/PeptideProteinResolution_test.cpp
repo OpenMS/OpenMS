@@ -48,8 +48,8 @@ START_TEST(PeptideProteinResolution, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeptideProteinResolution* ptr = 0;
-PeptideProteinResolution* null_ptr = 0;
+PeptideProteinResolution* ptr = nullptr;
+PeptideProteinResolution* null_ptr = nullptr;
 START_SECTION(PeptideProteinResolution())
 {
 	ptr = new PeptideProteinResolution();

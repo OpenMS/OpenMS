@@ -35,10 +35,13 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
+
+#include <algorithm>
+#include <cmath>
+#include <fstream>
 
 #include <boost/math/distributions/normal.hpp>
 
@@ -76,6 +79,7 @@ namespace OpenMS
     defaults_.setValue("taxonomy", "", "Taxonomy");
     defaults_.setValue("tmp_dir", "", "Absolute path to tmp data directory used to store files needed for rt and dt prediction.");
     defaults_.setValue("store_peptide_sequences", "false", "Flag if peptide sequences should be stored.");
+    defaults_.setValidStrings("store_peptide_sequences", {"true","false"});
     defaultsToParam_();
     updateMembers_();
   }
@@ -172,7 +176,7 @@ namespace OpenMS
 
   double PrecursorIonSelectionPreprocessing::getRT(String prot_id, Size peptide_index)
   {
-    if (rt_prot_map_.size() > 0)
+    if (!rt_prot_map_.empty())
     {
       if (rt_prot_map_.find(prot_id) != rt_prot_map_.end())
       {
@@ -190,7 +194,7 @@ namespace OpenMS
 
   double PrecursorIonSelectionPreprocessing::getPT(String prot_id, Size peptide_index)
   {
-    if (pt_prot_map_.size() > 0)
+    if (!pt_prot_map_.empty())
     {
       if (pt_prot_map_.find(prot_id) != pt_prot_map_.end())
       {
@@ -1207,7 +1211,7 @@ namespace OpenMS
   double PrecursorIonSelectionPreprocessing::getRTProbability(String prot_id, Size peptide_index, Feature& feature)
   {
     double theo_rt = 0.;
-    if (rt_prot_map_.size() > 0)
+    if (!rt_prot_map_.empty())
     {
       if (rt_prot_map_.find(prot_id) != rt_prot_map_.end())
       {

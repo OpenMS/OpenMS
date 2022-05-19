@@ -34,11 +34,13 @@
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 
-#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <iostream>
 #include <fstream>
+#include <map>
 
 using namespace std;
 
@@ -208,10 +210,25 @@ namespace OpenMS
       line_wo_spaces.removeWhitespaces();
 
       //do nothing for empty lines
-      if (line == "")
+      if (line.empty())
       {
         continue;
       }
+
+      if (line_wo_spaces.hasPrefix("data-version:"))
+      {
+        version_ = line.substr(line.find(':') + 1).trim();
+      }
+      if (line_wo_spaces.hasPrefix("default-namespace:"))
+      {
+        label_ = line.substr(line.find(':') + 1).trim();
+      }
+      if (line_wo_spaces.hasPrefix("remark:URL:"))
+      {
+        // https://
+        url_ = line.substr(line.find_first_of('/') - 7).trim();
+      }
+
       //********************************************************************************
       //stanza line
       if (line_wo_spaces[0] == '[')
@@ -220,7 +237,7 @@ namespace OpenMS
         if (line_wo_spaces.toLower() == "[term]") //new term
         {
           in_term = true;
-          if (term.id != "") //store last term
+          if (!term.id.empty()) //store last term
           {
             terms_[term.id] = term;
           }
@@ -413,20 +430,20 @@ namespace OpenMS
           line_wo_spaces.trim();
           term.xref_binary.push_back(line_wo_spaces);
         }
-        else if (line != "")
+        else if (!line.empty())
         {
           term.unparsed.push_back(line);
         }
       }
     }
 
-    if (term.id != "") //store last term
+    if (!term.id.empty()) //store last term
     {
       terms_[term.id] = term;
     }
 
     // now build all child terms
-    for (Map<String, CVTerm>::iterator it = terms_.begin(); it != terms_.end(); ++it)
+    for (std::map<String, CVTerm>::iterator it = terms_.begin(); it != terms_.end(); ++it)
     {
       //cerr << it->first << "\n";
       for (set<String>::const_iterator pit = it->second.parents.begin(); pit != it->second.parents.end(); ++pit)
@@ -435,7 +452,7 @@ namespace OpenMS
         terms_[*pit].children.insert(it->first);
       }
 
-      Map<String, String>::iterator mit = namesToIds_.find(it->second.name);
+      std::map<String, String>::iterator mit = namesToIds_.find(it->second.name);
       if (mit == namesToIds_.end())
       {
         namesToIds_.insert(pair<String, String>(it->second.name, it->first));
@@ -451,7 +468,7 @@ namespace OpenMS
 
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTerm(const String& id) const
   {
-    Map<String, CVTerm>::const_iterator it = terms_.find(id);
+    std::map<String, CVTerm>::const_iterator it = terms_.find(id);
     if (it == terms_.end())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid CV identifier!", id);
@@ -459,7 +476,7 @@ namespace OpenMS
     return it->second;
   }
 
-  const Map<String, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const
+  const std::map<String, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const
   {
     return terms_;
   }
@@ -478,7 +495,7 @@ namespace OpenMS
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTermByName(const String& name, const String& desc) const
   {
     //slow, but Vocabulary is very finite and this method will be called only a few times during write of a ML file using a CV
-    Map<String, String>::const_iterator it = namesToIds_.find(name);
+    std::map<String, String>::const_iterator it = namesToIds_.find(name);
     if (it == namesToIds_.end())
     {
       if (!desc.empty())
@@ -495,24 +512,24 @@ namespace OpenMS
       }
     }
 
-    return terms_[it->second];
+    return terms_.at(it->second);
   }
 
   bool ControlledVocabulary::exists(const String& id) const
   {
-    return terms_.has(id);
+    return terms_.find(id) != terms_.end();
   }
 
   const ControlledVocabulary::CVTerm* ControlledVocabulary::checkAndGetTermByName(const OpenMS::String& name) const
   {
-    Map<String, String>::const_iterator it = namesToIds_.find(name);
+    std::map<String, String>::const_iterator it = namesToIds_.find(name);
     if (it == namesToIds_.end()) return nullptr;
-    return &terms_[it->second];
+    return &terms_.at(it->second);
   }
 
   bool ControlledVocabulary::hasTermWithName(const OpenMS::String& name) const
   {
-    Map<String, String>::const_iterator it = namesToIds_.find(name);
+    std::map<String, String>::const_iterator it = namesToIds_.find(name);
     return it != namesToIds_.end();
   }
 
@@ -560,6 +577,21 @@ namespace OpenMS
     return name_;
   }
 
+  const String& ControlledVocabulary::label() const
+  {
+    return label_;
+  }
+
+  const String& ControlledVocabulary::version() const
+  {
+    return version_;
+  }
+
+  const String& ControlledVocabulary::url() const
+  {
+    return url_;
+  }
+
   const ControlledVocabulary& ControlledVocabulary::getPSIMSCV()
   {
     static const ControlledVocabulary cv = []() {
@@ -574,7 +606,7 @@ namespace OpenMS
     return cv;
   }
 
-  bool ControlledVocabulary::checkName_(const String& id, const String& name, bool ignore_case)
+  bool ControlledVocabulary::checkName_(const String& id, const String& name, bool ignore_case) const
   {
     if (!exists(id))
     {

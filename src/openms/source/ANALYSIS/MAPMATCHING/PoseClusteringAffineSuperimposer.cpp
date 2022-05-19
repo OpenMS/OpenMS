@@ -37,6 +37,7 @@
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
+#include <boost/math/special_functions/fpclassify.hpp> // isnan
 
 // #define Debug_PoseClusteringAffineSuperimposer
 
@@ -397,7 +398,7 @@ namespace OpenMS
       double freq_intercept = scaling_hash_1.getData().front();
       double freq_slope = (scaling_hash_1.getData().back() - scaling_hash_1.getData().front()) / double(buffer.size())
                           / scaling_histogram_crossing_slope;
-      if (!freq_slope || !buffer.size())
+      if (!freq_slope || buffer.empty())
       {
         // in fact these conditions are actually impossible, but let's be really sure ;-)
         freq_cutoff = 0;
@@ -413,7 +414,7 @@ namespace OpenMS
         }
         freq_cutoff = buffer[--index];   // note that we have index >= 1
       }
-    } while (0);
+    } while (false);
 
     // ***************************************************************************
     // apply freq_cutoff, setting smaller values to zero
@@ -575,7 +576,7 @@ namespace OpenMS
         double freq_intercept = rt_low_hash_.getData().front();
         double freq_slope = (rt_low_hash_.getData().back() - rt_low_hash_.getData().front()) / double(buffer.size())
                             / scaling_histogram_crossing_slope;
-        if (!freq_slope || !buffer.size())
+        if (!freq_slope || buffer.empty())
         {
           // in fact these conditions are actually impossible, but let's be really sure ;-)
           freq_cutoff_low = 0;
@@ -596,7 +597,7 @@ namespace OpenMS
         double freq_intercept = rt_high_hash_.getData().front();
         double freq_slope = (rt_high_hash_.getData().back() - rt_high_hash_.getData().front()) / double(buffer.size())
                             / scaling_histogram_crossing_slope;
-        if (!freq_slope || !buffer.size())
+        if (!freq_slope || buffer.empty())
         {
           // in fact these conditions are actually impossible, but let's be really sure ;-)
           freq_cutoff_high = 0;
@@ -611,7 +612,7 @@ namespace OpenMS
           freq_cutoff_high = buffer[--index]; // note that we have index >= 1
         }
       }
-    } while (0);
+    } while (false);
 
     // apply freq_cutoff, setting smaller values to zero
     for (Size index = 0; index < rt_low_hash_.getData().size(); ++index)
@@ -1034,7 +1035,7 @@ namespace OpenMS
       const double intercept = rt_low_image - rt_low * slope;
       params.setValue("intercept", intercept);
 
-      if (boost::math::isinf(slope) || boost::math::isnan(slope) || boost::math::isinf(intercept) || boost::math::isnan(intercept))
+      if (std::isinf(slope) || std::isnan(slope) || std::isinf(intercept) || std::isnan(intercept))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       String("Superimposer could not compute an initial transformation!") +

@@ -25,6 +25,7 @@ FLASHDeconvFeatureFile.cpp
 FLASHDeconvSpectrumFile.cpp
 FileHandler.cpp
 FileTypes.cpp
+GNPSMGFFile.cpp
 GzipIfstream.cpp
 GzipInputStream.cpp
 HDF5Connector.cpp
@@ -53,11 +54,18 @@ MzMLFile.cpp
 MzQCFile.cpp
 MzQuantMLFile.cpp
 MzTab.cpp
+MzTabBase.cpp
+MzTabM.cpp
 MzTabFile.cpp
+MzTabMFile.cpp
 MzXMLFile.cpp
+OMSFile.cpp
+OMSFileLoad.cpp
+OMSFileStore.cpp
 OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
 OSWFile.cpp
+ParamCTDFile.cpp
 ParamXMLFile.cpp
 PTMXMLFile.cpp
 PeakTypeEstimator.cpp
@@ -65,6 +73,7 @@ PepNovoInfile.cpp
 PepNovoOutfile.cpp
 PepXMLFile.cpp
 PepXMLFileMascot.cpp
+PercolatorInfile.cpp
 PercolatorOutfile.cpp
 ProtXMLFile.cpp
 QcMLFile.cpp

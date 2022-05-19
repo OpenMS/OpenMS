@@ -104,6 +104,13 @@ if (label_file.is_open())
   label_file.close();
 }
 
+START_SECTION((~SimpleSVM))
+{
+  SimpleSVM* svm_new = new SimpleSVM();
+  delete svm_new;
+}
+END_SECTION
+
 START_SECTION((void setup(PredictorMap& predictors,
                           const map<Size, Int>& labels)))
 {
@@ -124,13 +131,12 @@ START_SECTION((void setup(PredictorMap& predictors,
   svm.setup(predictors, labels);
 
   // check that data has been scaled:
-  for (SimpleSVM::PredictorMap::const_iterator it = predictors.begin();
-       it != predictors.end(); ++it)
+  for (const auto& it : predictors)
   {
-    vector<double>::const_iterator pos = min_element(it->second.begin(),
-                                                     it->second.end());
+    vector<double>::const_iterator pos = min_element(it.second.begin(),
+                                                     it.second.end());
     TEST_REAL_SIMILAR(*pos, 0);
-    pos = max_element(it->second.begin(), it->second.end());
+    pos = max_element(it.second.begin(), it.second.end());
     TEST_REAL_SIMILAR(*pos, 1);
   }
 }

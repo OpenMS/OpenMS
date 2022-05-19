@@ -28,9 +28,9 @@ cdef extern from "<OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>" namespace "Ope
 
         void setValueAttribute(String value) nogil except + # wrap-doc:Sets the name of the attribute for accessions in the CV parameter tag name (default 'value')
 
-        void setCheckTermValueTypes(bool check) nogil except + # wrap-doc:Set if CV term value types should be check (enabled by default)
+        void setCheckTermValueTypes(bool check) nogil except + # wrap-doc:Sets if CV term value types should be check (enabled by default)
 
-        void setCheckUnits(bool check) nogil except + # wrap-doc:Set if CV term units should be check (disabled by default)
+        void setCheckUnits(bool check) nogil except + # wrap-doc:Sets if CV term units should be check (disabled by default)
 
         void setUnitAccessionAttribute(String accession) nogil except + # wrap-doc:Sets the name of the unit accession attribute (default 'unitAccession')
 

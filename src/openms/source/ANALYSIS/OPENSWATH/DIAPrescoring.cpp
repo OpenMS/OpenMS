@@ -33,13 +33,19 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
+
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionHelper.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
+#include <boost/bind.hpp>
+#include <boost/lexical_cast.hpp>
+
 #include <iostream>
+#include <algorithm>
+#include <iterator>
 
 namespace OpenMS
 {
@@ -61,7 +67,7 @@ namespace OpenMS
     std::transform(normalizedLibraryIntensities.begin(),
                    normalizedLibraryIntensities.end(),
                    normalizedLibraryIntensities.begin(),
-                   boost::bind(std::divides<double>(), _1, totalInt));
+                   [totalInt](auto && PH1) { return std::divides<double>()(std::forward<decltype(PH1)>(PH1), totalInt); });
   }
 
   void getMZIntensityFromTransition(const std::vector<OpenSwath::LightTransition>& trans,
@@ -75,7 +81,7 @@ namespace OpenMS
 
   void DiaPrescore::operator()(OpenSwath::SpectrumAccessPtr swath_ptr,
                                OpenSwath::LightTargetedExperiment& transition_exp_used,
-                               OpenSwath::IDataFrameWriter* ivw)
+                               OpenSwath::IDataFrameWriter* ivw) const
   {
     //getParams();
     typedef std::map<std::string, std::vector<OpenSwath::LightTransition> > Mmap;

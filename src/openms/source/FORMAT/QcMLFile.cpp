@@ -112,15 +112,15 @@ namespace OpenMS
     String s = indent;
     s += "<qualityParameter";
     s += " name=\"" + name + "\"" + " ID=\"" + id + "\"" + " cvRef=\"" + cvRef + "\"" + " accession=\"" + cvAcc + "\"";
-    if (value != "")
+    if (!value.empty())
     {
       s += " value=\"" + value + "\"";
     }
-    if (unitRef != "")
+    if (!unitRef.empty())
     {
       s += " unitRef=\"" + unitRef + "\"";
     }
-    if (unitAcc != "")
+    if (!unitAcc.empty())
     {
       s += " unitAcc=\"" + unitAcc + "\"";
     }
@@ -236,24 +236,24 @@ namespace OpenMS
     String s = indent;
     s += "<attachment ";
     s += " name=\"" + name + "\"" + " ID=\"" + id + "\"" + " cvRef=\"" + cvRef + "\"" + " accession=\"" + cvAcc + "\"";
-    if (value != "")
+    if (!value.empty())
     {
       s += " value=\"" + value + "\"";
     }
-    if (unitRef != "")
+    if (!unitRef.empty())
     {
       s += " unitRef=\"" + unitRef + "\"";
     }
-    if (unitAcc != "")
+    if (!unitAcc.empty())
     {
       s += " unitAcc=\"" + unitAcc + "\"";
     }
-    if (qualityRef != "")
+    if (!qualityRef.empty())
     {
       s += " qualityParameterRef=\"" + qualityRef + "\"";
     }
 
-    if (binary != "")
+    if (!binary.empty())
     {
       s += ">\n";
       s += indent + "\t" + "<binary>" + binary + "</binary>\n";
@@ -489,7 +489,7 @@ namespace OpenMS
 
   void QcMLFile::removeAttachment(String r, std::vector<String>& ids, String at)
   {
-    bool not_all = at.size();
+    bool not_all = !at.empty();
     for (Size i = 0; i < ids.size(); ++i)
     {
       std::vector<QcMLFile::Attachment>::iterator qit = runQualityAts_[r].begin();
@@ -586,7 +586,7 @@ namespace OpenMS
       runQualityQPs_[it->first].insert(runQualityQPs_[it->first].end(), it->second.begin(), it->second.end());
       std::sort(runQualityQPs_[it->first].begin(), runQualityQPs_[it->first].end());
       runQualityQPs_[it->first].erase(std::unique(runQualityQPs_[it->first].begin(), runQualityQPs_[it->first].end()), runQualityQPs_[it->first].end());
-      if (setname != "")
+      if (!setname.empty())
       {
         setQualityQPs_members_[setname].insert(it->first);
       }
@@ -596,7 +596,7 @@ namespace OpenMS
       runQualityAts_[it->first].insert(runQualityAts_[it->first].end(), it->second.begin(), it->second.end());
       std::sort(runQualityAts_[it->first].begin(), runQualityAts_[it->first].end());
       runQualityAts_[it->first].erase(std::unique(runQualityAts_[it->first].begin(), runQualityAts_[it->first].end()), runQualityAts_[it->first].end());
-      if (setname != "")
+      if (!setname.empty())
       {
         setQualityQPs_members_[setname].insert(it->first);
       }
@@ -1000,7 +1000,7 @@ namespace OpenMS
     }
     else if (tag_ == "runQuality")
     {
-      if (name_ == "")
+      if (name_.empty())
       {
         name_ = run_id_;
         //~ name_ = String(UniqueIdGenerator::getUniqueId());
@@ -1020,7 +1020,7 @@ namespace OpenMS
     }
     else if (tag_ == "setQuality")
     {
-      if (name_ == "")
+      if (name_.empty())
       {
         name_ = run_id_;
         //~ name_ = String(UniqueIdGenerator::getUniqueId());
@@ -1042,7 +1042,7 @@ namespace OpenMS
 
   float calculateSNmedian(const MSSpectrum& spec, bool norm = true)
   {
-    if (spec.size() == 0)
+    if (spec.empty())
     {
       return 0;
     }
@@ -1096,6 +1096,7 @@ namespace OpenMS
       ControlledVocabulary cv;
       cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
+      cv.loadFromOBO("QC", File::find("/CV/qc-cv-legacy.obo"));
       //-------------------------------------------------------------
       // MS acquisition
       //------------------------------------------------------------
@@ -1895,7 +1896,7 @@ namespace OpenMS
           row.push_back(feature_map[fiter].getOverallQuality());
           row.push_back(feature_map[fiter].getWidth());
           row.push_back(feature_map[fiter].getPeptideIdentifications().size());
-          if (feature_map[fiter].getPeptideIdentifications().size() > 0)
+          if (!feature_map[fiter].getPeptideIdentifications().empty())
           {
             ++ided;
           }
@@ -2052,7 +2053,7 @@ namespace OpenMS
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
     if (!xslt_ref.empty())
     {
-        os << "<?xml-stylesheet type=\"text/xml\" href=\"#" << xslt_ref << "\"?>\n";
+        os << R"(<?xml-stylesheet type="text/xml" href="#)" << xslt_ref << "\"?>\n";
         os << "<!DOCTYPE catelog [\n"
            << "  <!ATTLIST xsl:stylesheet\n"
            << "  id  ID  #REQUIRED>\n"

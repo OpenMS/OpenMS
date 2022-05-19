@@ -38,7 +38,6 @@
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 
@@ -64,9 +63,9 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI MSSpectrum :
+  class OPENMS_DLLAPI MSSpectrum final :
     private std::vector<Peak1D>,
-    public RangeManager<1>,
+    public RangeManagerContainer<RangeMZ, RangeIntensity>,
     public SpectrumSettings
   {
 public:
@@ -109,6 +108,9 @@ public:
     typedef typename PeakType::CoordinateType CoordinateType;
     /// Spectrum base type
     typedef std::vector<PeakType> ContainerType;
+    /// RangeManager
+    typedef RangeManagerContainer<RangeMZ, RangeIntensity> RangeManagerContainerType;
+    typedef RangeManager<RangeMZ, RangeIntensity> RangeManagerType;
     /// Float data array vector type
     typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
     typedef std::vector<FloatDataArray> FloatDataArrays;
@@ -174,8 +176,7 @@ public:
     MSSpectrum(MSSpectrum&&) = default;
 
     /// Destructor
-    ~MSSpectrum() override
-    {}
+    ~MSSpectrum() = default;
 
     /// Assignment operator
     MSSpectrum& operator=(const MSSpectrum& source);
@@ -556,6 +557,12 @@ public:
 
     /**
       @brief Clears all data and meta data
+
+      Will delete (clear) all peaks contained in the spectrum as well as any
+      associated data arrays (FloatDataArrays, IntegerDataArrays,
+      StringDataArrays) by default. If @em clear_meta_data is @em true, then
+      also all meta data (such as RT, drift time, ms level etc) will be
+      deleted.
 
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */

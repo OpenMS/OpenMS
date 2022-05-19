@@ -86,7 +86,7 @@ namespace OpenMS
     defaults_.setValue("tandem_mode", 0, "Algorithm to generate the tandem-MS spectra. 0 - fixed intensities, 1 - SVC prediction (abundant/missing), 2 - SVR prediction of peak intensity \n");
     defaults_.setMinInt("tandem_mode", 0);
     defaults_.setMaxInt("tandem_mode", 2);
-    defaults_.setValue("svm_model_set_file", "examples/simulation/SvmModelSet.model", "File containing the filenames of SVM Models for different charge variants");
+    defaults_.setValue("svm_model_set_file", "SIMULATION/SvmModelSet.model", "File containing the filenames of SVM Models for different charge variants");
 
     subsections_.push_back("TandemSim:");
     defaults_.insert("TandemSim:Simple:", TheoreticalSpectrumGenerator().getDefaults());

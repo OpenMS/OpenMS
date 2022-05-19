@@ -78,7 +78,7 @@ START_SECTION((void load(const String &filename, std::vector< Internal::ToolDesc
     files[i] = dir.absolutePath()+QDir::separator()+files[i];
     f.load(files[i], tds);
     //std::cerr << "load: " << String(files[i]) << "\n";
-    TEST_EQUAL(tds.size()>=1, true)
+    TEST_EQUAL(!tds.empty(), true)
   }
   
 }

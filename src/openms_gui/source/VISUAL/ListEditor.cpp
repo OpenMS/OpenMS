@@ -85,7 +85,7 @@ namespace OpenMS
 
         return editor;
       }
-      else if (type_ == ListEditor::STRING && restrictions_ != "")
+      else if (type_ == ListEditor::STRING && !restrictions_.empty())
       {
         QComboBox * editor = new QComboBox(parent);
         QStringList list;
@@ -185,11 +185,11 @@ namespace OpenMS
               vector<String> parts;
               if (restrictions_.split(' ', parts))
               {
-                if (parts[0] != "" && new_value.toInt() < parts[0].toInt())
+                if (!parts[0].empty() && new_value.toInt() < parts[0].toInt())
                 {
                   restrictions_met = false;
                 }
-                if (parts[1] != "" && new_value.toInt() > parts[1].toInt())
+                if (!parts[1].empty() && new_value.toInt() > parts[1].toInt())
                 {
                   restrictions_met = false;
                 }
@@ -215,11 +215,11 @@ namespace OpenMS
               vector<String> parts;
               if (restrictions_.split(' ', parts))
               {
-                if (parts[0] != "" && new_value.toDouble() < parts[0].toDouble())
+                if (!parts[0].empty() && new_value.toDouble() < parts[0].toDouble())
                 {
                   restrictions_met = false;
                 }
-                if (parts[1] != "" && new_value.toDouble() > parts[1].toDouble())
+                if (!parts[1].empty() && new_value.toDouble() > parts[1].toDouble())
                 {
                   restrictions_met = false;
                 }
@@ -287,7 +287,7 @@ namespace OpenMS
       for (Int i = 0; i < count(); ++i)
       {
         stringit = item(i)->text();
-        if (stringit != "")
+        if (!stringit.empty())
         {
           stringit.trim();
         }
@@ -331,7 +331,7 @@ namespace OpenMS
       item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
       item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
       addItem(item);
-      setItemSelected(item, true);
+      item->setSelected(true);
       setCurrentRow(row(item));
       itemActivated(item);
       edit(currentIndex());

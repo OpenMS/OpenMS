@@ -1,10 +1,10 @@
-
+from libcpp.map cimport map as libcpp_map
 
 
     def getModifications(self):
         _r = self.inst.get().getModifications()
         py_result = dict()
-        cdef Map[_String, libcpp_vector[_String]].iterator outer_it = _r.begin()
+        cdef libcpp_map[_String, libcpp_vector[_String]].iterator outer_it = _r.begin()
         cdef libcpp_vector[_String].iterator inner_it
         cdef String item_0
         cdef bytes inner_key

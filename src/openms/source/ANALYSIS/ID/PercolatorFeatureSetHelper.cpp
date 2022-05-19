@@ -32,9 +32,13 @@
 // $Authors: Mathias Walzer, Matthew The $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/config.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
+
+#include <OpenMS/config.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Constants.h>
+
+#include <boost/lexical_cast.hpp>
 
 using namespace std;
 
@@ -124,13 +128,14 @@ namespace OpenMS
     
     void PercolatorFeatureSetHelper::addXTANDEMFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
     {
+      //TODO annotate isotope error in Adapter and add here as well.
       // Find out which ions are in XTandem-File and take only these as features
       StringList ion_types = ListUtils::create<String>("a,b,c,x,y,z");
       StringList ion_types_found;
       for (StringList::const_iterator ion = ion_types.begin(); ion != ion_types.end(); ++ion)
       {
-        if (peptide_ids.front().getHits().front().getMetaValue(*ion + "_score").toString() != "" &&
-            peptide_ids.front().getHits().front().getMetaValue(*ion + "_ions").toString() != "")
+        if (!peptide_ids.front().getHits().front().getMetaValue(*ion + "_score").toString().empty() &&
+            !peptide_ids.front().getHits().front().getMetaValue(*ion + "_ions").toString().empty())
         {
           feature_set.push_back("XTANDEM:frac_ion_" + *ion);
           ion_types_found.push_back(*ion);
@@ -152,8 +157,8 @@ namespace OpenMS
         // Find out correct ion types and get its Values
         for (StringList::const_iterator ion = ion_types_found.begin(); ion != ion_types_found.end(); ++ion)
         {
-          if (peptide_ids.front().getHits().front().getMetaValue(*ion + "_score").toString() != "" &&
-              peptide_ids.front().getHits().front().getMetaValue(*ion + "_ions").toString() != "")
+          if (!peptide_ids.front().getHits().front().getMetaValue(*ion + "_score").toString().empty() &&
+              !peptide_ids.front().getHits().front().getMetaValue(*ion + "_ions").toString().empty())
           {
             // recalculate ion score
             double ion_score = it->getHits().front().getMetaValue(*ion + "_ions").toString().toDouble() / length;
@@ -168,11 +173,13 @@ namespace OpenMS
       feature_set.push_back("MS:1001330"); // expect_score
       feature_set.push_back("hyperscore");
       feature_set.push_back("nextscore");
+      feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
     }
 
     void PercolatorFeatureSetHelper::addCOMETFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
     {
 
+      feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
       feature_set.push_back("COMET:deltCn"); // recalculated deltCn = (current_XCorr - 2nd_best_XCorr) / max(current_XCorr, 1)
       feature_set.push_back("COMET:deltLCn"); // deltLCn = (current_XCorr - worst_XCorr) / max(current_XCorr, 1)
       feature_set.push_back("COMET:lnExpect"); // log(E-value)
@@ -706,7 +713,7 @@ namespace OpenMS
           }
           sum_removed += incompletes.size();
         }
-        if (incompletes.size() > 0 || imputed_back < imputed_values)
+        if (!incompletes.empty() || imputed_back < imputed_values)
           ++incomplete_spectra;
         else
           ++complete_spectra;

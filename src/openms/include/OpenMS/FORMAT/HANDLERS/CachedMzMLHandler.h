@@ -87,7 +87,7 @@ public:
     CachedMzMLHandler();
 
     /// Default destructor
-    ~CachedMzMLHandler();
+    ~CachedMzMLHandler() override;
 
     /// Assignment operator
     CachedMzMLHandler& operator=(const CachedMzMLHandler& rhs);

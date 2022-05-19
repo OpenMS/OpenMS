@@ -35,6 +35,8 @@
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
 
+#include <Eigen/Sparse>
+
 using namespace std;
 
 namespace OpenMS
@@ -77,14 +79,14 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(BinnedSpectrum::isCompatible(spec1, spec2), "Binned spectra have different bin size or spread");
 
-    const double sum1 = spec1.getBins().sum();
-    const double sum2 = spec2.getBins().sum();
+    const double sum1 = spec1.getBins()->sum();
+    const double sum2 = spec2.getBins()->sum();
 
     // For maximum speed, keep in single expression
     // 1. calculate mean minus difference: x = mean(a,b) - abs(a-b)
     // 2. truncate negative values:        y = max(0, x)
     // 3. calculate sum of entries:   sum_nn = y.sum()
-    BinnedSpectrum::SparseVectorType s = ((spec1.getBins() + spec2.getBins()) * 0.5) - ((spec1.getBins() - spec2.getBins()).cwiseAbs());
+    BinnedSpectrum::SparseVectorType s = ((*spec1.getBins() + *spec2.getBins()) * 0.5) - ((*spec1.getBins() - *spec2.getBins()).cwiseAbs());
     double sum_nn = s.coeffs().cwiseMax(0).sum();
 
     // resulting score normalized to interval [0,1]

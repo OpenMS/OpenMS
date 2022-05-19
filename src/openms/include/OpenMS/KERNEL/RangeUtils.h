@@ -184,7 +184,7 @@ public:
     {
       Int tmp = s.getMSLevel();
       // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
-      return reverse_ ^ std::find(levels_.begin(), levels_.end(), tmp) != levels_.end();
+      return reverse_ ^ (std::find(levels_.begin(), levels_.end(), tmp) != levels_.end());
     }
 
 protected:
@@ -349,13 +349,11 @@ public:
 
     inline bool operator()(const SpectrumType& s) const
     {
-      for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
+      for (const Precursor& p : s.getPrecursors())
       {
-        for (std::set<Precursor::ActivationMethod>::const_iterator it_a = it->getActivationMethods().begin();
-             it_a != it->getActivationMethods().end();
-             ++it_a)
+        for (const Precursor::ActivationMethod am : p.getActivationMethods())
         {
-          if (ListUtils::contains(methods_, Precursor::NamesOfActivationMethod[*it_a]))
+          if (ListUtils::contains(methods_, Precursor::NamesOfActivationMethod[am]))
           {
             // found matching activation method
             if (reverse_) return false;
@@ -364,8 +362,7 @@ public:
         }
       }
 
-      if (reverse_) return true;
-      else return false;
+      return reverse_;
     }
 
 protected:

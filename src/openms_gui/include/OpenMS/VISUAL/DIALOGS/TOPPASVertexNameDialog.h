@@ -61,7 +61,7 @@ public:
 
     /// Constructor
     TOPPASVertexNameDialog(const QString& name, const QString& input_regex = QString());
-    ~TOPPASVertexNameDialog();
+    ~TOPPASVertexNameDialog() override;
 
     /// Returns the name
     QString getName();

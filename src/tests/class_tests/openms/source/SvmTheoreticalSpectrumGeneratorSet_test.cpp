@@ -76,7 +76,7 @@ END_SECTION
 SvmTheoreticalSpectrumGeneratorSet gen_set;
 
 START_SECTION(void load(String))
-    gen_set.load("examples/simulation/SvmModelSet.model");
+    gen_set.load("SIMULATION/SvmModelSet.model");
     NOT_TESTABLE //is implicitly tested by the following two tests
 END_SECTION
 
@@ -127,7 +127,7 @@ START_SECTION(void simulate(PeakSpectrum & spectrum, const AASequence & peptide,
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test_boost58.mzML"),exp);
 #endif
 
-    if(exp.size())
+    if(!exp.empty())
     {
       TEST_EQUAL(spec.size(), exp[0].size());
       Size min_size = min(spec.size(), exp[0].size());

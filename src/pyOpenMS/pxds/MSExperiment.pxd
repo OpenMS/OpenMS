@@ -13,10 +13,10 @@ from RangeManager cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
-    cdef cppclass MSExperiment(ExperimentalSettings, RangeManager2):
+    cdef cppclass MSExperiment(ExperimentalSettings, RangeManagerRtMzInt):
         # wrap-inherits:
         #   ExperimentalSettings
-        #   RangeManager2
+        #   RangeManagerRtMzInt
         #
         # wrap-doc:
         #   In-Memory representation of a mass spectrometry experiment.
@@ -49,11 +49,12 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         ExperimentalSettings getExperimentalSettings() nogil except +
         
         # COMMENT: Spectra functions
-        MSSpectrum& operator[](int) nogil except + # wrap-upper-limit:size()
+        MSSpectrum& operator[](size_t) nogil except + # wrap-upper-limit:size()
         MSSpectrum getSpectrum(Size id_) nogil except + # wrap-ignore
         void addSpectrum(MSSpectrum spec) nogil except +
         void setSpectra(libcpp_vector[ MSSpectrum ] & spectra) nogil except +
         libcpp_vector[MSSpectrum] getSpectra() nogil except +
+        void get2DPeakData(double min_rt, double max_rt, double min_mz, double max_mz, libcpp_vector[float] & rt, libcpp_vector[float] & mz, libcpp_vector[float] & intensity) nogil except + # wrap-ignore
 
         # COMMENT: Chromatogram functions
         MSChromatogram getChromatogram(Size id_) nogil except + # wrap-ignore
@@ -65,7 +66,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         libcpp_vector[MSSpectrum].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum)
         libcpp_vector[MSSpectrum].iterator end() nogil except +       # wrap-iter-end:__iter__(MSSpectrum)
 
-        MSChromatogram calculateTIC() nogil except + # wrap-doc:Return the total ion chromatogram
+        MSChromatogram calculateTIC() nogil except + # wrap-doc:Returns the total ion chromatogram
         void clear(bool clear_meta_data) nogil except + # wrap-doc:Clear all spectra data and meta data (if called with True)
 
         void updateRanges() nogil except + # wrap-doc:Recalculate global RT and m/z ranges after changes to the data has been made.
@@ -74,24 +75,19 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void reserveSpaceSpectra(Size s) nogil except +
         void reserveSpaceChromatograms(Size s) nogil except +
 
-        double getMinMZ() nogil except + # wrap-doc:Returns the minimal m/z value
-        double getMaxMZ() nogil except + # wrap-doc:Returns the maximal m/z value
-        double getMinRT() nogil except + # wrap-doc:Returns the minimal retention time value
-        double getMaxRT() nogil except + # wrap-doc:Returns the maximal retention time value
-
         # Size of experiment
         UInt64 getSize() nogil except + # wrap-doc:Returns the total number of peaks
         int size() nogil except +
         void resize(Size s) nogil except +
         bool empty() nogil except +
         void reserve(Size s) nogil except +
-        Size getNrSpectra() nogil except + # wrap-doc:Return the number of MS spectra
+        Size getNrSpectra() nogil except + # wrap-doc:Returns the number of MS spectra
         Size getNrChromatograms() nogil except + # wrap-doc:Returns the number of chromatograms
         libcpp_vector[unsigned int] getMSLevels() nogil except +  # wrap-ignore
 
-        void sortSpectra(bool sort_mz) nogil except + # wrap-doc:Sort spectra by RT. If sort_mz=True also sort each peak in a spectrum by m/z
+        void sortSpectra(bool sort_mz) nogil except + # wrap-doc:Sorts spectra by RT. If sort_mz=True also sort each peak in a spectrum by m/z
         void sortSpectra() nogil except + 
-        void sortChromatograms(bool sort_rt) nogil except + # wrap-doc:Sort chromatograms by m/z. If sort_rt=True also sort each chromatogram RT
+        void sortChromatograms(bool sort_rt) nogil except + # wrap-doc:Sorts chromatograms by m/z. If sort_rt=True also sort each chromatogram RT
         void sortChromatograms() nogil except +
 
         bool isSorted(bool check_mz) nogil except + # wrap-doc:Checks if all spectra are sorted with respect to ascending RT
@@ -104,3 +100,5 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void reset() nogil except +
         bool clearMetaDataArrays() nogil except +
 
+        int getPrecursorSpectrum(int zero_based_index) nogil except + # wrap-doc:Returns the index of the precursor spectrum for spectrum at index @p zero_based_index
+        

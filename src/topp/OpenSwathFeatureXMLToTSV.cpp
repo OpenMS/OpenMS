@@ -157,7 +157,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   const OpenMS::TargetedExperiment::Peptide &pep = transition_exp.getPeptideByRef(peptide_ref);
 
   sequence = pep.sequence;
-  if (pep.protein_refs.size() > 0)
+  if (!pep.protein_refs.empty())
   {
     // For now just take the first one, assuming the protein name is the id
     protein_name = pep.protein_refs[0];
@@ -166,7 +166,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   // handle charge
   if (pep.hasCVTerm("MS:1000041"))
   {
-    charge = pep.getCVTerms()["MS:1000041"][0].getValue().toString();
+    charge = pep.getCVTerms().at("MS:1000041")[0].getValue().toString();
   }
   else if (pep.hasCharge())
   {
@@ -184,23 +184,24 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   }
 
   // handle decoy tag
-  if (peptide_transition_map.find(peptide_ref) != peptide_transition_map.end() && peptide_transition_map[peptide_ref].size() > 0)
+  if (peptide_transition_map.find(peptide_ref) != peptide_transition_map.end() && !peptide_transition_map[peptide_ref].empty())
   {
     const ReactionMonitoringTransition *transition = peptide_transition_map[peptide_ref][0];
 #if 1
-    if (transition->getCVTerms().has("decoy"))
+    const auto& terms = transition->getCVTerms();
+    if (terms.find("decoy") != terms.end())
     {
-      decoy = transition->getCVTerms()["decoy"][0].getValue().toString();
+      decoy = transition->getCVTerms().at("decoy")[0].getValue().toString();
     }
-    else if (transition->getCVTerms().has("MS:1002007"))    // target SRM transition
+    else if (terms.find("MS:1002007") != terms.end() )    // target SRM transition
     {
       decoy = "0";
     }
-    else if (transition->getCVTerms().has("MS:1002008"))    // decoy SRM transition
+    else if (terms.find("MS:1002008") != terms.end() )    // decoy SRM transition
     {
       decoy = "1";
     }
-    else if (transition->getCVTerms().has("MS:1002007") && transition->getCVTerms().has("MS:1002008"))    // both == illegal
+    else if (terms.find("MS:1002007") != terms.end() && terms.find("MS:1002008") != terms.end() )    // both == illegal
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Peptide " + peptide_ref + " cannot be target and decoy at the same time.");
@@ -447,7 +448,7 @@ protected:
     String locale_before = String(OpenMS::Internal::OpenMS_locale);
     feature_file.load(file_list[0], feature_map);
     setlocale(LC_ALL, locale_before.c_str());
-    if (feature_map.getIdentifier().size() == 0)
+    if (feature_map.getIdentifier().empty())
     {
       feature_map.setIdentifier("run0");
     }
@@ -484,12 +485,12 @@ protected:
     for (Size i = 1; i < file_list.size(); ++i)
     {
       feature_file.load(file_list[i], feature_map);
-      if (feature_map.getIdentifier().size() == 0)
+      if (feature_map.getIdentifier().empty())
       {
         feature_map.setIdentifier("run" + (String)i);
       }
 
-      if (feature_map.size() < 1)
+      if (feature_map.empty())
       {
         continue;
       }

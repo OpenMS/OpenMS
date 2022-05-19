@@ -69,7 +69,7 @@ namespace OpenMS
 
   void TransformationXMLFile::store(String filename, const TransformationDescription& transformation)
   {
-    if (transformation.getModelType() == "")
+    if (transformation.getModelType().empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "will not write a transformation with empty name");
     }

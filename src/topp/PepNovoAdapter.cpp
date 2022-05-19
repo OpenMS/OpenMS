@@ -301,7 +301,7 @@ class TOPPPepNovoAdapter :
 
           for (std::map<String, String>::const_iterator key_it=mods_and_keys.begin(); key_it!=mods_and_keys.end();++key_it)
           {
-            if (ptm_command!="")
+            if (!ptm_command.empty())
             {
               ptm_command+=":";
             }

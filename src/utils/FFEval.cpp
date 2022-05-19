@@ -39,6 +39,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
+#include <map>
+
 using namespace OpenMS;
 using namespace OpenMS::Math;
 using namespace std;
@@ -109,7 +111,7 @@ protected:
     {
       if (map[i].metaValueExists(name))
       {
-        if (value == "")
+        if (value.empty())
         {
           ++count;
         }
@@ -146,7 +148,7 @@ protected:
     FeatureXMLFile().load(getStringOption_("truth"), features_truth);
     features_truth.sortByPosition();
     FeatureMap abort_reasons;
-    if (getStringOption_("abort_reasons") != "")
+    if (!getStringOption_("abort_reasons").empty())
     {
       FeatureXMLFile().load(getStringOption_("abort_reasons"), abort_reasons);
     }
@@ -158,7 +160,7 @@ protected:
     vector<double> rt_spans;
     for (Size t = 0; t < features_in.size(); ++t)
     {
-      if (features_in[t].getConvexHulls().size() != 0)
+      if (!features_in[t].getConvexHulls().empty())
       {
         rt_spans.push_back(features_in[t].getConvexHull().getBoundingBox().width());
       }
@@ -190,7 +192,7 @@ protected:
     std::vector<double> ints_i;
     std::vector<double> ints_found;
     std::vector<double> ints_missed;
-    Map<String, UInt> abort_strings;
+    std::map<String, UInt> abort_strings;
 
     for (Size m = 0; m < features_truth.size(); ++m)
     {
@@ -283,11 +285,11 @@ protected:
             }
           }
         }
-        if (reason == "")
+        if (reason.empty())
         {
           reason = "No seed found";
         }
-        if (abort_strings.has(reason))
+        if (abort_strings.find(reason) != abort_strings.end())
         {
           abort_strings[reason]++;
         }
@@ -321,10 +323,10 @@ protected:
     cout << "multiple matches: " << multi_match << percentage(multi_match, features_truth.size()) << endl;
     Size incorrect_match = multi_match + one_match - charge_match;
     cout << "incorrect matches: " << incorrect_match << percentage(incorrect_match, features_truth.size()) << endl;
-    if (abort_reasons.size())
+    if (!abort_reasons.empty())
     {
       cout << "reasons for unmatched features:" << endl;
-      for (Map<String, UInt>::iterator it = abort_strings.begin(); it != abort_strings.end(); ++it)
+      for (std::map<String, UInt>::iterator it = abort_strings.begin(); it != abort_strings.end(); ++it)
       {
         cout << " - " << String(it->second).fillLeft(' ', 4) << ": " << it->first << endl;
       }
@@ -362,7 +364,7 @@ protected:
     cout << endl;
     cout << "charge matches statistics:" << endl;
     cout << "===========================" << endl;
-    Map<UInt, UInt> present_charges, found_charges;
+    std::map<UInt, UInt> present_charges, found_charges;
     for (Size i = 0; i < features_truth.size(); ++i)
     {
       UInt charge = features_truth[i].getCharge();
@@ -372,19 +374,19 @@ protected:
         found_charges[charge]++;
       }
     }
-    for (Map<UInt, UInt>::const_iterator it = present_charges.begin(); it != present_charges.end(); ++it)
+    for (std::map<UInt, UInt>::const_iterator it = present_charges.begin(); it != present_charges.end(); ++it)
     {
       cout << "charge " << it->first << ": " << found_charges[it->first] << "/" << it->second << percentage(found_charges[it->first], it->second) << endl;
     }
 
     //write output
-    if (getStringOption_("out") != "")
+    if (!getStringOption_("out").empty())
     {
       FeatureXMLFile().store(getStringOption_("out"), features_truth);
     }
 
     //ROC curve
-    if (getStringOption_("out_roc") != "")
+    if (!getStringOption_("out_roc").empty())
     {
       TextFile tf;
       tf.addLine("false\tcorrect\tFDR\tTPR");

@@ -112,6 +112,7 @@ protected:
       use_ms1_traces_(false),
       use_ms1_ion_mobility_(false),
       prm_(false),
+      pasef_(false),
       threads_outer_loop_(-1)
     {
     }
@@ -128,10 +129,11 @@ protected:
      *
      *
      **/
-    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, int threads_outer_loop) :
+    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, bool pasef, int threads_outer_loop) :
       use_ms1_traces_(use_ms1_traces),
       use_ms1_ion_mobility_(use_ms1_ion_mobility),
       prm_(prm),
+      pasef_(pasef),
       threads_outer_loop_(threads_outer_loop)
     {
     }
@@ -200,8 +202,25 @@ protected:
     /// Whether to use ion mobility extraction on MS1 traces
     bool use_ms1_ion_mobility_;
 
-    /// Whether data is acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows
+    /** @brief Whether data is acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows
+     *
+     * If set to true, a precursor will only be extracted from a single window
+     * that matches in m/z and whose m/z center is *closest* to the library m/z
+     * of the precursor. This is required if windows overlap in m/z as is the
+     * case for SRM / PRM data where often multiple windows with similar (or
+     * overlaping) m/z are used to target different precursors at different RT.
+    */
     bool prm_;
+
+    /** @brief Whether data is diaPASEF data
+     *
+     * If set to true, a precursor will only be extracted from a single window
+     * that matches both in m/z and whose ion mobility (drift time) center is
+     * *closest* to the library ion mobility of the precursor. This is required
+     * if windows overlap in m/z or in ion mobility, as is the case for
+     * diaPASEF data.
+    */
+    bool pasef_;
 
     /** @brief How many threads should be used for the outer loop
      *
@@ -243,7 +262,7 @@ protected:
     }
 
     explicit OpenSwathCalibrationWorkflow(bool use_ms1_traces) :
-      OpenSwathWorkflowBase(use_ms1_traces, false, false, -1)
+      OpenSwathWorkflowBase(use_ms1_traces, false, false, false, -1)
     {
     }
 
@@ -361,7 +380,11 @@ protected:
    * The workflow will perform a complete OpenSWATH analysis. Optionally, 
    * a calibration of m/z and retention time (mapping peptides to normalized 
    * space and correcting m/z error) can be performed beforehand using the 
-   * OpenSwathCalibrationWorkflow class.
+   * OpenSwathCalibrationWorkflow class. 
+   *
+   * For diaPASEF workflows where ion mobility windows are overlapping, precursors may be found in multiple SWATHs.
+   * In this case, precursors are only extracted from the SWATH in which they are most centered across ion mobility
+   * (Provided -pasef flag is set).
    *
    * The overall execution flow in this class is as follows (see performExtraction() function)
    *
@@ -401,8 +424,8 @@ protected:
      *
      *
      **/
-    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, int threads_outer_loop) :
-      OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, prm, threads_outer_loop)
+    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, bool pasef, int threads_outer_loop) :
+    OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, prm, pasef, threads_outer_loop)
     {
     }
 
@@ -584,7 +607,7 @@ protected:
   public:
 
     explicit OpenSwathWorkflowSonar(bool use_ms1_traces) :
-      OpenSwathWorkflow(use_ms1_traces, false, false, -1)
+      OpenSwathWorkflow(use_ms1_traces, false, false, false, -1)
     {
     }
 

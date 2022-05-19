@@ -4,8 +4,8 @@
 		<Param  type="string" name="symmetric_regression" value="false"/>
 		<Param  type="float" name="span" value="0.666666666666667"/>
 		<Param  type="int" name="num_nodes" value="5"/>
-		<Param  type="string" name="x_weight" value=""/>
-		<Param  type="string" name="y_weight" value=""/>
+		<Param  type="string" name="x_weight" value="x"/>
+		<Param  type="string" name="y_weight" value="y"/>
 		<Param  type="float" name="x_datum_min" value="1e-15"/>
 		<Param  type="float" name="x_datum_max" value="1e+15"/>
 		<Param  type="float" name="y_datum_min" value="1e-15"/>

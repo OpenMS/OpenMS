@@ -544,7 +544,6 @@ foreach ($files_todo as $f)
   $dont_load = array(
     "IsotopeCluster.h",
     "RangeUtils.h",
-    "ComparatorUtils.h",
     "StatisticFunctions.h",
     "KernelTraits.h",
     "StandardTypes.h",
@@ -670,7 +669,6 @@ foreach ($files_todo as $f)
       "include/OpenMS/APPLICATIONS/TOPPViewBase.h",
       "include/OpenMS/APPLICATIONS/TOPPASBase.h",
       "include/OpenMS/APPLICATIONS/INIFileEditorWindow.h",
-      "include/OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h",
       "include/OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h",
       "include/OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h",
       "_registerChildren.h",

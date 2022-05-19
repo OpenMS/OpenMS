@@ -45,6 +45,6 @@
 #define OPENSWATH_PRECONDITION(condition, message)\
   assert( (condition) && (message));
 
-#define OPENMS_POSTCONDITION(condition, message)\
+#define OPENSWATH_POSTCONDITION(condition, message)\
   assert( (condition) && (message));
 

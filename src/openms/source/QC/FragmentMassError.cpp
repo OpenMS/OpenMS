@@ -34,7 +34,7 @@
 
 #include <OpenMS/QC/FragmentMassError.h>
 
-#include <assert.h>
+#include <cassert>
 #include <string>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -48,6 +48,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {

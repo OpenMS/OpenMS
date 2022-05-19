@@ -81,7 +81,7 @@ public:
     /**
         @brief Applies the resampling algorithm to an MSSpectrum.
     */
-    void raster(MSSpectrum& spectrum)
+    void raster(MSSpectrum& spectrum) const
     {
       //return if nothing to do
       if (spectrum.empty()) return;

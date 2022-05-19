@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
+#include <algorithm>
 #include <set>
 
 using namespace std;
@@ -193,6 +194,22 @@ namespace OpenMS::Internal
       return error_message_;
     }
 
+    SignedSize XMLHandler::cvStringToEnum_(const Size section, const String & term, const char * message, const SignedSize result_on_error)
+    {
+      OPENMS_PRECONDITION(section < cv_terms_.size(), "cvStringToEnum_: Index overflow (section number too large)");
+
+      std::vector<String>::const_iterator it = std::find(cv_terms_[section].begin(), cv_terms_[section].end(), term);
+      if (it != cv_terms_[section].end())
+      {
+        return it - cv_terms_[section].begin();
+      }
+      else
+      {
+        warning(LOAD, String("Unexpected CV entry '") + message + "'='" + term + "'");
+        return result_on_error;
+      }
+    }
+
     /// handlers which support partial loading, implement this method
     /// @throws Exception::NotImplemented
     XMLHandler::LOADDETAIL XMLHandler::getLoadDetail() const
@@ -207,7 +224,7 @@ namespace OpenMS::Internal
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    void XMLHandler::checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids)
+    void XMLHandler::checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids) const
     {
       std::set<String> s;
       for (const auto& p : prot_ids)
@@ -262,9 +279,15 @@ namespace OpenMS::Internal
         else if (d.valueType() == DataValue::STRING_LIST)
         {
           os << "stringList";
-          // concatenate manually, as operator<< inserts spaces, which are bad
-          // for reconstructing the list
-          val = "[" + writeXMLEscape(ListUtils::concatenate(d.toStringList(), ",")) + "]";
+          // List elements are separated by comma. In the rare case of comma inside individual strings
+          // we replace them by an escape symbol '\\|'. 
+          // This allows distinguishing commas as element separator and normal string character and reconstruct the list.
+          StringList sl = d.toStringList();
+          for (String& s : sl)
+          {
+            if (s.has(',')) s.substitute(",", "\\|");
+          }
+          val = "[" + writeXMLEscape(ListUtils::concatenate(sl, ",")) + "]";
         }
         else
         {

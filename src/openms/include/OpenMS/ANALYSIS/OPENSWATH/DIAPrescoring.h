@@ -34,11 +34,6 @@
 
 #pragma once
 
-#include <algorithm>
-#include <iterator>
-#include <boost/bind.hpp>
-#include <boost/lexical_cast.hpp>
-
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
@@ -95,7 +90,7 @@ public:
     */
     void operator()(OpenSwath::SpectrumAccessPtr swath_ptr,
                     OpenSwath::LightTargetedExperiment& transition_exp_used,
-                    OpenSwath::IDataFrameWriter* ivw);
+                    OpenSwath::IDataFrameWriter* ivw) const;
   };
 
 

@@ -35,14 +35,15 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-
 #include <OpenMS/SIMULATION/RTSimulation.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 
 #include <fstream>
+#include <map>
 
 namespace OpenMS
 {
@@ -109,7 +110,7 @@ namespace OpenMS
 
     WindowList list_new;
 
-    Map<Size, Size> cluster_sizes;
+    std::map<Size, Size> cluster_sizes;
 
     for (Size i_outer = 0; i_outer < clusters.size(); ++i_outer)
     {
@@ -130,7 +131,7 @@ namespace OpenMS
     }
 
     OPENMS_LOG_INFO << "Clustered overlapping windows\nCluster sizes:\n";
-    for (Map<Size, Size>::const_iterator it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
+    for (std::map<Size, Size>::const_iterator it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
     {
       OPENMS_LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
     }

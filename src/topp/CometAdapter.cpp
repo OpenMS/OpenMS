@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
@@ -260,6 +261,9 @@ protected:
     registerIntOption_("max_variable_mods_in_peptide", "<num>", 5, "Set a maximum number of variable modifications per peptide", false, true);
     registerStringOption_("require_variable_mod", "<bool>", "false", "If true, requires at least one variable modification per peptide", false, true);
     setValidStrings_("require_variable_mod", ListUtils::create<String>("true,false"));
+
+    // register peptide indexing parameter (with defaults for this search engine) TODO: check if search engine defaults are needed
+    registerPeptideIndexingParameter_(PeptideIndexing().getParameters()); 
   }
 
   const vector<const ResidueModification*> getModifications_(const StringList& modNames)
@@ -339,7 +343,7 @@ protected:
     }
 
     IntList binary_modifications = getIntList_("binary_modifications");
-    if (binary_modifications.size() != 0 && binary_modifications.size() != variable_modifications.size())
+    if (!binary_modifications.empty() && binary_modifications.size() != variable_modifications.size())
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: List of binary modifications needs to have same size as variable modifications.");
     }
@@ -554,7 +558,7 @@ protected:
     const vector<const ResidueModification*> fixed_modifications = getModifications_(fixed_modifications_names);
 
     // merge duplicates, targeting the same AA
-    Map<String, double> mods;
+    std::map<String, double> mods;
     // Comet sets Carbamidometyl (C) as modification as default even if not specified.
     // Therefore there is the need to set it to 0, unless its set as flag (see loop below)
     mods["add_C_cysteine"] = 0;
@@ -735,6 +739,9 @@ protected:
     {
       DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
     }
+
+    // if "reindex" parameter is set to true will perform reindexing
+    if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
 

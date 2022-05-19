@@ -89,7 +89,7 @@ namespace OpenMS
 
   void MetaboTargetedAssay::filterBasedOnTotalOccurrence_(std::vector<MetaboTargetedAssay>& mta, double total_occurrence_filter, size_t in_files_size)
   {
-    if (in_files_size > 1 && mta.size() >= 1)
+    if (in_files_size > 1 && !mta.empty())
     {
       double total_occurrence = double(mta.size())/double(in_files_size);
       if (!(total_occurrence >= total_occurrence_filter))
@@ -112,7 +112,7 @@ namespace OpenMS
   void MetaboTargetedAssay::filterBasedOnMolFormAdductOccurrence_(std::vector<MetaboTargetedAssay>& mta)
   {
     std::map<std::pair<String, String>, int> occ_map;
-    if (mta.size() >= 1)
+    if (!mta.empty())
     {
       for (const auto &t_it : mta)
       {

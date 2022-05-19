@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+
 #include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace std;

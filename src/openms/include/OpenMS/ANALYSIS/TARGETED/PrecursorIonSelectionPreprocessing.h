@@ -40,10 +40,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-#include <algorithm>
-#include <cmath>
 #include <set>
-#include <fstream>
 namespace OpenMS
 {
 
@@ -62,9 +59,7 @@ public:
 
     PrecursorIonSelectionPreprocessing & operator=(const PrecursorIonSelectionPreprocessing & source);
 
-
     const std::map<String, std::vector<double> > & getProtMasses() const;
-
 
     const std::vector<double> & getMasses(String acc) const;
 
@@ -121,12 +116,12 @@ public:
     }
 
     void setGaussianParameters(double mu, double sigma);
-    double getGaussMu()
+    double getGaussMu() const
     {
       return mu_;
     }
 
-    double getGaussSigma()
+    double getGaussSigma() const
     {
       return sigma_;
     }
