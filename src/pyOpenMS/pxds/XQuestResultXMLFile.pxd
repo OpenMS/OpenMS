@@ -39,7 +39,7 @@ cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
                                 OPXL_PreprocessedPairSpectra preprocessed_pair_spectra,
                                 libcpp_vector[ libcpp_pair[ size_t, size_t ] ] spectrum_pairs,
                                 libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch ] ] all_top_csms,
-                                MSExperiment spectra) nogil except +
+                                MSExperiment spectra, const bool& test_mode) nogil except +
                 # wrap-doc:
                         #   Writes spec.xml output containing matching peaks between heavy and light spectra after comparing and filtering
                         #   -----
@@ -52,7 +52,7 @@ cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
 
         void writeXQuestXMLSpec(const String& out_file, const String& base_name,
                                 libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch] ] all_top_csms,
-                                MSExperiment spectra) nogil except +
+                                MSExperiment spectra, const bool& test_mode) nogil except +
                 # wrap-doc:
                         #   Writes spec.xml output containing spectra for visualization. This version of the function is meant to be used for label-free linkers
                         #   -----

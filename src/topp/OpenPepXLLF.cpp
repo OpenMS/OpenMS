@@ -281,7 +281,7 @@ protected:
       }
       if (!out_xquest_specxml.empty())
       {
-        XQuestResultXMLFile::writeXQuestXMLSpec(out_xquest_specxml, base_name, all_top_csms, spectra);
+        XQuestResultXMLFile::writeXQuestXMLSpec(out_xquest_specxml, base_name, all_top_csms, spectra, test_mode_);
       }
     }
     progresslogger.endProgress();

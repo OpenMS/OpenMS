@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
-
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
@@ -1043,7 +1043,7 @@ namespace OpenMS
 
       // store isotope intensities
       std::vector<double> all_ints(feat_hypos[hypo_idx].getAllIntensities(use_smoothed_intensities_));
-      f.setMetaValue("num_of_masstraces", all_ints.size());
+      f.setMetaValue(Constants::UserParam::NUM_OF_MASSTRACES, all_ints.size());
       if (report_convex_hulls_) f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
       f.setMetaValue("masstrace_intensity", all_ints);

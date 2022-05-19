@@ -23,6 +23,7 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 - pyopenms: pyopenms-extra is renamed to pyopenms-docs.
 - Add extractSpectra to TargetedSpectraExtractor with support of MS1 features
 - TargetedSpectraExtractor::searchSpectrum added an option to add unknown features to the result featureMap
+- Fixed race condition when logging messages.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.8     (released 2/2022)                  ----
