@@ -1,4 +1,0 @@
-# Protein abundances computed from file '/home/matteo/TOPPAS/TOPPAS_out/006-IDFilter-out/ProteinQuantifier_input2.idXML'
-# Parameters (relevant only): method=iBAQ
-"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance"
-"sp|P02768ups|ALBU_HUMAN_UPS"	1	0.0	14	0.367088607594937

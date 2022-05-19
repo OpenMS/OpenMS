@@ -51,14 +51,14 @@ namespace OpenMS
   {
     std::vector<std::string> true_false = {"true","false"};
 
-    defaults_.setValue("method", "top", "- top - quantify based on three most abundant peptides (number can be changed in 'top').\n- iBAQ (intensity based absolute quantification), calculate the sum of all peptide peak intensities divided by the number of theoretically observable tryptic peptides (https://rdcu.be/cND1J).");
+    defaults_.setValue("method", "top", "- top - quantify based on three most abundant peptides (number can be changed in 'top').\n- iBAQ (intensity based absolute quantification), calculate the sum of all peptide peak intensities divided by the number of theoretically observable tryptic peptides (https://rdcu.be/cND1J). Warning: only consensusXML or featureXML input is allowed!");
     defaults_.setValidStrings("method", {"top","iBAQ"});
 
     defaults_.setValue("top:N", 3, "Calculate protein abundance from this number of proteotypic peptides (most abundant first; '0' for all)");
     defaults_.setMinInt("top:N", 0);
 
-    defaults_.setValue("top:average", "median", "Averaging method used to compute protein abundances from peptide abundances");
-    defaults_.setValidStrings("top:average", {"median","mean","weighted_mean","sum"});
+    defaults_.setValue("top:aggregate", "median", "Aggregation method used to compute protein abundances from peptide abundances");
+    defaults_.setValidStrings("top:aggregate", {"median","mean","weighted_mean","sum"});
 
 
     defaults_.setValue("top:include_all", "false", "Include results for proteins with fewer proteotypic peptides than indicated by 'N' (no effect if 'N' is 0 or 1)");
@@ -423,14 +423,14 @@ namespace OpenMS
 
     std::string method = param_.getValue("method");
     Size top_n = param_.getValue("top:N");
-    std::string average = param_.getValue("top:average");
+    std::string aggregate = param_.getValue("top:aggregate");
     bool include_all = param_.getValue("top:include_all") == "true";
     bool fix_peptides = param_.getValue("consensus:fix_peptides") == "true";
 
     if (method == "iBAQ")
     {
       top_n = 0;
-      average = "sum";
+      aggregate = "sum";
     }
 
     for (auto& prot_q : prot_quant_)
@@ -515,15 +515,15 @@ namespace OpenMS
         }
 
         double abundance_result;
-        if (average == "median")
+        if (aggregate == "median")
         {
           abundance_result = Math::median(ab.second.begin(), ab.second.end());
         }
-        else if (average == "mean")
+        else if (aggregate == "mean")
         {
           abundance_result = Math::mean(ab.second.begin(), ab.second.end());
         }
-        else if (average == "weighted_mean")
+        else if (aggregate == "weighted_mean")
         {
           double sum_intensities = 0;
           double sum_intensities_squared = 0;
