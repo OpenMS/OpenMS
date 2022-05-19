@@ -36,6 +36,8 @@ ExperimentalDesignFile.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
+FLASHDeconvFeatureFile.h
+FLASHDeconvSpectrumFile.h
 GzipIfstream.h
 GzipInputStream.h
 HDF5Connector.h

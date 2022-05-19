@@ -32,7 +32,7 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include "include/OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h"
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 
 namespace OpenMS
 {
@@ -351,30 +351,6 @@ namespace OpenMS
       {
         break;
       }
-
-      // peaks of different charges are separately recorded even if they represent the same mass..
-      /*std::set<int> charges;
-      for (auto& peaks : pg)
-      {
-        charges.insert(peaks.abs_charge);
-      }
-      for (int charge : charges)
-      {
-        if (pg.getChargeIntensity(charge) <= 0)
-        {
-          continue;
-        }
-        size++;
-        fs << std::fixed << std::setprecision(2);
-        fs << std::to_string(pg.getMonoMass()) << "\t" << pg.getChargeIntensity(charge) << "\t"
-           << (pg.isPositive() ? charge : -charge)
-           << "\n";
-        fs << std::setprecision(-1);
-        if (size >= topFD_max_peak_count_)
-        {
-          break;
-        }
-      }*/
     }
 
     fs << "END IONS\n\n";
