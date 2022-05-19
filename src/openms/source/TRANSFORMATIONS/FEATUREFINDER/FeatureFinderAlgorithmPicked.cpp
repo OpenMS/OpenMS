@@ -47,6 +47,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <QtCore/QDir>
 
@@ -773,7 +774,7 @@ namespace OpenMS
         {
           number_of_datapoints += traces[t].peaks.size();
         }
-        f.setMetaValue("number_of_datapoints", number_of_datapoints);
+        f.setMetaValue(Constants::UserParam::NUMBER_OF_DATAPOINTS, number_of_datapoints);
 
         // Extract some of the model parameters.
         if (egh_tau != 0.0)
