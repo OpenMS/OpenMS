@@ -483,7 +483,7 @@ namespace OpenMS
       */
       inline const std::string   NUM_OF_MASSTRACES = "num_of_masstraces";
 
-      /** User parameter name for the number of datapoints ()like in MaxQuant in a feature. (Required for MQEvidenceExporter)
+      /** User parameter name for the total number of data points (peaks) in a feature. (Required for MQEvidenceExporter)
               String
       */
       inline const std::string   NUMBER_OF_DATAPOINTS = "number_of_datapoints";
