@@ -38,9 +38,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <iostream>
-#include <sstream>
-
 // forward declarations
 namespace H5
 {
@@ -76,6 +73,4 @@ protected:
 
 
 } // namespace OpenMS
-
-
 

@@ -36,6 +36,7 @@ ExperimentalDesignFile.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
+GNPSMGFFile.h
 GzipIfstream.h
 GzipInputStream.h
 HDF5Connector.h
@@ -62,11 +63,18 @@ MzDataFile.h
 MzMLFile.h
 MzQCFile.h
 MzTab.h
+MzTabBase.h
+MzTabM.h
 MzTabFile.h
+MzTabMFile.h
 MzXMLFile.h
+OMSFile.h
+OMSFileLoad.h
+OMSFileStore.h
 OMSSACSVFile.h
 OMSSAXMLFile.h
 OSWFile.h
+ParamCTDFile.h
 ParamXMLFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h
@@ -74,6 +82,7 @@ PepNovoInfile.h
 PepNovoOutfile.h
 PepXMLFile.h
 PepXMLFileMascot.h
+PercolatorInfile.h
 PercolatorOutfile.h
 ProtXMLFile.h
 QcMLFile.h

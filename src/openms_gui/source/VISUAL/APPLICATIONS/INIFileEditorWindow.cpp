@@ -85,7 +85,7 @@ namespace OpenMS
 
   bool INIFileEditorWindow::openFile(const String& filename)
   {
-    if (filename == "")
+    if (filename.empty())
     {
       filename_ = QFileDialog::getOpenFileName(this, tr("Open ini file"), current_path_.toQString(), tr("ini files (*.ini);; all files (*.*)"));
     }

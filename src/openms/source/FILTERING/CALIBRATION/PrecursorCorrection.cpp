@@ -34,11 +34,13 @@
 //
 
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <iomanip>
+#include <fstream>
 
 using namespace std;
 using namespace OpenMS;

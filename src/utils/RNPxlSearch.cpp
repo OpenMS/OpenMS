@@ -54,6 +54,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
@@ -562,7 +563,7 @@ protected:
                       Size max_variable_mods_per_peptide,
                       const TheoreticalSpectrumGenerator& partial_loss_spectrum_generator,
                       double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm,
-                      const RNPxlParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts)
+                      const RNPxlParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts) const
   {
     assert(exp.size() == annotated_hits.size());
 

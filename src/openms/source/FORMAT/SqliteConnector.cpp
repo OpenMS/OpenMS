@@ -49,7 +49,11 @@ namespace OpenMS
   }
   SqliteConnector::~SqliteConnector()
   {
-    sqlite3_close(db_);
+    int rc = sqlite3_close_v2(db_);
+    if (rc != SQLITE_OK)
+    {
+      std::cout << " Encountered error in ~SqliteConnector: " << rc << std::endl;
+    }
   }
 
   void SqliteConnector::openDatabase_(const String& filename, const SqlOpenMode mode)
@@ -184,9 +188,7 @@ namespace OpenMS
     sqlite3_finalize(stmt);
   }
 
-  namespace Internal
-  {
-    namespace SqliteHelper
+  namespace Internal::SqliteHelper
     {
 
       template <> bool extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
@@ -342,7 +344,6 @@ namespace OpenMS
       }
 
     }
-  }
 
 }
 

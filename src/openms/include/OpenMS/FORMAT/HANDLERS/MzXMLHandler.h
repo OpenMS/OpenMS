@@ -80,10 +80,10 @@ public:
       //@}
 
       /// handler which support partial loading, implement this method
-      virtual LOADDETAIL getLoadDetail() const override;
+      LOADDETAIL getLoadDetail() const override;
 
       /// handler which support partial loading, implement this method
-      virtual void setLoadDetail(const LOADDETAIL d) override;
+      void setLoadDetail(const LOADDETAIL d) override;
 
       // Docu in base class
       void endElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname) override;
@@ -104,7 +104,7 @@ public:
       }
 
       ///Gets the scan count
-      UInt getScanCount()
+      UInt getScanCount() const
       {
         return scan_count_;
       }

@@ -225,7 +225,7 @@ protected:
         OPENMS_LOG_ERROR << "ERROR: Number of output files does not match number of input files." << endl;
         return ILLEGAL_PARAMETERS;
      }
-     if (spectra_files.size() < 1)
+     if (spectra_files.empty())
      {
          OPENMS_LOG_ERROR << "ERROR: At least one file containing spectra to be searched must be provided." << endl;
          return ILLEGAL_PARAMETERS;

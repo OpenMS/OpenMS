@@ -34,6 +34,7 @@
 
 #include <OpenMS/SIMULATION/MSSim.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SIMULATION/DigestSimulation.h>
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
@@ -498,7 +499,7 @@ namespace OpenMS
     }
 
     // test if we have a feature map at all ..
-    if (feature_maps_[0].getProteinIdentifications().size() > 0)
+    if (!feature_maps_[0].getProteinIdentifications().empty())
     {
       // store protein identification / protein hits for those proteins used in the ms2 spectra
       const ProteinIdentification& protein = feature_maps_[0].getProteinIdentifications()[0];

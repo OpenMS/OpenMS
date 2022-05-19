@@ -97,7 +97,7 @@ namespace OpenMS
       UInt getNumberOfHits() const;
 
       //Docu in base class
-      virtual void writeTo(std::ostream& os) override;
+      void writeTo(std::ostream& os) override;
 
       // TODO move these to StringUtils?
       /**
@@ -184,7 +184,7 @@ namespace OpenMS
        * @param xquest_datetime_string The DateTime String to be processed
        * @param date_time DateTime that reflects the value given in the `xquest_datetime_string`
        */
-      inline void extractDateTime_(const String & xquest_datetime_string, DateTime & date_time);
+      inline void extractDateTime_(const String & xquest_datetime_string, DateTime & date_time) const;
 
       /**
        * @brief Assigns all meta values stored in the peptide_id_attributes

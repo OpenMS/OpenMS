@@ -34,6 +34,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
 
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
 namespace OpenMS

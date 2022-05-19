@@ -85,8 +85,6 @@ namespace OpenMS
 
         @param	hit a PeptideHit
         @param real_spectrum spectrum mapped to hit
-        @param fmt fragment_mass_tolerance, when comparing real_spectrum to a theoretical spectrum of the amino acid sequence of hit.
-        @param number_of_phospho_sites which directs the method to search for this number of phosphorylated sites.
 
         @note the original sequence is saved in the PeptideHits as MetaValue Search_engine_sequence.
     */

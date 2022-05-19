@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
+
 // calculate pearson distance
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 // create binary tree
@@ -44,6 +45,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <include/OpenMS/APPLICATIONS/MapAlignerBase.h>
 
 using namespace std;
@@ -55,11 +57,13 @@ namespace OpenMS
           DefaultParamHandler("MapAlignmentAlgorithmTreeGuided"),
           ProgressLogger()
   {
-    defaults_.insert("model:", TOPPMapAlignerBase::getModelDefaults("b_spline"));
+    defaults_.insert("model:", MapAlignerBase::getModelDefaults("b_spline"));
     defaults_.setValue("model_type", "b_spline", "Options to control the modeling of retention time transformations from data");
     defaults_.setValidStrings("model_type", {"linear","b_spline","lowess","interpolated"});
     defaults_.insert("align_algorithm:", MapAlignmentAlgorithmIdentification().getDefaults());
     defaults_.setValue("align_algorithm:use_feature_rt", "true", "When aligning feature or consensus maps, don't use the retention time of a peptide identification directly; instead, use the retention time of the centroid of the feature (apex of the elution profile) that the peptide was matched to. If different identifications are matched to one feature, only the peptide closest to the centroid in RT is used.\nPrecludes 'use_unassigned_peptides'.");
+    defaults_.setValidStrings("align_algorithm:use_feature_rt", {"true","false"});
+
     defaultsToParam_();
   }
 

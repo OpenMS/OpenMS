@@ -138,7 +138,7 @@ namespace OpenMS
     // end of peptide id
     else if (tag_ == "MSHitSet")
     {
-      if (actual_peptide_id_.getHits().size() > 0  || load_empty_hits_)
+      if (!actual_peptide_id_.getHits().empty()  || load_empty_hits_)
       {
         peptide_identifications_->push_back(actual_peptide_id_);
       }
@@ -155,7 +155,7 @@ namespace OpenMS
           </MSModHit_modtype>
         </MSModHit>
       */
-      if (mods_map_.has(actual_mod_type_.toInt()) && mods_map_[actual_mod_type_.toInt()].size() > 0)
+      if (mods_map_.find(actual_mod_type_.toInt()) != mods_map_.end() && !mods_map_[actual_mod_type_.toInt()].empty())
       {
         if (mods_map_[actual_mod_type_.toInt()].size() > 1)
         {
@@ -306,7 +306,7 @@ namespace OpenMS
     }
     else if (tag_ == "MSHits_pepstart")
     {
-      if (value != "" && !actual_peptide_evidences_.empty())
+      if (!value.empty() && !actual_peptide_evidences_.empty())
       {
         actual_peptide_evidences_[0].setAABefore(value[0]);
       }
@@ -315,7 +315,7 @@ namespace OpenMS
     }
     else if (tag_ == "MSHits_pepstop")
     {
-      if (value != "" && !actual_peptide_evidences_.empty())
+      if (!value.empty() && !actual_peptide_evidences_.empty())
       {
         actual_peptide_evidences_[0].setAAAfter(value[0]);
       }
@@ -357,7 +357,7 @@ namespace OpenMS
     {
       // value might be  ( OMSSA 2.1.8): 359.213256835938_3000.13720000002_controllerType=0 controllerNumber=1 scan=4655
       //                 (<OMSSA 2.1.8): 359.213256835938_3000.13720000002
-      if (value.trim() != "")
+      if (!value.trim().empty())
       {
         if (value.has('_'))
         {
@@ -386,7 +386,7 @@ namespace OpenMS
       vector<String> split;
       it->split(',', split);
 
-      if (it->size() > 0 && (*it)[0] != '#')
+      if (!it->empty() && (*it)[0] != '#')
       {
         Int omssa_mod_num = split[0].trim().toInt();
         if (split.size() < 2)
@@ -416,7 +416,7 @@ namespace OpenMS
     set<String> mod_names = mod_set.getVariableModificationNames();
     for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
     {
-      if (!mods_to_num_.has(*it))
+      if (!(mods_to_num_.find(*it) != mods_to_num_.end()))
       {
         mods_map_[omssa_mod_num].push_back(ModificationsDB::getInstance()->getModification(*it));
         mods_to_num_[*it] = omssa_mod_num;

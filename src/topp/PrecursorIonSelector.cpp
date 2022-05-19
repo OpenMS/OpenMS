@@ -215,13 +215,13 @@ protected:
     {
       pisp.loadPreprocessing();
     }
-    else if (db_path == "")
+    else if (db_path.empty())
     {
       writeLog_("No database file specified. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
-    else if (rt_model == "" ||  dt_model == "")
+    else if (rt_model.empty() ||  dt_model.empty())
     {
       pisp.dbPreprocessing(db_path, store_preprocessing);
     }
@@ -231,7 +231,7 @@ protected:
     }
 
     PeakMap exp;
-    if (raw_data != "")
+    if (!raw_data.empty())
     {
       MzMLFile().load(raw_data, exp);
     }
@@ -284,13 +284,13 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      if (next_prec != "")
+      if (!next_prec.empty())
       {
         f_file.store(next_prec, new_precursors);
       }
     }
 
-    if (out != "")
+    if (!out.empty())
     {
       f_file.store(out, f_map);
     }

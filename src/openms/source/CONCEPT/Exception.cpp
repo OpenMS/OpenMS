@@ -256,6 +256,11 @@ namespace OpenMS
     {
     }
 
+    InternalToolError::InternalToolError(const char* file, int line, const char* function, const std::string& error_message) noexcept:
+      BaseException(file, line, function, "InternalToolError", error_message)
+    {
+    }
+
     MissingInformation::MissingInformation(const char* file, int line, const char* function, const string& error_message) noexcept :
       BaseException(file, line, function, "MissingInformation", error_message)
     {
@@ -282,9 +287,17 @@ namespace OpenMS
     {
     }
 
-    DEF_EXCEPTION(DivisionByZero, "a division by zero was requested")
+    InvalidRange::InvalidRange(const char* file, int line, const char* function) noexcept :
+      BaseException(file, line, function, "InvalidRange", "the range of the operation was invalid")
+    {
+    }
 
-    DEF_EXCEPTION(InvalidRange, "the range of the operation was invalid")
+    InvalidRange::InvalidRange(const char* file, int line, const char* function, const std::string& message) noexcept :
+      BaseException(file, line, function, "InvalidRange", message)
+    {
+    }
+
+    DEF_EXCEPTION(DivisionByZero, "a division by zero was requested")
 
     DEF_EXCEPTION(OutOfRange, "the argument was not in range")
 

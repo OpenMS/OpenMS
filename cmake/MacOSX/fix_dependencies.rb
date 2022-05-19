@@ -123,12 +123,18 @@ def handleDependencies(otool_out, targetPath, currentLib)
     if fix_lib.match(/^(\/usr\/lib|\/System)/)
       debug "Ignoring system-lib: #{fix_lib}"
     elsif fix_lib.start_with?("@")
-      puts "Ignoring libs that are referenced from a relative reference (#{fix_lib})"
-      if not fix_lib.start_with?($executableId)
-        puts "Warning: (#{fix_lib}) does not match the requested prefix, though."
+      if $EXTRACTFW
+        # only fix loading of this library, since we cannot get the real path if e.g. @rpath was used
+        fixLoadPath(fix_lib, File.basename(fix_lib), currentLib)
+      else
+        puts "Ignoring libs that are referenced from a relative reference (#{fix_lib})"
+        if not fix_lib.start_with?($executableId)
+          puts "Warning: (#{fix_lib}) does not match the requested prefix, though."
+        end
       end
     elsif not fix_lib.match(/\//) # we need a path here, otherwise it is a lib in the same directory
-      debug "we do not fix libs which are in the same directory #{fix_lib}"
+      # TODO combine with previous if-case? this is basically relative
+      debug "We do not fix libs which are in the same directory: #{fix_lib}"
     else
       newPath=""
       libname=""
@@ -137,7 +143,6 @@ def handleDependencies(otool_out, targetPath, currentLib)
       else
         _, libname = handleDyLib(fix_lib, $lib_dir)
       end
-
       # fix loading of this library
       fixLoadPath(fix_lib, libname, currentLib)
     end
@@ -213,13 +218,13 @@ def copyLibFromFramework(frameworkPath, targetPath)
   newFrameworkPath="#{targetPath}/#{libname}"
 
   if not File.exist?(targetPath + libname)
-    debug "Copy fw #{frameworkName} from #{frameworkDir} to #{targetPath}"
+    debug "Copy lib #{libname} from #{frameworkPath} to #{targetPath}"
     # preserve symlinks
     `cp #{frameworkPath} #{newFrameworkPath}`
     # adjust rights
     `chmod u+rwX #{newFrameworkPath}`
   else
-    debug "fw #{frameworkName} already exists in #{targetPath}"
+    debug "lib #{libname} already exists in #{targetPath}"
   end
 
   return newFrameworkPath, libname
@@ -270,13 +275,19 @@ def handleDyLib(dylibPath, targetPath)
 
   if not $handledLibraries.include?(libname)
     # run otool
+    otoolD_out=`otool -D #{dylibPath}`.strip.split(/\n/)
+    has_install_name = otoolD_out.length() > 1
     otool_out=`otool -L #{dylibPath}`.strip.split(/\n/)
-    # strips first two lines
-    id, otool_out = extractInstallName(otool_out)
 
     # update install_name (-id) of current DyLib
-    fixId(newDyLibPath,libname)
-    debug "Handle DYLIB #{dylibPath} --> #{id}"
+    if has_install_name
+      # strips first two lines
+      id, otool_out = extractInstallName(otool_out)
+      fixId(newDyLibPath,libname)
+      debug "Fix install_name of DYLIB #{dylibPath} --> #{id}"
+    else
+      otool_out.delete_at(0).strip
+    end
 
     # check the actual dependencies (lines 3++)
     handleDependencies(otool_out, targetPath, newDyLibPath)
@@ -284,7 +295,7 @@ def handleDyLib(dylibPath, targetPath)
     # mark as processed
     $handledLibraries.add(libname)
   else
-    debug "Already fixed #{libname}"
+    debug "Already fixed #{libname}. Only change load path."
   end
 
   # readjust
@@ -391,6 +402,7 @@ Dir.chdir($lib_dir.to_s) do
       if isFramework(content)
         handleFramework($lib_dir + content, $lib_dir)
       elsif (content.end_with?(".dylib") or content.end_with?(".so"))
+        # TODO what to do with extracted Qt libs. They dont have an ending.
         handleDyLib($lib_dir + content, $lib_dir)
       else
         debug "Skipped #{$lib_dir + content} -- No lib or framework?"

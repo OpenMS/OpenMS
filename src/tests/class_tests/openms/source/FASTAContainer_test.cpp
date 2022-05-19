@@ -219,6 +219,33 @@ START_SECTION(size_t size() const)
   TEST_EQUAL(pe6.description, "This is the description of the second protein")
 
 END_SECTION
+
+START_SECTION(Result findDecoyString(FASTAContainer<T>& proteins))
+// test without decoys in input
+  FASTAContainer<TFI_File> f1{OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta")};
+  DecoyHelper::Result r1 = {false, "?", true};
+  TEST_EQUAL(DecoyHelper::findDecoyString(f1) == r1,true)
+  // test with decoys in input
+  FASTAContainer<TFI_File> f2{OPENMS_GET_TEST_DATA_PATH("FASTAContainer_test.fasta")};
+  DecoyHelper::Result r2 = {true, "DECOY_", true};
+  TEST_EQUAL(DecoyHelper::findDecoyString(f2) == r2, true);
+END_SECTION
+
+START_SECTION(Result countDecoys(FASTAContainer<T>& proteins))
+  // test without decoys in input
+  FCFile f1{OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta")};
+  std::unordered_map<std::string, std::pair<Size, Size>> decoy_count;
+  std::unordered_map<std::string, std::string> decoy_case_sensitive;
+  DecoyHelper::DecoyStatistics ds1 = {decoy_count, decoy_case_sensitive,0,0,5};
+  TEST_EQUAL(DecoyHelper::countDecoys(f1) == ds1, true)
+  // test with decoys in input
+  FCFile f2{OPENMS_GET_TEST_DATA_PATH("FASTAContainer_test.fasta")};
+  decoy_case_sensitive["decoy_"] = "DECOY_";
+  decoy_count["decoy_"] = std::make_pair(3,0);
+  DecoyHelper::DecoyStatistics ds2 = { decoy_count, decoy_case_sensitive, 3, 0, 6};
+  TEST_EQUAL(DecoyHelper::countDecoys(f2) == ds2, true)
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

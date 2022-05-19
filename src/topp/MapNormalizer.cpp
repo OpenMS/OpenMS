@@ -116,7 +116,7 @@ protected:
 
     //determine maximum peak
     exp.updateRanges();
-    double max = exp.getMaxInt() / 100.0;
+    double max = exp.getMaxIntensity() / 100.0;
 
     for (MSSpectrum& ms : exp)
     {

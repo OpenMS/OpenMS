@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
+#include "OpenMS/CHEMISTRY/ResidueModification.h"
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <OpenMS/FORMAT/UnimodXMLFile.h>
@@ -187,6 +188,38 @@ namespace OpenMS
         }
       }
       if (nr_mods > 1) multiple_matches = true;
+    }
+    return mod;
+  }
+
+  const ResidueModification* ModificationsDB::searchModification(const ResidueModification& mod_in) const
+  {
+    const ResidueModification* mod(nullptr);
+
+    String mod_name = mod_in.getFullId();
+
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      bool found = true;
+      auto modifications = modification_names_.find(mod_name);
+
+      if (modifications == modification_names_.end())
+      {
+        OPENMS_LOG_WARN << OPENMS_PRETTY_FUNCTION << "Modification not found: " << mod_name << endl;
+        found = false; 
+      }
+
+      if (found)
+      {
+        for (const auto& mod_indb : modifications->second)
+        {
+          if (mod_in == *mod_indb)
+          {
+            mod = mod_indb;
+            break;
+          }
+        }
+      }
     }
     return mod;
   }
@@ -497,9 +530,48 @@ namespace OpenMS
         modification_names_[new_mod->getFullName()].insert(new_mod.get());
         modification_names_[new_mod->getUniModAccession()].insert(new_mod.get());
         mods_.push_back(new_mod.get());
-        new_mod.release(); // do not delete the object; 
+        new_mod.release(); // do not delete the object;
         ret = mods_.back();
       }
+    }
+    return ret;
+  }
+
+  const ResidueModification* ModificationsDB::addModification(const ResidueModification& new_mod)
+  {
+    const ResidueModification* ret = new ResidueModification(new_mod);
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      auto it = modification_names_.find(new_mod.getFullId());
+      if (it != modification_names_.end())
+      {
+        OPENMS_LOG_WARN << "Modification already exists in ModificationsDB. Skipping." << new_mod.getFullId() << endl;
+        ret = *(it->second.begin()); // returning from omp critical is not allowed
+      }
+      else
+      {
+        modification_names_[ret->getFullId()].insert(ret);
+        modification_names_[ret->getId()].insert(ret);
+        modification_names_[ret->getFullName()].insert(ret);
+        modification_names_[ret->getUniModAccession()].insert(ret);
+        mods_.push_back(const_cast<ResidueModification*>(ret));
+        ret = mods_.back();
+      }
+    }
+    return ret;
+  }
+
+  const ResidueModification* ModificationsDB::addNewModification_(const ResidueModification& new_mod)
+  {
+    const ResidueModification* ret = new ResidueModification(new_mod);
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      modification_names_[ret->getFullId()].insert(ret);
+      modification_names_[ret->getId()].insert(ret);
+      modification_names_[ret->getFullName()].insert(ret);
+      modification_names_[ret->getUniModAccession()].insert(ret);
+      mods_.push_back(const_cast<ResidueModification*>(ret));
+      ret = mods_.back();
     }
     return ret;
   }
@@ -524,7 +596,7 @@ namespace OpenMS
       line_wo_spaces = line;
       line_wo_spaces.removeWhitespaces();
 
-      if (line == "" || line[0] == '!') //skip empty lines and comments
+      if (line.empty() || line[0] == '!') //skip empty lines and comments
       {
         continue;
       }
@@ -532,7 +604,7 @@ namespace OpenMS
       if (line_wo_spaces == "[Term]")       //new term
       {
         // if the last [Term] was a moon-link, then it does not belong in CrossLinksDB
-        if (id != "" && !reading_cross_link) //store last term
+        if (!id.empty() && !reading_cross_link) //store last term
         {
           // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
           vector<String> origins;
@@ -719,7 +791,7 @@ namespace OpenMS
       }
     }
 
-    if (id != "") //store last term
+    if (!id.empty()) //store last term
     {
       // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
       vector<String> origins;

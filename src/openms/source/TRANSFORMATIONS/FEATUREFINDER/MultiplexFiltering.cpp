@@ -586,7 +586,7 @@ namespace OpenMS
         }
         
         // It is well possible that no corresponding satellite peaks exist, in which case the filter fails.
-        if ((intensities_1.size() == 0) || (intensities_2.size() == 0))
+        if ((intensities_1.empty()) || (intensities_2.empty()))
         {
           return false;
         }

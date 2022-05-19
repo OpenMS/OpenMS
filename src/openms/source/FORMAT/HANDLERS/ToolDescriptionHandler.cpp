@@ -209,7 +209,7 @@ namespace OpenMS::Internal
 
       open_tags_.pop_back();
       //std::cout << "ending tag " << endtag_ << "\n";
-      if (open_tags_.size() > 0)
+      if (!open_tags_.empty())
       {
         tag_ = open_tags_.back();
       //std::cout << " --> current Tag: " << tag_ << "\n";

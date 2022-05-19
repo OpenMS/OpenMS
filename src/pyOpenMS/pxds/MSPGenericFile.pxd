@@ -30,5 +30,5 @@ cdef extern from "<OpenMS/FORMAT/MSPGenericFile.h>" namespace "OpenMS":
                 #   :raises:
                 #     Exception: FileNotWritable If the file is not writable
 
-        void getDefaultParameters(Param & params) nogil except + # wrap-doc:Get the class' default parameters
+        void getDefaultParameters(Param & params) nogil except + # wrap-doc:Returns the class' default parameters
 

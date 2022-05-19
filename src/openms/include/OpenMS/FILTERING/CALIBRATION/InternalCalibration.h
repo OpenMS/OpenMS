@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -67,7 +68,7 @@ namespace OpenMS
     InternalCalibration();
 
     /// Destructor
-    ~InternalCalibration(){}
+    ~InternalCalibration() override{}
 
     /// helper class, describing a lock mass
     struct LockMass

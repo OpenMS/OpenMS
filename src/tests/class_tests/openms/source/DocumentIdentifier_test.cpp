@@ -153,9 +153,9 @@ START_SECTION((void swap(DocumentIdentifier& from)))
 	di1.setLoadedFileType( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"));
 	DocumentIdentifier di2;
 	di1.swap(di2);
-	TEST_EQUAL(di1.getIdentifier() == "", true)
-	TEST_EQUAL(di1.getIdentifier() == "", true)
-	TEST_EQUAL(di1.getIdentifier() == "", true)
+	TEST_EQUAL(di1.getIdentifier().empty(), true)
+	TEST_EQUAL(di1.getIdentifier().empty(), true)
+	TEST_EQUAL(di1.getIdentifier().empty(), true)
 	TEST_EQUAL(di2.getIdentifier() == "this is a test", true)
   TEST_EQUAL(di2.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"))
   TEST_EQUAL(FileTypes::typeToName(di2.getLoadedFileType()) == "unknown", true)

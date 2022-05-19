@@ -111,7 +111,7 @@ protected:
     };
 
     /**
-      @brief Encodes tabs '\t' in the string as &amp;#x9; and returns the encoded string.
+      @brief Encodes tabs '\\t' in the string as &amp;\#x9; and returns the encoded string.
 
       @param to_encode The String to encode.
       @return The encoded string.

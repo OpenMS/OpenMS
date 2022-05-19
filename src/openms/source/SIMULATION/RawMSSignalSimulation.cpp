@@ -36,6 +36,7 @@
 #include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <boost/random/uniform_real.hpp>
@@ -163,7 +164,7 @@ namespace OpenMS
     defaults_.setMinInt("mz:sampling_points", 2);
 
     // contaminants:
-    defaults_.setValue("contaminants:file", "examples/simulation/contaminants.csv", "Contaminants file with sum formula and absolute RT interval. See 'OpenMS/examples/simulation/contaminants.txt' for details");
+    defaults_.setValue("contaminants:file", "SIMULATION/contaminants.csv", "Contaminants file with sum formula and absolute RT interval. See 'share/OpenMS/SIMULATION/contaminants.txt' for details");
 
     // VARIATION
 
@@ -261,7 +262,7 @@ namespace OpenMS
     // contaminants:
     String contaminants_file = param_.getValue("contaminants:file").toString();
 
-    if (contaminants_file.trim().size() != 0)
+    if (!contaminants_file.trim().empty())
     {
       if (!File::readable(contaminants_file)) // look in OPENMS_DATA_PATH
       {
@@ -976,7 +977,7 @@ namespace OpenMS
         continue;
       }
       // ... create contaminants...
-      SimTypes::FeatureMapSim::FeatureType feature;
+      Feature feature;
       feature.setRT((contaminants_[i].rt_end + contaminants_[i].rt_start) / 2);
       feature.setMZ((contaminants_[i].sf.getMonoWeight() / contaminants_[i].q) + Constants::PROTON_MASS_U); // m/z (incl. protons)
       if (!(minimal_mz_measurement_limit < feature.getMZ() && feature.getMZ() < maximal_mz_measurement_limit))
@@ -1202,7 +1203,7 @@ namespace OpenMS
   // TODO: add instrument specific sampling technique
   void RawMSSignalSimulation::compressSignals_(SimTypes::MSSimExperiment& experiment)
   {
-    if (experiment.size() < 1 || experiment[0].getInstrumentSettings().getScanWindows().size() < 1)
+    if (experiment.empty() || experiment[0].getInstrumentSettings().getScanWindows().empty())
     {
       throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }

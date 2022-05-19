@@ -126,11 +126,9 @@ namespace OpenMS
     MetaInfoInterface::operator=(source);
     sequence_ = source.sequence_;
     score_ = source.score_;
-    analysis_results_ = nullptr;
+    delete analysis_results_;
     if (source.analysis_results_ != nullptr)
     {
-      // free memory first
-      delete analysis_results_;
       analysis_results_ = new std::vector<PepXMLAnalysisResult>(*source.analysis_results_);
     }
     rank_ = source.rank_;

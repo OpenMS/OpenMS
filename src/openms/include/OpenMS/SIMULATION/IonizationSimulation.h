@@ -114,7 +114,7 @@ private:
     void ionizeMaldi_(SimTypes::FeatureMapSim&, ConsensusMap& charge_consensus);
 
     /// check if feature is within mz bounds of detector
-    inline bool isFeatureValid_(const Feature& feature);
+    inline bool isFeatureValid_(const Feature& feature) const;
 
     /// set meta values, mz etc after adducts are ready
     void setFeatureProperties_(Feature& f,

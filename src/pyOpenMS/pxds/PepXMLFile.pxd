@@ -52,4 +52,5 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
                   ) nogil except +
 
         void keepNativeSpectrumName(bool keep) nogil except +
+        void setParseUnknownScores(bool parse_unknown_scores) nogil except +
 

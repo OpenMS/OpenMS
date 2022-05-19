@@ -70,7 +70,7 @@ public:
     MS2File();
 
     /// constructor
-    virtual ~MS2File();
+    ~MS2File() override;
 
     template <typename MapType>
     void load(const String & filename, MapType & exp)

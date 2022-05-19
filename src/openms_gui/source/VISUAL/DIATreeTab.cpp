@@ -272,7 +272,7 @@ namespace OpenMS
   }
 
 
-  bool DIATreeTab::hasData(const LayerData* layer)
+  bool DIATreeTab::hasData(const LayerDataBase* layer)
   {
     if (layer == nullptr)
     {
@@ -282,7 +282,7 @@ namespace OpenMS
     return (data != nullptr && !data->getProteins().empty());
   }
 
-  void DIATreeTab::updateEntries(LayerData* layer)
+  void DIATreeTab::updateEntries(LayerDataBase* layer)
   {
     if (layer == nullptr)
     {
@@ -294,7 +294,7 @@ namespace OpenMS
     {
       return;
     }
-    LayerData& cl = *layer;
+    LayerDataBase& cl = *layer;
 
     OSWData* data = cl.getChromatogramAnnotation().get();
 

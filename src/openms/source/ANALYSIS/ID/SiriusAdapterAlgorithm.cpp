@@ -33,17 +33,21 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
+
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SYSTEM/File.h>
+
 #include <QDir>
 #include <QDirIterator>
 #include <QString>
 #include <QtCore/QProcess>
 #include <fstream>
-#include <include/OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenMS
 {
@@ -342,16 +346,17 @@ namespace OpenMS
       // if executable was not provided
       if (executable.empty())
       {
-        const std::string& qsiriuspathenv(std::getenv("SIRIUS_PATH"));
-        if (qsiriuspathenv.empty())
+        const char* sirius_env_var = std::getenv("SIRIUS_PATH"); // returns nullptr if not found
+        if (sirius_env_var == nullptr)
         {
-          throw Exception::InvalidValue(__FILE__,
-                                        __LINE__,
-                                        OPENMS_PRETTY_FUNCTION,
-                                        "FATAL: Executable of Sirius could not be found. Please either use SIRIUS_PATH env variable or provide with -executable",
-                                        "");
+            throw Exception::InvalidValue(__FILE__,
+                                __LINE__,
+                                OPENMS_PRETTY_FUNCTION,
+                                "FATAL: Executable of SIRIUS could not be found. Please either use SIRIUS_PATH env variable, add the Sirius directory to our PATH or provide the executable with -sirius_executable",
+                                "");
         }
-        executable = qsiriuspathenv;
+        const std::string sirius_path(sirius_env_var);
+        executable = sirius_path;
       }
       const String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
       OPENMS_LOG_WARN << "Executable is: " + exe << std::endl;
@@ -432,6 +437,7 @@ namespace OpenMS
                 indices.end(),
                 [](const SiriusWorkspaceIndex& i, const SiriusWorkspaceIndex& j) { return i.scan_index < j.scan_index; } );
 
+      sorted_subdirs.reserve(indices.size());
       for (const auto& index : indices)
       {
         sorted_subdirs.emplace_back(std::move(subdirs[index.array_index]));
@@ -443,7 +449,7 @@ namespace OpenMS
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
                                                      const MSExperiment& spectra,
                                                      FeatureMapping::FeatureMappingInfo& fm_info,
-                                                     FeatureMapping::FeatureToMs2Indices& feature_mapping)
+                                                     FeatureMapping::FeatureToMs2Indices& feature_mapping) const
     {
       // if fileparameter is given and should be not empty
       if (!featureinfo.empty())
@@ -451,9 +457,8 @@ namespace OpenMS
         if (File::exists(featureinfo) && !File::empty(featureinfo))
         {
           // read featureXML          
-          FeatureXMLFile fxml;
           FeatureMap feature_map;
-          fxml.load(featureinfo, feature_map);
+          FileHandler().loadFeatures(featureinfo, feature_map);
 
           UInt num_masstrace_filter = getFilterByNumMassTraces();
           double precursor_mz_tol = getPrecursorMzTolerance();
@@ -469,7 +474,7 @@ namespace OpenMS
           auto map_it = remove_if(feature_map.begin(), feature_map.end(),
                                   [&num_masstrace_filter](const Feature &feat) -> bool
                                   {
-                                    unsigned int n_masstraces = feat.getMetaValue("num_of_masstraces");
+                                    unsigned int n_masstraces = feat.getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES);
                                     return n_masstraces < num_masstrace_filter;
                                   });
           feature_map.erase(map_it, feature_map.end());
@@ -496,7 +501,7 @@ namespace OpenMS
 
     void SiriusAdapterAlgorithm::logFeatureSpectraNumber(const String& featureinfo,
                                                          const FeatureMapping::FeatureToMs2Indices& feature_mapping,
-                                                         const MSExperiment& spectra)
+                                                         const MSExperiment& spectra) const
     {
       // number of features to be processed
       if (isFeatureOnly() && !featureinfo.empty())
@@ -560,10 +565,7 @@ namespace OpenMS
       // the actual process
       QProcess qp;
       QString executable_qstring = SiriusAdapterAlgorithm::determineSiriusExecutable(executable).toQString();
-      QString wd = File::path(executable).toQString();
-      qp.setWorkingDirectory(wd); //since library paths are relative to sirius executable path
-      //since library paths are relative to sirius executable path
-      qp.setWorkingDirectory(File::path(executable).toQString());
+
       qp.start(executable_qstring, command_line); // does automatic escaping etc... start
 
       std::stringstream ss;

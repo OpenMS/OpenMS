@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
         bool operator==(ResidueModification & modification) nogil except +
         bool operator!=(ResidueModification & modification) nogil except +
 
-        void setId(const String & id_) nogil except + # wrap-doc:Set the identifier of the modification
+        void setId(const String & id_) nogil except + # wrap-doc:Sets the identifier of the modification
         String  getId() nogil except + # wrap-doc:Returns the identifier of the modification
         void setFullId(const String & full_id) nogil except + # wrap-doc:Sets the full identifier (Unimod Accession + origin, if available)
         String  getFullId() nogil except +
@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
         void setUniModRecordId(Int id_) nogil except + # wrap-doc:Sets the unimod record id
         String  getUniModAccession() nogil except + # wrap-doc:Returns the unimod accession if available
 
-        void setPSIMODAccession(const String & id_) nogil except + # wrap-doc:Set the MOD-XXXXX accession of PSI-MOD
+        void setPSIMODAccession(const String & id_) nogil except + # wrap-doc:Sets the MOD-XXXXX accession of PSI-MOD
         String getPSIMODAccession() nogil except + # wrap-doc:Returns the PSI-MOD accession if available
         void setFullName(const String & full_name) nogil except + # wrap-doc:Sets the full name of the modification; must NOT contain the origin (or . for terminals!)
         String getFullName() nogil except + # wrap-doc:Returns the full name of the modification
@@ -49,12 +49,12 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
         double getAverageMass() nogil except + # wrap-doc:Returns the average mass if set
         void setMonoMass(double mass) nogil except + # wrap-doc:Sets the monoisotopic mass (this must include the weight of the residue itself!)
         double getMonoMass() nogil except + # wrap-doc:Return the monoisotopic mass, or 0.0 if not set
-        void setDiffAverageMass(double mass) nogil except + # wrap-doc:Set the difference average mass
+        void setDiffAverageMass(double mass) nogil except + # wrap-doc:Sets the difference average mass
         double getDiffAverageMass() nogil except + # wrap-doc:Returns the difference average mass, or 0.0 if not set
         void setDiffMonoMass(double mass) nogil except + # wrap-doc:Sets the difference monoisotopic mass
         double getDiffMonoMass() nogil except + # wrap-doc:Returns the diff monoisotopic mass, or 0.0 if not set
 
-        void setFormula(const String & composition) nogil except + # wrap-doc:Set the formula (no masses will be changed)
+        void setFormula(const String & composition) nogil except + # wrap-doc:Sets the formula (no masses will be changed)
         String  getFormula() nogil except + # wrap-doc:Returns the chemical formula if set
         void setDiffFormula(EmpiricalFormula & diff_formula) nogil except + # wrap-doc:Sets diff formula (no masses will be changed)
         EmpiricalFormula  getDiffFormula() nogil except + # wrap-doc:Returns the diff formula if one was set
@@ -66,9 +66,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
         void setNeutralLossDiffFormulas(libcpp_vector[ EmpiricalFormula ] & diff_formulas) nogil except + # wrap-doc:Sets the neutral loss formula
         libcpp_vector[ EmpiricalFormula ] getNeutralLossDiffFormulas() nogil except + # wrap-doc:Returns the neutral loss diff formula (if available)
 
-        void setNeutralLossMonoMasses(libcpp_vector[ double ] mono_masses) nogil except + # wrap-doc:Set the neutral loss mono weight
+        void setNeutralLossMonoMasses(libcpp_vector[ double ] mono_masses) nogil except + # wrap-doc:Sets the neutral loss mono weight
         libcpp_vector[ double ] getNeutralLossMonoMasses() nogil except + # wrap-doc:Returns the neutral loss mono weight
-        void setNeutralLossAverageMasses(libcpp_vector[ double ] average_masses) nogil except + # wrap-doc:Set the neutral loss average weight
+        void setNeutralLossAverageMasses(libcpp_vector[ double ] average_masses) nogil except + # wrap-doc:Sets the neutral loss average weight
         libcpp_vector[ double ] getNeutralLossAverageMasses() nogil except + # wrap-doc:Returns the neutral loss average weight
 
         bool hasNeutralLoss() nogil except + # wrap-doc:Returns true if a neutral loss formula is set

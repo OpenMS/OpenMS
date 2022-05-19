@@ -181,7 +181,7 @@ namespace OpenMS
     boost::cmatch matches;
     boost::regex_search(buffer.get(), matches, listoffset_rx);
     String thismatch(matches[1].first, matches[1].second);
-    if (thismatch.size() > 0)
+    if (!thismatch.empty())
     {
       try
       {

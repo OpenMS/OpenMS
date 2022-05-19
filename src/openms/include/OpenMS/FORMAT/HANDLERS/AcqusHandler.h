@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <map>
 
 namespace OpenMS
 {
@@ -68,20 +68,20 @@ public:
       virtual ~AcqusHandler();
 
       /// Conversion from index to MZ ratio using internal calibration params
-      double getPosition(Size index);
+      double getPosition(Size index) const;
 
       /// Read param as string
       String getParam(const String & param);
 
       /// Get size of spectrum
-      Size getSize();
+      Size getSize() const;
 
 private:
       /// Private default constructor
       AcqusHandler();
 
       /// Map for params saving
-      Map<String, String> params_;
+      std::map<String, String> params_;
 
       /**@name Internal params for calibration */
       //@{

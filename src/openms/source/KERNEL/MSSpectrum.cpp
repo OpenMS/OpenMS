@@ -314,7 +314,7 @@ namespace OpenMS
   Size MSSpectrum::findNearest(MSSpectrum::CoordinateType mz) const
   {
     // no peak => no search
-    if (ContainerType::size() == 0)
+    if (empty())
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
     }
@@ -368,6 +368,8 @@ namespace OpenMS
 
   void MSSpectrum::sortByPositionPresorted(const std::vector<Chunk>& chunks)
   {
+    if (chunks.empty()) return;
+
     if (chunks.size() == 1 && chunks[0].is_sorted)
     {
       return;
@@ -430,7 +432,7 @@ namespace OpenMS
 
   void MSSpectrum::sortByIntensity(bool reverse)
   {
-    if (reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), reverseComparator(PeakType::IntensityLess())))
+    if (reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), [](auto &left, auto &right) {PeakType::IntensityLess cmp; return cmp(right, left);}))
     {
       return;
     }
@@ -442,7 +444,7 @@ namespace OpenMS
     {
       if (reverse)
       {
-        std::stable_sort(ContainerType::begin(), ContainerType::end(), reverseComparator(PeakType::IntensityLess()));
+        std::stable_sort(ContainerType::begin(), ContainerType::end(), [](auto &left, auto &right) {PeakType::IntensityLess cmp; return cmp(right, left);});
       }
       else
       {
@@ -478,7 +480,7 @@ namespace OpenMS
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfloat-equal"
     return std::operator==(*this, rhs) &&
-           RangeManager<1>::operator==(rhs) &&
+           RangeManagerType::operator==(rhs) &&
            SpectrumSettings::operator==(rhs) &&
            retention_time_ == rhs.retention_time_ &&
            drift_time_ == rhs.drift_time_ &&
@@ -498,7 +500,7 @@ namespace OpenMS
       return *this;
     }
     ContainerType::operator=(source);
-    RangeManager<1>::operator=(source);
+    RangeManagerType::operator=(source);
     SpectrumSettings::operator=(source);
 
     retention_time_ = source.retention_time_;
@@ -515,7 +517,7 @@ namespace OpenMS
 
   MSSpectrum::MSSpectrum() :
     ContainerType(),
-    RangeManager<1>(),
+    RangeManagerContainerType(),
     SpectrumSettings(),
     retention_time_(-1),
     drift_time_(-1),
@@ -529,7 +531,7 @@ namespace OpenMS
 
   MSSpectrum::MSSpectrum(const MSSpectrum &source) :
     ContainerType(source),
-    RangeManager<1>(source),
+    RangeManagerContainerType(source),
     SpectrumSettings(source),
     retention_time_(source.retention_time_),
     drift_time_(source.drift_time_),
@@ -549,8 +551,12 @@ namespace OpenMS
 
   void MSSpectrum::updateRanges()
   {
-    this->clearRanges();
-    updateRanges_(ContainerType::begin(), ContainerType::end());
+    clearRanges();
+    for (const auto& peak : (ContainerType&)*this)
+    {
+      extendMZ(peak.getMZ()); 
+      extendIntensity(peak.getIntensity());
+    }
   }
 
   double MSSpectrum::getRT() const

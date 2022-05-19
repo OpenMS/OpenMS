@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <iostream>
+#include <map>
 
 namespace OpenMS
 {
@@ -104,7 +105,7 @@ namespace OpenMS
   {
     Param save_param;
 
-    for (Map<QString, QList<TOPPASResource> >::ConstIterator it = map_.begin(); it != map_.end(); ++it)
+    for (std::map<QString, QList<TOPPASResource> >::const_iterator it = map_.begin(); it != map_.end(); ++it)
     {
       const String& key = String(it->first);
       const QList<TOPPASResource>& resource_list = it->second;
@@ -122,12 +123,12 @@ namespace OpenMS
 
   const QList<TOPPASResource>& TOPPASResources::get(const QString& key) const
   {
-    if (!map_.has(key))
+    if (map_.find(key) == map_.end())
     {
       return empty_list_;
     }
 
-    return map_[key];
+    return map_.at(key);
   }
 
   void TOPPASResources::clear()

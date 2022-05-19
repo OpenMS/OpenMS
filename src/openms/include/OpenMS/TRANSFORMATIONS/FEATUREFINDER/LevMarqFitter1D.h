@@ -36,11 +36,19 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 
-#include <unsupported/Eigen/NonLinearOptimization>
 
 #include <algorithm>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
+// forward decl
+namespace Eigen
+{
+    template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+    class Matrix;
+    using MatrixXd = Matrix<double, -1, -1, 0, -1, -1>;
+    using VectorXd = Matrix<double, -1, 1, 0, -1, 1>;
+}
 
 namespace OpenMS
 {
@@ -120,7 +128,7 @@ protected:
 
         @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor);
+    void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor) const;
 
     void updateMembers_() override;
 

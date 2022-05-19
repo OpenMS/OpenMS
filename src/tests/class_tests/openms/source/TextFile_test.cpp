@@ -121,18 +121,18 @@ START_SECTION((void load(const String& filename, bool trim_lines = false, Int fi
   file_it = file.begin();
   TEST_EQUAL(String(*file_it).trim() == "first_line", true)
   ++file_it;
-  TEST_EQUAL(String(*file_it).trim() == "", true)
+  TEST_EQUAL(String(*file_it).trim().empty(), true)
   ++file_it;
-  TEST_EQUAL(String(*file_it).trim() == "", true)
+  TEST_EQUAL(String(*file_it).trim().empty(), true)
 
   file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true,4);
   TEST_EQUAL((file.end() - file.begin()), 4)
   file_it = file.begin();
   TEST_EQUAL(String(*file_it).trim() == "first_line", true)
   ++file_it;
-  TEST_EQUAL(String(*file_it).trim() == "", true)
+  TEST_EQUAL(String(*file_it).trim().empty(), true)
   ++file_it;
-  TEST_EQUAL(String(*file_it).trim() == "", true)
+  TEST_EQUAL(String(*file_it).trim().empty(), true)
   ++file_it;
   TEST_EQUAL(String(*file_it).trim() == "middle_line", true)
 

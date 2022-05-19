@@ -34,6 +34,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 
+#include <sstream>
+
 using namespace std;
 
 namespace OpenMS

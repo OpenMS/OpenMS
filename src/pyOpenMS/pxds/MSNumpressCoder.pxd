@@ -65,7 +65,7 @@ cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS":
                 #   *unsafe* to handle and is a raw byte array.
                 #   -----
                 #   Please use the safe versions above unless you need access to the raw
-                #   byte arrays.
+                #   byte arrays
                 #   -----
                 #   :param in: The vector of floating point numbers to be encoded
                 #   :param result: The resulting string

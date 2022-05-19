@@ -43,8 +43,8 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace 
                 #   -----
                 #   :param d: The DataProcessing object to be added
 
-        Size getNrSpectraWritten()  nogil except + # wrap-doc:Return the number of spectra written
-        Size getNrChromatogramsWritten() nogil except + # wrap-doc:Return the number of chromatograms written
+        Size getNrSpectraWritten()  nogil except + # wrap-doc:Returns the number of spectra written
+        Size getNrChromatogramsWritten() nogil except + # wrap-doc:Returns the number of chromatograms written
 
         void setOptions(PeakFileOptions opt) nogil except +
         PeakFileOptions getOptions() nogil except +
@@ -55,7 +55,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace 
                 #   -----
                 #   This is sometimes necessary to fulfill the requirement of passing an
                 #   valid MSDataWritingConsumer object or pointer but no operation is
-                #   required.
+                #   required
 
         NoopMSDataWritingConsumer(String filename) nogil except +
         # copy constructor of 'NoopMSDataWritingConsumer' is implicitly deleted because base class 'OpenMS::MSDataWritingConsumer' has a deleted copy constructor (see XMLHandler)

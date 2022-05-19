@@ -50,6 +50,7 @@
 				<UserParam type="string" name="MS:1002258" value="20"/>
 				<UserParam type="string" name="MS:1002259" value="170"/>
 				<UserParam type="string" name="num_matched_peptides" value="29030"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="MS:1002252" value="0.998"/>
 				<UserParam type="float" name="MS:1002253" value="0.045"/>
@@ -69,6 +70,7 @@
 				<UserParam type="string" name="MS:1002258" value="20"/>
 				<UserParam type="string" name="MS:1002259" value="170"/>
 				<UserParam type="string" name="num_matched_peptides" value="29030"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="MS:1002252" value="0.998"/>
 				<UserParam type="float" name="MS:1002253" value="0.045"/>
@@ -83,6 +85,7 @@
 				<UserParam type="string" name="MS:1002258" value="34"/>
 				<UserParam type="string" name="MS:1002259" value="380"/>
 				<UserParam type="string" name="num_matched_peptides" value="10210"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="MS:1002252" value="1.474"/>
 				<UserParam type="float" name="MS:1002253" value="0.018"/>

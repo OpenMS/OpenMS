@@ -53,8 +53,6 @@
 #   include <Windows.h>
 #endif
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
-
 using namespace OpenMS;
 using namespace std;
 

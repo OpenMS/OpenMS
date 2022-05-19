@@ -10,10 +10,10 @@ from DataArrays cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
 
-    cdef cppclass MSChromatogram (ChromatogramSettings, RangeManager1):
+    cdef cppclass MSChromatogram (ChromatogramSettings, RangeManagerRtInt):
         # wrap-inherits:
         #  ChromatogramSettings
-        #  RangeManager1
+        #  RangeManagerRtInt
         #
         # wrap-doc:
         #   The representation of a chromatogram.
@@ -38,8 +38,9 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
 
         Size size() nogil except +
         void reserve(size_t n) nogil except + 
+        void resize(size_t n) nogil except + # wrap-doc:Resize the peak array 
 
-        ChromatogramPeak & operator[](int) nogil except +
+        ChromatogramPeak & operator[](size_t) nogil except +
 
         void updateRanges() nogil except +
         void clear(int) nogil except +

@@ -34,7 +34,7 @@
 
 #include <OpenMS/QC/MissedCleavages.h>
 
-
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 

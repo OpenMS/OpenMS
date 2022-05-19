@@ -171,7 +171,7 @@ protected:
       String fname = outfile_list[i];
       swath_file.setLogType(log_type_);
       swath_file.load(file_list[i], *swath_map);
-      if (swath_map->size() == 0 || (*swath_map)[0].getPrecursors().size() == 0)
+      if (swath_map->empty() || (*swath_map)[0].getPrecursors().empty())
       {
         std::cerr << "WARNING: File " << swath_map->getLoadedFilePath()
                   << " does not have any experiments or any precursors. Is it a SWATH map?"
@@ -186,7 +186,7 @@ protected:
       upper = prec[0].getMZ() + prec[0].getIsolationWindowUpperOffset();
       OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used,
                                               min_upper_edge_dist, lower, upper);
-      if (transition_exp_used.getTransitions().size() == 0)
+      if (transition_exp_used.getTransitions().empty())
       {
         std::cerr << "WARNING: For file " << swath_map->getLoadedFilePath()
                   << " there are no transitions to extract." << std::endl;
