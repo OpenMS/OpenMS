@@ -345,7 +345,6 @@ public:
 
     /// Finds a protein hit by accession (returns past-the-end iterator if not found)
     std::vector<ProteinHit>::iterator findHit(const String& accession);
-    std::vector<ProteinHit>::const_iterator findHit(const String& accession) const;
 
     /// Returns the protein groups
     const std::vector<ProteinGroup>& getProteinGroups() const;
