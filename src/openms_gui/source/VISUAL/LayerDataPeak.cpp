@@ -38,7 +38,7 @@
 #include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 #include <OpenMS/VISUAL/Painter1DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
-#include <OpenMS/VISUAL/VISITORS/LayerVisibleData.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 
 using namespace std;
 
@@ -49,16 +49,16 @@ namespace OpenMS
     flags.set(LayerDataBase::P_PRECURSORS);
   }
 
-  std::unique_ptr<LayerVisibleData> LayerDataPeak::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
+  std::unique_ptr<LayerStoreData> LayerDataPeak::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
-    auto ret = std::unique_ptr<LayerVisibleDataPeakMap>();
+    auto ret = std::unique_ptr<LayerStoreDataPeakMapVisible>();
     ret->storeVisibleExperiment(*peak_map_.get(), visible_range, layer_filters);
     return ret;
   }
 
-  std::unique_ptr<LayerVisibleData> LayerDataPeak::storeFullData() const
+  std::unique_ptr<LayerStoreData> LayerDataPeak::storeFullData() const
   {
-    auto ret = std::unique_ptr<LayerFullDataPeakMap>();
+    auto ret = std::unique_ptr<LayerStoreDataPeakMapAll>();
     ret->storeFullExperiment(*peak_map_.get());
     return ret;
   }
@@ -181,14 +181,14 @@ namespace OpenMS
     return make_unique<LayerStatisticsPeakMap>(*peak_map_);
   }
 
-  std::unique_ptr<LayerVisibleData> LayerData1DPeak::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
+  std::unique_ptr<LayerStoreData> LayerData1DPeak::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
-    auto ret = std::unique_ptr<LayerVisibleDataPeakMap>();
+    auto ret = std::unique_ptr<LayerStoreDataPeakMapVisible>();
     ret->storeVisibleSpectrum(getCurrentSpectrum(), visible_range, layer_filters);
     return ret;
   }
 
-  std::unique_ptr<LayerVisibleData> LayerData1DPeak::storeFullData() const
+  std::unique_ptr<LayerStoreData> LayerData1DPeak::storeFullData() const
   {
     return LayerDataPeak::storeFullData(); // just forward
   }

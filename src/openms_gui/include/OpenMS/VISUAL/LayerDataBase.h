@@ -57,7 +57,7 @@ class QWidget;
 namespace OpenMS
 {
   class LayerData1DBase;
-  class LayerVisibleData;
+  class LayerStoreData;
   class LayerStatistics;
   class OnDiscMSExperiment;
   class OSWData;
@@ -204,12 +204,12 @@ namespace OpenMS
     virtual ~LayerDataBase() = default;
 
     /// Returns a visitor which contains the current visible data and can write the data to disk
-    virtual std::unique_ptr<LayerVisibleData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
+    virtual std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     /// Returns a visitor which contains the the full data of the layer and can write the data to disk in the appropriate format (e.g. mzML)
-    virtual std::unique_ptr<LayerVisibleData> storeFullData() const
+    virtual std::unique_ptr<LayerStoreData> storeFullData() const
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }

@@ -59,8 +59,8 @@ namespace OpenMS
     /// move assignment
     LayerDataFeature& operator=(LayerDataFeature&& ld) = default;
 
-    std::unique_ptr<LayerVisibleData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
-    std::unique_ptr<LayerVisibleData> storeFullData() const override;
+    std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
+    std::unique_ptr<LayerStoreData> storeFullData() const override;
 
     void updateRanges() override
     {

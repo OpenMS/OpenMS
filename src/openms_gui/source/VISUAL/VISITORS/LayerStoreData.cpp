@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
-#include <OpenMS/VISUAL/VISITORS/LayerVisibleData.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -50,7 +50,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  FileTypes::Type LayerVisibleData::getSupportedExtension_(const String& filename) const
+  FileTypes::Type LayerStoreData::getSupportedExtension_(const String& filename) const
   {
     auto type = FileHandler::getTypeByFileName(filename);
     if (type == FileTypes::UNKNOWN)
@@ -68,7 +68,7 @@ namespace OpenMS
     FileHandler().storeExperiment(path, pm, lt);
   }
 
-  void LayerVisibleDataPeakMap::saveToFile(const String& path, const ProgressLogger::LogType lt) const
+  void LayerStoreDataPeakMapVisible::saveToFile(const String& path, const ProgressLogger::LogType lt) const
   {
     savePeakMapToFile(path, pm_, lt, getSupportedExtension_(path));
   }
@@ -90,7 +90,7 @@ namespace OpenMS
     return !out.empty();
   }
 
-  void LayerVisibleDataPeakMap::storeVisibleSpectrum(const MSSpectrum& spec, const RangeAllType& visible_range, const DataFilters& layer_filters)
+  void LayerStoreDataPeakMapVisible::storeVisibleSpectrum(const MSSpectrum& spec, const RangeAllType& visible_range, const DataFilters& layer_filters)
   {
     pm_.clear(true);
     MSSpectrum filtered;
@@ -100,7 +100,7 @@ namespace OpenMS
     }
   }
 
-  void LayerVisibleDataPeakMap::storeVisibleExperiment(const PeakMap& exp, const RangeAllType& visible_range, const DataFilters& layer_filters)
+  void LayerStoreDataPeakMapVisible::storeVisibleExperiment(const PeakMap& exp, const RangeAllType& visible_range, const DataFilters& layer_filters)
   {
     pm_.clear(true);
     // copy experimental settings
@@ -140,12 +140,12 @@ namespace OpenMS
     }
   }
 
-  void LayerFullDataPeakMap::saveToFile(const String& path, const ProgressLogger::LogType lt) const
+  void LayerStoreDataPeakMapAll::saveToFile(const String& path, const ProgressLogger::LogType lt) const
   {
     savePeakMapToFile(path, *full_exp_, lt, getSupportedExtension_(path));
   }
 
-  void LayerFullDataPeakMap::storeFullExperiment(const PeakMap& exp)
+  void LayerStoreDataPeakMapAll::storeFullExperiment(const PeakMap& exp)
   {
     full_exp_ = &exp;
   }
@@ -160,12 +160,12 @@ namespace OpenMS
     fh.store(path, fm);
   }
 
-  void LayerVisibleDataFeatureMap::saveToFile(const String& path, const ProgressLogger::LogType lt) const
+  void LayerStoreDataFeatureMapVisible::saveToFile(const String& path, const ProgressLogger::LogType lt) const
   {
     saveFeatureMapToFile(path, fm_, lt, this->getSupportedExtension_(path));
   }
 
-  void LayerVisibleDataFeatureMap::storeVisibleFM(const FeatureMap& fm, const RangeAllType& visible_range, const DataFilters& layer_filters)
+  void LayerStoreDataFeatureMapVisible::storeVisibleFM(const FeatureMap& fm, const RangeAllType& visible_range, const DataFilters& layer_filters)
   {
     // clear output experiment
     fm_.clear(true);
@@ -183,12 +183,12 @@ namespace OpenMS
     }
   }
 
-  void LayerFullDataFeatureMap::saveToFile(const String& path, const ProgressLogger::LogType lt) const
+  void LayerStoreDataFeatureMapAll::saveToFile(const String& path, const ProgressLogger::LogType lt) const
   {
     saveFeatureMapToFile(path, *full_fm_, lt, this->getSupportedExtension_(path));
   }
 
-  void LayerFullDataFeatureMap::storeFullFM(const FeatureMap& fm)
+  void LayerStoreDataFeatureMapAll::storeFullFM(const FeatureMap& fm)
   {
     full_fm_ = &fm;
   }
@@ -204,12 +204,12 @@ namespace OpenMS
     fh.store(path, fm);
   }
 
-  void LayerVisibleDataConsensusMap::saveToFile(const String& path, const ProgressLogger::LogType lt) const
+  void LayerStoreDataConsensusMapVisible::saveToFile(const String& path, const ProgressLogger::LogType lt) const
   {
     return saveConsensusMapToFile(path, cm_, lt, this->getSupportedExtension_(path));
   }
 
-  void LayerVisibleDataConsensusMap::storeVisibleCM(const ConsensusMap& cm, const RangeAllType& visible_range, const DataFilters& layer_filters)
+  void LayerStoreDataConsensusMapVisible::storeVisibleCM(const ConsensusMap& cm, const RangeAllType& visible_range, const DataFilters& layer_filters)
   {
     // clear output experiment
     cm_.clear(true);
@@ -226,12 +226,12 @@ namespace OpenMS
     }
   }
 
-  void LayerFullDataConsensusMap::saveToFile(const String& path, const ProgressLogger::LogType lt) const
+  void LayerStoreDataConsensusMapAll::saveToFile(const String& path, const ProgressLogger::LogType lt) const
   {
     return saveConsensusMapToFile(path, *full_cm_, lt, this->getSupportedExtension_(path));
   }
 
-  void LayerFullDataConsensusMap::storeFullCM(const ConsensusMap& cm)
+  void LayerStoreDataConsensusMapAll::storeFullCM(const ConsensusMap& cm)
   {
     full_cm_ = &cm;
   }
@@ -246,12 +246,12 @@ namespace OpenMS
     fh.store(path, {}, ids);
   }
 
-  void LayerVisibleDataIdent::saveToFile(const String& path, const ProgressLogger::LogType lt) const
+  void LayerStoreDataIdentVisible::saveToFile(const String& path, const ProgressLogger::LogType lt) const
   {
     return savePepIdsToFile(path, ids_, lt, this->getSupportedExtension_(path));
   }
 
-  void LayerVisibleDataIdent::storeVisibleIdent(const IPeptideIds::PepIds& ids, const RangeAllType& visible_range, const DataFilters& layer_filters)
+  void LayerStoreDataIdentVisible::storeVisibleIdent(const IPeptideIds::PepIds& ids, const RangeAllType& visible_range, const DataFilters& layer_filters)
   {
     ids_.clear();
 
@@ -268,12 +268,12 @@ namespace OpenMS
     }
   }
 
-  void LayerFullDatIdent::saveToFile(const String& path, const ProgressLogger::LogType lt) const
+  void LayerStoreDataIdentAll::saveToFile(const String& path, const ProgressLogger::LogType lt) const
   {
     return savePepIdsToFile(path, *full_ids_, lt, this->getSupportedExtension_(path));
   }
 
-  void LayerFullDatIdent::storeFullIdent(const IPeptideIds::PepIds& ids)
+  void LayerStoreDataIdentAll::storeFullIdent(const IPeptideIds::PepIds& ids)
   {
     full_ids_ = &ids;
   }

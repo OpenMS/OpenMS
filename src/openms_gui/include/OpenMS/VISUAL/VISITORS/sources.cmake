@@ -4,7 +4,7 @@ set(directory include/OpenMS/VISUAL/VISITORS)
 ### list all header files of the directory here
 set(sources_list_h
 LayerStatistics.h
-LayerVisibleData.h
+LayerStoreData.h
 )
 
 ### add path to the filenames

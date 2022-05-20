@@ -64,9 +64,9 @@ namespace OpenMS
     /// move assignment
     LayerDataPeak& operator=(LayerDataPeak&& ld) = default;
 
-    std::unique_ptr<LayerVisibleData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
-    std::unique_ptr<LayerVisibleData> storeFullData() const override;
-    ProjectionData getProjection(const DIM_UNIT unit, const RangeAllType& area) const override;
+    std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
+    std::unique_ptr<LayerStoreData> storeFullData() const override;
+    ProjectionData getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const override;
 
 
 
@@ -139,8 +139,8 @@ namespace OpenMS
     {
     }
 
-    std::unique_ptr<LayerVisibleData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
-    std::unique_ptr<LayerVisibleData> storeFullData() const override;
+    std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
+    std::unique_ptr<LayerStoreData> storeFullData() const override;
 
     std::unique_ptr<Painter1DBase> getPainter1D() const override;
 

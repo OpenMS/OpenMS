@@ -34,7 +34,7 @@
 
 #include <OpenMS/VISUAL/LayerDataFeature.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>                                                                                       
-#include <OpenMS/VISUAL/VISITORS/LayerVisibleData.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 
 using namespace std;
 
@@ -46,16 +46,16 @@ namespace OpenMS
     flags.set(LayerDataBase::F_HULL);
   }
   
-  std::unique_ptr<LayerVisibleData> LayerDataFeature::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
+  std::unique_ptr<LayerStoreData> LayerDataFeature::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
-    auto ret = std::unique_ptr<LayerVisibleDataFeatureMap>();
+    auto ret = std::unique_ptr<LayerStoreDataFeatureMapVisible>();
     ret->storeVisibleFM(*features_.get(), visible_range, layer_filters);
     return ret;
   }
 
-  std::unique_ptr<LayerVisibleData> LayerDataFeature::storeFullData() const
+  std::unique_ptr<LayerStoreData> LayerDataFeature::storeFullData() const
   {
-    auto ret = std::unique_ptr<LayerFullDataFeatureMap>();
+    auto ret = std::unique_ptr<LayerStoreDataFeatureMapAll>();
     ret->storeFullFM(*features_.get());
     return ret;
   }

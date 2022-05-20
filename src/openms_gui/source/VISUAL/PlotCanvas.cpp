@@ -46,7 +46,7 @@
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
-#include <OpenMS/VISUAL/VISITORS/LayerVisibleData.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 
 // QT
 #include <QPaintEvent>

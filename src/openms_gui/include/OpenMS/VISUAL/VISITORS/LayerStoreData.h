@@ -48,18 +48,18 @@ namespace OpenMS
 {
 
   /**
-      @brief Base class to store the currently visible data of a canvas
+      @brief Base class to store either the currently visible or all data of a canvas
   */
-  class OPENMS_GUI_DLLAPI LayerVisibleData
+  class OPENMS_GUI_DLLAPI LayerStoreData
   {
   public:
-    LayerVisibleData(FileTypeList supported_storage_formats) :
+    LayerStoreData(FileTypeList supported_storage_formats) :
         storage_formats_(supported_storage_formats)
     {
     }
 
     /// virtual D'tor for proper cleanup of derived classes' members
-    virtual ~LayerVisibleData() = default;
+    virtual ~LayerStoreData() = default;
 
     /// Which formats are supported when writing the file?
     FileTypeList getSupportedFileFormats() const
@@ -85,12 +85,12 @@ namespace OpenMS
   /**
     @brief Visitor which can save a visible piece of data; subsequently the data can be stored to a file.
   */
-  class OPENMS_GUI_DLLAPI LayerVisibleDataPeakMap
-   : public LayerVisibleData
+  class OPENMS_GUI_DLLAPI LayerStoreDataPeakMapVisible
+   : public LayerStoreData
   {
   public:
-    LayerVisibleDataPeakMap() :
-      LayerVisibleData(FileTypeList({FileTypes::MZML, FileTypes::MZDATA, FileTypes::MZXML}))
+    LayerStoreDataPeakMapVisible() :
+      LayerStoreData(FileTypeList({FileTypes::MZML, FileTypes::MZDATA, FileTypes::MZXML}))
     {}
 
     // docu in base class
@@ -116,10 +116,10 @@ namespace OpenMS
 
     Since only a pointer is stored internally, make sure the lifetime of the PeakMap exceeds this visitor.
   */
-  class OPENMS_GUI_DLLAPI LayerFullDataPeakMap : public LayerVisibleData
+  class OPENMS_GUI_DLLAPI LayerStoreDataPeakMapAll : public LayerStoreData
   {
   public:
-    LayerFullDataPeakMap() : LayerVisibleData(FileTypeList({FileTypes::MZML, FileTypes::MZDATA, FileTypes::MZXML}))
+    LayerStoreDataPeakMapAll() : LayerStoreData(FileTypeList({FileTypes::MZML, FileTypes::MZDATA, FileTypes::MZXML}))
     {
     }
 
@@ -135,10 +135,10 @@ namespace OpenMS
   /**
     @brief Visitor which can save a visible piece of data; subsequently the data can be stored to a file.
   */
-  class OPENMS_GUI_DLLAPI LayerVisibleDataFeatureMap : public LayerVisibleData
+  class OPENMS_GUI_DLLAPI LayerStoreDataFeatureMapVisible : public LayerStoreData
   {
   public:
-    LayerVisibleDataFeatureMap() : LayerVisibleData(FileTypeList({FileTypes::FEATUREXML}))
+    LayerStoreDataFeatureMapVisible() : LayerStoreData(FileTypeList({FileTypes::FEATUREXML}))
     {
     }
 
@@ -156,10 +156,10 @@ namespace OpenMS
 
   Since only a pointer is stored internally, make sure the lifetime of the FeatureMap exceeds this visitor.
 */
-  class OPENMS_GUI_DLLAPI LayerFullDataFeatureMap : public LayerVisibleData
+  class OPENMS_GUI_DLLAPI LayerStoreDataFeatureMapAll : public LayerStoreData
   {
   public:
-    LayerFullDataFeatureMap() : LayerVisibleData(FileTypeList({FileTypes::FEATUREXML}))
+    LayerStoreDataFeatureMapAll() : LayerStoreData(FileTypeList({FileTypes::FEATUREXML}))
     {
     }
 
@@ -175,10 +175,10 @@ namespace OpenMS
   /**
     @brief Visitor which can save a visible piece of data; subsequently the data can be stored to a file.
   */
-  class OPENMS_GUI_DLLAPI LayerVisibleDataConsensusMap : public LayerVisibleData
+  class OPENMS_GUI_DLLAPI LayerStoreDataConsensusMapVisible : public LayerStoreData
   {
   public:
-    LayerVisibleDataConsensusMap() : LayerVisibleData(FileTypeList({FileTypes::CONSENSUSXML}))
+    LayerStoreDataConsensusMapVisible() : LayerStoreData(FileTypeList({FileTypes::CONSENSUSXML}))
     {
     }
 
@@ -196,10 +196,10 @@ namespace OpenMS
 
    Since only a pointer is stored internally, make sure the lifetime of the ConsensusMap exceeds this visitor.
  */
-  class OPENMS_GUI_DLLAPI LayerFullDataConsensusMap : public LayerVisibleData
+  class OPENMS_GUI_DLLAPI LayerStoreDataConsensusMapAll : public LayerStoreData
   {
   public:
-    LayerFullDataConsensusMap() : LayerVisibleData(FileTypeList({FileTypes::CONSENSUSXML}))
+    LayerStoreDataConsensusMapAll() : LayerStoreData(FileTypeList({FileTypes::CONSENSUSXML}))
     {
     }
 
@@ -217,10 +217,10 @@ namespace OpenMS
   /**
     @brief Visitor which can save a visible piece of data; subsequently the data can be stored to a file.
   */
-  class OPENMS_GUI_DLLAPI LayerVisibleDataIdent : public LayerVisibleData
+  class OPENMS_GUI_DLLAPI LayerStoreDataIdentVisible : public LayerStoreData
   {
   public:
-    LayerVisibleDataIdent() : LayerVisibleData(FileTypeList({FileTypes::IDXML}))
+    LayerStoreDataIdentVisible() : LayerStoreData(FileTypeList({FileTypes::IDXML}))
     {
     }
 
@@ -238,10 +238,10 @@ namespace OpenMS
 
    Since only a pointer is stored internally, make sure the lifetime of the Identifications exceeds this visitor.
  */
-  class OPENMS_GUI_DLLAPI LayerFullDatIdent : public LayerVisibleData
+  class OPENMS_GUI_DLLAPI LayerStoreDataIdentAll : public LayerStoreData
   {
   public:
-    LayerFullDatIdent() : LayerVisibleData(FileTypeList({FileTypes::IDXML}))
+    LayerStoreDataIdentAll() : LayerStoreData(FileTypeList({FileTypes::IDXML}))
     {
     }
 

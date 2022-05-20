@@ -34,7 +34,7 @@
 
 #include <OpenMS/VISUAL/LayerDataConsensus.h> 
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
-#include <OpenMS/VISUAL/VISITORS/LayerVisibleData.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 
 using namespace std;
 
@@ -46,16 +46,16 @@ namespace OpenMS
     consensus_map_ = map;
   }
 
-  std::unique_ptr<LayerVisibleData> LayerDataConsensus::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
+  std::unique_ptr<LayerStoreData> LayerDataConsensus::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
-    auto ret = std::unique_ptr<LayerVisibleDataConsensusMap>();
+    auto ret = std::unique_ptr<LayerStoreDataConsensusMapVisible>();
     ret->storeVisibleCM(*consensus_map_.get(), visible_range, layer_filters);
     return ret;
   }
 
-  std::unique_ptr<LayerVisibleData> LayerDataConsensus::storeFullData() const
+  std::unique_ptr<LayerStoreData> LayerDataConsensus::storeFullData() const
   {
-    auto ret = std::unique_ptr<LayerFullDataConsensusMap>();
+    auto ret = std::unique_ptr<LayerStoreDataConsensusMapAll>();
     ret->storeFullCM(*consensus_map_.get());
     return ret;
   }

@@ -76,7 +76,7 @@
 #include <OpenMS/VISUAL/Plot3DWidget.h>
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/SpectraTreeTab.h>
-#include <OpenMS/VISUAL/VISITORS/LayerVisibleData.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 
 //Qt
 #include <QCloseEvent>
