@@ -41,312 +41,6 @@
 				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
 			</processingMethod>
 		</dataProcessing>
-		<dataProcessing id="dp_sp_0_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_1_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_2_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_3_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_4_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_5_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_6_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_7_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_8_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_9_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_10_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_11_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_12_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_13_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_14_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_15_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_16_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_17_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_18_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_19_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_20_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_21_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_22_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_23_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_24_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_25_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_26_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_27_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_28_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_29_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_30_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_31_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_32_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_33_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_34_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_35_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_36_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_37_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_38_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_39_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_40_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_41_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_42_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_43_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_44_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_45_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_46_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_47_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_48_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_49_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_50_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
 		<spectrumList count="51" defaultDataProcessingRef="dp_sp_0">
@@ -2803,59 +2497,59 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="sample=1 period=1 cycle=2165 experiment=4">20207</offset>
-		<offset idRef="sample=1 period=1 cycle=2165 experiment=4_2">23160</offset>
-		<offset idRef="sample=1 period=1 cycle=2165 experiment=4_3">26087</offset>
-		<offset idRef="sample=1 period=1 cycle=2165 experiment=4_4">29015</offset>
-		<offset idRef="sample=1 period=1 cycle=2165 experiment=4_5">31947</offset>
-		<offset idRef="sample=1 period=1 cycle=2166 experiment=6">34869</offset>
-		<offset idRef="sample=1 period=1 cycle=2166 experiment=6_2">37792</offset>
-		<offset idRef="sample=1 period=1 cycle=2166 experiment=6_3">40713</offset>
-		<offset idRef="sample=1 period=1 cycle=2166 experiment=6_4">43635</offset>
-		<offset idRef="sample=1 period=1 cycle=2166 experiment=6_5">46562</offset>
-		<offset idRef="sample=1 period=1 cycle=2167 experiment=5">49494</offset>
-		<offset idRef="sample=1 period=1 cycle=2167 experiment=5_2">52418</offset>
-		<offset idRef="sample=1 period=1 cycle=2167 experiment=5_3">55340</offset>
-		<offset idRef="sample=1 period=1 cycle=2167 experiment=5_4">58263</offset>
-		<offset idRef="sample=1 period=1 cycle=2167 experiment=5_5">61191</offset>
-		<offset idRef="sample=1 period=1 cycle=2171 experiment=3">64120</offset>
-		<offset idRef="sample=1 period=1 cycle=2171 experiment=3_2">67046</offset>
-		<offset idRef="sample=1 period=1 cycle=2171 experiment=3_3">69979</offset>
-		<offset idRef="sample=1 period=1 cycle=2171 experiment=3_4">72907</offset>
-		<offset idRef="sample=1 period=1 cycle=2171 experiment=3_5">75836</offset>
-		<offset idRef="sample=1 period=1 cycle=2172 experiment=4">78770</offset>
-		<offset idRef="sample=1 period=1 cycle=2172 experiment=4_2">81696</offset>
-		<offset idRef="sample=1 period=1 cycle=2172 experiment=4_3">84625</offset>
-		<offset idRef="sample=1 period=1 cycle=2172 experiment=4_4">87553</offset>
-		<offset idRef="sample=1 period=1 cycle=2172 experiment=4_5">90486</offset>
-		<offset idRef="sample=1 period=1 cycle=2173 experiment=2">93414</offset>
-		<offset idRef="sample=1 period=1 cycle=2173 experiment=2_2">96340</offset>
-		<offset idRef="sample=1 period=1 cycle=2173 experiment=2_3">99273</offset>
-		<offset idRef="sample=1 period=1 cycle=2173 experiment=2_4">102201</offset>
-		<offset idRef="sample=1 period=1 cycle=2173 experiment=2_5">105130</offset>
-		<offset idRef="sample=1 period=1 cycle=2175 experiment=4">108058</offset>
-		<offset idRef="sample=1 period=1 cycle=2175 experiment=4_2">110982</offset>
-		<offset idRef="sample=1 period=1 cycle=2175 experiment=4_3">113904</offset>
-		<offset idRef="sample=1 period=1 cycle=2175 experiment=4_4">116827</offset>
-		<offset idRef="sample=1 period=1 cycle=2175 experiment=4_5">119748</offset>
-		<offset idRef="sample=1 period=1 cycle=2176 experiment=6">122676</offset>
-		<offset idRef="sample=1 period=1 cycle=2176 experiment=6_2">125600</offset>
-		<offset idRef="sample=1 period=1 cycle=2176 experiment=6_3">128522</offset>
-		<offset idRef="sample=1 period=1 cycle=2176 experiment=6_4">131445</offset>
-		<offset idRef="sample=1 period=1 cycle=2176 experiment=6_5">134373</offset>
-		<offset idRef="sample=1 period=1 cycle=2199 experiment=3">137306</offset>
-		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_2">140232</offset>
-		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_3">143160</offset>
-		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_4">146089</offset>
-		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_5">149017</offset>
-		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_6">151951</offset>
-		<offset idRef="sample=1 period=1 cycle=2204 experiment=6">154880</offset>
-		<offset idRef="sample=1 period=1 cycle=2204 experiment=6_2">157806</offset>
-		<offset idRef="sample=1 period=1 cycle=2204 experiment=6_3">160735</offset>
-		<offset idRef="sample=1 period=1 cycle=2204 experiment=6_4">163669</offset>
-		<offset idRef="sample=1 period=1 cycle=2204 experiment=6_5">166591</offset>
+		<offset idRef="sample=1 period=1 cycle=2165 experiment=4">3030</offset>
+		<offset idRef="sample=1 period=1 cycle=2165 experiment=4_2">5983</offset>
+		<offset idRef="sample=1 period=1 cycle=2165 experiment=4_3">8910</offset>
+		<offset idRef="sample=1 period=1 cycle=2165 experiment=4_4">11838</offset>
+		<offset idRef="sample=1 period=1 cycle=2165 experiment=4_5">14770</offset>
+		<offset idRef="sample=1 period=1 cycle=2166 experiment=6">17692</offset>
+		<offset idRef="sample=1 period=1 cycle=2166 experiment=6_2">20615</offset>
+		<offset idRef="sample=1 period=1 cycle=2166 experiment=6_3">23536</offset>
+		<offset idRef="sample=1 period=1 cycle=2166 experiment=6_4">26458</offset>
+		<offset idRef="sample=1 period=1 cycle=2166 experiment=6_5">29385</offset>
+		<offset idRef="sample=1 period=1 cycle=2167 experiment=5">32317</offset>
+		<offset idRef="sample=1 period=1 cycle=2167 experiment=5_2">35241</offset>
+		<offset idRef="sample=1 period=1 cycle=2167 experiment=5_3">38163</offset>
+		<offset idRef="sample=1 period=1 cycle=2167 experiment=5_4">41086</offset>
+		<offset idRef="sample=1 period=1 cycle=2167 experiment=5_5">44014</offset>
+		<offset idRef="sample=1 period=1 cycle=2171 experiment=3">46943</offset>
+		<offset idRef="sample=1 period=1 cycle=2171 experiment=3_2">49869</offset>
+		<offset idRef="sample=1 period=1 cycle=2171 experiment=3_3">52802</offset>
+		<offset idRef="sample=1 period=1 cycle=2171 experiment=3_4">55730</offset>
+		<offset idRef="sample=1 period=1 cycle=2171 experiment=3_5">58659</offset>
+		<offset idRef="sample=1 period=1 cycle=2172 experiment=4">61593</offset>
+		<offset idRef="sample=1 period=1 cycle=2172 experiment=4_2">64519</offset>
+		<offset idRef="sample=1 period=1 cycle=2172 experiment=4_3">67448</offset>
+		<offset idRef="sample=1 period=1 cycle=2172 experiment=4_4">70376</offset>
+		<offset idRef="sample=1 period=1 cycle=2172 experiment=4_5">73309</offset>
+		<offset idRef="sample=1 period=1 cycle=2173 experiment=2">76237</offset>
+		<offset idRef="sample=1 period=1 cycle=2173 experiment=2_2">79163</offset>
+		<offset idRef="sample=1 period=1 cycle=2173 experiment=2_3">82096</offset>
+		<offset idRef="sample=1 period=1 cycle=2173 experiment=2_4">85024</offset>
+		<offset idRef="sample=1 period=1 cycle=2173 experiment=2_5">87953</offset>
+		<offset idRef="sample=1 period=1 cycle=2175 experiment=4">90881</offset>
+		<offset idRef="sample=1 period=1 cycle=2175 experiment=4_2">93805</offset>
+		<offset idRef="sample=1 period=1 cycle=2175 experiment=4_3">96727</offset>
+		<offset idRef="sample=1 period=1 cycle=2175 experiment=4_4">99650</offset>
+		<offset idRef="sample=1 period=1 cycle=2175 experiment=4_5">102571</offset>
+		<offset idRef="sample=1 period=1 cycle=2176 experiment=6">105499</offset>
+		<offset idRef="sample=1 period=1 cycle=2176 experiment=6_2">108423</offset>
+		<offset idRef="sample=1 period=1 cycle=2176 experiment=6_3">111345</offset>
+		<offset idRef="sample=1 period=1 cycle=2176 experiment=6_4">114268</offset>
+		<offset idRef="sample=1 period=1 cycle=2176 experiment=6_5">117196</offset>
+		<offset idRef="sample=1 period=1 cycle=2199 experiment=3">120129</offset>
+		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_2">123055</offset>
+		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_3">125983</offset>
+		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_4">128912</offset>
+		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_5">131840</offset>
+		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_6">134774</offset>
+		<offset idRef="sample=1 period=1 cycle=2204 experiment=6">137703</offset>
+		<offset idRef="sample=1 period=1 cycle=2204 experiment=6_2">140629</offset>
+		<offset idRef="sample=1 period=1 cycle=2204 experiment=6_3">143558</offset>
+		<offset idRef="sample=1 period=1 cycle=2204 experiment=6_4">146492</offset>
+		<offset idRef="sample=1 period=1 cycle=2204 experiment=6_5">149414</offset>
 	</index>
 </indexList>
-<indexListOffset>169554</indexListOffset>
+<indexListOffset>152377</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

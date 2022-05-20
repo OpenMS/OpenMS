@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <fstream>
 #include <QtCore/QDir>
@@ -51,6 +52,7 @@ namespace OpenMS
     if (resolve) max_rank = 1;
     std::unordered_map<String, MSSpectrum> native_ids_annotated_spectra;
     std::vector<MSSpectrum> annotated_spectra;
+    double score = 0.0;
     // There is one subdir for every candidate that we pass to Sirius
     // Currently it is not possible to run Sirius with multiple candidates, see https://github.com/OpenMS/OpenMS/issues/5882
     for (const auto& subdir : sirius_workspace_subdirs)
@@ -61,8 +63,9 @@ namespace OpenMS
 
       for (auto& spectrum : best_annotated_spectra)
       {
+        score = double(spectrum.getMetaValue(Constants::UserParam::SIRIUS_SCORE));
         // only use spectra over a certain score threshold (0-1)
-        if (double(spectrum.getMetaValue("score")) >= score_threshold)
+        if (score >= score_threshold)
         {
           if (resolve)
           {
@@ -71,7 +74,7 @@ namespace OpenMS
             it = native_ids_annotated_spectra.find(spectrum.getNativeID());
             if (it != native_ids_annotated_spectra.end())
             {
-              if (double(spectrum.getMetaValue("score")) >= double(it->second.getMetaValue("score")))
+              if (score >= double(it->second.getMetaValue(Constants::UserParam::SIRIUS_SCORE)))
               {
                 it->second = spectrum;
               }
@@ -112,6 +115,7 @@ namespace OpenMS
     std::map<String, SiriusFragmentAnnotation::SiriusTargetDecoySpectra> native_ids_annotated_spectra;
     std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra;
     MSSpectrum best_annotated_spectrum;
+    double score = 0.0;
     for (const auto& subdir : sirius_workspace_subdirs)
     {
       std::vector<MSSpectrum> ann_spec_tmp = extractAnnotationsFromSiriusFile(subdir, 1, false, use_exact_mass);
@@ -142,15 +146,16 @@ namespace OpenMS
         annotated_decoy_for_best_tgt.setName(concat_m_ids);
       }
 
+      score = double(best_annotated_spectrum.getMetaValue(Constants::UserParam::SIRIUS_SCORE));
       // only use spectra over a certain score threshold (0-1)
-      if (double(best_annotated_spectrum.getMetaValue("score")) >= score_threshold)
+      if (score >= score_threshold)
       {
         // resolve multiple use of the same concatenated nativeids based on the sirius score (used for multiple features/identifications)
         map<String, SiriusFragmentAnnotation::SiriusTargetDecoySpectra>::iterator it;
         it = native_ids_annotated_spectra.find(best_annotated_spectrum.getNativeID());
         if (it != native_ids_annotated_spectra.end())
         {
-          if (double(best_annotated_spectrum.getMetaValue("score")) >= double(it->second.target.getMetaValue("score")))
+          if (score >= double(it->second.target.getMetaValue(Constants::UserParam::SIRIUS_SCORE)))
           {
             SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy(best_annotated_spectrum, annotated_decoy_for_best_tgt);
             it->second = target_decoy;
@@ -370,22 +375,22 @@ namespace OpenMS
 
         if (use_exact_mass)
         {
-          msspectrum_to_fill.setMetaValue("peak_mz", DataValue("exact_mass"));
+          msspectrum_to_fill.setMetaValue(Constants::UserParam::SIRIUS_PEAKMZ, DataValue(Constants::UserParam::SIRIUS_EXACTMASS));
         }
         else
         {
-          msspectrum_to_fill.setMetaValue("peak_mz", DataValue("mz"));
+          msspectrum_to_fill.setMetaValue(Constants::UserParam::SIRIUS_PEAKMZ, DataValue(Constants::UserParam::SIRIUS_MZ));
         }
 
         // filename: sumformula_adduct.csv - save sumformula and adduct as metavalue
         String current_sumformula = filename.substr(0, filename.find_last_of("_"));
         String current_adduct = filename.substr(filename.find_last_of("_") + 1, filename.find_last_of(".") - filename.find_last_of("_") - 1);
-        msspectrum_to_fill.setMetaValue("annotated_sumformula", DataValue(current_sumformula));
-        msspectrum_to_fill.setMetaValue("annotated_adduct", DataValue(current_adduct));
-        msspectrum_to_fill.setMetaValue("decoy", decoy);
+        msspectrum_to_fill.setMetaValue(Constants::UserParam::SIRIUS_ANNOTATED_SUMFORMULA, DataValue(current_sumformula));
+        msspectrum_to_fill.setMetaValue(Constants::UserParam::SIRIUS_ANNOTATED_ADDUCT, DataValue(current_adduct));
+        msspectrum_to_fill.setMetaValue(Constants::UserParam::SIRIUS_DECOY, decoy);
         if (!fid.empty())
         {
-          msspectrum_to_fill.setMetaValue("feat_id", fid);
+          msspectrum_to_fill.setMetaValue(Constants::UserParam::SIRIUS_FEATURE_ID, fid);
         }
 
         // read file and save in MSSpectrum
@@ -412,14 +417,14 @@ namespace OpenMS
           {
             main_mz_col = 3;
             extra_mz_col = 0;
-            fragments_extra_masses.setName("mz");
+            fragments_extra_masses.setName(Constants::UserParam::SIRIUS_MZ);
           }
           else
           {
-            fragments_extra_masses.setName("exact_mass");
+            fragments_extra_masses.setName(Constants::UserParam::SIRIUS_EXACTMASS);
           }
 
-          fragments_explanations.setName("explanation");
+          fragments_explanations.setName(Constants::UserParam::SIRIUS_EXPLANATION);
           String line;
           std::getline(fragment_annotation_file, line); // skip header
           while (std::getline(fragment_annotation_file, line))
@@ -435,7 +440,7 @@ namespace OpenMS
             fragments_explanations.push_back(splitted_line[splitted_line.size() - 2]);
             fragments_ionization.push_back(splitted_line[splitted_line.size() - 1]);
           }
-          msspectrum_to_fill.setMetaValue("score", DataValue(score));
+          msspectrum_to_fill.setMetaValue(Constants::UserParam::SIRIUS_SCORE, DataValue(score));
 
           msspectrum_to_fill.setMSLevel(2);
           msspectrum_to_fill.swap(fragments_mzs_ints);
