@@ -486,7 +486,7 @@ namespace OpenMS
       /** User parameter name for the total number of data points (peaks) in a feature. (Required for MQEvidenceExporter)
               String
       */
-      inline const std::string   NUMBER_OF_DATAPOINTS = "number_of_datapoints";
+      inline const std::string   NUM_OF_DATAPOINTS = "num_of_datapoints";
 
     }
 

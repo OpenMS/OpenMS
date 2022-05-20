@@ -774,7 +774,7 @@ namespace OpenMS
         {
           number_of_datapoints += traces[t].peaks.size();
         }
-        f.setMetaValue(Constants::UserParam::NUMBER_OF_DATAPOINTS, number_of_datapoints);
+        f.setMetaValue(Constants::UserParam::NUM_OF_DATAPOINTS, number_of_datapoints);
 
         // Extract some of the model parameters.
         if (egh_tau != 0.0)

@@ -103,9 +103,9 @@ START_SECTION((virtual void run()))
   TEST_EQUAL(output.size(), 8);
 
   // test some of the metavalue number_of_datapoints
-  TEST_EQUAL(output[0].getMetaValue(Constants::UserParam::NUMBER_OF_DATAPOINTS), 88);
-  TEST_EQUAL(output[3].getMetaValue(Constants::UserParam::NUMBER_OF_DATAPOINTS), 71);
-  TEST_EQUAL(output[7].getMetaValue(Constants::UserParam::NUMBER_OF_DATAPOINTS), 47);
+  TEST_EQUAL(output[0].getMetaValue(Constants::UserParam::NUM_OF_DATAPOINTS), 88);
+  TEST_EQUAL(output[3].getMetaValue(Constants::UserParam::NUM_OF_DATAPOINTS), 71);
+  TEST_EQUAL(output[7].getMetaValue(Constants::UserParam::NUM_OF_DATAPOINTS), 47);
 
   TOLERANCE_ABSOLUTE(0.001);
   TEST_REAL_SIMILAR(output[0].getOverallQuality(), 0.8826);
