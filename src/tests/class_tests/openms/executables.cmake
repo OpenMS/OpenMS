@@ -507,6 +507,7 @@ set(analysis_executables_list
   TMTSixPlexQuantitationMethod_test
   TMTTenPlexQuantitationMethod_test
   TMTSixteenPlexQuantitationMethod_test
+  TMTEighteenPlexQuantitationMethod_test
   KDTreeFeatureMaps_test
   KDTreeFeatureNode_test
   LabeledPairFinder_test

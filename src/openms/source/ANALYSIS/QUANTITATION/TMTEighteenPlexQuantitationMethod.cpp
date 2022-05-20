@@ -29,10 +29,10 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Stephan Aiche $
+// $Authors: Stephan Aiche, Radu Suciu $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
@@ -43,14 +43,14 @@
 
 namespace OpenMS
 {
-const String TMTSixteenPlexQuantitationMethod::name_ = "tmt16plex";
-const std::vector<std::string> TMTSixteenPlexQuantitationMethod::channel_names_ = {"126","127N","127C","128N","128C","129N","129C","130N","130C","131N","131C","132N","132C","133N","133C","134N"};
+const String TMTEighteenPlexQuantitationMethod::name_ = "tmt18plex";
+const std::vector<std::string> TMTEighteenPlexQuantitationMethod::channel_names_ = {"126","127N","127C","128N","128C","129N","129C","130N","130C","131N","131C","132N","132C","133N","133C","134N","134C","135N"};
 
-TMTSixteenPlexQuantitationMethod::TMTSixteenPlexQuantitationMethod()
+TMTEighteenPlexQuantitationMethod::TMTEighteenPlexQuantitationMethod()
 {
-    setName("TMTSixteenPlexQuantitationMethod");
+    setName("TMTEighteenPlexQuantitationMethod");
 
-    //    // mass map outline - for further details please see #2427 (was adapted for tmt16plex)
+    //    // mass map outline - for further details please see #2427 (was adapted for tmt18plex)
     //    "126", 126.127726, x, x, 127C, 128C
     //    "127N", 127.124761, x, x, 128N, 129N
     //    "127C", 127.131081, x, 126, 128C, 129C
@@ -64,6 +64,7 @@ TMTSixteenPlexQuantitationMethod::TMTSixteenPlexQuantitationMethod()
     //    "131C", 131.144500, 129C, 130C, x, x
 
     // create the channel map                                                //-2  -1  +1  +2
+    // TODO: double check this
     channels_.push_back(IsobaricChannelInformation("126",   0, "", 126.127726, -1, -1,  2,  -1));
     channels_.push_back(IsobaricChannelInformation("127N",  1, "", 127.124761, -1, -1,  3,  -1)); //SPW: Product datasheet specifies -15N-> 126(ie 0)
     channels_.push_back(IsobaricChannelInformation("127C",  2, "", 127.131081, -1,  0,  4,  -1));
@@ -80,6 +81,8 @@ TMTSixteenPlexQuantitationMethod::TMTSixteenPlexQuantitationMethod()
     channels_.push_back(IsobaricChannelInformation("133N", 13, "", 133.144890,  -1,  11, 15, -1));
     channels_.push_back(IsobaricChannelInformation("133C", 14, "", 133.151210,  -1,  12, -1, -1));
     channels_.push_back(IsobaricChannelInformation("134N", 15, "", 134.148245,  -1,  13, -1, -1));
+    channels_.push_back(IsobaricChannelInformation("134C", 16, "", 134.154565,  -1,  14, -1, -1));
+    channels_.push_back(IsobaricChannelInformation("135N", 17, "", 135.151600,  -1,  15, -1, -1));
 
 
     // Original 10plex channel
@@ -91,7 +94,7 @@ TMTSixteenPlexQuantitationMethod::TMTSixteenPlexQuantitationMethod()
     setDefaultParams_();
 }
 
-void TMTSixteenPlexQuantitationMethod::setDefaultParams_()
+void TMTEighteenPlexQuantitationMethod::setDefaultParams_()
 {
     defaults_.setValue("channel_126_description", "", "Description for the content of the 126 channel.");
     defaults_.setValue("channel_127N_description", "", "Description for the content of the 127N channel.");
@@ -109,10 +112,13 @@ void TMTSixteenPlexQuantitationMethod::setDefaultParams_()
     defaults_.setValue("channel_133N_description", "", "Description for the content of the 133N channel.");
     defaults_.setValue("channel_133C_description", "", "Description for the content of the 133C channel.");
     defaults_.setValue("channel_134N_description", "", "Description for the content of the 134N channel.");
+    defaults_.setValue("channel_134C_description", "", "Description for the content of the 134C channel.");
+    defaults_.setValue("channel_135N_description", "", "Description for the content of the 135N channel.");
 
-    defaults_.setValue("reference_channel", "126", "The reference channel (126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131N, 131C, 132N, 132C, 133N, 133C, 134N).");
-    defaults_.setValidStrings("reference_channel", TMTSixteenPlexQuantitationMethod::channel_names_);
+    defaults_.setValue("reference_channel", "126", "The reference channel (126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131N, 131C, 132N, 132C, 133N, 133C, 134N, 134C, 135N).");
+    defaults_.setValidStrings("reference_channel", TMTEighteenPlexQuantitationMethod::channel_names_);
 
+    // TODO: verify these
     defaults_.setValue("correction_matrix", std::vector<std::string>{"0.0/0.0/8.02/0.0",
                                                                       "0.0/0.68/7.46/0.0",
                                                                       "0.0/0.71/6.94/0.0",
@@ -128,13 +134,15 @@ void TMTSixteenPlexQuantitationMethod::setDefaultParams_()
                                                                       "0.0/4.11/2.0/0.0",
                                                                       "0.0/3.85/1.58/0.0",
                                                                       "0.0/4.63/1.18/0.0",
-                                                                      "0.0/5.22/0.86/0.0"},
+                                                                      "0.0/5.22/0.86/0.0",
+                                                                      "0.0/5.81/0.31/0.0",
+                                                                      "0.0/5.42/0.00/0.0"},
                        "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
     defaultsToParam_();
 }
 
-void TMTSixteenPlexQuantitationMethod::updateMembers_()
+void TMTEighteenPlexQuantitationMethod::updateMembers_()
 {
     channels_[0].description = param_.getValue("channel_126_description").toString();
     channels_[1].description = param_.getValue("channel_127N_description").toString();
@@ -152,17 +160,18 @@ void TMTSixteenPlexQuantitationMethod::updateMembers_()
     channels_[13].description = param_.getValue("channel_133N_description").toString();
     channels_[14].description = param_.getValue("channel_133C_description").toString();
     channels_[15].description = param_.getValue("channel_134N_description").toString();
-
+    channels_[16].description = param_.getValue("channel_134C_description").toString();
+    channels_[17].description = param_.getValue("channel_135N_description").toString();
 
     // compute the index of the reference channel
-    std::vector<std::string>::const_iterator t_it = std::find(TMTSixteenPlexQuantitationMethod::channel_names_.begin(),
-                                                         TMTSixteenPlexQuantitationMethod::channel_names_.end(),
+    std::vector<std::string>::const_iterator t_it = std::find(TMTEighteenPlexQuantitationMethod::channel_names_.begin(),
+                                                         TMTEighteenPlexQuantitationMethod::channel_names_.end(),
                                                          param_.getValue("reference_channel"));
 
-    reference_channel_ = t_it - TMTSixteenPlexQuantitationMethod::channel_names_.begin();
+    reference_channel_ = t_it - TMTEighteenPlexQuantitationMethod::channel_names_.begin();
 }
 
-TMTSixteenPlexQuantitationMethod::TMTSixteenPlexQuantitationMethod(const TMTSixteenPlexQuantitationMethod& other):
+TMTEighteenPlexQuantitationMethod::TMTEighteenPlexQuantitationMethod(const TMTEighteenPlexQuantitationMethod& other):
 IsobaricQuantitationMethod(other)
 {
     channels_.clear();
@@ -171,7 +180,7 @@ IsobaricQuantitationMethod(other)
     reference_channel_ = other.reference_channel_;
 }
 
-TMTSixteenPlexQuantitationMethod& TMTSixteenPlexQuantitationMethod::operator=(const TMTSixteenPlexQuantitationMethod& rhs)
+TMTEighteenPlexQuantitationMethod& TMTEighteenPlexQuantitationMethod::operator=(const TMTEighteenPlexQuantitationMethod& rhs)
 {
     if (this == &rhs)
     {
@@ -185,28 +194,28 @@ TMTSixteenPlexQuantitationMethod& TMTSixteenPlexQuantitationMethod::operator=(co
     return *this;
 }
 
-const String& TMTSixteenPlexQuantitationMethod::getMethodName() const
+const String& TMTEighteenPlexQuantitationMethod::getMethodName() const
 {
-    return TMTSixteenPlexQuantitationMethod::name_;
+    return TMTEighteenPlexQuantitationMethod::name_;
 }
 
-const IsobaricQuantitationMethod::IsobaricChannelList& TMTSixteenPlexQuantitationMethod::getChannelInformation() const
+const IsobaricQuantitationMethod::IsobaricChannelList& TMTEighteenPlexQuantitationMethod::getChannelInformation() const
 {
     return channels_;
 }
 
-Size TMTSixteenPlexQuantitationMethod::getNumberOfChannels() const
+Size TMTEighteenPlexQuantitationMethod::getNumberOfChannels() const
 {
-    return 16;
+    return 18;
 }
 
-Matrix<double> TMTSixteenPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
+Matrix<double> TMTEighteenPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
 {
     StringList iso_correction = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix"));
     return stringListToIsotopCorrectionMatrix_(iso_correction);
 }
 
-Size TMTSixteenPlexQuantitationMethod::getReferenceChannel() const
+Size TMTEighteenPlexQuantitationMethod::getReferenceChannel() const
 {
     return reference_channel_;
 }
