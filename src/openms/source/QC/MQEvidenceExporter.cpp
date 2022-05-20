@@ -44,6 +44,7 @@
 #include <QtCore/QDir>
 #include <cmath> // isnan
 #include <fstream>
+#include <vector>
 
 
 using namespace OpenMS;
@@ -193,10 +194,10 @@ std::map<Size, Size> MQEvidence::makeFeatureUIDtoConsensusMapIndex_(const Consen
 }
 
 bool MQEvidence::hasValidPepID_(
-        const Feature& f,
-        const Size c_feature_number,
-        const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
-        const ProteinIdentification::Mapping& mp_f)
+  const Feature& f,
+  const Size c_feature_number,
+  const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
+  const ProteinIdentification::Mapping& mp_f)
 {
   const std::vector<PeptideIdentification>& pep_ids_f = f.getPeptideIdentifications();
   if (pep_ids_f.empty())
@@ -228,14 +229,14 @@ bool MQEvidence::hasPeptideIdentifications_(const ConsensusFeature& cf)
 }
 
 void MQEvidence::exportRowFromFeature_(
-        const Feature& f,
-        const ConsensusMap& cmap,
-        const Size c_feature_number,
-        const String& raw_file,
-        const std::multimap<String, std::pair<Size, Size>>& UIDs,
-        const ProteinIdentification::Mapping& mp_f,
-        const MSExperiment& exp,
-        const std::map<String,String>& prot_mapper)
+  const Feature& f,
+  const ConsensusMap& cmap,
+  const Size c_feature_number,
+  const String& raw_file,
+  const std::multimap<String, std::pair<Size, Size>>& UIDs,
+  const ProteinIdentification::Mapping& mp_f,
+  const MSExperiment& exp,
+  const std::map<String,String>& prot_mapper)
 {
   const PeptideHit* ptr_best_hit; // the best hit referring to score
   const ConsensusFeature& cf = cmap[c_feature_number];
@@ -320,34 +321,36 @@ void MQEvidence::exportRowFromFeature_(
     file_ << 0 << "\t"; // Acetyl (Protein N-term)
   }
   modifications.find("Oxidation (M)") == modifications.end() ? file_ << "0" << "\t" :
-                                                                  file_ << modifications.find("Oxidation (M)")->second << "\t";
+                                                               file_ << modifications.find("Oxidation (M)")->second << "\t";
 
-  //get all peptide-evidences for the best hit
-  const auto& pep_evidences = ptr_best_hit->getPeptideEvidences();
 
   file_ << ptr_best_hit->getMetaValue("missed_cleavages", "NA") << "\t"; // missed cleavages
   const std::set<String>& accessions = ptr_best_hit->extractProteinAccessionsSet();
   file_ << ListUtils::concatenate(accessions, ";") << "\t";  // Proteins
-  file_ << pep_evidences[0].getProteinAccession() << "\t"; // Leading Proteins
-  file_ << pep_evidences[0].getProteinAccession() << "\t"; // Leading Razor Proteins
+  file_ << ptr_best_hit->getPeptideEvidences()[0].getProteinAccession() << "\t"; // Leading Proteins
+  file_ << ptr_best_hit->getPeptideEvidences()[0].getProteinAccession() << "\t"; // Leading Razor Proteins
 
-  //TODO should we only consider the first evidence or all evidences?
-  const auto& prot_mapper_it = prot_mapper.find(pep_evidences[0].getProteinAccession());
-  if(prot_mapper_it == prot_mapper.end())
+  std::vector<String> gene_names;
+  std::vector<String> protein_names;
+  for(const auto& prot_access : accessions)
   {
-    file_ << "NA" << "\t"; //Gene Names
-    file_ << "NA" << "\t"; //Protein Names
-  }
-  else
-  {
-    auto protein_description = prot_mapper_it->second; 
-    auto gene_name = protein_description.substr(protein_description.find("GN=") + 3);
-    gene_name = gene_name.substr(0,gene_name.find(" "));
+    const auto& prot_mapper_it = prot_mapper.find(prot_access);
+    if(prot_mapper_it == prot_mapper.end())
+    {
+      continue;
+    }
+    else
+    {
+      auto protein_description = prot_mapper_it->second;
+      auto gene_name = protein_description.substr(protein_description.find("GN=") + 3);
+      gene_name = gene_name.substr(0,gene_name.find(" "));
+      gene_names.push_back(std::move(gene_name));
+      protein_names.push_back(std::move(protein_description));
+    }
 
-    file_ << gene_name << "\t";           //Gene Names
-    file_ << protein_description << "\t"; //Protein Names
   }
-  
+  file_ << ListUtils::concatenate(gene_names, ';') << "\t";     //Gene Names
+  file_ << ListUtils::concatenate(protein_names, ';') << "\t";  //Protein Names
   file_ << type << "\t"; //type
 
   file_ << raw_file << "\t"; // Raw File
@@ -425,7 +428,7 @@ void MQEvidence::exportRowFromFeature_(
   // RET LENGTH
   f.metaValueExists("rt_raw_end") && f.metaValueExists("rt_raw_start") ?
     file_ << (double(f.getMetaValue("rt_raw_end")) - double(f.getMetaValue("rt_raw_start"))) / 60 << "\t" : file_
-          << "NA" << "\t";
+      << "NA" << "\t";
 
   if (f.metaValueExists("rt_align"))
   {
@@ -512,33 +515,33 @@ void MQEvidence::exportRowFromFeature_(
 
 void MQEvidence::exportFeatureMap(const FeatureMap& feature_map, const ConsensusMap& cmap, const MSExperiment& exp, const std::map<String,String>& prot_mapper)
 {
-    if (!isValid())
+  if (!isValid())
+  {
+    OPENMS_LOG_ERROR << "MqEvidence object is not valid." << std::endl;
+    throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_);
+  }
+  const std::map<Size, Size>& fTc = makeFeatureUIDtoConsensusMapIndex_(cmap);
+  StringList spectra_data;
+  feature_map.getPrimaryMSRunPath(spectra_data);
+  String raw_file = File::basename(spectra_data.empty() ? feature_map.getLoadedFilePath() : spectra_data[0]);
+
+  ProteinIdentification::Mapping mp_f;
+  mp_f.create(feature_map.getProteinIdentifications());
+
+  std::multimap<String, std::pair<Size, Size>> UIDs = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
+
+  for (const Feature& f : feature_map)
+  {
+    const Size& f_id = f.getUniqueId();
+    const auto& c_id = fTc.find(f_id);
+    if (c_id != fTc.end())
     {
-      OPENMS_LOG_ERROR << "MqEvidence object is not valid." << std::endl;
-      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_);
+      exportRowFromFeature_(f, cmap, c_id->second, raw_file, UIDs, mp_f, exp, prot_mapper);
     }
-    const std::map<Size, Size>& fTc = makeFeatureUIDtoConsensusMapIndex_(cmap);
-    StringList spectra_data;
-    feature_map.getPrimaryMSRunPath(spectra_data);
-    String raw_file = File::basename(spectra_data.empty() ? feature_map.getLoadedFilePath() : spectra_data[0]);
-
-    ProteinIdentification::Mapping mp_f;
-    mp_f.create(feature_map.getProteinIdentifications());
-
-    std::multimap<String, std::pair<Size, Size>> UIDs = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
-
-    for (const Feature& f : feature_map)
+    else
     {
-      const Size& f_id = f.getUniqueId();
-      const auto& c_id = fTc.find(f_id);
-      if (c_id != fTc.end())
-      {
-        exportRowFromFeature_(f, cmap, c_id->second, raw_file, UIDs, mp_f, exp, prot_mapper);
-      }
-      else
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature in FeatureMap has no associated ConsensusFeature.");
-      }
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature in FeatureMap has no associated ConsensusFeature.");
     }
-    file_.flush();
+  }
+  file_.flush();
 }

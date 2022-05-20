@@ -114,7 +114,7 @@ class TOPPQualityControl : public TOPPBase
 {
 public:
   TOPPQualityControl()
-   : TOPPBase("QualityControl", "Computes various QC metrics from many possible input files (only the consensusXML is required). The more optional files you provide, the more metrics you get.", true)
+      : TOPPBase("QualityControl", "Computes various QC metrics from many possible input files (only the consensusXML is required). The more optional files you provide, the more metrics you get.", true)
   {
   }
 protected:
@@ -215,9 +215,9 @@ protected:
         OPENMS_LOG_INFO << "Unlabeled data detected in ConsensusXML detected! Data will be extracted from there. If you can, provide the FeatureXML files for potentially more metrics." << std::endl;
         if (number_exps != fmaps.size())
         {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         String("Number of Maps in the ConsensusMap (") + fmaps.size() +
-                                        ") does not match length of -in_raw or -in_trafo (" + number_exps + ").");
+                                          ") does not match length of -in_raw or -in_trafo (" + number_exps + ").");
         }
       }
     }
@@ -316,7 +316,7 @@ protected:
       }
       for (Feature & f: *fmap) // make sure that the first PeptideIdentification of a Feature is the one with the highest Score
       {
-          sortVectorOfPeptideIDsbyScore_(f.getPeptideIdentifications());
+        sortVectorOfPeptideIDsbyScore_(f.getPeptideIdentifications());
       }
       mp_f.create(fmap->getProteinIdentifications());
 
@@ -349,7 +349,7 @@ protected:
       {
         qc_mz_calibration.compute(*fmap, exp, spec_map);
       }
-      
+
       // after qc_mz_calibration, because it calculates 'mass' metavalue
       if (qc_missed_cleavages.isRunnable(status))
       {
@@ -414,7 +414,7 @@ protected:
       {
         FeatureXMLFile().store(out_feat[i], *fmap);
       }
-      //------------------------------------------------------------- 
+      //-------------------------------------------------------------
       // Annotate calculated meta values from FeatureMap to given ConsensusMap
       //-------------------------------------------------------------
 
@@ -452,21 +452,21 @@ protected:
     // check if all PepIDs of ConsensusMap appeared in a FeatureMap
     bool incomplete_features {false};
     auto f =
-        [&incomplete_features](const PeptideIdentification& pep_id)
-        {
-          if (!pep_id.getHits().empty() && !pep_id.getHits()[0].metaValueExists("missed_cleavages"))
-          {
-            OPENMS_LOG_ERROR << "A PeptideIdentification in the ConsensusXML with sequence " << pep_id.getHits()[0].getSequence().toString()
-                             << ", RT '" << pep_id.getRT() << "', m/z '" << pep_id.getMZ() << "' and identifier '" << pep_id.getIdentifier()
-                             << "' does not appear in any of the given FeatureXMLs. Check your input!\n";
-            incomplete_features = true;
-          }
-        };
+      [&incomplete_features](const PeptideIdentification& pep_id)
+    {
+      if (!pep_id.getHits().empty() && !pep_id.getHits()[0].metaValueExists("missed_cleavages"))
+      {
+        OPENMS_LOG_ERROR << "A PeptideIdentification in the ConsensusXML with sequence " << pep_id.getHits()[0].getSequence().toString()
+                         << ", RT '" << pep_id.getRT() << "', m/z '" << pep_id.getMZ() << "' and identifier '" << pep_id.getIdentifier()
+                         << "' does not appear in any of the given FeatureXMLs. Check your input!\n";
+        incomplete_features = true;
+      }
+    };
     cmap.applyFunctionOnPeptideIDs(f, true);
     if (incomplete_features)
     {
       return ILLEGAL_PARAMETERS;
-    }    
+    }
     // add new PeptideIdentifications (for unidentified MS2 spectra)
     cmap.getUnassignedPeptideIdentifications().insert(cmap.getUnassignedPeptideIdentifications().end(), all_new_upep_ids.begin(), all_new_upep_ids.end());
 
@@ -522,13 +522,13 @@ private:
       pep_id.sort(); // sort the PeptideHits of PeptideIdentifications by Score (Best PeptideHit at index 0)
     }
     std::sort(pep_ids.begin(), pep_ids.end(), [](const PeptideIdentification& a,const PeptideIdentification& b)
-    {
-      if (a.empty() || b.empty())
-      {
-        return a.empty() > b.empty();
-      }
-      return a.getHits()[0].getScore() > b.getHits()[0].getScore(); // sort the PeptideIdentifications by their PeptideHit with the highest Score
-    });
+              {
+                if (a.empty() || b.empty())
+                {
+                  return a.empty() > b.empty();
+                }
+                return a.getHits()[0].getScore() > b.getHits()[0].getScore(); // sort the PeptideIdentifications by their PeptideHit with the highest Score
+              });
   }
 
   void addPepIDMetaValues_(
@@ -580,7 +580,14 @@ private:
   void fallbackFasta(const String& file_name, std::vector<FASTAFile::FASTAEntry>& prot_description)
   {
     OPENMS_LOG_INFO << "No FASTA passed, looking for the default search parameters in consensusXML" << std::endl;
-    FASTAFile().load(file_name, prot_description);
+    try
+    {
+      FASTAFile().load(file_name, prot_description);
+    }
+    catch(const Exception::FileNotFound& e)
+    {
+      OPENMS_LOG_INFO << e.what() << std::endl;
+    }
   }
 };
 
