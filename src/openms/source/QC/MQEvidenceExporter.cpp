@@ -238,6 +238,9 @@ void MQEvidence::exportRowFromFeature_(
   const MSExperiment& exp,
   const std::map<String,String>& prot_mapper)
 {
+
+  MQExporterHelper::MQCommonOutputs common_outputs{f, cmap, c_feature_number, raw_file, UIDs, mp_f, exp, prot_mapper};
+
   const PeptideHit* ptr_best_hit; // the best hit referring to score
   const ConsensusFeature& cf = cmap[c_feature_number];
   Size pep_ids_size = 0;
@@ -278,6 +281,12 @@ void MQEvidence::exportRowFromFeature_(
   file_ << pep_seq.toUnmodifiedString() << "\t"; // Sequence
   file_ << pep_seq.size() << "\t";               // Length
 
+
+  file_ << common_outputs.modifications.rdbuf() << "\t"; // Modifications
+  file_ << "_" << pep_seq << "_" << "\t"; // Modified Sequence
+  file_ << common_outputs.acetyl.rdbuf() << "\t", // Acetyl (Protein N-term)
+  file_ << common_outputs.oxidation.rdbuf() << "\t"; // Oxidation (M)
+  /*
   std::map<String, Size> modifications;
   if (pep_seq.hasNTerminalModification())
   {
@@ -309,7 +318,6 @@ void MQEvidence::exportRowFromFeature_(
     }
     file_ << "\t";
   }
-  file_ << "_" << pep_seq << "_" << "\t"; // Modified Sequence
 
   if (pep_seq.hasNTerminalModification())
   {
@@ -321,7 +329,7 @@ void MQEvidence::exportRowFromFeature_(
     file_ << 0 << "\t"; // Acetyl (Protein N-term)
   }
   modifications.find("Oxidation (M)") == modifications.end() ? file_ << "0" << "\t" :
-                                                               file_ << modifications.find("Oxidation (M)")->second << "\t";
+                                                               file_ << modifications.find("Oxidation (M)")->second << "\t";*/
 
 
   file_ << ptr_best_hit->getMetaValue("missed_cleavages", "NA") << "\t"; // missed cleavages

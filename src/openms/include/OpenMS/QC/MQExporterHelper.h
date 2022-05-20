@@ -54,7 +54,6 @@ public:
   struct MQCommonOutputs
   {
     std::stringstream modifications;
-    std::stringstream modified_sequence;
     std::stringstream acetyl;
     std::stringstream oxidation;
     std::stringstream gene_names;
@@ -119,7 +118,7 @@ public:
 
     @return Returns distinct number for every Protein
   */
-  OpenMS::Size proteinGroupID_(std::map<OpenMS::String, OpenMS::Size>& protein_id_,
+  static OpenMS::Size proteinGroupID_(std::map<OpenMS::String, OpenMS::Size>& protein_id_,
                                const OpenMS::String& protein_accession);
 
   /**
@@ -132,7 +131,7 @@ public:
     @return Returns map, the index is a FeatureID, the value is the index of the ConsensusFeature
     in the vector of ConsensusMap
   */
-  std::map<OpenMS::Size, OpenMS::Size> makeFeatureUIDtoConsensusMapIndex_(const OpenMS::ConsensusMap& cmap);
+  static std::map<OpenMS::Size, OpenMS::Size> makeFeatureUIDtoConsensusMapIndex_(const OpenMS::ConsensusMap& cmap);
 
   /**
     @brief Checks if Feature has valid PeptideIdentifications
@@ -190,5 +189,5 @@ public:
 
       @return Returns true if evidence.txt is writable
   */
-  bool isValid(std::string filename_);
+  static bool isValid(std::string filename_);
 };

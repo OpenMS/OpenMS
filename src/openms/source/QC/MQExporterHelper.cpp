@@ -114,8 +114,6 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
       modifications << ";" << it->first;
     }
   }
-  modified_sequence.clear();
-  modified_sequence << "_" << pep_seq << "_"; // Modified Sequence
 
   if (pep_seq.hasNTerminalModification())
   {
@@ -129,21 +127,28 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
   oxidation.clear();
   modifications_temp.find("Oxidation (M)") == modifications_temp.end() ? oxidation << "0" : oxidation << modifications_temp.find("Oxidation (M)")->second;
 
-  const auto& prot_mapper_it = prot_mapper.find(pep_evidences[0].getProteinAccession());
-  if (prot_mapper_it == prot_mapper.end())
+  const std::set<String>& accessions = ptr_best_hit->extractProteinAccessionsSet();
+  std::vector<String> gene_names_temp;
+  std::vector<String> protein_names_temp;
+  for(const auto& prot_access : accessions)
   {
-    gene_names.str("NA");    // Gene Names
-    protein_names.str("NA"); // Protein Names
-  }
-  else
-  {
-    auto protein_description = prot_mapper_it->second;
-    auto gene_name = protein_description.substr(protein_description.find("GN=") + 3);
-    gene_name = gene_name.substr(0, gene_name.find(" "));
+    const auto& prot_mapper_it = prot_mapper.find(prot_access);
+    if(prot_mapper_it == prot_mapper.end())
+    {
+      continue;
+    }
+    else
+    {
+      auto protein_description = prot_mapper_it->second;
+      auto gene_name = protein_description.substr(protein_description.find("GN=") + 3);
+      gene_name = gene_name.substr(0,gene_name.find(" "));
+      gene_names_temp.push_back(std::move(gene_name));
+      protein_names_temp.push_back(std::move(protein_description));
+    }
 
-    gene_names.str(gene_name);              // Gene Names
-    protein_names.str(protein_description); // Protein Names
   }
+  gene_names.str(ListUtils::concatenate(gene_names, ';'));     //Gene Names
+  protein_names.str(ListUtils::concatenate(protein_names, ';'));  //Protein Names
 
   msms_mz.clear();
   if (f.metaValueExists("spectrum_index") && !exp.empty() && exp.getNrSpectra() >= (OpenMS::Size)f.getMetaValue("spectrum_index") && !exp[f.getMetaValue("spectrum_index")].empty())

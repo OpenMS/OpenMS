@@ -522,13 +522,13 @@ private:
       pep_id.sort(); // sort the PeptideHits of PeptideIdentifications by Score (Best PeptideHit at index 0)
     }
     std::sort(pep_ids.begin(), pep_ids.end(), [](const PeptideIdentification& a,const PeptideIdentification& b)
-              {
-                if (a.empty() || b.empty())
-                {
-                  return a.empty() > b.empty();
-                }
-                return a.getHits()[0].getScore() > b.getHits()[0].getScore(); // sort the PeptideIdentifications by their PeptideHit with the highest Score
-              });
+    {
+      if (a.empty() || b.empty())
+      {
+        return a.empty() > b.empty();
+      }
+      return a.getHits()[0].getScore() > b.getHits()[0].getScore(); // sort the PeptideIdentifications by their PeptideHit with the highest Score
+    });
   }
 
   void addPepIDMetaValues_(
