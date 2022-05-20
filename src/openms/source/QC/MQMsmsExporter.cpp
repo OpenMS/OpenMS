@@ -154,11 +154,13 @@ void MQMsms::exportRowFromFeature_(
         const OpenMS::MSExperiment& exp = {})
 {
 
+  MQExporterHelper::MQCommonOutputs common_outputs{f, cmap, c_feature_number, raw_file, UIDs, mp_f, exp, prot_mapper};
+
   const PeptideHit* ptr_best_hit; // the best hit referring to score
   const ConsensusFeature& cf = cmap[c_feature_number];
   Size pep_ids_size = 0;
   String type;
-  if (MQExportHelper::hasValidPepID_(f, c_feature_number, UIDs, mp_f))
+  if (MQExporterHelper::hasValidPepID_(f, c_feature_number, UIDs, mp_f))
   {
     for (Size i = 1; i < f.getPeptideIdentifications().size(); ++i) // for msms-count
     {
@@ -175,7 +177,7 @@ void MQMsms::exportRowFromFeature_(
     type = "MULTI-MSMS";
     ptr_best_hit = &f.getPeptideIdentifications()[0].getHits()[0];
   }
-    else if (MQExportHelper::hasPeptideIdentifications_(cf))
+    else if (MQExporterHelper::hasPeptideIdentifications_(cf))
   {
     type = "MULTI-MATCH";
     ptr_best_hit = &cf.getPeptideIdentifications()[0].getHits()[0];
@@ -193,24 +195,6 @@ void MQMsms::exportRowFromFeature_(
     return;
   }
 
-  std::map<String, Size> modifications;
-  if (pep_seq.hasNTerminalModification())
-  {
-    const String& n_terminal_modification = pep_seq.getNTerminalModificationName();
-    modifications.emplace(std::make_pair(n_terminal_modification, 1));
-  }
-  if (pep_seq.hasCTerminalModification())
-  {
-    modifications.emplace(std::make_pair(pep_seq.getCTerminalModificationName(), 1));
-  }
-  for (Size i = 0; i < pep_seq.size(); ++i)
-  {
-    if (pep_seq.getResidue(i).isModified())
-    {
-      ++modifications[pep_seq.getResidue(i).getModification()->getFullId()];
-    }
-  }
-
 // what is written in the file in this exact order 
 
   file_ << raw_file << "\t"; // raw file
@@ -220,95 +204,72 @@ void MQMsms::exportRowFromFeature_(
   file_ << pep_seq.size() << "\t";               // Length
   file_ << ptr_best_hit->getMetaValue("missed_cleavages", "NA") << "\t"; // missed cleavages
 
-  if (modifications.empty())
-  {
-    file_ << "Unmodified"
-          << "\t";
-  }
-  else
-  {
-    for (const auto& m : modifications)
-    {
-      file_ << m.first << ";"; // Modification
-    }
-    file_ << "\t";
-  }
-  file_ << "_" << pep_seq << "_" << "\t"; // Modified Sequence
 
-  if (pep_seq.hasNTerminalModification())
-  {
-  const String& n_terminal_modification = pep_seq.getNTerminalModificationName();
-  n_terminal_modification.hasSubstring("Acetyl") ? file_ << 1 << "\t" : file_ << 0 << "\t"; // Acetyl (Protein N-term)
-  }
-  else
-  {
-    file_ << 0 << "\t"; // Acetyl (Protein N-term)
-  }
-  
-  modifications.find("Oxidation (M)") == modifications.end() ? file_ << "0"
-																     << "\t" :
-															   file_ << modifications.find("Oxidation (M)")->second << "\t"; // Oxidation (M)
+  file_ << common_outputs.modifications << "\t"; // Modifications
+  file_ << "_" << common_outputs.modified_sequence << "_" << "\t"; // Modified Sequence
+  file_ << common_outputs.acetyl << "\t"; // Acetyl (Protein N-term)
+  file_ << common_outputs.oxidation << "\t"; // Oxidation (M)
   
   const std::set<String>& accessions = ptr_best_hit->extractProteinAccessionsSet();
-  for (const String& p : accessions)
-  {
-    file_ << p << ";"; // Proteins
-  }
-  file_ << "\t";
+  file_ << ListUtils::concatenate(accessions, ";") << "\t";  // Proteins
   
-  file_ << f.getCharge() << "\t";           // Charge
+  file_ << f.getCharge() << "\t"; // Charge
   
-  file_ << "Fragmentation" << "\t";
-  file_ << "Mass analyzer" << "\t";
+  file_ << "Fragmentation" << "\t"; // Fragmentation
+  file_ << "Mass analyzer" << "\t"; // Mass analyzer
   file_ << type << "\t"; // type
-  file_ << "Scan event number" << "\t";
-  file_ << "Isotope index" << "\t";
-  file_ << f.getMZ() << "\t";               // M/Z
-  file_ << "Mass" << "\t"; // Mass
-  file_ << "Mass error [ppm]" << "\t";
-  file_ << "Mass error [Da]" << "\t";
-  file_ << "Simple mass error [ppm]" << "\t";
-  file_ << "Retention time" << "\t"; 
-  file_ << "PEP" << "\t";
-  file_ << "Score" << "\t"; 
-  file_ << "Delta score" << "\t";
-  file_ << "Score diff" << "\t";
-  file_ << "Localization prob" << "\t";
-  file_ << "Fraction of total spectrum" << "\t";
-  file_ << "Base peak fraction" << "\t";
-  file_ << "Precursor full scan number" << "\t";
-  file_ << "Precursor Intensity" << "\t";
-  file_ << "Precursor apex fraction" << "\t";
-  file_ << "Precursor apex offset" << "\t";
-  file_ << "Precursor apex offset time" << "\t";
-  file_ << "Matches Intensities" << "\t";
-  file_ << "Mass deviations [Da]" << "\t";
-  file_ << "Mass deviations [ppm]" << "\t";
-  file_ << "Masses" << "\t";
-  file_ << "Number of matches" << "\t";
-  file_ << "Intensity coverage" << "\t";
-  file_ << "Peak coverage" << "\t";
-  file_ << "Neutral loss level" << "\t";
-  file_ << "ETD identification type" << "\t";
+  file_ << "Scan event number" << "\t"; // Scan event number
+  file_ << "Isotope index" << "\t"; // Isotope index
+  file_ << f.getMZ() << "\t"; // M/Z
+  file_ << pep_seq.getMonoWeight() << "\t"; // Mass
+  file_ << common_outputs.mass_error_ppm << "\t"; // Mass Error [ppm]
+  file_ << common_outputs.mass_error_da << "\t"; // Mass error [Da]
+  file_ << "Simple mass error [ppm]" << "\t"; // Simple mass error [ppm]
+
+  f.metaValueExists("rt_raw_end") && f.metaValueExists("rt_raw_start") ?
+    file_ << (double(f.getMetaValue("rt_raw_end")) - double(f.getMetaValue("rt_raw_start"))) / 60 << "\t" : file_
+      << "NA" << "\t"; // Retention time
+  // hier weiter...
+  file_ << "PEP" << "\t"; // PEP
+  file_ << "Score" << "\t"; // Score
+  file_ << "Delta score" << "\t"; // Delta score
+  file_ << "Score diff" << "\t"; // Score diff
+  file_ << "Localization prob" << "\t"; // Localization prob
+  file_ << "Fraction of total spectrum" << "\t"; // Fraction of total spectrum
+  file_ << "Base peak fraction" << "\t"; // Base peak fraction
+  file_ << "Precursor full scan number" << "\t"; // Precursor full scan number
+  file_ << "Precursor Intensity" << "\t"; // Precursor Intensity
+  file_ << "Precursor apex fraction" << "\t"; // Precursor apex fraction
+  file_ << "Precursor apex offset" << "\t"; // Precursor apex offset
+  file_ << "Precursor apex offset time" << "\t"; // Precursor apex offset time
+  file_ << "Matches Intensities" << "\t"; // Matches Intensities
+  file_ << "Mass deviations [Da]" << "\t"; // Mass deviations [Da]
+  file_ << "Mass deviations [ppm]" << "\t"; // Mass deviations [ppm]
+  file_ << "Masses" << "\t"; // Masses
+  file_ << "Number of matches" << "\t"; // Number of matches
+  file_ << "Intensity coverage" << "\t"; // Intensity coverage
+  file_ << "Peak coverage" << "\t"; // Peak coverage
+  file_ << "Neutral loss level" << "\t"; // Neutral loss level
+  file_ << "ETD identification type" << "\t"; // ETD identification type
   ptr_best_hit->getMetaValue("target_decoy") == "decoy" ? file_ << "1"
                                                                 << "\t" :
                                                           file_ << "\t"; // reverse
                                                           
-  file_ << "All scores" << "\t";
-  file_ << "All sequences" << "\t";
-  file_ << "All modified sequences" << "\t";
+  file_ << "All scores" << "\t"; // All scores
+  file_ << "All sequences" << "\t"; // All sequences
+  file_ << "All modified sequences" << "\t"; // All modified sequences
   
   file_ << id_ << "\t"; // ID
   ++id_;
   
-  file_ << MQExportHelper::proteinGroupID_(acessions(0)); // nicht sicher
+  file_ << MQExporterHelper::proteinGroupID_(acessions(0)); // nicht sicher
   for (const String& p : accessions)
   {
-    file_ << ";" << MQExportHelper::proteinGroupID_(p+1); // Protein group ids
+    file_ << ";" << MQExporterHelper::proteinGroupID_(p+1); // Protein group ids
   }
   file_ << "\t";
 
-  file_ << "Evidence ID" << "\t";
+  file_ << "Evidence ID" << "\t"; // Evidence ID
 
 
 }
