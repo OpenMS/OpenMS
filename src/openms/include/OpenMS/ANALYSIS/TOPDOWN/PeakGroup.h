@@ -162,19 +162,19 @@ namespace OpenMS
     /// get per abs_charge intenstiy
     float getChargeIntensity(const int abs_charge) const;
 
-    /// get mz range that results in max Qscore
+    /// get mz range that results in max QScore
     std::tuple<double, double> getMaxQScoreMzRange() const;
 
     /// get mz range of the charge
     std::tuple<double, double> getMzRange(int abs_charge) const;
 
-    /// get charge range
+    /// get charge range - the actual charge values
     std::tuple<int, int> getAbsChargeRange() const;
 
     /// get isotopic cosine score
     float getIsotopeCosine() const;
 
-    /// get representative chrage
+    /// get representative charge
     int getRepAbsCharge() const;
 
     /// get Q score

@@ -51,7 +51,6 @@ namespace OpenMS
        performed here for conventional datasets. But for FLASHIda acquired datasets, the assignment is already done by FLASHIda.
        So this class simply use the results from FLASHIda log file for assignment. The parsing of FLASHIda log file is done
        in FLASHDeconv tool class.
-       It also contains functions to write in different formats and a function to export this class into MSSpectrum.
   */
   class OPENMS_DLLAPI DeconvolvedSpectrum
   {
@@ -80,51 +79,6 @@ namespace OpenMS
     /// assignment operator
     DeconvolvedSpectrum& operator=(const DeconvolvedSpectrum& deconvolved_spectrum) = default;
 
-    /**
-        @brief write the header in the tsv output file (spectrum level)
-        @param fs file stream to the output file
-        @param ms_level ms level of the spectrum
-        @param detail if set true, detailed information of the mass (e.g., peak list for the mass) is written
-   */
-    static void writeDeconvolvedMassesHeader(std::fstream& fs,
-                                              const int ms_level,
-                                              const bool detail);
-
-    /**
-      @brief write the deconvolved masses in the output file (spectrum level)
-      @param fs file stream to the output file
-      @param file_name the output file name that the deconvolved masses will be written.
-      @param avg averagine information to calculate monoisotopic and average mass difference within this function. In PeakGroup (peaks of DeconvolvedSpectrum) only monoisotopic mass is recorded. To write both monoisotopic and average masses, their mass difference should be calculated using this averagine information.
-      @param write_detail if this is set, more detailed information on each mass will be written in the output file.
-      Default MS1 headers are:
-        FileName, ScanNum, RetentionTime, MassCountInSpec, AverageMass, MonoisotopicMass,
-        SumIntensity, MinCharge, MaxCharge,
-        PeakCount, IsotopeCosine, ChargeScore, MassSNR, ChargeSNR, RepresentativeCharge, RepresentativeMzStart, RepresentativeMzEnd, QScore, PerChargeIntensity, PerIsotopeIntensity
-
-      Default MS2 headers include MS1 headers plus:
-        PrecursorScanNum, PrecursorMz, PrecursorIntensity, PrecursorCharge, PrecursorSNR, PrecursorMonoisotopicMass, PrecursorQScore
-
-      Detailed MS1 and MS2 headers include all corresponding headers above plus:
-        PeakMZs, PeakIntensities, PeakCharges, PeakMasses, PeakIsotopeIndices, PeakPPMErrors
-    */
-    void writeDeconvolvedMasses(std::fstream& fs,
-                                 const String& file_name,
-                                 const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                 const bool write_detail);
-
-    /**
-      @brief write the deconvolved masses TopFD output (*.msalign)
-      @param fs file stream to the output file
-      @param avg averagine information to calculate monoisotopic and average mass difference
-      @param snr_threshold SNR threshold to filter out low SNR precursors. Even if a PeakGroup has a high deconvolution quality, it should be still discarded for identification when its precursor SNR (SNR within the isolation window) is too low.
-      @param decoy_harmonic_factor this factor will be multiplied to precursor mass and charge. To generate decoy spectra
-      @param decoy_precursor_offset this value will be added to precursor mass. To generate decoy spectra
-    */
-    void writeTopFD(std::fstream& fs,
-                    const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                    const double snr_threshold = 1.0,
-                    const double decoy_harmonic_factor = 1.0,
-                    const double decoy_precursor_offset = .0);
 
     /// Convert DeconvolutedSpectrum to MSSpectrum (e.g., used to store in mzML format).
     /// @param to_charge the charge of each peak in mzml output.
@@ -208,13 +162,9 @@ namespace OpenMS
     /// precursor raw peak (not deconvolved one)
     Precursor precursor_peak_;
     /// activation method for file output
-    std::string activation_method_;
+    String activation_method_;
     /// scan number and precursor scan number
     int scan_number_ = 0, precursor_scan_number_ = 0;
-    /// number of minimum peak count in topFD msalign file
-    int topFD_min_peak_count_ = 3;
-    /// number of maximum peak count in topFD msalign file
-    int topFD_max_peak_count_ = 500;
 
   };
 }

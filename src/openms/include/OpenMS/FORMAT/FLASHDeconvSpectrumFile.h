@@ -28,14 +28,15 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
+// $Maintainer: Kyowon Jeong $
 // $Authors: Kyowon Jeong $
 // --------------------------------------------------------------------------
 #pragma once
 
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/config.h>
-
-
+#include <iomanip>
 
 namespace OpenMS
 {
@@ -46,6 +47,62 @@ namespace OpenMS
 
   class OPENMS_DLLAPI FLASHDeconvSpectrumFile
   {
+  public:
+    /**
+            @brief write the header in the tsv output file (spectrum level)
+            @param fs file stream to the output file
+            @param ms_level ms level of the spectrum
+            @param detail if set true, detailed information of the mass (e.g., peak list for the mass) is written
+       */
+    static void writeDeconvolvedMassesHeader(std::fstream& fs,
+                                             const int ms_level,
+                                             const bool detail);
+
+    /**
+          @brief write the deconvolved masses in the output file (spectrum level)
+          @param dspec deconvolved spectrum to write
+          @param fs file stream to the output file
+          @param file_name the output file name that the deconvolved masses will be written.
+          @param avg averagine information to calculate monoisotopic and average mass difference within this function. In PeakGroup (peaks of DeconvolvedSpectrum) only monoisotopic mass is recorded. To write both monoisotopic and average masses, their mass difference should be calculated using this averagine information.
+          @param write_detail if this is set, more detailed information on each mass will be written in the output file.
+          Default MS1 headers are:
+            FileName, ScanNum, RetentionTime, MassCountInSpec, AverageMass, MonoisotopicMass,
+            SumIntensity, MinCharge, MaxCharge,
+            PeakCount, IsotopeCosine, ChargeScore, MassSNR, ChargeSNR, RepresentativeCharge, RepresentativeMzStart, RepresentativeMzEnd, QScore, PerChargeIntensity, PerIsotopeIntensity
+
+          Default MS2 headers include MS1 headers plus:
+            PrecursorScanNum, PrecursorMz, PrecursorIntensity, PrecursorCharge, PrecursorSNR, PrecursorMonoisotopicMass, PrecursorQScore
+
+          Detailed MS1 and MS2 headers include all corresponding headers above plus:
+            PeakMZs, PeakIntensities, PeakCharges, PeakMasses, PeakIsotopeIndices, PeakPPMErrors
+        */
+    static void writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, std::fstream& fs,
+                                       const String& file_name,
+                                       const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
+                                       const bool write_detail);
+
+
+    /**
+      @brief write the deconvolved masses TopFD output (*.msalign)
+         @param dspec deconvolved spectrum to write
+      @param fs file stream to the output file
+      @param avg averagine information to calculate monoisotopic and average mass difference
+      @param snr_threshold SNR threshold to filter out low SNR precursors. Even if a PeakGroup has a high deconvolution quality, it should be still discarded for identification when its precursor SNR (SNR within the isolation window) is too low.
+      @param decoy_harmonic_factor this factor will be multiplied to precursor mass and charge. To generate decoy spectra
+      @param decoy_precursor_offset this value will be added to precursor mass. To generate decoy spectra
+    */
+    static void writeTopFD(const DeconvolvedSpectrum& dspec, std::fstream& fs,
+                           const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
+                           const double snr_threshold = 1.0,
+                           const double decoy_harmonic_factor = 1.0,
+                           const double decoy_precursor_offset = .0);
+
+  private:
+
+    /// number of minimum peak count in topFD msalign file
+    static const int topFD_min_peak_count_ = 3;
+    /// number of maximum peak count in topFD msalign file
+    static const int topFD_max_peak_count_ = 500;
 
   };
-}
+}// namespace OpenMS

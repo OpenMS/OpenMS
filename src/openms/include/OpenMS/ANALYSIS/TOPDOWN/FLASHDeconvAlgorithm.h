@@ -200,7 +200,7 @@ namespace OpenMS
     /// current ms Level
     int ms_level_;
 
-    /// high and low charges are differently deconvolved. This vale determines the (includisve) threshold for low charge.
+    /// high and low charges are differently deconvolved. This value determines the (inclusive) threshold for low charge.
     const int low_charge_ = 10; // inclusive
 
     /// default precursor isolation window size.
@@ -210,7 +210,8 @@ namespace OpenMS
     const int max_peak_count_ = 30000;//30000
 
     /** Examine charge intensity distribution of each peak group
-        @per_charge_intensity per charge intensity - aggregated through isotope indices
+        @param per_charge_intensity per charge intensity - aggregated through isotope indices
+        @param len charge range length to consider. per_charge_intensity stores all possible charge intensities from 0 to max charges. But only 0 to maximum charge of each peak group should be considered. This specifies the max charge range.
         @return calculated charge fit score (0 - 1)
      */
     double getChargeFitScore_(const std::vector<double>& per_charge_intensity, Size len);

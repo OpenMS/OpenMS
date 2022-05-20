@@ -42,6 +42,8 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -189,9 +191,8 @@ START_SECTION((void findFeatures(const String &file_name, const bool promex_out,
   mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec2);
   mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec3);
 
-  mass_tracer.writeHeader(fsf);
-  mass_tracer.findFeatures("tmp_file", false, false, null_map, averagine, feature_count, feature_index,
-                           fsf, fsp, topfd_streams);
+  FLASHDeconvFeatureFile::writeHeader(fsf);
+  mass_tracer.findFeatures(averagine);
   fsf.close();
 
   // get test sample output

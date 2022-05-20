@@ -2132,6 +2132,7 @@ namespace OpenMS
         {
           deconvolved_spectrum_.setActivationMethod("HCD");
         }
+        break;
       }
       deconvolved_spectrum_.setPrecursor(precursor);
 
