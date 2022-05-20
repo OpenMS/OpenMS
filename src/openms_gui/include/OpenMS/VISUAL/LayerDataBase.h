@@ -56,6 +56,7 @@ class QWidget;
 
 namespace OpenMS
 {
+  class LayerData1DBase;
   class LayerVisibleData;
   class LayerStatistics;
   class OnDiscMSExperiment;
@@ -64,6 +65,20 @@ namespace OpenMS
   template <int N_DIM> class DimMapper;
 
   struct LayerDataDefs {
+
+    /// Result of computing a projection on X and Y axis in a 2D Canvas; see LayerDataBase::getProjection()
+    struct ProjectionData
+    {
+      std::unique_ptr<LayerData1DBase> projection_ontoX;
+      std::unique_ptr<LayerData1DBase> projection_ontoY;
+      struct Summary
+      {
+        UInt number_of_datapoints{0};
+        Peak1D::IntensityType max_intensity{0};
+        double sum_intensity{0}; // double since sum could get large
+      } stats;
+    };
+
     /** @name Type definitions */
     //@{
     /// Dataset types.
@@ -193,11 +208,17 @@ namespace OpenMS
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    /// Returns a visitor which contains the current visible data and can write the data to disk
+    /// Returns a visitor which contains the the full data of the layer and can write the data to disk in the appropriate format (e.g. mzML)
     virtual std::unique_ptr<LayerVisibleData> storeFullData() const
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
+
+    /// Calculate a projection of the current layer for the given unit and the given area.
+    /// E.g. the area might be restricted in RT and m/z, and then requested projection should return the XIC (@p unit == RT)
+    /// It is up to the implementation to decide on binning.
+    // todo: put this into a LayerData2DBase class, since a LayerData1DPeak should not implement this.
+    virtual ProjectionData getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const = 0;
 
     /**
      * \brief Find the closest datapoint within the given range and return a proxy to that datapoint

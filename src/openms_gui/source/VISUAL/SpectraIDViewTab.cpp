@@ -32,6 +32,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/VISUAL/LayerDataPeak.h"
+
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/SequenceVisualizer.h>
 
@@ -396,7 +398,7 @@ namespace OpenMS
     if (table_widget_->selectionModel()->selectedRows().empty())
     {
       // deselect whatever is currently shown
-      layer_->getCurrentSpectrumIndex();
+      //layer_->getCurrentSpectrumIndex();
       // Deselecting spectrum does not do what you think it does. It still paints stuff. Without annotations..
       // so just leave it for now.
       //
@@ -432,7 +434,7 @@ namespace OpenMS
     }
     
     // deselect whatever is currently shown
-    int last_spectrum_index = int(layer_->getCurrentSpectrumIndex());
+    int last_spectrum_index = int(dynamic_cast<LayerData1DPeak*>(layer_)->getCurrentIndex());
     emit spectrumDeselected(last_spectrum_index);
 
     int current_spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
@@ -714,7 +716,7 @@ namespace OpenMS
       return;
     }
 
-    int restore_spec_index = layer_->getCurrentSpectrumIndex();
+    int restore_spec_index = int(dynamic_cast<LayerData1DPeak*>(layer_)->getCurrentIndex());
 
     set<String> common_keys;
     bool has_peak_annotations(false);
@@ -968,7 +970,7 @@ namespace OpenMS
     }
 
     // synchronize PeptideHits with the annotations in the spectrum
-    layer_->synchronizePeakAnnotations();
+    dynamic_cast<LayerData1DPeak*>(layer_)->synchronizePeakAnnotations();
 
     vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
     vector<PeptideIdentification> all_pep_ids;

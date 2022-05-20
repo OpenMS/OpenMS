@@ -80,10 +80,6 @@ namespace OpenMS
 
   Plot2DCanvas::Plot2DCanvas(const Param & preferences, QWidget * parent) :
     PlotCanvas(preferences, parent),
-    projection_mz_(),
-    projection_rt_(),
-    selected_peak_(),
-    measurement_start_(),
     pen_size_min_(1),
     pen_size_max_(20),
     canvas_coverage_min_(0.2)
@@ -104,9 +100,6 @@ namespace OpenMS
     setParameters(preferences);
 
     linear_gradient_.fromString(param_.getValue("dot:gradient"));
-
-    projection_mz_.resize(1);
-    projection_rt_.resize(1);
 
     // connect preferences change to the right slot
     connect(this, SIGNAL(preferencesChange()), this, SLOT(currentLayerParametersChanged_()));
@@ -1052,76 +1045,11 @@ namespace OpenMS
       return;
     }
 
-    //create projection data
-    map<float, float> rt;
-    map<int, float> mzint;
-    map<int, float> mzsum;
 
-    UInt peak_count = 0;
-    Peak1D::IntensityType intensity_max = 0.0;
-    double total_intensity_sum = 0.0; // double because sum could get large
+    auto proj_X = layer->getProjection(unit_mapper_.getDim(DIM::X).getUnit(), visible_area_.getAreaUnit());
+    auto proj_Y = layer->getProjection(unit_mapper_.getDim(DIM::Y).getUnit(), visible_area_.getAreaUnit());
 
-    // divide visible range into 100 bins (much faster than using a constant, e.g. 0.05, leading to many peaks for large maps without more information)
-    float mz_range = visible_area_.getAreaUnit().RangeMZ::getSpan();
-    float mult = 100.0f / (std::isnan(mz_range) ? 1 : mz_range);
-
-    for (auto i = layer->getPeakData()->areaBeginConst(visible_area_.getAreaUnit().getMinRT(), 
-                                                       visible_area_.getAreaUnit().getMaxRT(),
-                                                       visible_area_.getAreaUnit().getMinMZ(),
-                                                       visible_area_.getAreaUnit().getMaxMZ());
-         i != layer->getPeakData()->areaEndConst();
-         ++i)
-    {
-      PeakIndex pi = i.getPeakIndex();
-      if (layer->filters.passes((*layer->getPeakData())[pi.spectrum], pi.peak))
-      {
-        // summary stats
-        ++peak_count;
-        total_intensity_sum += i->getIntensity();
-        intensity_max = max(intensity_max, i->getIntensity());
-        
-        // binning for m/z
-        auto intensity = i->getIntensity();
-        mzint[int(i->getMZ() * mult)] += intensity;
-        // ... to later obtain an intensity weighted average m/z value
-        mzsum[int(i->getMZ() * mult)] += i->getMZ() * intensity;
-
-        // binning in RT (one value per scan)
-        rt[i.getRT()] += i->getIntensity();
-      }
-    }
-
-    // write to spectra
-    projection_mz_[0].resize(mzint.size() + 2);
-    projection_mz_[0][0].setMZ(visible_area_.getAreaUnit().getMinMZ());
-    projection_mz_[0][0].setIntensity(0.0);
-    projection_mz_[0][1].setMZ(visible_area_.getAreaUnit().getMaxMZ());
-    projection_mz_[0][1].setIntensity(0.0);
-    projection_rt_[0].resize(rt.size() + 2);
-    projection_rt_[0][0].setMZ(visible_area_.getAreaUnit().getMinRT());
-    projection_rt_[0][0].setIntensity(0.0);
-    projection_rt_[0][1].setMZ(visible_area_.getAreaUnit().getMaxRT());
-    projection_rt_[0][1].setIntensity(0.0);
-
-    Size i = 2;
-    map<int, float>::iterator intit = mzint.begin();
-
-    for (map<int, float>::iterator it = mzsum.begin(); it != mzsum.end(); ++it)
-    {
-      auto intensity = intit->second;
-      projection_mz_[0][i].setMZ(it->second / intensity);
-      projection_mz_[0][i].setIntensity(intensity);
-      ++intit;
-      ++i;
-    }
-
-    i = 2;
-    for (map<float, float>::iterator it = rt.begin(); it != rt.end(); ++it)
-    {
-      projection_rt_[0][i].setMZ(it->first);
-      projection_rt_[0][i].setIntensity(it->second);
-      ++i;
-    }
+    
 
     ExperimentSharedPtrType projection_mz_sptr(new ExperimentType(projection_mz_));
     ExperimentSharedPtrType projection_rt_sptr(new ExperimentType(projection_rt_));

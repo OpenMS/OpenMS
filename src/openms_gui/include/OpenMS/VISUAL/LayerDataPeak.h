@@ -66,6 +66,8 @@ namespace OpenMS
 
     std::unique_ptr<LayerVisibleData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
     std::unique_ptr<LayerVisibleData> storeFullData() const override;
+    ProjectionData getProjection(const DIM_UNIT unit, const RangeAllType& area) const override;
+
 
 
     void updateRanges() override

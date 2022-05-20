@@ -126,9 +126,6 @@ public slots:
 
     Emitted signals are showProjectionHorizontal(ExperimentSharedPtrType, Plot1DCanvas::DrawModes, PlotCanvas::IntensityModes) and
     showProjectionVertical(ExperimentSharedPtrType, Plot1DCanvas::DrawModes, PlotCanvas::IntensityModes).
-
-    @see projection_mz_
-    @see projection_rt_
     */
     void updateProjections();
 
@@ -358,11 +355,6 @@ protected:
     /// Finishes context menu after customization to peaks, features or consensus features
     void finishContextMenu_(QMenu* context_menu, QMenu* settings_menu);
 
-    /// m/z projection data
-    ExperimentType projection_mz_;       // FIXME: make this a layer, which can hold arbitrary marginal data (e.g. chromatograms, mobilograms etc)
-    /// RT projection data
-    ExperimentType projection_rt_;
-    
     /// the nearest peak/feature to the mouse cursor
     PeakIndex selected_peak_;
     /// start peak/feature of measuring mode

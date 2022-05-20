@@ -92,13 +92,8 @@ namespace OpenMS
       }
       w->canvas()->activateSpectrum(index);
 
-      //for MS1 spectra set visible area to visible area in 2D view.
-      UInt ms_level = w->canvas()->getCurrentLayer().getCurrentSpectrum().getMSLevel();
-      if (ms_level == 1)
-      {
-        // set visible area to visible area in 2D view
-        w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
-      }
+      // for MS1 spectra set visible area to visible area in 2D view.
+      w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
     }
     else
     {
