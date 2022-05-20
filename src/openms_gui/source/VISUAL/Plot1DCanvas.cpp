@@ -50,8 +50,8 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 
-#include <OpenMS/VISUAL/LayerData1DBase.h>
-#include <OpenMS/VISUAL/LayerDataPeak.h>
+#include <OpenMS/VISUAL/LayerData1DPeak.h>
+#include <OpenMS/VISUAL/LayerData1DChrom.h>
 
 // Qt
 #include <QMouseEvent>

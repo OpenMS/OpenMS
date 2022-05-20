@@ -88,11 +88,16 @@ namespace OpenMS
 
     virtual ValueType map(const Peak1D& p) const = 0;
     virtual ValueType map(const Peak2D& p) const = 0;
+    virtual ValueType map(const ChromatogramPeak& p) const = 0;
     virtual ValueType map(MSExperiment::ConstAreaIterator it) const = 0;
     
     /// obtain vector of same length as @p spec; one element per peak
     /// @throw Exception::InvalidRange if elements do not support the dimension
     virtual ValueTypes map(const MSSpectrum& spec) const = 0;
+
+    /// obtain vector of same length as @p spec; one element per peak
+    /// @throw Exception::InvalidRange if elements do not support the dimension
+    virtual ValueTypes map(const MSChromatogram& chrom) const = 0;
 
     virtual ValueType map(const BaseFeature& bf) const = 0;
 
@@ -167,10 +172,25 @@ namespace OpenMS
     {
       return p.getRT();
     }
+    ValueType map(const ChromatogramPeak& p) const override
+    {
+      return p.getRT();
+    }
     ValueTypes map(const MSSpectrum& spec) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
+    ValueTypes map(const MSChromatogram& chrom) const override
+    {
+      ValueTypes res;
+      res.reserve(chrom.size());
+      for (const auto& p : chrom)
+      {
+        res.push_back(p.getRT());
+      }
+      return res;
+    }
+
     ValueType map(MSExperiment::ConstAreaIterator it) const override
     {
       return it.getRT();
@@ -228,6 +248,10 @@ namespace OpenMS
     {
       return p.getMZ();
     }
+    ValueType map(const ChromatogramPeak& p) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
     ValueType map(MSExperiment::ConstAreaIterator it) const override
     {
       return it->getMZ();
@@ -242,6 +266,10 @@ namespace OpenMS
         res.push_back(p.getMZ());
       }
       return res;
+    }
+    ValueTypes map(const MSChromatogram& chrom) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }  
     
     ValueType map(const BaseFeature& bf) const override
@@ -294,6 +322,10 @@ namespace OpenMS
     {
       return p.getIntensity();
     }
+    ValueType map(const ChromatogramPeak& p) const override
+    {
+      return p.getIntensity();
+    }
     ValueType map(MSExperiment::ConstAreaIterator it) const override
     {
       return it->getIntensity();
@@ -304,6 +336,17 @@ namespace OpenMS
       ValueTypes res;
       res.reserve(spec.size());
       for (const auto& p : spec)
+      {
+        res.push_back(p.getIntensity());
+      }
+      return res;
+    }
+
+    ValueTypes map(const MSChromatogram& chrom) const override
+    {
+      ValueTypes res;
+      res.reserve(chrom.size());
+      for (const auto& p : chrom)
       {
         res.push_back(p.getIntensity());
       }

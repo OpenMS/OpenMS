@@ -100,6 +100,33 @@ namespace OpenMS
     }
   }
 
+  // helper to filter a single MSChromatogram
+  // Returns true if filtered chromatogram contains data
+  bool filterChrom(const MSChromatogram& in, MSChromatogram& out, const RangeAllType& visible_range, const DataFilters& layer_filters)
+  {
+    out = in;
+    out.clear(false); // keep metadata
+    auto it_end = in.RTEnd(visible_range.getMaxRT());
+    for (auto it = in.RTBegin(visible_range.getMinRT()); it != it_end; ++it)
+    {
+      if (layer_filters.passes(in, it - in.begin()))
+      {
+        out.push_back(*it);
+      }
+    }
+    return !out.empty();
+  }
+
+  void LayerStoreDataPeakMapVisible::storeVisibleChromatogram(const MSChromatogram& chrom, const RangeAllType& visible_range, const DataFilters& layer_filters)
+  {
+    pm_.clear(true);
+    MSChromatogram filtered;
+    if (filterChrom(chrom, filtered, visible_range, layer_filters))
+    {
+      pm_.addChromatogram(filtered);
+    }
+  }
+
   void LayerStoreDataPeakMapVisible::storeVisibleExperiment(const PeakMap& exp, const RangeAllType& visible_range, const DataFilters& layer_filters)
   {
     pm_.clear(true);

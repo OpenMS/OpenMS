@@ -44,6 +44,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
 
+
 namespace OpenMS
 {
 
@@ -103,6 +104,13 @@ namespace OpenMS
      * \param layer_filters Remove all peaks not passing this filter
      */
     void storeVisibleSpectrum(const MSSpectrum& spec, const RangeAllType& visible_range, const DataFilters& layer_filters);
+    /**
+     * \brief Stores data from a 1D canvas and remembers the data internally
+     * \param chrom The chromatogram to store
+     * \param visible_range Restricts RT (and intensity)
+     * \param layer_filters Remove all peaks not passing this filter
+     */
+    void storeVisibleChromatogram(const MSChromatogram& chrom, const RangeAllType& visible_range, const DataFilters& layer_filters);
 
     /// analog to storeVisibleSpectrum()
     void storeVisibleExperiment(const PeakMap& exp, const RangeAllType& visible_range, const DataFilters& layer_filters);

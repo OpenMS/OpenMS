@@ -20,10 +20,12 @@ InputFileList.h
 LayerListView.h
 LayerData1DBase.h
 LayerDataBase.h
+LayerData1DChrom.h
 LayerDataChrom.h
 LayerDataConsensus.h
 LayerDataFeature.h
 LayerDataIdent.h
+LayerData1DPeak.h
 LayerDataPeak.h
 ListEditor.h
 LogWindow.h

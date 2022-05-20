@@ -45,7 +45,7 @@ namespace OpenMS
 
   @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI LayerDataFeature : public LayerDataBase, public IPeptideIds
+  class OPENMS_GUI_DLLAPI LayerDataFeature : public virtual LayerDataBase, public IPeptideIds
   {
   public:
     /// Default constructor

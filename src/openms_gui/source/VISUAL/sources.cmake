@@ -23,10 +23,12 @@ InputFileList.ui
 LayerListView.cpp
 LayerData1DBase.cpp
 LayerDataBase.cpp
+LayerData1DChrom.cpp
 LayerDataChrom.cpp
 LayerDataConsensus.cpp
 LayerDataFeature.cpp
 LayerDataIdent.cpp
+LayerData1DPeak.cpp
 LayerDataPeak.cpp
 ListEditor.cpp
 LogWindow.cpp

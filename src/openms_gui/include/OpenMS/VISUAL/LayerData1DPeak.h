@@ -34,57 +34,88 @@
 
 #pragma once
 
-#include <OpenMS/VISUAL/LayerDataBase.h>
+#include <OpenMS/VISUAL/LayerData1DBase.h>
+#include <OpenMS/VISUAL/LayerDataPeak.h>
 
 namespace OpenMS
 {
-
-  /**
-  @brief Class that stores the data for one layer of type Chromatogram
-
-  @ingroup PlotWidgets
-  */
-  class OPENMS_GUI_DLLAPI LayerDataChrom : public virtual LayerDataBase
+  
+  class OPENMS_GUI_DLLAPI LayerData1DPeak : public LayerData1DBase, public LayerDataPeak
   {
-public:
-    /// Default constructor
-    LayerDataChrom() :
-        LayerDataBase(LayerDataBase::DT_CHROMATOGRAM) {};
-    /// no Copy-ctor (should not be needed)
-    LayerDataChrom(const LayerDataChrom& ld) = delete;
-    /// no assignment operator (should not be needed)
-    LayerDataChrom& operator=(const LayerDataChrom& ld) = delete;
-    /// move C'tor
-    LayerDataChrom(LayerDataChrom&& ld) = default;
-    /// move assignment
-    LayerDataChrom& operator=(LayerDataChrom&& ld) = default;
-
+  public:
+    LayerData1DPeak()
+      : LayerDataBase(DT_PEAK)
+    {
+    }
 
     std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
     std::unique_ptr<LayerStoreData> storeFullData() const override;
-    ProjectionData getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const override;
+
+    std::unique_ptr<Painter1DBase> getPainter1D() const override;
+
+    
+    RangeAllType getRangeForArea(const RangeAllType partial_range) const override
+    {
+      const auto& spec = getCurrentSpectrum();
+      auto spec_filtered = SpectrumType();
+      spec_filtered.insert(spec_filtered.begin(), spec.MZBegin(partial_range.getMinMZ()), spec.MZEnd(partial_range.getMaxMZ()));
+      spec_filtered.updateRanges();
+      return RangeAllType().assign(spec_filtered.getRange());
+    }
+
+    const ExperimentType::SpectrumType& getCurrentSpectrum() const
+    {
+      return cached_spectrum_;
+    }
+
+    void sortCurrentSpectrumByPosition()
+    {
+      cached_spectrum_.sortByPosition();
+    }
 
     void updateRanges() override
     {
-      chromatogram_map_->updateRanges();
+      LayerDataPeak::updateRanges();
+      cached_spectrum_.updateRanges();
     }
 
     RangeAllType getRange() const override
     {
-      RangeAllType r;
-      r.assign(*chromatogram_map_);
-      return r;
+      return RangeAllType().assign(getCurrentSpectrum().getRange());
     }
 
-    std::unique_ptr<LayerStatistics> getStats() const override;
+    // docu in base class
+    QMenu* getContextMenuAnnotation(Annotation1DItem* annot_item, bool& need_repaint) override;
 
-    PointXYType peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const override;
+    PeakIndex findClosestDataPoint(const RangeAllType& area) const override;
 
-    const ExperimentType::ChromatogramType getChromatogram(Size idx) const
+    const ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const
     {
-      return chromatogram_map_->getChromatogram(idx);
+      if (spectrum_idx == current_idx_)
+      {
+        return cached_spectrum_;
+      }
+      return LayerDataPeak::getSpectrum(spectrum_idx);
     }
+
+    // docu in base class
+    Annotation1DItem* addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color) override;
+
+    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
+    /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
+    void synchronizePeakAnnotations();
+
+    /// remove peak annotations in the given list from the currently active PeptideHit
+    void removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations);
+
+    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
+    void updatePeptideHitAnnotations_(PeptideHit& hit);
+
+  protected:
+    /// Current cached spectrum
+    ExperimentType::SpectrumType cached_spectrum_;
+
+
   };
 
-} //namespace
-
+}// namespace OpenMS

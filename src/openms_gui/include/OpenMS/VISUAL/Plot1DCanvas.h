@@ -623,6 +623,7 @@ protected:
     void ensureAnnotationsWithinDataRange_();
 
     friend class Painter1DPeak;
+    friend class Painter1DChrom;
 
     /////////////////////
     ////// data members

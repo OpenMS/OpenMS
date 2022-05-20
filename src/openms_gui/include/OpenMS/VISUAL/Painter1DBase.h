@@ -40,6 +40,7 @@ class QPenStyle;
 namespace OpenMS
 {
   class LayerData1DPeak;
+  class LayerData1DChrom;
   class Plot1DCanvas;
 
   /**
@@ -120,6 +121,24 @@ namespace OpenMS
     void drawMZAtInterestingPeaks_(QPainter& painter, Plot1DCanvas* canvas, MSSpectrum::ConstIterator v_begin, MSSpectrum::ConstIterator v_end) const;
 
     const LayerData1DPeak* layer_; ///< the data to paint
+  };
+
+  /**
+     @brief Painter1D for chromatograms
+
+  */
+  class OPENMS_GUI_DLLAPI Painter1DChrom : public Painter1DBase
+  {
+  public:
+    /// C'tor which remembers the layer to paint
+    Painter1DChrom(const LayerData1DChrom* parent);
+
+    /// Implementation of base class
+    void paint(QPainter*, Plot1DCanvas* canvas, int layer_index) override;
+
+  protected:
+
+    const LayerData1DChrom* layer_; ///< the data to paint
   };
 
 } // namespace OpenMS

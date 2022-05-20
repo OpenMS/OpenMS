@@ -34,57 +34,60 @@
 
 #pragma once
 
-#include <OpenMS/VISUAL/LayerDataBase.h>
+#include <OpenMS/VISUAL/LayerData1DBase.h>
+#include <OpenMS/VISUAL/LayerDataChrom.h>
 
 namespace OpenMS
 {
-
-  /**
-  @brief Class that stores the data for one layer of type Chromatogram
-
-  @ingroup PlotWidgets
-  */
-  class OPENMS_GUI_DLLAPI LayerDataChrom : public virtual LayerDataBase
+  class OPENMS_GUI_DLLAPI LayerData1DChrom : public LayerData1DBase, public LayerDataChrom
   {
-public:
-    /// Default constructor
-    LayerDataChrom() :
-        LayerDataBase(LayerDataBase::DT_CHROMATOGRAM) {};
-    /// no Copy-ctor (should not be needed)
-    LayerDataChrom(const LayerDataChrom& ld) = delete;
-    /// no assignment operator (should not be needed)
-    LayerDataChrom& operator=(const LayerDataChrom& ld) = delete;
-    /// move C'tor
-    LayerDataChrom(LayerDataChrom&& ld) = default;
-    /// move assignment
-    LayerDataChrom& operator=(LayerDataChrom&& ld) = default;
-
+  public:
+    LayerData1DChrom() : LayerDataBase(DT_CHROMATOGRAM)
+    {
+    }
 
     std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
     std::unique_ptr<LayerStoreData> storeFullData() const override;
-    ProjectionData getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const override;
+
+    std::unique_ptr<Painter1DBase> getPainter1D() const override;
+
+
+    RangeAllType getRangeForArea(const RangeAllType partial_range) const override
+    {
+      const auto& chrom = getCurrentChrom();
+      auto chrom_filtered = MSExperiment::ChromatogramType();
+      chrom_filtered.insert(chrom_filtered.begin(), chrom.RTBegin(partial_range.getMinRT()), chrom.RTEnd(partial_range.getMaxRT()));
+      chrom_filtered.updateRanges();
+      return RangeAllType().assign(chrom_filtered.getRange());
+    }
+
+
+    const ExperimentType::ChromatogramType& getCurrentChrom() const
+    {
+      return getChromatogram(current_idx_);
+    }
 
     void updateRanges() override
     {
-      chromatogram_map_->updateRanges();
+      LayerDataChrom::updateRanges();
     }
 
     RangeAllType getRange() const override
     {
-      RangeAllType r;
-      r.assign(*chromatogram_map_);
-      return r;
+      return RangeAllType().assign(getCurrentChrom().getRange());
     }
 
-    std::unique_ptr<LayerStatistics> getStats() const override;
+    // docu in base class
+    QMenu* getContextMenuAnnotation(Annotation1DItem* annot_item, bool& need_repaint) override;
 
-    PointXYType peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const override;
+    PeakIndex findClosestDataPoint(const RangeAllType& area) const override;
 
-    const ExperimentType::ChromatogramType getChromatogram(Size idx) const
-    {
-      return chromatogram_map_->getChromatogram(idx);
-    }
+    // docu in base class
+    Annotation1DItem* addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color) override;
+
+  protected:
+    /// Current cached spectrum
+    //ExperimentType::SpectrumType cached_spectrum_;
   };
 
-} //namespace
-
+} // namespace OpenMS
