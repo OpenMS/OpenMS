@@ -214,14 +214,30 @@ namespace OpenMS
       }
 
       const double spectrum_rt = spectrum.getRT();
-      const double rt_left_lim = spectrum_rt - rt_window_ / 2.0;
-      const double rt_right_lim = spectrum_rt + rt_window_ / 2.0;
       const std::vector<Precursor>& precursors = spectrum.getPrecursors();
       if (precursors.empty())
       {
         OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0." << std::endl;
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
+
+      // Lambda to check the mz/rt thresholds
+      auto checkRtAndMzTol = [](const double& spectrum_mz, const double& spectrum_rt, 
+        const double& target_mz, const double& target_rt, const double& mz_window, const double& rt_window) 
+      {
+        const double rt_left_lim = spectrum_rt - rt_window / 2.0;
+        const double rt_right_lim = spectrum_rt + rt_window / 2.0;
+        const double mz_left_lim = spectrum_mz - mz_window / 2.0;
+        const double mz_right_lim = spectrum_mz + mz_window / 2.0;
+        if (spectrum_mz != 0.0)
+        {
+          return target_rt >= rt_left_lim && target_rt <= rt_right_lim && target_mz >= mz_left_lim && target_mz <= mz_right_lim;
+        }
+        else
+        {
+          return target_rt >= rt_left_lim && target_rt <= rt_right_lim;
+        }
+      };
 
       for (const auto& feature : ms1_features)
       {
@@ -238,7 +254,7 @@ namespace OpenMS
             {
               const double target_mz = subordinate.getMZ();
               const double target_rt = subordinate.getRT();
-              if (target_rt >= rt_left_lim && target_rt <= rt_right_lim)
+              if (checkRtAndMzTol(spectrum_mz, spectrum_rt, target_mz, target_rt, mz_tolerance_, rt_window_))
               {
                 OPENMS_LOG_DEBUG << "annotateSpectra(): " << peptide_ref_s << "]";
                 OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl;
@@ -268,7 +284,7 @@ namespace OpenMS
           {
             const double target_mz = feature.getMZ();
             const double target_rt = feature.getRT();
-            if (target_rt >= rt_left_lim && target_rt <= rt_right_lim)
+            if (checkRtAndMzTol(spectrum_mz, spectrum_rt, target_mz, target_rt, mz_tolerance_, rt_window_))
             {
               OPENMS_LOG_DEBUG << "annotateSpectra(): " << peptide_ref_f << "]";
               OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl;
@@ -752,6 +768,8 @@ namespace OpenMS
 
     // select the best spectrum for each group of spectra having the same name
     selectSpectra(scored_spectra, ms2_features, extracted_spectra, extracted_features, compute_features);
+    //extracted_spectra = scored_spectra;
+    //extracted_features = ms2_features;
   }
 
   void TargetedSpectraExtractor::matchSpectrum(
