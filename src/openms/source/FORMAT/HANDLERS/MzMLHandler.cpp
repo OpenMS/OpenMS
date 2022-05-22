@@ -5667,7 +5667,7 @@ namespace OpenMS::Internal
                                          const Internal::MzMLValidator& validator)
     {
       Int64 offset = os.tellp();
-      chromatograms_offsets_.push_back(make_pair(chromatogram.getNativeID(), offset + 3));
+      chromatograms_offsets_.emplace_back(chromatogram.getNativeID(), offset + 3);
 
       // TODO native id with chromatogram=?? prefix?
       // IMPORTANT make sure the offset (above) corresponds to the start of the <chromatogram tag

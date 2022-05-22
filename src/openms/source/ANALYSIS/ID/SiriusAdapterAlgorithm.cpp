@@ -358,7 +358,7 @@ namespace OpenMS
         const std::string sirius_path(sirius_env_var);
         executable = sirius_path;
       }
-      const String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
+      String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
       OPENMS_LOG_WARN << "Executable is: " + exe << std::endl;
       return exe;
     }
