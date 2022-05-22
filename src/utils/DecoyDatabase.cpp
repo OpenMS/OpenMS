@@ -40,6 +40,7 @@
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <boost/regex.hpp>
 
 using namespace OpenMS;
@@ -70,6 +71,9 @@ using namespace std;
   externally.
 
   The tool will keep track of all protein identifiers and report duplicates.
+
+  Also the tool automatically checks for decoys already in the input files (based on most common pre-/suffixes)
+  and terminates the program if decoys are found.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_DecoyDatabase.cli
@@ -194,15 +198,48 @@ protected:
     {
       digestion.setEnzyme(enzyme);
     }
-
+    // check if decoy_string is common decoy string (e.g. decoy, rev, ...)
+    String decoy_string_lower = decoy_string;
+    decoy_string_lower.toLower();
+    bool is_common = false;
+    for (const auto& a : DecoyHelper::affixes)
+    {
+      if ((decoy_string_lower.hasPrefix(a) && decoy_string_position_prefix) || (decoy_string_lower.hasSuffix(a) && !decoy_string_position_prefix))
+      {
+        is_common = true;
+      }
+    }
+    // terminate, if decoy_string is not one of the allowed decoy strings (exit code 11)
+    if (!is_common)
+    {
+      if (getFlag_("force"))
+      {
+        OPENMS_LOG_WARN << "Force Flag is enabled, decoys with custom decoy string (not in DecoyHelper::affixes) will not be detected.\n";
+      }
+      else
+      {
+        OPENMS_LOG_FATAL_ERROR << "Given decoy string is not allowed. Please use one of the strings in DecoyHelper::affixes as either prefix or suffix (case insensitive): \n";
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+    }
     MRMDecoy m;
     m.setParameters(decoy_param);
 
     Math::RandomShuffler shuffler(seed);
     for (Size i = 0; i < in.size(); ++i)
     {
-      f.readStart(in[i]);
+      // check input files for decoys
+      FASTAContainer<TFI_File> in_entries{in[i]};
+      auto r = DecoyHelper::countDecoys(in_entries);
+      // if decoys found, throw exception
+      if (static_cast<double>(r.all_prefix_occur + r.all_suffix_occur) >= 0.4 * static_cast<double>(r.all_proteins_count))
+      {
+        // if decoys found, program terminates with exit code 11
+        OPENMS_LOG_FATAL_ERROR << "Invalid input in " + in[i] + ": Input file already contains decoys." << '\n';
+        return INCOMPATIBLE_INPUT_DATA;
+      }
 
+      f.readStart(in[i]);
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------

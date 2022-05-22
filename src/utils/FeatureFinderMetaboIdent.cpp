@@ -53,6 +53,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/OMSFileLoad.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -137,7 +138,7 @@ class TOPPFeatureFinderMetaboIdent :
 {
 public:
   TOPPFeatureFinderMetaboIdent() :
-    TOPPBase("FeatureFinderMetaboIdent", "Detects features in MS1 data based on metabolite identifications.", false)    
+    TOPPBase("FeatureFinderMetaboIdent", "Detects features in MS1 data based on metabolite identifications.", false)
   {
   }
 
@@ -261,7 +262,7 @@ protected:
 
     FeatureMap features;
     ff_mident.run(table, features, in);
-    
+
     // annotate "spectra_data" metavalue
     if (getFlag_("test"))
     {
@@ -271,7 +272,7 @@ protected:
     else
     {
       features.setPrimaryMSRunPath({in}, ff_mident.getMSData());
-    }    
+    }
 
     addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
 
@@ -298,7 +299,7 @@ protected:
     }
 
     // write expected vs. observed retention times
-    if (!trafo_out.empty()) 
+    if (!trafo_out.empty())
     {
       const TransformationDescription& trafo = ff_mident.getTransformations();
       TransformationXMLFile().store(trafo_out, trafo);

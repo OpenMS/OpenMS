@@ -477,6 +477,11 @@ namespace OpenMS
               String
       */
       inline const std::string   DC_CHARGE_ADDUCTS = "dc_charge_adducts";
+
+      /** User parameter name for the number of mass traces in a feature. (Required for SiriusAdapter)
+              String
+      */
+      inline const std::string   NUM_OF_MASSTRACES = "num_of_masstraces";
     }
 
     //@}

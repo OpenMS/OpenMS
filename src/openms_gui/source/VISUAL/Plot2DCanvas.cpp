@@ -1533,7 +1533,14 @@ namespace OpenMS
     painter.begin(this);
 
     //copy peak data from buffer
+     /*
+         * Suppressed warning QVector<QRect> QRegion::rects() const is deprecated
+         * Use begin()/end() instead, from Qt 5.8
+         */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     QVector<QRect> rects = e->region().rects();
+#pragma GCC diagnostic pop
     for (int i = 0; i < (int)rects.size(); ++i)
     {
       painter.drawImage(rects[i].topLeft(), buffer_, rects[i]);
