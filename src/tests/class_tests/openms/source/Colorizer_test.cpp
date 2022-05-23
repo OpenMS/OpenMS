@@ -50,11 +50,11 @@ using namespace std;
 
 /* TO-DO 1
 + Check if string inputs are unchanged, and ANSI codes inside/not inside
-- Windows test - define, copy, TEST if works
+- Windows test - try on Windows
 + Test every color function for all variable sets
-- Test every other public function
-- mention "NOT TESTABLE" methods in sections
--!!!ALL changes requested after last push
++/- Test every other public function
++ mention "NOT TESTABLE" methods in sections
++!!!ALL changes requested after last push
 */
 
 /* TO-DO 2
@@ -131,29 +131,36 @@ string createComparisonANSIString(string testVariable,Colorizer){
 
 START_SECTION(Colorizer::colorStream(ostream& stream) const)
 {
-    NOT_TESTABLE //is testable?
+    // kind of the same that is done below ...?
+    //maybe direct access of methods via instance is needed (instance.method())
+    //but I didn't yet work out a solution
+    #if defined(__linux__) || defined(__OSX__)
+        stringstream test_stream;
+        test_stream << blue(test_string);
+        TEST_EQUAL(test_stream.str(), blueANSI+test_string+resetColorANSI)
+    #endif 
 }
 END_SECTION
 
 START_SECTION(Colorizer::outputToStream(ostream& o_stream))
 {
-    // Colorizer test_colorizer;
-    // stringstream test_stream;
-    // stringstream test_stream << "ABCDEFGHIJKLM";
-    // test_colorizer.outputToStream(test_stream);
-    // TEST_EQUAL(test_colortestizer,"ABCDEFGHIJKLM");
-
+    // kind of the same that is done below and above...?
+    #if defined(__linux__) || defined(__OSX__)
+        stringstream test_stream;
+        test_stream << green(test_string);
+        TEST_EQUAL(test_stream.str(), greenANSI+test_string+resetColorANSI)
+    #endif 
 
 }
 END_SECTION
 
 START_SECTION(Colorizer::resetColor(ostream& stream))
 {
-    // #if defined(__linux__) || defined(__OSX__)
-    // stringstream test_stream;
-    // test_stream << reset_color();
-    // TEST_EQUAL(test_stream, resetColorANSI)
-    // #endif 
+    #if defined(__linux__) || defined(__OSX__)
+        stringstream test_stream;
+        test_stream << reset_color();
+        TEST_EQUAL(test_stream.str(), resetColorANSI)
+    #endif 
 }
 END_SECTION
 
