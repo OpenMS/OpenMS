@@ -149,17 +149,11 @@ END_SECTION
 
 START_SECTION(Colorizer::resetColor(ostream& stream))
 {
+    // #if defined(__linux__) || defined(__OSX__)
     // stringstream test_stream;
-    // Colorizer test_colorizer;
-
-    // test_colorizer.resetColor();
-    // test_colorizer >> test_stream;
+    // test_stream << reset_color();
     // TEST_EQUAL(test_stream, resetColorANSI)
-
-    #if defined(__linux__) || defined(__OSX__)
-
-    #endif 
-
+    // #endif 
 }
 END_SECTION
 
@@ -203,7 +197,6 @@ START_SECTION("Testing Colorizer instances")
         colored_stream.clear();
 
     #elif defined(__linux__) || defined(__OSX__)
-        //LINUX//////LINUX////LINUX////LINUX////LINUX////LINUX////LINUX////
         //Check that the colorized input contains the original text and according ASCI codes
 
         stringstream colored_stream;
@@ -247,7 +240,6 @@ START_SECTION("Testing Colorizer instances")
         TEST_EQUAL(colored_stream.str(), whiteANSI+test_string+resetColorANSI)
         colored_stream.str(string());
         colored_stream.clear();
-
 
     #endif
 
@@ -338,14 +330,22 @@ END_SECTION
 
 START_SECTION(Colorizer& operator()())
 {
-    // stringstream test_stream;
-    // test_stream << blue();
-    // test_stream << "ABDCE";
-    // TEST_EQUAL(test_stream.str(),blueANSI+"ABCDE")
 
-    // test_stream << reset_color();
-    // TEST_EQUAL(test_stream.str(),blueANSI+"ABCDE"+resetColorANSI)
-    
+    #if defined(__linux__) || defined(__OSX__)
+
+        stringstream test_stream;
+
+        test_stream << green() << "green text" << 123 << "!" << " " << reset_color();
+        TEST_EQUAL(test_stream.str(),greenANSI+"green text123! "+resetColorANSI)
+        test_stream.str(string());
+        test_stream.clear();
+
+        test_stream << reset_color() << "default text" << magenta() << "magenta text";
+        TEST_EQUAL(test_stream.str(),resetColorANSI+"default text"+magentaANSI+"magenta text")
+        test_stream.str(string());
+        test_stream.clear();
+
+    #endif
 }
 END_SECTION
 
