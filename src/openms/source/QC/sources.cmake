@@ -10,6 +10,7 @@ set(sources_list
   IdentificationSummary.cpp
   MissedCleavages.cpp
   MQEvidenceExporter.cpp
+  MQExporterHelper.cpp
   Ms2IdentificationRate.cpp
   Ms2SpectrumStats.cpp
   MzCalibration.cpp

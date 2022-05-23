@@ -48,6 +48,81 @@
 
 using namespace OpenMS;
 
+Size MQExporterHelper::proteinGroupID_(std::map<OpenMS::String, OpenMS::Size>& protein_id,
+                                       const String& protein_accession)
+{
+  auto it = protein_id.find(protein_accession);
+  if (it == protein_id.end())
+  {
+    protein_id.emplace(protein_accession, protein_id.size() + 1);
+    return protein_id.size();
+  }
+  else
+  {
+    return it->second;
+  }
+}
+
+std::map<Size, Size> MQExporterHelper::makeFeatureUIDtoConsensusMapIndex_(const ConsensusMap& cmap)
+{
+  std::map<Size, Size> f_to_ci;
+  for (Size i = 0; i < cmap.size(); ++i)
+  {
+    for (const auto& fh : cmap[i].getFeatures())
+    {
+      auto[it, was_created_newly] = f_to_ci.emplace(fh.getUniqueId(), i);
+      if (!was_created_newly)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Adding [" + String(it->first) + "," + String(it->second) +  "] failed. FeatureHandle exists twice in ConsensusMap!");
+      }
+      f_to_ci[fh.getUniqueId()] = i;
+    }
+  }
+  return f_to_ci;
+}
+
+
+bool MQExporterHelper::hasValidPepID_(
+  const Feature& f,
+  const Size c_feature_number,
+  const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
+  const ProteinIdentification::Mapping& mp_f)
+{
+  const std::vector<PeptideIdentification>& pep_ids_f = f.getPeptideIdentifications();
+  if (pep_ids_f.empty())
+  {
+    return false;
+  }
+  const PeptideIdentification& best_pep_id = pep_ids_f[0]; // PeptideIdentifications are sorted
+  String best_uid = PeptideIdentification::buildUIDFromPepID(best_pep_id, mp_f.identifier_to_msrunpath);
+  const auto range = UIDs.equal_range(best_uid);
+  for (std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>::const_iterator it_pep = range.first;
+       it_pep != range.second; ++it_pep)
+  {
+    if (c_feature_number == it_pep->second.first)
+    {
+      return !pep_ids_f[0].getHits().empty(); // checks if PeptideIdentification has at least one hit
+    }
+  }
+  return false;
+}
+
+bool MQExporterHelper::hasPeptideIdentifications_(const ConsensusFeature& cf)
+{
+  const std::vector<PeptideIdentification>& pep_ids_c = cf.getPeptideIdentifications();
+  if (!pep_ids_c.empty())
+  {
+    return !pep_ids_c[0].getHits().empty(); // checks if PeptideIdentification has at least one hit
+  }
+  return false;
+}
+
+bool MQExporterHelper::isValid(std::string filename)
+{
+  return File::writable(filename);
+}
+
 MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
   const OpenMS::Feature& f,
   const OpenMS::ConsensusMap& cmap,
@@ -60,11 +135,11 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
 {
   const OpenMS::PeptideHit* ptr_best_hit; // the best hit referring to score
   const OpenMS::ConsensusFeature& cf = cmap[c_feature_number];
-  if (hasValidPepID_(f, c_feature_number, UIDs, mp_f))
+  if (MQExporterHelper::hasValidPepID_(f, c_feature_number, UIDs, mp_f))
   {
     ptr_best_hit = &f.getPeptideIdentifications()[0].getHits()[0];
   }
-  else if (hasPeptideIdentifications_(cf))
+  else if (MQExporterHelper::hasPeptideIdentifications_(cf))
   {
     ptr_best_hit = &cf.getPeptideIdentifications()[0].getHits()[0];
   }
@@ -80,7 +155,7 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
   }
 
   // get all peptide-evidences for the best hit
-  const auto& pep_evidences = ptr_best_hit->getPeptideEvidences();
+  //const auto& pep_evidences = ptr_best_hit->getPeptideEvidences();
 
   std::map<OpenMS::String, OpenMS::Size> modifications_temp;
   if (pep_seq.hasNTerminalModification())
@@ -147,8 +222,8 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
     }
 
   }
-  gene_names.str(ListUtils::concatenate(gene_names, ';'));     //Gene Names
-  protein_names.str(ListUtils::concatenate(protein_names, ';'));  //Protein Names
+  gene_names.str(ListUtils::concatenate(gene_names_temp, ';'));     //Gene Names
+  protein_names.str(ListUtils::concatenate(protein_names_temp, ';'));  //Protein Names
 
   msms_mz.clear();
   if (f.metaValueExists("spectrum_index") && !exp.empty() && exp.getNrSpectra() >= (OpenMS::Size)f.getMetaValue("spectrum_index") && !exp[f.getMetaValue("spectrum_index")].empty())
@@ -214,44 +289,4 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
     uncalibrated_mass_error_ppm << uncalibrated_mz_error_ppm;                                                                    // Uncalibrated Mass error [ppm]
     uncalibrated_mass_error_da << OpenMS::Math::ppmToMass(uncalibrated_mz_error_ppm, f.getMZ());                                 // Uncalibrated Mass error [Da]
   }
-}
-
-Size MQExporterHelper::proteinGroupID_(std::map<OpenMS::String, OpenMS::Size>& protein_id,
-                                       const String& protein_accession)
-{
-  auto it = protein_id.find(protein_accession);
-  if (it == protein_id.end())
-  {
-    protein_id.emplace(protein_accession, protein_id.size() + 1);
-    return protein_id.size();
-  }
-  else
-  {
-    return it->second;
-  }
-}
-
-std::map<Size, Size> MQExporterHelper::makeFeatureUIDtoConsensusMapIndex_(const ConsensusMap& cmap)
-{
-  std::map<Size, Size> f_to_ci;
-  for (Size i = 0; i < cmap.size(); ++i)
-  {
-    for (const auto& fh : cmap[i].getFeatures())
-    {
-      auto[it, was_created_newly] = f_to_ci.emplace(fh.getUniqueId(), i);
-      if (!was_created_newly)
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Adding [" + String(it->first) + "," + String(it->second) +  "] failed. FeatureHandle exists twice in ConsensusMap!");
-      }
-      f_to_ci[fh.getUniqueId()] = i;
-    }
-  }
-  return f_to_ci;
-}
-
-
-bool MQExporterHelper::isValid(std::string filename)
-{
-  return File::writable(filename);
 }
