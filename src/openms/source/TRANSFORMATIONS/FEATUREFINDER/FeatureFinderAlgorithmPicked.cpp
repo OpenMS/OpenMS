@@ -360,7 +360,9 @@ namespace OpenMS
               Size spec_index = next_spectrum.findNearest(pos);
               double position_score = positionScore_(pos, next_spectrum[spec_index].getMZ(), trace_tolerance_);
               if (position_score > 0 && next_spectrum[spec_index].getIntensity() > intensity)
+              {
                 is_max_peak = false;
+              }
               trace_score += position_score;
             }
           }
