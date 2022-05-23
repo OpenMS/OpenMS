@@ -950,7 +950,7 @@ protected:
         out_topfd_feature_stream.close();
         if (j + 1 > 1) // only MS1. Change in OpenMS 3.0 so it takes one single feature name.
         {
-          std::remove(out_topfd_file[j].c_str());
+          std::remove(out_topfd_feature_file[j].c_str());
         }
         j++;
       }
@@ -964,7 +964,7 @@ protected:
         out_topfd_stream.close();
         if (j + 1 > current_max_ms_level)
         {
-          std::remove(out_topfd_feature_file[j].c_str());
+          std::remove(out_topfd_file[j].c_str());
         }
         j++;
       }
