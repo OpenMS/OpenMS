@@ -1378,8 +1378,8 @@ namespace OpenMS
     Plot2DWidget* sw2 = qobject_cast<Plot2DWidget*>(sw);
     if (sw2 != nullptr)
     {
-      connect(sw2->getHorizontalProjection(), &Plot2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
-      connect(sw2->getVerticalProjection(), &Plot2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
+      connect(sw2->getProjectionOntoX(), &Plot1DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
+      connect(sw2->getProjectionOntoY(), &Plot1DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
       connect(sw2, &Plot2DWidget::showSpectrumAsNew1D, selection_view_, &DataSelectionTabs::showSpectrumAsNew1D);
       connect(sw2, &Plot2DWidget::showCurrentPeaksAs3D , this, &TOPPViewBase::showCurrentPeaksAs3D);
     }

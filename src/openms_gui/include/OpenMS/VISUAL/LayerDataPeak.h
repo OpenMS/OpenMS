@@ -55,20 +55,22 @@ namespace OpenMS
 
     /// Default constructor
     LayerDataPeak();
-    /// no Copy-ctor (should not be needed)
-    LayerDataPeak(const LayerDataPeak& ld) = delete;
-    /// no assignment operator (should not be needed)
-    LayerDataPeak& operator=(const LayerDataPeak& ld) = delete;
+    /// Copy-ctor
+    LayerDataPeak(const LayerDataPeak& ld);
+    /// Assignment operator
+    LayerDataPeak& operator=(const LayerDataPeak& ld) = default;
     /// move Ctor
     LayerDataPeak(LayerDataPeak&& ld) = default;
     /// move assignment
     LayerDataPeak& operator=(LayerDataPeak&& ld) = default;
 
+    std::unique_ptr<LayerData1DBase> to1DLayer() const override;
+
     std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
+
     std::unique_ptr<LayerStoreData> storeFullData() const override;
+
     ProjectionData getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const override;
-
-
 
     void updateRanges() override
     {

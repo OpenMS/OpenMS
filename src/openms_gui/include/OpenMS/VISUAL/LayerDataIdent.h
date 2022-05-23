@@ -60,6 +60,18 @@ namespace OpenMS
     /// move assignment
     LayerDataIdent& operator=(LayerDataIdent&& ld) = default;
 
+    std::unique_ptr<LayerData1DBase> to1DLayer() const override
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
+
+    std::unique_ptr<LayerStoreData> storeFullData() const override;
+
+    ProjectionData getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const override;
+
+
     void updateRanges() override
     {
       // nothing to do...

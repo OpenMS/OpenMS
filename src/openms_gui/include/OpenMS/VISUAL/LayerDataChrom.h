@@ -50,18 +50,21 @@ public:
     /// Default constructor
     LayerDataChrom() :
         LayerDataBase(LayerDataBase::DT_CHROMATOGRAM) {};
-    /// no Copy-ctor (should not be needed)
-    LayerDataChrom(const LayerDataChrom& ld) = delete;
-    /// no assignment operator (should not be needed)
-    LayerDataChrom& operator=(const LayerDataChrom& ld) = delete;
+    /// Copy-ctor
+    LayerDataChrom(const LayerDataChrom& ld) = default;
+    /// Assignment operator
+    LayerDataChrom& operator=(const LayerDataChrom& ld) = default;
     /// move C'tor
     LayerDataChrom(LayerDataChrom&& ld) = default;
     /// move assignment
     LayerDataChrom& operator=(LayerDataChrom&& ld) = default;
 
+    std::unique_ptr<LayerData1DBase> to1DLayer() const override;
 
     std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
+
     std::unique_ptr<LayerStoreData> storeFullData() const override;
+
     ProjectionData getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const override;
 
     void updateRanges() override
@@ -80,7 +83,7 @@ public:
 
     PointXYType peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const override;
 
-    const ExperimentType::ChromatogramType getChromatogram(Size idx) const
+    const ExperimentType::ChromatogramType& getChromatogram(Size idx) const
     {
       return chromatogram_map_->getChromatogram(idx);
     }

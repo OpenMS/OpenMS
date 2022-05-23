@@ -53,8 +53,12 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI LayerData1DBase : public virtual LayerDataBase
   {
   public:
-    LayerData1DBase() {};
+    // rule of 0
 
+    /**
+     * \brief Obtain a painter which can draw the layer on a canvas
+     * \return A painter
+     */
     virtual std::unique_ptr<Painter1DBase> getPainter1D() const = 0;
 
     /**
@@ -122,6 +126,9 @@ namespace OpenMS
       current_idx_ = index;
     }
 
+    /// Does the layer have at least @p index items (e.g. spectra, chroms, etc), so a call to setCurrentIndex() is valid?
+    virtual bool hasIndex(Size index) const = 0;
+
     /// if this layer is flipped (1d mirror view)
     bool flipped = false;
 
@@ -129,15 +136,12 @@ namespace OpenMS
     std::vector<QColor> peak_colors_1d;
 
   protected:
-    /// Index of the current spectrum/chromatogram etc
-    Size current_idx_ = -1;
+    /// Index of the current spectrum/chromatogram etc (by default, show the first one)
+    Size current_idx_ = 0;
 
     /// Annotations of all spectra of the experiment (1D view)
     std::vector<Annotations1DContainer> annotations_1d_ = std::vector<Annotations1DContainer>(1);
-
-
   };
-
 
 }// namespace OpenMS
 

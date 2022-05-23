@@ -46,11 +46,19 @@ namespace OpenMS
     {
     }
 
+    LayerData1DChrom(const LayerDataChrom& base) : LayerDataChrom(base)
+    {
+    }
+
     std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
     std::unique_ptr<LayerStoreData> storeFullData() const override;
 
     std::unique_ptr<Painter1DBase> getPainter1D() const override;
 
+    bool hasIndex(Size index) const override
+    {
+      return index < chromatogram_map_->size();
+    }
 
     RangeAllType getRangeForArea(const RangeAllType partial_range) const override
     {

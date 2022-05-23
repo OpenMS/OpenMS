@@ -43,9 +43,9 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/LayerData1DBase.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
-//#include <iostream>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
 
@@ -53,7 +53,11 @@ using namespace std;
 
 namespace OpenMS
 {
-  const std::string LayerDataBase::NamesOfLabelType[] = {"None", "Index", "Label meta data", "Peptide identification", "All peptide identifications"};
+  LayerDataDefs::ProjectionData::ProjectionData() = default;
+  LayerDataDefs::ProjectionData::ProjectionData(ProjectionData&&) = default;
+  LayerDataDefs::ProjectionData::~ProjectionData() = default;
+
+  const std::string LayerDataDefs::NamesOfLabelType[] = {"None", "Index", "Label meta data", "Peptide identification", "All peptide identifications"};
 
   std::ostream& operator<<(std::ostream& os, const LayerDataBase& rhs)
   {
@@ -63,6 +67,11 @@ namespace OpenMS
     os << "number of peaks: " << rhs.getPeakData()->getSize() << std::endl;
     os << "--LayerDataBase END--" << std::endl;
     return os;
+  }
+
+  LayerDataBase::LayerDataBase(const LayerDataBase& ld)
+    : filename(ld.filename), peak_map_(ld.peak_map_)
+  {
   }
 
   const LayerDataBase::ConstExperimentSharedPtrType LayerDataBase::getPeakData() const
@@ -286,4 +295,5 @@ namespace OpenMS
     }
   }
 
-}// namespace OpenMS
+
+} // namespace OpenMS

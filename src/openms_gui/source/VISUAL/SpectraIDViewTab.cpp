@@ -34,34 +34,28 @@
 
 #include "OpenMS/VISUAL/LayerDataPeak.h"
 
-#include <OpenMS/VISUAL/SpectraIDViewTab.h>
-#include <OpenMS/VISUAL/SequenceVisualizer.h>
-
-#include <OpenMS/VISUAL/TableView.h>
-
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
-#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
-#include <QtCore/QDateTime>
+#include <OpenMS/VISUAL/LayerData1DPeak.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/SequenceVisualizer.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
+#include <OpenMS/VISUAL/TableView.h>
 
-#include <QtWidgets/QVBoxLayout>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QListWidget>
-#include <QRegExp>
 #include <QJsonArray>
-#include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QRegExp>
 #include <QString>
 #include <QStringList>
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QVBoxLayout>
 
 #include <vector>
 #include <string>
@@ -716,7 +710,10 @@ namespace OpenMS
       return;
     }
 
-    int restore_spec_index = int(dynamic_cast<LayerData1DPeak*>(layer_)->getCurrentIndex());
+    auto layer_peak = dynamic_cast<LayerData1DPeak*>(layer_);
+    if (!layer_peak) return;
+
+    int restore_spec_index = int(layer_peak->getCurrentIndex());
 
     set<String> common_keys;
     bool has_peak_annotations(false);

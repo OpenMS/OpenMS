@@ -95,13 +95,9 @@ public:
     void recalculateCurrentLayerDotGradient();
 
 signals:
-    /// Sets the data for the horizontal projection
-    void showProjectionHorizontal(ExperimentSharedPtrType);
-    /// Sets the data for the vertical projection
-    void showProjectionVertical(ExperimentSharedPtrType);
-    /// Shows the number of peaks and the intensity sum of the projection
-    void showProjectionInfo(int, double, double);
-    /// Signal emitted when the projections are to be shown/hidden
+    /// Requests to show projections for the @p source_layer. Emitted after calling pickProjectionLayer().
+    void showProjections(const LayerDataBase* source_layer);
+    /// Signal emitted when the projections are to be shown/hidden (e.g. via context menu)
     void toggleProjections();
     /// Requests to display the spectrum with index @p index in 1D
     void showSpectrumAsNew1D(int index);
@@ -121,13 +117,8 @@ public slots:
     // Docu in base class
     void verticalScrollBarChange(int value) override;
 
-    /**
-    @brief Updates the projection data and emits some related signals.
-
-    Emitted signals are showProjectionHorizontal(ExperimentSharedPtrType, Plot1DCanvas::DrawModes, PlotCanvas::IntensityModes) and
-    showProjectionVertical(ExperimentSharedPtrType, Plot1DCanvas::DrawModes, PlotCanvas::IntensityModes).
-    */
-    void updateProjections();
+    /// Picks an appropriate layer for projection and emits the signal showProjections(LayerDataBase*).
+    void pickProjectionLayer();
 
 protected slots:
 

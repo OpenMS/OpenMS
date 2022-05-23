@@ -37,6 +37,7 @@
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/LayerDataConsensus.h>
 #include <OpenMS/VISUAL/LayerDataFeature.h>
@@ -387,6 +388,14 @@ namespace OpenMS
     new_layer->param = param;
     new_layer->filename = filename;
     new_layer->setName(QFileInfo(filename.toQString()).completeBaseName());
+  }
+
+  bool PlotCanvas::addLayer(std::unique_ptr<LayerData1DBase> new_layer)
+  {
+    setBaseLayerParameters(new_layer.get(), param_, "");
+    layers_.addLayer(std::move(new_layer));
+
+    return finishAdding_();
   }
 
   bool PlotCanvas::addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String& filename, const bool use_noise_cutoff)

@@ -120,6 +120,10 @@ namespace OpenMS
     return bounding_rect;
   }
 
+  // ###############################
+  // ###### 1D Peak
+  // ###############################
+
   Painter1DPeak::Painter1DPeak(const LayerData1DPeak* parent) : layer_(parent)
   {
   }
@@ -325,8 +329,15 @@ namespace OpenMS
   }
 
 
+  // ###############################
+  // ###### 1D Chrom
+  // ###############################
 
-   void Painter1DChrom::paint(QPainter* painter, Plot1DCanvas* canvas, int layer_index)
+  Painter1DChrom::Painter1DChrom(const LayerData1DChrom* parent) : layer_(parent)
+  {
+  }
+
+  void Painter1DChrom::paint(QPainter* painter, Plot1DCanvas* canvas, int layer_index)
   {
     if (!layer_->visible)
     {

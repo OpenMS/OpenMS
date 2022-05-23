@@ -116,51 +116,14 @@ namespace OpenMS
       return;
     }
     //determine coordinates;
-    QPoint pos;
-    if (getCurrentLayer().type == LayerDataBase::DT_FEATURE)
-    {
-      dataToWidget_(peak.getFeature(*getCurrentLayer().getFeatureMap()).getMZ(), peak.getFeature(*getCurrentLayer().getFeatureMap()).getRT(), pos);
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_PEAK)
-    {
-      dataToWidget_(peak.getPeak(*getCurrentLayer().getPeakData()).getMZ(), peak.getSpectrum(*getCurrentLayer().getPeakData()).getRT(), pos);
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_CONSENSUS)
-    {
-      dataToWidget_(peak.getFeature(*getCurrentLayer().getConsensusMap()).getMZ(), peak.getFeature(*getCurrentLayer().getConsensusMap()).getRT(), pos);
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM)
-    {
-      const LayerDataBase& layer = getCurrentLayer();
-      const ConstExperimentSharedPtrType exp = layer.getPeakData();
-
-      // create iterator on chromatogram spectrum passed by PeakIndex
-      vector<MSChromatogram >::const_iterator chrom_it = exp->getChromatograms().begin();
-      chrom_it += peak.spectrum;
-      dataToWidget_(chrom_it->getPrecursor().getMZ(), chrom_it->front().getRT(), pos);
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_IDENT)
-    {
-      //TODO IDENT
-    }
+    auto pos_xy = getCurrentLayer().peakIndexToXY(peak, unit_mapper_);
 
     // paint highlighted peak
     painter.save();
     painter.setPen(QPen(Qt::red, 2));
 
-    if (getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM) // highlight: chromatogram
-    {
-      const LayerDataBase& layer = getCurrentLayer();
-      const ConstExperimentSharedPtrType exp = layer.getPeakData();
-
-      vector<MSChromatogram>::const_iterator iter = exp->getChromatograms().begin() + peak.spectrum;
-
-      painter.drawRect(pos.x() - 5, pos.y() - 5, (int((iter->back().getRT() - iter->front().getRT()) / visible_area_.getAreaXY().height() * width())) + 10, 10);
-    }
-    else // highlight: peak, feature, consensus feature
-    {
-      painter.drawEllipse(pos.x() - 5, pos.y() - 5, 10, 10);
-    }
+    auto p_px = dataToWidget_(pos_xy);
+    painter.drawEllipse(p_px.x() - 5, p_px.y() - 5, 10, 10);
 
     //restore painter
     painter.restore();
@@ -995,7 +958,7 @@ namespace OpenMS
     recalculateDotGradient_(layers_.getCurrentLayerIndex());
   }
 
-  void Plot2DCanvas::updateProjections()
+  void Plot2DCanvas::pickProjectionLayer()
   {
     // find the last (visible) peak layers
     Size layer_count = 0;
@@ -1045,26 +1008,7 @@ namespace OpenMS
       return;
     }
 
-
-    auto proj_X = layer->getProjection(unit_mapper_.getDim(DIM::X).getUnit(), visible_area_.getAreaUnit());
-    auto proj_Y = layer->getProjection(unit_mapper_.getDim(DIM::Y).getUnit(), visible_area_.getAreaUnit());
-
-    
-
-    ExperimentSharedPtrType projection_mz_sptr(new ExperimentType(projection_mz_));
-    ExperimentSharedPtrType projection_rt_sptr(new ExperimentType(projection_rt_));
-
-    if (unit_mapper_.getDim(DIM::X).getUnit() == DIM_UNIT::MZ)
-    {
-      emit showProjectionHorizontal(projection_mz_sptr);
-      emit showProjectionVertical(projection_rt_sptr);
-    }
-    else
-    {
-      emit showProjectionHorizontal(projection_rt_sptr);
-      emit showProjectionVertical(projection_mz_sptr);
-    }
-    showProjectionInfo(peak_count, total_intensity_sum, intensity_max);
+    emit showProjections(layer);    
   }
 
   bool Plot2DCanvas::finishAdding_()
@@ -1834,7 +1778,7 @@ namespace OpenMS
           PointXYType new_data = widgetToData_(pos);
           // compute new area
           auto new_visible_area = visible_area_;
-          new_visible_area.setArea(new_visible_area.getAreaXY() + (new_data - old_data));
+          new_visible_area.setArea(new_visible_area.getAreaXY() + (old_data - new_data));
           // publish (bounds checking is done inside changeVisibleArea_)
           changeVisibleArea_(new_visible_area);
           last_mouse_pos_ = pos;

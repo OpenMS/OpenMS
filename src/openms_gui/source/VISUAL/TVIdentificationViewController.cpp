@@ -49,6 +49,7 @@
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
@@ -80,19 +81,21 @@ namespace OpenMS
   void TVIdentificationViewController::showSpectrumAsNew1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
   {
     // basic behavior 1
-    LayerDataBase& layer = const_cast<LayerDataBase&>(tv_->getActiveCanvas()->getCurrentLayer());
-    ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
-    LayerDataBase::ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
+    auto& layer = tv_->getActiveCanvas()->getCurrentLayer();
 
     if (layer.type == LayerDataBase::DT_PEAK)
     {
       // open new 1D widget with the current default parameters
       auto* w = new Plot1DWidget(tv_->getCanvasParameters(1), DIM::Y, (QWidget*)tv_->getWorkspace());
 
-      // add data and return if something went wrong
-      if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename)
-        || (Size)spectrum_index >= w->canvas()->getCurrentLayer().getPeakData()->size())
+      // copy data from current layer (keeps the TYPE and underlying data identical)
+      auto new_1d = layer.to1DLayer();
+      bool index_ok = new_1d->hasIndex(spectrum_index);
+      if (!index_ok || !w->canvas()->addLayer(std::move(new_1d)))
       {
+        // Behavior if its neither (user may have clicked on an empty tree or a
+        // dummy entry as drawn by SpectraTreeTab::updateEntries)
+        QMessageBox::critical(w, "Error", "Cannot open data. Aborting!");
         return;
       }
 

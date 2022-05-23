@@ -50,6 +50,16 @@ namespace OpenMS
     flags.set(LayerDataBase::P_PRECURSORS);
   }
 
+  LayerDataPeak::LayerDataPeak(const LayerDataPeak& ld)
+    : LayerDataBase(static_cast<const LayerDataBase&>(ld))
+  {
+  }
+
+  std::unique_ptr<LayerData1DBase> LayerDataPeak::to1DLayer() const
+  {
+    return make_unique<LayerData1DPeak>(*this);
+  }
+
   std::unique_ptr<LayerStoreData> LayerDataPeak::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
     auto ret = std::unique_ptr<LayerStoreDataPeakMapVisible>();
@@ -174,7 +184,9 @@ namespace OpenMS
 
   LayerDataDefs::PointXYType LayerDataPeak::peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const
   {
-    return mapper.map(getSpectrum(peak.spectrum)[peak.peak]);
+    const auto& spec = getSpectrum(peak.spectrum);
+    const auto p1 = spec[peak.peak];
+    return mapper.map(Peak2D({spec.getRT(), p1.getMZ()}, p1.getIntensity()));
   }
 
   std::unique_ptr<LayerStatistics> LayerDataPeak::getStats() const

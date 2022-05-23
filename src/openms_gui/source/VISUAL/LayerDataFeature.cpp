@@ -60,7 +60,6 @@ namespace OpenMS
     return ret;
   }
 
-
   std::unique_ptr<LayerStatistics> LayerDataFeature::getStats() const
   {
     return make_unique<LayerStatisticsFeatureMap>(*getFeatureMap());

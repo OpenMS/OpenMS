@@ -72,17 +72,17 @@ namespace OpenMS
     dummy_spec.push_back(Peak1D());
     shr_ptr->addSpectrum(dummy_spec);*/
 
-    projection_vert_ = new Plot1DWidget(Param(), DIM::X, this);
-    projection_vert_->hide();
-    projection_vert_->setMapper(DimMapper<2>({DIM_UNIT::INT, canvas_->getMapper().getDim(DIM::X).getUnit()}));
-    //projection_vert_->canvas()->addLayer(shr_ptr, od_dummy);
-    grid_->addWidget(projection_vert_, 1, 3, 2, 1);
+    projection_onto_X_ = new Plot1DWidget(Param(), DIM::X, this);
+    projection_onto_X_->hide();
+    projection_onto_X_->setMapper(DimMapper<2>({DIM_UNIT::INT, canvas_->getMapper().getDim(DIM::X).getUnit()}));
+    //projection_onto_X_->canvas()->addLayer(shr_ptr, od_dummy);
+    grid_->addWidget(projection_onto_X_, 1, 3, 2, 1);
 
-    projection_horz_ = new Plot1DWidget(Param(), DIM::Y, this);
-    projection_horz_->hide();
-    projection_horz_->setMapper(DimMapper<2>({canvas_->getMapper().getDim(DIM::Y).getUnit(), DIM_UNIT::INT}));
-    // projection_horz_->canvas()->addLayer(shr_ptr, od_dummy);
-    grid_->addWidget(projection_horz_, 0, 1, 1, 2);
+    projection_onto_Y_ = new Plot1DWidget(Param(), DIM::Y, this);
+    projection_onto_Y_->hide();
+    projection_onto_Y_->setMapper(DimMapper<2>({canvas_->getMapper().getDim(DIM::Y).getUnit(), DIM_UNIT::INT}));
+    // projection_onto_Y_->canvas()->addLayer(shr_ptr, od_dummy);
+    grid_->addWidget(projection_onto_Y_, 0, 1, 1, 2);
 
     // decide on default draw mode, depending on main axis unit (e.g. m/z or RT)
     auto set_style = [&](const DIM_UNIT main_unit_1d, Plot1DCanvas* canvas)
@@ -101,14 +101,12 @@ namespace OpenMS
           break;
       }
     };
-    set_style(canvas_->getMapper().getDim(DIM::X).getUnit(), projection_horz_->canvas());
-    set_style(canvas_->getMapper().getDim(DIM::Y).getUnit(), projection_vert_->canvas());
+    set_style(canvas_->getMapper().getDim(DIM::X).getUnit(), projection_onto_Y_->canvas());
+    set_style(canvas_->getMapper().getDim(DIM::Y).getUnit(), projection_onto_X_->canvas());
 
-    connect(canvas(), &Plot2DCanvas::showProjectionHorizontal, this, &Plot2DWidget::horizontalProjection);
-    connect(canvas(), &Plot2DCanvas::showProjectionVertical, this, &Plot2DWidget::verticalProjection);
-    connect(canvas(), &Plot2DCanvas::showProjectionInfo, this, &Plot2DWidget::projectionInfo);
+    connect(canvas(), &Plot2DCanvas::showProjections, this, &Plot2DWidget::showProjections_);
     connect(canvas(), &Plot2DCanvas::toggleProjections, this, &Plot2DWidget::toggleProjections);
-    connect(canvas(), &Plot2DCanvas::visibleAreaChanged, this, &Plot2DWidget::autoUpdateProjections);
+    connect(canvas(), &Plot2DCanvas::visibleAreaChanged, this, &Plot2DWidget::autoUpdateProjections_);
     // delegate signals from canvas
     connect(canvas(), &Plot2DCanvas::showSpectrumAsNew1D, this, &Plot2DWidget::showSpectrumAsNew1D);
     connect(canvas(), &Plot2DCanvas::showChromatogramsAsNew1D, this, &Plot2DWidget::showChromatogramsAsNew1D);
@@ -156,7 +154,7 @@ namespace OpenMS
   {
   }
 
-  void Plot2DWidget::projectionInfo(int peaks, double intensity, double max)
+  void Plot2DWidget::projectionInfo_(int peaks, double intensity, double max)
   {
     projection_peaks_->setText(QString::number(peaks));
     projection_sum_->setText(QString::number(intensity, 'f', 1));
@@ -174,69 +172,61 @@ namespace OpenMS
     y_axis_->setAxisBounds(area.minY(), area.maxY());
   }
 
-  void Plot2DWidget::updateProjections()
-  {
-    canvas()->updateProjections();
-  }
-
   void Plot2DWidget::toggleProjections()
   {
     if (projectionsVisible())
     {
       setMinimumSize(250, 250);
       projection_box_->hide();
-      projection_horz_->hide();
-      projection_vert_->hide();
+      projection_onto_Y_->hide();
+      projection_onto_X_->hide();
       grid_->setColumnStretch(3, 0);
       grid_->setRowStretch(0, 0);
     }
     else
     {
       setMinimumSize(500, 500);
-      updateProjections();
+      canvas()->pickProjectionLayer();
     }
   }
 
-  //  projection above the 2D area
-  void Plot2DWidget::horizontalProjection(ExperimentSharedPtrType exp)
+  //  projections
+  void Plot2DWidget::showProjections_(const LayerDataBase* source_layer)
   {
-    LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+    auto [projection_ontoX, projection_ontoY, stats] =
+      source_layer->getProjection(canvas_->getMapper().getDim(DIM::X).getUnit(), canvas_->getMapper().getDim(DIM::Y).getUnit(), canvas_->getVisibleArea().getAreaUnit());
 
-    projection_horz_->showLegend(false);
+    projectionInfo_(stats.number_of_datapoints, stats.sum_intensity, stats.max_intensity);
 
-    projection_horz_->canvas()->removeLayers();
-    projection_horz_->canvas()->addLayer(exp, od_dummy);
+    projection_onto_Y_->showLegend(false);
+
+    projection_onto_Y_->canvas()->removeLayers();
+    projection_onto_Y_->canvas()->addLayer(std::move(projection_ontoY));
 
     grid_->setColumnStretch(3, 2);
 
-    projection_horz_->show();
+    projection_onto_Y_->show();
     projection_box_->show();
-  }
 
-  // projection on the right side of the 2D area
-  void Plot2DWidget::verticalProjection(ExperimentSharedPtrType exp)
-  {
-    LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+    projection_onto_X_->showLegend(false);
 
-    projection_vert_->showLegend(false);
-
-    projection_vert_->canvas()->removeLayers();
-    projection_vert_->canvas()->addLayer(exp, od_dummy);
+    projection_onto_X_->canvas()->removeLayers();
+    projection_onto_X_->canvas()->addLayer(std::move(projection_ontoX));
 
     grid_->setRowStretch(0, 2);
     
     projection_box_->show();
-    projection_vert_->show();
+    projection_onto_X_->show();
   }
 
-  const Plot1DWidget* Plot2DWidget::getHorizontalProjection() const
+  const Plot1DWidget* Plot2DWidget::getProjectionOntoX() const
   {
-    return projection_horz_;
+    return projection_onto_X_;
   }
 
-  const Plot1DWidget* Plot2DWidget::getVerticalProjection() const
+  const Plot1DWidget* Plot2DWidget::getProjectionOntoY() const
   {
-    return projection_vert_;
+    return projection_onto_Y_;
   }
 
   void Plot2DWidget::showGoToDialog()
@@ -321,10 +311,10 @@ namespace OpenMS
 
   bool Plot2DWidget::projectionsVisible() const
   {
-    return projection_horz_->isVisible() || projection_vert_->isVisible();
+    return projection_onto_Y_->isVisible() || projection_onto_X_->isVisible();
   }
 
-  void Plot2DWidget::autoUpdateProjections()
+  void Plot2DWidget::autoUpdateProjections_()
   {
     if (projectionsVisible() && projections_auto_->isChecked())
     {

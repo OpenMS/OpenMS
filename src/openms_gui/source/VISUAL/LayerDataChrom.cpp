@@ -45,6 +45,11 @@ using namespace std;
 
 namespace OpenMS
 {
+  std::unique_ptr<LayerData1DBase> LayerDataChrom::to1DLayer() const
+  {
+    return make_unique<LayerData1DChrom>(*this);
+  }
+
   std::unique_ptr<LayerStoreData> LayerDataChrom::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
     auto ret = std::unique_ptr<LayerStoreDataPeakMapVisible>();

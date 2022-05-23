@@ -33,12 +33,34 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/LayerDataIdent.h>
+
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 
 using namespace std;
 
 namespace OpenMS
 {
+  std::unique_ptr<LayerStoreData> LayerDataIdent::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
+  {
+    auto ret = std::unique_ptr<LayerStoreDataIdentVisible>();
+    ret->storeVisibleIdent(peptides_, visible_range, layer_filters);
+    return ret;
+  }
+
+  std::unique_ptr<LayerStoreData> LayerDataIdent::storeFullData() const
+  {
+    auto ret = std::unique_ptr<LayerStoreDataIdentAll>();
+    ret->storeFullIdent(peptides_);
+    return ret;
+  }
+
+  LayerDataDefs::ProjectionData LayerDataIdent::getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const
+  { // currently only a stub
+    ProjectionData proj;
+    return proj;
+  }
+
   std::unique_ptr<LayerStatistics> LayerDataIdent::getStats() const
   {
     return make_unique<LayerStatisticsIdent>(peptides_);

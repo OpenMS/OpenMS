@@ -58,50 +58,27 @@ namespace OpenMS
   {
     // basic behavior 1
     LayerDataBase& layer = const_cast<LayerDataBase&>(tv_->getActiveCanvas()->getCurrentLayer());
-    ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
-    LayerDataBase::ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
+    auto exp_sptr = layer.getPeakDataMuteable();
+    auto od_exp_sptr = layer.getOnDiscPeakData();
     auto ondisc_sptr = layer.getOnDiscPeakData();
 
     // create new 1D widget; if we return due to error, the widget will be cleaned up automatically
     unique_ptr<Plot1DWidget> wp(new Plot1DWidget(tv_->getCanvasParameters(1), DIM::Y, (QWidget*)tv_->getWorkspace()));
     Plot1DWidget* w = wp.get();
-
-    if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
-    {
-      // set layer name
-      String caption = layer.getName() + "[" + index + "]";
-
-      // add chromatogram data as peak spectrum
-      if (!w->canvas()->addChromLayer(exp_sptr, ondisc_sptr, layer.getChromatogramAnnotation(), index, layer.filename, caption, false))
-      {
-        return;
-      }
-      w->canvas()->activateSpectrum(index);
-      
-      // set visible area to visible area in 2D view
-      w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
-    }
-    else if (layer.type == LayerDataBase::DT_PEAK)
-    {
-      String caption = layer.getName();
-
-      // add data
-      if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename) || (Size)index >= w->canvas()->getCurrentLayer().getPeakData()->size())
-      {
-        return;
-      }
-      w->canvas()->activateSpectrum(index);
-
-      // for MS1 spectra set visible area to visible area in 2D view.
-      w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
-    }
-    else
+    
+    // copy data from current layer (keeps the TYPE and underlying data identical)
+    if (!w->canvas()->addLayer(layer.to1DLayer()))
     {
       // Behavior if its neither (user may have clicked on an empty tree or a
       // dummy entry as drawn by SpectraTreeTab::updateEntries)
       QMessageBox::critical(w, "Error", "Cannot open data that is neither chromatogram nor spectrum data. Aborting!");
       return;
     }
+
+    w->canvas()->activateSpectrum(index);
+
+    // set visible area to visible area in 2D view
+    w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
 
     // set relative (%) view of visible area
     w->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
@@ -110,9 +87,7 @@ namespace OpenMS
     String caption = layer.getName();
     w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
 
-    tv_->showPlotWidgetInWindow(w, caption);
-    wp.release();
-
+    tv_->showPlotWidgetInWindow(wp.release(), caption);
     tv_->updateLayerBar();
     tv_->updateViewBar();
     tv_->updateFilterBar();

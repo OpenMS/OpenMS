@@ -74,15 +74,15 @@ public:
     ~Plot2DWidget() override;
 
     /// This method is overwritten to make the class specific members accessible
-    inline Plot2DCanvas* canvas()
+    Plot2DCanvas* canvas()
     {
       return static_cast<Plot2DCanvas*>(canvas_);
     }
 
     /// const reference to the horizontal projection
-    const Plot1DWidget * getHorizontalProjection() const;
+    const Plot1DWidget* getProjectionOntoX() const;
     /// const reference to the vertical projection
-    const Plot1DWidget * getVerticalProjection() const;
+    const Plot1DWidget* getProjectionOntoY() const;
 
     /// Returns if one of the projections is visible (or both are visible)
     bool projectionsVisible() const;
@@ -92,8 +92,8 @@ public:
     {
       canvas_->setMapper(mapper); // update canvas
       // ... and projections: the projected Dim becomes intensity
-      projection_vert_->setMapper(DimMapper<2>({mapper.getDim(DIM::X).getUnit(), DIM_UNIT::INT}));
-      projection_horz_->setMapper(DimMapper<2>({DIM_UNIT::INT, mapper.getDim(DIM::Y).getUnit()}));
+      projection_onto_X_->setMapper(DimMapper<2>({mapper.getDim(DIM::X).getUnit(), DIM_UNIT::INT}));
+      projection_onto_Y_->setMapper(DimMapper<2>({DIM_UNIT::INT, mapper.getDim(DIM::Y).getUnit()}));
     }
 
 public slots:
@@ -101,8 +101,6 @@ public slots:
     void recalculateAxes_() override;
     /// Shows/hides the projections
     void toggleProjections();
-    /// Updates and shows the projections
-    void updateProjections();
     // Docu in base class
     void showGoToDialog() override;
 
@@ -120,10 +118,13 @@ signals:
     void showCurrentPeaksAs3D();
 
 protected:
+    /// shows projections information
+    void projectionInfo_(int peaks, double intensity, double max);
+
     /// Vertical projection widget
-    Plot1DWidget * projection_vert_;
+    Plot1DWidget * projection_onto_X_;
     /// Horizontal projection widget
-    Plot1DWidget * projection_horz_;
+    Plot1DWidget * projection_onto_Y_;
     /// Group box that shows information about the projections
     QGroupBox * projection_box_;
     /// Number of peaks of the projection
@@ -138,14 +139,10 @@ protected:
     QTimer * projections_timer_;
 
 private slots:
-    /// shows the horizontal projection with the given data and draw mode
-    void horizontalProjection(ExperimentSharedPtrType exp);
-    /// shows the vertical projection with the given data and draw mode
-    void verticalProjection(ExperimentSharedPtrType exp);
-    /// shows projections information
-    void projectionInfo(int peaks, double intensity, double max);
+    /// extracts the projections from the @p source_layer and displays them
+    void showProjections_(const LayerDataBase* source_layer);
     /// slot that monitors the visible area changes and triggers the update of projections
-    void autoUpdateProjections();
+    void autoUpdateProjections_();
   };
 }
 

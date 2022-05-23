@@ -32,11 +32,10 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/VISUAL/LayerDataPeak.h"
-
 #include <OpenMS/VISUAL/SpectraTreeTab.h>
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
+#include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/TreeView.h>
 
 #include <QtWidgets/QComboBox>

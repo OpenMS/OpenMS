@@ -40,7 +40,7 @@
 namespace OpenMS
 {
   
-  class OPENMS_GUI_DLLAPI LayerData1DPeak : public LayerData1DBase, public LayerDataPeak
+  class OPENMS_GUI_DLLAPI LayerData1DPeak : public LayerDataPeak, public LayerData1DBase
   {
   public:
     LayerData1DPeak()
@@ -48,12 +48,21 @@ namespace OpenMS
     {
     }
 
+    LayerData1DPeak(const LayerDataPeak& base) : LayerDataPeak(base)
+    {
+    }
+
+
     std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
     std::unique_ptr<LayerStoreData> storeFullData() const override;
 
     std::unique_ptr<Painter1DBase> getPainter1D() const override;
 
-    
+    bool hasIndex(Size index) const override
+    {
+      return index < peak_map_->size();
+    }
+
     RangeAllType getRangeForArea(const RangeAllType partial_range) const override
     {
       const auto& spec = getCurrentSpectrum();

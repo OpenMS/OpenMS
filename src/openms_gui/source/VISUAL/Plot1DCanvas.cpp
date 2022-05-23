@@ -898,16 +898,18 @@ namespace OpenMS
   {
     if (intensity_mode_ == IM_SNAP)
     {
-      double local_max  = -numeric_limits<double>::max();
+      // find maximum displayed(!) intensity across all layers
+      double max_visible_intensity = numeric_limits<double>::lowest();
+      auto vis_area = visible_area_.getAreaUnit();
+      auto filter_area = vis_area.clear(getGravityDim().getUnit()); // only keep the non-gravity range (e.g. m/z)
       for (Size i = 0; i < getLayerCount(); ++i)
       {
-        auto filter_area = visible_area_.getAreaUnit();
-        const auto updated_area = getLayer(i).getRangeForArea(filter_area.clear(getGravityDim().getUnit()));
-        local_max = std::max(local_max, updated_area.getMaxIntensity());
+        const auto updated_area = getLayer(i).getRangeForArea(filter_area);
+        max_visible_intensity = std::max(max_visible_intensity, updated_area.getMaxIntensity());
       }
 
       // add some margin on top of local maximum to be sure we are able to draw labels inside the view
-      snap_factors_[0] = overall_data_range_.getMaxIntensity() / (local_max * TOP_MARGIN);
+      snap_factors_[0] = overall_data_range_.getMaxIntensity() / (max_visible_intensity * TOP_MARGIN);
     }
     else if (intensity_mode_ == IM_PERCENTAGE)
     {
@@ -1527,13 +1529,8 @@ namespace OpenMS
   {
     // clear selected peak, so we do not accidentally access and invalid index next time when moving the mouse
     selected_peak_.clear();
-
-    // Note: even though the current spectrum may be on disk, there will still
-    // be an in-memory representation in the peak data structure. Using
-    // setCurrentSpectrumIndex will select the appropriate spectrum and load it
-    // into memory.
     
-    if (index < getCurrentLayer().getPeakData()->size())
+    if (getCurrentLayer().hasIndex(index))
     {
       getCurrentLayer().setCurrentIndex(index);
       recalculateSnapFactor_();

@@ -62,20 +62,28 @@ namespace OpenMS
   class OnDiscMSExperiment;
   class OSWData;
   class Painter1DBase;
+
   template <int N_DIM> class DimMapper;
 
-  struct LayerDataDefs {
+  struct LayerDataDefs
+  {
 
     /// Result of computing a projection on X and Y axis in a 2D Canvas; see LayerDataBase::getProjection()
     struct ProjectionData
     {
+      /// C'tor
+      ProjectionData();
+      /// Move C'tor
+      ProjectionData(ProjectionData&&);
+      /// D'tor
+      ~ProjectionData(); // needs to be implemented in cpp, since inline would require a full definition of LayerData1DBase;
+
       std::unique_ptr<LayerData1DBase> projection_ontoX;
       std::unique_ptr<LayerData1DBase> projection_ontoY;
-      struct Summary
-      {
-        UInt number_of_datapoints{0};
-        Peak1D::IntensityType max_intensity{0};
-        double sum_intensity{0}; // double since sum could get large
+      struct Summary {
+        UInt number_of_datapoints {0};
+        Peak1D::IntensityType max_intensity {0};
+        double sum_intensity {0}; // double since sum could get large
       } stats;
     };
 
@@ -191,17 +199,23 @@ namespace OpenMS
     /// Default constructor (for virtual inheritance)
     LayerDataBase() = default;
     /// C'tor for child classes
-    LayerDataBase(const DataType type) : type(type) {};
-    /// no Copy-ctor (should not be needed)
-    LayerDataBase(const LayerDataBase& ld) = delete;
-    /// no assignment operator (should not be needed)
+    explicit LayerDataBase(const DataType type) : type(type) {}
+    /// Copy-C'tor
+    LayerDataBase(const LayerDataBase& ld);
+    /// Assignment operator
     LayerDataBase& operator=(const LayerDataBase& ld) = delete;
-    /// move C'tor
+    /// Move-C'tor
     LayerDataBase(LayerDataBase&& ld) = default;
-    /// move assignment
+    /// Move assignment
     LayerDataBase& operator=(LayerDataBase&& ld) = default;
     /// D'tor
     virtual ~LayerDataBase() = default;
+
+    /**
+     * \brief Create a shallow copy (i.e. shared experimental data using shared_ptr) of the current layer, and make it 1D (i.e. support showing a single spec/chrom etc)
+     * \return A new layer for 1D
+     */
+    virtual std::unique_ptr <LayerData1DBase> to1DLayer() const = 0;
 
     /// Returns a visitor which contains the current visible data and can write the data to disk
     virtual std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const

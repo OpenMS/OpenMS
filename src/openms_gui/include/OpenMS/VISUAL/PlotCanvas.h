@@ -409,6 +409,9 @@ public:
       }
     }
 
+    /// Add an already constructed layer (e.g. for projections)
+    bool addLayer(std::unique_ptr<LayerData1DBase> layer);
+
     /**
         @brief Add a peak data layer
 
