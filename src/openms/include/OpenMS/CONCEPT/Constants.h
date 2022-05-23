@@ -534,6 +534,12 @@ namespace OpenMS
               String
       */
       inline const std::string   NUM_OF_MASSTRACES = "num_of_masstraces";
+
+      /** User parameter name for the total number of data points (peaks) in a feature. (Required for MQEvidenceExporter)
+              String
+      */
+      inline const std::string   NUM_OF_DATAPOINTS = "num_of_datapoints";
+
     }
 
     //@}
