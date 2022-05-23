@@ -621,7 +621,7 @@ protected:
     auto elapsed_deconv_cpu_secs = std::vector<double>(max_ms_level, .0);
     auto elapsed_deconv_wall_secs = std::vector<double>(max_ms_level, .0);
     std::map<int, double> scan_rt_map;
-    std::unordered_map<int, PeakGroup> precursor_peak_groups; // MS2 scan number, peak group
+    std::map<int, PeakGroup> precursor_peak_groups; // MS2 scan number, peak group
 
     // read input dataset once to count spectra
     double gradient_rt = .0;
@@ -875,7 +875,7 @@ protected:
       }
       if(!out_topfd_feature_file.empty())
       {
-        FLASHDeconvFeatureFile::writeTopFDFeatures(mass_features, precursor_peak_groups, scan_rt_map, out_topfd_feature_streams[0]);
+        FLASHDeconvFeatureFile::writeTopFDFeatures(mass_features, precursor_peak_groups, scan_rt_map, in_file,out_topfd_feature_streams);
       }
 
       if(!out_promex_file.empty())
@@ -948,7 +948,7 @@ protected:
       for (auto& out_topfd_feature_stream: out_topfd_feature_streams)
       {
         out_topfd_feature_stream.close();
-        if (j + 1 > 1) // only MS1. Change in OpenMS 3.0 so it takes one single feature name.
+        if (j + 1 > 2) // only MS1 and MS2.
         {
           std::remove(out_topfd_feature_file[j].c_str());
         }

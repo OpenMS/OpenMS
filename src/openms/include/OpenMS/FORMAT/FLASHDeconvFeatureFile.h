@@ -81,8 +81,8 @@ namespace OpenMS
          */
 
     static void writeTopFDFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features,
-                                   const std::unordered_map<int, PeakGroup>& precursor_peak_groups,
-                                   const std::map<int, double>& scan_rt_map, std::fstream& fs);
+                                   const std::map<int, PeakGroup>& precursor_peak_groups,
+                                   const std::map<int, double>& scan_rt_map, const String file_name, std::vector<std::fstream>& fs);
 
     /**
        @brief Find mass features and write features in output files.
@@ -99,7 +99,7 @@ namespace OpenMS
        */
 
     static void writePromexFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features,
-                                    const std::unordered_map<int, PeakGroup>& precursor_peak_groups,
+                                    const std::map<int, PeakGroup>& precursor_peak_groups,
                                     const std::map<int, double>& scan_rt_map,
                                     const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                                     std::fstream& fs);
