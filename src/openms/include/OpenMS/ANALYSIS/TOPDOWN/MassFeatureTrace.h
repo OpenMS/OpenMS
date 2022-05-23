@@ -86,6 +86,12 @@ namespace OpenMS
        @param fst file streams for topfd output tsv, feature files
        */
     std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(const PrecalculatedAveragine& averagine);
+
+    Size size() const
+    {
+      return peak_group_map_.size();
+    }
+
   protected:
     void updateMembers_() override;
 

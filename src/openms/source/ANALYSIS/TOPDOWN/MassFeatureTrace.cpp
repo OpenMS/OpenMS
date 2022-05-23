@@ -96,11 +96,11 @@ namespace OpenMS
       map.addSpectrum(deconv_spec);
     }
 
-    // if a feature consists for less than 3 masses, it is likely a false positive.
-    //if (map.size() < 3)
-    //{
-    //  return;
-    //}
+    // when map size is less than 3, MassTraceDetection aborts - too few spectra for mass tracing.
+    if (map.size() < 3)
+    {
+      return mass_features;
+    }
 
     MassTraceDetection mtdet;
     Param mtd_param = getParameters().copy("");

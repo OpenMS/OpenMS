@@ -185,14 +185,14 @@ protected:
     registerIntOption_("max_MS_level", "", 3, "maximum MS level (inclusive) for deconvolution.", false, true);
     setMinInt_("max_MS_level", 1);
 
-    /*registerIntOption_("forced_MS_level",
+    registerIntOption_("forced_MS_level",
                        "",
                        0,
                        "if set to an integer N, MS level of all spectra will be set to N regardless of original MS level",
                        false,
                        true);
     setMinInt_("forced_MS_level", 0);
-*/
+
     registerIntOption_("merging_method", "<0: None 1: gaussian averaging 2: block method>", 0,
                                             "Method of spectra merging which should be used. 0: No merging "
                                                                 "1: Average gaussian method to perform moving gaussian averaging of spectra per MS level. Effective to increase proteoform ID sensitivity "
@@ -503,7 +503,7 @@ protected:
                                                             getDoubleOption_("min_precursor_snr");
     bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
     int max_ms_level = getIntOption_("max_MS_level");
-    int forced_ms_level = 0;//getIntOption_("forced_MS_level");
+    int forced_ms_level = getIntOption_("forced_MS_level");
     int merge = getIntOption_("merging_method");
     bool write_detail = getIntOption_("write_detail") > 0;
     int mzml_charge = getIntOption_("mzml_mass_charge");
@@ -629,23 +629,25 @@ protected:
     for (auto& it: map)
     {
       gradient_rt = it.getRT();
-      if (it.empty())
-      {
-        continue;
-      }
-      if (it.getMSLevel() > max_ms_level)
-      {
-        continue;
-      }
-      if(it.getMSLevel() ==2 )
-      {
-        max_precursor_c =std::max(max_precursor_c, it.getPrecursors()[0].getCharge());
-      }
 
       // if forced_ms_level > 0, force MS level of all spectra to 1.
       if (forced_ms_level > 0)
       {
         it.setMSLevel(forced_ms_level);
+      }
+
+      if (it.empty())
+      {
+        continue;
+      }
+
+      if (it.getMSLevel() > max_ms_level)
+      {
+        continue;
+      }
+      if(it.getMSLevel() ==2)
+      {
+        max_precursor_c =std::max(max_precursor_c, it.getPrecursors()[0].getCharge());
       }
 
       int ms_level = it.getMSLevel();
@@ -867,7 +869,10 @@ protected:
                                //feature_cntr, , out_stream, out_promex_stream, out_topfd_feature_streams
                                );
       feature_cntr = mass_features.size();
-      FLASHDeconvFeatureFile::writeFeatures(mass_features, in_file, out_stream);
+      if(feature_cntr > 0)
+      {
+        FLASHDeconvFeatureFile::writeFeatures(mass_features, in_file, out_stream);
+      }
       if(!out_topfd_feature_file.empty())
       {
         FLASHDeconvFeatureFile::writeTopFDFeatures(mass_features, precursor_peak_groups, scan_rt_map, out_topfd_feature_streams[0]);
