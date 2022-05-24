@@ -807,7 +807,12 @@ protected:
         //{
         if (!deconvolved_spectrum.empty())
         {
-          exp.addSpectrum(deconvolved_spectrum.toSpectrum(mzml_charge));
+          auto dspec = deconvolved_spectrum.toSpectrum(mzml_charge);
+          if(dspec.size() > 0)
+          {
+            exp.addSpectrum(dspec);
+          }
+
         }
         //}
       }

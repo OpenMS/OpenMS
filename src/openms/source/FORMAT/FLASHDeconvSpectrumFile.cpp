@@ -261,8 +261,8 @@ namespace OpenMS
     if (ms_level > 1)
     {
       fs << "ACTIVATION=" << dspec.getActivationMethod() << "\n";
-      if (!dspec.getPrecursorPeakGroup().empty())
-      {
+      //if (!dspec.getPrecursorPeakGroup().empty())
+     // {
         fs << "MS_ONE_ID=" << dspec.getPrecursorScanNumber() << "\n"
            << "MS_ONE_SCAN=" << dspec.getPrecursorScanNumber() << "\n"
            << "PRECURSOR_MZ="
@@ -271,8 +271,8 @@ namespace OpenMS
            << "PRECURSOR_MASS="
            << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass() * decoy_harmonic_factor + decoy_precursor_offset) << "\n"
            << "PRECURSOR_INTENSITY=" << dspec.getPrecursor().getIntensity() << "\n";
-      }
-      else
+      //}
+      /*else
       {
         double average_mass =
             (dspec.getPrecursor().getMZ() -
@@ -286,7 +286,7 @@ namespace OpenMS
            << "PRECURSOR_CHARGE=" << (int) (dspec.getPrecursor().getCharge() * decoy_harmonic_factor) << "\n"
            << "PRECURSOR_MASS=" << std::to_string(mono_mass) << "\n"
            << "PRECURSOR_INTENSITY=" << dspec.getPrecursor().getIntensity() << "\n";
-      }
+      }*/
     }
     fs << std::setprecision(-1);
 

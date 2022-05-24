@@ -46,6 +46,11 @@ namespace OpenMS
   {
     auto out_spec = MSSpectrum(spec_);
     out_spec.clear(false);
+    if(spec_.getMSLevel() > 1 && precursor_peak_group_.empty())
+    {
+      return out_spec;
+    }
+
     for (auto& pg : *this)
     {
       if (pg.empty())
