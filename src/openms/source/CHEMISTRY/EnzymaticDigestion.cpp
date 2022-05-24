@@ -181,7 +181,7 @@ namespace OpenMS
       return (cleavage_positions.size() - 1) <= missed_cleavages_;
     }
     
-    if (specificity_ == SPEC_FULL && enzyme_->getName() == NoCleavage)
+    if (specificity_ == SPEC_FULL && enzyme_->getName() == NoCleavage && allow_random_asp_pro_cleavage == false)
     { // we want them to be exactly match
       return pos == 0 && sequence.size() == end;
     }
