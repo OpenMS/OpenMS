@@ -255,7 +255,6 @@ END_SECTION
 
 START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
 {
-
   double test_matrix[18][18] = {{0.9198,0,0.0071,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
                                 {0,0.9186,0,0.0188,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
                                 {0.0802,0,0.9235,0,0.0134,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -270,10 +269,10 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
                                 {0,0,0,0,0,0,0,0,0,0.0373,0,0.9402,0,0.0385,0,0,0,0},
                                 {0,0,0,0,0,0,0,0,0,0,0.0314,0,0.9389,0,0.0463,0,0,0},
                                 {0,0,0,0,0,0,0,0,0,0,0,0.0276,0,0.9457,0,0.0522,0,0},
-                                {0,0,0,0,0,0,0,0,0,0,0,0,0.02,0,0.9419,0,0,0},
-                                {0,0,0,0,0,0,0,0,0,0,0,0,0,0.0158,0,0.9392,0,0},
-                                {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.0557,0,0.9592,0},
-                                {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.0513,0,0.9481}};
+                                {0,0,0,0,0,0,0,0,0,0,0,0,0.02,0,0.9419,0,0.0581,0},
+                                {0,0,0,0,0,0,0,0,0,0,0,0,0,0.0158,0,0.9392,0,0.0542},
+                                {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.9388,0},
+                                {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.9458}};
 
   Matrix<double> test_Matrix;
 	test_Matrix.setMatrix<18,18>(test_matrix);
@@ -326,7 +325,6 @@ START_SECTION((TMTEighteenPlexQuantitationMethod(const TMTEighteenPlexQuantitati
   IsobaricQuantitationMethod::IsobaricChannelList channel_list = qm2.getChannelInformation();
   TEST_STRING_EQUAL(channel_list[1].description, "new_description")
   TEST_EQUAL(qm2.getReferenceChannel(), 6)
-
 }
 END_SECTION
 
