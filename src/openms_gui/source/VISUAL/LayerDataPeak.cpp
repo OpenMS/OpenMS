@@ -85,7 +85,7 @@ namespace OpenMS
 
     auto& peak_count = result.stats.number_of_datapoints;
     auto& intensity_max = result.stats.max_intensity;
-    double total_intensity_sum = 0.0; 
+    auto& total_intensity_sum = result.stats.sum_intensity; 
 
     // divide visible range into 100 bins (much faster than using a constant, e.g. 0.05, leading to many peaks for large maps without more information)
     float mz_range = area.RangeMZ::getSpan();
@@ -152,15 +152,19 @@ namespace OpenMS
 
     // projection for m/z
     auto ptr_mz = make_unique<LayerData1DPeak>();
-    MSExperiment exp_mz;
-    exp_mz.addSpectrum(std::move(projection_mz));
-    ptr_mz->setPeakData(ExperimentSharedPtrType(new ExperimentType(exp_mz)));
+    {
+      MSExperiment exp_mz;
+      exp_mz.addSpectrum(std::move(projection_mz));
+      ptr_mz->setPeakData(ExperimentSharedPtrType(new ExperimentType(std::move(exp_mz))));
+    }
 
     // projection for RT
     auto ptr_rt = make_unique<LayerData1DChrom>();
-    MSExperiment exp_rt;
-    exp_mz.addChromatogram(std::move(projection_rt));
-    ptr_rt->setPeakData(ExperimentSharedPtrType(new ExperimentType(exp_rt)));
+    {
+      MSExperiment exp_rt;
+      exp_rt.addChromatogram(std::move(projection_rt));
+      ptr_rt->setChromData(ExperimentSharedPtrType(new ExperimentType(std::move(exp_rt))));
+    }
 
     auto assign_axis = [&](auto unit, auto& layer) {
       switch (unit)
@@ -182,11 +186,39 @@ namespace OpenMS
     return result;
   }
 
-  LayerDataDefs::PointXYType LayerDataPeak::peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const
+  PointXYType LayerDataPeak::peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const
   {
     const auto& spec = getSpectrum(peak.spectrum);
     const auto p1 = spec[peak.peak];
     return mapper.map(Peak2D({spec.getRT(), p1.getMZ()}, p1.getIntensity()));
+  }
+
+  String LayerDataPeak::getDataArrayDescription(const PeakIndex& peak_index)
+  {
+    String status;
+    const ExperimentType::SpectrumType& s = getSpectrum(peak_index.spectrum);
+    for (Size m = 0; m < s.getFloatDataArrays().size(); ++m)
+    {
+      if (peak_index.peak < s.getFloatDataArrays()[m].size())
+      {
+        status += s.getFloatDataArrays()[m].getName() + ": " + s.getFloatDataArrays()[m][peak_index.peak] + " ";
+      }
+    }
+    for (Size m = 0; m < s.getIntegerDataArrays().size(); ++m)
+    {
+      if (peak_index.peak < s.getIntegerDataArrays()[m].size())
+      {
+        status += s.getIntegerDataArrays()[m].getName() + ": " + s.getIntegerDataArrays()[m][peak_index.peak] + " ";
+      }
+    }
+    for (Size m = 0; m < s.getStringDataArrays().size(); ++m)
+    {
+      if (peak_index.peak < s.getStringDataArrays()[m].size())
+      {
+        status += s.getStringDataArrays()[m].getName() + ": " + s.getStringDataArrays()[m][peak_index.peak] + " ";
+      }
+    }
+    return status;
   }
 
   std::unique_ptr<LayerStatistics> LayerDataPeak::getStats() const
