@@ -179,35 +179,27 @@ namespace OpenMS
             {
               target_scores.push_back(score);
 
-              // store best score for peptide (unmodified sequence)
-              if (auto it = peptide_to_best_target_score.find(peptide_sequence); it == peptide_to_best_target_score.end())
+              // store best score for peptide (unmodified sequence)              
+              auto [entry_it, success] = peptide_to_best_target_score.emplace(peptide_sequence, score); // try to construct in place (performance)
+
+              if (!success && // emplace failed because key was already present -> replace if current score is better?
+                  isFirstBetterScore(score, entry_it->second, higher_score_better)) 
               {
-                peptide_to_best_target_score[peptide_sequence] = score;
-              }
-              else
-              {
-                if (isFirstBetterScore(it->second, peptide_to_best_target_score[peptide_sequence], higher_score_better))
-                {
-                  peptide_to_best_target_score[peptide_sequence] = it->second;
-                }
-              }              
+                entry_it->second = score;
+              }                           
             }
             else
             {
               if (target_decoy == "decoy")
               {
                 decoy_scores.push_back(score);
-                // store best score for peptide (unmodified sequence)
-                if (auto it = peptide_to_best_decoy_score.find(peptide_sequence); it == peptide_to_best_decoy_score.end())
+
+                auto [entry_it, success] = peptide_to_best_decoy_score.emplace(peptide_sequence, score); // try to construct in place (performance)
+
+                if (!success && // emplace failed because key was already present -> replace if current score is better?
+                    isFirstBetterScore(score, entry_it->second, higher_score_better)) 
                 {
-                  peptide_to_best_decoy_score[peptide_sequence] = score;
-                }
-                else
-                {
-                  if (isFirstBetterScore(it->second, peptide_to_best_decoy_score[peptide_sequence], higher_score_better))
-                  {
-                    peptide_to_best_decoy_score[peptide_sequence] = it->second;
-                  }
+                  entry_it->second = score;
                 }
               }
               else
