@@ -422,6 +422,7 @@ protected:
     registerStringOption_("f_and_c:charge", "[min]:[max]", ":", "Charge range to extract", false);
     registerStringOption_("f_and_c:size", "[min]:[max]", ":", "Size range to extract", false);
     registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
+    registerFlag_("f_and_c:remove_hull", "Remove hull from features.", false);
 
     addEmptyLine_();
     // XXX: Change description
@@ -609,6 +610,8 @@ protected:
     StringList accessions = getStringList_("id:accessions_whitelist");
     bool keep_best_score_id = getFlag_("id:keep_best_score_id");
     bool remove_clashes = getFlag_("id:remove_clashes");
+    
+    bool remove_hulls = getFlag_("f_and_c:remove_hull");
 
     // convert bounds to numbers
     try
@@ -1029,7 +1032,7 @@ protected:
           bool const charge_ok = ((charge_l <= fm.getCharge()) && (fm.getCharge() <= charge_u));
           bool const size_ok = ((size_l <= fm.getSubordinates().size()) && (fm.getSubordinates().size() <= size_u));
           bool const q_ok = ((q_l <= fm.getOverallQuality()) && (fm.getOverallQuality() <= q_u));
-
+          if (remove_hulls) fm.getConvexHulls().clear();
 
           if (rt_ok && mz_ok && int_ok && charge_ok && size_ok && q_ok)
           {
