@@ -137,6 +137,7 @@ public:
     ///@name Export methods from std::vector<Peak1D>
     //@{
     using ContainerType::operator[];
+    using ContainerType::assign;
     using ContainerType::begin;
     using ContainerType::rbegin;
     using ContainerType::end;
