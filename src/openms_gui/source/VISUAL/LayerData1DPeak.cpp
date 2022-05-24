@@ -79,7 +79,7 @@ namespace OpenMS
 
   PeakIndex LayerData1DPeak::findClosestDataPoint(const RangeAllType& area) const
   {
-    Peak1D peak_lt, peak_rb;
+    Peak1D peak_lt(area.getMinMZ(), area.getMinIntensity()), peak_rb(area.getMaxMZ(), area.getMaxIntensity());
     // reference to the current data
     const auto& spectrum = getCurrentSpectrum();
     const Size spectrum_index = getCurrentIndex();

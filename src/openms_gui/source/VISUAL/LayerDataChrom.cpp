@@ -174,8 +174,9 @@ namespace OpenMS
     return result;
   }
 
-  LayerDataDefs::PointXYType LayerDataChrom::peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const
+  PointXYType LayerDataChrom::peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const
   {
+    // todo:: allow ChromatogramPeak2D
     return mapper.map(getChromatogram(peak.spectrum)[peak.peak]);
   }
 

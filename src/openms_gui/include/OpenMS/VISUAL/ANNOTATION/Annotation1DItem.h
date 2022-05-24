@@ -28,13 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
-// $Authors: Johannes Junker $
+// $Maintainer: Johannes Veit, Chris Bielow $
+// $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include "OpenMS/VISUAL/Plot1DCanvas.h"
+#include <OpenMS/VISUAL/MISC/CommonDefs.h> // for PointXYType
 
 #include <QtCore/QRectF>
 #include <QtCore/QString>
@@ -43,6 +43,8 @@ class QPainter;
 
 namespace OpenMS
 {
+  template<int D> class DimMapper;
+  class Gravitator;
   class Plot1DCanvas;
 
   /** @brief An abstract class acting as an interface for the different 1D annotation items.
@@ -59,9 +61,6 @@ namespace OpenMS
   class Annotation1DItem
   {
   public:
-    /// A point the X-Y plane (usually in data coordinates, not pixels)
-    using PointXYType  = Plot1DCanvas::PointXYType;
-
     /// Destructor
     virtual ~Annotation1DItem();
 

@@ -44,6 +44,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/VISUAL/LogWindow.h>
+#include <OpenMS/VISUAL/MISC/CommonDefs.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
@@ -154,10 +155,6 @@ namespace OpenMS
 
     /// SharedPtr on OSWData
     typedef boost::shared_ptr<OSWData> OSWDataSharedPtrType;
-
-    /// Type of the Points in a 'flat' canvas (1D and 2D)
-    using PointXYType = DPosition<2>;
-    
   };
 
   /**
@@ -197,11 +194,11 @@ namespace OpenMS
     //@}
 
     /// Default constructor (for virtual inheritance)
-    LayerDataBase() = default;
+    LayerDataBase() = delete;     // <-- this is the problem. Call assignment op in 1DPeak???
     /// C'tor for child classes
     explicit LayerDataBase(const DataType type) : type(type) {}
     /// Copy-C'tor
-    LayerDataBase(const LayerDataBase& ld);
+    LayerDataBase(const LayerDataBase& ld) = default;
     /// Assignment operator
     LayerDataBase& operator=(const LayerDataBase& ld) = delete;
     /// Move-C'tor
@@ -336,6 +333,14 @@ namespace OpenMS
     const ODExperimentSharedPtrType& getOnDiscPeakData() const
     {
       return on_disc_peaks;
+    }
+
+    /**
+      @brief Set the current in-memory chrom data
+    */
+    void setChromData(ExperimentSharedPtrType p)
+    {
+      chromatogram_map_ = p;
     }
 
     /// Returns a mutable reference to the current chromatogram data

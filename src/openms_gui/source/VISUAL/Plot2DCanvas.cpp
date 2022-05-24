@@ -1321,26 +1321,12 @@ namespace OpenMS
     {
       painter.setPen(Qt::black);
 
-      QPoint line_begin, line_end;
+      QPoint line_begin;
       // start of line
       if (selected_peak_.isValid())
       {
-        if (getCurrentLayer().type == LayerDataBase::DT_FEATURE)
-        {
-          dataToWidget_(selected_peak_.getFeature(*getCurrentLayer().getFeatureMap()).getMZ(), selected_peak_.getFeature(*getCurrentLayer().getFeatureMap()).getRT(), line_begin);
-        }
-        else if (getCurrentLayer().type == LayerDataBase::DT_PEAK)
-        {
-          dataToWidget_(selected_peak_.getPeak(*getCurrentLayer().getPeakData()).getMZ(), selected_peak_.getSpectrum(*getCurrentLayer().getPeakData()).getRT(), line_begin);
-        }
-        else if (getCurrentLayer().type == LayerDataBase::DT_CONSENSUS)
-        {
-          dataToWidget_(selected_peak_.getFeature(*getCurrentLayer().getConsensusMap()).getMZ(), selected_peak_.getFeature(*getCurrentLayer().getConsensusMap()).getRT(), line_begin);
-        }
-        else if (getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM)
-        {
-          //TODO CHROM
-        }
+        auto data_xy = getCurrentLayer().peakIndexToXY(selected_peak_, unit_mapper_);
+        line_begin = dataToWidget_(data_xy);
       }
       else
       {
@@ -1348,22 +1334,8 @@ namespace OpenMS
       }
 
       // end of line
-      if (getCurrentLayer().type == LayerDataBase::DT_FEATURE)
-      {
-        dataToWidget_(measurement_start_.getFeature(*getCurrentLayer().getFeatureMap()).getMZ(), measurement_start_.getFeature(*getCurrentLayer().getFeatureMap()).getRT(), line_end);
-      }
-      else if (getCurrentLayer().type == LayerDataBase::DT_PEAK)
-      {
-        dataToWidget_(measurement_start_.getPeak(*getCurrentLayer().getPeakData()).getMZ(), measurement_start_.getSpectrum(*getCurrentLayer().getPeakData()).getRT(), line_end);
-      }
-      else if (getCurrentLayer().type == LayerDataBase::DT_CONSENSUS)
-      {
-        dataToWidget_(measurement_start_.getFeature(*getCurrentLayer().getConsensusMap()).getMZ(), measurement_start_.getFeature(*getCurrentLayer().getConsensusMap()).getRT(), line_end);
-      }
-      else if (getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM)
-      {
-        //TODO CHROM
-      }
+      auto data_xy = getCurrentLayer().peakIndexToXY(measurement_start_, unit_mapper_);
+      auto line_end = dataToWidget_(data_xy);
       painter.drawLine(line_begin, line_end);
 
       highlightPeak_(painter, measurement_start_);
@@ -1534,84 +1506,48 @@ namespace OpenMS
     {
       return;
     }
-    //determine coordinates;
-    double mz = 0.0;
-    double rt = 0.0;
-    float it = 0.0;
-    float ppm = 0.0;
 
-    if (getCurrentLayer().type == LayerDataBase::DT_FEATURE)
-    {
-      if (end.isValid())
-      {
-        mz = end.getFeature(*getCurrentLayer().getFeatureMap()).getMZ() - start.getFeature(*getCurrentLayer().getFeatureMap()).getMZ();
-        rt = end.getFeature(*getCurrentLayer().getFeatureMap()).getRT() - start.getFeature(*getCurrentLayer().getFeatureMap()).getRT();
-        it = end.getFeature(*getCurrentLayer().getFeatureMap()).getIntensity() / start.getFeature(*getCurrentLayer().getFeatureMap()).getIntensity();
-      }
-      else
-      {
-        PointXYType point = widgetToData_(last_mouse_pos_);
-        mz = point[0] - start.getFeature(*getCurrentLayer().getFeatureMap()).getMZ();
-        rt = point[1] - start.getFeature(*getCurrentLayer().getFeatureMap()).getRT();
-        it = std::numeric_limits<double>::quiet_NaN();
-      }
-      ppm = (mz / start.getFeature(*getCurrentLayer().getFeatureMap()).getMZ()) * 1e6;
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_PEAK)
-    {
-      if (end.isValid())
-      {
-        mz = end.getPeak(*getCurrentLayer().getPeakData()).getMZ() - start.getPeak(*getCurrentLayer().getPeakData()).getMZ();
-        rt = end.getSpectrum(*getCurrentLayer().getPeakData()).getRT() - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
-        it = end.getPeak(*getCurrentLayer().getPeakData()).getIntensity() / start.getPeak(*getCurrentLayer().getPeakData()).getIntensity();
-      }
-      else
-      {
-        PointXYType point = widgetToData_(last_mouse_pos_);
-        mz = point[0] - start.getPeak(*getCurrentLayer().getPeakData()).getMZ();
-        rt = point[1] - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
-        it = std::numeric_limits<double>::quiet_NaN();
-      }
-      ppm = (mz / start.getPeak(*getCurrentLayer().getPeakData()).getMZ()) * 1e6;
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_CONSENSUS)
-    {
-      if (end.isValid())
-      {
-        mz = end.getFeature(*getCurrentLayer().getConsensusMap()).getMZ() - start.getFeature(*getCurrentLayer().getConsensusMap()).getMZ();
-        rt = end.getFeature(*getCurrentLayer().getConsensusMap()).getRT() - start.getFeature(*getCurrentLayer().getConsensusMap()).getRT();
-        it = end.getFeature(*getCurrentLayer().getConsensusMap()).getIntensity() / start.getFeature(*getCurrentLayer().getConsensusMap()).getIntensity();
-      }
-      else
-      {
-        PointXYType point = widgetToData_(last_mouse_pos_);
-        mz = point[0] - start.getFeature(*getCurrentLayer().getConsensusMap()).getMZ();
-        rt = point[1] - start.getFeature(*getCurrentLayer().getConsensusMap()).getRT();
-        it = std::numeric_limits<double>::quiet_NaN();
-      }
-      ppm = (mz / start.getFeature(*getCurrentLayer().getConsensusMap()).getMZ()) * 1e6;
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM)
-    {
-      //TODO CHROM
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_IDENT)
-    {
-      // TODO IDENT
-    }
+    // mapper obtain intensity from a PeakIndex
+    DimMapper<2> intensity_mapper({DIM_UNIT::INT, DIM_UNIT::INT});
 
-    //draw text
-    QStringList lines;
-    lines.push_back("RT delta:  " + QString::number(rt, 'f', 2));
-    lines.push_back("m/z delta: " + QString::number(mz, 'f', 6) + " (" + QString::number(ppm, 'f', 1) +" ppm)");
-    if (std::isinf(it) || std::isnan(it))
+
+    const auto peak_start = getCurrentLayer().peakIndexToXY(start, unit_mapper_);
+    const auto peak_start_int = getCurrentLayer().peakIndexToXY(start, intensity_mapper);
+    auto peak_end = decltype(peak_start) {}; // same as peak_start but without the const
+    auto peak_end_int = decltype(peak_start) {}; // same as peak_start but without the const
+    if (end.isValid())
     {
-      lines.push_back("Int ratio: n/a");
+      peak_end = getCurrentLayer().peakIndexToXY(end, unit_mapper_);
+      peak_end_int = getCurrentLayer().peakIndexToXY(end, intensity_mapper);
     }
     else
     {
-      lines.push_back("Int ratio: " + QString::number(it, 'f', 2));
+      peak_end = widgetToData_(last_mouse_pos_);
+      peak_end_int = std::nan(nullptr);
     }
+
+    auto dim_text = [](const DimBase& dim, double start_pos, double end_pos, bool ratio /*or difference*/) {
+      QString result;
+      if (ratio)
+      {
+        result = dim.formattedValue(end_pos / start_pos, " ratio ").toQString();
+      }
+      else
+      {
+        result = dim.formattedValue(end_pos - start_pos, " delta ").toQString();
+        if (dim.getUnit() == DIM_UNIT::MZ)
+        {
+          auto ppm = Math::getPPM(end_pos, start_pos);
+          result += " (" + QString::number(ppm, 'f', 1) + " ppm)";
+        }
+      }
+      return result;
+    };
+
+    QStringList lines;
+    lines << dim_text(unit_mapper_.getDim(DIM::X), peak_start.getX(), peak_end.getX(), false);
+    lines << dim_text(unit_mapper_.getDim(DIM::Y), peak_start.getY(), peak_end.getY(), false);
+    lines << dim_text(DimINT(), peak_start_int.getY(), peak_end_int.getY(), true); // ratio
     drawText_(painter, lines);
   }
 

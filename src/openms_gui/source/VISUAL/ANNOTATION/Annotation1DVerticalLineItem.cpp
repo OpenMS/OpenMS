@@ -92,7 +92,7 @@ namespace OpenMS
     // get width in NON-gravity (=swapped) dimension
     int width = canvas->getGravitator().swap().gravityValue(px_width);
     // if width_==0, only make a 1px line; in any case, it should be 1 px at least
-    pen.setWidth(width_ == 0 ? 1 : std::max(1, width));
+    pen.setWidth(std::max(1, width));
     pen.setColor(col);
     painter.setPen(pen);
     painter.drawLine(start_px_left, end_px_right);
@@ -121,7 +121,7 @@ namespace OpenMS
     pos_ = pos;
   }
 
-  const Annotation1DItem::PointXYType& Annotation1DVerticalLineItem::getPosition() const
+  const PointXYType& Annotation1DVerticalLineItem::getPosition() const
   {
     return pos_;
   }

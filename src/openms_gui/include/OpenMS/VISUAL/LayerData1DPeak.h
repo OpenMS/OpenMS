@@ -48,7 +48,7 @@ namespace OpenMS
     {
     }
 
-    LayerData1DPeak(const LayerDataPeak& base) : LayerDataPeak(base)
+    LayerData1DPeak(const LayerDataPeak& base) : LayerDataBase(base), LayerDataPeak(base)
     {
     }
 
@@ -74,18 +74,13 @@ namespace OpenMS
 
     const ExperimentType::SpectrumType& getCurrentSpectrum() const
     {
-      return cached_spectrum_;
+      return LayerDataPeak::getSpectrum(current_idx_);
     }
 
-    void sortCurrentSpectrumByPosition()
-    {
-      cached_spectrum_.sortByPosition();
-    }
 
     void updateRanges() override
     {
       LayerDataPeak::updateRanges();
-      cached_spectrum_.updateRanges();
     }
 
     RangeAllType getRange() const override
@@ -97,15 +92,6 @@ namespace OpenMS
     QMenu* getContextMenuAnnotation(Annotation1DItem* annot_item, bool& need_repaint) override;
 
     PeakIndex findClosestDataPoint(const RangeAllType& area) const override;
-
-    const ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const
-    {
-      if (spectrum_idx == current_idx_)
-      {
-        return cached_spectrum_;
-      }
-      return LayerDataPeak::getSpectrum(spectrum_idx);
-    }
 
     // docu in base class
     Annotation1DItem* addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color) override;
@@ -121,10 +107,6 @@ namespace OpenMS
     void updatePeptideHitAnnotations_(PeptideHit& hit);
 
   protected:
-    /// Current cached spectrum
-    ExperimentType::SpectrumType cached_spectrum_;
-
-
   };
 
 }// namespace OpenMS

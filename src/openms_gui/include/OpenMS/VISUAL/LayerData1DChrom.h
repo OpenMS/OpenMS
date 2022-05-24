@@ -39,14 +39,14 @@
 
 namespace OpenMS
 {
-  class OPENMS_GUI_DLLAPI LayerData1DChrom : public LayerData1DBase, public LayerDataChrom
+  class OPENMS_GUI_DLLAPI LayerData1DChrom : public LayerDataChrom, public LayerData1DBase
   {
   public:
     LayerData1DChrom() : LayerDataBase(DT_CHROMATOGRAM)
     {
     }
 
-    LayerData1DChrom(const LayerDataChrom& base) : LayerDataChrom(base)
+    LayerData1DChrom(const LayerDataChrom& base) : LayerDataBase(base), LayerDataChrom(base)
     {
     }
 

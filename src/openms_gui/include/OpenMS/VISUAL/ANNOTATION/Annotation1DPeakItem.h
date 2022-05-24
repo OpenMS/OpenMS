@@ -38,6 +38,7 @@
 
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 #include <QtGui/QColor>
 

@@ -54,13 +54,13 @@ namespace OpenMS
 
   String DimBase::formattedValue(const ValueType value) const
   {
-    return formattedValue(value, String(this->getDimNameShort()) + ": ");
+    // hint: QLocale::c().toString adds group separators to better visualize large numbers (e.g. 23.009.646.54,3)
+    return String(this->getDimNameShort()) + ": " + QLocale::c().toString(value, 'f', valuePrecision());
   }
 
   String DimBase::formattedValue(const ValueType value, const String& prefix) const
   {
-    // hint: QLocale::c().toString adds group separators to better visualize large numbers (e.g. 23.009.646.54,3)
-    return prefix + QLocale::c().toString(value, 'f', valuePrecision());
+    return prefix + formattedValue(value);
   }
 
   int DimBase::valuePrecision() const

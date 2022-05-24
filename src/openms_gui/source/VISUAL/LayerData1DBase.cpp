@@ -51,6 +51,12 @@ namespace OpenMS
     return n;
   }
 
-  
-
+  void LayerData1DBase::setCurrentIndex(Size index)
+  {
+    current_idx_ = index;
+    if (current_idx_ >= annotations_1d_.size())
+    {
+      annotations_1d_.resize(current_idx_ + 1);
+    }
+  }
 }// namespace OpenMS

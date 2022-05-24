@@ -120,11 +120,8 @@ namespace OpenMS
       return current_idx_;
     }
 
-    /// Set the index of the current spectrum (1D view)
-    void setCurrentIndex(Size index)
-    {
-      current_idx_ = index;
-    }
+    /// Set the index of the current spectrum (1D view) -- and prepares annotations
+    void setCurrentIndex(Size index);
 
     /// Does the layer have at least @p index items (e.g. spectra, chroms, etc), so a call to setCurrentIndex() is valid?
     virtual bool hasIndex(Size index) const = 0;

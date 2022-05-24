@@ -149,7 +149,7 @@ namespace OpenMS
       const auto distance_item = dynamic_cast<Annotation1DDistanceItem*>(it);
       if (!distance_item) continue;
 
-      auto draw_line_ = [&](const Annotation1DItem::PointXYType& p) {
+      auto draw_line_ = [&](const PointXYType& p) {
         QPoint from;
         canvas->dataToWidget(p, from, layer_->flipped);
         from = canvas->getGravitator().gravitateZero(from);

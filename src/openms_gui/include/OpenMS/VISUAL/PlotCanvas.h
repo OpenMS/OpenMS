@@ -44,6 +44,7 @@
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/DimMapper.h>
 #include <OpenMS/VISUAL/LayerDataBase.h>
+#include <OpenMS/VISUAL/MISC/CommonDefs.h>
 
 //QT
 #include <QtWidgets>
@@ -165,10 +166,6 @@ public:
     typedef SpectrumType::ConstIterator SpectrumConstIteratorType;
     /// Peak type
     typedef SpectrumType::PeakType PeakType;
-
-    /// Type of the Points in a 'flat' canvas (1D and 2D)
-    using PointXYType = LayerDataDefs::PointXYType;
-
     /// a generic range for the most common units
     using RangeType = RangeAllType;
    

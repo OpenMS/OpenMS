@@ -288,12 +288,12 @@ namespace OpenMS
     }
   }
 
-  PlotCanvas::PointXYType Plot1DCanvas::widgetToData(const QPoint& pos, bool percentage)
+  PointXYType Plot1DCanvas::widgetToData(const QPoint& pos, bool percentage)
   {
     return widgetToData(pos.x(), pos.y(), percentage);
   }
 
-  PlotCanvas::PointXYType Plot1DCanvas::widgetToData(double x, double y, bool percentage)
+  PointXYType Plot1DCanvas::widgetToData(double x, double y, bool percentage)
   {
     double actual_y;
     double alignment_shrink_factor = 1.0;
@@ -507,8 +507,12 @@ namespace OpenMS
       {
         if (selected_peak_.isValid() && measurement_start_.isValid() && selected_peak_.peak != measurement_start_.peak)
         {
-          const auto start_xy = getCurrentLayer().peakIndexToXY(measurement_start_, unit_mapper_);
-          const auto end_xy = getCurrentLayer().peakIndexToXY(selected_peak_, unit_mapper_);
+          auto start_xy = getCurrentLayer().peakIndexToXY(measurement_start_, unit_mapper_);
+          auto end_xy = getCurrentLayer().peakIndexToXY(selected_peak_, unit_mapper_);
+          // line should be horizontal at the mouse position --> adapt gravity coordinates
+          auto mouse_xy = widgetToData(e->pos());
+          start_xy = gr_.gravitateTo(start_xy, mouse_xy);
+          end_xy = gr_.gravitateTo(end_xy, mouse_xy);
           updatePercentageFactor_(getCurrentLayerIndex());
           // draw line for measured distance between two peaks and annotate with distance in m/z -- use 4 digits to resolve 13C distances between isotopes
           auto* item = new Annotation1DDistanceItem("", start_xy, end_xy);
@@ -689,9 +693,9 @@ namespace OpenMS
     if (action_mode_ == AM_MEASURE && measurement_start_.isValid())
     {
       // use start-point + mouse position of non-gravity axis
-      QPoint measurement_end_point = gr_.swap().gravitateTo(measurement_start_point_px_, last_mouse_pos_);
+      QPoint measurement_end_point_px = gr_.swap().gravitateTo(measurement_start_point_px_, last_mouse_pos_);
       auto ps = widgetToData(measurement_start_point_px_, true);
-      auto pe = widgetToData(measurement_end_point, true);
+      auto pe = widgetToData(measurement_end_point_px, true);
       Annotation1DDistanceItem(QString::number(gr_.swap().gravityDiff(ps, pe), 'f', 4), ps, pe).draw(this, *painter, false);
     }
     // draw highlighted measurement start peak and selected peak
@@ -753,7 +757,7 @@ namespace OpenMS
     // draw elongation as dashed line (while in measure mode and for all existing distance annotations)
     if (draw_elongation)
     {
-      QPoint top_end = (getLayer(layer_index).flipped) ? gr_.gravitateMin(begin, canvasPixelArea()) : gr_.gravitateMax(begin, canvasPixelArea());
+      QPoint top_end = (getLayer(layer_index).flipped) ? gr_.gravitateMax(begin, canvasPixelArea()) : gr_.gravitateMin(begin, canvasPixelArea());
       Painter1DBase::drawDashedLine(begin, top_end, &painter, String(param_.getValue("highlighted_peak_color").toString()).toQString());
     }
   }
@@ -804,8 +808,6 @@ namespace OpenMS
       break;
     }
     
-    getCurrentLayer().getCurrentAnnotations().resize(getCurrentLayer().getPeakData()->size());
-
     // update nearest peak
     selected_peak_.clear();
 
@@ -851,12 +853,6 @@ namespace OpenMS
       return;
     }
 
-    if (getCurrentLayer().type != LayerDataBase::DT_PEAK)
-    {
-      QMessageBox::critical(this, "Error", "This widget supports peak data only. Aborting!");
-      return;
-    }
-
     const auto peak_start = getCurrentLayer().peakIndexToXY(start, unit_mapper_);
     auto peak_end = decltype(peak_start){}; // same as peak_start but without the const
     if (end.isValid())
@@ -866,7 +862,7 @@ namespace OpenMS
     else
     {
       peak_end = widgetToData_(last_mouse_pos_);
-      peak_end = gr_.gravitateNAN(peak_end);
+      peak_end = gr_.gravitateNAN(peak_end); // we do not care about the gravity dimension (usually intensity)
     }
 
     auto dim_text = [](const DimBase& dim, double start_pos, double end_pos, bool ratio /*or difference*/)
@@ -874,11 +870,11 @@ namespace OpenMS
       QString result;
       if (ratio)
       {
-        result = dim.formattedValue(end_pos / start_pos, " ratio: ").toQString();
+        result = dim.formattedValue(end_pos / start_pos, " ratio ").toQString();
       }
       else
       {
-        result = dim.formattedValue(end_pos - start_pos, " delta: ").toQString();
+        result = dim.formattedValue(end_pos - start_pos, " delta ").toQString();
         if (dim.getUnit() == DIM_UNIT::MZ)
         {
           auto ppm = Math::getPPM(end_pos, start_pos);

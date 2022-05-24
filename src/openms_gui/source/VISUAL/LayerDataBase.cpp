@@ -69,11 +69,6 @@ namespace OpenMS
     return os;
   }
 
-  LayerDataBase::LayerDataBase(const LayerDataBase& ld)
-    : filename(ld.filename), peak_map_(ld.peak_map_)
-  {
-  }
-
   const LayerDataBase::ConstExperimentSharedPtrType LayerDataBase::getPeakData() const
   {
     return boost::static_pointer_cast<const ExperimentType>(peak_map_);

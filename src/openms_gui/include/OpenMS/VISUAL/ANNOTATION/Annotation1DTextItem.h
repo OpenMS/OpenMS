@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 namespace OpenMS
 {
@@ -58,33 +59,13 @@ public:
     ~Annotation1DTextItem() override = default;
 
     // Docu in base class
-    void ensureWithinDataRange(Plot1DCanvas* const canvas, const int layer_index) override
-    {
-      canvas->pushIntoDataRange(position_, layer_index);
-    }
+    void ensureWithinDataRange(Plot1DCanvas* const canvas, const int layer_index) override;
 
     // Docu in base class
-    void draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped = false) override
-    {
-      // translate units to pixel coordinates
-      QPoint pos_text;
-      canvas->dataToWidget(position_, pos_text, flipped);
-
-      // compute bounding box of text_item on the specified painter
-      bounding_box_ = painter.boundingRect(QRectF(pos_text, pos_text), flags_, text_);
-
-      painter.drawText(bounding_box_, flags_, text_);
-      if (selected_)
-      {
-        drawBoundingBox_(painter);
-      }
-    }
+    void draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped = false) override;
 
     // Docu in base class
-    void move(PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override
-    {
-      position_ += delta;
-    }
+    void move(PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override;
 
     /// Sets the position of the item (in X-Y coordinates)
     void setPosition(const PointXYType& position)
