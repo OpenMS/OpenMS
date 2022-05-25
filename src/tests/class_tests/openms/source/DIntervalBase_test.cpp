@@ -85,6 +85,53 @@ I2Pos p2;
 p2[0]=65.0;
 p2[1]=-57.5;
 
+START_SECTION(DIntervalBase operator+(const PositionType& point) const)
+{
+  I2 di({1, 2}, {3, 4});
+  I2 r = di + (I2Pos(1, 0.5));
+  TEST_REAL_SIMILAR(r.minX(), 2)
+  TEST_REAL_SIMILAR(r.minY(), 2.5)
+  TEST_REAL_SIMILAR(r.maxX(), 4)
+  TEST_REAL_SIMILAR(r.maxY(), 4.5)
+}
+END_SECTION
+
+START_SECTION(DIntervalBase& operator+=(const PositionType& point))
+{
+  I2 di({1, 2}, {3, 4});
+  I2 r = di += (I2Pos(1, 0.5));
+  TEST_EQUAL(r, di)
+  TEST_REAL_SIMILAR(r.minX(), 2)
+  TEST_REAL_SIMILAR(r.minY(), 2.5)
+  TEST_REAL_SIMILAR(r.maxX(), 4)
+  TEST_REAL_SIMILAR(r.maxY(), 4.5)
+}
+END_SECTION
+
+START_SECTION(DIntervalBase operator-(const PositionType& point) const)
+{
+  I2 di({1, 2}, {3, 4});
+  I2 r = di - (I2Pos(1, 0.5));
+  TEST_REAL_SIMILAR(r.minX(), 0)
+  TEST_REAL_SIMILAR(r.minY(), 1.5)
+  TEST_REAL_SIMILAR(r.maxX(), 2)
+  TEST_REAL_SIMILAR(r.maxY(), 3.5)
+}
+END_SECTION
+
+START_SECTION(DIntervalBase& operator-=(const PositionType& point))
+{
+  I2 di({1, 2}, {3, 4});
+  I2 r = di -= (I2Pos(1, 0.5));
+  TEST_EQUAL(r, di)
+  TEST_REAL_SIMILAR(r.minX(), 0)
+  TEST_REAL_SIMILAR(r.minY(), 1.5)
+  TEST_REAL_SIMILAR(r.maxX(), 2)
+  TEST_REAL_SIMILAR(r.maxY(), 3.5)
+}
+END_SECTION
+
+
 START_SECTION((PositionType const& maxPosition() const))
   TEST_EQUAL(I2::empty.maxPosition()==I2Pos::minNegative(), true);
   TEST_EQUAL(I2::zero.maxPosition()==I2Pos::zero(), true);
