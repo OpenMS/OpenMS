@@ -71,63 +71,6 @@ private:
   void exportHeader_();
 
   /**
-    @brief returns the MaxQuant unique evidence number of a protein accession
-
-      Obtains a unique, consecutive number for each distinct protein, which can
-      be used as a protein ID in the evidence.txt (in lack of a proper
-      proteingroup ID which maps to proteinGroups.txt)
-
-
-    @param protein_accession The accession of the protein
-
-    @return Returns distinct number for every Protein
-  */
-  OpenMS::Size proteinGroupID_(const OpenMS::String& protein_accession);
-
-  /**
-    @brief Creates map that has the information which FeatureUID is mapped to which ConsensusFeature in ConsensusMap
-
-    @throw Exception::Precondition if FeatureHandle exists twice in ConsensusMap
-
-    @param cmap ConsensusMap that includes ConsensusFeatures
-
-    @return Returns map, the index is a FeatureID, the value is the index of the ConsensusFeature
-    in the vector of ConsensusMap
-  */
-  std::map<OpenMS::Size, OpenMS::Size> makeFeatureUIDtoConsensusMapIndex_(const OpenMS::ConsensusMap& cmap);
-
-  /**
-    @brief Checks if Feature has valid PeptideIdentifications
-
-      If there are no PeptideIdentifications or the best hit of the Feature cannot be found in corresponding ConsensusFeature,
-      the functions returns false to show that something went wrong.
-
-    @param f Feature to extract PeptideIdentifications
-    @param c_feature_number Index of corresponding ConsensusFeature in ConsensusMap
-    @param UIDs UIDs of all PeptideIdentifications of the ConsensusMap
-    @param mp_f Mapping between the FeatureMap and ProteinIdentifications for the UID
-
-    @return Returns true if the PeptideIdentifications exist and are valid
-  */
-  bool hasValidPepID_(
-    const OpenMS::Feature& f,
-    const OpenMS::Size c_feature_number,
-    const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
-    const OpenMS::ProteinIdentification::Mapping& mp_f);
-
-  /**
-    @brief Checks if ConsensusFeature has valid PeptideIdentifications
-
-    If there are no PeptideIdentifications,
-    the functions returns false to show that something went wrong.
-
-    @param cf is used to extract PeptideIdentifications
-
-    @return Returns true if the ConsensusFeature has any PepIDs; otherwise false
-  */
-  bool hasPeptideIdentifications_(const OpenMS::ConsensusFeature& cf);
-
-  /**
     @brief Export one Feature as a row in MQEvidence.txt
 
       If the feature has no PepID's or the corresponding CF has no PepIDs,
@@ -171,14 +114,6 @@ public:
     @brief Closes f_stream
   */
   ~MQEvidence();
-
-  /**
-      @brief Checks if evidence.txt is writable
-             (i.e. the path in the ctor was not empty and could be created)
-
-      @return Returns true if evidence.txt is writable
-  */
-  bool isValid();
 
   /**
     @brief Exports a FeatureMap to the evidence.txt

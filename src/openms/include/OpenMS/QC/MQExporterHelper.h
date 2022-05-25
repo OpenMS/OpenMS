@@ -65,7 +65,9 @@ public:
     std::stringstream uncalibrated_mass_error_da;
     std::stringstream uncalibrated_calibrated_mz_ppm;
     std::stringstream uncalibrated_calibrated_mz_mda;
+    std::stringstream base_peak_fraction;
 
+    // common columns in msms and evividence exporter
     //file_ << "Sequence" << "\t"; maybe, relativ trivial
     //file_ << "Length" << "\t";
     //file_ << "Modifications" << "\t"; implementieren
@@ -99,7 +101,6 @@ public:
       const OpenMS::Feature& f,
       const OpenMS::ConsensusMap& cmap,
       const OpenMS::Size c_feature_number,
-      const OpenMS::String& raw_file,
       const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
       const OpenMS::ProteinIdentification::Mapping& mp_f,
       const OpenMS::MSExperiment& exp,
@@ -165,29 +166,11 @@ public:
   static bool hasPeptideIdentifications_(const OpenMS::ConsensusFeature& cf);
 
 
-
   /**
-    @brief Creates the helperclass and computes the (in multiple MaxQuant output files) common output values, which are not trivial
-
-          The values are stored in the struct MQCommonOutputs
-
-    @throw Exception::FileNotWritable if evidence.txt could not be created
-
-    @param path that is the path where evidence.txt has to be stored
-
-  */
-  //explicit MQExporterHelper();
-
-  /**
-    @brief Destructor
-  */
-  ~MQExporterHelper();
-
-  /**
-      @brief Checks if evidence.txt is writable
+      @brief Checks if file is writable
              (i.e. the path in the ctor was not empty and could be created)
 
-      @return Returns true if evidence.txt is writable
+      @return Returns true if file is writable
   */
   static bool isValid(std::string filename_);
 };

@@ -41,7 +41,6 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-
 #include <QtCore/QDir>
 #include <cmath> // isnan
 #include <fstream>
@@ -127,7 +126,6 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
   const OpenMS::Feature& f,
   const OpenMS::ConsensusMap& cmap,
   const OpenMS::Size c_feature_number,
-  const OpenMS::String& raw_file,
   const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
   const OpenMS::ProteinIdentification::Mapping& mp_f,
   const OpenMS::MSExperiment& exp,
@@ -153,9 +151,6 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
   {
     return; // empty AASequence; nothing to export
   }
-
-  // get all peptide-evidences for the best hit
-  //const auto& pep_evidences = ptr_best_hit->getPeptideEvidences();
 
   std::map<OpenMS::String, OpenMS::Size> modifications_temp;
   if (pep_seq.hasNTerminalModification())
@@ -201,7 +196,6 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
   }
   oxidation.clear();
   modifications_temp.find("Oxidation (M)") == modifications_temp.end() ? oxidation << "0" : oxidation << modifications_temp.find("Oxidation (M)")->second;
-
   const std::set<String>& accessions = ptr_best_hit->extractProteinAccessionsSet();
   std::vector<String> gene_names_temp;
   std::vector<String> protein_names_temp;
@@ -222,6 +216,8 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
     }
 
   }
+  //gene_names.clear();
+  //protein_names.clear();
   gene_names.str(ListUtils::concatenate(gene_names_temp, ';'));     //Gene Names
   protein_names.str(ListUtils::concatenate(protein_names_temp, ';'));  //Protein Names
 
@@ -233,12 +229,15 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
     {
       msms_mz << ms2_spec.getPrecursors()[0].getMZ(); // MS/MS m/z
     }
+    else
+    {
+      msms_mz.str("");
+    }
   }
   else
   {
     msms_mz.str("");
   }
-
   const double& uncalibrated_mz_error_ppm = ptr_best_hit->getMetaValue("uncalibrated_mz_error_ppm", NAN);
   const double& calibrated_mz_error_ppm = ptr_best_hit->getMetaValue("calibrated_mz_error_ppm", NAN);
 
@@ -288,5 +287,23 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
     mass_error_da << OpenMS::Math::ppmToMass(calibrated_mz_error_ppm, f.getMZ());                                                // Mass error [Da]
     uncalibrated_mass_error_ppm << uncalibrated_mz_error_ppm;                                                                    // Uncalibrated Mass error [ppm]
     uncalibrated_mass_error_da << OpenMS::Math::ppmToMass(uncalibrated_mz_error_ppm, f.getMZ());                                 // Uncalibrated Mass error [Da]
+  }
+
+  if(f.metaValueExists("spectrum_index") && f.metaValueExists("base_peak_intensity") && !exp.empty())
+  {
+    const MSSpectrum& ms2_spec = exp[f.getMetaValue("spectrum_index")];
+    if (!ms2_spec.getPrecursors().empty())
+    {
+      base_peak_fraction.clear();
+      base_peak_fraction << (ms2_spec.getPrecursors()[0].getIntensity() / (double)f.getMetaValue("base_peak_intensity")); // Base peak fraction
+    }
+    else
+    {
+      base_peak_fraction.str(""); // Base peak fraction
+    }
+  }
+  else
+  {
+    base_peak_fraction.str(""); // Base peak fraction
   }
 }
