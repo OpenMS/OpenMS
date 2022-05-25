@@ -177,12 +177,14 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
   else
   {
     auto it = modifications_temp.begin();
-    modifications.str(it->first);
+    modifications.clear();
+    modifications << it->first;
     ++it;
     for (; it != modifications_temp.end(); ++it)
     {
       modifications << ";" << it->first;
     }
+    modifications << ";"; //TODO entfernen
   }
 
   if (pep_seq.hasNTerminalModification())

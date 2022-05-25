@@ -155,7 +155,7 @@ void MQMsms::exportRowFromFeature_(
 {
 
   // use struct common_outpots from the ExporterHelper
-  MQExporterHelper::MQCommonOutputs common_outputs{f, cmap, c_feature_number, raw_file, UIDs, mp_f, exp, prot_mapper}; // wo bekomme ich prot_mapper her?
+  MQExporterHelper::MQCommonOutputs common_outputs{f, cmap, c_feature_number, UIDs, mp_f, exp, prot_mapper}; // wo bekomme ich prot_mapper her?
 
   const PeptideHit* ptr_best_hit; // the best hit referring to score
   const ConsensusFeature& cf = cmap[c_feature_number];

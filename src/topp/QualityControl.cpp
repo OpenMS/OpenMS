@@ -427,7 +427,7 @@ protected:
         addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath, cmap);
       }
 
-      if (export_evidence.isValid())
+      if (MQExporterHelper::isValid(out_evidence))
       {
         // Index the fasta file for constant access
         map<String,String> fasta_map {};
