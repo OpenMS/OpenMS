@@ -48,18 +48,8 @@
 using namespace OpenMS;
 using namespace std;
 
-/* TO-DO 1
-+ Check if string inputs are unchanged, and ANSI codes inside/not inside
-- Windows test - try on Windows
-+ Test every color function for all variable sets
-+/- Test every other public function
-+ mention "NOT TESTABLE" methods in sections
-+!!!ALL changes requested after last push
-
- //ANSI fuer windows leer definieren - ifdefs wegmachen
-*/
-
 /* TO-DO 2
+- getReset testable? Why is output always 1?
 - UPDATE OpenMS Version (consult) and Colorizer version
 - Test background color change test case - DEFINE functionality first
 - ConsoleUtils Erweiterung
@@ -80,8 +70,7 @@ START_TEST(Colorizer(),"$Id$")
 char test_char = 'a';
 int test_int = 15;
 float test_float = 2094.5892;
-// string test_string = " !#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-string test_string = "ABCDE";
+string test_string = " !#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
 //ANSI codes
 
@@ -110,43 +99,6 @@ string test_string = "ABCDE";
     string const resetColorANSI   = "\e[0m";
 
 #endif
-
-
-
-/*
-//////Functions to replace manual creation of stringstreams
-//////and comparison strings for TEST_EQUAL for coloured outputs for Linux
-//////
-//////UNFINISHED!!!
-
-template<typename T>
-stringstream colorStream(T const& testVariable, Colorizer)
-//saves a colored output of an instance of Colorizer into a stream 
-{
-    stringstream coloredStream;
-    stringstream outputStream;
-
-    coloredStream << Colorizer(testVariable);
-    coloredStream >> outputStream;
-
-    return outputStream; 
-}
-
-string createComparisonANSIString(string testVariable,Colorizer){
-    //creates a model string with according ANSI codes to be
-    //compared to stream created by colorStream
-    
-    string comparisonString;   
-    comparisonString.append(blackANSI);
-    comparisonString.append(to_string(tchar)); 
-    //to_string is causing formatting issues with char variables,
-    // -> improve
-    comparisonString.append(resetColorANSI);
-
-  return comparisonString;
-}
-
-*/
 
 START_SECTION(Colorizer::colorStream(ostream& stream) const)
 {
@@ -199,48 +151,27 @@ START_SECTION(Colorizer::resetColor(ostream& stream))
 }
 END_SECTION
 
+START_SECTION(Colorizer::getDataAsString())
+{
+    stringstream test_stream;
+    Colorizer c(COLOR::red);
+
+    test_stream << c(test_string);
+    test_stream << c.getDataAsString();
+    TEST_EQUAL(test_stream.str(), redANSI+test_string+resetColorANSI+test_string)
+}
+END_SECTION
+
+START_SECTION(Colorizer::getReset())
+{
+    NOT_TESTABLE
+}
+END_SECTION
+
 START_SECTION("Testing Colorizer instances")
 {
 
-    //Check that the colorized input contains the original text and DOES NOT contain ASCI codes
-
-    // #ifdef OPENMS_WINDOWSPLATFORM 
-    //     stringstream colored_stream;
-
-    //     colored_stream << black(test_string);
-    //     TEST_EQUAL(colored_stream.str(), test_string)
-    //     colored_stream.clear();
-
-    //     colored_stream << red(test_string);
-    //     TEST_EQUAL(colored_stream.str(), test_string)
-    //     colored_stream.clear();
-
-    //     colored_stream << green(test_string);
-    //     TEST_EQUAL(colored_stream.str(), test_string)
-    //     colored_stream.clear();
-
-    //     colored_stream << yellow(test_string);
-    //     TEST_EQUAL(colored_stream.str(), test_string)
-    //     colored_stream.clear();
-
-    //     colored_stream << blue(test_string);
-    //     TEST_EQUAL(colored_stream.str(), test_string)
-    //     colored_stream.clear();
-
-    //     colored_stream << magenta(test_string);
-    //     TEST_EQUAL(colored_stream.str(), test_string)
-    //     colored_stream.clear();
-
-    //     colored_stream << cyan(test_string);
-    //     TEST_EQUAL(colored_stream.str(), test_string)
-    //     colored_stream.clear();
-
-    //     colored_stream << white(test_string);
-    //     TEST_EQUAL(colored_stream.str(), test_string)
-    //     colored_stream.clear();
-
-    // #elif defined(__linux__) || defined(__OSX__)
-        //Check that the colorized input contains the original text and according ASCI codes
+    //Check that the colorized input contains the original text and according ASCI codes
 
     stringstream colored_stream;
 
@@ -292,42 +223,6 @@ END_SECTION
 //testing various inputs for colorizing
 START_SECTION("Testing Colorizer inputs")
 {
-    // #ifdef OPENMS_WINDOWSPLATTFORM
-
-    //     stringstream colored_stream;
-    //     string comparison_string;
-
-    //     //char////////////////////////////////////
-    //     colored_stream << black(test_char);
-    //     comparison_string.append(convertToString(test_char));
-    //     TEST_EQUAL(colored_stream.str(), comparison_string)
-        
-    //     //clearing streams
-    //     colored_stream.str(string());
-    //     colored_stream.clear();
-    //     comparison_string = "";
-
-    //     //int/////////////////////////////////////
-    //     colored_stream << cyan(test_int);
-    //     comparison_string.append(convertToString(test_int));
-    //     TEST_EQUAL(colored_stream.str(), comparison_string)
-        
-    //     //clearing streams
-    //     colored_stream.str(string());
-    //     colored_stream.clear();
-    //     comparison_string = "";
-
-    //     //float///////////////////////////////////
-    //     colored_stream << magenta(test_float);
-    //     comparison_string.append(convertToString(test_float));
-    //     TEST_EQUAL(colored_stream.str(), comparison_string)
-        
-    //     //clearing streams
-    //     colored_stream.str(string());
-    //     colored_stream.clear();
-    //     comparison_string = "";
-
-    // #elif defined(__linux__) || defined(__OSX__)
     stringstream colored_stream;
     string comparison_string;
 
@@ -366,14 +261,13 @@ START_SECTION("Testing Colorizer inputs")
     colored_stream.str(string());
     colored_stream.clear();
     comparison_string = "";
-    // #endif
 
 }
 END_SECTION
 
 START_SECTION(Colorizer& operator()())
 {
-    
+
     stringstream test_stream;
 
     test_stream << green() << "green text" << 123 << "!" << " " << reset_color();
