@@ -67,7 +67,6 @@ namespace OpenMS
     //defaults_.setValue("equality_epsilon", 0, "The epsilon under which two scores are considered equal.");
     //defaults_.setMinFloat("equality_epsilon", 0.0);
     defaultsToParam_();
-
   }
 
   bool isFirstBetterScore(double first, double second, bool isHigherBetter)
@@ -75,7 +74,7 @@ namespace OpenMS
     if (isHigherBetter) return first > second; else return first < second;
   }
 
-  void FalseDiscoveryRate::apply(vector<PeptideIdentification>& ids) const
+  void FalseDiscoveryRate::apply(vector<PeptideIdentification>& ids, bool annotate_peptide_fdr) const
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
@@ -179,14 +178,17 @@ namespace OpenMS
             {
               target_scores.push_back(score);
 
-              // store best score for peptide (unmodified sequence)              
-              auto [entry_it, success] = peptide_to_best_target_score.emplace(peptide_sequence, score); // try to construct in place (performance)
-
-              if (!success && // emplace failed because key was already present -> replace if current score is better?
-                  isFirstBetterScore(score, entry_it->second, higher_score_better)) 
+              if (annotate_peptide_fdr)
               {
-                entry_it->second = score;
-              }                           
+                // store best score for peptide (unmodified sequence)              
+                auto [entry_it, success] = peptide_to_best_target_score.emplace(peptide_sequence, score); // try to construct in place (performance)
+
+                if (!success && // emplace failed because key was already present -> replace if current score is better?
+                    isFirstBetterScore(score, entry_it->second, higher_score_better)) 
+                {
+                  entry_it->second = score;
+                }                           
+              }
             }
             else
             {
@@ -194,12 +196,15 @@ namespace OpenMS
               {
                 decoy_scores.push_back(score);
 
-                auto [entry_it, success] = peptide_to_best_decoy_score.emplace(peptide_sequence, score); // try to construct in place (performance)
-
-                if (!success && // emplace failed because key was already present -> replace if current score is better?
-                    isFirstBetterScore(score, entry_it->second, higher_score_better)) 
+                if (annotate_peptide_fdr)
                 {
-                  entry_it->second = score;
+                  auto [entry_it, success] = peptide_to_best_decoy_score.emplace(peptide_sequence, score); // try to construct in place (performance)
+
+                  if (!success && // emplace failed because key was already present -> replace if current score is better?
+                      isFirstBetterScore(score, entry_it->second, higher_score_better)) 
+                  {
+                    entry_it->second = score;
+                  }
                 }
               }
               else
@@ -310,25 +315,28 @@ namespace OpenMS
         calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
 
         // calculate peptide FDR
-        vector<double> decoy_peptide_scores, target_peptide_scores;
-        for (const auto& ps : peptide_to_best_decoy_score)
+        if (annotate_peptide_fdr)
         {
-          decoy_peptide_scores.push_back(ps.second);
-        }
-        for (const auto& ps : peptide_to_best_target_score)
-        {
-          target_peptide_scores.push_back(ps.second);
-        }      
-        map<double, double> score_to_peptide_fdr;
-        calculateFDRs_(score_to_peptide_fdr, target_peptide_scores, decoy_peptide_scores, q_value, higher_score_better);
-        // overwrite best peptide score with peptide q-value
-        for (auto& ps : peptide_to_best_decoy_score)
-        {
-          ps.second = score_to_peptide_fdr[ps.second];
-        }
-        for (auto& ps : peptide_to_best_target_score)
-        {
-          ps.second = score_to_peptide_fdr[ps.second];
+          vector<double> decoy_peptide_scores, target_peptide_scores;
+          for (const auto& ps : peptide_to_best_decoy_score)
+          {
+            decoy_peptide_scores.push_back(ps.second);
+          }
+          for (const auto& ps : peptide_to_best_target_score)
+          {
+            target_peptide_scores.push_back(ps.second);
+          }      
+          map<double, double> score_to_peptide_fdr;
+          calculateFDRs_(score_to_peptide_fdr, target_peptide_scores, decoy_peptide_scores, q_value, higher_score_better);
+          // overwrite best peptide score with peptide q-value
+          for (auto& ps : peptide_to_best_decoy_score)
+          {
+            ps.second = score_to_peptide_fdr[ps.second];
+          }
+          for (auto& ps : peptide_to_best_target_score)
+          {
+            ps.second = score_to_peptide_fdr[ps.second];
+          }
         }
 
         // annotate fdr
@@ -358,23 +366,27 @@ namespace OpenMS
               {
                 continue;
               }
-              const String peptide_sequence = hit.getSequence().toUnmodifiedString();
-              double peptide_fdr;
-              if (meta_value == "decoy")
+
+              if (annotate_peptide_fdr)
               {
-                peptide_fdr = peptide_to_best_decoy_score[peptide_sequence];
-              }
-              else
-              {
-                peptide_fdr = peptide_to_best_target_score[peptide_sequence];
-              }
-              if (q_value)
-              {
-                hit.setMetaValue("peptide q-value", peptide_fdr);
-              }
-              else
-              {
-                hit.setMetaValue("peptide FDR", peptide_fdr);
+                const String peptide_sequence = hit.getSequence().toUnmodifiedString();
+                double peptide_fdr;
+                if (meta_value == "decoy")
+                {
+                  peptide_fdr = peptide_to_best_decoy_score[peptide_sequence];
+                }
+                else
+                {
+                  peptide_fdr = peptide_to_best_target_score[peptide_sequence];
+                }
+                if (q_value)
+                {
+                  hit.setMetaValue("peptide q-value", peptide_fdr);
+                }
+                else
+                {
+                  hit.setMetaValue("peptide FDR", peptide_fdr);
+                }
               }              
             }
             hit.setMetaValue(score_type, pit->getScore());
