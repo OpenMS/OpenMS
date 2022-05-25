@@ -281,6 +281,7 @@ void MQEvidence::exportRowFromFeature_(
 
   file_ << cf_ptr_best_hit->getScore() << "\t"; // Match score
 
+  //f.metaValueExists(Constants::UserParam::NUM_OF_DATAPOINTS) ? file_ << (f.getMetaValue(Constants::UserParam::NUM_OF_DATAPOINTS)) << "\t": file_ << "\t"; // Number of data points
   f.metaValueExists("number_of_datapoints") ? file_ << (f.getMetaValue("number_of_datapoints")) << "\t": file_ << "\t"; // Number of data points
   file_ << f.getConvexHulls().size() << "\t"; // Number of isotopic peaks
 

@@ -34,25 +34,29 @@
 
 #pragma once
 
+#include <OpenMS/QC/MQExporterHelper.h>
+
 #include <fstream>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 class OPENMS_DLLAPI MQMsms
 
 
 /**
-	@brief Builds a MaxQuant msms.txt
+  @brief Builds a MaxQuant msms.txt
 
-	  This class is closely related to QualityControl, it creates an msms.txt similar
-	  to a MaxQuant msms.txt. But not all columns of a MaxQuant file get exported.
-	  By the construction of an object, the column names of the msms values are added to the msms.txt.
-	  For the construction a valid path is needed (check out constructor) where the msms.txt can be stored.
-	  To fill the output msms.txt with data from the MS/MS run use the exportFeatureMap function,
-	  it needs a FeatureMap and the matching ConsensusMap as an input.
-	  To check if the created msms.txt is writable use the function isValid.
+    This class is closely related to QualityControl, it creates an msms.txt similar
+    to a MaxQuant msms.txt. But not all columns of a MaxQuant file get exported.
+    By the construction of an object, the column names of the msms values are added to the msms.txt.
+    For the construction a valid path is needed (check out constructor) where the msms.txt can be stored.
+    To fill the output msms.txt with data from the MS/MS run use the exportFeatureMap function,
+    it needs a FeatureMap and the matching ConsensusMap as an input.
+    To check if the created msms.txt is writable use the function isValid.
 
     @ingroup Metadata
 */
@@ -90,7 +94,8 @@ private:
                              const OpenMS::String& raw_file,
                              const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
                              const OpenMS::ProteinIdentification::Mapping& mp_f,
-                             const OpenMS::MSExperiment& exp = {});
+                             const OpenMS::MSExperiment& exp = {},
+                             const std::map<OpenMS::String,OpenMS::String>& prot_map = {});
 
 public:
   /**
@@ -111,5 +116,8 @@ public:
     @brief Closes f_stream
   */
   ~MQMsms();
+
+  void exportFeatureMap(const OpenMS::FeatureMap& feature_map, const OpenMS::ConsensusMap& cmap,
+                        const OpenMS::MSExperiment& exp, const std::map<OpenMS::String,OpenMS::String>& prot_map = {});
 
 };
