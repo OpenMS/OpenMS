@@ -4,6 +4,7 @@ set(directory include/OpenMS/CONCEPT)
 ### list all header files of the directory here
 set(sources_list_h
 ClassTest.h
+CommonEnums.h
 Constants.h
 EnumHelpers.h
 Exception.h

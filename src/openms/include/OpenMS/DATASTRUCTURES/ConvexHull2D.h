@@ -146,7 +146,7 @@ public:
               @brief returns if the @p point lies in the feature hull
 
               This function is only supported if the hull is created using addPoint() or addPoints(),
-              but not then suing setHullPoints().
+              but not when using setHullPoints().
               If you require the latter functionality, then augment this function.
 
               @throws Exception::NotImplemented if only hull points (outer_points_), but no internal structure (map_points_) is given

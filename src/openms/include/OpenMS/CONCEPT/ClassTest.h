@@ -326,6 +326,52 @@ namespace OpenMS
         }
       }
 
+      void testTrue(const char* /*file*/, int line, const bool expression_1, const char* expression_1_stringified)
+      {
+        ++test_count;
+        test_line = line;
+        this_test = expression_1;
+        test = test && this_test;
+        {
+          initialNewline();
+          if (this_test)
+          {
+            if (verbose > 1)
+            {
+              stdcout << " +  line " << line << ":  TEST_TRUE(" << expression_1_stringified << "): ok\n";
+            }
+          }
+          else
+          {
+            stdcout << " -  line " << line << ":  TEST_TRUE(" << expression_1_stringified << "): failed\n";
+            failed_lines_list.push_back(line);
+          }
+        }
+      }
+
+      void testFalse(const char* /*file*/, int line, const bool expression_1, const char* expression_1_stringified)
+      {
+        ++test_count;
+        test_line = line;
+        this_test = !expression_1;
+        test = test && this_test;
+        {
+          initialNewline();
+          if (this_test)
+          {
+            if (verbose > 1)
+            {
+              stdcout << " +  line " << line << ":  TEST_FALSE(" << expression_1_stringified << "): ok\n";
+            }
+          }
+          else
+          {
+            stdcout << " -  line " << line << ":  TEST_FALSE(" << expression_1_stringified << "): failed\n";
+            failed_lines_list.push_back(line);
+          }
+        }
+      }
+
       template <typename T1, typename T2>
       void
       testNotEqual(const char* /*file*/, int line, const T1& expression_1,
@@ -664,6 +710,29 @@ namespace TEST = OpenMS::Internal::ClassTest;
  @hideinitializer
  */
 #define TEST_EQUAL(a, b) TEST::testEqual(__FILE__, __LINE__, (a), (# a), (b), (# b));
+
+/**	@brief Boolean test macro.
+
+ This macro tests if its argument evaluates to 'true'.
+ If possible use TEST_EQUAL(a, b) instead of TEST_TRUE(a==b), because the latter makes bug tracing harder.
+
+ @param a value/object convertible to bool
+ 
+ @hideinitializer
+*/
+#define TEST_TRUE(a) TEST::testTrue(__FILE__, __LINE__, (a), (#a));
+
+/**	@brief Boolean test macro.
+
+ This macro tests if its argument evaluates to 'false'.
+ If possible use TEST_NOT_EQUAL(a, b) instead of TEST_FALSE(a!=b), because the latter makes bug tracing harder.
+
+ @param a value/object convertible to bool
+
+ @hideinitializer
+*/
+#define TEST_FALSE(a) TEST::testFalse(__FILE__, __LINE__, (a), (#a));
+
 
 /**	@brief Generic inequality macro.
 
