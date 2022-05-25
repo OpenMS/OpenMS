@@ -55,6 +55,8 @@ using namespace std;
 +/- Test every other public function
 + mention "NOT TESTABLE" methods in sections
 +!!!ALL changes requested after last push
+
+ //ANSI fuer windows leer definieren - ifdefs wegmachen
 */
 
 /* TO-DO 2
@@ -78,19 +80,36 @@ START_TEST(Colorizer(),"$Id$")
 char test_char = 'a';
 int test_int = 15;
 float test_float = 2094.5892;
-string test_string = " !#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-// string test_string = "ABCDE";
+// string test_string = " !#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+string test_string = "ABCDE";
 
 //ANSI codes
-string const blackANSI        = "\e[30m";
-string const redANSI          = "\e[31m";
-string const greenANSI        = "\e[32m";
-string const yellowANSI       = "\e[33m";
-string const blueANSI         = "\e[34m";
-string const magentaANSI      = "\e[35m";
-string const cyanANSI         = "\e[36m";;
-string const whiteANSI        = "\e[37m";
-string const resetColorANSI   = "\e[0m";
+
+#ifdef OPENMS_WINDOWSPLATFORM
+
+    string const blackANSI        = "";
+    string const redANSI          = "";
+    string const greenANSI        = "";
+    string const yellowANSI       = "";
+    string const blueANSI         = "";
+    string const magentaANSI      = "";
+    string const cyanANSI         = "";
+    string const whiteANSI        = "";
+    string const resetColorANSI   = "";
+
+#elif defined(__linux__) || defined(__OSX__)
+
+    string const blackANSI        = "\e[30m";
+    string const redANSI          = "\e[31m";
+    string const greenANSI        = "\e[32m";
+    string const yellowANSI       = "\e[33m";
+    string const blueANSI         = "\e[34m";
+    string const magentaANSI      = "\e[35m";
+    string const cyanANSI         = "\e[36m";;
+    string const whiteANSI        = "\e[37m";
+    string const resetColorANSI   = "\e[0m";
+
+#endif
 
 
 
@@ -131,124 +150,141 @@ string createComparisonANSIString(string testVariable,Colorizer){
 
 START_SECTION(Colorizer::colorStream(ostream& stream) const)
 {
-    // kind of the same that is done below ...?
-    //maybe direct access of methods via instance is needed (instance.method())
-    //but I didn't yet work out a solution
-    #if defined(__linux__) || defined(__OSX__)
-        stringstream test_stream;
-        test_stream << blue(test_string);
-        TEST_EQUAL(test_stream.str(), blueANSI+test_string+resetColorANSI)
-    #endif 
+    //without text
+    stringstream test_stream;
+    Colorizer c(COLOR::black);
+
+    c.colorStream(test_stream);
+    TEST_EQUAL(test_stream.str(), blackANSI)
+
+    //with text
+    test_stream.str(string());
+    test_stream.clear();
+
+    test_stream << c(test_string);
+    c.colorStream(test_stream);
+    TEST_EQUAL(test_stream.str(),blackANSI+test_string+resetColorANSI+blackANSI)
+    
 }
 END_SECTION
 
 START_SECTION(Colorizer::outputToStream(ostream& o_stream))
 {
-    // kind of the same that is done below and above...?
-    #if defined(__linux__) || defined(__OSX__)
-        stringstream test_stream;
-        test_stream << green(test_string);
-        TEST_EQUAL(test_stream.str(), greenANSI+test_string+resetColorANSI)
-    #endif 
+    //without text
+    stringstream test_stream;
+    Colorizer c(COLOR::cyan);
+
+    c.outputToStream(test_stream);
+    TEST_EQUAL(test_stream.str(), cyanANSI+resetColorANSI)
+
+    //with text
+    test_stream.str(string());
+    test_stream.clear();
+
+    test_stream << c(test_string);
+    c.outputToStream(test_stream);
+    TEST_EQUAL(test_stream.str(),cyanANSI+test_string+resetColorANSI+cyanANSI+test_string+resetColorANSI)
 
 }
 END_SECTION
 
 START_SECTION(Colorizer::resetColor(ostream& stream))
 {
-    #if defined(__linux__) || defined(__OSX__)
-        stringstream test_stream;
-        test_stream << reset_color();
-        TEST_EQUAL(test_stream.str(), resetColorANSI)
-    #endif 
+    stringstream test_stream;
+    Colorizer c(COLOR::green);
+
+    test_stream << c(test_string);
+    c.resetColor(test_stream);
+    TEST_EQUAL(test_stream.str(), greenANSI+test_string+resetColorANSI+resetColorANSI)
 }
 END_SECTION
 
 START_SECTION("Testing Colorizer instances")
 {
-    #ifdef OPENMS_WINDOWSPLATFORM 
+
     //Check that the colorized input contains the original text and DOES NOT contain ASCI codes
-    //TEST ON Windows!S
-        stringstream colored_stream;
 
-        colored_stream << black(test_string);
-        TEST_EQUAL(colored_stream.str(), test_string)
-        colored_stream.clear();
+    // #ifdef OPENMS_WINDOWSPLATFORM 
+    //     stringstream colored_stream;
 
-        colored_stream << red(test_string);
-        TEST_EQUAL(colored_stream.str(), test_string)
-        colored_stream.clear();
+    //     colored_stream << black(test_string);
+    //     TEST_EQUAL(colored_stream.str(), test_string)
+    //     colored_stream.clear();
 
-        colored_stream << green(test_string);
-        TEST_EQUAL(colored_stream.str(), test_string)
-        colored_stream.clear();
+    //     colored_stream << red(test_string);
+    //     TEST_EQUAL(colored_stream.str(), test_string)
+    //     colored_stream.clear();
 
-        colored_stream << yellow(test_string);
-        TEST_EQUAL(colored_stream.str(), test_string)
-        colored_stream.clear();
+    //     colored_stream << green(test_string);
+    //     TEST_EQUAL(colored_stream.str(), test_string)
+    //     colored_stream.clear();
 
-        colored_stream << blue(test_string);
-        TEST_EQUAL(colored_stream.str(), test_string)
-        colored_stream.clear();
+    //     colored_stream << yellow(test_string);
+    //     TEST_EQUAL(colored_stream.str(), test_string)
+    //     colored_stream.clear();
 
-        colored_stream << magenta(test_string);
-        TEST_EQUAL(colored_stream.str(), test_string)
-        colored_stream.clear();
+    //     colored_stream << blue(test_string);
+    //     TEST_EQUAL(colored_stream.str(), test_string)
+    //     colored_stream.clear();
 
-        colored_stream << cyan(test_string);
-        TEST_EQUAL(colored_stream.str(), test_string)
-        colored_stream.clear();
+    //     colored_stream << magenta(test_string);
+    //     TEST_EQUAL(colored_stream.str(), test_string)
+    //     colored_stream.clear();
 
-        colored_stream << white(test_string);
-        TEST_EQUAL(colored_stream.str(), test_string)
-        colored_stream.clear();
+    //     colored_stream << cyan(test_string);
+    //     TEST_EQUAL(colored_stream.str(), test_string)
+    //     colored_stream.clear();
 
-    #elif defined(__linux__) || defined(__OSX__)
+    //     colored_stream << white(test_string);
+    //     TEST_EQUAL(colored_stream.str(), test_string)
+    //     colored_stream.clear();
+
+    // #elif defined(__linux__) || defined(__OSX__)
         //Check that the colorized input contains the original text and according ASCI codes
 
-        stringstream colored_stream;
+    stringstream colored_stream;
 
-        colored_stream << black(test_string);
-        TEST_EQUAL(colored_stream.str(), blackANSI+test_string+resetColorANSI)
-        colored_stream.str(string());
-        colored_stream.clear();
+    colored_stream << black(test_string);
+    TEST_EQUAL(colored_stream.str(), blackANSI+test_string+resetColorANSI)
+    colored_stream.str(string());
+    colored_stream.clear();
 
-        colored_stream << red(test_string);
-        TEST_EQUAL(colored_stream.str(), redANSI+test_string+resetColorANSI)
-        colored_stream.str(string());
-        colored_stream.clear();
+    colored_stream << red(test_string);
+    TEST_EQUAL(colored_stream.str(), redANSI+test_string+resetColorANSI)
+    colored_stream.str(string());
+    colored_stream.clear();
 
-        colored_stream << green(test_string);
-        TEST_EQUAL(colored_stream.str(), greenANSI+test_string+resetColorANSI)
-        colored_stream.str(string());
-        colored_stream.clear();
+    colored_stream << green(test_string);
+    TEST_EQUAL(colored_stream.str(), greenANSI+test_string+resetColorANSI)
+    colored_stream.str(string());
+    colored_stream.clear();
 
-        colored_stream << yellow(test_string);
-        TEST_EQUAL(colored_stream.str(), yellowANSI+test_string+resetColorANSI)
-        colored_stream.str(string());
-        colored_stream.clear();
+    colored_stream << yellow(test_string);
+    TEST_EQUAL(colored_stream.str(), yellowANSI+test_string+resetColorANSI)
+    colored_stream.str(string());
+    colored_stream.clear();
 
-        colored_stream << blue(test_string);
-        TEST_EQUAL(colored_stream.str(), blueANSI+test_string+resetColorANSI)
-        colored_stream.str(string());
-        colored_stream.clear();
+    colored_stream << blue(test_string);
+    TEST_EQUAL(colored_stream.str(), blueANSI+test_string+resetColorANSI)
+    colored_stream.str(string());
+    colored_stream.clear();
 
-        colored_stream << magenta(test_string);
-        TEST_EQUAL(colored_stream.str(), magentaANSI+test_string+resetColorANSI)
-        colored_stream.str(string());
-        colored_stream.clear();
+    colored_stream << magenta(test_string);
+    TEST_EQUAL(colored_stream.str(), magentaANSI+test_string+resetColorANSI)
+    colored_stream.str(string());
+    colored_stream.clear();
 
-        colored_stream << cyan(test_string);
-        TEST_EQUAL(colored_stream.str(), cyanANSI+test_string+resetColorANSI)
-        colored_stream.str(string());
-        colored_stream.clear();
+    colored_stream << cyan(test_string);
+    TEST_EQUAL(colored_stream.str(), cyanANSI+test_string+resetColorANSI)
+    colored_stream.str(string());
+    colored_stream.clear();
 
-        colored_stream << white(test_string);
-        TEST_EQUAL(colored_stream.str(), whiteANSI+test_string+resetColorANSI)
-        colored_stream.str(string());
-        colored_stream.clear();
+    colored_stream << white(test_string);
+    TEST_EQUAL(colored_stream.str(), whiteANSI+test_string+resetColorANSI)
+    colored_stream.str(string());
+    colored_stream.clear();
 
-    #endif
+    // #endif
 
 }
 END_SECTION
@@ -256,103 +292,100 @@ END_SECTION
 //testing various inputs for colorizing
 START_SECTION("Testing Colorizer inputs")
 {
-    #ifdef OPENMS_WINDOWSPLATTFORM
+    // #ifdef OPENMS_WINDOWSPLATTFORM
 
-        stringstream colored_stream;
-        string comparison_string;
+    //     stringstream colored_stream;
+    //     string comparison_string;
 
-        //char////////////////////////////////////
-        colored_stream << black(test_char);
-        comparison_string.append(convertToString(test_char));
-        TEST_EQUAL(colored_stream.str(), comparison_string)
+    //     //char////////////////////////////////////
+    //     colored_stream << black(test_char);
+    //     comparison_string.append(convertToString(test_char));
+    //     TEST_EQUAL(colored_stream.str(), comparison_string)
         
-        //clearing streams
-        colored_stream.str(string());
-        colored_stream.clear();
-        comparison_string = "";
+    //     //clearing streams
+    //     colored_stream.str(string());
+    //     colored_stream.clear();
+    //     comparison_string = "";
 
-        //int/////////////////////////////////////
-        colored_stream << cyan(test_int);
-        comparison_string.append(convertToString(test_int));
-        TEST_EQUAL(colored_stream.str(), comparison_string)
+    //     //int/////////////////////////////////////
+    //     colored_stream << cyan(test_int);
+    //     comparison_string.append(convertToString(test_int));
+    //     TEST_EQUAL(colored_stream.str(), comparison_string)
         
-        //clearing streams
-        colored_stream.str(string());
-        colored_stream.clear();
-        comparison_string = "";
+    //     //clearing streams
+    //     colored_stream.str(string());
+    //     colored_stream.clear();
+    //     comparison_string = "";
 
-        //floag///////////////////////////////////
-        colored_stream << magenta(test_float);
-        comparison_string.append(convertToString(test_float));
-        TEST_EQUAL(colored_stream.str(), comparison_string)
+    //     //float///////////////////////////////////
+    //     colored_stream << magenta(test_float);
+    //     comparison_string.append(convertToString(test_float));
+    //     TEST_EQUAL(colored_stream.str(), comparison_string)
         
-        //clearing streams
-        colored_stream.str(string());
-        colored_stream.clear();
-        comparison_string = "";
+    //     //clearing streams
+    //     colored_stream.str(string());
+    //     colored_stream.clear();
+    //     comparison_string = "";
 
-    #elif defined(__linux__) || defined(__OSX__)
-        stringstream colored_stream;
-        string comparison_string;
+    // #elif defined(__linux__) || defined(__OSX__)
+    stringstream colored_stream;
+    string comparison_string;
 
-        //char////////////////////////////////////
-        colored_stream << yellow(test_char);
-        comparison_string.append(yellowANSI);
-        comparison_string.append(convertToString(test_char));
-        comparison_string.append(resetColorANSI);
-        TEST_EQUAL(colored_stream.str(), comparison_string)
+    //char////////////////////////////////////
+    colored_stream << yellow(test_char);
+    comparison_string.append(yellowANSI);
+    comparison_string.append(convertToString(test_char));
+    comparison_string.append(resetColorANSI);
+    TEST_EQUAL(colored_stream.str(), comparison_string)
 
-        //clearing streams
-        colored_stream.str(string());
-        colored_stream.clear();
-        comparison_string = "";
+    //clearing streams
+    colored_stream.str(string());
+    colored_stream.clear();
+    comparison_string = "";
 
-        //int///////////////////////////////
-        colored_stream << green(test_int);
-        comparison_string.append(greenANSI);
-        comparison_string.append(convertToString(test_int));
-        comparison_string.append(resetColorANSI);
-        TEST_EQUAL(colored_stream.str(), comparison_string)
+    //int///////////////////////////////
+    colored_stream << green(test_int);
+    comparison_string.append(greenANSI);
+    comparison_string.append(convertToString(test_int));
+    comparison_string.append(resetColorANSI);
+    TEST_EQUAL(colored_stream.str(), comparison_string)
 
-        //clearing streams
-        colored_stream.str(string());
-        colored_stream.clear();
-        comparison_string = "";
+    //clearing streams
+    colored_stream.str(string());
+    colored_stream.clear();
+    comparison_string = "";
 
-        //float///////////////////////////////
-        colored_stream << red(test_float);
-        comparison_string.append(redANSI);
-        comparison_string.append(convertToString(test_float));
-        comparison_string.append(resetColorANSI);
-        TEST_EQUAL(colored_stream.str(), comparison_string)
+    //float///////////////////////////////
+    colored_stream << red(test_float);
+    comparison_string.append(redANSI);
+    comparison_string.append(convertToString(test_float));
+    comparison_string.append(resetColorANSI);
+    TEST_EQUAL(colored_stream.str(), comparison_string)
 
-        //clearing streams
-        colored_stream.str(string());
-        colored_stream.clear();
-        comparison_string = "";
-    #endif
+    //clearing streams
+    colored_stream.str(string());
+    colored_stream.clear();
+    comparison_string = "";
+    // #endif
 
 }
 END_SECTION
 
 START_SECTION(Colorizer& operator()())
 {
+    
+    stringstream test_stream;
 
-    #if defined(__linux__) || defined(__OSX__)
+    test_stream << green() << "green text" << 123 << "!" << " " << reset_color();
+    TEST_EQUAL(test_stream.str(),greenANSI+"green text123! "+resetColorANSI)
+    test_stream.str(string());
+    test_stream.clear();
 
-        stringstream test_stream;
+    test_stream << reset_color() << "default text" << magenta() << "magenta text";
+    TEST_EQUAL(test_stream.str(),resetColorANSI+"default text"+magentaANSI+"magenta text")
+    test_stream.str(string());
+    test_stream.clear();
 
-        test_stream << green() << "green text" << 123 << "!" << " " << reset_color();
-        TEST_EQUAL(test_stream.str(),greenANSI+"green text123! "+resetColorANSI)
-        test_stream.str(string());
-        test_stream.clear();
-
-        test_stream << reset_color() << "default text" << magenta() << "magenta text";
-        TEST_EQUAL(test_stream.str(),resetColorANSI+"default text"+magentaANSI+"magenta text")
-        test_stream.str(string());
-        test_stream.clear();
-
-    #endif
 }
 END_SECTION
 
