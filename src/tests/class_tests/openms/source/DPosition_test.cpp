@@ -67,6 +67,20 @@ START_SECTION((~DPosition()))
 	delete d10_ptr;
 END_SECTION
 
+START_SECTION(void swap(DPosition& rhs))
+{
+  DPosition<3> i(1, 2, 3);
+  DPosition<3> j(4, 5, 6);
+  i.swap(j);
+  TEST_REAL_SIMILAR(i[0], 4)
+  TEST_REAL_SIMILAR(i[1], 5)
+  TEST_REAL_SIMILAR(i[2], 6)
+  TEST_REAL_SIMILAR(j[0], 1)
+  TEST_REAL_SIMILAR(j[1], 2)
+  TEST_REAL_SIMILAR(j[2], 3)
+}
+END_SECTION
+
 START_SECTION((CoordinateType operator[](Size index) const))
   const DPosition<3> i;
   TEST_EQUAL(i[0], 0.0)
@@ -125,7 +139,20 @@ START_SECTION((DPosition(CoordinateType x)))
   TEST_REAL_SIMILAR(p[2], 12.34)
 END_SECTION
 
-START_SECTION((CoordinateType operator *(const DPosition &point) const))
+START_SECTION((DPosition(CoordinateType x, CoordinateType y)))
+  DPosition<2> p(1, 2);
+  TEST_REAL_SIMILAR(p[0], 1)
+  TEST_REAL_SIMILAR(p[1], 2)
+END_SECTION
+
+START_SECTION(DPosition(CoordinateType x, CoordinateType y, CoordinateType z))
+  DPosition<3> p(1, 2, 3);
+  TEST_REAL_SIMILAR(p[0], 1)
+  TEST_REAL_SIMILAR(p[1], 2)
+  TEST_REAL_SIMILAR(p[2], 3)
+END_SECTION
+
+START_SECTION((CoordinateType operator*(const DPosition& point) const))
 	DPosition<3> i;
 	i[0] = 2.0;
 	i[1] = 3.0;

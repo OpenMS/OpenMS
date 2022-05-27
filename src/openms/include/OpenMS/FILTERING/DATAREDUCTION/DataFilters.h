@@ -36,6 +36,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 
 namespace OpenMS
 {
@@ -125,7 +126,7 @@ public:
     */
     const DataFilter & operator[](Size index) const;
 
-    ///Adds a filter
+    /// Adds a filter
     void add(const DataFilter & filter);
 
     /**
@@ -142,10 +143,10 @@ public:
     */
     void replace(Size index, const DataFilter & filter);
 
-    ///Removes all filters
+    /// Removes all filters
     void clear();
 
-    ///Enables/disables the all the filters
+    /// Enables/disables the all the filters
     void setActive(bool is_active);
 
     /**
@@ -159,13 +160,13 @@ public:
       return is_active_;
     }
 
-    ///Returns if the @p feature fulfills the current filter criteria
+    /// Returns if the @p feature fulfills the current filter criteria
     bool passes(const Feature& feature) const;
 
-    ///Returns if the @p consensus_feature fulfills the current filter criteria
+    /// Returns if the @p consensus_feature fulfills the current filter criteria
     bool passes(const ConsensusFeature& consensus_feature) const;
 
-    ///Returns if the @p peak fulfills the current filter criteria
+    /// Returns if the a peak in a @p spectrum at @p peak_index fulfills the current filter criteria
     inline bool passes(const MSSpectrum& spectrum, Size peak_index) const
     {
       if (!is_active_) return true;
@@ -198,7 +199,7 @@ public:
         }
         else if (filter.field == META_DATA)
         {
-          const typename MSSpectrum::FloatDataArrays & f_arrays = spectrum.getFloatDataArrays();
+          const auto& f_arrays = spectrum.getFloatDataArrays();
           //find the right meta data array
           SignedSize f_index = -1;
           for (Size j = 0; j < f_arrays.size(); ++j)
@@ -244,6 +245,88 @@ public:
       return true;
     }
 
+    /// Returns if the a peak in a @p chrom at @p peak_index fulfills the current filter criteria
+    inline bool passes(const MSChromatogram& chrom, Size peak_index) const
+    {
+      if (!is_active_) return true;
+
+      for (Size i = 0; i < filters_.size(); i++)
+      {
+        const DataFilters::DataFilter& filter = filters_[i];
+        if (filter.field == INTENSITY)
+        {
+          switch (filter.op)
+          {
+            case GREATER_EQUAL:
+              if (chrom[peak_index].getIntensity() < filter.value)
+                return false;
+
+              break;
+
+            case EQUAL:
+              if (chrom[peak_index].getIntensity() != filter.value)
+                return false;
+
+              break;
+
+            case LESS_EQUAL:
+              if (chrom[peak_index].getIntensity() > filter.value)
+                return false;
+
+              break;
+
+            default:
+              break;
+          }
+        }
+        else if (filter.field == META_DATA)
+        {
+          const auto& f_arrays = chrom.getFloatDataArrays();
+          // find the right meta data array
+          SignedSize f_index = -1;
+          for (Size j = 0; j < f_arrays.size(); ++j)
+          {
+            if (f_arrays[j].getName() == filter.meta_name)
+            {
+              f_index = j;
+              break;
+            }
+          }
+          // if it is present, compare it
+          if (f_index != -1)
+          {
+            if (filter.op == EQUAL && f_arrays[f_index][peak_index] != filter.value) return false;
+            else if (filter.op == LESS_EQUAL && f_arrays[f_index][peak_index] > filter.value) return false;
+            else if (filter.op == GREATER_EQUAL && f_arrays[f_index][peak_index] < filter.value) return false;
+          }
+
+          // if float array not found, search in integer arrays
+          const typename MSSpectrum::IntegerDataArrays& i_arrays = chrom.getIntegerDataArrays();
+          // find the right meta data array
+          SignedSize i_index = -1;
+          for (Size j = 0; j < i_arrays.size(); ++j)
+          {
+            if (i_arrays[j].getName() == filter.meta_name)
+            {
+              i_index = j;
+              break;
+            }
+          }
+          // if it is present, compare it
+          if (i_index != -1)
+          {
+            if (filter.op == EQUAL && i_arrays[i_index][peak_index] != filter.value) return false;
+            else if (filter.op == LESS_EQUAL && i_arrays[i_index][peak_index] > filter.value) return false;
+            else if (filter.op == GREATER_EQUAL && i_arrays[i_index][peak_index] < filter.value) return false;
+          }
+
+          // if it is not present, abort
+          if (f_index == -1 && i_index == -1) return false;
+        }
+      }
+      return true;
+    }
+
 protected:
     ///Array of DataFilters
     std::vector<DataFilter> filters_;
@@ -255,7 +338,6 @@ protected:
 
     ///Returns if the meta value at @p index of @p meta_interface (a peak or feature) passes the @p filter
     bool metaPasses_(const MetaInfoInterface& meta_interface, const DataFilters::DataFilter& filter, Size index) const;
-
   };
 
 } //namespace

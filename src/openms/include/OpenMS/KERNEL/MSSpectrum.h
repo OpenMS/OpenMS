@@ -141,6 +141,8 @@ public:
     using ContainerType::rbegin;
     using ContainerType::end;
     using ContainerType::rend;
+    using ContainerType::cbegin;
+    using ContainerType::cend;
     using ContainerType::resize;
     using ContainerType::size;
     using ContainerType::push_back;

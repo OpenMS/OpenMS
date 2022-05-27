@@ -209,7 +209,7 @@ namespace OpenMS
     QPainterPath path;
     if (round_shape)
     {
-      path.addRoundRect(boundingRect().marginsRemoved(QMarginsF(1, 1, 1, 1)), 20);
+      path.addRoundedRect(boundingRect().marginsRemoved(QMarginsF(1, 1, 1, 1)), 20, 20);
     }
     else
     {
@@ -234,7 +234,7 @@ namespace OpenMS
   QPainterPath TOPPASVertex::shape() const
   {
     QPainterPath shape;
-    shape.addRoundRect(boundingRect(), 20, 20);
+    shape.addRoundedRect(boundingRect(), 20, 20);
     return shape;
   }
 
