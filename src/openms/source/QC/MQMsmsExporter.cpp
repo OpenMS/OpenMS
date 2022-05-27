@@ -58,8 +58,8 @@ MQMsms::MQMsms(const String& path)
   filename_ = path + "/msms.txt";
   try
   {
-    QString evi_path = QString::fromStdString(path);
-    QDir().mkpath(evi_path);
+    QString msms_path = QString::fromStdString(path);
+    QDir().mkpath(msms_path);
     file_ = std::fstream(filename_, std::fstream::out);
   }
   catch (...)
@@ -81,8 +81,8 @@ void MQMsms::exportHeader_()
 {
 
   file_ << "Raw file" << "\t";
-  file_ << "Scan number" << "\t";
-  file_ << "Scan index" << "\t";
+  file_ << "Scan number" << "\t"; // NA
+  file_ << "Scan index" << "\t"; // NA
   file_ << "Sequence" << "\t";
   file_ << "Length" << "\t";
   file_ << "Missed cleavages" << "\t";
@@ -94,16 +94,16 @@ void MQMsms::exportHeader_()
   file_ << "Oxidation (M)" << "\t";
   file_ << "Proteins" << "\t";
   file_ << "Charge" << "\t";
-  file_ << "Fragmentation" << "\t";
-  file_ << "Mass analyzer" << "\t";
+  file_ << "Fragmentation" << "\t"; // NA
+  file_ << "Mass analyzer" << "\t"; // NA
   file_ << "Type" << "\t";
-  file_ << "Scan event number" << "\t";
-  file_ << "Isotope index" << "\t";
+  file_ << "Scan event number" << "\t"; // NA
+  file_ << "Isotope index" << "\t"; // NA
   file_ << "m/z" << "\t";
   file_ << "Mass" << "\t";
   file_ << "Mass error [ppm]" << "\t";
   file_ << "Mass error [Da]" << "\t";
-  file_ << "Simple mass error [ppm]" << "\t";
+  file_ << "Simple mass error [ppm]" << "\t"; // NA
   file_ << "Retention time" << "\t";
   file_ << "PEP" << "\t";
   file_ << "Score" << "\t";
@@ -111,34 +111,34 @@ void MQMsms::exportHeader_()
   file_ << "Score diff" << "\t";
   file_ << "Localization prob" << "\t";
   //file_ << "Combinatorics" << "\t"; --> not supported by OpenMS
-  // file_ << "PIF" << "\t"; --> not practical to implement
+  //file_ << "PIF" << "\t"; --> not practical to implement
   file_ << "Fraction of total spectrum" << "\t";
   file_ << "Base peak fraction" << "\t";
-  file_ << "Precursor full scan number" << "\t";
-  file_ << "Precursor Intensity" << "\t";
-  file_ << "Precursor apex fraction" << "\t";
-  file_ << "Precursor apex offset" << "\t";
-  file_ << "Precursor apex offset time" << "\t";
-  file_ << "Matches Intensities" << "\t";
-  file_ << "Mass deviations [Da]" << "\t";
-  file_ << "Mass deviations [ppm]" << "\t";
-  file_ << "Masses" << "\t";
-  file_ << "Number of matches" << "\t";
-  file_ << "Intensity coverage" << "\t";
-  file_ << "Peak coverage" << "\t";
-  file_ << "Neutral loss level" << "\t";
-  file_ << "ETD identification type" << "\t";
-  file_ << "Reverse" << "\t";
-  file_ << "All scores" << "\t";
-  file_ << "All sequences" << "\t";
-  file_ << "All modified sequences" << "\t";
+  file_ << "Precursor full scan number" << "\t"; // NA
+  file_ << "Precursor Intensity" << "\t"; // NA
+  file_ << "Precursor apex fraction" << "\t"; // NA
+  file_ << "Precursor apex offset" << "\t"; // NA
+  file_ << "Precursor apex offset time" << "\t"; // NA
+  file_ << "Matches Intensities" << "\t"; // NA
+  file_ << "Mass deviations [Da]" << "\t"; // NA
+  file_ << "Mass deviations [ppm]" << "\t"; // NA
+  file_ << "Masses" << "\t"; // NA
+  file_ << "Number of matches" << "\t"; // NA
+  file_ << "Intensity coverage" << "\t"; // NA
+  file_ << "Peak coverage" << "\t"; // NA
+  file_ << "Neutral loss level" << "\t"; // NA
+  file_ << "ETD identification type" << "\t"; // NA
+  file_ << "Reverse" << "\t"; // NA
+  file_ << "All scores" << "\t"; // NA
+  file_ << "All sequences" << "\t"; // NA
+  file_ << "All modified sequences" << "\t"; // NA
   //file_ << "Reporter PIF" << "\t"; --> not supported by OpenMS
   //file_ << "Reporter fraction" << "\t"; --> not supported by OpenMS
   file_ << "id" << "\t";
   file_ << "Protein group IDs" << "\n";
   //file_ << "Peptide ID" << "\t"; --> not useful without the other MQ files
   //file_ << "Mod. peptide ID" << "\t"; --> not useful without the other MQ files
-  //file_ << "Evidence ID" << "\t"; // --> Querverweis auf evidence.txt
+  //file_ << "Evidence ID" << "\t"; // --> in evidence.txt
   //file_ << "Oxidation (M) site IDs" << "\n"; --> not useful without the other MQ files
 
 }
@@ -155,7 +155,7 @@ void MQMsms::exportRowFromFeature_(
 {
 
   // use struct common_outpots from the ExporterHelper
-  MQExporterHelper::MQCommonOutputs common_outputs{f, cmap, c_feature_number, UIDs, mp_f, exp, prot_mapper}; // wo bekomme ich prot_mapper her?
+  MQExporterHelper::MQCommonOutputs common_outputs{f, cmap, c_feature_number, UIDs, mp_f, exp, prot_mapper};
 
   const PeptideHit* ptr_best_hit; // the best hit referring to score
   const ConsensusFeature& cf = cmap[c_feature_number];
@@ -206,10 +206,10 @@ void MQMsms::exportRowFromFeature_(
   file_ << ptr_best_hit->getMetaValue("missed_cleavages", "NA") << "\t"; // missed cleavages
 
 
-  file_ << common_outputs.modifications.rdbuf() << "\t"; // Modifications
+  file_ << common_outputs.modifications.str() << "\t"; // Modifications
   file_ << "_" << pep_seq << "_" << "\t"; // Modified Sequence
-  file_ << common_outputs.acetyl.rdbuf() << "\t"; // Acetyl (Protein N-term)
-  file_ << common_outputs.oxidation.rdbuf() << "\t"; // Oxidation (M)
+  file_ << common_outputs.acetyl.str() << "\t"; // Acetyl (Protein N-term)
+  file_ << common_outputs.oxidation.str() << "\t"; // Oxidation (M)
 
   const std::set<String>& accessions = ptr_best_hit->extractProteinAccessionsSet();
   file_ << ListUtils::concatenate(accessions, ";") << "\t";  // Proteins
@@ -226,8 +226,8 @@ void MQMsms::exportRowFromFeature_(
 
   file_ << f.getMZ() << "\t"; // M/Z
   file_ << pep_seq.getMonoWeight() << "\t"; // Mass
-  file_ << common_outputs.mass_error_ppm.rdbuf() << "\t"; // Mass Error [ppm]
-  file_ << common_outputs.mass_error_da.rdbuf() << "\t"; // Mass error [Da]
+  file_ << common_outputs.mass_error_ppm.str() << "\t"; // Mass Error [ppm]
+  file_ << common_outputs.mass_error_da.str() << "\t"; // Mass error [Da]
 
   file_ << "NA" << "\t"; // Simple mass error [ppm]
 
@@ -242,15 +242,7 @@ void MQMsms::exportRowFromFeature_(
   file_ << "Localization prob" << "\t"; // Localization prob
   f.metaValueExists(Constants::UserParam::PSM_EXPLAINED_ION_CURRENT_USERPARAM) ? file_ << (f.getMetaValue(Constants::UserParam::PSM_EXPLAINED_ION_CURRENT_USERPARAM)) << "\t": file_ << "\t"; // Fraction of total spectrum
 
-  if(f.metaValueExists("spectrum_index") && f.metaValueExists("base_peak_intensity") && !exp.empty())
-  {
-    const MSSpectrum& ms2_spec = exp[f.getMetaValue("spectrum_index")];
-    file_ << (ms2_spec.getPrecursors()[0].getIntensity() / (double)f.getMetaValue("base_peak_intensity")) << "\t"; // Base peak fraction
-  }
-  else
-  {
-    file_ << "\t"; // Base peak fraction
-  }
+  file_ << common_outputs.base_peak_fraction.str() << "\t"; // Base peak fraction
 
   file_ << "NA" << "\t"; // Precursor full scan number
   file_ << "NA" << "\t"; // Precursor Intensity

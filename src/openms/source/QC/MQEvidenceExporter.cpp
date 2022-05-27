@@ -209,10 +209,10 @@ void MQEvidence::exportRowFromFeature_(
   file_ << pep_seq.size() << "\t";               // Length
 
 
-  file_ << common_outputs.modifications.rdbuf() << "\t"; // Modifications
+  file_ << common_outputs.modifications.str() << "\t"; // Modifications
   file_ << "_" << pep_seq << "_" << "\t"; // Modified Sequence
-  file_ << common_outputs.acetyl.rdbuf() << "\t", // Acetyl (Protein N-term)
-  file_ << common_outputs.oxidation.rdbuf() << "\t"; // Oxidation (M)
+  file_ << common_outputs.acetyl.str() << "\t", // Acetyl (Protein N-term)
+  file_ << common_outputs.oxidation.str() << "\t"; // Oxidation (M)
 
   file_ << ptr_best_hit->getMetaValue("missed_cleavages", "NA") << "\t"; // missed cleavages
   const std::set<String>& accessions = ptr_best_hit->extractProteinAccessionsSet();
@@ -231,12 +231,12 @@ void MQEvidence::exportRowFromFeature_(
   file_ << pep_seq.getMonoWeight() << "\t"; // Mass
   file_ << f.getMZ() / f.getWidth() << "\t"; // Resolution
 
-  file_ << common_outputs.uncalibrated_calibrated_mz_ppm.rdbuf() << "\t"; // Uncalibrated - Calibrated m/z [ppm]
-  file_ << common_outputs.uncalibrated_calibrated_mz_mda.rdbuf() << "\t"; // Uncalibrated - Calibrated m/z [Da]
-  file_ << common_outputs.mass_error_ppm.rdbuf() << "\t"; // Mass error [ppm]
-  file_ << common_outputs.mass_error_da.rdbuf() << "\t"; // Mass error [Da]
-  file_ << common_outputs.uncalibrated_mass_error_ppm.rdbuf() << "\t"; // Uncalibrated Mass error [ppm]
-  file_ << common_outputs.uncalibrated_mass_error_da .rdbuf() << "\t"; // Uncalibrated Mass error [Da]
+  file_ << common_outputs.uncalibrated_calibrated_mz_ppm.str() << "\t"; // Uncalibrated - Calibrated m/z [ppm]
+  file_ << common_outputs.uncalibrated_calibrated_mz_mda.str() << "\t"; // Uncalibrated - Calibrated m/z [Da]
+  file_ << common_outputs.mass_error_ppm.str() << "\t"; // Mass error [ppm]
+  file_ << common_outputs.mass_error_da.str() << "\t"; // Mass error [Da]
+  file_ << common_outputs.uncalibrated_mass_error_ppm.str() << "\t"; // Uncalibrated Mass error [ppm]
+  file_ << common_outputs.uncalibrated_mass_error_da .str() << "\t"; // Uncalibrated Mass error [Da]
 
   file_ << f.getRT() / 60 << "\t"; // Retention time in min.
 
