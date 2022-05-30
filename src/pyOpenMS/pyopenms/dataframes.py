@@ -224,6 +224,8 @@ class FeatureMapDF(FeatureMap):
                     if len(hits) > 0:
                         besthit = hits[0]
                         pep_values = (besthit.getSequence().toString(), besthit.getScore(), ID_filename, f.getMetaValue('spectrum_native_id'))
+                    else:
+                        pep_values = (None, None, ID_filename, f.getMetaValue('spectrum_native_id'))
                 else:
                     pep_values = (None, None, None, None)
             else:
@@ -367,7 +369,7 @@ class MSExperimentDF(MSExperiment):
                 if spec.getMSLevel() == mslevel:
                     mz, inty = spec.get_peaks()
                     # data for both DataFrames: i, i_norm, i_tic_norm, mz, scan, rt, polarity
-                    data = (inty, inty/np.amax(inty), inty/np.sum(inty), mz, scan_num + 1, spec.getRT()/60, _get_polarity(spec))
+                    data = (inty, inty/np.amax(inty, initial=0), inty/np.sum(inty), mz, scan_num + 1, spec.getRT()/60, _get_polarity(spec))
                     cols = 7
                     if mslevel == 2:
                         cols = 10

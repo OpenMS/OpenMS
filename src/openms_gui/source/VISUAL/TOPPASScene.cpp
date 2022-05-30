@@ -1852,7 +1852,8 @@ namespace OpenMS
       {
         supported_actions_set.intersect(action_set);
       }
-      QList<QString> supported_actions = supported_actions_set.toList();
+
+      QList<QString> supported_actions = supported_actions_set.values();
       supported_actions << "Copy" << "Cut" << "Remove";
       foreach(const QString &supported_action, supported_actions)
       {

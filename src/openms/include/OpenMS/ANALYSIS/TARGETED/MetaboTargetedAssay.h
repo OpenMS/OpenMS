@@ -77,16 +77,34 @@ namespace OpenMS
       SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy_spectra;
 
       CompoundTargetDecoyPair() = default;
-      CompoundTargetDecoyPair(SiriusMSFile::CompoundInfo info, SiriusFragmentAnnotation::SiriusTargetDecoySpectra td_spectra) : compound_info(info), target_decoy_spectra(td_spectra) {}
+      CompoundTargetDecoyPair(SiriusMSFile::CompoundInfo info, SiriusFragmentAnnotation::SiriusTargetDecoySpectra td_spectra) :
+          compound_info(std::move(info)),
+          target_decoy_spectra(std::move(td_spectra))
+      {}
+    };
+
+    /**
+    @brief CompoundTargetDecoyPair stores a pair of CompoundInfo and MSSpectrum
+    */
+    class CompoundSpectrumPair
+    {
+    public:
+      SiriusMSFile::CompoundInfo compound_info;
+      MSSpectrum spectrum;
+
+      CompoundSpectrumPair() = default;
+      CompoundSpectrumPair(SiriusMSFile::CompoundInfo info, MSSpectrum spectrum) :
+          compound_info(std::move(info)),
+          spectrum(std::move(spectrum))
+      {}
     };
 
     /**
     @brief TargetDecoyGroup stores the mz, rt and file number in correspondence to the index of a MetaboTargetedAssay vector
     */
 
-    class TargetDecoyGroup
+    struct TargetDecoyGroup
     {
-    public:
       int target_index = -1;
       int decoy_index = -1;
       double target_mz = 0.0;
@@ -148,15 +166,19 @@ namespace OpenMS
                                                                                          const unsigned int& file_counter);
 
     /**
-    @brief Pair compound information (SiriusMSFile) with the annotated target and decoy spectrum from SIRIUS/Passatutto based on the m_id (unique identifier composed of description_filepath_native_id_k introduced in the SiriusMSConverter)
+    @brief Pair compound information (SiriusMSFile) with the annotated target and decoy spectrum from SIRIUS/Passatutto
+     based on the m_id (unique identifier composed of description_filepath_native_id_k introduced in the SiriusMSConverter)
 
     @return Vector of MetaboTargetedAssay::CompoundTargetDecoyPair
 
     @param v_cmpinfo Vector of SiriusMSFile::CompoundInfo
     @param annotated_spectra Vector of SiriusTargetDecoySpectra
     */
-    static std::vector< MetaboTargetedAssay::CompoundTargetDecoyPair > pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
-                                                                                                        const std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra>& annotated_spectra);
+    static std::vector< MetaboTargetedAssay::CompoundTargetDecoyPair > pairCompoundWithAnnotatedTDSpectraPairs(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
+                                                                                                               const std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra>& annotated_spectra);
+    static std::vector< MetaboTargetedAssay::CompoundSpectrumPair > pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
+                                                                                                     const std::vector<MSSpectrum>& annotated_spectra);
+
     /**
     @brief Perform feature linking to build ambiguity groups based on the target and decoy position in the vector of MetaboTargetedAssays
 
@@ -193,7 +215,7 @@ namespace OpenMS
     /**
     @brief Compare two peaks based on their intensity
     */
-    static bool intensityLess_(Peak1D a, Peak1D b);
+    static bool intensityLess_(const Peak1D& a, const Peak1D& b);
 
     /**
     @brief Gets charge from a singly charged adduct ([M+H]+/[M-H]-)

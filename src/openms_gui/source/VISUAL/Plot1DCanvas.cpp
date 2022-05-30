@@ -56,7 +56,7 @@
 // Qt
 #include <QMouseEvent>
 #include <QPainter>
-#include <QtCore/QTime>
+#include <QElapsedTimer>
 #include <QtWidgets/QInputDialog>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMessageBox>
@@ -637,7 +637,7 @@ namespace OpenMS
 
   void Plot1DCanvas::paint(QPainter* painter, QPaintEvent* e)
   {
-    QTime timer;
+    QElapsedTimer timer;
     timer.start();
 
     // clear

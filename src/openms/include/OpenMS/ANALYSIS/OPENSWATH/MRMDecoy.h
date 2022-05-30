@@ -41,9 +41,9 @@
 
 
 #include <string>
+#include <utility> // for pair
 #include <vector>
 #include <map>
-#include <utility> // for pair
 
 // #define DEBUG_MRMDECOY
 
@@ -127,6 +127,14 @@ public:
                         const bool enable_specific_losses,
                         const bool enable_unspecific_losses,
                         const int round_decPow = -4) const;
+
+    /**
+       @brief Switch the final Amino Acid of a tryptic peptide.
+       E.g. If the last Amino Acid is "K" switch to "R" (and vice versa).
+
+       @note If the last Amino Acid is neither "K" or "R", the last Amino Acid is changed to a random Amino Acid .
+    */
+    void switchKR(OpenMS::TargetedExperiment::Peptide& peptide) const;
 
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
@@ -216,6 +224,11 @@ protected:
     OpenMS::TargetedExperiment::Peptide reversePeptide_(
       const OpenMS::TargetedExperiment::Peptide& peptide) const;
 
+    /**
+     @brief Convert a peptide to a string which contains the peptide sequence and modifications
+    **/
+    String getModifiedPeptideSequence_(const OpenMS::TargetedExperiment::Peptide& pep) const;
+
     /// Synchronize members with param class
     void updateMembers_() override;
 
@@ -224,4 +237,3 @@ protected:
     bool keepC_;
   };
 }
-

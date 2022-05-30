@@ -237,7 +237,7 @@ namespace OpenMS
     arginine->addLossName("");
     arginine->addLossFormula(EmpiricalFormula("NHCNH"));
     arginine->addLossName("");
-    arginine->addLossFormula(EmpiricalFormula("CONH2"));
+    arginine->addLossFormula(EmpiricalFormula("CONH2"));	  
     insertResidueAndAssociateWithResidueSet_(arginine, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"} );
 	
     Residue* selenocysteine = new Residue ( "Selenocysteine", "Sec", "U", EmpiricalFormula( "C3H7NO2Se"), 0.00, 0.00, 5.73, 0.00, 880.99, 0.12, set<String>{ "SEC"});

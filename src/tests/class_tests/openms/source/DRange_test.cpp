@@ -34,7 +34,6 @@
 
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
 
 ///////////////////////////
 
@@ -421,11 +420,13 @@ p2[0]=3.0f;
 p2[1]=4.0f;
 */
   TEST_EXCEPTION(Exception::InvalidParameter, r.extend(-0.01))
-  r.extend(2.0);
+  auto other = r.extend(2.0);
 	TEST_REAL_SIMILAR(r.minPosition()[0],-3.0f);
 	TEST_REAL_SIMILAR(r.maxPosition()[0], 5.0f);
 	TEST_REAL_SIMILAR(r.minPosition()[1],-5.0f);
 	TEST_REAL_SIMILAR(r.maxPosition()[1], 7.0f); 
+	TEST_REAL_SIMILAR(other.minPosition()[0], -3.0f);
+  TEST_REAL_SIMILAR(other.maxPosition()[0], 5.0f);
 END_SECTION
 
 
@@ -442,6 +443,27 @@ START_SECTION(DRange<D>& swapDimensions())
 	TEST_REAL_SIMILAR(r.maxPosition()[0], 4.0f);
 	TEST_REAL_SIMILAR(r.minPosition()[1], -1.0f);
 	TEST_REAL_SIMILAR(r.maxPosition()[1], 3.0f);
+END_SECTION
+
+START_SECTION(void pullIn(DPosition<D>& point) const)
+{
+  DRange<2> r({1,2}, {3,4});
+
+	DPosition<2> p_out_left{0, 0};
+  r.pullIn(p_out_left);
+  TEST_REAL_SIMILAR(p_out_left.getX(), 1)
+  TEST_REAL_SIMILAR(p_out_left.getY(), 2)
+
+  DPosition<2> p_out_right {5, 5};
+  r.pullIn(p_out_right);
+  TEST_REAL_SIMILAR(p_out_right.getX(), 3)
+  TEST_REAL_SIMILAR(p_out_right.getY(), 4)
+
+  DPosition<2> p_in {2, 3};
+  r.pullIn(p_in);
+  TEST_REAL_SIMILAR(p_in.getX(), 2)
+  TEST_REAL_SIMILAR(p_in.getY(), 3)
+}
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
