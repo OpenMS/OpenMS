@@ -827,6 +827,8 @@ namespace OpenMS
       setIntensityMode(IM_PERCENTAGE);
     }
 
+    recalculateSnapFactor_();
+
     emit layerActivated(this);
 
     return true;

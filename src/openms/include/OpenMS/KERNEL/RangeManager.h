@@ -825,7 +825,7 @@ namespace OpenMS
         // assume all ion mobility ranges are the same and never occur together. If this is violated at some point, then split RangeMobility into subclasses...
         case DIM_UNIT::IM_MS:
         case DIM_UNIT::IM_VSSC:
-        case DIM_UNIT::FAIMS_CM:
+        case DIM_UNIT::FAIMS_CV:
           if constexpr (std::is_base_of_v<RangeMobility, ThisRangeType>) this->RangeMobility::clear();
           break;
         default:
