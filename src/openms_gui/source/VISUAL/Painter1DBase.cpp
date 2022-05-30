@@ -120,6 +120,19 @@ namespace OpenMS
     return bounding_rect;
   }
 
+  void Painter1DBase::drawAnnotations_(const LayerData1DBase* layer, QPainter& painter, Plot1DCanvas* canvas) const
+  {
+    const QColor col {QColor(String(layer->param.getValue("annotation_color").toString()).toQString())};
+    // 0: default pen; 1: selected pen
+    const QPen pen[2] = {col, col.lighter()};
+
+    for (const auto& c : layer->getCurrentAnnotations())
+    {
+      painter.setPen(pen[c->isSelected()]);
+      c->draw(canvas, painter, layer->flipped);
+    }
+  }
+
   // ###############################
   // ###### 1D Peak
   // ###############################
@@ -240,20 +253,7 @@ namespace OpenMS
     }
 
     // draw all annotation items
-    drawAnnotations_(*painter, canvas);
-  }
-
-  void Painter1DPeak::drawAnnotations_(QPainter& painter, Plot1DCanvas* canvas) const
-  {
-    const QColor col {QColor(String(layer_->param.getValue("annotation_color").toString()).toQString())};
-    // 0: default pen; 1: selected pen
-    const QPen pen[2] = {col, col.lighter()};
-
-    for (const auto& c : layer_->getCurrentAnnotations())
-    {
-      painter.setPen(pen[c->isSelected()]);
-      c->draw(canvas, painter, layer_->flipped);
-    }
+    drawAnnotations_(layer_, *painter, canvas);
   }
 
   void Painter1DPeak::drawMZAtInterestingPeaks_(QPainter& painter, Plot1DCanvas* canvas, MSSpectrum::ConstIterator v_begin, MSSpectrum::ConstIterator v_end) const
@@ -425,5 +425,8 @@ namespace OpenMS
       default:
         throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
+
+    // draw all annotation items
+    drawAnnotations_(layer_, *painter, canvas);
   }
 } // namespace OpenMS

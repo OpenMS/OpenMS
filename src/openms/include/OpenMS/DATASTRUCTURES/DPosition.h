@@ -132,7 +132,7 @@ public:
       coordinate_[1] = y;
     }
 
-    /// Constructor only for DPosition<2> that takes two Coordinates.
+    /// Constructor only for DPosition<3> that takes three Coordinates.
     DPosition(CoordinateType x, CoordinateType y, CoordinateType z)
     {
       static_assert(D == 3, "DPosition<D, TCoordinateType>:DPosition(x,y,z): index overflow!");
@@ -396,7 +396,7 @@ public:
     /// smallest negative
     inline static constexpr DPosition minNegative()
     {
-      return DPosition(-(std::numeric_limits<typename DPosition::CoordinateType>::max)());
+      return DPosition(std::numeric_limits<typename DPosition::CoordinateType>::lowest());
     }
 
     /// largest positive

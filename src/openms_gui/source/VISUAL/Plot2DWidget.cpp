@@ -66,23 +66,15 @@ namespace OpenMS
     grid_->setColumnStretch(2, 3);
     grid_->setRowStretch(1, 3);
 
-    /*PlotCanvas::ExperimentSharedPtrType shr_ptr = PlotCanvas::ExperimentSharedPtrType(new PlotCanvas::ExperimentType());
-    LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
-    MSSpectrum dummy_spec;
-    dummy_spec.push_back(Peak1D());
-    shr_ptr->addSpectrum(dummy_spec);*/
-
-    projection_onto_X_ = new Plot1DWidget(Param(), DIM::X, this);
+    projection_onto_X_ = new Plot1DWidget(Param(), DIM::Y, this);
     projection_onto_X_->hide();
-    projection_onto_X_->setMapper(DimMapper<2>({DIM_UNIT::INT, canvas_->getMapper().getDim(DIM::X).getUnit()}));
-    //projection_onto_X_->canvas()->addLayer(shr_ptr, od_dummy);
-    grid_->addWidget(projection_onto_X_, 1, 3, 2, 1);
+    projection_onto_X_->setMapper(DimMapper<2>({canvas_->getMapper().getDim(DIM::X).getUnit(), DIM_UNIT::INT}));
+    grid_->addWidget(projection_onto_X_, 0, 1, 1, 2);
 
-    projection_onto_Y_ = new Plot1DWidget(Param(), DIM::Y, this);
+    projection_onto_Y_ = new Plot1DWidget(Param(), DIM::X, this);
     projection_onto_Y_->hide();
-    projection_onto_Y_->setMapper(DimMapper<2>({canvas_->getMapper().getDim(DIM::Y).getUnit(), DIM_UNIT::INT}));
-    // projection_onto_Y_->canvas()->addLayer(shr_ptr, od_dummy);
-    grid_->addWidget(projection_onto_Y_, 0, 1, 1, 2);
+    projection_onto_Y_->setMapper(DimMapper<2>({DIM_UNIT::INT, canvas_->getMapper().getDim(DIM::Y).getUnit()}));
+    grid_->addWidget(projection_onto_Y_, 1, 3, 2, 1);
 
     // decide on default draw mode, depending on main axis unit (e.g. m/z or RT)
     auto set_style = [&](const DIM_UNIT main_unit_1d, Plot1DCanvas* canvas)
@@ -135,7 +127,7 @@ namespace OpenMS
     box_grid->setRowStretch(3, 2);
 
     QPushButton* button = new QPushButton("Update", projection_box_);
-    connect(button, SIGNAL(clicked()), canvas(), SLOT(updateProjections()));
+    connect(button, &QPushButton::clicked, canvas(), &Plot2DCanvas::pickProjectionLayer);
     box_grid->addWidget(button, 4, 0);
 
     projections_auto_ = new QCheckBox("Auto-update", projection_box_);
@@ -147,11 +139,7 @@ namespace OpenMS
     projections_timer_ = new QTimer(this);
     projections_timer_->setSingleShot(true);
     projections_timer_->setInterval(1000);
-    connect(projections_timer_, SIGNAL(timeout()), this, SLOT(updateProjections()));
-  }
-
-  Plot2DWidget::~Plot2DWidget()
-  {
+    connect(projections_timer_, &QTimer::timeout, canvas(), &Plot2DCanvas::pickProjectionLayer);
   }
 
   void Plot2DWidget::projectionInfo_(int peaks, double intensity, double max)

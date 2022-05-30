@@ -166,7 +166,7 @@ public:
     /// Returns if the @p consensus_feature fulfills the current filter criteria
     bool passes(const ConsensusFeature& consensus_feature) const;
 
-    /// Returns if the @p peak fulfills the current filter criteria
+    /// Returns if the a peak in a @p spectrum at @p peak_index fulfills the current filter criteria
     inline bool passes(const MSSpectrum& spectrum, Size peak_index) const
     {
       if (!is_active_) return true;
@@ -199,7 +199,7 @@ public:
         }
         else if (filter.field == META_DATA)
         {
-          const typename MSSpectrum::FloatDataArrays & f_arrays = spectrum.getFloatDataArrays();
+          const auto& f_arrays = spectrum.getFloatDataArrays();
           //find the right meta data array
           SignedSize f_index = -1;
           for (Size j = 0; j < f_arrays.size(); ++j)
@@ -245,11 +245,10 @@ public:
       return true;
     }
 
-    /// Returns if the @p peak fulfills the current filter criteria
+    /// Returns if the a peak in a @p chrom at @p peak_index fulfills the current filter criteria
     inline bool passes(const MSChromatogram& chrom, Size peak_index) const
     {
-      if (!is_active_)
-        return true;
+      if (!is_active_) return true;
 
       for (Size i = 0; i < filters_.size(); i++)
       {
@@ -282,7 +281,7 @@ public:
         }
         else if (filter.field == META_DATA)
         {
-          const typename MSSpectrum::FloatDataArrays& f_arrays = chrom.getFloatDataArrays();
+          const auto& f_arrays = chrom.getFloatDataArrays();
           // find the right meta data array
           SignedSize f_index = -1;
           for (Size j = 0; j < f_arrays.size(); ++j)
@@ -296,12 +295,9 @@ public:
           // if it is present, compare it
           if (f_index != -1)
           {
-            if (filter.op == EQUAL && f_arrays[f_index][peak_index] != filter.value)
-              return false;
-            else if (filter.op == LESS_EQUAL && f_arrays[f_index][peak_index] > filter.value)
-              return false;
-            else if (filter.op == GREATER_EQUAL && f_arrays[f_index][peak_index] < filter.value)
-              return false;
+            if (filter.op == EQUAL && f_arrays[f_index][peak_index] != filter.value) return false;
+            else if (filter.op == LESS_EQUAL && f_arrays[f_index][peak_index] > filter.value) return false;
+            else if (filter.op == GREATER_EQUAL && f_arrays[f_index][peak_index] < filter.value) return false;
           }
 
           // if float array not found, search in integer arrays
@@ -319,17 +315,13 @@ public:
           // if it is present, compare it
           if (i_index != -1)
           {
-            if (filter.op == EQUAL && i_arrays[i_index][peak_index] != filter.value)
-              return false;
-            else if (filter.op == LESS_EQUAL && i_arrays[i_index][peak_index] > filter.value)
-              return false;
-            else if (filter.op == GREATER_EQUAL && i_arrays[i_index][peak_index] < filter.value)
-              return false;
+            if (filter.op == EQUAL && i_arrays[i_index][peak_index] != filter.value) return false;
+            else if (filter.op == LESS_EQUAL && i_arrays[i_index][peak_index] > filter.value) return false;
+            else if (filter.op == GREATER_EQUAL && i_arrays[i_index][peak_index] < filter.value) return false;
           }
 
           // if it is not present, abort
-          if (f_index == -1 && i_index == -1)
-            return false;
+          if (f_index == -1 && i_index == -1) return false;
         }
       }
       return true;
@@ -346,7 +338,6 @@ protected:
 
     ///Returns if the meta value at @p index of @p meta_interface (a peak or feature) passes the @p filter
     bool metaPasses_(const MetaInfoInterface& meta_interface, const DataFilters::DataFilter& filter, Size index) const;
-
   };
 
 } //namespace

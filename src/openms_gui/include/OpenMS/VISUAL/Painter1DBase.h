@@ -99,6 +99,8 @@ namespace OpenMS
     static QRectF drawLineWithArrows(QPainter* painter, const QPen& pen, const QPoint& start, const QPoint& end, 
                                      const QPainterPath& arrow_start = QPainterPath(),
                                      const QPainterPath& arrow_end = QPainterPath());
+
+    void drawAnnotations_(const LayerData1DBase* layer, QPainter& painter, Plot1DCanvas* canvas) const;
   };
 
   /**
@@ -115,8 +117,6 @@ namespace OpenMS
     void paint(QPainter*, Plot1DCanvas* canvas, int layer_index) override;
 
   protected:
-    /// draw all Annotation1DItems attached to the layer
-    void drawAnnotations_(QPainter& painter, Plot1DCanvas* canvas) const;
     /// annotate up to 10 interesting peaks in the range @p vbegin to @pvend with their m/z values (using deisotoping and intensity filtering)
     void drawMZAtInterestingPeaks_(QPainter& painter, Plot1DCanvas* canvas, MSSpectrum::ConstIterator v_begin, MSSpectrum::ConstIterator v_end) const;
 

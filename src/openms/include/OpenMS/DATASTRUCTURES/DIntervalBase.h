@@ -239,7 +239,7 @@ public:
       
       /// Is the interval completely empty? i.e. clear()'d or default constructed
       /// If min==max, the interval is NOT empty!
-      bool isFullyEmpty() const
+      bool isEmpty() const
       {
         return *this == empty;
       }

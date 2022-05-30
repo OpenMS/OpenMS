@@ -49,7 +49,7 @@ namespace OpenMS
     INT,      ///< intensity
     IM_MS,    ///< ion mobility milliseconds
     IM_VSSC,  ///< volt-second per square centimeter (i.e. 1/K_0)
-    FAIMS_CM, ///< FAIMS compensation voltage
+    FAIMS_CV, ///< FAIMS compensation voltage
     SIZE_OF_DIM_UNITS
   };
   inline std::string_view DIM_NAMES[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT [s]", "m/z [Th]", "intensity", "IM [milliseconds]", "IM [vs / cm2]", "FAIMS CV"};

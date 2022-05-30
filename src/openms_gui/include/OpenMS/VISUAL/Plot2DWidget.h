@@ -71,7 +71,7 @@ public:
     /// Default constructor
     Plot2DWidget(const Param & preferences, QWidget * parent = nullptr);
     /// Destructor
-    ~Plot2DWidget() override;
+    ~Plot2DWidget() override = default;
 
     /// This method is overwritten to make the class specific members accessible
     Plot2DCanvas* canvas()
