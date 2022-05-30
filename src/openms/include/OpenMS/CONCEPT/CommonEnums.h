@@ -28,56 +28,31 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-
-#include <OpenMS/DATASTRUCTURES/Param.h>
-
-#include <QtWidgets/QDialog>
-
-namespace Ui
-{
-  class TOPPViewPrefDialogTemplate;
-}
+#include <string_view>
 
 namespace OpenMS
 {
-  namespace Internal
+  // add common enums here to avoid big includes of large classes and break circular dependencies
+
+  /// Enum for different units which can be displayed on a plotting axis
+  /// The order is arbitrary.
+  enum class DIM_UNIT
   {
-    /**
-        @brief Preferences dialog for TOPPView
+    RT = 0,   ///< RT in seconds
+    MZ,       ///< m/z
+    INT,      ///< intensity
+    IM_MS,    ///< ion mobility milliseconds
+    IM_VSSC,  ///< volt-second per square centimeter (i.e. 1/K_0)
+    FAIMS_CV, ///< FAIMS compensation voltage
+    SIZE_OF_DIM_UNITS
+  };
+  inline std::string_view DIM_NAMES[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT [s]", "m/z [Th]", "intensity", "IM [milliseconds]", "IM [vs / cm2]", "FAIMS CV"};
+  inline std::string_view DIM_NAMES_SHORT[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT", "m/z", "int", "IM", "IM", "FCV"};
 
-        @ingroup TOPPView_elements
-    */
-    class OPENMS_GUI_DLLAPI TOPPViewPrefDialog :
-      public QDialog
-    {
-      Q_OBJECT
-
-public:
-      TOPPViewPrefDialog(QWidget * parent);
-      ~TOPPViewPrefDialog() override;
-
-      /// initialize GUI values with these parameters
-      void setParam(const Param& param);
-
-      /// update the parameters given the current GUI state.
-      /// Can be used to obtain default parameters and their names.
-      Param getParam() const;
-
-protected slots:
-      void browseDefaultPath_();
-      void browsePluginsPath_();
-private:
-      Ui::TOPPViewPrefDialogTemplate* ui_;
-      mutable Param param_; ///< is updated in getParam()
-      Param tsg_param_; ///< params for TheoreticalSpectrumGenerator in the TSG tab
-    };
-  }
-}
+} // namespace OpenMS

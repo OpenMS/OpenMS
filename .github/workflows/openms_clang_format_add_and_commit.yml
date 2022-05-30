@@ -1,9 +1,8 @@
 # Action to allow clang format linting at the files changed in the PR
-
+name: Apply clang-format on comment and commit to PR
 on:
   issue_comment:
     types: [created]
-
 
 permissions:
   checks: write

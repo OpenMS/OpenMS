@@ -150,6 +150,12 @@ namespace OpenMS
     return !fi.exists() || fi.size() == 0;
   }
 
+  bool File::executable(const String& file)
+  {
+    QFileInfo fi(file.toQString());
+    return fi.exists() && fi.isExecutable();
+  }
+
   bool File::rename(const String& from, const String& to, bool overwrite_existing, bool verbose)
   {
     // check for equality

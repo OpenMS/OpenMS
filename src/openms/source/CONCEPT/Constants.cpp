@@ -28,56 +28,15 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Maintainer: Timo Sachsenberg$
+// $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/CONCEPT/Constants.h>
 
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-
-#include <OpenMS/DATASTRUCTURES/Param.h>
-
-#include <QtWidgets/QDialog>
-
-namespace Ui
-{
-  class TOPPViewPrefDialogTemplate;
-}
 
 namespace OpenMS
 {
-  namespace Internal
-  {
-    /**
-        @brief Preferences dialog for TOPPView
+  
+} //OpenMS
 
-        @ingroup TOPPView_elements
-    */
-    class OPENMS_GUI_DLLAPI TOPPViewPrefDialog :
-      public QDialog
-    {
-      Q_OBJECT
-
-public:
-      TOPPViewPrefDialog(QWidget * parent);
-      ~TOPPViewPrefDialog() override;
-
-      /// initialize GUI values with these parameters
-      void setParam(const Param& param);
-
-      /// update the parameters given the current GUI state.
-      /// Can be used to obtain default parameters and their names.
-      Param getParam() const;
-
-protected slots:
-      void browseDefaultPath_();
-      void browsePluginsPath_();
-private:
-      Ui::TOPPViewPrefDialogTemplate* ui_;
-      mutable Param param_; ///< is updated in getParam()
-      Param tsg_param_; ///< params for TheoreticalSpectrumGenerator in the TSG tab
-    };
-  }
-}

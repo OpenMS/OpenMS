@@ -1242,7 +1242,7 @@ namespace OpenMS
         {
           if (this->getValue(it.getName()) != it->value)
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Warning: for ':version' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
           }
           continue;
@@ -1258,7 +1258,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
           {
             if (this->getValue(it.getName()) != it->value) 
             {
-                OPENMS_THREAD_CRITICAL(oms_log)
+                OPENMS_THREAD_CRITICAL(LOGSTREAM)
                 stream << "Warning: for ':type' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
             }
             continue;
@@ -1284,7 +1284,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
           // make sure the same leaf name does not exist at any other position
           if (this->findNext(l1_entry.name, it_match) == this->end())
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Found '" << it.getName() << "' as '" << it_match.getName() << "' in new param." << std::endl;
             new_entry = this->getEntry(it_match.getName());
             target_name = it_match.getName();
@@ -1295,13 +1295,13 @@ OPENMS_THREAD_CRITICAL(oms_log)
         {
           if (fail_on_unknown_parameters)
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file!" << std::endl;
             is_update_success = false;
           }
           else if (add_unknown)
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Adding to current set." << std::endl;
             Param::ParamEntry local_entry = p_outdated.getEntry(it.getName());
             std::string prefix = "";
@@ -1313,7 +1313,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
           }
           else if (verbose)
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Ignoring parameter. " << std::endl;
           }
           continue;
@@ -1334,24 +1334,24 @@ OPENMS_THREAD_CRITICAL(oms_log)
             // overwrite default value
             if (verbose) 
             {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
                 stream << "Default-Parameter '" << target_name << "' overridden: '" << default_value << "' --> '" << it->value << "'!" << std::endl;
             }
             this->setValue(target_name, it->value, new_entry.description, this->getTags(target_name));
           }
           else
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << validation_result;
             if (fail_on_invalid_values)
             {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
               stream << " Updating failed!" << std::endl;
               is_update_success = false;
             }
             else
             {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
               stream << " Ignoring invalid value (using new default '" << default_value << "')!" << std::endl;
               new_entry.value = default_value;
             }
@@ -1364,17 +1364,17 @@ OPENMS_THREAD_CRITICAL(oms_log)
       }
       else
       {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
         stream << "Parameter '" << it.getName() << "' has changed value type!\n";
         if (fail_on_invalid_values)
         {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
           stream << " Updating failed!" << std::endl;
           is_update_success = false;
         } 
         else
         {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
           stream << " Ignoring invalid value (using new default)!" << std::endl;
         }
       }
