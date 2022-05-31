@@ -180,6 +180,11 @@ namespace OpenMS
       const std::vector<int> cleavage_positions = tokenize_(sequence, pos, end); // has 'pos' as first site
       return (cleavage_positions.size() - 1) <= missed_cleavages_;
     }
+    
+    if (specificity_ == SPEC_FULL && enzyme_->getName() == NoCleavage && allow_random_asp_pro_cleavage == false)
+    { // we want them to be exactly match
+      return pos == 0 && sequence.size() == end;
+    }
 
     // either SPEC_SEMI or SPEC_FULL
     bool spec_c = false, spec_n = false;

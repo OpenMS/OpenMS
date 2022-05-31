@@ -101,8 +101,10 @@ public:
     //@{
     using ContainerType::operator[];
     using ContainerType::begin;
+    using ContainerType::cbegin;
     using ContainerType::rbegin;
     using ContainerType::end;
+    using ContainerType::cend;
     using ContainerType::rend;
     using ContainerType::resize;
     using ContainerType::size;
