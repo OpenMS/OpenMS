@@ -256,7 +256,7 @@ namespace OpenMS
     {
       cout << red();
       writeLog_("No options given. Aborting!");
-      cout << reset_color();
+      cout << red.reset();
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -763,7 +763,7 @@ namespace OpenMS
            << ConsoleUtils::breakString("You can write an example INI file using the '-write_ini' option.", 0, 10) << "\n"
            << ConsoleUtils::breakString("Documentation of subsection parameters can be found in the doxygen documentation or the INIFileEditor.", 0, 10) << "\n"
            << ConsoleUtils::breakString("For more information, please consult the online documentation for this tool:", 0, 10) << "\n"
-           << ConsoleUtils::breakString("  - " + docurl, 0, 10) << reset_color() << "\n";
+           << ConsoleUtils::breakString("  - " + docurl, 0, 10) << blue.reset() << "\n";
     }
     cerr << endl;
   }
