@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>635</width>
-    <height>551</height>
+    <height>523</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -86,9 +86,15 @@
    <attribute name="title">
     <string>Run FLASHDeconvQ</string>
    </attribute>
-   <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,2">
+   <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,9">
     <item>
      <widget class="QGroupBox" name="groupBox_7">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="title">
        <string>Output folder</string>
       </property>
@@ -153,47 +159,33 @@
        <string>Run TOPP FLASHDeconv</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="2">
-        <widget class="QPushButton" name="edit_advanced_parameters">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
-          <string>edit all parameters</string>
+          <string>Edit the most important parameters directly below.</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="2">
-        <widget class="QPushButton" name="run_fd">
+       <item row="2" column="1">
+        <widget class="QPushButton" name="run_fdq">
          <property name="text">
           <string>run</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="0" colspan="3">
+       <item row="1" column="0" colspan="2">
         <widget class="ParamEditor" name="list_editor" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Edit the most important parameters directly below.</string>
          </property>
         </widget>
        </item>

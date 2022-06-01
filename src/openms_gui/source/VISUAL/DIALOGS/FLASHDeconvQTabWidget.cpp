@@ -168,26 +168,6 @@ namespace OpenMS
       progress.close();
     }
 
-    void FLASHDeconvQTabWidget::on_edit_advanced_parameters_clicked()
-    {
-      // refresh 'flashdeconvq_param_' from data within the Wizards controls
-      updateFLASHDeconvQParamFromWidgets_();
-
-      Param tmp_param = flashdeconvq_param_;
-
-      // show the parameters to the user
-      String executable = File::getExecutablePath() + "INIFileEditor";
-      String tmp_file = File::getTemporaryFile();
-      ParamXMLFile().store(tmp_file, tmp_param);
-      QProcess qp;
-      qp.start(executable.toQString(), QStringList() << tmp_file.toQString());
-      ui->tab_run->setEnabled(false); // grey out the Wizard until INIFileEditor returns...
-      qp.waitForFinished(-1);
-      ui->tab_run->setEnabled(true);
-      ParamXMLFile().load(tmp_file, tmp_param);
-      flashdeconvq_param_.update(tmp_param, false);
-    }
-
     void FLASHDeconvQTabWidget::on_open_output_directory_clicked()
     {
       QDesktopServices::openUrl( QUrl::fromLocalFile(getCurrentOutDir_()) );
