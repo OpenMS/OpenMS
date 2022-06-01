@@ -41,7 +41,10 @@
 #include <unordered_map>
 
 namespace OpenMS
-{
+{   
+    /**
+    @brief Generates a meta value required for GNPS FBMN, as defined here: https://ccms-ucsd.github.io/GNPSDocumentation/metadata/
+    */
     void GNPSMetaValueFile::store(const StringList& mzml_file_paths, const String& output_file)
     {
         std::ofstream outstr(output_file.c_str());
