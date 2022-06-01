@@ -128,7 +128,7 @@ namespace OpenMS
                   "all_area_under_the_curve\t"
                   // "charge_score\t
                   "iso_cosine\tweighted_iso_score\t"
-                  "fwhm_start\tfwhm_end\tmass_trace_ids\n"; // fwhm_avg_length\trt_start\trt_end\tcentroid_rt_of_apices\trt_of_apex\t"
+                  "fwhm_start\tfwhm_end\n"; // \tmass_trace_ids\n"; // fwhm_avg_length\trt_start\trt_end\tcentroid_rt_of_apices\trt_of_apex\t"
     // "iso_length\tperIsotopeIntensity\n"; //	is_shared
 
     int counter = -1;
@@ -217,13 +217,13 @@ namespace OpenMS
       //      std::string iso_ss_str = iso_ss.str();
       //      iso_ss_str.pop_back();
 
-      stringstream labels_ss;
-      for (auto& label : mass_trace_labels)
-      {
-        labels_ss << label << ";";
-      }
-      std::string labels_str = labels_ss.str();
-      labels_str.pop_back();
+//      stringstream labels_ss;
+//      for (auto& label : mass_trace_labels)
+//      {
+//        labels_ss << label << ";";
+//      }
+//      std::string labels_str = labels_ss.str();
+//      labels_str.pop_back();
 
       out_stream << std::to_string(fg.getMonoisotopicMass()) << "\t"
                  << fg.getMinCharge() << "\t"
@@ -244,8 +244,8 @@ namespace OpenMS
                  << std::to_string(fg.getIsotopeCosine()) << "\t"
                  << std::to_string(fg.getFeatureGroupScore()) << "\t"
                  << std::to_string(fg.getFwhmRange().first) << "\t"
-                 << std::to_string(fg.getFwhmRange().second) << "\t"
-                 << labels_str << std::endl;
+                 << std::to_string(fg.getFwhmRange().second) << std::endl;
+//                 << labels_str << std::endl;
       //                  << std::to_string(fg.getAvgFwhmLength()) << "\t"
       //                  << std::to_string(min_rt) << "\t"
       //                  << std::to_string(max_rt) << "\t"
