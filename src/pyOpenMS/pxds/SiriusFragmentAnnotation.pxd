@@ -8,13 +8,19 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>" namespa
     cdef cppclass SiriusFragmentAnnotation:
         SiriusFragmentAnnotation() nogil except +
         SiriusFragmentAnnotation(SiriusFragmentAnnotation &) nogil except + # compiler
-                
-        void  extractSiriusFragmentAnnotationMapping(String& path_to_sirius_workspace,
-                                                     MSSpectrum& msspectrum_to_fill,
-                                                     bool use_exact_mass) nogil except +
 
+        libcpp_vector[MSSpectrum] extractAnnotationsFromSiriusFile(
+                                                    String& path_to_sirius_workspace,
+                                                    Size max_rank,
+                                                    bool decoy,
+                                                    bool use_exact_mass) nogil except +
+        libcpp_vector[MSSpectrum] extractSiriusAnnotationsTgtOnly(
+                                                    libcpp_vector[String]& sirius_workspace_subdirs,
+                                                    double score_threshold,
+                                                    bool use_exact_mass,
+                                                    bool resolve) nogil except +
         libcpp_vector[ SiriusFragmentAnnotation_SiriusTargetDecoySpectra ] extractAndResolveSiriusAnnotations(libcpp_vector[ String ]& sirius_workspace_subdirs,
-                                                                                                              double& score_threshold,
+                                                                                                              double score_threshold,
                                                                                                               bool use_exact_mass) nogil except +
 
     cdef cppclass SiriusFragmentAnnotation_SiriusTargetDecoySpectra "OpenMS::SiriusFragmentAnnotation::SiriusTargetDecoySpectra":

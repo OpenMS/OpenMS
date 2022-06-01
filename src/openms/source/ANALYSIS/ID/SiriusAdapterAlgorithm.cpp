@@ -358,7 +358,7 @@ namespace OpenMS
         const std::string sirius_path(sirius_env_var);
         executable = sirius_path;
       }
-      const String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
+      String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
       OPENMS_LOG_WARN << "Executable is: " + exe << std::endl;
       return exe;
     }
@@ -565,8 +565,7 @@ namespace OpenMS
       // the actual process
       QProcess qp;
       QString executable_qstring = SiriusAdapterAlgorithm::determineSiriusExecutable(executable).toQString();
-      //since library paths are relative to sirius executable path
-      qp.setWorkingDirectory(File::path(executable).toQString());
+
       qp.start(executable_qstring, command_line); // does automatic escaping etc... start
 
       std::stringstream ss;

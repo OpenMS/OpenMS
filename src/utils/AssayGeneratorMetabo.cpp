@@ -504,10 +504,11 @@ protected:
 
         // extract Sirius/Passatutto FragmentAnnotation and DecoyAnnotation from subdirs
         // and resolve ambiguous identifications in one file based on the native_id_ids and the SIRIUS IsotopeTree_Score
-        vector <SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra = SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(subdirs, score_threshold, use_exact_mass);
+        vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra =
+          SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(subdirs, score_threshold, use_exact_mass);
 
         // combine compound information (SiriusMSFile) with annotated spectra (SiriusFragmentAnnotation)
-        v_cmp_spec = MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(v_cmpinfo, annotated_spectra);
+        v_cmp_spec = MetaboTargetedAssay::pairCompoundWithAnnotatedTDSpectraPairs(v_cmpinfo, annotated_spectra);
 
         // should the sirius workspace be retained
         if (!sirius_workspace_directory.empty())
