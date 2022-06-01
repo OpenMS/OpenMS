@@ -146,7 +146,9 @@ namespace OpenMS
       consensus_map[i].removeMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS);
     }
   }
-
+  /**
+  @brief Generates a supplementary pairs table required for GNPS IIMN, as defined here: https://ccms-ucsd.github.io/GNPSDocumentation/fbmn-iin/#supplementary-pairs
+  */
   void IonIdentityMolecularNetworking::writeSupplementaryPairTable(const ConsensusMap& consensus_map, const String& output_file)
   {
     // exit early if there is no IIMN annotations (first feature has no Constants::UserParam::IIMN_ROW_ID)

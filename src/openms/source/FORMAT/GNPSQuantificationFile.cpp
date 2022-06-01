@@ -42,6 +42,9 @@
 
 namespace OpenMS
 {
+    /**
+    @brief Generates a feature quantification file required for GNPS FBMN, as defined here: https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/#feature-quantification-table
+    */
     void GNPSQuantificationFile::store(const ConsensusMap& consensus_map, const String& output_file)
     {
         // IIMN meta values will be exported, if first feature contains mv Constants::UserParam::IIMN_ROW_ID
