@@ -42,7 +42,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
-#include <OpenMS/ANALYSIS/QUANTITATION/FLASHDeconvQuant.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvQuantAlgorithm.h>
 
 
 using namespace OpenMS;
@@ -52,21 +52,21 @@ using namespace std;
 //Doxygen docu
 //-------------------------------------------------------------
 /**
-    @page TOPP_FeatureFinderIntact TOPP_FeatureFinderIntact
+    @page TOPP_FLASHDeconvQ TOPP_FLASHDeconvQ
 
-    @brief TOPP_FeatureFinderIntact The intact protein feature detection for quantification (centroided).
+    @brief TOPP_FLASHDeconvQ The intact protein feature detection for quantification (centroided).
  */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPFeatureFinderIntact :
+class TOPPFLASHDeconvQ :
     public TOPPBase,
     public ProgressLogger
 {
 public:
-  TOPPFeatureFinderIntact():
-    TOPPBase("FeatureFinderIntact", "The intact protein feature detection for quantification", false, {}, false), ProgressLogger()
+  TOPPFLASHDeconvQ():
+    TOPPBase("FLASHDeconvQ", "The intact protein feature detection for quantification", false, {}, false), ProgressLogger()
   {
     this->setLogType(CMD);
   }
@@ -74,11 +74,14 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "", "input file", true);
+    registerInputFile_("in", "<file>", "", "input file (mzML)", true);
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
-    registerOutputFile_("out", "<string>", "", "FeatureXML file with metabolite features", false);
-//    setValidFormats_("out", ListUtils::create<String>("featureXML"));
+    registerOutputFile_("out", "<file>", "", "feature level quantification output tsv file", true);
+    setValidFormats_("out", ListUtils::create<String>("tsv"));
+
+    registerOutputFile_("out_feat", "<file>", "", "featureXML format feature level quantification output file", false);
+    setValidFormats_("out_feat", ListUtils::create<String>("featureXML"));
 
     addEmptyLine_();
     registerSubsection_("algorithm", "Algorithm parameters section");
@@ -88,11 +91,21 @@ protected:
   {
     Param combined;
 
-    // TODO: add mtd, epd param
+    Param p_mtd = MassTraceDetection().getDefaults();
+    p_mtd.setValue("noise_threshold_int", 0.0);
+    p_mtd.setValue("chrom_peak_snr", 0.0);
+    p_mtd.setValue("mass_error_ppm", 5.0);
+    combined.insert("mtd:", p_mtd);
+    combined.setSectionDescription("mtd", "Mass Trace Detection parameters");
 
-    Param p_ffi = FLASHDeconvQuant().getDefaults();
-    combined.insert("ffi:", p_ffi);
-    combined.setSectionDescription("ffi", "FeatureFinder parameters (assembling mass traces to charged features)");
+    Param p_epd = ElutionPeakDetection().getDefaults();
+    p_epd.setValue("width_filtering", "off");
+    combined.insert("epd:", p_epd);
+    combined.setSectionDescription("epd", "Elution Profile Detection (to separate isobaric Mass Traces by elution time).");
+
+    Param p_ffi = FLASHDeconvQuantAlgorithm().getDefaults();
+    combined.insert("fdq:", p_ffi);
+    combined.setSectionDescription("fdq", "FLASHDeconvQ parameters (assembling mass traces to charged features)");
 
     return combined;
   }
@@ -101,16 +114,11 @@ public:
   ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
-    // parameter handling
-    //-------------------------------------------------------------
-    // TODO: need to update this value (came from FeatureFindingMetabo)
-    Param ffi_param = getParam_().copy("algorithm:ffi:", true);
-
-    //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
     String in = getStringOption_("in");
-    String out_dir = getStringOption_("out");
+    String out = getStringOption_("out");
+    String out_feat = getStringOption_("out_feat");
 
     MzMLFile mz_data_file;
     mz_data_file.setLogType(log_type_);
@@ -143,74 +151,67 @@ public:
     ms_peakmap.sortSpectra(true);
 
     //-------------------------------------------------------------
+    // parameter handling
+    //-------------------------------------------------------------
+    Param mtd_param = getParam_().copy("algorithm:mtd:", true);
+    writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
+
+    Param epd_param = getParam_().copy("algorithm:epd:", true);
+    writeDebug_("Parameters passed to ElutionPeakDetection", epd_param, 3);
+
+    Param fdq_param = getParam_().copy("algorithm:fdq:", true);
+    writeDebug_("Parameters passed to FLASHDeconvQ", fdq_param, 3);
+
+    //-------------------------------------------------------------
     // Mass traces detection
     //-------------------------------------------------------------
-    Param p_mtd = MassTraceDetection().getDefaults();
-    p_mtd.setValue("noise_threshold_int" , 0.0);
-    p_mtd.setValue("chrom_peak_snr" , 0.0);
-    p_mtd.setValue("mass_error_ppm", 5.0);
+//    Param p_mtd = MassTraceDetection().getDefaults();
+//    p_mtd.setValue("noise_threshold_int" , 0.0);
+//    p_mtd.setValue("chrom_peak_snr" , 0.0);
+//    p_mtd.setValue("mass_error_ppm", 5.0);
 //    p_mtd.setValue("trace_termination_criterion", "sample_rate");
 //    p_mtd.setValue("min_sample_rate", 0.2);
 
     vector<MassTrace> m_traces;
     MassTraceDetection mtdet;
-    mtdet.setParameters(p_mtd);
+    mtdet.setParameters(mtd_param);
     mtdet.run(ms_peakmap, m_traces);
     OPENMS_LOG_INFO << "# initial input mass traces : " << m_traces.size() << endl;
 
     //-------------------------------------------------------------
     // Elution peak detection
     //-------------------------------------------------------------
-    Param p_epd = ElutionPeakDetection().getDefaults();
-    p_epd.setValue("width_filtering", "off");
+//    Param p_epd = ElutionPeakDetection().getDefaults();
+//    p_epd.setValue("width_filtering", "off");
 
     std::vector<MassTrace> m_traces_final;
     ElutionPeakDetection epdet;
-    epdet.setParameters(p_epd);
+    epdet.setParameters(epd_param);
     // fill mass traces with smoothed data as well .. bad design..
     epdet.detectPeaks(m_traces, m_traces_final);
 
-//    std::vector<MassTrace> m_traces_final;
-//    m_traces_final = m_traces;
-//    for (auto &m : m_traces_final)
-//    {
-//      m.estimateFWHM(false);
-//    }
     OPENMS_LOG_INFO << "# final input mass traces : " << m_traces_final.size() << endl;
 
     //-------------------------------------------------------------
     // Feature finding
     //-------------------------------------------------------------
-    FLASHDeconvQuant fdq;
-    fdq.setParameters(ffi_param);
-    String featureXML_path = "";
-    if (!out_dir.empty())
-    {
-      Size dirindex = in.find_last_of("/");
-      String dirpath = in.substr(0, dirindex) + "/" + out_dir + "/";
+    FLASHDeconvQuantAlgorithm fdq;
+    fdq.setParameters(fdq_param);
 
-      String filename = in.substr(dirindex+1);
-      Size file_extension_idx = filename.find_last_of(".");
-      fdq.outfile_path = dirpath + filename.substr(0, file_extension_idx) + ".features.tsv";
-      featureXML_path = dirpath + filename.substr(0, file_extension_idx) + ".featureXML";
-    }
-    else
-    {
-      Size last_index = in.find_last_of(".");
-      fdq.outfile_path = in.substr(0, last_index) + ".features.tsv";
-      featureXML_path = in.substr(0, last_index) + ".featureXML";
-    }
+    fdq.outfile_path = out;
     FeatureMap out_map;
-
     fdq.run(m_traces_final, out_map);
 
     //-------------------------------------------------------------
-    // writing output
+    // writing featureXML output
     //-------------------------------------------------------------
-    out_map.setPrimaryMSRunPath({in});
-    addDataProcessing_(out_map, getProcessingInfo_(DataProcessing::QUANTITATION));
+    if (!out_feat.empty())
+    {
+      out_map.setPrimaryMSRunPath({in});
+      addDataProcessing_(out_map, getProcessingInfo_(DataProcessing::QUANTITATION));
 
-    FeatureXMLFile().store(featureXML_path, out_map);
+      FeatureXMLFile().store(out_feat, out_map);
+    }
 
     return EXECUTION_OK;
   }
@@ -219,7 +220,7 @@ public:
 
 int main(int argc, const char** argv)
 {
-  TOPPFeatureFinderIntact tool;
+  TOPPFLASHDeconvQ tool;
   return tool.main(argc, argv);
 }
 

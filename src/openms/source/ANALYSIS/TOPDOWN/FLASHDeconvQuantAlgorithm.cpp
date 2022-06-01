@@ -32,18 +32,18 @@
 // $Authors: Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/QUANTITATION/FLASHDeconvQuant.h>
+#include <include/OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvQuantAlgorithm.h>
 #include <queue>
-#include <OpenMS/DATASTRUCTURES/Matrix.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
-#include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
-#include <OpenMS/CONCEPT/LogStream.h>
+#include <include/OpenMS/DATASTRUCTURES/Matrix.h>
+#include <include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+#include <include/OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
+#include <include/OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
-  FLASHDeconvQuant::FLASHDeconvQuant() :
+  FLASHDeconvQuantAlgorithm::FLASHDeconvQuantAlgorithm() :
       ProgressLogger(),
-      DefaultParamHandler("FLASHDeconvQuant")
+      DefaultParamHandler("FLASHDeconvQuantAlgorithm")
   {
     defaults_.setValue("local_rt_range", 15.0, "RT range where to look for coeluting mass traces", {"advanced"});
     defaults_.setValue("local_mz_range",
@@ -67,11 +67,11 @@ namespace OpenMS
     this->setLogType(CMD);
   }
 
-  FLASHDeconvQuant::~FLASHDeconvQuant()
+  FLASHDeconvQuantAlgorithm::~FLASHDeconvQuantAlgorithm()
   {
   }
 
-  void FLASHDeconvQuant::updateMembers_()
+  void FLASHDeconvQuantAlgorithm::updateMembers_()
   {
 //    local_rt_range_ = (double) param_.getValue("local_rt_range");
     local_mz_range_ = (double) param_.getValue("local_mz_range");
@@ -89,7 +89,7 @@ namespace OpenMS
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
   }
 
-  Param FLASHDeconvQuant::getFLASHDeconvParams_()
+  Param FLASHDeconvQuantAlgorithm::getFLASHDeconvParams_()
   {
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
@@ -97,12 +97,14 @@ namespace OpenMS
     fd_defaults.setValue("max_charge", (int) charge_upper_bound_);
     fd_defaults.setValue("min_mass", min_mass_);
     fd_defaults.setValue("max_mass", max_mass_);
-    fd_defaults.setValue("min_isotope_cosine", DoubleList{min_isotope_cosine_, .85});
+    fd_defaults.setValue("min_isotope_cosine", DoubleList{.8, .8});
 
     fd_defaults.setValue("min_qscore", .0);
     fd_defaults.setValue("tol", DoubleList{10.0, 10.0});
     fd_defaults.setValue("rt_window", 180.0);
     fd_defaults.setValue("min_peaks", IntList{(int) min_nr_mtraces_, 3});//
+
+//    cout << fd_defaults << std::endl;
 
     // theoretical isotopical model (calculateAveragine)
 //    iso_model_ = FLASHDeconvHelperStructs().calculateAveragines(max_mass_, false);
@@ -110,8 +112,8 @@ namespace OpenMS
     return fd_defaults;
   }
 
-  void FLASHDeconvQuant::writeFeatureGroupsInFile(std::vector<FeatureGroup> &fgroups,
-                                                  std::vector<MassTrace> &input_mtraces) const
+  void FLASHDeconvQuantAlgorithm::writeFeatureGroupsInFile(std::vector<FeatureGroup> &fgroups,
+                                                           std::vector<MassTrace> &input_mtraces) const
   {
 
     std::fstream out_stream;
@@ -126,7 +128,7 @@ namespace OpenMS
                   "all_area_under_the_curve\t"
                   // "charge_score\t
                   "iso_cosine\tweighted_iso_score\t"
-                  "fwhm_start\tfwhm_end\n"; // fwhm_avg_length\trt_start\trt_end\tcentroid_rt_of_apices\trt_of_apex\t"
+                  "fwhm_start\tfwhm_end\tmass_trace_ids\n"; // fwhm_avg_length\trt_start\trt_end\tcentroid_rt_of_apices\trt_of_apex\t"
     // "iso_length\tperIsotopeIntensity\n"; //	is_shared
 
     int counter = -1;
@@ -142,6 +144,9 @@ namespace OpenMS
       //      std::vector<double> per_cs_area = std::vector<double>(std::get<1>(fg.getChargeRange())+1 , .0);
       std::vector<double> per_cs_area_all = std::vector<double>(fg.getMaxCharge() + 1, .0);
 
+      std::vector<String> mass_trace_labels;
+      mass_trace_labels.reserve(fg.size());
+
       // rt range
       //      double min_rt = std::numeric_limits<double>::max();
       //      double max_rt = 0;
@@ -152,6 +157,8 @@ namespace OpenMS
         auto lmt_ptr = lmt.getMassTrace();
         //        double tmp_min = lmt_ptr->getConvexhull().getBoundingBox().minX();
         //        double tmp_max = lmt_ptr->getConvexhull().getBoundingBox().maxX();
+
+        mass_trace_labels.push_back(lmt_ptr->getLabel());
 
         double int_before = (*lmt_ptr)[0].getIntensity();
         double rt_before = (*lmt_ptr)[0].getRT();
@@ -210,6 +217,14 @@ namespace OpenMS
       //      std::string iso_ss_str = iso_ss.str();
       //      iso_ss_str.pop_back();
 
+      stringstream labels_ss;
+      for (auto& label : mass_trace_labels)
+      {
+        labels_ss << label << ";";
+      }
+      std::string labels_str = labels_ss.str();
+      labels_str.pop_back();
+
       out_stream << std::to_string(fg.getMonoisotopicMass()) << "\t"
                  << fg.getMinCharge() << "\t"
                  << fg.getMaxCharge() << "\t"
@@ -229,7 +244,8 @@ namespace OpenMS
                  << std::to_string(fg.getIsotopeCosine()) << "\t"
                  << std::to_string(fg.getFeatureGroupScore()) << "\t"
                  << std::to_string(fg.getFwhmRange().first) << "\t"
-                 << std::to_string(fg.getFwhmRange().second) << std::endl;
+                 << std::to_string(fg.getFwhmRange().second) << "\t"
+                 << labels_str << std::endl;
       //                  << std::to_string(fg.getAvgFwhmLength()) << "\t"
       //                  << std::to_string(min_rt) << "\t"
       //                  << std::to_string(max_rt) << "\t"
@@ -314,12 +330,12 @@ namespace OpenMS
     out.close();
   }
 
-  void FLASHDeconvQuant::run(std::vector<MassTrace> &input_mtraces, FeatureMap &output_featmap)
+  void FLASHDeconvQuantAlgorithm::run(std::vector<MassTrace> &input_mtraces, FeatureMap &output_featmap)
   {
     // *********************************************************** //
     // Step 1 deconvolute mass traces
     // *********************************************************** //
-    getFLASHDeconvConsensusResult();
+//    getFLASHDeconvConsensusResult();
 
     if (Constants::C13C12_MASSDIFF_U * max_nr_traces_ / charge_lower_bound_ < local_mz_range_)
     {
@@ -364,7 +380,7 @@ namespace OpenMS
     storeFeatureGroupInOpenMSFeature(features, output_featmap);
   }
 
-  void FLASHDeconvQuant::calculatePerChargeIsotopeIntensity_(std::vector<double> &per_isotope_intensity,
+  void FLASHDeconvQuantAlgorithm::calculatePerChargeIsotopeIntensity_(std::vector<double> &per_isotope_intensity,
                                                              std::vector<double> &per_charge_intensity,
                                                              const int max_isotope_count,
                                                              FeatureGroup &fg) const
@@ -390,7 +406,7 @@ namespace OpenMS
     //    return std::vector<int>{max_intensity_charge_index, max_intensity_iso_index};
   }
 
-   void FLASHDeconvQuant::makeMSSpectrum_(std::vector<FeatureSeed *> &local_traces, MSSpectrum &spec, const double &rt) const
+   void FLASHDeconvQuantAlgorithm::makeMSSpectrum_(std::vector<FeatureSeed *> &local_traces, MSSpectrum &spec, const double &rt) const
   {
     for (auto &tmp_trace : local_traces)
     {
@@ -402,7 +418,7 @@ namespace OpenMS
     spec.sortByPosition();
   }
 
-  void FLASHDeconvQuant::getFeatureFromSpectrum_(std::vector<FeatureSeed *> &local_traces,
+  void FLASHDeconvQuantAlgorithm::getFeatureFromSpectrum_(std::vector<FeatureSeed *> &local_traces,
                                                  std::vector<FeatureGroup> &local_fgroup,
                                                  const double &rt)
   {
@@ -443,7 +459,7 @@ namespace OpenMS
      }
   }
 
-  double FLASHDeconvQuant::getCosine_(const std::vector<double> &a,
+  double FLASHDeconvQuantAlgorithm::getCosine_(const std::vector<double> &a,
                                       const int &a_start,
                                       const int &a_end,
                                       const IsotopeDistribution &b,
@@ -470,7 +486,7 @@ namespace OpenMS
     return n / sqrt(a_norm);
   }
 
-  double FLASHDeconvQuant::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
+  double FLASHDeconvQuantAlgorithm::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
   {
     double diff_mz(std::fabs(tr2.getCentroidMZ() - tr1.getCentroidMZ()));
 
@@ -496,7 +512,7 @@ namespace OpenMS
     return mz_score;
   }
 
-  double FLASHDeconvQuant::scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const
+  double FLASHDeconvQuantAlgorithm::scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const
   {
     std::map<double, std::vector<double> > coinciding_rts;
 
@@ -544,7 +560,7 @@ namespace OpenMS
     return computeCosineSim_(x, y);
   }
 
-  double FLASHDeconvQuant::computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const
+  double FLASHDeconvQuantAlgorithm::computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const
   {
     if (x.size() != y.size())
     {
@@ -567,7 +583,7 @@ namespace OpenMS
   }
 
 
-  bool FLASHDeconvQuant::doFWHMbordersOverlap(const std::pair<double, double> &border1,
+  bool FLASHDeconvQuantAlgorithm::doFWHMbordersOverlap(const std::pair<double, double> &border1,
                                               const std::pair<double, double> &border2) const
   {
     if ((border1.first > border2.second) || (border2.first > border1.second))
@@ -581,7 +597,7 @@ namespace OpenMS
     return true;
   }
 
-  bool FLASHDeconvQuant::doMassTraceIndicesOverlap(const FeatureGroup &fg1, const FeatureGroup &fg2) const
+  bool FLASHDeconvQuantAlgorithm::doMassTraceIndicesOverlap(const FeatureGroup &fg1, const FeatureGroup &fg2) const
   {
     // get overlapping charge states
     int min_overlapping_charge = std::max(fg1.getMinCharge(), fg2.getMinCharge());
@@ -634,7 +650,7 @@ namespace OpenMS
     return true;
   }
 
-  bool FLASHDeconvQuant::rescoreFeatureGroup_(FeatureGroup &fg, bool score_anyways) const
+  bool FLASHDeconvQuantAlgorithm::rescoreFeatureGroup_(FeatureGroup &fg, bool score_anyways) const
   {
     if ( (!scoreFeatureGroup_(fg)) && (!score_anyways) )
     {
@@ -649,7 +665,7 @@ namespace OpenMS
     return true;
   }
 
-  bool FLASHDeconvQuant::scoreFeatureGroup_(FeatureGroup &fg) const
+  bool FLASHDeconvQuantAlgorithm::scoreFeatureGroup_(FeatureGroup &fg) const
   {
     /// return false when scoring is not done (filtered out)
 
@@ -719,7 +735,7 @@ namespace OpenMS
     return true;
   }
 
-  void FLASHDeconvQuant::setFeatureGroupScore_(FeatureGroup &fg) const
+  void FLASHDeconvQuantAlgorithm::setFeatureGroupScore_(FeatureGroup &fg) const
   {
     /// setting per_isotope_score
     auto iso_dist = iso_model_.get(fg.getMonoisotopicMass());
@@ -811,7 +827,7 @@ namespace OpenMS
     fg.setFeatureGroupScore(feature_score);
   }
 
-  void FLASHDeconvQuant::refineFeatureGroups_(std::vector<FeatureGroup> &in_features)
+  void FLASHDeconvQuantAlgorithm::refineFeatureGroups_(std::vector<FeatureGroup> &in_features)
   {
     // change min, max charges based on built FeatureGroups (for later use in scoring)
     int min_abs_charge = INT_MAX;
@@ -845,11 +861,6 @@ namespace OpenMS
 
       // get a feature with the highest Intensity
       auto candidate_fg = std::max_element(in_features.begin(), in_features.end(), CmpFeatureGroupByScore());
-
-      if (candidate_fg->getMonoisotopicMass() < 1427 && candidate_fg->getMonoisotopicMass() > 1424)
-      {
-        auto fsize=out_feature.size();
-      }
 
       // get all features within mass_tol from candidate FeatureGroup
       std::vector<FeatureGroup>::iterator low_it, up_it;
@@ -1005,7 +1016,7 @@ namespace OpenMS
     in_features.swap(out_feature);
   }
 
-  void FLASHDeconvQuant::buildMassTraceGroups_(std::vector<FeatureSeed> &mtraces,
+  void FLASHDeconvQuantAlgorithm:: buildMassTraceGroups_(std::vector<FeatureSeed> &mtraces,
                                                std::vector<FeatureGroup> &features)
   {
     /// FLASHDeconvAlgorithm setting
@@ -1089,6 +1100,11 @@ namespace OpenMS
         continue;
       }
 
+      if (rt_s_iter->first > 3778)
+      {
+        double tmp = rt_s_iter->first;
+      }
+
       // sort local traces in mz
       sort(local_traces.begin(), local_traces.end(), CmpFeatureSeedByMZ());
 
@@ -1102,6 +1118,11 @@ namespace OpenMS
 
       for (auto &tmp_fg: local_fgroup)
       {
+//        if (tmp_fg.getMonoisotopicMass() < 50433 && tmp_fg.getMonoisotopicMass() > 50425)
+//        {
+//          auto fg_m = tmp_fg.getMonoisotopicMass();
+//        }
+
         sort(tmp_fg.begin(), tmp_fg.end());
         tmp_fg.setFwhmRange();
         tmp_fg.setTraceIndices();
@@ -1117,7 +1138,7 @@ namespace OpenMS
   }
 
   /// cluster FeatureGroups with shared mass traces. If not, report as output
-  void FLASHDeconvQuant::clusterFeatureGroups_(std::vector<FeatureGroup> &fgroups,
+  void FLASHDeconvQuantAlgorithm::clusterFeatureGroups_(std::vector<FeatureGroup> &fgroups,
                                                std::vector<MassTrace> &input_mtraces) const
   {
     // *********************************************************** //
@@ -1220,7 +1241,7 @@ namespace OpenMS
     OPENMS_LOG_INFO << "#final feature groups: " << fgroups.size() << endl;
   }
 
-  void FLASHDeconvQuant::writeMassTracesOfFeatureGroup(const std::vector<FeatureGroup> &feature_groups,
+  void FLASHDeconvQuantAlgorithm::writeMassTracesOfFeatureGroup(const std::vector<FeatureGroup> &feature_groups,
                                                        const std::vector<std::vector<Size>> &shared_m_traces_indices,
                                                        std::fstream &out) const
   {
@@ -1269,7 +1290,7 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvQuant::storeFeatureGroupInOpenMSFeature(std::vector<FeatureGroup> &feature_groups,
+  void FLASHDeconvQuantAlgorithm::storeFeatureGroupInOpenMSFeature(std::vector<FeatureGroup> &feature_groups,
                                                           FeatureMap &out_featmap) const
   {
     out_featmap.clear();
@@ -1385,7 +1406,7 @@ namespace OpenMS
   }
 
 
-  void FLASHDeconvQuant::resolveConflictInCluster_(std::vector<FeatureGroup> &feature_groups,
+  void FLASHDeconvQuantAlgorithm::resolveConflictInCluster_(std::vector<FeatureGroup> &feature_groups,
                                                    const std::vector<MassTrace> &input_masstraces,
                                                    const std::vector<std::vector<Size> > &shared_m_traces_indices,
                                                    const std::set<Size> &fg_indices_in_this_cluster,
@@ -1666,7 +1687,7 @@ namespace OpenMS
 
   }
 
-  void FLASHDeconvQuant::resolveConflictRegion_(std::vector<FeatureElement> &features,
+  void FLASHDeconvQuantAlgorithm::resolveConflictRegion_(std::vector<FeatureElement> &features,
                                                 const std::vector<Size> &feature_idx_in_current_conflict_region,
                                                 const std::vector<const MassTrace *> &conflicting_mts) const
   {
@@ -1855,7 +1876,7 @@ namespace OpenMS
   }
 
   // from ElutionModelFitter. TODO : this is test purpose. use the existing method insteaad.
-  void FLASHDeconvQuant::runElutionModelFit_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces &m_traces,
+  void FLASHDeconvQuantAlgorithm::runElutionModelFit_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces &m_traces,
                                              EGHTraceFitter *fitter) const
   {
     // find the trace with maximal intensity:
@@ -1900,7 +1921,7 @@ namespace OpenMS
     //    double upper_rt_bound = fitter->getUpperRTBound();
   }
 
-  void FLASHDeconvQuant::getMostAbundantMassTraceFromFeatureGroup(const FeatureGroup &fgroup,
+  void FLASHDeconvQuantAlgorithm::getMostAbundantMassTraceFromFeatureGroup(const FeatureGroup &fgroup,
                                                                   const int &skip_this_charge,
                                                                   FeatureSeed *&most_abundant_mt_ptr,
                                                                   const std::vector<std::vector<Size>> &shared_m_traces) const
@@ -1929,8 +1950,9 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvQuant::getFLASHDeconvConsensusResult()
+  void FLASHDeconvQuantAlgorithm::getFLASHDeconvConsensusResult()
   {
+    with_target_masses_ = true;
     std::fstream fin;
     fin.open("/Users/jeek/Documents/A4B/FDQ/Kiel-Human/FDQ_target_from_rep9.csv", std::ios::in);
 //    fin.open("/Users/jeek/Documents/A4B/FDQ/Kiel-Human/ProSightPD_concensus.csv", std::ios::in);
@@ -1947,7 +1969,7 @@ namespace OpenMS
     fin.close();
   }
 
-  bool FLASHDeconvQuant::isThisMassOneOfTargets(const double &candi_mass, const double &candi_rt) const
+  bool FLASHDeconvQuantAlgorithm::isThisMassOneOfTargets(const double &candi_mass, const double &candi_rt) const
   {
     auto low_it = std::lower_bound(target_masses_.begin(), target_masses_.end(), std::make_pair(candi_mass - 1.5, .0));
     auto up_it = std::upper_bound(target_masses_.begin(), target_masses_.end(), std::make_pair(candi_mass + 1.5, .0));

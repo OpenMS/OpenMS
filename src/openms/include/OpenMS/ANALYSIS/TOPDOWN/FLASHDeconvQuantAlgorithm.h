@@ -705,16 +705,16 @@ namespace OpenMS
     }
    };
 
-  class OPENMS_DLLAPI FLASHDeconvQuant :
+  class OPENMS_DLLAPI FLASHDeconvQuantAlgorithm :
       public ProgressLogger,
       public DefaultParamHandler
 {
   public:
     /// Default constructor
-    FLASHDeconvQuant();
+    FLASHDeconvQuantAlgorithm();
 
     /// Default destructor
-    ~FLASHDeconvQuant() override;
+    ~FLASHDeconvQuantAlgorithm() override;
 
     /// main method of FeatureFindingMetabo
     void run(std::vector<MassTrace> &input_mtraces, FeatureMap &output_featmap);
@@ -832,7 +832,7 @@ namespace OpenMS
 
     // loop up table
     std::vector<std::pair<double, double>> target_masses_; // mass and rt
-    bool with_target_masses_ = true;
+    bool with_target_masses_ = false;
 
   };
 }
