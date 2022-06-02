@@ -23,7 +23,7 @@
  <li>Check your code with the tool  <code>tools/checker.php</code>. Call <code>php tools/checker.php</code> for detailed instructions.</li>
  </ul>
 
- Please open a pull request and follow the [pull request guidelines](pull-request-checklist.md).
+ Please open a pull request and follow the <a href="https://openms.readthedocs.io/en/latest/docs/additional-resources/pull-request-checklist.html">pull request guidelines</a>.
 
  @subsection qt_designer_to_create_gui_widgets How to use QT designer to create GUI widgets?
 
