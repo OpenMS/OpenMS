@@ -72,16 +72,16 @@ public:
     /// Constructor
     Colorizer(const Color color);
 
-    /// Copy constructor
-    // Colorizer(const Colorizer &rhs);
+    /// Constructor
+    Colorizer();
 
-    ///Assignment Operator
-  
+    // Copy constructor
+    Colorizer(const Colorizer &rhs);
 
     /// Destructor
     ~Colorizer();
 
-        /// insetrion Operator
+    /// insetrion Operator
     friend std::ostream& operator<<(std::ostream& o_stream, Colorizer& col);
 
 
@@ -110,12 +110,12 @@ public:
     ///
     std::stringstream getInput();
     /// 
-    bool reset_ = true;
+    bool getReset();
 
 
 
 
-// protected:
+protected:
     ///
     void outputToStream(std::ostream& o_stream);
 
