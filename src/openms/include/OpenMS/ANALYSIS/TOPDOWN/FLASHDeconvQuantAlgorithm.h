@@ -329,7 +329,7 @@ namespace OpenMS
       intensity_ = 0;
     }
 
-    void updateMassesAndIntensity(const int offset = 0, const int max_isotope_index = 0)
+    void updateMassesAndIntensity(const int offset = 0)
     {
       if (offset != 0)
       {
@@ -340,7 +340,7 @@ namespace OpenMS
         for (auto &p: tmpPeaks)
         {
           p.setIsotopeIndex(p.getIsotopeIndex() - offset);
-          if (p.getIsotopeIndex() < 0 || p.getIsotopeIndex() >= max_isotope_index)
+          if (p.getIsotopeIndex() < 0 || p.getIsotopeIndex() >= max_isotope_index_)
           {
             continue;
           }
@@ -378,6 +378,11 @@ namespace OpenMS
     std::vector<int> getChargeVector() const
     {
       return charges_;
+    }
+
+    Size getMaxIsotopeIndex() const
+    {
+      return max_isotope_index_;
     }
 
     double getIntensity() const
@@ -501,6 +506,11 @@ namespace OpenMS
       max_abs_charge_ = max_c;
     }
 
+    void setMaxIsotopeIndex(const Size index)
+    {
+      max_isotope_index_ = index;
+    }
+
     void setChargeScore(const float score)
     {
       charge_score_ = score;
@@ -619,6 +629,7 @@ namespace OpenMS
     double monoisotopic_mass_;
     /// charge range
     int min_abs_charge_, max_abs_charge_; // absolute charge states.
+    int max_isotope_index_;
     double intensity_;
     float charge_score_;
     float isotope_cosine_score_;
@@ -736,7 +747,6 @@ namespace OpenMS
 
     void calculatePerChargeIsotopeIntensity_(std::vector<double> &per_isotope_intensity,
                                                         std::vector<double> &per_charge_intensity,
-                                                        const int max_isotope_count,
                                                         FeatureGroup &fg) const;
 
     void refineFeatureGroups_(std::vector<FeatureGroup>& features);
@@ -772,8 +782,7 @@ namespace OpenMS
                                    std::vector<FeatureGroup>& out_features) const;
 
     void writeMassTracesOfFeatureGroup(const std::vector<FeatureGroup>& featgroups,
-                                       const std::vector<std::vector<Size> >& shared_m_traces_indices,
-                                       std::fstream& out) const;
+                                       const std::vector<std::vector<Size> >& shared_m_traces_indices) const;
 
     void writeFeatureGroupsInFile(std::vector<FeatureGroup>& feat, std::vector<MassTrace>& input_mtraces) const;
 
