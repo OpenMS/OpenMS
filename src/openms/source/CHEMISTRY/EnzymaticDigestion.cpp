@@ -183,7 +183,7 @@ namespace OpenMS
     
     if (specificity_ == SPEC_FULL && enzyme_->getName() == NoCleavage && allow_random_asp_pro_cleavage == false)
     { // we want them to be exactly match
-      return pos == 0 && sequence.size() == end;
+      return pos == 0 && (int)sequence.size() == end;
     }
 
     // either SPEC_SEMI or SPEC_FULL
