@@ -1132,7 +1132,7 @@ namespace OpenMS
       }
     }
     /// only for writing purpose (for non-resolved masstrace drawing)
-    writeMassTracesOfFeatureGroup(fgroups, shared_m_traces);
+//    writeMassTracesOfFeatureGroup(fgroups, shared_m_traces);
 
     // *********************************************************** //
     // Step 2 constructing hypergraph from featuregroups
@@ -1725,6 +1725,7 @@ namespace OpenMS
         traces_for_fitting.push_back(tmp_mtrace);
       }
 
+      // TODO: why?
       if (traces_for_fitting.size() == 1 && traces_for_fitting[0].peaks.size() < 4)
       {
         while (traces_for_fitting[0].peaks.size() < 4)
@@ -1743,10 +1744,9 @@ namespace OpenMS
 
       // ElutionModelFit
       EGHTraceFitter *fitter = new EGHTraceFitter();
-      // TODO : is this necessary?
+      // TODO : is this necessary? giving isotope intensity as a weight
       Param params = fitter->getDefaults();
       params.setValue("weighted", "true");
-
       fitter->setParameters(params);
       runElutionModelFit_(traces_for_fitting, fitter);
 
@@ -1761,19 +1761,23 @@ namespace OpenMS
         {
           continue;
         }
+//        double intensity_ratio = tmp_feat.isotope_probabilities[index_in_feature];
 
-
-
-        double intensity_ratio = tmp_feat.isotope_probabilities[index_in_feature];
-
-
+        // normalize fitted value
+        std::vector<double> fit_intensities;
+        double summed_intensities = .0;
         for (auto &peak: *(conflicting_mts[row]))
         {
           double rt = peak.getRT();
           double fitted_value = fitter->getValue(rt);
-          double theo_intensity = intensity_ratio * fitter->getValue(rt);
+          summed_intensities += fitted_value;
+          fit_intensities.push_back(fitted_value);
+        }
 
-          component.push_back(theo_intensity);
+        // save normalized intensities into component
+        for (auto &inty: fit_intensities)
+        {
+          component.push_back(inty/summed_intensities);
         }
 
         pointer_to_components.setValue(row, i_of_f, components.size());
@@ -1789,16 +1793,23 @@ namespace OpenMS
       Size column_size =
           components_indices.size() - std::count(components_indices.begin(), components_indices.end(), -1);
 
+      // prepare observed XIC vector
       Size mt_size = conflicting_mts[row]->getSize();
+      double obs_total_intensity = .0;
+      for (auto &peak : *conflicting_mts[row])
+      {
+        obs_total_intensity += peak.getIntensity();
+      }
       auto mt_iter = conflicting_mts[row]->begin();
       Matrix<double> obs;
       obs.resize(mt_size, 1);
       for (Size i = 0; i < mt_size; ++i)
       {
-        obs.setValue(i, 0, mt_iter->getIntensity());
+        obs.setValue(i, 0, mt_iter->getIntensity()/obs_total_intensity); // save normalized value
         mt_iter++;
       }
 
+      // prepare theoretical matrix (include only related features)
       Matrix<double> theo_matrix;
       theo_matrix.resize(mt_size, column_size);
       Size col = 0;
@@ -1820,50 +1831,8 @@ namespace OpenMS
       out_quant.resize(column_size, 1);
       NonNegativeLeastSquaresSolver::solve(theo_matrix, obs, out_quant);
 
-      OPENMS_LOG_DEBUG << "-------------------------" << endl;
-      OPENMS_LOG_DEBUG << "observed m/z : " << std::to_string(conflicting_mts[row]->getCentroidMZ()) << endl;
-
-      double ratio = .0;
-      bool both_not_zero = true;
-      for (auto i = 0; i < out_quant.rows(); ++i)
-      {
-        // TODO: check if 0 value is found -> treat differently
-        ratio += out_quant.getValue(i, 0);
-        if (out_quant.getValue(i, 0) == 0)
-        {
-          both_not_zero = false;
-        }
-        if (out_quant.getValue(i, 0) > 1)
-        {
-          both_not_zero = false;
-        }
-        if (out_quant.getValue(i, 0) < 0.1)
-        {
-          both_not_zero = false;
-        }
-      }
-      if (ratio < 2 && both_not_zero)
-      {
-//        col = 0;
-        std::vector<double> feat_masses;
-        for (Size i_of_f = 0; i_of_f < components_indices.size(); ++i_of_f)
-        {
-          // skipping no-feature column
-          if (components_indices[i_of_f] == -1)
-            continue;
-
-
-          auto &feat = features[feature_idx_in_current_conflict_region[i_of_f]];
-          feat_masses.push_back(feat.mass_traces[0]->getMass());
-        }
-
-        if (abs(feat_masses[0]-feat_masses[1]) > 100)
-        {
-          auto feat_mass = 0;
-          int check = 1;
-        }
-
-      }
+//      OPENMS_LOG_INFO << "-------------------------" << endl;
+//      OPENMS_LOG_INFO << "observed m/z : " << std::to_string(conflicting_mts[row]->getCentroidMZ()) << endl;
 
       for (auto &peak: (*conflicting_mts[row]))
       {
@@ -1874,38 +1843,40 @@ namespace OpenMS
       col = 0;
       for (Size i_of_f = 0; i_of_f < components_indices.size(); ++i_of_f)
       {
-        // skipping no-feature column
+        // skipping not-this-feature column
         if (components_indices[i_of_f] == -1)
           continue;
 
         auto &feat = features[feature_idx_in_current_conflict_region[i_of_f]];
         int &lmt_index = conflicting_mt_idx_lookup_vec[i_of_f][row];
         auto lmt_ptr = feat.mass_traces[lmt_index];
+//        OPENMS_LOG_INFO << "feature " << col << " -> \t" << out_quant.getValue(col, 0)
+//                        << "\t" << lmt_ptr->getMass() << "\t" << lmt_ptr->getCharge() << std::endl;
 
-        auto temp_component = components[pointer_to_components.getValue(row, i_of_f)];
-        double theo_intensity = std::accumulate(temp_component.begin(), temp_component.end(), 0.0);
+//        auto temp_component = components[pointer_to_components.getValue(row, i_of_f)];
+//        double theo_intensity = std::accumulate(temp_component.begin(), temp_component.end(), 0.0);
 
         // Kyowon's advice! ratio should be applied to real intensity, not theoretical one
-        lmt_ptr->setIntensity(out_quant.getValue(col, 0) * theo_intensity);
-//        lmt_ptr->setIntensity(out_quant.getValue(col, 0) * lmt_ptr->getIntensity());
+        lmt_ptr->setIntensity(out_quant.getValue(col, 0) * obs_total_intensity);
+//        lmt_ptr->setIntensity(out_quant.getValue(col, 0) * theo_intensity);
 
         OPENMS_LOG_DEBUG << "--- theo[" << col << "]--- " << std::to_string(out_quant.getValue(col, 0)) << "\t"
                          << std::to_string(lmt_ptr->getIntensity()) << "\n";
 //        OPENMS_LOG_INFO << std::to_string(lmt_ptr->getMass());
-        for (auto &m: theo_matrix.col(col))
-        {
-          OPENMS_LOG_DEBUG << to_string(m) << "\t";
-        }
-        OPENMS_LOG_DEBUG << std::endl;
+//        for (auto &m: theo_matrix.col(col))
+//        {
+//          OPENMS_LOG_INFO << to_string(m) << ", ";
+//        }
+//        OPENMS_LOG_INFO << std::endl;
         col++;
       }
     }
     components.clear();
   }
 
-  // from ElutionModelFitter. TODO : this is test purpose. use the existing method insteaad.
+  // from ElutionModelFitter.
   void FLASHDeconvQuantAlgorithm::runElutionModelFit_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces &m_traces,
-                                             EGHTraceFitter *fitter) const
+                                                      EGHTraceFitter *fitter) const
   {
     // find the trace with maximal intensity:
     Size max_trace = 0;
@@ -1925,7 +1896,6 @@ namespace OpenMS
 
 
     // Fitting
-//    bool fit_success = true;
     try
     {
       fitter->fit(m_traces);
@@ -1935,7 +1905,6 @@ namespace OpenMS
       OPENMS_LOG_ERROR << "Error fitting model to feature '"
                        << except.getName()
                        << " - " << except.getMessage() << endl;
-//      fit_success = false;
     }
 
     // record model parameters:
@@ -1947,6 +1916,7 @@ namespace OpenMS
     //
     //    double lower_rt_bound = fitter->getLowerRTBound();
     //    double upper_rt_bound = fitter->getUpperRTBound();
+
   }
 
   void FLASHDeconvQuantAlgorithm::getMostAbundantMassTraceFromFeatureGroup(const FeatureGroup &fgroup,
