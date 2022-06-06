@@ -28,43 +28,34 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Dorrestein Lab - University of California San Diego - https://dorresteinlab.ucsd.edu/$
-// $Authors: Abinesh Sarvepalli and Louis Felix Nothias$
-// $Contributors: Fabian Aicheler and Oliver Alka from Oliver Kohlbacher's group at Tubingen University$
+// $Maintainer: Axel Walter $
+// $Authors: Axel Walter $
+// --------------------------------------------------------------------------
+//-------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/FORMAT/GNPSMetaValueFile.h>
+#include <OpenMS/FORMAT/SVOutStream.h>
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <fstream>
+#include <iostream>
+#include <unordered_map>
 
 namespace OpenMS
-{
-  class OPENMS_DLLAPI GNPSMGFFile : 
-    public DefaultParamHandler,
-    public ProgressLogger
-  {
-    public:
-      // default c'tor
-      GNPSMGFFile();
+{   
+    /**
+    @brief Generates a meta value required for GNPS FBMN, as defined here: https://ccms-ucsd.github.io/GNPSDocumentation/metadata/
+    */
+    void GNPSMetaValueFile::store(const StringList& mzml_file_paths, const String& output_file)
+    {
+        std::ofstream outstr(output_file.c_str());
+        SVOutStream out(outstr, "\t", "_", String::NONE);
 
-      // see GNPSExport tool documentation
-      /**
-      * @brief Create file for GNPS molecular networking.
-      * @param consensus_file_path path to consensusXML with spectrum references
-      * @param mzml_file_paths path to mzML files referenced in consensusXML. Used to extract spectra as MGF.
-      * @param out MGF file with MS2 peak data for molecular networking.
-      */
-      void store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const;
-
-    private:
-      static constexpr double DEF_COSINE_SIMILARITY = 0.9;
-      static constexpr double DEF_MERGE_BIN_SIZE = static_cast<double>(BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES);
-
-//      static constexpr double DEF_PREC_MASS_TOL = 0.5;
-//      static constexpr bool DEF_PREC_MASS_TOL_ISPPM = false;
-
-      static constexpr int DEF_PEPT_CUTOFF = 5;
-      static constexpr int DEF_MSMAP_CACHE = 50;
-  };
-}
+        out << "filename" << "ATTRIBUTE_MAPID" << std::endl;
+        Size i = 0;
+        for (const auto& path: mzml_file_paths)
+        {
+            out << path.substr(path.find_last_of("/\\")+1) << "MAP"+String(i) << std::endl;
+            i++;
+        }
+    }
+} // namespace

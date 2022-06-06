@@ -5636,7 +5636,7 @@ def testIIMN():
 """
     os.remove("SupplementaryPairsTable.csv")
 
-    pyopenms.IonIdentityMolecularNetworking.writeFeatureQuantificationTable(cm, "FeatureQuantificationTable.txt")
+    pyopenms.GNPSQuantificationFile.store(cm, "FeatureQuantificationTable.txt")
     with open("FeatureQuantificationTable.txt", "r") as f:
         assert f.read() == """#MAP	id	filename	label	size
 #CONSENSUS	rt_cf	mz_cf	intensity_cf	charge_cf	width_cf	quality_cf	row ID	best ion	partners	annotation network number
@@ -5646,3 +5646,4 @@ CONSENSUS	62.0	204.080000000000013	0.0	1	0.0	2.0	3	[M-H-O]+	1	1
 CONSENSUS	62.0	294.100000000000023	0.0	1	0.0	2.0	4	[M+H]+		2
 """
     os.remove("FeatureQuantificationTable.txt")
+
