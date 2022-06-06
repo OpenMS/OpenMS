@@ -154,6 +154,11 @@ namespace OpenMS
     /// check if @p type is contained in this array
     bool contains(const FileTypes::Type& type) const;
 
+    const std::vector<FileTypes::Type>& getTypes() const
+    {
+      return type_list_;
+    }
+
     /// converts the array into a Qt-compatible filter for selecting files in a user dialog.
     /// e.g. "all readable files (*.mzML *.mzXML);;". See Filter enum.
     /// @param style Create a combined filter, or single filters, or both

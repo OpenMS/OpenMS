@@ -73,9 +73,7 @@ END_SECTION
 START_SECTION(static void extractSiriusFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass))
 {
     String test_path = OPENMS_GET_TEST_DATA_PATH("SiriusFragmentAnnotation_test");
-    MSSpectrum annotated_msspectrum;
-
-    SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(test_path, annotated_msspectrum);
+    MSSpectrum annotated_msspectrum = SiriusFragmentAnnotation::extractAnnotationsFromSiriusFile(test_path, 1, false, false)[0];
 
     TEST_STRING_SIMILAR(annotated_msspectrum.getNativeID(), "sample=1 period=1 cycle=657 experiment=5|sample=1 period=1 cycle=658 experiment=6|sample=1 period=1 cycle=659 experiment=7");
     TEST_EQUAL(annotated_msspectrum.getMSLevel(), 2);
@@ -96,9 +94,7 @@ END_SECTION
 START_SECTION(static void extractSiriusFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass))
 {
     String test_path = OPENMS_GET_TEST_DATA_PATH("SiriusFragmentAnnotation_test");
-    MSSpectrum annotated_msspectrum;
-
-    SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(test_path, annotated_msspectrum, true);
+    MSSpectrum annotated_msspectrum = SiriusFragmentAnnotation::extractAnnotationsFromSiriusFile(test_path, 1, false, true)[0];
 
     TEST_STRING_SIMILAR(annotated_msspectrum.getNativeID(), "sample=1 period=1 cycle=657 experiment=5|sample=1 period=1 cycle=658 experiment=6|sample=1 period=1 cycle=659 experiment=7");
     TEST_EQUAL(annotated_msspectrum.getMSLevel(), 2);
@@ -119,9 +115,7 @@ END_SECTION
 START_SECTION(static void extractSiriusDecoyAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill))
 {
     String test_path = OPENMS_GET_TEST_DATA_PATH("SiriusFragmentAnnotation_test");
-    MSSpectrum decoy_msspectrum;
-
-    SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(test_path, decoy_msspectrum);
+    MSSpectrum decoy_msspectrum = SiriusFragmentAnnotation::extractAnnotationsFromSiriusFile(test_path, 1, true, false)[0];
 
     TEST_STRING_SIMILAR(decoy_msspectrum.getNativeID(), "sample=1 period=1 cycle=657 experiment=5|sample=1 period=1 cycle=658 experiment=6|sample=1 period=1 cycle=659 experiment=7");
     TEST_EQUAL(decoy_msspectrum.getMSLevel(), 2);

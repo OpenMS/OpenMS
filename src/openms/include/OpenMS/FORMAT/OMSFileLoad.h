@@ -143,6 +143,8 @@ namespace OpenMS
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
 
+      int version_number_; ///< schema version number
+
       // mappings between database keys and loaded data:
       std::unordered_map<Key, IdentificationData::ScoreTypeRef> score_type_refs_;
       std::unordered_map<Key, IdentificationData::InputFileRef> input_file_refs_;

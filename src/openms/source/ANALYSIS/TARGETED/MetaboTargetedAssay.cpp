@@ -82,7 +82,7 @@ namespace OpenMS
     return adduct_charge;
   }
 
-  bool MetaboTargetedAssay::intensityLess_(Peak1D a, Peak1D b)
+  bool MetaboTargetedAssay::intensityLess_(const Peak1D& a, const Peak1D& b)
   {
     return (a.getIntensity() < b.getIntensity());
   }
@@ -132,7 +132,7 @@ namespace OpenMS
       // filter vector down to the compound with mol. formula and adduct based on the highest occurrence
       mta.erase(remove_if(mta.begin(),
                           mta.end(),
-                          [&pr](MetaboTargetedAssay assay)
+                          [&pr](const MetaboTargetedAssay& assay)
                           {
                             return assay.molecular_formula != pr->first.first ||
                                    assay.compound_adduct != pr->first.second;
@@ -699,7 +699,7 @@ namespace OpenMS
   }
 
   // method to pair compound information (SiriusMSFile) with the annotated target spectrum from Sirius based on the m_id (unique identifier)
-  std::vector< MetaboTargetedAssay::CompoundTargetDecoyPair > MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
+  std::vector< MetaboTargetedAssay::CompoundTargetDecoyPair > MetaboTargetedAssay::pairCompoundWithAnnotatedTDSpectraPairs(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
                                                                                                                     const std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra>& annotated_spectra)
   {
     vector< MetaboTargetedAssay::CompoundTargetDecoyPair > v_cmp_spec;
@@ -707,10 +707,27 @@ namespace OpenMS
     {
       for (const auto& spectra : annotated_spectra)
       {
-        if (cmp.m_ids_id == spectra.target.getName()) // the m_id is saved at MSSpectrum level the name
+        if (cmp.m_ids_id == spectra.target.getName()) // the m_id is saved at MSSpectrum level as its name
         {
-          MetaboTargetedAssay::CompoundTargetDecoyPair csp(cmp, spectra);
-          v_cmp_spec.push_back(move(csp));
+          v_cmp_spec.emplace_back(cmp, spectra);
+        }
+      }
+    }
+    return v_cmp_spec;
+  }
+
+  // method to pair compound information (SiriusMSFile) with the annotated target spectrum from Sirius based on the m_id (unique identifier)
+  std::vector< MetaboTargetedAssay::CompoundSpectrumPair > MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
+                                                                                                                  const std::vector<MSSpectrum>& annotated_spectra)
+  {
+    vector< MetaboTargetedAssay::CompoundSpectrumPair > v_cmp_spec;
+    for (const auto& cmp : v_cmpinfo)
+    {
+      for (const auto& spectrum : annotated_spectra)
+      {
+        if (cmp.m_ids_id == spectrum.getName()) // the m_id is saved at MSSpectrum level as its name
+        {
+          v_cmp_spec.emplace_back(cmp, spectrum);
         }
       }
     }

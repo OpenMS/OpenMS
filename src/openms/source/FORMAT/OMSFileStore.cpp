@@ -48,7 +48,7 @@ using ID = OpenMS::IdentificationData;
 
 namespace OpenMS::Internal
 {
-  int version_number = 1;
+  int version_number = 2; // increase this whenever the DB schema changes!
 
   void raiseDBError_(const QSqlError& error, int line,
                      const char* function, const String& context)
@@ -577,6 +577,7 @@ namespace OpenMS::Internal
       "precursor_tolerance_ppm NUMERIC NOT NULL CHECK (precursor_tolerance_ppm in (0, 1)) DEFAULT 0, " \
       "fragment_tolerance_ppm NUMERIC NOT NULL CHECK (fragment_tolerance_ppm in (0, 1)) DEFAULT 0, " \
       "digestion_enzyme TEXT, "                                         \
+      "enzyme_term_specificity TEXT, " // new in version 2!
       "missed_cleavages NUMERIC, "                                      \
       "min_length NUMERIC, "                                            \
       "max_length NUMERIC, "                                            \
@@ -598,6 +599,7 @@ namespace OpenMS::Internal
                   ":precursor_tolerance_ppm, "            \
                   ":fragment_tolerance_ppm, "             \
                   ":digestion_enzyme, "                   \
+                  ":enzyme_term_specificity, "            \
                   ":missed_cleavages, "                   \
                   ":min_length, "                         \
                   ":max_length)");
@@ -632,6 +634,8 @@ namespace OpenMS::Internal
       {
         query.bindValue(":digestion_enzyme", QVariant(QVariant::String));
       }
+      query.bindValue(":enzyme_term_specificity",
+                      QString::fromStdString(EnzymaticDigestion::NamesOfSpecificity[param.enzyme_term_specificity]));
       query.bindValue(":missed_cleavages", uint(param.missed_cleavages));
       query.bindValue(":min_length", uint(param.min_length));
       query.bindValue(":max_length", uint(param.max_length));
