@@ -103,6 +103,8 @@ public:
       return *this;
     }
 
+     ///
+    Colorizer& reset();
 
 
 
@@ -127,9 +129,6 @@ protected:
 
     ///
     std::string getDataAsString();
-
-    ///
-    Colorizer& reset();
 
 
 

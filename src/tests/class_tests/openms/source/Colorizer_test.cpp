@@ -48,6 +48,7 @@
 using namespace OpenMS;
 using namespace std;
 
+
 template <typename T>
 //convert any input to string
 string convertToString ( T var_input )
@@ -56,6 +57,7 @@ string convertToString ( T var_input )
     ss << var_input;
     return ss.str();
 }
+
 
 class ColorizerMethodsTester: public Colorizer
     {
@@ -66,37 +68,46 @@ class ColorizerMethodsTester: public Colorizer
     ColorizerMethodsTester(const Color color);
 
     /// Default destructor
-    ColorizerMethodsTester::~ColorizerMethodsTester();
+    ~ColorizerMethodsTester();
 
-    void outputToStream_(std::ostream& o_stream)
+
+    void outputToStream_(std::ostream& o_stream) //std::ostream& o_stream
+
+    //void output( Test& foo ) { foo.sampleOutputMethod(); }
+
     {
-    /// color the stream (or console)
-    colorStream(o_stream);
+        this->outputToStream(o_stream);
+    // /// color the stream (or console)
+    // colorStream(o_stream);
 
-    // paste text
-    o_stream << this->Colorizer::getInput().str();
+    // // paste text
+    // o_stream << this->Colorizer::getInput().str();
 
-    // if flag reset is set: reset comand line. else dont reset.
-    if (this->getReset())
-    {
-      resetColor(o_stream);
+    // // if flag reset is set: reset comand line. else dont reset.
+    // if (this->getReset())
+    // {
+    //   resetColor(o_stream);
+    // }
+
     }
+
+    ///
+    void colorStream_(std::ostream& stream) const{
+        this->colorStream(stream);
     }
-    
 
-    // ///
-    // void colorStream_(std::ostream& stream) const;
+    ///
+    void resetColor_(std::ostream& stream){
+        this->resetColor(stream);
+    }
 
-    // ///
-    // void resetColor_(std::ostream& stream);
-
-    // ///
-    // std::string getDataAsString_();
-
-    // ///
-    // Colorizer& reset_();
+    ///
+    void getDataAsString_(){
+        this->getDataAsString();
+    }
     
     };
+
 
 START_TEST(Colorizer(),"$Id$")
 
@@ -133,6 +144,7 @@ string test_string = " !#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXY
     string const resetColorANSI   = "\e[0m";
 
 #endif
+
 
 // START_SECTION(Colorizer::colorStream_(ostream& stream) const)
 // {
@@ -300,30 +312,30 @@ START_SECTION("Testing Colorizer inputs")
 }
 END_SECTION
 
-// START_SECTION(Colorizer& operator()())
-// {
-//     stringstream test_stream;
-//     test_stream << green() 
-//                 << "green text" 
-//                 << 123 << "!" 
-//                 << " " 
-//                 << magenta()
-//                 << "magenta text"
-//                 << green.reset()
-//                 << "default text"
-//                 << magenta.reset()
-//                 << "default text";
-//     TEST_EQUAL(test_stream.str(),greenANSI
-//                                 +"green text123! "
-//                                 +magentaANSI
-//                                 +"magenta text"
-//                                 +greenANSI+resetColorANSI
-//                                 +"default text"
-//                                 +magentaANSI+resetColorANSI
-//                                 +"default text")
+START_SECTION(Colorizer& operator()())
+{
+    stringstream test_stream;
+    test_stream << green() 
+                << "green text" 
+                << 123 << "!" 
+                << " " 
+                << magenta()
+                << "magenta text"
+                << green.reset()
+                << "default text"
+                << magenta.reset()
+                << "default text";
+    TEST_EQUAL(test_stream.str(),greenANSI
+                                +"green text123! "
+                                +magentaANSI
+                                +"magenta text"
+                                +greenANSI+resetColorANSI
+                                +"default text"
+                                +magentaANSI+resetColorANSI
+                                +"default text")
 
-// }
-// END_SECTION
+}
+END_SECTION
 
 END_TEST
 
