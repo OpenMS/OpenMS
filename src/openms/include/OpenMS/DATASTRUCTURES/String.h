@@ -93,6 +93,8 @@ public:
     OPENMS_DLLAPI String(String&&) = default;
     /// Constructor from std::string
     OPENMS_DLLAPI String(const std::string& s);
+    /// Constructor from std::string_view
+    OPENMS_DLLAPI String(const std::string_view& sv);
     /// Constructor from Qt QString
     OPENMS_DLLAPI String(const QString& s);
     /// Constructor from char*

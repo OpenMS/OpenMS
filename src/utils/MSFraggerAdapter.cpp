@@ -72,7 +72,8 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em MSFragger must be installed before this adapter can be used.
+  @em MSFragger must be installed before this adapter can be used. This adapter is fully compatible with version 3.2 of MSFragger
+  and later versions of MSFragger were tested up to version 3.5.
 
 	All MSFragger parameters (as specified in the fragger.params file) have been transcribed to parameters of this OpenMS util.
 	It is not possible to provide an explicit fragger.params file to avoid redundancy with the ini file.
