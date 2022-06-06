@@ -59,26 +59,6 @@ namespace OpenMS
 #endif
   }
 
-
-  ///
-  int Colorizer::getColor(){return this->color_;}
-
-  /// 
-  std::stringstream Colorizer::getInput(){
-    std::stringstream output_stream;
-    std::string data = getDataAsString();
-    output_stream << data;
-    return output_stream;
-  }
-
-  /// 
-  bool Colorizer::getReset(){return this->reset_;};
-
-
-
-
-
-
   ///
   void Colorizer::colorStream(std::ostream& stream) const
   {

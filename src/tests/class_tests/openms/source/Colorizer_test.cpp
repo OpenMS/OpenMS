@@ -70,42 +70,13 @@ class ColorizerMethodsTester: public Colorizer
     /// Default destructor
     ~ColorizerMethodsTester();
 
+    void outputToStream_(std::ostream& o_stream){this->outputToStream(o_stream);}
 
-    void outputToStream_(std::ostream& o_stream) //std::ostream& o_stream
+    void colorStream_(std::ostream& stream) const{this->colorStream(stream);}
 
-    //void output( Test& foo ) { foo.sampleOutputMethod(); }
+    void resetColor_(std::ostream& stream){this->resetColor(stream);}
 
-    {
-        this->outputToStream(o_stream);
-    // /// color the stream (or console)
-    // colorStream(o_stream);
-
-    // // paste text
-    // o_stream << this->Colorizer::getInput().str();
-
-    // // if flag reset is set: reset comand line. else dont reset.
-    // if (this->getReset())
-    // {
-    //   resetColor(o_stream);
-    // }
-
-    }
-
-    ///
-    void colorStream_(std::ostream& stream) const{
-        this->colorStream(stream);
-    }
-
-    ///
-    void resetColor_(std::ostream& stream){
-        this->resetColor(stream);
-    }
-
-    ///
-    void getDataAsString_(){
-        this->getDataAsString();
-    }
-    
+    std::string getDataAsString_(){return this->getDataAsString();}
     };
 
 
@@ -146,26 +117,26 @@ string test_string = " !#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXY
 #endif
 
 
-// START_SECTION(Colorizer::colorStream_(ostream& stream) const)
-// {
-//     //without text
-//     stringstream test_stream;
-//     Colorizer c(Color::BLACK);
+START_SECTION(Colorizer::colorStream(ostream& stream) const)
+{
+    //without text
+    stringstream test_stream;
+    ColorizerMethodsTester c(Color::BLACK);
 
-//     c.colorStream_(test_stream);
-//     TEST_EQUAL(test_stream.str(), blackANSI)
+    c.colorStream_(test_stream);
+    TEST_EQUAL(test_stream.str(), blackANSI)
 
-//     //with text
-//     test_stream.str(string());
-//     test_stream.clear();
+    //with text
+    test_stream.str(string());
+    test_stream.clear();
 
-//     test_stream << c(test_string);
-//     c.colorStream_(test_stream);
-//     TEST_EQUAL(test_stream.str(),blackANSI+test_string+resetColorANSI+blackANSI)
-// }
-// END_SECTION
+    test_stream << c(test_string);
+    c.colorStream_(test_stream);
+    TEST_EQUAL(test_stream.str(),blackANSI+test_string+resetColorANSI+blackANSI)
+}
+END_SECTION
 
-START_SECTION(Colorizer::outputToStream_(ostream& o_stream))
+START_SECTION(Colorizer::outputToStream(ostream& o_stream))
 {
     //without text
     stringstream test_stream;
@@ -184,41 +155,41 @@ START_SECTION(Colorizer::outputToStream_(ostream& o_stream))
 }
 END_SECTION
 
-// START_SECTION(Colorizer::resetColor_(ostream& stream))
-// {
-//     stringstream test_stream;
-//     Colorizer c(Color::GREEN);
+START_SECTION(Colorizer::resetColor(ostream& stream))
+{
+    stringstream test_stream;
+    ColorizerMethodsTester c(Color::GREEN);
 
-//     test_stream << c(test_string);
-//     c.resetColor_(test_stream);
-//     TEST_EQUAL(test_stream.str(), greenANSI+test_string+resetColorANSI+resetColorANSI)
-// }
-// END_SECTION
+    test_stream << c(test_string);
+    c.resetColor_(test_stream);
+    TEST_EQUAL(test_stream.str(), greenANSI+test_string+resetColorANSI+resetColorANSI)
+}
+END_SECTION
 
-// START_SECTION(Colorizer::getDataAsString())
-// {
-//     stringstream test_stream;
-//     Colorizer c(Color::RED);
+START_SECTION(Colorizer::getDataAsString())
+{
+    stringstream test_stream;
+    ColorizerMethodsTester c(Color::RED);
 
-//     test_stream << c(test_string);
-//     test_stream << c.getDataAsString();
-//     TEST_EQUAL(test_stream.str(), redANSI+test_string+resetColorANSI+test_string)
-// }
-// END_SECTION
+    test_stream << c(test_string);
+    test_stream << c.getDataAsString_();
+    TEST_EQUAL(test_stream.str(), redANSI+test_string+resetColorANSI+test_string)
+}
+END_SECTION
 
-// START_SECTION(Colorizer::reset())
-// {
-//     stringstream test_stream;
-//     test_stream << green() 
-//         << "green text" << 89 << "$" << " " 
-//         << green.reset() << "default text" << red() << 11 << red.reset() << "A";
-//     TEST_EQUAL(test_stream.str(),greenANSI
-//                                 +"green text89$ "
-//                                 +greenANSI+resetColorANSI
-//                                 +"default text"
-//                                 +redANSI+"11"+redANSI+resetColorANSI+"A")
-// }
-// END_SECTION
+START_SECTION(Colorizer::reset())
+{
+    stringstream test_stream;
+    test_stream << green() 
+        << "green text" << 89 << "$" << " " 
+        << green.reset() << "default text" << red() << 11 << red.reset() << "A";
+    TEST_EQUAL(test_stream.str(),greenANSI
+                                +"green text89$ "
+                                +greenANSI+resetColorANSI
+                                +"default text"
+                                +redANSI+"11"+redANSI+resetColorANSI+"A")
+}
+END_SECTION
 
 START_SECTION("Testing Colorizer instances")
 {

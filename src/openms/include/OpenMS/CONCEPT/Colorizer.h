@@ -64,10 +64,9 @@ namespace OpenMS
    *
    */
 
-
-
   class OPENMS_DLLAPI Colorizer
   {
+    
 public:
     /// Constructor
     Colorizer(const Color color);
@@ -107,16 +106,6 @@ public:
     Colorizer& reset();
 
 
-
-    int getColor();
-    ///
-    std::stringstream getInput();
-    /// 
-    bool getReset();
-
-
-
-
 protected:
     ///
     void outputToStream(std::ostream& o_stream);
@@ -129,7 +118,6 @@ protected:
 
     ///
     std::string getDataAsString();
-
 
 
 private:
@@ -164,9 +152,7 @@ private:
     inline static constexpr std::array<const char*, 9> colors_ {"\033[30m", "\033[31m", "\033[32m", "\033[33m", "\033[34m", "\033[35m", "\033[36m", "\033[37m", "\033[0m"};
 
 #endif
-
   };
-
 
   // declaration of all colorizer object.
   extern OPENMS_DLLAPI Colorizer black;
