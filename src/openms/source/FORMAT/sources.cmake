@@ -23,7 +23,9 @@ FASTAFile.cpp
 FeatureXMLFile.cpp
 FileHandler.cpp
 FileTypes.cpp
+GNPSMetaValueFile.cpp
 GNPSMGFFile.cpp
+GNPSQuantificationFile.cpp
 GzipIfstream.cpp
 GzipInputStream.cpp
 HDF5Connector.cpp
