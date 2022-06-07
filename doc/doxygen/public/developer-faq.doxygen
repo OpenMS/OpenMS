@@ -125,10 +125,10 @@
  Since we use extensive caching, the build may take much longer when many files are touched and may never complete (running into the <code>travis</code> time limit). In that case, we can rebuild the cache using the following approach:
 
  @code{sh}
- $ git cherry-pick 89c5cd7f2d9d343b3d63fc6bab18e08dcd969c05
+ $ git cherry-pick <git-sha>
  $ git push origin develop
  # Now wait for the build to complete
- $ git revert 89c5cd7f2d9d343b3d63fc6bab18e08dcd969c05
+ $ git revert <git-sha>
  $ git push origin develop
  @endcode
 
@@ -140,14 +140,14 @@
 
  @section working_in_ides Working in IDEs
 
- @subsection why_there_are_no_source_test_and_source_app_topp_utils_folders Why are there no source/TEST and source/APPLICATIONS/TOPP|UTILS folder?
+ <h2><a class="anchor" id="why_are_there_no_source_test_and_source_app_topp_utils_folders"></a>Why are there no <code>source/TEST</code> and <code>source/APPLICATIONS/TOPP|UTILS</code> folder?</h2>
 
  All source files added to an IDE are associated with their targets. Find the source files for each test within
  its own subproject. The same is true for the <code>TOPP</code> and <code>UTILS</code> classes.
 
  @subsection im_getting_the_error_error_c2471 I'm getting the error "Error C2471: cannot update program database"
 
- This is a bug in Visual Studio and there is a <a href="http://code.msdn.microsoft.com/KB946040">bug fix</a>. Only apply it if you encounter the error. The bug fix might have unwanted side effects!
+ @warning This is a bug in Visual Studio and there is a <a href="https://docs.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/compiler-error-c2471?view=msvc-170">bug fix</a>. Only apply it if you encounter the error. The bug fix might have unwanted side effects!
 
  @subsection visual_studio_cant_read_the_clang_format_file Visual Studio can't read the clang-format file.
 
@@ -236,7 +236,7 @@
 
  Linux: Use <code>ldd</code>.
 
- Windows (Visual studio console): See <a href="http://www.dependencywalker.com/">Dependency Walker</a> (use x86 for 32 bit builds and the x64 version for 64bit builds. Using the wrong version of depends.exe will give the wrong results) or
+ Windows (Visual studio console): See <a href="http://www.dependencywalker.com/">Dependency Walker</a> (use x86 for 32 bit builds and the x64 version for 64 bit builds. Using the wrong version of depends.exe will give the wrong results) or
  <code>dumpbin /DEPENDENTS OpenMS.dll</code>.
 
  @subsection how_to_get_a_list How to get a list of the symbols defined in a (shared) library or object file?
@@ -267,7 +267,7 @@
  <li>The output can be viewed with <code>kcachegrind callgrind.out</code>.</li>
  </ol>
 
- @subsection linux_how_to_check_for_memory_leaks How to code for memory leaks
+ @subsection linux_how_to_check_for_memory_leaks How to check code for memory leaks
 
  <ol>
  <li>Build OpenMS in debug mode (set <code>CMAKE_BUILD_TYPE</code> to <code>Debug</code>).</li>

@@ -8,7 +8,7 @@ The following page contains general C++ guidelines that are not OpenMS-specific.
 
 Using <code>namespace OpenMS</code>, <code>namespace std</code>, or similar in <code>.h</code> files may cause name clashes, therefore it is advised against.
 
-Don't import complete namespaces to the scope into <code>.cpp</code> files. Instead, introduce individual symbols to the scope where you need them. For example, write using <code>std::vector;</code> instead of <code>using namespace std;</code>. This immediately gives a hint to where the symbol is defined as well.
+@warning Don't import complete namespaces to the scope into <code>.cpp</code> files. Instead, introduce individual symbols to the scope where you need them. For example, write using <code>std::vector;</code> instead of <code>using namespace std;</code>. This immediately gives a hint to where the symbol is defined as well.
 
 <h1><a class="anchor" id="uint_vs_size"></a><code>UInt</code> vs <code>Size</code></h1>
 
@@ -30,7 +30,7 @@ Here is an example of how to correctly use <code>Size</code>.
   }
 @endcode
 
-Don't use <code>UInt</code> as a substitute for <code>Size</code>. Even though <code>UInt</code> and <code>Size</code> are equivalent on prominent 32 bit systems, they are usually different types on 64 bit systems, where <code>UInt</code> is 32 bit, whereas <code>Size</code> is 64 bit depending on the platform. Using <code>UInt</code> leads to warnings (at best) and may break your code.
+@warning Don't use <code>UInt</code> as a substitute for <code>Size</code>. Even though <code>UInt</code> and <code>Size</code> are equivalent on prominent 32 bit systems, they are usually different types on 64 bit systems, where <code>UInt</code> is 32 bit, whereas <code>Size</code> is 64 bit depending on the platform. Using <code>UInt</code> leads to warnings (at best) and may break your code.
 
 <code>Size</code> is an unsigned type. If you need a signed type (e.g. when comparing length of vectors), use <code>SignedSize</code> (also defined in <code>types.h</code>)
 
@@ -48,7 +48,7 @@ Use <code>SignedSize</code> if you require loop variables with negative values. 
 
 @section math_functions Math functions
 
-Don't use <code>GCC</code> to access common math functions like <code>trunc()</code>, <code>round()</code>, <code>log2()</code>, etc. As this is not a C++ Standard requirement, Microsoft have decided to not include them. If <code>GCC</code> is used, it will break the windows port of OpenMS.
+@warning Don't use <code>GCC</code> to access common math functions like <code>trunc()</code>, <code>round()</code>, <code>log2()</code>, etc. As this is not a C++ Standard requirement, Microsoft have decided to not include them. If <code>GCC</code> is used, it will break the windows port of OpenMS.
 
 Instead, do the following to use these common math functions:
 <ul>
@@ -56,9 +56,9 @@ Instead, do the following to use these common math functions:
 <li><b><code>ceil()</code></b> and <b><code>floor()</code></b></li>
 <p>To use these functions, use the following directive:</p>
 @code{cpp}
-  #include cmath
+ #include cmath
 @endcode
-<p> To see what functions are available, try the <a href="http://www.cplusplus.com/">cplusplus</a> website or for VisualStudio specific problems: <a href="http://msdn.microsoft.com/en-us/visualc/default.aspx">MSDN</a>.</p>
+<p>Find information about math functions available at the <a href="http://www.cplusplus.com/">cplusplus</a> website or for VisualStudio specific problems: <a href="http://msdn.microsoft.com/en-us/visualc/default.aspx">MSDN</a>.</p>
 
 <li><b><code>round()</code></b></li>
 <p>OpenMS provides a <code>Math::round()</code> function for convenience (see <code>MATH/MISC/MathFunctions.h</code>).</p>
@@ -66,7 +66,7 @@ Instead, do the following to use these common math functions:
 <li><b><code>isnan()</code></b> and <b><code>isinf()</code></b></li>
 <p>Use the <code>boost</code> library. Include:</p>
 @code{cpp}
-#include <boost/math/special_functions/fpclassify.hpp>
+ #include <boost/math/special_functions/fpclassify.hpp>
 @endcode
 
 Then use <code>boost::math::isinf(myNumber)</code> and <code>boost::math::isnan(myNumber)</code>.
