@@ -123,7 +123,8 @@ public:
     // functions
     using Base::begin;
     using Base::end;
-
+    using Base::cbegin;
+    using Base::cend;
     using Base::size;
     using Base::resize; // ConsensusMap, FeatureXMLFile
     using Base::empty;

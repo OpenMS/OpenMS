@@ -56,6 +56,11 @@ namespace OpenMS
   {
   }
 
+  String::String(const std::string_view& sv) :
+    string(sv)
+  {
+  }
+
   String::String(const char* s) :
     string(s)
   {

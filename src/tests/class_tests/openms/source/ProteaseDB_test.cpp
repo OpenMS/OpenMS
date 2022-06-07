@@ -119,7 +119,7 @@ START_SECTION((void getAllXTandemNames(std::vector<String>& all_names) const))
     vector<String> names;
     ptr->getAllXTandemNames(names);
     TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "no cleavage") != names.end(), false)
+    TEST_EQUAL(find(names.begin(), names.end(), "no cleavage") != names.end(), true)
     Size old_size=names.size();
     ptr->getAllXTandemNames(names);
     TEST_EQUAL(names.size(), old_size)
