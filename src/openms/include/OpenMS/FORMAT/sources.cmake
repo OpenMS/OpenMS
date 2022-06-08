@@ -38,6 +38,9 @@ FeatureXMLFile.h
 FileHandler.h
 FLASHDeconvFeatureFile.h
 FLASHDeconvSpectrumFile.h
+GNPSMetaValueFile.h
+GNPSMGFFile.h
+GNPSQuantificationFile.h
 GzipIfstream.h
 GzipInputStream.h
 HDF5Connector.h

@@ -53,7 +53,7 @@ namespace OpenMS
             MSSpectrum decoy;
 
             SiriusTargetDecoySpectra() = default;
-            SiriusTargetDecoySpectra(MSSpectrum target_spectrum, MSSpectrum decoy_spectrum) : target(target_spectrum), decoy(decoy_spectrum) {}
+            SiriusTargetDecoySpectra(MSSpectrum target_spectrum, MSSpectrum decoy_spectrum) : target(std::move(target_spectrum)), decoy(std::move(decoy_spectrum)) {}
           };
 
           /**
@@ -68,36 +68,18 @@ namespace OpenMS
           @param sirius_workspace_subdirs Vector of paths to SIRIUS subdirectories.
           @param use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
           */
-          static std::vector<SiriusTargetDecoySpectra> extractAndResolveSiriusAnnotations(const std::vector<String>& sirius_workspace_subdirs, const double& score_threshold, bool use_exact_mass);
+          static std::vector<SiriusTargetDecoySpectra> extractAndResolveSiriusAnnotations(const std::vector<String>& sirius_workspace_subdirs, double score_threshold,
+                                                                                          bool use_exact_mass);
+          static std::vector<MSSpectrum> extractSiriusAnnotationsTgtOnly(const std::vector<String>& sirius_workspace_subdirs, double score_threshold, bool use_exact_mass, bool resolve);
+
 
           /**
           @brief extractSiriusFragmentAnnotationMapping  
-          Extract concatenated native ids and concatenated m_ids (unique identifier) from (./spectrum.ms) and fragment annotation (./spectra/1_sumformula.tsv) from SIRIUS output (per compound).
+          Extract concatenated native ids and concatenated m_ids (unique identifier) from (./spectrum.ms) and annotations from spectra/decoy subfolder
 
-          @return annotated (consensus) MSSpectrum with associated native id
 
-          MetaValues:
-            peak_mz indicates which mass input was used in Peak1D (mass or exact_mass).
-            annotated_sumformula
-            annotated_adduct
-
-          The data is stored in a MSSpectrum, which contains a Peak1D (mz, int), a FloatDataArray (exact mass), and a StringDataArray (explanation).
-
-          <table>
-          <caption> MSSpectrum </caption>
-          <tr><th> Peak1D <th> <th> FloatDataArray <th> StringDataArray
-          <tr><td> mz <td> intensity <td> exact_mass <td> explanation
-          <tr><td> 56.050855 <td> 20794.85 <td> 56.049476 <td> C3H5N
-          </table>
-
-          @param path_to_sirius_workspace Path to SIRIUS workspace.
-          @param use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
-          */
-          static void extractSiriusFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass = false);
-
-          /**
-          @brief extractSiriusDecoyAnnotationMapping
-          Extract concatenated native ids and concatenated m_ids (./spectrum.ms) and fragment annotation (./decoy/1_sumformula.tsv) from SIRIUS/PASSATUTTO output (per compound).
+          If @p decoy is true, uses fragment annotation (./spectra/1_sumformula.tsv) from SIRIUS output (per compound)
+          else uses fragment annotation (./decoy/1_sumformula.tsv) from SIRIUS/PASSATUTTO output (per compound).
 
           @return annotated decoy MSSpectrum with associated native id
 
@@ -106,19 +88,24 @@ namespace OpenMS
           annotated_sumformula
           annotated_adduct
 
-          The data is stored in a MSSpectrum, which contains a Peak1D (mz, int), a FloatDataArray (exact mass),a StringDataArray (explanation), and a StringDataArray (ionization).
+          The data is stored in a MSSpectrum, which contains a Peak1D (mz or exact mass [depending on @p use_exact_mass], int),
+          a FloatDataArray for targets only (exact mass or mz [depending on @p use_exact_mass]),
+          a StringDataArray (explanation), and a StringDataArray (ionization).
 
           <table>
           <caption> MSSpectrum </caption>
-          <tr><th> Peak1D <th> <th> FloatDataArray <th> StringDataArray
-          <tr><td> mz <td> intensity <td> exact_mass <td> explanation
-          <tr><td> 56.050855 <td> 20794.85 <td> 56.049476 <td> C3H5N
+          <tr><th> Peak1D <th> <th> [FloatDataArray] <th> StringDataArray <th> StringDataArray
+          <tr><td> mz <td> intensity <td> [exact_mass] <td> explanation <td> ionization
+          <tr><td> 56.050855 <td> 20794.85 <td> [56.049476] <td> C3H5N <td> [M + H]+
           </table>
 
           @param path_to_sirius_workspace Path to SIRIUS workspace.
+          @param max_rank Up to which rank to extract annotations maximally. Auto-stops at last candidate.
+          @param decoy Extract annotations for decoys? Or else targets. Run twice if you want both
           @param use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
           */
-          static void extractSiriusDecoyAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill);
+          static std::vector<MSSpectrum> extractAnnotationsFromSiriusFile(const String& path_to_sirius_workspace, Size max_rank = 1, bool decoy = false, bool use_exact_mass = false);
+
       protected:
           /**
           @brief extractConcatNativeIDsFromSiriusMS
@@ -143,20 +130,14 @@ namespace OpenMS
           static OpenMS::String extractConcatMIDsFromSiriusMS_(const String& path_to_sirius_workspace);
 
           /**
-          @brief extractAnnotationFromSiriusFile  
-          Extract fragment annotation from SIRIUS  (./spectra/1_sumformula.tsv).
+          @brief extractConcatMIDsFromSiriusMS
+          Extract fid (i.e. original OpenMS feature ID) from SIRIUS output (./spectrum.ms).
 
-          @return annotated (consensus) MSSpectrum (mz, int, exact mass, fragment explanation).
+          @return String fid of current SIRIUS workspace
 
-          MetaValues:
-            peak_mz indicates which mass input was used in Peak1D (mz or exact_mass).
-            annotated_sumformula
-            annotated_adduct
-          
           @param path_to_sirius_workspace Path to SIRIUS workspace.
-          @param use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
           */
-          static void extractAnnotationFromSiriusFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass = false);
+          static OpenMS::String extractFeatureIDFromSiriusMS_(const String& path_to_sirius_workspace);
 
           /**
           @brief extractCompoundRankingAndFilename
@@ -178,20 +159,5 @@ namespace OpenMS
           */
           static std::map< Size, double > extractCompoundRankingAndScore_(const String& path_to_sirius_workspace);
 
-          /**
-          @brief extractAnnotationFromDecoyFile
-          Extract decoy annotation from SIRIUS/PASSATUTTO  (./decoys/1_sumformula.tsv).
-
-          @return annotated decoy MSSpectrum (mz, rel. int, fragment explanation, ionization).
-
-          MetaValues:
-            peak_mz
-            annotated_sumformula
-            annotated_adduct
-
-          @param path_to_sirius_workspace Path to SIRIUS workspace.
-          @param use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
-          */
-          static void extractAnnotationFromDecoyFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill);
   };
 } // namespace OpenMS

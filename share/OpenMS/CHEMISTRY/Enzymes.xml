@@ -323,9 +323,13 @@
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="MS:1001955" type="string" />
-      <ITEM name="XTandemID" value="" type="string" />
+      <ITEM name="XTandemID" value="[Z]|[Z]" type="string" />
       <ITEM name="OMSSAID" value="11" type="int" />
       <ITEM name="MSGFID" value="9" type="int" />
+      <ITEM name="CometID" value="11" type="int" />
+      <NODE name="Synonyms">
+        <ITEM name="no_cut" value="no_cut" type="string" />
+      </NODE>
     </NODE>
     <NODE name="unspecific cleavage">
       <ITEM name="Name" value="unspecific cleavage" type="string" />

@@ -22,6 +22,7 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 - TOPPView: TheoreticalSpectrumGenerationDialog now supports generation of isotope patterns for metabolites
 - pyopenms: pyopenms-extra is renamed to pyopenms-docs.
 - Fixed race condition when logging messages.
+- Added the support for 'no cleavage' for XTandemAdapter and CometAdapter (#6133).
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.8     (released 2/2022)                  ----
