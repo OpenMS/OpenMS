@@ -357,22 +357,24 @@ START_SECTION((const ProteinQuant& getProteinResults()))
 }
 END_SECTION
 
-START_SECTION((void readQuantData(ConsensusMap& consensus, ExperimentalDesign& ed)))
+START_SECTION()
 {
   PeptideAndProteinQuant quantifier;
   PeptideAndProteinQuant::ProteinQuant quant;
   PeptideAndProteinQuant::ProteinData protein;
 
-  Param parameters;
+  Param parameters = quantifier.getDefaults();
   parameters.setValue("method", "iBAQ");
   quantifier.setParameters(parameters);
 
   ConsensusMap consensus;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.consensusXML"), consensus);
   ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus);
+  ProteinIdentification proteins_ = consensus.getProteinIdentifications()[0];
   quantifier.readQuantData(consensus, ed);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins(proteins_);
 
-  quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
   protein = quant["Protein"];
   TEST_REAL_SIMILAR(protein.total_abundances[1], 308.5);

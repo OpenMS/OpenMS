@@ -802,11 +802,20 @@ protected:
     // algo_params_.update(getParam_());
     quantifier.setParameters(algo_params_);
 
+    // iBAQ works only with feature intensity values in consensusXML or featureXML files
     if (algo_params_.getValue("method") == "iBAQ" && in.hasSuffix("idXML"))
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION,
                                         "Invalid input: idXML for iBAQ, only consensusXML or featureXML are valid");
+    }
+
+    // iBAQ can only quantify proteins
+    if (algo_params_.getValue("method") == "iBAQ" && !peptide_out.empty())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION,
+                                        "Invalid output: peptide_out can not be set when using iBAQ");
     }
 
     ExperimentalDesign ed;
