@@ -394,6 +394,8 @@ namespace OpenMS
 
     // for (auto & a : accession_to_leader) { std::cout << a.first << "\tis led by:\t" << a.second << endl; }
 
+    bool contains_accessions {false};
+
     for (auto const& pep_q : pep_quant_)
     {
       String accession = getAccession_(pep_q.second.accessions, accession_to_leader);
@@ -403,6 +405,7 @@ namespace OpenMS
       if (accession.empty())
         continue;
 
+      contains_accessions = true;
       // proteotypic peptide
       const String peptide = pep_q.first.toUnmodifiedString();
 
@@ -419,6 +422,16 @@ namespace OpenMS
       {
         prot_quant_[accession].psm_counts[peptide][sta.first] += sta.second;
       }
+    }
+
+    if (!contains_accessions)
+    {
+      OPENMS_LOG_FATAL_ERROR << "No protein matches found, cannot quantify proteins." << endl;
+      throw Exception::MissingInformation(
+        __FILE__,
+        __LINE__,
+        OPENMS_PRETTY_FUNCTION,
+        "No protein matches found, cannot quantify proteins.");
     }
 
     std::string method = param_.getValue("method");
