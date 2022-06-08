@@ -372,8 +372,8 @@ START_SECTION()
   ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus);
   ProteinIdentification proteins_ = consensus.getProteinIdentifications()[0];
   quantifier.readQuantData(consensus, ed);
-  quantifier.quantifyPeptides();
   quantifier.quantifyProteins(proteins_);
+  quantifier.quantifyProteins();
 
   quant = quantifier.getProteinResults();
   protein = quant["Protein"];
