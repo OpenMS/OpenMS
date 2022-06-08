@@ -431,7 +431,7 @@ namespace OpenMS
     {
       if (proteins.getHits().empty())
       {
-        OPENMS_LOG_FATAL_ERROR << "No protein matches found, cannot calculate iBAQ!";
+        OPENMS_LOG_FATAL_ERROR << "No protein matches found, cannot calculate iBAQ!" << endl;
       }
 
       top_n = 0;
