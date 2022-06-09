@@ -28,43 +28,22 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Dorrestein Lab - University of California San Diego - https://dorresteinlab.ucsd.edu/$
-// $Authors: Abinesh Sarvepalli and Louis Felix Nothias$
-// $Contributors: Fabian Aicheler and Oliver Alka from Oliver Kohlbacher's group at Tubingen University$
+// $Maintainer: Axel Walter $
+// $Authors: Axel Walter $
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI GNPSMGFFile : 
-    public DefaultParamHandler,
-    public ProgressLogger
+  class OPENMS_DLLAPI GNPSQuantificationFile
   {
     public:
-      // default c'tor
-      GNPSMGFFile();
-
-      // see GNPSExport tool documentation
-      /**
-      * @brief Create file for GNPS molecular networking.
-      * @param consensus_file_path path to consensusXML with spectrum references
-      * @param mzml_file_paths path to mzML files referenced in consensusXML. Used to extract spectra as MGF.
-      * @param out MGF file with MS2 peak data for molecular networking.
-      */
-      void store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const;
-
-    private:
-      static constexpr double DEF_COSINE_SIMILARITY = 0.9;
-      static constexpr double DEF_MERGE_BIN_SIZE = static_cast<double>(BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES);
-
-//      static constexpr double DEF_PREC_MASS_TOL = 0.5;
-//      static constexpr bool DEF_PREC_MASS_TOL_ISPPM = false;
-
-      static constexpr int DEF_PEPT_CUTOFF = 5;
-      static constexpr int DEF_MSMAP_CACHE = 50;
+      /// Write feature quantification table (txt file) from a consensusXML file. Required for GNPS FBMN.
+      /// The table contains map information on the featureXML files from which the consensusXML file was generated as well as
+      /// a row for every consensus feature with information on rt, mz, intensity, width and quality. The same information is
+      /// added for each original feature in the consensus feature.
+      static void store(const ConsensusMap& consensus_map, const String& output_file);
   };
 }
