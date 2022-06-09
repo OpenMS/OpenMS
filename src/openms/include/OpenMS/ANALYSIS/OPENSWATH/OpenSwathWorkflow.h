@@ -333,6 +333,7 @@ protected:
      * @param default_ffparam Parameter set for the feature finding in chromatographic dimension
      * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
      * @param calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
+     * @param pasef whether this data is pasef data with potentially overlapping m/z windows (differing by IM)
      *
      * @note This function is based on the algorithm inside the OpenSwathRTNormalizer tool
      *
@@ -345,7 +346,8 @@ protected:
       double min_coverage,
       const Param& default_ffparam,
       const Param& irt_detection_param,
-      const Param& calibration_param);
+      const Param& calibration_param,
+      const bool pasef);
 
     /** @brief Simple method to extract chromatograms (for the RT-normalization peptides)
      *

@@ -109,7 +109,7 @@ namespace OpenMS
     TransformationDescription tr = doDataNormalization_(irt_transitions,
         irt_chromatograms, im_trafo, swath_maps,
         min_rsq, min_coverage, feature_finder_param,
-        irt_detection_param, calibration_param);
+        irt_detection_param, calibration_param, pasef);
     return tr;
   }
 
@@ -122,7 +122,8 @@ namespace OpenMS
     double min_coverage,
     const Param& default_ffparam,
     const Param& irt_detection_param,
-    const Param& calibration_param)
+    const Param& calibration_param,
+    const bool pasef)
   {
     OPENMS_LOG_DEBUG << "Start of doDataNormalization_ method" << std::endl;
     this->startProgress(0, 1, "Retention time normalization");
@@ -281,7 +282,7 @@ namespace OpenMS
     SwathMapMassCorrection mc;
     mc.setParameters(calibration_param);
     mc.correctMZ(trgrmap_final, targeted_exp, swath_maps);
-    mc.correctIM(trgrmap_final, targeted_exp, swath_maps, im_trafo);
+    mc.correctIM(trgrmap_final, targeted_exp, swath_maps, pasef, im_trafo);
 
     // 9. store RT transformation, using the selected model
     TransformationDescription trafo_out;

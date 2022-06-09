@@ -911,7 +911,7 @@ protected:
       TransformationDescription im_trafo; // exp -> theoretical
       trafo_rtnorm = wf.doDataNormalization_(transition_exp_nl, chromatograms, im_trafo, swath_maps,
                                              min_rsq, min_coverage,
-                                             feature_finder_param, nonlinear_irt, calibration_param);
+                                             feature_finder_param, nonlinear_irt, calibration_param, pasef);
 
       TransformationDescription im_trafo_inv = im_trafo;
       im_trafo_inv.invert(); // theoretical -> experimental

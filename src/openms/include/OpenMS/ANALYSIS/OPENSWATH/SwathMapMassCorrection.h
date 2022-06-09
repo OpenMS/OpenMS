@@ -98,12 +98,14 @@ public:
      * @param transition_group_map A MRMFeatureFinderScoring result map
      * @param swath_maps The raw swath maps from the current run
      * @param targeted_exp The corresponding spectral library (required for extraction coordinates)
+     * @param pasef whether this data is pasef data with possible overlapping m/z windows (and distinct across IM)
      * @param im_trafo The resulting map containing the transformation
      *
      */
     void correctIM(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
                    const OpenSwath::LightTargetedExperiment & targeted_exp,
                    const std::vector< OpenSwath::SwathMap > & swath_maps,
+		   const bool pasef,
                    TransformationDescription & im_trafo);
 
   private:
