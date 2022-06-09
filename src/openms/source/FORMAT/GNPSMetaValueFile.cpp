@@ -41,17 +41,14 @@
 #include <unordered_map>
 
 namespace OpenMS
-{   
+{
     /**
     @brief Generates a meta value table required for GNPS FBMN, as defined here: https://ccms-ucsd.github.io/GNPSDocumentation/metadata/
     */
     void GNPSMetaValueFile::store(const ConsensusMap& consensus_map, const String& output_file)
     {   
         StringList mzML_file_paths;
-        for (const auto& header: consensus_map.getColumnHeaders())
-        {
-            mzML_file_paths.push_back(header.second.filename);
-        }
+        consensus_map.getPrimaryMSRunPath(mzML_file_paths);
         std::ofstream outstr(output_file.c_str());
         SVOutStream out(outstr, "\t", "_", String::NONE);
 
