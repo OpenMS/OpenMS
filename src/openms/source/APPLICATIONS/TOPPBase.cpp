@@ -561,7 +561,7 @@ namespace OpenMS
 
     // print warning regarding not shown parameters
     if (!subsections_.empty() && !verbose)
-      cerr << ConsoleUtils::breakString("This tool has algorithm parameters that are not shown here! Please check the ini file for a detailed description or use the --helphelp option.", 0, 10) + "\n\n";
+      cerr << ConsoleUtils::breakString("This tool has algorithm parameters that are not shown here! Please check the ini file for a detailed description or use the --helphelp option.", 0, 10) << "\n\n";
 
     if (verbose)
     {
