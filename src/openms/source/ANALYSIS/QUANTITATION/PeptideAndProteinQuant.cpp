@@ -60,9 +60,11 @@ namespace OpenMS
     defaults_.setValue("top:aggregate", "median", "Aggregation method used to compute protein abundances from peptide abundances");
     defaults_.setValidStrings("top:aggregate", {"median","mean","weighted_mean","sum"});
 
-
     defaults_.setValue("top:include_all", "false", "Include results for proteins with fewer proteotypic peptides than indicated by 'N' (no effect if 'N' is 0 or 1)");
     defaults_.setValidStrings("top:include_all", true_false);
+
+    defaults_.setSectionDescription("top", "Additional options for custom quantification using top N peptides.");
+
 
     defaults_.setValue("best_charge_and_fraction", "false", "Distinguish between fraction and charge states of a peptide. For peptides, abundances will be reported separately for each fraction and charge;\nfor proteins, abundances will be computed based only on the most prevalent charge observed of each peptide (over all fractions).\nBy default, abundances are summed over all charge states.");
     defaults_.setValidStrings("best_charge_and_fraction", true_false);
