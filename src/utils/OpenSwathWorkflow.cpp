@@ -870,7 +870,7 @@ protected:
       trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
                                         cp_irt, irt_detection_param, calibration_param,
-                                        debug_level, sonar, load_into_memory,
+                                        debug_level, sonar, pasef, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
     }
     else
@@ -886,7 +886,7 @@ protected:
       trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
                                         cp_irt, linear_irt, no_calibration,
-                                        debug_level, sonar, load_into_memory,
+                                        debug_level, sonar, pasef, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
 
       cp_irt.rt_extraction_window = 900; // extract some substantial part of the RT range (should be covered by linear correction)
@@ -902,7 +902,7 @@ protected:
       OpenSwathCalibrationWorkflow wf;
       wf.setLogType(log_type_);
       wf.simpleExtractChromatograms_(swath_maps, transition_exp_nl, chromatograms,
-                                    trafo_rtnorm, cp_irt, sonar, load_into_memory);
+                                    trafo_rtnorm, cp_irt, sonar, pasef, load_into_memory);
 
       // always use estimateBestPeptides for the nonlinear approach
       Param nonlinear_irt = irt_detection_param;

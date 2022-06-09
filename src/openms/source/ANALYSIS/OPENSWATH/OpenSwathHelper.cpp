@@ -53,6 +53,46 @@ namespace OpenMS
     }
   }
 
+  // For PASEF experiments it is possible to have DIA windows with the same m/z however different IM.
+  // Extract from the DIA window in which the precursor is more centered across its IM.
+  // Unlike the function above, current implementation may not be parrelization safe
+  void OpenSwathHelper::selectSwathTransitionsPasef(const OpenSwath::LightTargetedExperiment& transition_exp, std::vector<int>& tr_win_map,
+                                               double min_upper_edge_dist, const std::vector< OpenSwath::SwathMap > & swath_maps)
+  {
+      tr_win_map.resize(transition_exp.transitions.size(), -1);
+      OPENMS_LOG_DEBUG << "tr_win_map size is " << tr_win_map.size() << std::endl;
+      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+      {
+        for (Size k = 0; k < transition_exp.transitions.size(); k++)
+        {
+          const OpenSwath::LightTransition& tr = transition_exp.transitions[k];
+
+          // If the transition falls inside the current DIA window (both in IM and m/z axis), check
+          // if the window is potentially a better match for extraction than
+          // the one previously stored in the map:
+          if (
+             swath_maps[i].imLower < tr.getPrecursorIM() && tr.getPrecursorIM() < swath_maps[i].imUpper &&
+             swath_maps[i].lower < tr.getPrecursorMZ() && tr.getPrecursorMZ() < swath_maps[i].upper &&
+             std::fabs(swath_maps[i].upper - tr.getPrecursorMZ()) >= min_upper_edge_dist )
+          {
+            if (tr_win_map[k] == -1) tr_win_map[k] = i;
+
+            // Check if the current window is better than the previously assigned window (across IM)
+            double imOld = std::fabs(((swath_maps[ tr_win_map[k] ].imLower + swath_maps [ tr_win_map[k] ].imUpper) / 2) - tr.getPrecursorIM() );
+            double imNew = std::fabs(((swath_maps[ i ].imLower + swath_maps [ i ].imUpper) / 2) - tr.getPrecursorIM() );
+            if (imOld > imNew)
+            {
+              // current DIA window "i" is a better match
+              OPENMS_LOG_DEBUG << "For Precursor " << tr.getPrecursorIM() << "Replacing Swath Map with IM center of " <<
+                imOld << " with swath map of im center " << imNew << std::endl;
+              tr_win_map[k] = i;
+            }
+
+          }
+        }
+      }
+    }
+
   void OpenSwathHelper::checkSwathMap(const OpenMS::PeakMap& swath_map,
                                       double& lower, double& upper, double& center)
   {

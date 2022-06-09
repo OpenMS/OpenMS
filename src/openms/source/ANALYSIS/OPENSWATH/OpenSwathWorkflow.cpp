@@ -73,12 +73,13 @@ namespace OpenMS
     const String& irt_mzml_out,
     Size debug_level,
     bool sonar,
+    bool pasef,
     bool load_into_memory)
   {
     OPENMS_LOG_DEBUG << "performRTNormalization method starting" << std::endl;
     std::vector< OpenMS::MSChromatogram > irt_chromatograms;
     TransformationDescription trafo; // dummy
-    this->simpleExtractChromatograms_(swath_maps, irt_transitions, irt_chromatograms, trafo, cp_irt, sonar, load_into_memory);
+    this->simpleExtractChromatograms_(swath_maps, irt_transitions, irt_chromatograms, trafo, cp_irt, sonar, pasef, load_into_memory);
 
     // debug output of the iRT chromatograms
     if (irt_mzml_out.empty() && debug_level > 1)
@@ -310,10 +311,17 @@ namespace OpenMS
     const TransformationDescription& trafo,
     const ChromExtractParams & cp,
     bool sonar,
+    bool pasef,
     bool load_into_memory)
   {
     TransformationDescription trafo_inverse = trafo;
     trafo_inverse.invert();
+
+    // If this is pasef data, do chromatogram extraction beforehand in unparallel workflow
+    std::vector<int> tr_win_map; // maps transition k to dia map i from which it should be extracted, only used if pasef flag is on
+    if (pasef){
+	    OpenSwathHelper::selectSwathTransitionsPasef(irt_transitions, tr_win_map, cp.min_upper_edge_dist, swath_maps);
+    }
 
     this->startProgress(0, 1, "Extract iRT chromatograms");
 #ifdef _OPENMP
@@ -326,8 +334,45 @@ namespace OpenMS
       {
 
         OpenSwath::LightTargetedExperiment transition_exp_used;
+
+        if (pasef){
+          // Step 1.2: select transitions based on matching PRM/PASEF window (best window)
+          std::set<std::string> matching_compounds;
+          for (Size k = 0; k < tr_win_map.size(); k++)
+          {
+            if (tr_win_map[k] == map_idx)
+            {
+               const OpenSwath::LightTransition& tr = irt_transitions.transitions[k];
+               transition_exp_used.transitions.push_back(tr);
+               matching_compounds.insert(tr.getPeptideRef());
+               OPENMS_LOG_DEBUG << "Adding Precursor with m/z " << tr.getPrecursorMZ() << " and IM of " << tr.getPrecursorIM() <<  " to swath with mz upper of " << swath_maps[map_idx].upper << " im lower of " << swath_maps[map_idx].imLower << " and im upper of " << swath_maps[map_idx].imUpper << std::endl;
+            }
+          }
+
+          std::set<std::string> matching_proteins;
+          for (Size i = 0; i < irt_transitions.compounds.size(); i++)
+          {
+            if (matching_compounds.find(irt_transitions.compounds[i].id) != matching_compounds.end())
+            {
+              transition_exp_used.compounds.push_back( irt_transitions.compounds[i] );
+              for (Size j = 0; j < irt_transitions.compounds[i].protein_refs.size(); j++)
+              {
+                matching_proteins.insert(irt_transitions.compounds[i].protein_refs[j]);
+              }
+            }
+          }
+          for (Size i = 0; i < irt_transitions.proteins.size(); i++)
+          {
+            if (matching_proteins.find(irt_transitions.proteins[i].id) != matching_proteins.end())
+            {
+              transition_exp_used.proteins.push_back( irt_transitions.proteins[i] );
+            }
+          }
+        }
+        else {
         OpenSwathHelper::selectSwathTransitions(irt_transitions, transition_exp_used,
             cp.min_upper_edge_dist, swath_maps[map_idx].lower, swath_maps[map_idx].upper);
+	}
         if (!transition_exp_used.getTransitions().empty()) // skip if no transitions found
         {
 

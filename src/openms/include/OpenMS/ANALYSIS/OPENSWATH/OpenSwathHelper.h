@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
@@ -108,7 +109,6 @@ public:
                                        OpenMS::TargetedExperiment& selected_transitions,
                                        double min_upper_edge_dist,
                                        double lower, double upper);
-
     /**
       @brief Select transitions between lower and upper and write them into the new TargetedExperiment
 
@@ -124,6 +124,16 @@ public:
                                        OpenSwath::LightTargetedExperiment& selected_transitions,
                                        double min_upper_edge_dist,
                                        double lower, double upper);
+    /**
+     @brief Match transitions with their "best" window across m/z and ion mobility, save results in a vector.
+
+     @param[in] transition_exp Transition list for selection
+     @param[out] selected SWATH to extract transition from
+     @param[in] min_upper_edge_dist Distance in Th to the upper edge
+     @param[in] swath_maps vector of SwathMap objects defining mz and im bounds
+    */
+    static void selectSwathTransitionsPasef(const OpenSwath::LightTargetedExperiment& transition_exp, std::vector<int>& tr_win_map,
+		                     double min_upper_edge_dist, const std::vector< OpenSwath::SwathMap > & swath_maps);
 
     /**
       @brief Get the lower / upper offset for this SWATH map and do some sanity checks

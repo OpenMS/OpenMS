@@ -287,6 +287,7 @@ protected:
      * @param irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
      *        iRT chromatograms will be stored in this file)
      * @param sonar Whether the data is SONAR data
+     * @param pasef whether the data is PASEF data (should match transitions by their IM)
      * @param load_into_memory Whether to cache the current SWATH map in memory
      *
     */
@@ -302,6 +303,7 @@ protected:
       const String& irt_mzml_out,
       Size debug_level,
       bool sonar = false,
+      bool pasef = false,
       bool load_into_memory = false);
 
   public:
@@ -354,6 +356,7 @@ protected:
      * @param cp Parameter set for the chromatogram extraction
      * @param load_into_memory Whether to cache the current SWATH map in memory
      * @param sonar Whether the data is SONAR data
+     * @param pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility)
      *
     */
     void simpleExtractChromatograms_(const std::vector< OpenSwath::SwathMap > & swath_maps,
@@ -362,6 +365,7 @@ protected:
                                      const TransformationDescription& trafo,
                                      const ChromExtractParams & cp,
                                      bool sonar,
+                                     bool pasef,
                                      bool load_into_memory);
 
     /** @brief Add two chromatograms

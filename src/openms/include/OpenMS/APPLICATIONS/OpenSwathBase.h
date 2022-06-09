@@ -376,6 +376,7 @@ protected:
    * @param calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
    * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
    * @param sonar Whether the data is SONAR data
+   * @param pasef whether the data is pasef data with possible overlapping m/z windows (but distinct across ion mobility)
    * @param load_into_memory Whether to cache the current SWATH map in memory
    * @param irt_trafo_out Output trafoXML file (if not empty and no input trafoXML file is given,
    *        the transformation parameters will be stored in this file)
@@ -394,6 +395,7 @@ protected:
         const Param& calibration_param,
         Size debug_level,
         bool sonar,
+        bool pasef,
         bool load_into_memory,
         const String& irt_trafo_out,
         const String& irt_mzml_out)
@@ -429,7 +431,7 @@ protected:
                                                min_rsq, min_coverage,
                                                feature_finder_param,
                                                cp_irt, irt_detection_param,
-                                               calibration_param, irt_mzml_out, debug_level, sonar,
+                                               calibration_param, irt_mzml_out, debug_level, sonar, pasef,
                                                load_into_memory);
 
       if (!irt_trafo_out.empty())
