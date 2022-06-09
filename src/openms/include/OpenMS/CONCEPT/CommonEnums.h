@@ -28,43 +28,31 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Dorrestein Lab - University of California San Diego - https://dorresteinlab.ucsd.edu/$
-// $Authors: Abinesh Sarvepalli and Louis Felix Nothias$
-// $Contributors: Fabian Aicheler and Oliver Alka from Oliver Kohlbacher's group at Tubingen University$
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
+// --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <string_view>
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI GNPSMGFFile : 
-    public DefaultParamHandler,
-    public ProgressLogger
+  // add common enums here to avoid big includes of large classes and break circular dependencies
+
+  /// Enum for different units which can be displayed on a plotting axis
+  /// The order is arbitrary.
+  enum class DIM_UNIT
   {
-    public:
-      // default c'tor
-      GNPSMGFFile();
-
-      // see GNPSExport tool documentation
-      /**
-      * @brief Create file for GNPS molecular networking.
-      * @param consensus_file_path path to consensusXML with spectrum references
-      * @param mzml_file_paths path to mzML files referenced in consensusXML. Used to extract spectra as MGF.
-      * @param out MGF file with MS2 peak data for molecular networking.
-      */
-      void store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const;
-
-    private:
-      static constexpr double DEF_COSINE_SIMILARITY = 0.9;
-      static constexpr double DEF_MERGE_BIN_SIZE = static_cast<double>(BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES);
-
-//      static constexpr double DEF_PREC_MASS_TOL = 0.5;
-//      static constexpr bool DEF_PREC_MASS_TOL_ISPPM = false;
-
-      static constexpr int DEF_PEPT_CUTOFF = 5;
-      static constexpr int DEF_MSMAP_CACHE = 50;
+    RT = 0,   ///< RT in seconds
+    MZ,       ///< m/z
+    INT,      ///< intensity
+    IM_MS,    ///< ion mobility milliseconds
+    IM_VSSC,  ///< volt-second per square centimeter (i.e. 1/K_0)
+    FAIMS_CV, ///< FAIMS compensation voltage
+    SIZE_OF_DIM_UNITS
   };
-}
+  inline std::string_view DIM_NAMES[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT [s]", "m/z [Th]", "intensity", "IM [milliseconds]", "IM [vs / cm2]", "FAIMS CV"};
+  inline std::string_view DIM_NAMES_SHORT[(int)DIM_UNIT::SIZE_OF_DIM_UNITS] = {"RT", "m/z", "int", "IM", "IM", "FCV"};
+
+} // namespace OpenMS

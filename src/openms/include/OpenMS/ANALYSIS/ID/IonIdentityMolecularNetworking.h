@@ -48,12 +48,6 @@ namespace OpenMS
       ///  If at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN.
       static void annotateConsensusMap(ConsensusMap& consensus_map);
 
-      /// Write feature quantification table (txt file) from a consensusXML file. Required for GNPS FBMN.
-      /// The table contains map information on the featureXML files from which the consensusXML file was generated as well as
-      /// a row for every consensus feature with information on rt, mz, intensity, width and quality. The same information is
-      /// added for each original feature in the consensus feature.
-      static void writeFeatureQuantificationTable(const ConsensusMap& consensus_map, const String& output_file);
-
       /// Write supplementary pair table (csv file) from a consensusXML file with edge annotations for connected features. Required for GNPS IIMN.
       /// The table contains the columns "ID 1" (row ID of first feature), "ID 2" (row ID of second feature), "EdgeType" (MS1/2 annotation),
       /// "Score" (the number of direct partners from both connected features) and "Annotation" (adducts and delta m/z between two connected features).
