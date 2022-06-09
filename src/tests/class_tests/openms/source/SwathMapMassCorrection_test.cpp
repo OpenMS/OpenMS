@@ -353,7 +353,7 @@ START_SECTION( void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMa
 }
 END_SECTION
 
-START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map, const std::vector< OpenSwath::SwathMap > & swath_maps, TransformationDescription& im_trafo, const OpenSwath::LightTargetedExperiment& targeted_exp))
+START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map, const std::vector< OpenSwath::SwathMap > & swath_maps, const bool pasef, TransformationDescription& im_trafo))
 {
 
   // m/z targets for correction are : 500.00, 600.00, 700.00, 800.00, 900.00, 950.00
@@ -369,6 +369,8 @@ START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderSco
   OpenSwath::LightTargetedExperiment targ_exp = addTransitions(gr1);
   addTransitionsPep2(gr2, targ_exp);
   addTransitionsPep3(gr3, targ_exp);
+
+  const bool pasef = false;
 
   // Add one group to the map
   std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> transition_group_map;
@@ -462,14 +464,14 @@ START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderSco
   // should work with empty maps
   std::vector< OpenSwath::SwathMap > empty_swath_maps;
   TransformationDescription im_trafo;
-  mc.correctIM(transition_group_map, targ_exp, empty_swath_maps, im_trafo);
+  mc.correctIM(transition_group_map, targ_exp, empty_swath_maps, pasef, im_trafo);
   TEST_REAL_SIMILAR(im_trafo.apply(10), 10)
   TEST_REAL_SIMILAR(im_trafo.apply(100), 100)
 
   auto p = mc.getDefaults();
   p.setValue("mz_correction_function", "unweighted_regression");
   mc.setParameters(p);
-  mc.correctIM(transition_group_map, targ_exp, empty_swath_maps, im_trafo);
+  mc.correctIM(transition_group_map, targ_exp, empty_swath_maps, pasef, im_trafo);
   TEST_REAL_SIMILAR(im_trafo.apply(10), 10)
   TEST_REAL_SIMILAR(im_trafo.apply(100), 100)
 
@@ -486,7 +488,7 @@ START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderSco
       swath_maps.push_back(map);
       swath_maps.push_back(ms1_map);
       TransformationDescription trafo_result;
-      mc.correctIM(transition_group_map, targ_exp, swath_maps, trafo_result);
+      mc.correctIM(transition_group_map, targ_exp, swath_maps, pasef, trafo_result);
       data = swath_maps[0].sptr->getSpectrumById(0)->getMZArray()->data;
       
 
@@ -507,7 +509,7 @@ START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderSco
       swath_maps.push_back(map);
       // swath_maps.push_back(ms1_map);
       TransformationDescription trafo_result;
-      mc.correctIM(transition_group_map, targ_exp, swath_maps, trafo_result);
+      mc.correctIM(transition_group_map, targ_exp, swath_maps, pasef, trafo_result);
       data = swath_maps[0].sptr->getSpectrumById(0)->getMZArray()->data;
       
 
@@ -531,7 +533,7 @@ START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderSco
       swath_maps.push_back(map_single);
       // swath_maps.push_back(ms1_map);
       TransformationDescription trafo_result;
-      mc.correctIM(transition_group_map, targ_exp, swath_maps, trafo_result);
+      mc.correctIM(transition_group_map, targ_exp, swath_maps, pasef, trafo_result);
       data = swath_maps[0].sptr->getSpectrumById(0)->getMZArray()->data;
       
       // only got a single peptide, so regression is only intercept
@@ -554,7 +556,7 @@ START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderSco
       swath_maps.push_back(map);
       // swath_maps.push_back(ms1_map);
       TransformationDescription trafo_result;
-      TEST_EXCEPTION(OpenMS::Exception::UnableToFit, mc.correctIM(transition_group_map, targ_exp, swath_maps, trafo_result));
+      TEST_EXCEPTION(OpenMS::Exception::UnableToFit, mc.correctIM(transition_group_map, targ_exp, swath_maps, pasef, trafo_result));
   }
 
   // test MS1 map when no MS2 is present
@@ -571,7 +573,7 @@ START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderSco
       // swath_maps.push_back(map);
       swath_maps.push_back(ms1_map);
       TransformationDescription trafo_result;
-      TEST_EXCEPTION(OpenMS::Exception::UnableToFit, mc.correctIM(transition_group_map, targ_exp, swath_maps, trafo_result));
+      TEST_EXCEPTION(OpenMS::Exception::UnableToFit, mc.correctIM(transition_group_map, targ_exp, swath_maps, pasef, trafo_result));
       // this could work in principle but in practice this just fails as an MS2 is expected
   }
 
@@ -589,7 +591,7 @@ START_SECTION( void correctIM(const std::map<String, OpenMS::MRMFeatureFinderSco
       swath_maps.push_back(map);
       swath_maps.push_back(ms1_map);
       TransformationDescription trafo_result;
-      mc.correctIM(transition_group_map, targ_exp, swath_maps, trafo_result);
+      mc.correctIM(transition_group_map, targ_exp, swath_maps, pasef, trafo_result);
 
       TEST_REAL_SIMILAR(trafo_result.apply(10), 0.835820895522389)
       TEST_REAL_SIMILAR(trafo_result.apply(20), 10.089552238806)
