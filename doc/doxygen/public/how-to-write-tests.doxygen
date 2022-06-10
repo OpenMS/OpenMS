@@ -27,45 +27,43 @@
 
   @subsection macros_to_start_finish_and_evaluate_tests Macros to start, finish and evaluate tests
 
-  @code{cpp}
+  @code{.cpp}
+  START_TEST(class_name, version)
+  Start of a class test file (initialization)
+  END_TEST()
+  End of a class test file (cleanup)
+  START_SECTION(name)
+  Start of a method test. If the name starts with '[EXTRA]' it does not have to match a methods name.
+  END_SECTION()
+  End of a single test
+  STATUS(message)
+  Shows a status message e.g. used to show the progress of a test preparations that take a while
+  ABORT_IF(condition)
+  Skip remainder of substest if condition holds
+  Comparison macros
 
-    START_TEST(class_name, version)
-    Start of a class test file (initialization)
-    END_TEST()
-    End of a class test file (cleanup)
-    START_SECTION(name)
-    Start of a method test. If the name starts with '[EXTRA]' it does not have to match a methods name.
-    END_SECTION()
-    End of a single test
-    STATUS(message)
-    Shows a status message e.g. used to show the progress of a test preparations that take a while
-    ABORT_IF(condition)
-    Skip remainder of substest if condition holds
-    Comparison macros
-
-    TEST_EQUAL(a, b)
-    Tests if two expressions are equal
-    TEST_NOT_EQUAL(a, b)
-    Tests if two expressions are not equal
-    TEST_REAL_SIMILAR(a, b)
-    Tests if two real numbers are equal (within a margin)
-    TEST_STRING_EQUAL(a, b)
-    Tests if a and b are equal as strings
-    TEST_STRING_SIMILAR(a, b)
-    Tests if a and b are similar as strings - allowing numerical deviations and differing whitespaces
-    TOLERANCE_ABSOLUTE(double)
-    Sets the absolute difference allowed when testing floating point numbers
-    TOLERANCE_RELATIVE(double)
-    Sets the relative difference allowed when testing floating point numbers
-    TEST_EXCEPTION(exception, expression)
-    Tests if the expression throws the exception
-    TEST_EXCEPTION_WITH_MESSAGE(exception, expression, message)
-    Tests if the expression throws the exception and if the exception has the message
-    TEST_FILE_EQUAL(file, template_file)
-    Tests if two files are identical
-    TEST_FILE_SIMILAR(file, template_file)
-    Tests if two files are similar - allowing numerical deviations and differing whitespaces
-
+  TEST_EQUAL(a, b)
+  Tests if two expressions are equal
+  TEST_NOT_EQUAL(a, b)
+  Tests if two expressions are not equal
+  TEST_REAL_SIMILAR(a, b)
+  Tests if two real numbers are equal (within a margin)
+  TEST_STRING_EQUAL(a, b)
+  Tests if a and b are equal as strings
+  TEST_STRING_SIMILAR(a, b)
+  Tests if a and b are similar as strings - allowing numerical deviations and differing whitespaces
+  TOLERANCE_ABSOLUTE(double)
+  Sets the absolute difference allowed when testing floating point numbers
+  TOLERANCE_RELATIVE(double)
+  Sets the relative difference allowed when testing floating point numbers
+  TEST_EXCEPTION(exception, expression)
+  Tests if the expression throws the exception
+  TEST_EXCEPTION_WITH_MESSAGE(exception, expression, message)
+  Tests if the expression throws the exception and if the exception has the message
+  TEST_FILE_EQUAL(file, template_file)
+  Tests if two files are identical
+  TEST_FILE_SIMILAR(file, template_file)
+  Tests if two files are similar - allowing numerical deviations and differing whitespaces
   @endcode
 
   Do not use methods with side-effects inside the comparison macros i.e. <code>*(it++)</code>. The expressions in the macro are called several times, so the side-effect is triggered several times as well.
@@ -74,10 +72,10 @@
 
   You might want to create temporary files during the tests. The following macro puts a temporary filename into the <code>string</code> argument. The file is automatically deleted after the test.
 
-  All temporary files are validated using the XML schema,if the type of file can be determined by <code>FileHandler</code>. Therefore, for each file written in a test, <code>NEW_TMP_FILE</code> should be called. Otherwise, only the last written file is checked.
+  All temporary files are validated using the XML schema, if the type of file can be determined by <code>FileHandler</code>. Therefore, for each file written in a test, <code>NEW_TMP_FILE</code> should be called. Otherwise, only the last written file is checked.
 
-  @code{cpp}
-    NEW_TMP_FILE(string)
+  @code{.cpp}
+  NEW_TMP_FILE(string)
   @endcode
 
   @subsection creating_barebone_tests Creating barebone tests

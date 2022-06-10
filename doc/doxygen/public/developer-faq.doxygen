@@ -124,7 +124,7 @@
 
  Since we use extensive caching, the build may take much longer when many files are touched and may never complete (running into the <code>travis</code> time limit). In that case, we can rebuild the cache using the following approach:
 
- @code{sh}
+ @code{.sh}
  $ git cherry-pick <git-sha>
  $ git push origin develop
  # Now wait for the build to complete
@@ -206,7 +206,7 @@
  <ol>
  <li>Make sure you generate XML files containing the class information <code>make xml</code>.</li>
  <li>Call:</li>
- @code{sh}
+ @code{.sh}
  php tools/create_test.php /BUILD_DIRECTORY/ /PATH_TO_HEADER/MyClass.h \
   "FIRSTNAME LASTNAME" > ./src/tests/class_tests/openms/source/MyClass_test.cpp
  @endcode

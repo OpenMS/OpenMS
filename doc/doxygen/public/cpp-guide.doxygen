@@ -14,20 +14,20 @@ Using <code>namespace OpenMS</code>, <code>namespace std</code>, or similar in <
 
 When working with <code>STL</code> types (especially vectors), assign the return value of a <code>.size()</code> operation to the OpenMS type <code>Size</code>, which is defined as follows:
 
-@code{cpp}
-  // OpenMS/include/CONCEPT/Types.h
-  typedef size_t Size;
+@code{.cpp}
+// OpenMS/include/CONCEPT/Types.h
+typedef size_t Size;
 @endcode
 
 Here is an example of how to correctly use <code>Size</code>.
 
-@code{cpp}
-  std::vector<String> myVec;
-  myVec.push_back("hello");
-  for (Size i=0; i<myVec.size(); ++i)
-  {
-    std::cout << "Index: " << i << " Value: " << myVec[i] << std::endl;
-  }
+@code{.cpp}
+std::vector<String> myVec;
+myVec.push_back("hello");
+for (Size i=0; i<myVec.size(); ++i)
+{
+  std::cout << "Index: " << i << " Value: " << myVec[i] << std::endl;
+}
 @endcode
 
 @warning Don't use <code>UInt</code> as a substitute for <code>Size</code>. Even though <code>UInt</code> and <code>Size</code> are equivalent on prominent 32 bit systems, they are usually different types on 64 bit systems, where <code>UInt</code> is 32 bit, whereas <code>Size</code> is 64 bit depending on the platform. Using <code>UInt</code> leads to warnings (at best) and may break your code.
@@ -36,14 +36,14 @@ Here is an example of how to correctly use <code>Size</code>.
 
 Use <code>SignedSize</code> if you require loop variables with negative values. Here is an example:
 
-@code{cpp}
-  std::vector<String> myVec;
-  myVec.push_back("hello");
-  for (SignedSize i=0; i<(SignedSize)myVec.size() - 1; ++i)
-  // never use Size here, because if myVec.size()==0 then Size x = 0 - 1; gives some really BIG number!
-  {
-    std::cout << "Index: " << i << " Value: " << myVec[i] << std::endl;
-  }
+@code{.cpp}
+std::vector<String> myVec;
+myVec.push_back("hello");
+for (SignedSize i=0; i<(SignedSize)myVec.size() - 1; ++i)
+// never use Size here, because if myVec.size()==0 then Size x = 0 - 1; gives some really BIG number!
+{
+  std::cout << "Index: " << i << " Value: " << myVec[i] << std::endl;
+}
 @endcode
 
 @section math_functions Math functions
@@ -55,8 +55,8 @@ Instead, do the following to use these common math functions:
 
 <li><b><code>ceil()</code></b> and <b><code>floor()</code></b></li>
 <p>To use these functions, use the following directive:</p>
-@code{cpp}
- #include cmath
+@code{.cpp}
+#include cmath
 @endcode
 <p>Find information about math functions available at the <a href="http://www.cplusplus.com/">cplusplus</a> website or for VisualStudio specific problems: <a href="http://msdn.microsoft.com/en-us/visualc/default.aspx">MSDN</a>.</p>
 
@@ -65,8 +65,8 @@ Instead, do the following to use these common math functions:
 
 <li><b><code>isnan()</code></b> and <b><code>isinf()</code></b></li>
 <p>Use the <code>boost</code> library. Include:</p>
-@code{cpp}
- #include <boost/math/special_functions/fpclassify.hpp>
+@code{.cpp}
+#include <boost/math/special_functions/fpclassify.hpp>
 @endcode
 
 Then use <code>boost::math::isinf(myNumber)</code> and <code>boost::math::isnan(myNumber)</code>.
@@ -81,18 +81,18 @@ Except of primitive types (<code>int</code>, <code>double</code>, <code>float</c
 
 Return types of methods should be non-mutable references as well, where possible. Sometimes, references can't be used as the retuned value is constructed in the method. If the constructed type is large, save computation time with:
 
-@code{cpp}
-  //Bad idea
-  LargeObject someFunction()
-  {
-    LargeObject tmp = ...
-    return tmp;
-  }
-  //Better idea
-  void someFunction(LargeObject& obj)
-  {
-    obj = ...
-  }
+@code{.cpp}
+//Bad idea
+LargeObject someFunction()
+{
+  LargeObject tmp = ...
+  return tmp;
+}
+//Better idea
+void someFunction(LargeObject& obj)
+{
+  obj = ...
+}
 @endcode
 
 <h1><a class="anchor" id="what_is_openms_dllapi"></a>What is <code>OPENMS_DLLAPI</code>?</h1>
@@ -103,16 +103,16 @@ The <code>OPENMS_DLLAPI</code> macro is defined empty on other platforms, but it
 <h1><a class="anchor" id="when_to_use_openms_dllapi"></a>When to use <code>OPENMS_DLLAPI</code></h1>
 When you've written a new OpenMS class, which is not a template class, insert the macro into the header like this:
 
-@code{cpp}
-  class Myclass
-  { ...
+@code{.cpp}
+class Myclass
+{ ...
 @endcode
 
 becomes:
 
-@code{cpp}
-  class OPENMS_DLLAPI Myclass
-  { ...
+@code{.cpp}
+class OPENMS_DLLAPI Myclass
+{ ...
 @endcode
 
 It is enough to prefix the class with the macro. Do not prefix the members or member functions.
@@ -121,22 +121,22 @@ It is enough to prefix the class with the macro. Do not prefix the members or me
 
 A prominent global function is "operator <<", which is overloaded quite often for OpenMS classes. Unless it is templatized, prefix it with <code>OPENMS_DLLAPI</code>. If the operator is declared a friend of some class, also make sure the friend statement contains the <code>OPENMS_DLLAPI</code> keyword. Otherwise, you will get inconsistent DLL-linkage. For example, use:
 
-@code{cpp}
-  // Adduct.h
-  class OPENMS_DLLAPI Adduct
+@code{.cpp}
+// Adduct.h
+class OPENMS_DLLAPI Adduct
+{
+  ...
+  friend OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Adduct& a);
+  ...
+}
+// Adduct.C
+namespace OpenMS
+{
+  OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Adduct& a)
   {
     ...
-    friend OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Adduct& a);
-    ...
   }
-  // Adduct.C
-  namespace OpenMS
-  {
-    OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Adduct& a)
-    {
-      ...
-    }
-  }
+}
 @endcode
 
 If you forget the <code>OPENMS_DLLAPI</code> keyword, the DLL will have missing symbols and executables might not be able to link against the DLL. When compiled with <code>gcc</code> you will get <code>.. undefined reference to ..</code> errors.
@@ -161,25 +161,25 @@ Reasons for includes in header files are:
 </ul>
 An example class could look like this:
 
-@code{cpp}
-  #include <QtGui/QMainWindow>
-  #include <QtGui/QPainter>
-  // Forward declaration in main namespace
-  class QLabel;
-  namespace OpenMS
+@code{.cpp}
+#include <QtGui/QMainWindow>
+#include <QtGui/QPainter>
+// Forward declaration in main namespace
+class QLabel;
+namespace OpenMS
+{
+  // Forward declaration in OpenMS namespace
+  class Spectrum1DWidget;
+  class Dummy
+    : public QMainWindow
   {
-    // Forward declaration in OpenMS namespace
-    class Spectrum1DWidget;
-    class Dummy
-      : public QMainWindow
-    {
-      ...
-      protected:
-        Spectrum1DWidget* parent_;
-        QLabel* label_;
-        QPainter painter_;
-    }
+    ...
+    protected:
+      Spectrum1DWidget* parent_;
+      QLabel* label_;
+      QPainter painter_;
   }
+}
 @endcode
 
 @note In OpenMS, Qt headers have to be included with the library prefix.
