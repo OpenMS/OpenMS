@@ -357,7 +357,8 @@ START_SECTION((const ProteinQuant& getProteinResults()))
 }
 END_SECTION
 
-START_SECTION()
+// iBAQ test
+START_SECTION((const ProteinQuant& getProteinResults()))
 {
   PeptideAndProteinQuant quantifier;
   PeptideAndProteinQuant::ProteinQuant quant;
