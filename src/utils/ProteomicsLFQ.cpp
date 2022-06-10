@@ -189,10 +189,13 @@ protected:
     registerStringOption_("picked_proteinFDR", "<choice>", "false", "Use a picked protein FDR?", false);
     setValidStrings_("picked_proteinFDR", {"true","false"});
 
-    registerDoubleOption_("psmFDR", "<threshold>", 1.0, "PSM FDR threshold (e.g. 0.05=5%)."
+    registerDoubleOption_("psmFDR", "<threshold>", 1.0, "FDR threshold for sub-protein level (e.g. 0.05=5%). Use -FDR_type to choose the level. Cutoff is applied at the highest level."
                           " If Bayesian inference was chosen, it is equivalent with a peptide FDR", false);
     setMinFloat_("psmFDR", 0.0);
     setMaxFloat_("psmFDR", 1.0);
+
+    registerStringOption_("FDR_type", "<threshold>", "PSM", "FDR level for sub-protein level. PSM, peptide (best PSM score), PSM+peptide (best PSM q-value)", false);
+    setValidStrings_("FDR_type", {"PSM", "peptide", "PSM+peptide"});
 
     //TODO expose all parameters of the inference algorithms (e.g. aggregation methods etc.)?
     registerStringOption_("protein_inference", "<option>", "aggregation",
@@ -1389,6 +1392,9 @@ protected:
     //-------------------------------------------------------------
     const double max_fdr = getDoubleOption_("proteinFDR");
     const bool picked = getStringOption_("picked_proteinFDR") == "true";
+
+    //TODO use new FDR_type parameter
+
     // Note: actually, when Bayesian inference was performed, per default only one (best) PSM
     // is left per peptide, so the calculated PSM FDR is equal to a Peptide FDR
     const double max_psm_fdr = getDoubleOption_("psmFDR");
@@ -1410,10 +1416,13 @@ protected:
       fdr.applyPickedProteinFDR(inferred_protein_ids[0], picked_decoy_string, picked_decoy_prefix);
     }
 
-    if (max_psm_fdr < 1.)
-    {
-      fdr.applyBasic(inferred_peptide_ids);
-    }
+    //TODO Think about the implications of mixing PSMs from different files and searches.
+    //  Score should be PEPs here. We could extract the original search scores, depending on preprocessing. PEPs allow some normalization but will
+    //  disregard the absolute score differences between runs (i.e. if scores in one run are all lower than the ones in another run,
+    //  do you want to filter them out preferably or do you say: this was a faulty run, if the decoys are equally bad, I want the
+    //  best targets to be treated like the best targets from the other runs, even if the absolute match scores are much lower).
+    fdr.apply(inferred_peptide_ids);
+    //fdr.applyBasic(inferred_protein_ids, inferred_peptide_ids);
 
     if (!getFlag_("PeptideQuantification:quantify_decoys"))
     { // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs

@@ -32,6 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/METADATA/ProteinIdentification.h"
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -1053,8 +1054,63 @@ namespace OpenMS
     scores_to_FDR.clear();
   }
 
+  void FalseDiscoveryRate::applyBasic(const std::vector<ProteinIdentification> & run_info, std::vector<PeptideIdentification> & ids)
+  {
+    if (ids.empty()) return;
+    bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
+    bool split_charge_variants = param_.getValue("split_charge_variants").toBool();
 
-  void FalseDiscoveryRate::applyBasic(std::vector<PeptideIdentification> & ids)
+    String identifier = "";
+    bool higher_score_better = true;
+    if (treat_runs_separately)
+    {
+      for (const auto& run : run_info)
+      {
+        identifier = run.getIdentifier();
+        for (const auto& pepid : ids)
+        {
+          if (pepid.getIdentifier() == identifier)
+          {
+            higher_score_better = pepid.isHigherScoreBetter();
+          }
+        }
+        if (split_charge_variants)
+        {
+          pair<int, int> chargeRange = run.getSearchParameters().getChargeRange();
+          for (int c = chargeRange.first; c <= chargeRange.second; ++c)
+          {
+            applyBasic(ids, higher_score_better, c, identifier);
+          }
+        }
+        else
+        {
+          applyBasic(ids, higher_score_better, 0, identifier);
+        }
+        
+      }
+    }
+    else if (split_charge_variants)
+    {
+      pair<int, int> chargeRange = {10000,-10000};
+      for (const auto& run : run_info)
+      {
+        chargeRange.first = std::min(run.getSearchParameters().getChargeRange().first, chargeRange.first);
+        chargeRange.second = std::max(run.getSearchParameters().getChargeRange().first, chargeRange.second);
+      }
+      higher_score_better = ids[0].isHigherScoreBetter();
+      for (int c = chargeRange.first; c <= chargeRange.second; ++c)
+      {
+        applyBasic(ids, higher_score_better, c);
+      }
+    }
+    else // altogether
+    {
+      higher_score_better = ids[0].isHigherScoreBetter();
+      applyBasic(ids, higher_score_better);
+    }
+  }
+
+  void FalseDiscoveryRate::applyBasic(std::vector<PeptideIdentification> & ids, bool higher_score_better, int charge, String identifier)
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
     //TODO Check naming conventions. Ontology?
@@ -1064,36 +1120,41 @@ namespace OpenMS
 
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
 
-    //TODO this assumes all runs have the same ordering! Otherwise do it per identifier.
-    bool higher_score_better(ids.begin()->isHigherScoreBetter());
-
-    //TODO not yet implemented
-    //bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
-
     ScoreToTgtDecLabelPairs scores_labels;
     std::map<double,double> scores_to_FDR;
 
-    std::vector<int> charges = {0};
-    std::vector<String> identifiers = {""};
-    // if charge states or separate runs: look ahead for possible values and add them to the vecs above
-
-    for (const String& identifier : identifiers)
+    //TODO per-charge and per-run not implemented yet.
+    if (charge == 0)
     {
-      for (const int& charge : charges)
+      if (identifier.empty())
       {
-        //TODO setScores also should have a filter mechanism!!
-        IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits, charge, identifier);
-        if (scores_labels.empty())
-        {
-         OPENMS_LOG_ERROR << "No scores for run " << identifier << " and charge " << charge << std::endl;
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted!");
-        }
-        calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
-        if (!scores_labels.empty())
-          IDScoreGetterSetter::setScores_<PeptideIdentification>(scores_to_FDR, ids, score_type, false, add_decoy_peptides);
-        scores_to_FDR.clear();
+        IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits);
+      }
+      else
+      {
+        IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits, identifier);
       }
     }
+    else
+    {
+      if (identifier.empty())
+      {
+        IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits, charge);
+      }
+      else
+      {
+        IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits, charge, identifier);
+      }
+    }
+    
+    if (scores_labels.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted for FDR!");
+    }
+    calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
+    if (!scores_labels.empty())
+      IDScoreGetterSetter::setScores_<PeptideIdentification>(scores_to_FDR, ids, score_type, false, add_decoy_peptides);
+    scores_to_FDR.clear();
   }
 
   //TODO could be implemented for PeptideIDs, too

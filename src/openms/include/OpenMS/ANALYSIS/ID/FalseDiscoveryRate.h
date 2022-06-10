@@ -150,8 +150,10 @@ public:
     */
     double applyEvaluateProteinIDs(ScoreToTgtDecLabelPairs& score_to_tgt_dec_fraction_pairs, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2) const;
 
-    /// simpler reimplementation of the apply function above.
-    void applyBasic(std::vector<PeptideIdentification> & ids);
+    /// simpler reimplementation of the apply function above for PSMs. With charge and identifier info from @p run_info
+    void applyBasic(const std::vector<ProteinIdentification> & run_info, std::vector<PeptideIdentification> & ids);
+    /// simpler reimplementation of the apply function above for PSMs.
+    void applyBasic(std::vector<PeptideIdentification> & ids, bool higher_score_better, int charge = 0, String identifier = "");
     /// simpler reimplementation of the apply function above for peptides in ConsensusMaps.
     void applyBasic(ConsensusMap & cmap, bool use_unassigned_peptides = true);
     /// simpler reimplementation of the apply function above for proteins.
