@@ -134,7 +134,6 @@ namespace OpenMS
         ScoreToTgtDecLabelPairs &scores_labels,
         const ProteinIdentification &id)
     {
-
       scores_labels.reserve(scores_labels.size() + id.getHits().size());
       std::transform(id.getHits().begin(), id.getHits().end(),
                      std::back_inserter(scores_labels),
@@ -144,48 +143,31 @@ namespace OpenMS
                        return std::make_pair<double, bool>(hit.getScore(), getTDLabel_(hit));
                      }
       );
-
     }
 
+    template<class ...Args>
     static void getScores_(
         ScoreToTgtDecLabelPairs &scores_labels,
-        const PeptideIdentification &id, bool all_hits, int charge, const String &identifier)
+        const std::vector<PeptideIdentification> &ids,
+        Args &&... args)
     {
-      if (id.getIdentifier() == identifier)
+      for (const auto &id : ids)
       {
-        getScores_(scores_labels, id, all_hits, charge);
+        getScores_(scores_labels, id, std::forward<Args>(args)...);
       }
     }
 
-
+    template<typename IDType, typename std::enable_if<IsIDType<IDType>::value>::type * = nullptr, class ...Args>
     static void getScores_(
         ScoreToTgtDecLabelPairs &scores_labels,
-        const PeptideIdentification &id, bool all_hits, const String &identifier)
+        const IDType &id,
+        const String &identifier,
+        Args &&... args
+        )
     {
       if (id.getIdentifier() == identifier)
       {
-        getScores_(scores_labels, id, all_hits);
-      }
-    }
-
-    static void getScores_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const PeptideIdentification &id, int charge, const String &identifier)
-    {
-      if (id.getIdentifier() == identifier)
-      {
-        getScores_(scores_labels, id, charge);
-      }
-    }
-
-    template<typename IDType, typename std::enable_if<IsIDType<IDType>::value>::type * = nullptr>
-    static void getScores_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const IDType &id, const String &identifier)
-    {
-      if (id.getIdentifier() == identifier)
-      {
-        getScores_(scores_labels, id);
+        getScores_(scores_labels, id, std::forward<Args>(args)...);
       }
     }
 
@@ -255,17 +237,7 @@ namespace OpenMS
       }
     }
 
-    template<class ...Args>
-    static void getScores_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const std::vector<PeptideIdentification> &ids,
-        Args &&... args)
-    {
-      for (const auto &id : ids)
-      {
-        getScores_(scores_labels, id, std::forward<Args>(args)...);
-      }
-    }
+
     /** @} */
 
 

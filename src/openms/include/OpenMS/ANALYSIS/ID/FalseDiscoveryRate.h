@@ -180,11 +180,11 @@ public:
 
     /// calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
     /// if fp_cutoff = 0, it will calculate the full AUC
-    double rocN(const ConsensusMap& ids, Size fp_cutoff) const;
+    double rocN(const ConsensusMap& ids, Size fp_cutoff, bool include_unassigned_peptides = false) const;
 
     /// calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
     /// if fp_cutoff = 0, it will calculate the full AUC. Restricted to IDs from a specific ID run.
-    double rocN(const ConsensusMap& ids, Size fp_cutoff, const String& identifier) const;
+    double rocN(const ConsensusMap& ids, Size fp_cutoff, const String& identifier, bool include_unassigned_peptides = false) const;
 
     //TODO the next two methods could potentially be merged for speed (they iterate over the same structure)
     //But since they have different cutoff types and it is more generic, I leave it like this.

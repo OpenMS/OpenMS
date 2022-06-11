@@ -859,7 +859,7 @@ namespace OpenMS
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
 
     ScoreToTgtDecLabelPairs scores_labels;
-    IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits, identifier);
+    IDScoreGetterSetter::getScores_(scores_labels, ids, identifier, use_all_hits);
 
     if (scores_labels.empty())
     {
@@ -878,7 +878,7 @@ namespace OpenMS
     return rocN(scores_labels, fp_cutoff == 0 ? scores_labels.size() : fp_cutoff);
   }
 
-  double FalseDiscoveryRate::rocN(const ConsensusMap& ids, Size fp_cutoff) const
+  double FalseDiscoveryRate::rocN(const ConsensusMap& ids, Size fp_cutoff, bool include_unassigned_peptides) const
   {
     bool higher_score_better(false);
     // Check first ID in a feature for the score orientation.
@@ -894,7 +894,7 @@ namespace OpenMS
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
 
     ScoreToTgtDecLabelPairs scores_labels;
-    IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, ids, use_all_hits);
+    IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, ids, include_unassigned_peptides, use_all_hits);
 
     if (scores_labels.empty())
     {
@@ -913,13 +913,13 @@ namespace OpenMS
     return rocN(scores_labels, fp_cutoff == 0 ? scores_labels.size() : fp_cutoff);
   }
 
-  double FalseDiscoveryRate::rocN(const ConsensusMap& ids, Size fp_cutoff, const String& identifier) const
+  double FalseDiscoveryRate::rocN(const ConsensusMap& ids, Size fp_cutoff, const String& identifier, bool include_unassigned_peptides) const
   {
     bool higher_score_better(ids[0].getPeptideIdentifications().begin()->isHigherScoreBetter());
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
 
     ScoreToTgtDecLabelPairs scores_labels;
-    IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, ids, use_all_hits, identifier);
+    IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, ids, include_unassigned_peptides, identifier, use_all_hits);
 
     if (scores_labels.empty())
     {
@@ -972,15 +972,15 @@ namespace OpenMS
           for (int c = chargeRange.first; c <= chargeRange.second; ++c)
           {
             if (c == 0) continue;
-            IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, cmap, include_unassigned_peptides, all_hits, c, protID.getIdentifier());
+            IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, cmap, include_unassigned_peptides, protID.getIdentifier(), all_hits, c);
             map<double, double> scores_to_fdr;
             calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
-            IDScoreGetterSetter::setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides, c,  protID.getIdentifier());
+            IDScoreGetterSetter::setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides, c, protID.getIdentifier());
           }
         }
         else
         {
-          IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, cmap, include_unassigned_peptides, all_hits, protID.getIdentifier());
+          IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, cmap, include_unassigned_peptides, protID.getIdentifier(), all_hits);
           map<double, double> scores_to_fdr;
           calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
           IDScoreGetterSetter::setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides, protID.getIdentifier());
@@ -1079,6 +1079,7 @@ namespace OpenMS
           pair<int, int> chargeRange = run.getSearchParameters().getChargeRange();
           for (int c = chargeRange.first; c <= chargeRange.second; ++c)
           {
+            if (c == 0) continue;
             applyBasic(ids, higher_score_better, c, identifier);
           }
         }
@@ -1100,6 +1101,7 @@ namespace OpenMS
       higher_score_better = ids[0].isHigherScoreBetter();
       for (int c = chargeRange.first; c <= chargeRange.second; ++c)
       {
+        if (c == 0) continue;
         applyBasic(ids, higher_score_better, c);
       }
     }
@@ -1132,18 +1134,18 @@ namespace OpenMS
       }
       else
       {
-        IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits, identifier);
+        IDScoreGetterSetter::getScores_(scores_labels, ids, identifier, use_all_hits);
       }
     }
     else
     {
       if (identifier.empty())
       {
-        IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits, charge);
+        IDScoreGetterSetter::getScores_(scores_labels, ids, identifier, use_all_hits, charge);
       }
       else
       {
-        IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits, charge, identifier);
+        IDScoreGetterSetter::getScores_(scores_labels, ids, identifier, use_all_hits, charge);
       }
     }
     
