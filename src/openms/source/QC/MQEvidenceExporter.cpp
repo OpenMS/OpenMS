@@ -89,8 +89,8 @@ void MQEvidence::exportHeader_()
   file_ << "Proteins" << "\t";
   file_ << "Leading Proteins" << "\t";
   file_ << "Leading Razor Protein" << "\t";
-  file_ << "Gene Names" << "\t"; // in progress
-  file_ << "Protein Names" << "\t"; // in progress
+  file_ << "Gene Names" << "\t";
+  file_ << "Protein Names" << "\t";
   file_ << "Type" << "\t";
   file_ << "Raw file" << "\t";
   // file_ << "Fraction" << "\t"; not in this workflow
@@ -116,7 +116,7 @@ void MQEvidence::exportHeader_()
   file_ << "Match m/z difference" << "\t";
   file_ << "Match q-value" << "\t";
   file_ << "Match score" << "\t";
-  file_ << "Number of data points" << "\t"; // in progress
+  file_ << "Number of data points" << "\t";
   // file_ << "Number of scans" << "\t"; not practical to implement
   file_ << "Number of isotopic peaks" << "\t";
   // file_ << "PIF" << "\t"; not practical to implement

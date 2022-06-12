@@ -74,13 +74,13 @@ private:
   void exportHeader_();
 
   /**
-@brief Export one Feature as a row in MQMsms.txt
+@brief Export one Feature as a row in msms.txt
 
     If the feature has no PepID's or the corresponding CF has no PepIDs,
     no row will be exported
 
   @param f Feature to extract evidence data
-  @param cmap ConsensusMap to extract evidence data if Feature has no valid PeptideIdentifications
+  @param cmap ConsensusMap to extract msms data if Feature has no valid PeptideIdentifications
   @param c_feature_number Index of corresponding ConsensusFeature in ConsensusMap
   @param raw_file is specifying the raw_file the feature belongs to
   @param UIDs UIDs of all PeptideIdentifications of the ConsensusMap
@@ -101,8 +101,8 @@ public:
   /**
     @brief Creates MQMsms object and msms.txt in given path
 
-      If the path for the constructor is empty (path not valid), no evidence.txt is created.
-      If the creation of the fstream object is successful a constant header is added to the evidence.txt
+      If the path for the constructor is empty (path not valid), no msms.txt is created.
+      If the creation of the fstream object is successful a constant header is added to the msms.txt
       If the path does not exist, it will be created
 
     @throw Exception::FileNotWritable if msms.txt could not be created

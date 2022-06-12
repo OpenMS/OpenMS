@@ -44,7 +44,7 @@
 #include <QtCore/QDir>
 #include <cmath> // isnan
 #include <fstream>
-//#include <vector> // if this is included, math is not used...
+//#include <vector>
 
 using namespace OpenMS;
 
@@ -271,8 +271,6 @@ void MQMsms::exportRowFromFeature_(
   ++id_;
 
   file_ << ListUtils::concatenate(accessions, ";")  << "\n"; // Protein group IDs
-
-  //file_ << "Evidence ID" << "\t"; // Evidence ID
 
 
 }
