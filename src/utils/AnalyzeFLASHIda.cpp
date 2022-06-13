@@ -75,7 +75,7 @@ protected:
     //                            "output files (tsv) - spectrum level deconvoluted masses per ms level", false);
     //
 
-    registerInputFileList_("in", "<files >", {}, "Input files");
+    registerInputFileList_("in", "<files>", {}, "Input files");
     registerOutputFile_("out", "<file>", "", "");
     //setValidFormats_("i1n", ListUtils::create<String>("tsv"));
     //setValidFormats_("i1n", ListUtils::create<String>("tsv"));

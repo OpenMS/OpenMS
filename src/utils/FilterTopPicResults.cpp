@@ -75,7 +75,6 @@ public:
 protected:
     void registerOptionsAndFlags_() override
     {
-
         registerInputFile_("in", "<file>", {}, "proteoform file");
         registerInputFile_("in_msalign", "<msalign>", {}, "ms2 msalign file");
 

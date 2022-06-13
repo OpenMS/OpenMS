@@ -99,6 +99,7 @@ START_SECTION((void calculateAveragine(const bool use_RNA_averagine)))
 
   TEST_EQUAL(precalculated_avg.getMaxIsotopeIndex(), 5);
   TEST_EQUAL(precalculated_avg.getApexIndex(50), 0);
+  TOLERANCE_ABSOLUTE(0.1)
   TEST_REAL_SIMILAR(precalculated_avg.getAverageMassDelta(50), 0.0296591659229435);
 
   TEST_EQUAL(precalculated_avg_tmp.getMaxIsotopeIndex(), 1);
@@ -150,26 +151,25 @@ START_SECTION((DeconvolvedSpectrum& getDeconvolvedSpectrum(const MSSpectrum &spe
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FLASHDeconv_sample_input1.mzML"), input);
 
   // resetting fd_algo based on the test data
-  fd_param.setValue("max_mass", 15000.);
+  fd_param.setValue("max_mass", 50000.);
   fd_algo.setParameters(fd_param);
   fd_algo.calculateAveragine(false);
 
   std::vector<DeconvolvedSpectrum> survey_specs;
   const std::map<int, std::vector<std::vector<double>>> null_map;
 
-  DeconvolvedSpectrum d_spec_1 = fd_algo.getDeconvolvedSpectrum(input[1], survey_specs, 2, null_map);
-  DeconvolvedSpectrum d_spec_2 = fd_algo.getDeconvolvedSpectrum(input[3], survey_specs, 4, null_map);
+  DeconvolvedSpectrum d_ms1_spec = fd_algo.getDeconvolvedSpectrum(input[3], survey_specs, 4, null_map);
+  survey_specs.push_back(d_ms1_spec);
+  DeconvolvedSpectrum d_ms2_spec = fd_algo.getDeconvolvedSpectrum(input[5], survey_specs, 6, null_map);
 
-  survey_specs.push_back(d_spec_1);
-  survey_specs.push_back(d_spec_2);
-  DeconvolvedSpectrum d_spec_3 = fd_algo.getDeconvolvedSpectrum(input[5], survey_specs, 6, null_map);
-
-  TEST_EQUAL(d_spec_1.getScanNumber(), 2);
-  TEST_EQUAL(d_spec_1.size(), 3);
-  TEST_EQUAL(d_spec_2.getPrecursorPeakGroup().size(), 0);
-  TEST_REAL_SIMILAR(d_spec_2.getPrecursor().getIntensity(), .0);
-  TEST_EQUAL(d_spec_3.getPrecursorPeakGroup().size(), 39);
-  TEST_EQUAL(d_spec_3.getPrecursor().getCharge(), 9);
+  TEST_EQUAL(d_ms1_spec.getScanNumber(), 4);
+  TEST_EQUAL(d_ms1_spec.size(), 2);
+  Precursor precursor = d_ms2_spec.getPrecursor();
+  TOLERANCE_ABSOLUTE(1);
+  TEST_EQUAL(d_ms1_spec.getPrecursorPeakGroup().size(), 0);
+  TEST_EQUAL(d_ms2_spec.getPrecursorPeakGroup().size(), 31);
+  TEST_EQUAL(precursor.getCharge(), 9);
+  TEST_REAL_SIMILAR(precursor.getIntensity(), 12031);
 }
 END_SECTION
 

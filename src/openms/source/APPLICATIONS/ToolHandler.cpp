@@ -201,6 +201,7 @@ namespace OpenMS
     util_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", util_category);
     util_map["FeatureFinderMetaboIdent"] = Internal::ToolDescription("FeatureFinderMetaboIdent", util_category);
     util_map["FFEval"] = Internal::ToolDescription("FFEval", util_category);
+    util_map["FilterTopPicResults"] = Internal::ToolDescription("FilterTopPicResults", util_category);
     util_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", util_category);
     util_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", util_category);
     util_map["IDExtractor"] = Internal::ToolDescription("IDExtractor", util_category);
