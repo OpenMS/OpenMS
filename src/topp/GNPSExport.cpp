@@ -179,7 +179,7 @@ protected:
 
     if (!out_pairs.empty()) IonIdentityMolecularNetworking::writeSupplementaryPairTable(cm, out_pairs);
     if (!out_quantification.empty()) GNPSQuantificationFile::store(cm, out_quantification);
-    if (!out_meta.empty()) GNPSMetaValueFile::store(mzml_file_paths, out_meta);
+    if (!out_meta.empty()) GNPSMetaValueFile::store(cm, out_meta);
     
     return EXECUTION_OK;
   }
