@@ -58,7 +58,7 @@ namespace OpenMS
       p.setValue("use_all_hits", "true");
     }
     fdr.setParameters(p);
-    fdr.apply(peptide_ids);
+    fdr.apply(peptide_ids, true); // also calculate "peptide q-value"
   }
 
   void NuXLFDR::splitIntoPeptidesAndXLs(const vector<PeptideIdentification>& peptide_ids, vector<PeptideIdentification>& pep_pi, vector<PeptideIdentification>& xl_pi) const
@@ -129,9 +129,9 @@ namespace OpenMS
 
     splitIntoPeptidesAndXLs(peptide_ids, pep_pi, xl_pi);
   
-    // calculate FDRs separately
-    fdr.apply(xl_pi); 
-    fdr.apply(pep_pi);
+    // calculate PSM and peptide FDRs separately
+    fdr.apply(xl_pi, true); 
+    fdr.apply(pep_pi, true);
   }
 
   void NuXLFDR::calculatePeptideAndXLQValueAndFilterAtPSMLevel(
