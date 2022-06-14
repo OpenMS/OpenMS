@@ -121,12 +121,6 @@
 				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
 			</processingMethod>
 		</dataProcessing>
-		<dataProcessing id="dp_sp_0_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" defaultSourceFileRef="sf_ru_0">
 		<spectrumList count="5" defaultDataProcessingRef="dp_sp_0">
@@ -328,13 +322,13 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="scan=12663">8589</offset>
-		<offset idRef="scan=12664">14872</offset>
-		<offset idRef="scan=12665">23926</offset>
-		<offset idRef="scan=12666">40830</offset>
-		<offset idRef="scan=12667">51602</offset>
+		<offset idRef="scan=12663">8253</offset>
+		<offset idRef="scan=12664">14536</offset>
+		<offset idRef="scan=12665">23590</offset>
+		<offset idRef="scan=12666">40494</offset>
+		<offset idRef="scan=12667">51266</offset>
 	</index>
 </indexList>
-<indexListOffset>58683</indexListOffset>
+<indexListOffset>58347</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

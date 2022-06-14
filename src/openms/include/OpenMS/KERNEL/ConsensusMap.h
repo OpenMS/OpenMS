@@ -105,6 +105,8 @@ public:
     // functions
     using privvec::begin;
     using privvec::end;
+    using privvec::cbegin;
+    using privvec::cend;
 
     using privvec::size;
     using privvec::resize;

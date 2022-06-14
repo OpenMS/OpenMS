@@ -269,7 +269,7 @@ namespace OpenMS
 
   QTableWidgetItem* TableView::setAtBottomRow(QTableWidgetItem* item, size_t column_index, const QColor& background, const QColor& foreground)
   {
-    item->setBackgroundColor(background);
+    item->setBackground(QBrush(background));
     if (foreground.isValid())
     {
       item->setForeground(QBrush(foreground));

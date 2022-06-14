@@ -5,7 +5,7 @@
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		</SearchParameters>
 		<ProteinIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_0" accession="Protein" score="0.9097144245" sequence="">
+			<ProteinHit id="PH_0" accession="Protein" score="0.9097144245" sequence="AAAKCCCKEEEKGGG">
 			</ProteinHit>
 			<UserParam type="string" name="indistinguishable_proteins_0" value="0.9097144245,PH_0"/>
             <UserParam type="stringList" name="spectra_data" value="[sample1.mzML,sample2.mzML,sample3.mzML]" />
@@ -27,7 +27,7 @@
 				<element map="2" id="0" rt="100" mz="100" it="1000" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="100" RT="100" >
-				<PeptideHit score="1" sequence="AAA" charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="AAAK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
                                 <UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
@@ -39,7 +39,7 @@
 				<element map="1" id="1" rt="200" mz="200" it="200" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="200" RT="200" >
-				<PeptideHit score="1" sequence="CCC" charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="CCCK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
                                 <UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
@@ -52,7 +52,7 @@
 				<element map="2" id="2" rt="300" mz="300" it="30" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="300" RT="300" >
-				<PeptideHit score="1" sequence="EEE" charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="EEEK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
                                 <UserParam type="int" name="id_merge_index" value="1"/>
 			</PeptideIdentification>

@@ -185,16 +185,17 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="sum_formula" value="C10H15N3O5"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="rt_deviation" value="2.115801640542941"/>
-			<UserParam type="float" name="model_height" value="2.493446424795893e07"/>
-			<UserParam type="float" name="model_FWHM" value="4.01900118251442"/>
+			<UserParam type="float" name="model_height" value="2.493446424795956e07"/>
+			<UserParam type="float" name="model_FWHM" value="4.019001182515445"/>
 			<UserParam type="float" name="model_center" value="205.244747512961226"/>
-			<UserParam type="float" name="model_lower" value="200.977965781752033"/>
-			<UserParam type="float" name="model_upper" value="209.511529244170418"/>
-			<UserParam type="float" name="model_Gauss_sigma" value="1.70671269248368"/>
-			<UserParam type="float" name="model_width" value="1.70671269248368"/>
-			<UserParam type="float" name="model_error" value="0.1578439005404"/>
-			<UserParam type="float" name="model_area" value="1.066719774773863e08"/>
+			<UserParam type="float" name="model_lower" value="200.977965781750925"/>
+			<UserParam type="float" name="model_upper" value="209.511529244171527"/>
+			<UserParam type="float" name="model_Gauss_sigma" value="1.706712692484115"/>
+			<UserParam type="float" name="model_width" value="1.706712692484115"/>
+			<UserParam type="float" name="model_error" value="0.157843900540443"/>
+			<UserParam type="float" name="model_area" value="1.066719774774161e08"/>
 			<UserParam type="string" name="model_status" value="0 (valid)"/>
 			<UserParam type="float" name="raw_intensity" value="4.04901568e08"/>
 		</feature>
@@ -372,6 +373,7 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="sum_formula" value="C10O6N3H13"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="rt_deviation" value="-0.532560022364578"/>
 			<UserParam type="float" name="model_height" value="6.546078303797204e06"/>
 			<UserParam type="float" name="model_FWHM" value="3.533855131796461"/>
@@ -561,6 +563,7 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="sum_formula" value="C10H14N2O6"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="rt_deviation" value="0.37453002891823"/>
 			<UserParam type="float" name="model_height" value="4.182421931348601e06"/>
 			<UserParam type="float" name="model_FWHM" value="3.651902200574407"/>
@@ -750,16 +753,17 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="sum_formula" value="C10H13N5O4"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="rt_deviation" value="1.298415608239225"/>
-			<UserParam type="float" name="model_height" value="1.0259590732407e08"/>
-			<UserParam type="float" name="model_FWHM" value="3.64888351719068"/>
-			<UserParam type="float" name="model_center" value="219.649686755298859"/>
-			<UserParam type="float" name="model_lower" value="215.775841283892675"/>
-			<UserParam type="float" name="model_upper" value="223.523532226705044"/>
-			<UserParam type="float" name="model_Gauss_sigma" value="1.549538188562472"/>
-			<UserParam type="float" name="model_width" value="1.549538188562472"/>
-			<UserParam type="float" name="model_error" value="0.16821144495884"/>
-			<UserParam type="float" name="model_area" value="3.984943857320621e08"/>
+			<UserParam type="float" name="model_height" value="1.025959073233156e08"/>
+			<UserParam type="float" name="model_FWHM" value="3.648883517714524"/>
+			<UserParam type="float" name="model_center" value="219.649686755299086"/>
+			<UserParam type="float" name="model_lower" value="215.775841283336774"/>
+			<UserParam type="float" name="model_upper" value="223.523532227261399"/>
+			<UserParam type="float" name="model_Gauss_sigma" value="1.549538188784928"/>
+			<UserParam type="float" name="model_width" value="1.549538188784928"/>
+			<UserParam type="float" name="model_error" value="0.168211444885502"/>
+			<UserParam type="float" name="model_area" value="3.984943857863408e08"/>
 			<UserParam type="string" name="model_status" value="0 (valid)"/>
 			<UserParam type="float" name="raw_intensity" value="1.420467328e09"/>
 		</feature>
@@ -951,6 +955,7 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="sum_formula" value="C10H13N5O3"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="rt_deviation" value="1.546419010828998"/>
 			<UserParam type="float" name="model_height" value="3.787427548877572e07"/>
 			<UserParam type="float" name="model_FWHM" value="4.133368397673732"/>
@@ -1134,16 +1139,17 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="string" name="sum_formula" value="C10H12N4O5"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="rt_deviation" value="0.697462246069904"/>
-			<UserParam type="float" name="model_height" value="6.380144938211546e06"/>
-			<UserParam type="float" name="model_FWHM" value="3.635998523789209"/>
+			<UserParam type="float" name="model_height" value="6.380144938211543e06"/>
+			<UserParam type="float" name="model_FWHM" value="3.635998523789232"/>
 			<UserParam type="float" name="model_center" value="263.444394334498782"/>
 			<UserParam type="float" name="model_lower" value="259.584228245594716"/>
 			<UserParam type="float" name="model_upper" value="267.304560423402847"/>
-			<UserParam type="float" name="model_Gauss_sigma" value="1.544066435561618"/>
-			<UserParam type="float" name="model_width" value="1.544066435561618"/>
-			<UserParam type="float" name="model_error" value="0.110819258888499"/>
-			<UserParam type="float" name="model_area" value="2.469371399758182e07"/>
+			<UserParam type="float" name="model_Gauss_sigma" value="1.544066435561628"/>
+			<UserParam type="float" name="model_width" value="1.544066435561628"/>
+			<UserParam type="float" name="model_error" value="0.110819258888498"/>
+			<UserParam type="float" name="model_area" value="2.469371399758196e07"/>
 			<UserParam type="string" name="model_status" value="0 (valid)"/>
 			<UserParam type="float" name="raw_intensity" value="9.330387999999999e07"/>
 		</feature>

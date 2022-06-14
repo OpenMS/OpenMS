@@ -258,7 +258,7 @@ namespace OpenMS
     // return will be reformatted vector<PeptideIdentification> pepts passed in by value
   }
 
-  void GNPSMGFFile::run(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const
+  void GNPSMGFFile::store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const
   {
     std::string output_type = getParameters().getValue("output_type");
 
