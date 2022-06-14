@@ -282,7 +282,7 @@ namespace OpenMS
     "A:C2-H3PO4"
   };
 
-  static constexpr std::array<const char*, 24> modifications_DNA_FA
+  static constexpr std::array<const char*, 28> modifications_DNA_FA
   {
     "G:C",
     "G:C-HPO3",
@@ -309,7 +309,12 @@ namespace OpenMS
     "A:C2",
     "A:C2-HPO3",
     "A:C2-H3PO4",
-    "A:C2-H2O"
+    "A:C2-H2O",
+
+    "d:",
+    "d:-H2O",
+    "d:-H3PO4",
+    "d:-HPO3"
   };
 
   static constexpr std::array<const char*, 12> modifications_DNA_UV
@@ -1097,7 +1102,7 @@ namespace OpenMS
     const String RNA_UCGA = "UCGA";
     const String DNA_TCGAd = "TCGAd";
     const String RNA_CGA = "CGA";
-    const String DNA_CGA = "CGA";
+    const String DNA_CGAd = "CGAd";
 
     // set precursor + fragment adducts and cross-linked nucleotide
     if (p == "RNA-UV (U)" || p  == "RNA-UV (UCGA)")
@@ -1175,7 +1180,7 @@ namespace OpenMS
     {
       modifications = DNA_FA_modifications;     
       fragment_adducts = DNA_FA_fragments;
-      can_cross_link = DNA_CGA;
+      can_cross_link = DNA_CGAd;
       return;
     }
     else if (p == "RNA-DEB")
