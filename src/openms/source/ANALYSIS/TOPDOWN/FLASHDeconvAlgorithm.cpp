@@ -103,7 +103,7 @@ namespace OpenMS
     return *this;
   }
 
-  //Calcualte the nominla mass from double mass. Mutiply 0.999497 reduces the rounding error.
+  //Calculate the nominal(integer) mass from double mass. Multiply 0.999497 reduces the error from rounding the double to int.
   int FLASHDeconvAlgorithm::getNominalMass(const double mass)
   {
     return (int) (mass * 0.999497 + .5);
