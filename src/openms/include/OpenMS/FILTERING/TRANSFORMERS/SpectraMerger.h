@@ -60,11 +60,10 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI SpectraMerger :
-      public DefaultParamHandler,
-      public ProgressLogger
+    public DefaultParamHandler, public ProgressLogger
   {
 
-  protected:
+protected:
 
     /* Determine distance between two spectra
 
@@ -74,11 +73,11 @@ namespace OpenMS
 
     */
     class SpectraDistance_ :
-        public DefaultParamHandler
+      public DefaultParamHandler
     {
-    public:
+public:
       SpectraDistance_() :
-          DefaultParamHandler("SpectraDistance")
+        DefaultParamHandler("SpectraDistance")
       {
         defaults_.setValue("rt_tolerance", 10.0, "Maximal RT distance (in [s]) for two spectra's precursors.");
         defaults_.setValue("mz_tolerance", 1.0, "Maximal m/z distance (in Da) for two spectra's precursors.");
@@ -115,13 +114,13 @@ namespace OpenMS
         return sim;
       }
 
-    protected:
+protected:
       double rt_max_;
       double mz_max_;
 
     }; // end of SpectraDistance
 
-  public:
+public:
 
     /// blocks of spectra (master-spectrum index to sacrifice-spectra(the ones being merged into the master-spectrum))
     typedef std::map<Size, std::vector<Size> > MergeBlocks;
@@ -363,10 +362,10 @@ namespace OpenMS
      * @param average_type averaging type to be used ("gaussian" or "tophat")
      * @param ms_level targe MS level. If it is -1, ms_level will be determined by ms_level parameter.
      */
-
-    template<typename MapType>
-    void average(MapType &exp, const String &average_type, int ms_level = -1)
+    template <typename MapType>
+    void average(MapType& exp, const String& average_type, int ms_level = -1)
     {
+      // MS level to be averaged
       if (ms_level < 0)
       {
         ms_level = param_.getValue("average_gaussian:ms_level");
@@ -375,6 +374,7 @@ namespace OpenMS
           ms_level = param_.getValue("average_tophat:ms_level");
         }
       }
+      
       // spectrum type (profile, centroid or automatic)
       std::string spectrum_type = param_.getValue("average_gaussian:spectrum_type");
       if (average_type == "tophat")
@@ -390,8 +390,7 @@ namespace OpenMS
       int precursor_max_charge = param_.getValue("average_gaussian:precursor_max_charge");
 
       // parameters for Top-Hat averaging
-      bool unit(param_.getValue("average_tophat:rt_unit") ==
-                "scans"); // true if RT unit is 'scans', false if RT unit is 'seconds'
+      bool unit(param_.getValue("average_tophat:rt_unit") == "scans"); // true if RT unit is 'scans', false if RT unit is 'seconds'
       double range(param_.getValue("average_tophat:rt_range")); // range of spectra to be averaged over
       double range_seconds = range / 2; // max. +/- <range_seconds> seconds from master spectrum
       int range_scans = static_cast<int>(range); // in case of unit scans, the param is used as integer
@@ -402,6 +401,7 @@ namespace OpenMS
       range_scans = (range_scans - 1) / 2; // max. +/- <range_scans> scans from master spectrum
 
       AverageBlocks spectra_to_average_over;
+
       // loop over RT
       int n(0); // spectrum index
       int cntr(0); // spectrum counter
@@ -530,6 +530,7 @@ namespace OpenMS
                                           OPENMS_PRETTY_FUNCTION,
                                           "Input mzML does not have any spectra of MS level specified by ms_level.");
       }
+
       // normalize weights
       for (AverageBlocks::iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
@@ -580,7 +581,7 @@ namespace OpenMS
 
     // @}
 
-  protected:
+protected:
 
     /**
         @brief merges blocks of spectra of a certain level
@@ -674,7 +675,7 @@ namespace OpenMS
             {
               consensus_spec.push_back(*pit);
             }
-              // or add aligned peak height to ALL corresponding existing peaks
+            // or add aligned peak height to ALL corresponding existing peaks
             else
             {
               Size counter(0);
@@ -692,10 +693,8 @@ namespace OpenMS
                      align_index < alignment.size() &&  
                      alignment[align_index].second == spec_b_index)
               {
-                consensus_spec[alignment[align_index].first]
-                    .setIntensity(consensus_spec[alignment[align_index].first].getIntensity() +
-                                  (pit->getIntensity() /
-                                   (double) counter)); // add the intensity divided by the number of peaks
+                consensus_spec[alignment[align_index].first].setIntensity(consensus_spec[alignment[align_index].first].getIntensity() +
+                    (pit->getIntensity() / (double)counter)); // add the intensity divided by the number of peaks
                 ++align_index; // this aligned peak was explained, wait for next aligned peak ...
                 if (align_index == alignment.size())
                 {
@@ -725,6 +724,7 @@ namespace OpenMS
           //if (pcs.size()>1) OPENMS_LOG_WARN << "Removing excessive precursors - leaving only one per MS2 spectrum.\n";
           pcs.resize(1);
           pcs[0].setMZ(precursor_mz_average);
+          consensus_spec.setPrecursors(pcs);
         }
 
         if (consensus_spec.empty())

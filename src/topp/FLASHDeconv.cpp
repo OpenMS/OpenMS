@@ -41,6 +41,9 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
+#include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
+#include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
+
 //#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 //#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
@@ -162,7 +165,7 @@ protected:
                        3,
                        "Specifies the number of preceding MS1 spectra for MS2 precursor determination. In TDP, some precursor peaks in MS2 are not part of "
                        "the deconvolved masses in MS1 immediately preceding the MS2. In this case, increasing this parameter allows for the search in further preceding "
-                       "MS1 spectra and helps determine exact precursor masses.",
+                       "MS1 spectra and helps to determine exact precursor masses.",
                        false,
                        false);
 
@@ -182,14 +185,14 @@ protected:
     registerIntOption_("max_MS_level", "", 3, "maximum MS level (inclusive) for deconvolution.", false, true);
     setMinInt_("max_MS_level", 1);
 
-    /*registerIntOption_("forced_MS_level",
+    registerIntOption_("forced_MS_level",
                        "",
                        0,
                        "if set to an integer N, MS level of all spectra will be set to N regardless of original MS level",
                        false,
                        true);
     setMinInt_("forced_MS_level", 0);
-*/
+
     registerIntOption_("merging_method", "<0: None 1: gaussian averaging 2: block method>", 0,
                                             "Method of spectra merging which should be used. 0: No merging "
                                                                 "1: Average gaussian method to perform moving gaussian averaging of spectra per MS level. Effective to increase proteoform ID sensitivity "
@@ -497,18 +500,17 @@ protected:
     String out_promex_file = getStringOption_("out_promex");
     auto out_topfd_file = getStringList_("out_topFD");
     auto out_topfd_feature_file = getStringList_("out_topFD_feature");
-    double topFD_SNR_threshold = in_log_file.length() > 0 ? .0 : getDoubleOption_("min_precursor_snr");
+    double topFD_SNR_threshold = //in_log_file.length() > 0 ? .0 :
+                                                            getDoubleOption_("min_precursor_snr");
     bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
     int max_ms_level = getIntOption_("max_MS_level");
-    int forced_ms_level = 0;//getIntOption_("forced_MS_level");
+    int forced_ms_level = getIntOption_("forced_MS_level");
     int merge = getIntOption_("merging_method");
     bool write_detail = getIntOption_("write_detail") > 0;
     int mzml_charge = getIntOption_("mzml_mass_charge");
     double min_rt = getDoubleOption_("Algorithm:min_rt");
     double max_rt = getDoubleOption_("Algorithm:max_rt");
     String targets = getStringOption_("target_mass");
-
-
 
     #ifdef DEBUG_EXTRA_PARAMTER
     auto out_topfd_file_log =  out_topfd_file[1] + ".log";
@@ -525,28 +527,28 @@ protected:
     std::vector<fstream> out_spec_streams, out_topfd_streams, out_topfd_feature_streams;
 
     out_stream.open(out_file, fstream::out);
-    MassFeatureTrace::writeHeader(out_stream);
+    FLASHDeconvFeatureFile::writeHeader(out_stream);
 
     if (!out_promex_file.empty())
     {
       out_promex_stream.open(out_promex_file, fstream::out);
-      MassFeatureTrace::writePromexHeader(out_promex_stream);
+      FLASHDeconvFeatureFile::writePromexHeader(out_promex_stream);
     }
 
     if (!out_topfd_feature_file.empty())
     {
       out_topfd_feature_streams = std::vector<fstream>(out_topfd_feature_file.size());
-      for (int i = 0; i < out_topfd_feature_file.size(); i++)
+      for (Size i = 0; i < out_topfd_feature_file.size(); i++)
       {
         out_topfd_feature_streams[i].open(out_topfd_feature_file[i], fstream::out);
       }
-      MassFeatureTrace::writeTopFDFeatureHeader(out_topfd_feature_streams);
+      FLASHDeconvFeatureFile::writeTopFDFeatureHeader(out_topfd_feature_streams);
     }
 
     if (!out_topfd_file.empty())
     {
       out_topfd_streams = std::vector<fstream>(out_topfd_file.size());
-      for (int i = 0; i < out_topfd_file.size(); i++)
+      for (Size i = 0; i < out_topfd_file.size(); i++)
       {
         out_topfd_streams[i].open(out_topfd_file[i], fstream::out);
       }
@@ -554,10 +556,10 @@ protected:
     if (!out_spec_file.empty())
     {
       out_spec_streams = std::vector<fstream>(out_spec_file.size());
-      for (int i = 0; i < out_spec_file.size(); i++)
+      for (Size i = 0; i < out_spec_file.size(); i++)
       {
         out_spec_streams[i].open(out_spec_file[i], fstream::out);
-        DeconvolvedSpectrum::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail);
       }
     }
 
@@ -605,9 +607,6 @@ protected:
     // feature number per input file
     int feature_cntr = 0;
 
-    // feature index written in the output file
-    int feature_index = 0;
-
     OPENMS_LOG_INFO << "Processing : " << in_file << endl;
 
     mzml.setLogType(log_type_);
@@ -622,6 +621,8 @@ protected:
     auto mass_cntr = std::vector<int>(max_ms_level, 0);
     auto elapsed_deconv_cpu_secs = std::vector<double>(max_ms_level, .0);
     auto elapsed_deconv_wall_secs = std::vector<double>(max_ms_level, .0);
+    std::map<int, double> scan_rt_map;
+    std::map<int, PeakGroup> precursor_peak_groups; // MS2 scan number, peak group
 
     // read input dataset once to count spectra
     double gradient_rt = .0;
@@ -629,23 +630,25 @@ protected:
     for (auto& it: map)
     {
       gradient_rt = it.getRT();
-      if (it.empty())
-      {
-        continue;
-      }
-      if (it.getMSLevel() > max_ms_level)
-      {
-        continue;
-      }
-      if(it.getMSLevel() ==2 )
-      {
-        max_precursor_c =std::max(max_precursor_c, it.getPrecursors()[0].getCharge());
-      }
 
       // if forced_ms_level > 0, force MS level of all spectra to 1.
       if (forced_ms_level > 0)
       {
         it.setMSLevel(forced_ms_level);
+      }
+
+      if (it.empty())
+      {
+        continue;
+      }
+
+      if ((int) it.getMSLevel() > max_ms_level)
+      {
+        continue;
+      }
+      if(it.getMSLevel() ==2)
+      {
+        max_precursor_c =std::max(max_precursor_c, it.getPrecursors()[0].getCharge());
       }
 
       int ms_level = it.getMSLevel();
@@ -743,8 +746,6 @@ std::cout<<max_precursor_c<<std::endl;
     }
     mass_tracer.setParameters(mf_param);
 
-    std::unordered_map<int, PeakGroup> precursor_peak_groups; // MS2 scan number, peak group
-
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
     progresslogger.startProgress(0, map.size(), "running FLASHDeconv");
@@ -806,7 +807,12 @@ std::cout<<max_precursor_c<<std::endl;
         //{
         if (!deconvolved_spectrum.empty())
         {
-          exp.addSpectrum(deconvolved_spectrum.toSpectrum(mzml_charge));
+          auto dspec = deconvolved_spectrum.toSpectrum(mzml_charge);
+          if(dspec.size() > 0)
+          {
+            exp.addSpectrum(dspec);
+          }
+
         }
         //}
       }
@@ -816,7 +822,7 @@ std::cout<<max_precursor_c<<std::endl;
 
       if (ms_level < current_max_ms_level)
       {
-        if (last_deconvolved_spectra[ms_level].size() >= num_last_deconvolved_spectra)
+        if ((int) last_deconvolved_spectra[ms_level].size() >= num_last_deconvolved_spectra)
         {
           last_deconvolved_spectra.erase(last_deconvolved_spectra.begin());
         }
@@ -827,6 +833,8 @@ std::cout<<max_precursor_c<<std::endl;
       {
         mass_tracer.storeInformationFromDeconvolvedSpectrum(
             deconvolved_spectrum);// add deconvolved mass in mass_tracer
+
+        scan_rt_map[deconvolved_spectrum.getScanNumber()] = it->getRT();
       }
 
       if (deconvolved_spectrum.empty())
@@ -838,14 +846,13 @@ std::cout<<max_precursor_c<<std::endl;
       mass_cntr[ms_level - 1] += deconvolved_spectrum.size();
 
       DoubleList iso_intensities;
-      if (out_spec_streams.size() > ms_level - 1)
+      if ((int) out_spec_streams.size() > ms_level - 1)
       {
-        deconvolved_spectrum
-            .writeDeconvolvedMasses(out_spec_streams[ms_level - 1], in_file, avg, write_detail);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail);
       }
-      if (out_topfd_streams.size() > ms_level - 1)
+      if ((int) out_topfd_streams.size() > ms_level - 1)
       {
-        deconvolved_spectrum.writeTopFD(out_topfd_streams[ms_level - 1], avg, topFD_SNR_threshold);//, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
+        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum,out_topfd_streams[ms_level - 1], topFD_SNR_threshold);//, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
         #ifdef DEBUG_EXTRA_PARAMTER
         if(ms_level ==2 && !deconvolved_spectrum.getPrecursorPeakGroup().empty()){
             f_out_topfd_file_log << scan_number <<","<<deconvolved_spectrum.getPrecursorPeakGroup().getMonoMass()
@@ -859,12 +866,27 @@ std::cout<<max_precursor_c<<std::endl;
     progresslogger.endProgress();
 
     // mass_tracer run
-    if (merge != 2)
+    if (merge != 2) // unless spectra are merged into a single one
     {
-      mass_tracer.findFeatures(in_file, !out_promex_file.empty(), !out_topfd_feature_file.empty(),
-                               precursor_peak_groups, fd.getAveragine(),
-                               feature_cntr, feature_index, out_stream, out_promex_stream, out_topfd_feature_streams
+      auto mass_features = mass_tracer.findFeatures(// !out_promex_file.empty(), !out_topfd_feature_file.empty(),
+                              // precursor_peak_groups,
+        fd.getAveragine()
+                               //feature_cntr, , out_stream, out_promex_stream, out_topfd_feature_streams
                                );
+      feature_cntr = mass_features.size();
+      if(feature_cntr > 0)
+      {
+        FLASHDeconvFeatureFile::writeFeatures(mass_features, in_file, out_stream);
+      }
+      if(!out_topfd_feature_file.empty())
+      {
+        FLASHDeconvFeatureFile::writeTopFDFeatures(mass_features, precursor_peak_groups, scan_rt_map, in_file,out_topfd_feature_streams);
+      }
+
+      if(!out_promex_file.empty())
+      {
+        FLASHDeconvFeatureFile::writePromexFeatures(mass_features, precursor_peak_groups, scan_rt_map, avg, out_promex_stream);
+      }
     }
     if (!out_mzml_file.empty())
     {
@@ -927,17 +949,29 @@ std::cout<<max_precursor_c<<std::endl;
     }
     if (!out_topfd_feature_file.empty())
     {
+      int j = 0;
       for (auto& out_topfd_feature_stream: out_topfd_feature_streams)
       {
         out_topfd_feature_stream.close();
+        if (j + 1 > 2) // only MS1 and MS2.
+        {
+          std::remove(out_topfd_feature_file[j].c_str());
+        }
+        j++;
       }
     }
 
     if (!out_topfd_file.empty())
     {
+      int j = 0;
       for (auto& out_topfd_stream: out_topfd_streams)
       {
         out_topfd_stream.close();
+        if (j + 1 > current_max_ms_level)
+        {
+          std::remove(out_topfd_file[j].c_str());
+        }
+        j++;
       }
     }
     if (!out_spec_file.empty())
@@ -946,7 +980,7 @@ std::cout<<max_precursor_c<<std::endl;
       for (auto& out_spec_stream: out_spec_streams)
       {
         out_spec_stream.close();
-        if (spec_cntr[j] <= 0)
+        if (j + 1 > current_max_ms_level)
         {
           std::remove(out_spec_file[j].c_str());
         }

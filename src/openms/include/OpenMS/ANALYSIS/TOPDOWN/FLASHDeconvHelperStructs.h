@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 
 namespace OpenMS
 {
@@ -168,6 +169,20 @@ namespace OpenMS
       bool operator==(const TopPicItem& other) const;
     };
 
+    ///
+    struct OPENMS_DLLAPI MassFeature
+    {
+    public:
+      MassTrace mt;
+      std::vector<double> per_charge_intensity;
+      std::vector<double> per_isotope_intensity;
+      int iso_offset;
+      int scan_number, rep_charge;
+      double avg_mass;
+      int min_charge, max_charge, charge_count;
+      double isotope_score, qscore;
+      double rep_mz;
+    };
 
     /// log transformed peak. After deconvolution, all necessary information from deconvolution such as charge and isotope index is stored.
     struct OPENMS_DLLAPI LogMzPeak

@@ -81,36 +81,16 @@ namespace OpenMS
     void storeInformationFromDeconvolvedSpectrum(DeconvolvedSpectrum& deconvolved_spectrum);
 
     /**
-       @brief Find mass features and write features in output files.
-       @param file_name input spectrum file name
-       @param promex_out whether promex format output should be generated
-       @param topfd_feature_out whether topfd feature output should be generated
-       @param precursor_peak_groups precursor peak groups of MSn spectra that are used only when topfd_feature_out is set
+       @brief Find mass features.
        @param averagine precalculated averagine for cosine calculation
-       @param feature_cntr total number of features, updated in this function
-       @param feature_index index to features, updated in this function
-       @param fsf file stream for feature tsv output
-       @param fsp file stream for promex output
        @param fst file streams for topfd output tsv, feature files
        */
-    void findFeatures(const String& file_name, const bool promex_out, const bool topfd_feature_out,
-                      const std::unordered_map<int, PeakGroup>& precursor_peak_groups,
-                      const PrecalculatedAveragine& averagine,
-                      int& feature_cntr,
-                      int& feature_index,
-                      std::fstream& fsf,
-                      std::fstream& fsp,
-                      std::vector<std::fstream>& fst
-                      );
+    std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(const PrecalculatedAveragine& averagine);
 
-    /// write header line for regular file output
-    static void writeHeader(std::fstream& fs);
-
-    /// write header line for promex file output
-    static void writePromexHeader(std::fstream& fs);
-
-    /// write header line for topFD feature files
-    static void writeTopFDFeatureHeader(std::vector<std::fstream>& fs);
+    Size size() const
+    {
+      return peak_group_map_.size();
+    }
 
   protected:
     void updateMembers_() override;
@@ -120,6 +100,6 @@ namespace OpenMS
     double min_isotope_cosine_;
     /// peak group information is stored in here for traciing
     std::map<double, std::map<double, PeakGroup>> peak_group_map_; // rt , mono mass, peakgroup
-    std::map<int, double> scan_rt_map;
+
   };
 }
