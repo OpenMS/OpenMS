@@ -287,7 +287,7 @@ namespace OpenMS
 
   // stream output operator for a ProteinHit
   SVOutStream& operator<<(SVOutStream& out, const ProteinHit& hit)
-  {    
+  {
     out << String(hit.getScore()) << hit.getRank() << hit.getAccession() << hit.getDescription()
         << String(hit.getCoverage()) << hit.getSequence();
     return out;
@@ -643,7 +643,7 @@ protected:
       {
         sep = ",";
       }
-      else 
+      else
       {
         sep = "\t";
       }
@@ -724,7 +724,7 @@ protected:
                 }
         }
 
-        if (add_feature_metavalues >= 0) 
+        if (add_feature_metavalues >= 0)
         {
           meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<FeatureMap, StringList>(feature_map.begin(), feature_map.end(), add_feature_metavalues);
         }
@@ -1316,10 +1316,10 @@ protected:
         StringList peptide_hit_meta_keys;
         StringList protein_hit_meta_keys;
 
-        if (add_id_metavalues >= 0) 
+        if (add_id_metavalues >= 0)
         {
           peptide_id_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideIdentification>, StringList>(pep_ids.begin(), pep_ids.end(), add_id_metavalues);
-          // currently there is some hardcoded logic to create extra columns for these meta values so remove them to prevent duplication 
+          // currently there is some hardcoded logic to create extra columns for these meta values so remove them to prevent duplication
           peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT"), peptide_id_meta_keys.end());
           peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT_first_dim"), peptide_id_meta_keys.end());
           peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "first_dim_rt"), peptide_id_meta_keys.end());
@@ -1332,7 +1332,7 @@ protected:
           for (Size i = 0; i != pep_ids.size(); ++i)
           {
             const vector<PeptideHit>& hits = pep_ids[i].getHits();
-            temp_hits.insert(temp_hits.end(), hits.begin(), hits.end());  
+            temp_hits.insert(temp_hits.end(), hits.begin(), hits.end());
           }
           peptide_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideHit>, StringList>(temp_hits.begin(), temp_hits.end(), add_hit_metavalues);
         }

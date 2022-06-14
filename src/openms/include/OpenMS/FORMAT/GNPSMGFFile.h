@@ -55,7 +55,7 @@ namespace OpenMS
       * @param mzml_file_paths path to mzML files referenced in consensusXML. Used to extract spectra as MGF.
       * @param out MGF file with MS2 peak data for molecular networking.
       */
-      void run(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const;
+      void store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const;
 
     private:
       static constexpr double DEF_COSINE_SIMILARITY = 0.9;

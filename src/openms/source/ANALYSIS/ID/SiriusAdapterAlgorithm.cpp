@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
@@ -357,7 +358,7 @@ namespace OpenMS
         const std::string sirius_path(sirius_env_var);
         executable = sirius_path;
       }
-      const String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
+      String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
       OPENMS_LOG_WARN << "Executable is: " + exe << std::endl;
       return exe;
     }
@@ -473,7 +474,7 @@ namespace OpenMS
           auto map_it = remove_if(feature_map.begin(), feature_map.end(),
                                   [&num_masstrace_filter](const Feature &feat) -> bool
                                   {
-                                    unsigned int n_masstraces = feat.getMetaValue("num_of_masstraces");
+                                    unsigned int n_masstraces = feat.getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES);
                                     return n_masstraces < num_masstrace_filter;
                                   });
           feature_map.erase(map_it, feature_map.end());
@@ -564,10 +565,7 @@ namespace OpenMS
       // the actual process
       QProcess qp;
       QString executable_qstring = SiriusAdapterAlgorithm::determineSiriusExecutable(executable).toQString();
-      QString wd = File::path(executable).toQString();
-      qp.setWorkingDirectory(wd); //since library paths are relative to sirius executable path
-      //since library paths are relative to sirius executable path
-      qp.setWorkingDirectory(File::path(executable).toQString());
+
       qp.start(executable_qstring, command_line); // does automatic escaping etc... start
 
       std::stringstream ss;

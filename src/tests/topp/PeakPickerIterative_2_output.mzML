@@ -96,7 +96,7 @@
 				<userParam name="parameter: pc_mz" type="xsd:string" value=":"/>
 				<userParam name="parameter: int" type="xsd:string" value=":"/>
 				<userParam name="parameter: sort" type="xsd:string" value="false"/>
-				<userParam name="parameter: peak_options:sn" type="xsd:double" value="0"/>
+				<userParam name="parameter: peak_options:sn" type="xsd:double" value="0.0"/>
 				<userParam name="parameter: peak_options:rm_pc_charge" type="xsd:string" value="[]"/>
 				<userParam name="parameter: peak_options:level" type="xsd:string" value="[1, 2, 3]"/>
 				<userParam name="parameter: peak_options:sort_peaks" type="xsd:string" value="false"/>
@@ -125,16 +125,16 @@
 				<userParam name="parameter: id:remove_unassigned_ids" type="xsd:string" value="false"/>
 				<userParam name="parameter: id:blacklist" type="xsd:string" value=""/>
 				<userParam name="parameter: id:rt" type="xsd:double" value="0.1"/>
-				<userParam name="parameter: id:mz" type="xsd:double" value="0.001"/>
+				<userParam name="parameter: id:mz" type="xsd:double" value="1.0e-03"/>
 				<userParam name="parameter: id:blacklist_imperfect" type="xsd:string" value="false"/>
 				<userParam name="parameter: algorithm:SignalToNoise:max_intensity" type="xsd:integer" value="-1"/>
-				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_max_percentile" type="xsd:integer" value="95"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_mode" type="xsd:integer" value="0"/>
-				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
+				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1.0e20"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_3">
 				<cvParam cvRef="MS" accession="MS:1001486" name="data filtering" />
@@ -153,7 +153,7 @@
 				<userParam name="parameter: pc_mz" type="xsd:string" value=":"/>
 				<userParam name="parameter: int" type="xsd:string" value=":"/>
 				<userParam name="parameter: sort" type="xsd:string" value="false"/>
-				<userParam name="parameter: peak_options:sn" type="xsd:double" value="0"/>
+				<userParam name="parameter: peak_options:sn" type="xsd:double" value="0.0"/>
 				<userParam name="parameter: peak_options:rm_pc_charge" type="xsd:string" value="[]"/>
 				<userParam name="parameter: peak_options:level" type="xsd:string" value="[1, 2, 3]"/>
 				<userParam name="parameter: peak_options:sort_peaks" type="xsd:string" value="false"/>
@@ -182,16 +182,16 @@
 				<userParam name="parameter: id:remove_unassigned_ids" type="xsd:string" value="false"/>
 				<userParam name="parameter: id:blacklist" type="xsd:string" value=""/>
 				<userParam name="parameter: id:rt" type="xsd:double" value="0.1"/>
-				<userParam name="parameter: id:mz" type="xsd:double" value="0.001"/>
+				<userParam name="parameter: id:mz" type="xsd:double" value="1.0e-03"/>
 				<userParam name="parameter: id:blacklist_imperfect" type="xsd:string" value="false"/>
 				<userParam name="parameter: algorithm:SignalToNoise:max_intensity" type="xsd:integer" value="-1"/>
-				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_max_percentile" type="xsd:integer" value="95"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_mode" type="xsd:integer" value="0"/>
-				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
+				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1.0e20"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_4">
 				<cvParam cvRef="MS" accession="MS:1000592" name="smoothing" />
@@ -211,24 +211,6 @@
 				<cvParam cvRef="MS" accession="MS:1000035" name="peak picking" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
 				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_0_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_0_bi_1">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_0_bi_2">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
 			</processingMethod>
 		</dataProcessing>
 	</dataProcessingList>
@@ -283,9 +265,9 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="scan=21913">17654</offset>
+		<offset idRef="scan=21913">16664</offset>
 	</index>
 </indexList>
-<indexListOffset>20453</indexListOffset>
+<indexListOffset>19463</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

@@ -85,6 +85,53 @@ I2Pos p2;
 p2[0]=65.0;
 p2[1]=-57.5;
 
+START_SECTION(DIntervalBase operator+(const PositionType& point) const)
+{
+  I2 di({1, 2}, {3, 4});
+  I2 r = di + (I2Pos(1, 0.5));
+  TEST_REAL_SIMILAR(r.minX(), 2)
+  TEST_REAL_SIMILAR(r.minY(), 2.5)
+  TEST_REAL_SIMILAR(r.maxX(), 4)
+  TEST_REAL_SIMILAR(r.maxY(), 4.5)
+}
+END_SECTION
+
+START_SECTION(DIntervalBase& operator+=(const PositionType& point))
+{
+  I2 di({1, 2}, {3, 4});
+  I2 r = di += (I2Pos(1, 0.5));
+  TEST_EQUAL(r, di)
+  TEST_REAL_SIMILAR(r.minX(), 2)
+  TEST_REAL_SIMILAR(r.minY(), 2.5)
+  TEST_REAL_SIMILAR(r.maxX(), 4)
+  TEST_REAL_SIMILAR(r.maxY(), 4.5)
+}
+END_SECTION
+
+START_SECTION(DIntervalBase operator-(const PositionType& point) const)
+{
+  I2 di({1, 2}, {3, 4});
+  I2 r = di - (I2Pos(1, 0.5));
+  TEST_REAL_SIMILAR(r.minX(), 0)
+  TEST_REAL_SIMILAR(r.minY(), 1.5)
+  TEST_REAL_SIMILAR(r.maxX(), 2)
+  TEST_REAL_SIMILAR(r.maxY(), 3.5)
+}
+END_SECTION
+
+START_SECTION(DIntervalBase& operator-=(const PositionType& point))
+{
+  I2 di({1, 2}, {3, 4});
+  I2 r = di -= (I2Pos(1, 0.5));
+  TEST_EQUAL(r, di)
+  TEST_REAL_SIMILAR(r.minX(), 0)
+  TEST_REAL_SIMILAR(r.minY(), 1.5)
+  TEST_REAL_SIMILAR(r.maxX(), 2)
+  TEST_REAL_SIMILAR(r.maxY(), 3.5)
+}
+END_SECTION
+
+
 START_SECTION((PositionType const& maxPosition() const))
   TEST_EQUAL(I2::empty.maxPosition()==I2Pos::minNegative(), true);
   TEST_EQUAL(I2::zero.maxPosition()==I2Pos::zero(), true);
@@ -127,6 +174,18 @@ START_SECTION((void setMax(PositionType const & position)))
   TEST_REAL_SIMILAR(tmp.maxPosition()[0],65.0);
   TEST_REAL_SIMILAR(tmp.maxPosition()[1],-57.5);
 END_SECTION
+
+START_SECTION((void setDimMinMax(UInt dim, const DIntervalBase<1>& min_max)))
+  I2 tmp(I2::empty);
+	auto min_p = tmp.minPosition();
+  auto max_p = tmp.maxPosition();
+  tmp.setDimMinMax(0, {1, 1.1});
+  min_p.setX(1);
+  max_p.setX(1.1);
+  TEST_EQUAL(tmp.minPosition(), min_p);
+  TEST_EQUAL(tmp.maxPosition(), max_p);
+END_SECTION
+
 
 START_SECTION((bool operator==(const DIntervalBase &rhs) const ))
 	I2 tmp;
@@ -178,6 +237,32 @@ START_SECTION((void clear()))
 	TEST_EQUAL(tmp==I2::empty,true);
   TEST_EQUAL(tmp.maxPosition()==I2Pos::minNegative(), true);
   TEST_EQUAL(tmp.minPosition()==I2Pos::maxPositive(), true);
+END_SECTION
+
+START_SECTION((bool isEmpty() const))
+	I2 tmp;
+	TEST_TRUE(tmp.isEmpty())
+	tmp.setMax(p1);
+  TEST_FALSE(tmp.isEmpty())
+	tmp.clear();
+  TEST_TRUE(tmp.isEmpty())
+  tmp.setDimMinMax(1, {2,2}); // set empty half-open interval (making it non-empty)
+	TEST_FALSE(tmp.isEmpty())
+END_SECTION
+
+START_SECTION((bool isEmpty(UInt dim) const))
+	I2 tmp;
+	TEST_TRUE(tmp.isEmpty(0))
+  TEST_TRUE(tmp.isEmpty(1))
+  tmp.setMax(p1);
+  TEST_FALSE(tmp.isEmpty(0))
+  TEST_FALSE(tmp.isEmpty(1))
+  tmp.clear();
+  TEST_TRUE(tmp.isEmpty(0))
+  TEST_TRUE(tmp.isEmpty(1))
+  tmp.setDimMinMax(1, {2,2}); // set empty half-open interval (making it non-empty)
+	TEST_TRUE(tmp.isEmpty(0))
+  TEST_FALSE(tmp.isEmpty(1))
 END_SECTION
 
 START_SECTION((PositionType center() const))

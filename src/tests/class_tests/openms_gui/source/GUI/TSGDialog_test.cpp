@@ -39,6 +39,8 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QMessageBox>
 
+#include <qdebug.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -66,16 +68,24 @@ void TestTSGDialog::testSpinBox_(T* box, string str_value)
   QVERIFY(value == double(box->value())); // double cast needed because of template
 }
 
-void TestTSGDialog::testIsotopeModel_()
+void TestTSGDialog::testIsotopeModel_(bool skip_none)
 {
   // QTest::mouseClick needs the exact position of the interactable part of the radio button
   // If someone knows how to get this position, please adapt this code.
-  UI->model_none_button->click();
-  QTest::qWait(DELAY);
-  QVERIFY(!(UI->max_iso_spinbox->isEnabled()));
-  QVERIFY(!(UI->max_iso_label->isEnabled()));
-  QVERIFY(!(UI->max_iso_prob_spinbox->isEnabled()));
-  QVERIFY(!(UI->max_iso_prob_label->isEnabled()));
+
+  if (skip_none)
+  {
+    QVERIFY(!UI->model_none_button->isEnabled());
+  }
+  else
+  {
+    UI->model_none_button->click();
+    QTest::qWait(DELAY);
+    QVERIFY(!(UI->max_iso_spinbox->isEnabled()));
+    QVERIFY(!(UI->max_iso_label->isEnabled()));
+    QVERIFY(!(UI->max_iso_prob_spinbox->isEnabled()));
+    QVERIFY(!(UI->max_iso_prob_label->isEnabled()));
+  }
 
   UI->model_coarse_button->click();
   QTest::qWait(DELAY);
@@ -94,24 +104,28 @@ void TestTSGDialog::testIsotopeModel_()
   testSpinBox_(UI->max_iso_prob_spinbox);
 }
 
-void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
+void OpenMS::TestTSGDialog::testIonsIntensities_()
 {
-  for (size_t i = 0; i < int(CheckBox::NUMBER_OF_CHECK_BOXES); ++i)
+  int input_type;
+  if (dialog_.seq_type_ == TheoreticalSpectrumGenerationDialog::SequenceType::PEPTIDE)
+    input_type = 0;
+  else if (dialog_.seq_type_ == TheoreticalSpectrumGenerationDialog::SequenceType::RNA)
+    input_type = 1;
+  else // Metabolite
+    input_type = 2;
+
+  for (size_t i = 0; i < dialog_.check_boxes_.size(); ++i)
   {
     // get the item
     QListWidgetItem* item = UI->ion_types->item(i);
     QVERIFY(item);
 
+    const TheoreticalSpectrumGenerationDialog::CheckBox* curr_box = &dialog_.check_boxes_.at(i);
+
     // get intensity spin box corresponding to current check box
-    QDoubleSpinBox* spin = check_box_to_intensity_.at(i);
+    QDoubleSpinBox** spin_ptr = curr_box->ptr_to_spin_box;
 
-    bool ion_allowed;
-    if (peptide_input)
-      ion_allowed = intensity_ion_exists.at(i).first;
-    else
-      ion_allowed = intensity_ion_exists.at(i).second;
-
-    if (ion_allowed)
+    if (curr_box->state.at(input_type) != CheckBoxState::HIDDEN)
     {
       // check state before clicking
       Qt::CheckState prev = item->checkState();
@@ -124,29 +138,29 @@ void OpenMS::TestTSGDialog::testIonsIntensities_(bool peptide_input)
       QTest::qWait(DELAY);
 
       // verfiy the check state changed
-      QVERIFY(prev != item->checkState());
+      QVERIFY2(prev != item->checkState(), qPrintable("Clicking on '" + item->text() + "' didn't change its state."));
 
-      // test cooresponding spin box
-      if (spin == nullptr)
+      if (spin_ptr == nullptr)
         continue;
-      testSpinBox_(spin);
+      testSpinBox_(*spin_ptr);
     }
     else
     {
       // if ion type isn't supported, check if the ion and its intensity are hidden
-      QVERIFY(item->isHidden());
-      if (spin == nullptr)
+      QVERIFY2(item->isHidden(), qPrintable(item->text() + " wasn't hidden."));
+      if (spin_ptr == nullptr)
         continue;
-      QVERIFY(spin->isHidden());
+      QVERIFY2((*spin_ptr)->isHidden(), qPrintable("Spin box of '" + item->text() + "' wasn't hidden."));
     }
   }
 }
 
 void OpenMS::TestTSGDialog::testSequenceInput_(QString input)
 {
+  UI->seq_input->clear();
   QTest::keyClicks(UI->seq_input, input);
   QString read_seq = QString::fromStdString(std::string(dialog_.getSequence()));
-  QVERIFY(read_seq == UI->seq_input->text());
+  QVERIFY2(read_seq == UI->seq_input->text(), "Test of sequence input failed!");
 }
 
 void OpenMS::TestTSGDialog::checkMessageBoxExists_()
@@ -160,7 +174,7 @@ void OpenMS::TestTSGDialog::checkMessageBoxExists_()
     QVERIFY(true);
     return;
   }
-  QVERIFY(false);
+  QVERIFY2(false, "Expected message box wasn't produced!");
 }
 
 void TestTSGDialog::testMessageBoxes_()
@@ -176,7 +190,7 @@ void TestTSGDialog::testMessageBoxes_()
   UI->dialog_buttons->button(QDialogButtonBox::Ok)->click();
 
   // unselect all ions to produce empty spectrum
-  for (size_t i = 0; i < int(CheckBox::NUMBER_OF_CHECK_BOXES); ++i)
+  for (size_t i = 0; i < dialog_.check_boxes_.size(); ++i)
   {
     UI->ion_types->item(i)->setCheckState(Qt::CheckState::Unchecked);
   }
@@ -208,7 +222,7 @@ void TestTSGDialog::testConstruction()
   // labels
   QVERIFY2(UI->enter_seq_label, "'Enter sequence' label not created.");
   QVERIFY2(UI->charge_label, "'Charge' label not created.");
-  QVERIFY2(UI->generate_label, "'Generate' label not created.");
+  QVERIFY2(UI->ion_types_label, "'Generate' label not created.");
   QVERIFY2(UI->max_iso_label, "'Max. Isotope' label not created.");
   QVERIFY2(UI->max_iso_prob_label, "'Max. Isotope Probability in %' label not created.");
   QVERIFY2(UI->a_label, "'A-ions' label not created.");
@@ -246,7 +260,7 @@ void TestTSGDialog::testGui()
   testIsotopeModel_();
 
   // ion types and intensities
-  testIonsIntensities_(true);
+  testIonsIntensities_();
 
   // check relative loss intensity manually
   UI->rel_loss_intensity->clear();
@@ -268,16 +282,31 @@ void TestTSGDialog::testGui()
 
   // isotope model
   QVERIFY2(UI->isotope_model->isHidden(), "Isotope model not hidden for 'Peptide' setting.");
-  QVERIFY(UI->max_iso_spinbox->isHidden());
-  QVERIFY(UI->max_iso_label->isHidden());
-  QVERIFY(UI->max_iso_prob_spinbox->isHidden());
-  QVERIFY(UI->max_iso_prob_label->isHidden());
 
   // ion types and intensities
-  testIonsIntensities_(false);
+  testIonsIntensities_();
   // check relative loss intensity manually
   QVERIFY(UI->rel_loss_intensity->isHidden());
   QVERIFY(UI->rel_loss_label->isHidden());
+
+  //////////////////////////////////////////////////////
+  //                   Metabolite                     //
+  //////////////////////////////////////////////////////
+  UI->seq_type->setCurrentText("Metabolite");
+  QTest::qWait(DELAY);
+
+  // sequence input
+  testSequenceInput_("C100H70N2O6");
+
+  // charge
+  testSpinBox_(UI->charge_spinbox);
+
+  // isotope model
+  QVERIFY2(!UI->isotope_model->isHidden(), "Isotope model hidden for 'Metabolite' setting.");
+  testIsotopeModel_(true);
+
+  // ion types and intensities
+  //testIonsIntensities_();
 }
 
 void TestTSGDialog::testParameterImport()
@@ -287,15 +316,15 @@ void TestTSGDialog::testParameterImport()
   UI->charge_spinbox->setValue(3);
   UI->model_coarse_button->click();
   UI->max_iso_spinbox->setValue(5);
-  for (size_t i = 0; i < int(CheckBox::NUMBER_OF_CHECK_BOXES); ++i)
+  for (size_t i = 0; i < dialog_.check_boxes_.size(); ++i)
   {
     UI->ion_types->item(i)->setCheckState(Qt::CheckState::Checked); // just check all boxes
 
     // get intensity spin box corresponding to current check box
-    QDoubleSpinBox* spin = check_box_to_intensity_.at(i);
-    if (spin == nullptr) continue;
+    QDoubleSpinBox** spin_ptr = dialog_.check_boxes_.at(i).ptr_to_spin_box;
+    if (spin_ptr == nullptr) continue;
 
-    spin->setValue(1.23);
+    (*spin_ptr)->setValue(1.23);
   }
   UI->rel_loss_intensity->setValue(16);
 
@@ -355,6 +384,8 @@ void TestTSGDialog::testParameterImport()
 
   QVERIFY2(string(p.getValue("add_w_ions")) == "true", "Parameter 'add_w_ions' wasn't set correctly.");
   QVERIFY2(double(p.getValue("w_intensity")) == 1.23, "Parameter 'w_intensity' wasn't set correctly.");
+
+  // Metabolite input doesn't have any exclusive parameters that need to be tested.
 }
 
 void TestTSGDialog::testSpectrumCalculation()
@@ -379,6 +410,15 @@ void TestTSGDialog::testSpectrumCalculation()
   QTest::qWait(DELAY);
   MSSpectrum rna_spec = dialog_.getSpectrum();
   QVERIFY2(!rna_spec.empty(), "RNA input didn't produce a spectrum.");
+  
+  UI->seq_type->setCurrentText("Metabolite");
+  QTest::qWait(DELAY);
+  UI->seq_input->setText("C100H70N2O6");
+  QTest::qWait(DELAY);
+  QTest::mouseClick(UI->dialog_buttons->button(QDialogButtonBox::Ok), Qt::LeftButton);
+  QTest::qWait(DELAY);
+  MSSpectrum meta_spec = dialog_.getSpectrum();
+  QVERIFY2(!meta_spec.empty(), "Metabolite input didn't produce a spectrum.");
 }
 
 void TestTSGDialog::testErrors()
@@ -387,6 +427,9 @@ void TestTSGDialog::testErrors()
   testMessageBoxes_();
 
   UI->seq_type->setCurrentText("RNA");
+  testMessageBoxes_();
+
+  UI->seq_type->setCurrentText("Metabolite");
   testMessageBoxes_();
 }
 
