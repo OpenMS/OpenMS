@@ -85,7 +85,7 @@ namespace OpenMS
   {
     if (precursor_peak_group_.empty())
     {
-      return PeakGroup();
+      return *(new PeakGroup());
     }
     return precursor_peak_group_;
   }

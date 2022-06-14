@@ -166,7 +166,7 @@ protected:
                                                    map.getSourceFiles()[0].getNativeIDTypeAccession());
       double pmz = it.getPrecursors()[0].getMZ();
 
-      int current_ch = 0;
+      Size current_ch = 0;
       int nonzero = 0;
       auto iso_intensities = std::vector<double>(iso_mzs.size(), 0.0);
       for (auto &peak: it)
@@ -289,7 +289,7 @@ protected:
     vector<vector<TopPicItem>> results;
     map<String, map<int, vector<TopPicItem>>> acc_map; // acc, input index, matches
 
-    for (int i = 0; i < infiles.size(); i++)
+    for (Size i = 0; i < infiles.size(); i++)
     {
       auto in = infiles[i];
       std::ifstream in_trainstream(in);
@@ -323,7 +323,7 @@ protected:
     outstream << header << "\n";
 
     //map<String, map<int, vector<TopPicItem>>> acc_map; // acc, input index, matches
-    for (int i = 0; i < infiles.size(); i++)
+    for (Size i = 0; i < infiles.size(); i++)
     {
       auto r = results[i];
       for (auto &item : r)
@@ -335,7 +335,7 @@ protected:
         if (acc_map.find(item.protein_acc_) == acc_map.end())
         {
           acc_map[item.protein_acc_] = map<int, vector<TopPicItem>>();
-          for (int j = 0; j < infiles.size(); j++)
+          for (Size j = 0; j < infiles.size(); j++)
           {
             acc_map[item.protein_acc_][j] = vector<TopPicItem>();
           }
@@ -359,10 +359,10 @@ protected:
 
       set<double> intersect;
 
-      for (int j = 0; j < infiles.size(); j++)
+      for (Size j = 0; j < infiles.size(); j++)
       {
         auto s1 = s_map[j];
-        for (int k = j + 1; k < infiles.size(); k++)
+        for (Size k = j + 1; k < infiles.size(); k++)
         {
           auto s2 = s_map[k];
           if (s1.empty() || s2.empty())

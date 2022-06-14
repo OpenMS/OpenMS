@@ -63,7 +63,7 @@ namespace OpenMS
     double score = weights[weights.size() - 1];
     auto fv = toFeatureVector_(pg, abs_charge);
 
-    for (int i = 0; i < weights.size() - 1; i++)
+    for (Size i = 0; i < weights.size() - 1; i++)
     {
       score += fv[i] * weights[i];
     }
@@ -163,7 +163,7 @@ namespace OpenMS
         << pg.getIntensity() << "," << fintensity << ","
         << charge << "," << std::get<0>(pg.getAbsChargeRange()) << "," << std::get<1>(pg.getAbsChargeRange()) << ","
         << (is_identified ? std::to_string(ptm_mass.size()) : "nan") << ",";
-      for (int k = 0; k < 3; k++)
+      for (Size k = 0; k < 3; k++)
       {
         if (k < ptm_mass.size())
         {

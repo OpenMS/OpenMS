@@ -231,7 +231,7 @@ namespace OpenMS
 
   void FLASHDeconvSpectrumFile::writeTopFD(const DeconvolvedSpectrum& dspec,
                                        std::fstream& fs,
-                                       const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
+//                                       const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                                        const double snr_threshold,
                                        const double decoy_harmonic_factor,
                                        const double decoy_precursor_offset)//, fstream& fsm, fstream& fsp)

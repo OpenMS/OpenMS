@@ -537,7 +537,7 @@ protected:
     if (!out_topfd_feature_file.empty())
     {
       out_topfd_feature_streams = std::vector<fstream>(out_topfd_feature_file.size());
-      for (int i = 0; i < out_topfd_feature_file.size(); i++)
+      for (Size i = 0; i < out_topfd_feature_file.size(); i++)
       {
         out_topfd_feature_streams[i].open(out_topfd_feature_file[i], fstream::out);
       }
@@ -547,7 +547,7 @@ protected:
     if (!out_topfd_file.empty())
     {
       out_topfd_streams = std::vector<fstream>(out_topfd_file.size());
-      for (int i = 0; i < out_topfd_file.size(); i++)
+      for (Size i = 0; i < out_topfd_file.size(); i++)
       {
         out_topfd_streams[i].open(out_topfd_file[i], fstream::out);
       }
@@ -555,7 +555,7 @@ protected:
     if (!out_spec_file.empty())
     {
       out_spec_streams = std::vector<fstream>(out_spec_file.size());
-      for (int i = 0; i < out_spec_file.size(); i++)
+      for (Size i = 0; i < out_spec_file.size(); i++)
       {
         out_spec_streams[i].open(out_spec_file[i], fstream::out);
         FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail);
@@ -641,7 +641,7 @@ protected:
         continue;
       }
 
-      if (it.getMSLevel() > max_ms_level)
+      if ((int) it.getMSLevel() > max_ms_level)
       {
         continue;
       }
@@ -822,7 +822,7 @@ protected:
 
       if (ms_level < current_max_ms_level)
       {
-        if (last_deconvolved_spectra[ms_level].size() >= num_last_deconvolved_spectra)
+        if ((int) last_deconvolved_spectra[ms_level].size() >= num_last_deconvolved_spectra)
         {
           last_deconvolved_spectra.erase(last_deconvolved_spectra.begin());
         }
@@ -846,13 +846,13 @@ protected:
       mass_cntr[ms_level - 1] += deconvolved_spectrum.size();
 
       DoubleList iso_intensities;
-      if (out_spec_streams.size() > ms_level - 1)
+      if ((int) out_spec_streams.size() > ms_level - 1)
       {
         FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail);
       }
-      if (out_topfd_streams.size() > ms_level - 1)
+      if ((int) out_topfd_streams.size() > ms_level - 1)
       {
-        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum,out_topfd_streams[ms_level - 1], avg, topFD_SNR_threshold);//, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
+        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum,out_topfd_streams[ms_level - 1], topFD_SNR_threshold);//, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
         #ifdef DEBUG_EXTRA_PARAMTER
         if(ms_level ==2 && !deconvolved_spectrum.getPrecursorPeakGroup().empty()){
             f_out_topfd_file_log << scan_number <<","<<deconvolved_spectrum.getPrecursorPeakGroup().getMonoMass()

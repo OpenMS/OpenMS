@@ -86,13 +86,13 @@ namespace OpenMS
       @brief write the deconvolved masses TopFD output (*.msalign)
          @param dspec deconvolved spectrum to write
       @param fs file stream to the output file
-      @param avg averagine information to calculate monoisotopic and average mass difference
       @param snr_threshold SNR threshold to filter out low SNR precursors. Even if a PeakGroup has a high deconvolution quality, it should be still discarded for identification when its precursor SNR (SNR within the isolation window) is too low.
       @param decoy_harmonic_factor this factor will be multiplied to precursor mass and charge. To generate decoy spectra
       @param decoy_precursor_offset this value will be added to precursor mass. To generate decoy spectra
     */
+    //      @param avg averagine information to calculate monoisotopic and average mass difference
     static void writeTopFD(const DeconvolvedSpectrum& dspec, std::fstream& fs,
-                           const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
+//                           const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                            const double snr_threshold = 1.0,
                            const double decoy_harmonic_factor = 1.0,
                            const double decoy_precursor_offset = .0);

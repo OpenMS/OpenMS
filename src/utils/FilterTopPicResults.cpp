@@ -205,7 +205,7 @@ protected:
                        << std::max(1, item.charge - 3) << "," << std::min(50, item.charge + 3) << ","
                        << (item.unexp_mod.size())
                        <<",";
-            for(int k=0;k<3;k++){
+            for(Size k=0;k<3;k++){
                 if(k < item.unexp_mod.size()){
                     attstream0<<item.unexp_mod[k]<<",";
                 }else{
@@ -233,7 +233,7 @@ protected:
         for(auto &item: results){
             {
                 auto &ps = item.second;
-                for(int i=0;i<ps.size();i++) {
+                for(Size i=0;i<ps.size();i++) {
                     double p_mass = ps[i].adj_precursor_mass;
                     int charge = ps[i].charge;
 
@@ -262,7 +262,7 @@ protected:
                         auto o_mass = (mz - Constants::PROTON_MASS_U) * charge;
                         int iso_index = round((o_mass - p_mass) / Constants::ISOTOPE_MASSDIFF_55K_U);
 
-                        if (iso_index < 0 || iso_index > avg.getRightCountFromApex(p_mass) + avg.getApexIndex(p_mass)) {
+                        if (iso_index < 0 || (Size) iso_index > avg.getRightCountFromApex(p_mass) + avg.getApexIndex(p_mass)) {
                             continue;
                         }
 
@@ -337,7 +337,7 @@ protected:
                        << std::max(1, item.charge - 3) << "," << std::min(50, item.charge + 3) << ","
                        << (item.unexp_mod.size())
                        << ",";
-            for (int k = 0; k < 3; k++) {
+            for (Size k = 0; k < 3; k++) {
                 if (k < item.unexp_mod.size()) {
                     attstream1 << item.unexp_mod[k] << ",";
                 } else {
@@ -362,7 +362,7 @@ protected:
                        << std::max(1, item.charge - 3) << "," << std::min(50, item.charge + 3) << ","
                        << (item.unexp_mod.size())
                        <<",";
-            for(int k=0;k<3;k++){
+            for(Size k=0;k<3;k++){
                 if(k < item.unexp_mod.size()){
                     attstream2<<item.unexp_mod[k]<<",";
                 }else{

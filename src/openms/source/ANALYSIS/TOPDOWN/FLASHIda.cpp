@@ -109,7 +109,7 @@ namespace OpenMS
       if (instream.good())
       {
         String line;
-        double rt;
+        double rt = .0;
         double mass;
         while (std::getline(instream, line))
         {
@@ -243,7 +243,7 @@ namespace OpenMS
   {
     std::vector<PeakGroup> filtered_peakgroups;
     deconvolved_spectrum_.sortByQScore();
-    int mass_count = mass_count_[ms_level - 1];
+    Size mass_count = (Size) mass_count_[ms_level - 1];
     trigger_charges.clear();
     trigger_charges.reserve(mass_count);
     trigger_left_isolation_mzs_.clear();
@@ -374,7 +374,7 @@ namespace OpenMS
         auto ospec = deconvolved_spectrum_.getOriginalSpectrum();
         Size index = ospec.findNearest(center_mz);
         int tindexl = index;
-        int tindexr = index + 1;
+        Size tindexr = index + 1;
         double lmz = -1.0, rmz = -1.0;
 
         double sig_pwr = .0;
@@ -443,7 +443,7 @@ namespace OpenMS
           }
           else
           {
-            if (tindexl >=0 && tindexl < ospec.size() - 1)
+            if (tindexl >=0 && tindexl < (int) ospec.size() - 1)
             {
               lmz = std::max(center_mz - max_isolation_window_half_, tlmz);
             }
@@ -508,7 +508,7 @@ namespace OpenMS
   {
     //std::sort(deconvolved_spectrum_.begin(), deconvolved_spectrum_.end(), QscoreComparator_);
 
-    for (int i = 0; i < deconvolved_spectrum_.size(); i++)
+    for (Size i = 0; i < deconvolved_spectrum_.size(); i++)
     {
       if (trigger_charges[i] == 0)
       {

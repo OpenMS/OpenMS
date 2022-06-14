@@ -62,7 +62,7 @@ namespace OpenMS
 
   void FLASHDeconvFeatureFile::writeTopFDFeatureHeader(std::vector<std::fstream>& fs)
   {
-    for (int i = 0; i < fs.size(); ++i)
+    for (Size i = 0; i < fs.size(); ++i)
     {
       if (i == 0)
       {
@@ -109,13 +109,13 @@ namespace OpenMS
       fs << "\t";
       int iso_end_index = 0;
 
-      for (int i = 0; i < mass_feature.per_isotope_intensity.size(); i++)
+      for (Size i = 0; i < mass_feature.per_isotope_intensity.size(); i++)
       {
         if (mass_feature.per_isotope_intensity[i] == 0)
         {
           continue;
         }
-        iso_end_index = i;
+        iso_end_index = (int) i;
       }
       for (int i = 0; i <= iso_end_index + mass_feature.iso_offset; i++)
       {
@@ -143,7 +143,7 @@ namespace OpenMS
     int topid = 1;
     std::unordered_map<int, int> mtid_topid;
 
-      for (int l = 0; l < mass_features.size(); l++)
+      for (Size l = 0; l < mass_features.size(); l++)
       {
         auto mass_feature = mass_features[l];
         double sum_intensity = .0;
@@ -152,7 +152,7 @@ namespace OpenMS
           sum_intensity += m.getIntensity();
         }
 
-        for (int i = 0; i < fs.size(); i++)
+        for (Size i = 0; i < fs.size(); i++)
         {
             if (i == 0)
             {
@@ -171,7 +171,7 @@ namespace OpenMS
         double rt = scan_rt_map.at(ms2_scan_number);
         bool selected = false;
         int selected_index = -1;
-        for (int l = 0; l < mass_features.size(); l++)
+        for (Size l = 0; l < mass_features.size(); l++)
         {
           auto mass_feature = mass_features[l];
           auto mt = mass_feature.mt;
@@ -184,13 +184,13 @@ namespace OpenMS
             continue;
           }
           selected = true;
-          selected_index = l;
+          selected_index = (int) l;
           break;
         }
 
         if (selected)
         {
-          for (int i = 1; i < fs.size(); i++)
+          for (Size i = 1; i < fs.size(); i++)
           {
             double sum_intensity = .0;
             for (auto& m : mass_features[selected_index].mt)
@@ -205,7 +205,7 @@ namespace OpenMS
 
         auto crange = precursor.second.getAbsChargeRange();
 
-        for (int i = 0; i < fs.size(); i++)
+        for (Size i = 0; i < fs.size(); i++)
         {
           if (i == 0)
           {
@@ -269,13 +269,13 @@ namespace OpenMS
 
       int iso_end_index = 0;
 
-      for (int i = 0; i < mass_feature.per_isotope_intensity.size(); i++)
+      for (Size i = 0; i < mass_feature.per_isotope_intensity.size(); i++)
       {
         if (mass_feature.per_isotope_intensity[i] == 0)
         {
           continue;
         }
-        iso_end_index = i;
+        iso_end_index = (int) i;
       }
       for (int i = 0; i <= iso_end_index + mass_feature.iso_offset; i++)
       {
@@ -306,9 +306,8 @@ namespace OpenMS
       auto rt = scan_rt_map.at(ms2_scan_number);
       bool selected = false;
       double max_intensity = .0;
-      int selected_index = -1;
 
-      for (int l = 0; l < mass_features.size(); l++)
+      for (Size l = 0; l < mass_features.size(); l++)
       {
         auto mass_feature = mass_features[l];
         auto mt = mass_feature.mt;
@@ -331,7 +330,6 @@ namespace OpenMS
         if (max_intensity < sum_intensity)
         {
           max_intensity = sum_intensity;
-          selected_index = l;
         }
         selected = true;
       }

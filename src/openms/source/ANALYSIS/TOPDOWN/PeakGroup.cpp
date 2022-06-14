@@ -354,7 +354,7 @@ namespace OpenMS
 
   float PeakGroup::getChargeSNR(const int abs_charge) const
   {
-    if (per_charge_snr_.size() <= abs_charge)
+    if ((int) per_charge_snr_.size() <= abs_charge)
     {
       return 0;
     }
@@ -363,7 +363,7 @@ namespace OpenMS
 
   float PeakGroup::getChargePower(const int abs_charge) const
   {
-    if (per_charge_pwr_.size() <= abs_charge)
+    if ((int) per_charge_pwr_.size() <= abs_charge)
     {
       return 0;
     }
@@ -373,7 +373,7 @@ namespace OpenMS
 
   float PeakGroup::getChargeIsotopeCosine(const int abs_charge) const
   {
-    if (per_charge_cos_.size() <= abs_charge)
+    if ((int) per_charge_cos_.size() <= abs_charge)
     {
       return 0;
     }
@@ -382,7 +382,7 @@ namespace OpenMS
 
   float PeakGroup::getChargeIntensity(const int abs_charge) const
   {
-    if (per_charge_int_.size() <= abs_charge)
+    if ((int) per_charge_int_.size() <= abs_charge)
     {
       return 0;
     }

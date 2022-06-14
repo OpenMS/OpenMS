@@ -83,15 +83,15 @@ protected:
 
     std::vector<std::string> tokenise(const std::string &str){
         std::vector<std::string> tokens;
-        int first = 0;
+        Size first = 0;
         while(first<str.size()){
-            int second = str.find_first_of(',',first);
+            Size second = str.find_first_of(',',first);
             //first has index of start of token
             //second has index of end of token + 1;
             if(second==std::string::npos){
                 second = str.size();
             }
-            std::string token = str.substr(first, second-first);\
+            std::string token = str.substr(first, second-first);
             tokens.push_back(token);
             first = second + 1;
         }
