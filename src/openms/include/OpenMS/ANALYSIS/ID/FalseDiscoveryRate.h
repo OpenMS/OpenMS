@@ -90,11 +90,12 @@ public:
     void apply(std::vector<PeptideIdentification>& fwd_ids, std::vector<PeptideIdentification>& rev_ids) const;
 
     /**
-    @brief Calculates the FDR of one run from a concatenated sequence DB search
+    @brief Calculates the FDR of one run from a concatenated sequence DB search.    
 
     @param id peptide identifications, containing target and decoy hits
+    @param annotate_peptide_fdr adds the peptide q-value or peptide fdr meta value to each PSM. Calculation uses best PSM per peptide.
     */
-    void apply(std::vector<PeptideIdentification>& id) const;
+    void apply(std::vector<PeptideIdentification>& id, bool annotate_peptide_fdr = false) const;
 
     /**
     @brief Calculates the FDR of two runs, a forward run and decoy run on protein level
