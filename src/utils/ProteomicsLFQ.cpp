@@ -194,7 +194,7 @@ protected:
     setMinFloat_("psmFDR", 0.0);
     setMaxFloat_("psmFDR", 1.0);
 
-    registerStringOption_("FDR_type", "<threshold>", "PSM", "FDR level for sub-protein level. PSM, peptide (best PSM score), PSM+peptide (best PSM q-value)", false);
+    registerStringOption_("FDR_type", "<threshold>", "PSM", "Sub-protein FDR level. PSM, peptide (best PSM score), PSM+peptide (best PSM q-value).", false);
     setValidStrings_("FDR_type", {"PSM", "peptide", "PSM+peptide"});
 
     //TODO expose all parameters of the inference algorithms (e.g. aggregation methods etc.)?
@@ -1366,16 +1366,17 @@ protected:
     }
     else // if (bayesian)
     {
-      // Important Note: BayesianProteinInference by default keeps only the best
-      // PSM per peptide!
-      // TODO maybe allow otherwise by exposing the corresponding parameter. But I think it does not matter much here,
-      //  since we basically discard peptide+PSM information from inference and use the info in the cMaps.
       BayesianProteinInferenceAlgorithm bayes;
+      auto bayesparams = bayes.getParameters();
+      // We need all PSMs to collect all possible modifications, to do spectral counting and to do PSM FDR.
+      // In theory, if none is needed we can save memory. For quantification,
+      // we basically discard peptide+PSM information from inference and use the info from the cMaps.
+      bayesparams.setValue("keep_best_PSM_only", "false");
       //bayesian inference automatically annotates groups
       bayes.inferPosteriorProbabilities(inferred_protein_ids, inferred_peptide_ids, greedy_group_resolution);
       if (!groups)
       {
-        // should be enough to just clear the groups.
+        // should be enough to just clear the groups. Only indistinguishable will be annotated above.
         inferred_protein_ids[0].getIndistinguishableProteins().clear();
       }
     }

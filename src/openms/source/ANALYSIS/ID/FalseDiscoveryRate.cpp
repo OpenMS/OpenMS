@@ -938,7 +938,6 @@ namespace OpenMS
     return rocN(scores_labels, fp_cutoff == 0 ? scores_labels.size() : fp_cutoff);
   }
 
-  //TODO implement per charge estimation
   void FalseDiscoveryRate::applyBasic(ConsensusMap & cmap, bool include_unassigned_peptides)
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
