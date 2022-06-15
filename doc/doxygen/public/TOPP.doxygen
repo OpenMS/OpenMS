@@ -70,7 +70,7 @@
   - @subpage TOPP_PeakPickerHiRes - Finds mass spectrometric peaks in profile mass spectra.
   - @subpage TOPP_PeakPickerWavelet - Finds mass spectrometric peaks in profile mass spectra.
 
-  <b>Sprectra filtering</b>
+  <b>Spectrum processing: peak filtering</b>
   - @subpage TOPP_SpectraFilterBernNorm - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterMarkerMower - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterNLargest - Applies a filter to peak spectra.
@@ -83,6 +83,7 @@
   - @subpage TOPP_BaselineFilter - Removes the baseline from profile spectra using a top-hat filter.
   - @subpage TOPP_NoiseFilterGaussian - Removes noise from profile spectra by using different smoothing techniques.
   - @subpage TOPP_NoiseFilterSGolay - Removes noise from profile spectra by using different smoothing techniques.
+<b>Spectrum processing: peak normalization</b>
   - @subpage TOPP_MapNormalizer - Normalizes peak intensities in an MS run.  
   
   <b>Mass Correction and Calibration</b>
@@ -92,11 +93,11 @@
   - @subpage TOPP_PrecursorMassCorrector - Correct the precursor entries of tandem MS scans (low-res only).
   - @subpage TOPP_TOFCalibration - Applies time of flight mass calibration.
   
-  <b>Misc Spectrum Processing Tools</b>
+  <b>Spectrum processing: Misc</b>
   - @subpage TOPP_Resampler - Transforms an LC-MS map into an equally-spaced (in RT and m/z) map.
   - @subpage TOPP_SpectraMerger - Merges spectra from an LC-MS map, either by precursor or by RT blocks.
 
-  <b>Spetrum Clustering</b>
+  <b>Spectrum Clustering</b>
   - @subpage TOPP_MaRaClusterAdapter - Run the spectral clustering implemented in MaRaCluster.    
 
   <b>Map Alignment</b>
