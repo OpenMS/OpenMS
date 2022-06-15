@@ -48,6 +48,8 @@
 using namespace OpenMS;
 using namespace std;
 
+
+
 /* TO-DO 2
 - getReset testable? Why is output always 1?
 - UPDATE OpenMS Version (consult) and Colorizer version
@@ -70,7 +72,8 @@ START_TEST(Colorizer(),"$Id$")
 char test_char = 'a';
 int test_int = 15;
 float test_float = 2094.5892;
-string test_string = " !#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+// string test_string = " !#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+string test_string = "ABCDE";
 
 //ANSI codes
 
@@ -280,6 +283,34 @@ START_SECTION(Colorizer& operator()())
     test_stream.str(string());
     test_stream.clear();
 
+}
+END_SECTION
+
+START_SECTION("See if stream is a tty or a file")
+{
+	stringstream test_stream;
+	ofstream test_file("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/testingthis.txt");
+
+    cout << 1;
+    test_stream << cyan("SOMECYANTEXT");
+	TEST_EQUAL(test_stream.str(),cyanANSI+"SOMECYANTEXT"+resetColorANSI)
+
+    TEST_EQUAL(isatty(STDIN_FILENO), 1); //is a tty
+    TEST_EQUAL(isatty(STDOUT_FILENO), 0); //is a tty
+    TEST_EQUAL(isatty(STDERR_FILENO), 0); //is a tty
+
+    freopen("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/testingthis.txt", "w", stdout);
+    cout<<cyan("SOMECYANTEXT");
+
+    TEST_EQUAL(isatty(STDIN_FILENO), 1); //is a tty
+    TEST_EQUAL(isatty(STDOUT_FILENO), 0); //is a tty
+    TEST_EQUAL(isatty(STDERR_FILENO), 0); //is a tty
+
+    //can't test because I'm always writing results (STDOUT) to file in a testing file
+    //outputs are supressed and instead evaluations of outputs are presented ->
+    //outputs are written somewhere else and checked, so STDOUT is always 0
+    //teste is elsewhere -> make a new file and use colorizer there, or maybe
+    //use console_utils/colorizer output to generate isatty values in different places
 }
 END_SECTION
 

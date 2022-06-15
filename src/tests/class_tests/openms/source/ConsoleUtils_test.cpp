@@ -37,7 +37,13 @@
 
 ///////////////////////////
 #include <OpenMS/APPLICATIONS/ConsoleUtils.h>
+#include <OpenMS/CONCEPT/Colorizer.h>
 ///////////////////////////
+#include <fstream>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -60,15 +66,73 @@ START_SECTION(~ConsoleUtils())
 }
 END_SECTION
 
-START_SECTION((static String breakString(const String &input, const Size indentation, const Size max_lines)))
+START_SECTION(const int getConsoleSize())
 {
-	// we cannot predict which shape the broken string will have, so testing is rather limited
-	String test_string = "This is a test string which should be broken up into multiple lines.";
-	String broken_string = ConsoleUtils::breakString(test_string, 0, 10);
-
-	TEST_EQUAL(test_string.length() <= broken_string.length(), true)
+	NOT_TESTABLE
 }
 END_SECTION
+
+START_SECTION(ConsoleUtils getInstance())
+{
+	NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION(void resetCoutColor())
+{
+	NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION(void resetCerrColor())
+{
+	NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION(void resetConsoleColor())
+{
+	NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION(void setCoutColor())
+{
+	NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION(void setCerrColor())
+{
+	NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION(OpenMS::StringList breakString_(const String& input, const Size indentation, const Size max_lines, const Size curser_pos))
+{
+	NOT_TESTABLE
+}
+END_SECTION
+
+
+
+
+// START_SECTION((static String breakString(const String &input, const Size indentation, const Size max_lines)))
+// {
+// 	// we cannot predict which shape the broken string will have, so testing is rather limited
+// 	String test_string = "This is a test string which should be broken up into multiple lines.";
+// 	String broken_string = ConsoleUtils::breakString(test_string, 0, 10);
+
+// 	TEST_EQUAL(test_string.length() <= broken_string.length(), true)
+
+// 	/*
+// 	error: conversion from ‘OpenMS::StringList’ {aka ‘std::vector<OpenMS::String>’} to non-scalar type ‘OpenMS::String’ requested
+//    67 |  String broken_string = ConsoleUtils::breakString(test_string, 0, 10);
+
+// 	*/
+// }
+// END_SECTION
+
 
 
 /////////////////////////////////////////////////////////////

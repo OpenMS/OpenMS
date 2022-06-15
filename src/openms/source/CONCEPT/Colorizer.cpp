@@ -73,6 +73,7 @@ namespace OpenMS
   {
 #if defined(_WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN64)
 
+
     if (&std::cout == &stream)
     {
       // set color of output
@@ -87,7 +88,16 @@ namespace OpenMS
 
 #elif defined(__linux__) || defined(__OSX__)
     // write coloring escape codes into the string
-    stream << this->colors_[this->color_];
+
+    if(isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))
+    {
+       stream << this->colors_[this->color_];
+    }
+
+    // Problem - in testfiles, STDOUT is always 0 because
+    //console output is supressed. It should be made an 
+    //exception for colorizer class
+    
 #endif
   }
 
