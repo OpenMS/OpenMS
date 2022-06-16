@@ -55,7 +55,7 @@ API reference documentation and advanced developer doxygen documentation can be 
 openms.readthedocs.io documentation has two release endpoints:
 
 1. `develop`: documentation of OpenMS develop branch.
-2. `latest`: documentation of OpenMS `stable` release.
+2. `latest`: documentation of the latest stable OpenMS release.
 
 Likewise, OpenMS API reference has:
 
