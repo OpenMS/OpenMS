@@ -292,8 +292,8 @@ protected:
 
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
-    pq_defaults.setValue("include_all", "true"); 
-    pq_defaults.addTag("include_all", "advanced");
+    pq_defaults.setValue("top:include_all", "true");
+    pq_defaults.addTag("top:include_all", "advanced");
 
     // combine parameters of the individual algorithms
     Param combined;
@@ -1874,8 +1874,8 @@ protected:
     }
     else if (getStringOption_("quantification_method") == "spectral_counting")
     {
-      pq_param.setValue("average", "sum"); 
-      pq_param.setValue("top", 0); // all 
+      pq_param.setValue("top:aggregate", "sum");
+      pq_param.setValue("top:N", 0); // all
       pq_param.setValue("consensus:normalize", "false");
       quantifier.setParameters(pq_param);
 

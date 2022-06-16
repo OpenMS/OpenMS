@@ -5647,3 +5647,11 @@ CONSENSUS	62.0	294.100000000000023	0.0	1	0.0	2.0	4	[M+H]+		2
 """
     os.remove("FeatureQuantificationTable.txt")
 
+    pyopenms.GNPSMetaValueFile.store(cm, "MetaValueTable.tsv")
+    with open("MetaValueTable.tsv", "r") as f:
+        assert f.read() == """filename	ATTRIBUTE_MAPID
+1.mzML	MAP0
+2.mzML	MAP1
+"""
+    os.remove("MetaValueTable.tsv")
+
