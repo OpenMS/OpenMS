@@ -178,14 +178,14 @@
 
  Tool tests are using the tool executable that the user would also receive. We use those executables to run the full algorithm on a small test dataset, to ensure that from version to version, the results stay the same.
 
- @subsection how_to_add_a_new_topp_test How to add a new TOPP test?
+ @subsection how_to_add_a_new_topp_test How to add a new TOPP test
 
  Each tool test consists of:
  <ul>
  <li>An executable call on a test dataset (by using either fixed command line parameters or a <code>.ini</code> file).</li>
  <li>A <code>FuzzyDiff</code> call that compares the temporary output file of the last call and a reference test output that you have to provide.</li>
  <li>A line to add a dependency of the <code>FuzzyDiff</code> call on the actual executable call (so they get executed after each other). Use e.g., <code>ctest -V -R IDMapper</code> to only test tests that include the regex <code>IDMapper</code> (<code>-V</code> is just verbose). Make sure to build the <code>IDMapper</code> and <code>IDMapper_test</code> executable after it is edited. <code>ctest</code> does not have any automatic dependency on the timestamps of the executables.</li>
- <ul>
+ </ul>
 
  @subsection how_to_add_a_new_class_test How to add a new class test
 
