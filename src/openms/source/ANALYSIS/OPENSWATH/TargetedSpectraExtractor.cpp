@@ -289,7 +289,6 @@ namespace OpenMS
     ams.run(feat_map, output);
     // Remake the feature map replacing the peptide hits as features/sub-features
     feat_map_output.clear();
-    int unknown_feature_counter = 1;
     for (const OpenMS::Feature& feature : feat_map)
     {
       const auto& peptide_identifications = feature.getPeptideIdentifications();
