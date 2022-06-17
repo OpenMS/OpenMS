@@ -180,7 +180,10 @@ namespace OpenMS
 //erweitern, mit aktueller curser position
 // rückgabe: vector von strings
 // (OpenMS::StringList)
-  OpenMS::StringList ConsoleUtils::breakString_(const OpenMS::String& input, const Size indentation, const Size max_lines, const Size curser_pos)
+  OpenMS::StringList ConsoleUtils::breakString_(const OpenMS::String& input,
+                                                const Size indentation,
+                                                const Size max_lines, 
+                                                const Size curser_pos)
   {
     
     //OpenMS::StringList list;
@@ -269,6 +272,16 @@ namespace OpenMS
   {
     SetConsoleTextAttribute(GetStdHandle(STD_ERROR_HANDLE), color_code);
   }
+
+int getCoutColor()
+{
+  return default_cout_;
+}
+
+int getCerrColor()
+{
+  return default_cerr_;
+}
 
 #endif
 

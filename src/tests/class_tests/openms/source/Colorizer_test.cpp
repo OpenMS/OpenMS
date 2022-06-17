@@ -292,7 +292,7 @@ START_SECTION("See if stream is a tty or a file")
 	ofstream test_file("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/testingthis.txt");
 
     cout << 1;
-    test_stream << cyan("SOMECYANTEXT");
+    test_stream << cyan("SOMECYANTEXT1");
 	TEST_EQUAL(test_stream.str(),cyanANSI+"SOMECYANTEXT"+resetColorANSI)
 
     TEST_EQUAL(isatty(STDIN_FILENO), 1); //is a tty
@@ -300,7 +300,7 @@ START_SECTION("See if stream is a tty or a file")
     TEST_EQUAL(isatty(STDERR_FILENO), 0); //is a tty
 
     freopen("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/testingthis.txt", "w", stdout);
-    cout<<cyan("SOMECYANTEXT");
+    cout<<cyan("SOMECYANTEXT2");
 
     TEST_EQUAL(isatty(STDIN_FILENO), 1); //is a tty
     TEST_EQUAL(isatty(STDOUT_FILENO), 0); //is a tty

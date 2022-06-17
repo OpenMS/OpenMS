@@ -89,10 +89,11 @@ namespace OpenMS
 #elif defined(__linux__) || defined(__OSX__)
     // write coloring escape codes into the string
 
-    if(isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))
-    {
-       stream << this->colors_[this->color_];
-    }
+    // if(isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))
+    // {
+    //    stream << this->colors_[this->color_];
+    // }
+    stream << this->colors_[this->color_];
 
     // Problem - in testfiles, STDOUT is always 0 because
     //console output is supressed. It should be made an 
@@ -119,6 +120,11 @@ namespace OpenMS
     
     
 #elif defined(__linux__) || defined(__OSX__)
+
+  //  if(isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))
+  //   {
+  //      stream << this->colors_[8];
+  //   }
     stream << this->colors_[8];
 #endif
   }

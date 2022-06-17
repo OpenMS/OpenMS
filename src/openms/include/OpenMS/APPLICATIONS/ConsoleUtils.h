@@ -57,7 +57,19 @@ namespace OpenMS
     /// @param input String to be split
     /// @param indentation Number of spaces to use for lines 2 until last line.
     /// @param max_lines Limit of output lines (all others are removed)
-    static OpenMS::StringList breakString(const String& input, const Size indentation, const Size max_lines, const Size curser_pos = 0);
+        /// C'tor
+    ConsoleUtils();
+
+    /// Copy C'tor
+    ConsoleUtils(const ConsoleUtils&);
+
+    /// Destructor
+    ~ConsoleUtils();
+    
+    static OpenMS::StringList breakString(const String& input,
+                                          const Size indentation, 
+                                          const Size max_lines, 
+                                          const Size curser_pos = 0);
 
     const int getConsoleSize()
   {
@@ -72,10 +84,10 @@ namespace OpenMS
 
 //#ifdef OPENMS_WINDOWSPLATFORM
 
-    /// reset the color of the windows output handle
-    void resetCoutColor();
-    /// reset the color of the windows error handle
-    void resetCerrColor();
+    // /// reset the color of the windows output handle
+    // void resetCoutColor();
+    // /// reset the color of the windows error handle
+    // void resetCerrColor();
 
     /// reset the color of both output streams
     void resetConsoleColor();
@@ -84,16 +96,15 @@ namespace OpenMS
 
     void setCerrColor(int color_code);
 
+    int getCoutColor();
+
+    int getCerrColor();
+
 //#endif
 
-
-
-
-/// Destructor
-    ~ConsoleUtils();
-
   private:
-    /// width of console we are currently in (if not determinable, set to 80 as default)
+    /// width of console we are currently in 
+    ///(if not determinable, set to 80 as default)
     int console_width_;
 
     /// read console settings for output shaping
@@ -103,13 +114,12 @@ namespace OpenMS
     static ConsoleUtils& getInstance_();
 
     /// returns a console friendly version of input
-    OpenMS::StringList breakString_(const String& input, const Size indentation, const Size max_lines, const Size curser_pos);
+    OpenMS::StringList breakString_(const String& input,
+                                    const Size indentation, 
+                                    const Size max_lines, 
+                                    const Size curser_pos);
 
-    /// C'tor
-    ConsoleUtils();
 
-    /// Copy C'tor
-    ConsoleUtils(const ConsoleUtils&);
 
     // /// Destructor
     // ~ConsoleUtils();

@@ -53,22 +53,10 @@ START_TEST(ConsoleUtils, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION(ConsoleUtils())
-{
-	// this class is a singleton exposing a single function (breakString)
-	NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION(~ConsoleUtils())
-{
-	NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION(const int getConsoleSize())
 {
-	NOT_TESTABLE
+	ConsoleUtils c();
+	const int console_size = c.ConsoleUtils::getConsoleSize();
 }
 END_SECTION
 
@@ -78,60 +66,73 @@ START_SECTION(ConsoleUtils getInstance())
 }
 END_SECTION
 
-START_SECTION(void resetCoutColor())
-{
-	NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION(void resetCerrColor())
-{
-	NOT_TESTABLE
-}
-END_SECTION
+#ifdef OPENMS_WINDOWSPLATTFORM
 
 START_SECTION(void resetConsoleColor())
 {
-	NOT_TESTABLE
+	ConsoleUtils c(ConsoleUtils const);
+	c.ConsoleUtils::setCoutColor(16);
+	c.ConsoleUtils::setCerrColor(9);
+	int def_cout = c.ConsoleUtils::getCoutColor();
+	int def_cerr = c.ConsoleUtils::getCerrColor();
+	TEST_EQUAL(def_cout,16)
+	TEST_EQUAL(def_cerr,10)
 }
 END_SECTION
 
 START_SECTION(void setCoutColor())
 {
-	NOT_TESTABLE
+	ConsoleUtils c(ConsoleUtils const);
+	c.ConsoleUtils::setCoutColor(16);
+	int def_ = c.ConsoleUtils::getCoutColor();
+	TEST_EQUAL(def,16);
 }
 END_SECTION
 
 START_SECTION(void setCerrColor())
 {
-	NOT_TESTABLE
+	ConsoleUtils c(ConsoleUtils const);
+	c.ConsoleUtils::setCerrColor(11);
+	int def_ = c.ConsoleUtils::getCoutColor();
+	TEST_EQUAL(def,11);
 }
 END_SECTION
+#endif
 
-START_SECTION(OpenMS::StringList breakString_(const String& input, const Size indentation, const Size max_lines, const Size curser_pos))
+START_SECTION((static OpenMS::StringList breakString(const String& input,
+										const Size indentation, 
+										const Size max_lines,
+										const Size curser_pos = 0)))
+
+/*
+static String breakString(const String &input,
+										const Size indentation, 
+										const Size max_lines))
+
+*/
 {
-	NOT_TESTABLE
+	// we cannot predict which shape the broken string will have, so testing is rather limited
+	String test_string = "This is a test string which should be broken up into multiple lines.";
+	OpenMS::StringList broken_string = ConsoleUtils::breakString(test_string, 0, 10);
+	//String broken_string = ConsoleUtils::breakString(test_string, 0, 10);
+
+	// freopen("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/testingthis.txt", "w", stdout);
+	fstream my_file;
+	my_file.open("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/testingthis.txt", ios::out);
+    
+	string first_string = broken_string[3];
+	my_file << first_string;
+	my_file.close();
+
+	TEST_EQUAL(test_string[1].length() <= broken_string.length(), true)
+
+	/*
+	error: conversion from ‘OpenMS::StringList’ {aka ‘std::vector<OpenMS::String>’} to non-scalar type ‘OpenMS::String’ requested
+   67 |  String broken_string = ConsoleUtils::breakString(test_string, 0, 10);
+
+	*/
 }
 END_SECTION
-
-
-
-
-// START_SECTION((static String breakString(const String &input, const Size indentation, const Size max_lines)))
-// {
-// 	// we cannot predict which shape the broken string will have, so testing is rather limited
-// 	String test_string = "This is a test string which should be broken up into multiple lines.";
-// 	String broken_string = ConsoleUtils::breakString(test_string, 0, 10);
-
-// 	TEST_EQUAL(test_string.length() <= broken_string.length(), true)
-
-// 	/*
-// 	error: conversion from ‘OpenMS::StringList’ {aka ‘std::vector<OpenMS::String>’} to non-scalar type ‘OpenMS::String’ requested
-//    67 |  String broken_string = ConsoleUtils::breakString(test_string, 0, 10);
-
-// 	*/
-// }
-// END_SECTION
 
 
 
