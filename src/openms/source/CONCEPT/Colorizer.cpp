@@ -41,6 +41,8 @@
 
 // include in project
 #include <OpenMS/CONCEPT/Colorizer.h>
+#define COLORIZER_TEST
+
 
 
 
@@ -89,11 +91,14 @@ namespace OpenMS
 #elif defined(__linux__) || defined(__OSX__)
     // write coloring escape codes into the string
 
-    // if(isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))
-    // {
-    //    stream << this->colors_[this->color_];
-    // }
-    stream << this->colors_[this->color_];
+     #if not defined(COLORIZER_TEST)
+      if(isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))
+      {
+        stream << this->colors_[this->color_];
+      }
+    #else
+      stream << this->colors_[this->color_];
+    #endif
 
     // Problem - in testfiles, STDOUT is always 0 because
     //console output is supressed. It should be made an 
@@ -117,15 +122,19 @@ namespace OpenMS
       ConsoleUtils::getInstance().resetCerrColor();
     }
     
-    
-    
+     
 #elif defined(__linux__) || defined(__OSX__)
 
-  //  if(isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))
-  //   {
-  //      stream << this->colors_[8];
-  //   }
+  #if not defined(COLORIZER_TEST)
+  //check if the output is being fed to file or console
+  //supress output of ANSI codes into the file
+    if(isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))
+      {
+        stream << this->colors_[8];
+      }
+  #else
     stream << this->colors_[8];
+  #endif
 #endif
   }
 

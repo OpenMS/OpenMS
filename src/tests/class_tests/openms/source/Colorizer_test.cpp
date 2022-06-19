@@ -48,7 +48,7 @@
 using namespace OpenMS;
 using namespace std;
 
-
+// #define COLORIZER_TEST;
 
 /* TO-DO 2
 - getReset testable? Why is output always 1?
@@ -299,7 +299,7 @@ START_SECTION("See if stream is a tty or a file")
     TEST_EQUAL(isatty(STDOUT_FILENO), 0); //is a tty
     TEST_EQUAL(isatty(STDERR_FILENO), 0); //is a tty
 
-    freopen("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/testingthis.txt", "w", stdout);
+    freopen("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/ANSI.txt", "w", stdout);
     cout<<cyan("SOMECYANTEXT2");
 
     TEST_EQUAL(isatty(STDIN_FILENO), 1); //is a tty

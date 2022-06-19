@@ -90,7 +90,8 @@ namespace OpenMS
                                               const Size max_lines, 
                                               const Size curser_pos) 
   {
-    return getInstance().breakString_(input, indentation, max_lines, curser_pos);
+    return getInstance().breakString_(input, indentation, 
+                                      max_lines, curser_pos);
   }
 
   int ConsoleUtils::readConsoleSize_()
@@ -209,7 +210,8 @@ namespace OpenMS
 
     for (Size i = 0; i < input.size(); )
     {
-      String line = input.substr(i, result.empty() ? line_len : short_line_len); // first line has full length
+      String line = input.substr(i, result.empty() ? line_len : short_line_len); 
+      // first line has full length
       Size advance_size = line.size();
       if (line.hasSubstring("\n"))
       {
@@ -239,17 +241,22 @@ namespace OpenMS
       }
 
       i += advance_size;
-      String s_intend = (result.empty() ? "" : String(indentation, ' ')); // first line no indentation
-      String r = s_intend + (result.empty() ? line : line.trim()); // intended lines get trimmed
+      String s_intend = (result.empty() ? "" : String(indentation, ' ')); 
+      // first line no indentation
+      String r = s_intend + (result.empty() ? line : line.trim()); 
+      // intended lines get trimmed
       result.push_back(r); //(r.fillRight(' ', (UInt) line_len));
     }
-    if (result.size() > max_lines) // remove lines from end if we get too many (but leave the last one)...
+    if (result.size() > max_lines) 
+    // remove lines from end if we get too many (but leave the last one)...
     {
       String last = result.back();
       result.erase(result.begin() + max_lines - 2, result.end());
-      result.push_back((String(indentation, ' ') + String("..."))); //.fillRight(' ',(UInt) line_len));
+      result.push_back((String(indentation, ' ') + String("..."))); 
+      //.fillRight(' ',(UInt) line_len));
       result.push_back(last);
     }
+  
     // remove last " " from last line to prevent automatic line break
     //if (result.size()>0 && result[result.size()-1].hasSuffix(" ")) result[result.size()-1] = result[result.size()-1].substr(0,result[result.size()-1].size()-1);
     
