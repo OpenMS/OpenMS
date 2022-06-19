@@ -142,26 +142,15 @@ namespace OpenMS
 //#endif
   };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   class IndentedStringStream
   {
   public:
-    IndentedStringStream(std::ostream& stream, const Size indentation, const Size max_lines) : stream_(&stream), indentation_(indentation), max_lines_(max_lines), current_column_pos_(0)
+    IndentedStringStream(std::ostream& stream, 
+                              const Size indentation, 
+                              const Size max_lines) : stream_(&stream), 
+                              indentation_(indentation), 
+                              max_lines_(max_lines), 
+                              current_column_pos_(0)
     {
       max_line_width_ = ConsoleUtils::getInstance().getConsoleSize();
     }
@@ -177,7 +166,10 @@ namespace OpenMS
       
       //wie viele zeilen sind es / viel viele zeichen in letrzter zeile
       
-      OpenMS::StringList result = ConsoleUtils::breakString(string_to_print,indentation_,max_lines_,current_column_pos_);
+      OpenMS::StringList result = ConsoleUtils::breakString(string_to_print,
+                                                            indentation_,
+                                                            max_lines_,
+                                                            current_column_pos_);
       
       if (result.size()>=2)
       { // we completed the previous line, so start counting from the latest incomplete line
@@ -198,7 +190,7 @@ namespace OpenMS
 ///741 = offset
 ///763 = indent
 
-    IndentedStringStream& operator<<(Colorizer& colorizer);
+    IndentedStringStream& operator<<(ColorizerMethods& colorizer);
 
   private:
     std::ostream* stream_;
@@ -207,6 +199,26 @@ namespace OpenMS
     int max_line_width_;
     int current_column_pos_;
   };
+
+class ColorizerMethods: public Colorizer
+    {
+    
+    public:
+
+    ///Constructor
+    ColorizerMethods(const Color color);
+
+    /// Default destructor
+    ~ColorizerMethods();
+
+    void outputToStream_(std::ostream& o_stream){this->outputToStream(o_stream);}
+
+    void colorStream_(std::ostream& stream) const{this->colorStream(stream);}
+
+    void resetColor_(std::ostream& stream){this->resetColor(stream);}
+
+    std::string getDataAsString_(){return this->getDataAsString();}
+    };
 
 
 } // namespace OpenMS

@@ -294,14 +294,14 @@ int getCerrColor()
 
 
     
-IndentedStringStream& IndentedStringStream::operator<<(Colorizer& colorizer)   
+IndentedStringStream& IndentedStringStream::operator<<(ColorizerMethods& colorizer)   
 { 
-  colorizer.colorStream(*stream_);
-  this->operator<<(colorizer.getDataAsString());
+  colorizer.ColorizerMethods::colorStream_(*stream_);
+  this->operator<<(colorizer.ColorizerMethods::getDataAsString_());
 
-  if(colorizer.getReset())
+  if(colorizer.ColorizerMethods::getReset_())
   {
-    colorizer.resetColor(*stream_);
+    colorizer.ColorizerMethods::resetColor_(*stream_);
   
   }
     

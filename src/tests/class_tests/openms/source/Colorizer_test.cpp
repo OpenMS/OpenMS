@@ -48,14 +48,6 @@
 using namespace OpenMS;
 using namespace std;
 
-// #define COLORIZER_TEST;
-
-/* TO-DO 2
-- getReset testable? Why is output always 1?
-- UPDATE OpenMS Version (consult) and Colorizer version
-- Test background color change test case - DEFINE functionality first
-- ConsoleUtils Erweiterung
-*/
 
 template <typename T>
 //convert any input to string
@@ -66,14 +58,35 @@ string convertToString ( T var_input )
     return ss.str();
 }
 
+
+class ColorizerMethodsTester: public Colorizer
+    {
+    
+    public:
+
+    ///Constructor
+    ColorizerMethodsTester(const Color color);
+
+    /// Default destructor
+    ~ColorizerMethodsTester();
+
+    void outputToStream_(std::ostream& o_stream){this->outputToStream(o_stream);}
+
+    void colorStream_(std::ostream& stream) const{this->colorStream(stream);}
+
+    void resetColor_(std::ostream& stream){this->resetColor(stream);}
+
+    std::string getDataAsString_(){return this->getDataAsString();}
+    };
+
+
 START_TEST(Colorizer(),"$Id$")
 
  //Test variables
 char test_char = 'a';
 int test_int = 15;
 float test_float = 2094.5892;
-// string test_string = " !#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-string test_string = "ABCDE";
+string test_string = " !#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
 //ANSI codes
 
@@ -103,13 +116,14 @@ string test_string = "ABCDE";
 
 #endif
 
+
 START_SECTION(Colorizer::colorStream(ostream& stream) const)
 {
     //without text
     stringstream test_stream;
-    Colorizer c(COLOR::black);
+    ColorizerMethodsTester c(Color::BLACK);
 
-    c.colorStream(test_stream);
+    c.colorStream_(test_stream);
     TEST_EQUAL(test_stream.str(), blackANSI)
 
     //with text
@@ -117,9 +131,8 @@ START_SECTION(Colorizer::colorStream(ostream& stream) const)
     test_stream.clear();
 
     test_stream << c(test_string);
-    c.colorStream(test_stream);
+    c.colorStream_(test_stream);
     TEST_EQUAL(test_stream.str(),blackANSI+test_string+resetColorANSI+blackANSI)
-    
 }
 END_SECTION
 
@@ -127,9 +140,9 @@ START_SECTION(Colorizer::outputToStream(ostream& o_stream))
 {
     //without text
     stringstream test_stream;
-    Colorizer c(COLOR::cyan);
+    ColorizerMethodsTester c(Color::CYAN);
 
-    c.outputToStream(test_stream);
+    c.outputToStream_(test_stream);
     TEST_EQUAL(test_stream.str(), cyanANSI+resetColorANSI)
 
     //with text
@@ -137,19 +150,18 @@ START_SECTION(Colorizer::outputToStream(ostream& o_stream))
     test_stream.clear();
 
     test_stream << c(test_string);
-    c.outputToStream(test_stream);
+    c.outputToStream_(test_stream);
     TEST_EQUAL(test_stream.str(),cyanANSI+test_string+resetColorANSI+cyanANSI+test_string+resetColorANSI)
-
 }
 END_SECTION
 
 START_SECTION(Colorizer::resetColor(ostream& stream))
 {
     stringstream test_stream;
-    Colorizer c(COLOR::green);
+    ColorizerMethodsTester c(Color::GREEN);
 
     test_stream << c(test_string);
-    c.resetColor(test_stream);
+    c.resetColor_(test_stream);
     TEST_EQUAL(test_stream.str(), greenANSI+test_string+resetColorANSI+resetColorANSI)
 }
 END_SECTION
@@ -157,23 +169,30 @@ END_SECTION
 START_SECTION(Colorizer::getDataAsString())
 {
     stringstream test_stream;
-    Colorizer c(COLOR::red);
+    ColorizerMethodsTester c(Color::RED);
 
     test_stream << c(test_string);
-    test_stream << c.getDataAsString();
+    test_stream << c.getDataAsString_();
     TEST_EQUAL(test_stream.str(), redANSI+test_string+resetColorANSI+test_string)
 }
 END_SECTION
 
-START_SECTION(Colorizer::getReset())
+START_SECTION(Colorizer::reset())
 {
-    NOT_TESTABLE
+    stringstream test_stream;
+    test_stream << green() 
+        << "green text" << 89 << "$" << " " 
+        << green.reset() << "default text" << red() << 11 << red.reset() << "A";
+    TEST_EQUAL(test_stream.str(),greenANSI
+                                +"green text89$ "
+                                +greenANSI+resetColorANSI
+                                +"default text"
+                                +redANSI+"11"+redANSI+resetColorANSI+"A")
 }
 END_SECTION
 
 START_SECTION("Testing Colorizer instances")
 {
-
     //Check that the colorized input contains the original text and according ASCI codes
 
     stringstream colored_stream;
@@ -217,9 +236,6 @@ START_SECTION("Testing Colorizer instances")
     TEST_EQUAL(colored_stream.str(), whiteANSI+test_string+resetColorANSI)
     colored_stream.str(string());
     colored_stream.clear();
-
-    // #endif
-
 }
 END_SECTION
 
@@ -264,36 +280,42 @@ START_SECTION("Testing Colorizer inputs")
     colored_stream.str(string());
     colored_stream.clear();
     comparison_string = "";
-
 }
 END_SECTION
 
 START_SECTION(Colorizer& operator()())
 {
-
     stringstream test_stream;
-
-    test_stream << green() << "green text" << 123 << "!" << " " << reset_color();
-    TEST_EQUAL(test_stream.str(),greenANSI+"green text123! "+resetColorANSI)
-    test_stream.str(string());
-    test_stream.clear();
-
-    test_stream << reset_color() << "default text" << magenta() << "magenta text";
-    TEST_EQUAL(test_stream.str(),resetColorANSI+"default text"+magentaANSI+"magenta text")
-    test_stream.str(string());
-    test_stream.clear();
+    test_stream << green() 
+                << "green text" 
+                << 123 << "!" 
+                << " " 
+                << magenta()
+                << "magenta text"
+                << green.reset()
+                << "default text"
+                << magenta.reset()
+                << "default text";
+    TEST_EQUAL(test_stream.str(),greenANSI
+                                +"green text123! "
+                                +magentaANSI
+                                +"magenta text"
+                                +greenANSI+resetColorANSI
+                                +"default text"
+                                +magentaANSI+resetColorANSI
+                                +"default text")
 
 }
 END_SECTION
 
 START_SECTION("See if stream is a tty or a file")
 {
-	stringstream test_stream;
-	ofstream test_file("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/testingthis.txt");
+    stringstream test_stream;
+    ofstream test_file("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/testingthis.txt");
 
     cout << 1;
     test_stream << cyan("SOMECYANTEXT1");
-	TEST_EQUAL(test_stream.str(),cyanANSI+"SOMECYANTEXT"+resetColorANSI)
+    TEST_EQUAL(test_stream.str(),cyanANSI+"SOMECYANTEXT"+resetColorANSI)
 
     TEST_EQUAL(isatty(STDIN_FILENO), 1); //is a tty
     TEST_EQUAL(isatty(STDOUT_FILENO), 0); //is a tty
@@ -316,3 +338,4 @@ END_SECTION
 
 END_TEST
 
+    
