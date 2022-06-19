@@ -177,10 +177,7 @@ private:
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& o_stream, OpenMS::Colorizer& col);
 
 
-}
-
-
- // namespace OpenMS
+} // namespace OpenMS
 
 // // --------------------------------------------------------------------------
 // //                   OpenMS -- Open-Source Mass Spectrometry
