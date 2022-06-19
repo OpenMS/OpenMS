@@ -157,6 +157,13 @@ namespace OpenMS
     return *this;
   }
 
+  ///
+  bool Colorizer::getReset()
+  {
+    return this->reset_;
+  }
+
+
   // overload the shift operator (<<)
   std::ostream& operator<<(std::ostream& o_stream, OpenMS::Colorizer& col)
   {

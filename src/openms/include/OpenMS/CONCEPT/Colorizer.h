@@ -125,6 +125,7 @@ protected:
     ///
     std::string getDataAsString();
 
+    bool getReset();
 
 private:
     const int color_;

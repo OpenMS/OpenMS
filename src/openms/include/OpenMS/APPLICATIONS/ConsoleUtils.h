@@ -217,6 +217,8 @@ class ColorizerMethods: public Colorizer
 
     void resetColor_(std::ostream& stream){this->resetColor(stream);}
 
+    bool getReset_(){return this->getReset();}
+
     std::string getDataAsString_(){return this->getDataAsString();}
     };
 
