@@ -99,7 +99,7 @@ START_SECTION(void setCerrColor())
 END_SECTION
 #endif
 
-START_SECTION((static OpenMS::StringList breakString(const String& input,
+START_SECTION((static OpenMS::StringList breakStringList(const String& input,
 										const Size indentation, 
 										const Size max_lines,
 										const Size curser_pos = 0)))
@@ -113,11 +113,11 @@ static String breakString(const String &input,
 {
 	// we cannot predict which shape the broken string will have, so testing is rather limited
 	String test_string = "This is a test string which should be broken up into multiple lines.";
-	OpenMS::StringList broken_string = ConsoleUtils::breakString(test_string, 0, 10);
-	//String broken_string = ConsoleUtils::breakString(test_string, 0, 10);
+	// OpenMS::StringList broken_string = ConsoleUtils::breakString(test_string, 0, 10);
+	String broken_string = ConsoleUtils::breakString(test_string, 0, 10);
 
 	// freopen("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/testingthis.txt", "w", stdout);
-	string first_string = broken_string[3];
+	string first_string = broken_string;
 
 	int l = broken_string.size();
 

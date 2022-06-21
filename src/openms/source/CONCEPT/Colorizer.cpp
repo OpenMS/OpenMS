@@ -40,7 +40,7 @@
   #include <windows.h>
 #endif
 
-// #define COLORIZER_TEST
+#define COLORIZER_TEST
 
 
 namespace OpenMS
