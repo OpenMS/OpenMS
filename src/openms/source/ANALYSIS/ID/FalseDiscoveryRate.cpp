@@ -32,12 +32,12 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/FILTERING/ID/IDFilter.h"
-#include "OpenMS/METADATA/ProteinIdentification.h"
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <algorithm>
 #include <numeric>
