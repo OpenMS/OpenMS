@@ -47,6 +47,8 @@ namespace OpenMS
 {
   class Peak1D;
   enum class DriftTimeUnit;
+  typedef DPosition<1> PositionType;
+  typedef float IntensityType;
   /**
     @brief The representation of a 1D spectrum.
 
@@ -123,10 +125,8 @@ public:
     typedef std::vector<IntegerDataArray> IntegerDataArrays;
 
     /// Intensity type
-    typedef float IntensityType;
-    typedef std::vector<IntenstiyType> IntensityTypes;
+    typedef std::vector<IntensityType> IntensityTypes;
     /// Position type
-    typedef DPosition<1> PositionType;
     typedef std::vector<PositionType> PositionTypes;
     //@}
 
