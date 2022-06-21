@@ -40,7 +40,7 @@
   #include <windows.h>
 #endif
 
-#define COLORIZER_TEST
+// #define COLORIZER_TEST
 
 
 namespace OpenMS
@@ -56,7 +56,7 @@ namespace OpenMS
   {
 // if colorizer object is destroyed, set console color back to def col.
 #if defined(__linux__) || defined(__OSX__)
-    std::cout << colors_[8];
+    std::cout << colors_[int(Color::RESET)]; //check
     // std::cout << resetColor(cout);
     // std::cerr << resetColor(cerr);
 #endif
@@ -81,7 +81,8 @@ namespace OpenMS
 #elif defined(__linux__) || defined(__OSX__)
     // write coloring escape codes into the string
 
-         #if not defined(COLORIZER_TEST)
+      //check cout oder cerr 
+      #if not defined(COLORIZER_TEST)
       if(isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))
       {
         stream << this->colors_[this->color_];
@@ -181,6 +182,5 @@ namespace OpenMS
   OpenMS::Colorizer magenta(Color::MAGENTA);
   OpenMS::Colorizer cyan(Color::CYAN);
   OpenMS::Colorizer white(Color::WHITE);
-  // OpenMS::Colorizer reset_color(Color::RESET);
 
 } // namespace OpenMS

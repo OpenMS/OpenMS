@@ -85,13 +85,13 @@ namespace OpenMS
 
   // void ConsoleUtils::operator=(const ConsoleUtils& other);
   
-  OpenMS::StringList ConsoleUtils::breakString(const String& input,
+  OpenMS::String ConsoleUtils::breakString(const String& input,
                                               const Size indentation, 
                                               const Size max_lines, 
                                               const Size curser_pos) 
   {
-    return getInstance().breakString_(input, indentation, 
-                                      max_lines, curser_pos);
+    return ListUtils::concatenate(getInstance().breakString_(input, indentation, 
+                                      max_lines, curser_pos),"\n");
   }
 
   int ConsoleUtils::readConsoleSize_()
@@ -294,14 +294,14 @@ int getCerrColor()
 
 
     
-IndentedStringStream& IndentedStringStream::operator<<(ColorizerMethods& colorizer)   
+IndentedStringStream& IndentedStringStream::operator<<(Colorizer& colorizer)   
 { 
-  colorizer.ColorizerMethods::colorStream_(*stream_);
-  this->operator<<(colorizer.ColorizerMethods::getDataAsString_());
+  colorizer.colorStream(*stream_);
+  this->operator<<(colorizer.getDataAsString());
 
-  if(colorizer.ColorizerMethods::getReset_())
+  if(colorizer.getReset())
   {
-    colorizer.ColorizerMethods::resetColor_(*stream_);
+    colorizer.resetColor(*stream_);
   
   }
     

@@ -117,12 +117,8 @@ static String breakString(const String &input,
 	//String broken_string = ConsoleUtils::breakString(test_string, 0, 10);
 
 	// freopen("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/testingthis.txt", "w", stdout);
-	fstream my_file;
-	my_file.open("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/testingthis.txt", ios::out);
-    
 	string first_string = broken_string[3];
-	my_file << first_string;
-	my_file.close();
+
 	int l = broken_string.size();
 
 	//test_string[1].length() <= broken_string.length()
@@ -132,6 +128,9 @@ static String breakString(const String &input,
 	error: conversion from ‘OpenMS::StringList’ {aka ‘std::vector<OpenMS::String>’} to non-scalar type ‘OpenMS::String’ requested
    67 |  String broken_string = ConsoleUtils::breakString(test_string, 0, 10);
 
+	2 breakstring funktionen - string und stringlist zurueckgeben
+	breakString string - concat
+	breakStringList StringList
 	*/
 }
 END_SECTION
