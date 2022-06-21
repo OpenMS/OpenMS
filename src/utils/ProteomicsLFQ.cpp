@@ -194,8 +194,8 @@ protected:
     setMinFloat_("psmFDR", 0.0);
     setMaxFloat_("psmFDR", 1.0);
 
-    registerStringOption_("FDR_type", "<threshold>", "PSM", "Sub-protein FDR level. PSM, peptide (best PSM score), PSM+peptide (best PSM q-value).", false);
-    setValidStrings_("FDR_type", {"PSM", "peptide", "PSM+peptide"});
+    registerStringOption_("FDR_type", "<threshold>", "PSM", "Sub-protein FDR level. PSM, PSM+peptide (best PSM q-value).", false);
+    setValidStrings_("FDR_type", {"PSM", "PSM+peptide"});
 
     //TODO expose all parameters of the inference algorithms (e.g. aggregation methods etc.)?
     registerStringOption_("protein_inference", "<option>", "aggregation",
@@ -1395,9 +1395,6 @@ protected:
     const bool picked = getStringOption_("picked_proteinFDR") == "true";
 
     //TODO use new FDR_type parameter
-
-    // Note: actually, when Bayesian inference was performed, per default only one (best) PSM
-    // is left per peptide, so the calculated PSM FDR is equal to a Peptide FDR
     const double max_psm_fdr = getDoubleOption_("psmFDR");
     FalseDiscoveryRate fdr;
     if (getFlag_("PeptideQuantification:quantify_decoys"))
@@ -1417,15 +1414,30 @@ protected:
       fdr.applyPickedProteinFDR(inferred_protein_ids[0], picked_decoy_string, picked_decoy_prefix);
     }
 
+    bool pepFDR = getStringOption_("FDR_type") == "PSM+peptide";
     //TODO Think about the implications of mixing PSMs from different files and searches.
     //  Score should be PEPs here. We could extract the original search scores, depending on preprocessing. PEPs allow some normalization but will
     //  disregard the absolute score differences between runs (i.e. if scores in one run are all lower than the ones in another run,
     //  do you want to filter them out preferably or do you say: this was a faulty run, if the decoys are equally bad, I want the
     //  best targets to be treated like the best targets from the other runs, even if the absolute match scores are much lower).
-    fdr.apply(inferred_peptide_ids);
+    fdr.apply(inferred_peptide_ids, pepFDR);
+    if (pepFDR)
+    {
+      IDScoreSwitcherAlgorithm switcher;
+      Param switcherParams = switcher.getDefaults();
+      switcherParams.setValue("new_score","peptide q-value");
+      switcherParams.setValue("new_score_orientation","lower_better");
+      switcherParams.setValue("old_score","PSM q-value");
+      switcher.setParameters(switcherParams);
+      Size c(0);
+      for (auto& id : inferred_peptide_ids)
+      {
+        switcher.switchScores(id, c);
+      }
+    }
     //fdr.applyBasic(inferred_protein_ids, inferred_peptide_ids);
 
-    if (!getFlag_("PeptideQuantification:quantify_decoys"))
+    if (!getFlag_("PeptideQuantification:quantify_decoys") || debug_level_ >= 666)
     { // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs
       IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
       IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we don't filter peptides for now, we don't need this
@@ -1435,12 +1447,6 @@ protected:
 
     if (debug_level_ >= 666)
     {
-      // This is needed because we throw out decoy proteins during FDR
-      IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we don't filter peptides for now, we don't need this
-      IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
-      IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
-
       IdXMLFile().store("debug_mergedIDsGreedyResolvedFDR.idXML", inferred_protein_ids, inferred_peptide_ids);
     }
 

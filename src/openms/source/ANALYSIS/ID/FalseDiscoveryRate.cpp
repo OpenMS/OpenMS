@@ -32,6 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/FILTERING/ID/IDFilter.h"
 #include "OpenMS/METADATA/ProteinIdentification.h"
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
@@ -65,8 +66,9 @@ namespace OpenMS
     defaults_.setValidStrings("add_decoy_proteins", {"true","false"});
     defaults_.setValue("conservative", "true", "If 'true' (D+1)/T instead of (D+1)/(T+D) is used as a formula.");
     defaults_.setValidStrings("conservative", {"true","false"});
-    //defaults_.setValue("equality_epsilon", 0, "The epsilon under which two scores are considered equal.");
-    //defaults_.setMinFloat("equality_epsilon", 0.0);
+    // TODO to be implemented. I.e., move parameter from FDR tool to here.
+    //defaults_.setValue("subprotein_level", "PSM", "Choose PSM or peptide or PSM+peptide");
+    //defaults_.setValidStrings("subprotein_level", {"PSM","peptide","PSM+peptide"});
     defaultsToParam_();
   }
 
@@ -937,7 +939,7 @@ namespace OpenMS
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
 
     ScoreToTgtDecLabelPairs scores_labels;
-    IDScoreGetterSetter::getScores_(scores_labels, ids, identifier, use_all_hits);
+    IDScoreGetterSetter::getScores_(scores_labels, ids, [&identifier](const PeptideIdentification& id){return identifier == id.getIdentifier();}, use_all_hits);
 
     if (scores_labels.empty())
     {
@@ -997,7 +999,7 @@ namespace OpenMS
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
 
     ScoreToTgtDecLabelPairs scores_labels;
-    IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, ids, include_unassigned_peptides, identifier, use_all_hits);
+    IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, ids, include_unassigned_peptides, [&identifier](const PeptideIdentification& id){return identifier == id.getIdentifier();}, use_all_hits);
 
     if (scores_labels.empty())
     {
@@ -1049,7 +1051,9 @@ namespace OpenMS
           for (int c = chargeRange.first; c <= chargeRange.second; ++c)
           {
             if (c == 0) continue;
-            IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, cmap, include_unassigned_peptides, protID.getIdentifier(), all_hits, c);
+            IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, cmap, include_unassigned_peptides,
+             [&protID](const PeptideIdentification& id){return protID.getIdentifier() == id.getIdentifier();}, all_hits,
+             [&c](const PeptideHit& hit){return c == hit.getCharge();});
             map<double, double> scores_to_fdr;
             calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
             IDScoreGetterSetter::setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides, c, protID.getIdentifier());
@@ -1057,7 +1061,7 @@ namespace OpenMS
         }
         else
         {
-          IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, cmap, include_unassigned_peptides, protID.getIdentifier(), all_hits);
+          IDScoreGetterSetter::getPeptideScoresFromMap_(scores_labels, cmap, include_unassigned_peptides, [&protID](const PeptideIdentification& id){return protID.getIdentifier() == id.getIdentifier();}, all_hits);
           map<double, double> scores_to_fdr;
           calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
           IDScoreGetterSetter::setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides, protID.getIdentifier());
@@ -1074,7 +1078,7 @@ namespace OpenMS
   }
 
   //TODO Add another overload that iterates over a vector. to be consistent with old interface
-  //TODO Make it return a double for the AUC
+  //TODO Make it return a double for the AUC or max FDR (i.e., without cutoff)
   void FalseDiscoveryRate::applyBasic(ProteinIdentification & id, bool groups_too)
   {
     bool add_decoy_proteins = param_.getValue("add_decoy_proteins").toBool();
@@ -1136,6 +1140,9 @@ namespace OpenMS
     if (ids.empty()) return;
     bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
     bool split_charge_variants = param_.getValue("split_charge_variants").toBool();
+    // TODO decide on param interface. Consolidate with FDR tool parameters.
+    //  Then pass the bool to the applyBasic calls.
+    //bool best_per_pep = param_.getValue("pepFDR").toBool();
 
     String identifier = "";
     bool higher_score_better = true;
@@ -1189,7 +1196,7 @@ namespace OpenMS
     }
   }
 
-  void FalseDiscoveryRate::applyBasic(std::vector<PeptideIdentification> & ids, bool higher_score_better, int charge, String identifier)
+  void FalseDiscoveryRate::applyBasic(std::vector<PeptideIdentification> & ids, bool higher_score_better, int charge, String identifier, bool only_best_per_pep)
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
     //TODO Check naming conventions. Ontology?
@@ -1201,9 +1208,9 @@ namespace OpenMS
 
     ScoreToTgtDecLabelPairs scores_labels;
     std::map<double,double> scores_to_FDR;
-
-    //TODO per-charge and per-run not implemented yet.
-    if (charge == 0)
+    auto idcheck = [&identifier](const PeptideIdentification& id){return identifier == id.getIdentifier();};
+    
+    if (charge == 0 && !only_best_per_pep)
     {
       if (identifier.empty())
       {
@@ -1211,19 +1218,45 @@ namespace OpenMS
       }
       else
       {
-        IDScoreGetterSetter::getScores_(scores_labels, ids, identifier, use_all_hits);
+        IDScoreGetterSetter::getScores_(scores_labels, ids, idcheck, use_all_hits);
       }
     }
     else
     {
-      if (identifier.empty())
+      if (!only_best_per_pep /*&& charge != 0*/)
       {
-        IDScoreGetterSetter::getScores_(scores_labels, ids, identifier, use_all_hits, charge);
+        if (identifier.empty())
+        {
+          IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits, [&charge](const PeptideHit& hit){return charge == hit.getCharge();});
+        }
+        else
+        {
+          IDScoreGetterSetter::getScores_(scores_labels, ids, idcheck, use_all_hits, [&charge](const PeptideHit& hit){return charge == hit.getCharge();});
+        }
       }
-      else
+      else if (charge == 0 /* && only_best_per_pep */)
       {
-        IDScoreGetterSetter::getScores_(scores_labels, ids, identifier, use_all_hits, charge);
+        if (identifier.empty())
+        {
+          IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits, [](const PeptideHit& hit){return hit.metaValueExists("best_per_peptide") && int(hit.getMetaValue("best_per_peptide")) == 1;});
+        }
+        else
+        {
+          IDScoreGetterSetter::getScores_(scores_labels, ids, idcheck, use_all_hits, [](const PeptideHit& hit){return hit.metaValueExists("best_per_peptide") && int(hit.getMetaValue("best_per_peptide")) == 1;});
+        }
       }
+      else /*charge != 0 && only_best_per_pep */
+      {
+        if (identifier.empty())
+        {
+          IDScoreGetterSetter::getScores_(scores_labels, ids, use_all_hits, [&charge](const PeptideHit& hit){return (charge == hit.getCharge()) && hit.metaValueExists("best_per_peptide") && int(hit.getMetaValue("best_per_peptide")) == 1;});
+        }
+        else
+        {
+          IDScoreGetterSetter::getScores_(scores_labels, ids, idcheck, use_all_hits, [&charge](const PeptideHit& hit){return (charge == hit.getCharge()) && hit.metaValueExists("best_per_peptide") && int(hit.getMetaValue("best_per_peptide")) == 1;});
+        }
+      }
+
     }
     
     if (scores_labels.empty())

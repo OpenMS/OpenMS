@@ -154,7 +154,7 @@ public:
     /// simpler reimplementation of the apply function above for PSMs. With charge and identifier info from @p run_info
     void applyBasic(const std::vector<ProteinIdentification> & run_info, std::vector<PeptideIdentification> & ids);
     /// simpler reimplementation of the apply function above for PSMs.
-    void applyBasic(std::vector<PeptideIdentification> & ids, bool higher_score_better, int charge = 0, String identifier = "");
+    void applyBasic(std::vector<PeptideIdentification> & ids, bool higher_score_better, int charge = 0, String identifier = "", bool only_best_per_pep = false);
     /// simpler reimplementation of the apply function above for peptides in ConsensusMaps.
     void applyBasic(ConsensusMap & cmap, bool use_unassigned_peptides = true);
     /// simpler reimplementation of the apply function above for proteins.

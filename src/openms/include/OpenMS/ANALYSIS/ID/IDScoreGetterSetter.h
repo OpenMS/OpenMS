@@ -130,6 +130,19 @@ namespace OpenMS
         const std::vector<ProteinIdentification::ProteinGroup> &grps,
         const std::unordered_set<std::string> &decoy_accs);
 
+
+    template<class ...Args>
+    static void getScores_(
+        ScoreToTgtDecLabelPairs &scores_labels,
+        const std::vector<PeptideIdentification> &ids,
+        Args &&... args)
+    {
+      for (const PeptideIdentification &id : ids)
+      {
+        getScores_(scores_labels, id, std::forward<Args>(args)...);
+      }
+    }
+
     static void getScores_(
         ScoreToTgtDecLabelPairs &scores_labels,
         const ProteinIdentification &id)
@@ -148,35 +161,10 @@ namespace OpenMS
     template<class ...Args>
     static void getScores_(
         ScoreToTgtDecLabelPairs &scores_labels,
-        const std::vector<PeptideIdentification> &ids,
-        Args &&... args)
-    {
-      for (const auto &id : ids)
-      {
-        getScores_(scores_labels, id, std::forward<Args>(args)...);
-      }
-    }
-
-    template<typename IDType, typename std::enable_if<IsIDType<IDType>::value>::type * = nullptr, class ...Args>
-    static void getScores_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const IDType &id,
-        const String &identifier,
-        Args &&... args
-        )
-    {
-      if (id.getIdentifier() == identifier)
-      {
-        getScores_(scores_labels, id, std::forward<Args>(args)...);
-      }
-    }
-
-    template<class ...Args>
-    static void getScores_(
-        ScoreToTgtDecLabelPairs &scores_labels,
         const PeptideIdentification &id,
         bool all_hits,
-        Args &&... args)
+        Args &&... args
+        )
     {
       if (all_hits)
       {
@@ -187,33 +175,50 @@ namespace OpenMS
       }
       else
       {
-        //TODO for speed I assume that they are sorted and first = best.
+        //TODO for speed and constness I assume that they are sorted and first = best.
         //id.sort();
         const PeptideHit &hit = id.getHits()[0];
         getScores_(scores_labels, hit, std::forward<Args>(args)...);
       }
     }
 
-    static void getScores_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const PeptideHit &hit,
-        int charge)
-    {
-      if (charge == hit.getCharge())
-      {
-        checkTDAnnotation_(hit);
-        scores_labels.emplace_back(hit.getScore(), getTDLabel_(hit));
-      }
-    }
-
+    template<typename IDPredicate, class ...Args>
     static void getScores_(
         ScoreToTgtDecLabelPairs &scores_labels,
         const PeptideIdentification &id,
-        int charge)
+        IDPredicate &&fun,
+        bool all_hits,
+        Args &&... args
+        )
     {
-      for (const PeptideHit &hit : id.getHits())
+      if (fun(id))
       {
-        getScores_(scores_labels, hit, charge);
+        if (all_hits)
+        {
+          for (const PeptideHit &hit : id.getHits())
+          {
+            getScores_(scores_labels, hit, std::forward<Args>(args)...);
+          }
+        }
+        else
+        {
+          //TODO for speed I assume that they are sorted and first = best.
+          //id.sort();
+          const PeptideHit &hit = id.getHits()[0];
+          getScores_(scores_labels, hit, std::forward<Args>(args)...);
+        }
+      }
+    }
+
+    template<typename HitPredicate>
+    static void getScores_(
+        ScoreToTgtDecLabelPairs &scores_labels,
+        const PeptideHit &hit,
+        HitPredicate &&fun)
+    {
+      if (fun(hit))
+      {
+        getScores_(scores_labels, hit);
       }
     }
 
@@ -225,19 +230,6 @@ namespace OpenMS
       checkTDAnnotation_(hit);
       scores_labels.emplace_back(hit.getScore(), getTDLabel_(hit));
     }
-
-    template<typename IDType, typename std::enable_if<IsIDType<IDType>::value>::type * = nullptr>
-    static void getScores_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const IDType &id)
-    {
-      for (const typename IDType::HitType &hit : id.getHits())
-      {
-        getScores_(scores_labels, hit);
-      }
-    }
-
-
     /** @} */
 
 
