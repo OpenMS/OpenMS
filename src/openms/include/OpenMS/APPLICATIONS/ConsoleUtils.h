@@ -66,20 +66,27 @@ namespace OpenMS
     /// Destructor
     ~ConsoleUtils();
     
-    static OpenMS::StringList breakString(const String& input,
+    static OpenMS::String breakString(const String& input,
                                           const Size indentation, 
                                           const Size max_lines, 
                                           const Size curser_pos = 0);
 
+    static OpenMS::StringList breakStringList(const String& input,
+                                          const Size indentation, 
+                                          const Size max_lines, 
+                                          const Size curser_pos = 0);
+
+
+//implement new function breakStringList - returns broken StringList
     const int getConsoleSize()
   {
     return console_width_;
   }
 
-    static ConsoleUtils getInstance()
-    {
-      return getInstance_();
-    }
+  static ConsoleUtils getInstance()
+  {
+    return getInstance_();
+  }
 
 
 //#ifdef OPENMS_WINDOWSPLATFORM
@@ -142,6 +149,28 @@ namespace OpenMS
 //#endif
   };
 
+  class ColorizerMethods: public Colorizer
+    {
+    
+    public:
+
+    ///Constructor
+    ColorizerMethods(const Color color);
+
+    /// Default destructor
+    ~ColorizerMethods();
+
+    void outputToStream_(std::ostream& o_stream){this->outputToStream(o_stream);}
+
+    void colorStream_(std::ostream& stream) const{this->colorStream(stream);}
+
+    void resetColor_(std::ostream& stream){this->resetColor(stream);}
+
+    bool getReset_(){return this->getReset();}
+
+    std::string getDataAsString_(){return this->getDataAsString();}
+    };
+
   class IndentedStringStream
   {
   public:
@@ -166,7 +195,7 @@ namespace OpenMS
       
       //wie viele zeilen sind es / viel viele zeichen in letrzter zeile
       
-      OpenMS::StringList result = ConsoleUtils::breakString(string_to_print,
+      OpenMS::StringList result = ConsoleUtils::breakStringList(string_to_print,
                                                             indentation_,
                                                             max_lines_,
                                                             current_column_pos_);
@@ -190,7 +219,8 @@ namespace OpenMS
 ///741 = offset
 ///763 = indent
 
-    IndentedStringStream& operator<<(ColorizerMethods& colorizer);
+
+    // IndentedStringStream& operator<<(ColorizerMethods& colorizer);
 
   private:
     std::ostream* stream_;
@@ -198,29 +228,27 @@ namespace OpenMS
     int max_lines_;
     int max_line_width_;
     int current_column_pos_;
-  };
+  
 
-class ColorizerMethods: public Colorizer
-    {
+  IndentedStringStream& operator<<(ColorizerMethods& colorizer)   
+{ 
+  colorizer.colorStream_(*stream_);
+  this->operator<<(colorizer.getDataAsString_());
+
+  if(colorizer.getReset_())
+  {
+    colorizer.resetColor_(*stream_);
+  
+  }
     
-    public:
+  return *this;
+}
 
-    ///Constructor
-    ColorizerMethods(const Color color);
+};
 
-    /// Default destructor
-    ~ColorizerMethods();
 
-    void outputToStream_(std::ostream& o_stream){this->outputToStream(o_stream);}
 
-    void colorStream_(std::ostream& stream) const{this->colorStream(stream);}
 
-    void resetColor_(std::ostream& stream){this->resetColor(stream);}
-
-    bool getReset_(){return this->getReset();}
-
-    std::string getDataAsString_(){return this->getDataAsString();}
-    };
 
 
 } // namespace OpenMS

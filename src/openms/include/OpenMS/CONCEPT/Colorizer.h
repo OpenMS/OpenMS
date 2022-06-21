@@ -174,6 +174,7 @@ private:
   //extern /*OPENMS_DLLAPI*/ Colorizer default_color; ///< reset the color to default, alias for 'reset_color'
   
   //Stream operator declaration
-  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& o_stream, OpenMS::Colorizer& col);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& o_stream, 
+                                        OpenMS::Colorizer& col);
 }
 

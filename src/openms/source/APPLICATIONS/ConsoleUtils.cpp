@@ -90,9 +90,21 @@ namespace OpenMS
                                               const Size max_lines, 
                                               const Size curser_pos) 
   {
-    return ListUtils::concatenate(getInstance().breakString_(input, indentation, 
+    return ListUtils::concatenate(ConsoleUtils::getInstance().breakString_(input, indentation, 
                                       max_lines, curser_pos),"\n");
   }
+
+ OpenMS::StringList ConsoleUtils::breakStringList(const String& input,
+                                              const Size indentation, 
+                                              const Size max_lines, 
+                                              const Size curser_pos) 
+  {
+    return ConsoleUtils::getInstance().breakString_(input, indentation, 
+                                      max_lines, curser_pos);
+  }
+
+
+
 
   int ConsoleUtils::readConsoleSize_()
   {
@@ -294,19 +306,38 @@ int getCerrColor()
 
 
     
-IndentedStringStream& IndentedStringStream::operator<<(Colorizer& colorizer)   
-{ 
-  colorizer.colorStream(*stream_);
-  this->operator<<(colorizer.getDataAsString());
+// IndentedStringStream& IndentedStringStream::operator<<(ColorizerMethods& colorizer)   
+// { 
+//   colorizer.ColorizerMethods::colorStream_(*stream_);
+//   this->operator<<(colorizer.ColorizerMethods::getDataAsString_());
 
-  if(colorizer.getReset())
-  {
-    colorizer.resetColor(*stream_);
+//   if(colorizer.ColorizerMethods::getReset_())
+//   {
+//     colorizer.ColorizerMethods::resetColor_(*stream_);
   
-  }
+//   }
     
-  return *this;
-}
+//   return *this;
+// }
+
+
+
+// IndentedStringStream& IndentedStringStream::operator<<(ColorizerMethods& colorizer)   
+// { 
+//   colorizer.colorStream_(*stream_);
+//   this->operator<<(colorizer.getDataAsString_());
+
+//   if(colorizer.getReset_())
+//   {
+//     colorizer.resetColor_(*stream_);
+  
+//   }
+    
+//   return *this;
+// }
+
+
+
 
 
 
@@ -571,7 +602,6 @@ IndentedStringStream& IndentedStringStream::operator<<(Colorizer& colorizer)
     
 //     }
 //   }
-
 
 
 

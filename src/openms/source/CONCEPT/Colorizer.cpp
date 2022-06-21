@@ -119,10 +119,10 @@ namespace OpenMS
     //supress output of ANSI codes into the file
     if(isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))
       {
-        stream << this->colors_[8];
+        stream << this->colors_[int(Color::RESET)];
       }
   #else
-    stream << this->colors_[8];
+    stream << this->colors_[int(Color::RESET)];
   #endif
     // stream << this->colors_[(int)Color::RESET];
 #endif
@@ -166,7 +166,8 @@ namespace OpenMS
 
 
   // overload the shift operator (<<)
-  std::ostream& operator<<(std::ostream& o_stream, OpenMS::Colorizer& col)
+  std::ostream& operator<<(std::ostream& o_stream, 
+                          OpenMS::Colorizer& col)
   {
     // colorize string with color set in the object
     col.outputToStream(o_stream);
