@@ -45,10 +45,6 @@
 
 namespace OpenMS
 {
-  /// Intensity type
-  typedef float IntensityType;
-  /// Position type
-  typedef DPosition<1> PositionType;
   class Peak1D;
   enum class DriftTimeUnit;
   /**
@@ -125,6 +121,13 @@ public:
     /// Integer data array vector type
     typedef OpenMS::DataArrays::IntegerDataArray IntegerDataArray ;
     typedef std::vector<IntegerDataArray> IntegerDataArrays;
+
+    /// Intensity type
+    typedef float IntensityType;
+    typedef std::vector<IntenstiyType> IntensityTypes;
+    /// Position type
+    typedef DPosition<1> PositionType;
+    typedef std::vector<PositionType> PositionTypes;
     //@}
 
     ///@name Peak container iterator type definitions
@@ -612,10 +615,10 @@ public:
 protected:
 
     /// Position
-    std::vector<PositionType> Position;
+    PositionTypes position;
 
     /// Intenstiy
-    std::vector<IntensityType> Intensity;
+    IntensityTypes intensity;
 
     /// Retention time
     double retention_time_;
