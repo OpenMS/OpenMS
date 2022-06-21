@@ -479,7 +479,7 @@ namespace OpenMS
     //name_ can differ => it is not checked
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfloat-equal"
-    return std::operator==(*this, rhs) &&
+    return std::operator==(*this->, rhs) &&
            RangeManagerType::operator==(rhs) &&
            SpectrumSettings::operator==(rhs) &&
            retention_time_ == rhs.retention_time_ &&
@@ -488,7 +488,9 @@ namespace OpenMS
            ms_level_ == rhs.ms_level_ &&
            float_data_arrays_ == rhs.float_data_arrays_ &&
            string_data_arrays_ == rhs.string_data_arrays_ &&
-           integer_data_arrays_ == rhs.integer_data_arrays_;
+           integer_data_arrays_ == rhs.integer_data_arrays_ &&
+           std::operator(Position, rhs.Position) &&
+           std::operator(Intensity, rhs.Intensity);
 
 #pragma clang diagnostic pop
   }
