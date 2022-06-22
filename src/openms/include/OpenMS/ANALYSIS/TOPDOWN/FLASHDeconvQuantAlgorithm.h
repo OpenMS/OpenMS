@@ -603,24 +603,34 @@ namespace OpenMS
 
     void setCentroidRtOfApices()
     {
-      double tmp_rt = .0;
+      std::vector<double> apex_rts;
+      apex_rts.reserve(this->size());
       double max_inty = .0;
       double apex_rt = .0;
 
       for (const auto &lmt: *this)
       {
         Size max_idx = lmt.getMassTrace()->findMaxByIntPeak(false);
-        auto tmp_max_peak = (*lmt.getMassTrace())[max_idx];
-        tmp_rt += tmp_max_peak.getRT();
+        Peak2D tmp_max_peak = (*lmt.getMassTrace())[max_idx];
+        apex_rts.push_back(tmp_max_peak.getRT());
         if (max_inty < tmp_max_peak.getIntensity())
         {
           max_inty = tmp_max_peak.getIntensity();
           apex_rt = tmp_max_peak.getRT();
         }
       }
-      tmp_rt /= this->size();
-      centroid_rt_of_apices = tmp_rt;
       rt_of_apex = apex_rt;
+
+      std::sort(apex_rts.begin(), apex_rts.end());
+      Size mts_count = this->size();
+      if (mts_count % 2 == 0) {
+        // Find the average of value at index N/2 and (N-1)/2
+        centroid_rt_of_apices = (double)(apex_rts[(mts_count-1) / 2] + apex_rts[mts_count / 2]) / 2.0;
+      }
+      else
+      {
+        centroid_rt_of_apices = (double) apex_rts[mts_count / 2];
+      }
     }
 
 
@@ -696,7 +706,7 @@ namespace OpenMS
   public:
     std::vector<FeatureSeed*> mass_traces;
     std::vector<Size> mass_trace_indices; // index to input shared_m_traces_indices
-    std::vector<double> isotope_probabilities;
+    std::vector<double> isotope_probabilities; // used as weights to EGHTraceFitter
 //    LogMassTrace* most_abundant_mt_in_fg = nullptr;
 
     int charge;
@@ -730,7 +740,9 @@ namespace OpenMS
     /// main method of FeatureFindingMetabo
     void run(std::vector<MassTrace> &input_mtraces, FeatureMap &output_featmap);
 
+    String inputfile_path;
     String outfile_path;
+    bool outFeatureXML = false;
 
   protected:
     void updateMembers_() override;
@@ -784,7 +796,7 @@ namespace OpenMS
     void writeMassTracesOfFeatureGroup(const std::vector<FeatureGroup>& featgroups,
                                        const std::vector<std::vector<Size> >& shared_m_traces_indices) const;
 
-    void writeFeatureGroupsInFile(std::vector<FeatureGroup>& feat, std::vector<MassTrace>& input_mtraces) const;
+    void writeFeatureGroupsInTsvFile(std::vector<FeatureGroup>& featgroups) const;
 
     void writeOutputInFeatureXML_(const std::vector<FeatureGroup> &feature_groups,
                                   const std::vector<std::vector<Size>> &shared_m_traces_indices) const;

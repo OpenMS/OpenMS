@@ -198,7 +198,12 @@ public:
     FLASHDeconvQuantAlgorithm fdq;
     fdq.setParameters(fdq_param);
 
+    fdq.inputfile_path = in;
     fdq.outfile_path = out;
+    if (!out_feat.empty())
+    {
+      fdq.outFeatureXML = true;
+    }
     FeatureMap out_map;
     fdq.run(m_traces_final, out_map);
 
@@ -215,7 +220,6 @@ public:
 
     return EXECUTION_OK;
   }
-
 };
 
 int main(int argc, const char** argv)
