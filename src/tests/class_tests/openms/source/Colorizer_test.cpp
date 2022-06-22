@@ -67,8 +67,6 @@ class ColorizerMethodsTester: public Colorizer
     ///Constructor
     ColorizerMethodsTester(const Color color);
 
-    ColorizerMethodsTester();
-
     /// Default destructor
     ~ColorizerMethodsTester();
 
@@ -310,33 +308,33 @@ START_SECTION(Colorizer& operator()())
 }
 END_SECTION
 
-START_SECTION("See if stream is a tty or a file")
-{
-    stringstream test_stream;
-    ofstream test_file("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/testingthis.txt");
+// START_SECTION("See if stream is a tty or a file")
+// {
+//     stringstream test_stream;
+//     ofstream test_file("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/testingthis.txt");
 
-    cout << 1;
-    test_stream << cyan("SOMECYANTEXT1");
-    TEST_EQUAL(test_stream.str(),cyanANSI+"SOMECYANTEXT"+resetColorANSI)
+//     cout << 1;
+//     test_stream << cyan("SOMECYANTEXT1");
+//     TEST_EQUAL(test_stream.str(),cyanANSI+"SOMECYANTEXT"+resetColorANSI)
 
-    TEST_EQUAL(isatty(STDIN_FILENO), 1); //is a tty
-    TEST_EQUAL(isatty(STDOUT_FILENO), 0); //is a tty
-    TEST_EQUAL(isatty(STDERR_FILENO), 0); //is a tty
+//     TEST_EQUAL(isatty(STDIN_FILENO), 1); //is a tty
+//     TEST_EQUAL(isatty(STDOUT_FILENO), 0); //is a tty
+//     TEST_EQUAL(isatty(STDERR_FILENO), 0); //is a tty
 
-    freopen("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/ANSI.txt", "w", stdout);
-    cout<<cyan("SOMECYANTEXT2");
+//     freopen("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/ANSI.txt", "w", stdout);
+//     cout<<cyan("SOMECYANTEXT2");
 
-    TEST_EQUAL(isatty(STDIN_FILENO), 1); //is a tty
-    TEST_EQUAL(isatty(STDOUT_FILENO), 0); //is a tty
-    TEST_EQUAL(isatty(STDERR_FILENO), 0); //is a tty
+//     TEST_EQUAL(isatty(STDIN_FILENO), 1); //is a tty
+//     TEST_EQUAL(isatty(STDOUT_FILENO), 0); //is a tty
+//     TEST_EQUAL(isatty(STDERR_FILENO), 0); //is a tty
 
-    //can't test because I'm always writing results (STDOUT) to file in a testing file
-    //outputs are supressed and instead evaluations of outputs are presented ->
-    //outputs are written somewhere else and checked, so STDOUT is always 0
-    //teste is elsewhere -> make a new file and use colorizer there, or maybe
-    //use console_utils/colorizer output to generate isatty values in different places
-}
-END_SECTION
+//     //can't test because I'm always writing results (STDOUT) to file in a testing file
+//     //outputs are supressed and instead evaluations of outputs are presented ->
+//     //outputs are written somewhere else and checked, so STDOUT is always 0
+//     //teste is elsewhere -> make a new file and use colorizer there, or maybe
+//     //use console_utils/colorizer output to generate isatty values in different places
+// }
+// END_SECTION
 
 END_TEST
 

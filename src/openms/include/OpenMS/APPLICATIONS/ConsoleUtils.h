@@ -132,10 +132,7 @@ namespace OpenMS
     // ~ConsoleUtils();
 
     /// Assignment operator
-    // void operator=(ConsoleUtils const& other);
-    // void operator=(const ConsoleUtils& other);
     void operator=(ConsoleUtils const&);
-    //added "other" here
 
 //#ifdef OPENMS_WINDOWSPLATFORM
 
@@ -245,11 +242,6 @@ namespace OpenMS
 }
 
 };
-
-
-
-
-
 
 } // namespace OpenMS
 

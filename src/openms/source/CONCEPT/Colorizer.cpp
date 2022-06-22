@@ -40,9 +40,6 @@
   #include <windows.h>
 #endif
 
-#define COLORIZER_TEST
-
-
 namespace OpenMS
 {
 
@@ -79,21 +76,23 @@ namespace OpenMS
     }
 
 #elif defined(__linux__) || defined(__OSX__)
-    // write coloring escape codes into the string
-
-      //check cout oder cerr 
-      #if not defined(COLORIZER_TEST)
+  //check if the output is being fed to file or console
+  //supress output of ANSI codes into the file
+    if (&std::cout == &stream)
+    {
+      if(isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))
+      {
+        //write coloring escape codes into the string
+        stream << this->colors_[this->color_];
+      }
+    }
+    else if (&std::cerr == &stream)
+    {
       if(isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))
       {
         stream << this->colors_[this->color_];
       }
-    #else
-      stream << this->colors_[this->color_];
-    #endif
-
-    // Problem - in testfiles, STDOUT is always 0 because
-    //console output is supressed. It should be made an 
-    //exception for colorizer class
+    }
 #endif
   }
 
@@ -113,18 +112,24 @@ namespace OpenMS
     }
     
 #elif defined(__linux__) || defined(__OSX__)
+  //   check if the output is being fed to file or console
+  //   supress output of ANSI codes into the file
 
-    #if not defined(COLORIZER_TEST)
-    //check if the output is being fed to file or console
-    //supress output of ANSI codes into the file
-    if(isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))
+     if (&std::cout == &stream)
+    {
+      if(isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))
+      {
+        //write RESET ANSI code to string
+        stream << this->colors_[int(Color::RESET)];
+      }
+    }
+    else if (&std::cerr == &stream)
+    {
+      if(isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))
       {
         stream << this->colors_[int(Color::RESET)];
       }
-  #else
-    stream << this->colors_[int(Color::RESET)];
-  #endif
-    // stream << this->colors_[(int)Color::RESET];
+    }
 #endif
   }
 
@@ -163,7 +168,6 @@ namespace OpenMS
   {
     return this->reset_;
   }
-
 
   // overload the shift operator (<<)
   std::ostream& operator<<(std::ostream& o_stream, 

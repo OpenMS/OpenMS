@@ -53,12 +53,11 @@ START_TEST(ConsoleUtils, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-// START_SECTION(const int getConsoleSize())
-// {
-// 	ConsoleUtils c();
-// 	const int console_size = c.ConsoleUtils::getConsoleSize();
-// }
-// END_SECTION
+START_SECTION(const int getConsoleSize())
+{
+	NOT_TESTABLE
+}
+END_SECTION
 
 START_SECTION(ConsoleUtils getInstance())
 {
@@ -99,46 +98,34 @@ START_SECTION(void setCerrColor())
 END_SECTION
 #endif
 
-START_SECTION((static OpenMS::StringList breakStringList(const String& input,
+START_SECTION((static OpenMS::String breakString(const String& input,
 										const Size indentation, 
 										const Size max_lines,
 										const Size curser_pos = 0)))
-
-/*
-static String breakString(const String &input,
-										const Size indentation, 
-										const Size max_lines))
-
-*/
 {
 	// we cannot predict which shape the broken string will have, so testing is rather limited
+	// we cannot predict which shape the broken string will have, so testing is rather limited
 	String test_string = "This is a test string which should be broken up into multiple lines.";
-	// OpenMS::StringList broken_string = ConsoleUtils::breakString(test_string, 0, 10);
 	String broken_string = ConsoleUtils::breakString(test_string, 0, 10);
 
-	// freopen("/buffer/ag_bsc/pmsb_22/tetak94/stuff/testclass/testingthis.txt", "w", stdout);
-	string first_string = broken_string;
+	TEST_EQUAL(test_string.length() <= broken_string.length(), true)
 
-	int l = broken_string.size();
-
-	//test_string[1].length() <= broken_string.length()
-	TEST_EQUAL(first_string.length() <= l, true)
-
-	/*
-	error: conversion from ‘OpenMS::StringList’ {aka ‘std::vector<OpenMS::String>’} to non-scalar type ‘OpenMS::String’ requested
-   67 |  String broken_string = ConsoleUtils::breakString(test_string, 0, 10);
-
-	2 breakstring funktionen - string und stringlist zurueckgeben
-	breakString string - concat
-	breakStringList StringList
-	*/
 }
 END_SECTION
 
+START_SECTION(static OpenMS::StringList breakStringList(const String& input,
+										const Size indentation, 
+										const Size max_lines,
+										const Size curser_pos = 0))
+{
+	String test_string = "This is a test string which should be broken up into multiple lines.";
+	OpenMS::StringList broken_string = ConsoleUtils::breakStringList(test_string, 0, 10);
 
+	String broken_string_string = broken_string.StringList::at(0);
+	TEST_EQUAL(test_string.length() <= broken_string_string.length(), true)
+}
+END_SECTION
 
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 END_TEST
 
 
