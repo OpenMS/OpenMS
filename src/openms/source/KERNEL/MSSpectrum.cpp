@@ -488,9 +488,7 @@ namespace OpenMS
            ms_level_ == rhs.ms_level_ &&
            float_data_arrays_ == rhs.float_data_arrays_ &&
            string_data_arrays_ == rhs.string_data_arrays_ &&
-           integer_data_arrays_ == rhs.integer_data_arrays_ &&
-           std::operator==(position, rhs.position) &&
-           std::operator==(intensity, rhs.intensity);
+           integer_data_arrays_ == rhs.integer_data_arrays_ ;
 
 #pragma clang diagnostic pop
   }

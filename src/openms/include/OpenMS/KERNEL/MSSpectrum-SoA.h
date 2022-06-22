@@ -123,11 +123,11 @@ public:
     typedef std::vector<IntegerDataArray> IntegerDataArrays;
 
     /// Intensity type
-    typedef float IntensityType;
-    typedef std::vector<IntenstiyType> IntensityTypes;
+    typedef typename PeakType::IntensityType IntensityType;
+    typedef std::vector<IntenstiyType> IntensitiesTypes;
     /// Position type
-    typedef DPosition<1> PositionType;
-    typedef std::vector<PositionType> PositionTypes;
+    typedef typename PeakType::PositionType PositionType;
+    typedef std::vector<PositionType> PositionsTypes;
     //@}
 
     ///@name Peak container iterator type definitions
@@ -615,10 +615,10 @@ public:
 protected:
 
     /// Position
-    PositionTypes position;
+    PositionsTypes position;
 
     /// Intenstiy
-    IntensityTypes intensity;
+    IntensitiesTypes intensity;
 
     /// Retention time
     double retention_time_;
