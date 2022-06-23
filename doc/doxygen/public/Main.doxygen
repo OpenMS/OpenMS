@@ -78,9 +78,10 @@
 
         Development:
         <UL>
-          <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Coding-conventions" target="_blank">Coding conventions (online)</a>
-          <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Developer-FAQ" target="_blank">Developer FAQ (online)</a>
-          <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Cpp-Guide" target="_blank">CPP Guide (online)</a>
+          <LI> @subpage coding_conventions
+          <LI> @subpage developer_faq
+          <LI> @subpage cpp_guide
+          <LI> @subpage how_to_write_tests
         </UL>
 
         Documentation:
