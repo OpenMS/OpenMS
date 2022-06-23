@@ -65,6 +65,7 @@ SpectraSTSearchAdapter
 StaticModification
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
+TopDownConsensusFeatureGroup
 TransformationEvaluation
 TriqlerConverter
 XMLValidator
