@@ -355,15 +355,6 @@ public:
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& extracted_spectra
     ) const;
-
-
-    void extractSpectra(
-        const MSExperiment& experiment,
-        const FeatureMap& ms1_features,
-        std::vector<MSSpectrum>& extracted_spectra,
-        FeatureMap& extracted_features,
-        const bool compute_features
-    ) const;
     
     /**
       @brief Combines the functionalities given by all the other methods implemented
