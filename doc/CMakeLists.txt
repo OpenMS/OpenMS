@@ -145,7 +145,6 @@ if(ENABLE_DOCS)
     #------------------------------------------------------------------------------
     # create refman files for PDF tutorials
     configure_file(${PROJECT_SOURCE_DIR}/OpenMS_tutorial/refman_overwrite.tex.in ${PROJECT_BINARY_DIR}/OpenMS_tutorial/refman_overwrite.tex)
-    configure_file(${PROJECT_SOURCE_DIR}/TOPP_tutorial/refman_overwrite.tex.in ${PROJECT_BINARY_DIR}/TOPP_tutorial/refman_overwrite.tex)
 
     #------------------------------------------------------------------------------
     # doc paths (bin path, topp documenter, defaultparamhandler documenter)
@@ -333,7 +332,6 @@ if(ENABLE_DOCS)
 
         # configure doxyfiles for tutorials
         configure_file(${PROJECT_SOURCE_DIR}/OpenMS_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/OpenMS_tutorial/Doxyfile)
-        configure_file(${PROJECT_SOURCE_DIR}/TOPP_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/TOPP_tutorial/Doxyfile)
 
         # check doxygen for bug with generated latex files
         set(DOXYGEN_START_BUGGY "1.6.3")
@@ -362,20 +360,6 @@ if(ENABLE_DOCS)
                           COMMAND ${CMAKE_COMMAND} -E echo "doc/OpenMS_tutorial.pdf"
                           COMMAND ${CMAKE_COMMAND} -E echo ""
                           COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                          COMMAND ${CMAKE_COMMAND} -E echo "Creating TOPP/TOPPView pdf tutorial"
-                          COMMAND ${CMAKE_COMMAND} -E echo ""
-                          COMMAND ${CMAKE_COMMAND} -E remove_directory TOPP_tutorial/latex_output
-                          COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/ "${DOXYGEN_EXECUTABLE}" Doxyfile
-                          COMMAND ${CMAKE_COMMAND} -E copy TOPP_tutorial/refman_overwrite.tex TOPP_tutorial/latex_output/refman.tex
-                          COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
-                          COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  "${MAKEINDEX_COMPILER}" refman.idx
-                          COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
-                          COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
-                          COMMAND ${CMAKE_COMMAND} -E copy TOPP_tutorial/latex_output/refman.pdf TOPP_tutorial.pdf
-                          COMMAND ${CMAKE_COMMAND} -E echo ""
-                          COMMAND ${CMAKE_COMMAND} -E echo "The OpenMS tutorial in PDF format has been successfully created:"
-                          COMMAND ${CMAKE_COMMAND} -E echo "doc/TOPP_tutorial.pdf"
-                          COMMAND ${CMAKE_COMMAND} -E echo ""
                           COMMENT "Build the OpenMS/TOPP pdf tutorial"
                           VERBATIM)
 
@@ -387,7 +371,6 @@ if(ENABLE_DOCS)
 
         #------------------------------------------------------------------------------
         # install also the tutorial pdfs
-        install_file(${PROJECT_BINARY_DIR}/TOPP_tutorial.pdf ${INSTALL_DOC_DIR} doc)
         install_file(${PROJECT_BINARY_DIR}/OpenMS_tutorial.pdf ${INSTALL_DOC_DIR} doc)
 
         #------------------------------------------------------------------------------
