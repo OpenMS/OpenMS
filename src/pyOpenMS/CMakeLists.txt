@@ -167,7 +167,7 @@ if(AUTOWRAP_MISSING)
 else()
     execute_process(
         COMMAND
-        ${Python_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 5))"
+        ${Python_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 8))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -188,7 +188,7 @@ else()
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
     else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.22.5 is required)")
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.22.8 is required)")
         message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
     endif()
 endif()
@@ -649,6 +649,10 @@ if ("${PY_NUM_MODULES}" GREATER "1")
       )
       add_dependencies(pyopenms_${nr} compile_pxds) # this is necessary for make (not ninja), to avoid race conditions
       add_dependencies(pyopenms_compile pyopenms_${nr})
+      add_custom_command(TARGET pyopenms_${nr}
+                   POST_BUILD
+                   COMMAND ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/fix_pyi_imports.py ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.pyi
+                   COMMENT "Fixing typing information for pyopenms_${nr}")
     endforeach()
 else()
     Python_add_library(pyopenms_compile MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.cpp" )

@@ -603,6 +603,7 @@ protected:
     os << "8.  Glu_C                  1      DE          P" << "\n";
     os << "9.  PepsinA                1      FL          P" << "\n";
     os << "10. Chymotrypsin           1      FWYL        P" << "\n";
+    os << "11. No_cut                 1      @           @" << "\n";
 
     return ExitCodes::EXECUTION_OK;
   }

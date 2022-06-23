@@ -38,6 +38,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <boost/regex.hpp>
 #include <fstream>
+#include <array>
 
 namespace OpenMS
 {
@@ -173,14 +174,11 @@ namespace OpenMS
         const auto& synonyms = spectrum.getMetaValue("Synon");
         if (synonyms.valueType() == OpenMS::DataValue::DataType::STRING_VALUE)
         {
-          size_t start;
-          size_t end = 0;
-          std::string synonyms_str(synonyms);
-          std::string separator(synonyms_separator_);
-          while ((start = synonyms_str.find_first_not_of(separator, end)) != std::string::npos)
+          StringList list;
+          synonyms.toString().split(synonyms_separator_, list);
+          for (const auto& syn : list)
           {
-            end = synonyms_str.find(separator, start);
-            output_file << "Synon: " << synonyms_str.substr(start, end - start) << '\n';
+            output_file << "Synon: " << syn << '\n';
           }
         }
         if (spectrum.metaValueExists("CAS#") && spectrum.metaValueExists("NIST#"))
@@ -188,7 +186,7 @@ namespace OpenMS
           output_file << "CAS#: " << spectrum.getMetaValue("CAS#") << ";  NIST#: " << spectrum.getMetaValue("NIST#") << '\n';
         }
         // Other metadata
-        const std::vector<std::string> ignore_metadata = {"Synon", "CAS#", "NIST#", "Num Peaks"};
+        static const std::array<std::string, 4> ignore_metadata = {"Synon", "CAS#", "NIST#", "Num Peaks"};
         std::vector<String> keys;
         spectrum.getKeys(keys);
         for (const auto& key : keys)

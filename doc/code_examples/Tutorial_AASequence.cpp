@@ -30,6 +30,8 @@
 
 //! [AASequence]
 
+// This script calculates the mass-to-charge ratio of a 2+ charged b-ion and full peptide from a hardcoded sequence.
+
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <iostream>
 

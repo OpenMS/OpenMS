@@ -1514,7 +1514,7 @@ namespace OpenMS
 
   double AccurateMassSearchEngine::computeIsotopePatternSimilarity_(const Feature& feat, const EmpiricalFormula& form) const
   {
-    Size num_traces = (Size)feat.getMetaValue("num_of_masstraces");
+    Size num_traces = (Size)feat.getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES);
     const Size MAX_THEORET_ISOS(5);
 
     Size common_size = std::min(num_traces, MAX_THEORET_ISOS);
@@ -1558,12 +1558,12 @@ namespace OpenMS
 
     if (iso_similarity_ && !is_dummy)
     {
-      if (!feature.metaValueExists("num_of_masstraces"))
+      if (!feature.metaValueExists(Constants::UserParam::NUM_OF_MASSTRACES))
       {
         OPENMS_LOG_WARN
-        << "Feature does not contain meta value 'num_of_masstraces'. Cannot compute isotope similarity.";
+        << "Feature does not contain meta value '" << Constants::UserParam::NUM_OF_MASSTRACES << "'. Cannot compute isotope similarity.";
       }
-      else if ((Size) feature.getMetaValue("num_of_masstraces") > 1)
+      else if ((Size) feature.getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES) > 1)
       { // compute isotope pattern similarities (do not take the best-scoring one, since it might have really bad ppm or other properties --
         // it is impossible to decide here which one is best
         for (Size hit_idx = 0; hit_idx < query_results.size(); ++hit_idx)

@@ -58,7 +58,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>" namespace "O
                 #   :param file_counter: Count if multiple files are used.
                 #   :returns: Vector of MetaboTargetedAssay
 
-       libcpp_vector[ MetaboTargetedAssay_CompoundTargetDecoyPair ] pairCompoundWithAnnotatedSpectra(libcpp_vector[ SiriusMSFile_CompoundInfo ]& v_cmpinfo,
+       libcpp_vector[ MetaboTargetedAssay_CompoundTargetDecoyPair ] pairCompoundWithAnnotatedTDSpectraPairs(libcpp_vector[ SiriusMSFile_CompoundInfo ]& v_cmpinfo,
                                                                                                      libcpp_vector[ SiriusFragmentAnnotation_SiriusTargetDecoySpectra]& annotated_spectra) nogil except +
             # wrap-doc:
                 #   Pair compound information (SiriusMSFile) with the annotated target and decoy spectrum from SIRIUS/Passatutto based on the m_id (unique identifier composed of description_filepath_native_id_k introduced in the SiriusMSConverter)

@@ -111,7 +111,7 @@ public:
                                    const OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra,
                                    const std::vector< std::pair<Size, Size> >& spectrum_pairs,
                                    const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms,
-                                   const PeakMap& spectra);
+                                   const PeakMap& spectra, const bool& test_mode = false);
 
      /**
        @brief Writes spec.xml output containing spectra for visualization. This version of the function is meant to be used for label-free linkers.
@@ -122,7 +122,7 @@ public:
       */
     static void writeXQuestXMLSpec(const String& out_file, const String& base_name,
                                    const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms,
-                                   const PeakMap& spectra);
+                                   const PeakMap& spectra, const bool& test_mode = false);
 
 
 
@@ -133,7 +133,7 @@ private:
       * @param spec The spectrum
       * @param header A header for the spectrum, build using the base_name parameter for writeXQuestXMLSpec and the index of the spectrum.
       */
-      static String getxQuestBase64EncodedSpectrum_(const PeakSpectrum& spec, String header);
+      static String getxQuestBase64EncodedSpectrum_(const PeakSpectrum& spec, String header, const bool& test_mode = false);
 
      /**
       * @brief A helper function, that takes one string containing one line and wraps it into several lines of a given width
