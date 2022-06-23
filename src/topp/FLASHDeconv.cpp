@@ -279,7 +279,7 @@ protected:
 
     DoubleList tols = fd_defaults.getValue("tol");
     mf_defaults.setValue("mass_error_ppm", tols[0]);
-    mf_defaults.setValue("min_sample_rate", 0.2);
+    mf_defaults.setValue("min_sample_rate", 0.05);
 
     /*
     Param sm_defaults = SpectraMerger().getDefaults();

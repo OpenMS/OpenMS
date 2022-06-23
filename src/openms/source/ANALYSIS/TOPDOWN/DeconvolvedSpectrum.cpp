@@ -50,14 +50,14 @@ namespace OpenMS
     {
       return out_spec;
     }
-
+    double charge_mass_offset = abs(to_charge) * FLASHDeconvHelperStructs::getChargeMass(to_charge >= 0);
     for (auto& pg : *this)
     {
       if (pg.empty())
       {
         continue;
       }
-      out_spec.emplace_back(pg.getMonoMass(), pg.getIntensity());
+      out_spec.emplace_back(pg.getMonoMass() + charge_mass_offset, pg.getIntensity());
     }
     if (!precursor_peak_group_.empty() && !spec_.getPrecursors().empty())
     {
@@ -66,8 +66,7 @@ namespace OpenMS
       //                     precursor_peak_group_.getRepAbsCharge() :
       //                     -precursor_peak_group_.getRepAbsCharge()));//getChargeMass
       precursor.setCharge(to_charge);
-      precursor.setMZ(precursor_peak_group_.getMonoMass() +
-                      to_charge * FLASHDeconvHelperStructs::getChargeMass(to_charge >= 0));
+      precursor.setMZ(precursor_peak_group_.getMonoMass() + charge_mass_offset);
       precursor.setIntensity(precursor_peak_group_.getIntensity());
       out_spec.getPrecursors().clear();
       out_spec.getPrecursors().emplace_back(precursor);

@@ -117,7 +117,6 @@ namespace OpenMS
           {
             continue;
           }
-          //std::cout << line << " ";
           if (line.hasPrefix("MS1"))
           {
             Size st = line.find("RT ") + 3;

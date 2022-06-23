@@ -64,8 +64,8 @@ namespace OpenMS
       const double intensity = pg.getIntensity();
 
       auto charge_range = pg.getAbsChargeRange();
-      int min_charge = pg.isPositive() ? std::get<0>(charge_range) : std::get<1>(charge_range);
-      int max_charge = pg.isPositive() ? std::get<1>(charge_range) : std::get<0>(charge_range);
+      int min_charge = pg.isPositive() ? std::get<0>(charge_range) : -std::get<1>(charge_range);
+      int max_charge = pg.isPositive() ? std::get<1>(charge_range) : -std::get<0>(charge_range);
 
       fs << file_name << "\t" << pg.getScanNumber() << "\t"
          << std::to_string(dspec.getOriginalSpectrum().getRT()) << "\t"
