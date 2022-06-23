@@ -124,7 +124,7 @@ public:
 
     /// Intensity type
     typedef typename PeakType::IntensityType IntensityTypes;
-    typedef std::vector<IntenstiyTypes> IntensitiesTypes;
+    typedef std::vector<IntensityTypes> IntensitiesTypes;
     /// Position type
     typedef typename PeakType::PositionType PositionTypes;
     typedef std::vector<PositionTypes> PositionsTypes;
