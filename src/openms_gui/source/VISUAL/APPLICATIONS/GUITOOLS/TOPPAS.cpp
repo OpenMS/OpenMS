@@ -51,7 +51,9 @@
 
   @image html TOPPAS_simple_example.png
 
-  More information about TOPPAS can be found in the @ref @TODO: toppas tut link.
+  More information about TOPPAS can be found on the OpenMS ReadTheDocs
+  page: https://openms.readthedocs.io/en/latest/docs/tutorials/TOPPAS/TOPPAS-tutorial.html
+
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_TOPPAS.cli
