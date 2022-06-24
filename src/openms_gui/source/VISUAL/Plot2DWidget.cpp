@@ -38,7 +38,6 @@
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot2DGoToDialog.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QGridLayout>
@@ -186,25 +185,25 @@ namespace OpenMS
 
     projectionInfo_(stats.number_of_datapoints, stats.sum_intensity, stats.max_intensity);
 
+    auto va = canvas()->getVisibleArea().getAreaXY();
     projection_onto_Y_->showLegend(false);
-
     projection_onto_Y_->canvas()->removeLayers();
     projection_onto_Y_->canvas()->addLayer(std::move(projection_ontoY));
-
+    // manually set projected unit, since 'addLayer' will guess a visible area, but we want the exact same scaling
+    projection_onto_Y_->canvas()->setVisibleAreaY(va.minY(), va.maxY());
     grid_->setColumnStretch(3, 2);
-
-    projection_onto_Y_->show();
-    projection_box_->show();
+    
 
     projection_onto_X_->showLegend(false);
-
     projection_onto_X_->canvas()->removeLayers();
     projection_onto_X_->canvas()->addLayer(std::move(projection_ontoX));
-
+    // manually set projected unit, since 'addLayer' will guess a visible area, but we want the exact same scaling
+    projection_onto_X_->canvas()->setVisibleAreaX(va.minX(), va.maxX());
     grid_->setRowStretch(0, 2);
     
     projection_box_->show();
     projection_onto_X_->show();
+    projection_onto_Y_->show();
   }
 
   const Plot1DWidget* Plot2DWidget::getProjectionOntoX() const

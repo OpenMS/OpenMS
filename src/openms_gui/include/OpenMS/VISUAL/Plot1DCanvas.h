@@ -90,7 +90,7 @@ namespace OpenMS
 
     /// Which axis is pulling a point downwards (e.g. when plotting sticks)
     /// Note that pulling (see gravitateDown()) will only change the value for the gravity axis.
-    /// E.g. with gravity on Y, an Point(X=10, Y=10), will be pulled to Point(X=10, Y=min)
+    /// E.g. with gravity on Y, a Point(X=10, Y=10), will be pulled to Point(X=10, Y=min)
     /// @param axis Either X, or Y
     /// @throws Exception::InvalidValue if @p axis is not X or Y
     void setGravityAxis(DIM axis)
@@ -424,18 +424,42 @@ public:
     void setMirrorModeActive(bool b);
 
     /// For convenience - calls dataToWidget
-    void dataToWidget(const DPosition<2>& peak, QPoint& point, bool flipped = false, bool percentage = true);
+    void dataToWidget(const DPosition<2>& peak, QPoint& point, bool flipped = false);
     /// For convenience - calls dataToWidget
-    void dataToWidget(const DPosition<2>& xy_point, DPosition<2>& point, bool flipped, bool percentage);
+    void dataToWidget(const DPosition<2>& xy_point, DPosition<2>& point, bool flipped);
 
     /// Calls PlotCanvas::dataToWidget_(), takes mirror mode into account
-    void dataToWidget(double x, double y, QPoint& point, bool flipped = false, bool percentage = false);
+    void dataToWidget(double x, double y, QPoint& point, bool flipped = false);
 
     /// For convenience - calls widgetToData
-    PointXYType widgetToData(const QPoint& pos, bool percentage = false);
+    PointXYType widgetToData(const QPoint& pos);
 
     /// Calls PlotCanvas::widgetToData_(), takes mirror mode into account
-    PointXYType widgetToData(double x, double y, bool percentage = false);
+    PointXYType widgetToData(double x, double y);
+
+    /**
+       @brief converts a distance in axis values to pixel values
+    */
+    inline void dataToWidgetDistance(double x, double y, QPoint& point)
+    {
+      dataToWidget_(x, y, point);
+      // subtract the 'offset'
+      QPoint zero;
+      dataToWidget_(0, 0, zero);
+      point -= zero;
+    }
+
+    /**
+      @brief compute distance in widget coordinates (unit axis as shown) when moving @p x/y pixel in chart coordinates
+    */
+    inline PointXYType widgetToDataDistance(double x, double y)
+    {
+      PointXYType point = widgetToData_(x, y);
+      // subtract the 'offset'
+      PointXYType zero = widgetToData_(0, 0);
+      point -= zero;
+      return point;
+    }
 
     /**
      * \brief Pushes a data point back into the valid data range of the current layer area. Useful for annotation items which were mouse-dragged outside the range by the user.
@@ -543,6 +567,46 @@ protected slots:
     void currentLayerParamtersChanged_();
 
 protected:
+
+    
+    /**
+      @brief Convert chart to widget coordinates
+
+      Translates chart (unit) coordinates to widget (pixel) coordinates.
+      @param x the chart coordinate x
+      @param y the chart coordinate y
+      @param point returned widget coordinates
+    */
+    void dataToWidget_(double x, double y, QPoint& point)
+    {
+      const auto& xy = visible_area_.getAreaXY();
+      const auto h_px = height();
+      const auto w_px = width();
+
+      point.setX(int((x - xy.minX()) / xy.width() * w_px));
+
+      if (intensity_mode_ != PlotCanvas::IM_LOG)
+      {
+        point.setY(int((xy.maxY() - y) / xy.height() * h_px));
+      }
+      else // IM_LOG
+      {
+        point.setY(h_px - int(std::log10((y - xy.minY()) + 1) / std::log10(xy.height() + 1) * h_px));
+      }
+    }
+
+    void dataToWidget_(const DPosition<2>& xy, QPoint& point)
+    {
+      dataToWidget_(xy.getX(), xy.getY(), point);
+    }
+
+    QPoint dataToWidget_(const DPosition<2>& xy)
+    {
+      QPoint point;
+      dataToWidget_(xy.getX(), xy.getY(), point);
+      return point;
+    }
+
     // Docu in base class
     bool finishAdding_() override;
 

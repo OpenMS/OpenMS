@@ -83,7 +83,7 @@ namespace OpenMS
 
     // get left/right corner points of the rectangle (line + width); names are as if the line is vertical, but depending on gravity, it could be horizontal as well
     QPoint start_px_left;
-    canvas->dataToWidget(pos_, start_px_left, flipped, true);
+    canvas->dataToWidget(pos_, start_px_left, flipped);
     start_px_left = canvas->getGravitator().gravitateMax(start_px_left, canvas->canvasPixelArea());
     QPoint end_px_right = canvas->getGravitator().gravitateMin(start_px_left, canvas->canvasPixelArea());
     QPoint px_width;

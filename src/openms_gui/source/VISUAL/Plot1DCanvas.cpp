@@ -230,35 +230,37 @@ namespace OpenMS
     emit layerZoomChanged(this);
   }
 
-  void Plot1DCanvas::dataToWidget(const DPosition<2>& xy_point, QPoint& point, bool flipped, bool percentage)
+  void Plot1DCanvas::dataToWidget(const DPosition<2>& xy_point, QPoint& point, bool flipped)
   {
-    dataToWidget(xy_point.getX(), xy_point.getY(), point, flipped, percentage);
+    dataToWidget(xy_point.getX(), xy_point.getY(), point, flipped);
   }
 
-  void Plot1DCanvas::dataToWidget(const DPosition<2>& xy_point, DPosition<2>& point, bool flipped, bool percentage)
+  void Plot1DCanvas::dataToWidget(const DPosition<2>& xy_point, DPosition<2>& point, bool flipped)
   {
     QPoint p;
-    dataToWidget(xy_point.getX(), xy_point.getY(), p, flipped, percentage);
+    dataToWidget(xy_point.getX(), xy_point.getY(), p, flipped);
     point.setX(p.x());
     point.setY(p.y());
   }
 
-  void Plot1DCanvas::dataToWidget(double x, double y, QPoint& point, bool flipped, bool percentage)
+  void Plot1DCanvas::dataToWidget(double x, double y, QPoint& point, bool flipped)
   {
     QPoint tmp;
-    if (percentage)
-    {
-      y *= percentage_factor_ * getSnapFactor();
-    }
-    PlotCanvas::dataToWidget_(x, y, tmp);
+    // adapting gravity dimension is required for SNAP mode and percentage mode
+    if (gr_.getGravityAxis() == DIM::Y) y *= percentage_factor_ * getSnapFactor();
+    else if (gr_.getGravityAxis() == DIM::X) x *= percentage_factor_ * getSnapFactor();
+    
+    dataToWidget_(x, y, tmp);
     point.setX(tmp.x());
-    double alignment_shrink_factor = 1.0;
-    if (height() > 10)
-    {
-      alignment_shrink_factor = (double)(height() - 10) / (double)height();
-    }
+    point.setY(tmp.y());
+    
     if (mirror_mode_)
     {
+      double alignment_shrink_factor = 1.0;
+      if (height() > 10)
+      {
+        alignment_shrink_factor = (double)(height() - 10) / (double)height();
+      }
       if (flipped)
       {
         if (!show_alignment_)
@@ -282,28 +284,24 @@ namespace OpenMS
         }
       }
     }
-    else     // !mirror_mode_
-    {
-      point.setY((int)(tmp.y()));
-    }
   }
 
-  PointXYType Plot1DCanvas::widgetToData(const QPoint& pos, bool percentage)
+  PointXYType Plot1DCanvas::widgetToData(const QPoint& pos)
   {
-    return widgetToData(pos.x(), pos.y(), percentage);
+    return widgetToData(pos.x(), pos.y());
   }
 
-  PointXYType Plot1DCanvas::widgetToData(double x, double y, bool percentage)
+  PointXYType Plot1DCanvas::widgetToData(double x, double y)
   {
     double actual_y;
-    double alignment_shrink_factor = 1.0;
-    if (height() > 10)
-    {
-      alignment_shrink_factor = (double)(height() - 10) / (double)height();
-    }
 
     if (mirror_mode_)
     {
+      double alignment_shrink_factor = 1.0;
+      if (height() > 10)
+      {
+        alignment_shrink_factor = (double)(height() - 10) / (double)height();
+      }
       if (y > height() / 2.0)
       {
         if (!show_alignment_)
@@ -332,10 +330,10 @@ namespace OpenMS
       actual_y = y;
     }
     PointXYType p = PlotCanvas::widgetToData_(x, actual_y);
-    if (percentage)
-    {
-      p.setY(p.getY() / (getSnapFactor() * percentage_factor_));
-    }
+    // adapting gravity dimension is required for SNAP mode and percentage mode
+    if (gr_.getGravityAxis() == DIM::Y) p.setY(p.getY() / (percentage_factor_ * getSnapFactor()));
+    else if (gr_.getGravityAxis() == DIM::X) p.setX(p.getX() / (percentage_factor_ * getSnapFactor()));   
+
     return p;
   }
 
@@ -433,7 +431,7 @@ namespace OpenMS
       if (move)
       {
         updatePercentageFactor_(getCurrentLayerIndex());
-        PointXYType delta = widgetToData(p, true) - widgetToData(last_mouse_pos_, true);
+        PointXYType delta = widgetToData(p) - widgetToData(last_mouse_pos_);
 
         Annotations1DContainer& ann_1d = getCurrentLayer().getCurrentAnnotations();
         for (Annotations1DContainer::Iterator it = ann_1d.begin(); it != ann_1d.end(); ++it)
@@ -566,8 +564,8 @@ namespace OpenMS
     }
     updatePercentageFactor_(getCurrentLayerIndex());
 
-    RangeAllType search_area = unit_mapper_.fromXY(widgetToData(p - QPoint(2, 2), true));
-    search_area.extend(unit_mapper_.fromXY(widgetToData(p + QPoint(2, 2), true)));
+    RangeAllType search_area = unit_mapper_.fromXY(widgetToData(p - QPoint(2, 2)));
+    search_area.extend(unit_mapper_.fromXY(widgetToData(p + QPoint(2, 2))));
     return getCurrentLayer().findClosestDataPoint(search_area);
   }
 
@@ -644,7 +642,7 @@ namespace OpenMS
     painter->fillRect(0, 0, this->width(), this->height(),
                       QColor(String(param_.getValue("background_color").toString()).toQString()));
 
-    // only fill background if no layer is present
+    // we are done if no layer is present
     if (getLayerCount() == 0)
     {
       e->accept();
@@ -652,7 +650,6 @@ namespace OpenMS
     }
 
     // gridlines
-    emit recalculateAxes();
     paintGridLines_(*painter);
 
     // paint each layer
@@ -694,8 +691,8 @@ namespace OpenMS
     {
       // use start-point + mouse position of non-gravity axis
       QPoint measurement_end_point_px = gr_.swap().gravitateTo(measurement_start_point_px_, last_mouse_pos_);
-      auto ps = widgetToData(measurement_start_point_px_, true);
-      auto pe = widgetToData(measurement_end_point_px, true);
+      auto ps = widgetToData(measurement_start_point_px_);
+      auto pe = widgetToData(measurement_end_point_px);
       Annotation1DDistanceItem(QString::number(gr_.swap().gravityDiff(ps, pe), 'f', 4), ps, pe).draw(this, *painter, false);
     }
     // draw highlighted measurement start peak and selected peak
@@ -908,10 +905,6 @@ namespace OpenMS
 
       // add some margin on top of local maximum to be sure we are able to draw labels inside the view
       snap_factors_[0] = overall_data_range_.getMaxIntensity() / (max_visible_intensity * TOP_MARGIN);
-    }
-    else if (intensity_mode_ == IM_PERCENTAGE)
-    {
-      snap_factors_[0] = 1.0 / TOP_MARGIN;
     }
     else
     {
@@ -1151,7 +1144,7 @@ namespace OpenMS
   {
     updatePercentageFactor_(getCurrentLayerIndex());
 
-    PointXYType position = widgetToData(screen_position, true);
+    PointXYType position = widgetToData(screen_position);
     auto item = new Annotation1DTextItem(position, text);
     getCurrentLayer().getCurrentAnnotations().push_front(item);
 
@@ -1327,9 +1320,9 @@ namespace OpenMS
         break;
       }
 
-      for (std::vector<double>::const_iterator it = spectrum_widget_->xAxis()->gridLines()[j].begin(); it != spectrum_widget_->xAxis()->gridLines()[j].end(); ++it)
+      for (const auto& line : spectrum_widget_->xAxis()->gridLines()[j])
       {
-        int x = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->xAxis()->getAxisMinimum(), spectrum_widget_->xAxis()->getAxisMaximum(), xl, xh));
+        int x = static_cast<int>(Math::intervalTransformation(line, spectrum_widget_->xAxis()->getAxisMinimum(), spectrum_widget_->xAxis()->getAxisMaximum(), xl, xh));
         painter.drawLine(x, yl, x, yh);
       }
     }
@@ -1354,9 +1347,9 @@ namespace OpenMS
         break;
       }
 
-      for (std::vector<double>::const_iterator it = spectrum_widget_->yAxis()->gridLines()[j].begin(); it != spectrum_widget_->yAxis()->gridLines()[j].end(); ++it)
+      for (const auto& line : spectrum_widget_->yAxis()->gridLines()[j])
       {
-        int y = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->yAxis()->getAxisMinimum(), spectrum_widget_->yAxis()->getAxisMaximum(), yl, yh));
+        int y = static_cast<int>(Math::intervalTransformation(line, spectrum_widget_->yAxis()->getAxisMinimum(), spectrum_widget_->yAxis()->getAxisMaximum(), yl, yh));
         if (!mirror_mode_)
         {
           painter.drawLine(xl, y, xh, y);
@@ -1462,8 +1455,8 @@ namespace OpenMS
       updatePercentageFactor_(alignment_layer_1_);
       for (Size i = 0; i < getAlignmentSize(); ++i)
       {
-        dataToWidget(spectrum_1[aligned_peaks_indices_[i].first].getMZ(), 0, begin_p, false, true);
-        dataToWidget(spectrum_1[aligned_peaks_indices_[i].first].getMZ(), spectrum_1[aligned_peaks_indices_[i].first].getIntensity(), end_p, false, true);
+        dataToWidget(spectrum_1[aligned_peaks_indices_[i].first].getMZ(), 0, begin_p, false);
+        dataToWidget(spectrum_1[aligned_peaks_indices_[i].first].getMZ(), spectrum_1[aligned_peaks_indices_[i].first].getIntensity(), end_p, false);
         painter.drawLine(begin_p.x(), begin_p.y(), end_p.x(), end_p.y());
       }
     }

@@ -154,7 +154,7 @@ public:
         //is header line
         if (line.hasPrefix("#"))
         {
-          line = line.substr(1).trim();
+          line = line.substr(1).trim().toUpper();
           line.split(delimiter, strings);
 
           // flags to check if dimension is set correctly

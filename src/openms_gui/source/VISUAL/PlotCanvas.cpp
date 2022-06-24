@@ -37,6 +37,7 @@
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/LayerData1DChrom.h>
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/LayerDataConsensus.h>
@@ -45,6 +46,7 @@
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
@@ -285,7 +287,23 @@ namespace OpenMS
     changeVisibleArea_(visible_area_.cloneWith(area));
   }
 
-  
+  void PlotCanvas::setVisibleAreaX(double min, double max)
+  {
+    auto va = visible_area_.getAreaXY();
+    va.setMinX(min);
+    va.setMaxX(max);
+    setVisibleArea(va);
+  }
+
+  void PlotCanvas::setVisibleAreaY(double min, double max)
+  {
+    auto va = visible_area_.getAreaXY();
+    va.setMinY(min);
+    va.setMaxY(max);
+    setVisibleArea(va);
+  }
+
+
   void PlotCanvas::saveCurrentLayer(bool visible)
   {
     const LayerDataBase& layer = getCurrentLayer();
@@ -417,11 +435,13 @@ namespace OpenMS
     // check which one is empty
     if (!map->getChromatograms().empty() && map->empty())
     {
-      new_layer.reset(new LayerDataChrom);
+      if (dynamic_cast<Plot1DCanvas*>(this)) new_layer.reset(new LayerData1DChrom);
+      else new_layer.reset(new LayerDataChrom);
     }
     else
     {
-      new_layer.reset(new LayerDataPeak);
+      if (dynamic_cast<Plot1DCanvas*>(this)) new_layer.reset(new LayerData1DPeak);
+      else new_layer.reset(new LayerDataPeak);
     }
     new_layer->setPeakData(map);
     new_layer->setOnDiscPeakData(od_map);
@@ -544,7 +564,7 @@ namespace OpenMS
   }
 
   double PlotCanvas::getSnapFactor()
-  { // FIXME: probably a bug. There should be one entry per layer?
+  { // only useful for 1D view at the moment (which only has a single snap factor). 2D view has as many as there are layers.
     return snap_factors_[0];
   }
 

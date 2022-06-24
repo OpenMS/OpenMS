@@ -88,42 +88,24 @@ namespace OpenMS
     // determine which is the gravity axis (usually equals intensity axis (for LOG mode))
     AxisWidget* other_axis = x_axis_;
     AxisWidget* int_axis = y_axis_;
-    auto vis_area_xy = canvas_->getVisibleArea().getAreaXY();
-    auto all_area_xy = canvas_->getMapper().mapRange(canvas_->getDataRange());
     // in the unusual case: gravity is on X axis
     if (canvas()->getGravitator().getGravityAxis() == DIM::X)
     {
       swap(other_axis, int_axis);
-      vis_area_xy.swapDimensions();
-      all_area_xy.swapDimensions();
+      //vis_area_xy.swapDimensions();
+      //all_area_xy.swapDimensions();
     }
     // from now on, we can assume X-dim = data; Y-dim = gravity=intensity
 
     // deal with log scaling for intensity axis
     int_axis->setLogScale(canvas()->getIntensityMode() == PlotCanvas::IM_LOG);
 
-    // recalculate gridlines
-    other_axis->setAxisBounds(vis_area_xy.minX(), vis_area_xy.maxX());
-    switch (canvas()->getIntensityMode())
-    {
-      case PlotCanvas::IM_NONE:
-      case PlotCanvas::IM_LOG:
-        int_axis->setAxisBounds(vis_area_xy.minY(), vis_area_xy.maxY());
-        break;
+    // to compute the axis values at min/max, we simply use widgetToData() at the corners of the canvas (mind that y axis is inverted in Qt's pixel coordinate system)
+    auto top_left_units = canvas()->widgetToData(0, canvas()->height());    // e.g. --> 0, 300
+    auto bottom_right_units = canvas()->widgetToData(canvas()->width(), 0); // e.g. --> 8000, 900
 
-      case PlotCanvas::IM_PERCENTAGE:
-        int_axis->setAxisBounds(vis_area_xy.minY() / all_area_xy.maxY() * 100.0,
-                                vis_area_xy.maxY() / all_area_xy.maxY() * Plot1DCanvas::TOP_MARGIN * 100.0);
-        break;
-
-    case PlotCanvas::IM_SNAP:
-        int_axis->setAxisBounds(vis_area_xy.minY() / canvas()->getSnapFactor(), vis_area_xy.maxY() / canvas()->getSnapFactor());
-      break;
-
-
-    default:
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-    }
+    x_axis_->setAxisBounds(top_left_units.getX(), bottom_right_units.getX());
+    y_axis_->setAxisBounds(top_left_units.getY(), bottom_right_units.getY());
 
     // assume flipped-y-axis is identical
     flipped_y_axis_->setLegend(y_axis_->getLegend());

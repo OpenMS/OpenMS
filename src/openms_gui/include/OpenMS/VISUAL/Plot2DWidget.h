@@ -73,12 +73,12 @@ public:
     /// Destructor
     ~Plot2DWidget() override = default;
 
-    /// This method is overwritten to make the class specific members accessible
-    Plot2DCanvas* canvas()
+    // docu in base class
+    Plot2DCanvas* canvas() const override
     {
       return static_cast<Plot2DCanvas*>(canvas_);
     }
-
+            
     /// const reference to the horizontal projection
     const Plot1DWidget* getProjectionOntoX() const;
     /// const reference to the vertical projection

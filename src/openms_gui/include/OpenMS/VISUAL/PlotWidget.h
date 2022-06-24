@@ -109,18 +109,12 @@ public:
     /**
         @brief Returns a pointer to canvas object
 
+        This method is overwritten for 1D, 2D, 3D to make the class specific members accessible.
+        
         The canvas object is set with the setCanvas_() method.
         This is usually done in the constructor.
     */
-    PlotCanvas * canvas()
-    {
-      return canvas_;
-    }
-
-    PlotCanvas * canvas() const
-    {
-      return canvas_;
-    }
+    virtual PlotCanvas* canvas() const = 0;
 
     /// Returns a pointer to the x-axis axis widget.
     virtual inline AxisWidget * xAxis()

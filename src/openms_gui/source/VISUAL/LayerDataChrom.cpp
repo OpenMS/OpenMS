@@ -180,6 +180,34 @@ namespace OpenMS
     return mapper.map(getChromatogram(peak.spectrum)[peak.peak]);
   }
 
+  String LayerDataChrom::getDataArrayDescription(const PeakIndex& peak_index)
+  {
+    String status;
+    const auto& s = getChromatogram(peak_index.spectrum);
+    for (Size m = 0; m < s.getFloatDataArrays().size(); ++m)
+    {
+      if (peak_index.peak < s.getFloatDataArrays()[m].size())
+      {
+        status += s.getFloatDataArrays()[m].getName() + ": " + s.getFloatDataArrays()[m][peak_index.peak] + " ";
+      }
+    }
+    for (Size m = 0; m < s.getIntegerDataArrays().size(); ++m)
+    {
+      if (peak_index.peak < s.getIntegerDataArrays()[m].size())
+      {
+        status += s.getIntegerDataArrays()[m].getName() + ": " + s.getIntegerDataArrays()[m][peak_index.peak] + " ";
+      }
+    }
+    for (Size m = 0; m < s.getStringDataArrays().size(); ++m)
+    {
+      if (peak_index.peak < s.getStringDataArrays()[m].size())
+      {
+        status += s.getStringDataArrays()[m].getName() + ": " + s.getStringDataArrays()[m][peak_index.peak] + " ";
+      }
+    }
+    return status;
+  }
+
   std::unique_ptr<LayerStatistics> LayerDataChrom::getStats() const
   {
     return make_unique<LayerStatisticsPeakMap>(*chromatogram_map_);

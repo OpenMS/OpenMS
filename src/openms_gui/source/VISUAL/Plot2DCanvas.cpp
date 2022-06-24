@@ -407,8 +407,8 @@ namespace OpenMS
           continue;
         }
         mz_origin = chrom.getPrecursor().getMZ();
-        dataToWidget_(unit_mapper_.map(Peak2D {{chrom.front().getRT(), mz_origin}, 0}), posi);
-        dataToWidget_(unit_mapper_.map(Peak2D {{chrom.back().getRT(), mz_origin}, 0}), posi2);
+        posi = dataToWidget_(unit_mapper_.map(Peak2D {{chrom.front().getRT(), mz_origin}, 0}));
+        posi2 = dataToWidget_(unit_mapper_.map(Peak2D {{chrom.back().getRT(), mz_origin}, 0}));
         painter.drawLine(posi.x(), posi.y(), posi2.x(), posi2.y());
       }
     }
@@ -443,8 +443,6 @@ namespace OpenMS
     const LayerDataBase& layer = getLayer(layer_index);
     const ExperimentType & peak_map = *layer.getPeakData();
 
-    QPoint pos_ms1;
-    QPoint pos_ms2;
     QPen p;
     p.setColor(Qt::black);
     painter.setPen(p);
@@ -462,13 +460,13 @@ namespace OpenMS
       }
       else if (it->getMSLevel() == 2 && !it->getPrecursors().empty())
       { // this is an MS/MS scan
-        dataToWidget_(it->getPrecursors()[0].getMZ(), it->getRT(), pos_ms2);   // position of precursor in MS2
+        QPoint pos_ms2 = dataToWidget_(it->getPrecursors()[0].getMZ(), it->getRT()); // position of precursor in MS2
         const int x2 = pos_ms2.x();
         const int y2 = pos_ms2.y();
 
         if (it_prec != peak_map.end())
         {
-          dataToWidget_(it->getPrecursors()[0].getMZ(), it_prec->getRT(), pos_ms1);  // position of precursor in MS1
+          QPoint pos_ms1 = dataToWidget_(it->getPrecursors()[0].getMZ(), it_prec->getRT()); // position of precursor in MS1
           const int x = pos_ms1.x();
           const int y = pos_ms1.y();
           // diamond shape in MS1
@@ -506,6 +504,7 @@ namespace OpenMS
 
     double snap_factor = snap_factors_[layer_index];
     const auto end_area = map.areaEndConst();
+
     for (ExperimentType::ConstAreaIterator i = map.areaBeginConst(rt_min, rt_max, mz_min, mz_max);
          i != end_area;
          ++i)
@@ -513,7 +512,8 @@ namespace OpenMS
       PeakIndex pi = i.getPeakIndex();
       if (layer.filters.passes(map[pi.spectrum], pi.peak))
       {
-        QPoint pos = dataToWidget_(unit_mapper_.map(i));
+        auto from = unit_mapper_.map(i);
+        QPoint pos = dataToWidget_(from.getX(), from.getY());
         // store point in the array of its color
         Int colorIndex = precalculatedColorIndex_(i->getIntensity(), layer.gradient, snap_factor);
         coloredPoints[ colorIndex ].push_back( pos );
@@ -594,7 +594,7 @@ namespace OpenMS
       {
         continue;
       }
-      QPoint pos;
+      
       // iterate over all pixels (m/z dimension)
       for (Size mz = 0; mz < mz_pixel_count; ++mz)
       {
@@ -626,7 +626,7 @@ namespace OpenMS
         if (max >= 0.0)
         {
           Peak2D mz_peak { {rt_start + 0.5 * rt_step_size, mz_start + 0.5 * mz_step_size}, 0};
-          dataToWidget_(unit_mapper_.map(mz_peak), pos);
+          QPoint pos = dataToWidget_(unit_mapper_.map(mz_peak));
           buffer_.setPixel(pos.x(), pos.y(), heightColor_(max, layer.gradient, snap_factor).rgb());
         }
       }

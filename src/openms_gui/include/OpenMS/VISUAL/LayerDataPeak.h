@@ -91,9 +91,11 @@ namespace OpenMS
       {
         return (*peak_map_)[spectrum_idx];
       }
-      else if (!on_disc_peaks->empty())
+      if (!on_disc_peaks->empty())
       {
-        return on_disc_peaks->getSpectrum(spectrum_idx);
+        static MSSpectrum local_spec;
+        local_spec = on_disc_peaks->getSpectrum(spectrum_idx);
+        return local_spec;
       }
       return (*peak_map_)[spectrum_idx];
     }

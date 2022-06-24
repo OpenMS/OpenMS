@@ -85,7 +85,7 @@ public:
       if ((position_widget - peak_position_widget).manhattanLength() > 2)
       {
         QPointF border_point = GUIHelpers::intersectionPoint(bounding_box_, peak_position_widget);
-        if (!bounding_box_.contains(border_point)) 
+        if (bounding_box_.center() != border_point)
         {
           painter.save();
           painter.setPen(Qt::DashLine);
@@ -170,7 +170,7 @@ public:
       painter.save();
       double w = td.size().width();
       double h = td.size().height();
-      painter.translate(position_widget.x() - w / 2, position_widget.y() - h);
+      painter.translate(position_widget.x() - w / 2, position_widget.y() - h / 2);
       td.drawContents(&painter);
       painter.restore();
 

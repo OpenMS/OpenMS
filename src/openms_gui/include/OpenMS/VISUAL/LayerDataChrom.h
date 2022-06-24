@@ -83,6 +83,8 @@ public:
 
     PointXYType peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const override;
 
+    String getDataArrayDescription(const PeakIndex& peak_index) override;
+
     const ExperimentType::ChromatogramType& getChromatogram(Size idx) const
     {
       return chromatogram_map_->getChromatogram(idx);

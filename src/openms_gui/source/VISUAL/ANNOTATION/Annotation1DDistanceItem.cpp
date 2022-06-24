@@ -55,8 +55,8 @@ namespace OpenMS
   {
     // translate mz/intensity to pixel coordinates
     QPoint start_p, end_p;
-    canvas->dataToWidget(start_point_, start_p, flipped, true);
-    canvas->dataToWidget(end_point_, end_p, flipped, true);
+    canvas->dataToWidget(start_point_, start_p, flipped);
+    canvas->dataToWidget(end_point_, end_p, flipped);
 
     // draw arrow heads and the ends if they won't overlap
     const auto arrow = ((start_p - end_p).manhattanLength() > 10) ? Painter1DBase::getClosedArrow(4) : QPainterPath();
@@ -76,7 +76,7 @@ namespace OpenMS
       {
         tick_xy = canvas->getGravitator().gravitateTo(tick_xy, start_point_); // move to same level as line
         QPoint tick_px;
-        canvas->dataToWidget(tick_xy, tick_px, flipped, true);
+        canvas->dataToWidget(tick_xy, tick_px, flipped);
         QPoint tick_px_start = canvas->getGravitator().gravitateWith(tick_px, {4, 4});
         QPoint tick_px_end = canvas->getGravitator().gravitateWith(tick_px, {-8, -8});
         painter.drawLine(tick_px_start, tick_px_end);

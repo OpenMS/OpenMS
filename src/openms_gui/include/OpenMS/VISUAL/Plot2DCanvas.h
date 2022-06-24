@@ -334,6 +334,28 @@ protected:
     /// Translates the visible area by a given offset specified in fractions of current visible area
     void translateVisibleArea_(double x_axis_rel, double y_axis_rel);
 
+    /**
+      @brief Convert chart to widget coordinates
+
+      Translates chart coordinates to widget coordinates.
+      @param x the chart coordinate x
+      @param y the chart coordinate y
+      @param point returned widget coordinates
+    */
+    inline QPoint dataToWidget_(double x, double y) const
+    {
+      QPoint point;
+      const auto& xy = visible_area_.getAreaXY();
+      point.setX(int((x - xy.minX()) / xy.width() * width()));
+      point.setY(int((xy.maxY() - y) / xy.height() * height()));
+      return point;
+    }
+
+    QPoint dataToWidget_(const DPosition<2>& xy)
+    {
+      return dataToWidget_(xy.getX(), xy.getY());
+    }
+
     //docu in base class
     void translateLeft_(Qt::KeyboardModifiers m) override;
     //docu in base class

@@ -56,16 +56,16 @@ namespace OpenMS
     Q_OBJECT
 
 public:
-    ///Constructor
+    /// Constructor
     Plot3DWidget(const Param & preferences, QWidget * parent = nullptr);
 
     /// Destructor
     ~Plot3DWidget() override;
 
-    /// This method is overwritten to make the class specific members accessible
-    Plot3DCanvas * canvas()
+    // docu in base class
+    Plot3DCanvas* canvas() const override
     {
-      return static_cast<Plot3DCanvas *>(canvas_);
+      return static_cast<Plot3DCanvas*>(canvas_);
     }
 
     // Docu in base class

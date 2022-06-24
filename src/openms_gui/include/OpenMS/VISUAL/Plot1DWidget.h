@@ -70,11 +70,11 @@ namespace OpenMS
 public:    
     /// Default constructor
     Plot1DWidget(const Param& preferences, const DIM gravity_axis = DIM::Y, QWidget* parent = nullptr);
-    ///Destructor
+    /// Destructor
     ~Plot1DWidget() override;
 
-    /// This method is overwritten to make the class specific members accessible
-    Plot1DCanvas* canvas()
+    // docu in base class
+    Plot1DCanvas* canvas() const override
     {
       return static_cast<Plot1DCanvas*>(canvas_);
     }
@@ -107,9 +107,6 @@ public:
     virtual void renderForImage(QPainter& painter);
 
 signals:
-    /// Is emitted whenever the visible area changes.
-    void visibleAreaChanged(double, double);
-
     /// Requests to display the whole spectrum in 2D view
     void showCurrentPeaksAs2D();
 

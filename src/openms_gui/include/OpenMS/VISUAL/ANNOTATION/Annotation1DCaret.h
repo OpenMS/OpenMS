@@ -90,15 +90,15 @@ public:
 
       auto xy_pos = canvas->getMapper().map(position_);
       auto xy_1stcaret = canvas->getMapper().map(position_);
-      canvas->dataToWidget(xy_pos, position_widget, flipped, true);
-      canvas->dataToWidget(xy_1stcaret, caret_position_widget, flipped, true);
+      canvas->dataToWidget(xy_pos, position_widget, flipped);
+      canvas->dataToWidget(xy_1stcaret, caret_position_widget, flipped);
 
       // draw carets '^'
       for (const auto& pos : caret_positions_)
       {
         auto xy_pos_caret = canvas->getMapper().map(pos);
         QPoint caret;
-        canvas->dataToWidget(xy_pos_caret, caret, flipped, true);
+        canvas->dataToWidget(xy_pos_caret, caret, flipped);
         Painter1DBase::drawCaret(caret, &painter);
       }
 
@@ -137,7 +137,7 @@ public:
       if ((position_widget - caret_position_widget).manhattanLength() > 2)
       {
         QPointF border_point = GUIHelpers::intersectionPoint(bounding_box_, caret_position_widget);
-        if (!bounding_box_.contains(border_point))
+        if (bounding_box_.center() != border_point)
         {
           painter.save();
           painter.setPen(Qt::DashLine);

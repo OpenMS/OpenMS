@@ -502,7 +502,7 @@ public:
     const RangeType& getDataRange() const;
 
     /**
-        @brief Returns the first intensity scaling factor for 'snap to maximum intensity mode'.
+        @brief Returns the first intensity scaling factor for 'snap to maximum intensity mode' (for the currently visible data range).
 
         @see snap_factors_
     */
@@ -585,6 +585,20 @@ public slots:
     void setVisibleArea(const AreaXYType& area);
 
     /**
+     * @brief Set only the visible area for the x axis; other axes are untouched.
+     * @param min 
+     * @param max 
+    */
+    void setVisibleAreaX(double min, double max);
+
+    /**
+     * @brief Set only the visible area for the y axis; other axes are untouched.
+     * @param min
+     * @param max
+     */
+    void setVisibleAreaY(double min, double max);
+
+    /**
         @brief Saves the current layer data.
 
         @param visible If true, only the visible data is stored. Otherwise the whole data is stored.
@@ -611,30 +625,6 @@ public slots:
     /// Updates layer @p i when the data in the corresponding file changes
     virtual void updateLayer(Size i) = 0;
 
-
-    /**
-       @brief converts a distance in axis values to pixel values 
-    */
-    inline void dataToWidgetDistance(double x, double y, QPoint& point)
-    {
-      dataToWidget_(x, y, point);
-      // subtract the 'offset'
-      QPoint zero;
-      dataToWidget_(0, 0, zero);
-      point -= zero;
-    }
-
-    /**
-      @brief compute distance in widget coordinates (unit axis as shown) when moving @p x/y pixel in chart coordinates
-    */
-    inline PointXYType widgetToDataDistance(double x, double y)
-    {
-      PointXYType point = widgetToData_(x, y);
-      // subtract the 'offset'
-      PointXYType zero = widgetToData_(0, 0);
-      point -= zero;
-      return point;
-    }
 
     /**
      * \brief Get the Area in pixel coordinates of the current canvas for X and Y axis.
@@ -811,43 +801,6 @@ protected:
     inline PointXYType widgetToData_(const QPoint& pos)
     {
       return widgetToData_(pos.x(), pos.y());
-    }
-
-    /**
-        @brief Convert chart to widget coordinates
-
-        Translates chart (unit) coordinates to widget (pixel) coordinates.
-        @param x the chart coordinate x
-        @param y the chart coordinate y
-        @param point returned widget coordinates
-    */
-    inline void dataToWidget_(double x, double y, QPoint& point)
-    {
-      const auto& xy = visible_area_.getAreaXY();
-      point.setX(int((x - xy.minX()) / xy.width() * width()));
-
-      if (intensity_mode_ != PlotCanvas::IM_LOG)
-      {
-        point.setY(height() - int((y - xy.minY()) / xy.height() * height()));
-      }
-      else // IM_LOG
-      {
-        point.setY(height() - int(
-                      std::log10((y - xy.minY()) + 1) / std::log10(xy.height() + 1) * height()
-                      ));
-      }
-    }
-
-    void dataToWidget_(const DPosition<2>& xy, QPoint& point)
-    {
-      dataToWidget_(xy.getX(), xy.getY(), point);
-    }
-
-    QPoint dataToWidget_(const DPosition<2>& xy)
-    {
-      QPoint point;
-      dataToWidget_(xy.getX(), xy.getY(), point);
-      return point;
     }
 
     /// Helper function to paint grid lines

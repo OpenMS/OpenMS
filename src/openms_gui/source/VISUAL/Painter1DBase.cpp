@@ -176,6 +176,7 @@ namespace OpenMS
     const auto v_begin = spectrum.MZBegin(canvas->visible_area_.getAreaUnit().getMinMZ());
     const auto v_end = spectrum.MZEnd(canvas->visible_area_.getAreaUnit().getMaxMZ());
     QPoint begin, end;
+    
     switch (canvas->draw_modes_[layer_index])
     {
       case Plot1DCanvas::DrawModes::DM_PEAKS:
