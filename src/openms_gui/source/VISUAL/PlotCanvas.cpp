@@ -129,6 +129,11 @@ namespace OpenMS
 
   void PlotCanvas::intensityModeChange_()
   {
+    // update axes (e.g. make it Log-scale)
+    if (spectrum_widget_)
+    {
+      spectrum_widget_->updateAxes();
+    }
     recalculateSnapFactor_();
     update_buffer_ = true;
     update_(OPENMS_PRETTY_FUNCTION);
@@ -558,6 +563,8 @@ namespace OpenMS
 
     // add 4% margin (2% left, 2% right) to RT, m/z and intensity
     layer_range.scaleBy(1.04);
+    // make sure that each dimension is not a single point (axis widget won't like that)
+    layer_range.minSpanIfSingular(1);
 
     // set minimum intensity to 0 (avoid negative intensities!)
     layer_range.RangeIntensity::setMin(0);

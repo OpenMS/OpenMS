@@ -163,6 +163,16 @@ namespace OpenMS
       max_ += by;
     }
 
+    /**
+     * \brief If the current range is a single point, e.g. min==max, then extend the range by @p min_span / 2 on either side.
+     *
+     * Calling span() afterwards, returns @p min_span.
+     */
+    void minSpanIfSingular(const double min_span)
+    {
+      if (min_ == max_) extendLeftRight(min_span / 2);
+    }
+
     /// Ensure the range of this does not exceed the range of @p other.
     /// If @p other already contains() this range, nothing changes.
     /// If this range is entirely outside the range of @p other,
@@ -655,6 +665,22 @@ namespace OpenMS
         base->scaleBy(factor);
       });
     }
+
+    /**
+     * \brief If any dimension is a single point, e.g. min==max, then extend this dimension by @p min_span / 2 on either side.
+     *
+     * Empty dimensions remain unchanged.
+     *
+     * @see DimBase::minSpanIfSingular
+     *
+     */
+    void minSpanIfSingular(const double min_span)
+    {
+      for_each_base_([&](auto* base) {
+        base->minSpanIfSingular(min_span);
+      });
+    }
+
 
     /// Move range of *this to min/max of @p sandbox, without changing the span, if possible.
     /// This does tighten the range unless @p sandbox's ranges are smaller than *this.

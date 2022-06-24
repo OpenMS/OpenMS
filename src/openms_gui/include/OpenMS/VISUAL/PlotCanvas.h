@@ -259,7 +259,7 @@ public:
     /**
         @brief Sets the intensity mode
 
-        Sets the intensity mode
+        Sets the intensity mode and calls intensityModeChange_()
 
         @param mod the new intensity mode
 
@@ -721,7 +721,7 @@ protected:
     void enterEvent(QEvent * e) override;
     //@}
 
-    ///This method is called whenever the intensity mode changes. Reimplement if you need to react on such changes.
+    /// This method is called whenever the intensity mode changes. Reimplement if you need to react on such changes.
     virtual void intensityModeChange_();
 
     /// Call this whenever the DimMapper receives new dimensions; will update the axes and scrollbars

@@ -124,7 +124,6 @@ namespace OpenMS
     if (canvas_->getIntensityMode() != mode)
     {
       canvas_->setIntensityMode(mode);
-      intensityModeChange_();
     }
   }
 

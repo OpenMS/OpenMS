@@ -1477,6 +1477,11 @@ namespace OpenMS
   {
     recalculateSnapFactor_();
     ensureAnnotationsWithinDataRange_();
+    // update axes (e.g. make it Log-scale)
+    if (spectrum_widget_)
+    {
+      spectrum_widget_->updateAxes();
+    }
     update_(OPENMS_PRETTY_FUNCTION);
   }
 
