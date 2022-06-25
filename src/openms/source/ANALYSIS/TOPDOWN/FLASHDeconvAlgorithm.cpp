@@ -1583,7 +1583,7 @@ namespace OpenMS
         double cos = getIsotopeCosineAndDetermineIsotopeIndex(tpg.getUnchargedMass(), per_isotope_intensities, offset, avg_, k == 1);
         peak_group.setIsotopeCosine(cos);
         peak_group.updateMassesAndIntensity(offset, avg_max_index);
-        if(cos < .5)
+        if(!peak_group.isTargeted() && cos < min_isotope_cosine_[ms_level_ - 1] - .1) // discard very low scoring and non-targeted masses..
         {
           break;
         }
