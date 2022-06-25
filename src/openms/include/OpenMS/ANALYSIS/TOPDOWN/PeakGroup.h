@@ -90,6 +90,10 @@ namespace OpenMS
     void updateMassesAndIntensity(const int offset = 0,
                                   const int max_isotope_index = 0);
 
+
+    void recurteAllPeaksInSepctrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass = 0);
+
+
     /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance)
     bool isSignalMZ(const double mz, const double tol) const;
 

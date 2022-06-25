@@ -278,7 +278,7 @@ protected:
     mf_defaults.remove("chrom_peak_snr");
 
     DoubleList tols = fd_defaults.getValue("tol");
-    mf_defaults.setValue("mass_error_ppm", tols[0]);
+    mf_defaults.setValue("mass_error_ppm", -1.0, "Feature tracing mass ppm tolerance. When negative, MS1 tolerance for mass deconvolution will be used (e.g., 16 ppm is used when -Algorithm:tol 16).");
     mf_defaults.setValue("min_sample_rate", 0.05);
 
     /*
@@ -733,6 +733,11 @@ protected:
     Param mf_param = getParam_().copy("FeatureTracing:", true);
     DoubleList isotope_cosines = fd_param.getValue("min_isotope_cosine");
     //mf_param.setValue("mass_error_ppm", ms1tol);
+
+    if(((double)mf_param.getValue("mass_error_ppm")) < 0)
+    {
+      mf_param.setValue("mass_error_ppm", tols[0]);
+    }
     mf_param.setValue("noise_threshold_int", .0);
     mf_param.setValue("reestimate_mt_sd", "false");
     mf_param.setValue("trace_termination_criterion", "outlier");

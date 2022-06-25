@@ -1397,15 +1397,21 @@ namespace OpenMS
                                                                         const std::vector<double>& per_isotope_intensities,
                                                                         int& offset,
                                                                         const PrecalculatedAveragine& avg,
-                                                                        bool use_shape_diff)
+                                                                        bool narrow_window)
   {
     auto iso = avg.get(mono_mass);
 
     int iso_size = (int) iso.size();
-    int apex_index = avg.getApexIndex(mono_mass);
+    //int apex_index = avg.getApexIndex(mono_mass);
     int right = avg.getRightCountFromApex(mono_mass);
     int left = avg.getLeftCountFromApex(mono_mass);
-    int iso_range = right + left;
+
+    if(narrow_window)
+    {
+      right = std::min(right, 3);
+      left = std::min(left, 3);
+    }
+    //int iso_range = right + left;
 
     offset = 0;
     double min_diff = -1000;
@@ -1445,7 +1451,7 @@ namespace OpenMS
 
     min_diff = 1e10;
     int final_offset = offset;
-    if (use_shape_diff)
+    /*if (use_shape_diff)
     {
       for (int tmp_offset = offset - std::max(iso_range / 4, 2); tmp_offset <= offset + std::max(iso_range / 4, 2); tmp_offset++)
       {
@@ -1466,7 +1472,7 @@ namespace OpenMS
           final_offset = tmp_offset;
         }
       }
-    }
+    }*/
     offset = final_offset;
     return getCosine_(per_isotope_intensities,
                       min_isotope_index,
@@ -1557,34 +1563,47 @@ namespace OpenMS
     int avg_max_index = avg_.getMaxIsotopeIndex();
     for (auto& peak_group : deconvolved_spectrum_)
     {
-      auto per_isotope_intensities = std::vector<double>(avg_max_index, 0);
-      auto per_abs_charge_intensities = std::vector<double>(charge_range, 0);
+      std::vector<double> per_isotope_intensities;
+      std::vector<double> per_abs_charge_intensities;
+      int max_abs_charge;
 
-      auto indices = calculatePerChargeIsotopeIntensity_(
-          per_isotope_intensities, per_abs_charge_intensities,
-          avg_max_index, peak_group);
+      for(int k = 0;k < 2;k++)
+      {
+        per_isotope_intensities = std::vector<double>(avg_max_index, 0);
+        per_abs_charge_intensities = std::vector<double>(charge_range, 0);
+        max_abs_charge = calculatePerChargeIsotopeIntensity_(per_isotope_intensities, per_abs_charge_intensities, avg_max_index, peak_group);
 
-      //bool is_charge_well_distributed = true;
-      // is_charge_well_distributed = checkChargeDistribution_(per_abs_charge_intensities); //  could be permanently removed?
-      //double tmp = getChargeFitScore_(per_abs_charge_intensities, charge_range);
+        if(max_abs_charge < 0)
+        {
+          break;
+        }
 
-      // if (!is_charge_well_distributed)
-      // {
-      //   continue;
-      //}
+        int offset = 0;
+        auto tpg = peak_group[0];
+        double cos = getIsotopeCosineAndDetermineIsotopeIndex(tpg.getUnchargedMass(), per_isotope_intensities, offset, avg_, k == 1);
+        peak_group.setIsotopeCosine(cos);
+        peak_group.updateMassesAndIntensity(offset, avg_max_index);
+        if(cos < .5)
+        {
+          break;
+        }
 
-      int offset = 0;
-      auto tpg = peak_group[0];
-      double cos = getIsotopeCosineAndDetermineIsotopeIndex(tpg.getUnchargedMass(),
-                                                            per_isotope_intensities,
-                                                            offset, avg_, false);
-      peak_group.setIsotopeCosine(cos);
-      peak_group.updateMassesAndIntensity(offset, avg_max_index);
+        if (k == 0)
+        {
+          peak_group.recurteAllPeaksInSepctrum(deconvolved_spectrum_.getOriginalSpectrum(), tolerance_[ms_level_ - 1], avg_);
+        }
 
-      if (peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
+        if(peak_group.empty())
+        {
+          break;
+        }
+      }
+
+      if (max_abs_charge < 0 || peak_group.empty() || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
       {
         continue;
       }
+
 
       if (target_masses_.size() > 0)
       {
@@ -1599,11 +1618,6 @@ namespace OpenMS
             peak_group.setTargeted();
           }
         }
-      }
-
-      if (peak_group.empty())
-      {
-        continue;
       }
 
       if (peak_group.isTargeted())
@@ -1957,7 +1971,7 @@ namespace OpenMS
   }
 
 
-  std::vector<int> FLASHDeconvAlgorithm::calculatePerChargeIsotopeIntensity_(
+  int FLASHDeconvAlgorithm::calculatePerChargeIsotopeIntensity_(
       std::vector<double>& per_isotope_intensity,
       std::vector<double>& per_charge_intensity,
       const int max_isotope_count,
@@ -1965,10 +1979,6 @@ namespace OpenMS
   {
     int min_pg_charge = INT_MAX;
     int max_pg_charge = INT_MIN;
-    //    double maxIntensity = -1;
-    int max_intensity_charge_index = -1;
-    //    double maxIntensity2 = -1;
-    int max_intensity_iso_index = -1;
 
     for (auto& p : pg)
     {
@@ -1984,8 +1994,7 @@ namespace OpenMS
       per_charge_intensity[index] += p.intensity;
     }
     pg.setAbsChargeRange(min_pg_charge, max_pg_charge);
-    //std::cout<<" * " << min_pg_charge << " " << max_pg_charge<<std::endl;
-    return std::vector<int>{max_intensity_charge_index, max_intensity_iso_index};
+    return max_pg_charge;
   }
 
   double FLASHDeconvAlgorithm::getCosine_(const std::vector<double>& a, const std::vector<double>& b, const int off)

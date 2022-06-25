@@ -108,14 +108,14 @@ namespace OpenMS
         @param per_isotope_intensities per isotope intensity - aggregated through charges
         @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
         @param avg precalculated averagine
-        @param use_shape_diff use shape diff function for more accurate monoisotopic mass determination
+        @param narrow_window narrow down the window of isotope offset value to 3.
         @return calculated cosine similar score
      */
     static double getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
                                                            const std::vector<double>& per_isotope_intensities,
                                                            int& offset,
                                                            const PrecalculatedAveragine& avg,
-                                                           bool use_shape_diff = false);
+                                                           bool narrow_window = false);
 
 
   protected:
@@ -289,8 +289,9 @@ namespace OpenMS
      * @param per_charge_intensity per charge intensities being calculated
      * @param max_isotope_count maximum isotope count
      * @param pg peak group
+     * @return the maximum absolute charge
      */
-    std::vector<int> calculatePerChargeIsotopeIntensity_(
+    int calculatePerChargeIsotopeIntensity_(
         std::vector<double>& per_isotope_intensity,
         std::vector<double>& per_charge_intensity,
         const int max_isotope_count,

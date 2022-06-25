@@ -74,6 +74,56 @@ namespace OpenMS
 &&        this->intensity_ == a.intensity_;
   }
 
+
+  void PeakGroup::recurteAllPeaksInSepctrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double mono_mass)
+  {
+    double mass = mono_mass <=0? monoisotopic_mass_ : mono_mass; // -2 iso to check negative isotope signals
+    if(mass < 0)
+    {
+      return;
+    }
+
+    int max_isotope = avg.getApexIndex(mass) + avg.getRightCountFromApex(mass);
+    clear();
+
+    for(int c = max_abs_charge_;c >= min_abs_charge_;c--){
+      if(c <= 0)
+      {
+        break;
+      }
+      double cmz = mass/c + FLASHDeconvHelperStructs::getChargeMass(is_positive_);
+      Size index = spec.findNearest(cmz - cmz * tol);
+      double iso_delta = Constants::ISOTOPE_MASSDIFF_55K_U / c;
+      for(;index < spec.size(); index++)
+      {
+        double pmz = spec[index].getMZ();
+
+        int iso_index = (int)round((pmz - cmz)/iso_delta);
+
+        if(iso_index < 0)
+        {
+          continue;
+        }
+
+        if(iso_index > max_isotope)
+        {
+          break;
+        }
+        if(abs(pmz - cmz - iso_index * iso_delta) <= pmz * tol)
+        {
+          auto p = LogMzPeak(spec[index], is_positive_);
+          p.isotopeIndex = iso_index;
+          p.abs_charge = c;
+          push_back(p);
+        }
+      }
+      if(index >= spec.size())
+      {
+        break;
+      }
+    }
+  }
+
   void PeakGroup::updateMassesAndIntensity(const int offset,
                                            const int max_isotope_index)
   {
