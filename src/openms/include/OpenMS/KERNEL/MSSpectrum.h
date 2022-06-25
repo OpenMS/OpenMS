@@ -133,6 +133,8 @@ public:
     ///@name Peak container iterator type definitions
     //@{
     /// Mutable iterator
+    typedef int ProxyIterator;
+    typedef int PIterator;
     typedef typename ContainerType::iterator Iterator;
     /// Non-mutable iterator
     typedef typename ContainerType::const_iterator ConstIterator;
@@ -205,6 +207,12 @@ public:
     {
       return !(operator==(rhs));
     }
+
+    //get Intensity
+    IntensityTypes getPeakIntensity(ProxyIterator it);
+
+    //get Intensity
+    CoordinateType getPeakMz(ProxyIterator it);
 
     // Docu in base class (RangeManager)
     void updateRanges() override;
@@ -457,6 +465,16 @@ public:
     ConstIterator MZBegin(CoordinateType mz) const;
 
     /**
+      @brief to check for ProxyIterator begin
+    */
+    ProxyIterator PBegin() const;
+
+    /**
+      @brief to check for ProxyIterator end
+    */
+    ProxyIterator PEnd() const;
+
+    /**
       @brief Binary search for peak range begin
 
       @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
@@ -603,11 +621,15 @@ public:
 
     /// return the peak with the highest intensity. If the peak is not unique, the first peak in the container is returned.
     /// The function works correctly, even if the spectrum is unsorted.
-    ConstIterator getBasePeak() const;
+    //ConstIterator getBasePeak() const;
+
+    /// return the index with the highest intensity. If the peak is not unique, the first peak index in the intensity container is returned.
+    /// The function works correctly, even if the spectrum is unsorted.
+    ProxyIterator getBasePeak() const;
 
     /// return the peak with the highest intensity. If the peak is not unique, the first peak in the container is returned.
     /// The function works correctly, even if the spectrum is unsorted.
-    Iterator getBasePeak();
+    PIterator getBasePeak();
 
     /// compute the total ion count (sum of all peak intensities)
     PeakType::IntensityType calculateTIC() const;

@@ -149,29 +149,47 @@ namespace OpenMS
     return SpectrumSettings::UNKNOWN;
   }
 
-  MSSpectrum::ConstIterator MSSpectrum::getBasePeak() const
+  // MSSpectrum::ConstIterator MSSpectrum::getBasePeak() const
+  // {
+  //   ConstIterator largest = cbegin();
+  //   if (empty())
+  //   {
+  //     return largest;
+  //   }
+  //   ConstIterator current = cbegin();
+  //   ++current;
+  //   for (; current != cend(); ++current)
+  //   {
+  //     if (largest->getIntensity() < current->getIntensity())
+  //     {
+  //       largest = current;
+  //     }
+  //   }
+  //   return largest;
+  // }
+
+  MSSpectrum::ProxyIterator MSSpectrum::getBasePeak() const
   {
-    ConstIterator largest = cbegin();
-    if (empty())
+    ProxyIterator largest=0;
+    if(position.empty())
     {
       return largest;
     }
-    ConstIterator current = cbegin();
-    ++current;
-    for (; current != cend(); ++current)
-    {
-      if (largest->getIntensity() < current->getIntensity())
-      {
-        largest = current;
+    
+    int l=0;
+    for(int i=1;i<position.size();i++){
+      if(intensity[l]<intensity[i]){
+        l=i;
       }
     }
+    largest = l;
     return largest;
   }
 
-  MSSpectrum::Iterator MSSpectrum::getBasePeak()
+  MSSpectrum::PIterator MSSpectrum::getBasePeak()
   {
-    ConstIterator largest = const_cast<const MSSpectrum&>(*this).getBasePeak();
-    return begin() + std::distance(cbegin(), largest);
+    ProxyIterator largest = const_cast<const MSSpectrum&>(*this).getBasePeak();
+    return PBegin() + largest;
   }
 
   MSSpectrum::PeakType::IntensityType MSSpectrum::calculateTIC() const
@@ -190,6 +208,8 @@ namespace OpenMS
     ContainerType::clear();
 
     clearRanges();
+    position.clear();
+    intensity.clear();
     float_data_arrays_.clear();
     string_data_arrays_.clear();
     integer_data_arrays_.clear();
@@ -513,7 +533,8 @@ namespace OpenMS
     float_data_arrays_ = source.float_data_arrays_;
     string_data_arrays_ = source.string_data_arrays_;
     integer_data_arrays_ = source.integer_data_arrays_;
-
+    position = source.position;
+    intensity = source.intensity;
     return *this;
   }
 
@@ -528,7 +549,9 @@ namespace OpenMS
     name_(),
     float_data_arrays_(),
     string_data_arrays_(),
-    integer_data_arrays_()
+    integer_data_arrays_(),
+    position(),
+    intensity()
   {}
 
   MSSpectrum::MSSpectrum(const MSSpectrum &source) :
@@ -542,13 +565,25 @@ namespace OpenMS
     name_(source.name_),
     float_data_arrays_(source.float_data_arrays_),
     string_data_arrays_(source.string_data_arrays_),
-    integer_data_arrays_(source.integer_data_arrays_)
+    integer_data_arrays_(source.integer_data_arrays_),
+    position(source.position),
+    intensity(source.intensity)
   {}
 
   MSSpectrum &MSSpectrum::operator=(const SpectrumSettings &source)
   {
     SpectrumSettings::operator=(source);
     return *this;
+  }
+
+  MSSpectrum::IntensityTypes MSSpectrum::getPeakIntensity(MSSpectrum::ProxyIterator it)
+  {
+    return intensity[it];
+  }
+
+  MSSpectrum::CoordinateType MSSpectrum::getPeakMz(MSSpectrum::ProxyIterator it)
+  {
+    return position[it][0];
   }
 
   void MSSpectrum::updateRanges()
@@ -654,6 +689,16 @@ namespace OpenMS
   void MSSpectrum::setIntegerDataArrays(const MSSpectrum::IntegerDataArrays &ida)
   {
     integer_data_arrays_ = ida;
+  }
+
+  MSSpectrum::ProxyIterator MSSpectrum::PBegin() const
+  {
+    return 0;
+  }
+
+  MSSpectrum::ProxyIterator MSSpectrum::PEnd() const
+  {
+    return position.size()-1;
   }
 
   MSSpectrum::Iterator MSSpectrum::MZBegin(MSSpectrum::CoordinateType mz)

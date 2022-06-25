@@ -181,7 +181,7 @@ START_SECTION(static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
 
   // Peaks before and after spectrum should not be chosen
   // Shows a fault of the old algorithm occurring with e.g. deamination
-  double correct_monoiso = theo.getBasePeak()->getMZ();
+  double correct_monoiso = theo.getPeakMz(theo.getBasePeak());
   double deamin_mz = spec.front().getMZ() - OpenMS::Constants::NEUTRON_MASS_U;
   Peak1D deamin_peak = Peak1D(deamin_mz, 0.06f);
   spec.push_back(deamin_peak);

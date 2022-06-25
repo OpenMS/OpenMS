@@ -151,9 +151,9 @@ namespace OpenMS
   {
     PeakSpectrum::PeakType::IntensityType bpi{ 0 };
     auto it = spec.getBasePeak();
-    if (it != spec.end())
+    if (it != spec.PEnd())
     {
-      bpi = it->getIntensity();
+      bpi = spec.getPeakIntensity(it);
     }
     return bpi;
   }

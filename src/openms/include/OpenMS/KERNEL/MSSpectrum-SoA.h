@@ -605,6 +605,10 @@ public:
     /// The function works correctly, even if the spectrum is unsorted.
     ConstIterator getBasePeak() const;
 
+    /// return the index with the highest intensity. If the peak is not unique, the first peak index in the intensity container is returned.
+    /// The function works correctly, even if the spectrum is unsorted.
+    ProxyIterator getBasePeak() const;
+
     /// return the peak with the highest intensity. If the peak is not unique, the first peak in the container is returned.
     /// The function works correctly, even if the spectrum is unsorted.
     Iterator getBasePeak();
