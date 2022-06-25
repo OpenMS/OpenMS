@@ -754,9 +754,9 @@ namespace OpenMS
     scoreSpectra(annotated_spectra, picked_spectra, scored_spectra);
 
     // select the best spectrum for each group of spectra having the same name
-    selectSpectra(scored_spectra, ms2_features, extracted_spectra, extracted_features, compute_features);
-    // extracted_spectra = scored_spectra;
-    // extracted_features = ms2_features;
+    //selectSpectra(scored_spectra, ms2_features, extracted_spectra, extracted_features, compute_features);
+    extracted_spectra = scored_spectra;
+    extracted_features = ms2_features;
   }
 
   void TargetedSpectraExtractor::matchSpectrum(
@@ -819,13 +819,14 @@ namespace OpenMS
           matches[0].spectrum.getMetaValue("Comments") : "";
         features[i].setMetaValue("spectral_library_comments", comments);
       }
-      else
-      {
-        no_matches_idx.push_back(i);
-        features[i].setMetaValue("spectral_library_name", "");
-        features[i].setMetaValue("spectral_library_score", 0.0);
-        features[i].setMetaValue("spectral_library_comments", "");
-      }
+      // NOTE: experimenting with omitting default information to reduce verbosity
+      //else
+      //{
+      //  no_matches_idx.push_back(i);
+      //  features[i].setMetaValue("spectral_library_name", "");
+      //  features[i].setMetaValue("spectral_library_score", 0.0);
+      //  features[i].setMetaValue("spectral_library_comments", "");
+      //}
     }
 
     top_matches_to_report_ = tmp;
@@ -1154,10 +1155,11 @@ namespace OpenMS
     {
       bin_offset_ = options.at("bin_offset");
     }
-    library_ = library;
+    library_.clear();
     bs_library_.clear();
-    for (const MSSpectrum& s : library_)
+    for (const MSSpectrum& s : library)
     {
+      library_.push_back(s);
       bs_library_.emplace_back(s, bin_size_, false, peak_spread_, bin_offset_);
     }
     OPENMS_LOG_INFO << "The library contains " << bs_library_.size() << " spectra." << std::endl;
