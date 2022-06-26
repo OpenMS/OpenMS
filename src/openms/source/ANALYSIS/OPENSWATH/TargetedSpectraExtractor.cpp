@@ -258,6 +258,7 @@ namespace OpenMS
             annotated_spectra.push_back(std::move(annotated_spectrum));
             // fill the ms2 features map
             Feature ms2_feature;
+            ms2_feature.setUniqueId();
             ms2_feature.setRT(spectrum_rt);
             ms2_feature.setMZ(spectrum_mz);
             ms2_feature.setIntensity(feature.getIntensity());
@@ -819,14 +820,13 @@ namespace OpenMS
           matches[0].spectrum.getMetaValue("Comments") : "";
         features[i].setMetaValue("spectral_library_comments", comments);
       }
-      // NOTE: experimenting with omitting default information to reduce verbosity
-      //else
-      //{
-      //  no_matches_idx.push_back(i);
-      //  features[i].setMetaValue("spectral_library_name", "");
-      //  features[i].setMetaValue("spectral_library_score", 0.0);
-      //  features[i].setMetaValue("spectral_library_comments", "");
-      //}
+      else
+      {
+        no_matches_idx.push_back(i);
+        features[i].setMetaValue("spectral_library_name", "");
+        features[i].setMetaValue("spectral_library_score", 0.0);
+        features[i].setMetaValue("spectral_library_comments", "");
+      }
     }
 
     top_matches_to_report_ = tmp;
