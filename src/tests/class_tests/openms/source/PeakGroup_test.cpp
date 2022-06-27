@@ -159,7 +159,7 @@ START_SECTION((void setScanNumber(const int scan_number)))
 }
 END_SECTION
 
-/// not testable : setChargePower, setChargeSignalPower - no getter for private variable
+/// not testable : setChargePower_, setChargeSignalPower_ - no getter for private variable
 
 START_SECTION((void setChargeIsotopeCosine(const int abs_charge, const float cos)))
 {
@@ -175,14 +175,6 @@ START_SECTION((float getChargeIsotopeCosine(const int abs_charge) const))
 }
 END_SECTION
 
-
-START_SECTION((void setChargeIntensity(const int abs_charge, const float intensity)))
-{
-  double temp_inty = 12878376.801757812;
-  sample_pg.setChargeIntensity(2, temp_inty);
-  TEST_REAL_SIMILAR(sample_pg.getChargeIntensity(2), temp_inty);
-}
-END_SECTION
 
 START_SECTION((float getChargeIntensity(const int abs_charge) const))
 {

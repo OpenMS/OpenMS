@@ -1073,7 +1073,7 @@ namespace OpenMS
             //max_noise_peak_intensity = max_noise_peak_intensity < intensity ? intensity : max_noise_peak_intensity;
           }
         }
-        //pg.setChargePower(abs_charge, peak_pwr);
+        //pg.setChargePower_(abs_charge, peak_pwr);
       }
 
       if (total_signal_pwr > *std::max_element(total_harmonic_pwr.begin(), total_harmonic_pwr.end())&&
@@ -1125,7 +1125,7 @@ namespace OpenMS
           //  {
           //    continue;
           //  }
-            //pg.setChargeSignalPower(abs_charge, sp);
+            //pg.setChargeSignalPower_(abs_charge, sp);
           //}
 
           pg.swap(new_peaks);
@@ -1562,14 +1562,14 @@ namespace OpenMS
     for (auto& peak_group : deconvolved_spectrum_)
     {
       std::vector<double> per_isotope_intensities;
-      std::vector<double> per_abs_charge_intensities;
+      //std::vector<double> per_abs_charge_intensities;
       int max_abs_charge;
       double signal_intensity = 0;
       for(int k = 0;k < 2;k++)
       {
         per_isotope_intensities = std::vector<double>(avg_max_index, 0);
-        per_abs_charge_intensities = std::vector<double>(charge_range, 0);
-        max_abs_charge = calculatePerChargeIsotopeIntensity_(per_isotope_intensities, per_abs_charge_intensities, avg_max_index, peak_group); // TODO move into PeakGroup
+        //per_abs_charge_intensities = std::vector<double>(charge_range, 0);
+        max_abs_charge = calculatePerIsotopeIntensity_(per_isotope_intensities, avg_max_index, peak_group); // TODO move into PeakGroup
 
         if(max_abs_charge < 0)
         {
@@ -1578,7 +1578,7 @@ namespace OpenMS
 
         int offset = 0;
         auto tpg = peak_group[0];
-        double cos = getIsotopeCosineAndDetermineIsotopeIndex(tpg.getUnchargedMass(), per_isotope_intensities, offset, avg_, k == 1);// TODO move scoring into PeakGroup + Where SNR calculation?? + Relax MS2... more sensitive MS2
+        double cos = getIsotopeCosineAndDetermineIsotopeIndex(tpg.getUnchargedMass(), per_isotope_intensities, offset, avg_, k == 1);// TODO move scoring into PeakGroup
         peak_group.setIsotopeCosine(cos);
         peak_group.updateMassesAndIntensity(offset, avg_max_index);
         if(!peak_group.isTargeted() && cos < min_isotope_cosine_[ms_level_ - 1] - .1) // discard very low scoring and non-targeted masses..
@@ -1650,9 +1650,6 @@ namespace OpenMS
           continue;
         }
       }
-      double cs = getChargeFitScore_(per_abs_charge_intensities, 1 + std::get<1>(peak_group.getAbsChargeRange())); // TODO move into PeakGroup
-
-      peak_group.setChargeScore(cs);
 
       auto iso_dist = avg_.get(peak_group.getMonoMass());
       int iso_size = (int) iso_dist.size();
@@ -1663,7 +1660,7 @@ namespace OpenMS
            abs_charge++)
       {
         int j = abs_charge - current_min_charge_;//current_min_charge_;
-        if (per_abs_charge_intensities[j] <= 0)
+        if (peak_group.getChargeIntensity(abs_charge) <= 0)
         {
           continue;
         }
@@ -1713,10 +1710,8 @@ namespace OpenMS
         // double cos_score_squared = cos_score * cos_score;
 
         peak_group.setChargeIsotopeCosine(abs_charge, cos_score);
-        //std::cout<<1<<std::endl;
 
-        //std::cout<<2<<std::endl;
-        //peak_group.setChargeIntensity(abs_charge, per_abs_charge_intensities[j]);
+        //peak_group.setChargeIntensity_(abs_charge, per_abs_charge_intensities[j]);
       }
 
       peak_group.setAvgPPMError(getAvgPPMError_(peak_group));
@@ -1990,9 +1985,8 @@ namespace OpenMS
   }
 
 
-  int FLASHDeconvAlgorithm::calculatePerChargeIsotopeIntensity_(
+  int FLASHDeconvAlgorithm::calculatePerIsotopeIntensity_(
       std::vector<double>& per_isotope_intensity,
-      std::vector<double>& per_charge_intensity,
       const int max_isotope_count,
       PeakGroup& pg)
   {
@@ -2010,7 +2004,7 @@ namespace OpenMS
 
       int index = p.abs_charge - current_min_charge_;//current_min_charge_;
       per_isotope_intensity[p.isotopeIndex] += p.intensity;
-      per_charge_intensity[index] += p.intensity;
+      //per_charge_intensity[index] += p.intensity;
     }
     pg.setAbsChargeRange(min_pg_charge, max_pg_charge);
     return max_pg_charge;
@@ -2039,66 +2033,6 @@ namespace OpenMS
     return n / sqrt(d);
   }
 
-  double FLASHDeconvAlgorithm::getChargeFitScore_(const std::vector<double>& per_charge_intensity, Size len)
-  {
-    double max_per_charge_intensity = .0;
-    double summed_intensity = .0;
-    int max_index = -1;
-    int first_index = -1;
-    int last_index = -1;
-
-    for (int i = 0; i < (int) len; i++)
-    {
-      summed_intensity += per_charge_intensity[i];
-      if (per_charge_intensity[i] <= 0)
-      {
-        if (first_index < 0)
-        {
-          first_index = i;
-        }
-        last_index = i;
-      }
-
-      if (max_per_charge_intensity > per_charge_intensity[i])
-      {
-        continue;
-      }
-      max_per_charge_intensity = per_charge_intensity[i];
-      max_index = i;
-    }
-
-    if(summed_intensity <= 0)
-    {
-      return .0;
-    }
-
-    first_index = first_index < 0 ? 0 : first_index;
-
-    double p = .0;
-    for (int i = max_index; i < last_index - 1; i++)
-    {
-      double diff = per_charge_intensity[i + 1] - per_charge_intensity[i];
-      //double ratio = per_charge_intensity[i] / (.1 + per_charge_intensity[i + 1]);
-      if (diff <= 0)
-      {
-        continue;
-      }
-      p += abs(diff);
-    }
-
-    for (int i = max_index; i > first_index; i--)
-    {
-      double diff = per_charge_intensity[i - 1] - per_charge_intensity[i];
-      //      double ratio = per_charge_intensity[i] / (.1 + per_charge_intensity[i - 1]);
-
-      if (diff <= 0)
-      {
-        continue;
-      }
-      p += abs(diff);
-    }
-    return std::max(.0, 1.0 - p / summed_intensity);
-  }
 
   float FLASHDeconvAlgorithm::getAvgPPMError_(PeakGroup pg)
   {

@@ -148,9 +148,6 @@ namespace OpenMS
     /// get per abs_charge SNR
     float getChargeSNR(const int abs_charge) const;
 
-    /// get per abs_charge power
-    float getChargePower(const int abs_charge) const;
-
     /// get per abs_charge isotope cosine
     float getChargeIsotopeCosine(const int abs_charge) const;
 
@@ -210,12 +207,13 @@ namespace OpenMS
   private:
 
     /// set per abs_charge signal power
-    void setChargeSignalPower(const int abs_charge, const double pwr);
+    void setChargeSignalPower_(const int abs_charge, const double pwr);
     /// set per abs_charge intensity
-    void setChargeIntensity(const int abs_charge, const float intensity);
+    void setChargeIntensity_(const int abs_charge, const float intensity);
     /// set per abs_charge total peak power
-    void setChargePower(const int abs_charge, const double pwr);
+    void setChargePower_(const int abs_charge, const double pwr);
 
+    void setChargeFitScore_();
 
     /// log Mz peaks
     std::vector<FLASHDeconvHelperStructs::LogMzPeak> logMzpeaks_;
@@ -225,6 +223,7 @@ namespace OpenMS
     std::vector<float> per_charge_cos_;
     std::vector<float> per_charge_int_;
     std::vector<float> per_charge_snr_;
+
     /// mz range resulting in maximum Q score
     double max_qscore_mz_end_, max_qscore_mz_start_;
     /// charge range

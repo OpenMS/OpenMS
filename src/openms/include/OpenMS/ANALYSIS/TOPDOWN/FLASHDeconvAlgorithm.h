@@ -286,14 +286,12 @@ namespace OpenMS
 
     /**@brief Calculate per charge and per isotope intensites from peak groups
      * @param per_isotope_intensity per isotope intensities being calculated
-     * @param per_charge_intensity per charge intensities being calculated
      * @param max_isotope_count maximum isotope count
      * @param pg peak group
      * @return the maximum absolute charge
      */
-    int calculatePerChargeIsotopeIntensity_(
+    int calculatePerIsotopeIntensity_(
         std::vector<double>& per_isotope_intensity,
-        std::vector<double>& per_charge_intensity,
         const int max_isotope_count,
         PeakGroup& pg);
 
