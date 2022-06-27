@@ -271,7 +271,7 @@ public:
     PlotCanvas* getActiveCanvas() const;
 
     /// Opens the provided spectrum widget in a new window
-    void showPlotWidgetInWindow(PlotWidget* sw, const String& caption);
+    void showPlotWidgetInWindow(PlotWidget* sw);
 
 public slots:
     /// changes the current path according to the currently active window/layer

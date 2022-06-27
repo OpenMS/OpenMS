@@ -457,7 +457,7 @@ namespace OpenMS
     // calculate noise
     if (use_noise_cutoff)
     {
-      double cutoff = estimateNoiseFromRandomScans(*map, 1, 10, 5); // 5% of low intensity data is considered noise
+      auto cutoff = estimateNoiseFromRandomScans(*map, 1, 10, 5); // 5% of low intensity data is considered noise
       DataFilters filters;
       filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, cutoff));
       setFilters(filters);

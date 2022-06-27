@@ -177,7 +177,7 @@ namespace OpenMS
 
     if (showChromatogramsInCanvas_(trace, ml, w.get()))
     { // success!
-      tv_->showPlotWidgetInWindow(w.get(), ml.layername);
+      tv_->showPlotWidgetInWindow(w.get());
       w.release(); // do NOT delete the widget; tv_ owns it now ...
       tv_->updateBarsAndMenus();
     }

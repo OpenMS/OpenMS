@@ -256,6 +256,7 @@ namespace OpenMS
 
         // ranges
         this->extendRT(it->getRT()); // RT
+        this->extendMobility(it->getDriftTime()); // IM
         it->updateRanges();
         this->extend(*it);           // m/z and intensity from spectrum's range
       }

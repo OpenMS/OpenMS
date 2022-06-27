@@ -968,7 +968,7 @@ namespace OpenMS
 
     if (as_new_window)
     {
-      showPlotWidgetInWindow(target_window, caption);
+      showPlotWidgetInWindow(target_window);
     }
 
     // enable spectra view tab (not required anymore since selection_view_.update() will decide automatically)
@@ -1374,7 +1374,7 @@ namespace OpenMS
   {
   }
 
-  void TOPPViewBase::showPlotWidgetInWindow(PlotWidget* sw, const String& caption)
+  void TOPPViewBase::showPlotWidgetInWindow(PlotWidget* sw)
   {
     ws_.addSubWindow(sw);
     connect(sw->canvas(), &PlotCanvas::preferencesChange, this, &TOPPViewBase::updateLayerBar);
@@ -1385,35 +1385,40 @@ namespace OpenMS
     connect(sw, &PlotWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
     connect(sw, &PlotWidget::dropReceived, this, &TOPPViewBase::copyLayer);
 
+    auto base_name = sw->canvas()->getCurrentLayer().getDecoratedName();
+
     // 1D spectrum specific signals
     Plot1DWidget* sw1 = qobject_cast<Plot1DWidget*>(sw);
-    if (sw1 != nullptr)
+    if (sw1)
     {
       connect(sw1, &Plot1DWidget::showCurrentPeaksAs2D, this, &TOPPViewBase::showCurrentPeaksAs2D);
       connect(sw1, &Plot1DWidget::showCurrentPeaksAs3D, this, &TOPPViewBase::showCurrentPeaksAs3D);
       connect(sw1, &Plot1DWidget::showCurrentPeaksAsIonMobility, this, &TOPPViewBase::showCurrentPeaksAsIonMobility);
       connect(sw1, &Plot1DWidget::showCurrentPeaksAsDIA, this, &TOPPViewBase::showCurrentPeaksAsDIA);
+      base_name += " (1D)";
     }
 
     // 2D spectrum specific signals
     Plot2DWidget* sw2 = qobject_cast<Plot2DWidget*>(sw);
-    if (sw2 != nullptr)
+    if (sw2)
     {
       connect(sw2->getProjectionOntoX(), &Plot1DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
       connect(sw2->getProjectionOntoY(), &Plot1DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
       connect(sw2, &Plot2DWidget::showSpectrumAsNew1D, selection_view_, &DataSelectionTabs::showSpectrumAsNew1D);
       connect(sw2, &Plot2DWidget::showCurrentPeaksAs3D , this, &TOPPViewBase::showCurrentPeaksAs3D);
+      base_name += " (2D)";
     }
 
     // 3D spectrum specific signals
     Plot3DWidget* sw3 = qobject_cast<Plot3DWidget*>(sw);
-    if (sw3 != nullptr)
+    if (sw3)
     {
       connect(sw3, &Plot3DWidget::showCurrentPeaksAs2D,this, &TOPPViewBase::showCurrentPeaksAs2D);
+      base_name += " (3D)";
     }
 
-    sw->setWindowTitle(caption.toQString());
-    sw->addToTabBar(&tab_bar_, caption, true);
+    sw->setWindowTitle(base_name.toQString());
+    sw->addToTabBar(&tab_bar_, base_name, true);
     
     // show first window maximized (only visible windows are in the list)
     if (ws_.subWindowList().count() == 1)
@@ -1990,7 +1995,7 @@ namespace OpenMS
       caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
     }
     w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
-    showPlotWidgetInWindow(w, caption);
+    showPlotWidgetInWindow(w);
     updateMenu();
   }
 
@@ -2001,21 +2006,20 @@ namespace OpenMS
     
     ExperimentSharedPtrType exp(new MSExperiment(IMDataConverter::splitByIonMobility(spec)));
     // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
-    for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
+    // for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
 
     // open new 2D widget
     Plot2DWidget* w = new Plot2DWidget(getCanvasParameters(2), &ws_);
+    // map to IM + MZ
+    w->canvas()->setMapper(DimMapper<2>({IMTypes::fromIMUnit(exp->getSpectra()[0].getDriftTimeUnit()), DIM_UNIT::MZ}));
 
     // add data
-    if (!w->canvas()->addLayer(exp, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
+    if (!w->canvas()->addLayer(exp, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename + " (IM Frame)"))
     {
       return;
     }
-    w->xAxis()->setLegend("Ion Mobility [" + exp->getSpectra()[0].getDriftTimeUnitAsString() + "]");
 
-    String caption = layer.getName() + " (Ion Mobility Scan)";
-    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
-    showPlotWidgetInWindow(w, caption);
+    showPlotWidgetInWindow(w);
     updateMenu();
   }
 
@@ -2087,7 +2091,7 @@ namespace OpenMS
     String caption = layer.getName();
     caption += caption_add;
     w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
-    showPlotWidgetInWindow(w, caption);
+    showPlotWidgetInWindow(w);
     updateMenu();
   }
 
@@ -2168,7 +2172,7 @@ namespace OpenMS
     // set layer name
     String caption = layer.getName() + CAPTION_3D_SUFFIX_;
     w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
-    showPlotWidgetInWindow(w, caption);
+    showPlotWidgetInWindow(w);
 
     // set intensity mode (after spectrum has been added!)
     setIntensityMode(PlotCanvas::IM_SNAP);

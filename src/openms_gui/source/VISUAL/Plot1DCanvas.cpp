@@ -1091,12 +1091,13 @@ namespace OpenMS
         });
       }
 
-      /*if (getCurrentLayer().getCurrentSpectrum().containsIMData())
+      auto* peak_layer = dynamic_cast<LayerData1DPeak*>(&getCurrentLayer());
+      if (peak_layer && peak_layer->getCurrentSpectrum().containsIMData())
       {
         context_menu->addAction("Switch to ion mobility view", [&]() {
-          emit showCurrentPeaksAsIonMobility();
+          emit showCurrentPeaksAsIonMobility(peak_layer->getCurrentSpectrum());
         });
-      }*/
+      }
 
       if (getCurrentLayer().isDIAData())
       {

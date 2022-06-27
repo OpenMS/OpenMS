@@ -110,7 +110,7 @@ namespace OpenMS
       String caption = layer.getName();
       w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
 
-      tv_->showPlotWidgetInWindow(w, caption);
+      tv_->showPlotWidgetInWindow(w);
 
       ///////////////////////////////////////////////////////////////////////////////
       // Visualization of ID data

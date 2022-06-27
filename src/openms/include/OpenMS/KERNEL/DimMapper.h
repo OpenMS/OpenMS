@@ -89,7 +89,9 @@ namespace OpenMS
     virtual ValueType map(const Peak1D& p) const = 0;
     virtual ValueType map(const Peak2D& p) const = 0;
     virtual ValueType map(const ChromatogramPeak& p) const = 0;
-    virtual ValueType map(MSExperiment::ConstAreaIterator it) const = 0;
+    virtual ValueType map(const MSExperiment::ConstAreaIterator& it) const = 0;
+    /// obtain value from a certain point in a spectrum
+    virtual ValueType map(const MSSpectrum& spec, const Size index) const = 0;
     
     /// obtain vector of same length as @p spec; one element per peak
     /// @throw Exception::InvalidRange if elements do not support the dimension
@@ -157,7 +159,7 @@ namespace OpenMS
   class OPENMS_DLLAPI DimRT final : public DimBase
   {
   public:
-    DimRT() : DimBase(DIM_UNIT::RT) {};
+    DimRT() : DimBase(DIM_UNIT::RT) {}
 
     std::unique_ptr<DimBase> clone() const override
     {
@@ -176,6 +178,11 @@ namespace OpenMS
     {
       return p.getRT();
     }
+    ValueType map(const MSSpectrum& spec, const Size index) const
+    {
+      return spec.getRT();
+    }                         
+
     ValueTypes map(const MSSpectrum& spec) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
@@ -191,7 +198,7 @@ namespace OpenMS
       return res;
     }
 
-    ValueType map(MSExperiment::ConstAreaIterator it) const override
+    ValueType map(const MSExperiment::ConstAreaIterator& it) const override
     {
       return it.getRT();
     }
@@ -252,10 +259,15 @@ namespace OpenMS
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    ValueType map(MSExperiment::ConstAreaIterator it) const override
+    ValueType map(const MSExperiment::ConstAreaIterator& it) const override
     {
       return it->getMZ();
     }
+    ValueType map(const MSSpectrum& spec, const Size index) const
+    {
+      return spec[index].getMZ();
+    }                     
+
 
     ValueTypes map(const MSSpectrum& spec) const override
     {
@@ -326,10 +338,14 @@ namespace OpenMS
     {
       return p.getIntensity();
     }
-    ValueType map(MSExperiment::ConstAreaIterator it) const override
+    ValueType map(const MSExperiment::ConstAreaIterator& it) const override
     {
       return it->getIntensity();
     }
+    ValueType map(const MSSpectrum& spec, const Size index) const
+    {
+      return spec[index].getIntensity();
+    } 
 
     ValueTypes map(const MSSpectrum& spec) const override
     {
@@ -383,6 +399,79 @@ namespace OpenMS
     void fromXY(const ValueType in, ChromatogramPeak& p) const override
     {
       p.setIntensity(in);
+    }
+  };
+
+  class OPENMS_DLLAPI DimIM final : public DimBase
+  {
+  public:
+    DimIM(const DIM_UNIT im_unit) : DimBase(im_unit) {};
+
+    std::unique_ptr<DimBase> clone() const override
+    {
+      return std::make_unique<DimIM>(*this);
+    }
+
+    ValueType map(const Peak1D& p) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    ValueType map(const Peak2D& p) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    ValueType map(const ChromatogramPeak& p) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    ValueTypes map(const MSSpectrum& spec) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    ValueTypes map(const MSChromatogram& chrom) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    ValueType map(const MSExperiment::ConstAreaIterator& it) const override
+    {
+      return it.getDriftTime();
+    }
+    ValueType map(const MSSpectrum& spec, const Size index) const
+    {
+      return spec.getDriftTime();
+    } 
+
+    ValueType map(const BaseFeature& bf) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    ValueType map(const PeptideIdentification& pi) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    RangeBase map(const RangeAllType& rm) const override
+    {
+      return rm.getRangeForDim(MSDim::IM);
+    }
+
+    void setRange(const RangeBase& in, RangeAllType& rm) const
+    {
+      rm.RangeRT::operator=(in);
+    }
+
+    /// set the IM of a Peak1D (throws)
+    void fromXY(const ValueType in, Peak1D& p) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    /// set the IM of a ChromatogramPeak (throws)
+    void fromXY(const ValueType in, ChromatogramPeak& p) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
   };
   
@@ -466,6 +555,15 @@ namespace OpenMS
     {
       Point pr;
       for (int i = 0; i < N_DIM; ++i) pr[i] = dims_[i]->map(data);
+      return pr;
+    }
+    /// convert an OpenMS datapoint in a container (such as MSSpectrum) to an N_DIM-dimensional point
+    template<typename Container>
+    Point map(const Container& data, const Size index) const
+    {
+      Point pr;
+      for (int i = 0; i < N_DIM; ++i)
+        pr[i] = dims_[i]->map(data, index);
       return pr;
     }
 
@@ -556,6 +654,10 @@ namespace OpenMS
           return std::make_unique<DimMZ>();
         case DIM_UNIT::INT:
           return std::make_unique<DimINT>();
+        case DIM_UNIT::FAIMS_CV:
+        case DIM_UNIT::IM_MS:
+        case DIM_UNIT::IM_VSSC:
+          return std::make_unique<DimIM>(u);
         default:
           throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }

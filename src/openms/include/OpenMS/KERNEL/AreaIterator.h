@@ -51,7 +51,7 @@ namespace OpenMS
         This iterator allows us to move through the data structure in a linear
         manner i.e. we don't need to jump to the next spectrum manually.
 
-        @note This iterator iterates over spectra with MS level 1 only!
+        @note This iterator iterates over spectra with same MS level as the MS level of the begin() spectrum from the C'tor!
     */
     template <class ValueT, class ReferenceT, class PointerT, class SpectrumIteratorT, class PeakIteratorT>
     class AreaIterator :
@@ -77,6 +77,7 @@ public:
       //@}
 
       /// Constructor for the begin iterator
+      /// The MS-level of @p first determines which MS level a iterated scan must have.
       AreaIterator(SpectrumIteratorType first, SpectrumIteratorType begin, SpectrumIteratorType end, CoordinateType low_mz, CoordinateType high_mz) :
         first_(first),
         current_scan_(begin),
@@ -105,22 +106,11 @@ public:
       {}
 
       /// Copy constructor
-      AreaIterator(const AreaIterator & rhs) :
-        first_(rhs.first_),
-        current_scan_(rhs.current_scan_),
-        end_scan_(rhs.end_scan_),
-        current_peak_(rhs.current_peak_),
-        end_peak_(rhs.end_peak_),
-        low_mz_(rhs.low_mz_),
-        high_mz_(rhs.high_mz_),
-        is_end_(rhs.is_end_)
-      {}
+      AreaIterator(const AreaIterator& rhs) = default;
 
       /// Assignment operator
-      AreaIterator & operator=(const AreaIterator & rhs)
+      AreaIterator& operator=(const AreaIterator & rhs)
       {
-        if (&rhs == this) return *this;
-
         is_end_ = rhs.is_end_;
         //only copy iterators, if the assigned iterator is not the end iterator
         if (!is_end_)
@@ -140,15 +130,13 @@ public:
       /// Test for equality
       bool operator==(const AreaIterator & rhs) const
       {
-        //Both end iterators => equal
+        // Both end iterators => equal
         if (is_end_ && rhs.is_end_) return true;
 
-        //Normal and end iterator => not equal
-        if (!is_end_ && rhs.is_end_) return false;
+        // Normal and end iterator => not equal
+        if (is_end_ ^ rhs.is_end_) return false;
 
-        if (is_end_ && !rhs.is_end_) return false;
-
-        //Equality of pointed to peak addresses
+        // Equality of pointed to peak addresses
         return &(*current_peak_) == &(*(rhs.current_peak_));
       }
 
@@ -200,6 +188,12 @@ public:
         return current_scan_->getRT();
       }
 
+      /// returns the ion mobility time of the current scan
+      CoordinateType getDriftTime() const
+      {
+        return current_scan_->getDriftTime();
+      }
+
       /// returns the PeakIndex corresponding to the current iterator position
       inline PeakIndex getPeakIndex() const
       {
@@ -214,13 +208,13 @@ public:
       }
 
 private:
-      //Advances to the iterator to the next valid peak in the next valid spectrum
+      /// advances to the iterator to the next valid peak in the next valid spectrum
       void nextScan_()
       {
         while (true)
         {
           //if (current_scan_ != end_scan_) std::cout << "RT: " << current_scan_->getRT() << std::endl;
-          while (current_scan_ != end_scan_ && current_scan_->getMSLevel() != 1)
+          while (current_scan_ != end_scan_ && current_scan_->getMSLevel() != first_->getMSLevel())
           {
             ++current_scan_;
           }
@@ -255,7 +249,6 @@ private:
       CoordinateType high_mz_;
       /// Flag that indicates that this iterator is the end iterator
       bool is_end_;
-
     };
 
   }

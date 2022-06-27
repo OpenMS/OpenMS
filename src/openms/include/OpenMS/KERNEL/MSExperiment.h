@@ -67,8 +67,7 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI MSExperiment final :
-    public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>,
+  class OPENMS_DLLAPI MSExperiment final : public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility>,
     public ExperimentalSettings
   {
 
@@ -87,9 +86,9 @@ public:
     /// Intensity type of peaks
     typedef PeakType::IntensityType IntensityType;
     /// RangeManager type
-    typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
+    typedef RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility> RangeManagerType;
     /// RangeManager type
-    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
+    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility> RangeManagerContainerType;
     /// Spectrum Type
     typedef MSSpectrum SpectrumType;
     /// Chromatogram type

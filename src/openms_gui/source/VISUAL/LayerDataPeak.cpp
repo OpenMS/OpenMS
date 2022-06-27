@@ -189,8 +189,7 @@ namespace OpenMS
   PointXYType LayerDataPeak::peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const
   {
     const auto& spec = getSpectrum(peak.spectrum);
-    const auto p1 = spec[peak.peak];
-    return mapper.map(Peak2D({spec.getRT(), p1.getMZ()}, p1.getIntensity()));
+    return mapper.map(spec, peak.peak);
   }
 
   String LayerDataPeak::getDataArrayDescription(const PeakIndex& peak_index)

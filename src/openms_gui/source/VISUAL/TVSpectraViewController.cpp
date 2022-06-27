@@ -83,11 +83,7 @@ namespace OpenMS
     // set relative (%) view of visible area
     w->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
 
-    // basic behavior 2
-    String caption = layer.getName();
-    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
-
-    tv_->showPlotWidgetInWindow(wp.release(), caption);
+    tv_->showPlotWidgetInWindow(wp.release());
     tv_->updateLayerBar();
     tv_->updateViewBar();
     tv_->updateFilterBar();
@@ -134,7 +130,7 @@ namespace OpenMS
 
     // basic behavior 2
 
-    tv_->showPlotWidgetInWindow(w, caption);
+    tv_->showPlotWidgetInWindow(w);
     tv_->updateBarsAndMenus();
   }
 

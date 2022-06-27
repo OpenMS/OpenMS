@@ -82,7 +82,7 @@ public:
     // Docu in base class
     void setMapper(const DimMapper<2>& mapper) override
     {
-      canvas_->setMapper(mapper); // update canvas
+      canvas_->setMapper(mapper);
     }
 
     // Docu in base class

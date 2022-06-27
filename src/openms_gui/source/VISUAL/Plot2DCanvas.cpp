@@ -144,7 +144,7 @@ namespace OpenMS
     PeakIndex max_pi;
     const auto& searched_area = a.getAreaUnit();
     if (getCurrentLayer().type == LayerDataBase::DT_PEAK)
-    {
+    { // fixme: create iterator from a visible area // fix projections
       for (ExperimentType::ConstAreaIterator i = getCurrentLayer().getPeakData()->areaBeginConst(searched_area.getMinRT(),
                                                                                                  searched_area.getMaxRT(),
                                                                                                  searched_area.getMinMZ(),
@@ -1021,19 +1021,22 @@ namespace OpenMS
     layer.updateRanges(); // required for minIntensity() below and hasRange()
     if (layer.getRange().hasRange() == HasRangeType::NONE)
     {
-      popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
+      popIncompleteLayer_("Cannot add a dataset that contains no data. Aborting!");
       return false;
     }
-    update_buffer_ = true;
-
     // overall values update
     recalculateRanges_();
-    if (layers_.getLayerCount() == 1)
+
+    // pick dimensions to show (based on data)
+
+
+    update_buffer_ = true;
+
+    if (getLayerCount() == 1)
     {
       resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
     }
-
-    if (getLayerCount() == 2)
+    else if (getLayerCount() == 2)
     {
       setIntensityMode(IM_PERCENTAGE);
     }
@@ -1042,7 +1045,7 @@ namespace OpenMS
     emit layerActivated(this);
 
     // warn if negative intensities are contained
-    if (getCurrentMinIntensity() < 0.0)
+    if (getCurrentMinIntensity() < 0)
     {
       QMessageBox::warning(this, "Warning", "This dataset contains negative intensities. Use it at your own risk!");
     }

@@ -475,7 +475,6 @@ namespace OpenMS
       return RangeBase::contains(inner_range);
     }
   };
-
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& out, const RangeIntensity& range);
 
   struct OPENMS_DLLAPI RangeMobility : public RangeBase
