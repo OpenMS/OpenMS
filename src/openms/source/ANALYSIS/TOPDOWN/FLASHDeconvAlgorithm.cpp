@@ -597,7 +597,6 @@ namespace OpenMS
 
         if (pass_first_check)
         {
-
           if (prev_charge - j == -1)//prev_charge - j == -1)//check harmonic artifacts for high charge ranges
           {
             float max_intensity = intensity;
@@ -931,8 +930,7 @@ namespace OpenMS
             if (peak_bin_numbers[cpi] == b_index)// if the peak of consideration matches to this mass with charge abs_charge
             {
               double intensity = log_mz_peaks_[cpi].intensity;
-              if (intensity >
-                  max_intensity)// compare with other matching peaks and select the most intense peak (in max_peak_index)
+              if (intensity > max_intensity)// compare with other matching peaks and select the most intense peak (in max_peak_index)
               {
                 max_intensity = intensity;
                 max_peak_index = cpi;
@@ -970,8 +968,8 @@ namespace OpenMS
         const double iso_delta = Constants::ISOTOPE_MASSDIFF_55K_U / (abs_charge);
         double mz_delta = tol * mz;//
 
-        double peak_pwr = .0;
-        double max_noise_peak_intensity = .0;
+        //double peak_pwr = .0;
+        //double max_noise_peak_intensity = .0;
         double max_mz = mz;
         double max_peak_intensity = log_mz_peaks_[max_peak_index].intensity;
 
@@ -996,10 +994,10 @@ namespace OpenMS
               p.abs_charge = abs_charge;
               p.isotopeIndex = tmp_i;
               pg.push_back(p);
-              peak_pwr += max_noise_peak_intensity * max_noise_peak_intensity;
-              peak_pwr += intensity * intensity;
+              //peak_pwr += max_noise_peak_intensity * max_noise_peak_intensity;
+              //peak_pwr += intensity * intensity;
               total_signal_pwr += intensity * intensity;
-              max_noise_peak_intensity = .0;
+              //max_noise_peak_intensity = .0;
             }
             if (max_peak_intensity < intensity)
             {
@@ -1020,10 +1018,10 @@ namespace OpenMS
                 total_harmonic_pwr[l] += intensity * intensity;
               }
             }
-            max_noise_peak_intensity = max_noise_peak_intensity < intensity ? intensity : max_noise_peak_intensity;
+            //max_noise_peak_intensity = max_noise_peak_intensity < intensity ? intensity : max_noise_peak_intensity;
           }
         }
-        max_noise_peak_intensity = .0;
+        //max_noise_peak_intensity = .0;
 
         for (int peak_index = max_peak_index - 1; peak_index >= 0; peak_index--)
         {
@@ -1046,10 +1044,10 @@ namespace OpenMS
               p.abs_charge = abs_charge;
               p.isotopeIndex = tmp_i;
               pg.push_back(p);
-              peak_pwr += max_noise_peak_intensity * max_noise_peak_intensity;
-              peak_pwr += intensity * intensity;
+              //peak_pwr += max_noise_peak_intensity * max_noise_peak_intensity;
+              //peak_pwr += intensity * intensity;
               total_signal_pwr += intensity * intensity;
-              max_noise_peak_intensity = .0;
+              //max_noise_peak_intensity = .0;
             }
             if (max_peak_intensity < intensity)
             {
@@ -1072,13 +1070,13 @@ namespace OpenMS
               }
             }
 
-            max_noise_peak_intensity = max_noise_peak_intensity < intensity ? intensity : max_noise_peak_intensity;
+            //max_noise_peak_intensity = max_noise_peak_intensity < intensity ? intensity : max_noise_peak_intensity;
           }
         }
-        pg.setChargePower(abs_charge, peak_pwr);
+        //pg.setChargePower(abs_charge, peak_pwr);
       }
 
-      if (total_signal_pwr / 2.0 > *std::max_element(total_harmonic_pwr.begin(), total_harmonic_pwr.end())&& 
+      if (total_signal_pwr > *std::max_element(total_harmonic_pwr.begin(), total_harmonic_pwr.end())&&
           !pg.empty())
       {
         double max_intensity = -1.0;
@@ -1099,7 +1097,7 @@ namespace OpenMS
         int min_off = 10000;
         int max_off = -1;
         int max_charge = -1;
-        std::vector<double> signal_power(current_max_charge_ + 1, .0);
+        //std::vector<double> signal_power(current_max_charge_ + 1, .0);
 
         for (auto& p : pg)
         {
@@ -1113,22 +1111,22 @@ namespace OpenMS
           min_off = min_off > p.isotopeIndex ? p.isotopeIndex : min_off;
           max_off = max_off < p.isotopeIndex ? p.isotopeIndex : max_off;
           max_charge = max_charge < p.abs_charge ? p.abs_charge : max_charge;
-          signal_power[p.abs_charge] += p.intensity * p.intensity;
+          //signal_power[p.abs_charge] += p.intensity * p.intensity;
         }
         if (min_off == max_off)
         {
         }
         else
         {
-          for (int abs_charge = 0; abs_charge < (int) signal_power.size(); abs_charge++)
-          {
-            double sp = signal_power[abs_charge];
-            if (sp <= 0)
-            {
-              continue;
-            }
-            pg.setChargeSignalPower(abs_charge, sp);
-          }
+          //for (int abs_charge = 0; abs_charge < (int) signal_power.size(); abs_charge++)
+          //{
+          //  double sp = signal_power[abs_charge];
+          //  if (sp <= 0)
+          //  {
+          //    continue;
+          //  }
+            //pg.setChargeSignalPower(abs_charge, sp);
+          //}
 
           pg.swap(new_peaks);
 
@@ -1566,12 +1564,12 @@ namespace OpenMS
       std::vector<double> per_isotope_intensities;
       std::vector<double> per_abs_charge_intensities;
       int max_abs_charge;
-
+      double signal_intensity = 0;
       for(int k = 0;k < 2;k++)
       {
         per_isotope_intensities = std::vector<double>(avg_max_index, 0);
         per_abs_charge_intensities = std::vector<double>(charge_range, 0);
-        max_abs_charge = calculatePerChargeIsotopeIntensity_(per_isotope_intensities, per_abs_charge_intensities, avg_max_index, peak_group);
+        max_abs_charge = calculatePerChargeIsotopeIntensity_(per_isotope_intensities, per_abs_charge_intensities, avg_max_index, peak_group); // TODO move into PeakGroup
 
         if(max_abs_charge < 0)
         {
@@ -1580,7 +1578,7 @@ namespace OpenMS
 
         int offset = 0;
         auto tpg = peak_group[0];
-        double cos = getIsotopeCosineAndDetermineIsotopeIndex(tpg.getUnchargedMass(), per_isotope_intensities, offset, avg_, k == 1);
+        double cos = getIsotopeCosineAndDetermineIsotopeIndex(tpg.getUnchargedMass(), per_isotope_intensities, offset, avg_, k == 1);// TODO move scoring into PeakGroup + Where SNR calculation?? + Relax MS2... more sensitive MS2
         peak_group.setIsotopeCosine(cos);
         peak_group.updateMassesAndIntensity(offset, avg_max_index);
         if(!peak_group.isTargeted() && cos < min_isotope_cosine_[ms_level_ - 1] - .1) // discard very low scoring and non-targeted masses..
@@ -1590,7 +1588,7 @@ namespace OpenMS
 
         if (k == 0)
         {
-          peak_group.recurteAllPeaksInSepctrum(deconvolved_spectrum_.getOriginalSpectrum(), tolerance_[ms_level_ - 1], avg_);
+          signal_intensity = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tolerance_[ms_level_ - 1], avg_);
         }
 
         if(peak_group.empty())
@@ -1603,7 +1601,6 @@ namespace OpenMS
       {
         continue;
       }
-
 
       if (target_masses_.size() > 0)
       {
@@ -1632,7 +1629,28 @@ namespace OpenMS
         continue;
       }
 
-      double cs = getChargeFitScore_(per_abs_charge_intensities, 1 + std::get<1>(peak_group.getAbsChargeRange()));
+      // TODO
+      if(true)
+      {
+        bool is_harmonic = false;
+        for (int h : harmonic_charges_)
+        {
+          auto cr = peak_group.getAbsChargeRange();
+          PeakGroup hpg(std::get<0>(cr) * h, std::get<1>(cr) * h, peak_group.isPositive());
+          double h_intensity = hpg.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tolerance_[ms_level_ - 1], avg_, peak_group.getMonoMass() * h);
+          if (h_intensity / h > signal_intensity)
+          {
+            is_harmonic = true;
+            break;
+          }
+        }
+
+        if (is_harmonic)
+        {
+          continue;
+        }
+      }
+      double cs = getChargeFitScore_(per_abs_charge_intensities, 1 + std::get<1>(peak_group.getAbsChargeRange())); // TODO move into PeakGroup
 
       peak_group.setChargeScore(cs);
 
@@ -1695,12 +1713,13 @@ namespace OpenMS
         // double cos_score_squared = cos_score * cos_score;
 
         peak_group.setChargeIsotopeCosine(abs_charge, cos_score);
-        peak_group.setChargeIntensity(abs_charge, per_abs_charge_intensities[j]);
+        //std::cout<<1<<std::endl;
+
+        //std::cout<<2<<std::endl;
+        //peak_group.setChargeIntensity(abs_charge, per_abs_charge_intensities[j]);
       }
 
-
       peak_group.setAvgPPMError(getAvgPPMError_(peak_group));
-
       peak_group.updateSNR();
       peak_group.setQScore(-10000);
 

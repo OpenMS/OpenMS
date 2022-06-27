@@ -91,29 +91,21 @@ namespace OpenMS
                                   const int max_isotope_index = 0);
 
 
-    void recurteAllPeaksInSepctrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass = 0);
+    double recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass = 0);
 
-
-    /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance)
-    bool isSignalMZ(const double mz, const double tol) const;
 
     /// using signal and total (signal + noise) power, update SNR value
     void updateSNR();
 
+    /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance)
+    bool isSignalMZ(const double mz, const double tol) const;
+
     /// set scan number
     void setScanNumber(const int scan_number);
-
-    /// set per abs_charge total peak power
-    void setChargePower(const int abs_charge, const double pwr);
-
-    /// set per abs_charge signal power
-    void setChargeSignalPower(const int abs_charge, const double pwr);
 
     /// set per abs_charge isotope cosine
     void setChargeIsotopeCosine(const int abs_charge, const float cos);
 
-    /// set per abs_charge intensity
-    void setChargeIntensity(const int abs_charge, const float intensity);
 
     /// set mz range that results in max Qscore
     void setMaxQScoreMzRange(const double min, const double max);
@@ -138,7 +130,6 @@ namespace OpenMS
 
     /// set SNR manually - for FLASHIda log file parsing
     void setSNR(const float snr);
-
     /// set charge SNR manually - for FLASHIda log file parsing
     void setChargeSNR(const int abs_charge, const float c_snr);
 
@@ -217,6 +208,15 @@ namespace OpenMS
     void sort();
 
   private:
+
+    /// set per abs_charge signal power
+    void setChargeSignalPower(const int abs_charge, const double pwr);
+    /// set per abs_charge intensity
+    void setChargeIntensity(const int abs_charge, const float intensity);
+    /// set per abs_charge total peak power
+    void setChargePower(const int abs_charge, const double pwr);
+
+
     /// log Mz peaks
     std::vector<FLASHDeconvHelperStructs::LogMzPeak> logMzpeaks_;
     /// per charge SNR, isotope cosine, and intensity vectors
