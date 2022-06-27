@@ -49,6 +49,7 @@
 #include <QProgressDialog>
 #include <QSignalBlocker>
 #include <QDesktopServices>
+#include <QMessageBox>
 
 #include <algorithm>
 
@@ -83,6 +84,11 @@ namespace OpenMS
       auto dir = QDir::homePath().append("/FLASHDeconvQOut");
       if (!QDir().exists(dir)) QDir().mkpath(dir);
       return dir;
+    }
+
+    String getTopDownConsensusFeatureGroupExe()
+    {
+      return File::findSiblingTOPPExecutable("TopDownConsensusFeatureGroup");
     }
 
     FLASHDeconvQTabWidget::FLASHDeconvQTabWidget(QWidget* parent) :
@@ -166,11 +172,61 @@ namespace OpenMS
       } // mzML loop
       
       progress.close();
+
+      /// consensus feature group calculation
+      if (ui->checkbox_consensus->isChecked())
+      {
+        runTopDownConsensusFeatureGroup_();
+      }
     }
 
     void FLASHDeconvQTabWidget::on_open_output_directory_clicked()
     {
       QDesktopServices::openUrl( QUrl::fromLocalFile(getCurrentOutDir_()) );
+    }
+
+    void FLASHDeconvQTabWidget::on_consensus_names_check_clicked()
+    {
+      // TODO: if checkbox is checked, edit parameter part comes down...
+
+      /// check if Checkbox is clicked & the prefix is given
+      if( !ui->checkbox_consensus->isChecked() )
+      {
+        QMessageBox qmsg_box;
+        QString msg = "Consensus output was not requested. Please check the checkbox to request.";
+        qmsg_box.critical(nullptr, "Error", msg);
+        qmsg_box.show();
+        return;
+      }
+      if( ui->consensus_name_edit->text().isEmpty() )
+      {
+        QMessageBox qmsg_box;
+        QString msg = "Prefix of replicate is not given. Consensus feature group will be reported from all input LS-MS files.\n"
+                      "Place your cursor over \"Prefix of replicate\" to check the details.";
+        qmsg_box.warning(nullptr, "Error", msg);
+        qmsg_box.show();
+        return;
+      }
+
+      String given_prefix = ui->consensus_name_edit->text();
+
+      /// find replicate groups
+      std::vector<std::vector<String>> file_groups = groupReplicateFiles_(given_prefix);
+
+      /// output message
+      QMessageBox qmsg_box;
+      String msg = "Given prefix: " + given_prefix;
+      msg += "\nTheses files in each group will be considered as replicate:\n";
+      for (Size i = 0; i < file_groups.size(); ++i)
+      {
+        msg+="Group" + to_string(i+1) + "\n";
+        for (auto &f : file_groups[i])
+        {
+          msg+=f + "\n";
+        }
+      }
+      qmsg_box.setText(msg.toQString());
+      qmsg_box.exec();
     }
 
     void FLASHDeconvQTabWidget::updateFLASHDeconvQParamFromWidgets_()
@@ -252,6 +308,99 @@ namespace OpenMS
       }
 
       return true;
+    }
+
+    std::vector<std::vector<String>> FLASHDeconvQTabWidget::groupReplicateFiles_(String delimiter)
+    {
+      std::vector<String> candidates(ui->input_mzMLs->getFilenames());
+      std::vector<std::vector<String>> file_groups;
+
+      // if no delimiter is given, put all LC-MS inputs together in one group
+      if (delimiter.empty())
+      {
+        file_groups.push_back(candidates);
+        return file_groups;
+      }
+
+      while(candidates.size() > 0)
+      {
+        // start with the first element
+        String reference_file = candidates[0];
+        String prefix = reference_file.substr(0, reference_file.find(delimiter));
+
+        candidates.erase(candidates.begin()); // remove the reference
+
+        // find the replicates
+        std::vector<String> collected;
+        for (auto& file : candidates)
+        {
+          if (file.rfind(prefix, 0) == 0)
+          {
+            collected.push_back(file);
+          }
+        }
+
+        // if no replicates are found, finish
+        if (collected.size() == 0)
+        {
+          continue;
+        }
+
+        // remove collected files from candidates
+        for (auto& f : collected)
+        {
+          candidates.erase(std::remove(candidates.begin(), candidates.end(), f), candidates.end());
+        }
+
+        collected.push_back(reference_file);
+        std::sort(collected.begin(), collected.end());
+        file_groups.push_back(collected);
+      }
+      return file_groups;
+    }
+
+    void FLASHDeconvQTabWidget::runTopDownConsensusFeatureGroup_()
+    {
+      writeLog_(QString("Starting TopDownConsensusFeatureGroup..."), Qt::darkGreen, true);
+
+      /// find replicate groups
+      String given_prefix = ui->consensus_name_edit->text();
+      std::vector<std::vector<String>> file_groups = groupReplicateFiles_(given_prefix);
+
+      /// small dialog in front of main window
+      QProgressDialog progress("Running TopDownConsensusFeatureGroup ", "Abort ...", 0, (int)file_groups.size(), this);
+      progress.setWindowModality(Qt::ApplicationModal);
+      progress.setMinimumDuration(0); // show immediately
+      progress.setValue(0);
+      int step = 0;
+
+      // run TopDownConsensusFeatureGroup
+      for (auto& group : file_groups)
+      {
+        // get FDQ result file names
+        QStringList fdq_results;
+        for (auto &mzml : group)
+        {
+          fdq_results.push_back(infileToFDQoutput(mzml, "tsv"));
+        }
+
+        // output file name
+        String tmp_infile = infileToFDQoutput(group[0], "tsv");
+        String output_prefix = tmp_infile.substr(0, tmp_infile.find(given_prefix));
+        String consensus_path = output_prefix + ".fdq.consensus.tsv";
+
+        // run
+        QStringList params = QStringList() << "-in" << fdq_results << "-out" << consensus_path.toQString();
+        auto r = ep_.run(this,
+                         getTopDownConsensusFeatureGroupExe().toQString(),
+                         params,
+                         "",
+                         true);
+        if (r != ExternalProcess::RETURNSTATE::SUCCESS) break;
+        if (progress.wasCanceled()) break;
+        progress.setValue(++step);
+      }
+      progress.close();
     }
 
     void FLASHDeconvQTabWidget::broadcastNewCWD_(const QString& new_cwd)

@@ -96,6 +96,7 @@ namespace OpenMS
     private slots:
       void on_run_fdq_clicked();
       void on_open_output_directory_clicked();
+      void on_consensus_names_check_clicked();
       /// update the current working directory for all file input fields
       void broadcastNewCWD_(const QString& new_cwd);
 
@@ -123,6 +124,12 @@ namespace OpenMS
       /// Ensure all input widgets are filled with data by the user to run FLASHDeconvQ
       /// If anything is missing: show a Messagebox and return false.
       bool checkFDQInputReady_();
+
+      /// Group replicate LC-MS files with prefix of tags
+      std::vector<std::vector<String>> groupReplicateFiles_(String prefix);
+
+      /// run TopDownConsensusFeatureGroup
+      void runTopDownConsensusFeatureGroup_();
 
       Ui::FLASHDeconvQTabWidget *ui;
       Param flashdeconvq_param_; ///< the global FLASHDeconvQ parameters which will be passed to FLASHDeconvQ.exe, once updated with parameters the Wizard holds separately

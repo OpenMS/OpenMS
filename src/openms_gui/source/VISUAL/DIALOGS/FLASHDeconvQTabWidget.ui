@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>635</width>
-    <height>523</height>
+    <width>643</width>
+    <height>528</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
@@ -86,7 +92,7 @@
    <attribute name="title">
     <string>Run FLASHDeconvQ</string>
    </attribute>
-   <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,9">
+   <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,2,9">
     <item>
      <widget class="QGroupBox" name="groupBox_7">
       <property name="sizePolicy">
@@ -148,6 +154,72 @@
      </widget>
     </item>
     <item>
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="title">
+       <string>Output consensus feature group</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QCheckBox" name="checkbox_consensus">
+           <property name="text">
+            <string>consensus output (*.tsv)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Indication to distinguish replicates. &lt;/p&gt;&lt;p&gt;If not given, all input LC-MS files will be used to report Consensus feature groups.&lt;/p&gt;&lt;p&gt;Currently, replicates are required to share the same file name except for the last few characters. For example, with the file names of File_name_R1.tsv and File_name_R2.tsv, please input &amp;quot;_R&amp;quot; for the indication. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Prefix of replicate</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="consensus_name_edit">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Indication to distinguish replicates. &lt;/p&gt;&lt;p&gt;If not given, all input LC-MS files will be used to report Consensus feature groups.&lt;/p&gt;&lt;p&gt;Currently, replicates are required to share the same file name except for the last few characters. For example, with the file names of File_name_R1.tsv and File_name_R2.tsv, please input &amp;quot;_R&amp;quot; for the indication. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="inputMask">
+            <string/>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="placeholderText">
+            <string>i.e) _R</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="consensus_names_check">
+           <property name="text">
+            <string>check</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
      <widget class="QGroupBox" name="groupBox_6">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
@@ -156,9 +228,19 @@
        </sizepolicy>
       </property>
       <property name="title">
-       <string>Run TOPP FLASHDeconv</string>
+       <string>Run FLASHDeconvQ</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
+       <item row="1" column="0" colspan="2">
+        <widget class="ParamEditor" name="list_editor" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_2">
          <property name="sizePolicy">
@@ -176,16 +258,6 @@
         <widget class="QPushButton" name="run_fdq">
          <property name="text">
           <string>run</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0" colspan="2">
-        <widget class="ParamEditor" name="list_editor" native="true">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
          </property>
         </widget>
        </item>
