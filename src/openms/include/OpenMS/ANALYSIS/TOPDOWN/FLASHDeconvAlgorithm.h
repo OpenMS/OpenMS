@@ -103,6 +103,21 @@ namespace OpenMS
     /// convert double to nominal mass
     static int getNominalMass(const double mass);
 
+    /** calculate cosine between two vectors a and b with additional parameters for fast calculation
+     * @param a vector a
+     * @param a_start non zero start index of a
+     * @param a_end non zero end index of a
+     * @param b vector b
+     * @param b_size size of b
+     * @param offset element index offset between a and b
+     */
+    static double getCosine_(const std::vector<float>& a,
+                             const int& a_start,
+                             const int& a_end,
+                             const IsotopeDistribution& b,
+                             const int& b_size,
+                             const int offset);
+
     /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
         @param mono_mass monoisotopic mass
         @param per_isotope_intensities per isotope intensity - aggregated through charges
@@ -112,12 +127,10 @@ namespace OpenMS
         @return calculated cosine similar score
      */
     static double getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
-                                                           const std::vector<double>& per_isotope_intensities,
+                                                           const std::vector<float>& per_isotope_intensities,
                                                            int& offset,
                                                            const PrecalculatedAveragine& avg,
                                                            bool narrow_window = false);
-
-
   protected:
     void updateMembers_() override;
 
@@ -281,66 +294,13 @@ namespace OpenMS
 
     void removeHarmonicsPeakGroups_();
 
+
+
     /// filter out overlapping masses
     void removeOverlappingPeakGroups_(const double tol, const int iso_length = 1);
 
-    /**@brief Calculate per charge and per isotope intensites from peak groups
-     * @param per_isotope_intensity per isotope intensities being calculated
-     * @param max_isotope_count maximum isotope count
-     * @param pg peak group
-     * @return the maximum absolute charge
-     */
-    int calculatePerIsotopeIntensity_(
-        std::vector<double>& per_isotope_intensity,
-        const int max_isotope_count,
-        PeakGroup& pg);
-
     ///Filter out masses with low isotope cosine scores, only retaining current_max_mass_count masses
     void filterPeakGroupsByIsotopeCosine_(const int current_max_mass_count);
-
-    ///Check intensity ratio between charges.
-    bool checkChargeDistribution_(const std::vector<double>& per_charge_intensity);
-
-    /** calculate cosine between two vectors a and b with index offset off
-     * @param a vector a
-     * @param b vector b
-     * @param off index offset
-     */
-    static double getCosine_(const std::vector<double>& a, const std::vector<double>& b, const int off = 0);
-
-
-    /** calculate cosine between two vectors a and b with additional parameters for fast calculation
-     * @param a vector a
-     * @param a_start non zero start index of a
-     * @param a_end non zero end index of a
-     * @param b vector b
-     * @param b_size size of b
-     * @param offset element index offset between a and b
-     */
-    static double getCosine_(const std::vector<double>& a,
-                             const int& a_start,
-                             const int& a_end,
-                             const IsotopeDistribution& b,
-                             const int& b_size,
-                             const int offset);
-
-    /** calculate difference between two vectors a and b with additional parameters for fast calculation
-     * @param a vector a
-     * @param a_start non zero start index of a
-     * @param a_end non zero end index of a
-     * @param b vector b
-     * @param b_size size of b
-     * @param max_offset maximum absolute offset value
-     * @param offset element index offset between a and b
-     */
-    static double getShapeDiff_(const std::vector<double>& a,
-                                const int& a_start,
-                                const int& a_end,
-                                const IsotopeDistribution& b,
-                                const int& b_size,
-                                const int max_offset,
-                                const int offset);
-
 
     /**
     @brief register the precursor peak as well as the precursor peak group (or mass) if possible for MSn (n>1) spectrum.

@@ -122,8 +122,8 @@ namespace OpenMS
       //int maxFIso = INT_MIN; // max feature isotope index
 
       //auto per_charge_max_intensity = std::vector<double>(charge_range + 1, .0);
-      auto per_isotope_intensity = std::vector<double>(averagine.getMaxIsotopeIndex(), .0);
-      auto per_charge_intensity = std::vector<double>(charge_range + min_abs_charge + 1, .0);
+      auto per_isotope_intensity = std::vector<float>(averagine.getMaxIsotopeIndex(), .0f);
+      auto per_charge_intensity = std::vector<float>(charge_range + min_abs_charge + 1, .0f);
 
       double max_iso = 0;
       boost::dynamic_bitset<> charges(charge_range + 1);

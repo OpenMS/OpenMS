@@ -85,14 +85,11 @@ namespace OpenMS
     /**
            @brief add monoisotopic indices of peaks by offset and discard negative isotope peaks. Total intensity is also updated
            @param offset isotope index offset
-           @param max_isotope_index max isotopic index
       */
-    void updateMassesAndIntensity(const int offset = 0,
-                                  const int max_isotope_index = 0);
+    void updateMassesAndIntensity(const int offset = 0);
 
 
-    double recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass = 0);
-
+    double recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass = 0, bool update_per_charge_isotope_intensities = false);
 
     /// using signal and total (signal + noise) power, update SNR value
     void updateSNR();
@@ -163,6 +160,8 @@ namespace OpenMS
     /// get charge range - the actual charge values
     std::tuple<int, int> getAbsChargeRange() const;
 
+    std::vector<float> getIsotopeIntensities() const;
+
     /// get isotopic cosine score
     float getIsotopeCosine() const;
 
@@ -224,6 +223,7 @@ namespace OpenMS
     std::vector<float> per_charge_int_;
     std::vector<float> per_charge_snr_;
 
+    std::vector<float> per_isotope_int_;
     /// mz range resulting in maximum Q score
     double max_qscore_mz_end_, max_qscore_mz_start_;
     /// charge range

@@ -174,8 +174,8 @@ namespace OpenMS
     {
     public:
       MassTrace mt;
-      std::vector<double> per_charge_intensity;
-      std::vector<double> per_isotope_intensity;
+      std::vector<float> per_charge_intensity;
+      std::vector<float> per_isotope_intensity;
       int iso_offset;
       int scan_number, rep_charge;
       double avg_mass;
