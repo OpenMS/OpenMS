@@ -266,6 +266,17 @@ namespace OpenMS
       return min_ == rhs.min_ && max_ == rhs.max_;
     }
 
+    /**
+     * \brief Return the current range, or (if empty) a full range (-1e308, 1e308).
+     * \return A range where always: min <= max
+     */
+    std::pair<double, double> getNonEmptyRange() const
+    {
+      // pair with full range
+      if (isEmpty()) return {std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max()};
+      else return {min_, max_};
+    }
+
   protected:
     // make members non-accessible to maintain invariant: min <= max  (unless uninitialized)
     double min_ = std::numeric_limits<double>::max();

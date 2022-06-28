@@ -405,7 +405,7 @@ namespace OpenMS
   class OPENMS_DLLAPI DimIM final : public DimBase
   {
   public:
-    DimIM(const DIM_UNIT im_unit) : DimBase(im_unit) {};
+    DimIM(const DIM_UNIT im_unit) : DimBase(im_unit) {}
 
     std::unique_ptr<DimBase> clone() const override
     {
@@ -459,7 +459,7 @@ namespace OpenMS
 
     void setRange(const RangeBase& in, RangeAllType& rm) const
     {
-      rm.RangeRT::operator=(in);
+      rm.RangeMobility::operator=(in);
     }
 
     /// set the IM of a Peak1D (throws)

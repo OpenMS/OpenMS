@@ -144,18 +144,14 @@ namespace OpenMS
     PeakIndex max_pi;
     const auto& searched_area = a.getAreaUnit();
     if (getCurrentLayer().type == LayerDataBase::DT_PEAK)
-    { // fixme: create iterator from a visible area // fix projections
-      for (ExperimentType::ConstAreaIterator i = getCurrentLayer().getPeakData()->areaBeginConst(searched_area.getMinRT(),
-                                                                                                 searched_area.getMaxRT(),
-                                                                                                 searched_area.getMinMZ(),
-                                                                                                 searched_area.getMaxMZ());
+    {
+      for (ExperimentType::ConstAreaIterator i = getCurrentLayer().getPeakData()->areaBeginConst(searched_area);
            i != getCurrentLayer().getPeakData()->areaEndConst();
            ++i)
       {
         PeakIndex pi = i.getPeakIndex();
         if (i->getIntensity() > max_int && getCurrentLayer().filters.passes((*getCurrentLayer().getPeakData())[pi.spectrum], pi.peak))
         {
-          //cout << "new max: " << i.getRT() << " " << i->getMZ() << endl;
           max_int = i->getIntensity();
           max_pi = pi;
         }
@@ -1396,117 +1392,12 @@ namespace OpenMS
 
   void Plot2DCanvas::drawCoordinates_(QPainter & painter, const PeakIndex & peak)
   {
-    if (!peak.isValid())
-      return;
+    if (!peak.isValid()) return;
 
-    //determine coordinates;
-    double mz = 0.0;
-    double rt = 0.0;
-    float it = 0.0;
-    Int charge = 0;
-    double quality = 0.0;
-    Size size = 0;
-    const Feature* f = nullptr;
-    const ConsensusFeature* cf = nullptr;
-    ConsensusFeature::HandleSetType sub_features;
-
-    switch (getCurrentLayer().type)
-    {
-    case LayerDataBase::DT_FEATURE:
-    {
-      f = &peak.getFeature(*getCurrentLayer().getFeatureMap());
-      mz = f->getMZ();
-      rt = f->getRT();
-      it = f->getIntensity();
-      charge  = f->getCharge();
-      quality = f->getOverallQuality();
-    }
-    break;
-
-    case LayerDataBase::DT_PEAK:
-    {
-      const Peak1D & p = peak.getPeak(*getCurrentLayer().getPeakData());
-      const MSSpectrum & s = peak.getSpectrum(*getCurrentLayer().getPeakData());
-      mz = p.getMZ();
-      rt = s.getRT();
-      it = p.getIntensity();
-    }
-    break;
-
-    case LayerDataBase::DT_CONSENSUS:
-    {
-      cf = &peak.getFeature(*getCurrentLayer().getConsensusMap());
-
-      mz = cf->getMZ();
-      rt = cf->getRT();
-      it = cf->getIntensity();
-      charge  = cf->getCharge();
-      quality = cf->getQuality();
-      sub_features = cf->getFeatures();
-      size =  sub_features.size();
-    }
-    break;
-
-    case LayerDataBase::DT_CHROMATOGRAM:
-    {
-      const LayerDataBase& layer = getCurrentLayer();
-      vector<MSChromatogram >::const_iterator iter = layer.getPeakData()->getChromatograms().begin();
-      iter += peak.spectrum;
-      mz = iter->getPrecursor().getMZ();
-      rt = iter->front().getRT();
-    }
-    break;
-
-    case LayerDataBase::DT_IDENT:
-      // TODO implement
-      break;
-
-    default:
-      break;
-    }
-
-    // draw text
+    const auto xy_point = getCurrentLayer().peakIndexToXY(peak, unit_mapper_);
     QStringList lines;
-    lines.push_back("RT:  " + QLocale::c().toString(rt, 'f', 2)); // adds group separators (consistency with intensity)
-    lines.push_back("m/z: " + QLocale::c().toString(mz, 'f', 5)); // adds group separators (consistency with intensity)
-    lines.push_back("Int: " + QLocale::c().toString(it, 'f', 2)); // adds group separators (every 1e3), to better visualize large numbers (e.g. 23.009.646.54,3)
-
-    if (getCurrentLayer().type == LayerDataBase::DT_FEATURE || getCurrentLayer().type == LayerDataBase::DT_CONSENSUS)
-    {
-      lines.push_back("Charge: " + QString::number(charge));
-      lines.push_back("Quality: " + QString::number(quality, 'f', 4));
-      // peptide identifications
-      const PeptideIdentification* pis = nullptr;
-      if ( f && !f->getPeptideIdentifications().empty() )
-      {
-        pis = &f->getPeptideIdentifications()[0];
-      }
-      else if ( cf && !cf->getPeptideIdentifications().empty() )
-      {
-        pis = &cf->getPeptideIdentifications()[0];
-      }
-      if ( pis && !pis->getHits().empty() ) {
-          Size nHits = pis->getHits().size();
-          for (Size j = 0; j < nHits; ++j)
-          {
-            lines.push_back( "Peptide" + ( nHits > 1 ? "[" + QString::number(j+1) + "]" : "" ) + ": "
-                             + pis->getHits()[j].getSequence().toString().toQString() );
-          }
-      }
-    }
-
-    if (getCurrentLayer().type == LayerDataBase::DT_CONSENSUS)
-    {
-      lines.push_back("Size: " + QString::number(size));
-      for (ConsensusFeature::HandleSetType::const_iterator it = sub_features.begin(); it != sub_features.end(); ++it)
-      {
-        lines.push_back("Feature m/z: " + QLocale::c().toString(it->getMZ(), 'f', 5) + // adds group separators (consistency with intensity)
-                        "  rt: " + QLocale::c().toString(it->getRT(), 'f', 2) +        // adds group separators (consistency with intensity)
-                        "   q: " + QString::number(it->getCharge(), 'f', 2) +
-                        "  intensity: " + QLocale::c().toString(it->getIntensity(), 'f', 2)); // adds group separators (every 1e3), to better visualize large numbers (e.g. 23.009.646.54,3)
-      }
-    }
-
+    lines << unit_mapper_.getDim(DIM::X).formattedValue(xy_point.getX()).toQString();
+    lines << unit_mapper_.getDim(DIM::Y).formattedValue(xy_point.getY()).toQString();
     drawText_(painter, lines);
   }
 
