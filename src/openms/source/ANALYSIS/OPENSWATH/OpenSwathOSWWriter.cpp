@@ -57,6 +57,7 @@ namespace OpenMS
 
   void OpenSwathOSWWriter::writeHeader()
   {
+    std::cout << "JOSH start write header create statement" << std::endl;
     // Open database
     SqliteConnector conn(output_filename_);
 
@@ -82,6 +83,8 @@ namespace OpenMS
       "FEATURE_ID INT NOT NULL," \
       "AREA_INTENSITY REAL NOT NULL," \
       "APEX_INTENSITY REAL NOT NULL," \
+      "EXP_IM REAL," \
+      "DELTA_IM REAL," \
       "VAR_MASSDEV_SCORE REAL NULL," \
       "VAR_MI_SCORE REAL NULL," \
       "VAR_MI_CONTRAST_SCORE REAL NULL," \
@@ -102,6 +105,8 @@ namespace OpenMS
       "AREA_INTENSITY REAL NOT NULL," \
       "TOTAL_AREA_INTENSITY REAL NOT NULL," \
       "APEX_INTENSITY REAL NOT NULL," \
+      "EXP_IM REAL," \
+      "DELTA_IM REAL," \
       "TOTAL_MI REAL NULL," \
       "VAR_BSERIES_SCORE REAL NULL," \
       "VAR_DOTPROD_SCORE REAL NULL," \
@@ -280,7 +285,7 @@ namespace OpenMS
                   << feature_it.getMetaValue("rightWidth") << "); ";
 
       sql_feature_ms2 << "INSERT INTO FEATURE_MS2 " \
-        "(FEATURE_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI, "\
+        "(FEATURE_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, EXP_IM, DELTA_IM, TOTAL_MI, "\
         "VAR_BSERIES_SCORE, VAR_DOTPROD_SCORE, VAR_INTENSITY_SCORE, " \
         "VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_LIBRARY_CORR,  "\
         "VAR_LIBRARY_DOTPROD, VAR_LIBRARY_MANHATTAN, VAR_LIBRARY_RMSD, VAR_LIBRARY_ROOTMEANSQUARE, "\
@@ -295,6 +300,8 @@ namespace OpenMS
                       << feature_it.getIntensity() << ", "
                       << getScore(feature_it, "total_xic") << ", "
                       << getScore(feature_it, "peak_apices_sum") << ", "
+                      << getScore(feature_it, "im_drift") << ", "
+                      << getScore(feature_it, "im_delta") << ", "
                       << getScore(feature_it, "total_mi") << ", "
                       << getScore(feature_it, "var_bseries_score") << ", "
                       << getScore(feature_it, "var_dotprod_score") << ", "
@@ -337,7 +344,7 @@ namespace OpenMS
       if (use_ms1_traces_)
       {
         sql_feature_ms1 << "INSERT INTO FEATURE_MS1 "\
-          "(FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, "\
+          "(FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, EXP_IM, DELTA_IM, "\
           " VAR_MASSDEV_SCORE, VAR_IM_MS1_DELTA_SCORE, "\
           " VAR_MI_SCORE, VAR_MI_CONTRAST_SCORE, VAR_MI_COMBINED_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, "\
           " VAR_ISOTOPE_OVERLAP_SCORE, VAR_XCORR_COELUTION, VAR_XCORR_COELUTION_CONTRAST, "\
@@ -346,6 +353,8 @@ namespace OpenMS
                         << feature_id << ", "
                         << getScore(feature_it, "ms1_area_intensity") << ", "
                         << getScore(feature_it, "ms1_apex_intensity") << ", "
+                        << getScore(feature_it, "im_ms1_drift") << ", "
+                        << getScore(feature_it, "im_ms1_delta") << ", "
                         << getScore(feature_it, "var_ms1_ppm_diff") << ", "
                         << getScore(feature_it, "var_im_ms1_delta_score") << ", "
                         << getScore(feature_it, "var_ms1_mi_score") << ", "

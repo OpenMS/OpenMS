@@ -909,6 +909,9 @@ namespace OpenMS
           mrmfeature.addScore("var_im_ms1_delta_score", scores.im_ms1_delta_score);
           mrmfeature.addScore("im_drift", scores.im_drift);
           mrmfeature.addScore("im_drift_weighted", scores.im_drift_weighted);
+          mrmfeature.addScore("im_ms1_drift", scores.im_ms1_drift);
+          mrmfeature.addScore("im_ms1_delta", scores.im_ms1_delta);
+          mrmfeature.addScore("im_delta", scores.im_delta);
         }
 
         precursor_mz = transition_group_detection.getTransitions()[0].getPrecursorMZ();
