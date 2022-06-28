@@ -1243,6 +1243,7 @@ namespace OpenMS::Internal
     {
       // processing steps potentially get referenced a lot, but their "identity" is complex
       // (software + input files + timestamp) - create a view that includes an index number for referencing:
+      // @TODO: include input files in ordering (via "GROUP_CONCAT")
       createView_("steps_view", "SELECT ID_ProcessingStep.id, date_time, name AS software_name, version AS software_version, search_param_id, ROW_NUMBER() OVER (ORDER BY name, version, date_time) processing_step_index FROM ID_ProcessingStep JOIN ID_ProcessingSoftware ON software_id = ID_ProcessingSoftware.id");
       sql = "SELECT * FROM steps_view";
       json_data.insert("ID_ProcessingStep", exportQueryToJSON_(sql, {"search_param_id"}));
@@ -1288,7 +1289,7 @@ namespace OpenMS::Internal
       // parent groups:
       if (tableExists_(db_name_, "ID_ParentGroup"))
       {
-        // @TODO: with duplicate scores this ordering is not reproducible!
+        // @TODO: with duplicate scores this ordering is not reproducible! -> include protein accessions in ordering (via "GROUP_CONCAT")
         createView_("groups_view", "SELECT ID_ParentGroup.id, label, score_type_accession, score_type_name, score, ROW_NUMBER() OVER(ORDER BY label, score_type_accession, score_type_name, score) AS parent_group_index FROM ID_ParentGroup JOIN (" + subquery_score_ + ") ON score_type_id = st_id JOIN ID_ParentGroupSet ON grouping_id = ID_ParentGroupSet.id");
         sql = "SELECT * FROM groups_view";
         json_data.insert("ID_ParentGroup", exportQueryToJSON_(sql));
