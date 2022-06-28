@@ -209,10 +209,13 @@ public:
     }
 
     //get Intensity
-    IntensityTypes getPeakIntensity(ProxyIterator it);
+    IntensityTypes getPeakIntensity(ProxyIterator it) const;
 
     //get Intensity
-    CoordinateType getPeakMz(ProxyIterator it);
+    CoordinateType getPeakMz(ProxyIterator it) const;
+
+    //set Intenstiy
+    void setPeakIntensity(ProxyIterator it, IntensityTypes intensity_value);
 
     // Docu in base class (RangeManager)
     void updateRanges() override;

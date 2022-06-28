@@ -576,14 +576,20 @@ namespace OpenMS
     return *this;
   }
 
-  MSSpectrum::IntensityTypes MSSpectrum::getPeakIntensity(MSSpectrum::ProxyIterator it)
+  MSSpectrum::IntensityTypes MSSpectrum::getPeakIntensity(MSSpectrum::ProxyIterator it) const
   {
     return intensity[it];
   }
 
-  MSSpectrum::CoordinateType MSSpectrum::getPeakMz(MSSpectrum::ProxyIterator it)
+  MSSpectrum::CoordinateType MSSpectrum::getPeakMz(MSSpectrum::ProxyIterator it) const
   {
     return position[it][0];
+  }
+
+  void MSSpectrum::setPeakIntensity(MSSpectrum::ProxyIterator it, MSSpectrum::IntensityTypes intensity_value)
+  {
+    intensity[it] = intensity_value;
+    return;
   }
 
   void MSSpectrum::updateRanges()
