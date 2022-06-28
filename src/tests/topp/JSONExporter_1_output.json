@@ -456,5 +456,13 @@
             "higher_better": 1,
             "name": "probability"
         }
+    ],
+    "version": [
+        {
+            "OMSFile": 1,
+            "OpenMS": "3.0.0-pre-ffid-lib-out-2022-04-13",
+            "build_date": "Apr 14 2022, 11:53:52",
+            "date": "2022-04-14 12:01:48"
+        }
     ]
 }
