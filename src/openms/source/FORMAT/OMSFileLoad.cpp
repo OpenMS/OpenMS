@@ -1210,6 +1210,12 @@ namespace OpenMS::Internal
     // (more code, but would use less memory)
     QJsonObject json_data;
     QString sql;
+    // version:
+    if (tableExists_(db_name_, "version"))
+    {
+      sql = "SELECT * FROM version";
+      json_data.insert("version", exportQueryToJSON_(sql));
+    }
     // input files:
     if (tableExists_(db_name_, "ID_InputFile"))
     {
