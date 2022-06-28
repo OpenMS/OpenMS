@@ -40,8 +40,7 @@ vscode:
     #- ms-vscode.cpptools
     - https://github.com/microsoft/vscode-cpptools/releases/download/1.5.1/cpptools-linux.vsix
     - hbenl.vscode-test-explorer
-    #Currently not available on OpenVSX
-    #- fredericbonnet.cmake-test-adapter
+    - fredericbonnet.cmake-test-adapter
     - llvm-vs-code-extensions.vscode-clangd
     - ms-vscode.cmake-tools
     - mhutchie.git-graph
