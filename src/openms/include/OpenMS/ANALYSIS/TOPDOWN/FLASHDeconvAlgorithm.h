@@ -123,14 +123,14 @@ namespace OpenMS
         @param per_isotope_intensities per isotope intensity - aggregated through charges
         @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
         @param avg precalculated averagine
-        @param narrow_window narrow down the window of isotope offset value to 3.
+        @param window_width isotope offset value range. If -1, set automatically.
         @return calculated cosine similar score
      */
     static double getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
                                                            const std::vector<float>& per_isotope_intensities,
                                                            int& offset,
                                                            const PrecalculatedAveragine& avg,
-                                                           bool narrow_window = false);
+                                                           int window_width = -1);
   protected:
     void updateMembers_() override;
 
@@ -214,7 +214,7 @@ namespace OpenMS
     int ms_level_;
 
     /// high and low charges are differently deconvolved. This value determines the (inclusive) threshold for low charge.
-    const int low_charge_ = 10; // inclusive
+    const int low_charge_ = 10; //10 inclusive
 
     /// default precursor isolation window size.
     double isolation_window_size_;

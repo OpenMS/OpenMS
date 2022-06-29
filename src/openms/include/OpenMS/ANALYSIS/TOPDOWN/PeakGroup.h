@@ -86,10 +86,10 @@ namespace OpenMS
            @brief add monoisotopic indices of peaks by offset and discard negative isotope peaks. Total intensity is also updated
            @param offset isotope index offset
       */
-    void updateMassesAndIntensity(const int offset = 0);
+    void updateMonomassAndIsotopeIntensities(const int offset = 0);
 
 
-    double recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass = 0, bool update_per_charge_isotope_intensities = false);
+    double recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, bool update_per_charge_isotope_intensities = true);
 
     /// using signal and total (signal + noise) power, update SNR value
     void updateSNR();
@@ -202,20 +202,18 @@ namespace OpenMS
     void swap (std::vector<FLASHDeconvHelperStructs::LogMzPeak>& x);
     void shrink_to_fit();
     void sort();
+    std::vector<FLASHDeconvHelperStructs::LogMzPeak> noisy_peaks;
 
   private:
 
     /// set per abs_charge signal power
-    void setChargeSignalPower_(const int abs_charge, const double pwr);
-    /// set per abs_charge intensity
-    void setChargeIntensity_(const int abs_charge, const float intensity);
-    /// set per abs_charge total peak power
-    void setChargePower_(const int abs_charge, const double pwr);
-
-    void setChargeFitScore_();
+    void setChargePowers_(const int abs_charge, const double signal_pwr, const double noise_pwr, const double intensity);
+    void updateChargeFitScoreAndChargeIntensities_();
 
     /// log Mz peaks
     std::vector<FLASHDeconvHelperStructs::LogMzPeak> logMzpeaks_;
+
+
     /// per charge SNR, isotope cosine, and intensity vectors
     std::vector<float> per_charge_signal_pwr_;
     std::vector<float> per_charge_pwr_;
@@ -237,7 +235,6 @@ namespace OpenMS
     /// information on the deconvolved mass
     double monoisotopic_mass_ = -1.0;
     double intensity_;// total intensity
-
 
     /// scoring variables
     int max_qscore_abs_charge_;

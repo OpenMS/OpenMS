@@ -42,7 +42,7 @@ namespace OpenMS
     spec_ = spectrum;
   }
 
-  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge)
+  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, bool retain_undeconvolved)
   {
     auto out_spec = MSSpectrum(spec_);
     out_spec.clear(false);
@@ -51,6 +51,8 @@ namespace OpenMS
       return out_spec;
     }
     double charge_mass_offset = abs(to_charge) * FLASHDeconvHelperStructs::getChargeMass(to_charge >= 0);
+    std::unordered_set<double> deconvolved_mzs;
+
     for (auto& pg : *this)
     {
       if (pg.empty())
@@ -58,7 +60,26 @@ namespace OpenMS
         continue;
       }
       out_spec.emplace_back(pg.getMonoMass() + charge_mass_offset, pg.getIntensity());
+      if(retain_undeconvolved)
+      {
+        for(auto& p : pg)
+        {
+          deconvolved_mzs.insert(p.mz);
+        }
+      }
     }
+    if(retain_undeconvolved)
+    {
+      for(auto& p: spec_)
+      {
+        if(deconvolved_mzs.find(p.getMZ()) != deconvolved_mzs.end()) // if p is deconvolved
+        {
+          continue;
+        }
+        out_spec.emplace_back(p.getMZ() + charge_mass_offset - FLASHDeconvHelperStructs::getChargeMass(to_charge >= 0), p.getIntensity());
+      }
+    }
+    out_spec.sortByPosition();
     if (!precursor_peak_group_.empty() && !spec_.getPrecursors().empty())
     {
       Precursor precursor(spec_.getPrecursors()[0]);

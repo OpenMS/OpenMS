@@ -181,6 +181,13 @@ namespace OpenMS
     return apex_index_[massToIndex_(mass)];
   }
 
+  Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getLastIndex(const double mass) const
+  {
+    Size index = massToIndex_(mass);
+    return apex_index_[index] + right_count_from_apex_[index];
+  }
+
+
   void FLASHDeconvHelperStructs::PrecalculatedAveragine::setMaxIsotopeIndex(const int index)
   {
     max_isotope_index_ = index;

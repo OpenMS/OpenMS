@@ -43,11 +43,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
-
-//#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-//#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -159,6 +155,16 @@ protected:
 
     setMinInt_("mzml_mass_charge", -1);
     setMaxInt_("mzml_mass_charge", 1);
+
+    registerIntOption_("mzml_output_undeconvolved_peaks",
+                       "<0:do not output undeconvolved peaks 1: output>",
+                       0,
+                       "The undeconvolved peaks in the input spectra are output in mzML output.",
+                       false,
+                       true);
+
+    setMinInt_("mzml_output_undeconvolved_peaks", 0);
+    setMaxInt_("mzml_output_undeconvolved_peaks", 1);
 
     registerIntOption_("preceding_MS1_count",
                        "<number>",
@@ -507,6 +513,9 @@ protected:
     int merge = getIntOption_("merging_method");
     bool write_detail = getIntOption_("write_detail") > 0;
     int mzml_charge = getIntOption_("mzml_mass_charge");
+    bool out_undeconvolved = getIntOption_("mzml_output_undeconvolved_peaks") == 1;
+    double min_mz = getDoubleOption_("Algorithm:min_mz");
+    double max_mz = getDoubleOption_("Algorithm:max_mz");
     double min_rt = getDoubleOption_("Algorithm:min_rt");
     double max_rt = getDoubleOption_("Algorithm:max_rt");
     String targets = getStringOption_("target_mass");
@@ -608,7 +617,17 @@ protected:
 
     OPENMS_LOG_INFO << "Processing : " << in_file << endl;
 
+    PeakFileOptions opt = mzml.getOptions();
+    if(min_rt > 0 || max_rt > 0)
+    {
+      opt.setRTRange(DRange<1>{min_rt, max_rt});
+    }
+    if(min_mz > 0 || max_mz > 0)
+    {
+      opt.setMZRange(DRange<1>{min_mz, max_mz});
+    }
     mzml.setLogType(log_type_);
+    mzml.setOptions(opt);
     mzml.load(in_file, map);
 
     int current_max_ms_level = 0;
@@ -628,7 +647,7 @@ protected:
     int max_precursor_c = 0;
     for (auto& it: map)
     {
-      gradient_rt = it.getRT();
+      gradient_rt = std::max(gradient_rt, it.getRT());
 
       // if forced_ms_level > 0, force MS level of all spectra to 1.
       if (forced_ms_level > 0)
@@ -692,7 +711,7 @@ protected:
       merger.setLogType(log_type_);
       Param sm_param = merger.getDefaults();
       sm_param.setValue("average_gaussian:precursor_mass_tol", tols[0]);
-      sm_param.setValue("average_gaussian:precursor_max_charge", (int)fd_param.getValue("max_charge"));
+      sm_param.setValue("average_gaussian:precursor_max_charge", std::abs((int)fd_param.getValue("max_charge")));
 
       merger.setParameters(sm_param);
       map.sortSpectra();
@@ -709,7 +728,7 @@ protected:
       SpectraMerger merger;
       merger.setLogType(log_type_);
       Param sm_param = merger.getDefaults();
-      sm_param.setValue("block_method:rt_block_size", (int)gradient_rt);
+      sm_param.setValue("block_method:rt_block_size", (int)gradient_rt + 10);
       map.sortSpectra();
 
       for(int ml = 1; ml<=current_max_ms_level; ml++)
@@ -812,14 +831,12 @@ protected:
         //{
         if (!deconvolved_spectrum.empty())
         {
-          auto dspec = deconvolved_spectrum.toSpectrum(mzml_charge);
+          auto dspec = deconvolved_spectrum.toSpectrum(mzml_charge, out_undeconvolved);
           if(dspec.size() > 0)
           {
             exp.addSpectrum(dspec);
           }
-
         }
-        //}
       }
       elapsed_deconv_cpu_secs[ms_level - 1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
       elapsed_deconv_wall_secs[ms_level - 1] += chrono::duration<double>(

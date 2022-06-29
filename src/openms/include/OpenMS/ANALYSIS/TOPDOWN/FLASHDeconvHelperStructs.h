@@ -118,6 +118,9 @@ namespace OpenMS
       /// get index of most abundant isotope. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       Size getApexIndex(const double mass) const;
 
+      /// get index of last isotope. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
+      Size getLastIndex(const double mass) const;
+
       /// get mass difference between avg and mono masses. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       double getAverageMassDelta(const double mass) const;
 

@@ -81,6 +81,13 @@ namespace OpenMS
         {
           fs << p.mz << " ";
         }
+        for (auto& p : pg.noisy_peaks)
+        {
+          fs << p.mz << " ";
+        }
+
+
+
         fs << ";\t";
 
         fs << std::fixed << std::setprecision(1);
@@ -88,6 +95,13 @@ namespace OpenMS
         {
           fs << p.intensity << " ";
         }
+
+        for (auto& p : pg.noisy_peaks)
+        {
+          fs << -p.intensity << " ";
+        }
+
+
         fs << ";\t";
         fs << std::setprecision(-1);
 
@@ -95,16 +109,38 @@ namespace OpenMS
         {
           fs << (p.is_positive ? p.abs_charge : -p.abs_charge) << " ";
         }
+
+        for (auto& p : pg.noisy_peaks)
+        {
+          fs << -p.abs_charge << " ";
+        }
+
+
+
         fs << ";\t";
         for (auto& p : pg)
         {
           fs << p.getUnchargedMass() << " ";
         }
+
+        for (auto& p : pg.noisy_peaks)
+        {
+          fs << p.getUnchargedMass() << " ";
+        }
+
         fs << ";\t";
         for (auto& p : pg)
         {
           fs << p.isotopeIndex << " ";
         }
+
+
+        for (auto& p : pg.noisy_peaks)
+        {
+          fs << -p.isotopeIndex << " ";
+        }
+
+
         fs << ";\t";
 
         for (auto& p : pg)

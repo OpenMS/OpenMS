@@ -78,14 +78,15 @@ namespace OpenMS
   double PeakGroup::recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double mono_mass, bool update_per_charge_isotope_intensities)
   {
     double signal_pwr = 0;
-    double mass = mono_mass <=0? monoisotopic_mass_ : mono_mass; // -2 iso to check negative isotope signals
-    if(mass < 0)
+    if(mono_mass < 0)
     {
       return signal_pwr;
     }
 
-    int max_isotope = avg.getApexIndex(mass) + avg.getRightCountFromApex(mass);
+    int max_isotope = avg.getLastIndex(mono_mass);
     clear();
+    reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1)* 2);
+    //noisy_peaks.reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1)* 2);
 
     for(int c = max_abs_charge_;c >= min_abs_charge_;c--){
       if(c <= 0)
@@ -94,13 +95,17 @@ namespace OpenMS
       }
       double charge_noise_pwr = .0, charge_sig_pwr = .0;
       double charge_intensity = .0;
-      double cmz = mass/c + FLASHDeconvHelperStructs::getChargeMass(is_positive_);
+      double cmz = mono_mass/c + FLASHDeconvHelperStructs::getChargeMass(is_positive_);
       Size index = spec.findNearest(cmz - cmz * tol);
       double iso_delta = Constants::ISOTOPE_MASSDIFF_55K_U / c;
       for(;index < spec.size(); index++)
       {
+        double pint = spec[index].getIntensity();
+        if(pint <= 0)
+        {
+          continue;
+        }
         double pmz = spec[index].getMZ();
-
         int iso_index = (int)round((pmz - cmz)/iso_delta);
 
         if(iso_index < 0)
@@ -112,7 +117,7 @@ namespace OpenMS
         {
           break;
         }
-        double peak_pwr = spec[index].getIntensity() * spec[index].getIntensity();
+        double peak_pwr = pint * pint;
 
         if(abs(pmz - cmz - iso_index * iso_delta) <= pmz * tol)
         {
@@ -121,18 +126,20 @@ namespace OpenMS
           p.abs_charge = c;
           push_back(p);
           charge_sig_pwr += peak_pwr;
-          signal_pwr += peak_pwr;
           charge_intensity += p.intensity;
         }
         else
         {
-          charge_noise_pwr = charge_noise_pwr < peak_pwr ? peak_pwr : charge_noise_pwr;
+          /*auto p = LogMzPeak(spec[index], is_positive_);
+          p.isotopeIndex = iso_index;
+          p.abs_charge = c;
+          noisy_peaks.push_back(p); //tmp
+          */
+          charge_noise_pwr += peak_pwr;
         }
       }
-      setChargeSignalPower_(c, charge_sig_pwr);
-      setChargePower_(c, charge_noise_pwr + charge_sig_pwr);
-      setChargeIntensity_(c, charge_intensity);
-
+      setChargePowers_(c, charge_sig_pwr, charge_noise_pwr, charge_intensity);
+      signal_pwr += charge_sig_pwr;
       if(index >= spec.size())
       {
         break;
@@ -140,15 +147,15 @@ namespace OpenMS
     }
     if(update_per_charge_isotope_intensities)
     {
-      setChargeFitScore_(); // TODO move this to scoring
-      updateMassesAndIntensity();
+      updateChargeFitScoreAndChargeIntensities_();
+      updateMonomassAndIsotopeIntensities();
     }
     return signal_pwr;
   }
 
 
 
-  void PeakGroup::setChargeFitScore_()
+  void PeakGroup::updateChargeFitScoreAndChargeIntensities_()
   {
     double max_per_charge_intensity = .0;
     double summed_intensity = .0;
@@ -156,10 +163,10 @@ namespace OpenMS
     int first_index = -1;
     int last_index = -1;
 
-    for (int c=min_abs_charge_;c<=max_abs_charge_;c++)
+    for (int c = min_abs_charge_;c<=max_abs_charge_;c++)
     {
       summed_intensity += per_charge_int_[c];
-      if (per_charge_int_[c] <= 0)
+      if (per_charge_int_[c] > 0)
       {
         if (first_index < 0)
         {
@@ -183,9 +190,11 @@ namespace OpenMS
     }
 
     first_index = first_index < 0 ? 0 : first_index;
+    min_abs_charge_ = first_index;
+    max_abs_charge_ = last_index;
 
     double p = .0;
-    for (int c = max_index; c < last_index - 1; c++)
+    for (int c = max_index; c < last_index; c++) //
     {
       double diff = per_charge_int_[c + 1] - per_charge_int_[c];
       //double ratio = per_charge_intensity[i] / (.1 + per_charge_intensity[i + 1]);
@@ -210,7 +219,7 @@ namespace OpenMS
     charge_score_ = std::max(.0, 1.0 - p / summed_intensity);
   }
 
-  void PeakGroup::updateMassesAndIntensity(const int offset)
+  void PeakGroup::updateMonomassAndIsotopeIntensities(const int offset)
   {
     int max_isotope_index = 0;
     if (offset != 0)
@@ -254,8 +263,6 @@ namespace OpenMS
       per_isotope_int_[p.isotopeIndex ] += p.intensity;
     }
     monoisotopic_mass_ = nominator / intensity_;
-    // auto massDelta = averagines.getAverageMassDelta(monoisotopicMass);
-    //avgMass = monoisotopicMass + massDelta;
   }
 
   bool PeakGroup::isSignalMZ(const double mz, const double tol) const
@@ -293,7 +300,7 @@ namespace OpenMS
     is_targeted_ = true;
   }
 
-  void PeakGroup::setChargePower_(const int abs_charge, const double pwr)
+  void PeakGroup::setChargePowers_(const int abs_charge, const double signal_pwr, const double noise_pwr, const double intensity)
   {
     if (max_abs_charge_ < abs_charge)
     {
@@ -303,21 +310,19 @@ namespace OpenMS
     {
       per_charge_pwr_ = std::vector<float>(1 + max_abs_charge_, .0);
     }
-    per_charge_pwr_[abs_charge] = pwr;
-  }
-
-  void PeakGroup::setChargeSignalPower_(const int abs_charge, const double pwr)
-  {
-    if (max_abs_charge_ < abs_charge)
-    {
-      return;
-    }
     if (per_charge_signal_pwr_.empty())
     {
       per_charge_signal_pwr_ = std::vector<float>(1 + max_abs_charge_, .0);
     }
-    per_charge_signal_pwr_[abs_charge] = pwr;
+    if (per_charge_int_.empty())
+    {
+      per_charge_int_ = std::vector<float>(1 + max_abs_charge_, .0);
+    }
+    per_charge_int_[abs_charge] = intensity;
+    per_charge_pwr_[abs_charge] = signal_pwr + noise_pwr;
+    per_charge_signal_pwr_[abs_charge] = signal_pwr;
   }
+
 
   void PeakGroup::setChargeIsotopeCosine(const int abs_charge, const float cos)
   {
@@ -330,19 +335,6 @@ namespace OpenMS
       per_charge_cos_ = std::vector<float>(1 + max_abs_charge_, .0);
     }
     per_charge_cos_[abs_charge] = cos;
-  }
-
-  void PeakGroup::setChargeIntensity_(const int abs_charge, const float intensity)
-  {
-    if (max_abs_charge_ < abs_charge)
-    {
-      return;
-    }
-    if (per_charge_int_.empty())
-    {
-      per_charge_int_ = std::vector<float>(1 + max_abs_charge_, .0);
-    }
-    per_charge_int_[abs_charge] = intensity;
   }
 
 
@@ -470,20 +462,22 @@ namespace OpenMS
     float signal = 0, noise = 0;
     per_charge_snr_ = std::vector<float>(1 + max_abs_charge_, .0);
 
-    for (int c = min_abs_charge_; c <= std::min((int) per_charge_cos_.size() - 1, max_abs_charge_); ++c)
+    for (int c = min_abs_charge_; c <= std::min((int) per_charge_signal_pwr_.size() - 1, max_abs_charge_); ++c)
     {
-      float per_charge_cos_squared = per_charge_cos_[c] * per_charge_cos_[c];
       float signal_pwr =
           per_charge_signal_pwr_[c] < per_charge_pwr_[c] ? per_charge_signal_pwr_[c] : per_charge_pwr_[c];
-      float nom = per_charge_cos_squared * signal_pwr;
-      float denom = per_charge_pwr_[c] - signal_pwr
-                    + (1 - per_charge_cos_squared) * signal_pwr;
+      if(per_charge_cos_.size() > c)
+      {
+        float per_charge_cos_squared = per_charge_cos_[c] * per_charge_cos_[c];
+        float nom = per_charge_cos_squared * signal_pwr;
+        float denom = per_charge_pwr_[c] - signal_pwr + (1 - per_charge_cos_squared) * signal_pwr;
 
-      per_charge_snr_[c] = denom <= 0 ? .0 : nom / denom;
-
+        per_charge_snr_[c] = denom <= 0 ? .0 : nom / denom;
+      }
       signal += per_charge_signal_pwr_[c];
       noise += per_charge_pwr_[c] - signal_pwr;
     }
+
     float t_nom = cos_squred * signal;
     float t_denom = noise
                     + (1 - cos_squred) * signal;
