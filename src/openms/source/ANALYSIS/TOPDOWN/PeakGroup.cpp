@@ -153,8 +153,6 @@ namespace OpenMS
     return signal_pwr;
   }
 
-
-
   void PeakGroup::updateChargeFitScoreAndChargeIntensities_()
   {
     double max_per_charge_intensity = .0;
