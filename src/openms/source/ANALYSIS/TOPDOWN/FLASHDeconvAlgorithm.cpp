@@ -1253,28 +1253,23 @@ namespace OpenMS
       sort(intensities.begin(), intensities.end());
     }
     // int avg_max_index = avg_.getMaxIsotopeIndex();
+    const int iteration = 2;
     for (auto& peak_group : deconvolved_spectrum_)
     {
-      for (int k = 0; k < 2; k++)
+      for (int k = 0; k < iteration; k++)
       {
         int offset = 0;
         double cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(),
-                                                              offset, avg_, k==0? 1 :-1);
+                                                              offset, avg_, k < iteration - 1? 1 :-1);
         peak_group.setIsotopeCosine(cos);
 
         if (!peak_group.isTargeted() && cos < min_isotope_cosine_[ms_level_ - 1] - .1) // discard very low scoring and non-targeted masses..
         {
           break;
         }
+        double tol = tolerance_[ms_level_ - 1];
 
-        if (k == 0)
-        {
-            peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tolerance_[ms_level_ - 1], avg_, peak_group.getMonoMass() + offset * Constants::ISOTOPE_MASSDIFF_55K_U);
-        }
-        else if (offset != 0)
-        {
-          peak_group.updateMonomassAndIsotopeIntensities(offset);
-        }
+        peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * Constants::ISOTOPE_MASSDIFF_55K_U);
 
         if (peak_group.empty() || peak_group.getIsotopeIntensities().size() < 2)
         {

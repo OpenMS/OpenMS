@@ -85,7 +85,7 @@ namespace OpenMS
 
     int max_isotope = avg.getLastIndex(mono_mass);
     clear();
-    reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1)* 2);
+    reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
     //noisy_peaks.reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1)* 2);
 
     for(int c = max_abs_charge_;c >= min_abs_charge_;c--){
