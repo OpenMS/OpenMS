@@ -238,7 +238,7 @@ namespace OpenMS
     percentage_factor_ = 1.0;
     if (intensity_mode_ == IM_PERCENTAGE)
     {
-      if (layer.getMaxIntensity() > 0.0)
+      if (layer.getMaxIntensity() > 0)
       {
         percentage_factor_ = overall_data_range_.getMaxIntensity() / layer.getMaxIntensity();
       }
@@ -255,23 +255,22 @@ namespace OpenMS
         return;
       }
 
-      const double rt_min = visible_area_.getAreaUnit().getMinRT();
-      const double rt_max = visible_area_.getAreaUnit().getMaxRT();
-      const double mz_min = visible_area_.getAreaUnit().getMinMZ();
-      const double mz_max = visible_area_.getAreaUnit().getMaxMZ();
+      const auto [rt_min, rt_max] = visible_area_.getAreaUnit().RangeRT::getNonEmptyRange();
+      const auto [mz_min, mz_max] = visible_area_.getAreaUnit().RangeMZ::getNonEmptyRange();
+      const auto [im_min, im_max] = visible_area_.getAreaUnit().RangeMobility::getNonEmptyRange();
 
       //-----------------------------------------------------------------------------------------------
       // Determine number of shown scans (MS1)
-      std::vector<Size> rt_indices; // list of visible RT scans in MS1 with at least 2 points
+      std::vector<Size> scan_indices; // list of visible RT/IM scans in MS1 with at least 2 points
       const auto rt_end = peak_map.RTEnd(rt_max);
       for (ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min); it != rt_end; ++it)
       {
-        if (it->getMSLevel() == 1 && it->size() > 1)
+        if (it->getMSLevel() == 1 && it->size() > 1 && Math::contains(it->getDriftTime(), im_min, im_max))
         {
-          rt_indices.push_back(std::distance(peak_map.begin(), it));
+          scan_indices.push_back(std::distance(peak_map.begin(), it));
         }
       }
-      Size n_ms1_scans = rt_indices.size();
+      Size n_ms1_scans = scan_indices.size();
 
       if (n_ms1_scans > 0)
       {
@@ -279,22 +278,25 @@ namespace OpenMS
         // and take the median value
         Size n_peaks_in_scan(0);
         {
-          constexpr double quantiles[] = {0.25, 0.50, 0.75};
-          std::vector<Size> n_s;
-          for (Size i=0; i<sizeof(quantiles)/sizeof(double); ++i)
+          static constexpr std::array<double, 3> quantiles = {0.25, 0.50, 0.75};
+          std::array<Size, quantiles.size()> n_s;
+          for (int i = 0; i < quantiles.size(); ++i)
           {
-            const ExperimentType::SpectrumType& spec = peak_map[rt_indices[n_ms1_scans*quantiles[i]]];
-            n_s.push_back(std::distance(spec.MZBegin(mz_min), spec.MZEnd(mz_max)) + 1); // +1 to since distance is 0 if only one m/z is shown
+            const ExperimentType::SpectrumType& spec = peak_map[scan_indices[n_ms1_scans * quantiles[i]]];
+            if (!spec.isSorted())
+              throw Exception::BaseException();
+            n_s[i] = std::distance(spec.MZBegin(mz_min), spec.MZEnd(mz_max));
+
           }
           std::sort(n_s.begin(), n_s.end());
           n_peaks_in_scan = n_s[1]; // median
         }
 
         int rt_pixel_count, mz_pixel_count;
-        { // obtain number of pixels in RT and MZ dimension
-          auto tmp = getPixelRange();
-          rt_pixel_count = tmp.getAreaUnit().getMaxRT();
-          mz_pixel_count = tmp.getAreaUnit().getMaxMZ();
+        { // obtain number of pixels in RT/IM and MZ dimension
+          auto tmp = getPixelRange().getAreaUnit();
+          rt_pixel_count = tmp.RangeRT::isEmpty()? tmp.getMaxMobility() : tmp.getMaxRT();
+          mz_pixel_count = tmp.getMaxMZ();
         }
         double ratio_data2pixel_rt = n_ms1_scans / (double)rt_pixel_count;
         double ratio_data2pixel_mz = n_peaks_in_scan / (double)mz_pixel_count;
