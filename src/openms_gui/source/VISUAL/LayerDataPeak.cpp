@@ -80,6 +80,7 @@ namespace OpenMS
 
     // create projection data
     map<float, float> rt;
+    map<float, float> mobility;
     map<int, float> mzint;
     map<int, float> mzsum;
 
@@ -92,9 +93,10 @@ namespace OpenMS
     float mult = 100.0f / (std::isnan(mz_range) ? 1 : mz_range);
 
     MSSpectrum projection_mz;
+    MSSpectrum projection_im; // hack - we do not have Mobilogram datastructure yet...
     MSChromatogram projection_rt;
 
-    for (auto i = getPeakData()->areaBeginConst(area.getMinRT(), area.getMaxRT(), area.getMinMZ(), area.getMaxMZ()); i != getPeakData()->areaEndConst(); ++i)
+    for (auto i = getPeakData()->areaBeginConst(area); i != getPeakData()->areaEndConst(); ++i)
     {
       PeakIndex pi = i.getPeakIndex();
       if (filters.passes((*getPeakData())[pi.spectrum], pi.peak))
@@ -112,6 +114,9 @@ namespace OpenMS
 
         // binning in RT (one value per scan)
         rt[i.getRT()] += i->getIntensity();
+
+        // binning in IM (one value per scan)
+        mobility[i.getDriftTime()] += i->getIntensity();
       }
     }
 
@@ -122,6 +127,13 @@ namespace OpenMS
     projection_mz.back().setMZ(area.getMaxMZ());
     projection_mz.back().setIntensity(0.0);
 
+    projection_im.resize(mobility.size() + 2);
+    projection_im[0].setMZ(area.getMinMobility());
+    projection_im[0].setIntensity(0.0);
+    projection_im.back().setMZ(area.getMaxMobility());
+    projection_im.back().setIntensity(0.0);
+    
+
     projection_rt.resize(rt.size() + 2);
     projection_rt[0].setRT(area.getMinRT());
     projection_rt[0].setIntensity(0.0);
@@ -129,8 +141,7 @@ namespace OpenMS
     projection_rt.back().setIntensity(0.0);
 
     Size i = 1;
-    map<int, float>::iterator intit = mzint.begin();
-
+    auto intit = mzint.begin();
     for (auto it = mzsum.cbegin(); it != mzsum.cend(); ++it)
     {
       auto intensity = intit->second;
@@ -139,6 +150,15 @@ namespace OpenMS
       ++intit;
       ++i;
     }
+
+    i = 1;
+    for (auto it = mobility.cbegin(); it != mobility.cend(); ++it)
+    {
+      projection_im[i].setMZ(it->first);
+      projection_im[i].setIntensity(it->second);
+      ++i;
+    }
+
 
     i = 1;
     for (auto it = rt.cbegin(); it != rt.cend(); ++it)
@@ -158,6 +178,15 @@ namespace OpenMS
       ptr_mz->setPeakData(ExperimentSharedPtrType(new ExperimentType(std::move(exp_mz))));
     }
 
+    // projection for mobility
+    auto ptr_im = make_unique<LayerData1DPeak>();
+    {
+      MSExperiment exp_im;
+      // we must leave the projection empty for now, since it will have the wrong units (painting a MSSpec using a DimMapper with IM will throw).
+      //exp_im.addSpectrum(std::move(projection_im));
+      ptr_im->setPeakData(ExperimentSharedPtrType(new ExperimentType(std::move(exp_im))));
+    }
+
     // projection for RT
     auto ptr_rt = make_unique<LayerData1DChrom>();
     {
@@ -172,12 +201,19 @@ namespace OpenMS
         case DIM_UNIT::MZ:
           layer = std::move(ptr_mz);
           break;
+
         case DIM_UNIT::RT:
           layer = std::move(ptr_rt);
           break;
-        default:
-          // do nothing, leave projection empty
+
+        case DIM_UNIT::FAIMS_CV:
+        case DIM_UNIT::IM_MS:
+        case DIM_UNIT::IM_VSSC:
+          layer = std::move(ptr_im);
           break;
+
+        default:
+          throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
     };
     assign_axis(unit_x, result.projection_ontoX);
