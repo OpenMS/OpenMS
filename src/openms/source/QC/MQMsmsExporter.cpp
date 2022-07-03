@@ -196,6 +196,10 @@ void MQMsms::exportRowFromFeature_(
     return;
   }
 
+  //const PeptideIdentification* ptr_best_id;
+  //ptr_best_id = &f.getPeptideIdentifications()[0];
+
+
   // what is written in the file in this exact order
 
   file_ << raw_file << "\t"; // raw file
@@ -216,11 +220,14 @@ void MQMsms::exportRowFromFeature_(
 
   file_ << f.getCharge() << "\t"; // Charge
 
+  //file_ << ptr_best_id->getMetaValue("activation_method", "NA") << "\t"; // Fragmentation
+  //ptr_best_id->metaValueExists("activation_method") ? file_ << (ptr_best_id->getMetaValue("activation_method")) << "\t" : file_ << "\t"; // Fragmentation
   file_ << "NA" << "\t"; // Fragmentation
   file_ << "NA" << "\t"; // Mass analyzer
 
   file_ << type << "\t"; // type
 
+  //file_ << ptr_best_id->getMetaValue("ScanEventNumber", "NA") << "\t"; // Scan event number
   file_ << "NA" << "\t"; // Scan event number
   file_ << "NA" << "\t"; // Isotope index
 
@@ -238,8 +245,10 @@ void MQMsms::exportRowFromFeature_(
   ptr_best_hit->metaValueExists("PEP")? file_ << ptr_best_hit->getMetaValue("PEP") << "\t" : file_ << "\t"; // PEP
   file_ << ptr_best_hit->getScore() << "\t"; // Score
   f.metaValueExists("delta") ? file_ << (f.getMetaValue("delta")) << "\t" : file_ << "\t"; // Delta score
-  file_ << "Score diff" << "\t"; // Score diff
-  file_ << "Localization prob" << "\t"; // Localization prob
+
+  file_ << "NA" << "\t"; // Score diff
+  file_ << "NA" << "\t"; // Localization prob
+
   f.metaValueExists(Constants::UserParam::PSM_EXPLAINED_ION_CURRENT_USERPARAM) ? file_ << (f.getMetaValue(Constants::UserParam::PSM_EXPLAINED_ION_CURRENT_USERPARAM)) << "\t": file_ << "\t"; // Fraction of total spectrum
 
   file_ << common_outputs.base_peak_fraction.str() << "\t"; // Base peak fraction

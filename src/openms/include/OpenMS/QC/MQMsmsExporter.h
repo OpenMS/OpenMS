@@ -44,8 +44,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-class OPENMS_DLLAPI MQMsms
-
 
 /**
   @brief Builds a MaxQuant msms.txt
@@ -60,6 +58,9 @@ class OPENMS_DLLAPI MQMsms
 
     @ingroup Metadata
 */
+
+
+class OPENMS_DLLAPI MQMsms
 
 {
 private:

@@ -53,7 +53,8 @@ using namespace OpenMS;
 
 
 File::TempDir dir;
-const String path = dir.getPath();
+//const String path = dir.getPath();
+const String path = "/buffer/ag_bsc/pmsb_22/rossov992";
 
 
 
@@ -102,7 +103,7 @@ START_SECTION((void exportFeatureMap(
     msms.exportFeatureMap(fmap_six, cmap_one, exp);
   }
   String filename = path + "/msms.txt";
-  TEST_FILE_SIMILAR(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("msms_.txt"));
+  TEST_FILE_SIMILAR(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("MQMsms_result.txt"));
 }
 
 END_SECTION

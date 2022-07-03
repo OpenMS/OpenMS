@@ -83,6 +83,7 @@ private:
     @param UIDs UIDs of all PeptideIdentifications of the ConsensusMap
     @param mp_f Mapping between the FeatureMap and ProteinIdentifications for the UID
            from PeptideIdenfitication::buildUIDfromAllPepIds
+    @param exp MS Experiment holds evidence data to extract
     @param prot_map Mapping a protein_accession to its description(proteinname, genename...)
   */
   void exportRowFromFeature_(
@@ -125,6 +126,7 @@ public:
 
     @param feature_map which contains Features to extract evidence data
     @param cmap ConsensusMap to extract evidence data if Feature has no valid PeptideIdentifications
+    @param exp MS Experiment holds evidence data to extract
     @param prot_map Mapping a protein_accession to its description(proteinname, genename...)
   */
   void exportFeatureMap(
