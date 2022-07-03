@@ -140,8 +140,8 @@ protected:
     registerDoubleOption_("FragmentMassError:tolerance", "<double>", 20, "m/z search window for matching peaks in two spectra", false);
     registerInputFile_("in_contaminants", "<file>", "", "Proteins considered contaminants", false);
     setValidFormats_("in_contaminants", {"fasta"});
-    registerInputFile_("in_additional_info", "<file>", "", "Fastafile containing protein-description & gene-names", false);
-    setValidFormats_("in_additional_info", {"fasta"});
+    registerInputFile_("in_fasta", "<file>", "", "FASTA file used during MS/MS identification (including decoys). If the protein description contains 'GN=...' then gene names will be extracted", false);
+    setValidFormats_("in_fasta", {"fasta"});
     registerInputFileList_("in_trafo", "<file>", {}, "trafoXMLs from MapAligners", false);
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
@@ -176,10 +176,13 @@ protected:
     }
 
     //the additional file the user passed, with annotate genenames & protnames
-    String test_file = getStringOption_("in_additional_info");
+    String fasta_file = getStringOption_("in_fasta");
     vector<FASTAFile::FASTAEntry> prot_description;
-    OPENMS_LOG_INFO << "Loading FASTA ... " << test_file << std::endl;
-    FASTAFile().load(test_file, prot_description);
+    if(!fasta_file.empty())
+    {
+      OPENMS_LOG_INFO << "Loading FASTA ... " << fasta_file << std::endl;
+      FASTAFile().load(fasta_file, prot_description);
+    }
 
     ConsensusMap cmap;
     String in_cm = getStringOption_("in_cm");
@@ -429,10 +432,6 @@ protected:
 
       if (MQExporterHelper::isValid(out_evidence))
       {
-        // Index the fasta file for constant access
-        map<String,String> fasta_map {};
-        indexFasta_(prot_description, fasta_map);
-
         //if the user provided no fastafile, we can try this as a last resort
         const auto& cmap_prot_ids = cmap.getProteinIdentifications();
         if(!cmap_prot_ids.empty())
@@ -443,6 +442,10 @@ protected:
             fallbackFasta(file_name, prot_description);
           }
         }
+
+        //index the fasta file for constant access
+        map<String,String> fasta_map {};
+        indexFasta(prot_description, fasta_map);
 
         OPENMS_LOG_INFO << "Exporting FeatureMap..." << std::endl;
         export_evidence.exportFeatureMap(*fmap,cmap,exp,fasta_map);
@@ -568,7 +571,7 @@ private:
     }
   }
 
-  void indexFasta_(std::vector<FASTAFile::FASTAEntry>& prot_description, std::map<String, String>& fasta_map)
+  void indexFasta(std::vector<FASTAFile::FASTAEntry>& prot_description, std::map<String, String>& fasta_map)
   {
     //map the identifier to the description so that we can access the description via the cmap-identifier
     for(const auto& entry : prot_description)

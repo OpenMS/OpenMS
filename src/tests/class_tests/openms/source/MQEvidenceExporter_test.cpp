@@ -68,9 +68,10 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 START_SECTION((void exportFeatureMap(
-                    const OpenMS::FeatureMap& feature_map  TEST_FILE_SIMILAR(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("evidence_.txt"));,
+                    const OpenMS::FeatureMap& feature_map,  
                     const OpenMS::ConsensusMap& cmap,
-                    const OpenMS::MSExperiment& exp)))
+                    const OpenMS::MSExperiment& exp,
+                    const std::map<String, String>& fasta_map)))
 
 {
   {
