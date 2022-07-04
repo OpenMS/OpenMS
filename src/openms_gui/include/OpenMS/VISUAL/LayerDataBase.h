@@ -34,7 +34,7 @@
 
 #pragma once
 
-// OpenMS_GUI config
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -63,7 +63,6 @@ class QWidget;
 namespace OpenMS
 {
   class LayerStatistics;
-  class OnDiscMSExperiment;
   class OSWData;
   class Painter1DBase;
 

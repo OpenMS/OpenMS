@@ -32,15 +32,17 @@
 // $Authors: Clemens Groepl, Marc Sturm, Mathias Walzer $
 // --------------------------------------------------------------------------
 
+
 #include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h>
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <fstream>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <map>
+#include <fstream>
 
 using namespace std;
 

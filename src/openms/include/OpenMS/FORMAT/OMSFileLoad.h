@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
+#include <QString>
 class QSqlQuery;
 
 namespace OpenMS

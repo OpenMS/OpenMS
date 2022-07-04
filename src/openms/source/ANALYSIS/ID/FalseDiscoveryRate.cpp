@@ -32,6 +32,9 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <boost/foreach.hpp> // must be first, otherwise Q_FOREACH macro will wreak havoc
+#include <boost/regex.hpp>
+
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -40,7 +43,6 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <algorithm>
-#include <numeric>
 
 // #define FALSE_DISCOVERY_RATE_DEBUG
 // #undef  FALSE_DISCOVERY_RATE_DEBUG

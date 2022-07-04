@@ -35,10 +35,8 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <boost/regex.hpp>
 
-#include <iostream>
 #include <limits>
 
 using namespace std;
@@ -48,7 +46,8 @@ namespace OpenMS
   void ProteaseDigestion::setEnzyme(const String& enzyme_name)
   {
     enzyme_ = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
-    re_ = boost::regex(enzyme_->getRegEx());
+    delete re_;
+    re_ = new boost::regex(enzyme_->getRegEx());
   }
 
   bool ProteaseDigestion::isValidProduct(const String& protein,
