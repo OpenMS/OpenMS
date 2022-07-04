@@ -35,15 +35,15 @@
 #pragma once
 
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 
+#include <numeric>
+
 namespace OpenMS
 {
-  class Peak1D;
   enum class DriftTimeUnit;
   /**
     @brief The representation of a 1D spectrum.

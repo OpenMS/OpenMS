@@ -40,6 +40,7 @@
 
 #include <unordered_map>
 #include <QString>
+#include <QStringList>
 
 using namespace std;
 

@@ -34,6 +34,8 @@
 
 #include <OpenMS/METADATA/MSQuantifications.h>
 
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+
 using namespace std;
 
 namespace OpenMS

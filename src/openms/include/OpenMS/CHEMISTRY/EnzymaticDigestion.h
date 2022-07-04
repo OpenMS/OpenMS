@@ -37,11 +37,12 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 
-#include <boost/regex.hpp>
 #include <string>
 #include <vector>
 
 #include <functional> // for std::function
+
+#include <boost/regex_fwd.hpp> // forward declaration of boost::regex
 
 namespace OpenMS
 {
@@ -220,7 +221,7 @@ protected:
     /// Used enzyme
     const DigestionEnzyme* enzyme_;
     /// Regex for tokenizing (huge speedup by making this a member instead of stack object in tokenize_())
-    boost::regex re_;
+    boost::regex* re_;
 
     /// specificity of enzyme
     Specificity specificity_;

@@ -32,9 +32,12 @@
 // $Authors: Mathias Walzer$
 // --------------------------------------------------------------------------
 
+
 #include <OpenMS/FORMAT/HANDLERS/MzQuantMLHandler.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/SYSTEM/File.h>
+
 #include <map>
 
 using namespace std;

@@ -39,6 +39,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <boost/regex.hpp>
+
 using namespace std;
 
 namespace OpenMS
@@ -50,13 +52,14 @@ namespace OpenMS
   EnzymaticDigestion::EnzymaticDigestion() :
     missed_cleavages_(0),
     enzyme_(ProteaseDB::getInstance()->getEnzyme("Trypsin")), // @TODO: keep trypsin as default?
-    re_(enzyme_->getRegEx()),
+    re_(new boost::regex(enzyme_->getRegEx())),
     specificity_(SPEC_FULL)
   {
   }
 
   EnzymaticDigestion::~EnzymaticDigestion()
   {
+    delete re_;
   }
 
   Size EnzymaticDigestion::getMissedCleavages() const
@@ -72,7 +75,8 @@ namespace OpenMS
   void EnzymaticDigestion::setEnzyme(const DigestionEnzyme* enzyme)
   {
     enzyme_ = enzyme;
-    re_ = boost::regex(enzyme_->getRegEx());
+    delete re_;
+    re_ = new boost::regex(enzyme_->getRegEx());
   }
 
   String EnzymaticDigestion::getEnzymeName() const
@@ -108,7 +112,7 @@ namespace OpenMS
 
     if (enzyme_->getRegEx() != "()") // if it's not "no cleavage"
     {
-      boost::sregex_token_iterator i(sequence.begin() + start, sequence.begin() + end, re_, -1);
+      boost::sregex_token_iterator i(sequence.begin() + start, sequence.begin() + end, *re_, -1);
       boost::sregex_token_iterator j;
       while (i != j)
       {

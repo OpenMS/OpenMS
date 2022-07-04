@@ -37,7 +37,10 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <QtCore/QDate>
+#include <string>
+
+// foward declarations
+class QDateTime; 
 
 namespace OpenMS
 {
@@ -211,7 +214,7 @@ public:
     void set(const String& date);
 
 private:
-    QDateTime dt_;
+    QDateTime* dt_;
   };
 
 } // namespace OPENMS
