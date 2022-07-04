@@ -72,6 +72,20 @@ START_SECTION(([EXTRA] ProteaseDigestion(const ProteaseDigestion& rhs)))
     TEST_EQUAL(pd.getSpecificity(), pd2.getSpecificity());
 END_SECTION
 
+START_SECTION(([EXTRA] ProteaseDigestion& operator=(const ProteaseDigestion& rhs)))
+    ProteaseDigestion pd;
+    pd.setMissedCleavages(1234);
+    pd.setEnzyme("no cleavage");
+    pd.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
+
+    ProteaseDigestion pd2;
+    pd2 = pd;
+
+    TEST_EQUAL(pd.getMissedCleavages(), pd2.getMissedCleavages());
+    TEST_EQUAL(pd.getEnzymeName(), pd2.getEnzymeName());
+    TEST_EQUAL(pd.getSpecificity(), pd2.getSpecificity());
+END_SECTION
+
 START_SECTION((void setEnzyme(const String& enzyme_name)))
     ProteaseDigestion pd;
     pd.setEnzyme("Trypsin");

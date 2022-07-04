@@ -92,6 +92,9 @@ public:
     /// Copy constructor
     EnzymaticDigestion(const EnzymaticDigestion& rhs);
 
+    /// Assignment operator
+    EnzymaticDigestion& operator=(const EnzymaticDigestion& rhs);
+
     /// Destructor
     virtual ~EnzymaticDigestion();
 

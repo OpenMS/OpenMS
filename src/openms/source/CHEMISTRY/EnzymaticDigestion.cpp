@@ -65,6 +65,15 @@ namespace OpenMS
   {
   }
 
+  EnzymaticDigestion& EnzymaticDigestion::operator=(const EnzymaticDigestion& rhs)
+  {
+    missed_cleavages_ = rhs.missed_cleavages_;
+    enzyme_ = rhs.enzyme_;
+    re_.reset(new boost::regex(*rhs.re_));
+    specificity_ = rhs.specificity_;
+    return *this;
+  }
+
   EnzymaticDigestion::~EnzymaticDigestion()
   {
   }
