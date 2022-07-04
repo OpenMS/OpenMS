@@ -214,7 +214,7 @@ public:
     void set(const String& date);
 
 private:
-    QDateTime* dt_;
+    QDateTime* dt_; // access through PImpl to avoid heavy include penalty
   };
 
 } // namespace OPENMS
