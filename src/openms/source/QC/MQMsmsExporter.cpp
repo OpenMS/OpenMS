@@ -212,7 +212,7 @@ void MQMsms::exportRowFromFeature_(
 
   file_ << common_outputs.modifications.str() << "\t"; // Modifications
   file_ << "_" << pep_seq << "_" << "\t"; // Modified Sequence
-  file_ << common_outputs.acetyl.str() << "\t"; // Acetyl (Protein N-term)
+  file_ << common_outputs.acetyl << "\t"; // Acetyl (Protein N-term)
   file_ << common_outputs.oxidation.str() << "\t"; // Oxidation (M)
 
   const std::set<String>& accessions = ptr_best_hit->extractProteinAccessionsSet();

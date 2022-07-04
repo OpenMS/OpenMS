@@ -54,7 +54,7 @@ public:
   struct MQCommonOutputs
   {
     std::stringstream modifications;
-    std::stringstream acetyl;
+    char acetyl;
     std::stringstream oxidation;
     std::stringstream gene_names;
     std::stringstream protein_names;
@@ -108,19 +108,25 @@ public:
   };
 
   /**
-    @brief returns the MaxQuant unique evidence number of a protein accession
+  @brief Extract a gene name from a protein description by looking for the substring 'GN='
+*/
+static OpenMS::String extractGeneName(const OpenMS::String& prot_description);
+
+  /**
+  @brief Returns a unique ID (number) for each distinct protein accession, or creates a new ID by augmenting the given database.
 
       Obtains a unique, consecutive number for each distinct protein, which can
       be used as a protein ID in the MaxQuant output files (in lack of a proper
       proteingroup ID which maps to proteinGroups.txt)
 
+   @param database A map from accession to ID (which can be augmented by this function)
+   @param protein_accession The protein accession which needs translation to an ID
 
-    @param protein_accession The accession of the protein
+   @return The ID for the @p protein_accession
 
-    @return Returns distinct number for every Protein
-  */
-  static OpenMS::Size proteinGroupID_(std::map<OpenMS::String, OpenMS::Size>& protein_id_,
-                               const OpenMS::String& protein_accession);
+ */
+ static OpenMS::Size proteinGroupID_(std::map<OpenMS::String, OpenMS::Size>& database,
+                                     const OpenMS::String& protein_accession);
 
   /**
     @brief Creates map that has the information which FeatureUID is mapped to which ConsensusFeature in ConsensusMap
@@ -172,5 +178,5 @@ public:
 
       @return Returns true if file is writable
   */
-  static bool isValid(std::string filename_);
+  static bool isValid(const std::string& filename_);
 };

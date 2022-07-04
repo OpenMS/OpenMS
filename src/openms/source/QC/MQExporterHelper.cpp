@@ -41,20 +41,18 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <QtCore/QDir>
-#include <cmath> // isnan
 #include <fstream>
 
 using namespace OpenMS;
 
-Size MQExporterHelper::proteinGroupID_(std::map<OpenMS::String, OpenMS::Size>& protein_id,
+Size MQExporterHelper::proteinGroupID_(std::map<OpenMS::String, OpenMS::Size>& database,
                                        const String& protein_accession)
 {
-  auto it = protein_id.find(protein_accession);
-  if (it == protein_id.end())
+  auto it = database.find(protein_accession);
+  if (it == database.end())
   {
-    protein_id.emplace(protein_accession, protein_id.size() + 1);
-    return protein_id.size();
+    database.emplace(protein_accession, database.size() + 1);
+    return database.size();
   }
   else
   {
@@ -117,9 +115,23 @@ bool MQExporterHelper::hasPeptideIdentifications_(const ConsensusFeature& cf)
   return false;
 }
 
-bool MQExporterHelper::isValid(std::string filename)
+bool MQExporterHelper::isValid(const std::string& filename)
 {
   return File::writable(filename);
+}
+
+/**
+  @brief Extract a gene name from a protein description by looking for the substring 'GN='
+*/
+String MQExporterHelper::extractGeneName(const String& prot_description)
+{
+  String gene_name;
+  auto pos_gene = prot_description.find("GN=");
+  // description might not contain a gene name ...
+  if (pos_gene == std::string::npos) return gene_name;
+
+  gene_name = prot_description.substr(pos_gene +3, prot_description.find(" ", pos_gene +3));
+  return gene_name;
 }
 
 MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
@@ -190,11 +202,11 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
   if (pep_seq.hasNTerminalModification())
   {
     const OpenMS::String& n_terminal_modification = pep_seq.getNTerminalModificationName();
-    n_terminal_modification.hasSubstring("Acetyl") ? acetyl.str("1") : acetyl.str("0"); // Acetyl (Protein N-term)
+    n_terminal_modification.hasSubstring("Acetyl") ? acetyl = '1' : acetyl = '0'; // Acetyl (Protein N-term)
   }
   else
   {
-    acetyl.str("0");
+    acetyl = '0';
   }
   oxidation.clear();
   modifications_temp.find("Oxidation (M)") == modifications_temp.end() ? oxidation << "0" : oxidation << modifications_temp.find("Oxidation (M)")->second;
@@ -208,18 +220,14 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
     {
       continue;
     }
-    else
+    auto protein_description = prot_mapper_it->second;
+    auto gn = extractGeneName(protein_description);
+    if(!gn.empty())
     {
-      auto protein_description = prot_mapper_it->second;
-      auto gene_name = protein_description.substr(protein_description.find("GN=") + 3);
-      gene_name = gene_name.substr(0,gene_name.find(" "));
-      gene_names_temp.push_back(std::move(gene_name));
-      protein_names_temp.push_back(std::move(protein_description));
+      gene_names_temp.push_back(std::move(gn));
     }
-
+    protein_names_temp.push_back(std::move(protein_description));
   }
-  //gene_names.clear();
-  //protein_names.clear();
   gene_names.str(ListUtils::concatenate(gene_names_temp, ';'));     //Gene Names
   protein_names.str(ListUtils::concatenate(protein_names_temp, ';'));  //Protein Names
 
@@ -231,14 +239,6 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
     {
       msms_mz << ms2_spec.getPrecursors()[0].getMZ(); // MS/MS m/z
     }
-    else
-    {
-      msms_mz.str("");
-    }
-  }
-  else
-  {
-    msms_mz.str("");
   }
   const double& uncalibrated_mz_error_ppm = ptr_best_hit->getMetaValue("uncalibrated_mz_error_ppm", NAN);
   const double& calibrated_mz_error_ppm = ptr_best_hit->getMetaValue("calibrated_mz_error_ppm", NAN);
@@ -291,21 +291,13 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
     uncalibrated_mass_error_da << OpenMS::Math::ppmToMass(uncalibrated_mz_error_ppm, f.getMZ());                                 // Uncalibrated Mass error [Da]
   }
 
+  base_peak_fraction.clear();
   if(f.metaValueExists("spectrum_index") && f.metaValueExists("base_peak_intensity") && !exp.empty())
   {
     const MSSpectrum& ms2_spec = exp[f.getMetaValue("spectrum_index")];
     if (!ms2_spec.getPrecursors().empty())
     {
-      base_peak_fraction.clear();
       base_peak_fraction << (ms2_spec.getPrecursors()[0].getIntensity() / (double)f.getMetaValue("base_peak_intensity")); // Base peak fraction
     }
-    else
-    {
-      base_peak_fraction.str(""); // Base peak fraction
-    }
-  }
-  else
-  {
-    base_peak_fraction.str(""); // Base peak fraction
   }
 }
