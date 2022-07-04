@@ -37,8 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-
-#include <QtCore/QDate> // very expensive to include!
+#include <QtCore/QDateTime> // very expensive to include!
 
 using namespace std;
 
@@ -46,6 +45,16 @@ namespace OpenMS
 {
   DateTime::DateTime() :
     dt_(new QDateTime)
+  {
+  }
+
+  DateTime::DateTime(const DateTime& date)
+    : dt_(new QDateTime(*date.dt_))
+  {
+  }
+
+  DateTime::DateTime(DateTime&& rhs) noexcept
+    : dt_(rhs.dt_.release())
   {
   }
 
@@ -73,6 +82,8 @@ namespace OpenMS
 
     return *this;
   }
+
+  DateTime::~DateTime() = default;
 
   bool DateTime::operator==(const DateTime& rhs) const
   {

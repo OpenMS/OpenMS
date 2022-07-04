@@ -46,8 +46,7 @@ namespace OpenMS
   void ProteaseDigestion::setEnzyme(const String& enzyme_name)
   {
     enzyme_ = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
-    delete re_;
-    re_ = new boost::regex(enzyme_->getRegEx());
+    re_.reset(new boost::regex(enzyme_->getRegEx()));
   }
 
   bool ProteaseDigestion::isValidProduct(const String& protein,

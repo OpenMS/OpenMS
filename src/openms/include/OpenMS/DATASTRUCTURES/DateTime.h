@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
 
+#include <memory> // unique_ptr
 #include <string>
 
 // foward declarations
@@ -66,16 +67,19 @@ public:
     DateTime();
 
     /// Copy constructor
-    DateTime(const DateTime& date) = default;
+    DateTime(const DateTime& date);
 
     /// Move constructor
-    DateTime(DateTime&&) = default;
+    DateTime(DateTime&&) noexcept;
 
     /// Assignment operator
     DateTime& operator=(const DateTime& source);
 
     /// Move assignment operator
     DateTime& operator=(DateTime&&) & noexcept;
+
+    /// Destructor
+    ~DateTime();
 
     /// equal operator
     bool operator==(const DateTime& rhs) const;
@@ -183,22 +187,22 @@ public:
 
     /* @brief Returns a string representation of the DateTime object.
        @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
-	*/
-	String toString(std::string format = "yyyy-MM-ddThh:mm:ss") const;
+	  */
+	  String toString(std::string format = "yyyy-MM-ddThh:mm:ss") const;
 
     /* @brief Creates a DateTime object from string representation.
        @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
-	*/
-    static DateTime fromString(const std::string& date, std::string format = "yyyy-MM-ddThh:mm:ss");
+	  */
+      static DateTime fromString(const std::string& date, std::string format = "yyyy-MM-ddThh:mm:ss");
 
-    /**
-        @brief Returns a string representation of the date and time
+      /**
+          @brief Returns a string representation of the date and time
 
-        The format of the string will be yyyy-MM-dd hh:mm:ss
-    */
-    String get() const;
+          The format of the string will be yyyy-MM-dd hh:mm:ss
+      */
+      String get() const;
 
-    /**
+      /**
         @brief Sets date and time
 
         The following formats are supported:
@@ -210,11 +214,11 @@ public:
         - yyyy-MM-dd+hh:mm (ISO 8601 format)
 
         @exception Exception::ParseError
-    */
-    void set(const String& date);
+      */
+      void set(const String& date);
 
-private:
-    QDateTime* dt_;
+    private:
+      std::unique_ptr<QDateTime> dt_;
   };
 
 } // namespace OPENMS

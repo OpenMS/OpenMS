@@ -58,7 +58,8 @@ START_SECTION((EnzymaticDigestion()))
 END_SECTION
 
 START_SECTION([EXTRA] virtual ~EnzymaticDigestion())
-    delete ed_ptr;
+  delete ed_ptr;
+  NOT_TESTABLE
 END_SECTION
 
 START_SECTION(([EXTRA] EnzymaticDigestion(const EnzymaticDigestion& rhs)))

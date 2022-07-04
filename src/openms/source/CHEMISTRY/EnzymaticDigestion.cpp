@@ -57,9 +57,16 @@ namespace OpenMS
   {
   }
 
+  EnzymaticDigestion::EnzymaticDigestion(const EnzymaticDigestion& rhs)
+    : missed_cleavages_(rhs.missed_cleavages_),
+      enzyme_(rhs.enzyme_),
+      re_(new boost::regex(*rhs.re_)),
+      specificity_(rhs.specificity_)
+  {
+  }
+
   EnzymaticDigestion::~EnzymaticDigestion()
   {
-    delete re_;
   }
 
   Size EnzymaticDigestion::getMissedCleavages() const
@@ -75,8 +82,7 @@ namespace OpenMS
   void EnzymaticDigestion::setEnzyme(const DigestionEnzyme* enzyme)
   {
     enzyme_ = enzyme;
-    delete re_;
-    re_ = new boost::regex(enzyme_->getRegEx());
+    re_.reset(new boost::regex(enzyme_->getRegEx()));
   }
 
   String EnzymaticDigestion::getEnzymeName() const
