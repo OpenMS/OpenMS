@@ -218,6 +218,15 @@ namespace OpenMS
     out.modifyStrings(old);
   }
 
+  // write meta value keys in header
+  void writeMetaValueKeysHeader(SVOutStream& out, const std::set<String>& meta_value_keys = {})
+  {
+    for (const auto& key: meta_value_keys)
+    {
+      out << key;
+    }
+  }
+
   // write the header for exporting consensusXML
   void writeConsensusHeader(SVOutStream& out, const String& what,
                             const String& infile, const String& now,
@@ -1113,10 +1122,7 @@ protected:
           // append column header for each meta value key
           if (add_metavalues)
           {
-            for (const auto& key: meta_value_keys)
-            {
-              output << key;
-            }
+            writeMetaValueKeysHeader(output, meta_value_keys);
           }
           output << nl;
           output.modifyStrings(true);
@@ -1264,10 +1270,7 @@ protected:
           // append column header for each meta value key
           if (add_metavalues)
           {
-            for (const auto& key: meta_value_keys)
-            {
-              output << key;
-            }
+            writeMetaValueKeysHeader(output, meta_value_keys);
           }
           output << nl;
           if (!no_ids)
