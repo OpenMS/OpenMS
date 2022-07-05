@@ -58,6 +58,9 @@
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
+#include <QStringList>
+
+
 using namespace OpenMS;
 using namespace std;
 

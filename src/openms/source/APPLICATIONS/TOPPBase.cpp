@@ -39,6 +39,7 @@
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
@@ -51,6 +52,7 @@
 #include <OpenMS/FORMAT/ParamCTDFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
+            
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -63,14 +65,10 @@
 #include <OpenMS/SYSTEM/UpdateCheck.h>
 
 #include <QDir>
-#include <QFile>
 #include <QStringList>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <ctime>
-#include <cstdio>
-#include <cstdlib>
 #include <iostream>
 
 // OpenMP support
