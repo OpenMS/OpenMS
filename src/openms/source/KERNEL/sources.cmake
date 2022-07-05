@@ -14,6 +14,8 @@ Feature.cpp
 FeatureHandle.cpp
 FeatureMap.cpp
 MassTrace.cpp
+MobilityPeak1D.cpp
+Mobilogram.cpp
 MRMFeature.cpp
 MRMTransitionGroup.cpp
 MSExperiment.cpp
