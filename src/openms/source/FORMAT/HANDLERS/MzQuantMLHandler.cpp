@@ -40,6 +40,8 @@
 
 #include <map>
 
+#include <map>
+
 using namespace std;
 
 namespace OpenMS::Internal

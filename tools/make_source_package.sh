@@ -123,7 +123,6 @@ echo RELVER  = "${RELVERSION}"
 echo "####################################################"
 echo "copying documentation to release"
 cp $DOCPATH/OpenMS_tutorial.pdf $SOURCEPATH/doc/
-cp $DOCPATH/TOPP_tutorial.pdf $SOURCEPATH/doc/
 cp -r $DOCPATH/html $SOURCEPATH/doc/
 
 # move contrib

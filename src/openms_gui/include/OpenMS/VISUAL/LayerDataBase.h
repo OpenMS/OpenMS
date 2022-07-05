@@ -35,6 +35,8 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>

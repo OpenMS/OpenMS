@@ -41,6 +41,7 @@
 #include <vector>
 
 #include <functional> // for std::function
+#include <memory> // unique_ptr
 
 #include <boost/regex_fwd.hpp> // forward declaration of boost::regex
 
@@ -87,6 +88,12 @@ public:
 
     /// Default constructor
     EnzymaticDigestion();
+
+    /// Copy constructor
+    EnzymaticDigestion(const EnzymaticDigestion& rhs);
+
+    /// Assignment operator
+    EnzymaticDigestion& operator=(const EnzymaticDigestion& rhs);
 
     /// Destructor
     virtual ~EnzymaticDigestion();

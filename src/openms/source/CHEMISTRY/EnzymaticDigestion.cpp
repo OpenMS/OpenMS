@@ -57,6 +57,23 @@ namespace OpenMS
   {
   }
 
+  EnzymaticDigestion::EnzymaticDigestion(const EnzymaticDigestion& rhs)
+    : missed_cleavages_(rhs.missed_cleavages_),
+      enzyme_(rhs.enzyme_),
+      re_(new boost::regex(*rhs.re_)),
+      specificity_(rhs.specificity_)
+  {
+  }
+
+  EnzymaticDigestion& EnzymaticDigestion::operator=(const EnzymaticDigestion& rhs)
+  {
+    missed_cleavages_ = rhs.missed_cleavages_;
+    enzyme_ = rhs.enzyme_;
+    re_.reset(new boost::regex(*rhs.re_));
+    specificity_ = rhs.specificity_;
+    return *this;
+  }
+
   EnzymaticDigestion::~EnzymaticDigestion()
   {
     delete re_;
@@ -75,8 +92,7 @@ namespace OpenMS
   void EnzymaticDigestion::setEnzyme(const DigestionEnzyme* enzyme)
   {
     enzyme_ = enzyme;
-    delete re_;
-    re_ = new boost::regex(enzyme_->getRegEx());
+    re_.reset(new boost::regex(enzyme_->getRegEx()));
   }
 
   String EnzymaticDigestion::getEnzymeName() const
@@ -183,6 +199,11 @@ namespace OpenMS
       // tokenize_ is really slow, so reduce work by working on substring:
       const std::vector<int> cleavage_positions = tokenize_(sequence, pos, end); // has 'pos' as first site
       return (cleavage_positions.size() - 1) <= missed_cleavages_;
+    }
+    
+    if (specificity_ == SPEC_FULL && enzyme_->getName() == NoCleavage && allow_random_asp_pro_cleavage == false)
+    { // we want them to be exactly match
+      return pos == 0 && (int)sequence.size() == end;
     }
 
     // either SPEC_SEMI or SPEC_FULL
