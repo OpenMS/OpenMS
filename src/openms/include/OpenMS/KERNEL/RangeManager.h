@@ -68,17 +68,20 @@ namespace OpenMS
       if (min_ > max_)
         throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid initialization of range");
     }
-
     /// Copy C'tor
     RangeBase(const RangeBase& rhs) = default;
 
+    /// Move C'tor (seems useless, but is required for completeness in derived classes' move c'tor)
+    RangeBase(RangeBase&& rhs) noexcept = default;
+
     /// Assignment operator
-    RangeBase& operator=(const RangeBase& rhs)
-    {
-      min_ = rhs.min_;
-      max_ = rhs.max_;
-      return *this;
-    }
+    RangeBase& operator=(const RangeBase& rhs) = default;
+
+    /// Move assignment (seems useless, but is required for completeness in derived classes' move c'tor)
+    RangeBase& operator=(RangeBase&& rhs) noexcept = default;
+
+    /// D'tor
+    ~RangeBase() noexcept = default;
 
     /// make the range empty, i.e. isEmpty() will be true
     void clear()
@@ -290,8 +293,8 @@ namespace OpenMS
     const static MSDim DIM = MSDim::RT;
 
     RangeRT() = default;
-    RangeRT(const double min, const double max) :
-        RangeBase(min, max)
+    RangeRT(const double min, const double max)
+      : RangeBase(min, max)
     {
     }
 
@@ -300,6 +303,7 @@ namespace OpenMS
       RangeBase::operator=(rhs);
       return *this;
     }
+
 
     /** @name Accessors for min and max
       

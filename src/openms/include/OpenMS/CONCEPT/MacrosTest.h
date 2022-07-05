@@ -43,12 +43,6 @@ namespace OpenMS
   // no constexpr lambdas in C++11, therefore we have to use functions
   namespace Test
   {
-#if __GNUC__ < 5
-    // older gcc, will not compile
-    bool fulfills_rule_of_5() {return true;}
-    bool fulfills_rule_of_6() {return true;}
-    bool fulfills_fast_vector() {return true;}
-#else
     template <class T>
     constexpr bool fulfills_rule_of_5()
     {
@@ -86,8 +80,6 @@ namespace OpenMS
       return (std::is_trivially_copy_constructible<T>::value && std::is_trivially_destructible<T>::value) ||
               std::is_nothrow_move_constructible<T>::value;
     };
-#endif // check for gcc < 5.0
-
   }
 }
 
