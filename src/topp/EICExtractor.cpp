@@ -451,8 +451,8 @@ public:
           PeakMap::Iterator itm = exp.RTBegin(max_peak.getRT());
           SignedSize low = std::min<SignedSize>(std::distance(exp.begin(), itm), rt_collect);
           SignedSize high = std::min<SignedSize>(std::distance(itm, exp.end()) - 1, rt_collect);
-          PeakMap::AreaIterator itt = exp.areaBegin((itm - low)->getRT() - 0.01, (itm + high)->getRT() + 0.01, cm[i].getMZ() - mz_da, cm[i].getMZ() + mz_da);
-          for (; itt != exp.areaEnd(); ++itt)
+          PeakMap::ConstAreaIterator itt = exp.areaBeginConst((itm - low)->getRT() - 0.01, (itm + high)->getRT() + 0.01, cm[i].getMZ() - mz_da, cm[i].getMZ() + mz_da);
+          for (; itt != exp.areaEndConst(); ++itt)
           {
             mz.push_back(itt->getMZ());
             //std::cerr << "ppm: " << itt.getRT() << " " <<  itt->getMZ() << " " << itt->getIntensity() << std::endl;

@@ -653,7 +653,7 @@ namespace OpenMS
   {
     integer_data_arrays_ = ida;
   }
-
+/*
   MSSpectrum::Iterator MSSpectrum::MZBegin(MSSpectrum::CoordinateType mz)
   {
     PeakType p;
@@ -683,7 +683,7 @@ namespace OpenMS
     p.setPosition(mz);
     return upper_bound(begin, end, p, PeakType::PositionLess());
   }
-
+*/
   MSSpectrum::ConstIterator MSSpectrum::MZBegin(MSSpectrum::CoordinateType mz) const
   {
     PeakType p;
@@ -691,6 +691,7 @@ namespace OpenMS
     return lower_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
   }
 
+/*
   MSSpectrum::Iterator MSSpectrum::PosBegin(MSSpectrum::CoordinateType mz)
   {
     return MZBegin(mz);
@@ -712,7 +713,7 @@ namespace OpenMS
   {
     return MZEnd(begin, mz, end);
   }
-
+*/
   MSSpectrum::ConstIterator MSSpectrum::PosBegin(MSSpectrum::CoordinateType mz) const
   {
     return MZBegin(mz);

@@ -741,53 +741,6 @@ START_SECTION((ConstAreaIterator areaBeginConst(CoordinateType min_rt, Coordinat
 }
 END_SECTION
 
-START_SECTION((AreaIterator areaEnd()))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz)))
-{
-  std::vector< Peak2D> plist;
-
-  Peak2D p1;
-  p1.getPosition()[0] = 1.0;
-  p1.getPosition()[1] = 2.0;
-  plist.push_back(p1);
-  p1.getPosition()[0] = 1.0;
-  p1.getPosition()[1] = 3.0;
-  plist.push_back(p1);
-  p1.getPosition()[0] = 2.0;
-  p1.getPosition()[1] = 10.0;
-  plist.push_back(p1);
-  p1.getPosition()[0] = 2.0;
-  p1.getPosition()[1] = 11.0;
-  plist.push_back(p1);
-
-  PeakMap exp;
-  exp.set2DData(plist);
-
-  PeakMap::AreaIterator it = exp.areaBegin(0,15,0,15);
-
-  TEST_EQUAL(it->getPosition()[0],2.0);
-  it->getPosition()[0] = 4711.0;
-  TEST_EQUAL(it->getPosition()[0],4711.0);
-  it++;
-  TEST_EQUAL(it->getPosition()[0],3.0);
-  it++;
-  TEST_EQUAL(it->getPosition()[0],10.0);
-  it++;
-  TEST_EQUAL(it->getPosition()[0],11.0);
-  it++;
-  TEST_EQUAL(it==exp.areaEnd(),true);
-
-  TEST_PRECONDITION_VIOLATED(exp.areaBegin(15,0,0,15));
-  TEST_PRECONDITION_VIOLATED(exp.areaBegin(0,15,15,0));
-  TEST_PRECONDITION_VIOLATED(exp.areaBegin(15,0,15,0));
-
-}
-END_SECTION
 
 START_SECTION((Iterator RTBegin(CoordinateType rt)))
 {

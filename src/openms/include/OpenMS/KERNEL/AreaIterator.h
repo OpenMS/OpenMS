@@ -37,6 +37,7 @@
 // OpenMS includes
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/PeakIndex.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 // STL includes
 #include <iterator>
@@ -229,8 +230,8 @@ private:
             is_end_ = true;
             return;
           }
-          current_peak_ = current_scan_->MZBegin(low_mz_);
-          end_peak_ = current_scan_->MZEnd(high_mz_);
+          current_peak_ = static_cast<const MSSpectrum>(*current_scan_).MZBegin(low_mz_);
+          end_peak_ = static_cast<const MSSpectrum>(*current_scan_).MZEnd(high_mz_);
           if (current_peak_ != end_peak_)
           {
             return;

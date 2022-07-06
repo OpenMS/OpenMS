@@ -118,25 +118,6 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-
-  ///@name Iterating ranges and areas
-  //@{
-  /// Returns an area iterator for @p area
-  MSExperiment::AreaIterator MSExperiment::areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz)
-  {
-    OPENMS_PRECONDITION(min_rt <= max_rt, "Swapped RT range boundaries!")
-    OPENMS_PRECONDITION(min_mz <= max_mz, "Swapped MZ range boundaries!")
-    OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using AreaIterator will give invalid results!")
-    //std::cout << "areaBegin: " << min_rt << " " << max_rt << " " << min_mz << " " << max_mz << std::endl;
-    return AreaIterator(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt), min_mz, max_mz);
-  }
-
-  /// Returns an invalid area iterator marking the end of an area
-  MSExperiment::AreaIterator MSExperiment::areaEnd()
-  {
-    return AreaIterator();
-  }
-
   /// Returns a non-mutable area iterator for @p area
   MSExperiment::ConstAreaIterator MSExperiment::areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const
   {
