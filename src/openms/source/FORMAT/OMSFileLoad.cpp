@@ -1296,7 +1296,7 @@ namespace OpenMS::Internal
       if (tableExists_(db_name_, "ID_ParentGroup"))
       {
         // @TODO: with duplicate scores this ordering is not reproducible! -> include protein accessions in ordering (via "GROUP_CONCAT")
-        createView_("groups_view", "SELECT ID_ParentGroup.id, label, score_type_accession, score_type_name, score, ROW_NUMBER() OVER(ORDER BY label, score_type_accession, score_type_name, score) AS parent_group_index FROM ID_ParentGroup JOIN (" + subquery_score_ + ") ON score_type_id = st_id JOIN ID_ParentGroupSet ON grouping_id = ID_ParentGroupSet.id");
+        createView_("groups_view", "SELECT ID_ParentGroup.id, label, score_type_accession, score_type_name, score, ROW_NUMBER() OVER (ORDER BY label, score_type_accession, score_type_name, score) AS parent_group_index FROM ID_ParentGroup JOIN (" + subquery_score_ + ") ON score_type_id = st_id JOIN ID_ParentGroupSet ON grouping_id = ID_ParentGroupSet.id");
         sql = "SELECT * FROM groups_view";
         json_data.insert("ID_ParentGroup", exportQueryToJSON_(sql));
         if (tableExists_(db_name_, "ID_ParentGroup_ParentSequence"))
