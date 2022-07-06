@@ -38,6 +38,7 @@
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
+#include <QString>
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlQuery>

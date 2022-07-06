@@ -40,8 +40,9 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <cfloat>
-#include <map>
 #include <vector>
+
+#include <boost/regex.hpp>
 
 namespace OpenMS
 {

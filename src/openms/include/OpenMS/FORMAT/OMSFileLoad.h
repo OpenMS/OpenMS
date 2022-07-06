@@ -39,6 +39,8 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <QtCore/QJsonArray> // for JSON export
+#include <QString>
+#include <QStringList> // avoid compiler error on initialization using init. list
 
 class QSqlQuery;
 

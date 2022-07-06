@@ -60,8 +60,9 @@
 
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/util/XMLUni.hpp>
-#include <xercesc//framework/psvi/XSValue.hpp>
+#include <xercesc/framework/psvi/XSValue.hpp>
 
+#include <list>
 #include <string>
 #include <stdexcept>
 #include <vector>

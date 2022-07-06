@@ -41,6 +41,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
+#include <QString>
 
 #include <boost/regex.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>

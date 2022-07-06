@@ -401,11 +401,10 @@ namespace OpenMS
 
     MSSpectrum uncharged_spectrum = getUnchargedSpectrum_(oligo);
 
-    for (uint z = (uint)abs(min_charge); z <= (uint)abs(max_charge) && z < (uint)oligo.size(); ++z)
+    for (UInt z = (UInt)abs(min_charge); z <= (UInt)abs(max_charge) && z < (UInt)oligo.size(); ++z)
     {
       bool add_precursor =
-        ((add_precursor_peaks_ && add_all_precursor_charges_) ||
-         (add_precursor_peaks_ && (z == (uint)abs(max_charge))));
+        ((add_precursor_peaks_ && add_all_precursor_charges_) || (add_precursor_peaks_ && (z == (UInt)abs(max_charge))));
       addChargedSpectrum_(spectrum, uncharged_spectrum, z * sign,
                           add_precursor);
     }

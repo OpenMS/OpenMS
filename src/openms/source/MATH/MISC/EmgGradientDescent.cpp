@@ -35,6 +35,8 @@
 #include <OpenMS/MATH/MISC/EmgGradientDescent.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <numeric>
+
 namespace OpenMS
 {
   EmgGradientDescent::EmgGradientDescent() :
