@@ -158,6 +158,7 @@ void MQMsms::exportRowFromFeature_(
   MQExporterHelper::MQCommonOutputs common_outputs{f, cmap, c_feature_number, UIDs, mp_f, exp, prot_mapper};
 
   const PeptideHit* ptr_best_hit; // the best hit referring to score
+  const PeptideIdentification* ptr_best_id;
   const ConsensusFeature& cf = cmap[c_feature_number];
   Size pep_ids_size = 0;
   String type;
@@ -188,6 +189,8 @@ void MQMsms::exportRowFromFeature_(
     return; // no valid PepID; nothing to export
   }
 
+  ptr_best_id = &f.getPeptideIdentifications()[0];
+
   //const double& max_score = ptr_best_hit->getScore();
   const AASequence& pep_seq = ptr_best_hit->getSequence();
 
@@ -195,9 +198,6 @@ void MQMsms::exportRowFromFeature_(
   {
     return;
   }
-
-  //const PeptideIdentification* ptr_best_id;
-  //ptr_best_id = &f.getPeptideIdentifications()[0];
 
 
   // what is written in the file in this exact order
@@ -220,17 +220,27 @@ void MQMsms::exportRowFromFeature_(
 
   file_ << f.getCharge() << "\t"; // Charge
 
-  //file_ << ptr_best_id->getMetaValue("activation_method", "NA") << "\t"; // Fragmentation
-  //ptr_best_id->metaValueExists("activation_method") ? file_ << (ptr_best_id->getMetaValue("activation_method")) << "\t" : file_ << "\t"; // Fragmentation
-  file_ << "NA" << "\t"; // Fragmentation
-  file_ << "NA" << "\t"; // Mass analyzer
+  if(ptr_best_id != 0)
+  {
+    file_ << ptr_best_id->getMetaValue("activation_method", "NA") << "\t"; // Fragmentation
+  }
+  else
+  {
+    file_ << "NA" << "\t"; // Fragmentation
+  }
 
+  file_ << "NA" << "\t"; // Mass analyzer
   file_ << type << "\t"; // type
 
-  //file_ << ptr_best_id->getMetaValue("ScanEventNumber", "NA") << "\t"; // Scan event number
-  file_ << "NA" << "\t"; // Scan event number
+  if(ptr_best_id != 0)
+  {
+    file_ << ptr_best_id->getMetaValue("ScanEventNumber", "NA") << "\t"; // Scan event number
+  }
+  else
+  {
+    file_ << "NA"  << "\t"; // Scan event number
+  }
   file_ << "NA" << "\t"; // Isotope index
-
   file_ << f.getMZ() << "\t"; // M/Z
   file_ << pep_seq.getMonoWeight() << "\t"; // Mass
   file_ << common_outputs.mass_error_ppm.str() << "\t"; // Mass Error [ppm]

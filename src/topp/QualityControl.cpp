@@ -61,6 +61,8 @@
 #include <OpenMS/QC/TIC.h>
 #include <OpenMS/QC/Ms2SpectrumStats.h>
 #include <OpenMS/QC/MQEvidenceExporter.h>
+#include <OpenMS/QC/MQMsmsExporter.h>
+#include <OpenMS/QC/MQExporterHelper.h>
 #include <cstdio>
 
 #include <map>
@@ -147,7 +149,7 @@ protected:
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
     registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
     registerStringOption_("out_evd", "<Path>", "", "If a Path is given, a MQEvidence txt-file will be created in this directory. If the directory does not exist, it will be created as well.", false);
-
+    registerStringOption_("out_msms", "<Path>", "", "If a Path is given, a MQMsms txt-file will be created in this directory. If the directory does not exist, it will be created as well.", false);
 
     //TODO get ProteinQuantifier output for PRT section
   }
@@ -292,6 +294,8 @@ protected:
     String out_evidence = getStringOption_("out_evd");
     MQEvidence export_evidence(out_evidence);
 
+    String out_msms = getStringOption_("out_msms");
+    MQMsms export_msms(out_msms);
 
     vector<TIC::Result> tic_results;
     for (Size i = 0; i < number_exps; ++i)
@@ -430,7 +434,7 @@ protected:
         addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath, cmap);
       }
 
-      if (MQExporterHelper::isValid(out_evidence))
+      if (MQExporterHelper::isValid(out_evidence) || MQExporterHelper::isValid(out_msms))
       {
         //if the user provided no fastafile, we can try this as a last resort
         const auto& cmap_prot_ids = cmap.getProteinIdentifications();
@@ -447,8 +451,17 @@ protected:
         map<String,String> fasta_map {};
         indexFasta(prot_description, fasta_map);
 
-        OPENMS_LOG_INFO << "Exporting FeatureMap..." << std::endl;
-        export_evidence.exportFeatureMap(*fmap,cmap,exp,fasta_map);
+
+        if (MQExporterHelper::isValid(out_evidence))
+        {
+          OPENMS_LOG_INFO << "Exporting FeatureMap for evidence..." << std::endl;
+          export_evidence.exportFeatureMap(*fmap,cmap,exp,fasta_map);
+        }
+        if (MQExporterHelper::isValid(out_msms))
+        {
+          OPENMS_LOG_INFO << "Exporting FeatureMap for msms..." << std::endl;
+          export_msms.exportFeatureMap(*fmap,cmap,exp,fasta_map);
+        }
       }
     }
 

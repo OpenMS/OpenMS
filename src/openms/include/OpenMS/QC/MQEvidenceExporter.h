@@ -62,7 +62,6 @@ To check if the created evidence.txt is writable use the function isValid.
 private:
   std::fstream file_; ///< Stream where the data is added to create evidence.txt
   OpenMS::Size id_ = 0; ///< number of rows in evidence.txt to give each row a specific id
-  std::map<OpenMS::String, OpenMS::Size> protein_id_; ///< map that maps each accession to its distinct number in this evidence.txt
   OpenMS::String filename_; ///< path and name of the evidence.txt
 
   /**

@@ -196,7 +196,6 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
     {
       modifications << ";" << it->first;
     }
-    modifications << ";"; //TODO entfernen
   }
 
   if (pep_seq.hasNTerminalModification())

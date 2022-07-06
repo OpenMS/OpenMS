@@ -44,7 +44,7 @@
 ///////////////////////////
 ///////////////////////////
 
-START_TEST(MQEvidence, "$ID$")
+START_TEST(MQMsms, "$ID$")
 
 using namespace OpenMS;
 
@@ -53,8 +53,7 @@ using namespace OpenMS;
 
 
 File::TempDir dir;
-//const String path = dir.getPath();
-const String path = "/buffer/ag_bsc/pmsb_22/rossov992";
+const String path = dir.getPath();
 
 
 
