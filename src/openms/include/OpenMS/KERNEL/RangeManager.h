@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/CommonEnums.h>
 
+#include <cmath> // for nan()
 #include <algorithm> // for min/max
 #include <cassert>
 #include <iosfwd>  // for std::ostream
