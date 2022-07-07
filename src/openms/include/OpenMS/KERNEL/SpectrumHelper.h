@@ -81,12 +81,12 @@ namespace OpenMS
     const bool ignore_data_arrays = false
   )
   {
-    typename PeakContainerT::iterator it_start = p.PosBegin(pos_start);
-    typename PeakContainerT::iterator it_end = p.PosEnd(pos_end);
+    typename PeakContainerT::const_iterator it_start = p.PosBegin(pos_start);
+    typename PeakContainerT::const_iterator it_end = p.PosEnd(pos_end);
     if (!ignore_data_arrays)
     {
-      Size hops_left = std::distance(p.begin(), it_start);
-      Size n_elems = std::distance(it_start, it_end);
+      Size hops_left = std::distance<typename PeakContainerT::const_iterator>(p.begin(), it_start);
+      Size n_elems = std::distance<typename PeakContainerT::const_iterator>(it_start, it_end);
 
       typename PeakContainerT::StringDataArrays& SDAs = p.getStringDataArrays();
       for (DataArrays::StringDataArray& sda : SDAs)

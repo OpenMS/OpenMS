@@ -973,50 +973,9 @@ const MSSpectrum spec_find = []() {
   return spec;
 }();
 
-START_SECTION((Iterator MZEnd(CoordinateType mz)))
-{
-  MSSpectrum::Iterator it;
-  auto tmp = spec_find;
-  it = tmp.MZEnd(4.5);
-  TEST_EQUAL(it->getPosition()[0],5.0)
-  it = tmp.MZEnd(5.0);
-  TEST_EQUAL(it->getPosition()[0],6.0)
-  it = tmp.MZEnd(5.5);
-  TEST_EQUAL(it->getPosition()[0],6.0)
-}
-END_SECTION
-
-START_SECTION((Iterator MZBegin(CoordinateType mz)))
-{
-  MSSpectrum::Iterator it;
-  auto tmp = spec_find;
-
-  it = tmp.MZBegin(4.5);
-  TEST_EQUAL(it->getPosition()[0],5.0)
-    it = tmp.MZBegin(5.0);
-  TEST_EQUAL(it->getPosition()[0],5.0)
-    it = tmp.MZBegin(5.5);
-  TEST_EQUAL(it->getPosition()[0],6.0)
-}
-END_SECTION
-
-START_SECTION((Iterator MZBegin(Iterator begin, CoordinateType mz, Iterator end)))
-{
-  MSSpectrum::Iterator it;
-  auto tmp = spec_find;
-
-  it = tmp.MZBegin(tmp.begin(), 4.5, tmp.end());
-  TEST_EQUAL(it->getPosition()[0],5.0)
-    it = tmp.MZBegin(tmp.begin(), 4.5, tmp.end());
-  TEST_EQUAL(it->getPosition()[0],5.0)
-    it = tmp.MZBegin(tmp.begin(), 4.5, tmp.begin());
-  TEST_EQUAL(it->getPosition()[0],tmp.begin()->getPosition()[0])
-}
-END_SECTION
-
 START_SECTION((ConstIterator MZBegin(ConstIterator begin, CoordinateType mz, ConstIterator end) const))
 {
-  MSSpectrum::Iterator it;
+  MSSpectrum::ConstIterator it;
   auto tmp = spec_find;
 
   it = tmp.MZBegin(tmp.begin(), 4.5, tmp.end());
@@ -1024,20 +983,6 @@ START_SECTION((ConstIterator MZBegin(ConstIterator begin, CoordinateType mz, Con
     it = tmp.MZBegin(tmp.begin(), 4.5, tmp.end());
   TEST_EQUAL(it->getPosition()[0],5.0)
     it = tmp.MZBegin(tmp.begin(), 4.5, tmp.begin());
-  TEST_EQUAL(it->getPosition()[0],tmp.begin()->getPosition()[0])
-}
-END_SECTION
-
-START_SECTION((Iterator MZEnd(Iterator begin, CoordinateType mz, Iterator end)))
-{
-  MSSpectrum::Iterator it;
-  auto tmp = spec_find;
-
-  it = tmp.MZEnd(tmp.begin(), 4.5, tmp.end());
-  TEST_EQUAL(it->getPosition()[0],5.0)
-    it = tmp.MZEnd(tmp.begin(), 5, tmp.end());
-  TEST_EQUAL(it->getPosition()[0],6.0)
-    it = tmp.MZEnd(tmp.begin(), 4.5, tmp.begin());
   TEST_EQUAL(it->getPosition()[0],tmp.begin()->getPosition()[0])
 }
 END_SECTION
@@ -1083,32 +1028,6 @@ END_SECTION
 
 auto tmp = spec_find;
 
-START_SECTION((Iterator PosBegin(CoordinateType mz)))
-{
-  MSSpectrum::Iterator it;
-  it = tmp.PosBegin(4.5);
-  TEST_EQUAL(it->getPos(), 5.0)
-  it = tmp.PosBegin(5.0);
-  TEST_EQUAL(it->getPos(), 5.0)
-  it = tmp.PosBegin(5.5);
-  TEST_EQUAL(it->getPos(), 6.0)
-}
-END_SECTION
-
-START_SECTION((Iterator PosBegin(Iterator begin, CoordinateType mz, Iterator end)))
-{
-  MSSpectrum::Iterator it;
-  it = tmp.PosBegin(tmp.begin(), 4.5, tmp.end());
-  TEST_EQUAL(it->getPos(), 5.0)
-  it = tmp.PosBegin(tmp.begin(), 5.5, tmp.end());
-  TEST_EQUAL(it->getPos(), 6.0)
-  it = tmp.PosBegin(tmp.begin(), 4.5, tmp.begin());
-  TEST_EQUAL(it->getPos(), tmp.begin()->getPos())
-  it = tmp.PosBegin(tmp.begin(), 8.0, tmp.end());
-  TEST_EQUAL((it-1)->getPos(), (tmp.end()-1)->getPos())
-}
-END_SECTION
-
 START_SECTION((ConstIterator PosBegin(CoordinateType mz) const ))
 {
   MSSpectrum::ConstIterator it;
@@ -1121,35 +1040,11 @@ START_SECTION((ConstIterator PosBegin(CoordinateType mz) const ))
 }
 END_SECTION
 
-START_SECTION((ConstIterator PosBegin(ConstIterator begin, CoordinateType mz, ConstIterator end) const ))
-{
-  MSSpectrum::ConstIterator it;
-  it = tmp.PosBegin(tmp.begin(), 3.5, tmp.end());
-  TEST_EQUAL(it->getPos(), 4.0)
-  it = tmp.PosBegin(tmp.begin(), 4.5, tmp.end());
-  TEST_EQUAL(it->getPos(), 5.0)
-  it = tmp.PosBegin(tmp.begin(), 4.5, tmp.begin());
-  TEST_EQUAL(it->getPos(), tmp.begin()->getPos())
-  it = tmp.PosBegin(tmp.begin(), 8.0, tmp.end());
-  TEST_EQUAL((it-1)->getPos(), (tmp.end()-1)->getPos())
-}
-END_SECTION
 
-START_SECTION((Iterator PosEnd(CoordinateType mz)))
-{
-  MSSpectrum::Iterator it;
-  it = tmp.PosEnd(4.5);
-  TEST_EQUAL(it->getPos(), 5.0)
-  it = tmp.PosEnd(5.0);
-  TEST_EQUAL(it->getPos(), 6.0)
-  it = tmp.PosEnd(5.5);
-  TEST_EQUAL(it->getPos(), 6.0)
-}
-END_SECTION
 
 START_SECTION((Iterator PosEnd(Iterator begin, CoordinateType mz, Iterator end)))
 {
-  MSSpectrum::Iterator it;
+  MSSpectrum::ConstIterator it;
   it = tmp.PosEnd(tmp.begin(), 3.5, tmp.end());
   TEST_EQUAL(it->getPos(), 4.0)
   it = tmp.PosEnd(tmp.begin(), 4.0, tmp.end());

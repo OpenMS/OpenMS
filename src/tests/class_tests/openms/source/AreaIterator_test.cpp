@@ -50,8 +50,8 @@ START_TEST(AreaIterator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 typedef PeakMap Map;
-typedef Internal::AreaIterator<Map::PeakType, Map::PeakType&, Map::PeakType*, Map::Iterator, Map::SpectrumType::Iterator> AI;
-//typedef Internal::AreaIterator<Map::PeakType, const Map::PeakType&, const Map::PeakType*, Map::ConstIterator, Map::SpectrumType::ConstIterator> CAI;
+//typedef Internal::AreaIterator<Map::PeakType, Map::PeakType&, Map::PeakType*, Map::Iterator, Map::SpectrumType::Iterator> AI;
+typedef Internal::AreaIterator<const Map::PeakType, const Map::PeakType&, const Map::PeakType*, Map::ConstIterator, Map::SpectrumType::ConstIterator> AI;
 
 AI* ptr1 = nullptr, *ptr2 = nullptr;
 AI* nullPointer = nullptr;
@@ -164,11 +164,11 @@ END_SECTION
 
 START_SECTION((AreaIterator& operator++()))
 	AI it = AI(exp.begin(),exp.RTBegin(0), exp.RTEnd(7), 505, 520);
-	Map::PeakType* peak = &(*(it++));
+	const Map::PeakType * peak = &(*(it++));
 	TEST_REAL_SIMILAR(peak->getMZ(),510.0);
 	peak = &(*(it++));
 	TEST_REAL_SIMILAR(peak->getMZ(),506.0);
-	TEST_EQUAL(it==exp.areaEnd(),true);
+	TEST_EQUAL(it==exp.areaEndConst(),true);
 END_SECTION
 
 START_SECTION((AreaIterator operator++(int)))
@@ -177,7 +177,7 @@ START_SECTION((AreaIterator operator++(int)))
 	++it;
 	TEST_REAL_SIMILAR(it->getMZ(),506.0);
 	++it;
-	TEST_EQUAL(it==exp.areaEnd(),true);
+	TEST_EQUAL(it==exp.areaEndConst(),true);
 END_SECTION
 
 START_SECTION((CoordinateType getRT() const))
@@ -194,7 +194,7 @@ START_SECTION((CoordinateType getRT() const))
 	TEST_REAL_SIMILAR(it->getMZ(),506.1);
 	TEST_REAL_SIMILAR(it.getRT(),8.0);
 	++it;
-	TEST_EQUAL(it==exp.areaEnd(),true);
+	TEST_EQUAL(it==exp.areaEndConst(),true);
 END_SECTION
 
 START_SECTION([EXTRA] Overall test)
@@ -224,7 +224,7 @@ START_SECTION([EXTRA] Overall test)
 	TEST_REAL_SIMILAR(it->getMZ(),510.1);
 	TEST_REAL_SIMILAR(it.getRT(),10.0);	
 	++it;
-	TEST_EQUAL(it==exp.areaEnd(),true);
+	TEST_EQUAL(it==exp.areaEndConst(),true);
 	
 	//center peaks
 	it = AI(exp.begin(),exp.RTBegin(3), exp.RTEnd(9), 503, 509);
@@ -240,7 +240,7 @@ START_SECTION([EXTRA] Overall test)
 	TEST_REAL_SIMILAR(it->getMZ(),506.1);
 	TEST_REAL_SIMILAR(it.getRT(),8.0);	
 	++it;
-	TEST_EQUAL(it==exp.areaEnd(),true);
+	TEST_EQUAL(it==exp.areaEndConst(),true);
 	
 	//upper left area
 	it = AI(exp.begin(),exp.RTBegin(0), exp.RTEnd(7), 505, 520);
@@ -250,7 +250,7 @@ START_SECTION([EXTRA] Overall test)
 	TEST_REAL_SIMILAR(it->getMZ(),506.0);
 	TEST_REAL_SIMILAR(it.getRT(),4.0);	
 	++it;
-	TEST_EQUAL(it==exp.areaEnd(),true);
+	TEST_EQUAL(it==exp.areaEndConst(),true);
 	
 	//upper right area
 	it = AI(exp.begin(),exp.RTBegin(5), exp.RTEnd(11), 505, 520);
@@ -260,7 +260,7 @@ START_SECTION([EXTRA] Overall test)
 	TEST_REAL_SIMILAR(it->getMZ(),510.1);
 	TEST_REAL_SIMILAR(it.getRT(),10.0);	
 	++it;
-	TEST_EQUAL(it==exp.areaEnd(),true);
+	TEST_EQUAL(it==exp.areaEndConst(),true);
 	
 	//lower right
 	it = AI(exp.begin(),exp.RTBegin(5), exp.RTEnd(11), 500, 505);
@@ -270,7 +270,7 @@ START_SECTION([EXTRA] Overall test)
 	TEST_REAL_SIMILAR(it->getMZ(),502.1);
 	TEST_REAL_SIMILAR(it.getRT(),10.0);	
 	++it;
-	TEST_EQUAL(it==exp.areaEnd(),true);
+	TEST_EQUAL(it==exp.areaEndConst(),true);
 
 	//lower left
 	it = AI(exp.begin(),exp.RTBegin(0), exp.RTEnd(7), 500, 505);
@@ -280,19 +280,19 @@ START_SECTION([EXTRA] Overall test)
 	TEST_REAL_SIMILAR(it->getMZ(),504.0);
 	TEST_REAL_SIMILAR(it.getRT(),4.0);	
 	++it;
-	TEST_EQUAL(it==exp.areaEnd(),true);
+	TEST_EQUAL(it==exp.areaEndConst(),true);
 
 	//Test with empty RT range
 	it = AI(exp.begin(),exp.RTBegin(5), exp.RTEnd(5.5), 500, 520);
-	TEST_EQUAL(it==exp.areaEnd(),true);
+	TEST_EQUAL(it==exp.areaEndConst(),true);
 
 	//Test with empty MZ range
 	it = AI(exp.begin(),exp.RTBegin(0), exp.RTEnd(15), 505, 505.5);
-	TEST_EQUAL(it==exp.areaEnd(),true);
+	TEST_EQUAL(it==exp.areaEndConst(),true);
 
 	//Test with empty RT + MZ range
 	it = AI(exp.begin(),exp.RTBegin(5), exp.RTEnd(5.5), 505, 505.5);
-	TEST_EQUAL(it==exp.areaEnd(),true);
+	TEST_EQUAL(it==exp.areaEndConst(),true);
 
 	//Test with empty (no MS level 1) experiment
 	PeakMap exp2(exp);
@@ -302,7 +302,7 @@ START_SECTION([EXTRA] Overall test)
 	exp2[3].setMSLevel(2);
 	exp2[4].setMSLevel(2);
 	it = AI(exp2.begin(),exp2.RTBegin(0), exp2.RTEnd(15), 500, 520);
-	TEST_EQUAL(it==exp2.areaEnd(),true);
+	TEST_EQUAL(it==exp2.areaEndConst(),true);
 END_SECTION
 
 START_SECTION((PeakIndex getPeakIndex() const))
