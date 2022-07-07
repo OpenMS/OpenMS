@@ -66,7 +66,14 @@ namespace OpenMS
       return *this;
     }
 
-    *dt_ = *source.dt_;
+    if (dt_ == nullptr)
+    { // *this is in a 'moved-from' state; we need to create a dt_ object first
+      dt_ = make_unique<QDateTime>(*source.dt_);
+    }
+    else
+    {
+      *dt_ = *source.dt_;
+    }
 
     return *this;
   }
