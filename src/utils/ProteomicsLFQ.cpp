@@ -132,6 +132,11 @@ using Internal::IDBoostGraph;
   // - disable elution peak fit
 
   Potential scripts to perform the search can be found under src/tests/topp/ProteomicsLFQTestScripts
+  
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_ProteomicsLFQ.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_ProteomicsLFQ.html
  **/
 
 // We do not want this class to show up in the docu:
