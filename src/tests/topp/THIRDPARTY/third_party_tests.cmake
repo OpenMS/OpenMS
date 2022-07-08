@@ -57,10 +57,6 @@ OPENMS_FINDBINARY(XTANDEM_BINARY "tandem;tandem.exe" "X! Tandem")
 openms_check_tandem_version(${XTANDEM_BINARY} xtandem_valid)
 
 #------------------------------------------------------------------------------
-# MyriMatch
-OPENMS_FINDBINARY(MYRIMATCH_BINARY "myrimatch" "Myrimatch")
-
-#------------------------------------------------------------------------------
 # MS-GF+
 OPENMS_FINDBINARY(MSGFPLUS_BINARY "MSGFPlus.jar" "MS-GF+")
 
