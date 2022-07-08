@@ -37,7 +37,7 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-
+#include <OpenMS/CONCEPT/Exception.h>
 using namespace std;
 
 namespace OpenMS
@@ -139,8 +139,10 @@ namespace OpenMS
       const vector<PeptideIdentification>& peptide_ids, 
       vector<PeptideIdentification>& pep_pi,
       double peptide_PSM_qvalue_threshold,
+      double peptide_peptide_qvalue_threshold,
       vector<PeptideIdentification>& xl_pi,
       vector<double> xl_PSM_qvalue_thresholds,
+      vector<double> xl_peptidelevel_qvalue_thresholds,
       const String& out_idxml,
       int decoy_factor) const
   {
@@ -217,10 +219,27 @@ namespace OpenMS
     IDFilter::removeDecoyHits(xl_pi);
     IDFilter::removeDecoyHits(pep_pi);
 
+    // filter on peptide-level q-value
+    if (peptide_peptide_qvalue_threshold > 0.0 && peptide_peptide_qvalue_threshold < 1.0)
+    {
+      auto chechBadPeptideQValue = [&peptide_peptide_qvalue_threshold](PeptideHit& ph)->bool
+      {
+        return (double)ph.getMetaValue("peptide q-value") >= peptide_peptide_qvalue_threshold; 
+      }; // of lambda
+
+      for (auto & pid : pep_pi)
+      {
+        vector<PeptideHit>& phs = pid.getHits();
+        phs.erase(remove_if(phs.begin(), phs.end(), chechBadPeptideQValue), phs.end());
+      }
+    }
+
+    // filter on PSM-level q-value
     if (peptide_PSM_qvalue_threshold > 0.0 && peptide_PSM_qvalue_threshold < 1.0)
     {
       IDFilter::filterHitsByScore(pep_pi, peptide_PSM_qvalue_threshold); 
     }
+
 
     // store peptide PSM result
     {
@@ -232,9 +251,36 @@ namespace OpenMS
     // treat disabled filtering as 100% FDR
     std::replace(xl_PSM_qvalue_thresholds.begin(), xl_PSM_qvalue_thresholds.end(), 0.0, 1.0);
     std::sort(xl_PSM_qvalue_thresholds.begin(), xl_PSM_qvalue_thresholds.end(), greater<double>()); // important: sort by threshold (descending) to generate results by applying increasingly stringent q-value filters
-    for (double xlFDR : xl_PSM_qvalue_thresholds)
+
+    if (xl_PSM_qvalue_thresholds.size() != xl_peptidelevel_qvalue_thresholds.size())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          "q-value list for PSMs and peptides differ in size.", 
+          String(xl_PSM_qvalue_thresholds.size() + "!=" + String(xl_peptidelevel_qvalue_thresholds.size())));
+    }
+
+    for (Size i = 0; i != xl_PSM_qvalue_thresholds.size(); ++i)
     { 
+      double xlFDR = xl_PSM_qvalue_thresholds[i];
+      double xl_peptidelevel_FDR = xl_peptidelevel_qvalue_thresholds[i];
       OPENMS_LOG_INFO << "Writing XL results at xl-FDR: " << xlFDR << endl;
+
+      // filter cross-links on peptide-level q-value
+      if (xl_peptidelevel_FDR > 0.0 && xl_peptidelevel_FDR < 1.0)
+      {
+        auto chechBadPeptideQValue = [&xl_peptidelevel_FDR](PeptideHit& ph)->bool
+        {
+          return (double)ph.getMetaValue("peptide q-value") >= xl_peptidelevel_FDR;
+        }; // of lambda
+
+        for (auto & pid : xl_pi)
+        {
+          vector<PeptideHit>& phs = pid.getHits();
+          phs.erase(remove_if(phs.begin(), phs.end(), chechBadPeptideQValue), phs.end());
+        }
+      }
+
+      // filter cross-links on PSM-level q-value
       if (xlFDR > 0.0 && xlFDR < 1.0)
       {
         IDFilter::filterHitsByScore(xl_pi, xlFDR);

@@ -333,7 +333,8 @@ protected:
     registerTOPPSubsection_("report", "Reporting Options");
     registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
     registerDoubleOption_("report:peptideFDR", "<num>", 0.01, "Maximum q-value of non-cross-linked peptides. (0 = disabled).", false, true);
-    registerDoubleList_("report:xlFDR", "<num>", { 0.01, 0.1, 1.0 }, "Maximum q-value of cross-linked peptides. (0 = disabled). If multiple values are provided, multiple output files will be created.", false, true);
+    registerDoubleList_("report:xlFDR", "<num>", { 0.01, 0.1, 1.0 }, "Maximum q-value of cross-linked peptides at the PSM-level. (0 or 1 = disabled). If multiple values are provided, multiple output files will be created.", false, true);
+    registerDoubleList_("report:xl_peptidelevel_FDR", "<num>", { 1.00, 1.0, 1.0 }, "Maximum q-value of cross-linked peptides at the peptide-level. (0 or 1 = disabled). Needs to have same size as PSM-level FDR. Filtering is applied together with the correpsonding value in the report:xlFDR list.", false, true);
 
     registerInputFile_("percolator_executable", "<executable>", 
  // choose the default value according to the platform where it will be executed
@@ -4409,6 +4410,15 @@ static void scoreXLIons_(
     DoubleList XL_FDR = getDoubleList_("report:xlFDR");
     if (XL_FDR.empty()) XL_FDR.push_back(1.0); // needs at least one entry - otherwise fails because no XL result file can be written to out_xls
 
+
+    DoubleList XL_peptidelevel_FDR = getDoubleList_("report:xl_peptidelevel_FDR");
+    if (XL_FDR.size() != XL_peptidelevel_FDR.size())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "q-value list for PSMs and peptides differ in size.", 
+        String(XL_FDR.size() + "!=" + XL_peptidelevel_FDR.size())); 
+    }
+
     // determine maximum FDR treshold used to create result files
     double xl_fdr_max{1.0};
     if (!XL_FDR.empty())
@@ -5872,7 +5882,16 @@ static void scoreXLIons_(
       vector<PeptideIdentification> pep_pi, xl_pi;
       if (extra_output_directory.empty())
       {
-        fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, original_PSM_output_filename, decoy_factor);
+        fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
+          peptide_ids,
+          pep_pi, 
+          peptide_FDR,
+          peptide_FDR, // for now we choose same peptide-level FDR = PSM-level FDR for non-cross-links
+          xl_pi,
+          XL_FDR,
+          XL_peptidelevel_FDR,
+          original_PSM_output_filename,
+          decoy_factor);
         // copy XL results (with highest threshold=little filtering) to output
         if (!out_xl_idxml.empty())
         {
@@ -5882,7 +5901,17 @@ static void scoreXLIons_(
       else
       { // use output_folder
         String b = extra_output_directory + "/" + File::basename(out_idxml).substitute(".idXML", "_");
-        fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, b, decoy_factor);
+
+        fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
+          peptide_ids,
+          pep_pi, 
+          peptide_FDR,
+          peptide_FDR, // for now we choose same peptide-level FDR = PSM-level FDR for non-cross-links
+          xl_pi,
+          XL_FDR,
+          XL_peptidelevel_FDR,
+          b,
+          decoy_factor);
         // copy XL results (with highest threshold=little filtering) to output
         if (!out_xl_idxml.empty())
         {
@@ -5969,7 +5998,16 @@ static void scoreXLIons_(
 
           if (extra_output_directory.empty())
           {
-            fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, percolator_PSM_output_filename, decoy_factor);
+            fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
+              peptide_ids,
+              pep_pi, 
+              peptide_FDR,
+              peptide_FDR, // for now we choose same peptide-level FDR = PSM-level FDR for non-cross-links
+              xl_pi,
+              XL_FDR,
+              XL_peptidelevel_FDR,
+              percolator_PSM_output_filename,
+              decoy_factor);
 
             // copy XL results (with highest threshold=little filtering) to outut TODO: first copy would not be needed
             if (!out_xl_idxml.empty())
@@ -5980,7 +6018,18 @@ static void scoreXLIons_(
           else
           { // use output_folder
             String b = extra_output_directory + "/" + File::basename(out_idxml).substitute(".idXML", "_perc_");
-            fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids, peptide_ids, pep_pi, peptide_FDR, xl_pi, XL_FDR, b, decoy_factor);
+            
+            fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
+              peptide_ids,
+              pep_pi, 
+              peptide_FDR,
+              peptide_FDR, // for now we choose same peptide-level FDR = PSM-level FDR for non-cross-links
+              xl_pi,
+              XL_FDR,
+              XL_peptidelevel_FDR,
+              b,
+              decoy_factor);
+
 
             // copy XL results (with highest threshold=little filtering) to output TODO: first copy would not be needed if percolator succeeds
             if (!out_xl_idxml.empty())
