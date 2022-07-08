@@ -28,36 +28,32 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
-
 #include <iosfwd>
 
 namespace OpenMS
 {
-
   /**
-    @brief A 1-dimensional raw data point or peak.
+    @brief A 1-dimensional raw data mobility point or peak. The unit (ms, 1/K_0, etc) is implicit.
 
-    This data structure is intended for continuous data or peak data.
-    If you want to annotated single peaks with meta data, use RichPeak1D instead.
+    This data structure is intended for continuous mobility data or centroided mobility data.
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI Peak1D
+  class OPENMS_DLLAPI MobilityPeak1D
   {
-public:
-
+  public:
     ///@name Type definitions
     ///@{
     /// Dimension
-    enum {DIMENSION = 1};
+    enum{ DIMENSION = 1 };
     /// Intensity type
     using IntensityType = float;
     /// Position type
@@ -69,34 +65,35 @@ public:
     ///@name Constructors and Destructor
     ///@{
     /// Default constructor
-    inline Peak1D() = default;
+    MobilityPeak1D() = default;
 
     /// construct with position and intensity
-    inline Peak1D(PositionType a, IntensityType b) :
-      position_(a),
-      intensity_(b)
-    {}
+    MobilityPeak1D(PositionType a, IntensityType b) : position_(a), intensity_(b)
+    {
+    }
 
     /// Copy constructor
-    Peak1D(const Peak1D & p) = default;
+    MobilityPeak1D(const MobilityPeak1D& p) = default;
 
-    Peak1D(Peak1D&&) noexcept = default;
-
+    // Move constructor
+    MobilityPeak1D(MobilityPeak1D&&) noexcept = default;
+    
     /// Assignment operator
-    Peak1D& operator=(const Peak1D& rhs) = default;
+    MobilityPeak1D& operator=(const MobilityPeak1D& rhs) = default;
 
     /// Move assignment operator
-    Peak1D& operator=(Peak1D&&) noexcept = default;
+    MobilityPeak1D& operator=(MobilityPeak1D&&) noexcept = default;
+
 
     /**
       @brief Destructor
 
       @note The destructor is non-virtual although many classes are derived from
-      Peak1D.  This is intentional, since otherwise we would "waste"
+      MobilityPeak1D.  This is intentional, since otherwise we would "waste"
       space for a vtable pointer in each instance. Normally you should not derive other classes from
-      Peak1D (unless you know what you are doing, of course).
+      MobilityPeak1D (unless you know what you are doing, of course).
     */
-    ~Peak1D() = default;
+    ~MobilityPeak1D() noexcept = default;
 
     ///@}
 
@@ -105,48 +102,54 @@ public:
     */
     ///@{
     /// Non-mutable access to the data point intensity (height)
-    inline IntensityType getIntensity() const { return intensity_; }
+    IntensityType getIntensity() const
+    {
+      return intensity_;
+    }
     /// Mutable access to the data point intensity (height)
-    inline void setIntensity(IntensityType intensity) { intensity_ = intensity; }
+    void setIntensity(IntensityType intensity)
+    {
+      intensity_ = intensity;
+    }
 
     /// Non-mutable access to m/z
-    inline CoordinateType getMZ() const
+    inline CoordinateType getMobility() const
     {
       return position_[0];
     }
 
-    /// Mutable access to m/z
-    inline void setMZ(CoordinateType mz)
+    /// Mutable access to mobility
+    inline void setMobility(CoordinateType mobility)
     {
-      position_[0] = mz;
+      position_[0] = mobility;
     }
 
-    /// Alias for getMZ()
+    /// Alias for getMobility()
     inline CoordinateType getPos() const
     {
       return position_[0];
     }
 
-    /// Alias for setMZ()
+    /// Alias for setMobility()
     inline void setPos(CoordinateType pos)
     {
       position_[0] = pos;
     }
 
     /// Non-mutable access to the position
-    inline PositionType const & getPosition() const
+    inline PositionType const& getPosition() const
     {
       return position_;
     }
 
     /// Mutable access to the position
-    inline PositionType & getPosition()
+    inline PositionType& getPosition()
     {
       return position_;
     }
 
     /// Mutable access to the position
-    inline void setPosition(PositionType const & position)
+    inline void setPosition(PositionType const& position)
     {
       position_ = position;
     }
@@ -154,7 +157,7 @@ public:
     ///@}
 
     /// Equality operator
-    bool operator==(const Peak1D & rhs) const
+    bool operator==(const MobilityPeak1D& rhs) const
     {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfloat-equal"
@@ -163,7 +166,7 @@ public:
     }
 
     /// Equality operator
-    bool operator!=(const Peak1D & rhs) const
+    bool operator!=(const MobilityPeak1D& rhs) const
     {
       return !(operator==(rhs));
     }
@@ -174,19 +177,18 @@ public:
     */
     ///@{
     /// Comparator by intensity
-    struct IntensityLess
-    {
-      inline bool operator()(Peak1D const & left, Peak1D const & right) const
+    struct IntensityLess {
+      inline bool operator()(MobilityPeak1D const& left, MobilityPeak1D const& right) const
       {
         return left.getIntensity() < right.getIntensity();
       }
 
-      inline bool operator()(Peak1D const & left, IntensityType right) const
+      inline bool operator()(MobilityPeak1D const& left, IntensityType right) const
       {
         return left.getIntensity() < right;
       }
 
-      inline bool operator()(IntensityType left, Peak1D const & right) const
+      inline bool operator()(IntensityType left, MobilityPeak1D const& right) const
       {
         return left < right.getIntensity();
       }
@@ -195,69 +197,63 @@ public:
       {
         return left < right;
       }
-
     };
 
-    /// Comparator by m/z position.
-    struct MZLess
-    {
-      inline bool operator()(const Peak1D & left, const Peak1D & right) const
+    /// Comparator by mobility position.
+    struct MobilityLess {
+      inline bool operator()(const MobilityPeak1D& left, const MobilityPeak1D& right) const
       {
-        return left.getMZ() < right.getMZ();
+        return left.getMobility() < right.getMobility();
       }
 
-      inline bool operator()(Peak1D const & left, CoordinateType right) const
+      inline bool operator()(MobilityPeak1D const& left, CoordinateType right) const
       {
-        return left.getMZ() < right;
+        return left.getMobility() < right;
       }
 
-      inline bool operator()(CoordinateType left, Peak1D const & right) const
+      inline bool operator()(CoordinateType left, MobilityPeak1D const& right) const
       {
-        return left < right.getMZ();
+        return left < right.getMobility();
       }
 
       inline bool operator()(CoordinateType left, CoordinateType right) const
       {
         return left < right;
       }
-
     };
 
-    /// Comparator by position. As this class has dimension 1, this is basically an alias for MZLess.
-    struct PositionLess
-    {
-      inline bool operator()(const Peak1D & left, const Peak1D & right) const
+    /// Comparator by position. As this class has dimension 1, this is basically an alias for MobilityLess.
+    struct PositionLess {
+      inline bool operator()(const MobilityPeak1D& left, const MobilityPeak1D& right) const
       {
         return left.getPosition() < right.getPosition();
       }
 
-      inline bool operator()(const Peak1D & left, const PositionType & right) const
+      inline bool operator()(const MobilityPeak1D& left, const PositionType& right) const
       {
         return left.getPosition() < right;
       }
 
-      inline bool operator()(const PositionType & left, const Peak1D & right) const
+      inline bool operator()(const PositionType& left, const MobilityPeak1D& right) const
       {
         return left < right.getPosition();
       }
 
-      inline bool operator()(const PositionType & left, const PositionType & right) const
+      inline bool operator()(const PositionType& left, const PositionType& right) const
       {
         return left < right;
       }
-
     };
     ///@}
 
-protected:
+  protected:
     /// The data point position
-    PositionType  position_;
+    PositionType position_{};
     /// The data point intensity
     IntensityType intensity_ = 0.0;
   };
 
   /// Print the contents to a stream.
-  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Peak1D & point);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const MobilityPeak1D& point);
 
 } // namespace OpenMS
-
