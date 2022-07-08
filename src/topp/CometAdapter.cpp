@@ -49,6 +49,8 @@
 
 #include <fstream>
 
+#include <QStringList>
+
 using namespace OpenMS;
 using namespace std;
 

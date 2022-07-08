@@ -63,7 +63,7 @@ namespace OpenMS
       function_("?"),
       name_("Exception")
     {
-      GlobalExceptionHandler::getInstance().set(file_, line_, function_, std::string(name_), std::string(what()));
+      GlobalExceptionHandler::getInstance().set(file_, line_, function_, name_, what());
     }
 
     BaseException::BaseException(const char* file, int line, const char* function, const std::string& name, const std::string& message) noexcept :
@@ -73,7 +73,7 @@ namespace OpenMS
       function_(function),
       name_(name)
     {
-      GlobalExceptionHandler::getInstance().set(file_, line_, function_, name_, this->what());
+      GlobalExceptionHandler::getInstance().set(file_, line_, function_, name_, what());
     }
 
     BaseException::BaseException(const char* file, int line, const char* function) noexcept :

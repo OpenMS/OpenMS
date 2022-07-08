@@ -29,6 +29,9 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 - TOPPAS: add a `recent files` submenu
 - removed InspectAdapter
 - removed OMSSAAdapter
+- OpenMS documentation is moved to openms.readthedocs.io/en/latest. OpenMS API
+reference and advanced developer documentation remains inside OpenMS doxygen
+documentation.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.8     (released 2/2022)                  ----

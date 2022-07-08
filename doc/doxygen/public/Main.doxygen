@@ -53,28 +53,14 @@
       <TD valign="top">
 
         <BR>
-        Installation instructions:
-        <UL>
-          <LI> @subpage install_linux_bin
-          <LI> @subpage install_mac_bin
-          <LI> @subpage install_win_bin
-        </UL>
-
         Documentation:
         <UL>
-          <LI> @subpage Quickstart
-          <LI> @subpage TOPP_tutorial
-          <LI> @subpage TOPPAS_tutorial
           <LI> @subpage TOPP_documentation
           <LI> @subpage UTILS_documentation
         </UL>
 
         Misc:
         <UL>
-          <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki#contact" target="_blank">Support</a>
-          <LI> <a class="el" href="https://github.com/OpenMS/OpenMS" target="_blank">Github</a>
-          <LI> <a class="el" href="https://gitter.im/OpenMS/OpenMS" target="_blank">Gitter chat</a>
-          <LI> <a class="el" href="https://sourceforge.net/projects/open-ms/lists/open-ms-general" target="_blank">Mailing List</a>
           <LI> @subpage FAQ
           <LI> @subpage ChangeLog
         </UL>

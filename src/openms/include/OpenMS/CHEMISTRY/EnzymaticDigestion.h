@@ -37,11 +37,13 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 
-#include <boost/regex.hpp>
 #include <string>
 #include <vector>
 
 #include <functional> // for std::function
+#include <memory> // unique_ptr
+
+#include <boost/regex_fwd.hpp> // forward declaration of boost::regex
 
 namespace OpenMS
 {
@@ -86,6 +88,12 @@ public:
 
     /// Default constructor
     EnzymaticDigestion();
+
+    /// Copy constructor
+    EnzymaticDigestion(const EnzymaticDigestion& rhs);
+
+    /// Assignment operator
+    EnzymaticDigestion& operator=(const EnzymaticDigestion& rhs);
 
     /// Destructor
     virtual ~EnzymaticDigestion();
@@ -220,7 +228,7 @@ protected:
     /// Used enzyme
     const DigestionEnzyme* enzyme_;
     /// Regex for tokenizing (huge speedup by making this a member instead of stack object in tokenize_())
-    boost::regex re_;
+    std::unique_ptr<boost::regex> re_; // use PImpl, since #include cost is huge
 
     /// specificity of enzyme
     Specificity specificity_;
