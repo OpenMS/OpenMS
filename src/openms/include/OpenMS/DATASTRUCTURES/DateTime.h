@@ -217,9 +217,8 @@ public:
       */
       void set(const String& date);
 
-private:
     private:
-      std::unique_ptr<QDateTime> dt_; // use PImpl, to avoid constly #include
+      std::unique_ptr<QDateTime> dt_; // use PImpl, to avoid costly #include
   };
 
 } // namespace OPENMS
