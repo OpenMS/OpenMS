@@ -48,7 +48,6 @@ namespace OpenMS
     psi_id_(""),
     xtandem_id_(""),
     comet_id_(-1),
-    crux_id_(""),
     msgf_id_(-1),
     omssa_id_(-1)
   {
@@ -61,7 +60,6 @@ namespace OpenMS
       psi_id_(""),
       xtandem_id_(""),
       comet_id_(-1),
-      crux_id_(""),
       msgf_id_(-1),
       omssa_id_(-1)
   {
@@ -76,7 +74,6 @@ namespace OpenMS
                                                  String psi_id,
                                                  String xtandem_id,
                                                  Int comet_id,
-                                                 String crux_id,
                                                  Int msgf_id,
                                                  Int omssa_id) :
     DigestionEnzyme(name, cleavage_regex, synonyms, std::move(regex_description)),
@@ -85,7 +82,6 @@ namespace OpenMS
     psi_id_(std::move(psi_id)),
     xtandem_id_(std::move(xtandem_id)),
     comet_id_(comet_id),
-    crux_id_(std::move(crux_id)),
     msgf_id_(msgf_id),
     omssa_id_(omssa_id)
   {
@@ -145,16 +141,6 @@ namespace OpenMS
     return comet_id_;
   }
 
-  void DigestionEnzymeProtein::setCruxID(const String& value)
-  {
-    crux_id_ = value;
-  }
-
-  String DigestionEnzymeProtein::getCruxID() const
-  {
-    return crux_id_;
-  }
-
   void DigestionEnzymeProtein::setOMSSAID(Int value)
   {
     omssa_id_ = value;
@@ -183,7 +169,6 @@ namespace OpenMS
            psi_id_ == enzyme.psi_id_ &&
            xtandem_id_ == enzyme.xtandem_id_ &&
            comet_id_ == enzyme.comet_id_ &&
-           crux_id_ == enzyme.crux_id_ &&
            msgf_id_ == enzyme.msgf_id_ &&
            omssa_id_ == enzyme.omssa_id_;
   }
@@ -238,11 +223,6 @@ namespace OpenMS
     if (key.hasSuffix(":CometID"))
     {
       setCometID(value.toInt());
-      return true;
-    }
-    if (key.hasSuffix(":CruxID"))
-    {
-      setCruxID(value);
       return true;
     }
     if (key.hasSuffix(":OMSSAID"))

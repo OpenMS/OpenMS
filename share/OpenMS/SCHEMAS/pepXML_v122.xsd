@@ -1476,7 +1476,6 @@
       <xs:enumeration value="greylag"/>
       <xs:enumeration value="Phenyx"/>
       <xs:enumeration value="Proteios"/>
-      <xs:enumeration value="Crux"/>
       <xs:enumeration value="Tide"/>
       <xs:enumeration value="Novor"/>
       <xs:enumeration value="Kojak"/>

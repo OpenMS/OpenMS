@@ -87,10 +87,6 @@ OPENMS_FINDBINARY(SIRIUS_BINARY "sirius;sirius.app;sirius.bat;sirius.exe" "Siriu
 OPENMS_FINDBINARY(NOVOR_BINARY "novor.jar" "Novor")
 
 #------------------------------------------------------------------------------
-# Crux
-OPENMS_FINDBINARY(CRUX_BINARY "crux;crux.exe" "Crux")
-
-#------------------------------------------------------------------------------
 # Spectrast
 OPENMS_FINDBINARY(SPECTRAST_BINARY "spectrast" "SpectraST")
 
@@ -152,17 +148,6 @@ if (NOT (${MSGFPLUS_BINARY} STREQUAL "MSGFPLUS_BINARY-NOTFOUND"))
   set_tests_properties("TOPP_MSGFPlusAdapter_PROFILE" PROPERTIES WILL_FAIL 1) 
 endif()
 
-#------------------------------------------------------------------------------
-if (NOT (${CRUX_BINARY} STREQUAL "CRUX_BINARY-NOTFOUND"))
-  ### NOT needs to be added after the binarys have been included
-  add_test("TOPP_CruxAdapter_1" ${TOPP_BIN_PATH}/CruxAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CruxAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_comet.mzML -out CruxAdapter_1_out1.tmp -crux_executable "${CRUX_BINARY}" -run_percolator false -decoy_format peptide-reverse)
-  add_test("TOPP_CruxAdapter_1_out1" ${DIFF} -in1 CruxAdapter_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CruxAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"CruxAdapter:1:in\" value=" "UserParam type=\"string\" name=\"CruxAdapter:1:database\" value=" "UserParam type=\"string\" name=\"CruxAdapter:1:crux_executable\" value=")
-  set_tests_properties("TOPP_CruxAdapter_1_out1" PROPERTIES DEPENDS "TOPP_CruxAdapter_1")
-  
-  ## MS2 profile spectra are not allowed
-  add_test("TOPP_CruxAdapter_PROFILE" ${TOPP_BIN_PATH}/CruxAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteinslong.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/MS2_profile.mzML -out CruxAdapter_out.tmp -crux_executable "${CRUX_BINARY}")
-  set_tests_properties("TOPP_CruxAdapter_PROFILE" PROPERTIES WILL_FAIL 1)   
-endif()
 
 #------------------------------------------------------------------------------
 if (NOT (${COMET_BINARY} STREQUAL "COMET_BINARY-NOTFOUND"))
