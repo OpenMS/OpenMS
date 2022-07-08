@@ -206,6 +206,7 @@ protected:
     setValidFormats_("ThermoRaw_executable", {"exe"});
     registerFlag_("no_peak_picking", "Disables vendor peak picking for raw files.", true);
     registerFlag_("no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem.", true);
+    registerFlag_("include_noise", "Include noise data in mzML output.", true);
   }
 
   ExitCodes main_(int, const char**) override
@@ -225,6 +226,7 @@ protected:
     double mass_acc = getDoubleOption_("lossy_mass_accuracy");
     bool no_peak_picking = getFlag_("no_peak_picking");
     bool no_zlib_compression = getFlag_("no_zlib_compression");
+    bool include_noise = getFlag_("include_noise");
 
     // prepare data structures for lossy compression (note that we compress any float data arrays the same as intensity arrays)
     MSNumpressCoder::NumpressConfig npconfig_mz, npconfig_int, npconfig_fda;
@@ -325,6 +327,10 @@ protected:
       if (no_zlib_compression)
       {
         arguments << "--noZlibCompression";
+      }
+      if (include_noise)
+      {
+        arguments << "--noiseData";
       }
       return runExternalProcess_(net_executable.toQString(), arguments);
     }
