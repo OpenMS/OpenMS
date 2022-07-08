@@ -38,7 +38,6 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 
-#include <string>
 #include <vector>
 
 namespace OpenMS

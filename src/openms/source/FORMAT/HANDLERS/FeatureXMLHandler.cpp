@@ -34,11 +34,12 @@
 
 #include <OpenMS/FORMAT/HANDLERS/FeatureXMLHandler.h>
 
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 
 #include <fstream>
 #include <map>
