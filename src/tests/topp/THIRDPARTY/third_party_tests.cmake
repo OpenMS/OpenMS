@@ -1,7 +1,7 @@
 ## Third-party tools (e.g. MS2 search engines) go here...
 ## MACRO OPENMS_FINDBINARY:
 ## fills ${varname} with the path to the binary given in ${binaryname}
-## @param varname      Name of the variable which will hold the result string (e.g. OMSSA_BINARY)
+## @param varname      Name of the variable which will hold the result string (e.g. COMET_BINARY)
 ## @param binaryname   List of binary names which are searched
 ## @param name         Human readable version of binaryname for messages
 macro (OPENMS_FINDBINARY varname binaryname name)
@@ -46,10 +46,6 @@ OPENMS_FINDBINARY(MARACLUSTER_BINARY "maracluster" "MaRaCluster")
 #------------------------------------------------------------------------------
 # Comet
 OPENMS_FINDBINARY(COMET_BINARY "comet.exe" "Comet")
-
-#------------------------------------------------------------------------------
-# OMSSA
-OPENMS_FINDBINARY(OMSSA_BINARY "omssacl" "OMSSA")
 
 #------------------------------------------------------------------------------
 # X!Tandem
