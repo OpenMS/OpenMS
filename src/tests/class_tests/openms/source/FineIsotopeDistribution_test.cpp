@@ -61,10 +61,29 @@ END_SECTION
 
 START_SECTION((~FineIsotopePatternGenerator()))
   delete ptr;
+  NOT_TESTABLE
 END_SECTION
 
 START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
 {
+  {
+    EmpiricalFormula ef("H20");
+    EmpiricalFormula ef2("CH3OH");
+    IsotopeDistribution test_id = (ef + ef2).getIsotopeDistribution(FineIsotopePatternGenerator(1e-20, false, false));
+    auto c = test_id.getContainer();
+    // check monoisotopic peak
+    TEST_REAL_SIMILAR(c[0].getMZ(), 52.1827)
+    TEST_REAL_SIMILAR(c[0].getIntensity(), 0.984176) 
+    TEST_EQUAL(c.size(), 36)
+    //for (auto cc : c) std::cout << cc << "\n";
+    test_id = (ef + ef2).getIsotopeDistribution(FineIsotopePatternGenerator(1e-200, false, false));
+    c = test_id.getContainer();
+    // check monoisotopic peak
+    TEST_REAL_SIMILAR(c[0].getMZ(), 52.1827)
+    TEST_REAL_SIMILAR(c[0].getIntensity(), 0.984176)
+    TEST_EQUAL(c.size(), 150)
+  }
+
   EmpiricalFormula ef ("C6H12O6");
 
   // simple way of getting an IsotopeDistribution
