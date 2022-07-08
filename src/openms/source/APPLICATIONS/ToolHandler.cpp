@@ -105,7 +105,6 @@ namespace OpenMS
     tools_map["MzTabExporter"] = Internal::ToolDescription("MzTabExporter", "File Handling");
     tools_map["NoiseFilterGaussian"] = Internal::ToolDescription("NoiseFilterGaussian", "Signal processing and preprocessing");
     tools_map["NoiseFilterSGolay"] = Internal::ToolDescription("NoiseFilterSGolay", "Signal processing and preprocessing");
-    tools_map["OMSSAAdapter"] = Internal::ToolDescription("OMSSAAdapter", "Identification");
     tools_map["OpenPepXL"] = Internal::ToolDescription("OpenPepXL", "Identification");
     tools_map["OpenPepXLLF"] = Internal::ToolDescription("OpenPepXLLF", "Identification");
     tools_map["OpenSwathAnalyzer"] = Internal::ToolDescription("OpenSwathAnalyzer", "Targeted Experiments");
