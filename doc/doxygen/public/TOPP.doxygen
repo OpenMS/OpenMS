@@ -137,7 +137,6 @@
   - @subpage TOPP_MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
   - @subpage TOPP_MSGFPlusAdapter - Identifies MS/MS spectra using MSGFPlus (external).
   - @subpage TOPP_MyriMatchAdapter - Identifies MS/MS spectra using MyriMatch (external).
-  - @subpage TOPP_OMSSAAdapter - Identifies MS/MS spectra using OMSSA (external).
   - @subpage TOPP_PepNovoAdapter - Identifies MS/MS spectra using PepNovo (external).
   - @subpage TOPP_SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
   - @subpage UTILS_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.
