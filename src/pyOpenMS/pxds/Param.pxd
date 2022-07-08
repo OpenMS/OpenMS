@@ -14,6 +14,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
     cdef cppclass Param:
 
          # COMMENT: Helper functions for Python
+         initPluginParam(name, version) # wrap-ignore
          asDict() # wrap-ignore
          keys() # wrap-ignore
          items() # wrap-ignore
@@ -24,7 +25,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          __setitem__(bytes key, value) # wrap-ignore
 
          Param() nogil except +
-         Param(Param) nogil except +
+         Param(Param &) nogil except +
          bool operator==(Param) nogil except +
 
          void setValue(libcpp_utf8_string key, ParamValue val, libcpp_utf8_string desc, libcpp_vector[libcpp_utf8_string] tags) nogil except +
@@ -45,6 +46,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          libcpp_utf8_output_string getDescription(libcpp_utf8_string key) nogil except +
          void setSectionDescription(libcpp_utf8_string key, libcpp_utf8_string desc) nogil except +
          libcpp_utf8_output_string getSectionDescription(libcpp_utf8_string key) nogil except +
+
+         void addSection(libcpp_utf8_string key, libcpp_utf8_string desc) nogil except +
 
          Size size() nogil except +
          bool empty() nogil except +

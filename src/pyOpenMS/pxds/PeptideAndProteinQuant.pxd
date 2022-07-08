@@ -17,17 +17,42 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
         # wrap-inherits:
         #    DefaultParamHandler
 
-        PeptideAndProteinQuant() nogil except +
-        PeptideAndProteinQuant(PeptideAndProteinQuant) nogil except + #wrap-ignore
+        PeptideAndProteinQuant() nogil except + # wrap-doc:Helper class for peptide and protein quantification based on feature data annotated with IDs
+        PeptideAndProteinQuant(PeptideAndProteinQuant &) nogil except + # comiler
 
         void readQuantData(FeatureMap & map_in, ExperimentalDesign & ed) nogil except +
+          # wrap-doc:
+                #   Read quantitative data from a feature map
+                #   -----
+                #   Parameters should be set before using this method, as setting parameters will clear all results
+
         void readQuantData(ConsensusMap & map_in, ExperimentalDesign & ed) nogil except +
+          # wrap-doc:
+                #   Read quantitative data from a consensus map
+                #   -----
+                #   Parameters should be set before using this method, as setting parameters will clear all results
+
         void readQuantData(libcpp_vector[ProteinIdentification] & proteins,
                            libcpp_vector[PeptideIdentification] & peptides,
                            ExperimentalDesign & ed) nogil except +
+          # wrap-doc:
+                #   Read quantitative data from identification results (for quantification via spectral counting)
+                #   -----
+                #   Parameters should be set before using this method, as setting parameters will clear all results
 
         void quantifyPeptides(libcpp_vector[PeptideIdentification] & peptides) nogil except +
+          # wrap-doc:
+                #   Compute peptide abundances
+                #   -----
+                #   Based on quantitative data for individual charge states (in member `pep_quant_`), overall abundances for peptides are computed (and stored again in `pep_quant_`)
+                #   Quantitative data must first be read via readQuantData()
+                #   Optional (peptide-level) protein inference information (e.g. from Fido or ProteinProphet) can be supplied via `peptides`. In that case, peptide-to-protein associations - the basis for protein-level quantification - will also be read from `peptides`!
+
         void quantifyProteins(ProteinIdentification & proteins) nogil except +
+          # wrap-doc:
+                #   Compute protein abundances
+                #   -----
+                #   Peptide abundances must be computed first with quantifyPeptides(). Optional protein inference information (e.g. from Fido or ProteinProphet) can be supplied via `proteins`
 
         PeptideAndProteinQuant_Statistics getStatistics() nogil except +
 
@@ -58,12 +83,12 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
 
       # constructor
       PeptideAndProteinQuant_Statistics()  nogil except +
-      PeptideAndProteinQuant_Statistics(PeptideAndProteinQuant_Statistics) # wrap-ignore
+      PeptideAndProteinQuant_Statistics(PeptideAndProteinQuant_Statistics &) # compiler
 
     cdef cppclass PeptideAndProteinQuant_PeptideData "OpenMS::PeptideAndProteinQuant::PeptideData":
 
       # libcpp_map[Int, SampleAbundances] abundances
-      # libcpp_map[unsigned long, double] total_abundances
+      # libcpp_map[UInt64, double] total_abundances
 
       # protein accessions for this peptide
       libcpp_set[String] accessions
@@ -73,7 +98,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
 
       # constructor
       PeptideAndProteinQuant_PeptideData()  nogil except +
-      PeptideAndProteinQuant_PeptideData(PeptideAndProteinQuant_PeptideData) # wrap-ignore
+      PeptideAndProteinQuant_PeptideData(PeptideAndProteinQuant_PeptideData &) # compiler
 
     # Quantitative and associated data for a protein
     cdef cppclass PeptideAndProteinQuant_ProteinData "OpenMS::PeptideAndProteinQuant::ProteinData":
@@ -81,12 +106,12 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
       # libcpp_map[String, SampleAbundances] abundances
  
       # compile issue 
-      # libcpp_map[unsigned long, double] total_abundances
+      # libcpp_map[UInt64, double] total_abundances
 
       # total number of identifications (of peptides mapping to this protein)
       Size psm_count
 
       # constructor
       PeptideAndProteinQuant_ProteinData()  nogil except +
-      PeptideAndProteinQuant_ProteinData(PeptideAndProteinQuant_ProteinData) # wrap-ignore
+      PeptideAndProteinQuant_ProteinData(PeptideAndProteinQuant_ProteinData &) # compiler
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,10 +63,22 @@ namespace OpenMS
   bool ProteinIdentification::ProteinGroup::operator<(const ProteinGroup& rhs) const
   {
     // comparison of probabilities is intentionally "the wrong way around":
-    if (probability > rhs.probability) return true;
-    if (probability < rhs.probability) return false;
-    if (accessions.size() < rhs.accessions.size()) return true;
-    if (accessions.size() > rhs.accessions.size()) return false;
+    if (probability > rhs.probability)
+    {
+      return true;
+    }
+    if (probability < rhs.probability)
+    {
+      return false;
+    }
+    if (accessions.size() < rhs.accessions.size())
+    {
+      return true;
+    }
+    if (accessions.size() > rhs.accessions.size())
+    {
+      return false;
+    }
     return accessions < rhs.accessions;
   }
 
@@ -310,7 +322,9 @@ namespace OpenMS
     for (; pos != protein_hits_.end(); ++pos)
     {
       if (pos->getAccession() == accession)
+      {
         break;
+      }
     }
     return pos;
   }
@@ -492,7 +506,7 @@ namespace OpenMS
     String se = getSearchEngine();
     return
         se == "Fido" || // FidoAdapter overwrites when it merges several runs
-        se == "BayesianProteinInference" || // for backwards compat
+        se == "BayesianProteinInference" || // for backwards compatibility
         se == "Epifany" ||
         (se == "Percolator" && !indistinguishable_proteins_.empty()) || // be careful, Percolator could be run with or without protein inference
         se == "ProteinInference";
@@ -598,8 +612,9 @@ namespace OpenMS
   void ProteinIdentification::assignRanks()
   {
     if (protein_hits_.empty())
+    {
       return;
-
+    }
     UInt rank = 1;
     sort();
     vector<ProteinHit>::iterator lit = protein_hits_.begin();
@@ -700,8 +715,10 @@ namespace OpenMS
         const std::vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
 
         // skip unmodified peptides
-        if (aas.isModified() == false) { continue; }
-
+        if (aas.isModified() == false)
+        { 
+          continue;
+        }
         if (aas.isModified())
         {
           if (aas.hasNTerminalModification())

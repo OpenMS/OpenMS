@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.9.0 FATAL_ERROR)
 
 # Handle default build type
 get_property(multiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -40,7 +40,7 @@ if(NOT multiConfig AND NOT DEFINED CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
 endif()
 
-project("OpenMS_host")
+project("OpenMS_host" LANGUAGES C CXX)
 
 # required for cmake < 3.13 if ccache is used
 set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
@@ -96,7 +96,7 @@ endif()
 if(NOT CMAKE_MODULE_PATH)
 	set(CMAKE_MODULE_PATH)
 endif()
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
 ## CMake looks for the NSIS script in the module path.
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 
@@ -104,8 +104,8 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 # OpenMS Version Information
 #------------------------------------------------------------------------------
 
-set(OPENMS_PACKAGE_VERSION_MAJOR "2")
-set(OPENMS_PACKAGE_VERSION_MINOR "6")
+set(OPENMS_PACKAGE_VERSION_MAJOR "3")
+set(OPENMS_PACKAGE_VERSION_MINOR "0")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 set(OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
 
@@ -175,6 +175,11 @@ if (MINGW OR MSYS)
 endif()
 
 #------------------------------------------------------------------------------
+# Setup CMAKE_PREFIX_PATH for finding external libs (contrib or system)
+#------------------------------------------------------------------------------
+include(cmake/setup_lib_find_paths.cmake)
+
+#------------------------------------------------------------------------------
 # All the multi-threading stuff (OpenMP)
 #------------------------------------------------------------------------------
 include(cmake/multithreading.cmake)
@@ -227,6 +232,29 @@ endif()
 option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite slow)." OFF)
 if(ADDRESS_SANITIZER)
   include(cmake/AddressSanitizer.cmake)
+endif()
+
+#------------------------------------------------------------------------------
+# Add options for link time optimizations (LTO) aka interprocedural optimization
+#------------------------------------------------------------------------------
+option(ENABLE_IPO
+	"Enable interprocedural optimizations (LTO)" OFF)
+if(ENABLE_IPO)
+	include(CheckIPOSupported)
+	check_ipo_supported(RESULT result OUTPUT output)
+	if(result)
+		set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+	else()
+		message(SEND_ERROR "IPO/LTO is not supported: ${output}")
+	endif()
+endif()
+
+#------------------------------------------------------------------------------
+# Enable clang compile time profiling
+#------------------------------------------------------------------------------
+option(CLANG_TIME_TRACE "[Clang 9+ only] Enable clang compile time profiling." OFF)
+if(CLANG_TIME_TRACE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftime-trace")
 endif()
 
 #------------------------------------------------------------------------------
@@ -324,6 +352,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/lib")
 set(OPENMS_BINARY_DIR "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
+set(OPENMS_SHARE_DIR "${PROJECT_SOURCE_DIR}/share/OpenMS")
 set(OPENMS_WIN32_DLL_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 #------------------------------------------------------------------------------
@@ -400,10 +429,11 @@ if (MSVC)
 	endif()
 endif()
 
-#------------------------------------------------------------------------------
-# setup path for external libs (contrib or system)
-include(${OPENMS_HOST_DIRECTORY}/cmake/setup_lib_find_paths.cmake)
 
+# Find core dependencies here, so all projects have access to the same variables and
+# do not have to re-search for the core components
+
+include(cmake/cmake_findExternalLibs.cmake)
 
 #------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)

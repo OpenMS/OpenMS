@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,9 +35,18 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
-#include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
+
+// forward decl
+namespace Eigen
+{
+    template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+    class Matrix;
+    using MatrixXd = Matrix<double, -1, -1, 0, -1, -1>;
+    using VectorXd = Matrix<double, -1, 1, 0, -1, 1>;
+}
+typedef boost::shared_ptr< const Eigen::MatrixXd > EigenMatrixXdPtr;
 
 namespace OpenMS
 {

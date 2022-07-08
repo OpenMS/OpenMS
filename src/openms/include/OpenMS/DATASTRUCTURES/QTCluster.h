@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,7 @@
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/config.h>
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 #include <map> // for multimap<>
 #include <vector> // for vector<>
@@ -50,18 +50,6 @@
 namespace OpenMS
 {
   class GridFeature;
-
-  // Boost switch since with 1.47 several classes got moved into a new
-  // boost::unordered namespace (specifically unordered_map).
-  namespace OpenMSBoost
-  {
-#if OPENMS_BOOST_VERSION_MINOR > 47
-    using namespace boost::unordered;
-#else
-    using namespace boost;
-#endif
-  }
-
 
 /**
      @brief A representation of a QT cluster used for feature grouping.
@@ -122,7 +110,7 @@ public:
 
     // need to store more than one
     typedef std::multimap<double, const GridFeature*> NeighborList;
-    typedef OpenMSBoost::unordered_map<Size, NeighborList> NeighborMapMulti;
+    typedef std::unordered_map<Size, NeighborList> NeighborMapMulti;
 
     struct Neighbor
     {
@@ -130,7 +118,7 @@ public:
       const GridFeature* feature;
     };
 
-    typedef OpenMSBoost::unordered_map<Size, Neighbor> NeighborMap;
+    typedef std::unordered_map<Size, Neighbor> NeighborMap;
 
     struct Element
     {
@@ -263,7 +251,7 @@ public:
     Size size() const;
 
     /// Compare by quality
-    bool operator<(const QTCluster& cluster);
+    bool operator<(const QTCluster& cluster) const;
 
     /**
      * @brief Adds a new element/neighbor to the cluster
@@ -379,6 +367,4 @@ public:
       bool finalized_;
   };
 
-  // needed for the heap
-  bool operator<(const QTCluster& q1, const QTCluster& q2);
 } // namespace OpenMS

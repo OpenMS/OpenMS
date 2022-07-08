@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -134,7 +134,7 @@ protected:
 
     MzMLFile mz_file;
     mz_file.setLogType(log_type_);
-    std::vector<Int> ms_level(1,2);
+    std::vector<Int> ms_level = {2};
     mz_file.getOptions().setMSLevels(ms_level);
 
     PeakMap ms_peakmap;
@@ -142,7 +142,7 @@ protected:
 
     if (ms_peakmap.empty())
     {
-      OPENMS_LOG_WARN << "The input file does not contain any spectra.";
+      OPENMS_LOG_WARN << "The input file does not contain any MS2/fragment spectra.";
       return INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -153,8 +153,8 @@ protected:
     // get parameters
     //-------------------------------------------------------------
 
-    Param ams_param = getParam_().copy("algorithm:", true);
-    writeDebug_("Parameters passed to MetaboliteSpectralMatcher", ams_param, 3);
+    Param msm_param = getParam_().copy("algorithm:", true);
+    writeDebug_("Parameters passed to MetaboliteSpectralMatcher", msm_param, 3);
 
     //-------------------------------------------------------------
     // load database
@@ -172,9 +172,9 @@ protected:
     //-------------------------------------------------------------
     // run spectral library search
     //-------------------------------------------------------------
-    MetaboliteSpectralMatching ams;
-    ams.setParameters(ams_param);
-    ams.run(ms_peakmap, spec_db, mztab_output);
+    MetaboliteSpectralMatching msm;
+    msm.setParameters(msm_param);
+    msm.run(ms_peakmap, spec_db, mztab_output);
 
     //-------------------------------------------------------------
     // store results

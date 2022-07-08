@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,10 +66,10 @@ namespace OpenMS
     defaults_.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
     defaults_.setValidStrings("add_c_ions", {"true","false"});
 
-    defaults_.setValue("add_d_ions", "false", "Add peaks of d-ions to the spectrum");
+    defaults_.setValue("add_d_ions", "false", "Add peaks of d-ions to the spectrum"); // only for nucleotide sequences
     defaults_.setValidStrings("add_d_ions", {"true","false"});
 
-    defaults_.setValue("add_w_ions", "false", "Add peaks of w-ions to the spectrum");
+    defaults_.setValue("add_w_ions", "false", "Add peaks of w-ions to the spectrum"); // only for nucleotide sequences
     defaults_.setValidStrings("add_w_ions", {"true","false"});
 
     defaults_.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
@@ -81,7 +81,7 @@ namespace OpenMS
     defaults_.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
     defaults_.setValidStrings("add_z_ions", {"true","false"});
 
-    defaults_.setValue("add_a-B_ions", "false", "Add peaks of a-B-ions to the spectrum (nucleotide sequences only)");
+    defaults_.setValue("add_a-B_ions", "false", "Add peaks of a-B-ions to the spectrum"); // only for nucleotide sequences
     defaults_.setValidStrings("add_a-B_ions", {"true","false"});
 
     // intensity options of the ions
@@ -210,8 +210,10 @@ namespace OpenMS
     static const double z_ion_offset = a_ion_offset;
 
     MSSpectrum spectrum;
-    if (oligo.empty()) return spectrum;
-
+    if (oligo.empty())
+    {
+      return spectrum;
+    }
     double three_prime_mass = 0.0, five_prime_mass = 0.0;
     if (oligo.getThreePrimeMod() != nullptr)
     {
@@ -374,7 +376,7 @@ namespace OpenMS
     }
     else if (max_charge * min_charge < 0)
     {
-      // Signs don't match - we need to quit and thow error here to avoid messing up for loops below
+      // Signs don't match - we need to quit and throw error here to avoid messing up for loops below
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "min. and max. charge must both be either positive or negative");
     }
     if (abs(max_charge) < abs(min_charge))

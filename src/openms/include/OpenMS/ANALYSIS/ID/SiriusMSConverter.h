@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -135,7 +135,7 @@ public:
     @param no_masstrace_info_isotope_pattern: bool if isotope pattern should be extracted (if not in feature)
     @param isotope_pattern_iterations: number of iterations (trying to find a C13 pattern)
     @param count_skipped_spectra: count number of skipped spectra
-    @param count_assume_mono: count number of features where mono charge was assumend
+    @param count_assume_mono: count number of features where mono charge was assumed
     @param count_no_ms1: count number of compounds without a valid ms1 spectrum
     @param v_cmpinfo: vector of CompoundInfo
     */

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,14 +43,16 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
+
 #include <cmath>
-#include <cmath>
-#include <boost/math/special_functions/bessel.hpp>
 #include <vector>
 #include <map>
 #include <sstream>
 #include <fstream>
 #include <iomanip>
+
+// TODO: move this to cpp and use STL once it is available in clang on Mac
+#include <boost/math/special_functions/bessel.hpp>
 
 // This code has quite a few strange things in it triggering warnings which
 // clutters the rest of the diagnostics
@@ -288,7 +290,7 @@ protected:
 
     /** @brief Computes a linear (intensity) interpolation.
         * @param mz_a The m/z value of the point left to the query.
-        * @param mz_a The intensity value of the point left to the query.
+        * @param intens_a The intensity value of the point left to the query.
         * @param mz_pos The query point.
         * @param mz_b The m/z value of the point right to the query.
         * @param intens_b The intensity value of the point left to the query. */
@@ -698,7 +700,7 @@ protected:
   {
     Size scan_size(candidates.size());
     typename ConstRefVector<MSSpectrum >::iterator iter;
-    typename MSSpectrum::const_iterator iter_start, iter_end, iter_p, seed_iter, iter2;
+    typename MSSpectrum::const_iterator iter_start, iter_end, seed_iter, iter2;
     double mz_cutoff, seed_mz, c_av_intens = 0, c_score = 0, c_sd_intens = 0, threshold = 0, help_mz, share, share_pos, bwd, fwd;
     UInt MZ_start, MZ_end;
 
@@ -1875,7 +1877,7 @@ protected:
       if (intenstype_ == "corrected")
       {
         double lambda = IsotopeWavelet::getLambdaL(av_mz * c_charge);
-        av_intens /= exp(-2 * lambda) * boost::math::cyl_bessel_i(0, 2 * lambda);
+        av_intens /= exp(-2 * lambda) * boost::math::cyl_bessel_i(0.0, 2.0 * lambda);
       }
       if (intenstype_ == "ref")
       {

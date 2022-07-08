@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -328,6 +328,7 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequence
   no.push_back(3);
   no.push_back(5);
   no.push_back(8);
+  no.push_back(9);
 
   std::vector<std::vector<size_t> > mods_combs_o = mrma.nchoosekcombinations_test(no, 1);
 
@@ -353,6 +354,16 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequence
   TEST_EQUAL(sequences[7].toString(), String("PEPTD(Oxidation)IEK(Phospho)"));
   TEST_EQUAL(sequences[8].toString(), String("PEPT(Phospho)DIEK(Oxidation)"));
   TEST_EQUAL(sequences[9].toString(), String("PEPTD(Phospho)IEK(Oxidation)"));
+
+  std::vector<std::string> sequence_list {};
+  for (std::vector<OpenMS::AASequence>::const_iterator sq_it = sequences.begin(); sq_it != sequences.end(); ++sq_it)
+  {
+	  OpenMS::AASequence temp_sequence = *sq_it;
+	  sequence_list.push_back(temp_sequence.toString());
+  }
+
+  bool check_terminal_mod_present = (std::find(sequence_list.begin(), sequence_list.end(), "PEPT(Phospho)DIEK.(Oxidation)") != sequence_list.end());
+  TEST_EQUAL(check_terminal_mod_present, false)
 }
 
 END_SECTION

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,7 +49,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
       IdXMLFile idf;
       idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
       BayesianProteinInferenceAlgorithm bpia;
-      bpia.inferPosteriorProbabilities(prots,peps);
+      bpia.inferPosteriorProbabilities(prots,peps,false);
     }
     END_SECTION
 
@@ -65,7 +65,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
           Param p = bpia.getParameters();
           p.setValue("update_PSM_probabilities", "false");
           bpia.setParameters(p);
-          bpia.inferPosteriorProbabilities(prots,peps);
+          bpia.inferPosteriorProbabilities(prots,peps,false);
           TEST_EQUAL(peps.size(), 9)
           TEST_EQUAL(peps[0].getHits()[0].getScore(), 0.6)
           TEST_REAL_SIMILAR(prots[0].getHits()[0].getScore(), 0.624641)
@@ -86,7 +86,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
           p.setValue("model_parameters:pep_spurious_emission", 0.1);
           p.setValue("model_parameters:pep_prior", 0.3);
           bpia.setParameters(p);
-          bpia.inferPosteriorProbabilities(prots,peps);
+          bpia.inferPosteriorProbabilities(prots,peps,false);
           TEST_EQUAL(peps.size(), 9)
           TEST_REAL_SIMILAR(peps[0].getHits()[0].getScore(), 0.827132)
           TEST_REAL_SIMILAR(prots[0].getHits()[0].getScore(), 0.755653)
@@ -110,7 +110,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
           //TODO setParams needs to update the filter function or we need to make a member.
           //p.setValue("model_parameters:regularize","true");
           bpia.setParameters(p);
-          bpia.inferPosteriorProbabilities(prots,peps);
+          bpia.inferPosteriorProbabilities(prots,peps,false);
           TEST_EQUAL(peps.size(), 8)
           TEST_REAL_SIMILAR(peps[0].getHits()[0].getScore(), 0.77821544)
           TEST_REAL_SIMILAR(prots[0].getHits()[0].getScore(), 0.787325)
@@ -133,7 +133,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
           //p.setValue("loopy_belief_propagation:p_norm_inference", -1.)
           p.setValue("model_parameters:regularize","true");
           bpia.setParameters(p);
-          bpia.inferPosteriorProbabilities(prots,peps);
+          bpia.inferPosteriorProbabilities(prots,peps,false);
           TEST_EQUAL(peps.size(), 9)
           TEST_REAL_SIMILAR(peps[0].getHits()[0].getScore(), 0.779291)
           TEST_REAL_SIMILAR(prots[0].getHits()[0].getScore(), 0.684165)
@@ -156,7 +156,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
           p.setValue("loopy_belief_propagation:p_norm_inference", -1.);
           p.setValue("model_parameters:regularize","true");
           bpia.setParameters(p);
-          bpia.inferPosteriorProbabilities(prots,peps);
+          bpia.inferPosteriorProbabilities(prots,peps,false);
           TEST_EQUAL(peps.size(), 9)
           TEST_REAL_SIMILAR(peps[0].getHits()[0].getScore(), 0.83848989)
           TEST_REAL_SIMILAR(prots[0].getHits()[0].getScore(),   0.784666)
@@ -179,7 +179,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
           p.setValue("loopy_belief_propagation:p_norm_inference", -1.);
           //p.setValue("model_parameters:regularize","true");
           bpia.setParameters(p);
-          bpia.inferPosteriorProbabilities(prots,peps);
+          bpia.inferPosteriorProbabilities(prots,peps,false);
           TEST_EQUAL(peps.size(), 9)
           TEST_REAL_SIMILAR(peps[0].getHits()[0].getScore(), 0.9117111)
           TEST_REAL_SIMILAR(prots[0].getHits()[0].getScore(), 0.879245)
@@ -203,7 +203,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
           p.setValue("loopy_belief_propagation:p_norm_inference", 1.);
           //p.setValue("model_parameters:regularize","true");
           bpia.setParameters(p);
-          bpia.inferPosteriorProbabilities(prots,peps);
+          bpia.inferPosteriorProbabilities(prots,peps,false);
           TEST_EQUAL(peps.size(), 3)
           TEST_REAL_SIMILAR(peps[0].getHits()[0].getScore(), 0.843211)
           TEST_REAL_SIMILAR(peps[1].getHits()[0].getScore(), 0.944383)
@@ -233,7 +233,7 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
           p.setValue("loopy_belief_propagation:p_norm_inference", 1.);
           //p.setValue("model_parameters:regularize","true");
           bpia.setParameters(p);
-          bpia.inferPosteriorProbabilities(prots,peps);
+          bpia.inferPosteriorProbabilities(prots,peps,false);
           TEST_EQUAL(peps.size(), 3)
           TEST_REAL_SIMILAR(peps[0].getHits()[0].getScore(), 0.934571)
           TEST_REAL_SIMILAR(peps[1].getHits()[0].getScore(), 0.944383)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,6 +49,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/StreamHandler.h>
 
+#include <sstream>
+#include <iostream>
+
 #define BUFFER_LENGTH 32768
 
 using namespace std;
@@ -81,8 +84,10 @@ namespace OpenMS
       syncLF_();
       {
         clearCache();
-        if (incomplete_line_.size() > 0)
+        if (!incomplete_line_.empty())
+        {
           distribute_(incomplete_line_);
+        }
         delete[] pbuf_;
         pbuf_ = nullptr;
       }
@@ -233,7 +238,7 @@ namespace OpenMS
 
     int LogStreamBuf::syncLF_()
     {
-      // sync our streambuffer...
+      // sync our stream buffer...
       if (pptr() != pbase())
       {
         // check if we have attached streams, so we don't waste time to
@@ -293,8 +298,9 @@ namespace OpenMS
 
                 // send outline (and extra_message) to attached streams
                 if (!extra_message.empty())
+                {
                   distribute_(extra_message);
-
+                }
                 distribute_(outstring);
               }
 
@@ -413,8 +419,9 @@ namespace OpenMS
     {
 
       if (registered_at_ == nullptr)
+      {
         return;
-
+      }
       registered_at_->remove(stream_);
       registered_at_ = nullptr;
     }
@@ -442,7 +449,7 @@ namespace OpenMS
     {
       if (delete_buffer_)
       {
-        // delete the streambuffer
+        // delete the stream buffer
         delete rdbuf();
         // set it to 0
         std::ios(nullptr);
@@ -479,8 +486,9 @@ namespace OpenMS
     void LogStream::insertNotification(std::ostream & s, LogStreamNotifier & target)
     {
       if (!bound_())
+      {
         return;
-
+      }
       insert(s);
 
       StreamIterator it = findStream_(s);
@@ -504,16 +512,18 @@ namespace OpenMS
     bool LogStream::hasStream_(std::ostream & stream)
     {
       if (!bound_())
+      {
         return false;
-
+      }
       return findStream_(stream) != rdbuf()->stream_list_.end();
     }
 
     void LogStream::setPrefix(const std::ostream & s, const string & prefix)
     {
       if (!bound_())
+      {
         return;
-
+      }
       StreamIterator it = findStream_(s);
       if (it != rdbuf()->stream_list_.end())
       {
@@ -524,8 +534,9 @@ namespace OpenMS
     void LogStream::setPrefix(const string & prefix)
     {
       if (!bound_())
+      {
         return;
-
+      }
       for (StreamIterator it = rdbuf()->stream_list_.begin(); it != rdbuf()->stream_list_.end(); ++it)
       {
         (*it).prefix = prefix;

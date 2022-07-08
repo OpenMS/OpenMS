@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,50 +36,45 @@
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h>
 #include <ostream>
 
-namespace OpenMS
+namespace OpenMS::ims
 {
 
-  namespace ims
+  /**
+    @note Value for electron mass is taken from
+    @link www.mcelwee.net/html/table_of_physical_constants.html
+  */
+  const IMSElement::mass_type IMSElement::ELECTRON_MASS_IN_U = 0.00054858;
+
+  IMSElement & IMSElement::operator=(const IMSElement & element)
   {
-
-    /**
-      @note Value for electron mass is taken from
-      @link www.mcelwee.net/html/table_of_physical_constants.html
-    */
-    const IMSElement::mass_type IMSElement::ELECTRON_MASS_IN_U = 0.00054858;
-
-    IMSElement & IMSElement::operator=(const IMSElement & element)
+    // if one doesn't assign object to itself,
+    // assign all object elements to the elements of the given object
+    if (this != &element)
     {
-      // if one doesn't assign object to itself,
-      // assign all object elements to the elements of the given object
-      if (this != &element)
-      {
-        name_ = element.name_;
-        sequence_ = element.sequence_;
-        isotopes_ = element.isotopes_;
-      }
-      return *this;
+      name_ = element.name_;
+      sequence_ = element.sequence_;
+      isotopes_ = element.isotopes_;
     }
+    return *this;
+  }
 
-    bool IMSElement::operator==(const IMSElement & element) const
-    {
-      return this == &element ||
-             (name_ == element.name_ &&
-              sequence_ == element.sequence_ &&
-              isotopes_ == element.isotopes_);
-    }
+  bool IMSElement::operator==(const IMSElement & element) const
+  {
+    return this == &element ||
+           (name_ == element.name_ &&
+            sequence_ == element.sequence_ &&
+            isotopes_ == element.isotopes_);
+  }
 
-    bool IMSElement::operator!=(const IMSElement & element) const
-    {
-      return !this->operator==(element);
-    }
+  bool IMSElement::operator!=(const IMSElement & element) const
+  {
+    return !this->operator==(element);
+  }
 
-    std::ostream & operator<<(std::ostream & os, const IMSElement & element)
-    {
-      os << "name:\t" << element.getName() << "\nsequence:\t" << element.getSequence()
-      << "\nisotope distribution:\n" << element.getIsotopeDistribution() << '\n';
-      return os;
-    }
-
-  } // namespace ims
-} // namespace OpenMS
+  std::ostream & operator<<(std::ostream & os, const IMSElement & element)
+  {
+    os << "name:\t" << element.getName() << "\nsequence:\t" << element.getSequence()
+    << "\nisotope distribution:\n" << element.getIsotopeDistribution() << '\n';
+    return os;
+  }
+} // namespace OpenMS  // namespace ims

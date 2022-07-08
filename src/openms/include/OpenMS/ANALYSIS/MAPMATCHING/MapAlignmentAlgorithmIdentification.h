@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <cmath> // for "abs"
 #include <limits> // for "max"
@@ -84,10 +85,14 @@ public:
     {
       reference_.clear();
       if (data.empty()) return; // empty input resets the reference
-      use_feature_rt_ = param_.getValue("use_feature_rt").toBool();
       SeqToList rt_data;
+      // set these here because "checkParameters_" may not have been called yet:
+      use_feature_rt_ = param_.getValue("use_feature_rt").toBool();
+      score_cutoff_ = param_.getValue("score_cutoff").toBool();
+      score_type_ = (std::string)param_.getValue("score_type");
       bool sorted = getRetentionTimes_(data, rt_data);
       computeMedians_(rt_data, reference_, sorted);
+
       if (reference_.empty())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not extract retention time information from the reference file");
@@ -116,11 +121,11 @@ public:
       bool use_internal_reference = (reference_index >= 0);
       if (use_internal_reference)
       {
-        if (reference_index >= static_cast<Int>(data.size()))
+        if (reference_index >= Int(data.size()))
         {
           throw Exception::IndexOverflow(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, reference_index,
-                                         data.size());
+                                         OPENMS_PRETTY_FUNCTION,
+                                         reference_index, data.size());
         }
         setReference(data[reference_index]);
       }
@@ -162,8 +167,11 @@ protected:
     /// Minimum number of runs a peptide must occur in
     Size min_run_occur_;
 
-    /// Use feature RT instead of RT from best peptide ID in the feature.
+    /// Use feature RT instead of RT from best peptide ID in the feature?
     bool use_feature_rt_;
+
+    /// Consider differently adducted IDs as different?
+    bool use_adducts_;
 
     /// Minimum score to reach for a peptide to be considered
     double min_score_;
@@ -171,8 +179,11 @@ protected:
     /// Actually use the above defined score_cutoff? Needed since it is hard to define a non-cutting score for a user.
     bool score_cutoff_;
 
+    /// Score type to use for filtering
+    String score_type_;
+
     /// Score better?
-    bool (*better_) (double,double) = [](double, double) {return true;};
+    bool (*better_) (double, double) = [](double, double) {return true;};
 
     /**
       @brief Compute the median retention time for each peptide sequence
@@ -187,7 +198,7 @@ protected:
                          bool sorted = false);
 
     /**
-      @brief Collect retention time data ("RT" MetaInfo) from peptide IDs
+      @brief Collect retention time data from peptide IDs
 
       @param peptides Input peptide IDs (lists of peptide hits will be sorted)
       @param rt_data Lists of RT values for diff. peptide sequences (output)
@@ -198,7 +209,18 @@ protected:
                             SeqToList& rt_data);
 
     /**
-      @brief Collect retention time data ("RT" MetaInfo) from peptide IDs annotated to spectra
+      @brief Collect retention time data from spectrum matches
+
+      @param id_data Input identification data
+      @param rt_data Lists of RT values for diff. spectrum matches (output)
+
+      @return Are the RTs already sorted? (Here: false)
+    */
+    // "id_data" can't be "const" here or template resolution will fail
+    bool getRetentionTimes_(IdentificationData& id_data, SeqToList& rt_data);
+
+    /**
+      @brief Collect retention time data from peptide IDs annotated to spectra
 
       @param experiment Input map for RT data
       @param rt_data Lists of RT values for diff. peptide sequences (output)
@@ -208,7 +230,7 @@ protected:
     bool getRetentionTimes_(PeakMap& experiment, SeqToList& rt_data);
 
     /**
-      @brief Collect retention time data ("RT" MetaInfo) from peptide IDs contained in feature maps or consensus maps
+      @brief Collect retention time data from peptide IDs contained in feature maps or consensus maps
 
       The following global flags (mutually exclusive) influence the processing:\n
       Depending on @p use_unassigned_peptides, unassigned peptide IDs are used in addition to IDs annotated to features.\n
@@ -321,10 +343,16 @@ protected:
     /**
       @brief Get reference retention times
 
-      If a reference file is supplied via the @p reference parameter, extract retention time
-      information and store it in #reference_.
+      If a reference file is supplied via the @p reference parameter, extract retention time information and store it in #reference_.
     */
     void getReference_();
+
+    /**
+      @brief Helper function to find/define the score type for processing IdentificationData
+
+      @return Reference to the score type denoted by algorithm parameter "score_type"
+     */
+    IdentificationData::ScoreTypeRef handleIdDataScoreType_(const IdentificationData& id_data);
 
 private:
 

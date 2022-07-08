@@ -10,17 +10,17 @@ cdef extern from "<OpenMS/METADATA/AcquisitionInfo.h>" namespace "OpenMS":
         # wrap-inherits:
         #    MetaInfoInterface
         
-        AcquisitionInfo()    nogil except +
-        AcquisitionInfo(AcquisitionInfo)    nogil except +
+        AcquisitionInfo() nogil except +
+        AcquisitionInfo(AcquisitionInfo &) nogil except +
 
         bool operator==(AcquisitionInfo) nogil except +
         bool operator!=(AcquisitionInfo) nogil except +
 
-        String getMethodOfCombination() nogil except +
-        void setMethodOfCombination(String method) nogil except +
+        String getMethodOfCombination() nogil except + # wrap-doc:Returns the method of combination
+        void setMethodOfCombination(String method) nogil except + # wrap-doc:Sets the method of combination
 
         Size size() nogil except + #wrap-doc:Number a Acquisition objects
-        Acquisition& operator[](int) nogil except + # wrap-upper-limit:size()
+        Acquisition& operator[](size_t) nogil except + # wrap-upper-limit:size()
         void push_back(Acquisition)  nogil except + #wrap-doc:Append a Acquisition object
         void resize(size_t n) nogil except +
     

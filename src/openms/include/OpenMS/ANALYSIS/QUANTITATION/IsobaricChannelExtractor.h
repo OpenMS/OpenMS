@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -130,7 +130,7 @@ private:
 
         @param rt The retention time to check.
       */
-      bool followUpValid(const double rt);
+      bool followUpValid(const double rt) const;
     };
 
     /// The used quantitation method (itraq4plex, tmt6plex,..).

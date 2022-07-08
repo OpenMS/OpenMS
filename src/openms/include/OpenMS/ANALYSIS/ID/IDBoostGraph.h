@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 //#define INFERENCE_BENCH
 
 #include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h> //included in BPI
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
@@ -173,8 +172,8 @@ namespace OpenMS
       std::map<vertex_t, vertex_t> m;
     };
 
-    //TODO group visitors by templates
-    /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a label
+    ///@brief Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a label
+    /// e.g. for printing to dot format
     class LabelVisitor:
         public boost::static_visitor<OpenMS::String>
     {
@@ -192,12 +191,12 @@ namespace OpenMS
 
       OpenMS::String operator()(const ProteinGroup& /*protgrp*/) const
       {
-        return String("PG");
+        return "PG";
       }
 
       OpenMS::String operator()(const PeptideCluster& /*pc*/) const
       {
-        return String("PepClust");
+        return "PepClust";
       }
 
       OpenMS::String operator()(const Peptide& peptide) const
@@ -207,17 +206,17 @@ namespace OpenMS
 
       OpenMS::String operator()(const RunIndex& ri) const
       {
-        return String("rep" + String(ri));
+        return "rep" + String(ri);
       }
 
       OpenMS::String operator()(const Charge& chg) const
       {
-        return String("chg" + String(chg));
+        return "chg" + String(chg);
       }
 
     };
 
-    /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type prints the address.
+    /// @brief Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type prints the address.
     /// For debugging purposes only
     template<class CharT>
     class PrintAddressVisitor:
@@ -267,7 +266,8 @@ namespace OpenMS
       std::basic_ostream<CharT> stream_;
     };
 
-    /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type sets the posterior
+    /// @brief Visits nodes in the boost graph (either ptrs to an ID Object or some lightweight surrogates)
+    /// and depending on their type sets the posterior
     /// Don't forget to set higherScoreBetter and score names in the parent ID objects.
     class SetPosteriorVisitor:
         public boost::static_visitor<>
@@ -298,6 +298,8 @@ namespace OpenMS
 
     };
 
+    /// @brief Visits nodes in the boost graph (either ptrs to an ID Object or some lightweight surrogates)
+    /// and depending on their type gets the score (usually the posterior)
     class GetPosteriorVisitor:
         public boost::static_visitor<double>
     {
@@ -327,13 +329,44 @@ namespace OpenMS
 
     };
 
+    /// @brief Visits nodes in the boost graph (either ptrs to an ID Object or some lightweight surrogates)
+    /// and depending on their type gets the score (usually the posterior) plus if it is a decoy or a target.
+    /// If not known or not defined, returns (-1.0, false)
+    class GetScoreTgTVisitor:
+    public boost::static_visitor<std::pair<double,bool>>
+        {
+        public:
+
+          std::pair<double,bool> operator()(PeptideHit* pep) const
+          {
+            return {pep->getScore(), pep->getMetaValue("target_decoy").toString()[0] == 't'};
+          }
+
+          std::pair<double,bool> operator()(ProteinHit* prot) const
+          {
+            return {prot->getScore(), prot->getMetaValue("target_decoy").toString()[0] == 't'};
+          }
+
+          std::pair<double,bool> operator()(ProteinGroup& pg) const
+          {
+            return {pg.score, pg.tgts > 0};
+          }
+
+          // Everything else, do nothing for now
+          template <class T>
+          std::pair<double,bool> operator()(T& /*any node type*/) const
+          {
+            return {-1.0, false};
+          }
+    };
+
     /// Constructors
     IDBoostGraph(ProteinIdentification& proteins,
                 std::vector<PeptideIdentification>& idedSpectra,
                 Size use_top_psms,
                 bool use_run_info,
                 bool best_psms_annotated,
-                const boost::optional<const ExperimentalDesign>& ed = boost::optional<const ExperimentalDesign>());
+                const std::optional<const ExperimentalDesign>& ed = std::optional<const ExperimentalDesign>());
 
     IDBoostGraph(ProteinIdentification& proteins,
                 ConsensusMap& cmap,
@@ -341,7 +374,7 @@ namespace OpenMS
                 bool use_run_info,
                 bool use_unassigned_ids,
                 bool best_psms_annotated,
-                const boost::optional<const ExperimentalDesign>& ed = boost::optional<const ExperimentalDesign>());
+                const std::optional<const ExperimentalDesign>& ed = std::optional<const ExperimentalDesign>());
 
 
     //TODO think about templating to avoid wrapping to std::function
@@ -359,6 +392,7 @@ namespace OpenMS
     //TODO create a new class for an extended Graph and try to reuse as much as possible
     // use inheritance or templates
     /// (under development) As above but adds charge, replicate and sequence layer of nodes (untested)
+    /// @todo needs to be finished, updated with latest additions (i.e. check clusterIndistProteinsAndPeptides), and tested
     void clusterIndistProteinsAndPeptidesAndExtendGraph();
 
     /// Annotate indistinguishable proteins by adding the groups to the underlying
@@ -473,7 +507,7 @@ namespace OpenMS
     /* ---------------------------------------------------------------------------- */
 
     #ifdef INFERENCE_BENCH
-    /// nrnodes, nredges, nrmessages and times of last functor execution per connected component
+    /// nrNodes, nrEdges, nrMessages and times of last functor execution per connected component
     std::vector<std::tuple<vertex_t, vertex_t, unsigned long, double>> sizes_and_times_{1};
     #endif
 

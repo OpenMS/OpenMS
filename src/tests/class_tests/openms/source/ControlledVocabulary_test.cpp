@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,9 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/SYSTEM/File.h>
+
+#include <map>
 
 ///////////////////////////
 
@@ -160,15 +163,15 @@ START_SECTION(bool isChildOf(const String& child, const String& parent) const)
 END_SECTION
 
 START_SECTION((const Map<String, CVTerm>& getTerms() const))
-	Map<String, ControlledVocabulary::CVTerm> terms = cv.getTerms();
+  std::map<String, ControlledVocabulary::CVTerm> terms = cv.getTerms();
 	TEST_EQUAL(terms.size(), 6)
-	TEST_EQUAL(terms.has("OpenMS:1"), true)
-	TEST_EQUAL(terms.has("OpenMS:2"), true)
-	TEST_EQUAL(terms.has("OpenMS:3"), true)
-	TEST_EQUAL(terms.has("OpenMS:4"), true)
-	TEST_EQUAL(terms.has("OpenMS:5"), true)
-	TEST_EQUAL(terms.has("OpenMS:6"), true)
-	TEST_EQUAL(terms.has("OpenMS:7"), false)
+	TEST_EQUAL(terms.find("OpenMS:1") != terms.end(), true)
+	TEST_EQUAL(terms.find("OpenMS:2") != terms.end(), true)
+	TEST_EQUAL(terms.find("OpenMS:3") != terms.end(), true)
+	TEST_EQUAL(terms.find("OpenMS:4") != terms.end(), true)
+	TEST_EQUAL(terms.find("OpenMS:5") != terms.end(), true)
+	TEST_EQUAL(terms.find("OpenMS:6") != terms.end(), true)
+	TEST_EQUAL(terms.find("OpenMS:7") != terms.end(), false)
 
 END_SECTION
 
@@ -223,7 +226,7 @@ START_SECTION(([ControlledVocabulary::CVTerm] String ControlledVocabulary::CVTer
 {
   ControlledVocabulary cv;
   cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-  String ref = "<cvParam accession=\"MS:1001331\" cvRef=\"PSI-MS\" name=\"X\\!Tandem:hyperscore\" value=\"12.5\"/>";
+  String ref = R"(<cvParam accession="MS:1001331" cvRef="PSI-MS" name="X\!Tandem:hyperscore" value="12.5"/>)";
   TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS", String("12.5")),ref)
 }
 END_SECTION
@@ -232,7 +235,7 @@ START_SECTION(([ControlledVocabulary::CVTerm] String ControlledVocabulary::CVTer
 {
   ControlledVocabulary cv;
   cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-  String ref = "<cvParam accession=\"MS:1001331\" cvRef=\"PSI-MS\" name=\"X\\!Tandem:hyperscore\" value=\"12.5\"/>";
+  String ref = R"(<cvParam accession="MS:1001331" cvRef="PSI-MS" name="X\!Tandem:hyperscore" value="12.5"/>)";
   OpenMS::DataValue val = 12.5;
   TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS",val),ref)
 }

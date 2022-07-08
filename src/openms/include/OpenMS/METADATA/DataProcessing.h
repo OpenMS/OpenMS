@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -77,6 +77,7 @@ public:
       CONVERSION_MZML,                        ///< Conversion to mzML format
       CONVERSION_MZXML,                       ///< Conversion to mzXML format
       CONVERSION_DTA,                 ///< Conversion to DTA format
+      IDENTIFICATION,                 ///< Identification
       SIZE_OF_PROCESSINGACTION
     };
     /// Names of inlet types
@@ -85,7 +86,7 @@ public:
     /// Constructor
     DataProcessing() = default;
     /// Copy constructor
-    DataProcessing(const DataProcessing &) = default;
+    DataProcessing(const DataProcessing&) = default;
 
     // note: we implement the move constructor ourselves due to a bug in MSVS
     // 2015/2017 which cannot produce a default move constructor for classes
@@ -97,33 +98,33 @@ public:
     ~DataProcessing();
 
     /// Assignment operator
-    DataProcessing & operator=(const DataProcessing &) = default;
+    DataProcessing& operator=(const DataProcessing&) = default;
     /// Move assignment operator
-    DataProcessing& operator=(DataProcessing&&) & = default;
+    DataProcessing& operator=(DataProcessing&&)& = default;
 
     /// Equality operator
-    bool operator==(const DataProcessing & rhs) const;
+    bool operator==(const DataProcessing& rhs) const;
     /// Equality operator
-    bool operator!=(const DataProcessing & rhs) const;
+    bool operator!=(const DataProcessing& rhs) const;
 
     /// returns a const reference to the software used for processing
-    const Software & getSoftware() const;
+    const Software& getSoftware() const;
     /// returns a mutable reference to the software used for processing
-    Software & getSoftware();
+    Software& getSoftware();
     /// sets the software used for processing
-    void setSoftware(const Software & software);
+    void setSoftware(const Software& software);
 
     /// returns a const reference to the applied processing actions
-    const std::set<ProcessingAction> & getProcessingActions() const;
+    const std::set<ProcessingAction>& getProcessingActions() const;
     /// returns a mutable reference to the description of the applied processing
-    std::set<ProcessingAction> & getProcessingActions();
+    std::set<ProcessingAction>& getProcessingActions();
     /// sets the description of the applied processing
-    void setProcessingActions(const std::set<ProcessingAction> & actions);
+    void setProcessingActions(const std::set<ProcessingAction>& actions);
 
     /// returns the time of completion of the processing
-    const DateTime & getCompletionTime() const;
+    const DateTime& getCompletionTime() const;
     /// sets the time of completion taking a DateTime object
-    void setCompletionTime(const DateTime & completion_time);
+    void setCompletionTime(const DateTime& completion_time);
 
 protected:
 
@@ -136,4 +137,3 @@ protected:
   typedef boost::shared_ptr<const DataProcessing> ConstDataProcessingPtr;
 
 } // namespace OpenMS
-

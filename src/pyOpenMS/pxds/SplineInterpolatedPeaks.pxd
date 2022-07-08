@@ -8,11 +8,16 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>" na
     
     cdef cppclass SplineInterpolatedPeaks "OpenMS::SplineInterpolatedPeaks":
 
+        # private
+        SplineInterpolatedPeaks() nogil except + # wrap-ignore
+
         SplineInterpolatedPeaks(libcpp_vector[double] mz, libcpp_vector[double] intensity) nogil except +
 
         SplineInterpolatedPeaks(MSSpectrum raw_spectrum) nogil except +
 
         SplineInterpolatedPeaks(MSChromatogram raw_chromatogram) nogil except +
+
+        SplineInterpolatedPeaks(SplineInterpolatedPeaks &) nogil except + # compiler
 
         double getPosMin() nogil except +
 
@@ -27,10 +32,10 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>" na
     
     cdef cppclass SplineSpectrum_Navigator "OpenMS::SplineInterpolatedPeaks::Navigator":
         
-            SplineSpectrum_Navigator() nogil except + #wrap-ignore
-            SplineSpectrum_Navigator(SplineSpectrum_Navigator) nogil except + #wrap-ignore
+            SplineSpectrum_Navigator() nogil except +
+            SplineSpectrum_Navigator(SplineSpectrum_Navigator) nogil except + # compiler
             
-            SplineSpectrum_Navigator(libcpp_vector[SplinePackage]* packages, double posMin, double posMax, double scaling)  nogil except +
+            SplineSpectrum_Navigator(libcpp_vector[SplinePackage]* packages, double posMax, double scaling)  nogil except +
 
             double eval(double pos) nogil except +
 

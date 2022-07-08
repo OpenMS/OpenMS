@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,7 +42,7 @@
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QCompleter>
-#include <QtWidgets/QDirModel>
+#include <QFileSystemModel>
 
 
 namespace OpenMS
@@ -53,7 +53,7 @@ namespace OpenMS
   {
     ui_->setupUi(this);
     QCompleter* completer = new QCompleter(this);
-    QDirModel* dir_model = new QDirModel(completer);
+    QFileSystemModel* dir_model = new QFileSystemModel(completer);
     dir_model->setFilter(QDir::AllDirs);
     completer->setModel(dir_model);
     ui_->line_edit->setCompleter(completer);
@@ -96,8 +96,10 @@ namespace OpenMS
 
   bool OutputDirectory::dirNameValid() const
   {
-    if (!QFileInfo(getDirectory()).isDir()) return false;
-
+    if (!QFileInfo(getDirectory()).isDir())
+    {
+      return false;
+    }
     QString file_name = getDirectory();
     if (!file_name.endsWith(QDir::separator()))
     {

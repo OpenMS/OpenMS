@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -183,6 +183,13 @@ public:
       return assignments;
     }
 
+    /*!
+      @brief Update ID references (primary ID, input matches) for this feature and any subfeatures
+
+      This is needed e.g. after the IdentificationData instance containing the referenced data has been copied.
+    */
+    void updateAllIDReferences(const IdentificationData::RefTranslator& trans);
+
 protected:
 
     /// Quality measures for each dimension
@@ -203,4 +210,3 @@ protected:
   };
 
 } // namespace OpenMS
-

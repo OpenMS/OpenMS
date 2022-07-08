@@ -11,7 +11,7 @@ OpenMS
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/OpenMS/OpenMS) 
 [![Anaconda-Server Badge](https://anaconda.org/openms/pyopenms/badges/version.svg)](https://anaconda.org/openms/pyopenms)
 
-<a href="http://www.openms.org/" target="_blank">OpenMS</a> 
+[OpenMS](http://www.openms.org/)
 is an open-source software C++ library for LC-MS data management and
 analyses. It offers an infrastructure for rapid development of mass
 spectrometry related software. OpenMS is free software available under the

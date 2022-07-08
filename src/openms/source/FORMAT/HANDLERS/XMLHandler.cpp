@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,15 +39,14 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
+#include <algorithm>
 #include <set>
 
 using namespace std;
 using namespace xercesc;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
 
     // Specializations for character types, released by XMLString::release
     template<> void shared_xerces_ptr<char>::doRelease_(char* item)
@@ -195,6 +194,22 @@ namespace OpenMS
       return error_message_;
     }
 
+    SignedSize XMLHandler::cvStringToEnum_(const Size section, const String & term, const char * message, const SignedSize result_on_error)
+    {
+      OPENMS_PRECONDITION(section < cv_terms_.size(), "cvStringToEnum_: Index overflow (section number too large)");
+
+      std::vector<String>::const_iterator it = std::find(cv_terms_[section].begin(), cv_terms_[section].end(), term);
+      if (it != cv_terms_[section].end())
+      {
+        return it - cv_terms_[section].begin();
+      }
+      else
+      {
+        warning(LOAD, String("Unexpected CV entry '") + message + "'='" + term + "'");
+        return result_on_error;
+      }
+    }
+
     /// handlers which support partial loading, implement this method
     /// @throws Exception::NotImplemented
     XMLHandler::LOADDETAIL XMLHandler::getLoadDetail() const
@@ -209,16 +224,15 @@ namespace OpenMS
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    void XMLHandler::checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids)
+    void XMLHandler::checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids) const
     {
       std::set<String> s;
       for (const auto& p : prot_ids)
       {
         if (s.insert(p.getIdentifier()).second == false) // element already existed
         {
-          fatalError(ActionMode::STORE, "ProteinIdentifications are not unique, which leads to loss of unique PeptideIdentification assignment. Duplicated Protein-ID is:" +
-                                        p.getIdentifier() +
-                                        ".\nThe random chance of this error occurring is 1:2^64. Re-run the last tool and if the error occurs again, please report this as a bug");
+          fatalError(ActionMode::STORE, "ProteinIdentification run identifiers are not unique. This can lead to loss of unique PeptideIdentification assignment. Duplicated Protein-ID is:" +
+                                        p.getIdentifier());
         }
       }
     }
@@ -264,9 +278,15 @@ namespace OpenMS
         else if (d.valueType() == DataValue::STRING_LIST)
         {
           os << "stringList";
-          // concatenate manually, as operator<< inserts spaces, which are bad
-          // for reconstructing the list
-          val = "[" + writeXMLEscape(ListUtils::concatenate(d.toStringList(), ",")) + "]";
+          // List elements are separated by comma. In the rare case of comma inside individual strings
+          // we replace them by an escape symbol '\\|'. 
+          // This allows distinguishing commas as element separator and normal string character and reconstruct the list.
+          StringList sl = d.toStringList();
+          for (String& s : sl)
+          {
+            if (s.has(',')) s.substitute(",", "\\|");
+          }
+          val = "[" + writeXMLEscape(ListUtils::concatenate(sl, ",")) + "]";
         }
         else
         {
@@ -316,6 +336,4 @@ namespace OpenMS
 
     }
 
-  }   // namespace Internal
-
-} // namespace OpenMS
+} // namespace OpenMS   // namespace Internal

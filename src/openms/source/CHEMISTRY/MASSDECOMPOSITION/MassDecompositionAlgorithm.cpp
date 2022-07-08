@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 
 #include <iostream>
+#include <map>
 using namespace std;
 
 namespace OpenMS
@@ -101,7 +102,7 @@ namespace OpenMS
   {
     // todo add accessor to tolerance, it is called very often in CID mode
 
-    Map<char, double> aa_to_weight;
+    std::map<char, double> aa_to_weight;
 
     set<const Residue *> residues = ResidueDB::getInstance()->getResidues(String(param_.getValue("residue_set").toString()));
 
@@ -195,7 +196,7 @@ namespace OpenMS
 
     // init mass decomposer
     alphabet_ = new ims::IMSAlphabet();
-    for (Map<char, double>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
+    for (std::map<char, double>::const_iterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
     {
       alphabet_->push_back(String(it->first), it->second);
     }

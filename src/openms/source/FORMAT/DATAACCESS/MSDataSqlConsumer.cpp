@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -84,18 +84,28 @@ namespace OpenMS
   {
     spectra_.push_back(s);
     s.clear(false);
-    if (full_meta_) peak_meta_.addSpectrum(s);
-
-    if (spectra_.size() >= flush_after_) {flush();}
+    if (full_meta_)
+    {
+      peak_meta_.addSpectrum(s);
+    }
+    if (spectra_.size() >= flush_after_)
+    {
+      flush();
+    }
   }
 
   void MSDataSqlConsumer::consumeChromatogram(ChromatogramType & c)
   {
     chromatograms_.push_back(c);
     c.clear(false);
-    if (full_meta_) peak_meta_.addChromatogram(c);
-
-    if (chromatograms_.size() >= flush_after_) {flush();}
+    if (full_meta_)
+    {
+      peak_meta_.addChromatogram(c);
+    }
+    if (chromatograms_.size() >= flush_after_)
+    {
+      flush();
+    }
   }
 
   void MSDataSqlConsumer::setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {;}

@@ -8,6 +8,7 @@ import os
 
 from pyopenms import String as s
 import numpy as np
+import pandas as pd
 
 print("IMPORTED ", pyopenms.__file__)
 
@@ -235,7 +236,7 @@ def testAASequence():
         print("Error: Exception not triggered.")
         assert False
     assert seq.getFormula(pyopenms.Residue.ResidueType.Full, 0) == pyopenms.EmpiricalFormula("C75H122N20O32S2Se1")
-    assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1952.7200317517998) < 1e-5
+    assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1958.7140766518) < 1e-5
     # assert seq.has(pyopenms.ResidueDB.getResidue("P"))
 
     
@@ -367,9 +368,9 @@ def testFineIsotopePatternGenerator():
     water = pyopenms.EmpiricalFormula("H2O")
     mw = methanol + water
     iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-20, False, False))
-    assert len(iso_dist.getContainer()) == 56
+    assert len(iso_dist.getContainer()) == 56 # now 33 ?
     iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
-    assert len(iso_dist.getContainer()) == 84
+    assert len(iso_dist.getContainer()) == 88 # now 42
 
     c100 = pyopenms.EmpiricalFormula("C100")
     iso_dist = c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
@@ -845,16 +846,27 @@ def testConsensusMap():
     m.sortBySize()
     m.updateRanges()
 
-    assert isinstance(m.getMin()[0], float)
-    assert isinstance(m.getMin()[0], float)
-    assert isinstance(m.getMax()[1], float)
-    assert isinstance(m.getMax()[1], float)
-    assert isinstance(m.getMinInt(), float)
-    assert isinstance(m.getMaxInt(), float)
+    assert isinstance(m.getMinRT(), float)
+    assert isinstance(m.getMinRT(), float)
+    assert isinstance(m.getMaxMZ(), float)
+    assert isinstance(m.getMaxMZ(), float)
+    assert isinstance(m.getMinIntensity(), float)
+    assert isinstance(m.getMaxIntensity(), float)
 
     m.getIdentifier()
     m.getLoadedFileType()
     m.getLoadedFilePath()
+    
+    f = pyopenms.ConsensusFeature()
+    f.setCharge(1)
+    f.setQuality(2.0)
+    f.setWidth(4.0)
+    m.push_back(f)
+    m.push_back(f)
+    intydf = m.get_intensity_df()
+    metadf = m.get_metadata_df()
+    assert intydf.shape[0] == 2
+    assert metadf.shape[0] == 2
 
     assert m == m
     assert not m != m
@@ -1019,7 +1031,7 @@ def testDataProcessing(dp=pyopenms.DataProcessing()):
     dp.getMetaValue
     ac = dp.getProcessingActions()
     assert ac == set(())
-    ac = set([ pyopenms.ProcessingAction.PEAK_PICKING, pyopenms.ProcessingAction.BASELINE_REDUCTION])
+    ac = set([ pyopenms.DataProcessing.ProcessingAction.PEAK_PICKING, pyopenms.DataProcessing.ProcessingAction.BASELINE_REDUCTION])
     dp.setProcessingActions(ac)
     assert len(dp.getProcessingActions() ) == 2
     _testStrOutput(dp.getSoftware().getName())
@@ -1481,32 +1493,6 @@ def testFeatureFinderAlgorithmPicked():
     assert ff.getName() == "test"
 
 @report
-def testFeatureFinderAlgorithmSH():
-    """
-    @tests: FeatureFinderAlgorithmSH
-     FeatureFinderAlgorithmSH.__init__
-     FeatureFinderAlgorithmSH.getDefaults
-     FeatureFinderAlgorithmSH.getName
-     FeatureFinderAlgorithmSH.getParameters
-     FeatureFinderAlgorithmSH.getProductName
-     FeatureFinderAlgorithmSH.setName
-     FeatureFinderAlgorithmSH.setParameters
-    """
-    ff = pyopenms.FeatureFinderAlgorithmSH()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    # _testParam(ff.getParameters())
-
-    assert ff.getName() == "FeatureFinderAlgorithm"
-    assert pyopenms.FeatureFinderAlgorithmSH.getProductName() == "superhirn"
-
-    ff.setParameters(pyopenms.Param())
-
-    ff.setName("test")
-    assert ff.getName() == "test"
-
-@report
 def testFeatureFinderAlgorithmIsotopeWavelet():
     """
     @tests: FeatureFinderAlgorithmIsotopeWavelet
@@ -1809,17 +1795,6 @@ def testFeatureFinderAlgorithmPicked():
     assert pyopenms.FeatureFinderAlgorithmPicked().run is not None
 
 @report
-def testFeatureFinderAlgorithmSH():
-    """
-    @tests: FeatureFinderAlgorithmSH
-     FeatureFinderAlgorithmSH.__init__
-    """
-    ff = pyopenms.FeatureFinderAlgorithmSH()
-
-    assert pyopenms.FeatureFinderAlgorithmSH().setData is not None
-    assert pyopenms.FeatureFinderAlgorithmSH().run is not None
-
-@report
 def testFeatureFinderAlgorithmIsotopeWavelet():
     """
     @tests: FeatureFinderAlgorithmIsotopeWavelet
@@ -2088,12 +2063,12 @@ def testFeatureMap():
 
     fm2.updateRanges()
 
-    assert isinstance(fm2.getMin()[0], float)
-    assert isinstance(fm2.getMin()[1], float)
-    assert isinstance(fm2.getMax()[0], float)
-    assert isinstance(fm2.getMax()[1], float)
-    assert isinstance(fm2.getMinInt(), float)
-    assert isinstance(fm2.getMaxInt(), float)
+    assert isinstance(fm2.getMinRT(), float)
+    assert isinstance(fm2.getMinRT(), float)
+    assert isinstance(fm2.getMaxMZ(), float)
+    assert isinstance(fm2.getMaxMZ(), float)
+    assert isinstance(fm2.getMinIntensity(), float)
+    assert isinstance(fm2.getMaxIntensity(), float)
 
     assert fm2.getProteinIdentifications() == []
     fm2.setProteinIdentifications([])
@@ -2132,6 +2107,44 @@ def testFeatureXMLFile():
 
     fm = pyopenms.FeatureMap()
     fm.setUniqueIds()
+
+    f = pyopenms.Feature()
+    f.setMZ(200)
+    f.setCharge(1)
+    f.setRT(10)
+    f.setIntensity(10000)
+    f.setOverallQuality(10)
+
+    ch = pyopenms.ConvexHull2D()
+    ch.setHullPoints(np.asarray([[8,199],[12,201]], dtype='f'))
+    f.setConvexHulls([ch])
+
+    f.setMetaValue(b'mv1', 1)
+    f.setMetaValue(b'mv2', 2)
+
+    f.setMetaValue('spectrum_native_id', 'spectrum=123')
+    pep_id = pyopenms.PeptideIdentification()
+    pep_id.insertHit(pyopenms.PeptideHit())
+    f.setPeptideIdentifications([pep_id])
+
+    fm.push_back(f)
+
+    f.setMetaValue('spectrum_native_id', 'spectrum=124')
+    fm.push_back(f)
+
+    assert len(fm.get_assigned_peptide_identifications()) == 2
+    assert fm.get_df(meta_values='all').shape == (2, 16)
+    assert fm.get_df(meta_values='all', export_peptide_identifications=False).shape == (2, 12)
+
+    assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
+                on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (2,22)
+
+    fm = pyopenms.FeatureMap()
+    pyopenms.FeatureXMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_idmapped.featureXML'), fm)
+
+    assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
+                    on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (15,24)
+
     fh = pyopenms.FeatureXMLFile()
     fh.store("test.featureXML", fm)
     fh.load("test.featureXML", fm)
@@ -2244,6 +2257,49 @@ def testIdXMLFile():
     """
     assert pyopenms.IdXMLFile().load is not None
     assert pyopenms.IdXMLFile().store is not None
+
+@report
+def test_peptide_identifications_to_df():
+    peps = []
+
+    p = pyopenms.PeptideIdentification()
+    p.setRT(1243.56)
+    p.setMZ(440.0)
+    p.setScoreType("ScoreType")
+    p.setHigherScoreBetter(False)
+    p.setIdentifier("IdentificationRun1")
+
+    h = pyopenms.PeptideHit()
+    h.setScore(1.0)
+    h.setCharge(2)
+    h.setMetaValue("StringMetaValue", "Value")
+    h.setMetaValue("IntMetaValue", 2)
+    e1 = pyopenms.PeptideEvidence()
+    e1.setProteinAccession("sp|Accession1")
+    e1.setStart(123)
+    e1.setEnd(141)
+    e2 = pyopenms.PeptideEvidence()
+    e2.setProteinAccession("sp|Accession2")
+    e2.setStart(12)
+    e2.setEnd(24)
+    h.setPeptideEvidences([e1, e2])
+    p.insertHit(h)
+
+    peps.append(p)
+
+    p1 = pyopenms.PeptideIdentification()
+    p1.setRT(1243.56)
+    p1.setMZ(240.0)
+    p1.setScoreType("ScoreType")
+    p1.setHigherScoreBetter(False)
+    p1.setIdentifier("IdentificationRun2")
+
+    peps.append(p1)
+
+    assert pyopenms.peptide_identifications_to_df(peps).shape == (2,10)
+    assert pyopenms.peptide_identifications_to_df(peps, decode_ontology=False).shape == (2,10)
+    assert pyopenms.peptide_identifications_to_df(peps)['protein_accession'][0] == 'sp|Accession1,sp|Accession2'
+    assert pyopenms.peptide_identifications_to_df(peps, export_unidentified=False).shape == (1,10)
 
 @report
 def testPepXMLFile():
@@ -2818,6 +2874,9 @@ def testMSExperiment():
      MSExperiment.removeMetaValue
      MSExperiment.getSize
      MSExperiment.isSorted
+     MSExperiment.get2DPeakDataLong
+     MSExperiment.get_df
+     MSExperiment.get_massql_df
     """
     mse = pyopenms.MSExperiment()
     mse_ = copy.copy(mse)
@@ -2835,13 +2894,9 @@ def testMSExperiment():
     assert isinstance(mse.getMaxMZ(), float)
     assert isinstance(mse.getMinMZ(), float)
     _testStrOutput(mse.getLoadedFilePath())
-    assert isinstance(mse.getMinInt(), float)
-    assert isinstance(mse.getMaxInt(), float)
+    assert isinstance(mse.getMinIntensity(), float)
+    assert isinstance(mse.getMaxIntensity(), float)
 
-    assert isinstance(mse.getMin()[0], float)
-    assert isinstance(mse.getMin()[1], float)
-    assert isinstance(mse.getMax()[0], float)
-    assert isinstance(mse.getMax()[1], float)
     mse.setLoadedFilePath("")
     assert mse.size() == 0
 
@@ -2849,10 +2904,22 @@ def testMSExperiment():
     mse.getLoadedFileType()
     mse.getLoadedFilePath()
 
-    mse.addSpectrum(pyopenms.MSSpectrum())
+    spec = pyopenms.MSSpectrum()
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float32)
+    spec.set_peaks( [data_mz,data_i] )
+
+    mse.addSpectrum(spec)
     assert mse.size() == 1
 
     assert mse[0] is not None
+
+    mse.updateRanges()
+    rt, mz, inty = mse.get2DPeakDataLong(mse.getMinRT(),mse.getMaxRT(),mse.getMinMZ(),mse.getMaxMZ())
+    assert rt.shape[0] == 2
+    assert mz.shape[0] == 2
+    assert inty.shape[0] == 2
+
 
     assert isinstance(list(mse), list)
 
@@ -2866,6 +2933,30 @@ def testMSExperiment():
 
     assert mse.getSize() == mse2.getSize()
     assert mse2 == mse
+
+    exp = pyopenms.MSExperiment()
+    for i in range(3):
+        s = pyopenms.MSSpectrum()
+        s.setRT(i)
+        s.setMSLevel(1)
+
+        for mz in (500, 600):
+            p = pyopenms.Peak1D()
+            p.setMZ(mz + i)
+            p.setIntensity(i + 10)
+            s.push_back(p)
+
+        exp.addSpectrum(s)
+
+    assert exp.get_df().shape == (3,3)
+
+    pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)
+
+    ms1_df, ms2_df = exp.get_massql_df()
+
+    assert ms1_df.shape == (140055, 7)
+
+    assert np.allclose(ms2_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS2_MassQL.tsv'), sep='\t'))
 
 
 @report
@@ -2990,10 +3081,10 @@ def testMSSpectrum():
     spec.updateRanges()
     assert isinstance(spec.findNearest(0.0), int)
 
-    assert isinstance(spec.getMin()[0], float)
-    assert isinstance(spec.getMax()[0], float)
-    assert isinstance(spec.getMinInt(), float)
-    assert isinstance(spec.getMaxInt(), float)
+    assert isinstance(spec.getMinMZ(), float)
+    assert isinstance(spec.getMaxMZ(), float)
+    assert isinstance(spec.getMinIntensity(), float)
+    assert isinstance(spec.getMaxIntensity(), float)
 
     assert spec == spec
     assert not spec != spec
@@ -3135,6 +3226,59 @@ def testMSSpectrum():
     assert spec.getFloatDataArrays()[0][2] == 42.0
     assert len(f_da[0].get_data() ) == 3
 
+    spec = pyopenms.MSSpectrum()
+    dfunit = spec.getDriftTimeUnit()
+    assert pyopenms.DriftTimeUnit().getMapping()[dfunit]  == "NONE"
+    assert dfunit == pyopenms.DriftTimeUnit.NONE
+    assert spec.getDriftTimeUnitAsString() == '<NONE>'
+    spec.setDriftTimeUnit( pyopenms.DriftTimeUnit.MILLISECOND )
+
+    dfunit = spec.getDriftTimeUnit()
+    assert dfunit == pyopenms.DriftTimeUnit.MILLISECOND
+    assert pyopenms.DriftTimeUnit().getMapping()[dfunit]  == "MILLISECOND"
+    assert spec.getDriftTimeUnitAsString() == 'ms'
+
+    spec = pyopenms.MSSpectrum()
+    spec.setDriftTime(6.0)
+    assert spec.getDriftTime() == 6.0
+
+    spec = pyopenms.MSSpectrum()
+    assert not spec.containsIMData()
+    data = np.array( [5, 8, 42] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    f_da[0].setName("Ion Mobility")
+    spec.setFloatDataArrays( f_da )
+    assert spec.containsIMData()
+    assert spec.getIMData()[0] == 0
+    f_da = [ pyopenms.FloatDataArray(), pyopenms.FloatDataArray() ]
+    f_da[0].setName("test")
+    f_da[0].set_data(data)
+    f_da[1].set_data(data)
+    f_da[1].setName("Ion Mobility")
+    spec.setFloatDataArrays( f_da )
+    assert spec.containsIMData()
+    assert spec.getIMData()[0] == 1
+
+    # Ensure that "set_peaks()" doesnt clear the float data arrays
+    spec = pyopenms.MSSpectrum()
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    f_da[0].setName("Ion Mobility")
+    spec.setFloatDataArrays( f_da )
+    spec.set_peaks( [data_mz,data_i] )
+    assert spec.containsIMData()
+    assert spec.getIMData()[0] == 0
+    assert len(spec.getFloatDataArrays()) == 1
+
+    f = spec.getFloatDataArrays()[0]
+    assert len(f.get_data()) == 3
+    assert f.get_data()[0] == 5
+    assert spec.size() == len(data_mz)
+    assert spec.size() == len(data_i)
+
 @report
 def testStringDataArray():
     """
@@ -3248,10 +3392,10 @@ def testMSChromatogram():
     chrom.updateRanges()
     assert isinstance(chrom.findNearest(0.0), int)
 
-    assert isinstance(chrom.getMin()[0], float)
-    assert isinstance(chrom.getMax()[0], float)
-    assert isinstance(chrom.getMinInt(), float)
-    assert isinstance(chrom.getMaxInt(), float)
+    assert isinstance(chrom.getMinRT(), float)
+    assert isinstance(chrom.getMaxRT(), float)
+    assert isinstance(chrom.getMinIntensity(), float)
+    assert isinstance(chrom.getMaxIntensity(), float)
 
     assert chrom == chrom
     assert not chrom != chrom
@@ -3333,6 +3477,31 @@ def testMSChromatogram():
     assert mz[1] == 8.0
     assert ii[0] == 50.0
     assert ii[1] == 80.0
+
+    # test float data
+    chrom = pyopenms.MSChromatogram()
+    data = np.array( [5, 8, 42] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    f_da[0].setName("Test Data")
+    chrom.setFloatDataArrays( f_da )
+    assert len(chrom.getFloatDataArrays()) == 1
+    f = chrom.getFloatDataArrays()[0]
+    assert f.get_data()[0] == 5
+    assert f.getName() == "Test Data"
+
+    # Ensure that "set_peaks()" doesnt clear the float data arrays
+    chrom = pyopenms.MSChromatogram()
+    chrom.setFloatDataArrays( f_da )
+    chrom.set_peaks( [data_mz,data_i] )
+    assert len(chrom.getFloatDataArrays()) == 1
+
+    f = chrom.getFloatDataArrays()[0]
+    assert len(f.get_data()) == 3
+    assert f.get_data()[0] == 5
+    assert chrom.size() == len(data_mz)
+    assert chrom.size() == len(data_i)
+
 
 @report
 def testMRMFeature():
@@ -4192,6 +4361,7 @@ def testProcessingAction():
      ProcessingAction.FEATURE_GROUPING
      ProcessingAction.FILTERING
      ProcessingAction.FORMAT_CONVERSION
+     ProcessingAction.IDENTIFICATION
      ProcessingAction.IDENTIFICATION_MAPPING
      ProcessingAction.NORMALIZATION
      ProcessingAction.PEAK_PICKING
@@ -4199,28 +4369,30 @@ def testProcessingAction():
      ProcessingAction.QUANTITATION
      ProcessingAction.SIZE_OF_PROCESSINGACTION
      ProcessingAction.SMOOTHING
+
     """
-    assert isinstance(pyopenms.ProcessingAction.ALIGNMENT, int)
-    assert isinstance(pyopenms.ProcessingAction.BASELINE_REDUCTION, int)
-    assert isinstance(pyopenms.ProcessingAction.CALIBRATION, int)
-    assert isinstance(pyopenms.ProcessingAction.CHARGE_CALCULATION, int)
-    assert isinstance(pyopenms.ProcessingAction.CHARGE_DECONVOLUTION, int)
-    assert isinstance(pyopenms.ProcessingAction.CONVERSION_DTA, int)
-    assert isinstance(pyopenms.ProcessingAction.CONVERSION_MZDATA, int)
-    assert isinstance(pyopenms.ProcessingAction.CONVERSION_MZML, int)
-    assert isinstance(pyopenms.ProcessingAction.CONVERSION_MZXML, int)
-    assert isinstance(pyopenms.ProcessingAction.DATA_PROCESSING, int)
-    assert isinstance(pyopenms.ProcessingAction.DEISOTOPING, int)
-    assert isinstance(pyopenms.ProcessingAction.FEATURE_GROUPING, int)
-    assert isinstance(pyopenms.ProcessingAction.FILTERING, int)
-    assert isinstance(pyopenms.ProcessingAction.FORMAT_CONVERSION, int)
-    assert isinstance(pyopenms.ProcessingAction.IDENTIFICATION_MAPPING, int)
-    assert isinstance(pyopenms.ProcessingAction.NORMALIZATION, int)
-    assert isinstance(pyopenms.ProcessingAction.PEAK_PICKING, int)
-    assert isinstance(pyopenms.ProcessingAction.PRECURSOR_RECALCULATION, int)
-    assert isinstance(pyopenms.ProcessingAction.QUANTITATION, int)
-    assert isinstance(pyopenms.ProcessingAction.SIZE_OF_PROCESSINGACTION, int)
-    assert isinstance(pyopenms.ProcessingAction.SMOOTHING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.ALIGNMENT, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.BASELINE_REDUCTION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CALIBRATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CHARGE_CALCULATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CHARGE_DECONVOLUTION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CONVERSION_DTA, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CONVERSION_MZDATA, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CONVERSION_MZML, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.CONVERSION_MZXML, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.DATA_PROCESSING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.DEISOTOPING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.FEATURE_GROUPING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.FILTERING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.FORMAT_CONVERSION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.IDENTIFICATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.IDENTIFICATION_MAPPING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.NORMALIZATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.PEAK_PICKING, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.PRECURSOR_RECALCULATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.QUANTITATION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.SIZE_OF_PROCESSINGACTION, int)
+    assert isinstance(pyopenms.DataProcessing.ProcessingAction.SMOOTHING, int)
 
 
 @report
@@ -5079,6 +5251,19 @@ def testElementDB():
     assert e2.getSymbol() == "O"
     assert e2.getIsotopeDistribution()
 
+    # assume we discovered a new element
+    e2 = edb.addElement(b"NewElement", b"NE", 300, {400 : 1.0}, {400 : 400.1}, False)
+    e2 = edb.getElement(pyopenms.String("NE"))
+    assert e2.getName() == "NewElement"
+
+    # replace oxygen
+    e2 = edb.addElement(b"Oxygen", b"O", 8, {16 : 0.7, 19 : 0.3}, {16 : 16.01, 19 : 19.01}, True)
+    e2 = edb.getElement(pyopenms.String("O"))
+    assert e2.getName() == "Oxygen"
+    assert e2.getIsotopeDistribution()
+    assert len(e2.getIsotopeDistribution().getContainer()) == 2
+    assert abs(e2.getIsotopeDistribution().getContainer()[1].getIntensity() - 0.3) < 1e-5
+
     # assert e == e2
 
     #  not yet implemented
@@ -5422,5 +5607,51 @@ def testString():
     # assert( isinstance(r, bytes) )
     assert(r.decode("iso8859_15") == u"bläh")
 
-
+@report
+def testIIMN():
+    cm = pyopenms.ConsensusMap()
     
+    for mz, rt, ion, linked_groups in [(222.08, 62.0, "[M+H]+", ["1","2","3"]),
+                                        (244.08, 62.0, "[M+Na]+", ["1","2"]),
+                                        (204.08, 62.0, "[M-H-O]+", ["3"]),
+                                        (294.1, 62.0, "[M+H]+", ["4","5"])]:
+        f = pyopenms.ConsensusFeature()
+        f.setMZ(mz)
+        f.setRT(rt)
+        f.setCharge(1)
+        f.setQuality(2.0)
+        f.setMetaValue("best ion", ion)
+        f.setMetaValue("LinkedGroups", linked_groups)
+        cm.push_back(f)
+    cm.setUniqueIds()
+
+    pyopenms.IonIdentityMolecularNetworking.annotateConsensusMap(cm)
+
+    pyopenms.IonIdentityMolecularNetworking.writeSupplementaryPairTable(cm, "SupplementaryPairsTable.csv")
+
+    with open("SupplementaryPairsTable.csv", "r") as f:
+        assert f.read() == """ID1,ID2,EdgeType,Score,Annotation
+1,2,MS1 annotation,1,[M+H]+ [M+Na]+ dm/z=22.0
+1,3,MS1 annotation,1,[M+H]+ [M-H-O]+ dm/z=18.0
+"""
+    os.remove("SupplementaryPairsTable.csv")
+
+    pyopenms.GNPSQuantificationFile.store(cm, "FeatureQuantificationTable.txt")
+    with open("FeatureQuantificationTable.txt", "r") as f:
+        assert f.read() == """#MAP	id	filename	label	size
+#CONSENSUS	rt_cf	mz_cf	intensity_cf	charge_cf	width_cf	quality_cf	row ID	best ion	partners	annotation network number
+CONSENSUS	62.0	222.080000000000013	0.0	1	0.0	2.0	1	[M+H]+	2;3	1
+CONSENSUS	62.0	244.080000000000013	0.0	1	0.0	2.0	2	[M+Na]+	1	1
+CONSENSUS	62.0	204.080000000000013	0.0	1	0.0	2.0	3	[M-H-O]+	1	1
+CONSENSUS	62.0	294.100000000000023	0.0	1	0.0	2.0	4	[M+H]+		2
+"""
+    os.remove("FeatureQuantificationTable.txt")
+
+    pyopenms.GNPSMetaValueFile.store(cm, "MetaValueTable.tsv")
+    with open("MetaValueTable.tsv", "r") as f:
+        assert f.read() == """filename	ATTRIBUTE_MAPID
+1.mzML	MAP0
+2.mzML	MAP1
+"""
+    os.remove("MetaValueTable.tsv")
+

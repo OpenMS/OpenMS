@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 namespace OpenMS
 {
@@ -63,19 +64,24 @@ namespace OpenMS
                                         bool store_original_rt = false);
 
     /// Applies the given transformation to a feature map
-    static void transformRetentionTimes(
-      FeatureMap& fmap, const TransformationDescription& trafo,
-      bool store_original_rt = false);
+    static void transformRetentionTimes(FeatureMap& fmap,
+                                        const TransformationDescription& trafo,
+                                        bool store_original_rt = false);
 
     /// Applies the given transformation to a consensus map
-    static void transformRetentionTimes(
-      ConsensusMap& cmap, const TransformationDescription& trafo,
-      bool store_original_rt = false);
+    static void transformRetentionTimes(ConsensusMap& cmap,
+                                        const TransformationDescription& trafo,
+                                        bool store_original_rt = false);
 
     /// Applies the given transformation to peptide identifications
     static void transformRetentionTimes(
       std::vector<PeptideIdentification>& pep_ids,
       const TransformationDescription& trafo, bool store_original_rt = false);
+
+    /// Applies the given transformation to input items in IdentificationData
+    static void transformRetentionTimes(IdentificationData& id_data,
+                                        const TransformationDescription& trafo,
+                                        bool store_original_rt = false);
 
   private:
     /// Applies a transformation to a feature

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrafoXML version="1.1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/TrafoXML_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Transformation name="b_spline">
+		<Param  type="float" name="wavelength" value="0.0"/>
+		<Param  type="int" name="num_nodes" value="5"/>
+		<Param  type="string" name="extrapolate" value="linear"/>
+		<Param  type="int" name="boundary_condition" value="2"/>
+		<Pairs count="14">
+			<Pair from="1946.79406738281" to="1948.32080078125" note="AEFVEVTK"/>
+			<Pair from="1710.49194335938" to="1683.76110839844" note="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR"/>
+			<Pair from="1727.41552734375" to="1697.93835449219" note="DDSPDLPK"/>
+			<Pair from="1788.2138671875" to="1765.26745605469" note="DLGEEHFK"/>
+			<Pair from="1947.00720214844" to="1915.91174316406" note="EYEATLEEC(Carbamidomethyl)C(Carbamidomethyl)AK"/>
+			<Pair from="2125.65234375" to="2133.27758789062" note="FVEGLYK"/>
+			<Pair from="2251.568359375" to="2224.19116210938" note="HLVDEPQNLIK"/>
+			<Pair from="2321.84069824218" to="2300.74401855468" note="KVPQVSTPTLVEVSR"/>
+			<Pair from="1589.48608398438" to="1520.14294433594" note="LAMTLAEAER"/>
+			<Pair from="1707.72644042969" to="1667.28192138672" note="LC(Carbamidomethyl)VLHEK"/>
+			<Pair from="1813.642578125" to="1596.49011230468" note="SHCIAEVEK"/>
+			<Pair from="1774.8974609375" to="1728.01306152344" note="YIC(Carbamidomethyl)DNQDTISSK"/>
+			<Pair from="1880.10424804688" to="1846.52856445312" note="YICDNQDTISSK"/>
+			<Pair from="2243.00756835938" to="2250.060546875" note="YLYEIAR"/>
+		</Pairs>
+	</Transformation>
+</TrafoXML>

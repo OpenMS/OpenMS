@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -319,7 +319,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   TEST_STRING_EQUAL(exp.getContacts()[1].getURL(),"")
   TEST_STRING_EQUAL(exp.getContacts()[1].getAddress(),"")
   //source files
-  TEST_EQUAL(exp.getSourceFiles().size(),1);
+  TEST_EQUAL(exp.getSourceFiles().size(),5);
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNameOfFile(),"tiny1.RAW")
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getPathToFile(),"file:///F:/data/Exp01")
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(),"71be39fb2700ab2f3c8b2234b91274968b6899b1")
@@ -387,7 +387,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getType(),SpectrumSettings::CENTROID)
     TEST_REAL_SIMILAR(spec.getRT(),5.1)
     TEST_REAL_SIMILAR(spec.getDriftTime(),7.1)
-    TEST_EQUAL(spec.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::MILLISECOND)
+    TEST_EQUAL(spec.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true)
     TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),1)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].begin,400.0)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].end,1800.0)
@@ -439,7 +439,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_REAL_SIMILAR(spec.getRT(),5.2)
     // in the mzML, drift time is stored in precursor only but we still create a spectrum attribute for convenience
     TEST_REAL_SIMILAR(spec.getDriftTime(),8.1)
-    TEST_EQUAL(spec.getDriftTimeUnit(), MSSpectrum::DriftTimeUnit::MILLISECOND)
+    TEST_EQUAL(spec.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true)
     TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
     TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),3)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].begin,100.0)
@@ -470,7 +470,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getPrecursors()[0].getCharge(),2)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getMZ(),5.55)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getDriftTime(),8.1)
-    TEST_EQUAL(spec.getPrecursors()[0].getDriftTimeUnit(), Precursor::DriftTimeUnit::MILLISECOND)
+    TEST_EQUAL(spec.getPrecursors()[0].getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true)
     TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().size(),2)
     TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::CID),1)
     TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::PD),1)
@@ -483,7 +483,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getPrecursors()[0].getPossibleChargeStates()[2],4)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getMZ(),15.55)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getDriftTime(),-1) // none set
-    TEST_EQUAL(spec.getPrecursors()[1].getDriftTimeUnit(), Precursor::DriftTimeUnit::NONE) // none set
+    TEST_EQUAL(spec.getPrecursors()[1].getDriftTimeUnit() == DriftTimeUnit::NONE, true) // none set
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIsolationWindowLowerOffset(),16.66)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIsolationWindowUpperOffset(),17.77)
     TEST_EQUAL(spec.getPrecursors()[1].getActivationMethods().size(),1)
@@ -857,10 +857,11 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     }
   }
   //Testing corrupted files
+  // Note: the following two statements will trigger the AddressSanitizer
   PeakMap exp_cor;
-  TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.MzML.gz"),exp_cor))
+  TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.MzML.gz"),exp_cor)) // ASan says this leaks memory
   PeakMap exp_cor2;
-  TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.bz2"),exp_cor2))
+  TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.bz2"),exp_cor2)) // ASan says this leaks memory
 
   {
     //Testing automated sorting of files
@@ -906,7 +907,7 @@ START_SECTION([EXTRA] load only meta data)
   TEST_EQUAL(exp.size(),0)
   TEST_EQUAL(exp.getIdentifier(),"document_accession");
   TEST_EQUAL(exp.getContacts().size(),2)
-  TEST_EQUAL(exp.getSourceFiles().size(),1);
+  TEST_EQUAL(exp.getSourceFiles().size(),5);
   TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
 }
 END_SECTION
@@ -1087,9 +1088,9 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     // store map in our output buffer
     std::string out;
     file.storeBuffer(out, exp_original);
-    TEST_EQUAL(out.size(), 36859)
+    TEST_EQUAL(out.size(), 38070)
     TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
-    TEST_EQUAL(out.substr(36859 - 99, 36859 - 1), "</indexList>\n<indexListOffset>36411</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+    TEST_EQUAL(out.substr(38070 - 99, 38070 - 1), "</indexList>\n<indexListOffset>37622</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
 
     TEST_EQUAL(String(out).hasSubstring("<spectrumList count=\"4\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
     TEST_EQUAL(String(out).hasSubstring("<chromatogramList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">"), true)

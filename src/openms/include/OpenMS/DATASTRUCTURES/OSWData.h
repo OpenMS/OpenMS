@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -197,7 +197,7 @@ namespace OpenMS
     /**
       @brief A peptide with a charge state
 
-      An OSWProtein has one or more OSWPeptidePrecursor's.
+      An OSWProtein has one or more OSWPeptidePrecursors.
 
       The OSWPeptidePrecursor contains multiple candidate features (peak groups) of type OSWPeakGroup, only one of which is usually true.
 
@@ -308,6 +308,12 @@ namespace OpenMS
         void addTransition(const OSWTransition& tr)
         {
           transitions_.emplace(tr.getID(), tr);
+        }
+
+        void addTransition(OSWTransition&& tr)
+        {
+          UInt32 id = tr.getID();
+          transitions_.emplace(id, std::move(tr));
         }
 
         /// Adds a protein, which has all its subcomponents already populated

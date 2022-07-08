@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -171,8 +171,10 @@ namespace OpenMS
       QString str = index.data(Qt::DisplayRole).toString();
 
       // only set editor data for first column (value column)
-      if (index.column() != 1) return;
-
+      if (index.column() != 1)
+      {
+        return;
+      }
 
       if (qobject_cast<QComboBox *>(editor))       //Drop-down list for enums
       {
@@ -212,7 +214,10 @@ namespace OpenMS
       {
         String list = str.mid(1, str.length() - 2);
         StringList rlist = ListUtils::create<String>(list);
-        for (auto& item : rlist) item.trim(); // remove '\n'
+        for (auto& item : rlist)
+        {
+          item.trim(); // remove '\n'
+        }
         String restrictions = index.sibling(index.row(), 2).data(Qt::UserRole).toString();
         if (qobject_cast<ListEditor*>(editor))
         {
@@ -250,8 +255,10 @@ namespace OpenMS
     void ParamEditorDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
     {
       // only set model data for first column (value column)
-      if (index.column() != 1) return;
-
+      if (index.column() != 1)
+      {
+        return;
+      }
       QVariant present_value = index.data(Qt::DisplayRole);
       QVariant new_value;
       //extract new value
@@ -271,9 +278,13 @@ namespace OpenMS
         else if (static_cast<QLineEdit *>(editor)->text() == "" && ((dtype == "int") || (dtype == "float")))         //numeric
         {
           if (dtype == "int")
+          {
             new_value = QVariant("0");
+          }
           else if (dtype == "float")
+          {
             new_value = QVariant("nan");
+          }
         }
         else
         {
@@ -312,11 +323,11 @@ namespace OpenMS
           vector<String> parts;
           if (restrictions.split(' ', parts))
           {
-            if (parts[0] != "" && new_value.toInt() < parts[0].toInt())
+            if (!parts[0].empty() && new_value.toInt() < parts[0].toInt())
             {
               restrictions_met = false;
             }
-            if (parts[1] != "" && new_value.toInt() > parts[1].toInt())
+            if (!parts[1].empty() && new_value.toInt() > parts[1].toInt())
             {
               restrictions_met = false;
             }
@@ -335,11 +346,11 @@ namespace OpenMS
           vector<String> parts;
           if (restrictions.split(' ', parts))
           {
-            if (parts[0] != "" && new_value.toDouble() < parts[0].toDouble())
+            if (!parts[0].empty() && new_value.toDouble() < parts[0].toDouble())
             {
               restrictions_met = false;
             }
-            if (parts[1] != "" && new_value.toDouble() > parts[1].toDouble())
+            if (!parts[1].empty() && new_value.toDouble() > parts[1].toDouble())
             {
               restrictions_met = false;
             }
@@ -369,8 +380,10 @@ namespace OpenMS
     bool ParamEditorDelegate::eventFilter(QObject* editor, QEvent* event)
     {
       // NEVER EVER commit data (which calls setModelData()), without explicit calls to commit() for non-embedded Dialogs ;
-      if (qobject_cast<ListEditor*>(editor) || qobject_cast<ListFilterDialog*>(editor)) return false;
-
+      if (qobject_cast<ListEditor*>(editor) || qobject_cast<ListFilterDialog*>(editor))
+      {
+        return false;
+      }
       // default: will call commit(), if the event was handled (e.g. a press of 'Enter')
       return QItemDelegate::eventFilter(editor, event);
     }
@@ -500,17 +513,17 @@ namespace OpenMS
     {
       //********handle opened/closed nodes********
       const std::vector<Param::ParamIterator::TraceInfo> & trace = it.getTrace();
-      for (std::vector<Param::ParamIterator::TraceInfo>::const_iterator it2 = trace.begin(); it2 != trace.end(); ++it2)
+      for (const Param::ParamIterator::TraceInfo& par : trace)
       {
-        if (it2->opened)         //opened node
+        if (par.opened)         //opened node
         {
           item = new QTreeWidgetItem(parent);
           //name
-          item->setText(0, String(it2->name).toQString());
-          item->setTextColor(0, Qt::darkGray);  // color of nodes with children
+          item->setText(0, String(par.name).toQString());
+          item->setForeground(0, Qt::darkGray);  // color of nodes with children
 
           //description
-          item->setData(1, Qt::UserRole, String(it2->description).toQString());
+          item->setData(1, Qt::UserRole, String(par.description).toQString());
           //role
           item->setData(0, Qt::UserRole, NODE);
           //flags
@@ -528,7 +541,9 @@ namespace OpenMS
         {
           parent = parent->parent();
           if (parent == nullptr)
+          {
             parent = tree_->invisibleRootItem();
+          }
         }
       }
 
@@ -539,15 +554,15 @@ namespace OpenMS
       bool is_required = it->tags.find("required") != it->tags.end();
       if (is_required)  // special color for required parameters
       {
-        item->setTextColor(0, QColor(255, 140, 0, 255)); // orange
-        item->setTextColor(2, QColor(255, 140, 0, 255));
-        item->setTextColor(3, QColor(255, 140, 0, 255));
+        item->setForeground(0, QColor(255, 140, 0, 255)); // orange
+        item->setForeground(2, QColor(255, 140, 0, 255));
+        item->setForeground(3, QColor(255, 140, 0, 255));
       }
       else
       {
-        item->setTextColor(0, Qt::darkGray);
-        item->setTextColor(2, Qt::darkGray);
-        item->setTextColor(3, Qt::darkGray);
+        item->setForeground(0, Qt::darkGray);
+        item->setForeground(2, Qt::darkGray);
+        item->setForeground(3, Qt::darkGray);
       }
 
       // advanced parameter
@@ -722,10 +737,7 @@ namespace OpenMS
       }
     }
 
-    if (!has_advanced_item)
-    {
-      ui_->advanced_->setVisible(false);
-    }
+    ui_->advanced_->setVisible(has_advanced_item);
 
     tree_->expandAll();
     toggleAdvancedMode(advanced_mode_);
@@ -777,7 +789,7 @@ namespace OpenMS
     */
     child->setData(1, Qt::BackgroundRole, QBrush(Qt::white));
 
-    if (path == "")
+    if (path.empty())
     {
       path = child->text(0).toStdString();
     }
@@ -799,7 +811,7 @@ namespace OpenMS
 
     if (child->text(2) == "")  // node
     {
-      if (description != "")
+      if (!description.empty())
       {
         section_descriptions.insert(make_pair(path, description));
       }
@@ -813,11 +825,11 @@ namespace OpenMS
         vector<String> parts;
         if (restrictions.split(' ', parts))
         {
-          if (parts[0] != "")
+          if (!parts[0].empty())
           {
             param_->setMinFloat(path, parts[0].toDouble());
           }
-          if (parts[1] != "")
+          if (!parts[1].empty())
           {
             param_->setMaxFloat(path, parts[1].toDouble());
           }
@@ -827,7 +839,7 @@ namespace OpenMS
       {
         param_->setValue(path, child->text(1).toStdString(), description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();
-        if (restrictions != "")
+        if (!restrictions.empty())
         {
           std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
           param_->setValidStrings(path, parts);
@@ -837,7 +849,7 @@ namespace OpenMS
       {
         param_->setValue(path, child->text(1).toStdString(), description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();
-        if (restrictions != "")
+        if (!restrictions.empty())
         {
           std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
           param_->setValidStrings(path, parts);
@@ -847,7 +859,7 @@ namespace OpenMS
       {
         param_->setValue(path, child->text(1).toStdString(), description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();
-        if (restrictions != "")
+        if (!restrictions.empty())
         {
           std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
           param_->setValidStrings(path, parts);
@@ -860,11 +872,11 @@ namespace OpenMS
         vector<String> parts;
         if (restrictions.split(' ', parts))
         {
-          if (parts[0] != "")
+          if (!parts[0].empty())
           {
             param_->setMinInt(path, parts[0].toInt());
           }
-          if (parts[1] != "")
+          if (!parts[1].empty())
           {
             param_->setMaxInt(path, parts[1].toInt());
           }
@@ -877,7 +889,7 @@ namespace OpenMS
       {
         param_->setValue(path, rlist, description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();
-        if (restrictions != "")
+        if (!restrictions.empty())
         {
           vector<std::string> parts = ListUtils::create<std::string>(restrictions);
           param_->setValidStrings(path, parts);
@@ -887,7 +899,7 @@ namespace OpenMS
       {
         param_->setValue(path, rlist, description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();
-        if (restrictions != "")
+        if (!restrictions.empty())
         {
           std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
           param_->setValidStrings(path, parts);
@@ -897,7 +909,7 @@ namespace OpenMS
       {
         param_->setValue(path, rlist, description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();
-        if (restrictions != "")
+        if (!restrictions.empty())
         {
           std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
           param_->setValidStrings(path, parts);
@@ -910,11 +922,11 @@ namespace OpenMS
         vector<String> parts;
         if (restrictions.split(' ', parts))
         {
-          if (parts[0] != "")
+          if (!parts[0].empty())
           {
             param_->setMinFloat(path, parts[0].toFloat());
           }
-          if (parts[1] != "")
+          if (!parts[1].empty())
           {
             param_->setMaxFloat(path, parts[1].toFloat());
           }
@@ -927,11 +939,11 @@ namespace OpenMS
         vector<String> parts;
         if (restrictions.split(' ', parts))
         {
-          if (parts[0] != "")
+          if (!parts[0].empty())
           {
             param_->setMinInt(path, parts[0].toInt());
           }
-          if (parts[1] != "")
+          if (!parts[1].empty())
           {
             param_->setMaxInt(path, parts[1].toInt());
           }

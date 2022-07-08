@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,10 +35,13 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
+
+#include <algorithm>
+#include <cmath>
+#include <fstream>
 
 #include <boost/math/distributions/normal.hpp>
 
@@ -76,6 +79,7 @@ namespace OpenMS
     defaults_.setValue("taxonomy", "", "Taxonomy");
     defaults_.setValue("tmp_dir", "", "Absolute path to tmp data directory used to store files needed for rt and dt prediction.");
     defaults_.setValue("store_peptide_sequences", "false", "Flag if peptide sequences should be stored.");
+    defaults_.setValidStrings("store_peptide_sequences", {"true","false"});
     defaultsToParam_();
     updateMembers_();
   }
@@ -172,7 +176,7 @@ namespace OpenMS
 
   double PrecursorIonSelectionPreprocessing::getRT(String prot_id, Size peptide_index)
   {
-    if (rt_prot_map_.size() > 0)
+    if (!rt_prot_map_.empty())
     {
       if (rt_prot_map_.find(prot_id) != rt_prot_map_.end())
       {
@@ -190,7 +194,7 @@ namespace OpenMS
 
   double PrecursorIonSelectionPreprocessing::getPT(String prot_id, Size peptide_index)
   {
-    if (pt_prot_map_.size() > 0)
+    if (!pt_prot_map_.empty())
     {
       if (pt_prot_map_.find(prot_id) != pt_prot_map_.end())
       {
@@ -331,32 +335,30 @@ namespace OpenMS
         digest.digest(aa_seq, vec);
 
         // enter peptide sequences in map
-        std::vector<AASequence>::iterator vec_iter = vec.begin();
-
         std::vector<String> peptide_seqs;
-        for (; vec_iter != vec.end(); ++vec_iter)
+        for (AASequence& vec_iter : vec)
         {
 
           // enter mod
           if (fixed_mods_)
           {
             // go through peptide sequence and check if AA is modified
-            for (Size aa = 0; aa < vec_iter->size(); ++aa)
+            for (Size aa = 0; aa < vec_iter.size(); ++aa)
             {
-              if (fixed_modifications_.find((vec_iter->toUnmodifiedString())[aa]) != fixed_modifications_.end())
+              if (fixed_modifications_.find((vec_iter.toUnmodifiedString())[aa]) != fixed_modifications_.end())
               {
 #ifdef DEBUG_PISP
-                std::cout << "w/o Mod " << *vec_iter << " "
-                          << vec_iter->getMonoWeight(Residue::Full, 1) << std::endl;
+                std::cout << "w/o Mod " << vec_iter << " "
+                          << vec_iter.getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
-                std::vector<String>& mods = fixed_modifications_[(vec_iter->toUnmodifiedString())[aa]];
+                std::vector<String>& mods = fixed_modifications_[(vec_iter.toUnmodifiedString())[aa]];
                 for (Size m = 0; m < mods.size(); ++m)
                 {
-                  vec_iter->setModification(aa, mods[m]);
+                  vec_iter.setModification(aa, mods[m]);
                 }
 #ifdef DEBUG_PISP
-                std::cout << "set Mods " << *vec_iter << " "
-                          << vec_iter->getMonoWeight(Residue::Full, 1) << std::endl;
+                std::cout << "set Mods " << vec_iter << " "
+                          << vec_iter.getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
               }
             }
@@ -364,26 +366,26 @@ namespace OpenMS
 
           // write peptide seq in temporary file, for rt prediction
           //seq_file << *vec_iter << "\n";
-          double mass = vec_iter->getMonoWeight(Residue::Full, 1);
+          double mass = vec_iter.getMonoWeight(Residue::Full, 1);
           prot_masses.push_back(mass);
-          if (tmp_peptide_map.find(vec_iter->toUnmodifiedString()) != tmp_peptide_map.end())
+          if (tmp_peptide_map.find(vec_iter.toUnmodifiedString()) != tmp_peptide_map.end())
           {
-            tmp_peptide_map[vec_iter->toUnmodifiedString()].push_back(make_pair(entries[e].identifier,
+            tmp_peptide_map[vec_iter.toUnmodifiedString()].push_back(make_pair(entries[e].identifier,
                                                                                 prot_masses.size() - 1));
           }
           else
           {
             std::vector<std::pair<String, Size> > tmp_vec;
             tmp_vec.push_back(make_pair(entries[e].identifier, prot_masses.size() - 1));
-            tmp_peptide_map.insert(make_pair(vec_iter->toUnmodifiedString(), tmp_vec));
+            tmp_peptide_map.insert(make_pair(vec_iter.toUnmodifiedString(), tmp_vec));
           }
-          if (sequences_.count(*vec_iter) == 0) // peptide sequences are considered only once
+          if (sequences_.count(vec_iter) == 0) // peptide sequences are considered only once
           {
-            sequences_.insert(*vec_iter);
+            sequences_.insert(vec_iter);
             masses_.push_back(mass);
           }
           if (store_pep_seqs)
-            peptide_seqs.push_back(vec_iter->toUnmodifiedString());
+            peptide_seqs.push_back(vec_iter.toUnmodifiedString());
         }
         prot_masses_.insert(make_pair(entries[e].identifier, prot_masses));
         if (store_pep_seqs)
@@ -654,39 +656,38 @@ namespace OpenMS
         digest.digest(aa_seq, vec);
 
         // enter peptide sequences in map
-        std::vector<AASequence>::iterator vec_iter = vec.begin();
-        for (; vec_iter != vec.end(); ++vec_iter)
+        for (AASequence& seq : vec)
         {
           // enter mod
           if (fixed_mods_)
           {
             // go through peptide sequence and check if AA is modified
-            for (Size aa = 0; aa < vec_iter->size(); ++aa)
+            for (Size aa = 0; aa < seq.size(); ++aa)
             {
-              if (fixed_modifications_.find((vec_iter->toUnmodifiedString())[aa]) != fixed_modifications_.end())
+              if (fixed_modifications_.find((seq.toUnmodifiedString())[aa]) != fixed_modifications_.end())
               {
 #ifdef DEBUG_PISP
-                std::cout << "w/o Mod " << *vec_iter << " "
-                          << vec_iter->getMonoWeight(Residue::Full, 1) << std::endl;
+                std::cout << "w/o Mod " << seq << " "
+                          << seq.getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
-                std::vector<String>& mods = fixed_modifications_[(vec_iter->toUnmodifiedString())[aa]];
+                std::vector<String>& mods = fixed_modifications_[(seq.toUnmodifiedString())[aa]];
                 for (Size m = 0; m < mods.size(); ++m)
                 {
-                  vec_iter->setModification(aa, mods[m]);
+                  seq.setModification(aa, mods[m]);
                 }
 #ifdef DEBUG_PISP
-                std::cout << "set Mods " << *vec_iter << " "
-                          << vec_iter->getMonoWeight(Residue::Full, 1) << std::endl;
+                std::cout << "set Mods " << seq << " "
+                          << seq.getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
               }
             }
           }
 
-          double mass = vec_iter->getMonoWeight(Residue::Full, 1);
+          double mass = seq.getMonoWeight(Residue::Full, 1);
           prot_masses.push_back(mass);
-          if (sequences_.count(*vec_iter) == 0) // peptide sequences are considered only once
+          if (sequences_.count(seq) == 0) // peptide sequences are considered only once
           {
-            sequences_.insert(*vec_iter);
+            sequences_.insert(seq);
             masses_.push_back(mass);
           }
         }
@@ -1210,7 +1211,7 @@ namespace OpenMS
   double PrecursorIonSelectionPreprocessing::getRTProbability(String prot_id, Size peptide_index, Feature& feature)
   {
     double theo_rt = 0.;
-    if (rt_prot_map_.size() > 0)
+    if (!rt_prot_map_.empty())
     {
       if (rt_prot_map_.find(prot_id) != rt_prot_map_.end())
       {

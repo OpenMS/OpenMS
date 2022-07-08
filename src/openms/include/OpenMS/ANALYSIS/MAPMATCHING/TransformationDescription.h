@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include <iostream>
+#include <iosfwd>
 #include <map>
 
 namespace OpenMS
@@ -164,7 +164,7 @@ public:
     TransformationStatistics getStatistics() const;
 
     /// Print summary statistics for the transformation
-    void printSummary(std::ostream& os = std::cout) const;
+    void printSummary(std::ostream& os) const;
 
 protected:
     /// Data points

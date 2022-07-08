@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,9 +40,7 @@
 
 // #define DEBUG_READER
 
-namespace OpenMS
-{
-namespace Internal
+namespace OpenMS::Internal
 {
 
   void IndexedMzMLHandler::parseFooter_()
@@ -76,8 +74,14 @@ namespace Internal
     spectra_before_chroms_ = true;
     if (!spectra_offsets_.empty() && !chromatograms_offsets_.empty())
     {
-      if (spectra_offsets_[0] < chromatograms_offsets_[0]) spectra_before_chroms_ = true;
-      else spectra_before_chroms_ = false;
+      if (spectra_offsets_[0] < chromatograms_offsets_[0])
+      {
+        spectra_before_chroms_ = true;
+      }
+      else
+      {
+        spectra_before_chroms_ = false;
+      }
     }
 
     parsing_success_ = (res == 0);
@@ -322,5 +326,4 @@ namespace Internal
     MzMLSpectrumDecoder(skip_xml_checks_).domParseChromatogram(text, c);
   }
 
-}
-}
+} //namespace OpenMS  //namespace Internal

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,11 +56,13 @@ namespace OpenMS
 
   void PeakPickerMaxima::findMaxima(const std::vector<double>& mz_array, 
       const std::vector<double>& int_array, std::vector<PeakCandidate>& pc, 
-      bool check_spacings)
+      bool check_spacings) const
   {
     // don't pick a spectrum with less than 5 data points
-    if (mz_array.size() < 5) return;
-
+    if (mz_array.size() < 5)
+    {
+      return;
+    }
     // signal-to-noise estimation
     SignalToNoiseEstimatorMedianRapid::NoiseEstimator noise_estimator(0, 0, 0);
     if (signal_to_noise_ > 0.0)
@@ -77,9 +79,14 @@ namespace OpenMS
       double right_neighbor_mz = mz_array[i + 1], right_neighbor_int = int_array[i + 1];
 
       // do not interpolate when the left or right support is a zero-data-point
-      if (std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon()) continue;
-      if (std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon()) continue;
-
+      if (std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon())
+      {
+        continue;
+      }
+      if (std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon())
+      {
+        continue;
+      }
       // MZ spacing sanity checks
       double left_to_central = std::fabs(central_peak_mz - left_neighbor_mz);
       double central_to_right = std::fabs(right_neighbor_mz - central_peak_mz);
@@ -220,8 +227,10 @@ namespace OpenMS
         candidate.right_boundary = i + k - 1;
 
         // If we walked one too far, lets backtrack
-        if (missing_right >= missing_) candidate.right_boundary--;
-
+        if (missing_right >= missing_)
+        {
+          candidate.right_boundary--;
+        }
         // jump over raw data points that have been considered already
         i = i + k - 1;
         pc.push_back(candidate);
@@ -234,8 +243,10 @@ namespace OpenMS
       std::vector<PeakCandidate>& pc,
       bool check_spacings)
   {
-    if (mz_array.size() < 5) return;
-
+    if (mz_array.size() < 5)
+    {
+      return;
+    }
     findMaxima(mz_array, int_array, pc, check_spacings);
 
     // Go through all peak candidates and find accurate mz / int values based on the spline interpolation
@@ -259,8 +270,10 @@ namespace OpenMS
                                                     int_array.begin() + candidate.right_boundary + 1);
 
       // skip if the minimal number of 3 points for fitting is not reached
-      if (raw_mz_values.size() < 4) continue;
-
+      if (raw_mz_values.size() < 4)
+      {
+        continue;
+      }
 
       CubicSpline2d peak_spline(raw_mz_values, raw_int_values);
 

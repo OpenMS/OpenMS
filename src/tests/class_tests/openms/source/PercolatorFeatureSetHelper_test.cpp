@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,7 @@
 using namespace OpenMS;
 using namespace std;
 
-bool check_pepids(vector<PeptideIdentification> check, vector<PeptideIdentification> against)
+bool check_pepids(const vector<PeptideIdentification>& check, const vector<PeptideIdentification>& against)
 {
     std::vector<String> upk, upkc;
     TEST_EQUAL(check.size(), against.size())
@@ -67,7 +67,7 @@ bool check_pepids(vector<PeptideIdentification> check, vector<PeptideIdentificat
     return true;
 }
 
-bool check_proids(vector<ProteinIdentification> check, vector<ProteinIdentification> against, vector<String> fs)
+bool check_proids(const vector<ProteinIdentification>& check, const vector<ProteinIdentification>& against, const vector<String>& fs)
 {
     TEST_EQUAL(check.size(), against.size())
     if (check.size()!= against.size())
@@ -190,7 +190,7 @@ START_SECTION((static void addMSGFFeatures(std::vector< PeptideIdentification > 
     PercolatorFeatureSetHelper::addMSGFFeatures(msgf_pids,fs);
 
     //check completeness of feature construction
-    ABORT_IF(check_pepids(msgf_check_pids, msgf_pids));
+    ABORT_IF(!check_pepids(msgf_check_pids, msgf_pids));
 
     //check registration of percolator features for adapter
     ABORT_IF(!check_proids(msgf_check_pods, msgf_pods, fs));
@@ -207,10 +207,10 @@ START_SECTION((static void addXTANDEMFeatures(std::vector< PeptideIdentification
     PercolatorFeatureSetHelper::addXTANDEMFeatures(xtandem_pids, fs);
 
     //check completeness of feature construction
-    ABORT_IF(check_pepids(xtandem_check_pids, xtandem_pids));
+    ABORT_IF(!check_pepids(xtandem_check_pids, xtandem_pids));
 
     //check registration of percolator features for adapter
-    ABORT_IF(check_proids(xtandem_check_pods, xtandem_pods, fs));
+    ABORT_IF(!check_proids(xtandem_check_pods, xtandem_pods, fs));
 }
 END_SECTION
 

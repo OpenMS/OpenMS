@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
         #  DefaultParamHandler
 
         AbsoluteQuantitation() nogil except +
-        AbsoluteQuantitation(AbsoluteQuantitation)  nogil except + #wrap-ignore
+        AbsoluteQuantitation(AbsoluteQuantitation &)  nogil except + # compiler
 
         void setQuantMethods(libcpp_vector[ AbsoluteQuantitationMethod ]& quant_methods) nogil except +
         libcpp_vector[ AbsoluteQuantitationMethod ] getQuantMethods() nogil except +
@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
 
         double applyCalibration(const Feature & component, const Feature & IS_component, const String & feature_name, 
                                 const String & transformation_model, const Param & transformation_model_params) nogil except +
-        void quantifyComponents(FeatureMap& unknowns) nogil except +
+        void quantifyComponents(FeatureMap& unknowns) nogil except + # wrap-doc:This function applies the calibration curve, hence quantifying all the components
 
         bool optimizeCalibrationCurveIterative(
             libcpp_vector[ AQS_featureConcentration ] & component_concentrations,
@@ -37,7 +37,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
 
         # libcpp_map[ String, AbsoluteQuantitationMethod ] getQuantMethodsAsMap() nogil except +
 
-        double calculateBias(double actual_concentration, double calculated_concentration) nogil except +
+        double calculateBias(double actual_concentration, double calculated_concentration) nogil except + # wrap-doc:This function calculates the bias of the calibration
 
         Param fitCalibration(libcpp_vector[ AQS_featureConcentration ] & component_concentrations,
                              const String & feature_name,

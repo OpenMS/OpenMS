@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,11 +34,16 @@
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>
+
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
+
+#include <boost/math/special_functions/fpclassify.hpp>
+
+#include <map>
 
 //#define DAC_DEBUG
 //#define ESTIMATE_PRECURSOR_DEBUG
@@ -279,7 +284,7 @@ namespace OpenMS
     ion_scoring_param.setValue("max_isotope", max_isotope_);
     ion_scoring.setParameters(ion_scoring_param);
 
-    Map<double, IonScore> ion_scores;
+    std::map<double, IonScore> ion_scores;
     ion_scoring.scoreSpectra(ion_scores, new_CID_spec, new_ETD_spec, precursor_weight, charge);
 
     new_CID_spec.sortByPosition();
@@ -501,10 +506,10 @@ namespace OpenMS
       hits.resize(number_of_prescoring_hits);
     }
 
-    for (vector<PeptideHit>::iterator it = hits.begin(); it != hits.end(); ++it)
+    for (PeptideHit& pep : hits)
     {
       PeakSpectrum ETD_sim_spec, CID_sim_spec;
-      String mod_string = getModifiedStringFromAASequence_(it->getSequence());
+      String mod_string = getModifiedStringFromAASequence_(pep.getSequence());
       getETDSpectrum_(ETD_sim_spec, mod_string, charge);
       getCIDSpectrum_(CID_sim_spec, mod_string, charge);
 
@@ -518,7 +523,7 @@ namespace OpenMS
       cerr << "Final: " << it->getSequence() << " " << cid_score << " " << etd_score << " " << 2 * cid_score + etd_score << endl;
       */
 
-      it->setScore(cid_score + etd_score);
+      pep.setScore(cid_score + etd_score);
     }
 
     id.setHits(hits);
@@ -585,7 +590,7 @@ namespace OpenMS
 
       score /= it->size();
 
-      if (boost::math::isnan(score))
+      if (std::isnan(score))
       {
         score = 0;
       }
@@ -625,7 +630,7 @@ namespace OpenMS
   }
 
 // divide and conquer algorithm of the sequencing
-  void CompNovoIdentification::getDecompositionsDAC_(set<String> & sequences, Size left, Size right, double peptide_weight, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec, Map<double, CompNovoIonScoring::IonScore> & ion_scores)
+  void CompNovoIdentification::getDecompositionsDAC_(set<String> & sequences, Size left, Size right, double peptide_weight, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec, std::map<double, CompNovoIonScoring::IonScore> & ion_scores)
   {
     static double oxonium_mass = EmpiricalFormula("H2O+").getMonoWeight();
     double offset_suffix(CID_spec[left].getPosition()[0] - oxonium_mass);
@@ -646,7 +651,7 @@ namespace OpenMS
     cerr << "offset_prefix=" << offset_prefix << ", offset_suffix=" << offset_suffix << endl;
 #endif
 
-    if (subspec_to_sequences_.has(left) && subspec_to_sequences_[left].has(right))
+    if (subspec_to_sequences_.find(left) != subspec_to_sequences_.end() && subspec_to_sequences_[left].find(right) != subspec_to_sequences_[left].end())
     {
       sequences = subspec_to_sequences_[left][right];
 
@@ -679,14 +684,14 @@ namespace OpenMS
 #endif
 
       //static Map<String, set<String> > permute_cache;
-      for (vector<MassDecomposition>::const_iterator it = decomps.begin(); it != decomps.end(); ++it)
+      for (const MassDecomposition& it : decomps)
       {
 #ifdef DAC_DEBUG
-        cerr << it->toString() << endl;
+        cerr << it.toString() << endl;
 #endif
 
-        String exp_string = it->toExpandedString();
-        if (!permute_cache_.has(exp_string))
+        String exp_string = it.toExpandedString();
+        if (permute_cache_.find(exp_string) == permute_cache_.end())
         {
           permute_("", exp_string, sequences);
           permute_cache_[exp_string] = sequences;
@@ -742,25 +747,25 @@ namespace OpenMS
     // run divide step
 #ifdef DAC_DEBUG
     cerr << tabs_ << "Selected " << pivots.size() << " pivot ions: ";
-    for (vector<Size>::const_iterator it = pivots.begin(); it != pivots.end(); ++it)
+    for (const Size& it : pivots)
     {
-      cerr << *it << "(" << CID_spec[*it].getPosition()[0] << ") ";
+      cerr << it << "(" << CID_spec[it].getPosition()[0] << ") ";
     }
     cerr << endl;
 #endif
 
-    for (vector<Size>::const_iterator it = pivots.begin(); it != pivots.end(); ++it)
+    for (const Size& it : pivots)
     {
       set<String> seq1, seq2, new_sequences;
 
       // the smaller the 'gap' the greater the chance of not finding anything
       // so we we compute the smaller gap first
-      double diff1(CID_spec[*it].getPosition()[0] - CID_spec[left].getPosition()[0]);
-      double diff2(CID_spec[right].getPosition()[0] - CID_spec[*it].getPosition()[0]);
+      double diff1(CID_spec[it].getPosition()[0] - CID_spec[left].getPosition()[0]);
+      double diff2(CID_spec[right].getPosition()[0] - CID_spec[it].getPosition()[0]);
 
       if (diff1 < diff2)
       {
-        getDecompositionsDAC_(seq1, left, *it, peptide_weight, CID_spec, ETD_spec, ion_scores);
+        getDecompositionsDAC_(seq1, left, it, peptide_weight, CID_spec, ETD_spec, ion_scores);
         if (seq1.empty())
         {
 #ifdef DAC_DEBUG
@@ -769,11 +774,11 @@ namespace OpenMS
           continue;
         }
 
-        getDecompositionsDAC_(seq2, *it, right, peptide_weight, CID_spec, ETD_spec, ion_scores);
+        getDecompositionsDAC_(seq2, it, right, peptide_weight, CID_spec, ETD_spec, ion_scores);
       }
       else
       {
-        getDecompositionsDAC_(seq2, *it, right, peptide_weight, CID_spec, ETD_spec, ion_scores);
+        getDecompositionsDAC_(seq2, it, right, peptide_weight, CID_spec, ETD_spec, ion_scores);
         if (seq2.empty())
         {
 #ifdef DAC_DEBUG
@@ -782,7 +787,7 @@ namespace OpenMS
           continue;
         }
 
-        getDecompositionsDAC_(seq1, left, *it, peptide_weight, CID_spec, ETD_spec, ion_scores);
+        getDecompositionsDAC_(seq1, left, it, peptide_weight, CID_spec, ETD_spec, ion_scores);
       }
 
 #ifdef DAC_DEBUG
@@ -871,8 +876,8 @@ namespace OpenMS
     double peptide_weight(0);
     // for each possible charge state just get all possible precursor peaks
     double precursor_mz(ETD_spec.getPrecursors().begin()->getMZ());
-    Map<Size, Map<Size, vector<Peak1D> > > peaks;
-    Map<Size, Map<Size, vector<double> > > correlations;
+    std::map<Size, std::map<Size, vector<Peak1D> > > peaks;
+    std::map<Size, std::map<Size, vector<double> > > correlations;
     for (PeakSpectrum::ConstIterator it = ETD_spec.begin(); it != ETD_spec.end(); ++it)
     {
       for (Size prec_z = 1; prec_z <= 3; ++prec_z)
@@ -895,13 +900,13 @@ namespace OpenMS
     }
 
     // for each possible peptide charge state
-    Map<Size, double> correlation_sums;
-    Map<Size, Map<Size, pair<double, double> > > best_corr_ints;
-    for (Map<Size, Map<Size, vector<double> > >::ConstIterator it1 = correlations.begin(); it1 != correlations.end(); ++it1)
+    std::map<Size, double> correlation_sums;
+    std::map<Size, std::map<Size, pair<double, double> > > best_corr_ints;
+    for (std::map<Size, std::map<Size, vector<double> > >::const_iterator it1 = correlations.begin(); it1 != correlations.end(); ++it1)
     {
       double correlation_sum(0);
       // search for the best correlation
-      for (Map<Size, vector<double> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      for (std::map<Size, vector<double> >::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
       {
         double best_correlation(0);
         Size best_pos(0);
@@ -923,10 +928,10 @@ namespace OpenMS
 
     double best_correlation = 0;
     Size best_charge = 0;
-    for (Map<Size, double>::ConstIterator it = correlation_sums.begin(); it != correlation_sums.end(); ++it)
+    for (std::map<Size, double>::const_iterator it = correlation_sums.begin(); it != correlation_sums.end(); ++it)
     {
       //cerr << "Correlations z=" << it->first << ", corr=" << it->second << endl;
-      for (Map<Size, pair<double, double> >::ConstIterator mit = best_corr_ints[it->first].begin(); mit != best_corr_ints[it->first].end(); ++mit)
+      for (std::map<Size, pair<double, double> >::const_iterator mit = best_corr_ints[it->first].begin(); mit != best_corr_ints[it->first].end(); ++mit)
       {
         //cerr << "CorrelationIntensity: z=" << mit->first << ", corr=" << mit->second.first << ", m/z=" << mit->second.second << " [M+H]=" << (mit->second.second * (double)mit->first) - ((double)mit->first - 1) * Constants::NEUTRON_MASS_U  << endl;
       }
@@ -941,7 +946,7 @@ namespace OpenMS
     charge = best_charge;
 
     // check whether charge one is available
-    if (best_corr_ints[best_charge].has(1))
+    if (best_corr_ints[best_charge].find(1) != best_corr_ints[best_charge].end())
     {
       peptide_weight = best_corr_ints[best_charge][1].second;
     }
@@ -951,7 +956,7 @@ namespace OpenMS
       best_correlation = 0;
       double best_corr_mz = 0;
       Size best_corr_z = 0;
-      for (Map<Size, pair<double, double> >::ConstIterator it = best_corr_ints[best_charge].begin(); it != best_corr_ints[best_charge].end(); ++it)
+      for (std::map<Size, pair<double, double> >::const_iterator it = best_corr_ints[best_charge].begin(); it != best_corr_ints[best_charge].end(); ++it)
       {
         if (it->second.first > best_correlation)
         {
@@ -1036,7 +1041,7 @@ namespace OpenMS
 
             if (max_element_z3 < 0)
             {
-                // isotope scoring was not successful, only decide on the intensities, however scale to prefer ions which clearly have good isopattern
+                // isotope scoring was not successful, only decide on the intensities, however scale to prefer ions which clearly have good isotope pattern
                 max_element_z3 = *max_element(precursor_ints_3_z2.begin(), precursor_ints_3_z2.end()) / 100;
             }
             else
@@ -1050,7 +1055,7 @@ namespace OpenMS
             max_element_z2 = *max_element(iso_scores_2_z1.begin(), iso_scores_2_z1.end());
             if (max_element_z2 < 0)
             {
-                // isotope scoring was not successful, only decide on the intensities, however scale to prefer ions which clearly have good isopattern
+                // isotope scoring was not successful, only decide on the intensities, however scale to prefer ions which clearly have good isotope pattern
                 max_element_z2 = *max_element(precursor_ints_2_z1.begin(), precursor_ints_2_z1.end()) / 100;
             }
             else

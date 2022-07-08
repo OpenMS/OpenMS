@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -146,6 +146,21 @@ protected:
                           "Use (D+1)/(T) instead of (D+1)/(T+D) for reporting protein FDRs.", false, true);
     setValidStrings_("conservative_fdr", {"true","false"});
 
+    registerStringOption_("picked_fdr",
+                          "<option>",
+                          "true",
+                          "Use picked protein FDRs.", false, true);
+    setValidStrings_("picked_fdr", {"true","false"});
+    registerStringOption_("picked_decoy_string",
+                          "<decoy_string>",
+                          "",
+                          "If using picked protein FDRs, which decoy string was used? Leave blank for auto-detection.", false, true);
+    registerStringOption_("picked_decoy_prefix",
+                          "<option>",
+                          "prefix",
+                          "If using picked protein FDRs, was the decoy string a prefix or suffix? Ignored during auto-detection.", false, true);
+    setValidStrings_("picked_decoy_prefix", {"prefix","suffix"});
+
     registerStringOption_("greedy_group_resolution",
                        "<option>",
                        "none",
@@ -281,10 +296,10 @@ protected:
       ConsensusMap cmap;
       ConsensusXMLFile cxmlf;
       cxmlf.load(files[0], cmap);
-      boost::optional<const ExperimentalDesign> edopt = maybeGetExpDesign_(exp_des);
+      std::optional<const ExperimentalDesign> edopt = maybeGetExpDesign_(exp_des);
       if (!exp_des.empty())
       {
-        cmerge.mergeProteinsAcrossFractionsAndReplicates(cmap, edopt.get());
+        cmerge.mergeProteinsAcrossFractionsAndReplicates(cmap, edopt.value());
       }
       else
       {
@@ -336,7 +351,14 @@ protected:
         fdr.setParameters(fdrparam);
         for (auto& run : cmap.getProteinIdentifications())
         {
-          fdr.applyBasic(run, true);
+          if (getStringOption_("picked_fdr") == "true")
+          {
+            fdr.applyPickedProteinFDR(run, getStringOption_("picked_decoy_string"), getStringOption_("picked_decoy_prefix") == "prefix");
+          }
+          else
+          {
+            fdr.applyBasic(run, true);
+          }
         }
       }
 
@@ -353,7 +375,6 @@ protected:
       {
         for (String& file : files)
         {
-          //TODO this only works for idXML
           vector<ProteinIdentification> prots;
           vector<PeptideIdentification> peps;
           idXMLf.load(file, prots, peps);
@@ -402,30 +423,10 @@ protected:
 
       BayesianProteinInferenceAlgorithm bpi1(getIntOption_("debug"));
       bpi1.setParameters(epifany_param);
-      bpi1.inferPosteriorProbabilities(mergedprots, mergedpeps);
+      bpi1.inferPosteriorProbabilities(mergedprots, mergedpeps, greedy_group_resolution);
       OPENMS_LOG_INFO << "Inference total took " << sw.toString() << std::endl;
       sw.stop();
 
-      // Let's always add all the proteins to the protein group section, easier in postprocessing.
-      // PeptideProteinResolution needs it anyway.
-      //Note: this might be possible with the addSingleton option when clustering the graph
-      //  But this would lead to unnecessary computations during inference. So add after.
-      //The PeptideProteinResolution class needs it.
-      //TODO remove, when resolution in IDBGraph is stable
-      mergedprots[0].fillIndistinguishableGroupsWithSingletons();
-
-      if (greedy_group_resolution)
-      {
-        OPENMS_LOG_INFO << "Postprocessing: Removing associations from spectrum via best PSM to all but the best protein group..." << std::endl;
-        //TODO add group resolution to the IDBoostGraph class so we do not
-        // unnecessarily build a second (old) data structure
-
-        PeptideProteinResolution ppr;
-        ppr.buildGraph(mergedprots[0], mergedpeps);
-        ppr.resolveGraph(mergedprots[0], mergedpeps);
-
-        //PeptideProteinResolution::resolve(mergedprots[0], mergedpeps, true, false);
-      }
       if (remove_prots_wo_evidence)
       {
         OPENMS_LOG_INFO << "Postprocessing: Removing proteins without associated evidence..." << std::endl;
@@ -443,7 +444,14 @@ protected:
         fdrparam.setValue("conservative", getStringOption_("conservative_fdr"));
         fdrparam.setValue("add_decoy_proteins","true");
         fdr.setParameters(fdrparam);
-        fdr.applyBasic(mergedprots[0], true);
+        if (getStringOption_("picked_fdr") == "true")
+        {
+          fdr.applyPickedProteinFDR(mergedprots[0], getStringOption_("picked_decoy_string"), getStringOption_("picked_decoy_prefix") == "prefix");
+        }
+        else
+        {
+          fdr.applyBasic(mergedprots[0], true);
+        }
       }
 
       OPENMS_LOG_INFO << "Writing inference run as first ProteinIDRun with " <<
@@ -476,10 +484,10 @@ protected:
   // - merge and don't assume same proteins: -> We need an extended graph, that has multiple versions
   //   of the proteins for every sample
 
-  static boost::optional<const ExperimentalDesign> maybeGetExpDesign_(const String& filename)
+  static std::optional<const ExperimentalDesign> maybeGetExpDesign_(const String& filename)
   {
-    if (filename.empty()) return boost::none;
-    return boost::optional<const ExperimentalDesign>(ExperimentalDesignFile::load(filename, false));
+    if (filename.empty()) return std::nullopt;
+    return std::optional<const ExperimentalDesign>(ExperimentalDesignFile::load(filename, false));
   }
 };
 

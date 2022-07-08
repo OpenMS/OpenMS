@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,14 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
+#include <boost/assign.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/variate_generator.hpp>
+#include <boost/unordered_map.hpp>
+#include <unordered_set>
+
 namespace OpenMS
 {
 
@@ -59,7 +67,7 @@ namespace OpenMS
   }
 
   void MRMDecoy::updateMembers_()
-    {
+  {
     keep_const_pattern_ = param_.getValue("non_shuffle_pattern").toString();
     keepN_ = param_.getValue("keepPeptideNTerm").toBool();
     keepC_ = param_.getValue("keepPeptideCTerm").toBool();
@@ -67,24 +75,24 @@ namespace OpenMS
 
   MRMDecoy::IndexType MRMDecoy::findFixedResidues(const std::string& sequence,
       bool keepN, bool keepC, const OpenMS::String& keep_const_pattern)
-      {
+  {
     // also blocks both N- and C-terminus from shuffling if required
     MRMDecoy::IndexType idx;
     for (size_t i = 0; i < sequence.size(); i++)
-        {
-      if ( (keepN && i == 0) || (keepC && i + 1 == sequence.size()) )
+    {
+      if ( (keepN && i == 0) || (keepC && i + 1 == sequence.size()))
       {
         idx.push_back(i);
         continue;
-        }
+      }
 
       for (size_t j = 0; j < keep_const_pattern.size(); j++)
       {
         if (sequence[i] == keep_const_pattern[j])
         {
           idx.push_back(i);
+        }
       }
-    }
     }
     return idx;
   }
@@ -167,7 +175,7 @@ namespace OpenMS
 
       // shuffle the peptide index (without the K/P/R which we leave in place)
       // one could also use std::random_shuffle here but then the code becomes
-      // untestable since the implementation of std::random_shuffle differs
+      // not testable since the implementation of std::random_shuffle differs
       // between libc++ (llvm/mac-osx) and libstdc++ (gcc) and VS
       // see also https://code.google.com/p/chromium/issues/detail?id=358564
       // the actual code here for the shuffling is based on the implementation of
@@ -324,8 +332,7 @@ namespace OpenMS
     return MRMDecoy::reversePeptide(peptide, false, false);
   }
 
-
-  void switchKR(OpenMS::TargetedExperiment::Peptide& peptide)
+  void MRMDecoy::switchKR(OpenMS::TargetedExperiment::Peptide& peptide) const
   {
     static std::string aa[] =
     {
@@ -338,14 +345,14 @@ namespace OpenMS
     static boost::uniform_int<> uni_dist;
     static boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
 
-    Size lastAA = peptide.sequence.size() -1;
+    Size lastAA = peptide.sequence.size() - 1;
     if (peptide.sequence[lastAA] == 'K')
     {
       peptide.sequence[lastAA] = 'R';
     }
     else if (peptide.sequence[lastAA] == 'R')
     {
-       peptide.sequence[lastAA] = 'K';
+      peptide.sequence[lastAA] = 'K';
     }
     else
     {
@@ -371,6 +378,27 @@ namespace OpenMS
     return false;
   }
 
+  String MRMDecoy::getModifiedPeptideSequence_(const OpenMS::TargetedExperiment::Peptide& pep) const
+  {
+    String full_peptide_name;
+    for (int loc = -1; loc <= (int)pep.sequence.size(); loc++)
+    {
+      if (loc > -1 && loc < (int)pep.sequence.size())
+      {
+        full_peptide_name += pep.sequence[loc];
+      }
+      // C-terminal and N-terminal modifications may be at positions -1 or pep.sequence
+      for (Size modloc = 0; modloc < pep.mods.size(); modloc++)
+      {
+        if (pep.mods[modloc].location == loc)
+        {
+          full_peptide_name += "(UniMod:" + String(pep.mods[modloc].unimod_id) + ")";
+        }
+      }
+    }
+    return full_peptide_name;
+  }
+  
   void MRMDecoy::generateDecoys(const OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
                                 const String& method, const double aim_decoy_fraction, const bool do_switchKR,
                                 const String& decoy_tag, const int max_attempts, const double identity_threshold,
@@ -394,11 +422,11 @@ namespace OpenMS
     item_list.reserve(exp.getPeptides().size());
     for (Size k = 0; k < exp.getPeptides().size(); k++) {item_list.push_back(k);}
 
-    if ( aim_decoy_fraction > 1.0 )
+    if (aim_decoy_fraction > 1.0)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decoy fraction needs to be less than one (values larger than one currently not supported).");
     }
-    else if ( aim_decoy_fraction < 1.0)
+    else if (aim_decoy_fraction < 1.0)
     {
       Math::RandomShuffler shuffler;
       shuffler.portable_random_shuffle(item_list.begin(), item_list.end());
@@ -414,7 +442,17 @@ namespace OpenMS
       selection_list = item_list;
     }
 
-    std::vector<String> exclusion_peptides;
+    // Create an unordered_map of all peptide sequences and their IDs, this will be used to search if a decoy sequence is also a target sequence
+    std::unordered_map<std::string, std::string> allPeptideSequences;
+    for (const auto& pep_idx: selection_list)
+    {
+      OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[pep_idx];
+
+      // create a modified peptide sequence string
+      allPeptideSequences[MRMDecoy::getModifiedPeptideSequence_(peptide)] = peptide.id;
+    }
+
+    std::unordered_set<String> exclusion_peptides;
     // Go through all peptides and apply the decoy method to the sequence
     // (pseudo-reverse, reverse or shuffle). Then set the peptides and proteins of the decoy
     // experiment.
@@ -439,12 +477,12 @@ namespace OpenMS
         if (MRMDecoy::hasCNterminalMods_(peptide, do_switchKR))
         {
           OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
-          exclusion_peptides.push_back(peptide.id);
+          exclusion_peptides.insert(peptide.id);
         }
         else
         {
           peptide = MRMDecoy::pseudoreversePeptide_(peptide);
-          if (do_switchKR) switchKR(peptide);
+          if (do_switchKR) { switchKR(peptide); }
         }
       }
       else if (method == "reverse")
@@ -453,7 +491,7 @@ namespace OpenMS
         if (MRMDecoy::hasCNterminalMods_(peptide, false))
         {
           OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
-          exclusion_peptides.push_back(peptide.id);
+          exclusion_peptides.insert(peptide.id);
         }
         else
         {
@@ -466,9 +504,22 @@ namespace OpenMS
         if (do_switchKR && MRMDecoy::hasCNterminalMods_(peptide, do_switchKR))
         {
           OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
-          exclusion_peptides.push_back(peptide.id);
+          exclusion_peptides.insert(peptide.id);
         }
-        else if (do_switchKR) switchKR(peptide);
+        else if (do_switchKR) { switchKR(peptide); }
+      }
+
+      // Check that the decoy sequence does not happen to be a target sequence AND is not already present
+      if (allPeptideSequences.find(peptide.sequence) != allPeptideSequences.end())
+      {
+        OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " since decoy peptide is also a target peptide or this decoy peptide is already present" << std::endl;
+        exclusion_peptides.insert(peptide.id);
+      }
+      else
+      {
+        // Since this decoy will be added, add it to the peptide map so that the same decoy is not added twice
+        OPENMS_LOG_DEBUG << "[peptide] adding " << peptide.id << " to master list of peptides " << std::endl;
+        allPeptideSequences[MRMDecoy::getModifiedPeptideSequence_(peptide)] = peptide.id;
       }
 
       for (Size prot_idx = 0; prot_idx < peptide.protein_refs.size(); ++prot_idx)
@@ -497,7 +548,7 @@ namespace OpenMS
 
       String peptide_ref = pep_it->first;
       String decoy_peptide_ref = decoy_tag + pep_it->first; // see above, the decoy peptide id is computed deterministically from the target id
-      if (!dec.hasPeptide(decoy_peptide_ref)) {continue;}
+      if (!dec.hasPeptide(decoy_peptide_ref)) { continue; }
       const TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(peptide_ref);
 
       const TargetedExperiment::Peptide decoy_peptide = dec.getPeptideByRef(decoy_peptide_ref);
@@ -506,15 +557,15 @@ namespace OpenMS
 
       int decoy_charge = 1;
       int target_charge = 1;
-      if (decoy_peptide.hasCharge()) {decoy_charge = decoy_peptide.getChargeState();}
-      if (target_peptide.hasCharge()) {target_charge = target_peptide.getChargeState();}
+      if (decoy_peptide.hasCharge()) { decoy_charge = decoy_peptide.getChargeState(); }
+      if (target_peptide.hasCharge()) { target_charge = target_peptide.getChargeState(); }
 
       MRMIonSeries::IonSeries decoy_ionseries = mrmis.getIonSeries(decoy_peptide_sequence, decoy_charge,
-            fragment_types, fragment_charges, enable_specific_losses,
-            enable_unspecific_losses, round_decPow);
+                                                                   fragment_types, fragment_charges, enable_specific_losses,
+                                                                   enable_unspecific_losses, round_decPow);
       MRMIonSeries::IonSeries target_ionseries = mrmis.getIonSeries(target_peptide_sequence, target_charge,
-            fragment_types, fragment_charges, enable_specific_losses,
-            enable_unspecific_losses, round_decPow);
+                                                                    fragment_types, fragment_charges, enable_specific_losses,
+                                                                    enable_unspecific_losses, round_decPow);
 
       // Compute (new) decoy precursor m/z based on the K/R replacement and the AA changes in the shuffle algorithm
       double decoy_precursor_mz = decoy_peptide_sequence.getMZ(decoy_charge);
@@ -557,7 +608,7 @@ namespace OpenMS
         else
         {
           // transition could not be annotated, remove whole peptide
-          exclusion_peptides.push_back(decoy_tr.getPeptideRef());
+          exclusion_peptides.insert(decoy_tr.getPeptideRef());
           OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_tr.getPeptideRef() << " due to missing annotation" << std::endl;
         }
       } // end loop over transitions
@@ -565,28 +616,25 @@ namespace OpenMS
     } // end loop over peptides
     endProgress();
 
-    MRMDecoy::TransitionVectorType filtered_decoy_transitions;
-    for (MRMDecoy::TransitionVectorType::iterator tr_it = decoy_transitions.begin(); tr_it != decoy_transitions.end(); ++tr_it)
+    decoy_transitions.erase(std::remove_if(
+                            decoy_transitions.begin(), decoy_transitions.end(),
+                            [&exclusion_peptides](const OpenMS::ReactionMonitoringTransition& tr)
     {
-      if (std::find(exclusion_peptides.begin(), exclusion_peptides.end(), tr_it->getPeptideRef()) == exclusion_peptides.end())
-      {
-        filtered_decoy_transitions.push_back(*tr_it);
-      }
-    }
-    dec.setTransitions(filtered_decoy_transitions);
+      return exclusion_peptides.find(tr.getPeptideRef()) != exclusion_peptides.end();
+    }), decoy_transitions.end());
+    dec.setTransitions(std::move(decoy_transitions));
 
-    std::vector<String> protein_ids;
-    for (Size i = 0; i < peptides.size(); ++i)
+    std::unordered_set<String> protein_ids;
+    decoy_peptides.reserve(peptides.size());
+    for (const auto& peptide : peptides)
     {
-      TargetedExperiment::Peptide peptide = peptides[i];
-
       // Check if peptide has any transitions left
-      if (std::find(exclusion_peptides.begin(), exclusion_peptides.end(), peptide.id) == exclusion_peptides.end())
+      if (exclusion_peptides.find(peptide.id) == exclusion_peptides.end())
       {
         decoy_peptides.push_back(peptide);
         for (Size j = 0; j < peptide.protein_refs.size(); ++j)
         {
-          protein_ids.push_back(peptide.protein_refs[j]);
+          protein_ids.insert(peptide.protein_refs[j]);
         }
       }
       else
@@ -595,12 +643,11 @@ namespace OpenMS
       }
     }
 
-    for (Size i = 0; i < proteins.size(); ++i)
+    decoy_proteins.reserve(proteins.size());
+    for (const auto& protein : proteins)
     {
-      OpenMS::TargetedExperiment::Protein protein = proteins[i];
-
       // Check if protein has any peptides left
-      if (find(protein_ids.begin(), protein_ids.end(), protein.id) != protein_ids.end())
+      if (protein_ids.find(protein.id) != protein_ids.end())
       {
         decoy_proteins.push_back(protein);
       }
@@ -610,10 +657,9 @@ namespace OpenMS
       }
     }
 
-    dec.setPeptides(decoy_peptides);
-    dec.setProteins(decoy_proteins);
+    dec.setPeptides(std::move(decoy_peptides));
+    dec.setProteins(std::move(decoy_proteins));
 
   }
 
 }
-

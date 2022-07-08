@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,12 +35,15 @@
 #include <OpenMS/SIMULATION/RTSimulation.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/cauchy_distribution.hpp>
 #include <boost/random/uniform_real.hpp>
+
+#include <map>
 
 using std::vector;
 using std::cout;
@@ -131,7 +134,7 @@ namespace OpenMS
     defaults_.setSectionDescription("profile_shape:skewness", "Skewness of the EGH elution shape, i.e. the tau parameter, which is computed using 'value' + rnd_cauchy('variance')");
 
     // HPLC specific Parameters
-    defaults_.setValue("HPLC:model_file", "examples/simulation/RTPredict.model", "SVM model for retention time prediction");
+    defaults_.setValue("HPLC:model_file", "SIMULATION/RTPredict.model", "SVM model for retention time prediction");
 
     // CE specific Parameters
     defaults_.setValue("CE:pH", 3.0, "pH of buffer");
@@ -195,10 +198,9 @@ namespace OpenMS
 
   void RTSimulation::noRTColumn_(SimTypes::FeatureMapSim& features)
   {
-    for (SimTypes::FeatureMapSim::iterator it_f = features.begin(); it_f != features.end();
-         ++it_f)
+    for (Feature& it_f : features)
     {
-      (*it_f).setRT(-1);
+      it_f.setRT(-1);
     }
   }
 
@@ -332,13 +334,17 @@ namespace OpenMS
     }
 
     // print invalid features:
-    if (deleted_features.size() > 0)
+    if (!deleted_features.empty())
     {
       OPENMS_LOG_WARN << "RT prediction gave 'invalid' results for " << deleted_features.size() << " peptide(s), making them unobservable.\n";
       if (deleted_features.size() < 100)
+      {
         OPENMS_LOG_WARN << "  " << ListUtils::concatenate(deleted_features, "\n  ") << std::endl;
+      }
       else
+      {
         OPENMS_LOG_WARN << "  (List is too big to show)" << std::endl;
+      }
     }
     // only retain valid features:
     features.swap(fm_tmp);
@@ -349,10 +355,10 @@ namespace OpenMS
   }
 
   /// PKA values as given in Rickard1991
-  void RTSimulation::getChargeContribution_(Map<String, double>& q_cterm,
-                                            Map<String, double>& q_nterm,
-                                            Map<String, double>& q_aa_basic,
-                                            Map<String, double>& q_aa_acidic)
+  void RTSimulation::getChargeContribution_(std::map<String, double>& q_cterm,
+                                            std::map<String, double>& q_nterm,
+                                            std::map<String, double>& q_aa_basic,
+                                            std::map<String, double>& q_aa_acidic)
   {
     // the actual constants from the paper:
     String aas = "ARNDCQEGHILKMFPSTWYVBZ";
@@ -401,7 +407,7 @@ namespace OpenMS
 
   void RTSimulation::calculateMT_(SimTypes::FeatureMapSim& features, std::vector<double>& predicted_retention_times)
   {
-    Map<String, double> q_cterm, q_nterm, q_aa_basic, q_aa_acidic;
+    std::map<String, double> q_cterm, q_nterm, q_aa_basic, q_aa_acidic;
     getChargeContribution_(q_cterm, q_nterm, q_aa_basic, q_aa_acidic);
 
     double alpha = param_.getValue("CE:alpha");
@@ -418,20 +424,27 @@ namespace OpenMS
 
       double charge = 0;
       // C&N term charge contribution
-      if (q_nterm.has(seq[0]))
-        charge +=  q_nterm[seq[0]];
-      if (q_cterm.has(seq.suffix(1)))
-        charge +=  q_cterm[seq.suffix(1)];
-
-      // sidechains ...
-      Map<String, Size> frequency_table;
-      features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().getAAFrequencies(frequency_table);
-      for (Map<String, Size>::const_iterator it = frequency_table.begin(); it != frequency_table.end(); ++it)
+      if (q_nterm.find(seq[0]) != q_nterm.end())
       {
-        if (q_aa_basic.has(it->first))
+        charge +=  q_nterm[seq[0]];
+      }
+      if (q_cterm.find(seq.suffix(1)) != q_cterm.end())
+      {
+        charge +=  q_cterm[seq.suffix(1)];
+      }
+      // sidechains ...
+      std::map<String, Size> frequency_table;
+      features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().getAAFrequencies(frequency_table);
+      for (std::map<String, Size>::const_iterator it = frequency_table.begin(); it != frequency_table.end(); ++it)
+      {
+        if (q_aa_basic.find(it->first) != q_aa_basic.end())
+        {
           charge +=  q_aa_basic[it->first] * it->second;
-        if (q_aa_acidic.has(it->first))
+        }
+        if (q_aa_acidic.find(it->first) != q_aa_acidic.end())
+        {
           charge +=  q_aa_acidic[it->first] * it->second;
+        }
       }
 
       // ** determine mass of peptide
@@ -605,18 +618,16 @@ namespace OpenMS
 
       double current_scan_rt = gradient_min_;
       Size id = 1;
-      for (SimTypes::MSSimExperiment::iterator exp_it = experiment.begin();
-           exp_it != experiment.end();
-           ++exp_it)
+      for (MSSpectrum& spec : experiment)
       {
-        (*exp_it).setRT(current_scan_rt);
+        spec.setRT(current_scan_rt);
 
         String spec_id = String("spectrum=") + id;
         ++id;
-        (*exp_it).setNativeID(spec_id);
+        spec.setNativeID(spec_id);
 
         // dice & store distortion
-        (*exp_it).setMetaValue("distortion", 1);
+        spec.setMetaValue("distortion", 1);
 
         // TODO (for CE) store peak broadening parameter
         current_scan_rt += rt_sampling_rate_;

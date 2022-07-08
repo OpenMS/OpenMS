@@ -62,7 +62,6 @@ set(datastructures_executables_list
   ListUtils_test
   ListUtilsIO_test
   LPWrapper_test
-  Map_test
   MassExplainer_test
   MatchedIterator_test
   Matrix_test
@@ -144,7 +143,6 @@ set(kernel_executables_list
   BaseFeature_test
   ChromatogramPeak_test
   ChromatogramTools_test
-  ComparatorUtils_test
   ConsensusFeature_test
   ConsensusMap_test
   ConversionHelper_test
@@ -222,16 +220,20 @@ set(format_executables_list
   MzMLValidator_test
   MzTab_test
   MzTabFile_test
+  MzTabM_test
+  MzTabMFile_test
   # MSstatsFile_test
   MzQuantMLFile_test
   #MzQuantMLValidator_test
   MzXMLFile_test
   NoopMSDataConsumer_test
   TraMLValidator_test
+  OMSFile_test
   OMSSACSVFile_test
   OMSSAXMLFile_test
   OSWFile_test
   PTMXMLFile_test
+  ParamCTDFile_test
   ParamXMLFile_test
   PeakFileOptions_test
   PeakTypeEstimator_test
@@ -295,7 +297,6 @@ set(math_executables_list
   NonNegativeLeastSquaresSolver_test
   PosteriorErrorProbabilityModel_test
   QuadraticRegression_test
-  #RegressionUtils_test
   RANSAC_test
   RANSACModel_test
   RANSACModelLinear_test
@@ -515,6 +516,7 @@ set(analysis_executables_list
   MRMFeaturePicker_test
   MRMFragmentSelection_test
   MRMMapping_test
+  MRMScoring_test
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmKD_test
   MapAlignmentAlgorithmPoseClustering_test
@@ -638,7 +640,8 @@ endif(NOT DISABLE_OPENSWATH)
 
 set(ionmobility_executables_list
   FAIMSHelper_test
-  MSRunIMSplitter_test
+  IMDataConverter_test
+  IMTypes_test
 )
 
 set(simulation_executables_list
@@ -703,6 +706,9 @@ endif(NOT DISABLE_OPENSWATH)
 set(Boost_dependent_tests
   DIAHelper_test
   EmgModel_test
+  FASTAContainer_test
+  LogConfigHandler_test
+  LogStream_test
   MRMDecoy_test
   MRMFeatureFinderScoring_test
   MRMTransitionGroupPicker_test
@@ -711,6 +717,8 @@ set(Boost_dependent_tests
   OpenSwathMRMFeatureAccessOpenMS_test
   OpenSwathSpectrumAccessOpenMS_test
   PeakPickerMRM_test
+  SpectrumLookup_test
+  SpectrumMetaDataLookup_test
   StatisticFunctions_test
   String_test
   TransitionTSVFile_test

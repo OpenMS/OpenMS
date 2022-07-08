@@ -8,16 +8,16 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
     
     cdef cppclass SVMWrapper "OpenMS::SVMWrapper":
         SVMWrapper() nogil except +
-        SVMWrapper(SVMWrapper) nogil except + #wrap-ignore
+        SVMWrapper(SVMWrapper &) nogil except + # compiler
 
         void setParameter(SVM_parameter_type type_, Int value) nogil except +
         void setParameter(SVM_parameter_type type_, double value) nogil except +
         # Int train(struct svm_problem *problem) nogil except +
-        Int train(SVMData &problem) nogil except +
-        void saveModel(String modelFilename) nogil except +
-        void loadModel(String modelFilename) nogil except +
+        Int train(SVMData &problem) nogil except + # wrap-doc:The svm is trained with the data stored in the 'svm_problem' structure
+        void saveModel(String modelFilename) nogil except + # wrap-doc:The model of the trained svm is saved into 'modelFilename'
+        void loadModel(String modelFilename) nogil except + # wrap-doc:The svm-model is loaded. After this, the svm is ready for prediction
         # void predict(struct svm_problem *problem, libcpp_vector[ double ] &predicted_labels) nogil except +
-        void predict(SVMData &problem, libcpp_vector[ double ] &results) nogil except +
+        void predict(SVMData &problem, libcpp_vector[ double ] &results) nogil except + # wrap-doc:The prediction process is started and the results are stored in 'predicted_labels'
         Int getIntParameter(SVM_parameter_type type_) nogil except +
         double getDoubleParameter(SVM_parameter_type type_) nogil except +
         # TODO STL map with wrapped key
@@ -49,7 +49,7 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
     
     cdef cppclass SVMData "OpenMS::SVMData":
         SVMData() nogil except +
-        SVMData(SVMData) nogil except + #wrap-ignore
+        SVMData(SVMData &) nogil except + # compiler
 
         # TODO nested STL
         # libcpp_vector[ libcpp_vector[ libcpp_pair[ Int, double ] ] ] sequences

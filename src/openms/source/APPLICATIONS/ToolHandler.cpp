@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,6 +74,7 @@ namespace OpenMS
     tools_map["FileFilter"] = Internal::ToolDescription("FileFilter", "File Handling");
     tools_map["FileInfo"] = Internal::ToolDescription("FileInfo", "File Handling");
     tools_map["FileMerger"] = Internal::ToolDescription("FileMerger", "File Handling");
+    tools_map["GNPSExport"] = Internal::ToolDescription("GNPSExport", "File Handling");
     tools_map["HighResPrecursorMassCorrector"] = Internal::ToolDescription("HighResPrecursorMassCorrector", "Signal processing and preprocessing");
     tools_map["IDConflictResolver"] = Internal::ToolDescription("IDConflictResolver", "ID Processing");
     tools_map["IDFileConverter"] = Internal::ToolDescription("IDFileConverter", "ID Processing");
@@ -196,10 +197,8 @@ namespace OpenMS
     util_map["Epifany"] = Internal::ToolDescription("Epifany", util_category);
     util_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", util_category);
     util_map["FeatureFinderMetaboIdent"] = Internal::ToolDescription("FeatureFinderMetaboIdent", util_category);
-    util_map["FeatureFinderSuperHirn"] = Internal::ToolDescription("FeatureFinderSuperHirn", util_category);
     util_map["FFEval"] = Internal::ToolDescription("FFEval", util_category);
     util_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", util_category);
-    util_map["GNPSExport"] = Internal::ToolDescription("GNPSExport", util_category);
     util_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", util_category);
     util_map["IDExtractor"] = Internal::ToolDescription("IDExtractor", util_category);
     util_map["IDMassAccuracy"] = Internal::ToolDescription("IDMassAccuracy", util_category);
@@ -269,19 +268,23 @@ namespace OpenMS
   {
     // for internal tools, query TOPP and UTILS for a match
     Internal::ToolDescription ret;
-    if (getUtilList().has(toolname))
+    const auto& utils = getUtilList();
+    if (utils.find(toolname) != utils.end())
     {
-      return getUtilList()[toolname].types;
+      return utils.at(toolname).types;
     }
     else
     {
       ToolListType tools;
       if (toolname == "GenericWrapper")
+      {
         tools = getTOPPToolList(true);
+      }
       else
+      {
         tools = getTOPPToolList();
-
-      if (tools.has(toolname))
+      }
+      if (tools.find(toolname) != tools.end())
       {
         return tools[toolname].types;
       }
@@ -291,8 +294,10 @@ namespace OpenMS
 
   bool ToolHandler::checkDuplicated(const String& toolname)
   {
-    bool in_utils = getUtilList().has(toolname);
-    bool in_tools = getTOPPToolList().has(toolname);
+    ToolListType utilmap = getUtilList();
+    ToolListType toppmap = getTOPPToolList();
+    bool in_utils = utilmap.find(toolname) != utilmap.end();
+    bool in_tools = toppmap.find(toolname) != toppmap.end();
     bool duplicated = in_utils && in_tools;
     return duplicated;
   }
@@ -340,9 +345,13 @@ namespace OpenMS
       for (Size i_t = 0; i_t < tools.size(); ++i_t)
       {
         if (i == 0 && i_t == 0)
-          tools_external_ = tools[i_t]; // init
+          {
+            tools_external_ = tools[i_t]; // init
+          }
         else
-          tools_external_.append(tools[i_t]); // append
+          {
+            tools_external_.append(tools[i_t]); // append
+          }
       }
     }
     tools_external_.name = "GenericWrapper";
@@ -435,11 +444,11 @@ namespace OpenMS
     ToolListType tools = getTOPPToolList(true);
     ToolListType utils = getUtilList();
     String s;
-    if (tools.has(toolname))
+    if (tools.find(toolname) != tools.end())
     {
       s = tools[toolname].category;
     }
-    else if (utils.has(toolname))
+    else if (utils.find(toolname) != utils.end())
     {
       s = utils[toolname].category;
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 
 #include <numeric>
+#include <map>
 
 //#define ION_SCORING_DEBUG
 
@@ -125,7 +126,7 @@ namespace OpenMS
   {
   }
 
-  void CompNovoIonScoringBase::addSingleChargedIons_(Map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec)
+  void CompNovoIonScoringBase::addSingleChargedIons_(std::map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec)
   {
     double double_charged_iso_threshold_single((double)param_.getValue("double_charged_iso_threshold_single"));
     PeakSpectrum CID_spec_new = CID_spec;
@@ -166,7 +167,7 @@ namespace OpenMS
     CID_spec = CID_spec_new;
   }
 
-  CompNovoIonScoringBase::IsotopeType CompNovoIonScoringBase::classifyIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it)
+  CompNovoIonScoringBase::IsotopeType CompNovoIonScoringBase::classifyIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it) const
   {
     double it_pos(it->getPosition()[0]);
 
@@ -204,7 +205,7 @@ namespace OpenMS
     return LONE;
   }
 
-  double CompNovoIonScoringBase::scoreIsotopes_(const PeakSpectrum & CID_spec, PeakSpectrum::ConstIterator it, Map<double, IonScore> & ion_scores, Size charge)
+  double CompNovoIonScoringBase::scoreIsotopes_(const PeakSpectrum & CID_spec, PeakSpectrum::ConstIterator it, std::map<double, IonScore> & ion_scores, Size charge)
   {
     double it_pos(it->getMZ());  // ~ weight of the fragment
     UInt max_isotope_to_score(param_.getValue("max_isotope_to_score"));

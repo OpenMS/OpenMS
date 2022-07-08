@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #pragma once
 
+#include <cstdint> // for "uintptr_t"
+
 namespace OpenMS
 {
   namespace IdentificationDataInternal
@@ -64,20 +66,14 @@ namespace OpenMS
     {
       PROTEIN,
       COMPOUND,
-      RNA,
-      SIZE_OF_MOLECULETYPE
+      RNA
     };
 
 
     enum MassType
     {
       MONOISOTOPIC,
-      AVERAGE,
-      SIZE_OF_MASSTYPE
+      AVERAGE
     };
-    // Input files that were processed:
-    typedef std::set<String> InputFiles;
-    typedef IteratorWrapper<InputFiles::iterator> InputFileRef;
-
   }
 }

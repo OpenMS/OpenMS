@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/SpectrumLookup.h>
+#include <boost/regex/v4/regex_match.hpp>
 
 using namespace std;
 
@@ -77,8 +78,10 @@ namespace OpenMS
     {
       return lower->second;
     }
-    if (upper_diff <= rt_tolerance) return upper->second;
-
+    if (upper_diff <= rt_tolerance)
+    {
+      return upper->second;
+    }
     String element = "spectrum with RT " + String(rt);
     throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      element);
@@ -101,7 +104,10 @@ namespace OpenMS
   Size SpectrumLookup::findByIndex(Size index, bool count_from_one) const
   {
     Size adjusted_index = index;
-    if (count_from_one) --adjusted_index; // overflow (index = 0) handled below
+    if (count_from_one)
+    {
+      --adjusted_index; // overflow (index = 0) handled below
+    }
     if (adjusted_index >= n_spectra_)
     {
       String element = "spectrum with index " + String(index);
@@ -205,17 +211,15 @@ namespace OpenMS
                                         msg);
   }
 
-
   Size SpectrumLookup::findByReference(const String& spectrum_ref) const
   {
-    for (vector<boost::regex>::const_iterator it = reference_formats.begin();
-         it != reference_formats.end(); ++it)
+    for (const boost::regex& reg : reference_formats)
     {
       boost::smatch match;
-      bool found = boost::regex_search(spectrum_ref, match, *it);
+      bool found = boost::regex_search(spectrum_ref, match, reg);
       if (found)
       {
-        return findByRegExpMatch_(spectrum_ref, it->str(), match);
+        return findByRegExpMatch_(spectrum_ref, reg.str(), match);
       }
     }
     String msg = "Spectrum reference doesn't match any known format";
@@ -223,6 +227,36 @@ namespace OpenMS
                                 spectrum_ref, msg);
   }
 
+
+  bool SpectrumLookup::isNativeID(const String& id)
+  {
+    return id.hasPrefix("scan=") || id.hasPrefix("scanID=") || id.hasPrefix("controllerType=") || id.hasPrefix("function=") || id.hasPrefix("sample=") || id.hasPrefix("index=") || id.hasPrefix("spectrum=");
+  }
+  
+  std::string SpectrumLookup::getRegExFromNativeID(const String& id)
+  {
+    // "scan=NUMBER" e.g. Bruker/Agilent
+    // "controllerType=0 controllerNumber=1 scan=NUMBER" for Thermo
+    // "function= process= scan=NUMBER" for Waters
+    if (id.hasPrefix("scan=") 
+     || id.hasPrefix("controllerType=")
+     || id.hasPrefix("function=")) return std::string(R"(scan=(?<GROUP>\d+))");
+
+    // "index=NUMBER" 
+    if (id.hasPrefix("index=")) return std::string(R"(index=(?<GROUP>\d+))");
+
+    // "scanId=NUMBER" - MS_Agilent_MassHunter_nativeID_format
+    if (id.hasPrefix("scanId=")) return std::string(R"(scanId=(?<GROUP>\d+))");
+
+    // "spectrum=NUMBER"
+    if (id.hasPrefix("spectrum=")) return std::string(R"(spectrum=(?<GROUP>\d+))");
+
+    // "file=NUMBER" Bruker FID or single peak list 
+    if (id.hasPrefix("file=")) return std::string(R"(file=(?<GROUP>\d+))");
+
+    // NUMBER 
+    return std::string(R"((?<GROUP>\d+))");        
+  }
 
   Int SpectrumLookup::extractScanNumber(const String& native_id,
                                         const boost::regex& scan_regexp, 
@@ -234,7 +268,7 @@ namespace OpenMS
     matches.insert(matches.end(), current_begin, current_end);
     if (!matches.empty())
     {
-      // always use the last possible matching subgroup 
+      // always use the last possible matching subgroup
       String last_value = String(matches.back());
       try
       {
@@ -272,7 +306,7 @@ namespace OpenMS
     // id="sample=1 period=1 cycle=96 experiment=1" - this will be described by a combination of (cycle * 1000 + experiment)
     else if (native_id_type_accession == "MS:1000770") // WIFF nativeID format
     {
-      regexp = std::string(R"(cycle=(?<GROUP>\d+).experiment=(?<GROUP>\d+))");
+      regexp = std::string(R"(cycle=(?<GROUP>\d+)\s+experiment=(?<GROUP>\d+))"); 
       subgroups = {1, 2};
     }
     // "file=NUMBER"
@@ -316,7 +350,14 @@ namespace OpenMS
         try
         {
           String value = String(matches[0]);
-          return value.toInt();
+          if (native_id_type_accession == "MS:1000774")
+          {
+            return value.toInt() + 1; // if the native ID is index=.., the scan number is usually considered index+1 (especially for pepXML)
+          }
+          else
+          {
+            return value.toInt();
+          }
         }
         catch (Exception::ConversionError&)
         {
@@ -358,9 +399,11 @@ namespace OpenMS
   {
     rts_[rt] = index;
     ids_[native_id] = index;
-    if (scan_number != -1) scans_[scan_number] = index;
+    if (scan_number != -1)
+    {
+      scans_[scan_number] = index;
+    }
   }
-
 
   void SpectrumLookup::setScanRegExp_(const String& scan_regexp)
   {

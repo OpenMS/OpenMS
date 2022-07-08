@@ -7,7 +7,6 @@ set(directory source/EXAMPLES)
 set(executables_list
 Tutorial_AASequence
 Tutorial_Clustering
-Tutorial_ComparatorUtils
 Tutorial_DPosition
 Tutorial_DRange
 Tutorial_Element

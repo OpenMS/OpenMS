@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -271,7 +271,7 @@
              <b> Changes in files:</b> <br>
              Metavalues: <br>
              <ul>
-             <li>'rt_align'set to retention time after alignment</li>
+             <li>'rt_align' set to retention time after alignment</li>
              <li>'rt_raw' set to retention time before alignment</li>
              </ul>
              <b> Other Output:</b> <br>
@@ -341,10 +341,10 @@
          If provided:
          <ul>
            <li>'FWHM' set to RT peak width for all assigned PIs</li>
-           <li>'ion_injection_time'set to injection time from MS2 spectrum</li>
-           <li>'activation_method'set to activation method from MS2 spectrum</li>
-           <li>'total_ion_count'set to summed intensity from MS2 spectrum</li>
-           <li>'base_peak_intensity'set to highest intensity from MS2 spectrum</li>
+           <li>'ion_injection_time' set to injection time from MS2 spectrum</li>
+           <li>'activation_method' set to activation method from MS2 spectrum</li>
+           <li>'total_ion_count' set to summed intensity from MS2 spectrum</li>
+           <li>'base_peak_intensity' set to highest intensity from MS2 spectrum</li>
          </ul>
          Additionally: <br>
          <ul>

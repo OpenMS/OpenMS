@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,11 +33,6 @@
 // --------------------------------------------------------------------------
 
 #pragma once
-
-#include <algorithm>
-#include <iterator>
-#include <boost/bind.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
@@ -95,7 +90,7 @@ public:
     */
     void operator()(OpenSwath::SpectrumAccessPtr swath_ptr,
                     OpenSwath::LightTargetedExperiment& transition_exp_used,
-                    OpenSwath::IDataFrameWriter* ivw);
+                    OpenSwath::IDataFrameWriter* ivw) const;
   };
 
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -336,7 +336,7 @@ protected:
     outputfile_name = getStringOption_("out");
 
     boundary = getStringOption_("boundary");
-    if (boundary != "")
+    if (!boundary.empty())
     {
       writeDebug_(String("Boundary: ") + boundary, 1);
     }
@@ -426,7 +426,7 @@ protected:
     {
       // full pipeline:
       mascot_cgi_dir = getStringOption_("mascot_directory");
-      if (mascot_cgi_dir == "")
+      if (mascot_cgi_dir.empty())
       {
         writeLog_("No Mascot directory specified. Aborting!");
         return ILLEGAL_PARAMETERS;
@@ -437,7 +437,7 @@ protected:
 
       mascot_data_dir = getStringOption_("temp_data_directory");
 
-      if (mascot_data_dir == "")
+      if (mascot_data_dir.empty())
       {
         writeLog_("No temp directory specified. Aborting!");
         return ILLEGAL_PARAMETERS;
@@ -486,11 +486,11 @@ protected:
       mascot_infile.setInstrument(instrument);
       mascot_infile.setPrecursorMassTolerance(precursor_mass_tolerance);
       mascot_infile.setPeakMassTolerance(peak_mass_tolerance);
-      if (mods.size() > 0)
+      if (!mods.empty())
       {
         mascot_infile.setModifications(mods);
       }
-      if (variable_mods.size() > 0)
+      if (!variable_mods.empty())
       {
         mascot_infile.setVariableModifications(variable_mods);
       }
@@ -539,9 +539,9 @@ protected:
         }
 
 #ifdef OPENMS_WINDOWSPLATFORM
-        call = String("perl export_dat.pl ") +
+        call = String("export_dat.pl ") +
 #else
-        call =  String("./export_dat_2.pl ") +
+        call =  String("export_dat_2.pl ") +
 #endif
                " do_export=1 export_format=XML file=" + mascot_data_dir +
                "/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) +
@@ -559,8 +559,8 @@ protected:
                " prot_score=" + String(prot_score) + " pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) +
                " pep_homol=" + String(pep_homol) + " pep_ident=" + String(pep_ident) + " pep_seq=1 report=0 " +
                "show_params=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + pepXML_file_name;
-        writeDebug_("CALLING: " + call + "\nCALL Done!    ", 10);
-        status = qp.execute(call.toQString());
+        writeDebug_("CALLING: perl " + call + "\nCALL Done!    ", 10);
+        status = qp.execute("perl", QStringList() << call.toQString());
 
         if (status != 0)
         {
@@ -574,7 +574,7 @@ protected:
       }           // from if(!mascot_in)
       else
       {
-        if (boundary != "")
+        if (!boundary.empty())
         {
           mascot_infile.setBoundary(boundary);
         }

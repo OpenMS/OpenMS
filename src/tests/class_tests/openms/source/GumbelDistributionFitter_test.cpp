@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,22 +52,16 @@ START_TEST(GumbelDistributionFitter, "$Id$")
 GumbelDistributionFitter* ptr = nullptr;
 GumbelDistributionFitter* nullPointer = nullptr;
 START_SECTION(GumbelDistributionFitter())
-{
 	ptr = new GumbelDistributionFitter();
 	TEST_NOT_EQUAL(ptr, nullPointer)
-}
 END_SECTION
 
 START_SECTION((virtual ~GumbelDistributionFitter()))
-{
   delete ptr;
 	NOT_TESTABLE
-}
 END_SECTION
 
 START_SECTION((GumbelDistributionFitResult fit(std::vector<DPosition<2> >& points)))
-{
-
 	DPosition<2> pos;
   vector<DPosition<2> > points;
 
@@ -105,7 +99,7 @@ START_SECTION((GumbelDistributionFitResult fit(std::vector<DPosition<2> >& point
 	
 
 	ptr = new GumbelDistributionFitter;
-		GumbelDistributionFitter::GumbelDistributionFitResult init_param;
+	GumbelDistributionFitter::GumbelDistributionFitResult init_param;
 	init_param.a = 1.0;
 	init_param.b = 3.0;
 	ptr->setInitialParameters(init_param);
@@ -136,8 +130,7 @@ START_SECTION((GumbelDistributionFitResult fit(std::vector<DPosition<2> >& point
 	TOLERANCE_ABSOLUTE(0.1)
 	TEST_REAL_SIMILAR(result2.a, 1.0)
 	TEST_REAL_SIMILAR(result2.b, 1.0)	
-	
-}
+	delete ptr;
 END_SECTION
 
 START_SECTION((void setInitialParameters(const GumbelDistributionFitResult& result)))
@@ -151,61 +144,63 @@ START_SECTION((void setInitialParameters(const GumbelDistributionFitResult& resu
 END_SECTION
 
 START_SECTION((GumbelDistributionFitter(const GumbelDistributionFitter& rhs)))
-NOT_TESTABLE
+  NOT_TESTABLE
 END_SECTION
 
 START_SECTION((GumbelDistributionFitter& operator = (const GumbelDistributionFitter& rhs)))
-NOT_TESTABLE
+  NOT_TESTABLE
 END_SECTION
+
 GumbelDistributionFitter::GumbelDistributionFitResult* p = nullptr;
+
 START_SECTION((GumbelDistributionFitter::GumbelDistributionFitResult()))
-p =  new GumbelDistributionFitter::GumbelDistributionFitResult;
-	TEST_NOT_EQUAL(ptr, nullPointer)
-TEST_REAL_SIMILAR(p->a, 1.0)
-TEST_REAL_SIMILAR(p->b, 2.0)
+  p =  new GumbelDistributionFitter::GumbelDistributionFitResult;
+  TEST_NOT_EQUAL(ptr, nullPointer)
+  TEST_REAL_SIMILAR(p->a, 1.0)
+  TEST_REAL_SIMILAR(p->b, 2.0)
 END_SECTION
 
 START_SECTION((GumbelDistributionFitter::GumbelDistributionFitResult(const GumbelDistributionFitter::GumbelDistributionFitResult& rhs)))
-p-> a = 5.0;
-p->b = 4.0;
-GumbelDistributionFitter::GumbelDistributionFitResult obj(*p);
-TEST_REAL_SIMILAR(obj.a, 5.0)
-TEST_REAL_SIMILAR(obj.b, 4.0)
+  p-> a = 5.0;
+  p->b = 4.0;
+  GumbelDistributionFitter::GumbelDistributionFitResult obj(*p);
+  TEST_REAL_SIMILAR(obj.a, 5.0)
+  TEST_REAL_SIMILAR(obj.b, 4.0)
 END_SECTION
 
 START_SECTION((GumbelDistributionFitter::GumbelDistributionFitResult& operator = (const GumbelDistributionFitter::GumbelDistributionFitResult& rhs)))
-p-> a = 3.0;
-p->b = 2.2;
-GumbelDistributionFitter::GumbelDistributionFitResult obj = *p;
-TEST_REAL_SIMILAR(obj.a, 3.0)
-TEST_REAL_SIMILAR(obj.b, 2.2)
+  p-> a = 3.0;
+  p->b = 2.2;
+  GumbelDistributionFitter::GumbelDistributionFitResult obj = *p;
+  TEST_REAL_SIMILAR(obj.a, 3.0)
+  TEST_REAL_SIMILAR(obj.b, 2.2)
+  delete p;
 END_SECTION
 
 START_SECTION(MLE)
-        vector<double> rand_score_vector;
+  vector<double> rand_score_vector;
 
-        CsvFile gumbeldata (OPENMS_GET_TEST_DATA_PATH("Gumbel_1D.csv"));
-        StringList gumbeldata_strings;
-        gumbeldata.getRow(0, gumbeldata_strings);
+  CsvFile gumbeldata (OPENMS_GET_TEST_DATA_PATH("Gumbel_1D.csv"));
+  StringList gumbeldata_strings;
+  gumbeldata.getRow(0, gumbeldata_strings);
 
-        // Load mixture of Gumbel and Gaussian (1D) from provided csv
-        for (StringList::const_iterator it = gumbeldata_strings.begin(); it != gumbeldata_strings.end(); ++it)
-        {
-          if(!it->empty())
-          {
-            rand_score_vector.push_back(it->toDouble());
-          }
-        }
-        vector<double> w (rand_score_vector.size(),1.0);
+  // Load mixture of Gumbel and Gaussian (1D) from provided csv
+  for (StringList::const_iterator it = gumbeldata_strings.begin(); it != gumbeldata_strings.end(); ++it)
+  {
+    if(!it->empty())
+    {
+      rand_score_vector.push_back(it->toDouble());
+    }
+  }
+  vector<double> w (rand_score_vector.size(),1.0);
 
-        TEST_EQUAL(rand_score_vector.size(),1200)
+  TEST_EQUAL(rand_score_vector.size(),1200)
 
-        GumbelMaxLikelihoodFitter gmlf({4.0,2.0});
+  GumbelMaxLikelihoodFitter gmlf({4.0,2.0});
 
-        auto res = gmlf.fitWeighted(rand_score_vector, w);
-        TEST_REAL_SIMILAR(res.a, 2)
-        TEST_REAL_SIMILAR(res.b, 0.6)
-
+  auto res = gmlf.fitWeighted(rand_score_vector, w);
+  TEST_REAL_SIMILAR(res.a, 2)
+  TEST_REAL_SIMILAR(res.b, 0.6)
 END_SECTION
 
 

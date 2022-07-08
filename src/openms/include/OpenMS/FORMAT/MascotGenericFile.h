@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -224,7 +224,7 @@ protected:
               }
               else
               {
-                throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Reached end of file. Found \"BEGIN IONS\" but not the corresponding \"END IONS\"!", "");
+                throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, R"(Reached end of file. Found "BEGIN IONS" but not the corresponding "END IONS"!)", "");
               }
             }
             else if (line.hasPrefix("PEPMASS")) // parse precursor position
@@ -289,7 +289,7 @@ protected:
                   std::vector<String> split;
                   if (line.split('=', split))
                   {
-                    if (split[1] != "") spectrum.setMetaValue("TITLE", split[1]);
+                    if (!split[1].empty()) spectrum.setMetaValue("TITLE", split[1]);
                   }
                 }
               }

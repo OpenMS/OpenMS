@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,6 +53,7 @@
 #include <QtCore/QRegExp>
 
 #include <QSvgRenderer>
+#include <map>
 
 namespace OpenMS
 {
@@ -123,7 +124,7 @@ namespace OpenMS
     QStringList arguments;
     arguments << "-write_ini" << ini_file;
 
-    if (type_ != "")
+    if (!type_.empty())
     {
       arguments << "-type";
       arguments << type_.toQString();
@@ -134,8 +135,14 @@ namespace OpenMS
       if (!File::exists(old_ini_file))
       {
         String msg = String("Could not open old INI file '") + old_ini_file + "'! File does not exist!";
-        if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
-        else OPENMS_LOG_ERROR << msg << std::endl;
+        if (getScene_() && getScene_()->isGUIMode())
+        {
+          QMessageBox::critical(nullptr, "Error", msg.c_str());
+        }
+        else
+        {
+          OPENMS_LOG_ERROR << msg << std::endl;
+        }
         tool_ready_ = false;
         return false;
       }
@@ -151,16 +158,28 @@ namespace OpenMS
           " returned with exit code (" + String(p.exitCode()) + "), exit status (" + String(p.exitStatus()) + ")." +
           "\noutput:\n" + String(QString(p.readAll())) +
           "\n";
-      if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
-      else OPENMS_LOG_ERROR << msg << std::endl;
+      if (getScene_() && getScene_()->isGUIMode())
+      {
+        QMessageBox::critical(nullptr, "Error", msg.c_str());
+      }
+      else
+      {
+        OPENMS_LOG_ERROR << msg << std::endl;
+      }
       tool_ready_ = false;
       return false;
     }
     if (!File::exists(ini_file))
     { // it would be weird to get here, since the TOPP tool ran successfully above, so INI file should exist, but nevertheless:
       String msg = String("Could not open '") + ini_file + "'! It does not exist!";
-      if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
-      else OPENMS_LOG_ERROR << msg << std::endl;
+      if (getScene_() && getScene_()->isGUIMode())
+      {
+        QMessageBox::critical(nullptr, "Error", msg.c_str());
+      }
+      else
+      {
+        OPENMS_LOG_ERROR << msg << std::endl;
+      }
       tool_ready_ = false;
       return false;
     }
@@ -330,7 +349,7 @@ namespace OpenMS
   {
     TOPPASVertex::paint(painter, option, widget, false);
 
-    QString draw_str = (type_ == "" ? name_ : name_ + " (" + type_ + ")").toQString();
+    QString draw_str = (type_.empty() ? name_ : name_ + " (" + type_ + ")").toQString();
     for (int i = 0; i < 10; ++i)
     {
       QString prev_str = draw_str;
@@ -390,8 +409,14 @@ namespace OpenMS
   QString TOPPASToolVertex::toolnameWithWhitespacesForFancyWordWrapping_(QPainter* painter, const QString& str)
   {
     qreal max_width = 130;
-
+/*
+         * Suppressed warning QSTring::SkipEmptyParts and QString::SplitBehaviour is deprecated
+         * QT::SkipEmptyParts and QT::SplitBehaviour is added or modified at Qt 5.14
+         */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     QStringList parts = str.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+#pragma GCC diagnostic pop
     QStringList new_parts;
 
     foreach(QString part, parts)
@@ -449,7 +474,10 @@ namespace OpenMS
     __DEBUG_BEGIN_METHOD__
 
     //check if everything ready (there might be more than one upstream node - ALL need to be ready)
-    if (!isUpstreamFinished()) return;
+    if (!isUpstreamFinished())
+    {
+      return;
+    }
 
     if (finished_)
     {
@@ -463,8 +491,10 @@ namespace OpenMS
                        + getOutputDir().toQString()
                        + QDir::separator()
                        + name_.toQString();
-    if (type_ != "")
+    if (!type_.empty())
+    {
       ini_file += "_" + type_.toQString();
+    }
     // do not write the ini yet - we might need to alter it
 
     RoundPackages pkg;
@@ -493,9 +523,10 @@ namespace OpenMS
     round_counter_ = 0; // once round_counter_ reaches round_total_, we are done
 
     QStringList shared_args;
-    if (type_ != "")
+    if (!type_.empty())
+    {
       shared_args << "-type" << type_.toQString();
-
+    }
     // get *all* input|output file parameters (regardless if edge exists)
     QVector<IOInfo> in_params, out_params;
     getInputParameters(in_params);
@@ -599,7 +630,10 @@ namespace OpenMS
           }
           else
           {
-            if (output_files.size() > 1) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
+            if (output_files.size() > 1)
+            {
+              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
+            }
             param_tmp.setValue(param_name, String(output_files[0]));
           }
         }
@@ -735,7 +769,7 @@ namespace OpenMS
     QStringList files = this->getFileNames();
 
     std::map<String, NameComponent> name_old_to_new;
-    Map<String, int> name_new_count, name_new_idx; // count occurrence (for optional counter infix)
+    std::map<String, int> name_new_count, name_new_idx; // count occurrence (for optional counter infix)
 
     // a first round to find which filenames are not unique (and require augmentation with a counter)
 
@@ -944,9 +978,15 @@ namespace OpenMS
       }
       else if (param_.exists(p_out_format))
       { // 'out_type' or alike is specified
-        if (!param_.getValue(p_out_format).toString().empty()) file_suffix = "." + param_.getValue(p_out_format).toString();
-        else OPENMS_LOG_WARN << "TOPPAS cannot determine output file format for param '" << out_params[i].param_name
+        if (!param_.getValue(p_out_format).toString().empty())
+        {
+          file_suffix = "." + param_.getValue(p_out_format).toString();
+        }
+        else
+        {
+          OPENMS_LOG_WARN << "TOPPAS cannot determine output file format for param '" << out_params[i].param_name
                              << "' of Node " + this->name_ + "(" + String(this->getTopoNr()) + "). Format is ambiguous. Use parameter '" + p_out_format + "' to name intermediate output correctly!\n";
+        }
       }
       if (file_suffix.empty())
       { // tag as unknown (TOPPAS will try to rename the output file once its written - see renameOutput_())
@@ -1009,7 +1049,10 @@ namespace OpenMS
           }
           output_files_[r][param_index].filenames.push_back(fn);
           filename_output_set.insert(fn);
-          if (list_to_single) break; // only one iteration required
+          if (list_to_single)
+          {
+            break; // only one iteration required
+          }
         }
       }
           
@@ -1050,11 +1093,17 @@ namespace OpenMS
       for (Size i = 0; i < filenames.size(); ++i)
       {
         QString p = QDir::toNativeSeparators(QFileInfo(filenames[i][0]).canonicalPath());
-        if (p.isEmpty()) continue;
+        if (p.isEmpty())
+        {
+          continue;
+        }
         //std::cout << "PATH: " << p << "\n";
         String tmp = String(p).suffix(String(QString(QDir::separator()))[0]);
         //std::cout << "INTER: " << tmp << "\n";
-        if (tmp.size() <= 2 || tmp.has(':')) continue; // too small to be reliable; might even be 'c:'
+        if (tmp.size() <= 2 || tmp.has(':'))
+        {
+          continue; // too small to be reliable; might even be 'c:'
+        }
         filenames[i][0] = tmp.toQString();
         //std::cout << "  -->: " << filenames[i][0] << "\n";
       }
@@ -1123,7 +1172,7 @@ namespace OpenMS
     TOPPASVertex::outEdgeHasChanged();
   }
 
-  void TOPPASToolVertex::openContainingFolder()
+  void TOPPASToolVertex::openContainingFolder() const
   {
     QString path = getFullOutputDirectory().toQString();
     GUIHelpers::openFolder(path);
@@ -1139,14 +1188,14 @@ namespace OpenMS
   {
     TOPPASScene* ts = getScene_();
     String workflow_dir = FileHandler::stripExtension(File::basename(ts->getSaveFileName()));
-    if (workflow_dir == "")
+    if (workflow_dir.empty())
     {
       workflow_dir = "Untitled_workflow";
     }
     String dir = workflow_dir +
                  String(QDir::separator()) +
                  get3CharsNumber_(topo_nr_) + "_" + getName();
-    if (getType() != "")
+    if (!getType().empty())
     {
       dir += "_" + getType();
     }
@@ -1214,7 +1263,7 @@ namespace OpenMS
   {
     TOPPASScene* ts = getScene_();
     QString old_ini_file = ts->getTempDir() + QDir::separator() + "TOPPAS_" + name_.toQString() + "_";
-    if (type_ != "")
+    if (!type_.empty())
     {
       old_ini_file += type_.toQString() + "_";
     }

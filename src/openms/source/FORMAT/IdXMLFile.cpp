@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -128,7 +128,7 @@ namespace OpenMS
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     os << "<?xml-stylesheet type=\"text/xsl\" href=\"https://www.openms.de/xml-stylesheet/IdXML.xsl\" ?>\n";
     os << "<IdXML version=\"" << getVersion() << "\"";
-    if (document_id != "")
+    if (!document_id.empty())
     {
       os << " id=\"" << document_id << "\"";
     }
@@ -471,8 +471,10 @@ namespace OpenMS
       prot_id_in_run_ = false;
 
       optionalAttributeAsString_(file_version, attributes, "version");
-      if (file_version == "")
+      if (file_version.empty())
+      {
         file_version = "1.0";  //default version is 1.0
+      }
       if (file_version.toDouble() > version_.toDouble())
       {
         warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
@@ -562,7 +564,7 @@ namespace OpenMS
       prot_id_.setDateTime(DateTime::fromString(attributeAsString_(attributes, "date")));
 
       // set identifier (with UID to make downstream merging of prot_ids possible)
-      // Note: technically, it would be preferrable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
+      // Note: technically, it would be preferable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
       prot_id_.setIdentifier(prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date") + '_' + String(UniqueIdGenerator::getUniqueId()));
     }
     //PROTEINS
@@ -865,7 +867,9 @@ namespace OpenMS
       {
         String spec = last_meta_->getMetaValue("EnzymeTermSpecificity");
         if (spec != "unknown")
+        {
           param_.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(EnzymaticDigestion::getSpecificityByName(spec));
+        }
       }
       last_meta_ = nullptr;
       parameters_[id_] = param_;
@@ -946,7 +950,9 @@ namespace OpenMS
            acc_it != groups[g].accessions.end(); ++acc_it)
       {
         if (acc_it != groups[g].accessions.begin())
+        {
           accessions += ",";
+        }
         const auto pos = accession_to_id.find(*acc_it);
         if (pos != accession_to_id.end())
         {
@@ -996,13 +1002,13 @@ namespace OpenMS
     bool has_aa_after_information(false);
     String aa_string;
 
-    for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+    for (const PeptideEvidence& it : pes)
     {
-      if (it->getAABefore() != PeptideEvidence::UNKNOWN_AA)
+      if (it.getAABefore() != PeptideEvidence::UNKNOWN_AA)
       {
         has_aa_before_information = true;
       }
-      if (it->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
+      if (it.getAAAfter() != PeptideEvidence::UNKNOWN_AA)
       {
         has_aa_after_information = true;
       }
@@ -1035,13 +1041,13 @@ namespace OpenMS
     bool has_aa_start_information(false);
     bool has_aa_end_information(false);
 
-    for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
+    for (const PeptideEvidence& it : pes)
     {
-      if (it->getStart() != PeptideEvidence::UNKNOWN_POSITION)
+      if (it.getStart() != PeptideEvidence::UNKNOWN_POSITION)
       {
         has_aa_start_information = true;
       }
-      if (it->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
+      if (it.getEnd() != PeptideEvidence::UNKNOWN_POSITION)
       {
         has_aa_end_information = true;
       }
@@ -1079,7 +1085,7 @@ namespace OpenMS
     PeptideHit::PeakAnnotation::writePeakAnnotationsString_(val, annotations);
     if (!val.empty())
     {
-      os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"string\" name=\"fragment_annotation\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
+      os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << R"( type="string" name="fragment_annotation" value=")" << writeXMLEscape(val) << "\"/>" << "\n";
     }
   }
 

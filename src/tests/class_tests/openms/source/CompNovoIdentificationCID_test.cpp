@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -120,7 +120,7 @@ START_SECTION((void getIdentifications(std::vector<PeptideIdentification>& ids, 
   exp.addSpectrum(spec);
   cni.getIdentifications(ids, exp);
   TEST_EQUAL(ids.size(), 1)
-  TEST_EQUAL(ids.begin()->getHits().size() > 0, true)
+  TEST_EQUAL(!ids.begin()->getHits().empty(), true)
   TEST_STRING_EQUAL(ids.begin()->getHits().begin()->getSequence().toString(), "DFPLANGER")
 END_SECTION
 
@@ -156,7 +156,7 @@ START_SECTION((void getIdentification(PeptideIdentification& id, const PeakSpect
   cni_param.setValue("precursor_mass_tolerance", 0.3);
   cni.setParameters(cni_param);
   cni.getIdentification(id, spec);
-  TEST_EQUAL(id.getHits().size() > 0, true)
+  TEST_EQUAL(!id.getHits().empty(), true)
   TEST_EQUAL(id.getHits().begin()->getSequence() == AASequence::fromString("DFPLANGER"), true)
 END_SECTION
 

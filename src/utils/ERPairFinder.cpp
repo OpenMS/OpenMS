@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,8 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <map>
 
 using namespace OpenMS;
 using namespace std;
@@ -237,7 +239,7 @@ protected:
     FeatureMap all_features;
     for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
     {
-      if (it->size() == 0 || it->getMSLevel() != 1 || !it->getInstrumentSettings().getZoomScan())
+      if (it->empty() || it->getMSLevel() != 1 || !it->getInstrumentSettings().getZoomScan())
       {
         continue;
       }
@@ -292,7 +294,7 @@ protected:
         Peak1D p;
         p.setIntensity(0);
 
-        if (light_spec.size() > 0)
+        if (!light_spec.empty())
         {
           double lower_border = light_spec.begin()->getMZ() - expansion_range;
           for (double pos = light_spec.begin()->getMZ(); pos > lower_border; pos -= min_spacing)
@@ -309,7 +311,7 @@ protected:
           }
         }
 
-        if (heavy_spec.size() > 0)
+        if (!heavy_spec.empty())
         {
           // expand heavy spectrum
           double lower_border = heavy_spec.begin()->getMZ() - expansion_range;
@@ -344,12 +346,12 @@ protected:
         new_exp_heavy.updateRanges();
 
         FeatureMap feature_map_light, feature_map_heavy, seeds;
-        if (light_spec.size() > 0)
+        if (!light_spec.empty())
         {
           ff.run("isotope_wavelet", new_exp_light, feature_map_light, ff_param, seeds);
         }
         writeDebug_("#light_features=" + String(feature_map_light.size()), 1);
-        if (heavy_spec.size() > 0)
+        if (!heavy_spec.empty())
         {
           ff.run("isotope_wavelet", new_exp_heavy, feature_map_heavy, ff_param, seeds);
         }
@@ -414,13 +416,13 @@ protected:
     }
 
     // now calculate the final quantitation values from the quantlets
-    Map<Size, vector<SILACQuantitation> > idx_to_quantlet;
+    std::map<Size, vector<SILACQuantitation> > idx_to_quantlet;
     for (vector<SILACQuantitation>::const_iterator it = quantlets.begin(); it != quantlets.end(); ++it)
     {
       idx_to_quantlet[it->idx].push_back(*it);
     }
 
-    for (Map<Size, vector<SILACQuantitation> >::ConstIterator it1 = idx_to_quantlet.begin(); it1 != idx_to_quantlet.end(); ++it1)
+    for (std::map<Size, vector<SILACQuantitation> >::const_iterator it1 = idx_to_quantlet.begin(); it1 != idx_to_quantlet.end(); ++it1)
     {
       SILAC_pair silac_pair = pairs[it1->first];
 
@@ -444,7 +446,7 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    if (feature_out != "")
+    if (!feature_out.empty())
     {
       all_features.setPrimaryMSRunPath({in}, exp);
       FeatureXMLFile().store(feature_out, all_features);

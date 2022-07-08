@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -200,6 +200,7 @@ public:
       @brief Adds all feature handles (of the CF) into the consensus feature
     */
     void insert(const ConsensusFeature& cf);
+    void insert(ConsensusFeature&& cf);
 
     /**
       @brief Adds an feature handle into the consensus feature
@@ -208,9 +209,11 @@ public:
       id already exists.
     */
     void insert(const FeatureHandle& handle);
+    void insert(FeatureHandle&& handle);
 
     /// Adds all feature handles in @p handle_set to this consensus feature.
     void insert(const HandleSetType& handle_set);
+    void insert(HandleSetType&& handle_set);
 
     /**
       @brief Creates a FeatureHandle and adds it

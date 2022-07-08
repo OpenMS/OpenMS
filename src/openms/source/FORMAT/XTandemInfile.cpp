@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -106,7 +106,10 @@ namespace OpenMS
       {
         has_pyroglu_q = true;
       }
-      if (has_pyroglu_e && has_pyroglu_q) break;
+      if (has_pyroglu_e && has_pyroglu_q)
+      {
+        break;
+      }
     }
 
     map<String, double> origin_set;
@@ -181,7 +184,7 @@ namespace OpenMS
   void XTandemInfile::writeTo_(ostream& os, bool ignore_member_parameters)
   {
     os << "<?xml version=\"1.0\"?>" << "\n"
-       << "<?xml-stylesheet type=\"text/xsl\" href=\"tandem-input-style.xsl\"?>" << "\n"
+       << R"(<?xml-stylesheet type="text/xsl" href="tandem-input-style.xsl"?>)" << "\n"
        << "<bioml>" << "\n";
 
     writeNote_(os, "spectrum, path", input_filename_);
@@ -268,7 +271,7 @@ namespace OpenMS
       writeNote_(os, "spectrum, maximum parent charge", String(max_precursor_charge_));
 
       // <note type="input" label="spectrum, use noise suppression">yes</note>
-      //writeNote_(os, "spectrum, use noise suppression", noise_supression_);
+      //writeNote_(os, "spectrum, use noise suppression", noise_suppression_);
 
       //<note type="input" label="spectrum, minimum parent m+h">500.0</note>
       //writeNote_(os, "spectrum, minimum parent m+h", String(precursor_lower_mz_));
@@ -402,7 +405,7 @@ namespace OpenMS
       //<note type="input" label="refine, tic percent">20</note>
       //writeNote_(os, "refine, tic percent", String(refine_tic_percent_));
       //<note type="input" label="refine, spectrum synthesis">yes</note>
-      //writeNote_(os, "refine, spectrum synthesis", refine_spectrum_sythesis_);
+      //writeNote_(os, "refine, spectrum synthesis", refine_spectrum_synthesis_);
       //<note type="input" label="refine, maximum valid expectation value">0.1</note>
       //writeNote_(os, "refine, maximum valid expectation value", String(refine_max_valid_evalue_));
       //<note type="input" label="refine, potential N-terminus modifications">+42.010565@[</note>

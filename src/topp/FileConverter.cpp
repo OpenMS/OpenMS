@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,30 +32,31 @@
 // $Authors: Marc Sturm, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/config.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/FORMAT/CachedMzML.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/MascotGenericFile.h>
-#include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
-#include <OpenMS/FORMAT/CachedMzML.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/KERNEL/ConversionHelper.h>
+#include <OpenMS/FORMAT/OMSFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
-
-#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
-#include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
-
+#include <OpenMS/KERNEL/ConversionHelper.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -90,7 +91,7 @@ using namespace std;
   Maybe most importantly, data from MS experiments in a number of different formats can be converted to mzML,
   the canonical file format used by OpenMS/TOPP for experimental data. (mzML is the PSI approved format and
   supports traceability of analysis steps.)
-  
+
   Thermo raw files can be converted to mzML using the ThermoRawFileParser provided in the THIRDPARTY folder.
   On windows, a recent .NET framwork needs to be installed. On linux and mac, the mono runtime needs to be
   present and accessible via the -NET_executable parameter. The path to the ThermoRawFileParser can be set
@@ -125,6 +126,7 @@ using namespace std;
   @ref OpenMS::KroenikFile "kroenik"
   @ref OpenMS::EDTAFile "edta"
   @ref OpenMS::SqMassFile "sqmass"
+  @ref OpenMS::OMSFile "oms"
 
   @note See @ref TOPP_IDFileConverter for similar functionality for protein/peptide identification file formats.
 
@@ -137,179 +139,18 @@ using namespace std;
 
 String extractCachedMetaFilename(const String& in)
 {
-  // Special handling of cached mzML as input types: 
+  // Special handling of cached mzML as input types:
   // we expect two paired input files which we should read into exp
   std::vector<String> split_out;
   in.split(".cachedMzML", split_out);
   if (split_out.size() != 2)
   {
-    OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in 
+    OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in
       << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
     return "";
   }
   String in_meta = split_out[0] + ".mzML";
   return in_meta;
-}
-
-namespace OpenMS {
-enum IMType
-{
-  IM_NONE, ///< no ion mobility
-  IM_STACKED, ///< ion mobility frame is stacked in a single spectrum
-  IM_MULTIPLE_SPECTRA ///< ion mobility is recorded as multiple spectra per frame
-};
-
-IMType determineIMType(const MSExperiment& exp)
-{
-  for (Size k = 0; k < exp.size(); k++)
-  {
-    if (!exp[k].getFloatDataArrays().empty() && 
-        exp[k].getFloatDataArrays()[0].getName().find("Ion Mobility") == 0)
-    {
-      return IMType::IM_STACKED;
-    }
-    else if (exp[k].getDriftTime() >= 0.0) 
-    {
-      return IMType::IM_MULTIPLE_SPECTRA;
-    }
-  }
-  return IMType::IM_NONE;
-}
-
-/// Process a stack of drift time spectra
-void processDriftTimeStack(const std::vector<MSSpectrum>& stack, std::vector<MSSpectrum>& result)
-{
-  OPENMS_PRECONDITION(!stack.empty(), "Stack cannot be empty")
-
-  // either no drift time or different RT!
-  if (stack[0].getDriftTime() >= 0.0)
-  {
-    // copy meta data without the raw data and without the IM array
-    MSSpectrum new_spec = stack[0]; // there is always one spectrum on the stack
-    new_spec.clear(false);
-    std::vector<OpenMS::DataArrays::FloatDataArray> empty;
-    new_spec.setFloatDataArrays(empty);
-
-    OpenMS::DataArrays::FloatDataArray fda;
-    String name = "Ion Mobility";
-    if (new_spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::MILLISECOND)
-    {
-      name += " (MS:1002476)";
-    }
-    else if (new_spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::VSSC)
-    {
-      name += " (MS:1002815)";
-    }
-    fda.setName(name);
-    for (const auto& s : stack)
-    {
-      new_spec.insert(new_spec.end(), s.begin(), s.end());
-      fda.insert(fda.end(), s.size(), s.getDriftTime());
-    }
-    new_spec.setFloatDataArrays({fda});
-    new_spec.setDriftTime(-1); // drift time is now encoded in the FloatDataArray
-    new_spec.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::NONE); // drift time is now encoded in the FloatDataArray
-    result.push_back(new_spec);
-  }
-  else
-  {
-    // no drift time for these spectra, simply append to the result
-    result.insert(result.end(), stack.begin(), stack.end());
-  }
-
-}
-
-/**
-  @brief Expands a single MSSpectrum (single frame) into individual ion mobility spectrum
-
-  @param tmps The input spectrum (a single spectrum per frame)
-  @param result The output spectra with multiple spectra per frame
-*/
-void expandIMSpectrum(const MSSpectrum& tmps, std::vector<MSSpectrum>& result)
-{
-  // copy meta data without the raw data and without the IM array
-  MSSpectrum settings = tmps;
-  settings.clear(false);
-  std::vector<OpenMS::DataArrays::FloatDataArray> empty;
-  settings.setFloatDataArrays(empty);
-
-  double IM_BINNING = 1e5;
-
-  // Fill temporary spectral map (mobility -> Spectrum) with data from current spectrum
-  std::map< int, MSSpectrum > im_map;
-  auto im_arr = tmps.getFloatDataArrays()[0];
-
-  // Determine unit name
-  String im_name = im_arr.getName();
-  auto unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
-  if (im_name == "Ion Mobility (MS:1002476)")
-  {
-    unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
-  }
-  else if (im_name == "Ion Mobility (MS:1002815)")
-  {
-    unit = MSSpectrum::DriftTimeUnit::VSSC;
-  }
-
-  for (Size k = 0;  k < tmps.size(); k++)
-  {
-    double im = im_arr[ k ];
-    if (im_map.find( int(im*IM_BINNING) ) == im_map.end() )
-    {
-      // use meta data from combined spectrum, set new name and current drift time
-      MSSpectrum news = settings;
-      news.setDriftTime(im);
-      news.setDriftTimeUnit(unit);
-      news.setName(tmps.getName() + "_combined"); // we will not recover original scan ids
-      im_map[ int(im*IM_BINNING) ] = news;
-    }
-    im_map[ int(im*IM_BINNING) ].push_back( tmps[k] );
-  }
-
-  // Add spectra to result, note that this is guaranteed to be
-  // sorted by ion mobility (through std::map).
-  for (const auto& s : im_map)
-  {
-    result.push_back(s.second);
-  }
-}
-
-/**
-  @brief Collapses multiple IM spectra from the same frame into a single MSSpectrum
-
-  @param exp The input experiment with multiple spectra per frame
-  @param result The output spectra collapsed to a single spectrum per frame
-
-  @note: this requires that all spectra from the same frame have the same RT ("scan start time")
-*/
-void collapseIMSpectrum(const MSExperiment& exp, std::vector<MSSpectrum>& result)
-{
-  if (exp.empty()) return;
-
-  std::vector<MSSpectrum> stack;
-  double curr_rt = exp[0].getRT();
-  stack.push_back(exp[0]);
-  for (Size k = 1; k < exp.size(); k++)
-  {
-    // spectra from the same frame (drift time scan) will have the same retention time start time
-    if (exp[k].getDriftTime() >= 0.0 && (fabs(exp[k].getRT() - curr_rt) < 1e-5) )
-    {
-      stack.push_back(exp[k]);
-    }
-    else
-    {
-      processDriftTimeStack(stack, result);
-      // push next spectrum
-      stack.clear();
-      stack.push_back(exp[k]);
-      curr_rt = exp[k].getRT();
-    }
-  }
-
-  // stack will always have at least one spectrum
-  processDriftTimeStack(stack, result);
-}
-
 }
 
 // We do not want this class to show up in the docu:
@@ -325,20 +166,19 @@ public:
   }
 
 protected:
-
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, true); // for TOPPAS
-    vector<String> input_formats = {"mzML", "mzXML", "mgf", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta"};
+    vector<String> input_formats = {"mzML", "mzXML", "mgf", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta", "oms"};
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
-    
+
     registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique ID post-processing for output data.\n'none' keeps current IDs even if invalid.\n'ensure' keeps current IDs but reassigns invalid ones.\n'reassign' assigns new unique IDs.", false, true);
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
-    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqmass"};
+    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqmass", "oms"};
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, true);
@@ -346,13 +186,13 @@ protected:
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
     registerFlag_("MGF_compact", "Use a more compact format when writing MGF (no zero-intensity peaks, limited number of decimal places)", true);
     registerFlag_("force_MaxQuant_compatibility", "[mzXML output only] Make sure that MaxQuant can read the mzXML and set the msManufacturer to 'Thermo Scientific'.", true);
-    registerFlag_("convert_to_chromatograms", "[mzML output only] Assumes that the provided spectra represent data in SRM mode or targeted MS1 mode and converts them to chromatogram data.", true);
     registerFlag_("force_TPP_compatibility", "[mzML output only] Make sure that TPP parsers can read the mzML and the precursor ion m/z in the file (otherwise it will be set to zero by the TPP).", true);
+    registerFlag_("convert_to_chromatograms", "[mzML output only] Assumes that the provided spectra represent data in SRM mode or targeted MS1 mode and converts them to chromatogram data.", true);
 
-    registerStringOption_("change_im_format", "<toogle>", "none", "[mzML output only] How to store ion mobility scans (none: no change in format, multiple: store each frame as multiple scans, one per drift time value, single: store whole frame as single scan with IM values in a FloatDataArray", false, true);
-    setValidStrings_("change_im_format", ListUtils::create<String>("none,multiple,single"));
+    registerStringOption_("change_im_format", "<toggle>", "none", "[mzML output only] How to store ion mobility scans (none: no change in format; multiple_spectra: store each IM frame as multiple scans (one per drift time value); concatenated: store whole frame as single scan with IM values in a FloatDataArray", false, true);
+    setValidStrings_("change_im_format", NamesOfIMFormat, (int)IMFormat::SIZE_OF_IMFORMAT);
 
-    registerStringOption_("write_scan_index", "<toogle>", "true", "Append an index when writing mzML or mzXML files. Some external tools might rely on it.", false, true);
+    registerStringOption_("write_scan_index", "<toggle>", "true", "Append an index when writing mzML or mzXML files. Some external tools might rely on it.", false, true);
     setValidStrings_("write_scan_index", ListUtils::create<String>("true,false"));
     registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size using linear compression for m/z domain and slof for intensity and float data arrays (attention: may cause small loss of precision; only for mzML data).", true);
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
@@ -362,6 +202,7 @@ protected:
     registerInputFile_("ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, {"is_executable"});
     setValidFormats_("ThermoRaw_executable", {"exe"});
     registerFlag_("no_peak_picking", "Disables vendor peak picking for raw files.", true);
+    registerFlag_("no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem.", true);
   }
 
   ExitCodes main_(int, const char**) override
@@ -373,17 +214,14 @@ protected:
     //input file names
     String in = getStringOption_("in");
     bool write_scan_index = getStringOption_("write_scan_index") == "true" ? true : false;
-    String store_im = getStringOption_("change_im_format");
+    IMFormat change_im_format = toIMFormat(getStringOption_("change_im_format"));
     bool force_MaxQuant_compatibility = getFlag_("force_MaxQuant_compatibility");
     bool force_TPP_compatibility = getFlag_("force_TPP_compatibility");
     bool convert_to_chromatograms = getFlag_("convert_to_chromatograms");
     bool lossy_compression = getFlag_("lossy_compression");
     double mass_acc = getDoubleOption_("lossy_mass_accuracy");
     bool no_peak_picking = getFlag_("no_peak_picking");
-
-    //input file type
-    FileHandler fh;
-    FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
+    bool no_zlib_compression = getFlag_("no_zlib_compression");
 
     // prepare data structures for lossy compression (note that we compress any float data arrays the same as intensity arrays)
     MSNumpressCoder::NumpressConfig npconfig_mz, npconfig_int, npconfig_fda;
@@ -398,18 +236,19 @@ protected:
     npconfig_fda.setCompression("slof");
     npconfig_mz.linear_fp_mass_acc = mass_acc; // set the desired mass accuracy
 
+    // input file type
+    FileHandler fh;
+    FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
       writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      if (in_type == FileTypes::UNKNOWN)
+      {
+        writeLog_("Error: Could not determine input file type!");
+        return PARSE_ERROR;
+      }
     }
-
-    if (in_type == FileTypes::UNKNOWN)
-    {
-      writeLog_("Error: Could not determine input file type!");
-      return PARSE_ERROR;
-    }
-
 
     // output file names and types
     String out = getStringOption_("out");
@@ -429,14 +268,9 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    typedef PeakMap MSExperimentType;
-    MSExperimentType exp;
 
-    typedef MSExperimentType::SpectrumType SpectrumType;
-
-    typedef FeatureMap FeatureMapType;
-
-    FeatureMapType fm;
+    MSExperiment exp;
+    FeatureMap fm;
     ConsensusMap cm;
 
     writeDebug_(String("Loading input file"), 1);
@@ -463,7 +297,7 @@ protected:
       writeLog_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
       String net_executable = getStringOption_("NET_executable");
       QStringList arguments;
-#ifdef OPENMS_WINDOWSPLATFORM      
+#ifdef OPENMS_WINDOWSPLATFORM
       if (net_executable.empty())
       { // default on Windows: if NO mono executable is set use the "native" .NET one
         net_executable = getStringOption_("ThermoRaw_executable");
@@ -471,17 +305,24 @@ protected:
       else
       { // use e.g., mono
         arguments << getStringOption_("ThermoRaw_executable").toQString();
-      }      
+      }
 #else
       // default on Mac, Linux: use mono
       net_executable = net_executable.empty() ? "mono" : net_executable;
       arguments << getStringOption_("ThermoRaw_executable").toQString();
-#endif            
+#endif
       arguments << ("-i=" + in).c_str()
                 << ("--output_file=" + out).c_str()
                 << "-f=2" // indexedMzML
                 << "-e"; // ignore instrument errors
-      if (no_peak_picking) arguments << "--noPeakPicking";
+      if (no_peak_picking)
+      {
+        arguments << "--noPeakPicking";
+      }
+      if (no_zlib_compression)
+      {
+        arguments << "--noZlibCompression";
+      }
       return runExternalProcess_(net_executable.toQString(), arguments);
     }
     else if (in_type == FileTypes::EDTA)
@@ -504,7 +345,8 @@ protected:
       fh.loadFeatures(in, fm, in_type);
       fm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
-          (out_type != FileTypes::CONSENSUSXML))
+          (out_type != FileTypes::CONSENSUSXML) &&
+          (out_type != FileTypes::OMS))
       {
         // You will lose information and waste memory. Enough reasons to issue a warning!
         writeLog_("Warning: Converting features to peaks. You will lose information! Mass traces are added, if present as 'num_of_masstraces' and 'masstrace_intensity' (X>=0) meta values.");
@@ -515,8 +357,10 @@ protected:
     {
       // Determine location of meta information (empty mzML)
       String in_meta = extractCachedMetaFilename(in);
-      if (in_meta.empty()) return ILLEGAL_PARAMETERS;
-
+      if (in_meta.empty())
+      {
+        return ILLEGAL_PARAMETERS;
+      }
       MzMLFile f;
       f.setLogType(log_type_);
       Internal::CachedMzMLHandler cacher;
@@ -558,7 +402,7 @@ protected:
       // loading the complete data into memory. PlainMSDataWritingConsumer will
       // write out mzML to disk as they are read from the input.
 
-      if (store_im != "none")
+      if (change_im_format != IMFormat::NONE)
       {
         std::cout << "Converting IM formats is currently not implemented for low-memory processing" << std::endl;
         throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
@@ -600,8 +444,10 @@ protected:
       {
         // Determine output path for meta information (empty mzML)
         String out_meta = extractCachedMetaFilename(out);
-        if (out_meta.empty()) return ILLEGAL_PARAMETERS;
-
+        if (out_meta.empty())
+        {
+          return ILLEGAL_PARAMETERS;
+        }
         Internal::CachedMzMLHandler cacher;
         cacher.setLogType(log_type_);
         PeakMap exp_meta;
@@ -655,49 +501,33 @@ protected:
         }
       }
 
-      if (store_im != "none")
+      if (change_im_format != IMFormat::NONE)
       {
-        IMType itype = determineIMType(exp);
+        IMFormat itype = IMTypes::determineIMFormat(exp);
 
-        if (itype == IMType::IM_NONE)
+        if (itype == IMFormat::NONE)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Requested conversion to different ion mobility format, but no ion mobility data is present.");
         }
-        else if (store_im == "multiple" && itype == IMType::IM_MULTIPLE_SPECTRA)
+        else if (change_im_format == itype && itype == IMFormat::MULTIPLE_SPECTRA)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Requested conversion to 'multiple' ion mobility format, but data is already in this format.");
         }
-        else if (store_im == "single" && itype == IMType::IM_STACKED)
+        else if (change_im_format == itype && itype == IMFormat::CONCATENATED)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Requested conversion to 'single' ion mobility format, but data is already in this format.");
         }
 
-        if (store_im == "multiple" && itype == IMType::IM_STACKED)
+        if (change_im_format == IMFormat::MULTIPLE_SPECTRA && itype == IMFormat::CONCATENATED)
         {
-          std::vector<MSSpectrum> result;
-          for (Size k = 0; k < exp.size(); k++)
-          {
-            // For data without ion mobility, simply append the result (only
-            // collapse for scans that actually have a float data array).
-            if (exp[k].getFloatDataArrays().empty())
-            {
-              result.push_back(exp[k]);
-            }
-            else
-            {
-              expandIMSpectrum(exp[k], result);
-            }
-          }
-          exp.setSpectra(result); // swap data
+          exp = IMDataConverter::splitByIonMobility(std::move(exp));
         }
-        else if (store_im == "single" && !exp.empty() && itype == IMType::IM_MULTIPLE_SPECTRA)
+        else if (change_im_format == IMFormat::CONCATENATED && itype == IMFormat::MULTIPLE_SPECTRA)
         {
-          std::vector<MSSpectrum> result;
-          collapseIMSpectrum(exp, result);
-          exp.setSpectra(result); // swap data
+          exp = IMDataConverter::collapseFramesToSingle(exp);
         }
       }
       ChromatogramTools().convertSpectraToChromatograms(exp, true, convert_to_chromatograms);
@@ -710,7 +540,7 @@ protected:
                                                  CONVERSION_MZDATA));
       MzDataFile f;
       f.setLogType(log_type_);
-      ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
+      ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
       f.store(out, exp);
     }
     else if (out_type == FileTypes::MZXML)
@@ -722,7 +552,7 @@ protected:
       f.setLogType(log_type_);
       f.getOptions().setForceMQCompatability(force_MaxQuant_compatibility);
       f.getOptions().setWriteIndex(write_scan_index);
-      //ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
+      //ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
       f.store(out, exp);
     }
     else if (out_type == FileTypes::DTA2D)
@@ -732,7 +562,7 @@ protected:
                                                  FORMAT_CONVERSION));
       DTA2DFile f;
       f.setLogType(log_type_);
-      ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
+      ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
       if (TIC_DTA2D)
       {
         // store the total ion chromatogram (TIC)
@@ -773,30 +603,28 @@ protected:
       {
         MapConversion::convert(cm, true, fm);
       }
+      else if (in_type == FileTypes::OMS)
+      {
+        OMSFile().load(in, fm);
+        IdentificationDataConverter::exportFeatureIDs(fm);
+      }
       else // not loaded as feature map or consensus map
       {
         // The feature specific information is only defaulted. Enough reasons to issue a warning!
         writeLog_("Warning: Converting peaks to features will lead to incomplete features!");
         fm.clear();
         fm.reserve(exp.getSize());
-        typedef FeatureMapType::FeatureType FeatureType;
-        FeatureType feature;
+        Feature feature;
         feature.setQuality(0, 1); // override default
         feature.setQuality(1, 1); // override default
         feature.setOverallQuality(1); // override default
-        for (MSExperimentType::ConstIterator spec_iter = exp.begin();
-             spec_iter != exp.end();
-             ++spec_iter
-             )
+        for (const MSSpectrum& spec : exp)
         {
-          feature.setRT(spec_iter->getRT());
-          for (SpectrumType::ConstIterator peak1_iter = spec_iter->begin();
-               peak1_iter != spec_iter->end();
-               ++peak1_iter
-               )
+          feature.setRT(spec.getRT());
+          for (const Peak1D& peak : spec)
           {
-            feature.setMZ(peak1_iter->getMZ());
-            feature.setIntensity(peak1_iter->getIntensity());
+            feature.setMZ(peak.getMZ());
+            feature.setIntensity(peak.getIntensity());
             feature.setUniqueId();
             fm.push_back(feature);
           }
@@ -842,20 +670,28 @@ protected:
     }
     else if (out_type == FileTypes::EDTA)
     {
-      if (fm.size() > 0 && cm.size() > 0)
+      if (!fm.empty() && !cm.empty())
       {
         OPENMS_LOG_ERROR << "Internal error: cannot decide on container (Consensus or Feature)! This is a bug. Please report it!";
         return INTERNAL_ERROR;
       }
-      if (fm.size() > 0) EDTAFile().store(out, fm);
-      else if (cm.size() > 0) EDTAFile().store(out, cm);
+      if (!fm.empty())
+      {
+        EDTAFile().store(out, fm);
+      }
+      else if (!cm.empty())
+      {
+        EDTAFile().store(out, cm);
+      }
     }
     else if (out_type == FileTypes::CACHEDMZML)
     {
       // Determine output path for meta information (empty mzML)
       String out_meta = extractCachedMetaFilename(out);
-      if (out_meta.empty()) return ILLEGAL_PARAMETERS;
-
+      if (out_meta.empty())
+      {
+        return ILLEGAL_PARAMETERS;
+      }
       Internal::CachedMzMLHandler().writeMetadata(exp, out_meta);
       Internal::CachedMzMLHandler().writeMemdump(exp, out);
     }
@@ -880,6 +716,16 @@ protected:
     {
       SqMassFile sqm;
       sqm.store(out, exp);
+    }
+    else if (out_type == FileTypes::OMS)
+    {
+      if (in_type != FileTypes::FEATUREXML)
+      {
+        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML files to oms format.";
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+      IdentificationDataConverter::importFeatureIDs(fm);
+      OMSFile().store(out, fm);
     }
     else
     {

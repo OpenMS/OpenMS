@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,9 +46,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
-#include <OpenMS/CONCEPT/LogStream.h>
-
 #include <vector>
+#include <map>
 
 namespace OpenMS
 {
@@ -183,7 +182,7 @@ private:
       MzIdentMLHandler();
       MzIdentMLHandler(const MzIdentMLHandler& rhs);
       MzIdentMLHandler& operator=(const MzIdentMLHandler& rhs);
-      Map<String, AASequence> pep_sequences_;
+      std::map<String, AASequence> pep_sequences_;
       std::map<String, String> pp_identifier_2_sil_; ///< mapping peptide/proteinidentification identifier_ to spectrumidentificationlist
       std::map<String, String> sil_2_sdb_; ///< mapping spectrumidentificationlist to the search data bases
       std::map<String, String> sil_2_sdat_; ///< mapping spectrumidentificationlist to the search input

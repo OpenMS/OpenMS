@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -125,7 +127,7 @@ namespace OpenMS
   bool EnzymaticDigestion::isValidProduct(const String& sequence,
                                           int pos,
                                           int length,
-    bool ignore_missed_cleavages) const
+                                          bool ignore_missed_cleavages) const
   {
     return isValidProduct_(sequence, pos, length, ignore_missed_cleavages, false, false);
   }
@@ -141,7 +143,7 @@ namespace OpenMS
                                            bool ignore_missed_cleavages,
                                            bool allow_nterm_protein_cleavage,
                                            bool allow_random_asp_pro_cleavage) const
-    {
+  {
     // for XTandem specific rules (see https://github.com/OpenMS/OpenMS/issues/2497)
     // M or MX at the N-terminus might have been cleaved off 
     if (allow_nterm_protein_cleavage && (pos <= 2) && (sequence[0] == 'M'))
@@ -179,6 +181,11 @@ namespace OpenMS
       return (cleavage_positions.size() - 1) <= missed_cleavages_;
     }
     
+    if (specificity_ == SPEC_FULL && enzyme_->getName() == NoCleavage && allow_random_asp_pro_cleavage == false)
+    { // we want them to be exactly match
+      return pos == 0 && (int)sequence.size() == end;
+    }
+
     // either SPEC_SEMI or SPEC_FULL
     bool spec_c = false, spec_n = false;
     // tokenize_ is really slow, so reduce work by working on substring with +-2 chars margin:
@@ -215,7 +222,10 @@ namespace OpenMS
     if ((spec_n && spec_c) || // full spec
           ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))) // semi spec
     {
-      if (ignore_missed_cleavages) return true;
+      if (ignore_missed_cleavages)
+      {
+        return true;
+      }
       return countMissedCleavages_(cleavage_positions, pos, end) <= missed_cleavages_;
     }
 
@@ -227,7 +237,10 @@ namespace OpenMS
     Size count(0);
     for (int pos : cleavage_positions)
     { // count MCs within fragment borders
-      if (((int)seq_start < pos) && (pos < (int)seq_end)) ++count;
+      if (((int)seq_start < pos) && (pos < (int)seq_end))
+      {
+        ++count;
+      }
     }
     return count;
   }
@@ -265,8 +278,10 @@ namespace OpenMS
     {
       output.emplace_back(fragment_positions[count - 1], l);
     }
-    else ++wrong_size;
-
+    else
+    {
+      ++wrong_size;
+    }
     // generate fragments with missed cleavages
     for (Size i = 1; ((i <= missed_cleavages_) && (i < count)); ++i)
     {
@@ -344,7 +359,10 @@ namespace OpenMS
       {
         output.push_back(sequence.substr(fragment_positions[count - i - 1], n));
       }
-      else ++wrong_size;
+      else
+      {
+        ++wrong_size;
+      }
     }
     return wrong_size;
   }

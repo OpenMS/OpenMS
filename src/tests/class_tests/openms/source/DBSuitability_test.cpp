@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,6 +48,27 @@
 
 using namespace OpenMS;
 using namespace std;
+
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
+#include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <boost/regex.hpp>
+
+int countAS(const vector<FASTAFile::FASTAEntry>& fasta)
+{
+  int counter = 0;
+
+  for (const auto& entry : fasta)
+  {
+    counter += entry.sequence.size();
+  }
+
+  return counter;
+}
 
 START_TEST(Suitability, "$Id$")
 
@@ -167,6 +188,10 @@ pep_id.setScoreType("q-value");
 pep_id.setHits({ decoy1 });
 FDR_id.push_back(pep_id);
 
+vector<FASTAFile::FASTAEntry> empty_fasta;
+MSExperiment empty_exp;
+ProteinIdentification::SearchParameters empty_params;
+
 /////////////////////////////////////////////////////////////
 ///////////////////// START TESTING /////////////////////////
 /////////////////////////////////////////////////////////////
@@ -186,23 +211,25 @@ START_SECTION(~DBSuitability())
 }
 END_SECTION
 
-START_SECTION(void compute(vector<PeptideIdentification>& pep_ids))
+START_SECTION(void compute(std::vector<PeptideIdentification>&& pep_ids, const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params))
 {
+  // Test normal suitability (without correction)
   DBSuitability s;
   Param p;
+  p.setValue("disable_correction", "true");
   p.setValue("reranking_cutoff_percentile", 1.);
   s.setParameters(p);
-  s.compute(pep_ids);
+  s.compute(move(pep_ids), empty_exp, empty_fasta, empty_fasta, empty_params);
 
   p.setValue("reranking_cutoff_percentile", 1./3);
   p.setValue("FDR", 0.);
   s.setParameters(p);
-  s.compute(pep_ids_2);
-  s.compute(top_decoy);
+  s.compute(move(pep_ids_2), empty_exp, empty_fasta, empty_fasta, empty_params);
+  s.compute(move(top_decoy), empty_exp, empty_fasta, empty_fasta, empty_params);
 
   p.setValue("reranking_cutoff_percentile", 0.);
   s.setParameters(p);
-  s.compute(pep_ids_3);
+  s.compute(move(pep_ids_3), empty_exp, empty_fasta, empty_fasta, empty_params);
   vector<DBSuitability::SuitabilityData> d = s.getResults();
   DBSuitability::SuitabilityData data_fract_1 = d[0];
   DBSuitability::SuitabilityData data_fract_05 = d[1];
@@ -233,15 +260,183 @@ START_SECTION(void compute(vector<PeptideIdentification>& pep_ids))
   TEST_REAL_SIMILAR(data_small_percentile.suitability, 2./5);
   TEST_EQUAL(data_decoy_top.suitability, DBL_MAX);
 
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, s.compute(FDR_id), "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, s.compute(few_decoys), "Under 20 % of peptide identifications have two decoy hits. This is not enough for re-ranking. Use the 'no_rerank' flag to still compute a suitability score.");
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, s.compute(no_xcorr_ids), "No cross correlation score found at peptide hit. Only Comet search engine is supported right now.");
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, s.compute(move(FDR_id), empty_exp, empty_fasta, empty_fasta, empty_params), "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, s.compute(move(few_decoys), empty_exp, empty_fasta, empty_fasta, empty_params), "Under 20 % of peptide identifications have two decoy hits. This is not enough for re-ranking. Use the 'no_rerank' flag to still compute a suitability score.");
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, s.compute(move(no_xcorr_ids), empty_exp, empty_fasta, empty_fasta, empty_params), "No cross correlation score found at peptide hit. Only Comet search engine is supported for re-ranking. Set 'force' flag to use the default score for this. This may result in undefined behaviour and is not advised.");
+
+  // Corrected Suitability is to complicated to be tested here.
+  // The tests for the DatabaseSuitability TOPP tool have to suffice.
 }
 END_SECTION
 
 START_SECTION(getResults())
 {
   NOT_TESTABLE;
+}
+END_SECTION
+
+DBSuitability_friend private_suit;
+
+START_SECTION(std::vector<FASTAFile::FASTAEntry> getSubsampledFasta_(const std::vector<FASTAFile::FASTAEntry>& fasta_data, double subsampling_rate) const)
+{
+  vector<FASTAFile::FASTAEntry> fasta;
+  FASTAFile::FASTAEntry entry;
+  entry.sequence = "AAAAAAA";// 7
+  fasta.push_back(entry);
+  entry.sequence = "PP";// 2
+  fasta.push_back(entry);
+  entry.sequence = "EEE";// 3
+  fasta.push_back(entry);
+  entry.sequence = "I";// 1
+  fasta.push_back(entry);
+  entry.sequence = "KKKKKK";// 6
+  fasta.push_back(entry);
+  entry.sequence = "LLLLL";// 5
+  fasta.push_back(entry);
+  entry.sequence = "QQQQ";//4
+  fasta.push_back(entry);
+  entry.sequence = "YYY";// 3
+  fasta.push_back(entry);
+  entry.sequence = "GGGG";// 4
+  fasta.push_back(entry);
+  // 35 AS in fasta
+
+  vector<FASTAFile::FASTAEntry> subsampled_fasta = private_suit.getSubsampledFasta(fasta, 0.3); // 35 * 0.3 = 10.5 --> at least 11 AS should be written (& at max. 17)
+
+  TEST_EQUAL((countAS(subsampled_fasta) >= 11 && countAS(subsampled_fasta) < 17), 1);
+  TEST_EXCEPTION(Exception::IllegalArgument, private_suit.getSubsampledFasta(fasta, 2));
+  TEST_EXCEPTION(Exception::IllegalArgument, private_suit.getSubsampledFasta(fasta, -1));
+}
+END_SECTION
+
+START_SECTION(void appendDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta) const)
+{
+  vector<FASTAFile::FASTAEntry> fasta;
+  FASTAFile::FASTAEntry entry;
+  entry.sequence = "LIEQKPABIM";
+  entry.identifier = "PROTEIN";
+  fasta.push_back(entry);
+
+  private_suit.appendDecoys(fasta);
+
+  TEST_STRING_EQUAL(fasta[1].sequence, "LIBAPKQEIM");
+  TEST_STRING_EQUAL(fasta[1].identifier, "DECOY_PROTEIN");
+}
+END_SECTION
+
+START_SECTION(double calculateCorrectionFactor_(const DBSuitability::SuitabilityData& data, const DBSuitability::SuitabilityData& data_sampled, double sampling_rate) const)
+{
+  DBSuitability::SuitabilityData full_data;
+  DBSuitability::SuitabilityData subsampled_data;
+
+  full_data.num_top_db = 100;
+  subsampled_data.num_top_db = 50;
+  // delta 50
+
+  full_data.num_top_novo = 10;
+  subsampled_data.num_top_novo = 30;
+  // delta 20
+
+  double factor = private_suit.calculateCorrectionFactor(full_data, subsampled_data, 0.6);
+  // rate 0.6 --> db_slope = -50 / -0.4 = 125, novo_slope = 20 / -0.4 = -50
+  // factor = - (125) / (-50) = 2.5
+
+  TEST_EQUAL(factor, 2.5);
+  TEST_EXCEPTION(Exception::Precondition, private_suit.calculateCorrectionFactor(full_data, subsampled_data, 2));
+  TEST_EXCEPTION(Exception::Precondition, private_suit.calculateCorrectionFactor(full_data, subsampled_data, -1));
+}
+END_SECTION
+
+START_SECTION(UInt numberOfUniqueProteins_(const std::vector<PeptideIdentification>& peps, UInt number_of_hits = 1) const)
+{
+  PeptideEvidence ev1("PROTEIN_1", 0, 0, '[', ']');
+  PeptideEvidence ev2("PROTEIN_2", 0, 0, '[', ']');
+  PeptideEvidence ev3("PROTEIN_3", 0, 0, '[', ']');
+  PeptideEvidence ev4("PROTEIN_4", 0, 0, '[', ']');
+  PeptideEvidence ev5("DECOY_PROTEIN", 0, 0, '[', ']');
+
+  PeptideHit hit1;
+  hit1.setPeptideEvidences({ev1, ev1, ev2});
+  hit1.setMetaValue("target_decoy", "target");
+  PeptideHit hit2;
+  hit2.setPeptideEvidences({ev4, ev3, ev5});
+  hit2.setMetaValue("target_decoy", "target+decoy");
+  PeptideHit hit3;
+  hit3.setPeptideEvidences({ev3, ev2, ev3});
+  hit3.setMetaValue("target_decoy", "target");
+  PeptideHit hit4;
+  hit4.setPeptideEvidences({ev5});
+  hit4.setMetaValue("target_decoy", "decoy");
+  PeptideHit empty_hit;
+
+  PeptideIdentification id1;
+  id1.setHits({hit1, hit2});
+  PeptideIdentification id2;
+  id2.setHits({hit3});
+  PeptideIdentification id3;
+  id3.setHits({hit4});
+  PeptideIdentification empty_id;
+  PeptideIdentification id_hit_without_info;
+  id_hit_without_info.setHits({empty_hit});
+
+  vector<PeptideIdentification> ids({id1, id2, empty_id, id3});
+
+  TEST_EQUAL(private_suit.numberOfUniqueProteins(ids), 3);
+  TEST_EQUAL(private_suit.numberOfUniqueProteins(ids, 5), 4);
+  TEST_EXCEPTION(Exception::MissingInformation, private_suit.numberOfUniqueProteins({id_hit_without_info}));
+}
+END_SECTION
+
+START_SECTION(Size getIndexWithMedianNovoHits_(const std::vector<SuitabilityData>& data) const)
+{
+  DBSuitability::SuitabilityData d1;
+  d1.num_top_novo = 10;
+  DBSuitability::SuitabilityData d2;
+  d2.num_top_novo = 20;
+  DBSuitability::SuitabilityData d3;
+  d3.num_top_novo = 15;
+  DBSuitability::SuitabilityData d4;
+  d4.num_top_novo = 40;
+
+  TEST_EQUAL(private_suit.getIndexWithMedianNovoHits({d1, d2, d3}), 2);
+  TEST_EQUAL(private_suit.getIndexWithMedianNovoHits({d1, d2, d3, d4}), 1);
+  TEST_EXCEPTION(Exception::IllegalArgument, private_suit.getIndexWithMedianNovoHits({}));
+}
+END_SECTION
+
+START_SECTION(double getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, String score_name, bool higher_score_better) const)
+{
+  PeptideHit hit1;
+  hit1.setScore(0.01);
+  hit1.setMetaValue("some_score", 120);
+  PeptideHit hit2;
+  hit2.setScore(0.04);
+  hit2.setMetaValue("some_score", 80);
+  PeptideHit hit3;
+  hit3.setScore(0.5);
+  hit3.setMetaValue("some_score", 5);
+  PeptideHit hit4;
+  hit4.setScore(0.05);
+  hit4.setMetaValue("some_score", 75);
+
+  PeptideIdentification id1;
+  id1.setScoreType("q-value");
+  id1.setHits({hit1});
+  PeptideIdentification id2;
+  id2.setScoreType("q-value");
+  id2.setHits({hit2});
+  PeptideIdentification id3;
+  id3.setScoreType("q-value");
+  id3.setHits({hit3});
+  PeptideIdentification id4;
+  id4.setScoreType("q-value");
+  id4.setHits({hit4});
+
+  TEST_EQUAL(private_suit.getScoreMatchingFDR({id1, id2, id3, id4}, 0.05, "some_score", true), 75);
+  TEST_EQUAL(private_suit.getScoreMatchingFDR({id1, id2, id3, id4}, 0.05, "some", false), 120);
+  TEST_EXCEPTION(Exception::IllegalArgument, private_suit.getScoreMatchingFDR({id1}, 0.05, "e-value", false));
+  id1.setScoreType("e-value");
+  TEST_EXCEPTION(Exception::Precondition, private_suit.getScoreMatchingFDR({id1}, 0.05, "some_score", false));
 }
 END_SECTION
 

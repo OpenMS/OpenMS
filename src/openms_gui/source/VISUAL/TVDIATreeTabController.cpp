@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,10 +56,10 @@ namespace OpenMS
 {
 
 
-  typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
-  typedef LayerData::ConstExperimentSharedPtrType ConstExperimentSharedPtrType;
-  typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
-  typedef LayerData::OSWDataSharedPtrType OSWDataSharedPtrType;
+  typedef LayerDataBase::ExperimentSharedPtrType ExperimentSharedPtrType;
+  typedef LayerDataBase::ConstExperimentSharedPtrType ConstExperimentSharedPtrType;
+  typedef LayerDataBase::ODExperimentSharedPtrType ODExperimentSharedPtrType;
+  typedef LayerDataBase::OSWDataSharedPtrType OSWDataSharedPtrType;
 
   /// represents all the information we need from a layer
   /// We cannot use a full layer, because the original layer might get destroyed in the process...
@@ -71,7 +71,7 @@ namespace OpenMS
     String filename;
     String layername;
 
-    explicit MiniLayer(LayerData& layer)
+    explicit MiniLayer(LayerDataBase& layer)
     : full_chrom_exp_sptr(layer.getFullChromData()),
       ondisc_sptr(layer.getOnDiscPeakData()),
       annot_sptr(layer.getChromatogramAnnotation()),
@@ -110,8 +110,10 @@ namespace OpenMS
   void addFeatures(Plot1DWidget* w, std::vector<OSWPeakGroup>& features)
   {
     // nothing to do...
-    if (features.empty()) return;
-
+    if (features.empty())
+    {
+      return;
+    }
     // sort features by left RT
     std::sort(features.begin(), features.end(), [](const OSWPeakGroup& a, const OSWPeakGroup& b)
     {
@@ -120,7 +122,10 @@ namespace OpenMS
     const OSWPeakGroup* best_feature = &features[0];
     auto findBestFeature = [&best_feature](const OSWPeakGroup& f)
     {
-      if (best_feature->getQValue() > f.getQValue()) best_feature = &f;
+      if (best_feature->getQValue() > f.getQValue())
+      {
+        best_feature = &f;
+      }
     };
     std::for_each(features.begin(), features.end(), findBestFeature);
     if (best_feature->getQValue() == -1)
@@ -165,10 +170,10 @@ namespace OpenMS
 
   void TVDIATreeTabController::showChromatogramsAsNew1D(const OSWIndexTrace& trace)
   {
-    LayerData& layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
+    LayerDataBase& layer = const_cast<LayerDataBase&>(tv_->getActiveCanvas()->getCurrentLayer());
     MiniLayer ml(layer);
     // create new 1D widget; if we return due to error, the widget will be cleaned up
-    unique_ptr<Plot1DWidget> w(new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace()));
+    unique_ptr<Plot1DWidget> w(new Plot1DWidget(tv_->getCanvasParameters(1), (QWidget*)tv_->getWorkspace()));
 
     if (showChromatogramsInCanvas_(trace, ml, w.get()))
     { // success!

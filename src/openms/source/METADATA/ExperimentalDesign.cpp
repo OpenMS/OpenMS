@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,11 @@
 
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -43,6 +46,7 @@
 #include <QtCore/QString>
 #include <QtCore/QFileInfo>
 
+#include <algorithm>
 #include <iostream>
 
 using namespace std;
@@ -285,6 +289,7 @@ namespace OpenMS
       for (unsigned u : sample_section_.getSamples())
       {
         std::vector<String> valuesToHash{};
+        valuesToHash.reserve(factors.size());
         for (const String& fac : factors)
         {
           valuesToHash.emplace_back(sample_section_.getFactorValue(u, fac));
@@ -345,6 +350,7 @@ namespace OpenMS
       for (unsigned u : sample_section_.getSamples())
       {
         std::vector<String> valuesToHash{};
+        valuesToHash.reserve(nonRepFacs.size());
         for (const String& fac : nonRepFacs)
         {
           valuesToHash.emplace_back(sample_section_.getFactorValue(u, fac));
@@ -534,7 +540,10 @@ namespace OpenMS
     unsigned ExperimentalDesign::getNumberOfMSFiles() const
     {
       std::set<std::string> unique_paths;
-      for (auto const & r : msfile_section_) { unique_paths.insert(r.path); }
+      for (auto const & r : msfile_section_) 
+      { 
+        unique_paths.insert(r.path);
+      }
       return unique_paths.size();
     }
 
@@ -627,13 +636,14 @@ namespace OpenMS
             __FILE__,
             __LINE__,
             OPENMS_PRETTY_FUNCTION,
-            "Fraction groups do not start with 1.",
-            String(msfile_section_[0].fraction_group));
+            "Labels do not start with 1.",
+            String(msfile_section_[0].label));
       }
 
       Size last_fraction = 1;
       Size last_label = 1;
       Size last_fraction_group = 0;
+      
       for (const MSFileSectionEntry& row : msfile_section_)
       {
         if (row.fraction_group != last_fraction_group)
@@ -695,7 +705,7 @@ namespace OpenMS
                 String(row.fraction));
           }
         }
-        else // only label increased
+        else // only label may have changed
         {
           ++last_label;
           if (row.label != last_label)

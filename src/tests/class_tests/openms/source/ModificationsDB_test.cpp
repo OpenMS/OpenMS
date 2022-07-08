@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,7 +87,7 @@ START_SECTION(Size getNumberOfModifications() const)
 END_SECTION
 
 START_SECTION(const ResidueModification& getModification(Size index) const)
-	TEST_EQUAL(ptr->getModification(0)->getId().size() > 0, true)
+	TEST_EQUAL(!ptr->getModification(0)->getId().empty(), true)
 END_SECTION
 
   START_SECTION((void searchModifications(std::set<const ResidueModification*>& mods, const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const))

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -149,6 +149,7 @@ START_SECTION((virtual SampleTreatment* clone() const ))
 	TEST_REAL_SIMILAR(dp->getMassShift(),4711.2)
 	TEST_EQUAL(dp->getVariant(),Tagging::LIGHT)
 	TEST_REAL_SIMILAR(dp->getMass(),23.4)
+	delete st;
 END_SECTION
 
 START_SECTION((virtual bool operator==(const SampleTreatment &rhs) const ))

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -119,7 +119,7 @@ namespace OpenMS
         FASTAFile() = default;
 
         /// Destructor
-        virtual ~FASTAFile() = default;
+        ~FASTAFile() override = default;
 
         /**
           @brief Prepares a FASTA file given by 'filename' for streamed reading using readNext().
@@ -131,7 +131,7 @@ namespace OpenMS
         /**
         @brief Reads the next FASTA entry from file.
         If you want to read all entries in one go, use load().
-        @return true if entry was read; false if eof was reached
+        @return true if entry was read; false if EOF was reached
         @exception Exception::FileNotFound is thrown if the file does not exists.
         @exception Exception::ParseError is thrown if the file does not suit to the standard.
         */

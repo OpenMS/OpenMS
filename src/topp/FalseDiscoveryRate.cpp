@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -114,6 +114,8 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerStringOption_("PSM", "<FDR level>", "true", "Perform FDR calculation on PSM level", false);
     setValidStrings_("PSM", ListUtils::create<String>("true,false"));
+    registerStringOption_("peptide", "<FDR level>", "false", "Perform FDR calculation on peptide level and annotates it as meta value\n(Note: if set, also calculates FDR/q-value on PSM level.)", false);
+    setValidStrings_("peptide", ListUtils::create<String>("true,false"));
     registerStringOption_("protein", "<FDR level>", "true", "Perform FDR calculation on protein level", false);
     setValidStrings_("protein", ListUtils::create<String>("true,false"));
 
@@ -205,9 +207,12 @@ protected:
         }
       }
 
-      if (getStringOption_("PSM") == "true")
+      bool peptide_level_fdr = getStringOption_("peptide") == "true";
+      bool psm_level_fdr = getStringOption_("PSM") == "true";
+
+      if (psm_level_fdr || peptide_level_fdr)
       {
-        fdr.apply(pep_ids);
+        fdr.apply(pep_ids, peptide_level_fdr);
         filter_applied = true;
 
         if (psm_fdr < 1)
@@ -248,10 +253,10 @@ protected:
     }
 
     // update protein groupings if necessary:
-    for (auto prot_it = prot_ids.begin(); prot_it != prot_ids.end(); ++prot_it)
+    for (auto& prot : prot_ids)
     {
-      bool valid = IDFilter::updateProteinGroups(prot_it->getProteinGroups(),
-                                                 prot_it->getHits());
+      bool valid = IDFilter::updateProteinGroups(prot.getProteinGroups(),
+                                                 prot.getHits());
       if (!valid)
       {
         OPENMS_LOG_WARN << "Warning: While updating protein groups, some prot_ids were removed from groups that are still present. "
@@ -260,7 +265,7 @@ protected:
       }
 
       valid = IDFilter::updateProteinGroups(
-        prot_it->getIndistinguishableProteins(), prot_it->getHits());
+        prot.getIndistinguishableProteins(), prot.getHits());
 
       if (!valid)
       {

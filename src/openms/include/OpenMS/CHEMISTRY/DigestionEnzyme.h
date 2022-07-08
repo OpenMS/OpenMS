@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,7 +47,7 @@ namespace OpenMS
   /**
      @ingroup Chemistry
 
-     @brief Abstract base class for digestion enzymes
+     @brief Base class for digestion enzymes
   */
   class OPENMS_DLLAPI DigestionEnzyme
   {
@@ -97,7 +97,7 @@ namespace OpenMS
     void setName(const String& name);
 
     /// returns the name of the enzyme
-    String getName() const;
+    const String& getName() const;
 
     /// sets the synonyms
     void setSynonyms(const std::set<String>& synonyms);
@@ -112,13 +112,13 @@ namespace OpenMS
     void setRegEx(const String& cleavage_regex);
 
     /// returns the cleavage regex
-    String getRegEx() const;
+    const String& getRegEx() const;
 
     /// sets the regex description
     void setRegExDescription(const String& value);
 
     /// returns the regex description
-    String getRegExDescription() const;
+    const String& getRegExDescription() const;
     //@}
 
     /** @name Predicates

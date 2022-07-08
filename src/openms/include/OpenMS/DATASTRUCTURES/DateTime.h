@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,7 +70,7 @@ public:
 
     /// Assignment operator
     DateTime& operator=(const DateTime& source);
-	  
+
     /// Move assignment operator
     DateTime& operator=(DateTime&&) & noexcept;
 
@@ -172,14 +172,14 @@ public:
     /// Returns true if the date time is valid
     bool isValid() const;
 
-    /// return true if the date and time is null 
+    /// return true if the date and time is null
     bool isNull() const;
 
     /// Sets the undefined date: 00/00/0000 00:00:00
     void clear();
-    
+
     /* @brief Returns a string representation of the DateTime object.
-       @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.	   
+       @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
 	*/
 	String toString(std::string format = "yyyy-MM-ddThh:mm:ss") const;
 
@@ -215,4 +215,3 @@ private:
   };
 
 } // namespace OPENMS
-

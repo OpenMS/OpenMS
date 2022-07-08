@@ -4,6 +4,7 @@ set(directory source/CHEMISTRY)
 ### list all filenames of the directory here
 set(sources_list
 AASequence.cpp
+AdductInfo.cpp
 CrossLinksDB.cpp
 DecoyGenerator.cpp
 Element.cpp

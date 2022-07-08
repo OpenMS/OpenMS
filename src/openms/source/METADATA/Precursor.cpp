@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,9 +39,44 @@ using namespace std;
 namespace OpenMS
 {
 
-  const std::string Precursor::NamesOfActivationMethod[] = {"Collision-induced dissociation", "Post-source decay", "Plasma desorption", "Surface-induced dissociation", "Blackbody infrared radiative dissociation", "Electron capture dissociation", "Infrared multiphoton dissociation", "Sustained off-resonance irradiation", "High-energy collision-induced dissociation", "Low-energy collision-induced dissociation", "Photodissociation", "Electron transfer dissociation", "Pulsed q dissociation"};
-  const std::string Precursor::NamesOfActivationMethodShort[] = { "CID", "PSD", "PD", "SID", "BIRD", "ECD", "IMD", "SORI", "HCID", "LCID", "PHD", "ETD", "PQD" };
-  const std::string Precursor::NamesOfDriftTimeUnit[] = {"<NONE>", "ms", "1/K0", "FAIMS_CV"};
+  const std::string Precursor::NamesOfActivationMethod[] = {
+    "Collision-induced dissociation", 
+    "Post-source decay", 
+    "Plasma desorption", 
+    "Surface-induced dissociation", 
+    "Blackbody infrared radiative dissociation", 
+    "Electron capture dissociation", 
+    "Infrared multiphoton dissociation", 
+    "Sustained off-resonance irradiation", 
+    "High-energy collision-induced dissociation", 
+    "Low-energy collision-induced dissociation", 
+    "Photodissociation", 
+    "Electron transfer dissociation", 
+    "Pulsed q dissociation",
+    "trap-type collision-induced dissociation",
+    "beam-type collision-induced dissociation", // == HCD
+    "in-source collision-induced dissociation",
+    "Bruker proprietary method"
+    };
+  const std::string Precursor::NamesOfActivationMethodShort[] = { 
+    "CID", 
+    "PSD", 
+    "PD", 
+    "SID", 
+    "BIRD", 
+    "ECD", 
+    "IMD", 
+    "SORI", 
+    "HCID", 
+    "LCID", 
+    "PHD", 
+    "ETD", 
+    "PQD",
+    "TRAP",
+    "HCD",
+    "INSOURCE",
+    "LIFT"
+    };
 
   Precursor::Precursor(Precursor&& rhs) noexcept :
       CVTermList(std::move(rhs)),
@@ -123,7 +158,10 @@ namespace OpenMS
 
   void Precursor::setIsolationWindowLowerOffset(double bound)
   {
-    if (bound < 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor::setIsolationWindowLowerOffset() received a negative lower offset", String(bound));
+    if (bound < 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor::setIsolationWindowLowerOffset() received a negative lower offset", String(bound));
+    }
     window_low_ = bound;
   }
 
@@ -134,7 +172,10 @@ namespace OpenMS
 
   void Precursor::setIsolationWindowUpperOffset(double bound)
   {
-    if (bound < 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor::setIsolationWindowUpperOffset() received a negative lower offset", String(bound));
+    if (bound < 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor::setIsolationWindowUpperOffset() received a negative lower offset", String(bound));
+    }
     window_up_ = bound;
   }
 
@@ -148,7 +189,7 @@ namespace OpenMS
     drift_time_ = drift_time;
   }
 
-  Precursor::DriftTimeUnit Precursor::getDriftTimeUnit() const
+  DriftTimeUnit Precursor::getDriftTimeUnit() const
   {
     return drift_time_unit_;
   }

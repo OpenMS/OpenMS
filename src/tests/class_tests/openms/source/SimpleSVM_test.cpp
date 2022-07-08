@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
 ///////////////////////////
 
+#include <fstream>
 #include <sstream>
 
 
@@ -103,6 +104,13 @@ if (label_file.is_open())
   label_file.close();
 }
 
+START_SECTION((~SimpleSVM))
+{
+  SimpleSVM* svm_new = new SimpleSVM();
+  delete svm_new;
+}
+END_SECTION
+
 START_SECTION((void setup(PredictorMap& predictors,
                           const map<Size, Int>& labels)))
 {
@@ -123,13 +131,12 @@ START_SECTION((void setup(PredictorMap& predictors,
   svm.setup(predictors, labels);
 
   // check that data has been scaled:
-  for (SimpleSVM::PredictorMap::const_iterator it = predictors.begin();
-       it != predictors.end(); ++it)
+  for (const auto& it : predictors)
   {
-    vector<double>::const_iterator pos = min_element(it->second.begin(),
-                                                     it->second.end());
+    vector<double>::const_iterator pos = min_element(it.second.begin(),
+                                                     it.second.end());
     TEST_REAL_SIMILAR(*pos, 0);
-    pos = max_element(it->second.begin(), it->second.end());
+    pos = max_element(it.second.begin(), it.second.end());
     TEST_REAL_SIMILAR(*pos, 1);
   }
 }

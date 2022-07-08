@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,10 +50,9 @@
 using namespace std;
 using namespace xercesc;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
     //TODO remodel CVTermList
     //TODO extend CVTermlist with CVCollection functionality for complete replacement??
     //TODO general id openms struct for overall parameter for one id run
@@ -167,16 +166,24 @@ namespace OpenMS
       if (stat(mzid_file.c_str(), &fileStatus) == -1) // ==0 ok; ==-1 error
       {
         if (errno == ENOENT) // errno declared by include file errno.h
+        {
           throw (runtime_error("Path file_name does not exist, or path is an empty string."));
+        }
         else if (errno == ENOTDIR)
+        {
           throw (runtime_error("A component of the path is not a directory."));
+        }
         // On MSVC 2008, the ELOOP constant is not declared and thus introduces a compile error
         //else if (errno == ELOOP)
         //  throw (runtime_error("Too many symbolic links encountered while traversing the path."));
         else if (errno == EACCES)
+        {
           throw (runtime_error("Permission denied."));
+        }
         else if (errno == ENAMETOOLONG)
+        {
           throw (runtime_error("File can not be read."));
+        }
       }
 
       // Configure DOM parser.
@@ -237,7 +244,10 @@ namespace OpenMS
 
         // 1. DataCollection {1,1}
         DOMNodeList* spectraDataElements = xmlDoc->getElementsByTagName(CONST_XMLCH("SpectraData"));
-        if (spectraDataElements->getLength() == 0) throw(runtime_error("No SpectraData nodes"));
+        if (spectraDataElements->getLength() == 0)
+        {
+          throw(runtime_error("No SpectraData nodes"));
+        }
         parseInputElements_(spectraDataElements);
 
         // 1.2. SearchDatabase {0,unbounded}
@@ -250,12 +260,18 @@ namespace OpenMS
 
         // 2. SpectrumIdentification  {1,unbounded} ! creates identification runs (or ProteinIdentifications)
         DOMNodeList* spectrumIdentificationElements = xmlDoc->getElementsByTagName(CONST_XMLCH("SpectrumIdentification"));
-        if (spectrumIdentificationElements->getLength() == 0) throw(runtime_error("No SpectrumIdentification nodes"));
+        if (spectrumIdentificationElements->getLength() == 0)
+        {
+          throw(runtime_error("No SpectrumIdentification nodes"));
+        }
         parseSpectrumIdentificationElements_(spectrumIdentificationElements);
 
         // 3. AnalysisProtocolCollection {1,1} SpectrumIdentificationProtocol  {1,unbounded} ! identification run parameters
         DOMNodeList* spectrumIdentificationProtocolElements = xmlDoc->getElementsByTagName(CONST_XMLCH("SpectrumIdentificationProtocol"));
-        if (spectrumIdentificationProtocolElements->getLength() == 0) throw(runtime_error("No SpectrumIdentificationProtocol nodes"));
+        if (spectrumIdentificationProtocolElements->getLength() == 0)
+        {
+          throw(runtime_error("No SpectrumIdentificationProtocol nodes"));
+        }
         parseSpectrumIdentificationProtocolElements_(spectrumIdentificationProtocolElements);
 
         // 4. SequenceCollection nodes {0,1} DBSequenceElement {1,unbounded} Peptide {0,unbounded} PeptideEvidence {0,unbounded}
@@ -275,7 +291,10 @@ namespace OpenMS
 
         // 6.1 SpectrumIdentificationList {0,1}
         DOMNodeList* spectrumIdentificationListElements = xmlDoc->getElementsByTagName(CONST_XMLCH("SpectrumIdentificationList"));
-        if (spectrumIdentificationListElements->getLength() == 0) throw(runtime_error("No SpectrumIdentificationList nodes"));
+        if (spectrumIdentificationListElements->getLength() == 0)
+        {
+          throw(runtime_error("No SpectrumIdentificationList nodes"));
+        }
         parseSpectrumIdentificationListElements_(spectrumIdentificationListElements);
 
         // 6.2 ProteinDetection {0,1}
@@ -423,10 +442,13 @@ namespace OpenMS
           DOMLSSerializer* serializer = ((DOMImplementationLS*)impl)->createLSSerializer();
           // serializer gets prettyprint and stuff
           if (serializer->getDomConfig()->canSetParameter(XMLUni::fgDOMWRTDiscardDefaultContent, true))
+          {
             serializer->getDomConfig()->setParameter(XMLUni::fgDOMWRTDiscardDefaultContent, true);
+          }
           if (serializer->getDomConfig()->canSetParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true))
+          {
             serializer->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
-
+          }
 //              // optionally implement DOMErrorHandler (e.g. MyDOMErrorHandler) and set it to the serializer
 //              DOMErrorHandler* errHandler = new myDOMErrorHandler();
 //              serializer->getDomConfig()->setParameter(XMLUni::fgDOMErrorHandler, myErrorHandler);
@@ -594,7 +616,7 @@ namespace OpenMS
         }
 
         // Add unit *after* creating the term
-        if (unitAcc != "")
+        if (!unitAcc.empty())
         {
           if (unitAcc.hasPrefix("UO:"))
           {
@@ -717,7 +739,7 @@ namespace OpenMS
             }
             child = child->getNextElementSibling();
           }
-          if (acc != "")
+          if (!acc.empty())
           {
             DBSequence temp_struct = {seq, dbref, acc, cvs};
             db_sq_map_.insert(make_pair(id, temp_struct));
@@ -1137,7 +1159,7 @@ namespace OpenMS
             child = child->getNextElementSibling();
             //      <DatabaseFilters> omitted for now, not reflectable by our member structures
             //      <DatabaseTranslation> omitted for now, not reflectable by our member structures
-            //      <Masstable> omitted for now, not reflectable by our member structures
+            //      <MassTable> omitted for now, not reflectable by our member structures
           }
           SpectrumIdentificationProtocol temp_struct = {searchtype, enzymename, param_cv, param_up, modparam, p_tol, f_tol, tcv, tup};
           sp_map_.insert(make_pair(id, temp_struct));
@@ -1356,7 +1378,7 @@ namespace OpenMS
                 // check for retention time or scan time entry
                 /* N.B.: MzIdentML does not impose the requirement to store
                    'redundant' data (e.g. RT) as the identified spectrum is
-                   unambiguously referencable by the spectrumID (OpenMS
+                   unambiguously referenceable by the spectrumID (OpenMS
                    internally spectrum_reference) and hence such data can be
                    looked up in the mz file. For convenience, and as OpenMS
                    relies on the smallest common denominator to reference a
@@ -1864,7 +1886,7 @@ namespace OpenMS
 
       std::vector<String> unique_peptides;
       unique_peptides.push_back(peptides[alpha[0]]);
-      if (beta.size() > 0)
+      if (!beta.empty())
       {
         unique_peptides.push_back(peptides[beta[0]]);
       }
@@ -2078,7 +2100,7 @@ namespace OpenMS
       {
         //build the PeptideHit from a SpectrumIdentificationItem
         PeptideHit hit(score, rank, chargeState, pep_map_[peptide_ref]);
-        for (Map<String, vector<CVTerm> >::ConstIterator cvs = params.first.getCVTerms().begin(); cvs != params.first.getCVTerms().end(); ++cvs)
+        for (std::map<String, vector<CVTerm> >::const_iterator cvs = params.first.getCVTerms().begin(); cvs != params.first.getCVTerms().end(); ++cvs)
         {
           for (vector<CVTerm>::const_iterator cv = cvs->second.begin(); cv != cvs->second.end(); ++cv)
           {
@@ -2235,8 +2257,8 @@ namespace OpenMS
 
           //      SearchParameters  search_parameters_
           //      DateTime  date_
-          //      String    protein_score_type_ <- from proteindetectionprotocol
-          //      DoubleReal    protein_significance_threshold_ <- from proteindetectionprotocol
+          //      String    protein_score_type_ <- from ProteinDetectionProtocol
+          //      DoubleReal    protein_significance_threshold_ <- from ProteinDetectionProtocol
 
           DOMElement* child = element_pr->getFirstElementChild();
           while (child)
@@ -2502,7 +2524,7 @@ namespace OpenMS
                       }
                       cvp = cvp->getNextElementSibling();
                       continue;
-/* TODO enetz: look up in XLDB and remvoe this ha
+/* TODO enetz: look up in XLDB and remove this ha
                         // this is a bad hack to avoid a long list of warnings in the case of XL-MS data
                         if ( !(String(e.what()).hasSubstring("'DSG'") || String(e.what()).hasSubstring("'DSS'") || String(e.what()).hasSubstring("'EDC'")) || String(e.what()).hasSubstring("'BS3'") || String(e.what()).hasSubstring("'BS2G'") )
                         {
@@ -2514,7 +2536,7 @@ namespace OpenMS
                 }
                 cvp = cvp->getNextElementSibling();
               }
-              if ( (!donor_acceptor_found) && (xlink_mod_found) ) // mono-link, here using pep_id also as the CV value, since mono-links dont have a cross-linking CV term
+              if ( (!donor_acceptor_found) && (xlink_mod_found) ) // mono-link, here using pep_id also as the CV value, since mono-links don't have a cross-linking CV term
               {
                 xl_id_donor_map_.insert(make_pair(pep_id, pep_id));
                 xl_donor_pos_map_.insert(make_pair(pep_id, index-1));
@@ -2531,7 +2553,7 @@ namespace OpenMS
                   const String & cvvalue = cv.getValue();
                   if (cv.hasValue() && ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())  // why do we need to check for empty?
                   {
-                    // Case 1: unknown (to e.g., thid-party tool) modification known to OpenMS (see value)
+                    // Case 1: unknown (to e.g., third-party tool) modification known to OpenMS (see value)
                     //  <Modification location="0" monoisotopicMassDelta="17.031558">
                     //  <cvParam cvRef="PSI-MS" accession="MS:1001460" name="unknown modification" value="Methyl:2H(2)13C"/>
                     const String & mname = cvvalue;
@@ -2755,7 +2777,7 @@ namespace OpenMS
       analysisSoftwareElements->appendChild(current_as);
       DOMElement* current_sw = current_as->getOwnerDocument()->createElement(CONST_XMLCH("SoftwareName"));
 
-      //TODO extract as function bauen and insert cv
+      //TODO build extract as function and insert cv
       DOMElement* current_cv = current_sw->getOwnerDocument()->createElement(CONST_XMLCH("cvParam"));
       current_cv->setAttribute(CONST_XMLCH("name"), CONST_XMLCH("search_engine_"));
       current_cv->setAttribute(CONST_XMLCH("cvRef"), CONST_XMLCH("PSI-MS"));
@@ -3003,7 +3025,7 @@ namespace OpenMS
     ProteinIdentification::SearchParameters MzIdentMLDOMHandler::findSearchParameters_(pair<CVTermList, map<String, DataValue> > as_params)
     {
       ProteinIdentification::SearchParameters sp = ProteinIdentification::SearchParameters();
-      for (Map<String, vector<CVTerm> >::ConstIterator cvs = as_params.first.getCVTerms().begin(); cvs != as_params.first.getCVTerms().end(); ++cvs)
+      for (std::map<String, vector<CVTerm> >::const_iterator cvs = as_params.first.getCVTerms().begin(); cvs != as_params.first.getCVTerms().end(); ++cvs)
       {
         for (vector<CVTerm>::const_iterator cvit = cvs->second.begin(); cvit != cvs->second.end(); ++cvit)
         {
@@ -3045,6 +3067,5 @@ namespace OpenMS
       }
       return sp;
     }
-
-  } //namespace Internal
-} // namespace OpenMS
+ 
+} // namespace OpenMS   //namespace Internal

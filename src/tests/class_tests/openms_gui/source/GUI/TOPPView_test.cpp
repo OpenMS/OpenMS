@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,7 @@
 #include <TOPPView_test.h>
 
 #include <QTimer>
-
+#include <QElapsedTimer>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
@@ -71,7 +71,7 @@ void TestTOPPView::waitForModalWidget(const int max_wait, const String& line)
   }
 
 
-  QTime t;
+  QElapsedTimer t;
   t.start();
   while (!modal_key_sequence_.isEmpty () && max_wait > t.elapsed())
   {

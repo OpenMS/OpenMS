@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,7 +60,7 @@ namespace OpenMS
 
   /// Constructor
   MSExperiment::MSExperiment() :
-    RangeManagerType(),
+    RangeManagerContainerType(),
     ExperimentalSettings(),
     ms_levels_(),
     total_size_(0)
@@ -68,7 +68,7 @@ namespace OpenMS
 
   /// Copy constructor
   MSExperiment::MSExperiment(const MSExperiment & source) :
-    RangeManagerType(source),
+    RangeManagerContainerType(source),
     ExperimentalSettings(source),
     ms_levels_(source.ms_levels_),
     total_size_(source.total_size_),
@@ -79,9 +79,11 @@ namespace OpenMS
   /// Assignment operator
   MSExperiment & MSExperiment::operator=(const MSExperiment & source)
   {
-    if (&source == this) return *this;
-
-    RangeManagerType::operator=(source);
+    if (&source == this)
+    {
+      return *this;
+    }
+    RangeManagerContainerType::operator=(source);
     ExperimentalSettings::operator=(source);
 
     ms_levels_ = source.ms_levels_;
@@ -96,7 +98,7 @@ namespace OpenMS
   }
 
   /// Assignment operator
-  MSExperiment & MSExperiment::operator=(const ExperimentalSettings & source)
+  MSExperiment& MSExperiment::operator=(const ExperimentalSettings & source)
   {
     ExperimentalSettings::operator=(source);
     return *this;
@@ -224,21 +226,21 @@ namespace OpenMS
   */
   void MSExperiment::updateRanges(Int ms_level)
   {
-    //clear MS levels
+    // clear MS levels
     ms_levels_.clear();
 
-    //reset mz/rt/int range
+    // reset mz/rt/int range
     this->clearRanges();
-    //reset point count
+    // reset point count
     total_size_ = 0;
 
-    //empty
+    // empty
     if (spectra_.empty() && chromatograms_.empty())
     {
       return;
     }
 
-    //update
+    // update
     for (Base::iterator it = spectra_.begin(); it != spectra_.end(); ++it)
     {
       if (ms_level < Int(0) || Int(it->getMSLevel()) == ms_level)
@@ -252,37 +254,19 @@ namespace OpenMS
         // calculate size
         total_size_ += it->size();
 
-        //rt
-        if (it->getRT() < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(it->getRT());
-        if (it->getRT() > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(it->getRT());
-
-        //do not update mz and int when the spectrum is empty
-        if (it->size() == 0) continue;
-
+        // ranges
+        this->extendRT(it->getRT()); // RT
         it->updateRanges();
-
-        //mz
-        if (it->getMin()[0] < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(it->getMin()[0]);
-        if (it->getMax()[0] > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(it->getMax()[0]);
-
-        //int
-        if (it->getMinInt() < RangeManagerType::int_range_.minX()) RangeManagerType::int_range_.setMinX(it->getMinInt());
-        if (it->getMaxInt() > RangeManagerType::int_range_.maxX()) RangeManagerType::int_range_.setMaxX(it->getMaxInt());
-
+        this->extend(*it);           // m/z and intensity from spectrum's range
       }
       // for MS level = 1 we extend the range for all the MS2 precursors
       if (ms_level == 1 && it->getMSLevel() == 2)
       {
         if (!it->getPrecursors().empty())
         {
-          double pc_rt = it->getRT();
-          if (pc_rt < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(pc_rt);
-          if (pc_rt > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(pc_rt);
-          double pc_mz = it->getPrecursors()[0].getMZ();
-          if (pc_mz < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(pc_mz);
-          if (pc_mz > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(pc_mz);
+          this->extendRT(it->getRT());
+          this->extendMZ(it->getPrecursors()[0].getMZ());
         }
-
       }
 
     }
@@ -294,69 +278,47 @@ namespace OpenMS
     }
 
     // update intensity, m/z and RT according to chromatograms as well:
-    for (std::vector<ChromatogramType>::iterator it = chromatograms_.begin(); it != chromatograms_.end(); ++it)
+    for (ChromatogramType& cp : chromatograms_)
     {
 
       // ignore TICs and ECs (as these are usually positioned at 0 and therefor lead to a large white margin in plots if included)
-      if (it->getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM ||
-        it->getChromatogramType() == ChromatogramSettings::EMISSION_CHROMATOGRAM)
+      if (cp.getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM ||
+        cp.getChromatogramType() == ChromatogramSettings::EMISSION_CHROMATOGRAM)
       {
         continue;
       }
 
-      // update MZ
-      if (it->getMZ() < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(it->getMZ());
-      if (it->getMZ() > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(it->getMZ());
+      total_size_ += cp.size();
 
-      // do not update RT and intensity if the chromatogram is empty
-      if (it->size() == 0) continue;
-
-      total_size_ += it->size();
-
-      it->updateRanges();
-
-      // RT
-      if (it->getMin()[0] < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(it->getMin()[0]);
-      if (it->getMax()[0] > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(it->getMax()[0]);
-
-      // int
-      if (it->getMinInt() < RangeManagerType::int_range_.minX()) RangeManagerType::int_range_.setMinX(it->getMinInt());
-      if (it->getMaxInt() > RangeManagerType::int_range_.maxX()) RangeManagerType::int_range_.setMaxX(it->getMaxInt());
+      // ranges
+      this->extendMZ(cp.getMZ());// MZ
+      cp.updateRanges();
+      this->extend(cp);// RT and intensity from chroms's range
     }
   }
 
   /// returns the minimal m/z value
   MSExperiment::CoordinateType MSExperiment::getMinMZ() const
   {
-    return RangeManagerType::pos_range_.minPosition()[1];
+    return RangeManagerType::getMinMZ();
   }
 
   /// returns the maximal m/z value
   MSExperiment::CoordinateType MSExperiment::getMaxMZ() const
   {
-    return RangeManagerType::pos_range_.maxPosition()[1];
+    return RangeManagerType::getMaxMZ();
   }
 
   /// returns the minimal retention time value
   MSExperiment::CoordinateType MSExperiment::getMinRT() const
   {
-    return RangeManagerType::pos_range_.minPosition()[0];
+    return RangeManagerType::getMinRT();
   }
 
   /// returns the maximal retention time value
   MSExperiment::CoordinateType MSExperiment::getMaxRT() const
   {
-    return RangeManagerType::pos_range_.maxPosition()[0];
-  }
-
-  /**
-  @brief Returns RT and m/z range the data lies in.
-
-  RT is dimension 0, m/z is dimension 1
-  */
-  const MSExperiment::AreaType& MSExperiment::getDataRange() const
-  {
-    return RangeManagerType::pos_range_;
+    return RangeManagerType::getMaxRT();
   }
 
   /// returns the total number of peaks
@@ -422,9 +384,9 @@ namespace OpenMS
 
     if (sort_rt)
     {
-      for (std::vector<ChromatogramType>::iterator it = chromatograms_.begin(); it != chromatograms_.end(); ++it)
+      for (ChromatogramType& cp : chromatograms_)
       {
-        it->sortByPosition();
+        cp.sortByPosition();
       }
     }
   }
@@ -439,14 +401,20 @@ namespace OpenMS
     //check RT positions
     for (Size i = 1; i < spectra_.size(); ++i)
     {
-      if (spectra_[i - 1].getRT() > spectra_[i].getRT()) return false;
+      if (spectra_[i - 1].getRT() > spectra_[i].getRT())
+      {
+        return false;
+      }
     }
     //check spectra
     if (check_mz)
     {
       for (Size i = 0; i < spectra_.size(); ++i)
       {
-        if (!spectra_[i].isSorted()) return false;
+        if (!spectra_[i].isSorted())
+        {
+          return false;
+        }
       }
     }
     // TODO CHROM
@@ -473,9 +441,9 @@ namespace OpenMS
     bool meta_present = false;
     for (Size i = 0; i < spectra_.size(); ++i)
     {
-      if (spectra_[i].getFloatDataArrays().size() != 0 
-        || spectra_[i].getIntegerDataArrays().size() != 0 
-        || spectra_[i].getStringDataArrays().size() != 0)
+      if (!spectra_[i].getFloatDataArrays().empty() 
+        || !spectra_[i].getIntegerDataArrays().empty() 
+        || !spectra_[i].getStringDataArrays().empty())
       {
         meta_present = true;
       }
@@ -505,11 +473,11 @@ namespace OpenMS
   void MSExperiment::getPrimaryMSRunPath(StringList& toFill) const
   {
     std::vector<SourceFile> sfs(this->getSourceFiles());
-    for (std::vector<SourceFile>::const_iterator it = sfs.begin(); it != sfs.end(); ++it)
+    for (const SourceFile& ss : sfs)
     {
       // assemble a single location string from the URI (path to file) and file name
-      String path = it->getPathToFile();
-      String filename = it->getNameOfFile();
+      String path = ss.getPathToFile();
+      String filename = ss.getNameOfFile();
 
       if (path.empty() || filename.empty())
       {
@@ -585,6 +553,16 @@ namespace OpenMS
     return spectra_.end();
   }
 
+  // same as above but easier to wrap in python
+  int MSExperiment::getPrecursorSpectrum(int zero_based_index) const
+  {
+    auto spec = spectra_.cbegin();
+    spec += zero_based_index;
+    auto pc_spec = getPrecursorSpectrum(spec);
+    if (pc_spec == spectra_.cend()) return -1;
+    return pc_spec - spectra_.cbegin(); 
+  }
+
   /// Swaps the content of this map with the content of @p from
   void MSExperiment::swap(MSExperiment & from)
   {
@@ -617,10 +595,20 @@ namespace OpenMS
     spectra_ = spectra;
   }
 
+  void MSExperiment::setSpectra(std::vector<MSSpectrum> && spectra)
+  {
+    spectra_ = std::move(spectra);
+  }
+
   /// adds a spectrum to the list
   void MSExperiment::addSpectrum(const MSSpectrum & spectrum)
   {
     spectra_.push_back(spectrum);
+  }
+
+  void MSExperiment::addSpectrum(MSSpectrum && spectrum)
+  {
+    spectra_.push_back(std::move(spectrum));
   }
 
   /// returns the spectrum list
@@ -641,11 +629,22 @@ namespace OpenMS
     chromatograms_ = chromatograms;
   }
 
+  /// sets the chromatogram list
+  void MSExperiment::setChromatograms(std::vector<MSChromatogram> && chromatograms)
+  {
+    chromatograms_ = std::move(chromatograms);
+  }
+
   /// adds a chromatogram to the list
   void MSExperiment::addChromatogram(const MSChromatogram & chromatogram)
   {
     chromatograms_.push_back(chromatogram);
   }
+
+  void MSExperiment::addChromatogram(MSChromatogram&& chrom)
+  {
+    chromatograms_.push_back(std::move(chrom));
+  }  
 
   /// returns the chromatogram list
   const std::vector<MSChromatogram >& MSExperiment::getChromatograms() const
@@ -687,18 +686,19 @@ namespace OpenMS
   //@}
 
   /// returns the total ion chromatogram (TIC)
-  const MSChromatogram MSExperiment::getTIC(float rt_bin_size) const
+  const MSChromatogram MSExperiment::calculateTIC(float rt_bin_size, UInt ms_level) const
   {
-    // The TIC is (re)calculated from the MS1 spectra. Even if MSExperiment does not contain a TIC chromatogram explicitly, it can be reported.
+    // The TIC is (re)calculated from the MS spectra with set ms_level (default 1).
+    // Even if MSExperiment does not contain a TIC chromatogram explicitly, it can be reported.
     MSChromatogram TIC;
     for (const auto& spec: spectra_)
     {
-      if (spec.getMSLevel() == 1)
+      if ((spec.getMSLevel() == ms_level) || (ms_level == 0))
       {
         // fill chromatogram
         ChromatogramPeakType peak;
         peak.setRT(spec.getRT());
-        peak.setIntensity(spec.getTIC());
+        peak.setIntensity(spec.calculateTIC());
         TIC.push_back(peak);
       }
     }
@@ -787,10 +787,10 @@ namespace OpenMS
   }
 
   /*
-  @brief Append a spectrum including floatdata arrays to current MSExperiment
+  @brief Append a spectrum including float data arrays to current MSExperiment
 
   @param rt RT of new spectrum
-  @param metadata_names Names of floatdata arrays attached to this spectrum
+  @param metadata_names Names of float data arrays attached to this spectrum
   @return Pointer to newly created spectrum
   */
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt, const StringList& metadata_names)
@@ -798,8 +798,7 @@ namespace OpenMS
     SpectrumType* spectrum = createSpec_(rt);
     // create metadata arrays
     spectrum->getFloatDataArrays().reserve(metadata_names.size());
-    StringList::const_iterator itm = metadata_names.begin();
-    for (; itm != metadata_names.end(); ++itm)
+    for (StringList::const_iterator itm = metadata_names.begin(); itm != metadata_names.end(); ++itm)
     {
       spectrum->getFloatDataArrays().push_back(MSSpectrum::FloatDataArray());
       spectrum->getFloatDataArrays().back().setName(*itm);
@@ -816,15 +815,15 @@ namespace OpenMS
     os << static_cast<const ExperimentalSettings &>(exp);
 
     //spectra
-    for (std::vector<MSSpectrum>::const_iterator it = exp.getSpectra().begin(); it != exp.getSpectra().end(); ++it)
+    for (const MSSpectrum& spec : exp.getSpectra())
     {
-      os << *it;
+      os << spec;
     }
 
     //chromatograms
-    for (std::vector<MSChromatogram >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+    for (const MSChromatogram& chrom : exp.getChromatograms())
     {
-      os << *it;
+      os << chrom;
     }
 
     os << "-- MSEXPERIMENT END --" << std::endl;

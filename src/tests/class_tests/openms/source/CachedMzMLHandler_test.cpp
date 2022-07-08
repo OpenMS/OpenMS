@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -320,7 +320,7 @@ START_SECTION(static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr 
     double rt = -1.0;
     CachedMzMLHandler::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
 
-    TEST_EQUAL(mz_array->data.size() > 0, true)
+    TEST_EQUAL(!mz_array->data.empty(), true)
     TEST_EQUAL(mz_array->data.size(), exp.getSpectrum(0).size())
     TEST_EQUAL(intensity_array->data.size(), exp.getSpectrum(0).size())
 
@@ -377,7 +377,7 @@ START_SECTION( static inline void readChromatogramFast(OpenSwath::BinaryDataArra
     ifs_.seekg(chrom_index[0]);
     CachedMzMLHandler::readChromatogramFast(time_array, intensity_array, ifs_);
 
-    TEST_EQUAL(time_array->data.size() > 0, true)
+    TEST_EQUAL(!time_array->data.empty(), true)
     TEST_EQUAL(time_array->data.size(), exp.getChromatogram(0).size())
     TEST_EQUAL(intensity_array->data.size(), exp.getChromatogram(0).size())
 

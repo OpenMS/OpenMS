@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,7 +66,7 @@ namespace OpenMS
     Q_OBJECT
 public:
     /// Main managed data type (experiment)
-    typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    typedef LayerDataBase::ExperimentSharedPtrType ExperimentSharedPtrType;
 
     /// Default constructor
     Plot2DWidget(const Param & preferences, QWidget * parent = nullptr);
@@ -112,11 +112,6 @@ signals:
     void showCurrentPeaksAs3D();
 
 protected:
-    // Docu in base class
-    Math::Histogram<> createIntensityDistribution_() const override;
-    // Docu in base class
-    Math::Histogram<> createMetaDistribution_(const String & name) const override;
-
     /// Vertical projection widget
     Plot1DWidget * projection_vert_;
     /// Horizontal projection widget

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,18 @@
 // $Authors: Valentin Noske, Vincent Musch$
 // --------------------------------------------------------------------------
 
+#include <OpenMS/QC/MQEvidenceExporter.h>
 
-#include <fstream>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/QC/MQEvidenceExporter.h>
 #include <OpenMS/SYSTEM/File.h>
+
 #include <QtCore/QDir>
+#include <cmath> // isnan
+#include <fstream>
+
 
 using namespace OpenMS;
 
@@ -309,7 +313,7 @@ void MQEvidence::exportRowFromFeature_(
   const double& uncalibrated_mz_error_ppm = ptr_best_hit->getMetaValue("uncalibrated_mz_error_ppm", NAN);
   const double& calibrated_mz_error_ppm = ptr_best_hit->getMetaValue("calibrated_mz_error_ppm", NAN);
 
-  if (isnan(uncalibrated_mz_error_ppm) && isnan(calibrated_mz_error_ppm))
+  if (std::isnan(uncalibrated_mz_error_ppm) && std::isnan(calibrated_mz_error_ppm))
   {
     file_ << "NA" << "\t"; // Mass error [ppm]
     file_ << "NA" << "\t"; // Uncalibrated Mass error [ppm]
@@ -318,7 +322,7 @@ void MQEvidence::exportRowFromFeature_(
     file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
     file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [mDa]
   }
-  else if (isnan(calibrated_mz_error_ppm))
+  else if (std::isnan(calibrated_mz_error_ppm))
     {
       file_ << "NA" << "\t"; // Mass error [ppm]
       file_ << uncalibrated_mz_error_ppm << "\t"; // Uncalibrated Mass error [ppm]
@@ -327,7 +331,7 @@ void MQEvidence::exportRowFromFeature_(
       file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [ppm]
       file_ << "NA" << "\t"; // Uncalibrated - Calibrated m/z [mDa]
     }
-    else if (isnan(uncalibrated_mz_error_ppm))
+    else if (std::isnan(uncalibrated_mz_error_ppm))
       {
         file_ << calibrated_mz_error_ppm << "\t"; // Mass error [ppm]
         file_ << "NA" << "\t"; // Uncalibrated Mass error [ppm]

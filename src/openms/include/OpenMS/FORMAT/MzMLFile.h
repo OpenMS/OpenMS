@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h> // StringList
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
+#include <map>
+
 namespace OpenMS
 {
   /**
@@ -69,7 +71,7 @@ public:
     const PeakFileOptions& getOptions() const;
 
     /// set options for loading/storing
-    void setOptions(const PeakFileOptions &);
+    void setOptions(const PeakFileOptions&);
 
     /**
       @brief Loads a map from a MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions).
@@ -220,5 +222,3 @@ private:
   };
 
 } // namespace OpenMS
-
-

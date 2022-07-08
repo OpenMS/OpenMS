@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,13 +35,14 @@
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <unordered_map>
+#include <array>
 
 using namespace std;
 namespace OpenMS
 {
 
 
-  //TODO parameterize so it only adds/keeps best per peptide, peptide charge, modpeptide
+  //TODO parameterize so it only adds/keeps best per peptide, peptide charge, modified peptide
   // How? Maybe keep a map here about the best scores and lookup before adding and update and insert only if better
   // proteins of this peptide could be skipped (if we assume same database as we do currently, it has to be there already)
   IDMergerAlgorithm::IDMergerAlgorithm(const String& runIdentifier) :
@@ -186,7 +187,7 @@ namespace OpenMS
   {
     //TODO if we allow run IDs, we should do a remove_if,
     // then use the iterator to update and move
-    // the IDs, then erase them so we dont encounter them in
+    // the IDs, then erase them so we don't encounter them in
     // subsequent calls of this function
     for (auto &pid : pepIDs)
     {

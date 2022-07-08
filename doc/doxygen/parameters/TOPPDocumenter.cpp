@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,8 +46,6 @@
 #include <fstream>
 #include <sstream>
 
-#include <boost/algorithm/string.hpp>
-
 using namespace std;
 using namespace OpenMS;
 using namespace Internal;
@@ -78,7 +76,7 @@ void convertINI2HTML(const Param& p, ostream& os)
         String d = it2->description;
         d.substitute("\n", "<br>");
         os << indentation
-           << "<div class=\"node\"><span class=\"node_name\">"
+           << R"(<div class="node"><span class="node_name">)"
            << (String().fillLeft('+', (UInt) indentation.size() / 2) + it2->name)
            << "</span><span class=\"node_description\">"
            << (d)
@@ -181,7 +179,7 @@ void convertINI2HTML(const Param& p, ostream& os)
 
     case ParamValue::STRING_VALUE:
     case ParamValue::STRING_LIST:
-      if (it->valid_strings.size() != 0)
+      if (!it->valid_strings.empty())
       {
         restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ",");
       }

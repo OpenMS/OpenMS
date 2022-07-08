@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -132,12 +132,6 @@ function(openms_add_library)
   CACHE INTERNAL "${openms_add_library_TARGET_NAME} include directories" FORCE)
 
   #------------------------------------------------------------------------------
-  # Include directories
-  include_directories(${openms_add_library_INTERNAL_INCLUDES})
-  include_directories(SYSTEM ${openms_add_library_EXTERNAL_INCLUDES})
-  include_directories(SYSTEM ${openms_add_library_PRIVATE_INCLUDES})
-
-  #------------------------------------------------------------------------------
   # Check if we want a unity build
   if (ENABLE_UNITYBUILD)
   	message(STATUS "Enabled Unity Build for ${openms_add_library_TARGET_NAME}")
@@ -147,6 +141,25 @@ function(openms_add_library)
   #------------------------------------------------------------------------------
   # Add the library
   add_library(${openms_add_library_TARGET_NAME} ${openms_add_library_SOURCE_FILES})
+
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
+  #------------------------------------------------------------------------------
+  # Include directories
+  # since internal includes all start with include/OpenMS and install_headers takes care of merging them in the install tree,
+  # we can reference them just by INSTALL_INCLUDE_DIR in the install tree. They are then included as usual via <OpenMS/OPENSWATHALGO/..>"
+  target_include_directories(${openms_add_library_TARGET_NAME} PUBLIC
+                             "$<BUILD_INTERFACE:${openms_add_library_INTERNAL_INCLUDES}>"
+                             "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>"  # <prefix>/include
+                             )
+
+  # TODO actually we shouldn't need to add these external includes. They should propagate through target_link_library if they are public
+  target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PUBLIC 
+                             "$<BUILD_INTERFACE:${openms_add_library_EXTERNAL_INCLUDES}>"
+                             "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>"
+                             )
+  target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PRIVATE ${openms_add_library_PRIVATE_INCLUDES})
+  
   #TODO cxx_std_17 only requires a c++17 flag for the compiler. Not full standard support.
   # If we want full support, we need our own try_compiles (e.g. for structured bindings first available in GCC7)
   # or specify a min version of each compiler.
@@ -176,7 +189,7 @@ function(openms_add_library)
   if(openms_add_library_LINK_LIBRARIES)
     ## check for consistent lib arch (e.g. all 64bit)?
     check_lib_architecture(openms_add_library_LINK_LIBRARIES)
-    target_link_libraries(${openms_add_library_TARGET_NAME} ${openms_add_library_LINK_LIBRARIES} ${openms_add_library_PRIVATE_LINK_LIBRARIES})
+    target_link_libraries(${openms_add_library_TARGET_NAME} PUBLIC ${openms_add_library_LINK_LIBRARIES} PRIVATE ${openms_add_library_PRIVATE_LINK_LIBRARIES})
     list(LENGTH openms_add_library_LINK_LIBRARIES _library_count)
   endif()
 

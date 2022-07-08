@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -169,7 +169,7 @@ namespace OpenMS
 
   double IsotopeWavelet::getValueByLambdaExtrapol(const double lambda, const double tz1)
   {
-    double fac(-lambda + (tz1 - 1) * myLog2_(lambda) * ONEOLOG2E - boost::math::lgamma(tz1));
+    double fac(-lambda + (tz1 - 1) * myLog2_(lambda) * ONEOLOG2E - std::lgamma(tz1));
     double help((tz1 - 1) * Constants::WAVELET_PERIODICITY / (TWOPI));
     double sine_index((help - (int)(help)) * TWOPI * inv_table_steps_);
 
@@ -178,7 +178,7 @@ namespace OpenMS
 
   double IsotopeWavelet::getValueByLambdaExact(const double lambda, const double tz1)
   {
-    return sin(2 * Constants::PI * (tz1 - 1) / Constants::IW_NEUTRON_MASS) * exp(-lambda) * pow(lambda, tz1 - 1) / boost::math::tgamma(tz1); //boost::math::tgamma(tz1));
+    return sin(2 * Constants::PI * (tz1 - 1) / Constants::IW_NEUTRON_MASS) * exp(-lambda) * pow(lambda, tz1 - 1) / std::tgamma(tz1); //std::tgamma(tz1));
   }
 
   double IsotopeWavelet::getLambdaL(const double m)
@@ -191,12 +191,17 @@ namespace OpenMS
     double mz(mass * z);
     int res = -1;
     if (mz < Constants::CUT_LAMBDA_BREAK_0_1)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_0_A + Constants::CUT_LAMBDA_Q_0_B * mz + Constants::CUT_LAMBDA_Q_0_C * mz * mz);
+    }
     if (mz > Constants::CUT_LAMBDA_BREAK_1_2)
+    {
       res = ceil(Constants::CUT_LAMBDA_L_2_A + Constants::CUT_LAMBDA_L_2_B * mz);
+    }
     if (res < 0)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_1_A + Constants::CUT_LAMBDA_Q_1_B * mz + Constants::CUT_LAMBDA_Q_1_C * mz * mz);
-
+    }
     return res;
   }
 
@@ -205,12 +210,17 @@ namespace OpenMS
     double mz(mass * z);
     int res = -1;
     if (mz < Constants::CUT_LAMBDA_BREAK_0_1)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_0_A + Constants::CUT_LAMBDA_Q_0_B * mz + Constants::CUT_LAMBDA_Q_0_C * mz * mz - Constants::IW_QUARTER_NEUTRON_MASS);
+    }
     if (mz > Constants::CUT_LAMBDA_BREAK_1_2)
+    {
       res = ceil(Constants::CUT_LAMBDA_L_2_A + Constants::CUT_LAMBDA_L_2_B * mz - Constants::IW_QUARTER_NEUTRON_MASS);
+    }
     if (res < 0)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_1_A + Constants::CUT_LAMBDA_Q_1_B * mz + Constants::CUT_LAMBDA_Q_1_C * mz * mz - Constants::IW_QUARTER_NEUTRON_MASS);
-
+    }
     return res;
   }
 
@@ -218,12 +228,17 @@ namespace OpenMS
   {
     int res = -1;
     if (mz < Constants::CUT_LAMBDA_BREAK_0_1)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_0_A + Constants::CUT_LAMBDA_Q_0_B * mz + Constants::CUT_LAMBDA_Q_0_C * mz * mz - Constants::IW_QUARTER_NEUTRON_MASS);
+    }
     if (mz > Constants::CUT_LAMBDA_BREAK_1_2)
+    {
       res = ceil(Constants::CUT_LAMBDA_L_2_A + Constants::CUT_LAMBDA_L_2_B * mz - Constants::IW_QUARTER_NEUTRON_MASS);
+    }
     if (res < 0)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_1_A + Constants::CUT_LAMBDA_Q_1_B * mz + Constants::CUT_LAMBDA_Q_1_C * mz * mz - Constants::IW_QUARTER_NEUTRON_MASS);
-
+    }
     return res;
   }
 
@@ -271,8 +286,8 @@ namespace OpenMS
     query += table_steps_;
     while (query <= up_to)
     {
-      gamma_table_.push_back(boost::math::lgamma(query));
-      gamma_table_new_.push_back(boost::math::tgamma(query));
+      gamma_table_.push_back(std::lgamma(query));
+      gamma_table_new_.push_back(std::tgamma(query));
 
       query += table_steps_;
     }
@@ -300,7 +315,6 @@ namespace OpenMS
 
     averagine_ = solver_.estimateFromPeptideWeight(mass);
     IsotopeDistribution::ContainerType help(averagine_.getContainer());
-    IsotopeDistribution::ContainerType::iterator iter;
 
     if (size != nullptr)
     {

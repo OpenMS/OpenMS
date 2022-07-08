@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -116,6 +117,64 @@ namespace OpenMS
       db_name = File::findDatabase(db_name);
     }
     return db_name;
+  }
+
+  SearchEngineBase::ExitCodes SearchEngineBase::reindex_(std::vector<ProteinIdentification>& protein_identifications, 
+                                       std::vector<PeptideIdentification>& peptide_identifications) const
+  {
+    if (getStringOption_("reindex") == "true")
+    {
+      PeptideIndexing indexer;
+      
+      // extract parameter subtree
+      Param param = getParam_().copy("PeptideIndexing:", true);
+      
+      Param param_pi = indexer.getParameters();
+      // copy search engine specific default parameter for peptide indexing into param_pi
+      param_pi.update(param, false, false, false, false, OpenMS_Log_debug); // suppress param. update message
+      indexer.setParameters(param_pi);
+      indexer.setLogType(this->log_type_);
+      FASTAContainer<TFI_File> proteins(getDBFilename());
+      PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, protein_identifications, peptide_identifications);
+
+      if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
+          (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+      {
+        if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+        {
+          return INPUT_FILE_EMPTY;       
+        }
+        else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+        {
+          return UNEXPECTED_RESULT;
+        }
+        else
+        {
+          return UNKNOWN_ERROR;
+        }
+      } 
+    }
+    return EXECUTION_OK;
+  }
+
+  void SearchEngineBase::registerPeptideIndexingParameter_(Param peptide_indexing_parameter)
+  {
+    registerStringOption_("reindex", "<choice>", "true", "Recalculate peptide to protein association using OpenMS. Annotates target-decoy information.", false);
+    setValidStrings_("reindex", { "true", "false" });
+  
+    peptide_indexing_parameter.setValue("missing_decoy_action", "warn");
+
+    // hide entries
+    for (const auto& s : {"decoy_string", "decoy_string_position", "missing_decoy_action", "enzyme:name", "enzyme:specificity",
+                          "write_protein_sequence", "write_protein_description", "keep_unreferenced_proteins", "unmatched_action", 
+                          "aaa_max","mismatches_max", "IL_equivalent"})
+    {
+      peptide_indexing_parameter.addTag(s, "advanced");
+    }
+    // move parameter to PeptideIndexing subtree so we don't accidently overwrite duplicate keys in the tool and indexer
+    Param combined;
+    combined.insert("PeptideIndexing:", peptide_indexing_parameter);
+    registerFullParam_(combined);
   }
 
 }

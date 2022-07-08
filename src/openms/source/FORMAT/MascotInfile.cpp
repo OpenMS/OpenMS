@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -135,7 +135,7 @@ namespace OpenMS
     //fputs ("\n",fp);
 
     // search title
-    if (search_title_ != "")
+    if (!search_title_.empty())
     {
       writeParameterHeader_("COM", fp, false);
       fputs(search_title_.c_str(), fp);
@@ -305,7 +305,7 @@ namespace OpenMS
       MSSpectrum peaks = experiment[i];
       peaks.sortByPosition();
       Precursor precursor_peak;
-      if (experiment[i].getPrecursors().size() > 0)
+      if (!experiment[i].getPrecursors().empty())
       {
         precursor_peak = experiment[i].getPrecursors()[0];
       }
@@ -470,7 +470,7 @@ namespace OpenMS
     instrument_ = instrument;
   }
 
-  UInt MascotInfile::getMissedCleavages()
+  UInt MascotInfile::getMissedCleavages() const
   {
     return missed_cleavages_;
   }
@@ -480,7 +480,7 @@ namespace OpenMS
     missed_cleavages_ = missed_cleavages;
   }
 
-  float MascotInfile::getPrecursorMassTolerance()
+  float MascotInfile::getPrecursorMassTolerance() const
   {
     return precursor_mass_tolerance_;
   }
@@ -490,7 +490,7 @@ namespace OpenMS
     precursor_mass_tolerance_ = precursor_mass_tolerance;
   }
 
-  float MascotInfile::getPeakMassTolerance()
+  float MascotInfile::getPeakMassTolerance() const
   {
     return ion_mass_tolerance_;
   }
@@ -670,7 +670,7 @@ namespace OpenMS
               // TODO concatenate the other parts if the title contains additional '=' chars
             }
           }
-          if (line.trim().size() > 0 && isdigit(line[0]))
+          if (!line.trim().empty() && isdigit(line[0]))
           {
             do
             {
@@ -703,7 +703,7 @@ namespace OpenMS
             }
             else
             {
-              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Found \"BEGIN IONS\" but not the corresponding \"END IONS\"!", "");
+              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, R"(Found "BEGIN IONS" but not the corresponding "END IONS"!)", "");
             }
           }
         }

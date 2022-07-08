@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,10 +38,9 @@
 using namespace xercesc;
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
     MzMLValidator::MzMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv) :
       SemanticValidator(mapping, cv),
       binary_data_array_(),
@@ -62,8 +61,10 @@ namespace OpenMS
     {
       String tag = sm_.convert(qname);
       String parent_tag;
-      if (open_tags_.size() > 0)
+      if (!open_tags_.empty())
+      {
         parent_tag = open_tags_.back();
+      }
       String path = getPath_() + "/" + cv_tag_ + "/@" + accession_att_;
       open_tags_.push_back(tag);
 
@@ -119,7 +120,7 @@ namespace OpenMS
     String MzMLValidator::getPath_(UInt remove_from_end) const
     {
       String path;
-      if (open_tags_.size() != 0 && open_tags_.front() == "indexedmzML")
+      if (!open_tags_.empty() && open_tags_.front() == "indexedmzML")
       {
         path.concatenate(open_tags_.begin() + 1, open_tags_.end() - remove_from_end, "/");
       }
@@ -138,11 +139,13 @@ namespace OpenMS
     {
       //some CVs cannot be validated because they use 'part_of' which spoils the inheritance
       if (parsed_term.accession.hasPrefix("GO:"))
+      {
         return;
-
+      }
       if (parsed_term.accession.hasPrefix("BTO:"))
+      {
         return;
-
+      }
       //check binary data array terms
       if (path.hasSuffix("/binaryDataArray/cvParam/@accession"))
       {
@@ -157,7 +160,7 @@ namespace OpenMS
           binary_data_type_ = parsed_term.accession;
         }
         //if both are parsed, check if they match
-        if (binary_data_type_ != "" && binary_data_array_ != "")
+        if (!binary_data_type_.empty() && !binary_data_array_.empty())
         {
           if (!ListUtils::contains(cv_.getTerm(binary_data_array_).xref_binary, binary_data_type_))
           {
@@ -169,5 +172,4 @@ namespace OpenMS
       SemanticValidator::handleTerm_(path, parsed_term);
     }
 
-  }   // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS   // namespace Internal

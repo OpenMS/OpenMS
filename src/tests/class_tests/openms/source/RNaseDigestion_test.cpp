@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -166,14 +166,14 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
   rd.setMissedCleavages(0); // shouldn't matter for the result
   rd.digest(NASequence::fromString("ACGU"), out);
   TEST_EQUAL(out.size(), 10);
-  TEST_STRING_EQUAL(out[0].toString(), "A");
-  TEST_STRING_EQUAL(out[1].toString(), "AC");
-  TEST_STRING_EQUAL(out[2].toString(), "ACG");
+  TEST_STRING_EQUAL(out[0].toString(), "Ap");
+  TEST_STRING_EQUAL(out[1].toString(), "ACp");
+  TEST_STRING_EQUAL(out[2].toString(), "ACGp");
   TEST_STRING_EQUAL(out[3].toString(), "ACGU");
-  TEST_STRING_EQUAL(out[4].toString(), "C");
-  TEST_STRING_EQUAL(out[5].toString(), "CG");
+  TEST_STRING_EQUAL(out[4].toString(), "Cp");
+  TEST_STRING_EQUAL(out[5].toString(), "CGp");
   TEST_STRING_EQUAL(out[6].toString(), "CGU");
-  TEST_STRING_EQUAL(out[7].toString(), "G");
+  TEST_STRING_EQUAL(out[7].toString(), "Gp");
   TEST_STRING_EQUAL(out[8].toString(), "GU");
   TEST_STRING_EQUAL(out[9].toString(), "U");
 }
@@ -183,8 +183,8 @@ START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
                 Size max_length = 0) const))
 {
   IdentificationData id_data;
-  IdentificationData::ParentMolecule rna("test", IdentificationData::MoleculeType::RNA, "pAUGUCGCAG");
-  id_data.registerParentMolecule(rna);
+  IdentificationData::ParentSequence rna("test", IdentificationData::MoleculeType::RNA, "pAUGUCGCAG");
+  id_data.registerParentSequence(rna);
 
   RNaseDigestion rd;
   rd.setEnzyme("RNase_T1"); // cuts after G and leaves a 3'-phosphate
@@ -195,7 +195,7 @@ START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
   /// multiple occurrences of the same oligo:
   IdentificationData id_data2;
   rna.sequence = "ACUGACUGG";
-  id_data2.registerParentMolecule(rna);
+  id_data2.registerParentSequence(rna);
 
   rd.digest(id_data2, 2);
 
@@ -205,7 +205,7 @@ START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
   TEST_EQUAL(ref->parent_matches.size(), 1);
   ABORT_IF(ref->parent_matches.empty());
   // oligo sequence matches in two locations:
-  const set<IdentificationData::MoleculeParentMatch>& matches =
+  const set<IdentificationData::ParentMatch>& matches =
     ref->parent_matches.begin()->second;
   TEST_EQUAL(matches.size(), 2);
   ABORT_IF(matches.size() < 2);

@@ -50,7 +50,7 @@
   <ul>
     <li>
       Essential are \b gcc/g++ (>= 7.0) or similar ANSI C++ compiler with full C++17 support,
-      \b CMake (>= 3.1; with >= 3.9 suggested), \b Qt5, \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
+      \b CMake (>= 3.1; with >= 3.9 suggested), \b Qt5 (>= 5.6), \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
     </li>
     <li>
       For the complete feature set to be enabled, %OpenMS needs recent versions of
@@ -113,12 +113,12 @@
     sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
     sudo apt-get install libboost-regex-dev libboost-iostreams-dev \
       libboost-date-time-dev libboost-math-dev libboost-random-dev libsvm-dev \
-      libglpk-dev zlib1g-dev libxerces-c-dev seqan-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
+      libglpk-dev zlib1g-dev libxerces-c-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
       # Use from contrib: EIGEN; SQLITE; WILDMAGIC (since libwildmagic-dev is buggy)
     </pre></td>
   </tr>
   <tr>
-      <td><B>Ubuntu/Debian <br/>(>= 17.04)</B></td>
+      <td><B>Ubuntu/Debian <br/>(17.04 and 18.04)</B></td>
       <td><pre>
     # include the ubuntu universe repository and update
     sudo add-apt-repository universe
@@ -127,7 +127,7 @@
     sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
     sudo apt-get install libeigen3-dev libsqlite3-dev libwildmagic-dev libboost-random1.62-dev \
       libboost-regex1.62-dev libboost-iostreams1.62-dev libboost-date-time1.62-dev libboost-math1.62-dev \
-      libxerces-c-dev libglpk-dev zlib1g-dev libsvm-dev libbz2-dev seqan-dev coinor-libcoinmp-dev libhdf5-dev
+      libxerces-c-dev libglpk-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
       # this should eliminate the need for building contrib libraries.
       </pre></td>
   </tr>
@@ -141,7 +141,7 @@
     sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
     sudo apt-get install libeigen3-dev libsqlite3-dev libwildmagic-dev libboost-random1.67-dev \
       libboost-regex1.67-dev libboost-iostreams1.67-dev libboost-date-time1.67-dev libboost-math1.67-dev \
-      libxerces-c-dev libglpk-dev zlib1g-dev libsvm-dev libbz2-dev seqan-dev coinor-libcoinmp-dev libhdf5-dev
+      libxerces-c-dev libglpk-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
       # this should eliminate the need for building contrib libraries.
       </pre></td>
   </tr>  
@@ -151,7 +151,7 @@
 
   You can and should check which dependencies you still need by attempting to configure %OpenMS (see the next section),
   it will complain about anything unusual/missing.
-  @warning Do not install libraries from our contrib package if it is installed on your system in a compatible version already. If you have an incompatible version, we suggest to update or deinstall and use the contrib version.
+  @warning Do not install libraries from our contrib package if it is installed on your system in a compatible version already. If you have an incompatible version, we suggest to update or uninstall and use the contrib version.
   @note In most cases, the only dependencies left unresolved (e.g. unavailable through your distributions packaging system) at this point are WildMagic and CoinOR.
   Contact us if you still have trouble with the dependencies \b after these
   instructions.

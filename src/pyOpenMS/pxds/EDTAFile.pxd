@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/FORMAT/EDTAFile.h>" namespace "OpenMS":
     cdef cppclass EDTAFile:
 
         EDTAFile() nogil except +
-        EDTAFile(EDTAFile) nogil except +
+        EDTAFile(EDTAFile &) nogil except + # compiler
 
         void store(String filename, FeatureMap & map) nogil except +
         void store(String filename, ConsensusMap & map)  nogil except +

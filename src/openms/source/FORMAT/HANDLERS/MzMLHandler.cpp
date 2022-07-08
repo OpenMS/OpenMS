@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,10 +44,10 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/SYSTEM/File.h>
 
-namespace OpenMS
+#include <map>
+
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
 
     /// Constructor for a read-only handler
     MzMLHandler::MzMLHandler(MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
@@ -66,14 +66,9 @@ namespace OpenMS
     /// delegated c'tor for the common things
     MzMLHandler::MzMLHandler(const String& filename, const String& version, const ProgressLogger& logger)
       : XMLHandler(filename, version),
-        logger_(logger)
+        logger_(logger),
+        cv_(ControlledVocabulary::getPSIMSCV())
     {
-      cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-      cv_.loadFromOBO("PATO", File::find("/CV/quality.obo"));
-      cv_.loadFromOBO("UO", File::find("/CV/unit.obo"));
-      cv_.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
-      cv_.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
-
       CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"), mapping_);
 
       // check the version number of the mzML handler
@@ -353,11 +348,11 @@ namespace OpenMS
       }
 
       // Error if intensity or m/z is encoded as int32|64 - they should be float32|64!
-      if ((input_data[mz_index].ints_32.size() > 0) || (input_data[mz_index].ints_64.size() > 0))
+      if ((!input_data[mz_index].ints_32.empty()) || (!input_data[mz_index].ints_64.empty()))
       {
         fatalError(LOAD, "Encoding m/z array as integer is not allowed!");
       }
-      if ((input_data[int_index].ints_32.size() > 0) || (input_data[int_index].ints_64.size() > 0))
+      if ((!input_data[int_index].ints_32.empty()) || (!input_data[int_index].ints_64.empty()))
       {
         fatalError(LOAD, "Encoding intensity array as integer is not allowed!");
       }
@@ -719,7 +714,7 @@ namespace OpenMS
       constexpr XMLCh s_data_processing_ref[] = { 'd','a','t','a','P','r','o','c','e','s','s','i','n','g','R','e','f' , 0};
       constexpr XMLCh s_start_time_stamp[] = { 's','t','a','r','t','T','i','m','e','S','t','a','m','p' , 0};
       constexpr XMLCh s_external_spectrum_id[] = { 'e','x','t','e','r','n','a','l','S','p','e','c','t','r','u','m','I','D' , 0};
-      constexpr XMLCh s_default_source_file_ref[] = { 'd','e','f','a','u','l','t','S','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
+      // constexpr XMLCh s_default_source_file_ref[] = { 'd','e','f','a','u','l','t','S','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
       constexpr XMLCh s_scan_settings_ref[] = { 's','c','a','n','S','e','t','t','i','n','g','s','R','e','f' , 0};
       String tag = sm_.convert(qname);
       open_tags_.push_back(tag);
@@ -754,7 +749,7 @@ namespace OpenMS
         String source_file_ref;
         if (optionalAttributeAsString_(source_file_ref, attributes, s_source_file_ref))
         {
-          if (source_files_.has(source_file_ref))
+          if (source_files_.find(source_file_ref) != source_files_.end())
           {
             spec_.setSourceFile(source_files_[source_file_ref]);
           }
@@ -817,8 +812,9 @@ namespace OpenMS
 
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
+        {
           throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-
+        }
         scan_count_total_ = attributeAsInt_(attributes, s_count);
         logger_.startProgress(0, scan_count_total_, "loading spectra list");
         in_spectrum_list_ = true;
@@ -841,8 +837,9 @@ namespace OpenMS
 
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
+        {
           throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-
+        }
         chrom_count_total_ = attributeAsInt_(attributes, s_count);
         logger_.startProgress(0, chrom_count_total_, "loading chromatogram list");
         in_spectrum_list_ = false;
@@ -850,7 +847,10 @@ namespace OpenMS
         // we only want total scan count and chrom count
         if (load_detail_ == XMLHandler::LD_RAWCOUNTS)
         { // in case spectra came before chroms, we have all information --> end parsing
-          if (scan_count_total_ != -1) throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+          if (scan_count_total_ != -1)
+          {
+            throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+          }
           // or skip the remaining chroms until </chromatogramList>
           skip_chromatogram_ = true;
         }
@@ -918,13 +918,25 @@ namespace OpenMS
         {
           path_to_file = File::path(name_of_file);
           name_of_file = File::basename(name_of_file);
-          if (path_to_file == ".") path_to_file = "file://./";
+          if (path_to_file == ".")
+          {
+            path_to_file = "file://./";
+          }
         }
 
         // format URI prefix as in mzML spec.
-        if (path_to_file.hasPrefix("File://")) path_to_file.substitute("File://", "file://");
-        if (path_to_file.hasPrefix("FILE://")) path_to_file.substitute("FILE://", "file://");
-        if (path_to_file.hasPrefix("file:///.")) path_to_file.substitute("file:///.", "file://./");
+        if (path_to_file.hasPrefix("File://"))
+        {
+          path_to_file.substitute("File://", "file://");
+        }
+        if (path_to_file.hasPrefix("FILE://"))
+        {
+          path_to_file.substitute("FILE://", "file://");
+        }
+        if (path_to_file.hasPrefix("file:///."))
+        {
+          path_to_file.substitute("file:///.", "file://./");
+        }
 
         bool is_relative_path = path_to_file.hasPrefix("file://./") || path_to_file.hasPrefix("file://../");
 
@@ -1064,12 +1076,14 @@ namespace OpenMS
         {
           exp_->setDateTime(asDateTime_(start_time));
         }
+        /*
         //defaultSourceFileRef
         String default_source_file_ref;
         if (optionalAttributeAsString_(default_source_file_ref, attributes, s_default_source_file_ref))
         {
           exp_->getSourceFiles().push_back(source_files_[default_source_file_ref]);
-        }
+        } 
+        */       
       }
       else if (tag == "software")
       {
@@ -1215,6 +1229,7 @@ namespace OpenMS
       constexpr XMLCh s_spectrum_list[] = { 's','p','e','c','t','r','u','m','L','i','s','t' , 0};
       constexpr XMLCh s_chromatogram_list[] = { 'c','h','r','o','m','a','t','o','g','r','a','m','L','i','s','t' , 0};
       constexpr XMLCh s_mzml[] = { 'm','z','M','L' , 0};
+      constexpr XMLCh s_sourceFileList[] = { 's','o','u','r','c','e','F','i','l','e','L','i','s','t', 0};
 
       open_tags_.pop_back();
 
@@ -1295,7 +1310,7 @@ namespace OpenMS
         {
           case XMLHandler::LD_ALLDATA:
           case XMLHandler::LD_COUNTS_WITHOPTIONS:
-            skip_chromatogram_ = false; // dont skip the next chrom
+            skip_chromatogram_ = false; // don't skip the next chrom
             break;
           case XMLHandler::LD_RAWCOUNTS:
             skip_chromatogram_ = true; // we always skip chroms; we only need the outer <spectrumList/chromatogramList count=...>
@@ -1317,6 +1332,18 @@ namespace OpenMS
         skip_chromatogram_ = false; // no more chromatograms to come, so stop skipping
         in_spectrum_list_ = false;
         logger_.endProgress();
+      }
+      else if (equal_(qname, s_sourceFileList ))
+      {        
+        for (auto const& ref_sourcefile : source_files_)
+        {
+          auto& sfs = exp_->getSourceFiles();
+          // only store source files once
+          if (std::find(sfs.begin(), sfs.end(), ref_sourcefile.second) == sfs.end())
+          {
+            exp_->getSourceFiles().push_back(ref_sourcefile.second);
+          }
+        }
       }
       else if (equal_(qname, s_mzml))
       {
@@ -1378,7 +1405,7 @@ namespace OpenMS
           warning(LOAD, String("Obsolete CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "'.");
         }
         //values used in wrong places and wrong value types
-        if (value != "")
+        if (!value.empty())
         {
           if (term.xref_type == ControlledVocabulary::CVTerm::NONE)
           {
@@ -1457,7 +1484,7 @@ namespace OpenMS
         }
       }
 
-      if (unit_accession != "")
+      if (!unit_accession.empty())
       {
         if (unit_accession.hasPrefix("UO:"))
         {
@@ -1661,7 +1688,7 @@ namespace OpenMS
           // Some pwiz version put this term on the "spectrum" level so we also read it here.
           //TODO CV term is wrongly annotated without an xref data type -> cast to double
           spec_.setDriftTime(value.toDouble());
-          spec_.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+          spec_.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
         }
         //scan polarity
         else if (accession == "MS:1000129") //negative scan
@@ -1704,8 +1731,9 @@ namespace OpenMS
       {
         //parse only the first selected ion
         if (selected_ion_count_ > 1)
+        {
           return;
-
+        }
         if (accession == "MS:1000744") //selected ion m/z
         {
           double this_mz = value.toDouble();
@@ -1774,18 +1802,18 @@ namespace OpenMS
           //
           // Note that only milliseconds and VSSC are valid units
 
-          auto unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+          auto unit = DriftTimeUnit::MILLISECOND;
           if (accession == "MS:1002476")
           {
-            unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+            unit = DriftTimeUnit::MILLISECOND;
           }
           else if (accession == "MS:1002815")
           {
-            unit = MSSpectrum::DriftTimeUnit::VSSC;          
+            unit = DriftTimeUnit::VSSC;          
           }
           else if (accession == "MS:1001581")
           {
-            unit = MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;          
+            unit = DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;          
           }
 
           if (in_spectrum_list_)
@@ -1883,7 +1911,15 @@ namespace OpenMS
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::SORI);
           }
-          else if (accession == "MS:1000422") //high-energy collision-induced dissociation
+          else if (accession == "MS:1000422") //beam-type collision-induced dissociation / HCD
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::HCD);
+          }
+          else if (accession == "MS:1002472") //trap-type collision-induced dissociation
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::TRAP);
+          }          
+          else if (accession == "MS:1002481") //high-energy collision-induced dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::HCID);
           }
@@ -1903,6 +1939,14 @@ namespace OpenMS
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PQD);
           }
+          else if (accession == "MS:1001880") //in-source collision-induced dissociation
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::INSOURCE);
+          }
+          else if (accession == "MS:1002000") //LIFT
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::LIFT);
+          }          
           else
             warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
         }
@@ -1979,7 +2023,15 @@ namespace OpenMS
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::SORI);
           }
-          else if (accession == "MS:1000422") //high-energy collision-induced dissociation
+          else if (accession == "MS:1000422") //beam-type collision-induced dissociation / HCD
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::HCD);
+          }
+          else if (accession == "MS:1002472") //trap-type collision-induced dissociation
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::TRAP);
+          }
+          else if (accession == "MS:1002481") //high-energy collision-induced dissociation          
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::HCID);
           }
@@ -1999,8 +2051,18 @@ namespace OpenMS
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::PQD);
           }
+          else if (accession == "MS:1001880") //in-source collision-induced dissociation
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::INSOURCE);
+          }
+          else if (accession == "MS:1002000") //LIFT
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::LIFT);
+          }          
           else
+          {
             warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          }
         }
       }
       //------------------------- isolationWindow ----------------------------
@@ -2116,18 +2178,18 @@ namespace OpenMS
           //
           // Note: this is where pwiz stores the ion mobility for a spectrum
 
-          auto unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+          auto unit = DriftTimeUnit::MILLISECOND;
           if (accession == "MS:1002476")
           {
-            unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+            unit = DriftTimeUnit::MILLISECOND;
           }
           else if (accession == "MS:1002815")
           {
-            unit = MSSpectrum::DriftTimeUnit::VSSC;
+            unit = DriftTimeUnit::VSSC;
           }
           else if (accession == "MS:1001581")
           {
-            unit = MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+            unit = DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
           }
 
           spec_.setDriftTime(value.toDouble());
@@ -3259,7 +3321,7 @@ namespace OpenMS
         data_value = DataValue(value);
       }
 
-      if (unit_accession != "")
+      if (!unit_accession.empty())
       {
         if (unit_accession.hasPrefix("UO:"))
         {
@@ -3537,7 +3599,7 @@ namespace OpenMS
               // retrieving the identifier and looking up the term within the
               // correct ontology in our cv_ object.
               char s[8];
-              snprintf(s, sizeof(s), "%07d", d.getUnit()); // all CV use 7 digit indentifiers padded with zeros
+              snprintf(s, sizeof(s), "%07d", d.getUnit()); // all CV use 7 digit identifiers padded with zeros
               String unitstring = String(s);
               if (d.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY)
               {
@@ -3597,11 +3659,11 @@ namespace OpenMS
     {
       os << "\t\t<software id=\"" << id << "\" version=\"" << software.getVersion() << "\" >\n";
       ControlledVocabulary::CVTerm so_term = getChildWithName_("MS:1000531", software.getName());
-      if (so_term.id == "")
+      if (so_term.id.empty())
       {
         so_term = getChildWithName_("MS:1000531", software.getName() + " software"); //act of desperation to find the right cv and keep compatible with older cv mzmls
       }
-      if (so_term.id == "")
+      if (so_term.id.empty())
       {
         so_term = getChildWithName_("MS:1000531", "TOPP " + software.getName()); //act of desperation to find the right cv and keep compatible with older cv mzmls
       }
@@ -3609,7 +3671,7 @@ namespace OpenMS
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000799\" name=\"custom unreleased software tool\" value=\"\" />\n";
       }
-      else if (so_term.id != "")
+      else if (!so_term.id.empty())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"" << so_term.id << "\" name=\"" << writeXMLEscape(so_term.name) << "\" />\n";
       }
@@ -3643,7 +3705,7 @@ namespace OpenMS
       {
         ft_term = getChildWithName_("MS:1000560", source_file.getFileType().chop(4) + "format");   // this is born out of desperation that sourcefile has a string interface for its filetype and not the enum, which could have been easily manipulated to the updated cv
       }
-      if (ft_term.id != "")
+      if (!ft_term.id.empty())
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" << ft_term.id << "\" name=\"" << ft_term.name << "\" />\n";
       }
@@ -3653,7 +3715,7 @@ namespace OpenMS
       }
       //native ID format
       ControlledVocabulary::CVTerm id_term = getChildWithName_("MS:1000767", source_file.getNativeIDType());
-      if (id_term.id != "")
+      if (!id_term.id.empty())
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" << id_term.id << "\" name=\"" << id_term.name << "\" />\n";
       }
@@ -3834,8 +3896,8 @@ namespace OpenMS
           precursor.getCharge() != 0 ||
           precursor.getIntensity() > 0.0 ||
           precursor.getDriftTime() >= 0.0 ||
-          precursor.getDriftTimeUnit() == Precursor::FAIMS_COMPENSATION_VOLTAGE ||
-          precursor.getPossibleChargeStates().size() > 0 ||
+          precursor.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE ||
+          !precursor.getPossibleChargeStates().empty() ||
           precursor.getMZ() > 0.0)
       {
         // precursor m/z may come from "isolation window":
@@ -3857,25 +3919,23 @@ namespace OpenMS
           os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";
         }
 
-        if (precursor.getDriftTime() >= 0.0)
+        if (precursor.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET)
         {
-            if (precursor.getDriftTimeUnit() == Precursor::DriftTimeUnit::MILLISECOND)
-            {
-              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime()
-                 << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
-            }
-            else if (precursor.getDriftTimeUnit() == Precursor::DriftTimeUnit::VSSC)
-            {
-              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << precursor.getDriftTime()
-                 << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
-            }
-            else
-            {
+          switch (precursor.getDriftTimeUnit())
+          {
+            default:
               // assume milliseconds, but warn
               warning(STORE, String("Precursor drift time unit not set, assume milliseconds"));
+              [[fallthrough]];
+            case DriftTimeUnit::MILLISECOND:
               os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime()
-                 << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
-            }
+                  << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+              break;
+            case DriftTimeUnit::VSSC:
+              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << precursor.getDriftTime()
+                  << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
+              break;
+          }
         }
         //userParam: no extra object for it => no user parameters
         os << "\t\t\t\t\t\t\t</selectedIon>\n";
@@ -3927,7 +3987,15 @@ namespace OpenMS
       }
       if (precursor.getActivationMethods().count(Precursor::HCID) != 0)
       {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002481\" name=\"high-energy collision-induced dissociation\" />\n";
+      }
+      if (precursor.getActivationMethods().count(Precursor::HCD) != 0)
+      {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"beam-type collision-induced dissociation\" />\n";
+      }
+      if (precursor.getActivationMethods().count(Precursor::TRAP) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002472\" name=\"trap-type collision-induced dissociation\" />\n";
       }
       if (precursor.getActivationMethods().count(Precursor::LCID) != 0)
       {
@@ -3945,6 +4013,14 @@ namespace OpenMS
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
       }
+      if (precursor.getActivationMethods().count(Precursor::INSOURCE) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001880\" name=\"in-source collision-induced dissociation\" />\n";
+      }
+      if (precursor.getActivationMethods().count(Precursor::LIFT) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002000\" name=\"LIFT\" />\n";
+      }      
       if (precursor.getActivationMethods().empty())
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000044\" name=\"dissociation method\" />\n";
@@ -3994,7 +4070,7 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       // spectra
       //--------------------------------------------------------------------------------------------
-      if (exp.size() != 0)
+      if (!exp.empty())
       {
         // INFO : do not try to be smart and skip empty spectra or
         // chromatograms. There can be very good reasons for this (e.g. if the
@@ -4068,7 +4144,7 @@ namespace OpenMS
       {
         os << "<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd\">\n";
       }
-      os << "<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd\" accession=\"" << writeXMLEscape(exp.getIdentifier()) << "\" version=\"" << version_ << "\">\n";
+      os << R"(<mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession=")" << writeXMLEscape(exp.getIdentifier()) << "\" version=\"" << version_ << "\">\n";
       //--------------------------------------------------------------------------------------------
       // CV list
       //--------------------------------------------------------------------------------------------
@@ -4084,68 +4160,68 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       os << "\t<fileDescription>\n";
       os << "\t\t<fileContent>\n";
-      Map<InstrumentSettings::ScanMode, UInt> file_content;
+      std::map<InstrumentSettings::ScanMode, UInt> file_content;
       for (Size i = 0; i < exp.size(); ++i)
       {
         ++file_content[exp[i].getInstrumentSettings().getScanMode()];
       }
-      if (file_content.has(InstrumentSettings::MASSSPECTRUM))
+      if (file_content.find(InstrumentSettings::MASSSPECTRUM) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::MS1SPECTRUM))
+      if (file_content.find(InstrumentSettings::MS1SPECTRUM) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000579\" name=\"MS1 spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::MSNSPECTRUM))
+      if (file_content.find(InstrumentSettings::MSNSPECTRUM) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::SIM))
+      if (file_content.find(InstrumentSettings::SIM) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000582\" name=\"SIM spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::SRM))
+      if (file_content.find(InstrumentSettings::SRM) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000583\" name=\"SRM spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::CRM))
+      if (file_content.find(InstrumentSettings::CRM) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000581\" name=\"CRM spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::PRECURSOR))
+      if (file_content.find(InstrumentSettings::PRECURSOR) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000341\" name=\"precursor ion spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::CNG))
+      if (file_content.find(InstrumentSettings::CNG) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000325\" name=\"constant neutral gain spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::CNL))
+      if (file_content.find(InstrumentSettings::CNL) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000326\" name=\"constant neutral loss spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::EMR))
+      if (file_content.find(InstrumentSettings::EMR) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000804\" name=\"electromagnetic radiation spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::EMISSION))
+      if (file_content.find(InstrumentSettings::EMISSION) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000805\" name=\"emission spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::ABSORPTION))
+      if (file_content.find(InstrumentSettings::ABSORPTION) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000806\" name=\"absorption spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::EMC))
+      if (file_content.find(InstrumentSettings::EMC) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"enhanced multiply charged spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::TDF))
+      if (file_content.find(InstrumentSettings::TDF) != file_content.end())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"time-delayed fragmentation spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::UNKNOWN) || file_content.empty())
+      if (file_content.find(InstrumentSettings::UNKNOWN) != file_content.end() || file_content.empty())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
       }
@@ -4164,7 +4240,7 @@ namespace OpenMS
           ++sf_sp_count;
         }
       }
-      if (exp.getSourceFiles().size() > 0 || sf_sp_count > 0)
+      if (!exp.getSourceFiles().empty() || sf_sp_count > 0)
       {
         os << "\t\t<sourceFileList count=\"" << exp.getSourceFiles().size() + sf_sp_count << "\">\n";
 
@@ -4200,19 +4276,19 @@ namespace OpenMS
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000586\" name=\"contact name\" value=\"" << writeXMLEscape(cp.getLastName()) << ", " << writeXMLEscape(cp.getFirstName()) << "\" />\n";
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000590\" name=\"contact affiliation\" value=\"" << writeXMLEscape(cp.getInstitution()) << "\" />\n";
 
-        if (cp.getAddress() != "")
+        if (!cp.getAddress().empty())
         {
           os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000587\" name=\"contact address\" value=\"" << writeXMLEscape(cp.getAddress()) << "\" />\n";
         }
-        if (cp.getURL() != "")
+        if (!cp.getURL().empty())
         {
           os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000588\" name=\"contact URL\" value=\"" << writeXMLEscape(cp.getURL()) << "\" />\n";
         }
-        if (cp.getEmail() != "")
+        if (!cp.getEmail().empty())
         {
           os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000589\" name=\"contact email\" value=\"" << writeXMLEscape(cp.getEmail()) << "\" />\n";
         }
-        if (cp.getContactInfo() != "")
+        if (!cp.getContactInfo().empty())
         {
           os << "\t\t\t<userParam name=\"contact_info\" type=\"xsd:string\" value=\"" << writeXMLEscape(cp.getContactInfo()) << "\" />\n";
         }
@@ -4227,7 +4303,7 @@ namespace OpenMS
       const Sample& sa = exp.getSample();
       os << "\t<sampleList count=\"1\">\n";
       os << "\t\t<sample id=\"sa_0\" name=\"" << writeXMLEscape(sa.getName()) << "\">\n";
-      if (sa.getNumber() != "")
+      if (!sa.getNumber().empty())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000001\" name=\"sample number\" value=\"" << writeXMLEscape(sa.getNumber()) << "\" />\n";
       }
@@ -4258,7 +4334,7 @@ namespace OpenMS
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000052\" name=\"suspension\" />\n";
       }
-      if (sa.getComment() != "")
+      if (!sa.getComment().empty())
       {
         os << "\t\t\t<userParam name=\"comment\" type=\"xsd:string\" value=\"" << writeXMLEscape(sa.getComment()) << "\" />\n";
       }
@@ -4359,7 +4435,7 @@ namespace OpenMS
       os << "\t<instrumentConfigurationList count=\"1\">\n";
       os << "\t\t<instrumentConfiguration id=\"ic_0\">\n";
       ControlledVocabulary::CVTerm in_term = getChildWithName_("MS:1000031", in.getName());
-      if (in_term.id != "")
+      if (!in_term.id.empty())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"" << in_term.id << "\" name=\"" << writeXMLEscape(in_term.name) << "\" />\n";
       }
@@ -4368,7 +4444,7 @@ namespace OpenMS
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000031\" name=\"instrument model\" />\n";
       }
 
-      if (in.getCustomizations() != "")
+      if (!in.getCustomizations().empty())
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000032\" name=\"customization\" value=\"" << writeXMLEscape(in.getCustomizations()) << "\" />\n";
       }
@@ -4956,8 +5032,14 @@ namespace OpenMS
       {
         for (Size m = 0; m < exp[s].getFloatDataArrays().size(); ++m)
         {
-          writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m,
+          // if a DataArray has dataProcessing information, write it, otherwise we assume it has the
+          // same processing as the rest of the spectra and use the implicit referencing of mzML
+          // to the first entry (which is a dummy if none exists; see above)
+          if (!exp[s].getFloatDataArrays()[m].getDataProcessing().empty())
+          {
+            writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m,
               exp[s].getFloatDataArrays()[m].getDataProcessing(), validator);
+          }
         }
       }
 
@@ -4974,14 +5056,14 @@ namespace OpenMS
       {
         os << " startTimeStamp=\"" << exp.getDateTime().get().substitute(' ', 'T') << "\"";
       }
-      if (exp.getSourceFiles().size() > 0)
+      if (!exp.getSourceFiles().empty())
       {
         os << " defaultSourceFileRef=\"sf_ru_0\"";
       }
       os << ">\n";
 
       //run attributes
-      if (exp.getFractionIdentifier() != "")
+      if (!exp.getFractionIdentifier().empty())
       {
         os << "\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000858\" name=\"fraction identifier\" value=\"" << exp.getFractionIdentifier() << "\" />\n";
       }
@@ -5131,7 +5213,7 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       os << "\t\t\t\t<scanList count=\"" << (std::max)((Size)1, spec.getAcquisitionInfo().size()) << "\">\n";
       ControlledVocabulary::CVTerm ai_term = getChildWithName_("MS:1000570", spec.getAcquisitionInfo().getMethodOfCombination());
-      if (ai_term.id != "")
+      if (!ai_term.id.empty())
       {
         os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" << ai_term.id << "\" name=\"" << ai_term.name << "\" />\n";
       }
@@ -5148,7 +5230,7 @@ namespace OpenMS
       {
         const Acquisition& ac = spec.getAcquisitionInfo()[j];
         os << "\t\t\t\t\t<scan "; // TODO
-        if (ac.getIdentifier() != "")
+        if (!ac.getIdentifier().empty())
         {
           os << "externalSpectrumID=\"" << ac.getIdentifier() << "\"";
         }
@@ -5158,19 +5240,19 @@ namespace OpenMS
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT()
              << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
 
-          if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+          if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
           {
             os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001581\" name=\"FAIMS compensation voltage\" value=\"" << spec.getDriftTime()
                 << "\" unitAccession=\"UO:000218\" unitName=\"volt\" unitCvRef=\"UO\" />\n";
           }          
-          else if (spec.getDriftTime() >= 0.0) // if drift time was never set, don't report it
+          else if (spec.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET)// if drift time was never set, don't report it
           {
-            if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::MILLISECOND)
+            if (spec.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND)
             {
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime()
                  << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
             }
-            else if (spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::VSSC)
+            else if (spec.getDriftTimeUnit() == DriftTimeUnit::VSSC)
             {
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002815\" name=\"inverse reduced ion mobility\" value=\"" << spec.getDriftTime()
                  << "\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\" unitCvRef=\"MS\" />\n";
@@ -5192,7 +5274,7 @@ namespace OpenMS
         }
 
         //scan windows
-        if (j == 0 && spec.getInstrumentSettings().getScanWindows().size() != 0)
+        if (j == 0 && !spec.getInstrumentSettings().getScanWindows().empty())
         {
           os << "\t\t\t\t\t\t<scanWindowList count=\"" << spec.getInstrumentSettings().getScanWindows().size() << "\">\n";
           for (Size k = 0; k < spec.getInstrumentSettings().getScanWindows().size(); ++k)
@@ -5218,7 +5300,7 @@ namespace OpenMS
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000497\" name=\"zoom scan\" />\n";
         }
         //scan windows
-        if (spec.getInstrumentSettings().getScanWindows().size() != 0)
+        if (!spec.getInstrumentSettings().getScanWindows().empty())
         {
           os << "\t\t\t\t\t\t<scanWindowList count=\"" << spec.getInstrumentSettings().getScanWindows().size() << "\">\n";
           for (Size j = 0; j < spec.getInstrumentSettings().getScanWindows().size(); ++j)
@@ -5251,7 +5333,7 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       //product list
       //--------------------------------------------------------------------------------------------
-      if (spec.getProducts().size() != 0)
+      if (!spec.getProducts().empty())
       {
         os << "\t\t\t\t<productList count=\"" << spec.getProducts().size() << "\">\n";
         for (Size p = 0; p < spec.getProducts().size(); ++p)
@@ -5264,7 +5346,7 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       //binary data array list
       //--------------------------------------------------------------------------------------------
-      if (spec.size() != 0)
+      if (!spec.empty())
       {
         String encoded_string;
         os << "\t\t\t\t<binaryDataArrayList count=\"" << (2 + spec.getFloatDataArrays().size() + spec.getStringDataArrays().size() + spec.getIntegerDataArrays().size()) << "\">\n";
@@ -5291,7 +5373,7 @@ namespace OpenMS
           Base64::encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
 
           String data_processing_ref_string = "";
-          if (array.getDataProcessing().size() != 0)
+          if (!array.getDataProcessing().empty())
           {
             data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + s + "_bi_" + m + "\"";
           }
@@ -5299,7 +5381,7 @@ namespace OpenMS
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000522\" name=\"64-bit integer\" />\n";
           os << "\t\t\t\t\t\t" << compression_term << "\n";
           ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName());
-          if (bi_term.id != "")
+          if (!bi_term.id.empty())
           {
             os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" << bi_term.id << "\" name=\"" << bi_term.name << "\" />\n";
           }
@@ -5321,7 +5403,7 @@ namespace OpenMS
             data_to_encode[p] = array[p];
           Base64::encodeStrings(data_to_encode, encoded_string, options_.getCompression());
           String data_processing_ref_string = "";
-          if (array.getDataProcessing().size() != 0)
+          if (!array.getDataProcessing().empty())
           {
             data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + s + "_bi_" + m + "\"";
           }
@@ -5498,7 +5580,7 @@ namespace OpenMS
           array_metadata.removeMetaValue("unit_accession"); // prevent this from being written as userParam
         }
 
-        if (bi_term.id != "")
+        if (!bi_term.id.empty())
         {
           cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" + bi_term.id + "\" name=\"" + bi_term.name + "\"" + unit_cv_term + " />\n";
         }
@@ -5514,7 +5596,7 @@ namespace OpenMS
       }
 
       String data_processing_ref_string = "";
-      if (array.getDataProcessing().size() != 0)
+      if (!array.getDataProcessing().empty())
       {
         data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + spec_chrom_idx + "_bi_" + array_idx + "\"";
       }
@@ -5585,7 +5667,7 @@ namespace OpenMS
                                          const Internal::MzMLValidator& validator)
     {
       Int64 offset = os.tellp();
-      chromatograms_offsets_.push_back(make_pair(chromatogram.getNativeID(), offset + 3));
+      chromatograms_offsets_.emplace_back(chromatogram.getNativeID(), offset + 3);
 
       // TODO native id with chromatogram=?? prefix?
       // IMPORTANT make sure the offset (above) corresponds to the start of the <chromatogram tag
@@ -5663,7 +5745,7 @@ namespace OpenMS
         }
         Base64::encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
         String data_processing_ref_string = "";
-        if (array.getDataProcessing().size() != 0)
+        if (!array.getDataProcessing().empty())
         {
           data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + c + "_bi_" + m + "\"";
         }
@@ -5671,7 +5753,7 @@ namespace OpenMS
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000522\" name=\"64-bit integer\" />\n";
         os << "\t\t\t\t\t\t" << compression_term << "\n";
         ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName());
-        if (bi_term.id != "")
+        if (!bi_term.id.empty())
         {
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" << bi_term.id << "\" name=\"" << bi_term.name << "\" />\n";
         }
@@ -5695,7 +5777,7 @@ namespace OpenMS
         }
         Base64::encodeStrings(data_to_encode, encoded_string, options_.getCompression());
         String data_processing_ref_string = "";
-        if (array.getDataProcessing().size() != 0)
+        if (!array.getDataProcessing().empty())
         {
           data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + c + "_bi_" + m + "\"";
         }
@@ -5711,5 +5793,4 @@ namespace OpenMS
       os << "\t\t\t</chromatogram>" << "\n";
     }
 
-  } // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS   // namespace Internal

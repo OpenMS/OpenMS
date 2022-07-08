@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,6 +97,9 @@ public:
 
     /// Return true if the file does not exist or the file is empty
     static bool empty(const String& file);
+
+    /// Method used to test if a @p file is executable.
+    static bool executable(const String& file);
 
     /**
        @brief Rename a file
@@ -225,7 +228,7 @@ public:
     /// Looks up the following locations, taking the first one which is non-null:
     ///   - environment variable OPENMS_TMPDIR
     ///   - 'temp_dir' in the ~/OpenMS.ini file
-    ///   - Sytem temp directory (usually defined by environment 'TMP' or 'TEMP'
+    ///   - System temp directory (usually defined by environment 'TMP' or 'TEMP'
     static String getTempDirectory();
 
     /// The current OpenMS user data path (for result files)
@@ -298,7 +301,7 @@ public:
       @param alternative_file If this string is not empty, no action is taken and it is used as return value
       @return Full path to a temporary file
     */
-    static const String& getTemporaryFile(const String& alternative_file = "");
+    static String getTemporaryFile(const String& alternative_file = "");
 
     /**
       @brief Helper function to test if filenames provided in two StringLists match.
@@ -349,14 +352,14 @@ private:
     class TemporaryFiles_
     {
       public:
+        TemporaryFiles_(const TemporaryFiles_&) = delete; // copy is forbidden
+        TemporaryFiles_& operator=(const TemporaryFiles_&) = delete;
         TemporaryFiles_();
         /// create a new filename and queue internally for deletion
-        const String& newFile();
+        String newFile();
 
         ~TemporaryFiles_();
       private:
-        TemporaryFiles_(const TemporaryFiles_&) = delete; // copy is forbidden
-        TemporaryFiles_& operator=(const TemporaryFiles_&) = delete;
         StringList filenames_;
         std::mutex mtx_;
     };

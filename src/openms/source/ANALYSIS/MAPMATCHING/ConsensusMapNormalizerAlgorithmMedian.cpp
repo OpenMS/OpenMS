@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -188,8 +190,8 @@ namespace OpenMS
     boost::regex desc_regexp(desc_filter);
     boost::cmatch m;
 
-    if ((acc_filter == "" || boost::regex_search("", m, acc_regexp)) &&
-        (desc_filter == "" || boost::regex_search("", m, desc_regexp)))
+    if ((acc_filter.empty() || boost::regex_search("", m, acc_regexp)) &&
+        (desc_filter.empty() || boost::regex_search("", m, desc_regexp)))
     {
       // feature passes (even if it has no identification!)
       return true;
@@ -207,7 +209,7 @@ namespace OpenMS
         for (set<String>::const_iterator acc_it = accs.begin(); acc_it != accs.end(); ++acc_it)
         {
           // does accession match?
-          if (!(acc_filter == "" ||
+          if (!(acc_filter.empty() ||
                 boost::regex_search("", m, acc_regexp) ||
                 boost::regex_search(acc_it->c_str(), m, acc_regexp)))
           {
@@ -216,7 +218,7 @@ namespace OpenMS
           }
 
           // yes. does description match, too?
-          if (desc_filter == "" || boost::regex_search("", m, desc_regexp))
+          if (desc_filter.empty() || boost::regex_search("", m, desc_regexp))
           {
             return true;
           }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -219,7 +219,7 @@ protected:
 
     //load seeds
     FeatureMap seeds;
-    if (getStringOption_("seeds") != "")
+    if (!getStringOption_("seeds").empty())
     {
       FeatureXMLFile().load(getStringOption_("seeds"), seeds);
     }
@@ -252,17 +252,16 @@ protected:
     // DEBUG
     if (debug_level_ > 10)
     {
-      FeatureMap::Iterator it;
-      for (it = features.begin(); it != features.end(); ++it)
+      for (const Feature& ft : features)
       {
-        if (!it->isMetaEmpty())
+        if (!ft.isMetaEmpty())
         {
           vector<String> keys;
-          it->getKeys(keys);
-          OPENMS_LOG_INFO << "Feature " << it->getUniqueId() << endl;
+          ft.getKeys(keys);
+          OPENMS_LOG_INFO << "Feature " << ft.getUniqueId() << endl;
           for (Size i = 0; i < keys.size(); i++)
           {
-            OPENMS_LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
+            OPENMS_LOG_INFO << "  " << keys[i] << " = " << ft.getMetaValue(keys[i]) << endl;
           }
         }
       }
@@ -283,15 +282,14 @@ protected:
     // unless debugging is turned on.
     if (debug_level_ < 5)
     {
-      FeatureMap::Iterator it;
-      for (it = features.begin(); it != features.end(); ++it)
+      for (Feature& ft : features)
       {
-        it->getConvexHull().expandToBoundingBox();
-        for (Size i = 0; i < it->getConvexHulls().size(); ++i)
+        ft.getConvexHull().expandToBoundingBox();
+        for (Size i = 0; i < ft.getConvexHulls().size(); ++i)
         {
-          it->getConvexHulls()[i].expandToBoundingBox();
+          ft.getConvexHulls()[i].expandToBoundingBox();
         }
-        it->getSubordinates().clear();
+        ft.getSubordinates().clear();
       }
     }
 
@@ -312,9 +310,7 @@ protected:
 
     return EXECUTION_OK;
   }
-
 };
-
 
 int main(int argc, const char** argv)
 {

@@ -149,8 +149,7 @@
       git submodule update --init contrib
       mkdir ../contrib-build
       cd ../contrib-build
-      cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DBUILD_TYPE=SEQAN ~/openms-development/OpenMS/contrib
-      cmake -DBUILD_TYPE=COINOR .
+      cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DBUILD_TYPE=COINOR ~/openms-development/OpenMS/contrib
       cmake -DBUILD_TYPE=WILDMAGIC .
     \endcode
 

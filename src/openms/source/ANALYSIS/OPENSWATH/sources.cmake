@@ -21,6 +21,7 @@ set(sources_list
   MRMFeatureSelector.cpp
   MRMIonSeries.cpp
   MRMRTNormalizer.cpp
+  MRMScoring.cpp
   MRMTransitionGroupPicker.cpp
   OpenSwathHelper.cpp
   OpenSwathScores.cpp

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,12 +34,13 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -73,7 +74,7 @@ public:
     /// @name Accessors
     //@{
     /**
-      @brief converts the chromatogram to a list of spectra with instrument settings SRM
+      @brief converts the chromatogram to a list of spectra with instrument settings
 
       This conversion may be necessary as most of the spectra formats do not support
       chromatograms, except of mzML. However, most formats support e.g. SRM chromatogram
@@ -132,13 +133,14 @@ public:
 
       @param exp the experiment to be converted.
       @param remove_spectra if set to true, the chromatogram spectra are removed from the experiment.
+      @param force_conversion Convert even if ScanMode is not SRM or if there are no precursors (e.g. GC-MS data)
     */
     template <typename ExperimentType>
     void convertSpectraToChromatograms(ExperimentType & exp, bool remove_spectra = false, bool force_conversion = false)
     {
       typedef typename ExperimentType::SpectrumType SpectrumType;
-      Map<double, Map<double, std::vector<SpectrumType> > > chroms;
-      Map<double, MSChromatogram > chroms_xic;
+      std::map<double, std::map<double, std::vector<SpectrumType> > > chroms;
+      std::map<double, MSChromatogram > chroms_xic;
       for (typename ExperimentType::ConstIterator it = exp.begin(); it != exp.end(); ++it)
       {
         // TODO other types
@@ -205,10 +207,10 @@ public:
       for (auto & chrom: chroms_xic) exp.addChromatogram(chrom.second);
 
       // Add the SRM chromatograms
-      typename Map<double, Map<double, std::vector<SpectrumType> > >::const_iterator it1 = chroms.begin();
+      typename std::map<double, std::map<double, std::vector<SpectrumType> > >::const_iterator it1 = chroms.begin();
       for (; it1 != chroms.end(); ++it1)
       {
-        typename Map<double, std::vector<SpectrumType> >::const_iterator it2 = it1->second.begin();
+        typename std::map<double, std::vector<SpectrumType> >::const_iterator it2 = it1->second.begin();
         for (; it2 != it1->second.end(); ++it2)
         {
           typename ExperimentType::ChromatogramType chrom;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -195,7 +195,10 @@ namespace OpenMS
       QListWidgetItem* item = ui_->input_file_list->currentItem();
       if (!item)
       {
-        if (ui_->input_file_list->count() == 0) return;
+        if (ui_->input_file_list->count() == 0)
+        {
+          return;
+        }
         // use the first item if none is selected
         ui_->input_file_list->setCurrentItem(ui_->input_file_list->item(0));
         item = ui_->input_file_list->currentItem();

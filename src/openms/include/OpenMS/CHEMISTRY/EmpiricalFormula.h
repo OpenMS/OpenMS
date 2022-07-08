@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,6 @@
 #include <iosfwd>
 #include <map>
 #include <set>
-#include <algorithm>
 #include <string>
 
 #include <OpenMS/CONCEPT/Types.h>
@@ -69,9 +68,12 @@ namespace OpenMS
     but a natural distribution or different isotopes. This distribution can be accessed via the
     member getIsotopeDistribution().
 
-    If one wants only use a specific isotope, it can be specified using "(",")" brackets. For example,
-    to specify 14C a heavy isotope of carbon it is expressed as "(14)C". The isotope distribution
-    of that instance contains only one isotope, 14C itself with a frequency of 100%.
+    If one wants only use a specific isotope, it can be specified using "(",")"
+    brackets. For example, to specify 13C a heavy isotope of carbon it is
+    expressed as "(13)C". The isotope distribution of that instance contains
+    only one isotope, 13C itself with a frequency of 100%. It is possible to
+    mix isotopes, for example "(13)C1CH6O" specifies an ethanol molecule with
+    one 12C and one 13C isotope.
 
     Instances EmpiricalFormula support a (limited) set of mathematical operations. Additions and subtractions
     are supported in different flavors. However, one must be careful, because this can lead to negative
@@ -116,13 +118,25 @@ public:
     */
     explicit EmpiricalFormula(const String& rhs);
 
-
     /// Constructor with element pointer and number
     EmpiricalFormula(SignedSize number, const Element* element, SignedSize charge = 0);
 
     /// Destructor
     virtual ~EmpiricalFormula();
     //@}
+
+     /**
+     @brief create EmpiricalFormular object by parsing an OpenMS string
+
+     @param s Input string
+
+     @throws Exception::ParseError if the formula cannot be parsed
+   */
+    static EmpiricalFormula fromString(const String& rhs)
+    {
+      EmpiricalFormula ef(rhs);
+      return ef;
+    }
 
     /** @name Accessors
     */
@@ -173,10 +187,10 @@ public:
       The details of the calculation of the isotope distribution
       are described in the doc to the CoarseIsotopePatternGenerator class.
 
-      @param method: the method that will be used for the calculation of the IsotopeDistribution 
+      @param method: the method that will be used for the calculation of the IsotopeDistribution
     */
-    IsotopeDistribution getIsotopeDistribution(const IsotopePatternGenerator& method) const;    
-    
+    IsotopeDistribution getIsotopeDistribution(const IsotopePatternGenerator& method) const;
+
     /**
       @brief returns the fragment isotope distribution of this given a precursor formula
       and conditioned on a set of isolated precursor isotopes.
@@ -250,7 +264,7 @@ public:
     bool hasElement(const Element* element) const;
 
     /// returns true if all elements from @p ef are LESS abundant (negative allowed) than the corresponding elements of this EmpiricalFormula
-    bool contains(const EmpiricalFormula& ef);
+    bool contains(const EmpiricalFormula& ef) const;
 
     /// returns true if the formulas contain equal elements in equal quantities
     bool operator==(const EmpiricalFormula& rhs) const;
@@ -272,10 +286,21 @@ public:
     inline ConstIterator begin() const { return formula_.begin(); }
 
     inline ConstIterator end() const { return formula_.end(); }
-    
+
     inline Iterator begin() { return formula_.begin(); }
 
     inline Iterator end() { return formula_.end(); }
+    //@}
+
+    /** @name Static member functions
+     */
+    // @TODO: make these static member variables instead?
+    //@{
+    /// Efficiently generates a formula for hydrogen
+    static EmpiricalFormula hydrogen(int n_atoms = 1);
+
+    /// Efficiently generates a formula for water
+    static EmpiricalFormula water(int n_molecules = 1);
     //@}
 
 protected:

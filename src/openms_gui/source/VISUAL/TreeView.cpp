@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -84,7 +84,13 @@ namespace OpenMS
 
   void TreeView::hideColumns(const QStringList& header_names)
   {
+     /*
+       * Suppressing warning toSet() deprecated till Qt 5.14
+       */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     auto hset = header_names.toSet();
+#pragma GCC diagnostic pop
     // add actions which show/hide columns
     const auto& header = this->headerItem();
 
@@ -98,7 +104,7 @@ namespace OpenMS
     }
     if (!hset.empty())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.toList().join(", ")));
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.values().join(", ")));
     }
   }
 
@@ -123,8 +129,10 @@ namespace OpenMS
   QString TreeView::getHeaderName(const int header_column) const
   {
     const auto& header = this->headerItem();
-    if (header->columnCount() <= header_column) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header index " + String(header_column) + " is too large. There are only " + String(header->columnCount()) + " columns!");
-
+    if (header->columnCount() <= header_column)
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header index " + String(header_column) + " is too large. There are only " + String(header->columnCount()) + " columns!");
+    }
     return header->text(header_column);
   }
 

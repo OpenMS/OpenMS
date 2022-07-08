@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,13 +33,17 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
 #include <fstream>
 
 #include <boost/dynamic_bitset.hpp>
+
+#include "svm.h"
 
 #ifdef _OPENMP
 #endif
@@ -470,6 +474,10 @@ namespace OpenMS
     std::string model_filename = File::find(search_name + ".svm");
     std::string scale_filename = File::find(search_name + ".scale");
 
+    if (isotope_filt_svm_ != nullptr)
+    {
+      svm_free_and_destroy_model(&isotope_filt_svm_);
+    }
     isotope_filt_svm_ = svm_load_model(model_filename.c_str());
     if (isotope_filt_svm_ == nullptr)
     {
@@ -672,7 +680,7 @@ namespace OpenMS
 
 
     double overlap(0.0);
-    if (overlap_rts.size() > 0)
+    if (!overlap_rts.empty())
     {
       double start_rt(*(overlap_rts.begin())), end_rt(*(overlap_rts.rbegin()));
       overlap = std::fabs(end_rt - start_rt);
@@ -688,8 +696,10 @@ namespace OpenMS
 
   Range FeatureFindingMetabo::getTheoreticIsotopicMassWindow_(const std::vector<Element const *> alphabet, int peakOffset) const
   {
-    if (peakOffset < 1) throw std::invalid_argument("Expect a peak offset of at least 1");
-
+    if (peakOffset < 1)
+    {
+      throw std::invalid_argument("Expect a peak offset of at least 1");
+    }
     double minmz = std::numeric_limits<double>::infinity();
     double maxmz = -std::numeric_limits<double>::infinity();
 
@@ -923,8 +933,10 @@ namespace OpenMS
       {
         // traces are sorted by m/z, so we can break when we leave the allowed window
         double diff_mz = std::fabs(input_mtraces[ext_idx].getCentroidMZ() - ref_trace_mz);
-        if (diff_mz > local_mz_range_) break;
-
+        if (diff_mz > local_mz_range_)
+        {
+          break;
+        }
         double diff_rt = std::fabs(input_mtraces[ext_idx].getCentroidRT() - ref_trace_rt);
         if (diff_rt <= local_rt_range_)
         {
@@ -1031,7 +1043,7 @@ namespace OpenMS
 
       // store isotope intensities
       std::vector<double> all_ints(feat_hypos[hypo_idx].getAllIntensities(use_smoothed_intensities_));
-      f.setMetaValue("num_of_masstraces", all_ints.size());
+      f.setMetaValue(Constants::UserParam::NUM_OF_MASSTRACES, all_ints.size());
       if (report_convex_hulls_) f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
       f.setMetaValue("masstrace_intensity", all_ints);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,8 +41,8 @@
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 
-#include <boost/unordered_map.hpp>
 #include <boost/heap/fibonacci_heap.hpp>
+#include <unordered_map>
 
 #include <list>
 #include <vector>
@@ -107,12 +107,12 @@ namespace OpenMS
   public:
 
     /// Distances between pairs of grid features
-    typedef OpenMSBoost::unordered_map< 
+    typedef std::unordered_map< 
               std::pair<OpenMS::GridFeature*, OpenMS::GridFeature*>,
               double> PairDistances;
 
     /// Map to store which grid features are next to which clusters (saves the clusters ids)
-    typedef OpenMSBoost::unordered_map<
+    typedef std::unordered_map<
               const OpenMS::GridFeature*, std::unordered_set<Size> > ElementMapping;
 
     /// Heap to efficiently find the best clusters
@@ -236,7 +236,7 @@ namespace OpenMS
      * @param best_id id of the current best cluster, will be removed from the element mapping
      * 
      * @note The feature from elements are not deleted from the element mapping. 
-     * After this function is called we dont't have any cluster with those features left and
+     * After this function is called we don't have any cluster with those features left and
      * therefore don't have to delete them.
      */
     void updateClustering_(ElementMapping& element_mapping,

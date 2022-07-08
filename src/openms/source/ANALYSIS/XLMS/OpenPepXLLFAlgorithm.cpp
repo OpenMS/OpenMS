@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,20 +33,22 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/XLMS/OpenPepXLLFAlgorithm.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
-#include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
-#include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
-#include <OpenMS/KERNEL/SpectrumHelper.h>
-#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
+
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/CHEMISTRY/Tagger.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
+#include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
+#include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
+#include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
+#include <OpenMS/CHEMISTRY/Tagger.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
 #include <iostream>
 
@@ -219,7 +221,7 @@ using namespace OpenMS;
 
     protein_ids[0].setPrimaryMSRunPath({}, unprocessed_spectra);
 
-    if (unprocessed_spectra.empty() && unprocessed_spectra.getChromatograms().size() == 0)
+    if (unprocessed_spectra.empty() && unprocessed_spectra.getChromatograms().empty())
     {
       OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry." << endl;
@@ -296,6 +298,7 @@ using namespace OpenMS;
 
     search_params.setMetaValue("modifications:variable_max_per_peptide", max_variable_mods_per_peptide_);
     protein_ids[0].setSearchParameters(search_params);
+    protein_ids[0].setScoreType("OpenPepXL_Protein_Score");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
     vector<OPXLDataStructs::AASeqWithMass> peptide_masses;
@@ -305,7 +308,7 @@ using namespace OpenMS;
     TheoreticalSpectrumGeneratorXLMS specGen_full;
     SimpleTSGXLMS specGen_mainscore;
 
-    // settings fpr full-scoring, annotations, 2nd isotopic peaks, losses and precursors
+    // settings for full-scoring, annotations, 2nd isotopic peaks, losses and precursors
     Param specGenParams_full = specGen_full.getParameters();
     specGenParams_full.setValue("add_b_ions", add_b_ions_, "Add peaks of y-ions to the spectrum");
     specGenParams_full.setValue("add_y_ions", add_y_ions_, "Add peaks of b-ions to the spectrum");
@@ -390,7 +393,7 @@ using namespace OpenMS;
 
     double max_peptide_mass = max_precursor_mass - cross_link_mass_ + max_peptide_allowed_error;
 
-    // search for the first mass greater than the maximim, cut off everything larger
+    // search for the first mass greater than the maximum, cut off everything larger
     vector<OPXLDataStructs::AASeqWithMass>::iterator last = upper_bound(peptide_masses.begin(), peptide_masses.end(), max_peptide_mass, OPXLDataStructs::AASeqWithMassComparator());
     vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses;
     filtered_peptide_masses.assign(peptide_masses.begin(), last);
@@ -478,7 +481,7 @@ using namespace OpenMS;
         vector< pair< Size, Size > > matched_spec_xlinks_beta;
 
         PeakSpectrum::IntegerDataArray exp_charges;
-        if (spectrum.getIntegerDataArrays().size() > 0)
+        if (!spectrum.getIntegerDataArrays().empty())
         {
           exp_charges = spectrum.getIntegerDataArrays()[0];
         }
@@ -615,7 +618,7 @@ using namespace OpenMS;
         }
 
         // Something like this can happen, e.g. with a loop link connecting the first and last residue of a peptide
-        if ( (theoretical_spec_linear_alpha.size() < 1) || (theoretical_spec_xlinks_alpha.size() < 1) )
+        if ( (theoretical_spec_linear_alpha.empty()) || (theoretical_spec_xlinks_alpha.empty()) )
         {
           continue;
         }
@@ -632,22 +635,22 @@ using namespace OpenMS;
 
         PeakSpectrum::IntegerDataArray& theo_charges_la = theoretical_spec_linear_alpha.getIntegerDataArrays()[0];
         PeakSpectrum::IntegerDataArray theo_charges_xa;
-        if (theoretical_spec_xlinks_alpha.getIntegerDataArrays().size() > 0)
+        if (!theoretical_spec_xlinks_alpha.getIntegerDataArrays().empty())
         {
           theo_charges_xa = theoretical_spec_xlinks_alpha.getIntegerDataArrays()[0];
         }
         PeakSpectrum::IntegerDataArray theo_charges_lb;
         PeakSpectrum::IntegerDataArray theo_charges_xb;
-        if (theoretical_spec_linear_beta.getIntegerDataArrays().size() > 0)
+        if (!theoretical_spec_linear_beta.getIntegerDataArrays().empty())
         {
           theo_charges_lb = theoretical_spec_linear_beta.getIntegerDataArrays()[0];
         }
-        if (theoretical_spec_xlinks_beta.getIntegerDataArrays().size() > 0)
+        if (!theoretical_spec_xlinks_beta.getIntegerDataArrays().empty())
         {
           theo_charges_xb = theoretical_spec_xlinks_beta.getIntegerDataArrays()[0];
         }
         PeakSpectrum::IntegerDataArray exp_charges;
-        if (spectrum.getIntegerDataArrays().size() > 0)
+        if (!spectrum.getIntegerDataArrays().empty())
         {
           exp_charges = spectrum.getIntegerDataArrays()[0];
         }
@@ -784,7 +787,7 @@ using namespace OpenMS;
 
         csm.precursor_correction = cross_link_candidate.precursor_correction;
 
-        if (precursor_purities.size() > 0)
+        if (!precursor_purities.empty())
         {
           csm.precursor_total_intensity = precursor_purities[spectrum.getNativeID()].total_intensity;
           csm.precursor_target_intensity = precursor_purities[spectrum.getNativeID()].target_intensity;
@@ -813,7 +816,7 @@ using namespace OpenMS;
         csm.ppm_error_abs_sum = 0;
 
         // TODO find a better way to compute the absolute sum
-        if (ppm_error_array_linear_alpha.size() > 0)
+        if (!ppm_error_array_linear_alpha.empty())
         {
           for (Size k = 0; k < ppm_error_array_linear_alpha.size(); ++k)
           {
@@ -822,7 +825,7 @@ using namespace OpenMS;
           csm.ppm_error_abs_sum_linear_alpha = csm.ppm_error_abs_sum_linear_alpha / ppm_error_array_linear_alpha.size();
         }
 
-        if (ppm_error_array_linear_beta.size() > 0)
+        if (!ppm_error_array_linear_beta.empty())
         {
           for (Size k = 0; k < ppm_error_array_linear_beta.size(); ++k)
           {
@@ -831,7 +834,7 @@ using namespace OpenMS;
           csm.ppm_error_abs_sum_linear_beta = csm.ppm_error_abs_sum_linear_beta / ppm_error_array_linear_beta.size();
         }
 
-        if (ppm_error_array_xlinks_alpha.size() > 0)
+        if (!ppm_error_array_xlinks_alpha.empty())
         {
           for (Size k = 0; k < ppm_error_array_xlinks_alpha.size(); ++k)
           {
@@ -840,7 +843,7 @@ using namespace OpenMS;
           csm.ppm_error_abs_sum_xlinks_alpha = csm.ppm_error_abs_sum_xlinks_alpha / ppm_error_array_xlinks_alpha.size();
         }
 
-        if (ppm_error_array_xlinks_beta.size() > 0)
+        if (!ppm_error_array_xlinks_beta.empty())
         {
           for (Size k = 0; k < ppm_error_array_xlinks_beta.size(); ++k)
           {
@@ -865,7 +868,7 @@ using namespace OpenMS;
         ppm_error_array.insert(ppm_error_array.end(), ppm_error_array_linear.begin(), ppm_error_array_linear.end());
         ppm_error_array.insert(ppm_error_array.end(), ppm_error_array_xlinks.begin(), ppm_error_array_xlinks.end());
 
-        if (ppm_error_array_linear.size() > 0)
+        if (!ppm_error_array_linear.empty())
         {
           for (double ppm_error : ppm_error_array_linear)
           {
@@ -874,7 +877,7 @@ using namespace OpenMS;
           csm.ppm_error_abs_sum_linear = csm.ppm_error_abs_sum_linear / ppm_error_array_linear.size();
         }
 
-        if (ppm_error_array_xlinks.size() > 0)
+        if (!ppm_error_array_xlinks.empty())
         {
           for (double ppm_error : ppm_error_array_xlinks)
           {
@@ -883,7 +886,7 @@ using namespace OpenMS;
           csm.ppm_error_abs_sum_xlinks = csm.ppm_error_abs_sum_xlinks / ppm_error_array_xlinks.size();
         }
 
-        if (ppm_error_array_alpha.size() > 0)
+        if (!ppm_error_array_alpha.empty())
         {
           for (double ppm_error : ppm_error_array_alpha)
           {
@@ -892,7 +895,7 @@ using namespace OpenMS;
           csm.ppm_error_abs_sum_alpha = csm.ppm_error_abs_sum_alpha / ppm_error_array_alpha.size();
         }
 
-        if (ppm_error_array_beta.size() > 0)
+        if (!ppm_error_array_beta.empty())
         {
           for (double ppm_error : ppm_error_array_beta)
           {
@@ -901,7 +904,7 @@ using namespace OpenMS;
           csm.ppm_error_abs_sum_beta = csm.ppm_error_abs_sum_beta / ppm_error_array_beta.size();
         }
 
-        if (ppm_error_array.size() > 0)
+        if (!ppm_error_array.empty())
         {
           for (double ppm_error : ppm_error_array)
           {

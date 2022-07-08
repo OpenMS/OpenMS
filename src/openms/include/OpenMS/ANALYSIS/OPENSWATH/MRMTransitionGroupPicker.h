@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -445,12 +445,13 @@ public:
         double transition_total_mi = 0;
         if (compute_total_mi_)
         {
+          std::vector<unsigned int> chrom_vect_id_ranked, chrom_vect_det_ranked;
           std::vector<double> chrom_vect_id, chrom_vect_det;
           for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
           {
             chrom_vect_id.push_back(it->getIntensity());
           }
-
+          unsigned int max_rank_det = OpenSwath::Scoring::computeAndAppendRank(chrom_vect_id, chrom_vect_det_ranked);
           // compute baseline mutual information
           int transition_total_mi_norm = 0;
           for (Size m = 0; m < transition_group.getTransitions().size(); m++)
@@ -463,7 +464,8 @@ public:
               {
                 chrom_vect_det.push_back(it->getIntensity());
               }
-              transition_total_mi += OpenSwath::Scoring::rankedMutualInformation(chrom_vect_det, chrom_vect_id);
+              unsigned int max_rank_id = OpenSwath::Scoring::computeAndAppendRank(chrom_vect_det, chrom_vect_id_ranked);
+              transition_total_mi += OpenSwath::Scoring::rankedMutualInformation(chrom_vect_id_ranked, chrom_vect_det_ranked, max_rank_id, max_rank_det);
               transition_total_mi_norm++;
             }
           }

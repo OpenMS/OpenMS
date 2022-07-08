@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -123,8 +123,8 @@ namespace OpenMS
 
   void NeedlemanWunsch::setMatrix(const std::string& matrix)
   {
-    auto first = &NamesOfScoringMatrices[0];
-    auto last = &NamesOfScoringMatrices[static_cast<int>(ScoringMatrix::SIZE_OF_SCORINGMATRIX)];
+    auto first = NamesOfScoringMatrices.begin();
+    auto last = NamesOfScoringMatrices.end();
     const auto it = std::find(first, last, matrix);
     if (it == last)
     {
