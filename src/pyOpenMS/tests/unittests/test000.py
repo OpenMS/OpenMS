@@ -368,8 +368,11 @@ def testFineIsotopePatternGenerator():
     water = pyopenms.EmpiricalFormula("H2O")
     mw = methanol + water
     iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-20, False, False))
+    print("\n".join('%s, %s'%(c.getMZ(),c.getIntensity()) for c in iso_dist.getContainer()))
     assert len(iso_dist.getContainer()) == 36
+
     iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
+    print("\n".join('%s, %s'%(c.getMZ(),c.getIntensity()) for c in iso_dist.getContainer()))
     assert len(iso_dist.getContainer()) == 150
 
     c100 = pyopenms.EmpiricalFormula("C100")
