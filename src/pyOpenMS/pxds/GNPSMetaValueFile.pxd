@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FORMAT/GNPSMetaValueFile.h>" namespace "OpenMS":
         GNPSMetaValueFile() nogil except +
         GNPSMetaValueFile(GNPSMetaValueFile &) nogil except +
 
-        void store(ConsensusMap& consensus_map, String & output_file) nogil except +
+        void store(const ConsensusMap& consensus_map, const String& output_file) nogil except +
         # wrap-doc:
         #  Write meta value table (tsv file) from a list of mzML files. Required for GNPS FBMN.
         #  
