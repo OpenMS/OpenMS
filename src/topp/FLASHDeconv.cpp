@@ -206,6 +206,10 @@ protected:
                                                                 "2: Block method to perform merging of all spectra into a single one per MS level (e.g., for NativeMS datasets)", false);
     setMinInt_("merging_method", 0);
     setMaxInt_("merging_method", 2);
+
+    registerIntOption_("report_decoy_info", "<0: Do not report 1: report>", 0, "", false, false);
+    setMinInt_("report_decoy_info", 0);
+    setMaxInt_("report_decoy_info", 1);
     /*
         registerIntOption_("isobaric_labeling_option",
                            "",
@@ -513,6 +517,7 @@ protected:
     int merge = getIntOption_("merging_method");
     bool write_detail = getIntOption_("write_detail") > 0;
     int mzml_charge = getIntOption_("mzml_mass_charge");
+    bool report_decoy = getIntOption_("report_decoy_info") == 1;
     bool out_undeconvolved = getIntOption_("mzml_output_undeconvolved_peaks") == 1;
     double min_mz = getDoubleOption_("Algorithm:min_mz");
     double max_mz = getDoubleOption_("Algorithm:max_mz");
@@ -568,6 +573,7 @@ protected:
       {
         out_spec_streams[i].open(out_spec_file[i], fstream::out);
         FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail);
+
       }
     }
 
@@ -699,6 +705,8 @@ protected:
     MSExperiment exp;
 
     auto fd = FLASHDeconvAlgorithm();
+    FLASHDeconvAlgorithm fd_decoy;
+
     Param fd_param = getParam_().copy("Algorithm:", true);
     DoubleList tols = fd_param.getValue("tol");
     //fd_param.setValue("tol", getParam_().getValue("tol"));
@@ -747,6 +755,12 @@ protected:
     fd.calculateAveragine(use_RNA_averagine);
     fd.setTargetMasses(getTargetMasses(targets));
 
+    if(report_decoy)
+    {
+      fd_decoy = FLASHDeconvAlgorithm();
+      fd_decoy.setParameters(fd_param);
+      fd_decoy.calculateAveragine(use_RNA_averagine);
+    }
     auto avg = fd.getAveragine();
     auto mass_tracer = MassFeatureTrace();
     Param mf_param = getParam_().copy("FeatureTracing:", true);
@@ -772,6 +786,12 @@ protected:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
     progresslogger.startProgress(0, map.size(), "running FLASHDeconv");
+
+    std::vector<DeconvolvedSpectrum> deconvolved_spectra;
+    deconvolved_spectra.reserve(map.size());
+
+    std::vector<DeconvolvedSpectrum> decoy_deconvolved_spectra;
+    decoy_deconvolved_spectra.reserve(map.size());
 
     for (auto it = map.begin(); it != map.end(); ++it)
     {
@@ -802,6 +822,8 @@ protected:
                                                              precursor_specs,
                                                              scan_number,
                                                              precursor_map_for_real_time_acquisition);
+
+
 
       if (it->getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
       {
@@ -866,26 +888,62 @@ protected:
 
       qspec_cntr[ms_level - 1]++;
       mass_cntr[ms_level - 1] += deconvolved_spectrum.size();
+      deconvolved_spectra.push_back(deconvolved_spectrum);
 
-      DoubleList iso_intensities;
+      if(report_decoy)
+      {
+        fd_decoy.clearExcludedMonoMasses();
+        for(auto& pg: deconvolved_spectrum){
+          fd_decoy.addExcludedMonoMass(pg.getMonoMass());
+        }
+        auto decoy_deconvolved_spectrum = fd_decoy.getDeconvolvedSpectrum(*it,
+                                                                          precursor_specs,
+                                                                          scan_number,
+                                                                          precursor_map_for_real_time_acquisition);
+
+        decoy_deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
+      }
+
+      progresslogger.nextProgress();
+    }
+    progresslogger.endProgress();
+
+    std::cout<<" writing per spectrum deconvolution results ... "<<std::endl;
+
+    DeconvolvedSpectrum::updatePeakGroupQvalues(deconvolved_spectra, decoy_deconvolved_spectra);
+
+    for(auto& deconvolved_spectrum: deconvolved_spectra)
+    {
+      int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+
       if ((int) out_spec_streams.size() > ms_level - 1)
       {
-        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, false);
       }
       if ((int) out_topfd_streams.size() > ms_level - 1)
       {
         FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum,out_topfd_streams[ms_level - 1], topFD_SNR_threshold);//, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
-        #ifdef DEBUG_EXTRA_PARAMTER
+#ifdef DEBUG_EXTRA_PARAMTER
         if(ms_level ==2 && !deconvolved_spectrum.getPrecursorPeakGroup().empty()){
-            f_out_topfd_file_log << scan_number <<","<<deconvolved_spectrum.getPrecursorPeakGroup().getMonoMass()
-            <<","<<deconvolved_spectrum.getPrecursorPeakGroup().getRepAbsCharge()<<","
-            <<deconvolved_spectrum.getPrecursorPeakGroup().getIntensity()<<"\n";
+          f_out_topfd_file_log << scan_number <<","<<deconvolved_spectrum.getPrecursorPeakGroup().getMonoMass()
+                               <<","<<deconvolved_spectrum.getPrecursorPeakGroup().getRepAbsCharge()<<","
+                               <<deconvolved_spectrum.getPrecursorPeakGroup().getIntensity()<<"\n";
         }
-        #endif
+#endif
       }
-      progresslogger.nextProgress();
     }
-    progresslogger.endProgress();
+    if(report_decoy)
+    {
+      for (auto& deconvolved_spectrum : decoy_deconvolved_spectra)
+      {
+        int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+
+        if ((int)out_spec_streams.size() > ms_level - 1)
+        {
+          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, true);
+        }
+      }
+    }
 
     // mass_tracer run
     if (merge != 2) // unless spectra are merged into a single one

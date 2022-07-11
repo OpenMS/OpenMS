@@ -136,6 +136,9 @@ namespace OpenMS
     /// set precusor peakGroup
     void setPrecursorPeakGroup(const PeakGroup& pg);
 
+    void static updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra);
+
+
     std::vector<PeakGroup>::const_iterator begin() const noexcept;
     std::vector<PeakGroup>::const_iterator end() const noexcept;
 

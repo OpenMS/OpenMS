@@ -88,8 +88,9 @@ namespace OpenMS
       */
     void updateMonomassAndIsotopeIntensities(const int offset = 0);
 
+    void updateQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg);
 
-    double recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, bool update_per_charge_isotope_intensities = true);
+    std::vector<float> recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, bool update_per_charge_isotope_intensities = true);
 
     /// using signal and total (signal + noise) power, update SNR value
     void updateSNR();
@@ -186,11 +187,24 @@ namespace OpenMS
     /// get if it is targeted
     bool isTargeted() const;
 
+   // float getDecoyQScore() const;
+
+    //void setDecoyQScore(const float d);
+
+    //float getDecoyIsoScore() const;
+
+    //void setDecoyIsoScore(const float d);
+
+    float getQvalue() const;
+
+    void setQvalue(const float q);
+
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator begin() const noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator end() const noexcept;
 
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator begin() noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator end() noexcept;
+
 
     const FLASHDeconvHelperStructs::LogMzPeak& operator[](const Size i) const;
 
@@ -209,6 +223,7 @@ namespace OpenMS
     /// set per abs_charge signal power
     void setChargePowers_(const int abs_charge, const double signal_pwr, const double noise_pwr, const double intensity);
     void updateChargeFitScoreAndChargeIntensities_();
+
 
     /// log Mz peaks
     std::vector<FLASHDeconvHelperStructs::LogMzPeak> logMzpeaks_;
@@ -235,13 +250,16 @@ namespace OpenMS
     /// information on the deconvolved mass
     double monoisotopic_mass_ = -1.0;
     double intensity_;// total intensity
+    //float decoy_qscore_ = 0;
+    //float decoy_iso_score_ = 0;
 
     /// scoring variables
-    int max_qscore_abs_charge_;
-    float isotope_cosine_score_;
+    int max_qscore_abs_charge_ = -1;
+    float isotope_cosine_score_ = 0;
     float charge_score_;
-    float qscore_;
+    float qscore_ = .0f;
     float avg_ppm_error_;
     float snr_;
+    float qvalue_ = 1.0;
   };
 }

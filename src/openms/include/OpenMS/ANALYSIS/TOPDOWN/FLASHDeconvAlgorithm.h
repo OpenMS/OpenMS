@@ -84,7 +84,7 @@ namespace OpenMS
       @param precursor_map_for_FLASHIda deconvolved precursor information from FLASHIda
       @return the deconvolved spectrum (as DeconvolvedSpectrum class)
  */
-    const DeconvolvedSpectrum&  getDeconvolvedSpectrum(const MSSpectrum& spec,
+    const DeconvolvedSpectrum& getDeconvolvedSpectrum(const MSSpectrum& spec,
                                                   const std::vector<DeconvolvedSpectrum>& survey_scans,
                                                   const int scan_number,
                                                   const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_FLASHIda);
@@ -100,6 +100,10 @@ namespace OpenMS
      */
     void calculateAveragine(const bool use_RNA_averagine);
 
+    void addExcludedMonoMass(const double m);
+
+    void clearExcludedMonoMasses();
+
     /// convert double to nominal mass
     static int getNominalMass(const double mass);
 
@@ -111,12 +115,20 @@ namespace OpenMS
      * @param b_size size of b
      * @param offset element index offset between a and b
      */
-    static double getCosine_(const std::vector<float>& a,
+    static double getCosine(const std::vector<float>& a,
                              const int& a_start,
                              const int& a_end,
                              const IsotopeDistribution& b,
                              const int& b_size,
                              const int offset);
+
+
+    /** static function that retruns average PPM error of the input peak group
+     * @param pg peak group
+     * @return average PPM error
+     */
+    static float getAvgPPMError(PeakGroup pg);
+
 
     /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
         @param mono_mass monoisotopic mass
@@ -131,11 +143,17 @@ namespace OpenMS
                                                            int& offset,
                                                            const PrecalculatedAveragine& avg,
                                                            int window_width = -1);
+
+
+
+
   protected:
     void updateMembers_() override;
 
   private:
     /// FLASHDeconv parameters
+
+    const static int min_iso_size_ = 2;
 
     /// range of RT subject to analysis (in seconds)
     double min_rt_, max_rt_;
@@ -182,6 +200,10 @@ namespace OpenMS
     boost::dynamic_bitset<> target_mass_bins_;
     std::vector<double> target_masses_;
 
+    /// mass bins that are excluded for decoy
+    boost::dynamic_bitset<> excluded_mass_bins_;
+    std::vector<double> excluded_masses_;
+
     /// harmonic charge factors that will be considered for harmonic mass reduction. For example, 2 is for 1/2 charge harmonic component reduction
     const std::vector<int> harmonic_charges_{2, 3, 5, 7};
     /// Stores log mz peaks
@@ -222,13 +244,6 @@ namespace OpenMS
     /// allowed maximum peak count per spectrum - intensity based.
     const int max_peak_count_ = 30000;//30000
 
-    /** Examine charge intensity distribution of each peak group
-        @param per_charge_intensity per charge intensity - aggregated through isotope indices
-        @param len charge range length to consider. per_charge_intensity stores all possible charge intensities from 0 to max charges. But only 0 to maximum charge of each peak group should be considered. This specifies the max charge range.
-        @return calculated charge fit score (0 - 1)
-     */
-    double getChargeFitScore_(const std::vector<double>& per_charge_intensity, Size len);
-
     /** @brief static function that converts bin to value
         @param bin bin number
         @param min_value minimum value (corresponding to bin number = 0)
@@ -244,9 +259,6 @@ namespace OpenMS
         @return bin corresponding to value
      */
     static Size getBinNumber_(const double value, const double min_value, const double bin_width);
-
-    ///static function that retruns average PPM error of the input peak group
-    static float getAvgPPMError_(PeakGroup pg);
 
     ///generate log mz peaks from the input spectrum
     void updateLogMzPeaks_(const MSSpectrum *spec);
@@ -293,8 +305,6 @@ namespace OpenMS
     void scoreAndFilterPeakGroups_();
 
     void removeHarmonicsPeakGroups_();
-
-
 
     /// filter out overlapping masses
     void removeOverlappingPeakGroups_(const double tol, const int iso_length = 1);

@@ -50,7 +50,7 @@ namespace OpenMS
     //const double th = 2;
     //const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
     const std::vector<double> weights({ 1.492, -2.0041, -14.3891, -0.9853, 0.4568, 0.063, 14.4072});
-    //const std::vector<double> weights_h({-0.7461, -1.8176, -1.4793, -0.3707, -0.0881, 0.0623, 2.9463});
+    //const std::vector<double> weights({-0.7461, -1.8176, -1.4793, -0.3707, -0.0881, 0.0623, 2.9463});
 
     //ChargeCos         1.492
     //ChargeSNR       -2.0041
