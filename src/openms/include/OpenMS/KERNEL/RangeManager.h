@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/CommonEnums.h>
 
+#include <cmath> // for nan()
 #include <algorithm> // for min/max
 #include <cassert>
 #include <iosfwd>  // for std::ostream
@@ -918,7 +919,9 @@ namespace OpenMS
   class RangeManagerContainer
     : public RangeManager<RangeBases...>
   {
-    public:
+  public:
+    using ThisRangeType = typename RangeManager<RangeBases...>::ThisRangeType;
+
     /// implement this function to reflect the underlying data of the derived class (e.g. an MSSpectrum)
     /// Usually, call clearRanges() internally and then populate the dimensions.
     virtual void updateRanges() = 0;
@@ -934,11 +937,9 @@ namespace OpenMS
     {
       return (ThisRangeType&)*this;
     }
-    
   };
 
   /// Range which contains all known dimensions
   using RangeAllType = RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>;
-
 
 }  // namespace OpenMS

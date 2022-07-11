@@ -76,7 +76,6 @@ namespace OpenMS
 
   EnzymaticDigestion::~EnzymaticDigestion()
   {
-    delete re_;
   }
 
   Size EnzymaticDigestion::getMissedCleavages() const

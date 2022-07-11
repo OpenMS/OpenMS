@@ -228,7 +228,7 @@ protected:
     /// Used enzyme
     const DigestionEnzyme* enzyme_;
     /// Regex for tokenizing (huge speedup by making this a member instead of stack object in tokenize_())
-    boost::regex* re_;
+    std::unique_ptr<boost::regex> re_;
 
     /// specificity of enzyme
     Specificity specificity_;
