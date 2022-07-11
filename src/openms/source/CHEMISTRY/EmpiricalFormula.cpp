@@ -173,7 +173,12 @@ namespace OpenMS
 
   IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(const IsotopePatternGenerator& solver) const
   {
-    return solver.run(*this);
+    std::cerr << "printing OpenMS isotope dist:\n";
+    auto c = solver.run(*this);
+    for (auto cc : c)
+      std::cout << cc << "\n";
+    std::cerr << "////printing OpenMS isotope dist:\n";
+    return c;
   }
 
   IsotopeDistribution EmpiricalFormula::getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor,
