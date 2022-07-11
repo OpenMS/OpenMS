@@ -240,7 +240,10 @@ namespace OpenMS
     IsotopeDistribution ID;
 
     ID.set(std::move(distribution));
-
+    std::cerr << "IsoSpecTotal dist:\n";
+    for (auto cc : ID)
+      std::cout << cc << "\n";
+    std::cerr << "///IsoSpecTotal dist:\n";
     return ID;
   }
 
@@ -335,6 +338,10 @@ namespace OpenMS
 
     IsotopeDistribution ID;
     ID.set(std::move(distribution));
+    std::cerr << "IsoSpecTotal dist:\n";
+    for (auto cc : ID)
+      std::cout << cc << "\n";
+    std::cerr << "///IsoSpecTotal dist:\n";
     return ID;
 }
 }  // namespace OpenMS
