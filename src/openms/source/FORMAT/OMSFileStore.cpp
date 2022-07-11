@@ -51,9 +51,13 @@ namespace OpenMS::Internal
   int version_number = 2; // increase this whenever the DB schema changes!
 
   void raiseDBError_(const QSqlError& error, int line,
-                     const char* function, const String& context)
+                     const char* function, const String& context, const String& query)
   {
     String msg = context + ": " + error.text();
+    if (!query.empty())
+    {
+      msg += String("\nQuery was: ") + query;
+    }
     throw Exception::FailedAPICall(__FILE__, line, function, msg);
   }
 

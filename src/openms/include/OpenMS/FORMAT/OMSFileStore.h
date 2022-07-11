@@ -65,11 +65,12 @@ namespace OpenMS
       @param line Line in the code where error occurred
       @param function Name of the function where error occurred
       @param context Context for the error
+      @param query Text of the query that was executed (optional)
 
       @throw Exception::FailedAPICall Throw this exception
     */
     void raiseDBError_(const QSqlError& error, int line,
-                       const char* function, const String& context);
+                       const char* function, const String& context, const String& query = "");
 
 
     /*!

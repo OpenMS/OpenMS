@@ -1142,7 +1142,8 @@ namespace OpenMS::Internal
     QSqlQuery query(QSqlDatabase::database(db_name_));
     if (!query.exec("CREATE TEMP VIEW " + name + " AS " + select))
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error creating database view");
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error creating database view",
+                    query.lastQuery());
     }
   }
 
