@@ -264,9 +264,14 @@ public:
       // information such as the actual unit in which it was measured (seconds,
       // milliseconds, volt-second per square centimeter). We currently ignore
       // the unit but return the correct array.
+      // For diaPASEF data converted with proteowizard ion mobility arrays are stored in "inverse reduced ion mobility"
       for (auto & bda : binaryDataArrayPtrs)
       {
         if (bda->description.find("Ion Mobility") == 0)
+        {
+          return bda;
+        }
+        else if (bda->description.find("mean inverse reduced ion mobility array") == 0)
         {
           return bda;
         }
