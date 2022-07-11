@@ -43,6 +43,10 @@ namespace OpenMS
   IsotopeDistribution FineIsotopePatternGenerator::run(const EmpiricalFormula& formula) const
   {
 
+    std::cerr << "\nfine iso: " << getAbsolute() << " " << getThreshold() << " " << getTotalProbability() << "\n";
+    std::cerr << "Formula: " << formula.toString()
+              << "\n";
+
     if (use_total_prob_)
     {
         IsotopeDistribution result(IsoSpecTotalProbWrapper(formula, 1.0-stop_condition_, true).run());
