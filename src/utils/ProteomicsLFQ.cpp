@@ -1966,14 +1966,7 @@ protected:
     const bool report_unmapped(true);
     const bool report_unidentified_features(false);
 
-    MzTab m = MzTab::exportConsensusMapToMzTab(
-      consensus, 
-      String("null"),
-      true,
-      report_unidentified_features, 
-      report_unmapped,
-      "Export from ProteomicsLFQ workflow in OpenMS.");
-    MzTabFile().store(out, m);
+    MzTabFile().store(out, consensus, true, report_unidentified_features, report_unmapped, "Export from ProteomicsLFQ workflow in OpenMS.");
 
     if (!out_msstats.empty())
     {

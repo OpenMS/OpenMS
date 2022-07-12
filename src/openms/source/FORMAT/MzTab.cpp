@@ -2416,7 +2416,9 @@ state0:
     peptide_hit_user_value_keys.erase("spectrum_reference");
   }
 
-  void MzTab::getConsensusMapMetaValues_(const ConsensusMap& consensus_map, set<String>& consensus_feature_user_value_keys, set<String>& peptide_hit_user_value_keys)
+  void MzTab::getConsensusMapMetaValues_(const ConsensusMap& consensus_map,
+    set<String>& consensus_feature_user_value_keys,
+    set<String>& peptide_hit_user_value_keys)
   {
     for (ConsensusFeature const & c : consensus_map)
     {
@@ -2425,12 +2427,17 @@ state0:
       // replace whitespaces with underscore
       std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
 
-
       consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
 
       const vector<PeptideIdentification> & curr_pep_ids = c.getPeptideIdentifications();
       for (auto const & pep_id : curr_pep_ids)
-      {
+      {      
+        vector<String> pep_keys;
+        pep_id.getKeys(pep_keys);
+        // replace whitespaces with underscore
+        std::transform(pep_keys.begin(), pep_keys.end(), pep_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+        peptide_hit_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
+
         for (auto const & hit : pep_id.getHits())
         {
           vector<String> ph_keys;
@@ -2599,10 +2606,12 @@ state0:
     //maybe it's better not to output the PSM information here as it is already stored in the PSM section and referenceable via spectra_ref
     for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
     std::replace(pep_optional_column_names_.begin(), pep_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
+    pep_optional_column_names_.emplace_back("opt_global_cv_MS:1000889_peptidoform_sequence");
 
     // PSM optional columns: also from meta values in consensus features
     for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) psm_optional_column_names_.emplace_back("opt_global_" + k);
     std::replace(psm_optional_column_names_.begin(), psm_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
+    psm_optional_column_names_.emplace_back("opt_global_cv_MS:1000889_peptidoform_sequence");
 
     ///////////////////////////////////////////////////////////////////////
     // Export protein/-group quantifications (stored as meta value in protein IDs)
