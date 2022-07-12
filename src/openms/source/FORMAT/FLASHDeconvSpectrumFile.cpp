@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#include<OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
+#include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 
 namespace OpenMS
 {
@@ -43,10 +43,8 @@ namespace OpenMS
 **/
 
 
-  void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, std::fstream& fs,
-                                                   const String& file_name,
-                                                   const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                                   const bool write_detail, const bool is_decoy)
+  void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, std::fstream& fs, const String& file_name, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
+                                                       const bool write_detail, const bool is_decoy)
   {
     if (dspec.empty())
     {
@@ -67,12 +65,8 @@ namespace OpenMS
       int min_charge = pg.isPositive() ? std::get<0>(charge_range) : -std::get<1>(charge_range);
       int max_charge = pg.isPositive() ? std::get<1>(charge_range) : -std::get<0>(charge_range);
 
-      fs << file_name << "\t" << pg.getScanNumber() << "\t" << (is_decoy? 1 : 0) << "\t"
-         << std::to_string(dspec.getOriginalSpectrum().getRT()) << "\t"
-         << dspec.size() << "\t"
-         << std::to_string(avg_mass) << "\t" << std::to_string(mono_mass) << "\t" << intensity << "\t"
-         << min_charge << "\t" << max_charge << "\t"
-         << pg.size() << "\t";
+      fs << file_name << "\t" << pg.getScanNumber() << "\t" << (is_decoy ? 1 : 0) << "\t" << std::to_string(dspec.getOriginalSpectrum().getRT()) << "\t" << dspec.size() << "\t"
+         << std::to_string(avg_mass) << "\t" << std::to_string(mono_mass) << "\t" << intensity << "\t" << min_charge << "\t" << max_charge << "\t" << pg.size() << "\t";
 
       if (write_detail)
       {
@@ -85,7 +79,6 @@ namespace OpenMS
         {
           fs << p.mz << " ";
         }
-
 
 
         fs << ";\t";
@@ -114,7 +107,6 @@ namespace OpenMS
         {
           fs << -p.abs_charge << " ";
         }
-
 
 
         fs << ";\t";
@@ -146,45 +138,35 @@ namespace OpenMS
         for (auto& p : pg)
         {
           double average_mass = pg.getMonoMass() + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
-          double mass_error =
-              (average_mass / p.abs_charge + FLASHDeconvHelperStructs::getChargeMass(p.is_positive) -
-               p.mz) /
-              p.mz;
+          double mass_error = (average_mass / p.abs_charge + FLASHDeconvHelperStructs::getChargeMass(p.is_positive) - p.mz) / p.mz;
           fs << 1e6 * mass_error << " ";
         }
         fs << ";\t";
       }
       if (dspec.getOriginalSpectrum().getMSLevel() > 1)
       {
-        //PrecursorScanNum	PrecursorMz	PrecursorIntensity PrecursorCharge	PrecursorMonoMass		PrecursorQScore
-        fs << dspec.getPrecursorScanNumber() << "\t" << std::to_string(dspec.getPrecursor().getMZ()) << "\t"
-           << dspec.getPrecursor().getIntensity() << "\t"
-           << dspec.getPrecursor().getCharge()
-           << "\t";
+        // PrecursorScanNum	PrecursorMz	PrecursorIntensity PrecursorCharge	PrecursorMonoMass		PrecursorQScore
+        fs << dspec.getPrecursorScanNumber() << "\t" << std::to_string(dspec.getPrecursor().getMZ()) << "\t" << dspec.getPrecursor().getIntensity() << "\t" << dspec.getPrecursor().getCharge() << "\t";
 
         if (dspec.getPrecursorPeakGroup().empty())
         {
-          fs << "nan\tnan\tnan\t";
+          fs << "nan\tnan\tnan\tnan\t";
         }
         else
         {
-          fs << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) << "\t"
-             << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) << "\t"
-             << dspec.getPrecursorPeakGroup().getQScore() << "\t";
+          fs << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) << "\t" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) << "\t"
+             << dspec.getPrecursorPeakGroup().getQScore() << "\t" << dspec.getPrecursorPeakGroup().getQvalue() << "\t";
         }
       }
-      fs << pg.getIsotopeCosine()    << "\t"<< pg.getChargeScore() << "\t";
+      fs << pg.getIsotopeCosine() << "\t" << pg.getChargeScore() << "\t";
 
       auto max_qscore_mz_range = pg.getMaxQScoreMzRange();
-      fs << pg.getSNR() << "\t" << pg.getChargeSNR(pg.getRepAbsCharge()) << "\t"
-         << (pg.isPositive() ? pg.getRepAbsCharge() : -pg.getRepAbsCharge()) << "\t"
-         << std::to_string(std::get<0>(max_qscore_mz_range)) << "\t"
-         << std::to_string(std::get<1>(max_qscore_mz_range)) << "\t"
-         << pg.getQScore()  <<  "\t" << pg.getQvalue() << "\t" << std::setprecision(-1);//
+      fs << pg.getSNR() << "\t" << pg.getChargeSNR(pg.getRepAbsCharge()) << "\t" << (pg.isPositive() ? pg.getRepAbsCharge() : -pg.getRepAbsCharge()) << "\t"
+         << std::to_string(std::get<0>(max_qscore_mz_range)) << "\t" << std::to_string(std::get<1>(max_qscore_mz_range)) << "\t" << pg.getQScore() << "\t" << pg.getQvalue() << "\t"
+         << std::setprecision(-1); //
 
       for (int i = std::get<0>(charge_range); i <= std::get<1>(charge_range); i++)
       {
-
         fs << pg.getChargeIntensity(i);
 
         if (i < std::get<1>(charge_range))
@@ -223,59 +205,52 @@ namespace OpenMS
     {
       if (ms_level == 1)
       {
-        fs
-            << "FileName\tScanNum\tDecoy\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
-               "SumIntensity\tMinCharge\tMaxCharge\t"
-               "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
-               "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tqvalue\tPerChargeIntensity\tPerIsotopeIntensity\n";
+        fs << "FileName\tScanNum\tDecoy\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
+              "SumIntensity\tMinCharge\tMaxCharge\t"
+              "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
+              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tQvalue\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
       else
       {
-        fs
-            << "FileName\tScanNum\tDecoy\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
-               "SumIntensity\tMinCharge\tMaxCharge\t"
-               "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
-               "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\t"
-               "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tqvalue\tPerChargeIntensity\tPerIsotopeIntensity\n";
+        fs << "FileName\tScanNum\tDecoy\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
+              "SumIntensity\tMinCharge\tMaxCharge\t"
+              "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
+              "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\tPrecursorQvalue\t"
+              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tQvalue\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
     }
     else
     {
       if (ms_level == 1)
       {
-        fs
-            << "FileName\tScanNum\tDecoy\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
-               "SumIntensity\tMinCharge\tMaxCharge\t"
-               "PeakCount\t"
-               //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
-               "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tqvalue\tPerChargeIntensity\tPerIsotopeIntensity\n";
+        fs << "FileName\tScanNum\tDecoy\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
+              "SumIntensity\tMinCharge\tMaxCharge\t"
+              "PeakCount\t"
+              //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
+              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tQvalue\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
       else
       {
-        fs
-            << "FileName\tScanNum\tDecoy\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
-               "SumIntensity\tMinCharge\tMaxCharge\t"
-               "PeakCount\t"
-               "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\t"
-               "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tqvalue\tPerChargeIntensity\tPerIsotopeIntensity\n";
+        fs << "FileName\tScanNum\tDecoy\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
+              "SumIntensity\tMinCharge\tMaxCharge\t"
+              "PeakCount\t"
+              "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\tPrecursorQvalue\t"
+              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tQvalue\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
     }
   }
 
 
-  void FLASHDeconvSpectrumFile::writeTopFD(const DeconvolvedSpectrum& dspec,
-                                       std::fstream& fs,
-//                                       const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                       const double snr_threshold,
-                                       const double decoy_harmonic_factor,
-                                       const double decoy_precursor_offset)//, fstream& fsm, fstream& fsp)
+  void FLASHDeconvSpectrumFile::writeTopFD(const DeconvolvedSpectrum& dspec, std::fstream& fs,
+                                           //                                       const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
+                                           const double snr_threshold, const double decoy_harmonic_factor,
+                                           const double decoy_precursor_offset) //, fstream& fsm, fstream& fsp)
   {
     UInt ms_level = dspec.getOriginalSpectrum().getMSLevel();
 
     if (ms_level > 1)
     {
-      if (dspec.getPrecursorPeakGroup().empty() ||
-          dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) < snr_threshold)
+      if (dspec.getPrecursorPeakGroup().empty() || dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) < snr_threshold)
       {
         return;
       }
@@ -289,22 +264,22 @@ namespace OpenMS
     fs << std::fixed << std::setprecision(2);
     fs << "BEGIN IONS\n"
        << "ID=" << dspec.getScanNumber() << "\n"
-       << "SCANS=" <<  dspec.getScanNumber() << "\n"
-       << "RETENTION_TIME=" << dspec.getOriginalSpectrum().getRT() << "\n";
+       << "FRACTION_ID=" << 0 << "\n"
+       << "SCANS=" << dspec.getScanNumber() << "\n"
+       << "RETENTION_TIME=" << dspec.getOriginalSpectrum().getRT() << "\n"
+       << "LEVEL=" << dspec.getOriginalSpectrum().getMSLevel() << "\n";
 
     if (ms_level > 1)
     {
       fs << "ACTIVATION=" << dspec.getActivationMethod() << "\n";
-      //if (!dspec.getPrecursorPeakGroup().empty())
-     // {
-        fs << "MS_ONE_ID=" << dspec.getPrecursorScanNumber() << "\n"
-           << "MS_ONE_SCAN=" << dspec.getPrecursorScanNumber() << "\n"
-           << "PRECURSOR_MZ="
-           << std::to_string(dspec.getPrecursor().getMZ()) << "\n"
-           << "PRECURSOR_CHARGE=" << (int) (dspec.getPrecursor().getCharge() * decoy_harmonic_factor) << "\n"
-           << "PRECURSOR_MASS="
-           << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass() * decoy_harmonic_factor + decoy_precursor_offset) << "\n"
-           << "PRECURSOR_INTENSITY=" << dspec.getPrecursor().getIntensity() << "\n";
+      // if (!dspec.getPrecursorPeakGroup().empty())
+      // {
+      fs << "MS_ONE_ID=" << dspec.getPrecursorScanNumber() << "\n"
+         << "MS_ONE_SCAN=" << dspec.getPrecursorScanNumber() << "\n"
+         << "PRECURSOR_MZ=" << std::to_string(dspec.getPrecursor().getMZ()) << "\n"
+         << "PRECURSOR_CHARGE=" << (int)(dspec.getPrecursor().getCharge() * decoy_harmonic_factor) << "\n"
+         << "PRECURSOR_MASS=" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass() * decoy_harmonic_factor + decoy_precursor_offset) << "\n"
+         << "PRECURSOR_INTENSITY=" << dspec.getPrecursor().getIntensity() << "\n";
       //}
       /*else
       {
@@ -327,7 +302,7 @@ namespace OpenMS
     double isotope_score_threshold = 0;
     std::vector<double> isotope_scores;
 
-    if (dspec.size() > topFD_max_peak_count_)// max peak count for TopPic = 500
+    if (dspec.size() > topFD_max_peak_count_) // max peak count for TopPic = 500
     {
       isotope_scores.reserve(dspec.size());
       for (auto& pg : dspec)
@@ -352,9 +327,7 @@ namespace OpenMS
       }
       size++;
       fs << std::fixed << std::setprecision(2);
-      fs << std::to_string(pg.getMonoMass()) << "\t" << pg.getIntensity() << "\t"
-         << (pg.isPositive() ? std::get<1>(pg.getAbsChargeRange()) : -std::get<1>(pg.getAbsChargeRange()))
-         << "\n";
+      fs << std::to_string(pg.getMonoMass()) << "\t" << pg.getIntensity() << "\t" << (pg.isPositive() ? std::get<1>(pg.getAbsChargeRange()) : -std::get<1>(pg.getAbsChargeRange())) << "\n";
       fs << std::setprecision(-1);
       if (size >= topFD_max_peak_count_)
       {
@@ -366,4 +339,4 @@ namespace OpenMS
   }
 
 
-}
+} // namespace OpenMS

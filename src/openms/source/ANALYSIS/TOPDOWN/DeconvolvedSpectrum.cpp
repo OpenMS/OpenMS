@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -246,46 +246,82 @@ namespace OpenMS
     std::sort(peak_groups.begin(), peak_groups.end(), [](const PeakGroup& p1, const PeakGroup& p2) { return p1.getQScore() > p2.getQScore(); });
   }
 
-  void DeconvolvedSpectrum::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra)
+  void DeconvolvedSpectrum::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra) // per ms level + precursor update as well.
   {
 
-    std::vector<float> tscore;
-    std::vector<float> dscore;
+    std::map<int, std::vector<float>> tscore_map; // per ms level
+    std::map<int, std::vector<float>> dscore_map;
+    std::map<int, std::map<float, float>> qscore_map;
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
+      int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+      if(tscore_map.find(ms_level) == tscore_map.end())
+      {
+        tscore_map[ms_level] = std::vector<float>();
+        dscore_map[ms_level] = std::vector<float>();
+        qscore_map[ms_level] = std::map<float, float>();
+      }
       for (auto& pg : deconvolved_spectrum)
       {
-        tscore.push_back(pg.getQScore());
+        tscore_map[ms_level].push_back(pg.getQScore());
       }
     }
     for (auto& decoy_deconvolved_spectrum : deconvolved_decoy_spectra)
     {
+      int ms_level = decoy_deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : decoy_deconvolved_spectrum)
       {
-        dscore.push_back(pg.getQScore());
+        dscore_map[ms_level].push_back(pg.getQScore());
       }
     }
-
-    std::sort(tscore.begin(), tscore.end());
-    std::sort(dscore.begin(), dscore.end());
-
-    auto map = std::map<float, float>();
-    float tmp_q = 1;
-    for (int i = 0; i < tscore.size(); i++)
+    for(auto& titem: tscore_map)
     {
-      float ts = tscore[i];
-      int dindex = std::distance(std::upper_bound(dscore.begin(), dscore.end(), ts), dscore.end());
-      int tindex = tscore.size() - i;
+      int ms_level = titem.first;
+      auto& tscore = titem.second;
+      auto& dscore = dscore_map[ms_level];
 
-      tmp_q = std::min(tmp_q, ((float)dindex / tindex));
-      map[ts] = tmp_q;
-    }
+      std::sort(tscore.begin(), tscore.end());
+      std::sort(dscore.begin(), dscore.end());
 
-    for (auto& deconvolved_spectrum : deconvolved_spectra)
-    {
-      for (auto& pg : deconvolved_spectrum) {
-        pg.setQvalue(map[pg.getQScore()]);
+      auto& map = qscore_map[ms_level];
+      float tmp_q = 1;
+      for (int i = 0; i < tscore.size(); i++)
+      {
+        float ts = tscore[i];
+        int dindex = std::distance(std::upper_bound(dscore.begin(), dscore.end(), ts), dscore.end());
+        int tindex = tscore.size() - i;
+
+        tmp_q = std::min(tmp_q, ((float)dindex / tindex));
+        map[ts] = tmp_q;
       }
     }
+    for(auto& titem: qscore_map)
+    {
+      int ms_level = titem.first;
+      for (auto& deconvolved_spectrum : deconvolved_spectra)
+      {
+        if(deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != ms_level)
+        {
+          continue;
+        }
+        auto& map = qscore_map[ms_level];
+
+        for (auto& pg : deconvolved_spectrum)
+        {
+          pg.setQvalue(map[pg.getQScore()]);
+          if(deconvolved_spectrum.getOriginalSpectrum().getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
+          {
+            double qs = deconvolved_spectrum.getPrecursorPeakGroup().getQScore();
+            auto& pmap = qscore_map[ms_level - 1];
+            deconvolved_spectrum.setPrecursorPeakGroupQvalue(pmap[qs]);
+          }
+        }
+      }
+    }
+  }
+
+  void DeconvolvedSpectrum::setPrecursorPeakGroupQvalue(const double qvalue)
+  {
+    precursor_peak_group_.setQvalue(qvalue);
   }
 } // namespace OpenMS

@@ -207,7 +207,7 @@ protected:
     setMinInt_("merging_method", 0);
     setMaxInt_("merging_method", 2);
 
-    registerIntOption_("report_decoy_info", "<0: Do not report 1: report>", 0, "", false, false);
+    registerIntOption_("report_decoy_info", "<0: Do not report 1: report>", 0, "Report decoy masses in the spectrum tsv file. Q values for masses are also calculated. Beta version.", false, false);
     setMinInt_("report_decoy_info", 0);
     setMaxInt_("report_decoy_info", 1);
     /*
@@ -1033,7 +1033,7 @@ protected:
       for (auto& out_topfd_feature_stream: out_topfd_feature_streams)
       {
         out_topfd_feature_stream.close();
-        if (j + 1 > 2) // only MS1 and MS2.
+        if (j + 1 > current_max_ms_level)
         {
           std::remove(out_topfd_feature_file[j].c_str());
         }

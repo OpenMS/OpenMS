@@ -1745,7 +1745,6 @@ namespace OpenMS
     target_masses_ = masses;
   }
 
-
   bool FLASHDeconvAlgorithm::registerPrecursor(const std::vector<DeconvolvedSpectrum>& survey_scans, const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_real_time_acquisition)
   {
     if (ms_level_ == 1 || (survey_scans.empty() && precursor_map_for_real_time_acquisition.empty()))
