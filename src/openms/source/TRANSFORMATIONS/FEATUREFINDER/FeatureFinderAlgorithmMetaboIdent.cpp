@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,6 +45,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <vector>
@@ -755,6 +756,8 @@ namespace OpenMS
         sub.setMetaValue("isotope_probability", isotope_probs_[native_id]);
         sub.removeMetaValue("FeatureLevel"); // value "MS2" is misleading
       }
+      // annotate num_mass_traces, required for SIRIUS
+      feat.setMetaValue(Constants::UserParam::NUM_OF_MASSTRACES, feat.getSubordinates().size());
     }
     features.getProteinIdentifications().clear();
   }

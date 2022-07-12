@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -132,6 +132,11 @@ using Internal::IDBoostGraph;
   // - disable elution peak fit
 
   Potential scripts to perform the search can be found under src/tests/topp/ProteomicsLFQTestScripts
+  
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_ProteomicsLFQ.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_ProteomicsLFQ.html
  **/
 
 // We do not want this class to show up in the docu:
@@ -189,10 +194,13 @@ protected:
     registerStringOption_("picked_proteinFDR", "<choice>", "false", "Use a picked protein FDR?", false);
     setValidStrings_("picked_proteinFDR", {"true","false"});
 
-    registerDoubleOption_("psmFDR", "<threshold>", 1.0, "PSM FDR threshold (e.g. 0.05=5%)."
+    registerDoubleOption_("psmFDR", "<threshold>", 1.0, "FDR threshold for sub-protein level (e.g. 0.05=5%). Use -FDR_type to choose the level. Cutoff is applied at the highest level."
                           " If Bayesian inference was chosen, it is equivalent with a peptide FDR", false);
     setMinFloat_("psmFDR", 0.0);
     setMaxFloat_("psmFDR", 1.0);
+
+    registerStringOption_("FDR_type", "<threshold>", "PSM", "Sub-protein FDR level. PSM, PSM+peptide (best PSM q-value).", false);
+    setValidStrings_("FDR_type", {"PSM", "PSM+peptide"});
 
     //TODO expose all parameters of the inference algorithms (e.g. aggregation methods etc.)?
     registerStringOption_("protein_inference", "<option>", "aggregation",
@@ -292,8 +300,8 @@ protected:
 
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
-    pq_defaults.setValue("include_all", "true"); 
-    pq_defaults.addTag("include_all", "advanced");
+    pq_defaults.setValue("top:include_all", "true");
+    pq_defaults.addTag("top:include_all", "advanced");
 
     // combine parameters of the individual algorithms
     Param combined;
@@ -1363,16 +1371,17 @@ protected:
     }
     else // if (bayesian)
     {
-      // Important Note: BayesianProteinInference by default keeps only the best
-      // PSM per peptide!
-      // TODO maybe allow otherwise by exposing the corresponding parameter. But I think it does not matter much here,
-      //  since we basically discard peptide+PSM information from inference and use the info in the cMaps.
       BayesianProteinInferenceAlgorithm bayes;
+      auto bayesparams = bayes.getParameters();
+      // We need all PSMs to collect all possible modifications, to do spectral counting and to do PSM FDR.
+      // In theory, if none is needed we can save memory. For quantification,
+      // we basically discard peptide+PSM information from inference and use the info from the cMaps.
+      bayesparams.setValue("keep_best_PSM_only", "false");
       //bayesian inference automatically annotates groups
       bayes.inferPosteriorProbabilities(inferred_protein_ids, inferred_peptide_ids, greedy_group_resolution);
       if (!groups)
       {
-        // should be enough to just clear the groups.
+        // should be enough to just clear the groups. Only indistinguishable will be annotated above.
         inferred_protein_ids[0].getIndistinguishableProteins().clear();
       }
     }
@@ -1389,8 +1398,8 @@ protected:
     //-------------------------------------------------------------
     const double max_fdr = getDoubleOption_("proteinFDR");
     const bool picked = getStringOption_("picked_proteinFDR") == "true";
-    // Note: actually, when Bayesian inference was performed, per default only one (best) PSM
-    // is left per peptide, so the calculated PSM FDR is equal to a Peptide FDR
+
+    //TODO use new FDR_type parameter
     const double max_psm_fdr = getDoubleOption_("psmFDR");
     FalseDiscoveryRate fdr;
     if (getFlag_("PeptideQuantification:quantify_decoys"))
@@ -1410,12 +1419,30 @@ protected:
       fdr.applyPickedProteinFDR(inferred_protein_ids[0], picked_decoy_string, picked_decoy_prefix);
     }
 
-    if (max_psm_fdr < 1.)
+    bool pepFDR = getStringOption_("FDR_type") == "PSM+peptide";
+    //TODO Think about the implications of mixing PSMs from different files and searches.
+    //  Score should be PEPs here. We could extract the original search scores, depending on preprocessing. PEPs allow some normalization but will
+    //  disregard the absolute score differences between runs (i.e. if scores in one run are all lower than the ones in another run,
+    //  do you want to filter them out preferably or do you say: this was a faulty run, if the decoys are equally bad, I want the
+    //  best targets to be treated like the best targets from the other runs, even if the absolute match scores are much lower).
+    fdr.apply(inferred_peptide_ids, pepFDR);
+    if (pepFDR)
     {
-      fdr.applyBasic(inferred_peptide_ids);
+      IDScoreSwitcherAlgorithm switcher;
+      Param switcherParams = switcher.getDefaults();
+      switcherParams.setValue("new_score","peptide q-value");
+      switcherParams.setValue("new_score_orientation","lower_better");
+      switcherParams.setValue("old_score","PSM q-value");
+      switcher.setParameters(switcherParams);
+      Size c(0);
+      for (auto& id : inferred_peptide_ids)
+      {
+        switcher.switchScores(id, c);
+      }
     }
+    //fdr.applyBasic(inferred_protein_ids, inferred_peptide_ids);
 
-    if (!getFlag_("PeptideQuantification:quantify_decoys"))
+    if (!getFlag_("PeptideQuantification:quantify_decoys") || debug_level_ >= 666)
     { // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs
       IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
       IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we don't filter peptides for now, we don't need this
@@ -1425,12 +1452,6 @@ protected:
 
     if (debug_level_ >= 666)
     {
-      // This is needed because we throw out decoy proteins during FDR
-      IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we don't filter peptides for now, we don't need this
-      IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
-      IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
-
       IdXMLFile().store("debug_mergedIDsGreedyResolvedFDR.idXML", inferred_protein_ids, inferred_peptide_ids);
     }
 
@@ -1874,8 +1895,8 @@ protected:
     }
     else if (getStringOption_("quantification_method") == "spectral_counting")
     {
-      pq_param.setValue("average", "sum"); 
-      pq_param.setValue("top", 0); // all 
+      pq_param.setValue("top:aggregate", "sum");
+      pq_param.setValue("top:N", 0); // all
       pq_param.setValue("consensus:normalize", "false");
       quantifier.setParameters(pq_param);
 

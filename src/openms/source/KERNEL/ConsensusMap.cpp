@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -649,7 +649,7 @@ namespace OpenMS
     {
       if (stream != nullptr)
       {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
         *stream << "Map descriptions (file name + label) in ConsensusMap are not unique:\n" << all_maps << std::endl;
       }
       return false;
@@ -674,14 +674,14 @@ OPENMS_THREAD_CRITICAL(oms_log)
     {
       if (stream != nullptr)
       {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
         *stream << "ConsensusMap contains " << stats_wrongMID << " invalid references to maps:\n";
         for (std::map<Size, Size>::const_iterator it = wrong_ID_count.begin(); it != wrong_ID_count.end(); ++it)
         {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
           *stream << "  wrong id=" << it->first << " (occurred " << it->second << "x)\n";
         }
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
         *stream << std::endl;
       }
       return false;

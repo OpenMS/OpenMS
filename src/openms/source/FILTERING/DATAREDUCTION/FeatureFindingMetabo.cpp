@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,19 +34,18 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
 
 #include <boost/dynamic_bitset.hpp>
 
 #include "svm.h"
-
-#ifdef _OPENMP
-#endif
 
 // #define FFM_DEBUG
 
@@ -1043,7 +1042,7 @@ namespace OpenMS
 
       // store isotope intensities
       std::vector<double> all_ints(feat_hypos[hypo_idx].getAllIntensities(use_smoothed_intensities_));
-      f.setMetaValue("num_of_masstraces", all_ints.size());
+      f.setMetaValue(Constants::UserParam::NUM_OF_MASSTRACES, all_ints.size());
       if (report_convex_hulls_) f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
       f.setMetaValue("masstrace_intensity", all_ints);

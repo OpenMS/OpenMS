@@ -5,6 +5,8 @@ set(directory source/CONCEPT)
 set(sources_list
 ClassTest.cpp
 Colorizer.cpp
+CommonEnums.cpp
+Constants.cpp
 Exception.cpp
 FuzzyStringComparator.cpp
 GlobalExceptionHandler.cpp

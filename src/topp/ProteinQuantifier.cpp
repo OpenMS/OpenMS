@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -86,7 +86,7 @@ using namespace std;
 
     <B>Input: featureXML or consensusXML</B>
 
-    Quantification is based on the intensity values of the features in the input files. Feature intensities are first accumulated to peptide abundances, according to the peptide identifications annotated to the features/feature groups. Then, abundances of the peptides of a protein are averaged to compute the protein abundance.
+    Quantification is based on the intensity values of the features in the input files. Feature intensities are first accumulated to peptide abundances, according to the peptide identifications annotated to the features/feature groups. Then, abundances of the peptides of a protein are aggregated to compute the protein abundance.
 
     The peptide-to-protein step uses the (e.g. 3) most abundant proteotypic peptides per protein to compute the protein abundances. This is a general version of the "top 3 approach" (but only for relative quantification) described in:\n
     Silva <em>et al.</em>: Absolute quantification of proteins by LCMS<sup>E</sup>: a virtue of parallel MS acquisition (Mol. Cell. Proteomics, 2006, PMID: 16219938).
@@ -101,7 +101,7 @@ using namespace std;
 
     Quantification based on identification results uses spectral counting, i.e. the abundance of each peptide is the number of times that peptide was identified from an MS2 spectrum (considering only the best hit per spectrum). Different identification runs in the input are treated as different samples; this makes it possible to quantify several related samples at once by merging the corresponding idXML files with @ref TOPP_IDMerger. Depending on the presence of multiple runs, output format and applicable parameters are the same as for featureXML and consensusXML, respectively.
 
-    The notes above regarding quantification on the protein level and the treatment of modifications also apply to idXML input. In particular, this means that the settings @p top 0 and @p average @p sum should be used to get the "classical" spectral counting quantification on the protein level (where all identifications of all peptides of a protein are summed up).
+    The notes above regarding quantification on the protein level and the treatment of modifications also apply to idXML input. In particular, this means that the settings @p top 0 and @p aggregate @p sum should be used to get the "classical" spectral counting quantification on the protein level (where all identifications of all peptides of a protein are summed up).
 
     <B>Optional input: Protein inference/grouping results</B>
 
@@ -139,7 +139,7 @@ using namespace std;
 
     <B>Protein quantification examples</B>
 
-    While quantification on the peptide level is fairly straight-forward, a number of options influence quantification on the protein level - especially for consensusXML input. The three parameters @p top, @p include_all and @p consensus:fix_peptides determine which peptides are used to quantify proteins in different samples.
+    While quantification on the peptide level is fairly straight-forward, a number of options influence quantification on the protein level - especially for consensusXML input. The three parameters @p top:N, @p top:include_all and @p consensus:fix_peptides determine which peptides are used to quantify proteins in different samples.
 
     As an example, consider a protein with four proteotypic peptides. Each peptide is detected in a subset of three samples, as indicated in the table below. The peptides are ranked by abundance (1: highest, 4: lowest; assuming for simplicity that the order is the same in all samples).
 
@@ -317,9 +317,9 @@ using namespace std;
 
     <B>Further considerations for parameter selection</B>
 
-    With @p best_charge_and_fractions and @p average, there is a trade-off between comparability of protein abundances within a sample and of abundances for the same protein across different samples.\n
+    With @p best_charge_and_fractions and @p aggregate, there is a trade-off between comparability of protein abundances within a sample and of abundances for the same protein across different samples.\n
     Setting @p best_charge_and_fraction may increase reproducibility between samples, but will distort the proportions of protein abundances within a sample. The reason is that ionization properties vary between peptides, but should remain constant across samples. Filtering by charge state can help to reduce the impact of feature detection differences between samples.\n
-    For @p average, there is a qualitative difference between @p (intensity weighted) mean/median and @p sum in the effect that missing peptide abundances have (only if @p include_all is set or @p top is 0): @p (intensity weighted) mean and @p median ignore missing cases, averaging only present values. If low-abundant peptides are not detected in some samples, the computed protein abundances for those samples may thus be too optimistic. @p sum implicitly treats missing values as zero, so this problem does not occur and comparability across samples is ensured. However, with @p sum the total number of peptides ("summands") available for a protein may affect the abundances computed for it (depending on @p top), so results within a sample may become unproportional.
+    For @p aggregate, there is a qualitative difference between @p (intensity weighted) mean/median and @p sum in the effect that missing peptide abundances have (only if @p include_all is set or @p top is 0): @p (intensity weighted) mean and @p median ignore missing cases, averaging only present values. If low-abundant peptides are not detected in some samples, the computed protein abundances for those samples may thus be too optimistic. @p sum implicitly treats missing values as zero, so this problem does not occur and comparability across samples is ensured. However, with @p sum the total number of peptides ("summands") available for a protein may affect the abundances computed for it (depending on @p top), so results within a sample may become unproportional.
 
 */
 
@@ -590,19 +590,24 @@ protected:
   {
     String what = (proteins ? "Protein" : "Peptide");
     bool old = out.modifyStrings(false);
+    bool is_ibaq = algo_params_.getValue("method") == "iBAQ";
     out << "# " + what + " abundances computed from file '" +
       getStringOption_("in") + "'" << endl;
     StringList relevant_params;
     if (proteins) // parameters relevant only for protein output
     {
-      relevant_params.push_back("top");
-      Size top = algo_params_.getValue("top");
-      if (top != 1)
+      relevant_params.push_back("method");
+      if (!is_ibaq)
       {
-        relevant_params.push_back("average");
-        if (top != 0)
+        relevant_params.push_back("top:N");
+        Size top = algo_params_.getValue("top:N");
+        if (top != 1)
         {
-          relevant_params.push_back("include_all");
+          relevant_params.push_back("top:aggregate");
+          if (top != 0)
+          {
+            relevant_params.push_back("top:include_all");
+          }
         }
       }
     }
@@ -681,11 +686,11 @@ protected:
     }
     if (!getStringOption_("out").empty())
     {
-      bool include_all = algo_params_.getValue("include_all") == "true";
-      Size top = algo_params_.getValue("top");
+      bool include_all = algo_params_.getValue("top:include_all") == "true";
+      Size top_n = algo_params_.getValue("top:N");
       OPENMS_LOG_INFO << "\n...proteins/protein groups: " << stats.quant_proteins
                << " quantified";
-      if (top > 1)
+      if (top_n > 1)
       {
         if (include_all)
         {
@@ -695,7 +700,7 @@ protected:
         {
           OPENMS_LOG_INFO << ", ";
         }
-        OPENMS_LOG_INFO << stats.too_few_peptides << " with fewer than " << top
+        OPENMS_LOG_INFO << stats.too_few_peptides << " with fewer than " << top_n
                  << " peptides";
         if (stats.n_samples > 1)
         {
@@ -796,6 +801,22 @@ protected:
     algo_params_.update(getParam_(), false, nirvana);
     // algo_params_.update(getParam_());
     quantifier.setParameters(algo_params_);
+
+    // iBAQ works only with feature intensity values in consensusXML or featureXML files
+    if (algo_params_.getValue("method") == "iBAQ" && in.hasSuffix("idXML"))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION,
+                                        "Invalid input: idXML for iBAQ, only consensusXML or featureXML are valid");
+    }
+
+    // iBAQ can only quantify proteins
+    if (algo_params_.getValue("method") == "iBAQ" && !peptide_out.empty())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION,
+                                        "Invalid output: peptide_out can not be set when using iBAQ");
+    }
 
     ExperimentalDesign ed;
 
