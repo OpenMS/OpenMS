@@ -32,6 +32,11 @@
 // $Authors: Marc Sturm, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/CHEMISTRY/EmpiricalFormula.h"
+#include "OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h"
+#include "OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h"
+
+#include <iostream>
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
@@ -67,6 +72,18 @@ namespace OpenMS::Internal
       {
         rules_[mapping_.getMappingRules()[r].getElementPath()].push_back(mapping_.getMappingRules()[r]);
       }
+
+      // testing Isotope within OpenMS
+      std::cerr << "testing internally:\n";
+      EmpiricalFormula ef("H2O");
+      EmpiricalFormula ef2("C1H6O2");
+      IsotopeDistribution test_id = (ef2).getIsotopeDistribution(FineIsotopePatternGenerator(1e-20, false, false));
+      auto c = test_id.getContainer();
+      // check monoisotopic peak
+      for (auto cc : c)
+        std::cout << cc << "\n";
+      std::cerr << "////testing internally:\n";
+
     }
 
     SemanticValidator::~SemanticValidator()
