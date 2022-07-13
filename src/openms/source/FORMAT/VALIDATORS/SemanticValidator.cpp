@@ -81,8 +81,8 @@ namespace OpenMS::Internal
       auto c = test_id.getContainer();
       // check monoisotopic peak
       for (auto cc : c)
-        std::cout << cc << "\n";
-      std::cerr << "////testing internally:\n";
+        std::cerr << "int " << cc << "\n";
+      std::cerr << "////testing internally///\n" << std::flush;
 
     }
 
