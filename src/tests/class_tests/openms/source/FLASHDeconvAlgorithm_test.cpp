@@ -120,7 +120,7 @@ END_SECTION
 
 START_SECTION((static double getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector< double > &per_isotope_intensities, int &offset, const PrecalculatedAveragine &avg, bool use_shape_diff=true)))
 {
-  std::vector<double> tmp_iso_inty;
+  std::vector<float> tmp_iso_inty;
   tmp_iso_inty.push_back(8713.53089);
   tmp_iso_inty.push_back(4671.26697);
   tmp_iso_inty.push_back(1461.74729);
