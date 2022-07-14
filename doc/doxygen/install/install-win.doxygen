@@ -108,8 +108,9 @@
 	@subsection install_qt QT installation
 
     Qt comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Qt website.
-    For several recent QT5 versions, there are binary development versions available for the most recent compilers. 
-    <b>Installation of Qt5 via the Qt5 installer requires an admin account<b>:<br>
+    For several recent Qt5 versions, there are binary development versions available for the most recent compilers. 
+
+    <b>Installation of Qt5 via the Qt5 installer (requires an admin account)<b>:<br>
     Go to https://www.qt.io/download and click on "Go open source" at the end of the right column to download the installer. Follow steps, download, save and run the installer.
     Create a Qt account. Choose a folder like "c:\dev\QT". From the components choose a matching version, e.g. QT 5.10.0 and the MSVC component that fits
     your Visual Studio version and architecture (most likely only 64bit is supported; if your Visual Studio version is more recent than the VS offered by the Qt installer, 
@@ -123,13 +124,13 @@
         <ol>
           <li>install perl (e.g. Strawberry Perl), Python and git
           <li>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
-          <li>Make sure that Python, Perl and git are in your PATH, e.g.
+          <li>Make sure that Python, Perl (both required to build Qt5) and git are in your PATH, e.g.
              \code
              where python
              \endcode
              and if python is not found, then add it. e.g.
              \code
-             PATH=%PATH%;C:\Python27\
+             set PATH=%PATH%;C:\Python27\
              \endcode
              Warning: <b>APPEND</b> these directories to your PATH (like shown above); do NOT PREPEND them, since some versions of Perl ship their own link.exe, which should not be listed before the VS's native link.exe.
           <li>download <b>Qt5 source</b> via git or as a source package from the website:
@@ -143,8 +144,9 @@
              perl init-repository --module-subset="essential,qtsvg" --branch
             \endcode
           <li>To save disk space, we use the <tt>-prefix</tt> switch to install only the required parts of Qt to a new directory of your choice (called <tt>&lt;path-to-qt&gt;</tt>, e.g. <tt>c:/dev/qt_5.15_build/</tt>).
+          The git source repository of Qt5 can be deleted safely at the very end. 
           <li>If you have multiple versions of VS installed you might need to provide the <tt>-platform</tt> param for the next configure command (e.g., <tt>-platform win32-msvc2012</tt>)
-          <li>Check more options and supported compilers here: http://doc.qt.io/qt-5/configure-options.html (especially for developers). Note that part of Qt requires Python to compile, so its a good idea to add the Python executable to your path
+          <li>Check more options and supported compilers here: http://doc.qt.io/qt-5/configure-options.html (especially for developers).
             \code
             configure -opensource -skip speech -skip location -nomake tests -nomake examples -confirm-license -opengl dynamic -platform win32-msvc -prefix <path-to-qt_build>
             \endcode
