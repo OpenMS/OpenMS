@@ -5270,7 +5270,7 @@ def testElementDB():
     assert e2.getName() == "Kryptonite"
     assert e2.getIsotopeDistribution()
     assert len(e2.getIsotopeDistribution().getContainer()) == 1
-    assert abs(e2.getIsotopeDistribution().getContainer()[0].getIntensity() - 0.1) < 1e-5
+    assert abs(e2.getIsotopeDistribution().getContainer()[0].getIntensity() - 1.0) < 1e-5
     # assert e == e2
 
     #  not yet implemented
