@@ -5256,14 +5256,21 @@ def testElementDB():
     e2 = edb.getElement(pyopenms.String("NE"))
     assert e2.getName() == "NewElement"
 
-    # replace oxygen
-    e2 = edb.addElement(b"Oxygen", b"O", 8, {16 : 0.7, 19 : 0.3}, {16 : 16.01, 19 : 19.01}, True)
-    e2 = edb.getElement(pyopenms.String("O"))
-    assert e2.getName() == "Oxygen"
+    # changing existing elements in tests might have side effects so we define a new element
+    # add first new element
+    e2 = edb.addElement(b"Cryptonite", b"@", 500, {999 : 0.7, 1000 : 0.3}, {999 : 999.99, 1000 : 1000.01}, False)
+    e2 = edb.getElement(pyopenms.String("@"))
+    assert e2.getName() == "Cryptonite"
     assert e2.getIsotopeDistribution()
     assert len(e2.getIsotopeDistribution().getContainer()) == 2
     assert abs(e2.getIsotopeDistribution().getContainer()[1].getIntensity() - 0.3) < 1e-5
-
+    # replace element
+    e2 = edb.addElement(b"Cryptonite", b"@", 500, {9999 : 0.9, 1000 : 0.1}, True)
+    e2 = edb.getElement(pyopenms.String("@"))
+    assert e2.getName() == "Cryptonite"
+    assert e2.getIsotopeDistribution()
+    assert len(e2.getIsotopeDistribution().getContainer()) == 1
+    assert abs(e2.getIsotopeDistribution().getContainer()[0].getIntensity() - 0.1) < 1e-5
     # assert e == e2
 
     #  not yet implemented
