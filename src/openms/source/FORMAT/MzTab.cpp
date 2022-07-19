@@ -2432,11 +2432,13 @@ state0:
       const vector<PeptideIdentification> & curr_pep_ids = c.getPeptideIdentifications();
       for (auto const & pep_id : curr_pep_ids)
       {      
+        /* TODO: distinguish peptide hit and peptide id level meta values (also in writing them out)
         vector<String> pep_keys;
         pep_id.getKeys(pep_keys);
         // replace whitespaces with underscore
         std::transform(pep_keys.begin(), pep_keys.end(), pep_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
         peptide_hit_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
+        */
 
         for (auto const & hit : pep_id.getHits())
         {
