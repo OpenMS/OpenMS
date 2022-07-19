@@ -63,8 +63,16 @@ class QMenu;
 namespace OpenMS
 {
   class PlotWidget;
+  class LayerDataChrom;
+  class LayerDataPeak;
+  class LayerDataFeature;
+  class LayerDataConsensus;
 
   using LayerDataBaseUPtr = std::unique_ptr<LayerDataBase>;
+  using LayerDataChromUPtr = std::unique_ptr<LayerDataChrom>;
+  using LayerDataPeakUPtr = std::unique_ptr<LayerDataPeak>;
+  using LayerDataFeatureUPtr = std::unique_ptr<LayerDataFeature>;
+  using LayerDataConsensusUPtr = std::unique_ptr<LayerDataConsensus>;
 
   /**
     A class to manage a stack of layers as shown in the layer widget in TOPPView.
@@ -150,7 +158,6 @@ public:
     typedef LayerDataBase::ExperimentSharedPtrType ExperimentSharedPtrType;
     typedef LayerDataBase::ConstExperimentSharedPtrType ConstExperimentSharedPtrType;
     typedef LayerDataBase::ODExperimentSharedPtrType ODExperimentSharedPtrType;
-    typedef LayerDataBase::OSWDataSharedPtrType OSWDataSharedPtrType;
     /// Main data type (features)
     typedef LayerDataBase::FeatureMapType FeatureMapType;
     /// Main managed data type (features)
@@ -410,20 +417,28 @@ public:
     bool addLayer(std::unique_ptr<LayerData1DBase> layer);
 
     /**
-        @brief Add a peak data layer
+      @brief Add a peak data layer
 
-        If chromatograms are present, a chromatogram layer is shown. Otherwise
-        a peak layer is shown. Make sure to remove chromatograms from peak data
-        and vice versa.
+      @param map Shared pointer to input map. It can be performed in constant time and does not double the required memory.
+      @param od_map Shared pointer to on disk data which potentially caches some data to save memory (the map can be empty, but do not pass nullptr).
+      @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+      @param use_noise_cutoff Add a noise filter which removes low-intensity peaks
 
-        @param map Shared pointer to input map. It can be performed in constant time and does not double the required memory.
-        @param od_map Shared pointer to on disk data which potentially caches some data to save memory (the map can be empty, but do not pass nullptr).
-        @param filename This @em absolute filename is used to monitor changes in the file and reload the data
-        @param use_noise_cutoff Add a noise filter which removes low-intensity peaks
-
-        @return If a new layer was created
+      @return If a new layer was created
     */
-    bool addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String& filename = "", const bool use_noise_cutoff = false);
+    bool addPeakLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String& filename = "", const bool use_noise_cutoff = false);
+
+    /**
+      @brief Add a chrom data layer
+
+      @param map Shared pointer to input map. It can be performed in constant time and does not double the required memory.
+      @param od_map Shared pointer to on disk data which potentially caches some data to save memory (the map can be empty, but do not pass nullptr).
+      @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+
+      @return If a new layer was created
+    */
+    bool addChromLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String& filename = "");
+
 
     /**
         @brief Add a feature data layer

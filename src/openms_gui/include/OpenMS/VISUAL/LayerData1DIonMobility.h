@@ -34,89 +34,68 @@
 
 #pragma once
 
-#include <OpenMS/VISUAL/LayerDataBase.h>
-#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
+#include <OpenMS/VISUAL/LayerData1DBase.h>
+#include <OpenMS/VISUAL/LayerDataIonMobility.h>
 
 namespace OpenMS
 {
-
-  /**
-  @brief Class that stores the data for one layer of type PeptideIdentifications
-
-  @ingroup PlotWidgets
-  */
-  class OPENMS_GUI_DLLAPI LayerDataIdent : public LayerDataBase, public IPeptideIds
+  
+  class OPENMS_GUI_DLLAPI LayerData1DIonMobility : public LayerDataIonMobility, public LayerData1DBase
   {
   public:
-    /// Default constructor
-    LayerDataIdent() :
-        LayerDataBase(LayerDataBase::DT_IDENT){};
-    /// no Copy-ctor (should not be needed)
-    LayerDataIdent(const LayerDataIdent& ld) = delete;
-    /// no assignment operator (should not be needed)
-    LayerDataIdent& operator=(const LayerDataIdent& ld) = delete;
-    /// move Ctor
-    LayerDataIdent(LayerDataIdent&& ld) = default;
-    /// move assignment
-    LayerDataIdent& operator=(LayerDataIdent&& ld) = default;
-
-    std::unique_ptr<Painter2DBase> getPainter2D() const override;
-
-    std::unique_ptr<LayerData1DBase> to1DLayer() const override
+    LayerData1DIonMobility()
+      : LayerDataBase(DT_PEAK)
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
+    LayerData1DIonMobility(const LayerDataIonMobility& base) : LayerDataBase(base), LayerDataIonMobility(base)
+    {
+    }
 
+
+    std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
     std::unique_ptr<LayerStoreData> storeFullData() const override;
 
-    ProjectionData getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const override;
+    std::unique_ptr<Painter1DBase> getPainter1D() const override;
 
-    PeakIndex findHighestDataPoint(const RangeAllType& area) const override
-    { // todo: not implemented
-      return PeakIndex();
+    bool hasIndex(Size index) const override
+    {
+      return index == 0;
+    }
+
+    RangeAllType getRangeForArea(const RangeAllType partial_range) const override
+    {
+      const auto& spec = getCurrentMobilogram();
+      auto spec_filtered = Mobilogram();
+      spec_filtered.insert(spec_filtered.begin(), spec.MBBegin(partial_range.getMinMobility()), spec.MBEnd(partial_range.getMaxMobility()));
+      spec_filtered.updateRanges();
+      return RangeAllType().assign(spec_filtered.getRange());
+    }
+
+    const Mobilogram& getCurrentMobilogram() const
+    {
+      return LayerDataIonMobility::getMobilogram(this->getCurrentIndex());
     }
 
     void updateRanges() override
     {
-      // nothing to do...
+      LayerDataIonMobility::updateRanges();
     }
 
     RangeAllType getRange() const override
     {
-      RangeAllType r;
-      for (const PeptideIdentification& pep : peptides_)
-      {
-        r.extendRT(pep.getRT());
-        r.extendMZ(pep.getMZ());
-      }
-      return r;
+      return RangeAllType().assign(getCurrentMobilogram().getRange());
     }
 
-    std::unique_ptr<LayerStatistics> getStats() const override;
+    // docu in base class
+    QMenu* getContextMenuAnnotation(Annotation1DItem* annot_item, bool& need_repaint) override;
 
-    virtual const PepIds& getPeptideIds() const override
-    {
-      return peptides_;
-    }
-    virtual PepIds& getPeptideIds() override
-    {
-      return peptides_;
-    }
+    PeakIndex findClosestDataPoint(const RangeAllType& area) const override;
 
-    virtual void setPeptideIds(const PepIds& ids) override
-    {
-      peptides_ = ids;
-    }
-    virtual void setPeptideIds(PepIds&& ids) override
-    {
-      peptides_ = std::move(ids);
-    }
+    // docu in base class
+    Annotation1DItem* addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color) override;
 
-  private:
-    /// peptide identifications
-    std::vector<PeptideIdentification> peptides_;
+  protected:
   };
 
 }// namespace OpenMS

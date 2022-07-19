@@ -36,6 +36,8 @@
 
 #include <OpenMS/VISUAL/LayerDataBase.h>
 
+#include <vector>
+
 namespace OpenMS
 {
 
@@ -58,6 +60,8 @@ namespace OpenMS
     /// move assignment
     LayerDataConsensus& operator=(LayerDataConsensus&& ld) = default;
 
+    std::unique_ptr<Painter2DBase> getPainter2D() const override;
+
     std::unique_ptr<LayerData1DBase> to1DLayer() const override
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
@@ -73,6 +77,8 @@ namespace OpenMS
       return proj;
     }
 
+    PeakIndex findHighestDataPoint(const RangeAllType& area) const override;
+
     void updateRanges() override
     {
       consensus_map_->updateRanges();
@@ -86,6 +92,23 @@ namespace OpenMS
     }
 
     std::unique_ptr<LayerStatistics> getStats() const override;
+
+    bool annotate(const std::vector<PeptideIdentification>& identifications, const std::vector<ProteinIdentification>& protein_identifications) override;
+  
+    /// Returns a const reference to the consensus feature data
+    const ConsensusMapSharedPtrType& getConsensusMap() const
+    {
+      return consensus_map_;
+    }
+
+    /// Returns current consensus map (mutable)
+    ConsensusMapSharedPtrType& getConsensusMap()
+    {
+      return consensus_map_;
+    }
+  protected:
+    /// consensus feature data
+    ConsensusMapSharedPtrType consensus_map_ = ConsensusMapSharedPtrType(new ConsensusMapType());
   };
 
 }// namespace OpenMS

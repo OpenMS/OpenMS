@@ -34,10 +34,13 @@
 
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 
+#include <OpenMS/ANALYSIS/ID/IDMapper.h>
+
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
-#include <OpenMS/VISUAL/LayerData1DPeak.h>
+#include <OpenMS/VISUAL/LayerData1DIonMobility.h>
 #include <OpenMS/VISUAL/LayerData1DChrom.h>
+#include <OpenMS/VISUAL/LayerData1DPeak.h>
+#include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 
@@ -50,9 +53,16 @@ namespace OpenMS
     flags.set(LayerDataBase::P_PRECURSORS);
   }
 
-  LayerDataPeak::LayerDataPeak(const LayerDataPeak& ld)
-    : LayerDataBase(static_cast<const LayerDataBase&>(ld))
+  /*LayerDataPeak::LayerDataPeak(const LayerDataPeak& ld)
+    : LayerDataBase(static_cast<const LayerDataBase&>(ld)),
+      peak_map_(ld.peak_map_),
+      on_disc_peaks_(ld.on_disc_peaks_)
   {
+  } */
+
+  std::unique_ptr<Painter2DBase> LayerDataPeak::getPainter2D() const
+  {
+    return make_unique<Painter2DPeak>(this);
   }
 
   std::unique_ptr<LayerData1DBase> LayerDataPeak::to1DLayer() const
@@ -93,7 +103,7 @@ namespace OpenMS
     float mult = 100.0f / (std::isnan(mz_range) ? 1 : mz_range);
 
     MSSpectrum projection_mz;
-    MSSpectrum projection_im; // hack - we do not have Mobilogram datastructure yet...
+    Mobilogram projection_im;
     MSChromatogram projection_rt;
 
     for (auto i = getPeakData()->areaBeginConst(area); i != getPeakData()->areaEndConst(); ++i)
@@ -128,9 +138,9 @@ namespace OpenMS
     projection_mz.back().setIntensity(0.0);
 
     projection_im.resize(mobility.size() + 2);
-    projection_im[0].setMZ(area.getMinMobility());
+    projection_im[0].setMobility(area.getMinMobility());
     projection_im[0].setIntensity(0.0);
-    projection_im.back().setMZ(area.getMaxMobility());
+    projection_im.back().setMobility(area.getMaxMobility());
     projection_im.back().setIntensity(0.0);
     
 
@@ -154,7 +164,7 @@ namespace OpenMS
     i = 1;
     for (auto it = mobility.cbegin(); it != mobility.cend(); ++it)
     {
-      projection_im[i].setMZ(it->first);
+      projection_im[i].setMobility(it->first);
       projection_im[i].setIntensity(it->second);
       ++i;
     }
@@ -179,12 +189,9 @@ namespace OpenMS
     }
 
     // projection for mobility
-    auto ptr_im = make_unique<LayerData1DPeak>();
+    auto ptr_im = make_unique<LayerData1DIonMobility>();
     {
-      MSExperiment exp_im;
-      // we must leave the projection empty for now, since it will have the wrong units (painting a MSSpec using a DimMapper with IM will throw).
-      //exp_im.addSpectrum(std::move(projection_im));
-      ptr_im->setPeakData(ExperimentSharedPtrType(new ExperimentType(std::move(exp_im))));
+      ptr_im->setMobilityData(projection_im);
     }
 
     // projection for RT
@@ -220,6 +227,23 @@ namespace OpenMS
     assign_axis(unit_y, result.projection_ontoY);
 
     return result;
+  }
+
+  PeakIndex LayerDataPeak::findHighestDataPoint(const RangeAllType& area) const
+  {
+    using IntType = MSExperiment::ConstAreaIterator::PeakType::IntensityType;
+    auto max_int = numeric_limits<IntType>::lowest();
+    PeakIndex max_pi;
+    for (ExperimentType::ConstAreaIterator i = getPeakData()->areaBeginConst(area); i != getPeakData()->areaEndConst(); ++i)
+    {
+      PeakIndex pi = i.getPeakIndex();
+      if (i->getIntensity() > max_int && filters.passes((*getPeakData())[pi.spectrum], pi.peak))
+      {
+        max_int = i->getIntensity();
+        max_pi = pi;
+      }
+    }
+    return max_pi;
   }
 
   PointXYType LayerDataPeak::peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const
@@ -259,6 +283,24 @@ namespace OpenMS
   std::unique_ptr<LayerStatistics> LayerDataPeak::getStats() const
   {
     return make_unique<LayerStatisticsPeakMap>(*peak_map_);
+  }
+
+  bool LayerDataPeak::annotate(const vector<PeptideIdentification>& identifications, const vector<ProteinIdentification>& protein_identifications)
+  {
+    IDMapper mapper;
+    Param p = mapper.getDefaults();
+    p.setValue("rt_tolerance", 0.1, "RT tolerance (in seconds) for the matching");
+    p.setValue("mz_tolerance", 1.0, "m/z tolerance (in ppm or Da) for the matching");
+    p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
+    mapper.setParameters(p);
+    mapper.annotate(*getPeakDataMuteable(), identifications, protein_identifications, true);
+
+    return true;
+  }
+  
+  const LayerDataBase::ConstExperimentSharedPtrType LayerDataPeak::getPeakData() const
+  {
+    return boost::static_pointer_cast<const ExperimentType>(peak_map_);
   }
 
 } // namespace OpenMS

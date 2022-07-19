@@ -87,13 +87,34 @@ public:
     /// Returns if one of the projections is visible (or both are visible)
     bool projectionsVisible() const;
 
-    // Docu in base class
+    /// set the mapper for the canvas and the projections (the non-marginal projection
+    /// axis will be mapped to Intensity).
+    /// Also tries to guess drawing (sticks vs line) and intensity mode
     void setMapper(const DimMapper<2>& mapper) override
     {
       canvas_->setMapper(mapper); // update canvas
       // ... and projections: the projected Dim becomes intensity
       projection_onto_X_->setMapper(DimMapper<2>({mapper.getDim(DIM::X).getUnit(), DIM_UNIT::INT}));
       projection_onto_Y_->setMapper(DimMapper<2>({DIM_UNIT::INT, mapper.getDim(DIM::Y).getUnit()}));
+
+          // decide on default draw mode, depending on main axis unit (e.g. m/z or RT)
+      auto set_style = [&](const DIM_UNIT main_unit_1d, Plot1DCanvas* canvas) {
+        switch (main_unit_1d)
+        { // this may not be optimal for every unit. Feel free to change behavior.
+          case DIM_UNIT::MZ:
+            // to show isotope distributions as sticks
+            canvas->setDrawMode(Plot1DCanvas::DM_PEAKS);
+            canvas->setIntensityMode(PlotCanvas::IM_PERCENTAGE);
+            break;
+          // all other units
+          default:
+            canvas->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
+            canvas->setIntensityMode(PlotCanvas::IM_SNAP);
+            break;
+        }
+      };
+      set_style(mapper.getDim(DIM::X).getUnit(), projection_onto_Y_->canvas());
+      set_style(mapper.getDim(DIM::Y).getUnit(), projection_onto_X_->canvas());
     }
 
 public slots:

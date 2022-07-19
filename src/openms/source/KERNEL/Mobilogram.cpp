@@ -369,4 +369,17 @@ namespace OpenMS
     return std::accumulate(cbegin(), cend(), 0.0f, [](PeakType::IntensityType sum, const PeakType& p) { return sum + p.getIntensity(); });
   }
 
+  std::ostream& operator<<(std::ostream& os, const Mobilogram& mb)
+  {
+    os << "-- MOBILOGRAM BEGIN --\n";
+
+    // peaklist
+    for (const auto& peak : mb)
+    {
+      os << peak << '\n';
+    }
+
+    os << "-- MOBILOGRAM END --\n";
+    return os;
+  }
 } // namespace OpenMS

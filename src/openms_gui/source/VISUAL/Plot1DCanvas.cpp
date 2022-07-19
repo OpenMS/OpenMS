@@ -51,7 +51,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
-#include <OpenMS/VISUAL/LayerData1DChrom.h>
+#include <OpenMS/VISUAL/LayerDataChrom.h>
 
 // Qt
 #include <QMouseEvent>
@@ -95,7 +95,7 @@ namespace OpenMS
     spectrum.getStringDataArrays() = current_chrom.getStringDataArrays();
 
     // Add at least one data point to the chromatogram, otherwise
-    // "addLayer" will fail and a segfault occurs later
+    // "addPeakLayer" will fail and a segfault occurs later
     if (current_chrom.empty())
     {
       spectrum.emplace_back(-1, 0);
@@ -176,38 +176,32 @@ namespace OpenMS
                                    const String& caption,
                                    const bool multiple_select)
   {
-    // we do not want addLayer to trigger repaint, since we have not set the chromatogram data!
+    // we do not want addChromLayer to trigger repaint, since we have not set the chromatogram data!
     this->blockSignals(true);
     RAIICleanup clean([&]()
     {
       this->blockSignals(false);
     });
 
-    // convert from chromatogram to spectrum --- hacky!!!
-    ExperimentSharedPtrType converted_spec = prepareChromatogram(index, chrom_exp_sptr, ondisc_sptr);
-
     // add chromatogram data as peak spectrum
-    if (!addLayer(converted_spec, ondisc_sptr, filename))
+    if (!PlotCanvas::addChromLayer(chrom_exp_sptr, ondisc_sptr, filename))
     {
       return false;
     }
-    
-    // fix legend
-    spectrum_widget_->xAxis()->setLegend(PlotWidget::RT_AXIS_TITLE);
 
     setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
     setIntensityMode(Plot1DCanvas::IM_NONE);
 
-    getCurrentLayer().setName(caption);
-    getCurrentLayer().getChromatogramData() = chrom_exp_sptr; // save the original chromatogram data so that we can access it later
-    getCurrentLayer().getChromatogramAnnotation() = chrom_annotation; // copy over shared-ptr to OSW-sql data (if available)
+    auto ld = dynamic_cast<LayerDataChrom&>(getCurrentLayer());
+
+    ld.setName(caption);
+    ld.getChromatogramAnnotation() = chrom_annotation; // copy over shared-ptr to OSW-sql data (if available)
     //this is a hack to store that we have chromatogram data, that we selected multiple ones and which one we selected
-    getCurrentLayer().getPeakDataMuteable()->setMetaValue("is_chromatogram", "true");
-    getCurrentLayer().getPeakDataMuteable()->setMetaValue("multiple_select", multiple_select ? "true" : "false");
-    getCurrentLayer().getPeakDataMuteable()->setMetaValue("selected_chromatogram", index);
+    ld.getChromatogramData()->setMetaValue("multiple_select", multiple_select ? "true" : "false");
+    ld.getChromatogramData()->setMetaValue("selected_chromatogram", index);
 
     return true;
-  }
+  }       
 
   void Plot1DCanvas::activateLayer(Size layer_index)
   {
@@ -1081,30 +1075,33 @@ namespace OpenMS
       context_menu->addMenu(settings_menu);
 
       // only add to context menu if there is a MS1 map
-      if (getCurrentLayer().getPeakData()->containsScanOfLevel(1))
-      {
-        context_menu->addAction("Switch to 2D view", [&]() {
-          emit showCurrentPeaksAs2D();
-        });
-        context_menu->addAction("Switch to 3D view", [&]() {
-          emit showCurrentPeaksAs3D();
-        });
-      }
-
       auto* peak_layer = dynamic_cast<LayerData1DPeak*>(&getCurrentLayer());
-      if (peak_layer && peak_layer->getCurrentSpectrum().containsIMData())
-      {
-        context_menu->addAction("Switch to ion mobility view", [&]() {
-          emit showCurrentPeaksAsIonMobility(peak_layer->getCurrentSpectrum());
-        });
-      }
+      if (peak_layer)
+        {
+        if (peak_layer->getPeakData()->containsScanOfLevel(1))
+        {
+          context_menu->addAction("Switch to 2D view", [&]() {
+            emit showCurrentPeaksAs2D();
+          });
+          context_menu->addAction("Switch to 3D view", [&]() {
+            emit showCurrentPeaksAs3D();
+          });
+        }
 
-      if (getCurrentLayer().isDIAData())
-      {
-        auto l = dynamic_cast<const LayerData1DPeak*>(&getCurrentLayer());
-        context_menu->addAction("Switch to DIA-MS view", [&]() {
-          emit showCurrentPeaksAsDIA(l->getCurrentSpectrum().getPrecursors()[0], *l->getPeakData().get());
-        });
+        if (peak_layer->getCurrentSpectrum().containsIMData())
+        {
+          context_menu->addAction("Switch to ion mobility view", [&]() {
+            emit showCurrentPeaksAsIonMobility(peak_layer->getCurrentSpectrum());
+          });
+        }
+
+        if (peak_layer->isDIAData())
+        {
+          auto l = dynamic_cast<const LayerData1DPeak*>(&getCurrentLayer());
+          context_menu->addAction("Switch to DIA-MS view", [&]() {
+            emit showCurrentPeaksAsDIA(l->getCurrentSpectrum().getPrecursors()[0], *l->getPeakData().get());
+          });
+        }
       }
 
       // add external context menu
@@ -1524,7 +1521,7 @@ namespace OpenMS
 
   void Plot1DCanvas::activateSpectrum(Size index, bool repaint)
   {
-    // clear selected peak, so we do not accidentally access and invalid index next time when moving the mouse
+    // clear selected peak, so we do not accidentally access an invalid index next time when moving the mouse
     selected_peak_.clear();
     
     if (getCurrentLayer().hasIndex(index))

@@ -32,7 +32,12 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/VISUAL/LayerDataPeak.h"
+
+#include <OpenMS/ANALYSIS/ID/IDMapper.h>
+
 #include <OpenMS/VISUAL/LayerDataFeature.h>
+#include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>                                                                                       
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 
@@ -45,7 +50,12 @@ namespace OpenMS
   {
     flags.set(LayerDataBase::F_HULL);
   }
-  
+
+  std::unique_ptr<Painter2DBase> LayerDataFeature::getPainter2D() const
+  {
+    return make_unique<Painter2DFeature>(this);
+  }
+
   std::unique_ptr<LayerStoreData> LayerDataFeature::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
     auto ret = std::unique_ptr<LayerStoreDataFeatureMapVisible>();
@@ -60,8 +70,35 @@ namespace OpenMS
     return ret;
   }
 
+  PeakIndex LayerDataFeature::findHighestDataPoint(const RangeAllType& area) const
+  {
+    using IntType = MSExperiment::ConstAreaIterator::PeakType::IntensityType;
+    auto max_int = numeric_limits<IntType>::lowest();
+    PeakIndex max_pi;
+    for (FeatureMapType::ConstIterator i = getFeatureMap()->begin(); i != getFeatureMap()->end(); ++i)
+    {
+      if (area.containsRT(i->getRT()) && area.containsMZ(i->getMZ()) && filters.passes(*i))
+      {
+        if (i->getIntensity() > max_int)
+        {
+          max_int = i->getIntensity();
+          max_pi = PeakIndex(i - getFeatureMap()->begin());
+        }
+      }
+    }
+    return max_pi;
+  }
+
   std::unique_ptr<LayerStatistics> LayerDataFeature::getStats() const
   {
     return make_unique<LayerStatisticsFeatureMap>(*getFeatureMap());
+  }
+
+  bool LayerDataFeature::annotate(const vector<PeptideIdentification>& identifications, const vector<ProteinIdentification>& protein_identifications)
+  {
+    IDMapper mapper;
+    mapper.annotate(*getFeatureMap(), identifications, protein_identifications);
+
+    return true;
   }
 }// namespace OpenMS

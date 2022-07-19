@@ -1125,17 +1125,17 @@ namespace OpenMS
     auto& current_layer = widget_1D->canvas()->getCurrentLayer();
 
     // Return if no valid peak layer attached
-    if (current_layer.getPeakData()->empty() || current_layer.type != LayerDataBase::DT_PEAK)
+    auto* current_layer_ptr = dynamic_cast<LayerData1DPeak*>(&current_layer);
+    if (!current_layer_ptr || current_layer_ptr->getPeakData()->empty())
     { 
       return;
     }
-    auto& current_layer2 = dynamic_cast<LayerData1DPeak&>(current_layer);
-    MSSpectrum& spectrum = (*current_layer2.getPeakDataMuteable())[spectrum_index];
+    MSSpectrum& spectrum = (*current_layer_ptr->getPeakDataMuteable())[spectrum_index];
     int ms_level = spectrum.getMSLevel();
     if (ms_level == 2)
     {
       // synchronize PeptideHits with the annotations in the spectrum
-      current_layer2.synchronizePeakAnnotations();
+      current_layer_ptr->synchronizePeakAnnotations();
       removeGraphicalPeakAnnotations_(spectrum_index);
       removeTheoreticalSpectrumLayer_();
     }

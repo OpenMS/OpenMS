@@ -32,43 +32,98 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/LayerDataIdent.h>
-
-#include <OpenMS/VISUAL/Painter2DBase.h>
-#include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
-#include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
-
-using namespace std;
+#include <OpenMS/KERNEL/MobilityPeak2D.h>
 
 namespace OpenMS
 {
-  std::unique_ptr<Painter2DBase> LayerDataIdent::getPainter2D() const
+  char const * const MobilityPeak2D::dimension_name_short_[] =
   {
-    return make_unique<Painter2DIdent>(this);
+    "IM",
+    "MZ"
+  };
+
+  char const * const MobilityPeak2D::dimension_name_full_[] =
+  {
+    "ion mobility",
+    "mass-to-charge"
+  };
+
+  char const * const MobilityPeak2D::dimension_unit_short_[] =
+  {
+    "?",
+    "Th"
+  };
+
+  char const * const MobilityPeak2D::dimension_unit_full_[] =
+  {
+    "?",
+    "Thomson"
+  };
+
+  char const * MobilityPeak2D::shortDimensionName(UInt const dim)
+  {
+    return dimension_name_short_[dim];
   }
 
-  std::unique_ptr<LayerStoreData> LayerDataIdent::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
+  char const * MobilityPeak2D::shortDimensionNameIM()
   {
-    auto ret = std::unique_ptr<LayerStoreDataIdentVisible>();
-    ret->storeVisibleIdent(peptides_, visible_range, layer_filters);
-    return ret;
+    return dimension_name_short_[IM];
   }
 
-  std::unique_ptr<LayerStoreData> LayerDataIdent::storeFullData() const
+  char const * MobilityPeak2D::shortDimensionNameMZ()
   {
-    auto ret = std::unique_ptr<LayerStoreDataIdentAll>();
-    ret->storeFullIdent(peptides_);
-    return ret;
+    return dimension_name_short_[MZ];
   }
 
-  LayerDataDefs::ProjectionData LayerDataIdent::getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const
-  { // currently only a stub
-    ProjectionData proj;
-    return proj;
+  char const * MobilityPeak2D::fullDimensionName(UInt const dim)
+  {
+    return dimension_name_full_[dim];
   }
 
-  std::unique_ptr<LayerStatistics> LayerDataIdent::getStats() const
+  char const * MobilityPeak2D::fullDimensionNameIM()
   {
-    return make_unique<LayerStatisticsIdent>(peptides_);
+    return dimension_name_full_[IM];
   }
+
+  char const * MobilityPeak2D::fullDimensionNameMZ()
+  {
+    return dimension_name_full_[MZ];
+  }
+
+  char const * MobilityPeak2D::shortDimensionUnit(UInt const dim)
+  {
+    return dimension_unit_short_[dim];
+  }
+
+  char const * MobilityPeak2D::shortDimensionUnitIM()
+  {
+    return dimension_unit_short_[IM];
+  }
+
+  char const * MobilityPeak2D::shortDimensionUnitMZ()
+  {
+    return dimension_unit_short_[MZ];
+  }
+
+  char const * MobilityPeak2D::fullDimensionUnit(UInt const dim)
+  {
+    return dimension_unit_full_[dim];
+  }
+
+  char const * MobilityPeak2D::fullDimensionUnitIM()
+  {
+    return dimension_unit_full_[IM];
+  }
+
+  char const * MobilityPeak2D::fullDimensionUnitMZ()
+  {
+    return dimension_unit_full_[MZ];
+  }
+
+  std::ostream & operator<<(std::ostream & os, const MobilityPeak2D & point)
+  {
+    os << "IM: " << point.getMobility() <<  " MZ: "  << point.getMZ() << " INT: " << point.getIntensity();
+    return os;
+  }
+
 } // namespace OpenMS

@@ -40,6 +40,7 @@
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot3DPrefDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
@@ -114,8 +115,10 @@ namespace OpenMS
       return false;
     }
 
-    //Abort if no data points are contained
-    if (getCurrentLayer().getPeakData()->empty())
+    // Abort if no data points are contained
+    auto& layer = dynamic_cast<LayerDataPeak&>(getCurrentLayer());
+      
+    if (layer.getPeakData()->empty())
     {
       popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
       return false;

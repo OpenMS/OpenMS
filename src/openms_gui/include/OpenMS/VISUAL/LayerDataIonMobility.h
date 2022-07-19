@@ -35,37 +35,41 @@
 #pragma once
 
 #include <OpenMS/VISUAL/LayerDataBase.h>
-#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
+#include <OpenMS/VISUAL/LayerData1DBase.h>
+
+#include <OpenMS/KERNEL/Mobilogram.h>
 
 namespace OpenMS
 {
-
+  
   /**
-  @brief Class that stores the data for one layer of type PeptideIdentifications
+  @brief Class that stores the data for one layer of type IonMobility
+
+  FIXME: currently we only store a single mobilogram, since this is what is required to show a projection in 2D View.
+  If there is another application, feel free to implement a surrounding container (don't use vector<Mobilogram>, do it properly! :)).
 
   @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI LayerDataIdent : public LayerDataBase, public IPeptideIds
+  class OPENMS_GUI_DLLAPI LayerDataIonMobility : public virtual LayerDataBase
   {
   public:
+
+    using PeakType = Mobilogram::PeakType;
+
     /// Default constructor
-    LayerDataIdent() :
-        LayerDataBase(LayerDataBase::DT_IDENT){};
-    /// no Copy-ctor (should not be needed)
-    LayerDataIdent(const LayerDataIdent& ld) = delete;
-    /// no assignment operator (should not be needed)
-    LayerDataIdent& operator=(const LayerDataIdent& ld) = delete;
+    LayerDataIonMobility();
+    /// Copy-ctor
+    LayerDataIonMobility(const LayerDataIonMobility& ld);
+    /// Assignment operator
+    LayerDataIonMobility& operator=(const LayerDataIonMobility& ld) = default;
     /// move Ctor
-    LayerDataIdent(LayerDataIdent&& ld) = default;
+    LayerDataIonMobility(LayerDataIonMobility&& ld) = default;
     /// move assignment
-    LayerDataIdent& operator=(LayerDataIdent&& ld) = default;
+    LayerDataIonMobility& operator=(LayerDataIonMobility&& ld) = default;
 
     std::unique_ptr<Painter2DBase> getPainter2D() const override;
 
-    std::unique_ptr<LayerData1DBase> to1DLayer() const override
-    {
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-    }
+    std::unique_ptr<LayerData1DBase> to1DLayer() const override;
 
     std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const override;
 
@@ -80,43 +84,37 @@ namespace OpenMS
 
     void updateRanges() override
     {
-      // nothing to do...
+      single_mobilogram_.updateRanges();
+      // on_disc_peaks->updateRanges(); // note: this is not going to work since its on disk! We currently don't have a good way to access these ranges
     }
 
     RangeAllType getRange() const override
     {
       RangeAllType r;
-      for (const PeptideIdentification& pep : peptides_)
-      {
-        r.extendRT(pep.getRT());
-        r.extendMZ(pep.getMZ());
-      }
+      r.assign(single_mobilogram_);
       return r;
     }
 
+    // for now, only a single Mobilogram. See class description.
+    void setMobilityData(const Mobilogram& mobilogram)
+    {
+      single_mobilogram_ = mobilogram;
+    }
+
+    const Mobilogram& getMobilogram(Size index) const
+    {
+      if (index != 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Only one mobilogram possible atm.", String(index));
+      return single_mobilogram_;
+    }
+
+    PointXYType peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const override;
+
+    String getDataArrayDescription(const PeakIndex& peak_index) override;
+
     std::unique_ptr<LayerStatistics> getStats() const override;
 
-    virtual const PepIds& getPeptideIds() const override
-    {
-      return peptides_;
-    }
-    virtual PepIds& getPeptideIds() override
-    {
-      return peptides_;
-    }
-
-    virtual void setPeptideIds(const PepIds& ids) override
-    {
-      peptides_ = ids;
-    }
-    virtual void setPeptideIds(PepIds&& ids) override
-    {
-      peptides_ = std::move(ids);
-    }
-
-  private:
-    /// peptide identifications
-    std::vector<PeptideIdentification> peptides_;
+  protected:
+    Mobilogram single_mobilogram_; ///< a single mobilogram (for now) -- see class description
   };
 
 }// namespace OpenMS

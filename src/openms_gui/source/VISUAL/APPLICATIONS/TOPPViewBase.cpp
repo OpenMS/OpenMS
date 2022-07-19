@@ -64,6 +64,10 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
 #include <OpenMS/VISUAL/LayerListView.h>
+#include <OpenMS/VISUAL/LayerDataChrom.h>
+#include <OpenMS/VISUAL/LayerDataConsensus.h>
+#include <OpenMS/VISUAL/LayerDataFeature.h>
+#include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
@@ -724,7 +728,7 @@ namespace OpenMS
         OPENMS_LOG_INFO << "INFO: done loading all " << std::endl;
 
         // a mzML file may contain both, chromatogram and peak data
-        // -> this is handled in PlotCanvas::addLayer
+        // -> this is handled in PlotCanvas::addPeakLayer
         data_type = LayerDataBase::DT_CHROMATOGRAM;
         if (peak_map_sptr->containsScanOfLevel(1))
         {
@@ -939,7 +943,7 @@ namespace OpenMS
       }
       else // peaks
       {
-        if (!target_window->canvas()->addLayer(peak_map, on_disc_peak_map, filename, use_intensity_cutoff))
+        if (!target_window->canvas()->addPeakLayer(peak_map, on_disc_peak_map, filename, use_intensity_cutoff))
           return;
 
         Plot1DWidget* open_1d_window = dynamic_cast<Plot1DWidget*>(target_window);
@@ -1292,9 +1296,7 @@ namespace OpenMS
       if (getActiveCanvas()->getLayerCount() != 0) 
       {
         fs |= TV_STATUS::HAS_LAYER;
-        layer_type = getCurrentLayer()->getChromatogramData().get()->getNrChromatograms() > 0
-                             ? LayerDataBase::DT_CHROMATOGRAM // chrom data in 1D view is shown as DT_PEAK...
-                             : getCurrentLayer()->type;
+        layer_type = getCurrentLayer()->type;
       }
     }
     // is this a 1D view
@@ -1351,8 +1353,7 @@ namespace OpenMS
     PlotWidget* w = getActivePlotWidget();
     auto new_visible_area = w->canvas()->getVisibleArea();
     // only zoom if other window is also (not) a chromatogram
-    bool sender_is_chrom = w->canvas()->getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM ||
-                           w->canvas()->getCurrentLayer().chromatogram_flag_set();
+    bool sender_is_chrom = w->canvas()->getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM;
 
     // go through all windows, adjust the visible area where necessary
     for (int i = 0; i < int(windows.count()); ++i)
@@ -1360,8 +1361,7 @@ namespace OpenMS
       PlotWidget* specwidg = qobject_cast<PlotWidget*>(windows.at(i)->widget());
       if (!specwidg) continue;
 
-      bool is_chrom = specwidg->canvas()->getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM ||
-                      specwidg->canvas()->getCurrentLayer().chromatogram_flag_set();
+      bool is_chrom = specwidg->canvas()->getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM;
       if (is_chrom != sender_is_chrom) continue;
       // not the same dimensionality (e.g. Plot1DCanvas vs. 2DCanvas)
       if (w->canvas()->getName() != specwidg->canvas()->getName()) continue;
@@ -1976,14 +1976,17 @@ namespace OpenMS
   void TOPPViewBase::showCurrentPeaksAs2D()
   {
     LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
-    ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
-    ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
+    auto* lp = dynamic_cast<LayerDataPeak*>(&layer);
+    if (!lp) return;
+
+    ExperimentSharedPtrType exp_sptr = lp->getPeakDataMuteable();
+    ODExperimentSharedPtrType od_exp_sptr = lp->getOnDiscPeakData();
 
     // open new 2D widget
     Plot2DWidget* w = new Plot2DWidget(getCanvasParameters(2), &ws_);
 
     // add data
-    if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename))
+    if (!w->canvas()->addPeakLayer(exp_sptr, od_exp_sptr, layer.filename))
     {
       return;
     }
@@ -2011,10 +2014,10 @@ namespace OpenMS
     // open new 2D widget
     Plot2DWidget* w = new Plot2DWidget(getCanvasParameters(2), &ws_);
     // map to IM + MZ
-    w->canvas()->setMapper(DimMapper<2>({IMTypes::fromIMUnit(exp->getSpectra()[0].getDriftTimeUnit()), DIM_UNIT::MZ}));
+    w->setMapper(DimMapper<2>({IMTypes::fromIMUnit(exp->getSpectra()[0].getDriftTimeUnit()), DIM_UNIT::MZ}));
 
     // add data
-    if (!w->canvas()->addLayer(exp, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename + " (IM Frame)"))
+    if (!w->canvas()->addPeakLayer(exp, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename + " (IM Frame)"))
     {
       return;
     }
@@ -2026,8 +2029,8 @@ namespace OpenMS
   void TOPPViewBase::showCurrentPeaksAsDIA(const Precursor& pc, const MSExperiment& exp)
   {
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
-
-    if (!layer.isDIAData())
+    auto* lp = dynamic_cast<const LayerDataPeak*>(&layer);
+    if (!lp || !lp->isDIAData())
     {
       std::cout << "Layer does not contain DIA / SWATH-MS data" << std::endl;
       return;
@@ -2061,12 +2064,12 @@ namespace OpenMS
             t.setMSLevel(1);
             tmpe->addSpectrum(t);
           }
-          else if (layer.getOnDiscPeakData()->getNrSpectra() > k)
+          else if (lp->getOnDiscPeakData()->getNrSpectra() > k)
           {
             // Get data from disk - copy data and tell TOPPView that this is
             // MS1 data so that it will be displayed properly in 2D and 3D
             // view
-            MSSpectrum t = layer.getOnDiscPeakData()->getSpectrum(k);
+            MSSpectrum t = lp->getOnDiscPeakData()->getSpectrum(k);
             t.setMSLevel(1);
             tmpe->addSpectrum(t);
           }
@@ -2083,7 +2086,7 @@ namespace OpenMS
     Plot2DWidget* w = new Plot2DWidget(getCanvasParameters(2), &ws_);
 
     // add data
-    if (!w->canvas()->addLayer(tmpe, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
+    if (!w->canvas()->addPeakLayer(tmpe, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
     {
       return;
     }
@@ -2128,17 +2131,18 @@ namespace OpenMS
     }
 
     LayerDataBase& layer = const_cast<LayerDataBase&>(getActiveCanvas()->getLayer(best_candidate));
-
-    if (layer.type != LayerDataBase::DT_PEAK)
+    auto* lp = dynamic_cast<LayerDataPeak*>(&layer);
+    if (!lp)
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "Wrong layer type", "Something went wrong during layer selection. Please report this problem with a description of your current layers!");
+      return;
     }
     // open new 3D widget
     Plot3DWidget* w = new Plot3DWidget(getCanvasParameters(3), &ws_);
 
-    ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
+    ExperimentSharedPtrType exp_sptr = lp->getPeakDataMuteable();
 
-    if (layer.isIonMobilityData())
+    if (lp->isIonMobilityData())
     {
       // Determine ion mobility unit (default is milliseconds)
       String unit = "ms";
@@ -2151,7 +2155,7 @@ namespace OpenMS
       w->canvas()->openglwidget()->setYLabel(label.c_str());
     }
 
-    if (!w->canvas()->addLayer(exp_sptr, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
+    if (!w->canvas()->addPeakLayer(exp_sptr, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
     {
       return;
     }
@@ -2381,17 +2385,31 @@ namespace OpenMS
         // only the selected row can be dragged => the source layer is the selected layer
         LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
 
-        // attach feature, consensus and peak data
-        FeatureMapSharedPtrType features = layer.getFeatureMap();
-        ExperimentSharedPtrType peaks = layer.getPeakDataMuteable();
-        ConsensusMapSharedPtrType consensus = layer.getConsensusMap();
+        // attach feature, consensus and peak data          (new OnDiscMSExperiment());
+        FeatureMapSharedPtrType features(new FeatureMapType());
+        if (auto* lp = dynamic_cast<LayerDataFeature*>(&layer)) features = lp->getFeatureMap();
+
+        ConsensusMapSharedPtrType consensus(new ConsensusMapType());
+        if (auto* lp = dynamic_cast<LayerDataConsensus*>(&layer)) consensus = lp->getConsensusMap();
+
+        ExperimentSharedPtrType peaks(new ExperimentType());
+        ODExperimentSharedPtrType on_disc_peaks(new OnDiscMSExperiment());
+        if (auto* lp = dynamic_cast<LayerDataPeak*>(&layer))
+        {
+          peaks = lp->getPeakDataMuteable();
+          on_disc_peaks = lp->getOnDiscPeakData();
+        }
+        if (auto* lp = dynamic_cast<LayerDataChrom*>(&layer))
+        {
+          peaks = lp->getChromatogramData();
+          on_disc_peaks = lp->getOnDiscPeakData();
+        }
         // if the layer provides identification data -> retrieve it
         vector<PeptideIdentification> peptides;
         if (auto p = dynamic_cast<IPeptideIds*>(&layer); p != nullptr)
         {
           peptides = p->getPeptideIds();
         }
-        ODExperimentSharedPtrType on_disc_peaks = layer.getOnDiscPeakData();
 
         // add the data
         addData(features, consensus, peptides, peaks, on_disc_peaks, layer.type, false, false, true, layer.filename, layer.getName(), new_id);
@@ -2520,62 +2538,62 @@ namespace OpenMS
     {
       return;
     }
-    LayerDataBase& layer = const_cast<LayerDataBase&>(sw->canvas()->getLayer(layer_index));
+    LayerDataBase& layer = sw->canvas()->getLayer(layer_index);
     // reload data
-    if (layer.type == LayerDataBase::DT_PEAK) // peak data
+    if (auto* lp = dynamic_cast<LayerDataPeak*>(&layer)) // peak data
     {
       try
       {
-        FileHandler().loadExperiment(layer.filename, *layer.getPeakDataMuteable());
+        FileHandler().loadExperiment(layer.filename, *lp->getPeakDataMuteable());
       }
       catch (Exception::BaseException& e)
       {
         QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-        layer.getPeakDataMuteable()->clear(true);
+        lp->getPeakDataMuteable()->clear(true);
       }
-      layer.getPeakDataMuteable()->sortSpectra(true);
-      layer.getPeakDataMuteable()->updateRanges(1);
+      lp->getPeakDataMuteable()->sortSpectra(true);
+      lp->getPeakDataMuteable()->updateRanges(1);
     }
-    else if (layer.type == LayerDataBase::DT_FEATURE) // feature data
+    else if (auto* lp = dynamic_cast<LayerDataFeature*>(&layer)) // feature data
     {
       try
       {
-        FileHandler().loadFeatures(layer.filename, *layer.getFeatureMap());
+        FileHandler().loadFeatures(layer.filename, *lp->getFeatureMap());
       }
       catch (Exception::BaseException& e)
       {
         QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-        layer.getFeatureMap()->clear(true);
+        lp->getFeatureMap()->clear(true);
       }
-      layer.getFeatureMap()->updateRanges();
+      lp->getFeatureMap()->updateRanges();
     }
-    else if (layer.type == LayerDataBase::DT_CONSENSUS) // consensus feature data
+    else if (auto* lp = dynamic_cast<LayerDataConsensus*>(&layer)) // consensus feature data
     {
       try
       {
-        ConsensusXMLFile().load(layer.filename, *layer.getConsensusMap());
+        ConsensusXMLFile().load(layer.filename, *lp->getConsensusMap());
       }
       catch (Exception::BaseException& e)
       {
         QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-        layer.getConsensusMap()->clear(true);
+        lp->getConsensusMap()->clear(true);
       }
-      layer.getConsensusMap()->updateRanges();
+      lp->getConsensusMap()->updateRanges();
     }
-    else if (layer.type == LayerDataBase::DT_CHROMATOGRAM) // chromatogram
+    else if (auto* lp = dynamic_cast<LayerDataChrom*>(&layer)) // chromatogram
     {
       // TODO CHROM
       try
       {
-        FileHandler().loadExperiment(layer.filename, *layer.getPeakDataMuteable());
+        FileHandler().loadExperiment(layer.filename, *lp->getChromatogramData());
       }
       catch (Exception::BaseException& e)
       {
         QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-        layer.getPeakDataMuteable()->clear(true);
+        lp->getChromatogramData()->clear(true);
       }
-      layer.getPeakDataMuteable()->sortChromatograms(true);
-      layer.getPeakDataMuteable()->updateRanges(1);
+      lp->getChromatogramData()->sortChromatograms(true);
+      lp->getChromatogramData()->updateRanges(1);
     }
 
     // update all layers that need an update

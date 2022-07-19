@@ -231,6 +231,20 @@ namespace OpenMS
     return upper_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::RTLess());
   }
 
+  MSExperiment::ConstIterator MSExperiment::IMBegin(CoordinateType im) const
+  {
+    SpectrumType s;
+    s.setDriftTime(im);
+    return lower_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::IMLess());
+  }
+
+  MSExperiment::ConstIterator MSExperiment::IMEnd(CoordinateType im) const
+  {
+    SpectrumType s;
+    s.setDriftTime(im);
+    return upper_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::IMLess());
+  }
+
   //@}
 
   /**
@@ -802,6 +816,19 @@ namespace OpenMS
       }
     }
     return false;
+  }
+
+  bool MSExperiment::isIMFrame() const
+  {
+    if (spectra_.empty()) return false;
+    auto rt_start = spectra_[0].getRT();
+    auto last_drift = std::numeric_limits<double>::lowest();
+    for (const auto& s : spectra_) {
+      if (s.getRT() != rt_start) return false; // RT changes...
+      if (s.getDriftTime() == last_drift) return false; // IM did not change...
+      last_drift = s.getDriftTime();
+    }
+    return true; // RT stable, IM changing
   }
 
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt)

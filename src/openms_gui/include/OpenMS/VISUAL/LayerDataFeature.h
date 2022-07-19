@@ -59,6 +59,8 @@ namespace OpenMS
     /// move assignment
     LayerDataFeature& operator=(LayerDataFeature&& ld) = default;
 
+    std::unique_ptr<Painter2DBase> getPainter2D() const override;
+
     std::unique_ptr<LayerData1DBase> to1DLayer() const override
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
@@ -75,6 +77,8 @@ namespace OpenMS
       return proj;
     }
 
+    PeakIndex findHighestDataPoint(const RangeAllType& area) const override;
+
     void updateRanges() override
     {
       features_->updateRanges();
@@ -88,6 +92,8 @@ namespace OpenMS
     }
 
     std::unique_ptr<LayerStatistics> getStats() const override;
+
+    bool annotate(const std::vector<PeptideIdentification>& identifications, const std::vector<ProteinIdentification>& protein_identifications) override;
 
     const PepIds& getPeptideIds() const override
     {
@@ -106,6 +112,23 @@ namespace OpenMS
     {
       getFeatureMap()->getUnassignedPeptideIdentifications() = std::move(ids);
     }
+
+    
+    /// Returns a const reference to the current feature data
+    const FeatureMapSharedPtrType& getFeatureMap() const
+    {
+      return features_;
+    }
+
+    /// Returns a const reference to the current feature data
+    FeatureMapSharedPtrType& getFeatureMap()
+    {
+      return features_;
+    }
+
+  protected:
+    /// feature data
+    FeatureMapSharedPtrType features_ = FeatureMapSharedPtrType(new FeatureMapType());
   };
 
 }// namespace OpenMS
