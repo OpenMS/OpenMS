@@ -5654,6 +5654,7 @@ CONSENSUS	62.0	294.100000000000023	0.0	1	0.0	2.0	4	[M+H]+		2
 """
     os.remove("FeatureQuantificationTable.txt")
 
+    # add mandatory file descriptions
     file_descriptions = {}
     for i, filename in enumerate(["1.mzML", "2.mzML"]):
         file_description = pyopenms.ColumnHeader()
