@@ -368,9 +368,9 @@ def testFineIsotopePatternGenerator():
     water = pyopenms.EmpiricalFormula("H2O")
     mw = methanol + water
     iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-20, False, False))
-    assert len(iso_dist.getContainer()) == 56 # now 33 ?
+    assert len(iso_dist.getContainer()) == 56
     iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
-    assert len(iso_dist.getContainer()) == 88 # now 42
+    assert len(iso_dist.getContainer()) == 84
 
     c100 = pyopenms.EmpiricalFormula("C100")
     iso_dist = c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
@@ -5256,14 +5256,21 @@ def testElementDB():
     e2 = edb.getElement(pyopenms.String("NE"))
     assert e2.getName() == "NewElement"
 
-    # replace oxygen
-    e2 = edb.addElement(b"Oxygen", b"O", 8, {16 : 0.7, 19 : 0.3}, {16 : 16.01, 19 : 19.01}, True)
-    e2 = edb.getElement(pyopenms.String("O"))
-    assert e2.getName() == "Oxygen"
+    # changing existing elements in tests might have side effects so we define a new element
+    # add first new element
+    e2 = edb.addElement(b"Kryptonite", b"@", 500, {999 : 0.7, 1000 : 0.3}, {999 : 999.01, 1000 : 1000.01}, False)
+    e2 = edb.getElement(pyopenms.String("@"))
+    assert e2.getName() == "Kryptonite"
     assert e2.getIsotopeDistribution()
     assert len(e2.getIsotopeDistribution().getContainer()) == 2
     assert abs(e2.getIsotopeDistribution().getContainer()[1].getIntensity() - 0.3) < 1e-5
-
+    # replace element
+    e2 = edb.addElement(b"Kryptonite", b"@", 500, {9999 : 1.0}, {9999 : 9999.1}, True)
+    e2 = edb.getElement(pyopenms.String("@"))
+    assert e2.getName() == "Kryptonite"
+    assert e2.getIsotopeDistribution()
+    assert len(e2.getIsotopeDistribution().getContainer()) == 1
+    assert abs(e2.getIsotopeDistribution().getContainer()[0].getIntensity() - 1.0) < 1e-5
     # assert e == e2
 
     #  not yet implemented
