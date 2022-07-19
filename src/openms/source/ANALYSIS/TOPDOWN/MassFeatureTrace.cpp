@@ -174,9 +174,10 @@ namespace OpenMS
 
       int offset = 0;
       double mass = mt.getCentroidMZ();
+      double second_best_monomass;
       double isotope_score = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(mass,
                                                                                             per_isotope_intensity,
-                                                                                            offset, averagine, 1);
+                                                                                            offset, second_best_monomass, averagine, 1);
 
       if (isotope_score < min_isotope_cosine_)
       {

@@ -701,7 +701,6 @@ protected:
     }
 
     auto last_deconvolved_spectra = std::unordered_map<UInt, std::vector<DeconvolvedSpectrum>>();
-    //auto lastlast_deconvolved_spectra = std::unordered_map<UInt, DeconvolvedSpectrum>();
     MSExperiment exp;
 
     auto fd = FLASHDeconvAlgorithm();
@@ -760,6 +759,7 @@ protected:
       fd_decoy = FLASHDeconvAlgorithm();
       fd_decoy.setParameters(fd_param);
       fd_decoy.calculateAveragine(use_RNA_averagine);
+      fd_decoy.isDecoy();
     }
     auto avg = fd.getAveragine();
     auto mass_tracer = MassFeatureTrace();
@@ -801,7 +801,6 @@ protected:
       {
         continue;
       }
-
       int ms_level = it->getMSLevel();
       if (ms_level > current_max_ms_level)
       {

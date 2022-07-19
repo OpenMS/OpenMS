@@ -86,7 +86,8 @@ namespace OpenMS
       int left_count = 0;
       int right_count = iso.size() - 1;
       int trim_count = 0;
-      while (iso.size() - trim_count > min_iso_length)
+
+      while (iso.size() - trim_count > min_iso_length && left_count<right_count)
       {
         double lint = iso[left_count].getIntensity();
         double rint = iso[right_count].getIntensity();
@@ -122,10 +123,10 @@ namespace OpenMS
       right_count = right_count - most_abundant_index_;
       iso.trimRight(1e-10);
 
-      for (Size k = 0; k < iso.size(); k++)
+      for (auto & k : iso)
       {
-        double ori_int = iso[k].getIntensity();
-        iso[k].setIntensity(ori_int / sqrt(total_pwr));
+        double ori_int = k.getIntensity();
+        k.setIntensity(ori_int / sqrt(total_pwr));
       }
       left_count = left_count < min_left_right_count ? min_left_right_count : left_count;
       right_count = right_count < min_left_right_count ? min_left_right_count : right_count;

@@ -110,47 +110,51 @@ namespace OpenMS
     /** calculate cosine between two vectors a and b with additional parameters for fast calculation
      * @param a vector a
      * @param a_start non zero start index of a
-     * @param a_end non zero end index of a
+     * @param a_end non zero end index of a (exclusive)
      * @param b vector b
      * @param b_size size of b
      * @param offset element index offset between a and b
      */
-    static double getCosine(const std::vector<float>& a,
-                             const int& a_start,
-                             const int& a_end,
+    static float getCosine(const std::vector<float>& a,
+                             int a_start,
+                             int a_end,
                              const IsotopeDistribution& b,
-                             const int& b_size,
-                             const int offset);
+                             int b_size,
+                             int offset);
 
 
     /** static function that retruns average PPM error of the input peak group
      * @param pg peak group
      * @return average PPM error
      */
-    static float getAvgPPMError(PeakGroup pg);
+    static float getAvgPPMError(PeakGroup& pg);
 
 
     /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
         @param mono_mass monoisotopic mass
         @param per_isotope_intensities per isotope intensity - aggregated through charges
         @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
+        @param second_best_mono_mass second best scoring mono mass - for decoy calcualtion.
         @param avg precalculated averagine
         @param window_width isotope offset value range. If -1, set automatically.
         @return calculated cosine similar score
      */
-    static double getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
+    static float getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
                                                            const std::vector<float>& per_isotope_intensities,
                                                            int& offset,
+                                                           double& second_best_mono_mass,
                                                            const PrecalculatedAveragine& avg,
                                                            int window_width = -1);
 
 
-
+    void isDecoy();
 
   protected:
     void updateMembers_() override;
 
   private:
+
+
     /// FLASHDeconv parameters
 
     const static int min_iso_size_ = 2;
@@ -188,6 +192,7 @@ namespace OpenMS
     /// max mass count per spectrum for each MS level
     IntList max_mass_count_;
 
+    bool is_decoy_run_ = false;
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
     /// The data structures for spectra overlapping.
@@ -271,6 +276,7 @@ namespace OpenMS
 
     ///this function takes the previous deconvolution results (from ovelapped spectra) for sensitive deconvolution of the current spectrum
     void unionPrevMassBins_();
+
 
     ///Generate peak groups from the input spectrum
     void generatePeakGroupsFromSpectrum_();

@@ -18,6 +18,7 @@ set(UTILS_executables
     ERPairFinder
     FeatureFinderMetaboIdent
     FFEval
+    FLASHDeconvSpectrumSimulator
     FilterTopPicResults
     FuzzyDiff
     IDDecoyProbability

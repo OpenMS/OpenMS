@@ -252,6 +252,7 @@ namespace OpenMS
     std::map<int, std::vector<float>> tscore_map; // per ms level
     std::map<int, std::vector<float>> dscore_map;
     std::map<int, std::map<float, float>> qscore_map;
+    int tmp= 0;
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
       int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
@@ -264,6 +265,12 @@ namespace OpenMS
       for (auto& pg : deconvolved_spectrum)
       {
         tscore_map[ms_level].push_back(pg.getQScore());
+        if(pg.getDecoyQScore() <= 0)
+        {
+          continue;
+        }
+        tmp++;
+        dscore_map[ms_level].push_back(pg.getDecoyQScore()); // isotope decoys
       }
     }
     for (auto& decoy_deconvolved_spectrum : deconvolved_decoy_spectra)
