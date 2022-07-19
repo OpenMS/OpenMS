@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -193,7 +193,7 @@ END_SECTION
 START_SECTION((Mobilogram(const Mobilogram&& source)))
 {
   // Ensure that Mobilogram has a no-except move constructor (otherwise
-  // std::vector is inefficient and will copy instead of move).
+  // std::vector<Mobilogram> is inefficient and will copy instead of move).
   TEST_EQUAL(noexcept(Mobilogram(std::declval<Mobilogram&&>())), true)
 
   Mobilogram tmp;
@@ -218,7 +218,7 @@ START_SECTION((Mobilogram(const Mobilogram&& source)))
   TEST_REAL_SIMILAR(tmp2[0].getPosition()[0], 47.11)
   TEST_REAL_SIMILAR(tmp2[1].getPosition()[0], 48.11)
 
-  // test move
+  // test move -- if this fails, then the move-operator did a copy, not a move... so this better not fail
   TEST_EQUAL(tmp.size(), 0)
 }
 END_SECTION
@@ -269,15 +269,15 @@ START_SECTION((Mobilogram & operator=(const Mobilogram&& source)))
   Mobilogram tmp2;
   tmp2 = std::move(tmp);
 
-  TEST_EQUAL(tmp2, orig); // should be equal to the original
+  TEST_EQUAL(tmp2, orig) // should be equal to the original
 
   TEST_REAL_SIMILAR(tmp2.getRT(), 9.0)
   TEST_EQUAL(tmp2.getDriftTimeUnit() == DriftTimeUnit::VSSC, true)
   TEST_EQUAL(tmp2.size(), 2)
-  TEST_REAL_SIMILAR(tmp2[0].getPosition()[0], 47.11);
-  TEST_REAL_SIMILAR(tmp2[1].getPosition()[0], 48.11);
+  TEST_REAL_SIMILAR(tmp2[0].getPosition()[0], 47.11)
+  TEST_REAL_SIMILAR(tmp2[1].getPosition()[0], 48.11)
 
-  // test move
+  // test move -- if this fails, then the move-operator did a copy, not a move... so this better not fail
   TEST_EQUAL(tmp.size(), 0)
 
   // Assignment of empty object
@@ -1002,7 +1002,7 @@ START_SECTION(([EXTRA] std::ostream & operator<<(std::ostream& os, const Mobilog
   ostringstream test_stream;
   test_stream << spec;
 
-  TEST_EQUAL(test_stream.str(), "-- Mobilogram BEGIN --\n"
+  TEST_EQUAL(test_stream.str(), "-- MOBILOGRAM BEGIN --\n"
                                 "POS: 412.321 INT: 29\n"
                                 "POS: 412.824 INT: 60\n"
                                 "POS: 413.8 INT: 34\n"
@@ -1014,7 +1014,7 @@ START_SECTION(([EXTRA] std::ostream & operator<<(std::ostream& os, const Mobilog
                                 "POS: 420.13 INT: 201\n"
                                 "POS: 423.269 INT: 56\n"
                                 "POS: 426.292 INT: 34\n"
-                                "-- Mobilogram END --\n")
+                                "-- MOBILOGRAM END --\n")
 }
 END_SECTION
 

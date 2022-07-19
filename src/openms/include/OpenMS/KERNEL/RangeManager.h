@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/CommonEnums.h>
 
+#include <cmath> // for nan()
 #include <algorithm> // for min/max
 #include <cassert>
 #include <iosfwd>  // for std::ostream
@@ -68,17 +69,20 @@ namespace OpenMS
       if (min_ > max_)
         throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid initialization of range");
     }
-
     /// Copy C'tor
     RangeBase(const RangeBase& rhs) = default;
 
+    /// Move C'tor (seems useless, but is required for completeness in derived classes' move c'tor)
+    RangeBase(RangeBase&& rhs) noexcept = default;
+
     /// Assignment operator
-    RangeBase& operator=(const RangeBase& rhs)
-    {
-      min_ = rhs.min_;
-      max_ = rhs.max_;
-      return *this;
-    }
+    RangeBase& operator=(const RangeBase& rhs) = default;
+
+    /// Move assignment (seems useless, but is required for completeness in derived classes' move c'tor)
+    RangeBase& operator=(RangeBase&& rhs) noexcept = default;
+
+    /// D'tor
+    ~RangeBase() noexcept = default;
 
     /// make the range empty, i.e. isEmpty() will be true
     void clear()
@@ -290,8 +294,8 @@ namespace OpenMS
     const static MSDim DIM = MSDim::RT;
 
     RangeRT() = default;
-    RangeRT(const double min, const double max) :
-        RangeBase(min, max)
+    RangeRT(const double min, const double max)
+      : RangeBase(min, max)
     {
     }
 
@@ -914,7 +918,9 @@ namespace OpenMS
   class RangeManagerContainer
     : public RangeManager<RangeBases...>
   {
-    public:
+  public:
+    using ThisRangeType = typename RangeManager<RangeBases...>::ThisRangeType;
+
     /// implement this function to reflect the underlying data of the derived class (e.g. an MSSpectrum)
     /// Usually, call clearRanges() internally and then populate the dimensions.
     virtual void updateRanges() = 0;
@@ -930,11 +936,9 @@ namespace OpenMS
     {
       return (ThisRangeType&)*this;
     }
-    
   };
 
   /// Range which contains all known dimensions
   using RangeAllType = RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>;
-
 
 }  // namespace OpenMS

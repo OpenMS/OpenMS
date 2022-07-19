@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,9 +50,13 @@ using namespace OpenMS;
 MobilityPeak1D* d10_ptr = nullptr;
 MobilityPeak1D* d10_nullPointer = nullptr;
 
-static_assert(std::is_move_constructible_v<MobilityPeak1D>); 
-static_assert(std::is_trivially_move_constructible_v<MobilityPeak1D>);
-static_assert(std::is_nothrow_move_constructible_v<MobilityPeak1D>);
+static_assert(std::is_trivially_destructible<MobilityPeak1D> {});
+//static_assert(std::is_trivially_default_constructible<MobilityPeak1D> {});
+static_assert(std::is_trivially_copy_constructible<MobilityPeak1D> {});
+static_assert(std::is_trivially_copy_assignable<MobilityPeak1D> {});
+static_assert(std::is_trivially_move_constructible<MobilityPeak1D> {});
+static_assert(std::is_nothrow_move_constructible<MobilityPeak1D> {});
+static_assert(std::is_trivially_move_assignable<MobilityPeak1D> {});
 
 START_SECTION((MobilityPeak1D()))
   d10_ptr = new MobilityPeak1D;

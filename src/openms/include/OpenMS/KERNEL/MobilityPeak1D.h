@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,10 +65,10 @@ namespace OpenMS
     ///@name Constructors and Destructor
     ///@{
     /// Default constructor
-    inline MobilityPeak1D() = default;
+    MobilityPeak1D() = default;
 
     /// construct with position and intensity
-    inline MobilityPeak1D(PositionType a, IntensityType b) : position_(a), intensity_(b)
+    MobilityPeak1D(PositionType a, IntensityType b) : position_(a), intensity_(b)
     {
     }
 
@@ -93,7 +93,7 @@ namespace OpenMS
       space for a vtable pointer in each instance. Normally you should not derive other classes from
       MobilityPeak1D (unless you know what you are doing, of course).
     */
-    ~MobilityPeak1D() = default;
+    ~MobilityPeak1D() noexcept = default;
 
     ///@}
 
@@ -102,12 +102,12 @@ namespace OpenMS
     */
     ///@{
     /// Non-mutable access to the data point intensity (height)
-    inline IntensityType getIntensity() const
+    IntensityType getIntensity() const
     {
       return intensity_;
     }
     /// Mutable access to the data point intensity (height)
-    inline void setIntensity(IntensityType intensity)
+    void setIntensity(IntensityType intensity)
     {
       intensity_ = intensity;
     }
@@ -248,7 +248,7 @@ namespace OpenMS
 
   protected:
     /// The data point position
-    PositionType position_;
+    PositionType position_{};
     /// The data point intensity
     IntensityType intensity_ = 0.0;
   };

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,6 +95,36 @@ namespace OpenMS
     using typename ContainerType::size_type;
     using typename ContainerType::value_type;*/
 
+    // rule of 6
+
+    /// Constructor
+    Mobilogram() = default;
+
+    /// Copy constructor
+    Mobilogram(const Mobilogram& source) = default;
+
+    /// Move constructor
+    Mobilogram(Mobilogram&&) noexcept = default;
+
+    /// Assignment operator
+    Mobilogram& operator=(const Mobilogram& source) = default;
+
+    /// Move assignment operator
+    Mobilogram& operator=(Mobilogram&&) noexcept = default;
+
+    /// Destructor
+    ~Mobilogram() = default;
+
+
+    /// Equality operator
+    bool operator==(const Mobilogram& rhs) const;
+
+    /// Equality operator
+    bool operator!=(const Mobilogram& rhs) const
+    {
+      return !(operator==(rhs));
+    }
+
     ///@name Export methods for std::vector<MobilityPeak1D>
     //@{
     MobilityPeak1D& operator[](Size i) noexcept
@@ -177,8 +207,6 @@ namespace OpenMS
       return data_.erase(where);
     }
 
-
-
     void push_back(MobilityPeak1D mb)
     {
       data_.push_back(mb);
@@ -219,34 +247,6 @@ namespace OpenMS
       std::swap(drift_time_unit_, mb.drift_time_unit_);
     }
     //@}
-
-
-    /// Constructor
-    Mobilogram() = default;
-
-    /// Copy constructor
-    Mobilogram(const Mobilogram& source);
-
-    /// Move constructor
-    Mobilogram(Mobilogram&&) = default;
-
-    /// Destructor
-    ~Mobilogram() = default;
-
-    /// Assignment operator
-    Mobilogram& operator=(const Mobilogram& source) = default;
-
-    /// Move assignment operator
-    Mobilogram& operator=(Mobilogram&&) noexcept = default;
-
-    /// Equality operator
-    bool operator==(const Mobilogram& rhs) const;
-
-    /// Equality operator
-    bool operator!=(const Mobilogram& rhs) const
-    {
-      return !(operator==(rhs));
-    }
 
     // Docu in base class (RangeManager)
     void updateRanges() override;

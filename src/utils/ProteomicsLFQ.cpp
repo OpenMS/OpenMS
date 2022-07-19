@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -132,6 +132,11 @@ using Internal::IDBoostGraph;
   // - disable elution peak fit
 
   Potential scripts to perform the search can be found under src/tests/topp/ProteomicsLFQTestScripts
+  
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_ProteomicsLFQ.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_ProteomicsLFQ.html
  **/
 
 // We do not want this class to show up in the docu:

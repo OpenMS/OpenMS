@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -101,11 +101,9 @@ namespace OpenMS
     tools_map["MassTraceExtractor"] = Internal::ToolDescription("MassTraceExtractor", "Signal processing and preprocessing");
     tools_map["MRMMapper"] = Internal::ToolDescription("MRMMapper", "Targeted Experiments");
     tools_map["MSGFPlusAdapter"] = Internal::ToolDescription("MSGFPlusAdapter", "Identification");
-    tools_map["MyriMatchAdapter"] = Internal::ToolDescription("MyriMatchAdapter", "Identification");
     tools_map["MzTabExporter"] = Internal::ToolDescription("MzTabExporter", "File Handling");
     tools_map["NoiseFilterGaussian"] = Internal::ToolDescription("NoiseFilterGaussian", "Signal processing and preprocessing");
     tools_map["NoiseFilterSGolay"] = Internal::ToolDescription("NoiseFilterSGolay", "Signal processing and preprocessing");
-    tools_map["OMSSAAdapter"] = Internal::ToolDescription("OMSSAAdapter", "Identification");
     tools_map["OpenPepXL"] = Internal::ToolDescription("OpenPepXL", "Identification");
     tools_map["OpenPepXLLF"] = Internal::ToolDescription("OpenPepXLLF", "Identification");
     tools_map["OpenSwathAnalyzer"] = Internal::ToolDescription("OpenSwathAnalyzer", "Targeted Experiments");

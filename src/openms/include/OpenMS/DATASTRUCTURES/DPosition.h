@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -123,12 +123,12 @@ public:
     DPosition& operator=(DPosition&& source) noexcept = default;
 
     /// Destructor (not-virtual as this will save a lot of space!)
-    ~DPosition() = default;
+    ~DPosition() noexcept = default;
 
     //@}
 
     /// Swap the two points
-    void swap(DPosition& rhs)
+    void swap(DPosition& rhs) noexcept
     {
       for (Size i = 0; i < D; i++)
       {
@@ -419,7 +419,6 @@ public:
 
 protected:
     CoordinateType coordinate_[D]{};
-
   }; // DPosition
 
   /// Scalar multiplication (a bit inefficient)

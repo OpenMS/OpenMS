@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -82,10 +82,8 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
   install_thirdparty_folder("Comet")
   install_thirdparty_folder("Fido")
   install_thirdparty_folder("MSGFPlus")
-  install_thirdparty_folder("OMSSA")
   install_thirdparty_folder("XTandem")
   install_thirdparty_folder("LuciPHOr2")
-  install_thirdparty_folder("MyriMatch")
   install_thirdparty_folder("SpectraST")
   install_thirdparty_folder("Sirius")
   install_thirdparty_folder("Percolator")
