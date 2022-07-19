@@ -34,6 +34,8 @@
 
 #pragma once
 
+#include <QPainterPath>
+
 class QPainter;
 class QPenStyle;
 
