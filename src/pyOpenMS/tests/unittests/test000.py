@@ -5654,6 +5654,13 @@ CONSENSUS	62.0	294.100000000000023	0.0	1	0.0	2.0	4	[M+H]+		2
 """
     os.remove("FeatureQuantificationTable.txt")
 
+    file_descriptions = {}
+    for i, filename in enumerate(["1.mzML", "2.mzML"]):
+        file_description = pyopenms.ColumnHeader()
+        file_description.filename = filename
+        file_descriptions[i] = file_description
+    cm.setColumnHeaders(file_descriptions)
+
     pyopenms.GNPSMetaValueFile().store(cm, "MetaValueTable.tsv")
     with open("MetaValueTable.tsv", "r") as f:
         assert f.read() == """filename	ATTRIBUTE_MAPID
