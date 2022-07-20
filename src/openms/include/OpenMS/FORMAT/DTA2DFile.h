@@ -56,6 +56,8 @@ namespace OpenMS
 
     Example: '\#MZ MIN INT'
 
+    Keywords can be lower/upper or mixed case, e.g. 'Int' or 'mz'.
+
     The peaks of one retention time have to be in subsequent lines.
 
     @ingroup FileIO
