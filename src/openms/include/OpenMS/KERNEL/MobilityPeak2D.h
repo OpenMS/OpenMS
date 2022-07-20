@@ -53,8 +53,7 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI MobilityPeak2D
   {
-public:
-
+  public:
     ///@name Type definitions
     ///@{
 
@@ -107,8 +106,7 @@ public:
 
     ///@}
 
-protected:
-
+  protected:
     /// @name Dimension descriptions
     ///@{
 
@@ -126,8 +124,7 @@ protected:
 
     ///@}
 
-public:
-
+  public:
     ///@name Constructors and Destructor
     ///@{
     /// Default constructor
@@ -262,7 +259,6 @@ public:
       {
         return left < right;
       }
-
     };
 
     /// Comparator by IM position
@@ -287,7 +283,6 @@ public:
       {
         return left < right;
       }
-
     };
 
     /// Comparator by m/z position
@@ -312,7 +307,6 @@ public:
       {
         return left < right;
       }
-
     };
 
     /// Comparator by position. Lexicographical comparison (first IM then m/z) is done.
@@ -337,14 +331,12 @@ public:
       {
         return left < right;
       }
-
     };
     ///@}
 
     friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const MobilityPeak2D & point);
 
 protected:
-
     /// The data point position
     PositionType position_;
     /// The data point intensity
@@ -353,6 +345,4 @@ protected:
 
   /// Print the contents to a stream.
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const MobilityPeak2D & point);
-
 } // namespace OpenMS
-

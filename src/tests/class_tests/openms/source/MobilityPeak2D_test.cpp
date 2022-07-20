@@ -332,14 +332,14 @@ END_SECTION
 
 START_SECTION((static char const* fullDimensionUnit(UInt const dim)))
 {
-  TEST_STRING_EQUAL(MobilityPeak2D::fullDimensionUnit(MobilityPeak2D::IM), "Seconds");
+  TEST_STRING_EQUAL(MobilityPeak2D::fullDimensionUnit(MobilityPeak2D::IM), "?");
   TEST_STRING_EQUAL(MobilityPeak2D::fullDimensionUnit(MobilityPeak2D::MZ), "Thomson");
 }
 END_SECTION
 
 START_SECTION((static char const* fullDimensionUnitIM()))
 {
-  TEST_STRING_EQUAL(MobilityPeak2D::fullDimensionUnitIM(), "Seconds");
+  TEST_STRING_EQUAL(MobilityPeak2D::fullDimensionUnitIM(), "?");
 }
 END_SECTION
 

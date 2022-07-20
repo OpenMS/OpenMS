@@ -308,10 +308,13 @@ END_SECTION
 START_SECTION(Area& operator=(const Area& rhs) = default)
 {
   Area3 a(&dm_IMR);
-  Area3 o(&dm_RMI);
+  auto ar = DRange<3>({1, 1, 1}, {2, 2, 2});
+  a.setArea(ar);
+  Area3 o(&dm_IMR);
   TEST_TRUE(a != o)
   o = a;
   TEST_TRUE(a == o)
+  TEST_EQUAL(o.getAreaXY(), ar);
 }
 END_SECTION
 
@@ -320,8 +323,8 @@ START_SECTION(bool operator==(const Area& rhs) const)
   FullRange fr;
   fr.extendRT(1);
   Area3 a(&dm_IMR);
-  Area3 o(&dm_RMI);
-  TEST_TRUE(a != o)
+  Area3 o(&dm_IMR);
+  TEST_TRUE(a == o)
   o = a;
   TEST_TRUE(a == o)
   a.setArea(fr);
@@ -331,6 +334,7 @@ START_SECTION(bool operator==(const Area& rhs) const)
   DRange<3> areaXY(DPosition<3>(77, 99, 1), DPosition<3>(777, 999, 1.1));
   a.setArea(areaXY);
   TEST_TRUE(a != o)
+  TEST_FALSE(a == o)
 }
 END_SECTION
 

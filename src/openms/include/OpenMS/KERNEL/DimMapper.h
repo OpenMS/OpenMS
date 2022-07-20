@@ -783,7 +783,7 @@ namespace OpenMS
     /// No default C'tor
     Area() = delete;
     
-    /// Custom C'tor with a mapper
+    /// Custom C'tor with a mapper (non owning pointer)
     Area(const DimMapper<N_DIM>* const dims) 
       : mapper_(dims)
     {
