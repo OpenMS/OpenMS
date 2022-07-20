@@ -159,10 +159,11 @@ START_SECTION((DeconvolvedSpectrum& getDeconvolvedSpectrum(const MSSpectrum &spe
   std::vector<DeconvolvedSpectrum> survey_specs;
   const std::map<int, std::vector<std::vector<double>>> null_map;
 
-  DeconvolvedSpectrum d_ms1_spec = fd_algo.getDeconvolvedSpectrum(input[3], survey_specs, 4, null_map);
+  fd_algo.PerformSpectrumDeconvolution(input[3], survey_specs, 4, null_map);
+  DeconvolvedSpectrum d_ms1_spec = fd_algo.getDeconvolvedSpectrum();
   survey_specs.push_back(d_ms1_spec);
-  DeconvolvedSpectrum d_ms2_spec = fd_algo.getDeconvolvedSpectrum(input[5], survey_specs, 6, null_map);
-
+  fd_algo.PerformSpectrumDeconvolution(input[5], survey_specs, 6, null_map);
+  DeconvolvedSpectrum d_ms2_spec = fd_algo.getDeconvolvedSpectrum();
   TEST_EQUAL(d_ms1_spec.getScanNumber(), 4);
   TEST_EQUAL(d_ms1_spec.size(), 2);
   Precursor precursor = d_ms2_spec.getPrecursor();

@@ -76,18 +76,23 @@ namespace OpenMS
     FLASHDeconvAlgorithm& operator=(const FLASHDeconvAlgorithm& fd);
 
     /**
-      @brief main deconvolution function that generates the deconvolved spectrum from the original spectrum.
+      @brief main deconvolution function that generates the deconvolved and decoy deconvolved spectrum from the original spectrum.
       @param spec the original spectrum
       @param survey_scans the survey scans to assign precursor mass to the deconvolved spectrum.
       @param scan_number scan number is provided from input spectrum to this function in most cases.
       But this parameter is used for real time deconvolution where scan number may be put separately.
       @param precursor_map_for_FLASHIda deconvolved precursor information from FLASHIda
-      @return the deconvolved spectrum (as DeconvolvedSpectrum class)
  */
-    const DeconvolvedSpectrum& getDeconvolvedSpectrum(const MSSpectrum& spec,
+    void PerformSpectrumDeconvolution(const MSSpectrum& spec,
                                                   const std::vector<DeconvolvedSpectrum>& survey_scans,
                                                   const int scan_number,
                                                   const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_FLASHIda);
+
+    /// return deconvolved spectrum
+    DeconvolvedSpectrum& getDeconvolvedSpectrum();
+    /// return decoy deconvolved spectrum
+    DeconvolvedSpectrum& getDecoyDeconvolvedSpectrum();
+
 
     /// get calculated averagine
     const PrecalculatedAveragine& getAveragine();
@@ -153,8 +158,6 @@ namespace OpenMS
     void updateMembers_() override;
 
   private:
-
-
     /// FLASHDeconv parameters
 
     const static int min_iso_size_ = 2;
@@ -215,7 +218,8 @@ namespace OpenMS
     std::vector<LogMzPeak> log_mz_peaks_;
     /// deconvolved_spectrum_ stores the decovnoluted mass peak groups
     DeconvolvedSpectrum deconvolved_spectrum_;
-
+    /// decoy_deconvolved_spectrum_ stores the decovnoluted decoy mass peak groups
+    DeconvolvedSpectrum decoy_deconvolved_spectrum_;
     /// mass_bins_ stores the selected bins for this spectrum + overlapped spectrum (previous a few spectra).
     boost::dynamic_bitset<> mass_bins_;
     /// mz_bins_ stores the binned log mz peaks
@@ -310,10 +314,10 @@ namespace OpenMS
     /// function for peak group scoring and filtering
     void scoreAndFilterPeakGroups_();
 
-    void removeHarmonicsPeakGroups_();
+    void removeHarmonicsPeakGroups_(DeconvolvedSpectrum& dpec);
 
     /// filter out overlapping masses
-    void removeOverlappingPeakGroups_(const double tol, const int iso_length = 1);
+    void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dpec, const double tol, const int iso_length = 1);
 
     ///Filter out masses with low isotope cosine scores, only retaining current_max_mass_count masses
     void filterPeakGroupsByIsotopeCosine_(const int current_max_mass_count);

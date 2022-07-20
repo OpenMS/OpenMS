@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -207,7 +207,7 @@ protected:
     setMinInt_("merging_method", 0);
     setMaxInt_("merging_method", 2);
 
-    registerIntOption_("report_decoy_info", "<0: Do not report 1: report>", 0, "Report decoy masses in the spectrum tsv file. Q values for masses are also calculated. Beta version.", false, false);
+    registerIntOption_("report_decoy_info", "<0: Do not report 1: report>", 1, "Report decoy masses in the spectrum tsv file. Q values for masses are also calculated. Beta version.", false, false);
     setMinInt_("report_decoy_info", 0);
     setMaxInt_("report_decoy_info", 1);
     /*
@@ -817,12 +817,14 @@ protected:
       {
         precursor_specs = (last_deconvolved_spectra[ms_level - 1]);
       }
-      auto deconvolved_spectrum = fd.getDeconvolvedSpectrum(*it,
-                                                             precursor_specs,
-                                                             scan_number,
-                                                             precursor_map_for_real_time_acquisition);
+      fd.PerformSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
+      auto& deconvolved_spectrum = fd.getDeconvolvedSpectrum();
+      auto& decoy_deconvolved_spectrum = fd.getDecoyDeconvolvedSpectrum();
 
-
+      if (deconvolved_spectrum.empty())
+      {
+        continue;
+      }
 
       if (it->getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
       {
@@ -844,7 +846,6 @@ protected:
                             out_train_stream,
                             write_detail_qscore_att);
       }
-
 
       if (!out_mzml_file.empty())
       {
@@ -880,28 +881,25 @@ protected:
         scan_rt_map[deconvolved_spectrum.getScanNumber()] = it->getRT();
       }
 
-      if (deconvolved_spectrum.empty())
-      {
-        continue;
-      }
-
-      qspec_cntr[ms_level - 1]++;
-      mass_cntr[ms_level - 1] += deconvolved_spectrum.size();
-      deconvolved_spectra.push_back(deconvolved_spectrum);
-
       if(report_decoy)
       {
         fd_decoy.clearExcludedMonoMasses();
         for(auto& pg: deconvolved_spectrum){
           fd_decoy.addExcludedMonoMass(pg.getMonoMass());
         }
-        auto decoy_deconvolved_spectrum = fd_decoy.getDeconvolvedSpectrum(*it,
-                                                                          precursor_specs,
-                                                                          scan_number,
-                                                                          precursor_map_for_real_time_acquisition);
+        fd_decoy.PerformSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
 
+        for(auto& pg: fd_decoy.getDeconvolvedSpectrum())
+        {
+          decoy_deconvolved_spectrum.push_back(pg);
+        }
+        decoy_deconvolved_spectrum.sort();
         decoy_deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
       }
+
+      qspec_cntr[ms_level - 1]++;
+      mass_cntr[ms_level - 1] += deconvolved_spectrum.size();
+      deconvolved_spectra.push_back(deconvolved_spectrum);
 
       progresslogger.nextProgress();
     }
@@ -917,7 +915,7 @@ protected:
 
       if ((int) out_spec_streams.size() > ms_level - 1)
       {
-        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, false);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail);
       }
       if ((int) out_topfd_streams.size() > ms_level - 1)
       {
@@ -939,7 +937,7 @@ protected:
 
         if ((int)out_spec_streams.size() > ms_level - 1)
         {
-          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, true);
+          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail);
         }
       }
     }

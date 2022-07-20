@@ -230,7 +230,8 @@ namespace OpenMS
     }
     std::sort(target_masses_.begin(), target_masses_.end());
     fd_.setTargetMasses(target_masses_);
-    deconvolved_spectrum_ = fd_.getDeconvolvedSpectrum(spec, tmp, 0, empty);
+    fd_.PerformSpectrumDeconvolution(spec, tmp, 0, empty);
+    deconvolved_spectrum_ = fd_.getDeconvolvedSpectrum();
     // per spec deconvolution
     FLASHIda::filterPeakGroupsUsingMassExclusion_(ms_level, rt);
     // spec.clear(true);

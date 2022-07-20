@@ -667,6 +667,11 @@ namespace OpenMS
     return qvalue_;
   }
 
+  float PeakGroup::getQvalueWithChargeDecoyOnly() const
+  {
+    return qvalue_with_charge_decoy_only_;
+  }
+
   float PeakGroup::getSNR() const
   {
     return snr_;
@@ -715,6 +720,17 @@ namespace OpenMS
     return is_positive_;
   }
 
+  int PeakGroup::getDecoyIndex() const
+  {
+    return decoy_index_;
+  }
+
+  void PeakGroup::setDecoyIndex(int index)
+  {
+    decoy_index_ = index;
+  }
+
+  /*
   float PeakGroup::getDecoyQScore() const
   {
     return decoy_qscore_;
@@ -734,6 +750,7 @@ namespace OpenMS
   {
     decoy_iso_score_ = d;
   }
+  */
 
   std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator PeakGroup::begin() const noexcept
   {
@@ -802,5 +819,9 @@ namespace OpenMS
   void PeakGroup::setQvalue(float q)
   {
     qvalue_ = q;
+  }
+  void PeakGroup::setQvalueWithChargeDecoyOnly(float q)
+  {
+    qvalue_with_charge_decoy_only_ = q;
   }
 }
