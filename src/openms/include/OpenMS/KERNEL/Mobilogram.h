@@ -226,6 +226,11 @@ namespace OpenMS
       data_.pop_back();
     }
 
+    Iterator insert(ConstIterator where, ConstIterator first, ConstIterator last)
+    {
+      return data_.insert(where, first, last);
+    }
+
     void resize(size_t new_size)
     {
       return data_.resize(new_size);
@@ -552,18 +557,5 @@ namespace OpenMS
     DriftTimeUnit drift_time_unit_ = DriftTimeUnit::NONE;
   };
 
-  std::ostream& operator<<(std::ostream& os, const Mobilogram& mb)
-  {
-    os << "-- MOBILOGRAM BEGIN --\n";
-
-    // peaklist
-    for (const auto& peak : mb)
-    {
-      os << peak << '\n';
-    }
-
-    os << "-- MOBILOGRAM END --\n";
-    return os;
-  }
-
+  std::ostream& operator<<(std::ostream& os, const Mobilogram& mb);
 } // namespace OpenMS

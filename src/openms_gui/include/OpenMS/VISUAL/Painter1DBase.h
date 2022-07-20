@@ -41,8 +41,9 @@ class QPenStyle;
 
 namespace OpenMS
 {
-  class LayerData1DPeak;
   class LayerData1DChrom;
+  class LayerData1DIonMobility;
+  class LayerData1DPeak;
   class Plot1DCanvas;
 
   /**
@@ -141,8 +142,24 @@ namespace OpenMS
     void paint(QPainter*, Plot1DCanvas* canvas, int layer_index) override;
 
   protected:
-
     const LayerData1DChrom* layer_; ///< the data to paint
+  };
+
+    /**
+   @brief Painter1D for mobilograms
+
+*/
+  class OPENMS_GUI_DLLAPI Painter1DIonMobility : public Painter1DBase
+  {
+  public:
+    /// C'tor which remembers the layer to paint
+    Painter1DIonMobility(const LayerData1DIonMobility* parent);
+
+    /// Implementation of base class
+    void paint(QPainter*, Plot1DCanvas* canvas, int layer_index) override;
+
+  protected:
+    const LayerData1DIonMobility* layer_; ///< the data to paint
   };
 
 } // namespace OpenMS

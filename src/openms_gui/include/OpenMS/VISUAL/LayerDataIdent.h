@@ -60,6 +60,8 @@ namespace OpenMS
     /// move assignment
     LayerDataIdent& operator=(LayerDataIdent&& ld) = default;
 
+    std::unique_ptr<Painter2DBase> getPainter2D() const override;
+
     std::unique_ptr<LayerData1DBase> to1DLayer() const override
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
@@ -71,6 +73,10 @@ namespace OpenMS
 
     ProjectionData getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const override;
 
+    PeakIndex findHighestDataPoint(const RangeAllType& area) const override
+    { // todo: not implemented
+      return PeakIndex();
+    }
 
     void updateRanges() override
     {

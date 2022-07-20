@@ -32,19 +32,33 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+
+
 #include <OpenMS/VISUAL/LayerDataChrom.h>
+
+#include <OpenMS/DATASTRUCTURES/OSWData.h>
+#include <OpenMS/KERNEL/DimMapper.h>
 
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerData1DChrom.h>
+#include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 
-#include <OpenMS/KERNEL/DimMapper.h>
 
 using namespace std;
 
 namespace OpenMS
 {
+  LayerDataChrom::LayerDataChrom():
+    LayerDataBase(LayerDataBase::DT_CHROMATOGRAM)
+  {}
+
+  std::unique_ptr<Painter2DBase> LayerDataChrom::getPainter2D() const
+  {
+    return make_unique<Painter2DChrom>(this);
+  }
+
   std::unique_ptr<LayerData1DBase> LayerDataChrom::to1DLayer() const
   {
     return make_unique<LayerData1DChrom>(*this);
@@ -152,7 +166,7 @@ namespace OpenMS
     auto ptr_rt = make_unique<LayerData1DChrom>();
     MSExperiment exp_rt;
     exp_mz.addChromatogram(std::move(projection_rt));
-    ptr_rt->setPeakData(ExperimentSharedPtrType(new ExperimentType(exp_rt)));
+    ptr_rt->setChromData(ExperimentSharedPtrType(new ExperimentType(exp_rt)));
 
     auto assign_axis = [&](auto unit, auto& layer) {
       switch (unit)
@@ -172,6 +186,36 @@ namespace OpenMS
     assign_axis(unit_y, result.projection_ontoY);
 
     return result;
+  }
+
+  PeakIndex LayerDataChrom::findHighestDataPoint(const RangeAllType& area) const
+  {
+    using IntType = MSExperiment::ConstAreaIterator::PeakType::IntensityType;
+    auto max_int = numeric_limits<IntType>::lowest();
+
+    const PeakMap& exp = *getChromatogramData();
+    int count {-1};
+    for (const auto& chrom : exp.getChromatograms())
+    {
+      ++count;
+      if (chrom.empty())
+      {
+        continue; // ensure that empty chromatograms are not examined (iter->front = segfault)
+      }
+
+      auto mz_origin = chrom.getPrecursor().getMZ();
+
+      // check m/z first
+      if (area.containsMZ(mz_origin))
+      {
+        // the center point's RT should be inside the RT range of the chromatogram
+        if (RangeRT(chrom.front().getRT(), chrom.back().getRT()).containsRT(area.RangeRT::center()))
+        {
+          return PeakIndex(count, 0); // we only care about the chrom, not the peak inside
+        }
+      }
+    }
+    return PeakIndex();
   }
 
   PointXYType LayerDataChrom::peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const
@@ -206,6 +250,11 @@ namespace OpenMS
       }
     }
     return status;
+  }
+
+  void LayerDataChrom::setChromatogramAnnotation(OSWData&& data)
+  {
+    chrom_annotation_ = OSWDataSharedPtrType(new OSWData(std::move(data)));
   }
 
   std::unique_ptr<LayerStatistics> LayerDataChrom::getStats() const

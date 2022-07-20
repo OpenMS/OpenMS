@@ -65,6 +65,7 @@ namespace OpenMS
   class LayerStatistics;
   class OSWData;
   class Painter1DBase;
+  class Painter2DBase;
 
   template <int N_DIM> class DimMapper;
 
@@ -211,6 +212,13 @@ namespace OpenMS
     virtual ~LayerDataBase() = default;
 
     /**
+     * \brief Obtain a painter which can draw the layer on a 2D canvas
+     * \return A painter
+     */
+    virtual std::unique_ptr<Painter2DBase> getPainter2D() const = 0;
+
+
+    /**
      * \brief Create a shallow copy (i.e. shared experimental data using shared_ptr) of the current layer, and make it 1D (i.e. support showing a single spec/chrom etc)
      * \return A new layer for 1D
      */
@@ -244,6 +252,17 @@ namespace OpenMS
     }
 
     /**
+     * \brief Find the datapoint with the highest intensity within the given range and return a proxy to that datapoint
+     * \param area Range to search in. Only dimensions used in the canvas are populated.
+     * \return A proxy (e.g. scan + peak index in an MSExperiment) which points to the data
+     */
+    virtual PeakIndex findHighestDataPoint(const RangeAllType& area) const
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+
+    /**
      * \brief Convert a PeakIndex to a XY coordinate (via @p mapper).
      * \param peak The Peak to convert
      * \param mapper Converts the internal representation (e.g. Peak1D) to an XY coordinate
@@ -267,182 +286,12 @@ namespace OpenMS
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-
-    /// Returns a const reference to the current feature data
-    const FeatureMapSharedPtrType& getFeatureMap() const
-    {
-      return features_;
-    }
-
-    /// Returns a const reference to the current feature data
-    FeatureMapSharedPtrType& getFeatureMap()
-    {
-      return features_;
-    }
-
-    /// Returns a const reference to the consensus feature data
-    const ConsensusMapSharedPtrType& getConsensusMap() const
-    {
-      return consensus_map_;
-    }
-
-    /// Returns current consensus map (mutable)
-    ConsensusMapSharedPtrType& getConsensusMap()
-    {
-      return consensus_map_;
-    }
-
-    /**
-    @brief Returns a const reference to the current in-memory peak data
-
-    @note Depending on the caching strategy (on-disk or in-memory), all or some
-    spectra may have zero size and contain only meta data since peak data is
-    cached on disk.
-
-    @note Do *not* use this function to access the current spectrum for the 1D view, use getCurrentSpectrum() instead.
-    */
-    const ConstExperimentSharedPtrType getPeakData() const;
-
-    /**
-    @brief Returns a mutable reference to the current in-memory peak data
-
-    @note Depending on the caching strategy (on-disk or in-memory), all or some
-    spectra may have zero size and contain only meta data since peak data is
-    cached on disk.
-
-    @note Do *not* use this function to access the current spectrum for the 1D view, use getCurrentSpectrum() instead.
-    */
-    const ExperimentSharedPtrType& getPeakDataMuteable()
-    {
-      return peak_map_;
-    }
-
-    /**
-    @brief Set the current in-memory peak data
-    */
-    void setPeakData(ExperimentSharedPtrType p)
-    {
-      peak_map_ = p;
-    }
-
-    /// Set the current on-disc data
-    void setOnDiscPeakData(ODExperimentSharedPtrType p)
-    {
-      on_disc_peaks = p;
-    }
-
-    /// Returns a mutable reference to the on-disc data
-    const ODExperimentSharedPtrType& getOnDiscPeakData() const
-    {
-      return on_disc_peaks;
-    }
-
-    /**
-      @brief Set the current in-memory chrom data
-    */
-    void setChromData(ExperimentSharedPtrType p)
-    {
-      chromatogram_map_ = p;
-    }
-
-    /// Returns a mutable reference to the current chromatogram data
-    const ExperimentSharedPtrType& getChromatogramData() const
-    {
-      return chromatogram_map_;
-    }
-
-    /// Returns a mutable reference to the current chromatogram data
-    ExperimentSharedPtrType& getChromatogramData()
-    {
-      return chromatogram_map_;
-    }
-
-    /// get annotation (e.g. to build a hierarchical ID View)
-    /// Not const, because we might have incomplete data, which needs to be loaded from sql source
-    OSWDataSharedPtrType& getChromatogramAnnotation();
-
-    /// get annotation (e.g. to build a hierarchical ID View)
-    /// Not actually const (only the pointer, not the data), because we might have incomplete data, which needs to be loaded from sql source
-    const OSWDataSharedPtrType& getChromatogramAnnotation() const;
-
-    /// add annotation from an OSW sqlite file.
-    void setChromatogramAnnotation(OSWData&& data);
-
     /// add peptide identifications to the layer
     /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
     /// Will return false otherwise.
-    bool annotate(const std::vector<PeptideIdentification>& identifications,
-                  const std::vector<ProteinIdentification>& protein_identifications);
+    virtual bool annotate(const std::vector<PeptideIdentification>& identifications,
+                          const std::vector<ProteinIdentification>& protein_identifications);
 
-
-    /// get the full chromExperiment
-    /// Could be backed up in layer.getChromatogramData() (if layer.getPeakDataMuteable() shows converted chroms already)
-    /// ... or layer.getChromatogramData() is empty and thus layer.getPeakDataMuteable() is the original chrom data
-    ExperimentSharedPtrType getFullChromData()
-    {
-      ExperimentSharedPtrType exp_sptr(getChromatogramData().get() == nullptr ||
-                                               getChromatogramData().get()->getNrChromatograms() == 0 ?
-                                           getPeakDataMuteable() :
-                                           getChromatogramData());
-      return exp_sptr;
-    }
-
-    /// Check whether the current layer should be represented as ion mobility
-    bool isIonMobilityData() const
-    {
-      return this->getPeakData()->size() > 0 &&
-             this->getPeakData()->metaValueExists("is_ion_mobility") &&
-             this->getPeakData()->getMetaValue("is_ion_mobility").toBool();
-    }
-
-    void labelAsIonMobilityData() const
-    {
-      peak_map_->setMetaValue("is_ion_mobility", "true");
-    }
-
-    /// Check whether the current layer contains DIA (SWATH-MS) data
-    bool isDIAData() const
-    {
-      return this->getPeakData()->size() > 0 &&
-             this->getPeakData()->metaValueExists("is_dia_data") &&
-             this->getPeakData()->getMetaValue("is_dia_data").toBool();
-    }
-
-    /// Label the current layer as DIA (SWATH-MS) data
-    void labelAsDIAData()
-    {
-      peak_map_->setMetaValue("is_dia_data", "true");
-    }
-
-    /**
-    @brief Check whether the current layer is a chromatogram
-     
-    This is needed because type will *not* distinguish properly between
-    chromatogram and spectra data. This is due to the fact that we store 
-    chromatograms for display in 1D in a data layer using MSSpectrum and 
-    so the layer looks like PEAK data to tools. 
-    */
-    bool chromatogram_flag_set() const
-    {
-      return this->getPeakData()->size() > 0 &&
-             this->getPeakData()->metaValueExists("is_chromatogram") &&
-             this->getPeakData()->getMetaValue("is_chromatogram").toBool();
-    }
-
-    /// set the chromatogram flag
-    void set_chromatogram_flag()
-    {
-      peak_map_->setMetaValue("is_chromatogram", "true");
-    }
-
-    /// remove the chromatogram flag
-    void remove_chromatogram_flag()
-    {
-      if (this->chromatogram_flag_set())
-      {
-        peak_map_->removeMetaValue("is_chromatogram");
-      }
-    }
 
     /**
       @brief Update ranges of the underlying data
@@ -513,24 +362,6 @@ namespace OpenMS
     virtual String getDecoratedName() const;
 
   protected:
-    /// feature data
-    FeatureMapSharedPtrType features_ = FeatureMapSharedPtrType(new FeatureMapType());
-
-    /// consensus feature data
-    ConsensusMapSharedPtrType consensus_map_ = ConsensusMapSharedPtrType(new ConsensusMapType());
-
-    /// peak data
-    ExperimentSharedPtrType peak_map_ = ExperimentSharedPtrType(new ExperimentType());
-
-    /// on disc peak data
-    ODExperimentSharedPtrType on_disc_peaks = ODExperimentSharedPtrType(new OnDiscMSExperiment());
-
-    /// chromatogram data
-    ExperimentSharedPtrType chromatogram_map_ = ExperimentSharedPtrType(new ExperimentType());
-
-    /// Chromatogram annotation data
-    OSWDataSharedPtrType chrom_annotation_;
-
   };
 
   /// A base class to annotate layers of specific types with (identification) data

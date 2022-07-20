@@ -32,22 +32,20 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+
 #include <OpenMS/VISUAL/TVDIATreeTabController.h>
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-
-#include <QtWidgets/QMessageBox>
-#include <QtCore/QString>
 
 using namespace OpenMS;
 using namespace std;
@@ -61,7 +59,7 @@ namespace OpenMS
   typedef LayerDataBase::ODExperimentSharedPtrType ODExperimentSharedPtrType;
   typedef LayerDataBase::OSWDataSharedPtrType OSWDataSharedPtrType;
 
-  /// represents all the information we need from a layer
+  /// represents all the information we need from a chromatogram layer
   /// We cannot use a full layer, because the original layer might get destroyed in the process...
   struct MiniLayer
   {
@@ -71,8 +69,8 @@ namespace OpenMS
     String filename;
     String layername;
 
-    explicit MiniLayer(LayerDataBase& layer)
-    : full_chrom_exp_sptr(layer.getFullChromData()),
+    explicit MiniLayer(LayerDataChrom& layer)
+    : full_chrom_exp_sptr(layer.getChromatogramData()),
       ondisc_sptr(layer.getOnDiscPeakData()),
       annot_sptr(layer.getChromatogramAnnotation()),
       filename(layer.filename),
@@ -170,8 +168,13 @@ namespace OpenMS
 
   void TVDIATreeTabController::showChromatogramsAsNew1D(const OSWIndexTrace& trace)
   {
-    LayerDataBase& layer = const_cast<LayerDataBase&>(tv_->getActiveCanvas()->getCurrentLayer());
-    MiniLayer ml(layer);
+    auto* layer_ptr = dynamic_cast<LayerDataChrom*>(&tv_->getActiveCanvas()->getCurrentLayer());
+    if (!layer_ptr)
+    { // not a chrom layer?
+      std::cerr << __FILE__ << ": " << __LINE__ << " showChromatograms() invoked on Non-Chrom layer... weird..\n";
+      return;
+    }
+    MiniLayer ml(*layer_ptr);
     // create new 1D widget; if we return due to error, the widget will be cleaned up
     unique_ptr<Plot1DWidget> w(new Plot1DWidget(tv_->getCanvasParameters(1), DIM::Y, (QWidget*)tv_->getWorkspace()));
 
@@ -190,7 +193,13 @@ namespace OpenMS
     { // currently not a 1d widget... ignore the signal
       return;
     }
-    MiniLayer ml(w->canvas()->getCurrentLayer());
+    auto* layer_ptr = dynamic_cast<LayerDataChrom*>(&w->canvas()->getCurrentLayer());
+    if (!layer_ptr)
+    { // not a chrom layer?
+      std::cerr << __FILE__ << ": " << __LINE__ << " showChromatograms() invoked on Non-Chrom layer... weird..\n";
+      return;
+    }
+    MiniLayer ml(*layer_ptr);
     // clear all layers
     w->canvas()->removeLayers();
     // add new layers

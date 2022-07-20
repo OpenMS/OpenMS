@@ -34,11 +34,14 @@
 
 #pragma once
 
+
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/CommonEnums.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/KERNEL/MobilityPeak2D.h>
+#include <OpenMS/KERNEL/Mobilogram.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -90,8 +93,13 @@ namespace OpenMS
     virtual ValueType map(const Peak2D& p) const = 0;
     virtual ValueType map(const ChromatogramPeak& p) const = 0;
     virtual ValueType map(const MSExperiment::ConstAreaIterator& it) const = 0;
+    virtual ValueType map(const MobilityPeak1D& p) const = 0;
+    virtual ValueType map(const MobilityPeak2D& p) const = 0;
+
     /// obtain value from a certain point in a spectrum
     virtual ValueType map(const MSSpectrum& spec, const Size index) const = 0;
+    /// obtain value from a certain point in a mobilogram
+    virtual ValueType map(const Mobilogram& mb, const Size index) const = 0;
     
     /// obtain vector of same length as @p spec; one element per peak
     /// @throw Exception::InvalidRange if elements do not support the dimension
@@ -118,6 +126,10 @@ namespace OpenMS
     virtual void fromXY(const ValueType in, Peak1D& p) const = 0;
     /// set the dimension of a ChromatogramPeak
     virtual void fromXY(const ValueType in, ChromatogramPeak& p) const = 0;
+    /// set the dimension of a MobilityPeak1D
+    virtual void fromXY(const ValueType in, MobilityPeak1D& p) const = 0;
+    /// set the dimension of a MobilityPeak2D
+    virtual void fromXY(const ValueType in, MobilityPeak2D& p) const = 0;
 
     /// Name of the dimension, e.g. 'RT [s]' 
     std::string_view getDimName() const
@@ -181,7 +193,11 @@ namespace OpenMS
     ValueType map(const MSSpectrum& spec, const Size index) const
     {
       return spec.getRT();
-    }                         
+    }
+    ValueType map(const Mobilogram& mb, const Size index) const
+    {
+      return mb.getRT();
+    }
 
     ValueTypes map(const MSSpectrum& spec) const override
     {
@@ -201,6 +217,14 @@ namespace OpenMS
     ValueType map(const MSExperiment::ConstAreaIterator& it) const override
     {
       return it.getRT();
+    }
+    ValueType map(const MobilityPeak1D& p) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    ValueType map(const MobilityPeak2D& p) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     ValueType map(const BaseFeature& bf) const override
@@ -234,6 +258,16 @@ namespace OpenMS
     {
       p.setRT(in);
     }
+    /// set the RT of a MobilityPeak1D (throws)
+    void fromXY(const ValueType in, MobilityPeak1D& p) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    /// set the RT of a MobilityPeak2D (throws)
+    void fromXY(const ValueType in, MobilityPeak2D& p) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
 
 
   };
@@ -263,11 +297,23 @@ namespace OpenMS
     {
       return it->getMZ();
     }
+    ValueType map(const MobilityPeak1D& p) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    ValueType map(const MobilityPeak2D& p) const override
+    {
+      return p.getMZ();
+    }
+
     ValueType map(const MSSpectrum& spec, const Size index) const
     {
       return spec[index].getMZ();
-    }                     
-
+    }
+    ValueType map(const Mobilogram& mb, const Size index) const
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
 
     ValueTypes map(const MSSpectrum& spec) const override
     {
@@ -315,6 +361,17 @@ namespace OpenMS
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
+
+    /// set the MZ of a MobilityPeak1D (throws)
+    void fromXY(const ValueType in, MobilityPeak1D& p) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    /// set the MZ of a MobilityPeak2D (throws)
+    void fromXY(const ValueType in, MobilityPeak2D& p) const override
+    {
+      p.setMZ(in);
+    }
   };
   class OPENMS_DLLAPI DimINT final : public DimBase
   {
@@ -342,10 +399,23 @@ namespace OpenMS
     {
       return it->getIntensity();
     }
+    ValueType map(const MobilityPeak1D& p) const override
+    {
+      return p.getIntensity();
+    }
+    ValueType map(const MobilityPeak2D& p) const override
+    {
+      return p.getIntensity();
+    }
+
     ValueType map(const MSSpectrum& spec, const Size index) const
     {
       return spec[index].getIntensity();
-    } 
+    }
+    ValueType map(const Mobilogram& mb, const Size index) const
+    {
+      return mb[index].getIntensity();
+    }
 
     ValueTypes map(const MSSpectrum& spec) const override
     {
@@ -400,6 +470,16 @@ namespace OpenMS
     {
       p.setIntensity(in);
     }
+    /// set the intensity of a MobilityPeak1D
+    void fromXY(const ValueType in, MobilityPeak1D& p) const override
+    {
+      p.setIntensity(in);
+    }
+    /// set the intensity of a MobilityPeak2D
+    void fromXY(const ValueType in, MobilityPeak2D& p) const override
+    {
+      p.setIntensity(in);
+    }
   };
 
   class OPENMS_DLLAPI DimIM final : public DimBase
@@ -437,10 +517,23 @@ namespace OpenMS
     {
       return it.getDriftTime();
     }
+    ValueType map(const MobilityPeak1D& p) const override
+    {
+      return p.getMobility();
+    }
+    ValueType map(const MobilityPeak2D& p) const override
+    {
+      return p.getMobility();
+    }
+
     ValueType map(const MSSpectrum& spec, const Size index) const
     {
       return spec.getDriftTime();
-    } 
+    }
+    ValueType map(const Mobilogram& mb, const Size index) const
+    {
+      return mb[index].getMobility();
+    }
 
     ValueType map(const BaseFeature& bf) const override
     {
@@ -472,6 +565,17 @@ namespace OpenMS
     void fromXY(const ValueType in, ChromatogramPeak& p) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    /// set the IM of a MobilityPeak1D
+    void fromXY(const ValueType in, MobilityPeak1D& p) const override
+    {
+      p.setMobility(in);
+    }
+    /// set the IM of a MobilityPeak2D
+    void fromXY(const ValueType in, MobilityPeak2D& p) const override
+    {
+      p.setMobility(in);
     }
   };
   

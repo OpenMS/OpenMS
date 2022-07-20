@@ -184,7 +184,7 @@ namespace OpenMS
     //clear the map each time entries are updated with updateEntries()
     protein_to_peptide_id_map.clear();
 
-    if (is_first_time_loading_)
+    if (is_first_time_loading_ && layer_)
     {
       for (const auto& spec : *layer_->getPeakData())
       {
@@ -546,18 +546,19 @@ namespace OpenMS
     // this is a very easy check.
     // We do not check for PeptideIdentifications attached to Spectra, because the user could just
     // want the list of unidentified MS2 spectra (obtained by unchecking the 'just hits' button).
-    bool no_data = (layer == nullptr
-                || (layer->type == LayerDataBase::DT_PEAK && layer->getPeakData()->empty())
-                || (layer->type == LayerDataBase::DT_CHROMATOGRAM && layer->getChromatogramData()->empty()));
+    auto* ptr_peak = dynamic_cast<const LayerDataPeak*>(layer);
+    bool no_data = (ptr_peak == nullptr
+                    || (ptr_peak && ptr_peak->getPeakData()->empty()));
     return !no_data;
   }
 
   void SpectraIDViewTab::updateEntries(LayerDataBase* cl)
   {
-
     // do not try to be smart and check if layer_ == cl; to return early
     // since the layer content might have changed, e.g. pepIDs were added
-    layer_ = cl;
+    auto* ptr_peak = dynamic_cast<LayerDataPeak*>(cl);
+    layer_ = ptr_peak; // might be nullptr
+
     // setting "is_first_time_loading_ = true;" here currently negates the logic of creating the map only the first time
     // the data loads, but in future, after fixing the issue of calling updateEntries() multiple times, we can use it to only
     // create the map when the table data loads completely new data from idXML file. Currently the map gets created each time 

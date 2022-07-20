@@ -39,6 +39,7 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/LayerData1DBase.h>
+#include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/Painter1DBase.h>
 
@@ -55,7 +56,6 @@ class QAction;
 
 namespace OpenMS
 {
-
   class Annotation1DItem;
   
   /**
@@ -686,8 +686,9 @@ protected:
     /// Ensure that all annotations are within data range
     void ensureAnnotationsWithinDataRange_();
 
-    friend class Painter1DPeak;
     friend class Painter1DChrom;
+    friend class Painter1DPeak;
+    friend class Painter1DIonMobility;
 
     /////////////////////
     ////// data members

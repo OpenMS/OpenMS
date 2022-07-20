@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/LayerData1DChrom.h>
+#include <OpenMS/VISUAL/LayerData1DIonMobility.h>
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/Painter1DBase.h>
 
@@ -367,6 +368,107 @@ namespace OpenMS
         {
           if (!layer_->filters.passes(data, it - data.begin()))
             continue;
+
+          // use peak colors stored in the layer, if available
+          if (layer_->peak_colors_1d.size() == data.size())
+          {
+            // find correct peak index
+            const Size peak_index = std::distance(data.begin(), it);
+            pen.setColor(layer_->peak_colors_1d[peak_index]);
+            painter->setPen(pen);
+          }
+          else if (!layer_->peak_colors_1d.empty())
+          { // Warn if non-empty peak color array present but size doesn't match number of peaks
+            // This indicates a bug but we gracefully just issue a warning
+            OPENMS_LOG_ERROR << "Peak color array size (" << layer_->peak_colors_1d.size() << ") doesn't match number of peaks (" << data.size() << ") in chromatogram." << endl;
+          }
+          // draw stick
+          auto p_xy = canvas->getMapper().map(*it);
+          canvas->dataToWidget(p_xy, end, layer_->flipped);
+          canvas->dataToWidget(canvas->getGravitator().gravitateZero(p_xy), begin, layer_->flipped);
+          painter->drawLine(begin, end);
+        }
+        break;
+      }
+      case Plot1DCanvas::DrawModes::DM_CONNECTEDLINES: {
+        //---------------------DRAWING CONNECTED LINES---------------------
+
+        QPainterPath path;
+
+        // connect peaks in visible area;
+        // clipping on left and right side
+        auto v_begin_cl = v_begin;
+        if (v_begin_cl != data.cbegin() && v_begin_cl != data.cend())
+          --v_begin_cl;
+        auto v_end_cl = v_end;
+        if (v_end_cl != data.cbegin() && v_end_cl != data.cend())
+          ++v_end_cl;
+
+        bool first_point = true;
+        for (auto it = v_begin_cl; it != v_end_cl; ++it)
+        {
+          canvas->dataToWidget(canvas->getMapper().map(*it), begin, layer_->flipped);
+
+          // connect lines
+          if (first_point)
+          {
+            path.moveTo(begin);
+            first_point = false;
+          }
+          else
+          {
+            path.lineTo(begin);
+          }
+        }
+        painter->drawPath(path);
+        break;
+      }
+
+      default:
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    // draw all annotation items
+    drawAnnotations_(layer_, *painter, canvas);
+  }
+
+  // ###############################
+  // ###### 1D Mobilogram
+  // ###############################
+
+  Painter1DIonMobility::Painter1DIonMobility(const LayerData1DIonMobility* parent) : layer_(parent)
+  {
+  }
+
+  void Painter1DIonMobility::paint(QPainter* painter, Plot1DCanvas* canvas, int layer_index)
+  {
+    if (!layer_->visible)
+    {
+      return;
+    }
+
+    const auto& data = layer_->getCurrentMobilogram();
+
+    // get default peak color
+    QPen pen(QColor(String(layer_->param.getValue("peak_color").toString()).toQString()), 1);
+    pen.setStyle(canvas->peak_penstyle_[layer_index]);
+    painter->setPen(pen);
+
+    // draw dashed elongations for pairs of peaks annotated with a distance
+    const QColor color = String(canvas->param_.getValue("highlighted_peak_color").toString()).toQString();
+
+    const auto v_begin = data.MBBegin(canvas->visible_area_.getAreaUnit().getMinMobility());
+    const auto v_end = data.MBEnd(canvas->visible_area_.getAreaUnit().getMaxMobility());
+    QPoint begin, end;
+    switch (canvas->draw_modes_[layer_index])
+    {
+      case Plot1DCanvas::DrawModes::DM_PEAKS: {
+        //---------------------DRAWING PEAKS---------------------
+
+        for (auto it = v_begin; it != v_end; ++it)
+        {
+          //if (!layer_->filters.passes(data, it - data.begin()))
+          //  continue;
 
           // use peak colors stored in the layer, if available
           if (layer_->peak_colors_1d.size() == data.size())

@@ -427,27 +427,21 @@ namespace OpenMS
     return finishAdding_();
   }
 
-  bool PlotCanvas::addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String& filename, const bool use_noise_cutoff)
+  bool PlotCanvas::addPeakLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String& filename, const bool use_noise_cutoff)
   {
-    // both empty
-    if (!map->getChromatograms().empty() && !map->empty())
+    if (map->getSpectra().empty())
     {
-      // TODO : handle this case better
-      OPENMS_LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
+      auto msg = "Your input data contains no spectra. Not adding layer.";
+      OPENMS_LOG_WARN << msg << std::endl;
+      QMessageBox::critical(this, "Error", msg);
+      return false;
     }
 
-    LayerDataBaseUPtr new_layer;
-    // check which one is empty
-    if (!map->getChromatograms().empty() && map->empty())
-    {
-      if (dynamic_cast<Plot1DCanvas*>(this)) new_layer.reset(new LayerData1DChrom);
-      else new_layer.reset(new LayerDataChrom);
-    }
+    LayerDataPeakUPtr new_layer;
+    if (dynamic_cast<Plot1DCanvas*>(this))
+      new_layer.reset(new LayerData1DPeak);
     else
-    {
-      if (dynamic_cast<Plot1DCanvas*>(this)) new_layer.reset(new LayerData1DPeak);
-      else new_layer.reset(new LayerDataPeak);
-    }
+      new_layer.reset(new LayerDataPeak);
     new_layer->setPeakData(map);
     new_layer->setOnDiscPeakData(od_map);
 
@@ -475,9 +469,34 @@ namespace OpenMS
     return finishAdding_();
   }
 
+  
+  bool PlotCanvas::addChromLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String& filename)
+  {
+    if (map->getChromatograms().empty())
+    {
+      auto msg = "Your input data contains no chromatograms. Not adding layer.";
+      OPENMS_LOG_WARN << msg << std::endl;
+      QMessageBox::critical(this, "Error", msg);
+      return false;
+    }
+
+    LayerDataChromUPtr new_layer;
+    if (dynamic_cast<Plot1DCanvas*>(this))
+      new_layer.reset(new LayerData1DChrom);
+    else
+      new_layer.reset(new LayerDataChrom);
+    new_layer->setChromData(map);
+    new_layer->setOnDiscPeakData(od_map);
+
+    setBaseLayerParameters(new_layer.get(), param_, filename);
+    layers_.addLayer(std::move(new_layer));
+
+    return finishAdding_();
+  }
+
   bool PlotCanvas::addLayer(FeatureMapSharedPtrType map, const String& filename)
   {
-    LayerDataBaseUPtr new_layer(new LayerDataFeature);
+    LayerDataFeatureUPtr new_layer(new LayerDataFeature);
     new_layer->getFeatureMap() = map;
 
     setBaseLayerParameters(new_layer.get(), param_, filename);
@@ -730,22 +749,22 @@ namespace OpenMS
     MetaDataBrowser dlg(modifiable, this);
     if (index == -1)
     {
-      if (layer.type == LayerDataBase::DT_PEAK)
+      if (auto lp = dynamic_cast<LayerDataPeak*>(&layer))
       {
-        dlg.add(*layer.getPeakDataMuteable());
+        dlg.add(*lp->getPeakDataMuteable());
         // Exception for Plot1DCanvas, here we add the meta data of the one spectrum
-        if (auto lp = dynamic_cast<LayerData1DPeak*>(&layer))
+        if (auto lp1 = dynamic_cast<LayerData1DPeak*>(&layer))
         {
-          dlg.add((*lp->getPeakDataMuteable())[lp->getCurrentIndex()]);
+          dlg.add((*lp1->getPeakDataMuteable())[lp1->getCurrentIndex()]);
         }
       }
-      else if (layer.type == LayerDataBase::DT_FEATURE)
+      if (auto lp = dynamic_cast<LayerDataFeature*>(&layer))
       {
-        dlg.add(*layer.getFeatureMap());
+        dlg.add(*lp->getFeatureMap());
       }
-      else if (layer.type == LayerDataBase::DT_CONSENSUS)
+      if (auto lp = dynamic_cast<LayerDataConsensus*>(&layer))
       {
-        dlg.add(*layer.getConsensusMap());
+        dlg.add(*lp->getConsensusMap());
       }
       else if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
       {
@@ -758,17 +777,17 @@ namespace OpenMS
     }
     else // show element meta data
     {
-      if (layer.type == LayerDataBase::DT_PEAK)
+      if (auto lp = dynamic_cast<LayerDataPeak*>(&layer))
       {
-        dlg.add((*layer.getPeakDataMuteable())[index]);
+        dlg.add((*lp->getPeakDataMuteable())[index]);
       }
-      else if (layer.type == LayerDataBase::DT_FEATURE)
+      else if (auto lp = dynamic_cast<LayerDataFeature*>(&layer))
       {
-        dlg.add((*layer.getFeatureMap())[index]);
+        dlg.add((*lp->getFeatureMap())[index]);
       }
-      else if (layer.type == LayerDataBase::DT_CONSENSUS)
+      else if (auto lp = dynamic_cast<LayerDataConsensus*>(&layer))
       {
-        dlg.add((*layer.getConsensusMap())[index]);
+        dlg.add((*lp->getConsensusMap())[index]);
       }
       else if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
       {

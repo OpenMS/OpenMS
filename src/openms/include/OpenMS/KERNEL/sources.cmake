@@ -18,6 +18,7 @@ FeatureHandle.h
 FeatureMap.h
 MassTrace.h
 MobilityPeak1D.h
+MobilityPeak2D.h
 Mobilogram.h
 MRMFeature.h
 MRMTransitionGroup.h

@@ -45,15 +45,18 @@
 #include <OpenMS/VISUAL/DIALOGS/FeatureEditDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot2DPrefDialog.h>
 #include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
+#include <OpenMS/VISUAL/LayerDataConsensus.h>
+#include <OpenMS/VISUAL/LayerDataFeature.h>
+#include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
+#include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
 //STL
 #include <algorithm>
 
 //QT
-#include <QBitmap>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPolygon>
@@ -139,283 +142,9 @@ namespace OpenMS
     // constructing area around the current mouse position
     auto a = visible_area_;
     a.setArea(VisibleArea::AreaXYType(widgetToData_(pos - QPoint(5, 5)), widgetToData_(pos + QPoint(5, 5))));
-
-    float max_int = numeric_limits<float>::lowest();
-    PeakIndex max_pi;
-    const auto& searched_area = a.getAreaUnit();
-    if (getCurrentLayer().type == LayerDataBase::DT_PEAK)
-    {
-      for (ExperimentType::ConstAreaIterator i = getCurrentLayer().getPeakData()->areaBeginConst(searched_area);
-           i != getCurrentLayer().getPeakData()->areaEndConst();
-           ++i)
-      {
-        PeakIndex pi = i.getPeakIndex();
-        if (i->getIntensity() > max_int && getCurrentLayer().filters.passes((*getCurrentLayer().getPeakData())[pi.spectrum], pi.peak))
-        {
-          max_int = i->getIntensity();
-          max_pi = pi;
-        }
-      }
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_FEATURE)
-    {
-      for (FeatureMapType::ConstIterator i = getCurrentLayer().getFeatureMap()->begin();
-           i != getCurrentLayer().getFeatureMap()->end();
-           ++i)
-      {
-        if (searched_area.containsRT(i->getRT()) &&
-            searched_area.containsMZ(i->getMZ()) &&
-            getCurrentLayer().filters.passes(*i))
-        {
-          if (i->getIntensity() > max_int)
-          {
-            max_int = i->getIntensity();
-            max_pi = PeakIndex(i - getCurrentLayer().getFeatureMap()->begin());
-          }
-        }
-      }
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_CONSENSUS)
-    {
-      for (ConsensusMapType::ConstIterator i = getCurrentLayer().getConsensusMap()->begin();
-           i != getCurrentLayer().getConsensusMap()->end();
-           ++i)
-      {
-        // consensus feature in visible area?
-        if (searched_area.containsRT(i->getRT()) &&
-            searched_area.containsMZ(i->getMZ()) &&
-            getCurrentLayer().filters.passes(*i))
-        {
-          if (i->getIntensity() > max_int)
-          {
-            max_int = i->getIntensity();
-            max_pi = PeakIndex(i - getCurrentLayer().getConsensusMap()->begin());
-          }
-        }
-      }
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM)
-    {
-      const LayerDataBase& layer = getCurrentLayer();
-      const PeakMap& exp = *layer.getPeakData();
-      
-      int count {-1};
-      for (const auto& chrom : exp.getChromatograms())
-      {
-        ++count;
-        if (chrom.empty())
-        {
-          continue;   // ensure that empty chromatograms are not examined (iter->front = segfault)
-        } 
-
-        auto mz_origin = chrom.getPrecursor().getMZ();
-
-        // check m/z first
-        if (searched_area.containsMZ(mz_origin))
-        {
-          // the center point's RT should be inside the RT range of the chromatogram
-          if (RangeRT(chrom.front().getRT(), chrom.back().getRT()).containsRT(searched_area.RangeRT::center()))
-          {
-            return PeakIndex(count, 0); // we only care about the chrom, not the peak inside
-          }
-        }
-      }
-    }
-    else if (getCurrentLayer().type == LayerDataBase::DT_IDENT)
-    {
-      //TODO IDENT
-    }
-
-    return max_pi;
+    return getCurrentLayer().findHighestDataPoint(a.getAreaUnit());
   }
-
-  void Plot2DCanvas::paintDots_(Size layer_index, QPainter & painter)
-  {
-    const LayerDataBase& layer = getLayer(layer_index);
-
-    //update factors (snap and percentage)
-    double snap_factor = snap_factors_[layer_index];
-    percentage_factor_ = 1.0;
-    if (intensity_mode_ == IM_PERCENTAGE)
-    {
-      if (layer.getMaxIntensity() > 0)
-      {
-        percentage_factor_ = overall_data_range_.getMaxIntensity() / layer.getMaxIntensity();
-      }
-    }
-
-    if (layer.type == LayerDataBase::DT_PEAK)   //peaks
-    {
-      // renaming some values for readability
-      const ExperimentType & peak_map = *layer.getPeakData();
-
-      // skip empty peak maps
-      if (peak_map.empty())
-      {
-        return;
-      }
-
-      const auto [rt_min, rt_max] = visible_area_.getAreaUnit().RangeRT::getNonEmptyRange();
-      const auto [mz_min, mz_max] = visible_area_.getAreaUnit().RangeMZ::getNonEmptyRange();
-      const auto [im_min, im_max] = visible_area_.getAreaUnit().RangeMobility::getNonEmptyRange();
-
-      //-----------------------------------------------------------------------------------------------
-      // Determine number of shown scans (MS1)
-      std::vector<Size> scan_indices; // list of visible RT/IM scans in MS1 with at least 2 points
-      const auto rt_end = peak_map.RTEnd(rt_max);
-      for (ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min); it != rt_end; ++it)
-      {
-        if (it->getMSLevel() == 1 && it->size() > 1 && Math::contains(it->getDriftTime(), im_min, im_max))
-        {
-          scan_indices.push_back(std::distance(peak_map.begin(), it));
-        }
-      }
-      Size n_ms1_scans = scan_indices.size();
-
-      if (n_ms1_scans > 0)
-      {
-        // sample #of points at 3 scan locations (25%, 50%, 75%)
-        // and take the median value
-        Size n_peaks_in_scan(0);
-        {
-          static constexpr std::array<double, 3> quantiles = {0.25, 0.50, 0.75};
-          std::array<Size, quantiles.size()> n_s;
-          for (int i = 0; i < quantiles.size(); ++i)
-          {
-            const ExperimentType::SpectrumType& spec = peak_map[scan_indices[n_ms1_scans * quantiles[i]]];
-            if (!spec.isSorted())
-              throw Exception::BaseException();
-            n_s[i] = std::distance(spec.MZBegin(mz_min), spec.MZEnd(mz_max));
-
-          }
-          std::sort(n_s.begin(), n_s.end());
-          n_peaks_in_scan = n_s[1]; // median
-        }
-
-        int rt_pixel_count, mz_pixel_count;
-        { // obtain number of pixels in RT/IM and MZ dimension
-          auto tmp = getPixelRange().getAreaUnit();
-          rt_pixel_count = tmp.RangeRT::isEmpty()? tmp.getMaxMobility() : tmp.getMaxRT();
-          mz_pixel_count = tmp.getMaxMZ();
-        }
-        double ratio_data2pixel_rt = n_ms1_scans / (double)rt_pixel_count;
-        double ratio_data2pixel_mz = n_peaks_in_scan / (double)mz_pixel_count;
-
-  #ifdef DEBUG_TOPPVIEW
-        std::cerr << rt_min << ":" << rt_max <<"   " << mz_min << ":" << mz_max << "\n";
-        std::cerr << n_ms1_scans << "rt " << n_peaks_in_scan << "ms\n";
-        std::cerr << rt_pixel_count << " x " << mz_pixel_count << " px\n";
-        std::cerr << ratio_data2pixel_rt << " " << ratio_data2pixel_mz << " ratio\n";
-  #endif
-        // minimum fraction of image expected to be filled with data
-        // if not reached, we upscale point size
-        bool has_low_pixel_coverage = ratio_data2pixel_rt < canvas_coverage_min_ || ratio_data2pixel_mz < canvas_coverage_min_;
-
-        // Are several peaks expected to be drawn on the same pixel in either RT or m/z?
-        // --> thin out and show only maxima
-        // Also, we cannot upscale in this mode (since we operate on the buffer directly, i.e. '1 data point == 1 pixel'
-        if (!has_low_pixel_coverage && (n_peaks_in_scan > mz_pixel_count || n_ms1_scans > rt_pixel_count))
-        {
-          paintMaximumIntensities_(layer_index, rt_pixel_count, mz_pixel_count, painter);
-        }
-        else
-        { // this is slower to paint, but allows scaling points
-          // when data is zoomed in to single peaks these are visualized as circles
-
-          // compute ideal pen width (from data);
-          // since points are rectangular, we take the value of the most "crowded" dimension
-          // i.e. so that adjacent points do not overlap
-          double pen_width = std::min(1/ratio_data2pixel_rt, 1/ratio_data2pixel_mz);
-          // ... and make sure its within our boundaries
-          pen_width = std::max(pen_width, pen_size_min_);
-          pen_width = std::min(pen_width, pen_size_max_);
-  #ifdef DEBUG_TOPPVIEW
-          std::cerr << "pen-width " << pen_width << "\n";
-  #endif
-          // However: if one dimension is sparse (e.g. only a few, but very long scans), we want to
-          //          avoid showing lots of white background by increasing point size
-          // This might lead to 'overplotting', but the paint method below can deal with it since
-          // it will paint high intensities last.
-          adaptPenScaling_(ratio_data2pixel_mz, pen_width);
-          adaptPenScaling_(ratio_data2pixel_rt, pen_width);
-  #ifdef DEBUG_TOPPVIEW
-          std::cerr << "new pen: " << pen_width << "\n";
-  #endif
-
-          // few data points expected: more expensive drawing of all data points (circles or points depending on zoom level)
-          paintAllIntensities_(layer_index, pen_width, painter);
-        }
-
-      } // end of no-scans check
-
-      //-----------------------------------------------------------------
-      //draw precursor peaks
-      if (getLayerFlag(layer_index, LayerDataBase::P_PRECURSORS))
-      {
-        paintPrecursorPeaks_(layer_index, painter);
-      }
-    }
-    else if (layer.type == LayerDataBase::DT_FEATURE)   //features
-    {
-      paintFeatureData_(layer_index, painter);
-    }
-    else if (layer.type == LayerDataBase::DT_CONSENSUS)  // consensus features
-    {
-      String icon = layer.param.getValue("dot:feature_icon").toString();
-      Size icon_size = layer.param.getValue("dot:feature_icon_size");
-
-      for (const auto& cf : *layer.getConsensusMap())
-      {
-        if (visible_area_.getAreaUnit().containsRT(cf.getRT()) &&
-            visible_area_.getAreaUnit().containsMZ(cf.getMZ()) &&
-            layer.filters.passes(cf))
-        {
-          // determine color
-          QColor color;
-          if (cf.metaValueExists(5))
-          {
-            color = cf.getMetaValue(5).toQString();
-          }
-          else
-          {
-            // use intensity as color
-            color = heightColor_(cf.getIntensity(), layer.gradient, snap_factor);
-          }
-
-          // paint
-          auto pos_unit = unit_mapper_.map(cf);
-          paintIcon_(dataToWidget_(pos_unit), color.rgb(), icon, icon_size, painter);
-        }
-      }
-    }
-    else if (layer.type == LayerDataBase::DT_CHROMATOGRAM) // chromatograms
-    {
-      const PeakMap& exp = *layer.getPeakData();
-      //TODO CHROM implement layer filters
-
-      // paint chromatogram rt start and end as line
-      float mz_origin = 0;
-
-      QPoint posi;
-      QPoint posi2;
-      for (const auto& chrom : exp.getChromatograms())
-      {
-        if (chrom.empty())
-        {
-          continue;
-        }
-        mz_origin = chrom.getPrecursor().getMZ();
-        posi = dataToWidget_(unit_mapper_.map(Peak2D {{chrom.front().getRT(), mz_origin}, 0}));
-        posi2 = dataToWidget_(unit_mapper_.map(Peak2D {{chrom.back().getRT(), mz_origin}, 0}));
-        painter.drawLine(posi.x(), posi.y(), posi2.x(), posi2.y());
-      }
-    }
-    else if (layer.type == LayerDataBase::DT_IDENT)   // peptide identifications
-    {
-      paintIdentifications_(layer_index, painter);
-    }
-  }
-
+  
   double Plot2DCanvas::adaptPenScaling_(double ratio_data2pixel, double& pen_width) const
   {
     // is the coverage OK using current pen width?
@@ -435,484 +164,6 @@ namespace OpenMS
     return merge_factor;
   }
 
-
-  void Plot2DCanvas::paintPrecursorPeaks_(Size layer_index, QPainter & painter)
-  {
-    const LayerDataBase& layer = getLayer(layer_index);
-    const ExperimentType & peak_map = *layer.getPeakData();
-
-    QPen p;
-    p.setColor(Qt::black);
-    painter.setPen(p);
-
-    ExperimentType::ConstIterator it_prec = peak_map.end();
-    ExperimentType::ConstIterator it_end = peak_map.RTEnd(visible_area_.getAreaUnit().getMaxRT());
-    for (ExperimentType::ConstIterator it = peak_map.RTBegin(visible_area_.getAreaUnit().getMinRT());
-         it != it_end;
-         ++it)
-    {
-      // remember last precursor spectrum (do not call it->getPrecursorSpectrum(), since it can be very slow if no MS1 data is present)
-      if (it->getMSLevel() == 1)
-      {
-        it_prec = it;
-      }
-      else if (it->getMSLevel() == 2 && !it->getPrecursors().empty())
-      { // this is an MS/MS scan
-        QPoint pos_ms2 = dataToWidget_(it->getPrecursors()[0].getMZ(), it->getRT()); // position of precursor in MS2
-        const int x2 = pos_ms2.x();
-        const int y2 = pos_ms2.y();
-
-        if (it_prec != peak_map.end())
-        {
-          QPoint pos_ms1 = dataToWidget_(it->getPrecursors()[0].getMZ(), it_prec->getRT()); // position of precursor in MS1
-          const int x = pos_ms1.x();
-          const int y = pos_ms1.y();
-          // diamond shape in MS1
-          painter.drawLine(x, y + 3, x + 3, y);
-          painter.drawLine(x + 3, y, x, y - 3);
-          painter.drawLine(x, y - 3, x - 3, y);
-          painter.drawLine(x - 3, y, x, y + 3);
-
-          // rt position of corresponding MS2
-          painter.drawLine(x2 - 3, y2, x2 + 3, y2);
-          painter.drawLine(x, y, x2, y2);
-        }
-        else // no preceding MS1
-        {
-          // rt position of corresponding MS2 (cross)
-          painter.drawLine(x2 - 3, y2, x2 + 3, y2);
-          painter.drawLine(x2, y2 - 3, x2, y2 + 3);
-        }
-      }
-    }
-  }
-
-  void Plot2DCanvas::paintAllIntensities_(Size layer_index, double pen_width, QPainter & painter)
-  {
-    const LayerDataBase& layer = getLayer(layer_index);
-    Int image_width = buffer_.width();
-    Int image_height = buffer_.height();
-    QVector<QPolygon> coloredPoints( (int)layer.gradient.precalculatedSize() );
-
-    const ExperimentType& map = *layer.getPeakData();
-    const double rt_min = visible_area_.getAreaUnit().getMinRT();
-    const double rt_max = visible_area_.getAreaUnit().getMaxRT();
-    const double mz_min = visible_area_.getAreaUnit().getMinMZ();
-    const double mz_max = visible_area_.getAreaUnit().getMaxMZ();
-
-    double snap_factor = snap_factors_[layer_index];
-    const auto end_area = map.areaEndConst();
-
-    for (ExperimentType::ConstAreaIterator i = map.areaBeginConst(rt_min, rt_max, mz_min, mz_max);
-         i != end_area;
-         ++i)
-    {
-      PeakIndex pi = i.getPeakIndex();
-      if (layer.filters.passes(map[pi.spectrum], pi.peak))
-      {
-        auto from = unit_mapper_.map(i);
-        QPoint pos = dataToWidget_(from.getX(), from.getY());
-        // store point in the array of its color
-        Int colorIndex = precalculatedColorIndex_(i->getIntensity(), layer.gradient, snap_factor);
-        coloredPoints[ colorIndex ].push_back( pos );
-      }
-    }
-    // draw point arrays from minimum to maximum intensity,
-    // avoiding low-intensity points obscuring the high-intensity ones
-    painter.save();
-    QPen newPointsPen;
-    newPointsPen.setWidthF( pen_width );
-    for ( Int colorIx = 0; colorIx < coloredPoints.size(); colorIx++ ) {
-        const QPolygon& pointsArr = coloredPoints[colorIx];
-        if ( pointsArr.size() ) {
-            newPointsPen.setColor( layer.gradient.precalculatedColorByIndex( colorIx ) );
-            painter.setPen( newPointsPen );
-            painter.drawPoints( pointsArr );
-        }
-    }
-    painter.restore();
-  }
-
-  void Plot2DCanvas::paintMaximumIntensities_(Size layer_index, Size rt_pixel_count, Size mz_pixel_count, QPainter& painter)
-  {
-    //set painter to black (we operate directly on the pixels for all colored data)
-    painter.setPen(Qt::black);
-
-    const LayerDataBase& layer = getLayer(layer_index);
-    const ExperimentType& map = *layer.getPeakData();
-    const double rt_min = visible_area_.getAreaUnit().getMinRT();
-    const double rt_max = visible_area_.getAreaUnit().getMaxRT();
-    const double mz_min = visible_area_.getAreaUnit().getMinMZ();
-    const double mz_max = visible_area_.getAreaUnit().getMaxMZ();
-
-    double snap_factor = snap_factors_[layer_index];
-
-    double max_data_RT = map.getMaxRT();
-
-    //calculate pixel size in data coordinates
-    double rt_step_size = (rt_max - rt_min) / rt_pixel_count;
-    double mz_step_size = (mz_max - mz_min) / mz_pixel_count;
-
-    // start at first visible RT scan
-    Size scan_index = std::distance(map.begin(), map.RTBegin(rt_min));
-    vector<Size> scan_indices, peak_indices;
-    // iterate over all pixels (RT dimension)
-    for (Size rt = 0; rt < rt_pixel_count; ++rt)
-    {
-      // interval in data coordinates for the current pixel
-      double rt_start = rt_min + rt_step_size * rt;
-      double rt_end = rt_start + rt_step_size;
-      //cout << "rt: " << rt << " (" << rt_start << " - " << rt_end << ")" << endl;
-
-      // reached the end of data
-      if (rt_end >= max_data_RT)
-      {
-        break;
-      }
-      // determine the relevant spectra and reserve an array for the peak indices
-      scan_indices.clear();
-      peak_indices.clear();
-      for (Size i = scan_index; i < map.size(); ++i)
-      {
-        const auto& spec = map[i];
-        if (spec.getRT() >= rt_end)
-        {
-          scan_index = i;   //store last scan index for next RT pixel
-          break;
-        }
-        if (spec.getMSLevel() == 1 && !spec.empty())
-        {
-          scan_indices.push_back(i);
-          peak_indices.push_back(spec.MZBegin(mz_min) - spec.begin());
-        }
-      }
-      //cout << "  scans: " << scan_indices.size() << endl;
-
-      if (scan_indices.empty())
-      {
-        continue;
-      }
-      
-      // iterate over all pixels (m/z dimension)
-      for (Size mz = 0; mz < mz_pixel_count; ++mz)
-      {
-        double mz_start = mz_min + mz_step_size * mz;
-        double mz_end = mz_start + mz_step_size;
-
-        //iterate over all relevant peaks in all relevant scans
-        float max = -1.0;
-        for (Size i = 0; i < scan_indices.size(); ++i)
-        {
-          Size s = scan_indices[i];
-          Size p = peak_indices[i];
-          const auto& spec = map[s];
-          for (; p < spec.size(); ++p)
-          {
-            if (spec[p].getMZ() >= mz_end)
-            {
-              break;
-            }
-            if (spec[p].getIntensity() > max && layer.filters.passes(spec, p))
-            {
-              max = spec[p].getIntensity();
-            }
-          }
-          peak_indices[i] = p;   // store last peak index for next m/z pixel
-        }
-
-        // draw to buffer
-        if (max >= 0.0)
-        {
-          Peak2D mz_peak { {rt_start + 0.5 * rt_step_size, mz_start + 0.5 * mz_step_size}, 0};
-          QPoint pos = dataToWidget_(unit_mapper_.map(mz_peak));
-          buffer_.setPixel(pos.x(), pos.y(), heightColor_(max, layer.gradient, snap_factor).rgb());
-        }
-      }
-    }
-  }
-
-  void Plot2DCanvas::paintFeatureData_(Size layer_index, QPainter& painter)
-  {
-    const LayerDataBase& layer = getLayer(layer_index);
-    double snap_factor = snap_factors_[layer_index];
-    Int image_width = buffer_.width();
-    Int image_height = buffer_.height();
-
-    int line_spacing = QFontMetrics(painter.font()).lineSpacing();
-    String icon = layer.param.getValue("dot:feature_icon").toString();
-    Size icon_size = layer.param.getValue("dot:feature_icon_size");
-    bool show_label = (layer.label != LayerDataBase::L_NONE);
-    UInt num = 0;
-    for (const auto& f : *layer.getFeatureMap())
-    {
-      if (visible_area_.getAreaUnit().containsRT(f.getRT()) &&
-          visible_area_.getAreaUnit().containsMZ(f.getMZ()) &&
-          layer.filters.passes(f))
-      {
-        // determine color
-        QColor color;
-        if (f.metaValueExists(5))
-        {
-          color = QColor(f.getMetaValue(5).toQString());
-        }
-        else
-        {
-          color = heightColor_(f.getIntensity(), layer.gradient, snap_factor);
-        }
-        // paint
-        QPoint pos = dataToWidget_(unit_mapper_.map(f));
-        paintIcon_(pos, color.rgb(), icon, icon_size, painter);
-        // labels
-        if (show_label)
-        {
-          if (layer.label == LayerDataBase::L_INDEX)
-          {
-            painter.setPen(Qt::darkBlue);
-            painter.drawText(pos.x() + 10, pos.y() + 10, QString::number(num));
-          }
-          else if ((layer.label == LayerDataBase::L_ID || layer.label == LayerDataBase::L_ID_ALL) && !f.getPeptideIdentifications().empty() && !f.getPeptideIdentifications()[0].getHits().empty())
-          {
-            painter.setPen(Qt::darkGreen);
-            Size maxHits = (layer.label == LayerDataBase::L_ID_ALL) ? f.getPeptideIdentifications()[0].getHits().size() : 1;
-            for (Size j = 0; j < maxHits; ++j)
-            {
-              painter.drawText(pos.x() + 10, pos.y() + 10 + int(j) * line_spacing, f.getPeptideIdentifications()[0].getHits()[j].getSequence().toString().toQString());
-            }
-          }
-          else if (layer.label == LayerDataBase::L_META_LABEL)
-          {
-            painter.setPen(Qt::darkBlue);
-            painter.drawText(pos.x() + 10, pos.y() + 10, f.getMetaValue(3).toQString());
-          }
-        }
-      }
-      ++num;
-    }
-  }
-
-  void Plot2DCanvas::paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p) const
-  {
-    p.save();
-    p.setPen(color);
-    p.setBrush(QBrush(QColor(color), Qt::SolidPattern));
-
-    int s_half = (int)s / 2;
-
-    if (icon == "diamond")
-    {
-      QPolygon pol;
-      pol.putPoints(0, 4, pos.x() + s_half, pos.y(),
-                    pos.x(), pos.y() + s_half,
-                    pos.x() - (int)s_half, pos.y(),
-                    pos.x(), pos.y() - (int)s_half);
-      p.drawConvexPolygon(pol);
-    }
-    else if (icon == "square")
-    {
-      QPolygon pol;
-      pol.putPoints(0, 4, pos.x() + s_half, pos.y() + s_half,
-                    pos.x() - s_half, pos.y() + s_half,
-                    pos.x() - s_half, pos.y() - s_half,
-                    pos.x() + s_half, pos.y() - s_half);
-      p.drawConvexPolygon(pol);
-    }
-    else if (icon == "circle")
-    {
-      p.drawEllipse(QRectF(pos.x() - s_half, pos.y() - s_half, s, s));
-    }
-    else if (icon == "triangle")
-    {
-      QPolygon pol;
-      pol.putPoints(0, 3, pos.x(), pos.y() + s_half,
-                    pos.x() + s_half, pos.y() - (int)s_half,
-                    pos.x() - (int)s_half, pos.y() - (int)s_half);
-      p.drawConvexPolygon(pol);
-    }
-    p.restore();
-  }
-
-  void Plot2DCanvas::paintTraceConvexHulls_(Size layer_index, QPainter & painter)
-  {
-    painter.setPen(Qt::black);
-
-    const LayerDataBase& layer = getLayer(layer_index);
-    for (const auto& f : *layer.getFeatureMap())
-    {
-      if (visible_area_.getAreaUnit().containsRT(f.getRT()) &&
-          visible_area_.getAreaUnit().containsMZ(f.getMZ()) &&
-          layer.filters.passes(f)
-          )
-      {
-        bool hasIdentifications = !f.getPeptideIdentifications().empty()
-                               && !f.getPeptideIdentifications()[0].getHits().empty();
-        paintConvexHulls_(f.getConvexHulls(), hasIdentifications, painter);
-      }
-    }
-  }
-
-  void Plot2DCanvas::paintFeatureConvexHulls_(Size layer_index, QPainter & painter)
-  {
-    const LayerDataBase& layer = getLayer(layer_index);
-    for (const auto& f : *layer.getFeatureMap())
-    {
-      if (visible_area_.getAreaUnit().containsRT(f.getRT()) &&
-          visible_area_.getAreaUnit().containsMZ(f.getMZ()) &&
-          layer.filters.passes(f)
-          )
-      {
-        paintConvexHull_(f.getConvexHull(), !f.getPeptideIdentifications().empty() && !f.getPeptideIdentifications()[0].getHits().empty(), painter);
-      }
-    }
-  }
-
-  void Plot2DCanvas::paintIdentifications_(Size layer_index, QPainter& painter)
-  {
-    // check if the layer implements the IPeptideIDs interface, i.e. does it have IDs?
-    auto p = dynamic_cast <IPeptideIds*>(&getLayer(layer_index));
-    if (p == nullptr) return;
-
-    painter.setPen(Qt::darkRed);
-    bool show_labels = getLayerFlag(layer_index, LayerDataBase::I_LABELS);
-
-    for (const auto& id : p->getPeptideIds())
-    {
-      if (!id.getHits().empty() || show_labels)
-      {
-        if (!id.hasRT() ||
-            !id.hasMZ())
-        {
-          // TODO: show error message here
-          continue;
-        }
-        double rt = id.getRT();
-        if (!visible_area_.getAreaUnit().containsRT(rt))
-        {
-          continue;
-        }
-        double mz = getIdentificationMZ_(layer_index, id);
-        if (!visible_area_.getAreaUnit().containsMZ(mz))
-        {
-          continue;
-        }
-        // draw dot
-        QPoint pos = dataToWidget_(unit_mapper_.map(id));
-        painter.drawLine(pos.x(), pos.y() - 1.0, pos.x(), pos.y() + 1.0);
-        painter.drawLine(pos.x() - 1.0, pos.y(), pos.x() + 1.0, pos.y());
-
-        // draw sequence
-        String sequence;
-        if (show_labels)
-        {
-          sequence = id.getMetaValue("label");
-        }
-        else
-        {
-          sequence = id.getHits()[0].getSequence().toString();
-        }
-        if (sequence.empty() && !id.getHits().empty())
-        {
-          sequence = id.getHits()[0].getMetaValue("label");
-        }
-        if (id.getHits().size() > 1) sequence += "...";
-        painter.drawText(pos.x() + 10.0, pos.y() + 10.0, sequence.toQString());
-      }
-    }
-  }
-
-  void Plot2DCanvas::paintConvexHull_(const ConvexHull2D& hull, bool has_identifications, QPainter& painter)
-  {
-    QPolygon points;
-    ConvexHull2D::PointArrayType ch_points = hull.getHullPoints();
-    points.resize((int)ch_points.size());
-    UInt index = 0;
-    QPoint pos;
-    // iterate over hull points
-    for (ConvexHull2D::PointArrayType::const_iterator it = ch_points.begin(); it != ch_points.end(); ++it, ++index)
-    {
-      Peak2D ms_peak({it->getX(), it->getY()}, 0); // assume that CH of a feature is RT and m/z
-      points.setPoint(index, dataToWidget_(unit_mapper_.map(ms_peak)));
-    }
-    painter.setPen(QPen(Qt::white, 5, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin));
-    painter.drawPolygon(points);
-    painter.setPen(QPen(has_identifications ? Qt::green : Qt::blue, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-    painter.drawPolygon(points);
-  }
-
-  void Plot2DCanvas::paintConvexHulls_(const vector<ConvexHull2D>& hulls, bool has_identifications, QPainter& painter)
-  {
-    for (const auto& hull : hulls)
-    {
-      paintConvexHull_(hull, has_identifications, painter);
-    }
-  }
-
-  void Plot2DCanvas::paintConsensusElements_(Size layer_index, QPainter& p)
-  {
-    const LayerDataBase& layer = getLayer(layer_index);
-    for (const auto& cf : *layer.getConsensusMap())
-    {
-      paintConsensusElement_(layer_index, cf, p, true);
-    }
-  }
-
-  void Plot2DCanvas::paintConsensusElement_(Size layer_index, const ConsensusFeature& cf, QPainter& p, bool use_buffer)
-  {
-    const LayerDataBase& layer = getLayer(layer_index);
-    // Is CF or any of its handles visible?
-    if (!isConsensusFeatureVisible_(cf, layer_index) && layer.filters.passes(cf)) return;
-
-    // calculate position of consensus feature (centroid)
-    QPoint consensus_pos = dataToWidget_(unit_mapper_.map(cf));
-    // iterate over elements
-    for (const FeatureHandle& element : cf)
-    {
-      // calculate position of consensus element
-      QPoint pos = dataToWidget_(unit_mapper_.map(element));
-      // paint line
-      p.drawLine(consensus_pos, pos);
-      // use buffer only when not highlighting
-      if (use_buffer)
-      {
-        buffer_.setPixel(pos.x(), pos.y(), Qt::black);
-        buffer_.setPixel(pos.x() - 1, pos.y(), Qt::black);
-        buffer_.setPixel(pos.x() + 1, pos.y(), Qt::black);
-        buffer_.setPixel(pos.x(), pos.y() - 1, Qt::black);
-        buffer_.setPixel(pos.x(), pos.y() + 1, Qt::black);
-      }
-      else
-      {
-        p.drawPoint(pos.x(), pos.y());
-        p.drawPoint(pos.x() - 1, pos.y());
-        p.drawPoint(pos.x() + 1, pos.y());
-        p.drawPoint(pos.x(), pos.y() - 1);
-        p.drawPoint(pos.x(), pos.y() + 1);
-      }
-    }
-  }
-
-  bool Plot2DCanvas::isConsensusFeatureVisible_(const ConsensusFeature& cf, Size layer_index)
-  {
-    // check the centroid first
-    if (visible_area_.getAreaUnit().containsRT(cf.getRT()) &&
-        visible_area_.getAreaUnit().containsMZ(cf.getMZ()))
-    {
-      return true;
-    }
-
-    // if element-flag is set, check if any of the consensus elements is visible
-    if (getLayerFlag(layer_index, LayerDataBase::C_ELEMENTS))
-    {
-      for (const auto& ce : cf.getFeatures())
-      {
-        if (visible_area_.getAreaUnit().containsRT(ce.getRT()) &&
-            visible_area_.getAreaUnit().containsMZ(ce.getMZ()))
-        {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
 
   void Plot2DCanvas::intensityModeChange_()
   {
@@ -1112,24 +363,23 @@ namespace OpenMS
         if (getLayer(i).visible)
         {
           auto local_max  = -numeric_limits<Peak1D::IntensityType>::max();
-          if (getLayer(i).type == LayerDataBase::DT_PEAK)
+          if (auto* lp = dynamic_cast<LayerDataPeak*>(&getLayer(i)))
           {
-            for (ExperimentType::ConstAreaIterator it = getLayer(i).getPeakData()->areaBeginConst(visible_area_.getAreaUnit().getMinRT(), visible_area_.getAreaUnit().getMaxRT(),
-                                                                                                  visible_area_.getAreaUnit().getMinMZ(), visible_area_.getAreaUnit().getMaxMZ());
-                 it != getLayer(i).getPeakData()->areaEndConst();
+            for (ExperimentType::ConstAreaIterator it = lp->getPeakData()->areaBeginConst(visible_area_.getAreaUnit().getMinRT(), visible_area_.getAreaUnit().getMaxRT(),
+                                                                                          visible_area_.getAreaUnit().getMinMZ(), visible_area_.getAreaUnit().getMaxMZ());
+                 it != lp->getPeakData()->areaEndConst();
                  ++it)
             {
               PeakIndex pi = it.getPeakIndex();
-              if (it->getIntensity() > local_max && getLayer(i).filters.passes((*getLayer(i).getPeakData())[pi.spectrum], pi.peak))
+              if (it->getIntensity() > local_max && getLayer(i).filters.passes((*lp->getPeakData())[pi.spectrum], pi.peak))
               {
                 local_max = it->getIntensity();
               }
             }
           }
-          else if (getLayer(i).type == LayerDataBase::DT_FEATURE)         // features
+          else if (auto* lp = dynamic_cast<LayerDataFeature*>(&getLayer(i))) // features
           {
-            for (FeatureMapType::ConstIterator it = getLayer(i).getFeatureMap()->begin();
-                 it != getLayer(i).getFeatureMap()->end();
+            for (FeatureMapType::ConstIterator it = lp->getFeatureMap()->begin(); it != lp->getFeatureMap()->end();
                  ++it)
             {
               if (visible_area_.getAreaUnit().containsRT(it->getRT()) &&
@@ -1140,10 +390,9 @@ namespace OpenMS
               }
             }
           }
-          else if (getLayer(i).type == LayerDataBase::DT_CONSENSUS)         // consensus
+          else if (auto* lp = dynamic_cast<LayerDataConsensus*>(&getLayer(i))) // consensus
           {
-            for (ConsensusMapType::ConstIterator it = getLayer(i).getConsensusMap()->begin();
-                 it != getLayer(i).getConsensusMap()->end();
+            for (ConsensusMapType::ConstIterator it = lp->getConsensusMap()->begin(); it != lp->getConsensusMap()->end();
                  ++it)
             {
               if (visible_area_.getAreaUnit().containsRT(it->getRT()) &&
@@ -1259,46 +508,20 @@ namespace OpenMS
         {
           layer_timer.start();
         }
-
         if (getLayer(i).visible)
         {
-          if (getLayer(i).type == LayerDataBase::DT_PEAK)
+          // update factors (snap and percentage)
+          percentage_factor_ = 1.0;
+          if (intensity_mode_ == IM_PERCENTAGE)
           {
-           // nothing .. currently
-          }
-          else if (getLayer(i).type == LayerDataBase::DT_FEATURE)
-          {
-            //cout << "dot feature layer: " << i << endl;
-            if (getLayerFlag(i, LayerDataBase::F_HULLS))
+            if (getLayer(i).getMaxIntensity() > 0)
             {
-              paintTraceConvexHulls_(i, painter);
-            }
-            if (getLayerFlag(i, LayerDataBase::F_HULL))
-            {
-              paintFeatureConvexHulls_(i, painter);
-            }
-            if (getLayerFlag(i, LayerDataBase::F_UNASSIGNED))
-            {
-              paintIdentifications_(i, painter);
+              percentage_factor_ = overall_data_range_.getMaxIntensity() / getLayer(i).getMaxIntensity();
             }
           }
-          else if (getLayer(i).type == LayerDataBase::DT_CONSENSUS)
-          {
-            if (getLayerFlag(i, LayerDataBase::C_ELEMENTS))
-            {
-              paintConsensusElements_(i, painter);
-            }
-          }
-          else if (getLayer(i).type == LayerDataBase::DT_CHROMATOGRAM)
-          {
-          }
-          else if (getLayer(i).type == LayerDataBase::DT_IDENT)
-          {
-          }
-          // all layers
-          paintDots_(i, painter);
+          getLayer(i).getPainter2D()->paint(&painter, this, i);
         }
-        //timing
+        // timing
         if (show_timing_)
         {
           cout << "  -layer " << i << " time: " << layer_timer.elapsed() << " ms" << endl;
@@ -1310,7 +533,7 @@ namespace OpenMS
 
     painter.begin(this);
 
-    //copy peak data from buffer
+    // copy peak data from buffer
      /*
          * Suppressed warning QVector<QRect> QRegion::rects() const is deprecated
          * Use begin()/end() instead, from Qt 5.8
@@ -1324,7 +547,7 @@ namespace OpenMS
       painter.drawImage(rects[i].topLeft(), buffer_, rects[i]);
     }
 
-    //draw measurement peak
+    // draw measurement peak
     if (action_mode_ == AM_MEASURE && measurement_start_.isValid())
     {
       painter.setPen(Qt::black);
@@ -1352,19 +575,7 @@ namespace OpenMS
     // draw convex hulls or consensus feature elements
     if (selected_peak_.isValid())
     {
-      if (getCurrentLayer().type == LayerDataBase::DT_FEATURE)
-      {
-        painter.setPen(QPen(Qt::red, 2));
-        const Feature& f = selected_peak_.getFeature(*getCurrentLayer().getFeatureMap());
-        paintConvexHulls_(f.getConvexHulls(),
-                          f.getPeptideIdentifications().size() && f.getPeptideIdentifications()[0].getHits().size(),
-                          painter);
-      }
-      else if (getCurrentLayer().type == LayerDataBase::DT_CONSENSUS && getLayerFlag(getCurrentLayerIndex(), LayerDataBase::C_ELEMENTS))
-      {
-        painter.setPen(QPen(Qt::red, 2));
-        paintConsensusElement_(getCurrentLayerIndex(), selected_peak_.getFeature(*getCurrentLayer().getConsensusMap()), painter, false);
-      }
+      getCurrentLayer().getPainter2D()->highlightElement(&painter, this, selected_peak_);
     }
 
     if (action_mode_ == AM_MEASURE || action_mode_ == AM_TRANSLATE)
@@ -1383,9 +594,6 @@ namespace OpenMS
     }
 
     painter.end();
-#ifdef DEBUG_TOPPVIEW
-    cout << "END   " << OPENMS_PRETTY_FUNCTION << endl;
-#endif
     if (show_timing_)
     {
       cout << "  -overall time: " << overall_timer.elapsed() << " ms" << endl << endl;
@@ -1504,17 +712,19 @@ namespace OpenMS
       if (selected_peak_.isValid())
       {
         String status;
-        if (getCurrentLayer().type == LayerDataBase::DT_FEATURE || getCurrentLayer().type == LayerDataBase::DT_CONSENSUS)
+        auto* lf = dynamic_cast<LayerDataFeature*>(&getCurrentLayer());
+        auto* lc = dynamic_cast<LayerDataConsensus*>(&getCurrentLayer());
+        if (lf || lc)
         {
           //add meta info
           const BaseFeature* f;
-          if (getCurrentLayer().type == LayerDataBase::DT_FEATURE)
+          if (lf)
           {
-            f = &selected_peak_.getFeature(*getCurrentLayer().getFeatureMap());
+            f = &selected_peak_.getFeature(*lf->getFeatureMap());
           }
           else
           {
-            f = &selected_peak_.getFeature(*getCurrentLayer().getConsensusMap());
+            f = &selected_peak_.getFeature(*lc->getConsensusMap());
           }
           std::vector<String> keys;
           f->getKeys(keys);
@@ -1535,10 +745,10 @@ namespace OpenMS
             }
           }
         }
-        else if (getCurrentLayer().type == LayerDataBase::DT_PEAK)
+        else if (auto* lp = dynamic_cast<LayerDataPeak*>(&getCurrentLayer()))
         {
           //meta info
-          const ExperimentType::SpectrumType & s = selected_peak_.getSpectrum(*getCurrentLayer().getPeakData());
+          const ExperimentType::SpectrumType & s = selected_peak_.getSpectrum(*lp->getPeakData());
           for (Size m = 0; m < s.getFloatDataArrays().size(); ++m)
           {
             if (selected_peak_.peak < s.getFloatDataArrays()[m].size())
@@ -1598,14 +808,15 @@ namespace OpenMS
       if (e->buttons() & Qt::LeftButton)
       {
         // move feature
-        if (getCurrentLayer().modifiable && getCurrentLayer().type == LayerDataBase::DT_FEATURE && selected_peak_.isValid())
+        auto* lf = dynamic_cast<LayerDataFeature*>(&getCurrentLayer());
+        if (getCurrentLayer().modifiable && lf && selected_peak_.isValid())
         {
           RangeType dr;
           unit_mapper_.fromXY(widgetToData_(pos), dr);
           // restrict the movement to the data range
           dr.pushInto(overall_data_range_);
-          (*getCurrentLayer().getFeatureMap())[selected_peak_.peak].setRT(dr.getMinRT());
-          (*getCurrentLayer().getFeatureMap())[selected_peak_.peak].setMZ(dr.getMinMZ());
+          (*lf->getFeatureMap())[selected_peak_.peak].setRT(dr.getMinRT());
+          (*lf->getFeatureMap())[selected_peak_.peak].setMZ(dr.getMinMZ());
 
           update_buffer_ = true;
           update_(OPENMS_PRETTY_FUNCTION);
@@ -1693,7 +904,7 @@ namespace OpenMS
     auto check_area = visible_area_.cloneWith({widgetToData_(e->pos() - QPoint(10, 10)), widgetToData_(e->pos() + QPoint(10, 10))}).getAreaUnit();
 
     //-------------------PEAKS----------------------------------
-    if (layer.type == LayerDataBase::DT_PEAK)
+    if (auto* lp = dynamic_cast<const LayerDataPeak*>(&layer))
     {
       //add settings
       settings_menu->addSeparator();
@@ -1702,8 +913,8 @@ namespace OpenMS
 
       //add surrounding survey scans
       //find nearest survey scan
-      SignedSize size = getCurrentLayer().getPeakData()->size();
-      Int current = getCurrentLayer().getPeakData()->RTBegin(e_units.getMinRT()) - getCurrentLayer().getPeakData()->begin();
+      SignedSize size = lp->getPeakData()->size();
+      Int current = lp->getPeakData()->RTBegin(e_units.getMinRT()) - lp->getPeakData()->begin();
       if (current == size)  // if only one element is present RTBegin points to one after the last element (see RTBegin implementation)
       {
         current = 0;
@@ -1712,12 +923,12 @@ namespace OpenMS
       SignedSize i = 0;
       while (current + i < size || current - i >= 0)
       {
-        if (current + i < size && (*getCurrentLayer().getPeakData())[current + i].getMSLevel() == 1)
+        if (current + i < size && (*lp->getPeakData())[current + i].getMSLevel() == 1)
         {
           current += i;
           break;
         }
-        if (current - i >= 0 && (*getCurrentLayer().getPeakData())[current - i].getMSLevel() == 1)
+        if (current - i >= 0 && (*lp->getPeakData())[current - i].getMSLevel() == 1)
         {
           current -= i;
           break;
@@ -1730,7 +941,7 @@ namespace OpenMS
       i = 1;
       while (current - i >= 0 && indices.size() < 5)
       {
-        if ((*getCurrentLayer().getPeakData())[current - i].getMSLevel() == 1)
+        if ((*lp->getPeakData())[current - i].getMSLevel() == 1)
         {
           indices.push_back(current - i);
         }
@@ -1739,7 +950,7 @@ namespace OpenMS
       i = 1;
       while (current + i < size && indices.size() < 9)
       {
-        if ((*getCurrentLayer().getPeakData())[current + i].getMSLevel() == 1)
+        if ((*lp->getPeakData())[current + i].getMSLevel() == 1)
         {
           indices.push_back(current + i);
         }
@@ -1755,7 +966,7 @@ namespace OpenMS
         {
           ms1_scans->addSeparator();
         }
-        a = ms1_scans->addAction(QString("RT: ") + QString::number((*getCurrentLayer().getPeakData())[indices[i]].getRT()));
+        a = ms1_scans->addAction(QString("RT: ") + QString::number((*lp->getPeakData())[indices[i]].getRT()));
         a->setData(indices[i]);
         if (indices[i] == current)
         {
@@ -1766,7 +977,7 @@ namespace OpenMS
         {
           ms1_meta->addSeparator();
         }
-        a = ms1_meta->addAction(QString("RT: ") + QString::number((*getCurrentLayer().getPeakData())[indices[i]].getRT()));
+        a = ms1_meta->addAction(QString("RT: ") + QString::number((*lp->getPeakData())[indices[i]].getRT()));
         a->setData(indices[i]);
         if (indices[i] == current)
         {
@@ -1788,7 +999,7 @@ namespace OpenMS
         // NOTE: that if we go for the visible area, we run the
         // risk of iterating through *all* the scans.
         check_area.RangeMZ::extend((RangeMZ)visible_area_.getAreaUnit());
-        const auto& specs = getCurrentLayer().getPeakData()->getSpectra();
+        const auto& specs = lp->getPeakData()->getSpectra();
         check_area.RangeRT::operator=({specs[indices.back()].getRT(), specs[indices.front()].getRT()});
         item_added = collectFragmentScansInArea_(check_area, a, msn_scans, msn_meta);
 
@@ -1820,7 +1031,7 @@ namespace OpenMS
       }
     }
     //-------------------FEATURES----------------------------------
-    else if (layer.type == LayerDataBase::DT_FEATURE)
+    else if (auto* lf = dynamic_cast<const LayerDataFeature*>(&layer))
     {
       //add settings
       settings_menu->addSeparator();
@@ -1831,7 +1042,7 @@ namespace OpenMS
 
       // search for nearby features
       QMenu* meta = new QMenu("Feature meta data");
-      const FeatureMapType& features = *getCurrentLayer().getFeatureMap();
+      const FeatureMapType& features = *lf->getFeatureMap();
       // feature meta data menu
       for (auto it = features.cbegin(); it != features.cend(); ++it)
       {
@@ -1863,7 +1074,7 @@ namespace OpenMS
       }
     }
     //-------------------CONSENSUS FEATURES----------------------------------
-    else if (layer.type == LayerDataBase::DT_CONSENSUS)
+    else if (auto* lc = dynamic_cast<const LayerDataConsensus*>(&layer))
     {
       // add settings
       settings_menu->addSeparator();
@@ -1871,7 +1082,7 @@ namespace OpenMS
 
       // search for nearby features
       QMenu* consens_meta = new QMenu("Consensus meta data");
-      const ConsensusMapType& features = *getCurrentLayer().getConsensusMap();
+      const ConsensusMapType& features = *lc->getConsensusMap();
       // consensus feature meta data menu
       for (auto it = features.cbegin(); it != features.cend(); ++it)
       {
@@ -1898,13 +1109,13 @@ namespace OpenMS
       }
     }
     //------------------CHROMATOGRAMS----------------------------------
-    else if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
+    else if (auto* lc = dynamic_cast<const LayerDataChrom*>(&layer))
     {
       settings_menu->addSeparator();
       settings_menu->addAction("Show/hide projections");
       settings_menu->addAction("Show/hide MS/MS precursors");
 
-      const PeakMap& exp = *layer.getPeakData();
+      const PeakMap& exp = *lc->getChromatogramData();
 
       constexpr int CHROMATOGRAM_SHOW_MZ_RANGE = 10;
       auto search_area = e_units;
@@ -2214,9 +1425,10 @@ namespace OpenMS
 
     // Delete features
     LayerDataBase& layer = getCurrentLayer();
-    if (e->key() == Qt::Key_Delete && getCurrentLayer().modifiable && layer.type == LayerDataBase::DT_FEATURE && selected_peak_.isValid())
+    auto* lf = dynamic_cast<LayerDataFeature*>(&layer);
+    if (e->key() == Qt::Key_Delete && getCurrentLayer().modifiable && lf && selected_peak_.isValid())
     {
-      layer.getFeatureMap()->erase(layer.getFeatureMap()->begin() + selected_peak_.peak);
+      lf->getFeatureMap()->erase(lf->getFeatureMap()->begin() + selected_peak_.peak);
       selected_peak_.clear();
       update_buffer_ = true;
       update_(OPENMS_PRETTY_FUNCTION);
@@ -2254,18 +1466,19 @@ namespace OpenMS
   void Plot2DCanvas::mouseDoubleClickEvent(QMouseEvent * e)
   {
     LayerDataBase& current_layer = getCurrentLayer();
+    auto* lf = dynamic_cast<LayerDataFeature*>(&current_layer);
 
-    if (current_layer.modifiable && current_layer.type == LayerDataBase::DT_FEATURE)
+    if (current_layer.modifiable && lf)
     {
       Feature tmp;
       if (selected_peak_.isValid())       //edit existing feature
       {
         FeatureEditDialog dialog(this);
-        dialog.setFeature((*current_layer.getFeatureMap())[selected_peak_.peak]);
+        dialog.setFeature((*lf->getFeatureMap())[selected_peak_.peak]);
         if (dialog.exec())
         {
           tmp = dialog.getFeature();
-          (*current_layer.getFeatureMap())[selected_peak_.peak] = tmp;
+          (*lf->getFeatureMap())[selected_peak_.peak] = tmp;
         }
       }
       else       //create new feature
@@ -2277,14 +1490,14 @@ namespace OpenMS
         if (dialog.exec())
         {
           tmp = dialog.getFeature();
-          current_layer.getFeatureMap()->push_back(tmp);
+          lf->getFeatureMap()->push_back(tmp);
         }
       }
 
       // update gradient if the min/max intensity changes
-      if (!current_layer.getFeatureMap()->getRange().containsIntensity(tmp.getIntensity()))
+      if (!lf->getFeatureMap()->getRange().containsIntensity(tmp.getIntensity()))
       {
-        current_layer.getFeatureMap()->updateRanges();
+        lf->getFeatureMap()->updateRanges();
         recalculateRanges_();
         intensityModeChange_();
       }
@@ -2300,8 +1513,8 @@ namespace OpenMS
 
   void Plot2DCanvas::mergeIntoLayer(Size i, FeatureMapSharedPtrType map)
   {
-    LayerDataBase& layer = layers_.getLayer(i);
-    OPENMS_PRECONDITION(layer.type == LayerDataBase::DT_FEATURE, "Plot2DCanvas::mergeIntoLayer(i, map) non-feature layer selected");
+    auto& layer = dynamic_cast<LayerDataFeature&>(layers_.getLayer(i));
+
     //reserve enough space
     layer.getFeatureMap()->reserve(layer.getFeatureMap()->size() + map->size());
     //add features
@@ -2327,7 +1540,7 @@ namespace OpenMS
 
   void Plot2DCanvas::mergeIntoLayer(Size i, ConsensusMapSharedPtrType map)
   {
-    LayerDataBase& layer = layers_.getLayer(i);
+    auto& layer = dynamic_cast<LayerDataConsensus&>(layers_.getLayer(i));
     OPENMS_PRECONDITION(layer.type == LayerDataBase::DT_CONSENSUS, "Plot2DCanvas::mergeIntoLayer(i, map) non-consensus-feature layer selected");
     //reserve enough space
     layer.getConsensusMap()->reserve(layer.getConsensusMap()->size() + map->size());
@@ -2370,9 +1583,10 @@ namespace OpenMS
 
     bool Plot2DCanvas::collectFragmentScansInArea_(const RangeType& range, QAction* a, QMenu* msn_scans, QMenu* msn_meta)
     {
+      auto& layer = dynamic_cast<LayerDataPeak&>(getCurrentLayer());
       bool item_added = false;
-      const auto last_RT = getCurrentLayer().getPeakData()->RTEnd(range.getMaxRT());
-      for (ExperimentType::ConstIterator it = getCurrentLayer().getPeakData()->RTBegin(range.getMinRT());
+      const auto last_RT = layer.getPeakData()->RTEnd(range.getMaxRT());
+      for (ExperimentType::ConstIterator it = layer.getPeakData()->RTBegin(range.getMinRT());
                                          it != last_RT; ++it)
       {
         if (it->getPrecursors().empty()) continue;
@@ -2381,9 +1595,9 @@ namespace OpenMS
         if (it->getMSLevel() > 1 && range.containsMZ(mz))
         {
           a = msn_scans->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
-          a->setData((int)(it - getCurrentLayer().getPeakData()->begin()));
+          a->setData((int)(it - layer.getPeakData()->begin()));
           a = msn_meta->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
-          a->setData((int)(it - getCurrentLayer().getPeakData()->begin()));
+          a->setData((int)(it - layer.getPeakData()->begin()));
           item_added = true;
         }
       }

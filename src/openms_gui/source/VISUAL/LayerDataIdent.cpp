@@ -34,6 +34,7 @@
 
 #include <OpenMS/VISUAL/LayerDataIdent.h>
 
+#include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 
@@ -41,6 +42,11 @@ using namespace std;
 
 namespace OpenMS
 {
+  std::unique_ptr<Painter2DBase> LayerDataIdent::getPainter2D() const
+  {
+    return make_unique<Painter2DIdent>(this);
+  }
+
   std::unique_ptr<LayerStoreData> LayerDataIdent::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
     auto ret = std::unique_ptr<LayerStoreDataIdentVisible>();

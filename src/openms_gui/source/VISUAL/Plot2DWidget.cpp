@@ -39,6 +39,9 @@
 #include <OpenMS/VISUAL/DIALOGS/Plot2DGoToDialog.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 
+#include <OpenMS/VISUAL/LayerDataConsensus.h>
+#include <OpenMS/VISUAL/LayerDataFeature.h>
+
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QGroupBox>
@@ -67,33 +70,11 @@ namespace OpenMS
 
     projection_onto_X_ = new Plot1DWidget(Param(), DIM::Y, this);
     projection_onto_X_->hide();
-    projection_onto_X_->setMapper(DimMapper<2>({canvas_->getMapper().getDim(DIM::X).getUnit(), DIM_UNIT::INT}));
     grid_->addWidget(projection_onto_X_, 0, 1, 1, 2);
 
     projection_onto_Y_ = new Plot1DWidget(Param(), DIM::X, this);
     projection_onto_Y_->hide();
-    projection_onto_Y_->setMapper(DimMapper<2>({DIM_UNIT::INT, canvas_->getMapper().getDim(DIM::Y).getUnit()}));
     grid_->addWidget(projection_onto_Y_, 1, 3, 2, 1);
-
-    // decide on default draw mode, depending on main axis unit (e.g. m/z or RT)
-    auto set_style = [&](const DIM_UNIT main_unit_1d, Plot1DCanvas* canvas)
-    {
-      switch (main_unit_1d)
-      { // this may not be optimal for every unit. Feel free to change behavior.
-        case DIM_UNIT::MZ:
-          // to show isotope distributions as sticks
-          canvas->setDrawMode(Plot1DCanvas::DM_PEAKS);
-          canvas->setIntensityMode(PlotCanvas::IM_PERCENTAGE);
-          break;
-        // all other units
-        default:
-          canvas->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-          canvas->setIntensityMode(PlotCanvas::IM_SNAP);
-          break;
-      }
-    };
-    set_style(canvas_->getMapper().getDim(DIM::X).getUnit(), projection_onto_Y_->canvas());
-    set_style(canvas_->getMapper().getDim(DIM::Y).getUnit(), projection_onto_X_->canvas());
 
     connect(canvas(), &Plot2DCanvas::showProjections, this, &Plot2DWidget::showProjections_);
     connect(canvas(), &Plot2DCanvas::toggleProjections, this, &Plot2DWidget::toggleProjections);
@@ -189,7 +170,7 @@ namespace OpenMS
     projection_onto_Y_->showLegend(false);
     projection_onto_Y_->canvas()->removeLayers();
     projection_onto_Y_->canvas()->addLayer(std::move(projection_ontoY));
-    // manually set projected unit, since 'addLayer' will guess a visible area, but we want the exact same scaling
+    // manually set projected unit, since 'addPeakLayer' will guess a visible area, but we want the exact same scaling
     projection_onto_Y_->canvas()->setVisibleAreaY(va.minY(), va.maxY());
     grid_->setColumnStretch(3, 2);
     
@@ -197,7 +178,7 @@ namespace OpenMS
     projection_onto_X_->showLegend(false);
     projection_onto_X_->canvas()->removeLayers();
     projection_onto_X_->canvas()->addLayer(std::move(projection_ontoX));
-    // manually set projected unit, since 'addLayer' will guess a visible area, but we want the exact same scaling
+    // manually set projected unit, since 'addPeakLayer' will guess a visible area, but we want the exact same scaling
     projection_onto_X_->canvas()->setVisibleAreaX(va.minX(), va.maxX());
     grid_->setRowStretch(0, 2);
     
@@ -244,13 +225,15 @@ namespace OpenMS
         uid.setUniqueId(feature_id);
 
         Size feature_index(-1); // TODO : not use -1
-        if (canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE)
+        auto* lf = dynamic_cast<LayerDataFeature*>(&canvas()->getCurrentLayer());
+        auto* lc = dynamic_cast<LayerDataConsensus*>(&canvas()->getCurrentLayer());
+        if (lf)
         {
-          feature_index = canvas()->getCurrentLayer().getFeatureMap()->uniqueIdToIndex(uid.getUniqueId());
+          feature_index = lf->getFeatureMap()->uniqueIdToIndex(uid.getUniqueId());
         }
-        else if (canvas()->getCurrentLayer().type == LayerDataBase::DT_CONSENSUS)
+        else if (lc)
         {
-          feature_index = canvas()->getCurrentLayer().getConsensusMap()->uniqueIdToIndex(uid.getUniqueId());
+          feature_index = lc->getConsensusMap()->uniqueIdToIndex(uid.getUniqueId());
         }
         if (feature_index == Size(-1)) // UID does not exist
         {
@@ -265,16 +248,15 @@ namespace OpenMS
         }
 
         //check if the feature index exists
-        if ((canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE && feature_index >= canvas()->getCurrentLayer().getFeatureMap()->size())
-           || (canvas()->getCurrentLayer().type == LayerDataBase::DT_CONSENSUS && feature_index >= canvas()->getCurrentLayer().getConsensusMap()->size()))
+        if ((lf && feature_index >= lf->getFeatureMap()->size()) || (lc && feature_index >= lc->getConsensusMap()->size()))
         {
           QMessageBox::warning(this, "Invalid feature number", "Feature number too large/UniqueID not found.\nPlease select a valid feature!");
           return;
         }
-        //display feature with a margin
-        if (canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE)
+        // display feature with a margin
+        if (lf)
         {
-          const FeatureMap& map = *canvas()->getCurrentLayer().getFeatureMap();
+          const FeatureMap& map = *lf->getFeatureMap();
           const DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();
           RangeAllType range;
           range.RangeRT::operator=(RangeBase{bb.minPosition()[0], bb.maxPosition()[0]});
@@ -285,7 +267,7 @@ namespace OpenMS
         }
         else // Consensus Feature
         {
-          const ConsensusFeature& cf = (*canvas()->getCurrentLayer().getConsensusMap())[feature_index];
+          const ConsensusFeature& cf = (*lc->getConsensusMap())[feature_index];
           auto range = canvas_->getMapper().fromXY(canvas_->getMapper().map(cf));
           range.RangeRT::extendLeftRight(30);
           range.RangeMZ::extendLeftRight(5);

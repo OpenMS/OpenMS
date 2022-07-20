@@ -36,12 +36,11 @@
 
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/AxisTickCalculator.h>
+#include <OpenMS/VISUAL/LayerDataPeak.h>
 
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-
 #include <QMouseEvent>
-#include <QKeyEvent>
 
 using std::cout;
 using std::endl;
@@ -542,7 +541,7 @@ namespace OpenMS
 
     for (Size i = 0; i < canvas_3d_.getLayerCount(); ++i)
     {
-      const LayerDataBase& layer = canvas_3d_.getLayer(i);
+      const LayerDataPeak& layer = dynamic_cast<LayerDataPeak&>(canvas_3d_.getLayer(i));
       if (layer.visible)
       {
         if ((Int)layer.param.getValue("dot:shade_mode"))
@@ -627,7 +626,7 @@ namespace OpenMS
 
     for (Size i = 0; i < canvas_3d_.getLayerCount(); i++)
     {
-      LayerDataBase& layer = canvas_3d_.getLayer(i);
+      LayerDataPeak& layer = dynamic_cast<LayerDataPeak&>(canvas_3d_.getLayer(i));
       if (layer.visible)
       {
         recalculateDotGradient_(layer);
@@ -1122,8 +1121,9 @@ namespace OpenMS
     const auto area = canvas_3d_.visible_area_.getAreaUnit();
     for (Size i = 0; i < canvas_3d_.getLayerCount(); i++)
     {
-      auto rt_begin_it = canvas_3d_.getLayer(i).getPeakData()->RTBegin(area.getMinRT());
-      auto rt_end_it = canvas_3d_.getLayer(i).getPeakData()->RTEnd(area.getMaxRT());
+      const auto& layer = dynamic_cast<const LayerDataPeak&>(canvas_3d_.getLayer(i));
+      auto rt_begin_it = layer.getPeakData()->RTBegin(area.getMinRT());
+      auto rt_end_it = layer.getPeakData()->RTEnd(area.getMaxRT());
 
       for (auto spec_it = rt_begin_it; spec_it != rt_end_it; ++spec_it)
       {

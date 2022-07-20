@@ -174,7 +174,12 @@ namespace OpenMS
              Do not duplicate the code, just for the sake of semantics (unless we can come up with a clean separation)
              Note: the overhead of allow_nterm_protein_cleavage and allow_random_asp_pro_cleavage is marginal; the main runtime is spend during tokenize_()
     */
-    bool isValidProduct_(const String& sequence, int pos, int length, bool ignore_missed_cleavages, bool allow_nterm_protein_cleavage, bool allow_random_asp_pro_cleavage) const;
+    bool isValidProduct_(const String& sequence,
+                         int pos,
+                         int length,
+                         bool ignore_missed_cleavages,
+                         bool allow_nterm_protein_cleavage,
+                         bool allow_random_asp_pro_cleavage) const;
     /**
       @brief Digests the sequence using the enzyme's regular expression
 
