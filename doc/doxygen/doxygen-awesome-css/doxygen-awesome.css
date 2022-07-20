@@ -537,6 +537,7 @@ a.anchor {
 .left #MSearchSelect {
     left: 0;
     user-select: none;
+    padding-left: 8px;
 }
 
 .SelectionMark {
@@ -593,10 +594,6 @@ a.anchor {
 
 #MSearchSelect {
     top: calc(calc(var(--searchbar-height) / 2) - 11px);
-}
-
-.left #MSearchSelect {
-    padding-left: 8px;
 }
 
 #MSearchBox span.left, #MSearchBox span.right {
@@ -1496,7 +1493,7 @@ table.markdownTable td:last-child, table.markdownTable th:last-child, table.fiel
     border: none;
 }
 
-table.markdownTable tr, table.markdownTable tr {
+table.markdownTable tr {
     border-bottom: 1px solid var(--separator-color);
 }
 
