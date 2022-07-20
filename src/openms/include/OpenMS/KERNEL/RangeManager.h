@@ -305,7 +305,6 @@ namespace OpenMS
       return *this;
     }
 
-
     /** @name Accessors for min and max
       
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
