@@ -466,6 +466,7 @@ START_SECTION((virtual void updateRanges()))
   p.getPosition()[0] = 5.0;
   p.setIntensity(-5.0f);
   s.push_back(p);
+  s.setDriftTime(99);
   tmp.addSpectrum(s);
 
   s.clear(true);
@@ -474,6 +475,7 @@ START_SECTION((virtual void updateRanges()))
   p.getPosition()[0] = 7.0;
   p.setIntensity(-7.0f);
   s.push_back(p);
+  s.setDriftTime(99);
   tmp.addSpectrum(s);
 
   s.clear(true);
@@ -482,6 +484,7 @@ START_SECTION((virtual void updateRanges()))
   p.getPosition()[0] = 9.0;
   p.setIntensity(-10.0f);
   s.push_back(p);
+  s.setDriftTime(199);
   tmp.addSpectrum(s);
 
   s.clear(true);
@@ -490,6 +493,7 @@ START_SECTION((virtual void updateRanges()))
   p.getPosition()[0] = 10.0;
   p.setIntensity(-9.0f);
   s.push_back(p);
+  s.setDriftTime(66);
   tmp.addSpectrum(s);
 
   tmp.updateRanges();
@@ -517,6 +521,8 @@ START_SECTION((virtual void updateRanges()))
   TEST_REAL_SIMILAR(tmp.getRange().getMaxMZ(), 10.0)
   TEST_REAL_SIMILAR(tmp.getRange().getMinRT(), 30.0)
   TEST_REAL_SIMILAR(tmp.getRange().getMaxRT(), 50.0)
+  TEST_REAL_SIMILAR(tmp.getRange().getMinMobility(), 66)
+  TEST_REAL_SIMILAR(tmp.getRange().getMaxMobility(), 199)
 
   TEST_EQUAL(tmp.getMSLevels().size(),2)
   TEST_EQUAL(tmp.getMSLevels()[0],1)
@@ -528,25 +534,21 @@ START_SECTION((virtual void updateRanges()))
 
   tmp.updateRanges(1);
   tmp.updateRanges(1);
-  TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
-  TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
-  TEST_REAL_SIMILAR(tmp.getMinIntensity(), -7.0)
-  TEST_REAL_SIMILAR(tmp.getMaxIntensity(), -5.0)
-  TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
-  TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
-  TEST_EQUAL(tmp.getMSLevels().size(),1)
-  TEST_EQUAL(tmp.getMSLevels()[0],1)
-  TEST_EQUAL(tmp.getSize(),2)
-  tmp.updateRanges(1);
-  TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
-  TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
-  TEST_REAL_SIMILAR(tmp.getMinIntensity(), -7.0)
-  TEST_REAL_SIMILAR(tmp.getMaxIntensity(), -5.0)
-  TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
-  TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
-  TEST_EQUAL(tmp.getMSLevels().size(),1)
-  TEST_EQUAL(tmp.getMSLevels()[0],1)
-  TEST_EQUAL(tmp.getSize(),2)
+  for (int l = 0; l < 2; ++l)
+  {
+    TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
+    TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
+    TEST_REAL_SIMILAR(tmp.getMinIntensity(), -7.0)
+    TEST_REAL_SIMILAR(tmp.getMaxIntensity(), -5.0)
+    TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
+    TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
+    TEST_REAL_SIMILAR(tmp.getRange().getMinMobility(), 99)
+    TEST_REAL_SIMILAR(tmp.getRange().getMaxMobility(), 99)
+    TEST_EQUAL(tmp.getMSLevels().size(),1)
+    TEST_EQUAL(tmp.getMSLevels()[0],1)
+    TEST_EQUAL(tmp.getSize(),2)
+    tmp.updateRanges(1);
+  }
 
   // test with only one peak
   PeakMap tmp2;
@@ -557,6 +559,7 @@ START_SECTION((virtual void updateRanges()))
   p2.getPosition()[0] = 5.0;
   p2.setIntensity(-5.0f);
   s2.push_back(p2);
+  s2.setDriftTime(99);
   tmp2.addSpectrum(s2);
 
   tmp2.updateRanges();
@@ -566,6 +569,8 @@ START_SECTION((virtual void updateRanges()))
   TEST_REAL_SIMILAR(tmp2.getMaxIntensity(), -5.0)
   TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
   TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
+  TEST_REAL_SIMILAR(tmp.getRange().getMinMobility(), 99)
+  TEST_REAL_SIMILAR(tmp.getRange().getMaxMobility(), 99)
 
   tmp2.updateRanges(1);
   TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0)
@@ -574,6 +579,8 @@ START_SECTION((virtual void updateRanges()))
   TEST_REAL_SIMILAR(tmp2.getMaxIntensity(), -5.0)
   TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
   TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
+  TEST_REAL_SIMILAR(tmp.getRange().getMinMobility(), 99)
+  TEST_REAL_SIMILAR(tmp.getRange().getMaxMobility(), 99)
 
   // test ranges with a chromatogram
   MSChromatogram chrom1, chrom2;
@@ -614,84 +621,7 @@ END_SECTION
 
 START_SECTION((void updateRanges(Int ms_level)))
 {
-  PeakMap tmp;
-  MSSpectrum s;
-  Peak1D p;
-
-  s.setMSLevel(1);
-  s.setRT(30.0);
-  p.getPosition()[0] = 5.0;
-  p.setIntensity(-5.0f);
-  s.push_back(p);
-  tmp.addSpectrum(s);
-
-  s.clear(true);
-  s.setMSLevel(1);
-  s.setRT(40.0);
-  p.getPosition()[0] = 7.0;
-  p.setIntensity(-7.0f);
-  s.push_back(p);
-  tmp.addSpectrum(s);
-
-  s.clear(true);
-  s.setMSLevel(3);
-  s.setRT(45.0);
-  p.getPosition()[0] = 9.0;
-  p.setIntensity(-10.0f);
-  s.push_back(p);
-  tmp.addSpectrum(s);
-
-  s.clear(true);
-  s.setMSLevel(3);
-  s.setRT(50.0);
-  p.getPosition()[0] = 10.0;
-  p.setIntensity(-9.0f);
-  s.push_back(p);
-  tmp.addSpectrum(s);
-
-  //Update for MS level 1
-
-  tmp.updateRanges(1);
-  tmp.updateRanges(1);
-  TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
-  TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
-  TEST_REAL_SIMILAR(tmp.getMinIntensity(),-7.0)
-  TEST_REAL_SIMILAR(tmp.getMaxIntensity(), -5.0)
-  TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
-  TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
-  TEST_EQUAL(tmp.getMSLevels().size(),1)
-  TEST_EQUAL(tmp.getMSLevels()[0],1)
-  TEST_EQUAL(tmp.getSize(),2)
-  tmp.updateRanges(1);
-  TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
-  TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
-  TEST_REAL_SIMILAR(tmp.getMinIntensity(), -7.0)
-  TEST_REAL_SIMILAR(tmp.getMaxIntensity(), -5.0)
-  TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
-  TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
-  TEST_EQUAL(tmp.getMSLevels().size(),1)
-  TEST_EQUAL(tmp.getMSLevels()[0],1)
-  TEST_EQUAL(tmp.getSize(),2)
-
-  //test with only one peak
-  PeakMap tmp2;
-  MSSpectrum s2;
-  Peak1D p2;
-
-  s2.setRT(30.0);
-  p2.getPosition()[0] = 5.0;
-  p2.setIntensity(-5.0f);
-  s2.push_back(p2);
-  tmp2.addSpectrum(s2);
-
-  tmp2.updateRanges(1);
-  TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0)
-  TEST_REAL_SIMILAR(tmp2.getMaxMZ(),5.0)
-  TEST_REAL_SIMILAR(tmp2.getMinIntensity(),-5.0)
-  TEST_REAL_SIMILAR(tmp2.getMaxIntensity(),-5.0)
-  TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
-  TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
-
+  NOT_TESTABLE // tested above
 }
 END_SECTION
 
@@ -701,43 +631,68 @@ START_SECTION((ConstAreaIterator areaEndConst() const))
 }
 END_SECTION
 
+PeakMap exp_area;
+{ // create some data for testing area iterator
+  std::vector< Peak2D> plist;
+  plist.push_back(Peak2D({-1.0, 2.0}, 0));
+  plist.push_back(Peak2D({1.0, 2.0}, 0));
+  plist.push_back(Peak2D({1.0, 3.0}, 0));
+  plist.push_back(Peak2D({2.0, 10.0}, 0));
+  plist.push_back(Peak2D({2.0, 11.0}, 0));
+  plist.push_back(Peak2D({2.0, 12.0}, 0));
+  exp_area.set2DData(plist);
+  int dt{0};
+  for (auto& spec : exp_area.getSpectra())
+  {
+    spec.setDriftTime(dt++);
+  }
+}
+
 START_SECTION((ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const))
 {
-  std::vector< Peak2D> plist;
+  const auto& exp = exp_area;
+  PeakMap::ConstAreaIterator it = exp.areaBeginConst(0,15,0,11);
 
-  Peak2D p1;
-  p1.getPosition()[0] = 1.0;
-  p1.getPosition()[1] = 2.0;
-  plist.push_back(p1);
-  p1.getPosition()[0] = 1.0;
-  p1.getPosition()[1] = 3.0;
-  plist.push_back(p1);
-  p1.getPosition()[0] = 2.0;
-  p1.getPosition()[1] = 10.0;
-  plist.push_back(p1);
-  p1.getPosition()[0] = 2.0;
-  p1.getPosition()[1] = 11.0;
-  plist.push_back(p1);
-
-  PeakMap exp;
-  exp.set2DData(plist);
-
-  PeakMap::ConstAreaIterator it = exp.areaBeginConst(0,15,0,15);
-
-  TEST_EQUAL(it->getPosition()[0],2.0);
+  TEST_EQUAL(it->getPosition()[0],2.0)
   it++;
-  TEST_EQUAL(it->getPosition()[0],3.0);
+  TEST_EQUAL(it->getPosition()[0],3.0)
   it++;
-  TEST_EQUAL(it->getPosition()[0],10.0);
+  TEST_EQUAL(it->getPosition()[0],10.0)
   it++;
-  TEST_EQUAL(it->getPosition()[0],11.0);
+  TEST_EQUAL(it->getPosition()[0],11.0)
   it++;
-  TEST_EQUAL(it==exp.areaEndConst(),true);
+  TEST_EQUAL(it==exp.areaEndConst(),true)
 
-  TEST_PRECONDITION_VIOLATED(exp.areaBeginConst(15,0,0,15));
-  TEST_PRECONDITION_VIOLATED(exp.areaBeginConst(0,15,15,0));
-  TEST_PRECONDITION_VIOLATED(exp.areaBeginConst(15,0,15,0));
+  TEST_PRECONDITION_VIOLATED(exp.areaBeginConst(15,0,0,15))
+  TEST_PRECONDITION_VIOLATED(exp.areaBeginConst(0,15,15,0))
+  TEST_PRECONDITION_VIOLATED(exp.areaBeginConst(15,0,15,0))
+}
+END_SECTION
 
+START_SECTION(MSExperiment::ConstAreaIterator MSExperiment::areaBeginConst(const RangeManagerType& range) const)
+{
+  MSExperiment::RangeManagerType rm;
+  (RangeRT&)rm = RangeBase(0, 2);
+  (RangeMZ&)rm = RangeBase(3, 11);
+
+  const auto& exp = exp_area;
+  PeakMap::ConstAreaIterator it = exp.areaBeginConst(rm);
+  TEST_EQUAL(it->getPosition()[0], 3.0)
+  ++it;
+  TEST_EQUAL(it->getPosition()[0], 10.0)
+  ++it;
+  TEST_EQUAL(it->getPosition()[0], 11.0)
+  ++it;
+  TEST_EQUAL(it == exp.areaEndConst(), true)
+
+  // add mobility as constraint
+  (RangeMobility&)rm = RangeBase(2, 2);
+  it = exp.areaBeginConst(rm);
+  TEST_EQUAL(it->getPosition()[0], 10.0)
+  ++it;
+  TEST_EQUAL(it->getPosition()[0], 11.0)
+  ++it;
+  TEST_EQUAL(it == exp.areaEndConst(), true)
 }
 END_SECTION
 
@@ -749,43 +704,51 @@ END_SECTION
 
 START_SECTION((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz)))
 {
-  std::vector< Peak2D> plist;
+  auto exp = exp_area;
+  PeakMap::AreaIterator it = exp.areaBegin(0,15,0,11);
 
-  Peak2D p1;
-  p1.getPosition()[0] = 1.0;
-  p1.getPosition()[1] = 2.0;
-  plist.push_back(p1);
-  p1.getPosition()[0] = 1.0;
-  p1.getPosition()[1] = 3.0;
-  plist.push_back(p1);
-  p1.getPosition()[0] = 2.0;
-  p1.getPosition()[1] = 10.0;
-  plist.push_back(p1);
-  p1.getPosition()[0] = 2.0;
-  p1.getPosition()[1] = 11.0;
-  plist.push_back(p1);
-
-  PeakMap exp;
-  exp.set2DData(plist);
-
-  PeakMap::AreaIterator it = exp.areaBegin(0,15,0,15);
-
-  TEST_EQUAL(it->getPosition()[0],2.0);
+  TEST_EQUAL(it->getPosition()[0],2.0)
   it->getPosition()[0] = 4711.0;
-  TEST_EQUAL(it->getPosition()[0],4711.0);
-  it++;
-  TEST_EQUAL(it->getPosition()[0],3.0);
-  it++;
-  TEST_EQUAL(it->getPosition()[0],10.0);
-  it++;
-  TEST_EQUAL(it->getPosition()[0],11.0);
-  it++;
-  TEST_EQUAL(it==exp.areaEnd(),true);
+  TEST_EQUAL(it->getPosition()[0],4711.0)
+  ++it;
+  TEST_EQUAL(it->getPosition()[0],3.0)
+  ++it;
+  TEST_EQUAL(it->getPosition()[0],10.0)
+  ++it;
+  TEST_EQUAL(it->getPosition()[0],11.0)
+  ++it;
+  TEST_EQUAL(it==exp.areaEnd(),true)
 
-  TEST_PRECONDITION_VIOLATED(exp.areaBegin(15,0,0,15));
-  TEST_PRECONDITION_VIOLATED(exp.areaBegin(0,15,15,0));
-  TEST_PRECONDITION_VIOLATED(exp.areaBegin(15,0,15,0));
+  TEST_PRECONDITION_VIOLATED(exp.areaBegin(15,0,0,15))
+  TEST_PRECONDITION_VIOLATED(exp.areaBegin(0,15,15,0))
+  TEST_PRECONDITION_VIOLATED(exp.areaBegin(15,0,15,0))
+}
+END_SECTION
 
+START_SECTION(MSExperiment::AreaIterator MSExperiment::areaBegin(const RangeManagerType& range))
+{
+  MSExperiment::RangeManagerType rm;
+  (RangeRT&)rm = RangeBase(0, 2);
+  (RangeMZ&)rm = RangeBase(3, 11);
+
+  auto exp = exp_area;
+  PeakMap::AreaIterator it = exp.areaBegin(rm);
+  TEST_EQUAL(it->getPosition()[0], 3.0)
+  ++it;
+  TEST_EQUAL(it->getPosition()[0], 10.0)
+  ++it;
+  TEST_EQUAL(it->getPosition()[0], 11.0)
+  ++it;
+  TEST_EQUAL(it == exp.areaEnd(), true)
+
+  // add mobility as constraint
+  (RangeMobility&)rm = RangeBase(2, 2);
+  it = exp.areaBegin(rm);
+  TEST_EQUAL(it->getPosition()[0], 10.0)
+  ++it;
+  TEST_EQUAL(it->getPosition()[0], 11.0)
+  ++it;
+  TEST_EQUAL(it == exp.areaEnd(), true)
 }
 END_SECTION
 

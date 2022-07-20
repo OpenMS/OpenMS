@@ -738,6 +738,10 @@ namespace OpenMS
   bool MSSpectrum::RTLess::operator()(const MSSpectrum &a, const MSSpectrum &b) const {
     return a.getRT() < b.getRT();
   }
+  bool MSSpectrum::IMLess::operator()(const MSSpectrum& a, const MSSpectrum& b) const
+  {
+    return a.getDriftTime() < b.getDriftTime();
+  }
 
   bool getIonMobilityArray__(const MSSpectrum::FloatDataArrays& fdas, Size& index, DriftTimeUnit& unit)
   {
@@ -774,4 +778,5 @@ namespace OpenMS
 
     return {index, unit };
   }
-}
+  
+} // namespace OpenMS

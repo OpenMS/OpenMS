@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,39 +32,52 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/RangeManager.h>
+#include <OpenMS/KERNEL/DimMapper.h>
 
-#include <ostream>
+#include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <QLocale>
+
+using namespace std;
+
 
 namespace OpenMS
 {
-  std::ostream& operator<<(std::ostream& out, const RangeBase& b)
+  namespace
   {
-    out << "[" << b.getMin() << ", " << b.getMax() << "]";
-    return out;
-  }
-  
-  std::ostream& operator<<(std::ostream& out, const RangeRT& range)
-  {
-    out << "rt: " << (OpenMS::RangeBase) range << "\n";
-    return out;
+    DimMapper<1> dims({DIM_UNIT::RT});
+    DimMapper<1> d({DIM_UNIT::RT});
+    DimMapper<1> d2(d);
+    bool x = (d == dims);
+    Area<2> area(nullptr);
   }
 
-  std::ostream& operator<<(std::ostream& out, const RangeMZ& range)
+  String DimBase::formattedValue(const ValueType value) const
   {
-    out << "mz: " << (RangeBase) range << "\n";
-    return out;
+    // hint: QLocale::c().toString adds group separators to better visualize large numbers (e.g. 23.009.646.54,3)
+    return String(this->getDimNameShort()) + ": " + QLocale::c().toString(value, 'f', valuePrecision());
   }
 
-  std::ostream& operator<<(std::ostream& out, const RangeIntensity& range)
+  String DimBase::formattedValue(const ValueType value, const String& prefix) const
   {
-    out << "intensity: " << (RangeBase) range << "\n";
-    return out;
+    return prefix + formattedValue(value);
   }
 
-  std::ostream& operator<<(std::ostream& out, const RangeMobility& range)
+  int DimBase::valuePrecision() const
   {
-    out << "mobility: " << (RangeBase) range << "\n";
-    return out;
+    // decide on precision depending on unit; add more units if you have some intuition
+    constexpr auto precision_for_unit = [](DIM_UNIT u) {
+      switch (u)
+      {
+        case DIM_UNIT::RT:
+        case DIM_UNIT::INT:
+          return 2;
+        case DIM_UNIT::MZ:
+          return 8;
+        default:
+          return 4;
+      }
+    };
+    return precision_for_unit(this->getUnit());
   }
-}
+} // namespace OpenMS
