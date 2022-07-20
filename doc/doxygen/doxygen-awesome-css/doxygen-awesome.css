@@ -29,7 +29,7 @@ SOFTWARE.
 
 html {
     /* primary theme color. This will affect the entire websites color scheme: links, arrows, labels, ... */
-    --primary-color: #29379b;
+    --primary-color: #1779c4;
     --primary-dark-color: #335c80;
     --primary-light-color: #70b1e9;
 
@@ -72,7 +72,7 @@ html {
     /* content text properties. These only affect the page content, not the navigation or any other ui elements */
     --content-line-height: 27px;
     /* The content is centered and constraint in it's width. To make the content fill the whole page, set the variable to auto.*/
-    --content-maxwidth: auto/*1000px; */
+    --content-maxwidth: 1000px;
 
     /* colors for various content boxes: @warning, @note, @deprecated @bug */
     --warning-color: #f8d1cc;
@@ -540,6 +540,10 @@ a.anchor {
     padding-left: 8px;
 }
 
+.left #MSearchSelect[src$=".png"] {
+    padding-left: 0
+}
+
 .SelectionMark {
     user-select: none;
 }
@@ -598,6 +602,7 @@ a.anchor {
 
 #MSearchBox span.left, #MSearchBox span.right {
     background: none;
+    background-image: none;
 }
 
 #MSearchBox span.right {
@@ -1493,7 +1498,7 @@ table.markdownTable td:last-child, table.markdownTable th:last-child, table.fiel
     border: none;
 }
 
-table.markdownTable tr {
+table.markdownTable tr, table.markdownTable tr {
     border-bottom: 1px solid var(--separator-color);
 }
 
