@@ -154,6 +154,7 @@ set(kernel_executables_list
   MassTrace_test
   Mobilogram_test
   MobilityPeak1D_test
+  MobilityPeak2D_test
   MRMFeature_test
   MRMTransitionGroup_test
   MSChromatogram_test
