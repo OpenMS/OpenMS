@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -118,14 +118,10 @@ add_custom_target(
   final_ctds
   # MaRaClusterAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MaRaClusterAdapter -DPARAM=maracluster_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-  # OMSSAAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=OMSSAAdapter -DPARAM=omssa_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # CruxAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=CruxAdapter -DPARAM=crux_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # XTandemAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=xtandem_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-  # MyriMatchAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MyriMatchAdapter -DPARAM=myrimatch_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # MSGFPlusAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MSGFPlusAdapter -DPARAM=executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # LuciPhorAdapter
@@ -276,7 +272,7 @@ set(FOLDER_STRUCTURE_MESSAGE "You can clone all Thirdparty binaries from our Ope
 ## Would also allow custom packages.
 if(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY})
   message(FATAL_ERROR "Please specify the path to the search engines to build the KNIME packages. ${FOLDER_STRUCTURE_MESSAGE} Then call cmake again with cmake -D SEARCH_ENGINES_DIRECTORY=<Path-To-Checkedout-SE>.")
-elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/OMSSA OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/XTandem OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/MSGFPlus)
+elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/XTandem OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/MSGFPlus)
   message(FATAL_ERROR "The given search engine directory seems to have an invalid layout. ${FOLDER_STRUCTURE_MESSAGE}")
 elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Fido)
   message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (Fido is missing). ${FOLDER_STRUCTURE_MESSAGE}")
@@ -284,8 +280,6 @@ elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/LuciPHOr2)
   message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (LuciPHOr2 is missing). ${FOLDER_STRUCTURE_MESSAGE}")
 elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Percolator)
   message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (Percolator is missing). ${FOLDER_STRUCTURE_MESSAGE}")
-elseif(NOT APPLE AND NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/MyriMatch)
-  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (MyriMatch is missing). ${FOLDER_STRUCTURE_MESSAGE}")
 endif()
 
 add_custom_target(

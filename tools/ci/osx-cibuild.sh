@@ -62,8 +62,6 @@ export BUILD_NAME=${_build_name}
 #sh -e /usr/X11/bin/xvfb start
 
 # add third-party binaries (e.g. search engines) to PATH
-#export PATH=${SOURCE_DIRECTORY}/_thirdparty/MyriMatch:$PATH
-#export PATH=${SOURCE_DIRECTORY}/_thirdparty/OMSSA:$PATH
 #export PATH=${SOURCE_DIRECTORY}/_thirdparty/XTandem:$PATH
 #export PATH=${SOURCE_DIRECTORY}/_thirdparty/MSGFPlus:$PATH
 #export PATH=${SOURCE_DIRECTORY}/_thirdparty/Fido:$PATH

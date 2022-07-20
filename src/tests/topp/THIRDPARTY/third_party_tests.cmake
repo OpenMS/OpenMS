@@ -1,7 +1,7 @@
 ## Third-party tools (e.g. MS2 search engines) go here...
 ## MACRO OPENMS_FINDBINARY:
 ## fills ${varname} with the path to the binary given in ${binaryname}
-## @param varname      Name of the variable which will hold the result string (e.g. OMSSA_BINARY)
+## @param varname      Name of the variable which will hold the result string (e.g. COMET_BINARY)
 ## @param binaryname   List of binary names which are searched
 ## @param name         Human readable version of binaryname for messages
 macro (OPENMS_FINDBINARY varname binaryname name)
@@ -48,17 +48,9 @@ OPENMS_FINDBINARY(MARACLUSTER_BINARY "maracluster" "MaRaCluster")
 OPENMS_FINDBINARY(COMET_BINARY "comet.exe" "Comet")
 
 #------------------------------------------------------------------------------
-# OMSSA
-OPENMS_FINDBINARY(OMSSA_BINARY "omssacl" "OMSSA")
-
-#------------------------------------------------------------------------------
 # X!Tandem
 OPENMS_FINDBINARY(XTANDEM_BINARY "tandem;tandem.exe" "X! Tandem")
 openms_check_tandem_version(${XTANDEM_BINARY} xtandem_valid)
-
-#------------------------------------------------------------------------------
-# MyriMatch
-OPENMS_FINDBINARY(MYRIMATCH_BINARY "myrimatch" "Myrimatch")
 
 #------------------------------------------------------------------------------
 # MS-GF+
@@ -108,20 +100,6 @@ OPENMS_FINDBINARY(COMET_ADAPTER_BINARY "CometAdapter" "CometAdapter")
 
 #------------------------------------------------------------------------------
 ## optional tests
-if (NOT (${OMSSA_BINARY} STREQUAL "OMSSA_BINARY-NOTFOUND"))
-  add_test("TOPP_OMSSAAdapter_1" ${TOPP_BIN_PATH}/OMSSAAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/OMSSAAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out OMSSAAdapter_1_out.tmp -omssa_executable "${OMSSA_BINARY}")
-  add_test("TOPP_OMSSAAdapter_1_out" ${DIFF} -in1 OMSSAAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/OMSSAAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"OMSSAAdapter:1:in\" value=" "UserParam type=\"string\" name=\"OMSSAAdapter:1:database\" value="  "UserParam type=\"string\" name=\"OMSSAAdapter:1:omssa_executable\" value=")
-  set_tests_properties("TOPP_OMSSAAdapter_1_out" PROPERTIES DEPENDS "TOPP_OMSSAAdapter_1")
-
-  # test charge check
-  add_test("TOPP_OMSSAAdapter_2" ${TOPP_BIN_PATH}/OMSSAAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/OMSSAAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out OMSSAAdapter_1_out.tmp -omssa_executable "${OMSSA_BINARY}" -min_precursor_charge 4 -max_precursor_charge 3)
-  set_tests_properties("TOPP_OMSSAAdapter_2" PROPERTIES WILL_FAIL 1) # has invalid charge range
-  
-  ## MS2 profile spectra are not allowed
-  add_test("TOPP_OMSSAAdapter_PROFILE" ${TOPP_BIN_PATH}/OMSSAAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteinslong.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/MS2_profile.mzML -out OMSSAAdapter_3_out.tmp -omssa_executable "${OMSSA_BINARY}")
-  set_tests_properties("TOPP_OMSSAAdapter_PROFILE" PROPERTIES WILL_FAIL 1) 
-endif()
-
 #------------------------------------------------------------------------------
 if (NOT (${XTANDEM_BINARY} STREQUAL "XTANDEM_BINARY-NOTFOUND") AND xtandem_valid)
   add_test("TOPP_XTandemAdapter_1" ${TOPP_BIN_PATH}/XTandemAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out XTandemAdapter_1_out.tmp -xtandem_executable "${XTANDEM_BINARY}")
@@ -140,17 +118,6 @@ if (NOT (${XTANDEM_BINARY} STREQUAL "XTANDEM_BINARY-NOTFOUND") AND xtandem_valid
   ## MS2 profile spectra are not allowed
   add_test("TOPP_XTandemAdapter_PROFILE" ${TOPP_BIN_PATH}/XTandemAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteinslong.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/MS2_profile.mzML -out XTandemAdapter_4_out.tmp -xtandem_executable "${XTANDEM_BINARY}")
   set_tests_properties("TOPP_XTandemAdapter_PROFILE" PROPERTIES WILL_FAIL 1) 
-endif()
-
-#------------------------------------------------------------------------------
-if (NOT (${MYRIMATCH_BINARY} STREQUAL "MYRIMATCH_BINARY-NOTFOUND"))
-  add_test("TOPP_MyriMatchAdapter_1" ${TOPP_BIN_PATH}/MyriMatchAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MyriMatchAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out MyriMatchAdapter_1_out.tmp -myrimatch_executable "${MYRIMATCH_BINARY}")
-  add_test("TOPP_MyriMatchAdapter_1_out" ${DIFF} -in1 MyriMatchAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MyriMatchAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"MyriMatchAdapter:1:in\" value=" "UserParam type=\"string\" name=\"MyriMatchAdapter:1:database\" value=" "UserParam type=\"string\" name=\"MyriMatchAdapter:1:myrimatch_executable\" value=")
-  set_tests_properties("TOPP_MyriMatchAdapter_1_out" PROPERTIES DEPENDS "TOPP_MyriMatchAdapter_1")
-  
-  ## MS2 profile spectra are not allowed
-  add_test("TOPP_MyriMatchAdapter_PROFILE" ${TOPP_BIN_PATH}/MyriMatchAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteinslong.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/MS2_profile.mzML -out MyriMatchAdapter_3_out.tmp -myrimatch_executable "${MYRIMATCH_BINARY}")
-  set_tests_properties("TOPP_MyriMatchAdapter_PROFILE" PROPERTIES WILL_FAIL 1) 
 endif()
 
 #------------------------------------------------------------------------------

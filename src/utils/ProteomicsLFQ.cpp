@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1966,14 +1966,7 @@ protected:
     const bool report_unmapped(true);
     const bool report_unidentified_features(false);
 
-    MzTab m = MzTab::exportConsensusMapToMzTab(
-      consensus, 
-      String("null"),
-      true,
-      report_unidentified_features, 
-      report_unmapped,
-      "Export from ProteomicsLFQ workflow in OpenMS.");
-    MzTabFile().store(out, m);
+    MzTabFile().store(out, consensus, true, report_unidentified_features, report_unmapped, "Export from ProteomicsLFQ workflow in OpenMS.");
 
     if (!out_msstats.empty())
     {
