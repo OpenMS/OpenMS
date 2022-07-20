@@ -758,13 +758,23 @@ namespace OpenMS
     // pre-analyze data for occurring meta values at feature and peptide hit level
     // these are used to build optional columns containing the meta values in internal data structures
     set<String> feature_user_value_keys;
+    set<String> peptide_identifications_user_value_keys;
     set<String> peptide_hit_user_value_keys;
-    MzTab::getFeatureMapMetaValues_(feature_map, feature_user_value_keys, peptide_hit_user_value_keys);
+    MzTab::getFeatureMapMetaValues_(
+      feature_map,     
+      feature_user_value_keys,
+      peptide_identifications_user_value_keys,
+      peptide_hit_user_value_keys);
 
     for (Size i = 0; i < feature_map.size(); ++i)
     {
       const Feature& f = feature_map[i];
-      auto row = peptideSectionRowFromFeature_(f, feature_user_value_keys, peptide_hit_user_value_keys, fixed_mods);
+      auto row = peptideSectionRowFromFeature_(
+        f,
+        feature_user_value_keys, 
+        peptide_identifications_user_value_keys, 
+        peptide_hit_user_value_keys, 
+        fixed_mods);
       mztab.getPeptideSectionRows().emplace_back(std::move(row));
     }
 
@@ -774,6 +784,7 @@ namespace OpenMS
   MzTabPeptideSectionRow MzTab::peptideSectionRowFromFeature_(
     const Feature& f, 
     const set<String>& feature_user_value_keys,
+    const set<String>& peptide_identifications_user_value_keys,
     const set<String>& peptide_hit_user_value_keys,
     const vector<String>& fixed_mods)
   {
@@ -875,6 +886,7 @@ namespace OpenMS
     const StringList& ms_runs,
     const Size n_study_variables,
     const set<String>& consensus_feature_user_value_keys,
+    const set<String>& peptide_identifications_user_value_keys,
     const set<String>& peptide_hit_user_value_keys,
     const map<String, size_t>& idrun_2_run_index,
     const map<pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
@@ -2387,7 +2399,10 @@ state0:
     return mod_list;
   }
 
-  void MzTab::getFeatureMapMetaValues_(const FeatureMap& feature_map, set<String>& feature_user_value_keys, set<String>& peptide_hit_user_value_keys)
+  void MzTab::getFeatureMapMetaValues_(const FeatureMap& feature_map,
+    set<String>& feature_user_value_keys, 
+    set<String>& peptide_identification_user_value_keys, 
+    set<String>& peptide_hit_user_value_keys)
   {
     for (Size i = 0; i < feature_map.size(); ++i)
     {
@@ -2402,6 +2417,12 @@ state0:
       const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
       for (PeptideIdentification const & pep_id : pep_ids)
       {
+        vector<String> pep_keys;
+        pep_id.getKeys(pep_keys);
+        // replace whitespaces with underscore
+        std::transform(pep_keys.begin(), pep_keys.end(), pep_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+        peptide_identification_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
+
         for (PeptideHit const & hit : pep_id.getHits())
         {
           vector<String> ph_keys;
@@ -2418,6 +2439,7 @@ state0:
 
   void MzTab::getConsensusMapMetaValues_(const ConsensusMap& consensus_map,
     set<String>& consensus_feature_user_value_keys,
+    set<String>& peptide_identification_user_value_keys,
     set<String>& peptide_hit_user_value_keys)
   {
     for (ConsensusFeature const & c : consensus_map)
@@ -2432,13 +2454,11 @@ state0:
       const vector<PeptideIdentification> & curr_pep_ids = c.getPeptideIdentifications();
       for (auto const & pep_id : curr_pep_ids)
       {      
-        /* TODO: distinguish peptide hit and peptide id level meta values (also in writing them out)
         vector<String> pep_keys;
         pep_id.getKeys(pep_keys);
         // replace whitespaces with underscore
         std::transform(pep_keys.begin(), pep_keys.end(), pep_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
-        peptide_hit_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
-        */
+        peptide_identification_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
 
         for (auto const & hit : pep_id.getHits())
         {
@@ -2597,14 +2617,19 @@ state0:
       run_to_search_engines_settings_,
       search_engine_to_settings);
 
-    // Pre-analyze data for re-occurring meta values at consensus feature and contained peptide hit level.
+    // Pre-analyze data for re-occurring meta values at consensus feature and contained peptide id and hit level.
     // These are stored in optional columns of the PEP section.
     MzTab::getConsensusMapMetaValues_(consensus_map, 
-      consensus_feature_user_value_keys_, 
+      consensus_feature_user_value_keys_,
+      consensus_feature_peptide_identification_user_value_keys_,
       consensus_feature_peptide_hit_user_value_keys_);
 
     // create column names from meta values
+    // feature meta values
     for (const auto& k : consensus_feature_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
+    // id meta values
+    for (const auto& k : consensus_feature_peptide_identification_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
+    // peptide hit (PSM) meta values
     //maybe it's better not to output the PSM information here as it is already stored in the PSM section and referenceable via spectra_ref
     for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
     std::replace(pep_optional_column_names_.begin(), pep_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
@@ -2957,6 +2982,7 @@ state0:
      ms_runs_,
      n_study_variables_, 
      consensus_feature_user_value_keys_, 
+     consensus_feature_peptide_identification_user_value_keys_, 
      consensus_feature_peptide_hit_user_value_keys_,
      idrunid_2_idrunindex_,
      map_id_run_fileidx_2_msfileidx_,
