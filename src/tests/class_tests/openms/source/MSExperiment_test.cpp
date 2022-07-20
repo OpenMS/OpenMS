@@ -771,11 +771,11 @@ START_SECTION((Iterator RTBegin(CoordinateType rt)))
 
   it = tmp.RTBegin(20.0);
   TEST_REAL_SIMILAR(it->getRT(),30.0)
-    it = tmp.RTBegin(30.0);
+  it = tmp.RTBegin(30.0);
   TEST_REAL_SIMILAR(it->getRT(),30.0)
-    it = tmp.RTBegin(31.0);
+  it = tmp.RTBegin(31.0);
   TEST_REAL_SIMILAR(it->getRT(),40.0)
-    TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
+  TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
 }
 END_SECTION
 
@@ -798,13 +798,68 @@ START_SECTION((Iterator RTEnd(CoordinateType rt)))
 
   it = tmp.RTEnd(20.0);
   TEST_REAL_SIMILAR(it->getRT(),30.0)
-    it = tmp.RTEnd(30.0);
+  it = tmp.RTEnd(30.0);
   TEST_REAL_SIMILAR(it->getRT(),40.0)
-    it = tmp.RTEnd(31.0);
+  it = tmp.RTEnd(31.0);
   TEST_REAL_SIMILAR(it->getRT(),40.0)
-    TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
+  TEST_EQUAL(tmp.RTEnd(55.0) == tmp.end(), true)
 }
 END_SECTION
+
+START_SECTION((Iterator IMBegin(CoordinateType im)))
+{
+  PeakMap tmp;
+  MSSpectrum s;
+  Peak1D p;
+
+  s.setDriftTime(30.0);
+  tmp.addSpectrum(s);
+  s.setDriftTime(40.0);
+  tmp.addSpectrum(s);
+  s.setDriftTime(45.0);
+  tmp.addSpectrum(s);
+  s.setDriftTime(50.0);
+  tmp.addSpectrum(s);
+
+  PeakMap::ConstIterator it;
+
+  it = tmp.IMBegin(20.0);
+  TEST_REAL_SIMILAR(it->getDriftTime(), 30.0)
+  it = tmp.IMBegin(30.0);
+  TEST_REAL_SIMILAR(it->getDriftTime(), 30.0)
+  it = tmp.IMBegin(31.0);
+  TEST_REAL_SIMILAR(it->getDriftTime(), 40.0)
+  TEST_EQUAL(tmp.IMBegin(55.0) == tmp.end(), true)
+}
+END_SECTION
+
+START_SECTION((Iterator IMEnd(CoordinateType rt)))
+{
+  PeakMap tmp;
+  MSSpectrum s;
+  Peak1D p;
+
+  s.setDriftTime(30.0);
+  tmp.addSpectrum(s);
+  s.setDriftTime(40.0);
+  tmp.addSpectrum(s);
+  s.setDriftTime(45.0);
+  tmp.addSpectrum(s);
+  s.setDriftTime(50.0);
+  tmp.addSpectrum(s);
+
+  PeakMap::ConstIterator it;
+
+  it = tmp.IMEnd(20.0);
+  TEST_REAL_SIMILAR(it->getDriftTime(), 30.0)
+  it = tmp.IMEnd(30.0);
+  TEST_REAL_SIMILAR(it->getDriftTime(), 40.0)
+  it = tmp.IMEnd(31.0);
+  TEST_REAL_SIMILAR(it->getDriftTime(), 40.0)
+  TEST_EQUAL(tmp.IMEnd(55.0) == tmp.end(), true)
+}
+END_SECTION
+
 
 START_SECTION((ConstIterator RTBegin(CoordinateType rt) const))
 {
@@ -1111,6 +1166,35 @@ START_SECTION(void clear(bool clear_meta_data))
   edit.clear(true);
   TEST_EQUAL(edit.empty(),true)
   TEST_EQUAL(edit == MSExperiment(),true)
+}
+END_SECTION
+
+START_SECTION(bool MSExperiment::isIMFrame() const)
+{
+  PeakMap tmp;
+  MSSpectrum s;
+  constexpr double rt_all = 1;
+  s.setRT(rt_all);
+  s.setDriftTime(30.0);
+  tmp.addSpectrum(s);
+  s.setDriftTime(40.0);
+  tmp.addSpectrum(s);
+  s.setDriftTime(45.0);
+  tmp.addSpectrum(s);
+  s.setDriftTime(50.0);
+  tmp.addSpectrum(s);
+  TEST_TRUE(tmp.isIMFrame())
+
+  tmp[3].setRT(2);  // changing RT ...
+  TEST_FALSE(tmp.isIMFrame());
+  tmp[3].setRT(rt_all); // undo
+
+  tmp[2].setDriftTime(tmp[1].getDriftTime()); // duplicate drift time
+  TEST_FALSE(tmp.isIMFrame());
+
+  tmp[3].setRT(2); // changing RT ...
+  tmp[2].setDriftTime(tmp[1].getDriftTime()); // duplicate drift time
+  TEST_FALSE(tmp.isIMFrame());
 }
 END_SECTION
 
