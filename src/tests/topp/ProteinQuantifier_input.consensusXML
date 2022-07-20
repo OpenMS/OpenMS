@@ -29,7 +29,7 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="100" RT="100" >
 				<PeptideHit score="1" sequence="AAAK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
-                                <UserParam type="int" name="id_merge_index" value="0"/>
+        <UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_1" quality="1" charge="2">
@@ -41,7 +41,7 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="200" RT="200" >
 				<PeptideHit score="1" sequence="CCCK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
-                                <UserParam type="int" name="id_merge_index" value="0"/>
+        <UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_2" quality="1" charge="2">
@@ -54,7 +54,7 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="300" RT="300" >
 				<PeptideHit score="1" sequence="EEEK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
-                                <UserParam type="int" name="id_merge_index" value="1"/>
+        <UserParam type="int" name="id_merge_index" value="1"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_3" quality="1" charge="2">
@@ -66,7 +66,7 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="400" RT="400" >
 				<PeptideHit score="1" sequence="GGG" charge="2" protein_refs="PH_0">
 				</PeptideHit>
-                                <UserParam type="int" name="id_merge_index" value="2"/>
+        <UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
 		</consensusElement>
 	</consensusElementList>

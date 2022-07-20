@@ -59,7 +59,6 @@ x    MascotAdapter.cpp  # 400 lines
 x    MascotAdapterOnline.cpp # 200 lines
 ok   MassTraceExtractor.cpp
 ok   MRMMapper.cpp
-x    MyriMatchAdapter.cpp  # 400 lines
 ?    MzTabExporter.cpp     # needs wrapping of depracated method in MzTabFile
 ok   NoiseFilterGaussian.cpp
 ok   NoiseFilterSGolay.cpp
