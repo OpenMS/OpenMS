@@ -825,8 +825,14 @@ namespace OpenMS
     const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
     if (pep_ids.empty())
     {
+      // still add empty opt_ columns before returning
+      addMetaInfoToOptionalColumns(peptide_identifications_user_value_keys, row.opt_, String("global"), MetaInfoInterface());
+      addMetaInfoToOptionalColumns(peptide_hit_user_value_keys, row.opt_, String("global"), MetaInfoInterface());      
       return row;
     }
+
+    const PeptideIdentification& best_pid = f.getPeptideIdentifications()[0];
+    addMetaInfoToOptionalColumns(peptide_identifications_user_value_keys, row.opt_, String("global"), best_pid);
 
     // TODO: here we assume that all have the same score type etc.
     vector<PeptideHit> all_hits;
@@ -837,6 +843,7 @@ namespace OpenMS
 
     if (all_hits.empty())
     { 
+      addMetaInfoToOptionalColumns(peptide_identifications_user_value_keys, row.opt_, String("global"), MetaInfoInterface());
       return row;
     }
 
@@ -930,6 +937,14 @@ namespace OpenMS
         })
       );
 
+    // add optional columns for first peptide identification in consensus feature
+    for_each(peptide_identifications_user_value_keys.begin(), peptide_identifications_user_value_keys.end(),
+      addUserValueToRowBy([&c](const String &key, MzTabOptionalColumnEntry &opt_entry)
+        {
+          opt_entry.second = MzTabString(c.getMetaValue(key).toString());
+        })
+      );
+
     // create opt_ columns for psm (PeptideHit) user values
     for_each(peptide_hit_user_value_keys.begin(), peptide_hit_user_value_keys.end(),
       				addUserValueToRowBy([](const String&, MzTabOptionalColumnEntry&){}));
@@ -997,7 +1012,8 @@ namespace OpenMS
 
       // Overall information for this feature in PEP section
       // Features need to be resolved for this. First is not necessarily the best since ids were resorted by map_index.
-      const PeptideHit& best_ph = curr_pep_ids[0].getHits()[0];
+      const PeptideIdentification& best_id = curr_pep_ids[0];
+      const PeptideHit& best_ph = best_id.getHits()[0];
       const AASequence& aas = best_ph.getSequence();
       row.sequence = MzTabString(aas.toUnmodifiedString());
 
@@ -1012,6 +1028,25 @@ namespace OpenMS
       row.accession = peptide_evidences.empty() ? MzTabString() : MzTabString(peptide_evidences[0].getProteinAccession());
 
       // fill opt_ columns based on best ID in the feature
+      vector<String> id_keys;
+      best_id.getKeys(id_keys);
+
+      for (Size k = 0; k != id_keys.size(); ++k)
+      {
+        String mztabstyle_key = id_keys[k];
+        std::replace(mztabstyle_key.begin(), mztabstyle_key.end(), ' ', '_');
+
+        // find matching entry in opt_ (TODO: speed this up)
+        for (Size i = 0; i != row.opt_.size(); ++i)
+        {
+          MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
+
+          if (opt_entry.first == String("opt_global_") + mztabstyle_key)
+          {
+            opt_entry.second = MzTabString(best_id.getMetaValue(id_keys[k]).toString());
+          }
+        }
+      }
 
       // find opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
       for (Size i = 0; i != row.opt_.size(); ++i)
@@ -2472,7 +2507,7 @@ state0:
     }
 
     // we don't want spectrum reference to show up as meta value (already in dedicated column)
-    peptide_hit_user_value_keys.erase("spectrum_reference");
+    peptide_identification_user_value_keys.erase("spectrum_reference");
   }
 
   void MzTab::getIdentificationMetaValues_(
