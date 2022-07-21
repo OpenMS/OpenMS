@@ -29,6 +29,8 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 - TOPPAS: add a `recent files` submenu
 - removed InspectAdapter
 - removed OMSSAAdapter
+- removed MyriMatchAdapter
+- removed Crux
 - OpenMS documentation is moved to openms.readthedocs.io/en/latest. OpenMS API
 reference and advanced developer documentation remains inside OpenMS doxygen
 documentation.
@@ -249,6 +251,7 @@ New tools:
 - AssayGeneratorMetabo -- Assay library generation from DDA data (Metabolomics) (UTIL)
 - ClusterMassTraces -- Creates pseudo spectra (UTIL)
 - ClusterMassTracesByPrecursor -- Correlate precursor masstraces with fragment ion masstraces in SWATH maps based on their elution profile (UTIL)
+- CruxAdapter -- Identifies MS/MS spectra using Crux (TOPP)
 - MSFraggerAdapter -- Peptide Identification with MSFragger (UTIL)
 - MSstatsConverter -- Converter to input for MSstats (UTIL)
 - MaRaClusterAdapter -- Facilitate input to MaRaCluster and reintegrate (TOPP)
@@ -260,14 +263,14 @@ Deprecated and removed tools:
 - IDEvaluator -- Computes a 'q-value vs. #PSM' plot which is saved as an image to visualize the number identifications for a certain q-value (UTIL)
 - IDEvaluatorGUI -- Computes a 'q-value vs. #PSM' plot to visualize the number identifications for a certain q-value (UTIL)
 - RNPxl -- Tool for RNP cross linking experiment analysis (UTIL) (superseded by RNPxlSearch)
-- CruxAdapter -- Identifies MS/MS spectra using Crux (TOPP)
-
+  
 Changed Tools:
 - SiriusAdapter now supports several input data
 - FileFilter now supports filtering spectra by similarity
 - PeptideIndexer now supports automatic detection of decoy suffix/prefix string and position
 - PeakPickerHiRes now supports automatic detection and picking of profile spectra
 - Support for MSFragger search engine through MSFraggerAdapter
+- Support for Crux search engine through CruxAdapter
 - Support for Maracluster through MaraClusterAdapter
 - OpenPepXL was improved in efficiency and usability
 - IDFileConverter now supports the Cross-Linking MS specific xquest.xml format
@@ -292,6 +295,7 @@ Third-party software:
 - New: maracluster (0.05)
 - Update: MS-GF+ to Release (2018.01.30)
 - Update: Sirius 4 for Windows 64bit, Linux 64bit, and MacOS 64bit
+- Update: Crux (crux-3.1.8b78546) on all 64bit platforms.
 
 
 -------------------------------------------------------------------------------------------
