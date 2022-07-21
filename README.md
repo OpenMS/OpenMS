@@ -26,7 +26,7 @@ quantitation, SILAC, iTRAQ, TMT, SRM, SWATH, etc.
 
 It provides built-in algorithms for de-novo identification and database search,
 as well as adapters to other state-of-the art tools like X!Tandem, Mascot,
-OMSSA, etc. It supports easy integration of OpenMS built tools into workflow
+Comet, etc. It supports easy integration of OpenMS built tools into workflow
 engines like KNIME, Galaxy, WS-Pgrade, and TOPPAS via the TOPPtools concept and
 a unified parameter handling via a 'common tool description' (CTD) scheme.
 
@@ -48,7 +48,20 @@ Features
 
 Documentation
 -------------
-Users and developers should start by reading the [OpenMS wiki](https://github.com/OpenMS/OpenMS/wiki) and consult the [current documentation](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/nightly/html/index.html) (or use the [latest release documentation](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html)).
+
+Users and developers should start by reading the [OpenMS documentation](https://openms.readthedocs.io/en/latest). OpenMS
+API reference documentation and advanced developer doxygen documentation can be browsed [here](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html).
+
+openms.readthedocs.io documentation has two release endpoints:
+
+1. `develop`: documentation of OpenMS develop branch.
+2. `latest`: documentation of the latest stable OpenMS release.
+
+Likewise, OpenMS API reference has:
+
+1. [`nightly`](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/nightly/html/index.html): OpenMS API reference and advanced developer documentation of nightly releases.
+2. [`latest`](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html) : OpenMS API reference and advanced developer documentation of latest stable release.
+
 Documentation for the Python bindings pyOpenMS can be found on the [pyOpenMS online documentation](https://pyopenms.readthedocs.io).
 
 Citation

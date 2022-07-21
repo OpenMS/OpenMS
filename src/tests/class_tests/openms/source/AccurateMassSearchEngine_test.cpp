@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -193,7 +193,7 @@ START_SECTION((void queryByFeature(const Feature& feature, const Size& feature_i
   test_feat.setRT(300.0);
   test_feat.setMZ(399.33486);
   test_feat.setIntensity(100.0);
-  test_feat.setMetaValue("num_of_masstraces", 3);
+  test_feat.setMetaValue(Constants::UserParam::NUM_OF_MASSTRACES, 3);
   test_feat.setCharge(1.0);
 
   vector<double> masstrace_intenstiy = {100.0, 26.1, 4.0};

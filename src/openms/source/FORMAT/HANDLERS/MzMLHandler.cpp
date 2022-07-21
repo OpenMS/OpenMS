@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -5032,8 +5032,14 @@ namespace OpenMS::Internal
       {
         for (Size m = 0; m < exp[s].getFloatDataArrays().size(); ++m)
         {
-          writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m,
+          // if a DataArray has dataProcessing information, write it, otherwise we assume it has the
+          // same processing as the rest of the spectra and use the implicit referencing of mzML
+          // to the first entry (which is a dummy if none exists; see above)
+          if (!exp[s].getFloatDataArrays()[m].getDataProcessing().empty())
+          {
+            writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m,
               exp[s].getFloatDataArrays()[m].getDataProcessing(), validator);
+          }
         }
       }
 
@@ -5661,7 +5667,7 @@ namespace OpenMS::Internal
                                          const Internal::MzMLValidator& validator)
     {
       Int64 offset = os.tellp();
-      chromatograms_offsets_.push_back(make_pair(chromatogram.getNativeID(), offset + 3));
+      chromatograms_offsets_.emplace_back(chromatogram.getNativeID(), offset + 3);
 
       // TODO native id with chromatogram=?? prefix?
       // IMPORTANT make sure the offset (above) corresponds to the start of the <chromatogram tag
