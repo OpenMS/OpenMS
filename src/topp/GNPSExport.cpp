@@ -33,14 +33,12 @@
 // $Contributors: Fabian Aicheler and Oliver Alka from Oliver Kohlbacher's group at Tubingen University$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/GNPSMetaValueFile.h>
-#include <OpenMS/FORMAT/GNPSMGFFile.h>
-#include <OpenMS/FORMAT/GNPSQuantificationFile.h>
 #include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/GNPSMGFFile.h>
+#include <OpenMS/FORMAT/GNPSMetaValueFile.h>
+#include <OpenMS/FORMAT/GNPSQuantificationFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 using namespace OpenMS;
@@ -52,8 +50,11 @@ using namespace std;
 /**
   @page TOPP_GNPSExport GNPSExport
   @brief Export MS/MS data in .MGF format for GNPS (http://gnps.ucsd.edu).
-GNPS (Global Natural Products Social Molecular Networking, http://gnps.ucsd.edu) is an open-access knowledge base for community-wide organization and sharing of raw, processed or identified tandem mass (MS/MS) spectrometry data. The GNPS web-platform makes it possible to perform spectral library search against public MS/MS spectral libraries, as well as to perform various data analysis such as MS/MS molecular networking, network annotation propagation, and the Dereplicator-based annotation. The GNPS manuscript is available here: https://www.nature.com/articles/nbt.3597
-This tool was developed for the Feature Based Molecular Networking (FBMN) (https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/) and Ion Identity Molecular Networking (IIMN) (https://ccms-ucsd.github.io/GNPSDocumentation/fbmn-iin/) workflows.
+GNPS (Global Natural Products Social Molecular Networking, http://gnps.ucsd.edu) is an open-access knowledge base for community-wide organization and sharing of raw, processed or identified tandem
+mass (MS/MS) spectrometry data. The GNPS web-platform makes it possible to perform spectral library search against public MS/MS spectral libraries, as well as to perform various data analysis such as
+MS/MS molecular networking, network annotation propagation, and the Dereplicator-based annotation. The GNPS manuscript is available here: https://www.nature.com/articles/nbt.3597 This tool was
+developed for the Feature Based Molecular Networking (FBMN) (https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/) and Ion Identity Molecular Networking (IIMN)
+(https://ccms-ucsd.github.io/GNPSDocumentation/fbmn-iin/) workflows.
 
 Please cite:
 Nothias, L.-F., Petras, D., Schmid, R. et al. [Feature-based molecular networking in the GNPS analysis environment](https://www.nature.com/articles/s41592-020-0933-6). Nat. Methods 17, 905–908 (2020).
@@ -71,7 +72,8 @@ A representative OpenMS-GNPS workflow would use the following OpenMS TOPP tools 
 - Run MetaboliteAdductDecharger on the featureXML files (optional, for Ion Identity Molecular Networking).
 - Run the @ref TOPP_MapAlignerPoseClustering tool on the featureXML files.
 @code
-	MapAlignerPoseClustering -in FFM_inputFile0.featureXML FFM_inputFile1.featureXML -out MapAlignerPoseClustering_inputFile0.featureXML MapAlignerPoseClustering_inputFile1.featureXML -trafo_out MapAlignerPoseClustering_inputFile0.trafoXML MapAlignerPoseClustering_inputFile1.trafoXML
+  MapAlignerPoseClustering -in FFM_inputFile0.featureXML FFM_inputFile1.featureXML -out MapAlignerPoseClustering_inputFile0.featureXML MapAlignerPoseClustering_inputFile1.featureXML -trafo_out
+MapAlignerPoseClustering_inputFile0.trafoXML MapAlignerPoseClustering_inputFile1.trafoXML
 @endcode
 - Run the @ref TOPP_MapRTTransformer tool on the mzML files to transform retention times based on the feature map alignment by @ref TOPP_MapAlignerPoseClustering.
 @code
@@ -81,7 +83,7 @@ A representative OpenMS-GNPS workflow would use the following OpenMS TOPP tools 
 - Run the @ref TOPP_IDMapper tool on the featureXML and mzML files.
 @code
   IDMapper -id emptyfile.idXML -in MapAlignerPoseClustering_inputFile0.featureXML -spectra:in MapRTTransformer_inputFile0.mzML -out IDMapper_inputFile0.featureXML
-	IDMapper -id emptyfile.idXML -in MapAlignerPoseClustering_inputFile1.featureXML -spectra:in MapRTTransformer_inputFile1.mzML -out IDMapper_inputFile1.featureXML
+  IDMapper -id emptyfile.idXML -in MapAlignerPoseClustering_inputFile1.featureXML -spectra:in MapRTTransformer_inputFile1.mzML -out IDMapper_inputFile1.featureXML
 @endcode
 - Run the @ref UTILS_MetaboliteAdductDecharger tool on the featureXML files.
 - Run the @ref TOPP_FeatureLinkerUnlabeledKD tool or FeatureLinkerUnlabeledQT, on the featureXML files and output a consensusXML file.
@@ -92,10 +94,12 @@ A representative OpenMS-GNPS workflow would use the following OpenMS TOPP tools 
 @code
     FileFilter -id:remove_unannotated_features -in FeatureLinkerUnlabeledKD.consensusXML -out FileFilter.consensusXML
 @endcode
-- Run the @ref TOPP_GNPSExport on the "filtered consensusXML file" to export an .MGF file. For each consensusElement in the consensusXML file, the GNPSExport command produces one representative consensus MS/MS spectrum (named peptide annotation in OpenMS jargon) which is appended in the MS/MS spectral file (.MGF file).
-(Note that the parameters for the spectral file generation are defined in the GNPSExport INI parameters file, available here: https://ccms-ucsd.github.io/GNPSDocumentation/openms_gnpsexport/GNPSExport.ini
-@code 
-	GNPSExport -in_cm filtered.consensusXML -in_mzml MapRTTransformer_inputFile0.mzML MapRTTransformer_inputFile1.mzML -out GNPSExport_output.mgf -out_quantification FeatureQuantificationTable.txt -out_pairs SupplementaryPairsTable.csv -out_meta_values MetaValues.tsv
+- Run the @ref TOPP_GNPSExport on the "filtered consensusXML file" to export an .MGF file. For each consensusElement in the consensusXML file, the GNPSExport command produces one representative
+consensus MS/MS spectrum (named peptide annotation in OpenMS jargon) which is appended in the MS/MS spectral file (.MGF file). (Note that the parameters for the spectral file generation are defined in
+the GNPSExport INI parameters file, available here: https://ccms-ucsd.github.io/GNPSDocumentation/openms_gnpsexport/GNPSExport.ini
+@code
+  GNPSExport -in_cm filtered.consensusXML -in_mzml MapRTTransformer_inputFile0.mzML MapRTTransformer_inputFile1.mzML -out GNPSExport_output.mgf -out_quantification FeatureQuantificationTable.txt
+-out_pairs SupplementaryPairsTable.csv -out_meta_values MetaValues.tsv
 @endcode
 - Upload your files to GNPS and run the Feature-Based Molecular Networking workflow. Instructions can be found here: https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/
 
@@ -187,9 +191,11 @@ protected:
     gnps.store(consensus_file_path, mzml_file_paths, out);
 
     if (!out_pairs.empty()) IonIdentityMolecularNetworking::writeSupplementaryPairTable(cm, out_pairs);
-    if (!out_quantification.empty()) GNPSQuantificationFile::store(cm, out_quantification);
-    if (!out_meta.empty()) GNPSMetaValueFile::store(cm, out_meta);
-    
+    if (!out_quantification.empty())
+      GNPSQuantificationFile::store(cm, out_quantification);
+    if (!out_meta.empty())
+      GNPSMetaValueFile::store(cm, out_meta);
+
     return EXECUTION_OK;
   }
 };

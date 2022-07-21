@@ -56,7 +56,6 @@
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
-
 #include <QStringList>
 
 
