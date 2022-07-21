@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <boost/regex.hpp>
 #include <fstream>
+#include <array>
 
 namespace OpenMS
 {
@@ -84,6 +85,7 @@ namespace OpenMS
 
     boost::cmatch m;
     boost::regex re_name("^Name: (.+)", boost::regex::no_mod_s);
+    boost::regex re_retention_time("^Retention Time: (.+)", boost::regex::no_mod_s);
     boost::regex re_synon("^synon(?:yms?)?: (.+)", boost::regex::no_mod_s | boost::regex::icase);
     boost::regex re_points_line(R"(^\d)");
     boost::regex re_point(R"((\d+(?:\.\d+)?)[: ](\d+(?:\.\d+)?);? ?)");
@@ -121,8 +123,13 @@ namespace OpenMS
         // OPENMS_LOG_DEBUG << "\n\nName: " << m[1] << "\n";
         spectrum.clear(true);
         synonyms_.clear();
-        spectrum.setName( String(m[1]) );
+        spectrum.setName(String(m[1]));
         spectrum.setMetaValue("is_valid", 1);
+      }
+      // Retention Time
+      else if (boost::regex_search(line, m, re_retention_time))
+      {
+        spectrum.setRT(std::stod(m[1]));
       }
       // Specific case of NIST's exported msp
       else if (boost::regex_search(line, m, re_cas_nist))
@@ -160,53 +167,54 @@ namespace OpenMS
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                             "The current spectrum misses the Name information.");
       }
-      output_file << "Name: " << spectrum.getName() << '\n';
-      const auto& synonyms = spectrum.getMetaValue("Synon");
-      if (synonyms.valueType() == OpenMS::DataValue::DataType::STRING_VALUE)
+      if (spectrum.size())// we will not store spectrum with no peaks
       {
-        size_t start;
-        size_t end = 0;
-        std::string synonyms_str(synonyms);
-        std::string separator(synonyms_separator_);
-        while ((start = synonyms_str.find_first_not_of(separator, end)) != std::string::npos)
+        output_file << "Name: " << spectrum.getName() << '\n';
+        output_file << "Retention Time: " << spectrum.getRT() << '\n';
+        const auto& synonyms = spectrum.getMetaValue("Synon");
+        if (synonyms.valueType() == OpenMS::DataValue::DataType::STRING_VALUE)
         {
-          end = synonyms_str.find(separator, start);
-          output_file << "Synon: " << synonyms_str.substr(start, end - start) << '\n';
+          StringList list;
+          synonyms.toString().split(synonyms_separator_, list);
+          for (const auto& syn : list)
+          {
+            output_file << "Synon: " << syn << '\n';
+          }
         }
-      }
-      if (spectrum.metaValueExists("CAS#") && spectrum.metaValueExists("NIST#"))
-      {
-        output_file << "CAS#: " << spectrum.getMetaValue("CAS#") << ";  NIST#: " << spectrum.getMetaValue("NIST#") << '\n';
-      }
-      // Other metadata
-      const std::vector<std::string> ignore_metadata = { "Synon", "CAS#", "NIST#", "Num Peaks" };
-      std::vector<String> keys;
-      spectrum.getKeys(keys);
-      for (const auto& key : keys)
-      {
-        const auto& value = spectrum.getMetaValue(key);
-        if (std::find(ignore_metadata.begin(), ignore_metadata.end(), key) == ignore_metadata.end())
+        if (spectrum.metaValueExists("CAS#") && spectrum.metaValueExists("NIST#"))
         {
-          output_file << key << ": " << value << '\n';
+          output_file << "CAS#: " << spectrum.getMetaValue("CAS#") << ";  NIST#: " << spectrum.getMetaValue("NIST#") << '\n';
         }
-      }
-      // Peaks
-      output_file << "Num Peaks: " << spectrum.size() << '\n';
-      int peak_counter = 0;
-      for (const auto& peak : spectrum)
-      {
-        output_file << peak.getPos() << ":" << peak.getIntensity() << " ";
-        if ((++peak_counter % 5) == 0)
+        // Other metadata
+        static const std::array<std::string, 4> ignore_metadata = {"Synon", "CAS#", "NIST#", "Num Peaks"};
+        std::vector<String> keys;
+        spectrum.getKeys(keys);
+        for (const auto& key : keys)
+        {
+          const auto& value = spectrum.getMetaValue(key);
+          if (std::find(ignore_metadata.begin(), ignore_metadata.end(), key) == ignore_metadata.end())
+          {
+            output_file << key << ": " << value << '\n';
+          }
+        }
+        // Peaks
+        output_file << "Num Peaks: " << spectrum.size() << '\n';
+        int peak_counter = 0;
+        for (const auto& peak : spectrum)
+        {
+          output_file << peak.getPos() << ":" << peak.getIntensity() << " ";
+          if ((++peak_counter % 5) == 0)
+          {
+            output_file << '\n';
+          }
+        }
+        if ((peak_counter % 5) != 0)
         {
           output_file << '\n';
         }
-      }
-      if ((peak_counter % 5) != 0)
-      {
+        // separator
         output_file << '\n';
       }
-      // separator
-      output_file << '\n';
     }
 
     output_file.close();

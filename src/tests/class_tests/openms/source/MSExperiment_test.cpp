@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -370,7 +371,7 @@ START_SECTION((template <bool add_mass_traces, class Container> void set2DData(c
   fm.push_back(f1);
   fm.push_back(f2);  
   fm2 = fm; // copy without meta values (get2DData will not have them)
-  fm.back().setMetaValue("num_of_masstraces", 2);
+  fm.back().setMetaValue(Constants::UserParam::NUM_OF_MASSTRACES, 2);
   fm.back().setMetaValue("masstrace_intensity_0", 11.0f);
   fm.back().setMetaValue("masstrace_intensity_1", 12.0f);
   fm.back().setCharge(2);

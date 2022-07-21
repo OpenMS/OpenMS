@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -121,6 +121,8 @@ using namespace std;
   - further columns: @p rt, @p mz, @p intensity, @p charge, @p width, @p rt_cf, @p mz_cf, @p intensity_cf, @p charge_cf, @p width_cf, @p quality_cf
   - @p "..._cf" columns refer to the consensus feature, the other columns refer to the sub-feature
 
+  With the @p consensus:add_metavalues flag, meta values for each consensus feature are written.
+
   Output format produced for the @p consensus_features parameter:
   - one line per consensus feature (suitable for processing with e.g. <a href="http://www.r-project.org">R</a>)
   - columns: same as for a @p CONSENSUS line above, followed by additional columns for identification data
@@ -216,6 +218,15 @@ namespace OpenMS
     out.modifyStrings(old);
   }
 
+  // write meta value keys in header
+  void writeMetaValueKeysHeader(SVOutStream& out, const std::set<String>& meta_value_keys = {})
+  {
+    for (const auto& key: meta_value_keys)
+    {
+      out << key;
+    }
+  }
+
   // write the header for exporting consensusXML
   void writeConsensusHeader(SVOutStream& out, const String& what,
                             const String& infile, const String& now,
@@ -287,7 +298,7 @@ namespace OpenMS
 
   // stream output operator for a ProteinHit
   SVOutStream& operator<<(SVOutStream& out, const ProteinHit& hit)
-  {    
+  {
     out << String(hit.getScore()) << hit.getRank() << hit.getAccession() << hit.getDescription()
         << String(hit.getCoverage()) << hit.getSequence();
     return out;
@@ -614,6 +625,7 @@ protected:
       setValidStrings_("consensus:sorting_method", ListUtils::create<String>("none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));
       registerFlag_("consensus:sort_by_maps", "Apply a stable sort by the covered maps, lexicographically", false);
       registerFlag_("consensus:sort_by_size", "Apply a stable sort by decreasing size (i.e., the number of elements)", false);
+      registerFlag_("consensus:add_metavalues", "Add columns for ConsensusFeature meta values.", false);
     }
 
     ExitCodes main_(int, const char**) override
@@ -643,7 +655,7 @@ protected:
       {
         sep = ",";
       }
-      else 
+      else
       {
         sep = "\t";
       }
@@ -724,7 +736,7 @@ protected:
                 }
         }
 
-        if (add_feature_metavalues >= 0) 
+        if (add_feature_metavalues >= 0)
         {
           meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<FeatureMap, StringList>(feature_map.begin(), feature_map.end(), add_feature_metavalues);
         }
@@ -841,11 +853,27 @@ protected:
         String sorting_method = getStringOption_("consensus:sorting_method");
         bool sort_by_maps = getFlag_("consensus:sort_by_maps");
         bool sort_by_size = getFlag_("consensus:sort_by_size");
+        bool add_metavalues = getFlag_("consensus:add_metavalues");
 
         ConsensusMap consensus_map;
         ConsensusXMLFile consensus_xml_file;
 
         consensus_xml_file.load(in, consensus_map);
+
+        // for optional export of ConsensusFeature meta values, collect all possible meta value keys
+        std::set<String> meta_value_keys;
+        if (add_metavalues)
+        {
+          for (const auto& cf: consensus_map)
+          {
+            std::vector<String> cf_meta_value_keys;
+            cf.getKeys(cf_meta_value_keys);
+            for (const auto& key: cf_meta_value_keys)
+            {
+              meta_value_keys.insert(key);
+            }
+          }
+        }
 
         // extract common id and hit meta values
         StringList peptide_id_meta_keys;
@@ -1091,6 +1119,11 @@ protected:
                      << "n_diff_proteins_" + String(i);
             }
           }
+          // append column header for each meta value key
+          if (add_metavalues)
+          {
+            writeMetaValueKeysHeader(output, meta_value_keys);
+          }
           output << nl;
           output.modifyStrings(true);
 
@@ -1141,6 +1174,14 @@ protected:
                 }
                 output << ListUtils::concatenate(seqs, "/") << seqs.size()
                        << ListUtils::concatenate(accs, "/") << accs.size();
+              }
+            }
+            // append meta values for each ConsensusFeature
+            if (add_metavalues)
+            {
+              for (const auto& key: meta_value_keys)
+              {
+                output << cmit->getMetaValue(key, "");
               }
             }
             output << nl;
@@ -1226,6 +1267,11 @@ protected:
             Size map_id = map_num_to_map_id[fhindex];
             writeFeatureHeader(output, "_" + String(map_id), false, false);
           }
+          // append column header for each meta value key
+          if (add_metavalues)
+          {
+            writeMetaValueKeysHeader(output, meta_value_keys);
+          }
           output << nl;
           if (!no_ids)
           {
@@ -1290,6 +1336,14 @@ protected:
             {
               output << feature_handles[fhindex];
             }
+            // append meta values for each ConsensusFeature
+            if (add_metavalues)
+            {
+              for (const auto& key: meta_value_keys)
+              {
+                output << cmit->getMetaValue(key, "");
+              }
+            }
             output << nl;
 
             // peptide ids
@@ -1316,10 +1370,10 @@ protected:
         StringList peptide_hit_meta_keys;
         StringList protein_hit_meta_keys;
 
-        if (add_id_metavalues >= 0) 
+        if (add_id_metavalues >= 0)
         {
           peptide_id_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideIdentification>, StringList>(pep_ids.begin(), pep_ids.end(), add_id_metavalues);
-          // currently there is some hardcoded logic to create extra columns for these meta values so remove them to prevent duplication 
+          // currently there is some hardcoded logic to create extra columns for these meta values so remove them to prevent duplication
           peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT"), peptide_id_meta_keys.end());
           peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT_first_dim"), peptide_id_meta_keys.end());
           peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "first_dim_rt"), peptide_id_meta_keys.end());
@@ -1332,7 +1386,7 @@ protected:
           for (Size i = 0; i != pep_ids.size(); ++i)
           {
             const vector<PeptideHit>& hits = pep_ids[i].getHits();
-            temp_hits.insert(temp_hits.end(), hits.begin(), hits.end());  
+            temp_hits.insert(temp_hits.end(), hits.begin(), hits.end());
           }
           peptide_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideHit>, StringList>(temp_hits.begin(), temp_hits.end(), add_hit_metavalues);
         }

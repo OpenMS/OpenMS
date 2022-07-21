@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
+#include <QString>
 class QSqlQuery;
 
 namespace OpenMS
@@ -142,6 +143,8 @@ namespace OpenMS
 
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
+
+      int version_number_; ///< schema version number
 
       // mappings between database keys and loaded data:
       std::unordered_map<Key, IdentificationData::ScoreTypeRef> score_type_refs_;

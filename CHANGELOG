@@ -21,6 +21,19 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 - OpenSwath: Add support for diaPASEF data with overlapping m/z and IM windows
 - TOPPView: TheoreticalSpectrumGenerationDialog now supports generation of isotope patterns for metabolites
 - pyopenms: pyopenms-extra is renamed to pyopenms-docs.
+- Add extractSpectra to TargetedSpectraExtractor with support of MS1 features
+- TargetedSpectraExtractor::searchSpectrum added an option to add unknown features to the result featureMap
+- Fixed race condition when logging messages.
+- Added the support for 'no cleavage' for XTandemAdapter and CometAdapter (#6133).
+- ParamEditor with more convenient StringList editing  (#5135)
+- TOPPAS: add a `recent files` submenu
+- removed InspectAdapter
+- removed OMSSAAdapter
+- removed MyriMatchAdapter
+- OpenMS documentation is moved to openms.readthedocs.io/en/latest. OpenMS API
+reference and advanced developer documentation remains inside OpenMS doxygen
+documentation.
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.8     (released 2/2022)                  ----
 ------------------------------------------------------------------------------------------

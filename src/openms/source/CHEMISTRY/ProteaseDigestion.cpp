@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,10 +35,8 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <boost/regex.hpp>
 
-#include <iostream>
 #include <limits>
 
 using namespace std;
@@ -48,7 +46,7 @@ namespace OpenMS
   void ProteaseDigestion::setEnzyme(const String& enzyme_name)
   {
     enzyme_ = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
-    re_ = boost::regex(enzyme_->getRegEx());
+    re_.reset(new boost::regex(enzyme_->getRegEx()));
   }
 
   bool ProteaseDigestion::isValidProduct(const String& protein,

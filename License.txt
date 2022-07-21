@@ -2,7 +2,7 @@
                   OpenMS -- Open-Source Mass Spectrometry
 -----------------------------------------------------------------
 Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above
@@ -128,12 +128,6 @@ https://github.com/compomics/ThermoRawFileParser/blob/master/LICENSE
 
 ---------------------   Search engines:  ------------------------
  
-OMSSA
-  - URL:
-  ftp://ftp.ncbi.nlm.nih.gov/pub/lewisg/omssa
-  - License:
-  Public Domain
-
 Percolator:
   - URL:
   http://percolator.ms/
@@ -145,12 +139,6 @@ X!Tandem:
   http://www.thegpm.org/tandem/
   - License:
   http://www.perlfoundation.org/attachment/legal/artistic-2_0.txt
-
-MyriMatch:
-  - URL and source code:
-  https://www.ncbi.nlm.nih.gov/pubmed/17269722
-  - License:
-  http://www.apache.org/licenses/LICENSE-2.0
 
 MSGF+:
   - URL and source code:
