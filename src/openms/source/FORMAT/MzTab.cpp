@@ -609,10 +609,12 @@ namespace OpenMS
       MzTabOptionalColumnEntry opt_entry;
       // column names must not contain spaces
       opt_entry.first = "opt_" + id + "_" + String(key).substitute(' ','_');
+      
       if (meta.metaValueExists(key))
       {
         opt_entry.second = MzTabString(meta.getMetaValue(key).toString());
       } // otherwise it is default ("null")
+
       opt.push_back(opt_entry);
     }
   }
@@ -2444,8 +2446,6 @@ state0:
       const Feature& f = feature_map[i];
       vector<String> keys;
       f.getKeys(keys); //TODO: why not just return it?
-      // replace whitespaces with underscore
-      std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
 
       feature_user_value_keys.insert(keys.begin(), keys.end());
 
@@ -2454,16 +2454,12 @@ state0:
       {
         vector<String> pep_keys;
         pep_id.getKeys(pep_keys);
-        // replace whitespaces with underscore
-        for (auto& s : pep_keys) { s.substitute(' ', '_'); }
         peptide_identification_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
 
         for (PeptideHit const & hit : pep_id.getHits())
         {
           vector<String> ph_keys;
           hit.getKeys(ph_keys);
-          // replace whitespaces with underscore
-          std::transform(ph_keys.begin(), ph_keys.end(), ph_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
       }
