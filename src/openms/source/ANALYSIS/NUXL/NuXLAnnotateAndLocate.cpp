@@ -46,6 +46,8 @@
 
 using namespace std;
 
+//#define DEBUG_OpenNuXL
+
 namespace OpenMS
 {
   // static
@@ -671,8 +673,12 @@ namespace OpenMS
           for (auto& a : shifted_immonium_ions)
           {
             // compare origin (the AA) of immonium ion to current AA
-            if (a.annotation[1] == aas_unmodified[i])
+            if (a.annotation[0] == 'i' && a.annotation[1] == aas_unmodified[i])
             {
+
+              #ifdef DEBUG_OpenNuXL
+                OPENMS_LOG_DEBUG << "\n" << a.annotation << " " << "\n";
+              #endif
               sites_sum_score[i] += a.intensity;
             }
           }
@@ -734,7 +740,7 @@ namespace OpenMS
         a.best_localization_position = best_localization_position;
         a.fragment_annotations = fas;
 
-        #ifdef DEBUG_OpenNuXL
+        #ifdef DEBUG_OpenNuXL1
           OPENMS_LOG_DEBUG << "Ion centric annotation: " << endl;
           OPENMS_LOG_DEBUG << "unshifted b ions: " << endl;
           OPENMS_LOG_DEBUG << NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", unshifted_b_ions) << endl;
