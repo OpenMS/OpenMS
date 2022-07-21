@@ -826,13 +826,13 @@ namespace OpenMS
     if (pep_ids.empty())
     {
       // still add empty opt_ columns before returning
-      addMetaInfoToOptionalColumns(peptide_identifications_user_value_keys, row.opt_, String("global"), MetaInfoInterface());
-      addMetaInfoToOptionalColumns(peptide_hit_user_value_keys, row.opt_, String("global"), MetaInfoInterface());      
+      addMetaInfoToOptionalColumns(peptide_identifications_user_value_keys, row.opt_, "global", MetaInfoInterface());
+      addMetaInfoToOptionalColumns(peptide_hit_user_value_keys, row.opt_, "global", MetaInfoInterface());      
       return row;
     }
 
     const PeptideIdentification& best_pid = f.getPeptideIdentifications()[0];
-    addMetaInfoToOptionalColumns(peptide_identifications_user_value_keys, row.opt_, String("global"), best_pid);
+    addMetaInfoToOptionalColumns(peptide_identifications_user_value_keys, row.opt_, "global", best_pid);
 
     // TODO: here we assume that all have the same score type etc.
     vector<PeptideHit> all_hits;
@@ -843,7 +843,7 @@ namespace OpenMS
 
     if (all_hits.empty())
     { 
-      addMetaInfoToOptionalColumns(peptide_identifications_user_value_keys, row.opt_, String("global"), MetaInfoInterface());
+      addMetaInfoToOptionalColumns(peptide_identifications_user_value_keys, row.opt_, "global", MetaInfoInterface());
       return row;
     }
 
@@ -2455,7 +2455,7 @@ state0:
         vector<String> pep_keys;
         pep_id.getKeys(pep_keys);
         // replace whitespaces with underscore
-        std::transform(pep_keys.begin(), pep_keys.end(), pep_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+        for (auto& s : pep_keys) { s.substitute(' ', '_'); }
         peptide_identification_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
 
         for (PeptideHit const & hit : pep_id.getHits())
