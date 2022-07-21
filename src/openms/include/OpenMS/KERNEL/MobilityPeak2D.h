@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -47,14 +47,13 @@ namespace OpenMS
     @brief A 2-dimensional raw data point or peak.
 
     This data structure is intended for continuous data or peak data.
-    If you want to annotated single peaks with meta data, use RichPeak2D instead.
+    If you want to annotated single peaks with meta data, use RichMobilityPeak2D instead.
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI Peak2D
+  class OPENMS_DLLAPI MobilityPeak2D
   {
-public:
-
+  public:
     ///@name Type definitions
     ///@{
 
@@ -72,7 +71,7 @@ public:
     /// This enum maps the symbolic names of the dimensions to numbers
     enum DimensionDescription
     {
-      RT = 0,       ///< Retention time dimension id (0 if used as a const int)
+      IM = 0,       ///< Ion Mobility dimension id (0 if used as a const int)
       MZ = 1,       ///< Mass-to-charge dimension id (1 if used as a const int)
       DIMENSION = 2 ///< Number of dimensions
     };
@@ -80,35 +79,34 @@ public:
     /// Short name of the dimension (abbreviated form)
     static char const * shortDimensionName(UInt const dim);
     /// Short name of the dimension (abbreviated form)
-    static char const * shortDimensionNameRT();
+    static char const * shortDimensionNameIM();
     /// Short name of the dimension (abbreviated form)
     static char const * shortDimensionNameMZ();
 
     /// Full name of the dimension (self-explanatory form)
     static char const * fullDimensionName(UInt const dim);
     /// Full name of the dimension (self-explanatory form)
-    static char const * fullDimensionNameRT();
+    static char const * fullDimensionNameIM();
     /// Full name of the dimension (self-explanatory form)
     static char const * fullDimensionNameMZ();
 
     /// Unit of measurement (abbreviated form)
     static char const * shortDimensionUnit(UInt const dim);
     /// Unit of measurement (abbreviated form)
-    static char const * shortDimensionUnitRT();
+    static char const * shortDimensionUnitIM();
     /// Unit of measurement (abbreviated form)
     static char const * shortDimensionUnitMZ();
 
     /// Unit of measurement (self-explanatory form)
     static char const * fullDimensionUnit(UInt const dim);
     /// Unit of measurement (self-explanatory form)
-    static char const * fullDimensionUnitRT();
+    static char const * fullDimensionUnitIM();
     /// Unit of measurement (self-explanatory form)
     static char const * fullDimensionUnitMZ();
 
     ///@}
 
-protected:
-
+  protected:
     /// @name Dimension descriptions
     ///@{
 
@@ -126,40 +124,38 @@ protected:
 
     ///@}
 
-public:
-
+  public:
     ///@name Constructors and Destructor
     ///@{
     /// Default constructor
-    Peak2D() = default;
+    MobilityPeak2D() = default;
 
     /// Member constructor
-    explicit Peak2D(const PositionType& pos, const IntensityType in) :
+    explicit MobilityPeak2D(const PositionType& pos, const IntensityType in) :
       position_(pos),
       intensity_(in)
     {}
 
     /// Copy constructor
-    Peak2D(const Peak2D & p) = default;
+    MobilityPeak2D(const MobilityPeak2D & p) = default;
 
     /// Move constructor
-    Peak2D(Peak2D&&) noexcept = default;
+    MobilityPeak2D(MobilityPeak2D&&) noexcept = default;
 
     /// Assignment operator
-    Peak2D& operator=(const Peak2D& rhs) = default;
+    MobilityPeak2D& operator=(const MobilityPeak2D& rhs) = default;
 
     /// Move assignment operator
-    Peak2D& operator=(Peak2D&&) noexcept = default;
+    MobilityPeak2D& operator=(MobilityPeak2D&&) noexcept = default;
     /**
       @brief Destructor
 
       @note The destructor is non-virtual although many classes are derived from
-      Peak2D.  This is intentional, since otherwise we would "waste"
+      MobilityPeak2D.  This is intentional, since otherwise we would "waste"
       space for a vtable pointer in each instance. Normally you should not derive other classes from
-      Peak2D (unless you know what you are doing, of course).
+      MobilityPeak2D (unless you know what you are doing, of course).
     */
-    ~Peak2D() noexcept = default;
-    
+    ~MobilityPeak2D() noexcept = default;
     ///@}
 
     ///@name Accessors
@@ -206,22 +202,22 @@ public:
       position_[MZ] = coordinate;
     }
 
-    /// Returns the RT coordinate (index 0)
-    CoordinateType getRT() const
+    /// Returns the IM coordinate (index 0)
+    CoordinateType getMobility() const
     {
-      return position_[RT];
+      return position_[IM];
     }
 
-    /// Mutable access to the RT coordinate (index 0)
-    void setRT(CoordinateType coordinate)
+    /// Mutable access to the IM coordinate (index 0)
+    void setMobility(CoordinateType coordinate)
     {
-      position_[RT] = coordinate;
+      position_[IM] = coordinate;
     }
 
     ///@}
 
     /// Equality operator
-    bool operator==(const Peak2D & rhs) const
+    bool operator==(const MobilityPeak2D & rhs) const
     {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfloat-equal"
@@ -230,7 +226,7 @@ public:
     }
 
     /// Equality operator
-    bool operator!=(const Peak2D & rhs) const
+    bool operator!=(const MobilityPeak2D& rhs) const
     {
       return !(operator==(rhs));
     }
@@ -244,17 +240,17 @@ public:
     /// Comparator by intensity
     struct IntensityLess
     {
-      bool operator()(const Peak2D & left, const Peak2D & right) const
+      bool operator()(const MobilityPeak2D & left, const MobilityPeak2D & right) const
       {
         return left.getIntensity() < right.getIntensity();
       }
 
-      bool operator()(const Peak2D & left, IntensityType right) const
+      bool operator()(const MobilityPeak2D & left, IntensityType right) const
       {
         return left.getIntensity() < right;
       }
 
-      bool operator()(IntensityType left, const Peak2D & right) const
+      bool operator()(IntensityType left, const MobilityPeak2D & right) const
       {
         return left < right.getIntensity();
       }
@@ -263,48 +259,46 @@ public:
       {
         return left < right;
       }
-
     };
 
-    /// Comparator by RT position
-    struct RTLess
+    /// Comparator by IM position
+    struct IMLess
     {
-      bool operator()(const Peak2D & left, const Peak2D & right) const
+      bool operator()(const MobilityPeak2D & left, const MobilityPeak2D & right) const
       {
-        return left.getRT() < right.getRT();
+        return left.getMobility() < right.getMobility();
       }
 
-      bool operator()(const Peak2D & left, CoordinateType right) const
+      bool operator()(const MobilityPeak2D & left, CoordinateType right) const
       {
-        return left.getRT() < right;
+        return left.getMobility() < right;
       }
 
-      bool operator()(CoordinateType left, const Peak2D & right) const
+      bool operator()(CoordinateType left, const MobilityPeak2D & right) const
       {
-        return left < right.getRT();
+        return left < right.getMobility();
       }
 
       bool operator()(CoordinateType left, CoordinateType right) const
       {
         return left < right;
       }
-
     };
 
     /// Comparator by m/z position
     struct MZLess
     {
-      bool operator()(const Peak2D & left, const Peak2D & right) const
+      bool operator()(const MobilityPeak2D & left, const MobilityPeak2D & right) const
       {
         return left.getMZ() < right.getMZ();
       }
 
-      bool operator()(const Peak2D & left, CoordinateType right) const
+      bool operator()(const MobilityPeak2D & left, CoordinateType right) const
       {
         return left.getMZ() < right;
       }
 
-      bool operator()(CoordinateType left, const Peak2D & right) const
+      bool operator()(CoordinateType left, const MobilityPeak2D & right) const
       {
         return left < right.getMZ();
       }
@@ -313,23 +307,22 @@ public:
       {
         return left < right;
       }
-
     };
 
-    /// Comparator by position. Lexicographical comparison (first RT then m/z) is done.
+    /// Comparator by position. Lexicographical comparison (first IM then m/z) is done.
     struct PositionLess
     {
-      bool operator()(const Peak2D & left, const Peak2D & right) const
+      bool operator()(const MobilityPeak2D & left, const MobilityPeak2D & right) const
       {
         return left.getPosition() < right.getPosition();
       }
 
-      bool operator()(const Peak2D & left, const PositionType & right) const
+      bool operator()(const MobilityPeak2D & left, const PositionType & right) const
       {
         return left.getPosition() < right;
       }
 
-      bool operator()(const PositionType & left, const Peak2D & right) const
+      bool operator()(const PositionType & left, const MobilityPeak2D & right) const
       {
         return left < right.getPosition();
       }
@@ -338,22 +331,18 @@ public:
       {
         return left < right;
       }
-
     };
     ///@}
 
-    friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Peak2D & point);
+    friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const MobilityPeak2D & point);
 
 protected:
-
     /// The data point position
     PositionType position_{};
     /// The data point intensity
-    IntensityType intensity_{};
+    IntensityType intensity_ {};
   };
 
   /// Print the contents to a stream.
-  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Peak2D & point);
-
+  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const MobilityPeak2D & point);
 } // namespace OpenMS
-

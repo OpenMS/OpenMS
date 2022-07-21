@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,39 +32,98 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/RangeManager.h>
-
-#include <ostream>
+#include <OpenMS/KERNEL/MobilityPeak2D.h>
 
 namespace OpenMS
 {
-  std::ostream& operator<<(std::ostream& out, const RangeBase& b)
+  char const * const MobilityPeak2D::dimension_name_short_[] =
   {
-    out << "[" << b.getMin() << ", " << b.getMax() << "]";
-    return out;
-  }
-  
-  std::ostream& operator<<(std::ostream& out, const RangeRT& range)
+    "IM",
+    "MZ"
+  };
+
+  char const * const MobilityPeak2D::dimension_name_full_[] =
   {
-    out << "rt: " << (OpenMS::RangeBase) range << "\n";
-    return out;
+    "ion mobility",
+    "mass-to-charge"
+  };
+
+  char const * const MobilityPeak2D::dimension_unit_short_[] =
+  {
+    "?",
+    "Th"
+  };
+
+  char const * const MobilityPeak2D::dimension_unit_full_[] =
+  {
+    "?",
+    "Thomson"
+  };
+
+  char const * MobilityPeak2D::shortDimensionName(UInt const dim)
+  {
+    return dimension_name_short_[dim];
   }
 
-  std::ostream& operator<<(std::ostream& out, const RangeMZ& range)
+  char const * MobilityPeak2D::shortDimensionNameIM()
   {
-    out << "mz: " << (RangeBase) range << "\n";
-    return out;
+    return dimension_name_short_[IM];
   }
 
-  std::ostream& operator<<(std::ostream& out, const RangeIntensity& range)
+  char const * MobilityPeak2D::shortDimensionNameMZ()
   {
-    out << "intensity: " << (RangeBase) range << "\n";
-    return out;
+    return dimension_name_short_[MZ];
   }
 
-  std::ostream& operator<<(std::ostream& out, const RangeMobility& range)
+  char const * MobilityPeak2D::fullDimensionName(UInt const dim)
   {
-    out << "mobility: " << (RangeBase) range << "\n";
-    return out;
+    return dimension_name_full_[dim];
   }
-}
+
+  char const * MobilityPeak2D::fullDimensionNameIM()
+  {
+    return dimension_name_full_[IM];
+  }
+
+  char const * MobilityPeak2D::fullDimensionNameMZ()
+  {
+    return dimension_name_full_[MZ];
+  }
+
+  char const * MobilityPeak2D::shortDimensionUnit(UInt const dim)
+  {
+    return dimension_unit_short_[dim];
+  }
+
+  char const * MobilityPeak2D::shortDimensionUnitIM()
+  {
+    return dimension_unit_short_[IM];
+  }
+
+  char const * MobilityPeak2D::shortDimensionUnitMZ()
+  {
+    return dimension_unit_short_[MZ];
+  }
+
+  char const * MobilityPeak2D::fullDimensionUnit(UInt const dim)
+  {
+    return dimension_unit_full_[dim];
+  }
+
+  char const * MobilityPeak2D::fullDimensionUnitIM()
+  {
+    return dimension_unit_full_[IM];
+  }
+
+  char const * MobilityPeak2D::fullDimensionUnitMZ()
+  {
+    return dimension_unit_full_[MZ];
+  }
+
+  std::ostream & operator<<(std::ostream & os, const MobilityPeak2D & point)
+  {
+    os << "IM: " << point.getMobility() <<  " MZ: "  << point.getMZ() << " INT: " << point.getIntensity();
+    return os;
+  }
+
+} // namespace OpenMS

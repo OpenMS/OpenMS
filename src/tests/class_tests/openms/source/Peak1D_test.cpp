@@ -41,7 +41,7 @@
 
 ///////////////////////////
 
-START_TEST(Peak1D<D>, "$Id$")
+START_TEST(Peak1D, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -50,6 +50,15 @@ using namespace OpenMS;
 
 Peak1D* d10_ptr = nullptr;
 Peak1D* d10_nullPointer = nullptr;
+
+static_assert(std::is_trivially_destructible<Peak1D> {});
+// static_assert(std::is_trivially_default_constructible<Peak1D> {});
+static_assert(std::is_trivially_copy_constructible<Peak1D> {});
+static_assert(std::is_trivially_copy_assignable<Peak1D> {});
+static_assert(std::is_trivially_move_constructible<Peak1D> {});
+static_assert(std::is_nothrow_move_constructible<Peak1D> {});
+static_assert(std::is_trivially_move_assignable<Peak1D> {});
+
 START_SECTION((Peak1D()))
 	d10_ptr = new Peak1D;
   TEST_NOT_EQUAL(d10_ptr, d10_nullPointer)
