@@ -59,11 +59,9 @@ MascotAdapterOnline
 MassTraceExtractor
 MRMMapper
 MSGFPlusAdapter
-MyriMatchAdapter
 MzTabExporter
 NoiseFilterGaussian
 NoiseFilterSGolay
-OMSSAAdapter
 OpenPepXL
 OpenPepXLLF
 OpenSwathAnalyzer

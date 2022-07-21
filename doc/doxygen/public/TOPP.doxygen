@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,39 +40,34 @@
 
  	The TOPP tools are divided into several subgroups:
 
-  <b>Graphical Tools</b>
-  - @subpage TOPP_TOPPView - A viewer for mass spectrometry data.
-  - @subpage TOPP_TOPPAS - An assistant for GUI-driven TOPP workflow design.
-  - @subpage TOPP_INIFileEditor - An editor for %OpenMS configuration files.
-  - @subpage TOPP_SwathWizard - A user-friendly step-by-step wizard for SWATH data analysis
-
   <b>File Handling</b>
   - @subpage TOPP_DTAExtractor - Extracts spectra of an MS run file to several files in DTA format.
+  
+  <b>File Converter</b>
   - @subpage TOPP_FileConverter - Converts between different MS file formats.
+  - @subpage TOPP_IDFileConverter - Converts between different identification file formats.  
+  - @subpage UTILS_TargetedFileConverter - Converts targeted files (such as tsv or TraML files).
+  - @subpage UTILS_MSstatsConverter - Convert to MSstats input file format.
+  - @subpage UTILS_TriqlerConverter - Convert to Triqler input file format.
+  
+  <b>File Handling</b>  
   - @subpage TOPP_FileFilter - Extracts or manipulates portions of data from peak, feature or consensus feature files.
-  - @subpage TOPP_FileInfo - Shows basic information about the file, such as data ranges and file type.
+  - @subpage UTILS_DatabaseFilter - Filter protein databases.
+  - @subpage TOPP_FileInfo - Shows basic information about the file, such as data ranges and file type.  
   - @subpage TOPP_FileMerger - Merges several MS files into one file.
-  - @subpage TOPP_IDMerger -  Merges several protein/peptide identification files into one file.
+  - @subpage TOPP_IDMerger -  Merges several protein/peptide identification files into one file.  
+  - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
+  - @subpage TOPP_MzTabExporter - Exports various XML formats to an mzTab file.  
+  - @subpage TOPP_DTAExtractor - Extracts spectra of an MS run file to several files in DTA format. 
   - @subpage TOPP_IDRipper - Splits protein/peptide identifications according their file-origin.
   - @subpage TOPP_IDFileConverter - Converts identification engine file formats.
   - @subpage TOPP_MapStatistics - Extract extended statistics on the features of a map for quality control.
-  - @subpage UTILS_TargetedFileConverter - Converts targeted files (such as tsv or TraML files).
-  - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
-  - @subpage TOPP_MzTabExporter - Exports various XML formats to an mzTab file.
 
-  <b>Signal Processing and Preprocessing</b>
-  - @subpage TOPP_BaselineFilter - Removes the baseline from profile spectra using a top-hat filter.
-  - @subpage TOPP_InternalCalibration - Applies an internal mass calibration.
-  - @subpage TOPP_ExternalCalibration - Applies an external mass calibration.
-  - @subpage TOPP_MapNormalizer - Normalizes peak intensities in an MS run.
-  - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC-MS maps.
-  - @subpage TOPP_NoiseFilterGaussian - Removes noise from profile spectra by using different smoothing techniques.
-  - @subpage TOPP_NoiseFilterSGolay - Removes noise from profile spectra by using different smoothing techniques.
+  <b>Centroiding</b>
   - @subpage TOPP_PeakPickerHiRes - Finds mass spectrometric peaks in profile mass spectra.
   - @subpage TOPP_PeakPickerWavelet - Finds mass spectrometric peaks in profile mass spectra.
-  - @subpage TOPP_PrecursorMassCorrector - Correct the precursor entries of tandem MS scans.
-  - @subpage TOPP_HighResPrecursorMassCorrector - Correct the precursor entries of tandem MS scans for high resolution data.
-  - @subpage TOPP_Resampler - Transforms an LC-MS map into an equally-spaced (in RT and m/z) map.
+
+  <b>Spectrum processing: peak filtering</b>
   - @subpage TOPP_SpectraFilterBernNorm - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterMarkerMower - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterNLargest - Applies a filter to peak spectra.
@@ -82,15 +77,47 @@
   - @subpage TOPP_SpectraFilterSqrtMower - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterThresholdMower - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterWindowMower - Applies a filter to peak spectra.
-  - @subpage TOPP_SpectraMerger - Merges spectra from an LC-MS map, either by precursor or by RT blocks.
+  - @subpage TOPP_BaselineFilter - Removes the baseline from profile spectra using a top-hat filter.
+  - @subpage TOPP_NoiseFilterGaussian - Removes noise from profile spectra by using different smoothing techniques.
+  - @subpage TOPP_NoiseFilterSGolay - Removes noise from profile spectra by using different smoothing techniques.
+<b>Spectrum processing: peak normalization</b>
+  - @subpage TOPP_MapNormalizer - Normalizes peak intensities in an MS run.  
+  
+  <b>Mass Correction and Calibration</b>
+  - @subpage TOPP_InternalCalibration - Applies an internal mass calibration.
+  - @subpage TOPP_ExternalCalibration - Applies an external mass calibration.
+  - @subpage TOPP_HighResPrecursorMassCorrector - Correct the precursor entries of tandem MS scans for high resolution data.
+  - @subpage TOPP_PrecursorMassCorrector - Correct the precursor entries of tandem MS scans (low-res only).
   - @subpage TOPP_TOFCalibration - Applies time of flight mass calibration.
+  
+  <b>Spectrum processing: Misc</b>
+  - @subpage TOPP_Resampler - Transforms an LC-MS map into an equally-spaced (in RT and m/z) map.
+  - @subpage TOPP_SpectraMerger - Merges spectra from an LC-MS map, either by precursor or by RT blocks.
+
+  <b>Spectrum Clustering</b>
+  - @subpage TOPP_MaRaClusterAdapter - Run the spectral clustering implemented in MaRaCluster.    
+
+  <b>Map Alignment</b>
+  - @subpage TOPP_MapAlignerIdentification - Corrects RT distortions between maps based on common peptide identifications using one map as reference.
+  - @subpage TOPP_MapAlignerTreeGuided - Corrects RT distortions between maps based on common peptide identifications guided by a similarity tree.
+  - @subpage TOPP_MapAlignerPoseClustering - Corrects RT distortions between maps using a pose clustering approach (not using pep-ids and a linear model).
+  - @subpage TOPP_MapAlignerSpectrum - Corrects RT distortions between maps by spectrum alignment.
+  - @subpage TOPP_MapRTTransformer - Applies RT transformations to maps.
+
+  <b>Feature linking</b>
+  - @subpage TOPP_FeatureLinkerLabeled - Groups corresponding isotope-labeled features in a feature map.
+  - @subpage TOPP_FeatureLinkerUnlabeled - Groups corresponding features from multiple maps.
+  - @subpage TOPP_FeatureLinkerUnlabeledQT - Groups corresponding features from multiple maps using a QT clustering approach.
+  - @subpage TOPP_FeatureLinkerUnlabeledKD - Groups corresponding features from multiple maps using a KD tree.
 
   <b>Quantitation</b>
+  - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
+  - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC-MS maps.
   - @subpage TOPP_Decharger - Decharges and merges different feature charge variants of the same chemical entity.
   - @subpage TOPP_EICExtractor - Quantifies signals at given positions in (raw or picked) LC-MS maps.
   - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in centroided LC-MS data.
   - @subpage TOPP_FeatureFinderIdentification - Detects two-dimensional features in MS1 data based on peptide identifications.
-  - @subpage TOPP_FeatureFinderIsotopeWavelet - Detects two-dimensional features in uncentroided (=raw) LC-MS data.
+  - @subpage TOPP_FeatureFinderIsotopeWavelet - Detects two-dimensional features in uncentroided (=raw) LC-MS data (low-res).
   - @subpage TOPP_FeatureFinderMetabo - Detects two-dimensional features in centroided LC-MS data of metabolites.
   - @subpage TOPP_FeatureFinderMRM - Quantifies features LC-MS/MS MRM data.
   - @subpage TOPP_FeatureFinderMultiplex - Identifies peptide multiplets (pairs, triplets etc., e.g. for SILAC or Dimethyl labeling) and determines their relative abundance.
@@ -101,18 +128,6 @@
   - @subpage UTILS_MetaProSIP - Detect labeled peptides from protein-SIP experiments.
   - @subpage UTILS_ProteomicsLFQ - Perform label-free quantification in a single tool.
 
-  <b>Map Alignment</b>
-  - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
-  - @subpage TOPP_MapAlignerIdentification - Corrects RT distortions between maps based on common peptide identifications using one map as reference.
-  - @subpage TOPP_MapAlignerTreeGuided - Corrects RT distortions between maps based on common peptide identifications guided by a similarity tree.
-  - @subpage TOPP_MapAlignerPoseClustering - Corrects RT distortions between maps using a pose clustering approach (not using pep-ids and a linear model).
-  - @subpage TOPP_MapAlignerSpectrum - Corrects RT distortions between maps by spectrum alignment.
-  - @subpage TOPP_MapRTTransformer - Applies RT transformations to maps.
-  - @subpage TOPP_FeatureLinkerLabeled - Groups corresponding isotope-labeled features in a feature map.
-  - @subpage TOPP_FeatureLinkerUnlabeled - Groups corresponding features from multiple maps.
-  - @subpage TOPP_FeatureLinkerUnlabeledQT - Groups corresponding features from multiple maps using a QT clustering approach.
-  - @subpage TOPP_FeatureLinkerUnlabeledKD - Groups corresponding features from multiple maps using a KD tree.
-
   <b>Protein/Peptide Identification</b>
   - @subpage TOPP_CometAdapter - Identifies MS/MS spectra using Comet (external).
   - @subpage TOPP_CompNovo - Performs a peptide/protein identification with the CompNovo engine.
@@ -121,8 +136,6 @@
   - @subpage TOPP_MascotAdapter - Identifies MS/MS spectra using Mascot (external).
   - @subpage TOPP_MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
   - @subpage TOPP_MSGFPlusAdapter - Identifies MS/MS spectra using MSGFPlus (external).
-  - @subpage TOPP_MyriMatchAdapter - Identifies MS/MS spectra using MyriMatch (external).
-  - @subpage TOPP_OMSSAAdapter - Identifies MS/MS spectra using OMSSA (external).
   - @subpage TOPP_PepNovoAdapter - Identifies MS/MS spectra using PepNovo (external).
   - @subpage TOPP_SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
   - @subpage UTILS_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.
@@ -177,6 +190,4 @@
   - @subpage TOPP_GenericWrapper - Allows the generic wrapping of external tools.
   - @subpage TOPP_ExecutePipeline - Executes workflows created by TOPPAS.
   - @subpage TOPP_GNPSExport - Export MS/MS data in .MGF format for GNPS.
-  - @subpage TOPP_MaRaClusterAdapter - Run the spectral clustering implemented in MaRaCluster.
-
 */

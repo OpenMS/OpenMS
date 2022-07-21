@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <boost/regex.hpp>
+
 using namespace std;
 
 namespace OpenMS
@@ -50,9 +52,26 @@ namespace OpenMS
   EnzymaticDigestion::EnzymaticDigestion() :
     missed_cleavages_(0),
     enzyme_(ProteaseDB::getInstance()->getEnzyme("Trypsin")), // @TODO: keep trypsin as default?
-    re_(enzyme_->getRegEx()),
+    re_(new boost::regex(enzyme_->getRegEx())),
     specificity_(SPEC_FULL)
   {
+  }
+
+  EnzymaticDigestion::EnzymaticDigestion(const EnzymaticDigestion& rhs)
+    : missed_cleavages_(rhs.missed_cleavages_),
+      enzyme_(rhs.enzyme_),
+      re_(new boost::regex(*rhs.re_)),
+      specificity_(rhs.specificity_)
+  {
+  }
+
+  EnzymaticDigestion& EnzymaticDigestion::operator=(const EnzymaticDigestion& rhs)
+  {
+    missed_cleavages_ = rhs.missed_cleavages_;
+    enzyme_ = rhs.enzyme_;
+    re_.reset(new boost::regex(*rhs.re_));
+    specificity_ = rhs.specificity_;
+    return *this;
   }
 
   EnzymaticDigestion::~EnzymaticDigestion()
@@ -72,7 +91,7 @@ namespace OpenMS
   void EnzymaticDigestion::setEnzyme(const DigestionEnzyme* enzyme)
   {
     enzyme_ = enzyme;
-    re_ = boost::regex(enzyme_->getRegEx());
+    re_.reset(new boost::regex(enzyme_->getRegEx()));
   }
 
   String EnzymaticDigestion::getEnzymeName() const
@@ -108,7 +127,7 @@ namespace OpenMS
 
     if (enzyme_->getRegEx() != "()") // if it's not "no cleavage"
     {
-      boost::sregex_token_iterator i(sequence.begin() + start, sequence.begin() + end, re_, -1);
+      boost::sregex_token_iterator i(sequence.begin() + start, sequence.begin() + end, *re_, -1);
       boost::sregex_token_iterator j;
       while (i != j)
       {

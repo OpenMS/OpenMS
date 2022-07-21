@@ -368,9 +368,9 @@ def testFineIsotopePatternGenerator():
     water = pyopenms.EmpiricalFormula("H2O")
     mw = methanol + water
     iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-20, False, False))
-    assert len(iso_dist.getContainer()) == 56 # now 33 ?
+    assert len(iso_dist.getContainer()) == 56
     iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
-    assert len(iso_dist.getContainer()) == 88 # now 42
+    assert len(iso_dist.getContainer()) == 84
 
     c100 = pyopenms.EmpiricalFormula("C100")
     iso_dist = c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
@@ -5256,14 +5256,21 @@ def testElementDB():
     e2 = edb.getElement(pyopenms.String("NE"))
     assert e2.getName() == "NewElement"
 
-    # replace oxygen
-    e2 = edb.addElement(b"Oxygen", b"O", 8, {16 : 0.7, 19 : 0.3}, {16 : 16.01, 19 : 19.01}, True)
-    e2 = edb.getElement(pyopenms.String("O"))
-    assert e2.getName() == "Oxygen"
+    # changing existing elements in tests might have side effects so we define a new element
+    # add first new element
+    e2 = edb.addElement(b"Kryptonite", b"@", 500, {999 : 0.7, 1000 : 0.3}, {999 : 999.01, 1000 : 1000.01}, False)
+    e2 = edb.getElement(pyopenms.String("@"))
+    assert e2.getName() == "Kryptonite"
     assert e2.getIsotopeDistribution()
     assert len(e2.getIsotopeDistribution().getContainer()) == 2
     assert abs(e2.getIsotopeDistribution().getContainer()[1].getIntensity() - 0.3) < 1e-5
-
+    # replace element
+    e2 = edb.addElement(b"Kryptonite", b"@", 500, {9999 : 1.0}, {9999 : 9999.1}, True)
+    e2 = edb.getElement(pyopenms.String("@"))
+    assert e2.getName() == "Kryptonite"
+    assert e2.getIsotopeDistribution()
+    assert len(e2.getIsotopeDistribution().getContainer()) == 1
+    assert abs(e2.getIsotopeDistribution().getContainer()[0].getIntensity() - 1.0) < 1e-5
     # assert e == e2
 
     #  not yet implemented
@@ -5608,7 +5615,7 @@ def testString():
     assert(r.decode("iso8859_15") == u"bläh")
 
 @report
-def testIIMN():
+def testGNPSExport():
     cm = pyopenms.ConsensusMap()
     
     for mz, rt, ion, linked_groups in [(222.08, 62.0, "[M+H]+", ["1","2","3"]),
@@ -5636,7 +5643,7 @@ def testIIMN():
 """
     os.remove("SupplementaryPairsTable.csv")
 
-    pyopenms.GNPSQuantificationFile.store(cm, "FeatureQuantificationTable.txt")
+    pyopenms.GNPSQuantificationFile().store(cm, "FeatureQuantificationTable.txt")
     with open("FeatureQuantificationTable.txt", "r") as f:
         assert f.read() == """#MAP	id	filename	label	size
 #CONSENSUS	rt_cf	mz_cf	intensity_cf	charge_cf	width_cf	quality_cf	row ID	best ion	partners	annotation network number
@@ -5647,7 +5654,15 @@ CONSENSUS	62.0	294.100000000000023	0.0	1	0.0	2.0	4	[M+H]+		2
 """
     os.remove("FeatureQuantificationTable.txt")
 
-    pyopenms.GNPSMetaValueFile.store(cm, "MetaValueTable.tsv")
+    # add mandatory file descriptions
+    file_descriptions = {}
+    for i, filename in enumerate(["1.mzML", "2.mzML"]):
+        file_description = pyopenms.ColumnHeader()
+        file_description.filename = filename
+        file_descriptions[i] = file_description
+    cm.setColumnHeaders(file_descriptions)
+
+    pyopenms.GNPSMetaValueFile().store(cm, "MetaValueTable.tsv")
     with open("MetaValueTable.tsv", "r") as f:
         assert f.read() == """filename	ATTRIBUTE_MAPID
 1.mzML	MAP0

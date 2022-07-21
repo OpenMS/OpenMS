@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -289,7 +289,6 @@ namespace OpenMS
     ams.run(feat_map, output);
     // Remake the feature map replacing the peptide hits as features/sub-features
     feat_map_output.clear();
-    int unknown_feature_counter = 1;
     for (const OpenMS::Feature& feature : feat_map)
     {
       const auto& peptide_identifications = feature.getPeptideIdentifications();
