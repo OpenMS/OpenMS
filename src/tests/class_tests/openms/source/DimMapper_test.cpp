@@ -130,7 +130,7 @@ START_SECTION(RangeBase map(const RangeManager<RangeRT, RangeMZ, RangeIntensity,
 }
 END_SECTION
 
-START_SECTION(void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const)
+START_SECTION(void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& out) const)
 {
   DimRT rt;
   RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility> rm;
@@ -139,7 +139,7 @@ START_SECTION(void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, 
   rm.extendMZ(2);
   rm.extendIntensity(3);
   auto rm_old = rm;
-  rt.setRange(RangeBase {10, 10.1}, rm);
+  rt.setRange(RangeBase{10, 10.1}, rm);
   rm_old.RangeRT::operator=(RangeBase{10, 10.1});
   TEST_TRUE(rm == rm_old);
 }
