@@ -338,9 +338,9 @@ namespace OpenMS
 
 protected:
     /// The data point position
-    PositionType position_;
+    PositionType position_{};
     /// The data point intensity
-    IntensityType intensity_;
+    IntensityType intensity_ {};
   };
 
   /// Print the contents to a stream.
