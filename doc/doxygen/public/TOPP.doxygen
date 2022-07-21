@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,12 +40,9 @@
 
  	The TOPP tools are divided into several subgroups:
 
-  <b>Graphical Tools</b>
-  - @subpage TOPP_TOPPView - A viewer for mass spectrometry data.
-  - @subpage TOPP_TOPPAS - An assistant for GUI-driven TOPP workflow design.
-  - @subpage TOPP_INIFileEditor - An editor for %OpenMS configuration files.
-  - @subpage TOPP_SwathWizard - A user-friendly step-by-step wizard for SWATH data analysis
-
+  <b>File Handling</b>
+  - @subpage TOPP_DTAExtractor - Extracts spectra of an MS run file to several files in DTA format.
+  
   <b>File Converter</b>
   - @subpage TOPP_FileConverter - Converts between different MS file formats.
   - @subpage TOPP_IDFileConverter - Converts between different identification file formats.  
@@ -139,8 +136,6 @@
   - @subpage TOPP_MascotAdapter - Identifies MS/MS spectra using Mascot (external).
   - @subpage TOPP_MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
   - @subpage TOPP_MSGFPlusAdapter - Identifies MS/MS spectra using MSGFPlus (external).
-  - @subpage TOPP_MyriMatchAdapter - Identifies MS/MS spectra using MyriMatch (external).
-  - @subpage TOPP_OMSSAAdapter - Identifies MS/MS spectra using OMSSA (external).
   - @subpage TOPP_PepNovoAdapter - Identifies MS/MS spectra using PepNovo (external).
   - @subpage TOPP_SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
   - @subpage UTILS_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -213,10 +213,17 @@ protected:
       if (psm_level_fdr || peptide_level_fdr)
       {
         fdr.apply(pep_ids, peptide_level_fdr);
+        // TODO If no decoys are removed in the param settings, we shouldn't need cleanups
+        //  but then all tests need to be changed since cleanup sorts.
+        //if (alg_param.getValue("add_decoy_peptides").toBool())
+        //{
+        //  filter_applied = true;
+        //}
         filter_applied = true;
-
+        
         if (psm_fdr < 1)
         {
+          filter_applied = true;
           OPENMS_LOG_INFO << "FDR control: Filtering PSMs..." << endl;
           IDFilter::filterHitsByScore(pep_ids, psm_fdr);
         }
@@ -250,28 +257,28 @@ protected:
       IDFilter::updateHitRanks(pep_ids);
 
       // we want to keep "empty" protein ID runs because they contain search meta data
-    }
 
-    // update protein groupings if necessary:
-    for (auto& prot : prot_ids)
-    {
-      bool valid = IDFilter::updateProteinGroups(prot.getProteinGroups(),
-                                                 prot.getHits());
-      if (!valid)
+      // update protein groupings if necessary:
+      for (auto& prot : prot_ids)
       {
-        OPENMS_LOG_WARN << "Warning: While updating protein groups, some prot_ids were removed from groups that are still present. "
-                 << "The new grouping (especially the group probabilities) may not be completely valid any more." 
-                 << endl;
-      }
+        bool valid = IDFilter::updateProteinGroups(prot.getProteinGroups(),
+                                                  prot.getHits());
+        if (!valid)
+        {
+          OPENMS_LOG_WARN << "Warning: While updating protein groups, some prot_ids were removed from groups that are still present. "
+                  << "The new grouping (especially the group probabilities) may not be completely valid any more." 
+                  << endl;
+        }
 
-      valid = IDFilter::updateProteinGroups(
-        prot.getIndistinguishableProteins(), prot.getHits());
+        valid = IDFilter::updateProteinGroups(
+          prot.getIndistinguishableProteins(), prot.getHits());
 
-      if (!valid)
-      {
-        OPENMS_LOG_WARN << "Warning: While updating indistinguishable prot_ids, some prot_ids were removed from groups that are still present. "
-                 << "The new grouping (especially the group probabilities) may not be completely valid any more." 
-                 << endl;
+        if (!valid)
+        {
+          OPENMS_LOG_WARN << "Warning: While updating indistinguishable prot_ids, some prot_ids were removed from groups that are still present. "
+                  << "The new grouping (especially the group probabilities) may not be completely valid any more." 
+                  << endl;
+        }
       }
     }
 

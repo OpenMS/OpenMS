@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,7 +94,7 @@ using namespace std;
 </CENTER>
 
 IDFileConverter can be used to convert identification results from external tools/pipelines (like TPP, Sequest, Mascot, OMSSA, X! Tandem) into other (OpenMS-specific) formats.
-For search engine results, it might be advisable to use the respective TOPP Adapters (e.g. OMSSAAdapter) to avoid the extra conversion step.
+For search engine results, it might be advisable to use the respective TOPP Adapters (e.g. CometAdapter) to avoid the extra conversion step.
 
 The most simple format accepted is '.tsv': A tab separated text file, which contains one or more peptide sequences per line.
 Each line represents one spectrum, i.e. is stored as a PeptideIdentification with one or more PeptideHits.

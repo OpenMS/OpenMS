@@ -32,11 +32,12 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
         void selectSpectra(libcpp_vector[ MSSpectrum ]&, FeatureMap&, libcpp_vector[ MSSpectrum ]&, FeatureMap&) nogil except +
         void selectSpectra(libcpp_vector[ MSSpectrum ]&, libcpp_vector[ MSSpectrum ]&) nogil except +
 
-        void extractSpectra(MSExperiment&, TargetedExperiment&, libcpp_vector[ MSSpectrum ]&, FeatureMap&) nogil except +
+        void extractSpectra(MSExperiment&, TargetedExperiment&, libcpp_vector[ MSSpectrum ]&, FeatureMap&, bool) nogil except +
         void extractSpectra(MSExperiment&, TargetedExperiment&, libcpp_vector[ MSSpectrum ]&) nogil except +
-        void extractSpectra(MSExperiment&, FeatureMap&, libcpp_vector[ MSSpectrum ]&, FeatureMap&, bool) nogil except +
+        void extractSpectra(MSExperiment&, FeatureMap&, libcpp_vector[ MSSpectrum ]&) nogil except +
 
-        void storeSpectraTraML(const String&, FeatureMap&, FeatureMap&) nogil except +
+        void constructTransitionsList(FeatureMap&, FeatureMap&, TargetedExperiment&) nogil except +
+
         void storeSpectraMSP(const String&, MSExperiment&) nogil except +
 
         void mergeFeatures(FeatureMap&, FeatureMap&) nogil except +
