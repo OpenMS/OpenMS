@@ -178,12 +178,6 @@ Comet:
   - License:
   http://www.apache.org/licenses/LICENSE-2.0
 
-Crux:
-  - URL and source code:
-  http://crux.ms
-  - License:
-  http://www.apache.org/licenses/LICENSE-2.0
-
 MaRaCluster:
   - URL and source code:
   https://github.com/statisticalbiotechnology/maracluster
