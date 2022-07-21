@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -369,4 +369,17 @@ namespace OpenMS
     return std::accumulate(cbegin(), cend(), 0.0f, [](PeakType::IntensityType sum, const PeakType& p) { return sum + p.getIntensity(); });
   }
 
+  std::ostream& operator<<(std::ostream& os, const Mobilogram& mb)
+  {
+    os << "-- MOBILOGRAM BEGIN --\n";
+
+    // peaklist
+    for (const auto& peak : mb)
+    {
+      os << peak << '\n';
+    }
+
+    os << "-- MOBILOGRAM END --\n";
+    return os;
+  }
 } // namespace OpenMS
