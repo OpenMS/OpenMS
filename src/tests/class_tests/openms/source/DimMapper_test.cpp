@@ -140,7 +140,7 @@ START_SECTION(void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, 
   rm.extendIntensity(3);
   auto rm_old = rm;
   rt.setRange(RangeBase {10, 10.1}, rm);
-  rm_old.RangeRT::operator=({10, 10.1});
+  rm_old.RangeRT::operator=(RangeBase{10, 10.1});
   TEST_TRUE(rm == rm_old);
 }
 END_SECTION
@@ -349,9 +349,9 @@ constexpr auto max_value = std::numeric_limits<DRange<3>::CoordinateType>::max()
 START_SECTION(const Area& setArea(const UnitRange& data))
 {
   FullRange fr;
-  fr.RangeRT::operator=({1, 1.1});
-  fr.RangeMobility::operator=({4, 4.4}); // not considered by DimMapper
-  fr.RangeIntensity::operator=({2, 2.2});
+  fr.RangeRT::operator=(RangeBase{1, 1.1});
+  fr.RangeMobility::operator=(RangeBase{4, 4.4}); // not considered by DimMapper
+  fr.RangeIntensity::operator=(RangeBase{2, 2.2});
   Area3 a(&dm_IMR);
   a.setArea(fr);
   TEST_EQUAL(fr, a.getAreaUnit()) // unchanged; just what we put in
@@ -373,9 +373,9 @@ START_SECTION(const Area& setArea(const AreaXYType& data))
   TEST_EQUAL(a.getAreaXY(), areaXY) // unchanged; just what we put in
 
   FullRange fr;
-  fr.RangeRT::operator=({1, 1.1});
-  fr.RangeMobility::operator=({4, 4.4}); // not considered by DimMapper
-  fr.RangeIntensity::operator=({2, 2.2});
+  fr.RangeRT::operator=(RangeBase{1, 1.1});
+  fr.RangeMobility::operator=(RangeBase{4, 4.4}); // not considered by DimMapper
+  fr.RangeIntensity::operator=(RangeBase{2, 2.2});
   TEST_EQUAL((RangeRT)fr, (RangeRT)a.getAreaUnit())
   TEST_EQUAL((RangeIntensity)fr, (RangeIntensity)a.getAreaUnit())
   TEST_NOT_EQUAL(fr, a.getAreaUnit()) // due to mobility
@@ -399,9 +399,9 @@ END_SECTION
 START_SECTION(Area cloneWith(const AreaXYType& data) const)
 {
   FullRange fr;
-  fr.RangeRT::operator=({1, 1.1});
-  fr.RangeMobility::operator=({4, 4.4}); // not considered by DimMapper
-  fr.RangeIntensity::operator=({2, 2.2});
+  fr.RangeRT::operator=(RangeBase{1, 1.1});
+  fr.RangeMobility::operator=(RangeBase{4, 4.4}); // not considered by DimMapper
+  fr.RangeIntensity::operator=(RangeBase{2, 2.2});
   Area3 a_old(&dm_IMR);
   auto a = a_old.cloneWith(fr);
   TEST_EQUAL(fr, a.getAreaUnit()) // unchanged; just what we put in
@@ -423,9 +423,9 @@ START_SECTION(Area cloneWith(const UnitRange& data) const)
   TEST_EQUAL(a.getAreaXY(), areaXY) // unchanged; just what we put in
 
   FullRange fr;
-  fr.RangeRT::operator=({1, 1.1});
-  fr.RangeMobility::operator=({4, 4.4}); // not considered by DimMapper
-  fr.RangeIntensity::operator=({2, 2.2});
+  fr.RangeRT::operator=(RangeBase{1, 1.1});
+  fr.RangeMobility::operator=(RangeBase{4, 4.4}); // not considered by DimMapper
+  fr.RangeIntensity::operator=(RangeBase{2, 2.2});
   TEST_EQUAL((RangeRT)fr, (RangeRT)a.getAreaUnit())
   TEST_EQUAL((RangeIntensity)fr, (RangeIntensity)a.getAreaUnit())
   TEST_NOT_EQUAL(fr, a.getAreaUnit()) // due to mobility
