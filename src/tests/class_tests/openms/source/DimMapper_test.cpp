@@ -211,7 +211,6 @@ START_SECTION(template<typename T> Point map(const T& data))
   f1.setIntensity(3);
 
   TEST_EQUAL(d1.map(f1), DimMapper3::Point(3, 2, 1))
-
 }
 END_SECTION
 

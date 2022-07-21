@@ -268,9 +268,8 @@ namespace OpenMS
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-
-
   };
+
   class OPENMS_DLLAPI DimMZ final : public DimBase
   {
   public:
@@ -373,6 +372,7 @@ namespace OpenMS
       p.setMZ(in);
     }
   };
+
   class OPENMS_DLLAPI DimINT final : public DimBase
   {
   public:
