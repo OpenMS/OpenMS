@@ -84,6 +84,12 @@ namespace OpenMS
     }
 
     updateChargeFitScoreAndChargeIntensities_();
+    if(charge_score_ < .7)
+    {
+      qscore_ = 0;
+      return 0;
+    }
+
     updateMonomassAndIsotopeIntensities(); //
     int h_offset;
     double second_best_monomass = 0;
@@ -255,7 +261,7 @@ namespace OpenMS
 
         double peak_pwr = pint * pint;
 
-        if(abs(pmz - cmz - iso_index * iso_delta) <= std::min(.2, pmz * tol)) // TODO
+        if(abs(pmz - cmz - iso_index * iso_delta) <= std::min(.2, pmz * tol)) //
         {
           auto p = LogMzPeak(spec[index], is_positive_);
           p.isotopeIndex = iso_index;
@@ -391,7 +397,7 @@ namespace OpenMS
       {
         continue;
       }
-      p += abs(diff);
+      p += diff;
     }
     for (int c = max_index; c > first_index; c--)
     {
@@ -402,7 +408,7 @@ namespace OpenMS
       {
         continue;
       }
-      p += abs(diff);
+      p += diff;
     }
     charge_score_ = std::max(.0, 1.0 - p / summed_intensity);
   }

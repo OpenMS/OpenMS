@@ -83,7 +83,6 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-
   FLASHDeconvAlgorithm& FLASHDeconvAlgorithm::operator=(const FLASHDeconvAlgorithm& fd)
   {
     if (this == &fd)
@@ -140,9 +139,7 @@ namespace OpenMS
     for (auto& pg : deconvolved_spectrum_)
     {
       pg.sort();
-      pg.setScanNumber(scan_number);
     }
-    return;
   }
 
   void FLASHDeconvAlgorithm::updateMembers_()
@@ -1050,7 +1047,8 @@ namespace OpenMS
       }
 
 
-      if (total_signal_intensity / 2 > *std::max_element(total_harmonic_intensity.begin(), total_harmonic_intensity.end()) && !pg.empty())
+      if (//total_signal_intensity / 2 > *std::max_element(total_harmonic_intensity.begin(), total_harmonic_intensity.end()) &&
+          !pg.empty()) //TODO
       {
         double max_intensity = -1.0;
         // double sum_intensity = .0;
@@ -1100,6 +1098,7 @@ namespace OpenMS
           {
             continue;
           }
+          pg.setScanNumber(deconvolved_spectrum_.getScanNumber());
           deconvolved_spectrum_.push_back(pg); //
         }
       }
@@ -1203,7 +1202,7 @@ namespace OpenMS
     scoreAndFilterPeakGroups_();
 
     removeOverlappingPeakGroups_(deconvolved_spectrum_, tolerance_[ms_level_ - 1], 1);
-    removeHarmonicsPeakGroups_(deconvolved_spectrum_);
+    removeHarmonicsPeakGroups_(deconvolved_spectrum_); /// TODO check them  + check high harmonic charge score
 
     removeOverlappingPeakGroups_(decoy_deconvolved_spectrum_, tolerance_[ms_level_ - 1], 1);
     removeHarmonicsPeakGroups_(decoy_deconvolved_spectrum_);
@@ -1388,11 +1387,14 @@ namespace OpenMS
         auto decoy = PeakGroup(std::get<0>(cr), std::get<1>(cr), peak_group.isPositive());
         decoy.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, second_best_monomass, peak_group.getMonoMass()-second_best_monomass);
         decoy.updateIsotopeCosineAndQScore(avg_, min_isotope_cosine_[ms_level_ - 1]);
-        if (ms_level_ == 1 && decoy.getRepAbsCharge() < min_abs_charge_)
+        if (decoy.getRepAbsCharge() < min_abs_charge_ || decoy.getRepAbsCharge() > max_abs_charge_)
         {
         }else
         {
           decoy.setDecoyIndex(2);
+          auto max_q_score_mz_range = decoy.getMzRange(peak_group.getRepAbsCharge());
+          decoy.setMaxQScoreMzRange(std::get<0>(max_q_score_mz_range), std::get<1>(max_q_score_mz_range));
+          decoy.setScanNumber(deconvolved_spectrum_.getScanNumber());
           decoy_deconvolved_spectrum_.push_back(decoy);
         }
       }
@@ -1418,7 +1420,7 @@ namespace OpenMS
         }
       }
 
-      if (ms_level_ == 1 && peak_group.getRepAbsCharge() < min_abs_charge_)
+      if (peak_group.getRepAbsCharge() < min_abs_charge_ || peak_group.getRepAbsCharge() > max_abs_charge_)
       {
         continue;
       }
