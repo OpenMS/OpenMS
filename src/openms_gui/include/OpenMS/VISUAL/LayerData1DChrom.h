@@ -82,7 +82,9 @@ namespace OpenMS
 
     RangeAllType getRange() const override
     {
-      return RangeAllType().assign(getCurrentChrom().getRange());
+      // do NOT change the behaviour of getRange() for 1D, since we want the full RT range across all chroms
+      // when scrolling in the list of chroms
+      return LayerDataChrom::getRange();
     }
 
     // docu in base class

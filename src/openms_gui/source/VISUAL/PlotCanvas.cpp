@@ -579,14 +579,15 @@ namespace OpenMS
     {
       layer_range.extend(getLayer(layer_index).getRange());
     }
-
-    // add 4% margin (2% left, 2% right) to RT, m/z and intensity
-    layer_range.scaleBy(1.04);
-    // make sure that each dimension is not a single point (axis widget won't like that)
-    layer_range.minSpanIfSingular(1);
-
     // set minimum intensity to 0 (avoid negative intensities!)
-    layer_range.RangeIntensity::setMin(0);
+    if (layer_range.getMinIntensity() < 0) layer_range.setMinIntensity(0);
+
+    // add 4% margin (2% left, 2% right) to RT, m/z, IM and intensity
+    layer_range.scaleBy(1.04);
+
+    // make sure that each dimension is not a single point (axis widget won't like that)
+    // (this needs to be the last command to ensure this property holds when leaving the function!)
+    layer_range.minSpanIfSingular(1);
   }
 
   double PlotCanvas::getSnapFactor()

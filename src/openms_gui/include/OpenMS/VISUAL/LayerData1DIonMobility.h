@@ -84,7 +84,9 @@ namespace OpenMS
 
     RangeAllType getRange() const override
     {
-      return RangeAllType().assign(getCurrentMobilogram().getRange());
+      // do NOT change the behaviour of getRange() for 1D, since we want the full IM range across all mbs
+      // when scrolling in the list of mbs
+      return LayerDataIonMobility::getRange();
     }
 
     // docu in base class
