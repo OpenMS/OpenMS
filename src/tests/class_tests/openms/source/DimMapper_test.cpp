@@ -130,7 +130,7 @@ START_SECTION(RangeBase map(const RangeManager<RangeRT, RangeMZ, RangeIntensity,
 }
 END_SECTION
 
-START_SECTION(void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& rm) const)
+START_SECTION(void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>& out) const)
 {
   DimRT rt;
   RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility> rm;
@@ -139,8 +139,8 @@ START_SECTION(void setRange(const RangeBase& in, RangeManager<RangeRT, RangeMZ, 
   rm.extendMZ(2);
   rm.extendIntensity(3);
   auto rm_old = rm;
-  rt.setRange(RangeBase {10, 10.1}, rm);
-  rm_old.RangeRT::operator=({10, 10.1});
+  rt.setRange(RangeBase{10, 10.1}, rm);
+  rm_old.RangeRT::operator=(RangeBase{10, 10.1});
   TEST_TRUE(rm == rm_old);
 }
 END_SECTION
@@ -211,7 +211,6 @@ START_SECTION(template<typename T> Point map(const T& data))
   f1.setIntensity(3);
 
   TEST_EQUAL(d1.map(f1), DimMapper3::Point(3, 2, 1))
-
 }
 END_SECTION
 
@@ -308,10 +307,13 @@ END_SECTION
 START_SECTION(Area& operator=(const Area& rhs) = default)
 {
   Area3 a(&dm_IMR);
-  Area3 o(&dm_RMI);
+  auto ar = DRange<3>({1, 1, 1}, {2, 2, 2});
+  a.setArea(ar);
+  Area3 o(&dm_IMR);
   TEST_TRUE(a != o)
   o = a;
   TEST_TRUE(a == o)
+  TEST_EQUAL(o.getAreaXY(), ar);
 }
 END_SECTION
 
@@ -320,8 +322,8 @@ START_SECTION(bool operator==(const Area& rhs) const)
   FullRange fr;
   fr.extendRT(1);
   Area3 a(&dm_IMR);
-  Area3 o(&dm_RMI);
-  TEST_TRUE(a != o)
+  Area3 o(&dm_IMR);
+  TEST_TRUE(a == o)
   o = a;
   TEST_TRUE(a == o)
   a.setArea(fr);
@@ -331,6 +333,7 @@ START_SECTION(bool operator==(const Area& rhs) const)
   DRange<3> areaXY(DPosition<3>(77, 99, 1), DPosition<3>(777, 999, 1.1));
   a.setArea(areaXY);
   TEST_TRUE(a != o)
+  TEST_FALSE(a == o)
 }
 END_SECTION
 
@@ -346,9 +349,9 @@ constexpr auto max_value = std::numeric_limits<DRange<3>::CoordinateType>::max()
 START_SECTION(const Area& setArea(const UnitRange& data))
 {
   FullRange fr;
-  fr.RangeRT::operator=({1, 1.1});
-  fr.RangeMobility::operator=({4, 4.4}); // not considered by DimMapper
-  fr.RangeIntensity::operator=({2, 2.2});
+  fr.RangeRT::operator=(RangeBase{1, 1.1});
+  fr.RangeMobility::operator=(RangeBase{4, 4.4}); // not considered by DimMapper
+  fr.RangeIntensity::operator=(RangeBase{2, 2.2});
   Area3 a(&dm_IMR);
   a.setArea(fr);
   TEST_EQUAL(fr, a.getAreaUnit()) // unchanged; just what we put in
@@ -370,9 +373,9 @@ START_SECTION(const Area& setArea(const AreaXYType& data))
   TEST_EQUAL(a.getAreaXY(), areaXY) // unchanged; just what we put in
 
   FullRange fr;
-  fr.RangeRT::operator=({1, 1.1});
-  fr.RangeMobility::operator=({4, 4.4}); // not considered by DimMapper
-  fr.RangeIntensity::operator=({2, 2.2});
+  fr.RangeRT::operator=(RangeBase{1, 1.1});
+  fr.RangeMobility::operator=(RangeBase{4, 4.4}); // not considered by DimMapper
+  fr.RangeIntensity::operator=(RangeBase{2, 2.2});
   TEST_EQUAL((RangeRT)fr, (RangeRT)a.getAreaUnit())
   TEST_EQUAL((RangeIntensity)fr, (RangeIntensity)a.getAreaUnit())
   TEST_NOT_EQUAL(fr, a.getAreaUnit()) // due to mobility
@@ -396,9 +399,9 @@ END_SECTION
 START_SECTION(Area cloneWith(const AreaXYType& data) const)
 {
   FullRange fr;
-  fr.RangeRT::operator=({1, 1.1});
-  fr.RangeMobility::operator=({4, 4.4}); // not considered by DimMapper
-  fr.RangeIntensity::operator=({2, 2.2});
+  fr.RangeRT::operator=(RangeBase{1, 1.1});
+  fr.RangeMobility::operator=(RangeBase{4, 4.4}); // not considered by DimMapper
+  fr.RangeIntensity::operator=(RangeBase{2, 2.2});
   Area3 a_old(&dm_IMR);
   auto a = a_old.cloneWith(fr);
   TEST_EQUAL(fr, a.getAreaUnit()) // unchanged; just what we put in
@@ -420,9 +423,9 @@ START_SECTION(Area cloneWith(const UnitRange& data) const)
   TEST_EQUAL(a.getAreaXY(), areaXY) // unchanged; just what we put in
 
   FullRange fr;
-  fr.RangeRT::operator=({1, 1.1});
-  fr.RangeMobility::operator=({4, 4.4}); // not considered by DimMapper
-  fr.RangeIntensity::operator=({2, 2.2});
+  fr.RangeRT::operator=(RangeBase{1, 1.1});
+  fr.RangeMobility::operator=(RangeBase{4, 4.4}); // not considered by DimMapper
+  fr.RangeIntensity::operator=(RangeBase{2, 2.2});
   TEST_EQUAL((RangeRT)fr, (RangeRT)a.getAreaUnit())
   TEST_EQUAL((RangeIntensity)fr, (RangeIntensity)a.getAreaUnit())
   TEST_NOT_EQUAL(fr, a.getAreaUnit()) // due to mobility

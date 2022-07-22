@@ -45,7 +45,7 @@ namespace OpenMS
   /**
     @brief The representation of a 1D ion mobilogram.
 
-    It contains peak data.
+    It contains peak data of type MobilityPeak1D.
 
     @note For range operations, see \ref RangeUtils "RangeUtils module"!
 
@@ -299,9 +299,9 @@ namespace OpenMS
     void sortByIntensity(bool reverse = false);
 
     /**
-      @brief Lexicographically sorts the peaks by their position.
+      @brief Lexicographically sorts the peaks by their position (mobility).
 
-      The mobilogram is sorted with respect to position.
+      The mobilogram is sorted with respect to position (mobility).
     */
     void sortByPosition();
 
@@ -325,19 +325,6 @@ namespace OpenMS
         return lambda(index1, index2);
       };
       return std::is_sorted(this->begin(), this->end(), value_2_index_wrapper);
-    }
-
-    /// Sort by a user-defined property
-    /// You can pass any @p lambda function with <tt>[](Size index_1, Size index_2) --> bool</tt>
-    /// which given two indices into Mobilogram (either for peaks or data arrays) returns a weak-ordering.
-    /// (you need to capture the Mobilogram in the lambda and operate on it, based on the indices)
-    template<class Predicate>
-    void sort(const Predicate& lambda)
-    {
-      std::vector<Size> indices(this->size());
-      std::iota(indices.begin(), indices.end(), 0);
-      std::stable_sort(indices.begin(), indices.end(), lambda);
-      select(indices);
     }
 
     //@}
@@ -557,5 +544,5 @@ namespace OpenMS
     DriftTimeUnit drift_time_unit_ = DriftTimeUnit::NONE;
   };
 
-  std::ostream& operator<<(std::ostream& os, const Mobilogram& mb);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Mobilogram& mb);
 } // namespace OpenMS

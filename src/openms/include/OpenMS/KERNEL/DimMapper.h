@@ -116,7 +116,7 @@ namespace OpenMS
     /// Return the min/max (range) for a certain dimension
     virtual RangeBase map(const RangeAllType& rm) const = 0;
 
-    /// Set the min/max (range) in @p rm for a certain dimension
+    /// Set the min/max (range) in @p out for a certain dimension
     virtual void setRange(const RangeBase& in, RangeAllType& out) const = 0;
 
 
@@ -242,9 +242,9 @@ namespace OpenMS
       return rm.getRangeForDim(MSDim::RT);
     }
 
-    void setRange(const RangeBase& in, RangeAllType& rm) const
+    void setRange(const RangeBase& in, RangeAllType& out) const
     {
-      rm.RangeRT::operator=(in);
+      out.RangeRT::operator=(in);
     }
 
     /// set the RT of a Peak1D (throws)
@@ -268,9 +268,8 @@ namespace OpenMS
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-
-
   };
+
   class OPENMS_DLLAPI DimMZ final : public DimBase
   {
   public:
@@ -345,9 +344,9 @@ namespace OpenMS
       return rm.getRangeForDim(MSDim::MZ);
     }
 
-    void setRange(const RangeBase& in, RangeAllType& rm) const
+    void setRange(const RangeBase& in, RangeAllType& out) const
     {
-      rm.RangeMZ::operator=(in);
+      out.RangeMZ::operator=(in);
     }
 
     /// set the MZ of a Peak1D
@@ -373,6 +372,7 @@ namespace OpenMS
       p.setMZ(in);
     }
   };
+
   class OPENMS_DLLAPI DimINT final : public DimBase
   {
   public:
@@ -454,9 +454,9 @@ namespace OpenMS
       return rm.getRangeForDim(MSDim::INT);
     }
 
-    void setRange(const RangeBase& in, RangeAllType& rm) const
+    void setRange(const RangeBase& in, RangeAllType& out) const
     {
-      rm.RangeIntensity::operator=(in);
+      out.RangeIntensity::operator=(in);
     }
 
     /// set the intensity of a Peak1D
@@ -550,9 +550,9 @@ namespace OpenMS
       return rm.getRangeForDim(MSDim::IM);
     }
 
-    void setRange(const RangeBase& in, RangeAllType& rm) const
+    void setRange(const RangeBase& in, RangeAllType& out) const
     {
-      rm.RangeMobility::operator=(in);
+      out.RangeMobility::operator=(in);
     }
 
     /// set the IM of a Peak1D (throws)
@@ -783,7 +783,7 @@ namespace OpenMS
     /// No default C'tor
     Area() = delete;
     
-    /// Custom C'tor with a mapper
+    /// Custom C'tor with a mapper (non owning pointer)
     Area(const DimMapper<N_DIM>* const dims) 
       : mapper_(dims)
     {

@@ -37,6 +37,7 @@
 // OpenMS includes
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/PeakIndex.h>
+#include <OpenMS/KERNEL/RangeManager.h>
 
 // STL includes
 #include <iterator>

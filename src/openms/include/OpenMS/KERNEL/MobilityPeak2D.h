@@ -53,8 +53,7 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI MobilityPeak2D
   {
-public:
-
+  public:
     ///@name Type definitions
     ///@{
 
@@ -107,8 +106,7 @@ public:
 
     ///@}
 
-protected:
-
+  protected:
     /// @name Dimension descriptions
     ///@{
 
@@ -126,15 +124,11 @@ protected:
 
     ///@}
 
-public:
-
+  public:
     ///@name Constructors and Destructor
     ///@{
     /// Default constructor
-    MobilityPeak2D() :
-      position_(),
-      intensity_(0)
-    {}
+    MobilityPeak2D() = default;
 
     /// Member constructor
     explicit MobilityPeak2D(const PositionType& pos, const IntensityType in) :
@@ -146,8 +140,13 @@ public:
     MobilityPeak2D(const MobilityPeak2D & p) = default;
 
     /// Move constructor
-    MobilityPeak2D(MobilityPeak2D&&) = default;
+    MobilityPeak2D(MobilityPeak2D&&) noexcept = default;
 
+    /// Assignment operator
+    MobilityPeak2D& operator=(const MobilityPeak2D& rhs) = default;
+
+    /// Move assignment operator
+    MobilityPeak2D& operator=(MobilityPeak2D&&) noexcept = default;
     /**
       @brief Destructor
 
@@ -156,8 +155,7 @@ public:
       space for a vtable pointer in each instance. Normally you should not derive other classes from
       MobilityPeak2D (unless you know what you are doing, of course).
     */
-    ~MobilityPeak2D()
-    {}
+    ~MobilityPeak2D() noexcept = default;
     ///@}
 
     ///@name Accessors
@@ -218,12 +216,6 @@ public:
 
     ///@}
 
-    /// Assignment operator
-    MobilityPeak2D & operator=(const MobilityPeak2D & rhs) = default;
-
-    /// Move assignment operator
-    MobilityPeak2D& operator=(MobilityPeak2D&&) & = default;
-
     /// Equality operator
     bool operator==(const MobilityPeak2D & rhs) const
     {
@@ -267,7 +259,6 @@ public:
       {
         return left < right;
       }
-
     };
 
     /// Comparator by IM position
@@ -292,7 +283,6 @@ public:
       {
         return left < right;
       }
-
     };
 
     /// Comparator by m/z position
@@ -317,7 +307,6 @@ public:
       {
         return left < right;
       }
-
     };
 
     /// Comparator by position. Lexicographical comparison (first IM then m/z) is done.
@@ -342,22 +331,18 @@ public:
       {
         return left < right;
       }
-
     };
     ///@}
 
     friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const MobilityPeak2D & point);
 
 protected:
-
     /// The data point position
-    PositionType position_;
+    PositionType position_{};
     /// The data point intensity
-    IntensityType intensity_;
+    IntensityType intensity_ {};
   };
 
   /// Print the contents to a stream.
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const MobilityPeak2D & point);
-
 } // namespace OpenMS
-
