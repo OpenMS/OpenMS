@@ -1047,8 +1047,7 @@ namespace OpenMS
       }
 
 
-      if (//total_signal_intensity / 2 > *std::max_element(total_harmonic_intensity.begin(), total_harmonic_intensity.end()) &&
-          !pg.empty()) //TODO
+      if (total_signal_intensity / 2 > *std::max_element(total_harmonic_intensity.begin(), total_harmonic_intensity.end()) && !pg.empty()) //
       {
         double max_intensity = -1.0;
         // double sum_intensity = .0;

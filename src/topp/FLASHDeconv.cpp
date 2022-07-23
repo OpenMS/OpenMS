@@ -143,7 +143,7 @@ protected:
     registerDoubleOption_("min_precursor_snr",
                           "<SNR value>",
                           1.0,
-                          "minimum precursor SNR (SNR within the precursor envelope range) for identification. When FLASHIda log file is used, this parameter is ignored.  Now applied only for topFD outputs.",
+                          "minimum precursor SNR (SNR within the precursor envelope range) for identification. When FLASHIda log file is used, this parameter is ignored. Applied only for topFD msalign outputs.",
                           false,
                           false);
 
@@ -157,9 +157,9 @@ protected:
     setMaxInt_("mzml_mass_charge", 1);
 
     registerIntOption_("mzml_output_undeconvolved_peaks",
-                       "<0:do not output undeconvolved peaks 1: output>",
+                       "<0:do not output undeconvolved peaks 1: output undeconvolved peaks>",
                        0,
-                       "The undeconvolved peaks in the input spectra are output in mzML output.",
+                       "The undeconvolved raw peaks in the input spectra are output in mzML output.",
                        false,
                        true);
 
@@ -207,7 +207,7 @@ protected:
     setMinInt_("merging_method", 0);
     setMaxInt_("merging_method", 2);
 
-    registerIntOption_("report_decoy_info", "<0: Do not report 1: report>", 1, "Report decoy masses in the spectrum tsv file. Q values for masses are also calculated. Beta version.", false, false);
+    registerIntOption_("report_decoy_info", "<0: Do not report 1: report>", 1, "Report decoy masses in the spectrum tsv file. Qvalues for masses are also calculated. Beta version.", false, false);
     setMinInt_("report_decoy_info", 0);
     setMaxInt_("report_decoy_info", 1);
     /*
