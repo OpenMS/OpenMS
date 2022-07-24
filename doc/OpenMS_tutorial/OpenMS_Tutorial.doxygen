@@ -2,7 +2,7 @@
 //                   %OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The %OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -301,7 +301,7 @@ Within the ANALYSIS folder, you can find several important tools
 For the sake of completeness you will find a short list of the THIRDPARTY tools, which are integrated via wrappers into the %OpenMS framework (usually called -Adapter e.g. SiriusAdapter)
 
 Wrapper to third-party tools:
-    - Search Engines (MSGFPLUS, XTandem, OMSSA, Comet, MyriMatch)
+    - Search Engines (MSGFPLUS, XTandem, Comet)
     - Protein Inference (Fido)
     - Spectral Library Search (SpectraST)
     - Metabolite Identification (Sirius)

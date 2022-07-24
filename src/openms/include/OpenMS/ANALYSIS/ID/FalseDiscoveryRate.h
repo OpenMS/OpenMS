@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -90,11 +90,12 @@ public:
     void apply(std::vector<PeptideIdentification>& fwd_ids, std::vector<PeptideIdentification>& rev_ids) const;
 
     /**
-    @brief Calculates the FDR of one run from a concatenated sequence DB search
+    @brief Calculates the FDR of one run from a concatenated sequence DB search.    
 
     @param id peptide identifications, containing target and decoy hits
+    @param annotate_peptide_fdr adds the peptide q-value or peptide fdr meta value to each PSM. Calculation uses best PSM per peptide.
     */
-    void apply(std::vector<PeptideIdentification>& id) const;
+    void apply(std::vector<PeptideIdentification>& id, bool annotate_peptide_fdr = false) const;
 
     /**
     @brief Calculates the FDR of two runs, a forward run and decoy run on protein level
@@ -150,8 +151,10 @@ public:
     */
     double applyEvaluateProteinIDs(ScoreToTgtDecLabelPairs& score_to_tgt_dec_fraction_pairs, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2) const;
 
-    /// simpler reimplementation of the apply function above.
-    void applyBasic(std::vector<PeptideIdentification> & ids);
+    /// simpler reimplementation of the apply function above for PSMs. With charge and identifier info from @p run_info
+    void applyBasic(const std::vector<ProteinIdentification> & run_info, std::vector<PeptideIdentification> & ids);
+    /// simpler reimplementation of the apply function above for PSMs or peptides.
+    void applyBasic(std::vector<PeptideIdentification> & ids, bool higher_score_better, int charge = 0, String identifier = "", bool only_best_per_pep = false);
     /// simpler reimplementation of the apply function above for peptides in ConsensusMaps.
     void applyBasic(ConsensusMap & cmap, bool use_unassigned_peptides = true);
     /// simpler reimplementation of the apply function above for proteins.
@@ -176,13 +179,13 @@ public:
     /// if fp_cutoff = 0, it will calculate the full AUC. Restricted to IDs from a specific ID run.
     double rocN(const std::vector<PeptideIdentification>& ids, Size fp_cutoff, const String& identifier) const;
 
-    /// calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
+    /// calculates the AUC until the first @p fp_cutoff False positive pep IDs (takes all runs together)
     /// if fp_cutoff = 0, it will calculate the full AUC
-    double rocN(const ConsensusMap& ids, Size fp_cutoff) const;
+    double rocN(const ConsensusMap& ids, Size fp_cutoff, bool include_unassigned_peptides = false) const;
 
-    /// calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
-    /// if fp_cutoff = 0, it will calculate the full AUC. Restricted to IDs from a specific ID run.
-    double rocN(const ConsensusMap& ids, Size fp_cutoff, const String& identifier) const;
+    /// calculates the AUC until the first @p fp_cutoff False positive pep IDs.
+    /// if fp_cutoff = 0, it will calculate the full AUC. Restricted to IDs from a specific ID run with @p identifier.
+    double rocN(const ConsensusMap& ids, Size fp_cutoff, const String& identifier, bool include_unassigned_peptides = false) const;
 
     //TODO the next two methods could potentially be merged for speed (they iterate over the same structure)
     //But since they have different cutoff types and it is more generic, I leave it like this.
