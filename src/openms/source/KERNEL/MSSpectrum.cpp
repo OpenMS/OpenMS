@@ -503,6 +503,7 @@ namespace OpenMS
     RangeManagerType::operator=(source);
     SpectrumSettings::operator=(source);
 
+    spectra = source.spectra;
     retention_time_ = source.retention_time_;
     drift_time_ = source.drift_time_;
     drift_time_unit_ = source.drift_time_unit_;
@@ -519,6 +520,7 @@ namespace OpenMS
     ContainerType(),
     RangeManagerContainerType(),
     SpectrumSettings(),
+    spectra(),
     retention_time_(-1),
     drift_time_(-1),
     drift_time_unit_(DriftTimeUnit::NONE),
@@ -533,6 +535,7 @@ namespace OpenMS
     ContainerType(source),
     RangeManagerContainerType(source),
     SpectrumSettings(source),
+    spectra(source.spectra.size()),
     retention_time_(source.retention_time_),
     drift_time_(source.drift_time_),
     drift_time_unit_(source.drift_time_unit_),

@@ -39,6 +39,7 @@
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
+#include <OpenMS/KERNEL/Peak1DT.h>
 
 #include <numeric>
 
@@ -104,6 +105,10 @@ public:
     //@{
     /// Peak type
     typedef OpenMS::Peak1D PeakType;
+    /// Peak1D Tuple
+    typedef Peak1DT<double, double> Peak1DTuple;
+    /// Container for Peak1DT
+    typedef BaseContainer<MyVector, Peak1DTuple> Container;
     /// Coordinate (m/z) type
     typedef typename PeakType::CoordinateType CoordinateType;
     /// Spectrum base type
@@ -605,6 +610,10 @@ public:
     PeakType::IntensityType calculateTIC() const;
 
 protected:
+
+    /// Peak1d Tuple
+    Container spectra();
+
     /// Retention time
     double retention_time_;
 
