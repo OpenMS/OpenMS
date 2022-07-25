@@ -109,7 +109,6 @@ namespace OpenMS
     return used_maps;
   }
 
-
   SwathMapMassCorrection::SwathMapMassCorrection() :
     DefaultParamHandler("SwathMapMassCorrection")
   {

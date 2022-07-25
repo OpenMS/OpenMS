@@ -57,7 +57,6 @@ namespace OpenMS
 
   void OpenSwathOSWWriter::writeHeader()
   {
-    std::cout << "JOSH start write header create statement" << std::endl;
     // Open database
     SqliteConnector conn(output_filename_);
 
