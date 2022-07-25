@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,6 +73,10 @@ public:
     /// Comparator for the retention time.
     struct OPENMS_DLLAPI RTLess
     {
+      bool operator()(const MSSpectrum& a, const MSSpectrum& b) const;
+    };
+    /// Comparator for the ion mobility.
+    struct OPENMS_DLLAPI IMLess {
       bool operator()(const MSSpectrum& a, const MSSpectrum& b) const;
     };
 

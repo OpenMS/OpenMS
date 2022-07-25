@@ -147,10 +147,14 @@ set(kernel_executables_list
   ConsensusMap_test
   ConversionHelper_test
   ConstRefVector_test
+  DimMapper_test
   DPeak_test
   FeatureMap_test
   Feature_test
   MassTrace_test
+  Mobilogram_test
+  MobilityPeak1D_test
+  MobilityPeak2D_test
   MRMFeature_test
   MRMTransitionGroup_test
   MSChromatogram_test
