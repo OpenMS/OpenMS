@@ -388,6 +388,7 @@ namespace OpenMS
         msspectrum_to_fill.setMetaValue(Constants::UserParam::SIRIUS_ANNOTATED_SUMFORMULA, DataValue(current_sumformula));
         msspectrum_to_fill.setMetaValue(Constants::UserParam::SIRIUS_ANNOTATED_ADDUCT, DataValue(current_adduct));
         msspectrum_to_fill.setMetaValue(Constants::UserParam::SIRIUS_DECOY, decoy);
+        msspectrum_to_fill.setMetaValue(Constants::UserParam::SIRIUS_SCORE, DataValue(score));
         if (!fid.empty())
         {
           msspectrum_to_fill.setMetaValue(Constants::UserParam::SIRIUS_FEATURE_ID, fid);
@@ -440,7 +441,6 @@ namespace OpenMS
             fragments_explanations.push_back(splitted_line[splitted_line.size() - 2]);
             fragments_ionization.push_back(splitted_line[splitted_line.size() - 1]);
           }
-          msspectrum_to_fill.setMetaValue(Constants::UserParam::SIRIUS_SCORE, DataValue(score));
 
           msspectrum_to_fill.setMSLevel(2);
           msspectrum_to_fill.swap(fragments_mzs_ints);
