@@ -52,7 +52,7 @@ namespace OpenMS
         std::ofstream outstr(output_file.c_str());
         SVOutStream out(outstr, "\t", "_", String::NONE);
 
-        out << "filename" << "ATTRIBUTE_MAPID" << std::endl;
+        out << "" << "filename" << "ATTRIBUTE_MAPID" << std::endl;
         Size i = 0;
         for (const auto& path: mzML_file_paths)
         {

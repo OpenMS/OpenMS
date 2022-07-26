@@ -5664,7 +5664,7 @@ CONSENSUS	62.0	294.100000000000023	0.0	1	0.0	2.0	4	[M+H]+		2
 
     pyopenms.GNPSMetaValueFile().store(cm, "MetaValueTable.tsv")
     with open("MetaValueTable.tsv", "r") as f:
-        assert f.read() == """filename	ATTRIBUTE_MAPID
+        assert f.read() == """	filename	ATTRIBUTE_MAPID
 0	1.mzML	MAP0
 1	2.mzML	MAP1
 """
