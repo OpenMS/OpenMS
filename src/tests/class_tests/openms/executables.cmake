@@ -1,5 +1,6 @@
 set(concept_executables_list
   ClassTest_test
+  Colorizer_test
   Exception_Base_test
   FactoryBase_test
   Factory_test
@@ -191,6 +192,7 @@ set(format_executables_list
   GzipInputStream_test
   IBSpectraFile_test
   IdXMLFile_test
+  IndentedStream_test
   IndexedMzMLDecoder_test
   IndexedMzMLFile_test
   IndexedMzMLFileLoader_test

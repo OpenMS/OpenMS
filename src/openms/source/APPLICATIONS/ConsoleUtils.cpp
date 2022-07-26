@@ -49,21 +49,16 @@
 namespace OpenMS
 {
 
-  ConsoleUtils::ConsoleUtils() :
-    console_width_(80)
+  ConsoleUtils::ConsoleUtils()
   {
     // initialize the console width
     readConsoleSize_();
   }
 
-  ConsoleUtils::ConsoleUtils(ConsoleUtils const& other) :
-    console_width_(other.console_width_)
+  const ConsoleUtils& ConsoleUtils::getInstance()
   {
-  }
-
-  void ConsoleUtils::operator=(const ConsoleUtils& other)
-  {
-    console_width_ = other.console_width_;
+    static ConsoleUtils cu;
+    return cu;
   }
 
   int ConsoleUtils::readConsoleSize_()
@@ -81,17 +76,14 @@ namespace OpenMS
     try
     {
       console_width_ = -1;
-      char* p_env;
-      p_env = getenv("COLUMNS");
-      if (p_env != nullptr)
+      char* p_env = getenv("COLUMNS");
+      if (p_env)
       {
         console_width_ = String(p_env).toInt();
       }
       else
       {
-        {
-          OPENMS_LOG_DEBUG << "output shaping: COLUMNS env does not exist!" << std::endl;
-        }
+        OPENMS_LOG_DEBUG << "output shaping: COLUMNS env does not exist!" << std::endl;
 
 #ifdef OPENMS_WINDOWSPLATFORM
         HANDLE hOut;
@@ -142,47 +134,54 @@ namespace OpenMS
     return console_width_;
   }
 
-  String ConsoleUtils::breakString(const String& input, const Size indentation, const Size max_lines)
+  String ConsoleUtils::breakString(const String& input, const Size indentation, const Size max_lines, const Size first_line_prefill)
   {
-    static ConsoleUtils instance;
-    return instance.breakString_(input, indentation, max_lines);
+    return ListUtils::concatenate(getInstance().breakString_(input, indentation, max_lines, first_line_prefill), '\n');
   }
 
-  String ConsoleUtils::breakString_(const OpenMS::String& input, const Size indentation, const Size max_lines)
+  StringList ConsoleUtils::breakStringList(const String& input, const Size indentation, const Size max_lines, const Size first_line_prefill)
   {
+    return getInstance().breakString_(input, indentation, max_lines, first_line_prefill);
+  }
 
-    // get the line length
-    const Int line_len = ConsoleUtils::readConsoleSize_();
-
+  StringList ConsoleUtils::breakString_(const OpenMS::String& input, const Size indentation, const Size max_lines, Size first_line_prefill) const
+  {
     StringList result;
-    Size short_line_len = line_len - indentation;
+    Size short_line_len = console_width_ - indentation;
     if (short_line_len < 1)
     {
-      std::cerr << "INTERNAL ERROR: cannot split lines into empty strings! see breakString_()";
-      return input;
+      //std::cerr << "INTERNAL ERROR: cannot split lines into empty strings! see breakString_()";
+      result.push_back(input);
+      return result;
     }
-    for (Size i = 0; i < input.size(); )
+    if (first_line_prefill > console_width_)
+    { // first line is already longer than console width. Assume it did an automatic linebreak.
+      first_line_prefill = first_line_prefill % console_width_;
+    }
+
+    String line;
+    for (Size i = 0; i < input.size();)
     {
-      String line = input.substr(i, result.empty() ? line_len : short_line_len); // first line has full length
+      // first line has full length (minus the prefilled chars)
+      const int remaining_line_chars = result.empty() ? console_width_ - first_line_prefill : short_line_len;
+      // do NOT indent the first line...
+      const int current_indentation = result.empty() ? 0 : console_width_ - remaining_line_chars;
+      
+      line = input.substr(i, remaining_line_chars);
+      
+      
       Size advance_size = line.size();
-      if (line.hasSubstring("\n"))
+      // break by internal '\n' as well
+      
+      if (auto pos = line.find('\n', 0); pos != String::npos)
       {
-        advance_size = 0;
-        while (line.hasPrefix("\n"))
-        {
-          line = line.substr(1);
-          ++advance_size;
-        } // advance by # of \n's
-        if (line.hasSubstring("\n"))
-        {
-          line = line.prefix('\n');
-        }
-        advance_size += line.size(); // + actual chars
+        line = line.substr(0, pos + 1); // +1 for to include the '\n'
+        advance_size = line.size(); 
       }
 
       // check if we are using the full length and split a word at the same time
       // cut a little earlier in that case for nicer looks
-      if (line.size() ==  (result.empty() ? line_len : short_line_len) && short_line_len > 8 && line.rfind(' ') != String::npos)
+      if (line.size() == remaining_line_chars && short_line_len > 8 && line.rfind(' ') != String::npos)
       {
         String last_word = line.suffix(' ');
         if (last_word.length() < 4)
@@ -193,8 +192,8 @@ namespace OpenMS
       }
 
       i += advance_size;
-      String s_intend = (result.empty() ? "" : String(indentation, ' ')); // first line no indentation
-      String r = s_intend + (result.empty() ? line : line.trim()); // intended lines get trimmed
+      String s_intend = String(current_indentation, ' '); // first line no indentation
+      String r = s_intend + line;
       result.push_back(r); //(r.fillRight(' ', (UInt) line_len));
     }
     if (result.size() > max_lines) // remove lines from end if we get too many (but leave the last one)...
@@ -206,7 +205,7 @@ namespace OpenMS
     }
     // remove last " " from last line to prevent automatic line break
     //if (result.size()>0 && result[result.size()-1].hasSuffix(" ")) result[result.size()-1] = result[result.size()-1].substr(0,result[result.size()-1].size()-1);
-    return ListUtils::concatenate(result, "\n");
+    return result;
   }
 
 }

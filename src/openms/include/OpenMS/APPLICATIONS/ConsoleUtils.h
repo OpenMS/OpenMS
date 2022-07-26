@@ -34,46 +34,69 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h> // for StringList definition
+
+#include <limits>
 
 namespace OpenMS
 {
 
+  /**
+  * 
+  * Determines the width of the console automatically.
+  * 
+  * To manually force a certain width set the environment variable 'COLUMNS' to a desired value.
+  * 
+  */
   class OPENMS_DLLAPI ConsoleUtils
   {
-public:
+  private:
+    /// C'tor (private) -- use ConsoleUtils::getInstance()
+    ConsoleUtils();
+
+  public:
+    /// Copy C'tor (deleted)
+    ConsoleUtils(const ConsoleUtils&) = delete;
+
+    /// Assignment operator (deleted)
+    void operator=(ConsoleUtils const&) = delete;
+
+    static const ConsoleUtils& getInstance();
+
     /// make a string console friendly
     /// by breaking it into multiple lines according to the console width
     /// The 'indentation' gives the number of spaces which is prepended beginning at the second (!)
     /// line, so one gets a left aligned block which has some space to the left.
     /// An indentation of 0 results in the native console's default behaviour: just break at the end of
     /// its width and start a new line.
-    /// but usually one wants nicely intended blocks, which the console does not support
+    /// but usually one wants nicely indented blocks, which the console does not support
     /// 'max_lines' gives the upper limit of lines returned after breaking is finished. 
     /// Excess lines are removed and replaced by '...', BUT the last line will be preserved.
+    /// 
     /// @param input String to be split
     /// @param indentation Number of spaces to use for lines 2 until last line.
     /// @param max_lines Limit of output lines (all others are removed)
-    static String breakString(const String& input, const Size indentation, const Size max_lines);
+    /// @param first_line_prefill Assume this many chars were already written in the current line of the console (this should not exceed the console width)
+    static String breakString(const String& input, const Size indentation, const Size max_lines, const Size first_line_prefill = 0);
 
-private:
-    /// width of console we are currently in (if not determinable, set to 80 as default)
-    int console_width_;
+    /// same as breakString(), but concatenates the result using '\n' for convenience
+    static StringList breakStringList(const String& input, const Size indentation, const Size max_lines, const Size first_line_prefill = 0);
+
+    /// width of the console (or INTMAX on internal error)
+    int getConsoleWidth() const
+    {
+      return console_width_;
+    }
+
+  private:
+    /// width of console we are currently in (if not determinable, set to INTMAX, i.e. not breaks)
+    int console_width_ = std::numeric_limits<int>::max();
 
     /// read console settings for output shaping
     int readConsoleSize_();
 
     /// returns a console friendly version of input
-    String breakString_(const String& input, const Size indentation, const Size max_lines);
-
-    /// C'tor
-    ConsoleUtils();
-
-    /// Copy C'tor
-    ConsoleUtils(const ConsoleUtils &);
-
-    /// Assignment operator
-    void operator=(ConsoleUtils const&);
+    StringList breakString_(const String& input, const Size indentation, const Size max_lines, Size first_line_prefill) const;
   };
 
 } // namespace OpenMS
