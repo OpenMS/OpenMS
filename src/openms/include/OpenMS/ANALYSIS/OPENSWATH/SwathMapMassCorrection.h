@@ -80,11 +80,12 @@ public:
      * @param transition_group_map A MRMFeatureFinderScoring result map
      * @param targeted_exp The corresponding spectral library (required for extraction coordinates)
      * @param swath_maps The raw swath maps from the current run, will be modified (replaced with a corrected version)
+     * @param pasef Whether this data is pasef data and precursors might be found in multiple SWATH windows, in this case choose the "best" SWATH window (centered around IM) as the one to do calibration on
      *
      */
     void correctMZ(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *>& transition_group_map,
                    const OpenSwath::LightTargetedExperiment & targeted_exp,
-                   std::vector< OpenSwath::SwathMap > & swath_maps);
+                   std::vector< OpenSwath::SwathMap > & swath_maps, const bool pasef);
 
     /**
      * @brief Correct the ion mobility values of a SWATH map based on the RT-normalization peptides

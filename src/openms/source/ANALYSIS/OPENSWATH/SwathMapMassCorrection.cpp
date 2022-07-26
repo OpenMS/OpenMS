@@ -372,7 +372,8 @@ namespace OpenMS
   void SwathMapMassCorrection::correctMZ(
     const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
     const OpenSwath::LightTargetedExperiment& targeted_exp,
-    std::vector< OpenSwath::SwathMap > & swath_maps)
+    std::vector< OpenSwath::SwathMap > & swath_maps,
+    const bool pasef)
   {
     bool ppm = mz_extraction_window_ppm_;
     double mz_extr_window = mz_extraction_window_;
@@ -425,7 +426,16 @@ namespace OpenMS
       double bestRT;
       findBestFeature(*transition_group, bestRT);
       // Get the corresponding SWATH map(s), for SONAR there will be more than one map
-      std::vector<OpenSwath::SwathMap> used_maps = findSwathMaps(*transition_group, swath_maps);
+      std::vector<OpenSwath::SwathMap> used_maps;
+      if (!pasef)
+      {
+        used_maps = findSwathMaps(*transition_group, swath_maps);
+      }
+      // If pasef then have to check for overlap across IM
+      else
+      {
+        used_maps = findSwathMapsPasef(*transition_group, swath_maps);
+      }
 
       if (used_maps.empty())
       {
