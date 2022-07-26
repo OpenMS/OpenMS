@@ -56,7 +56,7 @@ namespace OpenMS
         Size i = 0;
         for (const auto& path: mzML_file_paths)
         {
-            out << path.substr(path.find_last_of("/\\")+1) << "MAP"+String(i) << std::endl;
+            out << String(i) << path.substr(path.find_last_of("/\\")+1) << "MAP"+String(i) << std::endl;
             i++;
         }
     }
