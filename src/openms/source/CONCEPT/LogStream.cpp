@@ -65,7 +65,7 @@ namespace OpenMS
     const time_t LogStreamBuf::MAX_TIME = numeric_limits<time_t>::max();
     const std::string LogStreamBuf::UNKNOWN_LOG_LEVEL = "UNKNOWN_LOG_LEVEL";
 
-    LogStreamBuf::LogStreamBuf(std::string log_level, Colorizer* col) 
+    LogStreamBuf::LogStreamBuf(const std::string& log_level, Colorizer* col) 
       : std::streambuf(),
         level_(log_level),
         colorizer_(col)

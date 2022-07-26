@@ -113,7 +113,7 @@ namespace OpenMS
     UInt indentation_;            ///< number of spaces in prefix of each line
     UInt max_lines_;              ///< ?
     UInt max_line_width_;         ///< width of console/output
-    UInt current_column_pos_ = 0; ///< length of last(=current) line
+    Size current_column_pos_ = 0; ///< length of last(=current) line
   };
 
 } // namespace OpenMS

@@ -118,13 +118,14 @@ public:
       /// @name Constructors and Destructors
       //@{
 
+
       /**
         Create a new LogStreamBuf object and set the level to @p log_level
 
         @param log_level The log level of the LogStreamBuf (default is unknown)
         @param col If messages should be colored, provide a colorizer here
       */
-      LogStreamBuf(std::string log_level = UNKNOWN_LOG_LEVEL, Colorizer * col = nullptr);
+LogStreamBuf(const std::string& log_level, Colorizer* col);
 
       /**
         Destruct the buffer and free all stored messages strings.

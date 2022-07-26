@@ -298,14 +298,14 @@ protected:
 
     if (in_list.empty())
     {
-      writeLog_("Fatal error: no input file given (parameter 'in')");
+      writeLogError_("Error:  no input file given (parameter 'in')");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
     if (consensus_out.empty() && out.empty())
     {
-      writeLog_("Fatal error: no output file given (parameter 'out' or 'consensus_out')");
+      writeLogError_("Error:  no output file given (parameter 'out' or 'consensus_out')");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -361,13 +361,13 @@ protected:
         arguments << "-v" << String(verbose_level).toQString();
       }
     }
-    writeLog_("Prepared maracluster command.");
+    writeLogInfo_("Prepared maracluster command.");
 
     //-------------------------------------------------------------
     // run MaRaCluster for idXML output
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
-    writeLog_("Executing maracluster ...");
+    writeLogInfo_("Executing maracluster ...");
     auto exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments);
     if (exit_code != EXECUTION_OK)
     {

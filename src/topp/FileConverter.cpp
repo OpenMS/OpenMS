@@ -250,7 +250,7 @@ protected:
       writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
       if (in_type == FileTypes::UNKNOWN)
       {
-        writeLog_("Error: Could not determine input file type!");
+        writeLogError_("Error: Could not determine input file type!");
         return PARSE_ERROR;
       }
     }
@@ -260,7 +260,7 @@ protected:
     FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(out, getStringOption_("out_type"));
     if (out_type == FileTypes::UNKNOWN)
     {
-      writeLog_("Error: Could not determine output file type!");
+      writeLogError_("Error: Could not determine output file type!");
       return PARSE_ERROR;
     }
 
@@ -288,7 +288,7 @@ protected:
           (out_type != FileTypes::CONSENSUSXML))
       {
         // You you will lose information and waste memory. Enough reasons to issue a warning!
-        writeLog_("Warning: Converting consensus features to peaks. You will lose information!");
+        writeLogWarn_("Warning: Converting consensus features to peaks. You will lose information!");
         exp.set2DData(cm);
       }
     }
@@ -342,7 +342,7 @@ protected:
           (out_type != FileTypes::CONSENSUSXML))
       {
         // You you will lose information and waste memory. Enough reasons to issue a warning!
-        writeLog_("Warning: Converting consensus features to peaks. You will lose information!");
+        writeLogWarn_("Warning: Converting consensus features to peaks. You will lose information!");
         exp.set2DData(cm);
       }
     }
@@ -358,7 +358,7 @@ protected:
           (out_type != FileTypes::OMS))
       {
         // You will lose information and waste memory. Enough reasons to issue a warning!
-        writeLog_("Warning: Converting features to peaks. You will lose information! Mass traces are added, if present as 'num_of_masstraces' and 'masstrace_intensity' (X>=0) meta values.");
+        writeLogWarn_("Warning: Converting features to peaks. You will lose information! Mass traces are added, if present as 'num_of_masstraces' and 'masstrace_intensity' (X>=0) meta values.");
         exp.set2DData<true>(fm);
       }
     }
@@ -620,7 +620,7 @@ protected:
       else // not loaded as feature map or consensus map
       {
         // The feature specific information is only defaulted. Enough reasons to issue a warning!
-        writeLog_("Warning: Converting peaks to features will lead to incomplete features!");
+        writeLogWarn_("Warning: Converting peaks to features will lead to incomplete features!");
         fm.clear();
         fm.reserve(exp.getSize());
         Feature feature;

@@ -213,7 +213,7 @@ protected:
     }
     else if (trafo_out.size() != file_list.size())
     {
-      writeLog_("Error: Number of transformation output files must equal the number of input files (parameters 'rt_concat:trafo_out'/'in')!");
+      writeLogError_("Error: Number of transformation output files must equal the number of input files (parameters 'rt_concat:trafo_out'/'in')!");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -444,7 +444,7 @@ protected:
             }
             else
             {
-              writeLog_("Warning: could not extract retention time from filename '" + filename + "'");
+              writeLogWarn_("Warning: could not extract retention time from filename '" + filename + "'");
             }
           }
 

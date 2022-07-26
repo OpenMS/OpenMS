@@ -1221,14 +1221,14 @@ protected:
       }
       else
       {
-        writeLog_("Error: Unknown output file type given. Aborting!");
+        writeLogError_("Error: Unknown output file type given. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
     }
     else
     {
-      writeLog_("Error: Unknown input file type given. Aborting!");
+      writeLogError_("Error: Unknown input file type given. Aborting!");
       printUsage_();
       return INCOMPATIBLE_INPUT_DATA;
     }

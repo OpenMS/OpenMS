@@ -682,7 +682,7 @@ protected:
 
       if (in_type == FileTypes::UNKNOWN)
       {
-        writeLog_("Error: Could not determine input file type!");
+        writeLogError_("Error: Could not determine input file type!");
         return PARSE_ERROR;
       }
 

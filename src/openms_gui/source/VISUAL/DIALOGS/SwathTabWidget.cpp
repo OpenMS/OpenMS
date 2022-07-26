@@ -377,10 +377,10 @@ namespace OpenMS
       String script_backup = script_name;
       script_name = path + "/Scripts/" + script_backup; // Windows uses the Script subdirectory
       if (File::readable(script_name)) return true;
-      writeLog_("Warning: Could not find " + script_backup + " at " + script_name + ".", Qt::red, true);
+      writeLogWarn_("Warning: Could not find " + script_backup + " at " + script_name + ".", Qt::red, true);
       script_name = path + "/" + script_backup;
       if (File::readable(script_name)) return true;
-      writeLog_("Warning: Could not find " + script_backup + " at " + script_name + ".", Qt::red, true);
+      writeLogWarn_("Warning: Could not find " + script_backup + " at " + script_name + ".", Qt::red, true);
       return false;
     }
 
