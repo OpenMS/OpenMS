@@ -320,7 +320,8 @@ namespace OpenMS
 
     // If this is pasef data, do chromatogram extraction beforehand in unparallel workflow
     std::vector<int> tr_win_map; // maps transition k to dia map i from which it should be extracted, only used if pasef flag is on
-    if (pasef){
+    if (pasef)
+    {
 	    OpenSwathHelper::selectSwathTransitionsPasef(irt_transitions, tr_win_map, cp.min_upper_edge_dist, swath_maps);
     }
 
@@ -336,7 +337,8 @@ namespace OpenMS
 
         OpenSwath::LightTargetedExperiment transition_exp_used;
 
-        if (pasef){
+        if (pasef)
+        {
           // Step 1.2: select transitions based on matching PRM/PASEF window (best window)
           std::set<std::string> matching_compounds;
           for (Size k = 0; k < tr_win_map.size(); k++)
@@ -370,7 +372,8 @@ namespace OpenMS
             }
           }
         }
-        else {
+        else
+        {
         OpenSwathHelper::selectSwathTransitions(irt_transitions, transition_exp_used,
             cp.min_upper_edge_dist, swath_maps[map_idx].lower, swath_maps[map_idx].upper);
 	}

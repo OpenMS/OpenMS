@@ -87,7 +87,6 @@ namespace OpenMS
                 imOld << " with swath map of im center " << imNew << std::endl;
               tr_win_map[k] = i;
             }
-
           }
         }
       }
@@ -125,7 +124,6 @@ namespace OpenMS
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " has a different precursor isolation window than the first scan.");
       }
-
     }
   }
 

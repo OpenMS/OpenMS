@@ -204,11 +204,13 @@ namespace OpenMS
       findBestFeature(*transition_group, bestRT);
       // Get the corresponding SWATH map(s), for SONAR there will be more than one map
       std::vector<OpenSwath::SwathMap> used_maps;
-      if (!pasef){
+      if (!pasef)
+      {
         used_maps = findSwathMaps(*transition_group, swath_maps);
       }
       // If pasef then have to check for overlap across IM
-      else {
+      else
+      {
         used_maps = findSwathMapsPasef(*transition_group, swath_maps);
       }
 
