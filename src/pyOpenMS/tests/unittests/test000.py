@@ -225,28 +225,28 @@ def testFineIsotopePatternGenerator():
     mw = methanol + water
     iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-20, False, False))
 
-    assert len(iso_dist.getContainer()) == 56, len(iso_dist.getContainer())
-    ## iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
-    ## assert len(iso_dist.getContainer()) == 84
+    assert len(iso_dist.getContainer()) == 56
+    iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
+    assert len(iso_dist.getContainer()) == 84
 
-    ## c100 = pyopenms.EmpiricalFormula("C100")
-    ## iso_dist = c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
-    ## assert len(iso_dist.getContainer()) == 101
-    ## assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, False, False)).size() == 6
-    ## assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, False, True)).size() == 5
-    ## assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, True, False)).size() == 5
-    ## assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, True, True)).size() == 5
+    c100 = pyopenms.EmpiricalFormula("C100")
+    iso_dist = c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200, False, False))
+    assert len(iso_dist.getContainer()) == 101
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, False, False)).size() == 6
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, False, True)).size() == 5
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, True, False)).size() == 5
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, True, True)).size() == 5
 
-    ## assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-10, False, False)).size() == 14
-    ## assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-10, False, True)).size() == 13
-    ## assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-10, True, False)).size() == 10
-    ## assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-10, True, True)).size() == 10
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-10, False, False)).size() == 14
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-10, False, True)).size() == 13
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-10, True, False)).size() == 10
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-10, True, True)).size() == 10
 
-    ## iso = pyopenms.FineIsotopePatternGenerator(1e-5, False, False)
-    ## isod = iso.run(methanol)
-    ## assert len(isod.getContainer()) == 6
-    ## assert abs(isod.getContainer()[0].getMZ() - 32.0262151276) < 1e-5
-    ## assert isod.getContainer()[0].getIntensity() - 0.986442089081 < 1e-5
+    iso = pyopenms.FineIsotopePatternGenerator(1e-5, False, False)
+    isod = iso.run(methanol)
+    assert len(isod.getContainer()) == 6
+    assert abs(isod.getContainer()[0].getMZ() - 32.0262151276) < 1e-5
+    assert isod.getContainer()[0].getIntensity() - 0.986442089081 < 1e-5
 
 @report
 def testCoarseIsotopePatternGenerator():
@@ -5073,14 +5073,21 @@ def testElementDB():
     e2 = edb.getElement(pyopenms.String("NE"))
     assert e2.getName() == "NewElement"
 
-    # replace oxygen
-    e2 = edb.addElement(b"Oxygen", b"O", 8, {16 : 0.7, 19 : 0.3}, {16 : 16.01, 19 : 19.01}, True)
-    e2 = edb.getElement(pyopenms.String("O"))
-    assert e2.getName() == "Oxygen"
+    # changing existing elements in tests might have side effects so we define a new element
+    # add first new element
+    e2 = edb.addElement(b"Kryptonite", b"@", 500, {999 : 0.7, 1000 : 0.3}, {999 : 999.01, 1000 : 1000.01}, False)
+    e2 = edb.getElement(pyopenms.String("@"))
+    assert e2.getName() == "Kryptonite"
     assert e2.getIsotopeDistribution()
     assert len(e2.getIsotopeDistribution().getContainer()) == 2
     assert abs(e2.getIsotopeDistribution().getContainer()[1].getIntensity() - 0.3) < 1e-5
-
+    # replace element
+    e2 = edb.addElement(b"Kryptonite", b"@", 500, {9999 : 1.0}, {9999 : 9999.1}, True)
+    e2 = edb.getElement(pyopenms.String("@"))
+    assert e2.getName() == "Kryptonite"
+    assert e2.getIsotopeDistribution()
+    assert len(e2.getIsotopeDistribution().getContainer()) == 1
+    assert abs(e2.getIsotopeDistribution().getContainer()[0].getIntensity() - 1.0) < 1e-5
     # assert e == e2
 
     #  not yet implemented
@@ -5424,5 +5431,59 @@ def testString():
     # assert( isinstance(r, bytes) )
     assert(r.decode("iso8859_15") == u"bläh")
 
-
+@report
+def testGNPSExport():
+    cm = pyopenms.ConsensusMap()
     
+    for mz, rt, ion, linked_groups in [(222.08, 62.0, "[M+H]+", ["1","2","3"]),
+                                        (244.08, 62.0, "[M+Na]+", ["1","2"]),
+                                        (204.08, 62.0, "[M-H-O]+", ["3"]),
+                                        (294.1, 62.0, "[M+H]+", ["4","5"])]:
+        f = pyopenms.ConsensusFeature()
+        f.setMZ(mz)
+        f.setRT(rt)
+        f.setCharge(1)
+        f.setQuality(2.0)
+        f.setMetaValue("best ion", ion)
+        f.setMetaValue("LinkedGroups", linked_groups)
+        cm.push_back(f)
+    cm.setUniqueIds()
+
+    pyopenms.IonIdentityMolecularNetworking.annotateConsensusMap(cm)
+
+    pyopenms.IonIdentityMolecularNetworking.writeSupplementaryPairTable(cm, "SupplementaryPairsTable.csv")
+
+    with open("SupplementaryPairsTable.csv", "r") as f:
+        assert f.read() == """ID1,ID2,EdgeType,Score,Annotation
+1,2,MS1 annotation,1,[M+H]+ [M+Na]+ dm/z=22.0
+1,3,MS1 annotation,1,[M+H]+ [M-H-O]+ dm/z=18.0
+"""
+    os.remove("SupplementaryPairsTable.csv")
+
+    pyopenms.GNPSQuantificationFile().store(cm, "FeatureQuantificationTable.txt")
+    with open("FeatureQuantificationTable.txt", "r") as f:
+        assert f.read() == """#MAP	id	filename	label	size
+#CONSENSUS	rt_cf	mz_cf	intensity_cf	charge_cf	width_cf	quality_cf	row ID	best ion	partners	annotation network number
+CONSENSUS	62.0	222.080000000000013	0.0	1	0.0	2.0	1	[M+H]+	2;3	1
+CONSENSUS	62.0	244.080000000000013	0.0	1	0.0	2.0	2	[M+Na]+	1	1
+CONSENSUS	62.0	204.080000000000013	0.0	1	0.0	2.0	3	[M-H-O]+	1	1
+CONSENSUS	62.0	294.100000000000023	0.0	1	0.0	2.0	4	[M+H]+		2
+"""
+    os.remove("FeatureQuantificationTable.txt")
+
+    # add mandatory file descriptions
+    file_descriptions = {}
+    for i, filename in enumerate(["1.mzML", "2.mzML"]):
+        file_description = pyopenms.ColumnHeader()
+        file_description.filename = filename
+        file_descriptions[i] = file_description
+    cm.setColumnHeaders(file_descriptions)
+
+    pyopenms.GNPSMetaValueFile().store(cm, "MetaValueTable.tsv")
+    with open("MetaValueTable.tsv", "r") as f:
+        assert f.read() == """	filename	ATTRIBUTE_MAPID
+0	1.mzML	MAP0
+1	2.mzML	MAP1
+"""
+    os.remove("MetaValueTable.tsv")
+

@@ -198,12 +198,6 @@
 				<userParam name="p3" type="xsd:string" value="value3"/>
 			</processingMethod>
 		</dataProcessing>
-		<dataProcessing id="dp_sp_1_bi_1">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" startTimeStamp="2007-06-27T15:23:45" defaultSourceFileRef="sf_ru_0">
 		<cvParam cvRef="MS" accession="MS:1000858" name="fraction identifier" value="the_best_fraction_ever" />
@@ -461,11 +455,11 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="index=0">14512</offset>
-		<offset idRef="index=1">19655</offset>
-		<offset idRef="index=2">28541</offset>
+		<offset idRef="index=0">14176</offset>
+		<offset idRef="index=1">19319</offset>
+		<offset idRef="index=2">28205</offset>
 	</index>
 </indexList>
-<indexListOffset>33381</indexListOffset>
+<indexListOffset>33045</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -178,7 +178,13 @@ namespace OpenMS
 
   void PlotCanvas::wheelEvent(QWheelEvent* e)
   {
+     /* Supressed warning int QWheelEvent::x() const and y() deprecated
+     * Use position() instead, from Qt 5.14
+     */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     zoom_(e->x(), e->y(), e->delta() > 0);
+#pragma GCC diagnostic pop
     e->accept();
   }
 

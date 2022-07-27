@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -395,7 +395,7 @@ namespace OpenMS
     for (const auto &seq_to_map_from_charge_to_pep_hit : best_pep)
     {
       // The next line assumes that PeptideHits of different charge states necessarily share the same
-      // protein accessions
+      // protein accessions (might not be the case if we ever allow modified protein databases e.g. in PEF format)
       // TODO this could be done for mods, too (first hashing AASeq, then the mods)
       const std::map<Int, PeptideHit*>& charge_to_peptide_hit = seq_to_map_from_charge_to_pep_hit.second;
       const PeptideHit& first_peptide_hit = *charge_to_peptide_hit.begin()->second;
