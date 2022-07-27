@@ -995,15 +995,15 @@ namespace OpenMS::Internal
         
         if (!writeAttributeIfExists_(os, spec, "base peak m/z", "basePeakMz"))
         { // base peak mz (used by some programs like MAVEN), according to xsd: "m/z of the base peak (most intense peak)"
-          auto it = spec.getBasePeak();
-          writeKeyValue(os, "basePeakMz", (it != spec.end() ? it->getMZ() : 0.0));
+          auto&& it = spec.getBasePeak();
+          writeKeyValue(os, "basePeakMz", (it != spec.TCend() ? double(it->getMZ()) : 0.0));
         }
 
         if (!writeAttributeIfExists_(os, spec, "base peak intensity", "basePeakIntensity") &&
             options_.getForceMQCompatability())
         {
           auto it = spec.getBasePeak();
-          writeKeyValue(os, "basePeakIntensity", (it != spec.end() ? it->getIntensity() : 0.0));
+          writeKeyValue(os, "basePeakIntensity", (it != spec.TCend() ? double(it->getIntensity()) : 0.0));
         }
         if (!writeAttributeIfExists_(os, spec, "total ion current", "totIonCurrent") &&
             options_.getForceMQCompatability())

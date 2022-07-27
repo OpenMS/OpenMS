@@ -150,8 +150,8 @@ namespace OpenMS
   MSSpectrum::PeakType::IntensityType Ms2SpectrumStats::getBPI_(const MSSpectrum& spec)
   {
     PeakSpectrum::PeakType::IntensityType bpi{ 0 };
-    auto it = spec.getBasePeak();
-    if (it != spec.end())
+    auto&& it = spec.getBasePeak();
+    if (it != spec.TCend())
     {
       bpi = it->getIntensity();
     }

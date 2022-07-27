@@ -149,16 +149,17 @@ namespace OpenMS
     return SpectrumSettings::UNKNOWN;
   }
 
-  MSSpectrum::ConstIterator MSSpectrum::getBasePeak() const
+  MSSpectrum::TConstIterator MSSpectrum::getBasePeak() const
   {
-    ConstIterator largest = cbegin();
-    if (empty())
+    const Container& const_peaks = peaks;
+    TConstIterator largest = const_peaks.cbegin();
+    if (peaks.size()==0)
     {
       return largest;
     }
-    ConstIterator current = cbegin();
+    TConstIterator current = const_peaks.cbegin();
     ++current;
-    for (; current != cend(); ++current)
+    for (; current != const_peaks.cend(); ++current)
     {
       if (largest->getIntensity() < current->getIntensity())
       {
@@ -168,10 +169,11 @@ namespace OpenMS
     return largest;
   }
 
-  MSSpectrum::Iterator MSSpectrum::getBasePeak()
+  MSSpectrum::TIterator MSSpectrum::getBasePeak()
   {
-    ConstIterator largest = const_cast<const MSSpectrum&>(*this).getBasePeak();
-    return begin() + std::distance(cbegin(), largest);
+    const Container& const_peaks = peaks;
+    TConstIterator largest = const_cast<const MSSpectrum&>(*this).getBasePeak();
+    return peaks.begin() + std::distance(const_peaks.cbegin(), largest);
   }
 
   MSSpectrum::PeakType::IntensityType MSSpectrum::calculateTIC() const
@@ -503,7 +505,7 @@ namespace OpenMS
     RangeManagerType::operator=(source);
     SpectrumSettings::operator=(source);
 
-    spectra = source.spectra;
+    peaks = source.peaks;
     retention_time_ = source.retention_time_;
     drift_time_ = source.drift_time_;
     drift_time_unit_ = source.drift_time_unit_;
@@ -520,7 +522,7 @@ namespace OpenMS
     ContainerType(),
     RangeManagerContainerType(),
     SpectrumSettings(),
-    spectra(),
+    peaks(0),
     retention_time_(-1),
     drift_time_(-1),
     drift_time_unit_(DriftTimeUnit::NONE),
@@ -535,7 +537,7 @@ namespace OpenMS
     ContainerType(source),
     RangeManagerContainerType(source),
     SpectrumSettings(source),
-    spectra(source.spectra.size()),
+    peaks(source.peaks.size()),
     retention_time_(source.retention_time_),
     drift_time_(source.drift_time_),
     drift_time_unit_(source.drift_time_unit_),
@@ -656,6 +658,29 @@ namespace OpenMS
   {
     integer_data_arrays_ = ida;
   }
+
+  MSSpectrum::TIterator MSSpectrum::TBegin()
+  {
+    return peaks.begin();
+  }
+
+  MSSpectrum::TIterator MSSpectrum::TEnd()
+  {
+    return peaks.end();
+  }
+
+  MSSpectrum::TConstIterator MSSpectrum::TCbegin() const
+  {
+    const Container& const_peaks = peaks;
+    return const_peaks.cbegin();
+  }
+
+  MSSpectrum::TConstIterator MSSpectrum::TCend() const
+  {
+    const Container& const_peaks = peaks;
+    return const_peaks.cend();
+  }
+
 
   MSSpectrum::Iterator MSSpectrum::MZBegin(MSSpectrum::CoordinateType mz)
   {

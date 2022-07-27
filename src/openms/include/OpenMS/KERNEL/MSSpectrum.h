@@ -39,7 +39,7 @@
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
-#include <OpenMS/KERNEL/Peak1DT.h>
+#include <OpenMS/KERNEL/MSSpectrumSoAWrapper.h>
 
 #include <numeric>
 
@@ -108,7 +108,7 @@ public:
     /// Peak1D Tuple
     typedef Peak1DT<double, double> Peak1DTuple;
     /// Container for Peak1DT
-    typedef BaseContainer<MyVector, Peak1DTuple> Container;
+    typedef BaseContainer<VectorTemplate, Peak1DTuple> Container;
     /// Coordinate (m/z) type
     typedef typename PeakType::CoordinateType CoordinateType;
     /// Spectrum base type
@@ -129,6 +129,10 @@ public:
 
     ///@name Peak container iterator type definitions
     //@{
+    /// Mutable Iterator for Tuple
+    typedef typename Container::iterator TIterator;
+    /// Non-Mutable Iterator for Tuple
+    typedef typename Container::const_iterator TConstIterator;
     /// Mutable iterator
     typedef typename ContainerType::iterator Iterator;
     /// Non-mutable iterator
@@ -160,7 +164,7 @@ public:
     using ContainerType::insert;
     using ContainerType::erase;
     using ContainerType::swap;
-
+    
     using typename ContainerType::iterator;
     using typename ContainerType::const_iterator;
     using typename ContainerType::size_type;
@@ -259,6 +263,16 @@ public:
     void setName(const String& name);
 
     //@}
+
+    TIterator TBegin();
+
+    TIterator TEnd();
+
+    TConstIterator TCbegin() const;
+
+    TConstIterator TCend() const;
+
+
 
     /**
       @name Peak data array methods
@@ -600,11 +614,11 @@ public:
 
     /// return the peak with the highest intensity. If the peak is not unique, the first peak in the container is returned.
     /// The function works correctly, even if the spectrum is unsorted.
-    ConstIterator getBasePeak() const;
+    TConstIterator getBasePeak() const;
 
     /// return the peak with the highest intensity. If the peak is not unique, the first peak in the container is returned.
     /// The function works correctly, even if the spectrum is unsorted.
-    Iterator getBasePeak();
+    TIterator getBasePeak();
 
     /// compute the total ion count (sum of all peak intensities)
     PeakType::IntensityType calculateTIC() const;
@@ -612,7 +626,7 @@ public:
 protected:
 
     /// Peak1d Tuple
-    Container spectra();
+    Container peaks;
 
     /// Retention time
     double retention_time_;

@@ -1362,11 +1362,12 @@ END_SECTION
 
 START_SECTION(ConstIterator getBasePeak() const)
 {
-  const auto it = spec_test.getBasePeak();
+  const MSSpectrum& const_spec_test = spec_test;
+  const auto&& it = const_spec_test.getBasePeak();
   TEST_REAL_SIMILAR(it->getIntensity(), 201.0)
-  TEST_EQUAL(std::distance(spec_test.begin(), it), 8);
+  TEST_EQUAL(std::distance(spec_test.TCbegin(), it), 8);
   MSSpectrum empty;
-  TEST_EQUAL(empty.getBasePeak() == empty.end(), true);
+  TEST_EQUAL(empty.getBasePeak() == empty.TEnd(), true);
 }
 END_SECTION
 
@@ -1374,10 +1375,10 @@ END_SECTION
 START_SECTION(Iterator getBasePeak())
 {
   MSSpectrum test = spec_test;
-  auto it = test.getBasePeak();
+  auto&& it = test.getBasePeak();
   it->setIntensity(it->getIntensity() + 0.0);
   TEST_REAL_SIMILAR(it->getIntensity(), 201.0)
-  TEST_EQUAL(std::distance(test.begin(), it), 8);
+  TEST_EQUAL(std::distance(test.TBegin(), it), 8);
 }
 END_SECTION
 
