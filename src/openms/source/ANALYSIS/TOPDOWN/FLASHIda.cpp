@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -230,7 +230,7 @@ namespace OpenMS
     }
     std::sort(target_masses_.begin(), target_masses_.end());
     fd_.setTargetMasses(target_masses_);
-    fd_.PerformSpectrumDeconvolution(spec, tmp, 0, empty);
+    fd_.performSpectrumDeconvolution(spec, tmp, 0, empty);
     deconvolved_spectrum_ = fd_.getDeconvolvedSpectrum();
     // per spec deconvolution
     FLASHIda::filterPeakGroupsUsingMassExclusion_(ms_level, rt);

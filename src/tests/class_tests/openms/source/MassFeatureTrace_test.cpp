@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -169,8 +169,8 @@ mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec3);
 
 /// < public methods without tests >
 /// - storeInformationFromDeconvolvedSpectrum : only private variables are affected (cannot test)
-/// - writing headers are not worth testing (writeHeader, writePromexHeader, writeTopFDFeatureHeader)
 /// - copy, assignment, move constructor -> not used.
+/// - size
 START_SECTION((std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(const PrecalculatedAveragine &averagine)))
 {
   // prepare findFeature arguments

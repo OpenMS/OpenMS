@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,7 +67,7 @@ namespace OpenMS
   */
     DeconvolvedSpectrum(const MSSpectrum& spectrum, const int scan_number);
 
-    /// default deconstructor
+    /// default destructor
     ~DeconvolvedSpectrum() = default;
 
     /// copy constructor
@@ -80,7 +80,7 @@ namespace OpenMS
     DeconvolvedSpectrum& operator=(const DeconvolvedSpectrum& deconvolved_spectrum) = default;
 
 
-    /// Convert DeconvolutedSpectrum to MSSpectrum (e.g., used to store in mzML format).
+    /// Convert DeconvolvedSpectrum to MSSpectrum (e.g., used to store in mzML format).
     /// @param to_charge the charge of each peak in mzml output.
     /// @param retain_undeconvolved if set, undeconvolved peaks in the original peaks are output (assuming their abs charge == 1 and m/zs are adjusted with the to_charge parameter)
     MSSpectrum toSpectrum(const int to_charge, bool retain_undeconvolved = false);

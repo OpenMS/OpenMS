@@ -101,8 +101,8 @@ namespace OpenMS
 
 
   // The main function called from outside. precursor_map_for_FLASHIda is used to read FLASHIda information
-  void FLASHDeconvAlgorithm::PerformSpectrumDeconvolution(const MSSpectrum& spec, const std::vector<DeconvolvedSpectrum>& survey_scans, const int scan_number,
-                                                                          const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_FLASHIda)
+  void FLASHDeconvAlgorithm::performSpectrumDeconvolution(const MSSpectrum& spec, const std::vector<DeconvolvedSpectrum>& survey_scans, const int scan_number,
+                                                          const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_FLASHIda)
   {
     ms_level_ = spec.getMSLevel();
     deconvolved_spectrum_ = DeconvolvedSpectrum(spec, scan_number);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,7 +47,7 @@
 namespace OpenMS
 {
   /**
-  @brief FLASHDeocnv algorithm: ultrafast mass deconvolution algorithm for top down mass spectrometry dataset
+  @brief FLASHDeconv algorithm: ultrafast mass deconvolution algorithm for top down mass spectrometry dataset
   From MSSpectrum, this class outputs DeconvolvedSpectrum.
   Deconvolution takes three steps:
    i) decharging and select candidate masses - speed up via binning
@@ -83,10 +83,10 @@ namespace OpenMS
       But this parameter is used for real time deconvolution where scan number may be put separately.
       @param precursor_map_for_FLASHIda deconvolved precursor information from FLASHIda
  */
-    void PerformSpectrumDeconvolution(const MSSpectrum& spec,
-                                                  const std::vector<DeconvolvedSpectrum>& survey_scans,
-                                                  const int scan_number,
-                                                  const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_FLASHIda);
+    void performSpectrumDeconvolution(const MSSpectrum& spec,
+                                      const std::vector<DeconvolvedSpectrum>& survey_scans,
+                                      const int scan_number,
+                                      const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_FLASHIda);
 
     /// return deconvolved spectrum
     DeconvolvedSpectrum& getDeconvolvedSpectrum();
@@ -101,7 +101,7 @@ namespace OpenMS
     void setTargetMasses(const std::vector<double>& masses);
 
     /** @brief precalculate averagine (for predefined mass bins) to speed up averagine generation
-        @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calcualted
+        @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calculated
      */
     void calculateAveragine(const bool use_RNA_averagine);
 
@@ -128,7 +128,7 @@ namespace OpenMS
                              int offset);
 
 
-    /** static function that retruns average PPM error of the input peak group
+    /** static function that returns average PPM error of the input peak group
      * @param pg peak group
      * @return average PPM error
      */
@@ -139,7 +139,7 @@ namespace OpenMS
         @param mono_mass monoisotopic mass
         @param per_isotope_intensities per isotope intensity - aggregated through charges
         @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
-        @param second_best_mono_mass second best scoring mono mass - for decoy calcualtion.
+        @param second_best_mono_mass second best scoring mono mass - for decoy calculation.
         @param avg precalculated averagine
         @param window_width isotope offset value range. If -1, set automatically.
         @return calculated cosine similar score
@@ -216,9 +216,9 @@ namespace OpenMS
     const std::vector<int> harmonic_charges_{2, 3, 5, 7};
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;
-    /// deconvolved_spectrum_ stores the decovnoluted mass peak groups
+    /// deconvolved_spectrum_ stores the deconvolved mass peak groups
     DeconvolvedSpectrum deconvolved_spectrum_;
-    /// decoy_deconvolved_spectrum_ stores the decovnoluted decoy mass peak groups
+    /// decoy_deconvolved_spectrum_ stores the deconvolved decoy mass peak groups
     DeconvolvedSpectrum decoy_deconvolved_spectrum_;
     /// mass_bins_ stores the selected bins for this spectrum + overlapped spectrum (previous a few spectra).
     boost::dynamic_bitset<> mass_bins_;
@@ -278,7 +278,7 @@ namespace OpenMS
      */
     void updateMzBins_(const Size bin_number, std::vector<float>& mz_bin_intensities);
 
-    ///this function takes the previous deconvolution results (from ovelapped spectra) for sensitive deconvolution of the current spectrum
+    ///this function takes the previous deconvolution results (from overlapped spectra) for sensitive deconvolution of the current spectrum
     void unionPrevMassBins_();
 
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -92,7 +92,7 @@ namespace OpenMS
 
     //MSSpectrum getSubspectrumForMass(const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass);
 
-    /// recruite peaks and then return as a spectrum.
+    /// recruit peaks and then return as a spectrum.
     void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, double mass_offset = 0);
 
     /// using signal and total (signal + noise) power, update SNR value
@@ -108,7 +108,7 @@ namespace OpenMS
     void setChargeIsotopeCosine(const int abs_charge, const float cos);
 
 
-    /// set mz range that results in max Qscore
+    /// set mz range that results in max QScore
     void setMaxQScoreMzRange(const double min, const double max);
 
     /// set min_abs_charge and max_abs_charge charge range
