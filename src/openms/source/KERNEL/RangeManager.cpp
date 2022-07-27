@@ -34,9 +34,8 @@
 
 #include <OpenMS/KERNEL/RangeManager.h>
 
-#include <iostream>
+#include <ostream>
 
-  
 namespace OpenMS
 {
   std::ostream& operator<<(std::ostream& out, const RangeBase& b)

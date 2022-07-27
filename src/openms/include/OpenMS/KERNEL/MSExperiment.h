@@ -67,8 +67,7 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI MSExperiment final :
-    public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>,
+  class OPENMS_DLLAPI MSExperiment final : public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility>,
     public ExperimentalSettings
   {
 
@@ -87,9 +86,9 @@ public:
     /// Intensity type of peaks
     typedef PeakType::IntensityType IntensityType;
     /// RangeManager type
-    typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
+    typedef RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility> RangeManagerType;
     /// RangeManager type
-    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
+    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility> RangeManagerContainerType;
     /// Spectrum Type
     typedef MSSpectrum SpectrumType;
     /// Chromatogram type
@@ -332,11 +331,17 @@ public:
     /// Returns an area iterator for @p area
     AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz);
 
+    /// Returns a area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
+    AreaIterator areaBegin(const RangeManagerType& range);
+
     /// Returns an invalid area iterator marking the end of an area
     AreaIterator areaEnd();
 
     /// Returns a non-mutable area iterator for @p area
     ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const;
+
+    /// Returns a non-mutable area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
+    ConstAreaIterator areaBeginConst(const RangeManagerType& range) const;
 
     /// Returns an non-mutable invalid area iterator marking the end of an area
     ConstAreaIterator areaEndConst() const;
@@ -358,7 +363,7 @@ public:
           rt.resize(rt.size() + 1);
           intensity.resize(intensity.size() + 1);
         }
-        mz.back().emplace_back(it->getMZ());
+        mz.back().push_back((float)it->getMZ());
         intensity.back().emplace_back(it->getIntensity());
       }
     }
@@ -371,9 +376,9 @@ public:
     {
       for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
       {
-        rt.emplace_back(it.getRT());
-        mz.emplace_back(it->getMZ());
-        intensity.emplace_back(it->getIntensity());
+        rt.push_back((float)it.getRT());
+        mz.push_back((float)it->getMZ());
+        intensity.push_back(it->getIntensity());
       }
     }
 
@@ -410,6 +415,24 @@ public:
     */
     Iterator RTEnd(CoordinateType rt);
 
+
+    /**
+      @brief Fast search for spectrum range begin
+
+      Returns the first scan which has equal or higher (>=) ion mobility than @p rt.
+
+      @note Make sure the spectra are sorted with respect to ion mobility! Otherwise the result is undefined.
+    */
+    ConstIterator IMBegin(CoordinateType im) const;
+
+    /**
+      @brief Fast search for spectrum range end (returns the past-the-end iterator)
+
+      Returns the first scan which has higher (>) ion mobility than @p im.
+
+      @note Make sure the spectra are sorted with respect to ion mobility! Otherwise the result is undefined.
+    */
+    ConstIterator IMEnd(CoordinateType im) const;
     //@}
 
     /**
@@ -581,11 +604,14 @@ public:
     /// returns true if at least one of the spectra has the specified level
     bool containsScanOfLevel(size_t ms_level) const;
 
-    /// returns true if any MS spectra of the specified level contain at least one peak with intensity of 0.0
+    /// returns true if any MS spectra of trthe specified level contain at least one peak with intensity of 0.0
     bool hasZeroIntensities(size_t ms_level) const;
 
     /// do any of the spectra have a PeptideID?
     bool hasPeptideIdentifications() const;
+
+    /// Are all MSSpectra in this experiment part of an IM Frame? I.e. they all have the same RT, but different drift times
+    bool isIMFrame() const;
 
   protected:
     /// MS levels of the data
