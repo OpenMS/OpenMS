@@ -59,8 +59,8 @@ namespace OpenMS
       std::cout << undo.undoAll();
       std::cerr << undo.undoAll();
 
-      std::cout << "\nundone coloring\n";
-      std::cerr << "\nundone coloring\n";
+      //std::cout << "\nundone coloring\n";
+      //std::cerr << "\nundone coloring\n";
     }
 
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -72,7 +72,6 @@ namespace OpenMS
       initStream(STD_ERROR_HANDLE);
     }
 
-
     // Set output mode to handle virtual terminal sequences
     DWORD initStream(DWORD handle)
     {
@@ -80,21 +79,21 @@ namespace OpenMS
       HANDLE hOut = GetStdHandle(handle);
       if (hOut == INVALID_HANDLE_VALUE)
       {
-        std::cerr << "no " << handle << "\n";
+        //std::cerr << "no " << handle << "\n";
         return GetLastError();
       }
 
       DWORD dwMode = 0;
       if (!GetConsoleMode(hOut, &dwMode))
       {
-        std::cerr << "no mode get for " << handle << "\n";
+        //std::cerr << "no mode get for " << handle << "\n";
         return GetLastError();
       }
 
       dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
       if (!SetConsoleMode(hOut, dwMode))
       {
-        std::cerr << "no mode set for " << handle << "\n";
+        //std::cerr << "no mode set for " << handle << "\n";
         return GetLastError();
       }
       return dwMode;

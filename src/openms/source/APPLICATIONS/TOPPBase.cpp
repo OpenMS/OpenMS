@@ -253,8 +253,8 @@ namespace OpenMS
     // test if no options were given
     if (argc == 1)
     {
-      writeLogError_("No options given. Aborting!");
       printUsage_();
+      writeLogError_("No options given. Aborting!");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -543,19 +543,20 @@ namespace OpenMS
     IndentedStream is(cerr, 0, 10);
     // common output
     is << "\n"
-       << bright(tool_name_) << " -- " << tool_description_ << "\n"
-       << "Full documentation: " << docurl << "\n"
-       << "Version: " << verboseVersion_ << "\n"
-       << "To cite OpenMS:\n  " << cite_openms_.toString() << "\n";
+       << invert(tool_name_) << " -- " << tool_description_ << "\n"
+       << bright("Full documentation: ") << underline(docurl) << " " // the space is needed, otherwise the remaining line will be underlined on Windows..
+       << "\n"
+       << bright("Version: ") << verboseVersion_ << "\n"
+       << bright("To cite OpenMS:\n  ") << cite_openms_.toString() << "\n";
     if (!citations_.empty())
     {
-      is << "To cite " << tool_name_ << ":\n";
+      is << bright("To cite ") << tool_name_ << ":\n";
       for (const Citation& c : citations_) is << "  " << c.toString() << "\n";
     }
     is << "\n";
-    is << "Usage:"
+    is << invert("Usage:")
        << "\n"
-       << "  " << tool_name_ << " <options>" << "\n"
+       << "  " << bright(tool_name_) << " <options>" << "\n"
        << "\n";
 
     // print warning regarding not shown parameters
@@ -579,15 +580,15 @@ namespace OpenMS
       }
     }
 
-    is << "Options (mandatory options marked with '" << green('*') << "'):\n";
+    is << bright("Options") << " (" << green("mandatory options marked with '*'") << "):\n";
 
     // determine max length of parameters (including argument) for indentation
     UInt max_size = 0;
-    for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
+    for (const auto& par : parameters_)
     {
-      if (!it->advanced || verbose)
+      if (!par.advanced || verbose)
       {
-        max_size = max((UInt)max_size, (UInt)(it->name.size() + it->argument.size() + it->required));
+        max_size = max((UInt)max_size, (UInt)(par.name.size() + par.argument.size() + par.required));
       }
     }
 
@@ -622,7 +623,7 @@ namespace OpenMS
           subsection_description = current_TOPP_subsection;
         }
 
-        is << ConsoleUtils::breakString(subsection_description, 0, 10) << ":\n"; // print subsection description
+        is << subsection_description << ":\n"; // print subsection description
       }
       else if (subsection.empty() && !current_TOPP_subsection.empty()) // subsection ended and normal parameters start again
       {
@@ -669,6 +670,7 @@ namespace OpenMS
       }
 
       //RESTRICTIONS
+      StringList restrictions;
       switch (it->type)
       {
       case ParameterInformation::STRING:
@@ -695,7 +697,7 @@ namespace OpenMS
             || it->type == ParameterInformation::OUTPUT_FILE_LIST)
             add = " formats";
 
-          addons.push_back(String("valid") + add + ": " + ListUtils::concatenate(copy, ", ")); // concatenate restrictions by comma
+          restrictions.push_back(String("valid") + add + ": " + ListUtils::concatenate(copy, ", ")); // concatenate restrictions by comma
         }
         break;
 
@@ -703,11 +705,11 @@ namespace OpenMS
       case ParameterInformation::INTLIST:
         if (it->min_int != -std::numeric_limits<Int>::max())
         {
-          addons.push_back(String("min: '") + it->min_int + "'");
+          restrictions.push_back(String("min: '") + it->min_int + "'");
         }
         if (it->max_int != std::numeric_limits<Int>::max())
         {
-          addons.push_back(String("max: '") + it->max_int + "'");
+          restrictions.push_back(String("max: '") + it->max_int + "'");
         }
         break;
 
@@ -715,11 +717,11 @@ namespace OpenMS
       case ParameterInformation::DOUBLELIST:
         if (it->min_float != -std::numeric_limits<double>::max())
         {
-          addons.push_back(String("min: '") + it->min_float + "'");
+          restrictions.push_back(String("min: '") + it->min_float + "'");
         }
         if (it->max_float != std::numeric_limits<double>::max())
         {
-          addons.push_back(String("max: '") + it->max_float + "'");
+          restrictions.push_back(String("max: '") + it->max_float + "'");
         }
         break;
 
@@ -727,10 +729,17 @@ namespace OpenMS
         break;
       }
 
+      string addon_concat;
       //add DEFAULT and RESTRICTIONS
       if (!addons.empty())
       {
-        desc_tmp += String(" (") + ListUtils::concatenate(addons, " ") + ")";
+        addon_concat = String(" (") + ListUtils::concatenate(addons, " ") + ")";
+      }
+      string restrict_concat;
+      // add DEFAULT and RESTRICTIONS
+      if (!restrictions.empty())
+      {
+        restrict_concat = String(" (") + ListUtils::concatenate(restrictions, " ") + ")";
       }
 
       if (it->type == ParameterInformation::TEXT)
@@ -739,11 +748,18 @@ namespace OpenMS
       }
       else
       {
-        is << IndentInfo(offset) << str_tmp << desc_tmp << IndentInfo(0);
+        is << IndentInfo(offset);
+        if (it->required)
+          is << green(str_tmp);
+        else
+          is << str_tmp;
+        is << desc_tmp << cyan(addon_concat) << magenta(restrict_concat);
+        is << IndentInfo(0);
       }
       
       is << "\n";
     }
+
 
     // SUBSECTION's at the end
     if (!subsections_.empty() && !verbose)
@@ -772,7 +788,7 @@ namespace OpenMS
          << "You can write an example INI file using the '-write_ini' option.\n"
          << "Documentation of subsection parameters can be found in the doxygen documentation or the INIFileEditor.\n"
          << "For more information, please consult the online documentation for this tool:\n"
-         << "  - " << docurl << "\n";
+         << "  - " << underline(docurl) << "\n";
     }
     is << endl;
   }
