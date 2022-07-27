@@ -388,7 +388,7 @@ protected:
         rt_custom = true;
         if (custom_rts.size() != file_list.size())
         {
-          writeLog_("Custom retention time list (parameter 'raw:rt_custom') must have as many elements as there are input files (parameter 'in')!");
+          writeLogError_("Error: Custom retention time list (parameter 'raw:rt_custom') must have as many elements as there are input files (parameter 'in')!");
           return ILLEGAL_PARAMETERS;
         }
       }
@@ -410,7 +410,7 @@ protected:
 
         if (in.empty() && in.getChromatograms().empty())
         {
-          writeLog_(String("Warning: Empty file '") + filename + "'!");
+          writeLogWarn_(String("Warning: Empty file '") + filename + "'!");
           continue;
         }
         out.reserve(out.size() + in.size());
@@ -418,7 +418,7 @@ protected:
         // warn if custom RT and more than one scan in input file
         if (rt_custom && in.size() > 1)
         {
-          writeLog_(String("Warning: More than one scan in file '") + filename + "'! All scans will have the same retention time!");
+          writeLogWarn_(String("Warning: More than one scan in file '") + filename + "'! All scans will have the same retention time!");
         }
 
         // handle special raw data options:
@@ -451,7 +451,7 @@ protected:
           // none of the rt methods were successful
           if (rt_final < 0)
           {
-            writeLog_(String("Warning: No valid retention time for output scan '") + rt_auto + "' from file '" + filename + "'");
+            writeLogWarn_(String("Warning: No valid retention time for output scan '") + rt_auto + "' from file '" + filename + "'");
           }
 
           spec.setRT(rt_final);

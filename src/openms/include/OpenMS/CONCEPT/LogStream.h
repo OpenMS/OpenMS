@@ -125,7 +125,7 @@ public:
         @param log_level The log level of the LogStreamBuf (default is unknown)
         @param col If messages should be colored, provide a colorizer here
       */
-LogStreamBuf(const std::string& log_level, Colorizer* col);
+      LogStreamBuf(const std::string& log_level = UNKNOWN_LOG_LEVEL, Colorizer* col = nullptr);
 
       /**
         Destruct the buffer and free all stored messages strings.

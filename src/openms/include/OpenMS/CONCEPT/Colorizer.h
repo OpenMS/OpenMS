@@ -208,12 +208,12 @@ namespace OpenMS
      * @brief ANSI colors/styles, corresponding to values of enum ConsoleColor
      */
     inline static const constexpr std::array<ColorWithUndo_, 9> colors_ {
-      ColorWithUndo_ {"\033[31m", "\033[39m"}, // red
-      ColorWithUndo_ {"\033[32m", "\033[39m"}, // green
-      ColorWithUndo_ {"\033[33m", "\033[39m"}, // yellow
-      ColorWithUndo_ {"\033[34m", "\033[39m"}, // blue
-      ColorWithUndo_ {"\033[35m", "\033[39m"}, // magenta
-      ColorWithUndo_ {"\033[36m", "\033[39m"}, // cyan
+      ColorWithUndo_ {"\033[91m", "\033[39m"}, // red
+      ColorWithUndo_ {"\033[92m", "\033[39m"}, // green
+      ColorWithUndo_ {"\033[93m", "\033[39m"}, // yellow
+      ColorWithUndo_ {"\033[94m", "\033[39m"}, // blue
+      ColorWithUndo_ {"\033[95m", "\033[39m"}, // magenta
+      ColorWithUndo_ {"\033[96m", "\033[39m"}, // cyan
       ColorWithUndo_ {"\033[4m", "\033[24m"},  // underline
       ColorWithUndo_ {"\033[1m", "\033[22m"},  // bright/intensified
       ColorWithUndo_ {"\033[7m",  "\033[27m"}, // invert FG/BG

@@ -1469,7 +1469,7 @@ protected:
 
         if (exp.getSpectra().empty() && exp.getChromatograms().empty())
         {
-          writeLog_("File does not contain spectra or chromatograms.");
+          writeLogError_("Error: File does not contain spectra or chromatograms.");
           return INCOMPATIBLE_INPUT_DATA;
         }
 
@@ -1480,7 +1480,7 @@ protected:
         {
           if (exp.getSpectra().empty())
           {
-            writeLog_("File does not contain spectra. No output for spectra generated!");
+            writeLogWarn_("Warning: File does not contain spectra. No output for spectra generated!");
           }
 
           Size output_count(0);
@@ -1513,14 +1513,14 @@ protected:
 
           if (output_count != 0)
           {
-            writeLog_("Exported " + String(output_count) + " spectra!");
+            writeLogInfo_("Exported " + String(output_count) + " spectra!");
           }
         }
 
         {
           if (exp.getChromatograms().empty())
           {
-            writeLog_("File does not contain chromatograms. No output for chromatograms generated!");
+            writeLogWarn_("Warning: File does not contain chromatograms. No output for chromatograms generated!");
           }
 
           Size output_count(0);
@@ -1546,12 +1546,12 @@ protected:
 
           if (output_count != 0)
           {
-            writeLog_("Exported " + String(output_count) + " SRM spectra!");
+            writeLogInfo_("Exported " + String(output_count) + " SRM spectra!");
           }
 
           if (unsupported_chromatogram_count != 0)
           {
-            writeLog_("Ignored " + String(unsupported_chromatogram_count) + " chromatograms not supported by TextExporter!");
+            writeLogInfo_("Ignored " + String(unsupported_chromatogram_count) + " chromatograms not supported by TextExporter!");
           }
         }
 

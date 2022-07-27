@@ -479,7 +479,7 @@ protected:
         Int verbose_level = getIntOption_("verbose");
         if (verbose_level != 2) arguments_consensus << "-v" << String(verbose_level).toQString();
       }
-      writeLog_("Prepared maracluster-consensus command.");
+      writeLogInfo_("Prepared maracluster-consensus command.");
 
       //-------------------------------------------------------------
       // run MaRaCluster for consensus output
@@ -501,7 +501,7 @@ protected:
       fh.storeExperiment(consensus_output_file, exp, log_type_);
     }
 
-    writeLog_("MaRaClusterAdapter finished successfully!");
+    writeLogInfo_("MaRaClusterAdapter finished successfully!");
     return EXECUTION_OK;
   }
 

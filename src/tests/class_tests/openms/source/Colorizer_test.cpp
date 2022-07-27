@@ -50,12 +50,12 @@ int test_int = 15;
 //string test_string = " !#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
 // ANSI codes
-string const redANSI = "\033[31m";
-string const greenANSI = "\033[32m";
-string const yellowANSI = "\033[33m";
-string const blueANSI = "\033[34m";
-string const magentaANSI = "\033[35m";
-string const cyanANSI = "\033[36m";
+string const redANSI = "\033[91m";
+string const greenANSI = "\033[92m";
+string const yellowANSI = "\033[93m";
+string const blueANSI = "\033[94m";
+string const magentaANSI = "\033[95m";
+string const cyanANSI = "\033[96m";
 string const resetColorANSI = "\033[39m";
 
 

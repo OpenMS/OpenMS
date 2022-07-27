@@ -36,7 +36,9 @@
 
 #include <OpenMS/CONCEPT/Colorizer.h>
 
+#include <algorithm>
 #include <sstream>
+
 using namespace std;
 
 namespace OpenMS
@@ -55,6 +57,13 @@ namespace OpenMS
     // apply Color to our internal stream (to enable detection of stdout/stderr by Colorizer)
     *stream_ << colorizer;
 
+    return *this;
+  }
+  IndentedStream& IndentedStream::operator<<(const IndentInfo& new_config)
+  {
+    indentation_ = new_config.indent;
+    // move cursor to at least the new indentation
+    current_column_pos_ = std::max((Size)indentation_, current_column_pos_);
     return *this;
   }
 } // namespace OpenMS

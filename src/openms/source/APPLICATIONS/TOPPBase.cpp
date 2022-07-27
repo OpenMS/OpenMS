@@ -579,7 +579,7 @@ namespace OpenMS
       }
     }
 
-    is << "Options (mandatory options marked with '" << green('*') << "'):\n ";
+    is << "Options (mandatory options marked with '" << green('*') << "'):\n";
 
     // determine max length of parameters (including argument) for indentation
     UInt max_size = 0;
@@ -614,7 +614,7 @@ namespace OpenMS
         {
           throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'" + current_TOPP_subsection + "' (TOPP subsection not registered)");
         }
-        cerr << "\n"; // print newline for new subsection
+        is << "\n"; // print newline for new subsection
 
         String subsection_description = subsec_it->second;
         if (subsection_description.length() == 0)
@@ -622,12 +622,12 @@ namespace OpenMS
           subsection_description = current_TOPP_subsection;
         }
 
-        cerr << ConsoleUtils::breakString(subsection_description, 0, 10) << ":\n"; // print subsection description
+        is << ConsoleUtils::breakString(subsection_description, 0, 10) << ":\n"; // print subsection description
       }
       else if (subsection.empty() && !current_TOPP_subsection.empty()) // subsection ended and normal parameters start again
       {
         current_TOPP_subsection = "";
-        cerr << "\n"; // print newline to separate ending subsection
+        is << "\n"; // print newline to separate ending subsection
       }
 
       //NAME + ARGUMENT
@@ -734,10 +734,15 @@ namespace OpenMS
       }
 
       if (it->type == ParameterInformation::TEXT)
-        cerr << ConsoleUtils::breakString(str_tmp + desc_tmp, 0, 10); // no indentation for text
+      {
+        is << str_tmp << desc_tmp; // no indentation for text
+      }
       else
-        cerr << ConsoleUtils::breakString(str_tmp + desc_tmp, offset, 10);
-      cerr << "\n";
+      {
+        is << IndentInfo(offset) << str_tmp << desc_tmp << IndentInfo(0);
+      }
+      
+      is << "\n";
     }
 
     // SUBSECTION's at the end
@@ -752,8 +757,9 @@ namespace OpenMS
       indent += 6;
 
       //output
-      cerr << "\n"
-           << "The following configuration subsections are valid:" << "\n";
+      is << "\n"
+         << "The following configuration subsections are valid:\n"
+         << IndentInfo(indent);
       for (map<String, String>::const_iterator it = subsections_.begin(); it != subsections_.end(); ++it)
       {
         String tmp = String(" - ") + it->first;
@@ -761,13 +767,14 @@ namespace OpenMS
         cerr << ConsoleUtils::breakString(tmp  + it->second, indent, 10);
         cerr << "\n";
       }
-      cerr << "\n"
-           << ConsoleUtils::breakString("You can write an example INI file using the '-write_ini' option.", 0, 10) << "\n"
-           << ConsoleUtils::breakString("Documentation of subsection parameters can be found in the doxygen documentation or the INIFileEditor.", 0, 10) << "\n"
-           << ConsoleUtils::breakString("For more information, please consult the online documentation for this tool:", 0, 10) << "\n"
-           << ConsoleUtils::breakString("  - " + docurl, 0, 10) << "\n";
+      is << IndentInfo(0);
+      is << "\n"
+         << "You can write an example INI file using the '-write_ini' option.\n"
+         << "Documentation of subsection parameters can be found in the doxygen documentation or the INIFileEditor.\n"
+         << "For more information, please consult the online documentation for this tool:\n"
+         << "  - " << docurl << "\n";
     }
-    cerr << endl;
+    is << endl;
   }
 
   ParameterInformation TOPPBase::paramEntryToParameterInformation_(const Param::ParamEntry& entry, const String& argument, const String& full_name) const

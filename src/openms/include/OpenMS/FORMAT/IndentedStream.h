@@ -40,6 +40,14 @@ namespace OpenMS
 {
   class Colorizer;
 
+  /// Helper struct to pass into IndentedStream to change its internal parameters (extend if needed)
+  struct IndentInfo
+  {
+    IndentInfo(int new_indentation) : indent(new_indentation)
+    {}
+    int indent;
+  };
+
   /**
     @brief Class for writing data which spans multiple lines with an indentation for each line (all except the first).
 
@@ -47,8 +55,10 @@ namespace OpenMS
     
     The stream that is written to can be any ostream (including stdout or stderr).
 
-    If a single item passed to IndentedStream::operator<< spans multiple lines (e.g. a large string), then this string can be
-    will be split into indented lines, but at most 'max_lines' will be retained (excess lines will be replaced by '...').
+    If a single item passed to IndentedStream::operator<< spans multiple indented lines (e.g. a large string),
+    at most @p max_lines will be retained (excess lines will be replaced by '...').
+
+    You can manually insert extra linebreaks by pushing '\n' into the stream (also as part of a larger string).
 
     The class supports coloring its output if the given @p stream is either std::cout or cerr by passing a Colorizer.
 
@@ -60,7 +70,7 @@ namespace OpenMS
       @brief C'tor
       
       @param stream Underlying stream to write to (its lifetime must exceed the one of this IndentedStream)
-      @param indentation Number of spaces in front of each line written to @p stream
+      @param indentation Number of spaces in front of each new line written to @p stream
       @param max_lines Shorten excessive single items to at most this many number of lines (replacing excess with '...')
     */
     IndentedStream(std::ostream& stream, const UInt indentation, const UInt max_lines)
@@ -74,6 +84,9 @@ namespace OpenMS
     /// support normal usage of Colorizer
     IndentedStream& operator<<(Colorizer& colorizer);
 
+    /// support changing parameters, e.g. indentation, on the fly
+    IndentedStream& operator<<(const IndentInfo& new_config);
+
     template<typename T>
     IndentedStream& operator<<(const T& data)
     {
@@ -82,20 +95,12 @@ namespace OpenMS
       str_data << data;
 
       auto result = ConsoleUtils::breakStringList(str_data.str(), indentation_, max_lines_, current_column_pos_);
-
-      if (result.size() >= 2)
-      { // we completed the previous line, so start counting from the latest incomplete line
-        current_column_pos_ = result.back().size();
+      if (result.empty())
+      {
+        return *this;
       }
-      else
-      { // only one line; simply forward the column position
-        current_column_pos_ += result.back().size();
-      }
-
-      if (result.back().back() == '\n')
-      { // last char is a linebreak... so we start at indentation
-        current_column_pos_ = indentation_;
-      }
+      
+      current_column_pos_ = result.back().size();
 
       // push result into stream
       *stream_ << result[0];
@@ -108,10 +113,22 @@ namespace OpenMS
       return *this;
     }
 
+    
+    /// function pointer to a function that takes an ostream, and returns it, e.g. std::endl
+    typedef std::ostream& (*StreamManipulator)(std::ostream&);
+
+    /// overload for function pointers, e.g. std::endl
+    IndentedStream& operator<<(StreamManipulator manip)
+    {
+      // call the function on the internal stream
+      manip(*stream_);
+      return *this;
+    }
+
   private:
     std::ostream* stream_;        ///< the underlying stream to print to
     UInt indentation_;            ///< number of spaces in prefix of each line
-    UInt max_lines_;              ///< ?
+    UInt max_lines_;              ///< maximum number of lines a single item is split into before excess lines are replaced by '...'
     UInt max_line_width_;         ///< width of console/output
     Size current_column_pos_ = 0; ///< length of last(=current) line
   };

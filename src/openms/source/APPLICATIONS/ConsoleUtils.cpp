@@ -147,6 +147,10 @@ namespace OpenMS
   StringList ConsoleUtils::breakString_(const OpenMS::String& input, const Size indentation, const Size max_lines, Size first_line_prefill) const
   {
     StringList result;
+    if (input.empty())
+    {
+      return result;
+    }
     Size short_line_len = console_width_ - indentation;
     if (short_line_len < 1)
     {
@@ -155,28 +159,28 @@ namespace OpenMS
       return result;
     }
     if (first_line_prefill > console_width_)
-    { // first line is already longer than console width. Assume it did an automatic linebreak.
+    { // first line is already longer than console width. Assume console did an automatic linebreak.
       first_line_prefill = first_line_prefill % console_width_;
     }
 
-    String line;
-    for (Size i = 0; i < input.size();)
+    String line; /// our current line as extracted from @p input
+    for (Size i = 0; i < input.size(); /* i+=? computed below */)
     {
       // first line has full length (minus the prefilled chars)
       const int remaining_line_chars = result.empty() ? console_width_ - first_line_prefill : short_line_len;
-      // do NOT indent the first line...
-      const int current_indentation = result.empty() ? 0 : console_width_ - remaining_line_chars;
+      // the first line does not need indentation
+      const int prefix_for_current_line = result.empty() ? 0 : indentation;
       
       line = input.substr(i, remaining_line_chars);
       
-      
+      // how many chars to advance in 'input'
       Size advance_size = line.size();
+
       // break by internal '\n' as well
-      
       if (auto pos = line.find('\n', 0); pos != String::npos)
       {
-        line = line.substr(0, pos + 1); // +1 for to include the '\n'
-        advance_size = line.size(); 
+        line = line.substr(0, pos); // do NOT include the '\n' (it is implicitly represented by adding a new string to 'result')
+        advance_size = line.size() + 1; // skip the '\n' in the input
       }
 
       // check if we are using the full length and split a word at the same time
@@ -192,10 +196,17 @@ namespace OpenMS
       }
 
       i += advance_size;
-      String s_intend = String(current_indentation, ' '); // first line no indentation
+      String s_intend = String(prefix_for_current_line, ' ');
       String r = s_intend + line;
       result.push_back(r); //(r.fillRight(' ', (UInt) line_len));
     }
+
+    if (input.back() == '\n')
+    { // last char input was a linebreak (which would put the cursor at column 0 in the next line)
+      // --> but we want indentation!
+      result.push_back(String(indentation, ' '));
+    }
+
     if (result.size() > max_lines) // remove lines from end if we get too many (but leave the last one)...
     {
       String last = result.back();
