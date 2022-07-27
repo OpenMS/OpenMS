@@ -199,19 +199,19 @@ endif()
 execute_process(
      COMMAND
      ${Python_EXECUTABLE} -c "import pytest"
-     RESULT_VARIABLE _NOSE_MISSING
+     RESULT_VARIABLE _PYTEST_MISSING
      ERROR_QUIET
      OUTPUT_QUIET
 )
 
-set(NOSE_MISSING TRUE)
-if( _NOSE_MISSING EQUAL 0)
-    set(NOSE_MISSING FALSE)
+set(PYTEST_MISSING TRUE)
+if( _PYTEST_MISSING EQUAL 0)
+    set(PYTEST_MISSING FALSE)
 endif()
-if(NOSE_MISSING)
-	message(FATAL_ERROR "Looking for nose testing framework - not found")
+if(PYTEST_MISSING)
+	message(FATAL_ERROR "Looking for pytest testing framework - not found")
 else()
-	message(STATUS "Looking for nose testing framework - found")
+	message(STATUS "Looking for pytest testing framework - found")
 endif()
 
 #------------------------------------------------------------------------------
@@ -290,7 +290,7 @@ endif()
 #------------------------------------------------------------------------------
 # Handle missing libraries (this should never be reached, as the individual
 #  parts should fire FATAL_ERRORs if something is missing)
-if(NUMPY_MISSING OR CYTHON_MODULE_NOTFOUND OR NOT CYTHON_MODULE_VERSION_CHECK_OK OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING
+if(NUMPY_MISSING OR CYTHON_MODULE_NOTFOUND OR NOT CYTHON_MODULE_VERSION_CHECK_OK OR NOT AUTOWRAP_VERSION_OK OR PYTEST_MISSING
    OR SETUPTOOLS_MISSING OR WHEEL_MISSING)
   message(FATAL_ERROR "Required Python modules not found or out of date")
 endif()
