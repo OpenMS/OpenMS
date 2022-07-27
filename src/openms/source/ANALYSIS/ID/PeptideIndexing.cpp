@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,6 +44,7 @@
 #include <atomic>
 #include <map>
 #include <array>
+
 
 #ifdef _OPENMP 
 #include <omp.h>
@@ -773,7 +774,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   // all peptides contain the correct protein hit references, now update the protein hits
   for (Size run_idx = 0; run_idx < prot_ids.size(); ++run_idx)
   {
-    std::set<Size> masterset = runidx_to_protidx[run_idx]; // all protein matches from above
+    const auto& masterset = runidx_to_protidx[run_idx]; // all protein matches from above
 
     std::vector<ProteinHit>& phits = prot_ids[run_idx].getHits();
     {

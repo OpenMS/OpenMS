@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -354,6 +354,7 @@ using namespace OpenMS;
 
     search_params.setMetaValue("modifications:variable_max_per_peptide", max_variable_mods_per_peptide_);
     protein_ids[0].setSearchParameters(search_params);
+    protein_ids[0].setScoreType("OpenPepXL_Protein_Score");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
     vector<OPXLDataStructs::AASeqWithMass> peptide_masses;

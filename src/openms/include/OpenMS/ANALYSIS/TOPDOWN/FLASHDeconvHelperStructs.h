@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 
 namespace OpenMS
 {
@@ -54,7 +55,7 @@ namespace OpenMS
 
   struct OPENMS_DLLAPI FLASHDeconvHelperStructs
   {
-    /// This struct contains the averagine patterns pre-calulated for speed up. Other variables are also calculated for fast cosine calculation
+    /// This struct contains the averagine patterns pre-calculated for speed up. Other variables are also calculated for fast cosine calculation
     struct OPENMS_DLLAPI PrecalculatedAveragine
     {
     private:
@@ -117,6 +118,9 @@ namespace OpenMS
       /// get index of most abundant isotope. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       Size getApexIndex(const double mass) const;
 
+      /// get index of last isotope. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
+      Size getLastIndex(const double mass) const;
+
       /// get mass difference between avg and mono masses. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       double getAverageMassDelta(const double mass) const;
 
@@ -168,6 +172,20 @@ namespace OpenMS
       bool operator==(const TopPicItem& other) const;
     };
 
+    ///
+    struct OPENMS_DLLAPI MassFeature
+    {
+    public:
+      MassTrace mt;
+      std::vector<float> per_charge_intensity;
+      std::vector<float> per_isotope_intensity;
+      int iso_offset;
+      int scan_number, rep_charge;
+      double avg_mass;
+      int min_charge, max_charge, charge_count;
+      double isotope_score, qscore;
+      double rep_mz;
+    };
 
     /// log transformed peak. After deconvolution, all necessary information from deconvolution such as charge and isotope index is stored.
     struct OPENMS_DLLAPI LogMzPeak
@@ -179,7 +197,7 @@ namespace OpenMS
       double intensity = 0;
       /// log transformed mz
       double logMz = -1000;
-      /// deteremined mass after deconvolution. NOT monoisotopic but only decharged
+      /// determined mass after deconvolution. NOT monoisotopic but only decharged
       double mass = .0;
       /// absolute charge (in case negative, is_positive is set to false
       int abs_charge = 0;

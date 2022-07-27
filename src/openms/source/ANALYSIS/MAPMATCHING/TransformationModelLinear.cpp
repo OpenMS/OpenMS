@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,8 +60,9 @@ namespace OpenMS
       symmetric_ = params_.getValue("symmetric_regression") == "true";
       // weight the data (if weighting is specified)
       TransformationModel::DataPoints data_weighted = data;
-      if ((params.exists("x_weight") && params.getValue("x_weight") != "x")
-       || (params.exists("y_weight") && params.getValue("y_weight") != "y"))
+      // TrafoXML's prior to OpenMS 3.0 have x/y_weight = "" if unweighted 
+      if ((params.exists("x_weight") && params.getValue("x_weight") != "x" && params.getValue("x_weight") != "") ||
+          (params.exists("y_weight") && params.getValue("y_weight") != "y" && params.getValue("y_weight") != ""))
       {
         weightData(data_weighted);
       }

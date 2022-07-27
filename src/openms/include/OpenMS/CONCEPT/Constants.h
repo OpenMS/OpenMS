@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -120,7 +120,7 @@ namespace OpenMS
     */
     inline const double C13C12_MASSDIFF_U = 1.0033548378; // u
 
-    /** Averagine with mass 55kDa mass difference.
+    /** Average mass difference between consecutive isotopes for proteins of mass 55kDa. Referred to the values used in TopPIC.
         In units (\f$1.002371\f$u)
     */
     inline const double ISOTOPE_MASSDIFF_55K_U = 1.002371; // u
@@ -442,6 +442,58 @@ namespace OpenMS
       */
       inline const std::string   OPENPEPXL_BETA_PEPEV_END = "BetaPepEv:end";
 
+      /** @name User parameters in/from Sirius annotated mzMLs
+        *  E.g., when running SiriusAdapter with annotation output
+       */
+      ///@{
+
+      /** FloatDataArray name for observed m/z values of Sirius annotated spectra
+        FloatDataArray
+      */
+      inline const std::string   SIRIUS_MZ = "mz";
+
+      /** FloatDataArray name for exact mass values of Sirius annotated spectra
+        FloatDataArray
+      */
+      inline const std::string   SIRIUS_EXACTMASS = "exact_mass";
+
+      /** StringDataArray name for most likely fragment explanations of the corresponding peak in the spectrum
+        StringDataArray
+      */
+      inline const std::string   SIRIUS_EXPLANATION = "explanation";
+
+      /** User parameter name for Sirius score
+        double
+      */
+      inline const std::string   SIRIUS_SCORE = "score";
+
+      /** User parameter name to tell what the contents of the m/z dimension of the annotated spectra contains (mz or exact mass)
+        String
+      */
+      inline const std::string   SIRIUS_PEAKMZ = "peak_mz";
+
+      /** User parameter name to tell which sum formula was considered for this annotated spectrum
+        String
+      */
+      inline const std::string   SIRIUS_ANNOTATED_SUMFORMULA = "annotated_sumformula";
+
+      /** User parameter name to tell which adduct was considered for this annotated spectrum
+        String
+      */
+      inline const std::string   SIRIUS_ANNOTATED_ADDUCT = "annotated_adduct";
+
+      /** User parameter name to tell if this annotated spectrum comes from a Sirius/Passatutto generated decoy or an actual target spectrum
+        boolean
+      */
+      inline const std::string   SIRIUS_DECOY = "decoy";
+
+      /** User parameter name to tell if this annotated spectrum comes from a feature (then it contains the feature ID) or a single MS2 spectrum (missing)
+        boolean
+      */
+      inline const std::string   SIRIUS_FEATURE_ID = "feat_id";
+
+      ///@}
+
       /** User parameter name for XL-MS FDR values
               String
       */
@@ -482,6 +534,17 @@ namespace OpenMS
               String
       */
       inline const std::string   DC_CHARGE_ADDUCTS = "dc_charge_adducts";
+
+      /** User parameter name for the number of mass traces in a feature. (Required for SiriusAdapter)
+              String
+      */
+      inline const std::string   NUM_OF_MASSTRACES = "num_of_masstraces";
+
+      /** User parameter name for the total number of data points (peaks) in a feature. (Required for MQEvidenceExporter)
+              String
+      */
+      inline const std::string   NUM_OF_DATAPOINTS = "num_of_datapoints";
+
     }
 
     //@}

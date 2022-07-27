@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,7 +72,8 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em MSFragger must be installed before this adapter can be used.
+  @em MSFragger must be installed before this adapter can be used. This adapter is fully compatible with version 3.2 of MSFragger
+  and later versions of MSFragger were tested up to version 3.5.
 
 	All MSFragger parameters (as specified in the fragger.params file) have been transcribed to parameters of this OpenMS util.
 	It is not possible to provide an explicit fragger.params file to avoid redundancy with the ini file.

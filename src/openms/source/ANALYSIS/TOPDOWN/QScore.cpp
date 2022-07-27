@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,7 +50,7 @@ namespace OpenMS
     //const double th = 2;
     //const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
     const std::vector<double> weights({ 1.492, -2.0041, -14.3891, -0.9853, 0.4568, 0.063, 14.4072});
-    //const std::vector<double> weights_h({-0.7461, -1.8176, -1.4793, -0.3707, -0.0881, 0.0623, 2.9463});
+    //const std::vector<double> weights({-0.7461, -1.8176, -1.4793, -0.3707, -0.0881, 0.0623, 2.9463});
 
     //ChargeCos         1.492
     //ChargeSNR       -2.0041
@@ -63,7 +63,7 @@ namespace OpenMS
     double score = weights[weights.size() - 1];
     auto fv = toFeatureVector_(pg, abs_charge);
 
-    for (int i = 0; i < weights.size() - 1; i++)
+    for (Size i = 0; i < weights.size() - 1; i++)
     {
       score += fv[i] * weights[i];
     }
@@ -163,7 +163,7 @@ namespace OpenMS
         << pg.getIntensity() << "," << fintensity << ","
         << charge << "," << std::get<0>(pg.getAbsChargeRange()) << "," << std::get<1>(pg.getAbsChargeRange()) << ","
         << (is_identified ? std::to_string(ptm_mass.size()) : "nan") << ",";
-      for (int k = 0; k < 3; k++)
+      for (Size k = 0; k < 3; k++)
       {
         if (k < ptm_mass.size())
         {

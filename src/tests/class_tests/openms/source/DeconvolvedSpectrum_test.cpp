@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -103,20 +103,26 @@ fd_param.setValue("min_charge", 5);
 fd_param.setValue("max_charge", 20);
 fd_algo.setParameters(fd_param);
 fd_algo.calculateAveragine(false);
-std::vector<DeconvolvedSpectrum> null_specs;
+std::vector<DeconvolvedSpectrum> survey_specs;
 const std::map<int, std::vector<std::vector<double>>> null_map;
 
-DeconvolvedSpectrum prec_deconv_spec_1 = fd_algo.getDeconvolvedSpectrum(input[1], null_specs, 2, null_map);
-DeconvolvedSpectrum prec_deconv_spec_2 = fd_algo.getDeconvolvedSpectrum(input[3], null_specs, 4, null_map);
-DeconvolvedSpectrum ms2_deconv_spec = DeconvolvedSpectrum(input[5], 6);
+    fd_algo.performSpectrumDeconvolution(input[1], survey_specs, 2, null_map);
+DeconvolvedSpectrum prec_deconv_spec_1 = fd_algo.getDeconvolvedSpectrum();
+
+    fd_algo.performSpectrumDeconvolution(input[3], survey_specs, 4, null_map);
+DeconvolvedSpectrum prec_deconv_spec_2 = fd_algo.getDeconvolvedSpectrum();
+
+survey_specs.push_back(prec_deconv_spec_2);
+    fd_algo.performSpectrumDeconvolution(input[5], survey_specs, 6, null_map);
+DeconvolvedSpectrum ms2_deconv_spec = fd_algo.getDeconvolvedSpectrum();
 
 START_SECTION((double getCurrentMaxMass(const double max_mass) const))
 {
   double ms1_max_mass = test_deconv_spec.getCurrentMaxMass(1000.);
-  double ms2_max_mass = ms2_deconv_spec.getCurrentMaxMass(1000.);
-  TEST_REAL_SIMILAR(ms1_max_mass, 1000.);
+  double ms2_max_mass = ms2_deconv_spec.getCurrentMaxMass(13673.239337872);
   TOLERANCE_ABSOLUTE(1);
-  TEST_REAL_SIMILAR(ms2_max_mass, 13673.239337872);
+  TEST_REAL_SIMILAR(ms1_max_mass, 1000.);
+  TEST_REAL_SIMILAR(ms2_max_mass, 13674.);
 }
 END_SECTION
 
@@ -132,7 +138,7 @@ END_SECTION
 START_SECTION((MSSpectrum toSpectrum(const int mass_charge)))
 {
   MSSpectrum peakgroup_spec = prec_deconv_spec_1.toSpectrum(9);
-  TEST_EQUAL(peakgroup_spec.size(), 1);
+  TEST_EQUAL(peakgroup_spec.size(), 4);
   TEST_REAL_SIMILAR(peakgroup_spec.getRT(), 251.72280736002);
 }
 END_SECTION
@@ -141,10 +147,10 @@ START_SECTION((PeakGroup getPrecursorPeakGroup() const))
 {
   PeakGroup tmp_precursor_pgs = ms2_deconv_spec.getPrecursorPeakGroup();
 
-  TEST_EQUAL(tmp_precursor_pgs.size(), 31);
-  TOLERANCE_ABSOLUTE(1);
-  TEST_REAL_SIMILAR(tmp_precursor_pgs.getMonoMass(), 13673.239337872);
-  TEST_REAL_SIMILAR(tmp_precursor_pgs.getIntensity(), 114155.274536133);
+  TEST_EQUAL(tmp_precursor_pgs.size(), 66);
+  TOLERANCE_ABSOLUTE(5);
+  TEST_REAL_SIMILAR(tmp_precursor_pgs.getMonoMass(), 13674.2798657377);
+  TEST_REAL_SIMILAR(tmp_precursor_pgs.getIntensity(), 233253.471801758);
   TEST_EQUAL(tmp_precursor_pgs.getScanNumber(), 4);
 }
 END_SECTION
@@ -153,8 +159,8 @@ START_SECTION((const Precursor getPrecursor() const))
 {
   Precursor tmp_precursor = ms2_deconv_spec.getPrecursor();
   TEST_EQUAL(tmp_precursor.getCharge(), 9);
+  TOLERANCE_ABSOLUTE(1);
   TEST_REAL_SIMILAR(tmp_precursor.getUnchargedMass(), 13682.3053614085);
-  TOLERANCE_ABSOLUTE(1000);
   TEST_REAL_SIMILAR(tmp_precursor.getIntensity(), 12031);
 }
 END_SECTION
@@ -168,7 +174,6 @@ END_SECTION
 
 START_SECTION((int getPrecursorScanNumber() const))
 {
-  // TODO
   int p_scan_num = ms2_deconv_spec.getPrecursorScanNumber();
   TEST_EQUAL(p_scan_num, 4);
 }
@@ -176,7 +181,6 @@ END_SECTION
 
 START_SECTION((int getCurrentMaxAbsCharge(const int max_abs_charge) const))
 {
-  // TODO
   int tmp_cs_ms1 = test_deconv_spec.getCurrentMaxAbsCharge(5);
   int tmp_cs_ms2 = ms2_deconv_spec.getCurrentMaxAbsCharge(5);
 
@@ -185,13 +189,19 @@ START_SECTION((int getCurrentMaxAbsCharge(const int max_abs_charge) const))
 }
 END_SECTION
 
+START_SECTION(String& getActivationMethod() const)
+{
+  String act_method = ms2_deconv_spec.getActivationMethod();
+  TEST_STRING_EQUAL("HCD", act_method);
+}
+END_SECTION
 ////////
 
-
-/// < public methods without tests >
-/// - writeDeconvolvedMassesHeader : writing headers are not worth testing
+/// < public methods without tests > : TODOs
 /// - default constructors and operators are not used (copy, move, assignment)
-/// - writeTopFD, writeDeconvolvedMasses : method for writing files only
+/// - setters (setPrecursor, etc.)
+/// - updatePeakGroupQvalues
+/// - nested stuff
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,8 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -82,126 +84,122 @@ FLASHDeconvHelperStructs::LogMzPeak tmp_p1(*p1, true);
 tmp_p1.abs_charge = 18;
 tmp_p1.isotopeIndex = 8;
 
-    p1 = new Peak1D(1000.9013094439375, 10087364);
-    FLASHDeconvHelperStructs::LogMzPeak tmp_p2(*p1, true);
-    tmp_p2.abs_charge = 18;
-    tmp_p2.isotopeIndex = 9;
+p1 = new Peak1D(1000.9013094439375, 10087364);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p2(*p1, true);
+tmp_p2.abs_charge = 18;
+tmp_p2.isotopeIndex = 9;
 
-    p1 = new Peak1D(1000.9570513793709, 11094268);
-    FLASHDeconvHelperStructs::LogMzPeak tmp_p3(*p1, true);
-    tmp_p3.abs_charge = 18;
-    tmp_p3.isotopeIndex = 10;
+p1 = new Peak1D(1000.9570513793709, 11094268);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p3(*p1, true);
+tmp_p3.abs_charge = 18;
+tmp_p3.isotopeIndex = 10;
 
-    p1 = new Peak1D(1001.0127933148044, 11212854);
-    FLASHDeconvHelperStructs::LogMzPeak tmp_p4(*p1, true);
-    tmp_p4.abs_charge = 18;
-    tmp_p4.isotopeIndex = 11;
+p1 = new Peak1D(1001.0127933148044, 11212854);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p4(*p1, true);
+tmp_p4.abs_charge = 18;
+tmp_p4.isotopeIndex = 11;
 
-    p1 = new Peak1D(1001.0685352502376, 10497022);
-    FLASHDeconvHelperStructs::LogMzPeak tmp_p5(*p1, true);
-    tmp_p5.abs_charge = 18;
-    tmp_p5.isotopeIndex = 12;
+p1 = new Peak1D(1001.0685352502376, 10497022);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p5(*p1, true);
+tmp_p5.abs_charge = 18;
+tmp_p5.isotopeIndex = 12;
 
-    p1 = new Peak1D(1001.124277185671, 9162559);
-    FLASHDeconvHelperStructs::LogMzPeak tmp_p6(*p1, true);
-    tmp_p6.abs_charge = 18;
-    tmp_p6.isotopeIndex = 13;
+p1 = new Peak1D(1001.124277185671, 9162559);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p6(*p1, true);
+tmp_p6.abs_charge = 18;
+tmp_p6.isotopeIndex = 13;
 
-    p1 = new Peak1D(1059.6595846286061, 8347717.5);
-    FLASHDeconvHelperStructs::LogMzPeak tmp_p7(*p1, true);
-    tmp_p7.abs_charge = 17;
-    tmp_p7.isotopeIndex = 8;
+p1 = new Peak1D(1059.6595846286061, 8347717.5);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p7(*p1, true);
+tmp_p7.abs_charge = 17;
+tmp_p7.isotopeIndex = 8;
 
-    p1 = new Peak1D(1059.7186055014179, 10087364);
-    FLASHDeconvHelperStructs::LogMzPeak tmp_p8(*p1, true);
-    tmp_p8.abs_charge = 17;
-    tmp_p8.isotopeIndex = 9;
+p1 = new Peak1D(1059.7186055014179, 10087364);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p8(*p1, true);
+tmp_p8.abs_charge = 17;
+tmp_p8.isotopeIndex = 9;
 
-    p1 = new Peak1D(1059.7776263742296, 11094268);
-    FLASHDeconvHelperStructs::LogMzPeak tmp_p9(*p1, true);
-    tmp_p9.abs_charge = 17;
-    tmp_p9.isotopeIndex = 10;
+p1 = new Peak1D(1059.7776263742296, 11094268);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p9(*p1, true);
+tmp_p9.abs_charge = 17;
+tmp_p9.isotopeIndex = 10;
 
-    p1 = new Peak1D(1059.8366472470416, 11212854);
-    FLASHDeconvHelperStructs::LogMzPeak tmp_p10(*p1, true);
-    tmp_p10.abs_charge = 17;
-    tmp_p10.isotopeIndex = 11;
+p1 = new Peak1D(1059.8366472470416, 11212854);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p10(*p1, true);
+tmp_p10.abs_charge = 17;
+tmp_p10.isotopeIndex = 11;
 
-    p1 = new Peak1D(1059.8956681198531, 10497022);
-    FLASHDeconvHelperStructs::LogMzPeak tmp_p11(*p1, true);
-    tmp_p11.abs_charge = 17;
-    tmp_p11.isotopeIndex = 12;
+p1 = new Peak1D(1059.8956681198531, 10497022);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p11(*p1, true);
+tmp_p11.abs_charge = 17;
+tmp_p11.isotopeIndex = 12;
 
-    p1 = new Peak1D(1059.9546889926651, 9162559);
-    FLASHDeconvHelperStructs::LogMzPeak tmp_p12(*p1, true);
-    tmp_p12.abs_charge = 17;
-    tmp_p12.isotopeIndex = 13;
+p1 = new Peak1D(1059.9546889926651, 9162559);
+FLASHDeconvHelperStructs::LogMzPeak tmp_p12(*p1, true);
+tmp_p12.abs_charge = 17;
+tmp_p12.isotopeIndex = 13;
 
 tmp_pg.push_back(tmp_p1);
-    tmp_pg.push_back(tmp_p2);
-    tmp_pg.push_back(tmp_p3);
-    tmp_pg.push_back(tmp_p4);
-    tmp_pg.push_back(tmp_p5);
-    tmp_pg.push_back(tmp_p6);
-    tmp_pg.push_back(tmp_p7);
-    tmp_pg.push_back(tmp_p8);
-    tmp_pg.push_back(tmp_p9);
-    tmp_pg.push_back(tmp_p10);
-    tmp_pg.push_back(tmp_p11);
-    tmp_pg.push_back(tmp_p12);
-    tmp_pg.updateMassesAndIntensity();
+tmp_pg.push_back(tmp_p2);
+tmp_pg.push_back(tmp_p3);
+tmp_pg.push_back(tmp_p4);
+tmp_pg.push_back(tmp_p5);
+tmp_pg.push_back(tmp_p6);
+tmp_pg.push_back(tmp_p7);
+tmp_pg.push_back(tmp_p8);
+tmp_pg.push_back(tmp_p9);
+tmp_pg.push_back(tmp_p10);
+tmp_pg.push_back(tmp_p11);
+tmp_pg.push_back(tmp_p12);
+tmp_pg.updateMonomassAndIsotopeIntensities();
 deconv_spec1.push_back(tmp_pg);
 
 sample_spec.setRT(55.0);
-    DeconvolvedSpectrum deconv_spec2(sample_spec, 2);
-    deconv_spec2.push_back(tmp_pg);
+DeconvolvedSpectrum deconv_spec2(sample_spec, 2);
+deconv_spec2.push_back(tmp_pg);
 
-    sample_spec.setRT(61.0);
-    DeconvolvedSpectrum deconv_spec3(sample_spec, 3);
-    deconv_spec3.push_back(tmp_pg);
+sample_spec.setRT(61.0);
+DeconvolvedSpectrum deconv_spec3(sample_spec, 3);
+deconv_spec3.push_back(tmp_pg);
 //////////////////////////////
 
+mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec1);
+mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec2);
+mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec3);
 
 /// < public methods without tests >
-/// - storeInformationFromDeconvolvedSpectrum : only private variables are affected
-/// - writing headers are not worth testing (writeHeader, writePromexHeader, writeTopFDFeatureHeader)
+/// - storeInformationFromDeconvolvedSpectrum : only private variables are affected (cannot test)
 /// - copy, assignment, move constructor -> not used.
-
-START_SECTION((void findFeatures(const String &file_name, const bool promex_out, const bool topfd_feature_out, const std::unordered_map< int, PeakGroup > &precursor_peak_groups, int &feature_cntr, int &feature_index, std::fstream &fsf, std::fstream &fsp, std::vector< std::fstream > &fst, const PrecalculatedAveragine &averagine)))
+/// - size
+START_SECTION((std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(const PrecalculatedAveragine &averagine)))
 {
-  // TODO
   // prepare findFeature arguments
   std::unordered_map<int, PeakGroup> null_map;
-  int feature_count = 0;
-  int feature_index = 1;
-  std::fstream fsf; // feature output stream
-  std::fstream fsp; // promex output stream (null)
-  std::vector<std::fstream> topfd_streams; // TopFD output streams (null)
-  String tmp_out_file;
-  NEW_TMP_FILE(tmp_out_file);
-  fsf.open(tmp_out_file, fstream::out);
-  CoarseIsotopePatternGenerator *generator = new CoarseIsotopePatternGenerator();
-  FLASHDeconvHelperStructs::PrecalculatedAveragine averagine(17000, 19000, 1000, generator, false);
   FLASHDeconvAlgorithm fd = FLASHDeconvAlgorithm();
-//  averagine = ;
+  Param fd_param;
+  fd_param.setValue("min_charge", 5);
+  fd_param.setValue("max_charge", 20);
+  fd_param.setValue("max_mass", 50000.);
+  fd.setParameters(fd_param);
+  fd.calculateAveragine(false);
+  FLASHDeconvHelperStructs::PrecalculatedAveragine averagine = fd.getAveragine();
 
+  std::vector<FLASHDeconvHelperStructs::MassFeature> found_feature = mass_tracer.findFeatures(averagine);
+  OPENMS_LOG_INFO << found_feature.size() << std::endl;
+}
+END_SECTION
+
+
+START_SECTION(Size size())
+{
   MassFeatureTrace mass_tracer;
   mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec1);
   mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec2);
   mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec3);
 
-  mass_tracer.writeHeader(fsf);
-  mass_tracer.findFeatures("tmp_file", false, false, null_map, averagine, feature_count, feature_index,
-                           fsf, fsp, topfd_streams);
-  fsf.close();
-
-  // get test sample output
-  const String sample_output = OPENMS_GET_TEST_DATA_PATH("MassFeatureTrace_sample_output.tsv");
-
-  TEST_FILE_SIMILAR(sample_output, tmp_out_file)
+  TEST_EQUAL(mass_tracer.size(), 3);
 }
 END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

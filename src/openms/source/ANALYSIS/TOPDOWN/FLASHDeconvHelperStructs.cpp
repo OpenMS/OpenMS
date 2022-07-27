@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -86,7 +86,8 @@ namespace OpenMS
       int left_count = 0;
       int right_count = iso.size() - 1;
       int trim_count = 0;
-      while (iso.size() - trim_count > min_iso_length)
+
+      while (iso.size() - trim_count > min_iso_length && left_count<right_count)
       {
         double lint = iso[left_count].getIntensity();
         double rint = iso[right_count].getIntensity();
@@ -122,10 +123,10 @@ namespace OpenMS
       right_count = right_count - most_abundant_index_;
       iso.trimRight(1e-10);
 
-      for (Size k = 0; k < iso.size(); k++)
+      for (auto & k : iso)
       {
-        double ori_int = iso[k].getIntensity();
-        iso[k].setIntensity(ori_int / sqrt(total_pwr));
+        double ori_int = k.getIntensity();
+        k.setIntensity(ori_int / sqrt(total_pwr));
       }
       left_count = left_count < min_left_right_count ? min_left_right_count : left_count;
       right_count = right_count < min_left_right_count ? min_left_right_count : right_count;
@@ -180,6 +181,13 @@ namespace OpenMS
   {
     return apex_index_[massToIndex_(mass)];
   }
+
+  Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getLastIndex(const double mass) const
+  {
+    Size index = massToIndex_(mass);
+    return apex_index_[index] + right_count_from_apex_[index];
+  }
+
 
   void FLASHDeconvHelperStructs::PrecalculatedAveragine::setMaxIsotopeIndex(const int index)
   {

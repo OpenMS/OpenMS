@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,7 +73,7 @@ START_SECTION((static double getLogMz(const double mz, const bool positive)))
   double tmp_lmz2 = OpenMS::FLASHDeconvHelperStructs::getLogMz(mz, false);
   TOLERANCE_ABSOLUTE(0.1);
   TEST_REAL_SIMILAR(tmp_lmz1, 7.169344415063863);
-  TEST_REAL_SIMILAR(tmp_lmz2, 7.1708940714767);
+  TEST_REAL_SIMILAR(tmp_lmz2, 7.170119121465);
 }
 END_SECTION
 
@@ -105,8 +105,8 @@ START_SECTION(([FLASHDeconvHelperStructs::LogMzPeak] LogMzPeak(const Peak1D &pea
 {
   LogMzPeak tmp_peak(tmp_p1, true);
   TEST_REAL_SIMILAR(tmp_peak.mz, 1125.5118055019082);
-  TEST_REAL_SIMILAR(tmp_peak.logMz, 7.0250977989903145);
   TEST_REAL_SIMILAR(tmp_peak.intensity, 443505.625);
+  TEST_REAL_SIMILAR(tmp_peak.logMz, 7.0250977989903145);
 }
 END_SECTION
 
@@ -123,7 +123,6 @@ END_SECTION
 START_SECTION(([FLASHDeconvHelperStructs::LogMzPeak] double getUnchargedMass()))
 {
   test_peak.abs_charge = 2;
-  TOLERANCE_ABSOLUTE(1);
   TEST_REAL_SIMILAR(test_peak.getUnchargedMass(), 2249.0090580702745);
 }
 END_SECTION
@@ -173,17 +172,17 @@ START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] PrecalculatedA
   Size temp_a_idx = p_avg_test.getApexIndex(75);
   double temp_m_diff = p_avg_test.getAverageMassDelta(75);
   TEST_EQUAL(temp_a_idx, 0);
-  TOLERANCE_ABSOLUTE(0.1);
-  TEST_REAL_SIMILAR(temp_m_diff, 0.0363187972231458);
+  TOLERANCE_ABSOLUTE(0.3);
+  TEST_REAL_SIMILAR(temp_m_diff, 0.04);
 }
 END_SECTION
 
 START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] IsotopeDistribution get(const double mass) const))
 {
   IsotopeDistribution tmp_iso = p_avg_test.get(60);
-  TOLERANCE_ABSOLUTE(1);
-  TEST_REAL_SIMILAR(tmp_iso.getMin(), 53.997988999999997);
-  TEST_REAL_SIMILAR(tmp_iso.getMax(), 55.0013438378);
+  TOLERANCE_ABSOLUTE(2);
+  TEST_REAL_SIMILAR(tmp_iso.getMin(), 53.);
+  TEST_REAL_SIMILAR(tmp_iso.getMax(), 55.);
 }
 END_SECTION
 
@@ -210,14 +209,14 @@ END_SECTION
 
 START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] Size getRightCountFromApex(const double mass) const))
 {
-  Size temp_right = p_avg_test.getRightCountFromApex(50);
+  Size temp_right = p_avg_test.getRightCountFromApex(75);
   TEST_EQUAL(temp_right, 2);
 }
 END_SECTION
 
 START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] Size getApexIndex(const double mass) const))
 {
-  Size tmp_apex = p_avg_test.getApexIndex(50);
+  Size tmp_apex = p_avg_test.getApexIndex(75);
   TEST_EQUAL(tmp_apex, 0);
 }
 END_SECTION
@@ -226,18 +225,25 @@ START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] double getAver
 {
   double tmp_m_delta = p_avg_test.getAverageMassDelta(50);
   TOLERANCE_ABSOLUTE(0.1);
-  TEST_REAL_SIMILAR(tmp_m_delta, 0.0251458164883118);
+  TEST_REAL_SIMILAR(tmp_m_delta, 0.025);
 }
 END_SECTION
 
 START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] double getMostAbundantMassDelta(const double mass) const))
-    {
-      double tmp_m_delta = p_avg_test.getMostAbundantMassDelta(50);
-      TEST_REAL_SIMILAR(tmp_m_delta, 0);
-    }
+{
+  double tmp_m_delta = p_avg_test.getMostAbundantMassDelta(1000);
+  TOLERANCE_ABSOLUTE(0.1);
+  TEST_REAL_SIMILAR(tmp_m_delta, 0);
+}
+END_SECTION
+
+START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] Size getLastIndex(const double mass) const))
+{
+  double last_index = p_avg_test.getLastIndex(50);
+  TEST_EQUAL(last_index, 2);
+}
 END_SECTION
 ///
-
 
 
 /// testing TopPicItem part is skipped

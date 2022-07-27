@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -146,7 +146,7 @@ public:
               @brief returns if the @p point lies in the feature hull
 
               This function is only supported if the hull is created using addPoint() or addPoints(),
-              but not then suing setHullPoints().
+              but not when using setHullPoints().
               If you require the latter functionality, then augment this function.
 
               @throws Exception::NotImplemented if only hull points (outer_points_), but no internal structure (map_points_) is given
