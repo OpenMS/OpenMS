@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,7 +67,7 @@ namespace OpenMS
   */
     DeconvolvedSpectrum(const MSSpectrum& spectrum, const int scan_number);
 
-    /// default deconstructor
+    /// default destructor
     ~DeconvolvedSpectrum() = default;
 
     /// copy constructor
@@ -80,9 +80,10 @@ namespace OpenMS
     DeconvolvedSpectrum& operator=(const DeconvolvedSpectrum& deconvolved_spectrum) = default;
 
 
-    /// Convert DeconvolutedSpectrum to MSSpectrum (e.g., used to store in mzML format).
+    /// Convert DeconvolvedSpectrum to MSSpectrum (e.g., used to store in mzML format).
     /// @param to_charge the charge of each peak in mzml output.
-    MSSpectrum toSpectrum(const int to_charge);
+    /// @param retain_undeconvolved if set, undeconvolved peaks in the original peaks are output (assuming their abs charge == 1 and m/zs are adjusted with the to_charge parameter)
+    MSSpectrum toSpectrum(const int to_charge, bool retain_undeconvolved = false);
 
     /// original spectrum getter
     const MSSpectrum& getOriginalSpectrum() const;
@@ -95,6 +96,9 @@ namespace OpenMS
 
     /// get precursor peak
     const Precursor& getPrecursor() const;
+
+    /// set qvalue of precursor peak
+    void setPrecursorPeakGroupQvalue(const double qvalue, const double qvalue_with_charge_decoy_only);
 
     /// get possible max mass of the deconvolved masses - for MS1, max mass specified by user
     /// for MSn, min value between max mass specified by the user and precursor mass
@@ -134,6 +138,9 @@ namespace OpenMS
 
     /// set precusor peakGroup
     void setPrecursorPeakGroup(const PeakGroup& pg);
+
+    void static updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra);
+
 
     std::vector<PeakGroup>::const_iterator begin() const noexcept;
     std::vector<PeakGroup>::const_iterator end() const noexcept;

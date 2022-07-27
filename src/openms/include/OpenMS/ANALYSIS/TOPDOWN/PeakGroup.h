@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,33 +85,30 @@ namespace OpenMS
     /**
            @brief add monoisotopic indices of peaks by offset and discard negative isotope peaks. Total intensity is also updated
            @param offset isotope index offset
-           @param max_isotope_index max isotopic index
       */
-    void updateMassesAndIntensity(const int offset = 0,
-                                  const int max_isotope_index = 0);
+    void updateMonomassAndIsotopeIntensities();
 
-    /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance)
-    bool isSignalMZ(const double mz, const double tol) const;
+    double updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos);
+
+    //MSSpectrum getSubspectrumForMass(const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass);
+
+    /// recruit peaks and then return as a spectrum.
+    void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, double mass_offset = 0);
 
     /// using signal and total (signal + noise) power, update SNR value
     void updateSNR();
 
+    /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance)
+    bool isSignalMZ(const double mz, const double tol) const;
+
     /// set scan number
     void setScanNumber(const int scan_number);
-
-    /// set per abs_charge total peak power
-    void setChargePower(const int abs_charge, const double pwr);
-
-    /// set per abs_charge signal power
-    void setChargeSignalPower(const int abs_charge, const double pwr);
 
     /// set per abs_charge isotope cosine
     void setChargeIsotopeCosine(const int abs_charge, const float cos);
 
-    /// set per abs_charge intensity
-    void setChargeIntensity(const int abs_charge, const float intensity);
 
-    /// set mz range that results in max Qscore
+    /// set mz range that results in max QScore
     void setMaxQScoreMzRange(const double min, const double max);
 
     /// set min_abs_charge and max_abs_charge charge range
@@ -134,7 +131,6 @@ namespace OpenMS
 
     /// set SNR manually - for FLASHIda log file parsing
     void setSNR(const float snr);
-
     /// set charge SNR manually - for FLASHIda log file parsing
     void setChargeSNR(const int abs_charge, const float c_snr);
 
@@ -153,9 +149,6 @@ namespace OpenMS
     /// get per abs_charge SNR
     float getChargeSNR(const int abs_charge) const;
 
-    /// get per abs_charge power
-    float getChargePower(const int abs_charge) const;
-
     /// get per abs_charge isotope cosine
     float getChargeIsotopeCosine(const int abs_charge) const;
 
@@ -170,6 +163,8 @@ namespace OpenMS
 
     /// get charge range - the actual charge values
     std::tuple<int, int> getAbsChargeRange() const;
+
+    std::vector<float> getIsotopeIntensities() const;
 
     /// get isotopic cosine score
     float getIsotopeCosine() const;
@@ -195,11 +190,33 @@ namespace OpenMS
     /// get if it is targeted
     bool isTargeted() const;
 
+    //float getDecoyQScore() const;
+
+    //void setDecoyQScore(const float d);
+
+    //float getDecoyIsoScore() const;
+
+    //void setDecoyIsoScore(const float d);
+
+    int getDecoyIndex() const;
+
+    void setDecoyIndex(int index);
+
+    float getQvalue() const;
+
+    void setQvalue(const float q);
+
+    float getQvalueWithChargeDecoyOnly() const;
+
+    void setQvalueWithChargeDecoyOnly(const float q);
+
+
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator begin() const noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator end() const noexcept;
 
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator begin() noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator end() noexcept;
+
 
     const FLASHDeconvHelperStructs::LogMzPeak& operator[](const Size i) const;
 
@@ -211,16 +228,27 @@ namespace OpenMS
     void swap (std::vector<FLASHDeconvHelperStructs::LogMzPeak>& x);
     void shrink_to_fit();
     void sort();
+    std::vector<FLASHDeconvHelperStructs::LogMzPeak> noisy_peaks;
 
   private:
+
+    /// set per abs_charge signal power
+    void setChargePowers_(const int abs_charge, const double signal_pwr, const double noise_pwr, const double intensity);
+    void updateChargeFitScoreAndChargeIntensities_();
+
+
     /// log Mz peaks
     std::vector<FLASHDeconvHelperStructs::LogMzPeak> logMzpeaks_;
+
+
     /// per charge SNR, isotope cosine, and intensity vectors
     std::vector<float> per_charge_signal_pwr_;
     std::vector<float> per_charge_pwr_;
     std::vector<float> per_charge_cos_;
     std::vector<float> per_charge_int_;
     std::vector<float> per_charge_snr_;
+    /// per isotope intensity.
+    std::vector<float> per_isotope_int_;
     /// mz range resulting in maximum Q score
     double max_qscore_mz_end_, max_qscore_mz_start_;
     /// charge range
@@ -234,14 +262,19 @@ namespace OpenMS
     /// information on the deconvolved mass
     double monoisotopic_mass_ = -1.0;
     double intensity_;// total intensity
-
+    /// index to specify if this peak_group is a target (0), a charge decoy (1), or an isotope decoy (2)
+    int decoy_index_ = 0;
+    //float decoy_qscore_ = 0;
+    //float decoy_iso_score_ = 0;
 
     /// scoring variables
-    int max_qscore_abs_charge_;
-    float isotope_cosine_score_;
+    int max_qscore_abs_charge_ = -1;
+    float isotope_cosine_score_ = 0;
     float charge_score_;
-    float qscore_;
-    float avg_ppm_error_;
-    float snr_;
+    float qscore_ = .0f;
+    float avg_ppm_error_ = 0;
+    float snr_ = 0;
+    float qvalue_ = 1.0;
+    float qvalue_with_charge_decoy_only_ = 1.0;
   };
 }

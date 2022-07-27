@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,20 +36,21 @@
 
 namespace OpenMS
 {
-  DeconvolvedSpectrum::DeconvolvedSpectrum(const MSSpectrum& spectrum, const int scan_number) :
-      scan_number_(scan_number)
+  DeconvolvedSpectrum::DeconvolvedSpectrum(const MSSpectrum& spectrum, const int scan_number) : scan_number_(scan_number)
   {
     spec_ = spectrum;
   }
 
-  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge)
+  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, bool retain_undeconvolved)
   {
     auto out_spec = MSSpectrum(spec_);
     out_spec.clear(false);
-    if(spec_.getMSLevel() > 1 && precursor_peak_group_.empty())
+    if (spec_.getMSLevel() > 1 && precursor_peak_group_.empty())
     {
       return out_spec;
     }
+    double charge_mass_offset = abs(to_charge) * FLASHDeconvHelperStructs::getChargeMass(to_charge >= 0);
+    std::unordered_set<double> deconvolved_mzs;
 
     for (auto& pg : *this)
     {
@@ -57,17 +58,35 @@ namespace OpenMS
       {
         continue;
       }
-      out_spec.emplace_back(pg.getMonoMass(), pg.getIntensity());
+      out_spec.emplace_back(pg.getMonoMass() + charge_mass_offset, pg.getIntensity());
+      if (retain_undeconvolved)
+      {
+        for (auto& p : pg)
+        {
+          deconvolved_mzs.insert(p.mz);
+        }
+      }
     }
-    if (!precursor_peak_group_.empty() && !spec_.getPrecursors().empty())
+    if (retain_undeconvolved)
+    {
+      for (auto& p : spec_)
+      {
+        if (deconvolved_mzs.find(p.getMZ()) != deconvolved_mzs.end()) // if p is deconvolved
+        {
+          continue;
+        }
+        out_spec.emplace_back(p.getMZ() + charge_mass_offset - FLASHDeconvHelperStructs::getChargeMass(to_charge >= 0), p.getIntensity());
+      }
+    }
+    out_spec.sortByPosition();
+    if (!precursor_peak_group_.empty() && !precursor_peak_.empty())
     {
       Precursor precursor(spec_.getPrecursors()[0]);
-      //precursor.setCharge((precursor_peak_group_.isPositive() ?
-      //                     precursor_peak_group_.getRepAbsCharge() :
-      //                     -precursor_peak_group_.getRepAbsCharge()));//getChargeMass
+      // precursor.setCharge((precursor_peak_group_.isPositive() ?
+      //                      precursor_peak_group_.getRepAbsCharge() :
+      //                      -precursor_peak_group_.getRepAbsCharge()));//getChargeMass
       precursor.setCharge(to_charge);
-      precursor.setMZ(precursor_peak_group_.getMonoMass() +
-                      to_charge * FLASHDeconvHelperStructs::getChargeMass(to_charge >= 0));
+      precursor.setMZ(precursor_peak_group_.getMonoMass() + charge_mass_offset);
       precursor.setIntensity(precursor_peak_group_.getIntensity());
       out_spec.getPrecursors().clear();
       out_spec.getPrecursors().emplace_back(precursor);
@@ -212,7 +231,7 @@ namespace OpenMS
   {
     return peak_groups.empty();
   }
-  void DeconvolvedSpectrum::swap (std::vector<PeakGroup>& x)
+  void DeconvolvedSpectrum::swap(std::vector<PeakGroup>& x)
   {
     peak_groups.swap(x);
   }
@@ -224,8 +243,116 @@ namespace OpenMS
 
   void DeconvolvedSpectrum::sortByQScore()
   {
-    std::sort(peak_groups.begin(), peak_groups.end(), [](const PeakGroup & p1, const PeakGroup & p2){return p1.getQScore() > p2.getQScore();});
+    std::sort(peak_groups.begin(), peak_groups.end(), [](const PeakGroup& p1, const PeakGroup& p2) { return p1.getQScore() > p2.getQScore(); });
   }
 
+  void DeconvolvedSpectrum::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra) // per ms level + precursor update as well.
+  {
+    std::map<int, std::vector<float>> tscore_map; // per ms level
+    std::map<int, std::vector<float>> dscore_map;
+    std::map<int, std::map<float, float>> qscore_map; // maps for total qvalues
 
-}
+    std::map<int, std::vector<float>> dscore_with_charge_decoy_only_map;
+    std::map<int, std::map<float, float>> qscore_with_charge_decoy_only_map; // maps for charge decoy only qvalues
+
+
+    for (auto& deconvolved_spectrum : deconvolved_spectra)
+    {
+      int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+      if(tscore_map.find(ms_level) == tscore_map.end())
+      {
+        tscore_map[ms_level] = std::vector<float>();
+        dscore_map[ms_level] = std::vector<float>();
+        qscore_map[ms_level] = std::map<float, float>();
+        dscore_with_charge_decoy_only_map[ms_level] = std::vector<float>();
+        qscore_with_charge_decoy_only_map[ms_level] = std::map<float, float>();
+      }
+      for (auto& pg : deconvolved_spectrum)
+      {
+        tscore_map[ms_level].push_back(pg.getQScore());
+      }
+    }
+    for (auto& decoy_deconvolved_spectrum : deconvolved_decoy_spectra)
+    {
+      int ms_level = decoy_deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+      for (auto& pg : decoy_deconvolved_spectrum)
+      {
+        dscore_map[ms_level].push_back(pg.getQScore());
+        if(pg.getDecoyIndex() == 2)
+        {
+          continue;
+        }
+        dscore_with_charge_decoy_only_map[ms_level].push_back(pg.getQScore());
+      }
+    }
+
+    for(auto& titem: tscore_map)
+    {
+      int ms_level = titem.first;
+      auto& tscore = titem.second;
+      auto& dscore = dscore_map[ms_level];
+      auto& dscore_with_charge_decoy_only = dscore_with_charge_decoy_only_map[ms_level];
+
+      std::sort(tscore.begin(), tscore.end());
+      std::sort(dscore.begin(), dscore.end());
+      std::sort(dscore_with_charge_decoy_only.begin(), dscore_with_charge_decoy_only.end());
+
+      auto& map = qscore_map[ms_level];
+      float tmp_q = 1;
+      for (int i = 0; i < tscore.size(); i++)
+      {
+        float ts = tscore[i];
+        int dindex = std::distance(std::upper_bound(dscore.begin(), dscore.end(), ts), dscore.end());
+        int tindex = tscore.size() - i;
+
+        tmp_q = std::min(tmp_q, ((float)dindex / tindex));
+        map[ts] = tmp_q;
+      }
+
+      auto& map_with_charge_decoy_only = qscore_with_charge_decoy_only_map[ms_level];
+      float tmp_q_with_charge_decoy_only = 1;
+      for (int i = 0; i < tscore.size(); i++)
+      {
+        float ts = tscore[i];
+        int dindex = std::distance(std::upper_bound(dscore_with_charge_decoy_only.begin(), dscore_with_charge_decoy_only.end(), ts), dscore_with_charge_decoy_only.end());
+        int tindex = tscore.size() - i;
+
+        tmp_q_with_charge_decoy_only = std::min(tmp_q_with_charge_decoy_only, ((float)dindex / tindex));
+        map_with_charge_decoy_only[ts] = tmp_q_with_charge_decoy_only;
+      }
+    }
+
+    for(auto& titem: qscore_map)
+    {
+      int ms_level = titem.first;
+      for (auto& deconvolved_spectrum : deconvolved_spectra)
+      {
+        if(deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != ms_level)
+        {
+          continue;
+        }
+        auto& map = qscore_map[ms_level];
+        auto& map_with_charge_decoy_only_map = qscore_with_charge_decoy_only_map[ms_level];
+
+        for (auto& pg : deconvolved_spectrum)
+        {
+          pg.setQvalue(map[pg.getQScore()]);
+          pg.setQvalueWithChargeDecoyOnly(map_with_charge_decoy_only_map[pg.getQScore()]);
+          if(deconvolved_spectrum.getOriginalSpectrum().getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
+          {
+            double qs = deconvolved_spectrum.getPrecursorPeakGroup().getQScore();
+            auto& pmap = qscore_map[ms_level - 1];
+            auto& pmap_with_charge_decoy_only_map = qscore_with_charge_decoy_only_map[ms_level - 1];
+            deconvolved_spectrum.setPrecursorPeakGroupQvalue(pmap[qs], pmap_with_charge_decoy_only_map[qs]);
+          }
+        }
+      }
+    }
+  }
+
+  void DeconvolvedSpectrum::setPrecursorPeakGroupQvalue(const double qvalue, const double qvalue_with_charge_decoy_only)
+  {
+    precursor_peak_group_.setQvalue(qvalue);
+    precursor_peak_group_.setQvalueWithChargeDecoyOnly(qvalue_with_charge_decoy_only);
+  }
+} // namespace OpenMS

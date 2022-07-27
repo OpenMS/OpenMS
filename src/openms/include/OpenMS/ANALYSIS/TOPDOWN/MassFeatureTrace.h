@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,7 +47,7 @@ namespace OpenMS
   /**
   @brief Feature trace in mass dimension for FLASHDeconv
   This class performs mass tracing on the deconvolved masses by FLASHDeconvAlgorithm
-  In otherwords, per spectrum deconvolved masses are converted into deconvolved features
+  In other words, per spectrum deconvolved masses are converted into deconvolved features
   Currently only works for MS1 spectra. (Top-down DIA is not yet used much).
   Every time an MS1 spectrum is deconvolved, the relevant information is stored in this class.
   Tracing is performed at the end of FLASHDeconv run.
@@ -98,7 +98,7 @@ namespace OpenMS
   private:
     /// cosine thresholds for scoring and filtering
     double min_isotope_cosine_;
-    /// peak group information is stored in here for traciing
+    /// peak group information is stored in here for tracing
     std::map<double, std::map<double, PeakGroup>> peak_group_map_; // rt , mono mass, peakgroup
 
   };

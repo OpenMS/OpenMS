@@ -159,7 +159,7 @@ START_SECTION((void setScanNumber(const int scan_number)))
 }
 END_SECTION
 
-/// not testable : setChargePower, setChargeSignalPower - no getter for private variable
+/// not testable : setChargePower_, setChargeSignalPower_ - no getter for private variable
 
 START_SECTION((void setChargeIsotopeCosine(const int abs_charge, const float cos)))
 {
@@ -175,14 +175,6 @@ START_SECTION((float getChargeIsotopeCosine(const int abs_charge) const))
 }
 END_SECTION
 
-
-START_SECTION((void setChargeIntensity(const int abs_charge, const float intensity)))
-{
-  double temp_inty = 12878376.801757812;
-  sample_pg.setChargeIntensity(2, temp_inty);
-  TEST_REAL_SIMILAR(sample_pg.getChargeIntensity(2), temp_inty);
-}
-END_SECTION
 
 START_SECTION((float getChargeIntensity(const int abs_charge) const))
 {
@@ -338,7 +330,7 @@ START_SECTION((float getChargeSNR(const int abs_charge) const))
 }
 END_SECTION
 
-sample_pg.updateMassesAndIntensity();
+sample_pg.updateMonomassAndIsotopeIntensities();
 START_SECTION((double getMonoMass() const))
 {
   double tmp_mass = sample_pg.getMonoMass();
@@ -366,9 +358,9 @@ PeakGroup sample_pg2(sample_pg);
 LogMzPeak tmp_peak4 = fillPeak(1127.5185151766082, 2504.3433, 2, 4);
 sample_pg2.push_back(tmp_peak4);
 
-START_SECTION((void updateMassesAndIntensity(const int offset=0, const int max_isotope_index=0)))
+START_SECTION((void updateMonomassAndIsotopeIntensities(const int offset=0, const int max_isotope_index=0)))
 {
-  sample_pg2.updateMassesAndIntensity();
+  sample_pg2.updateMonomassAndIsotopeIntensities();
   double temp_mass = sample_pg2.getMonoMass();
   double temp_inty = sample_pg2.getIntensity();
   TEST_REAL_SIMILAR(temp_mass, 2249.0101025181098); // 2249.0101019557173

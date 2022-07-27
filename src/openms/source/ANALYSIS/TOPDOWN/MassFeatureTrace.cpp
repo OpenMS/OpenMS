@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -122,8 +122,8 @@ namespace OpenMS
       //int maxFIso = INT_MIN; // max feature isotope index
 
       //auto per_charge_max_intensity = std::vector<double>(charge_range + 1, .0);
-      auto per_isotope_intensity = std::vector<double>(averagine.getMaxIsotopeIndex(), .0);
-      auto per_charge_intensity = std::vector<double>(charge_range + min_abs_charge + 1, .0);
+      auto per_isotope_intensity = std::vector<float>(averagine.getMaxIsotopeIndex(), .0f);
+      auto per_charge_intensity = std::vector<float>(charge_range + min_abs_charge + 1, .0f);
 
       double max_iso = 0;
       boost::dynamic_bitset<> charges(charge_range + 1);
@@ -174,9 +174,10 @@ namespace OpenMS
 
       int offset = 0;
       double mass = mt.getCentroidMZ();
+      double second_best_monomass;
       double isotope_score = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(mass,
                                                                                             per_isotope_intensity,
-                                                                                            offset, averagine, false);
+                                                                                            offset, second_best_monomass, averagine, 1);
 
       if (isotope_score < min_isotope_cosine_)
       {

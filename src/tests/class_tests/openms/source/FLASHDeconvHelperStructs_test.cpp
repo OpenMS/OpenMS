@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -228,8 +228,22 @@ START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] double getAver
   TEST_REAL_SIMILAR(tmp_m_delta, 0.025);
 }
 END_SECTION
-///
 
+START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] double getMostAbundantMassDelta(const double mass) const))
+{
+  double tmp_m_delta = p_avg_test.getMostAbundantMassDelta(1000);
+  TOLERANCE_ABSOLUTE(0.1);
+  TEST_REAL_SIMILAR(tmp_m_delta, 0);
+}
+END_SECTION
+
+START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] Size getLastIndex(const double mass) const))
+{
+  double last_index = p_avg_test.getLastIndex(50);
+  TEST_EQUAL(last_index, 2);
+}
+END_SECTION
+///
 
 
 /// testing TopPicItem part is skipped

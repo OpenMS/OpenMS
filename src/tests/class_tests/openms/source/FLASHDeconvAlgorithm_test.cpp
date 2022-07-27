@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,6 +67,8 @@ END_SECTION
 /// < public methods without tests >
 /// - default constructors and operators are not used (copy, move, assignment)
 /// - setTargetMasses : only private member (which can not be accessed) is affected
+/// - getDecoyDeconvolvedSpectrum, isDecoy, addExcludedMonoMass, clearExcludedMonoMasses: under development
+/// - getAvgPPMError
 
 FLASHDeconvAlgorithm fd_algo = FLASHDeconvAlgorithm();
 Param fd_param;
@@ -80,6 +82,30 @@ START_SECTION((static int getNominalMass(const double mass)))
 
   TEST_EQUAL(fd_algo.getNominalMass(tmp_mass1), 9995);
   TEST_EQUAL(fd_algo.getNominalMass(tmp_mass2), 24987);
+}
+END_SECTION
+
+START_SECTION((static float getCosine(const std::vector<float>& a,
+              int a_start,
+              int a_end,
+              const IsotopeDistribution& b,
+              int b_size,
+              int offset)))
+{
+  auto generator = new CoarseIsotopePatternGenerator(10, 1000);
+  IsotopeDistribution iso_array = generator->estimateFromPeptideWeight(1000);
+
+  std::vector<float> test_array1{571133.0, 306181.0, 95811.0, 22037.0, 4092.0, 645.0, 89.0, 11.0, 1.0, 0.0};
+  std::vector<float> test_array2{100, 50, 25, 12.5, 6.25, 3.125, 1, 0, 0};
+
+  float cos_1 = fd_algo.getCosine(test_array1, 0, test_array1.size(), iso_array, iso_array.size(), 0);
+  float cos_2 = fd_algo.getCosine(test_array2, 0, test_array2.size(), iso_array, iso_array.size(), -1);
+  float cos_3 = fd_algo.getCosine(test_array2, 0, 1, iso_array, iso_array.size(), 0);
+
+  TOLERANCE_ABSOLUTE(0.1);
+  TEST_REAL_SIMILAR(cos_1, 0.65);
+  TEST_REAL_SIMILAR(cos_2, 0.3);
+  TEST_EQUAL(cos_3, 0);
 }
 END_SECTION
 
@@ -97,22 +123,22 @@ START_SECTION((void calculateAveragine(const bool use_RNA_averagine)))
   const auto &precalculated_avg = fd_algo.getAveragine();
   const auto &precalculated_avg_tmp = tmp_algo.getAveragine();
 
-  TEST_EQUAL(precalculated_avg.getMaxIsotopeIndex(), 5);
+  TEST_EQUAL(precalculated_avg.getMaxIsotopeIndex(), 8);
   TEST_EQUAL(precalculated_avg.getApexIndex(50), 0);
   TOLERANCE_ABSOLUTE(0.1)
   TEST_REAL_SIMILAR(precalculated_avg.getAverageMassDelta(50), 0.0296591659229435);
 
-  TEST_EQUAL(precalculated_avg_tmp.getMaxIsotopeIndex(), 1);
+  TEST_EQUAL(precalculated_avg_tmp.getMaxIsotopeIndex(), 3);
   TEST_EQUAL(precalculated_avg_tmp.getApexIndex(50), 0);
   TEST_REAL_SIMILAR(precalculated_avg_tmp.getAverageMassDelta(50), 0.025145817950033234);
 }
 END_SECTION
 
-START_SECTION((PrecalculatedAveragine getAveragine()))
+START_SECTION((PrecalculatedAveragine& getAveragine()))
 {
   const auto &precalculated_avg = fd_algo.getAveragine();
 
-  TEST_EQUAL(precalculated_avg.getMaxIsotopeIndex(), 5);
+  TEST_EQUAL(precalculated_avg.getMaxIsotopeIndex(), 8);
   TEST_EQUAL(precalculated_avg.getApexIndex(50), 0);
   TEST_REAL_SIMILAR(precalculated_avg.getAverageMassDelta(50), 0.0296591659229435);
 }
@@ -120,7 +146,7 @@ END_SECTION
 
 START_SECTION((static double getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector< double > &per_isotope_intensities, int &offset, const PrecalculatedAveragine &avg, bool use_shape_diff=true)))
 {
-  std::vector<double> tmp_iso_inty;
+  std::vector<float> tmp_iso_inty;
   tmp_iso_inty.push_back(8713.53089);
   tmp_iso_inty.push_back(4671.26697);
   tmp_iso_inty.push_back(1461.74729);
@@ -128,15 +154,16 @@ START_SECTION((static double getIsotopeCosineAndDetermineIsotopeIndex(const doub
   tmp_iso_inty.push_back(62.4324335);
 
   int offset = 0;
-  double tmp_iso_1 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1000., tmp_iso_inty, offset,
-                                                                      fd_algo.getAveragine(), false);
+  double secondm;
+  double tmp_iso_1 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1000., tmp_iso_inty, offset, secondm,
+                                                                      fd_algo.getAveragine(), -1);
 
-  double tmp_iso_2 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1000., tmp_iso_inty, offset,
-                                                                      fd_algo.getAveragine(), true);
+  double tmp_iso_2 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1000., tmp_iso_inty, offset,secondm,
+                                                                      fd_algo.getAveragine(), -1);
 
   offset = 3;
-  double tmp_iso_3 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1500., tmp_iso_inty, offset,
-                                                                      fd_algo.getAveragine(), false);
+  double tmp_iso_3 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1500., tmp_iso_inty, offset,secondm,
+                                                                      fd_algo.getAveragine(), -1);
 
   TEST_REAL_SIMILAR(tmp_iso_1, 0.99999997024829767);
   TEST_REAL_SIMILAR(tmp_iso_2, 0.99999997024829767);
@@ -144,30 +171,43 @@ START_SECTION((static double getIsotopeCosineAndDetermineIsotopeIndex(const doub
 }
 END_SECTION
 
-START_SECTION((DeconvolvedSpectrum& getDeconvolvedSpectrum(const MSSpectrum &spec, const std::vector< DeconvolvedSpectrum > &survey_scans, const int scan_number, const std::map< int, std::vector< std::vector< double >>> &precursor_map_for_FLASHIda)))
+// load test data
+PeakMap input;
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FLASHDeconv_sample_input1.mzML"), input);
+
+// resetting fd_algo based on the test data
+fd_param.setValue("max_mass", 50000.);
+fd_algo.setParameters(fd_param);
+fd_algo.calculateAveragine(false);
+
+START_SECTION(DeconvolvedSpectrum& getDeconvolvedSpectrum())
 {
-  // load test data
-  PeakMap input;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FLASHDeconv_sample_input1.mzML"), input);
-
-  // resetting fd_algo based on the test data
-  fd_param.setValue("max_mass", 50000.);
-  fd_algo.setParameters(fd_param);
-  fd_algo.calculateAveragine(false);
-
   std::vector<DeconvolvedSpectrum> survey_specs;
   const std::map<int, std::vector<std::vector<double>>> null_map;
 
-  DeconvolvedSpectrum d_ms1_spec = fd_algo.getDeconvolvedSpectrum(input[3], survey_specs, 4, null_map);
-  survey_specs.push_back(d_ms1_spec);
-  DeconvolvedSpectrum d_ms2_spec = fd_algo.getDeconvolvedSpectrum(input[5], survey_specs, 6, null_map);
+  fd_algo.performSpectrumDeconvolution(input[3], survey_specs, 4, null_map);
 
+  DeconvolvedSpectrum d_ms1_spec = fd_algo.getDeconvolvedSpectrum();
+  TEST_EQUAL(d_ms1_spec.size(), 5);
+}
+END_SECTION
+
+START_SECTION((DeconvolvedSpectrum& performSpectrumDeconvolution(const MSSpectrum &spec, const std::vector< DeconvolvedSpectrum > &survey_scans, const int scan_number, const std::map< int, std::vector< std::vector< double >>> &precursor_map_for_FLASHIda)))
+{
+  std::vector<DeconvolvedSpectrum> survey_specs;
+  const std::map<int, std::vector<std::vector<double>>> null_map;
+
+  fd_algo.performSpectrumDeconvolution(input[3], survey_specs, 4, null_map);
+  DeconvolvedSpectrum d_ms1_spec = fd_algo.getDeconvolvedSpectrum();
+  survey_specs.push_back(d_ms1_spec);
+  fd_algo.performSpectrumDeconvolution(input[5], survey_specs, 6, null_map);
+  DeconvolvedSpectrum d_ms2_spec = fd_algo.getDeconvolvedSpectrum();
   TEST_EQUAL(d_ms1_spec.getScanNumber(), 4);
-  TEST_EQUAL(d_ms1_spec.size(), 2);
+  TEST_EQUAL(d_ms1_spec.size(), 5);
   Precursor precursor = d_ms2_spec.getPrecursor();
   TOLERANCE_ABSOLUTE(1);
   TEST_EQUAL(d_ms1_spec.getPrecursorPeakGroup().size(), 0);
-  TEST_EQUAL(d_ms2_spec.getPrecursorPeakGroup().size(), 31);
+  TEST_EQUAL(d_ms2_spec.getPrecursorPeakGroup().size(), 66);
   TEST_EQUAL(precursor.getCharge(), 9);
   TEST_REAL_SIMILAR(precursor.getIntensity(), 12031);
 }
