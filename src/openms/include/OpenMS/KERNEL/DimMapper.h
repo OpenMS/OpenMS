@@ -190,11 +190,11 @@ namespace OpenMS
     {
       return p.getRT();
     }
-    ValueType map(const MSSpectrum& spec, const Size) const
+    ValueType map(const MSSpectrum& spec, const Size /*index*/) const
     {
       return spec.getRT();
     }
-    ValueType map(const Mobilogram& mb, const Size) const
+    ValueType map(const Mobilogram& mb, const Size /*index*/) const
     {
       return mb.getRT();
     }
@@ -309,7 +309,7 @@ namespace OpenMS
     {
       return spec[index].getMZ();
     }
-    ValueType map(const Mobilogram&, const Size) const
+    ValueType map(const Mobilogram&, const Size /*index*/) const
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
