@@ -1171,26 +1171,22 @@ namespace OpenMS
 
       for (double m : excluded_masses_)
       {
-        for(int iso = -2; iso<= avg_.getLastIndex(m)+2; iso++)
+        if(m <=0)
         {
-          double mass_delta = iso * iso_da_distance_;
-          double mass = m + mass_delta;
-          if(mass <=0)
-          {
-            continue;
-          }
-          Size j = getBinNumber_(log(mass), mass_bin_min_value_, bin_width_[ms_level_ - 1]);
-          if (j < 1)
-          {
-            continue;
-          }
+          continue;
+        }
+        Size j = getBinNumber_(log(m), mass_bin_min_value_, bin_width_[ms_level_ - 1]);
+        if (j < 1)
+        {
+          continue;
+        }
 
-          if (j < excluded_mass_bins_.size()-1)
-          {
-            //excluded_mass_bins_[j - 1] = true;
-            excluded_mass_bins_[j] = true;
-            //excluded_mass_bins_[j + 1] = true;
-          }
+        if (j < excluded_mass_bins_.size()-1)
+        {
+          //excluded_mass_bins_[j - 1] = true;
+          excluded_mass_bins_[j] = true;
+          //excluded_mass_bins_[j + 1] = true;
+
         }
       }
     }
@@ -1300,7 +1296,6 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::scoreAndFilterPeakGroups_()
   {
-
     std::vector<PeakGroup> filtered_peak_groups;
     filtered_peak_groups.reserve(deconvolved_spectrum_.size());
 
@@ -1421,7 +1416,6 @@ namespace OpenMS
         }
         if(exclude)
         {
-          //std::cout<<peak_group.getMonoMass()<<std::endl;
           continue;
         }
         peak_group.setDecoyIndex(charge_decoy_);

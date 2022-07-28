@@ -892,7 +892,9 @@ protected:
       {
         fd_decoy.clearExcludedMonoMasses();
         for(auto& pg: deconvolved_spectrum){
-          fd_decoy.addExcludedMonoMass(pg.getMonoMass());
+          for(int iso=-3;iso<=3;iso++){
+            fd_decoy.addExcludedMonoMass(pg.getMonoMass() + iso * Constants::ISOTOPE_MASSDIFF_55K_U);
+          }
         }
         fd_decoy
             .performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
