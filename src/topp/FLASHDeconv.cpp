@@ -207,10 +207,6 @@ protected:
     setMinInt_("merging_method", 0);
     setMaxInt_("merging_method", 2);
 
-    registerIntOption_("report_decoy_info", "<0: Do not report 1: report>", 1, "Report decoy masses in the spectrum tsv file. Qvalues for masses are also calculated. Beta version.", false, true);
-    setMinInt_("report_decoy_info", 0);
-    setMaxInt_("report_decoy_info", 1);
-
 
 
     /*
@@ -520,7 +516,6 @@ protected:
     int merge = getIntOption_("merging_method");
     bool write_detail = getIntOption_("write_detail") > 0;
     int mzml_charge = getIntOption_("mzml_mass_charge");
-    bool report_decoy = getIntOption_("report_decoy_info") == 1;
     bool out_undeconvolved = getIntOption_("mzml_output_undeconvolved_peaks") == 1;
     double min_mz = getDoubleOption_("Algorithm:min_mz");
     double max_mz = getDoubleOption_("Algorithm:max_mz");
@@ -690,7 +685,6 @@ protected:
         break;
       }
     }
-std::cout<<max_precursor_c<<std::endl;
     // Max MS Level is adjusted according to the input dataset
     current_max_ms_level = current_max_ms_level > max_ms_level ? max_ms_level : current_max_ms_level;
 
@@ -707,7 +701,6 @@ std::cout<<max_precursor_c<<std::endl;
     MSExperiment exp;
 
     auto fd = FLASHDeconvAlgorithm();
-    FLASHDeconvAlgorithm fd_decoy, fd_decoy2;
 
     Param fd_param = getParam_().copy("Algorithm:", true);
     DoubleList tols = fd_param.getValue("tol");
@@ -757,17 +750,6 @@ std::cout<<max_precursor_c<<std::endl;
     fd.calculateAveragine(use_RNA_averagine);
     fd.setTargetMasses(getTargetMasses(targets));
 
-    if(report_decoy)
-    {
-      fd_decoy.setParameters(fd_param);
-      fd_decoy.setAveragine(fd.getAveragine());
-      fd_decoy.setDecoyFlag(1); // charge
-
-
-      fd_decoy2.setParameters(fd_param);
-      fd_decoy2.setAveragine(fd.getAveragine());
-      fd_decoy2.setDecoyFlag(2); // noise
-    }
     auto avg = fd.getAveragine();
     auto mass_tracer = MassFeatureTrace();
     Param mf_param = getParam_().copy("FeatureTracing:", true);
@@ -797,9 +779,6 @@ std::cout<<max_precursor_c<<std::endl;
     std::vector<DeconvolvedSpectrum> deconvolved_spectra;
     deconvolved_spectra.reserve(map.size());
 
-    std::vector<DeconvolvedSpectrum> decoy_deconvolved_spectra;
-    decoy_deconvolved_spectra.reserve(map.size());
-
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       scan_number = SpectrumLookup::extractScanNumber(it->getNativeID(),
@@ -826,7 +805,6 @@ std::cout<<max_precursor_c<<std::endl;
       }
       fd.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
       auto& deconvolved_spectrum = fd.getDeconvolvedSpectrum();
-      auto& decoy_deconvolved_spectrum = fd.getDecoyDeconvolvedSpectrum();
 
       if (deconvolved_spectrum.empty())
       {
@@ -888,30 +866,6 @@ std::cout<<max_precursor_c<<std::endl;
         scan_rt_map[deconvolved_spectrum.getScanNumber()] = it->getRT();
       }
 
-      if(report_decoy)
-      {
-        fd_decoy.clearExcludedMonoMasses();
-        for(auto& pg: deconvolved_spectrum){
-          fd_decoy.addExcludedMonoMass(pg.getMonoMass());
-        }
-        fd_decoy
-            .performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
-
-        fd_decoy2.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
-
-        for(auto& pg: fd_decoy.getDeconvolvedSpectrum())
-        {
-          decoy_deconvolved_spectrum.push_back(pg);
-        }
-
-        for(auto& pg: fd_decoy2.getDeconvolvedSpectrum())
-        {
-          decoy_deconvolved_spectrum.push_back(pg);
-        }
-
-        decoy_deconvolved_spectrum.sort();
-        decoy_deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
-      }
 
       qspec_cntr[ms_level - 1]++;
       mass_cntr[ms_level - 1] += deconvolved_spectrum.size();
@@ -922,8 +876,6 @@ std::cout<<max_precursor_c<<std::endl;
     progresslogger.endProgress();
 
     std::cout<<" writing per spectrum deconvolution results ... "<<std::endl;
-
-    DeconvolvedSpectrum::updatePeakGroupQvalues(deconvolved_spectra, decoy_deconvolved_spectra);
 
     for(auto& deconvolved_spectrum: deconvolved_spectra)
     {
@@ -945,18 +897,7 @@ std::cout<<max_precursor_c<<std::endl;
 #endif
       }
     }
-    if(report_decoy)
-    {
-      for (auto& deconvolved_spectrum : decoy_deconvolved_spectra)
-      {
-        int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
 
-        if ((int)out_spec_streams.size() > ms_level - 1)
-        {
-          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail);
-        }
-      }
-    }
 
     // mass_tracer run
     if (merge != 2) // unless spectra are merged into a single one

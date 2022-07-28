@@ -190,35 +190,6 @@ namespace OpenMS
     /// get if it is targeted
     bool isTargeted() const;
 
-    //float getDecoyQScore() const;
-
-    //void setDecoyQScore(const float d);
-
-    //float getDecoyIsoScore() const;
-
-    //void setDecoyIsoScore(const float d);
-
-    int getDecoyIndex() const;
-
-    void setDecoyIndex(int index);
-
-    float getQvalue() const;
-
-    void setQvalue(const float q);
-
-    float getQvalueWithChargeDecoyOnly() const;
-
-    float getQvalueWithIsotopeDecoyOnly() const;
-
-    float getQvalueWithNoiseDecoyOnly() const;
-
-    void setQvalueWithChargeDecoyOnly(const float q);
-
-    void setQvalueWithIsotopeDecoyOnly(const float q);
-
-    void setQvalueWithNoiseDecoyOnly(const float q);
-
-
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator begin() const noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator end() const noexcept;
 
@@ -272,10 +243,6 @@ namespace OpenMS
     /// information on the deconvolved mass
     double monoisotopic_mass_ = -1.0;
     double intensity_;// total intensity
-    /// index to specify if this peak_group is a target (0), an isotope decoy (1), a noise (2), or a charge decoy (3)
-    int decoy_index_ = 0;
-    //float decoy_qscore_ = 0;
-    //float decoy_iso_score_ = 0;
 
     /// scoring variables
     int max_qscore_abs_charge_ = -1;
@@ -284,10 +251,6 @@ namespace OpenMS
     float qscore_ = .0f;
     float avg_ppm_error_ = 0;
     float snr_ = 0;
-    float qvalue_ = 1.0;
 
-    float qvalue_with_isotope_decoy_only_ = 1.0;
-    float qvalue_with_noise_decoy_only_ = 1.0;
-    float qvalue_with_charge_decoy_only_ = 1.0;
   };
 }

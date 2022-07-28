@@ -65,7 +65,7 @@ namespace OpenMS
       int min_charge = pg.isPositive() ? std::get<0>(charge_range) : -std::get<1>(charge_range);
       int max_charge = pg.isPositive() ? std::get<1>(charge_range) : -std::get<0>(charge_range);
 
-      fs << file_name << "\t" << pg.getScanNumber() << "\t" << pg.getDecoyIndex() << "\t" << std::to_string(dspec.getOriginalSpectrum().getRT()) << "\t" << dspec.size() << "\t"
+      fs << file_name << "\t" << pg.getScanNumber() << "\t" << std::to_string(dspec.getOriginalSpectrum().getRT()) << "\t" << dspec.size() << "\t"
          << std::to_string(avg_mass) << "\t" << std::to_string(mono_mass) << "\t" << intensity << "\t" << min_charge << "\t" << max_charge << "\t" << pg.size() << "\t";
 
       if (write_detail)
@@ -149,19 +149,19 @@ namespace OpenMS
 
         if (dspec.getPrecursorPeakGroup().empty())
         {
-          fs << "nan\tnan\tnan\tnan\tnan\tnan\tnan\t";
+          fs << "nan\tnan\tnan\t";
         }
         else
         {
           fs << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) << "\t" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) << "\t"
-             << dspec.getPrecursorPeakGroup().getQScore() << "\t" << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalueWithIsotopeDecoyOnly() << "\t"  << dspec.getPrecursorPeakGroup().getQvalueWithNoiseDecoyOnly() << "\t"   << dspec.getPrecursorPeakGroup().getQvalueWithChargeDecoyOnly() << "\t" ;
+             << dspec.getPrecursorPeakGroup().getQScore() << "\t" ;
         }
       }
       fs << pg.getIsotopeCosine() << "\t" << pg.getChargeScore() << "\t";
 
       auto max_qscore_mz_range = pg.getMaxQScoreMzRange();
       fs << pg.getSNR() << "\t" << pg.getChargeSNR(pg.getRepAbsCharge()) << "\t" << (pg.isPositive() ? pg.getRepAbsCharge() : -pg.getRepAbsCharge()) << "\t"
-         << std::to_string(std::get<0>(max_qscore_mz_range)) << "\t" << std::to_string(std::get<1>(max_qscore_mz_range)) << "\t" << pg.getQScore() << "\t" << pg.getQvalue() << "\t" << pg.getQvalueWithIsotopeDecoyOnly() << "\t" << pg.getQvalueWithNoiseDecoyOnly() << "\t" << pg.getQvalueWithChargeDecoyOnly()<<"\t"
+         << std::to_string(std::get<0>(max_qscore_mz_range)) << "\t" << std::to_string(std::get<1>(max_qscore_mz_range)) << "\t" << pg.getQScore() <<"\t"
          << std::setprecision(-1); //
 
       for (int i = std::get<0>(charge_range); i <= std::get<1>(charge_range); i++)
@@ -204,37 +204,37 @@ namespace OpenMS
     {
       if (ms_level == 1)
       {
-        fs << "FileName\tScanNum\tDecoy\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
+        fs << "FileName\tScanNum\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
-              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tQvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\tPerChargeIntensity\tPerIsotopeIntensity\n";
+              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
       else
       {
-        fs << "FileName\tScanNum\tDecoy\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
+        fs << "FileName\tScanNum\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
-              "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\tPrecursorQvalue\tPrecursorQvalueWithIsotopeDecoyOnly\tPrecursorQvalueWithNoiseDecoyOnly\tPrecursorQvalueWithChargeDecoyOnly\t"
-              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tQvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\tPerChargeIntensity\tPerIsotopeIntensity\n";
+              "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\t"
+              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
     }
     else
     {
       if (ms_level == 1)
       {
-        fs << "FileName\tScanNum\tDecoy\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
+        fs << "FileName\tScanNum\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\t"
               //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
-              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tQvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\tPerChargeIntensity\tPerIsotopeIntensity\n";
+              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
       else
       {
-        fs << "FileName\tScanNum\tDecoy\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
+        fs << "FileName\tScanNum\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\t"
-              "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\tPrecursorQvalue\tPrecursorQvalueWithIsotopeDecoyOnly\tPrecursorQvalueWithNoiseDecoyOnly\tPrecursorQvalueWithChargeDecoyOnly\t"
-              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tQvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\tPerChargeIntensity\tPerIsotopeIntensity\n";
+              "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\t"
+              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
     }
   }

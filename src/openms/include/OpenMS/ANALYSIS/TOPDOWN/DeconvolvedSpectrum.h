@@ -97,9 +97,6 @@ namespace OpenMS
     /// get precursor peak
     const Precursor& getPrecursor() const;
 
-    /// set qvalue of precursor peak
-    void setPrecursorPeakGroupQvalue(const double qvalue_with_iso_decoy_only , const double qvalue_with_noise_decoy_only, const double qvalue_with_charge_decoy_only);
-
     /// get possible max mass of the deconvolved masses - for MS1, max mass specified by user
     /// for MSn, min value between max mass specified by the user and precursor mass
     /// @param max_mass the max mass specified by the user
@@ -138,9 +135,6 @@ namespace OpenMS
 
     /// set precusor peakGroup
     void setPrecursorPeakGroup(const PeakGroup& pg);
-
-    void static updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra);
-
 
     std::vector<PeakGroup>::const_iterator begin() const noexcept;
     std::vector<PeakGroup>::const_iterator end() const noexcept;

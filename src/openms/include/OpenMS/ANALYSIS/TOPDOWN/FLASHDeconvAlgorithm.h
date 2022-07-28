@@ -76,7 +76,7 @@ namespace OpenMS
     FLASHDeconvAlgorithm& operator=(const FLASHDeconvAlgorithm& fd) = default;
 
     /**
-      @brief main deconvolution function that generates the deconvolved and decoy deconvolved spectrum from the original spectrum.
+      @brief main deconvolution function that generates the deconvolved spectrum from the original spectrum.
       @param spec the original spectrum
       @param survey_scans the survey scans to assign precursor mass to the deconvolved spectrum.
       @param scan_number scan number is provided from input spectrum to this function in most cases.
@@ -90,8 +90,6 @@ namespace OpenMS
 
     /// return deconvolved spectrum
     DeconvolvedSpectrum& getDeconvolvedSpectrum();
-    /// return decoy deconvolved spectrum
-    DeconvolvedSpectrum& getDecoyDeconvolvedSpectrum();
 
     /// get calculated averagine. This should be called after calculateAveragine is called.
     const PrecalculatedAveragine& getAveragine();
@@ -133,7 +131,7 @@ namespace OpenMS
         @param mono_mass monoisotopic mass
         @param per_isotope_intensities per isotope intensity - aggregated through charges
         @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
-        @param second_best_iso_offset second best scoring isotope offset - for decoy calculation.
+        @param second_best_iso_offset second best scoring isotope offset - for decoy calculation in the future.
         @param avg precalculated averagine
         @param window_width isotope offset value range. If -1, set automatically.
         @param allowed_iso_error allowed isotope error to calculate qscure
@@ -146,9 +144,6 @@ namespace OpenMS
                                                            const PrecalculatedAveragine& avg,
                                                            int window_width = -1, int allowed_iso_error = 1);
 
-    /// set decoy_flag_
-    void setDecoyFlag(int flag);
-
   protected:
     void updateMembers_() override;
 
@@ -158,7 +153,7 @@ namespace OpenMS
     /// minimum isotopologue count in a peak group
     const static int min_iso_size_ = 2;
 
-    /// allowed isotope error in deconvolved mass to calculate qvalue
+    /// allowed isotope error in deconvolved mass to calculate qvalue in the future
     int allowed_iso_error_ = 1;
 
     /// range of RT subject to analysis (in seconds)
@@ -194,21 +189,14 @@ namespace OpenMS
     /// max mass count per spectrum for each MS level
     IntList max_mass_count_;
 
-    /// if it is set to 0, not a decoy run. If 1, the charge decoy run, If 2, the random noise decoy run
-    int decoy_run_flag_ = 0;
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
-    /// The data structures for spectra overlapping.
-    std::vector<std::vector<Size>> prev_mass_bins_ms1_;
-    std::vector<std::map<int, std::vector<Size>>> prev_mass_bins_ms2_;
-    std::vector<double> prev_rts_ms1_;
-    std::vector<double> prev_rts_ms2_;
 
     /// mass bins that are targeted for FLASHIda global targeting mode
     boost::dynamic_bitset<> target_mass_bins_;
     std::vector<double> target_masses_;
 
-    /// mass bins that are excluded for decoy
+    /// mass bins that are excluded
     boost::dynamic_bitset<> excluded_mass_bins_;
     std::vector<double> excluded_masses_;
 
@@ -218,8 +206,6 @@ namespace OpenMS
     std::vector<LogMzPeak> log_mz_peaks_;
     /// deconvolved_spectrum_ stores the deconvolved mass peak groups
     DeconvolvedSpectrum deconvolved_spectrum_;
-    /// decoy_deconvolved_spectrum_ stores the deconvolved decoy mass peak groups
-    DeconvolvedSpectrum decoy_deconvolved_spectrum_;
     /// mass_bins_ stores the selected bins for this spectrum + overlapped spectrum (previous a few spectra).
     boost::dynamic_bitset<> mass_bins_;
     /// mz_bins_ stores the binned log mz peaks
@@ -280,10 +266,6 @@ namespace OpenMS
         @param mz_bin_intensities intensity per mz bin
      */
     void updateMzBins_(const Size bin_number, std::vector<float>& mz_bin_intensities);
-
-    ///this function takes the previous deconvolution results (from ovelapped spectra) for sensitive deconvolution of the current spectrum
-    void unionPrevMassBins_();
-
 
     ///Generate peak groups from the input spectrum
     void generatePeakGroupsFromSpectrum_();
