@@ -94,8 +94,11 @@ namespace OpenMS
     DeconvolvedSpectrum& getDecoyDeconvolvedSpectrum();
 
 
-    /// get calculated averagine
+    /// get calculated averagine. This should be called after calculateAveragine is called.
     const PrecalculatedAveragine& getAveragine();
+
+    /// set calculated averagine
+    void setAveragine(const PrecalculatedAveragine& avg);
 
     /// set targeted masses for targeted deconvolution. Masses are targeted in all ms levels
     void setTargetMasses(const std::vector<double>& masses);
@@ -127,32 +130,25 @@ namespace OpenMS
                              int b_size,
                              int offset);
 
-
-    /** static function that returns average PPM error of the input peak group
-     * @param pg peak group
-     * @return average PPM error
-     */
-    static float getAvgPPMError(PeakGroup& pg);
-
-
     /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
         @param mono_mass monoisotopic mass
         @param per_isotope_intensities per isotope intensity - aggregated through charges
         @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
-        @param second_best_mono_mass second best scoring mono mass - for decoy calculation.
+        @param second_best_iso_offset second best scoring isotope offset - for decoy calculation.
         @param avg precalculated averagine
         @param window_width isotope offset value range. If -1, set automatically.
+        @param allowed_iso_error allowed isotope error to calculate qscure
         @return calculated cosine similar score
      */
     static float getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
                                                            const std::vector<float>& per_isotope_intensities,
                                                            int& offset,
-                                                           double& second_best_mono_mass,
+                                                           int& second_best_iso_offset,
                                                            const PrecalculatedAveragine& avg,
-                                                           int window_width = -1);
+                                                           int window_width = -1, int allowed_iso_error = 1);
 
-
-    void isDecoy();
+    /// set decoy_flag_
+    void setDecoyFlag(int flag);
 
   protected:
     void updateMembers_() override;
@@ -160,7 +156,11 @@ namespace OpenMS
   private:
     /// FLASHDeconv parameters
 
+    /// minimum isotopologue count in a peak group
     const static int min_iso_size_ = 2;
+
+    /// allowed isotope error in deconvolved mass to calculate qvalue
+    int allowed_iso_error_ = 1;
 
     /// range of RT subject to analysis (in seconds)
     double min_rt_, max_rt_;
@@ -195,7 +195,8 @@ namespace OpenMS
     /// max mass count per spectrum for each MS level
     IntList max_mass_count_;
 
-    bool is_decoy_run_ = false;
+    /// if it is set to 0, not a decoy run. If 1, the charge decoy run, If 2, the random noise decoy run
+    int decoy_run_flag_ = 0;
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
     /// The data structures for spectra overlapping.
@@ -231,6 +232,9 @@ namespace OpenMS
     std::vector<double> filter_;
     /// This stores the patterns for harmonic reduction
     Matrix<double> harmonic_filter_matrix_;
+
+    /// isotope dalton distance
+    double iso_da_distance_;
 
     /// This stores the "universal pattern" in binned dimension
     std::vector<int> bin_offsets_;
@@ -278,7 +282,7 @@ namespace OpenMS
      */
     void updateMzBins_(const Size bin_number, std::vector<float>& mz_bin_intensities);
 
-    ///this function takes the previous deconvolution results (from overlapped spectra) for sensitive deconvolution of the current spectrum
+    ///this function takes the previous deconvolution results (from ovelapped spectra) for sensitive deconvolution of the current spectrum
     void unionPrevMassBins_();
 
 

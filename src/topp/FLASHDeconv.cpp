@@ -188,7 +188,7 @@ protected:
     setMinInt_("write_detail", 0);
     setMaxInt_("write_detail", 1);
 
-    registerIntOption_("max_MS_level", "", 3, "maximum MS level (inclusive) for deconvolution.", false, true);
+    registerIntOption_("max_MS_level", "<number>", 3, "maximum MS level (inclusive) for deconvolution.", false, true);
     setMinInt_("max_MS_level", 1);
 
     registerIntOption_("forced_MS_level",
@@ -207,9 +207,12 @@ protected:
     setMinInt_("merging_method", 0);
     setMaxInt_("merging_method", 2);
 
-    registerIntOption_("report_decoy_info", "<0: Do not report 1: report>", 1, "Report decoy masses in the spectrum tsv file. Qvalues for masses are also calculated. Beta version.", false, false);
+    registerIntOption_("report_decoy_info", "<0: Do not report 1: report>", 1, "Report decoy masses in the spectrum tsv file. Qvalues for masses are also calculated. Beta version.", false, true);
     setMinInt_("report_decoy_info", 0);
     setMaxInt_("report_decoy_info", 1);
+
+
+
     /*
         registerIntOption_("isobaric_labeling_option",
                            "",
@@ -704,7 +707,7 @@ protected:
     MSExperiment exp;
 
     auto fd = FLASHDeconvAlgorithm();
-    FLASHDeconvAlgorithm fd_decoy;
+    FLASHDeconvAlgorithm fd_decoy, fd_decoy2;
 
     Param fd_param = getParam_().copy("Algorithm:", true);
     DoubleList tols = fd_param.getValue("tol");
@@ -758,8 +761,14 @@ protected:
     {
       fd_decoy = FLASHDeconvAlgorithm();
       fd_decoy.setParameters(fd_param);
-      fd_decoy.calculateAveragine(use_RNA_averagine);
-      fd_decoy.isDecoy();
+      fd_decoy.setAveragine(fd.getAveragine());
+      fd_decoy.setDecoyFlag(1); // charge
+
+
+      fd_decoy2 = FLASHDeconvAlgorithm();
+      fd_decoy2.setParameters(fd_param);
+      fd_decoy2.setAveragine(fd.getAveragine());
+      fd_decoy2.setDecoyFlag(2); // noise
     }
     auto avg = fd.getAveragine();
     auto mass_tracer = MassFeatureTrace();
@@ -890,10 +899,18 @@ protected:
         fd_decoy
             .performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
 
+        fd_decoy2.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
+
         for(auto& pg: fd_decoy.getDeconvolvedSpectrum())
         {
           decoy_deconvolved_spectrum.push_back(pg);
         }
+
+        for(auto& pg: fd_decoy2.getDeconvolvedSpectrum())
+        {
+          decoy_deconvolved_spectrum.push_back(pg);
+        }
+
         decoy_deconvolved_spectrum.sort();
         decoy_deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
       }

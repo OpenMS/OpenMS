@@ -76,28 +76,69 @@ namespace OpenMS
 &&        this->intensity_ == a.intensity_;
   }
 
-  double PeakGroup::updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos)
+
+
+  void PeakGroup::updateAvgPPMError_(double iso_da_distance)
+  {
+    std::vector<float> diffs;
+    std::vector<std::vector<float>> per_isotope_masses;
+    int isotope_end_index = 0;
+
+    for (auto& p : *this)
+    {
+      if(p.isotopeIndex < 0)
+      {
+        continue;
+      }
+      isotope_end_index = isotope_end_index < p.isotopeIndex ? p.isotopeIndex : isotope_end_index;
+    }
+    per_isotope_masses = std::vector<std::vector<float>>(isotope_end_index + 1, std::vector<float>());
+    for (auto& p : *this)
+    {
+      if(p.isotopeIndex < 0)
+      {
+        continue;
+      }
+      per_isotope_masses[p.isotopeIndex].push_back(p.getUnchargedMass());
+    }
+    diffs.reserve(size());
+    for (Size i = 0; i < per_isotope_masses.size(); i++)
+    {
+      auto& v = per_isotope_masses[i];
+      Size n = v.size();
+      double average = n >= 2 ? accumulate(v.begin(), v.end(), 0.0) / n : getMonoMass() + i * iso_da_distance; //
+      for (float& t : v)
+      {
+        diffs.push_back(pow(1e6 * (t - average) / average, 2.0));
+      }
+    }
+    Size n = diffs.size();
+    avg_ppm_error_ =  n == 0 ? .0 : sqrt(accumulate(diffs.begin(), diffs.end(), 0.0) / n);
+  }
+
+
+  void PeakGroup::updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double iso_da_distance)
   {
    if(empty())
     {
-      return 0;
+      return;
     }
 
     updateChargeFitScoreAndChargeIntensities_();
     if(charge_score_ < .7)
     {
       qscore_ = 0;
-      return 0;
+      return;
     }
 
     updateMonomassAndIsotopeIntensities(); //
     int h_offset;
-    double second_best_monomass = 0;
-    isotope_cosine_score_ = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(monoisotopic_mass_, per_isotope_int_, h_offset, second_best_monomass, avg, 0);
+    int second_best_offset= 0;
+    isotope_cosine_score_ = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(monoisotopic_mass_, per_isotope_int_, h_offset, second_best_offset, avg, 0);
 
     if(isotope_cosine_score_ < min_cos)
     {
-      return 0;
+      return;
     }
 
     auto iso_dist = avg.get(monoisotopic_mass_);
@@ -139,8 +180,7 @@ namespace OpenMS
       setChargeIsotopeCosine(abs_charge, cos_score);//
     }
 
-
-    avg_ppm_error_ = FLASHDeconvAlgorithm::getAvgPPMError(*this);
+    updateAvgPPMError_(iso_da_distance);
     updateSNR();
     for (int abs_charge = min_abs_charge_; abs_charge <= max_abs_charge_; abs_charge++)
     {
@@ -157,7 +197,7 @@ namespace OpenMS
       max_qscore_abs_charge_ = abs_charge;
       qscore_ = q_score;
     }
-    return second_best_monomass;
+    return;
   }
 
 /*
@@ -678,6 +718,17 @@ namespace OpenMS
     return qvalue_with_charge_decoy_only_;
   }
 
+  float PeakGroup::getQvalueWithIsotopeDecoyOnly() const
+  {
+    return qvalue_with_isotope_decoy_only_;
+  }
+
+  float PeakGroup::getQvalueWithNoiseDecoyOnly() const
+  {
+    return qvalue_with_noise_decoy_only_;
+  }
+
+
   float PeakGroup::getSNR() const
   {
     return snr_;
@@ -829,5 +880,13 @@ namespace OpenMS
   void PeakGroup::setQvalueWithChargeDecoyOnly(float q)
   {
     qvalue_with_charge_decoy_only_ = q;
+  }
+  void PeakGroup::setQvalueWithIsotopeDecoyOnly(float q)
+  {
+    qvalue_with_isotope_decoy_only_ = q;
+  }
+  void PeakGroup::setQvalueWithNoiseDecoyOnly(float q)
+  {
+    qvalue_with_noise_decoy_only_ = q;
   }
 }

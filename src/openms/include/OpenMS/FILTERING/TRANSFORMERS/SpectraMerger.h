@@ -311,7 +311,7 @@ public:
      * @param tol_ppm tolerance in ppm
      * @param max_c maximum possible charge value
      */
-    bool areMassesMatched(double mz1, double mz2, double tol_ppm, int max_c)
+    static bool areMassesMatched(double mz1, double mz2, double tol_ppm, int max_c)
     {
       if (mz1 == mz2 || tol_ppm <= 0)
       {
