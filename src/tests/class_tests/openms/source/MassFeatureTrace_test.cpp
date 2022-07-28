@@ -190,17 +190,6 @@ START_SECTION((std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(c
 END_SECTION
 
 
-START_SECTION(Size size())
-{
-  MassFeatureTrace mass_tracer;
-  mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec1);
-  mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec2);
-  mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec3);
-
-  TEST_EQUAL(mass_tracer.size(), 3);
-}
-END_SECTION
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
