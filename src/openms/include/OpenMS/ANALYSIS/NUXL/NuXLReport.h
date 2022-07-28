@@ -99,7 +99,7 @@ struct OPENMS_DLLAPI NuXLReport
 
 
 /// protein report
-struct OPENMS_DLLAPI RNPxlProteinReport
+struct OPENMS_DLLAPI NuXLProteinReport
 {
   static void annotateProteinModificationForTopHits(std::vector<ProteinIdentification>& prot_ids, 
     const std::vector<PeptideIdentification>& peps, 

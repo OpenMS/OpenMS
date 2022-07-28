@@ -297,7 +297,7 @@ namespace OpenMS
 }
 
   // crosslink efficiency = frequency of the crosslinked amino acid / frequency of the amino acid in all crosslink spectrum matches
-  map<char, double> RNPxlProteinReport::getCrossLinkEfficiency(const vector<PeptideIdentification>& peps)
+  map<char, double> NuXLProteinReport::getCrossLinkEfficiency(const vector<PeptideIdentification>& peps)
   {
     map<char, double> aa_xl_freq;
     map<char, double> aa_freq;
@@ -337,7 +337,7 @@ namespace OpenMS
   }
 
   // returns map of adduct to counts
-  map<String, size_t> RNPxlProteinReport::countAdducts(const vector<PeptideIdentification>& peps)
+  map<String, size_t> NuXLProteinReport::countAdducts(const vector<PeptideIdentification>& peps)
   {
     map<String, size_t> adduct2count;
     for (const PeptideIdentification& pep : peps)
@@ -680,7 +680,7 @@ Output format:
   }
 
   // static 
-  void  RNPxlProteinReport::mapAccessionToTDProteins(ProteinIdentification& prot_id, std::map<String, ProteinHit*>& acc2protein_targets, std::map<String, ProteinHit*>& acc2protein_decoys)
+  void  NuXLProteinReport::mapAccessionToTDProteins(ProteinIdentification& prot_id, std::map<String, ProteinHit*>& acc2protein_targets, std::map<String, ProteinHit*>& acc2protein_decoys)
   {
     std::vector<ProteinHit>& proteins = prot_id.getHits();
     for (ProteinHit& protein : proteins)
@@ -733,7 +733,7 @@ Output format:
   }
   */
 
-  void RNPxlProteinReport::annotateProteinModificationForTopHits(
+  void NuXLProteinReport::annotateProteinModificationForTopHits(
     vector<ProteinIdentification>& prot_ids, 
     const vector<PeptideIdentification>& peps, 
     TextFile& tsv_file)
@@ -745,7 +745,7 @@ Output format:
 
     // create lookup accession -> protein
     map<String, ProteinHit*> acc2protein_targets, acc2protein_decoys;
-    RNPxlProteinReport::mapAccessionToTDProteins(prot_id, acc2protein_targets, acc2protein_decoys);
+    NuXLProteinReport::mapAccessionToTDProteins(prot_id, acc2protein_targets, acc2protein_decoys);
 
     size_t CSMs_sum{}; // total number of XLed spectra
 

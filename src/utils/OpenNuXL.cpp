@@ -346,13 +346,13 @@ protected:
                        "Percolator executable of the installation e.g. 'percolator.exe'", false, false, ListUtils::create<String>("skipexists"));
 
 
-    // RNPxl specific
-    registerTOPPSubsection_("RNPxl", "RNPxl Options");
+    // NuXL specific
+    registerTOPPSubsection_("NuXL", "NuXL Options");
 
-    registerStringOption_("RNPxl:presets", "<option>", "none", "Set precursor and fragment adducts form presets (recommended).", false, false);
+    registerStringOption_("NuXL:presets", "<option>", "none", "Set precursor and fragment adducts form presets (recommended).", false, false);
 
     StringList presets(NuXLPresets::presets_names.begin(), NuXLPresets::presets_names.end()); 
-    setValidStrings_("RNPxl:presets", presets);
+    setValidStrings_("NuXL:presets", presets);
 
     // store presets (for visual inspection only) in ini
     for (const auto& p : presets)
@@ -372,28 +372,28 @@ protected:
       registerStringList_(subsection_name + ":fragment_adducts", "", fragment_adducts, "", false, true);
     }
 
-    registerIntOption_("RNPxl:length", "", 2, "Oligonucleotide maximum length. 0 = disable search for NA variants.", false);
+    registerIntOption_("NuXL:length", "", 2, "Oligonucleotide maximum length. 0 = disable search for NA variants.", false);
 
-    registerStringOption_("RNPxl:sequence", "", "", "Sequence to restrict the generation of oligonucleotide chains. (disabled for empty sequence).", false);
+    registerStringOption_("NuXL:sequence", "", "", "Sequence to restrict the generation of oligonucleotide chains. (disabled for empty sequence).", false);
 
-    registerStringList_("RNPxl:target_nucleotides", 
+    registerStringList_("NuXL:target_nucleotides", 
                         "", 
                         {"A=C10H14N5O7P", "C=C9H14N3O8P", "G=C10H14N5O8P", "U=C9H13N2O9P"}, 
                         "format:  target nucleotide=empirical formula of nucleoside monophosphate \n e.g. A=C10H14N5O7P, ..., U=C10H14N5O7P, X=C9H13N2O8PS  where X represents e.g. tU \n or e.g. Y=C10H14N5O7PS where Y represents tG.", 
                         false, 
                         false);
 
-    registerStringList_("RNPxl:nt_groups",
+    registerStringList_("NuXL:nt_groups",
         "",
         {},
 	"Restrict which nucleotides can cooccur in a precursor adduct to be able to search both RNA and DNA (format: 'AU CG').",
         false,
         false);
 
-    registerStringList_("RNPxl:mapping", "", {"A->A", "C->C", "G->G", "U->U"}, "format: source->target e.g. A->A, ..., U->U, U->X.", false, false);
+    registerStringList_("NuXL:mapping", "", {"A->A", "C->C", "G->G", "U->U"}, "format: source->target e.g. A->A, ..., U->U, U->X.", false, false);
 
     // define if nucleotide can cross-link (produce y,b,a,immonium-ion shifts) in addition to marker ions
-    registerStringOption_("RNPxl:can_cross_link", 
+    registerStringOption_("NuXL:can_cross_link", 
                         "<option>", 
                         "U", 
                         "format: 'U' if only U forms cross-links. 'CATG' if C, A, G, and T form cross-links.", 
@@ -416,29 +416,29 @@ protected:
                                    "U:C9H12N2O6;U-HPO3"
                                   };    
 
-    registerStringList_("RNPxl:fragment_adducts", 
+    registerStringList_("NuXL:fragment_adducts", 
                         "", 
                         fragment_adducts, 
                         "format: [target nucleotide]:[formula] or [precursor adduct]->[fragment adduct formula];[name]: e.g., 'U:C9H10N2O5;U-H3PO4' or 'U:U-H2O->C9H11N2O8P1;U-H2O'.", 
                         false, 
                         false);
 
-    registerStringList_("RNPxl:modifications", "", modifications, "format: empirical formula e.g U:  U:-H2O, ..., U:H2O+PO3.", false, false);
+    registerStringList_("NuXL:modifications", "", modifications, "format: empirical formula e.g U:  U:-H2O, ..., U:H2O+PO3.", false, false);
 
-    registerStringOption_("RNPxl:scoring", "<method>", "slow", "Scoring algorithm used in prescoring (fast: total-loss only, slow: all losses).", false, false);
-    setValidStrings_("RNPxl:scoring", {"fast", "slow"});
+    registerStringOption_("NuXL:scoring", "<method>", "slow", "Scoring algorithm used in prescoring (fast: total-loss only, slow: all losses).", false, false);
+    setValidStrings_("NuXL:scoring", {"fast", "slow"});
 
-    registerStringOption_("RNPxl:decoys", "<bool>", "true", "Generate decoys internally (recommended).", false, false);
-    setValidStrings_("RNPxl:decoys", {"true", "false"});
-    registerIntOption_("RNPxl:decoy_factor", "<num>", 1, "Ratio of decoys to targets.", false, true);
+    registerStringOption_("NuXL:decoys", "<bool>", "true", "Generate decoys internally (recommended).", false, false);
+    setValidStrings_("NuXL:decoys", {"true", "false"});
+    registerIntOption_("NuXL:decoy_factor", "<num>", 1, "Ratio of decoys to targets.", false, true);
 
-    registerFlag_("RNPxl:CysteineAdduct", "Use this flag if the +152 adduct is expected.", true);
-    registerFlag_("RNPxl:filter_fractional_mass", "Use this flag to filter non-crosslinks by fractional mass.", true);
-    registerFlag_("RNPxl:carbon_labeled_fragments", "Generate fragment shifts assuming full labeling of carbon (e.g. completely labeled U13).", true);
-    registerFlag_("RNPxl:only_xl", "Only search cross-links and ignore non-cross-linked peptides.", true);
+    registerFlag_("NuXL:CysteineAdduct", "Use this flag if the +152 adduct is expected.", true);
+    registerFlag_("NuXL:filter_fractional_mass", "Use this flag to filter non-crosslinks by fractional mass.", true);
+    registerFlag_("NuXL:carbon_labeled_fragments", "Generate fragment shifts assuming full labeling of carbon (e.g. completely labeled U13).", true);
+    registerFlag_("NuXL:only_xl", "Only search cross-links and ignore non-cross-linked peptides.", true);
 
-    registerDoubleOption_("RNPxl:filter_small_peptide_mass", "<threshold>", 600.0, "Filter precursor that can only correspond to non-crosslinks by mass.", false, true);
-    registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.03, "Tolerance used to determine marker ions (Da).", false, true);
+    registerDoubleOption_("NuXL:filter_small_peptide_mass", "<threshold>", 600.0, "Filter precursor that can only correspond to non-crosslinks by mass.", false, true);
+    registerDoubleOption_("NuXL:marker_ions_tolerance", "<tolerance>", 0.03, "Tolerance used to determine marker ions (Da).", false, true);
   
     registerStringList_("filter", "<list>", {"filter_pc_mass_error", "autotune", "idfilter"}, "Filtering steps applied to results.", false, true);
     setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune", "idfilter", "spectrumclusterfilter", "pcrecalibration", "optimize"}); 
@@ -3355,7 +3355,7 @@ static void scoreXLIons_(
           // corrected for monoisotopic misassignments of the precursor annotation
           if (i != 0) { precursor_mass -= i * Constants::C13C12_MASSDIFF_U; }
 
-          if (getFlag_("RNPxl:filter_fractional_mass"))
+          if (getFlag_("NuXL:filter_fractional_mass"))
           {
             if (precursor_mass < 1750.0 && precursor_mass - floor(precursor_mass) < 0.2)
             {
@@ -4067,8 +4067,8 @@ static void scoreXLIons_(
     Int max_precursor_charge = getIntOption_("precursor:max_charge");
     double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
     double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
-    bool generate_decoys = getStringOption_("RNPxl:decoys") == "true";
-    int decoy_factor = getIntOption_("RNPxl:decoy_factor");
+    bool generate_decoys = getStringOption_("NuXL:decoys") == "true";
+    int decoy_factor = getIntOption_("NuXL:decoy_factor");
 
     StringList filter = getStringList_("filter");
     bool filter_pc_mass_error = find(filter.begin(), filter.end(), "filter_pc_mass_error") != filter.end();
@@ -4366,7 +4366,7 @@ static void scoreXLIons_(
  
     String out_tsv = getStringOption_("out_tsv");
 
-    fast_scoring_ = getStringOption_("RNPxl:scoring") == "fast" ? true : false;
+    fast_scoring_ = getStringOption_("NuXL:scoring") == "fast" ? true : false;
 
     // true positives: assumed gaussian distribution of mass error
     // with sigma^2 = precursor_mass_tolerance
@@ -4377,9 +4377,9 @@ static void scoreXLIons_(
 
     bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
 
-    double marker_ions_tolerance = getDoubleOption_("RNPxl:marker_ions_tolerance");
+    double marker_ions_tolerance = getDoubleOption_("NuXL:marker_ions_tolerance");
 
-    double small_peptide_mass_filter_threshold = getDoubleOption_("RNPxl:filter_small_peptide_mass");
+    double small_peptide_mass_filter_threshold = getDoubleOption_("NuXL:filter_small_peptide_mass");
 
     StringList fixedModNames = getStringList_("modifications:fixed");
     set<String> fixed_unique(fixedModNames.begin(), fixedModNames.end());
@@ -4426,7 +4426,7 @@ static void scoreXLIons_(
       xl_fdr_max = *std::max_element(XL_FDR.begin(), XL_FDR.end());
     }
 
-    StringList nt_groups = getStringList_("RNPxl:nt_groups");
+    StringList nt_groups = getStringList_("NuXL:nt_groups");
 
     // read list of nucleotides that can directly cross-link
     // these are responsible for shifted fragment ions. Their fragment adducts thus determine which shifts will be observed on b-,a-,y-ions
@@ -4441,13 +4441,13 @@ static void scoreXLIons_(
     ////////////////////////////////////////////////////////////////////
     // set user configuration or from presets
     bool isRNA{false};
-    if (getStringOption_("RNPxl:presets") == "none")
+    if (getStringOption_("NuXL:presets") == "none")
     {
-      target_nucleotides = getStringList_("RNPxl:target_nucleotides");
-      mappings = getStringList_("RNPxl:mapping");
-      modifications = getStringList_("RNPxl:modifications");
-      fragment_adducts = getStringList_("RNPxl:fragment_adducts");
-      can_cross_link = getStringOption_("RNPxl:can_cross_link");
+      target_nucleotides = getStringList_("NuXL:target_nucleotides");
+      mappings = getStringList_("NuXL:mapping");
+      modifications = getStringList_("NuXL:modifications");
+      fragment_adducts = getStringList_("NuXL:fragment_adducts");
+      can_cross_link = getStringOption_("NuXL:can_cross_link");
 
       for (const auto& t : target_nucleotides) // TODO: improve: checking also formula is safe
       {
@@ -4463,7 +4463,7 @@ static void scoreXLIons_(
     }
     else
     { // set from presets
-      String p = getStringOption_("RNPxl:presets");
+      String p = getStringOption_("NuXL:presets");
       NuXLPresets::getPresets(p, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link);
       // set if DNA or RNA preset
       if (p.hasSubstring("RNA"))
@@ -4477,11 +4477,11 @@ static void scoreXLIons_(
     }
     for (const auto& c : can_cross_link) { can_xl_.insert(c); } // sort and make unique
 
-    String sequence_restriction = getStringOption_("RNPxl:sequence");
+    String sequence_restriction = getStringOption_("NuXL:sequence");
 
-    Int max_nucleotide_length = getIntOption_("RNPxl:length");
+    Int max_nucleotide_length = getIntOption_("NuXL:length");
 
-    bool cysteine_adduct = getFlag_("RNPxl:CysteineAdduct");
+    bool cysteine_adduct = getFlag_("NuXL:CysteineAdduct");
 
     /////////////////////////////////////////////////////////////////////////////
     // Generation of Precursor/MS1 adduct to nucleotides to fragment adduct rules
@@ -4501,7 +4501,7 @@ static void scoreXLIons_(
             max_nucleotide_length);
     }
 
-    if (!getFlag_("RNPxl:only_xl"))
+    if (!getFlag_("NuXL:only_xl"))
     {
       mm.formula2mass[""] = 0; // insert "null" modification otherwise peptides without NA will not be searched
       mm.mod_combinations[""].insert("none");
@@ -5430,7 +5430,7 @@ static void scoreXLIons_(
     meta_values_to_export.push_back("nr_candidates");
     meta_values_to_export.push_back("isotope_error");  
 
-    // annotate RNPxl related information to hits and create report
+    // annotate NuXL related information to hits and create report
     vector<NuXLReportRow> csv_rows = NuXLReport::annotate(spectra, peptide_ids, meta_values_to_export, marker_ions_tolerance);
 
 #ifdef ANNOTATED_QUANTILES    
@@ -5974,7 +5974,7 @@ static void scoreXLIons_(
           IDFilter::keepNBestHits(peptide_ids, 1);
           IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
 
-	        // annotate RNPxl related information to hits and create report
+	        // annotate NuXL related information to hits and create report
           vector<NuXLReportRow> csv_rows_percolator = NuXLReport::annotate(spectra, peptide_ids, meta_values_to_export, marker_ions_tolerance);
 
           // save report

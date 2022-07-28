@@ -300,7 +300,7 @@ namespace OpenMS
       {
         OPENMS_LOG_INFO << "Writing XL protein results at xl-FDR: " << xlFDR << endl;
         TextFile tsv_file;
-        RNPxlProteinReport::annotateProteinModificationForTopHits(tmp_prots, xl_pi, tsv_file);
+        NuXLProteinReport::annotateProteinModificationForTopHits(tmp_prots, xl_pi, tsv_file);
         tsv_file.store(out_idxml + "proteins" + String::number(xlFDR, 4) + "_XLs.tsv");
       }      
    }
