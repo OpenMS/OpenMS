@@ -1300,7 +1300,7 @@ protected:
       {
         n_theoretical_XL_peaks += partial_loss_template_z1_y_ions.size() - 1;
 
-        for (Size i = 1; i < partial_loss_template_z1_y_ions.size(); ++i)  // Note that we start at (i=1 -> y2) as trypsin would otherwise not cut at cross-linking site
+        for (Size i = 1; i < partial_loss_template_z1_y_ions.size(); ++i)  // Note that we start at (i=1 -> y2) as trypsin would does not cut at cross-linking site
         {
           const double theo_mz = (partial_loss_template_z1_y_ions[i] + fa.mass 
             + (z-1) * Constants::PROTON_MASS_U) / z;
@@ -1370,7 +1370,7 @@ protected:
     {
       for (const NuXLFragmentAdductDefinition  & fa : partial_loss_modification)
       {
-        for (Size i = 1; i < partial_loss_template_z1_y_ions.size(); ++i)  // Note that we start at (i=1 -> y2) as trypsin would otherwise not cut at cross-linking site
+        for (Size i = 1; i < partial_loss_template_z1_y_ions.size(); ++i)  // Note that we start at (i=1 -> y2) as trypsin does not cut at cross-linking site
         {
           const double theo_mz = (partial_loss_template_z1_y_ions[i] + fa.mass + diff2b
             + (z-1) * Constants::PROTON_MASS_U) / z;

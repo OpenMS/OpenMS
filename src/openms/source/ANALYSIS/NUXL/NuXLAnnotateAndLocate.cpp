@@ -489,7 +489,10 @@ namespace OpenMS
             auto ion_number = (Size)ion_nr_string.toInt();
 
             NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
-            shifted_y_ions[ion_number].push_back(d);
+            if (ion_number > 1) // trypsin doesn't cut at cross-linked amino acid
+            {
+              shifted_y_ions[ion_number].push_back(d);
+            }
           }
           else if (fragment_ion_name.hasPrefix("b"))
           {
