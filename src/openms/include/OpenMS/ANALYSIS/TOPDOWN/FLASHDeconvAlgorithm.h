@@ -196,6 +196,11 @@ namespace OpenMS
 
     /// if it is set to 0, not a decoy run. If 1, the charge decoy run, If 2, the random noise decoy run
     int decoy_run_flag_ = 0;
+
+    static const int charge_decoy_ = 1;
+    static const int noise_decoy_ = 2;
+    static const int isotope_decoy_ = 3;
+
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
     /// The data structures for spectra overlapping.

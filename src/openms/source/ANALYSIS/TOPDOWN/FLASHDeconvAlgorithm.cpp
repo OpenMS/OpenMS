@@ -195,14 +195,14 @@ namespace OpenMS
   // generate filters
   void FLASHDeconvAlgorithm::setFilters_()
   {
-    iso_da_distance_ = decoy_run_flag_ != 2? Constants::ISOTOPE_MASSDIFF_55K_U : Constants::ISOTOPE_MASSDIFF_55K_U * 1.7;
+    iso_da_distance_ = decoy_run_flag_ != noise_decoy_? Constants::ISOTOPE_MASSDIFF_55K_U : Constants::ISOTOPE_MASSDIFF_55K_U * 1.7;
 
     filter_.clear();
     harmonic_filter_matrix_.clear();
     int charge_range = current_max_charge_ - current_min_charge_ + 1;
     for (int i = 0; i < charge_range; i++)
     {
-      if(decoy_run_flag_ != 2)
+      if(decoy_run_flag_ != noise_decoy_)
       {
         filter_.push_back(log(1.0 / (i + current_min_charge_))); //+
       }else{
@@ -219,7 +219,7 @@ namespace OpenMS
 
       for (int i = 0; i < charge_range; i++)
       {
-        if(decoy_run_flag_ != 2)
+        if(decoy_run_flag_ != noise_decoy_)
         {
           harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-1.0 * n / hc + (i + current_min_charge_)))); // + current_min_charge_
         }else{
@@ -950,7 +950,7 @@ namespace OpenMS
           if (abs(mz_diff - tmp_i * iso_delta) < mz_delta) // if peak is signal
           {
             const Size bin = peak_bin_numbers[peak_index] + bin_offset;
-            if (bin < mass_bin_size && (decoy_run_flag_ != 1 || !excluded_mass_bins_[bin]) )
+            if (bin < mass_bin_size && !(bin < excluded_mass_bins_.size() && excluded_mass_bins_[bin]) )
             {
               LogMzPeak p(log_mz_peaks_[peak_index]);
               p.abs_charge = abs_charge;
@@ -1007,7 +1007,7 @@ namespace OpenMS
           if (abs(mz_diff - tmp_i * iso_delta) < mz_delta)
           {
             const Size bin = peak_bin_numbers[peak_index] + bin_offset;
-            if (bin < mass_bin_size && (decoy_run_flag_ != 1 || !excluded_mass_bins_[bin]))
+            if (bin < mass_bin_size && !(bin < excluded_mass_bins_.size() && excluded_mass_bins_[bin]) )
             {
               LogMzPeak p(log_mz_peaks_[peak_index]);
               p.abs_charge = abs_charge;
@@ -1169,12 +1169,11 @@ namespace OpenMS
     {
       excluded_mass_bins_ = boost::dynamic_bitset<>(mass_bins_.size());
 
-      for (Size i = -2; i < excluded_masses_.size() + 2; i++)
+      for (double m : excluded_masses_)
       {
-        double m = excluded_masses_[i];
-        for(int iso = 0; iso<= avg_.getLastIndex(m); iso++)
+        for(int iso = -2; iso<= avg_.getLastIndex(m)+2; iso++)
         {
-          double mass_delta = iso+iso_da_distance_;
+          double mass_delta = iso * iso_da_distance_;
           double mass = m + mass_delta;
           if(mass <=0)
           {
@@ -1397,7 +1396,7 @@ namespace OpenMS
         }
         else
         {
-          decoy.setDecoyIndex(3); // isotope
+          decoy.setDecoyIndex(isotope_decoy_); // isotope
           auto max_q_score_mz_range = decoy.getMzRange(peak_group.getRepAbsCharge());
           decoy.setMaxQScoreMzRange(std::get<0>(max_q_score_mz_range), std::get<1>(max_q_score_mz_range));
           decoy.setScanNumber(deconvolved_spectrum_.getScanNumber());
@@ -1405,12 +1404,12 @@ namespace OpenMS
         }
       }
 
-      if(decoy_run_flag_ == 1 && excluded_masses_.size() > 0)
+      if(decoy_run_flag_ == charge_decoy_ && excluded_masses_.size() > 0)
       {
         bool exclude = false;
         double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1];
         auto upper = std::upper_bound(excluded_masses_.begin(), excluded_masses_.end(), peak_group.getMonoMass() + delta);
-        peak_group.setDecoyIndex(decoy_run_flag_);
+
         while (upper != excluded_masses_.begin())
         {
           --upper;
@@ -1422,8 +1421,10 @@ namespace OpenMS
         }
         if(exclude)
         {
+          //std::cout<<peak_group.getMonoMass()<<std::endl;
           continue;
         }
+        peak_group.setDecoyIndex(charge_decoy_);
       }
 
       if (peak_group.getRepAbsCharge() < min_abs_charge_ || peak_group.getRepAbsCharge() > max_abs_charge_)
@@ -1433,9 +1434,9 @@ namespace OpenMS
 
       auto max_q_score_mz_range = peak_group.getMzRange(peak_group.getRepAbsCharge());
       peak_group.setMaxQScoreMzRange(std::get<0>(max_q_score_mz_range), std::get<1>(max_q_score_mz_range));
-      if(decoy_run_flag_ == 2)
+      if(decoy_run_flag_ == noise_decoy_)
       {
-        peak_group.setDecoyIndex(decoy_run_flag_);
+        peak_group.setDecoyIndex(noise_decoy_);
       }
 
       filtered_peak_groups.push_back(peak_group);
