@@ -759,13 +759,11 @@ protected:
 
     if(report_decoy)
     {
-      fd_decoy = FLASHDeconvAlgorithm();
       fd_decoy.setParameters(fd_param);
       fd_decoy.setAveragine(fd.getAveragine());
       fd_decoy.setDecoyFlag(1); // charge
 
 
-      fd_decoy2 = FLASHDeconvAlgorithm();
       fd_decoy2.setParameters(fd_param);
       fd_decoy2.setAveragine(fd.getAveragine());
       fd_decoy2.setDecoyFlag(2); // noise

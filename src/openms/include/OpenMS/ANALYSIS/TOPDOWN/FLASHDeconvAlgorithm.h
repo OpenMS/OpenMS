@@ -73,7 +73,7 @@ namespace OpenMS
     FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) = default;
 
     /// assignment operator
-    FLASHDeconvAlgorithm& operator=(const FLASHDeconvAlgorithm& fd);
+    FLASHDeconvAlgorithm& operator=(const FLASHDeconvAlgorithm& fd) = default;
 
     /**
       @brief main deconvolution function that generates the deconvolved and decoy deconvolved spectrum from the original spectrum.
@@ -92,7 +92,6 @@ namespace OpenMS
     DeconvolvedSpectrum& getDeconvolvedSpectrum();
     /// return decoy deconvolved spectrum
     DeconvolvedSpectrum& getDecoyDeconvolvedSpectrum();
-
 
     /// get calculated averagine. This should be called after calculateAveragine is called.
     const PrecalculatedAveragine& getAveragine();

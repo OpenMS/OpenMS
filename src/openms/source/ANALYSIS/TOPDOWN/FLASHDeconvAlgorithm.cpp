@@ -41,12 +41,6 @@ namespace OpenMS
 {
   FLASHDeconvAlgorithm::FLASHDeconvAlgorithm() : DefaultParamHandler("FLASHDeconvAlgorithm")
   {
-    prev_mass_bins_ms1_ = std::vector<std::vector<Size>>();
-    prev_rts_ms1_ = std::vector<double>();
-
-    prev_mass_bins_ms2_ = std::vector<std::map<int, std::vector<Size>>>();
-    prev_rts_ms2_ = std::vector<double>();
-
     // prev_minbin_logmass_vector_ = std::vector<double>();
     defaults_.setValue("tol", DoubleList {10.0, 10.0}, "ppm tolerance for MS1, 2, ... (e.g., -tol 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively)");
 
@@ -87,17 +81,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  FLASHDeconvAlgorithm& FLASHDeconvAlgorithm::operator=(const FLASHDeconvAlgorithm& fd)
-  {
-    if (this == &fd)
-    {
-      return *this;
-    }
-    //...
-    return *this;
-  }
-
-  // Calculate the nominal(integer) mass from double mass. Multiply 0.999497 reduces the error from rounding the double to int.
+  // Calculate the nominal (integer) mass from double mass. Multipling 0.999497 to the original mass and then rounding reduce the error between the original and nominal masses.
   int FLASHDeconvAlgorithm::getNominalMass(const double mass)
   {
     return (int)(mass * 0.999497 + .5);
