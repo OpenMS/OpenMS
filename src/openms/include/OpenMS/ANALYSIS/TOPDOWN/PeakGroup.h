@@ -90,8 +90,6 @@ namespace OpenMS
 
     void updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double iso_da_distance);
 
-    //MSSpectrum getSubspectrumForMass(const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass);
-
     /// recruit peaks and then return as a spectrum.
     void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, double mass_offset = 0);
 
@@ -106,7 +104,6 @@ namespace OpenMS
 
     /// set per abs_charge isotope cosine
     void setChargeIsotopeCosine(const int abs_charge, const float cos);
-
 
     /// set mz range that results in max QScore
     void setMaxQScoreMzRange(const double min, const double max);
@@ -131,6 +128,7 @@ namespace OpenMS
 
     /// set SNR manually - for FLASHIda log file parsing
     void setSNR(const float snr);
+
     /// set charge SNR manually - for FLASHIda log file parsing
     void setChargeSNR(const int abs_charge, const float c_snr);
 
@@ -164,6 +162,7 @@ namespace OpenMS
     /// get charge range - the actual charge values
     std::tuple<int, int> getAbsChargeRange() const;
 
+    /// get per isotope intensities
     std::vector<float> getIsotopeIntensities() const;
 
     /// get isotopic cosine score
@@ -190,12 +189,14 @@ namespace OpenMS
     /// get if it is targeted
     bool isTargeted() const;
 
+
+    /// const iterators of LogMzPeaks in PeakGroup
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator begin() const noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator end() const noexcept;
 
+    /// iterators of LogMzPeaks in PeakGroup
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator begin() noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator end() noexcept;
-
 
     const FLASHDeconvHelperStructs::LogMzPeak& operator[](const Size i) const;
 
@@ -210,11 +211,12 @@ namespace OpenMS
     std::vector<FLASHDeconvHelperStructs::LogMzPeak> noisy_peaks;
 
   private:
-
     /// set per abs_charge signal power
     void setChargePowers_(const int abs_charge, const double signal_pwr, const double noise_pwr, const double intensity);
+
     void updateChargeFitScoreAndChargeIntensities_();
-    //update avg ppm error
+
+    /// update avg ppm error
     void updateAvgPPMError_(double iso_da_distance);
 
 

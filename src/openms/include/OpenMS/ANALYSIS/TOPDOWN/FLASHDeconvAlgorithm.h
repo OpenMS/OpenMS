@@ -36,10 +36,10 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES//Matrix.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <iostream>
 #include <boost/dynamic_bitset.hpp>
@@ -104,10 +104,6 @@ namespace OpenMS
         @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calculated
      */
     void calculateAveragine(const bool use_RNA_averagine);
-
-    void addExcludedMonoMass(const double m);
-
-    void clearExcludedMonoMasses();
 
     /// convert double to nominal mass
     static int getNominalMass(const double mass);

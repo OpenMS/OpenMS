@@ -1849,15 +1849,7 @@ namespace OpenMS
     }
     return deconvolved_spectrum_.getPrecursorPeakGroup().empty();
   }
-  void FLASHDeconvAlgorithm::addExcludedMonoMass(double m)
-  {
-    excluded_masses_.push_back(m);
-  }
-  void FLASHDeconvAlgorithm::clearExcludedMonoMasses()
-  {
-    excluded_masses_.clear();
-    excluded_mass_bins_.clear();
-  }
+
   void FLASHDeconvAlgorithm::setAveragine(const FLASHDeconvAlgorithm::PrecalculatedAveragine& avg)
   {
     avg_ = avg;
