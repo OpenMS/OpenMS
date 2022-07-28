@@ -527,7 +527,7 @@ namespace OpenMS
       return p.getMobility();
     }
 
-    ValueType map(const MSSpectrum& spec, const Size index) const
+    ValueType map(const MSSpectrum& spec, const Size /*index*/) const
     {
       return spec.getDriftTime();
     }
