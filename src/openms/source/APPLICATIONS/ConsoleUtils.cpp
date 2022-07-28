@@ -124,7 +124,7 @@ namespace OpenMS
     catch (...)
     {
     }
-    // if console_width_ is still -1, we do not use command line reshaping
+    // if console_width_ is still -1 or too small, we do not use command line reshaping
     if (console_width_ < 10)
     {
       OPENMS_LOG_DEBUG << "Console width could not be determined or is smaller than 10. Not using output shaping!" << std::endl;
@@ -184,7 +184,8 @@ namespace OpenMS
       }
 
       // check if we are using the full length and split a word at the same time
-      // cut a little earlier in that case for nicer looks
+      // --> cut a little earlier in that case for nicer looks
+      // e.g. "test this br" + '\n' + "eak" would become "test this " + '\n' + "break"
       if (line.size() == remaining_line_chars && short_line_len > 8 && line.rfind(' ') != String::npos)
       {
         String last_word = line.suffix(' ');

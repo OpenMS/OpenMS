@@ -40,14 +40,6 @@ namespace OpenMS
 {
   class Colorizer;
 
-  /// Helper struct to pass into IndentedStream to change its internal parameters (extend if needed)
-  struct IndentInfo
-  {
-    IndentInfo(int new_indentation) : indent(new_indentation)
-    {}
-    int indent;
-  };
-
   /**
     @brief Class for writing data which spans multiple lines with an indentation for each line (all except the first).
 
@@ -58,12 +50,12 @@ namespace OpenMS
     If a single item passed to IndentedStream::operator<< spans multiple indented lines (e.g. a large string),
     at most @p max_lines will be retained (excess lines will be replaced by '...').
 
-    You can manually insert extra linebreaks by pushing '\n' into the stream (also as part of a larger string).
+    You can manually insert extra linebreaks by pushing '\n' into the stream (they can be part of a larger string).
 
-    The class supports coloring its output if the given @p stream is either std::cout or cerr by passing a Colorizer.
+    The class supports coloring its output if the underlying @p stream is either std::cout or cerr by passing a Colorizer.
 
   */
-  class IndentedStream
+  class OPENMS_DLLAPI IndentedStream
   {
   public:
     /**
@@ -81,11 +73,17 @@ namespace OpenMS
     {
     }
 
-    /// support normal usage of Colorizer
+    /// Support normal usage of Colorizer (for coloring cout/cerr). The underlying stream will receive ANSI codes unless its a redirected(!) cout/cerr.
+    /// Warning: the ANSI codes are NOT considered to advance the cursor and will lead to broken formatting if
+    ///          the underlying @p stream is NOT cout/cerr.
+    ///          I.e. using an IndentedStream with an underlying stringstream in combination with a Colorizer will mess up the formatting.
     IndentedStream& operator<<(Colorizer& colorizer);
-
-    /// support changing parameters, e.g. indentation, on the fly
-    IndentedStream& operator<<(const IndentInfo& new_config);
+    
+    /// Support calling our member functions within a stream
+    IndentedStream& operator<<(IndentedStream& self)
+    {
+      return self;
+    }
 
     template<typename T>
     IndentedStream& operator<<(const T& data)
@@ -100,7 +98,15 @@ namespace OpenMS
         return *this;
       }
       
-      current_column_pos_ = result.back().size();
+      if (result.size() == 1)
+      { // no new linebreak. advance our position
+        current_column_pos_ += result.back().size();
+      }
+      else
+      { // new line: this is our new position
+        current_column_pos_ = result.back().size();
+      }
+      
 
       // push result into stream
       *stream_ << result[0];
@@ -112,18 +118,22 @@ namespace OpenMS
 
       return *this;
     }
-
-    
-    /// function pointer to a function that takes an ostream, and returns it, e.g. std::endl
+        
+    /// Function pointer to a function that takes an ostream, and returns it, e.g. std::endl
     typedef std::ostream& (*StreamManipulator)(std::ostream&);
 
-    /// overload for function pointers, e.g. std::endl
+    /// Overload for function pointers, e.g. std::endl
     IndentedStream& operator<<(StreamManipulator manip)
     {
       // call the function on the internal stream
       manip(*stream_);
       return *this;
     }
+
+    /// Support new indentation, on the fly.
+    /// This will take effect when the next line break is encountered (either manual or automatic linebreak (at the right side of the console).
+    IndentedStream& indent(const UInt new_indent);
+
 
   private:
     std::ostream* stream_;        ///< the underlying stream to print to

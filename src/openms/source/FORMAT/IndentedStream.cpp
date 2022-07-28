@@ -50,20 +50,25 @@ namespace OpenMS
     stringstream reformatted;
     // use a clone of ourselves, but dump data to a stringstream
     IndentedStream formatter(reformatted, indentation_, max_lines_);
-    formatter << colorizer.getInternalChars_().str();
-    // update with new data (with indentation)
-    colorizer.setInternalChars_(reformatted.str());
+    formatter.current_column_pos_ = current_column_pos_; // advance the formatter to the same column position that we have
+    formatter << colorizer.getInternalChars_().str(); // push the data (invoking line breaks if required)
+    // update colorizer with new data (with indentation)
+    colorizer.setInternalChars_(reformatted.str()); // skip the initialization 'x' chars
 
-    // apply Color to our internal stream (to enable detection of stdout/stderr by Colorizer)
+    // apply Color to our internal stream
+    // Do NOT push the data into the IndentedStream since this prevents detection
+    // of stdout/stderr (and its redirection status) by Colorizer. If the underlying stream_
+    // is indeed cout but redirected to a file, you would get ANSI symbols in there (not desiable)
     *stream_ << colorizer;
+
+    // update our column position based on the new data
+    current_column_pos_ = formatter.current_column_pos_; // this does not take into account ANSI codes which are added by Colorizer -- nothing we can do about it.
 
     return *this;
   }
-  IndentedStream& IndentedStream::operator<<(const IndentInfo& new_config)
+  IndentedStream& IndentedStream::indent(const UInt new_indent)
   {
-    indentation_ = new_config.indent;
-    // move cursor to at least the new indentation
-    current_column_pos_ = std::max((Size)indentation_, current_column_pos_);
+    indentation_ = new_indent;
     return *this;
   }
 } // namespace OpenMS

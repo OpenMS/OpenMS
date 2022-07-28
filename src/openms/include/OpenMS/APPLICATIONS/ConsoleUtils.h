@@ -61,32 +61,34 @@ namespace OpenMS
     /// Assignment operator (deleted)
     void operator=(ConsoleUtils const&) = delete;
 
+    /// returns the singleton -- the only instanciation of this class
     static const ConsoleUtils& getInstance();
 
-    /// make a string console friendly
-    /// by breaking it into multiple lines according to the console width
+    /// Make a string console-friendly
+    /// by breaking it into multiple lines according to the console width.
     /// The 'indentation' gives the number of spaces which is prepended beginning at the second (!)
     /// line, so one gets a left aligned block which has some space to the left.
     /// An indentation of 0 results in the native console's default behaviour: just break at the end of
     /// its width and start a new line.
-    /// but usually one wants nicely indented blocks, which the console does not support
-    /// 'max_lines' gives the upper limit of lines returned after breaking is finished. 
+    /// @p max_lines gives the upper limit of lines returned after breaking is finished.
     /// Excess lines are removed and replaced by '...', BUT the last line will be preserved.
     /// 
     /// @param input String to be split
-    /// @param indentation Number of spaces to use for lines 2 until last line.
+    /// @param indentation Number of spaces to use for lines 2 until last line (should not exceed the console width)
     /// @param max_lines Limit of output lines (all others are removed)
-    /// @param first_line_prefill Assume this many chars were already written in the current line of the console (this should not exceed the console width)
-    static String breakString(const String& input, const Size indentation, const Size max_lines, const Size first_line_prefill = 0);
-
-    /// same as breakString(), but concatenates the result using '\n' for convenience
+    /// @param first_line_prefill Assume this many chars were already written in the current line of the console (should not exceed the console width)
     static StringList breakStringList(const String& input, const Size indentation, const Size max_lines, const Size first_line_prefill = 0);
+
+    /// same as breakStringList(), but concatenates the result using '\n' for convenience
+    static String breakString(const String& input, const Size indentation, const Size max_lines, const Size first_line_prefill = 0);
 
     /// width of the console (or INTMAX on internal error)
     int getConsoleWidth() const
     {
       return console_width_;
     }
+
+    friend struct ConsoleWidthTest; ///< allows us to set console_width to a fixed value for testing
 
   private:
     /// width of console we are currently in (if not determinable, set to INTMAX, i.e. not breaks)

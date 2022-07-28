@@ -544,18 +544,19 @@ namespace OpenMS
     // common output
     is << "\n"
        << invert(tool_name_) << " -- " << tool_description_ << "\n"
-       << bright("Full documentation: ") << underline(docurl) << " " // the space is needed, otherwise the remaining line will be underlined on Windows..
+       << bright("Full documentation: ") << underline(docurl)  // the space is needed, otherwise the remaining line will be underlined on Windows..
        << "\n"
        << bright("Version: ") << verboseVersion_ << "\n"
-       << bright("To cite OpenMS:\n  ") << cite_openms_.toString() << "\n";
+       << bright("To cite OpenMS:\n") << " + " << is.indent(3) << cite_openms_.toString() 
+       << is.indent(0) << "\n";
     if (!citations_.empty())
     {
-      is << bright("To cite ") << tool_name_ << ":\n";
-      for (const Citation& c : citations_) is << "  " << c.toString() << "\n";
+      is << bright() << "To cite " << tool_name_ << ':' << bright().undo() << is.indent(0) << "\n";
+      for (const Citation& c : citations_)
+        is << " + " << is.indent(3) << c.toString() << is.indent(0) << "\n";
     }
-    is << "\n";
-    is << invert("Usage:")
-       << "\n"
+    is << is.indent(0) << "\n";
+    is << invert("Usage:\n")
        << "  " << bright(tool_name_) << " <options>" << "\n"
        << "\n";
 
@@ -748,13 +749,13 @@ namespace OpenMS
       }
       else
       {
-        is << IndentInfo(offset);
+        is << is.indent(offset);
         if (it->required)
           is << green(str_tmp);
         else
           is << str_tmp;
         is << desc_tmp << cyan(addon_concat) << magenta(restrict_concat);
-        is << IndentInfo(0);
+        is << is.indent(0);
       }
       
       is << "\n";
@@ -774,16 +775,14 @@ namespace OpenMS
 
       //output
       is << "\n"
-         << "The following configuration subsections are valid:\n"
-         << IndentInfo(indent);
+         << "The following configuration subsections are valid:\n";
       for (map<String, String>::const_iterator it = subsections_.begin(); it != subsections_.end(); ++it)
       {
         String tmp = String(" - ") + it->first;
         tmp.fillRight(' ', indent);
-        cerr << ConsoleUtils::breakString(tmp  + it->second, indent, 10);
-        cerr << "\n";
+        is << ConsoleUtils::breakString(tmp + it->second, indent, 10);
+        is << "\n";
       }
-      is << IndentInfo(0);
       is << "\n"
          << "You can write an example INI file using the '-write_ini' option.\n"
          << "Documentation of subsection parameters can be found in the doxygen documentation or the INIFileEditor.\n"
