@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -225,17 +225,26 @@ protected:
         for (Feature& ft : tmp)
         {
           String adduct;
+          String group;
           //exception: addduct information
-          if (ft.metaValueExists("dc_charge_adducts"))
+          if (ft.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
           {
-            adduct = ft.getMetaValue("dc_charge_adducts");
+            adduct = ft.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS);
+          }
+          if (ft.metaValueExists(Constants::UserParam::ADDUCT_GROUP))
+          {
+            group = ft.getMetaValue(Constants::UserParam::ADDUCT_GROUP);
           }
           ft.getSubordinates().clear();
           ft.getConvexHulls().clear();
           ft.clearMetaInfo();
           if (!adduct.empty())
           {
-            ft.setMetaValue("dc_charge_adducts", adduct);
+            ft.setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, adduct);
+          }
+          if (!group.empty())
+          {
+            ft.setMetaValue("Group", group);
           }
 
         }

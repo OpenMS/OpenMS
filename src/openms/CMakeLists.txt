@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -104,7 +104,7 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network Qt5::Sql)
 
-set(OPENMS_DEP_PRIVATE_LIBRARIES WM5::WM5 CoinOR::CoinOR Eigen3::Eigen GLPK::GLPK HDF5::HDF5 Boost::iostreams Boost::date_time Boost::math_c99 Boost::regex
+set(OPENMS_DEP_PRIVATE_LIBRARIES WM5::WM5 CoinOR::CoinOR Eigen3::Eigen GLPK::GLPK HDF5::HDF5 Boost::iostreams Boost::date_time Boost::boost Boost::regex
   BZip2::BZip2 ZLIB::ZLIB SQLite::SQLite3)
 
 # xerces requires linking against CoreFoundation&CoreServices on macOS

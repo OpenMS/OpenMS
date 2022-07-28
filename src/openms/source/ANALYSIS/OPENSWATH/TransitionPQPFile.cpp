@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,17 +56,6 @@ namespace OpenMS
 
   TransitionPQPFile::~TransitionPQPFile()
   {
-  }
-
-  static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName)
-  {
-    int i;
-    for (i = 0; i < argc; i++)
-    {
-      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-    }
-    printf("\n");
-    return 0;
   }
 
   void TransitionPQPFile::readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list, bool legacy_traml_id)

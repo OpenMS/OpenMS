@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,14 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
-
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <QtCore/QString>
@@ -48,6 +46,8 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <iomanip>     // setw
+
+#include <map>
 
 using namespace OpenMS;
 using namespace std;
@@ -300,7 +300,7 @@ protected:
       //-------------------------------------------------------------
       // Content statistics
       //-------------------------------------------------------------
-      Map<String, int> meta_names;
+      std::map<String, int> meta_names;
       if (in_type == FileTypes::FEATUREXML) //features
       {
         os << "Number of features: " << feat.size() << endl
@@ -312,14 +312,14 @@ protected:
            << endl;
 
         // Charge distribution
-        Map<UInt, UInt> charges;
+        std::map<UInt, UInt> charges;
         for (Size i = 0; i < feat.size(); ++i)
         {
           charges[feat[i].getCharge()]++;
         }
 
         os << "Charge distribution" << endl;
-        for (Map<UInt, UInt>::const_iterator it = charges.begin();
+        for (std::map<UInt, UInt>::const_iterator it = charges.begin();
              it != charges.end(); ++it)
         {
           os << "charge " << it->first << ": " << it->second << endl;

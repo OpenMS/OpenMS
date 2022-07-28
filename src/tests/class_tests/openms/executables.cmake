@@ -62,7 +62,6 @@ set(datastructures_executables_list
   ListUtils_test
   ListUtilsIO_test
   LPWrapper_test
-  Map_test
   MassExplainer_test
   MatchedIterator_test
   Matrix_test
@@ -148,10 +147,14 @@ set(kernel_executables_list
   ConsensusMap_test
   ConversionHelper_test
   ConstRefVector_test
+  DimMapper_test
   DPeak_test
   FeatureMap_test
   Feature_test
   MassTrace_test
+  Mobilogram_test
+  MobilityPeak1D_test
+  MobilityPeak2D_test
   MRMFeature_test
   MRMTransitionGroup_test
   MSChromatogram_test
@@ -707,6 +710,7 @@ endif(NOT DISABLE_OPENSWATH)
 set(Boost_dependent_tests
   DIAHelper_test
   EmgModel_test
+  FASTAContainer_test
   LogConfigHandler_test
   LogStream_test
   MRMDecoy_test

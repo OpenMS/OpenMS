@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,8 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -80,7 +82,7 @@ namespace OpenMS
       String accession = protein_ident.getHits()[i].getAccession();
 
       // consensus feature -> peptide hit
-      Map<size_t, PeptideHit> consensus_to_peptide;
+      std::map<size_t, PeptideHit> consensus_to_peptide;
 
       // search for it in consensus elements:
       for (size_t i_cm = 0; i_cm < consensus_map.size(); ++i_cm)
@@ -133,12 +135,12 @@ namespace OpenMS
       // Use all matching ConsensusElements to derive a quantitation for current protein
       // build up ratios for every map vs reference
       double coverage = 0;
-      Map<Size, std::vector<IntensityType> > ratios;
+      std::map<Size, std::vector<IntensityType> > ratios;
 
       // number of unique peptides pointing to current protein
       UInt coverage_count = (UInt)consensus_to_peptide.size();
 
-      for (Map<size_t, PeptideHit>::iterator it_pephits = consensus_to_peptide.begin();
+      for (std::map<size_t, PeptideHit>::iterator it_pephits = consensus_to_peptide.begin();
            it_pephits != consensus_to_peptide.end();
            ++it_pephits)
       {
@@ -176,7 +178,7 @@ namespace OpenMS
            it_file != consensus_map.getColumnHeaders().end();
            ++it_file)
       {
-        if (ratios.has(it_file->first))
+        if (ratios.find(it_file->first) != ratios.end())
         {
           //sort intensity ratios for map #it_file->first
           std::sort(ratios[it_file->first].begin(), ratios[it_file->first].end());

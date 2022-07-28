@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,6 +76,17 @@ namespace OpenMS
         return true;
       }
       return false;
+    }
+
+    /**
+     * \brief Is a @p value contained in [min, max] ?
+     * \tparam T Type, e.g. double
+     * \return True if contained, false otherwise
+     */
+    template<typename T>
+    bool contains(T value, T min, T max)
+    {
+      return min <= value && value <= max;
     }
 
 

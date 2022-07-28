@@ -236,7 +236,7 @@ def testAASequence():
         print("Error: Exception not triggered.")
         assert False
     assert seq.getFormula(pyopenms.Residue.ResidueType.Full, 0) == pyopenms.EmpiricalFormula("C75H122N20O32S2Se1")
-    assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1952.7200317517998) < 1e-5
+    assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1958.7140766518) < 1e-5
     # assert seq.has(pyopenms.ResidueDB.getResidue("P"))
 
     
@@ -5251,6 +5251,26 @@ def testElementDB():
     assert e2.getSymbol() == "O"
     assert e2.getIsotopeDistribution()
 
+    # assume we discovered a new element
+    e2 = edb.addElement(b"NewElement", b"NE", 300, {400 : 1.0}, {400 : 400.1}, False)
+    e2 = edb.getElement(pyopenms.String("NE"))
+    assert e2.getName() == "NewElement"
+
+    # changing existing elements in tests might have side effects so we define a new element
+    # add first new element
+    e2 = edb.addElement(b"Kryptonite", b"@", 500, {999 : 0.7, 1000 : 0.3}, {999 : 999.01, 1000 : 1000.01}, False)
+    e2 = edb.getElement(pyopenms.String("@"))
+    assert e2.getName() == "Kryptonite"
+    assert e2.getIsotopeDistribution()
+    assert len(e2.getIsotopeDistribution().getContainer()) == 2
+    assert abs(e2.getIsotopeDistribution().getContainer()[1].getIntensity() - 0.3) < 1e-5
+    # replace element
+    e2 = edb.addElement(b"Kryptonite", b"@", 500, {9999 : 1.0}, {9999 : 9999.1}, True)
+    e2 = edb.getElement(pyopenms.String("@"))
+    assert e2.getName() == "Kryptonite"
+    assert e2.getIsotopeDistribution()
+    assert len(e2.getIsotopeDistribution().getContainer()) == 1
+    assert abs(e2.getIsotopeDistribution().getContainer()[0].getIntensity() - 1.0) < 1e-5
     # assert e == e2
 
     #  not yet implemented
@@ -5594,5 +5614,59 @@ def testString():
     # assert( isinstance(r, bytes) )
     assert(r.decode("iso8859_15") == u"bläh")
 
-
+@report
+def testGNPSExport():
+    cm = pyopenms.ConsensusMap()
     
+    for mz, rt, ion, linked_groups in [(222.08, 62.0, "[M+H]+", ["1","2","3"]),
+                                        (244.08, 62.0, "[M+Na]+", ["1","2"]),
+                                        (204.08, 62.0, "[M-H-O]+", ["3"]),
+                                        (294.1, 62.0, "[M+H]+", ["4","5"])]:
+        f = pyopenms.ConsensusFeature()
+        f.setMZ(mz)
+        f.setRT(rt)
+        f.setCharge(1)
+        f.setQuality(2.0)
+        f.setMetaValue("best ion", ion)
+        f.setMetaValue("LinkedGroups", linked_groups)
+        cm.push_back(f)
+    cm.setUniqueIds()
+
+    pyopenms.IonIdentityMolecularNetworking.annotateConsensusMap(cm)
+
+    pyopenms.IonIdentityMolecularNetworking.writeSupplementaryPairTable(cm, "SupplementaryPairsTable.csv")
+
+    with open("SupplementaryPairsTable.csv", "r") as f:
+        assert f.read() == """ID1,ID2,EdgeType,Score,Annotation
+1,2,MS1 annotation,1,[M+H]+ [M+Na]+ dm/z=22.0
+1,3,MS1 annotation,1,[M+H]+ [M-H-O]+ dm/z=18.0
+"""
+    os.remove("SupplementaryPairsTable.csv")
+
+    pyopenms.GNPSQuantificationFile().store(cm, "FeatureQuantificationTable.txt")
+    with open("FeatureQuantificationTable.txt", "r") as f:
+        assert f.read() == """#MAP	id	filename	label	size
+#CONSENSUS	rt_cf	mz_cf	intensity_cf	charge_cf	width_cf	quality_cf	row ID	best ion	partners	annotation network number
+CONSENSUS	62.0	222.080000000000013	0.0	1	0.0	2.0	1	[M+H]+	2;3	1
+CONSENSUS	62.0	244.080000000000013	0.0	1	0.0	2.0	2	[M+Na]+	1	1
+CONSENSUS	62.0	204.080000000000013	0.0	1	0.0	2.0	3	[M-H-O]+	1	1
+CONSENSUS	62.0	294.100000000000023	0.0	1	0.0	2.0	4	[M+H]+		2
+"""
+    os.remove("FeatureQuantificationTable.txt")
+
+    # add mandatory file descriptions
+    file_descriptions = {}
+    for i, filename in enumerate(["1.mzML", "2.mzML"]):
+        file_description = pyopenms.ColumnHeader()
+        file_description.filename = filename
+        file_descriptions[i] = file_description
+    cm.setColumnHeaders(file_descriptions)
+
+    pyopenms.GNPSMetaValueFile().store(cm, "MetaValueTable.tsv")
+    with open("MetaValueTable.tsv", "r") as f:
+        assert f.read() == """	filename	ATTRIBUTE_MAPID
+0	1.mzML	MAP0
+1	2.mzML	MAP1
+"""
+    os.remove("MetaValueTable.tsv")
+

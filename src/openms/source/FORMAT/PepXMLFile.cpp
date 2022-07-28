@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1419,6 +1419,7 @@ namespace OpenMS
       status_ = "";
       optionalAttributeAsString_(native_spectrum_name_, attributes, "spectrum"); //TODO store separately? Do we ever need the pepXML internal ref?
       optionalAttributeAsString_(native_spectrum_name_, attributes, "spectrumNativeID"); //some engines write that optional attribute - is preferred to spectrum
+      optionalAttributeAsString_(native_spectrum_name_, attributes, "native_id"); //MSFragger specific native ID
       optionalAttributeAsString_(experiment_label_, attributes, "experiment_label");
       optionalAttributeAsString_(swath_assay_, attributes, "swath_assay");
       optionalAttributeAsString_(status_, attributes, "status");

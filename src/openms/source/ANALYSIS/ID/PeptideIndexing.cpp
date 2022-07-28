@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,9 @@
 #include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <atomic>
+#include <map>
+#include <array>
+
 
 #ifdef _OPENMP 
 #include <omp.h>
@@ -416,7 +419,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   }
 
   FoundProteinFunctor func(enzyme, xtandem_fix_parameters); // store the matches
-  Map<String, Size> acc_to_prot; // map: accessions --> FASTA protein index
+  std::map<String, Size> acc_to_prot; // map: accessions --> FASTA protein index
   std::vector<bool> protein_is_decoy; // protein index -> is decoy?
   std::vector<std::string> protein_accessions; // protein index -> accession
 
@@ -477,7 +480,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
     #pragma omp parallel
     {
       FoundProteinFunctor func_threads(enzyme, xtandem_fix_parameters);
-      Map<String, Size> acc_to_prot_thread; // map: accessions --> FASTA protein index
+      std::map<String, Size> acc_to_prot_thread; // map: accessions --> FASTA protein index
       ACTrieState ac_state;
       String prot;
 
@@ -634,7 +637,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   //   do mapping 
   //
   // index existing proteins
-  Map<String, Size> runid_to_runidx; // identifier to index
+  std::map<String, Size> runid_to_runidx; // identifier to index
   for (Size run_idx = 0; run_idx < prot_ids.size(); ++run_idx)
   {
     runid_to_runidx[prot_ids[run_idx].getIdentifier()] = run_idx;
@@ -648,7 +651,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   Size stats_count_m_d(0);    // match to Decoy DB
   Size stats_count_m_td(0);   // match to T+D DB
 
-  Map<Size, std::set<Size> > runidx_to_protidx; // in which protID do appear which proteins (according to mapped peptides)
+  std::map<Size, std::set<Size> > runidx_to_protidx; // in which protID do appear which proteins (according to mapped peptides)
 
   Size pep_idx(0);
   Size func_hits_idx(0); ///< current position in func.pep_to_prot[] which has a stretch of matches for current pep_idx
@@ -771,7 +774,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   // all peptides contain the correct protein hit references, now update the protein hits
   for (Size run_idx = 0; run_idx < prot_ids.size(); ++run_idx)
   {
-    std::set<Size> masterset = runidx_to_protidx[run_idx]; // all protein matches from above
+    const auto& masterset = runidx_to_protidx[run_idx]; // all protein matches from above
 
     std::vector<ProteinHit>& phits = prot_ids[run_idx].getHits();
     {
@@ -780,7 +783,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
       for (std::vector<ProteinHit>::iterator p_hit = phits.begin(); p_hit != phits.end(); ++p_hit)
       {
         const String& acc = p_hit->getAccession();
-        if (!acc_to_prot.has(acc)) // acc_to_prot only contains found proteins from current run
+        if (acc_to_prot.find(acc) == acc_to_prot.end()) // acc_to_prot only contains found proteins from current run
         { // old hit is orphaned
           ++stats_orphaned_proteins;
           if (keep_unreferenced_proteins_)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -124,6 +124,19 @@ public:
     /// Destructor
     virtual ~EmpiricalFormula();
     //@}
+
+     /**
+     @brief create EmpiricalFormular object by parsing an OpenMS string
+
+     @param s Input string
+
+     @throws Exception::ParseError if the formula cannot be parsed
+   */
+    static EmpiricalFormula fromString(const String& rhs)
+    {
+      EmpiricalFormula ef(rhs);
+      return ef;
+    }
 
     /** @name Accessors
     */

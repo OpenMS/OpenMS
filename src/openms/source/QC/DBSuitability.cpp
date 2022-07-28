@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,13 @@
 // $Authors: Tom Waschischeck $
 // --------------------------------------------------------------------------
 
+
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -276,7 +278,7 @@ namespace OpenMS
   {
     Param p;
     // list of all allowed adapters
-    vector<String> working_adapters{ "CometAdapter", "CruxAdapter", "MSGFPlusAdapter", "MSFraggerAdapter", "MyriMatchAdapter", "OMSSAAdapter", "XTandemAdapter" };
+    vector<String> working_adapters{ "CometAdapter", "MSGFPlusAdapter", "MSFraggerAdapter", "MyriMatchAdapter", "OMSSAAdapter", "XTandemAdapter" };
 
     vector<String> keys;
     search_params.getKeys(keys);
@@ -374,7 +376,7 @@ namespace OpenMS
       OPENMS_LOG_ERROR << "An error occured while running " << adapter_name << "." << endl;
       OPENMS_LOG_ERROR << "Standard output: " << proc_stdout << endl;
       OPENMS_LOG_ERROR << "Standard error: " << proc_stderr << endl;
-      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + static_cast<Int>(rt));
+      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + String(static_cast<Int>(rt)));
     }
     // search was successful
 
@@ -394,7 +396,7 @@ namespace OpenMS
     if (indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK)
     {
       OPENMS_LOG_ERROR << "An error occured while trying to index the search results." << endl;
-      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + static_cast<Int>(indexer_exit));
+      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + String(static_cast<Int>(indexer_exit)));
     }
 
     if (keep_files)

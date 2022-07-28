@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -52,6 +52,8 @@ include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
 # add include to find moced files
 include_directories(${PROJECT_BINARY_DIR})
 
+# required for GUI tests to find the ui_foo.h files (e.g. TSGDialog_test)
+include_directories(${CMAKE_BINARY_DIR}/src/openms_gui)
 
 #------------------------------------------------------------------------------
 # VISUAL
@@ -72,12 +74,15 @@ endforeach(_class_test)
 if(HAS_XSERVER)
   set(GUI_executables_list
     TOPPView_test
+    TSGDialog_test
   )
 
   #------------------------------------------------------------------------------
   # Use QtTest lib
 
-  find_package(Qt5 COMPONENTS Test REQUIRED)
+  find_package(Qt5 REQUIRED
+    Test
+  )
   if (NOT Qt5Test_FOUND)
     message(STATUS "QtTest module not found!")
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")

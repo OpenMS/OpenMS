@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,7 +83,9 @@ using namespace std;
  The idea of the OpenSwath Analyzer is to analyze a series of chromatograms
  together with the associated meta information (stored in TraML format) in
  order to determine likely places of elution of a peptide in targeted
- proteomics data (derived from SWATH-MS or MRM/SRM).
+ proteomics data (derived from SWATH-MS or MRM/SRM). This tool will perform
+ peak picking on the chromatograms and scoring in a single tool, if you only
+ want the peak picking look at UTILS_MRMTransitionGroupPicker tool.
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_OpenSwathAnalyzer.cli

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,13 +35,14 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -136,8 +137,8 @@ namespace OpenMS
     column_description_.insert(rhs.column_description_.begin(), rhs.column_description_.end());
 
     // update filename and map size
-    Map<UInt64, ColumnHeader>::const_iterator it = column_description_.begin();
-    Map<UInt64, ColumnHeader>::const_iterator it2 = rhs.column_description_.begin();
+    std::map<UInt64, ColumnHeader>::const_iterator it = column_description_.begin();
+    std::map<UInt64, ColumnHeader>::const_iterator it2 = rhs.column_description_.begin();
 
     for (; it != column_description_.end() && it2 != rhs.column_description_.end(); ++it, ++it2)
     {
@@ -632,7 +633,7 @@ namespace OpenMS
   bool ConsensusMap::isMapConsistent(Logger::LogStream* stream) const
   {
     Size stats_wrongMID(0); // invalid map ID references by a feature handle
-    Map<Size, Size> wrong_ID_count; // which IDs were given which are not valid
+    std::map<Size, Size> wrong_ID_count; // which IDs were given which are not valid
 
     // check file descriptions
     std::set<String> maps;
@@ -648,7 +649,7 @@ namespace OpenMS
     {
       if (stream != nullptr)
       {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
         *stream << "Map descriptions (file name + label) in ConsensusMap are not unique:\n" << all_maps << std::endl;
       }
       return false;
@@ -673,14 +674,14 @@ OPENMS_THREAD_CRITICAL(oms_log)
     {
       if (stream != nullptr)
       {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
         *stream << "ConsensusMap contains " << stats_wrongMID << " invalid references to maps:\n";
-        for (Map<Size, Size>::ConstIterator it = wrong_ID_count.begin(); it != wrong_ID_count.end(); ++it)
+        for (std::map<Size, Size>::const_iterator it = wrong_ID_count.begin(); it != wrong_ID_count.end(); ++it)
         {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
           *stream << "  wrong id=" << it->first << " (occurred " << it->second << "x)\n";
         }
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
         *stream << std::endl;
       }
       return false;
