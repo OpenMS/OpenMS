@@ -88,6 +88,12 @@ namespace OpenMS
       */
     void updateMonomassAndIsotopeIntensities();
 
+    /**
+           @brief Update isotope cosine sore and qscore
+           @param avg precalculated averagine
+           @param min_cos the peak groups with cosine score less than this will have QScore 0.
+           @param iso_da_distance Danton distance between consecutive isotopologues. Will be used to generate decoy masses.
+      */
     void updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double iso_da_distance);
 
     /// recruit peaks and then return as a spectrum.
@@ -214,6 +220,7 @@ namespace OpenMS
     /// set per abs_charge signal power
     void setChargePowers_(const int abs_charge, const double signal_pwr, const double noise_pwr, const double intensity);
 
+    /// update chargefit score and also update per charge intensities here.
     void updateChargeFitScoreAndChargeIntensities_();
 
     /// update avg ppm error

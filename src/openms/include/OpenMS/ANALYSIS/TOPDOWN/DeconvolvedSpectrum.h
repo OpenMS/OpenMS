@@ -63,7 +63,7 @@ namespace OpenMS
     /**
        @brief Constructor for DeconvolvedSpectrum. Takes the spectrum and scan number calculated from outside
        @param spectrum spectrum for which the deconvolution will be performed
-       @param scan_number scan number of the spectrum: this argument is put here for real time case where scan number should be input separately.
+       @param scan_number scan number of the spectrum.
   */
     DeconvolvedSpectrum(const MSSpectrum& spectrum, const int scan_number);
 
