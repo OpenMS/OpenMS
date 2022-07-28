@@ -36,6 +36,9 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -97,7 +100,7 @@ protected:
     registerInputFile_("in", "<file>", "", "Input spectra.");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerInputFile_("database", "<file>", "", "Default spectral database.", true);
-    setValidFormats_("database", ListUtils::create<String>("mzML"));
+    setValidFormats_("database", {"mzML", "msp"});
     registerOutputFile_("out", "<file>", "", "mzTab file");
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
 
@@ -159,9 +162,21 @@ protected:
     //-------------------------------------------------------------
     // load database
     //-------------------------------------------------------------
+    FileTypes::Type database_type = FileHandler::getTypeByFileName(database);
 
     PeakMap spec_db;
-    mz_file.load(spec_db_filename, spec_db);
+    if (database_type == FileTypes::MSP)
+    {
+      MSPGenericFile().load(spec_db_filename, spec_db);
+    }
+    else if (database_type == FileTypes::MZML)
+    {
+      mz_file.load(spec_db_filename, spec_db);
+    }
+    else if (database_type == FileTypes::MGF)
+    {
+      MascotGenericFile().load(spec_db_filename, spec_db);
+    }
 
     if (spec_db.empty())
     {
