@@ -149,19 +149,19 @@ namespace OpenMS
 
         if (dspec.getPrecursorPeakGroup().empty())
         {
-          fs << "nan\tnan\tnan\tnan\tnan\t";
+          fs << "nan\tnan\tnan\tnan\tnan\tnan\tnan\t";
         }
         else
         {
           fs << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) << "\t" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) << "\t"
-             << dspec.getPrecursorPeakGroup().getQScore() << "\t" << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalueWithChargeDecoyOnly() << "\t" ;
+             << dspec.getPrecursorPeakGroup().getQScore() << "\t" << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalueWithIsotopeDecoyOnly() << "\t"  << dspec.getPrecursorPeakGroup().getQvalueWithNoiseDecoyOnly() << "\t"   << dspec.getPrecursorPeakGroup().getQvalueWithChargeDecoyOnly() << "\t" ;
         }
       }
       fs << pg.getIsotopeCosine() << "\t" << pg.getChargeScore() << "\t";
 
       auto max_qscore_mz_range = pg.getMaxQScoreMzRange();
       fs << pg.getSNR() << "\t" << pg.getChargeSNR(pg.getRepAbsCharge()) << "\t" << (pg.isPositive() ? pg.getRepAbsCharge() : -pg.getRepAbsCharge()) << "\t"
-         << std::to_string(std::get<0>(max_qscore_mz_range)) << "\t" << std::to_string(std::get<1>(max_qscore_mz_range)) << "\t" << pg.getQScore() << "\t" << pg.getQvalue() << "\t" << pg.getQvalueWithChargeDecoyOnly()<<"\t"
+         << std::to_string(std::get<0>(max_qscore_mz_range)) << "\t" << std::to_string(std::get<1>(max_qscore_mz_range)) << "\t" << pg.getQScore() << "\t" << pg.getQvalue() << "\t" << pg.getQvalueWithIsotopeDecoyOnly() << "\t" << pg.getQvalueWithNoiseDecoyOnly() << "\t" << pg.getQvalueWithChargeDecoyOnly()<<"\t"
          << std::setprecision(-1); //
 
       for (int i = std::get<0>(charge_range); i <= std::get<1>(charge_range); i++)
@@ -207,15 +207,15 @@ namespace OpenMS
         fs << "FileName\tScanNum\tDecoy\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
-              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tQvalue\tQvalueWithChargeDecoyOnly\tPerChargeIntensity\tPerIsotopeIntensity\n";
+              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tQvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
       else
       {
         fs << "FileName\tScanNum\tDecoy\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
-              "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\tPrecursorQvalue\tPrecursorQvalueWithChargeDecoyOnly\t"
-              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tQvalue\tQvalueWithChargeDecoyOnly\tPerChargeIntensity\tPerIsotopeIntensity\n";
+              "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\tPrecursorQvalue\tPrecursorQvalueWithIsotopeDecoyOnly\tPrecursorQvalueWithNoiseDecoyOnly\tPrecursorQvalueWithChargeDecoyOnly\t"
+              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tQvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
     }
     else
@@ -226,15 +226,15 @@ namespace OpenMS
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\t"
               //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
-              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tQvalue\tQvalueWithChargeDecoyOnly\tPerChargeIntensity\tPerIsotopeIntensity\n";
+              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tQvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
       else
       {
         fs << "FileName\tScanNum\tDecoy\tRetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\t"
-              "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\tPrecursorQvalue\tPrecursorQvalueWithChargeDecoyOnly\t"
-              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tQvalue\tQvalueWithChargeDecoyOnly\tPerChargeIntensity\tPerIsotopeIntensity\n";
+              "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\tPrecursorQvalue\tPrecursorQvalueWithIsotopeDecoyOnly\tPrecursorQvalueWithNoiseDecoyOnly\tPrecursorQvalueWithChargeDecoyOnly\t"
+              "IsotopeCosine\tChargeScore\tMassSNR\tChargeSNR\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\tQvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\tPerChargeIntensity\tPerIsotopeIntensity\n";
       }
     }
   }

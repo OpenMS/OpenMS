@@ -98,7 +98,7 @@ namespace OpenMS
     const Precursor& getPrecursor() const;
 
     /// set qvalue of precursor peak
-    void setPrecursorPeakGroupQvalue(const double qvalue, const double qvalue_with_charge_decoy_only);
+    void setPrecursorPeakGroupQvalue(const double qvalue_with_iso_decoy_only , const double qvalue_with_noise_decoy_only, const double qvalue_with_charge_decoy_only);
 
     /// get possible max mass of the deconvolved masses - for MS1, max mass specified by user
     /// for MSn, min value between max mass specified by the user and precursor mass

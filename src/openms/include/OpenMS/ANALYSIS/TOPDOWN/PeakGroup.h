@@ -88,7 +88,7 @@ namespace OpenMS
       */
     void updateMonomassAndIsotopeIntensities();
 
-    double updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos);
+    void updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double iso_da_distance);
 
     //MSSpectrum getSubspectrumForMass(const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass);
 
@@ -208,7 +208,15 @@ namespace OpenMS
 
     float getQvalueWithChargeDecoyOnly() const;
 
+    float getQvalueWithIsotopeDecoyOnly() const;
+
+    float getQvalueWithNoiseDecoyOnly() const;
+
     void setQvalueWithChargeDecoyOnly(const float q);
+
+    void setQvalueWithIsotopeDecoyOnly(const float q);
+
+    void setQvalueWithNoiseDecoyOnly(const float q);
 
 
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator begin() const noexcept;
@@ -235,6 +243,8 @@ namespace OpenMS
     /// set per abs_charge signal power
     void setChargePowers_(const int abs_charge, const double signal_pwr, const double noise_pwr, const double intensity);
     void updateChargeFitScoreAndChargeIntensities_();
+    //update avg ppm error
+    void updateAvgPPMError_(double iso_da_distance);
 
 
     /// log Mz peaks
@@ -262,7 +272,7 @@ namespace OpenMS
     /// information on the deconvolved mass
     double monoisotopic_mass_ = -1.0;
     double intensity_;// total intensity
-    /// index to specify if this peak_group is a target (0), a charge decoy (1), or an isotope decoy (2)
+    /// index to specify if this peak_group is a target (0), an isotope decoy (1), a noise (2), or a charge decoy (3)
     int decoy_index_ = 0;
     //float decoy_qscore_ = 0;
     //float decoy_iso_score_ = 0;
@@ -275,6 +285,9 @@ namespace OpenMS
     float avg_ppm_error_ = 0;
     float snr_ = 0;
     float qvalue_ = 1.0;
+
+    float qvalue_with_isotope_decoy_only_ = 1.0;
+    float qvalue_with_noise_decoy_only_ = 1.0;
     float qvalue_with_charge_decoy_only_ = 1.0;
   };
 }
