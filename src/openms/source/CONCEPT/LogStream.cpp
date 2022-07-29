@@ -228,11 +228,12 @@ namespace OpenMS
         }        
 
         *(list_it->stream) << expandPrefix_(list_it->prefix, time(nullptr))
-                           << outstring << std::endl;
+                           << outstring;
         if (colorizer_)
         {
           *(list_it->stream) << (*colorizer_).undo(); // disable color
         }
+        *(list_it->stream) << std::endl;
 
         if (list_it->target != nullptr)
         {

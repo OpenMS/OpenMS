@@ -101,6 +101,37 @@ namespace OpenMS
 #endif // end OPENMS_WINDOWSPLATFORM
   };
 
+#ifdef OPENMS_WINDOWSPLATFORM
+  /// implementation of isatty() for Windows
+  /// Returns 'true' if the stream is shown on the console
+  /// and 'false' if redirected somewhere else (file or NUL)
+  bool isattyWin(const std::ostream& stream)
+  {
+    DWORD h_stream;
+    if (&stream == &std::cout)
+      h_stream = STD_OUTPUT_HANDLE;
+    else if (&stream == &std::cerr)
+      h_stream = STD_ERROR_HANDLE;
+    else
+      return false;
+
+    HANDLE hOut = GetStdHandle(h_stream);
+    if (hOut == INVALID_HANDLE_VALUE)
+    {
+      //std::cerr << "no handle for " << h_stream << "\n";
+      return false;
+    }
+
+    DWORD dwMode = 0;
+    if (!GetConsoleMode(hOut, &dwMode))
+    {
+      return false;
+    }
+    return true;
+  }
+
+#endif
+
   // our local object, which will be initialized and destroyed at startup/teardown
   static InitConsole windows_console_prep_and_restore;
 
@@ -141,32 +172,6 @@ namespace OpenMS
     // debug: stream << "(" << ANSI_command + 2 << ") ";
     stream << ANSI_command;
   }
-
-  /// implementation of isatty() for Windows
-  /// Returns 'true' if the stream is shown on the console
-  /// and 'false' if redirected somewhere else (file or NUL)
-  bool isattyWin(const std::ostream& stream)
-  {
-    DWORD h_stream;
-    if (&stream == &std::cout) h_stream = STD_OUTPUT_HANDLE;
-    else if(&stream == &std::cerr) h_stream = STD_ERROR_HANDLE;
-    else return false;
-
-    HANDLE hOut = GetStdHandle(h_stream);
-    if (hOut == INVALID_HANDLE_VALUE)
-    {
-      std::cerr << "no handle for " << h_stream << "\n";
-      return false;
-    }
-
-    DWORD dwMode = 0;
-    if (!GetConsoleMode(hOut, &dwMode))
-    {
-      return false;
-    }
-    return true;
-  }
-  
 
   bool Colorizer::isTTY(const std::ostream& stream)
   {

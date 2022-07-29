@@ -34,6 +34,8 @@
 
 #include <OpenMS/APPLICATIONS/ConsoleUtils.h>
 
+#include <sstream>
+
 using namespace std;
 
 namespace OpenMS
