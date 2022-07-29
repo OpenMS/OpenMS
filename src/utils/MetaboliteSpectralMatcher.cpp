@@ -100,7 +100,7 @@ protected:
     registerInputFile_("in", "<file>", "", "Input spectra.");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerInputFile_("database", "<file>", "", "Default spectral database.", true);
-    setValidFormats_("database", {"mzML", "msp"});
+    setValidFormats_("database", {"mzML", "msp", "mgf"});
     registerOutputFile_("out", "<file>", "", "mzTab file");
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
 

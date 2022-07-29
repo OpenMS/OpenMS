@@ -309,6 +309,26 @@ protected:
                 }
               }
             }
+            else if (line.hasPrefix("NAME"))
+            {
+              String tmp = line.substr(5);
+              spectrum.setMetaValue("Metabolite_Name", tmp);
+            }
+            else if (line.hasPrefix("INCHI="))
+            {
+              String tmp = line.substr(6);
+              spectrum.setMetaValue("Inchi_String", tmp);
+            }
+            else if (line.hasPrefix("SMILES"))
+            {
+              String tmp = line.substr(7);
+              spectrum.setMetaValue("SMILES_String", tmp);
+            }
+            else if (line.hasPrefix("SPECTRUMID"))
+            {
+              String tmp = line.substr(11);
+              spectrum.setMetaValue("GNPS_Spectrum_ID", tmp);
+            }
           }
         }
       }
