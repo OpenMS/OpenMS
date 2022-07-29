@@ -121,7 +121,7 @@ public:
       int i;
       UInt j;
       int mid = (frame_size_ / 2);
-      using IntensityType = InputIt::value_type::IntensityType;
+      using IntensityType = typename InputIt::value_type::IntensityType;
       IntensityType help;
 
       // compute the transient on
