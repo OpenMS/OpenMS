@@ -357,7 +357,7 @@ public:
       {
         if (it.getRT() != t) 
         {
-          t = it.getRT();
+          t = (float)it.getRT();
           rt.emplace_back(t);
           mz.resize(mz.size() + 1); 
           rt.resize(rt.size() + 1);

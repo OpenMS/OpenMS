@@ -121,7 +121,8 @@ public:
       int i;
       UInt j;
       int mid = (frame_size_ / 2);
-      double help;
+      using IntensityType = InputIt::value_type::IntensityType;
+      IntensityType help;
 
       // compute the transient on
       OutputIt out_it = d_first;
@@ -137,7 +138,7 @@ public:
         }
 
         out_it->setPosition(first->getPosition());
-        out_it->setIntensity(std::max(0.0, help));
+        out_it->setIntensity(std::max(IntensityType{}, help));
         ++out_it;
         ++first;
       }
@@ -157,7 +158,7 @@ public:
         }
 
         out_it->setPosition(first->getPosition());
-        out_it->setIntensity(std::max(0.0, help));
+        out_it->setIntensity(std::max(IntensityType{}, help));
         ++out_it;
         ++first;
       }
@@ -175,7 +176,7 @@ public:
         }
 
         out_it->setPosition(first->getPosition());
-        out_it->setIntensity(std::max(0.0, help));
+        out_it->setIntensity(std::max<IntensityType>(0, help));
         ++out_it;
         ++first;
       }
