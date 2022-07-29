@@ -92,8 +92,6 @@ namespace OpenMS
           console/terminal, independent of streams. I.e. if you apply a permanent color to std::cout
           then all subsequent output to std::cerr will also be colored! (unless std::cout is redirected to a file,
           then coloring std::cout will have no effect, not even when printing to the console using std::cerr).
-    
-    Note: this does not (yet) work for OpenMS LogStreams
    */
   class OPENMS_DLLAPI Colorizer
   {
