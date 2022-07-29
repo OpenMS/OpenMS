@@ -40,6 +40,11 @@
   #include <windows.h>
 #endif
 
+#ifdef OPENMS_HAS_UNISTD_H
+  #include <unistd.h>  // for isatty(), STDOUT_FILENO, STDERR_FILENO
+#endif
+
+
 namespace OpenMS
 {
   /// Initialize the Console (Windows OS) and upon closing the program make sure
