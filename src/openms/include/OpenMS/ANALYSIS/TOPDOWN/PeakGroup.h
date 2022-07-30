@@ -93,7 +93,7 @@ namespace OpenMS
     //MSSpectrum getSubspectrumForMass(const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass);
 
     /// recruit peaks and then return as a spectrum.
-    void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, double mass_offset = 0);
+    void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, bool write_detail, double mass_offset = 0);
 
     /// using signal and total (signal + noise) power, update SNR value
     void updateSNR();

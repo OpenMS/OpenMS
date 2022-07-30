@@ -241,7 +241,7 @@ namespace OpenMS
 */
   void PeakGroup::recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol,
                                             const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                            double mono_mass, double mass_offset)
+                                            double mono_mass, bool write_detail, double mass_offset)
   {
     if(mono_mass + mass_offset < 0)
     {
@@ -252,7 +252,8 @@ namespace OpenMS
 
     clear();
     reserve((max_isotope) * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
-    //noisy_peaks.reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1)* 2);
+    if(write_detail)
+      noisy_peaks.reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1)* 2);
 
     int nmax_abs_charge = -1;
     int nmin_abs_charge = min_abs_charge_;
@@ -314,11 +315,13 @@ namespace OpenMS
         }
         else
         {
-          /*auto p = LogMzPeak(spec[index], is_positive_);
-          p.isotopeIndex = iso_index;
-          p.abs_charge = c;
-          noisy_peaks.push_back(p); //tmp
-          */
+          if(write_detail)
+          {
+            auto p = LogMzPeak(spec[index], is_positive_);
+            p.isotopeIndex = iso_index;
+            p.abs_charge = c;
+            noisy_peaks.push_back(p); // tmp
+          }
           charge_noise_pwr += peak_pwr;
         }
       }

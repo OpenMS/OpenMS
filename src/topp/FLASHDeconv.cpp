@@ -824,7 +824,7 @@ protected:
       {
         precursor_specs = (last_deconvolved_spectra[ms_level - 1]);
       }
-      fd.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
+      fd.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
       auto& deconvolved_spectrum = fd.getDeconvolvedSpectrum();
       auto& decoy_deconvolved_spectrum = fd.getDecoyDeconvolvedSpectrum();
 
@@ -897,9 +897,9 @@ protected:
           }
         }
         fd_decoy
-            .performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
+            .performSpectrumDeconvolution(*it, precursor_specs, scan_number, false, precursor_map_for_real_time_acquisition);
 
-        fd_decoy2.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
+        fd_decoy2.performSpectrumDeconvolution(*it, precursor_specs, scan_number, false, precursor_map_for_real_time_acquisition);
 
         for(auto& pg: fd_decoy.getDeconvolvedSpectrum())
         {
