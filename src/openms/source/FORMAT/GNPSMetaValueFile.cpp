@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,18 +41,20 @@
 #include <unordered_map>
 
 namespace OpenMS
-{   
+{
     /**
-    @brief Generates a meta value required for GNPS FBMN, as defined here: https://ccms-ucsd.github.io/GNPSDocumentation/metadata/
+    @brief Generates a meta value table required for GNPS FBMN, as defined here: https://ccms-ucsd.github.io/GNPSDocumentation/metadata/
     */
-    void GNPSMetaValueFile::store(const StringList& mzml_file_paths, const String& output_file)
-    {
+    void GNPSMetaValueFile::store(const ConsensusMap& consensus_map, const String& output_file)
+    {   
+        StringList mzML_file_paths;
+        consensus_map.getPrimaryMSRunPath(mzML_file_paths);
         std::ofstream outstr(output_file.c_str());
         SVOutStream out(outstr, "\t", "_", String::NONE);
 
         out << "filename" << "ATTRIBUTE_MAPID" << std::endl;
         Size i = 0;
-        for (const auto& path: mzml_file_paths)
+        for (const auto& path: mzML_file_paths)
         {
             out << path.substr(path.find_last_of("/\\")+1) << "MAP"+String(i) << std::endl;
             i++;

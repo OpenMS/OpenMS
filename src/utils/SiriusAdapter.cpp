@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,8 +76,8 @@ using namespace std;
   1. Input mzML (and optional featureXML) \n
   2. Preprocessing (see below)\n
   3. Parsed by SiriusMSConverter into (sirius internal) .ms format \n
-  4. Submission of .ms and additional parameters to wrapped SIRIUS.jar \n
-  5. Sirius output saved in interal temporary folder structure \n
+  4. Submission of .ms and additional parameters to wrapped SIRIUS CLI \n
+  5. Sirius output saved in internal temporary folder structure \n
   6. Sirius output is parsed (SiriusMzTabWriter/CsiFingerIDMzTabWriter) \n
   7. Merge corresponding output in one mzTab (out_sirius/out_fingerid) \n
 
@@ -153,7 +153,10 @@ protected:
 
     addEmptyLine_();
 
-    registerFullParam_(algorithm.getDefaults());
+    auto defaults = algorithm.getDefaults();
+    defaults.remove("project:processors");
+
+    registerFullParam_(defaults);
   }
 
   ExitCodes main_(int, const char **) override
@@ -171,7 +174,13 @@ protected:
     String sirius_workspace_directory = getStringOption_("out_project_space");
     bool converter_mode = getFlag_("converter_mode");
 
-    algorithm.updateExistingParameter(getParam_());
+    auto params = getParam_();
+    if (debug_level_ > 3)
+    {
+      params.setValue("read_sirius_stdout", "true");
+    }
+    params.setValue("project:processors", params.getValue("threads"));
+    algorithm.updateExistingParameter(params);
 
     writeDebug_("Parameters passed to SiriusAdapterAlgorithm", algorithm.getParameters(), 3);
 
