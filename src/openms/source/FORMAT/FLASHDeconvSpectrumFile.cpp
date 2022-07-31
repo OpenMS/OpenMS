@@ -44,7 +44,7 @@ namespace OpenMS
 
 
   void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, std::fstream& fs, const String& file_name, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                                       const bool write_detail)
+                                                      const bool write_detail)
   {
     if (dspec.empty())
     {
@@ -110,14 +110,11 @@ namespace OpenMS
 
         for (auto& p : pg)
         {
-          double average_mass = pg.getMonoMass() + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
+          double average_mass = pg.getMonoMass() + p.isotopeIndex * pg.getIsotopeDaDistance();
           double mass_error = (average_mass / p.abs_charge + FLASHDeconvHelperStructs::getChargeMass(p.is_positive) - p.mz) / p.mz;
           fs << 1e6 * mass_error << " ";
         }
         fs << "\t";
-
-
-
 
         fs << std::fixed << std::setprecision(2);
         for (auto& p : pg.noisy_peaks)
@@ -158,12 +155,11 @@ namespace OpenMS
 
         for (auto& p : pg.noisy_peaks)
         {
-          double average_mass = pg.getMonoMass() + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
+          double average_mass = pg.getMonoMass() + p.isotopeIndex * pg.getIsotopeDaDistance();
           double mass_error = (average_mass / p.abs_charge + FLASHDeconvHelperStructs::getChargeMass(p.is_positive) - p.mz) / p.mz;
           fs << 1e6 * mass_error << " ";
         }
         fs << "\t";
-
       }
       if (dspec.getOriginalSpectrum().getMSLevel() > 1)
       {

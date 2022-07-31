@@ -871,6 +871,7 @@ namespace OpenMS
                    is_positive_);                                                                                     // make a empty peakGroup (mass)
 
       pg.reserve(charge_range * 128);
+      pg.setIsotopeDaDistance(iso_da_distance_);
       // the range of isotope span. For a given peak the peaks within the span are searched.
       Size right_index = avg_.getRightCountFromApex(mass);
       Size left_index = avg_.getLeftCountFromApex(mass);
@@ -1288,7 +1289,7 @@ namespace OpenMS
           auto max_q_score_mz_range = decoy.getMzRange(peak_group.getRepAbsCharge());
           decoy.setMaxQScoreMzRange(std::get<0>(max_q_score_mz_range), std::get<1>(max_q_score_mz_range));
           decoy.setScanNumber(deconvolved_spectrum_.getScanNumber());
-          decoy.clear();
+          if(!write_detail_) decoy.clear();
           decoy_deconvolved_spectrum_.push_back(decoy);
         }
       }
@@ -1313,7 +1314,7 @@ namespace OpenMS
           continue;
         }
         peak_group.setDecoyIndex(charge_decoy_);
-        peak_group.clear();
+        if(!write_detail_) peak_group.clear();
       }
 
       if (peak_group.getRepAbsCharge() < min_abs_charge_ || peak_group.getRepAbsCharge() > max_abs_charge_)
@@ -1326,7 +1327,7 @@ namespace OpenMS
       if(decoy_run_flag_ == noise_decoy_)
       {
         peak_group.setDecoyIndex(noise_decoy_);
-        peak_group.clear();
+        if(!write_detail_) peak_group.clear();
       }
       filtered_peak_groups.push_back(peak_group);
     }

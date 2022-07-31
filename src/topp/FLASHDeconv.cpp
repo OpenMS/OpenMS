@@ -254,8 +254,6 @@ protected:
     fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
     //fd_defaults.addTag("tol", "advanced"); // hide entry
-    fd_defaults.setValue("min_peaks", IntList{3, 3, 3});
-    fd_defaults.addTag("min_peaks", "advanced");
     fd_defaults.setValue("min_intensity", 100.0, "Intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
     fd_defaults.setValue("min_isotope_cosine",
@@ -268,12 +266,6 @@ protected:
                          "maximum mass counts per spec for MS1, 2, ... "
                          "(e.g., -max_mass_count_ 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
     fd_defaults.addTag("max_mass_count", "advanced");
-
-    fd_defaults.setValue("rt_window",
-                         180.0,
-                         "RT window for MS1 deconvolution. Spectra within RT window are considered together for deconvolution."
-                         "When an MS1 spectrum is deconvolved, the masses found in previous MS1 spectra within RT window are favorably considered.");
-    fd_defaults.addTag("rt_window", "advanced");
 
     fd_defaults.remove("max_mass_count");
     //fd_defaults.remove("min_mass_count");
@@ -896,8 +888,7 @@ protected:
             fd_decoy.addExcludedMonoMass(pg.getMonoMass() + iso * Constants::ISOTOPE_MASSDIFF_55K_U);
           }
         }
-        fd_decoy
-            .performSpectrumDeconvolution(*it, precursor_specs, scan_number, false, precursor_map_for_real_time_acquisition);
+        fd_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, false, precursor_map_for_real_time_acquisition);
 
         fd_decoy2.performSpectrumDeconvolution(*it, precursor_specs, scan_number, false, precursor_map_for_real_time_acquisition);
 
