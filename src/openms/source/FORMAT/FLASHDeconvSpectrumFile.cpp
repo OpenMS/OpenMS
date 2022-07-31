@@ -54,10 +54,6 @@ namespace OpenMS
 
     for (auto& pg : dspec)
     {
-      if (pg.empty())
-      {
-        continue;
-      }
       const double mono_mass = pg.getMonoMass();
       const double avg_mass = pg.getMonoMass() + avg.getAverageMassDelta(mono_mass);
       const double intensity = pg.getIntensity();

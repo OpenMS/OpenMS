@@ -186,10 +186,17 @@ namespace OpenMS
     /// maximum isolation window width divided by two
     const double max_isolation_window_half_ = 3.0;
 
-    /// maps for global targeting
+    bool inclusive_mode_ = true;
+    /// maps for global inclusion targeting
     std::map<double, std::vector<double>> target_mass_rt_map_;
     std::map<double, std::vector<double>> target_mz_rt_map_;
     std::vector<double> target_masses_; /// current target masses
+
+    /// maps for global exclusion targeting
+    std::map<double, std::vector<double>> excluded_mass_rt_map_;
+    std::map<double, std::vector<double>> excluded_mz_rt_map_;
+    std::vector<double> excluded_masses_; /// current target masses
+
 
     /// precursor SNR threshold
     double snr_threshold_ = 1.0;

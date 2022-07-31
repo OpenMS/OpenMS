@@ -699,7 +699,7 @@ protected:
     MSExperiment exp;
 
     auto fd = FLASHDeconvAlgorithm();
-    FLASHDeconvAlgorithm fd_decoy, fd_decoy2;
+    FLASHDeconvAlgorithm fd_charge_decoy, fd_noise_decoy;
 
     Param fd_param = getParam_().copy("Algorithm:", true);
     DoubleList tols = fd_param.getValue("tol");
@@ -751,14 +751,14 @@ protected:
 
     if(report_decoy)
     {
-      fd_decoy.setParameters(fd_param);
-      fd_decoy.setAveragine(fd.getAveragine());
-      fd_decoy.setDecoyFlag(1); // charge
+      fd_charge_decoy.setParameters(fd_param);
+      fd_charge_decoy.setAveragine(fd.getAveragine());
+      fd_charge_decoy.setDecoyFlag(1); // charge
 
 
-      fd_decoy2.setParameters(fd_param);
-      fd_decoy2.setAveragine(fd.getAveragine());
-      fd_decoy2.setDecoyFlag(2); // noise
+      fd_noise_decoy.setParameters(fd_param);
+      fd_noise_decoy.setAveragine(fd.getAveragine());
+      fd_noise_decoy.setDecoyFlag(2); // noise
     }
     auto avg = fd.getAveragine();
     auto mass_tracer = MassFeatureTrace();
@@ -790,7 +790,7 @@ protected:
     deconvolved_spectra.reserve(map.size());
 
     std::vector<DeconvolvedSpectrum> decoy_deconvolved_spectra;
-    decoy_deconvolved_spectra.reserve(map.size());
+    decoy_deconvolved_spectra.reserve(map.size() * 3);
 
     for (auto it = map.begin(); it != map.end(); ++it)
     {
@@ -859,9 +859,6 @@ protected:
           }
         }
       }
-      elapsed_deconv_cpu_secs[ms_level - 1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
-      elapsed_deconv_wall_secs[ms_level - 1] += chrono::duration<double>(
-          chrono::high_resolution_clock::now() - deconv_t_start).count();
 
       if (ms_level < current_max_ms_level)
       {
@@ -882,33 +879,47 @@ protected:
 
       if(report_decoy)
       {
-        fd_decoy.clearExcludedMonoMasses();
+        fd_charge_decoy.clearExcludedMonoMasses();
         for(auto& pg: deconvolved_spectrum){
-          for(int iso=-3;iso<=3;iso++){
-            fd_decoy.addExcludedMonoMass(pg.getMonoMass() + iso * Constants::ISOTOPE_MASSDIFF_55K_U);
+          for(int iso=-3;iso <=  (int)avg.getLastIndex(pg.getMonoMass()) + 3;iso++){
+            fd_charge_decoy.addExcludedMonoMass(pg.getMonoMass() + iso * Constants::ISOTOPE_MASSDIFF_55K_U);
           }
         }
-        fd_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, false, precursor_map_for_real_time_acquisition);
+        fd_charge_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
+        fd_noise_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
 
-        fd_decoy2.performSpectrumDeconvolution(*it, precursor_specs, scan_number, false, precursor_map_for_real_time_acquisition);
+        decoy_deconvolved_spectrum.reserve(decoy_deconvolved_spectrum.size() + fd_charge_decoy.getDeconvolvedSpectrum().size()
+                                           + fd_noise_decoy.getDeconvolvedSpectrum().size());
 
-        for(auto& pg: fd_decoy.getDeconvolvedSpectrum())
+        for(auto& pg: fd_charge_decoy.getDeconvolvedSpectrum())
         {
           decoy_deconvolved_spectrum.push_back(pg);
         }
 
-        for(auto& pg: fd_decoy2.getDeconvolvedSpectrum())
+        for(auto& pg: fd_noise_decoy.getDeconvolvedSpectrum())
         {
           decoy_deconvolved_spectrum.push_back(pg);
         }
 
         decoy_deconvolved_spectrum.sort();
+        if(!write_detail)
+        {
+          for(auto& pg: decoy_deconvolved_spectrum)
+          {
+            pg.clear();
+          }
+        }
         decoy_deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
       }
 
       qspec_cntr[ms_level - 1]++;
       mass_cntr[ms_level - 1] += deconvolved_spectrum.size();
       deconvolved_spectra.push_back(deconvolved_spectrum);
+
+      elapsed_deconv_cpu_secs[ms_level - 1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
+      elapsed_deconv_wall_secs[ms_level - 1] += chrono::duration<double>(
+                                                  chrono::high_resolution_clock::now() - deconv_t_start).count();
+
 
       progresslogger.nextProgress();
     }

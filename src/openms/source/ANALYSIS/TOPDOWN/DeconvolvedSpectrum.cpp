@@ -315,7 +315,7 @@ namespace OpenMS
       for (int i = 0; i < tscore.size(); i++)
       {
         float ts = tscore[i];
-        int dindex = std::distance(std::lower_bound(dscore_charge.begin(), dscore_charge.end(), ts), dscore_charge.end());
+        int dindex = dscore_charge.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_charge.begin(), dscore_charge.end(), ts), dscore_charge.end());
         int tindex = tscore.size() - i;
 
         tmp_q_charge = std::min(tmp_q_charge, ((float)dindex / (dindex + tindex)));
@@ -327,7 +327,7 @@ namespace OpenMS
       for (int i = 0; i < tscore.size(); i++)
       {
         float ts = tscore[i];
-        int dindex = std::distance(std::lower_bound(dscore_iso.begin(), dscore_iso.end(), ts), dscore_iso.end());
+        int dindex = dscore_iso.size() == 0 ? 0 :  std::distance(std::lower_bound(dscore_iso.begin(), dscore_iso.end(), ts), dscore_iso.end());
         int tindex = tscore.size() - i;
 
         tmp_q_iso = std::min(tmp_q_iso, ((float)dindex / (dindex + tindex) * (1 - map_charge[ts])));
@@ -340,7 +340,7 @@ namespace OpenMS
       for (int i = 0; i < tscore.size(); i++)
       {
         float ts = tscore[i];
-        int dindex = std::distance(std::lower_bound(dscore_noise.begin(), dscore_noise.end(), ts), dscore_noise.end());
+        int dindex = dscore_noise.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_noise.begin(), dscore_noise.end(), ts), dscore_noise.end());
         int tindex = tscore.size() - i;
 
         tmp_q_noise = std::min(tmp_q_noise, ((float)dindex / (dindex + tindex)));

@@ -185,6 +185,7 @@ namespace OpenMS
     for (int abs_charge = min_abs_charge_; abs_charge <= max_abs_charge_; abs_charge++)
     {
       if (getChargeSNR(abs_charge) <= 0 || getChargeIsotopeCosine(abs_charge) <= 0)
+      if (getChargeSNR(abs_charge) <= 0 || getChargeIsotopeCosine(abs_charge) <= 0)
       {
         continue;
       }
@@ -197,7 +198,6 @@ namespace OpenMS
       max_qscore_abs_charge_ = abs_charge;
       qscore_ = q_score;
     }
-    return;
   }
 
 /*

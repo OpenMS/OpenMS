@@ -43,7 +43,6 @@ namespace OpenMS
   // constructor
   FLASHIda::FLASHIda(char *arg)
   {
-
     std::unordered_map<std::string, std::vector<double>> inputs;
     std::vector<String> log_files;
     std::vector<String> out_files;
@@ -82,6 +81,8 @@ namespace OpenMS
     rt_window_ = inputs["RT_window"][0];
     qscore_threshold_ = inputs["score_threshold"][0];
     snr_threshold_ = 1;
+    inclusive_mode_ = inputs["Inclusive"][0] == 1;
+
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
     fd_defaults.setValue("min_charge", (int) inputs["min_charge"][0]);
@@ -89,12 +90,12 @@ namespace OpenMS
     fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
     fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
     fd_defaults.setValue("min_isotope_cosine", DoubleList{.85, .85});
-
-    fd_defaults.setValue("min_qscore", .0);
+    fd_defaults.setValue("report_decoy_info", 0);
+    //fd_defaults.setValue("min_qscore", .0);
     fd_defaults.setValue("tol", inputs["tol"]);
     tol_ = inputs["tol"];
-    fd_defaults.setValue("rt_window", rt_window_);
-    fd_defaults.setValue("min_peaks", IntList{3, 3});//
+    //fd_defaults.setValue("rt_window", rt_window_);
+    //fd_defaults.setValue("min_peaks", IntList{3, 3});//
 
     auto mass_count_double = inputs["max_mass_count"];
 
@@ -133,11 +134,21 @@ namespace OpenMS
             String n = line.substr(st, ed - st + 1);
             mass = atof(n.c_str());
 
-            if (target_mass_rt_map_.find(mass) == target_mass_rt_map_.end())
+            if(inclusive_mode_)
             {
-              target_mass_rt_map_[mass] = std::vector<double>();
+              if (target_mass_rt_map_.find(mass) == target_mass_rt_map_.end())
+              {
+                target_mass_rt_map_[mass] = std::vector<double>();
+              }
+              target_mass_rt_map_[mass].push_back(rt * 60.0);
+            }else
+            {
+              if (excluded_mass_rt_map_.find(mass) == excluded_mass_rt_map_.end())
+              {
+                excluded_mass_rt_map_[mass] = std::vector<double>();
+              }
+              excluded_mass_rt_map_[mass].push_back(rt * 60.0);
             }
-            target_mass_rt_map_[mass].push_back(rt * 60.0);
             //precursor_map_for_real_time_acquisition[scan].push_back(e);
           }
         }
@@ -169,17 +180,34 @@ namespace OpenMS
           }
           mass = atof(results[5].c_str());
           mz = (atof(results[1].c_str()) + atof(results[2].c_str())) / 2.0;
-          if (target_mass_rt_map_.find(mass) == target_mass_rt_map_.end())
+          if (inclusive_mode_)
           {
-            target_mass_rt_map_[mass] = std::vector<double>();
-          }
-          target_mass_rt_map_[mass].push_back(60.0 * atof(results[0].c_str()));
+            if (target_mass_rt_map_.find(mass) == target_mass_rt_map_.end())
+            {
+              target_mass_rt_map_[mass] = std::vector<double>();
+            }
+            target_mass_rt_map_[mass].push_back(60.0 * atof(results[0].c_str()));
 
-          if (target_mz_rt_map_.find(mz) == target_mz_rt_map_.end())
-          {
-            target_mz_rt_map_[mz] = std::vector<double>();
+            if (target_mz_rt_map_.find(mz) == target_mz_rt_map_.end())
+            {
+              target_mz_rt_map_[mz] = std::vector<double>();
+            }
+            target_mz_rt_map_[mz].push_back(60.0 * atof(results[0].c_str()));
           }
-          target_mz_rt_map_[mz].push_back(60.0 * atof(results[0].c_str()));
+          else
+          {
+            if (excluded_mass_rt_map_.find(mass) == excluded_mass_rt_map_.end())
+            {
+              excluded_mass_rt_map_[mass] = std::vector<double>();
+            }
+            excluded_mass_rt_map_[mass].push_back(60.0 * atof(results[0].c_str()));
+
+            if (excluded_mz_rt_map_.find(mz) == excluded_mz_rt_map_.end())
+            {
+              excluded_mz_rt_map_[mz] = std::vector<double>();
+            }
+            excluded_mz_rt_map_[mz].push_back(60.0 * atof(results[0].c_str()));
+          }
         }
         instream.close();
       }
@@ -230,6 +258,31 @@ namespace OpenMS
     }
     std::sort(target_masses_.begin(), target_masses_.end());
     fd_.setTargetMasses(target_masses_);
+
+
+    excluded_masses_.clear();
+    for (auto&[mass, rts]: excluded_mass_rt_map_)
+    {
+      for (double prt: rts)
+      {
+        if (std::abs(rt - prt) < 300)
+        {
+          excluded_masses_.push_back(mass);
+          break;
+        }
+      }
+    }
+    std::sort(excluded_masses_.begin(), excluded_masses_.end());
+
+    for(auto& mass : excluded_masses_)
+    {
+      for (int iso = -3; iso <= fd_.getAveragine().getLastIndex(mass) + 3; iso++)
+      {
+        fd_.addExcludedMonoMass(mass + iso * Constants::ISOTOPE_MASSDIFF_55K_U);
+      }
+    }
+
+
     fd_.performSpectrumDeconvolution(spec, tmp, 0, false, empty);
     deconvolved_spectrum_ = fd_.getDeconvolvedSpectrum();
     // per spec deconvolution

@@ -194,7 +194,7 @@ namespace OpenMS
   // generate filters
   void FLASHDeconvAlgorithm::setFilters_()
   {
-    iso_da_distance_ = decoy_run_flag_ != noise_decoy_? Constants::ISOTOPE_MASSDIFF_55K_U : Constants::ISOTOPE_MASSDIFF_55K_U * 1.7;
+    iso_da_distance_ = decoy_run_flag_ != noise_decoy_? Constants::ISOTOPE_MASSDIFF_55K_U : Constants::ISOTOPE_MASSDIFF_55K_U * 1.72;
 
     filter_.clear();
     harmonic_filter_matrix_.clear();
@@ -205,7 +205,9 @@ namespace OpenMS
       {
         filter_.push_back(log(1.0 / (i + current_min_charge_))); //+
       }else{
-        filter_.push_back(log(1.0 / (current_max_charge_)) - log(1.0 / ((charge_range - i - 1) + current_min_charge_))); //+
+        double offset = i%2==0? .21 : -.21;
+        filter_.push_back(log(1.0 / (offset + i + current_min_charge_)));
+        //filter_.push_back(log(1.0 / (current_max_charge_)) - log(1.0 / ((charge_range - i - 1) + current_min_charge_))); //+
       }
     }
 
@@ -222,7 +224,9 @@ namespace OpenMS
         {
           harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-1.0 * n / hc + (i + current_min_charge_)))); // + current_min_charge_
         }else{
-          harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-1.0 * n / hc + (current_max_charge_))) - log(1.0 / (-1.0 * n / hc + ((charge_range - i - 1) + current_min_charge_)))); // + current_min_charge_
+          double offset = i%2==0? .21 : -.21;
+          harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-1.0 * n / hc + (offset + i + current_min_charge_))));
+          //harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-1.0 * n / hc + (current_max_charge_))) - log(1.0 / (-1.0 * n / hc + ((charge_range - i - 1) + current_min_charge_)))); // + current_min_charge_
         }
       }
     }
@@ -1204,8 +1208,6 @@ namespace OpenMS
     removeHarmonicsPeakGroups_(decoy_deconvolved_spectrum_);
   }
 
-
-
   void FLASHDeconvAlgorithm::scoreAndFilterPeakGroups_()
   {
     std::vector<PeakGroup> filtered_peak_groups;
@@ -1289,13 +1291,13 @@ namespace OpenMS
           auto max_q_score_mz_range = decoy.getMzRange(peak_group.getRepAbsCharge());
           decoy.setMaxQScoreMzRange(std::get<0>(max_q_score_mz_range), std::get<1>(max_q_score_mz_range));
           decoy.setScanNumber(deconvolved_spectrum_.getScanNumber());
-          if(!write_detail_) decoy.clear();
           decoy_deconvolved_spectrum_.push_back(decoy);
         }
       }
 
       if(decoy_run_flag_ == charge_decoy_ && excluded_masses_.size() > 0)
       {
+        peak_group.setDecoyIndex(charge_decoy_);
         bool exclude = false;
         double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1];
         auto upper = std::upper_bound(excluded_masses_.begin(), excluded_masses_.end(), peak_group.getMonoMass() + delta);
@@ -1313,8 +1315,6 @@ namespace OpenMS
         {
           continue;
         }
-        peak_group.setDecoyIndex(charge_decoy_);
-        if(!write_detail_) peak_group.clear();
       }
 
       if (peak_group.getRepAbsCharge() < min_abs_charge_ || peak_group.getRepAbsCharge() > max_abs_charge_)
@@ -1327,8 +1327,8 @@ namespace OpenMS
       if(decoy_run_flag_ == noise_decoy_)
       {
         peak_group.setDecoyIndex(noise_decoy_);
-        if(!write_detail_) peak_group.clear();
       }
+
       filtered_peak_groups.push_back(peak_group);
     }
 
