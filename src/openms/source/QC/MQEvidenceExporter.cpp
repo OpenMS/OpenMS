@@ -297,9 +297,7 @@ void MQEvidence::exportRowFromFeature_(
 
   file_ << f.getIntensity() << "\t"; // Intensity
 
-  ptr_best_hit->getMetaValue("target_decoy") == "decoy" ? file_ << "1"
-                                                                << "\t" :
-                                                          file_ << "\t"; // reverse
+  ptr_best_hit->getMetaValue("target_decoy") == "decoy" ? file_ << "1\t" : file_ << "\t"; // reverse
 
   String pot_containment = ptr_best_hit->getMetaValue("is_contaminant", "NA");
   if (pot_containment == "1")

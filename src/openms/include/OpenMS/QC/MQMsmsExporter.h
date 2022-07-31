@@ -86,6 +86,8 @@ private:
   @param UIDs UIDs of all PeptideIdentifications of the ConsensusMap
   @param mp_f Mapping between the FeatureMap and ProteinIdentifications for the UID
          from PeptideIdenfitication::buildUIDfromAllPepIds
+  @param exp MS Experiment holds evidence data to extract
+  @param prot_map Mapping a protein_accession to its description(proteinname, genename...)
 */
 
   void exportRowFromFeature_(const OpenMS::Feature& f,

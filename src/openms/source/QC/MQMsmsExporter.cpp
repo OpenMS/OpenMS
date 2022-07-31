@@ -278,9 +278,7 @@ void MQMsms::exportRowFromFeature_(
   file_ << "NA" << "\t"; // Neutral loss level
   file_ << "NA" << "\t"; // ETD identification type
 
-  ptr_best_hit->getMetaValue("target_decoy") == "decoy" ? file_ << "1"
-                                                                << "\t" :
-                                                          file_ << "\t"; // reverse
+  ptr_best_hit->getMetaValue("target_decoy") == "decoy" ? file_ << "1\t" : file_ << "\t"; // reverse
 
   file_ << "NA" << "\t"; // All scores
   file_ << "NA" << "\t"; // All sequences

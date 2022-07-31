@@ -109,6 +109,8 @@ public:
 
   /**
   @brief Extract a gene name from a protein description by looking for the substring 'GN='
+
+  If no such substring exists, an empty string is returned.
 */
 static OpenMS::String extractGeneName(const OpenMS::String& prot_description);
 

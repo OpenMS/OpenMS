@@ -120,9 +120,6 @@ bool MQExporterHelper::isValid(const std::string& filename)
   return File::writable(filename);
 }
 
-/**
-  @brief Extract a gene name from a protein description by looking for the substring 'GN='
-*/
 String MQExporterHelper::extractGeneName(const String& prot_description)
 {
   String gene_name;
@@ -198,17 +195,13 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
     }
   }
 
-  if (pep_seq.hasNTerminalModification())
+  acetyl = '0';
+  if (pep_seq.hasNTerminalModification() && pep_seq.getNTerminalModificationName().hasSubstring("Acetyl"))
   {
-    const OpenMS::String& n_terminal_modification = pep_seq.getNTerminalModificationName();
-    n_terminal_modification.hasSubstring("Acetyl") ? acetyl = '1' : acetyl = '0'; // Acetyl (Protein N-term)
+    acetyl = '1'; // Acetyl (Protein N-term)
   }
-  else
-  {
-    acetyl = '0';
-  }
-  oxidation.clear();
-  modifications_temp.find("Oxidation (M)") == modifications_temp.end() ? oxidation << "0" : oxidation << modifications_temp.find("Oxidation (M)")->second;
+
+  oxidation << modifications_temp["Oxidation (M)"];
   const std::set<String>& accessions = ptr_best_hit->extractProteinAccessionsSet();
   std::vector<String> gene_names_temp;
   std::vector<String> protein_names_temp;
@@ -230,7 +223,6 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
   gene_names.str(ListUtils::concatenate(gene_names_temp, ';'));     //Gene Names
   protein_names.str(ListUtils::concatenate(protein_names_temp, ';'));  //Protein Names
 
-  msms_mz.clear();
   if (f.metaValueExists("spectrum_index") && !exp.empty() && exp.getNrSpectra() >= (OpenMS::Size)f.getMetaValue("spectrum_index") && !exp[f.getMetaValue("spectrum_index")].empty())
   {
     const OpenMS::MSSpectrum& ms2_spec = exp[f.getMetaValue("spectrum_index")];
