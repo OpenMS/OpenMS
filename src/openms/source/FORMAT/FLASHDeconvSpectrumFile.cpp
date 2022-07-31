@@ -189,22 +189,12 @@ namespace OpenMS
         }
       }
       fs << "\t";
-      int isotope_end_index = 0;
 
-      for (auto& p : pg)
+      auto iso_intensities = pg.getIsotopeIntensities();
+      for (int i=0;i<iso_intensities.size();i++)
       {
-        isotope_end_index = isotope_end_index < p.isotopeIndex ? p.isotopeIndex : isotope_end_index;
-      }
-      auto per_isotope_intensity = std::vector<double>(isotope_end_index + 1, .0);
-      for (auto& p : pg)
-      {
-        per_isotope_intensity[p.isotopeIndex] += p.intensity;
-      }
-
-      for (int i = 0; i <= isotope_end_index; i++)
-      {
-        fs << per_isotope_intensity[i];
-        if (i < isotope_end_index)
+        fs << iso_intensities[i];
+        if (i < iso_intensities.size() - 1)
         {
           fs << ";";
         }

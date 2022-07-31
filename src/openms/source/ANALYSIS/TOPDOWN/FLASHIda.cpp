@@ -81,7 +81,7 @@ namespace OpenMS
     rt_window_ = inputs["RT_window"][0];
     qscore_threshold_ = inputs["score_threshold"][0];
     snr_threshold_ = 1;
-    inclusive_mode_ = inputs["Inclusive"][0] == 1;
+    inclusive_mode_ = inputs["inclusive"][0] == 1;
 
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
@@ -396,6 +396,30 @@ namespace OpenMS
           }
         }
 
+        bool exclude = false;
+
+        if (excluded_masses_.size() > 0)
+        {
+          double delta = 2 * tol_[0] * mass * 1e-6;
+          auto ub = std::upper_bound(excluded_masses_.begin(), excluded_masses_.end(), mass + delta);
+
+          while (ub != excluded_masses_.begin()&&  !include&&  *ub > mass - delta)
+          {
+            --ub;
+            if (std::abs(*ub - mass) < delta)
+            {
+              exclude = true;
+              break;
+            }
+          }
+
+          if (exclude)
+          {
+            continue;
+          }
+        }
+
+
         if (!include&&  qscore < qscore_threshold_)
         {
           break;
@@ -417,7 +441,8 @@ namespace OpenMS
         if (selection_phase == 0)
         {// first, select masses or m/zs outside exclusion list
           if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end() ||
-              tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
+              tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end()
+              )
           {
             continue;
           }

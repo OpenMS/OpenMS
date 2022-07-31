@@ -881,22 +881,22 @@ protected:
       {
         fd_charge_decoy.clearExcludedMonoMasses();
         for(auto& pg: deconvolved_spectrum){
-          for(int iso=-3;iso <=  (int)avg.getLastIndex(pg.getMonoMass()) + 3;iso++){
+          for(int iso=-5;iso <=  (int)avg.getLastIndex(pg.getMonoMass()) + 2;iso++){
             fd_charge_decoy.addExcludedMonoMass(pg.getMonoMass() + iso * Constants::ISOTOPE_MASSDIFF_55K_U);
           }
         }
         fd_charge_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
         fd_noise_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
 
-        decoy_deconvolved_spectrum.reserve(decoy_deconvolved_spectrum.size() + fd_charge_decoy.getDeconvolvedSpectrum().size()
-                                           + fd_noise_decoy.getDeconvolvedSpectrum().size());
+        decoy_deconvolved_spectrum.reserve(decoy_deconvolved_spectrum.size() + fd_charge_decoy.getDecoyDeconvolvedSpectrum().size()
+                                           + fd_noise_decoy.getDecoyDeconvolvedSpectrum().size());
 
-        for(auto& pg: fd_charge_decoy.getDeconvolvedSpectrum())
+        for(auto& pg: fd_charge_decoy.getDecoyDeconvolvedSpectrum())
         {
           decoy_deconvolved_spectrum.push_back(pg);
         }
 
-        for(auto& pg: fd_noise_decoy.getDeconvolvedSpectrum())
+        for(auto& pg: fd_noise_decoy.getDecoyDeconvolvedSpectrum())
         {
           decoy_deconvolved_spectrum.push_back(pg);
         }

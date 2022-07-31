@@ -225,7 +225,7 @@ namespace OpenMS
           harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-1.0 * n / hc + (i + current_min_charge_)))); // + current_min_charge_
         }else{
           double offset = i%2==0? .21 : -.21;
-          harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-1.0 * n / hc + (offset + i + current_min_charge_))));
+          harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-(1.0 + 2 * offset) * n / hc + (offset + i + current_min_charge_))));
           //harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-1.0 * n / hc + (current_max_charge_))) - log(1.0 / (-1.0 * n / hc + ((charge_range - i - 1) + current_min_charge_)))); // + current_min_charge_
         }
       }
@@ -519,7 +519,7 @@ namespace OpenMS
         bool pass_first_check = false;
 
         // intensity ratio between consecutive charges should not exceed the factor.
-        float factor = abs_charge <= low_charge_ ? 10.0f : 5.0f + 5.0f * low_charge_ / abs_charge;
+        float factor = abs_charge <= low_charge_ ? 10.0f : (5.0f + 5.0f * low_charge_ / abs_charge);
         // intensity ratio between consecutive charges for possible harmonic should be within this factor
         float hfactor = factor / 2.0f;
         // intensity of previous charge
@@ -1297,7 +1297,6 @@ namespace OpenMS
 
       if(decoy_run_flag_ == charge_decoy_ && excluded_masses_.size() > 0)
       {
-        peak_group.setDecoyIndex(charge_decoy_);
         bool exclude = false;
         double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1];
         auto upper = std::upper_bound(excluded_masses_.begin(), excluded_masses_.end(), peak_group.getMonoMass() + delta);
@@ -1324,15 +1323,19 @@ namespace OpenMS
 
       auto max_q_score_mz_range = peak_group.getMzRange(peak_group.getRepAbsCharge());
       peak_group.setMaxQScoreMzRange(std::get<0>(max_q_score_mz_range), std::get<1>(max_q_score_mz_range));
-      if(decoy_run_flag_ == noise_decoy_)
-      {
-        peak_group.setDecoyIndex(noise_decoy_);
-      }
+
+      peak_group.setDecoyIndex(decoy_run_flag_);
 
       filtered_peak_groups.push_back(peak_group);
     }
 
-    deconvolved_spectrum_.swap(filtered_peak_groups);
+    if(decoy_run_flag_ > 0)
+    {
+      decoy_deconvolved_spectrum_.swap(filtered_peak_groups);
+    }else
+    {
+      deconvolved_spectrum_.swap(filtered_peak_groups);
+    }
     deconvolved_spectrum_.sort();
     decoy_deconvolved_spectrum_.sort();
   }
