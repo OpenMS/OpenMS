@@ -1282,7 +1282,7 @@ namespace OpenMS
         auto decoy = PeakGroup(std::get<0>(cr), std::get<1>(cr), peak_group.isPositive());
         decoy.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, second_best_monomass, peak_group.getMonoMass()-second_best_monomass);
         decoy.updateIsotopeCosineAndQScore(avg_, min_isotope_cosine_[ms_level_ - 1], iso_da_distance_);
-        if (decoy.getRepAbsCharge() < min_abs_charge_ || decoy.getRepAbsCharge() > max_abs_charge_)
+        if (ms_level_ == 1 && (decoy.getRepAbsCharge() < min_abs_charge_ || decoy.getRepAbsCharge() > max_abs_charge_))
         {
         }
         else
@@ -1325,7 +1325,7 @@ namespace OpenMS
         peak_group.setDecoyIndex(noise_decoy_);
       }
 
-      if (peak_group.getRepAbsCharge() < min_abs_charge_ || peak_group.getRepAbsCharge() > max_abs_charge_)
+      if (ms_level_ == 1 && (peak_group.getRepAbsCharge() < min_abs_charge_ || peak_group.getRepAbsCharge() > max_abs_charge_))
       {
         continue;
       }
