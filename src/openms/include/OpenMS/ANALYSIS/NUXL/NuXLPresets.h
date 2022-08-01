@@ -252,64 +252,104 @@ namespace OpenMS
     "A:+C4H6O2-NH3-H3PO4"
   };  
     
-  static constexpr std::array<const char*, 24> modifications_RNA_FA
+  static constexpr std::array<const char*, 12> modifications_RNA_FA
   {
-    "G:C",
-    "G:C-HPO3",
-    "G:C-H3PO4",
-    "G:C-H2O",
-    "G:C2",
-    "G:C2-HPO3",
-    "G:C2-H2O",
-    "G:C2-H3PO4",
+    "G:+C",
+    "G:+C-HPO3",
+    "G:+C-H3PO4",
+    "G:+C-H2O",
     
-    "C:C",
-    "C:C-H2O",
-    "C:C-HPO3",
-    "C:C-H3PO4",
-    "C:C2",
-    "C:C2-HPO3",
-    "C:C2-H2O",
-    "C:C2-H3PO4",
+    "C:+C",
+    "C:+C-H2O",
+    "C:+C-HPO3",
+    "C:+C-H3PO4",
     
-    "A:C",
-    "A:C-HPO3",
-    "A:C-H3PO4",
-    "A:C-H2O",
-    "A:C2",
-    "A:C2-HPO3",
-    "A:C2-H2O",
-    "A:C2-H3PO4"
+    "A:+C",
+    "A:+C-HPO3",
+    "A:+C-H3PO4",
+    "A:+C-H2O",
   };
 
-  static constexpr std::array<const char*, 28> modifications_DNA_FA
+  static constexpr std::array<const char*, 24> modifications_RNA_FA_EXTENDED
   {
-    "G:C",
-    "G:C-HPO3",
-    "G:C-H3PO4",
-    "G:C-H2O",
-    "G:C2",
-    "G:C2-HPO3",
-    "G:C2-H3PO4",
-    "G:C2-H2O",
+    "G:+C",
+    "G:+C-HPO3",
+    "G:+C-H3PO4",
+    "G:+C-H2O",
+    "G:+C2",
+    "G:+C2-HPO3",
+    "G:+C2-H2O",
+    "G:+C2-H3PO4",
     
-    "C:C",
-    "C:C-H2O",
-    "C:C-HPO3",
-    "C:C-H3PO4",
-    "C:C2",
-    "C:C2-HPO3",
-    "C:C2-H3PO4",
-    "C:C2-H2O",
+    "C:+C",
+    "C:+C-H2O",
+    "C:+C-HPO3",
+    "C:+C-H3PO4",
+    "C:+C2",
+    "C:+C2-HPO3",
+    "C:+C2-H2O",
+    "C:+C2-H3PO4",
     
-    "A:C",
-    "A:C-HPO3",
-    "A:C-H2O",
-    "A:C-H3PO4",
-    "A:C2",
-    "A:C2-HPO3",
-    "A:C2-H3PO4",
-    "A:C2-H2O",
+    "A:+C",
+    "A:+C-HPO3",
+    "A:+C-H3PO4",
+    "A:+C-H2O",
+    "A:+C2",
+    "A:+C2-HPO3",
+    "A:+C2-H2O",
+    "A:+C2-H3PO4"
+  };
+  static constexpr std::array<const char*, 16> modifications_DNA_FA
+  {
+    "G:+C",
+    "G:+C-HPO3",
+    "G:+C-H3PO4",
+    "G:+C-H2O",
+    
+    "C:+C",
+    "C:+C-H2O",
+    "C:+C-HPO3",
+    "C:+C-H3PO4",
+    
+    "A:+C",
+    "A:+C-HPO3",
+    "A:+C-H2O",
+    "A:+C-H3PO4",
+
+    "d:",
+    "d:-H2O",
+    "d:-H3PO4",
+    "d:-HPO3"
+  };
+
+  static constexpr std::array<const char*, 28> modifications_DNA_FA_EXTENDED
+  {
+    "G:+C",
+    "G:+C-HPO3",
+    "G:+C-H3PO4",
+    "G:+C-H2O",
+    "G:+C2",
+    "G:+C2-HPO3",
+    "G:+C2-H3PO4",
+    "G:+C2-H2O",
+    
+    "C:+C",
+    "C:+C-H2O",
+    "C:+C-HPO3",
+    "C:+C-H3PO4",
+    "C:+C2",
+    "C:+C2-HPO3",
+    "C:+C2-H3PO4",
+    "C:+C2-H2O",
+    
+    "A:+C",
+    "A:+C-HPO3",
+    "A:+C-H2O",
+    "A:+C-H3PO4",
+    "A:+C2",
+    "A:+C2-HPO3",
+    "A:+C2-H3PO4",
+    "A:+C2-H2O",
 
     "d:",
     "d:-H2O",
@@ -858,48 +898,60 @@ namespace OpenMS
     "A:C15H18N5O6P1;NM+A-NH3-H2O"
   };
 
-  static constexpr std::array<const char*, 34> fragments_RNA_FA
+  static constexpr std::array<const char*, 46> fragments_RNA_FA
   {
-      "U:C3O;C3O",
-      "U:C4H4N2O2;U'",
-      "U:C4H2N2O1;U'-H2O",
-      "U:C9H13N2O9P1;U",
-      "U:C9H11N2O8P1;U-H2O",
-      "U:C9H12N2O6;U-HPO3",
-      "U:C9H10N2O5;U-H3PO4",
+    "U:C3O;C3O",
+    "U:C4H4N2O2;U'",
+    "U:C4H2N2O1;U'-H2O",
+    "U:C9H13N2O9P1;U",
+    "U:C9H11N2O8P1;U-H2O",
+    "U:C9H12N2O6;U-HPO3",
+    "U:C9H10N2O5;U-H3PO4",
 
     "G:C;FA",
     "G:C5H5N5O;G'",
-    "G:C6H5N5O;G'+FA",
-    "G:C7H5N5O;G'+2FA",
     "G:C10H14N5O8P;G",
+    "G:C6H5N5O;G'+FA",
     "G:C11H14N5O8P;G+FA",
+    "G:C11H12N5O7P;G+FA-H2O",
+    "G:C11H11N5O4;G+FA-H3PO4",
     "G:C11H13N5O5;G+FA-HPO3",
+    "G:C7H5N5O;G'+2FA",
     "G:C12H14N5O8P;G+2FA",
+    "G:C12H12N5O7P;G+2FA-H2O",
+    "G:C12H11N5O4;G+2FA-H3PO4",
     "G:C12H13N5O5;G+2FA-HPO3",
     
     "C:C;FA",
     "C:C4H5N3O;C'",
-    "C:C5H5N3O;C'+FA",
-    "C:C6H5N3O;C'+2FA",
     "C:C9H14N3O8P;C",
+    "C:C5H5N3O;C'+FA",
     "C:C10H14N3O8P;C+FA",
     "C:C10H13N3O5;C+FA-HPO3",
+    "C:C10H12N3O7P;C+FA-H2O",
+    "C:C10H11N3O4;C+FA-H3PO4",
+    "C:C6H5N3O;C'+2FA",
     "C:C11H14N3O8P;C+2FA",
     "C:C11H13N3O5;C+2FA-HPO3",
+    "C:C11H12N3O7P;C+2FA-H2O",
+    "C:C11H11N3O4;C+2FA-H3PO4",
     
     "A:C;FA",
     "A:C5H5N5;A'",
-    "A:C6H5N5;A'+FA",
-    "A:C7H5N5;A'+2FA",
     "A:C10H14N5O7P;A",
+    "A:C6H5N5;A'+FA",
     "A:C11H14N5O7P;A+FA",
     "A:C11H13N5O4;A+FA-HPO3",
+    "A:C11H12N5O6P;A+FA-H2O",
+    "A:C11H11N5O3;A+FA-H3PO4",
+    "A:C7H5N5;A'+2FA",
     "A:C12H14N5O7P;A+2FA",
-    "A:C12H13N5O4;A+2FA-HPO3"
+    "A:C12H13N5O4;A+2FA-HPO3",
+    "A:C12H12N5O6P;A+2FA-H2O",
+    "A:C12H11N5O3;A+2FA-H3PO4"
   };
-    
-  static constexpr std::array<const char*, 37> fragments_DNA_FA
+
+  static constexpr std::array<const char*, 49> fragments_DNA_FA
   {
     "T:C5H6N2O2;T'",
     "T:C5H4N2O1;T'-H2O",
@@ -910,33 +962,45 @@ namespace OpenMS
 
     "G:C;FA",
     "G:C5H5N5O;G'",
-    "G:C6H5N5O;G'+FA",
-    "G:C7H5N5O;G'+2FA",
     "G:C10H14N5O7P;G",
+    "G:C6H5N5O;G'+FA",
     "G:C11H14N5O7P;G+FA",
     "G:C11H13N5O4;G+FA-HPO3",
+    "G:C11H12N5O6P;G+FA-H2O",
+    "G:C11H11N5O3;G+FA-H3PO4",
+    "G:C7H5N5O;G'+2FA",
     "G:C12H14N5O7P;G+2FA",
     "G:C12H13N5O4;G+2FA-HPO3",
+    "G:C12H12N5O6P;G+2FA-H2O",
+    "G:C12H11N5O3;G+2FA-H3PO4",
     
     "C:C;FA",
     "C:C4H5N3O;C'",
-    "C:C5H5N3O;C'+FA",
-    "C:C6H5N3O;C'+2FA",
     "C:C9H14N3O7P;C",
+    "C:C5H5N3O;C'+FA",
     "C:C10H14N3O7P;C+FA",
     "C:C10H13N3O4;C+FA-HPO3",
+    "C:C10H12N3O6P;C+FA-H2O",
+    "C:C10H11N3O3;C+FA-H3PO4",
+    "C:C6H5N3O;C'+2FA",
     "C:C11H14N3O7P;C+2FA",
     "C:C11H13N3O4;C+2FA-HPO3",
+    "C:C11H12N3O6P;C+2FA-H2O",
+    "C:C11H11N3O3;C+2FA-H3PO4",
     
     "A:C;FA",
     "A:C5H5N5;A'",
-    "A:C6H5N5;A'+FA",
-    "A:C7H5N5;A'+2FA",
     "A:C10H14N5O6P;A",
+    "A:C6H5N5;A'+FA",
     "A:C11H14N5O6P;A+FA",
     "A:C11H13N5O3;A+FA-HPO3",
+    "A:C11H12N5O5P;A+FA-H2O",
+    "A:C11H11N5O2;A+FA-H3PO4",
+    "A:C7H5N5;A'+2FA",
     "A:C12H14N5O6P;A+2FA",
     "A:C12H13N5O3;A+2FA-HPO3",
+    "A:C12H12N5O5P;A+2FA-H2O",
+    "A:C12H11N5O2;A+2FA-H3PO4",
 
     "d:C5H9O6P;C5H9O6P", 
     "d:C5H7O5P;C5H9O6P-H2O",        
@@ -1005,7 +1069,7 @@ namespace OpenMS
     static constexpr std::array<const char*, 5> DNA_mapping {"A->A", "C->C", "G->G", "T->T", "d->d"};
     static constexpr std::array<const char*, 4> RNA_mapping {"A->A", "C->C", "G->G", "U->U"};
 
-    static constexpr std::array<const char*, 21> presets_names {
+    static constexpr std::array<const char*, 23> presets_names {
       "none", 
       "RNA-UV (U)", 
       "RNA-UV (UCGA)",
@@ -1026,7 +1090,9 @@ namespace OpenMS
       "DNA-NM",
       "DNA-NM Extended",
       "RNA-FA",
-      "DNA-FA"
+      "RNA-FA Extended",
+      "DNA-FA",
+      "DNA-FA Extended"
    };
 
   void getPresets(const String& p, 
@@ -1094,9 +1160,13 @@ namespace OpenMS
     
     StringList RNA_FA_modifications(modifications_RNA_FA.begin(), modifications_RNA_FA.end());
     StringList RNA_FA_fragments(fragments_RNA_FA.begin(), fragments_RNA_FA.end());
+    StringList RNA_FA_EXTENDED_modifications(modifications_RNA_FA_EXTENDED.begin(), modifications_RNA_FA_EXTENDED.end());
 
     StringList DNA_FA_modifications(modifications_DNA_FA.begin(), modifications_DNA_FA.end());
     StringList DNA_FA_fragments(fragments_DNA_FA.begin(), fragments_DNA_FA.end());
+    StringList DNA_FA_EXTENDED_modifications(modifications_DNA_FA_EXTENDED.begin(), modifications_DNA_FA_EXTENDED.end());
+   
+    
     
     const String RNA_U = "U";
     const String RNA_UCGA = "UCGA";
@@ -1176,9 +1246,23 @@ namespace OpenMS
       can_cross_link = RNA_CGA;
       return;
     }
+    else if (p == "RNA-FA Extended")
+    {
+      modifications = RNA_FA_EXTENDED_modifications;     
+      fragment_adducts = RNA_FA_fragments;
+      can_cross_link = RNA_CGA;
+      return;
+    }
     else if (p == "DNA-FA")
     {
       modifications = DNA_FA_modifications;     
+      fragment_adducts = DNA_FA_fragments;
+      can_cross_link = DNA_CGAd;
+      return;
+    }
+    else if (p == "DNA-FA Extended")
+    {
+      modifications = DNA_FA_EXTENDED_modifications;     
       fragment_adducts = DNA_FA_fragments;
       can_cross_link = DNA_CGAd;
       return;
@@ -1259,4 +1343,3 @@ namespace OpenMS
   }
 
 }
-
