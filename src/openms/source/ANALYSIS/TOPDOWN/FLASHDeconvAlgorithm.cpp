@@ -1276,7 +1276,7 @@ namespace OpenMS
         continue;
       }
 
-      if(decoy_run_flag_ == 0 && second_best_monomass > 0)
+      if(decoy_run_flag_ == isotope_decoy_ && second_best_monomass > 0)
       {
         auto cr = peak_group.getAbsChargeRange();
         auto decoy = PeakGroup(std::get<0>(cr), std::get<1>(cr), peak_group.isPositive());
@@ -1287,10 +1287,10 @@ namespace OpenMS
         }
         else
         {
-          decoy.setDecoyIndex(isotope_decoy_); // isotope
           auto max_q_score_mz_range = decoy.getMzRange(peak_group.getRepAbsCharge());
           decoy.setMaxQScoreMzRange(std::get<0>(max_q_score_mz_range), std::get<1>(max_q_score_mz_range));
           decoy.setScanNumber(deconvolved_spectrum_.getScanNumber());
+          decoy.setDecoyIndex(isotope_decoy_); // isotope
           decoy_deconvolved_spectrum_.push_back(decoy);
         }
       }
@@ -1314,6 +1314,15 @@ namespace OpenMS
         {
           continue;
         }
+        else
+        {
+          peak_group.setDecoyIndex(charge_decoy_);
+        }
+      }
+
+      if(decoy_run_flag_ == noise_decoy_)
+      {
+        peak_group.setDecoyIndex(noise_decoy_);
       }
 
       if (peak_group.getRepAbsCharge() < min_abs_charge_ || peak_group.getRepAbsCharge() > max_abs_charge_)
@@ -1324,20 +1333,24 @@ namespace OpenMS
       auto max_q_score_mz_range = peak_group.getMzRange(peak_group.getRepAbsCharge());
       peak_group.setMaxQScoreMzRange(std::get<0>(max_q_score_mz_range), std::get<1>(max_q_score_mz_range));
 
-      peak_group.setDecoyIndex(decoy_run_flag_);
-
-      filtered_peak_groups.push_back(peak_group);
+      if(peak_group.getDecoyIndex() > 0)
+      {
+        decoy_deconvolved_spectrum_.push_back(peak_group);
+      }else{
+        filtered_peak_groups.push_back(peak_group);
+      }
     }
 
-    if(decoy_run_flag_ > 0)
+    deconvolved_spectrum_.swap(filtered_peak_groups);
+
+    if(!std::is_sorted(deconvolved_spectrum_.begin(), deconvolved_spectrum_.end()))
     {
-      decoy_deconvolved_spectrum_.swap(filtered_peak_groups);
-    }else
-    {
-      deconvolved_spectrum_.swap(filtered_peak_groups);
+      deconvolved_spectrum_.sort();
     }
-    deconvolved_spectrum_.sort();
-    decoy_deconvolved_spectrum_.sort();
+    if(!std::is_sorted(decoy_deconvolved_spectrum_.begin(), decoy_deconvolved_spectrum_.end()))
+    {
+      decoy_deconvolved_spectrum_.sort();
+    }
   }
 
   float FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset,

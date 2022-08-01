@@ -567,7 +567,7 @@ protected:
       for (Size i = 0; i < out_spec_file.size(); i++)
       {
         out_spec_streams[i].open(out_spec_file[i], fstream::out);
-        FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail, report_decoy);
 
       }
     }
@@ -759,6 +759,8 @@ protected:
       fd_noise_decoy.setParameters(fd_param);
       fd_noise_decoy.setAveragine(fd.getAveragine());
       fd_noise_decoy.setDecoyFlag(2); // noise
+
+      fd.setDecoyFlag(3); // isotope
     }
     auto avg = fd.getAveragine();
     auto mass_tracer = MassFeatureTrace();
@@ -935,7 +937,7 @@ protected:
 
       if ((int) out_spec_streams.size() > ms_level - 1)
       {
-        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, report_decoy);
       }
       if ((int) out_topfd_streams.size() > ms_level - 1)
       {
@@ -957,7 +959,7 @@ protected:
 
         if ((int)out_spec_streams.size() > ms_level - 1)
         {
-          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail);
+          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, report_decoy);
         }
       }
     }

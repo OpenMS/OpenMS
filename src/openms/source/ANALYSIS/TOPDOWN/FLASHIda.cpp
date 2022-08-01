@@ -90,7 +90,6 @@ namespace OpenMS
     fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
     fd_defaults.setValue("max_mass", inputs["max_mass"][0]);
     fd_defaults.setValue("min_isotope_cosine", DoubleList{.85, .85});
-    fd_defaults.setValue("report_decoy_info", 0);
     //fd_defaults.setValue("min_qscore", .0);
     fd_defaults.setValue("tol", inputs["tol"]);
     tol_ = inputs["tol"];

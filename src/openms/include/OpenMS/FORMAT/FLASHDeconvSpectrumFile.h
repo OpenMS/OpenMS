@@ -53,10 +53,12 @@ namespace OpenMS
             @param fs file stream to the output file
             @param ms_level ms level of the spectrum
             @param detail if set true, detailed information of the mass (e.g., peak list for the mass) is written
+            @param decoy if set true, decoy and qvalue information will be written.
        */
     static void writeDeconvolvedMassesHeader(std::fstream& fs,
                                              const int ms_level,
-                                             const bool detail);
+                                             const bool detail,
+                                             const bool decoy);
 
     /**
           @brief write the deconvolved masses in the output file (spectrum level)
@@ -65,6 +67,7 @@ namespace OpenMS
           @param file_name the output file name that the deconvolved masses will be written.
           @param avg averagine information to calculate monoisotopic and average mass difference within this function. In PeakGroup (peaks of DeconvolvedSpectrum) only monoisotopic mass is recorded. To write both monoisotopic and average masses, their mass difference should be calculated using this averagine information.
           @param write_detail if this is set, more detailed information on each mass will be written in the output file.
+          @param decoy if set true, decoy and qvalue information will be written.
           Default MS1 headers are: TODO modify
             FileName, ScanNum, Decoy, RetentionTime, MassCountInSpec, AverageMass, MonoisotopicMass,
             SumIntensity, MinCharge, MaxCharge,
@@ -79,7 +82,8 @@ namespace OpenMS
     static void writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, std::fstream& fs,
                                        const String& file_name,
                                        const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                       const bool write_detail);
+                                       const bool write_detail,
+                                       const bool decoy);
 
     /**
       @brief write the deconvolved masses TopFD output (*.msalign)
