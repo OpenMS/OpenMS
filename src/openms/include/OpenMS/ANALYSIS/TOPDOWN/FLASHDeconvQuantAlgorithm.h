@@ -69,11 +69,7 @@ namespace OpenMS
     ~FLASHDeconvQuantAlgorithm() override;
 
     /// main method of FeatureFindingMetabo
-    void run(std::vector<MassTrace> &input_mtraces, FeatureMap &output_featmap);
-
-    String inputfile_path;
-    String outfile_path;
-    bool outFeatureXML = false;
+    void run(std::vector<MassTrace> &input_mtraces, std::vector<FeatureGroup> &out_fgroups);
 
   protected:
     void updateMembers_() override;
@@ -119,14 +115,6 @@ namespace OpenMS
 
     void writeMassTracesOfFeatureGroup(const std::vector<FeatureGroup>& featgroups,
                                        const std::vector<std::vector<Size> >& shared_m_traces_indices) const;
-
-    void writeFeatureGroupsInTsvFile(std::vector<FeatureGroup>& featgroups) const;
-
-    void writeOutputInFeatureXML_(const std::vector<FeatureGroup> &feature_groups,
-                                  const std::vector<std::vector<Size>> &shared_m_traces_indices) const;
-
-    void storeFeatureGroupInOpenMSFeature(std::vector<FeatureGroup> &feature_groups,
-                                          FeatureMap &out_featmap) const;
 
     void resolveConflictRegion_(std::vector<FeatureElement> &feat,
                                 const std::vector<Size> &feature_idx_in_current_conflict_region,

@@ -33,16 +33,18 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MassTrace.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvQuantAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvQuantHelper.h>
 
 
 using namespace OpenMS;
@@ -65,6 +67,9 @@ class TOPPFLASHDeconvQ :
     public ProgressLogger
 {
 public:
+  typedef FLASHDeconvQuantHelper::FeatureGroup FeatureGroup;
+  typedef FLASHDeconvQuantHelper::FeatureSeed FeatureSeed;
+
   TOPPFLASHDeconvQ():
     TOPPBase("FLASHDeconvQ", "The intact protein feature detection for quantification", false, {}, false), ProgressLogger()
   {
@@ -108,6 +113,197 @@ protected:
     combined.setSectionDescription("fdq", "FLASHDeconvQ parameters (assembling mass traces to charged features)");
 
     return combined;
+  }
+
+  void storeFeatureGroupInOpenMSFeature(std::vector<FeatureGroup> &feature_groups, FeatureMap &out_featmap) const
+  {
+    out_featmap.clear();
+    for (auto &fgroup: feature_groups)
+    {
+      // if this fgroup doesn't have per charge vectors (to avoid bad access error)
+      if (!fgroup.hasPerChargeVector())
+      {
+        auto per_isotope_intensities = std::vector<double>(fgroup.getMaxIsotopeIndex(), 0);
+        auto per_charge_intensities = std::vector<double>(charge_range_, 0);
+
+        calculatePerChargeIsotopeIntensity_(per_isotope_intensities, per_charge_intensities, fgroup);
+
+        // setting per charge value
+        for (int abs_charge = fgroup.getMinCharge();
+             abs_charge <= fgroup.getMaxCharge();
+             ++abs_charge)
+        {
+          int j = abs_charge - charge_lower_bound_;
+          fgroup.setChargeIntensity(abs_charge, per_charge_intensities[j]);
+        }
+      }
+
+      // create OpenMS::Feature per charge
+      std::vector<Feature> feat_vec;
+      fgroup.setChargeVector();
+      for (int &cs : fgroup.getChargeVector())
+      {
+        Feature feat;
+        feat.setCharge(cs);
+        feat.setOverallQuality(fgroup.getIsotopeCosineOfCharge(cs));
+        feat.setIntensity(fgroup.getIntensityOfCharge(cs));
+        feat.setMetaValue("monoisotopic_mass_of_feature", fgroup.getMonoisotopicMass());
+        feat.setMetaValue("feature_group_score", fgroup.getFeatureGroupScore());
+
+        std::vector<ConvexHull2D> tmp_hulls;
+        std::vector<std::vector<double>> intensity_of_hulls;
+        FeatureSeed* apex_ptr;
+        double fwhm_start = LONG_MAX;
+        double fwhm_end = .0;
+        double max_intensity = .0;
+        for (auto &seed: fgroup)
+        {
+          if (seed.getCharge() != cs)
+          {
+            continue;
+          }
+
+          // get apex information
+          if (max_intensity < seed.getIntensity())
+          {
+            max_intensity = seed.getIntensity();
+            apex_ptr = &seed;
+          }
+
+          // get fwhm information
+          if (seed.getFwhmStart() < fwhm_start)
+          {
+            fwhm_start = seed.getFwhmStart();
+          }
+          if (seed.getFwhmEnd() > fwhm_end)
+          {
+            fwhm_end = seed.getFwhmEnd();
+          }
+
+          // generate ConvexHull2D from FeatureSeed
+          MassTrace* mt_ptr = seed.getMassTrace();
+          ConvexHull2D::PointArrayType hull_points(mt_ptr->getSize());
+          std::vector<double> intensities;
+
+          Size i = 0;
+          for (MassTrace::const_iterator l_it = mt_ptr->begin(); l_it != mt_ptr->end(); ++l_it)
+          {
+            hull_points[i][0] = (*l_it).getRT();
+            hull_points[i][1] = (*l_it).getMZ();
+            intensities.push_back((*l_it).getIntensity());
+            ++i;
+          }
+
+          ConvexHull2D hull;
+          hull.addPoints(hull_points);
+          tmp_hulls.push_back(hull);
+          intensity_of_hulls.push_back(intensities);
+        }
+        if (tmp_hulls.empty()) // if this feature is empty
+        {
+          continue;
+        }
+
+        // store calculated information
+        feat.setConvexHulls(tmp_hulls);
+        feat.setMZ(apex_ptr->getCentroidMz());
+        feat.setRT(apex_ptr->getMassTrace()->getCentroidRT());
+        feat.setWidth(fwhm_end-fwhm_start);
+        feat.setMetaValue("num_of_masstraces", intensity_of_hulls.size());
+
+        int i = 1;
+        for (auto& inty_vec: intensity_of_hulls)
+        {
+          String meta_label = "masstrace_intensity_" + std::to_string(i);
+          feat.setMetaValue(meta_label, inty_vec);
+          ++i;
+        }
+        feat.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+        // add features to output FeatureMap
+        out_featmap.push_back(feat);
+      }
+    }
+    out_featmap.setUniqueId(UniqueIdGenerator::getUniqueId());
+    out_featmap.sortByRT();
+  }
+
+  void writeFeatureGroupsInTsvFile(std::vector<FeatureGroup> &fgroups, String infile_path, String outfile_path) const
+  {
+    std::fstream out_stream;
+    out_stream.open(outfile_path, std::fstream::out);
+
+    // header
+    out_stream << "FeatureGroupIndex\tFileName\tMonoisotopicMass\tAverageMass\t"
+                  "StartRetentionTime(FWHM)\tEndRetentionTime(FWHM)\tHighestApexRetentionTime\tMedianApexRetentionTime\t" // centroid_rt_of_apices
+                  "FeatureGroupQuantity\tAllAreaUnderTheCurve\tSumIntensity\tMinCharge\tMaxCharge\tChargeCount\tMostAbundantFeatureCharge\t"
+                  "IsotopeCosineScore\tFeatureScore\n"; // mass_trace_ids\n";
+
+    int fg_index = 0;
+    for (auto &fg : fgroups)
+    {
+      // intensities
+      double feature_quant = .0; // fwhm area under the curve
+      double all_area = .0; // all area under the curve
+      std::vector<double> per_cs_intys = std::vector<double>(fg.getMaxCharge() + 1, .0);
+
+      std::vector<String> mass_trace_labels;
+      mass_trace_labels.reserve(fg.size());
+
+      // getting information while looping through mass traces in FeatureGroup
+      for (auto &lmt: fg)
+      {
+        auto lmt_ptr = lmt.getMassTrace();
+        mass_trace_labels.push_back(lmt_ptr->getLabel());
+
+        if (use_smoothed_intensities_)
+        {
+          feature_quant += lmt_ptr->computeFwhmAreaSmooth();
+        }
+        else
+        {
+          feature_quant += lmt_ptr->computeFwhmArea();
+        }
+
+        // to calculate area
+        double previous_peak_inty = (*lmt_ptr)[0].getIntensity();
+        double previous_peak_rt = (*lmt_ptr)[0].getRT();
+        for (auto &peaks: *lmt_ptr)
+        {
+          per_cs_intys[lmt.getCharge()] += peaks.getIntensity();
+          all_area += (previous_peak_inty + peaks.getIntensity()) / 2 * (peaks.getRT() - previous_peak_rt);
+          previous_peak_inty = peaks.getIntensity();
+          previous_peak_rt = peaks.getRT();
+        }
+      }
+
+      // sum intensity of all peaks included
+      double summedIntensities = std::accumulate(per_cs_intys.begin(), per_cs_intys.end(), .0);
+
+      // get most abundant charge
+      int most_abundant_cs = std::distance(per_cs_intys.begin(), std::max_element(per_cs_intys.begin(), per_cs_intys.end()));
+
+      // MassTrace IDs
+      //      stringstream labels_ss;
+      //      for (auto& label : mass_trace_labels)
+      //      {
+      //        labels_ss << label << ";";
+      //      }
+      //      std::string labels_str = labels_ss.str();
+      //      labels_str.pop_back();
+
+      double mono_mass = fg.getMonoisotopicMass();
+      double average_mass = iso_model_.getAverageMassDelta(mono_mass) + mono_mass;
+      out_stream << fg_index++ << "\t" << infile_path << "\t" << std::to_string(mono_mass) << "\t" << std::to_string(average_mass) << "\t"
+                 << std::to_string(fg.getFwhmRange().first) << "\t" << std::to_string(fg.getFwhmRange().second) << "\t"
+                 << std::to_string(fg.getRtOfApex()) << "\t" << std::to_string(fg.getCentroidRtOfApices()) << "\t"
+                 << std::to_string(feature_quant) << "\t" << std::to_string(all_area) << "\t" << std::to_string(summedIntensities) << "\t"
+                 << fg.getMinCharge() << "\t" << fg.getMaxCharge() << "\t" << fg.getChargeVector().size() << "\t" << most_abundant_cs << "\t"
+                 << std::to_string(fg.getIsotopeCosine()) << "\t" << std::to_string(fg.getFeatureGroupScore())
+                 << std::endl;
+      out_stream.flush();
+    }
+    out_stream.close();
   }
 
 public:
@@ -197,26 +393,28 @@ public:
     //-------------------------------------------------------------
     FLASHDeconvQuantAlgorithm fdq;
     fdq.setParameters(fdq_param);
+    std::vector<FeatureGroup> out_fgroups;
 
-    fdq.inputfile_path = in;
-    fdq.outfile_path = out;
-    if (!out_feat.empty())
-    {
-      fdq.outFeatureXML = true;
-    }
-    FeatureMap out_map;
-    fdq.run(m_traces_final, out_map);
+    fdq.run(m_traces_final, out_fgroups);
 
     //-------------------------------------------------------------
     // writing featureXML output
     //-------------------------------------------------------------
+
+    OPENMS_LOG_INFO << "writing output..." << out << endl;
+    writeFeatureGroupsInTsvFile(out_fgroups, in, out);
     if (!out_feat.empty())
     {
+      OPENMS_LOG_INFO << "writing output..." << out_feat << endl;
+
+      FeatureMap out_map;
+      storeFeatureGroupInOpenMSFeature(out_fgroups, out_map);
+
       out_map.setPrimaryMSRunPath({in});
       addDataProcessing_(out_map, getProcessingInfo_(DataProcessing::QUANTITATION));
-
       FeatureXMLFile().store(out_feat, out_map);
     }
+    OPENMS_LOG_INFO << "----- output writing done -----" << endl;
 
     return EXECUTION_OK;
   }
