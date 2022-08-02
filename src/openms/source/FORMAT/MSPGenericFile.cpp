@@ -91,6 +91,7 @@ namespace OpenMS
     boost::regex re_point(R"((\d+(?:\.\d+)?)[: \t](\d+(?:\.\d+)?);? ?)");
     boost::regex re_cas_nist(R"(^CAS#: ([\d-]+);  NIST#: (\d+))"); // specific to NIST db
     boost::regex re_metadatum("^(.+): (.+)", boost::regex::no_mod_s);
+    boost::regex re_num_peaks("^Num (peaks|Peaks): (.+)", boost::regex::no_mod_s);
 
     OPENMS_LOG_INFO << "\nLoading spectra from .msp file. Please wait." << std::endl;
 
@@ -130,6 +131,11 @@ namespace OpenMS
       else if (boost::regex_search(line, m, re_retention_time))
       {
         spectrum.setRT(std::stod(m[2]));
+      }
+      // Number of Peaks
+      else if (boost::regex_search(line, m, re_num_peaks))
+      {
+        spectrum.setMetaValue(String("Num Peaks"), String(m[2]));
       }
       // Specific case of NIST's exported msp
       else if (boost::regex_search(line, m, re_cas_nist))
