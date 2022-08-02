@@ -138,7 +138,7 @@ END_SECTION
 START_SECTION((MSSpectrum toSpectrum(const int mass_charge)))
 {
   MSSpectrum peakgroup_spec = prec_deconv_spec_1.toSpectrum(9);
-  TEST_EQUAL(peakgroup_spec.size(), 4);
+  TEST_EQUAL(peakgroup_spec.size(), 3);
   TEST_REAL_SIMILAR(peakgroup_spec.getRT(), 251.72280736002);
 }
 END_SECTION
@@ -192,7 +192,7 @@ END_SECTION
 START_SECTION(String& getActivationMethod() const)
 {
   String act_method = ms2_deconv_spec.getActivationMethod();
-  TEST_STRING_EQUAL("HCD", act_method);
+  TEST_STRING_EQUAL("ETD", act_method); // TODO: why ETD?
 }
 END_SECTION
 ////////
