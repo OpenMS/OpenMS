@@ -85,10 +85,10 @@ namespace OpenMS
 
     boost::cmatch m;
     boost::regex re_name("^Name: (.+)", boost::regex::no_mod_s);
-    boost::regex re_retention_time("^Retention Time: (.+)", boost::regex::no_mod_s);
+    boost::regex re_retention_time("^(Retention Time|RETENTIONTIME): (.)+", boost::regex::no_mod_s);
     boost::regex re_synon("^synon(?:yms?)?: (.+)", boost::regex::no_mod_s | boost::regex::icase);
     boost::regex re_points_line(R"(^\d)");
-    boost::regex re_point(R"((\d+(?:\.\d+)?)[: ](\d+(?:\.\d+)?);? ?)");
+    boost::regex re_point(R"((\d+(?:\.\d+)?)[: \t](\d+(?:\.\d+)?);? ?)");
     boost::regex re_cas_nist(R"(^CAS#: ([\d-]+);  NIST#: (\d+))"); // specific to NIST db
     boost::regex re_metadatum("^(.+): (.+)", boost::regex::no_mod_s);
 
@@ -100,11 +100,11 @@ namespace OpenMS
       // Peaks
       if (boost::regex_search(line, m, re_points_line))
       {
-        // OPENMS_LOG_DEBUG << "re_points_line\n";
+        OPENMS_LOG_DEBUG << "re_points_line\n";
         boost::regex_search(line, m, re_point);
         do
         {
-          // OPENMS_LOG_DEBUG << "{" << m[1] << "} {" << m[2] << "}; ";
+          OPENMS_LOG_DEBUG << "{" << m[1] << "} {" << m[2] << "}; ";
           const double position { std::stod(m[1]) };
           const double intensity { std::stod(m[2]) };
           spectrum.push_back( Peak1D(position, intensity) );
@@ -129,7 +129,7 @@ namespace OpenMS
       // Retention Time
       else if (boost::regex_search(line, m, re_retention_time))
       {
-        spectrum.setRT(std::stod(m[1]));
+        spectrum.setRT(std::stod(m[2]));
       }
       // Specific case of NIST's exported msp
       else if (boost::regex_search(line, m, re_cas_nist))
