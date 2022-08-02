@@ -7,6 +7,7 @@ set(sources_list_h
     FLASHDeconvAlgorithm.h
     FLASHDeconvHelperStructs.h
 		FLASHDeconvQuantAlgorithm.h
+		FLASHDeconvQuantHelper.h
     MassFeatureTrace.h
     PeakGroup.h
     QScore.h

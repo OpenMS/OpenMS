@@ -38,6 +38,7 @@
 #include <include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <include/OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 #include <include/OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
 namespace OpenMS
 {
@@ -209,7 +210,7 @@ namespace OpenMS
       sum_intensity += tmp_seed.getIntensity();
     }
     // sort input mass traces in RT
-    std::sort(input_seeds.begin(), input_seeds.end(), CmpFeatureSeedByRT());
+    std::sort(input_seeds.begin(), input_seeds.end(), FLASHDeconvQuantHelper::CmpFeatureSeedByRT());
     total_intensity_ = sum_intensity;
     std::vector<FeatureGroup> features;
     features.reserve(input_mtraces.size());
@@ -286,9 +287,10 @@ namespace OpenMS
      makeMSSpectrum_(local_traces, spec, rt);
 
      // run deconvolution
-     std::vector<DeconvolvedSpectrum> tmp;
+     std::vector<DeconvolvedSpectrum> tmp; // empty one, since only MS1s are considered.
      std::map<int, std::vector<std::vector<double>>> empty;
-     DeconvolvedSpectrum deconv_spec = fd_.getDeconvolvedSpectrum(spec, tmp, 0, empty);
+     fd_.performSpectrumDeconvolution(spec, tmp, 0, empty);
+     DeconvolvedSpectrum deconv_spec = fd_.getDeconvolvedSpectrum();
 
      if (deconv_spec.empty()) // if no result was found
      {
@@ -324,33 +326,6 @@ namespace OpenMS
        }
        local_fgroup.push_back(fg);
      }
-  }
-
-  double FLASHDeconvQuantAlgorithm::getCosine_(const std::vector<double> &a,
-                                      const int &a_start,
-                                      const int &a_end,
-                                      const IsotopeDistribution &b,
-                                      const int &b_size,
-                                      const int offset)
-  {
-    double n = .0, a_norm = .0;
-    //int c = 0;
-    for (int j = a_start; j <= a_end; j++)
-    {
-      int i = j - offset;
-      a_norm += a[j] * a[j];
-
-      if (i < 0 || i >= b_size || b[i].getIntensity() <= 0)
-      {
-        continue;
-      }
-      n += a[j] * b[i].getIntensity();//
-    }
-    if (a_norm <= 0)
-    {
-      return 0;
-    }
-    return n / sqrt(a_norm);
   }
 
   double FLASHDeconvQuantAlgorithm::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
@@ -519,7 +494,7 @@ namespace OpenMS
 
   bool FLASHDeconvQuantAlgorithm::rescoreFeatureGroup_(FeatureGroup &fg, bool score_anyways) const
   {
-    if ( (!scoreFeatureGroup_(fg)) && (!score_anyways) )
+    if ((!scoreAndFilterFeatureGroup_(fg)) && (!score_anyways) )
     {
       return false;
     }
@@ -532,8 +507,9 @@ namespace OpenMS
     return true;
   }
 
-  bool FLASHDeconvQuantAlgorithm::scoreFeatureGroup_(FeatureGroup &fg) const
+  bool FLASHDeconvQuantAlgorithm::scoreAndFilterFeatureGroup_(FeatureGroup &fg) const
   {
+    /// based on: FLASHDeconvAlgorithm::scoreAndFilterPeakGroups_()
     /// return false when scoring is not done (filtered out)
 
     // if this FeatureGroup is within the target, pass any filter
@@ -544,8 +520,7 @@ namespace OpenMS
       isNotTarget = false;
     }
 
-    auto per_isotope_intensities = std::vector<double>(fg.getMaxIsotopeIndex(), 0);
-    auto per_charge_intensities = std::vector<double>(charge_range_, 0);
+    auto per_isotope_intensities = std::vector<float>(fg.getMaxIsotopeIndex(), 0);
 
     calculatePerChargeIsotopeIntensity_(per_isotope_intensities, per_charge_intensities, fg);
 
@@ -576,17 +551,6 @@ namespace OpenMS
     {
       return false;
     }
-
-    // TODO : remove? does charge distribution make a big difference?
-//    double cs = FLASHDeconvAlgorithm::getChargeFitScore_(per_charge_intensities);
-//    fg.setChargeScore(cs);
-//    // NOTE : if not using cs dist, too many harmonics
-//    bool is_charge_well_distributed = checkChargeDistribution_(per_charge_intensities);
-//    //double tmp = getChargeFitScore_(per_abs_charge_intensities, charge_range);
-//    if (!is_charge_well_distributed) {
-//        return false;
-//    }
-//    // TODO_ends_here
 
     // setting per charge value
     for (int abs_charge = fg.getMinCharge();
@@ -648,7 +612,7 @@ namespace OpenMS
         continue;
       }
 
-      auto current_per_isotope_intensities = vector<double>(iso_model_.getMaxIsotopeIndex(), .0);
+      auto current_per_isotope_intensities = vector<float>(iso_model_.getMaxIsotopeIndex(), .0);
 
       int min_isotope_index = iso_model_.getMaxIsotopeIndex();
       int max_isotope_index = 0;
@@ -678,12 +642,12 @@ namespace OpenMS
       }
 
       // isotope cosine score for only this charge
-      double cos_score = getCosine_(current_per_isotope_intensities,
-                                    min_isotope_index,
-                                    max_isotope_index,
-                                    iso_dist,
-                                    iso_size,
-                                    0);
+      double cos_score = FLASHDeconvAlgorithm::getCosine(current_per_isotope_intensities,
+                                                          min_isotope_index,
+                                                          max_isotope_index,
+                                                          iso_dist,
+                                                          iso_size,
+                                                          0);
 
       feature_score += per_charge_score;
       fg.setChargeIsotopeCosine(abs_charge, cos_score);
@@ -725,7 +689,7 @@ namespace OpenMS
       this->setProgress(initial_size - in_features.size());
 
       // get a feature with the highest Intensity
-      auto candidate_fg = std::max_element(in_features.begin(), in_features.end(), CmpFeatureGroupByScore());
+      auto candidate_fg = std::max_element(in_features.begin(), in_features.end(), FLASHDeconvQuantHelper::CmpFeatureGroupByScore());
 
       // get all features within mass_tol from candidate FeatureGroup
       std::vector<FeatureGroup>::iterator low_it, up_it;
@@ -793,7 +757,7 @@ namespace OpenMS
       }
 
       // sort mts_to_add by abundance
-      std::sort(mts_to_add.begin(), mts_to_add.end(), CmpFeatureSeedByIntensity());
+      std::sort(mts_to_add.begin(), mts_to_add.end(), FLASHDeconvQuantHelper::CmpFeatureSeedByIntensity());
 
       // add extra masstraces to candidate_feature
       FeatureGroup final_candidate_fg(*candidate_fg); // copy of candidate_feature
@@ -958,7 +922,7 @@ namespace OpenMS
       }
 
       // sort local traces in mz
-      sort(local_traces.begin(), local_traces.end(), CmpFeatureSeedByMZ());
+      sort(local_traces.begin(), local_traces.end(), FLASHDeconvQuantHelper::CmpFeatureSeedByMZ());
 
       std::vector<FeatureGroup> local_fgroup;
       getFeatureFromSpectrum_(local_traces, local_fgroup, end_of_current_rt_window);

@@ -39,8 +39,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
-#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
 #include <QtCore/QDateTime>
 #include <QtCore/QDir>
@@ -49,7 +47,6 @@
 #include <QProgressDialog>
 #include <QSignalBlocker>
 #include <QDesktopServices>
-#include <QMessageBox>
 
 #include <algorithm>
 
