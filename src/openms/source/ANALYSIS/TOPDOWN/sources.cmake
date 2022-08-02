@@ -7,6 +7,7 @@ set(sources_list
 		FLASHDeconvAlgorithm.cpp
 		FLASHDeconvHelperStructs.cpp
 		FLASHDeconvQuantAlgorithm.cpp
+		FLASHDeconvQuantHelper.cpp
 		MassFeatureTrace.cpp
 		PeakGroup.cpp
 		QScore.cpp

@@ -66,7 +66,16 @@ namespace OpenMS
     FLASHDeconvQuantAlgorithm();
 
     /// Default destructor
-    ~FLASHDeconvQuantAlgorithm() override;
+    ~FLASHDeconvQuantAlgorithm() = default;
+
+    /// copy constructor
+    FLASHDeconvQuantAlgorithm(const FLASHDeconvQuantAlgorithm& ) = default;
+
+    /// move constructor
+    FLASHDeconvQuantAlgorithm(FLASHDeconvQuantAlgorithm&& other) = default;
+
+    /// assignment operator
+    FLASHDeconvQuantAlgorithm& operator=(const FLASHDeconvQuantAlgorithm& fd);
 
     /// main method of FeatureFindingMetabo
     void run(std::vector<MassTrace> &input_mtraces, std::vector<FeatureGroup> &out_fgroups);
@@ -75,7 +84,7 @@ namespace OpenMS
     void updateMembers_() override;
 
   private:
-    Param getFLASHDeconvParams_();
+    Param getFLASHDeconvParams_() const;
 
     // equivalent to FLASHDeconvAlgorithm::generatePeakGroupsFromSpectrum_
     void getFeatureFromSpectrum_(std::vector<FeatureSeed*> &local_traces, std::vector<FeatureGroup> &local_fgroup, const double &rt);
@@ -83,10 +92,6 @@ namespace OpenMS
     void buildMassTraceGroups_(std::vector<FeatureSeed> &in_seeds, std::vector<FeatureGroup> &features);
 
     bool scoreAndFilterFeatureGroup_(FeatureGroup& fg) const;
-
-    void calculatePerChargeIsotopeIntensity_(std::vector<double> &per_isotope_intensity,
-                                                        std::vector<double> &per_charge_intensity,
-                                                        FeatureGroup &fg) const;
 
     void refineFeatureGroups_(std::vector<FeatureGroup>& features);
 
@@ -138,7 +143,6 @@ namespace OpenMS
     double local_mz_range_;
     Size charge_lower_bound_;
     Size charge_upper_bound_;
-    int charge_range_;
     double min_mass_;
     double max_mass_;
     double mz_tolerance_; // ppm

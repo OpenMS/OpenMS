@@ -121,27 +121,19 @@ protected:
     for (auto &fgroup: feature_groups)
     {
       // if this fgroup doesn't have per charge vectors (to avoid bad access error)
-      if (!fgroup.hasPerChargeVector())
+      int charge_range = fgroup.getMaxCharge() - fgroup.getMinCharge() + 1;
+      auto per_charge_intensities = std::vector<float>(charge_range, 0);
+
+      // setting per charge value
+      for (auto & f : fgroup)
       {
-        auto per_isotope_intensities = std::vector<double>(fgroup.getMaxIsotopeIndex(), 0);
-        auto per_charge_intensities = std::vector<double>(charge_range_, 0);
-
-        calculatePerChargeIsotopeIntensity_(per_isotope_intensities, per_charge_intensities, fgroup);
-
-        // setting per charge value
-        for (int abs_charge = fgroup.getMinCharge();
-             abs_charge <= fgroup.getMaxCharge();
-             ++abs_charge)
-        {
-          int j = abs_charge - charge_lower_bound_;
-          fgroup.setChargeIntensity(abs_charge, per_charge_intensities[j]);
-        }
+        int i = f.getCharge() - fgroup.getMinCharge();
+        per_charge_intensities[i] += fgroup.getIntensity();
       }
 
       // create OpenMS::Feature per charge
       std::vector<Feature> feat_vec;
-      fgroup.setChargeVector();
-      for (int &cs : fgroup.getChargeVector())
+      for (auto &cs : fgroup.getChargeSet())
       {
         Feature feat;
         feat.setCharge(cs);
@@ -296,9 +288,9 @@ protected:
       double average_mass = iso_model_.getAverageMassDelta(mono_mass) + mono_mass;
       out_stream << fg_index++ << "\t" << infile_path << "\t" << std::to_string(mono_mass) << "\t" << std::to_string(average_mass) << "\t"
                  << std::to_string(fg.getFwhmRange().first) << "\t" << std::to_string(fg.getFwhmRange().second) << "\t"
-                 << std::to_string(fg.getRtOfApex()) << "\t" << std::to_string(fg.getCentroidRtOfApices()) << "\t"
+                 << std::to_string(fg.getRtOfMostAbundantMT()) << "\t" << std::to_string(fg.getCentroidRtOfApices()) << "\t"
                  << std::to_string(feature_quant) << "\t" << std::to_string(all_area) << "\t" << std::to_string(summedIntensities) << "\t"
-                 << fg.getMinCharge() << "\t" << fg.getMaxCharge() << "\t" << fg.getChargeVector().size() << "\t" << most_abundant_cs << "\t"
+                 << fg.getMinCharge() << "\t" << fg.getMaxCharge() << "\t" << fg.getChargeSet().size() << "\t" << most_abundant_cs << "\t"
                  << std::to_string(fg.getIsotopeCosine()) << "\t" << std::to_string(fg.getFeatureGroupScore())
                  << std::endl;
       out_stream.flush();

@@ -1,0 +1,438 @@
+// --------------------------------------------------------------------------
+//                   OpenMS -- Open-Source Mass Spectrometry
+// --------------------------------------------------------------------------
+// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+//
+// This software is released under a three-clause BSD license:
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission.
+// For a full list of authors, refer to the file AUTHORS.
+// --------------------------------------------------------------------------
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Jihyung Kim $
+// $Authors: Jihyung Kim $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvQuantHelper.h>
+#include <OpenMS/CONCEPT/Constants.h>
+
+namespace FLASHDeconvQuantHelper
+{
+  /// comparison operators (using monoisotopic_mass_)
+  bool FeatureGroup::operator<(const FeatureGroup &a) const
+  {
+    if (this->monoisotopic_mass_ == a.monoisotopic_mass_)
+    {
+      return this->intensity_ < a.intensity_;
+    }
+    return this->monoisotopic_mass_ < a.monoisotopic_mass_;
+  }
+
+  bool FeatureGroup::operator>(const FeatureGroup &a) const
+  {
+    if (this->monoisotopic_mass_ == a.monoisotopic_mass_)
+    {
+      return this->intensity_ > a.intensity_;
+    }
+    return this->monoisotopic_mass_ > a.monoisotopic_mass_;
+  }
+
+  bool FeatureGroup::operator==(const FeatureGroup &a) const
+  {
+    return
+        this->monoisotopic_mass_ == a.monoisotopic_mass_
+        && this->intensity_ == a.intensity_;
+  }
+
+  /// iterator related functions
+  std::vector<FeatureSeed>::const_iterator FeatureGroup::begin() const noexcept
+  {
+    return feature_seeds_.cbegin();
+  }
+
+  std::vector<FeatureSeed>::const_iterator FeatureGroup::end() const noexcept
+  {
+    return feature_seeds_.cend();
+  }
+
+  std::vector<FeatureSeed>::iterator FeatureGroup::begin() noexcept
+  {
+    return feature_seeds_.begin();
+  }
+
+  std::vector<FeatureSeed>::iterator FeatureGroup::end() noexcept
+  {
+    return feature_seeds_.end();
+  }
+
+  const FeatureSeed& FeatureGroup::operator[](const Size i) const
+  {
+    return feature_seeds_[i];
+  }
+
+  void FeatureGroup::push_back(const FeatureSeed &new_feature)
+  {
+    feature_seeds_.push_back(new_feature);
+  }
+
+  Size FeatureGroup::size() const noexcept
+  {
+    return feature_seeds_.size();
+  }
+
+  void FeatureGroup::reserve (Size n)
+  {
+    feature_seeds_.reserve(n);
+  }
+
+  void FeatureGroup::clear()
+  {
+    feature_seeds_.clear();
+  }
+
+  std::vector<FeatureSeed>::iterator FeatureGroup::erase(std::vector<FeatureSeed>::iterator pos)
+  {
+    return feature_seeds_.erase(pos);
+  }
+
+  bool FeatureGroup::empty() const
+  {
+    return feature_seeds_.empty();
+  }
+
+  void FeatureGroup::swap (std::vector<FeatureSeed>& x)
+  {
+    feature_seeds_.swap(x);
+  }
+
+  void FeatureGroup::sort()
+  {
+    std::sort(feature_seeds_.begin(), feature_seeds_.end());
+  }
+
+  /// default getter and setters
+
+  double FeatureGroup::getMonoisotopicMass() const
+  {
+    return monoisotopic_mass_;
+  }
+
+  int FeatureGroup::getMinCharge() const
+  {
+    return min_abs_charge_;
+  }
+
+  int FeatureGroup::getMaxCharge() const
+  {
+    return max_abs_charge_;
+  }
+
+  Size FeatureGroup::getMaxIsotopeIndex() const
+  {
+    return max_isotope_index_;
+  }
+
+  double FeatureGroup::getIntensity() const
+  {
+    return intensity_;
+  }
+
+//  double FeatureGroup::getCentroidRtOfApices() const
+//  {
+//    return centroid_rt_of_apices;
+//  }
+
+  double FeatureGroup::getRtOfMostAbundantMT() const
+  {
+    return centroid_rt_of_most_abundant_mt_;
+  }
+
+  float FeatureGroup::getChargeScore() const
+  {
+    return charge_score_;
+  }
+
+  float FeatureGroup::getIsotopeCosine() const
+  {
+    return isotope_cosine_score_;
+  }
+
+  float FeatureGroup::getFeatureGroupScore() const
+  {
+    return total_score_;
+  }
+
+  std::set<int> FeatureGroup::getChargeSet() const
+  {
+    return charges_;
+  }
+
+  std::pair<double, double> FeatureGroup::getFwhmRange() const
+  {
+    return fwhm_range_;
+  }
+
+  std::vector<Size> FeatureGroup::getTraceIndices() const
+  {
+    return ltrace_indices_;
+  }
+
+  std::vector<float> FeatureGroup::getIsotopeIntensities() const
+  {
+    return per_isotope_int_;
+  }
+//  float getIsotopeCosineOfCharge(const int &abs_charge) const
+//  {
+//    return per_charge_cos_[abs_charge];
+//  }
+//
+//  float getIntensityOfCharge(const int &abs_charge) const
+//  {
+//    return per_charge_int_[abs_charge];
+//  }
+
+  void FeatureGroup::setChargeRange(const int min_c, const int max_c)
+  {
+    min_abs_charge_ = min_c;
+    max_abs_charge_ = max_c;
+  }
+
+  void FeatureGroup::setMaxIsotopeIndex(const Size index)
+  {
+    max_isotope_index_ = index;
+  }
+
+  void FeatureGroup::setChargeScore(const float score)
+  {
+    charge_score_ = score;
+  }
+
+  void FeatureGroup::setIsotopeCosine(const float cos)
+  {
+    isotope_cosine_score_ = cos;
+  }
+
+  void FeatureGroup::setFeatureGroupScore(const float score)
+  {
+    total_score_ = score;
+  }
+
+  void FeatureGroup::updateMembers()
+  {
+    /// --- Excluded members for updates ----
+    // monoisotopic_mass_ & intensity_ & per_isotope_int_ & max_isotope_index_ & charges_ : used for scoring & filtering, thus should be treated separately
+    // all score related members
+
+    // TODO: check if sorting is needed here
+    std::sort(feature_seeds_.begin(), feature_seeds_.end());
+
+    // charge range
+    min_abs_charge_ = *charges_.begin();
+    max_abs_charge_ = *charges_.end();
+
+    // members to be changed or trackers
+    FeatureSeed *most_abundant_seed = &feature_seeds_[0];
+    double min_fwhm(std::numeric_limits<double>::max());
+    double max_fwhm(0.0);
+    ltrace_indices_.clear();
+    ltrace_indices_.reserve(feature_seeds_.size());
+
+    for(auto &s : feature_seeds_)
+    {
+      // find the most abundant seed
+      if (most_abundant_seed->getIntensity() < s.getIntensity())
+      {
+        most_abundant_seed = &s;
+      }
+
+      // fwhm
+      std::pair<double, double> tmp_fwhm(s.getFwhmStart(), s.getFwhmEnd());
+      if (tmp_fwhm.first < min_fwhm)
+        min_fwhm = tmp_fwhm.first;
+      if (tmp_fwhm.second > max_fwhm)
+        max_fwhm = tmp_fwhm.second;
+
+      // update ltrace_indices_
+      ltrace_indices_.push_back(s.getTraceIndex());
+    }
+
+    // find the most abundant peak
+    Size max_peak_idx = most_abundant_seed->getMassTrace()->findMaxByIntPeak(false);
+    auto tmp_max_peak = (*most_abundant_seed->getMassTrace())[max_peak_idx];
+    centroid_rt_of_most_abundant_mt_ = tmp_max_peak.getRT();
+
+    fwhm_range_ = std::make_pair(min_fwhm, max_fwhm);
+
+    // for fast searching later
+    std::sort(ltrace_indices_.begin(), ltrace_indices_.end());
+  }
+
+  void FeatureGroup::updateMembersForScoring()
+  {
+    // based on PeakGroup::updateMonomassAndIsotopeIntensities()
+    /// update 5 members: monoisotopic_mass_, max_isotope_index_, per_isotope_int_, intensity_, charges_
+
+    // calculate max_isotope_index_
+    int max_isotope_index = 0;
+    for (auto& f: feature_seeds_)
+    {
+      max_isotope_index = max_isotope_index < f.getIsotopeIndex() ? f.getIsotopeIndex() : max_isotope_index;
+    }
+    max_isotope_index_ = max_isotope_index;
+
+    per_isotope_int_ = std::vector<float>(max_isotope_index_ + 1, .0f);
+    intensity_ = .0;
+    double nominator = .0;
+
+    // update per_isotope_int_, intensity_ and charge_
+    for (auto &f: feature_seeds_)
+    {
+      per_isotope_int_[f.getIsotopeIndex()] += f.getIntensity();
+      charges_.insert(f.getCharge());
+
+      double pi = f.getIntensity() + 1;
+      intensity_ += pi;
+      nominator += pi * (f.getUnchargedMass() - f.getIsotopeIndex() * Constants::ISOTOPE_MASSDIFF_55K_U);
+    }
+    // update monoisotopic mass
+    monoisotopic_mass_ = nominator / intensity_;
+  }
+
+
+  // TODO: need to find a smarter way
+  FeatureSeed* FeatureGroup::getApexLMTofCharge(int charge) const
+  {
+    FeatureSeed* apex_lmt = nullptr;
+    double max_intensity = 0.0;
+
+    for (auto lmt_iter = feature_seeds_.begin(); lmt_iter != feature_seeds_.end(); ++lmt_iter)
+    {
+      if (lmt_iter->getCharge() == charge && lmt_iter->getIntensity() > max_intensity)
+      {
+        max_intensity = lmt_iter->getIntensity();
+        apex_lmt = (FeatureSeed*) &(*lmt_iter);
+      }
+    }
+    return apex_lmt;
+  }
+
+  //    std::pair<double, double> getSummedIntensityOfMostAbundantMTperCS() const
+  //    {
+  //      auto per_cs_max_area = std::vector<double>(1 + max_abs_charge_, .0);
+  //      auto per_cs_max_inty = std::vector<double>(1 + max_abs_charge_, .0);
+  //
+  //      for (auto &lmt: *this)
+  //      {
+  //        double sum_inty = 0;
+  //        for (auto &p : *(lmt.getMassTrace()))
+  //        {
+  //          sum_inty += p.getIntensity();
+  //        }
+  //        if(per_cs_max_inty[lmt.getCharge()] < sum_inty)
+  //        {
+  //          per_cs_max_inty[lmt.getCharge()] = sum_inty;
+  //        }
+  //
+  //        if (per_cs_max_area[lmt.getCharge()] < lmt.getIntensity())
+  //        {
+  //          per_cs_max_area[lmt.getCharge()] = lmt.getIntensity();
+  //        }
+  //      }
+  //
+  //      return std::make_pair(std::accumulate(per_cs_max_area.begin(), per_cs_max_area.end(), .0),
+  //                            std::accumulate(per_cs_max_inty.begin(), per_cs_max_inty.end(), .0));
+  //    }
+
+  //    double getAvgFwhmLength() const
+  //    {
+  //      std::vector<double> fwhm_len_arr;
+  //      fwhm_len_arr.reserve(this->size());
+  //
+  //      for (auto &l_trace: *this)
+  //      {
+  //        double tmp_fwhm_len = l_trace.getFwhmEnd() - l_trace.getFwhmStart();
+  //        fwhm_len_arr.push_back(tmp_fwhm_len);
+  //      }
+  //      return accumulate(fwhm_len_arr.begin(), fwhm_len_arr.end(), 0.0) / (this->size());
+  //    }
+
+////// from here on: per Charge vectors are needed?
+//  void setChargeIsotopeCosine(const int abs_charge, const float cos)
+//  {
+//    if (max_abs_charge_ < abs_charge)
+//    {
+//      return;
+//    }
+//    if (per_charge_cos_.empty())
+//    {
+//      per_charge_cos_ = std::vector<float>(1 + max_abs_charge_, .0);
+//    }
+//    per_charge_cos_[abs_charge] = cos;
+//  }
+//
+//  void setChargeIntensity(const int abs_charge, const float intensity)
+//  {
+//    if (max_abs_charge_ < abs_charge)
+//    {
+//      return;
+//    }
+//    if (per_charge_int_.empty())
+//    {
+//      per_charge_int_ = std::vector<float>(1 + max_abs_charge_, .0);
+//    }
+//    per_charge_int_[abs_charge] = intensity;
+//  }
+
+
+  /// use only for writing outputs?
+//  void FeatureGroup::setCentroidRtOfApicesAndMostAbundantMT()
+//  {
+//    std::vector<double> apex_rts;
+//    apex_rts.reserve(feature_seeds_.size());
+//    double max_inty = .0;
+//    double apex_rt = .0;
+//
+//    for (const auto &lmt: *this)
+//    {
+//      Size max_idx = lmt.getMassTrace()->findMaxByIntPeak(false);
+//      Peak2D tmp_max_peak = (*lmt.getMassTrace())[max_idx];
+//      apex_rts.push_back(tmp_max_peak.getRT());
+//      if (max_inty < tmp_max_peak.getIntensity())
+//      {
+//        max_inty = tmp_max_peak.getIntensity();
+//        apex_rt = tmp_max_peak.getRT();
+//      }
+//    }
+//    rt_of_apex = apex_rt;
+//
+//    std::sort(apex_rts.begin(), apex_rts.end());
+//    Size mts_count = this->size();
+//    if (mts_count % 2 == 0) {
+//      // Find the average of value at index N/2 and (N-1)/2
+//      centroid_rt_of_apices = (double)(apex_rts[(mts_count-1) / 2] + apex_rts[mts_count / 2]) / 2.0;
+//    }
+//    else
+//    {
+//      centroid_rt_of_apices = (double) apex_rts[mts_count / 2];
+//    }
+//  }
+}
