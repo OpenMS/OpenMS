@@ -84,7 +84,7 @@ namespace OpenMS
     spectrum.setMetaValue("is_valid", 0); // to avoid adding invalid spectra to the library
 
     boost::cmatch m;
-    boost::regex re_name("^Name: (.+)", boost::regex::no_mod_s);
+    boost::regex re_name("^(Name|NAME): (.+)", boost::regex::no_mod_s);
     boost::regex re_retention_time("^(Retention Time|RETENTIONTIME): (.)+", boost::regex::no_mod_s);
     boost::regex re_synon("^synon(?:yms?)?: (.+)", boost::regex::no_mod_s | boost::regex::icase);
     boost::regex re_points_line(R"(^\d)");
@@ -123,7 +123,7 @@ namespace OpenMS
         // OPENMS_LOG_DEBUG << "\n\nName: " << m[1] << "\n";
         spectrum.clear(true);
         synonyms_.clear();
-        spectrum.setName(String(m[1]));
+        spectrum.setName(String(m[2]));
         spectrum.setMetaValue("is_valid", 1);
       }
       // Retention Time
@@ -275,7 +275,6 @@ namespace OpenMS
       { // set RT to spectrum index
         spectrum.setRT(library.getSpectra().size());
       }
-
       library.addSpectrum(spectrum);
       loaded_spectra_names_.insert(spectrum.getName());
 
