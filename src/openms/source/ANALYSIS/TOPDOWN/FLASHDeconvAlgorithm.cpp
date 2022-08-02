@@ -1285,6 +1285,9 @@ namespace OpenMS
         if (ms_level_ == 1 && (decoy.getRepAbsCharge() < min_abs_charge_ || decoy.getRepAbsCharge() > max_abs_charge_))
         {
         }
+        else if(decoy.getQScore() <= 0)
+        {
+        }
         else
         {
           auto max_q_score_mz_range = decoy.getMzRange(peak_group.getRepAbsCharge());
@@ -1330,6 +1333,10 @@ namespace OpenMS
         continue;
       }
 
+      if(peak_group.getQScore() <= 0)
+      {
+        continue;
+      }
       auto max_q_score_mz_range = peak_group.getMzRange(peak_group.getRepAbsCharge());
       peak_group.setMaxQScoreMzRange(std::get<0>(max_q_score_mz_range), std::get<1>(max_q_score_mz_range));
 
