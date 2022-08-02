@@ -329,6 +329,11 @@ protected:
               String tmp = line.substr(11);
               spectrum.setMetaValue("GNPS_Spectrum_ID", tmp);
             }
+            else if (line.hasPrefix("SCANS="))
+            {
+              String tmp = line.substr(6);
+              spectrum.setMetaValue("Scan_ID", tmp);
+            }
           }
         }
       }
