@@ -173,7 +173,7 @@ protected:
 
         if (out.size() != num_maps)
         {
-          writeLog_("Error: expected " + String(num_maps) +
+          writeLogError_("Error: expected " + String(num_maps) +
                     " output filenames");
           return ILLEGAL_PARAMETERS;
         }
@@ -181,7 +181,7 @@ protected:
       }
       else if (out.size() > 1)
       {
-        writeLog_("Error: expected only one output filename");
+        writeLogError_("Error: expected only one output filename");
         return ILLEGAL_PARAMETERS;
       }
       else if (in_type == FileTypes::MZML)

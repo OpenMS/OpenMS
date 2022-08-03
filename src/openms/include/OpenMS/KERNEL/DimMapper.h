@@ -80,6 +80,9 @@ namespace OpenMS
     /// Assignment operator
     DimBase& operator=(const DimBase& rhs) = default;
 
+    /// D'tor (needs to be virtual; we are holding pointers to base in DimMapper)
+    virtual ~DimBase() noexcept = default;
+
     /// Equality
     bool operator==(const DimBase& rhs) const
     {

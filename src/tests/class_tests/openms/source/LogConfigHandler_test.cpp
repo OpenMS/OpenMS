@@ -120,10 +120,10 @@ START_SECTION((void configure(const Param &param)))
   boost::regex rx(pattern);
 
   int i = 1;
-  for(StringList::const_iterator it = info_warn_result.begin() ; it != info_warn_result.end(); ++it)
+  for(StringList::iterator it = info_warn_result.begin() ; it != info_warn_result.end(); ++it)
   {
-    boost::regex rx(pattern + i);
-    TEST_EQUAL(regex_match(*it, rx), true)
+    rx.assign(pattern + i);
+    TEST_TRUE(regex_search(*it, rx)) // stream may be wrapped in ANSI color codes; only search infix
     ++i;
   }
   ostringstream& error_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance().getStream("only_error_string_stream"));
@@ -135,8 +135,8 @@ START_SECTION((void configure(const Param &param)))
   TEST_EQUAL(error_result.size(), 1)
 
   String pattern2("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] 4");
-  boost::regex rx2(pattern2);
-  TEST_EQUAL(regex_match(error_result[0], rx2), true)
+  rx.assign(pattern2);
+  TEST_TRUE(regex_search(error_result[0], rx)) // stream may be wrapped in ANSI color codes; only search infix
 }
 END_SECTION
 
