@@ -532,7 +532,9 @@ namespace OpenMS::Internal
     QSqlDatabase db = QSqlDatabase::database(db_name_);
     QSqlQuery query(db);
     query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_ParentGroupSet ORDER BY id ASC"))
+    // "grouping_order" column was removed in schema version 3:
+    QString order_by = version_number_ > 2 ? "id" : "grouping_order";
+    if (!query.exec("SELECT * FROM ID_ParentGroupSet ORDER BY " + order_by + " ASC"))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
@@ -949,7 +951,9 @@ namespace OpenMS::Internal
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM FEAT_DataProcessing ORDER BY id ASC"))
+    // "position" column was removed in schema version 3:
+    QString order_by = version_number_ > 2 ? "id" : "position";
+    if (!query.exec("SELECT * FROM FEAT_DataProcessing ORDER BY " + order_by + " ASC"))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");

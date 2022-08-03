@@ -48,7 +48,7 @@ using ID = OpenMS::IdentificationData;
 
 namespace OpenMS::Internal
 {
-  int version_number = 2; // increase this whenever the DB schema changes!
+  int version_number = 3; // increase this whenever the DB schema changes!
 
   void raiseDBError_(const QSqlError& error, int line, const char* function, const String& context)
   {
