@@ -293,13 +293,13 @@ protected:
     bool remove_meta_enabled = (!meta_info.empty());
     if (remove_meta_enabled && meta_info.size() != 3)
     {
-      writeLog_("Param 'remove_peptide_hits_by_metavalue' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
+      writeLogError_("Param 'remove_peptide_hits_by_metavalue' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
     if (remove_meta_enabled && !(meta_info[1] == "lt" || meta_info[1] == "eq" || meta_info[1] == "gt" || meta_info[1] == "ne"))
     {
-      writeLog_("Param 'remove_peptide_hits_by_metavalue' has invalid second argument. Expected one of 'lt', 'eq', 'gt' or 'ne'. Got '" + meta_info[1] + "'. Aborting!");
+      writeLogError_("Param 'remove_peptide_hits_by_metavalue' has invalid second argument. Expected one of 'lt', 'eq', 'gt' or 'ne'. Got '" + meta_info[1] + "'. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -703,7 +703,7 @@ protected:
         }
         else
         {
-          writeLog_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been caught before! Aborting!");
+          writeLogError_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been caught before! Aborting!");
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Illegal meta value filtering operator!");
         }
       }; // of lambda

@@ -143,7 +143,7 @@ protected:
 
     if (number_of_peptides > identifications.size())
     {
-      writeLog_("Number of existing peptides smaller than number of chosen peptides. Aborting!");
+      writeLogError_("Number of existing peptides smaller than number of chosen peptides. Aborting!");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -214,7 +214,7 @@ protected:
 
     if (chosen_ids.size() < number_of_peptides)
     {
-      writeLog_("Number of existing unique peptides (" + String(chosen_ids.size()) + ") smaller than number of chosen peptides. Aborting!");
+      writeLogError_("Number of existing unique peptides (" + String(chosen_ids.size()) + ") smaller than number of chosen peptides. Aborting!");
       return ILLEGAL_PARAMETERS;
     }
 

@@ -123,7 +123,7 @@ protected:
     //-------------------------------------------------------------
     if (exp.clearMetaDataArrays())
     {
-      writeLog_("Warning: Spectrum meta data arrays cannot be sorted. They are deleted.");
+      writeLogWarn_("Warning: Spectrum meta data arrays cannot be sorted. They are deleted.");
     }
 
     //-------------------------------------------------------------

@@ -303,7 +303,7 @@ protected:
 
     if (top_hits < -1)
     {
-      writeLog_("top_hits (should be  >= -1 )");
+      writeLogError_("top_hits (should be  >= -1 )");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -312,7 +312,7 @@ protected:
     // -------------------------------------------------------------
     if (out.size() != in_spec.size())
     {
-      writeLog_("out (should be as many as input files)");
+      writeLogError_("out (should be as many as input files)");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -420,7 +420,7 @@ protected:
 
         if (query[j].getPrecursors().empty())
         {
-          writeLog_("Warning MS2 spectrum without precursor information");
+          writeLogWarn_("Warning MS2 spectrum without precursor information");
           continue;
         }
 

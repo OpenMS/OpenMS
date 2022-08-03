@@ -208,7 +208,7 @@ protected:
       const char* novor_path_env = getenv("NOVOR_PATH");
       if (novor_path_env == nullptr || strlen(novor_path_env) == 0)
       {
-        writeLog_( "FATAL: Executable of Novor could not be found. Please either use NOVOR_PATH env variable or provide via '-executable'!");
+        writeLogError_("FATAL: Executable of Novor could not be found. Please either use NOVOR_PATH env variable or provide via '-executable'!");
         return MISSING_PARAMETERS;
       }
       executable = novor_path_env;
@@ -218,7 +218,7 @@ protected:
     QFileInfo file_info(executable);
     executable = file_info.canonicalFilePath();
 
-    writeLog_("Executable is: " + executable);
+    writeLogInfo_("Executable is: " + executable);
     const QString & path_to_executable = File::path(executable).toQString();
     
     //-------------------------------------------------------------
