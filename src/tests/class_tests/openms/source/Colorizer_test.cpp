@@ -111,7 +111,7 @@ END_SECTION
 
 START_SECTION([EXTRA] visual inspection(only works when not redirecting cout/cerr to file))
 {
-  std::cerr << "\n\n --- for COUT ---\n";
+  std::cerr << "\n\n --- for COUT ---\n" << std::flush;
   std::cout << red.undoAll();
   std::cout << "\n-" << red("red inline text") << " -" << red() << " red to infinity " << red.undo();
   std::cout << "\n-" << green("green inline  text") << " -" << green() << " green to infinity " << green.undo();
@@ -123,6 +123,7 @@ START_SECTION([EXTRA] visual inspection(only works when not redirecting cout/cer
   std::cout << "\n-" << bright("bright inline  text") << " -" << bright() << " bright to infinity " << bright.undo();
   std::cout << "\n-" << underline("underline inline  text") << " -" << underline() << " underline to infinity " << underline.undo();
   std::cout << "\n-" << underline() << bright() << green() <<" underlined, bright, green to infinity " << underline.undoAll();
+  std::cout << std::flush; // make sure the ANSI code made it to the stream
 
   std::cerr << "\n\n --- for CERR ---\n";
   std::cerr << red.undoAll();
@@ -136,6 +137,7 @@ START_SECTION([EXTRA] visual inspection(only works when not redirecting cout/cer
   std::cerr << "\n-" << bright("bright inline  text") << " -" << bright() << " bright to infinity " << bright.undo();
   std::cerr << "\n-" << underline("underline inline  text") << " -" << underline() << " underline to infinity " << underline.undo();
   std::cerr << "\n-" << underline() << bright() << green() << " underlined, bright, green to infinity " << underline.undoAll();
+  std::cerr << std::flush; // make sure the ANSI code made it to the stream
 }
 END_SECTION
 

@@ -56,6 +56,7 @@ namespace OpenMS
 
     The class supports coloring its output if the underlying @p stream is either std::cout or cerr by passing a Colorizer.
 
+    Upon destruction of IndentedStream, the underlying @p stream is flushed.
   */
   class OPENMS_DLLAPI IndentedStream
   {
@@ -67,13 +68,10 @@ namespace OpenMS
       @param indentation Number of spaces in front of each new line written to @p stream
       @param max_lines Shorten excessive single items to at most this many number of lines (replacing excess with '...')
     */
-    IndentedStream(std::ostream& stream, const UInt indentation, const UInt max_lines)
-      : stream_(&stream),
-        indentation_(indentation),
-        max_lines_(max_lines),
-        max_line_width_(ConsoleUtils::getInstance().getConsoleWidth())
-    {
-    }
+    IndentedStream(std::ostream& stream, const UInt indentation, const UInt max_lines);
+
+    /// D'tor flushes the stream
+    ~IndentedStream();
 
     /// Support normal usage of Colorizer (for coloring cout/cerr). The underlying stream will receive ANSI codes unless its a redirected(!) cout/cerr.
     /// Warning: the ANSI codes are NOT considered to advance the cursor and will lead to broken formatting if
@@ -82,10 +80,7 @@ namespace OpenMS
     IndentedStream& operator<<(Colorizer& colorizer);
     
     /// Support calling our member functions within a stream
-    IndentedStream& operator<<(IndentedStream& self)
-    {
-      return self;
-    }
+    IndentedStream& operator<<(IndentedStream& self);
 
     template<typename T>
     IndentedStream& operator<<(const T& data)
@@ -125,17 +120,11 @@ namespace OpenMS
     typedef std::ostream& (*StreamManipulator)(std::ostream&);
 
     /// Overload for function pointers, e.g. std::endl
-    IndentedStream& operator<<(StreamManipulator manip)
-    {
-      // call the function on the internal stream
-      manip(*stream_);
-      return *this;
-    }
+    IndentedStream& operator<<(StreamManipulator manip);
 
     /// Support new indentation, on the fly.
     /// This will take effect when the next line break is encountered (either manual or automatic linebreak (at the right side of the console).
     IndentedStream& indent(const UInt new_indent);
-
 
   private:
     std::ostream* stream_;        ///< the underlying stream to print to

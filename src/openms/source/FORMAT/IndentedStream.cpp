@@ -43,8 +43,20 @@ using namespace std;
 
 namespace OpenMS
 {
+  
+  IndentedStream::IndentedStream(std::ostream& stream, const UInt indentation, const UInt max_lines) :
+      stream_(&stream), indentation_(indentation), max_lines_(max_lines), max_line_width_(ConsoleUtils::getInstance().getConsoleWidth())
+  {
+  }
 
-  IndentedStream& IndentedStream::operator << (Colorizer& colorizer)
+  /// D'tor flushes the stream
+
+  IndentedStream::~IndentedStream()
+  {
+    stream_->flush();
+  }
+
+  IndentedStream& IndentedStream::operator<<(Colorizer& colorizer)
   {
     // manipulate the internal data of colorizer (if any)
     stringstream reformatted;
@@ -66,6 +78,19 @@ namespace OpenMS
 
     return *this;
   }
+
+  IndentedStream& IndentedStream::operator<<(IndentedStream & self)
+  {
+    return self;
+  }
+  
+  IndentedStream& IndentedStream::operator<<(StreamManipulator manip)
+  {
+    // call the function on the internal stream
+    manip(*stream_);
+    return *this;
+  }
+
   IndentedStream& IndentedStream::indent(const UInt new_indent)
   {
     indentation_ = new_indent;
