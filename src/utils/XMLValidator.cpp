@@ -113,7 +113,7 @@ protected:
       FileTypes::Type in_type = FileHandler::getType(in);
       if (in_type == FileTypes::UNKNOWN)
       {
-        writeLog_("Error: Could not determine input file type and no xsd schema was provided!");
+        writeLogError_("Error: Could not determine input file type and no xsd schema was provided!");
         return PARSE_ERROR;
       }
 
