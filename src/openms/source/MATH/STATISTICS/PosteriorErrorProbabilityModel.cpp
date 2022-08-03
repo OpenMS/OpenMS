@@ -961,7 +961,7 @@ namespace OpenMS::Math
       {
         return getScore_({"hyperscore"}, hit, current_score_type); //TODO evaluate transformations
       }
-      else if (engine == "MSFragger")
+      else if (engine == "MSFRAGGER")
       {
         return (-1) * log10(getScore_({"expect"}, hit, current_score_type));
       }
