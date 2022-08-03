@@ -158,7 +158,7 @@ namespace OpenMS
       result.push_back(input);
       return result;
     }
-    if (first_line_prefill > console_width_)
+    if ((int)first_line_prefill > console_width_)
     { // first line is already longer than console width. Assume console did an automatic linebreak.
       first_line_prefill = first_line_prefill % console_width_;
     }
@@ -167,9 +167,9 @@ namespace OpenMS
     for (Size i = 0; i < input.size(); /* i+=? computed below */)
     {
       // first line has full length (minus the prefilled chars)
-      const int remaining_line_chars = result.empty() ? console_width_ - first_line_prefill : short_line_len;
+      const Size remaining_line_chars = result.empty() ? console_width_ - first_line_prefill : short_line_len;
       // the first line does not need indentation
-      const int prefix_for_current_line = result.empty() ? 0 : indentation;
+      const Size prefix_size_current_line = result.empty() ? 0 : indentation;
       
       line = input.substr(i, remaining_line_chars);
       
@@ -197,7 +197,7 @@ namespace OpenMS
       }
 
       i += advance_size;
-      String s_intend = String(prefix_for_current_line, ' ');
+      String s_intend = String(prefix_size_current_line, ' ');
       String r = s_intend + line;
       result.push_back(r); //(r.fillRight(' ', (UInt) line_len));
     }
