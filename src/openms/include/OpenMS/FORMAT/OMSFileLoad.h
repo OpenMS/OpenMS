@@ -153,7 +153,7 @@ namespace OpenMS
       std::unordered_map<Key, IdentificationData::ProcessingStepRef> processing_step_refs_;
       std::unordered_map<Key, IdentificationData::SearchParamRef> search_param_refs_;
       std::unordered_map<Key, IdentificationData::ObservationRef> observation_refs_;
-      std::unordered_map<Key, IdentificationData::ParentSequenceRef> parent_refs_;
+      std::unordered_map<Key, IdentificationData::ParentSequenceRef> parent_sequence_refs_;
       std::unordered_map<Key, IdentificationData::IdentifiedMolecule> identified_molecule_vars_;
       std::unordered_map<Key, IdentificationData::ObservationMatchRef> observation_match_refs_;
       std::unordered_map<Key, IdentificationData::AdductRef> adduct_refs_;

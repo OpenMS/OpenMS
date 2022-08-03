@@ -50,8 +50,7 @@ namespace OpenMS::Internal
 {
   int version_number = 2; // increase this whenever the DB schema changes!
 
-  void raiseDBError_(const QSqlError& error, int line,
-                     const char* function, const String& context)
+  void raiseDBError_(const QSqlError& error, int line, const char* function, const String& context)
   {
     String msg = context + ": " + error.text();
     throw Exception::FailedAPICall(__FILE__, line, function, msg);
@@ -66,8 +65,7 @@ namespace OpenMS::Internal
 
 
   OMSFileStore::OMSFileStore(const String& filename, LogType log_type):
-    db_name_("store_" + filename.toQString() + "_" +
-             QString::number(UniqueIdGenerator::getUniqueId()))
+    db_name_("store_" + filename.toQString() + "_" + QString::number(UniqueIdGenerator::getUniqueId()))
   {
     setLogType(log_type);
 
@@ -79,8 +77,7 @@ namespace OpenMS::Internal
     db.setDatabaseName(filename.toQString());
     if (!db.open())
     {
-      raiseDBError_(db.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error opening SQLite database");
+      raiseDBError_(db.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error opening SQLite database");
       // if d'tor doesn't get called, DB connection (db_name_) doesn't get
       // removed, but that shouldn't be a big problem
     }
@@ -91,21 +88,18 @@ namespace OpenMS::Internal
     // @TODO: performance impact? (seems negligible, but should be tested more)
     if (!query.exec("PRAGMA foreign_keys = ON"))
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error configuring database");
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error configuring database");
     }
     // disable synchronous filesystem access and the rollback journal to greatly
     // increase write performance - since we write a new output file every time,
     // we don't have to worry about database consistency:
     if (!query.exec("PRAGMA synchronous = OFF"))
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error configuring database");
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error configuring database");
     }
     if (!query.exec("PRAGMA journal_mode = OFF"))
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error configuring database");
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error configuring database");
     }
   }
 
@@ -117,9 +111,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::createTable_(const String& name,
-                                  const String& definition,
-                                  bool may_exist)
+  void OMSFileStore::createTable_(const String& name, const String& definition, bool may_exist)
   {
     QString sql_create = "CREATE TABLE ";
     if (may_exist) sql_create += "IF NOT EXISTS ";
@@ -152,8 +144,7 @@ namespace OpenMS::Internal
     query.bindValue(":build_date", VersionInfo::getTime().toQString());
     if (!query.exec())
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error inserting data");
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
     }
   }
 
@@ -171,8 +162,7 @@ namespace OpenMS::Internal
     QSqlQuery query(QSqlDatabase::database(db_name_));
     if (!query.exec(sql_insert))
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error inserting data");
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
     }
   }
 
@@ -193,8 +183,7 @@ namespace OpenMS::Internal
     QSqlQuery query(QSqlDatabase::database(db_name_));
     if (!query.exec(sql_insert))
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error inserting data");
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
     }
     createTable_(
       "DataValue",
@@ -228,8 +217,7 @@ namespace OpenMS::Internal
     query.bindValue(":value", value.toQString());
     if (!query.exec())
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error inserting data");
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
     }
     return query.lastInsertId().toLongLong();
   }
@@ -273,12 +261,10 @@ namespace OpenMS::Internal
       query.bindValue(":accession", cv_term.getAccession().toQString());
     }
     query.bindValue(":name", cv_term.getName().toQString());
-    query.bindValue(":cv_identifier_ref",
-                    cv_term.getCVIdentifierRef().toQString());
+    query.bindValue(":cv_identifier_ref", cv_term.getCVIdentifierRef().toQString());
     if (!query.exec())
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error updating database");
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error updating database");
     }
     if (query.lastInsertId().isValid())
     {
@@ -297,15 +283,13 @@ namespace OpenMS::Internal
     alt_query.bindValue(":name", cv_term.getName().toQString());
     if (!alt_query.exec() || !alt_query.next())
     {
-      raiseDBError_(alt_query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error querying database");
+      raiseDBError_(alt_query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error querying database");
     }
     return alt_query.value(0).toLongLong();
   }
 
 
-  void OMSFileStore::createTableMetaInfo_(const String& parent_table,
-                                          const String& key_column)
+  void OMSFileStore::createTableMetaInfo_(const String& parent_table, const String& key_column)
   {
     if (!tableExists_(db_name_, "DataValue")) createTableDataValue_();
 
@@ -330,9 +314,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeMetaInfo_(const MetaInfoInterface& info,
-                                    const String& parent_table,
-                                    Key parent_id)
+  void OMSFileStore::storeMetaInfo_(const MetaInfoInterface& info, const String& parent_table, Key parent_id)
   {
     if (info.isMetaEmpty()) return;
 
@@ -349,8 +331,7 @@ namespace OpenMS::Internal
       query.bindValue(":data_value_id", value_id);
       if (!query.exec())
       {
-        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error inserting data");
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
     }
   }
@@ -385,9 +366,8 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeAppliedProcessingStep_(
-    const ID::AppliedProcessingStep& step, Size step_order,
-    const String& parent_table, Key parent_id)
+  void OMSFileStore::storeAppliedProcessingStep_(const ID::AppliedProcessingStep& step, Size step_order,
+                                                 const String& parent_table, Key parent_id)
   {
     // this assumes the "..._AppliedProcessingStep" table exists already!
     QSqlQuery& query = prepared_queries_[parent_table + "_AppliedProcessingStep"];
@@ -395,16 +375,14 @@ namespace OpenMS::Internal
     query.bindValue(":processing_step_order", int(step_order));
     if (step.processing_step_opt)
     {
-      query.bindValue(":processing_step_id",
-                      Key(&(**step.processing_step_opt)));
+      query.bindValue(":processing_step_id", processing_step_keys_[&(**step.processing_step_opt)]);
       if (step.scores.empty()) // insert processing step information only
       {
         query.bindValue(":score_type_id", QVariant(QVariant::Int)); // NULL
         query.bindValue(":score", QVariant(QVariant::Double)); // NULL
         if (!query.exec())
         {
-          raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                        "error inserting data");
+          raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
         }
       }
     }
@@ -414,12 +392,11 @@ namespace OpenMS::Internal
     }
     for (const auto& score_pair : step.scores)
     {
-      query.bindValue(":score_type_id", Key(&(*score_pair.first)));
+      query.bindValue(":score_type_id", score_type_keys_[&(*score_pair.first)]);
       query.bindValue(":score", score_pair.second);
       if (!query.exec())
       {
-        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error inserting data");
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
     }
   }
@@ -442,17 +419,19 @@ namespace OpenMS::Internal
                   ":id, "                                   \
                   ":cv_term_id, "                           \
                   ":higher_better)");
+    Key id = 1;
     for (const ID::ScoreType& score_type : id_data.getScoreTypes())
     {
       Key cv_id = storeCVTerm_(score_type.cv_term);
-      query.bindValue(":id", Key(&score_type)); // use address as primary key
+      query.bindValue(":id", id);
       query.bindValue(":cv_term_id", cv_id);
       query.bindValue(":higher_better", int(score_type.higher_better));
       if (!query.exec())
       {
-        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error inserting data");
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
+      score_type_keys_[&score_type] = id;
+      ++id;
     }
   }
 
@@ -473,9 +452,10 @@ namespace OpenMS::Internal
                   ":name, "                            \
                   ":experimental_design_id, "          \
                   ":primary_files)");
+    Key id = 1;
     for (const ID::InputFile& input : id_data.getInputFiles())
     {
-      query.bindValue(":id", Key(&input));
+      query.bindValue(":id", id);
       query.bindValue(":name", input.name.toQString());
       query.bindValue(":experimental_design_id",
                       input.experimental_design_id.toQString());
@@ -484,9 +464,10 @@ namespace OpenMS::Internal
       query.bindValue(":primary_files", primary_files.toQString());
       if (!query.exec())
       {
-        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error inserting data");
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
+      input_file_keys_[&input] = id;
+      ++id;
     }
   }
 
@@ -507,17 +488,19 @@ namespace OpenMS::Internal
                   ":name, "                                         \
                   ":version)");
     bool any_scores = false; // does any software have assigned scores stored?
+    Key id = 1;
     for (const ID::ProcessingSoftware& software : id_data.getProcessingSoftwares())
     {
       if (!software.assigned_scores.empty()) any_scores = true;
-      query.bindValue(":id", Key(&software));
+      query.bindValue(":id", id);
       query.bindValue(":name", software.getName().toQString());
       query.bindValue(":version", software.getVersion().toQString());
       if (!query.exec())
       {
-        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error inserting data");
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
+      processing_software_keys_[&software] = id;
+      ++id;
     }
     if (any_scores)
     {
@@ -538,16 +521,15 @@ namespace OpenMS::Internal
         ":score_type_order)");
       for (const ID::ProcessingSoftware& software : id_data.getProcessingSoftwares())
       {
-        query.bindValue(":software_id", Key(&software));
+        query.bindValue(":software_id", processing_software_keys_[&software]);
         Size counter = 0;
         for (ID::ScoreTypeRef score_type_ref : software.assigned_scores)
         {
-          query.bindValue(":score_type_id", Key(&(*score_type_ref)));
+          query.bindValue(":score_type_id", score_type_keys_[&(*score_type_ref)]);
           query.bindValue(":score_type_order", int(++counter));
           if (!query.exec())
           {
-            raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                          "error inserting data");
+            raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
           }
         }
       }
@@ -603,9 +585,10 @@ namespace OpenMS::Internal
                   ":missed_cleavages, "                   \
                   ":min_length, "                         \
                   ":max_length)");
+    Key id = 1;
     for (const ID::DBSearchParam& param : id_data.getDBSearchParams())
     {
-      query.bindValue(":id", Key(&param));
+      query.bindValue(":id", id);
       query.bindValue(":molecule_type_id", int(param.molecule_type) + 1);
       query.bindValue(":mass_type_average", int(param.mass_type));
       query.bindValue(":database", param.database.toQString());
@@ -617,18 +600,13 @@ namespace OpenMS::Internal
       query.bindValue(":fixed_mods", fixed_mods.toQString());
       String variable_mods = ListUtils::concatenate(param.variable_mods, ",");
       query.bindValue(":variable_mods", variable_mods.toQString());
-      query.bindValue(":precursor_mass_tolerance",
-                      param.precursor_mass_tolerance);
-      query.bindValue(":fragment_mass_tolerance",
-                      param.fragment_mass_tolerance);
-      query.bindValue(":precursor_tolerance_ppm",
-                      int(param.precursor_tolerance_ppm));
-      query.bindValue(":fragment_tolerance_ppm",
-                      int(param.fragment_tolerance_ppm));
+      query.bindValue(":precursor_mass_tolerance", param.precursor_mass_tolerance);
+      query.bindValue(":fragment_mass_tolerance", param.fragment_mass_tolerance);
+      query.bindValue(":precursor_tolerance_ppm", int(param.precursor_tolerance_ppm));
+      query.bindValue(":fragment_tolerance_ppm", int(param.fragment_tolerance_ppm));
       if (param.digestion_enzyme != nullptr)
       {
-        query.bindValue(":digestion_enzyme",
-                        param.digestion_enzyme->getName().toQString());
+        query.bindValue(":digestion_enzyme", param.digestion_enzyme->getName().toQString());
       }
       else // bind NULL value
       {
@@ -641,9 +619,10 @@ namespace OpenMS::Internal
       query.bindValue(":max_length", uint(param.max_length));
       if (!query.exec())
       {
-        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error inserting data");
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
+      search_param_keys_[&param] = id;
+      ++id;
     }
   }
 
@@ -664,25 +643,26 @@ namespace OpenMS::Internal
     // @TODO: store (optional) search param reference in a separate table?
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.prepare("INSERT INTO ID_ProcessingStep VALUES ("  \
+    query.prepare("INSERT INTO ID_ProcessingStep VALUES ("      \
                   ":id, "                                       \
                   ":software_id, "                              \
                   ":date_time, "                                \
                   ":search_param_id)");
     bool any_input_files = false;
+    Key id = 1;
     // use iterator here because we need one to look up the DB search params:
     for (ID::ProcessingStepRef step_ref = id_data.getProcessingSteps().begin();
          step_ref != id_data.getProcessingSteps().end(); ++step_ref)
     {
       const ID::ProcessingStep& step = *step_ref;
       if (!step.input_file_refs.empty()) any_input_files = true;
-      query.bindValue(":id", Key(&step));
-      query.bindValue(":software_id", Key(&(*step.software_ref)));
+      query.bindValue(":id", id);
+      query.bindValue(":software_id", processing_software_keys_[&(*step.software_ref)]);
       query.bindValue(":date_time", step.date_time.get().toQString());
       auto pos = id_data.getDBSearchSteps().find(step_ref);
       if (pos != id_data.getDBSearchSteps().end())
       {
-        query.bindValue(":search_param_id", Key(&(*pos->second)));
+        query.bindValue(":search_param_id", search_param_keys_[&(*pos->second)]);
       }
       else
       {
@@ -690,9 +670,10 @@ namespace OpenMS::Internal
       }
       if (!query.exec())
       {
-        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error inserting data");
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
+      processing_step_keys_[&step] = id;
+      ++id;
     }
     if (any_input_files)
     {
@@ -710,19 +691,18 @@ namespace OpenMS::Internal
 
       for (const ID::ProcessingStep& step : id_data.getProcessingSteps())
       {
-        query.bindValue(":processing_step_id", Key(&step));
+        query.bindValue(":processing_step_id", processing_step_keys_[&step]);
         for (ID::InputFileRef input_file_ref : step.input_file_refs)
         {
-          query.bindValue(":input_file_id", Key(&(*input_file_ref)));
+          query.bindValue(":input_file_id", input_file_keys_[&(*input_file_ref)]);
           if (!query.exec())
           {
-            raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                          "error inserting data");
+            raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
           }
         }
       }
     }
-    storeMetaInfos_(id_data.getProcessingSteps(), "ID_ProcessingStep");
+    storeMetaInfos_(id_data.getProcessingSteps(), "ID_ProcessingStep", processing_step_keys_);
   }
 
 
@@ -746,12 +726,12 @@ namespace OpenMS::Internal
                   ":input_file_id, "                  \
                   ":rt, "                             \
                   ":mz)");
+    Key id = 1;
     for (const ID::Observation& obs : id_data.getObservations())
     {
-      query.bindValue(":id", Key(&obs)); // use address as primary key
+      query.bindValue(":id", id);
       query.bindValue(":data_id", obs.data_id.toQString());
-      query.bindValue(":input_file_id", Key(&(*obs.input_file)));
-
+      query.bindValue(":input_file_id", input_file_keys_[&(*obs.input_file)]);
       if (obs.rt == obs.rt)
       {
         query.bindValue(":rt", obs.rt);
@@ -773,8 +753,10 @@ namespace OpenMS::Internal
         raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                       "error inserting data");
       }
+      observation_keys_[&obs] = id;
+      ++id;
     }
-    storeMetaInfos_(id_data.getObservations(), "ID_Observation");
+    storeMetaInfos_(id_data.getObservations(), "ID_Observation", observation_keys_);
   }
 
 
@@ -804,9 +786,10 @@ namespace OpenMS::Internal
                   ":description, "                          \
                   ":coverage, "                             \
                   ":is_decoy)");
+    Key id = 1;
     for (const ID::ParentSequence& parent : id_data.getParentSequences())
     {
-      query.bindValue(":id", Key(&parent)); // use address as primary key
+      query.bindValue(":id", id);
       query.bindValue(":accession", parent.accession.toQString());
       query.bindValue(":molecule_type_id", int(parent.molecule_type) + 1);
       query.bindValue(":sequence", parent.sequence.toQString());
@@ -815,11 +798,12 @@ namespace OpenMS::Internal
       query.bindValue(":is_decoy", int(parent.is_decoy));
       if (!query.exec())
       {
-        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error inserting data");
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
+      parent_sequence_keys_[&parent] = id;
+      ++id;
     }
-    storeScoredProcessingResults_(id_data.getParentSequences(), "ID_ParentSequence");
+    storeScoredProcessingResults_(id_data.getParentSequences(), "ID_ParentSequence", parent_sequence_keys_);
   }
 
 
@@ -828,9 +812,8 @@ namespace OpenMS::Internal
     if (id_data.getParentGroupSets().empty()) return;
 
     createTable_("ID_ParentGroupSet",
-                 "id INTEGER PRIMARY KEY NOT NULL, "  \
-                 "label TEXT, "                       \
-                 "grouping_order INTEGER NOT NULL");
+                 "id INTEGER PRIMARY KEY NOT NULL, "    \
+                 "label TEXT");
 
     createTable_(
       "ID_ParentGroup",
@@ -846,45 +829,40 @@ namespace OpenMS::Internal
       "group_id INTEGER NOT NULL, "                                     \
       "parent_id INTEGER NOT NULL, "                                    \
       "UNIQUE (group_id, parent_id), "                                  \
-      "FOREIGN KEY (group_id) REFERENCES ID_ParentGroup (id), " \
+      "FOREIGN KEY (group_id) REFERENCES ID_ParentGroup (id), "         \
       "FOREIGN KEY (parent_id) REFERENCES ID_ParentSequence (id)");
 
     QSqlDatabase db = QSqlDatabase::database(db_name_);
     QSqlQuery query_grouping(db);
-    query_grouping.prepare("INSERT INTO ID_ParentGroupSet VALUES (" \
+    query_grouping.prepare("INSERT INTO ID_ParentGroupSet VALUES ("     \
                            ":id, "                                      \
-                           ":label, "                                   \
-                           ":grouping_order)");
+                           ":label)");
 
     QSqlQuery query_group(db);
-    query_group.prepare("INSERT INTO ID_ParentGroup VALUES ("  \
+    query_group.prepare("INSERT INTO ID_ParentGroup VALUES ("          \
                         ":id, "                                        \
                         ":grouping_id, "                               \
                         ":score_type_id, "                             \
                         ":score)");
 
     QSqlQuery query_parent(db);
-    query_parent.prepare(
-      "INSERT INTO ID_ParentGroup_ParentSequence VALUES ("   \
-      ":group_id, "                                                  \
-      ":parent_id)");
+    query_parent.prepare("INSERT INTO ID_ParentGroup_ParentSequence VALUES (" \
+                         ":group_id, "                                  \
+                         ":parent_id)");
 
-    Size counter = 0;
+    Key grouping_id = 1;
+    Key group_id = 1;
     for (const ID::ParentGroupSet& grouping : id_data.getParentGroupSets())
     {
-      Key grouping_id = Key(&grouping);
       query_grouping.bindValue(":id", grouping_id);
       query_grouping.bindValue(":label", grouping.label.toQString());
-      query_grouping.bindValue(":grouping_order", int(++counter));
       if (!query_grouping.exec())
       {
-        raiseDBError_(query_grouping.lastError(), __LINE__,
-                      OPENMS_PRETTY_FUNCTION, "error inserting data");
+        raiseDBError_(query_grouping.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
 
       for (const ID::ParentGroup& group : grouping.groups)
       {
-        Key group_id = Key(&group);
         query_group.bindValue(":id", group_id);
         query_group.bindValue(":grouping_id", grouping_id);
         if (group.scores.empty()) // store group with an empty score
@@ -893,20 +871,18 @@ namespace OpenMS::Internal
           query_group.bindValue(":score", QVariant(QVariant::Double));
           if (!query_group.exec())
           {
-            raiseDBError_(query_group.lastError(), __LINE__,
-                          OPENMS_PRETTY_FUNCTION, "error inserting data");
+            raiseDBError_(query_group.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
           }
         }
         else // store group multiple times with different scores
         {
           for (const auto& score_pair : group.scores)
           {
-            query_group.bindValue(":score_type_id", Key(&(*score_pair.first)));
+            query_group.bindValue(":score_type_id", score_type_keys_[&(*score_pair.first)]);
             query_group.bindValue(":score", score_pair.second);
             if (!query_group.exec())
             {
-              raiseDBError_(query_group.lastError(), __LINE__,
-                            OPENMS_PRETTY_FUNCTION, "error inserting data");
+              raiseDBError_(query_group.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
             }
           }
         }
@@ -914,17 +890,19 @@ namespace OpenMS::Internal
         query_parent.bindValue(":group_id", group_id);
         for (ID::ParentSequenceRef parent_ref : group.parent_refs)
         {
-          query_parent.bindValue(":parent_id", Key(&(*parent_ref)));
+          query_parent.bindValue(":parent_id", parent_sequence_keys_[&(*parent_ref)]);
           if (!query_parent.exec())
           {
-            raiseDBError_(query_parent.lastError(), __LINE__,
-                          OPENMS_PRETTY_FUNCTION, "error inserting data");
+            raiseDBError_(query_parent.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
           }
         }
+        ++group_id;
       }
+      parent_grouping_keys_[&grouping] = grouping_id;
+      ++grouping_id;
     }
 
-    storeScoredProcessingResults_(id_data.getParentGroupSets(), "ID_ParentGroupSet");
+    storeScoredProcessingResults_(id_data.getParentGroupSets(), "ID_ParentGroupSet", parent_grouping_keys_);
   }
 
 
@@ -960,8 +938,7 @@ namespace OpenMS::Internal
       createTableIdentifiedMolecule_();
     }
     QSqlQuery& query_molecule = prepared_queries_["ID_IdentifiedMolecule"];
-    query_molecule.bindValue(":molecule_type_id",
-                             int(ID::MoleculeType::COMPOUND) + 1);
+    query_molecule.bindValue(":molecule_type_id", int(ID::MoleculeType::COMPOUND) + 1);
 
     createTable_(
       "ID_IdentifiedCompound",
@@ -978,30 +955,29 @@ namespace OpenMS::Internal
                            ":name, "                                    \
                            ":smile, "                                   \
                            ":inchi)");
+    Key id = 1;
     for (const ID::IdentifiedCompound& compound : id_data.getIdentifiedCompounds())
     {
-      // use address as primary key:
-      query_molecule.bindValue(":id", Key(&compound));
+      query_molecule.bindValue(":id", id);
       query_molecule.bindValue(":identifier", compound.identifier.toQString());
       if (!query_molecule.exec())
       {
-        raiseDBError_(query_molecule.lastError(), __LINE__,
-                      OPENMS_PRETTY_FUNCTION, "error inserting data");
+        raiseDBError_(query_molecule.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
-      query_compound.bindValue(":molecule_id", Key(&compound));
-      query_compound.bindValue(":formula",
-                               compound.formula.toString().toQString());
+      query_compound.bindValue(":molecule_id", id);
+      query_compound.bindValue(":formula", compound.formula.toString().toQString());
       query_compound.bindValue(":name", compound.name.toQString());
       query_compound.bindValue(":smile", compound.name.toQString());
       query_compound.bindValue(":inchi", compound.inchi.toQString());
       if (!query_compound.exec())
       {
-        raiseDBError_(query_compound.lastError(), __LINE__,
-                      OPENMS_PRETTY_FUNCTION, "error inserting data");
+        raiseDBError_(query_compound.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
+      identified_compound_keys_[&compound] = id;
+      ++id;
     }
-    storeScoredProcessingResults_(id_data.getIdentifiedCompounds(),
-                                  "ID_IdentifiedMolecule");
+    storeScoredProcessingResults_(id_data.getIdentifiedCompounds(), "ID_IdentifiedMolecule",
+                                  identified_compound_keys_);
   }
 
 
@@ -1017,50 +993,57 @@ namespace OpenMS::Internal
     QSqlQuery& query = prepared_queries_["ID_IdentifiedMolecule"];
 
     bool any_parent_matches = false;
+    // identified compounds get stored earlier and use the same key range as peptides/oligos:
+    Key id = id_data.getIdentifiedCompounds().size() + 1;
     // store peptides:
     query.bindValue(":molecule_type_id", int(ID::MoleculeType::PROTEIN) + 1);
     for (const ID::IdentifiedPeptide& peptide : id_data.getIdentifiedPeptides())
     {
       if (!peptide.parent_matches.empty()) any_parent_matches = true;
-      query.bindValue(":id", Key(&peptide)); // use address as primary key
+      query.bindValue(":id", id);
       query.bindValue(":identifier", peptide.sequence.toString().toQString());
       if (!query.exec())
       {
-        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error inserting data");
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
+      identified_peptide_keys_[&peptide] = id;
+      ++id;
     }
-    storeScoredProcessingResults_(id_data.getIdentifiedPeptides(),
-                                  "ID_IdentifiedMolecule");
+    storeScoredProcessingResults_(id_data.getIdentifiedPeptides(), "ID_IdentifiedMolecule",
+                                  identified_peptide_keys_);
     // store RNA oligos:
     query.bindValue(":molecule_type_id", int(ID::MoleculeType::RNA) + 1);
     for (const ID::IdentifiedOligo& oligo : id_data.getIdentifiedOligos())
     {
       if (!oligo.parent_matches.empty()) any_parent_matches = true;
-      query.bindValue(":id", Key(&oligo)); // use address as primary key
-      query.bindValue(":identifier",
-                      QString::fromStdString(oligo.sequence.toString()));
+      query.bindValue(":id", id); // use address as primary key
+      query.bindValue(":identifier", QString::fromStdString(oligo.sequence.toString()));
       if (!query.exec())
       {
-        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error inserting data");
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
+      identified_oligo_keys_[&oligo] = id;
+      ++id;
     }
-    storeScoredProcessingResults_(id_data.getIdentifiedOligos(),
-                                  "ID_IdentifiedMolecule");
+    storeScoredProcessingResults_(id_data.getIdentifiedOligos(), "ID_IdentifiedMolecule",
+                                  identified_oligo_keys_);
 
     if (any_parent_matches)
     {
       createTableParentMatches_();
       for (const ID::IdentifiedPeptide& peptide : id_data.getIdentifiedPeptides())
       {
-        if (peptide.parent_matches.empty()) continue;
-        storeParentMatches_(peptide.parent_matches, Key(&peptide));
+        if (!peptide.parent_matches.empty())
+        {
+          storeParentMatches_(peptide.parent_matches, identified_peptide_keys_[&peptide]);
+        }
       }
       for (const ID::IdentifiedOligo& oligo : id_data.getIdentifiedOligos())
       {
-        if (oligo.parent_matches.empty()) continue;
-        storeParentMatches_(oligo.parent_matches, Key(&oligo));
+        if (!oligo.parent_matches.empty())
+        {
+          storeParentMatches_(oligo.parent_matches, identified_oligo_keys_[&oligo]);
+        }
       }
     }
   }
@@ -1092,8 +1075,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeParentMatches_(const ID::ParentMatches& matches,
-                                         Key molecule_id)
+  void OMSFileStore::storeParentMatches_(const ID::ParentMatches& matches, Key molecule_id)
   {
     // this assumes the "ID_ParentMatch" table exists already!
     QSqlQuery& query = prepared_queries_["ID_ParentMatch"];
@@ -1101,7 +1083,7 @@ namespace OpenMS::Internal
     query.bindValue(":molecule_id", molecule_id);
     for (const auto& pair : matches)
     {
-      query.bindValue(":parent_id", Key(&(*pair.first)));
+      query.bindValue(":parent_id", parent_sequence_keys_[&(*pair.first)]);
       for (const auto& match : pair.second)
       {
         if (match.start_pos != ID::ParentMatch::UNKNOWN_POSITION)
@@ -1124,8 +1106,7 @@ namespace OpenMS::Internal
         query.bindValue(":right_neighbor", match.right_neighbor.toQString());
         if (!query.exec())
         {
-          raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                        "error inserting data");
+          raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
         }
       }
     }
@@ -1138,10 +1119,10 @@ namespace OpenMS::Internal
 
     createTable_(
       "AdductInfo",
-      "id INTEGER PRIMARY KEY NOT NULL, " \
-      "name TEXT, " \
-      "formula TEXT NOT NULL, " \
-      "charge INTEGER NOT NULL, " \
+      "id INTEGER PRIMARY KEY NOT NULL, "                               \
+      "name TEXT, "                                                     \
+      "formula TEXT NOT NULL, "                                         \
+      "charge INTEGER NOT NULL, "                                       \
       "mol_multiplier INTEGER NOT NULL CHECK (mol_multiplier > 0) DEFAULT 1, " \
       "UNIQUE (formula, charge)");
 
@@ -1152,35 +1133,36 @@ namespace OpenMS::Internal
                   ":formula, "                      \
                   ":charge, "                       \
                   ":mol_multiplier)");
+    Key id = 1;
     for (const AdductInfo& adduct : id_data.getAdducts())
     {
-      query.bindValue(":id", Key(&adduct));
+      query.bindValue(":id", id);
       query.bindValue(":name", adduct.getName().toQString());
       query.bindValue(":formula", adduct.getEmpiricalFormula().toString().toQString());
       query.bindValue(":charge", adduct.getCharge());
       query.bindValue(":mol_multiplier", adduct.getMolMultiplier());
       if (!query.exec())
       {
-        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error inserting data");
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
+      adduct_keys_[&adduct] = id;
+      ++id;
     }
   }
 
 
-  OMSFileStore::Key OMSFileStore::getAddress_(const ID::IdentifiedMolecule& molecule_var)
+  OMSFileStore::Key OMSFileStore::getDatabaseKey_(const ID::IdentifiedMolecule& molecule_var)
   {
     switch (molecule_var.getMoleculeType())
     {
       case ID::MoleculeType::PROTEIN:
-        return Key(&(*molecule_var.getIdentifiedPeptideRef()));
+        return identified_peptide_keys_[&(*molecule_var.getIdentifiedPeptideRef())];
       case ID::MoleculeType::COMPOUND:
-        return Key(&(*molecule_var.getIdentifiedCompoundRef()));
+        return identified_compound_keys_[&(*molecule_var.getIdentifiedCompoundRef())];
       case ID::MoleculeType::RNA:
-        return Key(&(*molecule_var.getIdentifiedOligoRef()));
+        return identified_oligo_keys_[&(*molecule_var.getIdentifiedOligoRef())];
       default:
-        throw Exception::NotImplemented(__FILE__, __LINE__,
-                                        OPENMS_PRETTY_FUNCTION);
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
   }
 
@@ -1213,15 +1195,16 @@ namespace OpenMS::Internal
                   ":adduct_id, "                                \
                   ":charge)");
     bool any_peak_annotations = false;
+    Key id = 1;
     for (const ID::ObservationMatch& match : id_data.getObservationMatches())
     {
       if (!match.peak_annotations.empty()) any_peak_annotations = true;
-      query.bindValue(":id", Key(&match)); // use address as primary key
-      query.bindValue(":identified_molecule_id", getAddress_(match.identified_molecule_var));
-      query.bindValue(":observation_id", Key(&(*match.observation_ref)));
+      query.bindValue(":id", id);
+      query.bindValue(":identified_molecule_id", getDatabaseKey_(match.identified_molecule_var));
+      query.bindValue(":observation_id", observation_keys_[&(*match.observation_ref)]);
       if (match.adduct_opt)
       {
-        query.bindValue(":adduct_id", Key(&(**match.adduct_opt)));
+        query.bindValue(":adduct_id", adduct_keys_[&(**match.adduct_opt)]);
       }
       else // bind NULL value
       {
@@ -1230,11 +1213,12 @@ namespace OpenMS::Internal
       query.bindValue(":charge", match.charge);
       if (!query.exec())
       {
-        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error inserting data");
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
+      observation_match_keys_[&match] = id;
+      ++id;
     }
-    storeScoredProcessingResults_(id_data.getObservationMatches(), "ID_ObservationMatch");
+    storeScoredProcessingResults_(id_data.getObservationMatches(), "ID_ObservationMatch", observation_match_keys_);
 
     if (any_peak_annotations)
     {
@@ -1250,7 +1234,7 @@ namespace OpenMS::Internal
         "FOREIGN KEY (processing_step_id) REFERENCES ID_ProcessingStep (id)");
 
       query.prepare(
-        "INSERT INTO ID_ObservationMatch_PeakAnnotation VALUES (" \
+        "INSERT INTO ID_ObservationMatch_PeakAnnotation VALUES ("   \
         ":parent_id, "                                              \
         ":processing_step_id, "                                     \
         ":peak_annotation, "                                        \
@@ -1261,12 +1245,12 @@ namespace OpenMS::Internal
       for (const ID::ObservationMatch& match : id_data.getObservationMatches())
       {
         if (match.peak_annotations.empty()) continue;
-        query.bindValue(":parent_id", Key(&match));
+        query.bindValue(":parent_id", observation_match_keys_[&match]);
         for (const auto& pair : match.peak_annotations)
         {
           if (pair.first) // processing step given
           {
-            query.bindValue(":processing_step_id", Key(&(**pair.first)));
+            query.bindValue(":processing_step_id", processing_step_keys_[&(**pair.first)]);
           }
           else // use NULL value
           {
@@ -1274,15 +1258,13 @@ namespace OpenMS::Internal
           }
           for (const auto& peak_ann : pair.second)
           {
-            query.bindValue(":peak_annotation",
-                            peak_ann.annotation.toQString());
+            query.bindValue(":peak_annotation", peak_ann.annotation.toQString());
             query.bindValue(":peak_charge", peak_ann.charge);
             query.bindValue(":peak_mz", peak_ann.mz);
             query.bindValue(":peak_intensity", peak_ann.intensity);
             if (!query.exec())
             {
-              raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                            "error inserting data");
+              raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
             }
           }
         }
@@ -1346,7 +1328,7 @@ namespace OpenMS::Internal
     query_feat.bindValue(":unique_id", qint64(feature.getUniqueId()));
     if (feature.hasPrimaryID())
     {
-      query_feat.bindValue(":primary_molecule_id", getAddress_(feature.getPrimaryID()));
+      query_feat.bindValue(":primary_molecule_id", getDatabaseKey_(feature.getPrimaryID()));
     }
     else // use NULL value
     {
@@ -1397,11 +1379,10 @@ namespace OpenMS::Internal
       query_match.bindValue(":feature_id", feature_id);
       for (ID::ObservationMatchRef ref : feature.getIDMatches())
       {
-        query_match.bindValue(":observation_match_id", Key(&(*ref)));
+        query_match.bindValue(":observation_match_id", observation_match_keys_[&(*ref)]);
         if (!query_match.exec())
         {
-          raiseDBError_(query_match.lastError(), __LINE__,
-                        OPENMS_PRETTY_FUNCTION, "error inserting data");
+          raiseDBError_(query_match.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
         }
       }
     }
@@ -1543,7 +1524,6 @@ namespace OpenMS::Internal
 
     createTable_("FEAT_DataProcessing",
                  "id INTEGER PRIMARY KEY NOT NULL, "    \
-                 "position INTEGER NOT NULL, "          \
                  "software_name TEXT, "                 \
                  "software_version TEXT, "              \
                  "processing_actions TEXT, "            \
@@ -1553,17 +1533,15 @@ namespace OpenMS::Internal
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.prepare("INSERT INTO FEAT_DataProcessing VALUES (" \
                   ":id, "                                    \
-                  ":position, "                              \
                   ":software_name, "                         \
                   ":software_version, "                      \
                   ":processing_actions, "                    \
                   ":completion_time)");
 
-    int index = 0;
+    Key id = 1;
     for (const DataProcessing& proc : features.getDataProcessing())
     {
-      query.bindValue(":id", Key(&proc));
-      query.bindValue(":position", index);
+      query.bindValue(":id", id);
       query.bindValue(":software_name", proc.getSoftware().getName().toQString());
       query.bindValue(":software_version", proc.getSoftware().getVersion().toQString());
       String actions;
@@ -1576,12 +1554,12 @@ namespace OpenMS::Internal
       query.bindValue(":completion_time", proc.getCompletionTime().get().toQString());
       if (!query.exec())
       {
-        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error inserting data");
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
-      index++;
+      feat_processing_keys_[&proc] = id;
+      ++id;
     }
-    storeMetaInfos_(features.getDataProcessing(), "FEAT_DataProcessing");
+    storeMetaInfos_(features.getDataProcessing(), "FEAT_DataProcessing", feat_processing_keys_);
   }
 
 
