@@ -276,7 +276,7 @@ private:
         {
           // skip over invalid MS levels and Mobility
           while (p_.current_scan_ != p_.end_scan_ &&
-                 (p_.current_scan_->getMSLevel() != (int)p_.ms_level_ ||
+                 ((int8_t)p_.current_scan_->getMSLevel() != p_.ms_level_ ||
                   !mb.containsMobility(p_.current_scan_->getDriftTime())))
           {
             ++p_.current_scan_;
