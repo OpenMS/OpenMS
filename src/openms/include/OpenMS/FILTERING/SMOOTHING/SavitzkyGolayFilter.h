@@ -157,7 +157,7 @@ public:
         }
 
         out_it->setPosition(first->getPosition());
-        out_it->setIntensity(std::max(IntensityType{}, help));
+        out_it->setIntensity(std::max(0.0, help));
         ++out_it;
         ++first;
       }
