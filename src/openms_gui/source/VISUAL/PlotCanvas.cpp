@@ -572,7 +572,7 @@ namespace OpenMS
 
   void PlotCanvas::recalculateRanges_()
   {
-    RangeType& layer_range = overall_data_range_; 
+    RangeType& layer_range = overall_data_range_;
     layer_range.clearRanges();
 
     for (Size layer_index = 0; layer_index < getLayerCount(); ++layer_index)

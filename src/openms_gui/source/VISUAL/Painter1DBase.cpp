@@ -227,6 +227,8 @@ namespace OpenMS
         bool first_point = true;
         for (auto it = v_begin_cl; it != v_end_cl; ++it)
         {
+          if (!layer_->filters.passes(spectrum, it - spectrum.begin())) continue;
+
           canvas->dataToWidget(canvas->getMapper().map(*it), begin, layer_->flipped);
 
           // connect lines
@@ -407,6 +409,8 @@ namespace OpenMS
         bool first_point = true;
         for (auto it = v_begin_cl; it != v_end_cl; ++it)
         {
+          if (!layer_->filters.passes(data, it - data.begin())) continue;
+
           canvas->dataToWidget(canvas->getMapper().map(*it), begin, layer_->flipped);
 
           // connect lines
@@ -508,6 +512,8 @@ namespace OpenMS
         bool first_point = true;
         for (auto it = v_begin_cl; it != v_end_cl; ++it)
         {
+          if (!layer_->filters.passes(data, it - data.begin())) continue;
+          
           canvas->dataToWidget(canvas->getMapper().map(*it), begin, layer_->flipped);
 
           // connect lines
