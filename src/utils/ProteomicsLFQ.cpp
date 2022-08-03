@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -132,6 +132,11 @@ using Internal::IDBoostGraph;
   // - disable elution peak fit
 
   Potential scripts to perform the search can be found under src/tests/topp/ProteomicsLFQTestScripts
+  
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_ProteomicsLFQ.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_ProteomicsLFQ.html
  **/
 
 // We do not want this class to show up in the docu:
@@ -373,7 +378,7 @@ protected:
       if (!ms_raw[i].isSorted())
       {
         ms_raw[i].sortByPosition();
-        writeLog_("Info: Sorted peaks by m/z.");
+        writeLogInfo_("Info: Sorted peaks by m/z.");
       }
     }
 
@@ -397,7 +402,7 @@ protected:
       mzs, 
       rts
       );      
-    writeLog_("Info: Corrected " + String(corrected_to_highest_intensity_peak.size()) + " precursors.");
+    writeLogInfo_("Info: Corrected " + String(corrected_to_highest_intensity_peak.size()) + " precursors.");
     if (!deltaMZs.empty())
     {
       vector<double> deltaMZs_ppm, deltaMZs_ppmabs;
@@ -411,7 +416,7 @@ protected:
       double MAD =  Math::MAD(deltaMZs_ppm.begin(), deltaMZs_ppm.end(), median);
       double median_abs = Math::median(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end());
       double MAD_abs = Math::MAD(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end(), median_abs);
-      writeLog_("Precursor correction:\n  median        = " 
+      writeLogInfo_("Precursor correction:\n  median        = " 
         + String(median) + " ppm  MAD = " + String(MAD)
         + "\n  median (abs.) = " + String(median_abs) 
         + " ppm  MAD = " + String(MAD_abs));
@@ -1961,14 +1966,7 @@ protected:
     const bool report_unmapped(true);
     const bool report_unidentified_features(false);
 
-    MzTab m = MzTab::exportConsensusMapToMzTab(
-      consensus, 
-      String("null"),
-      true,
-      report_unidentified_features, 
-      report_unmapped,
-      "Export from ProteomicsLFQ workflow in OpenMS.");
-    MzTabFile().store(out, m);
+    MzTabFile().store(out, consensus, true, report_unidentified_features, report_unmapped, "Export from ProteomicsLFQ workflow in OpenMS.");
 
     if (!out_msstats.empty())
     {

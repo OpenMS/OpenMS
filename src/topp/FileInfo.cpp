@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -252,7 +252,7 @@ protected:
 
     if (in_type == FileTypes::UNKNOWN)
     {
-      writeLog_("Error: Could not determine input file type!");
+      writeLogError_("Error: Could not determine input file type!");
       return PARSE_ERROR;
     }
 
@@ -406,7 +406,7 @@ protected:
     {
       if (in_type != FileTypes::MZML)
       {
-        writeLog_("Error: Can only validate indices for mzML files");
+        writeLogError_("Error: Can only validate indices for mzML files");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
@@ -882,7 +882,7 @@ protected:
       SysInfo::MemUsage mu;
       if (!fh.loadExperiment(in, exp, in_type, log_type_, false, false))
       {
-        writeLog_("Unsupported or corrupt input file. Aborting!");
+        writeLogError_("Unsupported or corrupt input file. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }

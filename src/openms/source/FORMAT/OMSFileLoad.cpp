@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -524,7 +524,7 @@ namespace OpenMS::Internal
         handleQueryAppliedProcessingStep_(subquery_step, parent, id);
       }
       ID::ParentSequenceRef ref = id_data.registerParentSequence(parent);
-      parent_refs_[id] = ref;
+      parent_sequence_refs_[id] = ref;
     }
   }
 
@@ -536,7 +536,9 @@ namespace OpenMS::Internal
     QSqlDatabase db = QSqlDatabase::database(db_name_);
     QSqlQuery query(db);
     query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_ParentGroupSet ORDER BY grouping_order ASC"))
+    // "grouping_order" column was removed in schema version 3:
+    QString order_by = version_number_ > 2 ? "id" : "grouping_order";
+    if (!query.exec("SELECT * FROM ID_ParentGroupSet ORDER BY " + order_by + " ASC"))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
@@ -609,7 +611,7 @@ namespace OpenMS::Internal
         {
           Key parent_id = subquery_parent.value(0).toLongLong();
           pair.second.parent_refs.insert(
-            parent_refs_[parent_id]);
+            parent_sequence_refs_[parent_id]);
         }
         grouping.groups.insert(pair.second);
       }
@@ -676,8 +678,7 @@ namespace OpenMS::Internal
     }
     while (query.next())
     {
-      ID::ParentSequenceRef ref =
-        parent_refs_[query.value("parent_id").toLongLong()];
+      ID::ParentSequenceRef ref = parent_sequence_refs_[query.value("parent_id").toLongLong()];
       ID::ParentMatch match;
       QVariant start_pos = query.value("start_pos");
       QVariant end_pos = query.value("end_pos");
@@ -954,7 +955,9 @@ namespace OpenMS::Internal
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM FEAT_DataProcessing ORDER BY position ASC"))
+    // "position" column was removed in schema version 3:
+    QString order_by = version_number_ > 2 ? "id" : "position";
+    if (!query.exec("SELECT * FROM FEAT_DataProcessing ORDER BY " + order_by + " ASC"))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");

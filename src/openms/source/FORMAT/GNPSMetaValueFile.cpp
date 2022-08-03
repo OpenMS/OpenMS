@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,11 +52,11 @@ namespace OpenMS
         std::ofstream outstr(output_file.c_str());
         SVOutStream out(outstr, "\t", "_", String::NONE);
 
-        out << "filename" << "ATTRIBUTE_MAPID" << std::endl;
+        out << "" << "filename" << "ATTRIBUTE_MAPID" << std::endl;
         Size i = 0;
         for (const auto& path: mzML_file_paths)
         {
-            out << path.substr(path.find_last_of("/\\")+1) << "MAP"+String(i) << std::endl;
+            out << String(i) << path.substr(path.find_last_of("/\\")+1) << "MAP"+String(i) << std::endl;
             i++;
         }
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -298,14 +298,14 @@ protected:
 
     if (in_list.empty())
     {
-      writeLog_("Fatal error: no input file given (parameter 'in')");
+      writeLogError_("Error:  no input file given (parameter 'in')");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
     if (consensus_out.empty() && out.empty())
     {
-      writeLog_("Fatal error: no output file given (parameter 'out' or 'consensus_out')");
+      writeLogError_("Error:  no output file given (parameter 'out' or 'consensus_out')");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -361,13 +361,13 @@ protected:
         arguments << "-v" << String(verbose_level).toQString();
       }
     }
-    writeLog_("Prepared maracluster command.");
+    writeLogInfo_("Prepared maracluster command.");
 
     //-------------------------------------------------------------
     // run MaRaCluster for idXML output
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
-    writeLog_("Executing maracluster ...");
+    writeLogInfo_("Executing maracluster ...");
     auto exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments);
     if (exit_code != EXECUTION_OK)
     {
@@ -479,7 +479,7 @@ protected:
         Int verbose_level = getIntOption_("verbose");
         if (verbose_level != 2) arguments_consensus << "-v" << String(verbose_level).toQString();
       }
-      writeLog_("Prepared maracluster-consensus command.");
+      writeLogInfo_("Prepared maracluster-consensus command.");
 
       //-------------------------------------------------------------
       // run MaRaCluster for consensus output
@@ -501,7 +501,7 @@ protected:
       fh.storeExperiment(consensus_output_file, exp, log_type_);
     }
 
-    writeLog_("MaRaClusterAdapter finished successfully!");
+    writeLogInfo_("MaRaClusterAdapter finished successfully!");
     return EXECUTION_OK;
   }
 

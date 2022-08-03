@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -307,7 +307,7 @@ namespace OpenMS
     * @brief Looks through meta values of SearchParameters to find out which search adapter was used
     *
     * Checks for the following adapters:
-    * CometAdapter, CruxAdapter, MSGFPlusAdapter, MSFraggerAdapter, MyriMatchAdapter, OMSSAAdapter and XTandemAdapter
+    * CometAdapter, MSGFPlusAdapter, MSFraggerAdapter, MyriMatchAdapter, OMSSAAdapter and XTandemAdapter
     *
     * @param meta_values   SearchParameters object, since the adapters write their parameters here
     * @retruns             a pair containing the name of the adapter and the parameters used to run it

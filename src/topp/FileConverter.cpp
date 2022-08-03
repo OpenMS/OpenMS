@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -206,6 +206,7 @@ protected:
     setValidFormats_("ThermoRaw_executable", {"exe"});
     registerFlag_("no_peak_picking", "Disables vendor peak picking for raw files.", true);
     registerFlag_("no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem.", true);
+    registerFlag_("include_noise", "Include noise data in mzML output.", true);
   }
 
   ExitCodes main_(int, const char**) override
@@ -225,6 +226,7 @@ protected:
     double mass_acc = getDoubleOption_("lossy_mass_accuracy");
     bool no_peak_picking = getFlag_("no_peak_picking");
     bool no_zlib_compression = getFlag_("no_zlib_compression");
+    bool include_noise = getFlag_("include_noise");
 
     // prepare data structures for lossy compression (note that we compress any float data arrays the same as intensity arrays)
     MSNumpressCoder::NumpressConfig npconfig_mz, npconfig_int, npconfig_fda;
@@ -248,7 +250,7 @@ protected:
       writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
       if (in_type == FileTypes::UNKNOWN)
       {
-        writeLog_("Error: Could not determine input file type!");
+        writeLogError_("Error: Could not determine input file type!");
         return PARSE_ERROR;
       }
     }
@@ -258,7 +260,7 @@ protected:
     FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(out, getStringOption_("out_type"));
     if (out_type == FileTypes::UNKNOWN)
     {
-      writeLog_("Error: Could not determine output file type!");
+      writeLogError_("Error: Could not determine output file type!");
       return PARSE_ERROR;
     }
 
@@ -286,7 +288,7 @@ protected:
           (out_type != FileTypes::CONSENSUSXML))
       {
         // You you will lose information and waste memory. Enough reasons to issue a warning!
-        writeLog_("Warning: Converting consensus features to peaks. You will lose information!");
+        writeLogWarn_("Warning: Converting consensus features to peaks. You will lose information!");
         exp.set2DData(cm);
       }
     }
@@ -297,7 +299,7 @@ protected:
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Only conversion to mzML supported at this point.");
       }
-      writeLog_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
+      writeLogInfo_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
       String net_executable = getStringOption_("NET_executable");
       QStringList arguments;
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -326,6 +328,10 @@ protected:
       {
         arguments << "--noZlibCompression";
       }
+      if (include_noise)
+      {
+        arguments << "--noiseData";
+      }
       return runExternalProcess_(net_executable.toQString(), arguments);
     }
     else if (in_type == FileTypes::EDTA)
@@ -336,7 +342,7 @@ protected:
           (out_type != FileTypes::CONSENSUSXML))
       {
         // You you will lose information and waste memory. Enough reasons to issue a warning!
-        writeLog_("Warning: Converting consensus features to peaks. You will lose information!");
+        writeLogWarn_("Warning: Converting consensus features to peaks. You will lose information!");
         exp.set2DData(cm);
       }
     }
@@ -352,7 +358,7 @@ protected:
           (out_type != FileTypes::OMS))
       {
         // You will lose information and waste memory. Enough reasons to issue a warning!
-        writeLog_("Warning: Converting features to peaks. You will lose information! Mass traces are added, if present as 'num_of_masstraces' and 'masstrace_intensity' (X>=0) meta values.");
+        writeLogWarn_("Warning: Converting features to peaks. You will lose information! Mass traces are added, if present as 'num_of_masstraces' and 'masstrace_intensity' (X>=0) meta values.");
         exp.set2DData<true>(fm);
       }
     }
@@ -614,7 +620,7 @@ protected:
       else // not loaded as feature map or consensus map
       {
         // The feature specific information is only defaulted. Enough reasons to issue a warning!
-        writeLog_("Warning: Converting peaks to features will lead to incomplete features!");
+        writeLogWarn_("Warning: Converting peaks to features will lead to incomplete features!");
         fm.clear();
         fm.reserve(exp.getSize());
         Feature feature;
@@ -732,7 +738,7 @@ protected:
     }
     else
     {
-      writeLog_("Unknown output file type given. Aborting!");
+      writeLogError_("Error: Unknown output file type given. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
