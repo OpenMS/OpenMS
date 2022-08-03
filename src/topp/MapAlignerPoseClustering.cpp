@@ -256,7 +256,7 @@ protected:
           {
             OPENMS_LOG_ERROR << "Aligning " << in_files[i] << " to reference " << in_files[reference_index]
                              << " failed. No transformation will be applied (RT not changed for this file)." << endl;
-            writeLog_("Illegal argument (" + String(e.getName()) + "): " + String(e.what()) + ".");
+            writeLogError_("Illegal argument (" + String(e.getName()) + "): " + String(e.what()) + ".");
             trafo.fitModel("identity");
           }
         }

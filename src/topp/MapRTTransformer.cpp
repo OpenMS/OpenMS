@@ -168,12 +168,12 @@ protected:
     //-------------------------------------------------------------
     if (out.empty() && trafo_out.empty())
     {
-      writeLog_("Error: A data or a transformation output file has to be provided (parameters 'out'/'trafo_out')");
+      writeLogError_("Error: A data or a transformation output file has to be provided (parameters 'out'/'trafo_out')");
       return ILLEGAL_PARAMETERS;
     }
     if (in.empty() != out.empty())
     {
-      writeLog_("Error: Data input and output parameters ('in'/'out') must be used together");
+      writeLogError_("Error: Data input and output parameters ('in'/'out') must be used together");
       return ILLEGAL_PARAMETERS;
     }
 

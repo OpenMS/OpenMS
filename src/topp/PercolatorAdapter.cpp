@@ -519,7 +519,8 @@ protected:
       {
         if (protein_ids.front().getSearchEngine() != all_protein_ids.front().getSearchEngine())
         {
-          writeLog_("Input files are not all from the same search engine: " + protein_ids.front().getSearchEngine() + " and " + all_protein_ids.front().getSearchEngine() + ". Use TOPP_PSMFeatureExtractor to merge results from different search engines if desired. Aborting!");
+          writeLogError_("Input files are not all from the same search engine: " + protein_ids.front().getSearchEngine() + " and " + all_protein_ids.front().getSearchEngine() +
+                         ". Use TOPP_PSMFeatureExtractor to merge results from different search engines if desired. Aborting!");
           return INCOMPATIBLE_INPUT_DATA;
         }
         
@@ -543,7 +544,7 @@ protected:
         }
         if (!identical_extra_features) 
         {
-          writeLog_("Input files do not have the same set of extra features from TOPP_PSMFeatureExtractor. Aborting!");
+          writeLogError_("Input files do not have the same set of extra features from TOPP_PSMFeatureExtractor. Aborting!");
           return INCOMPATIBLE_INPUT_DATA;
         }
         
@@ -612,7 +613,7 @@ protected:
 
     if (out_type == FileTypes::UNKNOWN)
     {
-      writeLog_("Fatal error: Could not determine output file type!");
+      writeLogError_("Fatal error: Could not determine output file type!");
       return PARSE_ERROR;
     }
 
@@ -620,35 +621,35 @@ protected:
     
     if (in_list.empty() && in_osw.empty())
     {
-      writeLog_("Fatal error: no input file given (parameter 'in' or 'in_osw')");
+      writeLogError_("Fatal error: no input file given (parameter 'in' or 'in_osw')");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
     if (!in_list.empty() && !in_osw.empty())
     {
-      writeLog_("Fatal error: Provide either mzid/idXML or osw input files (parameter 'in' or 'in_osw')");
+      writeLogError_("Fatal error: Provide either mzid/idXML or osw input files (parameter 'in' or 'in_osw')");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
     if (out.empty())
     {
-      writeLog_("Fatal error: no output file given (parameter 'out')");
+      writeLogError_("Fatal error: no output file given (parameter 'out')");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
     if (!in_osw.empty() && out_type != FileTypes::OSW)
     {
-      writeLog_("Fatal error: OSW input requires OSW output.");
+      writeLogError_("Fatal error: OSW input requires OSW output.");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
     if (!in_list.empty() && out_type == FileTypes::OSW)
     {
-      writeLog_("Fatal error: idXML/mzid input requires idXML/mzid output.");
+      writeLogError_("Fatal error: idXML/mzid input requires idXML/mzid output.");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -730,21 +731,21 @@ protected:
       
       if (!found_decoys)
       {
-        writeLog_("No decoys found, search results discrimination impossible. Aborting!");
+        writeLogError_("No decoys found, search results discrimination impossible. Aborting!");
         printUsage_();
         return INCOMPATIBLE_INPUT_DATA;
       }
       
       if (all_peptide_ids.empty())
       {
-        writeLog_("No peptide hits found in input file. Aborting!");
+        writeLogError_("No peptide hits found in input file. Aborting!");
         printUsage_();
         return INPUT_FILE_EMPTY;
       }
       
       if (all_protein_ids.empty())
       {
-        writeLog_("No protein hits found in input file. Aborting!");
+        writeLogError_("No protein hits found in input file. Aborting!");
         printUsage_();
         return INPUT_FILE_EMPTY;
       }
@@ -788,7 +789,7 @@ protected:
       } 
       else 
       {
-        writeLog_("No search engine specific features found. Generate search engine specific features using PSMFeatureExtractor or set the -generic-features-set flag to override. Aborting!");
+        writeLogError_("No search engine specific features found. Generate search engine specific features using PSMFeatureExtractor or set the -generic-features-set flag to override. Aborting!");
         printUsage_();
         return INCOMPATIBLE_INPUT_DATA;
       }
@@ -951,7 +952,7 @@ protected:
       }
       arguments << pin_file.toQString();
     }
-    writeLog_("Prepared percolator input.");
+    writeLogInfo_("Prepared percolator input.");
 
     //-------------------------------------------------------------
     // run percolator
@@ -1223,7 +1224,7 @@ protected:
       OSWFile::writeFromPercolator(out, osw_level, features);
     }
 
-    writeLog_("PercolatorAdapter finished successfully!");
+    writeLogInfo_("PercolatorAdapter finished successfully!");
     return EXECUTION_OK;
   }
 
