@@ -85,8 +85,8 @@ namespace OpenMS
     spectrum.setMetaValue("is_valid", 0); // to avoid adding invalid spectra to the library
 
     boost::cmatch m;
-    boost::regex re_name("^(Name|NAME): (.+)", boost::regex::no_mod_s);
-    boost::regex re_retention_time("^(Retention Time|RETENTIONTIME): (.)+", boost::regex::no_mod_s);
+    boost::regex re_name("(?:^Name|^NAME): (.+)", boost::regex::no_mod_s);
+    boost::regex re_retention_time("(?:^Retention Time|^RETENTIONTIME): (.+)", boost::regex::no_mod_s);
     boost::regex re_synon("^synon(?:yms?)?: (.+)", boost::regex::no_mod_s | boost::regex::icase);
     boost::regex re_points_line(R"(^\d)");
     boost::regex re_point(R"((\d+(?:\.\d+)?)[: \t](\d+(?:\.\d+)?);? ?)");
@@ -124,13 +124,13 @@ namespace OpenMS
         // OPENMS_LOG_DEBUG << "\n\nName: " << m[1] << "\n";
         spectrum.clear(true);
         synonyms_.clear();
-        spectrum.setName(String(m[2]));
+        spectrum.setName(String(m[1]));
         spectrum.setMetaValue("is_valid", 1);
       }
       // Retention Time
       else if (boost::regex_search(line, m, re_retention_time))
       {
-        spectrum.setRT(std::stod(m[2]));
+        spectrum.setRT(std::stod(m[1]));
       }
       //CAS# NIST#
       else if (boost::regex_search(line, m, re_cas_nist))
@@ -139,7 +139,7 @@ namespace OpenMS
         spectrum.setMetaValue(String("CAS#"), String(m[1]));
         spectrum.setMetaValue(String("NIST#"), String(m[2]));
       }
-      // Other metadata
+      // Other metadata, needs to be last, matches everything
       else if (boost::regex_search(line, m, re_metadatum))
       {
         // OPENMS_LOG_DEBUG << m[1] << m[2] << "\n";
