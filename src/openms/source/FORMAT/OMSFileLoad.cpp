@@ -55,6 +55,21 @@ using ID = OpenMS::IdentificationData;
 
 namespace OpenMS::Internal
 {
+  // initialize lookup table:
+  map<QString, QString> OMSFileLoad::export_order_by_ = {
+    {"version", ""},
+    {"ID_IdentifiedCompound", "molecule_id"},
+    {"ID_ParentMatch", "molecule_id, parent_id, start_pos, end_pos"},
+    {"ID_ParentGroup_ParentSequence", "group_id, parent_id"},
+    {"ID_ProcessingStep_InputFile", "processing_step_id, input_file_id"},
+    {"ID_ProcessingSoftware_AssignedScore", "software_id, score_type_order"},
+    {"ID_ObservationMatch_PeakAnnotation", "parent_id, processing_step_id, peak_mz, peak_annotation"},
+    {"FEAT_ConvexHull", "feature_id, hull_index, point_index"},
+    {"FEAT_ObservationMatch", "feature_id, observation_match_id"},
+    {"FEAT_MapMetaData", "unique_id"}
+  };
+
+
   OMSFileLoad::OMSFileLoad(const String& filename, LogType log_type):
     db_name_("load_" + filename.toQString() + "_" + QString::number(UniqueIdGenerator::getUniqueId()))
   {
@@ -1151,61 +1166,34 @@ namespace OpenMS::Internal
   }
 
 
-  QJsonArray OMSFileLoad::exportQueryToJSON_(const QString& sql, const QStringList& exclude_fields)
+  QJsonArray OMSFileLoad::exportTableToJSON_(const QString& table, const QString& order_by)
   {
     // code based on: https://stackoverflow.com/a/18067555
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.setForwardOnly(true);
-    if (!query.exec(sql)) {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
+    QString sql = "SELECT * FROM " + table;
+    if (!order_by.isEmpty())
+    {
+      sql += " ORDER BY " + order_by;
+    }
+    if (!query.exec(sql))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error reading from database");
     }
 
     QJsonArray array;
-    while(query.next())
+    while (query.next())
     {
       QJsonObject record;
       for (int i = 0; i < query.record().count(); ++i)
       {
         // @TODO: this will repeat field names for every row -
         // avoid this with separate "header" and "rows" (array)?
-        QString field = query.record().fieldName(i);
-        if (!exclude_fields.contains(field))
-        {
-          record.insert(field, QJsonValue::fromVariant(query.value(i)));
-        }
+        record.insert(query.record().fieldName(i), QJsonValue::fromVariant(query.value(i)));
       }
       array.push_back(record);
     }
     return array;
-  }
-
-
-  void OMSFileLoad::exportMetaInfoToJSON_(QJsonObject& json_data, const QString& parent_table,
-                                          const QString& join, const QString& order, const QString& join_key)
-  {
-    QString table = parent_table + "_MetaInfo";
-    if (tableExists_(db_name_, table))
-    {
-      QString sql = "SELECT * FROM " + table + " JOIN (SELECT DataValue.id AS dv_id, value, data_type FROM DataValue JOIN DataValue_DataType ON data_type_id = DataValue_DataType.id) ON data_value_id = dv_id JOIN (" + join + ") ON parent_id = " + join_key + " ORDER BY " + order + ", name";
-      json_data.insert(table, exportQueryToJSON_(sql, {"id", "parent_id", "dv_id", "data_type_id", join_key}));
-    }
-  }
-
-
-  void OMSFileLoad::exportScoredResultToJSON_(QJsonObject& json_data, const QString& parent_table,
-                                              const QString& join, const QString& order, const QString& join_key)
-  {
-    QString table = parent_table + "_AppliedProcessingStep";
-    if (tableExists_(db_name_, table))
-    {
-      // "LEFT JOIN" for score types is important because scores may be missing:
-      QString sql = "SELECT * FROM " + table + " JOIN (SELECT id AS ps_id, processing_step_index FROM steps_view) ON processing_step_id = ps_id LEFT JOIN (" + subquery_score_ + ") ON score_type_id = st_id JOIN (" + join + ") ON parent_id = " + join_key + " ORDER BY " + order + ", processing_step_order, score_type_accession, score_type_name";
-      json_data.insert(table, exportQueryToJSON_(sql, {"id", "parent_id", "ps_id", "processing_step_id", "st_id",
-                                                       "score_type_id", join_key}));
-    }
-
-    exportMetaInfoToJSON_(json_data, parent_table, join, order, join_key);
   }
 
 
@@ -1214,159 +1202,32 @@ namespace OpenMS::Internal
     // @TODO: this constructs the whole JSON file in memory - write directly to stream instead?
     // (more code, but would use less memory)
     QJsonObject json_data;
-    QString sql;
-    // version:
-    if (tableExists_(db_name_, "version"))
+    // get names of all tables (except SQLite-internal ones) in the database:
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.setForwardOnly(true);
+    if (!query.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"))
     {
-      sql = "SELECT * FROM version";
-      json_data.insert("version", exportQueryToJSON_(sql));
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error listing database tables");
     }
-    // input files:
-    if (tableExists_(db_name_, "ID_InputFile"))
+    while (query.next())
     {
-      sql = "SELECT * FROM ID_InputFile ORDER BY name";
-      json_data.insert("ID_InputFile", exportQueryToJSON_(sql));
-    }
-    // score types:
-    // this query is used in multiple joins below (@TODO: replace with DB view?):
-    subquery_score_ = "SELECT ID_ScoreType.id AS st_id, accession AS score_type_accession, name AS score_type_name FROM ID_ScoreType JOIN CVTerm ON cv_term_id = CVTerm.id";
-    if (tableExists_(db_name_, "ID_ScoreType") && tableExists_(db_name_, "CVTerm"))
-    {
-      sql = "SELECT * FROM ID_ScoreType JOIN CVTerm ON cv_term_id = CVTerm.id ORDER BY accession, name";
-      json_data.insert("ID_ScoreType", exportQueryToJSON_(sql, {"id", "cv_term_id"}));
-    }
-    // processing software:
-    if (tableExists_(db_name_, "ID_ProcessingSoftware"))
-    {
-      sql = "SELECT * FROM ID_ProcessingSoftware ORDER BY name, version";
-      json_data.insert("ID_ProcessingSoftware", exportQueryToJSON_(sql));
-      // processing software - assigned scores:
-      if (tableExists_(db_name_, "ID_ProcessingSoftware_AssignedScore"))
+      QString table = query.value("name").toString();
+      QString order_by = "id"; // row order for most tables
+      // special cases regarding ordering, e.g. tables without "id" column:
+      if (table.endsWith("_MetaInfo"))
       {
-        // need to replace DB keys for both software and score type with corresponding values:
-        QString subquery_software = "SELECT id AS sw_id, name AS software_name, version AS software_version FROM ID_ProcessingSoftware";
-        sql = "SELECT software_name, software_version, score_type_accession, score_type_name, score_type_order FROM ID_ProcessingSoftware_AssignedScore JOIN (" + subquery_software + ") ON software_id = sw_id JOIN (" + subquery_score_ + ") ON score_type_id = st_id ORDER BY software_name, software_version, score_type_order";
-        json_data.insert("ID_ProcessingSoftware_AssignedScore", exportQueryToJSON_(sql, {}));
+        order_by = "parent_id, name";
       }
-    }
-    // processing steps:
-    if (tableExists_(db_name_, "ID_ProcessingStep"))
-    {
-      // processing steps potentially get referenced a lot, but their "identity" is complex
-      // (software + input files + timestamp) - create a view that includes an index number for referencing:
-      // @TODO: include input files in ordering (via "GROUP_CONCAT")
-      createView_("steps_view", "SELECT ID_ProcessingStep.id, date_time, name AS software_name, version AS software_version, search_param_id, ROW_NUMBER() OVER (ORDER BY name, version, date_time) processing_step_index FROM ID_ProcessingStep JOIN ID_ProcessingSoftware ON software_id = ID_ProcessingSoftware.id");
-      sql = "SELECT * FROM steps_view";
-      json_data.insert("ID_ProcessingStep", exportQueryToJSON_(sql, {"search_param_id"}));
-      exportMetaInfoToJSON_(json_data, "ID_ProcessingStep",
-                            "SELECT id AS p_id, processing_step_index FROM steps_view", "processing_step_index");
-      // processing steps - input files:
-      if (tableExists_(db_name_, "ID_ProcessingStep_InputFile"))
+      else if (table.endsWith("_AppliedProcessingStep"))
       {
-        sql = "SELECT processing_step_index, name AS input_file_name FROM ID_ProcessingStep_InputFile JOIN steps_view ON processing_step_id = steps_view.id JOIN ID_InputFile ON input_file_id = ID_InputFile.id ORDER BY processing_step_index, name";
-        json_data.insert("ID_ProcessingStep_InputFile", exportQueryToJSON_(sql, {}));
+        order_by = "parent_id, processing_step_order, score_type_id";
       }
-      // DB search params.:
-      if (tableExists_(db_name_, "ID_DBSearchParam"))
+      else if (auto pos = export_order_by_.find(table); pos != export_order_by_.end())
       {
-        sql = "SELECT * FROM ID_DBSearchParam JOIN (SELECT search_param_id, processing_step_index FROM steps_view) ON ID_DBSearchParam.id = search_param_id JOIN ID_MoleculeType ON molecule_type_id = ID_MoleculeType.id ORDER BY processing_step_index";
-        json_data.insert("ID_DBSearchParam", exportQueryToJSON_(sql, {"id", "molecule_type_id", "search_param_id"}));
+        order_by = pos->second;
       }
+      json_data.insert(table, exportTableToJSON_(table, order_by));
     }
-    // observations:
-    // this query is used in multiple joins below (@TODO: replace with DB view?):
-    QString subquery_obs = "SELECT ID_Observation.id AS o_id, input_file_name, data_id FROM ID_Observation JOIN (SELECT id AS if_id, name AS input_file_name FROM ID_InputFile) ON input_file_id = if_id";
-    if (tableExists_(db_name_, "ID_Observation"))
-    {
-      sql = "SELECT * FROM ID_Observation JOIN (SELECT id AS if_id, name AS input_file_name FROM ID_InputFile) ON input_file_id = if_id ORDER BY input_file_name, data_id";
-      json_data.insert("ID_Observation", exportQueryToJSON_(sql, {"id", "if_id", "input_file_id"}));
-      exportMetaInfoToJSON_(json_data, "ID_Observation", subquery_obs, "input_file_name, data_id", "o_id");
-    }
-    // parent sequences:
-    if (tableExists_(db_name_, "ID_ParentSequence"))
-    {
-      sql = "SELECT * FROM ID_ParentSequence JOIN ID_MoleculeType ON molecule_type_id = ID_MoleculeType.id ORDER BY accession";
-      json_data.insert("ID_ParentSequence", exportQueryToJSON_(sql, {"id", "molecule_type_id"}));
-      exportScoredResultToJSON_(json_data, "ID_ParentSequence",
-                                "SELECT id AS p_id, accession FROM ID_ParentSequence", "accession");
-    }
-    // parent group sets:
-    if (tableExists_(db_name_, "ID_ParentGroupSet"))
-    {
-      sql = "SELECT * FROM ID_ParentGroupSet ORDER BY grouping_order";
-      json_data.insert("ID_ParentGroupSet", exportQueryToJSON_(sql));
-      exportScoredResultToJSON_(json_data, "ID_ParentGroupSet", "SELECT id AS p_id, label FROM ID_ParentGroupSet",
-                                "label");
-      // parent groups:
-      if (tableExists_(db_name_, "ID_ParentGroup"))
-      {
-        // @TODO: with duplicate scores this ordering is not reproducible! -> include protein accessions in ordering (via "GROUP_CONCAT")
-        createView_("groups_view", "SELECT ID_ParentGroup.id, label, score_type_accession, score_type_name, score, ROW_NUMBER() OVER (ORDER BY label, score_type_accession, score_type_name, score) AS parent_group_index FROM ID_ParentGroup JOIN (" + subquery_score_ + ") ON score_type_id = st_id JOIN ID_ParentGroupSet ON grouping_id = ID_ParentGroupSet.id");
-        sql = "SELECT * FROM groups_view";
-        json_data.insert("ID_ParentGroup", exportQueryToJSON_(sql));
-        if (tableExists_(db_name_, "ID_ParentGroup_ParentSequence"))
-        {
-          sql = "SELECT parent_group_index, accession FROM ID_ParentGroup_ParentSequence JOIN groups_view ON group_id = groups_view.id JOIN ID_ParentSequence ON parent_id = ID_ParentSequence.id ORDER BY parent_group_index, accession";
-          json_data.insert("ID_ParentGroup_ParentSequence", exportQueryToJSON_(sql, {}));
-        }
-      }
-    }
-    // identified molecule:
-    // this query is used in multiple joins below (@TODO: replace with DB view?):
-    QString subquery_molecule = "SELECT ID_IdentifiedMolecule.id AS im_id, molecule_type, identifier FROM ID_IdentifiedMolecule JOIN ID_MoleculeType ON molecule_type_id = ID_MoleculeType.id";
-    if (tableExists_(db_name_, "ID_IdentifiedMolecule"))
-    {
-      sql = "SELECT molecule_type, identifier FROM ID_IdentifiedMolecule JOIN ID_MoleculeType ON molecule_type_id = ID_MoleculeType.id ORDER BY molecule_type, identifier";
-      json_data.insert("ID_IdentifiedMolecule", exportQueryToJSON_(sql, {}));
-      exportScoredResultToJSON_(json_data, "ID_IdentifiedMolecule", subquery_molecule, "molecule_type, identifier",
-                                "im_id");
-      // identified compound:
-      if (tableExists_(db_name_, "ID_IdentifiedCompound"))
-      {
-        sql = "SELECT * FROM ID_IdentifiedCompound JOIN ID_IdentifiedMolecule ON molecule_id = ID_IdentifiedMolecule.id ORDER BY identifier";
-        json_data.insert("ID_IdentifiedCompound", exportQueryToJSON_(sql, {"id", "molecule_id"}));
-      }
-      // parent matches:
-      if (tableExists_(db_name_, "ID_ParentMatch"))
-      {
-        sql = "SELECT * FROM ID_ParentMatch JOIN (" + subquery_molecule + ") ON molecule_id = im_id JOIN (SELECT id AS p_id, accession FROM ID_ParentSequence) ON parent_id = p_id ORDER BY molecule_type, identifier, accession, start_pos, end_pos";
-        json_data.insert("ID_ParentMatch", exportQueryToJSON_(sql, {"im_id", "molecule_id", "parent_id", "p_id"}));
-      }
-    }
-    // adducts:
-    bool with_adducts = false;
-    if (tableExists_(db_name_, "AdductInfo"))
-    {
-      with_adducts = true;
-      sql = "SELECT * FROM AdductInfo ORDER BY formula, charge";
-      json_data.insert("AdductInfo", exportQueryToJSON_(sql));
-    }
-    // observation matches:
-    if (tableExists_(db_name_, "ID_ObservationMatch"))
-    {
-      if (with_adducts)
-      {
-        sql = "SELECT ID_ObservationMatch.id, input_file_name, data_id, molecule_type, identifier, formula AS adduct_formula, AdductInfo.charge AS adduct_charge, ID_ObservationMatch.charge, ROW_NUMBER() OVER (ORDER BY input_file_name, data_id, molecule_type, identifier, ID_ObservationMatch.charge, formula, AdductInfo.charge) AS observation_match_index FROM ID_ObservationMatch JOIN (" + subquery_molecule + ") ON identified_molecule_id = im_id JOIN (" + subquery_obs + ") ON observation_id = o_id JOIN AdductInfo ON adduct_id = AdductInfo.id";
-      }
-      else
-      {
-        sql = "SELECT ID_ObservationMatch.id, input_file_name, data_id, molecule_type, identifier, ID_ObservationMatch.charge, ROW_NUMBER() OVER (ORDER BY input_file_name, data_id, molecule_type, identifier, ID_ObservationMatch.charge) AS observation_match_index FROM ID_ObservationMatch JOIN (" + subquery_molecule + ") ON identified_molecule_id = im_id JOIN (" + subquery_obs + ") ON observation_id = o_id";
-      }
-      createView_("match_view", sql);
-      sql = "SELECT * FROM match_view";
-      json_data.insert("ID_ObservationMatch", exportQueryToJSON_(sql));
-      exportScoredResultToJSON_(json_data, "ID_ObservationMatch",
-                                "SELECT id AS p_id, observation_match_index FROM match_view",
-                                "observation_match_index");
-      // peak annotations:
-      if (tableExists_(db_name_, "ID_ObservationMatch_PeakAnnotation"))
-      {
-        sql = "SELECT * FROM ID_ObservationMatch_PeakAnnotation JOIN (SELECT id AS p_id, observation_match_index FROM match_view) ON parent_id = p_id JOIN (SELECT id AS s_id, processing_step_index FROM steps_view) ON processing_step_id = s_id ORDER BY observation_match_index, processing_step_index, peak_mz";
-        json_data.insert("ID_ObservationMatch_PeakAnnotation",
-                         exportQueryToJSON_(sql, {"m_id", "s_id", "parent_id", "processing_step_id"}));
-      }
-    }
-
 
     QJsonDocument json_doc;
     json_doc.setObject(json_data);

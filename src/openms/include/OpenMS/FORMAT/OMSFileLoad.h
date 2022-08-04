@@ -149,13 +149,7 @@ namespace OpenMS
 
       void createView_(const QString& name, const QString& select);
 
-      QJsonArray exportQueryToJSON_(const QString& sql, const QStringList& exclude_fields = {"id"});
-
-      void exportMetaInfoToJSON_(QJsonObject& json_data, const QString& parent_table,
-                                 const QString& join, const QString& order, const QString& join_key = "p_id");
-
-      void exportScoredResultToJSON_(QJsonObject& json_data, const QString& parent_table,
-                                     const QString& join, const QString& order, const QString& join_key = "p_id");
+      QJsonArray exportTableToJSON_(const QString& table, const QString& order_by);
 
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
@@ -175,6 +169,10 @@ namespace OpenMS
       std::unordered_map<Key, IdentificationData::IdentifiedMolecule> identified_molecule_vars_;
       std::unordered_map<Key, IdentificationData::ObservationMatchRef> observation_match_refs_;
       std::unordered_map<Key, IdentificationData::AdductRef> adduct_refs_;
+
+      // mapping: table name -> ordering critera (for JSON export)
+      // @TODO: could use 'unordered_map' here, but would need to specify hash function for 'QString'
+      static std::map<QString, QString> export_order_by_;
     };
   }
 }
