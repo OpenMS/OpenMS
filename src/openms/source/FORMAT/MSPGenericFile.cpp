@@ -307,8 +307,8 @@ namespace OpenMS
         spectrum.removeMetaValue("PRECURSORMZ");
         precursors.push_back(p);
         spectrum.setPrecursors(precursors);
-        library.addSpectrum(spectrum);
       }
+      library.addSpectrum(spectrum);
       loaded_spectra_names_.insert(spectrum.getName());
 
       if (loaded_spectra_names_.size() % 20000 == 0)
