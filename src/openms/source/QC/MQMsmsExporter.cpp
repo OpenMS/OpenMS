@@ -157,8 +157,8 @@ void MQMsms::exportRowFromFeature_(
   // use struct common_outpots from the ExporterHelper
   MQExporterHelper::MQCommonOutputs common_outputs{f, cmap, c_feature_number, UIDs, mp_f, exp, prot_mapper};
 
-  const PeptideHit* ptr_best_hit; // the best hit referring to score
-  const PeptideIdentification* ptr_best_id;
+  const PeptideHit* ptr_best_hit = nullptr; // the best hit referring to score
+  const PeptideIdentification* ptr_best_id = nullptr;
   const ConsensusFeature& cf = cmap[c_feature_number];
   Size pep_ids_size = 0;
   String type;
@@ -178,18 +178,18 @@ void MQMsms::exportRowFromFeature_(
     }
     type = "MULTI-MSMS";
     ptr_best_hit = &f.getPeptideIdentifications()[0].getHits()[0];
+    ptr_best_id = &f.getPeptideIdentifications()[0];
   }
   else if (MQExporterHelper::hasPeptideIdentifications_(cf))
   {
     type = "MULTI-MATCH";
     ptr_best_hit = &cf.getPeptideIdentifications()[0].getHits()[0];
+    ptr_best_id = &cf.getPeptideIdentifications()[0];
   }
   else
   {
     return; // no valid PepID; nothing to export
   }
-
-  ptr_best_id = &f.getPeptideIdentifications()[0];
 
   //const double& max_score = ptr_best_hit->getScore();
   const AASequence& pep_seq = ptr_best_hit->getSequence();
@@ -220,26 +220,13 @@ void MQMsms::exportRowFromFeature_(
 
   file_ << f.getCharge() << "\t"; // Charge
 
-  if(ptr_best_id != 0)
-  {
-    file_ << ptr_best_id->getMetaValue("activation_method", "NA") << "\t"; // Fragmentation
-  }
-  else
-  {
-    file_ << "NA" << "\t"; // Fragmentation
-  }
+  file_ << ptr_best_id->getMetaValue("activation_method", "NA") << "\t"; // Fragmentation
 
   file_ << "NA" << "\t"; // Mass analyzer
   file_ << type << "\t"; // type
 
-  if(ptr_best_id != 0)
-  {
-    file_ << ptr_best_id->getMetaValue("ScanEventNumber", "NA") << "\t"; // Scan event number
-  }
-  else
-  {
-    file_ << "NA"  << "\t"; // Scan event number
-  }
+  file_ << ptr_best_id->getMetaValue("ScanEventNumber", "NA") << "\t"; // Scan event number
+
   file_ << "NA" << "\t"; // Isotope index
   file_ << f.getMZ() << "\t"; // M/Z
   file_ << pep_seq.getMonoWeight() << "\t"; // Mass
