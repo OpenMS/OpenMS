@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvQuantHelper.h>
-#include <OpenMS/CONCEPT/Constants.h>
 
 namespace FLASHDeconvQuantHelper
 {
@@ -156,19 +155,9 @@ namespace FLASHDeconvQuantHelper
     return intensity_;
   }
 
-//  double FeatureGroup::getCentroidRtOfApices() const
-//  {
-//    return centroid_rt_of_apices;
-//  }
-
   double FeatureGroup::getRtOfMostAbundantMT() const
   {
     return centroid_rt_of_most_abundant_mt_;
-  }
-
-  float FeatureGroup::getChargeScore() const
-  {
-    return charge_score_;
   }
 
   float FeatureGroup::getIsotopeCosine() const
@@ -200,15 +189,26 @@ namespace FLASHDeconvQuantHelper
   {
     return per_isotope_int_;
   }
-//  float getIsotopeCosineOfCharge(const int &abs_charge) const
-//  {
-//    return per_charge_cos_[abs_charge];
-//  }
-//
-//  float getIntensityOfCharge(const int &abs_charge) const
-//  {
-//    return per_charge_int_[abs_charge];
-//  }
+
+  std::vector<float> FeatureGroup::getChargeIntensities() const
+  {
+    return per_charge_int_;
+  }
+
+  float FeatureGroup::getIntensityOfCharge(const int &abs_charge) const
+  {
+    return per_charge_int_[abs_charge];
+  }
+
+  float FeatureGroup::getIsotopeCosineOfCharge(const int &abs_charge) const
+  {
+    return per_charge_cos_[abs_charge];
+  }
+
+  double FeatureGroup::getAverageMass() const
+  {
+    return average_mass_;
+  }
 
   void FeatureGroup::setChargeRange(const int min_c, const int max_c)
   {
@@ -221,11 +221,6 @@ namespace FLASHDeconvQuantHelper
     max_isotope_index_ = index;
   }
 
-  void FeatureGroup::setChargeScore(const float score)
-  {
-    charge_score_ = score;
-  }
-
   void FeatureGroup::setIsotopeCosine(const float cos)
   {
     isotope_cosine_score_ = cos;
@@ -234,6 +229,21 @@ namespace FLASHDeconvQuantHelper
   void FeatureGroup::setFeatureGroupScore(const float score)
   {
     total_score_ = score;
+  }
+
+  void FeatureGroup::setPerChargeIntensities(std::vector<float> const &perChargeInt)
+  {
+    per_charge_int_ = perChargeInt;
+  }
+
+  void FeatureGroup::setPerChargeCosineScore(std::vector<float> const &perChargeCos)
+  {
+    per_charge_cos_ = perChargeCos;
+  }
+
+  void FeatureGroup::setAverageMass(double averageMass)
+  {
+    average_mass_ = averageMass;
   }
 
   void FeatureGroup::updateMembers()
@@ -247,7 +257,7 @@ namespace FLASHDeconvQuantHelper
 
     // charge range
     min_abs_charge_ = *charges_.begin();
-    max_abs_charge_ = *charges_.end();
+    max_abs_charge_ = *charges_.rbegin();
 
     // members to be changed or trackers
     FeatureSeed *most_abundant_seed = &feature_seeds_[0];
@@ -317,7 +327,6 @@ namespace FLASHDeconvQuantHelper
     monoisotopic_mass_ = nominator / intensity_;
   }
 
-
   // TODO: need to find a smarter way
   FeatureSeed* FeatureGroup::getApexLMTofCharge(int charge) const
   {
@@ -336,103 +345,42 @@ namespace FLASHDeconvQuantHelper
   }
 
   //    std::pair<double, double> getSummedIntensityOfMostAbundantMTperCS() const
-  //    {
-  //      auto per_cs_max_area = std::vector<double>(1 + max_abs_charge_, .0);
-  //      auto per_cs_max_inty = std::vector<double>(1 + max_abs_charge_, .0);
-  //
-  //      for (auto &lmt: *this)
-  //      {
-  //        double sum_inty = 0;
-  //        for (auto &p : *(lmt.getMassTrace()))
-  //        {
-  //          sum_inty += p.getIntensity();
-  //        }
-  //        if(per_cs_max_inty[lmt.getCharge()] < sum_inty)
-  //        {
-  //          per_cs_max_inty[lmt.getCharge()] = sum_inty;
-  //        }
-  //
-  //        if (per_cs_max_area[lmt.getCharge()] < lmt.getIntensity())
-  //        {
-  //          per_cs_max_area[lmt.getCharge()] = lmt.getIntensity();
-  //        }
-  //      }
-  //
-  //      return std::make_pair(std::accumulate(per_cs_max_area.begin(), per_cs_max_area.end(), .0),
-  //                            std::accumulate(per_cs_max_inty.begin(), per_cs_max_inty.end(), .0));
-  //    }
-
-  //    double getAvgFwhmLength() const
-  //    {
-  //      std::vector<double> fwhm_len_arr;
-  //      fwhm_len_arr.reserve(this->size());
-  //
-  //      for (auto &l_trace: *this)
-  //      {
-  //        double tmp_fwhm_len = l_trace.getFwhmEnd() - l_trace.getFwhmStart();
-  //        fwhm_len_arr.push_back(tmp_fwhm_len);
-  //      }
-  //      return accumulate(fwhm_len_arr.begin(), fwhm_len_arr.end(), 0.0) / (this->size());
-  //    }
-
-////// from here on: per Charge vectors are needed?
-//  void setChargeIsotopeCosine(const int abs_charge, const float cos)
-//  {
-//    if (max_abs_charge_ < abs_charge)
 //    {
-//      return;
-//    }
-//    if (per_charge_cos_.empty())
-//    {
-//      per_charge_cos_ = std::vector<float>(1 + max_abs_charge_, .0);
-//    }
-//    per_charge_cos_[abs_charge] = cos;
-//  }
+//      auto per_cs_max_area = std::vector<double>(1 + max_abs_charge_, .0);
+//      auto per_cs_max_inty = std::vector<double>(1 + max_abs_charge_, .0);
 //
-//  void setChargeIntensity(const int abs_charge, const float intensity)
-//  {
-//    if (max_abs_charge_ < abs_charge)
-//    {
-//      return;
-//    }
-//    if (per_charge_int_.empty())
-//    {
-//      per_charge_int_ = std::vector<float>(1 + max_abs_charge_, .0);
-//    }
-//    per_charge_int_[abs_charge] = intensity;
-//  }
-
-
-  /// use only for writing outputs?
-//  void FeatureGroup::setCentroidRtOfApicesAndMostAbundantMT()
-//  {
-//    std::vector<double> apex_rts;
-//    apex_rts.reserve(feature_seeds_.size());
-//    double max_inty = .0;
-//    double apex_rt = .0;
-//
-//    for (const auto &lmt: *this)
-//    {
-//      Size max_idx = lmt.getMassTrace()->findMaxByIntPeak(false);
-//      Peak2D tmp_max_peak = (*lmt.getMassTrace())[max_idx];
-//      apex_rts.push_back(tmp_max_peak.getRT());
-//      if (max_inty < tmp_max_peak.getIntensity())
+//      for (auto &lmt: *this)
 //      {
-//        max_inty = tmp_max_peak.getIntensity();
-//        apex_rt = tmp_max_peak.getRT();
-//      }
-//    }
-//    rt_of_apex = apex_rt;
+//        double sum_inty = 0;
+//        for (auto &p : *(lmt.getMassTrace()))
+//        {
+//          sum_inty += p.getIntensity();
+//        }
+//        if(per_cs_max_inty[lmt.getCharge()] < sum_inty)
+//        {
+//          per_cs_max_inty[lmt.getCharge()] = sum_inty;
+//        }
 //
-//    std::sort(apex_rts.begin(), apex_rts.end());
-//    Size mts_count = this->size();
-//    if (mts_count % 2 == 0) {
-//      // Find the average of value at index N/2 and (N-1)/2
-//      centroid_rt_of_apices = (double)(apex_rts[(mts_count-1) / 2] + apex_rts[mts_count / 2]) / 2.0;
+//        if (per_cs_max_area[lmt.getCharge()] < lmt.getIntensity())
+//        {
+//          per_cs_max_area[lmt.getCharge()] = lmt.getIntensity();
+//        }
+//      }
+//
+//      return std::make_pair(std::accumulate(per_cs_max_area.begin(), per_cs_max_area.end(), .0),
+//                            std::accumulate(per_cs_max_inty.begin(), per_cs_max_inty.end(), .0));
 //    }
-//    else
+
+//    double getAvgFwhmLength() const
 //    {
-//      centroid_rt_of_apices = (double) apex_rts[mts_count / 2];
+//      std::vector<double> fwhm_len_arr;
+//      fwhm_len_arr.reserve(this->size());
+//
+//      for (auto &l_trace: *this)
+//      {
+//        double tmp_fwhm_len = l_trace.getFwhmEnd() - l_trace.getFwhmStart();
+//        fwhm_len_arr.push_back(tmp_fwhm_len);
+//      }
+//      return accumulate(fwhm_len_arr.begin(), fwhm_len_arr.end(), 0.0) / (this->size());
 //    }
-//  }
 }

@@ -35,6 +35,9 @@
 #pragma once
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/KERNEL/MassTrace.h>
 
 using namespace OpenMS;
 namespace FLASHDeconvQuantHelper
@@ -238,9 +241,8 @@ namespace FLASHDeconvQuantHelper
       auto cs_range = pgroup.getAbsChargeRange();
       min_abs_charge_ =  std::get<0>(cs_range);
       max_abs_charge_ = std::get<1>(cs_range);
-      charge_score_ = pgroup.getChargeScore();
-      isotope_cosine_score_ = pgroup.getIsotopeCosine();
       intensity_ = pgroup.getIntensity();
+      isotope_cosine_score_ = pgroup.getIsotopeCosine();
     }
 
     /// explicit constructor for lower_bound / upper_bound search
@@ -256,9 +258,7 @@ namespace FLASHDeconvQuantHelper
     int getMaxCharge() const;
     Size getMaxIsotopeIndex() const;
     double getIntensity() const;
-    double getCentroidRtOfApices() const;
     double getRtOfMostAbundantMT() const;
-    float getChargeScore() const;
     float getIsotopeCosine() const;
     float getFeatureGroupScore() const;
 
@@ -266,18 +266,19 @@ namespace FLASHDeconvQuantHelper
     std::pair<double, double> getFwhmRange() const;
     std::vector<Size> getTraceIndices() const;
     std::vector<float> getIsotopeIntensities() const;
-//    float getIsotopeCosineOfCharge(const int &abs_charge) const;
-//    float getIntensityOfCharge(const int &abs_charge) const;
+    std::vector<float> getChargeIntensities() const;
+    float getIntensityOfCharge(const int &abs_charge) const;
+    float getIsotopeCosineOfCharge(const int &abs_charge) const;
+    double getAverageMass() const;
 
     /** default setters **/
     void setChargeRange(const int min_c, const int max_c);
     void setMaxIsotopeIndex(const Size index);
-    void setChargeScore(const float score);
     void setIsotopeCosine(const float cos);
     void setFeatureGroupScore(const float score);
-
-//    void setChargeIsotopeCosine(const int abs_charge, const float cos);
-//    void setChargeIntensity(const int abs_charge, const float intensity);
+    void setPerChargeIntensities(std::vector<float> const &perChargeInt);
+    void setPerChargeCosineScore(std::vector<float> const &perChargeCos);
+    void setAverageMass(double averageMass);
 
     /// update multiple variables in one function
     void updateMembers(); // update after feature_seeds_ is changed
@@ -285,7 +286,6 @@ namespace FLASHDeconvQuantHelper
 
     /// find the Apex seed with specific charge
     FeatureSeed* getApexLMTofCharge(int charge) const;
-//    bool hasPerChargeVector() const;
 
     /// iterator settings
     std::vector<FeatureSeed>::const_iterator begin() const noexcept;
@@ -316,13 +316,10 @@ namespace FLASHDeconvQuantHelper
     int max_isotope_index_;
     /// summed intensities of feature_seeds_
     double intensity_;
-    /// centroid RT value among apice MT from each charges
-//    double centroid_rt_of_apices_;
     /// RT value from most abundant MassTrace.
     double centroid_rt_of_most_abundant_mt_;
 
     /// scores
-    float charge_score_;
     float isotope_cosine_score_;
     float total_score_;
 
@@ -335,9 +332,11 @@ namespace FLASHDeconvQuantHelper
 
     /// intensities per isotope index
     std::vector<float> per_isotope_int_;
-    /// per charge values
-//    std::vector<float> per_charge_cos_;
-//    std::vector<float> per_charge_int_;
+
+    /// variables for writing results only
+    std::vector<float> per_charge_int_;
+    std::vector<float> per_charge_cos_;
+    double average_mass_;
   };
 
   class OPENMS_DLLAPI CmpFeatureSeedByRT

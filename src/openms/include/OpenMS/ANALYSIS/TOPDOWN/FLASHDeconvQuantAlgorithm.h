@@ -138,6 +138,8 @@ namespace OpenMS
 
     void makeMSSpectrum_(std::vector<FeatureSeed *> &local_traces, MSSpectrum &spec, const double &rt) const;
 
+    void setFeatureGroupMembersForResultWriting(std::vector<FeatureGroup> &f_groups) const;
+
     /// parameter stuff
 //    double local_rt_range_;
     double local_mz_range_;

@@ -151,6 +151,7 @@ namespace OpenMS
     clusterFeatureGroups_(features, input_mtraces);
 
     // output
+    setFeatureGroupMembersForResultWriting(features);
     out_fgs.swap(features);
     features.clear();
   }
@@ -165,6 +166,46 @@ namespace OpenMS
     spec.setName("");
     spec.setRT(rt);
     spec.sortByPosition();
+  }
+
+  void FLASHDeconvQuantAlgorithm::setFeatureGroupMembersForResultWriting(std::vector<FeatureGroup> &f_groups) const
+  {
+    // this cannot be done in FeatureGroup (in FLASHDeconvQuantHelper) due to some methods to be used only in here
+
+    for (auto &fgroup : f_groups)
+    {
+      // initialize
+      auto per_charge_int = std::vector<float>(1 + fgroup.getMaxCharge(), .0);
+      auto per_charge_cos = std::vector<float>(1 + fgroup.getMaxCharge(), .0);
+
+      std::vector<std::vector<float>> per_cs_isos(1 + fgroup.getMaxCharge(), std::vector<float>(fgroup.getIsotopeIntensities().size(), .0));
+
+      // iterate all FeatureSeeds to collect per feature values
+      for(auto& seed : fgroup)
+      {
+        per_charge_int[seed.getCharge()] += seed.getIntensity();
+        per_cs_isos[seed.getCharge()][seed.getIsotopeIndex()] += seed.getIntensity();
+      }
+
+      for(auto& cs : fgroup.getChargeSet())
+      {
+        auto &this_cs_isos = per_cs_isos[cs];
+        int min_isotope_index = std::distance( this_cs_isos.begin(), std::find_if( this_cs_isos.begin(), this_cs_isos.end(), [](auto &x) { return x != 0; }));
+        int max_isotope_index = std::distance( this_cs_isos.begin(), (std::find_if( this_cs_isos.rbegin(), this_cs_isos.rend(), [](auto &x) { return x != 0; }) + 1).base());
+
+        auto iso_dist = iso_model_.get(fgroup.getMonoisotopicMass());
+        float cos_score = FLASHDeconvAlgorithm::getCosine(per_cs_isos[cs], min_isotope_index, max_isotope_index + 1,
+                                                          iso_dist, iso_dist.size(), 0);
+        per_charge_cos[cs] = cos_score;
+      }
+      // calculate average mass
+      auto avg_mass = iso_model_.getAverageMassDelta(fgroup.getMonoisotopicMass()) + fgroup.getMonoisotopicMass();
+
+      // setting values
+      fgroup.setPerChargeIntensities(per_charge_int);
+      fgroup.setPerChargeCosineScore(per_charge_cos);
+      fgroup.setAverageMass(avg_mass);
+    }
   }
 
   void FLASHDeconvQuantAlgorithm::getFeatureFromSpectrum_(std::vector<FeatureSeed *> &local_traces,
@@ -395,13 +436,6 @@ namespace OpenMS
     return true;
   }
 
-  bool updateFeatureGroupElements()
-  {
-    // TODO: charge range (calculatePerChargeIsotopeIntensity_)
-    // fg.setChargeVector();
-    // isotope vector
-  }
-
   bool FLASHDeconvQuantAlgorithm::scoreAndFilterFeatureGroup_(FeatureGroup &fg) const
   {
     /// based on: FLASHDeconvAlgorithm::scoreAndFilterPeakGroups_()
@@ -578,7 +612,7 @@ namespace OpenMS
       if (up_it - low_it == 1)
       {
         // save it to out_features
-        if (rescoreFeatureGroup_(*candidate_fg))
+        if (rescoreFeatureGroup_(*candidate_fg)) // rescoring is needed to set scores in FeatureGroup
         {
           out_feature.push_back(*candidate_fg);
         }
@@ -825,7 +859,7 @@ namespace OpenMS
 
   /// cluster FeatureGroups with shared mass traces. If not, report as output
   void FLASHDeconvQuantAlgorithm::clusterFeatureGroups_(std::vector<FeatureGroup> &fgroups,
-                                               std::vector<MassTrace> &input_mtraces) const
+                                                        std::vector<MassTrace> &input_mtraces) const
   {
     // *********************************************************** //
     // Step 1 preparation for hypergraph : collect feature idx with shared mass traces

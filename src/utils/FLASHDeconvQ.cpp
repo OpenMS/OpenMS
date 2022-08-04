@@ -120,17 +120,6 @@ protected:
     out_featmap.clear();
     for (auto &fgroup: feature_groups)
     {
-      // if this fgroup doesn't have per charge vectors (to avoid bad access error)
-      int charge_range = fgroup.getMaxCharge() - fgroup.getMinCharge() + 1;
-      auto per_charge_intensities = std::vector<float>(charge_range, 0);
-
-      // setting per charge value
-      for (auto & f : fgroup)
-      {
-        int i = f.getCharge() - fgroup.getMinCharge();
-        per_charge_intensities[i] += fgroup.getIntensity();
-      }
-
       // create OpenMS::Feature per charge
       std::vector<Feature> feat_vec;
       for (auto &cs : fgroup.getChargeSet())
@@ -231,14 +220,19 @@ protected:
                   "FeatureGroupQuantity\tAllAreaUnderTheCurve\tSumIntensity\tMinCharge\tMaxCharge\tChargeCount\tMostAbundantFeatureCharge\t"
                   "IsotopeCosineScore\tFeatureScore\n"; // mass_trace_ids\n";
 
+    bool use_smoothed_intensities = FLASHDeconvQuantAlgorithm().getDefaults().getValue("use_smoothed_intensities").toBool();
     int fg_index = 0;
     for (auto &fg : fgroups)
     {
       // intensities
       double feature_quant = .0; // fwhm area under the curve
       double all_area = .0; // all area under the curve
-      std::vector<double> per_cs_intys = std::vector<double>(fg.getMaxCharge() + 1, .0);
 
+      // centroid rt of apices from all MassTraces
+      std::vector<double> apex_rts;
+      apex_rts.reserve(fg.size());
+
+      // mass trace labels (ids)
       std::vector<String> mass_trace_labels;
       mass_trace_labels.reserve(fg.size());
 
@@ -248,7 +242,11 @@ protected:
         auto lmt_ptr = lmt.getMassTrace();
         mass_trace_labels.push_back(lmt_ptr->getLabel());
 
-        if (use_smoothed_intensities_)
+        // find apex
+        Size max_idx = lmt_ptr->findMaxByIntPeak(false);
+        apex_rts.push_back((*lmt_ptr)[max_idx].getRT());
+
+        if (use_smoothed_intensities)
         {
           feature_quant += lmt_ptr->computeFwhmAreaSmooth();
         }
@@ -262,34 +260,42 @@ protected:
         double previous_peak_rt = (*lmt_ptr)[0].getRT();
         for (auto &peaks: *lmt_ptr)
         {
-          per_cs_intys[lmt.getCharge()] += peaks.getIntensity();
           all_area += (previous_peak_inty + peaks.getIntensity()) / 2 * (peaks.getRT() - previous_peak_rt);
           previous_peak_inty = peaks.getIntensity();
           previous_peak_rt = peaks.getRT();
         }
       }
 
-      // sum intensity of all peaks included
-      double summedIntensities = std::accumulate(per_cs_intys.begin(), per_cs_intys.end(), .0);
-
       // get most abundant charge
-      int most_abundant_cs = std::distance(per_cs_intys.begin(), std::max_element(per_cs_intys.begin(), per_cs_intys.end()));
+      int most_abundant_cs = std::distance(fg.getChargeIntensities().begin(), std::max_element(fg.getChargeIntensities().begin(), fg.getChargeIntensities().end()));
+
+      // calculate centroid value
+      double centroid_rt_of_apices;
+      std::sort(apex_rts.begin(), apex_rts.end());
+      Size mts_count = apex_rts.size();
+      if (mts_count % 2 == 0) {
+        // Find the average of value at index N/2 and (N-1)/2
+        centroid_rt_of_apices = (double)(apex_rts[(mts_count-1) / 2] + apex_rts[mts_count / 2]) / 2.0;
+      }
+      else
+      {
+        centroid_rt_of_apices = (double) apex_rts[mts_count / 2];
+      }
 
       // MassTrace IDs
-      //      stringstream labels_ss;
-      //      for (auto& label : mass_trace_labels)
-      //      {
-      //        labels_ss << label << ";";
-      //      }
-      //      std::string labels_str = labels_ss.str();
-      //      labels_str.pop_back();
+//      stringstream labels_ss;
+//      for (auto& label : mass_trace_labels)
+//      {
+//        labels_ss << label << ";";
+//      }
+//      std::string labels_str = labels_ss.str();
+//      labels_str.pop_back();
 
-      double mono_mass = fg.getMonoisotopicMass();
-      double average_mass = iso_model_.getAverageMassDelta(mono_mass) + mono_mass;
-      out_stream << fg_index++ << "\t" << infile_path << "\t" << std::to_string(mono_mass) << "\t" << std::to_string(average_mass) << "\t"
+      out_stream << fg_index++ << "\t" << infile_path << "\t"
+                 << std::to_string(fg.getMonoisotopicMass()) << "\t" << std::to_string(fg.getAverageMass()) << "\t"
                  << std::to_string(fg.getFwhmRange().first) << "\t" << std::to_string(fg.getFwhmRange().second) << "\t"
-                 << std::to_string(fg.getRtOfMostAbundantMT()) << "\t" << std::to_string(fg.getCentroidRtOfApices()) << "\t"
-                 << std::to_string(feature_quant) << "\t" << std::to_string(all_area) << "\t" << std::to_string(summedIntensities) << "\t"
+                 << std::to_string(fg.getRtOfMostAbundantMT()) << "\t" << std::to_string(centroid_rt_of_apices) << "\t"
+                 << std::to_string(feature_quant) << "\t" << std::to_string(all_area) << "\t" << std::to_string(fg.getIntensity()) << "\t"
                  << fg.getMinCharge() << "\t" << fg.getMaxCharge() << "\t" << fg.getChargeSet().size() << "\t" << most_abundant_cs << "\t"
                  << std::to_string(fg.getIsotopeCosine()) << "\t" << std::to_string(fg.getFeatureGroupScore())
                  << std::endl;
