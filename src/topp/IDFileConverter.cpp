@@ -274,12 +274,14 @@ protected:
     vector<PeptideIdentification> peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
     SpectrumMetaDataLookup lookup;
+    IdentificationData id_data;
 
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
     const String in = getStringOption_("in");
     const String mz_file = getStringOption_("mz_file");
+    FileTypes::Type in_type = FileTypes::UNKNOWN; // set below if 'in' isn't a directory
 
     const String out = getStringOption_("out");
     FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(out, getStringOption_("out_type"));
@@ -402,7 +404,7 @@ protected:
     } // ! directory
     else
     {
-      FileTypes::Type in_type = fh.getType(in);
+      in_type = fh.getType(in);
       switch (in_type)
       {
       case FileTypes::PEPXML:
@@ -690,10 +692,11 @@ protected:
 
       case FileTypes::OMS:
       {
-        IdentificationData id_data;
         OMSFile().load(in, id_data);
-        IdentificationDataConverter::exportIDs(id_data, protein_identifications,
-                                               peptide_identifications);
+        if (out_type != FileTypes::OMS)
+        {
+          IdentificationDataConverter::exportIDs(id_data, protein_identifications, peptide_identifications);
+        }
       }
       break;
 
@@ -801,9 +804,10 @@ protected:
 
     case FileTypes::OMS:
     {
-      IdentificationData id_data;
-      IdentificationDataConverter::importIDs(id_data, protein_identifications,
-                                             peptide_identifications);
+      if (in_type != FileTypes::OMS)
+      {
+        IdentificationDataConverter::importIDs(id_data, protein_identifications, peptide_identifications);
+      }
       OMSFile().store(out, id_data);
     }
     break;
