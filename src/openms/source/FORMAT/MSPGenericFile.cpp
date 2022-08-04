@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
+#include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <boost/regex.hpp>
 #include <fstream>
@@ -145,6 +146,7 @@ namespace OpenMS
         spectrum.setMetaValue(String(m[1]), String(m[2]));
       }
     }
+
     // To make sure a spectrum is added even if no empty line is present before EOF
     addSpectrumToLibrary(spectrum, library);
     OPENMS_LOG_INFO << "Loading spectra from .msp file completed." << std::endl;
@@ -275,7 +277,17 @@ namespace OpenMS
       { // set RT to spectrum index
         spectrum.setRT(library.getSpectra().size());
       }
-      library.addSpectrum(spectrum);
+      // set spectrum precursor
+      if (spectrum.metaValueExists("PRECURSORMZ"))
+      {
+        std::vector<Precursor> precursors;
+        Precursor p;
+        p.setMZ(std::stod(spectrum.getMetaValue("PRECURSORMZ")));
+        spectrum.removeMetaValue("PRECURSORMZ");
+        precursors.push_back(p);
+        spectrum.setPrecursors(precursors);
+        library.addSpectrum(spectrum);
+      }
       loaded_spectra_names_.insert(spectrum.getName());
 
       if (loaded_spectra_names_.size() % 20000 == 0)
