@@ -55,8 +55,8 @@ namespace OpenMS
 
   struct OPENMS_DLLAPI FLASHDeconvHelperStructs
   {
-    /// This struct contains the averagine patterns pre-calculated for speed up. Other variables are also calculated for fast cosine calculation
-    struct OPENMS_DLLAPI PrecalculatedAveragine
+    /// @brief Averagine patterns pre-calculated for speed up. Other variables are also calculated for fast cosine calculation
+    class OPENMS_DLLAPI PrecalculatedAveragine
     {
     private:
       /// isotope distributions for different (binned) masses
@@ -172,7 +172,7 @@ namespace OpenMS
       bool operator==(const TopPicItem& other) const;
     };
 
-    ///
+    /// Mass feature (Deconvolved masses in spectra are traced by Mass tracing to generate mass features - like LC-MS features).
     struct OPENMS_DLLAPI MassFeature
     {
     public:
@@ -188,7 +188,7 @@ namespace OpenMS
     };
 
     /// log transformed peak. After deconvolution, all necessary information from deconvolution such as charge and isotope index is stored.
-    struct OPENMS_DLLAPI LogMzPeak
+    class OPENMS_DLLAPI LogMzPeak
     {
     public:
       /// original peak mz

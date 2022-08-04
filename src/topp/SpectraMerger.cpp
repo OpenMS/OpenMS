@@ -130,14 +130,10 @@ protected:
     fh.loadExperiment(in, exp, in_type, log_type_);
     exp.sortSpectra();
 
-    int max_ms_level = 1;
-    int min_ms_level = 0;
-    for (auto it_rt = exp.begin(); it_rt != exp.end(); ++it_rt)
-    {
-      int tmp_ms_level = it_rt->getMSLevel();
-      max_ms_level = max_ms_level < tmp_ms_level ? tmp_ms_level : max_ms_level;
-      min_ms_level = min_ms_level == 0 ? tmp_ms_level : (min_ms_level > tmp_ms_level ? tmp_ms_level : min_ms_level);
-    }
+    auto levels = exp.getMSLevels();
+    if (levels.empty()) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels.size());
+    int min_ms_level = levels.front();
+    int max_ms_level = levels.back();
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------

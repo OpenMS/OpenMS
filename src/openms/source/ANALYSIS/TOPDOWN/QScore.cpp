@@ -43,7 +43,7 @@ namespace OpenMS
 
   double QScore::getQScore(const PeakGroup *pg, const int abs_charge)
   {
-    if (pg == nullptr)
+    if (pg->empty())
     { // all zero
       return .0;
     }
@@ -60,7 +60,7 @@ namespace OpenMS
     //AvgPPMerror       0.063
     //Intercept       14.4072
 
-    double score = weights[weights.size() - 1];
+    double score = weights.back();
     auto fv = toFeatureVector_(pg, abs_charge);
 
     for (Size i = 0; i < weights.size() - 1; i++)

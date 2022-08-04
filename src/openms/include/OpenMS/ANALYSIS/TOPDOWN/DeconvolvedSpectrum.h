@@ -63,7 +63,7 @@ namespace OpenMS
     /**
        @brief Constructor for DeconvolvedSpectrum. Takes the spectrum and scan number calculated from outside
        @param spectrum spectrum for which the deconvolution will be performed
-       @param scan_number scan number of the spectrum: this argument is put here for real time case where scan number should be input separately.
+       @param scan_number scan number of the spectrum.
   */
     DeconvolvedSpectrum(const MSSpectrum& spectrum, const int scan_number);
 
@@ -96,9 +96,6 @@ namespace OpenMS
 
     /// get precursor peak
     const Precursor& getPrecursor() const;
-
-    /// set qvalue of precursor peak
-    void setPrecursorPeakGroupQvalue(const double qvalue, const double qvalue_with_charge_decoy_only);
 
     /// get possible max mass of the deconvolved masses - for MS1, max mass specified by user
     /// for MSn, min value between max mass specified by the user and precursor mass
@@ -138,9 +135,6 @@ namespace OpenMS
 
     /// set precusor peakGroup
     void setPrecursorPeakGroup(const PeakGroup& pg);
-
-    void static updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra);
-
 
     std::vector<PeakGroup>::const_iterator begin() const noexcept;
     std::vector<PeakGroup>::const_iterator end() const noexcept;

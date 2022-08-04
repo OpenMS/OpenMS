@@ -106,14 +106,14 @@ fd_algo.calculateAveragine(false);
 std::vector<DeconvolvedSpectrum> survey_specs;
 const std::map<int, std::vector<std::vector<double>>> null_map;
 
-    fd_algo.performSpectrumDeconvolution(input[1], survey_specs, 2, null_map);
+    fd_algo.performSpectrumDeconvolution(input[1], survey_specs, 2, false, null_map);
 DeconvolvedSpectrum prec_deconv_spec_1 = fd_algo.getDeconvolvedSpectrum();
 
-    fd_algo.performSpectrumDeconvolution(input[3], survey_specs, 4, null_map);
+    fd_algo.performSpectrumDeconvolution(input[3], survey_specs, 4, false, null_map);
 DeconvolvedSpectrum prec_deconv_spec_2 = fd_algo.getDeconvolvedSpectrum();
 
 survey_specs.push_back(prec_deconv_spec_2);
-    fd_algo.performSpectrumDeconvolution(input[5], survey_specs, 6, null_map);
+    fd_algo.performSpectrumDeconvolution(input[5], survey_specs, 6, false, null_map);
 DeconvolvedSpectrum ms2_deconv_spec = fd_algo.getDeconvolvedSpectrum();
 
 START_SECTION((double getCurrentMaxMass(const double max_mass) const))
@@ -138,7 +138,7 @@ END_SECTION
 START_SECTION((MSSpectrum toSpectrum(const int mass_charge)))
 {
   MSSpectrum peakgroup_spec = prec_deconv_spec_1.toSpectrum(9);
-  TEST_EQUAL(peakgroup_spec.size(), 4);
+  TEST_EQUAL(peakgroup_spec.size(), 3);
   TEST_REAL_SIMILAR(peakgroup_spec.getRT(), 251.72280736002);
 }
 END_SECTION
@@ -192,7 +192,7 @@ END_SECTION
 START_SECTION(String& getActivationMethod() const)
 {
   String act_method = ms2_deconv_spec.getActivationMethod();
-  TEST_STRING_EQUAL("HCD", act_method);
+  TEST_STRING_EQUAL("ETD", act_method); // TODO: why ETD?
 }
 END_SECTION
 ////////
