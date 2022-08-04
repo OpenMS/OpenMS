@@ -86,6 +86,7 @@ namespace OpenMS
     void performSpectrumDeconvolution(const MSSpectrum& spec,
                                       const std::vector<DeconvolvedSpectrum>& survey_scans,
                                       const int scan_number,
+                                      const bool write_detail,
                                       const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_FLASHIda);
 
     /// return deconvolved spectrum
@@ -160,8 +161,8 @@ namespace OpenMS
     int min_abs_charge_, max_abs_charge_;
     /// is positive mode
     bool is_positive_;
-    /// when a spectrum is deconvolved, the deconvolved masses within the this rt window are favorably considered.
-    double rt_window_;
+    /// to store detailed information
+    bool write_detail_ = false;
     /// mass ranges of deconvolution, set by users
     double min_mass_, max_mass_;
     /// current_min_charge_ charge: 1 for MSn n>1; otherwise just min_abs_charge_
@@ -175,7 +176,7 @@ namespace OpenMS
     /// peak intensity threshold subject to analysis
     double intensity_threshold_;
     /// minimum number of peaks supporting a mass
-    IntList min_support_peak_count_;
+    const IntList min_support_peak_count_ = {3,3,3,3,3,3,3,3};
     /// tolerance in ppm for each MS level
     DoubleList tolerance_;
     /// bin size for first stage of mass selection - for fast convolution, binning is used
@@ -183,7 +184,7 @@ namespace OpenMS
     /// cosine threshold between observed and theoretical isotope patterns for each MS level
     DoubleList min_isotope_cosine_;
     /// max mass count per spectrum for each MS level
-    IntList max_mass_count_;
+    //IntList max_mass_count_;
 
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
@@ -230,7 +231,7 @@ namespace OpenMS
     int ms_level_;
 
     /// high and low charges are differently deconvolved. This value determines the (inclusive) threshold for low charge.
-    const int low_charge_ = 10; //10 inclusive
+    const int low_charge_ = 6; //10 inclusive
 
     /// default precursor isolation window size.
     double isolation_window_size_;

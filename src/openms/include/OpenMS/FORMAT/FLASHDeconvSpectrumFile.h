@@ -65,8 +65,7 @@ namespace OpenMS
           @param file_name the output file name that the deconvolved masses will be written.
           @param avg averagine information to calculate monoisotopic and average mass difference within this function. In PeakGroup (peaks of DeconvolvedSpectrum) only monoisotopic mass is recorded. To write both monoisotopic and average masses, their mass difference should be calculated using this averagine information.
           @param write_detail if this is set, more detailed information on each mass will be written in the output file.
-          @param is_decoy if this is set, the mass is a decoy mass.
-          Default MS1 headers are:
+          Default MS1 headers are: TODO modify
             FileName, ScanNum, Decoy, RetentionTime, MassCountInSpec, AverageMass, MonoisotopicMass,
             SumIntensity, MinCharge, MaxCharge,
             PeakCount, IsotopeCosine, ChargeScore, MassSNR, ChargeSNR, RepresentativeCharge, RepresentativeMzStart, RepresentativeMzEnd, QScore, PerChargeIntensity, PerIsotopeIntensity
@@ -81,7 +80,6 @@ namespace OpenMS
                                        const String& file_name,
                                        const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                                        const bool write_detail);
-
 
     /**
       @brief write the deconvolved masses TopFD output (*.msalign)

@@ -97,7 +97,7 @@ namespace OpenMS
     void updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double iso_da_distance);
 
     /// recruit peaks and then return as a spectrum.
-    void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, double mass_offset = 0);
+    void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, bool write_detail);
 
     /// using signal and total (signal + noise) power, update SNR value
     void updateSNR();
@@ -195,6 +195,9 @@ namespace OpenMS
     /// get if it is targeted
     bool isTargeted() const;
 
+    void setIsotopeDaDistance(const double d);
+
+    double getIsotopeDaDistance() const;
 
     /// const iterators of LogMzPeaks in PeakGroup
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator begin() const noexcept;
@@ -253,6 +256,8 @@ namespace OpenMS
     double monoisotopic_mass_ = -1.0;
     double intensity_;// total intensity
 
+    /// distance between consecutive isotopes. Can be different for decoys
+    double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
     /// scoring variables
     int max_qscore_abs_charge_ = -1;
     float isotope_cosine_score_ = 0;

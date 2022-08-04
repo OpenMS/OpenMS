@@ -80,40 +80,13 @@ namespace OpenMS
 
   void PeakGroup::updateAvgPPMError_(double iso_da_distance)
   {
-    std::vector<float> diffs;
-    std::vector<std::vector<float>> per_isotope_masses;
-    int isotope_end_index = 0;
-
+    avg_ppm_error_ = 0;
     for (auto& p : *this)
     {
-      if(p.isotopeIndex < 0)
-      {
-        continue;
-      }
-      isotope_end_index = isotope_end_index < p.isotopeIndex ? p.isotopeIndex : isotope_end_index;
+      double average_mass = monoisotopic_mass_ + p.isotopeIndex * iso_da_distance;
+      avg_ppm_error_ += (average_mass / p.abs_charge + FLASHDeconvHelperStructs::getChargeMass(p.is_positive) - p.mz) / p.mz;
     }
-    per_isotope_masses = std::vector<std::vector<float>>(isotope_end_index + 1, std::vector<float>());
-    for (auto& p : *this)
-    {
-      if(p.isotopeIndex < 0)
-      {
-        continue;
-      }
-      per_isotope_masses[p.isotopeIndex].push_back(p.getUnchargedMass());
-    }
-    diffs.reserve(size());
-    for (Size i = 0; i < per_isotope_masses.size(); i++)
-    {
-      auto& v = per_isotope_masses[i];
-      Size n = v.size();
-      double average = n >= 2 ? accumulate(v.begin(), v.end(), 0.0) / n : getMonoMass() + i * iso_da_distance; //
-      for (float& t : v)
-      {
-        diffs.push_back(pow(1e6 * (t - average) / average, 2.0));
-      }
-    }
-    Size n = diffs.size();
-    avg_ppm_error_ =  n == 0 ? .0 : sqrt(accumulate(diffs.begin(), diffs.end(), 0.0) / n);
+    avg_ppm_error_ /= size();
   }
 
 
@@ -197,7 +170,6 @@ namespace OpenMS
       max_qscore_abs_charge_ = abs_charge;
       qscore_ = q_score;
     }
-    return;
   }
 
 /*
@@ -218,7 +190,7 @@ namespace OpenMS
       }
       double cmz = (mono_mass - left) / c + FLASHDeconvHelperStructs::getChargeMass(is_positive_);
       Size index = spec.findNearest(cmz);
-      double iso_delta = Constants::ISOTOPE_MASSDIFF_55K_U / c;
+      double iso_delta = Constants::iso_da_distance_ / c;
       for (; index < spec.size(); index++)
       {
         double pint = spec[index].getIntensity();
@@ -241,18 +213,21 @@ namespace OpenMS
 */
   void PeakGroup::recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol,
                                             const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                            double mono_mass, double mass_offset)
+                                            double mono_mass, bool write_detail)
   {
-    if(mono_mass + mass_offset < 0)
+    if(mono_mass < 0)
     {
       return;
     }
 
-    int max_isotope = avg.getLastIndex(mono_mass + mass_offset);
+    int iso_margin = 3;
+
+    int max_isotope = avg.getLastIndex(mono_mass) + iso_margin;
 
     clear();
     reserve((max_isotope) * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
-    //noisy_peaks.reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1)* 2);
+    if(write_detail)
+      noisy_peaks.reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1)* 2);
 
     int nmax_abs_charge = -1;
     int nmin_abs_charge = min_abs_charge_;
@@ -266,8 +241,9 @@ namespace OpenMS
       double charge_noise_pwr = .0, charge_sig_pwr = .0;
       double charge_intensity = .0;
       double cmz = (mono_mass) /c + FLASHDeconvHelperStructs::getChargeMass(is_positive_);
-      Size index = spec.findNearest((cmz + mass_offset/c)* (1 - tol));
-      double iso_delta = Constants::ISOTOPE_MASSDIFF_55K_U / c;
+      double left_mz = (mono_mass - iso_margin * iso_da_distance_) /c + FLASHDeconvHelperStructs::getChargeMass(is_positive_);
+      Size index = spec.findNearest(left_mz * (1 - tol));
+      double iso_delta = iso_da_distance_ / c;
       for(;index < spec.size(); index++)
       {
         double pint = spec[index].getIntensity();
@@ -277,26 +253,22 @@ namespace OpenMS
         }
         double pmz = spec[index].getMZ();
         int iso_index = (int)round((pmz - cmz)/iso_delta);
-        int iso_index2 = mass_offset !=0? (int)round((pmz - (cmz + mass_offset/c))/iso_delta) : iso_index;
-
-        if(iso_index2 < 0)
-        {
-          continue;
-        }
-
-        if(iso_index2 > max_isotope)
-        {
-          break;
-        }
-
-        if(iso_index < 0)
-        {
-          continue;
-        }
 
         if(iso_index > max_isotope)
         {
           break;
+        }
+
+        if(iso_index < 0 || iso_index > max_isotope - iso_margin)
+        {
+          if(write_detail)
+          {
+            auto p = LogMzPeak(spec[index], is_positive_);
+            p.isotopeIndex = iso_index;
+            p.abs_charge = c;
+            noisy_peaks.push_back(p);
+          }
+          continue;
         }
 
         double peak_pwr = pint * pint;
@@ -310,15 +282,16 @@ namespace OpenMS
 
           charge_sig_pwr += peak_pwr;
           charge_intensity += pint;
-
         }
         else
         {
-          /*auto p = LogMzPeak(spec[index], is_positive_);
-          p.isotopeIndex = iso_index;
-          p.abs_charge = c;
-          noisy_peaks.push_back(p); //tmp
-          */
+          if(write_detail)
+          {
+            auto p = LogMzPeak(spec[index], is_positive_);
+            p.isotopeIndex = iso_index;
+            p.abs_charge = c;
+            noisy_peaks.push_back(p);
+          }
           charge_noise_pwr += peak_pwr;
         }
       }
@@ -479,7 +452,7 @@ namespace OpenMS
 
       per_isotope_int_[p.isotopeIndex] += p.intensity;
      // new_logMzpeaks_.push_back(p);
-      nominator += pi * (p.getUnchargedMass() - p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U);
+      nominator += pi * (p.getUnchargedMass() - p.isotopeIndex * iso_da_distance_);
       intensity_ += pi;
     }
     //logMzpeaks_.swap(new_logMzpeaks_);
@@ -756,7 +729,15 @@ namespace OpenMS
     return is_positive_;
   }
 
+  void PeakGroup::setIsotopeDaDistance(const double d)
+  {
+    iso_da_distance_ = d;
+  }
 
+  double PeakGroup::getIsotopeDaDistance() const
+  {
+    return iso_da_distance_;
+  }
 
   std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator PeakGroup::begin() const noexcept
   {
