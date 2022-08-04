@@ -146,7 +146,28 @@ namespace OpenMS
         spectrum.setMetaValue(String(m[1]), String(m[2]));
       }
     }
-
+    // ensure correct meta value names for MetaboliteSpectralMatcher
+    spectrum.setMetaValue("Metabolite_Name", spectrum.getName());
+    if (spectrum.metaValueExists("INCHIKEY"))
+    {
+      spectrum.setMetaValue("Inchi_String", spectrum.getMetaValue("INCHIKEY"));
+      spectrum.removeMetaValue("INCHIKEY");
+    }
+    if (spectrum.metaValueExists("SMILES"))
+    {
+      spectrum.setMetaValue("SMILES_String", spectrum.getMetaValue("SMILES"));
+      spectrum.removeMetaValue("SMILES");
+    }
+    if (spectrum.metaValueExists("FORMULA"))
+    {
+      spectrum.setMetaValue("Sum_Formula", spectrum.getMetaValue("FORMULA"));
+      spectrum.removeMetaValue("FORMULA");
+    }
+    if (spectrum.metaValueExists("PRECURSORTYPE"))
+    {
+      spectrum.setMetaValue("Precursor_Ion", spectrum.getMetaValue("PRECURSORTYPE"));
+      spectrum.removeMetaValue("PRECURSORTYPE");
+    }
     // To make sure a spectrum is added even if no empty line is present before EOF
     addSpectrumToLibrary(spectrum, library);
     OPENMS_LOG_INFO << "Loading spectra from .msp file completed." << std::endl;
