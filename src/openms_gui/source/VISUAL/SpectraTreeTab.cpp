@@ -215,13 +215,13 @@ namespace OpenMS
     }
 
     IndexExtrator ie(current);
-    if (!ie.hasChromIndices())
-    {
-      emit spectrumSelected(ie.spectrum_index);
-    }
-    else
+    if (ie.hasChromIndices())
     { // open several chromatograms at once
       emit chromsSelected(listToVec(ie.res));
+    }
+    else
+    {
+      emit spectrumSelected(ie.spectrum_index);
     }
   }
 

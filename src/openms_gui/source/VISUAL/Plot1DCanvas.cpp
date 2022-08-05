@@ -51,7 +51,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
-#include <OpenMS/VISUAL/LayerDataChrom.h>
+#include <OpenMS/VISUAL/LayerData1DChrom.h>
 
 // Qt
 #include <QMouseEvent>
@@ -193,12 +193,20 @@ namespace OpenMS
     setIntensityMode(Plot1DCanvas::IM_NONE);
 
     auto ld = dynamic_cast<LayerDataChrom&>(getCurrentLayer());
-
     ld.setName(caption);
     ld.getChromatogramAnnotation() = chrom_annotation; // copy over shared-ptr to OSW-sql data (if available)
-    //this is a hack to store that we have chromatogram data, that we selected multiple ones and which one we selected
-    ld.getChromatogramData()->setMetaValue("multiple_select", multiple_select ? "true" : "false");
-    ld.getChromatogramData()->setMetaValue("selected_chromatogram", index);
+    // extend the currently visible area, so the new data is visible
+    auto va = visible_area_.getAreaUnit();
+    if (auto ld1d = dynamic_cast<LayerData1DChrom*>(&ld))
+    {
+      ld1d->setCurrentIndex(index); // use this chrom for visualization
+      va.extend(chrom_exp_sptr->getChromatogram(index).getRange());
+    }
+    else
+    { // full experiment (for 2D)
+      va.extend(chrom_exp_sptr->getRange());
+    }
+
 
     return true;
   }       

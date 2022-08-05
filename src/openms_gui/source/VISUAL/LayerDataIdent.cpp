@@ -49,14 +49,14 @@ namespace OpenMS
 
   std::unique_ptr<LayerStoreData> LayerDataIdent::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
-    auto ret = std::unique_ptr<LayerStoreDataIdentVisible>();
+    auto ret = make_unique<LayerStoreDataIdentVisible>();
     ret->storeVisibleIdent(peptides_, visible_range, layer_filters);
     return ret;
   }
 
   std::unique_ptr<LayerStoreData> LayerDataIdent::storeFullData() const
   {
-    auto ret = std::unique_ptr<LayerStoreDataIdentAll>();
+    auto ret = make_unique<LayerStoreDataIdentAll>();
     ret->storeFullIdent(peptides_);
     return ret;
   }

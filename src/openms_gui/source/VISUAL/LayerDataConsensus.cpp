@@ -57,14 +57,14 @@ namespace OpenMS
 
   std::unique_ptr<LayerStoreData> LayerDataConsensus::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
-    auto ret = std::unique_ptr<LayerStoreDataConsensusMapVisible>();
+    auto ret = make_unique<LayerStoreDataConsensusMapVisible>();
     ret->storeVisibleCM(*consensus_map_.get(), visible_range, layer_filters);
     return ret;
   }
 
   std::unique_ptr<LayerStoreData> LayerDataConsensus::storeFullData() const
   {
-    auto ret = std::unique_ptr<LayerStoreDataConsensusMapAll>();
+    auto ret = make_unique<LayerStoreDataConsensusMapAll>();
     ret->storeFullCM(*consensus_map_.get());
     return ret;
   }

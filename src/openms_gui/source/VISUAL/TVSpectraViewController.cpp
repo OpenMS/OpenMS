@@ -99,20 +99,23 @@ namespace OpenMS
 
     // open new 1D widget
     Plot1DWidget* w = new Plot1DWidget(tv_->getCanvasParameters(1), DIM::Y, (QWidget *)tv_->getWorkspace());
+    // use RT + intensity mapping
+    w->setMapper({{DIM_UNIT::RT, DIM_UNIT::INT}});
+
 
     for (const auto& index : indices)
     {
       // set layer name
       String chromatogram_caption = layer_chrom->getName() + "[" + index + "]";
 
-      // add chromatogram data as peak spectrum
+      // add chromatogram data
       if (!w->canvas()->addChromLayer(exp_sptr, ondisc_sptr, layer_chrom->getChromatogramAnnotation(), index, layer_chrom->filename, chromatogram_caption, true))
       {
         return;
       }
     }
 
-    w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea()); 
+    //w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea()); 
     // set relative (%) view of visible area
     w->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
 

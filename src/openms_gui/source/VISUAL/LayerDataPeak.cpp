@@ -72,14 +72,14 @@ namespace OpenMS
 
   std::unique_ptr<LayerStoreData> LayerDataPeak::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
-    auto ret = std::unique_ptr<LayerStoreDataPeakMapVisible>();
+    auto ret = make_unique<LayerStoreDataPeakMapVisible>();
     ret->storeVisibleExperiment(*peak_map_.get(), visible_range, layer_filters);
     return ret;
   }
 
   std::unique_ptr<LayerStoreData> LayerDataPeak::storeFullData() const
   {
-    auto ret = std::unique_ptr<LayerStoreDataPeakMapAll>();
+    auto ret = make_unique<LayerStoreDataPeakMapAll>();
     ret->storeFullExperiment(*peak_map_.get());
     return ret;
   }

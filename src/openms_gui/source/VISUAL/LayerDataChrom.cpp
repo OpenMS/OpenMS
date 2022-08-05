@@ -66,14 +66,14 @@ namespace OpenMS
 
   std::unique_ptr<LayerStoreData> LayerDataChrom::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
-    auto ret = std::unique_ptr<LayerStoreDataPeakMapVisible>();
+    auto ret = make_unique<LayerStoreDataPeakMapVisible>();
     ret->storeVisibleExperiment(*chromatogram_map_.get(), visible_range, layer_filters);
     return ret;
   }
 
   std::unique_ptr<LayerStoreData> LayerDataChrom::storeFullData() const
   {
-    auto ret = std::unique_ptr<LayerStoreDataPeakMapAll>();
+    auto ret = make_unique<LayerStoreDataPeakMapAll>();
     ret->storeFullExperiment(*chromatogram_map_.get());
     return ret;
   }
@@ -220,8 +220,8 @@ namespace OpenMS
 
   PointXYType LayerDataChrom::peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const
   {
-    // todo:: allow ChromatogramPeak2D
-    return mapper.map(getChromatogram(peak.spectrum)[peak.peak]);
+    const auto& chrom = getChromatogram(peak.spectrum);
+    return mapper.map(chrom, peak.peak);
   }
 
   String LayerDataChrom::getDataArrayDescription(const PeakIndex& peak_index)

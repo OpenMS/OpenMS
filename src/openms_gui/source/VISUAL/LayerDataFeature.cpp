@@ -58,14 +58,14 @@ namespace OpenMS
 
   std::unique_ptr<LayerStoreData> LayerDataFeature::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
-    auto ret = std::unique_ptr<LayerStoreDataFeatureMapVisible>();
+    auto ret = make_unique<LayerStoreDataFeatureMapVisible>();
     ret->storeVisibleFM(*features_.get(), visible_range, layer_filters);
     return ret;
   }
 
   std::unique_ptr<LayerStoreData> LayerDataFeature::storeFullData() const
   {
-    auto ret = std::unique_ptr<LayerStoreDataFeatureMapAll>();
+    auto ret = make_unique<LayerStoreDataFeatureMapAll>();
     ret->storeFullFM(*features_.get());
     return ret;
   }

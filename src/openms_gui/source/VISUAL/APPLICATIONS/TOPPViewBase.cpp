@@ -941,11 +941,20 @@ namespace OpenMS
         if (!target_window->canvas()->addLayer(peptides, filename))
           return;
       }
-      else // peaks
+      else // peaks or chrom
       {
-        if (!target_window->canvas()->addPeakLayer(peak_map, on_disc_peak_map, filename, use_intensity_cutoff))
+        if (data_type == LayerDataBase::DT_PEAK &&
+            !target_window->canvas()->addPeakLayer(peak_map, on_disc_peak_map, filename, use_intensity_cutoff))
+        {
           return;
-
+        }
+        
+        if (data_type == LayerDataBase::DT_CHROMATOGRAM &&
+            !target_window->canvas()->addChromLayer(peak_map, on_disc_peak_map, filename))
+        {
+          return;
+        }
+        
         Plot1DWidget* open_1d_window = dynamic_cast<Plot1DWidget*>(target_window);
         if (open_1d_window)
         {

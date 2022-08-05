@@ -69,7 +69,7 @@ namespace OpenMS
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     // does not exist yet...
-    /*auto ret = std::unique_ptr<LayerStoreDataMobilogramVisible>();
+    /*auto ret = make_unique<LayerStoreDataMobilogramVisible>();
     ret->storeVisibleMobilogram(single_mobilogram_, visible_range, layer_filters);
     return ret;*/
   }
@@ -78,7 +78,7 @@ namespace OpenMS
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     // does not exist yet...
-    /*auto ret = std::unique_ptr<LayerStoreDataMobilogramAll>();
+    /*auto ret = make_unique<LayerStoreDataMobilogramAll>();
     ret->storeFullMobilograms(*peak_map_.get());
     return ret;*/
   }
