@@ -68,6 +68,9 @@ namespace OpenMS
       const std::set <String> &required,
       const std::set <String> &optional,
       bool allow_other_header);
+
+    /// Throws @class ParseError with @p filename and @p message if @p test is false.
+    static void parseErrorIf_(const bool test, const String &filename, const String &message);
   };
 }
 

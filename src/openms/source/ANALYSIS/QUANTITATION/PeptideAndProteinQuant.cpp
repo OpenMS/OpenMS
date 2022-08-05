@@ -83,8 +83,7 @@ namespace OpenMS
 
   // doesn't only count but also some initialization TODO: rename
   void PeptideAndProteinQuant::countPeptides_(
-    vector<PeptideIdentification>& peptides, 
-    const Size& n_fractions)
+    vector<PeptideIdentification>& peptides)
   {
     for (auto & pep : peptides)
     {
@@ -93,12 +92,6 @@ namespace OpenMS
       const PeptideHit& hit = pep.getHits()[0]; // get best hit
       PeptideData& data = pep_quant_[hit.getSequence()];
       data.psm_count++;
-
-      // TODO: why is this needed
-      for (Size i = 1; i <= n_fractions; ++i)
-      {
-        data.abundances[i][hit.getCharge()]; // insert empty element for charge
-      }
 
       // add protein accessions:
       set<String> protein_accessions = hit.extractProteinAccessionsSet();
@@ -111,7 +104,7 @@ namespace OpenMS
     vector<PeptideIdentification>& peptides)
   {
     // hits in IDs must already be sorted by score! (done in "countPeptides_")
-    if (peptides.empty()) return PeptideHit();
+    if (peptides.empty()) return {};
 
     // get best hit
     const PeptideHit& hit = peptides[0].getHits()[0];
@@ -123,7 +116,7 @@ namespace OpenMS
       if (current.getSequence() != hit.getSequence())
       {
         // TODO?: warn/error that ambiguous sequences are annotated. check if this can happen
-        return PeptideHit();
+        return {};
       }
     }
     return hit;
@@ -275,7 +268,7 @@ namespace OpenMS
         {
           for (auto & ca : fa.second) // for all charge states
           {  
-            for (auto & sa : ca.second) // loop over abundances
+            for (auto & sa : ca.second) // loop over all abundances
             {
               const UInt64 & sample_id = sa.first;
               const double & sample_abundance = sa.second;
@@ -658,13 +651,13 @@ namespace OpenMS
         continue;
       }
        
-      countPeptides_(f.getPeptideIdentifications(), 1);
+      countPeptides_(f.getPeptideIdentifications());
       PeptideHit hit = getAnnotation_(f.getPeptideIdentifications());
       FeatureHandle handle(0, f);
       const size_t fraction(1), sample(1);
       quantifyFeature_(handle, fraction, sample, hit); // updates "stats_.quant_features"
     }
-    countPeptides_(features.getUnassignedPeptideIdentifications(), 1);
+    countPeptides_(features.getUnassignedPeptideIdentifications());
     stats_.total_peptides = pep_quant_.size();
     stats_.ambig_features = stats_.total_features - stats_.blank_features -
                             stats_.quant_features;
@@ -683,9 +676,10 @@ namespace OpenMS
       return;
     }
 
-    stats_.n_samples = ed.getNumberOfSamples();
+    // n_fractions are also used to initialize enough
     stats_.n_fractions = ed.getNumberOfFractions();
     stats_.n_ms_files = ed.getNumberOfMSFiles();
+    stats_.n_samples = ed.getNumberOfSamples();
 
     OPENMS_LOG_DEBUG << "Reading quant data: " << endl;
     OPENMS_LOG_DEBUG << "  MS files        : " << stats_.n_ms_files << endl;
@@ -703,7 +697,7 @@ namespace OpenMS
         continue;
       }
 
-      countPeptides_(c.getPeptideIdentifications(), stats_.n_fractions);
+      countPeptides_(c.getPeptideIdentifications());
       PeptideHit hit = getAnnotation_(c.getPeptideIdentifications());
       for (auto const & f : c.getFeatures())
       {
@@ -716,7 +710,7 @@ namespace OpenMS
         quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"
       }
     }
-    countPeptides_(consensus.getUnassignedPeptideIdentifications(), stats_.n_fractions);
+    countPeptides_(consensus.getUnassignedPeptideIdentifications());
     stats_.total_peptides = pep_quant_.size();
     stats_.ambig_features = stats_.total_features - stats_.blank_features -
                             stats_.quant_features;
@@ -741,7 +735,7 @@ namespace OpenMS
 
     stats_.total_features = peptides.size();
 
-    countPeptides_(peptides, stats_.n_fractions);
+    countPeptides_(peptides);
 
     map<String, String> identifier_to_ms_file;
     for (Size i = 0; i < proteins.size(); ++i)
@@ -762,7 +756,9 @@ namespace OpenMS
           __FILE__, 
           __LINE__, 
           OPENMS_PRETTY_FUNCTION, 
-          "More than one ms file annotated in protein identification.");
+          "More than one ms file annotated in protein identification."
+          "This is currently unsupported. Try to create your consensusXML without merged IdXMLs"
+          "e.g., split them first with IDRipper.");
       }
       identifier_to_ms_file[proteins[i].getIdentifier()] = ms_files[0];
       OPENMS_LOG_DEBUG << "  run index : MS file " << i << " : " << ListUtils::concatenate(ms_files, ", ") << endl;
@@ -776,6 +772,7 @@ namespace OpenMS
       const PeptideHit& hit = p.getHits()[0];
       stats_.quant_features++;
       const AASequence& seq = hit.getSequence();
+      //TODO if we use the id_merge_idx when annotated, we can also quantify merged files.
       const String& ms_file_path = identifier_to_ms_file[p.getIdentifier()];
 
       // determine sample and fraction by MS file name (stored in protein identification)
@@ -797,7 +794,7 @@ namespace OpenMS
           __FILE__, 
           __LINE__, 
           OPENMS_PRETTY_FUNCTION, 
-          "MS file annotated in protein identification doesn't match to experimental design.");
+          "MS file annotated in protein identification doesn't match any in the experimental design.");
       }
 
       size_t sample = row->sample;
@@ -893,6 +890,7 @@ namespace OpenMS
         for (auto const & s : total_abundances)
         {
           // Note: sample indices are one-based
+          // WARNING: THOSE LINES ASSUME THAT THE EXPERIMENTAL DESIGN
           abundances[s.first - 1] = s.second;
         }
         for (auto const & s : total_psm_counts)

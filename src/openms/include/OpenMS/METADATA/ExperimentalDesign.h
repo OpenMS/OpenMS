@@ -294,6 +294,12 @@ namespace OpenMS
       // Returns column index of factor
       Size getFactorColIdx( const String &factor) const;
 
+      // Returns the name/ID of the sample. Not necessarily the row index
+      String getSampleName(unsigned sample_row) const;
+
+      // Returns the row index in the sample section for a sample name/ID
+      unsigned getSampleRow(unsigned sample) const;
+
     private:
 
       // The entries of the Sample Section, filled while parsing
@@ -302,6 +308,7 @@ namespace OpenMS
 
       // Maps the Sample Entry to the row where the sample
       // appears in the Sample section
+      // TODO WHY is this needed?
       std::map< unsigned, Size > sample_to_rowindex_;
 
       // Maps the column name of the SampleSection to the

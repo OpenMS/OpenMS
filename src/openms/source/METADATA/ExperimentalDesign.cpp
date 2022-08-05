@@ -176,6 +176,16 @@ namespace OpenMS
       content_.push_back(content);
     }
 
+    String ExperimentalDesign::SampleSection::getSampleName(unsigned sample_row) const
+    {
+      return content_.at(sample_row).at(columnname_to_columnindex_.at("Sample"));
+    }
+
+    unsigned ExperimentalDesign::SampleSection::getSampleRow(unsigned sample) const
+    {
+      return sample_to_rowindex_.at(sample);
+    }
+
     ExperimentalDesign ExperimentalDesign::fromFeatureMap(const FeatureMap &fm)
     {
       ExperimentalDesign experimental_design;
@@ -536,6 +546,53 @@ namespace OpenMS
                               })->label;
     }
 
+    /*
+    unsigned ExperimentalDesign::getNumberOfSamples() const
+    {
+      set<unsigned> samples;
+      if (msfile_section_.empty()) { return 0; }
+      for (const auto& row : msfile_section_)
+      {
+        samples.insert(row.sample);
+      }
+      return samples.size();
+    }
+
+    unsigned ExperimentalDesign::getNumberOfFractions() const
+    {
+      set<unsigned> fracs;
+      if (msfile_section_.empty()) { return 0; }
+      for (const auto& row : msfile_section_)
+      {
+        fracs.insert(row.fraction);
+      }
+      return fracs.size();
+    }
+
+    // @return the number of labels per file
+    unsigned ExperimentalDesign::getNumberOfLabels() const
+    {
+      set<unsigned> labs;
+      if (msfile_section_.empty()) { return 0; }
+      for (const auto& row : msfile_section_)
+      {
+        labs.insert(row.label);
+      }
+      return labs.size();
+    }
+
+    unsigned ExperimentalDesign::getNumberOfFractionGroups() const
+    {
+      set<unsigned> fracgrps;
+      if (msfile_section_.empty()) { return 0; }
+      for (const auto& row : msfile_section_)
+      {
+        fracgrps.insert(row.fraction_group);
+      }
+      return fracgrps.size();
+    }
+     */
+
     // @return the number of MS files (= fractions * fraction_groups)
     unsigned ExperimentalDesign::getNumberOfMSFiles() const
     {
@@ -607,117 +664,16 @@ namespace OpenMS
       std::set< std::tuple< unsigned, unsigned, unsigned > > fractiongroup_fraction_label_set;
       std::set< std::tuple< std::string, unsigned > > path_label_set;
       std::map< std::tuple< unsigned, unsigned >, std::set< unsigned > > fractiongroup_label_to_sample;
+      std::set< unsigned > label_set;
 
       if (msfile_section_.empty())
       {
         return;
       }
-      if (msfile_section_[0].fraction != 1)
-      {
-        throw Exception::InvalidValue(
-            __FILE__,
-            __LINE__,
-            OPENMS_PRETTY_FUNCTION,
-            "Fractions do not start with 1.",
-            String(msfile_section_[0].fraction));
-      }
-      if (msfile_section_[0].fraction_group != 1)
-      {
-        throw Exception::InvalidValue(
-            __FILE__,
-            __LINE__,
-            OPENMS_PRETTY_FUNCTION,
-            "Fraction groups do not start with 1.",
-            String(msfile_section_[0].fraction_group));
-      }
-      if (msfile_section_[0].label != 1)
-      {
-        throw Exception::InvalidValue(
-            __FILE__,
-            __LINE__,
-            OPENMS_PRETTY_FUNCTION,
-            "Labels do not start with 1.",
-            String(msfile_section_[0].label));
-      }
 
-      Size last_fraction = 1;
-      Size last_label = 1;
-      Size last_fraction_group = 0;
-      
+      bool labelfree = true;
       for (const MSFileSectionEntry& row : msfile_section_)
       {
-        if (row.fraction_group != last_fraction_group)
-        {
-          ++last_fraction_group;
-          last_fraction = 1;
-          last_label = 1;
-          if (row.fraction_group != last_fraction_group)
-          {
-            throw Exception::InvalidValue(
-                __FILE__,
-                __LINE__,
-                OPENMS_PRETTY_FUNCTION,
-                "Fraction groups not consecutive. Expected: " + String(last_fraction_group),
-                String(row.fraction_group));
-          }
-          if (row.fraction != last_fraction)
-          {
-            throw Exception::InvalidValue(
-                __FILE__,
-                __LINE__,
-                OPENMS_PRETTY_FUNCTION,
-                "Fractions inside fraction_group " + String(row.fraction_group) + " not starting with 1.",
-                String(row.fraction));
-          }
-          if (row.label != last_label)
-          {
-            throw Exception::InvalidValue(
-                __FILE__,
-                __LINE__,
-                OPENMS_PRETTY_FUNCTION,
-                "Labels inside fraction_group " + String(row.fraction_group) +
-                "and fraction " + String(row.fraction) + " not starting with 1.",
-                String(row.label));
-          }
-        }
-        else if (row.fraction != last_fraction)
-        {
-          ++last_fraction;
-          last_label = 1;
-
-          if (row.fraction != last_fraction)
-          {
-            throw Exception::InvalidValue(
-                __FILE__,
-                __LINE__,
-                OPENMS_PRETTY_FUNCTION,
-                "Fractions inside fraction group not consecutive. Expected: " + String(last_fraction),
-                String(row.fraction));
-          }
-          if (row.label != last_label)
-          {
-            throw Exception::InvalidValue(
-                __FILE__,
-                __LINE__,
-                OPENMS_PRETTY_FUNCTION,
-                "Labels inside fraction_group " + String(row.fraction_group) +
-                "and fraction " + String(row.fraction) + " not starting with 1.",
-                String(row.fraction));
-          }
-        }
-        else // only label may have changed
-        {
-          ++last_label;
-          if (row.label != last_label)
-          {
-            throw Exception::InvalidValue(
-                __FILE__,
-                __LINE__,
-                OPENMS_PRETTY_FUNCTION,
-                "Label not consecutive. Expected: " + String(last_label),
-                String(row.label));
-          }
-        }
 
         // FRACTIONGROUP_FRACTION_LABEL TUPLE
         std::tuple<unsigned, unsigned, unsigned> fractiongroup_fraction_label = std::make_tuple(row.fraction_group, row.fraction, row.label);
@@ -737,14 +693,27 @@ namespace OpenMS
         std::tuple<unsigned, unsigned> fractiongroup_label = std::make_tuple(row.fraction_group, row.label);
         fractiongroup_label_to_sample[fractiongroup_label].insert(row.sample);
 
-        //@todo infer if labelfree and/or silence this info. Or require it to be given
-        if (fractiongroup_label_to_sample[fractiongroup_label].size() > 1)
+        label_set.insert(row.label);
+      }
+      if (label_set.size() > 1)
+      {
+        labelfree = false;
+      }
+
+      for (const auto& [k,v] : fractiongroup_label_to_sample)
+      {
+        if (labelfree && v.size() > 1)
         {
-         OPENMS_LOG_INFO << "Multiple Samples encountered for the same fraction group and the same label"
-                            "Please correct your experimental design if this is a label free experiment."
-                            << std::endl;
+          throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION, "Multiple samples encountered for the same fraction group and the same label"
+                                    "Please correct your experimental design if this is a label free experiment, otherwise"
+                                    "check your labels. Occurred at fraction group " +
+                                    String(std::get<0>(k)) + "and label" + String(std::get<1>(k)));
         }
       }
+
     }
 
     std::vector<unsigned> ExperimentalDesign::getLabels_() const

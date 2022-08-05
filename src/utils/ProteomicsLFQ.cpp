@@ -160,11 +160,10 @@ protected:
       "Identifications filtered at PSM level (e.g., q-value < 0.01)."
       "And annotated with PEP as main score.\n"
       "We suggest using:\n"
-      "1. PeptideIndexer to annotate target and decoy information.\n"
-      "2. PSMFeatureExtractor to annotate percolator features.\n"
-      "3. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)\n"
-      "4. IDFilter (pep:score = 0.01)\n"
-      "To obtain well calibrated PEPs and an inital reduction of PSMs\n"
+      "1. PSMFeatureExtractor to annotate percolator features.\n"
+      "2. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)\n"
+      "3. IDFilter (pep:score = 0.05)\n"
+      "To obtain well calibrated PEPs and an initial reduction of PSMs\n"
       "ID files must be provided in same order as spectra files.");
     setValidFormats_("ids", ListUtils::create<String>("idXML,mzId"));
 
@@ -299,7 +298,7 @@ protected:
     }
 
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
-    // overwrite algorithm default so we export everything (important for copying back MSstats results)
+    // overwrite algorithm default, so we export everything (important for copying back MSstats results)
     pq_defaults.setValue("top:include_all", "true");
     pq_defaults.addTag("top:include_all", "advanced");
 
@@ -353,7 +352,7 @@ protected:
     Param pp_param = getParam_().copy("Centroiding:", true);
     writeDebug_("Parameters passed to PeakPickerHiRes algorithm", pp_param, 3);
 
-    // create scope for raw data so it is properly freed (Note: clear() is not sufficient)
+    // create scope for raw data, so it is properly freed (Note: clear() is not sufficient)
     // load raw file
     MzMLFile mzML_file;
     mzML_file.setLogType(log_type_);
@@ -369,15 +368,16 @@ protected:
     }
 
     // remove MS2 peak data and check if spectra are sorted
-    for (Size i = 0; i < ms_raw.size(); ++i)
+    //TODO can we load just MS1 or do we need precursor information?
+    for (auto & spec : ms_raw)
     {
-      if (ms_raw[i].getMSLevel() == 2)
+      if (spec.getMSLevel() == 2)
       {
-        ms_raw[i].clear(false);  // delete MS2 peaks
+        spec.clear(false);  // delete MS2 peaks
       }
-      if (!ms_raw[i].isSorted())
+      if (!spec.isSorted())
       {
-        ms_raw[i].sortByPosition();
+        spec.sortByPosition();
         writeLog_("Info: Sorted peaks by m/z.");
       }
     }
@@ -717,7 +717,7 @@ protected:
     return max_alignment_diff;
   }
 
-  // determine cooccurance of peptide in different runs
+  // determine co-occurrence of peptide in different runs
   // returns map sequence+charge -> map index in consensus map 
   map<pair<String, UInt>, vector<int> > getPeptideOccurrence_(const ConsensusMap &cons)
   {
@@ -759,7 +759,7 @@ protected:
 
   // simple transfer between runs
   // if a peptide has not been quantified in more than min_occurrence runs, then take all consensus features that have it identified at least once
-  // and transfer the ID with RT of the the consensus feature (the average if we have multiple consensus elements)
+  // and transfer the ID with RT of the consensus feature (the average if we have multiple consensus elements)
   multimap<Size, PeptideIdentification> transferIDsBetweenSameFraction_(const ConsensusMap& consensus_fraction, Size min_occurrence = 3)
   {
     // determine occurrence of ids
@@ -1296,8 +1296,7 @@ protected:
         id_msfile_ref.push_back(idfile2mzfile.at(idfile));
         protein_ids[0].setPrimaryMSRunPath(id_msfile_ref);
       }     
- 
-      // TODO: Filter for a PSM FDR? Better on an experiment-level though
+
       merger.insertRuns(std::move(protein_ids), std::move(peptide_ids));
     }
 
@@ -1630,9 +1629,9 @@ protected:
     }
 
     set<String> in_basenames;
-    for (Size i = 0; i != in.size(); ++i)
+    for (const auto & f : in)
     {
-      const String& in_bn = File::basename(in[i]);
+      const String& in_bn = File::basename(f);
       in_basenames.insert(in_bn);
     }
 
@@ -1645,7 +1644,7 @@ protected:
     Size nr_filtered = design.filterByBasenames(in_basenames);
     if (nr_filtered > 0)
     {
-      OPENMS_LOG_WARN << "Warning: " << nr_filtered << " files from experimental design were not passed as mzMLs. Continuing with subset if the fractions still match." << std::endl;
+      OPENMS_LOG_WARN << "WARNING: " << nr_filtered << " files from experimental design were not passed as mzMLs. Continuing with subset if the fractions still match." << std::endl;
     }
 
     if (design.getNumberOfLabels() != 1)
@@ -1655,8 +1654,7 @@ protected:
     }
     if (!design.sameNrOfMSFilesPerFraction())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, 
-        OPENMS_PRETTY_FUNCTION, "Different number of fractions for different samples provided. This is currently not supported by ProteomicsLFQ.");          
+      OPENMS_LOG_WARN << "WARNING: Different number of fractions for different samples provided. Support maybe limited in ProteomicsLFQ." << std::endl;
     }
    
     std::map<unsigned int, std::vector<String> > frac2ms = design.getFractionToMSFilesMapping();
@@ -1694,7 +1692,8 @@ protected:
     map<String, String> mzfile2idfile = mapMzML2Ids_(in, in_ids);
     map<String, String> idfile2mzfile = mapId2MzMLs_(mzfile2idfile);
 
-    // check if mzMLs in experimental design match to mzMLs passed as in parameter
+    // TODO maybe check if mzMLs in experimental design match to mzMLs passed as in parameter
+    //  IF both are present
     
 
     Param pep_param = getParam_().copy("Posterior Error Probability:", true);
@@ -1939,7 +1938,13 @@ protected:
 
     // Annotate quants to protein(groups) for easier export in mzTab
     // Note: we keep protein groups that have not been quantified
-    PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, inferred_protein_ids[0], design.getNumberOfFractionGroups(), false);
+
+    // TODO: WARNING: THIS IS NOT NECESSARILY EQUAL TO THE NUMBER OF SAMPLES,
+    //  WHICH IS EXPECTED IN THIS FUNCTION.
+    //  If you want to quantify per fraction group, then you need to annotate
+    //  the fraction group in the protein! NOT the sample!
+    PeptideAndProteinQuant::annotateQuantificationsToProteins(
+      protein_quants, inferred_protein_ids[0], design.getNumberOfSamples(), false);
 
     if (debug_level_ >= 666)
     {

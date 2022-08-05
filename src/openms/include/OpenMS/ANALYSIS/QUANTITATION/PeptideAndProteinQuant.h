@@ -307,11 +307,11 @@ private:
                          std::map<String, String>& accession_to_leader);
 
     /**
-         @brief Count the number of identifications (best hits only) of each peptide sequence and initializes the result structure over all fractions.
+         @brief Count the number of identifications (best hits only) of each peptide sequence.
 
          The peptide hits in @p peptides are sorted by score in the process.
     */
-    void countPeptides_(std::vector<PeptideIdentification>& peptides, const Size& n_fractions);
+    void countPeptides_(std::vector<PeptideIdentification>& peptides);
 
     /// Clear all data when parameters are set
     void updateMembers_() override;
