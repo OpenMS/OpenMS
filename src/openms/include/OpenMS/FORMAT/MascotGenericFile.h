@@ -40,6 +40,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <vector>
 #include <fstream>
@@ -312,17 +313,17 @@ protected:
             else if (line.hasPrefix("NAME"))
             {
               String tmp = line.substr(5);
-              spectrum.setMetaValue("Metabolite_Name", tmp);
+              spectrum.setMetaValue(Constants::UserParam::MSM_METABOLITE_NAME, tmp);
             }
             else if (line.hasPrefix("INCHI="))
             {
               String tmp = line.substr(6);
-              spectrum.setMetaValue("Inchi_String", tmp);
+              spectrum.setMetaValue(Constants::UserParam::MSM_INCHI_STRING, tmp);
             }
             else if (line.hasPrefix("SMILES"))
             {
               String tmp = line.substr(7);
-              spectrum.setMetaValue("SMILES_String", tmp);
+              spectrum.setMetaValue(Constants::UserParam::MSM_SMILES_STRING, tmp);
             }
             else if (line.hasPrefix("SPECTRUMID"))
             {
