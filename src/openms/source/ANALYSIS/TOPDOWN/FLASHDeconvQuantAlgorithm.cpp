@@ -94,15 +94,10 @@ namespace OpenMS
     fd_defaults.setValue("max_mass", max_mass_);
     fd_defaults.setValue("min_isotope_cosine", DoubleList{.8, .8});
 
-    fd_defaults.setValue("min_qscore", .0);
     fd_defaults.setValue("tol", DoubleList{10.0, 10.0});
-    fd_defaults.setValue("rt_window", 180.0);
-    fd_defaults.setValue("min_peaks", IntList{(int) min_nr_mtraces_, 3});//
 
     return fd_defaults;
   }
-
-
 
   void FLASHDeconvQuantAlgorithm::run(std::vector<MassTrace> &input_mtraces, std::vector<FeatureGroup>& out_fgs)
   {
@@ -142,7 +137,6 @@ namespace OpenMS
     // Step 2 mass artifact removal & post processing...
     // *********************************************************** //
     refineFeatureGroups_(features);
-
     OPENMS_LOG_INFO << "total #feature groups : " << features.size() << endl;
 
     // *********************************************************** //
@@ -217,9 +211,9 @@ namespace OpenMS
      makeMSSpectrum_(local_traces, spec, rt);
 
      // run deconvolution
-     std::vector<DeconvolvedSpectrum> tmp; // empty one, since only MS1s are considered.
-     std::map<int, std::vector<std::vector<double>>> empty;
-     fd_.performSpectrumDeconvolution(spec, tmp, 0, empty);
+     std::vector<DeconvolvedSpectrum> null_survey_scan; // empty one, since only MS1s are considered.
+     const std::map<int, std::vector<std::vector<double>>> null_map; // empty one
+     fd_.performSpectrumDeconvolution(spec, null_survey_scan, 0, false, null_map);
      DeconvolvedSpectrum deconv_spec = fd_.getDeconvolvedSpectrum();
 
      if (deconv_spec.empty()) // if no result was found
@@ -230,6 +224,12 @@ namespace OpenMS
      // convert deconvolved result into FeatureGroup
      for (auto &deconv : deconv_spec)
      {
+       // filter out if deconv results are not sufficient
+       if (deconv.size() < min_nr_mtraces_)
+       {
+         continue;
+       }
+
        FeatureGroup fg(deconv);
        fg.setMaxIsotopeIndex(iso_model_.get(deconv.getMonoMass()).size());
 
@@ -243,11 +243,10 @@ namespace OpenMS
          }
 
          // find seed index
-         auto it = std::find_if(local_traces.begin(),
-                                local_traces.end(),
-                                [=] (FeatureSeed* const& f){
-           return (f->getCentroidMz() == peak.mz && f->getIntensity() == peak.intensity);
-         });
+         auto it = std::find_if(local_traces.begin(), local_traces.end(),
+                                [peak] (FeatureSeed* const& f) -> bool {
+                                  return (f->getCentroidMz() == peak.mz); // intensity changes in performSpectrumDeconvolution, thus cannot be used for filtering
+                                });
          FeatureSeed tmp_seed(**it);
          tmp_seed.setCharge(peak.abs_charge);
          tmp_seed.setIsotopeIndex(peak.isotopeIndex);
@@ -465,13 +464,9 @@ namespace OpenMS
 
     /// isotope cosine calculation
     int offset = 0;
-    double second_best_monomass;
+    int second_max_offset = -1000;
     float isotope_score =
-        FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(fg.getMonoisotopicMass(),
-                                                                       fg.getIsotopeIntensities(),
-                                                                       offset,
-                                                                       second_best_monomass,
-                                                                       iso_model_);
+        FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(fg.getMonoisotopicMass(), fg.getIsotopeIntensities(), offset, second_max_offset, iso_model_);
     fg.setIsotopeCosine(isotope_score);
     if ( isNotTarget && isotope_score < min_isotope_cosine_ )
     {

@@ -267,7 +267,8 @@ protected:
       }
 
       // get most abundant charge
-      int most_abundant_cs = std::distance(fg.getChargeIntensities().begin(), std::max_element(fg.getChargeIntensities().begin(), fg.getChargeIntensities().end()));
+      std::vector<float> per_charge_inty = fg.getChargeIntensities();
+      int most_abundant_cs = std::distance(per_charge_inty.begin(), std::max_element(per_charge_inty.begin(), per_charge_inty.end()));
 
       // calculate centroid value
       double centroid_rt_of_apices;
