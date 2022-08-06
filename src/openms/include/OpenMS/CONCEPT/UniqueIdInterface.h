@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,6 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
@@ -143,24 +142,11 @@ public:
 
     /// Assigns a new, valid unique id.  Always returns 1.
     Size
-    setUniqueId()
-    {
-      unique_id_ = UniqueIdGenerator::getUniqueId();
-      return 1;
-    }
+    setUniqueId();
 
     /// Assigns a valid unique id, but only if the present one is invalid.  Returns 1 if the unique id was changed, 0 otherwise.
     Size
-    ensureUniqueId()
-    {
-      if (!hasValidUniqueId())
-      {
-        unique_id_ = UniqueIdGenerator::getUniqueId();
-        return 1;
-      }
-      else
-        return 0;
-    }
+    ensureUniqueId();
 
     /// Assigns the given unique id.
     void

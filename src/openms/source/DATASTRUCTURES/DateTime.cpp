@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,11 +37,24 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
+#include <QtCore/QDateTime> // very expensive to include!
+
 using namespace std;
 
 namespace OpenMS
 {
-  DateTime::DateTime()
+  DateTime::DateTime() :
+    dt_(new QDateTime)
+  {
+  }
+
+  DateTime::DateTime(const DateTime& date)
+    : dt_(new QDateTime(*date.dt_))
+  {
+  }
+
+  DateTime::DateTime(DateTime&& rhs) noexcept
+    : dt_(rhs.dt_.release())
   {
   }
 
@@ -53,7 +66,14 @@ namespace OpenMS
       return *this;
     }
 
-    dt_ = source.dt_;
+    if (dt_ == nullptr)
+    { // *this is in a 'moved-from' state; we need to create a dt_ object first
+      dt_ = make_unique<QDateTime>(*source.dt_);
+    }
+    else
+    {
+      *dt_ = *source.dt_;
+    }
 
     return *this;
   }
@@ -65,34 +85,36 @@ namespace OpenMS
       return *this;
     }
 
-    dt_ = std::move(source.dt_); // use Qt implementation if available
+    std::swap(dt_, source.dt_);
 
     return *this;
   }
 
+  DateTime::~DateTime() = default;
+
   bool DateTime::operator==(const DateTime& rhs) const
   {
-    return (dt_ == rhs.dt_);
+    return (*dt_ == *rhs.dt_);
   }
 
   bool DateTime::operator!=(const DateTime& rhs) const
   {
-    return !(dt_ == rhs.dt_);
+    return !(*this == rhs);
   }
 
   bool DateTime::operator<(const DateTime& rhs) const
   {
-    return (dt_ < rhs.dt_);
+    return (*dt_ < *rhs.dt_);
   }
 
   bool DateTime::isValid() const
   {
-    return dt_.isValid();
+    return dt_->isValid();
   }
 
   String DateTime::toString(std::string format) const
   {
-    return dt_.toString(QString::fromStdString(format)).toStdString();
+    return dt_->toString(QString::fromStdString(format)).toStdString();
   }
 
   void DateTime::set(const String& date)
@@ -101,11 +123,11 @@ namespace OpenMS
 
     if (date.has('.') && !date.has('T'))
     {
-      dt_ = (QDateTime::fromString(date.c_str(), "dd.MM.yyyy hh:mm:ss"));
+      *dt_ = (QDateTime::fromString(date.c_str(), "dd.MM.yyyy hh:mm:ss"));
     }
     else if (date.has('/'))
     {
-      dt_ = (QDateTime::fromString(date.c_str(), "MM/dd/yyyy hh:mm:ss"));
+      *dt_ = (QDateTime::fromString(date.c_str(), "MM/dd/yyyy hh:mm:ss"));
     }
     else if (date.has('-'))
     {
@@ -116,38 +138,38 @@ namespace OpenMS
           // remove timezone part, since Qt cannot handle this, check if we also have a millisecond part
           if (date.has('.'))
           {
-            dt_ = (QDateTime::fromString(date.prefix('+').c_str(), "yyyy-MM-ddThh:mm:ss.zzz"));
+            *dt_ = (QDateTime::fromString(date.prefix('+').c_str(), "yyyy-MM-ddThh:mm:ss.zzz"));
           }
           else
           {
-            dt_ = (QDateTime::fromString(date.prefix('+').c_str(), "yyyy-MM-ddThh:mm:ss"));
+            *dt_ = (QDateTime::fromString(date.prefix('+').c_str(), "yyyy-MM-ddThh:mm:ss"));
           }
         }
         else
         {
-          dt_ = (QDateTime::fromString(date.c_str(), "yyyy-MM-ddThh:mm:ss"));
+          *dt_ = (QDateTime::fromString(date.c_str(), "yyyy-MM-ddThh:mm:ss"));
         }
       }
       else if (date.has('Z'))
       {
-        dt_ = (QDateTime::fromString(date.c_str(), "yyyy-MM-ddZ"));
+        *dt_ = (QDateTime::fromString(date.c_str(), "yyyy-MM-ddZ"));
       }
       else if (date.has('+'))
       {
-        dt_ = (QDateTime::fromString(date.c_str(), "yyyy-MM-dd+hh:mm"));
+        *dt_ = (QDateTime::fromString(date.c_str(), "yyyy-MM-dd+hh:mm"));
       }
       else
       {
-        dt_ = (QDateTime::fromString(date.c_str(), "yyyy-MM-dd hh:mm:ss"));
+        *dt_ = (QDateTime::fromString(date.c_str(), "yyyy-MM-dd hh:mm:ss"));
       }
     }
 
-    if (!dt_.isValid())
+    if (!dt_->isValid())
     {
-      dt_ = QDateTime::fromString(date.c_str());  // ddd MMM d YYYY format as found in (old?) protXML files
+      *dt_ = QDateTime::fromString(date.c_str());  // ddd MMM d YYYY format as found in (old?) protXML files
     }
 
-    if (!dt_.isValid())
+    if (!dt_->isValid())
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, date, "Invalid date time string");
     }
@@ -155,10 +177,10 @@ namespace OpenMS
 
   void DateTime::set(UInt month, UInt day, UInt year, UInt hour, UInt minute, UInt second)
   {
-    dt_.setDate(QDate(year, month, day));
-    dt_.setTime(QTime(hour, minute, second));
+    dt_->setDate(QDate(year, month, day));
+    dt_->setTime(QTime(hour, minute, second));
 
-    if (!dt_.isValid())
+    if (!dt_->isValid())
     {
       String date_time = String(year) + "-" + String(month) + "-" + String(day)
                          + " " + String(hour) + ":" + String(minute) + ":" + String(second);
@@ -169,15 +191,15 @@ namespace OpenMS
   DateTime DateTime::now()
   {
     DateTime d;
-    d.dt_ = QDateTime::currentDateTime();
+    *d.dt_ = QDateTime::currentDateTime();
     return d;
   }
 
   String DateTime::get() const
   {
-    if (dt_.isValid())
+    if (dt_->isValid())
     {
-      return dt_.toString("yyyy-MM-dd hh:mm:ss");
+      return dt_->toString("yyyy-MM-dd hh:mm:ss");
     }
     return "0000-00-00 00:00:00";
   }
@@ -185,8 +207,8 @@ namespace OpenMS
   void DateTime::get(UInt& month, UInt& day, UInt& year,
                      UInt& hour, UInt& minute, UInt& second) const
   {
-    const QDate& temp_date = dt_.date();
-    const QTime& temp_time = dt_.time();
+    const QDate& temp_date = dt_->date();
+    const QTime& temp_time = dt_->time();
 
     year = temp_date.year();
     month = temp_date.month();
@@ -198,7 +220,7 @@ namespace OpenMS
 
   void DateTime::clear()
   {
-    dt_ = QDateTime();
+    *dt_ = QDateTime();
   }
 
   void DateTime::setDate(const String& date)
@@ -226,7 +248,7 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, date, "Could not set date");
     }
 
-    dt_.setDate(temp_date);
+    dt_->setDate(temp_date);
   }
 
   void DateTime::setTime(const String& time)
@@ -239,7 +261,7 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, time, "Could not set time");
     }
 
-    dt_.setTime(temp_time);
+    dt_->setTime(temp_time);
   }
 
   void DateTime::setDate(UInt month, UInt day, UInt year)
@@ -251,7 +273,7 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(year) + "-" + String(month) + "-" + String(day), "Could not set date");
     }
 
-    dt_.setDate(temp_date);
+    dt_->setDate(temp_date);
   }
 
   void DateTime::setTime(UInt hour, UInt minute, UInt second)
@@ -262,12 +284,12 @@ namespace OpenMS
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(hour) + ":" + String(minute) + ":" + String(second), "Could not set time");
     }
-    dt_.setTime(temp_time);
+    dt_->setTime(temp_time);
   }
 
   void DateTime::getDate(UInt& month, UInt& day, UInt& year) const
   {
-    const QDate& temp_date = dt_.date();
+    const QDate& temp_date = dt_->date();
 
     month = temp_date.month();
     day = temp_date.day();
@@ -276,16 +298,16 @@ namespace OpenMS
 
   String DateTime::getDate() const
   {
-    if (dt_.isValid())
+    if (dt_->isValid())
     {
-      return dt_.date().toString("yyyy-MM-dd");
+      return dt_->date().toString("yyyy-MM-dd");
     }
     return "0000-00-00";
   }
 
   void DateTime::getTime(UInt& hour, UInt& minute, UInt& second) const
   {
-    const QTime& temp_time =dt_.time();
+    const QTime& temp_time =dt_->time();
 
     hour = temp_time.hour();
     minute = temp_time.minute();
@@ -294,29 +316,29 @@ namespace OpenMS
 
   String DateTime::getTime() const
   {
-    if (dt_.isValid())
+    if (dt_->isValid())
     {
-      return dt_.time().toString("hh:mm:ss");
+      return dt_->time().toString("hh:mm:ss");
     }
     return "00:00:00";
   }
   
   DateTime& DateTime::addSecs(int s)
   {
-    dt_ = dt_.addSecs(s);
+    *dt_ = dt_->addSecs(s);
     return *this;
   }
 
   bool DateTime::isNull() const
   {
-    return dt_.isNull();
+    return dt_->isNull();
   }
 
   // static
   DateTime DateTime::fromString(const std::string& date, std::string format)
   {
     DateTime d;
-    d.dt_ = QDateTime::fromString(QString::fromStdString(date), QString::fromStdString(format));
+    *d.dt_ = QDateTime::fromString(QString::fromStdString(date), QString::fromStdString(format));
     return d;
   }
 

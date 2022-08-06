@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,7 +63,7 @@ namespace OpenMS
       function_("?"),
       name_("Exception")
     {
-      GlobalExceptionHandler::getInstance().set(file_, line_, function_, std::string(name_), std::string(what()));
+      GlobalExceptionHandler::getInstance().set(file_, line_, function_, name_, what());
     }
 
     BaseException::BaseException(const char* file, int line, const char* function, const std::string& name, const std::string& message) noexcept :
@@ -73,7 +73,7 @@ namespace OpenMS
       function_(function),
       name_(name)
     {
-      GlobalExceptionHandler::getInstance().set(file_, line_, function_, name_, this->what());
+      GlobalExceptionHandler::getInstance().set(file_, line_, function_, name_, what());
     }
 
     BaseException::BaseException(const char* file, int line, const char* function) noexcept :

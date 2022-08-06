@@ -59,11 +59,9 @@ x    MascotAdapter.cpp  # 400 lines
 x    MascotAdapterOnline.cpp # 200 lines
 ok   MassTraceExtractor.cpp
 ok   MRMMapper.cpp
-x    MyriMatchAdapter.cpp  # 400 lines
 ?    MzTabExporter.cpp     # needs wrapping of depracated method in MzTabFile
 ok   NoiseFilterGaussian.cpp
 ok   NoiseFilterSGolay.cpp
-x    OMSSAAdapter.cpp      # 700 lines
 ok   OpenSwathAnalyzer.cpp
 ok   OpenSwathChromatogramExtractor.cpp
 ok   OpenSwathConfidenceScoring.cpp
@@ -199,7 +197,6 @@ Protein/Peptide Identification
 ok  CompNovo - Performs a peptide/protein identification with the CompNovo engine.
 x   MascotAdapter - Identifies MS/MS spectra using Mascot (external).
 x   MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
-x   OMSSAAdapter - Identifies MS/MS spectra using OMSSA (external).
 x   PepNovoAdapter - Identifies MS/MS spectra using PepNovo (external).
 x   XTandemAdapter - Identifies MS/MS spectra using XTandem (external).
 x   SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library. # too much code in TOPP tool

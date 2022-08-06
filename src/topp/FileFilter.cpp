@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -510,7 +510,7 @@ protected:
     }
     else
     {
-      writeLog_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been caught before! Aborting!");
+      writeLogError_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been caught before! Aborting!");
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Illegal meta value filtering operator!");
     }
   }
@@ -640,7 +640,7 @@ protected:
     }
     catch (Exception::ConversionError& ce)
     {
-      writeLog_(String("Invalid boundary given: ") + ce.what() + ". Aborting!");
+      writeLogError_(String("Error: Invalid boundary given: ") + ce.what() + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -654,13 +654,13 @@ protected:
     bool remove_meta_enabled = (!meta_info.empty());
     if (remove_meta_enabled && meta_info.size() != 3)
     {
-      writeLog_("Param 'f_and_c:remove_meta' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
+      writeLogError_("Error: Param 'f_and_c:remove_meta' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
     if (remove_meta_enabled && !(meta_info[1] == "lt" || meta_info[1] == "eq" || meta_info[1] == "gt"))
     {
-      writeLog_("Param 'f_and_c:remove_meta' has invalid second argument. Expected one of 'lt', 'eq' or 'gt'. Got '" + meta_info[1] + "'. Aborting!");
+      writeLogError_("Error: Param 'f_and_c:remove_meta' has invalid second argument. Expected one of 'lt', 'eq' or 'gt'. Got '" + meta_info[1] + "'. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -1154,7 +1154,7 @@ protected:
           }
           else
           {
-            writeLog_("When extracting a feature map from a consensus map, only one map ID should be specified. The 'map' parameter contains more than one. Aborting!");
+            writeLogError_("Error: When extracting a feature map from a consensus map, only one map ID should be specified. The 'map' parameter contains more than one. Aborting!");
             printUsage_();
             return ILLEGAL_PARAMETERS;
           }
@@ -1221,14 +1221,14 @@ protected:
       }
       else
       {
-        writeLog_("Error: Unknown output file type given. Aborting!");
+        writeLogError_("Error: Unknown output file type given. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
     }
     else
     {
-      writeLog_("Error: Unknown input file type given. Aborting!");
+      writeLogError_("Error: Unknown input file type given. Aborting!");
       printUsage_();
       return INCOMPATIBLE_INPUT_DATA;
     }
