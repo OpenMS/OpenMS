@@ -797,10 +797,10 @@ START_SECTION(void extractSpectra(
   OpenMS::FeatureMap extracted_features;
   tse.extractSpectra(spectrum, ms1_features, annotated_spectra, extracted_features);
 
-  TEST_EQUAL(annotated_spectra.size(), 9)
+  TEST_EQUAL(annotated_spectra.size(), 1)
   TEST_EQUAL(annotated_spectra.front().getName(), "HMDB:HMDB0000001")
 
-  TEST_EQUAL(extracted_features.size(), 9)
+  TEST_EQUAL(extracted_features.size(), 1)
   const auto& extracted_feature = extracted_features[0];
   TEST_EQUAL(extracted_feature.getRT(), 391.75)
   TEST_REAL_SIMILAR(extracted_feature.getIntensity(), 90780.0f)

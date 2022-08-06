@@ -345,7 +345,7 @@ namespace OpenMS
             }
             else if (add_unidentified_features)
             {
-              //// "PeptideRef" metavalue should have been set during peak picking, but if not...
+              // "PeptideRef" metavalue should have been set during peak picking, but if not...
               std::ostringstream mass_of_the_peak;
               mass_of_the_peak << s.getMZ();
 
@@ -755,9 +755,13 @@ namespace OpenMS
     scoreSpectra(annotated_spectra, picked_spectra, scored_spectra);
 
     // select the best spectrum for each group of spectra having the same name
-    //selectSpectra(scored_spectra, ms2_features, extracted_spectra, extracted_features, compute_features);
-    extracted_spectra = scored_spectra;
-    extracted_features = ms2_features;
+    selectSpectra(scored_spectra, ms2_features, extracted_spectra, extracted_features, compute_features);
+    
+    // NOTE/DEBUG: commenting out line 758 and uncommenting lines
+    //       763 and 764 short circuits the selection processes
+    //       to return all scored spectra for debugging
+    //extracted_spectra = scored_spectra;
+    //extracted_features = ms2_features;
   }
 
   void TargetedSpectraExtractor::matchSpectrum(
