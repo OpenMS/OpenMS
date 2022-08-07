@@ -287,7 +287,8 @@ namespace OpenMS
     }
   }
 
-  void TargetedSpectraExtractor::searchSpectrum(OpenMS::FeatureMap& feat_map, OpenMS::FeatureMap& feat_map_output, bool add_unidentified_features) const
+  void TargetedSpectraExtractor::searchSpectrum(OpenMS::FeatureMap& feat_map, 
+    OpenMS::FeatureMap& feat_map_output, bool add_unidentified_features) const
   {
     OpenMS::AccurateMassSearchEngine ams;
     OpenMS::MzTab output;
@@ -296,7 +297,6 @@ namespace OpenMS
     ams.run(feat_map, output);
     // Remake the feature map replacing the peptide hits as features/sub-features
     feat_map_output.clear();
-    int unknown_feature_counter = 1;
     for (const OpenMS::Feature& feature : feat_map)
     {
       const auto& peptide_identifications = feature.getPeptideIdentifications();
@@ -755,13 +755,8 @@ namespace OpenMS
     scoreSpectra(annotated_spectra, picked_spectra, scored_spectra);
 
     // select the best spectrum for each group of spectra having the same name
+    // NOTE: It maybe needed to take the top N instead of the top 1 spectra in the future
     selectSpectra(scored_spectra, ms2_features, extracted_spectra, extracted_features, compute_features);
-    
-    // NOTE/DEBUG: commenting out line 758 and uncommenting lines
-    //       763 and 764 short circuits the selection processes
-    //       to return all scored spectra for debugging
-    //extracted_spectra = scored_spectra;
-    //extracted_features = ms2_features;
   }
 
   void TargetedSpectraExtractor::matchSpectrum(
@@ -908,11 +903,7 @@ namespace OpenMS
       OpenMS::TargetedExperiment::Protein protein;
       protein.id = peptide_ref;
       protein.addMetaValues(ms1_feature);
-      auto found_protein = proteins_map.emplace(peptide_ref, protein);
-      if (!found_protein.second)
-      {
-        // do nothing
-      }
+      auto found_protein = proteins_map.emplace(peptide_ref, protein); // OK to reject duplicate keys
 
       OpenMS::ReactionMonitoringTransition::RetentionTime rt_f;
       rt_f.setRT(ms1_feature.getRT());
@@ -950,11 +941,7 @@ namespace OpenMS
           rmt.setPrecursorMZ(ms1_feature.getMZ());
           rmt.setProductMZ(ms2_feature->getMZ());
           rmt.addMetaValues(*ms2_feature);
-          auto found_rmt = rmt_map.emplace(os.str(), rmt);
-          if (!found_rmt.second)
-          {
-            // do nothing
-          }
+          auto found_rmt = rmt_map.emplace(os.str(), rmt); // OK to reject duplicate keys
         }
       }
     }
