@@ -70,28 +70,22 @@ namespace FLASHDeconvQuantHelper
     FeatureSeed &operator=(const FeatureSeed &seed) = default;
 
     /// constructor from MassTrace
-    FeatureSeed(MassTrace &mt)
-    {
-      mass_trace_ = &mt;
-      centroid_mz_ = mt.getCentroidMZ();
-      auto fwhm = mt.getFWHMborders();
-      fwhm_start_ = mt[fwhm.first].getRT();
-      fwhm_end_ = mt[fwhm.second].getRT();
-      intensity_ = mt.computePeakArea();
-
-      /// initialize with -1
-      charge_ = -1;
-      isotope_index_ = -1;
-
-      /// determined mass after deconvolution. NOT monoisotopic but only decharged
-      mass_ = 0;
-
-      /// index of current trace (out of all input mass traces), thus not set here but after this construction
-      trace_index_ = 0;
-    }
+    FeatureSeed(const MassTrace &mt) :
+        mass_trace_(mt),
+        centroid_mz_(mt.getCentroidMZ()),
+        charge_(-1),
+        intensity_(mt.computePeakArea()),
+        isotope_index_(-1),
+        mass_(0), // determined mass after deconvolution. NOT monoisotopic but only decharged
+        trace_index_(0) // index of current trace (out of all input mass traces), thus not set here but after this construction
+      {
+        auto fwhm = mt.getFWHMborders();
+        fwhm_start_ = mt[fwhm.first].getRT();
+        fwhm_end_ = mt[fwhm.second].getRT();
+      }
 
     /// getter & setter
-    MassTrace* getMassTrace() const
+    const MassTrace& getMassTrace() const
     {
       return mass_trace_;
     }
@@ -136,7 +130,7 @@ namespace FLASHDeconvQuantHelper
       return mass_;
     }
 
-    void setMassTrace(MassTrace *mt)
+    void setMassTrace(MassTrace &mt)
     {
       mass_trace_ = mt;
     }
@@ -195,7 +189,7 @@ namespace FLASHDeconvQuantHelper
     }
 
   private:
-    MassTrace *mass_trace_;
+    MassTrace mass_trace_;
 
     // log transformed centroid mz
     double centroid_mz_;
@@ -247,9 +241,8 @@ namespace FLASHDeconvQuantHelper
 
     /// explicit constructor for lower_bound / upper_bound search
     explicit FeatureGroup(const double mass) :
-    monoisotopic_mass_(mass)
+        monoisotopic_mass_(mass), intensity_(0)
     {
-      intensity_ = 0;
     }
 
     /** default getters **/
@@ -262,11 +255,11 @@ namespace FLASHDeconvQuantHelper
     float getIsotopeCosine() const;
     float getFeatureGroupScore() const;
 
-    std::set<int> getChargeSet() const;
-    std::pair<double, double> getFwhmRange() const;
-    std::vector<Size> getTraceIndices() const;
-    std::vector<float> getIsotopeIntensities() const;
-    std::vector<float> getChargeIntensities() const;
+    const std::set<int> &getChargeSet() const;
+    const std::pair<double, double>& getFwhmRange() const;
+    const std::vector<Size>& getTraceIndices() const;
+    const std::vector<float>& getIsotopeIntensities() const;
+    const std::vector<float>& getChargeIntensities() const;
     float getIntensityOfCharge(const int &abs_charge) const;
     float getIsotopeCosineOfCharge(const int &abs_charge) const;
     double getAverageMass() const;
@@ -384,28 +377,49 @@ namespace FLASHDeconvQuantHelper
     }
   };
 
-  struct OPENMS_DLLAPI FeatureElement
+  struct OPENMS_DLLAPI Feature
   {
   public:
-    std::vector<FeatureSeed*> mass_traces;
-    std::vector<Size> mass_trace_indices; // index to input shared_m_traces_indices
-    std::vector<double> isotope_probabilities; // used as weights to EGHTraceFitter
+    std::vector<FeatureSeed> unique_traces;
+    std::vector<FeatureSeed> shared_traces;
+    std::vector<Size> unique_trace_indices; // index to input shared_m_traces_indices
+    std::vector<Size> shared_trace_indices; // index to input shared_m_traces_indices
+    std::vector<double> isotope_probabilities; // used as weights to EGHTraceFitter. Index of this vec = same index as unique's
 //    LogMassTrace* most_abundant_mt_in_fg = nullptr;
 
     int charge;
     Size feature_group_index;
 
     /// default constructor
-    FeatureElement() = default;
+    Feature() = default;
+
+    /// default destructor
+    ~Feature() = default;
 
     Size getPeakSizes() const
     {
       Size total_peaks_size = 0;
-      for (auto &lmt : mass_traces)
+      for (auto &lmt : unique_traces)
       {
-        total_peaks_size += lmt->getMassTrace()->getSize();
+        total_peaks_size += lmt.getMassTrace().getSize();
       }
       return total_peaks_size;
+    }
+
+    void prepareVectors(const Size n)
+    {
+      unique_traces.reserve(n);
+      shared_traces.reserve(n);
+      unique_trace_indices.reserve(n);
+      shared_trace_indices.reserve(n);
+    }
+
+    void shrinkVectors()
+    {
+      unique_traces.shrink_to_fit();
+      shared_traces.shrink_to_fit();
+      unique_trace_indices.shrink_to_fit();
+      shared_trace_indices.shrink_to_fit();
     }
   };
 }

@@ -170,27 +170,27 @@ namespace FLASHDeconvQuantHelper
     return total_score_;
   }
 
-  std::set<int> FeatureGroup::getChargeSet() const
+  const std::set<int>& FeatureGroup::getChargeSet() const
   {
     return charges_;
   }
 
-  std::pair<double, double> FeatureGroup::getFwhmRange() const
+  const std::pair<double, double>& FeatureGroup::getFwhmRange() const
   {
     return fwhm_range_;
   }
 
-  std::vector<Size> FeatureGroup::getTraceIndices() const
+  const std::vector<Size>& FeatureGroup::getTraceIndices() const
   {
     return ltrace_indices_;
   }
 
-  std::vector<float> FeatureGroup::getIsotopeIntensities() const
+  const std::vector<float>& FeatureGroup::getIsotopeIntensities() const
   {
     return per_isotope_int_;
   }
 
-  std::vector<float> FeatureGroup::getChargeIntensities() const
+  const std::vector<float>& FeatureGroup::getChargeIntensities() const
   {
     return per_charge_int_;
   }
@@ -286,8 +286,8 @@ namespace FLASHDeconvQuantHelper
     }
 
     // find the most abundant peak
-    Size max_peak_idx = most_abundant_seed->getMassTrace()->findMaxByIntPeak(false);
-    auto tmp_max_peak = (*most_abundant_seed->getMassTrace())[max_peak_idx];
+    Size max_peak_idx = most_abundant_seed->getMassTrace().findMaxByIntPeak(false);
+    auto tmp_max_peak = most_abundant_seed->getMassTrace()[max_peak_idx];
     centroid_rt_of_most_abundant_mt_ = tmp_max_peak.getRT();
 
     fwhm_range_ = std::make_pair(min_fwhm, max_fwhm);

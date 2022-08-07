@@ -137,12 +137,13 @@ namespace OpenMS
     // Step 2 mass artifact removal & post processing...
     // *********************************************************** //
     refineFeatureGroups_(features);
-    OPENMS_LOG_INFO << "total #feature groups : " << features.size() << endl;
+    OPENMS_LOG_INFO << "#Detected feature groups : " << features.size() << endl;
 
     // *********************************************************** //
     // Step 3 clustering features
     // *********************************************************** //
     clusterFeatureGroups_(features, input_mtraces);
+    OPENMS_LOG_INFO << "#Final feature groups: " << features.size() << endl;
 
     // output
     setFeatureGroupMembersForResultWriting(features);
@@ -537,9 +538,9 @@ namespace OpenMS
         }
 
         // score per pair between this trace and the apex
-        double mz_score(scoreMZ_(*(trace_ptr->getMassTrace()), *(apex_trace->getMassTrace()),
+        double mz_score(scoreMZ_(trace_ptr->getMassTrace(), apex_trace->getMassTrace(),
                                  abs(trace_ptr->getIsotopeIndex()-apex_trace->getIsotopeIndex()), abs_charge));
-        double rt_score(scoreRT_(*(trace_ptr->getMassTrace()), *(apex_trace->getMassTrace())));
+        double rt_score(scoreRT_(trace_ptr->getMassTrace(), apex_trace->getMassTrace()));
         double inty_score(trace_ptr->getIntensity() / fg.getIntensity());
         double total_pair_score = exp(log(rt_score) + log(mz_score) + log(inty_score));
 
@@ -764,9 +765,9 @@ namespace OpenMS
     {
       mt_rt_starts.push_back(std::make_pair(trace.getFwhmStart(), &trace));
       mt_rt_ends.push_back(std::make_pair(trace.getFwhmEnd(), &trace));
-      if (trace.getMassTrace()->getFWHM() < min_fwhm_length)
+      if (trace.getMassTrace().getFWHM() < min_fwhm_length)
       {
-        min_fwhm_length = trace.getMassTrace()->getFWHM();
+        min_fwhm_length = trace.getMassTrace().getFWHM();
       }
     }
 
@@ -852,7 +853,7 @@ namespace OpenMS
     OPENMS_LOG_INFO << "# generated feature groups from mass traces : " << features.size() << endl;
   }
 
-  /// cluster FeatureGroups with shared mass traces. If not, report as output
+  /// cluster FeatureGroups with shared mass traces, and resolve the shared ones. If not, report as output
   void FLASHDeconvQuantAlgorithm::clusterFeatureGroups_(std::vector<FeatureGroup> &fgroups,
                                                         std::vector<MassTrace> &input_mtraces) const
   {
@@ -868,7 +869,7 @@ namespace OpenMS
       }
     }
     /// only for writing purpose (for non-resolved masstrace drawing)
-//    writeMassTracesOfFeatureGroup(fgroups, shared_m_traces);
+    writeMassTracesOfFeatureGroup(fgroups, shared_m_traces);
 
     // *********************************************************** //
     // Step 2 constructing hypergraph from featuregroups
@@ -955,14 +956,13 @@ namespace OpenMS
 
     out_features.shrink_to_fit();
     std::swap(out_features, fgroups);
-    OPENMS_LOG_INFO << "#final feature groups: " << fgroups.size() << endl;
   }
 
   void FLASHDeconvQuantAlgorithm::writeMassTracesOfFeatureGroup(const std::vector<FeatureGroup> &feature_groups,
                                                                 const std::vector<std::vector<Size>> &shared_m_traces_indices) const
   {
     // writing mass traces (when no resolution is done)
-    String out_path = ""; // outfile_path.substr(0, outfile_path.find_last_of(".")-1) + "groups.tsv";
+    String out_path = output_file_path_.substr(0, output_file_path_.find_last_of(".")-1) + "groups.tsv";
     ofstream out;
     out.open(out_path, ios::out);
     out << "mono_mass\tcharge\tisotope_index\tquant_value\tshared\tcentroid_mzs\trts\tmzs\tintys\n"; // header
@@ -984,7 +984,7 @@ namespace OpenMS
         stringstream mzs;
         stringstream intys;
 
-        for (const auto &peak: *(mt.getMassTrace()))
+        for (const auto &peak: mt.getMassTrace())
         {
           mzs << peak.getMZ() << ",";
           rts << peak.getRT() << ",";
@@ -1010,243 +1010,252 @@ namespace OpenMS
     out.close();
   }
 
-
   void FLASHDeconvQuantAlgorithm::resolveConflictInCluster_(std::vector<FeatureGroup> &feature_groups,
-                                                   const std::vector<MassTrace> &input_masstraces,
-                                                   const std::vector<std::vector<Size> > &shared_m_traces_indices,
-                                                   const std::set<Size> &fg_indices_in_this_cluster,
-                                                   std::vector<FeatureGroup> &out_featuregroups) const
+                                                            std::vector<MassTrace> &input_masstraces,
+                                                            std::vector<std::vector<Size>> &shared_m_traces_indices,
+                                                            const std::set<Size> &fg_indices_in_this_cluster,
+                                                            std::vector<FeatureGroup> &out_featuregroups) const
   {
-    /// conflict resolution is done in feature level (not feature group level)
+    /// conflict resolution is done in feature level (not feature group level), starting from the most abundant shared signal
+    /// input masstraces needs to be changed, if any resolution is done per FeatureGroup -> add new input_masstrace with modified intensities, and change the pointer to it.
 
-    // prepare nodes for hypergraph
-    std::vector<std::vector<Size>> mt_and_feature_idx(shared_m_traces_indices.size(), std::vector<Size>());
-    std::vector<FeatureElement> feature_candidates; // index : (fg_indices_in_this_cluster+1)*charge_idx
-    for (auto &fg_idx: fg_indices_in_this_cluster)
+    /// 1. find shared MTs and corresponding "Features" (not FeatureGroup)
+    std::unordered_map<Size, std::vector<std::pair<Size, int>>> shared_mt_N_features; // key: mt_idx, value: pair<feature_group_idx, charge>
+    std::vector<std::pair<Size, double>> shared_mt_idx_inty_pairs; // first: mt_idx, second: mt intensity
+    for (auto &fg_idx : fg_indices_in_this_cluster)
     {
-      auto &fg = feature_groups[fg_idx];
-      OPENMS_LOG_DEBUG << fg_idx << "\t" << fg.getMonoisotopicMass() << endl;
-
-      // get charge vector
-      Size feature_idx_starts = feature_candidates.size();
-      std::set<int> current_fg_cs = fg.getChargeSet();
-      for (auto &tmp_cs : current_fg_cs)
+      auto &fgroup = feature_groups[fg_idx];
+      for (auto &seed_iter : fgroup)
       {
-        FeatureElement tmp;
-        tmp.mass_traces.reserve(fg.size());
-        tmp.mass_trace_indices.reserve(fg.size());
-        tmp.charge = tmp_cs;
-        tmp.feature_group_index = fg_idx;
-        feature_candidates.push_back(tmp);
-      }
+        auto trace_idx = seed_iter.getTraceIndex();
+        // collect only shared one
+        if (shared_m_traces_indices[trace_idx].size() == 1)
+        {
+          continue;
+        }
 
-      for (auto lmt_iter = fg.begin(); lmt_iter != fg.end(); ++lmt_iter)
-      {
-        Size f_idx = feature_idx_starts + std::distance(current_fg_cs.begin(),
-                                                        std::find(current_fg_cs.begin(), current_fg_cs.end(), lmt_iter->getCharge()));
-        mt_and_feature_idx[lmt_iter->getTraceIndex()].push_back(f_idx);
-        feature_candidates[f_idx].mass_traces.push_back(&(*lmt_iter));
-        feature_candidates[f_idx].mass_trace_indices.push_back(lmt_iter->getTraceIndex());
+        if (shared_mt_N_features.find(trace_idx) == shared_mt_N_features.end()) // if this seed is not added to the map
+        {
+          shared_mt_N_features.emplace(trace_idx, std::vector<std::pair<Size, int>>());
+          shared_mt_idx_inty_pairs.push_back(std::make_pair(trace_idx, seed_iter.getIntensity()));
+        }
+        shared_mt_N_features[trace_idx].push_back(std::make_pair(fg_idx, seed_iter.getCharge()));
       }
     }
 
-    Size num_nodes = shared_m_traces_indices.size();
-    std::vector<bool> bfs_visited;
-    bfs_visited.resize(num_nodes, false);
-    std::queue<Size> bfs_queue;
-    Size search_pos = 0; // keeping track of mass trace index to look for seed
+    /// 2. sort shared MT by intensity (descending)
+    std::sort(shared_mt_idx_inty_pairs.begin(), shared_mt_idx_inty_pairs.end(), [](const auto &left, const auto &right) {
+      return left.second > right.second;
+    });
 
-    // BFS
-    while (true)
+    /// 3. start from the highest intensity, iterate shared MT and get conflicting region (collecting conflicting Features)
+    while(!shared_mt_idx_inty_pairs.empty())
     {
-      bool finished = true;
+      /// 3.1 collecting all shared mts and features in this conflicting region
+      std::unordered_map<Size, bool> shared_mts_in_this_region; // to track all detected shared mass traces. key = shared_mt_idx, value = visited?
+      std::set<String> visited_features_in_this_region; // to track all detected features. key = [FeatGroupID]&[CS]
+      std::vector<std::pair<Size, int>> feat_not_for_resolution; // key = [FeatGroupID]&[CS]
+      std::vector<Feature> conflicting_features;
+      std::vector<MassTrace> conflicting_mts; // collect shared traces for resolution (not FeatureSeed, but original MassTrace. FeatureSeed has conflicting information)
+      std::vector<Size> conflicting_mt_indices; // trace_index of collect shared traces for resolution
 
-      for (Size i = search_pos; i < num_nodes; ++i)
+      shared_mts_in_this_region.emplace(shared_mt_idx_inty_pairs[0].first, false); // add the first shared mt
+      while(true)
       {
-        if (!bfs_visited[i])
+        // find unvisited shared mt
+        auto found_mt = std::find_if(std::begin(shared_mts_in_this_region), std::end(shared_mts_in_this_region),
+                               [](auto&& p) { return p.second == false; });
+        // if no shared mt left
+        if (found_mt == std::end(shared_mts_in_this_region))
         {
-          // check if this mass trace is used in any feature
-          if (mt_and_feature_idx[i].size() == 0)
-          {
-            bfs_visited[i] = true;
-            continue;
-          }
-
-          bfs_queue.push(i);
-          bfs_visited[i] = true;
-          finished = false;
-          search_pos = i + 1;
           break;
         }
-      }
-      if (finished) // if no possible seed is left
-        break;
 
-      std::set<Size> feature_idx_in_current_conflict_region;
-      std::set<Size> conflicting_mt_indices;
+        Size this_shared_mt_index = found_mt->first;
+        shared_mts_in_this_region[this_shared_mt_index] = true; // mark as visited
+        std::vector<String> feat_not_to_include;
+        FeatureSeed *picked_seed; // save for later
 
-      while (!bfs_queue.empty())
-      {
-        Size i = bfs_queue.front(); // index of seed
-        bfs_queue.pop();
-
-        // get feature indices sharing this seed
-        for (std::vector<Size>::const_iterator it = mt_and_feature_idx[i].begin();
-             it != mt_and_feature_idx[i].end();
-             ++it)
+        // per conflicting features, make Feature
+        for (auto &feat : shared_mt_N_features[this_shared_mt_index])
         {
-          // if this feature was visited before
-          if (feature_idx_in_current_conflict_region.find(*it) != feature_idx_in_current_conflict_region.end())
+          FeatureGroup &org_featgroup = feature_groups[feat.first];
+          int cs_of_feat = feat.second;
+
+          // check if FeatureElement is not created yet
+          String feat_label = feat.first + "&" + cs_of_feat;
+          if (visited_features_in_this_region.find(feat_label) != visited_features_in_this_region.end())
           {
             continue;
           }
+          visited_features_in_this_region.insert(feat_label); // mark as this Feature is visited
 
-          feature_idx_in_current_conflict_region.insert(*it);
-          FeatureElement &selected_feature = feature_candidates[*it];
+          // initialize Feature
+          Feature new_feature;
+          new_feature.prepareVectors(org_featgroup.size());
+          new_feature.charge = cs_of_feat;
+          new_feature.feature_group_index = feat.first;
 
-          for (const auto &mt_index: selected_feature.mass_trace_indices)
+          // add seeds in element
+          for (auto &feat_seed: org_featgroup)
           {
-            if (!bfs_visited[mt_index])
+            if (feat_seed.getCharge() != cs_of_feat)
             {
-              bfs_queue.push(mt_index);
-              bfs_visited[mt_index] = true;
+              continue;
             }
-            else if (mt_and_feature_idx[mt_index].size() > 1)
+
+            if (shared_m_traces_indices[feat_seed.getTraceIndex()].size() > 1) // this seed is shared
             {
-              // check if this visited mass trace is the shared one (because the seed mass trace can end up here as well)
-              conflicting_mt_indices.insert(mt_index);
+              new_feature.shared_traces.push_back(feat_seed);
+              new_feature.shared_trace_indices.push_back(feat_seed.getTraceIndex());
+            }
+            else // this seed is not shared
+            {
+              new_feature.unique_traces.push_back(feat_seed);
+              new_feature.unique_trace_indices.push_back(feat_seed.getTraceIndex());
             }
           }
-        }
-      }
 
-      // this feature is not sharing any mass traces with others
-      if (feature_idx_in_current_conflict_region.size() == 1)
-      {
-        continue;
-      }
-
-      // collect conflicting mass traces (not LogMassTrace, originals)
-      std::vector<const MassTrace *> conflicting_mts;
-      for (auto &mt_idx: conflicting_mt_indices)
-      {
-        auto i = input_masstraces.begin() + mt_idx;
-        conflicting_mts.push_back(&(*i));
-      }
-
-      // set isotope probabilities for feature_candidates && check if mass traces are only shared ones
-      vector<Size> features_not_for_resolution;
-      for (auto &feat_idx: feature_idx_in_current_conflict_region)
-      {
-        auto &feat = feature_candidates[feat_idx];
-        auto &feat_group = feature_groups[feat.feature_group_index];
-        auto tmp_iso = iso_model_.get(feat_group.getMonoisotopicMass());
-        feat.isotope_probabilities.reserve(feat.mass_traces.size());
-        for (auto &lmt: feat.mass_traces)
-        {
-          // if isotope index of lmt exceed tmp_iso length, give 0
-          int tmp_iso_idx = lmt->getIsotopeIndex();
-          if (tmp_iso_idx < (int) tmp_iso.size())
+          // check if this Feature is eligible for resolution
+          if (!isEligibleFeatureForConflictResolution(new_feature, shared_m_traces_indices, org_featgroup))
           {
-            feat.isotope_probabilities.push_back(tmp_iso[tmp_iso_idx].getIntensity());
+            // put this feature in the list
+            feat_not_to_include.push_back(feat_label);
+            feat_not_for_resolution.push_back(feat);
+            continue;
+          }
+          new_feature.shrinkVectors();
+
+          // if any seed is shared, mark for visiting in the next round
+          for (auto &mt_idx : new_feature.shared_trace_indices)
+          {
+            if (shared_mts_in_this_region.find(mt_idx) == shared_mts_in_this_region.end()) // if this shared trace is not visited yet
+            {
+              shared_mts_in_this_region.emplace(mt_idx, false);
+            }
+          }
+          conflicting_features.push_back(new_feature);
+        }
+
+        // check if this mt is still shared one
+        if (shared_mt_N_features[this_shared_mt_index].size() - feat_not_to_include.size() < 2)
+        {
+          auto &shared_fs = shared_mt_N_features[this_shared_mt_index];
+          for (auto &f : feat_not_to_include)
+          {
+            shared_fs.erase(std::remove_if(shared_fs.begin(), shared_fs.end(),
+                                           [f](auto const &p) { auto s = p.first + "$" + p.second;
+                                             return s == f;}));
+          }
+
+          if (shared_fs.empty())
+          {
+            OPENMS_LOG_INFO << "something's wrong. need to resolve this issue" << endl;
+          }
+
+          // mark this MT is not shared one
+          Size fg_id = shared_fs[0].first;
+          shared_m_traces_indices[this_shared_mt_index] = std::vector<Size>{fg_id};
+          continue;
+        }
+
+        // add this shared mt as a conflicting one
+        auto i = input_masstraces.begin() + this_shared_mt_index;
+        conflicting_mts.push_back(*i);
+        conflicting_mt_indices.push_back(this_shared_mt_index);
+      }
+
+      /// 3.2 set isotope probabilities for features (to be used as theoretical intensity when modeling a theoretical shape)
+      for (auto &feat : conflicting_features)
+      {
+        auto &feat_group = feature_groups[feat.feature_group_index];
+        auto theo_isodist = iso_model_.get(feat_group.getMonoisotopicMass());
+        feat.isotope_probabilities.reserve(feat.unique_traces.size()); // isotope prob for each mass_trace, based on their iso position
+        for (auto &lmt: feat.unique_traces)
+        {
+          // if this trace is taken from different Feature
+          if (lmt.getCharge() != feat.charge)
+          {
+            feat.isotope_probabilities.push_back(0.1); // arbitrary small number. maybe change later... (should not be large)
+          }
+
+          // if isotope index of lmt exceed tmp_iso length, give 0 (to not use for the modeling)
+          Size tmp_iso_idx = (Size) lmt.getIsotopeIndex();
+          if (tmp_iso_idx < theo_isodist.size()) // To avoid bad access error. If index is larger than the isodist length, no intensity to use.
+          {
+            // give weight per masstrace based on their isotope position, not the real intensity.
+            feat.isotope_probabilities.push_back(theo_isodist[tmp_iso_idx].getIntensity());
           }
           else
           {
             feat.isotope_probabilities.push_back(0.0);
           }
         }
-
-        // check if this feature has enough mass traces to get a component
-        if (feat.mass_traces.size() > conflicting_mts.size())
-        {
-          continue;
-        }
-
-        // check if this feature is composed of only shared mass traces
-        bool composed_of_only_conflicts = true;
-        for (auto &mt_idx: feat.mass_trace_indices)
-        {
-          if (shared_m_traces_indices[mt_idx].size() == 1)
-          {
-            composed_of_only_conflicts = false;
-            break;
-          }
-        }
-        if (!composed_of_only_conflicts)
-        {
-          continue;
-        }
-
-        // get the most abundant mass trace from FeatureGroup (except recruited ones)
-        FeatureSeed *most_abundant_mt = nullptr;
-        getMostAbundantMassTraceFromFeatureGroup(feat_group, feat.charge, most_abundant_mt, shared_m_traces_indices);
-        if (most_abundant_mt == nullptr)
-        {
-          features_not_for_resolution.push_back(feat_idx);
-          continue;
-        }
-
-        // get the most abundant mass trace from FeatureGroup (except recruited ones)
-        feat.mass_traces.push_back(most_abundant_mt);
-        feat.mass_trace_indices.push_back(most_abundant_mt->getTraceIndex());
-        feat.isotope_probabilities.push_back(0.2); // TODO: why 0.2?
       }
 
-      // if any feature is not eligible for resolution
-      if (features_not_for_resolution.size() > 0)
+      /// 3.3 resolve the conflict in this region
+      resolveConflictRegion_(conflicting_features, conflicting_mts, conflicting_mt_indices);
+
+      /// 3.4 Update FeatureGroup (only FeatureSeed vectors, other members will be updated later)
+      for (auto &feat : conflicting_features)
       {
-        for (Size &idx: features_not_for_resolution)
+        // get original FeatureGroup, and update it
+        FeatureGroup &feature_group = feature_groups[feat.feature_group_index];
+
+        for (Size t_index = 0; t_index < feat.shared_trace_indices.size(); ++t_index)
         {
-          feature_idx_in_current_conflict_region.erase(idx);
-          for (auto &lmt: feature_candidates[idx].mass_traces)
+          auto &updated_seed = feat.shared_traces[t_index];
+          auto &index_of_updated_seed = feat.shared_trace_indices[t_index];
+
+          // find corresponding FeatureSeed in FeatureGroup
+          auto found_seed = find_if(feature_group.begin(), feature_group.end(),
+                                    [index_of_updated_seed](auto &&x) { return x.getTraceIndex() == index_of_updated_seed; });
+
+          // if updated seed is empty, add remove found seed
+          if (updated_seed.getIntensity() == 0)
           {
-            lmt->setIntensity(0.0);
+            feature_group.erase(found_seed);
+            continue;
           }
-        }
 
-        if (feature_idx_in_current_conflict_region.size() < 2)
-        {
-          continue;
+          *found_seed = updated_seed;
+          found_seed->setTraceIndex(input_masstraces.size()); // add new trace index
+          // add new FeatureSeed
+          input_masstraces.push_back(updated_seed.getMassTrace());
         }
+      }
 
-        // check if any shared mass trace is not shared anymore
-        vector<Size> is_mt_included(conflicting_mts.size(),
-                                    0); // element is equal to the size of feature_vec when it's shared
-        for (auto &feat_idx: feature_idx_in_current_conflict_region)
+      /// 3.5 remove all conflicting MTs from "look-up table"
+      for (auto &shared : shared_mts_in_this_region)
+      {
+        shared_mt_idx_inty_pairs.erase(std::remove_if(shared_mt_idx_inty_pairs.begin(), shared_mt_idx_inty_pairs.end(),
+                                                      [shared](auto const &p) {return p.first == shared.first;}));
+      }
+
+      // remove this feature out from Fg? // some features need to be deleted
+      if (feat_not_for_resolution.size() > 0)
+      {
+        for (auto &feat_tag : feat_not_for_resolution)
         {
-          auto &lmts = feature_candidates[feat_idx].mass_traces;
-          for (auto &lmt: lmts)
-          {
-            for (Size mt_i = 0; mt_i < conflicting_mts.size(); ++mt_i)
-            {
-              if (conflicting_mts[mt_i] == lmt->getMassTrace())
-              {
-                is_mt_included[mt_i] += 1;
-                break;
-              }
+          auto &feat_group = feature_groups[feat_tag.first];
+          auto seed_iter = feat_group.begin();
+          while (seed_iter != feat_group.end()) {
+            if (seed_iter->getCharge() == feat_tag.second) {
+              // if this seed is from the "feat_not_for_resolution", remove it.
+              seed_iter = feat_group.erase(seed_iter);
+            }
+            else {
+              ++seed_iter;
             }
           }
-        }
-        for (int mt_i = conflicting_mts.size() - 1; mt_i >= 0; --mt_i)
-        {
-          if (is_mt_included[mt_i] != feature_idx_in_current_conflict_region.size())
-          {
-            conflicting_mts.erase(conflicting_mts.begin() + mt_i);
-          }
+//          feat_group.updateMembersForScoring();
+//          feat_group.updateMembers();
         }
       }
-
-      // convert feature_idx_in_current_conflict_region from set to vector (for accessing with indices later)
-      std::vector<Size> feature_indices_vec;
-      feature_indices_vec.reserve(feature_idx_in_current_conflict_region.size());
-      for (auto &i: feature_idx_in_current_conflict_region)
-        feature_indices_vec.push_back(i);
-
-      // resolve this conflict region
-      resolveConflictRegion_(feature_candidates, feature_indices_vec, conflicting_mts);
     }
 
-    // update feature group quantities
+
+    /// 4. update FeatureGroup members and quantities
     for (auto &idx: fg_indices_in_this_cluster)
     {
       auto &fgroup = feature_groups[idx];
@@ -1272,30 +1281,315 @@ namespace OpenMS
       }
 
       // update TODO: check if "score_anyways" in rescoreFeatureGroup is needed
-      if (rescoreFeatureGroup_(feature_groups[idx]))
+      if (rescoreFeatureGroup_(fgroup))
       {
-        out_featuregroups.push_back(feature_groups[idx]);
+        out_featuregroups.push_back(fgroup);
       }
     }
-
   }
 
-  void FLASHDeconvQuantAlgorithm::resolveConflictRegion_(std::vector<FeatureElement> &features,
-                                                const std::vector<Size> &feature_idx_in_current_conflict_region,
-                                                const std::vector<const MassTrace *> &conflicting_mts) const
+  bool FLASHDeconvQuantAlgorithm::isEligibleFeatureForConflictResolution(Feature &feat, std::vector<std::vector<Size>> &shared_m_traces_indices, FeatureGroup &feat_group) const
+  {
+    // check if this feature is composed of only shared mass traces
+    if (feat.unique_traces.size() > 0)
+    {
+      return true;
+    }
+
+    // get the most abundant mass trace from FeatureGroup (except recruited ones)
+    FeatureSeed *most_abundant_mt = nullptr;
+    getMostAbundantMassTraceFromFeatureGroup(feat_group, feat.charge, most_abundant_mt, shared_m_traces_indices);
+    if (most_abundant_mt == nullptr)
+    {
+      return false;
+    }
+
+    // get the most abundant mass trace from FeatureGroup (except recruited ones)
+    feat.unique_traces.push_back(*most_abundant_mt);
+    feat.unique_trace_indices.push_back(most_abundant_mt->getTraceIndex());
+    return true;
+  }
+
+//  void FLASHDeconvQuantAlgorithm::resolveConflictInCluster_(std::vector<FeatureGroup> &feature_groups,
+//                                                            const std::vector<MassTrace> &input_masstraces,
+//                                                            const std::vector<std::vector<Size> > &shared_m_traces_indices,
+//                                                            const std::set<Size> &fg_indices_in_this_cluster,
+//                                                            std::vector<FeatureGroup> &out_featuregroups) const
+//  {
+//    /// conflict resolution is done in feature level (not feature group level), starting from the most abundant one
+//
+//    // prepare nodes for hypergraph
+//    std::vector<std::vector<Size>> mt_and_feature_idx(shared_m_traces_indices.size(), std::vector<Size>());
+//    std::vector<FeatureElement> feature_candidates; // index : (fg_indices_in_this_cluster+1)*charge_idx
+//    for (auto &fg_idx: fg_indices_in_this_cluster)
+//    {
+//      auto &fg = feature_groups[fg_idx];
+//      OPENMS_LOG_DEBUG << fg_idx << "\t" << fg.getMonoisotopicMass() << endl;
+//
+//      // get charge vector
+//      Size feature_idx_starts = feature_candidates.size();
+//      std::set<int> current_fg_cs = fg.getChargeSet();
+//      for (auto &tmp_cs : current_fg_cs)
+//      {
+//        FeatureElement tmp;
+//        tmp.mass_traces.reserve(fg.size());
+//        tmp.mass_trace_indices.reserve(fg.size());
+//        tmp.charge = tmp_cs;
+//        tmp.feature_group_index = fg_idx;
+//        feature_candidates.push_back(tmp);
+//      }
+//
+//      for (auto lmt_iter = fg.begin(); lmt_iter != fg.end(); ++lmt_iter)
+//      {
+//        Size f_idx = feature_idx_starts + std::distance(current_fg_cs.begin(),
+//                                                        std::find(current_fg_cs.begin(), current_fg_cs.end(), lmt_iter->getCharge()));
+//        mt_and_feature_idx[lmt_iter->getTraceIndex()].push_back(f_idx);
+//        feature_candidates[f_idx].mass_traces.push_back(&(*lmt_iter));
+//        feature_candidates[f_idx].mass_trace_indices.push_back(lmt_iter->getTraceIndex());
+//      }
+//    }
+//
+//    Size num_nodes = shared_m_traces_indices.size();
+//    std::vector<bool> bfs_visited;
+//    bfs_visited.resize(num_nodes, false);
+//    std::queue<Size> bfs_queue;
+//    Size search_pos = 0; // keeping track of mass trace index to look for seed
+//
+//    // BFS
+//    while (true)
+//    {
+//      bool finished = true;
+//
+//      for (Size i = search_pos; i < num_nodes; ++i)
+//      {
+//        if (!bfs_visited[i])
+//        {
+//          // check if this mass trace is used in any feature
+//          if (mt_and_feature_idx[i].size() == 0)
+//          {
+//            bfs_visited[i] = true;
+//            continue;
+//          }
+//
+//          bfs_queue.push(i);
+//          bfs_visited[i] = true;
+//          finished = false;
+//          search_pos = i + 1;
+//          break;
+//        }
+//      }
+//      if (finished) // if no possible seed is left
+//        break;
+//
+//      std::set<Size> feature_idx_in_current_conflict_region;
+//      std::set<Size> conflicting_mt_indices;
+//
+//      while (!bfs_queue.empty())
+//      {
+//        Size i = bfs_queue.front(); // index of seed
+//        bfs_queue.pop();
+//
+//        // get feature indices sharing this seed
+//        for (std::vector<Size>::const_iterator it = mt_and_feature_idx[i].begin();
+//             it != mt_and_feature_idx[i].end();
+//             ++it)
+//        {
+//          // if this feature was visited before
+//          if (feature_idx_in_current_conflict_region.find(*it) != feature_idx_in_current_conflict_region.end())
+//          {
+//            continue;
+//          }
+//
+//          feature_idx_in_current_conflict_region.insert(*it);
+//          FeatureElement &selected_feature = feature_candidates[*it];
+//
+//          for (const auto &mt_index: selected_feature.mass_trace_indices)
+//          {
+//            if (!bfs_visited[mt_index])
+//            {
+//              bfs_queue.push(mt_index);
+//              bfs_visited[mt_index] = true;
+//            }
+//            else if (mt_and_feature_idx[mt_index].size() > 1)
+//            {
+//              // check if this visited mass trace is the shared one (because the seed mass trace can end up here as well)
+//              conflicting_mt_indices.insert(mt_index);
+//            }
+//          }
+//        }
+//      }
+//
+//      // this feature is not sharing any mass traces with others
+//      if (feature_idx_in_current_conflict_region.size() == 1)
+//      {
+//        continue;
+//      }
+//
+//      // collect conflicting mass traces (not LogMassTrace, originals)
+//      std::vector<const MassTrace *> conflicting_mts;
+//      for (auto &mt_idx: conflicting_mt_indices)
+//      {
+//        auto i = input_masstraces.begin() + mt_idx;
+//        conflicting_mts.push_back(&(*i));
+//      }
+//
+//      // set isotope probabilities for feature_candidates && check if mass traces are only shared ones
+//      vector<Size> features_not_for_resolution;
+//      for (auto &feat_idx: feature_idx_in_current_conflict_region)
+//      {
+//        auto &feat = feature_candidates[feat_idx];
+//        auto &feat_group = feature_groups[feat.feature_group_index];
+//        auto tmp_iso = iso_model_.get(feat_group.getMonoisotopicMass());
+//        feat.isotope_probabilities.reserve(feat.mass_traces.size());
+//        for (auto &lmt: feat.mass_traces)
+//        {
+//          // if isotope index of lmt exceed tmp_iso length, give 0
+//          int tmp_iso_idx = lmt->getIsotopeIndex();
+//          if (tmp_iso_idx < (int) tmp_iso.size())
+//          {
+//            feat.isotope_probabilities.push_back(tmp_iso[tmp_iso_idx].getIntensity());
+//          }
+//          else
+//          {
+//            feat.isotope_probabilities.push_back(0.0);
+//          }
+//        }
+//
+//        // check if this feature has enough mass traces to get a component
+//        if (feat.mass_traces.size() > conflicting_mts.size())
+//        {
+//          continue;
+//        }
+//
+//        // check if this feature is composed of only shared mass traces
+//        bool composed_of_only_conflicts = true;
+//        for (auto &mt_idx: feat.mass_trace_indices)
+//        {
+//          if (shared_m_traces_indices[mt_idx].size() == 1)
+//          {
+//            composed_of_only_conflicts = false;
+//            break;
+//          }
+//        }
+//        if (!composed_of_only_conflicts)
+//        {
+//          continue;
+//        }
+//
+//        // get the most abundant mass trace from FeatureGroup (except recruited ones)
+//        FeatureSeed *most_abundant_mt = nullptr;
+//        getMostAbundantMassTraceFromFeatureGroup(feat_group, feat.charge, most_abundant_mt, shared_m_traces_indices);
+//        if (most_abundant_mt == nullptr)
+//        {
+//          features_not_for_resolution.push_back(feat_idx);
+//          continue;
+//        }
+//
+//        // get the most abundant mass trace from FeatureGroup (except recruited ones)
+//        feat.mass_traces.push_back(most_abundant_mt);
+//        feat.mass_trace_indices.push_back(most_abundant_mt->getTraceIndex());
+//        feat.isotope_probabilities.push_back(0.2); // TODO: why 0.2?
+//      }
+//
+//      // if any feature is not eligible for resolution
+//      if (features_not_for_resolution.size() > 0)
+//      {
+//        for (Size &idx: features_not_for_resolution)
+//        {
+//          feature_idx_in_current_conflict_region.erase(idx);
+//          for (auto &lmt: feature_candidates[idx].mass_traces)
+//          {
+//            lmt->setIntensity(0.0);
+//          }
+//        }
+//
+//        if (feature_idx_in_current_conflict_region.size() < 2)
+//        {
+//          continue;
+//        }
+//
+//        // check if any shared mass trace is not shared anymore
+//        vector<Size> is_mt_included(conflicting_mts.size(),
+//                                    0); // element is equal to the size of feature_vec when it's shared
+//        for (auto &feat_idx: feature_idx_in_current_conflict_region)
+//        {
+//          auto &lmts = feature_candidates[feat_idx].mass_traces;
+//          for (auto &lmt: lmts)
+//          {
+//            for (Size mt_i = 0; mt_i < conflicting_mts.size(); ++mt_i)
+//            {
+//              if (conflicting_mts[mt_i] == lmt->getMassTrace())
+//              {
+//                is_mt_included[mt_i] += 1;
+//                break;
+//              }
+//            }
+//          }
+//        }
+//        for (int mt_i = conflicting_mts.size() - 1; mt_i >= 0; --mt_i)
+//        {
+//          if (is_mt_included[mt_i] != feature_idx_in_current_conflict_region.size())
+//          {
+//            conflicting_mts.erase(conflicting_mts.begin() + mt_i);
+//          }
+//        }
+//      }
+//
+//      // convert feature_idx_in_current_conflict_region from set to vector (for accessing with indices later)
+//      std::vector<Size> feature_indices_vec;
+//      feature_indices_vec.reserve(feature_idx_in_current_conflict_region.size());
+//      for (auto &i: feature_idx_in_current_conflict_region)
+//        feature_indices_vec.push_back(i);
+//
+//      // resolve this conflict region
+//      resolveConflictRegion_(feature_candidates, feature_indices_vec, conflicting_mts);
+//    }
+//
+//    // update feature group quantities
+//    for (auto &idx: fg_indices_in_this_cluster)
+//    {
+//      auto &fgroup = feature_groups[idx];
+//
+//      // remove 0 intensity mass traces
+//      auto fg_iter = fgroup.begin();
+//      while (fg_iter != fgroup.end())
+//      {
+//        if (fg_iter->getIntensity() == 0)
+//        {
+//          fg_iter = fgroup.erase(fg_iter);
+//        }
+//        else
+//        {
+//          ++fg_iter;
+//        }
+//      }
+//
+//      // check if enough number of mass traces are left
+//      if (fgroup.size() < min_nr_mtraces_)
+//      {
+//        continue;
+//      }
+//
+//      // update TODO: check if "score_anyways" in rescoreFeatureGroup is needed
+//      if (rescoreFeatureGroup_(feature_groups[idx]))
+//      {
+//        out_featuregroups.push_back(feature_groups[idx]);
+//      }
+//    }
+//  }
+
+  void FLASHDeconvQuantAlgorithm::resolveConflictRegion_(std::vector<Feature> &conflicting_features,
+                                                         const std::vector<MassTrace> &conflicting_mts,
+                                                         const std::vector<Size> &conflicting_mt_indices) const
   {
     /// Prepare Components per features (excluding conflicting mts)
     std::vector<std::vector<double>> components;
-    Matrix<int> pointer_to_components; // row : index of conflicting_mts , column : index of feature_idx_in_current_conflict_region
-    pointer_to_components.resize(conflicting_mts.size(), feature_idx_in_current_conflict_region.size(), -1);
-    std::vector<std::vector<int>> conflicting_mt_idx_lookup_vec; // linker between mt_idx in feature & conflicting_mts
-    for (Size i_of_f = 0; i_of_f < feature_idx_in_current_conflict_region.size(); ++i_of_f)
+    Matrix<int> pointer_to_components; // row : index of conflicting_mts , column : index of conflicting_features
+    pointer_to_components.resize(conflicting_mts.size(), conflicting_features.size(), -1);
+    for (Size i_of_f = 0; i_of_f < conflicting_features.size(); ++i_of_f)
     {
-      auto &tmp_feat = features[feature_idx_in_current_conflict_region[i_of_f]];
-
-      std::vector<int> lookup_list_for_mt_idx; // to get theoretical intensities (isotope probabilities)
-      lookup_list_for_mt_idx.resize(conflicting_mts.size(), -1);
-      Size mass_traces_size = tmp_feat.mass_traces.size();
+      auto &tmp_feat = conflicting_features[i_of_f];
+      Size mass_traces_size = tmp_feat.unique_traces.size();
 
       // preparation for ElutionModelFit
       FeatureFinderAlgorithmPickedHelperStructs::MassTraces traces_for_fitting;
@@ -1305,26 +1599,16 @@ namespace OpenMS
       // reserve space once, to avoid copying and invalidating pointers:
       peaks.reserve(tmp_feat.getPeakSizes());
 
-      // get theoretical information from non-shared mass traces
+      // get theoretical information from unique mass traces
       for (Size idx = 0; idx < mass_traces_size; ++idx)
       {
-        // ignore this mt if it's the conflicting one
-        auto tmp_iter = std::find(conflicting_mts.begin(),
-                                  conflicting_mts.end(),
-                                  tmp_feat.mass_traces[idx]->getMassTrace());
-        if (tmp_iter != conflicting_mts.end())
-        {
-          lookup_list_for_mt_idx[std::distance(conflicting_mts.begin(), tmp_iter)] = idx;
-          continue;
-        }
-
-        auto mass_trace_ptr = tmp_feat.mass_traces[idx]->getMassTrace();
+        auto &mass_trace_ptr = tmp_feat.unique_traces[idx].getMassTrace();
 
         // prepare for fitting
         FeatureFinderAlgorithmPickedHelperStructs::MassTrace tmp_mtrace;
-        Size m_trace_size = (*mass_trace_ptr).getSize();
+        Size m_trace_size = mass_trace_ptr.getSize();
         tmp_mtrace.peaks.reserve(m_trace_size);
-        for (auto &p_2d: (*mass_trace_ptr))
+        for (auto &p_2d: mass_trace_ptr)
         {
           auto tmp_inty = p_2d.getIntensity();
           if (tmp_inty > 0.0) // only use non-zero intensities for fitting
@@ -1341,7 +1625,7 @@ namespace OpenMS
         traces_for_fitting.push_back(tmp_mtrace);
       }
 
-      // TODO: why?
+      // TODO: check if this is necessary. (Padding 0s)
       if (traces_for_fitting.size() == 1 && traces_for_fitting[0].peaks.size() < 4)
       {
         while (traces_for_fitting[0].peaks.size() < 4)
@@ -1360,29 +1644,26 @@ namespace OpenMS
 
       // ElutionModelFit
       EGHTraceFitter *fitter = new EGHTraceFitter();
-      // TODO : is this necessary? giving isotope intensity as a weight
+      // TODO : is this necessary? giving isotope probability as a weight
       Param params = fitter->getDefaults();
       params.setValue("weighted", "true");
       fitter->setParameters(params);
       runElutionModelFit_(traces_for_fitting, fitter);
 
-      // store Component information
+      // store Component information (Component = calculated model of the trace)
       for (Size row = 0; row < conflicting_mts.size(); ++row)
       {
-        std::vector<double> component;
-
-        int index_in_feature = lookup_list_for_mt_idx[row];
-        // this mt is not included in current feature
-        if (index_in_feature < 0)
+        // if the feature doesn't own this conflicting_mt, skip
+        auto &trace_indices = tmp_feat.shared_trace_indices;
+        if (trace_indices.end() == std::find(trace_indices.begin(), trace_indices.end(), conflicting_mt_indices[row]))
         {
           continue;
         }
-//        double intensity_ratio = tmp_feat.isotope_probabilities[index_in_feature];
 
         // normalize fitted value
         std::vector<double> fit_intensities;
         double summed_intensities = .0;
-        for (auto &peak: *(conflicting_mts[row]))
+        for (auto &peak: conflicting_mts[row])
         {
           double rt = peak.getRT();
           double fitted_value = fitter->getValue(rt);
@@ -1391,38 +1672,39 @@ namespace OpenMS
         }
 
         // save normalized intensities into component
+        std::vector<double> component;
         for (auto &inty: fit_intensities)
         {
           component.push_back(inty/summed_intensities);
         }
 
-        pointer_to_components.setValue(row, i_of_f, components.size());
+        pointer_to_components.setValue(row, i_of_f, components.size()); // set the index to this component
         components.push_back(component);
       }
-      conflicting_mt_idx_lookup_vec.push_back(lookup_list_for_mt_idx);
     }
 
     // reconstruction of observed XICs (per conflicting mt)
     for (Size row = 0; row < conflicting_mts.size(); ++row)
     {
+      Size org_index_of_this_trace = conflicting_mt_indices[row];
+      auto &obs_masstrace = conflicting_mts[row];
+
       auto components_indices = pointer_to_components.row(row);
       Size column_size =
-          components_indices.size() - std::count(components_indices.begin(), components_indices.end(), -1);
+          components_indices.size() - std::count(components_indices.begin(), components_indices.end(), -1); // number of features involved with this mt
 
       // prepare observed XIC vector
-      Size mt_size = conflicting_mts[row]->getSize();
+      Size mt_size = obs_masstrace.getSize();
       double obs_total_intensity = .0;
-      for (auto &peak : *conflicting_mts[row])
+      for (auto &peak : obs_masstrace)
       {
         obs_total_intensity += peak.getIntensity();
       }
-      auto mt_iter = conflicting_mts[row]->begin();
       Matrix<double> obs;
       obs.resize(mt_size, 1);
       for (Size i = 0; i < mt_size; ++i)
       {
-        obs.setValue(i, 0, mt_iter->getIntensity()/obs_total_intensity); // save normalized value
-        mt_iter++;
+        obs.setValue(i, 0, obs_masstrace[i].getIntensity()/obs_total_intensity); // save normalized value
       }
 
       // prepare theoretical matrix (include only related features)
@@ -1448,47 +1730,107 @@ namespace OpenMS
       NonNegativeLeastSquaresSolver::solve(theo_matrix, obs, out_quant);
 
       OPENMS_LOG_DEBUG << "-------------------------" << endl;
-      OPENMS_LOG_DEBUG << "observed m/z : " << std::to_string(conflicting_mts[row]->getCentroidMZ()) << endl;
+      OPENMS_LOG_DEBUG << "observed m/z : " << std::to_string(obs_masstrace.getCentroidMZ()) << endl;
 
-      for (auto &peak: (*conflicting_mts[row]))
+      for (auto &peak: conflicting_mts[row])
       {
         OPENMS_LOG_DEBUG << std::to_string(peak.getRT()) << "\t" << std::to_string(peak.getIntensity()) << "\n";
       }
-      // if any out_quant is zero, give the other group all.
 
-      // update lmt & feature intensity
+      // if any out_quant is zero, give the other group all.
+      vector<double> calculated_ratio;
+      Size zero_ratio_counter = 0;
+      for (Size i = 0; i < out_quant.rows(); ++i)
+      {
+        calculated_ratio.push_back(out_quant.getValue(i, 0));
+        if (out_quant.getValue(i, 0) == 0)
+        {
+          ++zero_ratio_counter;
+        }
+      }
+      if (calculated_ratio.size() - zero_ratio_counter == 1) // only one out_quant was non-zero
+      {
+        for (auto &ratio:calculated_ratio)
+        {
+          if (ratio != 0)
+          {
+            ratio = 1;
+          }
+        }
+      }
+
+      /// update Features based on the calculated ratio
       col = 0;
-      for (Size i_of_f = 0; i_of_f < components_indices.size(); ++i_of_f)
+      for (Size i_of_f = 0; i_of_f < components_indices.size(); ++i_of_f) // iterate feature
       {
         // skipping not-this-feature column
         if (components_indices[i_of_f] == -1)
           continue;
 
-        auto &feat = features[feature_idx_in_current_conflict_region[i_of_f]];
-        int &lmt_index = conflicting_mt_idx_lookup_vec[i_of_f][row];
-        auto lmt_ptr = feat.mass_traces[lmt_index];
-        OPENMS_LOG_DEBUG << "feature " << col << " -> \t" << out_quant.getValue(col, 0)
+        auto &feat = conflicting_features[i_of_f];
+        auto lmt_ptr = std::find_if(feat.shared_traces.begin(), feat.shared_traces.end(),
+                                    [org_index_of_this_trace](auto &&x) { return x.getTraceIndex() == org_index_of_this_trace; });
+        OPENMS_LOG_DEBUG << "feature " << col << " -> \t" << calculated_ratio[col]
                         << "\t" << lmt_ptr->getMass() << "\t" << lmt_ptr->getCharge() << std::endl;
 
 //        auto temp_component = components[pointer_to_components.getValue(row, i_of_f)];
 //        double theo_intensity = std::accumulate(temp_component.begin(), temp_component.end(), 0.0);
 
         // Kyowon's advice! ratio should be applied to real intensity, not theoretical one
-        lmt_ptr->setIntensity(out_quant.getValue(col, 0) * obs_total_intensity);
-//        lmt_ptr->setIntensity(out_quant.getValue(col, 0) * theo_intensity);
+        lmt_ptr->setIntensity(calculated_ratio[col] * obs_total_intensity);
 
-        OPENMS_LOG_DEBUG << "--- theo[" << col << "]--- " << std::to_string(out_quant.getValue(col, 0)) << "\t"
+        OPENMS_LOG_DEBUG << "--- theo[" << col << "]--- " << std::to_string(calculated_ratio[col]) << "\t"
                          << std::to_string(lmt_ptr->getIntensity()) << "\n";
-//        OPENMS_LOG_INFO << std::to_string(lmt_ptr->getMass());
         for (auto &m: theo_matrix.col(col))
         {
           OPENMS_LOG_DEBUG << to_string(m) << ", ";
         }
         OPENMS_LOG_DEBUG << std::endl;
+//        OPENMS_LOG_INFO << std::to_string(lmt_ptr->getMass());
+
+        /// Update MassTrace itself
+        MassTrace updated = updateMassTrace(lmt_ptr->getMassTrace(), calculated_ratio[col]);
+        lmt_ptr->setMassTrace(updated);
+
         col++;
       }
     }
     components.clear();
+  }
+
+  // update MassTrace
+  MassTrace FLASHDeconvQuantAlgorithm::updateMassTrace(const MassTrace& ref_trace, const double &ratio) const
+  {
+    /// reference = ElutionPeakDetection::detectElutionPeaks_ (step3)
+    // if ratio = 0, return empty MassTrace
+    if (ratio == 0)
+    {
+      return MassTrace();
+    }
+
+    std::vector<PeakType> tmp_mt;
+    std::vector<double> smoothed_tmp;
+    for (Size p_index = 0; p_index < ref_trace.getSize(); ++p_index)
+    {
+      auto &peak = ref_trace[p_index];
+      PeakType new_peak(peak);
+      new_peak.setIntensity(peak.getIntensity() * ratio);
+      tmp_mt.push_back(new_peak);
+      smoothed_tmp.push_back(ref_trace.getSmoothedIntensities()[p_index]);
+    }
+
+    // create new mass trace
+    MassTrace new_trace(tmp_mt);
+    new_trace.setSmoothedIntensities(smoothed_tmp);
+    // set label as if it's a sub-trace
+    new_trace.setLabel(ref_trace.getLabel() + "_" + String(ratio));
+    new_trace.updateSmoothedMaxRT();
+    new_trace.updateWeightedMeanMZ();
+    new_trace.updateWeightedMZsd();
+    new_trace.setQuantMethod(ref_trace.getQuantMethod());
+    new_trace.estimateFWHM(use_smoothed_intensities_);
+
+    return new_trace;
   }
 
   // from ElutionModelFitter.

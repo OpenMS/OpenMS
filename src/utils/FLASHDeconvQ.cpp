@@ -162,12 +162,12 @@ protected:
           }
 
           // generate ConvexHull2D from FeatureSeed
-          MassTrace* mt_ptr = seed.getMassTrace();
-          ConvexHull2D::PointArrayType hull_points(mt_ptr->getSize());
+          const MassTrace& mt_ptr = seed.getMassTrace();
+          ConvexHull2D::PointArrayType hull_points(mt_ptr.getSize());
           std::vector<double> intensities;
 
           Size i = 0;
-          for (MassTrace::const_iterator l_it = mt_ptr->begin(); l_it != mt_ptr->end(); ++l_it)
+          for (MassTrace::const_iterator l_it = mt_ptr.begin(); l_it != mt_ptr.end(); ++l_it)
           {
             hull_points[i][0] = (*l_it).getRT();
             hull_points[i][1] = (*l_it).getMZ();
@@ -188,7 +188,7 @@ protected:
         // store calculated information
         feat.setConvexHulls(tmp_hulls);
         feat.setMZ(apex_ptr->getCentroidMz());
-        feat.setRT(apex_ptr->getMassTrace()->getCentroidRT());
+        feat.setRT(apex_ptr->getMassTrace().getCentroidRT());
         feat.setWidth(fwhm_end-fwhm_start);
         feat.setMetaValue("num_of_masstraces", intensity_of_hulls.size());
 
@@ -239,26 +239,26 @@ protected:
       // getting information while looping through mass traces in FeatureGroup
       for (auto &lmt: fg)
       {
-        auto lmt_ptr = lmt.getMassTrace();
-        mass_trace_labels.push_back(lmt_ptr->getLabel());
+        auto &lmt_ptr = lmt.getMassTrace();
+        mass_trace_labels.push_back(lmt_ptr.getLabel());
 
         // find apex
-        Size max_idx = lmt_ptr->findMaxByIntPeak(false);
-        apex_rts.push_back((*lmt_ptr)[max_idx].getRT());
+        Size max_idx = lmt_ptr.findMaxByIntPeak(false);
+        apex_rts.push_back(lmt_ptr[max_idx].getRT());
 
         if (use_smoothed_intensities)
         {
-          feature_quant += lmt_ptr->computeFwhmAreaSmooth();
+          feature_quant += lmt_ptr.computeFwhmAreaSmooth();
         }
         else
         {
-          feature_quant += lmt_ptr->computeFwhmArea();
+          feature_quant += lmt_ptr.computeFwhmArea();
         }
 
         // to calculate area
-        double previous_peak_inty = (*lmt_ptr)[0].getIntensity();
-        double previous_peak_rt = (*lmt_ptr)[0].getRT();
-        for (auto &peaks: *lmt_ptr)
+        double previous_peak_inty = lmt_ptr[0].getIntensity();
+        double previous_peak_rt = lmt_ptr[0].getRT();
+        for (auto &peaks: lmt_ptr)
         {
           all_area += (previous_peak_inty + peaks.getIntensity()) / 2 * (peaks.getRT() - previous_peak_rt);
           previous_peak_inty = peaks.getIntensity();
@@ -394,6 +394,7 @@ public:
     fdq.setParameters(fdq_param);
     std::vector<FeatureGroup> out_fgroups;
 
+    fdq.output_file_path_ = out;
     fdq.run(m_traces_final, out_fgroups);
 
     //-------------------------------------------------------------
