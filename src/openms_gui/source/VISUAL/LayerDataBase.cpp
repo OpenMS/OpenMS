@@ -168,7 +168,7 @@ namespace OpenMS
 
     if (success)
     {
-      log.appendNewHeader(LogWindow::LogState::NOTICE, "Done", "Annotation finished. Open identification view to see results!");
+      log.appendNewHeader(LogWindow::LogState::NOTICE, "Done", "Annotation finished. Open the corresponding view to see results!");
     }
     return success;
   }

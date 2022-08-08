@@ -1920,6 +1920,8 @@ namespace OpenMS
     {
       return;
     }
+    selection_view_->setCurrentIndex(DataSelectionTabs::DIAOSW_IDX); // switch to DIA view
+    selection_view_->currentTabChanged(DataSelectionTabs::DIAOSW_IDX);
   }
 
   void TOPPViewBase::showSpectrumGenerationDialog()

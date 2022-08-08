@@ -1350,11 +1350,12 @@ namespace OpenMS
     widget_1D->canvas()->setTextBox(QString());
 
     // remove precursor labels, theoretical spectra and trigger repaint
-    auto& cl = dynamic_cast<LayerData1DPeak&> (tv_->getActive1DWidget()->canvas()->getCurrentLayer());
-    removeTemporaryAnnotations_(cl.getCurrentIndex());
+    auto cl = dynamic_cast<LayerData1DPeak*> (&tv_->getActive1DWidget()->canvas()->getCurrentLayer());
+    if (!cl) return;
+    removeTemporaryAnnotations_(cl->getCurrentIndex());
     removeTheoreticalSpectrumLayer_();
-    cl.peptide_id_index = -1;
-    cl.peptide_hit_index = -1;
+    cl->peptide_id_index = -1;
+    cl->peptide_hit_index = -1;
     tv_->getActive1DWidget()->canvas()->repaint();
   }
 
