@@ -76,13 +76,35 @@ struct SOAPolicy<Container, TItem<Types...>> {
         return doGetConstRef( c_, position_, std::make_integer_sequence<unsigned, sizeof...( Types )>() ); // unrolling parameter pack
     }
 
+    constexpr static void reserve( type& c_, std::size_t size_ ) {
+        doReserve( c_, size_, std::make_integer_sequence<unsigned, sizeof...( Types )>() ); // unrolling parameter pack
+    }
+
+    constexpr static std::size_t erase( type& c_, size_t position_ ){
+        return doErase(c_, position_, std::make_integer_sequence<unsigned, sizeof...( Types )>() );
+    }
+
     constexpr static void resize( type& c_, std::size_t size_ ) {
         doResize( c_, size_, std::make_integer_sequence<unsigned, sizeof...( Types )>() ); // unrolling parameter pack
+    }
+
+    constexpr static void pop_back( type& c_ ){
+        doPopBack( c_, std::make_integer_sequence<unsigned, sizeof...( Types )>() ); // unrolling parameter pack
+    }
+
+    template <typename TValue>
+    constexpr static void emplace_back( type& c_, TValue&& val_ ){
+        doEmplaceBack( c_, std::forward<TValue>(val_), std::make_integer_sequence<unsigned, sizeof...( Types )>() ); // unrolling parameter pack
     }
 
     template <typename TValue>
     constexpr static void push_back( type& c_, TValue&& val_ ){
         doPushBack( c_, std::forward<TValue>(val_), std::make_integer_sequence<unsigned, sizeof...( Types )>() ); // unrolling parameter pack
+    }
+
+    template <typename TValue>
+    constexpr static void insert( type& c_, size_t position_, TValue&& val_ ){
+        doInsert( c_, position_, std::forward<TValue>(val_), std::make_integer_sequence<unsigned, sizeof...( Types )>() ); // unrolling parameter pack
     }
 
     static constexpr std::size_t size(const type& c_){ return std::get<0>( c_ ).size(); }
@@ -108,15 +130,45 @@ struct SOAPolicy<Container, TItem<Types...>> {
     }
 
     template <unsigned... Ids>
+    constexpr static void doReserve( type& c_, unsigned size_, std::integer_sequence<unsigned, Ids...> )
+    {
+        ( std::get<Ids>( c_ ).reserve( size_ ), ... ); //fold expressions
+    }
+
+    template <unsigned... Ids>
+    constexpr static std::size_t doErase( type& c_, std::size_t position_, std::integer_sequence<unsigned, Ids...> )
+    {
+        return ( std::get<Ids>( c_ ).erase(std::get<Ids>( c_ ).begin() + position_), ... ) - std::get<sizeof...(Ids)-1>( c_ ).begin();  // fold expressions
+    }
+
+    template <unsigned... Ids>
     constexpr static void doResize( type& c_, unsigned size_, std::integer_sequence<unsigned, Ids...> )
     {
         ( std::get<Ids>( c_ ).resize( size_ ), ... ); //fold expressions
+    }
+
+    template <unsigned... Ids>
+    constexpr static void doPopBack( type& c_, std::integer_sequence<unsigned, Ids...> )
+    {
+        ( std::get<Ids>( c_ ).pop_back(), ... ); // fold expressions
+    }
+
+    template <typename TValue, unsigned... Ids>
+    constexpr static void doEmplaceBack( type& c_, TValue&& val_, std::integer_sequence<unsigned, Ids...> )
+    {
+        ( std::get<Ids>( c_ ).emplace_back( std::get<Ids>( std::forward<TValue>( val_ ) ) ), ... ); // fold expressions
     }
 
     template <typename TValue, unsigned... Ids>
     constexpr static void doPushBack( type& c_, TValue&& val_, std::integer_sequence<unsigned, Ids...> )
     {
         ( std::get<Ids>( c_ ).push_back( std::get<Ids>( std::forward<TValue>( val_ ) ) ), ... ); // fold expressions
+    }
+
+    template <typename TValue, unsigned... Ids>
+    constexpr static void doInsert( type& c_, std::size_t position_, TValue&& val_, std::integer_sequence<unsigned, Ids...> )
+    {
+        ( std::get<Ids>( c_ ).insert(std::get<Ids>( c_ ).begin() + position_, std::get<Ids>( std::forward<TValue>( val_ ) ) ), ... ); // fold expressions
     }
 };
 
@@ -137,10 +189,56 @@ struct BaseContainer
         resize(size_);
     }
 
+    bool empty()
+    {
+        if(this->size()==0)
+            return true;
+        
+        return false;
+    }
+
+    void pop_back()
+    {
+        policy_t::pop_back(mValues);
+    }
+
+    template <typename Fwd>
+    void emplace_back( Fwd&& val )
+    {
+        policy_t::emplace_back( mValues, std::forward<Fwd>(val) );
+    }
+
     template <typename Fwd>
     void push_back( Fwd&& val )
     {
         policy_t::push_back( mValues, std::forward<Fwd>(val) );
+    }
+
+    void reserve( size_t size_ )
+    {
+        policy_t::reserve(mValues, size_);
+    }
+
+    iterator erase( iterator it )
+    {
+        std::size_t position_ = it.getPosition();
+        std::size_t newPos_ = policy_t::erase( mValues, position_ );
+        return (this->begin() + newPos_);
+    }
+
+    value_type front(){
+        return policy_t::front( mValues);
+    }
+
+    value_type back(){
+        return policy_t::back( mValues);
+    }
+
+    template <typename Fwd>
+    void insert(iterator it, Fwd&& val )
+    {
+        std::size_t position_ = it-this->begin();
+        policy_t::insert( mValues, position_, std::forward<Fwd>(val) );
     }
 
     std::size_t size() const {
@@ -232,10 +330,10 @@ public:
         // mContainer = other_.mContainer;
     }
 
-    difference_type operator+( Iterator const& other_ ){ std::cout << "foo+" << std::endl; return mIterPosition + other_.mIterPosition; }
-    difference_type operator-( Iterator const& other_ ){ std::cout << "foo-" << std::endl; return mIterPosition - other_.mIterPosition; }
+    difference_type operator+( Iterator const& other_ ){ return mIterPosition + other_.mIterPosition; }
+    difference_type operator-( Iterator const& other_ ){ return mIterPosition - other_.mIterPosition; }
     template <typename T>
-    Iterator operator+( T add ){std::cout << "foo+int" << std::endl; return Iterator(this->mContainer, this->mIterPosition + add); }
+    Iterator operator+( T add ){ return Iterator(this->mContainer, this->mIterPosition + add); }
     template <typename T>
     Iterator operator-( T sub ){ return Iterator(this->mContainer, this->mIterPosition - sub); }
 
@@ -270,6 +368,10 @@ public:
     value_type operator*() {
         //std::cout << "Pos:" << mIterPosition << std::endl;
         return (*mContainer)[ mIterPosition ];
+    }
+
+    std::size_t getPosition () {
+        return this->mIterPosition;
     }
 
     proxy_holder<value_type> operator ->() {
@@ -309,10 +411,10 @@ public:
         // mContainer = other_.mContainer;
     }
 
-    difference_type operator+( ConstIterator const& other_ ){ std::cout << "foo+" << std::endl; return mIterPosition + other_.mIterPosition; }
-    difference_type operator-( ConstIterator const& other_ ){ std::cout << "foo-" << std::endl; return mIterPosition - other_.mIterPosition; }
+    difference_type operator+( ConstIterator const& other_ ){ return mIterPosition + other_.mIterPosition; }
+    difference_type operator-( ConstIterator const& other_ ){ return mIterPosition - other_.mIterPosition; }
     template <typename T>
-    ConstIterator operator+( T add ){std::cout << "foo+int" << std::endl; return ConstIterator(this->mContainer, this->mIterPosition + add); }
+    ConstIterator operator+( T add ){ return ConstIterator(this->mContainer, this->mIterPosition + add); }
     template <typename T>
     ConstIterator operator-( T sub ){ return ConstIterator(this->mContainer, this->mIterPosition - sub); }
 
@@ -382,6 +484,12 @@ struct Peak1DT : public std::tuple<T ...>{
     void friend swap(Peak1DT&& a, Peak1DT&& b)
     {
         a.swap(b);
+    }
+
+    friend std::ostream & operator<<(std::ostream & os, const Peak1DT & peak)
+    {
+        os << "POS: " << peak.getMZ() << " INT: " << peak.getIntensity();
+        return os;
     }
 
     auto & getMZ() {return std::get<eMz>(*this);}
