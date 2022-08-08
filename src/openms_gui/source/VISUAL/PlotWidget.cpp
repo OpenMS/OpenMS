@@ -45,6 +45,7 @@
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QScrollBar>
+#include <QScrollBar>
 
 using namespace std;
 
@@ -245,48 +246,37 @@ namespace OpenMS
     x_axis_->hide();
   }
 
-  void PlotWidget::updateHScrollbar(float f_min, float disp_min, float disp_max, float f_max)
+  void updateScrollbar(QScrollBar* scroll, float f_min, float disp_min, float disp_max, float f_max)
   {
-    if ((disp_min == f_min && disp_max == f_max) || (disp_min < f_min &&  disp_max > f_max))
+    if ((disp_min == f_min && disp_max == f_max) || (disp_min < f_min && disp_max > f_max))
     {
-      x_scrollbar_->hide();
+      scroll->hide();
     }
     else
     {
-      //block signals as this causes repainting due to rounding (QScrollBar works with int ...)
-      int local_min = min(f_min, disp_min);
-      int local_max = max(f_max, disp_max);
-      x_scrollbar_->blockSignals(true);
-      x_scrollbar_->show();
-      x_scrollbar_->setMinimum(static_cast<int>(local_min));
-      x_scrollbar_->setMaximum(static_cast<int>(std::ceil(local_max - disp_max + disp_min)));
-      x_scrollbar_->setValue(static_cast<int>(disp_min));
-      x_scrollbar_->setPageStep(static_cast<int>(disp_max - disp_min));
-      x_scrollbar_->blockSignals(false);
+      // block signals as this causes repainting due to rounding (QScrollBar works with int ...)
+      auto local_min = min(f_min, disp_min);
+      auto local_max = max(f_max, disp_max);
+      auto vis_span = disp_max - disp_min;
+      scroll->blockSignals(true);
+      //scroll->setMinimum(static_cast<int>(local_min));
+      //scroll->setMaximum(static_cast<int>(std::ceil(local_max - disp_max + disp_min)));
+      scroll->setRange(int(local_min), int(std::ceil(local_max - vis_span)));
+      scroll->setValue(int(disp_min)); // emits valueChanged, which will call this function here unless signal is blocked
+      scroll->setPageStep(vis_span);
+      scroll->blockSignals(false);
+      scroll->show();
     }
+  }
+
+  void PlotWidget::updateHScrollbar(float f_min, float disp_min, float disp_max, float f_max)
+  {
+    updateScrollbar(x_scrollbar_, f_min, disp_min, disp_max, f_max);
   }
 
   void PlotWidget::updateVScrollbar(float f_min, float disp_min, float disp_max, float f_max)
   {
-    if ((disp_min == f_min && disp_max == f_max) || (disp_min < f_min &&  disp_max > f_max))
-    {
-      y_scrollbar_->hide();
-    }
-    else
-    {
-      //block signals as this causes repainting due to rounding (QScrollBar works with int ...)
-      int local_min = min(f_min, disp_min);
-      int local_max = max(f_max, disp_max);
-      y_scrollbar_->blockSignals(true);
-      y_scrollbar_->show();
-      // we use negative min/max here, because our coordinate system is inverted (small values are the bottom, higher values at the top)
-      // and we want the scrollbar to move correctly when clicking it
-      y_scrollbar_->setMaximum(static_cast<int>(-local_min));
-      y_scrollbar_->setMinimum(static_cast<int>(-std::ceil(local_max - (disp_max - disp_min))));
-      y_scrollbar_->setValue(static_cast<int>(-disp_min)); // 'disp_min' would be expected, but we invert, since our coordinate system is bottom to top
-      y_scrollbar_->setPageStep(static_cast<int>(disp_max - disp_min));
-      y_scrollbar_->blockSignals(false);
-    }
+    updateScrollbar(y_scrollbar_, f_min, disp_min, disp_max, f_max);
   }
 
   void PlotWidget::changeLegendVisibility()

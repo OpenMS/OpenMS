@@ -167,15 +167,17 @@ namespace OpenMS
     projectionInfo_(stats.number_of_datapoints, stats.sum_intensity, stats.max_intensity);
 
     auto va = canvas()->getVisibleArea().getAreaXY();
+
     projection_onto_Y_->showLegend(false);
+    projection_onto_Y_->setMapper({{DIM_UNIT::INT, canvas_->getMapper().getDim(DIM::Y).getUnit()}}); // must be done before addLayer()
     projection_onto_Y_->canvas()->removeLayers();
     projection_onto_Y_->canvas()->addLayer(std::move(projection_ontoY));
     // manually set projected unit, since 'addPeakLayer' will guess a visible area, but we want the exact same scaling
     projection_onto_Y_->canvas()->setVisibleAreaY(va.minY(), va.maxY());
     grid_->setColumnStretch(3, 2);
-    
 
     projection_onto_X_->showLegend(false);
+    projection_onto_X_->setMapper({{canvas_->getMapper().getDim(DIM::X).getUnit(), DIM_UNIT::INT}}); // must be done before addLayer()
     projection_onto_X_->canvas()->removeLayers();
     projection_onto_X_->canvas()->addLayer(std::move(projection_ontoX));
     // manually set projected unit, since 'addPeakLayer' will guess a visible area, but we want the exact same scaling

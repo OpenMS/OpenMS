@@ -909,6 +909,12 @@ namespace OpenMS
       setArea(a);
     }
 
+    /// empty all dimensions
+    void clear()
+    {
+      setArea(RangeAllType());
+    }
+
   private:
     /* two sides of the same coin... */
     RangeAllType data_range_;                     ///< range in units

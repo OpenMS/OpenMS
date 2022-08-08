@@ -411,6 +411,7 @@ public:
       {
         removeLayer(i-1);
       }
+      visible_area_.clear(); // reset visible area
     }
 
     /// Add an already constructed layer (e.g. for projections)
@@ -897,7 +898,7 @@ protected:
 
         In this mode the highest currently visible intensity is treated like the maximum overall intensity.
 
-        One entry per layer.
+        Single entry for 1D. Multiple (one per layer) in 2D.
     */
     std::vector<double> snap_factors_ = {1.0};
 

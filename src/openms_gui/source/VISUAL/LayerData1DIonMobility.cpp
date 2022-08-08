@@ -88,7 +88,7 @@ namespace OpenMS
     }
 
     auto nearest_it = left_it;
-    const auto center_intensity = peak_lt.getIntensity() + peak_rb.getIntensity();
+    const auto center_intensity = (peak_lt.getIntensity() + peak_rb.getIntensity()) * 0.5;
     for (auto it = left_it; it != right_it; ++it)
     {
       if (abs(center_intensity - it->getIntensity()) < abs(center_intensity - nearest_it->getIntensity()))

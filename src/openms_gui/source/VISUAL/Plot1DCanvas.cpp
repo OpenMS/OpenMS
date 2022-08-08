@@ -49,6 +49,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerData1DChrom.h>
@@ -188,25 +189,16 @@ namespace OpenMS
     {
       return false;
     }
-
-    setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-    setIntensityMode(Plot1DCanvas::IM_NONE);
-
-    auto ld = dynamic_cast<LayerDataChrom&>(getCurrentLayer());
+    auto ld = dynamic_cast<LayerData1DChrom&>(getCurrentLayer());
     ld.setName(caption);
     ld.getChromatogramAnnotation() = chrom_annotation; // copy over shared-ptr to OSW-sql data (if available)
+    ld.setCurrentIndex(index);                         // use this chrom for visualization
+
+    setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
+//    setIntensityMode(Plot1DCanvas::IM_NONE);
+
     // extend the currently visible area, so the new data is visible
     auto va = visible_area_.getAreaUnit();
-    if (auto ld1d = dynamic_cast<LayerData1DChrom*>(&ld))
-    {
-      ld1d->setCurrentIndex(index); // use this chrom for visualization
-      va.extend(chrom_exp_sptr->getChromatogram(index).getRange());
-    }
-    else
-    { // full experiment (for 2D)
-      va.extend(chrom_exp_sptr->getRange());
-    }
-
 
     return true;
   }       
@@ -763,8 +755,6 @@ namespace OpenMS
 
   bool Plot1DCanvas::finishAdding_()
   {
-    getCurrentLayer().updateRanges();
-
 /*    const MSSpectrum& spectrum = getCurrentLayer().getCurrentSpectrum();
     // Abort if no data points are contained (note that all data could be on disk)
     if (spectrum.empty())
@@ -811,6 +801,7 @@ namespace OpenMS
     selected_peak_.clear();
 
     // update ranges
+    getCurrentLayer().updateRanges();
     recalculateRanges_();
 
     resetZoom(false); // no repaint as this is done in intensityModeChange_() anyway
@@ -924,7 +915,8 @@ namespace OpenMS
   void Plot1DCanvas::horizontalScrollBarChange(int value)
   {
     auto new_area = visible_area_.getAreaXY();
-    new_area += decltype(new_area)::PositionType(value, 0);
+    float shift = value - new_area.center().getX();
+    new_area += decltype(new_area)::PositionType(shift, 0);
     changeVisibleArea_(new_area);
   }
 
@@ -1206,13 +1198,14 @@ namespace OpenMS
     }
     else
     { // only zoom the non-gravity axis
-      constexpr PointXYType::CoordinateType zoom_factor = 0.8;
+      constexpr PointXYType::CoordinateType zoom_factor = 0.8; // i.e. we crop 20% in total (from left + right, depending on where user clicked)
       // we want to zoom into (x,y), which is in pixel units, hence we need to know the relative position of (x,y) in the widget
       double rel_pos = gr_.getGravityAxis() == DIM::Y ? (PointXYType::CoordinateType)x / width() : (PointXYType::CoordinateType)(height() - y) / height();
       auto new_area = visible_area_.getAreaXY();
       if (gr_.getGravityAxis() == DIM::X) new_area.swapDimensions(); // temporarily swap X<>Y if gravity acts on X
-      new_area.setMinX(new_area.minX() + (1.0 - zoom_factor) * new_area.width() * rel_pos);
-      new_area.setMaxX(new_area.minX() + zoom_factor * new_area.width());
+      auto zoomed = Math::zoomIn(new_area.minX(), new_area.maxX(), zoom_factor, rel_pos);
+      new_area.setMinX(zoomed.first);
+      new_area.setMaxX(zoomed.second);
       if (gr_.getGravityAxis() == DIM::X) new_area.swapDimensions(); // swap back
 
       if (new_area != visible_area_.getAreaXY())

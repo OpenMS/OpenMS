@@ -89,6 +89,33 @@ namespace OpenMS
       return min <= value && value <= max;
     }
 
+    /**
+     * \brief Zoom into an interval [left, right], decreasing its width by @p factor (which must be in [0,1]).
+     * 
+     * @p rel_pos determines where the zoom happens (between [0,1]), 
+     *   i.e. rel_pos = 0 leaves @p left the same and reduces @p right
+     *        whereas rel_pos = 0.5 zooms into the center of the range etc
+     * \tparam T Type, e.g. double
+     * \return [new_left, new_right] as pair
+     */
+    template<typename T>
+    std::pair<T,T> zoomIn(const T left, const T right, const float factor, const float rel_pos)
+    {
+      OPENMS_PRECONDITION(factor <= 1, "Factor must be <=1")
+      OPENMS_PRECONDITION(factor >= 0, "Factor must be >=0")
+      OPENMS_PRECONDITION(rel_pos <= 1, "rel_pos must be <=1")
+      OPENMS_PRECONDITION(rel_pos >= 0, "rel_pos must be >=0")
+      std::pair<T, T> res;
+      auto old_width = right - left;
+      auto offset_left = (1.0f - factor) * old_width * rel_pos;
+      res.first = left + offset_left;
+      res.second = res.first + old_width * factor;
+      return res;
+    }
+
+
+
+
 
     /**
       @brief rounds @p x up to the next decimal power 10 ^ @p decPow

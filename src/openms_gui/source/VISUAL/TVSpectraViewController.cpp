@@ -87,6 +87,34 @@ namespace OpenMS
     tv_->updateMenu();
   }
 
+  bool add1DChromLayers(const std::vector<int>& indices,
+                        Plot1DWidget* target, 
+                        LayerDataDefs::ExperimentSharedPtrType chrom_exp_sptr,
+                        LayerDataDefs::ODExperimentSharedPtrType ondisc_sptr,
+                        OSWDataSharedPtrType chrom_annotation,
+                        const String& layer_basename,
+                        const String& filename)
+  {
+    //
+    for (const auto& index : indices)
+    {
+      // get caption (either chromatogram idx or peptide sequence, if available)
+      String chrom_caption = layer_basename + "[" + index + "]";
+      if (chrom_exp_sptr->metaValueExists("peptide_sequence"))
+      {
+        chrom_caption = String(chrom_exp_sptr->getMetaValue("peptide_sequence"));
+      }
+      ((chrom_caption += "[") += index) += "]";
+
+      // add chromatogram data
+      if (!target->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, chrom_annotation, index, filename, chrom_caption, true))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
   void TVSpectraViewController::showChromatogramsAsNew1D(const std::vector<int>& indices)
   {
     // show multiple spectra together is only used for chromatograms directly
@@ -98,25 +126,16 @@ namespace OpenMS
     auto ondisc_sptr = layer_chrom->getOnDiscPeakData();
 
     // open new 1D widget
-    Plot1DWidget* w = new Plot1DWidget(tv_->getCanvasParameters(1), DIM::Y, (QWidget *)tv_->getWorkspace());
+    auto* w = new Plot1DWidget(tv_->getCanvasParameters(1), DIM::Y, (QWidget *)tv_->getWorkspace());
     // use RT + intensity mapping
     w->setMapper({{DIM_UNIT::RT, DIM_UNIT::INT}});
 
-
-    for (const auto& index : indices)
+    if (!add1DChromLayers(indices, w, layer_chrom->getChromatogramData(), layer_chrom->getOnDiscPeakData(),
+                     layer_chrom->getChromatogramAnnotation(), layer_chrom->getName(), layer_chrom->filename))
     {
-      // set layer name
-      String chromatogram_caption = layer_chrom->getName() + "[" + index + "]";
-
-      // add chromatogram data
-      if (!w->canvas()->addChromLayer(exp_sptr, ondisc_sptr, layer_chrom->getChromatogramAnnotation(), index, layer_chrom->filename, chromatogram_caption, true))
-      {
-        return;
-      }
+      return;
     }
-
-    //w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea()); 
-    // set relative (%) view of visible area
+    // set relative (%) view of visible area (recalcs snap factor)
     w->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
 
     tv_->showPlotWidgetInWindow(w);
@@ -144,31 +163,27 @@ namespace OpenMS
     if (widget_1d == nullptr) return;
     if (widget_1d->canvas()->getLayerCount() == 0) return;
 
-    const LayerDataChrom* layer = dynamic_cast<LayerDataChrom*>(&widget_1d->canvas()->getCurrentLayer());
+    const auto* layer = dynamic_cast<LayerDataChrom*>(&widget_1d->canvas()->getCurrentLayer());
     if (!layer) return;
 
-    ExperimentSharedPtrType chrom_sptr = layer->getChromatogramData();
-
-    const String fname = layer->filename;
-    auto annotation = layer->getChromatogramAnnotation();
+    auto chrom_sptr = layer->getChromatogramData();
     auto ondisc_sptr = layer->getOnDiscPeakData();
+    auto annotation = layer->getChromatogramAnnotation();
+    const String basename = layer->getName();
+    const String filename = layer->filename;
     widget_1d->canvas()->removeLayers(); // this actually deletes layer
     layer = nullptr;                     // ... make sure its not used any more
 
     widget_1d->canvas()->blockSignals(true);
     RAIICleanup clean([&]() {widget_1d->canvas()->blockSignals(false); });
-    for (const auto& index : indices)
+    
+    if (!add1DChromLayers(indices, widget_1d, chrom_sptr, ondisc_sptr, annotation, basename,
+                          filename))
     {
-      // get caption (either chromatogram idx or peptide sequence, if available)
-      String caption = fname;
-      if (chrom_sptr->metaValueExists("peptide_sequence"))
-      {
-        caption = String(chrom_sptr->getMetaValue("peptide_sequence"));
-      }
-      ((caption += "[") += index) += "]";
-      // add chromatogram data as peak spectrum
-      widget_1d->canvas()->addChromLayer(chrom_sptr, ondisc_sptr, annotation, index, fname, caption, true);
+      return;
     }
+    // set relative (%) view of visible area (recalcs snap factor)
+    widget_1d->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
 
     tv_->updateBarsAndMenus(); // needed since we blocked update above (to avoid repeated layer updates for many layers!)
   }

@@ -214,10 +214,16 @@ namespace OpenMS
       const double rel_pos_x = (PointXYType::CoordinateType)x / width();
       const double rel_pos_y = (PointXYType::CoordinateType)(height() - y) / height();
       auto new_area = visible_area_.getAreaXY();
-      new_area.setMinX(new_area.minX() + (1.0 - zoom_factor) * new_area.width() * rel_pos_x);
-      new_area.setMaxX(new_area.minX() + zoom_factor * new_area.width());
-      new_area.setMinY(new_area.minY() + (1.0 - zoom_factor) * new_area.height() * rel_pos_y);
-      new_area.setMaxY(new_area.minY() + zoom_factor * new_area.height());
+      {
+        auto zoomed = Math::zoomIn(new_area.minX(), new_area.maxX(), zoom_factor, rel_pos_x);
+        new_area.setMinX(zoomed.first);
+        new_area.setMaxX(zoomed.second);
+      }
+      {
+        auto zoomed = Math::zoomIn(new_area.minY(), new_area.maxY(), zoom_factor, rel_pos_y);
+        new_area.setMinY(zoomed.first);
+        new_area.setMaxY(zoomed.second);
+      }
 
       if (new_area != visible_area_.getAreaXY())
       {
