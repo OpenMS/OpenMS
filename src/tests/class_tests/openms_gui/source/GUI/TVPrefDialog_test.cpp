@@ -56,8 +56,10 @@ void TestTVPrefDialog::testConstruction()
   QVERIFY2(UI->buttonBox, "Dialog button box not created.");
 
   // General tab
-  QVERIFY2(UI->browse_default, "'Browse' button not created.");
+  QVERIFY2(UI->browse_default, "'Browse' path button not created.");
   QVERIFY2(UI->default_path, "Default path line edit not created.");
+  QVERIFY2(UI->browse_plugins, "'Browse' plugins button not created.");
+  QVERIFY2(UI->plugins_path, "Plugins path line edit not created.");
   QVERIFY2(UI->default_path_current, "'Use current path' check box not created.");
   QVERIFY2(UI->map_default, "'Default map view' combo box not created.");
   QVERIFY2(UI->map_cutoff, "'Low intensity cutoff' combo box not created.");
@@ -65,6 +67,7 @@ void TestTVPrefDialog::testConstruction()
   QVERIFY2(UI->use_cached_ms1, "'Cache MS1 spectra to disk' check box not created.");
   QVERIFY2(UI->use_cached_ms2, "'Cache MS2 spectra to disk' check box not created.");
   QVERIFY2(UI->default_path_label, "'Default path:' label not created.");
+  QVERIFY2(UI->plugins_path_label, "'Plugins path:' label not created.");
   QVERIFY2(UI->default_map_label, "'Default map view:' label not created.");
   QVERIFY2(UI->intensity_cutoff_label, "'Low intensity cutoff:' label not created.");
   QVERIFY2(UI->file_change_label, "'Action when file changes:' label not created.");
@@ -130,17 +133,29 @@ void TestTVPrefDialog::testGui()
 
   // test path input methods
   
-  // file dialog
+  // file dialog (default path)
   QTimer::singleShot(DELAY, this, &TestTVPrefDialog::checkFileDialog_);
   QTest::mouseClick(UI->browse_default, Qt::LeftButton, 0, QPoint());
   QTest::qWait(DELAY);
 
-  // line edit
+  // line edit (default path)
   UI->default_path->clear();
   QTest::keyClicks(UI->default_path, "C:\\dev");
   QVERIFY2(UI->default_path->text() == "C:\\dev", "Line edit for default path broken.");
   QTest::qWait(DELAY);
   UI->default_path->clear();
+
+  // file dialog (plugins path)
+  QTimer::singleShot(DELAY, this, &TestTVPrefDialog::checkFileDialog_);
+  QTest::mouseClick(UI->browse_plugins, Qt::LeftButton, 0, QPoint());
+  QTest::qWait(DELAY);
+
+  // line edit (plugins path)
+  UI->plugins_path->clear();
+  QTest::keyClicks(UI->plugins_path, "C:\\dev");
+  QVERIFY2(UI->plugins_path->text() == "C:\\dev", "Line edit for plugins path broken.");
+  QTest::qWait(DELAY);
+  UI->plugins_path->clear();
 
 
   // test check boxes
