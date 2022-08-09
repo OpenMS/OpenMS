@@ -1,12 +1,12 @@
 OpenMS
 =======
 
-[![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
+[![License (3-Clause BSD)](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
 [![Project Stats](https://www.openhub.net/p/open-ms/widgets/project_thin_badge.gif)](https://www.openhub.net/p/open-ms)
 [![Discord Shield](https://img.shields.io/discord/832282841836159006?style=flat-square&message=Discord&color=5865F2&logo=Discord&logoColor=FFFFFF&label=Discord)](https://discord.gg/4TAGhqJ7s5)
 [![Gitter](https://img.shields.io/static/v1?style=flat-square&message=on%20Gitter&color=ED1965&logo=Gitter&logoColor=FFFFFF&label=Chat)](https://gitter.im/OpenMS/OpenMS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/openms-meta/README.html)
-[![documentation](https://codedocs.xyz/doxygen/doxygen.svg)](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html)
+[![Install with bioconda](https://img.shields.io/badge/Install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/openms-meta/README.html)
+[![Documentation](https://codedocs.xyz/doxygen/doxygen.svg)](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html)
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/OpenMS/OpenMS) 
 [![Anaconda-Server Badge](https://anaconda.org/openms/pyopenms/badges/version.svg)](https://anaconda.org/openms/pyopenms)
 
