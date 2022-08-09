@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,7 +55,7 @@ namespace OpenMS
       * @param mzml_file_paths path to mzML files referenced in consensusXML. Used to extract spectra as MGF.
       * @param out MGF file with MS2 peak data for molecular networking.
       */
-      void run(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const;
+      void store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const;
 
     private:
       static constexpr double DEF_COSINE_SIMILARITY = 0.9;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -153,6 +153,11 @@ namespace OpenMS
 
     /// check if @p type is contained in this array
     bool contains(const FileTypes::Type& type) const;
+
+    const std::vector<FileTypes::Type>& getTypes() const
+    {
+      return type_list_;
+    }
 
     /// converts the array into a Qt-compatible filter for selecting files in a user dialog.
     /// e.g. "all readable files (*.mzML *.mzXML);;". See Filter enum.

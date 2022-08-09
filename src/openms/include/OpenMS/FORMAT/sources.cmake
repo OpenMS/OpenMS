@@ -36,12 +36,15 @@ ExperimentalDesignFile.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
+GNPSMetaValueFile.h
 GNPSMGFFile.h
+GNPSQuantificationFile.h
 GzipIfstream.h
 GzipInputStream.h
 HDF5Connector.h
 IBSpectraFile.h
 IdXMLFile.h
+IndentedStream.h
 IndexedMzMLFileLoader.h
 InspectInfile.h
 InspectOutfile.h

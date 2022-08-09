@@ -23,12 +23,15 @@ FASTAFile.cpp
 FeatureXMLFile.cpp
 FileHandler.cpp
 FileTypes.cpp
+GNPSMetaValueFile.cpp
 GNPSMGFFile.cpp
+GNPSQuantificationFile.cpp
 GzipIfstream.cpp
 GzipInputStream.cpp
 HDF5Connector.cpp
 IBSpectraFile.cpp
 IdXMLFile.cpp
+IndentedStream.cpp
 IndexedMzMLFileLoader.cpp
 InspectInfile.cpp
 InspectOutfile.cpp

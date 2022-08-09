@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,6 +51,7 @@ using namespace std;
 using RangeMType = RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility>;
 using RangeMTypeInt = RangeManager<RangeIntensity>;
 using RangeMTypeMzInt = RangeManager<RangeMZ, RangeIntensity>;
+using RangeMTypeRT = RangeManager<RangeRT>;
 
 class RM : public RangeMType
 {
@@ -139,6 +140,23 @@ START_SECTION(RangeBase(const double min, const double max))
   TEST_EXCEPTION(Exception::InvalidRange, RangeBase(6, 3))
 END_SECTION
 
+START_SECTION(const RangeBase& rhs)
+  RangeBase b_(4, 6);
+  auto b(b_);
+  TEST_EQUAL(b.isEmpty(), false)
+  TEST_EQUAL(b.getMin(), 4)
+  TEST_EQUAL(b.getMax(), 6)
+END_SECTION
+
+START_SECTION(RangeBase& operator=(const RangeBase& rhs))
+  RangeBase b_(4, 6);
+  RangeBase b;
+  b = b_;
+  TEST_EQUAL(b.isEmpty(), false)
+  TEST_EQUAL(b.getMin(), 4)
+  TEST_EQUAL(b.getMax(), 6)
+END_SECTION
+
 START_SECTION(void clear())
   RangeBase b(4, 6);
   TEST_EQUAL(b.isEmpty(), false)
@@ -220,6 +238,68 @@ START_SECTION(void extend(const double value))
   TEST_EQUAL(b3.getMax(), 6)
 END_SECTION
 
+START_SECTION(void extendLeftRight(const double by))
+  RangeBase b(4, 6);
+  b.extendLeftRight(1);
+  TEST_EQUAL(b.getMin(), 3)
+  TEST_EQUAL(b.getMax(), 7)
+  RangeBase b2(2, 8);
+  b2.extendLeftRight(-2);
+  TEST_EQUAL(b2.getMin(), 4)
+  TEST_EQUAL(b2.getMax(), 6)
+  b2.extendLeftRight(-19);
+  TEST_TRUE(b2.isEmpty())
+  RangeBase empty;
+  empty.extendLeftRight(100);
+  TEST_TRUE(empty.isEmpty())
+END_SECTION
+
+START_SECTION(void clampTo(const RangeBase& other))
+  RangeBase b(-4, 6);
+  b.clampTo({-2, 7});
+  TEST_EQUAL(b.getMin(), -2)
+  TEST_EQUAL(b.getMax(), 6)
+  RangeBase b2(4, 6);
+  b2.clampTo({1, 5});
+  TEST_EQUAL(b2.getMin(), 4)
+  TEST_EQUAL(b2.getMax(), 5)
+  b2.clampTo({4.5, 4.5});
+  TEST_EQUAL(b2.getMin(), 4.5)
+  TEST_EQUAL(b2.getMax(), 4.5)
+  RangeBase b3(4, 6);
+  b3.clampTo({10, 11});
+  TEST_TRUE(b3.isEmpty())
+  RangeBase b4(4, 6);
+  TEST_EXCEPTION(Exception::InvalidRange, b4.clampTo(RangeBase()))
+END_SECTION
+
+START_SECTION(void pushInto(const RangeBase& sandbox))
+  RangeBase b(-4, 6);
+  b.pushInto({-2, 7});        // moves and clips
+  TEST_EQUAL(b.getMin(), -2)
+  TEST_EQUAL(b.getMax(), 7)
+  RangeBase b2(4, 6);
+  b2.pushInto({1, 15});       // does nothing
+  TEST_EQUAL(b2.getMin(), 4)
+  TEST_EQUAL(b2.getMax(), 6)
+  b2.pushInto({4.5, 4.5});    // hard clip inside old range
+  TEST_EQUAL(b2.getMin(), 4.5)
+  TEST_EQUAL(b2.getMax(), 4.5)
+  RangeBase b3(4, 6);         // move left, no clip
+  b3.pushInto({-10, 5});
+  TEST_EQUAL(b3.getMin(), 3)
+  TEST_EQUAL(b3.getMax(), 5)
+  b3.pushInto({4, 10});       // move right, no clip
+  TEST_EQUAL(b3.getMin(), 4)
+  TEST_EQUAL(b3.getMax(), 6)
+  RangeBase b4(4, 6);         // hard clip outside old range
+  b4.pushInto({-10, -10});
+  TEST_EQUAL(b4.getMin(), -10)
+  TEST_EQUAL(b4.getMax(), -10)
+  RangeBase b5(4, 6);
+  TEST_EXCEPTION(Exception::InvalidRange, b5.pushInto(RangeBase()))
+  END_SECTION
+
 START_SECTION(void scaleBy(const double factor))
   RangeBase b(4, 6);
   b.scaleBy(10); // diff is 2, so extend distance to 20, by increase of 9 on each side
@@ -232,20 +312,41 @@ START_SECTION(void scaleBy(const double factor))
   TEST_EQUAL(empty1, empty2)
 END_SECTION
 
-START_SECTION(void assign(const RangeBase& rhs))
-  RangeBase b(4, 6), empty;
-  empty.assign(b);
-  TEST_EQUAL(empty.getMin(), 4)
-  TEST_EQUAL(empty.getMax(), 6)
+START_SECTION(void shift(const double distance))
+  RangeBase b(4, 6);
+  b.shift(10);
+  TEST_EQUAL(b.getMin(), 14)
+  TEST_EQUAL(b.getMax(), 16)
+
+  // shifting empty ranges does nothing
+  RangeBase empty1, empty2;
+  empty1.shift(10);
+  TEST_EQUAL(empty1, empty2)
 END_SECTION
+
+START_SECTION(double center() const)
+  RangeBase b(4, 6);
+  TEST_EQUAL(b.center(), 5)
+
+  RangeBase empty;
+  TEST_TRUE(std::isnan(empty.center()));
+END_SECTION
+
+START_SECTION(double getSpan() const)
+  RangeBase b(4, 6);
+  TEST_EQUAL(b.getSpan(), 2)
+
+  RangeBase empty;
+  TEST_TRUE(std::isnan(empty.getSpan()));
+END_SECTION
+
 
 START_SECTION(bool operator==(const RangeBase& rhs) const)
-  RangeBase b(4, 6), empty;
-  TEST_EQUAL(b == empty, false)
-  TEST_EQUAL(b == b, true)
-  TEST_EQUAL(empty == empty, true)
+  RangeBase b(4, 6), b2(4, 6), empty1, empty2;
+  TEST_NOT_EQUAL(b, empty1)
+  TEST_EQUAL(b, b2)
+  TEST_EQUAL(empty1, empty2)
 END_SECTION
-
 
 
 RM* ptr;
@@ -281,6 +382,47 @@ END_SECTION
 
 START_SECTION((double getMaxMobility() const))
 TEST_EQUAL(RM().getMaxMobility(), -std::numeric_limits<double>::max())
+END_SECTION
+
+
+
+START_SECTION((RangeManager(const RangeManager& rhs)))
+  RM rm0;
+  rm0.updateRanges();
+  RM rm(rm0);
+  TEST_REAL_SIMILAR(rm.getMinRT(), 2.0)
+  TEST_REAL_SIMILAR(rm.getMinMZ(), 500.0)
+  TEST_REAL_SIMILAR(rm.getMaxRT(), 100.0)
+  TEST_REAL_SIMILAR(rm.getMaxMZ(), 1300.0)
+  TEST_REAL_SIMILAR(rm.getMinIntensity(), 1.0)
+  TEST_REAL_SIMILAR(rm.getMaxIntensity(), 47110.0)
+END_SECTION
+
+START_SECTION((RangeManager& operator=(const RangeManager& rhs)))
+  RM rm0;
+  rm0.updateRanges();
+  RM rm;
+  rm = rm0;
+  TEST_REAL_SIMILAR(rm.getMinRT(), 2.0)
+  TEST_REAL_SIMILAR(rm.getMinMZ(), 500.0)
+  TEST_REAL_SIMILAR(rm.getMaxRT(), 100.0)
+  TEST_REAL_SIMILAR(rm.getMaxMZ(), 1300.0)
+  TEST_REAL_SIMILAR(rm.getMinIntensity(), 1.0)
+  TEST_REAL_SIMILAR(rm.getMaxIntensity(), 47110.0)
+END_SECTION
+
+START_SECTION((bool operator==(const RangeManager& rhs) const))
+  RM rm0 , rm;
+  TEST_EQUAL(rm==rm0, true);
+  rm0.updateRanges();
+  TEST_EQUAL(rm==rm0, false);
+END_SECTION
+
+START_SECTION((bool operator!=(const RangeManager& rhs) const))
+  RM rm0 , rm;
+  TEST_EQUAL(rm!=rm0, false);
+  rm0.updateRanges();
+  TEST_EQUAL(rm!=rm0, true);
 END_SECTION
 
 START_SECTION((virtual void updateRanges()=0))
@@ -385,7 +527,7 @@ START_SECTION(void scaleBy(const double factor))
   TEST_REAL_SIMILAR(rm.getMaxMZ(), 1300.0+400)
   TEST_REAL_SIMILAR(rm.getMinIntensity(), 1.0 - (47109.0/2))
   TEST_REAL_SIMILAR(rm.getMaxIntensity(), 47110.0 + (47109.0/2))
-  TEST_EQUAL(rm.RangeMobility::isEmpty(), true)
+  TEST_TRUE(rm.RangeMobility::isEmpty())
 
   // scaling a dimension where min == max does nothing
   RangeManager<RangeRT, RangeMZ> rtmz;
@@ -401,6 +543,50 @@ START_SECTION(void scaleBy(const double factor))
   TEST_EQUAL(rm_empty, rm_empty2)
 END_SECTION
 
+START_SECTION(template<typename... RangeBasesOther> void pushInto(const RangeManager<RangeBasesOther...>& sandbox))
+  RM rm;
+  rm.updateRanges();
+  RangeMTypeMzInt rmi;
+  rmi.extendMZ(700);     // shift
+  rmi.extendMZ(2000);
+  rmi.extendIntensity(500);  // shift and clamp
+  rmi.extendIntensity(600);
+  rm.pushInto(rmi);
+  TEST_REAL_SIMILAR(rm.getMinRT(), 2.0)
+  TEST_REAL_SIMILAR(rm.getMaxRT(), 100.0)
+  TEST_REAL_SIMILAR(rm.getMinMZ(), 500.0 + 200)
+  TEST_REAL_SIMILAR(rm.getMaxMZ(), 1300.0 + 200)
+  TEST_REAL_SIMILAR(rm.getMinIntensity(), 1.0 + 499)
+  TEST_REAL_SIMILAR(rm.getMaxIntensity(), 600) // was 47110.0
+  TEST_TRUE(rm.RangeMobility::isEmpty())
+
+  // if no dimensions overlap...
+  RangeMTypeRT rt;
+  TEST_EXCEPTION(Exception::InvalidRange, rmi.pushInto(rt))
+END_SECTION
+
+
+START_SECTION(template<typename... RangeBasesOther> void clampTo(const RangeManager<RangeBasesOther...>& rhs))
+  RM rm;
+  rm.updateRanges();
+  RangeMTypeMzInt rmi;
+  rmi.extendMZ(700);         // clamp left
+  rmi.extendMZ(2000);
+  rmi.extendIntensity(-10);  // clamp to empty
+  rmi.extendIntensity(-9);
+  rm.clampTo(rmi);
+  TEST_REAL_SIMILAR(rm.getMinRT(), 2.0)              // should be untouched (since rmi.RT is empty)
+  TEST_REAL_SIMILAR(rm.getMaxRT(), 100.0)
+  TEST_REAL_SIMILAR(rm.getMinMZ(), 500.0 + 200)
+  TEST_REAL_SIMILAR(rm.getMaxMZ(), 1300.0 + 0)
+  TEST_TRUE(rm.getRangeForDim(MSDim::INT).isEmpty()) 
+  TEST_TRUE(rm.RangeMobility::isEmpty())
+  
+  // if no dimensions overlap...
+  RangeMTypeRT rt;
+  TEST_EXCEPTION(Exception::InvalidRange, rmi.clampTo(rt))
+END_SECTION
+
 START_SECTION(RangeBase& getRangeForDim(MSDim dim))
   RM rm;
   rm.updateRanges();
@@ -414,8 +600,8 @@ START_SECTION(RangeBase& getRangeForDim(MSDim dim))
   TEST_REAL_SIMILAR(mz.getMax(), 1300.0)
   TEST_REAL_SIMILAR(in.getMin(), 1.0)
   TEST_REAL_SIMILAR(in.getMax(), 47110.0)
-  TEST_EQUAL(rt.isEmpty(), false)
-  TEST_EQUAL(im.isEmpty(), true)
+  TEST_FALSE(rt.isEmpty())
+  TEST_TRUE(im.isEmpty())
 END_SECTION
 
 START_SECTION((void clearRanges()))
@@ -458,45 +644,6 @@ START_SECTION(void printRange(std::ostream& out) const)
                        "mobility: [4, 4]\n");
 END_SECTION
 
-
-START_SECTION((RangeManager(const RangeManager& rhs)))
-  RM rm0;
-  rm0.updateRanges();
-  RM rm(rm0);
-  TEST_REAL_SIMILAR(rm.getMinRT(), 2.0)
-  TEST_REAL_SIMILAR(rm.getMinMZ(), 500.0)
-  TEST_REAL_SIMILAR(rm.getMaxRT(), 100.0)
-  TEST_REAL_SIMILAR(rm.getMaxMZ(), 1300.0)
-  TEST_REAL_SIMILAR(rm.getMinIntensity(), 1.0)
-  TEST_REAL_SIMILAR(rm.getMaxIntensity(), 47110.0)
-END_SECTION
-
-START_SECTION((RangeManager& operator = (const RangeManager& rhs)))
-  RM rm0;
-  rm0.updateRanges();
-  RM rm;
-  rm = rm0;
-  TEST_REAL_SIMILAR(rm.getMinRT(), 2.0)
-  TEST_REAL_SIMILAR(rm.getMinMZ(), 500.0)
-  TEST_REAL_SIMILAR(rm.getMaxRT(), 100.0)
-  TEST_REAL_SIMILAR(rm.getMaxMZ(), 1300.0)
-  TEST_REAL_SIMILAR(rm.getMinIntensity(), 1.0)
-  TEST_REAL_SIMILAR(rm.getMaxIntensity(), 47110.0)
-END_SECTION
-
-START_SECTION((bool operator == (const RangeManager& rhs) const))
-  RM rm0 , rm;
-  TEST_EQUAL(rm==rm0, true);
-  rm0.updateRanges();
-  TEST_EQUAL(rm==rm0, false);
-END_SECTION
-
-START_SECTION((bool operator != (const RangeManager& rhs) const))
-  RM rm0 , rm;
-  TEST_EQUAL(rm!=rm0, false);
-  rm0.updateRanges();
-  TEST_EQUAL(rm!=rm0, true);
-END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

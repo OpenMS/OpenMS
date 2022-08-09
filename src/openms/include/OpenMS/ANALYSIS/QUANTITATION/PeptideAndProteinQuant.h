@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+
 
 namespace OpenMS
 {
@@ -249,46 +250,7 @@ private:
      */ 
     bool getBest_(
       const std::map<Int, std::map<Int, SampleAbundances>> & peptide_abundances, 
-      std::pair<size_t, size_t> & best)
-    {
-      size_t best_n_quant(0);
-      double best_abundance(0);
-      best = std::make_pair(0,0);
-
-      for (auto & fa : peptide_abundances)  // for all fractions 
-      {
-        for (auto & ca : fa.second) // for all charge states
-        {
-          const Int & fraction = fa.first;
-          const Int & charge = ca.first;
-
-          double current_abundance = std::accumulate(
-              std::begin(ca.second),
-              std::end(ca.second),
-              0.0,
-              [] (int value, const SampleAbundances::value_type& p)
-              { return value + p.second; }
-          ); // loop over abundances
-
-          if (current_abundance <= 0) { continue; }
-
-          const size_t current_n_quant = ca.second.size();
-          if (current_n_quant > best_n_quant)
-          {           
-            best_abundance = current_abundance;
-            best_n_quant = current_n_quant;
-            best = std::make_pair(fraction, charge);
-          }
-          else if (current_n_quant == best_n_quant 
-            && current_abundance > best_abundance)  // resolve tie by abundance
-          {
-            best_abundance = current_abundance;
-            best = std::make_pair(fraction, charge);
-          }
-        }
-      }
-      return best_abundance > 0.;
-    }
+      std::pair<size_t, size_t> & best);
 
     /**
          @brief Order keys (charges/peptides for peptide/protein quantification) according to how many samples they allow to quantify, breaking ties by total abundance.

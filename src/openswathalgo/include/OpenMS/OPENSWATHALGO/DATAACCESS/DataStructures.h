@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -264,9 +264,14 @@ public:
       // information such as the actual unit in which it was measured (seconds,
       // milliseconds, volt-second per square centimeter). We currently ignore
       // the unit but return the correct array.
+      // For diaPASEF data converted with proteowizard ion mobility arrays are stored in "inverse reduced ion mobility"
       for (auto & bda : binaryDataArrayPtrs)
       {
         if (bda->description.find("Ion Mobility") == 0)
+        {
+          return bda;
+        }
+        else if (bda->description.find("mean inverse reduced ion mobility array") == 0)
         {
           return bda;
         }
