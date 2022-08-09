@@ -29,32 +29,12 @@
      <property name="currentIndex">
       <number>4</number>
      </property>
-     <widget class="QWidget" name="general_tab">
+     <widget class="QWidget" name="tab">
       <attribute name="title">
        <string>General</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="4" column="0">
-        <widget class="QLabel" name="intensity_cutoff_label">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Using this option, the noise level is estimated and a data filter is added in order to speed up the painting. The filter can be removed in the data filter toolbox.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>Low intensity cutoff:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="caching_label">
-         <property name="text">
-          <string>Caching Strategy</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="2">
+       <item row="10" column="2">
         <widget class="QCheckBox" name="use_cached_ms1">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this for very large files. Prevents TOPPView from loading MS1 data into memory (note that MS1 map will not display properly).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -64,7 +44,17 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="5" column="0" colspan="2">
+       <item row="0" column="2">
+        <widget class="QLineEdit" name="default_path">
+         <property name="minimumSize">
+          <size>
+           <width>240</width>
+           <height>0</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0" colspan="2">
         <widget class="QLabel" name="file_change_label">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -77,7 +67,14 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="8" column="1" colspan="2">
+       <item row="4" column="0">
+        <widget class="QLabel" name="default_map_label">
+         <property name="text">
+          <string>Default map view:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="1" colspan="2">
         <spacer>
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -85,48 +82,55 @@ p, li { white-space: pre-wrap; }
          <property name="sizeHint" stdset="0">
           <size>
            <width>240</width>
+           <height>10</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel" name="intensity_cutoff_label">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Using this option, the noise level is estimated and a data filter is added in order to speed up the painting. The filter can be removed in the data filter toolbox.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Low intensity cutoff:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="4">
+        <spacer>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
            <height>20</height>
           </size>
          </property>
         </spacer>
        </item>
-       <item row="0" column="2">
-        <widget class="QLineEdit" name="default_path">
-         <property name="minimumSize">
-          <size>
-           <width>240</width>
-           <height>0</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QCheckBox" name="default_path_current">
+       <item row="11" column="2">
+        <widget class="QCheckBox" name="use_cached_ms2">
          <property name="toolTip">
-          <string>If enabled, the path of the current tab/layer is used instead of the 'default path'. If no tab is open, or no path associated with a tab, the default path is used.</string>
-         </property>
-         <property name="whatsThis">
-          <string>If enabled, the path of the currently tag is used instead of the 'default path'. If no tab is open - or no path associated with a tab, the default path is used.</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this for large files. Prevents TOPPView from loading MS2 data into memory (usually without side effects).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>use current path</string>
+          <string>Cache MS2 spectra to disk</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="default_path_label">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The path where the dialogs for loading and storing are opened initially.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
+       <item row="0" column="3">
+        <widget class="QPushButton" name="browse_default">
          <property name="text">
-          <string>Default path:</string>
+          <string>Browse</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="2">
+       <item row="9" column="2">
         <widget class="QComboBox" name="on_file_change">
          <item>
           <property name="text">
@@ -145,37 +149,7 @@ p, li { white-space: pre-wrap; }
          </item>
         </widget>
        </item>
-       <item row="2" column="4">
-        <spacer>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="0" column="3">
-        <widget class="QPushButton" name="browse_default">
-         <property name="text">
-          <string>Browse</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="2">
-        <widget class="QCheckBox" name="use_cached_ms2">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this for large files. Prevents TOPPView from loading MS2 data into memory (usually without side effects).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>Cache MS2 spectra to disk</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="2">
+       <item row="8" column="2">
         <widget class="QComboBox" name="map_cutoff">
          <item>
           <property name="text">
@@ -189,14 +163,14 @@ p, li { white-space: pre-wrap; }
          </item>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="default_map_label">
+       <item row="11" column="0">
+        <widget class="QLabel" name="caching_label">
          <property name="text">
-          <string>Default map view:</string>
+          <string>Caching Strategy</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="2">
+       <item row="4" column="2">
         <widget class="QComboBox" name="map_default">
          <property name="maximumSize">
           <size>
@@ -216,9 +190,52 @@ p, li { white-space: pre-wrap; }
          </item>
         </widget>
        </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="default_path_label">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The path where the dialogs for loading and storing are opened initially.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Default path:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QLineEdit" name="plugins_path"/>
+       </item>
+       <item row="1" column="2">
+        <widget class="QCheckBox" name="default_path_current">
+         <property name="toolTip">
+          <string>If enabled, the path of the current tab/layer is used instead of the 'default path'. If no tab is open, or no path associated with a tab, the default path is used.</string>
+         </property>
+         <property name="whatsThis">
+          <string>If enabled, the path of the currently tag is used instead of the 'default path'. If no tab is open - or no path associated with a tab, the default path is used.</string>
+         </property>
+         <property name="text">
+          <string>use current path</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Plugins path:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="3">
+        <widget class="QPushButton" name="browse_plugins">
+         <property name="text">
+          <string>Browse</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="oneD_tab">
+     <widget class="QWidget" name="tab_3">
       <attribute name="title">
        <string>1D View</string>
       </attribute>
@@ -281,7 +298,7 @@ p, li { white-space: pre-wrap; }
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="twoD_tab">
+     <widget class="QWidget" name="tab_5">
       <attribute name="title">
        <string>2D View</string>
       </attribute>
@@ -399,7 +416,7 @@ p, li { white-space: pre-wrap; }
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="threeD_tab">
+     <widget class="QWidget" name="tab_4">
       <attribute name="title">
        <string>3D View</string>
       </attribute>
@@ -489,12 +506,19 @@ p, li { white-space: pre-wrap; }
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="TSG_tab">
+     <widget class="QWidget" name="tab_6">
       <attribute name="title">
        <string>Theoretical Spectra Generation</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="3" column="3">
+       <item row="2" column="2" alignment="Qt::AlignRight">
+        <widget class="QLabel" name="tolerance_label">
+         <property name="text">
+          <string>Alignment Tolerance  </string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
         <widget class="QDoubleSpinBox" name="tolerance">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
@@ -513,7 +537,7 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="3" column="4">
+       <item row="2" column="4">
         <widget class="QComboBox" name="unit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -533,27 +557,16 @@ p, li { white-space: pre-wrap; }
          </item>
         </widget>
        </item>
-       <item row="3" column="2" alignment="Qt::AlignRight">
-        <widget class="QLabel" name="tolerance_label">
-         <property name="text">
-          <string>Alignment Tolerance  </string>
-         </property>
-        </widget>
+       <item row="1" column="0" colspan="5">
+        <widget class="OpenMS::ParamEditor" name="param_editor_spec_gen_" native="true"/>
        </item>
        <item row="0" column="0" colspan="5">
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <item>
-          <widget class="QLabel" name="param_usage_label">
-           <property name="text">
-            <string>These settings are used to generate theoretical spectra of peptide identifications to align them
-and use them for spectra annotation. (i.e. &quot;Tools&quot; -&gt; &quot;Annotate with peptide identifications&quot;)</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="OpenMS::ParamEditor" name="param_editor_spec_gen_" native="true"/>
-         </item>
-        </layout>
+        <widget class="QLabel" name="param_usage_label">
+         <property name="text">
+          <string>These settings are used to generate theoretical spectra of peptide identifications to align them and use them
+for spectra annotation. (i.e. &quot;Tools&quot; -&gt; &quot;Annotate with peptide identifications&quot;)</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -596,8 +609,8 @@ and use them for spectra annotation. (i.e. &quot;Tools&quot; -&gt; &quot;Annotat
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>236</x>
-     <y>400</y>
+     <x>227</x>
+     <y>424</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -612,8 +625,8 @@ and use them for spectra annotation. (i.e. &quot;Tools&quot; -&gt; &quot;Annotat
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>304</x>
-     <y>400</y>
+     <x>295</x>
+     <y>430</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
