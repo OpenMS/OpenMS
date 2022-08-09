@@ -35,6 +35,7 @@
 #include "OpenMS/VISUAL/LayerDataPeak.h"
 
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
+#include <OpenMS/KERNEL/DimMapper.h>
 
 #include <OpenMS/VISUAL/LayerDataFeature.h>
 #include <OpenMS/VISUAL/Painter2DBase.h>
@@ -87,6 +88,11 @@ namespace OpenMS
       }
     }
     return max_pi;
+  }
+
+  PointXYType LayerDataFeature::peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const
+  {
+    return mapper.map(peak.getFeature(*getFeatureMap()));
   }
 
   std::unique_ptr<LayerStatistics> LayerDataFeature::getStats() const

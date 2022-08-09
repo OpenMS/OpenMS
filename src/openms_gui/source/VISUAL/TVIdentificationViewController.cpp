@@ -968,20 +968,16 @@ namespace OpenMS
       return;
     }
 
+    // Block update events for identification widget
+    spec_id_view_->ignore_update = true;
+    RAIICleanup cleanup([&]() { spec_id_view_->ignore_update = false; });
+
     PeakMap new_exp;
     new_exp.addSpectrum(theo_spectrum);
     ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
-    FeatureMapSharedPtrType f_dummy(new FeatureMapType());
-    ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
     LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
-    vector<PeptideIdentification> p_dummy;
-
-    // Block update events for identification widget
-    spec_id_view_->ignore_update = true;
-    RAIICleanup cleanup([&](){spec_id_view_->ignore_update = false; });
-
     String layer_caption = aa_sequence.toString() + " (identification view)";
-    tv_->addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerDataBase::DT_PEAK, false, false, false, layer_caption.toQString(), layer_caption.toQString());
+    current_canvas->addPeakLayer(new_exp_sptr, od_dummy, layer_caption);
 
     // get layer index of new layer
     Size theoretical_spectrum_layer_index = tv_->getActive1DWidget()->canvas()->getCurrentLayerIndex();

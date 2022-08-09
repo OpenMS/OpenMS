@@ -189,7 +189,7 @@ namespace OpenMS
     {
       return false;
     }
-    auto ld = dynamic_cast<LayerData1DChrom&>(getCurrentLayer());
+    auto& ld = dynamic_cast<LayerData1DChrom&>(getCurrentLayer());
     ld.setName(caption);
     ld.getChromatogramAnnotation() = chrom_annotation; // copy over shared-ptr to OSW-sql data (if available)
     ld.setCurrentIndex(index);                         // use this chrom for visualization

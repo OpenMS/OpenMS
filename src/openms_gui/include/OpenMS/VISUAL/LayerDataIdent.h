@@ -78,6 +78,9 @@ namespace OpenMS
       return PeakIndex();
     }
 
+    PointXYType peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const override;
+
+
     void updateRanges() override
     {
       // nothing to do...

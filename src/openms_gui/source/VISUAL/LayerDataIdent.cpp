@@ -34,6 +34,8 @@
 
 #include <OpenMS/VISUAL/LayerDataIdent.h>
 
+#include <OpenMS/KERNEL/DimMapper.h>
+
 #include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
@@ -65,6 +67,11 @@ namespace OpenMS
   { // currently only a stub
     ProjectionData proj;
     return proj;
+  }
+
+  PointXYType LayerDataIdent::peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const
+  {
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
   }
 
   std::unique_ptr<LayerStatistics> LayerDataIdent::getStats() const

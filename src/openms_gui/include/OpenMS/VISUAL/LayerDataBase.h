@@ -268,10 +268,7 @@ namespace OpenMS
      * \param mapper Converts the internal representation (e.g. Peak1D) to an XY coordinate
      * \return XY coordinate in data units (e.g. X=m/z, Y=intensity)
      */
-    virtual PointXYType peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const
-    {
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-    }
+    virtual PointXYType peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const = 0;
 
     /**
      * \brief Get name and value of all data-arrays corresponding to the given datapoint

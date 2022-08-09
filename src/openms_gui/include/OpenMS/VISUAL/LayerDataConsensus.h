@@ -79,6 +79,8 @@ namespace OpenMS
 
     PeakIndex findHighestDataPoint(const RangeAllType& area) const override;
 
+    PointXYType peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const override;
+
     void updateRanges() override
     {
       consensus_map_->updateRanges();

@@ -101,7 +101,7 @@ namespace OpenMS
     {
       return false;
     }
-    w->canvas()->activateSpectrum(0, false);
+    w->canvas()->activateSpectrum(chrom_index, false);
     return true;
   }
 

@@ -35,6 +35,7 @@
 #include <OpenMS/VISUAL/LayerDataConsensus.h> 
 
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
+#include <OpenMS/KERNEL/DimMapper.h>
 
 #include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
@@ -88,6 +89,12 @@ namespace OpenMS
     }
     return max_pi;
   }
+
+  PointXYType LayerDataConsensus::peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const
+  {
+    return mapper.map(peak.getFeature(*getConsensusMap()));
+  }
+
 
   /*std::unique_ptr<Painter1DBase> LayerDataConsensus::getPainter1D() const
   {
