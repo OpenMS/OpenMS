@@ -548,7 +548,7 @@ namespace OpenMS
     {
       return spec.getDriftTime();
     }
-    ValueType map(const MSChromatogram& chrom, const Size index) const
+    ValueType map(const MSChromatogram&, const Size) const
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
