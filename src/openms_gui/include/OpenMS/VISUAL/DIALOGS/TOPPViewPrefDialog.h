@@ -63,7 +63,7 @@ namespace OpenMS
       Q_OBJECT
 
 public:
-      friend class TestTVPrefDialog;  // to test the GUI expressed in the private member ui_
+      friend class OpenMS::TestTVPrefDialog;  // to test the GUI expressed in the private member ui_
 
       TOPPViewPrefDialog(QWidget * parent);
       ~TOPPViewPrefDialog() override;
