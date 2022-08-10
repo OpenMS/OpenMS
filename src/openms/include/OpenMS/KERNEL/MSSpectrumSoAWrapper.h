@@ -191,10 +191,7 @@ struct BaseContainer
 
     bool empty()
     {
-        if(this->size()==0)
-            return true;
-        
-        return false;
+        return !this->size();
     }
 
     void pop_back()
@@ -223,6 +220,9 @@ struct BaseContainer
     {
         std::size_t position_ = it.getPosition();
         std::size_t newPos_ = policy_t::erase( mValues, position_ );
+        if(newPos_ >= this->size()){
+            return this->end();
+        }
         return (this->begin() + newPos_);
     }
 
@@ -338,7 +338,7 @@ public:
     Iterator operator-( T sub ){ return Iterator(this->mContainer, this->mIterPosition - sub); }
 
 
-    friend bool operator!=( Iterator const& lhs, Iterator const& rhs ){ return lhs.mIterPosition != rhs.mIterPosition;}
+    friend bool operator!=( Iterator const& lhs, Iterator const& rhs ){ return lhs.mContainer != rhs.mContainer || lhs.mIterPosition != rhs.mIterPosition;}
     friend bool operator==( Iterator const& lhs, Iterator const& rhs ){ return !operator!=(lhs, rhs);}
 
     operator bool(void) const { return mIterPosition != std::numeric_limits<std::size_t>::infinity(); }
