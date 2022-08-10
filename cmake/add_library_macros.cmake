@@ -78,9 +78,9 @@ endfunction(convert_to_unity_build)
 #------------------------------------------------------------------------------
 ## Copy the dll produced by the given target to the test/doc binary path.
 ## @param targetname The target to modify.
-## @note This macro will do nothing with non MSVC generators.
+## @note This macro will do nothing with non Visual Studio generators.
 macro(copy_dll_to_extern_bin targetname)
-  if(MSVC)
+  if (CMAKE_GENERATOR MATCHES "Visual Studio")
     file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)/$(TargetFileName)" DLL_TEST_TARGET)
     file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)" DLL_TEST_TARGET_PATH)
 
@@ -94,7 +94,7 @@ macro(copy_dll_to_extern_bin targetname)
                       COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${targetname}> ${DLL_TEST_TARGET}
                       COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_DOC_TARGET_PATH}"
                       COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${targetname}> ${DLL_DOC_TARGET})
-  endif(MSVC)
+  endif()
 endmacro()
 
 #------------------------------------------------------------------------------
