@@ -141,6 +141,7 @@ namespace OpenMS
 
   Param TVToolDiscovery::getParamFromIni_(const String& tool_path, bool plugins)
   {
+    static std::mutex io_mutex;
     FileHandler fh;
     // Temporary file path and arguments
     String path = File::getTemporaryFile();
@@ -156,7 +157,8 @@ namespace OpenMS
     }
     catch (const Exception::FileNotFound& e)
     {
-      OPENMS_LOG_WARN << "TOPP tool: " << e << " not found during tool discovery. Skipping." << std::endl;
+      std::scoped_lock lock(io_mutex);
+      OPENMS_LOG_DEBUG << "TOPP tool: " << e << " not found during tool discovery. Skipping." << std::endl;
       return tool_param;
     }
 
@@ -168,7 +170,8 @@ namespace OpenMS
     // Return empty param if writing the ini file failed
     if (return_state != ExternalProcess::RETURNSTATE::SUCCESS)
     {
-      OPENMS_LOG_WARN << "TOPP tool: " << executable << " error during execution: " << (uint32_t)return_state << "\n";
+      std::scoped_lock lock(io_mutex);
+      OPENMS_LOG_DEBUG << "TOPP tool: " << executable << " error during execution: " << (uint32_t)return_state << "\n";
       return tool_param;
     }
     // Parse ini file to param object
@@ -179,7 +182,8 @@ namespace OpenMS
     }
     catch(const Exception::FileNotFound& e)
     {
-      OPENMS_LOG_WARN << e << "\n" << "TOPP tool: " << executable <<
+      std::scoped_lock lock(io_mutex);
+      OPENMS_LOG_DEBUG << e << "\n" << "TOPP tool: " << executable <<
         " not able to write ini. Plugins must implement -write_ini parameter. Skipping." << std::endl;
       return tool_param;
     }
