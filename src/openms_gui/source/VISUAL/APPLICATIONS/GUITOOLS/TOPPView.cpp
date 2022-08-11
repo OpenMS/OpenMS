@@ -149,7 +149,7 @@ int main(int argc, const char** argv)
     // Now we force 2.1 which is also available on all? Macs.
     QSurfaceFormat format;
     format.setVersion(2, 1); // the default is 2, 0
-    QSurfaceFormat::setDefaultFormat(format);
+    QSurfaceFormat::setDefaultFormat(format); // should be done before creating a QApplication
 #endif
     
     QApplicationTOPP a(argc, const_cast<char**>(argv));
