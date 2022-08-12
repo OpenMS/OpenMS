@@ -78,22 +78,32 @@ endfunction(convert_to_unity_build)
 #------------------------------------------------------------------------------
 ## Copy the dll produced by the given target to the test/doc binary path.
 ## @param targetname The target to modify.
-## @note This macro will do nothing with non Visual Studio generators.
+## @note This macro will do nothing outside of Windows since the linker will find the libs.
 macro(copy_dll_to_extern_bin targetname)
-  if (CMAKE_GENERATOR MATCHES "Visual Studio")
-    file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)/$(TargetFileName)" DLL_TEST_TARGET)
-    file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)" DLL_TEST_TARGET_PATH)
+  if (WIN32)
+    if (CMAKE_GENERATOR MATCHES "Visual Studio")
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)/$(TargetFileName)" DLL_TEST_TARGET)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)" DLL_TEST_TARGET_PATH)
 
-    file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$(ConfigurationName)/$(TargetFileName)" DLL_DOC_TARGET)
-    file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$(ConfigurationName)" DLL_DOC_TARGET_PATH)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$(ConfigurationName)/$(TargetFileName)" DLL_DOC_TARGET)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$(ConfigurationName)" DLL_DOC_TARGET_PATH)
+    elseif(NOT GENERATOR_IS_MULTI_CONFIG)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)/$(TargetFileName)" DLL_TEST_TARGET)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)" DLL_TEST_TARGET_PATH)
 
-
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/" DLL_DOC_TARGET)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/" DLL_DOC_TARGET_PATH)
+    else()
+      message(WARNING "Sorry, multiconfig generators on windows other than Visual Studio not supported yet.
+              Please look for the line of this error and implement some CMake Generator expressions to copy
+              DLLs to the binaries, or modify your environment for the tests to find all library DLLs.")
+    endif()
     add_custom_command(TARGET ${targetname}
-                      POST_BUILD
-                      COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_TEST_TARGET_PATH}"
-                      COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${targetname}> ${DLL_TEST_TARGET}
-                      COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_DOC_TARGET_PATH}"
-                      COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${targetname}> ${DLL_DOC_TARGET})
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_TEST_TARGET_PATH}"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${targetname}> ${DLL_TEST_TARGET}
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_DOC_TARGET_PATH}"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${targetname}> ${DLL_DOC_TARGET})
   endif()
 endmacro()
 
@@ -108,7 +118,7 @@ endmacro()
 #                    HEADER_FILES  <header files associated to the library>
 #                                  (will be installed with the library)
 #                    INTERNAL_INCLUDES <list of internal include directories for the library>
-#                    PRIVATE_INCLUDES <list of include directories that will used for compilate but that will not be exposed to other libraries>
+#                    PRIVATE_INCLUDES <list of include directories that will be used for compilation but that will not be exposed to other libraries>
 #                    EXTERNAL_INCLUDES <list of external include directories for the library>
 #                                      (will be added with -isystem if available)
 #                    LINK_LIBRARIES <list of libraries used when linking the library>
@@ -212,8 +222,16 @@ function(openms_add_library)
 
   #------------------------------------------------------------------------------
   # copy dll to test/doc bin folder on MSVC systems
-  copy_dll_to_extern_bin(${openms_add_library_TARGET_NAME})
-
+  #TODO fix and use correct version
+  if(${CMAKE_VERSION} VERSION_GREATER "3.25")
+    message("FOO")
+    add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
+            COMMAND $<$<BOOL:$<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>>: ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}> $<TARGET_FILE_DIR:${openms_add_library_TARGET_NAME}>>
+            COMMAND_EXPAND_LISTS
+            )
+  else()
+    copy_dll_to_extern_bin(${openms_add_library_TARGET_NAME})
+  endif()
   #------------------------------------------------------------------------------
   # Status message for configure output
   message(STATUS "Adding library ${openms_add_library_TARGET_NAME} - SUCCESS")

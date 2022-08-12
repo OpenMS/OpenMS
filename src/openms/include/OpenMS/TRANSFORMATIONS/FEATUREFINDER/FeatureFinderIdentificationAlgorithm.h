@@ -218,6 +218,9 @@ protected:
   TargetedExperiment library_; ///< accumulated assays for peptides
 
   bool quantify_decoys_;
+  bool use_psm_cutoff_;
+  double psm_score_cutoff_;
+  std::vector<PeptideIdentification> unassignedIDs_;
 
   const double seed_rt_window_ = 60.0; ///< extraction window used for seeds (smaller than rt_window_ as we know the exact apex positions)
 
@@ -268,7 +271,7 @@ protected:
   /// @todo find better solution
   void addPeptideToMap_(PeptideIdentification& peptide,
     PeptideMap& peptide_map,
-    bool external = false) const;
+    bool external = false);
 
   void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "") const;
 
