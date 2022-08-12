@@ -252,7 +252,7 @@ protected:
 
     if (in_type == FileTypes::UNKNOWN)
     {
-      writeLog_("Error: Could not determine input file type!");
+      writeLogError_("Error: Could not determine input file type!");
       return PARSE_ERROR;
     }
 
@@ -406,7 +406,7 @@ protected:
     {
       if (in_type != FileTypes::MZML)
       {
-        writeLog_("Error: Can only validate indices for mzML files");
+        writeLogError_("Error: Can only validate indices for mzML files");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
@@ -883,7 +883,7 @@ protected:
       SysInfo::MemUsage mu;
       if (!fh.loadExperiment(in, exp, in_type, log_type_, false, false))
       {
-        writeLog_("Unsupported or corrupt input file. Aborting!");
+        writeLogError_("Unsupported or corrupt input file. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }

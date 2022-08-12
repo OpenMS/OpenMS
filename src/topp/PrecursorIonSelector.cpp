@@ -217,7 +217,7 @@ protected:
     }
     else if (db_path.empty())
     {
-      writeLog_("No database file specified. Aborting!");
+      writeLogError_("No database file specified. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }

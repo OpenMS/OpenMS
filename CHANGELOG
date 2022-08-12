@@ -30,6 +30,7 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 - removed InspectAdapter
 - removed OMSSAAdapter
 - removed MyriMatchAdapter
+- removed Crux
 - OpenMS documentation is moved to openms.readthedocs.io/en/latest. OpenMS API
 reference and advanced developer documentation remains inside OpenMS doxygen
 documentation.

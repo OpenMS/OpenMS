@@ -78,6 +78,17 @@ namespace OpenMS
       return false;
     }
 
+    /**
+     * \brief Is a @p value contained in [min, max] ?
+     * \tparam T Type, e.g. double
+     * \return True if contained, false otherwise
+     */
+    template<typename T>
+    bool contains(T value, T min, T max)
+    {
+      return min <= value && value <= max;
+    }
+
 
     /**
       @brief rounds @p x up to the next decimal power 10 ^ @p decPow

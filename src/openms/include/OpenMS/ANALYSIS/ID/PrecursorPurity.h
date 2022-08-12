@@ -73,6 +73,7 @@ namespace OpenMS
 
     /** @brief compute precursor purity metrics for each MS2 spectrum in a PeakMap
        This is the main function of this class. See class description.
+       Note: Spectra annotated with charge 0 will be treated as charge 1.       
 
      * @param spectra A PeakMap containing MS1 and MS2 spectra in order of acquisition or measurement. The first spectrum must be an MS1.
      * @param precursor_mass_tolerance The precursor tolerance. Is used for determining the targeted peak and deisotoping.
@@ -82,7 +83,8 @@ namespace OpenMS
 
     /** @brief compute precursor purity metrics for one MS2 precursor
 
-       @note This function is implemented in a general way and can also be used for e.g. MS3 precursor isolation windows in MS2 spectra
+       @note This function is implemented in a general way and can also be used for e.g. MS3 precursor isolation windows in MS2 spectra.
+             Spectra annotated with charge 0 will be treated as charge 1.
 
       @param ms1 The Spectrum containing the isolation window
       @param pre The precursor containing the definition the isolation window
