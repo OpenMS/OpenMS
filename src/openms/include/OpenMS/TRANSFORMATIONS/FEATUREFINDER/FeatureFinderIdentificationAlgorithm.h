@@ -79,7 +79,7 @@ public:
     std::vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
     const FeatureMap& seeds = FeatureMap(),
-    const String spectra_file = ""
+    const String& spectra_file = ""
     );
 
   void runOnCandidates(FeatureMap& features);

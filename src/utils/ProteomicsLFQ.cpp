@@ -228,7 +228,7 @@ protected:
       "false: include unidentified features so they can be linked to identified ones (=match between runs).", false, false);
     setValidStrings_("targeted_only", ListUtils::create<String>("true,false"));
 
-    // TODO: support transfer with SVM if we figure out a computational efficient way to do it.
+    // TODO: support transfer with SVM if we figure out a computationally efficient way to do it.
     registerStringOption_("transfer_ids", "<option>", "false", 
       "Requantification using mean of aligned RTs of a peptide feature.\n"
       "Only applies to peptides that were quantified in more than 50% of all runs (of a fraction).", false, false);
@@ -238,7 +238,7 @@ protected:
     setValidStrings_("mass_recalibration", ListUtils::create<String>("true,false"));
 
     registerStringOption_("alignment_order", "<option>", "star", "If star, aligns all maps to the reference with most IDs,"
-                                                                 "if treeguided, calculated a guiding tree first.", false, true);
+                                                                 "if treeguided, calculates a guiding tree first.", false, true);
     setValidStrings_("alignment_order", ListUtils::create<String>("star,treeguided"));
 
     registerStringOption_("keep_feature_top_psm_only", "<option>", "true", "If false, also keeps lower ranked PSMs that have the top-scoring"
@@ -659,6 +659,7 @@ protected:
   //-------------------------------------------------------------
   // Link all features of this fraction
   //-------------------------------------------------------------
+  /// this method will only be used during requantification.
   void link_(
     vector<FeatureMap> & feature_maps, 
     double median_fwhm,
@@ -666,6 +667,9 @@ protected:
     ConsensusMap & consensus_fraction
   )
   {
+    //since requantification only happens with 2+ maps, we do not need to check/skip,
+    //in case of a singleton fraction. Would throw an exception in linker.group
+
     Param fl_param = getParam_().copy("Linking:", true);
     writeDebug_("Parameters passed to feature grouping algorithm", fl_param, 3);
 
@@ -688,8 +692,8 @@ protected:
     assert(!consensus_fraction.empty());
   }
 
-  // Align and link.
-  // @return maximum alignment difference observed (to guide linking)
+  /// Align and link.
+  /// @return maximum alignment difference observed (to guide linking)
   double alignAndLink_(
     vector<FeatureMap> & feature_maps, 
     ConsensusMap & consensus_fraction,
@@ -717,8 +721,8 @@ protected:
     return max_alignment_diff;
   }
 
-  // determine co-occurrence of peptide in different runs
-  // returns map sequence+charge -> map index in consensus map 
+  /// determine co-occurrence of peptide in different runs
+  /// returns map sequence+charge -> map index in consensus map
   map<pair<String, UInt>, vector<int> > getPeptideOccurrence_(const ConsensusMap &cons)
   {
     map<Size, UInt> num_consfeat_of_size;
@@ -757,9 +761,9 @@ protected:
     return seq_charge2map_occurence;
   }
 
-  // simple transfer between runs
-  // if a peptide has not been quantified in more than min_occurrence runs, then take all consensus features that have it identified at least once
-  // and transfer the ID with RT of the consensus feature (the average if we have multiple consensus elements)
+  /// simple transfer between runs
+  /// if a peptide has not been quantified in more than min_occurrence runs, then take all consensus features that have it identified at least once
+  /// and transfer the ID with RT of the consensus feature (the average if we have multiple consensus elements)
   multimap<Size, PeptideIdentification> transferIDsBetweenSameFraction_(const ConsensusMap& consensus_fraction, Size min_occurrence = 3)
   {
     // determine occurrence of ids
@@ -810,7 +814,7 @@ protected:
         ++n_transferred_ids;
       }
     }
-    OPENMS_LOG_INFO << "Transfered IDs: " << n_transferred_ids << endl;
+    OPENMS_LOG_INFO << "Transferred IDs: " << n_transferred_ids << endl;
     return transfer_ids;
   }
 
@@ -875,6 +879,7 @@ protected:
   
     // TODO we could think about removing this limitation 
     IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
+    // TODO we need to rewrite all algorithms to allow ignoring decoys and low-scoring IDs instead!
     if (!getFlag_("PeptideQuantification:quantify_decoys"))
     {
       IDFilter::removeDecoyHits(peptide_ids);
@@ -987,8 +992,8 @@ protected:
     // reannotate spectrum references if missing
     if (missing_spec_ref)
     {
-      OPENMS_LOG_WARN << "Warning: The identification files don't contain a meta value with the spectrum native id.\n"
-                         "OpenMS will try to reannotate them by matching retention times between id and spectra." << endl;
+      OPENMS_LOG_WARN << "Warning: Identification file " << id_file_abs_path << " contains IDs without meta value for the spectrum native id.\n"
+                         "OpenMS will try to reannotate them by matching retention times between ID and spectra." << endl;
 
       SpectrumMetaDataLookup::addMissingSpectrumReferences(
         peptide_ids, 
@@ -1013,8 +1018,6 @@ protected:
     vector<FeatureMap> feature_maps;
     const Size fraction = ms_files.first;
 
-    const bool is_already_aligned = !transformations.empty();
-
     // debug output
     writeDebug_("Processing fraction number: " + String(fraction) + "\nFiles: ",  1);
     for (String const & mz_file : ms_files.second) { writeDebug_(mz_file,  1); }
@@ -1022,6 +1025,10 @@ protected:
     // for sanity checks we collect the primary MS run basenames as well as the ones stored in the ID files (below)
     StringList id_MS_run_ref;
     StringList in_MS_run = ms_files.second;
+
+    // in theory a single file is "per-definition" aligned as well but has no transformations
+    /// if an alignment algorithm was already run (false for singleton fractions, although they are inherently aligned)
+    const bool is_already_aligned = !transformations.empty();
 
     // for each MS file of current fraction (e.g., all MS files that measured the n-th fraction) 
     Size fraction_group{1};
@@ -1065,7 +1072,7 @@ protected:
       //////////////////////////////////////////////////////
       // Transfer aligned IDs
       //////////////////////////////////////////////////////
-      if (!transfered_ids.empty())
+      if (!transfered_ids.empty()) // only non-empty if the fraction has more than one sample
       {
         OPENMS_PRECONDITION(is_already_aligned, "Data has not been aligned.")
 
@@ -1090,8 +1097,7 @@ protected:
 
       //-------------------------------------------------------------
       // Feature detection
-      //-------------------------------------------------------------   
-      ///////////////////////////////////////////////
+      //-------------------------------------------------------------
 
       // Run MTD before FFM
 
@@ -1312,6 +1318,7 @@ protected:
     String picked_decoy_string = "DECOY_";
     bool picked_decoy_prefix = true;
 
+    // TODO this should be in the loadAndCleanupIDFiles function
     if (!in_db.empty())
     {
       PeptideIndexing indexer;
@@ -1353,6 +1360,8 @@ protected:
     //-------------------------------------------------------------
     // Protein inference
     //-------------------------------------------------------------
+    // TODO: This needs to be rewritten to work directly on the quant data.
+    //  of course we need to provide options to keep decoys and unassigned PSMs all the way through quantification.
     // TODO: Think about ProteinInference on IDs only merged per condition
     bool groups = getStringOption_("protein_quantification") != "strictly_unique_peptides";
     bool bayesian = getStringOption_("protein_inference") == "bayesian";

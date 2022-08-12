@@ -67,7 +67,7 @@ namespace OpenMS
     DefaultParamHandler("FeatureFinderIdentificationAlgorithm")
   {
     std::vector<std::string> output_file_tags;
-    output_file_tags.push_back("output file");
+    output_file_tags.emplace_back("output file");
 
     defaults_.setValue("candidates_out", "", "Optional output file with feature candidates.", output_file_tags);
 
@@ -251,7 +251,7 @@ namespace OpenMS
     vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
     const FeatureMap& seeds,
-    const String spectra_file
+    const String& spectra_file
     )
   {
     if ((svm_n_samples_ > 0) && (svm_n_samples_ < 2 * svm_n_parts_))
@@ -332,7 +332,7 @@ namespace OpenMS
       trafo_external_ = aligner_trafos[0];
       vector<double> aligned_diffs;
       trafo_external_.getDeviations(aligned_diffs);
-      int index = max(0, int(rt_quantile_ * aligned_diffs.size()) - 1);
+      Size index = max(0, Size(rt_quantile_ * aligned_diffs.size()) - 1);
       rt_uncertainty = aligned_diffs[index];
       try
       {
