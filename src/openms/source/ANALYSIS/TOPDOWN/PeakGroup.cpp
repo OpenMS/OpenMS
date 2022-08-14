@@ -873,4 +873,13 @@ namespace OpenMS
   {
     qvalue_with_noise_decoy_only_ = q;
   }
+  void PeakGroup::setSecondBestMonsMass(const double mass)
+  {
+    second_best_monomass_ = mass;
+  }
+
+  double PeakGroup::getSecondBestMonoMass() const
+  {
+    return second_best_monomass_;
+  }
 }

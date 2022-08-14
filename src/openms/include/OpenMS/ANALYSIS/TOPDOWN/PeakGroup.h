@@ -137,11 +137,17 @@ namespace OpenMS
     /// set if it is targeted
     void setTargeted();
 
+    /// set second best monoisotopic mass
+    void setSecondBestMonsMass(const double mass);
+
     /// get scan number
     int getScanNumber() const;
 
     /// get monoisotopic mass
     double getMonoMass() const;
+
+    /// get second best monoisotopic mass
+    double getSecondBestMonoMass() const;
 
     /// get intensity
     double getIntensity() const;
@@ -274,6 +280,7 @@ namespace OpenMS
     bool is_targeted_ = false;
     /// information on the deconvolved mass
     double monoisotopic_mass_ = -1.0;
+    double second_best_monomass_ = -1.0;
     double intensity_;// total intensity
     /// index to specify if this peak_group is a target (0), an isotope decoy (1), a noise (2), or a charge decoy (3)
     int decoy_index_ = 0;
