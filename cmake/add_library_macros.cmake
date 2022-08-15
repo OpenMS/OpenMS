@@ -65,9 +65,9 @@ function(convert_to_unity_build UB_SUFFIX SOURCE_FILES_NAME)
      # we have headers in there as well, which should not be included explicitly
      if (${source_file} MATCHES "\\.cpp|\\.cxx") # cxx for moc's;
        if (IS_ABSOLUTE ${source_file})
-         file( APPEND ${unit_build_file} "#include<${source_file}>\n")
+         file(APPEND ${unit_build_file} "#include<${source_file}>\n")
        else()
-         file( APPEND ${unit_build_file} "#include<${CMAKE_CURRENT_SOURCE_DIR}/${source_file}>\n")
+         file(APPEND ${unit_build_file} "#include<${CMAKE_CURRENT_SOURCE_DIR}/${source_file}>\n")
        endif()
      endif()
    endforeach(source_file)
@@ -139,7 +139,7 @@ function(openms_add_library)
   # merge into global exported includes
   set(${openms_add_library_TARGET_NAME}_INCLUDE_DIRECTORIES ${openms_add_library_INTERNAL_INCLUDES}
                                                             ${openms_add_library_EXTERNAL_INCLUDES}
-  CACHE INTERNAL "${openms_add_library_TARGET_NAME} include directories" FORCE)
+      CACHE INTERNAL "${openms_add_library_TARGET_NAME} include directories" FORCE)
 
   #------------------------------------------------------------------------------
   # Check if we want a unity build
@@ -222,13 +222,50 @@ function(openms_add_library)
 
   #------------------------------------------------------------------------------
   # copy dll to test/doc bin folder on MSVC systems
-  #TODO fix and use correct version
-  if(${CMAKE_VERSION} VERSION_GREATER "3.25")
-    message("FOO")
-    add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
-            COMMAND $<$<BOOL:$<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>>: ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}> $<TARGET_FILE_DIR:${openms_add_library_TARGET_NAME}>>
-            COMMAND_EXPAND_LISTS
+  if(${CMAKE_VERSION} VERSION_GREATER "3.20")
+    # This stores the command as a list
+    set(has_dll_dep
+            $<BOOL:$<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>>
             )
+    set(none_command
+            ${CMAKE_COMMAND} -E echo
+            )
+    ## TODO check if we can use create_symlink instead
+    set(copy_dlls_to_output_folder
+            ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>
+            $<TARGET_FILE_DIR:${openms_add_library_TARGET_NAME}>
+            )
+
+    if(GENERATOR_IS_MULTI_CONFIG)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$<CONFIG>/" DLL_TEST_TARGET_PATH)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$<CONFIG>/" DLL_DOC_TARGET_PATH)
+    else()
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/" DLL_TEST_TARGET_PATH)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/" DLL_DOC_TARGET_PATH)
+    endif()
+
+    set(copy_dlls_to_test_folder
+            ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>
+            ${DLL_TEST_TARGET_PATH}
+            )
+
+    set(copy_dlls_to_doc_folder
+            ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>
+            ${DLL_DOC_TARGET_PATH}
+            )
+
+    foreach(command IN ITEMS "${copy_dlls_to_output_folder}" "${copy_dlls_to_test_folder}" "${copy_dlls_to_doc_folder}")
+      set(if_runtime_dlls_copy
+              $<IF:${has_dll_dep},${command},${none_command}>
+              )
+      add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
+              COMMAND "${if_runtime_dlls_copy}"
+              COMMAND_EXPAND_LISTS
+              )
+    endforeach()
   else()
     copy_dll_to_extern_bin(${openms_add_library_TARGET_NAME})
   endif()
