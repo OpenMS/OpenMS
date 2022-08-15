@@ -333,7 +333,7 @@ namespace OpenMS
       trafo_external_ = aligner_trafos[0];
       vector<double> aligned_diffs;
       trafo_external_.getDeviations(aligned_diffs);
-      Size index = std::max(0ull, Size(rt_quantile_ * static_cast<double>(aligned_diffs.size())) - 1);
+      Size index = std::max(Size(0), Size(rt_quantile_ * static_cast<double>(aligned_diffs.size())) - 1);
       rt_uncertainty = aligned_diffs[index];
       try
       {
