@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,15 +35,15 @@
 #pragma once
 
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 
+#include <numeric>
+
 namespace OpenMS
 {
-  class Peak1D;
   enum class DriftTimeUnit;
   /**
     @brief The representation of a 1D spectrum.
@@ -73,6 +73,10 @@ public:
     /// Comparator for the retention time.
     struct OPENMS_DLLAPI RTLess
     {
+      bool operator()(const MSSpectrum& a, const MSSpectrum& b) const;
+    };
+    /// Comparator for the ion mobility.
+    struct OPENMS_DLLAPI IMLess {
       bool operator()(const MSSpectrum& a, const MSSpectrum& b) const;
     };
 
@@ -137,11 +141,12 @@ public:
     ///@name Export methods from std::vector<Peak1D>
     //@{
     using ContainerType::operator[];
-    using ContainerType::assign;
     using ContainerType::begin;
     using ContainerType::rbegin;
     using ContainerType::end;
     using ContainerType::rend;
+    using ContainerType::cbegin;
+    using ContainerType::cend;
     using ContainerType::resize;
     using ContainerType::size;
     using ContainerType::push_back;

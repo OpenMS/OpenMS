@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -144,7 +144,7 @@ protected:
     OPENMS_LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << endl;
     if (in_list.size() > 1 && !multiple_search_engines)
     {
-      writeLog_("Fatal error: multiple input files given for -in, but -multiple_search_engines flag not specified. If the same search engine was used, feed the input files into PSMFeatureExtractor one by one.");
+      writeLogError_("Error: multiple input files given for -in, but -multiple_search_engines flag not specified. If the same search engine was used, feed the input files into PSMFeatureExtractor one by one.");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -196,7 +196,7 @@ protected:
         ProteinIdentification::SearchParameters search_parameters = protein_ids.front().getSearchParameters();
         if (search_parameters.db != all_search_parameters.db)
         {
-          writeLog_("Input files are not searched with the same protein database, " + search_parameters.db + " vs. " + all_search_parameters.db + ". Set -skip_db_check flag to ignore this. Aborting!");
+          writeLogError_("Error: Input files are not searched with the same protein database, " + search_parameters.db + " vs. " + all_search_parameters.db + ". Set -skip_db_check flag to ignore this. Aborting!");
           return INCOMPATIBLE_INPUT_DATA;
         }
       }
@@ -229,7 +229,7 @@ protected:
     
     if (all_protein_ids.empty())
     {
-      writeLog_("No protein hits found in input file. Aborting!");
+      writeLogError_("Error: No protein hits found in input file. Aborting!");
       printUsage_();
       return INPUT_FILE_EMPTY;
     }
@@ -316,7 +316,7 @@ protected:
 
     if (out_type == FileTypes::UNKNOWN)
     {
-      writeLog_("Fatal error: Could not determine output file type! Set 'out_type' parameter to desired file type.");
+      writeLogError_("Error: Could not determine output file type! Set 'out_type' parameter to desired file type.");
       return PARSE_ERROR;
     }
     OPENMS_LOG_INFO << "writing output file: " << out << endl;
@@ -330,7 +330,7 @@ protected:
       MzIdentMLFile().store(out, all_protein_ids, all_peptide_ids);
     }
 
-    writeLog_("PSMFeatureExtractor finished successfully!");
+    writeLogInfo_("PSMFeatureExtractor finished successfully!");
     return EXECUTION_OK;
   }
 

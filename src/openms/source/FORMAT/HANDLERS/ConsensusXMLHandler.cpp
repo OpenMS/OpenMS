@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,15 +32,17 @@
 // $Authors: Clemens Groepl, Marc Sturm, Mathias Walzer $
 // --------------------------------------------------------------------------
 
+
 #include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h>
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <fstream>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <map>
+#include <fstream>
 
 using namespace std;
 

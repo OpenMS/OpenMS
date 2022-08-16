@@ -8,11 +8,15 @@ BaseFeature.cpp
 ConsensusFeature.cpp
 ConsensusMap.cpp
 ConversionHelper.cpp
+DimMapper.cpp
 DPeak.cpp
 Feature.cpp
 FeatureHandle.cpp
 FeatureMap.cpp
 MassTrace.cpp
+MobilityPeak1D.cpp
+MobilityPeak2D.cpp
+Mobilogram.cpp
 MRMFeature.cpp
 MRMTransitionGroup.cpp
 MSExperiment.cpp
