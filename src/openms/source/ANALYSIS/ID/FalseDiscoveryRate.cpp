@@ -68,7 +68,6 @@ namespace OpenMS
     defaults_.setValidStrings("add_decoy_proteins", {"true","false"});
     defaults_.setValue("conservative", "true", "If 'true' (D+1)/T instead of (D+1)/(T+D) is used as a formula.");
     defaults_.setValidStrings("conservative", {"true","false"});
-    // TODO to be implemented. I.e., move parameter from FDR tool to here.
     //defaults_.setValue("subprotein_level", "PSM", "Choose PSM or peptide or PSM+peptide");
     //defaults_.setValidStrings("subprotein_level", {"PSM","peptide","PSM+peptide"});
     defaultsToParam_();
