@@ -140,15 +140,13 @@ public:
     /// get reasonable set of samples from the model (i.e. for printing)
     void getSamples(SamplesType & cont) const override
     {
-      cont = SamplesType();
-      BaseModel<1>::PeakType peak;
+      cont.clear();
+      using PeakT = BaseModel<1>::PeakType;
+      PeakT peak;
       for (Size i = 0; i < interpolation_.getData().size(); ++i)
       {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wconversion"
-        peak.setIntensity(interpolation_.getData()[i]);
-#pragma clang diagnostic pop
         peak.getPosition()[0] = interpolation_.index2key(i);
+        peak.setIntensity((PeakT::IntensityType)interpolation_.getData()[i]);
         cont.push_back(peak);
       }
     }

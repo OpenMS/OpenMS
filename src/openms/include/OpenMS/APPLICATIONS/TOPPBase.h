@@ -851,13 +851,19 @@ protected:
 
     ///@name Debug and Log output
     //@{
-    /// Writes a string to the log file and to std::cout
-    void writeLog_(const String& text) const;
+    /// Writes a string to the log file and to OPENMS_LOG_INFO
+    void writeLogInfo_(const String& text) const;
 
-    /// Writes a @p text to the log file and to std::cout if the debug level is at least @p min_level
+    /// Writes a string to the log file and to OPENMS_LOG_WARN
+    void writeLogWarn_(const String& text) const;
+
+    /// Writes a string to the log file and to OPENMS_LOG_ERROR
+    void writeLogError_(const String& text) const;
+
+    /// Writes a string to the log file and to OPENMS_LOG_DEBUG if the debug level is at least @p min_level
     void writeDebug_(const String& text, UInt min_level) const;
 
-    /// Writes a String followed by a Param to the log file and to std::cout if the debug level is at least @p min_level
+    /// Writes a String followed by a Param to the log file and to OPENMS_LOG_DEBUG if the debug level is at least @p min_level
     void writeDebug_(const String& text, const Param& param, UInt min_level) const;
     //@}
 
