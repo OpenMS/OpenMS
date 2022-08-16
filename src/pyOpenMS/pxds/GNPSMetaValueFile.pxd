@@ -1,6 +1,6 @@
 from Types cimport *
 from String cimport *
-from StringList cimport *
+from ConsensusMap cimport *
 
 cdef extern from "<OpenMS/FORMAT/GNPSMetaValueFile.h>" namespace "OpenMS":
 
@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FORMAT/GNPSMetaValueFile.h>" namespace "OpenMS":
         GNPSMetaValueFile() nogil except +
         GNPSMetaValueFile(GNPSMetaValueFile &) nogil except +
 
-        void store(StringList & mzml_file_paths, String & output_file) nogil except +
+        void store(const ConsensusMap& consensus_map, const String& output_file) nogil except +
         # wrap-doc:
         #  Write meta value table (tsv file) from a list of mzML files. Required for GNPS FBMN.
         #  
@@ -17,8 +17,8 @@ cdef extern from "<OpenMS/FORMAT/GNPSMetaValueFile.h>" namespace "OpenMS":
         #  
         #  Parameters
         #  ----------
-        #  mzml_file_paths: list of str
-        #    Path list as string to the input mzML files.
+        #  consensus_map: ConsensusMap
+        #    Input ConsensusMap from which the input mzML files will be determined.
         #  
         #  output_file : str
         #    Output file path for the meta value table.  

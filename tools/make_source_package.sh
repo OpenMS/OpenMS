@@ -3,7 +3,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry               
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 # 
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -123,7 +123,6 @@ echo RELVER  = "${RELVERSION}"
 echo "####################################################"
 echo "copying documentation to release"
 cp $DOCPATH/OpenMS_tutorial.pdf $SOURCEPATH/doc/
-cp $DOCPATH/TOPP_tutorial.pdf $SOURCEPATH/doc/
 cp -r $DOCPATH/html $SOURCEPATH/doc/
 
 # move contrib
