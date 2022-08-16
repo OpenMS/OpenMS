@@ -105,7 +105,7 @@ jobs:
             pip install -U setuptools
             pip install -U pip
             pip install -U autowrap
-            pip install -U nose
+            pip install -U pytest
             pip install -U numpy
             pip install -U wheel
 
@@ -246,7 +246,7 @@ jobs:
             pip install -U setuptools
             pip install -U pip
             pip install -U autowrap
-            pip install -U nose
+            pip install -U pytest
             pip install -U numpy
             pip install -U wheel
             pip install -U pandas
@@ -328,7 +328,7 @@ jobs:
               "$PYBIN/bin/pip" install -U setuptools
               "$PYBIN/bin/pip" install -U wheel==0.31.1
               "$PYBIN/bin/pip" install -U numpy
-              "$PYBIN/bin/pip" install -U nose
+              "$PYBIN/bin/pip" install -U pytest
               "$PYBIN/bin/pip" install -U autowrap
             done
 
