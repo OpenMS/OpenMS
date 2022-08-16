@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -146,69 +146,9 @@ namespace OpenMS
       consensus_map[i].removeMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS);
     }
   }
-
-  void IonIdentityMolecularNetworking::writeFeatureQuantificationTable(const ConsensusMap& consensus_map, const String& output_file)
-  {    
-    // IIMN meta values will be exported, if first feature contains mv Constants::UserParam::IIMN_ROW_ID
-    bool iimn = false;
-    if (consensus_map[0].metaValueExists(Constants::UserParam::IIMN_ROW_ID)) iimn = true;
-
-    // meta values for ion identity molecular networking
-    std::vector<String> iimn_mvs{Constants::UserParam::IIMN_ROW_ID,
-                                Constants::UserParam::IIMN_BEST_ION,
-                                Constants::UserParam::IIMN_ADDUCT_PARTNERS,
-                                Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER};
-    
-    // initialize SVOutStream with tab separation
-    std::ofstream outstr(output_file.c_str());
-    SVOutStream out(outstr, "\t", "_", String::NONE);
-    
-    // write headers for MAP and CONSENSUS
-    out << "#MAP" << "id" << "filename" << "label" << "size" << std::endl;
-    out << "#CONSENSUS" << "rt_cf" << "mz_cf" << "intensity_cf" << "charge_cf" << "width_cf" << "quality_cf";
-    if (iimn)
-    {
-      for (const auto& mv : iimn_mvs) out << mv;
-    }
-    for (size_t i = 0; i < consensus_map.getColumnHeaders().size(); i++)
-    {
-      out << "rt_" + String(i) << "mz_" + String(i) << "intensity_" + String(i) << "charge_" + String(i) << "width_" + String(i);
-    }
-    out << std::endl;
-
-    // write MAP information
-    for (const auto& h: consensus_map.getColumnHeaders())
-    {
-      out << "MAP" << h.first << h.second.filename << h.second.label << h.second.size << std::endl;
-    }
-
-    // write ConsensusFeature information
-    for (const auto& cf: consensus_map)
-    {
-      out << "CONSENSUS" << cf.getRT() << cf.getMZ() << cf.getIntensity() << cf.getCharge() << cf.getWidth() << cf.getQuality();
-      if (iimn)
-      {
-        for (const auto& mv : iimn_mvs) out << cf.getMetaValue(mv, "");
-      }
-      // map index to feature handle and write feature information on correct position, if feature is missing write empty strings
-      std::unordered_map<size_t, FeatureHandle> index_to_feature;
-      for (const auto& fh: cf.getFeatures()) index_to_feature[fh.getMapIndex()] = fh;
-      for (size_t i = 0; i < consensus_map.getColumnHeaders().size(); i++)
-      {
-        if (index_to_feature.count(i))
-        {
-          out << index_to_feature[i].getRT() << index_to_feature[i].getMZ() << index_to_feature[i].getIntensity() << index_to_feature[i].getCharge() << index_to_feature[i].getWidth();
-        }
-        else
-        {
-          out << "" << "" << "" << "" << "";
-        }
-      }
-      out << std::endl;
-    }
-    outstr.close();
-  }
-
+  /**
+  @brief Generates a supplementary pairs table required for GNPS IIMN, as defined here: https://ccms-ucsd.github.io/GNPSDocumentation/fbmn-iin/#supplementary-pairs
+  */
   void IonIdentityMolecularNetworking::writeSupplementaryPairTable(const ConsensusMap& consensus_map, const String& output_file)
   {
     // exit early if there is no IIMN annotations (first feature has no Constants::UserParam::IIMN_ROW_ID)

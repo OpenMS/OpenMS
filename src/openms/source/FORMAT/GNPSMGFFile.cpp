@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -258,7 +258,7 @@ namespace OpenMS
     // return will be reformatted vector<PeptideIdentification> pepts passed in by value
   }
 
-  void GNPSMGFFile::run(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const
+  void GNPSMGFFile::store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const
   {
     std::string output_type = getParameters().getValue("output_type");
 
