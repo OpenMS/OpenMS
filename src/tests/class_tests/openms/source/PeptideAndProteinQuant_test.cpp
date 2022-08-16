@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,7 +65,7 @@ PeptideAndProteinQuant quantifier_features;
 PeptideAndProteinQuant quantifier_consensus;
 PeptideAndProteinQuant quantifier_identifications;
 Param params;
-params.setValue("include_all", "true");
+params.setValue("top:include_all", "true");
 quantifier_features.setParameters(params);
 quantifier_consensus.setParameters(params);
 quantifier_identifications.setParameters(params);
@@ -206,7 +206,7 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
 
   pep_quant = quantifier_consensus.getPeptideResults();
   TEST_EQUAL(pep_quant.size(), 4);
-  pep_data = pep_quant[AASequence::fromString("AAA")];
+  pep_data = pep_quant[AASequence::fromString("AAAK")];
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
   TEST_EQUAL(pep_data.abundances[1].size(), 1); // one charge
   TEST_EQUAL(pep_data.total_abundances.size(), 2);
@@ -214,7 +214,7 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   TEST_REAL_SIMILAR(pep_data.total_abundances[3], 1000);
   TEST_EQUAL(pep_data.accessions.size(), 1);
   TEST_EQUAL(pep_data.psm_count, 1);
-  pep_data = pep_quant[AASequence::fromString("CCC")];
+  pep_data = pep_quant[AASequence::fromString("CCCK")];
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
   TEST_EQUAL(pep_data.abundances[1].size(), 1); // one charge
   TEST_EQUAL(pep_data.total_abundances.size(), 2);
@@ -222,7 +222,7 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   TEST_REAL_SIMILAR(pep_data.total_abundances[2], 200);
   TEST_EQUAL(pep_data.accessions.size(), 1);
   TEST_EQUAL(pep_data.psm_count, 1);
-  pep_data = pep_quant[AASequence::fromString("EEE")];
+  pep_data = pep_quant[AASequence::fromString("EEEK")];
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
   TEST_EQUAL(pep_data.abundances[1].size(), 1); // one charge
   TEST_EQUAL(pep_data.total_abundances.size(), 3);
@@ -316,9 +316,9 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   PeptideAndProteinQuant::ProteinQuant quant;
   PeptideAndProteinQuant::ProteinData protein;
   Param parameters;
-  parameters.setValue("top", 0);
+  parameters.setValue("top:N", 0);
   
-  parameters.setValue("average", "median");
+  parameters.setValue("top:aggregate", "median");
   quantifier.setParameters(parameters);
   ExperimentalDesign ed = ExperimentalDesign::fromFeatureMap(f);
   quantifier.readQuantData(f, ed);
@@ -328,7 +328,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   protein = quant["Protein0"];
   TEST_REAL_SIMILAR(protein.total_abundances[1], 4711);
 
-  parameters.setValue("average", "mean");
+  parameters.setValue("top:aggregate", "mean");
   quantifier.setParameters(parameters);
   quantifier.readQuantData(f, ed);
   quantifier.quantifyPeptides();
@@ -337,7 +337,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   protein = quant["Protein0"];
   TEST_REAL_SIMILAR(protein.total_abundances[1], 5273.666666);
 
-  parameters.setValue("average", "weighted_mean");
+  parameters.setValue("top:aggregate", "weighted_mean");
   quantifier.setParameters(parameters);
   quantifier.readQuantData(f, ed);
   quantifier.quantifyPeptides();
@@ -346,7 +346,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   protein = quant["Protein0"];
   TEST_REAL_SIMILAR(protein.total_abundances[1], 5927.82624360028);
 
-  parameters.setValue("average", "sum");
+  parameters.setValue("top:aggregate", "sum");
   quantifier.setParameters(parameters);
   quantifier.readQuantData(f, ed);
   quantifier.quantifyPeptides();
@@ -354,6 +354,33 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   quant = quantifier.getProteinResults();
   protein = quant["Protein0"];
   TEST_REAL_SIMILAR(protein.total_abundances[1], 15821);
+}
+END_SECTION
+
+// iBAQ test
+START_SECTION((const ProteinQuant& getProteinResults()))
+{
+  PeptideAndProteinQuant quantifier;
+  PeptideAndProteinQuant::ProteinQuant quant;
+  PeptideAndProteinQuant::ProteinData protein;
+
+  Param parameters = quantifier.getDefaults();
+  parameters.setValue("method", "iBAQ");
+  quantifier.setParameters(parameters);
+
+  ConsensusMap consensus;
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.consensusXML"), consensus);
+  ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus);
+  ProteinIdentification proteins_ = consensus.getProteinIdentifications()[0];
+  quantifier.readQuantData(consensus, ed);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins(proteins_);
+
+  quant = quantifier.getProteinResults();
+  protein = quant["Protein"];
+  TEST_REAL_SIMILAR(protein.total_abundances[1], 308.5);
+  TEST_REAL_SIMILAR(protein.total_abundances[2], 58.5);
+  TEST_REAL_SIMILAR(protein.total_abundances[3], 257.5);
 }
 END_SECTION
 

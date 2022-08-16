@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -109,7 +109,7 @@ protected:
     bool no_chrom = getFlag_("no_chrom"), no_spec = getFlag_("no_spec");
     if (no_chrom && no_spec)
     {
-      writeLog_("Error: 'no_chrom' and 'no_spec' cannot be used together");
+      writeLogError_("Error: 'no_chrom' and 'no_spec' cannot be used together");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -118,7 +118,7 @@ protected:
     {
       if (size == 0)
       {
-        writeLog_("Error: Higher value for parameter 'parts' or 'size' required");
+        writeLogError_("Error: Higher value for parameter 'parts' or 'size' required");
         return ILLEGAL_PARAMETERS;
       }
 
@@ -133,10 +133,10 @@ protected:
       else
         total_size /= (1024 * 1024 * 1024); // "GB"
 
-      writeLog_("File size: " + String(total_size) + " " + unit);
+      writeLogInfo_("File size: " + String(total_size) + " " + unit);
       parts = ceil(total_size / size);
     }
-    writeLog_("Splitting file into " + String(parts) + " parts...");
+    writeLogInfo_("Splitting file into " + String(parts) + " parts...");
 
     PeakMap experiment;
     MzMLFile().load(in, experiment);
@@ -162,8 +162,8 @@ protected:
       experiment.getChromatograms().swap(chromatograms);
     }
 
-    writeLog_("Total spectra: " + String(spectra.size()));
-    writeLog_("Total chromatograms: " + String(chromatograms.size()));
+    writeLogInfo_("Total spectra: " + String(spectra.size()));
+    writeLogInfo_("Total chromatograms: " + String(chromatograms.size()));
 
     Size spec_start = 0, chrom_start = 0;
     Size width = String(parts).size();
@@ -197,7 +197,7 @@ protected:
       }
       chrom_start += n_chrom;
 
-      writeLog_("Part " + String(counter) + ": " + String(n_spec) + " spectra, " + String(n_chrom) + " chromatograms");
+      writeLogInfo_("Part " + String(counter) + ": " + String(n_spec) + " spectra, " + String(n_chrom) + " chromatograms");
       MzMLFile().store(out_name.str(), part);
     }
 

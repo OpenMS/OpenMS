@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -401,11 +401,10 @@ namespace OpenMS
 
     MSSpectrum uncharged_spectrum = getUnchargedSpectrum_(oligo);
 
-    for (uint z = (uint)abs(min_charge); z <= (uint)abs(max_charge) && z < (uint)oligo.size(); ++z)
+    for (UInt z = (UInt)abs(min_charge); z <= (UInt)abs(max_charge) && z < (UInt)oligo.size(); ++z)
     {
       bool add_precursor =
-        ((add_precursor_peaks_ && add_all_precursor_charges_) ||
-         (add_precursor_peaks_ && (z == (uint)abs(max_charge))));
+        ((add_precursor_peaks_ && add_all_precursor_charges_) || (add_precursor_peaks_ && (z == (UInt)abs(max_charge))));
       addChargedSpectrum_(spectrum, uncharged_spectrum, z * sign,
                           add_precursor);
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -139,7 +139,7 @@ protected:
     // check for peak type (raw data required)
     if (ms_exp[0].getType(true) == SpectrumSettings::CENTROID)
     {
-      writeLog_("Warning: OpenMS peak type estimation indicates that this is not raw data!");
+      writeLogWarn_("Warning: OpenMS peak type estimation indicates that this is not raw data!");
     }
 
     //check if spectra are sorted
@@ -147,7 +147,7 @@ protected:
     {
       if (!ms_exp[i].isSorted())
       {
-        writeLog_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+        writeLogError_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
         return INCOMPATIBLE_INPUT_DATA;
       }
     }

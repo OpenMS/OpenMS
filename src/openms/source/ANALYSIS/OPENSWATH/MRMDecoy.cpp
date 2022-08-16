@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -442,14 +442,14 @@ namespace OpenMS
       selection_list = item_list;
     }
 
-    // Create an unordered_map of all peptide sequences and their IDs, this will be used to search if a decoy sequence is also a target sequence
+    // Create an unordered_map of all precursors (modified peptide sequence + charge) to their IDs, this will be used to search if a decoy sequence is also a target sequence
     std::unordered_map<std::string, std::string> allPeptideSequences;
     for (const auto& pep_idx: selection_list)
     {
       OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[pep_idx];
 
       // create a modified peptide sequence string
-      allPeptideSequences[MRMDecoy::getModifiedPeptideSequence_(peptide)] = peptide.id;
+      allPeptideSequences[MRMDecoy::getModifiedPeptideSequence_(peptide) + String(peptide.getChargeState()) ] = peptide.id;
     }
 
     std::unordered_set<String> exclusion_peptides;
@@ -509,17 +509,17 @@ namespace OpenMS
         else if (do_switchKR) { switchKR(peptide); }
       }
 
-      // Check that the decoy sequence does not happen to be a target sequence AND is not already present
-      if (allPeptideSequences.find(peptide.sequence) != allPeptideSequences.end())
+      // Check that the decoy precursor does not happen to be a target precursor AND is not already present
+      if (allPeptideSequences.find(peptide.sequence + String((peptide.getChargeState()))) != allPeptideSequences.end())
       {
         OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << " since decoy peptide is also a target peptide or this decoy peptide is already present" << std::endl;
         exclusion_peptides.insert(peptide.id);
       }
       else
       {
-        // Since this decoy will be added, add it to the peptide map so that the same decoy is not added twice
+        // Since this decoy will be added, add it to the precursor map so that the same decoy is not added twice
         OPENMS_LOG_DEBUG << "[peptide] adding " << peptide.id << " to master list of peptides " << std::endl;
-        allPeptideSequences[MRMDecoy::getModifiedPeptideSequence_(peptide)] = peptide.id;
+        allPeptideSequences[MRMDecoy::getModifiedPeptideSequence_(peptide) + String(peptide.getChargeState())] = peptide.id;
       }
 
       for (Size prot_idx = 0; prot_idx < peptide.protein_refs.size(); ++prot_idx)
