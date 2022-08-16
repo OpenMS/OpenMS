@@ -110,7 +110,7 @@
     Qt comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Qt website.
     For several recent Qt5 versions, there are binary development versions available for the most recent compilers. 
 
-    <b>Installation of Qt5 via the Qt5 installer (requires an admin account)<b>:<br>
+    <b>Installation of Qt5 via the Qt5 installer (requires an admin account)</b>:<br>
     Go to https://www.qt.io/download and click on "Go open source" at the end of the right column to download the installer. Follow steps, download, save and run the installer.
     Create a Qt account. Choose a folder like "c:\dev\QT". From the components choose a matching version, e.g. QT 5.10.0 and the MSVC component that fits
     your Visual Studio version and architecture (most likely only 64bit is supported; if your Visual Studio version is more recent than the VS offered by the Qt installer, 
