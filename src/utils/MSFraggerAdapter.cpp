@@ -595,7 +595,7 @@ protected:
                                << "\n\nclip_nTerm_M = " << arg_clip_nterm_m << '\n';
 
       // Write variable modifications from masses/syntax and unimod to unique set (and also write to log)
-      writeLog_("Variable Modifications set to:");
+      writeLogInfo_("Variable Modifications set to:");
       std::set< std::pair< double, String > > varmods_combined;
       Size i;
       for (i = 0; i < arg_varmod_masses.size(); ++i)
@@ -709,7 +709,7 @@ protected:
       {
         const String varmod = "variable_mod_0" + String(i+1) + " = " + String(m.first) + " " + String(m.second);
         os << "\n" << varmod;
-        writeLog_(varmod);
+        writeLogInfo_(varmod);
         i++;
       }
 
@@ -889,9 +889,9 @@ protected:
       OPENMS_LOG_FATAL_ERROR << "FATAL: Invocation of MSFraggerAdapter has failed. Error code was: " << process_msfragger.exitCode() << std::endl;
       const QString msfragger_stdout(process_msfragger.readAllStandardOutput());
       const QString msfragger_stderr(process_msfragger.readAllStandardError());
-      writeLog_(msfragger_stdout);
-      writeLog_(msfragger_stderr);
-      writeLog_(String(process_msfragger.exitCode()));
+      writeLogError_(msfragger_stdout);
+      writeLogError_(msfragger_stderr);
+      writeLogError_(String(process_msfragger.exitCode()));
       return EXTERNAL_PROGRAM_ERROR;
     }
 
