@@ -1101,6 +1101,7 @@ namespace OpenMS
     if (groups_too)
     {
       // Prepare lookup map for decoy proteins (since there is no direct way back from group to protein)
+      // TODO we could also require the decoy affix to be specified
       unordered_set<string> decoy_accs;
       for (const auto& prot : id.getHits())
       {
@@ -1678,7 +1679,6 @@ namespace OpenMS
           rit->second = cummin;
         }
       }
-
     }
   }
 
@@ -1699,7 +1699,7 @@ namespace OpenMS
 
     // map decoys to counts of occurrences as prefix/suffix
     DecoyStringToAffixCount decoy_count;
-    // map case insensitive strings back to original case (as used in fasta)
+    // map case-insensitive strings back to original case (as used in fasta)
     CaseInsensitiveToCaseSensitiveDecoy decoy_case_sensitive;
 
     // setup prefix- and suffix regex strings
@@ -1733,7 +1733,7 @@ namespace OpenMS
         // increase count of observed prefix
         decoy_count[match].first++;
 
-        // store observed (case sensitive and with special characters)
+        // store observed (case-sensitive and with special characters)
         std::string seq_decoy = StringUtils::prefix(seq, match.length());
         decoy_case_sensitive[match] = seq_decoy;
       }
@@ -1748,7 +1748,7 @@ namespace OpenMS
         // increase count of observed suffix
         decoy_count[match].second++;
 
-        // store observed (case sensitive and with special characters)
+        // store observed (case-sensitive and with special characters)
         std::string seq_decoy = StringUtils::suffix(seq, match.length());
         decoy_case_sensitive[match] = seq_decoy;
       }

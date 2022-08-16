@@ -57,7 +57,7 @@ namespace OpenMS
       bool target = false;
       for (const auto &acc : grp.accessions)
       {
-        // In groups you usually want to check if at least one member is a real target
+        // In groups, you usually want to check if at least one member is a real target
         if (decoy_accs.find(acc) == decoy_accs.end())
         {
           target = true;

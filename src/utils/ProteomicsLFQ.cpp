@@ -1753,7 +1753,9 @@ protected:
         if (getStringOption_("transfer_ids") != "false" && ms_files.second.size() > 1)
         {  
           OPENMS_LOG_INFO << "Transferring identification data between runs of the same fraction." << endl;
+          // TODO parameterize
           // needs to occur in >= 50% of all runs for transfer
+
           const Size min_occurrance = (ms_files.second.size() + 1) / 2;
           multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenSameFraction_(consensus_fraction, min_occurrance);
           consensus_fraction.clear();
@@ -1948,10 +1950,6 @@ protected:
     // Annotate quants to protein(groups) for easier export in mzTab
     // Note: we keep protein groups that have not been quantified
 
-    // TODO: WARNING: THIS IS NOT NECESSARILY EQUAL TO THE NUMBER OF SAMPLES,
-    //  WHICH IS EXPECTED IN THIS FUNCTION.
-    //  If you want to quantify per fraction group, then you need to annotate
-    //  the fraction group in the protein! NOT the sample!
     PeptideAndProteinQuant::annotateQuantificationsToProteins(
       protein_quants, inferred_protein_ids[0], design.getNumberOfSamples(), false);
 
