@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,20 +33,22 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/XLMS/OpenPepXLLFAlgorithm.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
-#include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
-#include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
-#include <OpenMS/KERNEL/SpectrumHelper.h>
-#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
+
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/CHEMISTRY/Tagger.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
+#include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
+#include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
+#include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
+#include <OpenMS/CHEMISTRY/Tagger.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
 #include <iostream>
 
@@ -296,6 +298,7 @@ using namespace OpenMS;
 
     search_params.setMetaValue("modifications:variable_max_per_peptide", max_variable_mods_per_peptide_);
     protein_ids[0].setSearchParameters(search_params);
+    protein_ids[0].setScoreType("OpenPepXL_Protein_Score");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
     vector<OPXLDataStructs::AASeqWithMass> peptide_masses;

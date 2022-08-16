@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -84,6 +84,7 @@ set(header_dataaccess_list
   DATAACCESS/ITransition.h
   DATAACCESS/MockObjects.h
   DATAACCESS/SpectrumHelpers.h
+  DATAACCESS/SwathMap.h
   DATAACCESS/TransitionExperiment.h
   DATAACCESS/TransitionHelper.h
   DATAACCESS/Transitions.h

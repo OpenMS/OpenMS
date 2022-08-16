@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -600,7 +600,14 @@ namespace OpenMS
     for (Size i = 0; i < li->getLength(); i++)
     {
       // Will append one single BinaryData object to data
-      handleBinaryDataArray_(li->item(i), data);
+      try
+      {
+        handleBinaryDataArray_(li->item(i), data);
+      } catch (OpenMS::Exception::ParseError &err) 
+      {
+        delete parser;
+        throw err;
+      }
       // Set the size correctly (otherwise MzMLHandlerHelper complains).
       data.back().size = default_array_length;
     }

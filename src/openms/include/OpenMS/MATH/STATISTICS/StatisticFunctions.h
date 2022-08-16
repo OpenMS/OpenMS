@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -671,10 +671,7 @@ namespace OpenMS
     template<typename T>
     struct SummaryStatistics
     {
-      SummaryStatistics()
-        :mean(0), variance(0), min(0), lowerq(0), median(0), upperq(0), max(0)
-      {
-      }
+      SummaryStatistics() = default;
 
       // Ctor with data
       SummaryStatistics(T& data)
@@ -698,9 +695,9 @@ namespace OpenMS
         }
       }
 
-      double mean, variance, lowerq, median, upperq;
-      typename T::value_type min, max;
-      size_t count;
+      double mean = 0, variance = 0 , lowerq = 0, median = 0, upperq = 0;
+      typename T::value_type min = 0, max = 0;
+      size_t count = 0;
     };
 
   }   // namespace Math

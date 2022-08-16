@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -180,9 +180,9 @@ START_SECTION((static void applyVariableModifications(const ModifiedPeptideGener
   TEST_EQUAL(modified_peptides[1].toString(), "AAM(Oxidation)AAAMAA");
   modified_peptides.clear();
 
-  // up to two variable modifications per petide
+  // up to two variable modifications per peptide
   ModifiedPeptideGenerator::applyVariableModifications(variable_mods, seq, 2, modified_peptides, false);
-  TEST_EQUAL(modified_peptides.size(), 3); // three modified peptides, 1 modifed at first M, 1 modifed at second M and both M modified
+  TEST_EQUAL(modified_peptides.size(), 3); // three modified peptides, 1 modified at first M, 1 modified at second M and both M modified
   TEST_EQUAL(modified_peptides[0].toString(), "AAMAAAM(Oxidation)AA");
   TEST_EQUAL(modified_peptides[1].toString(), "AAM(Oxidation)AAAMAA");
   TEST_EQUAL(modified_peptides[2].toString(), "AAM(Oxidation)AAAM(Oxidation)AA");
@@ -215,7 +215,7 @@ START_SECTION((static void applyVariableModifications(const ModifiedPeptideGener
 
   modified_peptides.clear();
 
-  seq = AASequence::fromString("ACAACAACA"); // three target sites and maximum of three occurances of the two modifications Glutathione and Carbamidomethyl
+  seq = AASequence::fromString("ACAACAACA"); // three target sites and maximum of three occurrences of the two modifications Glutathione and Carbamidomethyl
   ModifiedPeptideGenerator::applyVariableModifications(variable_mods, seq, 3, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 3*3*3-1); // three sites with 3 possibilities (none, Glut., Carb.) each - but we need to subtract (none, none, none). The unmodified peptide
 
@@ -281,6 +281,8 @@ END_SECTION
 
 START_SECTION([EXTRA] multithreaded example)
 {
+// only do this in release, since MP errors are unlikely to occur in Debug mode anyway and it takes 5min to run the test in Debug
+#ifdef NDEBUG
   int nr_iterations (1e5);
   int test = 0;
   // many modifications
@@ -300,6 +302,7 @@ START_SECTION([EXTRA] multithreaded example)
     test += modified_peptides.size();
   }
   TEST_EQUAL(test, 29 * nr_iterations)
+#endif
 }
 
 

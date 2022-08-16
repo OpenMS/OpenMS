@@ -41,6 +41,7 @@
 				<UserParam type="int" name="XTandemAdapter:1:aaa_max" value="3"/>
 				<UserParam type="int" name="XTandemAdapter:1:mismatches_max" value="0"/>
 				<UserParam type="string" name="XTandemAdapter:1:IL_equivalent" value="false"/>
+				<UserParam type="string" name="XTandemAdapter:1:allow_nterm_protein_cleavage" value="true"/>
 				<UserParam type="string" name="XTandemAdapter:1:name" value="auto"/>
 				<UserParam type="string" name="XTandemAdapter:1:specificity" value="auto"/>
 	</SearchParameters>

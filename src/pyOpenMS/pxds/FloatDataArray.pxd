@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/METADATA/DataArrays.h>" namespace "OpenMS::DataArrays"
         Size size() nogil except +
         void resize(size_t n) nogil except +
         void reserve(size_t n) nogil except +
-        float& operator[](int) nogil except + # wrap-ignore
+        float& operator[](size_t) nogil except + # wrap-ignore
         void clear() nogil except +
         void push_back(float) nogil except +
 

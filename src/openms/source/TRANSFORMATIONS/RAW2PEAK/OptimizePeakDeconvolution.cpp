@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -436,7 +436,7 @@ namespace OpenMS
       // all peaks shall have the same width
       double wl = data.peaks[0].left_width;
       double wr = data.peaks[0].right_width;
-      if (boost::math::isnan(wl))
+      if (std::isnan(wl))
       {
         for (Size i = 0; i < data.peaks.size(); ++i)
         {
@@ -444,7 +444,7 @@ namespace OpenMS
         }
         wl = 1.;
       }
-      if (boost::math::isnan(wr))
+      if (std::isnan(wr))
       {
         for (Size i = 0; i < data.peaks.size(); ++i)
         {
@@ -518,8 +518,8 @@ namespace OpenMS
         else                   //It's a Sech - Peak
         {
           PeakShape p = peaks[current_peak];
-          double x_left_endpoint = p.mz_position + 1 / p.left_width * boost::math::acosh(sqrt(p.height / 0.001));
-          double x_right_endpoint = p.mz_position + 1 / p.right_width * boost::math::acosh(sqrt(p.height / 0.001));
+          double x_left_endpoint = p.mz_position + 1 / p.left_width * std::acosh(sqrt(p.height / 0.001));
+          double x_right_endpoint = p.mz_position + 1 / p.right_width * std::acosh(sqrt(p.height / 0.001));
 #ifdef DEBUG_DECONV
           std::cout << "x_left_endpoint " << x_left_endpoint << " x_right_endpoint " << x_right_endpoint << std::endl;
           std::cout << "p.height" << p.height << std::endl;

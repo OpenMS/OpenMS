@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -50,7 +50,7 @@ endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 
-  add_compile_options(-Wall -Wextra 
+  add_compile_options(-Wall -Wextra
     #-fvisibility=hidden # This is now added as a target property for each library.
     -Wno-non-virtual-dtor 
     -Wno-unknown-pragmas

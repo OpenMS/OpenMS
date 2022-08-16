@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,6 +49,7 @@
 #include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/TOPPViewMenu.h>
 #include <OpenMS/VISUAL/TVToolDiscovery.h>
+#include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 
 //STL
 #include <map>
@@ -59,6 +60,7 @@
 #include <QtWidgets/QActionGroup>
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
+#include <QElapsedTimer>
 
 class QAction;
 class QComboBox;
@@ -522,7 +524,7 @@ protected:
       UInt window_id;
       Size spectrum_id;
       QProcess* process = nullptr;
-      QTime timer;
+      QElapsedTimer timer;
       bool visible_area_only;
     } topp_;
     //@}
@@ -544,12 +546,12 @@ protected:
     /// Depending on the preferences this is static or changes with the current window/layer.
     String current_path_;
 
-    /// Adds tool/util params to param_ object by querying them from TVToolDiscovery
-    void addToolParamsToIni_();
-
 private:
     /// Suffix appended to caption of tabs when layer is shown in 3D
     static const String CAPTION_3D_SUFFIX_;
+
+    /// This dialog is a member so that its settings can be perserved upon closing.
+    TheoreticalSpectrumGenerationDialog spec_gen_dialog_;
   }; //class
 
 } //namespace

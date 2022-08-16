@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,6 +50,8 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
+#include <QStringList>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -101,7 +103,7 @@ using namespace std;
     An example of a configuration file (named "default_input.xml") is contained in the "bin" folder of the @em X!Tandem installation and in the %OpenMS installation
     under <code>OpenMS/share/CHEMISTRY/XTandem_default_config.xml</code>.
     If you want to use the XML configuration file and @em ignore most of the parameters set via this adapter, use the @p ignore_adapter_param flag.
-    Then, the config given via @p default_config_file is used exclusively and only the values for the paramters @p in, @p out, @p database and @p xtandem_executable are taken from this adapter.
+    Then, the config given via @p default_config_file is used exclusively and only the values for the parameters @p in, @p out, @p database and @p xtandem_executable are taken from this adapter.
 
     @note This adapter supports <b>15N labeling</b> by using the <tt>XTandem_residue_mass.bioml.xml</tt> file (which defines modified AA masses) as provided in
           <code>OpenMS/share/OpenMS/CHEMISTRY/</code>. To use it, specify the full path (which will depend on your system!) to this bioml.xml file 
@@ -221,7 +223,7 @@ protected:
     String xml_out = getStringOption_("xml_out");
     if (xml_out.empty() && out.empty())
     {
-      writeLog_("Fatal error: no output file given (parameter 'out' or 'xml_out')");
+      writeLogError_("Fatal error: no output file given (parameter 'out' or 'xml_out')");
       return ILLEGAL_PARAMETERS;
     }
 

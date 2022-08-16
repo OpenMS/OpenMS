@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
 
 #include <OpenMS/FORMAT/Base64.h>
+#include <map>
 
 namespace OpenMS::Internal
 {
@@ -804,7 +805,7 @@ namespace OpenMS::Internal
           warning(STORE, "Not all spectrum native IDs are numbers or correctly prefixed with 'spectrum='. The spectra are renumbered and the native IDs are lost!");
         }
         //Map to store the last spectrum ID for each MS level (needed to find precursor spectra)
-        Map<Int, Size> level_id;
+        std::map<Int, Size> level_id;
 
         os << "\t<spectrumList count=\"" << cexp_->size() << "\">\n";
         for (Size s = 0; s < cexp_->size(); ++s)
@@ -961,7 +962,7 @@ namespace OpenMS::Internal
           {
             Int precursor_ms_level = spec.getMSLevel() - 1;
             SignedSize precursor_id = -1;
-            if (level_id.has(precursor_ms_level))
+            if (level_id.find(precursor_ms_level) != level_id.end())
             {
               precursor_id = level_id[precursor_ms_level];
             }

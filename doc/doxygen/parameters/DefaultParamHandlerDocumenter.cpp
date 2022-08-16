@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
@@ -169,11 +170,6 @@
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #endif
-
-// include this file after the GUI stuff, or there will be a conflict between
-// "LayerData.h" (via "Plot1DCanvas.h") and "SeqanIncludeWrapper.h"!
-// (see https://github.com/OpenMS/OpenMS/issues/1327)
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
 
 
 #include <fstream>

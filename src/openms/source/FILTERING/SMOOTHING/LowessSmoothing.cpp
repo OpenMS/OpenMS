@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,10 @@
 
 
 #include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
-
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
+
+#include <algorithm>
+#include <cmath>
 
 namespace OpenMS
 {
@@ -116,7 +118,7 @@ namespace OpenMS
     }
 
     // 0 <= u < t; u is regarded as 0.0 if fabs(u) falls below epsilon
-    if ((fabs(u) < std::numeric_limits<double>::epsilon() || (0.0 < u)) && (u < t))
+    if ((std::fabs(u) < std::numeric_limits<double>::epsilon() || (0.0 < u)) && (u < t))
     {
       // (1 - (u/t)^3)^3
       // return pow( ( 1.0 - pow(u/t, 3.0)), 3.0 );

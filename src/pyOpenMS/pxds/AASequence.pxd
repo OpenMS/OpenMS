@@ -1,10 +1,10 @@
 from libcpp cimport bool
+from libcpp.map cimport map as libcpp_map
 from Types cimport *
 from String cimport *
 from Residue cimport *
 from EmpiricalFormula cimport *
 from ResidueModification cimport *
-from Map cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
 
@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         AASequence iadd(AASequence) nogil except + # wrap-as:operator+=
 
         # Note that this is a const-ref, so we cannot easily set residues
-        Residue operator[](int) nogil except + # wrap-upper-limit:size()
+        Residue operator[](size_t) nogil except + # wrap-upper-limit:size()
 
         # check if sequence is empty
         bool empty() nogil except + # wrap-doc:Check if sequence is empty
@@ -101,7 +101,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         AASequence getSubsequence(Size index, UInt number) nogil except + # wrap-doc:Returns a peptide sequence of number residues, beginning at position index
 
         # compute frequency table of amino acids
-        void getAAFrequencies(Map[String, size_t]) nogil except + # wrap-ignore
+        void getAAFrequencies(libcpp_map[String, size_t]) nogil except + # wrap-ignore
 
         # returns true if the peptide contains the given residue
         bool has(Residue residue) nogil except + # wrap-doc:Returns true if the peptide contains the given residue

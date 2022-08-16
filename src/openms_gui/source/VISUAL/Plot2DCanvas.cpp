@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,38 +33,34 @@
 // --------------------------------------------------------------------------
 
 // OpenMS
-#include <OpenMS/VISUAL/Plot2DCanvas.h>
-#include <OpenMS/VISUAL/PlotWidget.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/VISUAL/DIALOGS/Plot2DPrefDialog.h>
-#include <OpenMS/VISUAL/ColorSelector.h>
-#include <OpenMS/VISUAL/MultiGradientSelector.h>
-#include <OpenMS/VISUAL/DIALOGS/FeatureEditDialog.h>
-#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
-
-#include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/ColorSelector.h>
+#include <OpenMS/VISUAL/DIALOGS/FeatureEditDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/Plot2DPrefDialog.h>
+#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/MultiGradientSelector.h>
+#include <OpenMS/VISUAL/Plot2DCanvas.h>
+#include <OpenMS/VISUAL/PlotWidget.h>
 //STL
 #include <algorithm>
 
 //QT
+#include <QBitmap>
 #include <QMouseEvent>
 #include <QPainter>
-#include <QtWidgets/QMenu>
-#include <QBitmap>
 #include <QPolygon>
-#include <QtCore/QTime>
+#include <QElapsedTimer>
 #include <QtWidgets/QComboBox>
-#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMenu>
 #include <QtWidgets/QMessageBox>
-
-//boost
-#include <boost/math/special_functions/fpclassify.hpp>
 
 #define PEN_SIZE_MAX_LIMIT 100    // maximum size of a rectangle representing a point for raw peak data
 #define PEN_SIZE_MIN_LIMIT 1      // minimum. This should not be changed without adapting the way dots are plotted
@@ -1452,7 +1448,7 @@ namespace OpenMS
 #endif
 
     //timing
-    QTime overall_timer;
+    QElapsedTimer overall_timer;
     if (show_timing_)
     {
       overall_timer.start();
@@ -1476,7 +1472,7 @@ namespace OpenMS
 
       buffer_.fill(QColor(String(param_.getValue("background_color").toString()).toQString()).rgb());
       painter.begin(&buffer_);
-      QTime layer_timer;
+      QElapsedTimer layer_timer;
 
       for (Size i = 0; i < getLayerCount(); i++)
       {
@@ -1537,7 +1533,14 @@ namespace OpenMS
     painter.begin(this);
 
     //copy peak data from buffer
+     /*
+         * Suppressed warning QVector<QRect> QRegion::rects() const is deprecated
+         * Use begin()/end() instead, from Qt 5.8
+         */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     QVector<QRect> rects = e->region().rects();
+#pragma GCC diagnostic pop
     for (int i = 0; i < (int)rects.size(); ++i)
     {
       painter.drawImage(rects[i].topLeft(), buffer_, rects[i]);
@@ -1831,7 +1834,7 @@ namespace OpenMS
     QStringList lines;
     lines.push_back("RT delta:  " + QString::number(rt, 'f', 2));
     lines.push_back("m/z delta: " + QString::number(mz, 'f', 6) + " (" + QString::number(ppm, 'f', 1) +" ppm)");
-    if (boost::math::isinf(it) || boost::math::isnan(it))
+    if (std::isinf(it) || std::isnan(it))
     {
       lines.push_back("Int ratio: n/a");
     }
@@ -2628,51 +2631,24 @@ namespace OpenMS
 
     if (layer.type == LayerDataBase::DT_PEAK)   //peak data
     {
-      QString selected_filter = "";
-      QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(), "mzML files (*.mzML);;mzData files (*.mzData);;mzXML files (*.mzXML);;All files (*)", &selected_filter);
-      if (!file_name.isEmpty())
+      QString file_name = GUIHelpers::getSaveFilename(this, "Save file", proposed_name.toQString(), FileTypeList({FileTypes::MZML, FileTypes::MZDATA, FileTypes::MZXML}), true, FileTypes::MZML);
+      if (file_name.isEmpty())
       {
-        // check whether a file type suffix has been given
-        // first check mzData and mzXML then mzML
-        // if the setting is at "All files"
-        // mzML will be used
-        String upper_filename = file_name;
-        upper_filename.toUpper();
-        if (selected_filter == "mzData files (*.mzData)")
-        {
-          if (!upper_filename.hasSuffix(".MZDATA"))
-          {
-            file_name += ".mzData";
-          }
-        }
-        else if (selected_filter == "mzXML files (*.mzXML)")
-        {
-          if (!upper_filename.hasSuffix(".MZXML"))
-          {
-            file_name += ".mzXML";
-          }
-        }
-        else
-        {
-          if (!upper_filename.hasSuffix(".MZML"))
-          {
-            file_name += ".mzML";
-          }
-        }
+        return;
+      }      
 
-        if (visible)     //only visible data
-        {
-          ExperimentType out;
-          getVisiblePeakData(out);
-          addDataProcessing_(out, DataProcessing::FILTERING);
-          FileHandler().storeExperiment(file_name, out, ProgressLogger::GUI);
-        }
-        else         //all data
-        {
-          FileHandler().storeExperiment(file_name, *layer.getPeakData(), ProgressLogger::GUI);
-        }
-        modificationStatus_(getCurrentLayerIndex(), false);
+      if (visible)     //only visible data
+      {
+        ExperimentType out;
+        getVisiblePeakData(out);
+        addDataProcessing_(out, DataProcessing::FILTERING);
+        FileHandler().storeExperiment(file_name, out, ProgressLogger::GUI);
       }
+      else         //all data
+      {
+        FileHandler().storeExperiment(file_name, *layer.getPeakData(), ProgressLogger::GUI);
+      }
+      modificationStatus_(getCurrentLayerIndex(), false);
     }
     else if (layer.type == LayerDataBase::DT_FEATURE) //features
     {

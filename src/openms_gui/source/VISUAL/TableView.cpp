@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -100,6 +100,11 @@ namespace OpenMS
     context_menu.exec(mapToGlobal(pos));
   }
 
+  void TableView::setMandatoryExportColumns(QStringList& cols)
+  {
+    mandatory_export_columns_ = cols;
+  }
+
   void TableView::exportEntries()
   {
     QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "tsv file (*.tsv)");
@@ -111,17 +116,39 @@ namespace OpenMS
     }
     QTextStream ts(&f);
     QStringList str_list;
+    
+    QStringList cols_to_export = (getHeaderNames(WidgetHeader::VISIBLE_ONLY, true) + mandatory_export_columns_);    
+    cols_to_export.removeDuplicates();
+
+    QStringList all_header_names = getHeaderNames(WidgetHeader::WITH_INVISIBLE, true);
 
     // write header
-    ts << getHeaderNames(WidgetHeader::VISIBLE_ONLY, true).join("\t") + "\n";
+    bool first{true};
+    for (int c = 0; c < columnCount(); ++c)
+    {
+      // columns marked for export
+      if (cols_to_export.indexOf(all_header_names[c]) != -1)
+      {
+        if (!first) 
+        { 
+          ts << "\t"; 
+        }
+        else 
+        {
+          first = false;
+        }
+        ts << all_header_names[c];        
+      }
+    }
+    ts << "\n";
 
     // write entries
     for (int r = 0; r < rowCount(); ++r)
     {
       for (int c = 0; c < columnCount(); ++c)
       {
-        // do not export hidden columns
-        if (isColumnHidden(c))
+        // only export columns we marked for export
+        if (cols_to_export.indexOf(all_header_names[c]) == -1)
         {
           continue;
         }
@@ -167,7 +194,13 @@ namespace OpenMS
 
   void TableView::hideColumns(const QStringList& header_names)
   {
+     /*
+       * Suppressing warning toSet() deprecated till Qt 5.14
+       */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     auto hset = header_names.toSet();
+#pragma GCC diagnostic pop
     // add actions which show/hide columns
     for (int i = 0; i != columnCount(); ++i)
     {
@@ -184,7 +217,7 @@ namespace OpenMS
     }
     if (!hset.empty())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.toList().join(", ")));
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.values().join(", ")));
     }
   }
 
@@ -232,7 +265,7 @@ namespace OpenMS
 
   QTableWidgetItem* TableView::setAtBottomRow(QTableWidgetItem* item, size_t column_index, const QColor& background, const QColor& foreground)
   {
-    item->setBackgroundColor(background);
+    item->setBackground(QBrush(background));
     if (foreground.isValid())
     {
       item->setForeground(QBrush(foreground));

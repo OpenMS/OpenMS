@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -229,7 +229,7 @@ for (PeakSpectrum::ConstIterator it1 = s1.begin(); it1 != s1.end(); ++it1)
     if (is_gaussian)
     {
       static const double denominator = mz_tolerance * 3.0 * sqrt(2.0);
-      factor = boost::math::erfc(mz_difference / denominator);
+      factor = std::erfc(mz_difference / denominator);
       //cerr << "Factor: " << factor << " " << mz_tolerance << " " << mz_difference << endl;
     }
     else

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,12 +78,12 @@ namespace OpenMS
     cv_terms_[accession] = cv_terms;
   }
 
-  void CVTermList::replaceCVTerms(const Map<String, vector<CVTerm> >& cv_term_map)
+  void CVTermList::replaceCVTerms(const std::map<String, vector<CVTerm> >& cv_term_map)
   {
     cv_terms_ = cv_term_map;
   }
 
-  void CVTermList::consumeCVTerms(const Map<String, vector<CVTerm> >& cv_term_map)
+  void CVTermList::consumeCVTerms(const std::map<String, vector<CVTerm> >& cv_term_map)
   {
     for (std::map<String, std::vector<CVTerm> >::const_iterator it = cv_term_map.begin(); it != cv_term_map.end(); ++it)
     {
@@ -91,19 +91,19 @@ namespace OpenMS
     }
   }
 
-  const Map<String, vector<CVTerm> >& CVTermList::getCVTerms() const
+  const std::map<String, vector<CVTerm> >& CVTermList::getCVTerms() const
   {
     return cv_terms_;
   }
 
   bool CVTermList::hasCVTerm(const String& accession) const
   {
-    return cv_terms_.has(accession);
+    return cv_terms_.find(accession) != cv_terms_.end();
   }
 
   bool CVTermList::operator==(const CVTermList& cv_term_list) const
   {
-    return MetaInfoInterface::operator==(cv_term_list) && cv_terms_.equals(cv_term_list.cv_terms_);
+    return MetaInfoInterface::operator==(cv_term_list) && cv_terms_ == cv_term_list.cv_terms_;
   }
 
   bool CVTermList::operator!=(const CVTermList& cv_term_list) const

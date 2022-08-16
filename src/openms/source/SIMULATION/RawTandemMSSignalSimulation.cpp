@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -86,7 +86,7 @@ namespace OpenMS
     defaults_.setValue("tandem_mode", 0, "Algorithm to generate the tandem-MS spectra. 0 - fixed intensities, 1 - SVC prediction (abundant/missing), 2 - SVR prediction of peak intensity \n");
     defaults_.setMinInt("tandem_mode", 0);
     defaults_.setMaxInt("tandem_mode", 2);
-    defaults_.setValue("svm_model_set_file", "examples/simulation/SvmModelSet.model", "File containing the filenames of SVM Models for different charge variants");
+    defaults_.setValue("svm_model_set_file", "SIMULATION/SvmModelSet.model", "File containing the filenames of SVM Models for different charge variants");
 
     subsections_.push_back("TandemSim:");
     defaults_.insert("TandemSim:Simple:", TheoreticalSpectrumGenerator().getDefaults());

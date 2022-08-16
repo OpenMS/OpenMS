@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -149,20 +149,20 @@ namespace OpenMS
 
   EmpiricalFormula NASequence::getFormula(NASFragmentType type, Int charge) const
   {
-    static const EmpiricalFormula H_form = EmpiricalFormula("H");
-    static const EmpiricalFormula internal_to_full = EmpiricalFormula("H2O");
+    static const EmpiricalFormula H_form = EmpiricalFormula::hydrogen();
+    static const EmpiricalFormula phosphate_form = EmpiricalFormula("HPO3");
+    static const EmpiricalFormula internal_to_full = EmpiricalFormula::water();
     // static const EmpiricalFormula five_prime_to_full = EmpiricalFormula("HPO3");
     // static const EmpiricalFormula three_prime_to_full = EmpiricalFormula("");
-    static const EmpiricalFormula a_ion_to_full = EmpiricalFormula("H-2O-1");
-    static const EmpiricalFormula b_ion_to_full = EmpiricalFormula("");
+    static const EmpiricalFormula a_ion_to_full = EmpiricalFormula::water(-1);
+    static const EmpiricalFormula b_ion_to_full = EmpiricalFormula();
     static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("H-1PO2");
-    static const EmpiricalFormula d_ion_to_full = EmpiricalFormula("HPO3");
-    static const EmpiricalFormula w_ion_to_full = EmpiricalFormula("HPO3");
-    static const EmpiricalFormula x_ion_to_full = EmpiricalFormula("H-1PO2");
-    static const EmpiricalFormula y_ion_to_full = EmpiricalFormula("");
-    static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("H-2O-1");
-    static const EmpiricalFormula aminusB_ion_to_full = EmpiricalFormula("H-4O-2");
-    static const EmpiricalFormula phosphate_form = EmpiricalFormula("HPO3");
+    static const EmpiricalFormula d_ion_to_full = phosphate_form;
+    static const EmpiricalFormula w_ion_to_full = d_ion_to_full;
+    static const EmpiricalFormula x_ion_to_full = c_ion_to_full;
+    static const EmpiricalFormula y_ion_to_full = b_ion_to_full;
+    static const EmpiricalFormula z_ion_to_full = a_ion_to_full;
+    static const EmpiricalFormula aminusB_ion_to_full = EmpiricalFormula::water(-2);
     // static const EmpiricalFormula abasicform_RNA = EmpiricalFormula("C5H8O4");
     // static const EmpiricalFormula abasicform_DNA = EmpiricalFormula("C5H7O5P");
 

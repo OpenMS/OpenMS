@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,11 +54,13 @@ namespace OpenMS
     LayerDataFeature(const LayerDataFeature& ld) = delete;
     /// no assignment operator (should not be needed)
     LayerDataFeature& operator=(const LayerDataFeature& ld) = delete;
-    /// move Ctor
+    /// move C'tor
     LayerDataFeature(LayerDataFeature&& ld) = default;
     /// move assignment
     LayerDataFeature& operator=(LayerDataFeature&& ld) = default;
 
+    std::unique_ptr<Painter1DBase> getPainter1D() const override;
+    
     void updateRanges() override
     {
       features_->updateRanges();

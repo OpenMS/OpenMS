@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,12 +35,12 @@
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 
+#include <OpenMS/VISUAL/Painter1DBase.h>
+
 using namespace std;
 
 namespace OpenMS
 {
-  /// Default constructor
-
   LayerDataPeak::LayerDataPeak() : LayerDataBase(LayerDataBase::DT_PEAK)
   {
     flags.set(LayerDataBase::P_PRECURSORS);
@@ -49,6 +49,11 @@ namespace OpenMS
   std::unique_ptr<LayerStatistics> LayerDataPeak::getStats() const
   {
     return make_unique<LayerStatisticsPeakMap>(*peak_map_);
+  }
+
+  std::unique_ptr<Painter1DBase> LayerDataPeak::getPainter1D() const
+  {
+    return make_unique<Painter1DPeak>(this);
   }
 
 }// namespace OpenMS

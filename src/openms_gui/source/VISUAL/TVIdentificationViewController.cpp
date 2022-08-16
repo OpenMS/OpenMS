@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1203,8 +1203,14 @@ namespace OpenMS
 #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "Adding annotation item based on fragment annotations: " << label << endl;
 #endif
-
+        /*
+         * Suppressed warning QSTring::SkipEmptyParts and QString::SplitBehaviour is deprecated
+         * QT::SkipEmptyParts and QT::SplitBehaviour is added or modified at Qt 5.14
+         */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
       QStringList lines = label.toQString().split(QRegExp("[\r\n]"), QString::SkipEmptyParts);
+#pragma GCC diagnostic pop
       if (lines.size() > 1)
       {
         label = String(lines[0]);

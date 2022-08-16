@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,10 +36,13 @@
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 
+#include <OpenMS/METADATA/PeptideHit.h>
+
 #include <QtGui/QColor>
 
 namespace OpenMS
 {
+
   /** @brief A peak annotation item
             @see Annotation1DItem
     */
@@ -79,6 +82,9 @@ public:
 
     /// Returns the color of the label
     const QColor& getColor() const;
+
+    /// Convert the 'text()' to a Peptide::PeakAnnotation
+    PeptideHit::PeakAnnotation toPeakAnnotation() const;
 
     /// Calculate bounding box in widget coordinates
     static QRectF calculateBoundingBox(

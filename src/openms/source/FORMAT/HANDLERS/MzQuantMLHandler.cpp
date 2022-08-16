@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,9 +32,14 @@
 // $Authors: Mathias Walzer$
 // --------------------------------------------------------------------------
 
+
 #include <OpenMS/FORMAT/HANDLERS/MzQuantMLHandler.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <map>
+
+#include <map>
 
 using namespace std;
 
@@ -1259,7 +1264,7 @@ namespace OpenMS::Internal
       os << "</MzQuantML>\n";
     }
 
-    void MzQuantMLHandler::writeCVParams_(String& s, const Map<String, std::vector<CVTerm> >& cvl, UInt indent)
+    void MzQuantMLHandler::writeCVParams_(String& s, const std::map<String, std::vector<CVTerm> >& cvl, UInt indent)
     {
       String inden((size_t)indent, '\t');
       for (std::map<String, std::vector<CVTerm> >::const_iterator jt = cvl.begin(); jt != cvl.end(); ++jt)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -120,8 +120,6 @@ namespace OpenMS
     bool is_first_time_loading_ = true;
     std::unordered_map<String, std::vector<const PeptideIdentification*>> protein_to_peptide_id_map;
 
-
-
   private slots:
     /// Saves the (potentially filtered) IDs as an idXML or mzIdentML file
     void saveIDs_();
@@ -137,7 +135,7 @@ namespace OpenMS
     void currentSpectraSelectionChanged_();
 
     /// update ProteinHits, when data in the table changes (status of checkboxes)
-    void updatedSingleProteinCell_(QTableWidgetItem* item);
+    void updatedSingleProteinCell_(QTableWidgetItem* /*item*/);
     /// Protein Cell clicked in protein_table_widget; emits which protein (row) was clicked, and may show additional data
     void proteinCellClicked_(int row, int column);
   };

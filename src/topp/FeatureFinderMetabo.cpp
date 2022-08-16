@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -296,9 +297,9 @@ protected:
     Size trace_count(0);
     for (Size i = 0; i < feat_map.size(); ++i)
     {
-      OPENMS_PRECONDITION(feat_map[i].metaValueExists("num_of_masstraces"),
+      OPENMS_PRECONDITION(feat_map[i].metaValueExists(Constants::UserParam::NUM_OF_MASSTRACES),
           "MetaValue 'num_of_masstraces' missing from FFMetabo output!");
-      trace_count += (Size) feat_map[i].getMetaValue("num_of_masstraces");
+      trace_count += (Size) feat_map[i].getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES);
     }
 
     if (trace_count != m_traces_final.size())

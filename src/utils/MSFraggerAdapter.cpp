@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,7 +72,8 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em MSFragger must be installed before this adapter can be used.
+  @em MSFragger must be installed before this adapter can be used. This adapter is fully compatible with version 3.2 of MSFragger
+  and later versions of MSFragger were tested up to version 3.5.
 
 	All MSFragger parameters (as specified in the fragger.params file) have been transcribed to parameters of this OpenMS util.
 	It is not possible to provide an explicit fragger.params file to avoid redundancy with the ini file.
@@ -142,7 +143,7 @@ public:
   static const String varmod_enable_common;
   static const String variable_modifications_unimod;
   static const String not_allow_multiple_variable_mods_on_residue;
-  static const String max_variable_mods_per_mod;
+  static const String max_variable_mods_per_peptide;
   static const String max_variable_mods_combinations;
 
   // spectrum
@@ -237,7 +238,6 @@ protected:
     const std::vector< double > emptyDoubles;
 
     const StringList validUnits = ListUtils::create<String>("Da,ppm");
-    const StringList isotope_error_and_enzyme_termini = ListUtils::create<String>("0,1,2");
     const StringList zero_to_five = ListUtils::create<String>("0,1,2,3,4,5");
 
     // License agreement
@@ -288,7 +288,7 @@ protected:
 
     // Isotope error
     registerStringOption_(TOPPMSFraggerAdapter::isotope_error, "<isotope_error>", "0", "Isotope correction for MS/MS events triggered on isotopic peaks. Should be set to 0 (disabled) for open search or 0/1/2 for correction of narrow window searches. Shifts the precursor mass window to multiples of this value multiplied by the mass of C13-C12.", false, false);
-    setValidStrings_(TOPPMSFraggerAdapter::isotope_error, isotope_error_and_enzyme_termini);
+    setValidStrings_(TOPPMSFraggerAdapter::isotope_error, ListUtils::create<String>("0,1,2,0/1/2"));
 
     // TOPP digest
     registerTOPPSubsection_("digest", "In-Silico Digestion Parameters");
@@ -341,8 +341,8 @@ protected:
     registerFlag_(TOPPMSFraggerAdapter::not_allow_multiple_variable_mods_on_residue, "Do not allow any one amino acid to be modified by multiple variable modifications", false);
 
     // Max variable mods per mod
-    registerStringOption_(TOPPMSFraggerAdapter::max_variable_mods_per_mod, "<max_variable_mods_per_mod>", "2", "Maximum number of residues that can be occupied by each variable modification", false, false);
-    setValidStrings_(TOPPMSFraggerAdapter::max_variable_mods_per_mod, zero_to_five);
+    registerStringOption_(TOPPMSFraggerAdapter::max_variable_mods_per_peptide, "<max_variable_mods_per_peptide>", "2", "Maximum total number of variable modifications per peptide", false, false);
+    setValidStrings_(TOPPMSFraggerAdapter::max_variable_mods_per_peptide, zero_to_five);
 
     // Max variable mods combinations
     _registerNonNegativeInt(TOPPMSFraggerAdapter::max_variable_mods_combinations, "<max_variable_mods_combinations>", 5000, "Maximum allowed number of modified variably modified peptides from each peptide sequence, (maximum of 65534). If a greater number than the maximum is generated, only the unmodified peptide is considered", false, false);
@@ -506,7 +506,7 @@ protected:
       }
 
       const bool arg_not_allow_multiple_variable_mods_on_residue = this->getFlag_(TOPPMSFraggerAdapter::not_allow_multiple_variable_mods_on_residue);
-      const String & arg_max_variable_mods_per_mod  = this->getStringOption_(TOPPMSFraggerAdapter::max_variable_mods_per_mod);
+      const String & arg_max_variable_mods_per_peptide  = this->getStringOption_(TOPPMSFraggerAdapter::max_variable_mods_per_peptide);
       const int arg_max_variable_mods_combinations = this->getIntOption_(TOPPMSFraggerAdapter::max_variable_mods_combinations);
 
       // spectrum
@@ -595,7 +595,7 @@ protected:
                                << "\n\nclip_nTerm_M = " << arg_clip_nterm_m << '\n';
 
       // Write variable modifications from masses/syntax and unimod to unique set (and also write to log)
-      writeLog_("Variable Modifications set to:");
+      writeLogInfo_("Variable Modifications set to:");
       std::set< std::pair< double, String > > varmods_combined;
       Size i;
       for (i = 0; i < arg_varmod_masses.size(); ++i)
@@ -709,7 +709,7 @@ protected:
       {
         const String varmod = "variable_mod_0" + String(i+1) + " = " + String(m.first) + " " + String(m.second);
         os << "\n" << varmod;
-        writeLog_(varmod);
+        writeLogInfo_(varmod);
         i++;
       }
 
@@ -808,7 +808,7 @@ protected:
 
       os << std::endl
           << "\nallow_multiple_variable_mods_on_residue = " << (arg_not_allow_multiple_variable_mods_on_residue ? 0 : 1)
-          << "\nmax_variable_mods_per_mod = " << arg_max_variable_mods_per_mod
+          << "\nmax_variable_mods_per_peptide = " << arg_max_variable_mods_per_peptide
           << "\nmax_variable_mods_combinations = " << arg_max_variable_mods_combinations
           << "\n\noutput_file_extension = " << "pepXML"
           << "\noutput_format = " << "pepXML"
@@ -889,9 +889,9 @@ protected:
       OPENMS_LOG_FATAL_ERROR << "FATAL: Invocation of MSFraggerAdapter has failed. Error code was: " << process_msfragger.exitCode() << std::endl;
       const QString msfragger_stdout(process_msfragger.readAllStandardOutput());
       const QString msfragger_stderr(process_msfragger.readAllStandardError());
-      writeLog_(msfragger_stdout);
-      writeLog_(msfragger_stderr);
-      writeLog_(String(process_msfragger.exitCode()));
+      writeLogError_(msfragger_stdout);
+      writeLogError_(msfragger_stderr);
+      writeLogError_(String(process_msfragger.exitCode()));
       return EXTERNAL_PROGRAM_ERROR;
     }
 
@@ -1043,7 +1043,7 @@ const String TOPPMSFraggerAdapter::varmod_masses = "varmod:masses";
 const String TOPPMSFraggerAdapter::varmod_syntax = "varmod:syntaxes";
 const String TOPPMSFraggerAdapter::varmod_enable_common = "varmod:enable_common";
 const String TOPPMSFraggerAdapter::not_allow_multiple_variable_mods_on_residue = "varmod:not_allow_multiple_variable_mods_on_residue";
-const String TOPPMSFraggerAdapter::max_variable_mods_per_mod = "varmod:max_variable_mods_per_mod";
+const String TOPPMSFraggerAdapter::max_variable_mods_per_peptide = "varmod:max_variable_mods_per_peptide";
 const String TOPPMSFraggerAdapter::max_variable_mods_combinations = "varmod:max_variable_mods_combinations";
 const String TOPPMSFraggerAdapter::variable_modifications_unimod = "varmod:unimod";
 

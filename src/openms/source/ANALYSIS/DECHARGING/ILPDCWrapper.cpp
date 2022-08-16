@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <fstream>
+#include <map>
 
 namespace OpenMS
 {
@@ -72,15 +73,15 @@ namespace OpenMS
       // find groups of edges
       //
       Size group_count(0);
-      Map<Size, Size> f2g; // feature id to connected group
-      Map<Size, std::set<Size> > g2pairs; // group id to all pairs involved
-      Map<Size, std::set<Size> > g2f; // group id to all features involved
+      std::map<Size, Size> f2g; // feature id to connected group
+      std::map<Size, std::set<Size> > g2pairs; // group id to all pairs involved
+      std::map<Size, std::set<Size> > g2f; // group id to all features involved
 
       for (Size i = 0; i < pairs.size(); ++i)
       {
         Size f1 = pairs[i].getElementIndex(0);
         Size f2 = pairs[i].getElementIndex(1);
-        if (f2g.has(f1) && f2g.has(f2)) // edge connects two distinct groups
+        if ((f2g.find(f1) != f2g.end()) && (f2g.find(f2) != f2g.end())) // edge connects two distinct groups
         {
           Size group1 = f2g[f1];
           Size group2 = f2g[f2];
@@ -97,13 +98,13 @@ namespace OpenMS
             g2f.erase(group2);
           }
         }
-        else if (f2g.has(f1) && !f2g.has(f2)) // only f1 is part of a group
+        else if ((f2g.find(f1) != f2g.end()) && !(f2g.find(f2) != f2g.end())) // only f1 is part of a group
         {
           Size group1 = f2g[f1];
           f2g[f2] = group1;
           g2f[group1].insert(f2);
         }
-        else if (!f2g.has(f1) && f2g.has(f2)) // only f2 is part of a group
+        else if (!(f2g.find(f1) != f2g.end()) && f2g.find(f2) != f2g.end()) // only f2 is part of a group
         {
           Size group2 = f2g[f2];
           f2g[f1] = group2;
@@ -126,9 +127,9 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Clique construction failed! Unequal number of groups produced!", String(g2pairs.size()) + "!=" + String(g2f.size()));
       }
 
-      Map<Size, Size> hist_component_sum;
+      std::map<Size, Size> hist_component_sum;
       // now walk though groups and see the size:
-      for (Map<Size, std::set<Size> >::const_iterator it = g2f.begin(); it != g2f.end(); ++it)
+      for (std::map<Size, std::set<Size> >::const_iterator it = g2f.begin(); it != g2f.end(); ++it)
       {
         ++hist_component_sum[it->second.size()]; // e.g. component 2 has size 4; thus increase count for size 4
       }
@@ -136,7 +137,7 @@ namespace OpenMS
       {
         OPENMS_LOG_INFO << "Components:\n";
         OPENMS_LOG_INFO << "  Size 1 occurs ?x\n";
-        for (OpenMS::Map<Size, Size>::const_iterator it = hist_component_sum.begin(); it != hist_component_sum.end(); ++it)
+        for (std::map<Size, Size>::const_iterator it = hist_component_sum.begin(); it != hist_component_sum.end(); ++it)
         {
           OPENMS_LOG_INFO << "  Size " << it->first << " occurs " << it->second << "x\n";
         }
@@ -148,7 +149,7 @@ namespace OpenMS
 
       Size start(0);
       Size count(0);
-      for (Map<Size, std::set<Size> >::ConstIterator it = g2pairs.begin(); it != g2pairs.end(); ++it)
+      for (std::map<Size, std::set<Size> >::const_iterator it = g2pairs.begin(); it != g2pairs.end(); ++it)
       {
         Size clique_size = it->second.size();
         if (count > pairs_per_bin || clique_size > big_clique_bin_threshold)
@@ -472,7 +473,7 @@ namespace OpenMS
 
     // variable values
     UInt active_edges = 0;
-    Map<String, Size> count_cmp;
+    std::map<String, Size> count_cmp;
 
     for (Int iColumn = 0; iColumn < build.getNumberOfColumns(); ++iColumn)
     {
@@ -494,7 +495,7 @@ namespace OpenMS
     if (verbose_level > 2)
       OPENMS_LOG_INFO << "Active edges: " << active_edges << " of overall " << pairs.size() << std::endl;
 
-    for (Map<String, Size>::const_iterator it = count_cmp.begin(); it != count_cmp.end(); ++it)
+    for (std::map<String, Size>::const_iterator it = count_cmp.begin(); it != count_cmp.end(); ++it)
     {
       //std::cout << "Cmp " << it->first << " x " << it->second << "\n";
     }

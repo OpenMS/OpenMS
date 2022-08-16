@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,17 +56,6 @@ namespace OpenMS
 
   TransitionPQPFile::~TransitionPQPFile()
   {
-  }
-
-  static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName)
-  {
-    int i;
-    for (i = 0; i < argc; i++)
-    {
-      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-    }
-    printf("\n");
-    return 0;
   }
 
   void TransitionPQPFile::readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list, bool legacy_traml_id)
@@ -542,7 +531,7 @@ namespace OpenMS
       {
         gene_name = peptide.getMetaValue("GeneName");
       }
-      
+
       if (gene_map.find(gene_name) == gene_map.end()) gene_map[gene_name] = (int)gene_map.size();
       peptide_gene_map.push_back(std::make_pair(peptide_set_index, gene_map[gene_name]));
 
@@ -672,15 +661,15 @@ namespace OpenMS
     // Compounds
     update_decoys_sql << "UPDATE COMPOUND SET DECOY = 1 WHERE ID IN " <<
       "(SELECT COMPOUND.ID FROM PRECURSOR " <<
-      "JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " << 
+      "JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " <<
       "JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID WHERE PRECURSOR.DECOY = 1); ";
     // Proteins
-    update_decoys_sql << "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN " << 
+    update_decoys_sql << "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN " <<
       "(SELECT PROTEIN.ID FROM PEPTIDE " <<
       "JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID = PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID " <<
       "JOIN PROTEIN ON PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID = PROTEIN.ID WHERE PEPTIDE.DECOY = 1); ";
     // Genes
-    update_decoys_sql << "UPDATE GENE SET DECOY = 1 WHERE ID IN " << 
+    update_decoys_sql << "UPDATE GENE SET DECOY = 1 WHERE ID IN " <<
       "(SELECT GENE.ID FROM PEPTIDE " <<
       "JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " <<
       "JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID WHERE PEPTIDE.DECOY = 1); ";
@@ -733,4 +722,3 @@ namespace OpenMS
   }
 
 }
-

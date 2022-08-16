@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <map>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -286,6 +287,21 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
     seq4 = AASequence::fromString("PEPTIDEK(UniMod:313)");
     TEST_STRING_EQUAL(seq4.getCTerminalModification()->getFullId(), "Lys-loss (Protein C-term K)");
   }
+
+  // test with Selenocysteine
+  {
+    AASequence seq = AASequence::fromString("PEPTIDESEKUEM(Oxidation)CER");
+    TEST_EQUAL(seq.toUniModString(), "PEPTIDESEKUEM(UniMod:35)CER")
+    TEST_EQUAL(seq.getFormula(), EmpiricalFormula("C75H122N20O32S2Se1"))
+    TEST_REAL_SIMILAR(EmpiricalFormula("C75H122N20O32S2").getMonoWeight(), 1878.7975553518002)
+
+    // note that the monoisotopic weight of Selenium is 80 and not 74
+    TEST_REAL_SIMILAR(EmpiricalFormula("C75H122N20O32S2Se1").getAverageWeight(), 1958.981404189803)
+    TEST_REAL_SIMILAR(EmpiricalFormula("C75H122N20O32S2Se1").getMonoWeight(), 1958.7140766518)
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), 1958.7140766518)
+    TEST_REAL_SIMILAR(seq.getAverageWeight(), 1958.981404189803)
+  }
+
 }
 END_SECTION
 
@@ -846,7 +862,7 @@ END_SECTION
 
 START_SECTION(void getAAFrequencies(Map<String, Size>& frequency_table) const)
   AASequence a = AASequence::fromString("THREEAAAWITHYYY");
-  Map<String, Size> table;
+  std::map<String, Size> table;
   a.getAAFrequencies(table);
 
   TEST_EQUAL(table["T"]==2, true);

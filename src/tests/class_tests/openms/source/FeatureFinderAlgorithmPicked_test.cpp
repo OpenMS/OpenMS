@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
@@ -100,6 +101,11 @@ START_SECTION((virtual void run()))
   ffpp.run();
 
   TEST_EQUAL(output.size(), 8);
+
+  // test some of the metavalue number_of_datapoints
+  TEST_EQUAL(output[0].getMetaValue(Constants::UserParam::NUM_OF_DATAPOINTS), 88);
+  TEST_EQUAL(output[3].getMetaValue(Constants::UserParam::NUM_OF_DATAPOINTS), 71);
+  TEST_EQUAL(output[7].getMetaValue(Constants::UserParam::NUM_OF_DATAPOINTS), 47);
 
   TOLERANCE_ABSOLUTE(0.001);
   TEST_REAL_SIMILAR(output[0].getOverallQuality(), 0.8826);

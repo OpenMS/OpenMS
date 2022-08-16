@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -100,6 +100,8 @@ using namespace OpenMS;
 
   Step 2 is performed by finding the largest peak overall and use this to
   create a feature, propagating this through all chromatograms.
+
+  This tool will not compute any scores for the peaks, in order to do peak picking please use TOPP_OpenSwathAnalyzer
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_MRMTransitionGroupPicker.cli
