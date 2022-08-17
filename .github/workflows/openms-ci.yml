@@ -27,7 +27,6 @@ jobs:
         host: 'windows' # default: win64_msvc2017_64
         target: 'desktop'
         install-deps: 'true'
-        modules: 'qtsvg'
         cached: 'false'
 
     # https://github.com/marketplace/actions/visual-studio-shell
@@ -138,7 +137,6 @@ jobs:
         host: 'mac'
         target: 'desktop'
         install-deps: 'true'
-        modules: 'qtsvg'
         cached: 'false'
         setup-python: 'false' # see https://github.com/jurplel/install-qt-action/issues/130
 
