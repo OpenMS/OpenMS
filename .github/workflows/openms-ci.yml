@@ -137,7 +137,7 @@ jobs:
         host: 'mac'
         target: 'desktop'
         install-deps: 'true'
-        cached: 'false'
+        cache: 'false'
         setup-python: 'false' # see https://github.com/jurplel/install-qt-action/issues/130
 
     - name: Install build tools
