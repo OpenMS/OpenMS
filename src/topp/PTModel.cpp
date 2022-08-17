@@ -274,7 +274,7 @@ protected:
     }
     else
     {
-      writeLog_("Illegal svm type given. Svm type has to be either "
+      writeLogError_("Illegal svm type given. Svm type has to be either "
                 + String("NU_SVC or C_SVC. Aborting!"));
       printUsage_();
       return ILLEGAL_PARAMETERS;
@@ -308,7 +308,7 @@ protected:
     }
     else
     {
-      writeLog_("Unknown kernel type given. Aborting!");
+      writeLogError_("Unknown kernel type given. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -331,7 +331,7 @@ protected:
         double degree_step_size = getIntOption_("cv:degree_step_size");
         if (!additive_cv && degree_step_size <= 1)
         {
-          writeLog_("Step size of degree <= 1 and additive_cv is false. Aborting!");
+          writeLogError_("Step size of degree <= 1 and additive_cv is false. Aborting!");
           return ILLEGAL_PARAMETERS;
         }
         double degree_stop = getIntOption_("cv:degree_stop");
@@ -348,7 +348,7 @@ protected:
       double c_step_size = getDoubleOption_("cv:c_step_size");
       if (!additive_cv && c_step_size <= 1)
       {
-        writeLog_("Step size of c <= 1 and additive_cv is false. Aborting!");
+        writeLogError_("Step size of c <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       double c_stop = getDoubleOption_("cv:c_stop");
@@ -364,7 +364,7 @@ protected:
       double nu_step_size = getDoubleOption_("cv:nu_step_size");
       if (!additive_cv && nu_step_size <= 1)
       {
-        writeLog_("Step size of nu <= 1 and additive_cv is false. Aborting!");
+        writeLogError_("Step size of nu <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       double nu_stop = getDoubleOption_("cv:nu_stop");
@@ -392,7 +392,7 @@ protected:
       sigma_step_size = getDoubleOption_("cv:sigma_step_size");
       if (!additive_cv && sigma_step_size <= 1)
       {
-        writeLog_("Step size of sigma <= 1 and additive_cv is false. Aborting!");
+        writeLogError_("Step size of sigma <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       sigma_stop = getDoubleOption_("cv:sigma_stop");
@@ -478,7 +478,7 @@ protected:
           temp_string = temp_peptide_hit.getSequence().toUnmodifiedString();
           if (find(training_peptides.begin(), training_peptides.end(), temp_string) != training_peptides.end())
           {
-            writeLog_("Peptides are not allowed to occur in the positive and the negative set. Example: '" + temp_string + "'");
+            writeLogError_("Peptides are not allowed to occur in the positive and the negative set. Example: '" + temp_string + "'");
             return ILLEGAL_PARAMETERS;
           }
 
@@ -619,13 +619,13 @@ protected:
       if (param_outfile_name.empty())
       {
         param_outfile_name = outfile_name + "_additional_parameters";
-        writeLog_("Warning: Using OLIGO kernel but out_oligo_params was not specified. Trying to write to: " + param_outfile_name);
+        writeLogWarn_("Warning: Using OLIGO kernel but out_oligo_params was not specified. Trying to write to: " + param_outfile_name);
       }
 
       if (trainset_outfile_name.empty())
       {
         trainset_outfile_name = outfile_name + "_samples";
-        writeLog_("Warning: Using OLIGO kernel but out_oligo_trainset was not specified. Trying to write to: " + trainset_outfile_name);
+        writeLogWarn_("Warning: Using OLIGO kernel but out_oligo_trainset was not specified. Trying to write to: " + trainset_outfile_name);
       }
       encoder.storeLibSVMProblem(trainset_outfile_name, encoded_training_sample);
       additional_parameters.setValue("kernel_type", temp_type);
