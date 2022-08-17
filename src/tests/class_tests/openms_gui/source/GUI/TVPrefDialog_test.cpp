@@ -40,7 +40,7 @@ using namespace OpenMS;
 
 // delay in ms
 // higher values together with 'dialog_.show();' can be useful for debugging this test
-constexpr int DELAY {5};
+constexpr int DELAY {15};
 
 void testCheckBox(QCheckBox* cb)
 {
