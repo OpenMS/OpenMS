@@ -80,6 +80,9 @@ namespace OpenMS
     /// Assignment operator
     DimBase& operator=(const DimBase& rhs) = default;
 
+    /// D'tor (needs to be virtual; we are holding pointers to base in DimMapper)
+    virtual ~DimBase() noexcept = default;
+
     /// Equality
     bool operator==(const DimBase& rhs) const
     {
@@ -178,7 +181,7 @@ namespace OpenMS
       return std::make_unique<DimRT>();
     }
 
-    ValueType map(const Peak1D& p) const override
+    ValueType map(const Peak1D&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -190,16 +193,16 @@ namespace OpenMS
     {
       return p.getRT();
     }
-    ValueType map(const MSSpectrum& spec, const Size index) const
+    ValueType map(const MSSpectrum& spec, const Size /*index*/) const
     {
       return spec.getRT();
     }
-    ValueType map(const Mobilogram& mb, const Size index) const
+    ValueType map(const Mobilogram& mb, const Size /*index*/) const
     {
       return mb.getRT();
     }
 
-    ValueTypes map(const MSSpectrum& spec) const override
+    ValueTypes map(const MSSpectrum&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -218,11 +221,11 @@ namespace OpenMS
     {
       return it.getRT();
     }
-    ValueType map(const MobilityPeak1D& p) const override
+    ValueType map(const MobilityPeak1D&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    ValueType map(const MobilityPeak2D& p) const override
+    ValueType map(const MobilityPeak2D&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -248,7 +251,7 @@ namespace OpenMS
     }
 
     /// set the RT of a Peak1D (throws)
-    void fromXY(const ValueType in, Peak1D& p) const override
+    void fromXY(const ValueType, Peak1D&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -259,12 +262,12 @@ namespace OpenMS
       p.setRT(in);
     }
     /// set the RT of a MobilityPeak1D (throws)
-    void fromXY(const ValueType in, MobilityPeak1D& p) const override
+    void fromXY(const ValueType, MobilityPeak1D&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     /// set the RT of a MobilityPeak2D (throws)
-    void fromXY(const ValueType in, MobilityPeak2D& p) const override
+    void fromXY(const ValueType, MobilityPeak2D&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -288,7 +291,7 @@ namespace OpenMS
     {
       return p.getMZ();
     }
-    ValueType map(const ChromatogramPeak& p) const override
+    ValueType map(const ChromatogramPeak&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -296,7 +299,7 @@ namespace OpenMS
     {
       return it->getMZ();
     }
-    ValueType map(const MobilityPeak1D& p) const override
+    ValueType map(const MobilityPeak1D&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -309,7 +312,7 @@ namespace OpenMS
     {
       return spec[index].getMZ();
     }
-    ValueType map(const Mobilogram& mb, const Size index) const
+    ValueType map(const Mobilogram&, const Size /*index*/) const
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -324,7 +327,7 @@ namespace OpenMS
       }
       return res;
     }
-    ValueTypes map(const MSChromatogram& chrom) const override
+    ValueTypes map(const MSChromatogram&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }  
@@ -356,13 +359,13 @@ namespace OpenMS
     }
 
     /// set the MZ of a ChromatogramPeak (throws)
-    void fromXY(const ValueType in, ChromatogramPeak& p) const override
+    void fromXY(const ValueType, ChromatogramPeak&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     /// set the MZ of a MobilityPeak1D (throws)
-    void fromXY(const ValueType in, MobilityPeak1D& p) const override
+    void fromXY(const ValueType, MobilityPeak1D&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -444,7 +447,7 @@ namespace OpenMS
       return bf.getIntensity();
     }
 
-    ValueType map(const PeptideIdentification& pi) const override
+    ValueType map(const PeptideIdentification&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -492,23 +495,23 @@ namespace OpenMS
       return std::make_unique<DimIM>(*this);
     }
 
-    ValueType map(const Peak1D& p) const override
+    ValueType map(const Peak1D&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    ValueType map(const Peak2D& p) const override
+    ValueType map(const Peak2D&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    ValueType map(const ChromatogramPeak& p) const override
+    ValueType map(const ChromatogramPeak&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    ValueTypes map(const MSSpectrum& spec) const override
+    ValueTypes map(const MSSpectrum&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    ValueTypes map(const MSChromatogram& chrom) const override
+    ValueTypes map(const MSChromatogram&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -517,6 +520,7 @@ namespace OpenMS
     {
       return it.getDriftTime();
     }
+
     ValueType map(const MobilityPeak1D& p) const override
     {
       return p.getMobility();
@@ -526,7 +530,7 @@ namespace OpenMS
       return p.getMobility();
     }
 
-    ValueType map(const MSSpectrum& spec, const Size index) const
+    ValueType map(const MSSpectrum& spec, const Size /*index*/) const
     {
       return spec.getDriftTime();
     }
@@ -535,12 +539,12 @@ namespace OpenMS
       return mb[index].getMobility();
     }
 
-    ValueType map(const BaseFeature& bf) const override
+    ValueType map(const BaseFeature&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    ValueType map(const PeptideIdentification& pi) const override
+    ValueType map(const PeptideIdentification&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -556,13 +560,13 @@ namespace OpenMS
     }
 
     /// set the IM of a Peak1D (throws)
-    void fromXY(const ValueType in, Peak1D& p) const override
+    void fromXY(const ValueType, Peak1D&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     /// set the IM of a ChromatogramPeak (throws)
-    void fromXY(const ValueType in, ChromatogramPeak& p) const override
+    void fromXY(const ValueType, ChromatogramPeak&) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }

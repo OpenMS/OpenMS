@@ -216,8 +216,8 @@ END_SECTION
 
 using FullRange = RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>;
 
-auto na = nan("");
-constexpr auto dmax = std::numeric_limits<double>::max();
+//auto na = nan("");
+//constexpr auto dmax = std::numeric_limits<double>::max();
 
 START_SECTION(template<typename... Ranges> DRange<N_DIM> mapRange(const RangeManager<Ranges...>& ranges) const)
 {
@@ -343,8 +343,8 @@ START_SECTION(bool operator!=(const Area& rhs) const)
 }
 END_SECTION
 
-constexpr auto min_value = -std::numeric_limits<DRange<3>::CoordinateType>::max();
-constexpr auto max_value = std::numeric_limits<DRange<3>::CoordinateType>::max();
+//constexpr auto min_value = -std::numeric_limits<DRange<3>::CoordinateType>::max();
+//constexpr auto max_value = std::numeric_limits<DRange<3>::CoordinateType>::max();
 
 START_SECTION(const Area& setArea(const UnitRange& data))
 {

@@ -271,12 +271,13 @@ private:
       /// advances the iterator to the next valid peak in the next valid spectrum
       void nextScan_()
       {
+        using MSLevelType = decltype(p_.current_scan_->getMSLevel());
         RangeMobility mb{p_.low_im_, p_.high_im_};
         while (true)
         {
           // skip over invalid MS levels and Mobility
           while (p_.current_scan_ != p_.end_scan_ &&
-                 (p_.current_scan_->getMSLevel() != (int)p_.ms_level_ ||
+                 (p_.current_scan_->getMSLevel() != (MSLevelType)p_.ms_level_ ||
                   !mb.containsMobility(p_.current_scan_->getDriftTime())))
           {
             ++p_.current_scan_;

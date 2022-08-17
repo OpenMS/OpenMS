@@ -285,7 +285,7 @@ protected:
     FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(out, getStringOption_("out_type"));
     if (out_type == FileTypes::UNKNOWN)
     {
-      writeLog_("Error: Could not determine output file type!");
+      writeLogError_("Error: Could not determine output file type!");
       return PARSE_ERROR;
     }
 
@@ -321,16 +321,16 @@ protected:
           }
           catch (Exception::ConversionError& e)
           {
-            writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
+            writeLogWarn_(String("Error: Cannot read scan number as integer. '") + e.what());
           }
         }
       }
 
       // Get list of the actual Sequest .out-Files
       StringList in_files;
-      if (!File::fileList(in_directory, String("*.out"), in_files))
+      if (!File::fileList(in_directory, "*.out", in_files))
       {
-        writeLog_(String("Error: No .out files found in '") + in_directory + "'. Aborting!");
+        writeLogError_(String("Error: No .out files found in '") + in_directory + "'. Aborting!");
       }
 
       // Now get to work ...
@@ -366,11 +366,11 @@ protected:
               }
               catch (Exception::ConversionError& e)
               {
-                writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
+                writeLogError_(String("Error: Cannot read scan number as integer. '") + e.what());
               }
               catch (exception& e)
               {
-                writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
+                writeLogError_(String("Error: Cannot read scan number as integer. '") + e.what());
               }
               //double real_mz = ( peptide_ids_seq[j].getMZ() - hydrogen_mass )/ (double)peptide_ids_seq[j].getHits()[0].getCharge(); // ???? semantics of mz
               const double real_mz = peptide_ids_seq[j].getMZ() / (double) peptide_ids_seq[j].getHits()[0].getCharge();
@@ -388,12 +388,12 @@ protected:
         }
         catch (Exception::ParseError& pe)
         {
-          writeLog_(pe.what() + String("(file: ") + *in_files_it + ")");
+          writeLogError_(pe.what() + String("(file: ") + *in_files_it + ")");
           throw;
         }
         catch (...)
         {
-          writeLog_(String("Error reading file: ") + *in_files_it);
+          writeLogError_(String("Error reading file: ") + *in_files_it);
           throw;
         }
       }
@@ -607,7 +607,7 @@ protected:
         // handle out type
         if (out_type != FileTypes::MZML)
         {
-          writeLog_("Error: Illegal output file type given. Fasta can only be converted to an MzML. Aborting!");
+          writeLogError_("Error: Illegal output file type given. Fasta can only be converted to an MzML. Aborting!");
           printUsage_();
           return ILLEGAL_PARAMETERS;
         }
@@ -630,7 +630,7 @@ protected:
 
         if (min_charge > max_charge)
         {
-          writeLog_("Error: 'fasta_to_mzml:min_charge' must be smaller than or equal to 'fasta_to_mzml:max_charge'.");
+          writeLogError_("Error: 'fasta_to_mzml:min_charge' must be smaller than or equal to 'fasta_to_mzml:max_charge'.");
           printUsage_();
           return ILLEGAL_PARAMETERS;
         }
@@ -673,7 +673,7 @@ protected:
         }
         if (count_catches > 0)
         {
-          writeLog_("No spectra were calculated for " + String(count_catches) + " peptides because they were to small for generating a C- or X-ion.");
+          writeLogWarn_("No spectra were calculated for " + String(count_catches) + " peptides because they were to small for generating a C- or X-ion.");
         }
         logger.endProgress();
 
@@ -698,7 +698,7 @@ protected:
       break;
 
       default:
-        writeLog_("Error: Unknown input file type given. Aborting!");
+        writeLogError_("Error: Unknown input file type given. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
@@ -809,7 +809,7 @@ protected:
     break;
 
     default:
-      writeLog_("Unsupported output file type given. Aborting!");
+      writeLogError_("Unsupported output file type given. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
