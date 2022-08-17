@@ -69,7 +69,7 @@ namespace OpenMS
     ~FLASHDeconvQuantAlgorithm() = default;
 
     /// copy constructor
-    FLASHDeconvQuantAlgorithm(const FLASHDeconvQuantAlgorithm& ) = default;
+    FLASHDeconvQuantAlgorithm(const FLASHDeconvQuantAlgorithm& ) = delete;
 
     /// move constructor
     FLASHDeconvQuantAlgorithm(FLASHDeconvQuantAlgorithm&& other) = default;
@@ -108,44 +108,53 @@ namespace OpenMS
 
     double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const;
 
-    bool doFWHMbordersOverlap(const std::pair<double, double>& border1, const std::pair<double, double>& border2) const;
+    bool doFWHMbordersOverlap_(const std::pair<double, double>& border1, const std::pair<double, double>& border2) const;
 
     bool doMassTraceIndicesOverlap(const FeatureGroup& fg1, const FeatureGroup& fg2) const;
 
     void clusterFeatureGroups_(std::vector<FeatureGroup>& fgroups,
-                               std::vector<MassTrace>& input_mtraces) const;
+                               std::vector<MassTrace>& input_mtraces);
 
     void resolveConflictInCluster_(std::vector<FeatureGroup>& feature_groups,
                                    std::vector<MassTrace> &input_masstraces,
                                    std::vector<std::vector<Size> >& shared_m_traces_indices,
                                    const std::set<Size>& hypo_indices,
-                                   std::vector<FeatureGroup>& out_features) const;
+                                   std::vector<FeatureGroup>& out_features);
 
-    void writeMassTracesOfFeatureGroup(const std::vector<FeatureGroup>& featgroups,
-                                       const std::vector<std::vector<Size> >& shared_m_traces_indices) const;
+    void setOptionalDetailedOutput_();
+
+    void writeMassTracesOfFeatureGroup_(const FeatureGroup &fgroup,
+                                       const Size &fgroup_idx,
+                                       const std::vector<std::vector<Size>> &shared_m_traces_indices,
+                                       const bool &is_before_resolution);
+
+    void writeTheoreticalShapeForConflictResolution_(const Size &fgroup_idx,
+                                                     const FeatureSeed &shared_mt,
+                                                     const std::vector<double> &theo_intensities,
+                                                     const double &calculated_ratio);
 
     void resolveConflictRegion_(std::vector<Feature> &conflicting_features,
                                 const std::vector<MassTrace> &conflicting_mts,
-                                const std::vector<Size> &conflicting_mt_indices) const;
+                                const std::vector<Size> &conflicting_mt_indices);
 
-    MassTrace updateMassTrace(const MassTrace& ref_trace, const double &ratio) const;
+    MassTrace updateMassTrace_(const MassTrace& ref_trace, const double &ratio) const;
 
     void runElutionModelFit_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces &m_traces, EGHTraceFitter* fitter) const;
 
-    void getMostAbundantMassTraceFromFeatureGroup(const FeatureGroup &fgroup,
+    void getMostAbundantMassTraceFromFeatureGroup_(const FeatureGroup &fgroup,
                                                   const int &ignore_this_charge,
                                                   FeatureSeed* &most_abundant_mt_ptr,
                                                   const std::vector<std::vector<Size>>& shared_m_traces) const;
 
     void getFLASHDeconvConsensusResult();
 
-    bool isThisMassOneOfTargets(const double &candi_mass, const double &candi_rt) const;
+    bool isThisMassOneOfTargets_(const double &candi_mass, const double &candi_rt) const;
 
     void makeMSSpectrum_(std::vector<FeatureSeed *> &local_traces, MSSpectrum &spec, const double &rt) const;
 
-    void setFeatureGroupMembersForResultWriting(std::vector<FeatureGroup> &f_groups) const;
+    void setFeatureGroupMembersForResultWriting_(std::vector<FeatureGroup> &f_groups) const;
 
-    bool isEligibleFeatureForConflictResolution(Feature &new_feature, std::vector<std::vector<Size>> &shared_m_traces_indices, FeatureGroup &feat_group) const;
+    bool isEligibleFeatureForConflictResolution_(Feature &new_feature, std::vector<std::vector<Size>> &shared_m_traces_indices, FeatureGroup &feat_group) const;
 
     /// parameter stuff
 //    double local_rt_range_;
@@ -180,5 +189,8 @@ namespace OpenMS
     std::vector<std::pair<double, double>> target_masses_; // mass and rt
     bool with_target_masses_ = false;
 
+    /// for detailed outputs (mostly test purpose)
+    bool shared_output_requested_;
+    std::fstream shared_out_stream_ = std::fstream();
   };
 }

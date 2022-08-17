@@ -366,14 +366,23 @@ namespace FLASHDeconvQuantHelper
   class OPENMS_DLLAPI CmpFeatureGroupByScore
   {
   public:
-    bool operator()(const FeatureGroup& x, const FeatureGroup& y) const
+    bool operator()(const FeatureGroup* x, const FeatureGroup* y) const
     {
       // intensity
-      if(x.getIntensity() == y.getIntensity()){
-        return x.getIsotopeCosine() < y.getIsotopeCosine();
+      if(x->getIntensity() == y->getIntensity()){
+        return x->getIsotopeCosine() < y->getIsotopeCosine();
       }
 
-      return x.getIntensity() < y.getIntensity();
+      return x->getIntensity() < y->getIntensity();
+    }
+  };
+
+  class OPENMS_DLLAPI CmpFeatureGroupPointersByMass
+  {
+  public:
+    bool operator()(const FeatureGroup* x, const FeatureGroup* y) const
+    {
+      return x->getMonoisotopicMass() < y->getMonoisotopicMass();
     }
   };
 
