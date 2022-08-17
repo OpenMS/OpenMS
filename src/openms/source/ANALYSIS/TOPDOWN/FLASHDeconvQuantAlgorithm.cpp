@@ -646,7 +646,7 @@ namespace OpenMS
 //        }
 
         // merge found feature to candidate feature
-        auto trace_indices = candidate_fg->getTraceIndices();
+        auto &trace_indices = candidate_fg->getTraceIndices();
         for (auto &new_mt: *low_it)
         {
           // if this mass trace is not used in candidate_fg
@@ -682,12 +682,12 @@ namespace OpenMS
           continue;
         }
 
-        /// re-calculate isotope index (from FLASHDeconvAlgorithm::getCandidatePeakGroup)
+        /// re-calculate isotope index (from FLASHDeconvAlgorithm::getCandidatePeakGroups_)
         double apex_lmt_mass = apex_lmt_in_this_cs->getUnchargedMass();
         double new_lmt_mass = new_mt->getUnchargedMass();
 
-        int tmp_iso_idx = round((new_lmt_mass - apex_lmt_mass) / Constants::ISOTOPE_MASSDIFF_55K_U);
-        if (abs(apex_lmt_mass - new_lmt_mass + Constants::ISOTOPE_MASSDIFF_55K_U * tmp_iso_idx) >
+        int tmp_iso_idx = round((new_lmt_mass - apex_lmt_mass) / iso_da_distance_);
+        if (abs(apex_lmt_mass - new_lmt_mass + iso_da_distance_ * tmp_iso_idx) >
             apex_lmt_mass * mz_tolerance_)
         {
           continue;
@@ -714,13 +714,11 @@ namespace OpenMS
         {
           out_feature.push_back(*candidate_fg);
         }
-        // remove it from features
-        in_features.erase(candidate_fg);
-        continue;
       }
-
-      // save it to out_features
-      out_feature.push_back(final_candidate_fg);
+      else // if to be merged, save the updated one to out_feature
+      {
+        out_feature.push_back(final_candidate_fg);
+      }
 
       // remove candidate from features
       std::sort(v_indices_to_remove.begin(), v_indices_to_remove.end());
@@ -1073,7 +1071,7 @@ namespace OpenMS
 
         Size this_shared_mt_index = found_mt->first;
         shared_mts_in_this_region[this_shared_mt_index] = true; // mark as visited
-        std::vector<String> feat_not_to_include;
+        std::vector<String> feat_not_to_include; // a marker to figure out if the shared mass trace is really shared
         FeatureSeed *picked_seed; // save for later
 
         // per conflicting features, make Feature
@@ -1083,7 +1081,7 @@ namespace OpenMS
           int cs_of_feat = feat.second;
 
           // check if FeatureElement is not created yet
-          String feat_label = feat.first + "&" + cs_of_feat;
+          String feat_label = std::to_string(feat.first) + '&' + std::to_string(cs_of_feat);
           if (visited_features_in_this_region.find(feat_label) != visited_features_in_this_region.end())
           {
             continue;
@@ -1144,7 +1142,7 @@ namespace OpenMS
           for (auto &f : feat_not_to_include)
           {
             shared_fs.erase(std::remove_if(shared_fs.begin(), shared_fs.end(),
-                                           [f](auto const &p) { auto s = p.first + "$" + p.second;
+                                           [f](auto const &p) { String s = std::to_string(p.first) + '&' + std::to_string(p.second);
                                              return s == f;}));
           }
 
@@ -1156,6 +1154,25 @@ namespace OpenMS
           // mark this MT is not shared one
           Size fg_id = shared_fs[0].first;
           shared_m_traces_indices[this_shared_mt_index] = std::vector<Size>{fg_id};
+
+          // if the corresponding feature is already added to conflict_features, update it
+          auto found_feat = find_if(conflicting_features.begin(), conflicting_features.end(),
+                                    [shared_fs](auto &&x) { return (x.feature_group_index == shared_fs[0].first) && (x.charge == shared_fs[0].second); });
+          if (found_feat != conflicting_features.end())
+          {
+            // find the shared trace
+            auto it = std::find(found_feat->shared_trace_indices.begin(), found_feat->shared_trace_indices.end(), this_shared_mt_index);
+            Size trace_loc = it - found_feat->shared_trace_indices.begin();
+
+            // move the shared trace to unique
+            found_feat->unique_trace_indices.push_back(this_shared_mt_index);
+            FeatureSeed the_trace = found_feat->shared_traces[trace_loc];
+            found_feat->unique_traces.push_back(the_trace);
+
+            // delete the trace from the shared trace vectors
+            found_feat->shared_trace_indices.erase(found_feat->shared_trace_indices.begin()+trace_loc);
+            found_feat->shared_traces.erase(found_feat->shared_traces.begin()+trace_loc);
+          }
           continue;
         }
 
@@ -1205,7 +1222,7 @@ namespace OpenMS
         for (Size t_index = 0; t_index < feat.shared_trace_indices.size(); ++t_index)
         {
           auto &updated_seed = feat.shared_traces[t_index];
-          auto &index_of_updated_seed = feat.shared_trace_indices[t_index];
+          Size &index_of_updated_seed = feat.shared_trace_indices[t_index];
 
           // find corresponding FeatureSeed in FeatureGroup
           auto found_seed = find_if(feature_group.begin(), feature_group.end(),
@@ -1233,24 +1250,21 @@ namespace OpenMS
       }
 
       // remove this feature out from Fg? // some features need to be deleted
-      if (feat_not_for_resolution.size() > 0)
+      for (auto &feat_tag : feat_not_for_resolution)
       {
-        for (auto &feat_tag : feat_not_for_resolution)
-        {
-          auto &feat_group = feature_groups[feat_tag.first];
-          auto seed_iter = feat_group.begin();
-          while (seed_iter != feat_group.end()) {
-            if (seed_iter->getCharge() == feat_tag.second) {
-              // if this seed is from the "feat_not_for_resolution", remove it.
-              seed_iter = feat_group.erase(seed_iter);
-            }
-            else {
-              ++seed_iter;
-            }
+        auto &feat_group = feature_groups[feat_tag.first];
+        auto seed_iter = feat_group.begin();
+        while (seed_iter != feat_group.end()) {
+          if (seed_iter->getCharge() == feat_tag.second) {
+            // if this seed is from the "feat_not_for_resolution", remove it.
+            seed_iter = feat_group.erase(seed_iter);
           }
-//          feat_group.updateMembersForScoring();
-//          feat_group.updateMembers();
+          else {
+            ++seed_iter;
+          }
         }
+        // only update members for scoring. (FeatureGroup can be empty at this point)
+        feat_group.updateMembersForScoring();
       }
     }
 
@@ -1816,7 +1830,7 @@ namespace OpenMS
       PeakType new_peak(peak);
       new_peak.setIntensity(peak.getIntensity() * ratio);
       tmp_mt.push_back(new_peak);
-      smoothed_tmp.push_back(ref_trace.getSmoothedIntensities()[p_index]);
+      smoothed_tmp.push_back(ref_trace.getSmoothedIntensities()[p_index] * ratio);
     }
 
     // create new mass trace
@@ -1894,8 +1908,9 @@ namespace OpenMS
       }
 
       // check if this mt is shared with other FeatureGroup
-      if (shared_m_traces[lmt->getTraceIndex()].size() > 1)
+      if (lmt->getTraceIndex() < shared_m_traces.size() && shared_m_traces[lmt->getTraceIndex()].size() > 1)
       {
+        auto &test = shared_m_traces[lmt->getTraceIndex()];
         continue;
       }
 

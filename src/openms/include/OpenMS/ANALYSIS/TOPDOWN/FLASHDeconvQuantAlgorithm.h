@@ -159,7 +159,7 @@ namespace OpenMS
     double total_intensity_;
 
     const double mass_tolerance_da_ = 3; // Da, for feature mass collection
-//    const double mass_tolerance_ppm_ = 20;
+    const double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
 
     // advanced parameter?
     Size min_nr_mtraces_ = 3; // minimum number of consecutive bridges among mass traces to support feature
