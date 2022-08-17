@@ -1,5 +1,4 @@
 
-
 Glossary:
 OpenMS - Name of the project and our C++ library
 TOPP - "The OpenMS Proteomics Pipeline", collection of chainable tools for flexible HPLC/MS workflows
