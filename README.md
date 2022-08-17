@@ -5,10 +5,10 @@ OpenMS
 [![Project Stats](https://www.openhub.net/p/open-ms/widgets/project_thin_badge.gif)](https://www.openhub.net/p/open-ms)
 [![Discord Shield](https://img.shields.io/discord/832282841836159006?style=flat-square&message=Discord&color=5865F2&logo=Discord&logoColor=FFFFFF&label=Discord)](https://discord.gg/4TAGhqJ7s5)
 [![Gitter](https://img.shields.io/static/v1?style=flat-square&message=on%20Gitter&color=ED1965&logo=Gitter&logoColor=FFFFFF&label=Chat)](https://gitter.im/OpenMS/OpenMS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![Install with bioconda](https://img.shields.io/badge/Install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/openms-meta/README.html)
+[![Install with bioconda](https://img.shields.io/conda/v/bioconda/pyopenms?color=44A833&logo=Anaconda&style=flat-square&label=Install%20with%20bioconda)](http://bioconda.github.io/recipes/openms-meta/README.html)
+[![Install with conda](https://img.shields.io/conda/v/openms/pyopenms?color=44A833&label=Install%20with%20conda%3A%3Aopenms&logo=Anaconda&style=flat-square)](https://anaconda.org/openms)
 [![Documentation](https://img.shields.io/static/v1?style=flat-square&message=Doxygen&color=2C4AA8&logo=ReadTheDocs&logoColor=FFFFFF&label=Documentation)](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html)
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?style=flat-square&logo=gitpod)](https://gitpod.io/#https://github.com/OpenMS/OpenMS) 
-[![Anaconda-Server Badge](https://anaconda.org/openms/pyopenms/badges/version.svg)](https://anaconda.org/openms/pyopenms)
 
 [OpenMS](http://www.openms.org/)
 is an open-source software C++ library for LC-MS data management and
