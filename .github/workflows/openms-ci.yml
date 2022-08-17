@@ -27,7 +27,7 @@ jobs:
         host: 'windows' # default: win64_msvc2017_64
         target: 'desktop'
         install-deps: 'true'
-        cached: 'false'
+        cache: 'false'
 
     # https://github.com/marketplace/actions/visual-studio-shell
     - name: Set up Visual Studio shell
