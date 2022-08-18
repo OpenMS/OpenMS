@@ -32,6 +32,7 @@
 // $Authors: Leon Bichmann, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CHEMISTRY/VarMod.h>
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
@@ -353,6 +354,9 @@ protected:
     int max_variable_mods_in_peptide = getIntOption_("max_variable_mods_in_peptide");
     Size var_mod_index = 0;
 
+    // vector of VarMod
+    vector<VarMod> modifications_given(var_mod_index);
+
     // write out user specified modifications
     for (; var_mod_index < variable_modifications.size(); ++var_mod_index)
     {
@@ -418,16 +422,41 @@ protected:
       //TODO support required variable mods
       bool required = false;
 
-      os << "variable_mod0" << var_mod_index+1 << " = " 
-         << mass << " " << residues << " " 
-         << binary_group << " " 
-         << max_current_mod_per_peptide << " " 
-         << term_distance << " " 
-         << nc_term << " " 
-         << required << " " 
-         << "0.0" // TODO: add neutral losses (from Residue or user defined?)
-         << "\n";
+      VarMod temp_var_mod;
+
+      temp_var_mod.mod_mass_ = mass;
+      temp_var_mod.mod_residue_ = residues;
+      temp_var_mod.mod_binary_group_ = binary_group;
+      temp_var_mod.mod_max_current_mod_per_peptide_ = max_current_mod_per_peptide;
+      temp_var_mod.mod_term_distance_ = term_distance;
+      temp_var_mod.mod_nc_term_ = nc_term;
+      temp_var_mod.mod_required_ = required;
+      temp_var_mod.mod_neutral_loss_ = 0.0; // TODO: add neutral losses (from Residue or user defined?)
+
+      modifications_given.push_back(temp_var_mod);
+
     }
+
+    // concatenate residues
+    for (Size i = 0; i < modifications_given.size() - 1; i++)
+    {
+      for (Size j = i+1; j < modifications_given.size(); j++)
+      {
+        if (modifications_given[i].isMergeableWith(modifications_given[j]))
+        {
+          modifications_given[i].merge(modifications_given[j]);
+        }
+      }
+    }
+
+    // output to params file
+    for (Size i = 0; modifications_given.size(); i++)
+    {
+      os << modifications_given[i].toCometString();
+    }
+
+    // update var_mod_index according to new number of occupied params
+    // error if new number greater than 9
 
     // fill remaining modification slots (if any) in Comet with "no modification"
     for (; var_mod_index < 9; ++var_mod_index)

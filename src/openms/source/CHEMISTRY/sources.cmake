@@ -40,6 +40,7 @@ SvmTheoreticalSpectrumGeneratorSet.cpp
 Tagger.cpp
 TheoreticalSpectrumGenerator.cpp
 TheoreticalSpectrumGeneratorXLMS.cpp
+VarMod.cpp
 WeightWrapper.cpp
 )
 

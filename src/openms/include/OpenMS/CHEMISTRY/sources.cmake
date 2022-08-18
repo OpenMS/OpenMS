@@ -41,6 +41,7 @@ SvmTheoreticalSpectrumGeneratorTrainer.h
 Tagger.h
 TheoreticalSpectrumGenerator.h
 TheoreticalSpectrumGeneratorXLMS.h
+VarMod.h
 WeightWrapper.h
 )
 
