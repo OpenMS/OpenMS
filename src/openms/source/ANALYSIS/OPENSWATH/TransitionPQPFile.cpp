@@ -97,10 +97,15 @@ namespace OpenMS
     bool gene_exists = SqliteConnector::tableExists(db, "GENE");
     if (gene_exists)
     {
-      select_gene = ", GENE.GENE_NAME AS gene_name ";
+      select_gene = ", GENE_AGGREGATED.GENE_NAME AS gene_name ";
       select_gene_null = ", 'NA' AS gene_name ";
       join_gene = "INNER JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " \
-                  "INNER JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID ";
+                  "INNER JOIN " \
+                    "(SELECT PEPTIDE_ID, GROUP_CONCAT(GENE_NAME,';') AS GENE_NAME " \
+                    "FROM GENE " \
+                    "INNER JOIN PEPTIDE_GENE_MAPPING ON PROTEIN.ID = PEPTIDE_GENE_MAPPING.PROTEIN_ID "\
+                    "GROUP BY PEPTIDE_ID) " \
+                    "AS GENE_AGGREGATED ON PEPTIDE.ID = GENE_AGGREGATED.PEPTIDE_ID ";
     }
 
     String select_annotation = "'' AS Annotation, ";
