@@ -44,6 +44,7 @@ constexpr int DELAY {15};
 
 void testCheckBox(QCheckBox* cb)
 {
+  qInfo() << qPrintable("Testing Checkbox: " + cb->objectName());
   Qt::CheckState prev_state = cb->checkState();
   QTest::mouseClick(cb, Qt::LeftButton, 0, cb->rect().bottomLeft());
   QTest::qWait(DELAY);
@@ -406,6 +407,7 @@ void OpenMS::TestTVPrefDialog::checkFileDialog_()
   {
     QFileDialog* fd = qobject_cast<QFileDialog*>(active_widget);
     fd->close(); // for some reason closing it with 'Qt::Key_Enter' doesn't work
+    qInfo() << "Closing File Dialog.";
     QVERIFY(true);
     return;
   }
@@ -419,6 +421,7 @@ void OpenMS::TestTVPrefDialog::checkColorDialog_()
   {
     QColorDialog* cd = qobject_cast<QColorDialog*>(active_widget);
     QTest::keyClick(cd, Qt::Key_Enter);
+    qInfo() << "Closing Color Dialog.";
     QVERIFY(true);
     return;
   }
