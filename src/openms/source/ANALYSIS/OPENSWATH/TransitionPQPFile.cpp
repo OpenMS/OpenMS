@@ -103,7 +103,7 @@ namespace OpenMS
                   "INNER JOIN " \
                     "(SELECT PEPTIDE_ID, GROUP_CONCAT(GENE_NAME,';') AS GENE_NAME " \
                     "FROM GENE " \
-                    "INNER JOIN PEPTIDE_GENE_MAPPING ON PROTEIN.ID = PEPTIDE_GENE_MAPPING.PROTEIN_ID "\
+                    "INNER JOIN PEPTIDE_GENE_MAPPING ON GENE.ID = PEPTIDE_GENE_MAPPING.GENE_ID "\
                     "GROUP BY PEPTIDE_ID) " \
                     "AS GENE_AGGREGATED ON PEPTIDE.ID = GENE_AGGREGATED.PEPTIDE_ID ";
     }
