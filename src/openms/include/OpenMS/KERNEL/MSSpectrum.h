@@ -65,7 +65,7 @@ namespace OpenMS
     @ingroup Kernel
   */
   class OPENMS_DLLAPI MSSpectrum final :
-    private std::vector<Peak1D>,
+    private BaseContainer<VectorTemplate, Peak1DT<double,double>>,
     public RangeManagerContainer<RangeMZ, RangeIntensity>,
     public SpectrumSettings
   {
@@ -134,45 +134,62 @@ public:
     /// Non-Mutable Iterator for Tuple
     typedef typename Container::const_iterator TConstIterator;
     /// Mutable iterator
-    typedef typename ContainerType::iterator Iterator;
+    typedef typename Container::iterator Iterator;
     /// Non-mutable iterator
-    typedef typename ContainerType::const_iterator ConstIterator;
+    typedef typename Container::const_iterator ConstIterator;
     /// Mutable reverse iterator
     typedef typename ContainerType::reverse_iterator ReverseIterator;
     /// Non-mutable reverse iterator
     typedef typename ContainerType::const_reverse_iterator ConstReverseIterator;
     //@}
 
+    using Container::back;
+    using Container::emplace_back;
+    using Container::empty;
+    using Container::erase;
+    using Container::front;
+    using Container::insertionSort;
+    using Container::operator[];
+    using Container::push_back;
+    using Container::operator=;
+    using Container::pop_back;
+    using Container::reserve;
+    using Container::value_type;
+    using Container::resize;
+    using Container::reference;
+    using Container::pointer;
+    using Container::const_value_type;
+
     ///@name Export methods from std::vector<Peak1D>
     //@{
-    using ContainerType::operator[];
-    using ContainerType::begin;
-    using ContainerType::rbegin;
-    using ContainerType::end;
-    using ContainerType::rend;
-    using ContainerType::cbegin;
-    using ContainerType::cend;
-    using ContainerType::resize;
-    using ContainerType::size;
-    using ContainerType::push_back;
-    using ContainerType::emplace_back;
-    using ContainerType::pop_back;
-    using ContainerType::empty;
-    using ContainerType::front;
-    using ContainerType::back;
-    using ContainerType::reserve;
-    using ContainerType::insert;
-    using ContainerType::erase;
-    using ContainerType::swap;
+    // using ContainerType::operator[];
+    // using ContainerType::begin;
+    // using ContainerType::rbegin;
+    // using ContainerType::end;
+    // using ContainerType::rend;
+    // using ContainerType::cbegin;
+    // using ContainerType::cend;
+    // using ContainerType::resize;
+    // using ContainerType::size;
+    // using ContainerType::push_back;
+    // using ContainerType::emplace_back;
+    // using ContainerType::pop_back;
+    // using ContainerType::empty;
+    // using ContainerType::front;
+    // using ContainerType::back;
+    // using ContainerType::reserve;
+    // using ContainerType::insert;
+    // using ContainerType::erase;
+    // using ContainerType::swap;
     
-    using typename ContainerType::iterator;
-    using typename ContainerType::const_iterator;
-    using typename ContainerType::size_type;
-    using typename ContainerType::value_type;
-    using typename ContainerType::reference;
-    using typename ContainerType::const_reference;
-    using typename ContainerType::pointer;
-    using typename ContainerType::difference_type;
+    // using typename ContainerType::iterator;
+    // using typename ContainerType::const_iterator;
+    // using typename ContainerType::size_type;
+    // using typename ContainerType::value_type;
+    // using typename ContainerType::reference;
+    // using typename ContainerType::const_reference;
+    // using typename ContainerType::pointer;
+    // using typename ContainerType::difference_type;
 
     //@}
 
@@ -272,6 +289,16 @@ public:
 
     TConstIterator TCend() const;
 
+    TIterator begin();
+
+    TIterator end();
+
+    TConstIterator cbegin() const;
+
+    TConstIterator cend() const;
+
+    void insert(TIterator it, Peak1DTuple peak);
+
 
 
     /**
@@ -339,28 +366,6 @@ public:
       @param chunks a Chunk is an object that contains the start and end of a sublist of peaks in the spectrum, that is or isn't sorted yet (is_sorted member)
     */
     void sortByPositionPresorted(const std::vector<Chunk>& chunks);
-
-    /// Checks if all peaks are sorted with respect to ascending m/z
-    bool isSorted() const;
-
-    /// Checks if container is sorted by a certain user-defined property.
-    /// You can pass any lambda function with <tt>[](Size index_1, Size index_2) --> bool</tt>
-    /// which given two indices into MSSpectrum (either for peaks or data arrays) returns a weak-ordering.
-    /// (you need to capture the MSSpectrum in the lambda and operate on it, based on the indices)
-    template<class Predicate>
-    bool isSorted(const Predicate& lambda) const
-    {
-      auto value_2_index_wrapper = [this, &lambda](const value_type& value1, const value_type& value2) {
-        // translate values into indices (this relies on no copies being made!)
-        const Size index1 = (&value1) - (&this->front());
-        const Size index2 = (&value2) - (&this->front());
-        // just make sure the pointers above are actually pointing to a Peak inside our container
-        assert(index1 < this->size()); 
-        assert(index2 < this->size());
-        return lambda(index1, index2);
-      }; 
-      return std::is_sorted(this->begin(), this->end(), value_2_index_wrapper);
-    }
 
     /// Sort by a user-defined property
     /// You can pass any @p lambda function with <tt>[](Size index_1, Size index_2) --> bool</tt>
@@ -661,7 +666,7 @@ protected:
     os << static_cast<const SpectrumSettings&>(spec);
 
     // peaklist
-    for (MSSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
+    for (MSSpectrum::ConstIterator it = spec.cbegin(); it != spec.cend(); ++it)
     {
       os << *it << std::endl;
     }

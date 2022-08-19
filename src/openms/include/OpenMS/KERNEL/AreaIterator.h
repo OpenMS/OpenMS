@@ -53,11 +53,19 @@ namespace OpenMS
 
         @note This iterator iterates over spectra with MS level 1 only!
     */
-    template <class ValueT, class ReferenceT, class PointerT, class SpectrumIteratorT, class PeakIteratorT>
+    template <typename SpectrumContainerT>
     class AreaIterator :
-      public std::iterator<std::forward_iterator_tag, ValueT>
+      public std::iterator<std::forward_iterator_tag, typename SpectrumContainerT::value_type::value_type>
     {
 public:
+      
+      using ValueT = typename SpectrumContainerT::value_type::value_type;
+      using ReferenceT = typename SpectrumContainerT::value_type::reference;
+      using PointerT = typename SpectrumContainerT::value_type::Iterator::pointer;
+      using SpectrumIteratorT = typename SpectrumContainerT::iterator;
+      using PeakIteratorT = typename SpectrumContainerT::value_type::Iterator;
+
+
       typedef double CoordinateType;
       typedef ValueT PeakType;
       typedef SpectrumIteratorT SpectrumIteratorType;
@@ -140,6 +148,8 @@ public:
       /// Test for equality
       bool operator==(const AreaIterator & rhs) const
       {
+        if (&(*(current_scan_)) != &(*(rhs.current_scan_))) return false; 
+
         //Both end iterators => equal
         if (is_end_ && rhs.is_end_) return true;
 
@@ -149,7 +159,7 @@ public:
         if (is_end_ && !rhs.is_end_) return false;
 
         //Equality of pointed to peak addresses
-        return &(*current_peak_) == &(*(rhs.current_peak_));
+        return current_peak_ == rhs.current_peak_;
       }
 
       /// Test for inequality
@@ -189,7 +199,13 @@ public:
       }
 
       /// Dereferencing of this pointer yields the underlying peak
-      pointer operator->() const
+      pointer operator->() 
+      {
+        return current_peak_.operator->();
+      }
+
+      /// Dereferencing of this const pointer yields the underlying peak
+      const pointer operator->() const
       {
         return current_peak_.operator->();
       }

@@ -50,7 +50,7 @@ START_TEST(AreaIterator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 typedef PeakMap Map;
-typedef Internal::AreaIterator<Map::PeakType, Map::PeakType&, Map::PeakType*, Map::Iterator, Map::SpectrumType::Iterator> AI;
+typedef Internal::AreaIterator<vector<Map::MSSpectrum>> AI;
 //typedef Internal::AreaIterator<Map::PeakType, const Map::PeakType&, const Map::PeakType*, Map::ConstIterator, Map::SpectrumType::ConstIterator> CAI;
 
 AI* ptr1 = nullptr, *ptr2 = nullptr;

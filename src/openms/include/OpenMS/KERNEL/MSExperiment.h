@@ -74,6 +74,7 @@ namespace OpenMS
 
 public:
     typedef Peak1D PeakT;
+    typedef MSSpectrum::Peak1DTuple Peak1DTuple;
     typedef ChromatogramPeak ChromatogramPeakT;
 
     /// @name Base type definitions
@@ -105,9 +106,9 @@ public:
     /// Non-mutable iterator
     typedef std::vector<SpectrumType>::const_iterator ConstIterator;
     /// Mutable area iterator type (for traversal of a rectangular subset of the peaks)
-    typedef Internal::AreaIterator<PeakT, PeakT&, PeakT*, Iterator, SpectrumType::Iterator> AreaIterator;
+    typedef Internal::AreaIterator<Base> AreaIterator;
     /// Immutable area iterator type (for traversal of a rectangular subset of the peaks)
-    typedef Internal::AreaIterator<const PeakT, const PeakT&, const PeakT*, ConstIterator, SpectrumType::ConstIterator> ConstAreaIterator;
+    typedef Internal::AreaIterator<const Base> ConstAreaIterator;
     //@}
 
     /// @name Delegations of calls to the vector of MSSpectra
@@ -214,7 +215,7 @@ public:
           continue;
         }
         typename Container::value_type s; // explicit object here, since instantiation within push_back() fails on VS<12
-        for (typename SpectrumType::const_iterator it = spec->begin(); it != spec->end(); ++it)
+        for (typename MSSpectrum::ConstIterator it = spec->cbegin(); it != spec->cend(); ++it)
         {
           cont.push_back(s);
           cont.back().setRT(spec->getRT());
@@ -614,9 +615,9 @@ private:
       static void addData_(SpectrumType* spectrum, const ContainerValueType* item)
       {
         // create temporary peak and insert it into spectrum
-        spectrum->insert(spectrum->end(), PeakType());
+        spectrum->insert(spectrum->end(), Peak1DTuple());
         spectrum->back().setIntensity(item->getIntensity());
-        spectrum->back().setPosition(item->getMZ());
+        spectrum->back().setMZ(item->getMZ());
       }
       /// general method for adding data points, including metadata arrays (populated from metainfointerface)
       static void addData_(SpectrumType* spectrum, const ContainerValueType* item, const StringList& store_metadata_names)

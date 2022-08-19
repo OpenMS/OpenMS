@@ -183,6 +183,7 @@ struct BaseContainer
     using value_type      = typename policy_t::value_ref_type;
     using const_value_type= typename policy_t::const_value_ref_type;
     using reference       = typename policy_t::reference_type;
+    using pointer         = value_type*;
     using size_type       = std::size_t;
 
     BaseContainer( size_t size_=0 ){
@@ -227,11 +228,21 @@ struct BaseContainer
     }
 
     value_type front(){
-        return policy_t::front( mValues);
+        return operator[](0);
+    }
+
+    const_value_type front() const 
+    {
+        return operator[](0);
     }
 
     value_type back(){
-        return policy_t::back( mValues);
+       return operator[](this->size()-1);
+    }
+
+    const_value_type back() const 
+    {
+        return operator[](this->size()-1);
     }
 
     template <typename Fwd>
@@ -314,7 +325,7 @@ public:
     using difference_type   = std::ptrdiff_t;
     using value_type        = typename policy_t::value_ref_type;
     using reference         = typename policy_t::reference_type;
-    using pointer           = value_type*;
+    using pointer           = proxy_holder<value_type>;
     using iterator_category = std::random_access_iterator_tag;
 
     template<typename TTContainer>
@@ -370,11 +381,20 @@ public:
         return (*mContainer)[ mIterPosition ];
     }
 
+    const value_type operator*() const {
+        //std::cout << "Pos:" << mIterPosition << std::endl;
+        return (*mContainer)[ mIterPosition ];
+    }
+
     std::size_t getPosition () {
         return this->mIterPosition;
     }
 
     proxy_holder<value_type> operator ->() {
+        return proxy_holder<value_type>(**this);
+    }
+
+    proxy_holder<value_type> operator ->() const {
         return proxy_holder<value_type>(**this);
     }
 
