@@ -419,19 +419,10 @@ protected:
         nc_term = 1;
       }
 
-      //TODO support required variable mods
-      bool required = false;
+      VarMod temp_var_mod(mod, binary_group, max_current_mod_per_peptide);
 
-      VarMod temp_var_mod;
-
-      temp_var_mod.mod_mass_ = mass;
-      temp_var_mod.mod_residue_ = residues;
-      temp_var_mod.mod_binary_group_ = binary_group;
-      temp_var_mod.mod_max_current_mod_per_peptide_ = max_current_mod_per_peptide;
       temp_var_mod.mod_term_distance_ = term_distance;
       temp_var_mod.mod_nc_term_ = nc_term;
-      temp_var_mod.mod_required_ = required;
-      temp_var_mod.mod_neutral_loss_ = 0.0; // TODO: add neutral losses (from Residue or user defined?)
 
       modifications_given.push_back(temp_var_mod);
 

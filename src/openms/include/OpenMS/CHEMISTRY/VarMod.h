@@ -50,6 +50,9 @@ namespace OpenMS
     Int mod_binary_group_, mod_max_current_mod_per_peptide_, mod_term_distance_, mod_nc_term_, mod_term_specificity_ ;
     bool mod_required_;
 
+    // Constructor
+    VarMod (const ResidueModification *mod, Int mod_binary_group, Int mod_max_current_mod_per_peptide);
+
     bool isMergeableWith(const VarMod& otherMod);
 
     void merge(VarMod& modification);

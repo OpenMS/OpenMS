@@ -38,22 +38,25 @@
 
 namespace OpenMS
 {
+    VarMod::VarMod (const ResidueModification *mod, Int mod_binary_group, Int mod_max_current_mod_per_peptide )
+    {
+      this->mod_mass_ = mod->getDiffMonoMass();
+      this->mod_residue_ = mod->getOrigin();
+      this->mod_term_specificity_ = mod->getTermSpecificity();
+      this->mod_binary_group_ = mod_binary_group;
+      this->mod_max_current_mod_per_peptide_ = mod_max_current_mod_per_peptide;
+      this->mod_required_ = false;       //TODO support required variable mods
+
+      this->mod_neutral_loss_ = 0.0;    // TODO: add neutral losses (from Residue or user defined?)
+    }
 
     bool VarMod::isMergeableWith(const VarMod& otherMod)
     {
-        if(    this->mod_mass_ == otherMod.mod_mass_
-            && this->mod_binary_group_ == otherMod.mod_binary_group_
-            && this->mod_max_current_mod_per_peptide_ == otherMod.mod_max_current_mod_per_peptide_
-            && this->mod_term_distance_ == otherMod.mod_term_distance_
-            && this->mod_nc_term_ == otherMod.mod_nc_term_
-            && this->mod_term_specificity_ == otherMod.mod_term_specificity_)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return   this->mod_mass_ == otherMod.mod_mass_
+              && this->mod_binary_group_ == otherMod.mod_binary_group_
+              && this->mod_max_current_mod_per_peptide_ == otherMod.mod_max_current_mod_per_peptide_
+              && this->mod_term_distance_ == otherMod.mod_term_distance_
+              && this->mod_term_specificity_ == otherMod.mod_term_specificity_;
     }
 
     void VarMod::merge(VarMod& modification)
@@ -65,11 +68,11 @@ namespace OpenMS
     String VarMod::toCometString() const
     {
         String cometParam = String(this->mod_mass_) + " " + this->mod_residue_ + " "
-        + this->mod_binary_group_ + " "
-        + this->mod_max_current_mod_per_peptide_ + " "
-        + this->mod_term_distance_ + " "
-        + this->mod_nc_term_ + " "
-        + this->mod_required_ + " "
+        + String(this->mod_binary_group_) + " "
+        + String(this->mod_max_current_mod_per_peptide_) + " "
+        + String(this->mod_term_distance_) + " "
+        + String(this->mod_nc_term_) + " "
+        + String(this->mod_required_) + " "
         + String(this->mod_neutral_loss_);
 
         return cometParam;
