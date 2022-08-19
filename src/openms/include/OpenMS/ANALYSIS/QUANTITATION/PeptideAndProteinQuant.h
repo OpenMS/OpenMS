@@ -202,10 +202,9 @@ public:
     const ProteinQuant& getProteinResults();
 
     /// Annotate protein quant results as meta data to protein ids
-    static void annotateQuantificationsToProteins(
+    void annotateQuantificationsToProteins(
       const ProteinQuant& protein_quants, 
       ProteinIdentification& proteins,
-      const UInt n_samples,
       bool remove_unquantified = true);
 
 private:

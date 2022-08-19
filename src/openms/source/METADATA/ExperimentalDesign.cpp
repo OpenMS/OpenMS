@@ -172,7 +172,7 @@ namespace OpenMS
     {
       //TODO warn when already present? Overwrite?
       //TODO check content size
-      sample_to_rowindex_.emplace(sample, sample_to_rowindex_.size());
+      sample_to_rowindex_.try_emplace(sample, sample_to_rowindex_.size());
       content_.push_back(content);
     }
 
@@ -517,22 +517,36 @@ namespace OpenMS
 
     unsigned ExperimentalDesign::getNumberOfSamples() const
     {
+      /*
       if (msfile_section_.empty()) { return 0; }
       return std::max_element(msfile_section_.begin(), msfile_section_.end(),
                               [](const MSFileSectionEntry& f1, const MSFileSectionEntry& f2)
                               {
                                 return f1.sample < f2.sample;
                               })->sample;
+      */
+      return sample_section_.getContentSize();
     }
 
+    // TODO IMHO this is ill-defined and only works if exactly the same identifiers are used
+    //   across fraction groups. Also, the number of fractions can change across
+    //   fraction groups, e.g., if one is missing.
     unsigned ExperimentalDesign::getNumberOfFractions() const
     {
+      /*
       if (msfile_section_.empty()) { return 0; }
       return std::max_element(msfile_section_.begin(), msfile_section_.end(),
                               [](const MSFileSectionEntry& f1, const MSFileSectionEntry& f2)
                               {
                                   return f1.fraction < f2.fraction;
                               })->fraction;
+      */
+      auto fs = set<Size>();
+      for (const auto& row: msfile_section_)
+      {
+        fs.insert(row.fraction);
+      }
+      return fs.size();
     }
 
     // @return the number of labels per file
@@ -545,53 +559,6 @@ namespace OpenMS
                                 return f1.label < f2.label;
                               })->label;
     }
-
-    /*
-    unsigned ExperimentalDesign::getNumberOfSamples() const
-    {
-      set<unsigned> samples;
-      if (msfile_section_.empty()) { return 0; }
-      for (const auto& row : msfile_section_)
-      {
-        samples.insert(row.sample);
-      }
-      return samples.size();
-    }
-
-    unsigned ExperimentalDesign::getNumberOfFractions() const
-    {
-      set<unsigned> fracs;
-      if (msfile_section_.empty()) { return 0; }
-      for (const auto& row : msfile_section_)
-      {
-        fracs.insert(row.fraction);
-      }
-      return fracs.size();
-    }
-
-    // @return the number of labels per file
-    unsigned ExperimentalDesign::getNumberOfLabels() const
-    {
-      set<unsigned> labs;
-      if (msfile_section_.empty()) { return 0; }
-      for (const auto& row : msfile_section_)
-      {
-        labs.insert(row.label);
-      }
-      return labs.size();
-    }
-
-    unsigned ExperimentalDesign::getNumberOfFractionGroups() const
-    {
-      set<unsigned> fracgrps;
-      if (msfile_section_.empty()) { return 0; }
-      for (const auto& row : msfile_section_)
-      {
-        fracgrps.insert(row.fraction_group);
-      }
-      return fracgrps.size();
-    }
-     */
 
     // @return the number of MS files (= fractions * fraction_groups)
     unsigned ExperimentalDesign::getNumberOfMSFiles() const
@@ -606,19 +573,29 @@ namespace OpenMS
 
     bool ExperimentalDesign::isFractionated() const
     {
+      // TODO Warning: only works if fractions are always the same in every fraction group!
       std::vector<unsigned> fractions = getFractions_();
       std::set<unsigned> fractions_set(fractions.begin(), fractions.end());
       return fractions_set.size() > 1;
     }
 
+    // TODO IMHO this is ill-defined and only works if fraction group names/IDs change over every sample
     unsigned ExperimentalDesign::getNumberOfFractionGroups() const
     {
+      /*
       if (msfile_section_.empty()) { return 0; }
       return std::max_element(msfile_section_.begin(), msfile_section_.end(),
                               [](const MSFileSectionEntry& f1, const MSFileSectionEntry& f2)
                               {
                                   return f1.fraction_group < f2.fraction_group;
                               })->fraction_group;
+      */
+      auto fgs = set<Size>();
+      for (const auto& row: msfile_section_)
+      {
+        fgs.insert(row.fraction_group);
+      }
+      return fgs.size();
     }
 
     unsigned ExperimentalDesign::getSample(unsigned fraction_group, unsigned label)
@@ -665,6 +642,8 @@ namespace OpenMS
       std::set< std::tuple< std::string, unsigned > > path_label_set;
       std::map< std::tuple< unsigned, unsigned >, std::set< unsigned > > fractiongroup_label_to_sample;
       std::set< unsigned > label_set;
+      std::set< unsigned > fraction_group_set;
+      std::set< unsigned > sample_set;
 
       if (msfile_section_.empty())
       {
@@ -694,10 +673,30 @@ namespace OpenMS
         fractiongroup_label_to_sample[fractiongroup_label].insert(row.sample);
 
         label_set.insert(row.label);
+        fraction_group_set.insert(row.fraction_group);
       }
       if (label_set.size() > 1)
       {
         labelfree = false;
+      }
+      if ((*fraction_group_set.begin()) != 1)
+      {
+        throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION, "Fraction groups have to be integers and their set needs to be consecutive and start with 1.");
+      }
+      Size s = 0;
+      for (const auto& fg : fraction_group_set)
+      {
+        ++s;
+        if (fg != s)
+        {
+          throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION, "Fraction groups have to be integers and their set needs to be consecutive and start with 1.");
+        }
       }
 
       for (const auto& [k,v] : fractiongroup_label_to_sample)
@@ -712,6 +711,12 @@ namespace OpenMS
                                     "check your labels. Occurred at fraction group " +
                                     String(std::get<0>(k)) + "and label" + String(std::get<1>(k)));
         }
+      }
+
+      const auto samples = sample_section_.getSamples();
+      for (const auto& srow : samples)
+      {
+        sample_set.insert(srow);
       }
 
     }
@@ -831,5 +836,10 @@ namespace OpenMS
             "Factor " + factor + " is not present in the Experimental Design");
       }
       return columnname_to_columnindex_.at(factor);
+    }
+
+    Size ExperimentalDesign::SampleSection::getContentSize() const
+    {
+      return content_.size();
     }
 }

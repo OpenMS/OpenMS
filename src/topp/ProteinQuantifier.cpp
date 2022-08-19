@@ -889,7 +889,7 @@ protected:
       {
         // annotate quants to protein(groups) for easier export in mzTab
         auto const & protein_quants = quantifier.getProteinResults();
-        PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, proteins_, quantifier.getStatistics().n_samples);
+        PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, proteins_);
         if (!inference_in_cxml)
         {
           auto& prots = consensus.getProteinIdentifications();
@@ -899,13 +899,13 @@ protected:
         {
           std::swap(consensus.getProteinIdentifications()[0], proteins_);
         }
-/*
- *      TODO: maybe an assertion that the numbers of quantified proteins / ind. proteins match
+        /*
+        * TODO: maybe an assertion that the numbers of quantified proteins / ind. proteins match
         auto n_ind_prot = consensus.getProteinIdentifications()[0].getIndistinguishableProteins().size();
         cout << "MzTab Export: " << n_ind_prot << endl;
-*/
-        // fill MzTab with meta data and quants annotated in identification data structure
+        */
 
+        // fill MzTab with meta data and quants annotated in identification data structure
         const bool report_unmapped(true);
         const bool report_unidentified_features(false);
         const bool report_subfeatures(false);

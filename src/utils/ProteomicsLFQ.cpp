@@ -271,7 +271,6 @@ protected:
       ffi_defaults.addTag(s, "advanced");
     }
     ffi_defaults.remove("detect:peak_width"); // set from data
-    ffi_defaults.remove("quantify_decoys"); // set from global quantify_decoys param
 
     Param ma_defaults = MapAlignmentAlgorithmTreeGuided().getDefaults();
 
@@ -863,6 +862,7 @@ protected:
   ExitCodes loadAndCleanupIDFile_(
     const String& id_file_abs_path,
     const String& mz_file,
+    const String& in_db,
     const Size& fraction_group,
     const Size& fraction,
     vector<ProteinIdentification>& protein_ids, 
@@ -871,8 +871,13 @@ protected:
     set<String>& variable_modifications) // adds to
   {
 
-    /*
-    // TODO try to fit it here
+    const String& mz_file_abs_path = File::absolutePath(mz_file);
+    IdXMLFile().load(id_file_abs_path, protein_ids, peptide_ids);
+
+    ExitCodes e = checkSingleRunPerID_(protein_ids, id_file_abs_path);
+    if (e != EXECUTION_OK) return e;
+
+    // Re-index
     if (!in_db.empty())
     {
       PeptideIndexing indexer;
@@ -884,10 +889,10 @@ protected:
 
       // stream data in fasta file
       FASTAContainer<TFI_File> fasta_db(in_db);
-      PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, inferred_protein_ids, inferred_peptide_ids);
+      PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);
 
-      picked_decoy_string = indexer.getDecoyString();
-      picked_decoy_prefix = indexer.isPrefix();
+      picked_decoy_string_ = indexer.getDecoyString();
+      picked_decoy_prefix_ = indexer.isPrefix();
       if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
           (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
       {
@@ -905,16 +910,6 @@ protected:
         }
       }
     }
-    */
-
-
-
-
-    const String& mz_file_abs_path = File::absolutePath(mz_file);
-    IdXMLFile().load(id_file_abs_path, protein_ids, peptide_ids);
-
-    ExitCodes e = checkSingleRunPerID_(protein_ids, id_file_abs_path);
-    if (e != EXECUTION_OK) return e;
 
     e = switchScoreType_(peptide_ids, id_file_abs_path);
     if (e != EXECUTION_OK) return e;
@@ -1034,7 +1029,8 @@ protected:
  
   ExitCodes quantifyFraction_(
     const pair<unsigned int, std::vector<String> > & ms_files, 
-    const map<String, String>& mzfile2idfile, 
+    const map<String, String>& mzfile2idfile,
+    const String& in_db,
     double median_fwhm,
     const multimap<Size, PeptideIdentification> & transfered_ids,
     ConsensusMap & consensus_fraction,
@@ -1078,7 +1074,7 @@ protected:
       const String& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
 
       {
-        ExitCodes e = loadAndCleanupIDFile_(id_file_abs_path, mz_file, fraction_group, fraction, protein_ids, peptide_ids, fixed_modifications, variable_modifications);
+        ExitCodes e = loadAndCleanupIDFile_(id_file_abs_path, mz_file, in_db, fraction_group, fraction, protein_ids, peptide_ids, fixed_modifications, variable_modifications);
         if (e != EXECUTION_OK) return e;
       }
 
@@ -1156,7 +1152,6 @@ protected:
       ffi_param.setValue("EMGScoring:init_mom", "true");
       ffi_param.setValue("EMGScoring:max_iteration", 100);
       ffi_param.setValue("debug", debug_level_); // pass down debug level
-      ffi_param.setValue("quantify_decoys", getFlag_("PeptideQuantification:quantify_decoys")); // pass down quantify_decoys
 
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
@@ -1289,7 +1284,6 @@ protected:
 
 
   ExitCodes inferProteinGroups_(ConsensusMap& consensus,
-    const map<String, String>& idfile2mzfile,
     const set<String>& fixed_modifications)
   {
     // since we don't require an index as input but need to calculate e.g., coverage we reindex here (fast)
@@ -1358,13 +1352,17 @@ protected:
       fdr.setParameters(fdr_param);
     }
 
+    // ensure that only one final inference result is generated for now
+    assert(consensus.getProteinIdentifications().size() == 1);
+
+    auto& overall_proteins = consensus.getProteinIdentifications()[0];
     if (!picked)
     {
-      fdr.applyBasic(consensus.getProteinIdentifications()[0]);
+      fdr.applyBasic(overall_proteins);
     }
     else
     {
-      fdr.applyPickedProteinFDR(consensus.getProteinIdentifications()[0], picked_decoy_string, picked_decoy_prefix);
+      fdr.applyPickedProteinFDR(overall_proteins, picked_decoy_string, picked_decoy_prefix);
     }
 
     bool pepFDR = getStringOption_("FDR_type") == "PSM+peptide";
@@ -1373,62 +1371,57 @@ protected:
     //  disregard the absolute score differences between runs (i.e. if scores in one run are all lower than the ones in another run,
     //  do you want to filter them out preferably or do you say: this was a faulty run, if the decoys are equally bad, I want the
     //  best targets to be treated like the best targets from the other runs, even if the absolute match scores are much lower).
-    fdr.applyBasic(consensus, true);
-    fdr.appl
-    fdr.apply(inferred_peptide_ids, pepFDR);
     if (pepFDR)
     {
-      IDScoreSwitcherAlgorithm switcher;
-      Param switcherParams = switcher.getDefaults();
-      switcherParams.setValue("new_score","peptide q-value");
-      switcherParams.setValue("new_score_orientation","lower_better");
-      switcherParams.setValue("old_score","PSM q-value");
-      switcher.setParameters(switcherParams);
-      Size c(0);
-      for (auto& id : inferred_peptide_ids)
-      {
-        switcher.switchScores(id, c);
-      }
+      fdr.applyBasicPeptideLevel(consensus, true);
     }
-    //fdr.applyBasic(inferred_protein_ids, inferred_peptide_ids);
-
-    if (!getFlag_("PeptideQuantification:quantify_decoys") || debug_level_ >= 666)
-    { // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs
-      IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we don't filter peptides for now, we don't need this
-      IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
-      IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
-    }
-
-    if (debug_level_ >= 666)
+    else
     {
-      IdXMLFile().store("debug_mergedIDsGreedyResolvedFDR.idXML", inferred_protein_ids, inferred_peptide_ids);
+      fdr.applyBasic(consensus, true);
+    }
+
+    if (!getFlag_("PeptideQuantification:quantify_decoys"))
+    { // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs
+      IDFilter::updateProteinReferences(consensus, true);
+      IDFilter::removeUnreferencedProteins(consensus, true); // if we don't filter peptides for now, we don't need this
+      IDFilter::updateProteinGroups(overall_proteins.getIndistinguishableProteins(),
+                                    overall_proteins.getHits());
+      IDFilter::updateProteinGroups(overall_proteins.getProteinGroups(),
+                                    overall_proteins.getHits());
     }
 
     // FDR filtering
     if (max_psm_fdr < 1.) // PSM level
     {
-      IDFilter::filterHitsByScore(inferred_peptide_ids, max_psm_fdr);
+      for (auto& f : consensus)
+      {
+        IDFilter::filterHitsByScore(f.getPeptideIdentifications(), max_psm_fdr);
+      }
+      IDFilter::filterHitsByScore(consensus.getUnassignedPeptideIdentifications(), max_psm_fdr);
     }
 
     if (max_fdr < 1.) // protein level
     {
-      IDFilter::filterHitsByScore(inferred_protein_ids, max_fdr);
-      IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-    } 
+      IDFilter::filterHitsByScore(overall_proteins, max_fdr);
+    }
+
+    if (max_fdr < 1. || !getFlag_("PeptideQuantification:quantify_decoys"))
+    {
+      IDFilter::updateProteinReferences(consensus, true);
+    }
 
     if (max_psm_fdr < 1.)
     {
-      IDFilter::removeUnreferencedProteins(inferred_protein_ids,
-                                           inferred_peptide_ids);
-    }
-    if (max_fdr < 1. || max_psm_fdr < 1.)
-    {
-      IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
-      IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
+      IDFilter::removeUnreferencedProteins(consensus, true);
     }
 
-    if (inferred_protein_ids[0].getHits().empty())
+    if (max_fdr < 1. || max_psm_fdr < 1. || !getFlag_("PeptideQuantification:quantify_decoys"))
+    {
+      IDFilter::updateProteinGroups(overall_proteins.getIndistinguishableProteins(), overall_proteins.getHits());
+      IDFilter::updateProteinGroups(overall_proteins.getProteinGroups(), overall_proteins.getHits());
+    }
+
+    if (overall_proteins.getHits().empty())
     {
       throw Exception::MissingInformation(
           __FILE__,
@@ -1437,31 +1430,27 @@ protected:
           "No proteins left after FDR filtering. Please check the log and adjust your settings.");
     }
 
-    if (debug_level_ >= 666)
-    {
-      IdXMLFile().store("debug_mergedIDsGreedyResolvedFDRFiltered.idXML", inferred_protein_ids, inferred_peptide_ids);
-    }
-
-    // ensure that only one final inference result is generated for now
-    assert(inferred_protein_ids.size() == 1);
-
     // do we only want to keep strictly unique peptides (e.g., no groups)?
+    // This filters for the VERY initially computed theoretical uniqueness calculated by PeptideIndexer
+    //  which also means that e.g., target+decoy peptides are not unique
     if (!greedy_group_resolution && !groups)
     {
-      IDFilter::keepUniquePeptidesPerProtein(inferred_peptide_ids);
-      if (debug_level_ >= 666)
+      for (auto& f : consensus)
       {
-        IdXMLFile().store("debug_mergedIDsFDRFilteredStrictlyUniqueResolved.idXML", inferred_protein_ids, inferred_peptide_ids);
+        IDFilter::keepUniquePeptidesPerProtein(f.getPeptideIdentifications());
       }
+      IDFilter::keepUniquePeptidesPerProtein(consensus.getUnassignedPeptideIdentifications());
     }
 
+    /* TODO rewrite for consensusMaps
     // compute coverage (sequence was annotated during PeptideIndexing)
-    inferred_protein_ids[0].computeCoverage(inferred_peptide_ids);
+    // TODO: do you really want to compute coverage from unquantified peptides also?
+    overall_proteins.computeCoverage(inferred_peptide_ids);
 
     // TODO: this might not be correct if only the best peptidoform is kept
     // determine observed modifications (exclude fixed mods)
-    inferred_protein_ids[0].computeModifications(inferred_peptide_ids, StringList(fixed_modifications.begin(), fixed_modifications.end()));
-
+    overall_proteins.computeModifications(inferred_peptide_ids, StringList(fixed_modifications.begin(), fixed_modifications.end()));
+    */
     return EXECUTION_OK;
   }
 
@@ -1647,12 +1636,13 @@ protected:
         ExitCodes e = quantifyFraction_(
           ms_files, 
           mzfile2idfile,
-          median_fwhm, 
+          in_db,
+          median_fwhm,
           multimap<Size, PeptideIdentification>(),
-          consensus_fraction, 
+          consensus_fraction,
           transformations,  // transformations are empty, will be filled by alignment
           max_alignment_diff,  // max_alignment_diff not yet determined, will be filled by alignment
-          fixed_modifications, 
+          fixed_modifications,
           variable_modifications);
 
         if (e != EXECUTION_OK) { return e; }
@@ -1671,7 +1661,8 @@ protected:
           // So we make sure we use the aligned IDs and peak maps in the re-quantification step
           e = quantifyFraction_(
             ms_files, 
-            mzfile2idfile, 
+            mzfile2idfile,
+            in_db,
             median_fwhm, 
             transfered_ids, 
             consensus_fraction, 
@@ -1728,7 +1719,7 @@ protected:
           const String& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
 
           {
-            ExitCodes e = loadAndCleanupIDFile_(id_file_abs_path, mz_file, fraction_group, fraction, protein_ids, peptide_ids, fixed_modifications, variable_modifications);
+            ExitCodes e = loadAndCleanupIDFile_(id_file_abs_path, mz_file, in_db, fraction_group, fraction, protein_ids, peptide_ids, fixed_modifications, variable_modifications);
             if (e != EXECUTION_OK) return e;
           }
 
@@ -1828,8 +1819,8 @@ protected:
 
     // Annotate quants to protein(groups) for easier export in mzTab
     // Note: we keep protein groups that have not been quantified
-    PeptideAndProteinQuant::annotateQuantificationsToProteins(
-      protein_quants, inferred_proteins, design.getNumberOfSamples(), false);
+    quantifier.annotateQuantificationsToProteins(
+      protein_quants, inferred_proteins, false);
 
     // For correctness, we would need to set the run reference in the pepIDs of the consensusXML all to the first run then
     // And probably make sure that peptides that correspond to filtered out proteins are not producing errors
@@ -1847,12 +1838,18 @@ protected:
     const bool report_unmapped(true);
     const bool report_unidentified_features(false);
 
-    MzTabFile().store(out, consensus, true, report_unidentified_features, report_unmapped, "Export from ProteomicsLFQ workflow in OpenMS.");
+    MzTabFile().store(out,
+                      consensus,
+                      false, // first run is inference but also a properly merged run, so we don't need the hack
+                      report_unidentified_features,
+                      report_unmapped,
+                      "Export from ProteomicsLFQ workflow in OpenMS.");
 
     if (!out_msstats.empty())
     {
       MSstatsFile msstats;
-      // TODO: add a helper method to quickly check if experimental design file contain the right columns (and put this at start of tool)
+      // TODO: add a helper method to quickly check if experimental design file contain the right columns
+      //  (and put this at start of tool)
 
       // shrink protein runs to the one containing the inference data
       consensus.getProteinIdentifications().resize(1);
@@ -1862,7 +1859,7 @@ protected:
         consensus, 
         design, 
         StringList(), 
-        false, 
+        false, //lfq
         "MSstats_BioReplicate", 
         "MSstats_Condition", 
         "max");
@@ -1892,6 +1889,8 @@ protected:
 
     return EXECUTION_OK;
   }
+  String picked_decoy_string_;
+  bool picked_decoy_prefix_;
 };
 
 int main(int argc, const char ** argv)

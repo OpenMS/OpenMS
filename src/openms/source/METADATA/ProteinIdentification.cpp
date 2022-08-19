@@ -634,7 +634,7 @@ namespace OpenMS
   void ProteinIdentification::computeCoverage(const std::vector<PeptideIdentification>& pep_ids)
   {
     // map protein accession to the corresponding peptide evidence
-    map<String, set<PeptideEvidence> > map_acc_2_evidence;
+    unordered_map<String, set<PeptideEvidence> > map_acc_2_evidence;
     for (Size pep_i = 0; pep_i != pep_ids.size(); ++pep_i)
     {
       // peptide hits

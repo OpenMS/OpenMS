@@ -836,11 +836,9 @@ namespace OpenMS
     return prot_quant_;
   }
 
-  // static
   void PeptideAndProteinQuant::annotateQuantificationsToProteins(
-    const ProteinQuant& protein_quants, 
+    const ProteinQuant& protein_quants,
     ProteinIdentification& proteins,
-    const UInt n_samples,
     bool remove_unquantified)
   {
     auto & id_groups = proteins.getIndistinguishableProteins();
@@ -854,7 +852,7 @@ namespace OpenMS
       {
         //TODO maybe just count the number of unquantifiable proteins and report that?
         OPENMS_LOG_DEBUG << "Protein " << acc << " not quantified." << endl;
-        continue; 
+        continue;
       } // not quantified
  
       // lambda to check if a ProteinGroup has accession "acc"
@@ -876,7 +874,8 @@ namespace OpenMS
         // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
         id_group->getFloatDataArrays().resize(3);
         ProteinIdentification::ProteinGroup::FloatDataArray & abundances = id_group->getFloatDataArrays()[0];
-        abundances.setName("abundances");        
+        Size n_samples = getStatistics().n_samples;
+        abundances.setName("abundances");
         abundances.resize(n_samples);
 
         auto & psm_counts = id_group->getFloatDataArrays()[1];

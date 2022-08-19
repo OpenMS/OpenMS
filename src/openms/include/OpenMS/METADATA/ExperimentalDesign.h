@@ -62,10 +62,13 @@ namespace OpenMS
     These columns capture the mapping of quantitative values to files for label-free and multiplexed experiments
     and enables fraction-aware data processing.
 
-    - Fraction_Group: a numeric identifier that indicates which fractions are grouped together.
+    - Fraction_Group: a numeric identifier that indicates which fractions are grouped together. Please do NOT
+        reuse the same identifiers across samples! Assign identifiers continuously.
 
     - Fraction: a numeric identifier that indicates which fraction was measured in this file. 
               In the case of unfractionated data, the fraction identifier is 1 for all samples.
+              Make sure the same identifiers are used across different Fraction_Groups, as this
+              determines which fractions correspond to each other.
 
     - Label: a numeric identifier for the label. 1 for label-free, 1 and 2 for SILAC light/heavy, e.g., 1-10 for TMT10Plex
 
@@ -78,10 +81,12 @@ namespace OpenMS
     - MSstats_Condition: a string that indicates the condition (e.g. control or 1000 mMol). Will be forwarded to MSstats and 
                        can then be used to specify test contrasts.
 
-    - MSstats_BioReplicate: a numeric identifier to indicate replication. MSstats requires that there are no duplicate entries. 
+    - MSstats_BioReplicate: a numeric identifier to indicate replication. MSstats requires that there are no duplicate entries.
                           E.g., if MSstats_Condition, Fraction_Group group, and Fraction number are the same - 
                           as in the case of biological or technical replication, 
                           one uses the MSstats_BioReplicate to make entries non-unique)
+                          @todo Maintainers: Check if this is really true. I thought MSstats considers different files with
+                            the same sample/condition/biorep as technical replicates!
                           
     - MSstats_Mixture: (for TMT labeling only): a numeric identifier to indicate the mixture of samples labeled with different TMT reagents, which can be analyzed in
                                              a single mass spectrometry experiment. E.g., same samples labeled with different TMT reagents have a different mixture identifier. 
@@ -299,6 +304,9 @@ namespace OpenMS
 
       // Returns the row index in the sample section for a sample name/ID
       unsigned getSampleRow(unsigned sample) const;
+
+      /// returns the number of entries in content
+      Size getContentSize() const;
 
     private:
 
