@@ -355,7 +355,7 @@ protected:
     Size var_mod_index = 0;
 
     // vector of VarMod
-    vector<VarMod> modifications_given(var_mod_index);
+    vector<VarMod> modifications_given;
 
     // write out user specified modifications
     for (; var_mod_index < variable_modifications.size(); ++var_mod_index)
