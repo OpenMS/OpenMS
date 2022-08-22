@@ -33,20 +33,73 @@
 // --------------------------------------------------------------------------
 //
 
-#include "OpenMS/CHEMISTRY/EmpiricalFormula.h"
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/VarMod.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
-    VarMod::VarMod (const ResidueModification *mod, Int mod_binary_group, Int mod_max_current_mod_per_peptide )
+    VarMod::VarMod (const ResidueModification *mod , Int binary_group, Int max_variable_mods_in_peptide)
     {
-      this->mod_mass_ = mod->getDiffMonoMass();
-      this->mod_residue_ = mod->getOrigin();
-      this->mod_term_specificity_ = mod->getTermSpecificity();
-      this->mod_binary_group_ = mod_binary_group;
-      this->mod_max_current_mod_per_peptide_ = mod_max_current_mod_per_peptide;
-      this->mod_required_ = false;       //TODO support required variable mods
 
+      String residues = mod->getOrigin();
+
+      //TODO support mod-specific limit (default for now is the overall max per peptide)
+      int max_current_mod_per_peptide = max_variable_mods_in_peptide;
+      //TODO support term-distances?
+      int term_distance = -1;
+      int nc_term = 0;
+
+      //TODO support agglomeration of Modifications to same AA. Watch out for nc_term value then.
+      if (mod->getTermSpecificity() == ResidueModification::C_TERM)
+      {
+        if (mod->getOrigin() == 'X')
+        {
+          residues = "c";
+        } // else stays mod.getOrigin()
+        term_distance = 0;
+        // Since users need to specify mods that apply to multiple residues/terms separately
+        // 3 and -1 should be equal for now.
+        nc_term = 3;
+      }
+      else if (mod->getTermSpecificity() == ResidueModification::N_TERM)
+      {
+        if (mod->getOrigin() == 'X')
+        {
+          residues = "n";
+        } // else stays mod.getOrigin()
+        term_distance = 0;
+        // Since users need to specify mods that apply to multiple residues/terms separately
+        // 2 and -1 should be equal for now.
+        nc_term = 2;
+      }
+      else if (mod->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
+      {
+        if (mod->getOrigin() == 'X')
+        {
+          residues = "n";
+        } // else stays mod.getOrigin()
+        term_distance = 0;
+        nc_term = 0;
+      }
+      else if (mod->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
+      {
+        if (mod->getOrigin() == 'X')
+        {
+          residues = "c";
+        } // else stays mod.getOrigin()
+        term_distance = 0;
+        nc_term = 1;
+      }
+
+      this->mod_mass_ = mod->getDiffMonoMass();
+      this->mod_residue_ = residues;
+      this->mod_term_specificity_ = mod->getTermSpecificity();
+      this->mod_binary_group_ = binary_group;
+      this->mod_max_current_mod_per_peptide_ = max_current_mod_per_peptide;
+      this->mod_term_distance_ = term_distance;
+      this->mod_nc_term_ = nc_term;
+      this->mod_required_ = false;       //TODO: support required variable mods
       this->mod_neutral_loss_ = 0.0;    // TODO: add neutral losses (from Residue or user defined?)
     }
 
@@ -55,8 +108,7 @@ namespace OpenMS
         return   this->mod_mass_ == otherMod.mod_mass_
               && this->mod_binary_group_ == otherMod.mod_binary_group_
               && this->mod_max_current_mod_per_peptide_ == otherMod.mod_max_current_mod_per_peptide_
-              && this->mod_term_distance_ == otherMod.mod_term_distance_
-              && this->mod_term_specificity_ == otherMod.mod_term_specificity_;
+              && this->mod_term_distance_ == otherMod.mod_term_distance_;
     }
 
     void VarMod::merge(VarMod& modification)

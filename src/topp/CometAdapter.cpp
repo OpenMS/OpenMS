@@ -361,8 +361,6 @@ protected:
     for (; var_mod_index < variable_modifications.size(); ++var_mod_index)
     {
       const ResidueModification* mod = variable_modifications[var_mod_index];
-      double mass = mod->getDiffMonoMass();
-      String residues = mod->getOrigin();
 
       // support for binary groups, e.g. for SILAC
       int binary_group{0};
@@ -371,58 +369,7 @@ protected:
         binary_group = binary_modifications[var_mod_index];
       }
 
-      //TODO support mod-specific limit (default for now is the overall max per peptide)
-      int max_current_mod_per_peptide = max_variable_mods_in_peptide;
-      //TODO support term-distances?
-      int term_distance = -1;
-      int nc_term = 0;
-
-      //TODO support agglomeration of Modifications to same AA. Watch out for nc_term value then.
-      if (mod->getTermSpecificity() == ResidueModification::C_TERM)
-      {
-        if (mod->getOrigin() == 'X')
-        {
-          residues = "c";
-        } // else stays mod.getOrigin()
-        term_distance = 0;
-        // Since users need to specify mods that apply to multiple residues/terms separately
-        // 3 and -1 should be equal for now.
-        nc_term = 3;
-      }
-      else if (mod->getTermSpecificity() == ResidueModification::N_TERM)
-      {
-        if (mod->getOrigin() == 'X')
-        {
-          residues = "n";
-        } // else stays mod.getOrigin()
-        term_distance = 0;
-        // Since users need to specify mods that apply to multiple residues/terms separately
-        // 2 and -1 should be equal for now.
-        nc_term = 2;
-      }
-      else if (mod->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
-      {
-        if (mod->getOrigin() == 'X')
-        {
-          residues = "n";
-        } // else stays mod.getOrigin()
-        term_distance = 0;
-        nc_term = 0;
-      }
-      else if (mod->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
-      {
-        if (mod->getOrigin() == 'X')
-        {
-          residues = "c";
-        } // else stays mod.getOrigin()
-        term_distance = 0;
-        nc_term = 1;
-      }
-
-      VarMod temp_var_mod(mod, binary_group, max_current_mod_per_peptide);
-
-      temp_var_mod.mod_term_distance_ = term_distance;
-      temp_var_mod.mod_nc_term_ = nc_term;
+      VarMod temp_var_mod(mod, binary_group, max_variable_mods_in_peptide);
 
       modifications_given.push_back(temp_var_mod);
 
@@ -441,6 +388,7 @@ protected:
     }
 
     // output to params file
+    // Here size limit should be some smaller quantity
     for (Size i = 0; modifications_given.size(); i++)
     {
       os << modifications_given[i].toCometString();

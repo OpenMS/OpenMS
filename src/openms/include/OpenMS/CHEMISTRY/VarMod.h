@@ -34,8 +34,10 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <set>
 
 namespace OpenMS
@@ -51,7 +53,7 @@ namespace OpenMS
     bool mod_required_;
 
     // Constructor
-    VarMod (const ResidueModification *mod, Int mod_binary_group, Int mod_max_current_mod_per_peptide);
+    VarMod(const ResidueModification *mod, Int binary_group, Int max_variable_mods_in_peptide);
 
     bool isMergeableWith(const VarMod& otherMod);
 
