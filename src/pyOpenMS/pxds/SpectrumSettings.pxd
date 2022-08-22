@@ -53,4 +53,4 @@ cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS::Spect
     cdef enum SpectrumType:
         # wrap-attach:
         #     SpectrumSettings
-        UNKNOWN,  PEAKS, RAWDATA, SIZE_OF_SPECTRUMTYPE
+        UNKNOWN, CENTROID, PROFILE, SIZE_OF_SPECTRUMTYPE
