@@ -251,7 +251,7 @@ protected:
     {
       if (!ms_exp_raw[i].isSorted())
       {
-        writeLog_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+        writeLogError_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
         return INCOMPATIBLE_INPUT_DATA;
       }
     }
@@ -261,7 +261,7 @@ protected:
     {
       if (!ms_exp_raw.getChromatogram(i).isSorted())
       {
-        writeLog_("Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+        writeLogError_("Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter to sort the input!");
         return INCOMPATIBLE_INPUT_DATA;
       }
     }

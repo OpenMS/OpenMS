@@ -131,7 +131,7 @@ protected:
     {
       if (!in.empty())
       {
-        writeLog_("Error, either 'fwd_in' and 'rev_in' must be given or 'in', but not both");
+        writeLogError_("Error: either 'fwd_in' and 'rev_in' must be given or 'in', but not both");
         return ILLEGAL_PARAMETERS;
       }
     }
@@ -143,7 +143,7 @@ protected:
       }
       else
       {
-        writeLog_("Error, at least 'fwd_in' and 'rev_in' or 'in' must be given");
+        writeLogError_("Error: at least 'fwd_in' and 'rev_in' or 'in' must be given");
         return ILLEGAL_PARAMETERS;
       }
     }
