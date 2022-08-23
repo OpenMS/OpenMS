@@ -452,17 +452,63 @@ namespace OpenMS
     }
 
     /// utility functions
+
+    /**
+     * @brief Get the Monoisotopic Weight of a NASequence. NB returns the uncharged mass + or - proton masses to match the charge param
+     * 
+     * @param type fragment type to return
+     * @param charge how many protons to add or subtract, NB the mass returned is the UNCHARGED MASS
+     * 
+     * @return double 
+     */
     double getMonoWeight(NASFragmentType type = Full, Int charge = 0) const;
+
+    /**
+     * @brief Get the Average Weight of a NASequence. NB returns the uncharged mass + or - proton masses to match the charge param
+     * 
+     * @param type fragment type to return
+     * @param charge how many protons to add or subtract, NB the mass returned is the UNCHARGED MASS
+     * 
+     * @return double 
+     */
     double getAverageWeight(NASFragmentType type = Full, Int charge = 0) const;
+
+    /**
+     * @brief Get the formula for a NASequence
+     * 
+     * @param type fragment type for formula
+     * @param charge how many H to add or subtract
+     * 
+     * @return EmpiricalFormula 
+     */
     EmpiricalFormula getFormula(NASFragmentType type = Full, Int charge = 0) const;
 
-    /// Return sequence prefix of the given length (not end index!)
+    /**
+     * @brief Return sequence prefix of the given length (not end index!)
+     * 
+     * @param length 
+
+     * @return NASequence 
+     */
     NASequence getPrefix(Size length) const;
 
-    /// Return sequence suffix of the given length (not start index!)
+    /**
+     * @brief Return sequence suffix of the given length (not start index!)
+     * 
+     * @param length 
+
+     * @return NASequence 
+     */
     NASequence getSuffix(Size length) const;
 
-    /// Return subsequence with given starting position and length
+    /**
+     * @brief Return subsequence with given starting position and length
+     * 
+     * @param start 
+     * @param length 
+     * 
+     * @return NASequence 
+     */
     NASequence getSubsequence(Size start = 0, Size length = Size(-1)) const;
 
     /**
