@@ -37,6 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <map>
+#include <set>
 
 namespace OpenMS
 {

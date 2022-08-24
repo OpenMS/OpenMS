@@ -32,18 +32,16 @@
 // $Authors: Timo Sachsenberg, Lukas Zimmermann $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-
-#include <OpenMS/METADATA/ExperimentalDesign.h>
-#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-
-#include <QtCore/QString>
+#include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QFileInfo>
-
+#include <QtCore/QString>
 #include <iostream>
 
 using namespace std;
@@ -175,19 +173,19 @@ namespace OpenMS
       std::map< unsigned, Size > sample_sample_to_rowindex_;
       std::map< String, Size > sample_columnname_to_columnindex_;
 
-      // Maps the column header string to the column index for
-      // the file section
+      /// Maps the column header string to the column index for
+      /// the file section
       std::map <String, Size> fs_column_header_to_index;
 
-      // Maps the sample number to all values of sample-related columns
-      std::map <unsigned, std::vector<String>> sample_content_map;
+      /// Maps the sample name to all values of sample-related columns
+      std::map <String, std::vector<String>> sample_content_map;
       /*
       // Maps to transform strings into unsigned ints
       std::map<String, unsigned> fg_mapping;
       std::map<String, unsigned> frac_mapping;
-      std::map<String, unsigned> sample_mapping;
       std::map<String, unsigned> label_mapping;
       */
+      std::map<String, Size> samplename_to_index;
 
       unsigned line_number(0);
 
@@ -200,7 +198,7 @@ namespace OpenMS
       {
         const String line(s.trim());
 	
-        if (line.empty()) { continue; }
+        if (line.hasPrefix("#") || line.empty()) { continue; }
 
         // Now split the line into individual cells
         StringList cells;
@@ -263,25 +261,18 @@ namespace OpenMS
           int fraction_group = cells[fs_column_header_to_index["Fraction_Group"]].toInt();
 
           // read sample column
+          Size sample = 1;
           if (!has_sample) 
           {
-            int sample = fraction_group; // deducing the sample in the case of multiplexed could be done if label > 1 information is there (e.g., max(label) * (fraction_group - 1) + label 
+            sample = fraction_group; // deducing the sample in the case of multiplexed could be done if label > 1 information is there (e.g., max(label) * (fraction_group - 1) + label
             cells.push_back(String(sample)); 
           }
 
-          int sample = cells[fs_column_header_to_index["Sample"]].toInt();
-          parseErrorIf_(sample < 1, tsv_file, "Sample index may not be smaller than 1");
-
-
+          String samplename = cells[fs_column_header_to_index["Sample"]];
           parseErrorIf_(n_col != cells.size(), tsv_file, "Wrong number of records in line");
 
-          ExperimentalDesign::MSFileSectionEntry e;
-
-          // Assign fraction group and fraction
-          e.fraction_group = fraction_group;
-          e.fraction = fraction;
-          e.label = label;
-          e.sample = sample;
+          const auto& [it, inserted] = samplename_to_index.emplace(samplename, samplename_to_index.size());
+          sample = it->second;
 
           // get indices of sample metadata and store content in sample cells
           StringList sample_cells;
@@ -290,7 +281,25 @@ namespace OpenMS
             sample_cells.push_back(cells[c2i.second]);
           }
           //TODO warn if not the same cells?
-          sample_content_map[sample] = sample_cells;
+          if (inserted)
+          {
+            sample_content_.push_back(sample_cells);
+          }
+          else
+          {
+            if (sample_content_[it->second] != sample_cells)
+            {
+              OPENMS_LOG_WARN << "Warning: Factors for the same sample do not match." << std::endl;
+            }
+          }
+
+          ExperimentalDesign::MSFileSectionEntry e;
+
+          // Assign fraction group and fraction
+          e.fraction_group = fraction_group;
+          e.fraction = fraction;
+          e.label = label;
+          e.sample = sample;
 
           // Spectra files
           e.path = findSpectraFile(
@@ -302,12 +311,8 @@ namespace OpenMS
         }
       }
 
-      for (const auto& [sample,cells] : sample_content_map)
-      {
-        sample_sample_to_rowindex_[sample] = sample_content_.size();
-        sample_content_.push_back(cells);
-      }
-      // Assign correct position in sample column (without "Fraction_Group", "Fraction", "Spectra_Filepath", "Label")
+      // Assign correct position for columns in sample section subset
+      // (i.e., without "Fraction_Group", "Fraction", "Spectra_Filepath", "Label")
       int sample_index = 0;
       for (auto & c : sample_columnname_to_columnindex_)
       {
@@ -317,7 +322,7 @@ namespace OpenMS
       // Create Sample Section and set in design
       ExperimentalDesign::SampleSection sample_section(
         sample_content_,
-        sample_sample_to_rowindex_,
+        samplename_to_index,
         sample_columnname_to_columnindex_);
 
       // Create experimentalDesign
@@ -334,7 +339,7 @@ namespace OpenMS
 
       // Attributes of the sample section
       std::vector< std::vector < String > > sample_content_;
-      std::map< unsigned, Size > sample_sample_to_rowindex_;
+      std::map< String, Size > sample_sample_to_rowindex_;
       std::map< String, Size > sample_columnname_to_columnindex_;
 
       // Maps the column header string to the column index for
@@ -352,8 +357,8 @@ namespace OpenMS
       {
         // skip empty lines (except in state RUN_CONTENT, where the sample table is read)
         const String line(s.trim());
-	
-        if (line.empty() && state != RUN_CONTENT)
+	      // also skip comment lines
+        if (line.hasPrefix("#") || (line.empty() && state != RUN_CONTENT))
         {
           continue;
         }
@@ -381,13 +386,13 @@ namespace OpenMS
           
           n_col = fs_column_header_to_index.size();
         }
-          // End of file section lines, empty line separates file and sample section
+        // End of file section lines, empty line separates file and sample section
         else if (state == RUN_CONTENT && line.empty())
         {
           // Next line is header of Sample table
           state = SAMPLE_HEADER;
         }
-          // Line is file section line
+        // Line is file section line
         else if (state == RUN_CONTENT)
         {
           parseErrorIf_(n_col != cells.size(), tsv_file, "Wrong number of records in line");
@@ -418,7 +423,7 @@ namespace OpenMS
             require_spectra_file);
           msfile_section.push_back(e);
         }
-          // Parse header of the Condition Table
+        // Parse header of the Condition Table
         else if (state == SAMPLE_HEADER)
         {
           state = SAMPLE_CONTENT;
@@ -435,7 +440,7 @@ namespace OpenMS
         else if (state == SAMPLE_CONTENT)
         {
           // Parse Error if sample appears multiple times
-          unsigned sample = cells[sample_columnname_to_columnindex_["Sample"]].toInt();
+          const String& sample = cells[sample_columnname_to_columnindex_["Sample"]];
           parseErrorIf_(sample_sample_to_rowindex_.find(sample) != sample_sample_to_rowindex_.end(), tsv_file, "Sample: " + String(sample) + " appears multiple times in the sample table");
           sample_sample_to_rowindex_[sample] = line_number++;
           sample_content_.push_back(cells);

@@ -246,6 +246,11 @@ namespace OpenMS
     return StringUtils::trim(*this);
   }
 
+  bool String::isQuoted(char q, QuotingMethod method)
+  {
+    return StringUtils::isQuoted(*this, q, method);
+  }
+
   String& String::quote(char q, QuotingMethod method)
   {
     return StringUtils::quote(*this, q, method);

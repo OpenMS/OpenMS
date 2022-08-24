@@ -37,12 +37,9 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
-#include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
-//#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
@@ -55,19 +52,16 @@
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MSstatsFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
@@ -1235,6 +1229,7 @@ protected:
     ////////////////////////////////////////////////////////////
     Size j(0);
     // for each MS file (as provided in the experimental design)
+    const auto& path_label_to_sampleidx = design_.getPathLabelToSampleMapping(false);
     for (String const & mz_file : ms_files.second) 
     {
       const Size curr_fraction_group = j + 1;
@@ -1243,6 +1238,7 @@ protected:
       consensus_fraction.getColumnHeaders()[j].unique_id = feature_maps[j].getUniqueId();
       consensus_fraction.getColumnHeaders()[j].setMetaValue("fraction", fraction);
       consensus_fraction.getColumnHeaders()[j].setMetaValue("fraction_group", curr_fraction_group);
+      consensus_fraction.getColumnHeaders()[j].setMetaValue("sample_name", design_.getSampleSection().getSampleName(path_label_to_sampleidx.at({mz_file,1})));
       ++j;
     }
 
@@ -1494,11 +1490,10 @@ protected:
 
     //-------------------------------------------------------------
     // Experimental design: read or generate default
-    //-------------------------------------------------------------      
-    ExperimentalDesign design;
+    //-------------------------------------------------------------
     if (!design_file.empty())
     { // load from file
-      design = ExperimentalDesignFile::load(design_file, false);
+      design_ = ExperimentalDesignFile::load(design_file, false);
     }
     else
     {
@@ -1520,12 +1515,12 @@ protected:
         msfs.push_back(e);
         ++count;
       }      
-      design.setMSFileSection(msfs);
+      design_.setMSFileSection(msfs);
     }
 
     // some sanity checks
     // extract basenames from experimental design and input files
-    const auto& pl2fg = design.getPathLabelToFractionGroupMapping(true);      
+    const auto& pl2fg = design_.getPathLabelToFractionGroupMapping(true);
     set<String> ed_basenames;
     for (const auto& p : pl2fg)
     {
@@ -1546,23 +1541,23 @@ protected:
         OPENMS_PRETTY_FUNCTION, "Spectra file basenames provided as input need to match a subset the experimental design file basenames.");
     }
 
-    Size nr_filtered = design.filterByBasenames(in_basenames);
+    Size nr_filtered = design_.filterByBasenames(in_basenames);
     if (nr_filtered > 0)
     {
       OPENMS_LOG_WARN << "WARNING: " << nr_filtered << " files from experimental design were not passed as mzMLs. Continuing with subset if the fractions still match." << std::endl;
     }
 
-    if (design.getNumberOfLabels() != 1)
+    if (design_.getNumberOfLabels() != 1)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, 
         OPENMS_PRETTY_FUNCTION, "Experimental design is not label-free as it contains multiple labels.");          
     }
-    if (!design.sameNrOfMSFilesPerFraction())
+    if (!design_.sameNrOfMSFilesPerFraction())
     {
       OPENMS_LOG_WARN << "WARNING: Different number of fractions for different samples provided. Support maybe limited in ProteomicsLFQ." << std::endl;
     }
    
-    std::map<unsigned int, std::vector<String> > frac2ms = design.getFractionToMSFilesMapping();
+    std::map<unsigned int, std::vector<String> > frac2ms = design_.getFractionToMSFilesMapping();
 
     // experimental design file could contain URLs etc. that we want to overwrite with the actual input files
     for (auto & fraction_ms_files : frac2ms)
@@ -1739,6 +1734,7 @@ protected:
         ////////////////////////////////////////////////////////////
         Size j(0);
         // for each MS file (as provided in the experimental design)
+        const auto& path_label_to_sampleidx = design_.getPathLabelToSampleMapping(false);
         for (String const & mz_file : ms_files.second) 
         {
           const Size curr_fraction_group = j + 1;
@@ -1747,6 +1743,7 @@ protected:
           consensus.getColumnHeaders()[run_index].unique_id = 1 + run_index;
           consensus.getColumnHeaders()[run_index].setMetaValue("fraction", fraction);
           consensus.getColumnHeaders()[run_index].setMetaValue("fraction_group", curr_fraction_group);
+          consensus.getColumnHeaders()[run_index].setMetaValue("sample_name", design_.getSampleSection().getSampleName(path_label_to_sampleidx.at({mz_file,1})));
           ++j;
           ++run_index;
         }
@@ -1772,7 +1769,7 @@ protected:
     if (getStringOption_("quantification_method") == "feature_intensity")
     {
       quantifier.setParameters(pq_param);
-      quantifier.readQuantData(consensus, design);
+      quantifier.readQuantData(consensus, design_);
     }
     else if (getStringOption_("quantification_method") == "spectral_counting")
     {
@@ -1784,7 +1781,7 @@ protected:
       quantifier.readQuantData(
        consensus.getProteinIdentifications(),
        consensus.getUnassignedPeptideIdentifications(),
-       design);
+       design_);
     }
 
     // nothing to filter. everything in consensus should be uptodate with inference.
@@ -1857,7 +1854,7 @@ protected:
       msstats.storeLFQ(
         out_msstats, 
         consensus, 
-        design, 
+        design_,
         StringList(), 
         false, //lfq
         "MSstats_BioReplicate", 
@@ -1881,7 +1878,7 @@ protected:
       tf.storeLFQ(
         out_triqler, 
         consensus, 
-        design, 
+        design_,
         StringList(), 
         "MSstats_Condition" // TODO: choose something more generic like "Condition" for both MSstats and Triqler export
         );
@@ -1890,7 +1887,8 @@ protected:
     return EXECUTION_OK;
   }
   String picked_decoy_string_;
-  bool picked_decoy_prefix_;
+  bool picked_decoy_prefix_ = true;
+  ExperimentalDesign design_;
 };
 
 int main(int argc, const char ** argv)

@@ -57,7 +57,7 @@ namespace OpenMS
 
     ExperimentalDesign::SampleSection::SampleSection(
         const std::vector< std::vector < String > >& content,
-        const std::map< unsigned, Size >& sample_to_rowindex,
+        const std::map< String, Size >& sample_to_rowindex,
         const std::map< String, Size >& columnname_to_columnindex
       ) : 
       content_(content),
@@ -168,11 +168,11 @@ namespace OpenMS
       return experimental_design;
     }
 
-    void ExperimentalDesign::SampleSection::addSample(unsigned sample, const vector<String>& content)
+    void ExperimentalDesign::SampleSection::addSample(const String& samplename, const vector<String>& content)
     {
       //TODO warn when already present? Overwrite?
       //TODO check content size
-      sample_to_rowindex_.try_emplace(sample, sample_to_rowindex_.size());
+      sample_to_rowindex_.try_emplace(samplename, sample_to_rowindex_.size());
       content_.push_back(content);
     }
 
@@ -181,7 +181,7 @@ namespace OpenMS
       return content_.at(sample_row).at(columnname_to_columnindex_.at("Sample"));
     }
 
-    unsigned ExperimentalDesign::SampleSection::getSampleRow(unsigned sample) const
+    unsigned ExperimentalDesign::SampleSection::getSampleRow(const String& sample) const
     {
       return sample_to_rowindex_.at(sample);
     }
@@ -287,16 +287,15 @@ namespace OpenMS
       return ret;
     }
 
-    map<vector<String>, set<unsigned>> ExperimentalDesign::getUniqueSampleRowToSampleMapping() const
+    map<vector<String>, set<String>> ExperimentalDesign::getUniqueSampleRowToSampleMapping() const
     {
-      map<vector<String>, set<unsigned> > rowContent2RowIdx;
+      map<vector<String>, set<String> > rowContent2RowIdx;
       auto factors = sample_section_.getFactors();
       assert(!factors.empty());
 
       factors.erase("Sample"); // we do not care about ID in duplicates
 
-
-      for (unsigned u : sample_section_.getSamples())
+      for (const String& u : sample_section_.getSamples())
       {
         std::vector<String> valuesToHash{};
         valuesToHash.reserve(factors.size());
@@ -304,16 +303,16 @@ namespace OpenMS
         {
           valuesToHash.emplace_back(sample_section_.getFactorValue(u, fac));
         }
-        auto emplace_pair = rowContent2RowIdx.emplace(valuesToHash, set<unsigned>{});
+        auto emplace_pair = rowContent2RowIdx.emplace(valuesToHash, set<String>{});
         emplace_pair.first->second.insert(u);
       }
 
       return rowContent2RowIdx;
     }
 
-    map<unsigned, unsigned> ExperimentalDesign::getSampleToPrefractionationMapping() const
+    map<String, unsigned> ExperimentalDesign::getSampleToPrefractionationMapping() const
     {
-      map<unsigned, unsigned> res;
+      map<String, unsigned> res;
 
       // could happen when the Experimental Design was loaded from an idXML or consensusXML
       // without additional Experimental Design file
@@ -328,7 +327,7 @@ namespace OpenMS
       }
       else
       {
-        const map<vector<String>, set<unsigned>>& rowContent2RowIdx = getUniqueSampleRowToSampleMapping();
+        const map<vector<String>, set<String>>& rowContent2RowIdx = getUniqueSampleRowToSampleMapping();
         Size s(0);
         for (const auto &condition : rowContent2RowIdx)
         {
@@ -357,7 +356,7 @@ namespace OpenMS
       }
 
       map<vector<String>, set<unsigned> > rowContent2RowIdx;
-      for (unsigned u : sample_section_.getSamples())
+      for (const auto& u : sample_section_.getSamples())
       {
         std::vector<String> valuesToHash{};
         valuesToHash.reserve(nonRepFacs.size());
@@ -366,14 +365,14 @@ namespace OpenMS
           valuesToHash.emplace_back(sample_section_.getFactorValue(u, fac));
         }
         auto emplace_pair = rowContent2RowIdx.emplace(valuesToHash, set<unsigned>{});
-        emplace_pair.first->second.insert(u);
+        emplace_pair.first->second.insert(sample_section_.getSampleRow(u));
       }
       return rowContent2RowIdx;
     }
 
-    map<unsigned, unsigned> ExperimentalDesign::getSampleToConditionMapping() const
+    map<String, unsigned> ExperimentalDesign::getSampleToConditionMapping() const
     {
-      map<unsigned, unsigned> res;
+      map<String, unsigned> res;
       // could happen when the Experimental Design was loaded from an idXML or consensusXML
       // without additional Experimental Design file
       if (sample_section_.getFactors().empty())
@@ -666,7 +665,7 @@ namespace OpenMS
         errorIfAlreadyExists(
           path_label_set,
           path_label,
-          "(Path, Label) combination can only appear once");
+          "(Path, Label) combination (" + String(get<0>(path_label)) + "," + String(get<1>(path_label)) + ") can only appear once");
 
         // FRACTIONGROUP_LABEL TUPLE
         std::tuple<unsigned, unsigned> fractiongroup_label = std::make_tuple(row.fraction_group, row.label);
@@ -712,13 +711,6 @@ namespace OpenMS
                                     String(std::get<0>(k)) + "and label" + String(std::get<1>(k)));
         }
       }
-
-      const auto samples = sample_section_.getSamples();
-      for (const auto& srow : samples)
-      {
-        sample_set.insert(srow);
-      }
-
     }
 
     std::vector<unsigned> ExperimentalDesign::getLabels_() const
@@ -772,9 +764,9 @@ namespace OpenMS
 
     /* Implementations of SampleSection */
 
-    std::set<unsigned> ExperimentalDesign::SampleSection::getSamples() const
+    std::set<String> ExperimentalDesign::SampleSection::getSamples() const
     {
-      std::set<unsigned> samples;
+      std::set<String> samples;
       for (const auto &kv : sample_to_rowindex_)
       {
         samples.insert(kv.first);
@@ -792,7 +784,7 @@ namespace OpenMS
       return factors;
     }
 
-    bool ExperimentalDesign::SampleSection::hasSample(const unsigned sample) const
+    bool ExperimentalDesign::SampleSection::hasSample(const String& sample) const
     {
       return sample_to_rowindex_.find(sample) != sample_to_rowindex_.end();
     }
@@ -802,17 +794,33 @@ namespace OpenMS
       return columnname_to_columnindex_.find(factor) != columnname_to_columnindex_.end();
     }
 
-    String ExperimentalDesign::SampleSection::getFactorValue(const unsigned sample, const String &factor) const
+    String ExperimentalDesign::SampleSection::getFactorValue(unsigned sample_idx, const String &factor) const
     {
-     if (! hasSample(sample))
+
+      if (!hasFactor(factor))
+      {
+        throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Factor " + factor + " is not present in the Experimental Design");
+      }
+      const StringList& sample_row = content_.at(sample_idx);
+      const Size col_index = columnname_to_columnindex_.at(factor);
+      return sample_row[col_index];
+    }
+
+    String ExperimentalDesign::SampleSection::getFactorValue(const String& sample_name, const String &factor) const
+    {
+     if (!hasSample(sample_name))
      {
       throw Exception::MissingInformation(
                   __FILE__,
                   __LINE__,
                   OPENMS_PRETTY_FUNCTION,
-                  "Sample " + String(sample) + " is not present in the Experimental Design");
+                  "Sample " + sample_name + " is not present in the Experimental Design");
      }
-     if (! hasFactor(factor))
+     if (!hasFactor(factor))
      {
       throw Exception::MissingInformation(
                   __FILE__,
@@ -820,7 +828,7 @@ namespace OpenMS
                   OPENMS_PRETTY_FUNCTION,
                   "Factor " + factor + " is not present in the Experimental Design");
      }
-     const StringList& sample_row = content_.at(sample_to_rowindex_.at(sample));
+     const StringList& sample_row = content_.at(sample_to_rowindex_.at(sample_name));
      const Size col_index = columnname_to_columnindex_.at(factor);
      return sample_row[col_index];
     }
