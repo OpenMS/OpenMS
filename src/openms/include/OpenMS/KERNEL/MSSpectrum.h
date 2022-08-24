@@ -104,7 +104,7 @@ public:
     ///@name Base type definitions
     //@{
     /// Peak type
-    typedef OpenMS::Peak1D PeakType;
+    typedef Peak1DT<double, double> PeakType;
     /// Peak1D Tuple
     typedef Peak1DT<double, double> Peak1DTuple;
     /// Container for Peak1DT
@@ -144,6 +144,10 @@ public:
     //@}
 
     using Container::back;
+    using Container::begin;
+    using Container::cbegin;
+    using Container::end;
+    using Container::cend;
     using Container::emplace_back;
     using Container::empty;
     using Container::erase;
@@ -152,13 +156,17 @@ public:
     using Container::operator[];
     using Container::push_back;
     using Container::operator=;
+    using Container::pointer;
     using Container::pop_back;
     using Container::reserve;
-    using Container::value_type;
     using Container::resize;
     using Container::reference;
-    using Container::pointer;
+    using Container::size;
+    using Container::value_type;
     using Container::const_value_type;
+
+    using typename Container::iterator;
+    using typename Container::const_iterator;
 
     ///@name Export methods from std::vector<Peak1D>
     //@{
@@ -288,14 +296,6 @@ public:
     TConstIterator TCbegin() const;
 
     TConstIterator TCend() const;
-
-    TIterator begin();
-
-    TIterator end();
-
-    TConstIterator cbegin() const;
-
-    TConstIterator cend() const;
 
     void insert(TIterator it, Peak1DTuple peak);
 

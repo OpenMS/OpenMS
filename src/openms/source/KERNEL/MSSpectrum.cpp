@@ -680,29 +680,7 @@ namespace OpenMS
     const Container& const_peaks = peaks;
     return const_peaks.cend();
   }
-
-  MSSpectrum::TIterator MSSpectrum::begin()
-  {
-    return peaks.begin();
-  }
-
-  MSSpectrum::TIterator MSSpectrum::end()
-  {
-    return peaks.end();
-  }
-
-  MSSpectrum::TConstIterator MSSpectrum::cbegin() const
-  {
-    const Container& const_peaks = peaks;
-    return const_peaks.cbegin();
-  }
-
-  MSSpectrum::TConstIterator MSSpectrum::cend() const
-  {
-    const Container& const_peaks = peaks;
-    return const_peaks.cend();
-  }
-
+  
   void MSSpectrum::insert(MSSpectrum::TIterator it, MSSpectrum::Peak1DTuple peak)
   {
     peaks.insert(it, peak);

@@ -493,6 +493,10 @@ template<typename ... T>
 struct Peak1DT : public std::tuple<T ...>{
     using std::tuple<T...>::tuple;
     using std::tuple<T...>::operator=;
+    /// Intensity type
+    using IntensityType = float;
+    /// Coordinate type
+    using CoordinateType = double;
     Peak1DT(const Peak1DT& other) = default;
     Peak1DT(Peak1DT&& other) = default;
     Peak1DT& operator=(Peak1DT&& other_) = default;

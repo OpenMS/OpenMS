@@ -760,12 +760,12 @@ namespace OpenMS
   ) const
   {
     // Extract points
-    typename PeakContainerT::const_iterator start_it = left_pos ? input_peak.PosBegin(left_pos) : input_peak.begin();
-    typename PeakContainerT::const_iterator end_it = right_pos ? input_peak.PosEnd(right_pos) : input_peak.end();
+    typename PeakContainerT::const_iterator start_it = left_pos ? input_peak.PosBegin(left_pos) : input_peak.cbegin();
+    typename PeakContainerT::const_iterator end_it = right_pos ? input_peak.PosEnd(right_pos) : input_peak.cend();
     std::vector<double> xs, ys;
     for (typename PeakContainerT::const_iterator it = start_it; it != end_it; ++it)
     {
-      xs.push_back(it->getPos());
+      xs.push_back(it->getMZ());
       ys.push_back(it->getIntensity());
     }
 
