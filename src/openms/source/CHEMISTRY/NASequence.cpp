@@ -267,12 +267,14 @@ namespace OpenMS
 
   double NASequence::getMonoWeight(NASFragmentType type, Int charge) const
   {
-    return getFormula(type, charge).getMonoWeight();
+    //getFormula adds Hydrogens, not protons, so we need to subtract the electrons
+    return getFormula(type, charge).getMonoWeight() - charge * Constants::ELECTRON_MASS_U;
   }
 
   double NASequence::getAverageWeight(NASFragmentType type, Int charge) const
   {
-    return getFormula(type, charge).getAverageWeight();
+    //getFormula adds Hydrogens, not protons, so we need to subtract the electrons
+    return getFormula(type, charge).getAverageWeight() - charge * Constants::ELECTRON_MASS_U;
   }
 
   size_t NASequence::size() const
