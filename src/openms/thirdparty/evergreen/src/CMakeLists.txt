@@ -49,7 +49,6 @@ install_library(Evergreen)
 openms_register_export_target(Evergreen)
 
 get_filename_component(EVERGREEN_HEADERS "${CMAKE_CURRENT_LIST_FILE}" PATH)
-get_filename_component(EVERGREEN_HEADERS "${EVERGREEN_HEADERS}" PATH)
 
 # Install headers
 install(DIRECTORY ${EVERGREEN_HEADERS}/
