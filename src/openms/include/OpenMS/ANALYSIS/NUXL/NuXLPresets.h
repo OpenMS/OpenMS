@@ -61,12 +61,13 @@ namespace OpenMS
     "A:-NH3"
   };
 
-  static constexpr std::array<const char*, 28> modifications_RNA_UV_EXTENDED
+  static constexpr std::array<const char*, 29> modifications_RNA_UV_EXTENDED
   {
     "U:", 
     "U:-H2O", 
     "U:-HPO3",
     "U:-H3PO4", 
+    "U:-HPO3-C2H3NO", //RBSID
 
     "C:", 
     "C:-NH3", 
@@ -113,7 +114,7 @@ namespace OpenMS
     "S:-H3PO4",
     "S:-HPO3",
     "S:-H2S",
-    "S:+HPO3-H2S", // P1 artefact?
+    "S:+HPO3-H2S", // iTRAPP
     "S:-HPO3-H2S", //pRBSID
     "S:+HPO3", //iTRAPP
 
@@ -135,20 +136,18 @@ namespace OpenMS
     "X:-C5H8O4-H2S"
   };
 
-  static constexpr std::array<const char*, 13> modifications_RNA_UV_6SG_EXTENDED
+  static constexpr std::array<const char*, 11> modifications_RNA_UV_6SG_EXTENDED
   {   
     "X:",
     "X:-H2O",
     "X:-H3PO4",
     "X:-HPO3",
     "X:-H2S",
-    "X:+HPO3-H2S", // P1 artefact?
     "X:-HPO3-H2S", //pRBSID
     
 
     "X:-C5H8O4",
     "X:-C5H8O4-H2O",
-    "X:-C5H8O4-H3PO4",
     "X:-C5H8O4-HPO3",
     "X:-C5H8O4-HPO3-H2S", ///pRBSID
     "X:-C5H8O4-H2S"    
