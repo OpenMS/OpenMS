@@ -201,90 +201,99 @@ protected:
 
     consensus.clear();
     consensus.reserve(fgroups.size()/REP_COUNT);
-    Size tmp_counter = 0;
-    while(fgroups.size() != 0)
+
+    // vector of pointer for fgroups. To link the leftover fgroups for computing consensus.
+    vector<FeatureGroup*> fgroup_pointers;
+    fgroup_pointers.reserve(fgroups.size());
+    for (auto &f: fgroups)
+    {
+      fgroup_pointers.push_back(&f);
+    }
+
+    while(!fgroup_pointers.empty())
     {
       /// find the FeatureGroup with the maximum abundance
-      auto iter = std::max_element(fgroups.begin(), fgroups.end(),
-                                   [](const FeatureGroup& a, const FeatureGroup& b){return a.abundance < b.abundance;});
-      Size reference_index = iter - fgroups.begin();
-      FeatureGroup reference_fg = *iter;
-      double reference_mass = reference_fg.mass;
+      auto iter = std::max_element(fgroup_pointers.begin(), fgroup_pointers.end(),
+                                   [](const FeatureGroup* a, const FeatureGroup* b){return a->abundance < b->abundance;});
+      Size reference_index = iter - fgroup_pointers.begin();
+      FeatureGroup* reference_fg = *iter;
+      double reference_mass = reference_fg->mass;
 
       /// collect FeatureGroup within mass and rt tolerance
-      std::vector<FeatureGroup> candidate_fgs;
-      std::vector<Size> candidate_indices; // index from fgroups
+      std::vector<FeatureGroup*> candidate_fgs;
+      std::vector<Size> candidate_indices; // index from fgroup_pointers
       // iter to right side (larger masses than reference FeatureGroup)
       ++iter; // move forward to reference+1 point
-      for(; (iter<=fgroups.end()) && (iter->mass - reference_mass <= MASS_TOL) ; ++iter)
+      for(; (iter<fgroup_pointers.end()) && ((*iter)->mass - reference_mass <= MASS_TOL) ; ++iter)
       {
         // check if RT tolerance matches
-        if (std::abs(iter->apex_rt - reference_fg.apex_rt) > RT_TOL)
+        if (std::abs((*iter)->apex_rt - reference_fg->apex_rt) > RT_TOL)
         {
           continue;
         }
         // ignore the FeatureGroup from the same RepIndex to the reference
-        if (iter->rep_index == reference_fg.rep_index)
+        if ((*iter)->rep_index == reference_fg->rep_index)
         {
           continue;
         }
         candidate_fgs.push_back(*iter);
-        candidate_indices.push_back(iter - fgroups.begin());
+        candidate_indices.push_back(iter - fgroup_pointers.begin());
       }
       // iter to left side (smaller masses than reference FeatureGroup)
-      iter = fgroups.begin() + reference_index - 1; // back to reference-1 point
-      for(; (iter>=fgroups.begin()) && (reference_mass - iter->mass <= MASS_TOL) ; --iter)
+      iter = fgroup_pointers.begin() + reference_index - 1; // back to reference-1 point
+      for(; (iter>=fgroup_pointers.begin()) && (reference_mass - (*iter)->mass <= MASS_TOL) ; --iter)
       {
-        if (std::abs(iter->apex_rt - reference_fg.apex_rt) > RT_TOL)
+        if (std::abs((*iter)->apex_rt - reference_fg->apex_rt) > RT_TOL)
         {
           continue;
         }
         // ignore the FeatureGroup from the same RepIndex to the reference
-        if (iter->rep_index == reference_fg.rep_index)
+        if ((*iter)->rep_index == reference_fg->rep_index)
         {
           continue;
         }
         candidate_fgs.push_back(*iter);
-        candidate_indices.push_back(iter - fgroups.begin());
+        candidate_indices.push_back(iter - fgroup_pointers.begin());
       }
 
-      /// check if the collected masses are from multiple replicates
-      std::set<Size> rep_vec;
+      /// check if the collected masses are from multiple replicates (Except for the reference)
+      std::set<Size> rep_set;
       for (auto& tmp : candidate_fgs)
       {
-        rep_vec.insert(tmp.rep_index);
+        rep_set.insert(tmp->rep_index);
       }
-      if (rep_vec.size() < REP_COUNT-1)
+      // remove reference featgroup, if not eligible for consensus
+      if (rep_set.size() < REP_COUNT-1)
       {
-        fgroups.erase(fgroups.begin() + reference_index);
+        fgroup_pointers.erase(fgroup_pointers.begin() + reference_index);
         continue;
       }
 
       /// Among the candidates from the same replicate, the one with the highest abundance wins.
-      std::vector<FeatureGroup> collected_fgs(REP_COUNT, FeatureGroup());
-      std::vector<Size> collected_indices; // index from fgroups
-      for (Size rep_index : rep_vec)
+      std::vector<FeatureGroup*> collected_fgs(REP_COUNT);
+      std::vector<Size> collected_indices; // index from fgroups (for erase, later)
+      for (Size rep_index : rep_set)
       {
         double max_abundance = .0;
         Size chosen_index = 0; // index of candidate_fgs
         for (Size i = 0; i < candidate_fgs.size(); ++i)
         {
-          if (candidate_fgs[i].rep_index != rep_index) // ignore the candidate from different replicate
+          if (candidate_fgs[i]->rep_index != rep_index) // ignore the candidate from different replicate
           {
             continue;
           }
-          if (max_abundance > candidate_fgs[i].abundance)
+          if (max_abundance > candidate_fgs[i]->abundance)
           {
             continue;
           }
-          max_abundance = candidate_fgs[i].abundance;
+          max_abundance = candidate_fgs[i]->abundance;
           chosen_index = i;
         }
         collected_fgs[rep_index] = candidate_fgs[chosen_index];
         collected_indices.push_back(candidate_indices[chosen_index]);
       }
       // add reference to the consensus fg list
-      collected_fgs[reference_fg.rep_index] = reference_fg;
+      collected_fgs[reference_fg->rep_index] = reference_fg;
       collected_indices.push_back(reference_index);
 
       /// save the collected FeatureGroups to output
@@ -295,19 +304,18 @@ protected:
       for (Size i = 0; i < collected_fgs.size(); ++i)
       {
         // save data
-        cfg.fgroup_indices.push_back(collected_fgs[i].fgroup_index);
-        cfg.abundances.push_back(collected_fgs[i].abundance);
-        accum_mass += collected_fgs[i].mass;
-        accum_rt += collected_fgs[i].apex_rt;
+        cfg.fgroup_indices.push_back(collected_fgs[i]->fgroup_index);
+        cfg.abundances.push_back(collected_fgs[i]->abundance);
+        accum_mass += collected_fgs[i]->mass;
+        accum_rt += collected_fgs[i]->apex_rt;
 
-        // remove from fgroups
-        fgroups.erase(fgroups.begin() + collected_indices[i]);
+        // remove from fgroup_pointer
+        fgroup_pointers.erase(fgroup_pointers.begin() + collected_indices[i]);
       }
       cfg.avg_mass = accum_mass / collected_fgs.size();
       cfg.avg_apex_rt = accum_rt / collected_fgs.size();
       cfg.calculate_cv();
       consensus.push_back(cfg);
-      ++tmp_counter;
     }
     consensus.shrink_to_fit();
   }
