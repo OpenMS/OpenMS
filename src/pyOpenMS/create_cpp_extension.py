@@ -85,7 +85,7 @@ if __name__ == '__main__':
 
 
   classdocu_base = "http://www.openms.de/current_doxygen/html/"
-  autowrap.CodeGenerator.special_class_doc = "\n    Documentation is available at " + classdocu_base + "class%(namespace)s_1_1%(cpp_name)s.html\n"
+  autowrap.CodeGenerator.special_class_doc = "\n    Original C++ documentation is available `here <" + classdocu_base + "class%(namespace)s_1_1%(cpp_name)s.html>`\n"
   autowrap.DeclResolver.default_namespace = "OpenMS"
 
   def chunkIt(seq, num):
