@@ -39,7 +39,7 @@
 
  @subsection where_are_the_binary_installers_created Where are the binary installers created?
 
- View the binary installers at the <a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/OpenMSInstaller/nightly/">build archive</a>.
+ View the binary installers at the <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/nightly/">build archive</a>.
 
  Please verify the creation date of the individual installers, as there may have been an error while creating the installer.
 
