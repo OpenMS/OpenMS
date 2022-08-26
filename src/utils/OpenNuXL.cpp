@@ -3596,7 +3596,7 @@ static void scoreXLIons_(
 
   String convertRawFile_(const String& in, bool no_peak_picking = false)
   {
-    writeLog_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
+    writeLogInfo_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
     String net_executable = getStringOption_("NET_executable");
     TOPPBase::ExitCodes exit_code;
     QStringList arguments;
@@ -3845,7 +3845,7 @@ static void scoreXLIons_(
       mzs, 
       rts
       );      
-    writeLog_("Info: Corrected " + String(corrected_to_highest_intensity_peak.size()) + " precursors.");
+    writeLogInfo_("Info: Corrected " + String(corrected_to_highest_intensity_peak.size()) + " precursors.");
     if (!deltaMZs.empty())
     {
       vector<double> deltaMZs_ppm, deltaMZs_ppmabs;
@@ -3859,7 +3859,7 @@ static void scoreXLIons_(
       double MAD =  Math::MAD(deltaMZs_ppm.begin(), deltaMZs_ppm.end(), median);
       double median_abs = Math::median(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end());
       double MAD_abs = Math::MAD(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end(), median_abs);
-      writeLog_("Precursor correction to highest intensity peak:\n  median delta m/z  = " 
+      writeLogInfo_("Precursor correction to highest intensity peak:\n  median delta m/z  = " 
         + String(median) + " ppm  MAD = " + String(MAD)
         + "\n  median delta m/z (abs.) = " + String(median_abs) 
         + " ppm  MAD = " + String(MAD_abs));
@@ -3879,7 +3879,7 @@ static void scoreXLIons_(
       algorithm.setParameters(p);
       algorithm.run(e, true);
       features = algorithm.getFeatureMap(); 
-      writeLog_("Detected peptides: " + String(features.size()));
+      writeLogInfo_("Detected peptides: " + String(features.size()));
     }
 
     set<Size> correct_to_nearest_feature = PrecursorCorrection::correctToNearestFeature(
@@ -3893,7 +3893,7 @@ static void scoreXLIons_(
       false, 
       3, 
       10);
-    writeLog_("Precursor correction to feature:\n  succesful in = " 
+    writeLogInfo_("Precursor correction to feature:\n  succesful in = " 
       + String(correct_to_nearest_feature.size()) + " cases.");
 
     return EXECUTION_OK;

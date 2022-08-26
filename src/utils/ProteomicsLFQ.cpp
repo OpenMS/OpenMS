@@ -378,7 +378,7 @@ protected:
       if (!ms_raw[i].isSorted())
       {
         ms_raw[i].sortByPosition();
-        writeLog_("Info: Sorted peaks by m/z.");
+        writeLogInfo_("Info: Sorted peaks by m/z.");
       }
     }
 
@@ -402,7 +402,7 @@ protected:
       mzs, 
       rts
       );      
-    writeLog_("Info: Corrected " + String(corrected_to_highest_intensity_peak.size()) + " precursors.");
+    writeLogInfo_("Info: Corrected " + String(corrected_to_highest_intensity_peak.size()) + " precursors.");
     if (!deltaMZs.empty())
     {
       vector<double> deltaMZs_ppm, deltaMZs_ppmabs;
@@ -416,7 +416,7 @@ protected:
       double MAD =  Math::MAD(deltaMZs_ppm.begin(), deltaMZs_ppm.end(), median);
       double median_abs = Math::median(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end());
       double MAD_abs = Math::MAD(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end(), median_abs);
-      writeLog_("Precursor correction:\n  median        = " 
+      writeLogInfo_("Precursor correction:\n  median        = " 
         + String(median) + " ppm  MAD = " + String(MAD)
         + "\n  median (abs.) = " + String(median_abs) 
         + " ppm  MAD = " + String(MAD_abs));

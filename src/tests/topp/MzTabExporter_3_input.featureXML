@@ -78,6 +78,25 @@
 		<UserParam type="float" name="parameter: algorithm:SignalToNoise:noise_for_empty_window" value="1e+20"/>
 		<UserParam type="string" name="parameter: algorithm:SignalToNoise:write_log_messages" value="true"/>
 	</dataProcessing>
+	<IdentificationRun id="PI_0" date="0000-00-00T00:00:00" search_engine="MS-GF+" search_engine_version="Beta (v9176)">
+		<SearchParameters db="." db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Gln-&gt;pyro-Glu (Q)" />
+			<VariableModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Deamidated (Q)" />
+			<VariableModification name="Deamidated (N)" />
+			<VariableModification name="Oxidation (M)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="Q96CX2" score="0" sequence="">
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="NP_612453.1" score="0" sequence="">
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
 	<featureList count="1077">
 		<feature id="f_638342868409632599">
 			<position dim="0">nan</position>
@@ -156,6 +175,16 @@
 				<pt x="4725.73804" y="1739.57822422519" />
 				<pt x="4725.71804" y="1739.57822422519" />
 			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="1027.73181152344" RT="2540.07139999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=5134" >				
+				<PeptideHit score="0.0476190476190476" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_0">
+					<UserParam type="float" name="OMSSA_score" value="1.01892240818698"/>
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="string" name="peptide hit level meta value" value="yes"/>
+				</PeptideHit>
+				<UserParam type="int" name="spectrum_index" value="18"/>
+				<UserParam type="string" name="id level meta value" value="yes"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature level meta value" value="yes"/>			
 		</feature>
 		<feature id="f_9397217194962929215">
 			<position dim="0">nan</position>

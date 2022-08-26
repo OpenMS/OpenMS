@@ -127,8 +127,21 @@ namespace OpenMS
     OPENMS_PRECONDITION(min_rt <= max_rt, "Swapped RT range boundaries!")
     OPENMS_PRECONDITION(min_mz <= max_mz, "Swapped MZ range boundaries!")
     OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using AreaIterator will give invalid results!")
-    //std::cout << "areaBegin: " << min_rt << " " << max_rt << " " << min_mz << " " << max_mz << std::endl;
-    return AreaIterator(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt), min_mz, max_mz);
+    auto [min_im, max_im] = RangeMobility{}.getNonEmptyRange(); // a full range
+    auto area = AreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt));
+    area.lowMZ(min_mz).highMZ(max_mz).lowIM(min_im).highIM(max_im);
+    return AreaIterator(area);
+  }
+
+  MSExperiment::AreaIterator MSExperiment::areaBegin(const RangeManagerType& range)
+  {
+    OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using ConstAreaIterator will give invalid results!")
+    auto [min_rt, max_rt] = range.RangeRT::getNonEmptyRange();
+    auto [min_mz, max_mz] = range.RangeMZ::getNonEmptyRange();
+    auto [min_im, max_im] = range.RangeMobility::getNonEmptyRange();
+    auto area = AreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt));
+    area.lowMZ(min_mz).highMZ(max_mz).lowIM(min_im).highIM(max_im);
+    return AreaIterator(area);
   }
 
   /// Returns an invalid area iterator marking the end of an area
@@ -143,8 +156,21 @@ namespace OpenMS
     OPENMS_PRECONDITION(min_rt <= max_rt, "Swapped RT range boundaries!")
     OPENMS_PRECONDITION(min_mz <= max_mz, "Swapped MZ range boundaries!")
     OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using ConstAreaIterator will give invalid results!")
-    //std::cout << "areaBeginConst: " << min_rt << " " << max_rt << " " << min_mz << " " << max_mz << std::endl;
-    return ConstAreaIterator(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt), min_mz, max_mz);
+    auto [min_im, max_im] = RangeMobility{}.getNonEmptyRange(); // a full range
+    auto area = ConstAreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt));
+    area.lowMZ(min_mz).highMZ(max_mz).lowIM(min_im).highIM(max_im);
+    return ConstAreaIterator(area);
+  }
+
+  MSExperiment::ConstAreaIterator MSExperiment::areaBeginConst(const RangeManagerType& range) const
+  {
+    OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using ConstAreaIterator will give invalid results!")
+    auto [min_rt, max_rt] = range.RangeRT::getNonEmptyRange();
+    auto [min_mz, max_mz] = range.RangeMZ::getNonEmptyRange();
+    auto [min_im, max_im] = range.RangeMobility::getNonEmptyRange();
+    auto area = ConstAreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt));
+    area.lowMZ(min_mz).highMZ(max_mz).lowIM(min_im).highIM(max_im);
+    return ConstAreaIterator(area);
   }
 
   /// Returns an non-mutable invalid area iterator marking the end of an area
@@ -205,6 +231,20 @@ namespace OpenMS
     return upper_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::RTLess());
   }
 
+  MSExperiment::ConstIterator MSExperiment::IMBegin(CoordinateType im) const
+  {
+    SpectrumType s;
+    s.setDriftTime(im);
+    return lower_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::IMLess());
+  }
+
+  MSExperiment::ConstIterator MSExperiment::IMEnd(CoordinateType im) const
+  {
+    SpectrumType s;
+    s.setDriftTime(im);
+    return upper_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::IMLess());
+  }
+
   //@}
 
   /**
@@ -256,6 +296,7 @@ namespace OpenMS
 
         // ranges
         this->extendRT(it->getRT()); // RT
+        this->extendMobility(it->getDriftTime()); // IM
         it->updateRanges();
         this->extend(*it);           // m/z and intensity from spectrum's range
       }
@@ -398,7 +439,7 @@ namespace OpenMS
   */
   bool MSExperiment::isSorted(bool check_mz) const
   {
-    //check RT positions
+    // check RT positions
     for (Size i = 1; i < spectra_.size(); ++i)
     {
       if (spectra_[i - 1].getRT() > spectra_[i].getRT())
@@ -406,7 +447,7 @@ namespace OpenMS
         return false;
       }
     }
-    //check spectra
+    // check spectra
     if (check_mz)
     {
       for (Size i = 0; i < spectra_.size(); ++i)
@@ -775,6 +816,19 @@ namespace OpenMS
       }
     }
     return false;
+  }
+
+  bool MSExperiment::isIMFrame() const
+  {
+    if (spectra_.empty()) return false;
+    auto rt_start = spectra_[0].getRT();
+    auto last_drift = std::numeric_limits<double>::lowest();
+    for (const auto& s : spectra_) {
+      if (s.getRT() != rt_start) return false; // RT changes...
+      if (s.getDriftTime() == last_drift) return false; // IM did not change...
+      last_drift = s.getDriftTime();
+    }
+    return true; // RT stable, IM changing
   }
 
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt)

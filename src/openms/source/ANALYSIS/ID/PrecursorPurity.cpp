@@ -49,7 +49,10 @@ namespace OpenMS
     double target_mz = pre.getMZ();
     double lower = target_mz - pre.getIsolationWindowLowerOffset();
     double upper = target_mz + pre.getIsolationWindowUpperOffset();
-    int charge = pre.getCharge();
+
+    int charge = abs(pre.getCharge());
+
+    if (charge == 0) charge = 1; // prevent division by zero
 
     double precursor_tolerance_abs = precursor_mass_tolerance_unit_ppm ? (target_mz * precursor_mass_tolerance*2 * 1e-6) : precursor_mass_tolerance*2;
 

@@ -34,7 +34,10 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/CommonEnums.h>
+#include <OpenMS/OpenMSConfig.h>
+
+#include <string>
 
 namespace OpenMS
 {
@@ -102,6 +105,14 @@ namespace OpenMS
         @throws Exception::InvalidValue if IM values are annotated as single drift time and float array in the given spectrum
     */
     static IMFormat determineIMFormat(const MSSpectrum& spec);
+
+    /**
+     * \brief 
+     * \param from Drift unit to convert from
+     * \return A more general DIM_UNIT (or exception)
+     * \throws Exception::ConversionError if @p from has invalid value (e.g. 'NONE')
+     */
+    static DIM_UNIT fromIMUnit(const DriftTimeUnit from);
   };
 
 };

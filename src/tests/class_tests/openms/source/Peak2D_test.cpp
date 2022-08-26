@@ -48,6 +48,15 @@ START_TEST(Peak2D<D>, "$Id$")
 
 using namespace OpenMS;
 
+static_assert(std::is_trivially_destructible<Peak2D> {});
+// static_assert(std::is_trivially_default_constructible<Peak2D> {});
+static_assert(std::is_trivially_copy_constructible<Peak2D> {});
+static_assert(std::is_trivially_copy_assignable<Peak2D> {});
+static_assert(std::is_trivially_move_constructible<Peak2D> {});
+static_assert(std::is_nothrow_move_constructible<Peak2D> {});
+static_assert(std::is_trivially_move_assignable<Peak2D> {});
+
+
 Peak2D* d10_ptr = nullptr;
 Peak2D* d10_nullPointer = nullptr;
 

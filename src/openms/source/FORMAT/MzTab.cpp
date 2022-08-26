@@ -609,10 +609,12 @@ namespace OpenMS
       MzTabOptionalColumnEntry opt_entry;
       // column names must not contain spaces
       opt_entry.first = "opt_" + id + "_" + String(key).substitute(' ','_');
+      
       if (meta.metaValueExists(key))
       {
         opt_entry.second = MzTabString(meta.getMetaValue(key).toString());
       } // otherwise it is default ("null")
+
       opt.push_back(opt_entry);
     }
   }
@@ -758,13 +760,23 @@ namespace OpenMS
     // pre-analyze data for occurring meta values at feature and peptide hit level
     // these are used to build optional columns containing the meta values in internal data structures
     set<String> feature_user_value_keys;
+    set<String> peptide_identifications_user_value_keys;
     set<String> peptide_hit_user_value_keys;
-    MzTab::getFeatureMapMetaValues_(feature_map, feature_user_value_keys, peptide_hit_user_value_keys);
+    MzTab::getFeatureMapMetaValues_(
+      feature_map,     
+      feature_user_value_keys,
+      peptide_identifications_user_value_keys,
+      peptide_hit_user_value_keys);
 
     for (Size i = 0; i < feature_map.size(); ++i)
     {
       const Feature& f = feature_map[i];
-      auto row = peptideSectionRowFromFeature_(f, feature_user_value_keys, peptide_hit_user_value_keys, fixed_mods);
+      auto row = peptideSectionRowFromFeature_(
+        f,
+        feature_user_value_keys, 
+        peptide_identifications_user_value_keys, 
+        peptide_hit_user_value_keys, 
+        fixed_mods);
       mztab.getPeptideSectionRows().emplace_back(std::move(row));
     }
 
@@ -774,6 +786,7 @@ namespace OpenMS
   MzTabPeptideSectionRow MzTab::peptideSectionRowFromFeature_(
     const Feature& f, 
     const set<String>& feature_user_value_keys,
+    const set<String>& peptide_identifications_user_value_keys,
     const set<String>& peptide_hit_user_value_keys,
     const vector<String>& fixed_mods)
   {
@@ -814,8 +827,14 @@ namespace OpenMS
     const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
     if (pep_ids.empty())
     {
+      // still add empty opt_ columns before returning
+      addMetaInfoToOptionalColumns(peptide_identifications_user_value_keys, row.opt_, "global", MetaInfoInterface());
+      addMetaInfoToOptionalColumns(peptide_hit_user_value_keys, row.opt_, "global", MetaInfoInterface());      
       return row;
     }
+
+    const PeptideIdentification& best_pid = f.getPeptideIdentifications()[0];
+    addMetaInfoToOptionalColumns(peptide_identifications_user_value_keys, row.opt_, "global", best_pid);
 
     // TODO: here we assume that all have the same score type etc.
     vector<PeptideHit> all_hits;
@@ -826,6 +845,7 @@ namespace OpenMS
 
     if (all_hits.empty())
     { 
+      addMetaInfoToOptionalColumns(peptide_identifications_user_value_keys, row.opt_, "global", MetaInfoInterface());
       return row;
     }
 
@@ -875,6 +895,7 @@ namespace OpenMS
     const StringList& ms_runs,
     const Size n_study_variables,
     const set<String>& consensus_feature_user_value_keys,
+    const set<String>& peptide_identifications_user_value_keys,
     const set<String>& peptide_hit_user_value_keys,
     const map<String, size_t>& idrun_2_run_index,
     const map<pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
@@ -915,6 +936,14 @@ namespace OpenMS
           {
             opt_entry.second = MzTabString(c.getMetaValue(key).toString());
           }
+        })
+      );
+
+    // add optional columns for first peptide identification in consensus feature
+    for_each(peptide_identifications_user_value_keys.begin(), peptide_identifications_user_value_keys.end(),
+      addUserValueToRowBy([&c](const String &key, MzTabOptionalColumnEntry &opt_entry)
+        {
+          opt_entry.second = MzTabString(c.getMetaValue(key).toString());
         })
       );
 
@@ -985,7 +1014,8 @@ namespace OpenMS
 
       // Overall information for this feature in PEP section
       // Features need to be resolved for this. First is not necessarily the best since ids were resorted by map_index.
-      const PeptideHit& best_ph = curr_pep_ids[0].getHits()[0];
+      const PeptideIdentification& best_id = curr_pep_ids[0];
+      const PeptideHit& best_ph = best_id.getHits()[0];
       const AASequence& aas = best_ph.getSequence();
       row.sequence = MzTabString(aas.toUnmodifiedString());
 
@@ -1000,6 +1030,25 @@ namespace OpenMS
       row.accession = peptide_evidences.empty() ? MzTabString() : MzTabString(peptide_evidences[0].getProteinAccession());
 
       // fill opt_ columns based on best ID in the feature
+      vector<String> id_keys;
+      best_id.getKeys(id_keys);
+
+      for (Size k = 0; k != id_keys.size(); ++k)
+      {
+        String mztabstyle_key = id_keys[k];
+        std::replace(mztabstyle_key.begin(), mztabstyle_key.end(), ' ', '_');
+
+        // find matching entry in opt_ (TODO: speed this up)
+        for (Size i = 0; i != row.opt_.size(); ++i)
+        {
+          MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
+
+          if (opt_entry.first == String("opt_global_") + mztabstyle_key)
+          {
+            opt_entry.second = MzTabString(best_id.getMetaValue(id_keys[k]).toString());
+          }
+        }
+      }
 
       // find opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
       for (Size i = 0; i != row.opt_.size(); ++i)
@@ -2399,27 +2448,30 @@ state0:
     return mod_list;
   }
 
-  void MzTab::getFeatureMapMetaValues_(const FeatureMap& feature_map, set<String>& feature_user_value_keys, set<String>& peptide_hit_user_value_keys)
+  void MzTab::getFeatureMapMetaValues_(const FeatureMap& feature_map,
+    set<String>& feature_user_value_keys, 
+    set<String>& peptide_identification_user_value_keys, 
+    set<String>& peptide_hit_user_value_keys)
   {
     for (Size i = 0; i < feature_map.size(); ++i)
     {
       const Feature& f = feature_map[i];
       vector<String> keys;
       f.getKeys(keys); //TODO: why not just return it?
-      // replace whitespaces with underscore
-      std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
 
       feature_user_value_keys.insert(keys.begin(), keys.end());
 
       const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
       for (PeptideIdentification const & pep_id : pep_ids)
       {
+        vector<String> pep_keys;
+        pep_id.getKeys(pep_keys);
+        peptide_identification_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
+
         for (PeptideHit const & hit : pep_id.getHits())
         {
           vector<String> ph_keys;
           hit.getKeys(ph_keys);
-          // replace whitespaces with underscore
-          std::transform(ph_keys.begin(), ph_keys.end(), ph_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
       }
@@ -2430,6 +2482,7 @@ state0:
 
   void MzTab::getConsensusMapMetaValues_(const ConsensusMap& consensus_map,
     set<String>& consensus_feature_user_value_keys,
+    set<String>& peptide_identification_user_value_keys,
     set<String>& peptide_hit_user_value_keys)
   {
     for (ConsensusFeature const & c : consensus_map)
@@ -2444,13 +2497,11 @@ state0:
       const vector<PeptideIdentification> & curr_pep_ids = c.getPeptideIdentifications();
       for (auto const & pep_id : curr_pep_ids)
       {      
-        /* TODO: distinguish peptide hit and peptide id level meta values (also in writing them out)
         vector<String> pep_keys;
         pep_id.getKeys(pep_keys);
         // replace whitespaces with underscore
         std::transform(pep_keys.begin(), pep_keys.end(), pep_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
-        peptide_hit_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
-        */
+        peptide_identification_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
 
         for (auto const & hit : pep_id.getHits())
         {
@@ -2464,7 +2515,7 @@ state0:
     }
 
     // we don't want spectrum reference to show up as meta value (already in dedicated column)
-    peptide_hit_user_value_keys.erase("spectrum_reference");
+    peptide_identification_user_value_keys.erase("spectrum_reference");
   }
 
   void MzTab::getIdentificationMetaValues_(
@@ -2609,14 +2660,19 @@ state0:
       run_to_search_engines_settings_,
       search_engine_to_settings);
 
-    // Pre-analyze data for re-occurring meta values at consensus feature and contained peptide hit level.
+    // Pre-analyze data for re-occurring meta values at consensus feature and contained peptide id and hit level.
     // These are stored in optional columns of the PEP section.
     MzTab::getConsensusMapMetaValues_(consensus_map, 
-      consensus_feature_user_value_keys_, 
+      consensus_feature_user_value_keys_,
+      consensus_feature_peptide_identification_user_value_keys_,
       consensus_feature_peptide_hit_user_value_keys_);
 
     // create column names from meta values
+    // feature meta values
     for (const auto& k : consensus_feature_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
+    // id meta values
+    for (const auto& k : consensus_feature_peptide_identification_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
+    // peptide hit (PSM) meta values
     //maybe it's better not to output the PSM information here as it is already stored in the PSM section and referenceable via spectra_ref
     for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
     std::replace(pep_optional_column_names_.begin(), pep_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
@@ -2969,6 +3025,7 @@ state0:
      ms_runs_,
      n_study_variables_, 
      consensus_feature_user_value_keys_, 
+     consensus_feature_peptide_identification_user_value_keys_, 
      consensus_feature_peptide_hit_user_value_keys_,
      idrunid_2_idrunindex_,
      map_id_run_fileidx_2_msfileidx_,
