@@ -149,6 +149,10 @@ protected:
 
     registerStringOption_("out_project_space", "<directory>", "", "Output directory for SIRIUS project space", false);
 
+    registerStringOption_("sirius_user_email", "<string>", "", "E-mail for your SIRIUS account.", false);
+    
+    registerStringOption_("sirius_user_password", "<string>", "", "Password for your SIRIUS account.", false);
+
     registerFlag_("converter_mode", "Use this flag in combination with the out_ms file to convert the input mzML and featureXML to a .ms file. Without further SIRIUS processing.", true);
 
     addEmptyLine_();
@@ -172,6 +176,8 @@ protected:
     String out_ms = getStringOption_("out_ms");
     String out_ann_spectra = getStringOption_("out_annotated_spectra");
     String sirius_workspace_directory = getStringOption_("out_project_space");
+    String sirius_user_email = getStringOption_("sirius_user_email");
+    String sirius_user_password = getStringOption_("sirius_user_password");
     bool converter_mode = getFlag_("converter_mode");
 
     auto params = getParam_();
@@ -226,6 +232,9 @@ protected:
       
       return EXECUTION_OK;
     }
+
+    // log in to Sirius account if email and password are specified
+    algorithm.logInSiriusAccount(sirius_executable, sirius_user_email, sirius_user_password);
 
     // calls Sirius and returns vector of paths to sirius folder structure
     std::vector<String> subdirs = algorithm.callSiriusQProcess(sirius_tmp.getTmpMsFile(),
