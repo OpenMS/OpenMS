@@ -96,6 +96,8 @@ namespace OpenMS
       // determine vector of ms file names (in order of appearance)
       vector<String> msfiles;
       std::map<pair<UInt,UInt>, UInt> fractiongroup_label_to_sample_mapping;
+      std::map<String, UInt> samplename_to_sample_mapping;
+
       for (const auto &f : cm.getColumnHeaders())
       {
         if (std::find(msfiles.begin(), msfiles.end(), f.second.filename) == msfiles.end())
@@ -104,12 +106,14 @@ namespace OpenMS
         }
       }
 
+      bool no_fractions = true;
       for (const auto &f : cm.getColumnHeaders())
       {
         ExperimentalDesign::MSFileSectionEntry r;
         r.path = f.second.filename;
         if (f.second.metaValueExists("fraction"))
         {
+          no_fractions = false;
           r.fraction = static_cast<unsigned int>(f.second.getMetaValue("fraction"));
 
           if (f.second.metaValueExists("fraction_group"))
@@ -126,29 +130,38 @@ namespace OpenMS
         }
         else
         { // no fractions and fraction group information annotated, deduce from data
-          OPENMS_LOG_INFO << "No fractions annotated in consensusXML. Assuming unfractionated." << endl;
           r.fraction = 1;
 
           // no fractions -> one fraction group for each MS file
           // to create a unique group identifier [1..n], we take the index of the (unique) filenames  
           r.fraction_group = (std::find(msfiles.begin(), msfiles.end(), f.second.filename) 
-                            - msfiles.begin())  + 1;
+                            - msfiles.begin()) + 1;
         }
+        if (no_fractions) OPENMS_LOG_INFO << "No fractions annotated in consensusXML. Assuming unfractionated." << endl;
 
         r.label = f.second.getLabelAsUInt(experiment_type);
 
-        if (experiment_type == "label-free")
+        if (!f.second.metaValueExists("sample_name"))
         {
-          //since lfq has no labels, samples are defined solely by fraction groups
-          r.sample = r.fraction_group;
-        }
-        else // MS1 or MS2 labeled -> We create one sample for each fractiongroup/label combination
-        // this assumes that fractionation took place after labelling. Otherwise a design needs to be given.
-        {
-          //check fractiongroup_label_to_sample_mapping and add if not present, otherwise use present
-          auto key = make_pair(r.fraction_group, r.label);
-          auto it = fractiongroup_label_to_sample_mapping.emplace(key, fractiongroup_label_to_sample_mapping.size()+1);
-          r.sample = it.first->second;
+          if (experiment_type == "label-free")
+          {
+            // since lfq has no labels, samples are defined solely by fraction groups
+            r.sample = r.fraction_group;
+            r.sample_name = r.sample;
+          }
+          else // MS1 or MS2 labeled -> We create one sample for each fractiongroup/label combination
+          // this assumes that fractionation took place after labelling. Otherwise, a design needs to be given.
+          {
+            // check fractiongroup_label_to_sample_mapping and add if not present, otherwise use present
+            auto key = make_pair(r.fraction_group, r.label);
+            auto it = fractiongroup_label_to_sample_mapping.emplace(key, fractiongroup_label_to_sample_mapping.size() + 1);
+            r.sample = it.first->second;
+            r.sample_name = r.sample;
+          }
+        } else {
+          r.sample_name = f.second.getMetaValue("sample_name");
+          const auto& [it, inserted] = samplename_to_sample_mapping.emplace(r.sample_name,samplename_to_sample_mapping.size());
+          r.sample = it->second;
         }
 
         msfile_section.push_back(r);
@@ -206,7 +219,7 @@ namespace OpenMS
       ExperimentalDesign::MSFileSectionEntry r;
       r.path = ms_paths[0];
       r.fraction = 1;
-      r.sample = 1;
+      r.sample = 0;
       r.fraction_group = 1;
       r.label = 1;
 
@@ -238,7 +251,7 @@ namespace OpenMS
       // For now and without further info we have to assume a labelfree, unfractionated experiment
       // no fractionation -> as many fraction_groups as samples
       // each identification run corresponds to one sample abundance
-      unsigned sample(1);
+      unsigned sample(0);
       ExperimentalDesign::MSFileSection rows;
       for (const auto &f : ms_run_paths)
       {
@@ -320,7 +333,7 @@ namespace OpenMS
       {
         // no information about the origin of the samples -> assume uniqueness of all
         unsigned nr(getNumberOfSamples());
-        for (unsigned i(1); i <= nr; ++i)
+        for (unsigned i(0); i <= nr; ++i)
         {
           res[i] = i;
         }
@@ -379,7 +392,7 @@ namespace OpenMS
       {
         // no information about the origin of the samples -> assume uniqueness of all
         unsigned nr(getNumberOfSamples());
-        for (unsigned i(1); i <= nr; ++i)
+        for (unsigned i(0); i <= nr; ++i)
         {
           res[i] = i;
         }

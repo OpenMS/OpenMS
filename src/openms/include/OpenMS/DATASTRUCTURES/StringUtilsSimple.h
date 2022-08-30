@@ -264,7 +264,7 @@ namespace OpenMS
       return this_s;
     }
 
-    static inline bool isQuoted(const String & this_s, char q, String::QuotingMethod method)
+    static inline bool isQuoted(const String & this_s, char q)
     {
       return (this_s.size() < 2) || (this_s[0] != q) || (this_s[this_s.size() - 1] != q);
     }
@@ -285,7 +285,7 @@ namespace OpenMS
     static inline String& unquote(String & this_s, char q, String::QuotingMethod method)
     {
       // check if input string matches output format of the "quote" method:
-      if (isQuoted(this_s, q, method))
+      if (isQuoted(this_s, q))
       {
         throw Exception::ConversionError(
                 __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,

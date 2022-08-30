@@ -1438,15 +1438,14 @@ protected:
       IDFilter::keepUniquePeptidesPerProtein(consensus.getUnassignedPeptideIdentifications());
     }
 
-    /* TODO rewrite for consensusMaps
     // compute coverage (sequence was annotated during PeptideIndexing)
     // TODO: do you really want to compute coverage from unquantified peptides also?
-    overall_proteins.computeCoverage(inferred_peptide_ids);
+    overall_proteins.computeCoverage(consensus, true);
 
     // TODO: this might not be correct if only the best peptidoform is kept
     // determine observed modifications (exclude fixed mods)
-    overall_proteins.computeModifications(inferred_peptide_ids, StringList(fixed_modifications.begin(), fixed_modifications.end()));
-    */
+    overall_proteins.computeModifications(consensus, StringList(fixed_modifications.begin(), fixed_modifications.end()), true);
+
     return EXECUTION_OK;
   }
 

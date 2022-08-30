@@ -256,13 +256,14 @@ namespace OpenMS
 
           // read sample column
           Size sample = 1;
+          String samplename = "";
           if (!has_sample) 
           {
-            sample = fraction_group; // deducing the sample in the case of multiplexed could be done if label > 1 information is there (e.g., max(label) * (fraction_group - 1) + label
-            cells.push_back(String(sample)); 
+            samplename = fraction_group; // deducing the sample in the case of multiplexed could be done if label > 1 information is there (e.g., max(label) * (fraction_group - 1) + label
+            cells.push_back(samplename);
           }
 
-          String samplename = cells[fs_column_header_to_index["Sample"]];
+          samplename = cells[fs_column_header_to_index["Sample"]];
           parseErrorIf_(n_col != cells.size(), tsv_file, "Wrong number of records in line");
 
           const auto& [it, inserted] = samplename_to_index.emplace(samplename, samplename_to_index.size());

@@ -259,8 +259,8 @@ namespace OpenMS
       unsigned fraction = 1; ///< fraction 1..m, mandatory, 1 if not set
       std::string path = "UNKNOWN_FILE"; ///< file name, mandatory
       unsigned label = 1;  ///< the label (e.g.,: 1 for label-free, 1..8 for TMT8plex)
-      unsigned sample = 1;  ///< allows grouping by sample
-      String sample_name = "";
+      unsigned sample = 0;  ///< zero-based index for the sample section contents; allows grouping by sample
+      String sample_name = "0"; ///< sample name for access of the sample row by string, not index
     };
 
     class OPENMS_DLLAPI SampleSection

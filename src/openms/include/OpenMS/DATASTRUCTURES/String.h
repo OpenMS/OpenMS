@@ -248,11 +248,11 @@ public:
     /**
         @brief Checks if the string is wrapped in quotation marks
 
-        The quotation mark can be specified by parameter @p q (typically single or double quote); embedded quotation marks are handled according to @p method by backslash-escaping, doubling, or not at all.
+        The quotation mark can be specified by parameter @p q (typically single or double quote).
 
         @see unquote()
     */
-    OPENMS_DLLAPI bool isQuoted(char q = '"', QuotingMethod method = ESCAPE);
+    OPENMS_DLLAPI bool isQuoted(char q = '"');
 
     /**
          @brief Wraps the string in quotation marks

@@ -654,7 +654,7 @@ namespace OpenMS
       countPeptides_(f.getPeptideIdentifications());
       PeptideHit hit = getAnnotation_(f.getPeptideIdentifications());
       FeatureHandle handle(0, f);
-      const size_t fraction(1), sample(1);
+      const size_t fraction(1), sample(0);
       quantifyFeature_(handle, fraction, sample, hit); // updates "stats_.quant_features"
     }
     countPeptides_(features.getUnassignedPeptideIdentifications());
@@ -888,17 +888,15 @@ namespace OpenMS
 
         for (auto const & s : total_abundances)
         {
-          // Note: sample indices are one-based
-          // WARNING: THOSE LINES ASSUME THAT THE EXPERIMENTAL DESIGN
-          abundances[s.first - 1] = s.second;
+          abundances[s.first] = (float) s.second;
         }
         for (auto const & s : total_psm_counts)
         {
-          psm_counts[s.first - 1] = s.second;
+          psm_counts[s.first] = (float) s.second;
         }
         for (auto const & s : total_distinct_peptides)
         {
-          peptide_counts[s.first - 1] = s.second;
+          peptide_counts[s.first] = (float) s.second;
         }
       }
       else
