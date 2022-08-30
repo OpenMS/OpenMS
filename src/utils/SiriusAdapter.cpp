@@ -234,7 +234,11 @@ protected:
     }
 
     // log in to Sirius account if email and password are specified
-    algorithm.logInSiriusAccount(sirius_executable, sirius_user_email, sirius_user_password);
+    if (!sirius_user_email.empty() && !sirius_user_password.empty())
+    {
+      algorithm.logInSiriusAccount(sirius_executable, sirius_user_email, sirius_user_password);
+    }
+    else OPENMS_LOG_WARN << "No Sirius user account login information specified!" << std::endl;
 
     // calls Sirius and returns vector of paths to sirius folder structure
     std::vector<String> subdirs = algorithm.callSiriusQProcess(sirius_tmp.getTmpMsFile(),
