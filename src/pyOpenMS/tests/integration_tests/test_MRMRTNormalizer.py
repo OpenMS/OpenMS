@@ -1,5 +1,6 @@
 import unittest,os
 
+## UGLY HACK!! This imports the *FILE* env.py that is configured by CMake. Even uglier since there is a module called env!!
 import env
 import pyopenms
 from collections import defaultdict

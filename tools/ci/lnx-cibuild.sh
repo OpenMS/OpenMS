@@ -70,7 +70,6 @@ export PATH=${SOURCE_DIRECTORY}/_thirdparty/SpectraST:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/ThermoRawFileParser:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/Percolator:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/MaRaCluster:$PATH
-export PATH=${SOURCE_DIRECTORY}/_thirdparty/crux:$PATH
 
 # if we perform style tests, add cppcheck to path
 if [ "$ENABLE_STYLE_TESTING" = "ON" ]; then

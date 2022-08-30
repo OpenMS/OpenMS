@@ -75,6 +75,10 @@ public:
     {
       bool operator()(const MSSpectrum& a, const MSSpectrum& b) const;
     };
+    /// Comparator for the ion mobility.
+    struct OPENMS_DLLAPI IMLess {
+      bool operator()(const MSSpectrum& a, const MSSpectrum& b) const;
+    };
 
     /// Used to remember what subsets in a spectrum are sorted already to allow faster sorting of the spectrum
     struct Chunk {

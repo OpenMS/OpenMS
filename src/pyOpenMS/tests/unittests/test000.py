@@ -4654,8 +4654,8 @@ def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
     """
 
     assert s.getType() in [ pyopenms.SpectrumSettings.SpectrumType.UNKNOWN,
-                               pyopenms.SpectrumSettings.SpectrumType.PEAKS,
-                               pyopenms.SpectrumSettings.SpectrumType.RAWDATA]
+                               pyopenms.SpectrumSettings.SpectrumType.CENTROID,
+                               pyopenms.SpectrumSettings.SpectrumType.PROFILE]
 
     assert isinstance(s.getAcquisitionInfo(), pyopenms.AcquisitionInfo)
     assert isinstance(s.getInstrumentSettings(), pyopenms.InstrumentSettings)
@@ -5664,9 +5664,9 @@ CONSENSUS	62.0	294.100000000000023	0.0	1	0.0	2.0	4	[M+H]+		2
 
     pyopenms.GNPSMetaValueFile().store(cm, "MetaValueTable.tsv")
     with open("MetaValueTable.tsv", "r") as f:
-        assert f.read() == """filename	ATTRIBUTE_MAPID
-1.mzML	MAP0
-2.mzML	MAP1
+        assert f.read() == """	filename	ATTRIBUTE_MAPID
+0	1.mzML	MAP0
+1	2.mzML	MAP1
 """
     os.remove("MetaValueTable.tsv")
 

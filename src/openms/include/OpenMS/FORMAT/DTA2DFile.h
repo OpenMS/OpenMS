@@ -56,6 +56,8 @@ namespace OpenMS
 
     Example: '\#MZ MIN INT'
 
+    Keywords can be lower/upper or mixed case, e.g. 'Int' or 'mz'.
+
     The peaks of one retention time have to be in subsequent lines.
 
     @ingroup FileIO
@@ -154,7 +156,7 @@ public:
         //is header line
         if (line.hasPrefix("#"))
         {
-          line = line.substr(1).trim();
+          line = line.substr(1).trim().toUpper();
           line.split(delimiter, strings);
 
           // flags to check if dimension is set correctly

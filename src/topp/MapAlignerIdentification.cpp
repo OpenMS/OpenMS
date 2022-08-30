@@ -376,7 +376,7 @@ private:
         // check if all fractions have the same number of MS runs associated
         if (!ed.sameNrOfMSFilesPerFraction())
         {
-          writeLog_("Error: Number of runs must match for every fraction!");
+          writeLogError_("Error: Number of runs must match for every fraction!");
           return ILLEGAL_PARAMETERS;
         }
       }
