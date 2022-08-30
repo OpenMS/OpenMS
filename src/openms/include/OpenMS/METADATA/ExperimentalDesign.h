@@ -260,6 +260,7 @@ namespace OpenMS
       std::string path = "UNKNOWN_FILE"; ///< file name, mandatory
       unsigned label = 1;  ///< the label (e.g.,: 1 for label-free, 1..8 for TMT8plex)
       unsigned sample = 1;  ///< allows grouping by sample
+      String sample_name = "";
     };
 
     class OPENMS_DLLAPI SampleSection
@@ -339,7 +340,7 @@ namespace OpenMS
 
     void setSampleSection(const SampleSection& sample_section);
 
-    /// returns a map from a sample section row to sample id to cluster
+    /// returns a map from a sample section row to sample id for clustering
     /// duplicate sample rows (e.g. to find all fractions of the same "sample")
     std::map<std::vector<String>, std::set<String>> getUniqueSampleRowToSampleMapping() const;
 

@@ -168,9 +168,11 @@ namespace OpenMS
       bool has_sample(false);
       bool has_label(false);
 
-      // Attributes of the sample section
+      /// Content of the sample section (vector of rows with column contents as strings)
       std::vector< std::vector < String > > sample_content_;
+      /// Sample name to sample (row) index
       std::map< unsigned, Size > sample_sample_to_rowindex_;
+      /// Inside each row, the value for a column can be accessed by name with this map
       std::map< String, Size > sample_columnname_to_columnindex_;
 
       /// Maps the column header string to the column index for
@@ -179,16 +181,9 @@ namespace OpenMS
 
       /// Maps the sample name to all values of sample-related columns
       std::map <String, std::vector<String>> sample_content_map;
-      /*
-      // Maps to transform strings into unsigned ints
-      std::map<String, unsigned> fg_mapping;
-      std::map<String, unsigned> frac_mapping;
-      std::map<String, unsigned> label_mapping;
-      */
+
+      /// Maps the sample name to its index (i.e., the order how it gets added to the sample section)
       std::map<String, Size> samplename_to_index;
-
-      unsigned line_number(0);
-
       enum ParseState { RUN_HEADER, RUN_CONTENT };
 
       ParseState state(RUN_HEADER);
@@ -211,7 +206,6 @@ namespace OpenMS
         if (state == RUN_HEADER)
         {
           state = RUN_CONTENT;
-          line_number = 0;
           parseHeader_(
             cells,
             tsv_file,
@@ -280,7 +274,7 @@ namespace OpenMS
           {
             sample_cells.push_back(cells[c2i.second]);
           }
-          //TODO warn if not the same cells?
+
           if (inserted)
           {
             sample_content_.push_back(sample_cells);
@@ -409,11 +403,15 @@ namespace OpenMS
           // Assign sample number
           if (has_sample)
           {
-            e.sample = cells[fs_column_header_to_index["Sample"]].toInt();
+            //e.sample has to be filled after the sample section was read
+            e.sample_name = cells[fs_column_header_to_index["Sample"]];
           }
           else
           {
-            e.sample = e.fraction_group; // deducing the sample in the case of multiplexed could be done if label > 1 information is there (e.g., max(label) * (fraction_group - 1) + label 
+            e.sample = e.fraction_group; // TODO: deducing the sample in the case of multiplexed
+                                         //  could be done if label > 1 information is there
+                                         //  (e.g., max(label) * (fraction_group - 1) + label
+            e.sample_name = "Fraction group " + String(e.fraction_group);
           }
 
           // Spectra files
@@ -436,15 +434,22 @@ namespace OpenMS
           );
           n_col = sample_columnname_to_columnindex_.size();
         }
-          // Parse Sample Row
+        // Parse Sample Row
         else if (state == SAMPLE_CONTENT)
         {
           // Parse Error if sample appears multiple times
           const String& sample = cells[sample_columnname_to_columnindex_["Sample"]];
-          parseErrorIf_(sample_sample_to_rowindex_.find(sample) != sample_sample_to_rowindex_.end(), tsv_file, "Sample: " + String(sample) + " appears multiple times in the sample table");
+          parseErrorIf_(sample_sample_to_rowindex_.find(sample) != sample_sample_to_rowindex_.end(),
+                        tsv_file,
+                        "Sample: " + String(sample) + " appears multiple times in the sample table");
           sample_sample_to_rowindex_[sample] = line_number++;
           sample_content_.push_back(cells);
         }
+      }
+
+      for (auto& e : msfile_section)
+      {
+        e.sample = sample_sample_to_rowindex_.at(e.sample_name);
       }
 
       // Create Sample Section and set in design

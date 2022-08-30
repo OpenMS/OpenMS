@@ -678,12 +678,17 @@ namespace OpenMS
       {
         labelfree = false;
       }
+
+      // TODO remove that restriction. Check if that order is still assumed somewhere.
+      //  Except for in the getNrFractionGroups
       if ((*fraction_group_set.begin()) != 1)
       {
-        throw Exception::MissingInformation(
+        throw Exception::InvalidValue(
           __FILE__,
           __LINE__,
-          OPENMS_PRETTY_FUNCTION, "Fraction groups have to be integers and their set needs to be consecutive and start with 1.");
+          OPENMS_PRETTY_FUNCTION,
+          "Fraction groups have to be integers and their set needs to be consecutive and start with 1.",
+          String(*fraction_group_set.begin()));
       }
       Size s = 0;
       for (const auto& fg : fraction_group_set)
@@ -691,10 +696,12 @@ namespace OpenMS
         ++s;
         if (fg != s)
         {
-          throw Exception::MissingInformation(
+          throw Exception::InvalidValue(
             __FILE__,
             __LINE__,
-            OPENMS_PRETTY_FUNCTION, "Fraction groups have to be integers and their set needs to be consecutive and start with 1.");
+            OPENMS_PRETTY_FUNCTION,
+            "Fraction groups have to be integers and their set needs to be consecutive and start with 1.",
+            String(*fraction_group_set.begin()));
         }
       }
 

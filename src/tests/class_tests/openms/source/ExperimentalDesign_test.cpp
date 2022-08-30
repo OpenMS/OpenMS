@@ -293,7 +293,7 @@ START_SECTION((String SampleSection::getFactorValue(const unsigned sample, const
   auto lss_stns = labelfree_unfractionated_single_table_no_sample_column.getSampleSection();
 
   // 12 samples (see getNumberOfSamples test)
-  for (size_t sample = 1; sample <= lns; ++sample)
+  for (size_t sample = 0; sample < lns; ++sample)
   {
     for (const auto& factor : lss_tt.getFactors())
     {
@@ -308,10 +308,10 @@ START_SECTION((String SampleSection::getFactorValue(const unsigned sample, const
   }    
 
   const auto fns = fourplex_fractionated_design.getNumberOfSamples();
-  auto fss_tt = fourplex_fractionated_design.getSampleSection();
-  auto fss_st = fourplex_fractionated_single_table_design.getSampleSection();
+  const auto& fss_tt = fourplex_fractionated_design.getSampleSection();
+  const auto& fss_st = fourplex_fractionated_single_table_design.getSampleSection();
   // 8 samples (see getNumberOfSamples test)
-  for (size_t sample = 1; sample <= fns; ++sample)
+  for (size_t sample = 0; sample < fns; ++sample)
   {
     for (const auto& factor : fss_tt.getFactors())
     {
@@ -372,12 +372,12 @@ START_SECTION((unsigned getNumberOfMSFiles() const ))
   const auto fplex = fourplex_fractionated_design.getNumberOfMSFiles();
   const auto fplexst = fourplex_fractionated_single_table_design.getNumberOfMSFiles();
 
-  for (const auto& ns : { lf, lfst, lfstns} )
+  for (const auto& ns : {lf, lfst, lfstns} )
   {
     TEST_EQUAL(ns, 12);
   }
 
-  for (const auto& ns : { fplex, fplexst})
+  for (const auto& ns : {fplex, fplexst})
   {
     TEST_EQUAL(ns, 6);
   }
@@ -392,12 +392,12 @@ START_SECTION((unsigned getNumberOfFractionGroups() const ))
   const auto fplex = fourplex_fractionated_design.getNumberOfFractionGroups();
   const auto fplexst = fourplex_fractionated_single_table_design.getNumberOfFractionGroups();
 
-  for (const auto& ns : { lf, lfst, lfstns} )
+  for (const auto& ns : {lf, lfst, lfstns} )
   {
     TEST_EQUAL(ns, 12);
   }
 
-  for (const auto& ns : { fplex, fplexst})
+  for (const auto& ns : {fplex, fplexst})
   {
     TEST_EQUAL(ns, 2);
   }
@@ -412,28 +412,28 @@ START_SECTION((unsigned getSample(unsigned fraction_group, unsigned label=1)))
   const auto fplex11 = fourplex_fractionated_design.getSample(1, 1);
   const auto fplexst11 = fourplex_fractionated_single_table_design.getSample(1, 1);
 
-  for (const auto& s : { lf11, lfst11, lfstns11})
+  for (const auto& s : {lf11, lfst11, lfstns11})
   {
-    TEST_EQUAL(s, 1);
+    TEST_EQUAL(s, 0);
   }
-  for (const auto& s : { fplex11, fplexst11})
+  for (const auto& s : {fplex11, fplexst11})
   {
-    TEST_EQUAL(s, 1);
+    TEST_EQUAL(s, 0);
   }
 
   const auto lf12_1 = labelfree_unfractionated_design.getSample(12, 1);
   const auto lfst12_1 = labelfree_unfractionated_single_table_design.getSample(12, 1);
   const auto lfstns11_1 = labelfree_unfractionated_single_table_no_sample_column.getSample(12, 1);
-  for (const auto& s : { lf12_1, lfst12_1, lfstns11_1})
+  for (const auto& s : {lf12_1, lfst12_1, lfstns11_1})
   {
-    TEST_EQUAL(s, 12);
+    TEST_EQUAL(s, 11);
   }
 
   const auto fplex24 = fourplex_fractionated_design.getSample(2, 4);
   const auto fplexst24 = fourplex_fractionated_single_table_design.getSample(2, 4);
-  for (const auto& s : { fplex24, fplexst24})
+  for (const auto& s : {fplex24, fplexst24})
   {
-    TEST_EQUAL(s, 8);
+    TEST_EQUAL(s, 7);
   }
 }
 END_SECTION
@@ -577,12 +577,16 @@ END_SECTION
 START_SECTION((isValid_()))
 {
 
+  // missing fractions and wrong orders should work now
   String foo = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong.tsv");
-  TEST_EXCEPTION(Exception::InvalidValue, ExperimentalDesignFile::load(foo,false));
+  ExperimentalDesignFile::load(foo,false);
+  String baz = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong_3.tsv");
+  ExperimentalDesignFile::load(baz,false);
+
+  // fraction groups still need to be consecutive
   String bar = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong_2.tsv");
   TEST_EXCEPTION(Exception::InvalidValue, ExperimentalDesignFile::load(bar,false));
-  String baz = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong_3.tsv");
-  TEST_EXCEPTION(Exception::InvalidValue, ExperimentalDesignFile::load(baz,false));
+
 }
 END_SECTION
 /////////////////////////////////////////////////////////////
