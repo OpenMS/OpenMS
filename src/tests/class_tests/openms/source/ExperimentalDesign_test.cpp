@@ -163,16 +163,16 @@ START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelTo
   const auto fplexst = fourplex_fractionated_single_table_design.getPathLabelToSampleMapping(true);
 
   // 12 quant. values from label-free, unfractionated files map to 12 samples
-  for (const auto& pl2s : { lf, lfst, lfstns })
+  for (const auto& pl2s : {lf, lfst, lfstns})
   {
     TEST_EQUAL(pl2s.size(), 12);
   } 
 
-  // 24 quant. values from 4plex, tripple fractionated files map to 8 samples
-  for (const auto& pl2s : { fplex, fplexst})
+  // 24 quant. values from 4plex, triple fractionated files map to 8 samples
+  for (const auto& pl2s : {fplex, fplexst})
   {
     TEST_EQUAL(pl2s.size(), 24);
-    for (const auto& i : pl2s) { TEST_EQUAL((i.second >=1 && i.second <=8), true)}
+    for (const auto& i : pl2s) { TEST_EQUAL((i.second >=0 && i.second <=7), true)}
   } 
 }
 END_SECTION
@@ -569,7 +569,7 @@ START_SECTION((static ExperimentalDesign fromFeatureMap(const FeatureMap &f)))
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).label, 1); // "channel_id" + 1
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).fraction_group, 1); // only one fraction
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).fraction, 1); 
-  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).sample, 1); // default: sample from 1..n
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).sample, 0); // default: sample indices from 0..n-1
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).path, "file://C:/raw_file1.mzML");
 }
 END_SECTION

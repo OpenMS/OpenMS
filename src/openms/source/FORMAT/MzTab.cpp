@@ -964,7 +964,7 @@ namespace OpenMS
 
     // initialize columns
     OPENMS_LOG_DEBUG << "Initializing study variables:" << n_study_variables << endl;
-    for (Size study_variable = 1; study_variable <= n_study_variables; ++study_variable)
+    for (Size study_variable = 0; study_variable <= n_study_variables; ++study_variable)
     {
       row.peptide_abundance_stdev_study_variable[study_variable] = MzTabDouble();
       row.peptide_abundance_std_error_study_variable[study_variable] = MzTabDouble();
@@ -979,7 +979,7 @@ namespace OpenMS
     ConsensusFeature::HandleSetType fs = c.getFeatures();
     for (auto fit = fs.begin(); fit != fs.end(); ++fit)
     {
-      UInt study_variable{1};
+      UInt study_variable{0};
       const int index = fit->getMapIndex();
       const ConsensusMap::ColumnHeader& ch = cm_column_headers.at(index);
 
