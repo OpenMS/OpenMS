@@ -106,9 +106,9 @@ public:
     /// Non-mutable iterator
     typedef std::vector<SpectrumType>::const_iterator ConstIterator;
     /// Mutable area iterator type (for traversal of a rectangular subset of the peaks)
-    typedef Internal::AreaIterator<Base> AreaIterator;
+    typedef Internal::AreaIterator<Base, false> AreaIterator;
     /// Immutable area iterator type (for traversal of a rectangular subset of the peaks)
-    typedef Internal::AreaIterator<const Base> ConstAreaIterator;
+    typedef Internal::AreaIterator<const Base, true> ConstAreaIterator;
     //@}
 
     /// @name Delegations of calls to the vector of MSSpectra

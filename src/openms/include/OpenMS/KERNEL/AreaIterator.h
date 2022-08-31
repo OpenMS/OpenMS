@@ -35,6 +35,7 @@
 #pragma once
 
 // OpenMS includes
+#include <type_traits>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/PeakIndex.h>
 
@@ -53,7 +54,7 @@ namespace OpenMS
 
         @note This iterator iterates over spectra with MS level 1 only!
     */
-    template <typename SpectrumContainerT>
+    template <typename SpectrumContainerT, bool Constness>
     class AreaIterator :
       public std::iterator<std::forward_iterator_tag, typename SpectrumContainerT::value_type::value_type>
     {
@@ -62,8 +63,10 @@ public:
       using ValueT = typename SpectrumContainerT::value_type::value_type;
       using ReferenceT = typename SpectrumContainerT::value_type::reference;
       using PointerT = typename SpectrumContainerT::value_type::Iterator::pointer;
-      using SpectrumIteratorT = typename SpectrumContainerT::iterator;
-      using PeakIteratorT = typename SpectrumContainerT::value_type::Iterator;
+      typedef typename std::conditional< Constness, typename SpectrumContainerT::iterator, typename SpectrumContainerT::const_iterator>::type SpectrumIteratorT;
+      typedef typename std::conditional< Constness, typename SpectrumContainerT::value_type::Iterator, typename SpectrumContainerT::value_type::ConstIterator>::type PeakIteratorT;
+      // using SpectrumIteratorT = typename SpectrumContainerT::iterator;
+      // using PeakIteratorT = typename SpectrumContainerT::value_type::Iterator;
 
 
       typedef double CoordinateType;

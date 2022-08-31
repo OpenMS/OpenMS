@@ -65,7 +65,7 @@ namespace OpenMS
     @ingroup Kernel
   */
   class OPENMS_DLLAPI MSSpectrum final :
-    private BaseContainer<VectorTemplate, Peak1DT<double,double>>,
+    public BaseContainer<VectorTemplate, Peak1DT<double,double>>,
     public RangeManagerContainer<RangeMZ, RangeIntensity>,
     public SpectrumSettings
   {

@@ -280,6 +280,10 @@ struct BaseContainer
         policy_t::resize( mValues, size_ );
     }
 
+    void friend swap(BaseContainer& one, BaseContainer& other){
+           swap(one.mValues, other.mValues);
+    }
+
     // Function performs insertion sort
     void insertionSort()
     {
