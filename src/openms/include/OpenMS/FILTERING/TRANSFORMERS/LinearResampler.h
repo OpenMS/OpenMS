@@ -64,7 +64,7 @@ namespace OpenMS
   {
 
 public:
-
+    typedef MSSpectrum::Container Container;
     /// Constructor
     LinearResampler() :
       DefaultParamHandler("LinearResampler")
@@ -94,11 +94,11 @@ public:
       int number_raw_points = static_cast<int>(spectrum.size());
       int number_resampled_points = static_cast<int>(ceil((end_pos - start_pos) / spacing_ + 1));
 
-      std::vector<Peak1D> resampled_peak_container;
+      Container resampled_peak_container;
       resampled_peak_container.resize(number_resampled_points);
 
       // generate the resampled peaks at positions origin+i*spacing_
-      std::vector<Peak1D>::iterator it = resampled_peak_container.begin();
+      Container::iterator it = resampled_peak_container.begin();
       for (int i = 0; i < number_resampled_points; ++i)
       {
         it->setMZ(start_pos + i * spacing_);
@@ -136,8 +136,8 @@ public:
         intensity += static_cast<double>((first + i)->getIntensity()) * distance_left;
         (it + right_index)->setIntensity(intensity);
       }
-
-      spectrum.swap(resampled_peak_container);
+      swap(spectrum, resampled_peak_container);
+      //spectrum.swap(resampled_peak_container);
     }
 
     /**
