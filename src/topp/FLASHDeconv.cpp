@@ -207,7 +207,7 @@ protected:
     setMinInt_("merging_method", 0);
     setMaxInt_("merging_method", 2);
 
-    registerIntOption_("report_decoy_info", "<0: Do not report 1: report>", 1, "Report decoy masses in the spectrum tsv file. Qvalues for masses are also calculated. Beta version.", false, true);
+    registerIntOption_("report_decoy_info", "<0: Do not report 1: report>", 0, "Report decoy masses in the spectrum tsv file. Qvalues for masses are also calculated. Beta version.", false, false);
     setMinInt_("report_decoy_info", 0);
     setMaxInt_("report_decoy_info", 1);
 

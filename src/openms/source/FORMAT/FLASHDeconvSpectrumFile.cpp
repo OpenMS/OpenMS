@@ -44,7 +44,7 @@ namespace OpenMS
 
   static int index = 1;
   void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, std::fstream& fs, const String& file_name, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                                       const bool write_detail, const bool decoy)
+                                                      const bool write_detail, const bool decoy)
   {
     if (dspec.empty())
     {

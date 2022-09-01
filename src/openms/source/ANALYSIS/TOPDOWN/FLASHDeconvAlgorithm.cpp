@@ -1272,7 +1272,6 @@ namespace OpenMS
       }
 
 
-
       if(decoy_run_flag_ == charge_decoy_ && excluded_masses_.size() > 0)
       {
         bool exclude = false;
@@ -1442,8 +1441,8 @@ namespace OpenMS
         continue;
       }
       float tmp_cos = getCosine(per_isotope_intensities, min_isotope_index, max_isotope_index, iso,
-                                 iso_size, // apex_index,
-                                 tmp_offset);
+                                iso_size, // apex_index,
+                                tmp_offset);
 
 
       if(second_max_cos < tmp_cos)
