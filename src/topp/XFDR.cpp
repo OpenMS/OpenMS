@@ -153,7 +153,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    writeLog_("Reading input file...");
+    writeLogInfo_("Reading input file...");
 
     std::vector<PeptideIdentification> peptide_ids;
     ProteinIdentification protein_id;
@@ -170,7 +170,7 @@ protected:
     std::vector<ProteinIdentification> protein_ids;
     protein_ids.push_back(protein_id);
 
-    writeLog_("Writing output...");
+    writeLogInfo_("Writing output...");
     // write idXML
     if (! arg_out_idXML_.empty())
     {
@@ -234,7 +234,7 @@ private:
       XQuestResultXMLFile xquest_file;
       xquest_file.load(arg_in_, peptide_ids, protein_ids);
 
-     writeLog_("\nTotal number of hits in xQuest input: " + String(xquest_file.getNumberOfHits()));
+     writeLogInfo_("\nTotal number of hits in xQuest input: " + String(xquest_file.getNumberOfHits()));
     }
     else if (in_type == FileTypes::MZIDENTML)
     {
@@ -252,8 +252,8 @@ private:
      const Size n_pep_ids = peptide_ids.size();
      const Size n_prot_ids = protein_ids.size();
 
-     writeLog_("Number of Peptide IDs in input file: " + String(n_pep_ids));
-     writeLog_("Number of Protein IDs in input file: " + String(n_prot_ids));
+     writeLogInfo_("Number of Peptide IDs in input file: " + String(n_pep_ids));
+     writeLogInfo_("Number of Protein IDs in input file: " + String(n_prot_ids));
 
      // Terminate if no hits could be found
      if (n_pep_ids == 0)

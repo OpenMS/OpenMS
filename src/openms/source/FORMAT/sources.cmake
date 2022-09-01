@@ -33,6 +33,7 @@ GzipInputStream.cpp
 HDF5Connector.cpp
 IBSpectraFile.cpp
 IdXMLFile.cpp
+IndentedStream.cpp
 IndexedMzMLFileLoader.cpp
 InspectInfile.cpp
 InspectOutfile.cpp

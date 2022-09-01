@@ -191,7 +191,7 @@ protected:
 
     if (ml1.size() != 1 &&  ml1.size() != ms_exp_calib.size())
     {
-      writeLog_("Incorrect number of calibration constants given. Aborting!");
+      writeLogError_("Incorrect number of calibration constants given. Aborting!");
       return INPUT_FILE_CORRUPT;
     }
     calib.setML1s(ml1);

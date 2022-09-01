@@ -135,7 +135,7 @@ protected:
     {
       if (FileHandler::getType(ins[i]) != file_type)
       {
-        writeLog_("Error: All input files must be of the same type!");
+        writeLogError_("Error: All input files must be of the same type!");
         return ILLEGAL_PARAMETERS;
       }
     }
