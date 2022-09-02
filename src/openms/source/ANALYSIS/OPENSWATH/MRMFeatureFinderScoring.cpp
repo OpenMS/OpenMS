@@ -907,11 +907,11 @@ namespace OpenMS
           mrmfeature.addScore("var_im_xcorr_coelution", scores.im_xcorr_coelution_score);
           mrmfeature.addScore("var_im_delta_score", scores.im_delta_score);
           mrmfeature.addScore("var_im_ms1_delta_score", scores.im_ms1_delta_score);
-          mrmfeature.addScore("im_drift", scores.im_drift);
-          mrmfeature.addScore("im_drift_weighted", scores.im_drift_weighted);
-          mrmfeature.addScore("im_ms1_drift", scores.im_ms1_drift);
-          mrmfeature.addScore("im_ms1_delta", scores.im_ms1_delta);
-          mrmfeature.addScore("im_delta", scores.im_delta);
+          mrmfeature.addScore("im_drift", scores.im_drift); // MS2 level
+          mrmfeature.addScore("im_drift_weighted", scores.im_drift_weighted); // MS2 level
+          mrmfeature.addScore("im_ms1_drift", scores.im_ms1_drift); // MS1 level
+          mrmfeature.addScore("im_ms1_delta", scores.im_ms1_delta); // MS1 level
+          mrmfeature.addScore("im_delta", scores.im_delta); // MS2 level
         }
 
         precursor_mz = transition_group_detection.getTransitions()[0].getPrecursorMZ();

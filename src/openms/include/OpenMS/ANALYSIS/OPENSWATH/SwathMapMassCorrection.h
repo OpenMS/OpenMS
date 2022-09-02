@@ -80,8 +80,7 @@ public:
      * @param transition_group_map A MRMFeatureFinderScoring result map
      * @param targeted_exp The corresponding spectral library (required for extraction coordinates)
      * @param swath_maps The raw swath maps from the current run, will be modified (replaced with a corrected version)
-     * @param pasef Whether this data is pasef data and precursors might be found in multiple SWATH windows, in this case choose the "best" SWATH window (centered around IM) as the one to do calibration on
-     *
+     * @param pasef Whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
      */
     void correctMZ(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *>& transition_group_map,
                    const OpenSwath::LightTargetedExperiment & targeted_exp,
@@ -99,9 +98,8 @@ public:
      * @param transition_group_map A MRMFeatureFinderScoring result map
      * @param swath_maps The raw swath maps from the current run
      * @param targeted_exp The corresponding spectral library (required for extraction coordinates)
-     * @param pasef whether this data is pasef data with possible overlapping m/z windows (and distinct across IM)
+     * @param pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
      * @param im_trafo The resulting map containing the transformation
-     *
      */
     void correctIM(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
                    const OpenSwath::LightTargetedExperiment & targeted_exp,
