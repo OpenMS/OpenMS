@@ -52,7 +52,7 @@ Documentation
 Users and developers should start by reading the [OpenMS documentation](https://openms.readthedocs.io/en/latest). OpenMS
 API reference documentation and advanced developer doxygen documentation can be browsed [here](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html).
 
-openms.readthedocs.io documentation aims at being mostly version-independent and therefore
+openms.readthedocs.io documentation aims at being an entry point for users and developers alike. It is trying to be mostly version-independent and therefore
 only consists of one main branch. We may introduce tags for older releases in the future.
 
 The OpenMS API reference has several endpoints:
