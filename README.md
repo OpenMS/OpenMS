@@ -51,15 +51,14 @@ Documentation
 Users and developers should start by reading the [OpenMS documentation](https://openms.readthedocs.io/en/latest). OpenMS
 API reference documentation and advanced developer doxygen documentation can be browsed [here](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html).
 
-openms.readthedocs.io documentation has two release endpoints:
+openms.readthedocs.io documentation aims at being mostly version-independent and therefore
+only consists of one main branch. We may introduce tags for older releases in the future.
 
-1. `develop`: documentation of OpenMS develop branch.
-2. `latest`: documentation of the latest stable OpenMS release.
-
-Likewise, OpenMS API reference has:
+The OpenMS API reference has several endpoints:
 
 1. [`nightly`](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/index.html): OpenMS API reference and advanced developer documentation of nightly releases.
-2. [`latest`](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html) : OpenMS API reference and advanced developer documentation of latest stable release.
+2. [`release/latest`](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html) : OpenMS API reference and advanced developer documentation of latest stable release.
+3. [`release/${version}`](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html) : OpenMS API reference and advanced developer documentation of an older version.
 
 Documentation for the Python bindings pyOpenMS can be found on the [pyOpenMS online documentation](https://pyopenms.readthedocs.io).
 
