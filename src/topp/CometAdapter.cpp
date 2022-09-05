@@ -356,6 +356,7 @@ protected:
 
     // vector of VarMod
     vector<VarMod> modifications_given;
+    modifications_given.reserve(var_mod_index);
 
     // write out user specified modifications
     for (; var_mod_index < variable_modifications.size(); ++var_mod_index)
@@ -383,7 +384,23 @@ protected:
         if (modifications_given[i].isMergeableWith(modifications_given[j]))
         {
           modifications_given[i].merge(modifications_given[j]);
+
+          // destruct after merge
+          modifications_given[j].~VarMod();
         }
+      }
+    }
+
+    // remove duplicate residues (if any)
+    for (Size i = 0; i < modifications_given.size() - 1; i++)
+    {
+      if(modifications_given[i].mod_residue_.length() > 1)
+      {
+        String temp_residue = modifications_given[i].mod_residue_;
+        std::sort(temp_residue.begin(), temp_residue.end());
+        temp_residue.erase(std::unique(temp_residue.begin(), temp_residue.end()), temp_residue.end());
+
+        modifications_given[i].mod_residue_ = temp_residue;
       }
     }
 

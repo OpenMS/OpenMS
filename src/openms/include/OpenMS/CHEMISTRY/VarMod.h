@@ -55,6 +55,9 @@ namespace OpenMS
     // Constructor
     VarMod(const ResidueModification *mod, Int binary_group, Int max_variable_mods_in_peptide);
 
+    // Destructor
+    virtual ~VarMod();
+
     bool isMergeableWith(const VarMod& otherMod);
 
     void merge(VarMod& modification);

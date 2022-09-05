@@ -103,6 +103,10 @@ namespace OpenMS
       this->mod_neutral_loss_ = 0.0;    // TODO: add neutral losses (from Residue or user defined?)
     }
 
+    VarMod::~VarMod()
+    {
+    }
+
     bool VarMod::isMergeableWith(const VarMod& otherMod)
     {
         return   this->mod_mass_ == otherMod.mod_mass_
