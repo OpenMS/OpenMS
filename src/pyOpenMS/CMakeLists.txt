@@ -476,7 +476,7 @@ if ("${PY_NUM_MODULES}" GREATER "1")
       list(APPEND PYPYXFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${NUM}.pyx")
     endforeach()
 else()
-    set(PYCPPFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_1.cpp")
+    set(PYCPPFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.cpp")
     set(PYPYXFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.pyx")
 endif()
 
@@ -655,7 +655,7 @@ if ("${PY_NUM_MODULES}" GREATER "1")
                    COMMENT "Fixing typing information for pyopenms_${nr}")
     endforeach()
 else()
-    Python_add_library(pyopenms_compile MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_1.cpp" )
+    Python_add_library(pyopenms_compile MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.cpp" )
     target_link_libraries(pyopenms_compile PRIVATE OpenMS)
     target_include_directories(pyopenms_compile SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
     target_compile_options(pyopenms_compile PRIVATE ${EXTRA_WARNINGS})
@@ -678,6 +678,10 @@ else()
         LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
         RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
     )
+    add_custom_command(TARGET pyopenms_compile
+    POST_BUILD
+    COMMAND ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/fix_pyi_imports.py ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.pyi
+    COMMENT "Fixing typing information for pyopenms_${nr}")
 endif()
 
 ## use no-binary=pyopenms since we built the binaries already with cmake
