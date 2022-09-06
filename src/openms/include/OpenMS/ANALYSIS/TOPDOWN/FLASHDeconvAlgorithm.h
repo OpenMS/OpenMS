@@ -254,7 +254,7 @@ namespace OpenMS
     int ms_level_;
 
     /// high and low charges are differently deconvolved. This value determines the (inclusive) threshold for low charge.
-    const int low_charge_ = 6; //10 inclusive
+    const int low_charge_ = 5; // 5 inclusive
 
     /// default precursor isolation window size.
     double isolation_window_size_;
@@ -290,6 +290,11 @@ namespace OpenMS
     ///this function takes the previous deconvolution results (from ovelapped spectra) for sensitive deconvolution of the current spectrum
     void unionPrevMassBins_();
 
+    ///get mass value for input mass bin
+    double getMassFromMassBin_(Size mass_bin, double bin_width);
+
+    ///get mz value for input mz bin
+    double getMzFromMzBin_(Size mass_bin, double bin_width);
 
     ///Generate peak groups from the input spectrum
     void generatePeakGroupsFromSpectrum_();
