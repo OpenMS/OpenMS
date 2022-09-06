@@ -5,7 +5,7 @@ for this commit.
 Only change if you know what you are doing.
 
 Use Jenkins labels from the full matrix
-(e.g. see here: https://abibuilder.informatik.uni-tuebingen.de/jenkins/job/openms_release_packaging/)
+(e.g. see here: https://abibuilder.cs.uni-tuebingen.de/jenkins/job/openms_release_packaging/)
 First column must be the OS, all following
 columns are the compilers used on that OS.
 Combinations that do not have a slave that

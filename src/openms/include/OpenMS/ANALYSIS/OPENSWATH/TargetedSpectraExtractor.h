@@ -136,9 +136,9 @@ public:
     private:
       BinnedSpectralContrastAngle cmp_bs_;
       std::vector<BinnedSpectrum> bs_library_;
-      double bin_size_ = 1.0;
+      double bin_size_ = 0.02; // Default for nominal mass: 1.0;
       UInt peak_spread_ = 0;
-      double bin_offset_ = 0.4;
+      double bin_offset_ = 0.0; // Default for nominal mass resolution: 0.4;
     };
 
     void getDefaultParameters(Param& params) const;
@@ -355,7 +355,7 @@ public:
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& extracted_spectra
     ) const;
-
+    
     /**
       @brief Combines the functionalities given by all the other methods implemented
       in this class.
