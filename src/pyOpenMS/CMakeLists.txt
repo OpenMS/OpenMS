@@ -680,7 +680,7 @@ else()
     )
     add_custom_command(TARGET pyopenms_compile
     POST_BUILD
-    COMMAND ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/fix_pyi_imports.py ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.pyi
+    COMMAND ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/fix_pyi_imports.py ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.pyi #TODO Check if really necessary
     COMMENT "Fixing typing information for pyopenms")
 endif()
 
