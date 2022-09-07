@@ -233,7 +233,6 @@ START_SECTION( void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMa
     exp2->addSpectrum(spec);
   }
 
-
   OpenSwath::SpectrumAccessPtr sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
   OpenSwath::SpectrumAccessPtr sptr2 = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp2);
 

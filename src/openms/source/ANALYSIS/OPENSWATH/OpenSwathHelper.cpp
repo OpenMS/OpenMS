@@ -60,7 +60,6 @@ namespace OpenMS
                                                double min_upper_edge_dist, const std::vector< OpenSwath::SwathMap > & swath_maps)
   {
       tr_win_map.resize(transition_exp.transitions.size(), -1);
-      OPENMS_LOG_DEBUG << "tr_win_map size is " << tr_win_map.size() << std::endl;
       for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
       {
         for (Size k = 0; k < transition_exp.transitions.size(); k++)
@@ -75,17 +74,22 @@ namespace OpenMS
              swath_maps[i].lower < tr.getPrecursorMZ() && tr.getPrecursorMZ() < swath_maps[i].upper &&
              std::fabs(swath_maps[i].upper - tr.getPrecursorMZ()) >= min_upper_edge_dist )
           {
-            if (tr_win_map[k] == -1) tr_win_map[k] = i;
-
-            // Check if the current window is better than the previously assigned window (across IM)
-            double imOld = std::fabs(((swath_maps[ tr_win_map[k] ].imLower + swath_maps [ tr_win_map[k] ].imUpper) / 2) - tr.getPrecursorIM() );
-            double imNew = std::fabs(((swath_maps[ i ].imLower + swath_maps [ i ].imUpper) / 2) - tr.getPrecursorIM() );
-            if (imOld > imNew)
+            if (tr_win_map[k] == -1)
             {
-              // current DIA window "i" is a better match
-              OPENMS_LOG_DEBUG << "For Precursor " << tr.getPrecursorIM() << "Replacing Swath Map with IM center of " <<
-                imOld << " with swath map of im center " << imNew << std::endl;
               tr_win_map[k] = i;
+            }
+            else
+            {
+              // Check if the current window is better than the previously assigned window (across IM)
+              double imOld = std::fabs(((swath_maps[ tr_win_map[k] ].imLower + swath_maps [ tr_win_map[k] ].imUpper) / 2) - tr.getPrecursorIM() );
+              double imNew = std::fabs(((swath_maps[ i ].imLower + swath_maps [ i ].imUpper) / 2) - tr.getPrecursorIM() );
+              if (imOld > imNew)
+              {
+                // current DIA window "i" is a better match
+                OPENMS_LOG_DEBUG << "For Precursor " << tr.getPrecursorIM() << " Replacing Swath Map with IM center of " <<
+                  imOld << " with swath map of im center " << imNew << std::endl;
+                tr_win_map[k] = i;
+              }
             }
           }
         }

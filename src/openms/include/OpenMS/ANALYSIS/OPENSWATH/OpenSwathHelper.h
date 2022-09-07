@@ -109,6 +109,7 @@ public:
                                        OpenMS::TargetedExperiment& selected_transitions,
                                        double min_upper_edge_dist,
                                        double lower, double upper);
+
     /**
       @brief Select transitions between lower and upper and write them into the new TargetedExperiment
 

@@ -79,35 +79,40 @@ namespace OpenMS
     return used_maps;
   }
 
-  // Checks SwathMaps for PASEF data in which data can overlap across IM #TODO add documentation
-  std::vector<OpenSwath::SwathMap> findSwathMapsPasef(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
+  // Computes the SwathMaps for PASEF data in which windows can have the same m/z but differ by ion mobility
+  // NOTE: swathMap is stored as a vector to enable compatibility with downstream function calls (as SONAR) can have multiple windows
+  std::vector<OpenSwath::SwathMap> SwathMapMassCorrection::findSwathMapsPasef(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
                                                  const std::vector< OpenSwath::SwathMap > & swath_maps)
   {
     // Although theoretically there can be more than one map, for this case, just use the "best" map, best map is defined as the one in which the IM is closest to the center of the window
     std::vector<OpenSwath::SwathMap> used_maps;
     for (const auto& m : swath_maps)
     {
+      // If precursor m/z and IM in Swath window
       if (m.lower < transition_group.getTransitions()[0].precursor_mz &&
           m.upper >= transition_group.getTransitions()[0].precursor_mz &&
-	  m.imLower < transition_group.getTransitions()[0].precursor_im &&
-	  m.imUpper >= transition_group.getTransitions()[0].precursor_im)
+          m.imLower < transition_group.getTransitions()[0].precursor_im &&
+          m.imUpper >= transition_group.getTransitions()[0].precursor_im)
       {
         // if no other windows at this position just add it
-        if (used_maps.size() == 0){
+        if (used_maps.size() == 0)
+        {
           used_maps.push_back(m);
-	}
-	else { //there is another window at this position, check if the new window found is better
+        }
+        else //there is another window at this position, check if the new window found is better
+        {
           double imCenterDiffOld = std::fabs(((used_maps[0].imLower + used_maps[0].imUpper) / 2) - transition_group.getTransitions()[0].precursor_im);
           double imCenterDiffNew = std::fabs(((m.imLower + m.imUpper) / 2) - transition_group.getTransitions()[0].precursor_im);
-	  if (imCenterDiffOld > imCenterDiffNew)
+          if (imCenterDiffOld > imCenterDiffNew)
           {
             used_maps[0] = m;
-	  }
+          }
         }
       }
     }
     return used_maps;
   }
+
 
   SwathMapMassCorrection::SwathMapMassCorrection() :
     DefaultParamHandler("SwathMapMassCorrection")

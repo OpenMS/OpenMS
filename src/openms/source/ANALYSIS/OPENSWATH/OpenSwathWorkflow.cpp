@@ -322,7 +322,7 @@ namespace OpenMS
     std::vector<int> tr_win_map; // maps transition k to dia map i from which it should be extracted, only used if pasef flag is on
     if (pasef)
     {
-	    OpenSwathHelper::selectSwathTransitionsPasef(irt_transitions, tr_win_map, cp.min_upper_edge_dist, swath_maps);
+      OpenSwathHelper::selectSwathTransitionsPasef(irt_transitions, tr_win_map, cp.min_upper_edge_dist, swath_maps);
     }
 
     this->startProgress(0, 1, "Extract iRT chromatograms");
@@ -376,7 +376,7 @@ namespace OpenMS
         {
         OpenSwathHelper::selectSwathTransitions(irt_transitions, transition_exp_used,
             cp.min_upper_edge_dist, swath_maps[map_idx].lower, swath_maps[map_idx].upper);
-	}
+        }
         if (!transition_exp_used.getTransitions().empty()) // skip if no transitions found
         {
 
@@ -558,8 +558,8 @@ namespace OpenMS
     //
     // currently not supported to do PASEF and PRM
     if (prm_ & pasef_) {
-	    std::cerr << "Setting -pasef and -matching_window_only flags simultaneously is not currently supported." << std::endl;
-	    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      std::cerr << "Setting -pasef and -matching_window_only flags simultaneously is not currently supported." << std::endl;
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     else if (prm_)
     {

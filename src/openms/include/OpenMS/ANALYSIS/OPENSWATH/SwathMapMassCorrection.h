@@ -104,8 +104,21 @@ public:
     void correctIM(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
                    const OpenSwath::LightTargetedExperiment & targeted_exp,
                    const std::vector< OpenSwath::SwathMap > & swath_maps,
-		   const bool pasef,
+                   const bool pasef,
                    TransformationDescription & im_trafo);
+
+    /**
+     * @brief Computes the SwathMaps for PASEF data in which windows can have the same m/z but differ by ion mobility
+     *
+     * For each precursor, the SwathMap is chosen based on library m/z and ion mobility.
+     * If two or more SwathMaps isolate the same precursor the SwathMap in which the precursor is more centered across
+     * ion mobility is chosen. Note that the single swath_map returned is in a vector so that this function is compatible with SONAR functions
+     *
+     * @param [IN] transition_group A MRMTransitionGroup for which the SwathMap is assigned to
+     * @param [OUT] swath_maps A vector containing the a single entry, the swath map which the MRMFeature is assigned to
+     */
+    std::vector<OpenSwath::SwathMap> findSwathMapsPasef(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
+                                                         const std::vector< OpenSwath::SwathMap > & swath_maps);
 
   private:
     double mz_extraction_window_;
