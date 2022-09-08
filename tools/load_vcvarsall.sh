@@ -28,6 +28,7 @@ function load_msenv() {
     local VSWHERE='C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'
     installPath=$("$VSWHERE" -products '*' -version "[$msversion_prod,$msversion_prod_p1)" -property installationPath)
 
+    # TODO check if exists, print error otherwise
     local vcvarsall="${installPath}\\VC\\Auxiliary\\Build\\vcvarsall.bat"
 
     local OLDPATH=$PATH
