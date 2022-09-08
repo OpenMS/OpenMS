@@ -678,6 +678,10 @@ else()
         LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
         RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
     )
+    add_custom_command(TARGET pyopenms_compile
+    POST_BUILD
+    COMMAND ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/fix_pyi_imports.py ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.pyi #TODO Check if really necessary
+    COMMENT "Fixing typing information for pyopenms")
 endif()
 
 ## use no-binary=pyopenms since we built the binaries already with cmake
