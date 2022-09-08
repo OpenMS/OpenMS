@@ -964,7 +964,7 @@ namespace OpenMS
 
     // initialize columns
     OPENMS_LOG_DEBUG << "Initializing study variables:" << n_study_variables << endl;
-    for (Size study_variable = 0; study_variable <= n_study_variables; ++study_variable)
+    for (Size study_variable = 1; study_variable <= n_study_variables; ++study_variable)
     {
       row.peptide_abundance_stdev_study_variable[study_variable] = MzTabDouble();
       row.peptide_abundance_std_error_study_variable[study_variable] = MzTabDouble();
@@ -979,14 +979,14 @@ namespace OpenMS
     ConsensusFeature::HandleSetType fs = c.getFeatures();
     for (auto fit = fs.begin(); fit != fs.end(); ++fit)
     {
-      UInt study_variable{0};
+      UInt study_variable{1};
       const int index = fit->getMapIndex();
       const ConsensusMap::ColumnHeader& ch = cm_column_headers.at(index);
 
       UInt label = ch.getLabelAsUInt(experiment_type);
       // convert from column index to study variable index
       auto pl = make_pair(ch.filename, label);
-      study_variable = path_label_to_assay.at(pl); // for now, a study_variable is one assay
+      study_variable = path_label_to_assay.at(pl) + 1; // for now, a study_variable is one assay (both 1-based). And pathLabelToSample mapping reports 0-based.
 
       //TODO implement aggregation in case we generalize study_variable to include multiple assays.
       row.peptide_abundance_stdev_study_variable[study_variable];
@@ -2584,9 +2584,9 @@ state0:
     // fill ID datastructure without copying
     const vector<ProteinIdentification>& prot_id = consensus_map.getProteinIdentifications();
     prot_ids_.reserve(prot_id.size());
-    for (Size i = 0; i < prot_id.size(); ++i)
+    for (const auto & i : prot_id)
     {
-      prot_ids_.push_back(&(prot_id[i]));
+      prot_ids_.push_back(&i);
     }
  
     // extract mapped IDs
@@ -2610,7 +2610,7 @@ state0:
     // create some lookup structures and precalculate some values
     idrunid_2_idrunindex_ = MzTab::mapIDRunIdentifier2IDRunIndex_(prot_ids_);
 
-    bool has_inference_data = prot_ids_.empty() ? false : prot_ids_[0]->hasInferenceData();
+    bool has_inference_data = !prot_ids_.empty() && prot_ids_[0]->hasInferenceData();
 
     first_run_inference_ = has_inference_data && first_run_inference_only;
     if (first_run_inference_)
@@ -2834,7 +2834,7 @@ state0:
       MzTabParameter quantification_reagent;
       Size label = c.second.getLabelAsUInt(experiment_type);
       auto pl = make_pair(c.second.filename, label);
-      assay_index = path_label_to_assay_[pl];
+      assay_index = path_label_to_assay_[pl] + 1; // sample rows are a vector and therefore their IDs zero-based, mzTab assays 1-based
 
       if (experiment_type == "label-free")
       {

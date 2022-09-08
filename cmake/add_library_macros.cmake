@@ -88,8 +88,8 @@ macro(copy_dll_to_extern_bin targetname)
       file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$(ConfigurationName)/$(TargetFileName)" DLL_DOC_TARGET)
       file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$(ConfigurationName)" DLL_DOC_TARGET_PATH)
     elseif(NOT GENERATOR_IS_MULTI_CONFIG)
-      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)/$(TargetFileName)" DLL_TEST_TARGET)
-      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)" DLL_TEST_TARGET_PATH)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/" DLL_TEST_TARGET)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/" DLL_TEST_TARGET_PATH)
 
       file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/" DLL_DOC_TARGET)
       file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/" DLL_DOC_TARGET_PATH)
@@ -103,7 +103,8 @@ macro(copy_dll_to_extern_bin targetname)
             COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_TEST_TARGET_PATH}"
             COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${targetname}> ${DLL_TEST_TARGET}
             COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_DOC_TARGET_PATH}"
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${targetname}> ${DLL_DOC_TARGET})
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${targetname}> ${DLL_DOC_TARGET}
+            )
   endif()
 endmacro()
 
@@ -222,7 +223,10 @@ function(openms_add_library)
 
   #------------------------------------------------------------------------------
   # copy dll to test/doc bin folder on MSVC systems
+  copy_dll_to_extern_bin(${openms_add_library_TARGET_NAME})
+
   if(${CMAKE_VERSION} VERSION_GREATER "3.20")
+    # with newer CMakes we can also easily copy dependencies like Qt
     # This stores the command as a list
     set(has_dll_dep
             $<BOOL:$<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>>
@@ -266,8 +270,6 @@ function(openms_add_library)
               COMMAND_EXPAND_LISTS
               )
     endforeach()
-  else()
-    copy_dll_to_extern_bin(${openms_add_library_TARGET_NAME})
   endif()
   #------------------------------------------------------------------------------
   # Status message for configure output

@@ -143,21 +143,13 @@ namespace OpenMS
 
         if (!f.second.metaValueExists("sample_name"))
         {
-          if (experiment_type == "label-free")
-          {
-            // since lfq has no labels, samples are defined solely by fraction groups
-            r.sample = r.fraction_group;
-            r.sample_name = r.sample;
-          }
-          else // MS1 or MS2 labeled -> We create one sample for each fractiongroup/label combination
+          // We create one sample for each fractiongroup/label combination
           // this assumes that fractionation took place after labelling. Otherwise, a design needs to be given.
-          {
-            // check fractiongroup_label_to_sample_mapping and add if not present, otherwise use present
-            auto key = make_pair(r.fraction_group, r.label);
-            auto it = fractiongroup_label_to_sample_mapping.emplace(key, fractiongroup_label_to_sample_mapping.size() + 1);
-            r.sample = it.first->second;
-            r.sample_name = r.sample;
-          }
+          // check fractiongroup_label_to_sample_mapping and add if not present, otherwise use present
+          auto key = make_pair(r.fraction_group, r.label);
+          auto it = fractiongroup_label_to_sample_mapping.emplace(key, fractiongroup_label_to_sample_mapping.size());
+          r.sample = it.first->second;
+          r.sample_name = r.sample;
         } else {
           r.sample_name = f.second.getMetaValue("sample_name");
           const auto& [it, inserted] = samplename_to_sample_mapping.emplace(r.sample_name,samplename_to_sample_mapping.size());
@@ -220,11 +212,18 @@ namespace OpenMS
       r.path = ms_paths[0];
       r.fraction = 1;
       r.sample = 0;
+      r.sample_name = "0";
       r.fraction_group = 1;
       r.label = 1;
 
       ExperimentalDesign::MSFileSection rows(1, r);
+
+      ExperimentalDesign::SampleSection s;
+      s.addSample(r.sample_name);
+
       experimental_design.setMSFileSection(rows);
+      experimental_design.setSampleSection(s);
+
       OPENMS_LOG_INFO << "Experimental design (FeatureMap derived):\n"
                << "  files: " << experimental_design.getNumberOfMSFiles()
                << "  fractions: " << experimental_design.getNumberOfFractions()
@@ -253,19 +252,23 @@ namespace OpenMS
       // each identification run corresponds to one sample abundance
       unsigned sample(0);
       ExperimentalDesign::MSFileSection rows;
+      ExperimentalDesign::SampleSection srows;
       for (const auto &f : ms_run_paths)
       {
         ExperimentalDesign::MSFileSectionEntry r;
         r.path = f;
         r.fraction = 1;
         r.sample = sample;
+        r.sample_name = String(sample);
         r.fraction_group = sample;
         r.label = 1;
 
         rows.push_back(r);
+        srows.addSample(String(sample));
         ++sample;
       }
       experimental_design.setMSFileSection(rows);
+      experimental_design.setSampleSection(srows);
       OPENMS_LOG_INFO << "Experimental design (Identification derived):\n"
                << "  files: " << experimental_design.getNumberOfMSFiles()
                << "  fractions: " << experimental_design.getNumberOfFractions()
@@ -332,10 +335,11 @@ namespace OpenMS
       if (sample_section_.getFactors().empty())
       {
         // no information about the origin of the samples -> assume uniqueness of all
-        unsigned nr(getNumberOfSamples());
-        for (unsigned i(0); i <= nr; ++i)
+        Size i(0);
+        for (const auto& s : sample_section_.getSamples())
         {
-          res[i] = i;
+          res[s] = i;
+          i++;
         }
       }
       else

@@ -406,9 +406,9 @@ protected:
     }
     else
     {
-      for (Size i = 1; i <= ed.getNumberOfSamples(); ++i)
+      for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
       {
-        out << "abundance_" + String(i);
+        out << "abundance_" + String(i+1);
       }
     }
     out << "fraction" << endl;
@@ -437,7 +437,7 @@ protected:
           {
             out << q.first.toString() << protein << accessions.size() << ab.first;
 
-            for (size_t sample_id = 1; sample_id <= ed.getNumberOfSamples(); ++sample_id)
+            for (size_t sample_id = 0; sample_id < ed.getNumberOfSamples(); ++sample_id)
             {
               // write abundance for the sample if it exists, 0 otherwise:
               SampleAbundances::const_iterator pos = ab.second.find(sample_id);
@@ -452,7 +452,7 @@ protected:
         // write total abundances (accumulated over all charge states and fractions):
         out << q.first.toString() << protein << accessions.size() << 0;
 
-        for (size_t sample_id = 1; sample_id <= ed.getNumberOfSamples(); ++sample_id)
+        for (size_t sample_id = 0; sample_id < ed.getNumberOfSamples(); ++sample_id)
         {
           // write abundance for the sample if it exists, 0 otherwise:
           SampleAbundances::const_iterator pos = q.second.total_abundances.find(sample_id);
@@ -477,26 +477,26 @@ protected:
     }
     else
     {
-      for (Size i = 1; i <= ed.getNumberOfSamples(); ++i)
+      for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
       {
-        out << "abundance_" + String(i);
+        out << "abundance_" + String(i+1);
       }
 
       // TODO MULTIPLEXING: check if correct
       // if ratios-flag is set, print log2-ratios. ratio_1 <sep> ratio_x ....
       if (print_ratios)
       {
-        for (Size i = 1; i <= ed.getNumberOfSamples(); ++i)
+        for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
         {
-          out << "ratio_" + String(i);
+          out << "ratio_" + String(i+1);
         }
       }
       // if ratiosSILAC-flag is set, print SILAC log2-ratios, only if three
       if (print_SILACratios && ed.getNumberOfSamples() == 3)
       {
-        for (Size i = 1; i <= ed.getNumberOfSamples(); ++i)
+        for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
         {
-          out << "SILACratio_" + String(i);
+          out << "SILACratio_" + String(i+1);
         }
       }
     }
@@ -547,7 +547,7 @@ protected:
       Size n_peptide = q.second.abundances.size();
       out << n_peptide;
 
-      for (size_t sample_id = 1; sample_id <= ed.getNumberOfSamples(); ++sample_id)
+      for (size_t sample_id = 0; sample_id < ed.getNumberOfSamples(); ++sample_id)
       {
         // write abundance for the sample if it exists, 0 otherwise:
         SampleAbundances::const_iterator pos = q.second.total_abundances.find(sample_id);
@@ -558,9 +558,9 @@ protected:
       if (print_ratios)
       {
         double log2 = log(2.0);
-        double ref_abundance = q.second.total_abundances.find(1)->second;
+        double ref_abundance = q.second.total_abundances.find(0)->second;
         out << 0; // =log(1)/log2;
-        for (size_t sample_id = 2; sample_id <= ed.getNumberOfSamples(); ++sample_id)
+        for (size_t sample_id = 1; sample_id < ed.getNumberOfSamples(); ++sample_id)
 
         {
           SampleAbundances::const_iterator pos = q.second.total_abundances.find(sample_id);
@@ -570,9 +570,9 @@ protected:
       // if ratiosSILAC-flag is set, print log2-SILACratios. Only if three maps are provided (triple SILAC).
       if (print_SILACratios && ed.getNumberOfSamples() == 3)
       {
-        double light = q.second.total_abundances.find(1)->second;
-        double middle = q.second.total_abundances.find(2)->second;
-        double heavy = q.second.total_abundances.find(3)->second;
+        double light = q.second.total_abundances.find(0)->second;
+        double middle = q.second.total_abundances.find(1)->second;
+        double heavy = q.second.total_abundances.find(2)->second;
 
         double log2 = log(2.0);
 
@@ -644,15 +644,15 @@ protected:
     if (ed.getNumberOfSamples() > 1)
     {
       String desc = "# Files/samples associated with abundance values below: ";
-      Size counter = 1;
+      Size counter = 0;
       for (ConsensusMap::ColumnHeaders::iterator it = columns_headers_.begin();
            it != columns_headers_.end(); ++it, ++counter)
       {
-        if (counter > 1)
+        if (counter > 0)
         {
           desc += ", ";
         }
-        desc += String(counter) + ": '" + it->second.filename + "'";
+        desc += String(counter+1) + ": '" + it->second.filename + "'";
         String label = it->second.label;
         if (!label.empty())
         {
@@ -889,7 +889,7 @@ protected:
       {
         // annotate quants to protein(groups) for easier export in mzTab
         auto const & protein_quants = quantifier.getProteinResults();
-        PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, proteins_);
+        quantifier.annotateQuantificationsToProteins(protein_quants, proteins_);
         if (!inference_in_cxml)
         {
           auto& prots = consensus.getProteinIdentifications();

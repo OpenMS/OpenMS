@@ -668,6 +668,8 @@ namespace OpenMS
     ConsensusMap& consensus, 
     const ExperimentalDesign& ed)
   {
+
+    // TODO check that the file section of the experimental design is compatible with what can be parsed from the consensus map.
     updateMembers_(); // clear data
 
     if (consensus.empty())
@@ -701,9 +703,16 @@ namespace OpenMS
       PeptideHit hit = getAnnotation_(c.getPeptideIdentifications());
       for (auto const & f : c.getFeatures())
       {
-        // indices in experimental design are 1-based (as in text file)
-        // so we need to convert between them
+        // indices in experimental design are 0-based as the map indices
         //TODO MULTIPLEXED: needs to be adapted for multiplexed experiments
+        //TODO In General, this assumes that the experimental design was generated
+        //  FROM the consensusXML and therefore is in exactly the same order!
+        //  WAY too restrictive!
+        /*
+        const auto& h = consensus.getColumnHeaders().at(row);
+        const String& fn = h.filename;
+        const size_t lab = h.getLabelAsUInt(consensus.getExperimentType());
+         */
         size_t row = f.getMapIndex();
         size_t fraction = ed.getMSFileSection()[row].fraction;
         size_t sample = ed.getMSFileSection()[row].sample;
