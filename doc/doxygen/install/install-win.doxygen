@@ -79,7 +79,7 @@
 
     <ol>
       <li>Open a <b>VisualStudio Developer Command prompt</b> (by default you will get a 32-bit environment which you most likely do not want; use a x64 environment if you want 64 bit apps!)<br>
-					@note VS2017+ has a (well hidden) batch-file which correctly configures your environment for 64bit builds. It should be located at
+					@note VS2019 and above have a (well hidden) batch-file which correctly configures your environment for 64bit builds. It should be located at
 					<tt>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>. (Same goes for VS2022)
           Use our tools/load_vcvarsall.sh if you are building in bash on Windows.
       <li>Create a build directory for the %OpenMS contrib<br>
