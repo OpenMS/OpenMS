@@ -41,12 +41,17 @@ namespace OpenMS
   namespace IdentificationDataInternal
   {
     /// Wrapper that adds @p operator< to iterators, so they can be used as (part of) keys in maps/sets or @p multi_index_containers
-    template <typename Iterator>
-    struct IteratorWrapper: public Iterator
+    template<typename Iterator, typename Value>
+    class IteratorWrapper : public Iterator
     {
-      IteratorWrapper(): Iterator() {}
+    public:
+      IteratorWrapper() : Iterator()
+      {
+      }
 
-      IteratorWrapper(const Iterator& it): Iterator(it) {}
+      IteratorWrapper(const Iterator& it) : Iterator(it)
+      {
+      }
 
       bool operator<(const IteratorWrapper& other) const
       {
@@ -58,6 +63,10 @@ namespace OpenMS
       operator uintptr_t() const
       {
         return uintptr_t(&(**this));
+      }
+      Value deref()
+      {
+        return *(*this);
       }
     };
 
@@ -75,5 +84,5 @@ namespace OpenMS
       MONOISOTOPIC,
       AVERAGE
     };
-  }
-}
+  } // namespace IdentificationDataInternal
+} // namespace OpenMS

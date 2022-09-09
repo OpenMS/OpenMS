@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -49,15 +48,14 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
-
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <QStringList>
 
 
@@ -65,7 +63,7 @@ using namespace OpenMS;
 using namespace std;
 
 //-------------------------------------------------------------
-//Doxygen docu
+// Doxygen docu
 //-------------------------------------------------------------
 
 /**
@@ -148,8 +146,7 @@ String extractCachedMetaFilename(const String& in)
   in.split(".cachedMzML", split_out);
   if (split_out.size() != 2)
   {
-    OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in
-      << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
+    OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
     return "";
   }
   String in_meta = split_out[0] + ".mzML";
@@ -159,12 +156,10 @@ String extractCachedMetaFilename(const String& in)
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPFileConverter :
-  public TOPPBase
+class TOPPFileConverter : public TOPPBase
 {
 public:
-  TOPPFileConverter() :
-    TOPPBase("FileConverter", "Converts between different MS file formats.")
+  TOPPFileConverter() : TOPPBase("FileConverter", "Converts between different MS file formats.")
   {
   }
 
@@ -177,7 +172,9 @@ protected:
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
 
-    registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique ID post-processing for output data.\n'none' keeps current IDs even if invalid.\n'ensure' keeps current IDs but reassigns invalid ones.\n'reassign' assigns new unique IDs.", false, true);
+    registerStringOption_(
+      "UID_postprocessing", "<method>", "ensure",
+      "unique ID post-processing for output data.\n'none' keeps current IDs even if invalid.\n'ensure' keeps current IDs but reassigns invalid ones.\n'reassign' assigns new unique IDs.", false, true);
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
@@ -189,18 +186,29 @@ protected:
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
     registerFlag_("MGF_compact", "Use a more compact format when writing MGF (no zero-intensity peaks, limited number of decimal places)", true);
     registerFlag_("force_MaxQuant_compatibility", "[mzXML output only] Make sure that MaxQuant can read the mzXML and set the msManufacturer to 'Thermo Scientific'.", true);
-    registerFlag_("force_TPP_compatibility", "[mzML output only] Make sure that TPP parsers can read the mzML and the precursor ion m/z in the file (otherwise it will be set to zero by the TPP).", true);
+    registerFlag_("force_TPP_compatibility", "[mzML output only] Make sure that TPP parsers can read the mzML and the precursor ion m/z in the file (otherwise it will be set to zero by the TPP).",
+                  true);
     registerFlag_("convert_to_chromatograms", "[mzML output only] Assumes that the provided spectra represent data in SRM mode or targeted MS1 mode and converts them to chromatogram data.", true);
 
-    registerStringOption_("change_im_format", "<toggle>", "none", "[mzML output only] How to store ion mobility scans (none: no change in format; multiple_spectra: store each IM frame as multiple scans (one per drift time value); concatenated: store whole frame as single scan with IM values in a FloatDataArray", false, true);
+    registerStringOption_("change_im_format", "<toggle>", "none",
+                          "[mzML output only] How to store ion mobility scans (none: no change in format; multiple_spectra: store each IM frame as multiple scans (one per drift time value); "
+                          "concatenated: store whole frame as single scan with IM values in a FloatDataArray",
+                          false, true);
     setValidStrings_("change_im_format", NamesOfIMFormat, (int)IMFormat::SIZE_OF_IMFORMAT);
 
     registerStringOption_("write_scan_index", "<toggle>", "true", "Append an index when writing mzML or mzXML files. Some external tools might rely on it.", false, true);
     setValidStrings_("write_scan_index", ListUtils::create<String>("true,false"));
-    registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size using linear compression for m/z domain and slof for intensity and float data arrays (attention: may cause small loss of precision; only for mzML data).", true);
-    registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
+    registerFlag_("lossy_compression",
+                  "Use numpress compression to achieve optimally small file size using linear compression for m/z domain and slof for intensity and float data arrays (attention: may cause small loss "
+                  "of precision; only for mzML data).",
+                  true);
+    registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0,
+                          "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
-    registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
+    registerFlag_("process_lowmemory",
+                  "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from "
+                  "spectra to chromatograms.",
+                  true);
     registerInputFile_("NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac.", false, true, {"is_executable"});
     registerInputFile_("ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, {"is_executable"});
     setValidFormats_("ThermoRaw_executable", {"exe"});
@@ -215,7 +223,7 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
 
-    //input file names
+    // input file names
     String in = getStringOption_("in");
     bool write_scan_index = getStringOption_("write_scan_index") == "true" ? true : false;
     IMFormat change_im_format = toIMFormat(getStringOption_("change_im_format"));
@@ -230,10 +238,10 @@ protected:
 
     // prepare data structures for lossy compression (note that we compress any float data arrays the same as intensity arrays)
     MSNumpressCoder::NumpressConfig npconfig_mz, npconfig_int, npconfig_fda;
-    npconfig_mz.estimate_fixed_point = true; // critical
-    npconfig_int.estimate_fixed_point = true; // critical
-    npconfig_fda.estimate_fixed_point = true; // critical
-    npconfig_mz.numpressErrorTolerance = -1.0; // skip check, faster
+    npconfig_mz.estimate_fixed_point = true;    // critical
+    npconfig_int.estimate_fixed_point = true;   // critical
+    npconfig_fda.estimate_fixed_point = true;   // critical
+    npconfig_mz.numpressErrorTolerance = -1.0;  // skip check, faster
     npconfig_int.numpressErrorTolerance = -1.0; // skip check, faster
     npconfig_fda.numpressErrorTolerance = -1.0; // skip check, faster
     npconfig_mz.setCompression("linear");
@@ -284,8 +292,7 @@ protected:
     {
       ConsensusXMLFile().load(in, cm);
       cm.sortByPosition();
-      if ((out_type != FileTypes::FEATUREXML) &&
-          (out_type != FileTypes::CONSENSUSXML))
+      if ((out_type != FileTypes::FEATUREXML) && (out_type != FileTypes::CONSENSUSXML))
       {
         // You you will lose information and waste memory. Enough reasons to issue a warning!
         writeLogWarn_("Warning: Converting consensus features to peaks. You will lose information!");
@@ -296,8 +303,7 @@ protected:
     {
       if (out_type != FileTypes::MZML)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Only conversion to mzML supported at this point.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Only conversion to mzML supported at this point.");
       }
       writeLogInfo_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
       String net_executable = getStringOption_("NET_executable");
@@ -316,10 +322,8 @@ protected:
       net_executable = net_executable.empty() ? "mono" : net_executable;
       arguments << getStringOption_("ThermoRaw_executable").toQString();
 #endif
-      arguments << ("-i=" + in).c_str()
-                << ("--output_file=" + out).c_str()
-                << "-f=2" // indexedMzML
-                << "-e"; // ignore instrument errors
+      arguments << ("-i=" + in).c_str() << ("--output_file=" + out).c_str() << "-f=2" // indexedMzML
+                << "-e";                                                              // ignore instrument errors
       if (no_peak_picking)
       {
         arguments << "--noPeakPicking";
@@ -338,24 +342,18 @@ protected:
     {
       EDTAFile().load(in, cm);
       cm.sortByPosition();
-      if ((out_type != FileTypes::FEATUREXML) &&
-          (out_type != FileTypes::CONSENSUSXML))
+      if ((out_type != FileTypes::FEATUREXML) && (out_type != FileTypes::CONSENSUSXML))
       {
         // You you will lose information and waste memory. Enough reasons to issue a warning!
         writeLogWarn_("Warning: Converting consensus features to peaks. You will lose information!");
         exp.set2DData(cm);
       }
     }
-    else if (in_type == FileTypes::FEATUREXML ||
-             in_type == FileTypes::TSV ||
-             in_type == FileTypes::PEPLIST ||
-             in_type == FileTypes::KROENIK)
+    else if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::TSV || in_type == FileTypes::PEPLIST || in_type == FileTypes::KROENIK)
     {
       fh.loadFeatures(in, fm, in_type);
       fm.sortByPosition();
-      if ((out_type != FileTypes::FEATUREXML) &&
-          (out_type != FileTypes::CONSENSUSXML) &&
-          (out_type != FileTypes::OMS))
+      if ((out_type != FileTypes::FEATUREXML) && (out_type != FileTypes::CONSENSUSXML) && (out_type != FileTypes::OMS))
       {
         // You will lose information and waste memory. Enough reasons to issue a warning!
         writeLogWarn_("Warning: Converting features to peaks. You will lose information! Mass traces are added, if present as 'num_of_masstraces' and 'masstrace_intensity' (X>=0) meta values.");
@@ -387,15 +385,15 @@ protected:
       }
 
       // Populate meta data with actual data points
-      for (Size i=0; i < tmp_exp.size(); ++i)
+      for (Size i = 0; i < tmp_exp.size(); ++i)
       {
         for (Size j = 0; j < tmp_exp[i].size(); j++)
         {
           exp[i].push_back(tmp_exp[i][j]);
         }
       }
-      std::vector<MSChromatogram > old_chromatograms = exp.getChromatograms();
-      for (Size i=0; i < tmp_exp.getChromatograms().size(); ++i)
+      std::vector<MSChromatogram> old_chromatograms = exp.getChromatograms();
+      for (Size i = 0; i < tmp_exp.getChromatograms().size(); ++i)
       {
         for (Size j = 0; j < tmp_exp.getChromatograms()[i].size(); j++)
         {
@@ -469,8 +467,7 @@ protected:
       }
       else
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Process_lowmemory option can only be used with mzML / mzXML input and mzML output data types.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Process_lowmemory option can only be used with mzML / mzXML input and mzML output data types.");
       }
     }
     else
@@ -486,9 +483,8 @@ protected:
 
     if (out_type == FileTypes::MZML)
     {
-      //add data processing entry
-      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
-                                                 CONVERSION_MZML));
+      // add data processing entry
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CONVERSION_MZML));
       MzMLFile f;
       f.setLogType(log_type_);
       f.getOptions().setWriteIndex(write_scan_index);
@@ -504,7 +500,7 @@ protected:
 
       if (convert_to_chromatograms)
       {
-        for (auto & s : exp)
+        for (auto& s : exp)
         {
           s.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
         }
@@ -516,18 +512,15 @@ protected:
 
         if (itype == IMFormat::NONE)
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Requested conversion to different ion mobility format, but no ion mobility data is present.");
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Requested conversion to different ion mobility format, but no ion mobility data is present.");
         }
         else if (change_im_format == itype && itype == IMFormat::MULTIPLE_SPECTRA)
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Requested conversion to 'multiple' ion mobility format, but data is already in this format.");
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Requested conversion to 'multiple' ion mobility format, but data is already in this format.");
         }
         else if (change_im_format == itype && itype == IMFormat::CONCATENATED)
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Requested conversion to 'single' ion mobility format, but data is already in this format.");
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Requested conversion to 'single' ion mobility format, but data is already in this format.");
         }
 
         if (change_im_format == IMFormat::MULTIPLE_SPECTRA && itype == IMFormat::CONCATENATED)
@@ -544,9 +537,8 @@ protected:
     }
     else if (out_type == FileTypes::MZDATA)
     {
-      //annotate output with data processing info
-      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
-                                                 CONVERSION_MZDATA));
+      // annotate output with data processing info
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CONVERSION_MZDATA));
       MzDataFile f;
       f.setLogType(log_type_);
       ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
@@ -554,21 +546,19 @@ protected:
     }
     else if (out_type == FileTypes::MZXML)
     {
-      //annotate output with data processing info
-      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
-                                                 CONVERSION_MZXML));
+      // annotate output with data processing info
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CONVERSION_MZXML));
       MzXMLFile f;
       f.setLogType(log_type_);
       f.getOptions().setForceMQCompatability(force_MaxQuant_compatibility);
       f.getOptions().setWriteIndex(write_scan_index);
-      //ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
+      // ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
       f.store(out, exp);
     }
     else if (out_type == FileTypes::DTA2D)
     {
-      //add data processing entry
-      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
-                                                 FORMAT_CONVERSION));
+      // add data processing entry
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
       DTA2DFile f;
       f.setLogType(log_type_);
       ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
@@ -582,22 +572,18 @@ protected:
         // store entire experiment
         f.store(out, exp);
       }
-
-
     }
     else if (out_type == FileTypes::MGF)
     {
-      //add data processing entry
-      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
-                                                 FORMAT_CONVERSION));
+      // add data processing entry
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
       MascotGenericFile f;
       f.setLogType(log_type_);
       f.store(out, exp, getFlag_("MGF_compact"));
     }
     else if (out_type == FileTypes::FEATUREXML)
     {
-      if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
-          (in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK))
+      if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) || (in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK))
       {
         if (uid_postprocessing == "ensure")
         {
@@ -624,8 +610,8 @@ protected:
         fm.clear();
         fm.reserve(exp.getSize());
         Feature feature;
-        feature.setQuality(0, 1); // override default
-        feature.setQuality(1, 1); // override default
+        feature.setQuality(0, 1);     // override default
+        feature.setQuality(1, 1);     // override default
         feature.setOverallQuality(1); // override default
         for (const MSSpectrum& spec : exp)
         {
@@ -641,14 +627,12 @@ protected:
         fm.updateRanges();
       }
 
-      addDataProcessing_(fm, getProcessingInfo_(DataProcessing::
-                                                FORMAT_CONVERSION));
+      addDataProcessing_(fm, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
       FeatureXMLFile().store(out, fm);
     }
     else if (out_type == FileTypes::CONSENSUSXML)
     {
-      if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
-          (in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK))
+      if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) || (in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK))
       {
         if (uid_postprocessing == "ensure")
         {
@@ -673,8 +657,7 @@ protected:
         pepID.setMetaValue("map_index", 0);
       }
 
-      addDataProcessing_(cm, getProcessingInfo_(DataProcessing::
-                                                FORMAT_CONVERSION));
+      addDataProcessing_(cm, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
       ConsensusXMLFile().store(out, cm);
     }
     else if (out_type == FileTypes::EDTA)
@@ -745,7 +728,6 @@ protected:
 
     return EXECUTION_OK;
   }
-
 };
 
 int main(int argc, const char** argv)

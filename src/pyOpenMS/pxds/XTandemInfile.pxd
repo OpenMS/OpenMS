@@ -19,8 +19,8 @@ cdef extern from "<OpenMS/FORMAT/XTandemInfile.h>" namespace "OpenMS":
         void setPrecursorMassToleranceMinus(double tol) nogil except +
         double getPrecursorMassToleranceMinus() nogil except +
 
-        void setPrecursorErrorType(MassType mono_isotopic) nogil except +
-        MassType getPrecursorErrorType() nogil except +
+        void setPrecursorErrorType(XMassType mono_isotopic) nogil except +
+        XMassType getPrecursorErrorType() nogil except +
 
         void setFragmentMassErrorUnit(ErrorUnit unit) nogil except +
         ErrorUnit getFragmentMassErrorUnit() nogil except +
@@ -76,7 +76,7 @@ cdef extern from "<OpenMS/FORMAT/XTandemInfile.h>" namespace "OpenMS::XTandemInf
         PPM
 
 cdef extern from "<OpenMS/FORMAT/XTandemInfile.h>" namespace "OpenMS::XTandemInfile":
-    cdef enum MassType "OpenMS::XTandemInfile::MassType":
+    cdef enum XMassType "OpenMS::XTandemInfile::XMassType":
         #wrap-attach:
         #    XTandemInfile
         MONOISOTOPIC

@@ -34,15 +34,13 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <Wm5Vector2.h>
 #include <Wm5ApprLineFit2.h>
+#include <Wm5Vector2.h>
 
 namespace OpenMS
 {
 
-  TransformationModelLinear::TransformationModelLinear(const TransformationModel::DataPoints& data, const Param& params) :
-    TransformationModel(data, params) // initializes model
+  TransformationModelLinear::TransformationModelLinear(const TransformationModel::DataPoints& data, const Param& params) : TransformationModel(data, params) // initializes model
   {
     data_given_ = !data.empty();
 
@@ -60,7 +58,8 @@ namespace OpenMS
       symmetric_ = params_.getValue("symmetric_regression") == "true";
       // weight the data (if weighting is specified)
       TransformationModel::DataPoints data_weighted = data;
-      // TrafoXML's prior to OpenMS 3.0 have x/y_weight = "" if unweighted 
+
+      // TrafoXML's prior to OpenMS 3.0 have x/y_weight = "" if unweighted
       if ((params.exists("x_weight") && params.getValue("x_weight") != "x" && params.getValue("x_weight") != "") ||
           (params.exists("y_weight") && params.getValue("y_weight") != "y" && params.getValue("y_weight") != ""))
       {
@@ -71,8 +70,7 @@ namespace OpenMS
       std::vector<Wm5::Vector2d> points;
       if (size == 0) // no data
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "no data points for 'linear' model");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "no data points for 'linear' model");
       }
       else if (size == 1) // degenerate case, but we can still do something
       {
@@ -125,16 +123,15 @@ namespace OpenMS
   {
     if (slope_ == 0)
     {
-      throw Exception::DivisionByZero(__FILE__, __LINE__,
-                                      OPENMS_PRETTY_FUNCTION);
+      throw Exception::DivisionByZero(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     intercept_ = -intercept_ / slope_;
     slope_ = 1.0 / slope_;
 
     // invert the weights:
-    std::swap(x_datum_min_,y_datum_min_);
-    std::swap(x_datum_max_,y_datum_max_);
-    std::swap(x_weight_,y_weight_);
+    std::swap(x_datum_min_, y_datum_min_);
+    std::swap(x_datum_max_, y_datum_max_);
+    std::swap(x_weight_, y_weight_);
 
     // update parameters:
     params_.setValue("slope", slope_);
@@ -147,7 +144,8 @@ namespace OpenMS
     params_.setValue("y_datum_max", y_datum_max_);
   }
 
-  void TransformationModelLinear::getParameters(double& slope, double& intercept, String& x_weight, String& y_weight, double& x_datum_min, double& x_datum_max, double& y_datum_min, double& y_datum_max) const
+  void TransformationModelLinear::getParameters(double& slope, double& intercept, String& x_weight, String& y_weight, double& x_datum_min, double& x_datum_max, double& y_datum_min,
+                                                double& y_datum_max) const
   {
     slope = slope_;
     intercept = intercept_;
@@ -162,20 +160,18 @@ namespace OpenMS
   void TransformationModelLinear::getDefaultParameters(Param& params)
   {
     params.clear();
-    params.setValue("symmetric_regression", "false", "Perform linear regression"
-                                                     " on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
-    params.setValidStrings("symmetric_regression",
-                           {"true","false"});
+    params.setValue("symmetric_regression", "false",
+                    "Perform linear regression"
+                    " on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
+    params.setValidStrings("symmetric_regression", {"true", "false"});
     params.setValue("x_weight", "x", "Weight x values");
-    params.setValidStrings("x_weight",
-                           {"1/x","1/x2","ln(x)","x"});
+    params.setValidStrings("x_weight", {"1/x", "1/x2", "ln(x)", "x"});
     params.setValue("y_weight", "y", "Weight y values");
-    params.setValidStrings("y_weight",
-                           {"1/y","1/y2","ln(y)","y"});
+    params.setValidStrings("y_weight", {"1/y", "1/y2", "ln(y)", "y"});
     params.setValue("x_datum_min", 1e-15, "Minimum x value");
     params.setValue("x_datum_max", 1e15, "Maximum x value");
     params.setValue("y_datum_min", 1e-15, "Minimum y value");
     params.setValue("y_datum_max", 1e15, "Maximum y value");
   }
 
-} // namespace
+} // namespace OpenMS

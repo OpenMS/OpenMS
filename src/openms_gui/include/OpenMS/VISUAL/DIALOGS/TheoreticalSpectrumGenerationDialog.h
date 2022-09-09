@@ -34,16 +34,13 @@
 
 
 #pragma once
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-#include <QtWidgets/QDialog>
-#include <QtWidgets/qspinbox.h>
-#include <QtWidgets/qlabel.h>
-
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/qlabel.h>
+#include <QtWidgets/qspinbox.h>
 #include <array>
 
 namespace Ui
@@ -70,8 +67,7 @@ namespace OpenMS
 
       @ingroup Dialogs
   */
-  class OPENMS_GUI_DLLAPI TheoreticalSpectrumGenerationDialog :
-    public QDialog
+  class OPENMS_GUI_DLLAPI TheoreticalSpectrumGenerationDialog : public QDialog
   {
     Q_OBJECT
 
@@ -104,7 +100,7 @@ namespace OpenMS
       RNA,
       METABOLITE
     };
-    
+
     friend class TestTSGDialog; // to test the GUI expressed in the private member ui
 
     /// Constructor
@@ -118,7 +114,7 @@ namespace OpenMS
     /// returns the input sequence (is public for TOPPView)
     const String getSequence() const;
 
-protected slots:
+  protected slots:
 
     /// for isotope model changes
     void modelChanged_();
@@ -129,9 +125,8 @@ protected slots:
     /// calculates the spectrum
     void calculateSpectrum_();
 
-protected:
-
-private:
+  protected:
+  private:
     /// calculate parameters from UI elements
     Param getParam_() const;
 
@@ -146,7 +141,7 @@ private:
     SequenceType seq_type_;
 
     /// array of TSGDialog::CheckBox
-    /// 
+    ///
     /// Note: Ordering has to be the same as in the UI!
     const std::array<CheckBox, 12> check_boxes_;
 
@@ -154,4 +149,4 @@ private:
     MSSpectrum spec_;
   };
 
-}
+} // namespace OpenMS

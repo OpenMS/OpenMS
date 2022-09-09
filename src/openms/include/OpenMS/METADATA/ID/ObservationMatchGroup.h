@@ -35,9 +35,8 @@
 #pragma once
 
 #include <OpenMS/METADATA/ID/ObservationMatch.h>
-
-#include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index_container.hpp>
 
 namespace OpenMS
 {
@@ -47,20 +46,19 @@ namespace OpenMS
 
       E.g. for cross-linking data or multiplexed spectra.
     */
-    struct ObservationMatchGroup: public ScoredProcessingResult
-    {
+    struct ObservationMatchGroup : public ScoredProcessingResult {
       std::set<ObservationMatchRef> observation_match_refs;
 
       bool allSameMolecule() const
       {
         // @TODO: return true or false for the empty set?
-        if (observation_match_refs.size() <= 1) return true;
-        const IdentifiedMolecule var =
-          (*observation_match_refs.begin())->identified_molecule_var;
-        for (auto it = ++observation_match_refs.begin();
-             it != observation_match_refs.end(); ++it)
+        if (observation_match_refs.size() <= 1)
+          return true;
+        const IdentifiedMolecule var = (*observation_match_refs.begin())->identified_molecule_var;
+        for (auto it = ++observation_match_refs.begin(); it != observation_match_refs.end(); ++it)
         {
-          if (!((*it)->identified_molecule_var == var)) return false;
+          if (!((*it)->identified_molecule_var == var))
+            return false;
         }
         return true;
       }
@@ -68,20 +66,20 @@ namespace OpenMS
       bool allSameQuery() const
       {
         // @TODO: return true or false for the empty set?
-        if (observation_match_refs.size() <= 1) return true;
+        if (observation_match_refs.size() <= 1)
+          return true;
         ObservationRef ref = (*observation_match_refs.begin())->observation_ref;
-        for (auto it = ++observation_match_refs.begin();
-             it != observation_match_refs.end(); ++it)
+        for (auto it = ++observation_match_refs.begin(); it != observation_match_refs.end(); ++it)
         {
-          if ((*it)->observation_ref != ref) return false;
+          if ((*it)->observation_ref != ref)
+            return false;
         }
         return true;
       }
 
       bool operator==(const ObservationMatchGroup rhs) const
       {
-        return ((rhs.observation_match_refs == observation_match_refs) &&
-                (rhs.steps_and_scores == steps_and_scores));
+        return ((rhs.observation_match_refs == observation_match_refs) && (rhs.steps_and_scores == steps_and_scores));
       }
 
       bool operator!=(const ObservationMatchGroup& rhs) const
@@ -90,13 +88,46 @@ namespace OpenMS
       }
     };
 
-    typedef boost::multi_index_container<
-      ObservationMatchGroup,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<
-          boost::multi_index::member<ObservationMatchGroup, std::set<ObservationMatchRef>,
-                                     &ObservationMatchGroup::observation_match_refs>>>
-      > ObservationMatchGroups;
-    typedef IteratorWrapper<ObservationMatchGroups::iterator> MatchGroupRef;
-  }
-}
+    typedef boost::multi_index_container<ObservationMatchGroup, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<
+                                                                  boost::multi_index::member<ObservationMatchGroup, std::set<ObservationMatchRef>, &ObservationMatchGroup::observation_match_refs>>>>
+      ObsMatchGroups;
+
+    struct ObservationMatchGroups : public ObsMatchGroups {
+      ObservationMatchGroups() : ObsMatchGroups()
+      {
+      }
+      ObservationMatchGroups(const ObservationMatchGroups& other) : ObsMatchGroups(other)
+      {
+      }
+      ObservationMatchGroups(const ObsMatchGroups& other) : ObsMatchGroups(other)
+      {
+      }
+    };
+
+
+    typedef IteratorWrapper<ObservationMatchGroups::iterator, ObservationMatchGroup> MatGroupRef;
+
+    struct MatchGroupRef : public MatGroupRef {
+      MatchGroupRef() : MatGroupRef()
+      {
+      }
+      MatchGroupRef(const MatchGroupRef& other) : MatGroupRef(other)
+      {
+      }
+      MatchGroupRef(const MatGroupRef& other) : MatGroupRef(other)
+      {
+      }
+      MatchGroupRef(
+        const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<
+          boost::multi_index::detail::null_augment_policy,
+          boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::ObservationMatchGroup, std::allocator<OpenMS::IdentificationDataInternal::ObservationMatchGroup>>>>& other) :
+          MatGroupRef(other)
+      {
+      }
+      MatchGroupRef operator=(const MatchGroupRef& other)
+      {
+        return MatGroupRef::operator=(other);
+      }
+    };
+  } // namespace IdentificationDataInternal
+} // namespace OpenMS

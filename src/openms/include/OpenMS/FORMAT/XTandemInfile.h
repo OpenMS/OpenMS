@@ -34,8 +34,8 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 
 namespace OpenMS
@@ -48,16 +48,14 @@ namespace OpenMS
     These files store parameters within 'note' tags, e.g.,
     @verbatim
       <note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
-    	<note type="input" label="output, proteins">yes</note>
+      <note type="input" label="output, proteins">yes</note>
     @endverbatim
 
     @ingroup FileIO
   */
-  class OPENMS_DLLAPI XTandemInfile :
-    public Internal::XMLFile
+  class OPENMS_DLLAPI XTandemInfile : public Internal::XMLFile
   {
-public:
-
+  public:
     /// error unit, either Da or ppm
     enum ErrorUnit
     {
@@ -66,7 +64,7 @@ public:
     };
 
     /// Mass type of the precursor, either monoisotopic or average
-    enum MassType
+    enum XMassType
     {
       MONOISOTOPIC = 0,
       AVERAGE
@@ -97,10 +95,10 @@ public:
     double getPrecursorMassToleranceMinus() const;
 
     /// sets the precursor mass type
-    void setPrecursorErrorType(MassType mono_isotopic);
+    void setPrecursorErrorType(XMassType mono_isotopic);
 
     /// returns the precursor mass type
-    MassType getPrecursorErrorType() const;
+    XMassType getPrecursorErrorType() const;
 
     /// sets the fragment mass error unit (Da, ppm)
     void setFragmentMassErrorUnit(ErrorUnit unit);
@@ -194,26 +192,24 @@ public:
 
     /// set the cleavage site with a X! Tandem conform regex
     void setCleavageSite(const String& cleavage_site);
-    
+
     /// returns the cleavage site regex
     const String& getCleavageSite() const;
 
-    /** 
+    /**
       @brief Writes the X! Tandem input file to the given filename
 
       If @p ignore_member_parameters is true, only a very limited number of
       tags fed by member variables (i.e. in, out, database/taxonomy) is written.
-      
+
       @param filename the name of the file which is written
       @param ignore_member_parameters Do not write tags for class members
       @param force_default_mods Force writing of mods covered by special parameters
       @throw UnableToCreateFile is thrown if the given file could not be created
     */
-    void write(const String& filename, bool ignore_member_parameters = false,
-               bool force_default_mods = false);
+    void write(const String& filename, bool ignore_member_parameters = false, bool force_default_mods = false);
 
-protected:
-
+  protected:
     XTandemInfile(const XTandemInfile& rhs);
 
     XTandemInfile& operator=(const XTandemInfile& rhs);
@@ -251,9 +247,9 @@ protected:
 
     ErrorUnit precursor_mass_error_unit_;
 
-    MassType fragment_mass_type_;
+    XMassType fragment_mass_type_;
 
-    MassType precursor_mass_type_;
+    XMassType precursor_mass_type_;
 
     UInt max_precursor_charge_;
 
@@ -294,8 +290,6 @@ protected:
 
     // force writing of mods covered by special parameters?
     bool force_default_mods_;
-
   };
 
 } // namespace OpenMS
-

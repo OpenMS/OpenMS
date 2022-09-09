@@ -35,19 +35,17 @@
 #pragma once
 
 #include <OpenMS/METADATA/ID/ScoredProcessingResult.h>
-
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index_container.hpp>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
     /** @brief Representation of a parent sequence that is identified only indirectly (e.g. a protein).
-    */
-    struct ParentSequence: public ScoredProcessingResult
-    {
+     */
+    struct ParentSequence : public ScoredProcessingResult {
       String accession;
 
       enum MoleculeType molecule_type;
@@ -62,48 +60,40 @@ namespace OpenMS
 
       bool is_decoy;
 
-      explicit ParentSequence(
-        const String& accession,
-        MoleculeType molecule_type = MoleculeType::PROTEIN,
-        const String& sequence = "", const String& description = "",
-        double coverage = 0.0, bool is_decoy = false,
-        const AppliedProcessingSteps& steps_and_scores = AppliedProcessingSteps()):
-        ScoredProcessingResult(steps_and_scores), accession(accession),
-        molecule_type(molecule_type), sequence(sequence),
-        description(description), coverage(coverage), is_decoy(is_decoy)
+      explicit ParentSequence(const String& accession, MoleculeType molecule_type = MoleculeType::PROTEIN, const String& sequence = "", const String& description = "", double coverage = 0.0,
+                              bool is_decoy = false, const AppliedProcessingSteps& steps_and_scores = AppliedProcessingSteps()) :
+          ScoredProcessingResult(steps_and_scores),
+          accession(accession), molecule_type(molecule_type), sequence(sequence), description(description), coverage(coverage), is_decoy(is_decoy)
       {
       }
 
       ParentSequence(const ParentSequence&) = default;
 
+      ParentSequence(); // Only for use with Pyopenms FIXME
+
       ParentSequence& merge(const ParentSequence& other)
       {
         ScoredProcessingResult::merge(other);
-        if (sequence.empty()) 
+        if (sequence.empty())
         {
           sequence = other.sequence;
-        } 
+        }
         else if (!other.sequence.empty() && sequence != other.sequence) // differ and none is empty
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__,
-                                        OPENMS_PRETTY_FUNCTION, 
-                                        "Trying to overwrite ParentSequence sequence '" + sequence + "' with conflicting value.", 
-                                        other.sequence);
-        } 
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Trying to overwrite ParentSequence sequence '" + sequence + "' with conflicting value.", other.sequence);
+        }
 
         if (description.empty())
         {
           description = other.description;
-        } 
+        }
         else if (!other.description.empty() && description != other.description) // differ and none is empty
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__,
-                                        OPENMS_PRETTY_FUNCTION, 
-                                        "Trying to overwrite ParentSequence description '" + description + "' with conflicting value.", 
-                                        other.description);
-        } 
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Trying to overwrite ParentSequence description '" + description + "' with conflicting value.", other.description);
+        }
 
-        if (!is_decoy) is_decoy = other.is_decoy; // believe it when it's set
+        if (!is_decoy)
+          is_decoy = other.is_decoy; // believe it when it's set
         // @TODO: what about coverage? (not reliable if we're merging data)
 
         return *this;
@@ -112,13 +102,47 @@ namespace OpenMS
 
     // parent sequences indexed by their accessions:
     // @TODO: allow querying/iterating over proteins and RNAs separately
-    typedef boost::multi_index_container<
-      ParentSequence,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::member<
-          ParentSequence, String, &ParentSequence::accession>>>
-      > ParentSequences;
-    typedef IteratorWrapper<ParentSequences::iterator> ParentSequenceRef;
+    typedef boost::multi_index_container<ParentSequence,
+                                         boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::member<ParentSequence, String, &ParentSequence::accession>>>>
+      PSeqs;
 
-  }
-}
+    struct ParentSequences : public PSeqs {
+      ParentSequences() : PSeqs()
+      {
+      }
+      ParentSequences(const ParentSequences& other) : PSeqs(other)
+      {
+      }
+      ParentSequences(const PSeqs& other) : PSeqs(other)
+      {
+      }
+    };
+
+    typedef IteratorWrapper<ParentSequences::iterator, ParentSequence> PSeqR;
+
+    struct ParentSequenceRef : public PSeqR {
+      ParentSequenceRef() : PSeqR()
+      {
+      }
+      ParentSequenceRef(const ParentSequenceRef& other) : PSeqR(other)
+      {
+      }
+      ParentSequenceRef(const PSeqR& other) : PSeqR(other)
+      {
+      }
+      ParentSequenceRef(
+        const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<
+          boost::multi_index::detail::null_augment_policy,
+          boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::ParentSequence, std::allocator<OpenMS::IdentificationDataInternal::ParentSequence>>>>& other) :
+          PSeqR(other)
+      {
+      }
+      ParentSequenceRef operator=(const ParentSequenceRef& other)
+      {
+        return PSeqR::operator=(other);
+      }
+    };
+
+
+  } // namespace IdentificationDataInternal
+} // namespace OpenMS

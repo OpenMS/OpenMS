@@ -35,17 +35,16 @@
 #pragma once
 
 #include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/METADATA/ID/ProcessingSoftware.h>
 #include <OpenMS/METADATA/ID/InputFile.h>
+#include <OpenMS/METADATA/ID/ProcessingSoftware.h>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
     /** @brief Data processing step that is applied to the data (e.g. database search, PEP calculation, filtering, ConsensusID).
-    */
-    struct ProcessingStep: public MetaInfoInterface
-    {
+     */
+    struct ProcessingStep : public MetaInfoInterface {
       ProcessingSoftwareRef software_ref;
 
       std::vector<InputFileRef> input_file_refs;
@@ -55,38 +54,54 @@ namespace OpenMS
       // @TODO: add processing actions that are relevant for ID data
       std::set<DataProcessing::ProcessingAction> actions;
 
-      explicit ProcessingStep(
-        ProcessingSoftwareRef software_ref,
-        const std::vector<InputFileRef>& input_file_refs =
-        std::vector<InputFileRef>(), const DateTime& date_time =
-        DateTime::now(), std::set<DataProcessing::ProcessingAction> actions =
-        std::set<DataProcessing::ProcessingAction>()):
-        software_ref(software_ref), input_file_refs(input_file_refs),
-        date_time(date_time), actions(actions)
+      explicit ProcessingStep(ProcessingSoftwareRef software_ref, const std::vector<InputFileRef>& input_file_refs = std::vector<InputFileRef>(), const DateTime& date_time = DateTime::now(),
+                              std::set<DataProcessing::ProcessingAction> actions = std::set<DataProcessing::ProcessingAction>()) :
+          software_ref(software_ref),
+          input_file_refs(input_file_refs), date_time(date_time), actions(actions)
       {
       }
 
       ProcessingStep(const ProcessingStep& other) = default;
 
+      ProcessingStep() // FIXME: make pyopenms dependent
+      {
+      }
+
       // order by date/time first, don't compare meta data (?):
       bool operator<(const ProcessingStep& other) const
       {
-        return (std::tie(date_time, software_ref, input_file_refs, actions) <
-                std::tie(other.date_time, other.software_ref,
-                         other.input_file_refs, other.actions));
+        return (std::tie(date_time, software_ref, input_file_refs, actions) < std::tie(other.date_time, other.software_ref, other.input_file_refs, other.actions));
       }
 
       // don't compare meta data (?):
       bool operator==(const ProcessingStep& other) const
       {
-        return (std::tie(software_ref, input_file_refs, date_time, actions) ==
-                std::tie(other.software_ref, other.input_file_refs,
-                         other.date_time, other.actions));
+        return (std::tie(software_ref, input_file_refs, date_time, actions) == std::tie(other.software_ref, other.input_file_refs, other.date_time, other.actions));
       }
     };
 
     typedef std::set<ProcessingStep> ProcessingSteps;
-    typedef IteratorWrapper<ProcessingSteps::iterator> ProcessingStepRef;
+    typedef std::set<ProcessingStep>::iterator setPSoftSit;
+    typedef IteratorWrapper<ProcessingSteps::iterator, ProcessingStep> PStRef;
 
-  }
-}
+    struct ProcessingStepRef : public PStRef {
+      ProcessingStepRef() : PStRef()
+      {
+      }
+      ProcessingStepRef(const ProcessingStepRef& other) : PStRef(other)
+      {
+      }
+      ProcessingStepRef(const PStRef& other) : PStRef(other)
+      {
+      }
+      ProcessingStepRef(const std::_Rb_tree_const_iterator<OpenMS::IdentificationDataInternal::ProcessingStep>& other) : PStRef(other)
+      {
+      }
+      ProcessingStepRef operator=(const ProcessingStepRef& other)
+      {
+        return PStRef::operator=(other);
+      }
+    };
+
+  } // namespace IdentificationDataInternal
+} // namespace OpenMS

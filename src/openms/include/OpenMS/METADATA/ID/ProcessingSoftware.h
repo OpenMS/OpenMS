@@ -34,8 +34,8 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/Software.h>
 #include <OpenMS/METADATA/ID/ScoreType.h>
+#include <OpenMS/METADATA/Software.h>
 
 namespace OpenMS
 {
@@ -45,8 +45,7 @@ namespace OpenMS
 
       If the same processing is applied to multiple ID runs, e.g. if multiple files (fractions, replicates) are searched with the same search engine, store the software information only once.
     */
-    struct ProcessingSoftware: public Software
-    {
+    struct ProcessingSoftware : public Software {
       /*!
         List of score types assigned by this software, ranked by importance.
 
@@ -55,18 +54,35 @@ namespace OpenMS
       // @TODO: make this a "list" for cheap "push_front"?
       std::vector<ScoreTypeRef> assigned_scores;
 
-      explicit ProcessingSoftware(
-        const String& name = "", const String& version = "",
-        std::vector<ScoreTypeRef> assigned_scores =
-        std::vector<ScoreTypeRef>()):
-        Software(name, version), assigned_scores(assigned_scores)
+      explicit ProcessingSoftware(const String& name = "", const String& version = "", std::vector<ScoreTypeRef> assigned_scores = std::vector<ScoreTypeRef>()) :
+          Software(name, version), assigned_scores(assigned_scores)
       {
       }
     };
 
     // ordering is done using "operator<" inherited from "Software":
     typedef std::set<ProcessingSoftware> ProcessingSoftwares;
-    typedef IteratorWrapper<ProcessingSoftwares::iterator> ProcessingSoftwareRef;
+    typedef ProcessingSoftwares::iterator setPSit;
+    typedef IteratorWrapper<ProcessingSoftwares::iterator, ProcessingSoftware> PSoftRef;
 
-  }
-}
+    struct ProcessingSoftwareRef : public PSoftRef {
+      ProcessingSoftwareRef() : PSoftRef()
+      {
+      }
+      ProcessingSoftwareRef(const ProcessingSoftwareRef& other) : PSoftRef(other)
+      {
+      }
+      ProcessingSoftwareRef(const PSoftRef& other) : PSoftRef(other)
+      {
+      }
+      ProcessingSoftwareRef(const std::_Rb_tree_const_iterator<OpenMS::IdentificationDataInternal::ProcessingSoftware>& other) : PSoftRef(other)
+      {
+      }
+      ProcessingSoftwareRef operator=(const ProcessingSoftwareRef& other)
+      {
+        return PSoftRef::operator=(other);
+      }
+    };
+
+  } // namespace IdentificationDataInternal
+} // namespace OpenMS

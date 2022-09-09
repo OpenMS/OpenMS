@@ -37,11 +37,10 @@
 #include <OpenMS/METADATA/ID/InputFile.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index_container.hpp>
 
 namespace OpenMS
 {
@@ -50,8 +49,7 @@ namespace OpenMS
     /*!
       @brief Representation of an observation, e.g. a spectrum or feature, in an input data file.
     */
-    struct Observation: public MetaInfoInterface
-    {
+    struct Observation : public MetaInfoInterface {
       /// Spectrum or feature ID (from the file referenced by @t input_file)
       String data_id;
 
@@ -61,14 +59,14 @@ namespace OpenMS
       double rt, mz; //< Position
 
       /// Constructor
-      explicit Observation(
-        const String& data_id,
-        const InputFileRef& input_file,
-        double rt = std::numeric_limits<double>::quiet_NaN(),
-        double mz = std::numeric_limits<double>::quiet_NaN()):
-        data_id(data_id), input_file(input_file), rt(rt), mz(mz)
+      explicit Observation(const String& data_id, const InputFileRef& input_file, double rt = std::numeric_limits<double>::quiet_NaN(), double mz = std::numeric_limits<double>::quiet_NaN()) :
+          data_id(data_id), input_file(input_file), rt(rt), mz(mz)
       {
       }
+
+      // For PyOpenMS only do not use
+      Observation() = default;
+      Observation(const Observation& other) = default;
 
       /// Merge in data from another object
       Observation& merge(const Observation& other)
@@ -83,16 +81,43 @@ namespace OpenMS
 
     // combination of input file and data ID must be unique:
     typedef boost::multi_index_container<
-      Observation,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<
-          boost::multi_index::composite_key<
-            Observation,
-            boost::multi_index::member<Observation, InputFileRef,
-                                       &Observation::input_file>,
-            boost::multi_index::member<Observation, String,
-                                       &Observation::data_id>>>>
-      > Observations;
-    typedef IteratorWrapper<Observations::iterator> ObservationRef;
-  }
-}
+      Observation, boost::multi_index::indexed_by<boost::multi_index::ordered_unique<boost::multi_index::composite_key<
+                     Observation, boost::multi_index::member<Observation, InputFileRef, &Observation::input_file>, boost::multi_index::member<Observation, String, &Observation::data_id>>>>>
+      Obs;
+    struct Observations : public Obs {
+      Observations() : Obs()
+      {
+      }
+      Observations(const Observations& other) : Obs(other)
+      {
+      }
+      Observations(const Obs& other) : Obs(other)
+      {
+      }
+    };
+
+    typedef IteratorWrapper<Observations::iterator, Observation> Obsref;
+
+    struct ObservationRef : public Obsref {
+      ObservationRef() : Obsref()
+      {
+      }
+      ObservationRef(const ObservationRef& other) : Obsref(other)
+      {
+      }
+      ObservationRef(const Obsref& other) : Obsref(other)
+      {
+      }
+      ObservationRef(const boost::multi_index::detail::bidir_node_iterator<boost::multi_index::detail::ordered_index_node<
+                       boost::multi_index::detail::null_augment_policy,
+                       boost::multi_index::detail::index_node_base<OpenMS::IdentificationDataInternal::Observation, std::allocator<OpenMS::IdentificationDataInternal::Observation>>>>& other) :
+          Obsref(other)
+      {
+      }
+      ObservationRef operator=(const ObservationRef& other)
+      {
+        return Obsref::operator=(other);
+      }
+    };
+  } // namespace IdentificationDataInternal
+} // namespace OpenMS
