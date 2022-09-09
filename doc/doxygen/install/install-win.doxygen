@@ -79,7 +79,7 @@
 
     <ol>
       <li>Open a <b>VisualStudio Developer Command prompt</b> (by default you will get a 32-bit environment which you most likely do not want; use a x64 environment if you want 64 bit apps!)<br>
-					@note VS2017+ has a (well hidden) batch-file which correctly configures your environment for 64bit builds. It should be located at
+					@note VS2019 and above have a (well hidden) batch-file which correctly configures your environment for 64bit builds. It should be located at
 					<tt>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>. (Same goes for VS2022)
           Use our tools/load_vcvarsall.sh if you are building in bash on Windows.
       <li>Create a build directory for the %OpenMS contrib<br>
@@ -114,7 +114,7 @@
 
     <b>Installation of Qt5 via the Qt5 installer (requires an admin account)</b>:<br>
     Go to https://www.qt.io/download and click on "Go open source" at the end of the right column to download the installer. Follow steps, download, save and run the installer.
-    Create a Qt account. Choose a folder like "c:\dev\QT". From the components choose a matching version, e.g. QT 5.12.2 and the MSVC component that fits
+    Create a Qt account. Choose a folder like "C:\dev\QT". From the components choose a matching version, e.g. QT 5.12.2 and the MSVC component that fits
     your Visual Studio version and architecture (most likely only 64bit is supported; if your Visual Studio version is more recent than the VS offered by the Qt installer, 
     choose the closest available -- they should be compatible). You can deselect QtCreator under Tools.
     Accept the license, choose startmenu entries if wanted and install. Resulting files appear under "c:\dev\QT\$VERSION".
@@ -316,7 +316,7 @@
     \endcode
 
   @section install_win_nonvs Advanced: Building OpenMS in any IDE (Example: Visual Studio Code)
-    
+
     This section is for users that already have a little experience with IDEs like VS Code or JetBrains CLion.
     Especially the first step requires to read through the beginning of this documentation.
     <ol>
@@ -332,7 +332,7 @@
           "-DCMAKE_PREFIX_PATH=C:\\dev\\Qt\\5.15.2\\msvc2019_64"
         ]
         \endcode
-        to your settings or configure manually.
+        to your settings or configure manually in your user-config.yml or via the VS Code command runner.
       <li> Ctrl+Shift+P and find <code>\> CMake: Select Kit</code>, select preferably "Visual Studio Build Tools Release 2022 - amd64"
       <li> Ctrl+Shift+P and find <code>\> CMake: Configure</code>
       <li> Select a build configuration and a target in the VS Code task bar (the usually blue bar on the very bottom of the program).

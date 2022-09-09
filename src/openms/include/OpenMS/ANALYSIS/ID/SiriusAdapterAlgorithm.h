@@ -168,6 +168,14 @@ namespace OpenMS
                                    const MSExperiment& spectra) const;
 
       /**
+      @brief Log in to Sirius with personal user account (required in Sirius >= 5).
+
+      @param email User account E-Mail.
+      @param password User account password.
+      */
+      void logInSiriusAccount(String& executable, const String& email, const String& password) const;
+
+      /**
       @brief Call SIRIUS with QProcess
 
       @param tmp_ms_file path to temporary .ms file
