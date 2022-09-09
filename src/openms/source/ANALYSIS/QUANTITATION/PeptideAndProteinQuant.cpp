@@ -133,6 +133,11 @@ namespace OpenMS
 
     stats_.quant_features++;
     const AASequence& seq = hit.getSequence();
+    //TODO The practice of inserting elements with the [] should be forbidden.
+    // It is a debugging nightmare because if you try to access it and it is
+    // not there, you are adding another element. In a next iteration this whole
+    // class should be rewritten to use insert/emplace and find or better yet,
+    // since we have "normal" 0-based values for samples now, vectors.
     pep_quant_[seq].abundances[fraction][hit.getCharge()][sample] +=
       feature.getIntensity(); // new map element is initialized with 0
   }
@@ -156,7 +161,7 @@ namespace OpenMS
           0.0,
           [] (int value, const SampleAbundances::value_type& p)
           { return value + p.second; }
-          ); // loop over abundances
+          ); // loop over all samples and sum abundances
 
         if (current_abundance <= 0) { continue; }
 
@@ -268,7 +273,7 @@ namespace OpenMS
         {
           for (auto & ca : fa.second) // for all charge states
           {  
-            for (auto & sa : ca.second) // loop over all abundances
+            for (auto & sa : ca.second) // loop over all sample abundances
             {
               const UInt64 & sample_id = sa.first;
               const double & sample_abundance = sa.second;
@@ -359,7 +364,7 @@ namespace OpenMS
       {
         for (auto & ca : fa.second) // for all charge states
         {
-          for (auto & sa : ca.second) // loop over abundances
+          for (auto & sa : ca.second) // loop over all sample abundances
           {
             sa.second *= scale_factors[sa.first];
           }
@@ -541,7 +546,7 @@ namespace OpenMS
       map<UInt64, DoubleList> abundances; // all peptide abundances by sample
       for (const auto& pep : peptides)    // for all selected peptides
       {
-        for (auto& sa : prot_q.second.abundances[pep]) // copy over abundances
+        for (auto& sa : prot_q.second.abundances[pep]) // copy over all abundances
         {
           abundances[sa.first].push_back(sa.second);
         }
