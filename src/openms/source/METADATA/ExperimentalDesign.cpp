@@ -776,7 +776,11 @@ namespace OpenMS
         return bns.find(File::basename(e.path)) == bns.end();
       }), msfile_section_.end());
 
-      OPENMS_LOG_INFO << "Removed " << (before - msfile_section_.size()) << " files from design to match given subset." << std::endl;
+      int diff = before - msfile_section_.size();
+      if (diff > 0)
+      {
+        OPENMS_LOG_WARN << "Removed " << diff << " files from design to match given mzML/idXML subset." << std::endl;
+      }
 
       if (msfile_section_.empty())
       {

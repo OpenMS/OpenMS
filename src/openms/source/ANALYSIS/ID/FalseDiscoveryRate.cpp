@@ -1030,7 +1030,24 @@ namespace OpenMS
 
     //TODO this assumes all used search engine scores have the same score orientation
     // include the determination of orientation in the getScores methods instead
-    bool higher_score_better = cmap.begin()->getPeptideIdentifications().begin()->isHigherScoreBetter();
+    bool higher_score_better = false;
+    for (const auto& cf : cmap)
+    {
+      const auto& pep_ids = cf.getPeptideIdentifications();
+      if (!pep_ids.empty())
+      {
+        higher_score_better = pep_ids[0].isHigherScoreBetter();
+        break;
+      }
+    }
+    if (cmap.empty())
+    {
+      for (const auto& id : cmap.getUnassignedPeptideIdentifications())
+      {
+        higher_score_better = id.isHigherScoreBetter();
+        break;
+      }
+    }
 
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
     ScoreToTgtDecLabelPairs scores_labels;

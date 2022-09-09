@@ -147,6 +147,7 @@ namespace OpenMS
     bool higher_better = true;
 
     //TODO check all pep IDs? this assumes equality to first encountered
+    // will throw a well-formed exception in aggregatePeptideScores though.
     for (const auto& cf : cmap)
     {
       const auto& pep_ids = cf.getPeptideIdentifications();
@@ -154,6 +155,15 @@ namespace OpenMS
       {
         overall_score_type = pep_ids[0].getScoreType();
         higher_better = pep_ids[0].isHigherScoreBetter();
+        break;
+      }
+    }
+    if (overall_score_type.empty())
+    {
+      for (const auto& id : cmap.getUnassignedPeptideIdentifications())
+      {
+        overall_score_type = id.getScoreType();
+        higher_better = id.isHigherScoreBetter();
         break;
       }
     }

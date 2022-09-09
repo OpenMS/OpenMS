@@ -746,7 +746,7 @@ namespace OpenMS
 
     countPeptides_(peptides);
 
-    map<String, String> identifier_to_ms_file;
+    map<pair<String,Size>, String> identifier_idmergeidx_to_ms_file;
     for (Size i = 0; i < proteins.size(); ++i)
     {
       StringList ms_files;
@@ -759,17 +759,11 @@ namespace OpenMS
           OPENMS_PRETTY_FUNCTION, 
           "No MS file annotated in protein identification.");
       }
-      if (ms_files.size() >= 2) 
+      for (Size s = 0; s < ms_files.size(); ++s)
       {
-        throw Exception::MissingInformation(
-          __FILE__, 
-          __LINE__, 
-          OPENMS_PRETTY_FUNCTION, 
-          "More than one ms file annotated in protein identification."
-          "This is currently unsupported. Try to create your consensusXML without merged IdXMLs"
-          "e.g., split them first with IDRipper.");
+        identifier_idmergeidx_to_ms_file[{proteins[i].getIdentifier(), s}] = ms_files[s];
       }
-      identifier_to_ms_file[proteins[i].getIdentifier()] = ms_files[0];
+
       OPENMS_LOG_DEBUG << "  run index : MS file " << i << " : " << ListUtils::concatenate(ms_files, ", ") << endl;
     }
 
@@ -777,12 +771,11 @@ namespace OpenMS
     for (auto & p : peptides)
     {
       if (p.getHits().empty()) { continue; }
-
+      Size id_merge_idx = p.getMetaValue("id_merge_idx",0);
       const PeptideHit& hit = p.getHits()[0];
       stats_.quant_features++;
       const AASequence& seq = hit.getSequence();
-      //TODO if we use the id_merge_idx when annotated, we can also quantify merged files.
-      const String& ms_file_path = identifier_to_ms_file[p.getIdentifier()];
+      const String& ms_file_path = identifier_idmergeidx_to_ms_file[{p.getIdentifier(),id_merge_idx}];
 
       // determine sample and fraction by MS file name (stored in protein identification)
       const ExperimentalDesign::MSFileSection& run_section = ed.getMSFileSection();
