@@ -180,19 +180,18 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   TEST_EQUAL(pep_data.abundances.size(), 1);
   TEST_EQUAL(pep_data.abundances[1].size(), 1);
   TEST_EQUAL(pep_data.total_abundances.size(), 1);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[1], 3333); 
+  TEST_REAL_SIMILAR(pep_data.total_abundances[0], 3333);
   TEST_EQUAL(pep_data.accessions.size(), 1);
   TEST_EQUAL(pep_data.psm_count, 2);
   pep_data = pep_quant[AASequence::fromString("CCCCC")];
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
   TEST_EQUAL(pep_data.abundances[1].size(), 2); // two charges
   TEST_EQUAL(pep_data.total_abundances.size(), 1);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[1], 7777);
+  TEST_REAL_SIMILAR(pep_data.total_abundances[0], 7777);
   TEST_EQUAL(pep_data.accessions.size(), 1);
   TEST_EQUAL(pep_data.psm_count, 2);
   pep_data = pep_quant[AASequence::fromString("EEEEE")];
-  TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
-  TEST_EQUAL(pep_data.abundances[1].size(), 1); // one charge
+  TEST_EQUAL(pep_data.abundances.size(), 0); // it is the second best hit, so it will not be counted
   TEST_EQUAL(pep_data.total_abundances.size(), 0);
   TEST_EQUAL(pep_data.accessions.size(), 1);
   TEST_EQUAL(pep_data.psm_count, 1);
@@ -200,7 +199,7 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
   TEST_EQUAL(pep_data.abundances[1].size(), 1); // one charge
   TEST_EQUAL(pep_data.total_abundances.size(), 1);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[1], 7777);
+  TEST_REAL_SIMILAR(pep_data.total_abundances[0], 7777);
   TEST_EQUAL(pep_data.accessions.size(), 2);
   TEST_EQUAL(pep_data.psm_count, 1);
 
@@ -210,33 +209,33 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
   TEST_EQUAL(pep_data.abundances[1].size(), 1); // one charge
   TEST_EQUAL(pep_data.total_abundances.size(), 2);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[1], 1000);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[3], 1000);
+  TEST_REAL_SIMILAR(pep_data.total_abundances[0], 1000);
+  TEST_REAL_SIMILAR(pep_data.total_abundances[2], 1000);
   TEST_EQUAL(pep_data.accessions.size(), 1);
   TEST_EQUAL(pep_data.psm_count, 1);
   pep_data = pep_quant[AASequence::fromString("CCCK")];
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
   TEST_EQUAL(pep_data.abundances[1].size(), 1); // one charge
   TEST_EQUAL(pep_data.total_abundances.size(), 2);
+  TEST_REAL_SIMILAR(pep_data.total_abundances[0], 200);
   TEST_REAL_SIMILAR(pep_data.total_abundances[1], 200);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[2], 200);
   TEST_EQUAL(pep_data.accessions.size(), 1);
   TEST_EQUAL(pep_data.psm_count, 1);
   pep_data = pep_quant[AASequence::fromString("EEEK")];
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
   TEST_EQUAL(pep_data.abundances[1].size(), 1); // one charge
   TEST_EQUAL(pep_data.total_abundances.size(), 3);
+  TEST_REAL_SIMILAR(pep_data.total_abundances[0], 30);
   TEST_REAL_SIMILAR(pep_data.total_abundances[1], 30);
   TEST_REAL_SIMILAR(pep_data.total_abundances[2], 30);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[3], 30);
   TEST_EQUAL(pep_data.accessions.size(), 1);
   TEST_EQUAL(pep_data.psm_count, 1);
   pep_data = pep_quant[AASequence::fromString("GGG")];
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
   TEST_EQUAL(pep_data.abundances[1].size(), 1); // one charge
   TEST_EQUAL(pep_data.total_abundances.size(), 2);
+  TEST_REAL_SIMILAR(pep_data.total_abundances[0], 4);
   TEST_REAL_SIMILAR(pep_data.total_abundances[1], 4);
-  TEST_REAL_SIMILAR(pep_data.total_abundances[2], 4);
   TEST_EQUAL(pep_data.accessions.size(), 1);
   TEST_EQUAL(pep_data.psm_count, 1);
 }
@@ -252,12 +251,12 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   prot_data = prot_quant["Protein0"];
   TEST_EQUAL(prot_data.abundances.size(), 3);
   TEST_EQUAL(prot_data.total_abundances.size(), 1);
-  TEST_REAL_SIMILAR(prot_data.total_abundances[1], 4711);
+  TEST_REAL_SIMILAR(prot_data.total_abundances[0], 4711);
   TEST_EQUAL(prot_data.psm_count, 6);
   prot_data = prot_quant["Protein1"];
   TEST_EQUAL(prot_data.abundances.size(), 1);
   TEST_EQUAL(prot_data.total_abundances.size(), 1);
-  TEST_REAL_SIMILAR(prot_data.total_abundances[1], 8888);
+  TEST_REAL_SIMILAR(prot_data.total_abundances[0], 8888);
   TEST_EQUAL(prot_data.psm_count, 2);
 
   prot_quant = quantifier_consensus.getProteinResults();
@@ -265,9 +264,9 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   prot_data = prot_quant["Protein"];
   TEST_EQUAL(prot_data.abundances.size(), 4);
   TEST_EQUAL(prot_data.total_abundances.size(), 3);
-  TEST_REAL_SIMILAR(prot_data.total_abundances[1], 200);
-  TEST_REAL_SIMILAR(prot_data.total_abundances[2], 30);
-  TEST_REAL_SIMILAR(prot_data.total_abundances[3], 515);
+  TEST_REAL_SIMILAR(prot_data.total_abundances[0], 200);
+  TEST_REAL_SIMILAR(prot_data.total_abundances[1], 30);
+  TEST_REAL_SIMILAR(prot_data.total_abundances[2], 515);
   TEST_EQUAL(prot_data.psm_count, 4);
 }
 END_SECTION
@@ -326,7 +325,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
   protein = quant["Protein0"];
-  TEST_REAL_SIMILAR(protein.total_abundances[1], 4711);
+  TEST_REAL_SIMILAR(protein.total_abundances[0], 4711);
 
   parameters.setValue("top:aggregate", "mean");
   quantifier.setParameters(parameters);
@@ -335,7 +334,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
   protein = quant["Protein0"];
-  TEST_REAL_SIMILAR(protein.total_abundances[1], 5273.666666);
+  TEST_REAL_SIMILAR(protein.total_abundances[0], 5273.666666);
 
   parameters.setValue("top:aggregate", "weighted_mean");
   quantifier.setParameters(parameters);
@@ -344,7 +343,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
   protein = quant["Protein0"];
-  TEST_REAL_SIMILAR(protein.total_abundances[1], 5927.82624360028);
+  TEST_REAL_SIMILAR(protein.total_abundances[0], 5927.82624360028);
 
   parameters.setValue("top:aggregate", "sum");
   quantifier.setParameters(parameters);
@@ -353,7 +352,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
   protein = quant["Protein0"];
-  TEST_REAL_SIMILAR(protein.total_abundances[1], 15821);
+  TEST_REAL_SIMILAR(protein.total_abundances[0], 15821);
 }
 END_SECTION
 
@@ -378,9 +377,9 @@ START_SECTION((const ProteinQuant& getProteinResults()))
 
   quant = quantifier.getProteinResults();
   protein = quant["Protein"];
-  TEST_REAL_SIMILAR(protein.total_abundances[1], 308.5);
-  TEST_REAL_SIMILAR(protein.total_abundances[2], 58.5);
-  TEST_REAL_SIMILAR(protein.total_abundances[3], 257.5);
+  TEST_REAL_SIMILAR(protein.total_abundances[0], 308.5);
+  TEST_REAL_SIMILAR(protein.total_abundances[1], 58.5);
+  TEST_REAL_SIMILAR(protein.total_abundances[2], 257.5);
 }
 END_SECTION
 

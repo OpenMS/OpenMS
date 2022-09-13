@@ -186,7 +186,7 @@ protected:
         OPENMS_LOG_FATAL_ERROR << "Error: Running on consensusXML requires output as consensusXML. Please change the "
                                   "output type.\n";
       }
-      OPENMS_LOG_INFO << "Loading input..." << std::endl;
+
 
       if (in.size() > 1)
       {
@@ -196,8 +196,15 @@ protected:
       ConsensusMapMergerAlgorithm cmerge;
       ConsensusMap cmap;
       ConsensusXMLFile cxmlf;
+      OPENMS_LOG_INFO << "Loading input..." << std::endl;
       cxmlf.load(in[0], cmap);
+      OPENMS_LOG_INFO << "Loading input took " << sw.toString() << std::endl;
+      sw.clear();
+
+      OPENMS_LOG_INFO << "Merging IDs across runs..." << std::endl;
       cmerge.mergeAllIDRuns(cmap);
+      OPENMS_LOG_INFO << "Merging IDs across runs took " << sw.toString() << std::endl;
+      sw.clear();
 
       OPENMS_LOG_INFO << "Aggregating protein scores..." << std::endl;
       BasicProteinInferenceAlgorithm pi;

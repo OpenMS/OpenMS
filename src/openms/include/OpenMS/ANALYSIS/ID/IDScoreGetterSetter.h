@@ -113,14 +113,24 @@ namespace OpenMS
     /// removes the @p decoy_string from @p acc if present. Returns if string was removed and the new string.
     static std::pair<bool,String> removeDecoyStringIfPresent_(const String& acc, const String& decoy_string, bool decoy_prefix);
 
+    static void fillPeptideScoreMap_(
+      std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
+      std::vector<PeptideIdentification> const& ids);
+
+    static void fillPeptideScoreMap_(
+      std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
+      ConsensusMap const& map,
+      bool include_unassigned);
+
+
     /**
-     * \defgroup getScoresFunctions Get scores from ID structures for FDR
-     * @brief  Fills the scores_labels vector from an ID data structure
-     * @param  scores_labels Pairs of scores and boolean target decoy labels to be filled. target = true.
-     *
-     * Just use the one you need.
-     * @{
-     */
+    * \defgroup getScoresFunctions Get scores from ID structures for FDR
+    * @brief  Fills the scores_labels vector from an ID data structure
+    * @param  scores_labels Pairs of scores and boolean target decoy labels to be filled. target = true.
+    *
+    * Just use the one you need.
+    * @{
+    */
 
     //TODO could be done with set of target accessions, too
     //TODO even better: store nr targets and nr decoys when creating the groups!
@@ -606,5 +616,14 @@ namespace OpenMS
                                             "Meta value 'target_decoy' does not exist in all ProteinHits! Reindex the idXML file with 'PeptideIndexer'");
       }
     }
+    static void setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,
+                                         std::vector<PeptideIdentification>& ids,
+                                         std::string const& score_type,
+                                         bool keep_decoys);
+    static void setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,
+                                         ConsensusMap& map,
+                                         std::string const& score_type,
+                                         bool keep_decoys,
+                                         bool include_unassigned);
   };
 } // namespace OpenMS
