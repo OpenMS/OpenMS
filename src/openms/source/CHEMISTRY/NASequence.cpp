@@ -206,10 +206,10 @@ namespace OpenMS
       return our_form + (H_form * charge) + local_five_prime + b_ion_to_full;
 
     case CIon:
-      return our_form + (H_form * charge) + local_five_prime + c_ion_to_full;
+      return our_form + (H_form * charge) + local_five_prime + c_ion_to_full + ((seq_.back()->getCode().back() == '*') ? EmpiricalFormula("SO-1") : EmpiricalFormula("") );
 
     case DIon:
-      return our_form + (H_form * charge) + local_five_prime + d_ion_to_full;
+      return our_form + (H_form * charge) + local_five_prime + d_ion_to_full + ((seq_.back()->getCode().back() == '*') ? EmpiricalFormula("SO-1") : EmpiricalFormula("") );
 
     case WIon:
       return our_form + (H_form * charge) + local_three_prime + w_ion_to_full;

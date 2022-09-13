@@ -209,6 +209,8 @@ namespace OpenMS
     static const double y_ion_offset = b_ion_offset;
     static const double z_ion_offset = a_ion_offset;
 
+    //a a-B w x ions have different offsets if we have phosphorothioate linkages, 
+
     MSSpectrum spectrum;
     if (oligo.empty())
     {
@@ -225,28 +227,41 @@ namespace OpenMS
     }
 
     vector<double> ribo_masses(oligo.size());
+    // Create a vector of doubles to represent the phosorothioate linkage mass shift
+    vector<double> thiols(oligo.size(), 0.0);
     Size index = 0;
     for (const auto& ribo : oligo)
     {
       ribo_masses[index] = ribo.getMonoMass();
+      // * at the end means phosphorothioate
+      if (ribo.getCode().back() == '*')
+        {
+          thiols[index] = EmpiricalFormula("SO-1").getMonoWeight();
+        }
       ++index;
     }
 
     spectrum.getStringDataArrays().resize(1);
     spectrum.getStringDataArrays()[0].setName("IonNames");
 
-    vector<double> fragments_left, fragments_right;
+    vector<double> fragments_left, fragments_right, thiol_offsets;
     Size start = add_first_prefix_ion_ ? 0 : 1;
     if ((add_a_ions_ || add_b_ions_ || add_c_ions_ || add_d_ions_ ||
          add_aB_ions_) && (oligo.size() > start + 1))
     {
       fragments_left.resize(oligo.size() - 1);
+      // Drop the final thiol, 'cause its not linking anything
+      thiols.resize(oligo.size() - 1);
       fragments_left[0] = ribo_masses[0] + five_prime_mass;
       for (Size i = 1; i < oligo.size() - 1; ++i)
       {
         fragments_left[i] = (fragments_left[i - 1] + ribo_masses[i] +
-                             backbone_mass);
+                             backbone_mass + thiols[i - 1]);
       }
+      // with thiols c and d ions have a 15.99 mass shift, we calculated that above now we add it
+      vector<double> frag_l_thiol(fragments_left.size());
+      std::transform(fragments_left.begin(),fragments_left.end(),thiols.begin(), frag_l_thiol.begin(), std::plus<double>());
+
       if (add_a_ions_)
       {
         addFragmentPeaks_(spectrum, fragments_left, "a", a_ion_offset,
@@ -259,12 +274,12 @@ namespace OpenMS
       }
       if (add_c_ions_)
       {
-        addFragmentPeaks_(spectrum, fragments_left, "c", c_ion_offset,
+        addFragmentPeaks_(spectrum, frag_l_thiol, "c", c_ion_offset,
                           c_intensity_, start);
       }
       if (add_d_ions_)
       {
-        addFragmentPeaks_(spectrum, fragments_left, "d", d_ion_offset,
+        addFragmentPeaks_(spectrum, frag_l_thiol, "d", d_ion_offset,
                           d_intensity_, start);
       }
       if (add_aB_ions_) // special case
@@ -282,16 +297,21 @@ namespace OpenMS
       {
         Size ribo_index = oligo.size() - i - 1;
         fragments_right[i] = (fragments_right[i - 1] + ribo_masses[ribo_index] +
-                              backbone_mass);
+                              backbone_mass + thiols[ribo_index]);
       }
+      // with thiols a and b ions have a -15.99 mass shift, we calculated that above now we add it
+      vector<double> frag_r_thiol(fragments_right.size());
+      std::reverse(thiols.begin(),thiols.end()); // Reverse, since we go from the other side
+      std::transform(fragments_right.begin(),fragments_right.end(),thiols.begin(), frag_r_thiol.begin(), std::plus<double>());
+      
       if (add_w_ions_)
       {
-        addFragmentPeaks_(spectrum, fragments_right, "w", w_ion_offset,
+        addFragmentPeaks_(spectrum, frag_r_thiol, "w", w_ion_offset,
                           w_intensity_);
       }
       if (add_x_ions_)
       {
-        addFragmentPeaks_(spectrum, fragments_right, "x", x_ion_offset,
+        addFragmentPeaks_(spectrum, frag_r_thiol, "x", x_ion_offset,
                           x_intensity_);
       }
       if (add_y_ions_)
