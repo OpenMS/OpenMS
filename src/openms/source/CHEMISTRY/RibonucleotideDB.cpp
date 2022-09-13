@@ -192,17 +192,7 @@ namespace OpenMS
     {
       if (parts[1].front() == 'd') // handle deoxyribose, possibly with methyl mod
       {
-        if (parts[1].back() == '*') // do we have both a methylation and a sulfer?
-        {
-          ribo->setBaselossFormula(EmpiricalFormula("C5H10O3S")); 
-          // TODO: this implementation of phosophorothioate linkages adds the S and removes an O from the sugar,
-          // not the phosphate. This distinction has no effect since we never separate the sugar from the phosphate
-          // but it still feels messy 
-        }
-        else  // Otherwise we have just the O difference
-        {
-          ribo->setBaselossFormula(EmpiricalFormula("C5H10O4"));
-        }
+        ribo->setBaselossFormula(EmpiricalFormula("C5H10O4"));
       }
       else if (parts[1].back() == 'm') // mod. attached to the ribose, not base
       {

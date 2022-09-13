@@ -299,7 +299,7 @@ namespace OpenMS
         fragments_right[i] = (fragments_right[i - 1] + ribo_masses[ribo_index] +
                               backbone_mass + thiols[ribo_index]);
       }
-      // with thiols a and b ions have a -15.99 mass shift, we calculated that above now we add it
+      // with thiols a and b ions have a 15.99 mass shift, we calculated that above now we add it
       vector<double> frag_r_thiol(fragments_right.size());
       std::reverse(thiols.begin(),thiols.end()); // Reverse, since we go from the other side
       std::transform(fragments_right.begin(),fragments_right.end(),thiols.begin(), frag_r_thiol.begin(), std::plus<double>());
