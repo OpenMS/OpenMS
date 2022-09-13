@@ -120,7 +120,7 @@ namespace OpenMS
    * @ingroup getScoresFunctions
    * @brief For protein groups. Groups are target if at least one protein is target
    * Decoy accessions are determined by the decoy substring.
-   * Uses the "picked" algorithm. As soon as there was one target picked over a
+   * Uses the "picked" algorithm. As soon as there was one member which was picked as target over a decoy, the group is counted as target. Otherwise as decoy.
    */
   void IDScoreGetterSetter::getPickedProteinGroupScores_(
       const std::unordered_map<String, ScoreToTgtDecLabelPair>& picked_scores,
