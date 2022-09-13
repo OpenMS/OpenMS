@@ -155,7 +155,10 @@ if __name__ == '__main__':
   if sum([len(ch) for ch in pxd_files_chunk]) != len(pxd_decl_mapping):
       raise Exception("Internal Error: chunking lost files")
 
-  mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
+  if (int(PY_NUM_MODULES)==1):
+    mnames = ["pyopenms"]
+  else:
+    mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
   allDecl_mapping = {}
   for pxd_f, m in zip(pxd_files_chunk, mnames):
       tmp_decls = []
