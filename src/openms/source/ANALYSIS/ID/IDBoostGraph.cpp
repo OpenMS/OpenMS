@@ -267,7 +267,7 @@ namespace OpenMS
             "Reference (id_merge_index) to non-existing run found at peptide ID."
             " Sth went wrong during merging. Aborting.");
       }
-      pfg = find_it->second - 1; // Experimental design numbering starts at one
+      pfg = find_it->second;
     }
     else
     {

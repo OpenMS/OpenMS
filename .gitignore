@@ -30,3 +30,4 @@ cmake-build-*
 cmake-*-build
 *.code-workspace
 .vs
+.clion.*
