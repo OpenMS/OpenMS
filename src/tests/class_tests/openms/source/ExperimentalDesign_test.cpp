@@ -172,7 +172,7 @@ START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelTo
   for (const auto& pl2s : {fplex, fplexst})
   {
     TEST_EQUAL(pl2s.size(), 24);
-    for (const auto& i : pl2s) { TEST_EQUAL((i.second >=0 && i.second <=7), true)}
+    for (const auto& i : pl2s) { TEST_EQUAL((i.second <=7), true)}
   } 
 }
 END_SECTION
