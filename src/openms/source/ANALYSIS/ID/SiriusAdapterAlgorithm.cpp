@@ -32,6 +32,8 @@
 // $Authors: Oliver Alka, Lukas Zimmermann $
 // --------------------------------------------------------------------------
 
+#include <boost/foreach.hpp> // must be first, otherwise Q_FOREACH macro will wreak havoc
+
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -45,7 +47,6 @@
 #include <QDirIterator>
 #include <QString>
 #include <QtCore/QProcess>
-#include <boost/foreach.hpp> // must be first, otherwise Q_FOREACH macro will wreak havoc
 #include <sstream>
 
 namespace OpenMS
