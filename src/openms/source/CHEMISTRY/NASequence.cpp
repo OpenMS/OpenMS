@@ -32,15 +32,13 @@
 // $Authors: Samuel Wein, Timo Sachsenberg, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h>
-
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <map>
-
 #include <string>
 
 using namespace std;
@@ -48,9 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  NASequence::NASequence(vector<const Ribonucleotide*> seq,
-                         const RibonucleotideChainEnd* five_prime,
-                         const RibonucleotideChainEnd* three_prime)
+  NASequence::NASequence(vector<const Ribonucleotide*> seq, const RibonucleotideChainEnd* five_prime, const RibonucleotideChainEnd* three_prime)
   {
     seq_ = seq;
     five_prime_ = five_prime;
@@ -59,8 +55,7 @@ namespace OpenMS
 
   bool NASequence::operator==(const NASequence& rhs) const
   {
-    return (tie(seq_, five_prime_, three_prime_) ==
-            tie(rhs.seq_, rhs.five_prime_, rhs.three_prime_));
+    return (tie(seq_, five_prime_, three_prime_) == tie(rhs.seq_, rhs.five_prime_, rhs.three_prime_));
   }
 
   bool NASequence::operator!=(const NASequence& rhs) const
@@ -115,8 +110,7 @@ namespace OpenMS
   {
     if (length >= seq_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     length, seq_.size() - 1);
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, length, seq_.size() - 1);
     }
     return NASequence({seq_.begin(), seq_.begin() + length}, five_prime_, nullptr);
   }
@@ -125,8 +119,7 @@ namespace OpenMS
   {
     if (length >= seq_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     length, seq_.size() - 1);
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, length, seq_.size() - 1);
     }
     return NASequence({seq_.end() - length, seq_.end()}, nullptr, three_prime_);
   }
@@ -137,12 +130,11 @@ namespace OpenMS
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, start, size());
     }
-    if (length > size() - start) length = size() - start;
+    if (length > size() - start)
+      length = size() - start;
 
-    const RibonucleotideChainEnd* five_prime = ((start == 0) ? five_prime_ :
-                                                nullptr);
-    const RibonucleotideChainEnd* three_prime = ((start + length == size()) ?
-                                                 three_prime_ : nullptr);
+    const RibonucleotideChainEnd* five_prime = ((start == 0) ? five_prime_ : nullptr);
+    const RibonucleotideChainEnd* three_prime = ((start + length == size()) ? three_prime_ : nullptr);
     vector<const Ribonucleotide*>::const_iterator it = seq_.begin() + start;
     return NASequence({it, it + length}, five_prime, three_prime);
   }
@@ -166,7 +158,8 @@ namespace OpenMS
     // static const EmpiricalFormula abasicform_RNA = EmpiricalFormula("C5H8O4");
     // static const EmpiricalFormula abasicform_DNA = EmpiricalFormula("C5H7O5P");
 
-    if (seq_.empty()) return EmpiricalFormula();
+    if (seq_.empty())
+      return EmpiricalFormula();
 
     EmpiricalFormula our_form;
     // Add all the ribonucleotide masses
@@ -190,41 +183,41 @@ namespace OpenMS
 
     switch (type)
     {
-    case Full:
-      return our_form + (H_form * charge) + local_five_prime + local_three_prime;
+      case Full:
+        return our_form + (H_form * charge) + local_five_prime + local_three_prime;
 
-    // case FivePrime:
-    //   return our_form - five_prime_to_full + OH_form + (H_form * charge) + local_three_prime;
+        // case FivePrime:
+        //   return our_form - five_prime_to_full + OH_form + (H_form * charge) + local_three_prime;
 
-    case AminusB:
-      return our_form + (H_form * charge) + local_five_prime + aminusB_ion_to_full - seq_.back()->getFormula() + seq_.back()->getBaselossFormula();
+      case AminusB:
+        return our_form + (H_form * charge) + local_five_prime + aminusB_ion_to_full - seq_.back()->getFormula() + seq_.back()->getBaselossFormula();
 
-    case AIon:
-      return our_form + (H_form * charge) + local_five_prime + a_ion_to_full;
+      case AIon:
+        return our_form + (H_form * charge) + local_five_prime + a_ion_to_full;
 
-    case BIon:
-      return our_form + (H_form * charge) + local_five_prime + b_ion_to_full;
+      case BIon:
+        return our_form + (H_form * charge) + local_five_prime + b_ion_to_full;
 
-    case CIon:
-      return our_form + (H_form * charge) + local_five_prime + c_ion_to_full + ((seq_.back()->getCode().back() == '*') ? EmpiricalFormula("SO-1") : EmpiricalFormula("") );
+      case CIon:
+        return our_form + (H_form * charge) + local_five_prime + c_ion_to_full + ((seq_.back()->getCode().back() == '*') ? EmpiricalFormula("SO-1") : EmpiricalFormula(""));
 
-    case DIon:
-      return our_form + (H_form * charge) + local_five_prime + d_ion_to_full + ((seq_.back()->getCode().back() == '*') ? EmpiricalFormula("SO-1") : EmpiricalFormula("") );
+      case DIon:
+        return our_form + (H_form * charge) + local_five_prime + d_ion_to_full + ((seq_.back()->getCode().back() == '*') ? EmpiricalFormula("SO-1") : EmpiricalFormula(""));
 
-    case WIon:
-      return our_form + (H_form * charge) + local_three_prime + w_ion_to_full;
+      case WIon:
+        return our_form + (H_form * charge) + local_three_prime + w_ion_to_full;
 
-    case XIon:
-      return our_form + (H_form * charge) + local_three_prime + x_ion_to_full;
+      case XIon:
+        return our_form + (H_form * charge) + local_three_prime + x_ion_to_full;
 
-    case YIon:
-      return our_form + (H_form * charge) + local_three_prime + y_ion_to_full;
+      case YIon:
+        return our_form + (H_form * charge) + local_three_prime + y_ion_to_full;
 
-    case ZIon:
-      return our_form + (H_form * charge) + local_three_prime + z_ion_to_full;
+      case ZIon:
+        return our_form + (H_form * charge) + local_three_prime + z_ion_to_full;
 
-    default:
-      OPENMS_LOG_ERROR << "NASequence::getFormula: unsupported NASFragmentType" << endl;
+      default:
+        OPENMS_LOG_ERROR << "NASequence::getFormula: unsupported NASFragmentType" << endl;
     }
 
     return our_form;
@@ -242,7 +235,7 @@ namespace OpenMS
 
   void NASequence::setFivePrimeMod(const RibonucleotideChainEnd* r)
   {
-    five_prime_= r;
+    five_prime_ = r;
   }
 
   const RibonucleotideChainEnd* NASequence::getFivePrimeMod() const
@@ -257,7 +250,7 @@ namespace OpenMS
 
   void NASequence::setThreePrimeMod(const RibonucleotideChainEnd* r)
   {
-    three_prime_= r;
+    three_prime_ = r;
   }
 
   const RibonucleotideChainEnd* NASequence::getThreePrimeMod() const
@@ -349,7 +342,8 @@ namespace OpenMS
   {
     nas.clear();
 
-    if (s.empty()) return;
+    if (s.empty())
+      return;
 
     static RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
 
@@ -368,7 +362,8 @@ namespace OpenMS
     for (; str_it != stop; ++str_it)
     {
       // skip spaces
-      if (*str_it == ' ') continue;
+      if (*str_it == ' ')
+        continue;
 
       // default case: add unmodified, standard ribonucleotide
       if (*str_it != '[')
@@ -381,8 +376,7 @@ namespace OpenMS
         catch (Exception::ElementNotFound&)
         {
           String msg = "Cannot convert string to nucleic acid sequence: invalid character '" + String(*str_it) + "'";
-          throw Exception::ParseError(__FILE__, __LINE__,
-                                      OPENMS_PRETTY_FUNCTION, s, msg);
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, s, msg);
         }
       }
       else // if (*str_it == '[') // non-standard ribonucleotide
@@ -393,8 +387,7 @@ namespace OpenMS
     }
   }
 
-  String::ConstIterator NASequence::parseMod_(
-    const String::ConstIterator str_it, const String& str, NASequence& nas)
+  String::ConstIterator NASequence::parseMod_(const String::ConstIterator str_it, const String& str, NASequence& nas)
   {
     static RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
     OPENMS_PRECONDITION(*str_it == '[', "Modification must start with '['.");
@@ -431,4 +424,4 @@ namespace OpenMS
     return (os << seq.toString());
   }
 
-}
+} // namespace OpenMS
