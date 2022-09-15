@@ -95,8 +95,14 @@ namespace OpenMS
                                  old_score_);
         const DataValue& dv = hit_it->getMetaValue(old_score_meta);
         if (!dv.isEmpty()) // meta value for old score already exists
-        {          
-          hit_it->setMetaValue(old_score_meta + "~", hit_it->getScore());
+        {
+          // TODO: find a better way to check if old score type is something different (even if it has same name)
+          // This currently, is a workaround for e.g., having Percolator_qvalue as meta value and same q-value as main score (getScore()).
+          if (fabs((double(dv) - hit_it->getScore()) * 2.0 /
+                   (double(dv) + hit_it->getScore())) > tolerance_)
+          {          
+            hit_it->setMetaValue(old_score_meta + "~", hit_it->getScore());
+          }
         }
         else
         {
