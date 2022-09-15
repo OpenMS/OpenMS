@@ -190,7 +190,7 @@ namespace OpenMS
       {
         ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
       }
-      else if (parts[1].substr(parts[1].size() - 2) == "*m") // check if we have both a sulfer and a 2'-O methyl
+      else if (parts[1].substr(parts[1].size() - 2) == "m*") // check if we have both a sulfer and a 2'-O methyl
       {
         ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
       }
