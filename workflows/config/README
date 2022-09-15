@@ -1,0 +1,1 @@
+The config directory contains files that snakemake uses for job submission when using large clusters that use schedulers. The specific files in this folder are used for clusters that use a SLURM scheduler.

@@ -1,0 +1,1 @@
+This is where raw mass spec data should be stored. Data you would want to convert to another format.

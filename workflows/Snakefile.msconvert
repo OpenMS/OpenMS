@@ -1,0 +1,24 @@
+run_ids, = glob_wildcards("data_raw/{run}.wiff")
+
+rule all:
+    input:
+       expand("data_dia/{run}.done", run=run_ids)
+
+rule msconvert:
+    input:
+        wiff="data_raw/{run}.wiff",
+        scan="data_raw/{run}.wiff.scan"
+    output:    
+        check=temp(touch("data_dia/{run}.done")), 
+    params:
+        output_dir="data_dia/"
+    singularity:
+        "docker://chambm/pwiz-skyline-i-agree-to-the-vendor-licenses:latest"
+    shell:
+        "if [[ -z '${{SLURM_TMPDIR}}' ]]; then localtmp='/tmp/'; else localtmp=$SLURM_TMPDIR; fi && "
+        "cache=$localtmp/$(cat /proc/sys/kernel/random/uuid)/ && mkdir -p $cache && "
+        "cp {input} $cache && "
+        "mywine msconvert $cache/$(basename {input.wiff}) --mzML --64 --zlib --gzip -o $cache && "
+        "mv -v $cache/*mzML.gz {params.output_dir} && "
+        """for f in data_dia/*; do mv -v "$f" "${f// /_}"; done && """
+        "rm -rf $cache"

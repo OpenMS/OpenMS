@@ -1,0 +1,98 @@
+{
+    "__default__" :
+    {
+        "account": "def-hroest", 
+        "cpus-per-task": "1",
+        "mem": 16384,
+        "job-name": "JOBNAME.{rule}.{wildcards}",
+        "output": "logs/cluster/{rule}/{rule}.{wildcards}.out",
+        "error": "logs/cluster/{rule}/{rule}.{wildcards}.err"
+
+    },
+
+    "msconvert": {
+        "mem": 2048,
+        "cpus-per-task": "1",
+        "time": "01:00:00"
+    },
+
+    "filefilter": {
+        "mem": 16384,
+        "cpus-per-task": "4",
+        "time": "02:00:00"
+    },
+    
+    "diau" :
+    {
+        "mem"    : 16384,
+        "cpus-per-task"     : "4",
+        "time": "02:00:00"
+    },
+
+    "msfragger_index" :
+    {
+        "mem"    : 16384,
+        "cpus-per-task"     : "4",
+        "time": "02:00:00"
+    },
+
+    "msfragger_search" :
+    {
+        "mem"    : 32768,
+        "cpus-per-task"     : "4",
+        "time": "02:00:00"
+    },
+
+    "msfragger_convert" :
+    {
+        "mem"    : 16384,
+	    "cpus-per-task"     : "2",
+        "time": "02:00:00"
+    },
+
+    "iprophet" :
+    {
+        "mem"    : 32768,
+        "cpus-per-task"     : "4",
+        "time": "02:00:00"
+    },
+
+    "easypqp" :
+    {
+        "mem"    : 16384,
+        "cpus-per-task"     : "2",
+        "time": "02:00:00"
+    },
+
+    "openswath": {
+        "mem": 16384,
+        "cpus-per-task": "20",
+        "time": "02:00:00"
+    },
+
+    "merge_osw": {
+        "mem": 16384,
+        "cpus-per-task": "1",
+        "time": "01:00:00"
+    },
+
+    "pyprophet_scoring": {
+        "mem": 32768 ,
+        "cpus-per-task": "10",
+        "time": "01:00:00"
+    },
+
+    "pyprophet_contexts": {
+        "mem": 8192 ,
+        "cpus-per-task": "1",
+        "time": "01:00:00"
+    },
+
+    "dialignr": {
+        "mem": 32768 ,
+        "cpus-per-task": "30",
+        "time": "01:00:00"
+    }
+}
+
+

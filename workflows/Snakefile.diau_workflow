@@ -1,0 +1,46 @@
+# Obtain run_ids from centroided DIA mzXML files in dia_data folder
+run_ids, = glob_wildcards("data_dia/{mzxml}.mzXML.gz")
+
+# Define DIA-Umpire pseudo-spectra quality groups
+qual_ids = ["Q1","Q2","Q3"]
+
+rule all:
+    input:
+        expand("data_dda/{run}_{qual}.mzXML.gz", run=run_ids, qual=qual_ids)
+
+rule diau_cache:
+    input:
+        "data_dia/{run}.mzXML.gz"
+    output:
+        temp("results/diau/{run}.mzXML")
+    singularity:
+        "docker://spctools/tpp:latest"
+    threads: 1
+    shell:
+        "gunzip -c {input} > {output}"
+
+rule diau:
+    input:
+        rules.diau_cache.output
+    output:
+        q1 = "results/diau/{run}_Q1.mgf",
+        q2 = "results/diau/{run}_Q2.mgf",
+        q3 = "results/diau/{run}_Q3.mgf"
+    params:
+        parameter_file = "params/diaumpire_se_Thermo_params.txt"
+    singularity:
+        "docker://grosenberger/dia_umpire:2.1.6"
+    threads: 4
+    shell:
+        "java -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1 -jar /DIA_Umpire_SE.jar {input} {params.parameter_file}"
+
+rule convert:
+    input:
+        "results/diau/{run}_{qual}.mgf"
+    output:
+        "data_dda/{run}_{qual}.mzXML.gz"
+    singularity:
+        "docker://grosenberger/proteowizard:3.0.19100"
+    shell:
+        "outdir=$(dirname {output}) && "
+        "msconvert {input} --mzXML --gzip --32 -o $outdir"

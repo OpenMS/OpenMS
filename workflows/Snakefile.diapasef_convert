@@ -1,0 +1,29 @@
+run_ids, = glob_wildcards("data_raw/{run}.wiff")
+
+rule all:
+    input:
+       expand("data_dia/{run}.done", run=run_ids)
+
+rule msconvert:
+    input:
+        analysis_dir="data_raw/{run}.d"
+    output:    
+        check=temp(touch("data_dia/{run}.done"))
+    params:
+        output_filename="{run}.mzML",
+        merge_scans==-1,
+        keep_frames='--no-keep_frames',
+        verbose=-1,
+        overlap_scans=-1,
+        frame_limit='[-1, -1]',
+        output_dir="data_dia/"
+    singularity:
+        "docker://singjust/mobidik:latest"
+    shell:
+        "if [[ -z '${{SLURM_TMPDIR}}' ]]; then localtmp='/tmp/'; else localtmp=$SLURM_TMPDIR; fi && "
+        "cache=$localtmp/$(cat /proc/sys/kernel/random/uuid)/ && mkdir -p $cache && "
+        "cp {input} $cache && "
+        "diapysef converttdftomzml --in {input.analysis_dir} --out {params.output_filename} --merge {params.merge_scans} {params.kee_frames} --verbose {params.verbose} --overlap {params.overlap_scans} --framerange {params.frame_limit} && "
+        "mv -v {wildcards.run}.mzML {params.output_dir} && "
+        """for f in data_dia/*; do mv -v "$f" "${f// /_}"; done && """
+        "rm -rf $cache"

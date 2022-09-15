@@ -1,0 +1,128 @@
+# Obtain run_ids from DDA or DIA-ps mzXML files in data folder
+run_ids, = glob_wildcards("data_dda/{run}.mzXML.gz")
+
+rule all:
+    input:
+        pqp = "data_library/library.pqp"
+
+rule decoydb:
+    input:
+        "data_library/library.fasta"
+    output:
+        "results/library/library.fasta"
+    singularity:
+        "docker://openms/executables:latest"
+    shell:
+        "DecoyDatabase -in {input} -out {output}"
+
+rule msfragger_index:
+    input:
+        fasta = rules.decoydb.output,
+    output:
+        index = "results/library/library.fasta.1.pepindex",
+    params:
+        fragger = "params/fragger_closed.params"
+    singularity:
+        "docker://singjust/msfragger:3.1.1"
+    threads: 4
+    shell:
+        "java -XX:+UseContainerSupport -jar /MSFragger.jar {params.fragger}"
+
+rule msfragger_cache:
+    input:
+        "data_dda/{run}.mzXML.gz"
+    output:
+        temp("results/library/{run}.mzXML")
+    singularity:
+        "docker://spctools/tpp:version5.2"
+    threads: 1
+    shell:
+        "gunzip -c {input} > {output}"
+
+rule msfragger_search:
+    input:
+        fasta = rules.decoydb.output,
+        index = rules.msfragger_index.output.index,
+        mzxml = rules.msfragger_cache.output
+    output:
+        fragger = "results/library/{run}.pepXML",
+        mgf = "results/library/{run}_calibrated.mgf"
+    params:
+        fragger = "params/fragger_closed.params"
+    singularity:
+        "docker://singjust/msfragger:3.1.1"
+    threads: 4
+    shell:
+        "java -XX:+UseContainerSupport -jar /MSFragger.jar {params.fragger} {input.mzxml}"
+
+rule peptideprophet:
+    input:
+        rules.msfragger_search.output.fragger
+    output:
+        "results/library/tpp/{run}.pepXML",
+    singularity:
+        "docker://spctools/tpp:version5.2"
+    shell:
+        "InteractParser {output} {input} && "
+        "PeptideProphetParser {output} ACCMASS NONPARAM DECOY=DECOY_ DECOYPROBS EXPECTSCORE PPM"
+
+rule iprophet:
+    input:
+        expand("results/library/tpp/{run}.pepXML", run=run_ids)
+    output:
+        "results/library/tpp/iprophet.pepXML",
+    singularity:
+        "docker://spctools/tpp:version5.2"
+    threads: 4
+    shell:
+        "InterProphetParser THREADS={threads} DECOY=DECOY_ {input} {output}"
+
+rule msfragger_convert:
+    input:
+        mgf = rules.msfragger_search.output.mgf,
+        fragger = rules.iprophet.output
+    output:
+        psms = "results/library/{run}.psmpkl",
+        peakpkl = "results/library/{run}.peakpkl"
+    params:
+        unimod = "params/unimod_phospho.xml"
+    singularity:
+        "docker://grosenberger/easypqp:latest"
+    shell:
+        "easypqp convert --unimod {params.unimod} --pepxml {input.fragger} --psms {output.psms} --spectra {input.mgf} --peaks {output.peakpkl}"
+
+rule easypqp:
+    input:
+        psms = expand("results/library/{run}.psmpkl", run=run_ids),
+        peakpkl = expand("results/library/{run}.peakpkl", run=run_ids),
+    output:
+        peptide_plot = "results/library/easypqp_peptide_report.pdf",
+        protein_plot = "results/library/easypqp_protein_report.pdf",
+        library = "results/library/easypqp_library.tsv",
+    singularity:
+        "docker://grosenberger/easypqp:latest"
+    params:
+        psm_fdr_threshold = 0.01,
+        peptide_fdr_threshold = 0.01,
+        protein_fdr_threshold = 0.01,
+        lowess_fraction = 0.1,
+        pi0_lambda = "0.05 0.5 0.05"
+    shell:
+        "easypqp library --rt_filter=_Q1 --out={output.library} --psm_fdr_threshold={params.psm_fdr_threshold} --peptide_fdr_threshold={params.peptide_fdr_threshold} --protein_fdr_threshold={params.protein_fdr_threshold} --rt_lowess_fraction={params.lowess_fraction} --pi0_lambda={params.pi0_lambda} --peptide_plot={output.peptide_plot} --protein_plot={output.protein_plot} {input.psms} {input.peakpkl}"
+
+rule pqp:
+    input:
+        library = rules.easypqp.output.library
+    params:
+        unimod = "params/unimod_phospho.xml",
+    output:
+        targets = "data_library/library_targets.pqp",
+        decoys = "data_library/library.pqp"
+    singularity:
+        "docker://openms/executables:latest"
+    shell:
+        "if [[ -z '${{SLURM_TMPDIR}}' ]]; then localtmp='/tmp/'; else localtmp=$SLURM_TMPDIR; fi && "
+        "cache=$localtmp/$(cat /proc/sys/kernel/random/uuid)/ && mkdir -p $cache && "
+        "OpenSwathAssayGenerator -in {input.library} -out $cache/library_targets.pqp -min_transitions 3 -max_transitions 6 -product_lower_mz_limit 300 -product_upper_mz_limit 1800 && " # standard OpenSWATH
+        # "OpenSwathAssayGenerator -in {input.library} -out $cache/library_targets.pqp -min_transitions 3 -max_transitions 6 -product_lower_mz_limit 300 -product_upper_mz_limit 1800 -enable_ipf -unimod_file {params.unimod} -disable_identification_ms2_precursors -disable_identification_specific_losses && " # IPF-enabled OpenSWATH
+        "OpenSwathDecoyGenerator -in $cache/library_targets.pqp -out $cache/library.pqp && mv $cache/library_targets.pqp {output.targets} && mv $cache/library.pqp {output.decoys}"

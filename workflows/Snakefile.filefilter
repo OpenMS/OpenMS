@@ -1,0 +1,22 @@
+# Obtain run_ids from centroided DIA mzML files in dia_data folder
+run_ids, = glob_wildcards("data_dia/{run}.mzML.gz")
+
+rule all:
+    input:
+       expand("data_dia_filt/{run}.mzML", run=run_ids)
+
+rule filefilter:
+    input:
+        "data_dia/{run}.mzML.gz"
+    output:    
+        "data_dia_filt/{run}.mzML"
+    singularity:
+        "docker://openms/executables:latest"
+    threads: 4
+    shell:
+        "if [[ -z '${{SLURM_TMPDIR}}' ]]; then localtmp='/tmp/'; else localtmp=$SLURM_TMPDIR; fi && "
+        "cache=$localtmp/$(cat /proc/sys/kernel/random/uuid)/ && mkdir -p $cache && "
+        "cp {input} $cache && "
+        "FileFilter -in $cache/$(basename {input}) -out $cache/$(basename {output}) -rt 500:8000 -mz 350:1250 -peak_options:zlib_compression true -peak_options:numpress:masstime linear -peak_options:numpress:intensity slof -threads {threads} && "
+        "mv $cache/$(basename {output}) {output} && "
+        "rm -rf $cache"

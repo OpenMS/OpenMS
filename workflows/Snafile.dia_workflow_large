@@ -1,0 +1,228 @@
+# Obtain run_ids from centroided DIA mzXML files in dia_data folder
+run_ids, = glob_wildcards("data_dia/{run}.mzXML.gz")
+
+rule all:
+    input:
+        "tric_feature_alignment.done"
+
+rule run_target_pqp:
+    input:
+        "results/library/{run}_Q1_run_peaks.tsv"
+    output:
+        "results/openswath/{run}.pqp"
+    singularity:
+        "docker://openms/executables:latest"
+    shell:
+        "if [[ -z '${{SLURM_TMPDIR}}' ]]; then localtmp='/tmp/'; else localtmp=$SLURM_TMPDIR; fi && "
+        "cache=$localtmp/$(cat /proc/sys/kernel/random/uuid)/ && mkdir -p $cache && "
+        "OpenSwathAssayGenerator -in {input} -out $cache/$(basename {output}) && "
+        "mv $cache/$(basename {output}) {output} && "
+        "rm -rf $cache"
+
+rule irt_filter_pqp:
+    input:
+        rules.run_target_pqp.output
+    params:
+        bins = 10,
+        peptides = 20
+    output:
+        "results/openswath/irt_{run}.pqp"
+    singularity:
+        "docker://grosenberger/easypqp:0.1.5"
+    shell:
+        "if [[ -z '${{SLURM_TMPDIR}}' ]]; then localtmp='/tmp/'; else localtmp=$SLURM_TMPDIR; fi && "
+        "cache=$localtmp/$(cat /proc/sys/kernel/random/uuid)/ && mkdir -p $cache && "
+        "cp {input} $cache/$(basename {input}) && "
+        "easypqp reduce --in=$cache/$(basename {input}) --out=$cache/$(basename {output}) --bins={params.bins} --peptides={params.peptides} && "
+        "mv $cache/$(basename {output}) {output} && "
+        "rm -rf $cache"
+
+rule irt_nonlinear_filter_pqp:
+    input:
+        "data_library/library_targets.pqp"
+    params:
+        bins = 5000,
+        peptides = 20
+    output:
+        "results/openswath/nonlinear_irt.pqp"
+    singularity:
+        "docker://grosenberger/easypqp:0.1.5"
+    shell:
+        "if [[ -z '${{SLURM_TMPDIR}}' ]]; then localtmp='/tmp/'; else localtmp=$SLURM_TMPDIR; fi && "
+        "cache=$localtmp/$(cat /proc/sys/kernel/random/uuid)/ && mkdir -p $cache && "
+        "cp {input} $cache/$(basename {input}) && "
+        "easypqp reduce --in=$cache/$(basename {input}) --out=$cache/$(basename {output}) --bins={params.bins} --peptides={params.peptides} && "
+        "mv $cache/$(basename {output}) {output} && "
+        "rm -rf $cache"
+
+rule openswath:
+    input:
+        pqp="data_library/library.pqp",
+        irt_linear=rules.irt_filter_pqp.output, # OpenSWATH with EasyPQP library
+        irt_nonlinear=rules.run_target_pqp.output, # OpenSWATH with EasyPQP library
+        # irt_linear="data_library/irtkit.TraML", # OpenSWATH with Pulsar library
+        # irt_nonlinear=rules.irt_nonlinear_filter_pqp.output, # OpenSWATH with Pulsar library
+        mzxml="data_dia/{run}.mzXML.gz",
+    output:
+        osw="results/openswath/{run}.osw"
+    params:
+        run="{run}"
+    singularity:
+        "docker://openms/executables:latest"
+    threads: 4
+    resources:
+        mem_mb=lambda wildcards, attempt: attempt * 8192
+    shell:
+        "if [[ -z '${{SLURM_TMPDIR}}' ]]; then localtmp='/tmp/'; else localtmp=$SLURM_TMPDIR; fi && "
+        "cache=$localtmp/$(cat /proc/sys/kernel/random/uuid)/ && mkdir -p $cache && "
+        "cp {input.pqp} $cache/$(basename {input.pqp}) && cp {input.irt_linear} $cache/$(basename {input.irt_linear}) && cp {input.irt_nonlinear} $cache/$(basename {input.irt_nonlinear}) && cp {input.mzxml} $cache/$(basename {input.mzxml}) && "
+        "OpenSwathWorkflow -in $cache/$(basename {input.mzxml}) -tr $cache/$(basename {input.pqp}) -tr_irt $cache/$(basename {input.irt_linear}) -tr_irt_nonlinear $cache/$(basename {input.irt_nonlinear}) -out_osw $cache/$(basename {output.osw}) -threads {threads} -min_upper_edge_dist 1 -mz_extraction_window 30 -mz_extraction_window_unit ppm -mz_extraction_window_ms1 20 -mz_extraction_window_ms1_unit ppm -mz_correction_function regression_delta_ppm -use_ms1_traces -irt_mz_extraction_window 50 -irt_mz_extraction_window_unit ppm -rt_extraction_window 300 -RTNormalization:estimateBestPeptides -RTNormalization:alignmentMethod lowess -RTNormalization:lowess:span 0.1 -RTNormalization:outlierMethod none -Scoring:stop_report_after_feature 5 -Scoring:TransitionGroupPicker:compute_peak_quality false -Scoring:TransitionGroupPicker:background_subtraction exact -Scoring:Scores:use_ms1_mi -Scoring:Scores:use_mi_score -threads {threads} -batchSize 1000 -ms1_isotopes 3 && "
+        "mv $cache/$(basename {output.osw}) {output.osw} && "
+        "rm -rf $cache"
+
+rule pyprophet_subsample:
+    input:
+        rules.openswath.output.osw
+    params:
+        #subsample_ratio = lambda wildcards, input: round(1.0/len(set(rules.openswath.output.osw)),3)
+        subsample_ratio = 0.5
+    output:
+        "results/pyprophet/runspecific/{run}.osws"
+    singularity:
+        "docker://pyprophet/pyprophet:2.1.10"
+    threads: 1
+    shell:
+        "if [[ -z '${{SLURM_TMPDIR}}' ]]; then localtmp='/tmp/'; else localtmp=$SLURM_TMPDIR; fi && "
+        "cache=$localtmp/$(cat /proc/sys/kernel/random/uuid)/ && mkdir -p $cache && "
+        "cp {input} $cache && "
+        "pyprophet subsample --subsample_ratio={params.subsample_ratio} --in=$cache/$(basename {input}) --out=$cache/$(basename {output}) && "
+        "mv $cache/$(basename {output}) {output} && "
+        "rm -rf $cache"
+
+rule pyprophet_merge:
+    input:
+        template = rules.openswath.input.pqp,
+        osws = expand("results/pyprophet/runspecific/{run}.osws", run=run_ids)
+    output:
+        "results/pyprophet/runspecific/subsampled.osw"
+    singularity:
+        "docker://pyprophet/pyprophet:2.1.10"
+    threads: 1
+    shell:
+        "if [[ -z '${{SLURM_TMPDIR}}' ]]; then localtmp='/tmp/'; else localtmp=$SLURM_TMPDIR; fi && "
+        "cache=$localtmp/$(cat /proc/sys/kernel/random/uuid)/ && mkdir -p $cache && "
+        "cp {input} $cache && "
+        "pyprophet merge --template=$cache/$(basename {input.template}) --out=$cache/$(basename {output}) $cache/*.osws && "
+        "mv $cache/$(basename {output}) {output} && "
+        "rm -rf $cache"
+
+rule pyprophet_learn:
+    input:
+        rules.pyprophet_merge.output
+    output:
+        model = "results/pyprophet/runspecific/model.osw",
+        ms1ms2_report = "results/pyprophet/runspecific/model_ms1ms2_report.pdf",
+        #ms1_report = "results/pyprophet/runspecific/model_ms1_report.pdf",
+        #transition_report = "results/pyprophet/runspecific/model_transition_report.pdf",
+    singularity:
+        "docker://pyprophet/pyprophet:2.1.10"
+    threads: 4
+    shell:
+        "if [[ -z '${{SLURM_TMPDIR}}' ]]; then localtmp='/tmp/'; else localtmp=$SLURM_TMPDIR; fi && "
+        "cache=$localtmp/$(cat /proc/sys/kernel/random/uuid)/ && mkdir -p $cache && "
+        "cp {input} $cache/$(basename {output.model}) && "
+        "pyprophet score --classifier=XGBoost --in $cache/$(basename {output.model}) --level=ms1ms2 --xeval_num_iter=3 --ss_initial_fdr=0.2 --ss_iteration_fdr=0.01 --threads={threads} && "
+        #"pyprophet score --classifier=XGBoost --in $cache/$(basename {output.model}) --level=ms1 --xeval_num_iter=3 --ss_initial_fdr=0.2 --ss_iteration_fdr=0.01 --threads={threads} && "
+        # "pyprophet score --classifier=XGBoost --in $cache/$(basename {output.model}) --level=transition --ipf_min_transition_sn=-1 --xeval_num_iter=3 --ss_initial_fdr=0.2 --ss_iteration_fdr=0.01 --threads={threads} && "
+        "mv $cache/$(basename {output.model}) {output.model} && "
+        "mv $cache/$(basename {output.ms1ms2_report}) {output.ms1ms2_report} && "
+        #"mv $cache/$(basename {output.ms1_report}) {output.ms1_report} && "
+        # "mv $cache/$(basename {output.transition_report}) {output.transition_report} && "
+        "rm -rf $cache"
+
+rule pyprophet_apply:
+    input:
+        osw = rules.openswath.output.osw,
+        model = rules.pyprophet_learn.output.model,
+    output:
+        osw = "results/pyprophet/runspecific/{run}.osw",
+        oswr = "results/pyprophet/runspecific/{run}.oswr"
+    singularity:
+        "docker://pyprophet/pyprophet:2.1.10"
+    shell:
+        "if [[ -z '${{SLURM_TMPDIR}}' ]]; then localtmp='/tmp/'; else localtmp=$SLURM_TMPDIR; fi && "
+        "cache=$localtmp/$(cat /proc/sys/kernel/random/uuid)/ && mkdir -p $cache && "
+        "cp {input.osw} $cache && "
+        "pyprophet score --in $cache/$(basename {input.osw}) --out $cache/$(basename {output.osw}) --classifier=XGBoost --apply_weights={input.model} --level=ms1ms2 && "
+        #"pyprophet score --in $cache/$(basename {input.osw}) --out $cache/$(basename {output.osw}) --group_id=feature_id --classifier=XGBoost --apply_weights={input.model} --level=ms1 && "
+        # "pyprophet score --in $cache/$(basename {output.osw}) --classifier=XGBoost --apply_weights={input.model} --level=transition && "
+        # "pyprophet ipf --no-ipf_ms1_scoring --no-ipf_ms2_scoring --ipf_grouped_fdr --in $cache/$(basename {output.osw}) && "
+        "pyprophet reduce --in $cache/$(basename {output.osw}) --out $cache/$(basename {output.oswr}) && "
+        "mv $cache/$(basename {output.osw}) {output.osw} && "
+        "mv $cache/$(basename {output.oswr}) {output.oswr} && "
+        "mv $cache/*.pdf results/pyprophet/runspecific/ && "
+        "rm -rf $cache"
+
+rule pyprophet_global:
+    input:
+        template = rules.openswath.input.pqp,
+        oswr = expand("results/pyprophet/runspecific/{run}.oswr", run=run_ids)
+    output:
+        "results/pyprophet/global/model.oswr"
+    singularity:
+        "docker://pyprophet/pyprophet:2.1.10"
+    shell:
+        "if [[ -z '${{SLURM_TMPDIR}}' ]]; then localtmp='/tmp/'; else localtmp=$SLURM_TMPDIR; fi && "
+        "cache=$localtmp/$(cat /proc/sys/kernel/random/uuid)/ && mkdir -p $cache && "
+        "cp {input.template} $cache && "
+        "cp {input.oswr} $cache && "
+        "pyprophet merge --template $cache/$(basename {input.template}) --out $cache/$(basename {output}) $cache/*.oswr && "
+        "pyprophet peptide --context=global --in $cache/$(basename {output}) && "
+        "pyprophet protein --context=global --in $cache/$(basename {output}) && "
+        "mv $cache/$(basename {output}) {output} && "
+        "mv $cache/*.pdf results/pyprophet/global/ && "
+        "rm -rf $cache"
+
+rule pyprophet_backpropagate:
+    input:
+        osw = rules.pyprophet_apply.output.osw,
+        model = rules.pyprophet_global.output
+    output:
+        "results/pyprophet/integrated/{run}.osw"
+    singularity:
+        "docker://pyprophet/pyprophet:2.1.10"
+    shell:
+        "if [[ -z '${{SLURM_TMPDIR}}' ]]; then localtmp='/tmp/'; else localtmp=$SLURM_TMPDIR; fi && "
+        "cache=$localtmp/$(cat /proc/sys/kernel/random/uuid)/ && mkdir -p $cache && "
+        "cp {input.osw} $cache && "
+        "cp {input.model} $cache && "
+        "pyprophet backpropagate --apply_scores $cache/$(basename {input.model}) --in $cache/$(basename {input.osw})  --out $cache/$(basename {output}) && "
+        "mv $cache/$(basename {output}) {output} && "
+        "rm -rf $cache"
+
+rule tric_prepare:
+    input:
+        rules.pyprophet_backpropagate.output
+    output:
+        "results/tric/{run}.tsv"
+    singularity:
+        "docker://pyprophet/pyprophet:2.1.10"
+    shell:
+        "if [[ -z '${{SLURM_TMPDIR}}' ]]; then localtmp='/tmp/'; else localtmp=$SLURM_TMPDIR; fi && "
+        "cache=$localtmp/$(cat /proc/sys/kernel/random/uuid)/ && mkdir -p $cache && "
+        "cp {input} $cache && "
+        "pyprophet export --in $cache/$(basename {input}) --out {output} --format=legacy_merged --max_rs_peakgroup_qvalue=0.2 --ipf_max_peptidoform_pep=1.0 --max_global_peptide_qvalue=0.01 --max_global_protein_qvalue=0.01 && "
+        "rm -rf $cache"
+
+rule tric_feature_alignment:
+    input:
+        expand("results/tric/{run}.tsv", run=run_ids)
+    output:
+        long="results/tric/feature_alignment.tsv",
+        matrix="results/tric/feature_alignment_matrix.tsv",
+        check=temp(touch("tric_feature_alignment.done"))
+    singularity:
+        "docker://grosenberger/msproteomicstools:0.11.0"
+    shell:
+        "feature_alignment.py --in {input} --out {output.long} --out_matrix {output.matrix} --method LocalMST --realign_method lowess_cython --max_rt_diff 60 --mst:useRTCorrection True --mst:Stdev_multiplier 3.0 --fdr_cutoff 0.01 --max_fdr_quality 0.05"
+
