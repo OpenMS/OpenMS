@@ -1229,7 +1229,7 @@ protected:
     ////////////////////////////////////////////////////////////
     Size j(0);
     // for each MS file (as provided in the experimental design)
-    const auto& path_label_to_sampleidx = design_.getPathLabelToSampleMapping(false);
+    const auto& path_label_to_sampleidx = design_.getPathLabelToSampleMapping(true);
     for (String const & mz_file : ms_files.second) 
     {
       const Size curr_fraction_group = j + 1;
@@ -1238,7 +1238,9 @@ protected:
       consensus_fraction.getColumnHeaders()[j].unique_id = feature_maps[j].getUniqueId();
       consensus_fraction.getColumnHeaders()[j].setMetaValue("fraction", fraction);
       consensus_fraction.getColumnHeaders()[j].setMetaValue("fraction_group", curr_fraction_group);
-      consensus_fraction.getColumnHeaders()[j].setMetaValue("sample_name", design_.getSampleSection().getSampleName(path_label_to_sampleidx.at({mz_file,1})));
+      const auto& sample_index = path_label_to_sampleidx.at({File::basename(mz_file), 1});
+      const auto& sample_name = design_.getSampleSection().getSampleName(sample_index);
+      consensus_fraction.getColumnHeaders()[j].setMetaValue("sample_name", sample_name);
       ++j;
     }
 
@@ -1283,8 +1285,6 @@ protected:
     const set<String>& fixed_modifications)
   {
     // since we don't require an index as input but need to calculate e.g., coverage we reindex here (fast)
-    String picked_decoy_string = "DECOY_";
-    bool picked_decoy_prefix = true;
 
     //-------------------------------------------------------------
     // Protein inference
@@ -1358,7 +1358,7 @@ protected:
     }
     else
     {
-      fdr.applyPickedProteinFDR(overall_proteins, picked_decoy_string, picked_decoy_prefix);
+      fdr.applyPickedProteinFDR(overall_proteins, picked_decoy_string_, picked_decoy_prefix_);
     }
 
     bool pepFDR = getStringOption_("FDR_type") == "PSM+peptide";
@@ -1733,7 +1733,7 @@ protected:
         ////////////////////////////////////////////////////////////
         Size j(0);
         // for each MS file (as provided in the experimental design)
-        const auto& path_label_to_sampleidx = design_.getPathLabelToSampleMapping(false);
+        const auto& path_label_to_sampleidx = design_.getPathLabelToSampleMapping(true);
         for (String const & mz_file : ms_files.second) 
         {
           const Size curr_fraction_group = j + 1;
@@ -1742,7 +1742,7 @@ protected:
           consensus.getColumnHeaders()[run_index].unique_id = 1 + run_index;
           consensus.getColumnHeaders()[run_index].setMetaValue("fraction", fraction);
           consensus.getColumnHeaders()[run_index].setMetaValue("fraction_group", curr_fraction_group);
-          consensus.getColumnHeaders()[run_index].setMetaValue("sample_name", design_.getSampleSection().getSampleName(path_label_to_sampleidx.at({mz_file,1})));
+          consensus.getColumnHeaders()[run_index].setMetaValue("sample_name", design_.getSampleSection().getSampleName(path_label_to_sampleidx.at({File::basename(mz_file),1})));
           ++j;
           ++run_index;
         }
