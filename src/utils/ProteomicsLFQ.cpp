@@ -1238,7 +1238,7 @@ protected:
       consensus_fraction.getColumnHeaders()[j].unique_id = feature_maps[j].getUniqueId();
       consensus_fraction.getColumnHeaders()[j].setMetaValue("fraction", fraction);
       consensus_fraction.getColumnHeaders()[j].setMetaValue("fraction_group", curr_fraction_group);
-      const auto& sample_index = path_label_to_sampleidx.at({mz_file, 1});
+      const auto& sample_index = path_label_to_sampleidx.at({File::basename(mz_file), 1});
       const auto& sample_name = design_.getSampleSection().getSampleName(sample_index);
       consensus_fraction.getColumnHeaders()[j].setMetaValue("sample_name", sample_name);
       ++j;
@@ -1742,7 +1742,7 @@ protected:
           consensus.getColumnHeaders()[run_index].unique_id = 1 + run_index;
           consensus.getColumnHeaders()[run_index].setMetaValue("fraction", fraction);
           consensus.getColumnHeaders()[run_index].setMetaValue("fraction_group", curr_fraction_group);
-          consensus.getColumnHeaders()[run_index].setMetaValue("sample_name", design_.getSampleSection().getSampleName(path_label_to_sampleidx.at({mz_file,1})));
+          consensus.getColumnHeaders()[run_index].setMetaValue("sample_name", design_.getSampleSection().getSampleName(path_label_to_sampleidx.at({File::basename(mz_file),1})));
           ++j;
           ++run_index;
         }
