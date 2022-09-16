@@ -95,7 +95,6 @@ namespace OpenMS::Internal
     }
 
     Size exp_size, chrom_size;
-    Peak1D current_peak;
 
     int file_identifier;
     ifs.read((char*)&file_identifier, sizeof(file_identifier));
@@ -154,7 +153,6 @@ namespace OpenMS::Internal
     }
 
     Size exp_size, chrom_size;
-    Peak1D current_peak;
 
     ifs.seekg(0, ifs.beg); // set file pointer to beginning, start reading
     spectra_index_.clear();
