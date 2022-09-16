@@ -143,6 +143,7 @@ namespace OpenMS
   {
     static const EmpiricalFormula H_form = EmpiricalFormula::hydrogen();
     static const EmpiricalFormula phosphate_form = EmpiricalFormula("HPO3");
+    static const EmpiricalFormula thiophosphate_form = EmpiricalFormula("HPO2S1");
     static const EmpiricalFormula internal_to_full = EmpiricalFormula::water();
     // static const EmpiricalFormula five_prime_to_full = EmpiricalFormula("HPO3");
     // static const EmpiricalFormula three_prime_to_full = EmpiricalFormula("");
@@ -166,9 +167,20 @@ namespace OpenMS
     for (const auto& i : seq_)
     {
       our_form += i->getFormula();
+      // Add the phosphate (of thiophosphate) per linkage
+      if (&i != &seq_.back()) // no linkage at last base
+      {
+        if (i->getCode().back() == '*')
+        {
+          our_form += (thiophosphate_form - internal_to_full);
+        }
+        else
+        {
+          our_form += (phosphate_form - internal_to_full);
+        }
+      }
     }
-    // phosphates linking nucleosides:
-    our_form += (phosphate_form - internal_to_full) * (seq_.size() - 1);
+
     EmpiricalFormula local_three_prime, local_five_prime;
 
     // Make local copies of the formulas for the terminal mods so we don't get into trouble dereferencing null ptrs
@@ -190,7 +202,7 @@ namespace OpenMS
         //   return our_form - five_prime_to_full + OH_form + (H_form * charge) + local_three_prime;
 
       case AminusB:
-        return our_form + (H_form * charge) + local_five_prime + aminusB_ion_to_full - seq_.back()->getFormula() + seq_.back()->getBaselossFormula();
+        return our_form + (H_form * charge) + local_five_prime + aminusB_ion_to_full - seq_.back()->getFormula() + seq_.back()->getBaselossFormula() - ((seq_.back()->getCode().back() == '*') ? EmpiricalFormula("SO-1") : EmpiricalFormula("") );
 
       case AIon:
         return our_form + (H_form * charge) + local_five_prime + a_ion_to_full;
@@ -205,10 +217,10 @@ namespace OpenMS
         return our_form + (H_form * charge) + local_five_prime + d_ion_to_full + ((seq_.back()->getCode().back() == '*') ? EmpiricalFormula("SO-1") : EmpiricalFormula(""));
 
       case WIon:
-        return our_form + (H_form * charge) + local_three_prime + w_ion_to_full;
+        return our_form + (H_form * charge) + local_three_prime + w_ion_to_full; //This calculation can't work for linkages with a thiol on the 5' side
 
       case XIon:
-        return our_form + (H_form * charge) + local_three_prime + x_ion_to_full;
+        return our_form + (H_form * charge) + local_three_prime + x_ion_to_full; //This calculation can't work for linkages with a thiol on the 5' side
 
       case YIon:
         return our_form + (H_form * charge) + local_three_prime + y_ion_to_full;
