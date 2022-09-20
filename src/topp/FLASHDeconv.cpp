@@ -207,6 +207,10 @@ protected:
     setMinInt_("merging_method", 0);
     setMaxInt_("merging_method", 2);
 
+    registerIntOption_("report_decoy_info", "<0: Do not report 1: report>", 0, "Report decoy masses in the spectrum tsv file. Qvalues for masses are also calculated. Beta version.", false, false);
+    setMinInt_("report_decoy_info", 0);
+    setMaxInt_("report_decoy_info", 1);
+
 
 
     /*
@@ -490,6 +494,7 @@ protected:
     String in_log_file = getStringOption_("in_log");
     String out_train_file = "";
 
+    String out_att_file = out_file + ".csv";
 #ifdef DEBUG_EXTRA_PARAMTER
     in_train_file = getStringOption_("in_train");
     out_train_file = getStringOption_("out_train");
@@ -508,6 +513,7 @@ protected:
     int merge = getIntOption_("merging_method");
     bool write_detail = getIntOption_("write_detail") > 0;
     int mzml_charge = getIntOption_("mzml_mass_charge");
+    bool report_decoy = getIntOption_("report_decoy_info") == 1;
     bool out_undeconvolved = getIntOption_("mzml_output_undeconvolved_peaks") == 1;
     double min_mz = getDoubleOption_("Algorithm:min_mz");
     double max_mz = getDoubleOption_("Algorithm:max_mz");
@@ -526,10 +532,15 @@ protected:
     fi_out.open(in_file + ".txt", fstream::out); //
     #endif
 
-    fstream out_stream, out_train_stream, out_promex_stream;
+    fstream out_stream, out_train_stream, out_promex_stream, out_att_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams, out_topfd_feature_streams;
 
     out_stream.open(out_file, fstream::out);
+#ifdef DEBUG_EXTRA_PARAMTER
+    out_att_stream.open(out_att_file, fstream::out);
+
+    QScore::writeAttCsvFromDecoyHeader(out_att_stream);
+#endif
     FLASHDeconvFeatureFile::writeHeader(out_stream);
 
     if (!out_promex_file.empty())
@@ -562,7 +573,7 @@ protected:
       for (Size i = 0; i < out_spec_file.size(); i++)
       {
         out_spec_streams[i].open(out_spec_file[i], fstream::out);
-        FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail, report_decoy);
 
       }
     }
@@ -572,7 +583,8 @@ protected:
     if (!in_train_file.empty() && !out_train_file.empty())
     {
       out_train_stream.open(out_train_file, fstream::out);
-      QScore::writeAttHeader(out_train_stream, write_detail_qscore_att);
+
+      QScore::writeAttCsvFromTopPICHeader(out_train_stream, write_detail_qscore_att);
       std::ifstream in_trainstream(in_train_file);
       String line;
       bool start = false;
@@ -677,6 +689,7 @@ protected:
         break;
       }
     }
+    //std::cout<<max_precursor_c<<std::endl;
     // Max MS Level is adjusted according to the input dataset
     current_max_ms_level = current_max_ms_level > max_ms_level ? max_ms_level : current_max_ms_level;
 
@@ -693,6 +706,7 @@ protected:
     MSExperiment exp;
 
     auto fd = FLASHDeconvAlgorithm();
+    FLASHDeconvAlgorithm fd_charge_decoy, fd_noise_decoy;
 
     Param fd_param = getParam_().copy("Algorithm:", true);
     DoubleList tols = fd_param.getValue("tol");
@@ -701,7 +715,7 @@ protected:
     // if a merged spectrum is analyzed, replace the input dataset with the merged one
     if (merge == 1)
     {
-      OPENMS_LOG_INFO << "Merging spectra using gaussian averaging... " << endl;
+      OPENMS_LOG_INFO<< "Merging spectra using gaussian averaging... "<<std::endl;
       SpectraMerger merger;
       merger.setLogType(log_type_);
       Param sm_param = merger.getDefaults();
@@ -719,7 +733,7 @@ protected:
     else if(merge == 2)
     {
       //mz_binning_width - ms tols
-      OPENMS_LOG_INFO << "Merging spectra into a single spectrum per MS level... "<< endl;
+      OPENMS_LOG_INFO<< "Merging spectra into a single spectrum per MS level... "<<std::endl;
       SpectraMerger merger;
       merger.setLogType(log_type_);
       Param sm_param = merger.getDefaults();
@@ -742,6 +756,19 @@ protected:
     fd.calculateAveragine(use_RNA_averagine);
     fd.setTargetMasses(getTargetMasses(targets));
 
+    if(report_decoy)
+    {
+      fd_charge_decoy.setParameters(fd_param);
+      fd_charge_decoy.setAveragine(fd.getAveragine());
+      fd_charge_decoy.setDecoyFlag(1); // charge
+
+
+      fd_noise_decoy.setParameters(fd_param);
+      fd_noise_decoy.setAveragine(fd.getAveragine());
+      fd_noise_decoy.setDecoyFlag(2); // noise
+
+      fd.setDecoyFlag(3); // isotope
+    }
     auto avg = fd.getAveragine();
     auto mass_tracer = MassFeatureTrace();
     Param mf_param = getParam_().copy("FeatureTracing:", true);
@@ -771,6 +798,9 @@ protected:
     std::vector<DeconvolvedSpectrum> deconvolved_spectra;
     deconvolved_spectra.reserve(map.size());
 
+    std::vector<DeconvolvedSpectrum> decoy_deconvolved_spectra;
+    decoy_deconvolved_spectra.reserve(map.size() * 3);
+
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       scan_number = SpectrumLookup::extractScanNumber(it->getNativeID(),
@@ -797,6 +827,7 @@ protected:
       }
       fd.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
       auto& deconvolved_spectrum = fd.getDeconvolvedSpectrum();
+      auto& decoy_deconvolved_spectrum = fd.getDecoyDeconvolvedSpectrum();
 
       if (deconvolved_spectrum.empty())
       {
@@ -817,11 +848,7 @@ protected:
           && !deconvolved_spectrum.getPrecursorPeakGroup().empty()
           )
       {
-        QScore::writeAttTsv(deconvolved_spectrum,
-                            top_pic_map[scan_number],
-                            avg,
-                            out_train_stream,
-                            write_detail_qscore_att);
+        QScore::writeAttCsvFromTopPIC(deconvolved_spectrum, top_pic_map[scan_number], avg, out_train_stream, write_detail_qscore_att);
       }
 
       if (!out_mzml_file.empty())
@@ -855,6 +882,40 @@ protected:
         scan_rt_map[deconvolved_spectrum.getScanNumber()] = it->getRT();
       }
 
+      if(report_decoy)
+      {
+        fd_charge_decoy.clearExcludedMonoMasses();
+        for(auto& pg: deconvolved_spectrum){
+          for(int iso=-5;iso <=  (int)avg.getLastIndex(pg.getMonoMass()) + 2;iso++){
+            fd_charge_decoy.addExcludedMonoMass(pg.getMonoMass() + iso * Constants::ISOTOPE_MASSDIFF_55K_U);
+          }
+        }
+        fd_charge_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
+        fd_noise_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
+
+        decoy_deconvolved_spectrum.reserve(decoy_deconvolved_spectrum.size() + fd_charge_decoy.getDecoyDeconvolvedSpectrum().size()
+                                           + fd_noise_decoy.getDecoyDeconvolvedSpectrum().size());
+
+        for(auto& pg: fd_charge_decoy.getDecoyDeconvolvedSpectrum())
+        {
+          decoy_deconvolved_spectrum.push_back(pg);
+        }
+
+        for(auto& pg: fd_noise_decoy.getDecoyDeconvolvedSpectrum())
+        {
+          decoy_deconvolved_spectrum.push_back(pg);
+        }
+
+        decoy_deconvolved_spectrum.sort();
+        if(!write_detail)
+        {
+          for(auto& pg: decoy_deconvolved_spectrum)
+          {
+            pg.clear();
+          }
+        }
+        decoy_deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
+      }
 
       qspec_cntr[ms_level - 1]++;
       mass_cntr[ms_level - 1] += deconvolved_spectrum.size();
@@ -871,13 +932,15 @@ protected:
 
     std::cout<<" writing per spectrum deconvolution results ... "<<std::endl;
 
+    DeconvolvedSpectrum::updatePeakGroupQvalues(deconvolved_spectra, decoy_deconvolved_spectra);
+
     for(auto& deconvolved_spectrum: deconvolved_spectra)
     {
       int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
 
       if ((int) out_spec_streams.size() > ms_level - 1)
       {
-        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, report_decoy);
       }
       if ((int) out_topfd_streams.size() > ms_level - 1)
       {
@@ -890,8 +953,25 @@ protected:
         }
 #endif
       }
+#ifdef DEBUG_EXTRA_PARAMTER
+      QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
+#endif
     }
+    if(report_decoy)
+    {
+      for (auto& deconvolved_spectrum : decoy_deconvolved_spectra)
+      {
+        int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
 
+        if ((int)out_spec_streams.size() > ms_level - 1)
+        {
+          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, report_decoy);
+        }
+#ifdef DEBUG_EXTRA_PARAMTER
+        QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
+#endif
+      }
+    }
 
     // mass_tracer run
     if (merge != 2) // unless spectra are merged into a single one
@@ -968,6 +1048,7 @@ protected:
     #ifdef DEBUG_EXTRA_PARAMTER
     f_out_topfd_file_log.close();
     fi_out.close();
+    out_att_stream.close();
     #endif
     out_stream.close();
 
@@ -1023,6 +1104,7 @@ protected:
 
     return EXECUTION_OK;
   }
+
 };
 
 // the actual main function needed to create an executable
