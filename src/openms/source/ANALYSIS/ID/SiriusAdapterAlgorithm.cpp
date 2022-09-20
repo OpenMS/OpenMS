@@ -538,6 +538,37 @@ namespace OpenMS
     // Algorithm
     // ################
 
+    void SiriusAdapterAlgorithm::logInSiriusAccount(String& executable, const String& email, const String& password) const
+    {
+      // sirius login --email=email --password=password
+      QString executable_qstring = SiriusAdapterAlgorithm::determineSiriusExecutable(executable).toQString();
+      QStringList command_line{"login", String("--email="+email).toQString(), String("--password="+password).toQString()};
+      
+      // start QProcess with sirius login command
+      QProcess qp;
+      qp.start(executable_qstring, command_line);
+
+      // print executed command as info
+      std::stringstream ss;
+      ss << "Executing command: " << executable_qstring.toStdString();
+      for (const QString& it : command_line)
+      {
+        ss << " " << it.toStdString();
+      }
+      OPENMS_LOG_INFO << ss.str() << std::endl;
+
+      // wait until process finished
+      qp.waitForFinished(-1);
+
+      // always print process stdout (info) and stderror (warning)
+      const QString sirius_stdout(qp.readAllStandardOutput());
+      const QString sirius_stderr(qp.readAllStandardError());
+      OPENMS_LOG_INFO << String(sirius_stdout) << std::endl;
+      OPENMS_LOG_WARN << String(sirius_stderr) << std::endl;
+      
+      qp.close();
+    }
+
     // tmp_msfile (store), all parameters, out_dir (tmpstructure)
     const std::vector<String> SiriusAdapterAlgorithm::callSiriusQProcess(const String& tmp_ms_file,
                                                                          const String& tmp_out_dir,
@@ -557,7 +588,7 @@ namespace OpenMS
       // structure of the command line passed to NightSky (Sirius 4.X+)
       // Add noCite and instead make sure the main citations are registered in our TOPP tool.
       // Most of the time the user does not see the direct Sirius output anyway
-      QStringList command_line = QStringList("--noCite") + project_params + QStringList({"--input", tmp_ms_file.toQString(), "--project", tmp_out_dir.toQString(), "sirius"}) + sirius_params;
+      QStringList command_line = QStringList("--noCite") + project_params + QStringList({"--input", tmp_ms_file.toQString(), "--project", tmp_out_dir.toQString(), "sirius"}) + sirius_params + QStringList("write-summaries");
 
       if (run_passatutto)
       {

@@ -4,6 +4,7 @@ set(directory source/CONCEPT)
 ### list all filenames of the directory here
 set(sources_list
 ClassTest.cpp
+Colorizer.cpp
 CommonEnums.cpp
 Constants.cpp
 Exception.cpp

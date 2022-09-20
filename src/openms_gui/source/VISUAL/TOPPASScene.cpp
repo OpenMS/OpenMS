@@ -256,7 +256,7 @@ namespace OpenMS
           Param to_old = to; // backup, to compare
 
           std::stringstream ss;
-          Logger::LogStream my_log(new Logger::LogStreamBuf());
+          Logger::LogStream my_log(new Logger::LogStreamBuf("Transfer", nullptr));
           my_log.insert(ss);
           to.update(from, false, my_log);
           if (to == to_old)

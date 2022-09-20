@@ -417,7 +417,7 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_FATAL_ERROR))
   boost::regex rx(R"(.*LogStream_test\.cpp\(\d+\): \d)");
   for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
   {
-    TEST_EQUAL(regex_match(to_validate_list[i], rx), true)
+    TEST_TRUE(regex_search(to_validate_list[i], rx))
   }
 }
 END_SECTION
@@ -436,7 +436,7 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_ERROR))
     OPENMS_LOG_ERROR << "1\n";
     OPENMS_LOG_ERROR << "2" << endl;
   }
-  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
+  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general_red.txt"))
 }
 END_SECTION
 
@@ -454,7 +454,7 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_WARN))
     OPENMS_LOG_WARN << "1\n";
     OPENMS_LOG_WARN << "2" << endl;
   }
-  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
+  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general_yellow.txt"))
 }
 END_SECTION
 
@@ -500,13 +500,12 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_DEBUG))
   }
 
   StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
-  TEST_EQUAL(to_validate_list.size(),3)
+  TEST_EQUAL(to_validate_list.size(), 3)
 
   boost::regex rx(R"(.*LogStream_test\.cpp\(\d+\): \d)");
   for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
   {
-    std::cerr << i << ":" << to_validate_list[i] << std::endl;
-    TEST_EQUAL(regex_match(to_validate_list[i], rx), true)
+    TEST_TRUE(regex_search(to_validate_list[i], rx))
   }
 }
 END_SECTION

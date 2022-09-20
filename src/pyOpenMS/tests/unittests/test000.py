@@ -4654,8 +4654,8 @@ def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
     """
 
     assert s.getType() in [ pyopenms.SpectrumSettings.SpectrumType.UNKNOWN,
-                               pyopenms.SpectrumSettings.SpectrumType.PEAKS,
-                               pyopenms.SpectrumSettings.SpectrumType.RAWDATA]
+                               pyopenms.SpectrumSettings.SpectrumType.CENTROID,
+                               pyopenms.SpectrumSettings.SpectrumType.PROFILE]
 
     assert isinstance(s.getAcquisitionInfo(), pyopenms.AcquisitionInfo)
     assert isinstance(s.getInstrumentSettings(), pyopenms.InstrumentSettings)

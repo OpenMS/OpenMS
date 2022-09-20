@@ -115,7 +115,7 @@ protected:
     {
       if (FileHandler::getType(ins[i]) != file_type)
       {
-        writeLog_("Error: All input files must be of the same type!");
+        writeLogError_("Error: All input files must be of the same type!");
         return ILLEGAL_PARAMETERS;
       }
     }
@@ -144,7 +144,7 @@ protected:
 
     if (file_type == FileTypes::CONSENSUSXML && !design_file.empty())
     {
-      writeLog_("Error: Using fractionated design with consensusXML als input is not supported!");
+      writeLogError_("Error: Using fractionated design with consensusXML als input is not supported!");
       return ILLEGAL_PARAMETERS;
     }
   
@@ -172,7 +172,7 @@ protected:
         // check if all fractions have the same number of MS runs associated
         if (!ed.sameNrOfMSFilesPerFraction())
         {
-          writeLog_("Error: Number of runs must match for every fraction!");
+          writeLogError_("Error: Number of runs must match for every fraction!");
           return ILLEGAL_PARAMETERS;
         }
       }
