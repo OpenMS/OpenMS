@@ -46,7 +46,6 @@
 #include <QtCore>
 #include <QtCore/QFile>
 #include <QtCore/QDir>
-#include <QtConcurrent/QtConcurrent>
 #include <QtWidgets/QMessageBox>
 
 #include <QCoreApplication>
@@ -238,17 +237,14 @@ namespace OpenMS
           }
 
           // running the copy() in an extra thread, such that the GUI stays responsive
-          QFuture<bool> future = QtConcurrent::run(copy_, file_from, file_to);
-          QMutex mutex; mutex.lock();
-          QWaitCondition qwait;
-          while (!future.isFinished())
+  
+          auto copyFuture = std::async(std::launch::async, &copy_, file_from, file_to);  
+          while (copyFuture.wait_for(std::chrono::milliseconds(25)) != std::future_status::ready)
           {
             qApp->processEvents(); // GUI responsiveness
-            qwait.wait(&mutex, 25); // block for 25ms (enough for GUI responsiveness), so CPU usage remains low
           }
-          mutex.unlock();
-
-          if (bool(future.result()))
+            
+          if (copyFuture.get())
           {
             ++files_written_;
             emit outputFileWritten(file_to);
