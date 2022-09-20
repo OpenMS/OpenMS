@@ -95,7 +95,7 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::Exp
           #                                  libcpp_map[ String, size_t ] columnname_to_columnindex) nogil except +
 
           # Get set of all samples that are present in the sample section
-          libcpp_set[ unsigned int ] getSamples() nogil except + # wrap-doc:Returns a set of all samples that are present in the sample section
+          libcpp_set[ String ] getSamples() nogil except + # wrap-doc:Returns a set of all samples that are present in the sample section
 
           # Get set of all factors (column names) that were defined for the sample section
           libcpp_set[ String ] getFactors() nogil except + # wrap-doc:Returns a set of all factors (column names) that were defined for the sample section
