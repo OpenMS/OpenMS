@@ -52,7 +52,6 @@
 #include <algorithm>
 #include <functional>
 
-#include <boost/bind.hpp>
 #include <cmath> // for isnan
 
 const double C13C12_MASSDIFF_U = 1.0033548;
@@ -187,7 +186,7 @@ namespace OpenMS
       bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
 
       // Catch if no signal was found and replace it with the most extreme
-      // value. Otherwise calculate the difference in ppm.
+      // value. Otherwise, calculate the difference in ppm.
       if (!signalFound)
       {
         ppm_score = (right - left) / precursor_mz * 1000000;
