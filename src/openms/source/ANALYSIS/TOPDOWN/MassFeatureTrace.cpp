@@ -162,11 +162,6 @@ namespace OpenMS
           charges[p.abs_charge - min_abs_charge] = true;
           per_charge_intensity[p.abs_charge] += (p.intensity);
           per_isotope_intensity[p.isotopeIndex] += (p.intensity);
-          //if (per_charge_max_intensity[p.abs_charge - min_abs_charge] > p.intensity)
-         // {
-         //   continue;
-         // }
-         // per_charge_max_intensity[p.abs_charge - min_abs_charge] = p.intensity;
         }
 
         max_qscore = max_qscore < pg.getQScore() ? pg.getQScore() : max_qscore;
@@ -186,6 +181,7 @@ namespace OpenMS
 
       FLASHDeconvHelperStructs::MassFeature mass_feature;
       mass_feature.iso_offset = offset;
+      mass += offset * Constants::ISOTOPE_MASSDIFF_55K_U;
 
       mass_feature.avg_mass = averagine.getAverageMassDelta(mass) + mass;
       mass_feature.mt = mt;
@@ -194,6 +190,29 @@ namespace OpenMS
       mass_feature.min_charge = (is_positive ? min_feature_abs_charge : -max_feature_abs_charge) ;
       mass_feature.max_charge = (is_positive ? max_feature_abs_charge : -min_feature_abs_charge) ;
       mass_feature.qscore = max_qscore;
+
+      if(offset != 0)
+      {
+        per_isotope_intensity = std::vector<float>(averagine.getMaxIsotopeIndex(), .0f); // recalculate with updated offset
+        per_charge_intensity = std::vector<float>(charge_range + min_abs_charge + 1, .0f);
+
+        for (auto& pg : pgs)
+        {
+          for (auto& p : pg)
+          {
+            if (p.isotopeIndex < offset || p.isotopeIndex >= averagine.getMaxIsotopeIndex() + offset || p.abs_charge < min_abs_charge || p.abs_charge >= charge_range + min_abs_charge + 1)
+            {
+              continue;
+            }
+
+            charges[p.abs_charge - min_abs_charge] = true;
+            per_charge_intensity[p.abs_charge] += (p.intensity);
+            per_isotope_intensity[p.isotopeIndex - offset] += (p.intensity);
+          }
+        }
+      }
+
+
       mass_feature.per_charge_intensity = per_charge_intensity;
       mass_feature.per_isotope_intensity = per_isotope_intensity;
 

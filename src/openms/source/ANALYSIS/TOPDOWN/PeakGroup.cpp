@@ -158,6 +158,7 @@ namespace OpenMS
     for (int abs_charge = min_abs_charge_; abs_charge <= max_abs_charge_; abs_charge++)
     {
       if (getChargeSNR(abs_charge) <= 0 || getChargeIsotopeCosine(abs_charge) <= 0)
+      if (getChargeSNR(abs_charge) <= 0 || getChargeIsotopeCosine(abs_charge) <= 0)
       {
         continue;
       }
@@ -273,7 +274,7 @@ namespace OpenMS
 
         double peak_pwr = pint * pint;
 
-        if(abs(pmz - cmz - iso_index * iso_delta) <= std::min(.2, pmz * tol)) //
+        if(abs(pmz - cmz - iso_index * iso_delta) <= std::min(.25, pmz * tol)) //
         {
           auto p = LogMzPeak(spec[index], is_positive_);
           p.isotopeIndex = iso_index;
@@ -681,6 +682,27 @@ namespace OpenMS
   }
 
 
+  float PeakGroup::getQvalue() const
+  {
+    return qvalue_;
+  }
+
+  float PeakGroup::getQvalueWithChargeDecoyOnly() const
+  {
+    return qvalue_with_charge_decoy_only_;
+  }
+
+  float PeakGroup::getQvalueWithIsotopeDecoyOnly() const
+  {
+    return qvalue_with_isotope_decoy_only_;
+  }
+
+  float PeakGroup::getQvalueWithNoiseDecoyOnly() const
+  {
+    return qvalue_with_noise_decoy_only_;
+  }
+
+
   float PeakGroup::getSNR() const
   {
     return snr_;
@@ -729,6 +751,16 @@ namespace OpenMS
     return is_positive_;
   }
 
+  int PeakGroup::getDecoyIndex() const
+  {
+    return decoy_index_;
+  }
+
+  void PeakGroup::setDecoyIndex(int index)
+  {
+    decoy_index_ = index;
+  }
+
   void PeakGroup::setIsotopeDaDistance(const double d)
   {
     iso_da_distance_ = d;
@@ -738,6 +770,28 @@ namespace OpenMS
   {
     return iso_da_distance_;
   }
+
+  /*
+  float PeakGroup::getDecoyQScore() const
+  {
+    return decoy_qscore_;
+  }
+
+  void PeakGroup::setDecoyQScore(const float d)
+  {
+    decoy_qscore_ = d;
+  }
+
+  float PeakGroup::getDecoyIsoScore() const
+  {
+    return decoy_iso_score_;
+  }
+
+  void PeakGroup::setDecoyIsoScore(const float d)
+  {
+    decoy_iso_score_ = d;
+  }
+  */
 
   std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator PeakGroup::begin() const noexcept
   {
@@ -802,5 +856,30 @@ namespace OpenMS
   void PeakGroup::sort()
   {
     std::sort(logMzpeaks_.begin(), logMzpeaks_.end());
+  }
+  void PeakGroup::setQvalue(float q)
+  {
+    qvalue_ = q;
+  }
+  void PeakGroup::setQvalueWithChargeDecoyOnly(float q)
+  {
+    qvalue_with_charge_decoy_only_ = q;
+  }
+  void PeakGroup::setQvalueWithIsotopeDecoyOnly(float q)
+  {
+    qvalue_with_isotope_decoy_only_ = q;
+  }
+  void PeakGroup::setQvalueWithNoiseDecoyOnly(float q)
+  {
+    qvalue_with_noise_decoy_only_ = q;
+  }
+  void PeakGroup::setSecondBestMonsMass(const double mass)
+  {
+    second_best_monomass_ = mass;
+  }
+
+  double PeakGroup::getSecondBestMonoMass() const
+  {
+    return second_best_monomass_;
   }
 }

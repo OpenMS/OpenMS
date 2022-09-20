@@ -88,13 +88,9 @@ namespace OpenMS
       */
     void updateMonomassAndIsotopeIntensities();
 
-    /**
-           @brief Update isotope cosine sore and qscore
-           @param avg precalculated averagine
-           @param min_cos the peak groups with cosine score less than this will have QScore 0.
-           @param iso_da_distance Danton distance between consecutive isotopologues. Will be used to generate decoy masses.
-      */
     void updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double iso_da_distance);
+
+    //MSSpectrum getSubspectrumForMass(const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass);
 
     /// recruit peaks and then return as a spectrum.
     void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, bool write_detail);
@@ -110,6 +106,7 @@ namespace OpenMS
 
     /// set per abs_charge isotope cosine
     void setChargeIsotopeCosine(const int abs_charge, const float cos);
+
 
     /// set mz range that results in max QScore
     void setMaxQScoreMzRange(const double min, const double max);
@@ -134,18 +131,23 @@ namespace OpenMS
 
     /// set SNR manually - for FLASHIda log file parsing
     void setSNR(const float snr);
-
     /// set charge SNR manually - for FLASHIda log file parsing
     void setChargeSNR(const int abs_charge, const float c_snr);
 
     /// set if it is targeted
     void setTargeted();
 
+    /// set second best monoisotopic mass
+    void setSecondBestMonsMass(const double mass);
+
     /// get scan number
     int getScanNumber() const;
 
     /// get monoisotopic mass
     double getMonoMass() const;
+
+    /// get second best monoisotopic mass
+    double getSecondBestMonoMass() const;
 
     /// get intensity
     double getIntensity() const;
@@ -168,7 +170,6 @@ namespace OpenMS
     /// get charge range - the actual charge values
     std::tuple<int, int> getAbsChargeRange() const;
 
-    /// get per isotope intensities
     std::vector<float> getIsotopeIntensities() const;
 
     /// get isotopic cosine score
@@ -195,17 +196,44 @@ namespace OpenMS
     /// get if it is targeted
     bool isTargeted() const;
 
+    //float getDecoyQScore() const;
+
+    //void setDecoyQScore(const float d);
+
+    //float getDecoyIsoScore() const;
+
+    //void setDecoyIsoScore(const float d);
+
+    int getDecoyIndex() const;
+
+    void setDecoyIndex(int index);
+
+    float getQvalue() const;
+
+    void setQvalue(const float q);
+
+    float getQvalueWithChargeDecoyOnly() const;
+
+    float getQvalueWithIsotopeDecoyOnly() const;
+
+    float getQvalueWithNoiseDecoyOnly() const;
+
+    void setQvalueWithChargeDecoyOnly(const float q);
+
+    void setQvalueWithIsotopeDecoyOnly(const float q);
+
+    void setQvalueWithNoiseDecoyOnly(const float q);
+
     void setIsotopeDaDistance(const double d);
 
     double getIsotopeDaDistance() const;
 
-    /// const iterators of LogMzPeaks in PeakGroup
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator begin() const noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator end() const noexcept;
 
-    /// iterators of LogMzPeaks in PeakGroup
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator begin() noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator end() noexcept;
+
 
     const FLASHDeconvHelperStructs::LogMzPeak& operator[](const Size i) const;
 
@@ -220,13 +248,11 @@ namespace OpenMS
     std::vector<FLASHDeconvHelperStructs::LogMzPeak> noisy_peaks;
 
   private:
+
     /// set per abs_charge signal power
     void setChargePowers_(const int abs_charge, const double signal_pwr, const double noise_pwr, const double intensity);
-
-    /// update chargefit score and also update per charge intensities here.
     void updateChargeFitScoreAndChargeIntensities_();
-
-    /// update avg ppm error
+    //update avg ppm error
     void updateAvgPPMError_(double iso_da_distance);
 
 
@@ -254,7 +280,10 @@ namespace OpenMS
     bool is_targeted_ = false;
     /// information on the deconvolved mass
     double monoisotopic_mass_ = -1.0;
+    double second_best_monomass_ = -1.0;
     double intensity_;// total intensity
+    /// index to specify if this peak_group is a target (0), an isotope decoy (1), a noise (2), or a charge decoy (3)
+    int decoy_index_ = 0;
 
     /// distance between consecutive isotopes. Can be different for decoys
     double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
@@ -265,6 +294,10 @@ namespace OpenMS
     float qscore_ = .0f;
     float avg_ppm_error_ = 0;
     float snr_ = 0;
+    float qvalue_ = 1.0;
 
+    float qvalue_with_isotope_decoy_only_ = 1.0;
+    float qvalue_with_noise_decoy_only_ = 1.0;
+    float qvalue_with_charge_decoy_only_ = 1.0;
   };
 }

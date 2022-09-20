@@ -181,7 +181,7 @@ protected:
       }
       else
       {
-        writeLog_("Error: Input features do not have convex hulls. You have to set 'rt_tol_abs'!");
+        writeLogError_("Error: Input features do not have convex hulls. You have to set 'rt_tol_abs'!");
         return ILLEGAL_PARAMETERS;
       }
     }

@@ -83,7 +83,14 @@ public:
           : first_(first), current_scan_(begin), end_scan_(end)
         {
           // if begin is dereferencable ...
-          if (begin != end) ms_level_ = begin->getMSLevel();
+          if (begin != end)
+          {
+            ms_level_ = begin->getMSLevel();
+          }
+          else
+          {
+            ms_level_ = 1;
+          }
         }
 
         /// return the end-iterator
@@ -133,7 +140,7 @@ public:
         /// high mobility boundary
         CoordinateType high_im_ = std::numeric_limits<CoordinateType>::max();
         /// Only scans of this MS level are iterated over
-        int8_t ms_level_;
+        int8_t ms_level_{};
         /// Flag that indicates that this iterator is the end iterator
         bool is_end_ = false;
 
@@ -158,7 +165,7 @@ public:
       //@}
 
       /// Constructor for the begin iterator
-      AreaIterator(const Param& p) :
+      explicit AreaIterator(const Param& p) :
         p_(p)
       {
         nextScan_();
@@ -259,7 +266,7 @@ public:
       {
         if (p_.is_end_)
         {
-          return PeakIndex();
+          return {};
         }
         else
         {
@@ -271,12 +278,13 @@ private:
       /// advances the iterator to the next valid peak in the next valid spectrum
       void nextScan_()
       {
+        using MSLevelType = decltype(p_.current_scan_->getMSLevel());
         RangeMobility mb{p_.low_im_, p_.high_im_};
         while (true)
         {
           // skip over invalid MS levels and Mobility
           while (p_.current_scan_ != p_.end_scan_ &&
-                 ((int8_t)p_.current_scan_->getMSLevel() != p_.ms_level_ ||
+                 (p_.current_scan_->getMSLevel() != (MSLevelType)p_.ms_level_ ||
                   !mb.containsMobility(p_.current_scan_->getDriftTime())))
           {
             ++p_.current_scan_;

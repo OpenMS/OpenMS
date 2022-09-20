@@ -269,7 +269,7 @@ protected:
     FileHandler fh;
     fh.getOptions().setMSLevels({2});
     fh.loadExperiment(in, exp, FileTypes::Type::MZML, log_type_, false, false);
-    writeLog_("Number of spectra loaded: " + String(exp.size()));
+    writeLogInfo_("Number of spectra loaded: " + String(exp.size()));
 
 
     //-------------------------------------------------------------
@@ -350,13 +350,13 @@ protected:
 
       QObject::connect(mascot_query, SIGNAL(done()), &event_loop, SLOT(quit()));
       QTimer::singleShot(1000, mascot_query, SLOT(run()));
-      writeLog_("Submitting Mascot query (now: " + DateTime::now().get() + ")...");
+      writeLogInfo_("Submitting Mascot query (now: " + DateTime::now().get() + ")...");
       event_loop.exec();
-      writeLog_("Mascot query finished");
+      writeLogInfo_("Mascot query finished");
 
       if (mascot_query->hasError())
       {
-        writeLog_("An error occurred during the query: " + mascot_query->getErrorMessage());
+        writeLogError_("An error occurred during the query: " + mascot_query->getErrorMessage());
         delete mascot_query;
         return EXTERNAL_PROGRAM_ERROR;
       }
@@ -424,7 +424,7 @@ protected:
       String search_number = mascot_query->getSearchIdentifier();
       if (search_number.empty())
       {
-        writeLog_("Error: Failed to extract the Mascot search identifier (search number).");
+        writeLogError_("Error: Failed to extract the Mascot search identifier (search number).");
         if (mascot_query_param.exists("skip_export") &&
             mascot_query_param.getValue("skip_export").toBool())
         {

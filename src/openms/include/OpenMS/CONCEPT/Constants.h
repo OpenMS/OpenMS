@@ -545,6 +545,30 @@ namespace OpenMS
       */
       inline const std::string   NUM_OF_DATAPOINTS = "num_of_datapoints";
 
+      /** User parameter name for the name/description of a metabolite. (Required for MetaboliteSpectralMatcher)
+              String
+      */
+      inline const std::string   MSM_METABOLITE_NAME = "Metabolite_Name";
+
+      /** User parameter name for the INCHI key associated with a metabolite. (Required for MetaboliteSpectralMatcher)
+              String
+      */
+      inline const std::string   MSM_INCHI_STRING = "Inchi_String";
+
+      /** User parameter name for the SMILES key associated with a metabolite. (Required for MetaboliteSpectralMatcher)
+              String
+      */
+      inline const std::string   MSM_SMILES_STRING = "SMILES_String";
+
+      /** User parameter name for the precursor adduct ion of a metabolite. (Required for MetaboliteSpectralMatcher)
+              String
+      */
+      inline const std::string   MSM_PRECURSOR_ADDUCT = "Precursor_Ion";
+
+      /** User parameter name for the sum formula of a metabolite. (Required for MetaboliteSpectralMatcher)
+              String
+      */
+      inline const std::string   MSM_SUM_FORMULA = "Sum_Formula";
     }
 
     //@}

@@ -46,6 +46,7 @@ GzipInputStream.h
 HDF5Connector.h
 IBSpectraFile.h
 IdXMLFile.h
+IndentedStream.h
 IndexedMzMLFileLoader.h
 InspectInfile.h
 InspectOutfile.h
