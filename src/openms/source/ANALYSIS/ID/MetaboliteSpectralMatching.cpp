@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <numeric>
 #include <boost/math/special_functions/factorials.hpp>
@@ -542,11 +543,11 @@ namespace OpenMS
 
             tmp_match.setPrimaryIdentifier(spec_db[search_idx].getMetaValue("Massbank_Accession_ID"));
             tmp_match.setSecondaryIdentifier(spec_db[search_idx].getMetaValue("HMDB_ID"));
-            tmp_match.setSumFormula(spec_db[search_idx].getMetaValue("Sum_Formula"));
-            tmp_match.setCommonName(spec_db[search_idx].getMetaValue("Metabolite_Name"));
-            tmp_match.setInchiString(spec_db[search_idx].getMetaValue("Inchi_String"));
-            tmp_match.setSMILESString(spec_db[search_idx].getMetaValue("SMILES_String"));
-            tmp_match.setPrecursorAdduct(spec_db[search_idx].getMetaValue("Precursor_Ion"));
+            tmp_match.setSumFormula(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SUM_FORMULA));
+            tmp_match.setCommonName(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME));
+            tmp_match.setInchiString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_INCHI_STRING));
+            tmp_match.setSMILESString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SMILES_STRING));
+            tmp_match.setPrecursorAdduct(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT));
 
             partial_results.push_back(tmp_match);
           }

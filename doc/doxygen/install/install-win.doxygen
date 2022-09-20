@@ -32,11 +32,12 @@
 
     <b>Pre-Requisites (Software)</b>
     <ul>
-      <li><b>Visual Studio</b>: Microsoft Visual Studio (Community) 2019 or above
-        <br><b>Not supported are MinGW (g++ based compiler). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with.</b>
+      <li><b>Microsoft Visual C++ Compiler</b>: Comes with <a href="https://visualstudio.microsoft.com/de/downloads/?q=build+tools">Microsoft Visual Studio Build Tools 2019 or above </a>.
+        Scroll to the bottom of the page to get the build tools only. If you want, you can also download the full Visual Studio (Community/Pro/Enterprise) IDE.
+        <br><b>Not supported (or at least not tested) is MinGW (g++ based compiler). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with or load vcvarsall.bat.</b>
             Other compilers which are close to the VS toolchain might work, but are not tested.
       <li><b>CMake</b>: Have at least CMake 3.14+ or greater installed (see http://www.cmake.org). <br>
-	      CMake's Generator (-G flag) also must support your version of Visual Studio. If it doesn't, please upgrade CMake.<br>
+	      If you are using Visual Studio 2019+ as IDE, make sure CMake's Generator (-G flag) supports your version of Visual Studio. If it doesn't, please upgrade CMake.<br>
       <li><b>7-Zip</b>: To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
         <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
         the installation directory to your PATH.
@@ -78,14 +79,14 @@
 
     <ol>
       <li>Open a <b>VisualStudio Developer Command prompt</b> (by default you will get a 32-bit environment which you most likely do not want; use a x64 environment if you want 64 bit apps!)<br>
-					@note VS2015 does not provide a commandline shortcut for a 64bit command prompt. Call <tt>"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64</tt> to get one!
-					@note VS2017 has a (well hidden) batch-file which correctly configures your environment for 64bit builds. It should be located at
-					<tt>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>. (Same goes for VS2019)
+					@note VS2019 and above have a (well hidden) batch-file which correctly configures your environment for 64bit builds. It should be located at
+					<tt>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>. (Same goes for VS2022)
+          Use our tools/load_vcvarsall.sh if you are building in bash on Windows.
       <li>Create a build directory for the %OpenMS contrib<br>
           e.g. <tt>mkdir contrib_win64_build</tt>
       <li>Call CMake to build the contrib<br>
         Be aware that you can build 64bit apps even if your operating system is only 32bit (cross-compiling), but you will not be
-        able to run 64bit apps in this case.
+        able to run 64bit apps in this case. You might also need to disable incremental linking due to the smaller address space.
 
         \code
         cd <path_to_contrib_build>
@@ -93,7 +94,8 @@
         \endcode
 
         The <tt>&lt;generator&gt;</tt> you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
-        Use the <tt>-A x64</tt> flag to build 64-bit libraries for the contrib (32-bit does not really make any sense for LC-MS data processing)!
+        If you are lucky, CMake chooses the correct Generator even without specifying. Default architecture/platform is the same as your Windows.
+        Use the <tt>-A x64</tt> flag to build 64-bit libraries for the contrib to make double sure you build 64-bit. (32-bit does not really make any sense for LC-MS data processing)
         Type <tt>cmake -help</tt> to see a list of available generators.<br>
 
         Example:
@@ -112,9 +114,9 @@
 
     <b>Installation of Qt5 via the Qt5 installer (requires an admin account)</b>:<br>
     Go to https://www.qt.io/download and click on "Go open source" at the end of the right column to download the installer. Follow steps, download, save and run the installer.
-    Create a Qt account. Choose a folder like "c:\dev\QT". From the components choose a matching version, e.g. QT 5.10.0 and the MSVC component that fits
+    Create a Qt account. Choose a folder like "C:\dev\QT". From the components choose a matching version, e.g. QT 5.12.2 and the MSVC component that fits
     your Visual Studio version and architecture (most likely only 64bit is supported; if your Visual Studio version is more recent than the VS offered by the Qt installer, 
-    choose the closest available -- they should be compatible). You can deselect QTCreator under Tools.
+    choose the closest available -- they should be compatible). You can deselect QtCreator under Tools.
     Accept the license, choose startmenu entries if wanted and install. Resulting files appear under "c:\dev\QT\$VERSION".
 
     <b>Alternatively (no admin account required)</b>, compile Qt from sources by following the steps below:
@@ -312,6 +314,33 @@
     \code
     build OpenMS r
     \endcode
+
+  @section install_win_nonvs Advanced: Building OpenMS in any IDE (Example: Visual Studio Code)
+
+    This section is for users that already have a little experience with IDEs like VS Code or JetBrains CLion.
+    Especially the first step requires to read through the beginning of this documentation.
+    <ol>
+      <li> Download and install requirements (Git, CMake, 7zip, VS Build Tools, Qt) and make sure they are in your PATH
+      <li> Download and install VS Code
+      <li> Install C++ Extension Pack, CMake Tools, CMake Test Explorer and potentially some GitHub extensions
+      <li> Ctrl+Shift+P and find <code>Git: clone</code>, then type and search for OpenMS/OpenMS. Select a folder. Wait for clone to finish. Open clone. Trust authors.
+      <li> Open bash Terminal from within VS Code and type <code>source tools/loadvcvarsall.sh && load_msenv && git submodule update --init contrib && mkdir contrib-build && cd contrib-build && cmake -DBUILD_TYPE=ALL ../contrib</code>
+      <li> Adapt (to your paths) and add
+        \code
+        "cmake.configureArgs": [
+          "-DOPENMS_CONTRIB_LIBS=C:\\git\\contrib-build",
+          "-DCMAKE_PREFIX_PATH=C:\\dev\\Qt\\5.15.2\\msvc2019_64"
+        ]
+        \endcode
+        to your settings or configure manually in your user-config.yml or via the VS Code command runner.
+      <li> Ctrl+Shift+P and find <code>\> CMake: Select Kit</code>, select preferably "Visual Studio Build Tools Release 2022 - amd64"
+      <li> Ctrl+Shift+P and find <code>\> CMake: Configure</code>
+      <li> Select a build configuration and a target in the VS Code task bar (the usually blue bar on the very bottom of the program).
+        The default target is all. Then press the gear for building, the play button for building and running (if it is an executable target),
+        or the bug button for debugging.
+      <li> Happy coding!
+      <li> Bonus points for setting up Remote development for the Windows Subsystem for Linux and building for Windows and Linux in parallel. Beware of Windows line endings!
+    </ol>
 
   @section install_win_create_installer Creating an installer 
   
