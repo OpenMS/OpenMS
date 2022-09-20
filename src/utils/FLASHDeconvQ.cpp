@@ -104,7 +104,7 @@ protected:
     combined.setSectionDescription("mtd", "Mass Trace Detection parameters");
 
     Param p_epd = ElutionPeakDetection().getDefaults();
-    p_epd.setValue("width_filtering", "off");
+    p_epd.setValue("width_filtering", "auto");
     combined.insert("epd:", p_epd);
     combined.setSectionDescription("epd", "Elution Profile Detection (to separate isobaric Mass Traces by elution time).");
 

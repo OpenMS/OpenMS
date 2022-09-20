@@ -191,13 +191,13 @@ namespace FLASHDeconvQuantHelper
   private:
     MassTrace mass_trace_;
 
-    // log transformed centroid mz
-    double centroid_mz_;
+    double centroid_mz_; // centroid mz from mass trace
     int charge_;
     double fwhm_start_; // from mass trace, in sec
     double fwhm_end_;
     double intensity_;
     int isotope_index_;
+    // determined mass after deconvolution. NOT monoisotopic but only decharged
     double mass_;
     Size trace_index_;
   };

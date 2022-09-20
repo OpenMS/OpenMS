@@ -316,6 +316,11 @@ namespace FLASHDeconvQuantHelper
     // update per_isotope_int_, intensity_ and charge_
     for (auto &f: feature_seeds_)
     {
+      if (f.getIsotopeIndex() < 0)
+      {
+        OPENMS_LOG_ERROR << "negative index?" << std::endl;
+        continue;
+      }
       per_isotope_int_[f.getIsotopeIndex()] += f.getIntensity();
       charges_.insert(f.getCharge());
 

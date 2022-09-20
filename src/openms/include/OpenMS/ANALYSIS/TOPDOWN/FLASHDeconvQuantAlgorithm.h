@@ -94,11 +94,11 @@ namespace OpenMS
 
     void buildMassTraceGroups_(std::vector<FeatureSeed> &in_seeds, std::vector<FeatureGroup> &features);
 
-    bool scoreAndFilterFeatureGroup_(FeatureGroup& fg) const;
+    bool scoreAndFilterFeatureGroup_(FeatureGroup& fg, double min_iso_score = -1) const;
 
     void refineFeatureGroups_(std::vector<FeatureGroup>& features);
 
-    bool rescoreFeatureGroup_(FeatureGroup& fg, bool score_always = false) const;
+    bool rescoreFeatureGroup_(FeatureGroup& fg, double min_iso_score = -1) const;
 
     void setFeatureGroupScore_(FeatureGroup &fg) const;
 
@@ -128,6 +128,10 @@ namespace OpenMS
                                        const std::vector<std::vector<Size>> &shared_m_traces_indices,
                                        const bool &is_before_resolution);
 
+    void writeMassTracesOfFeatureGroup_(const FeatureGroup *fgroup,
+                                        const Size &fgroup_idx,
+                                        const Size tag);
+
     void writeTheoreticalShapeForConflictResolution_(const Size &fgroup_idx,
                                                      const FeatureSeed &shared_mt,
                                                      const std::vector<double> &theo_intensities,
@@ -139,7 +143,13 @@ namespace OpenMS
 
     MassTrace updateMassTrace_(const MassTrace& ref_trace, const double &ratio) const;
 
+    void fitTraceModelFromUniqueTraces_(Feature const& tmp_feat, EGHTraceFitter* fitted_model) const;
+
     void runElutionModelFit_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces &m_traces, EGHTraceFitter* fitter) const;
+
+    void updateFeatureWithFitModel(std::vector<Feature>& conflicting_features, Size mt_index,
+                                   const MassTrace& obs_masstrace, const Size& org_index_of_obs_mt,
+                                   Matrix<int>& pointer_to_components, vector<std::vector<double>>& components);
 
     void getMostAbundantMassTraceFromFeatureGroup_(const FeatureGroup &fgroup,
                                                   const int &ignore_this_charge,
@@ -172,6 +182,7 @@ namespace OpenMS
 
     // advanced parameter?
     Size min_nr_mtraces_ = 3; // minimum number of consecutive bridges among mass traces to support feature
+    Size min_nr_peaks_in_mtraces_ = 4; // at least 4 is needed for EGHTraceFitter
     bool use_smoothed_intensities_;
     double rt_window_ = 1; // TODO : remove?
 
@@ -192,5 +203,7 @@ namespace OpenMS
     /// for detailed outputs (mostly test purpose)
     bool shared_output_requested_;
     std::fstream shared_out_stream_ = std::fstream();
-  };
+    /// for detailed outputs (only test purpose)
+    std::fstream test_out_stream_ = std::fstream();
+};
 }
