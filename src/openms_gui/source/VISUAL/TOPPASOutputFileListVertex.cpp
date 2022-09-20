@@ -50,6 +50,8 @@
 
 #include <QCoreApplication>
 
+#include <future>
+
 namespace OpenMS
 {
   TOPPASOutputFileListVertex::TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex& rhs) :
