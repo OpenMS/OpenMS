@@ -616,10 +616,12 @@ namespace OpenMS
                                             "Meta value 'target_decoy' does not exist in all ProteinHits! Reindex the idXML file with 'PeptideIndexer'");
       }
     }
+
     static void setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,
                                          std::vector<PeptideIdentification>& ids,
                                          std::string const& score_type,
                                          bool keep_decoys);
+
     static void setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,
                                          ConsensusMap& map,
                                          std::string const& score_type,
