@@ -274,7 +274,7 @@ namespace OpenMS
 
         double peak_pwr = pint * pint;
 
-        if(abs(pmz - cmz - iso_index * iso_delta) <= std::min(.2, pmz * tol)) //
+        if(abs(pmz - cmz - iso_index * iso_delta) <= std::min(.25, pmz * tol)) //
         {
           auto p = LogMzPeak(spec[index], is_positive_);
           p.isotopeIndex = iso_index;

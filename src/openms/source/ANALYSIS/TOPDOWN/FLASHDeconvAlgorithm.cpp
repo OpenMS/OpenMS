@@ -194,7 +194,7 @@ namespace OpenMS
   // generate filters
   void FLASHDeconvAlgorithm::setFilters_()
   {
-    iso_da_distance_ = decoy_run_flag_ != noise_decoy_? Constants::ISOTOPE_MASSDIFF_55K_U : Constants::ISOTOPE_MASSDIFF_55K_U * 1.72;
+    iso_da_distance_ = decoy_run_flag_ != noise_decoy_? Constants::ISOTOPE_MASSDIFF_55K_U : Constants::ISOTOPE_MASSDIFF_55K_U * 3.72;
 
     filter_.clear();
     harmonic_filter_matrix_.clear();
@@ -203,11 +203,11 @@ namespace OpenMS
     {
       if(decoy_run_flag_ != noise_decoy_)
       {
-        filter_.push_back(log(1.0 / (i + current_min_charge_))); //+
+        filter_.push_back(-log(i + current_min_charge_)); //+
       }else{
-        double offset = i%2==0? .21 : -.21;
-        filter_.push_back(log(1.0 / (offset + i + current_min_charge_)));
-        //filter_.push_back(log(1.0 / (current_max_charge_)) - log(1.0 / ((charge_range - i - 1) + current_min_charge_))); //+
+        double offset = .21 + i/charge_range;
+        offset *= i%2==0? 2.42 : -2.42;
+        filter_.push_back(-log(offset + i + current_min_charge_));
       }
     }
 
@@ -220,14 +220,10 @@ namespace OpenMS
 
       for (int i = 0; i < charge_range; i++)
       {
-        if(decoy_run_flag_ != noise_decoy_)
-        {
-          harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-1.0 * n / hc + (i + current_min_charge_)))); // + current_min_charge_
-        }else{
-          double offset = i%2==0? .21 : -.21;
-          harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-(1.0 + 2 * offset) * n / hc + (offset + i + current_min_charge_))));
-          //harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-1.0 * n / hc + (current_max_charge_))) - log(1.0 / (-1.0 * n / hc + ((charge_range - i - 1) + current_min_charge_)))); // + current_min_charge_
-        }
+        double a = i>0 ? exp(-filter_[i-1]) : 0;
+        double b = exp(-filter_[i]);
+        harmonic_filter_matrix_.setValue(k, i, -log(b - (b-a) * n / hc));
+        //harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-1.0 * n / hc + (i + current_min_charge_)))); // + current_min_charge_
       }
     }
   }
@@ -892,44 +888,48 @@ namespace OpenMS
         int abs_charge = j + current_min_charge_; //
         int& bin_offset = bin_offsets_[j];
 
+        if(mass_bin_index < bin_offset)
         {
-          Size b_index = mass_bin_index - bin_offset; // m/z bin // TODO: does this never go negative?
-          int& cpi = current_peak_index[j];           // in this charge which peak is to be considered?
-          double max_intensity = -1;
-
-          while (cpi < log_mz_peak_size - 1) // scan through peaks from cpi
-          {
-            if (peak_bin_numbers[cpi] == b_index) // if the peak of consideration matches to this mass with charge abs_charge
-            {
-              double intensity = log_mz_peaks_[cpi].intensity;
-              if (intensity > max_intensity) // compare with other matching peaks and select the most intense peak (in max_peak_index)
-              {
-                max_intensity = intensity;
-                max_peak_index = cpi;
-              }
-            }
-            else if (peak_bin_numbers[cpi] > b_index)
-            {
-              break;
-            }
-            cpi++;
-          }
-
-          if (max_peak_index < 0)
-          {
-            continue;
-          }
-
-          // Search for local max.
-          if (max_peak_index > 0 && max_peak_index <= log_mz_peak_size && peak_bin_numbers[max_peak_index - 1] == b_index - 1 && log_mz_peaks_[max_peak_index - 1].intensity > max_intensity)
-          {
-            continue;
-          }
-          if (max_peak_index >= 0 && max_peak_index < log_mz_peak_size - 1 && peak_bin_numbers[max_peak_index + 1] == b_index + 1 && log_mz_peaks_[max_peak_index + 1].intensity > max_intensity)
-          {
-            continue;
-          }
+          continue;
         }
+
+        Size b_index = mass_bin_index - bin_offset; // m/z bin //
+        int& cpi = current_peak_index[j];           // in this charge which peak is to be considered?
+        double max_intensity = -1;
+
+        while (cpi < log_mz_peak_size - 1) // scan through peaks from cpi
+        {
+          if (peak_bin_numbers[cpi] == b_index) // if the peak of consideration matches to this mass with charge abs_charge
+          {
+            double intensity = log_mz_peaks_[cpi].intensity;
+            if (intensity > max_intensity) // compare with other matching peaks and select the most intense peak (in max_peak_index)
+            {
+              max_intensity = intensity;
+              max_peak_index = cpi;
+            }
+          }
+          else if (peak_bin_numbers[cpi] > b_index)
+          {
+            break;
+          }
+          cpi++;
+        }
+
+        if (max_peak_index < 0)
+        {
+          continue;
+        }
+
+        // Search for local max.
+        if (max_peak_index > 0 && max_peak_index <= log_mz_peak_size && peak_bin_numbers[max_peak_index - 1] == b_index - 1 && log_mz_peaks_[max_peak_index - 1].intensity > max_intensity)
+        {
+          continue;
+        }
+        if (max_peak_index >= 0 && max_peak_index < log_mz_peak_size - 1 && peak_bin_numbers[max_peak_index + 1] == b_index + 1 && log_mz_peaks_[max_peak_index + 1].intensity > max_intensity)
+        {
+          continue;
+        }
+
 
         // now we have a mathcing peak for this mass of charge  abs_charge. From here, istope peaks are collected
         const double mz = log_mz_peaks_[max_peak_index].mz;
@@ -1268,7 +1268,6 @@ namespace OpenMS
         }
       } else if (peak_group.getIsotopeCosine() <= min_isotope_cosine_[ms_level_ - 1])
       {
-
         continue;
       }
 
@@ -1367,7 +1366,7 @@ namespace OpenMS
   float FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset,
                                                                         int& second_max_offset,
                                                                         const PrecalculatedAveragine& avg,
-                                                                        int window_width, int allowed_iso_error)
+                                                                        int window_width, int allowed_iso_error_for_second_best_cos)
   {
     offset = 0;
     if (per_isotope_intensities.size() < min_iso_size_)
@@ -1429,7 +1428,7 @@ namespace OpenMS
 
     for (int tmp_offset = offset - 3; tmp_offset <= offset + 3; tmp_offset++)
     {
-      if(abs(offset - tmp_offset) <= allowed_iso_error)//
+      if(abs(offset - tmp_offset) <= allowed_iso_error_for_second_best_cos)//
       {
         continue;
       }

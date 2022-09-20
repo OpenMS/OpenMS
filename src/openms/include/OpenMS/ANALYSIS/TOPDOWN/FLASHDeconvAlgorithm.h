@@ -137,7 +137,7 @@ namespace OpenMS
         @param second_best_iso_offset second best scoring isotope offset - for decoy calculation.
         @param avg precalculated averagine
         @param window_width isotope offset value range. If -1, set automatically.
-        @param allowed_iso_error allowed isotope error to calculate qscure
+        @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate qscure
         @return calculated cosine similar score
      */
     static float getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
@@ -145,7 +145,7 @@ namespace OpenMS
                                                            int& offset,
                                                            int& second_best_iso_offset,
                                                            const PrecalculatedAveragine& avg,
-                                                           int window_width = -1, int allowed_iso_error = 1);
+                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 1);
 
     /// set decoy_flag_
     void setDecoyFlag(int flag);
