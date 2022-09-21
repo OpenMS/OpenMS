@@ -876,9 +876,6 @@ protected:
 
       if (merge != 2)
       {
-        mass_tracer.storeInformationFromDeconvolvedSpectrum(
-            deconvolved_spectrum);// add deconvolved mass in mass_tracer
-
         scan_rt_map[deconvolved_spectrum.getScanNumber()] = it->getRT();
       }
 
@@ -941,6 +938,7 @@ protected:
       if ((int) out_spec_streams.size() > ms_level - 1)
       {
         FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, report_decoy);
+        mass_tracer.storeInformationFromDeconvolvedSpectrum(deconvolved_spectrum);// add deconvolved mass in mass_tracer
       }
       if ((int) out_topfd_streams.size() > ms_level - 1)
       {
@@ -1013,7 +1011,6 @@ protected:
       {
         OPENMS_LOG_INFO << "So far, FLASHDeconv found " << mass_cntr[j] << " masses in the merged MS"
                         << (j + 1) << " spectrum" << endl;
-
       }
       else
       {

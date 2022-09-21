@@ -34,7 +34,6 @@
 
 
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
-
 namespace OpenMS
 {
   /**
@@ -51,7 +50,6 @@ namespace OpenMS
       return;
     }
 
-
     for (auto& pg : dspec)
     {
       const double mono_mass = pg.getMonoMass();
@@ -62,6 +60,7 @@ namespace OpenMS
       int min_charge = pg.isPositive() ? std::get<0>(charge_range) : -std::get<1>(charge_range);
       int max_charge = pg.isPositive() ? std::get<1>(charge_range) : -std::get<0>(charge_range);
 
+      pg.setIndex(index);
       fs << index++ << "\t" << file_name << "\t" << pg.getScanNumber() << "\t";
       if (decoy)
         fs << pg.getDecoyIndex() << "\t";
@@ -129,7 +128,6 @@ namespace OpenMS
           fs << p.intensity << " ";
         }
 
-
         fs << "\t";
         fs << std::setprecision(-1);
 
@@ -184,29 +182,34 @@ namespace OpenMS
 
       auto max_qscore_mz_range = pg.getMaxQScoreMzRange();
       fs << pg.getSNR() << "\t" << pg.getChargeSNR(pg.getRepAbsCharge()) << "\t"<< pg.getAvgPPMError()*1e6 << "\t" << (pg.isPositive() ? pg.getRepAbsCharge() : -pg.getRepAbsCharge()) << "\t"
-         << std::to_string(std::get<0>(max_qscore_mz_range)) << "\t" << std::to_string(std::get<1>(max_qscore_mz_range)) << "\t" << pg.getQScore() << "\t";
+         << std::to_string(std::get<0>(max_qscore_mz_range)) << "\t" << std::to_string(std::get<1>(max_qscore_mz_range)) << "\t" << pg.getQScore();
+
       if (decoy)
-        fs << pg.getQvalue() << "\t" << pg.getQvalueWithIsotopeDecoyOnly() << "\t" << pg.getQvalueWithNoiseDecoyOnly() << "\t" << pg.getQvalueWithChargeDecoyOnly() << "\t";
-      fs << std::setprecision(-1);
+        fs << "\t" << pg.getQvalue() << "\t" << pg.getQvalueWithIsotopeDecoyOnly() << "\t" << pg.getQvalueWithNoiseDecoyOnly() << "\t" << pg.getQvalueWithChargeDecoyOnly();
 
-      for (int i = std::get<0>(charge_range); i <= std::get<1>(charge_range); i++)
+      if (write_detail)
       {
-        fs << pg.getChargeIntensity(i);
+        fs << "\t" << std::setprecision(-1);
 
-        if (i < std::get<1>(charge_range))
+        for (int i = std::get<0>(charge_range); i <= std::get<1>(charge_range); i++)
         {
-          fs << ";";
+          fs << pg.getChargeIntensity(i);
+
+          if (i < std::get<1>(charge_range))
+          {
+            fs << ";";
+          }
         }
-      }
-      fs << "\t";
+        fs << "\t";
 
-      auto iso_intensities = pg.getIsotopeIntensities();
-      for (int i = 0; i < iso_intensities.size(); i++)
-      {
-        fs << iso_intensities[i];
-        if (i < iso_intensities.size() - 1)
+        auto iso_intensities = pg.getIsotopeIntensities();
+        for (int i = 0; i < iso_intensities.size(); i++)
         {
-          fs << ";";
+          fs << iso_intensities[i];
+          if (i < iso_intensities.size() - 1)
+          {
+            fs << ";";
+          }
         }
       }
       fs << "\n";
@@ -261,8 +264,8 @@ namespace OpenMS
               "PeakCount\t"
               "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\t";
         if (decoy)
-          fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\t";
-        fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
+          fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\n";
+       // fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
       }
       else
       {
@@ -277,8 +280,8 @@ namespace OpenMS
           fs << "PrecursorQvalue\tPrecursorQvalueWithIsotopeDecoyOnly\tPrecursorQvalueWithNoiseDecoyOnly\tPrecursorQvalueWithChargeDecoyOnly\t";
         fs << "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\t";
         if (decoy)
-          fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\t";
-        fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
+          fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\n";
+       // fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
       }
     }
   }

@@ -159,7 +159,6 @@ namespace OpenMS
     isolation_window_size_ = param_.getValue("isolation_window");
 
     intensity_threshold_ = param_.getValue("min_intensity");
-    //min_support_peak_count_ = param_.getValue("min_peaks");
 
     bin_width_.clear();
     tolerance_ = param_.getValue("tol");
@@ -463,7 +462,7 @@ namespace OpenMS
   {
     int charge_range = current_max_charge_ - current_min_charge_ + 1;
     int h_charge_size = (int)harmonic_charges_.size();
-    int min_peak_cntr = min_support_peak_count_[ms_level_ - 1] - 1;
+    int min_peak_cntr = min_support_peak_count_ - 1;
     long bin_end = (long)mass_bins_.size();
     auto support_peak_count = std::vector<int>(mass_bins_.size(), 0); // per mass bin how many peaks are present
 
@@ -1134,7 +1133,7 @@ namespace OpenMS
   {
     std::vector<PeakGroup> empty;
     deconvolved_spectrum_.swap(empty);
-    int min_peak_cntr = min_support_peak_count_[ms_level_ - 1] - 1;
+    int min_peak_cntr = min_support_peak_count_ - 1;
     int current_charge_range = current_max_charge_ - current_min_charge_ + 1;
     int tmp_peak_cntr = current_charge_range - min_peak_cntr;
 
@@ -1901,7 +1900,6 @@ namespace OpenMS
           }
         }
       }
-
       return false;
     }
 
@@ -1910,7 +1908,10 @@ namespace OpenMS
     for (int i = survey_scans.size() - 1; i >= 0; i--)
     {
       auto precursor_spectrum = survey_scans[i];
-
+      if(deconvolved_spectrum_.getPrecursorScanNumber() == 0)
+      {
+        deconvolved_spectrum_.setPrecursorScanNumber(precursor_spectrum.getScanNumber());
+      }
       if (precursor_spectrum.empty())
       {
         continue;

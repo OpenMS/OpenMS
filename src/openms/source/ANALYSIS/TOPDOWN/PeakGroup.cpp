@@ -94,6 +94,7 @@ namespace OpenMS
   {
    if(empty())
     {
+      qscore_ = 0;
       return;
     }
 
@@ -105,6 +106,12 @@ namespace OpenMS
     }
 
     updateMonomassAndIsotopeIntensities(); //
+    if(per_isotope_int_.empty() || max_abs_charge_ < min_abs_charge_)
+    {
+      qscore_ = 0;
+      return;
+    }
+
     int h_offset;
     int second_best_offset= 0;
     isotope_cosine_score_ = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(monoisotopic_mass_, per_isotope_int_, h_offset, second_best_offset, avg, 0);
@@ -769,6 +776,16 @@ namespace OpenMS
   double PeakGroup::getIsotopeDaDistance() const
   {
     return iso_da_distance_;
+  }
+
+  void PeakGroup::setIndex(const int i)
+  {
+    index_ = i;
+  }
+
+  int PeakGroup::getIndex() const
+  {
+    return index_;
   }
 
   /*

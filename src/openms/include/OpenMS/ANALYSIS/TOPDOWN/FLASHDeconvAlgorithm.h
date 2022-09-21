@@ -185,7 +185,7 @@ namespace OpenMS
     /// peak intensity threshold subject to analysis
     double intensity_threshold_;
     /// minimum number of peaks supporting a mass
-    const IntList min_support_peak_count_ = {3,3,3,3,3,3,3,3};
+    const static int min_support_peak_count_ = 3;
     /// tolerance in ppm for each MS level
     DoubleList tolerance_;
     /// bin size for first stage of mass selection - for fast convolution, binning is used
