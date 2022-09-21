@@ -63,7 +63,8 @@ namespace OpenMS
     defaults_.setValidStrings("use_smoothed_intensities", {"false", "true"});
     defaults_.setValue("out_shared_details", "false", "Outputs a tsv file including detailed information about the resolved signals (filename = <out_file_name>_shared.tsv", {"advanced"});
     defaults_.setValidStrings("out_shared_details", {"false", "true"});
-
+    defaults_.setValue("resolving_shared_signal", "true", "Resolve shared signal between FeatureGroups(i.e., coelution)", {"advanced"});
+    defaults_.setValidStrings("resolving_shared_signal", {"true", "false"});
     defaultsToParam_();
 
     this->setLogType(CMD);
@@ -85,6 +86,7 @@ namespace OpenMS
 
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
     shared_output_requested_ = param_.getValue("out_shared_details").toBool();
+    resolving_shared_signal_ = param_.getValue("resolving_shared_signal").toBool();
   }
 
   Param FLASHDeconvQuantAlgorithm::getFLASHDeconvParams_() const
@@ -119,7 +121,6 @@ namespace OpenMS
     input_seeds.reserve(input_mtraces.size());
     std::vector<MassTrace> updated_masstraces;
     updated_masstraces.reserve(input_mtraces.size());
-    double sum_intensity = 0;
     Size index = 0;
     for (auto iter = input_mtraces.begin(); iter != input_mtraces.end(); ++iter) {
       if (iter->getSize() < min_nr_peaks_in_mtraces_)
@@ -129,7 +130,6 @@ namespace OpenMS
       FeatureSeed tmp_seed(*iter);
       tmp_seed.setTraceIndex(index);
       input_seeds.push_back(tmp_seed);
-      sum_intensity += tmp_seed.getIntensity();
       updated_masstraces.push_back(*iter);
       ++index;
     }
@@ -138,7 +138,6 @@ namespace OpenMS
 
     // sort input mass traces in RT
     std::sort(input_seeds.begin(), input_seeds.end(), FLASHDeconvQuantHelper::CmpFeatureSeedByRT());
-    total_intensity_ = sum_intensity;
     std::vector<FeatureGroup> features;
     features.reserve(input_mtraces.size());
 
@@ -155,16 +154,26 @@ namespace OpenMS
     // *********************************************************** //
     // Step 3 clustering features
     // *********************************************************** //
-    if (shared_output_requested_)
+    if (resolving_shared_signal_)
     {
-      setOptionalDetailedOutput_();
-    }
+      if (shared_output_requested_)
+      {
+        setOptionalDetailedOutput_();
+      }
 
-    clusterFeatureGroups_(features, input_mtraces);
-    OPENMS_LOG_INFO << "#Final feature groups: " << features.size() << endl;
-    if (shared_output_requested_)
+      clusterFeatureGroups_(features, input_mtraces);
+      OPENMS_LOG_INFO << "#Final feature groups: " << features.size() << endl;
+      if (shared_output_requested_)
+      {
+        shared_out_stream_.close();
+      }
+    }
+    else
     {
-      shared_out_stream_.close();
+      for (auto &f : features)
+      {
+        setFeatureGroupScore_(f);
+      }
     }
 
     // output
@@ -610,6 +619,13 @@ namespace OpenMS
     int min_abs_charge = INT_MAX;
     int max_abs_charge = INT_MIN;
 
+    // minimum isotope cosine score for the refining featuregroups
+    double min_iso_score = 0.5;
+    if (!resolving_shared_signal_) // if not resolving shared signal, use the final min_isotope_cosine_ (because this is the last step)
+    {
+      min_iso_score = min_isotope_cosine_;
+    }
+
     // output features
     std::vector<FeatureGroup> out_feature;
     out_feature.reserve(in_features.size());
@@ -659,10 +675,9 @@ namespace OpenMS
       if (up_it - low_it == 1)
       {
         // save it to out_features
-        if (scoreAndFilterFeatureGroup_(*candidate_fg, 0.5)) // rescoring is needed to set scores in FeatureGroup
+        if (scoreAndFilterFeatureGroup_(*candidate_fg, min_iso_score)) // rescoring is needed to set scores in FeatureGroup
         {
           candidate_fg->updateMembers();
-//          setFeatureGroupScore_(*candidate_fg);
           out_feature.push_back(*candidate_fg);
         }
 
@@ -762,12 +777,11 @@ namespace OpenMS
       }
 
       // don't merge when it failed to exceed filtering threshold
-      if (!scoreAndFilterFeatureGroup_(final_candidate_fg, 0.5))
+      if (!scoreAndFilterFeatureGroup_(final_candidate_fg, min_iso_score))
       {
-        if (scoreAndFilterFeatureGroup_(*candidate_fg, 0.5))
+        if (scoreAndFilterFeatureGroup_(*candidate_fg, min_iso_score))
         {
           candidate_fg->updateMembers();
-//        setFeatureGroupScore_(*candidate_fg);
           out_feature.push_back(*candidate_fg);
         }
       }
@@ -1733,7 +1747,7 @@ namespace OpenMS
     // ElutionModelFit
     // TODO : is this necessary? giving isotope probability as a weight
     Param params = fitter->getDefaults();
-    params.setValue("weighted", "false");
+    params.setValue("weighted", "true");
     fitter->setParameters(params);
     runElutionModelFit_(traces_for_fitting, fitter);
   }

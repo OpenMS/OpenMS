@@ -163,15 +163,13 @@ namespace OpenMS
     bool isEligibleFeatureForConflictResolution_(Feature &new_feature, std::vector<std::vector<Size>> &shared_m_traces_indices, FeatureGroup &feat_group) const;
 
     /// parameter stuff
-//    double local_rt_range_;
     double local_mz_range_;
     Size charge_lower_bound_;
     Size charge_upper_bound_;
     double min_mass_;
     double max_mass_;
     double mz_tolerance_; // ppm
-
-    double total_intensity_;
+    bool resolving_shared_signal_;
 
     const double mass_tolerance_da_ = 3; // Da, for feature mass collection
     const double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
