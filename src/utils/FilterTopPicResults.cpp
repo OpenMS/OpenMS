@@ -173,9 +173,9 @@ protected:
         vector<double> to_out1_snr, to_out2_snr, to_out1_cos, to_out2_cos, to_out1_mz1, to_out1_mz2, to_out2_mz1, to_out2_mz2;
 
         vector<double> chargeSNRs;
-        QScore::writeAttHeader(attstream0, false);
-        QScore::writeAttHeader(attstream1, false);
-        QScore::writeAttHeader(attstream2, false);
+        QScore::writeAttCsvFromTopPICHeader(attstream0, false);
+        QScore::writeAttCsvFromTopPICHeader(attstream1, false);
+        QScore::writeAttCsvFromTopPICHeader(attstream2, false);
 
         std::ifstream in_trainstream(infile);
         //String line;

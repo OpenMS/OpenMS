@@ -137,7 +137,7 @@ namespace OpenMS
         @param second_best_iso_offset second best scoring isotope offset - for decoy calculation.
         @param avg precalculated averagine
         @param window_width isotope offset value range. If -1, set automatically.
-        @param allowed_iso_error allowed isotope error to calculate qscure
+        @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate qscure
         @return calculated cosine similar score
      */
     static float getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
@@ -145,7 +145,7 @@ namespace OpenMS
                                                            int& offset,
                                                            int& second_best_iso_offset,
                                                            const PrecalculatedAveragine& avg,
-                                                           int window_width = -1, int allowed_iso_error = 1);
+                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 1);
 
     /// set decoy_flag_
     void setDecoyFlag(int flag);
@@ -185,7 +185,7 @@ namespace OpenMS
     /// peak intensity threshold subject to analysis
     double intensity_threshold_;
     /// minimum number of peaks supporting a mass
-    const IntList min_support_peak_count_ = {3,3,3,3,3,3,3,3};
+    const static int min_support_peak_count_ = 3;
     /// tolerance in ppm for each MS level
     DoubleList tolerance_;
     /// bin size for first stage of mass selection - for fast convolution, binning is used
@@ -254,7 +254,7 @@ namespace OpenMS
     int ms_level_;
 
     /// high and low charges are differently deconvolved. This value determines the (inclusive) threshold for low charge.
-    const int low_charge_ = 6; //10 inclusive
+    const int low_charge_ = 5; // 5 inclusive
 
     /// default precursor isolation window size.
     double isolation_window_size_;
@@ -290,6 +290,11 @@ namespace OpenMS
     ///this function takes the previous deconvolution results (from ovelapped spectra) for sensitive deconvolution of the current spectrum
     void unionPrevMassBins_();
 
+    ///get mass value for input mass bin
+    double getMassFromMassBin_(Size mass_bin, double bin_width);
+
+    ///get mz value for input mz bin
+    double getMzFromMzBin_(Size mass_bin, double bin_width);
 
     ///Generate peak groups from the input spectrum
     void generatePeakGroupsFromSpectrum_();

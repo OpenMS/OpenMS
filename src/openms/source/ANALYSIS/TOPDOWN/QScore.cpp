@@ -50,7 +50,7 @@ namespace OpenMS
     //const double th = 2;
     //const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
     const std::vector<double> weights({ 1.492, -2.0041, -14.3891, -0.9853, 0.4568, 0.063, 14.4072});
-    //const std::vector<double> weights({-0.7461, -1.8176, -1.4793, -0.3707, -0.0881, 0.0623, 2.9463});
+    //const std::vector<double> weights({ -2.5334, -6.2718, -31.5409, 0.1305, -3.8576, 0.4948, 37.2419});
 
     //ChargeCos         1.492
     //ChargeSNR       -2.0041
@@ -59,6 +59,14 @@ namespace OpenMS
     //ChargeScore      0.4568
     //AvgPPMerror       0.063
     //Intercept       14.4072
+
+    // ChargeCos                    2.5334
+    // ChargeSNR                    6.2718
+    // Cos                         31.5409
+    // SNR                         -0.1305
+    // ChargeScore                  3.8576
+    // AvgPPMerror                 -0.4948
+    // Intercept                  -37.2419
 
     double score = weights.back();
     auto fv = toFeatureVector_(pg, abs_charge);
@@ -101,11 +109,11 @@ namespace OpenMS
     a = pg->getChargeScore();
     fvector[index++] = (log2(a + d));
     a = pg->getAvgPPMError();
-    fvector[index++] = a;//(log2(a + d));
+    fvector[index++] = (log2(abs(a*1e6) + d));
     return fvector;
   }
 
-  void QScore::writeAttHeader(std::fstream& f, bool write_detail)
+  void QScore::writeAttCsvFromTopPICHeader(std::fstream& f, bool write_detail)
   {
     f
         << "ACC,FirstResidue,LastResidue,ProID,RT,ScanNumber,PrecursorScanNumber,PrecursorMonoMass,PrecursorOriginalMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,"
@@ -118,7 +126,7 @@ namespace OpenMS
     f << "Class\n";
   }
 
-  void QScore::writeAttTsv(const DeconvolvedSpectrum&  deconvolved_spectrum,
+  void QScore::writeAttCsvFromTopPIC(const DeconvolvedSpectrum&  deconvolved_spectrum,
                            const FLASHDeconvHelperStructs::TopPicItem& top_id,
                            const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                            std::fstream& f,
@@ -223,4 +231,31 @@ namespace OpenMS
       f << (is_identified ? "T" : "F") << "\n";
     }
   }
+  void QScore::writeAttCsvFromDecoyHeader(std::fstream& f)
+  {
+    f
+      << "MSLevel,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Class\n";
+    //ChargeCos         1.492
+    //ChargeSNR       -2.0041
+    //Cos            -14.3891
+    //SNR             -0.9853
+    //ChargeScore      0.4568
+    //AvgPPMerror       0.063
+  }
+  void QScore::writeAttCsvFromDecoy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
+  {
+    int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+    for(auto& pg:deconvolved_spectrum)
+    {
+      String decoy =  pg.getDecoyIndex() == 0? "T" : "D";
+      auto fv = toFeatureVector_(&pg, pg.getRepAbsCharge());
+      f<< ms_level<<",";
+      for (auto& item: fv)
+      {
+        f << item << ",";
+      }
+      f << decoy<< "\n";
+    }
+  }
+
 }

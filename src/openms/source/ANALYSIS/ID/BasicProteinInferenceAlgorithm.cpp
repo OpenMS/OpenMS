@@ -147,6 +147,7 @@ namespace OpenMS
     bool higher_better = true;
 
     //TODO check all pep IDs? this assumes equality to first encountered
+    // will throw a well-formed exception in aggregatePeptideScores though.
     for (const auto& cf : cmap)
     {
       const auto& pep_ids = cf.getPeptideIdentifications();
@@ -157,26 +158,19 @@ namespace OpenMS
         break;
       }
     }
+    if (overall_score_type.empty())
+    {
+      for (const auto& id : cmap.getUnassignedPeptideIdentifications())
+      {
+        overall_score_type = id.getScoreType();
+        higher_better = id.isHigherScoreBetter();
+        break;
+      }
+    }
 
     bool pep_scores = IDScoreSwitcherAlgorithm().isScoreType(overall_score_type,IDScoreSwitcherAlgorithm::ScoreType::PEP);
     double initScore = getInitScoreForAggMethod_(aggregation_method, pep_scores || higher_better); // if we have pep scores, we will complement to pp during aggregation
 
-    // build union of prothits
-    //TODO use ConsensusXMLMergerAlgorithm (it checks settings and merged files etc.)
-    /*
-    for (const auto& run : cmap.getProteinIdentifications())
-    {
-      for (const auto& prothit : run.getHits())
-      {
-        if (acc_to_protein_hitP_and_count.find(prothit.getAccession()) == acc_to_protein_hitP_and_count.end())
-        {
-          prot_hits.push_back(prothit);
-          prot_hits.back().setScore(initScore);
-          acc_to_protein_hitP_and_count[prothit.getAccession()] = std::make_pair(&prot_hits.back(),0);
-        }
-      }
-    }
-    */
     for (auto& prothit : prot_hits)
     {
       prothit.setScore(initScore);
@@ -235,8 +229,8 @@ namespace OpenMS
         //Note: the above does not add singleton groups to graph
         ibg.resolveGraphPeptideCentric(true);
         ibg.annotateIndistProteins(true); // this does not really add singletons since they are not in the graph
-        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
         IDFilter::removeUnreferencedProteins(cmap, include_unassigned);
+        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
         prot_run.fillIndistinguishableGroupsWithSingletons();
       }
       else
@@ -257,8 +251,8 @@ namespace OpenMS
         ibg.clusterIndistProteinsAndPeptides(); //TODO check in resolve or do it there if not done yet!
         //Note: the above does not add singleton groups to graph
         ibg.resolveGraphPeptideCentric(true);
-        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
         IDFilter::removeUnreferencedProteins(cmap, include_unassigned);
+        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
       }
     }
 

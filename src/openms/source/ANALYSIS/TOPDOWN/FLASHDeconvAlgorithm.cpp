@@ -159,7 +159,6 @@ namespace OpenMS
     isolation_window_size_ = param_.getValue("isolation_window");
 
     intensity_threshold_ = param_.getValue("min_intensity");
-    //min_support_peak_count_ = param_.getValue("min_peaks");
 
     bin_width_.clear();
     tolerance_ = param_.getValue("tol");
@@ -194,7 +193,7 @@ namespace OpenMS
   // generate filters
   void FLASHDeconvAlgorithm::setFilters_()
   {
-    iso_da_distance_ = decoy_run_flag_ != noise_decoy_? Constants::ISOTOPE_MASSDIFF_55K_U : Constants::ISOTOPE_MASSDIFF_55K_U * 1.72;
+    iso_da_distance_ = decoy_run_flag_ != noise_decoy_? Constants::ISOTOPE_MASSDIFF_55K_U : Constants::ISOTOPE_MASSDIFF_55K_U * 3.72;
 
     filter_.clear();
     harmonic_filter_matrix_.clear();
@@ -203,11 +202,11 @@ namespace OpenMS
     {
       if(decoy_run_flag_ != noise_decoy_)
       {
-        filter_.push_back(log(1.0 / (i + current_min_charge_))); //+
+        filter_.push_back(-log(i + current_min_charge_)); //+
       }else{
-        double offset = i%2==0? .21 : -.21;
-        filter_.push_back(log(1.0 / (offset + i + current_min_charge_)));
-        //filter_.push_back(log(1.0 / (current_max_charge_)) - log(1.0 / ((charge_range - i - 1) + current_min_charge_))); //+
+        double offset = .21 + i/charge_range;
+        offset *= i%2==0? 2.42 : -2.42;
+        filter_.push_back(-log(offset + i + current_min_charge_));
       }
     }
 
@@ -220,14 +219,10 @@ namespace OpenMS
 
       for (int i = 0; i < charge_range; i++)
       {
-        if(decoy_run_flag_ != noise_decoy_)
-        {
-          harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-1.0 * n / hc + (i + current_min_charge_)))); // + current_min_charge_
-        }else{
-          double offset = i%2==0? .21 : -.21;
-          harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-(1.0 + 2 * offset) * n / hc + (offset + i + current_min_charge_))));
-          //harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-1.0 * n / hc + (current_max_charge_))) - log(1.0 / (-1.0 * n / hc + ((charge_range - i - 1) + current_min_charge_)))); // + current_min_charge_
-        }
+        double a = i>0 ? exp(-filter_[i-1]) : 0;
+        double b = exp(-filter_[i]);
+        harmonic_filter_matrix_.setValue(k, i, -log(b - (b-a) * n / hc));
+        //harmonic_filter_matrix_.setValue(k, i, log(1.0 / (-1.0 * n / hc + (i + current_min_charge_)))); // + current_min_charge_
       }
     }
   }
@@ -287,6 +282,13 @@ namespace OpenMS
       LogMzPeak log_mz_peak(peak, is_positive_);
       log_mz_peaks_.push_back(log_mz_peak);
     }
+
+//    for(auto& p: log_mz_peaks_)
+//    {
+//      std::cout<<p.mz << " " << p.intensity<<std::endl;
+//    }
+
+
   }
 
   // from bin to raw value
@@ -460,7 +462,7 @@ namespace OpenMS
   {
     int charge_range = current_max_charge_ - current_min_charge_ + 1;
     int h_charge_size = (int)harmonic_charges_.size();
-    int min_peak_cntr = min_support_peak_count_[ms_level_ - 1] - 1;
+    int min_peak_cntr = min_support_peak_count_ - 1;
     long bin_end = (long)mass_bins_.size();
     auto support_peak_count = std::vector<int>(mass_bins_.size(), 0); // per mass bin how many peaks are present
 
@@ -537,7 +539,7 @@ namespace OpenMS
         else
         {
           pass_first_check = true;
-          if (spc == 0)
+          if (spc == 0 && abs_charge > low_charge_ + 1)
           {
             support_peak_intensity = prev_intensity;
           }
@@ -552,7 +554,9 @@ namespace OpenMS
             bool iso_exist = false;
             double diff = d * iso_da_distance_ / abs_charge / mz;
             Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, bin_width);
-            if (next_iso_bin > 0 && next_iso_bin < mz_bins_for_edge_effect_.size() && mz_bins_for_edge_effect_[next_iso_bin])
+            if (next_iso_bin > 0 && next_iso_bin < mz_bins_for_edge_effect_.size() && mz_bins_for_edge_effect_[next_iso_bin]
+                //&& intensity > mz_intensities[next_iso_bin]
+                )
             {
               iso_exist = true;
               pass_first_check = true;
@@ -625,11 +629,6 @@ namespace OpenMS
                   break;
                 }
               }
-
-              if (is_harmonic)
-              {
-                break;
-              }
             }
 
             if (!is_harmonic) // if it is not harmonic
@@ -638,7 +637,6 @@ namespace OpenMS
               spc++;
               if (spc >= min_peak_cntr || spc >= abs_charge / 2) //
               {
-                // double tm = exp(getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width));
                 mass_bins_[mass_bin_index] = true;
               }
             }
@@ -652,7 +650,6 @@ namespace OpenMS
             mass_intensities[mass_bin_index] += intensity + support_peak_intensity;
             spc++;
             {
-              // double tm = exp(getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width));
               mass_bins_[mass_bin_index] = true;
             }
           }
@@ -822,7 +819,9 @@ namespace OpenMS
       {
         abs_charge_ranges.setValue(0, max_index, std::min(abs_charge_ranges.getValue(0, max_index), max_intensity_abs_charge_range));
         abs_charge_ranges.setValue(1, max_index, std::max(abs_charge_ranges.getValue(1, max_index), max_intensity_abs_charge_range));
-
+        auto tmp = getMassFromMassBin_(max_index, bin_width) ;
+        //if(tmp<5961 &&tmp>5959  )
+        //             std::cout<< max_intensity_abs_charge_range << " + " << tmp << std::endl; //
         mass_bins_[max_index] = true;
       }
       mz_bin_index = mz_bins_.find_next(mz_bin_index);
@@ -841,8 +840,6 @@ namespace OpenMS
 
     //    long shift = (long) (round((mass_bin_min_value_) *bin_width_[ms_level_ - 1]));
     auto per_mass_abs_charge_ranges = filterMassBins_(mass_intensities);
-
-
 
     return per_mass_abs_charge_ranges;
   }
@@ -890,44 +887,48 @@ namespace OpenMS
         int abs_charge = j + current_min_charge_; //
         int& bin_offset = bin_offsets_[j];
 
+        if(mass_bin_index < bin_offset)
         {
-          Size b_index = mass_bin_index - bin_offset; // m/z bin // TODO: does this never go negative?
-          int& cpi = current_peak_index[j];           // in this charge which peak is to be considered?
-          double max_intensity = -1;
-
-          while (cpi < log_mz_peak_size - 1) // scan through peaks from cpi
-          {
-            if (peak_bin_numbers[cpi] == b_index) // if the peak of consideration matches to this mass with charge abs_charge
-            {
-              double intensity = log_mz_peaks_[cpi].intensity;
-              if (intensity > max_intensity) // compare with other matching peaks and select the most intense peak (in max_peak_index)
-              {
-                max_intensity = intensity;
-                max_peak_index = cpi;
-              }
-            }
-            else if (peak_bin_numbers[cpi] > b_index)
-            {
-              break;
-            }
-            cpi++;
-          }
-
-          if (max_peak_index < 0)
-          {
-            continue;
-          }
-
-          // Search for local max.
-          if (max_peak_index > 0 && max_peak_index <= log_mz_peak_size && peak_bin_numbers[max_peak_index - 1] == b_index - 1 && log_mz_peaks_[max_peak_index - 1].intensity > max_intensity)
-          {
-            continue;
-          }
-          if (max_peak_index >= 0 && max_peak_index < log_mz_peak_size - 1 && peak_bin_numbers[max_peak_index + 1] == b_index + 1 && log_mz_peaks_[max_peak_index + 1].intensity > max_intensity)
-          {
-            continue;
-          }
+          continue;
         }
+
+        Size b_index = mass_bin_index - bin_offset; // m/z bin //
+        int& cpi = current_peak_index[j];           // in this charge which peak is to be considered?
+        double max_intensity = -1;
+
+        while (cpi < log_mz_peak_size - 1) // scan through peaks from cpi
+        {
+          if (peak_bin_numbers[cpi] == b_index) // if the peak of consideration matches to this mass with charge abs_charge
+          {
+            double intensity = log_mz_peaks_[cpi].intensity;
+            if (intensity > max_intensity) // compare with other matching peaks and select the most intense peak (in max_peak_index)
+            {
+              max_intensity = intensity;
+              max_peak_index = cpi;
+            }
+          }
+          else if (peak_bin_numbers[cpi] > b_index)
+          {
+            break;
+          }
+          cpi++;
+        }
+
+        if (max_peak_index < 0)
+        {
+          continue;
+        }
+
+        // Search for local max.
+        if (max_peak_index > 0 && max_peak_index <= log_mz_peak_size && peak_bin_numbers[max_peak_index - 1] == b_index - 1 && log_mz_peaks_[max_peak_index - 1].intensity > max_intensity)
+        {
+          continue;
+        }
+        if (max_peak_index >= 0 && max_peak_index < log_mz_peak_size - 1 && peak_bin_numbers[max_peak_index + 1] == b_index + 1 && log_mz_peaks_[max_peak_index + 1].intensity > max_intensity)
+        {
+          continue;
+        }
+
 
         // now we have a mathcing peak for this mass of charge  abs_charge. From here, istope peaks are collected
         const double mz = log_mz_peaks_[max_peak_index].mz;
@@ -985,10 +986,10 @@ namespace OpenMS
               double err = abs(mz_diff - tmp_hi * hiso_delta);
 
               if (err < mz_delta
-                  //&& (intensity > max_peak_intensity / 2 || intensity < max_peak_intensity * 2)
+              //    && (intensity > max_peak_intensity / 2 || intensity < max_peak_intensity * 2)
               )
               {
-                total_harmonic_intensity[l] += intensity / (hc - 1);
+                total_harmonic_intensity[l] += std::min(max_peak_intensity, intensity) / (hc - 1); //  min(max_peak_intensity, intensity) to minimize effect of outlier peaks
               }
             }
             // max_noise_peak_intensity = max_noise_peak_intensity < intensity ? intensity : max_noise_peak_intensity;
@@ -1039,10 +1040,10 @@ namespace OpenMS
               double err = abs(mz_diff - tmp_hi * hiso_delta);
 
               if (err < mz_delta
-                  //&& (intensity > max_peak_intensity / 2 || intensity < max_peak_intensity * 2)
+                  //&& (intensity > max_peak_intensity / 2 && intensity < max_peak_intensity * 2)
               )
               {
-                total_harmonic_intensity[l] += intensity / (hc - 1);
+                total_harmonic_intensity[l] +=  std::min(max_peak_intensity, intensity) / (hc - 1); //  min(max_peak_intensity, intensity) to minimize effect of outlier peaks
               }
             }
             // max_noise_peak_intensity = max_noise_peak_intensity < intensity ? intensity : max_noise_peak_intensity;
@@ -1051,8 +1052,8 @@ namespace OpenMS
         // pg.setChargePower_(abs_charge, peak_pwr);
       }
 
-
-      if (total_signal_intensity / 2 > *std::max_element(total_harmonic_intensity.begin(), total_harmonic_intensity.end()) && !pg.empty()) //
+      if (total_signal_intensity / 2 > *std::max_element(total_harmonic_intensity.begin(), total_harmonic_intensity.end()) &&
+          !pg.empty()) //
       {
         double max_intensity = -1.0;
         // double sum_intensity = .0;
@@ -1104,6 +1105,7 @@ namespace OpenMS
           }
           pg.setScanNumber(deconvolved_spectrum_.getScanNumber());
           deconvolved_spectrum_.push_back(pg); //
+       //   std::cout<< pg.getMonoMass() << std::endl;
         }
       }
 
@@ -1131,7 +1133,7 @@ namespace OpenMS
   {
     std::vector<PeakGroup> empty;
     deconvolved_spectrum_.swap(empty);
-    int min_peak_cntr = min_support_peak_count_[ms_level_ - 1] - 1;
+    int min_peak_cntr = min_support_peak_count_ - 1;
     int current_charge_range = current_max_charge_ - current_min_charge_ + 1;
     int tmp_peak_cntr = current_charge_range - min_peak_cntr;
 
@@ -1235,7 +1237,6 @@ namespace OpenMS
       {
         continue;
       }
-
       // first check if it is targeted
       if (target_masses_.size() > 0)
       {
@@ -1258,8 +1259,6 @@ namespace OpenMS
       {
         continue;
       }
-      //tmp += peak_group.getChargeIsotopeCosine(std::get<0>(cr)) * 1000;//60615376  60752972
-
       if (peak_group.isTargeted())
       {
         if (peak_group.getIsotopeCosine() <= 0.5)
@@ -1270,8 +1269,6 @@ namespace OpenMS
       {
         continue;
       }
-
-
 
       if(decoy_run_flag_ == charge_decoy_ && excluded_masses_.size() > 0)
       {
@@ -1307,7 +1304,6 @@ namespace OpenMS
       {
         continue;
       }
-
       if(peak_group.getQScore() <= 0)
       {
         continue;
@@ -1364,14 +1360,12 @@ namespace OpenMS
 
     removeOverlappingPeakGroups_(decoy_deconvolved_spectrum_, tolerance_[ms_level_ - 1], 1);
     removeHarmonicsPeakGroups_(decoy_deconvolved_spectrum_);
-
-
   }
 
   float FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset,
                                                                         int& second_max_offset,
                                                                         const PrecalculatedAveragine& avg,
-                                                                        int window_width, int allowed_iso_error)
+                                                                        int window_width, int allowed_iso_error_for_second_best_cos)
   {
     offset = 0;
     if (per_isotope_intensities.size() < min_iso_size_)
@@ -1433,7 +1427,7 @@ namespace OpenMS
 
     for (int tmp_offset = offset - 3; tmp_offset <= offset + 3; tmp_offset++)
     {
-      if(abs(offset - tmp_offset) <= allowed_iso_error)//
+      if(abs(offset - tmp_offset) <= allowed_iso_error_for_second_best_cos)//
       {
         continue;
       }
@@ -1442,8 +1436,8 @@ namespace OpenMS
         continue;
       }
       float tmp_cos = getCosine(per_isotope_intensities, min_isotope_index, max_isotope_index, iso,
-                                 iso_size, // apex_index,
-                                 tmp_offset);
+                                iso_size, // apex_index,
+                                tmp_offset);
 
 
       if(second_max_cos < tmp_cos)
@@ -1906,7 +1900,6 @@ namespace OpenMS
           }
         }
       }
-
       return false;
     }
 
@@ -1915,7 +1908,10 @@ namespace OpenMS
     for (int i = survey_scans.size() - 1; i >= 0; i--)
     {
       auto precursor_spectrum = survey_scans[i];
-
+      if(deconvolved_spectrum_.getPrecursorScanNumber() == 0)
+      {
+        deconvolved_spectrum_.setPrecursorScanNumber(precursor_spectrum.getScanNumber());
+      }
       if (precursor_spectrum.empty())
       {
         continue;
@@ -2012,6 +2008,15 @@ namespace OpenMS
   {
     avg_ = avg;
   }
+  double FLASHDeconvAlgorithm::getMassFromMassBin_(Size mass_bin, double bin_width)
+  {
+    return exp(getBinValue_(mass_bin, mass_bin_min_value_, bin_width));
+  }
 
+
+  double FLASHDeconvAlgorithm::getMzFromMzBin_(Size mass_bin, double bin_width)
+  {
+    return exp(getBinValue_(mass_bin, mz_bin_min_value_, bin_width));
+  }
 
 } // namespace OpenMS

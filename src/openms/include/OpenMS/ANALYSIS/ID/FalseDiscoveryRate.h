@@ -153,8 +153,15 @@ public:
 
     /// simpler reimplementation of the apply function above for PSMs. With charge and identifier info from @p run_info
     void applyBasic(const std::vector<ProteinIdentification> & run_info, std::vector<PeptideIdentification> & ids);
+
     /// simpler reimplementation of the apply function above for PSMs or peptides.
     void applyBasic(std::vector<PeptideIdentification> & ids, bool higher_score_better, int charge = 0, String identifier = "", bool only_best_per_pep = false);
+    /// like applyBasic with "only_best_per_peptide" but it assigns a score to EVERY PSM sharing the peptide sequence with the
+    /// best representative. Useful if all hits need to have a peptide score (e.g., for mzTab report). No support for specific charges, runs etc. yet
+    void applyBasicPeptideLevel(std::vector<PeptideIdentification> & ids);
+    /// like applyBasic with "only_best_per_peptide" but it assigns a score to EVERY PSM sharing the peptide sequence with the
+    /// best representative. Useful if all hits need to have a peptide score (e.g., for mzTab report). No support for specific charges, runs etc. yet
+    void applyBasicPeptideLevel(ConsensusMap & ids, bool use_unassigned_peptides = true);
     /// simpler reimplementation of the apply function above for peptides in ConsensusMaps.
     void applyBasic(ConsensusMap & cmap, bool use_unassigned_peptides = true);
     /// simpler reimplementation of the apply function above for proteins.

@@ -82,7 +82,7 @@ namespace OpenMS
     for (auto& mass_feature : mass_features)
     {
       auto mt = mass_feature.mt;
-      double mass = mt.getCentroidMZ() + mass_feature.iso_offset * Constants::C13C12_MASSDIFF_U;
+      double mass = mt.getCentroidMZ() + mass_feature.iso_offset * Constants::ISOTOPE_MASSDIFF_55K_U;
       double avg_mass = mass_feature.avg_mass;
       double sum_intensity = .0;
       // bool is_positive = mass_feature.max_charge > 0;
@@ -117,17 +117,12 @@ namespace OpenMS
         }
         iso_end_index = (int) i;
       }
-      for (int i = 0; i <= iso_end_index + mass_feature.iso_offset; i++)
+      for (int i = 0; i <= iso_end_index; i++)
       {
-        if (i < mass_feature.iso_offset)
-        {
-          fs << 0;
-        }
-        else
-        {
-          fs << mass_feature.per_isotope_intensity[i - mass_feature.iso_offset];
-        }
-        if (i < iso_end_index + mass_feature.iso_offset)
+
+        fs << mass_feature.per_isotope_intensity[i];
+
+        if (i < iso_end_index)
         {
           fs << ";";
         }
@@ -277,17 +272,12 @@ namespace OpenMS
         }
         iso_end_index = (int) i;
       }
-      for (int i = 0; i <= iso_end_index + mass_feature.iso_offset; i++)
+      for (int i = 0; i <= iso_end_index; i++)
       {
-        if (i < mass_feature.iso_offset)
-        {
-          fs <<  i << "," << 0;
-        }
-        else
-        {
-          fs <<  i << "," << mass_feature.per_isotope_intensity[i - mass_feature.iso_offset];
-        }
-        if (i < iso_end_index + mass_feature.iso_offset)
+
+        fs <<  i << "," << mass_feature.per_isotope_intensity[i];
+
+        if (i < iso_end_index)
         {
           fs << ";";
         }

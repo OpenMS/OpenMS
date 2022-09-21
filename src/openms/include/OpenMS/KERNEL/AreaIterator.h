@@ -83,7 +83,14 @@ public:
           : first_(first), current_scan_(begin), end_scan_(end)
         {
           // if begin is dereferencable ...
-          if (begin != end) ms_level_ = begin->getMSLevel();
+          if (begin != end)
+          {
+            ms_level_ = begin->getMSLevel();
+          }
+          else
+          {
+            ms_level_ = 1;
+          }
         }
 
         /// return the end-iterator
@@ -133,7 +140,7 @@ public:
         /// high mobility boundary
         CoordinateType high_im_ = std::numeric_limits<CoordinateType>::max();
         /// Only scans of this MS level are iterated over
-        int8_t ms_level_;
+        int8_t ms_level_{};
         /// Flag that indicates that this iterator is the end iterator
         bool is_end_ = false;
 
@@ -158,7 +165,7 @@ public:
       //@}
 
       /// Constructor for the begin iterator
-      AreaIterator(const Param& p) :
+      explicit AreaIterator(const Param& p) :
         p_(p)
       {
         nextScan_();
@@ -259,7 +266,7 @@ public:
       {
         if (p_.is_end_)
         {
-          return PeakIndex();
+          return {};
         }
         else
         {
