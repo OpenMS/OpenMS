@@ -210,6 +210,11 @@ namespace FLASHDeconvQuantHelper
     return average_mass_;
   }
 
+  void FeatureGroup::setMonoisotopicMass(const double mass)
+  {
+    monoisotopic_mass_ = mass;
+  }
+
   void FeatureGroup::setChargeRange(const int min_c, const int max_c)
   {
     min_abs_charge_ = min_c;
@@ -318,7 +323,6 @@ namespace FLASHDeconvQuantHelper
     {
       if (f.getIsotopeIndex() < 0)
       {
-        OPENMS_LOG_ERROR << "negative index?" << std::endl;
         continue;
       }
       per_isotope_int_[f.getIsotopeIndex()] += f.getIntensity();
@@ -330,6 +334,14 @@ namespace FLASHDeconvQuantHelper
     }
     // update monoisotopic mass
     monoisotopic_mass_ = nominator / intensity_;
+  }
+
+  void FeatureGroup::updateIsotopeIndices(const int offset)
+  {
+    for (auto &seed : feature_seeds_)
+    {
+      seed.setIsotopeIndex(seed.getIsotopeIndex() - offset);
+    }
   }
 
   // TODO: need to find a smarter way

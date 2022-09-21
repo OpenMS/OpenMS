@@ -149,14 +149,6 @@ namespace OpenMS
     // *********************************************************** //
     // Step 2 mass artifact removal & post processing...
     // *********************************************************** //
-    // test output
-    if (shared_output_requested_)
-    {
-      String out_path = output_file_path_.substr(0, output_file_path_.find_last_of(".")) + "_beforeRefine.tsv";
-      test_out_stream_.open(out_path, std::fstream::out);
-      test_out_stream_ << "FeatureGroupID\tTraceType\tMass\tCharge\tIsotopeIndex\tQuantValue\tCentroidMz\tRTs\tMZs\tIntensities\n"; // header
-      // TraceType: 0&1 - main / 2 - merged
-    }
     refineFeatureGroups_(features);
     OPENMS_LOG_INFO << "#Detected feature groups : " << features.size() << endl;
 
@@ -166,15 +158,8 @@ namespace OpenMS
     if (shared_output_requested_)
     {
       setOptionalDetailedOutput_();
-      test_out_stream_.close();
     }
-    for (auto & f: features)
-    {
-      if (f.getMonoisotopicMass() < 28968 && f.getMonoisotopicMass() > 28960)
-      {
-        auto &feat = f;
-      }
-    }
+
     clusterFeatureGroups_(features, input_mtraces);
     OPENMS_LOG_INFO << "#Final feature groups: " << features.size() << endl;
     if (shared_output_requested_)
@@ -215,6 +200,10 @@ namespace OpenMS
       // iterate all FeatureSeeds to collect per feature values
       for(auto& seed : fgroup)
       {
+        if (seed.getIsotopeIndex() < 0)
+        {
+          continue;
+        }
         per_charge_int[seed.getCharge()] += seed.getIntensity();
         per_cs_isos[seed.getCharge()][seed.getIsotopeIndex()] += seed.getIntensity();
       }
@@ -467,9 +456,9 @@ namespace OpenMS
     return true;
   }
 
-  bool FLASHDeconvQuantAlgorithm::rescoreFeatureGroup_(FeatureGroup &fg, double min_iso_score) const
+  bool FLASHDeconvQuantAlgorithm::rescoreFeatureGroup_(FeatureGroup &fg) const
   {
-    if ((!scoreAndFilterFeatureGroup_(fg, min_iso_score)))
+    if ((!scoreAndFilterFeatureGroup_(fg)))
     {
       return false;
     }
@@ -521,6 +510,12 @@ namespace OpenMS
     {
       return false;
     }
+    // update values based on the calculated offset
+    if (offset > 0)
+    {
+      fg.setMonoisotopicMass(fg.getMonoisotopicMass() + iso_da_distance_ * offset);
+      fg.updateIsotopeIndices(offset);
+    }
 
     return true;
   }
@@ -547,7 +542,7 @@ namespace OpenMS
           continue;
         }
 
-        if (peak.getIsotopeIndex() > iso_size)
+        if (peak.getIsotopeIndex() > iso_size || peak.getIsotopeIndex() < 0)
         {
           continue;
         }
@@ -650,11 +645,6 @@ namespace OpenMS
       auto candidate_fg_pointer = std::max_element(in_feature_ptrs.begin(), in_feature_ptrs.end(), FLASHDeconvQuantHelper::CmpFeatureGroupByScore());
       auto candidate_fg = *candidate_fg_pointer;
 
-      if (candidate_fg->getMonoisotopicMass() < 28968 && candidate_fg->getMonoisotopicMass() > 28960)
-      {
-        auto &feat = candidate_fg;
-      }
-
       // get all features within mass_tol from candidate FeatureGroup
       std::vector<FeatureGroup*>::iterator low_it, up_it;
 
@@ -687,11 +677,6 @@ namespace OpenMS
       std::set<Size> mt_indices_to_add;
       std::vector<FeatureSeed *> mts_to_add; // One unique mt can be included in different FGs -> different FeatureSeed
       mts_to_add.reserve((up_it - low_it) * candidate_fg->size());
-
-      if(shared_output_requested_)
-      {
-        writeMassTracesOfFeatureGroup_(candidate_fg, Size(low_it - in_feature_ptrs.begin()), 0);
-      }
 
       for (; low_it != up_it; ++low_it)
       {
@@ -728,10 +713,6 @@ namespace OpenMS
         }
         // add index of found feature to "to_be_removed_vector"
         v_indices_to_remove.push_back(low_it - in_feature_ptrs.begin());
-        if(shared_output_requested_)
-        {
-          writeMassTracesOfFeatureGroup_(*low_it, Size(low_it - in_feature_ptrs.begin()), 1);
-        }
       }
 
       // sort mts_to_add by abundance
@@ -1008,14 +989,6 @@ namespace OpenMS
         }
       }
 
-      for (auto& i : fg_indices_in_current_cluster)
-      {
-        if (fgroups[i].getMonoisotopicMass() < 28968 && fgroups[i].getMonoisotopicMass() > 28960)
-        {
-          auto &f = fgroups[i];
-        }
-      }
-
       // this feature is not sharing any mass traces with others
       if (fg_indices_in_current_cluster.size() == 1)
       {
@@ -1092,42 +1065,6 @@ namespace OpenMS
       shared_out_stream_ << fgroup_idx << "\t"
                          << shared_tag_for_output << "\t"
                          << std::to_string(fgroup.getMonoisotopicMass()) << "\t"
-                         << mt.getCharge() << "\t"
-                         << mt.getIsotopeIndex() << "\t"
-                         << std::to_string(mt.getIntensity()) << "\t"
-                         << std::to_string(mt.getCentroidMz()) << "\t"
-                         << peaks + "\n";
-    }
-  }
-
-  void FLASHDeconvQuantAlgorithm::writeMassTracesOfFeatureGroup_(const FeatureGroup *fgroup,
-                                                                 const Size &fgroup_idx,
-                                                                 const Size tag)
-  {
-    /// tag 0 : main, 1 : merged
-    auto mt_idxs = fgroup->getTraceIndices();
-    for (const auto &mt: *fgroup)
-    {
-      stringstream rts;
-      stringstream mzs;
-      stringstream intys;
-
-      for (const auto &peak: mt.getMassTrace())
-      {
-        mzs << std::to_string(peak.getMZ()) << ",";
-        rts << std::to_string(peak.getRT()) << ",";
-        intys << std::to_string(peak.getIntensity()) << ",";
-      }
-      std::string peaks = rts.str();
-      peaks.pop_back();
-      peaks = peaks + "\t" + mzs.str();
-      peaks.pop_back();
-      peaks = peaks + "\t" + intys.str();
-      peaks.pop_back();
-
-      test_out_stream_ << fgroup_idx << "\t"
-                         << tag << "\t"
-                         << std::to_string(fgroup->getMonoisotopicMass()) << "\t"
                          << mt.getCharge() << "\t"
                          << mt.getIsotopeIndex() << "\t"
                          << std::to_string(mt.getIntensity()) << "\t"
@@ -1415,7 +1352,7 @@ namespace OpenMS
 
           // if isotope index of lmt exceed tmp_iso length, give 0 (to not use for the modeling)
           Size tmp_iso_idx = (Size) lmt.getIsotopeIndex();
-          if (tmp_iso_idx < theo_isodist.size()) // To avoid bad access error. If index is larger than the isodist length, no intensity to use.
+          if (tmp_iso_idx < theo_isodist.size() && tmp_iso_idx >= 0) // To avoid bad access error. If index is larger than the isodist length, no intensity to use.
           {
             // give weight per masstrace based on their isotope position, not the real intensity.
             double tmp_prob = theo_isodist[tmp_iso_idx].getIntensity();
@@ -1508,7 +1445,7 @@ namespace OpenMS
         continue;
       }
 
-      if (rescoreFeatureGroup_(fgroup, 0.8))
+      if (rescoreFeatureGroup_(fgroup))
       {
         out_featuregroups.push_back(fgroup);
         if (shared_output_requested_)

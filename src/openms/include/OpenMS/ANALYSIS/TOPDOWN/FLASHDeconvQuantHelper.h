@@ -265,6 +265,7 @@ namespace FLASHDeconvQuantHelper
     double getAverageMass() const;
 
     /** default setters **/
+    void setMonoisotopicMass(const double mass);
     void setChargeRange(const int min_c, const int max_c);
     void setMaxIsotopeIndex(const Size index);
     void setIsotopeCosine(const float cos);
@@ -276,6 +277,7 @@ namespace FLASHDeconvQuantHelper
     /// update multiple variables in one function
     void updateMembers(); // update after feature_seeds_ is changed
     void updateMembersForScoring(); // update primitively for scoring
+    void updateIsotopeIndices(const int offset);
 
     /// find the Apex seed with specific charge
     FeatureSeed* getApexLMTofCharge(int charge) const;

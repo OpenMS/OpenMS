@@ -98,7 +98,7 @@ namespace OpenMS
 
     void refineFeatureGroups_(std::vector<FeatureGroup>& features);
 
-    bool rescoreFeatureGroup_(FeatureGroup& fg, double min_iso_score = -1) const;
+    bool rescoreFeatureGroup_(FeatureGroup& fg) const;
 
     void setFeatureGroupScore_(FeatureGroup &fg) const;
 
@@ -127,10 +127,6 @@ namespace OpenMS
                                        const Size &fgroup_idx,
                                        const std::vector<std::vector<Size>> &shared_m_traces_indices,
                                        const bool &is_before_resolution);
-
-    void writeMassTracesOfFeatureGroup_(const FeatureGroup *fgroup,
-                                        const Size &fgroup_idx,
-                                        const Size tag);
 
     void writeTheoreticalShapeForConflictResolution_(const Size &fgroup_idx,
                                                      const FeatureSeed &shared_mt,
@@ -203,7 +199,5 @@ namespace OpenMS
     /// for detailed outputs (mostly test purpose)
     bool shared_output_requested_;
     std::fstream shared_out_stream_ = std::fstream();
-    /// for detailed outputs (only test purpose)
-    std::fstream test_out_stream_ = std::fstream();
 };
 }
