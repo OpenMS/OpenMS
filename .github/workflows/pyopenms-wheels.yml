@@ -143,7 +143,7 @@ jobs:
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v1.9
       with:
-        cmake-version: '3.20.x'
+        cmake-version: '3.23.x'
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
