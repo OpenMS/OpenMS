@@ -588,7 +588,7 @@ namespace OpenMS
       // structure of the command line passed to NightSky (Sirius 4.X+)
       // Add noCite and instead make sure the main citations are registered in our TOPP tool.
       // Most of the time the user does not see the direct Sirius output anyway
-      QStringList command_line = QStringList("--noCite") + project_params + QStringList({"--input", tmp_ms_file.toQString(), "--project", tmp_out_dir.toQString(), "sirius"}) + sirius_params + QStringList("write-summaries");
+      QStringList command_line = QStringList("--noCite") + project_params + QStringList({"--input", tmp_ms_file.toQString(), "--project", tmp_out_dir.toQString(), "--no-compression", "sirius"}) + sirius_params + QStringList("write-summaries");
 
       if (run_passatutto)
       {
