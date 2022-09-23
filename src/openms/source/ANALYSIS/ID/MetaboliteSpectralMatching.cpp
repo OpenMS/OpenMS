@@ -59,6 +59,7 @@ namespace OpenMS
     matching_score_(),
     observed_spectrum_idx_(),
     matching_spectrum_idx_(),
+    observed_spectrum_native_id_(),
     primary_id_(),
     secondary_id_(),
     common_name_(),
@@ -83,6 +84,7 @@ namespace OpenMS
     matching_score_(sm.matching_score_),
     observed_spectrum_idx_(sm.observed_spectrum_idx_),
     matching_spectrum_idx_(sm.matching_spectrum_idx_),
+    observed_spectrum_native_id_(sm.observed_spectrum_native_id_),
     primary_id_(sm.primary_id_),
     secondary_id_(sm.secondary_id_),
     common_name_(sm.common_name_),
@@ -105,6 +107,7 @@ namespace OpenMS
     matching_score_ = rhs.matching_score_;
     observed_spectrum_idx_ = rhs.observed_spectrum_idx_;
     matching_spectrum_idx_ = rhs.matching_spectrum_idx_;
+    observed_spectrum_native_id_ = rhs.observed_spectrum_native_id_;
     primary_id_ = rhs.primary_id_;
     secondary_id_ = rhs.secondary_id_;
     common_name_ = rhs.common_name_;
@@ -200,6 +203,17 @@ namespace OpenMS
     matching_spectrum_idx_ = match_spec_idx;
   }
 
+
+  String SpectralMatch::getObservedSpectrumNativeID() const
+  {
+    return observed_spectrum_native_id_;
+  }
+
+
+  void SpectralMatch::setObservedSpectrumNativeID(const String& obs_spec_native_id)
+  {
+    observed_spectrum_native_id_ = obs_spec_native_id;
+  }
 
   String SpectralMatch::getPrimaryIdentifier() const
   {
@@ -554,6 +568,7 @@ namespace OpenMS
             tmp_match.setMatchingScore(hyperscore);
             tmp_match.setObservedSpectrumIndex(spec_idx);
             tmp_match.setMatchingSpectrumIndex(search_idx);
+            tmp_match.setObservedSpectrumNativeID(msexp[spec_idx].getNativeID());
 
             tmp_match.setPrimaryIdentifier(spec_db[search_idx].getMetaValue("Massbank_Accession_ID"));
             tmp_match.setSecondaryIdentifier(spec_db[search_idx].getMetaValue("HMDB_ID"));
@@ -798,6 +813,15 @@ namespace OpenMS
       col4.first = "opt_source_idx";
       col4.second = source_idx_str;
       optionals.push_back(col4);
+
+      // set spectrum native ID
+      String spec_native_id = current_id.getObservedSpectrumNativeID();
+      MzTabString spec_native_id_str;
+      spec_native_id_str.set(spec_native_id);
+      MzTabOptionalColumnEntry col5;
+      col5.first = "opt_spec_native_id";
+      col5.second = spec_native_id_str;
+      optionals.push_back(col5);
 
       mztab_row_record.opt_ = optionals;
 

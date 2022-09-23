@@ -94,6 +94,9 @@ namespace OpenMS
     Size getMatchingSpectrumIndex() const;
     void setMatchingSpectrumIndex(const Size&);
 
+    String getObservedSpectrumNativeID() const;
+    void setObservedSpectrumNativeID(const String&);
+
     String getPrimaryIdentifier() const;
     void setPrimaryIdentifier(const String&);
 
@@ -124,6 +127,7 @@ namespace OpenMS
     double matching_score_;
     Size observed_spectrum_idx_;
     Size matching_spectrum_idx_;
+    String observed_spectrum_native_id_;
 
     // further meta information
     String primary_id_;
