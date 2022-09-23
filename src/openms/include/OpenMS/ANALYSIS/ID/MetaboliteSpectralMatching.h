@@ -199,6 +199,8 @@ namespace OpenMS
     String ion_mode_;
 
     String report_mode_;
+
+    bool merge_spectra_;
   };
 
 }

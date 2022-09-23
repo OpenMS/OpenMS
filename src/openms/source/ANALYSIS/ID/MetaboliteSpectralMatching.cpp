@@ -298,6 +298,9 @@ namespace OpenMS
     defaults_.setValue("ionization_mode", "positive", "Positive or negative ionization mode?");
     defaults_.setValidStrings("ionization_mode", {"positive","negative"});
 
+    defaults_.setValue("merge_spectra", "true", "Merge MS2 spectra with the same precursor mass.");
+    defaults_.setValidStrings("merge_spectra", {"true","false"});
+
     defaultsToParam_();
 
     this->setLogType(CMD);
@@ -462,10 +465,12 @@ namespace OpenMS
     wm.filterPeakMap(msexp);
 
     // merge MS2 spectra with same precursor mass
-    SpectraMerger spme;
-    spme.mergeSpectraPrecursors(msexp);
-    wm.filterPeakMap(msexp);
-
+    if (merge_spectra_)
+    {
+      SpectraMerger spme;
+      spme.mergeSpectraPrecursors(msexp);
+      wm.filterPeakMap(msexp);
+    }
 
     // container storing results
     vector<SpectralMatch> matching_results;
@@ -596,6 +601,7 @@ namespace OpenMS
 
     mz_error_unit_ = param_.getValue("mass_error_unit").toString();
     report_mode_ = param_.getValue("report_mode").toString();
+    merge_spectra_ = (bool)param_.getValue("merge_spectra").toBool();
   }
 
 
