@@ -36,6 +36,8 @@
 
 #include <OpenMS/CONCEPT/Constants.h>
 
+#include <OpenMS/FORMAT/MzMLFile.h>
+
 #include <numeric>
 #include <boost/math/special_functions/factorials.hpp>
 
@@ -441,7 +443,7 @@ namespace OpenMS
   }
 
 
-  void MetaboliteSpectralMatching::run(PeakMap& msexp, PeakMap& spec_db, MzTab& mztab_out)
+  void MetaboliteSpectralMatching::run(PeakMap& msexp, PeakMap& spec_db, MzTab& mztab_out, String& out_merged_spectra)
   {
     sort(spec_db.begin(), spec_db.end(), PrecursorMZLess);
 
@@ -470,7 +472,14 @@ namespace OpenMS
       SpectraMerger spme;
       spme.mergeSpectraPrecursors(msexp);
       wm.filterPeakMap(msexp);
+
+      // store the merged spectra if an output file path is given
+      if (!out_merged_spectra.empty())
+      {
+        MzMLFile().store(out_merged_spectra, msexp);
+      }
     }
+
 
     // container storing results
     vector<SpectralMatch> matching_results;

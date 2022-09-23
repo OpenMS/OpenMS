@@ -174,7 +174,7 @@ namespace OpenMS
       double mz_lower_bound = 0.0);
 
     /// main method of MetaboliteSpectralMatching
-    void run(PeakMap &, PeakMap &, MzTab &);
+    void run(PeakMap &, PeakMap &, MzTab &, String &);
 
   protected:
     void updateMembers_() override;
