@@ -588,9 +588,10 @@ namespace OpenMS
               }
               if (pass_first_check)
               {
+                spc++;
                 support_peak_intensity += mz_intensities[next_iso_bin];
               }
-              break;
+              //break;
             }
           }
         }
@@ -652,16 +653,14 @@ namespace OpenMS
           else if (abs_charge <= low_charge_) // for low charge, include the mass if isotope is present
           {
             mass_intensities[mass_bin_index] += intensity + support_peak_intensity;
-            spc++;
+            //spc++;
+            //if (spc >= min_peak_cntr || spc >= abs_charge / 2) //
             {
               mass_bins_[mass_bin_index] = true;
-//              auto tmp = getMassFromMassBin_(mass_bin_index, bin_width);
-//              if(tmp > 1e5)
-//                std::cout<< tmp << std::endl; //
             }
           }
         }
-        else if (abs_charge <= low_charge_) // if, for low charge, no isotope peak exists or is harmonic..
+        else if (abs_charge <= low_charge_) // if, for low charge, no isotope peak exists or is harmonic
         {
           mass_intensities[mass_bin_index] -= intensity + max_h_intensity;
         }
@@ -826,9 +825,6 @@ namespace OpenMS
       {
         abs_charge_ranges.setValue(0, max_index, std::min(abs_charge_ranges.getValue(0, max_index), max_intensity_abs_charge_range));
         abs_charge_ranges.setValue(1, max_index, std::max(abs_charge_ranges.getValue(1, max_index), max_intensity_abs_charge_range));
-//        auto tmp = getMassFromMassBin_(max_index, bin_width);
-//        if(tmp > 1e5)
-//        std::cout<< tmp << std::endl; //
         mass_bins_[max_index] = true;
       }
       mz_bin_index = mz_bins_.find_next(mz_bin_index);
