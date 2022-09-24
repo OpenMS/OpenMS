@@ -523,6 +523,7 @@ namespace OpenMS
         // intensity ratio between consecutive charges should not exceed the factor.
         float factor = abs_charge <= low_charge_ ? 10.0f : (5.0f + 5.0f * low_charge_ / abs_charge);
         // intensity ratio between consecutive charges for possible harmonic should be within this factor
+
         float hfactor = factor / 2.0f;
         // intensity of previous charge
         // intensity ratio between current and previous charges
@@ -638,6 +639,9 @@ namespace OpenMS
               if (spc >= min_peak_cntr || spc >= abs_charge / 2) //
               {
                 mass_bins_[mass_bin_index] = true;
+//                auto tmp = getMassFromMassBin_(mass_bin_index, bin_width);
+//                if(tmp > 1e5)
+//                  std::cout<< tmp << std::endl; //
               }
             }
             else // if harmonic
@@ -651,6 +655,9 @@ namespace OpenMS
             spc++;
             {
               mass_bins_[mass_bin_index] = true;
+//              auto tmp = getMassFromMassBin_(mass_bin_index, bin_width);
+//              if(tmp > 1e5)
+//                std::cout<< tmp << std::endl; //
             }
           }
         }
@@ -819,9 +826,9 @@ namespace OpenMS
       {
         abs_charge_ranges.setValue(0, max_index, std::min(abs_charge_ranges.getValue(0, max_index), max_intensity_abs_charge_range));
         abs_charge_ranges.setValue(1, max_index, std::max(abs_charge_ranges.getValue(1, max_index), max_intensity_abs_charge_range));
-        auto tmp = getMassFromMassBin_(max_index, bin_width) ;
-        //if(tmp<5961 &&tmp>5959  )
-        //             std::cout<< max_intensity_abs_charge_range << " + " << tmp << std::endl; //
+//        auto tmp = getMassFromMassBin_(max_index, bin_width);
+//        if(tmp > 1e5)
+//        std::cout<< tmp << std::endl; //
         mass_bins_[max_index] = true;
       }
       mz_bin_index = mz_bins_.find_next(mz_bin_index);
@@ -1105,7 +1112,8 @@ namespace OpenMS
           }
           pg.setScanNumber(deconvolved_spectrum_.getScanNumber());
           deconvolved_spectrum_.push_back(pg); //
-       //   std::cout<< pg.getMonoMass() << std::endl;
+          //if( pg.getMonoMass() > 1e5)
+          //  std::cout<< pg.getMonoMass() + avg_.getMostAbundantMassDelta(pg.getMonoMass())<< std::endl;
         }
       }
 
@@ -1232,6 +1240,14 @@ namespace OpenMS
       }
 
       peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_, write_detail_);
+
+//      std::cout<< peak_group.getMonoMass() << " " << std::get<0>(peak_group.getAbsChargeRange()) << " "<< cos << std::endl;
+//      for(int z= std::get<0>(peak_group.getAbsChargeRange());z<=std::get<1>(peak_group.getAbsChargeRange());z++)
+//      {
+//        std::cout<< peak_group.getChargeIntensity(z)<<" ";
+//      }
+//      std::cout<<"\n";
+
 
       if (peak_group.empty() || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
       {

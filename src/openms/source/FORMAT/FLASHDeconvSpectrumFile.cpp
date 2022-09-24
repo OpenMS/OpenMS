@@ -265,6 +265,8 @@ namespace OpenMS
               "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\t";
         if (decoy)
           fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\n";
+
+        fs << "\n";
        // fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
       }
       else
@@ -281,7 +283,8 @@ namespace OpenMS
         fs << "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\t";
         if (decoy)
           fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\n";
-       // fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
+         fs << "\n";
+        // fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
       }
     }
   }
@@ -347,18 +350,18 @@ namespace OpenMS
     fs << std::setprecision(-1);
 
     double isotope_score_threshold = 0;
-    std::vector<double> isotope_scores;
+    std::vector<double> qscores;
 
     if (dspec.size() > topFD_max_peak_count_) // max peak count for TopPic = 500
     {
-      isotope_scores.reserve(dspec.size());
+      qscores.reserve(dspec.size());
       for (auto& pg : dspec)
       {
-        isotope_scores.push_back(pg.getIsotopeCosine());
+        qscores.push_back(pg.getQScore());
       }
-      std::sort(isotope_scores.begin(), isotope_scores.end());
-      isotope_score_threshold = isotope_scores[isotope_scores.size() - topFD_max_peak_count_];
-      std::vector<double>().swap(isotope_scores);
+      std::sort(qscores.begin(), qscores.end());
+      isotope_score_threshold = qscores[qscores.size() - topFD_max_peak_count_];
+      std::vector<double>().swap(qscores);
     }
 
     int size = 0;
@@ -368,15 +371,11 @@ namespace OpenMS
       {
         continue;
       }
-      if (size >= topFD_max_peak_count_)
-      {
-        break;
-      }
-      size++;
+
       fs << std::fixed << std::setprecision(2);
       fs << std::to_string(pg.getMonoMass()) << "\t" << pg.getIntensity() << "\t" << (pg.isPositive() ? std::get<1>(pg.getAbsChargeRange()) : -std::get<1>(pg.getAbsChargeRange())) << "\n";
       fs << std::setprecision(-1);
-      if (size >= topFD_max_peak_count_)
+      if (size++ >= topFD_max_peak_count_)
       {
         break;
       }
