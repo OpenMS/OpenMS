@@ -254,7 +254,7 @@ protected:
     fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
     //fd_defaults.addTag("tol", "advanced"); // hide entry
-    fd_defaults.setValue("min_intensity", 100.0, "Intensity threshold");
+    fd_defaults.setValue("min_intensity", 0.0, "Intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
     fd_defaults.setValue("min_isotope_cosine",
                          DoubleList{.85, .85, .85},

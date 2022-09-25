@@ -260,7 +260,7 @@ namespace OpenMS
     double isolation_window_size_;
 
     /// allowed maximum peak count per spectrum - intensity based.
-    const int max_peak_count_ = 30000;//30000
+    const int max_peak_count_ = 10000;//30000
 
     /** @brief static function that converts bin to value
         @param bin bin number
