@@ -254,7 +254,7 @@ namespace OpenMS
     int ms_level_;
 
     /// high and low charges are differently deconvolved. This value determines the (inclusive) threshold for low charge.
-    const int low_charge_ = 8; // 8 inclusive
+    const int low_charge_ = 10; //10 inclusive
 
     /// default precursor isolation window size.
     double isolation_window_size_;

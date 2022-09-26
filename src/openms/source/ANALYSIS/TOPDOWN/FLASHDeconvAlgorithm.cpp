@@ -76,7 +76,7 @@ namespace OpenMS
     defaults_.setValue("max_mass_count", IntList {-1, -1},
                        "maximum mass count per spec for MS1, 2, ... (e.g., -max_mass_count_ 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
 */
-    defaults_.setValue("min_intensity", 10.0, "intensity threshold");
+    defaults_.setValue("min_intensity", 0.0, "intensity threshold");
   //  defaults_.setValue("rt_window", 180.0, "RT window for MS1 deconvolution");
     defaultsToParam_();
   }
