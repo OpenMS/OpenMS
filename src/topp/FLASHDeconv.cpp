@@ -977,7 +977,7 @@ protected:
       auto mass_features = mass_tracer.findFeatures(// !out_promex_file.empty(), !out_topfd_feature_file.empty(),
                               // precursor_peak_groups,
         fd.getAveragine()
-                               //feature_cntr, , out_stream, out_promex_stream, out_topfd_feature_streams
+                               //feature_cntr , out_stream, out_promex_stream, out_topfd_feature_streams
                                );
       feature_cntr = mass_features.size();
       if(feature_cntr > 0)
