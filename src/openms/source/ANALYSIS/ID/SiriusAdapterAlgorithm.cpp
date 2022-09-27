@@ -597,7 +597,7 @@ namespace OpenMS
 
       if (run_csifingerid)
       {
-        command_line << "fingerid" << fingerid_params;
+        command_line << "fingerprint" << fingerid_params;
       }
 
       command_line << "write-summaries";
