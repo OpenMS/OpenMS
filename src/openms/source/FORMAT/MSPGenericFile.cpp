@@ -33,8 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MSPGenericFile.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
+#include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <boost/regex.hpp>
 #include <fstream>
@@ -84,14 +86,21 @@ namespace OpenMS
     spectrum.setMetaValue("is_valid", 0); // to avoid adding invalid spectra to the library
 
     boost::cmatch m;
-    boost::regex re_name("^Name: (.+)", boost::regex::no_mod_s);
-    boost::regex re_retention_time("^Retention Time: (.+)", boost::regex::no_mod_s);
+    boost::regex re_name("(?:^Name|^NAME): (.+)", boost::regex::no_mod_s);
+    boost::regex re_retention_time("(?:^Retention Time|^RETENTIONTIME): (.+)", boost::regex::no_mod_s);
     boost::regex re_synon("^synon(?:yms?)?: (.+)", boost::regex::no_mod_s | boost::regex::icase);
     boost::regex re_points_line(R"(^\d)");
-    boost::regex re_point(R"((\d+(?:\.\d+)?)[: ](\d+(?:\.\d+)?);? ?)");
+    boost::regex re_point(R"((\d+(?:\.\d+)?)[: \t](\d+(?:\.\d+)?);? ?)");
     boost::regex re_cas_nist(R"(^CAS#: ([\d-]+);  NIST#: (\d+))"); // specific to NIST db
+    boost::regex re_precursor_mz("^PRECURSORMZ: (.+)");
+    boost::regex re_num_peaks("(?:^Num Peaks|^Num peaks): (\\d+)");
+    // regex for meta values required for MetaboliteSpectralMatcher
+    boost::regex re_inchi("^INCHIKEY: (.+)");
+    boost::regex re_smiles("^SMILES: (.+)");
+    boost::regex re_sum_formula("^FORMULA: (.+)");
+    boost::regex re_precursor_type("^PRECURSORTYPE: (.+)");
+    // matches everything else
     boost::regex re_metadatum("^(.+): (.+)", boost::regex::no_mod_s);
-
     OPENMS_LOG_INFO << "\nLoading spectra from .msp file. Please wait." << std::endl;
 
     while (!ifs.eof())
@@ -100,11 +109,11 @@ namespace OpenMS
       // Peaks
       if (boost::regex_search(line, m, re_points_line))
       {
-        // OPENMS_LOG_DEBUG << "re_points_line\n";
+        OPENMS_LOG_DEBUG << "re_points_line\n";
         boost::regex_search(line, m, re_point);
         do
         {
-          // OPENMS_LOG_DEBUG << "{" << m[1] << "} {" << m[2] << "}; ";
+          OPENMS_LOG_DEBUG << "{" << m[1] << "} {" << m[2] << "}; ";
           const double position { std::stod(m[1]) };
           const double intensity { std::stod(m[2]) };
           spectrum.push_back( Peak1D(position, intensity) );
@@ -124,21 +133,53 @@ namespace OpenMS
         spectrum.clear(true);
         synonyms_.clear();
         spectrum.setName(String(m[1]));
+        spectrum.setMetaValue(Constants::UserParam::MSM_METABOLITE_NAME, spectrum.getName());
         spectrum.setMetaValue("is_valid", 1);
+      }
+      // Number of Peaks
+      else if (boost::regex_search(line, m, re_num_peaks))
+      {
+        spectrum.setMetaValue("Num Peaks", String(m[1]));
       }
       // Retention Time
       else if (boost::regex_search(line, m, re_retention_time))
       {
         spectrum.setRT(std::stod(m[1]));
       }
-      // Specific case of NIST's exported msp
+      // set Precursor MZ
+      else if (boost::regex_search(line, m, re_precursor_mz))
+      {
+        std::vector<Precursor> precursors;
+        Precursor p;
+        p.setMZ(std::stod(m[1]));
+        precursors.push_back(p);
+        spectrum.setPrecursors(precursors);
+      }
+      //CAS# NIST#
       else if (boost::regex_search(line, m, re_cas_nist))
       {
         // OPENMS_LOG_DEBUG << "CAS#: " << m[1] << "; NIST#: " << m[2] << "\n";
         spectrum.setMetaValue(String("CAS#"), String(m[1]));
         spectrum.setMetaValue(String("NIST#"), String(m[2]));
       }
-      // Other metadata
+      // Meta values for MetaboliteSpectralMatcher
+      else if (boost::regex_search(line, m, re_inchi))
+      {
+        spectrum.setMetaValue(Constants::UserParam::MSM_INCHI_STRING, String(m[1]));
+      }
+      else if (boost::regex_search(line, m, re_smiles))
+      {
+        spectrum.setMetaValue(Constants::UserParam::MSM_SMILES_STRING, String(m[1]));
+      }
+      else if (boost::regex_search(line, m, re_sum_formula))
+      {
+        spectrum.setMetaValue(Constants::UserParam::MSM_SUM_FORMULA, String(m[1]));
+      }
+      else if (boost::regex_search(line, m, re_precursor_type))
+      {
+        spectrum.setMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT, String(m[1]));
+      }      
+      // Other metadata, needs to be last, matches everything
       else if (boost::regex_search(line, m, re_metadatum))
       {
         // OPENMS_LOG_DEBUG << m[1] << m[2] << "\n";
@@ -275,7 +316,6 @@ namespace OpenMS
       { // set RT to spectrum index
         spectrum.setRT(library.getSpectra().size());
       }
-
       library.addSpectrum(spectrum);
       loaded_spectra_names_.insert(spectrum.getName());
 

@@ -938,7 +938,7 @@ START_SECTION(template<class Predicate>
   TEST_EQUAL(ds.isSorted([&ds](Size a, Size b) { return ds[a].getMZ() < ds[b].getMZ(); }), false)
   TEST_EQUAL(ds.isSorted(), false)// call other method. Should give the same result
 
-  // sort by meta data array; float data is identical to intensities here, so we can easily check
+  // sort by metadata array; float data is identical to intensities here, so we can easily check
   auto float_sort_func = [&ds](Size a, Size b) {
     return ds.getFloatDataArrays()[0][a] < ds.getFloatDataArrays()[0][b]; 
   };
