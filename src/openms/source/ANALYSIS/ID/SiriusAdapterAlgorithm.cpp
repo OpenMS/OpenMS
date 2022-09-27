@@ -302,27 +302,6 @@ namespace OpenMS
 
     void SiriusAdapterAlgorithm::Fingerid::parameters()
     {
-      parameter(
-                 FingeridName("candidates"),
-                 DefaultValue(10),
-                 Description("Number of molecular structure candidates in the output.")
-               ).withMinInt(1);
-
-      parameter(
-                 FingeridName("db"),
-                 DefaultValue("BIO"),
-                 Description("Search formulas in the Union of the given "
-                              "databases db-name1,db-name2,db-name3. If no database is given all possible "
-                              "molecular formulas will be respected (no database "
-                              "is used). "
-                              "Example: possible DBs: ALL,BIO,PUBCHEM,MESH,HMDB,"
-                              "KNAPSACK,CHEBI,PUBMED,KEGG,HSDB,MACONDA,METACYC,"
-                              "GNPS,ZINCBIO,UNDP,YMDB,PLANTCYC,NORMAN,ADDITIONAL,"
-                              "PUBCHEMANNOTATIONBIO,PUBCHEMANNOTATIONDRUG,"
-                              "PUBCHEMANNOTATIONSAFETYANDTOXIC,"
-                              "PUBCHEMANNOTATIONFOOD,KEGGMINE,ECOCYCMINE,"
-                              "YMDBMINE")
-                );
     }
 
     void SiriusAdapterAlgorithm::Passatutto::parameters()
@@ -597,7 +576,7 @@ namespace OpenMS
 
       if (run_csifingerid)
       {
-        command_line << "fingerprint" << fingerid_params;
+        command_line << "fingerprint";
       }
 
       command_line << "write-summaries";
