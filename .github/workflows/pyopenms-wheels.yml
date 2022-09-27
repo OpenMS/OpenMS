@@ -477,12 +477,13 @@ jobs:
             pwd
             ls -la wheels/
 
-    - name: Publish package to nightly PyPI (warning, somehow also can publish to general package)
+    - name: Publish package to nightly PyPI
       if: "github.ref == 'refs/heads/nightly'"
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        user: __token__
-        password: ${{ secrets.pypi_api_token }}
+        repository_url: https://abi-services.informatik.uni-tuebingen.de/pypi
+        user: openms
+        password: ${{ secrets.abiservices_pypi_pw }}
         packages_dir: ${{ github.workspace }}/wheels
 
     - name: Publish package to PyPI
