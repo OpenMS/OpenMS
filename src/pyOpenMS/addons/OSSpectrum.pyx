@@ -12,6 +12,13 @@
         cdef list py_result = _vec
         return py_result
 
+    def getDriftTimeArray(self):
+        cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getDriftTimeArray()
+        if _r.get() == NULL: return None
+        cdef libcpp_vector[double] _vec = _r.get().data
+        cdef list py_result = _vec
+        return py_result
+
     def setMZArray(self, list data):
         assert isinstance(data, list), 'arg transitions wrong type'
 

@@ -17,6 +17,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace 
         OSSpectrum(OSSpectrum &) nogil except + # compiler
         OSBinaryDataArrayPtr getMZArray() #wrap-ignore
         OSBinaryDataArrayPtr getIntensityArray() #wrap-ignore
+        OSBinaryDataArrayPtr getDriftTimeArray() #wrap-ignore
         # libcpp_vector[ BinaryDataArrayPtr ]  getDataArrays() nogil except +
         void setMZArray(OSBinaryDataArrayPtr data) #wrap-ignore
         void setIntensityArray(OSBinaryDataArrayPtr data) #wrap-ignore
