@@ -588,10 +588,9 @@ namespace OpenMS
               }
               if (pass_first_check)
               {
-                spc++;
                 support_peak_intensity += mz_intensities[next_iso_bin];
               }
-              //break;
+              break;
             }
           }
         }
@@ -640,9 +639,6 @@ namespace OpenMS
               if (spc >= min_peak_cntr || spc >= abs_charge / 2) //
               {
                 mass_bins_[mass_bin_index] = true;
-//                auto tmp = getMassFromMassBin_(mass_bin_index, bin_width);
-//                if(tmp > 1e5)
-//                  std::cout<< tmp << std::endl; //
               }
             }
             else // if harmonic
@@ -653,7 +649,7 @@ namespace OpenMS
           else if (abs_charge <= low_charge_) // for low charge, include the mass if isotope is present
           {
             mass_intensities[mass_bin_index] += intensity + support_peak_intensity;
-            //spc++;
+            spc++;
             //if (spc >= min_peak_cntr || spc >= abs_charge / 2) //
             {
               mass_bins_[mass_bin_index] = true;
@@ -1108,8 +1104,6 @@ namespace OpenMS
           }
           pg.setScanNumber(deconvolved_spectrum_.getScanNumber());
           deconvolved_spectrum_.push_back(pg); //
-          //if( pg.getMonoMass() > 1e5)
-          //  std::cout<< pg.getMonoMass() + avg_.getMostAbundantMassDelta(pg.getMonoMass())<< std::endl;
         }
       }
 
@@ -1236,14 +1230,6 @@ namespace OpenMS
       }
 
       peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_, write_detail_);
-
-//      std::cout<< peak_group.getMonoMass() << " " << std::get<0>(peak_group.getAbsChargeRange()) << " "<< cos << std::endl;
-//      for(int z= std::get<0>(peak_group.getAbsChargeRange());z<=std::get<1>(peak_group.getAbsChargeRange());z++)
-//      {
-//        std::cout<< peak_group.getChargeIntensity(z)<<" ";
-//      }
-//      std::cout<<"\n";
-
 
       if (peak_group.empty() || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
       {
