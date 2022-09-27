@@ -31,7 +31,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace 
         OSChromatogram(OSChromatogram &) nogil except + # compiler
         OSBinaryDataArrayPtr getTimeArray() #wrap-ignore
         OSBinaryDataArrayPtr getIntensityArray() #wrap-ignore
-        # libcpp_vector[ BinaryDataArrayPtr ]  getDataArrays() nogil except +
+        libcpp_vector[ OSBinaryDataArrayPtr ] getDataArrays() #wrap-ignore
         void setTimeArray(OSBinaryDataArrayPtr data) #wrap-ignore
         void setIntensityArray(OSBinaryDataArrayPtr data) #wrap-ignore
 
