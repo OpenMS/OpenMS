@@ -106,8 +106,8 @@ protected:
     setValidFormats_("database", {"mzML", "msp", "mgf"});
     registerOutputFile_("out", "<file>", "", "mzTab file");
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
-    registerOutputFile_("out_merged_spectra", "<file>", "", "Output merged spectra as mzML file if algorithm:merge_spectra is set to true (default).", false);
-    setValidFormats_("out_merged_spectra", ListUtils::create<String>("mzML"));
+    registerOutputFile_("out_spectra", "<file>", "", "Output spectra as mzML file. Can be useful to inspect the peak map after spectra merging.", false);
+    setValidFormats_("out_spectra", ListUtils::create<String>("mzML"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
@@ -135,7 +135,7 @@ protected:
     }
 
     String out = getStringOption_("out");
-    String out_merged_spectra = getStringOption_("out_merged_spectra");
+    String out_spectra = getStringOption_("out_spectra");
 
     //-------------------------------------------------------------
     // loading input
@@ -195,7 +195,7 @@ protected:
     //-------------------------------------------------------------
     MetaboliteSpectralMatching msm;
     msm.setParameters(msm_param);
-    msm.run(ms_peakmap, spec_db, mztab_output, out_merged_spectra);
+    msm.run(ms_peakmap, spec_db, mztab_output, out_spectra);
 
     //-------------------------------------------------------------
     // store results

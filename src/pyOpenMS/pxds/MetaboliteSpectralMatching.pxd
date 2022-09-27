@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace "
         MetaboliteSpectralMatching() nogil except +
         MetaboliteSpectralMatching(MetaboliteSpectralMatching &) nogil except + # compiler
 
-        void run(MSExperiment & exp, MSExperiment & speclib, MzTab & mz_tab, String & out_merged_spectra) nogil except +
+        void run(MSExperiment & exp, MSExperiment & speclib, MzTab & mz_tab, String & out_spectra) nogil except +
         
     cdef cppclass SpectralMatch:
 
