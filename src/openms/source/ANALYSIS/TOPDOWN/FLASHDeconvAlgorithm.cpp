@@ -550,6 +550,7 @@ namespace OpenMS
         double max_h_intensity = 0;
         if (!pass_first_check && abs_charge <= low_charge_)
         { // for low charges
+          double sub_max_h_intensity = 0;
           for (int d = 1; d >= -1; d -= 2)
           {
             bool iso_exist = false;
@@ -582,15 +583,17 @@ namespace OpenMS
                   )
                   {
                     pass_first_check = false;
-                    max_h_intensity = max_h_intensity < harmonic_intensity ? harmonic_intensity : max_h_intensity;
+                    sub_max_h_intensity = sub_max_h_intensity < harmonic_intensity ? harmonic_intensity : sub_max_h_intensity;
                   }
                 }
               }
               if (pass_first_check)
               {
                 support_peak_intensity += mz_intensities[next_iso_bin];
+              }else{
+                max_h_intensity += sub_max_h_intensity;
+                break;
               }
-              break;
             }
           }
         }
