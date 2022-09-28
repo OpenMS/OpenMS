@@ -90,10 +90,6 @@ namespace OpenMS
        */
       bool hasFullNameParameter(const String &name) const;
 
-
-      int getNumberOfCSIFingerIDCandidates() const { return fingerid.getValue("candidates"); }
-
-
       /// Struct for temporary folder structure
       class OPENMS_DLLAPI SiriusTemporaryFileSystemObjects
       {
