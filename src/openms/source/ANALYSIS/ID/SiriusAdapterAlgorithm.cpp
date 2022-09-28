@@ -169,30 +169,30 @@ namespace OpenMS
       );
     }
 
-    void SiriusAdapterAlgorithm::Sirius::parameters()
+    void SiriusAdapterAlgorithm::Sirius::parameters() // original sirius 5.6.0 parameters in the comments
     {
       parameter(
                  SiriusName("ppm-max"),
-                 DefaultValue(10.0),
+                 DefaultValue(-1), // default = 10.0
                  Description("Maximum allowed mass deviation in ppm for decomposing masses [ppm].")
                );
 
       parameter(
                  SiriusName("ppm-max-ms2"),
-                 DefaultValue(10.0),
+                 DefaultValue(-1), // default = 10.0
                  Description("Maximum allowed mass deviation in ppm for decomposing masses in MS2 [ppm]."
                              "If not specified, the same value as for the MS1 is used. ")
                 );
 
       parameter(
                  SiriusName("tree-timeout"),
-                 DefaultValue(0),
+                 DefaultValue(-1), // default = 0
                  Description("Time out in seconds per fragmentation tree computations. 0 for an infinite amount of time")
                ).withMinInt(0);
 
       parameter(
                  SiriusName("compound-timeout"),
-                 DefaultValue(100),
+                 DefaultValue(-1), // default = 0
                  Description("Maximal computation time in seconds for a single compound. 0 for an infinite amount of time.")
                ).withMinInt(0);
 
@@ -203,13 +203,13 @@ namespace OpenMS
 
       parameter(
                  SiriusName("profile"),
-                 DefaultValue("qtof"),
+                 DefaultValue(""), // default = default
                  Description("Name of the configuration profile")
                ).withValidStrings({"default", "qtof", "orbitrap", "fticr"});
 
       parameter(
-                 SiriusName("formula"),
-                 DefaultValue(""),
+                 SiriusName("formulas"),
+                 DefaultValue(""), // default = ""
                  Description("Specify the neutral molecular formula of the measured "
                              "compound to compute its tree or a list of candidate "
                              "formulas the method should discriminate. Omit this "
@@ -218,14 +218,14 @@ namespace OpenMS
 
       parameter(
                  SiriusName("ions-enforced"),
-                 DefaultValue(-1),
+                 DefaultValue(-1), // default = -1
                  Description("the iontype/adduct of the MS/MS data. Example: [M+H]+, "
                              "[M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a comma separated list of adducts")
                );
 
       parameter(
                  SiriusName("candidates"),
-                 DefaultValue(5),
+                 DefaultValue(5), // default = 10
                  Description("The number of formula candidates in the SIRIUS output")
                ).withMinInt(1);
 
@@ -304,7 +304,7 @@ namespace OpenMS
     {
       parameter(
                  FingeridName("db"),
-                 DefaultValue("BIO"),
+                 DefaultValue(""), // default = BIO
                  Description("Search structures in the Union of the given "
                               "databases db-name1,db-name2,db-name3. If no database is given all possible "
                               "molecular formulas will be respected (no database "
