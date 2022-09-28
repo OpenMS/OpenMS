@@ -12,8 +12,8 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
  
         bool load(String, OnDiscMSExperiment &) nogil except +
             # wrap-doc:
-                #   Load a file 
-                #   -----
+                #   Load a file\n
+                #   
                 #   Tries to parse the file, success needs to be checked with the return value
                 #   -----
                 #   :param filename: Filename determines where the file is located
@@ -23,6 +23,7 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
         void store(String, OnDiscMSExperiment &) nogil except +
             # wrap-doc:
                 #   Store a file from an on-disc data-structure
+                #   
                 #   -----
                 #   :param filename: Filename determines where the file will be stored 
                 #   :param exp: MS data to be stored
@@ -30,6 +31,7 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
         void store(String, MSExperiment &) nogil except +
             # wrap-doc:
                 #   Store a file from an in-memory data-structure
+                #   
                 #   -----
                 #   :param filename: Filename determines where the file will be stored 
                 #   :param exp: MS data to be stored

@@ -14,8 +14,8 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>" namesp
     
     cdef cppclass IMSAlphabet "OpenMS::ims::IMSAlphabet":
         # wrap-doc:
-                #   Holds an indexed list of bio-chemical elements.
-                #   -----
+                #   Holds an indexed list of bio-chemical elements.\n
+                #   
                 #   Presents an indexed list of bio-chemical elements of type (or derived from
                 #   type) 'Element'. Due to indexed structure 'Alphabet' can be used similar
                 #   to std::vector, for example to add a new element to 'Alphabet' function
@@ -28,6 +28,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>" namesp
                 #   not use 'Alphabet' directly in operations where fast access to
                 #   'Element' 's properties is required. Instead consider to use
                 #   'light-weighted' equivalents, such as 'Weights'
+                #   
                 #   -----
                 #   :param map: MSExperiment to receive the identifications
                 #   :param fmap: FeatureMap with PeptideIdentifications for the MSExperiment

@@ -40,9 +40,11 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         bool encloses(double rt, double mz) nogil except + 
             # wrap-doc:
             #   Returns if the mass trace convex hulls of the feature enclose the position specified by `rt` and `mz`
+            #   
             #   -----
             #   :param rt: Sequence to digest
             #   :param mz: Digestion products
+            
         ConvexHull2D getConvexHull() nogil except +
         libcpp_vector[ConvexHull2D] getConvexHulls() nogil except +
         void setConvexHulls(libcpp_vector[ConvexHull2D]) nogil except +

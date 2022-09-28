@@ -27,6 +27,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestionLogModel.h>" namespace "Op
       Size peptideCount(AASequence & protein) nogil except + 
           # wrap-doc:
           #   Returns the number of peptides a digestion of `protein` would yield under the current enzyme and missed cleavage settings
+          #   
           #   -----
           #   :param protein: Name of protein
 

@@ -16,9 +16,10 @@ cdef extern from "<OpenMS/FORMAT/InspectInfile.h>" namespace "OpenMS":
         void handlePTMs(const String & modification_line, const String & modifications_filename, bool monoisotopic) nogil except +
             # wrap-doc:
                 #   Retrieves the name, mass change, affected residues, type and position for all modifications from a string
+                #   
                 #   -----
-                #   :param modification_line
-                #   :param modifications_filename
+                #   :param modification_line:
+                #   :param modifications_filename:
                 #   :param monoisotopic: if true, masses are considered to be monoisotopic
                 #   :raises:
                 #     Exception: FileNotReadable if the modifications_filename could not be read

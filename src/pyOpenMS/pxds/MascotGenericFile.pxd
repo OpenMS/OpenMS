@@ -18,6 +18,7 @@ cdef extern from "<OpenMS/FORMAT/MascotGenericFile.h>" namespace "OpenMS":
         void load(const String & filename, MSExperiment & exp) nogil except +
             # wrap-doc:
                 #   Loads a Mascot Generic File into a PeakMap
+                #   
                 #   -----
                 #   :param filename: File name which the map should be read from
                 #   :param exp: The map which is filled with the data from the given file
@@ -26,8 +27,8 @@ cdef extern from "<OpenMS/FORMAT/MascotGenericFile.h>" namespace "OpenMS":
 
         libcpp_pair[ String, String ] getHTTPPeakListEnclosure(const String & filename) nogil except +
             # wrap-doc:
-                #   Enclosing Strings of the peak list body for HTTP submission
-                #   -----
+                #   Enclosing Strings of the peak list body for HTTP submission\n
+                #   
                 #   Can be used to embed custom content into HTTP submission (when writing only the MGF header in HTTP format and then
                 #   adding the peaks (in whatever format, e.g. mzXML) enclosed in this body
                 #   The `filename` can later be found in the Mascot response

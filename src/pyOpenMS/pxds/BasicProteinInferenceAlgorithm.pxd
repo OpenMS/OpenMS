@@ -62,7 +62,9 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
                  libcpp_vector[ ProteinIdentification ] & prot_ids) nogil except +
           # wrap-doc:
           #   Performs basic aggregation-based inference per ProteinIdentification run. See class help.
-          #   -----
+          #   
+          #   Parameters
+          #   ----------
           #   :param pep_ids: Vector of peptide identifications
           #   :param prot_ids: Vector of protein identification runs. Scores will be overwritten and groups added.
           #   :return: Writes its results into prot_ids
@@ -71,7 +73,9 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
                                 ProteinIdentification & prot_id) nogil except +
           # wrap-doc:
           #   Performs basic aggregation-based inference on single ProteinIdentification run. See class help.
-          #   -----
+          #   
+          #   Parameters
+          #   ----------
           #   :param pep_ids: Vector of peptide identifications
           #   :param prot_id: ProteinIdentification run with possible proteins. Scores will be overwritten and groups added.
           #   :return: Writes its results into prot_ids
@@ -80,11 +84,12 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
                     ProteinIdentification & prot_id,
                     bool include_unassigned) nogil except +
           # wrap-doc:
-          #   Performs basic aggregation-based inference on identifications in a ConsensusMap. See class help.
-          #   -----
-          #   prot_id should contain the union of all proteins in the map. E.g. use ConsensusMapMergerAlgorithm and
+          #   Performs basic aggregation-based inference on identifications in a ConsensusMap. See class help.\n
+          #   `prot_id` should contain the union of all proteins in the map. E.g. use ConsensusMapMergerAlgorithm and
           #   then pass the first=merged run.
-          #   -----
+          #   
+          #   Parameters
+          #   ----------
           #   :param cmap: ConsensusMap = Consensus features with metadata and peptide identifications
           #   :param prot_id: ProteinIdentification run with possible proteins. Scores will be overwritten and groups added.
           #   :return: Writes its results into prot_ids

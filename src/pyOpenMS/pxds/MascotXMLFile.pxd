@@ -20,6 +20,7 @@ cdef extern from "<OpenMS/FORMAT/MascotXMLFile.h>" namespace "OpenMS":
                   SpectrumMetaDataLookup & rt_mapping) nogil except +
             # wrap-doc:
                 #   Loads data from a Mascot XML file
+                #   
                 #   -----
                 #   :param filename: The file to be loaded
                 #   :param protein_identification: Protein identifications belonging to the whole experiment
@@ -40,6 +41,7 @@ cdef extern from "<OpenMS/FORMAT/MascotXMLFile.h>" namespace "OpenMS":
         void initializeLookup(SpectrumMetaDataLookup & lookup, MSExperiment& experiment, const String & scan_regex) nogil except +
             # wrap-doc:
                 #   Initializes a helper object for looking up spectrum meta data (RT, m/z)
+                #   
                 #   -----
                 #   :param lookup: Helper object to initialize
                 #   :param experiment: Experiment containing the spectra

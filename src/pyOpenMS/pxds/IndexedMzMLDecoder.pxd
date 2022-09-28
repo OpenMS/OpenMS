@@ -26,18 +26,19 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>" namespace "Open
                 libcpp_vector[ libcpp_pair[ libcpp_string, streampos] ]& chromatograms_offsets) nogil except + #wrap-ignore
         streampos findIndexListOffset(String in_, int buffersize) nogil except +
             # wrap-doc:
-                #   Tries to extract the indexList offset from an indexedmzML
-                #   -----
+                #   Tries to extract the indexList offset from an indexedmzML\n
+                #   
                 #   This function reads by default the last few (1024) bytes of the given
                 #   input file and tries to read the content of the <indexListOffset> tag
                 #   The idea is that somewhere in the last parts of the file specified by the
                 #   input string, the string <indexListOffset>xxx</indexListOffset> occurs
-                #   This function returns the xxx part converted to an integer
-                #   -----
+                #   This function returns the xxx part converted to an integer\n
+                #   
                 #   Since this function cannot determine where it will start reading
                 #   the XML, no regular XML parser can be used for this. Therefore it uses
                 #   regex to do its job. It matches the <indexListOffset> part and any
                 #   numerical characters that follow
+                #   
                 #   -----
                 #   :param in: Filename of the input indexedmzML file
                 #   :param buffersize: How many bytes of the input file should be searched for the tag

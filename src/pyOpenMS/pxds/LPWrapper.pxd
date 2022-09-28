@@ -38,6 +38,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
         void readProblem(String filename, String format_) nogil except +
             # wrap-doc:
                 #   Read LP from file
+                #   
                 #   -----
                 #   :param filename: Filename where to store the LP problem
                 #   :param format: LP, MPS or GLPK
@@ -45,15 +46,17 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
         void writeProblem(const String & filename, WriteFormat format_) nogil except +
             # wrap-doc:
                 #   Write LP formulation to a file
+                #   
                 #   -----
                 #   :param filename: Output filename, if the filename ends with '.gz' it will be compressed
                 #   :param format: MPS-format is supported by GLPK and COIN-OR; LP and GLPK-formats only by GLPK
 
         Int solve(SolverParam & solver_param, Size verbose_level) nogil except +
             # wrap-doc:
-                #   Solve problems, parameters like enabled heuristics can be given via solver_param
-                #   -----
+                #   Solve problems, parameters like enabled heuristics can be given via solver_param\n
+                #   
                 #   The verbose level (0,1,2) determines if the solver prints status messages and internals
+                #   
                 #   -----
                 #   :param solver_param: Parameters of the solver introduced by SolverParam
                 #   :param verbose_level: Sets verbose level
@@ -62,6 +65,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
         SolverStatus getStatus() nogil except +
             # wrap-doc:
                 #   Returns solution status
+                #   
                 #   -----
                 #   :returns: status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
 
