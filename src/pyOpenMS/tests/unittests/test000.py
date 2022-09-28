@@ -5486,8 +5486,8 @@ def testExperimentalDesign():
      ExperimentalDesign.getNumberOfLabels() == 4
      ExperimentalDesign.getNumberOfMSFiles() == 6
      ExperimentalDesign.getNumberOfFractionGroups() == 2
-     ExperimentalDesign.getSample(1, 1) == 1
-     ExperimentalDesign.getSample(2, 4) == 8
+     ExperimentalDesign.getSample(1, 1) == 0
+     ExperimentalDesign.getSample(2, 4) == 7
      ExperimentalDesign.isFractionated()
      ExperimentalDesign.sameNrOfMSFilesPerFraction()
 
@@ -5504,8 +5504,8 @@ def testExperimentalDesign():
     assert fourplex_fractionated_design.getNumberOfLabels() == 4
     assert fourplex_fractionated_design.getNumberOfMSFiles() == 6
     assert fourplex_fractionated_design.getNumberOfFractionGroups() == 2
-    assert fourplex_fractionated_design.getSample(1, 1) == 1
-    assert fourplex_fractionated_design.getSample(2, 4) == 8
+    assert fourplex_fractionated_design.getSample(1, 1) == 0
+    assert fourplex_fractionated_design.getSample(2, 4) == 7
     assert fourplex_fractionated_design.isFractionated()
     assert fourplex_fractionated_design.sameNrOfMSFilesPerFraction()
  
