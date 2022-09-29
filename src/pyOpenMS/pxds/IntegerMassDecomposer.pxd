@@ -19,7 +19,8 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.
             # wrap-doc:
             #   Constructor with weights
             #   
-            #   -----
+            #   Parameters
+            #   ----------
             #   :param alphabet: Weights over which masses to be decomposed
 
         IntegerMassDecomposer(IntegerMassDecomposer &) nogil except +
@@ -28,7 +29,8 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.
             # wrap-doc:
             #   Returns true if decomposition over the 'mass' exists, otherwise - false
             #   
-            #   -----
+            #   Parameters
+            #   ----------
             #   :param mass: Mass to be decomposed
             #   :returns: true if decomposition over a given mass exists, otherwise - false
 

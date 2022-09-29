@@ -21,7 +21,8 @@ cdef extern from "<OpenMS/FORMAT/MascotInfile.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Loads a Mascot Generic File into a PeakMap
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param filename: File name which the map should be read from
                 #   :param exp: The map which is filled with the data from the given file
                 #   :raises:

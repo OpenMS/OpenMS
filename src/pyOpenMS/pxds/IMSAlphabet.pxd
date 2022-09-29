@@ -29,7 +29,8 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>" namesp
                 #   'Element' 's properties is required. Instead consider to use
                 #   'light-weighted' equivalents, such as 'Weights'
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param map: MSExperiment to receive the identifications
                 #   :param fmap: FeatureMap with PeptideIdentifications for the MSExperiment
                 #   :param clear_ids: Reset peptide and protein identifications of each scan before annotating

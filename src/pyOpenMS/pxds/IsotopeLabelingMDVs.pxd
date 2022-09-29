@@ -20,7 +20,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
               #   This function performs an isotopic correction to account for unlabeled abundances coming from
               #   the derivatization agent (e.g., tBDMS) using correction matrix method and is calculated as follows:
               #   
-              #   -----
+              #   Parameters
+              #   ----------
               #   :param normalized_feature: Feature with normalized values for each component and unlabeled chemical formula for each component group
               #   :param correction_matrix: Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of naturally abundant 13C contribute to spectral peaks that overlap (or convolve) the spectral peaks of the corrected MDV of the derivatization agent
               #   :param correction_matrix_agent: Name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied, only "TBDMS" is supported for now
@@ -33,7 +34,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
               #   This function performs an isotopic correction to account for unlabeled abundances coming from
               #   the derivatization agent (e.g., tBDMS) using correction matrix method and is calculated as follows:
               #   
-              #   -----
+              #   Parameters
+              #   ----------
               #   :param normalized_featuremap: FeatureMap with normalized values for each component and unlabeled chemical formula for each component group
               #   :param correction_matrix: Square matrix holding correction factors derived either experimentally or theoretically which describe how spectral peaks of naturally abundant 13C contribute to spectral peaks that overlap (or convolve) the spectral peaks of the corrected MDV of the derivatization agent
               #   :param correction_matrix_agent: Name of the derivatization agent, the internally stored correction matrix if the name of the agent is supplied, only "TBDMS" is supported for now
@@ -49,7 +51,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
               #   The formula is extracted from "High-resolution 13C metabolic flux analysis",
               #   Long et al, doi:10.1038/s41596-019-0204-0
               #   
-              #   -----
+              #   Parameters
+              #   ----------
               #   :param normalized_feature: Feature with normalized values for each component and the number of heavy labeled e.g., carbons. Out is a Feature with the calculated isotopic purity for the component group
               #   :param experiment_data: Vector of experiment data in percent
               #   :param isotopic_purity_name: Name of the isotopic purity tracer to be saved as a meta value
@@ -65,7 +68,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
               #   This function calculates the accuracy of the MDV as compared to the theoretical MDV (only for 12C quality control experiments)
               #   using average deviation to the mean. The result is mapped to the meta value "average_accuracy" in the updated feature
               #   
-              #   -----
+              #   Parameters
+              #   ----------
               #   :param normalized_feature: Feature with normalized values for each component and the chemical formula of the component group. Out is a Feature with the component group accuracy and accuracy for the error for each component
               #   :param fragment_isotopomer_measured: Measured scan values
               #   :param fragment_isotopomer_theoretical_formula: Empirical formula from which the theoretical values will be generated
@@ -77,7 +81,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
               #   This function calculates the accuracy of the MDV as compared to the theoretical MDV (only for 12C quality control experiments)
               #   using average deviation to the mean
               #   
-              #   -----
+              #   Parameters
+              #   ----------
               #   param normalized_featuremap: FeatureMap with normalized values for each component and the chemical formula of the component group. Out is a FeatureMap with the component group accuracy and accuracy for the error for each component
               #   param fragment_isotopomer_measured: Measured scan values
               #   param fragment_isotopomer_theoretical_formula: A map of ProteinName/peptideRef to Empirical formula from which the theoretical values will be generated

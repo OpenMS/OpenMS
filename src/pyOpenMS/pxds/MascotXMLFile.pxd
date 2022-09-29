@@ -21,7 +21,8 @@ cdef extern from "<OpenMS/FORMAT/MascotXMLFile.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Loads data from a Mascot XML file
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param filename: The file to be loaded
                 #   :param protein_identification: Protein identifications belonging to the whole experiment
                 #   :param id_data: The identifications with m/z and RT
@@ -42,7 +43,8 @@ cdef extern from "<OpenMS/FORMAT/MascotXMLFile.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Initializes a helper object for looking up spectrum meta data (RT, m/z)
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param lookup: Helper object to initialize
                 #   :param experiment: Experiment containing the spectra
                 #   :param scan_regex: Optional regular expression for extracting information from references to spectra

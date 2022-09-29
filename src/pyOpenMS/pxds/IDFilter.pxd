@@ -50,7 +50,8 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
                 #   
                 #   If there are several hits with the best score, the first one is taken
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param identifications: Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
                 #   :param assume_sorted: Are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
                 #   :param best_hit: Contains the best hit if successful in a vector of peptide identifications
@@ -61,7 +62,9 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
                 #   Finds the best-scoring hit in a vector of peptide or protein identifications
                 #   -----
                 #   If there are several hits with the best score, the first one is taken
-                #   -----
+                #   
+                #   Parameters
+                #   ----------
                 #   :param identifications: Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
                 #   :param assume_sorted: Are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
                 #   :param best_hit: Contains the best hit if successful in a vector of protein identifications
@@ -71,7 +74,8 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Extracts all unique peptide sequences from a list of peptide IDs
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param peptides:
                 #   :param ignore_mods: Boolean operator default to false in case of any modifications in sequences during extraction
                 #   :returns: Sequences
@@ -87,7 +91,8 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Update protein groups after protein hits were filtered
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param groups: Input/output protein groups
                 #   :param hits: Available protein hits (all others are removed from the groups)
                 #   :return: Returns whether the groups are still valid (which is the case if only whole groups, if any, were removed)
@@ -140,7 +145,8 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Filters peptide identifications keeping only the single best-scoring hit per ID
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param peptides: Input/output
                 #   :param strict: If set, keep the best hit only if its score is unique - i.e. ties are not allowed. (Otherwise all hits with the best score is kept.)
 
@@ -160,7 +166,8 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
                 #   
                 #   Filters the peptide hits by the probability (p-value) of a correct peptide identification having a deviation between observed and predicted RT equal to or greater than allowed
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param peptides: Input/output
                 #   :param metavalue_key: Name of the meta value that holds the p-value: "predicted_RT_p_value" or "predicted_RT_p_value_first_dim"
                 #   :param threshold: P-value threshold

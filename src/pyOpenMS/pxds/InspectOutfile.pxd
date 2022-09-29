@@ -25,7 +25,8 @@ cdef extern from "<OpenMS/FORMAT/InspectOutfile.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Load the results of an Inspect search
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param result_filename: Input parameter which is the file name of the input file
                 #   :param peptide_identifications: Output parameter which holds the peptide identifications from the given file
                 #   :param protein_identification: Output parameter which holds the protein identifications from the given file
@@ -43,7 +44,8 @@ cdef extern from "<OpenMS/FORMAT/InspectOutfile.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Loads only results which exceeds a given p-value threshold
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param result_filename: The filename of the results file
                 #   :param p_value_threshold: Only identifications exceeding this threshold are read
                 #   :raises:

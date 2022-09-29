@@ -35,7 +35,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #   Also, the results of the accurate mass search and the signal-to-noise information 
                 #   of the resulting spectrum is saved.
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param experiment: Input MSExperiment
                 #   :param n_seconds: Input number of seconds
                 #   :param load_cached_spectrum: Load the cached picked spectrum if exists

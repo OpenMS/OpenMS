@@ -13,7 +13,8 @@ cdef extern from "<OpenMS/FORMAT/IBSpectraFile.h>" namespace "OpenMS":
             # wrap-doc:
             #   Writes the contents of the ConsensusMap cm into the file named by filename
             #   
-            #   -----
+            #   Parameters
+            #   ----------
             #   :param filename: The name of the file where the contents of cm should be stored
             #   :param cm: The ConsensusMap that should be exported to filename
             #   :raises:

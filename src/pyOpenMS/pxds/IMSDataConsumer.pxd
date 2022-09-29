@@ -20,7 +20,8 @@ cdef extern from "<OpenMS/INTERFACES/IMSDataConsumer.h>" namespace "OpenMS::Inte
                 #   chromatograms to be consumed and need to be informed about this
                 #   (usually before consuming starts)
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param expectedSpectra: Number of spectra expected
                 #   :param expectedChromatograms: Number of chromatograms expected
 
@@ -32,6 +33,7 @@ cdef extern from "<OpenMS/INTERFACES/IMSDataConsumer.h>" namespace "OpenMS::Inte
                 #   context) of the spectra and chromatograms to be consumed. This method
                 #   allows them learn this
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param exp: Experimental settings meta data for the data to be consumed
 

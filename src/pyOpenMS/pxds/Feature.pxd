@@ -41,7 +41,8 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
             # wrap-doc:
             #   Returns if the mass trace convex hulls of the feature enclose the position specified by `rt` and `mz`
             #   
-            #   -----
+            #   Parameters
+            #   ----------
             #   :param rt: Sequence to digest
             #   :param mz: Digestion products
             

@@ -17,7 +17,8 @@ cdef extern from "<OpenMS/FORMAT/InspectInfile.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Retrieves the name, mass change, affected residues, type and position for all modifications from a string
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param modification_line:
                 #   :param modifications_filename:
                 #   :param monoisotopic: if true, masses are considered to be monoisotopic

@@ -73,7 +73,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificat
                  # wrap-doc:
                  #   Run feature detection
                  #   
-                 #   -----
+                 #   Parameters
+                 #   ----------
                  #   :param peptides: Vector of identified peptides
                  #   :param proteins: Vector of identified proteins
                  #   :param peptides_ext: Vector of external identified peptides, can be used to transfer ids from other runs
@@ -89,7 +90,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificat
                  # wrap-doc:
                  #   Run feature detection
                  #   
-                 #   -----
+                 #   Parameters
+                 #   ----------
                  #   :param peptides: Vector of identified peptides
                  #   :param proteins: Vector of identified proteins
                  #   :param peptides_ext: Vector of external identified peptides, can be used to transfer ids from other runs
@@ -107,7 +109,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificat
                  # wrap-doc:
                  #   Run feature detection
                  #   
-                 #   -----
+                 #   Parameters
+                 #   ----------
                  #   :param peptides: Vector of identified peptides
                  #   :param proteins: Vector of identified proteins
                  #   :param peptides_ext: Vector of external identified peptides, can be used to transfer ids from other runs

@@ -20,7 +20,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>" names
                 #   Note that this functions returns the pure function value of psi and not the normalized (average=0)
                 #   value given by Psi
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param t: The position at which the wavelet has to be drawn (within the coordinate system of the wavelet)
                 #   :param m: The m/z position within the signal (i.e. the mass not de-charged) within the signal
                 #   :param z: The charge `z` we want to detect
@@ -35,7 +36,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>" names
                 #   Note that this functions returns the pure function value of psi and not the normalized (average=0)
                 #   value given by Psi
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param lambda: The mass-parameter lambda
                 #   :param tz1: t (the position) times the charge (z) plus 1
 
@@ -52,7 +54,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>" names
                 #   Note that this functions returns the pure function value of psi and not the normalized (average=0)
                 #   value given by Psi
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param lambda: The mass-parameter lambda
                 #   :param tz1: t (the position) times the charge (z) plus 1
 
