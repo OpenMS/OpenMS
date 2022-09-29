@@ -49,7 +49,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Pick peaks from the summed spectrum
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param input: Input vector of spectra
                 #   :returns: A spectrum with picked peaks
 
@@ -59,7 +60,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #   
                 #   Applies `SavitzkyGolayFilter` and `PeakPickerHiRes`
                 #   
-                #   -----
+                #   Parameters
+                #   ----------
                 #   :param input: Input a picked spectrum
                 #   :returns: A feature map with the peaks converted to features and polarity from the parameters
 
