@@ -138,7 +138,7 @@ namespace OpenMS
     {
       parameter(
           ProjectName("maxmz"),
-          DefaultValue(),
+          DefaultValue(-1),
           Description("Just consider compounds with a precursor mz lower or equal\n"
                       "this maximum mz. All other compounds in the input file\n"
                       "are ignored.")
@@ -188,13 +188,13 @@ namespace OpenMS
                  SiriusName("tree-timeout"),
                  DefaultValue(-1), // default = 0
                  Description("Time out in seconds per fragmentation tree computations. 0 for an infinite amount of time")
-               ).withMinInt(0);
+               ).withMinInt(-1);
 
       parameter(
                  SiriusName("compound-timeout"),
                  DefaultValue(-1), // default = 0
                  Description("Maximal computation time in seconds for a single compound. 0 for an infinite amount of time.")
-               ).withMinInt(0);
+               ).withMinInt(-1);
 
       flag(
             SiriusName("no-recalibration"),
@@ -205,7 +205,7 @@ namespace OpenMS
                  SiriusName("profile"),
                  DefaultValue(""), // default = default
                  Description("Name of the configuration profile")
-               ).withValidStrings({"default", "qtof", "orbitrap", "fticr"});
+               ).withValidStrings({"", "default", "qtof", "orbitrap", "fticr"});
 
       parameter(
                  SiriusName("formulas"),
@@ -225,9 +225,9 @@ namespace OpenMS
 
       parameter(
                  SiriusName("candidates"),
-                 DefaultValue(5), // default = 10
+                 DefaultValue(-1), // default = 10
                  Description("The number of formula candidates in the SIRIUS output")
-               ).withMinInt(1);
+               ).withMinInt(-1);
 
       parameter(
                  SiriusName("candidates-per-ion"),

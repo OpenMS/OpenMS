@@ -72,7 +72,20 @@ namespace OpenMS
        * @brief Accessors for Sirius Parameters
        */
 
-      int getNumberOfSiriusCandidates() const { return sirius.getValue("candidates");  }
+      int getNumberOfSiriusCandidates() const 
+      {
+        int number_of_candidates = sirius.getValue("candidates");
+        // default for SiriusAdapter is -1 to not pass a value to command and use SIRIUS 5 default (10)
+        // therefore 10 needs to be returned in this case
+        if (number_of_candidates == -1)
+        {
+          return 10;
+        }
+        else
+        {
+          return number_of_candidates;
+        }
+      }
 
       /**
        * @brief Updates all parameters that already exist in this DefaultParamHandler
