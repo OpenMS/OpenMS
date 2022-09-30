@@ -2,8 +2,9 @@
 
     def getMZArray(self):
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getMZArray()
+        cdef np.ndarray[np.float64_t, ndim=1] retval
         cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
-        retval = np.asarray(arr)
+        retval = np.asarray(arr.copy())
         return retval
 
     def getMZArray_mv(self):
@@ -13,8 +14,9 @@
 
     def getIntensityArray(self):
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getIntensityArray()
+        cdef np.ndarray[np.float64_t, ndim=1] retval
         cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
-        retval = np.asarray(arr)
+        retval = np.asarray(arr.copy())
         return retval
 
     def getIntensityArray_mv(self):
@@ -25,8 +27,9 @@
     def getDriftTimeArray(self):
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getDriftTimeArray()
         if _r.get() == NULL: return None
+        cdef np.ndarray[np.float64_t, ndim=1] retval
         cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
-        retval = np.asarray(arr)
+        retval = np.asarray(arr.copy())
         return retval
 
     def getDriftTimeArray_mv(self):
