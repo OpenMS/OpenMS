@@ -122,13 +122,15 @@ namespace OpenMS
      * @param b vector b
      * @param b_size size of b
      * @param offset element index offset between a and b
+     * @param min_iso_size minimum isotope size. If isotope size is less than this, return 0
      */
     static float getCosine(const std::vector<float>& a,
                              int a_start,
                              int a_end,
                              const IsotopeDistribution& b,
                              int b_size,
-                             int offset);
+                             int offset,
+                             int min_iso_size);
 
     /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
         @param mono_mass monoisotopic mass
@@ -254,7 +256,7 @@ namespace OpenMS
     int ms_level_;
 
     /// high and low charges are differently deconvolved. This value determines the (inclusive) threshold for low charge.
-    const int low_charge_ = 10; //10 inclusive
+    const int low_charge_ = 6; //10 inclusive
 
     /// default precursor isolation window size.
     double isolation_window_size_;

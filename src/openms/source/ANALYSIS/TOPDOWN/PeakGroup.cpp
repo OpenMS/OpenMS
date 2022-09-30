@@ -99,7 +99,7 @@ namespace OpenMS
     }
 
     updateChargeFitScoreAndChargeIntensities_();
-    if(charge_score_ < .7)
+    if(charge_score_ < .7)//
     {
       qscore_ = 0;
       return;
@@ -154,7 +154,7 @@ namespace OpenMS
         max_isotope_index = max_isotope_index < peak.isotopeIndex ? peak.isotopeIndex : max_isotope_index;
       }
 
-      float cos_score = FLASHDeconvAlgorithm::getCosine(current_per_isotope_intensities, min_isotope_index, max_isotope_index + 1, iso_dist, iso_size, 0);
+      float cos_score = FLASHDeconvAlgorithm::getCosine(current_per_isotope_intensities, min_isotope_index, max_isotope_index + 1, iso_dist, iso_size, 0, 0);
 
       //cos_score = (float)min_isotope_index / (float)max_isotope_index;//current_per_isotope_intensities[max_isotope_index]/ std::accumulate(current_per_isotope_intensities.begin(), current_per_isotope_intensities.end(), 0);
       setChargeIsotopeCosine(abs_charge, cos_score);//
@@ -686,6 +686,7 @@ namespace OpenMS
                     + (1 - cos_squred) * signal;
 
     snr_ = t_denom <= 0 ? .0 : (t_nom / t_denom);
+
   }
 
 
