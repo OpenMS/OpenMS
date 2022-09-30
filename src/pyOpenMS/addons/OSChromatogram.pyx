@@ -2,15 +2,27 @@
 
     def getTimeArray(self):
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getTimeArray()
-        cdef libcpp_vector[double] _vec = _r.get().data
-        cdef list py_result = _vec
-        return py_result
+        cdef np.ndarray[np.float64_t, ndim=1] retval
+        cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
+        retval = np.asarray(arr.copy())
+        return retval
+
+    def getTimeArray_mv(self):
+        cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getTimeArray()
+        cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
+        return arr
 
     def getIntensityArray(self):
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getIntensityArray()
-        cdef libcpp_vector[double] _vec = _r.get().data
-        cdef list py_result = _vec
-        return py_result
+        cdef np.ndarray[np.float64_t, ndim=1] retval
+        cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
+        retval = np.asarray(arr.copy())
+        return retval
+
+    def getIntensityArray_mv(self):
+        cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getIntensityArray()
+        cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
+        return arr
 
     def getDataArrays(self):
         cdef list py_result = []
@@ -25,6 +37,18 @@
             py_result.append(rv)
             inc(it)
         return py_result
+
+    def setDataArrays(self, list inp):
+        assert isinstance(inp, list) and all(isinstance(ele_inp, OSBinaryDataArray) for ele_inp in inp), 'Input has to be a list of elements of type OSBinaryDataArray'
+
+        cdef libcpp_vector[ shared_ptr[_OSBinaryDataArray] ]  _r = self.inst.get().getDataArrays() 
+        _r.clear() 
+
+        cdef OSBinaryDataArray rv
+        for rv in inp:
+            _r.push_back(rv.inst)
+
+        self.inst.get().setDataArrays(_r)
 
     def setTimeArray(self, list data):
         assert isinstance(data, list), 'arg transitions wrong type'

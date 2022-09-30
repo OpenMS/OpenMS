@@ -38,14 +38,6 @@
         cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
         return arr
 
-    def setMZArray(self, list data):
-        assert isinstance(data, list), 'arg transitions wrong type'
-
-        cdef shared_ptr[_OSBinaryDataArray] v0 = shared_ptr[_OSBinaryDataArray](new _OSBinaryDataArray() ) 
-        cdef libcpp_vector[double] _vec = data
-        v0.get().data = data
-        self.inst.get().setMZArray(v0)
-
     def getDataArrays(self):
         cdef list py_result = []
         cdef OSBinaryDataArray rv
@@ -59,6 +51,28 @@
             py_result.append(rv)
             inc(it)
         return py_result
+
+    def setDataArrays(self, list inp):
+        assert isinstance(inp, list) and all(isinstance(ele_inp, OSBinaryDataArray) for ele_inp in inp), 'Input has to be a list of elements of type OSBinaryDataArray'
+
+
+        cdef libcpp_vector[ shared_ptr[_OSBinaryDataArray] ]  _r = self.inst.get().getDataArrays() 
+        _r.clear() 
+
+        cdef OSBinaryDataArray rv
+        for rv in inp:
+            _r.push_back(rv.inst)
+
+        self.inst.get().setDataArrays(_r)
+
+    def setMZArray(self, list data):
+        assert isinstance(data, list), 'arg transitions wrong type'
+
+        cdef shared_ptr[_OSBinaryDataArray] v0 = shared_ptr[_OSBinaryDataArray](new _OSBinaryDataArray() ) 
+        cdef libcpp_vector[double] _vec = data
+        v0.get().data = data
+        self.inst.get().setMZArray(v0)
+
 
     def setIntensityArray(self, list data):
         assert isinstance(data, list), 'arg transitions wrong type'
