@@ -349,7 +349,7 @@ namespace OpenMS
 
     fs << std::setprecision(-1);
 
-    double isotope_score_threshold = 0;
+    double qscore_threshold = 0;
     std::vector<double> qscores;
 
     if (dspec.size() > topFD_max_peak_count_) // max peak count for TopPic = 500
@@ -360,14 +360,14 @@ namespace OpenMS
         qscores.push_back(pg.getQScore());
       }
       std::sort(qscores.begin(), qscores.end());
-      isotope_score_threshold = qscores[qscores.size() - topFD_max_peak_count_];
+      qscore_threshold = qscores[qscores.size() - topFD_max_peak_count_];
       std::vector<double>().swap(qscores);
     }
 
     int size = 0;
     for (auto& pg : dspec)
     {
-      if (pg.getIsotopeCosine() < isotope_score_threshold)
+      if (pg.getQScore() < qscore_threshold)
       {
         continue;
       }
@@ -375,7 +375,7 @@ namespace OpenMS
       fs << std::fixed << std::setprecision(2);
       fs << std::to_string(pg.getMonoMass()) << "\t" << pg.getIntensity() << "\t" << (pg.isPositive() ? std::get<1>(pg.getAbsChargeRange()) : -std::get<1>(pg.getAbsChargeRange())) << "\n";
       fs << std::setprecision(-1);
-      if (size++ >= topFD_max_peak_count_)
+      if (++size >= topFD_max_peak_count_)
       {
         break;
       }
