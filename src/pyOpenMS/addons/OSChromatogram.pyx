@@ -17,13 +17,11 @@
         cdef OSBinaryDataArray rv
 
         cdef libcpp_vector[ shared_ptr[_OSBinaryDataArray] ]  _r = self.inst.get().getDataArrays()
-        cdef shared_ptr[_OSBinaryDataArray] v0
 
         cdef libcpp_vector[ shared_ptr[_OSBinaryDataArray] ].iterator it = _r.begin()
         while it != _r.end():
-            v0 = deref(it)
             rv = OSBinaryDataArray.__new__(OSBinaryDataArray)
-            rv.inst = shared_ptr[_OSBinaryDataArray](new _OSBinaryDataArray(deref(v0.get())))
+            rv.inst = deref(it)
             py_result.append(rv)
             inc(it)
         return py_result
