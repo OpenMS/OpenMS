@@ -213,7 +213,7 @@ class _FeatureMapDF(_FeatureMap):
             for f in fmap:
                 yield from fun(f)
 
-        def extract_meta_data(f: Feature):
+        def extract_meta_data(f: _Feature):
             """Extracts feature meta data.
             
             Extracts information from a given feature with the requested meta values and, if requested,
@@ -476,7 +476,7 @@ def peptide_identifications_to_df(peps: List[_PeptideIdentification], decode_ont
 
     decodedMVs = [m.decode("utf-8") for m in metavals]
     if decode_ontology:
-        cv = ControlledVocabulary()
+        cv = _ControlledVocabulary()
         cv.loadFromOBO("psims", _File.getOpenMSDataPath() + "/CV/psi-ms.obo")
         clearMVs = [cv.getTerm(m).name if m.startswith("MS:") else m for m in decodedMVs]
     else:
