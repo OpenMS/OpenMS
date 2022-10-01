@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -183,7 +183,7 @@ protected:
       }
       if (ms1_it == exp.begin() && ms1_it->getMSLevel() != 1)
       {
-        writeLog_("Did not find a MS1 scan to the MS/MS scan at RT=" + String(it->getRT()));
+        writeLogWarn_("Did not find a MS1 scan to the MS/MS scan at RT=" + String(it->getRT()));
         continue;
       }
       if (ms1_it->empty())
@@ -206,7 +206,7 @@ protected:
         }
         else if (ms2_it->getPrecursors().size() > 1)
         {
-          writeLog_("Warning: found more than one precursor of spectrum RT=" + String(ms2_it->getRT()) + ", using first one.");
+          writeLogWarn_("Warning: found more than one precursor of spectrum RT=" + String(ms2_it->getRT()) + ", using first one.");
         }
 
         Precursor prec = *ms2_it->getPrecursors().begin();

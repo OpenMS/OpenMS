@@ -4,7 +4,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -123,9 +123,14 @@ def handleDependencies(otool_out, targetPath, currentLib)
     if fix_lib.match(/^(\/usr\/lib|\/System)/)
       debug "Ignoring system-lib: #{fix_lib}"
     elsif fix_lib.start_with?("@")
-      puts "Ignoring libs that are referenced from a relative reference (#{fix_lib})"
-      if not fix_lib.start_with?($executableId)
-        puts "Warning: (#{fix_lib}) does not match the requested prefix, though."
+      if $EXTRACTFW
+        # only fix loading of this library, since we cannot get the real path if e.g. @rpath was used
+        fixLoadPath(fix_lib, File.basename(fix_lib), currentLib)
+      else
+        puts "Ignoring libs that are referenced from a relative reference (#{fix_lib})"
+        if not fix_lib.start_with?($executableId)
+          puts "Warning: (#{fix_lib}) does not match the requested prefix, though."
+        end
       end
     elsif not fix_lib.match(/\//) # we need a path here, otherwise it is a lib in the same directory
       # TODO combine with previous if-case? this is basically relative

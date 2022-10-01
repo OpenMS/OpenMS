@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,7 +72,8 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em MSFragger must be installed before this adapter can be used.
+  @em MSFragger must be installed before this adapter can be used. This adapter is fully compatible with version 3.2 of MSFragger
+  and later versions of MSFragger were tested up to version 3.5.
 
 	All MSFragger parameters (as specified in the fragger.params file) have been transcribed to parameters of this OpenMS util.
 	It is not possible to provide an explicit fragger.params file to avoid redundancy with the ini file.
@@ -594,7 +595,7 @@ protected:
                                << "\n\nclip_nTerm_M = " << arg_clip_nterm_m << '\n';
 
       // Write variable modifications from masses/syntax and unimod to unique set (and also write to log)
-      writeLog_("Variable Modifications set to:");
+      writeLogInfo_("Variable Modifications set to:");
       std::set< std::pair< double, String > > varmods_combined;
       Size i;
       for (i = 0; i < arg_varmod_masses.size(); ++i)
@@ -708,7 +709,7 @@ protected:
       {
         const String varmod = "variable_mod_0" + String(i+1) + " = " + String(m.first) + " " + String(m.second);
         os << "\n" << varmod;
-        writeLog_(varmod);
+        writeLogInfo_(varmod);
         i++;
       }
 
@@ -888,9 +889,9 @@ protected:
       OPENMS_LOG_FATAL_ERROR << "FATAL: Invocation of MSFraggerAdapter has failed. Error code was: " << process_msfragger.exitCode() << std::endl;
       const QString msfragger_stdout(process_msfragger.readAllStandardOutput());
       const QString msfragger_stderr(process_msfragger.readAllStandardError());
-      writeLog_(msfragger_stdout);
-      writeLog_(msfragger_stderr);
-      writeLog_(String(process_msfragger.exitCode()));
+      writeLogError_(msfragger_stdout);
+      writeLogError_(msfragger_stderr);
+      writeLogError_(String(process_msfragger.exitCode()));
       return EXTERNAL_PROGRAM_ERROR;
     }
 

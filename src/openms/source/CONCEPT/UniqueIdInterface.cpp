@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,27 @@
 
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+
+
 namespace OpenMS
 {
+  Size UniqueIdInterface::setUniqueId()
+  {
+    unique_id_ = UniqueIdGenerator::getUniqueId();
+    return 1;
+  }
+
+  Size UniqueIdInterface::ensureUniqueId()
+  {
+    if (!hasValidUniqueId())
+    {
+      unique_id_ = UniqueIdGenerator::getUniqueId();
+      return 1;
+    }
+    else
+      return 0;
+  }
 
   void UniqueIdInterface::setUniqueId(const String & rhs)
   {

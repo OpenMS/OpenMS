@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,7 +52,6 @@
 #include <algorithm>
 #include <functional>
 
-#include <boost/bind.hpp>
 #include <cmath> // for isnan
 
 const double C13C12_MASSDIFF_U = 1.0033548;
@@ -187,7 +186,7 @@ namespace OpenMS
       bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
 
       // Catch if no signal was found and replace it with the most extreme
-      // value. Otherwise calculate the difference in ppm.
+      // value. Otherwise, calculate the difference in ppm.
       if (!signalFound)
       {
         ppm_score = (right - left) / precursor_mz * 1000000;

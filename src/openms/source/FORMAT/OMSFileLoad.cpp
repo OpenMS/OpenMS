@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
+#include <QString>
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlQuery>
@@ -66,6 +67,14 @@ namespace OpenMS::Internal
       // if d'tor doesn't get called, DB connection (db_name_) doesn't get
       // removed, but that shouldn't be a big problem
     }
+    // read version number:
+    QSqlQuery query(db);
+    if (!(query.exec("SELECT OMSFile FROM version") && query.first()))
+    {
+      raiseDBError_(db.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading file format version number");
+    }
+    version_number_ = query.value(0).toInt();
   }
 
 
@@ -356,6 +365,11 @@ namespace OpenMS::Internal
         {
           param.digestion_enzyme = RNaseDB::getInstance()->getEnzyme(enzyme);
         }
+      }
+      if (version_number_ > 1)
+      {
+        String spec = query.value("enzyme_term_specificity").toString();
+        param.enzyme_term_specificity = EnzymaticDigestion::getSpecificityByName(spec);
       }
       param.missed_cleavages = query.value("missed_cleavages").toUInt();
       param.min_length = query.value("min_length").toUInt();

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -158,7 +158,15 @@ namespace OpenMS
       bool found_intersection = false;
 
       // intersection with top
+      /*
+       * These pragmas can be removed when we are on Qt 5.14 or later
+       * QLineF::IntersectType QLineF::intersect() is deprecated at Qt 5.14
+       */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
       itype = line.intersect(top, ip);
+#pragma GCC diagnostic pop
+
       if (itype == QLineF::BoundedIntersection &&
           QLineF(peak_position_widget, *ip).length() < QLineF(peak_position_widget, *closest_ip).length())
       {
@@ -166,7 +174,11 @@ namespace OpenMS
         *closest_ip = *ip;
       }
       // intersection with left
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
       itype = line.intersect(left, ip);
+#pragma GCC diagnostic pop
+
       if (itype == QLineF::BoundedIntersection &&
           QLineF(peak_position_widget, *ip).length() < QLineF(peak_position_widget, *closest_ip).length())
       {
@@ -175,7 +187,11 @@ namespace OpenMS
       }
 
       // intersection with right
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
       itype = line.intersect(right, ip);
+#pragma GCC diagnostic pop
+
       if (itype == QLineF::BoundedIntersection &&
           QLineF(peak_position_widget, *ip).length() < QLineF(peak_position_widget, *closest_ip).length())
       {
@@ -184,7 +200,11 @@ namespace OpenMS
       }
 
       // intersection with bottom
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
       itype = line.intersect(bottom, ip);
+#pragma GCC diagnostic pop
+
       if (itype == QLineF::BoundedIntersection &&
           QLineF(peak_position_widget, *ip).length() < QLineF(peak_position_widget, *closest_ip).length())
       {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -868,8 +868,8 @@ public:
                                   double threshold_score)
     {
         struct HasGoodScore<typename IdentificationType::HitType> score_filter(
-            threshold_score, id->isHigherScoreBetter());
-        keepMatchingItems(id->getHits(), score_filter);
+            threshold_score, id.isHigherScoreBetter());
+        keepMatchingItems(id.getHits(), score_filter);
     }
 
     /**
@@ -1137,7 +1137,7 @@ public:
       // filter protein hits:
       filterHitsByScore(experiment.getProteinIdentifications(),
                         protein_threshold_score);
-      // don't remove empty protein IDs - they contain search meta data and may
+      // don't remove empty protein IDs - they contain search metadata and may
       // be referenced by peptide IDs (via run ID)
 
       // filter peptide hits:
@@ -1147,6 +1147,7 @@ public:
         filterHitsByScore(exp_it->getPeptideIdentifications(),
                           peptide_threshold_score);
         removeEmptyIdentifications(exp_it->getPeptideIdentifications());
+        // TODO super-duper inefficient.
         updateProteinReferences(exp_it->getPeptideIdentifications(),
                                 experiment.getProteinIdentifications());
       }

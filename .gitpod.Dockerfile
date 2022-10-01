@@ -1,9 +1,9 @@
-FROM ghcr.io/openms/contrib:latest
+FROM ghcr.io/openms/contrib@sha256:a37637f87098e622831eda12ffacd794b4c748ab63cd4bea3e49374e0cedae14
                     
 #USER gitpod
 # Avoid user input
 ARG DEBIAN_FRONTEND=noninteractive
-ARG CLANGDVER=12.0.1
+ARG CLANGDVER=14.0.0
 
 # Install tools for VSCode, Intellisense, JRE for Thirdparties, etc. using apt-get
 RUN apt-get -q update && apt-get install -yq gdb unzip wget php openjdk-11-jre python3-pip && rm -rf /var/lib/apt/lists/*

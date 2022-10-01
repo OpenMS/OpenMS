@@ -59,7 +59,7 @@ The most important CMake variables are:
     (Default: On)</td>
   </tr>
   <tr>
-    <td valign="top">\c ENABLE_UPDATE_CHECK=On/Off</td>
+    <td valign="top"><nobr>\c ENABLE_UPDATE_CHECK=On/Off</nobr></td>
     <td>Check online for %OpenMS Updates upon invocation of any TOPP/UTIL.
     (Default: On)</td>
   </tr>
@@ -89,7 +89,7 @@ The most important CMake variables are:
   </tr>
   <tr>
     <td valign="top">\c SEARCH_ENGINES_DIRECTORY (optional)</td>
-    <td>The location where thirdparty search engines (X!Tandem, OMSSA, MyriMatch, MSGF+, Fido)
+    <td>The location where thirdparty search engines (X!Tandem, MSGF+, Fido)
     are located. This directory should have the same structure as the example
     in the search engine repository at https://github.com/OpenMS/THIRDPARTY after flattening for your platform.
     /.

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -414,6 +414,27 @@ namespace OpenSwath
       for (auto e : xcorr_precursor_contrast_matrix_)
       {
         // first is the X value (RT), should be an int
+        msc(std::abs(Scoring::xcorrArrayGetMaxPeak(e)->first));
+#ifdef MRMSCORING_TESTING
+        std::cout << "&&_xcoel append " << std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_contrast_matrix_[i][j])->first) << std::endl;
+#endif
+      }
+
+      double deltas_mean = msc.mean();
+      double deltas_stdv = msc.sample_stddev();
+
+      double xcorr_coelution_score = deltas_mean + deltas_stdv;
+      return xcorr_coelution_score;
+    }
+
+    double MRMScoring::calcXcorrPrecursorContrastSumFragCoelutionScore()
+    {
+      OPENSWATH_PRECONDITION(xcorr_precursor_contrast_matrix_.rows() > 0 && xcorr_precursor_contrast_matrix_.cols() > 0, "Expect cross-correlation matrix of at least 1x1");
+
+      OpenSwath::mean_and_stddev msc;
+      for (auto e : xcorr_precursor_contrast_matrix_)
+      {
+        // first is the X value (RT), should be an int
         msc(std::abs(Scoring::xcorrArrayGetMaxPeak(e)->first)); 
 #ifdef MRMSCORING_TESTING
         std::cout << "&&_xcoel append " << std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_contrast_matrix_[i][j])->first) << std::endl;
@@ -555,6 +576,19 @@ namespace OpenSwath
       //xcorr_precursor_matrix_ is a triangle matrix
       size_t element_number = xcorr_precursor_matrix_.rows()*xcorr_precursor_matrix_.rows()/2 + (xcorr_precursor_matrix_.rows()+1)/2;
       return intensities / element_number;
+    }
+
+    double MRMScoring::calcXcorrPrecursorContrastSumFragShapeScore()
+    {
+      OPENSWATH_PRECONDITION(xcorr_precursor_contrast_matrix_.rows() > 0 && xcorr_precursor_contrast_matrix_.cols() > 0, "Expect cross-correlation matrix of at least 1x1");
+
+
+      double intensities{0};
+      for(auto e : xcorr_precursor_contrast_matrix_)
+      {
+        intensities += Scoring::xcorrArrayGetMaxPeak(e)->second;
+      }
+      return intensities / xcorr_precursor_contrast_matrix_.size();
     }
 
     double MRMScoring::calcXcorrPrecursorContrastShapeScore()

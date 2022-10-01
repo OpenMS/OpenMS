@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -93,6 +93,8 @@ public:
     OPENMS_DLLAPI String(String&&) = default;
     /// Constructor from std::string
     OPENMS_DLLAPI String(const std::string& s);
+    /// Constructor from std::string_view
+    OPENMS_DLLAPI String(const std::string_view& sv);
     /// Constructor from Qt QString
     OPENMS_DLLAPI String(const QString& s);
     /// Constructor from char*
@@ -242,6 +244,15 @@ public:
 
     /// removes whitespaces (space, tab, line feed, carriage return) at the beginning and the end of the string
     OPENMS_DLLAPI String& trim();
+
+    /**
+        @brief Checks if the string is wrapped in quotation marks
+
+        The quotation mark can be specified by parameter @p q (typically single or double quote).
+
+        @see unquote()
+    */
+    OPENMS_DLLAPI bool isQuoted(char q = '"');
 
     /**
          @brief Wraps the string in quotation marks
