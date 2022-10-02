@@ -721,7 +721,7 @@ protected:
       Param sm_param = merger.getDefaults();
       sm_param.setValue("average_gaussian:precursor_mass_tol", tols[0]);
       sm_param.setValue("average_gaussian:precursor_max_charge", std::abs((int)fd_param.getValue("max_charge")));
-      sm_param.setValue("average_gaussian:rt_FWHM", 10.0); // for top down 10 seconds make sense.
+      sm_param.setValue("average_gaussian:rt_FWHM", 20.0); // for top down 10 seconds make sense.
 
       merger.setParameters(sm_param);
       map.sortSpectra();
