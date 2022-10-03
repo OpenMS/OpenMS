@@ -712,6 +712,22 @@ protected:
     DoubleList tols = fd_param.getValue("tol");
     //fd_param.setValue("tol", getParam_().getValue("tol"));
 
+    for (auto & it : map)
+    {
+      if(it.size()<=30000)
+      {
+        continue;
+      }
+      it.sortByIntensity(true);
+
+      while(it.size()>30000)
+      {
+        it.pop_back();
+      }
+      it.sortByPosition();
+    }
+
+
     // if a merged spectrum is analyzed, replace the input dataset with the merged one
     if (merge == 1)
     {
@@ -721,7 +737,7 @@ protected:
       Param sm_param = merger.getDefaults();
       sm_param.setValue("average_gaussian:precursor_mass_tol", tols[0]);
       sm_param.setValue("average_gaussian:precursor_max_charge", std::abs((int)fd_param.getValue("max_charge")));
-      sm_param.setValue("average_gaussian:rt_FWHM", 20.0); // for top down 10 seconds make sense.
+      //sm_param.setValue("average_gaussian:rt_FWHM", 20.0); // for top down 10 seconds make sense.
 
       merger.setParameters(sm_param);
       map.sortSpectra();
@@ -752,6 +768,24 @@ protected:
       fd_param.setValue("min_rt", .0);
       fd_param.setValue("max_rt", .0);
     }
+
+
+    for (auto & it : map)//tmp
+    {
+      if(it.size()<=30000)
+      {
+        continue;
+      }
+      it.sortByIntensity(true);
+
+      while(it.size()>30000)
+      {
+        it.pop_back();
+      }
+      it.sortByPosition();
+
+    }
+
 
     fd.setParameters(fd_param);
     fd.calculateAveragine(use_RNA_averagine);
