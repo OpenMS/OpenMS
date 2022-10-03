@@ -261,9 +261,6 @@ namespace OpenMS
     /// default precursor isolation window size.
     double isolation_window_size_;
 
-    /// allowed maximum peak count per spectrum - intensity based.
-    const int max_peak_count_ = 30000;//30000
-
     /** @brief static function that converts bin to value
         @param bin bin number
         @param min_value minimum value (corresponding to bin number = 0)

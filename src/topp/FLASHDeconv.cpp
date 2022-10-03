@@ -444,6 +444,24 @@ protected:
     return precursor_map_for_real_time_acquisition;
   }
 
+  static void filterLowPeaks(MSExperiment& map, Size count)
+  {
+    for (auto & it : map)
+    {
+      if(it.size()<=count)
+      {
+        continue;
+      }
+      it.sortByIntensity(true);
+
+      while(it.size()>count)
+      {
+        it.pop_back();
+      }
+      it.sortByPosition();
+    }
+  }
+
   static std::vector<double> getTargetMasses(String targets)
   {
     vector<double> result;
@@ -488,6 +506,7 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
+    const Size max_peak_count_ = 30000;
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
     String in_train_file = "";
@@ -712,20 +731,7 @@ protected:
     DoubleList tols = fd_param.getValue("tol");
     //fd_param.setValue("tol", getParam_().getValue("tol"));
 
-    for (auto & it : map)
-    {
-      if(it.size()<=30000)
-      {
-        continue;
-      }
-      it.sortByIntensity(true);
-
-      while(it.size()>30000)
-      {
-        it.pop_back();
-      }
-      it.sortByPosition();
-    }
+    filterLowPeaks(map, max_peak_count_);
 
 
     // if a merged spectrum is analyzed, replace the input dataset with the merged one
@@ -769,23 +775,7 @@ protected:
       fd_param.setValue("max_rt", .0);
     }
 
-
-    for (auto & it : map)//tmp
-    {
-      if(it.size()<=30000)
-      {
-        continue;
-      }
-      it.sortByIntensity(true);
-
-      while(it.size()>30000)
-      {
-        it.pop_back();
-      }
-      it.sortByPosition();
-
-    }
-
+    filterLowPeaks(map, max_peak_count_);
 
     fd.setParameters(fd_param);
     fd.calculateAveragine(use_RNA_averagine);
