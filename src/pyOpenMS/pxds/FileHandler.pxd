@@ -29,7 +29,6 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             # wrap-doc:
             #   Loads a file into an MSExperiment
             #   
-            #   Parameters
             #   ----------
             #   :param filename: The file name of the file to load
             #   :param exp: The experiment to load the data into
@@ -49,7 +48,6 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             #   
             #   The file type to store the data in is determined by the file name. Supported formats for storing are mzML, mzXML, mzData and DTA2D. If the file format cannot be determined from the file name, the mzML format is used
             #   
-            #   Parameters
             #   ----------
             #   :param filename: The name of the file to store the data in
             #   :param exp: The experiment to store
@@ -61,7 +59,6 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             # wrap-doc:
             #   Loads a file into a FeatureMap
             #   
-            #   Parameters
             #   ----------
             #   :param filename: The file name of the file to load
             #   :param map: The FeatureMap to load the data into

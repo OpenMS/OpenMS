@@ -17,7 +17,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>" namespace 
             #   The the filtered identifications are added to the vector of unassigned peptides
             #   and also reduced to a single best hit
             #   
-            #   Parameters
             #   ----------
             #   :param keep_matching: Keeps all IDs that match the modified sequence of the best hit in the feature (e.g. keeps all IDs in a ConsensusMap if id'd same across multiple runs)
 
@@ -28,7 +27,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>" namespace 
             #   The the filtered identifications are added to the vector of unassigned peptides
             #   and also reduced to a single best hit
             #   
-            #   Parameters
             #   ----------
             #   :param keep_matching: Keeps all IDs that match the modified sequence of the best hit in the feature (e.g. keeps all IDs in a ConsensusMap if id'd same across multiple runs)
 

@@ -21,7 +21,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
                 #   Initialize the scoring object\n
                 #   Sets the parameters for the scoring
                 #   
-                #   Parameters
                 #   ----------
                 #   rt_normalization_factor : double
                 #       Specifies the range of the normalized retention time space

@@ -31,7 +31,6 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>" namesp
             #   Furthermore we throw an Exception if the data contains negative m/z values,
             #   as this will disturb most algorithms
             #   
-            #   Parameters
             #   ----------
             #   :param algorithm_name: Name of the feature finding algorithm to use
             #   :param input_map: Input peak map

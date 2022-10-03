@@ -63,7 +63,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
           # wrap-doc:
           #   Performs basic aggregation-based inference per ProteinIdentification run. See class help.
           #   
-          #   Parameters
           #   ----------
           #   :param pep_ids: Vector of peptide identifications
           #   :param prot_ids: Vector of protein identification runs. Scores will be overwritten and groups added.
@@ -74,7 +73,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
           # wrap-doc:
           #   Performs basic aggregation-based inference on single ProteinIdentification run. See class help.
           #   
-          #   Parameters
           #   ----------
           #   :param pep_ids: Vector of peptide identifications
           #   :param prot_id: ProteinIdentification run with possible proteins. Scores will be overwritten and groups added.
@@ -88,7 +86,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
           #   `prot_id` should contain the union of all proteins in the map. E.g. use ConsensusMapMergerAlgorithm and
           #   then pass the first=merged run.
           #   
-          #   Parameters
           #   ----------
           #   :param cmap: ConsensusMap = Consensus features with metadata and peptide identifications
           #   :param prot_id: ProteinIdentification run with possible proteins. Scores will be overwritten and groups added.

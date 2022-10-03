@@ -31,7 +31,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
             # wrap-doc:
             #     Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates
             #       
-            #   Parameters
             #   ----------
             #   :param input: Input spectral map
             #   :param output: Output chromatograms (XICs)

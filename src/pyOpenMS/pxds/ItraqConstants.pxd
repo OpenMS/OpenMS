@@ -35,7 +35,6 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>" namespace "Op
                 #   Each line is converted into a string of the format channel:-2Da/-1Da/+1Da/+2Da ; e.g. '114:0/0.3/4/0'
                 #   Useful for creating parameters or debug output
                 #   
-                #   Parameters
                 #   ----------
                 #   :param itraq_type: Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
                 #   :param isotope_corrections: Vector of the two matrices (4plex, 8plex)
@@ -49,7 +48,6 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>" namespace "Op
                 #   Not all channels need to be present, missing channels will be left untouched
                 #   Useful to update the matrix with user isotope correction values
                 #   
-                #   Parameters
                 #   ----------
                 #   :param itraq_type: Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
                 #   :param channels: New channel isotope values as strings

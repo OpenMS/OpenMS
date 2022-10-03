@@ -38,7 +38,6 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                 #   1.0 - peak is not monoisotopic (can only occur if 'lock_require_mono' is true)
                 #   2.0 - peak has no +1 isotope (can only occur if 'lock_require_iso' is true)
                 #   
-                #   Parameters
                 #   ----------
                 #   :param exp: Peak map containing the lock masses
                 #   :param ref_masses: List of lock masses
@@ -66,7 +65,6 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                 #   Since precursor masses could be annotated wrongly (e.g. isotope peak instead of mono),
                 #   larger outliers are removed before accepting an ID as calibrant
                 #   
-                #   Parameters
                 #   ----------
                 #   :param fm: FeatureMap with peptide identifications
                 #   :param tol_ppm: Only accept ID's whose theoretical mass deviates at most this much from annotated
@@ -88,7 +86,6 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                 #   Since precursor masses could be annotated wrongly (e.g. isotope peak instead of mono),
                 #   larger outliers are removed before accepting an ID as calibrant
                 #   
-                #   Parameters
                 #   ----------
                 #   :param pep_ids: Peptide ids (e.g. from an idXML file)
                 #   :param tol_ppm: Only accept ID's whose theoretical mass deviates at most this much from annotated
@@ -100,7 +97,6 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                 #   
                 #   Filled using fillCalibrants() methods
                 #   
-                #   Parameters
                 #   ----------
                 #   :returns: Container of calibration points
 
@@ -124,7 +120,6 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                 #   
                 #   The MSExperiment will be sorted by RT and m/z if unsorted.
                 #   
-                #   Parameters
                 #   ----------
                 #   :param exp: MSExperiment holding the Raw data to calibrate
                 #   :param target_mslvl: MS-levels where calibration should be applied to

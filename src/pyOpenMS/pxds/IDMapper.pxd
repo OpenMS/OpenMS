@@ -32,7 +32,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #   corresponding spectrum
                 #   Note that a PeptideIdentication is added to ALL spectra which are within the allowed RT and MZ boundaries
                 #   
-                #   Parameters
                 #   ----------
                 #   :param map: MSExperiment to receive the identifications
                 #   :param peptide_ids: PeptideIdentification for the MSExperiment
@@ -55,7 +54,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #   and calls the respective annotate() function
                 #   RT and m/z are taken from the peptides, or (if missing) from the feature itself
                 #   
-                #   Parameters
                 #   ----------
                 #   :param map: MSExperiment to receive the identifications
                 #   :param fmap: FeatureMap with PeptideIdentifications for the MSExperiment
@@ -77,7 +75,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #   
                 #   If several features (incl. tolerance) overlap the position of a peptide identification, the identification is annotated to all of them
                 #   
-                #   Parameters
                 #   ----------
                 #   :param map: MSExperiment to receive the identifications
                 #   :param ids: PeptideIdentification for the MSExperiment
@@ -103,7 +100,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #   
                 #   If several features (incl. tolerance) overlap the position of a peptide identification, the identification is annotated to all of them
                 #   
-                #   Parameters
                 #   ----------
                 #   :param map: MSExperiment to receive the identifications
                 #   :param ids: PeptideIdentification for the MSExperiment
@@ -125,7 +121,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #   - at least one identified precursor, 
                 #   - or only unidentified precursor
                 #   
-                #   Parameters
                 #   ----------
                 #   :param spectra: The mass spectra
                 #   :param ids: The peptide identifications

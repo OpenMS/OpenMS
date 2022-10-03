@@ -20,7 +20,6 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
             # wrap-doc:
                 #   Computes the isotope wavelet transform of charge state `c`
                 #   
-                #   Parameters
                 #   ----------
                 #   :param c_trans: The transform
                 #   :param c_ref: The reference spectrum
@@ -30,7 +29,6 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
             # wrap-doc:
                 #   Computes the isotope wavelet transform of charge state `c`
                 #   
-                #   Parameters
                 #   ----------
                 #   :param c_trans: The transform
                 #   :param c_ref: The reference spectrum
@@ -42,7 +40,6 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
                 #   pattern its corresponding charge state and a score indicating the reliability of the prediction. The result of this
                 #   process is stored internally. Important: Before calling this function, apply updateRanges() to the original map
                 #   
-                #   Parameters
                 #   ----------
                 #   :param candidates: A isotope wavelet transformed spectrum. Entry "number i" in this vector must correspond to the
                 #       charge-"(i-1)"-transform of its mass signal. (This is exactly the output of the function `getTransforms`.)
@@ -66,7 +63,6 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
                 #   A function keeping track of currently open and closed sweep line boxes
                 #   This function is used by the isotope wavelet feature finder and must be called for each processed scan
                 #   
-                #   Parameters
                 #   ----------
                 #   :param map: The original map containing the data set to be analyzed
                 #   :param scan_index: The index of the scan currently under consideration w.r.t. its MS map
@@ -78,7 +74,6 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
             # wrap-doc:
                 #   Filters the candidates further more and maps the internally used data structures to the OpenMS framework
                 #   
-                #   Parameters
                 #   ----------
                 #   :param map: The original map containing the data set to be analyzed
                 #   :param max_charge: The maximal charge state under consideration
@@ -90,7 +85,6 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
             # wrap-doc:
                 #   Computes a linear (intensity) interpolation
                 #   
-                #   Parameters
                 #   ----------
                 #   :param mz_a: The m/z value of the point left to the query
                 #   :param intens_a: The intensity value of the point left to the query

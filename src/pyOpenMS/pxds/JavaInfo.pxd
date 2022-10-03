@@ -15,7 +15,6 @@ cdef extern from "<OpenMS/SYSTEM/JavaInfo.h>" namespace "OpenMS":
                 #   
                 #   The call fails if either Java is not installed or if a relative location is given and Java is not on the search PATH
                 #   
-                #   Parameters
                 #   ----------
                 #   :param java_executable: Path to Java executable. Can be absolute, relative or just a filename
                 #   :returns: Returns false if Java executable can not be called; true if Java executable can be executed

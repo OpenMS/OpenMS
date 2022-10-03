@@ -35,7 +35,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #   Also, the results of the accurate mass search and the signal-to-noise information 
                 #   of the resulting spectrum is saved.
                 #   
-                #   Parameters
                 #   ----------
                 #   :param experiment: Input MSExperiment
                 #   :param n_seconds: Input number of seconds
@@ -49,7 +48,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Pick peaks from the summed spectrum
                 #   
-                #   Parameters
                 #   ----------
                 #   :param input: Input vector of spectra
                 #   :returns: A spectrum with picked peaks
@@ -60,7 +58,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #   
                 #   Applies `SavitzkyGolayFilter` and `PeakPickerHiRes`
                 #   
-                #   Parameters
                 #   ----------
                 #   :param input: Input a picked spectrum
                 #   :returns: A feature map with the peaks converted to features and polarity from the parameters

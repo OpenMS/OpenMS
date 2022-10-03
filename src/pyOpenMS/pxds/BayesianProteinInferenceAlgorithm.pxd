@@ -66,7 +66,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
           #   Optionally adds indistinguishable protein groups with separate scores, too
           #   Currently only takes first proteinID run and all peptides
           #   
-          #   Parameters
           #   ----------
           #   :param proteinIDs: Vector of protein identifications
           #   :param peptideIDs: Vector of peptide identifications
@@ -82,7 +81,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
           #   Currently only takes first proteinID run and all peptides
           #   Experimental design can be used to create an extended graph with replicate information. (experimental)
           #   
-          #   Parameters
           #   ----------
           #   :param proteinIDs: Vector of protein identifications
           #   :param peptideIDs: Vector of peptide identifications
@@ -97,7 +95,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
           #   Optionally adds indistinguishable protein groups with separate scores, too
           #   Loops over all runs in the ConsensusMaps' protein IDs (experimental)
           #   
-          #   Parameters
           #   ----------
           #   :param cmap: ConsensusMaps with protein IDs
           #   :param greedy_group_resolution: Adds indistinguishable protein groups with separate scores
@@ -111,7 +108,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
           #   Optionally adds indistinguishable protein groups with separate scores, too
           #   Loops over all runs in the ConsensusMaps' protein IDs (experimental)
           #   
-          #   Parameters
           #   ----------
           #   :param cmap: ConsensusMaps with protein IDs.
           #   :param greedy_group_resolution: Adds indistinguishable protein groups with separate scores
