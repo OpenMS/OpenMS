@@ -39,7 +39,6 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>" namespace "Open
                 #   regex to do its job. It matches the <indexListOffset> part and any
                 #   numerical characters that follow
                 #   
-                #   Parameters
                 #   ----------
                 #   :param in: Filename of the input indexedmzML file
                 #   :param buffersize: How many bytes of the input file should be searched for the tag
