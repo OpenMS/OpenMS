@@ -232,35 +232,6 @@ namespace OpenMS
   {
     log_mz_peaks_.clear();
     double threshold =  intensity_threshold_;
-
-    if ((int)spec->size() > max_peak_count_)
-    {
-      std::vector<double> intensities;
-      intensities.reserve(spec->size());
-      for (auto& peak : *spec)
-      {
-        if (min_mz_ > 0 && peak.getMZ() < min_mz_)
-        {
-          continue;
-        }
-        if (max_mz_ > 0 && peak.getMZ() > max_mz_)
-        {
-          break;
-        }
-        if (peak.getIntensity() <= threshold) //
-        {
-          continue;
-        }
-        intensities.push_back(peak.getIntensity());
-      }
-
-      if ((int)intensities.size() > max_peak_count_)
-      {
-        std::sort(intensities.begin(), intensities.end());
-        threshold = intensities[intensities.size() - 1 - max_peak_count_];
-      }
-    }
-
     log_mz_peaks_.reserve(spec->size());
 
     // threshold = threshold < min_intensity * 2 ? min_intensity * 2 : threshold;
