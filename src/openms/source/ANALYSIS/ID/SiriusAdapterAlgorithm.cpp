@@ -186,15 +186,15 @@ namespace OpenMS
 
       parameter(
                  SiriusName("tree-timeout"),
-                 DefaultValue(-1), // default = 0
+                 DefaultValue(100), // default = 0
                  Description("Time out in seconds per fragmentation tree computations. 0 for an infinite amount of time")
-               ).withMinInt(-1);
+               ).withMinInt(0);
 
       parameter(
                  SiriusName("compound-timeout"),
-                 DefaultValue(-1), // default = 0
+                 DefaultValue(100), // default = 0
                  Description("Maximal computation time in seconds for a single compound. 0 for an infinite amount of time.")
-               ).withMinInt(-1);
+               ).withMinInt(0);
 
       flag(
             SiriusName("no-recalibration"),
