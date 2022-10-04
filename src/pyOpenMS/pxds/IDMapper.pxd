@@ -126,7 +126,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #   :param ids: The peptide identifications
                 #   :param mz_tol: Tolerance used to map to precursor m/z
                 #   :param rt_tol: Tolerance used to map to spectrum retention time
-                #   :returns: A struct of vectors holding spectra indices of the partitioning
+                #   :return: A struct of vectors holding spectra indices of the partitioning
 
 cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS::IDMapper":
 

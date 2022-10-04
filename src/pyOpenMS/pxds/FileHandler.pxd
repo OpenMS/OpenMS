@@ -36,7 +36,7 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             #   :param log: Progress logging mode
             #   :param rewrite_source_file: Set's the SourceFile name and path to the current file. Note that this looses the link to the primary MS run the file originated from
             #   :param compute_hash: If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile
-            #   :returns: true if the file could be loaded, false otherwise
+            #   :return: true if the file could be loaded, false otherwise
             #   :raises:
             #     Exception: FileNotFound is thrown if the file could not be opened
             #   :raises:
@@ -63,7 +63,7 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             #   :param filename: The file name of the file to load
             #   :param map: The FeatureMap to load the data into
             #   :param force_type: Forces to load the file with that file type. If no type is forced, it is determined from the extension (or from the content if that fails)
-            #   :returns: true if the file could be loaded, false otherwise
+            #   :return: true if the file could be loaded, false otherwise
             #   :raises:
             #     Exception: FileNotFound is thrown if the file could not be opened
             #   :raises:

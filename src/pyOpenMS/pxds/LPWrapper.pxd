@@ -60,14 +60,14 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
                 #   ----------
                 #   :param solver_param: Parameters of the solver introduced by SolverParam
                 #   :param verbose_level: Sets verbose level
-                #   :returns: solver dependent 
+                #   :return: solver dependent 
 
         SolverStatus getStatus() nogil except +
             # wrap-doc:
                 #   Returns solution status
                 #   
                 #   ----------
-                #   :returns: status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
+                #   :return: status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
 
         double getObjectiveValue() nogil except +
         double getColumnValue(Int index) nogil except +

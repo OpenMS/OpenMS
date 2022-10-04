@@ -40,7 +40,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #   :param n_seconds: Input number of seconds
                 #   :param load_cached_spectrum: Load the cached picked spectrum if exists
                 #   :param output: Output of the accurate mass search results
-                #   :returns: A boolean indicating if the picked spectrum was loaded from the cached file
+                #   :return: A boolean indicating if the picked spectrum was loaded from the cached file
 
         # void cutForTime(MSExperiment & experiment, float & n_seconds, libcpp_vector[ MSSpectrum ] & output) nogil except +
         # NAMESPACE # MSSpectrum mergeAlongTime(libcpp_vector[ OpenMS::MSSpectrum ] & input_) nogil except +
@@ -50,7 +50,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #   
                 #   ----------
                 #   :param input: Input vector of spectra
-                #   :returns: A spectrum with picked peaks
+                #   :return: A spectrum with picked peaks
 
         FeatureMap convertToFeatureMap(MSSpectrum & input_) nogil except +
             # wrap-doc:
@@ -60,7 +60,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #   
                 #   ----------
                 #   :param input: Input a picked spectrum
-                #   :returns: A feature map with the peaks converted to features and polarity from the parameters
+                #   :return: A feature map with the peaks converted to features and polarity from the parameters
 
         MSSpectrum trackNoise(MSSpectrum & input_) nogil except +
             # wrap-doc:
@@ -70,7 +70,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #   
                 #   -----
                 #   :param input: Input a picked spectrum
-                #   :returns: A spectrum object storing logSN information
+                #   :return: A spectrum object storing logSN information
         # NAMESPACE # void runAccurateMassSearch(FeatureMap & input_, OpenMS::MzTab & output) nogil except +
         # libcpp_vector[ float ] getMZs() nogil except +
         # libcpp_vector[ float ] getBinSizes() nogil except +

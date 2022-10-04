@@ -46,7 +46,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
             #   :param output: Digestion products
             #   :param min_length: Minimal length of reported products
             #   :param max_length: Maximal length of reported products (0 = no restriction)
-            #   :returns: Number of discarded digestion products (which are not matching length restrictions)
+            #   :return: Number of discarded digestion products (which are not matching length restrictions)
 
         bool isValidProduct(String sequence,
                             int pos, int length,
@@ -60,7 +60,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
             #   :param pep_pos: Starting index of potential peptide
             #   :param pep_length: Length of potential peptide
             #   :param ignore_missed_cleavages: Do not compare MC's of potential peptide to the maximum allowed MC's
-            #   :returns: True if peptide has correct n/c terminals (according to enzyme, specificity and missed cleavages)
+            #   :return: True if peptide has correct n/c terminals (according to enzyme, specificity and missed cleavages)
 
 cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS::EnzymaticDigestion":
     cdef enum Specificity "OpenMS::EnzymaticDigestion::Specificity":

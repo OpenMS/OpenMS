@@ -46,7 +46,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                 #   :param lock_require_iso: Require that a lock mass has isotope peaks to its right -- lock mass is rejected otherwise
                 #   :param failed_lock_masses: Set of calibration masses which were not found, i.e. their expected m/z and RT positions
                 #   :param verbose: Print information on 'lock_require_XXX' matches during search
-                #   :returns: Number of calibration masses found
+                #   :return: Number of calibration masses found
 
         Size fillCalibrants(FeatureMap, double) nogil except +
             # wrap-doc:
@@ -68,7 +68,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                 #   ----------
                 #   :param fm: FeatureMap with peptide identifications
                 #   :param tol_ppm: Only accept ID's whose theoretical mass deviates at most this much from annotated
-                #   :returns: Number of calibration masses found
+                #   :return: Number of calibration masses found
 
         Size fillCalibrants(libcpp_vector[PeptideIdentification], double) nogil except +
             # wrap-doc:
@@ -89,7 +89,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                 #   ----------
                 #   :param pep_ids: Peptide ids (e.g. from an idXML file)
                 #   :param tol_ppm: Only accept ID's whose theoretical mass deviates at most this much from annotated
-                #   :returns: Number of calibration masses found
+                #   :return: Number of calibration masses found
 
         CalibrationData getCalibrationPoints() nogil except +
             # wrap-doc:
@@ -98,7 +98,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                 #   Filled using fillCalibrants() methods
                 #   
                 #   ----------
-                #   :returns: Container of calibration points
+                #   :return: Container of calibration points
 
         bool calibrate(MSExperiment,
                        libcpp_vector[int],
@@ -133,7 +133,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                 #   :param file_residuals: Output CSV filename, where ppm errors of calibrants before and after model fitting parameters are written to (pass empty string to skip)
                 #   :param file_residuals_plot: Output PNG image of the ppm errors of calibrants (pass empty string to skip)
                 #   :param rscript_executable: Full path to the Rscript executable
-                #   :returns: true upon successful calibration
+                #   :return: true upon successful calibration
 
 
 ## wrap static methods

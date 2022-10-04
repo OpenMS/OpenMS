@@ -54,7 +54,7 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
                 #   :param identifications: Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
                 #   :param assume_sorted: Are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
                 #   :param best_hit: Contains the best hit if successful in a vector of peptide identifications
-                #   :returns: true if a hit was present, false otherwise
+                #   :return: true if a hit was present, false otherwise
 
         bool getBestHit(libcpp_vector[ProteinIdentification] identifications, bool assume_sorted, ProteinHit& best_hit) nogil except +
             # wrap-doc:
@@ -66,7 +66,7 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
                 #   :param identifications: Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
                 #   :param assume_sorted: Are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
                 #   :param best_hit: Contains the best hit if successful in a vector of protein identifications
-                #   :returns: true if a hit was present, false otherwise
+                #   :return: true if a hit was present, false otherwise
 
         void extractPeptideSequences(libcpp_vector[PeptideIdentification]& peptides, libcpp_set[String]& sequences, bool ignore_mods) nogil except +
             # wrap-doc:
@@ -75,7 +75,7 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
                 #   ----------
                 #   :param peptides:
                 #   :param ignore_mods: Boolean operator default to false in case of any modifications in sequences during extraction
-                #   :returns: Sequences
+                #   :return: Sequences
 
         void updateHitRanks(libcpp_vector[PeptideIdentification]& identifications) nogil except + # wrap-doc:Updates the hit ranks on all peptide or protein IDs
         void updateHitRanks(libcpp_vector[ProteinIdentification]& identifications) nogil except + # wrap-doc:Updates the hit ranks on all peptide or protein IDs

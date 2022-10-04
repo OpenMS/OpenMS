@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
                 #   ----------
                 #   :param filename: Filename determines where the file is located
                 #   :param exp: Object which will contain the data after the call
-                #   :returns: Indicates whether parsing was successful (if it is false, the file most likely was not an mzML or not indexed)
+                #   :return: Indicates whether parsing was successful (if it is false, the file most likely was not an mzML or not indexed)
 
         void store(String, OnDiscMSExperiment &) nogil except +
             # wrap-doc:
