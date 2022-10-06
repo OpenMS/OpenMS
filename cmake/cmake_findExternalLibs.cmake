@@ -74,23 +74,27 @@ endif()
 #------------------------------------------------------------------------------
 # COIN-OR
 # Our find module creates an imported CoinOR::CoinOR target
-set(CF_USECOINOR 1)
-find_package(COIN REQUIRED)
-
-
-#------------------------------------------------------------------------------
-# GLPK
-# creates GLPK target
-find_package(GLPK REQUIRED)
-if (GLPK_FOUND)
-	set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
-	set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
-	set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
+find_package(COIN)
+if (COIN_FOUND)
+  set(LPTARGET "CoinOR::CoinOR")
+else()
+  #------------------------------------------------------------------------------
+  # GLPK
+  # creates GLPK::GLPK target
+  find_package(GLPK)
+  if (GLPK_FOUND)
+    set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
+    set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
+    set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
+    set(LPTARGET "GLPK::GLPK")
+  else()
+    message(FATAL_ERROR "Either COIN-OR or GLPK has to be available (COIN-OR taking preference).")
+  endif()
 endif()
 
 #------------------------------------------------------------------------------
 # zlib
-# creates ZLIB::ZLIB taret
+# creates ZLIB::ZLIB target
 find_package(ZLIB REQUIRED)
 
 #------------------------------------------------------------------------------
