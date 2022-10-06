@@ -89,7 +89,7 @@ else()
     set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
     set(LPTARGET "GLPK::GLPK")
   else()
-    message(FATAL_ERROR "Either COIN-OR or GLPK has to be available (COIN-OR taking preference).")
+    message(FATAL_ERROR "Either COIN-OR or GLPK has to be available (COIN-OR takes precedence).")
   endif()
 endif()
 
