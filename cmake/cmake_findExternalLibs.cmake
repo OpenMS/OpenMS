@@ -76,6 +76,7 @@ endif()
 # Our find module creates an imported CoinOR::CoinOR target
 find_package(COIN)
 if (COIN_FOUND)
+  set(CF_USECOINOR 1)
   set(LPTARGET "CoinOR::CoinOR")
 else()
   #------------------------------------------------------------------------------
