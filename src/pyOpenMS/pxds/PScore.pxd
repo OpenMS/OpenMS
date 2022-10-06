@@ -10,10 +10,11 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
 
         libcpp_vector[ size_t ] calculateIntensityRankInMZWindow(libcpp_vector[ double ] & mz, libcpp_vector[ double ] & intensities, double mz_window) nogil except +
             # wrap-doc:
-                #   Calculate local (windowed) peak ranks
-                #   -----
+                #   Calculate local (windowed) peak ranks\n
+                #   
                 #   The peak rank is defined as the number of neighboring peaks in +/- (mz_window/2) that have higher intensity 
                 #   The result can be used to efficiently filter spectra for top 1..n peaks in mass windows
+                #   
                 #   -----
                 #   :param mz: The m/z positions of the peaks
                 #   :param intensities: The intensities of the peaks
@@ -21,9 +22,10 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
 
         libcpp_vector[ libcpp_vector[ size_t ] ] calculateRankMap(MSExperiment & peak_map, double mz_window) nogil except +
             # wrap-doc:
-                #   Precalculated, windowed peak ranks for a whole experiment
-                #   -----
+                #   Precalculated, windowed peak ranks for a whole experiment\n
+                #   
                 #   The peak rank is defined as the number of neighboring peaks in +/- (mz_window/2) that have higher intensity 
+                #   
                 #   -----
                 #   :param peak_map: Fragment spectra used for rank calculation. Typically a peak map after removal of all MS1 spectra
                 #   :param mz_window: Window in Thomson centered at each peak
@@ -41,9 +43,10 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
                              double mz_window) nogil except +
             # wrap-doc:
                 #   Computes the PScore for a vector of theoretical spectra
-                #   -----
+                #   
                 #   Similar to Andromeda, a vector of theoretical spectra can be provided that e.g. contain loss spectra or higher charge spectra depending on the sequence.
                 #   The best score obtained by scoring all those theoretical spectra against the experimental ones is returned
+                #   
                 #   -----
                 #   :param fragment_mass_tolerance: Mass tolerance for matching peaks
                 #   :param fragment_mass_tolerance_unit_ppm: Whether Thomson or ppm is used
@@ -58,6 +61,7 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
                              double mz_window) nogil except +
             # wrap-doc:
                 #   Computes the PScore for a single theoretical spectrum
+                #   
                 #   -----
                 #   :param fragment_mass_tolerance: Mass tolerance for matching peaks
                 #   :param fragment_mass_tolerance_unit_ppm: Whether Thomson or ppm is used

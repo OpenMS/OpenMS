@@ -31,67 +31,71 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
         double getRT() nogil except + # wrap-doc:Get RT associated with the model (training region)
         double predict(double mz) nogil except +
             # wrap-doc:
-                #   Apply the model to an uncalibrated m/z value
-                #   -----
-                #   Make sure the model was trained (train()) and is valid (isValidModel()) before calling this function!
-                #   -----
+                #   Apply the model to an uncalibrated m/z value\n
+                #   
+                #   Make sure the model was trained (train()) and is valid (isValidModel()) before calling this function!\n
+                #   
                 #   Applies the function y = intercept + slope*mz + power*mz^2
                 #   and returns y
+                #   
                 #   -----
                 #   :param mz: The uncalibrated m/z value
-                #   :returns The calibrated m/z value
+                #   :return: The calibrated m/z value
 
         bool train(CalibrationData cd, MZTrafoModel_MODELTYPE md, bool use_RANSAC, double rt_left, double rt_right) nogil except +
             # wrap-doc:
-                #   Train a model using calibrant data
-                #   -----
+                #   Train a model using calibrant data\n
+                #   
                 #   If the CalibrationData was created using peak groups (usually corresponding to mass traces),
                 #   the median for each group is used as a group representative. This
-                #   is more robust, and reduces the number of data points drastically, i.e. one value per group
-                #   -----
+                #   is more robust, and reduces the number of data points drastically, i.e. one value per group\n
+                #   
                 #   Internally, these steps take place:
                 #   - apply RT filter
                 #   - [compute median per group] (only if groups were given in 'cd')
                 #   - set Model's rt position
                 #   - call train() (see overloaded method)
+                #   
                 #   -----
                 #   :param cd: List of calibrants
                 #   :param md: Type of model (linear, quadratic, ...)
                 #   :param use_RANSAC: Remove outliers before computing the model?
                 #   :param rt_left: Filter 'cd' by RT; all calibrants with RT < 'rt_left' are removed
                 #   :param rt_right: Filter 'cd' by RT; all calibrants with RT > 'rt_right' are removed
-                #   :returns: True if model was build, false otherwise
+                #   :return: True if model was build, false otherwise
                 
         bool train(libcpp_vector[double] error_mz, libcpp_vector[double] theo_mz, libcpp_vector[double] weights, MZTrafoModel_MODELTYPE md, bool use_RANSAC) nogil except +
             # wrap-doc:
-                #   Train a model using calibrant data
-                #   -----
+                #   Train a model using calibrant data\n
+                #   
                 #   Given theoretical and observed mass values (and corresponding weights),
                 #   a model (linear, quadratic, ...) is build
                 #   Outlier removal is applied before
                 #   The 'obs_mz' can be either given as absolute masses in [Th] or relative deviations in [ppm]
                 #   The MZTrafoModel must be constructed accordingly (see constructor). This has no influence on the model building itself, but
-                #   rather on how 'predict()' works internally
-                #   -----
-                #   Outlier detection before model building via the RANSAC algorithm is supported for LINEAR and QUADRATIC models
-                #   -----
+                #   rather on how 'predict()' works internally\n
+                #   
+                #   Outlier detection before model building via the RANSAC algorithm is supported for LINEAR and QUADRATIC models\n
+                #   
                 #   Internally, these steps take place:
                 #   - [apply RANSAC] (depending on 'use_RANSAC')
                 #   - build model and store its parameters internally
+                #   
                 #   -----
                 #   :param error_mz: Observed Mass error (in ppm or Th)
                 #   :param theo_mz: Theoretical m/z values, corresponding to 'error_mz'
                 #   :param weights: For weighted models only: weight of calibrants; ignored otherwise
                 #   :param md: Type of model (linear, quadratic, ...)
                 #   :param use_RANSAC: Remove outliers before computing the model?
-                #   :returns: True if model was build, false otherwise
+                #   :return: True if model was build, false otherwise
 
         void getCoefficients(double& intercept, double& slope, double& power) nogil except +
             # wrap-doc:
-                #   Get model coefficients
-                #   -----
+                #   Get model coefficients\n
+                #   
                 #   Parameters will be filled with internal model parameters
                 #   The model must be trained before; Exception is thrown otherwise!
+                #   
                 #   -----
                 #   :param intercept: The intercept
                 #   :param slope: The slope
@@ -100,11 +104,12 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
         void setCoefficients(MZTrafoModel) nogil except + # wrap-doc:Copy model coefficients from another model
         void setCoefficients(double, double, double) nogil except +
             # wrap-doc:
-                #   Manually set model coefficients
-                #   -----
+                #   Manually set model coefficients\n
+                #   
                 #   Can be used instead of train(), so manually set coefficients
                 #   It must be exactly three values. If you want a linear model, set 'power' to zero
                 #   If you want a constant model, set slope to zero in addition
+                #   
                 #   -----
                 #   :param intercept: The offset
                 #   :param slope: The slope

@@ -13,14 +13,14 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
         #   ProgressLogger
         #
         # wrap-doc:
-        #   File adapter for MzML files
-        #   -----
+        #   File adapter for MzML files\n
+        #   
         #   Provides methods to load and store MzML files.
-        #   PeakFileOptions allow to load a reduced subset of the data into an MSExperiment.
-        #   -----
+        #   PeakFileOptions allow to load a reduced subset of the data into an MSExperiment.\n
+        #   
         #   See help(MSExperiment) how data is stored after loading.
-        #   See help(PeakFileOptions) for available options.
-        #   -----
+        #   See help(PeakFileOptions) for available options.\n
+        #   
         #   Usage:
         #     exp = MSExperiment()
         #     MzMLFile().load("test.mzML", exp)
@@ -42,6 +42,7 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
         void storeBuffer(String & output, MSExperiment exp) nogil except +
             # wrap-doc:
                 #   Stores a map in an output string
+                #   
                 #   -----
                 #   :param output: An empty string to store the result
                 #   :param exp: Has to be an MSExperiment
@@ -49,10 +50,10 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
         void loadBuffer(const String& input, MSExperiment & exp) nogil except +
             # wrap-doc:
                 #   Loads a map from a MzML file stored in a buffer (in memory)
+                #   
                 #   -----
                 #   :param buffer: The buffer with the data (i.e. string with content of an mzML file)
                 #   :param exp: Is an MSExperiment
-                #   -----
                 #   :raises:
                 #     Exception: ParseError is thrown if an error occurs during parsing
 

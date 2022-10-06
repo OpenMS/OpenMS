@@ -53,22 +53,23 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
         const ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error,
                                                                      const String& residue, TermSpecificity term_spec) nogil except +
             # wrap-doc:
-                #   Returns the best matching modification for the given delta mass and residue
-                #   -----
+                #   Returns the best matching modification for the given delta mass and residue\n
+                #   
                 #   Query the modifications DB to get the best matching modification with
                 #   the given delta mass at the given residue (NULL pointer means no result,
                 #   maybe the maximal error tolerance needs to be increased). Possible
                 #   input for CAM modification would be a delta mass of 57 and a residue
-                #   of "C".
-                #   -----
+                #   of "C".\n
+                #   
                 #   Note: If there are multiple possible matches with equal masses, it
                 #   will choose the _first_ match which defaults to the first matching
                 #   UniMod entry.
+                #   
                 #   -----
                 #   :param residue: The residue at which the modifications occurs
                 #   :param mass: The monoisotopic mass of the residue including the mass of the modification
                 #   :param max_error: The maximal mass error in the modification search
-                #   :returns: A pointer to the best matching modification (or NULL if none was found)
+                #   :return: A pointer to the best matching modification (or NULL if none was found)
 
         void getAllSearchModifications(libcpp_vector[ String ] & modifications) nogil except + # wrap-doc:Collects all modifications that can be used for identification searches
 

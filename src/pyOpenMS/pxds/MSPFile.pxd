@@ -14,6 +14,7 @@ cdef extern from "<OpenMS/FORMAT/MSPFile.h>" namespace "OpenMS":
         void load(String filename, libcpp_vector[PeptideIdentification] & ids, MSExperiment & exp) nogil except +
             # wrap-doc:
                 #   Loads a map from a MSPFile file
+                #   
                 #   -----
                 #   :param exp: PeakMap which contains the spectra after reading
                 #   :param filename: The filename of the experiment

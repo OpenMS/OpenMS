@@ -28,6 +28,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OpenPepXLAlgorithm.h>" namespace "OpenMS
                                          MSExperiment& spectra) nogil except +
             # wrap-doc:
                 #   Performs the main function of this class, the search for cross-linked peptides
+                #   
                 #   -----
                 #   :param unprocessed_spectra: The input PeakMap of experimental spectra
                 #   :param cfeatures: The input cfeatures

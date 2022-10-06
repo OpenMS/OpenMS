@@ -29,6 +29,8 @@ cdef extern from "<OpenMS/FORMAT/MzQCFile.h>" namespace "OpenMS":
                    libcpp_vector[ PeptideIdentification ] & pep_ids) nogil except +
                    # wrap-doc:
                    #   Stores QC data in mzQC file with JSON format
+                   #    
+                   #   -----
                    #   :param input_file: MzML input file name
                    #   :param output_file: MzQC output file name
                    #   :param exp: MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required

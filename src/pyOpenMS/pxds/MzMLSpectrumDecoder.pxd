@@ -6,8 +6,8 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>" namespace "Ope
     
     cdef cppclass MzMLSpectrumDecoder "OpenMS::MzMLSpectrumDecoder":
         # wrap-doc:
-                #   A class to decode input strings that contain an mzML chromatogram or spectrum tag
-                #   -----
+                #   A class to decode input strings that contain an mzML chromatogram or spectrum tag\n
+                #   
                 #   It uses xercesc to parse a string containing either a exactly one mzML
                 #   spectrum or chromatogram (from <chromatogram> to </chromatogram> or
                 #   <spectrum> to </spectrum> tag). It returns the data contained in the
@@ -17,23 +17,25 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>" namespace "Ope
         MzMLSpectrumDecoder(MzMLSpectrumDecoder &) nogil except + # compiler
         void domParseChromatogram(String in_, shared_ptr[Chromatogram] & cptr) nogil except +
             # wrap-doc:
-                #   Extract data from a string which contains a full mzML chromatogram
-                #   -----
+                #   Extract data from a string which contains a full mzML chromatogram\n
+                #   
                 #   Extracts data from the input string which is expected to contain exactly
                 #   one <chromatogram> tag (from <chromatogram> to </chromatogram>). This
                 #   function will extract the contained binaryDataArray and provide the
                 #   result as Chromatogram
+                #   
                 #   -----
                 #   :param in: Input string containing the raw XML
                 #   :param cptr: Resulting chromatogram
 
         void domParseSpectrum(String in_, shared_ptr[Spectrum] & cptr) nogil except +
             # wrap-doc:
-                #   Extract data from a string which contains a full mzML spectrum
-                #   -----
+                #   Extract data from a string which contains a full mzML spectrum\n
+                #   
                 #   Extracts data from the input string which is expected to contain exactly
                 #   one <spectrum> tag (from <spectrum> to </spectrum>). This function will
                 #   extract the contained binaryDataArray and provide the result as Spectrum
+                #   
                 #   -----
                 #   :param in: Input string containing the raw XML
                 #   :param cptr: Resulting spectrum

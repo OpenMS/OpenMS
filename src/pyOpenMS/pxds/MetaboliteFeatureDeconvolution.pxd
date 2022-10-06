@@ -17,9 +17,10 @@ cdef extern from "<OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h>"
         MetaboliteFeatureDeconvolution(MetaboliteFeatureDeconvolution &) nogil except +
         void compute(FeatureMap & fm_in, FeatureMap & fm_out, ConsensusMap & cons_map, ConsensusMap & cons_map_p) nogil except +
             # wrap-doc:
-                #   Compute a zero-charge feature map from a set of charged features
-                #   -----
+                #   Compute a zero-charge feature map from a set of charged features\n
+                #   
                 #   Find putative ChargePairs, then score them and hand over to ILP
+                #   
                 #   -----
                 #   :param fm_in: Input feature-map
                 #   :param fm_out: Output feature-map (sorted by position and augmented with user params)

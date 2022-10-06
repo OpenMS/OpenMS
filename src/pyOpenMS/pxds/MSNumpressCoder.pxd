@@ -14,16 +14,17 @@ cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS":
                       bool zlib_compression,
                       NumpressConfig config) nogil except +
           # wrap-doc:
-                #   Encodes a vector of floating point numbers into a Base64 string using numpress
-                #   -----
+                #   Encodes a vector of floating point numbers into a Base64 string using numpress\n
+                #   
                 #   This code is obtained from the proteowizard implementation
-                #   ./pwiz/pwiz/data/msdata/BinaryDataEncoder.cpp (adapted by Hannes Roest)
-                #   -----
+                #   ./pwiz/pwiz/data/msdata/BinaryDataEncoder.cpp (adapted by Hannes Roest)\n
+                #   
                 #   This function will first apply the numpress encoding to the data, then
                 #   encode the result in base64 (with optional zlib compression before
-                #   base64 encoding)
-                #   -----
+                #   base64 encoding)\n
+                #   
                 #   :note In case of error, result string is empty
+                #       
                 #   -----
                 #   :param in: The vector of floating point numbers to be encoded
                 #   :param result: The resulting string
@@ -35,14 +36,15 @@ cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS":
                      bool zlib_compression,
                      NumpressConfig config) nogil except +
           # wrap-doc:
-                #   Decodes a Base64 string to a vector of floating point numbers using numpress
-                #   -----
+                #   Decodes a Base64 string to a vector of floating point numbers using numpress\n
+                #   
                 #   This code is obtained from the proteowizard implementation
-                #   ./pwiz/pwiz/data/msdata/BinaryDataEncoder.cpp (adapted by Hannes Roest)
-                #   -----
+                #   ./pwiz/pwiz/data/msdata/BinaryDataEncoder.cpp (adapted by Hannes Roest)\n
+                #   
                 #   This function will first decode the input base64 string (with optional
                 #   zlib decompression after decoding) and then apply numpress decoding to
                 #   the data
+                #       
                 #   -----
                 #   :param in: The base64 encoded string
                 #   :param out: The resulting vector of doubles
@@ -55,17 +57,18 @@ cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS":
                          String & result, 
                          NumpressConfig config) nogil except +
           # wrap-doc:
-                #   Encode the data vector "in" to a raw byte array
-                #   -----
+                #   Encode the data vector "in" to a raw byte array\n
+                #   
                 #   :note In case of error, "result" is given back unmodified
-                #   :note The result is not a string but a raw byte array and may contain zero bytes
-                #   -----
+                #   :note The result is not a string but a raw byte array and may contain zero bytes\n
+                #   
                 #   This performs the raw numpress encoding on a set of data and does no
                 #   Base64 encoding on the result. Therefore the result string is likely
-                #   *unsafe* to handle and is a raw byte array.
-                #   -----
+                #   *unsafe* to handle and is a raw byte array.\n
+                #   
                 #   Please use the safe versions above unless you need access to the raw
                 #   byte arrays
+                #       
                 #   -----
                 #   :param in: The vector of floating point numbers to be encoded
                 #   :param result: The resulting string
@@ -75,17 +78,18 @@ cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS":
                          libcpp_vector[ double ] & out,
                          NumpressConfig config) nogil except +
           # wrap-doc:
-                #   Decode the raw byte array "in" to the result vector "out"
-                #   -----
+                #   Decode the raw byte array "in" to the result vector "out"\n
+                #   
                 #   :note The string in should *only* contain the data and _no_ extra
-                #   null terminating byte
-                #   -----
+                #   null terminating byte\n
+                #   
                 #   This performs the raw numpress decoding on a raw byte array (not Base64
                 #   encoded). Therefore the input string is likely *unsafe* to handle and is
-                #   basically a byte container
-                #   -----
+                #   basically a byte container\n
+                #   
                 #   Please use the safe versions above unless you need access to the raw
                 #   byte arrays
+                #       
                 #   -----
                 #   :param in: The base64 encoded string
                 #   :param out: The resulting vector of doubles
