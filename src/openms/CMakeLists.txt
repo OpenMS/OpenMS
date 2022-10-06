@@ -87,24 +87,9 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
-#set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
-#                          ${LIBSVM_LIBRARIES}
-#                          ${XercesC_LIBRARY}
-#                          ${Boost_LIBRARIES}
-#                          ${WM5_LIBRARIES}
-#                          ${BZIP2_LIBRARIES}
-#                          ${ZLIB_LIBRARIES}
-#                          ${SQLite_LIBRARY}
-#                          ${HDF5_CXX_LIBRARIES}
-#                          ${GLPK_LIBRARIES}
-#                          ${CMAKE_DL_LIBS}
-#                          ${Qt5Core_LIBRARIES}
-#                          ${Qt5Network_LIBRARIES}
-#                          ${Qt5Sql_LIBRARIES})
-
 set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network Qt5::Sql)
 
-set(OPENMS_DEP_PRIVATE_LIBRARIES WM5::WM5 CoinOR::CoinOR Eigen3::Eigen GLPK::GLPK HDF5::HDF5 Boost::iostreams Boost::date_time Boost::boost Boost::regex
+set(OPENMS_DEP_PRIVATE_LIBRARIES GTE CoinOR::CoinOR Eigen3::Eigen GLPK::GLPK HDF5::HDF5 Boost::iostreams Boost::date_time Boost::boost Boost::regex
   BZip2::BZip2 ZLIB::ZLIB SQLite::SQLite3)
 
 # xerces requires linking against CoreFoundation&CoreServices on macOS
@@ -124,34 +109,6 @@ endif()
 if (WITH_CRAWDAD) ## TODO check if still necessary
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
-
-
-## TODO do the following sorting based on the imported targets and their INCLUDE_DIRECTORY property
-#set (OPENMS_CONTRIB_INCLUDE_DIRS "")
-#if (OPENMS_CONTRIB_LIBS)
-#  set (OPENMS_CONTRIB_INCLUDE_DIRS ${OPENMS_CONTRIB_LIBS}/include)
-#endif()
-
-## Sort include directories into contrib ones (prefered in order) and system ones.
-#foreach (includedir
-#         ${SQLite_INCLUDE_DIR}
-#         ${HDF5_INCLUDE_DIRS}
-#         ${LIBSVM_INCLUDE_DIRS}
-#         ${EIGEN3_INCLUDE_DIR}
-#         ${WM5_INCLUDE_DIRS}
-#         ${CRAWDAD_INCLUDE_DIRS}
-#         ${COIN_INCLUDE_DIRS}
-#         ${GLPK_INCLUDE_DIRS}
-#         ${ZLIB_INCLUDE_DIRS}
-#         ${BZIP2_INCLUDE_DIR}
-#         ${XercesC_INCLUDE_DIRS}
-#         ${Boost_INCLUDE_DIRS})
-#  if (${includedir} MATCHES "${OPENMS_CONTRIB_INCLUDE_DIRS}.*")
-#    list(APPEND INCLUDES_FROM_CONTRIB ${includedir})
-#  else()
-#    list(APPEND INCLUDES_FROM_SYSTEM ${includedir})
-#  endif()
-#endforeach()
 
 openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}

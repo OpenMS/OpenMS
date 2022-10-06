@@ -81,6 +81,8 @@ find_package(COIN REQUIRED)
 #------------------------------------------------------------------------------
 # GLPK
 # creates GLPK target
+# TODO allow building with only one solver. Our wrapper supports this.
+#  Or default to COIN since it is much faster anyway.
 find_package(GLPK REQUIRED)
 if (GLPK_FOUND)
 	set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
@@ -102,13 +104,6 @@ find_package(BZip2 REQUIRED)
 # creates Eigen3::Eigen3 package
 find_package(Eigen3 3.3.4 REQUIRED)
 
-#------------------------------------------------------------------------------
-# Find geometric tools - wildmagick 5
-set(WM5_FIND_REQUIRED_COMPONENTS WM5_WM5CORE WM5_WM5MATHEMATICS )
-find_package(WM5 REQUIRED)
-if (WM5_FOUND)
-  add_definitions(${WM5_DEFINITIONS})
-endif()
 
 #------------------------------------------------------------------------------
 # Find Crawdad libraries if requested
