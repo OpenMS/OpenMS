@@ -95,7 +95,7 @@ namespace OpenMS
       {
         for (size_t i = 0; i < size; ++i)
         {
-          points.emplace_back(std::initializer_list{data_weighted[i].first, data_weighted[i].second});
+          points.emplace_back(std::initializer_list<double>{data_weighted[i].first, data_weighted[i].second});
         }
         auto line = gte::ApprHeightLine2<double>();
         if (!line.Fit(static_cast<int>(size), &points.front()))
