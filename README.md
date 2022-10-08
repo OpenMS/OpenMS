@@ -7,7 +7,8 @@ OpenMS
 [![Gitter](https://img.shields.io/static/v1?style=flat-square&message=on%20Gitter&color=ED1965&logo=Gitter&logoColor=FFFFFF&label=Chat)](https://gitter.im/OpenMS/OpenMS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Install with bioconda](https://img.shields.io/conda/v/bioconda/pyopenms?color=44A833&logo=Anaconda&style=flat-square&label=Install%20with%20bioconda)](http://bioconda.github.io/recipes/openms-meta/README.html)
 [![Install with conda](https://img.shields.io/conda/v/openms/pyopenms?color=44A833&label=Install%20with%20conda%3A%3Aopenms&logo=Anaconda&style=flat-square)](https://anaconda.org/openms)
-[![Documentation](https://img.shields.io/static/v1?style=flat-square&message=Doxygen&color=2C4AA8&logo=ReadTheDocs&logoColor=FFFFFF&label=Documentation)](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html)
+[![Documentation](https://img.shields.io/static/v1?style=flat-square&message=ReadTheDocs&color=2C4AA8&logo=ReadTheDocs&logoColor=FFFFFF&label=Documentation)](https://openms.readthedocs.io)
+[![API docs](https://img.shields.io/static/v1?style=flat-square&message=Doxygen&color=2C4AA8&logo=ReadTheDocs&logoColor=FFFFFF&label=API%20docs)](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html)
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?style=flat-square&logo=gitpod)](https://gitpod.io/#https://github.com/OpenMS/OpenMS) 
 
 [OpenMS](http://www.openms.org/)
@@ -49,17 +50,16 @@ Documentation
 -------------
 
 Users and developers should start by reading the [OpenMS documentation](https://openms.readthedocs.io/en/latest). OpenMS
-API reference documentation and advanced developer doxygen documentation can be browsed [here](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html).
+API reference documentation and advanced developer doxygen documentation can be browsed [here](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html).
 
-openms.readthedocs.io documentation has two release endpoints:
+openms.readthedocs.io documentation aims at being an entry point for users and developers alike. It is trying to be mostly version-independent and therefore
+only consists of one main branch. We may introduce tags for older releases in the future.
 
-1. `develop`: documentation of OpenMS develop branch.
-2. `latest`: documentation of the latest stable OpenMS release.
+The OpenMS API reference has several endpoints:
 
-Likewise, OpenMS API reference has:
-
-1. [`nightly`](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/nightly/html/index.html): OpenMS API reference and advanced developer documentation of nightly releases.
-2. [`latest`](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html) : OpenMS API reference and advanced developer documentation of latest stable release.
+1. [`nightly`](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/index.html): OpenMS API reference and advanced developer documentation of nightly releases.
+2. [`release/latest`](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html) : OpenMS API reference and advanced developer documentation of latest stable release.
+3. [`release/${version}`](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html) : OpenMS API reference and advanced developer documentation of an older version.
 
 Documentation for the Python bindings pyOpenMS can be found on the [pyOpenMS online documentation](https://pyopenms.readthedocs.io).
 
