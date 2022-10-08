@@ -37,7 +37,7 @@
 #=============================================================================
 
 # set LIBSVM_INCLUDE_DIR
-find_path (LIBSVM_INCLUDE_DIR NAMES svm.h PATH_SUFFIXES libsvm libsvm-3.1/libsvm DOC "LibSVM include directory" )
+find_path (LIBSVM_INCLUDE_DIR NAMES svm.h PATH_SUFFIXES libsvm svm libsvm-3.1/libsvm DOC "LibSVM include directory" )
 
 # set LIBSVM_INCLUDE_DIRS
 if (NOT LIBSVM_INCLUDE_DIRS)

@@ -83,7 +83,7 @@ if(HAS_XSERVER)
   find_package(Qt5 REQUIRED
     Test
   )
-  if (NOT Qt5Test_FOUND)
+  if (NOT Qt5Test_FOUND AND NOT TARGET Qt5::Test)
     message(STATUS "QtTest module not found!")
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
   endif()

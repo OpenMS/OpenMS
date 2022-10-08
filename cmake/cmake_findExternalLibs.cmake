@@ -36,6 +36,15 @@
 # This cmake file handles finding external libs for OpenMS
 #------------------------------------------------------------------------------
 
+set(CONAN OFF)
+set(CONFIG_MODE "")
+# If conan install was run, use its generated paths
+if (EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.txt")
+  list(PREPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}")
+  set(CONAN ON)
+  set(CONFIG_MODE "CONFIG")
+endif()
+
 
 #------------------------------------------------------------------------------
 # find libs (for linking)
@@ -44,7 +53,7 @@
 #   * never mix Release/Debug versions of libraries. Leads to strange segfaults,
 #     stack corruption etc, due to different runtime libs ...
 # compiler-wise: use the same compiler for contrib and OpenMS!
-find_package(XercesC REQUIRED)
+find_package(XercesC ${CONFIG_MODE} REQUIRED)
 
 #------------------------------------------------------------------------------
 # BOOST
@@ -54,9 +63,9 @@ find_boost(iostreams ${OpenMS_BOOST_COMPONENTS})
 if(Boost_FOUND)
   message(STATUS "Found Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}" )
   set(CF_OPENMS_BOOST_VERSION_MAJOR ${Boost_MAJOR_VERSION})
-	set(CF_OPENMS_BOOST_VERSION_MINOR ${Boost_MINOR_VERSION})
+  set(CF_OPENMS_BOOST_VERSION_MINOR ${Boost_MINOR_VERSION})
   set(CF_OPENMS_BOOST_VERSION_SUBMINOR ${Boost_SUBMINOR_VERSION})
-	set(CF_OPENMS_BOOST_VERSION ${Boost_VERSION})
+  set(CF_OPENMS_BOOST_VERSION ${Boost_VERSION})
 else()
   message(FATAL_ERROR "Boost or one of its components not found!")
 endif()
@@ -64,25 +73,52 @@ endif()
 #------------------------------------------------------------------------------
 # libsvm
 # creates LibSVM target
-find_package(LIBSVM 2.91 REQUIRED) ## will not overwrite LIBSVM_LIBRARY if defined already
-if (LIBSVM_FOUND)
+if (NOT CONAN)
+  find_package(LIBSVM 2.91 ${CONFIG_MODE} REQUIRED) ## will not overwrite LIBSVM_LIBRARY if defined already
+  if (LIBSVM_FOUND)
 	set(CF_OPENMS_LIBSVM_VERSION_MAJOR ${LIBSVM_MAJOR_VERSION})
 	set(CF_OPENMS_LIBSVM_VERSION_MINOR ${LIBSVM_MINOR_VERSION})
 	set(CF_OPENMS_LIBSVM_VERSION ${LIBSVM_VERSION})
+  endif()
+else()
+  find_package(libsvm ${CONFIG_MODE} REQUIRED) ## will not overwrite LIBSVM_LIBRARY if defined already
+  if (libsvm_FOUND)
+        set(CF_OPENMS_LIBSVM_VERSION_MAJOR ${libsvm_MAJOR_VERSION})
+        set(CF_OPENMS_LIBSVM_VERSION_MINOR ${libsvm_MINOR_VERSION})
+        set(CF_OPENMS_LIBSVM_VERSION ${libsvm_VERSION})
+  endif()
+  set_target_properties(libsvm::libsvm PROPERTIES IMPORTED_GLOBAL TRUE)
+  add_library(LibSVM::LibSVM ALIAS libsvm::libsvm)
 endif()
 
 #------------------------------------------------------------------------------
 # COIN-OR
 # Our find module creates an imported CoinOR::CoinOR target
-find_package(COIN)
-if (COIN_FOUND)
+if (NOT CONAN)
+  find_package(COIN ${CONFIG_MODE})
+else()
+  find_package(coin-cbc)
+  find_package(coin-cgl)
+  find_package(coin-clp)
+  find_package(coin-utils)
+  find_package(coin-osi)
+  if(NOT TARGET CoinOR::CoinOR)
+    add_library(CoinOR::CoinOR INTERFACE IMPORTED)
+    set_property(TARGET CoinOR::CoinOR APPEND PROPERTY INTERFACE_LINK_LIBRARIES coin-cbc::coin-cbc)
+    set_property(TARGET CoinOR::CoinOR APPEND PROPERTY INTERFACE_LINK_LIBRARIES coin-cgl::coin-cgl)
+    set_property(TARGET CoinOR::CoinOR APPEND PROPERTY INTERFACE_LINK_LIBRARIES coin-clp::coin-clp)
+    set_property(TARGET CoinOR::CoinOR APPEND PROPERTY INTERFACE_LINK_LIBRARIES coin-utils::coin-utils)
+    set_property(TARGET CoinOR::CoinOR APPEND PROPERTY INTERFACE_LINK_LIBRARIES coin-osi::coin-osi)
+  endif()
+endif()
+if (COIN_FOUND OR coin-utils_FOUND)
   set(CF_USECOINOR 1)
   set(LPTARGET "CoinOR::CoinOR")
 else()
   #------------------------------------------------------------------------------
   # GLPK
   # creates GLPK::GLPK target
-  find_package(GLPK)
+  find_package(GLPK ${CONFIG_MODE})
   if (GLPK_FOUND)
     set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
     set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
@@ -96,16 +132,16 @@ endif()
 #------------------------------------------------------------------------------
 # zlib
 # creates ZLIB::ZLIB target
-find_package(ZLIB REQUIRED)
+find_package(ZLIB ${CONFIG_MODE} REQUIRED)
 
 #------------------------------------------------------------------------------
 # bzip2
-find_package(BZip2 REQUIRED)
+find_package(BZip2 ${CONFIG_MODE} REQUIRED)
 
 #------------------------------------------------------------------------------
 # Find eigen3
 # creates Eigen3::Eigen3 package
-find_package(Eigen3 3.3.4 REQUIRED)
+find_package(Eigen3 3.3.4 ${CONFIG_MODE} REQUIRED)
 
 
 #------------------------------------------------------------------------------
@@ -126,17 +162,22 @@ endif()
 # creates SQLite::SQLite3 target
 # In our contrib we make a subdir in the includes -> Add PATH_SUFFIXES
 # Look for the necessary header
-find_path(SQLite3_INCLUDE_DIR NAMES sqlite3.h PATH_SUFFIXES "sqlite")
-find_package(SQLite3 3.15.0 REQUIRED)
+if (NOT CONAN)
+  find_path(SQLite3_INCLUDE_DIR NAMES sqlite3.h PATH_SUFFIXES "sqlite")
+endif()
+find_package(SQLite3 3.15.0 ${CONFIG_MODE} REQUIRED)
 
 #------------------------------------------------------------------------------
 # HDF5
 # For MSVC use static linking to the HDF5 libraries
-if(MSVC)
+if(MSVC AND NOT CONAN)
   set(HDF5_USE_STATIC_LIBRARIES ON)
 endif()
-find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
-
+if (NOT CONAN)
+  find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
+else()
+	find_package(HDF5 CONFIG REQUIRED COMPONENTS C CXX)
+endif()
 #------------------------------------------------------------------------------
 # Done finding contrib libraries
 #------------------------------------------------------------------------------
@@ -153,10 +194,10 @@ SET(QT_MIN_VERSION "5.6.0")
 
 # find qt
 set(OpenMS_QT_COMPONENTS Core Network Sql CACHE INTERNAL "QT components for core lib")
-find_package(Qt5 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
+find_package(Qt5 ${QT_MIN_VERSION} ${CONFIG_MODE} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
-IF (NOT Qt5Core_FOUND)
-  message(STATUS "QT5Core not found!")
+IF (NOT Qt5Core_FOUND AND NOT Qt5_FOUND)
+  message(STATUS "Qt5Core not found!")
   message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
 ELSE()
   message(STATUS "Found Qt ${Qt5Core_VERSION}")
@@ -171,7 +212,6 @@ endif()
 # PTHREAD
 #------------------------------------------------------------------------------
 find_package (Threads REQUIRED)
-
 
 if (WITH_GUI)
   # --------------------------------------------------------------------------
@@ -189,14 +229,14 @@ if (WITH_GUI)
 
   set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
 
-  find_package(Qt5 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
+  find_package(Qt5 ${CONFIG_MODE} REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
 
-  IF (NOT Qt5Widgets_FOUND OR NOT Qt5Gui_FOUND OR NOT Qt5Svg_FOUND)
-    message(STATUS "Qt5Widgets not found!")
+  IF (NOT (Qt5Widgets_FOUND OR TARGET Qt5::Widgets) OR NOT (Qt5Gui_FOUND OR TARGET Qt5::Gui) OR NOT (Qt5Svg_FOUND OR TARGET Qt5::Svg))	  
+    message(STATUS "Some Qt5 GUI components were not found!")
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
   ENDIF()
 
-  find_package(Qt5 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
+  find_package(Qt5 ${CONFIG_MODE} QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
 
   # TODO only works if WebEngineWidgets is the only optional component
   set(OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
