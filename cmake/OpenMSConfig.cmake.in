@@ -54,7 +54,6 @@ find_dependency(LIBSVM 2.91)
 
 # Rest are private linked libraries
 #find_dependency(Boost COMPONENTS @OpenMS_BOOST_COMPONENTS@)
-#find_dependency(WM5)
 #find_dependency(COIN)
 #find_dependency(GLPK)
 #find_dependency(ZLIB)
