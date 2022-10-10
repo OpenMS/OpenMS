@@ -132,12 +132,6 @@
  $ git push origin develop
  @endcode
 
- @section testing Testing
-
- @subsection how_to_update_many_test_files How to update many test files
-
- Use <code>grep</code> to extract the lines starting with <code>diff FILENAME1 FILENAME2</code> and replace the <code>diff</code> by copy.
-
  @section working_in_ides Working in IDEs
 
  <h2><a class="anchor" id="why_are_there_no_source_test_and_source_app_topp_utils_folders"></a>Why are there no <code>source/TEST</code> and <code>source/APPLICATIONS/TOPP|UTILS</code> folder?</h2>
