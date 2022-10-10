@@ -422,14 +422,6 @@
 
   C++ classes and their methods can be exposed to python via pyOpenMS. If you are interested in exposing your algorithms to python, view the <a href="https://pyopenms.readthedocs.io/en/latest/wrap_classes.html">pyopenms documentation</a> for the coding conventions and examples.
 
-  @section exceptions Exceptions
-
-  The following section describes how to handle exceptions and create exception classes.
-
-  @subsection exception_handling Exception handling
-
-  No OpenMS program should dump a core if an error occurs. Instead, it should attempt to die as gracefully as possible. Furthermore, as OpenMS is a framework rather than an application, it should give the programmer ways to catch and correct errors. The recommended procedure to handle - even fatal - errors is to throw an exception. Uncaught exception will result in a call to abort thereby terminating the program.
-
   @section documentation Documentation
 
   @subsection uml_diagrams UML diagrams
