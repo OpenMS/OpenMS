@@ -14,7 +14,7 @@
 
   @subsection indentation Indentation
 
-  Use two spaces to indent. Tabulators in string literals should use the escape character <code>\t</code>.
+  Use two spaces to indent. Tabulators in string literals should use the escape character <code>\\t</code>.
 
   @subsection spaces Spaces
 
@@ -555,7 +555,7 @@
 
   @section testing Testing
 
-  View the @subpage how-to-write-tests guidelines to learn how to write tests.
+  View the @subpage how_to_write_tests guidelines to learn how to write tests.
 
   @section revision_control Revision control
   OpenMS uses <a href="https://git-scm.com/">git</a> to manage different versions of the source files. For easier identification of the responsible person each OpenMS file contains the <code>$Maintainer:$</code> string in the preamble.

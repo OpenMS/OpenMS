@@ -151,9 +151,9 @@
  work with every Visual Studio version. In that case, update clang-format manually using the pre-build clang-format binary.
  Both the binary and a link to the plugin can be found <a href="https://llvm.org/builds/">here</a>.
  To update clang-format download the binary and exchange it with the clang-format binary in your Visual Studio folder.
- For Visual Studio 17 and 19 it should be located at: <code>C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\Llvm\bin</code>.
+ For Visual Studio 19 it should be located at: <code>C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/Llvm/bin</code>.
 
- <h2><a class="anchor" id="the_indexer_gets_stuck_at_a_file_that_includes_seqan"></a>The indexer gets stuck at a file that includes the directive <code>#includes seqan</code></h2>
+ <h2><a class="anchor" id="the_indexer_gets_stuck_at_a_file_that_includes_seqan"></a>The indexer gets stuck at a file that includes the directive <code>\#includes seqan</code></h2>
 
  It seems that SeqAn code is not compatible with older eclipse C++ indexers. You should upgrade to eclipse galileo
 (CDT 6.0.x). Also, increase the available memory limit in <code>eclipse.ini</code>, e.g. <code>-Xmx1024m</code> for one gig.
@@ -235,11 +235,11 @@
 
  @subsection how_to_get_a_list How to get a list of the symbols defined in a (shared) library or object file?
 
- Linux: Use <code>nm <library></code>.
+ Linux: Use <code>nm &lt;library&gt;</code>.
 
  Use <code>nm -C</code> to switch on demangling of low-level symbols into their C++-equivalent names. <code>nm</code> also accepts <code>.a</code> and <code>.o</code> files.
 
- Windows (Visual studio console): Use <code>dumpbin /ALL <library></code>.
+ Windows (Visual studio console): Use <code>dumpbin /ALL &lt;library&gt;</code>.
 
  Use dumpbin on object files (.o) or (shared) library files (.lib) or the DLL itself e.g. <code>dumpbin /EXPORTS OpenMS.dll</code>.
 
@@ -265,7 +265,7 @@
 
  <ol>
  <li>Build OpenMS in debug mode (set <code>CMAKE_BUILD_TYPE</code> to <code>Debug</code>).</li>
- <li>Call the executable with <code>valgrind: valgrind --suppressions=OpenMS/tools/valgrind/openms_external.supp –leak-check=full <executable> <parameters></code>.</li>
+ <li>Call the executable with <code>valgrind: valgrind --suppressions=OpenMS/tools/valgrind/openms_external.supp –leak-check=full &lt;executable&gt; &lt;parameters&gt;</code>.</li>
  </ol>
 
  Common errors are:
