@@ -169,30 +169,30 @@ namespace OpenMS
       );
     }
 
-    void SiriusAdapterAlgorithm::Sirius::parameters() // original sirius 5.6.0 parameters in the comments
+    void SiriusAdapterAlgorithm::Sirius::parameters() // original sirius 5.6.1 parameters as defaults, except for timeouts
     {
       parameter(
                  SiriusName("ppm-max"),
-                 DefaultValue(-1), // default = 10.0
+                 DefaultValue(10.0),
                  Description("Maximum allowed mass deviation in ppm for decomposing masses [ppm].")
                );
 
       parameter(
                  SiriusName("ppm-max-ms2"),
-                 DefaultValue(-1), // default = 10.0
+                 DefaultValue(10.0),
                  Description("Maximum allowed mass deviation in ppm for decomposing masses in MS2 [ppm]."
                              "If not specified, the same value as for the MS1 is used. ")
                 );
 
       parameter(
                  SiriusName("tree-timeout"),
-                 DefaultValue(100), // default = 0
+                 DefaultValue(100), // original default = 0
                  Description("Time out in seconds per fragmentation tree computations. 0 for an infinite amount of time")
                ).withMinInt(0);
 
       parameter(
                  SiriusName("compound-timeout"),
-                 DefaultValue(100), // default = 0
+                 DefaultValue(100), // original default = 0
                  Description("Maximal computation time in seconds for a single compound. 0 for an infinite amount of time.")
                ).withMinInt(0);
 
@@ -203,13 +203,13 @@ namespace OpenMS
 
       parameter(
                  SiriusName("profile"),
-                 DefaultValue(""), // default = default
+                 DefaultValue("default"),
                  Description("Name of the configuration profile")
-               ).withValidStrings({"", "default", "qtof", "orbitrap", "fticr"});
+               ).withValidStrings({"default", "qtof", "orbitrap", "fticr"});
 
       parameter(
                  SiriusName("formulas"),
-                 DefaultValue(""), // default = ""
+                 DefaultValue(""),
                  Description("Specify the neutral molecular formula of the measured "
                              "compound to compute its tree or a list of candidate "
                              "formulas the method should discriminate. Omit this "
@@ -218,41 +218,41 @@ namespace OpenMS
 
       parameter(
                  SiriusName("ions-enforced"),
-                 DefaultValue(-1), // default = -1
+                 DefaultValue(""),
                  Description("the iontype/adduct of the MS/MS data. Example: [M+H]+, "
                              "[M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a comma separated list of adducts")
                );
 
       parameter(
                  SiriusName("candidates"),
-                 DefaultValue(-1), // default = 10
+                 DefaultValue(10),
                  Description("The number of formula candidates in the SIRIUS output")
-               ).withMinInt(-1);
+               ).withMinInt(0);
 
       parameter(
                  SiriusName("candidates-per-ion"),
-                 DefaultValue(-1),
+                 DefaultValue(1),
                  Description("Minimum number of candidates in the output for each "
                              "ionization. Set to force output of results for each "
                              "possible ionization, even if not part of highest "
-                             "ranked results. -1 omits parameter in Sirius.")
+                             "ranked results.")
                 );
 
       parameter(
                  SiriusName("elements-considered"),
-                 DefaultValue(""),
+                 DefaultValue("SBrClBSe"),
                  Description("Set the allowed elements for rare element detection. "
                              "Write SBrClBSe to allow the elements S,Br,Cl,B and Se."));
 
       parameter(
                  SiriusName("elements-enforced"),
-                 DefaultValue(""),
+                 DefaultValue("CHNOP"),
                  Description("Enforce elements for molecular formula determination. "
                              "Write CHNOPSCl to allow the elements C, H, N, O, P, S "
                              "and Cl. Add numbers in brackets to restrict the "
                              "minimal and maximal allowed occurrence of these "
                              "elements: CHNOP[5]S[8]Cl[1-2]. When one number is "
-                             "given then it is interpreted as upper bound. Default is CHNOP")
+                             "given then it is interpreted as upper bound.")
                 );
 
       flag(
@@ -269,7 +269,7 @@ namespace OpenMS
 
       parameter(
                  SiriusName("ions-considered"),
-                 DefaultValue(""),
+                 DefaultValue("[M+H]+,[M+K]+,[M+Na]+,[M+H-H2O]+,[M+H-H4O2]+,[M+NH4]+,[M-H]-,[M+Cl]-,[M-H2O-H]-,[M+Br]-"),
                  Description("the iontype/adduct of the MS/MS data. "
                              "Example: [M+H]+, [M-H]-, [M+Cl]-, [M+Na]+, [M]+. "
                              "You can also provide a comma separated list of adducts.")
@@ -277,7 +277,7 @@ namespace OpenMS
 
       parameter(
                  SiriusName("db"),
-                 DefaultValue(""),
+                 DefaultValue("none"),
                  Description("Search formulas in the Union of the given "
                               "databases db-name1,db-name2,db-name3. If no database is given all possible "
                               "molecular formulas will be respected (no database "
@@ -297,6 +297,13 @@ namespace OpenMS
                  Description("The iontype/adduct of the MS/MS data. Example: [M+H]+, \n"
                              "[M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a \n"
                              "comma separated list of adducts.")
+               );
+
+      parameter(
+                 SiriusName("solver"),
+                 DefaultValue("CLP"),
+                 Description("For GUROBI and CPLEX environment variables need to be configured. \n"
+                             "(see SIRIUS manual: https://boecker-lab.github.io/docs.sirius.github.io/install/).")
                );
     }
 

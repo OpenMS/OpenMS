@@ -259,15 +259,12 @@ namespace OpenMS
 
       QStringList getCommandLine() const
       {
-        const DataValue omit_integer(-1);
-        const DataValue omit_string("");
-
         QStringList result;
         for (const auto &pair : openms_to_sirius)
         {
           DataValue value = enclose->param_.getValue(pair.first);
-
-          if (!value.isEmpty() && value != omit_integer && value != omit_string)
+          DataValue default_value = enclose->defaults_.getValue(pair.first);
+          if (!value.isEmpty() && value != default_value)
           {
            String string_value = value.toString(true);
            if (string_value == "true")
