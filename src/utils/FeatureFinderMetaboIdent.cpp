@@ -259,7 +259,12 @@ protected:
     mzml.setLogType(log_type_);
     mzml.getOptions().addMSLevel(1);
     mzml.load(in, ff_mident.getMSData());
-
+    if (ff_mident.getMSData().empty())
+    {
+      OPENMS_LOG_ERROR << "Error: No MS1 scans in '"
+                       << in << "' - aborting." << endl;
+      return INCOMPATIBLE_INPUT_DATA;
+    }
     FeatureMap features;
     ff_mident.run(table, features, in);
 
