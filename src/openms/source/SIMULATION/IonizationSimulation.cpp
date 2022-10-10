@@ -37,7 +37,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 
-#include <boost/bind.hpp>
 #include <boost/numeric/conversion/cast.hpp>
 #include <boost/random/binomial_distribution.hpp>
 #include <boost/random/discrete_distribution.hpp>
@@ -45,6 +44,7 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
 #include <atomic>
 
 namespace OpenMS
@@ -112,9 +112,7 @@ namespace OpenMS
     return *this;
   }
 
-  IonizationSimulation::~IonizationSimulation()
-  {
-  }
+  IonizationSimulation::~IonizationSimulation() = default;
 
   void IonizationSimulation::ionize(SimTypes::FeatureMapSim& features, ConsensusMap& charge_consensus, SimTypes::MSSimExperiment& experiment)
   {

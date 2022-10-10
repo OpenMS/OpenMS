@@ -195,15 +195,15 @@ namespace OpenMS
     {
       return p.getRT();
     }
-    ValueType map(const MSSpectrum& spec, const Size /*index*/) const
+    ValueType map(const MSSpectrum& spec, const Size /*index*/) const override
     {
       return spec.getRT();
     }
-    ValueType map(const MSChromatogram& chrom, const Size index) const
+    ValueType map(const MSChromatogram& chrom, const Size index) const override
     {
       return chrom[index].getRT();
     }
-    ValueType map(const Mobilogram& mb, const Size /*index*/) const
+    ValueType map(const Mobilogram& mb, const Size /*index*/) const override
     {
       return mb.getRT();
     }
@@ -251,7 +251,7 @@ namespace OpenMS
       return rm.getRangeForDim(MSDim::RT);
     }
 
-    void setRange(const RangeBase& in, RangeAllType& out) const
+    void setRange(const RangeBase& in, RangeAllType& out) const override
     {
       out.RangeRT::operator=(in);
     }
@@ -314,15 +314,15 @@ namespace OpenMS
       return p.getMZ();
     }
 
-    ValueType map(const MSSpectrum& spec, const Size index) const
+    ValueType map(const MSSpectrum& spec, const Size index) const override
     {
       return spec[index].getMZ();
     }
-    ValueType map(const MSChromatogram& chrom, const Size /*index*/) const
+    ValueType map(const MSChromatogram& chrom, const Size /*index*/) const override
     {
       return chrom.getPrecursor().getMZ();
     }
-    ValueType map(const Mobilogram&, const Size /*index*/) const
+    ValueType map(const Mobilogram& /*mb*/, const Size /*index*/) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -357,7 +357,7 @@ namespace OpenMS
       return rm.getRangeForDim(MSDim::MZ);
     }
 
-    void setRange(const RangeBase& in, RangeAllType& out) const
+    void setRange(const RangeBase& in, RangeAllType& out) const override
     {
       out.RangeMZ::operator=(in);
     }
@@ -421,15 +421,15 @@ namespace OpenMS
       return p.getIntensity();
     }
 
-    ValueType map(const MSSpectrum& spec, const Size index) const
+    ValueType map(const MSSpectrum& spec, const Size index) const override
     {
       return spec[index].getIntensity();
     }
-    ValueType map(const MSChromatogram& chrom, const Size index) const
+    ValueType map(const MSChromatogram& chrom, const Size index) const override
     {
       return chrom[index].getIntensity();
     }
-    ValueType map(const Mobilogram& mb, const Size index) const
+    ValueType map(const Mobilogram& mb, const Size index) const override
     {
       return mb[index].getIntensity();
     }
@@ -471,7 +471,7 @@ namespace OpenMS
       return rm.getRangeForDim(MSDim::INT);
     }
 
-    void setRange(const RangeBase& in, RangeAllType& out) const
+    void setRange(const RangeBase& in, RangeAllType& out) const override
     {
       out.RangeIntensity::operator=(in);
     }
@@ -544,15 +544,15 @@ namespace OpenMS
       return p.getMobility();
     }
 
-    ValueType map(const MSSpectrum& spec, const Size /*index*/) const
+    ValueType map(const MSSpectrum& spec, const Size /*index*/) const override
     {
       return spec.getDriftTime();
     }
-    ValueType map(const MSChromatogram&, const Size) const
+    ValueType map(const MSChromatogram&, const Size) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    ValueType map(const Mobilogram& mb, const Size index) const
+    ValueType map(const Mobilogram& mb, const Size index) const override
     {
       return mb[index].getMobility();
     }
@@ -572,7 +572,7 @@ namespace OpenMS
       return rm.getRangeForDim(MSDim::IM);
     }
 
-    void setRange(const RangeBase& in, RangeAllType& out) const
+    void setRange(const RangeBase& in, RangeAllType& out) const override
     {
       out.RangeMobility::operator=(in);
     }
