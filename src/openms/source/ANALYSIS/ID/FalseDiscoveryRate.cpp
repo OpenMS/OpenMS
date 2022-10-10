@@ -1257,7 +1257,7 @@ namespace OpenMS
       }
     }
 
-    IDScoreGetterSetter::setPeptideScoresFromMap_(seq_to_score_labels, map, score_type, higher_better, add_decoy_peptides);
+    IDScoreGetterSetter::setPeptideScoresFromMap_(seq_to_score_labels, map, score_type, add_decoy_peptides, include_unassigned);
   }
 
   void FalseDiscoveryRate::applyBasicPeptideLevel(std::vector<PeptideIdentification> & ids)

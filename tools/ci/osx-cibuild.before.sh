@@ -27,9 +27,6 @@ brew install qt4
 git clone git://github.com/OpenMS/contrib/
 pushd contrib
 
-# we build WildMagic
-build_contrib WILDMAGIC
-
 # we build Eigen as the versions shipped in Ubuntu are not recent enough
 build_contrib EIGEN
 

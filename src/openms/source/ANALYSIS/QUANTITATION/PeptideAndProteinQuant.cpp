@@ -104,11 +104,12 @@ namespace OpenMS
     vector<PeptideIdentification>& peptides)
   {
     // hits in IDs must already be sorted by score! (done in "countPeptides_")
-    if (peptides.empty()) return {};
+    if (peptides.empty() || peptides[0].getHits().empty()) return {};
 
     // get best hit
     const PeptideHit& hit = peptides[0].getHits()[0];
 
+    // check for ambiguities
     for (auto pep_it = ++peptides.begin();
          pep_it != peptides.end(); ++pep_it)
     {
