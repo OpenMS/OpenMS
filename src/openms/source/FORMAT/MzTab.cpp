@@ -986,7 +986,7 @@ namespace OpenMS
       UInt label = ch.getLabelAsUInt(experiment_type);
       // convert from column index to study variable index
       auto pl = make_pair(ch.filename, label);
-      study_variable = path_label_to_assay.at(pl); // for now, a study_variable is one assay
+      study_variable = path_label_to_assay.at(pl) + 1; // for now, a study_variable is one assay (both 1-based). And pathLabelToSample mapping reports 0-based.
 
       //TODO implement aggregation in case we generalize study_variable to include multiple assays.
       row.peptide_abundance_stdev_study_variable[study_variable];
@@ -1488,20 +1488,14 @@ namespace OpenMS
  // std::map<Size, MzTabInteger> num_peptides_distinct_ms_run;
  // std::map<Size, MzTabInteger> num_peptides_unique_ms_run;
     MzTabModificationList modifications; // Modifications identified in the protein.
-    const ProteinModificationSummary& leader_mods = hit.getModifications();
-    for (auto const & m : leader_mods.AALevelSummary) // for all modified positions
-    {      
-      size_t position = m.first; // AA position in the protein
-      const ProteinModificationSummary::ModificationsToStatistics& m2s = m.second; // all modifications -> statistcs
-      for (auto & modstat : m2s) // for all modifications at current position
-      {
-        auto mod = modstat.first;
-        MzTabModification mztab_mod;
-        mztab_mod.setModificationIdentifier(MzTab::getModificationIdentifier_(*mod));
-        vector<std::pair<Size, MzTabParameter>> pos;
-        pos.emplace_back(make_pair(position, MzTabParameter())); // position, parameter pair (e.g. FLR)
-        mztab_mod.setPositionsAndParameters(pos);
-      }
+    const std::set<pair<Size, ResidueModification>>& leader_mods = hit.getModifications();
+    for (auto const & m : leader_mods)
+    {
+      MzTabModification mztab_mod;
+      mztab_mod.setModificationIdentifier(MzTab::getModificationIdentifier_(m.second));
+      vector<std::pair<Size, MzTabParameter> > pos;
+      pos.emplace_back(make_pair(m.first, MzTabParameter())); // position, parameter pair (e.g. FLR)
+      mztab_mod.setPositionsAndParameters(pos);
     }
     protein_row.modifications = modifications;
 
@@ -1662,26 +1656,20 @@ namespace OpenMS
 
     MzTabParameterList search_engine; // Search engine(s) identifying the protein.
     protein_row.search_engine = search_engine;
-    
 
     MzTabModificationList modifications; // Modifications identified in the protein.
-    const ProteinModificationSummary& leader_mods = leader_protein.getModifications();
-    for (auto const & m : leader_mods.AALevelSummary) // for all modified positions
-    { 
-      size_t position = m.first; // AA position in the protein
-      const ProteinModificationSummary::ModificationsToStatistics& m2s = m.second; // all modifications -> statistcs
-      for (auto & modstat : m2s) // for all modifications at current position
-      {
-        auto mod = modstat.first;
-        MzTabModification mztab_mod;
-        mztab_mod.setModificationIdentifier(MzTab::getModificationIdentifier_(*mod));
-        vector<std::pair<Size, MzTabParameter>> pos;
-        // mzTab position is one-based, internal is 0-based so we need to +1
-        pos.emplace_back(make_pair(position + 1, MzTabParameter())); // position, parameter pair (e.g. FLR)
-        mztab_mod.setPositionsAndParameters(pos);
-        vector<MzTabModification> mztab_mods(1, mztab_mod);
-        modifications.set(mztab_mods);
-      }
+    const std::set<pair<Size, ResidueModification>>& leader_mods = leader_protein.getModifications();
+    for (auto const & m : leader_mods)
+    {
+      MzTabModification mztab_mod;
+      mztab_mod.setModificationIdentifier(MzTab::getModificationIdentifier_(m.second));
+      vector<std::pair<Size, MzTabParameter> > pos;
+
+      // mzTab position is one-based, internal is 0-based so we need to +1
+      pos.emplace_back(make_pair(m.first + 1, MzTabParameter())); // position, parameter pair (e.g. FLR)
+      mztab_mod.setPositionsAndParameters(pos);
+      vector<MzTabModification> mztab_mods(1, mztab_mod);
+      modifications.set(mztab_mods);
     }
     protein_row.modifications = modifications;
 
@@ -2596,9 +2584,9 @@ state0:
     // fill ID datastructure without copying
     const vector<ProteinIdentification>& prot_id = consensus_map.getProteinIdentifications();
     prot_ids_.reserve(prot_id.size());
-    for (Size i = 0; i < prot_id.size(); ++i)
+    for (const auto & i : prot_id)
     {
-      prot_ids_.push_back(&(prot_id[i]));
+      prot_ids_.push_back(&i);
     }
  
     // extract mapped IDs
@@ -2622,7 +2610,7 @@ state0:
     // create some lookup structures and precalculate some values
     idrunid_2_idrunindex_ = MzTab::mapIDRunIdentifier2IDRunIndex_(prot_ids_);
 
-    bool has_inference_data = prot_ids_.empty() ? false : prot_ids_[0]->hasInferenceData();
+    bool has_inference_data = !prot_ids_.empty() && prot_ids_[0]->hasInferenceData();
 
     first_run_inference_ = has_inference_data && first_run_inference_only;
     if (first_run_inference_)
@@ -2846,7 +2834,7 @@ state0:
       MzTabParameter quantification_reagent;
       Size label = c.second.getLabelAsUInt(experiment_type);
       auto pl = make_pair(c.second.filename, label);
-      assay_index = path_label_to_assay_[pl];
+      assay_index = path_label_to_assay_[pl] + 1; // sample rows are a vector and therefore their IDs zero-based, mzTab assays 1-based
 
       if (experiment_type == "label-free")
       {

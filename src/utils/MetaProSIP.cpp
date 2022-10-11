@@ -246,7 +246,7 @@ public:
 
     const size_t n = x.size();
 
-    //Wm5::IntpAkimaNonuniform1<double> spline(x.size(), &x.front(), &y.front());
+    //gte::IntpAkimaNonuniform1<double> spline(x.size(), &x.front(), &y.front());
     CubicSpline2d spline(x, y);
 
     if (debug)
