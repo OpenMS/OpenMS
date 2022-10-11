@@ -44,7 +44,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/METADATA/ProteinModificationSummary.h>
 
 namespace OpenMS
 {
@@ -199,14 +198,11 @@ public:
     /// sets the coverage (in percent) of the protein hit based upon matched peptides
     void setCoverage(const double coverage);
 
-    /// returns the set of modified protein positions and associated statistics
-    const ProteinModificationSummary& getModifications() const;
+    /// returns the set of modified protein positions
+    const std::set<std::pair<Size, ResidueModification> >& getModifications() const;
 
-    /// returns the mutable set of modified protein positions and associated statistics
-    ProteinModificationSummary& getModifications();
-
-    /// sets modified protein positions and associated statistics (e.g., counts=PSMs that provided evidance for the modification at this position)
-    void setModifications(const ProteinModificationSummary& mods);
+    /// sets the set of modified protein positions
+    void setModifications(std::set<std::pair<Size, ResidueModification> >& mods);
     //@}
 
 protected:
@@ -215,7 +211,7 @@ protected:
     String accession_;   ///< the protein identifier
     String sequence_;    ///< the amino acid sequence of the protein hit
     double coverage_;    ///< coverage of the protein based upon the matched peptide sequences
-    ProteinModificationSummary modifications_; ///< modified positions in a protein
+    std::set<std::pair<Size, ResidueModification> > modifications_; ///< modified positions in a protein
   };
 
   /// Stream operator

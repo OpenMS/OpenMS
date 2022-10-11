@@ -68,7 +68,6 @@ namespace OpenMS
     defaults_.setValidStrings("add_decoy_proteins", {"true","false"});
     defaults_.setValue("conservative", "true", "If 'true' (D+1)/T instead of (D+1)/(T+D) is used as a formula.");
     defaults_.setValidStrings("conservative", {"true","false"});
-    // TODO to be implemented. I.e., move parameter from FDR tool to here.
     //defaults_.setValue("subprotein_level", "PSM", "Choose PSM or peptide or PSM+peptide");
     //defaults_.setValidStrings("subprotein_level", {"PSM","peptide","PSM+peptide"});
     defaultsToParam_();
@@ -1060,7 +1059,24 @@ namespace OpenMS
 
     //TODO this assumes all used search engine scores have the same score orientation
     // include the determination of orientation in the getScores methods instead
-    bool higher_score_better = cmap.begin()->getPeptideIdentifications().begin()->isHigherScoreBetter();
+    bool higher_score_better = false;
+    for (const auto& cf : cmap)
+    {
+      const auto& pep_ids = cf.getPeptideIdentifications();
+      if (!pep_ids.empty())
+      {
+        higher_score_better = pep_ids[0].isHigherScoreBetter();
+        break;
+      }
+    }
+    if (cmap.empty())
+    {
+      for (const auto& id : cmap.getUnassignedPeptideIdentifications())
+      {
+        higher_score_better = id.isHigherScoreBetter();
+        break;
+      }
+    }
 
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
     ScoreToTgtDecLabelPairs scores_labels;
@@ -1130,6 +1146,7 @@ namespace OpenMS
     if (groups_too)
     {
       // Prepare lookup map for decoy proteins (since there is no direct way back from group to protein)
+      // TODO we could also require the decoy affix to be specified
       unordered_set<string> decoy_accs;
       for (const auto& prot : id.getHits())
       {
@@ -1187,6 +1204,7 @@ namespace OpenMS
           if (pepid.getIdentifier() == identifier)
           {
             higher_score_better = pepid.isHigherScoreBetter();
+            break;
           }
         }
         if (split_charge_variants)
@@ -1227,6 +1245,88 @@ namespace OpenMS
     }
   }
 
+  void FalseDiscoveryRate::applyBasicPeptideLevel(ConsensusMap & map, bool include_unassigned)
+  {
+    bool q_value = !param_.getValue("no_qvalues").toBool();
+    //TODO Check naming conventions. Ontology?
+    const string& score_type = q_value ? "peptide q-value" : "peptide FDR";
+    bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
+    // since we do not support multiple runs here yet, we take the orientation of the first ID
+    bool higher_better = true;
+    for (const auto& f : map)
+    {
+      if (!f.getPeptideIdentifications().empty())
+      {
+        higher_better = f.getPeptideIdentifications()[0].isHigherScoreBetter();
+      }
+    }
+
+    unordered_map<String, ScoreToTgtDecLabelPair> seq_to_score_labels;
+    IDScoreGetterSetter::fillPeptideScoreMap_(seq_to_score_labels, map, include_unassigned);
+
+    ScoreToTgtDecLabelPairs pairs;
+    for (auto const & seq_to_score_label : seq_to_score_labels)
+    {
+      pairs.push_back(seq_to_score_label.second);
+    }
+    std::map<double,double> score_to_fdr;
+    calculateFDRBasic_(score_to_fdr, pairs, q_value, higher_better);
+    // convert scores in unordered map to FDR/qvalues
+    for (auto & seq_to_score_label : seq_to_score_labels)
+    {
+      if (higher_better)
+      {
+        auto ub = score_to_fdr.upper_bound(seq_to_score_label.second.first);
+        if (ub != score_to_fdr.begin()) ub--;
+        seq_to_score_label.second.first = ub->second;
+      }
+      else
+      {
+        seq_to_score_label.second.first = score_to_fdr.lower_bound(seq_to_score_label.second.first)->second;
+      }
+    }
+
+    IDScoreGetterSetter::setPeptideScoresFromMap_(seq_to_score_labels, map, score_type, add_decoy_peptides, include_unassigned);
+  }
+
+  void FalseDiscoveryRate::applyBasicPeptideLevel(std::vector<PeptideIdentification> & ids)
+  {
+    bool q_value = !param_.getValue("no_qvalues").toBool();
+    //TODO Check naming conventions. Ontology?
+    const string& score_type = q_value ? "peptide q-value" : "peptide FDR";
+    bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
+    // since we do not support multiple runs here yet, we take the orientation of the first ID
+    bool higher_better = ids[0].isHigherScoreBetter();
+
+    unordered_map<String, ScoreToTgtDecLabelPair> seq_to_score_labels;
+    IDScoreGetterSetter::fillPeptideScoreMap_(seq_to_score_labels, ids);
+
+    ScoreToTgtDecLabelPairs pairs;
+    for (auto const & seq_to_score_label : seq_to_score_labels)
+    {
+      pairs.push_back(seq_to_score_label.second);
+    }
+    map<double,double> score_to_fdr;
+    calculateFDRBasic_(score_to_fdr, pairs, q_value, higher_better);
+    // convert scores in unordered map to FDR/qvalues
+    for (auto & seq_to_score_label : seq_to_score_labels)
+    {
+      if (higher_better)
+      {
+        auto ub = score_to_fdr.upper_bound(seq_to_score_label.second.first);
+        if (ub != score_to_fdr.begin()) ub--;
+        seq_to_score_label.second.first = ub->second;
+      }
+      else
+      {
+        seq_to_score_label.second.first = score_to_fdr.lower_bound(seq_to_score_label.second.first)->second;
+      }
+    }
+
+    IDScoreGetterSetter::setPeptideScoresFromMap_(seq_to_score_labels, ids, score_type, add_decoy_peptides);
+  }
+
+  // TODO why again do we need higher_score_better here?
   void FalseDiscoveryRate::applyBasic(std::vector<PeptideIdentification> & ids, bool higher_score_better, int charge, String identifier, bool only_best_per_pep)
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
@@ -1599,7 +1699,7 @@ namespace OpenMS
     for (size_t j = 0; j < scores_labels.size(); ++j)
     {
       sum += scores_labels[j].first;
-      estimatedFDR[j] = sum / (j+1.0);
+      estimatedFDR[j] = sum / (double(j)+1.0);
     }
 
     if (higher_score_better) // Transform to PEP
@@ -1611,6 +1711,26 @@ namespace OpenMS
     // in either way in estimatedFDR, this adds the minimal FDR to the map for this score.
     std::transform(scores_labels.begin(), scores_labels.end(), estimatedFDR.begin(), std::inserter(scores_to_FDR, scores_to_FDR.begin()), [&](std::pair<double,bool> sl, double fdr){return make_pair(sl.first, fdr);});
   }
+
+  /*
+   void FalseDiscoveryRate::calculateFDRBasic_(
+    std::map<double,double>& scores_to_FDR,
+    ScoreToTgtDecLabelPairs& scores_labels,
+    std::vector<size_t>& ordering,
+    bool qvalue,
+    bool higher_score_better) const
+  {
+
+  }
+
+  void FalseDiscoveryRate::calculateFDRBasicOnSorted_(
+  std::map<double,double>& scores_to_FDR,
+  ScoreToTgtDecLabelPairs& scores_labels,
+  bool qvalue,
+  bool higher_score_better) const
+  {
+
+  }*/
 
   void FalseDiscoveryRate::calculateFDRBasic_(
       std::map<double,double>& scores_to_FDR,
@@ -1707,7 +1827,6 @@ namespace OpenMS
           rit->second = cummin;
         }
       }
-
     }
   }
 
@@ -1728,7 +1847,7 @@ namespace OpenMS
 
     // map decoys to counts of occurrences as prefix/suffix
     DecoyStringToAffixCount decoy_count;
-    // map case insensitive strings back to original case (as used in fasta)
+    // map case-insensitive strings back to original case (as used in fasta)
     CaseInsensitiveToCaseSensitiveDecoy decoy_case_sensitive;
 
     // setup prefix- and suffix regex strings
@@ -1762,7 +1881,7 @@ namespace OpenMS
         // increase count of observed prefix
         decoy_count[match].first++;
 
-        // store observed (case sensitive and with special characters)
+        // store observed (case-sensitive and with special characters)
         std::string seq_decoy = StringUtils::prefix(seq, match.length());
         decoy_case_sensitive[match] = seq_decoy;
       }
@@ -1777,7 +1896,7 @@ namespace OpenMS
         // increase count of observed suffix
         decoy_count[match].second++;
 
-        // store observed (case sensitive and with special characters)
+        // store observed (case-sensitive and with special characters)
         std::string seq_decoy = StringUtils::suffix(seq, match.length());
         decoy_case_sensitive[match] = seq_decoy;
       }

@@ -252,7 +252,7 @@ protected:
     void scaleDescriptorSet_(DescriptorSet & desc, double lower, double upper);
 
     /// generate the descriptors for an input peptide and a given fragmentation position
-    Size generateDescriptorSet_(AASequence peptide, Size position, IonType type, Size precursor_charge, DescriptorSet & desc_set);
+    Size generateDescriptorSet_(const AASequence& peptide, Size position, const IonType& type, Size precursor_charge, DescriptorSet & desc_set);
 
     /// Returns the ResidueType (e.g. AIon, BIon) as string for peak annotation
     String ResidueTypeToString_(Residue::ResidueType type);
