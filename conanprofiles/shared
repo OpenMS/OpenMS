@@ -1,0 +1,7 @@
+include(default)
+
+[settings]
+compiler.libcxx=libstdc++11
+
+[options]
+*:shared=True

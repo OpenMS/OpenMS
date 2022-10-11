@@ -153,6 +153,8 @@ static constexpr cstr past_last_slash(cstr str)
 
 #cmakedefine ENABLE_UPDATE_CHECK
 
+#cmakedefine CONAN
+
 // library versions
 #define OPENMS_LIBSVM_VERSION @CF_OPENMS_LIBSVM_VERSION@
 #define OPENMS_LIBSVM_VERSION_MAJOR @CF_OPENMS_LIBSVM_VERSION_MAJOR@

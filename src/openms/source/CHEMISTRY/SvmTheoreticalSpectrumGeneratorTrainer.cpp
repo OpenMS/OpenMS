@@ -43,7 +43,11 @@
 #include <cstdio>
 #include <sstream>
 
-#include "svm.h"
+#ifdef CONAN
+  #include "svm/svm.h"
+#else
+  #include "svm.h"
+#endif
 
 using namespace std;
 

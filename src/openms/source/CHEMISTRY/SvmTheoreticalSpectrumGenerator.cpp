@@ -40,7 +40,11 @@
 
 #include <boost/random/discrete_distribution.hpp>
 
-#include "svm.h"
+#ifdef CONAN
+  #include "svm/svm.h"
+#else
+  #include "svm.h"
+#endif
 
 // #define DEBUG
 

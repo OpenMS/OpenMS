@@ -14,6 +14,12 @@ bzip2/[>=1.0]
 qt/5.15.5
 xerces-c/[>=3.2]
 
+[tool_requires]
+cmake/[>=3.24]
+
+[imports]
+., * -> ./cmake @ root_package=cmake
+
 [generators]
 CMakeDeps
 

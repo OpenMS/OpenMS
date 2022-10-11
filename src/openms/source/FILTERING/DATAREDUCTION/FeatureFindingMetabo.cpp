@@ -45,7 +45,11 @@
 
 #include <boost/dynamic_bitset.hpp>
 
-#include "svm.h"
+#ifdef CONAN
+  #include <svm/svm.h>
+#else
+  #include <svm.h>
+#endif
 
 // #define FFM_DEBUG
 
