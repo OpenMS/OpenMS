@@ -903,7 +903,7 @@ namespace OpenMS
       OpenMS::TargetedExperiment::Protein protein;
       protein.id = peptide_ref;
       protein.addMetaValues(ms1_feature);
-      auto found_protein = proteins_map.emplace(peptide_ref, protein); // OK to reject duplicate keys
+      proteins_map.emplace(peptide_ref, protein); // OK to reject duplicate keys
 
       OpenMS::ReactionMonitoringTransition::RetentionTime rt_f;
       rt_f.setRT(ms1_feature.getRT());
@@ -941,7 +941,7 @@ namespace OpenMS
           rmt.setPrecursorMZ(ms1_feature.getMZ());
           rmt.setProductMZ(ms2_feature->getMZ());
           rmt.addMetaValues(*ms2_feature);
-          auto found_rmt = rmt_map.emplace(os.str(), rmt); // OK to reject duplicate keys
+          rmt_map.emplace(os.str(), rmt); // OK to reject duplicate keys
         }
       }
     }

@@ -37,7 +37,7 @@
         <br><b>Not supported (or at least not tested) is MinGW (g++ based compiler). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with or load vcvarsall.bat.</b>
             Other compilers which are close to the VS toolchain might work, but are not tested.
       <li><b>CMake</b>: Have at least CMake 3.14+ or greater installed (see http://www.cmake.org). <br>
-	      If you are using the Visual Studio IDE, make sure CMake's Generator (-G flag) supports your version of Visual Studio. If it doesn't, please upgrade CMake.<br>
+	      If you are using Visual Studio 2019+ as IDE, make sure CMake's Generator (-G flag) supports your version of Visual Studio. If it doesn't, please upgrade CMake.<br>
       <li><b>7-Zip</b>: To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
         <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
         the installation directory to your PATH.
@@ -51,7 +51,7 @@
   @subsection install_win_contrib Contrib installation
         In order to make the
         installation of the remaining required libraries easier, we composed a
-        "contrib-package" containing the libraries Boost, Eigen, sqlite3, CoinMP, WildMagic, libSVM, libHDF5, glpk, zlib, libbz2 and Xerces-C.
+        "contrib-package" containing the libraries Boost, Eigen, sqlite3, CoinMP, libSVM, libHDF5, glpk, zlib, libbz2 and Xerces-C.
         This contrib package has several advantages over manual installation
         <ul>
             <li>You get all the libraries in versions tested with %OpenMS.</li>
@@ -114,7 +114,7 @@
 
     <b>Installation of Qt5 via the Qt5 installer (requires an admin account)</b>:<br>
     Go to https://www.qt.io/download and click on "Go open source" at the end of the right column to download the installer. Follow steps, download, save and run the installer.
-    Create a Qt account. Choose a folder like "c:\dev\QT". From the components choose a matching version, e.g. QT 5.12.2 and the MSVC component that fits
+    Create a Qt account. Choose a folder like "C:\dev\QT". From the components choose a matching version, e.g. QT 5.12.2 and the MSVC component that fits
     your Visual Studio version and architecture (most likely only 64bit is supported; if your Visual Studio version is more recent than the VS offered by the Qt installer, 
     choose the closest available -- they should be compatible). You can deselect QtCreator under Tools.
     Accept the license, choose startmenu entries if wanted and install. Resulting files appear under "c:\dev\QT\$VERSION".
@@ -316,7 +316,7 @@
     \endcode
 
   @section install_win_nonvs Advanced: Building OpenMS in any IDE (Example: Visual Studio Code)
-    
+
     This section is for users that already have a little experience with IDEs like VS Code or JetBrains CLion.
     Especially the first step requires to read through the beginning of this documentation.
     <ol>

@@ -1,0 +1,8 @@
+{
+  "name": "OpenMS",
+  "version-string": "3.0.0",
+  "dependencies": [
+    "sqlite3",
+    "boost"
+  ]
+}
