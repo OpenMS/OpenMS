@@ -165,13 +165,14 @@ namespace OpenMS
     FeatureMap& features, 
     String spectra_file)
   {
-    if (ms_data_.empty())
-    {
-      OPENMS_LOG_WARN << "Warning: No MS1 scans in:"<< spectra_file << endl;
-      return;
-    }
     // if proper mzML is annotated in MS data use this as reference. Otherwise, overwrite with spectra_file information.
     features.setPrimaryMSRunPath({spectra_file}, ms_data_); 
+  
+    if (ms_data_.empty())
+    {
+      OPENMS_LOG_WARN << "Warning: No MS1 scans in:"<< spectra_file << endl;      
+      return;
+    }
 
     for (const auto& c : metaboIdentTable)
     {
