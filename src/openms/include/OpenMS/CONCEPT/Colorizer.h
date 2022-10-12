@@ -84,7 +84,7 @@ namespace OpenMS
     \endcode
 
     <b>Redirecting cout/cerr streams</b><br>
-    If std::cout or std::cerr are redirected to a file, then Colorizer will detect this and <emph>not emit</empth>
+    If std::cout or std::cerr are redirected to a file, then Colorizer will detect this and <b>not emit</b>
     any color/style information. This is to avoid the ANSI color codes showing up in the file instead of being
     filtered out by the console's color process.
 
