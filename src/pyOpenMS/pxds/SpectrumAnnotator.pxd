@@ -24,6 +24,7 @@ cdef extern from "<OpenMS/CHEMISTRY/SpectrumAnnotator.h>" namespace "OpenMS":
         void annotateMatches(MSSpectrum & spec, PeptideHit & ph, TheoreticalSpectrumGenerator & tg, SpectrumAlignment & sa) nogil except +
         # wrap-doc:
                 #   Adds ion match annotation to the `spec` input spectrum
+                #       
                 #   -----
                 #   :param spec: A PeakSpectrum containing the peaks from which the `pi` identifications are made
                 #   :param ph: A spectrum identifications to be used for the annotation, looking up matches from a spectrum and the theoretical spectrum inferred from the identifications sequence
@@ -33,6 +34,7 @@ cdef extern from "<OpenMS/CHEMISTRY/SpectrumAnnotator.h>" namespace "OpenMS":
         void addIonMatchStatistics(PeptideIdentification & pi, MSSpectrum & spec, TheoreticalSpectrumGenerator & tg, SpectrumAlignment & sa) nogil except +
         # wrap-doc:
                 #   Adds ion match statistics to `pi` PeptideIdentifcation
+                #       
                 #   -----
                 #   :param pi: A spectrum identifications to be annotated, looking up matches from a spectrum and the theoretical spectrum inferred from the identifications sequence
                 #   :param spec: A PeakSpectrum containing the peaks from which the `pi` identifications are made

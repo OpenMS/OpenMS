@@ -22,6 +22,7 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SimpleSVM.h>" namespace "OpenMS":
         void predict(libcpp_vector[ SVMPrediction ] & predictions, libcpp_vector[ size_t ] indexes) nogil except +
             # wrap-doc:
                 #   Predict class labels (and probabilities)
+                #   
                 #   -----
                 #   :param predictions: Output vector of prediction results (same order as ``)
                 #   :param indexes: Vector of observation indexes for which predictions are desired. If empty (default), predictions are made for all observations
@@ -29,6 +30,7 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SimpleSVM.h>" namespace "OpenMS":
         void getFeatureWeights(libcpp_map[ String, double ] & feature_weights) nogil except +
             # wrap-doc:
                 #   Returns the weights used for features (predictors) in the SVM model
+                #   
                 #   -----
                 #   Currently only supported for two-class classification
                 #   If a linear kernel is used, the weights are informative for ranking features

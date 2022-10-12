@@ -11,6 +11,7 @@ cdef extern from "<OpenMS/FORMAT/TextFile.h>" namespace "OpenMS":
         void load(const String &filename, bool trim_linesalse, Int first_n1) nogil except + 
         # wrap-doc:
                 #   Loads data from a text file
+                #   
                 #   -----
                 #   :param filename: The input file name
                 #   :param trim_lines: Whether or not the lines are trimmed when reading them from file

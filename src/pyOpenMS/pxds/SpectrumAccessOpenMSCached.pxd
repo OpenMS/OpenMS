@@ -15,6 +15,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCach
         SpectrumAccessOpenMSCached(String filename) nogil except +
         # wrap-doc:
                 #   An implementation of the Spectrum Access interface using on-disk caching
+                #       
                 #   -----
                 #   This class implements the OpenSWATH Spectrum Access interface
                 #   (ISpectrumAccess) using the CachedmzML class which is able to read and

@@ -32,18 +32,20 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
         # wrap-doc:
                 #   Checks if the provided String points to a valid SIRIUS executable, otherwise tries
                 #   to select the executable from the environment
+                #       
                 #   -----
                 #   :param executable: Path to the potential executable
-                #   :returns: Path to SIRIUS executable
+                #   :return: Path to SIRIUS executable
 
         void preprocessingSirius(const String& featureinfo,
                                  MSExperiment& spectra,
                                  FeatureMapping_FeatureMappingInfo& fm_info,
                                  FeatureMapping_FeatureToMs2Indices& feature_mapping) nogil except +
         # wrap-doc:
-                #   Preprocessing needed for SIRIUS
-                #   -----
+                #   Preprocessing needed for SIRIUS\n
+                #   
                 #   Filter number of masstraces and perform feature mapping
+                #       
                 #   -----
                 #   :param featureinfo: Path to featureXML
                 #   :param spectra: Input of MSExperiment with spectra information
@@ -54,9 +56,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
                                      FeatureMapping_FeatureToMs2Indices& feature_mapping,
                                      MSExperiment& spectra) nogil except +
         # wrap-doc:
-                #   Logs number of features and spectra used
-                #   -----
+                #   Logs number of features and spectra used\n
+                #   
                 #   Prints the number of features and spectra used (OPENMS_LOG_INFO)
+                #       
                 #   -----
                 #   :param featureinfo: Path to featureXML
                 #   :param feature_mapping: FeatureToMs2Indices with feature mapping
@@ -67,6 +70,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
                                 const String& password) nogil except +
         # wrap-doc:
                 #   Log in to SIRIUS using your personal account
+                #       
                 #   -----
                 #   :param executable: Path to executable.
                 #   :param email: User account E-Mail.
@@ -79,6 +83,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
                                                  bool decoy_generation) nogil except +
         # wrap-doc:
                 #   Call SIRIUS with QProcess
+                #       
                 #   -----
                 #   :param tmp_ms_file: Path to temporary .ms file
                 #   :param tmp_out_dir: Path to temporary output folder

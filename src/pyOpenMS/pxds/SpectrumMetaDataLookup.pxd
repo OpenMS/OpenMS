@@ -19,6 +19,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS"
         void readSpectra(MSExperiment spectra, String scan_regexp, bool get_precursor_rt) nogil except +
         # wrap-doc:
                 #   Read spectra and store their meta data
+                #       
                 #   -----
                 #   :param SpectrumContainer: Spectrum container class, must support `size` and `operator[]`
                 #   :param spectra: Container of spectra
@@ -28,6 +29,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS"
         void getSpectrumMetaData(Size index, SpectrumMetaData& meta) nogil except +
         # wrap-doc:
                 #   Look up meta data of a spectrum
+                #       
                 #   -----
                 #   :param index: Index of the spectrum
                 #   :param meta: Meta data output
@@ -35,6 +37,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS"
         void getSpectrumMetaData(String spectrum_ref, SpectrumMetaData& meta) nogil except +
         # wrap-doc:
                 #   Extract meta data from a spectrum
+                #       
                 #   -----
                 #   :param spectrum: Spectrum input
                 #   :param meta: Meta data output
@@ -44,6 +47,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS"
         void getSpectrumMetaData(String spectrum_ref, SpectrumMetaData& meta, unsigned char flags) nogil except +
         # wrap-doc:
                 #   Extract meta data via a spectrum reference
+                #       
                 #   -----
                 #   :param spectrum_ref: Spectrum reference to parse
                 #   :param metadata: Meta data output

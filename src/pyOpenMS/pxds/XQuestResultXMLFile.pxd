@@ -22,6 +22,7 @@ cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
                 libcpp_vector[ ProteinIdentification ] & prot_ids) nogil except +
         # wrap-doc:
                 #   Load the content of the xquest.xml file into the provided data structures
+                #       
                 #   -----
                 #   :param filename: Filename of the file which is to be loaded
                 #   :param pep_ids: Where the spectra with identifications of the input file will be loaded to
@@ -42,6 +43,7 @@ cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
                                 MSExperiment spectra, const bool& test_mode) nogil except +
                 # wrap-doc:
                         #   Writes spec.xml output containing matching peaks between heavy and light spectra after comparing and filtering
+                        #       
                         #   -----
                         #   :param out_file: Path and filename for the output file
                         #   :param base_name: The base_name should be the name of the input spectra file without the file ending. Used as part of an identifier string for the spectra
@@ -55,6 +57,7 @@ cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
                                 MSExperiment spectra, const bool& test_mode) nogil except +
                 # wrap-doc:
                         #   Writes spec.xml output containing spectra for visualization. This version of the function is meant to be used for label-free linkers
+                        #       
                         #   -----
                         #   :param out_file: Path and filename for the output file
                         #   :param base_name: The base_name should be the name of the input spectra file without the file ending. Used as part of an identifier string for the spectra

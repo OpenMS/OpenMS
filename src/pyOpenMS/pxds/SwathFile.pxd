@@ -25,8 +25,8 @@ cdef extern from "<OpenMS/FORMAT/SwathFile.h>" namespace "OpenMS":
                                            shared_ptr[ ExperimentalSettings ] exp_meta,
                                            String readoptions) nogil except +
         # wrap-doc:
-                #   Loads a Swath run from a single mzML file
-                #   -----
+                #   Loads a Swath run from a single mzML file\n
+                #   
                 #   Using the `plugin_consumer`, you can provide a custom consumer which will be chained
                 #   into the process of loading the data and making it available (depending on `readoptions`).
                 #   This is useful if you want to modify the data a priori or extract some other information using

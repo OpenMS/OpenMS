@@ -12,11 +12,11 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>" namespace "Op
         # wrap-inherits:
         #    DefaultParamHandler
 
-        SpectraMerger() nogil except + # wrap-doc:Merges blocks of MS or MS2 spectra
+        SpectraMerger() nogil except + # wrap-doc:\n Merges blocks of MS or MS2 spectra
         SpectraMerger(SpectraMerger &) nogil except +
 
         void mergeSpectraBlockWise(MSExperiment & exp) nogil except +
-        void mergeSpectraPrecursors(MSExperiment & exp) nogil except + # wrap-doc:Merges spectra with similar precursors (must have MS2 level)
+        void mergeSpectraPrecursors(MSExperiment & exp) nogil except + # wrap-doc:\n Merges spectra with similar precursors (must have MS2 level)
         void average(MSExperiment & exp, String average_type) nogil except +
         # wrap-doc:
                 #   Average over neighbouring spectra

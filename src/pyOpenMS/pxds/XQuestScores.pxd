@@ -13,6 +13,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/XQuestScores.h>" namespace "OpenMS":
         float preScore(Size matched_alpha, Size ions_alpha, Size matched_beta, Size ions_beta) nogil except +
         # wrap-doc:
                 #   Compute a simple and fast to compute pre-score for a cross-link spectrum match
+                #       
                 #   -----
                 #   :param matched_alpha: Number of experimental peaks matched to theoretical linear ions from the alpha peptide
                 #   :param ions_alpha: Number of theoretical ions from the alpha peptide
@@ -22,6 +23,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/XQuestScores.h>" namespace "OpenMS":
         float preScore(Size matched_alpha, Size ions_alpha) nogil except +
         # wrap-doc:
                 #   Compute a simple and fast to compute pre-score for a mono-link spectrum match
+                #       
                 #   -----
                 #   :param matched_alpha: Number of experimental peaks matched to theoretical linear ions from the alpha peptide
                 #   :param ions_alpha: Number of theoretical ions from the alpha peptide
@@ -33,6 +35,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/XQuestScores.h>" namespace "OpenMS":
                               Size n_charges) nogil except +
         # wrap-doc:
                 #   Compute the match-odds score, a score based on the probability of getting the given number of matched peaks by chance
+                #       
                 #   -----
                 #   :param theoretical_spec: Theoretical spectrum, sorted by position
                 #   :param matched_size: Alignment between the theoretical and the experimental spectra
@@ -47,6 +50,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/XQuestScores.h>" namespace "OpenMS":
                                 bool fragment_mass_tolerance_unit_ppm) nogil except +
         # wrap-doc:
                 #   Compute the logOccupancyProb score, similar to the match_odds, a score based on the probability of getting the given number of matched peaks by chance
+                #       
                 #   -----
                 #   :param theoretical_spec: Theoretical spectrum, sorted by position
                 #   :param matched_size: Number of matched peaks between experimental and theoretical spectra
