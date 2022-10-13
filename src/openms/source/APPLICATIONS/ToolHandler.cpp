@@ -73,6 +73,7 @@ namespace OpenMS
     tools_map["FileFilter"] = Internal::ToolDescription("FileFilter", "File Handling");
     tools_map["FileInfo"] = Internal::ToolDescription("FileInfo", "File Handling");
     tools_map["FileMerger"] = Internal::ToolDescription("FileMerger", "File Handling");
+    tools_map["FLASHDeconv"] = Internal::ToolDescription("FLASHDeconv", "Signal processing and preprocessing");
     tools_map["GNPSExport"] = Internal::ToolDescription("GNPSExport", "File Handling");
     tools_map["HighResPrecursorMassCorrector"] = Internal::ToolDescription("HighResPrecursorMassCorrector", "Signal processing and preprocessing");
     tools_map["IDConflictResolver"] = Internal::ToolDescription("IDConflictResolver", "ID Processing");
@@ -183,6 +184,7 @@ namespace OpenMS
     const String util_category = "Utilities";
 
     util_map["AccurateMassSearch"] = Internal::ToolDescription("AccurateMassSearch", util_category);
+    util_map["AnalyzeFLASHIda"] = Internal::ToolDescription("AnalyzeFLASHIda", util_category);
     util_map["AssayGeneratorMetabo"] = Internal::ToolDescription("AssayGeneratorMetabo", util_category);
     util_map["CVInspector"] = Internal::ToolDescription("CVInspector", util_category);
     util_map["ClusterMassTraces"] = Internal::ToolDescription("ClusterMassTraces", util_category);
@@ -196,6 +198,7 @@ namespace OpenMS
     util_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", util_category);
     util_map["FeatureFinderMetaboIdent"] = Internal::ToolDescription("FeatureFinderMetaboIdent", util_category);
     util_map["FFEval"] = Internal::ToolDescription("FFEval", util_category);
+    util_map["FilterTopPicResults"] = Internal::ToolDescription("FilterTopPicResults", util_category);
     util_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", util_category);
     util_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", util_category);
     util_map["IDExtractor"] = Internal::ToolDescription("IDExtractor", util_category);
@@ -215,6 +218,7 @@ namespace OpenMS
     util_map["MSstatsConverter"] = Internal::ToolDescription("MSstatsConverter", util_category);
     util_map["MultiplexResolver"] = Internal::ToolDescription("MultiplexResolver", util_category);
     util_map["MzMLSplitter"] = Internal::ToolDescription("MzMLSplitter", util_category);
+    util_map["MzMLToMatlab"] = Internal::ToolDescription("MzMLToMatlab", util_category);
     util_map["NucleicAcidSearchEngine"] = Internal::ToolDescription("NucleicAcidSearchEngine", util_category);
     util_map["OpenMSDatabasesInfo"] = Internal::ToolDescription("OpenMSDatabasesInfo", util_category);
     util_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", util_category);
@@ -226,6 +230,7 @@ namespace OpenMS
     util_map["ProteomicsLFQ"] = Internal::ToolDescription("ProteomicsLFQ", util_category);
     util_map["TargetedFileConverter"] = Internal::ToolDescription("TargetedFileConverter", "Targeted Experiments");
     //util_map["PeakPickerRapid"] = Internal::ToolDescription("PeakPickerRapid", "Signal processing and preprocessing");
+    util_map["ParseMsAlign"] = Internal::ToolDescription("ParseMsAlign", util_category);
     util_map["PSMFeatureExtractor"] = Internal::ToolDescription("PSMFeatureExtractor", util_category);
     util_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", util_category);
     util_map["QCEmbedder"] = Internal::ToolDescription("QCEmbedder", util_category);
