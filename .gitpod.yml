@@ -1,6 +1,6 @@
 tasks:
     - init: >
-        cp -r .vscode-gitpod .vscode && echo "Welcome!" 
+        cp -r .vscode-gitpod .vscode && echo "Welcome!!" 
         git config -f .gitmodules submodule.THIRDPARTY.shallow true && 
         git submodule update --init THIRDPARTY &&
         export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
