@@ -65,28 +65,24 @@ TMTEighteenPlexQuantitationMethod::TMTEighteenPlexQuantitationMethod()
 
     // create the channel map                                                //-2  -1  +1  +2
     // TODO: double check this
-    channels_.push_back(IsobaricChannelInformation("126",   0, "", 126.127726, -1, -1,  2,  -1));
-    channels_.push_back(IsobaricChannelInformation("127N",  1, "", 127.124761, -1, -1,  3,  -1)); //SPW: Product datasheet specifies -15N-> 126(ie 0)
-    channels_.push_back(IsobaricChannelInformation("127C",  2, "", 127.131081, -1,  0,  4,  -1));
-    channels_.push_back(IsobaricChannelInformation("128N",  3, "", 128.128116, -1,  1,  5,  -1));
-    channels_.push_back(IsobaricChannelInformation("128C",  4, "", 128.134436,  -1,  2,  6,  -1));
-    channels_.push_back(IsobaricChannelInformation("129N",  5, "", 129.131471,  -1,  3,  7,  -1));
-    channels_.push_back(IsobaricChannelInformation("129C",  6, "", 129.137790,  -1,  4,  8, -1));
-    channels_.push_back(IsobaricChannelInformation("130N",  7, "", 130.134825,  -1,  5,  9, -1));
-    channels_.push_back(IsobaricChannelInformation("130C",  8, "", 130.141145,  -1,  6, 10, -1));
-    channels_.push_back(IsobaricChannelInformation("131N",  9, "", 131.138180,  -1,  7, 11, -1));
-    channels_.push_back(IsobaricChannelInformation("131C", 10, "", 131.144500,  -1,  8, 12, -1));
-    channels_.push_back(IsobaricChannelInformation("132N", 11, "", 132.141535,  -1,  9, 13, -1));
-    channels_.push_back(IsobaricChannelInformation("132C", 12, "", 132.147855,  -1,  10, 14, -1));
-    channels_.push_back(IsobaricChannelInformation("133N", 13, "", 133.144890,  -1,  11, 15, -1));
-    channels_.push_back(IsobaricChannelInformation("133C", 14, "", 133.151210,  -1,  12, -1, -1));
-    channels_.push_back(IsobaricChannelInformation("134N", 15, "", 134.148245,  -1,  13, -1, -1));
-    channels_.push_back(IsobaricChannelInformation("134C", 16, "", 134.154565,  -1,  14, -1, -1));
-    channels_.push_back(IsobaricChannelInformation("135N", 17, "", 135.151600,  -1,  15, -1, -1));
-
-
-    // Original 10plex channel
-    // channels_.push_back(IsobaricChannelInformation("131", 9, "", 131.138180, 5, 7, -1, -1));
+    channels_.push_back(IsobaricChannelInformation("126",   0, "", 126.127726, -1, -1,  2,  4));
+    channels_.push_back(IsobaricChannelInformation("127N",  1, "", 127.124761, -1, -1,  3,  5));
+    channels_.push_back(IsobaricChannelInformation("127C",  2, "", 127.131081, -1,  0,  4,  6));
+    channels_.push_back(IsobaricChannelInformation("128N",  3, "", 128.128116, -1,  1,  5,  7));
+    channels_.push_back(IsobaricChannelInformation("128C",  4, "", 128.134436,  -1,  2,  6,  8));
+    channels_.push_back(IsobaricChannelInformation("129N",  5, "", 129.131471,  -1,  3,  7,  9)));
+    channels_.push_back(IsobaricChannelInformation("129C",  6, "", 129.137790,  2,  4,  8, 10));
+    channels_.push_back(IsobaricChannelInformation("130N",  7, "", 130.134825,  3,  5,  9, 11));
+    channels_.push_back(IsobaricChannelInformation("130C",  8, "", 130.141145,  4,  6, 10, 12));
+    channels_.push_back(IsobaricChannelInformation("131N",  9, "", 131.138180,  5,  7, 11, 13));
+    channels_.push_back(IsobaricChannelInformation("131C", 10, "", 131.144500,  6,  8, 12, 14));
+    channels_.push_back(IsobaricChannelInformation("132N", 11, "", 132.141535,  7,  9, 13, 15));
+    channels_.push_back(IsobaricChannelInformation("132C", 12, "", 132.147855,  8,  10, 14, 16));
+    channels_.push_back(IsobaricChannelInformation("133N", 13, "", 133.144890,  9,  11, 15, 17));
+    channels_.push_back(IsobaricChannelInformation("133C", 14, "", 133.151210,  10,  12, 16, -1));
+    channels_.push_back(IsobaricChannelInformation("134N", 15, "", 134.148245,  11,  13, 17, -1));
+    channels_.push_back(IsobaricChannelInformation("134C", 16, "", 134.154565,  12,  14, -1, -1));
+    channels_.push_back(IsobaricChannelInformation("135N", 17, "", 135.151600,  13,  15, -1, -1));
 
     // we assume 126 to be the reference
     reference_channel_ = 0;
@@ -119,25 +115,25 @@ void TMTEighteenPlexQuantitationMethod::setDefaultParams_()
     defaults_.setValidStrings("reference_channel", TMTEighteenPlexQuantitationMethod::channel_names_);
 
     // TODO: verify these
-    defaults_.setValue("correction_matrix", std::vector<std::string>{"0.0/0.0/8.02/0.0",
-                                                                      "0.0/0.68/7.46/0.0",
-                                                                      "0.0/0.71/6.94/0.0",
-                                                                      "0.0/1.88/6.67/0.0",
-                                                                      "0.0/1.34/5.59/0.0",
-                                                                      "0.0/2.41/5.48/0.0",
-                                                                      "0.0/2.34/5.19/0.0",
-                                                                      "0.0/3.53/4.57/0.0",
-                                                                      "0.0/2.67/4.16/0.0",
-                                                                      "0.0/3.92/3.73/0.0",
-                                                                      "0.0/3.69/3.14/0.0",
-                                                                      "0.0/3.22/2.76/0.0",
-                                                                      "0.0/4.11/2.0/0.0",
-                                                                      "0.0/3.85/1.58/0.0",
-                                                                      "0.0/4.63/1.18/0.0",
-                                                                      "0.0/5.22/0.86/0.0",
-                                                                      "0.0/5.81/0.31/0.0",
-                                                                      "0.0/5.42/0.00/0.0"},
-                       "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
+    defaults_.setValue("correction_matrix", std::vector<std::string>{"0.0/0.0/9.40/0.34",
+                                                                      "0.0/0.78/9.41/0.33",
+                                                                      "0.0/0.93/8.98/0.28",
+                                                                      "0.0/1.47/8.13/0.26",
+                                                                      "0.0/1.47/7.25/0.15",
+                                                                      "0.0/2.74/6.86/0.15",
+                                                                      "0.13/2.59/6.39/0.10",
+                                                                      "0.13/2.68/5.58/0.10",
+                                                                      "0.04/3.10/5.24/0.08",
+                                                                      "0.03/3.41/4.57/0.12",
+                                                                      "0.08/3.90/4.04/0.04",
+                                                                      "0.16/4.30/1.80/0.0",
+                                                                      "0.11/4.55/2.29/0.0",
+                                                                      "0.08/3.87/3.49/0.03",
+                                                                      "0.22/4.96/1.37/0.0",
+                                                                      "0.33/6.11/1.14/0.0",
+                                                                      "0.14/5.81/0.31/0.0",
+                                                                      "0.21/5.42/0.00/0.0"},
+                       "Correction matrix for isotope distributions in percent (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
     defaultsToParam_();
 }
