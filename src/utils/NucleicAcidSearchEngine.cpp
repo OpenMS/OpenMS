@@ -1339,8 +1339,9 @@ protected:
               }
               else // already have enough hits for this spectrum - replace one?
               {
-                double worst_score = (--scan_hits.end())->first;
-                if (score >= worst_score)
+                auto worst_hit = (--scan_hits.end());
+                double worst_score = worst_hit->first;
+                if (score >= worst_score || (score == worst_score && annotations.size()> worst_hit->second.annotations.size())) // If we have a tied score chose the result with more annotations
                 {
                   pos = scan_hits.insert(make_pair(score, AnnotatedHit()));
                   // prune list of hits if possible (careful about tied scores):
