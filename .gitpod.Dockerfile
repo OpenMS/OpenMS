@@ -1,4 +1,4 @@
-FROM ghcr.io/openms/contrib@sha256:a37637f87098e622831eda12ffacd794b4c748ab63cd4bea3e49374e0cedae14
+FROM ghcr.io/openms/contrib
                     
 #USER gitpod
 # Avoid user input
