@@ -1341,7 +1341,7 @@ protected:
               {
                 auto worst_hit = (--scan_hits.end());
                 double worst_score = worst_hit->first;
-                if (score >= worst_score || (score == worst_score && annotations.size()> worst_hit->second.annotations.size())) // If we have a tied score chose the result with more annotations
+                if (score > worst_score || (score == worst_score && annotations.size() > worst_hit->second.annotations.size())) // If we have a tied score chose the result with more annotations
                 {
                   pos = scan_hits.insert(make_pair(score, AnnotatedHit()));
                   // prune list of hits if possible (careful about tied scores):
