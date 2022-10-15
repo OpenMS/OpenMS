@@ -1,17 +1,17 @@
 tasks:
-    - init: >
-        cp -r .vscode-gitpod .vscode && echo "Welcome!!" 
-        git config -f .gitmodules submodule.THIRDPARTY.shallow true && 
-        git submodule update --init THIRDPARTY &&
-        export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
-        export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" ) &&
-        mkdir -p build && pushd build &&
-        cmake -DCMAKE_BUILD_TYPE=Debug -DHAS_XSERVER=OFF -DENABLE_DOCS=OFF -DWITH_GUI=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../ &&
-        make -j7 OpenMS TOPP &&
+    - init: |
+        cp -r .vscode-gitpod .vscode
+        git config -f .gitmodules submodule.THIRDPARTY.shallow true
+        git submodule update --init THIRDPARTY
+        export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" )
+        export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" )
+        mkdir -p build && pushd build
+        cmake -DCMAKE_BUILD_TYPE=Debug -DHAS_XSERVER=OFF -DENABLE_DOCS=OFF -DWITH_GUI=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../
+        make -j7 OpenMS TOPP
         popd
-      command:  >
-        export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" ) &&
-        export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" ) &&
+      command: |
+        export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" )
+        export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" )
         pushd build && make -j7 all && popd
 image:
   file: .gitpod.Dockerfile
@@ -38,7 +38,7 @@ vscode:
   extensions:
     #Will never be available on OpenVSX
     #- ms-vscode.cpptools
-    - https://github.com/microsoft/vscode-cpptools/releases/download/1.12.4/cpptools-linux.vsix
+    - https://github.com/microsoft/vscode-cpptools/releases/download/v1.12.4/cpptools-linux.vsix
     - hbenl.vscode-test-explorer
     - fredericbonnet.cmake-test-adapter
     - llvm-vs-code-extensions.vscode-clangd
