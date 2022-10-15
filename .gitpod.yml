@@ -45,3 +45,5 @@ vscode:
     - ms-vscode.cmake-tools
     - mhutchie.git-graph
     - cschlosser.doxdocgen
+    - hbenl.test-adapter-converter
+    - twxs.cmake
