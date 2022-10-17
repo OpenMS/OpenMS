@@ -74,7 +74,6 @@ public:
       {        
       }
 
-
     String name;
     String formula;
     double mass;
@@ -82,6 +81,34 @@ public:
     std::vector<double> rts;
     std::vector<double> rt_ranges;
     std::vector<double> iso_distrib;
+
+    const String& getName() {
+      return name;
+    }
+
+    const String& getFormula() {
+      return formula;
+    }
+
+    const double& getMass() {
+      return mass;
+    }
+
+    const std::vector<int>& getCharges() {
+      return charges;
+    }
+
+    const std::vector<double>& getRTs() {
+      return rts;
+    }
+
+    const std::vector<double>& getRTRanges() {
+      return rt_ranges;
+    }
+
+    const std::vector<double>& getIsoDistrib() {
+      return iso_distrib;
+    }
   };
 
   /// default constructor
