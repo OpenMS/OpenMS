@@ -51,8 +51,8 @@ namespace OpenMS
       - it checks for valid parameters:
           - unknown/misspelled parameter names
           - correct parameter type
-        - range restrictions of numeric parameters
-        - valid values for string parameters (enum)
+          - range restrictions of numeric parameters
+          - valid values for string parameters (enum)
       - subsections that are passed to other classes can be excluded from the check (subsections_)
       - it keeps member variables in synchronicity with the parameters stored in param_
       - it helps to automatically create a doxygen documentation page for the parameters

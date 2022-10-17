@@ -25,6 +25,7 @@ set(qc_executables_list
   Ms2IdentificationRate_test
   Ms2SpectrumStats_test
   MQEvidenceExporter_test
+  MQMsmsExporter_test
   MzCalibration_test
   PeptideMass_test
   PSMExplainedIonCurrent_test
