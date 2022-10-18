@@ -51,7 +51,7 @@ START_TEST(Distribution, "$Id$")
 
 // ///////////////////////////////////////////////////////////
 
-START_SECTION(std::pair<double, double> zoomIn(const double left, const double right, const float factor, const float align))
+START_SECTION((std::pair<double, double> zoomIn(const double left, const double right, const float factor, const float align)))
 {
   {
     auto r = zoomIn(10, 20, 0.5, 0);

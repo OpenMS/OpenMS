@@ -485,9 +485,9 @@ int main(int argc, char** argv)
   DOCME2(TOPPViewBase, TOPPViewBase(TOPPViewBase::TOOL_SCAN::SKIP_SCAN));
   DOCME(TOPPASBase);
 
-  DOCME2(Plot1DCanvas, Plot1DCanvas(Param(), nullptr));
-  DOCME2(Plot2DCanvas, Plot2DCanvas(Param(), nullptr));
-  DOCME2(Plot3DCanvas, Plot3DCanvas(Param(), nullptr));
+  DOCME2(Plot1DCanvas, Plot1DCanvas(Param()));
+  DOCME2(Plot2DCanvas, Plot2DCanvas(Param()));
+  DOCME2(Plot3DCanvas, Plot3DCanvas(Param()));
 #endif
 
   return 0;
