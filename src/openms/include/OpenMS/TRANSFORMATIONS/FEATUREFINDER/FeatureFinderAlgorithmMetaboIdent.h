@@ -106,7 +106,7 @@ public:
       return rt_ranges;
     }
 
-    const std::vector<double>& getIsoDistrib() {
+    const std::vector<double>& getIsotopeDistribution() {
       return iso_distrib;
     }
   };
