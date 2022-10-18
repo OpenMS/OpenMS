@@ -128,7 +128,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
         #     -----
         #     :rtype: list of float
 
-        libcpp_vector[ double ] getIsoDistrib() nogil except +
+        libcpp_vector[ double ] getIsotopeDistribution() nogil except +
         # wrap-doc:
         #     Gets the compound isotopic distributions.
         #     
