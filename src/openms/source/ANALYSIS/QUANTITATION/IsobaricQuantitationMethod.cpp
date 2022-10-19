@@ -74,20 +74,20 @@ namespace OpenMS
       Int target_channel;
       for (const auto& c : corrections)
       {
-        if (c != "-1" && c != "0.0")
+        if (c != "NA" && c != "-1" && c != "0.0")
         {
           target_channel = getChannelInformation()[contributing_channel].affected_channels[affected_channel_idx];
+          correction = c.toDouble();
           if (target_channel >= 0 && target_channel < getNumberOfChannels())
           {
-            correction = c.toDouble();
             channel_frequency.setValue(target_channel, contributing_channel, correction / 100.0);
-            self_contribution -= correction;
           }
+          self_contribution -= correction; // count reduced self-contribution even if it does not affect another channel
         }
         affected_channel_idx++;
       }
       // set reduced self contribution
-      channel_frequency.setValue(contributing_channel, contributing_channel, (self_contribution / 100));
+      channel_frequency.setValue(contributing_channel, contributing_channel, self_contribution / 100.0);
       // increment channel index
       ++contributing_channel;
     }
