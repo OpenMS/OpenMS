@@ -81,7 +81,7 @@ namespace OpenMS
     void draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped = false) override;
 
     // Docu in base class
-    void move(PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override;
+    void move(const PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override;
 
     /// Sets the center position of the line (the widths will extend from there)
     void setPosition(const PointXYType& pos);

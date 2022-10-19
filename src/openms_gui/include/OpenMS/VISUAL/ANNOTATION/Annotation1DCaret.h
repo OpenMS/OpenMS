@@ -36,7 +36,10 @@
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/Painter1DBase.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
 
+#include <QPainter>
 #include <QtGui/QColor>
 #include <QStaticText> 
 
@@ -157,7 +160,7 @@ public:
     }
 
     // Docu in base class
-    void move(PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override
+    void move(const PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override
     {
       auto xy_before = dim_mapper.map(position_);
       xy_before += delta;

@@ -65,7 +65,7 @@ public:
     void draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped = false) override;
 
     // Docu in base class
-    void move(PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override;
+    void move(const PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override;
 
     /// Sets the position of the item (in X-Y coordinates)
     void setPosition(const PointXYType& position)

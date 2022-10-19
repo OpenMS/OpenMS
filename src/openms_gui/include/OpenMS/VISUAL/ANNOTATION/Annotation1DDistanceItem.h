@@ -54,16 +54,7 @@ public:
      * \param end_point End point in XY unit coordinates 
      * \param swap_ends_if_negative Make sure the distance is positive when creating the distance item?
      */
-    Annotation1DDistanceItem(const QString & text, const PointXYType& start_point, const PointXYType& end_point, const bool swap_ends_if_negative = true)
-      : Annotation1DItem(text), start_point_(start_point), end_point_(end_point)
-    {
-      if (swap_ends_if_negative && start_point_ > end_point_)
-      {
-        { // make sure the distance is positive when creating the distance item
-          start_point_.swap(end_point_);
-        }
-      }
-    }
+    Annotation1DDistanceItem(const QString& text, const PointXYType& start_point, const PointXYType& end_point, const bool swap_ends_if_negative = true);
     /// Copy constructor
     Annotation1DDistanceItem(const Annotation1DDistanceItem & rhs) = default;
     /// Destructor
@@ -74,8 +65,9 @@ public:
 
     // Docu in base class
     void draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped = false) override;
-
-    void move(PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override;
+    
+    // Docu in base class
+    void move(const PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override;
 
     /// Returns the start point
     const PointXYType& getStartPoint() const
@@ -96,18 +88,10 @@ public:
      *
      * \return sign * sqrt(deltaX^2 + deltaY^2), where deltaX/Y is the difference between start and endpoint in dimension X/Y
      */
-    double getDistance() const
-    {
-      const auto delta = end_point_ - start_point_;
-      const auto dist = std::sqrt(delta.getX() * delta.getX() + delta.getY() * delta.getY());
-      return std::copysign(1, delta.getX() + delta.getY()) * dist;  
-    }
+    double getDistance() const;
 
     /// Set tick lines for the distance item in unit XY coordinates (the gravity dimension is ignored)
-    void setTicks(const std::vector<PointXYType>& ticks)
-    {
-      ticks_ = ticks;
-    }
+    void setTicks(const std::vector<PointXYType>& ticks);
 
     // Docu in base class
     Annotation1DItem* clone() const override

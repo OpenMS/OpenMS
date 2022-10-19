@@ -89,8 +89,8 @@ namespace OpenMS
     /// Draws the item on @p painter
     virtual void draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped = false) = 0;
 
-    /// Moves the item; behavior depends on item type and is implemented in the subclasses
-    virtual void move(PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) = 0;
+    /// Moves the item on the drawing canvas; behavior depends on item type and is implemented in the subclasses
+    virtual void move(const PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) = 0;
 
     /// Creates a copy of the item on the heap and returns a pointer
     virtual Annotation1DItem* clone() const = 0;

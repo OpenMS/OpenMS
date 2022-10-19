@@ -475,8 +475,13 @@ public:
       unit_mapper_.fromXY(xy_unit, data_point);    // xy to datatype
     }
 
-    template<>
-    void pushIntoDataRange<PointXYType>(PointXYType& xy_unit, const int layer_index)
+    /**
+     * \brief Pushes a data point back into the valid data range of the current layer area. Useful for annotation items which were mouse-dragged outside the range by the user.
+     * \param xy_unit A pair (X and Y coordinate) with values in the units currently used on the axis
+     * \param layer_index The layer of the above data_point (to obtain the data range of the layer)
+     */
+    //template<>  // specialization does not compile when declared within the class on GCC -- even though it should; but I'm not moving it outside! :)
+    void pushIntoDataRange(PointXYType& xy_unit, const int layer_index)
     { // note: if this is needed for anything other than the 1D Canvas, you need to make sure to call the correct widgetToData/ etc functions --- they work a bit different, depending on Canvas
       auto p_range = unit_mapper_.fromXY(xy_unit);
       const auto all_range = getLayer(layer_index).getRange();

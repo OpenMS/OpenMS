@@ -34,6 +34,8 @@
 
 #pragma once
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+
 #include <QPainterPath>
 
 class QPainter;
@@ -41,6 +43,7 @@ class QPenStyle;
 
 namespace OpenMS
 {
+  class LayerData1DBase;
   class LayerData1DChrom;
   class LayerData1DIonMobility;
   class LayerData1DPeak;

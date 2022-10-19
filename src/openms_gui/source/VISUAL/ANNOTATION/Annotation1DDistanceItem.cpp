@@ -36,6 +36,8 @@
 
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 
+#include <cmath>
+
 using namespace std;
 
 namespace OpenMS
@@ -43,6 +45,17 @@ namespace OpenMS
   namespace
   {
     Annotation1DDistanceItem p("test", {0, 0}, {0, 0});  
+  }
+
+  Annotation1DDistanceItem::Annotation1DDistanceItem(const QString& text, const PointXYType& start_point, const PointXYType& end_point, const bool swap_ends_if_negative) :
+      Annotation1DItem(text), start_point_(start_point), end_point_(end_point)
+  {
+    if (swap_ends_if_negative && start_point_ > end_point_)
+    {
+      { // make sure the distance is positive when creating the distance item
+        start_point_.swap(end_point_);
+      }
+    }
   }
 
   void Annotation1DDistanceItem::ensureWithinDataRange(Plot1DCanvas* const canvas, const int layer_index)
@@ -92,9 +105,21 @@ namespace OpenMS
     }
   }
 
-  void Annotation1DDistanceItem::move(PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper)
+  void Annotation1DDistanceItem::move(const PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper)
   {
     start_point_ = gr.gravitateWith(start_point_, delta); // only change the gravity axis
     end_point_ = gr.gravitateWith(end_point_, delta);     // only change the gravity axis
+  }
+
+  double Annotation1DDistanceItem::getDistance() const
+  {
+    const auto delta = end_point_ - start_point_;
+    const auto dist = std::sqrt(delta.getX() * delta.getX() + delta.getY() * delta.getY());
+    return std::copysign(1, delta.getX() + delta.getY()) * dist;
+  }
+
+  void Annotation1DDistanceItem::setTicks(const std::vector<PointXYType>& ticks)
+  {
+    ticks_ = ticks;
   }
 } // namespace OpenMS
