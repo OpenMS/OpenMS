@@ -147,7 +147,7 @@ Avoid using pointers. Pointers tend to cause segmentation faults. Try to use ref
 
 @section iterators Iterators
 
-In simple looping constructs, iterators are generally preferable to indexed access. Prefer <code>++i</code> to <code>i++</code>, because the preincrement operator can save a copy constructor. Use <cod>const_iterators</code> where possible to help avoid unwanted side effects.
+In simple looping constructs, iterators are generally preferable to indexed access. Prefer <code>++i</code> to <code>i++</code>, because the preincrement operator can save a copy constructor. Use <code>const_iterators</code> where possible to help avoid unwanted side effects.
 
 @section includes Includes
 
