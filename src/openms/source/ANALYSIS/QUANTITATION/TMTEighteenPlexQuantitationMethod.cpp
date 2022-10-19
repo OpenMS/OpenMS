@@ -51,20 +51,7 @@ TMTEighteenPlexQuantitationMethod::TMTEighteenPlexQuantitationMethod()
     setName("TMTEighteenPlexQuantitationMethod");
 
     //    // mass map outline - for further details please see #2427 (was adapted for tmt18plex)
-    //    "126", 126.127726, x, x, 127C, 128C
-    //    "127N", 127.124761, x, x, 128N, 129N
-    //    "127C", 127.131081, x, 126, 128C, 129C
-    //    "128N", 128.128116, x, 127N, 129N, 130N
-    //    "128C", 128.134436, 126, 127C, 129C, 130C
-    //    "129N", 129.131471, 127N, 128N, 130N, 131N
-    //    "129C", 129.137790, 127C, 128C, 130C, 131C
-    //    "130N", 130.134825, 128N, 129N, 131N, x
-    //    "130C", 130.141145, 128C, 129C, 131C, x
-    //    "131N", 131.138180, 129N, 130N, x, x
-    //    "131C", 131.144500, 129C, 130C, x, x
-
     // create the channel map                                                //-2  -1  +1  +2
-    // TODO: double check this
     channels_.push_back(IsobaricChannelInformation("126",   0, "", 126.127726, -1, -1,  2,  4));
     channels_.push_back(IsobaricChannelInformation("127N",  1, "", 127.124761, -1, -1,  3,  5));
     channels_.push_back(IsobaricChannelInformation("127C",  2, "", 127.131081, -1,  0,  4,  6));
