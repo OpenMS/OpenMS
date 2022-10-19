@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -540,6 +540,30 @@ namespace OpenMS
       */
       inline const std::string   NUM_OF_DATAPOINTS = "num_of_datapoints";
 
+      /** User parameter name for the name/description of a metabolite. (Required for MetaboliteSpectralMatcher)
+              String
+      */
+      inline const std::string   MSM_METABOLITE_NAME = "Metabolite_Name";
+
+      /** User parameter name for the INCHI key associated with a metabolite. (Required for MetaboliteSpectralMatcher)
+              String
+      */
+      inline const std::string   MSM_INCHI_STRING = "Inchi_String";
+
+      /** User parameter name for the SMILES key associated with a metabolite. (Required for MetaboliteSpectralMatcher)
+              String
+      */
+      inline const std::string   MSM_SMILES_STRING = "SMILES_String";
+
+      /** User parameter name for the precursor adduct ion of a metabolite. (Required for MetaboliteSpectralMatcher)
+              String
+      */
+      inline const std::string   MSM_PRECURSOR_ADDUCT = "Precursor_Ion";
+
+      /** User parameter name for the sum formula of a metabolite. (Required for MetaboliteSpectralMatcher)
+              String
+      */
+      inline const std::string   MSM_SUM_FORMULA = "Sum_Formula";
     }
 
     //@}

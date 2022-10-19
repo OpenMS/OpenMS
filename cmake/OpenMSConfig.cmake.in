@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -54,7 +54,6 @@ find_dependency(LIBSVM 2.91)
 
 # Rest are private linked libraries
 #find_dependency(Boost COMPONENTS @OpenMS_BOOST_COMPONENTS@)
-#find_dependency(WM5)
 #find_dependency(COIN)
 #find_dependency(GLPK)
 #find_dependency(ZLIB)

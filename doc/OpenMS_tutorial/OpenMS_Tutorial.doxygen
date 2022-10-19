@@ -2,7 +2,7 @@
 //                   %OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The %OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -131,17 +131,17 @@ The nightly (unstable) installers are available <a href="http://ftp.mi.fu-berlin
 <b>Technical Documentation</b><br>
 Documentation of classes and tools is automatically generated using doxygen:
 See the documentation for <a href="http://www.openms.de/current_doxygen/html/">HEAD</a>
-See the documentation for the latest <a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html">release branch</a>
+See the documentation for the latest <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html">release branch</a>
 <br>
 <br>
 <b>Building %OpenMS</b><br>
 Before you get started coding with %OpenMS you need to build it for your operating system. Please follow the <b>build instructions</b> from the documentation.
 <br>
-<a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/2.3.0/html/install_linux.html"><b>Building %OpenMS on GNU/Linux</b></a>
+<a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_linux.html"><b>Building %OpenMS on GNU/Linux</b></a>
 <br>
-<a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/2.3.0/html/install_mac.html"><b>Building %OpenMS on Mac OS X</b></a>
+<a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_mac.html"><b>Building %OpenMS on Mac OS X</b></a>
 <br>
-<a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/2.3.0/html/install_win.html"><b>Building %OpenMS on Windows</b></a>
+<a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_win.html"><b>Building %OpenMS on Windows</b></a>
 <br>
 Note that for development purposes, you might want to set the variable <i>CMAKE_BUILD_TYPE</i> to <i>Debug</i>. Otherwise, the default <i>Release</i> will be applied and disables pre-condition and post-condition checks, and assertions.
 <br>
@@ -301,7 +301,7 @@ Within the ANALYSIS folder, you can find several important tools
 For the sake of completeness you will find a short list of the THIRDPARTY tools, which are integrated via wrappers into the %OpenMS framework (usually called -Adapter e.g. SiriusAdapter)
 
 Wrapper to third-party tools:
-    - Search Engines (MSGFPLUS, XTandem, OMSSA, Comet, MyriMatch)
+    - Search Engines (MSGFPLUS, XTandem, Comet)
     - Protein Inference (Fido)
     - Spectral Library Search (SpectraST)
     - Metabolite Identification (Sirius)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -538,7 +538,7 @@ namespace OpenMS
     }
     endProgress();
 
-    OPENMS_LOG_INFO << "Picked spectra by MS-level:\n";
+    OPENMS_LOG_INFO << "#Spectra that needed to and could be picked by MS-level:\n";
     for (const auto& info : pick_info)
     {
       OPENMS_LOG_INFO << "  MS-level " << info.first << ": " << info.second.picked << " / " << info.second.total << "\n";

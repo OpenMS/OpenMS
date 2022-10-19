@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,11 +59,11 @@ public:
     /// Dimension
     enum {DIMENSION = 1};
     /// Intensity type
-    typedef float IntensityType;
+    using IntensityType = float;
     /// Position type
-    typedef DPosition<1> PositionType;
+    using PositionType = DPosition<1>;
     /// Coordinate type
-    typedef double CoordinateType;
+    using CoordinateType = double;
     ///@}
 
     ///@name Constructors and Destructor
@@ -81,6 +81,12 @@ public:
     Peak1D(const Peak1D & p) = default;
 
     Peak1D(Peak1D&&) noexcept = default;
+
+    /// Assignment operator
+    Peak1D& operator=(const Peak1D& rhs) = default;
+
+    /// Move assignment operator
+    Peak1D& operator=(Peak1D&&) noexcept = default;
 
     /**
       @brief Destructor
@@ -146,9 +152,6 @@ public:
     }
 
     ///@}
-
-    /// Assignment operator
-    Peak1D & operator=(const Peak1D & rhs) = default;
 
     /// Equality operator
     bool operator==(const Peak1D & rhs) const

@@ -56,7 +56,7 @@ jobs:
       run: |
           mkdir contribbld
           cd contribbld
-          curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-14.2/contrib_build.tar.gz
+          curl -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-14.2/contrib_build.tar.gz
           tar -xzf contribbld.tar.gz
           rm contribbld.tar.gz
 
@@ -105,7 +105,7 @@ jobs:
             pip install -U setuptools
             pip install -U pip
             pip install -U autowrap
-            pip install -U nose
+            pip install -U pytest
             pip install -U numpy
             pip install -U wheel
 
@@ -143,17 +143,16 @@ jobs:
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v1.9
       with:
-        cmake-version: '3.20.x'
+        cmake-version: '3.23.x'
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v2
+      uses: jurplel/install-qt-action@v3
       with:
         version: '5.12.7'
         host: 'mac'
         target: 'desktop'
         install-deps: 'true'
-        modules: 'qtsvg'
-        cached: 'false'
+        cache: 'false'
         setup-python: 'false' # https://github.com/jurplel/install-qt-action/issues/130
 
     - name: Install Miniconda
@@ -176,7 +175,7 @@ jobs:
       run: |
           mkdir contribbld
           cd contribbld
-          curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/macOS/10.15.5/x64/appleclang-11.0.0/contrib_build.tar.gz
+          curl -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/macOS/10.15.5/x64/appleclang-11.0.0/contrib_build.tar.gz
           tar -xzf contribbld.tar.gz
           rm contribbld.tar.gz
           cd .. 
@@ -246,7 +245,7 @@ jobs:
             pip install -U setuptools
             pip install -U pip
             pip install -U autowrap
-            pip install -U nose
+            pip install -U pytest
             pip install -U numpy
             pip install -U wheel
             pip install -U pandas
@@ -328,7 +327,7 @@ jobs:
               "$PYBIN/bin/pip" install -U setuptools
               "$PYBIN/bin/pip" install -U wheel==0.31.1
               "$PYBIN/bin/pip" install -U numpy
-              "$PYBIN/bin/pip" install -U nose
+              "$PYBIN/bin/pip" install -U pytest
               "$PYBIN/bin/pip" install -U autowrap
             done
 
@@ -478,17 +477,18 @@ jobs:
             pwd
             ls -la wheels/
 
-    - name: Publish package to nightly PyPI (warning, somehow also can publish to general package)
+    - name: Publish package to nightly PyPI
       if: "github.ref == 'refs/heads/nightly'"
-      uses: pypa/gh-action-pypi-publish@master
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        user: __token__
-        password: ${{ secrets.pypi_api_token }}
+        repository_url: https://abi-services.informatik.uni-tuebingen.de/pypi/
+        user: openms
+        password: ${{ secrets.abiservices_pypi_pw }}
         packages_dir: ${{ github.workspace }}/wheels
 
     - name: Publish package to PyPI
       if: "contains(github.ref, 'Release')"
-      uses: pypa/gh-action-pypi-publish@master
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
         password: ${{ secrets.pypi_api_token_release }}

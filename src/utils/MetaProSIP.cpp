@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -246,7 +246,7 @@ public:
 
     const size_t n = x.size();
 
-    //Wm5::IntpAkimaNonuniform1<double> spline(x.size(), &x.front(), &y.front());
+    //gte::IntpAkimaNonuniform1<double> spline(x.size(), &x.front(), &y.front());
     CubicSpline2d spline(x, y);
 
     if (debug)

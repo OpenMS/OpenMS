@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -2428,52 +2428,56 @@ add_test("TOPP_ProteinQuantifier_1_out1" ${DIFF} -in1 ProteinQuantifier_1_output
 set_tests_properties("TOPP_ProteinQuantifier_1_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_1")
 add_test("TOPP_ProteinQuantifier_1_out2" ${DIFF} -in1 ProteinQuantifier_1_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_1_output2.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_1_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_1")
-add_test("TOPP_ProteinQuantifier_2" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ProteinQuantifier_2_output1.tmp -peptide_out ProteinQuantifier_2_output2.tmp -top 2 -include_all -best_charge_and_fraction -average sum)
+add_test("TOPP_ProteinQuantifier_2" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ProteinQuantifier_2_output1.tmp -peptide_out ProteinQuantifier_2_output2.tmp -top:N 2 -top:include_all -best_charge_and_fraction -top:aggregate sum)
 add_test("TOPP_ProteinQuantifier_2_out1" ${DIFF} -in1 ProteinQuantifier_2_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_2_output1.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_2_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_2")
 add_test("TOPP_ProteinQuantifier_2_out2" ${DIFF} -in1 ProteinQuantifier_2_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_2_output2.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_2_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_2")
 # handling of modified peptides:
-add_test("TOPP_ProteinQuantifier_3" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_3_input.featureXML -out ProteinQuantifier_3_output1.tmp -peptide_out ProteinQuantifier_3_output2.tmp -top 2 -include_all -average mean)
+add_test("TOPP_ProteinQuantifier_3" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_3_input.featureXML -out ProteinQuantifier_3_output1.tmp -peptide_out ProteinQuantifier_3_output2.tmp -top:N 2 -top:include_all -top:aggregate mean)
 add_test("TOPP_ProteinQuantifier_3_out1" ${DIFF} -in1 ProteinQuantifier_3_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_3_output1.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_3_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_3")
 add_test("TOPP_ProteinQuantifier_3_out2" ${DIFF} -in1 ProteinQuantifier_3_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_3_output2.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_3_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_3")
 # consensusXML input, different options for protein quantification:
-add_test("TOPP_ProteinQuantifier_4" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_4_output.tmp -top 0 -average sum)
+add_test("TOPP_ProteinQuantifier_4" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_4_output.tmp -top:N 0 -top:aggregate sum)
 add_test("TOPP_ProteinQuantifier_4_out1" ${DIFF} -in1 ProteinQuantifier_4_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_4_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_4_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_4")
-add_test("TOPP_ProteinQuantifier_5" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_5_output.tmp -top 3 -average sum)
+add_test("TOPP_ProteinQuantifier_5" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_5_output.tmp -top:N 3 -top:aggregate sum)
 add_test("TOPP_ProteinQuantifier_5_out1" ${DIFF} -in1 ProteinQuantifier_5_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_5_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_5_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_5")
-add_test("TOPP_ProteinQuantifier_6" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_6_output.tmp -top 3 -include_all -average sum)
+add_test("TOPP_ProteinQuantifier_6" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_6_output.tmp -top:N 3 -top:include_all -top:aggregate sum)
 add_test("TOPP_ProteinQuantifier_6_out1" ${DIFF} -in1 ProteinQuantifier_6_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_6_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_6_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_6")
-add_test("TOPP_ProteinQuantifier_7" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_7_output.tmp -top 0 -consensus:fix_peptides -average sum)
+add_test("TOPP_ProteinQuantifier_7" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_7_output.tmp -top:N 0 -consensus:fix_peptides -top:aggregate sum)
 add_test("TOPP_ProteinQuantifier_7_out1" ${DIFF} -in1 ProteinQuantifier_7_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_7_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_7_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_7")
-add_test("TOPP_ProteinQuantifier_8" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_8_output.tmp -top 3 -consensus:fix_peptides -average sum)
+add_test("TOPP_ProteinQuantifier_8" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_8_output.tmp -top:N 3 -consensus:fix_peptides -top:aggregate sum)
 add_test("TOPP_ProteinQuantifier_8_out1" ${DIFF} -in1 ProteinQuantifier_8_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_8_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_8_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_8")
-add_test("TOPP_ProteinQuantifier_9" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_9_output.tmp -mztab ProteinQuantifier_9_output_mztab.tmp -top 3 -include_all -consensus:fix_peptides -average sum)
+add_test("TOPP_ProteinQuantifier_9" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_9_output.tmp -mztab ProteinQuantifier_9_output_mztab.tmp -top:N 3 -top:include_all -consensus:fix_peptides -top:aggregate sum)
 add_test("TOPP_ProteinQuantifier_9_out1" ${DIFF} -in1 ProteinQuantifier_9_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_9_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_9_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_9")
 add_test("TOPP_ProteinQuantifier_9_out2" ${DIFF} -in1 ProteinQuantifier_9_output_mztab.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_9_output_mztab.mzTab -whitelist "software")
 set_tests_properties("TOPP_ProteinQuantifier_9_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_9")
 
 #ratios
-add_test("TOPP_ProteinQuantifier_12" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_12_output.tmp -top 3 -include_all -consensus:fix_peptides -average sum -ratios)
+add_test("TOPP_ProteinQuantifier_12" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_12_output.tmp -top:N 3 -top:include_all -consensus:fix_peptides -top:aggregate sum -ratios)
 add_test("TOPP_ProteinQuantifier_12_out1" ${DIFF} -in1 ProteinQuantifier_12_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_12_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_12_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_12")
-add_test("TOPP_ProteinQuantifier_13" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_13_output.tmp -top 3 -include_all -consensus:fix_peptides -average sum -ratiosSILAC)
+add_test("TOPP_ProteinQuantifier_13" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_13_output.tmp -top:N 3 -top:include_all -consensus:fix_peptides -top:aggregate sum -ratiosSILAC)
 add_test("TOPP_ProteinQuantifier_13_out1" ${DIFF} -in1 ProteinQuantifier_13_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_13_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_13_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_13")
 # idXML input (spectral counting):
-add_test("TOPP_ProteinQuantifier_14" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.idXML -out ProteinQuantifier_14_output1.tmp -peptide_out ProteinQuantifier_14_output2.tmp -top 0 -average sum)
+add_test("TOPP_ProteinQuantifier_14" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.idXML -out ProteinQuantifier_14_output1.tmp -peptide_out ProteinQuantifier_14_output2.tmp -top:N 0 -top:aggregate sum)
 add_test("TOPP_ProteinQuantifier_14_out1" ${DIFF} -in1 ProteinQuantifier_14_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_14_output1.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_14_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_14")
 add_test("TOPP_ProteinQuantifier_14_out2" ${DIFF} -in1 ProteinQuantifier_14_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_14_output2.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_14_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_14")
+# iBAQ
+add_test("TOPP_ProteinQuantifier_15" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_15_output.tmp -method iBAQ)
+add_test("TOPP_ProteinQuantifier_15_out1" ${DIFF} -in1 ProteinQuantifier_15_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_15_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_15_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_15")
 
 #------------------------------------------------------------------------------
 # InclusionExclusionListCreator tests
@@ -2660,7 +2664,7 @@ set_tests_properties("TOPP_XFDR_7_out33" PROPERTIES DEPENDS "TOPP_XFDR_7")
 
 #------------------------------------------------------------------------------
 # QualityControl tests
-add_test("TOPP_QualityControl_1" ${TOPP_BIN_PATH}/QualityControl -test -in_raw ${DATA_DIR_TOPP}/QualityControl_1_in1.mzML.gz ${DATA_DIR_TOPP}/QualityControl_1_in2.mzML.gz ${DATA_DIR_TOPP}/QualityControl_1_in3.mzML.gz -in_postFDR ${DATA_DIR_TOPP}/QualityControl_1_in1.featureXML ${DATA_DIR_TOPP}/QualityControl_1_in2.featureXML ${DATA_DIR_TOPP}/QualityControl_1_in3.featureXML -in_trafo ${DATA_DIR_TOPP}/QualityControl_1_in1.trafoXML ${DATA_DIR_TOPP}/QualityControl_1_in2.trafoXML ${DATA_DIR_TOPP}/QualityControl_1_in3.trafoXML  -in_contaminants ${DATA_DIR_TOPP}/QualityControl_1.fasta -in_cm ${DATA_DIR_TOPP}/QualityControl_1_in.consensusXML -out_cm QualityControl_1_out.consensusXML.tmp -out QualityControl_1_out.mzTab.tmp)
+add_test("TOPP_QualityControl_1" ${TOPP_BIN_PATH}/QualityControl -test -in_raw ${DATA_DIR_TOPP}/QualityControl_1_in1.mzML.gz ${DATA_DIR_TOPP}/QualityControl_1_in2.mzML.gz ${DATA_DIR_TOPP}/QualityControl_1_in3.mzML.gz -in_postFDR ${DATA_DIR_TOPP}/QualityControl_1_in1.featureXML ${DATA_DIR_TOPP}/QualityControl_1_in2.featureXML ${DATA_DIR_TOPP}/QualityControl_1_in3.featureXML -in_trafo ${DATA_DIR_TOPP}/QualityControl_1_in1.trafoXML ${DATA_DIR_TOPP}/QualityControl_1_in2.trafoXML ${DATA_DIR_TOPP}/QualityControl_1_in3.trafoXML  -in_contaminants ${DATA_DIR_TOPP}/QualityControl_1.fasta -in_cm ${DATA_DIR_TOPP}/QualityControl_1_in.consensusXML -in_fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -out_cm QualityControl_1_out.consensusXML.tmp -out QualityControl_1_out.mzTab.tmp)
 add_test("TOPP_QualityControl_1_out_consXML" ${DIFF} -in1 QualityControl_1_out.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/QualityControl_1_out.consensusXML -whitelist "href=")
 add_test("TOPP_QualityControl_1_out_mzTab" ${DIFF} -in1 QualityControl_1_out.mzTab.tmp -in2 ${DATA_DIR_TOPP}/QualityControl_1_out.mzTab -whitelist "MS:1000752")
 set_tests_properties("TOPP_QualityControl_1_out_consXML" PROPERTIES DEPENDS "TOPP_QualityControl_1")
@@ -2886,7 +2890,46 @@ add_test("UTILS_TICCalculator_3" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA
 add_test("UTILS_TICCalculator_4" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed)
 add_test("UTILS_TICCalculator_5" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed_parallel)
 
-# ProteomicsLFQ test:
+# ProteomicsLFQ test with a subset of the experimental design. Also tests the nonconsecutiveness of the design:
+add_test("UTILS_ProteomicsLFQ_1_subset" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -Alignment:align_algorithm:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -transfer_ids false
+         -mass_recalibration false
+         -out_cxml BSA_subset.consensusXML.tmp
+         -out_msstats BSA_subset.csv.tmp
+         -out BSA_subset.mzTab.tmp
+         -out_triqler BSA_subset.tsv.tmp
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         )
+add_test("UTILS_ProteomicsLFQ_1_subset_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_subset.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_subset_out.consensusXML )
+set_tests_properties("UTILS_ProteomicsLFQ_1_subset_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_1_subset")
+add_test("UTILS_ProteomicsLFQ_1_subset_out_2" ${DIFF}  -whitelist "software" "location" -in1 BSA_subset.csv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_subset_out.csv )
+set_tests_properties("UTILS_ProteomicsLFQ_1_subset_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_1_subset")
+add_test("UTILS_ProteomicsLFQ_1_subset_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 BSA_subset.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_subset_out.mzTab )
+set_tests_properties("UTILS_ProteomicsLFQ_1_subset_out_3" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_1_subset")
+add_test("UTILS_ProteomicsLFQ_1_subset_out_4" ${DIFF} -in1 BSA_subset.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_subset_out.tsv )
+set_tests_properties("UTILS_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_1_subset")
+
+
 add_test("UTILS_ProteomicsLFQ_1" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML

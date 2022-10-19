@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/OMSFileLoad.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
+#include <QCoreApplication>
 
 using namespace std;
 
@@ -56,6 +57,13 @@ namespace OpenMS
 
   void OMSFile::load(const String& filename, IdentificationData& id_data)
   {
+    /*if (!QCoreApplication::instance())
+    {
+      char argv[1] = "";
+      int argc = 0;
+      QCoreApplication a(argc, reinterpret_cast<char**>(&argv));
+      std::cout << QCoreApplication::libraryPaths().join(" ").toStdString() << std::endl;
+    }*/
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
     helper.load(id_data);
   }

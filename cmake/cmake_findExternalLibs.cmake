@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -74,23 +74,28 @@ endif()
 #------------------------------------------------------------------------------
 # COIN-OR
 # Our find module creates an imported CoinOR::CoinOR target
-set(CF_USECOINOR 1)
-find_package(COIN REQUIRED)
-
-
-#------------------------------------------------------------------------------
-# GLPK
-# creates GLPK target
-find_package(GLPK REQUIRED)
-if (GLPK_FOUND)
-	set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
-	set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
-	set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
+find_package(COIN)
+if (COIN_FOUND)
+  set(CF_USECOINOR 1)
+  set(LPTARGET "CoinOR::CoinOR")
+else()
+  #------------------------------------------------------------------------------
+  # GLPK
+  # creates GLPK::GLPK target
+  find_package(GLPK)
+  if (GLPK_FOUND)
+    set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
+    set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
+    set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
+    set(LPTARGET "GLPK::GLPK")
+  else()
+    message(FATAL_ERROR "Either COIN-OR or GLPK has to be available (COIN-OR takes precedence).")
+  endif()
 endif()
 
 #------------------------------------------------------------------------------
 # zlib
-# creates ZLIB::ZLIB taret
+# creates ZLIB::ZLIB target
 find_package(ZLIB REQUIRED)
 
 #------------------------------------------------------------------------------
@@ -102,13 +107,6 @@ find_package(BZip2 REQUIRED)
 # creates Eigen3::Eigen3 package
 find_package(Eigen3 3.3.4 REQUIRED)
 
-#------------------------------------------------------------------------------
-# Find geometric tools - wildmagick 5
-set(WM5_FIND_REQUIRED_COMPONENTS WM5_WM5CORE WM5_WM5MATHEMATICS )
-find_package(WM5 REQUIRED)
-if (WM5_FOUND)
-  add_definitions(${WM5_DEFINITIONS})
-endif()
 
 #------------------------------------------------------------------------------
 # Find Crawdad libraries if requested

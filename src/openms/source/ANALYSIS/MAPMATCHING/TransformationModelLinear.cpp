@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,8 +35,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <Wm5Vector2.h>
-#include <Wm5ApprLineFit2.h>
+#include <Mathematics/Vector2.h>
+#include <Mathematics/ApprHeightLine2.h>
 
 namespace OpenMS
 {
@@ -68,7 +68,7 @@ namespace OpenMS
       }
 
       size_t size = data_weighted.size();
-      std::vector<Wm5::Vector2d> points;
+      std::vector<gte::Vector2<double>> points;
       if (size == 0) // no data
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -81,7 +81,7 @@ namespace OpenMS
       }
       else if (size == 2)
       {
-        // if the two points are too close, Wm5::HeightLineFit2 can't fit a line
+        // if the two points are too close, gte::HeightLineFit2 can't fit a line
         // but in the special case of two points, there is an exact solution and we don't need a least-sqaures fit
         slope_ = (data_weighted[1].second - data_weighted[0].second) / (data_weighted[1].first - data_weighted[0].first);
         intercept_ = data_weighted[0].second - (slope_ * data_weighted[0].first);
@@ -95,12 +95,15 @@ namespace OpenMS
       {
         for (size_t i = 0; i < size; ++i)
         {
-          points.push_back(Wm5::Vector2d(data_weighted[i].first, data_weighted[i].second));
+          points.emplace_back(std::initializer_list<double>{data_weighted[i].first, data_weighted[i].second});
         }
-        if (!Wm5::HeightLineFit2<double>(static_cast<int>(size), &points.front(), slope_, intercept_))
+        auto line = gte::ApprHeightLine2<double>();
+        if (!line.Fit(static_cast<int>(size), &points.front()))
         {
           throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TransformationModelLinear", "Unable to fit linear transformation to data points.");
         }
+      slope_ = line.GetParameters().second[0];
+      intercept_ = -slope_ * line.GetParameters().first[0] + line.GetParameters().first[1];
       }
       // update params
       params_.setValue("slope", slope_);

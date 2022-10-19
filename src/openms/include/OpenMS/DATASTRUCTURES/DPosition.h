@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,43 +85,12 @@ public:
 
       Creates a position with all coordinates zero.
     */
-    DPosition()
-    {
-      clear();
-    }
-
-    /// Destructor (not-virtual as this will save a lot of space!)
-    ~DPosition()
-    {
-    }
-
-    /// Swap the two points
-    void swap(DPosition& rhs)
-    {
-      for (Size i = 0; i < D; i++)
-      {
-        std::swap(coordinate_[i], rhs.coordinate_[i]);
-      }      
-    }
+    DPosition() = default;
 
     /// Constructor that fills all dimensions with the value @p x
     DPosition(CoordinateType x)
     {
       std::fill(&(coordinate_[0]), &(coordinate_[D]), x);
-    }
-
-    /// Copy constructor
-    DPosition(const DPosition& pos)
-    {
-      std::copy(&(pos.coordinate_[0]), &(pos.coordinate_[D]),
-                &(coordinate_[0]));
-    }
-
-    /// Move constructor
-    DPosition(DPosition&& rhs) noexcept
-    {
-      // NOTE: do not change this before testing with nightly Windows builds ( = default causes segfault)
-      std::move(std::begin(rhs.coordinate_), std::end(rhs.coordinate_), &coordinate_[0]);
     }
 
     /// Constructor only for DPosition<2> that takes two Coordinates.
@@ -141,18 +110,31 @@ public:
       coordinate_[2] = z;
     }
 
+    /// Copy constructor
+    DPosition(const DPosition& pos) = default;
+
+    /// Move constructor
+    DPosition(DPosition&& rhs) noexcept = default;
+
     /// Assignment operator
-    DPosition& operator=(const DPosition& source)
-    {
-      if (&source == this) return *this;
+    DPosition& operator=(const DPosition& source) = default;
 
-      std::copy(&(source.coordinate_[0]), &(source.coordinate_[D]),
-                &(coordinate_[0]));
+    /// Move Assignment operator
+    DPosition& operator=(DPosition&& source) noexcept = default;
 
-      return *this;
-    }
+    /// Destructor (not-virtual as this will save a lot of space!)
+    ~DPosition() noexcept = default;
 
     //@}
+
+    /// Swap the two points
+    void swap(DPosition& rhs) noexcept
+    {
+      for (Size i = 0; i < D; i++)
+      {
+        std::swap(coordinate_[i], rhs.coordinate_[i]);
+      }
+    }
 
     /**@name Accessors */
     //@{
@@ -436,8 +418,7 @@ public:
     //@}
 
 protected:
-    CoordinateType coordinate_[D];
-
+    CoordinateType coordinate_[D]{};
   }; // DPosition
 
   /// Scalar multiplication (a bit inefficient)

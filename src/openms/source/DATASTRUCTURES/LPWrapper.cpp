@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,29 +37,29 @@
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 
 #if COINOR_SOLVER == 1  // only include COINOR if we actually use it...
-#ifdef _MSC_VER //disable some COIN-OR warnings that distract from ours
-#pragma warning( push ) // save warning state
-#pragma warning( disable : 4267 )
-#else
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-#include "coin/CoinModel.hpp"
-#include "coin/OsiClpSolverInterface.hpp"
-#include "coin/CbcModel.hpp"
-#include "coin/CbcHeuristic.hpp"
-#include "coin/CbcHeuristicLocal.hpp"
-#include "coin/CglGomory.hpp"
-#include "coin/CglKnapsackCover.hpp"
-#include "coin/CglOddHole.hpp"
-#include "coin/CglClique.hpp"
-#include "coin/CglMixedIntegerRounding.hpp"
-#ifdef _MSC_VER
-#pragma warning( pop ) // restore old warning state
-#else
-#pragma GCC diagnostic warning "-Wunused-parameter"
-#endif
+  #ifdef _MSC_VER //disable some COIN-OR warnings that distract from ours
+  #pragma warning( push ) // save warning state
+  #pragma warning( disable : 4267 )
+  #else
+  #pragma GCC diagnostic ignored "-Wunused-parameter"
+  #endif
+  #include "coin/CoinModel.hpp"
+  #include "coin/OsiClpSolverInterface.hpp"
+  #include "coin/CbcModel.hpp"
+  #include "coin/CbcHeuristic.hpp"
+  #include "coin/CbcHeuristicLocal.hpp"
+  #include "coin/CglGomory.hpp"
+  #include "coin/CglKnapsackCover.hpp"
+  #include "coin/CglOddHole.hpp"
+  #include "coin/CglClique.hpp"
+  #include "coin/CglMixedIntegerRounding.hpp"
+  #ifdef _MSC_VER
+  #pragma warning( pop ) // restore old warning state
+  #else
+  #pragma GCC diagnostic warning "-Wunused-parameter"
+  #endif
 #else   // no COINOR
-#include <glpk.h>
+  #include <glpk.h>
 #endif
 
 namespace OpenMS

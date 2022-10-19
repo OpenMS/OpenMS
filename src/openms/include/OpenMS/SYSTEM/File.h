@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -199,11 +199,11 @@ public:
       OPENMS_SOURCE_PATH, OPENMS_BINARY_PATH + "/../../doc" (or a variation for
       MacOS packages)
 
-      Will return the String with the full path to the local documentation. If
+      Will return the filename with the full path to the local documentation. If
       this call fails, try the web documentation
       (http://www.openms.de/current_doxygen/) instead.
      
-      @param String The doc file name to find.
+      @param filename The doc file name to find.
       @return The full path to the requested file.
 
       @exception FileNotFound is thrown, if the file is not found
@@ -256,7 +256,7 @@ public:
       Depending on platform, the components are split based on ":" (Linux/Mac) or ";" (Windows).
       All paths use the '/' as separator and end in '/'.
       E.g. for 'PATH=/usr/bin:/home/unicorn' the result is {"/usr/bin/", "/home/unicorn/"}
-            or 'PATH=c:\temp;c:\Windows' the result is {"c:/temp/", "c:/Windows/"}
+            or 'PATH=c:\\temp;c:\\Windows' the result is {"c:/temp/", "c:/Windows/"}
 
       Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).  
     */

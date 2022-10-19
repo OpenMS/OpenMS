@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,6 +47,8 @@ namespace OpenMS
 {
   class MSExperiment;
   class PeptideIdentification;
+  class PeptideEvidence;
+  class ConsensusMap;
 
   /**
     @brief Representation of a protein identification run
@@ -386,6 +388,7 @@ public:
        Does not return anything but stores the coverage inside the ProteinHit objects
     */
     void computeCoverage(const std::vector<PeptideIdentification>& pep_ids);
+    void computeCoverage(const ConsensusMap& cmap, bool use_unassigned_ids);
     //@}
 
     /**
@@ -397,6 +400,10 @@ public:
     void computeModifications(
       const std::vector<PeptideIdentification>& pep_ids,
       const StringList& skip_modifications);
+    void computeModifications(
+      const ConsensusMap& cmap,
+      const StringList& skip_modifications,
+      bool use_unassigned_ids);
 
 
     ///@name General information
@@ -495,6 +502,14 @@ protected:
     std::vector<ProteinGroup> indistinguishable_proteins_;
     double protein_significance_threshold_;
     //@}
+
+  private:
+    void computeCoverageFromEvidenceMapping_(const std::unordered_map<String, std::set<PeptideEvidence>>& map);
+    void fillEvidenceMapping_(std::unordered_map<String, std::set<PeptideEvidence> >& map_acc_2_evidence,
+                              const std::vector<PeptideIdentification>& pep_ids) const;
+
+    void fillModMapping_(const std::vector<PeptideIdentification>& pep_ids, const StringList& skip_modifications,
+                         std::unordered_map<String, std::set<std::pair<Size, ResidueModification>>>& prot2mod) const;
   };
 
 } //namespace OpenMS

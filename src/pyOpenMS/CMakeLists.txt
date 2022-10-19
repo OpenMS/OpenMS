@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -195,23 +195,23 @@ endif()
 
 
 #------------------------------------------------------------------------------
-# Check for Nose Test Framework
+# Check for pytest Test Framework
 execute_process(
      COMMAND
-     ${Python_EXECUTABLE} -c "import nose"
-     RESULT_VARIABLE _NOSE_MISSING
+     ${Python_EXECUTABLE} -c "import pytest"
+     RESULT_VARIABLE _PYTEST_MISSING
      ERROR_QUIET
      OUTPUT_QUIET
 )
 
-set(NOSE_MISSING TRUE)
-if( _NOSE_MISSING EQUAL 0)
-    set(NOSE_MISSING FALSE)
+set(PYTEST_MISSING TRUE)
+if( _PYTEST_MISSING EQUAL 0)
+    set(PYTEST_MISSING FALSE)
 endif()
-if(NOSE_MISSING)
-	message(FATAL_ERROR "Looking for nose testing framework - not found")
+if(PYTEST_MISSING)
+	message(FATAL_ERROR "Looking for pytest testing framework - not found")
 else()
-	message(STATUS "Looking for nose testing framework - found")
+	message(STATUS "Looking for pytest testing framework - found")
 endif()
 
 #------------------------------------------------------------------------------
@@ -290,7 +290,7 @@ endif()
 #------------------------------------------------------------------------------
 # Handle missing libraries (this should never be reached, as the individual
 #  parts should fire FATAL_ERRORs if something is missing)
-if(NUMPY_MISSING OR CYTHON_MODULE_NOTFOUND OR NOT CYTHON_MODULE_VERSION_CHECK_OK OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING
+if(NUMPY_MISSING OR CYTHON_MODULE_NOTFOUND OR NOT CYTHON_MODULE_VERSION_CHECK_OK OR NOT AUTOWRAP_VERSION_OK OR PYTEST_MISSING
    OR SETUPTOOLS_MISSING OR WHEEL_MISSING)
   message(FATAL_ERROR "Required Python modules not found or out of date")
 endif()
@@ -678,6 +678,10 @@ else()
         LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
         RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
     )
+    add_custom_command(TARGET pyopenms_compile
+    POST_BUILD
+    COMMAND ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/fix_pyi_imports.py ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.pyi #TODO Check if really necessary
+    COMMENT "Fixing typing information for pyopenms")
 endif()
 
 ## use no-binary=pyopenms since we built the binaries already with cmake
@@ -742,12 +746,12 @@ ENDIF()
 #####                      Testing pyOpenMS                           #####
 ###########################################################################
 
-# Original test using the "run_nose.py" script, testing all unittests at once
+# Pytest, testing all unittests at once
 # => this is suboptimal for ctest and cdash because we don't see which tests
 # actually have gone wrong. Thus we add additional tests below ...
 enable_testing()
 add_test(NAME test_pyopenms_unittests
-         COMMAND ${Python_EXECUTABLE} run_nose.py
+         COMMAND ${Python_EXECUTABLE} -m pytest tests/unittests
          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS
         )
 if(NOT WIN32)
@@ -789,7 +793,7 @@ test_MRMRTNormalizer.py
 # Loop through all the test files
 foreach (t ${pyopenms_unittest_testfiles})
   add_test(NAME "pyopenms_unittest_${t}"
-    COMMAND ${Python_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests/${t} -s -v)
+    COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests/${t})
   if(NOT WIN32)
     set_tests_properties("pyopenms_unittest_${t}" PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib"
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
@@ -798,7 +802,7 @@ endforeach(t)
 
 foreach (t ${pyopenms_integrationtest_testfiles})
   add_test(NAME "pyopenms_integrationtest_${t}"
-    COMMAND ${Python_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests/${t} -s -v)
+    COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests/${t})
   if(NOT WIN32)
     set_tests_properties("pyopenms_integrationtest_${t}" PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib"
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
@@ -808,7 +812,7 @@ endforeach(t)
 # Finally add the memory leaks test (in folder tests/memoryleaktests/)
 if(NOT PY_MEMLEAK_DISABLE)
   add_test(NAME pyopenms_test_memoryleaktests
-    COMMAND ${Python_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests/ -s -v
+    COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests/testAll.py
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
   if(NOT WIN32)
       set_tests_properties(pyopenms_test_memoryleaktests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
