@@ -160,7 +160,7 @@ namespace OpenMS
 
     void TOPPViewPrefDialog::browseDefaultPath_()
     {
-      QString path = QFileDialog::getExistingDirectory(this, "Choose a directory", ui_->default_path->text());
+      QString path = QFileDialog::getExistingDirectory(this, "Choose a directory", ui_->default_path->text(), QFileDialog::DontUseNativeDialog);
       if (!path.isEmpty())
       {
         ui_->default_path->setText(path);
@@ -169,7 +169,7 @@ namespace OpenMS
 
     void TOPPViewPrefDialog::browsePluginsPath_()
     {
-      QString path = QFileDialog::getExistingDirectory(this, "Choose a directory", ui_->plugins_path->text());
+      QString path = QFileDialog::getExistingDirectory(this, "Choose a directory", ui_->plugins_path->text(), QFileDialog::DontUseNativeDialog);
       if (!path.isEmpty())
       {
         ui_->plugins_path->setText(path);

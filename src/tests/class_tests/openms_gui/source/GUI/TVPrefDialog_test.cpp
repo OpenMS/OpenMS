@@ -405,7 +405,7 @@ void OpenMS::TestTVPrefDialog::checkFileDialog_()
   if (active_widget->inherits("QFileDialog")) // if it's a file dialog, close it
   {
     QFileDialog* fd = qobject_cast<QFileDialog*>(active_widget);
-    fd->close(); // for some reason closing it with 'Qt::Key_Enter' doesn't work
+    QTest::keyClick(fd, Qt::Key_Enter);
     QVERIFY(true);
     return;
   }
