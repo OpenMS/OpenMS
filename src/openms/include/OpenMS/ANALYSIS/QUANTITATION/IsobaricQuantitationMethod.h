@@ -87,6 +87,19 @@ public:
         affected_channels(affected_channels)
       {
       }
+
+      IsobaricChannelInformation(String local_name,
+                                 const Int local_id,
+                                 String  local_description,
+                                 const Peak2D::CoordinateType& local_center,
+                                 std::vector<Int> affected_channels) :
+          name(std::move(local_name)),
+          id(local_id),
+          description(std::move(local_description)),
+          center(local_center),
+          affected_channels(std::move(affected_channels))
+      {
+      }
     };
 
     /// @brief c'tor setting the name for the underlying param handler
