@@ -56,5 +56,5 @@ namespace OpenMS
   };
 
   /// Type of the Points in a 'flat' canvas (1D and 2D)
-  using PointXYType = DPosition<2>;
+  using PointXYType = DPosition<2U>;
 }

@@ -183,7 +183,7 @@ public:
     }
 
     // Docu in base class
-    void move(const PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override
+    void move(const PointXYType delta, const Gravitator& /*gr*/, const DimMapper<2>& dim_mapper) override
     {
       auto pos_xy = dim_mapper.map(position_);
       pos_xy += delta;

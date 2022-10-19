@@ -175,7 +175,7 @@ namespace OpenMS
     }
 
     /// Same as gravitateWith()
-    template<int D>
+    template<UInt D>
     DPosition<D> gravitateWith(DPosition<D> p, const DPosition<D>& delta) const
     {
       p[(int)gravity_axis_] += delta[(int)gravity_axis_];
@@ -201,7 +201,7 @@ namespace OpenMS
     }
     
     /// Same as gravitateTo()
-    template<int D>
+    template<UInt D>
     DPosition<D> gravitateTo(DPosition<D> p, const DPosition<D>& target) const
     {
       p[(int)gravity_axis_] = target[(int)gravity_axis_];
@@ -244,7 +244,7 @@ namespace OpenMS
     ///
     /// @param p A X-Y data point
     /// @return A X-Y data point with its gravity axis set to '0'
-    template<int D>
+    template<UInt D>
     DPosition<D> gravitateZero(DPosition<D> p) const
     {
       p[(int)gravity_axis_] = 0;
@@ -255,24 +255,7 @@ namespace OpenMS
     ///
     /// @param p A X-Y data point
     /// @return A X-Y data point with its gravity axis set to NAN
-    QPoint gravitateNAN(QPoint p) const
-    {
-      if (gravity_axis_ == DIM::X)
-      {
-        p.rx() = std::numeric_limits<float>::quiet_NaN();
-      }
-      else if (gravity_axis_ == DIM::Y)
-      {
-        p.ry() = std::numeric_limits<float>::quiet_NaN();
-      }
-      return p;
-    }
-
-    /// Pull the point @p p to NAN on the current gravity axis.
-    ///
-    /// @param p A X-Y data point
-    /// @return A X-Y data point with its gravity axis set to NAN
-    template<int D>
+    template<UInt D>
     DPosition<D> gravitateNAN(DPosition<D> p) const
     {
       p[(int)gravity_axis_] = std::numeric_limits<float>::quiet_NaN();
@@ -300,7 +283,7 @@ namespace OpenMS
     ///
     /// @param p A X-Y data point
     /// @return Either the X or Y component, depending on gravity
-    template<int D>
+    template<UInt D>
     int gravityValue(const DPosition<D>& p) const
     {
       return p[(int)gravity_axis_];
@@ -311,7 +294,7 @@ namespace OpenMS
     /// @param start The start point in XY coordinates
     /// @param end The end point in XY coordinates
     /// @return The difference of (end-start) in the X or Y component, depending on gravity
-    template<int D>
+    template<UInt D>
     auto gravityDiff(const DPosition<D>& start, const DPosition<D>& end) const
     {
       return end[(int)gravity_axis_] - start[(int)gravity_axis_];

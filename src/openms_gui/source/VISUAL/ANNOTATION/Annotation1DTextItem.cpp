@@ -63,7 +63,7 @@ namespace OpenMS
     }
   }
 
-  void Annotation1DTextItem::move(const PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper)
+  void Annotation1DTextItem::move(const PointXYType delta, const Gravitator& /*gr*/, const DimMapper<2>& /*dim_mapper*/)
   {
     position_ += delta;
   }
