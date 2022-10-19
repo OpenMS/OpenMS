@@ -40,15 +40,14 @@
 namespace OpenMS
 {
   IsobaricQuantitationMethod::~IsobaricQuantitationMethod()
-  {
-  }
+  = default;
 
   IsobaricQuantitationMethod::IsobaricQuantitationMethod() :
     DefaultParamHandler("IsobaricQuantitationMethod")
   {
   }
 
-  Matrix<double> IsobaricQuantitationMethod::stringListToIsotopCorrectionMatrix_(const StringList& stringlist) const
+  Matrix<double> IsobaricQuantitationMethod::stringListToIsotopeCorrectionMatrix_(const StringList& stringlist) const
   {
     // check the string list
     if (stringlist.size() != getNumberOfChannels())
@@ -71,11 +70,20 @@ namespace OpenMS
       // overwrite line in Matrix with custom values
       Size affected_channel_idx = 0;
       double self_contribution = 100.0;
+      double correction;
+      Int target_channel;
       for (const auto& c : corrections)
       {
-
-        channel_frequency.setValue(getChannelInformation()[contributing_channel].affected_channels[affected_channel_idx], contributing_channel, c / 100.0);
-        self_contribution -= c;
+        if (c != "-1" && c != "0.0")
+        {
+          target_channel = getChannelInformation()[contributing_channel].affected_channels[affected_channel_idx];
+          if (target_channel >= 0 && target_channel < getNumberOfChannels())
+          {
+            correction = c.toDouble();
+            channel_frequency.setValue(target_channel, contributing_channel, correction / 100.0);
+            self_contribution -= correction;
+          }
+        }
         affected_channel_idx++;
       }
       // set reduced self contribution

@@ -64,22 +64,22 @@ TMTSixteenPlexQuantitationMethod::TMTSixteenPlexQuantitationMethod()
     //    "131C", 131.144500, 129C, 130C, x, x
 
     // create the channel map                                                //-2  -1  +1  +2
-    channels_.push_back(IsobaricChannelInformation("126",   0, "", 126.127726, -1, -1,  2,  -1));
-    channels_.push_back(IsobaricChannelInformation("127N",  1, "", 127.124761, -1, -1,  3,  -1)); //SPW: Product datasheet specifies -15N-> 126(ie 0)
-    channels_.push_back(IsobaricChannelInformation("127C",  2, "", 127.131081, -1,  0,  4,  -1));
-    channels_.push_back(IsobaricChannelInformation("128N",  3, "", 128.128116, -1,  1,  5,  -1));
-    channels_.push_back(IsobaricChannelInformation("128C",  4, "", 128.134436,  -1,  2,  6,  -1));
-    channels_.push_back(IsobaricChannelInformation("129N",  5, "", 129.131471,  -1,  3,  7,  -1));
-    channels_.push_back(IsobaricChannelInformation("129C",  6, "", 129.137790,  -1,  4,  8, -1));
-    channels_.push_back(IsobaricChannelInformation("130N",  7, "", 130.134825,  -1,  5,  9, -1));
-    channels_.push_back(IsobaricChannelInformation("130C",  8, "", 130.141145,  -1,  6, 10, -1));
-    channels_.push_back(IsobaricChannelInformation("131N",  9, "", 131.138180,  -1,  7, 11, -1));
-    channels_.push_back(IsobaricChannelInformation("131C", 10, "", 131.144500,  -1,  8, 12, -1));
-    channels_.push_back(IsobaricChannelInformation("132N", 11, "", 132.141535,  -1,  9, 13, -1));
-    channels_.push_back(IsobaricChannelInformation("132C", 12, "", 132.147855,  -1,  10, 14, -1));
-    channels_.push_back(IsobaricChannelInformation("133N", 13, "", 133.144890,  -1,  11, 15, -1));
-    channels_.push_back(IsobaricChannelInformation("133C", 14, "", 133.151210,  -1,  12, -1, -1));
-    channels_.push_back(IsobaricChannelInformation("134N", 15, "", 134.148245,  -1,  13, -1, -1));
+    channels_.push_back(IsobaricChannelInformation("126",   0, "", 126.127726, {-1, -1,  2,  -1}));
+    channels_.push_back(IsobaricChannelInformation("127N",  1, "", 127.124761, {-1, -1,  3,  -1})); //SPW: Product datasheet specifies -15N-> 126(ie 0)
+    channels_.push_back(IsobaricChannelInformation("127C",  2, "", 127.131081, {-1,  0,  4,  -1}));
+    channels_.push_back(IsobaricChannelInformation("128N",  3, "", 128.128116, {-1,  1,  5,  -1}));
+    channels_.push_back(IsobaricChannelInformation("128C",  4, "", 128.134436,  {-1,  2,  6,  -1}));
+    channels_.push_back(IsobaricChannelInformation("129N",  5, "", 129.131471,  {-1,  3,  7,  -1}));
+    channels_.push_back(IsobaricChannelInformation("129C",  6, "", 129.137790,  {-1,  4,  8, -1}));
+    channels_.push_back(IsobaricChannelInformation("130N",  7, "", 130.134825,  {-1,  5,  9, -1}));
+    channels_.push_back(IsobaricChannelInformation("130C",  8, "", 130.141145,  {-1,  6, 10, -1}));
+    channels_.push_back(IsobaricChannelInformation("131N",  9, "", 131.138180,  {-1,  7, 11, -1}));
+    channels_.push_back(IsobaricChannelInformation("131C", 10, "", 131.144500,  {-1,  8, 12, -1}));
+    channels_.push_back(IsobaricChannelInformation("132N", 11, "", 132.141535,  {-1,  9, 13, -1}));
+    channels_.push_back(IsobaricChannelInformation("132C", 12, "", 132.147855,  {-1,  10, 14, -1}));
+    channels_.push_back(IsobaricChannelInformation("133N", 13, "", 133.144890,  {-1,  11, 15, -1}));
+    channels_.push_back(IsobaricChannelInformation("133C", 14, "", 133.151210,  {-1,  12, -1, -1}));
+    channels_.push_back(IsobaricChannelInformation("134N", 15, "", 134.148245,  {-1,  13, -1, -1}));
 
 
     // Original 10plex channel
@@ -203,7 +203,7 @@ Size TMTSixteenPlexQuantitationMethod::getNumberOfChannels() const
 Matrix<double> TMTSixteenPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
 {
     StringList iso_correction = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix"));
-    return stringListToIsotopCorrectionMatrix_(iso_correction);
+    return stringListToIsotopeCorrectionMatrix_(iso_correction);
 }
 
 Size TMTSixteenPlexQuantitationMethod::getReferenceChannel() const

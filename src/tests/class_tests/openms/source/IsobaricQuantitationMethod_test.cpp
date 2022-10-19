@@ -83,7 +83,7 @@ public:
 
   Matrix<double> getIsotopeCorrectionMatrix() const override
   {
-    return stringListToIsotopCorrectionMatrix_(correction_list);
+    return stringListToIsotopeCorrectionMatrix_(correction_list);
   }
 
   Size getReferenceChannel() const override
@@ -204,10 +204,10 @@ START_SECTION(([IsobaricQuantitationMethod::IsobaricChannelInformation] Isobaric
   TEST_EQUAL(cI.id, 0)
   TEST_EQUAL(cI.center, 114.1112)
 
-  TEST_EQUAL(cI.channel_id_minus_2, -1)
-  TEST_EQUAL(cI.channel_id_minus_1, -1)
-  TEST_EQUAL(cI.channel_id_plus_1, -1)
-  TEST_EQUAL(cI.channel_id_plus_2, -1)
+  TEST_EQUAL(cI.affected_channels[0], -1)
+  TEST_EQUAL(cI.affected_channels[1], -1)
+  TEST_EQUAL(cI.affected_channels[2], -1)
+  TEST_EQUAL(cI.affected_channels[3], -1)
 
 }
 END_SECTION

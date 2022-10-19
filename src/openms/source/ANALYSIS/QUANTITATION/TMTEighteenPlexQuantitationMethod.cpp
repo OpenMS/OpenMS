@@ -52,24 +52,24 @@ TMTEighteenPlexQuantitationMethod::TMTEighteenPlexQuantitationMethod()
 
     //    // mass map outline - for further details please see #2427 (was adapted for tmt18plex)
     // create the channel map                                                //-2  -1  +1  +2
-    channels_.push_back(IsobaricChannelInformation("126",   0, "", 126.127726, -1, -1,  2,  4));
-    channels_.push_back(IsobaricChannelInformation("127N",  1, "", 127.124761, -1, -1,  3,  5));
-    channels_.push_back(IsobaricChannelInformation("127C",  2, "", 127.131081, -1,  0,  4,  6));
-    channels_.push_back(IsobaricChannelInformation("128N",  3, "", 128.128116, -1,  1,  5,  7));
-    channels_.push_back(IsobaricChannelInformation("128C",  4, "", 128.134436,  -1,  2,  6,  8));
-    channels_.push_back(IsobaricChannelInformation("129N",  5, "", 129.131471,  -1,  3,  7,  9)));
-    channels_.push_back(IsobaricChannelInformation("129C",  6, "", 129.137790,  2,  4,  8, 10));
-    channels_.push_back(IsobaricChannelInformation("130N",  7, "", 130.134825,  3,  5,  9, 11));
-    channels_.push_back(IsobaricChannelInformation("130C",  8, "", 130.141145,  4,  6, 10, 12));
-    channels_.push_back(IsobaricChannelInformation("131N",  9, "", 131.138180,  5,  7, 11, 13));
-    channels_.push_back(IsobaricChannelInformation("131C", 10, "", 131.144500,  6,  8, 12, 14));
-    channels_.push_back(IsobaricChannelInformation("132N", 11, "", 132.141535,  7,  9, 13, 15));
-    channels_.push_back(IsobaricChannelInformation("132C", 12, "", 132.147855,  8,  10, 14, 16));
-    channels_.push_back(IsobaricChannelInformation("133N", 13, "", 133.144890,  9,  11, 15, 17));
-    channels_.push_back(IsobaricChannelInformation("133C", 14, "", 133.151210,  10,  12, 16, -1));
-    channels_.push_back(IsobaricChannelInformation("134N", 15, "", 134.148245,  11,  13, 17, -1));
-    channels_.push_back(IsobaricChannelInformation("134C", 16, "", 134.154565,  12,  14, -1, -1));
-    channels_.push_back(IsobaricChannelInformation("135N", 17, "", 135.151600,  13,  15, -1, -1));
+    channels_.push_back(IsobaricChannelInformation("126",   0, "", 126.127726, {-1, -1,  2,  4}));
+    channels_.push_back(IsobaricChannelInformation("127N",  1, "", 127.124761, {-1, -1,  3,  5}));
+    channels_.push_back(IsobaricChannelInformation("127C",  2, "", 127.131081, {-1,  0,  4,  6}));
+    channels_.push_back(IsobaricChannelInformation("128N",  3, "", 128.128116, {-1,  1,  5,  7}));
+    channels_.push_back(IsobaricChannelInformation("128C",  4, "", 128.134436,  {-1,  2,  6,  8}));
+    channels_.push_back(IsobaricChannelInformation("129N",  5, "", 129.131471,  {-1,  3,  7,  9}));
+    channels_.push_back(IsobaricChannelInformation("129C",  6, "", 129.137790,  {2,  4,  8, 10}));
+    channels_.push_back(IsobaricChannelInformation("130N",  7, "", 130.134825,  {3,  5,  9, 11}));
+    channels_.push_back(IsobaricChannelInformation("130C",  8, "", 130.141145,  {4,  6, 10, 12}));
+    channels_.push_back(IsobaricChannelInformation("131N",  9, "", 131.138180,  {5,  7, 11, 13}));
+    channels_.push_back(IsobaricChannelInformation("131C", 10, "", 131.144500,  {6,  8, 12, 14}));
+    channels_.push_back(IsobaricChannelInformation("132N", 11, "", 132.141535,  {7,  9, 13, 15}));
+    channels_.push_back(IsobaricChannelInformation("132C", 12, "", 132.147855,  {8,  10, 14, 16}));
+    channels_.push_back(IsobaricChannelInformation("133N", 13, "", 133.144890,  {9,  11, 15, 17}));
+    channels_.push_back(IsobaricChannelInformation("133C", 14, "", 133.151210,  {10,  12, 16, -1}));
+    channels_.push_back(IsobaricChannelInformation("134N", 15, "", 134.148245,  {11,  13, 17, -1}));
+    channels_.push_back(IsobaricChannelInformation("134C", 16, "", 134.154565,  {12,  14, -1, -1}));
+    channels_.push_back(IsobaricChannelInformation("135N", 17, "", 135.151600,  {13,  15, -1, -1}));
 
     // we assume 126 to be the reference
     reference_channel_ = 0;
@@ -195,7 +195,7 @@ Size TMTEighteenPlexQuantitationMethod::getNumberOfChannels() const
 Matrix<double> TMTEighteenPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
 {
     StringList iso_correction = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix"));
-    return stringListToIsotopCorrectionMatrix_(iso_correction);
+    return stringListToIsotopeCorrectionMatrix_(iso_correction);
 }
 
 Size TMTEighteenPlexQuantitationMethod::getReferenceChannel() const
