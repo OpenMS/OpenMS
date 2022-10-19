@@ -385,6 +385,9 @@ int main(int argc, char** argv)
   DOCME(IsotopeMarker);
   DOCME(IsotopeModel);
   DOCME(TMTSixPlexQuantitationMethod);
+  DOCME(TMTTenPlexQuantitationMethod);
+  DOCME(TMTSixteenPlexQuantitationMethod);
+  DOCME(TMTEighteenPlexQuantitationMethod);
   DOCME(ItraqEightPlexQuantitationMethod);
   DOCME(ItraqFourPlexQuantitationMethod);
   DOCME(LabeledPairFinder);
