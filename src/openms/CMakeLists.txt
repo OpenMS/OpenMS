@@ -94,8 +94,8 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES GTE ${LPTARGET} Eigen3::Eigen HDF5::HDF5 Boost:
 
 #------------------------------------------------------------------------------
 # Install the QSQLite driver if we are not on linux so we can use oms files
-if(!linux)
-  install_qt5_plugin("Qt5::QSQLiteDriverPlugin" QT_PLUGINS "${INSTALL_PLUGIN_DIR}/sqldrivers" QT5SQLitePlugin)
+if(WIN32)
+  install_qt5_plugin("Qt5::QSQLiteDriverPlugin" QT_SQLITE_PLUGIN "${INSTALL_PLUGIN_DIR}" QT5SQLitePlugin)
 endif()
 
 # xerces requires linking against CoreFoundation&CoreServices on macOS
