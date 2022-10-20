@@ -232,16 +232,17 @@ Section "OpenMS Library" SEC_Lib
 # to ensure the dynamic linking uses the correct dll´s
 # (putting dll´s in another path makes it prone to
 # invalid PATH settings)
-    SetOutPath $INSTDIR\bin
+    SetOutPath $INSTDIR\bin\plugins
     SetOverwrite on
 
     # open log file
     !insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
     # install files
-	File "${OPENMSBINDIR}\*.dll"
-	File "${OPENMSBINDIR}\*.lib"
-        File /r "${OPENMSBINDIR}\plugins\*.*"
+	  File "${OPENMSBINDIR}\*.dll"
+	  File "${OPENMSBINDIR}\*.lib"
+    File /r "${OPENMSBINDIR}\plugins\*.*"
+    File "${OPENMSBINDIR}\*.conf"
     SetOutPath $INSTDIR\share\OpenMS
     SetOverwrite on
     !if ${DEBUG_BUILD} == 0
