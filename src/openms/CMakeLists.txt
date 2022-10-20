@@ -92,6 +92,12 @@ set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5
 set(OPENMS_DEP_PRIVATE_LIBRARIES GTE ${LPTARGET} Eigen3::Eigen HDF5::HDF5 Boost::iostreams Boost::date_time Boost::boost Boost::regex
   BZip2::BZip2 ZLIB::ZLIB SQLite::SQLite3)
 
+#------------------------------------------------------------------------------
+# Install the QSQLite driver if we are not on linux so we can use oms files
+if(!linux)
+  install_qt5_plugin("Qt5::QSQLiteDriverPlugin" QT_PLUGINS "${INSTALL_PLUGIN_DIR}/sqldrivers" QT5SQLitePlugin)
+endif()
+
 # xerces requires linking against CoreFoundation&CoreServices on macOS
 # TODO check if this is still the case
 if(APPLE)
