@@ -8,10 +8,10 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>" n
 
     cdef cppclass IsobaricChannelInformation "OpenMS::IsobaricQuantitationMethod::IsobaricChannelInformation":
 
-        IsobaricChannelInformation(String name, Int id_, String description, double center, libcpp_vector[Int] affected_channels) nogil except +
+        IsobaricChannelInformation(String name, Int id_, String description, double center, libcpp_vector[int] affected_channels) nogil except +
         IsobaricChannelInformation(IsobaricChannelInformation &) nogil except +
         String name
         Int id
         String description
         double center
-        libcpp_vector[Int] affected_channels
+        libcpp_vector[int] affected_channels
