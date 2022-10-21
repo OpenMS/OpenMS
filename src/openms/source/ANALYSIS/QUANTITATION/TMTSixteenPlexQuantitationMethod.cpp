@@ -97,26 +97,25 @@ void TMTSixteenPlexQuantitationMethod::setDefaultParams_()
     defaults_.setValidStrings("reference_channel", TMTSixteenPlexQuantitationMethod::channel_names_);
 
     defaults_.setValue("correction_matrix", std::vector<std::string>{
-                                              "NA/NA/NA/NA/0.31/9.09/0.02/0.32",
-                                              "NA/NA/NA/0.78/NA/9.41/NA/0.33",
-                                              "NA/NA/0.93/NA/0.35/8.63/0.01/0.27",
-                                              "NA/0.00/0.82/0.65/NA/8.13/NA/0.26",
-                                              "0.00/NA/1.47/NA/0.34/6.91/0.00/0.15",
-                                              "0.00/0.00/1.46/1.28/NA/6.86/NA/0.15",
-                                              "0.13/NA/2.59/NA/0.32/6.07/0.1/0.09",
-                                              "0.13/0.00/2.41/0.27/NA/5.58/NA/0.10",
-                                              "0.04/NA/3.10/NA/0.42/4.82/0.02/0.06",
-                                              "0.03/0.00/2.78/0.63/NA/4.57/NA/0.12",
-                                              "0.08/NA/3.90/NA/0.47/3.57/0.00/0.04",
-                                              "0.15/0.01/3.58/0.72/NA/1.80/NA/0.00",
-                                              "0.11/NA/4.55/NA/0.43/1.86/0.00/0.00",
-                                              "0.07/0.01/3.14/0.73/NA/3.40/NA/0.03",
-                                              "0.22/NA/4.96/NA/0.34/1.03/0.00/NA",
-                                              "0.30/0.03/5.49/0.62/NA/1.14/NA/NA"
+                                              "NA/NA / NA/NA / 0.31/9.09 / 0.02/0.32",
+                                              "NA/NA / NA/0.78 / NA/9.41 / NA/0.33",
+                                              "NA/NA / 0.93/NA / 0.35/8.63 / 0.01/0.27",
+                                              "NA/0.00 / 0.82/0.65 / NA/8.13 / NA/0.26",
+                                              "0.00/NA / 1.47/NA / 0.34/6.91 / 0.00/0.15",
+                                              "0.00/0.00 / 1.46/1.28 / NA/6.86 / NA/0.15",
+                                              "0.13/NA / 2.59/NA / 0.32/6.07 / 0.1/0.09",
+                                              "0.13/0.00 / 2.41/0.27 / NA/5.58 / NA/0.10",
+                                              "0.04/NA / 3.10/NA / 0.42/4.82 / 0.02/0.06",
+                                              "0.03/0.00 / 2.78/0.63 / NA/4.57 / NA/0.12",
+                                              "0.08/NA / 3.90/NA / 0.47/3.57 / 0.00/0.04",
+                                              "0.15/0.01 / 3.58/0.72 / NA/1.80 / NA/0.00",
+                                              "0.11/NA / 4.55/NA / 0.43/1.86 / 0.00/0.00",
+                                              "0.07/0.01 / 3.14/0.73 / NA/3.40 / NA/0.03",
+                                              "0.22/NA / 4.96/NA / 0.34/1.03 / 0.00/NA",
+                                              "0.30/0.03 / 5.49/0.62 / NA/1.14 / NA/NA"
                                             },
-                       "Correction matrix for isotope distributions in percent (see documentation);"
-                       " use the following format: <-2C13>/<-N15-C13>/<-C13>/<-N15>/<+N15>/<+C13>/<+N15+C13>/<+2C13> for each entry of"
-                       " a comma separated list; e.g., 'NA/0.00/0.82/0.65/NA/8.13/NA/0.26, 0.13/NA/2.59/NA/0.32/6.07/0.1/0.09'");
+                       "Correction matrix for isotope distributions in percent from the Thermo data sheet (see documentation);"
+                       " Please provide 16 entries (rows), separated by comma, where each entry contains 8 values in the following format: <-2C13>/<-N15-C13>/<-C13>/<-N15>/<+N15>/<+C13>/<+N15+C13>/<+2C13> e.g. one row may look like this: 'NA/0.00  /  0.82/0.65  /  NA/8.13  /  NA/0.26'. You may use whitespaces at your leisure to ease reading.");
 
     defaultsToParam_();
 }

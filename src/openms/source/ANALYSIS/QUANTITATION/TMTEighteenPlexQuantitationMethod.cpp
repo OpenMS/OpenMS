@@ -102,7 +102,7 @@ void TMTEighteenPlexQuantitationMethod::setDefaultParams_()
 
     // TODO: verify these
     defaults_.setValue("correction_matrix", std::vector<std::string>{
-                                              "NA/NA/NA/NA/0.31/9.09/0.02/0.32",
+                                              "NA/NA  /NA/NA  /0.31/9.09/  0.02/0.32",
                                               "NA/NA/NA/0.78/NA/9.41/NA/0.33",
                                               "NA/NA/0.93/NA/0.35/8.63/0.01/0.27",
                                               "NA/0.00/0.82/0.65/NA/8.13/NA/0.26",
@@ -121,9 +121,8 @@ void TMTEighteenPlexQuantitationMethod::setDefaultParams_()
                                               "0.14/NA/5.81/NA/0.31/NA/NA/NA",
                                               "0.19/0.02/5.42/0.36/NA/NA/NA/NA"
                                             },
-                       "Correction matrix for isotope distributions in percent (see documentation);"
-                       " use the following format: <-2C13>/<-N15-C13>/<-C13>/<-N15>/<+N15>/<+C13>/<+N15+C13>/<+2C13> for each entry of"
-                       " a comma separated list; e.g., 'NA/0.00/0.82/0.65/NA/8.13/NA/0.26, 0.13/NA/2.59/NA/0.32/6.07/0.1/0.09'");
+                       "Correction matrix for isotope distributions in percent from the Thermo data sheet (see documentation);"
+                       " Please provide 18 entries (rows), separated by comma, where each entry contains 8 values in the following format: <-2C13>/<-N15-C13>/<-C13>/<-N15>/<+N15>/<+C13>/<+N15+C13>/<+2C13> e.g. one row may look like this: 'NA/0.00  /  0.82/0.65  /  NA/8.13  /  NA/0.26'. You may use whitespaces at your leisure to ease reading.");
 
     defaultsToParam_();
 }
