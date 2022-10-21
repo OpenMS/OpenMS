@@ -404,7 +404,7 @@ namespace OpenMS
       double db_intensity = 0.0;
       for (const auto& db_it : match.second)
       {
-        db_intensity = max(db_intensity, double(db_it->getIntensity()));
+        db_intensity = max(db_intensity, double(db_it->getIntensity())); //FIXME should this be the sum of all the intensities / number of intensities?
       }
       dot_product += db_intensity * exp_spectrum[match.first].getIntensity();
     }
