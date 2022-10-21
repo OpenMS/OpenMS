@@ -232,7 +232,7 @@ Section "OpenMS Library" SEC_Lib
 # to ensure the dynamic linking uses the correct dll´s
 # (putting dll´s in another path makes it prone to
 # invalid PATH settings)
-    SetOutPath $INSTDIR\bin\
+    SetOutPath $INSTDIR\bin
     SetOverwrite on
 
     # open log file
