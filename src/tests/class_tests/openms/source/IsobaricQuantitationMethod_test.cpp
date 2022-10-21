@@ -144,6 +144,16 @@ START_SECTION((virtual Size getNumberOfChannels() const =0))
 }
 END_SECTION
 
+START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const =0 with Exception))
+{
+  auto* quant_method = new TestQuantitationMethod();
+  // missing entry
+  quant_method->correction_list = ListUtils::create<String>("0.0/1.0/5.9/0.2,0.0/2.0/    0.1,0.0/3.0/4.5/0.1,0.1/4.0/3.5/0.1");
+  TEST_EXCEPTION(Exception::InvalidValue, quant_method->getIsotopeCorrectionMatrix())
+  delete quant_method;
+}
+END_SECTION
+
 START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const =0))
 {
   auto* quant_method = new TestQuantitationMethod();

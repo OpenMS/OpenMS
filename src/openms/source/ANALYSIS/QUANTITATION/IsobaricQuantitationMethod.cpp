@@ -67,18 +67,25 @@ namespace OpenMS
       StringList corrections;
       l.split('/', corrections);
 
+      auto number_of_columns = getChannelInformation()[contributing_channel].affected_channels.size();
+      if (corrections.size() != number_of_columns )
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Entry #") + contributing_channel + " must contain " + number_of_columns + " values, but has " + corrections.size() + "!", String(corrections.size()));
+      }
+
       // overwrite line in Matrix with custom values
       Size affected_channel_idx = 0;
       double self_contribution = 100.0;
       double correction;
       Int target_channel;
-      for (const auto& c : corrections)
+      for (auto& c : corrections)
       {
+        c = c.trim().toUpper();
         if (c != "NA" && c != "-1" && c != "0.0")
         {
           target_channel = getChannelInformation()[contributing_channel].affected_channels[affected_channel_idx];
           correction = c.toDouble();
-          if (target_channel >= 0 && target_channel < getNumberOfChannels())
+          if (target_channel >= 0 && Size(target_channel) < getNumberOfChannels())
           {
             channel_frequency.setValue(target_channel, contributing_channel, correction / 100.0);
           }
