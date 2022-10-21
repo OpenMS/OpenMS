@@ -67,4 +67,21 @@ namespace OpenMS
     out << "mobility: " << (RangeBase) range << "\n";
     return out;
   }
-}
+
+  RangeBase::operator const RangeRT() const
+  {
+    return RangeRT(min_, max_);
+  }
+  RangeBase::operator const RangeMZ() const
+  {
+    return RangeMZ(min_, max_);
+  }
+  RangeBase::operator const RangeIntensity() const
+  {
+    return RangeIntensity(min_, max_);
+  }
+  RangeBase::operator const RangeMobility() const
+  {
+    return RangeMobility(min_, max_);
+  }
+} // namespace OpenMS

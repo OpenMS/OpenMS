@@ -335,7 +335,7 @@ namespace OpenMS
     template <typename T>
     T ppmToMass(T ppm, T mz_ref)
     {
-      return (ppm / 1e6) * mz_ref;
+      return (ppm / T(1e6)) * mz_ref;
     }
     
     /*

@@ -105,7 +105,7 @@ namespace OpenMS
     }
   }
 
-  void Annotation1DDistanceItem::move(const PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper)
+  void Annotation1DDistanceItem::move(const PointXYType delta, const Gravitator& gr, const DimMapper<2>& /*dim_mapper*/)
   {
     start_point_ = gr.gravitateWith(start_point_, delta); // only change the gravity axis
     end_point_ = gr.gravitateWith(end_point_, delta);     // only change the gravity axis

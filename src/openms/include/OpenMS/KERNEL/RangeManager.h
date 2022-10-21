@@ -54,6 +54,11 @@ namespace OpenMS
     IM
   };
 
+  struct RangeRT;
+  struct RangeMZ;
+  struct RangeIntensity;
+  struct RangeMobility;
+
   /// Base class for a simple range with minimum and maximum
   struct OPENMS_DLLAPI RangeBase
   {
@@ -83,6 +88,15 @@ namespace OpenMS
 
     /// D'tor
     ~RangeBase() noexcept = default;
+
+    /// conversion operator to allow accepting a RangeBase (instead of RangeRT) for the implicitly defined special members, e.g. assignment operator (RangeRT& operator=(const RangeRT&))
+    operator const RangeRT() const;
+    /// conversion operator to allow accepting a RangeBase (instead of RangeMZ) for the implicitly defined special members, e.g. assignment operator (RangeMZ& operator=(const RangeMZ&))
+    operator const RangeMZ() const;
+    /// conversion operator to allow accepting a RangeBase (instead of RangeIntensity) for the implicitly defined special members, e.g. assignment operator (RangeIntensity& operator=(const RangeIntensity&))
+    operator const RangeIntensity() const;
+    /// conversion operator to allow accepting a RangeBase (instead of RangeMobility) for the implicitly defined special members, e.g. assignment operator (RangeMobility& operator=(const RangeMobility&))
+    operator const RangeMobility() const;
 
     /// make the range empty, i.e. isEmpty() will be true
     void clear()
@@ -293,17 +307,8 @@ namespace OpenMS
 
     const static MSDim DIM = MSDim::RT;
 
-    RangeRT() = default;
-    RangeRT(const double min, const double max)
-      : RangeBase(min, max)
-    {
-    }
-
-    RangeRT& operator=(const RangeBase& rhs)
-    {
-      RangeBase::operator=(rhs);
-      return *this;
-    }
+    // Rule of 0!
+    using RangeBase::RangeBase; // inherit C'tors from base
 
     /** @name Accessors for min and max
       
@@ -362,17 +367,8 @@ namespace OpenMS
 
     const static MSDim DIM = MSDim::MZ;
 
-    RangeMZ() = default;
-    RangeMZ(const double min, const double max) :
-        RangeBase(min, max)
-    {
-    }
-
-    RangeMZ& operator=(const RangeBase& rhs)
-    {
-      RangeBase::operator=(rhs);
-      return *this;
-    }
+    // Rule of 0!
+    using RangeBase::RangeBase; // inherit C'tors from base
 
     /** @name Accessors for min and max
       
@@ -429,17 +425,8 @@ namespace OpenMS
 
     const static MSDim DIM = MSDim::INT;
 
-    RangeIntensity() = default;
-    RangeIntensity(const double min, const double max) :
-        RangeBase(min, max)
-    {
-    }
-
-    RangeIntensity& operator=(const RangeBase& rhs)
-    {
-      RangeBase::operator=(rhs);
-      return *this;
-    }
+    // Rule of 0!
+    using RangeBase::RangeBase; // inherit C'tors from base
 
     /** @name Accessors for min and max
       
@@ -496,17 +483,8 @@ namespace OpenMS
   {
     const static MSDim DIM = MSDim::IM;
 
-    RangeMobility() = default;
-    RangeMobility(const double min, const double max) :
-        RangeBase(min, max)
-    {
-    }
-
-    RangeMobility& operator=(const RangeBase& rhs)
-    {
-      RangeBase::operator=(rhs);
-      return *this;
-    }
+    // Rule of 0!
+    using RangeBase::RangeBase; // inherit C'tors from base
 
     /** @name Accessors for min and max
       

@@ -226,7 +226,7 @@ namespace OpenMS
         n_peaks_in_scan = n_s[1]; // median
       }
 
-      int rt_pixel_count, mz_pixel_count;
+      Size rt_pixel_count, mz_pixel_count;
       { // obtain number of pixels in RT/IM and MZ dimension
         auto tmp = canvas->getPixelRange().getAreaUnit();
         rt_pixel_count = tmp.RangeRT::isEmpty() ? tmp.getMaxMobility() : tmp.getMaxRT();
@@ -286,8 +286,6 @@ namespace OpenMS
 
   void Painter2DPeak::paintAllIntensities_(QPainter& painter, Plot2DCanvas* canvas, Size layer_index, double pen_width)
   {
-    Int image_width = canvas->buffer_.width();
-    Int image_height = canvas->buffer_.height();
     QVector<QPolygon> coloredPoints((int)layer_->gradient.precalculatedSize());
 
     const double snap_factor = canvas->snap_factors_[layer_index];
@@ -393,7 +391,7 @@ namespace OpenMS
     const auto& map = *layer_->getPeakData();
     const auto& area = canvas->visible_area_.getAreaUnit();
 
-    auto RT_or_IM_paint = [&](DimInfo& mapper) {
+    auto RT_or_IM_paint = [&](const DimInfo& mapper) {
       // note: the variables are named, assuming we have an RT+mz canvas.
       //       However, by using 'DimInfo' this could well be an IM+mz canvas (i.e. an IM Frame)
       
@@ -544,7 +542,7 @@ namespace OpenMS
   {
   }
 
-  void Painter2DChrom::paint(QPainter* painter, Plot2DCanvas* canvas, int layer_index)
+  void Painter2DChrom::paint(QPainter* painter, Plot2DCanvas* canvas, int /*layer_index*/)
   {
     const PeakMap& exp = *layer_->getChromatogramData();
     // TODO CHROM implement layer filters
@@ -571,7 +569,7 @@ namespace OpenMS
   {
   }
 
-  void Painter2DIonMobility::paint(QPainter* painter, Plot2DCanvas* canvas, int layer_index)
+  void Painter2DIonMobility::paint(QPainter* /*painter*/, Plot2DCanvas* /*canvas*/, int /*layer_index*/)
   {
       
   }

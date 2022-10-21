@@ -53,8 +53,8 @@ namespace OpenMS
     LayerDataChrom();
     /// Copy-ctor
     LayerDataChrom(const LayerDataChrom& ld) = default;
-    /// Assignment operator
-    LayerDataChrom& operator=(const LayerDataChrom& ld) = default;
+    /// no assignment operator (should not be needed)
+    LayerDataChrom& operator=(const LayerDataChrom& ld) = delete;
     /// move C'tor
     LayerDataChrom(LayerDataChrom&& ld) = default;
     /// move assignment
