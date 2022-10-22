@@ -68,20 +68,28 @@ namespace OpenMS
     return out;
   }
 
-  RangeBase::operator const RangeRT() const
+  RangeBase::operator RangeRT() const
   {
-    return RangeRT(min_, max_);
+    RangeRT out;
+    out.RangeBase::operator=(*this);
+    return out;
   }
-  RangeBase::operator const RangeMZ() const
+  RangeBase::operator RangeMZ() const
   {
-    return RangeMZ(min_, max_);
+    RangeMZ out;
+    out.RangeBase::operator=(*this);
+    return out;
   }
-  RangeBase::operator const RangeIntensity() const
+  RangeBase::operator RangeIntensity() const
   {
-    return RangeIntensity(min_, max_);
+    RangeIntensity out;
+    out.RangeBase::operator=(*this);
+    return out;
   }
-  RangeBase::operator const RangeMobility() const
+  RangeBase::operator RangeMobility() const
   {
-    return RangeMobility(min_, max_);
+    RangeMobility out;
+    out.RangeBase::operator=(*this);
+    return out;
   }
 } // namespace OpenMS

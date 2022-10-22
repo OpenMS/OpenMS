@@ -90,13 +90,13 @@ namespace OpenMS
     ~RangeBase() noexcept = default;
 
     /// conversion operator to allow accepting a RangeBase (instead of RangeRT) for the implicitly defined special members, e.g. assignment operator (RangeRT& operator=(const RangeRT&))
-    operator const RangeRT() const;
+    operator RangeRT() const;
     /// conversion operator to allow accepting a RangeBase (instead of RangeMZ) for the implicitly defined special members, e.g. assignment operator (RangeMZ& operator=(const RangeMZ&))
-    operator const RangeMZ() const;
+    operator RangeMZ() const;
     /// conversion operator to allow accepting a RangeBase (instead of RangeIntensity) for the implicitly defined special members, e.g. assignment operator (RangeIntensity& operator=(const RangeIntensity&))
-    operator const RangeIntensity() const;
+    operator RangeIntensity() const;
     /// conversion operator to allow accepting a RangeBase (instead of RangeMobility) for the implicitly defined special members, e.g. assignment operator (RangeMobility& operator=(const RangeMobility&))
-    operator const RangeMobility() const;
+    operator RangeMobility() const;
 
     /// make the range empty, i.e. isEmpty() will be true
     void clear()
