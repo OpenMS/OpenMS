@@ -39,11 +39,10 @@
 
 namespace OpenMS
 {
-  Annotations1DContainer::Annotations1DContainer()
-  {
-  }
+  Annotations1DContainer::Annotations1DContainer() = default;
 
   Annotations1DContainer::Annotations1DContainer(const Annotations1DContainer& rhs)
+    : Base(rhs)
   {
     // copy annotations
     for (auto item : rhs)

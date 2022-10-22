@@ -108,11 +108,8 @@ public:
       // compute bounding box of text_item on the specified painter
       bounding_box_ = QRectF(position_widget, st_.size());
 
-      double vertical_shift = 0;
-      double horizontal_shift = 0;
-
       // shift pos - annotation should be over peak or, if not possible, next to it
-      vertical_shift = bounding_box_.height() / 2 + 5;
+      double vertical_shift = bounding_box_.height() / 2 + 5;
       if (!flipped)
       {
         vertical_shift *= -1;
@@ -160,7 +157,7 @@ public:
     }
 
     // Docu in base class
-    void move(const PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override
+    void move(const PointXYType delta, const Gravitator& /*gr*/, const DimMapper<2>& dim_mapper) override
     {
       auto xy_before = dim_mapper.map(position_);
       xy_before += delta;

@@ -107,7 +107,7 @@ namespace OpenMS
       ((chrom_caption += "[") += index) += "]";
 
       // add chromatogram data
-      if (!target->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, chrom_annotation, index, filename, chrom_caption, true))
+      if (!target->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, chrom_annotation, index, filename, chrom_caption))
       {
         return false;
       }

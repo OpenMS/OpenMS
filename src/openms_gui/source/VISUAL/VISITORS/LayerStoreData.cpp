@@ -63,7 +63,7 @@ namespace OpenMS
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // helper for saving a peakmap to a file
-  void savePeakMapToFile(const String& path, const PeakMap& pm, const ProgressLogger::LogType lt, const FileTypes::Type ext)
+  void savePeakMapToFile(const String& path, const PeakMap& pm, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
   {
     FileHandler().storeExperiment(path, pm, lt);
   }
@@ -278,7 +278,7 @@ namespace OpenMS
     return savePepIdsToFile(path, ids_, lt, this->getSupportedExtension_(path));
   }
 
-  void LayerStoreDataIdentVisible::storeVisibleIdent(const IPeptideIds::PepIds& ids, const RangeAllType& visible_range, const DataFilters& layer_filters)
+  void LayerStoreDataIdentVisible::storeVisibleIdent(const IPeptideIds::PepIds& ids, const RangeAllType& visible_range, const DataFilters& /*layer_filters*/)
   {
     ids_.clear();
 

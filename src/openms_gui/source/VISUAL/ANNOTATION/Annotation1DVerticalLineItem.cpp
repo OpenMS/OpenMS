@@ -111,7 +111,7 @@ namespace OpenMS
     painter.restore();
   }
 
-  void Annotation1DVerticalLineItem::move(PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper)
+  void Annotation1DVerticalLineItem::move(PointXYType delta, const Gravitator& gr, const DimMapper<2>& /*dim_mapper*/)
   {
     pos_ = gr.swap().gravitateWith(pos_, delta); // only change the non-gravity axis
   }

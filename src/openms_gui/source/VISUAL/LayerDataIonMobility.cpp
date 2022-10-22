@@ -65,7 +65,7 @@ namespace OpenMS
     return make_unique<LayerData1DIonMobility>(*this);
   }
 
-  std::unique_ptr<LayerStoreData> LayerDataIonMobility::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
+  std::unique_ptr<LayerStoreData> LayerDataIonMobility::storeVisibleData(const RangeAllType& /*visible_range*/, const DataFilters& /*layer_filters*/) const
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     // does not exist yet...
@@ -83,7 +83,7 @@ namespace OpenMS
     return ret;*/
   }
 
-  LayerDataIonMobility::ProjectionData LayerDataIonMobility::getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const
+  LayerDataIonMobility::ProjectionData LayerDataIonMobility::getProjection(const DIM_UNIT /*unit_x*/, const DIM_UNIT /*unit_y*/, const RangeAllType& /*area*/) const
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     /*ProjectionData result;

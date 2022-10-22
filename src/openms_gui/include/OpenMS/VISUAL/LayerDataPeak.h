@@ -62,8 +62,8 @@ namespace OpenMS
     LayerDataPeak();
     /// Copy-ctor
     LayerDataPeak(const LayerDataPeak& ld) = default;
-    /// Assignment operator
-    LayerDataPeak& operator=(const LayerDataPeak& ld) = default;
+    /// no assignment operator (should not be needed)
+    LayerDataPeak& operator=(const LayerDataPeak& ld) = delete;
     /// move Ctor
     LayerDataPeak(LayerDataPeak&& ld) = default;
     /// move assignment

@@ -53,7 +53,6 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI LayerDataIonMobility : public virtual LayerDataBase
   {
   public:
-
     using PeakType = Mobilogram::PeakType;
 
     /// Default constructor
@@ -77,7 +76,7 @@ namespace OpenMS
 
     ProjectionData getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const override;
 
-    PeakIndex findHighestDataPoint(const RangeAllType& area) const override
+    PeakIndex findHighestDataPoint(const RangeAllType& /*area*/) const override
     { // todo: not implemented
       return PeakIndex();
     }

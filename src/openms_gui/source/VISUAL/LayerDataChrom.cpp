@@ -87,6 +87,11 @@ namespace OpenMS
     map<int, float> mzint;
     map<int, float> mzsum;
 
+    MSSpectrum projection_mz;
+    MSChromatogram projection_rt;
+        
+    // this does not work yet for chromatograms...
+    /*
     auto& peak_count = result.stats.number_of_datapoints;
     auto& intensity_max = result.stats.max_intensity;
     double total_intensity_sum = 0.0;
@@ -95,11 +100,7 @@ namespace OpenMS
     float rt_range = area.RangeRT::getSpan();
     float mult = 100.0f / (std::isnan(rt_range) ? 1 : rt_range);
 
-    MSSpectrum projection_mz;
-    MSChromatogram projection_rt;
-
-    // this does not work yet for chromatograms...
-    /*for (auto i = chromatogram_map_->areaBeginConst(area.getMinRT(), area.getMaxRT(), area.getMinMZ(), area.getMaxMZ()); i != getPeakData()->areaEndConst(); ++i)
+    for (auto i = chromatogram_map_->areaBeginConst(area.getMinRT(), area.getMaxRT(), area.getMinMZ(), area.getMaxMZ()); i != getPeakData()->areaEndConst(); ++i)
     {
       PeakIndex pi = i.getPeakIndex();
       if (filters.passes((*getPeakData())[pi.spectrum], pi.peak))
@@ -191,7 +192,6 @@ namespace OpenMS
   PeakIndex LayerDataChrom::findHighestDataPoint(const RangeAllType& area) const
   {
     using IntType = MSExperiment::ConstAreaIterator::PeakType::IntensityType;
-    auto max_int = numeric_limits<IntType>::lowest();
 
     const PeakMap& exp = *getChromatogramData();
     int count {-1};

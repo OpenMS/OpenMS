@@ -168,14 +168,12 @@ namespace OpenMS
     return unit_mapper_.getDim(getGravitator().swap().getGravityAxis());
   }
 
-
   bool Plot1DCanvas::addChromLayer(ExperimentSharedPtrType chrom_exp_sptr,
                                    ODExperimentSharedPtrType ondisc_sptr,
                                    OSWDataSharedPtrType chrom_annotation,
                                    const int index,
                                    const String& filename,
-                                   const String& caption,
-                                   const bool multiple_select)
+                                   const String& caption)
   {
     // we do not want addChromLayer to trigger repaint, since we have not set the chromatogram data!
     this->blockSignals(true);
@@ -198,7 +196,7 @@ namespace OpenMS
 //    setIntensityMode(Plot1DCanvas::IM_NONE);
 
     // extend the currently visible area, so the new data is visible
-    auto va = visible_area_.getAreaUnit();
+    //auto va = visible_area_.getAreaUnit();
 
     return true;
   }       
@@ -1232,7 +1230,7 @@ namespace OpenMS
     PlotCanvas::changeVisibleArea_(*zoom_pos_);
   }
 
-  void Plot1DCanvas::translateLeft_(Qt::KeyboardModifiers m)
+  void Plot1DCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
   {
     auto xy = visible_area_.getAreaXY();
     // -5% shift in X
@@ -1240,7 +1238,7 @@ namespace OpenMS
     changeVisibleArea_(xy);
   }
 
-  void Plot1DCanvas::translateRight_(Qt::KeyboardModifiers m)
+  void Plot1DCanvas::translateRight_(Qt::KeyboardModifiers /*m*/)
   {
     auto xy = visible_area_.getAreaXY();
     // +5% shift in X

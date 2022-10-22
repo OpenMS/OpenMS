@@ -355,9 +355,6 @@ namespace OpenMS
     pen.setStyle(canvas->peak_penstyle_[layer_index]);
     painter->setPen(pen);
 
-    // draw dashed elongations for pairs of peaks annotated with a distance
-    const QColor color = String(canvas->param_.getValue("highlighted_peak_color").toString()).toQString();
-
     const auto v_begin = data.RTBegin(canvas->visible_area_.getAreaUnit().getMinRT());
     const auto v_end = data.RTEnd(canvas->visible_area_.getAreaUnit().getMaxRT());
     QPoint begin, end;
@@ -457,9 +454,6 @@ namespace OpenMS
     QPen pen(QColor(String(layer_->param.getValue("peak_color").toString()).toQString()), 1);
     pen.setStyle(canvas->peak_penstyle_[layer_index]);
     painter->setPen(pen);
-
-    // draw dashed elongations for pairs of peaks annotated with a distance
-    const QColor color = String(canvas->param_.getValue("highlighted_peak_color").toString()).toQString();
 
     const auto v_begin = data.MBBegin(canvas->visible_area_.getAreaUnit().getMinMobility());
     const auto v_end = data.MBEnd(canvas->visible_area_.getAreaUnit().getMaxMobility());

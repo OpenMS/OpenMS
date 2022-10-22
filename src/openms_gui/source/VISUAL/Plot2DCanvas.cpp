@@ -634,7 +634,7 @@ namespace OpenMS
     else
     {
       peak_end = widgetToData_(last_mouse_pos_);
-      peak_end_int = std::nan(nullptr);
+      peak_end_int = decltype(peak_end_int) {};
     }
 
     auto dim_text = [](const DimBase& dim, double start_pos, double end_pos, bool ratio /*or difference*/) {

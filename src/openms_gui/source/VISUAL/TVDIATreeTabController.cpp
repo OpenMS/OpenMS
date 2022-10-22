@@ -97,7 +97,7 @@ namespace OpenMS
     int chrom_index = ml.annot_sptr->fromNativeID(transition_id);
 
     // add data and return if something went wrong
-    if (!w->canvas()->addChromLayer(ml.full_chrom_exp_sptr, ml.ondisc_sptr, ml.annot_sptr, chrom_index, ml.filename, chrom_caption, false))
+    if (!w->canvas()->addChromLayer(ml.full_chrom_exp_sptr, ml.ondisc_sptr, ml.annot_sptr, chrom_index, ml.filename, chrom_caption))
     {
       return false;
     }

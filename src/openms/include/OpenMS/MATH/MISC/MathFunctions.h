@@ -113,7 +113,6 @@ namespace OpenMS
     inline std::pair<double,double> zoomIn(const double left, const double right, const float factor, const float align)
     {
       OPENMS_PRECONDITION(factor >= 0, "Factor must be >=0")
-      //OPENMS_PRECONDITION(factor <= 1, "Factor must be <=1")
       OPENMS_PRECONDITION(align >= 0, "align must be >=0")
       OPENMS_PRECONDITION(align <= 1, "align must be <=1")
       std::pair<double, double> res;

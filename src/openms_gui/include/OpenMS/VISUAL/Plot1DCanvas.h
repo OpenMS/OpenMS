@@ -366,7 +366,6 @@ public:
     /// @param index Index of the chromatogram to show
     /// @param filename For file change watcher (can be empty, if need be)
     /// @param caption Name of layer
-    /// @param multiple_select .... not sure ...
     /// @return true on success, false if data was missing etc
     /// @note: this does NOT trigger layerActivated signal for efficiency-reasons. Do it manually afterwards!
     bool addChromLayer(ExperimentSharedPtrType chrom_exp_sptr,
@@ -374,8 +373,7 @@ public:
                        OSWDataSharedPtrType chrom_annotation,
                        const int index,
                        const String& filename, 
-                       const String& caption, 
-                       const bool multiple_select);
+                       const String& caption);
 
     
     ///Enumerate all available paint styles

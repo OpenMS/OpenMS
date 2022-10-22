@@ -89,7 +89,7 @@ namespace OpenMS
     p.restore();
   }
 
-  void Painter2DBase::highlightElement(QPainter* painter, Plot2DCanvas* canvas, const PeakIndex element)
+  void Painter2DBase::highlightElement(QPainter* /*painter*/, Plot2DCanvas* /*canvas*/, const PeakIndex /*element*/)
   {
     // does nothing by default
   }
@@ -215,7 +215,7 @@ namespace OpenMS
       {
         static constexpr std::array<double, 3> quantiles = {0.25, 0.50, 0.75};
         std::array<Size, quantiles.size()> n_s;
-        for (int i = 0; i < quantiles.size(); ++i)
+        for (Size i = 0; i < quantiles.size(); ++i)
         {
           const auto& spec = peak_map[scan_indices[n_ms1_scans * quantiles[i]]];
           if (!spec.isSorted())
@@ -595,8 +595,6 @@ namespace OpenMS
 
 
     const double snap_factor = canvas->snap_factors_[layer_index];
-    Int image_width = canvas->buffer_.width();
-    Int image_height = canvas->buffer_.height();
 
     int line_spacing = QFontMetrics(painter->font()).lineSpacing();
     String icon = layer_->param.getValue("dot:feature_icon").toString();
@@ -648,7 +646,7 @@ namespace OpenMS
     }
   }
 
-  void Painter2DFeature::highlightElement(QPainter* painter, Plot2DCanvas* canvas, const PeakIndex element)
+  void Painter2DFeature::highlightElement(QPainter* painter, Plot2DCanvas* canvas, const PeakIndex /*element*/)
   {
     painter->setPen(QPen(Qt::red, 2));
     const Feature& f = canvas->selected_peak_.getFeature(*layer_->getFeatureMap());
