@@ -3306,13 +3306,18 @@ namespace OpenMS::Internal
       // integer type
       else if (type == "xsd:byte" || type == "xsd:decimal" ||
                type == "xsd:int" || type == "xsd:integer" ||
-               type == "xsd:long" || type == "xsd:negativeInteger" ||
+               type == "xsd:negativeInteger" || type == "xsd:unsignedShort" ||
                type == "xsd:nonNegativeInteger" || type == "xsd:nonPositiveInteger" ||
                type == "xsd:positiveInteger" || type == "xsd:short" ||
                type == "xsd:unsignedByte" || type == "xsd:unsignedInt"
-               || type == "xsd:unsignedLong" || type == "xsd:unsignedShort")
+               )
       {
-        data_value = DataValue(value.toInt());
+        data_value = DataValue(value.toInt32());
+      }
+      // integer type
+      else if (type == "xsd:long" || type == "xsd:unsignedLong")
+      {
+        data_value = DataValue(value.toInt64());
       }
       // everything else is treated as a string
       else

@@ -301,7 +301,21 @@ namespace OpenMS
 
   Int String::toInt() const
   {
-    return StringUtils::toInt(*this);
+    if constexpr (is_same<Int, Int32>::value)
+    {
+      return StringUtils::toInt32(*this);
+    }
+    return StringUtils::toInt64(*this);
+  }
+
+  Int String::toInt32() const
+  {
+    return StringUtils::toInt32(*this);
+  }
+
+  Int String::toInt64() const
+  {
+    return StringUtils::toInt64(*this);
   }
 
   float String::toFloat() const
