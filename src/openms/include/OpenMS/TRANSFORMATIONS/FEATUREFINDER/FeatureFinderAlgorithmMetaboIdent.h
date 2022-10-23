@@ -64,24 +64,53 @@ public:
         const std::vector<double>& _rts, 
         const std::vector<double>& _rt_ranges, 
         const std::vector<double>& _iso_distrib):
-      name(_name),
-      formula(_formula),
-      mass(_mass),
-      charges(_charges),
-      rts(_rts),
-      rt_ranges(_rt_ranges),
-      iso_distrib(_iso_distrib)
+      name_(_name),
+      formula_(_formula),
+      mass_(_mass),
+      charges_(_charges),
+      rts_(_rts),
+      rt_ranges_(_rt_ranges),
+      iso_distrib_(_iso_distrib)
       {        
       }
+    
+    private:
+      String name_;
+      String formula_;
+      double mass_;
+      std::vector<int> charges_;
+      std::vector<double> rts_;
+      std::vector<double> rt_ranges_;
+      std::vector<double> iso_distrib_;
 
+    public:
+      const String& getName() const {
+        return name_;
+      }
 
-    String name;
-    String formula;
-    double mass;
-    std::vector<int> charges;
-    std::vector<double> rts;
-    std::vector<double> rt_ranges;
-    std::vector<double> iso_distrib;
+      const String& getFormula() const {
+        return formula_;
+      }
+
+      double getMass() const {
+        return mass_;
+      }
+
+      const std::vector<int>& getCharges() const {
+        return charges_;
+      }
+
+      const std::vector<double>& getRTs() const {
+        return rts_;
+      }
+
+      const std::vector<double> getRTRanges() const {
+        return rt_ranges_;
+      }
+
+      const std::vector<double>& getIsotopeDistribution() const {
+        return iso_distrib_;
+      }
   };
 
   /// default constructor

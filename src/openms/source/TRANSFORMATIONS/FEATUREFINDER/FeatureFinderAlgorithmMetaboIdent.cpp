@@ -170,8 +170,8 @@ namespace OpenMS
 
     for (const auto& c : metaboIdentTable)
     {
-      addTargetToLibrary_(c.name, c.formula, c.mass, c.charges, c.rts, c.rt_ranges,
-                      c.iso_distrib);
+      addTargetToLibrary_(c.getName(), c.getFormula(), c.getMass(), c.getCharges(), c.getRTs(), c.getRTRanges(),
+                      c.getIsotopeDistribution());
     }
 
     // initialize algorithm classes needed later:

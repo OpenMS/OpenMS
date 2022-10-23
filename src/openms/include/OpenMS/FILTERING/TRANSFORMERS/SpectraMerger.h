@@ -551,6 +551,8 @@ protected:
 
         count_peaks_overall += consensus_spec.size();
 
+        String consensus_native_id = consensus_spec.getNativeID();
+
         // block elements
         for (auto sit = it->second.begin(); sit != it->second.end(); ++sit)
         {
@@ -563,6 +565,10 @@ protected:
             precursor_mz_average += exp[*sit].getPrecursors()[0].getMZ();
             ++precursor_count;
           }
+
+          // add native ID to consensus native ID, comma separated
+          consensus_native_id += ",";
+          consensus_native_id += exp[*sit].getNativeID();
 
           // merge data points
           sas.getSpectrumAlignment(alignment, consensus_spec, exp[*sit]);
@@ -620,6 +626,9 @@ protected:
         }
         rt_average /= it->second.size() + 1;
         consensus_spec.setRT(rt_average);
+        
+        // set new consensus native ID
+        consensus_spec.setNativeID(consensus_native_id);
 
         if (ms_level >= 2)
         {

@@ -10,6 +10,8 @@ set(sources_list_h
   IdentificationSummary.h
   MissedCleavages.h
   MQEvidenceExporter.h
+  MQExporterHelper.h
+  MQMsmsExporter.h
   Ms2IdentificationRate.h
   Ms2SpectrumStats.h
   MzCalibration.h
