@@ -65,7 +65,7 @@ namespace TRIOT {
     class ForEachFixedDimension<0U>	{
   public:
     template <typename FUNCTION, typename ...TENSORS>
-    inline static void apply(const_tup_t shape, FUNCTION function, TENSORS & ...args) {
+    inline static void apply(const_tup_t /*shape*/, FUNCTION /*function*/, TENSORS & .../*args*/) {
 		// do nothing, so that memset is not called with size = 0 which is a GCC extension
 	}
   };
@@ -128,7 +128,7 @@ namespace TRIOT {
     class ForEachVisibleCounterFixedDimension<0U>	{
   public:
     template <typename FUNCTION, typename ...TENSORS>
-    inline static void apply(const_tup_t shape, FUNCTION function, TENSORS & ...args) {
+    inline static void apply(const_tup_t /*shape*/, FUNCTION /*function*/, TENSORS & .../*args*/) {
 		// do nothing, so that memset is not called with size = 0 which is a GCC extension
 	}
   };
@@ -155,7 +155,7 @@ void check_tensor_pack_bounds(const TENSORS & ...args, const Vector<unsigned lon
 }
 
 template <typename ...TENSORS>
-void check_tensor_pack_bounds(const Vector<unsigned long> & shape) {
+void check_tensor_pack_bounds(const Vector<unsigned long> & /*shape*/) {
 }
 
 template <typename ...TENSORS>

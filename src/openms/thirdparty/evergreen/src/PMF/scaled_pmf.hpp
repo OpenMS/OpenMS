@@ -20,7 +20,7 @@ inline void add_scaled_outcome(Tensor<double> & ten, const Vector<long> & new_fi
     for (unsigned char i=0; i<ten.dimension(); ++i)
       mass /= scaled_bounding_box[i];
 
-    enumerate_apply_tensors([mass](const_tup_t tup, const unsigned char dim, double & val){
+    enumerate_apply_tensors([mass](const_tup_t /*tup*/, const unsigned char /*dim*/, double & val){
 	val += mass;
       },
       scaled_bounding_box,
