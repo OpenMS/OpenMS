@@ -74,6 +74,63 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
             libcpp_vector[ double ] rts,
             libcpp_vector[ double ] rt_ranges,
             libcpp_vector[ double ] iso_distrib) nogil except +
-        
         # wrap-doc:
-        #    Represents a compound in the ID table
+        #     Represents a compound in the in the FeatureFinderMetaboIdent library table.
+        #     
+        #     -----
+        #     :param name: Unique name for the target compound.
+        #     :param formula: Chemical sum formula.
+        #     :param mass: Neutral mass; if zero calculated from formula.
+        #     :param charges: List of possible charge states.
+        #     :param rts: List of possible retention times.
+        #     :param rt_ranges: List of possible retention time ranges (window around RT), either one value or one per RT entry.
+        #     :param iso_distrib: List of relative abundances of isotopologues; if zero calculated from formula.
+
+        String getName() nogil except + 
+        # wrap-doc:
+        #     Gets the compound name.
+        #     
+        #     -----
+        #     :rtype: str
+
+        String getFormula() nogil except +
+        # wrap-doc:
+        #     Gets the compound chemical formula.
+        #     
+        #     -----
+        #     :rtype: str
+
+        double getMass() nogil except +
+        # wrap-doc:
+        #     Gets the compound mass.
+        #     
+        #     -----
+        #     :rtype: float 
+
+        libcpp_vector[ int ] getCharges() nogil except +
+        # wrap-doc:
+        #     Gets the compound charge states.
+        #     
+        #     -----
+        #     :rtype: list of int
+
+        libcpp_vector[ double ] getRTs() nogil except +
+        # wrap-doc:
+        #     Gets the compound retention times.
+        #     
+        #     -----
+        #     :rtype: list of float
+
+        libcpp_vector[ double ] getRTRanges() nogil except +
+        # wrap-doc:
+        #     Gets the compound retention time ranges.
+        #     
+        #     -----
+        #     :rtype: list of float
+
+        libcpp_vector[ double ] getIsotopeDistribution() nogil except +
+        # wrap-doc:
+        #     Gets the compound isotopic distributions.
+        #     
+        #     -----
+        #     :rtype: list of float
