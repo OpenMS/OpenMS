@@ -51,7 +51,7 @@
   @subsection install_win_contrib Contrib installation
         In order to make the
         installation of the remaining required libraries easier, we composed a
-        "contrib-package" containing the libraries Boost, Eigen, sqlite3, CoinMP, WildMagic, libSVM, libHDF5, glpk, zlib, libbz2 and Xerces-C.
+        "contrib-package" containing the libraries Boost, Eigen, sqlite3, CoinMP, libSVM, libHDF5, glpk, zlib, libbz2 and Xerces-C.
         This contrib package has several advantages over manual installation
         <ul>
             <li>You get all the libraries in versions tested with %OpenMS.</li>
@@ -80,8 +80,8 @@
     <ol>
       <li>Open a <b>VisualStudio Developer Command prompt</b> (by default you will get a 32-bit environment which you most likely do not want; use a x64 environment if you want 64 bit apps!)<br>
 					@note VS2019 and above have a (well hidden) batch-file which correctly configures your environment for 64bit builds. It should be located at
-					<tt>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>. (Same goes for VS2022)
-          Use our tools/load_vcvarsall.sh if you are building in bash on Windows.
+					<tt>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>. (Same goes for VS2022)
+          <br>Use our tools/load_vcvarsall.sh if you are building in bash on Windows.
       <li>Create a build directory for the %OpenMS contrib<br>
           e.g. <tt>mkdir contrib_win64_build</tt>
       <li>Call CMake to build the contrib<br>
@@ -175,7 +175,7 @@
 
 
 
-@section create_doc Building the documentation (optional)
+  @section create_doc Building the documentation (optional)
 
   This section is optional. If you can live with the online documentation, you do not need to build your own.
 
