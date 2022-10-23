@@ -33,7 +33,7 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
             #   -----
             #   If you want to read all entries in one go, use load()
             #   -----
-            #   :returns: true if entry was read; false if eof was reached
+            #   :return: true if entry was read; false if eof was reached
             #   :raises:
             #       Exception:FileNotFound is thrown if the file does not exists
             #   :raises:
