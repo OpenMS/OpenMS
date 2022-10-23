@@ -1,12 +1,20 @@
-from collections import defaultdict
-from typing import List
+from collections import defaultdict as _defaultdict
+from typing import List, Union
 
-from . import ConsensusMap, ConsensusFeature, FeatureMap, Feature, MSExperiment, PeakMap, PeptideIdentification, ControlledVocabulary, File, IonSource
+from . import ConsensusMap as _ConsensusMap
+from . import ConsensusFeature as _ConsensusFeature
+from . import FeatureMap as _FeatureMap
+from . import Feature as _Feature
+from . import MSExperiment as _MSExperiment
+from . import PeptideIdentification as _PeptideIdentification
+from . import ControlledVocabulary as _ControlledVocabulary
+from . import File as _File
+from . import IonSource as _IonSource
 
-import pandas as pd
-import numpy as np
+import pandas as _pd
+import numpy as _np
 
-class ConsensusMapDF(ConsensusMap):
+class _ConsensusMapDF(_ConsensusMap):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -33,16 +41,16 @@ class ConsensusMapDF(ConsensusMap):
 
         if not labelfree:
 
-            def extract_row_blocks_channel_wide_file_long(f: ConsensusFeature):
+            def extract_row_blocks_channel_wide_file_long(f: _ConsensusFeature):
                 subfeatures = f.getFeatureList()  # type: list[FeatureHandle]
-                filerows = defaultdict(lambda: [0] * len(labels))
+                filerows = _defaultdict(lambda: [0] * len(labels))
                 for fh in subfeatures:
                     header = filemeta[fh.getMapIndex()]
                     row = filerows[header.filename]
                     row[label_to_idx[header.label]] = fh.getIntensity()
                 return (f.getUniqueId(), filerows)
 
-            def extract_rows_channel_wide_file_long(f: ConsensusFeature):
+            def extract_rows_channel_wide_file_long(f: _ConsensusFeature):
                 uniqueid, rowdict = extract_row_blocks_channel_wide_file_long(f)
                 for file, row in rowdict.items():
                     row.append(file)
@@ -51,16 +59,16 @@ class ConsensusMapDF(ConsensusMap):
             if len(labels) == 1:
                 labels[0] = "intensity"
 
-            dtypes = [('id', np.dtype('uint64'))] + list(zip(labels, ['f'] * len(labels)))
+            dtypes = [('id', _np.dtype('uint64'))] + list(zip(labels, ['f'] * len(labels)))
             dtypes.append(('file', 'U300'))
 
-            intyarr = np.fromiter(iter=gen(self, extract_rows_channel_wide_file_long), dtype=dtypes, count=self.size())
+            intyarr = _np.fromiter(iter=gen(self, extract_rows_channel_wide_file_long), dtype=dtypes, count=self.size())
 
-            return pd.DataFrame(intyarr).set_index('id')
+            return _pd.DataFrame(intyarr).set_index('id')
 
         else:
             # Specialized for LabelFree which has to have only one channel
-            def extract_row_blocks_channel_long_file_wide_LF(f: ConsensusFeature):
+            def extract_row_blocks_channel_long_file_wide_LF(f: _ConsensusFeature):
                 subfeatures = f.getFeatureList()  # type: list[FeatureHandle]
                 row = [0.] * len(files)
 
@@ -70,11 +78,11 @@ class ConsensusMapDF(ConsensusMap):
 
                 yield tuple([f.getUniqueId()] + row)
 
-            dtypes = [('id', np.dtype('uint64'))] + list(zip(files, ['f'] * len(files)))
+            dtypes = [('id', _np.dtype('uint64'))] + list(zip(files, ['f'] * len(files)))
 
-            intyarr = np.fromiter(iter=gen(self, extract_row_blocks_channel_long_file_wide_LF), dtype=dtypes, count=self.size())
+            intyarr = _np.fromiter(iter=gen(self, extract_row_blocks_channel_long_file_wide_LF), dtype=dtypes, count=self.size())
 
-            return pd.DataFrame(intyarr).set_index('id')
+            return _pd.DataFrame(intyarr).set_index('id')
 
     def get_metadata_df(self):
         """Generates a pandas DataFrame with feature meta data (sequence, charge, mz, RT, quality).
@@ -85,11 +93,11 @@ class ConsensusMapDF(ConsensusMap):
         pandas.DataFrame: DataFrame with metadata for each feature (such as: best identified sequence, charge, centroid RT/mz, fitting quality)
         """
 
-        def gen(cmap: ConsensusMap, fun):
+        def gen(cmap: _ConsensusMap, fun):
             for f in cmap:
                 yield from fun(f)
 
-        def extract_meta_data(f: ConsensusFeature):
+        def extract_meta_data(f: _ConsensusFeature):
             pep = f.getPeptideIdentifications()  # type: list[PeptideIdentification]
 
             if len(pep) != 0:
@@ -107,12 +115,12 @@ class ConsensusMapDF(ConsensusMap):
 
         cnt = self.size()
 
-        mddtypes = [('id', np.dtype('uint64')), ('sequence', 'U200'), ('charge', 'i4'),
-                    ('RT', np.dtype('double')), ('mz', np.dtype('double')), ('quality', 'f')]
+        mddtypes = [('id', _np.dtype('uint64')), ('sequence', 'U200'), ('charge', 'i4'),
+                    ('RT', _np.dtype('double')), ('mz', _np.dtype('double')), ('quality', 'f')]
 
-        mdarr = np.fromiter(iter=gen(self, extract_meta_data), dtype=mddtypes, count=cnt)
+        mdarr = _np.fromiter(iter=gen(self, extract_meta_data), dtype=mddtypes, count=cnt)
 
-        return pd.DataFrame(mdarr).set_index('id')
+        return _pd.DataFrame(mdarr).set_index('id')
     
     def get_df(self):
         """Generates a pandas DataFrame with both consensus feature meta data and intensities from each sample.
@@ -120,14 +128,14 @@ class ConsensusMapDF(ConsensusMap):
         Returns:
         pandas.DataFrame: meta data and intensity DataFrame
         """
-        return pd.concat([self.get_metadata_df(), self.get_intensity_df()], axis=1)
+        return _pd.concat([self.get_metadata_df(), self.get_intensity_df()], axis=1)
 
-ConsensusMap = ConsensusMapDF
+ConsensusMap = _ConsensusMapDF
 
 # TODO tell the advanced user that they could change this, in case they have different needs.
 # TODO check if type could be inferred in the first pass
 # TODO check if max. string lengths could be inferred in the first pass and how this affects runtime
-# TODO check how runtime is affected if we use np.append instead of np.fromiter and use np.dyte = object for strings
+# TODO check how runtime is affected if we use _np.append instead of _np.fromiter and use _np.dyte = object for strings
 common_meta_value_types = {
     b'label': 'U50',
     b'spectrum_index': 'i',
@@ -137,16 +145,22 @@ common_meta_value_types = {
     b'spectrum_native_id': 'U100',
     b'max_height': 'f',
     b'num_of_masstraces': 'i',
-    b'masstrace_intensity': 'f', # TODO this is actually a DoubleList. Think about what to do here. For np.fromiter we would need to set the length of the array.
+    b'masstrace_intensity': 'f', # TODO this is actually a DoubleList. Think about what to do here. For _np.fromiter we would need to set the length of the array.
     b'Group': 'U50',
     b'is_ungrouped_monoisotopic': 'i' # TODO this sounds very boolean to me
 }
+"""Global dict to define which autoconversion to numpy types is tried for certain metavalues.
 
-class FeatureMapDF(FeatureMap):
+This can be changed to your liking but only affects future exports of any OpenMS datastructure to dataframes.
+Especially string lengths (i.e., U types) benefit from adaption to save memory. The default type is currently
+hardcoded to U50 (i.e., 50 unicode characters)
+"""
+
+class _FeatureMapDF(_FeatureMap):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def __get_prot_id_filename_from_pep_id(self, pep_id):
+    def __get_prot_id_filename_from_pep_id(self, pep_id: _PeptideIdentification) -> str:
         """Gets the primary MS run path of the ProteinIdentification linked with the given PeptideIdentification.
 
         Parameters:
@@ -164,7 +178,7 @@ class FeatureMapDF(FeatureMap):
         return 'unknown'
     
     # meta_values = None (default), 'all' or list of meta value names
-    def get_df(self, meta_values = None, export_peptide_identifications = True):
+    def get_df(self, meta_values: Union[None, List[str], str] = None, export_peptide_identifications: bool = True):
         """Generates a pandas DataFrame with information contained in the FeatureMap.
 
         Optionally the feature meta values and information for the assigned PeptideHit can be exported.
@@ -199,7 +213,7 @@ class FeatureMapDF(FeatureMap):
             for f in fmap:
                 yield from fun(f)
 
-        def extract_meta_data(f: Feature):
+        def extract_meta_data(f: _Feature):
             """Extracts feature meta data.
             
             Extracts information from a given feature with the requested meta values and, if requested,
@@ -215,7 +229,7 @@ class FeatureMapDF(FeatureMap):
             pep = f.getPeptideIdentifications()  # type: list[PeptideIdentification]
             bb = f.getConvexHull().getBoundingBox2D()
                 
-            vals = [f.getMetaValue(m) if f.metaValueExists(m) else np.nan for m in meta_values]
+            vals = [f.getMetaValue(m) if f.metaValueExists(m) else _np.nan for m in meta_values]
             
             if export_peptide_identifications:
                 if len(pep) > 0:
@@ -238,8 +252,8 @@ class FeatureMapDF(FeatureMap):
         mddtypes = [('feature_id', 'U100')]
         if export_peptide_identifications:
             mddtypes += [('peptide_sequence', 'U200'), ('peptide_score', 'f'), ('ID_filename', 'U100'), ('ID_native_id', 'U100')]
-        mddtypes += [('charge', 'i4'), ('RT', np.dtype('double')), ('mz', np.dtype('double')), ('RTstart', np.dtype('double')), ('RTend', np.dtype('double')),
-                    ('MZstart', np.dtype('double')), ('MZend', np.dtype('double')), ('quality', 'f'), ('intensity', 'f')]
+        mddtypes += [('charge', 'i4'), ('RT', _np.dtype('double')), ('mz', _np.dtype('double')), ('RTstart', _np.dtype('double')), ('RTend', _np.dtype('double')),
+                    ('MZstart', _np.dtype('double')), ('MZend', _np.dtype('double')), ('quality', 'f'), ('intensity', 'f')]
         
         for meta_value in meta_values:
             if meta_value in common_meta_value_types:
@@ -247,9 +261,9 @@ class FeatureMapDF(FeatureMap):
             else:
                 mddtypes.append((meta_value.decode(), 'U50'))
 
-        mdarr = np.fromiter(iter=gen(self, extract_meta_data), dtype=mddtypes, count=cnt)
+        mdarr = _np.fromiter(iter=gen(self, extract_meta_data), dtype=mddtypes, count=cnt)
 
-        return pd.DataFrame(mdarr).set_index('feature_id')
+        return _pd.DataFrame(mdarr).set_index('feature_id')
 
     def get_assigned_peptide_identifications(self):
         """Generates a list with peptide identifications assigned to a feature.
@@ -258,7 +272,7 @@ class FeatureMapDF(FeatureMap):
         and 'feature_id' (unique ID of corresponding Feature) as meta values to the peptide hits.
         A DataFrame from the assigned peptides generated with peptide_identifications_to_df(assigned_peptides) can be
         merged with the FeatureMap DataFrame with:
-        merged_df = pd.merge(feature_df, assigned_peptide_df, on=['feature_id', 'ID_native_id', 'ID_filename'])
+        merged_df = _pd.merge(feature_df, assigned_peptide_df, on=['feature_id', 'ID_native_id', 'ID_filename'])
 
         Returns:
         [PeptideIdentification]: list of PeptideIdentification objects
@@ -279,10 +293,10 @@ class FeatureMapDF(FeatureMap):
                 result.append(pep)
         return result
 
-FeatureMap = FeatureMapDF
+FeatureMap = _FeatureMapDF
 
 
-class MSExperimentDF(MSExperiment):
+class _MSExperimentDF(_MSExperiment):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -291,7 +305,7 @@ class MSExperimentDF(MSExperiment):
 
         Parameters:
         long: set to True if you want to have a long/expanded/melted dataframe with one row per peak. Faster but
-            replicated RT information. If False, returns rows in the style: rt, np.array(mz), np.array(int)
+            replicated RT information. If False, returns rows in the style: rt, _np.array(mz), _np.array(int)
         
         Returns:
         pandas.DataFrame: feature information stored in a DataFrame
@@ -300,11 +314,11 @@ class MSExperimentDF(MSExperiment):
             cols = ["RT", "mz", "inty"]
             self.updateRanges()
             spectraarrs2d = self.get2DPeakDataLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ())
-            return pd.DataFrame(dict(zip(cols, spectraarrs2d)))
+            return _pd.DataFrame(dict(zip(cols, spectraarrs2d)))
 
         cols = ["RT", "mzarray", "intarray"]
 
-        return pd.DataFrame(data=((spec.getRT(), *spec.get_peaks()) for spec in self), columns=cols)
+        return _pd.DataFrame(data=((spec.getRT(), *spec.get_peaks()) for spec in self), columns=cols)
 
     def get_massql_df(self):
         """Exports data from MSExperiment to pandas DataFrames to be used with MassQL.
@@ -344,11 +358,11 @@ class MSExperimentDF(MSExperiment):
             int: polarity as int value according to massql specification
             '''
             polarity = spec.getInstrumentSettings().getPolarity()
-            if polarity == IonSource.Polarity.POLNULL:
+            if polarity == _IonSource.Polarity.POLNULL:
                 return 0
-            elif polarity == IonSource.Polarity.POSITIVE:
+            elif polarity == _IonSource.Polarity.POSITIVE:
                 return 1
-            elif polarity == IonSource.Polarity.NEGATIVE:
+            elif polarity == _IonSource.Polarity.NEGATIVE:
                 return 2
 
         def _get_spec_arrays(mslevel):
@@ -363,13 +377,13 @@ class MSExperimentDF(MSExperiment):
             mslevel (int): only spectra with the given MS level will be considered
 
             Yields:
-            np.ndarray: 2D array with peak data (rows) from each spectrum
+            _np.ndarray: 2D array with peak data (rows) from each spectrum
             '''
             for scan_num, spec in enumerate(self):
                 if spec.getMSLevel() == mslevel:
                     mz, inty = spec.get_peaks()
                     # data for both DataFrames: i, i_norm, i_tic_norm, mz, scan, rt, polarity
-                    data = (inty, inty/np.amax(inty, initial=0), inty/np.sum(inty), mz, scan_num + 1, spec.getRT()/60, _get_polarity(spec))
+                    data = (inty, inty/_np.amax(inty, initial=0), inty/_np.sum(inty), mz, scan_num + 1, spec.getRT()/60, _get_polarity(spec))
                     cols = 7
                     if mslevel == 2:
                         cols = 10
@@ -380,7 +394,7 @@ class MSExperimentDF(MSExperiment):
                         else:
                             data += (-1, -1, -1)
                     # create empty ndarr with shape according to MS level
-                    ndarr = np.empty(shape=(spec.size(), cols))
+                    ndarr = _np.empty(shape=(spec.size(), cols))
                     # set column values
                     for i in range(cols):
                         ndarr[:,i] = data[i]
@@ -390,26 +404,26 @@ class MSExperimentDF(MSExperiment):
         # if there are no spectra of given MS level return an empty DataFrame
         dtypes = {'i': 'float32', 'i_norm': 'float32', 'i_tic_norm': 'float32', 'mz': 'float64', 'scan': 'int32', 'rt': 'float32', 'polarity': 'int32'}
         if 1 in self.getMSLevels():
-            ms1_df = pd.DataFrame(np.concatenate(list(_get_spec_arrays(1)), axis=0), columns=dtypes.keys()).astype(dtypes)
+            ms1_df = _pd.DataFrame(_np.concatenate(list(_get_spec_arrays(1)), axis=0), columns=dtypes.keys()).astype(dtypes)
         else:
-            ms1_df = pd.DataFrame(columns=dtypes.keys()).astype(dtypes)
+            ms1_df = _pd.DataFrame(columns=dtypes.keys()).astype(dtypes)
 
         dtypes = dict(dtypes, **{'precmz': 'float64', 'ms1scan': 'int32', 'charge': 'int32'})
         if 2 in self.getMSLevels():
-            ms2_df = pd.DataFrame(np.concatenate(list(_get_spec_arrays(2)), axis=0), columns=dtypes.keys()).astype(dtypes)
+            ms2_df = _pd.DataFrame(_np.concatenate(list(_get_spec_arrays(2)), axis=0), columns=dtypes.keys()).astype(dtypes)
         else:
-            ms2_df = pd.DataFrame(columns=dtypes.keys()).astype(dtypes)
+            ms2_df = _pd.DataFrame(columns=dtypes.keys()).astype(dtypes)
 
         return ms1_df, ms2_df
 
-MSExperiment = MSExperimentDF
-PeakMap = MSExperimentDF
+MSExperiment = _MSExperimentDF
+PeakMap = _MSExperimentDF
 
 
 # TODO think about the best way for such top-level function. IMHO in python, encapsulation in a stateless class in unnecessary.
 #   We should probably not just import this whole submodule without prefix.
-def peptide_identifications_to_df(peps: List[PeptideIdentification], decode_ontology : bool = True,
-                                  default_missing_values: dict = {bool: False, int: -9999, float: np.nan, str: ''},
+def peptide_identifications_to_df(peps: List[_PeptideIdentification], decode_ontology : bool = True,
+                                  default_missing_values: dict = {bool: False, int: -9999, float: _np.nan, str: ''},
                                   export_unidentified : bool = True):
     """Converts a list of peptide identifications to a pandas DataFrame.
     Parameters:
@@ -462,8 +476,8 @@ def peptide_identifications_to_df(peps: List[PeptideIdentification], decode_onto
 
     decodedMVs = [m.decode("utf-8") for m in metavals]
     if decode_ontology:
-        cv = ControlledVocabulary()
-        cv.loadFromOBO("psims", File.getOpenMSDataPath() + "/CV/psi-ms.obo")
+        cv = _ControlledVocabulary()
+        cv.loadFromOBO("psims", _File.getOpenMSDataPath() + "/CV/psi-ms.obo")
         clearMVs = [cv.getTerm(m).name if m.startswith("MS:") else m for m in decodedMVs]
     else:
         clearMVs = decodedMVs
@@ -502,4 +516,4 @@ def peptide_identifications_to_df(peps: List[PeptideIdentification], decode_onto
                 ret.append(default_missing_values[type(val)])
         return tuple(ret)
 
-    return pd.DataFrame(np.fromiter((extract(pep) for pep in peps), dtype=dt, count=count))
+    return _pd.DataFrame(_np.fromiter((extract(pep) for pep in peps), dtype=dt, count=count))
