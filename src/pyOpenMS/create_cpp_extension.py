@@ -30,7 +30,7 @@ def doCythonCodeGeneration(modname, allDecl_mapping, instance_map, converters):
     autowrap_include_dirs = autowrap.generate_code(allDecl_mapping[modname]["decls"], instance_map,
                                                         target=m_filename, debug=False, manual_code=manual_code,
                                                         extra_cimports=cimports,
-                                                        include_boost=False, include_numpy=True, allDecl=allDecl_mapping, add_relative=True)
+                                                        include_boost=False, include_numpy=True, all_decl=allDecl_mapping, add_relative=True)
     allDecl_mapping[modname]["inc_dirs"] = autowrap_include_dirs
     return autowrap_include_dirs
 
@@ -85,7 +85,7 @@ if __name__ == '__main__':
 
 
   classdocu_base = "http://www.openms.de/current_doxygen/html/"
-  autowrap.CodeGenerator.special_class_doc = "\n    Original C++ documentation is available `here <" + classdocu_base + "class%(namespace)s_1_1%(cpp_name)s.html>`\n"
+  autowrap.CodeGenerator.special_class_doc = "\n    Original C++ documentation is available `here <" + classdocu_base + "class%(namespace)s_1_1%(cpp_name)s.html>`_\n"
   autowrap.DeclResolver.default_namespace = "OpenMS"
 
   def chunkIt(seq, num):

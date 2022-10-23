@@ -481,7 +481,7 @@ jobs:
       if: "github.ref == 'refs/heads/nightly'"
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        repository_url: https://abi-services.informatik.uni-tuebingen.de/pypi
+        repository_url: https://abi-services.informatik.uni-tuebingen.de/pypi/
         user: openms
         password: ${{ secrets.abiservices_pypi_pw }}
         packages_dir: ${{ github.workspace }}/wheels

@@ -137,8 +137,8 @@ namespace OpenMS
 
         @param os The output stream
         @param options The PeakFileOptions used for writing
-        @param spectra_offsets Binary offsets of <spectrum> tags
-        @param chromatograms_offsets Binary offsets of <chromatogram> tags
+        @param spectra_offsets Binary offsets of &lt;spectrum&gt; tags
+        @param chromatograms_offsets Binary offsets of &lt;chromatogram&gt; tags
 
       */
       static void writeFooter_(std::ostream& os,
