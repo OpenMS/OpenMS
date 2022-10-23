@@ -391,6 +391,11 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     protein_ids[0].setSearchEngine("SimpleSearchEngine");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
 
+    DateTime now = DateTime::now();
+    String identifier("SSE_" + now.get());
+    protein_ids[0].setIdentifier(identifier);
+    for (auto & pid : peptide_ids) { pid.setIdentifier(identifier); }
+
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.db = database_name;
     search_parameters.charges = String(precursor_min_charge) + ":" + String(precursor_max_charge);
