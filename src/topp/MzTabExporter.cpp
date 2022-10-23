@@ -37,6 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -216,6 +217,7 @@ protected:
         ConsensusMap consensus_map;
         ConsensusXMLFile c;
         c.load(in, consensus_map);
+        IDFilter::removeEmptyIdentifications(consensus_map); // MzTab stream exporter currently doesn't support IDs with empty hits.
         MzTabFile().store(out,
            consensus_map,
            getFlag_("first_run_inference_only"), 
