@@ -71,7 +71,7 @@ public:
       String description;
       /// The expected centroid position of the channel peak in m/z.
       Peak2D::CoordinateType center;
-      /// Ids of the affected channels. Order has to match the ones from the correction matrix parameter.
+      /// Ids of the affected channels. Must contain 4 or 8 entries, depending on the number of columns in the Thermo data sheet (with or without subchannels). Order has to match the ones from the correction matrix parameter.
       std::vector<Int> affected_channels;
 
       /// C'tor
