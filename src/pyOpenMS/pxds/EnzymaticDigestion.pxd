@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
 
         void setMissedCleavages(Size missed_cleavages) nogil except + # wrap-doc:Sets the max. number of allowed missed cleavages for the digestion (default is 0). This setting is ignored when log model is used
 
-        Size countInternalCleavageSites(String sequence) nogil except + # wrap-doc:Return the number of intenal cleavage sites for this sequence.
+        Size countInternalCleavageSites(String sequence) nogil except + # wrap-doc:Returns the number of internal cleavage sites for this sequence.
 
         String getEnzymeName() nogil except + # wrap-doc:Returns the enzyme for the digestion
 
