@@ -35,9 +35,10 @@
 
 #pragma once
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/ANALYSIS//TOPDOWN/PeakGroup.h>
 #include <OpenMS/config.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+
 #include <iostream>
 #include <iomanip>
 

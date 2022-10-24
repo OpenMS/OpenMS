@@ -32,8 +32,9 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h"
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
+
 #include <utility>
 
 namespace OpenMS

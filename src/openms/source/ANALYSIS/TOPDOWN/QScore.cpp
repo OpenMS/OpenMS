@@ -32,10 +32,11 @@
 // $Authors: Kyowon Jeong$
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/TOPDOWN/QScore.h"
-#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
+
 #include <iomanip>
 
 namespace OpenMS

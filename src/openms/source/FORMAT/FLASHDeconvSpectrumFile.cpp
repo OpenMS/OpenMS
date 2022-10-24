@@ -34,6 +34,7 @@
 
 
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
+
 namespace OpenMS
 {
   /**

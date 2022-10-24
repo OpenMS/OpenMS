@@ -34,18 +34,19 @@
 //
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
+#include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
+#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+
 #include <vector>
 
 namespace OpenMS

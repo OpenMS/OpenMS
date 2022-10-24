@@ -33,8 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <sstream>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+
+#include <sstream>
 
 namespace OpenMS
 {

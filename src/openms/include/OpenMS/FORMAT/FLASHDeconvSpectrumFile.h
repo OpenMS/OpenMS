@@ -33,9 +33,10 @@
 // --------------------------------------------------------------------------
 #pragma once
 
+#include <OpenMS/config.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/config.h>
+
 #include <iomanip>
 
 namespace OpenMS
