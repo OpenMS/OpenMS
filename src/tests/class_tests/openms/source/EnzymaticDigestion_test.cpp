@@ -506,7 +506,7 @@ START_SECTION([EXTRA] Size countMissedCleavages_(const std::vector<int>& cleavag
   TEST_EQUAL(ed.isValidProduct("KKKK", 0, 4, false), true);  // has 3 MC's, should be valid
 END_SECTION
 
-START_SECTION([EXTRA] Size countInternalCleavageSites(const String& sequence) )
+START_SECTION(Size countInternalCleavageSites(const String& sequence) )
   EnzymaticDigestion ed;
   ed.setMissedCleavages(0); // setting max missed cleavages should not have any impact
   TEST_EQUAL(ed.countInternalCleavageSites("PEPKPEPKPEPKPEPK"), 3); // has 3 internal cleavage sites
