@@ -63,11 +63,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
                                          libcpp_vector[ PeptideIdentification ] & peptideIDs,
                                          bool greedy_group_resolution) nogil except +
           # wrap-doc:
-          #   Performs inference
-          #   -----
           #   Optionally adds indistinguishable protein groups with separate scores, too
           #   Currently only takes first proteinID run and all peptides
-          #   -----
+          #   
+          #   ----------
           #   :param proteinIDs: Vector of protein identifications
           #   :param peptideIDs: Vector of peptide identifications
           #   :return: Writes its results into protein and (optionally also) peptide hits (as new score)
@@ -77,13 +76,12 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
                                          bool greedy_group_resolution,
                                          ExperimentalDesign exp_des) nogil except +
           # wrap-doc:
-          #   Performs inference
-          #   -----
           #   Writes its results into protein and (optionally also) peptide hits (as new score).
           #   Optionally adds indistinguishable protein groups with separate scores, too
           #   Currently only takes first proteinID run and all peptides
           #   Experimental design can be used to create an extended graph with replicate information. (experimental)
-          #   -----
+          #   
+          #   ----------
           #   :param proteinIDs: Vector of protein identifications
           #   :param peptideIDs: Vector of peptide identifications
           #   :param exp_des: Experimental Design
@@ -93,12 +91,11 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
         void inferPosteriorProbabilities(ConsensusMap & cmap,
                                          bool greedy_group_resolution) nogil except +
           # wrap-doc:
-          #   Performs inference
-          #   -----
           #   Writes its results into protein and (optionally also) peptide hits (as new score)
           #   Optionally adds indistinguishable protein groups with separate scores, too
           #   Loops over all runs in the ConsensusMaps' protein IDs (experimental)
-          #   -----
+          #   
+          #   ----------
           #   :param cmap: ConsensusMaps with protein IDs
           #   :param greedy_group_resolution: Adds indistinguishable protein groups with separate scores
           #   :return: Writes its protein ID results into the ConsensusMap
@@ -107,12 +104,11 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
                                          bool greedy_group_resolution,
                                          ExperimentalDesign exp_des) nogil except +
           # wrap-doc:
-          #   Performs inference
-          #   -----
           #   Writes its results into protein and (optionally also) peptide hits (as new score)
           #   Optionally adds indistinguishable protein groups with separate scores, too
           #   Loops over all runs in the ConsensusMaps' protein IDs (experimental)
-          #   -----
+          #   
+          #   ----------
           #   :param cmap: ConsensusMaps with protein IDs.
           #   :param greedy_group_resolution: Adds indistinguishable protein groups with separate scores
           #   :param exp_des: Experimental Design

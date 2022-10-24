@@ -156,7 +156,7 @@ protected:
     }
     catch (Exception::ConversionError& /*e*/)
     {
-      writeLog_(String("Invalid boundary '") + tmp + "' given. Aborting!");
+      writeLogError_(String("Invalid boundary '") + tmp + "' given. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }

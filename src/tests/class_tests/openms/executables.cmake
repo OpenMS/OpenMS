@@ -1,5 +1,6 @@
 set(concept_executables_list
   ClassTest_test
+  Colorizer_test
   Exception_Base_test
   FactoryBase_test
   Factory_test
@@ -24,6 +25,7 @@ set(qc_executables_list
   Ms2IdentificationRate_test
   Ms2SpectrumStats_test
   MQEvidenceExporter_test
+  MQMsmsExporter_test
   MzCalibration_test
   PeptideMass_test
   PSMExplainedIonCurrent_test
@@ -195,6 +197,7 @@ set(format_executables_list
   GzipInputStream_test
   IBSpectraFile_test
   IdXMLFile_test
+  IndentedStream_test
   IndexedMzMLDecoder_test
   IndexedMzMLFile_test
   IndexedMzMLFileLoader_test

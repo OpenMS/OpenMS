@@ -183,7 +183,7 @@ protected:
       }
       if (ms1_it == exp.begin() && ms1_it->getMSLevel() != 1)
       {
-        writeLog_("Did not find a MS1 scan to the MS/MS scan at RT=" + String(it->getRT()));
+        writeLogWarn_("Did not find a MS1 scan to the MS/MS scan at RT=" + String(it->getRT()));
         continue;
       }
       if (ms1_it->empty())
@@ -206,7 +206,7 @@ protected:
         }
         else if (ms2_it->getPrecursors().size() > 1)
         {
-          writeLog_("Warning: found more than one precursor of spectrum RT=" + String(ms2_it->getRT()) + ", using first one.");
+          writeLogWarn_("Warning: found more than one precursor of spectrum RT=" + String(ms2_it->getRT()) + ", using first one.");
         }
 
         Precursor prec = *ms2_it->getPrecursors().begin();

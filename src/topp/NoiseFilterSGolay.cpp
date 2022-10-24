@@ -204,7 +204,7 @@ public:
     //check for peak type (profile data required)
     if (!exp.empty() && exp[0].getType(true) == SpectrumSettings::CENTROID)
     {
-      writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
+      writeLogWarn_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
     }
 
     //check if spectra are sorted
@@ -212,7 +212,7 @@ public:
     {
       if (!exp[i].isSorted())
       {
-        writeLog_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+        writeLogError_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
         return INCOMPATIBLE_INPUT_DATA;
       }
     }
@@ -222,7 +222,7 @@ public:
     {
       if (!exp.getChromatogram(i).isSorted())
       {
-        writeLog_("Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+        writeLogError_("Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter to sort the input!");
         return INCOMPATIBLE_INPUT_DATA;
       }
     }

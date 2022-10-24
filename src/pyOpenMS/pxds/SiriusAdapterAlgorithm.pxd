@@ -62,6 +62,16 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
                 #   :param feature_mapping: FeatureToMs2Indices with feature mapping
                 #   :param spectra: Input of MSExperiment with spectra information
 
+        void logInSiriusAccount(String& executable,
+                                const String& email,
+                                const String& password) nogil except +
+        # wrap-doc:
+                #   Log in to SIRIUS using your personal account
+                #   -----
+                #   :param executable: Path to executable.
+                #   :param email: User account E-Mail.
+                #   :param password: User account password.
+     
         libcpp_vector[String] callSiriusQProcess(const String& tmp_ms_file,
                                                  const String& tmp_out_dir,
                                                  String& executable,
