@@ -91,7 +91,6 @@ namespace OpenMS
 //         @param dspec deconvolved spectrum to write
 //      @param fs file stream to the output file
 //    */
-//    static void writeJson(DeconvolvedSpectrum& dspec, std::fstream& fs);
 
     /**
       @brief write the deconvolved masses TopFD output (*.msalign)
@@ -103,7 +102,6 @@ namespace OpenMS
     */
     //      @param avg averagine information to calculate monoisotopic and average mass difference
     static void writeTopFD(const DeconvolvedSpectrum& dspec, std::fstream& fs,
-//                           const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                            const double snr_threshold = 1.0,
                            const double decoy_harmonic_factor = 1.0,
                            const double decoy_precursor_offset = .0);

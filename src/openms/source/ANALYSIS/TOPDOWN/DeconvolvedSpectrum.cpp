@@ -82,9 +82,6 @@ namespace OpenMS
     if (!precursor_peak_group_.empty() && !precursor_peak_.empty())
     {
       Precursor precursor(spec_.getPrecursors()[0]);
-      // precursor.setCharge((precursor_peak_group_.isPositive() ?
-      //                      precursor_peak_group_.getRepAbsCharge() :
-      //                      -precursor_peak_group_.getRepAbsCharge()));//getChargeMass
       precursor.setCharge(to_charge);
       precursor.setMZ(precursor_peak_group_.getMonoMass() + charge_mass_offset);
       precursor.setIntensity(precursor_peak_group_.getIntensity());

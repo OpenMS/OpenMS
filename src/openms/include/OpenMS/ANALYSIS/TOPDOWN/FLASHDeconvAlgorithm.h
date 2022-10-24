@@ -194,8 +194,6 @@ namespace OpenMS
     DoubleList bin_width_;
     /// cosine threshold between observed and theoretical isotope patterns for each MS level
     DoubleList min_isotope_cosine_;
-    /// max mass count per spectrum for each MS level
-    //IntList max_mass_count_;
 
     /// if it is set to 0, not a decoy run. If 1, the charge decoy run, If 2, the random noise decoy run
     int decoy_run_flag_ = 0;

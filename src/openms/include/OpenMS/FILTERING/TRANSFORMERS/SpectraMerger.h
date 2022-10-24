@@ -253,7 +253,6 @@ public:
         DistanceMatrix<float> dist; // will be filled
         ClusterHierarchical ch;
 
-        //ch.setThreshold(0.99);
         // clustering ; threshold is implicitly at 1.0, i.e. distances of 1.0 (== similarity 0) will not be clustered
         ch.cluster<BaseFeature, SpectraDistance_>(data, llc, sl, tree, dist);
       }
@@ -275,9 +274,6 @@ public:
         }
       }
       ca.cut(data_size - node_count, tree, clusters);
-
-      //std::cerr << "Treesize: " << (tree.size()+1) << "   #clusters: " << clusters.size() << std::endl;
-      //std::cerr << "tree:\n" << ca.newickTree(tree, true) << "\n";
 
       // convert to blocks
       MergeBlocks spectra_to_merge;
@@ -630,10 +626,8 @@ protected:
         typename MapType::SpectrumType consensus_spec = exp[it->first];
         consensus_spec.setMSLevel(ms_level);
 
-        //consensus_spec.unify(exp[it->first]); // append meta info
         merged_indices.insert(it->first);
 
-        //typename MapType::SpectrumType all_peaks = exp[it->first];
         double rt_average = consensus_spec.getRT();
         double precursor_mz_average = 0.0;
         Size precursor_count(0);
@@ -666,7 +660,6 @@ protected:
 
           // merge data points
           sas.getSpectrumAlignment(alignment, consensus_spec, exp[*sit]);
-          //std::cerr << "alignment of " << it->first << " with " << *sit << " yielded " << alignment.size() << " common peaks!\n";
           count_peaks_aligned += alignment.size();
           count_peaks_overall += exp[*sit].size();
 
@@ -731,7 +724,6 @@ protected:
             precursor_mz_average /= precursor_count;
           }
           auto& pcs = consensus_spec.getPrecursors();
-          //if (pcs.size()>1) OPENMS_LOG_WARN << "Removing excessive precursors - leaving only one per MS2 spectrum.\n";
           pcs.resize(1);
           pcs[0].setMZ(precursor_mz_average);
           consensus_spec.setPrecursors(pcs);
@@ -770,14 +762,10 @@ protected:
         }
       }
 
-      //typedef std::vector<typename MapType::SpectrumType> Base;
-      //exp.Base::operator=(exp_tmp);
       //Meta_Data will not be cleared
       exp.clear(false);
       exp.getSpectra().insert(exp.end(), std::make_move_iterator(exp_tmp.begin()),
                                          std::make_move_iterator(exp_tmp.end()));
-
-      // exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<typename MapType::SpectrumType>(ListUtils::create<int>(String(ms_level)), false)), exp.end());
 
       // ... and add consensus spectra
       exp.getSpectra().insert(exp.end(), std::make_move_iterator(merged_spectra.begin()),
@@ -874,7 +862,6 @@ protected:
         // update spectrum
         typename MapType::SpectrumType average_spec = exp[it->first];
         average_spec.clear(false); // Precursors are part of the meta data, which are not deleted.
-        //average_spec.setMSLevel(ms_level);
 
         // refill spectrum
         for (Size i = 0; i < mz_positions.size(); ++i)
@@ -893,11 +880,9 @@ protected:
 
       // loop over blocks
       int n(0);
-      //typename MapType::SpectrumType empty_spec;
       for (AverageBlocks::const_iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         exp[it->first] = exp_tmp[n];
-        //exp_tmp[n] = empty_spec;
         ++n;
       }
     }
@@ -991,7 +976,6 @@ protected:
         // update spectrum
         typename MapType::SpectrumType average_spec = exp[it->first];
         average_spec.clear(false); // Precursors are part of the meta data, which are not deleted.
-        //average_spec.setMSLevel(ms_level);
 
         // refill spectrum
         for (Size i = 0; i < mz_new.size(); ++i)

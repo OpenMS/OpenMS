@@ -268,7 +268,6 @@ namespace OpenMS
           fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\n";
 
         fs << "\n";
-       // fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
       }
       else
       {
@@ -285,16 +284,14 @@ namespace OpenMS
         if (decoy)
           fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\n";
          fs << "\n";
-        // fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
       }
     }
   }
 
 
   void FLASHDeconvSpectrumFile::writeTopFD(const DeconvolvedSpectrum& dspec, std::fstream& fs,
-                                           //                                       const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                                            const double snr_threshold, const double decoy_harmonic_factor,
-                                           const double decoy_precursor_offset) //, fstream& fsm, fstream& fsp)
+                                           const double decoy_precursor_offset) 
   {
     UInt ms_level = dspec.getOriginalSpectrum().getMSLevel();
 
@@ -322,30 +319,12 @@ namespace OpenMS
     if (ms_level > 1)
     {
       fs << "ACTIVATION=" << dspec.getActivationMethod() << "\n";
-      // if (!dspec.getPrecursorPeakGroup().empty())
-      // {
       fs << "MS_ONE_ID=" << dspec.getPrecursorScanNumber() << "\n"
          << "MS_ONE_SCAN=" << dspec.getPrecursorScanNumber() << "\n"
          << "PRECURSOR_MZ=" << std::to_string(dspec.getPrecursor().getMZ()) << "\n"
          << "PRECURSOR_CHARGE=" << (int)(dspec.getPrecursor().getCharge() * decoy_harmonic_factor) << "\n"
          << "PRECURSOR_MASS=" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass() * decoy_harmonic_factor + decoy_precursor_offset) << "\n"
          << "PRECURSOR_INTENSITY=" << dspec.getPrecursor().getIntensity() << "\n";
-      //}
-      /*else
-      {
-        double average_mass =
-            (dspec.getPrecursor().getMZ() -
-             FLASHDeconvHelperStructs::getChargeMass(dspec.getPrecursor().getCharge() > 0)) *
-            abs(dspec.getPrecursor().getCharge() * decoy_harmonic_factor);
-        double mono_mass = average_mass - avg.getAverageMassDelta(average_mass) + decoy_precursor_offset;
-        fs << "MS_ONE_ID=" << dspec.getPrecursorScanNumber() << "\n"
-           << "MS_ONE_SCAN=" << dspec.getPrecursorScanNumber() << "\n"
-           << "PRECURSOR_MZ="
-           << std::to_string(dspec.getPrecursor().getMZ()) << "\n"
-           << "PRECURSOR_CHARGE=" << (int) (dspec.getPrecursor().getCharge() * decoy_harmonic_factor) << "\n"
-           << "PRECURSOR_MASS=" << std::to_string(mono_mass) << "\n"
-           << "PRECURSOR_INTENSITY=" << dspec.getPrecursor().getIntensity() << "\n";
-      }*/
     }
 
     fs << std::setprecision(-1);

@@ -203,14 +203,6 @@ namespace OpenMS
     /// get if it is targeted
     bool isTargeted() const;
 
-    //float getDecoyQScore() const;
-
-    //void setDecoyQScore(const float d);
-
-    //float getDecoyIsoScore() const;
-
-    //void setDecoyIsoScore(const float d);
-
     int getDecoyIndex() const;
 
     void setDecoyIndex(int index);

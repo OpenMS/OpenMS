@@ -362,7 +362,7 @@ START_SECTION((void updateMonomassAndIsotopeIntensities()))
   sample_pg2.updateMonomassAndIsotopeIntensities();
   double temp_mass = sample_pg2.getMonoMass();
   double temp_inty = sample_pg2.getIntensity();
-  TEST_REAL_SIMILAR(temp_mass, 2249.0101025181098); // 2249.0101019557173
+  TEST_REAL_SIMILAR(temp_mass, 2249.0101025181098);
   TEST_REAL_SIMILAR(temp_inty, 12880886.145019531);
 }
 END_SECTION

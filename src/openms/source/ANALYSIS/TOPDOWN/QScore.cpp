@@ -48,10 +48,7 @@ namespace OpenMS
     { // all zero
       return .0;
     }
-    //const double th = 2;
-    //const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
     const std::vector<double> weights({ 1.492, -2.0041, -14.3891, -0.9853, 0.4568, 0.063, 14.4072});
-    //const std::vector<double> weights({ -2.5334, -6.2718, -31.5409, 0.1305, -3.8576, 0.4948, 37.2419});
 
     //ChargeCos         1.492
     //ChargeSNR       -2.0041
@@ -61,14 +58,6 @@ namespace OpenMS
     //AvgPPMerror       0.063
     //Intercept       14.4072
 
-    // ChargeCos                    2.5334
-    // ChargeSNR                    6.2718
-    // Cos                         31.5409
-    // SNR                         -0.1305
-    // ChargeScore                  3.8576
-    // AvgPPMerror                 -0.4948
-    // Intercept                  -37.2419
-
     double score = weights.back();
     auto fv = toFeatureVector_(pg, abs_charge);
 
@@ -77,19 +66,7 @@ namespace OpenMS
       score += fv[i] * weights[i];
     }
     double qscore = 1.0 / (1.0 + exp(score));
-    /*if (qscore < th)
-    {
-      return qscore;
-    }
 
-    score = weights_h[weights_h.size() - 1];
-
-    for (int i = 0; i < weights_h.size() - 1; i++)
-    {
-      score += fv[i] * weights_h[i];
-    }
-    qscore = 1.0 / (1.0 + exp(score));
-*/
     return qscore;
   }
 
@@ -136,7 +113,7 @@ namespace OpenMS
     int scan_number = deconvolved_spectrum.getScanNumber();
     double pmz = deconvolved_spectrum.getPrecursor().getMZ();
     auto pg = deconvolved_spectrum.getPrecursorPeakGroup();
-    double pmass = //pg.getMonoMass();
+    double pmass = 
         top_id.proteform_id < 0 ? pg.getMonoMass()
                                  : top_id.adj_precursor_mass;
     double precursor_intensity = deconvolved_spectrum.getPrecursor().getIntensity();
@@ -162,8 +139,6 @@ namespace OpenMS
     else
     {
       auto fv = toFeatureVector_(&pg, charge);
-      //if (pg.getChargeIsotopeCosine(charge) <= 0)
-      //  return;
       double monomass = pmass;
       double mass = avgpmass;
       f << acc << "," << fr << "," << lr << "," << proID << "," << rt << "," << scan_number << "," << pscan << ","

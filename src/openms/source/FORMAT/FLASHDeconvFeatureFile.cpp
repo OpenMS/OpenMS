@@ -85,7 +85,6 @@ namespace OpenMS
       double mass = mt.getCentroidMZ() + mass_feature.iso_offset * Constants::ISOTOPE_MASSDIFF_55K_U;
       double avg_mass = mass_feature.avg_mass;
       double sum_intensity = .0;
-      // bool is_positive = mass_feature.max_charge > 0;
 
       for (auto& p : mt)
       {
