@@ -4471,8 +4471,8 @@ def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
     """
 
     assert s.getType() in [ pyopenms.SpectrumSettings.SpectrumType.UNKNOWN,
-                               pyopenms.SpectrumSettings.SpectrumType.PEAKS,
-                               pyopenms.SpectrumSettings.SpectrumType.RAWDATA]
+                               pyopenms.SpectrumSettings.SpectrumType.CENTROID,
+                               pyopenms.SpectrumSettings.SpectrumType.PROFILE]
 
     assert isinstance(s.getAcquisitionInfo(), pyopenms.AcquisitionInfo)
     assert isinstance(s.getInstrumentSettings(), pyopenms.InstrumentSettings)
@@ -4672,7 +4672,7 @@ def testVersion():
      VersionInfo.getRevision
      VersionInfo.getTime
      VersionInfo.getVersion
-     version.version
+     __version__
     """
     _testStrOutput(pyopenms.VersionInfo.getVersion())
     _testStrOutput(pyopenms.VersionInfo.getRevision())
@@ -4693,7 +4693,7 @@ def testVersion():
     assert not vd < vd
     assert not vd > vd
 
-    assert isinstance(pyopenms.version.version, str)
+    assert isinstance(pyopenms.__version__, str)
 
 @report
 def testInspectInfile():
@@ -5303,8 +5303,8 @@ def testExperimentalDesign():
      ExperimentalDesign.getNumberOfLabels() == 4
      ExperimentalDesign.getNumberOfMSFiles() == 6
      ExperimentalDesign.getNumberOfFractionGroups() == 2
-     ExperimentalDesign.getSample(1, 1) == 1
-     ExperimentalDesign.getSample(2, 4) == 8
+     ExperimentalDesign.getSample(1, 1) == 0
+     ExperimentalDesign.getSample(2, 4) == 7
      ExperimentalDesign.isFractionated()
      ExperimentalDesign.sameNrOfMSFilesPerFraction()
 
@@ -5321,8 +5321,8 @@ def testExperimentalDesign():
     assert fourplex_fractionated_design.getNumberOfLabels() == 4
     assert fourplex_fractionated_design.getNumberOfMSFiles() == 6
     assert fourplex_fractionated_design.getNumberOfFractionGroups() == 2
-    assert fourplex_fractionated_design.getSample(1, 1) == 1
-    assert fourplex_fractionated_design.getSample(2, 4) == 8
+    assert fourplex_fractionated_design.getSample(1, 1) == 0
+    assert fourplex_fractionated_design.getSample(2, 4) == 7
     assert fourplex_fractionated_design.isFractionated()
     assert fourplex_fractionated_design.sameNrOfMSFilesPerFraction()
  
