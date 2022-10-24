@@ -34,15 +34,16 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES//Matrix.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <iostream>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+
 #include <boost/dynamic_bitset.hpp>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -76,11 +77,10 @@ namespace OpenMS
     FLASHDeconvAlgorithm& operator=(const FLASHDeconvAlgorithm& fd) = default;
 
     /**
-      @brief main deconvolution function that generates the deconvolved and decoy deconvolved spectrum from the original spectrum.
+      @brief main deconvolution function that generates the deconvolved target and decoy spectrum based on the original spectrum.
       @param spec the original spectrum
       @param survey_scans the survey scans to assign precursor mass to the deconvolved spectrum.
-      @param scan_number scan number is provided from input spectrum to this function in most cases.
-      But this parameter is used for real time deconvolution where scan number may be put separately.
+      @param scan_number scan number from input spectrum.
       @param precursor_map_for_FLASHIda deconvolved precursor information from FLASHIda
  */
     void performSpectrumDeconvolution(const MSSpectrum& spec,
@@ -94,7 +94,7 @@ namespace OpenMS
     /// return decoy deconvolved spectrum
     DeconvolvedSpectrum& getDecoyDeconvolvedSpectrum();
 
-    /// get calculated averagine. This should be called after calculateAveragine is called.
+    /// get calculated averagine. Call after calculateAveragine is called.
     const PrecalculatedAveragine& getAveragine();
 
     /// set calculated averagine
@@ -132,7 +132,7 @@ namespace OpenMS
 
     /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
         @param mono_mass monoisotopic mass
-        @param per_isotope_intensities per isotope intensity - aggregated through charges
+        @param per_isotope_intensities vector of intensities associated with each isotope - aggregated through charges
         @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
         @param second_best_iso_offset second best scoring isotope offset - for decoy calculation.
         @param avg precalculated averagine
