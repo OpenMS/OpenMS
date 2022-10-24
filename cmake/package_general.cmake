@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -47,6 +47,7 @@ set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageDesc
 set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
 set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceWelcomeFile.txt)
 set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceReadme.txt)
+set(CPACK_STRIP_FILES TRUE) # to save some space in the installers
 
 ########################################################### Fixing dynamic dependencies
 # Done on Windows via copying external and internal dlls to the install/bin/ folder
@@ -63,7 +64,11 @@ set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResource
 #  " COMPONENT applications)
 
 if(APPLE OR WIN32) ## On Linux we require Qt to be installed from the package manager system-wide (e.g. via dependencies)
-  set(PACKAGE_QT_COMPONENTS "${OpenMS_QT_COMPONENTS};${OpenMS_GUI_QT_COMPONENTS}")
+  if (OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
+    set(PACKAGE_QT_COMPONENTS "${OpenMS_QT_COMPONENTS};${OpenMS_GUI_QT_COMPONENTS};${OpenMS_GUI_QT_FOUND_COMPONENTS_OPT}")
+  else()
+    set(PACKAGE_QT_COMPONENTS "${OpenMS_QT_COMPONENTS};${OpenMS_GUI_QT_COMPONENTS}")
+  endif()
   find_package(Qt5 COMPONENTS ${PACKAGE_QT_COMPONENTS}) ## we have to find again so the target variables are reloaded
   install_qt5_libs("${PACKAGE_QT_COMPONENTS}" ${INSTALL_LIB_DIR} "QTLibs")
 endif()
@@ -77,14 +82,11 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
   install_thirdparty_folder("Comet")
   install_thirdparty_folder("Fido")
   install_thirdparty_folder("MSGFPlus")
-  install_thirdparty_folder("OMSSA")
   install_thirdparty_folder("XTandem")
   install_thirdparty_folder("LuciPHOr2")
-  install_thirdparty_folder("MyriMatch")
   install_thirdparty_folder("SpectraST")
   install_thirdparty_folder("Sirius")
   install_thirdparty_folder("Percolator")
   install_thirdparty_folder("MaRaCluster")
-  install_thirdparty_folder("crux")
   install_thirdparty_folder("ThermoRawFileParser")
 endif()

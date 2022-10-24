@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,6 +56,8 @@
 #include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASWidget.h>
+
+#include <map>
 
 //Qt
 #include <QApplication>
@@ -190,7 +192,7 @@ namespace OpenMS
     QAction* action = help->addAction("OpenMS website", this, SLOT(showURL()));
     action->setData("http://www.OpenMS.de");
     action = help->addAction("TOPPAS tutorial", this, SLOT(showURL()), Qt::Key_F1);
-    action->setData(String("html/TOPPAS_tutorial.html").toQString());
+    action->setData("https://openms.readthedocs.io/en/latest/docs/tutorials/TOPPAS/TOPPAS-tutorial.html");
 
     help->addSeparator();
     help->addAction("&About", this, SLOT(showAboutDialog()));
@@ -464,27 +466,29 @@ namespace OpenMS
     ToolListType tools_list = ToolHandler::getTOPPToolList(true);
     ToolListType util_list = ToolHandler::getUtilList();
     // append utils
-    for (ToolListType::Iterator it = util_list.begin(); it != util_list.end(); ++it)
+    for (ToolListType::iterator it = util_list.begin(); it != util_list.end(); ++it)
     {
       it->second.category = "Utils";
       tools_list.insert(*it);
     }
 
     // any tool without a category gets into "unassigned" bin
-    for (ToolListType::Iterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    for (ToolListType::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
-      if (it->second.category.trim() == "")
+      if (it->second.category.trim().empty())
         it->second.category = "Unassigned";
     }
 
     QSet<QString> category_set;
-    for (ToolListType::ConstIterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    for (ToolListType::const_iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
       category_set << String(it->second.category).toQString();
     }
-    QStringList category_list = category_set.toList();
-    qSort(category_list);
-    Map<QString, QTreeWidgetItem*> category_map;
+
+    QStringList category_list = category_set.values();
+    std::sort(category_list.begin(), category_list.end());
+
+    std::map<QString, QTreeWidgetItem*> category_map;
 
     foreach(const QString &category, category_list)
     {
@@ -547,7 +551,7 @@ namespace OpenMS
 
   void TOPPASBase::addTOPPASFile(const String& file_name, bool in_new_window)
   {
-    if (file_name == "") return;
+    if (file_name.empty()) return;
 
     if (!file_name.toQString().endsWith(".toppas", Qt::CaseInsensitive))
     {
@@ -631,7 +635,7 @@ namespace OpenMS
     {
       // scene has requested to be saved
       TOPPASScene* ts = dynamic_cast<TOPPASScene*>(sendr);
-      if (ts && ts->views().size() > 0)
+      if (ts && !ts->views().empty())
       {
         w = dynamic_cast<TOPPASWidget*>(ts->views().first());
       }
@@ -1007,7 +1011,7 @@ namespace OpenMS
     //compose default ini file path
     String default_ini_file = String(QDir::homePath()) + "/.TOPPAS.ini";
 
-    if (filename == "")
+    if (filename.empty())
     {
       filename = default_ini_file;
     }
@@ -1311,7 +1315,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1329,7 +1333,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1347,7 +1351,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1365,7 +1369,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1510,7 +1514,14 @@ namespace OpenMS
       if (ret == QMessageBox::Cancel) return; // Escape was pressed
       if (ret == QMessageBox::Yes)
       {
+        /*
+         * Suppressed warning QSTring::SkipEmptyParts and QString::SplitBehaviour is deprecated
+         * QT::SkipEmptyParts and QT::SplitBehaviour is added or modified at Qt 5.14
+         */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         files = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", QString::SkipEmptyParts);
+#pragma GCC diagnostic pop
       }
     }
     

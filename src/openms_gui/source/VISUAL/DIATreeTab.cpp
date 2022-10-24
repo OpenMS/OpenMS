@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -272,7 +272,7 @@ namespace OpenMS
   }
 
 
-  bool DIATreeTab::hasData(const LayerData* layer)
+  bool DIATreeTab::hasData(const LayerDataBase* layer)
   {
     if (layer == nullptr)
     {
@@ -282,7 +282,7 @@ namespace OpenMS
     return (data != nullptr && !data->getProteins().empty());
   }
 
-  void DIATreeTab::updateEntries(LayerData* layer)
+  void DIATreeTab::updateEntries(LayerDataBase* layer)
   {
     if (layer == nullptr)
     {
@@ -294,7 +294,7 @@ namespace OpenMS
     {
       return;
     }
-    LayerData& cl = *layer;
+    LayerDataBase& cl = *layer;
 
     OSWData* data = cl.getChromatogramAnnotation().get();
 

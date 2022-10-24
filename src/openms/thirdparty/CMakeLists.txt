@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -35,15 +35,15 @@
 project("OpenMS-3rd-party-libs")
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
+# evergreen Bayesian inference library (0.9)
+add_subdirectory(evergreen/src)
+
 ## Note these libraries will not be compiled
 ## but we only expose their sources
 
 # eol-bspline lib
 add_subdirectory(eol-bspline)
-
-# evergreen Bayesian inference library (0.9)
-add_subdirectory(evergreen/src)
 add_subdirectory(IsoSpec)
-add_subdirectory(seqan)
 add_subdirectory(json)
+add_subdirectory(GTE)
 

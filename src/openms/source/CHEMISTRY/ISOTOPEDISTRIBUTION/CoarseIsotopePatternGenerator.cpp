@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,21 +51,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator() : 
-    IsotopePatternGenerator(),
-    max_isotope_(0),
-    round_masses_(false)
-  {
-  }
-
-  CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator(const Size& max_isotope) :
-    IsotopePatternGenerator(),
-    max_isotope_(max_isotope),
-    round_masses_(false)
-  {
-  }
-
-  CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator(const Size& max_isotope, const bool round_masses) :
+  CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator(const Size max_isotope, const bool round_masses) :
     IsotopePatternGenerator(),
     max_isotope_(max_isotope),
     round_masses_(round_masses)
@@ -104,8 +90,8 @@ namespace OpenMS
     for (; it != formula.end(); ++it)
     {
       IsotopeDistribution tmp = it->first->getIsotopeDistribution();
-      result.set(convolve_(result.getContainer(),
-                           convolvePow_(tmp.getContainer(), it->second)));
+      result.set(convolve(result.getContainer(),
+                          convolvePow_(tmp.getContainer(), it->second)));
     }
 
     // replace atomic numbers with masses.
@@ -158,7 +144,7 @@ namespace OpenMS
     return estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
   }
 
-  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes) const
   {
     UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end())+1;
 
@@ -243,7 +229,7 @@ namespace OpenMS
     return estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 9.75, 12.25, 3.75, 6, 0, 1);
   }
 
-  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P) const
   {
     UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end()) + 1;
 
@@ -273,7 +259,7 @@ namespace OpenMS
     return result;
   }
 
-  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolve_(const IsotopeDistribution::ContainerType & left, const IsotopeDistribution::ContainerType & right) const
+  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolve(const IsotopeDistribution::ContainerType& left, const IsotopeDistribution::ContainerType& right) const
   {
     IsotopeDistribution::ContainerType result;
 
@@ -316,7 +302,7 @@ namespace OpenMS
     return result;
   }
 
-  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolvePow_(const IsotopeDistribution::ContainerType & input, Size n) const
+  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolvePow_(const IsotopeDistribution::ContainerType& input, Size n) const
   {
     IsotopeDistribution::ContainerType result;
     if (input.empty())
@@ -365,7 +351,7 @@ namespace OpenMS
     {
       if (n & (Size(1) << i))
       {
-        result = convolve_(result, convolution_power);
+        result = convolve(result, convolution_power);
       }
       // check the loop condition
       if (i >= log2n)
@@ -378,7 +364,7 @@ namespace OpenMS
     return result;
   }
 
-  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolveSquare_(const IsotopeDistribution::ContainerType & input) const
+  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolveSquare_(const IsotopeDistribution::ContainerType& input) const
   {
     IsotopeDistribution::ContainerType result;
     IsotopeDistribution::ContainerType::size_type r_max = 2 * input.size() - 1;
@@ -409,9 +395,9 @@ namespace OpenMS
 
   IsotopeDistribution CoarseIsotopePatternGenerator::calcFragmentIsotopeDist_(const IsotopeDistribution::ContainerType& fragment_isotope_dist, const IsotopeDistribution::ContainerType& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes) const
   {
-    
+
     IsotopeDistribution result;
-    
+
     if (fragment_isotope_dist.empty() || comp_fragment_isotope_dist.empty())
     {
       result.clear();
@@ -527,4 +513,3 @@ namespace OpenMS
     return result;
   }
 }
-

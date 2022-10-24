@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,10 +66,10 @@ namespace OpenMS
     defaults_.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
     defaults_.setValidStrings("add_c_ions", {"true","false"});
 
-    defaults_.setValue("add_d_ions", "false", "Add peaks of d-ions to the spectrum");
+    defaults_.setValue("add_d_ions", "false", "Add peaks of d-ions to the spectrum"); // only for nucleotide sequences
     defaults_.setValidStrings("add_d_ions", {"true","false"});
 
-    defaults_.setValue("add_w_ions", "false", "Add peaks of w-ions to the spectrum");
+    defaults_.setValue("add_w_ions", "false", "Add peaks of w-ions to the spectrum"); // only for nucleotide sequences
     defaults_.setValidStrings("add_w_ions", {"true","false"});
 
     defaults_.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
@@ -81,7 +81,7 @@ namespace OpenMS
     defaults_.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
     defaults_.setValidStrings("add_z_ions", {"true","false"});
 
-    defaults_.setValue("add_a-B_ions", "false", "Add peaks of a-B-ions to the spectrum (nucleotide sequences only)");
+    defaults_.setValue("add_a-B_ions", "false", "Add peaks of a-B-ions to the spectrum"); // only for nucleotide sequences
     defaults_.setValidStrings("add_a-B_ions", {"true","false"});
 
     // intensity options of the ions
@@ -401,11 +401,10 @@ namespace OpenMS
 
     MSSpectrum uncharged_spectrum = getUnchargedSpectrum_(oligo);
 
-    for (uint z = (uint)abs(min_charge); z <= (uint)abs(max_charge) && z < (uint)oligo.size(); ++z)
+    for (UInt z = (UInt)abs(min_charge); z <= (UInt)abs(max_charge) && z < (UInt)oligo.size(); ++z)
     {
       bool add_precursor =
-        ((add_precursor_peaks_ && add_all_precursor_charges_) ||
-         (add_precursor_peaks_ && (z == (uint)abs(max_charge))));
+        ((add_precursor_peaks_ && add_all_precursor_charges_) || (add_precursor_peaks_ && (z == (UInt)abs(max_charge))));
       addChargedSpectrum_(spectrum, uncharged_spectrum, z * sign,
                           add_precursor);
     }

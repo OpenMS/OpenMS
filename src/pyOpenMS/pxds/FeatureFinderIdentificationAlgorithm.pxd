@@ -72,6 +72,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificat
                  FeatureMap & features) nogil except +
                  # wrap-doc:
                  #   Run feature detection
+                 #   
+                 #   ----------
                  #   :param peptides: Vector of identified peptides
                  #   :param proteins: Vector of identified proteins
                  #   :param peptides_ext: Vector of external identified peptides, can be used to transfer ids from other runs
@@ -86,12 +88,33 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificat
                  FeatureMap & seeds) nogil except + 
                  # wrap-doc:
                  #   Run feature detection
+                 #   
+                 #   ----------
                  #   :param peptides: Vector of identified peptides
                  #   :param proteins: Vector of identified proteins
                  #   :param peptides_ext: Vector of external identified peptides, can be used to transfer ids from other runs
                  #   :param proteins_ext: Vector of external identified proteins, can be used to transfer ids from other runs
                  #   :param features: Feature detection results will be added here
                  #   :param seeds: Optional seeds for feature detection from e.g. untargeted FeatureFinders
+
+        void run(libcpp_vector[ PeptideIdentification ] peptides,
+                 libcpp_vector[ ProteinIdentification ] & proteins,
+                 libcpp_vector[ PeptideIdentification ] peptides_ext,
+                 libcpp_vector[ ProteinIdentification ] proteins_ext,
+                 FeatureMap & features, 
+                 FeatureMap & seeds,
+                 String & spectra_file) nogil except + 
+                 # wrap-doc:
+                 #   Run feature detection
+                 #   
+                 #   ----------
+                 #   :param peptides: Vector of identified peptides
+                 #   :param proteins: Vector of identified proteins
+                 #   :param peptides_ext: Vector of external identified peptides, can be used to transfer ids from other runs
+                 #   :param proteins_ext: Vector of external identified proteins, can be used to transfer ids from other runs
+                 #   :param features: Feature detection results will be added here
+                 #   :param seeds: Optional seeds for feature detection from e.g. untargeted FeatureFinders                 
+                 #   :param spectra_file: Path will be stored in features in case the MSExperiment has no proper primaryMSRunPath
 
         void runOnCandidates(FeatureMap & features) nogil except + # wrap-doc:Run feature detection on identified features (e.g. loaded from an IdXML file)
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -110,7 +110,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input qcml file", false);
     setValidFormats_("in", ListUtils::create<String>("qcML"));
-    registerInputFile_("table", "<file>", "", "The table containing the additional qp values in the columns. First row is considered containing the header. The target run or set names/ids are indicated by column \"raw data file\", so each row after the header will contain the values of qps for that run. (csv without \"!)", true);
+    registerInputFile_("table", "<file>", "", R"(The table containing the additional qp values in the columns. First row is considered containing the header. The target run or set names/ids are indicated by column "raw data file", so each row after the header will contain the values of qps for that run. (csv without "!))", true);
     setValidFormats_("table", ListUtils::create<String>("csv"));
     registerInputFile_("mapping", "<file>", "", "The mapping of the table header to the according qp cvs, also in csv format. The first row is considered containing the headers as in the table. The second row is considered the according qp cv accessions. (csv without \"!)", true);
     setValidFormats_("mapping", ListUtils::create<String>("csv"));
@@ -137,12 +137,12 @@ protected:
     // reading input
     //------------------------------------------------------------
     QcMLFile qcmlfile;
-    if (in != "")
+    if (!in.empty())
     {
       qcmlfile.load(in);
     }
 
-    if (mappi != "" && tab != "")
+    if (!mappi.empty() && !tab.empty())
     {
       CsvFile csv_file(tab);
       CsvFile map_file(mappi);
@@ -241,7 +241,7 @@ protected:
             def.value = li[j];
             qps.push_back(def);
           }
-          if (id != "")
+          if (!id.empty())
           {
             for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qps.begin(); qit != qps.end(); ++qit)
             {

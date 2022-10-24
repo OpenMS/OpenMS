@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,24 +34,28 @@
 
 #pragma once
 
-// OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+
 
 // declare Qt classes OUTSIDE of namespace OpenMS!
-class QString; 
-class QStringList;
 class QPainter;
 class QPoint;
+class QString; 
+class QStringList;
+class QWidget;
 
 #include <QColor>
-#include <QCursor>
 #include <QFont>
 
 #include <array>
 
 namespace OpenMS
 {
+
+  class FileTypeList;
+
   /**
     Namespace which holds static GUI-related helper functions.
   */
@@ -60,14 +64,24 @@ namespace OpenMS
     
     /// Open a folder in file explorer
     /// Will show a message box on failure
-    void openFolder(const QString& folder);
+    OPENMS_GUI_DLLAPI void openFolder(const QString& folder);
+
+    /// Open a dialog to select a filename to save data to.
+
+    OPENMS_GUI_DLLAPI QString getSaveFilename(QWidget* parent,
+                                              const QString& caption,
+                                              const QString& dir,
+                                              FileTypeList supported_file_types, 
+                                              bool add_all_filter,
+                                              const FileTypes::Type fallback_extension);
+
 
     /// Open TOPPView (e.g. from within TOPPAS)
-    void startTOPPView(const QStringList& args);
+    OPENMS_GUI_DLLAPI void startTOPPView(const QStringList& args);
 
     /// Open a certain URL (in a browser)
     /// Will show a message box on failure
-    void openURL(const QString& target);
+    OPENMS_GUI_DLLAPI void openURL(const QString& target);
 
     /**
        @brief draw a multi-line text at coordinates XY using a specific font and color
@@ -81,28 +95,32 @@ namespace OpenMS
        @param col_bg Optional background color of bounding rectangle; if invalid (=default) no background will be painted
        @param font Font to use; will use Courier by default
     */
-    void drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor col_fg = QColor("invalid"), const QColor col_bg = QColor("invalid"), const QFont& font = QFont("Courier"));
+    OPENMS_GUI_DLLAPI void drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor col_fg = QColor("invalid"), const QColor col_bg = QColor("invalid"),
+                                   const QFont& font = QFont("Courier"));
 
 
     /**
       @brief Obtains the bounding rectangle of a text (useful to determine overlaps etc)
     
     */
-    QRectF getTextDimension(const QStringList& text, const QFont& font, int& line_spacing);
+    OPENMS_GUI_DLLAPI QRectF getTextDimension(const QStringList& text, const QFont& font, int& line_spacing);
 
 
     /**
-      @brief Given a set of levels (rows), try to add items at to topmost row which does not overlap an already placed item in this row (according to its x-coordinate)
+      @brief A heuristic: Given a set of levels (rows), try to add items at to topmost row which does not overlap an already placed item in this row (according to its x-coordinate)
 
       If a collision occurs, try the row below.
       If no row is collision-free, pick the one with the smallest overlap.
 
-      X coordinates should always be positive.
+      Only positions beyond the largest x-coordinate observed so far are considered (i.e. gaps are not filled).
+
+      X-coordinates should always be positive (a warning is issued otherwise).
     */
-    class OverlapDetector
+    class OPENMS_GUI_DLLAPI OverlapDetector
     {
     public:
       /// C'tor: number of @p levels must be >=1
+      /// @throw Exception::InvalidSize if levels <= 0
       explicit OverlapDetector(int levels);
 
       /// try to put an item which spans from @p x_start to @p x_end in the topmost row possible
@@ -110,13 +128,13 @@ namespace OpenMS
       size_t placeItem(double x_start, double x_end);
 
     private:
-      std::vector<double> rows_;
+      std::vector<double> rows_; ///< store the largest x_end for each row
     };
 
     /**
-      @brief RAII class to disable the GUI and set a busy cursor and go back to the orignal state when this class is destroyed
+      @brief RAII class to disable the GUI and set a busy cursor and go back to the original state when this class is destroyed
     */
-    class GUILock
+    class OPENMS_GUI_DLLAPI GUILock
     {
     public:
       /// C'tor receives the widget to lock
@@ -194,8 +212,8 @@ namespace OpenMS
       }
     }; // ColorBrewer
 
-    StringList convert(const QStringList& in);
-    QStringList convert(const StringList& in);
+    OPENMS_GUI_DLLAPI StringList convert(const QStringList& in);
+    OPENMS_GUI_DLLAPI QStringList convert(const StringList& in);
 
   }; // GUIHelpers
 }

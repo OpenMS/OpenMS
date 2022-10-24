@@ -23,8 +23,8 @@ Please cite:
 """
 from __future__ import print_function
 
-from .sysinfo import *
-from .version import version as __version__
+from ._sysinfo import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
+from ._version import version as __version__
 
 import os
 here = os.path.abspath(os.path.dirname(__file__))
@@ -32,15 +32,22 @@ here = os.path.abspath(os.path.dirname(__file__))
 default_openms_data_path = os.path.join(here, "share/OpenMS")
 env_openms_data_path = os.environ.get("OPENMS_DATA_PATH")
 
-if not env_openms_data_path:
-    os.environ["OPENMS_DATA_PATH"] = default_openms_data_path
+if os.path.exists(default_openms_data_path):
+    if not env_openms_data_path:
+        os.environ["OPENMS_DATA_PATH"] = default_openms_data_path
+    else:
+        print(
+            "Warning: OPENMS_DATA_PATH environment variable already exists. "
+            "pyOpenMS will use it ({env}) to locate data in the OpenMS share folder "
+            "(e.g., the unimod database), instead of the default ({default})."
+            .format(env=env_openms_data_path, default=default_openms_data_path)
+        )
 else:
-    print(
-        "Warning: OPENMS_DATA_PATH environment variable already exists. "
-        "pyOpenMS will use it ({env}) to locate data in the OpenMS share folder "
-        "(e.g., the unimod database), instead of the default ({default})."
-        .format(env=env_openms_data_path, default=default_openms_data_path)
-    )
+    if not env_openms_data_path:
+         print(
+            "Warning: OPENMS_DATA_PATH environment variable not found and no share directory was installed. "
+            "Some functionality might not work as expected."
+        )
 
 import sys
 # on conda the libs will be installed to the general conda lib path which is available during load.
@@ -55,8 +62,11 @@ if sys.platform.startswith("linux") and os.path.exists(os.path.join(here, "libOp
     ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenMS.so"))
 
 try:
-    from .all_modules import *
-    from .python_extras import *
+    from ._all_modules import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
+    from ._python_extras import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
+    # This has to be imported after all_modules so it can augment the core datastructures with dataframe
+    # export capabilities
+    from ._dataframes import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)
 except Exception as e:
     print("")
     print("="*70)
@@ -74,7 +84,7 @@ except Exception as e:
     except:
         pass
     else:
-        from .qt_version_info import info
+        from ._qt_version_info import info
 
         info = "\n    ".join(info.split("\n"))
 
@@ -87,13 +97,13 @@ This might cause a conflict if both are loaded.  You can test this by importing 
 first and then import PyQt5.QtCore.
         """ % (info, PyQt5.QtCore.PYQT_VERSION_STR) )
         
-    print("Note: when using the Spyder IDE, the usage of PyQt might be circumvented")
-    print("by not using the 'Automatic' backend. Please change this in Tools ->")
-    print("Preferences -> IPython -> Graphics to 'Inline'.")
-    print("In general, try to install everything with conda in the same environment to make sure Qt is used in the same version.")
-    print("")
-    print("="*70)
-    print("\n")
+        print("Note: when using the Spyder IDE, the usage of PyQt might be circumvented")
+        print("by not using the 'Automatic' backend. Please change this in Tools ->")
+        print("Preferences -> IPython -> Graphics to 'Inline'.")
+        print("In general, try to install everything with conda in the same environment to make sure Qt is used in the same version.")
+        print("")
+        print("="*70)
+        print("\n")
     raise e
 
 del os, here, sys

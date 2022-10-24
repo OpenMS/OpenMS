@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,7 @@
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 
 #include <boost/cast.hpp>
-#include <boost/math/special_functions/fpclassify.hpp> // for isnan
+#include <cmath> // for isnan
 
 // #define DEBUG_SONAR
 
@@ -289,7 +289,7 @@ namespace OpenMS
       std::vector<double> xvals;
       for (Size pr_idx = 0; pr_idx < sonar_profile_pos.size(); pr_idx++) {xvals.push_back(pr_idx);}
       double rsq = OpenSwath::cor_pearson( xvals.begin(), xvals.end(), sonar_profile_pos.begin() );
-      if (boost::math::isnan(rsq)) rsq = 0.0; // check for nan
+      if (std::isnan(rsq)) rsq = 0.0; // check for nan
 
       // try to find largest diff
       double sonar_largediff = 0.0;

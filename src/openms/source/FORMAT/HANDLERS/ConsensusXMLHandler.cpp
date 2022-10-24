@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,19 +32,21 @@
 // $Authors: Clemens Groepl, Marc Sturm, Mathias Walzer $
 // --------------------------------------------------------------------------
 
+
 #include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h>
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/SYSTEM/File.h>
+
+#include <map>
 #include <fstream>
 
 using namespace std;
 
-namespace OpenMS
-{
-namespace Internal
+namespace OpenMS::Internal
 {
   ConsensusXMLHandler::ConsensusXMLHandler(ConsensusMap& map, const String& filename) :
     XMLHandler("", "1.7"),
@@ -207,19 +209,19 @@ namespace Internal
     else if (tag == "centroid")
     {
       tmp_str = attributeAsString_(attributes, "rt");
-      if (tmp_str != "")
+      if (!tmp_str.empty())
       {
         pos_[Peak2D::RT] = asDouble_(tmp_str);
       }
 
       tmp_str = attributeAsString_(attributes, "mz");
-      if (tmp_str != "")
+      if (!tmp_str.empty())
       {
         pos_[Peak2D::MZ] = asDouble_(tmp_str);
       }
 
       tmp_str = attributeAsString_(attributes, "it");
-      if (tmp_str != "")
+      if (!tmp_str.empty())
       {
         it_ = asDouble_(tmp_str);
       }
@@ -231,13 +233,13 @@ namespace Internal
       UniqueIdInterface tmp_unique_id_interface;
 
       tmp_str = attributeAsString_(attributes, "map");
-      if (tmp_str != "")
+      if (!tmp_str.empty())
       {
         tmp_unique_id_interface.setUniqueId(tmp_str);
         UInt64 map_index = tmp_unique_id_interface.getUniqueId();
 
         tmp_str = attributeAsString_(attributes, "id");
-        if (tmp_str != "")
+        if (!tmp_str.empty())
         {
           tmp_unique_id_interface.setUniqueId(tmp_str);
           UInt64 unique_id = tmp_unique_id_interface.getUniqueId();
@@ -274,7 +276,7 @@ namespace Internal
       //check file version against schema version
       String file_version = "";
       optionalAttributeAsString_(file_version, attributes, "version");
-      if (file_version == "")
+      if (file_version.empty())
       {
         file_version = "1.0"; //default version is 1.0
       }
@@ -364,7 +366,7 @@ namespace Internal
         // Note: technically, it would be preferable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
         String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date") + '_' + String(UniqueIdGenerator::getUniqueId());
 
-        if (!id_identifier_.has(id))
+        if (id_identifier_.find(id) == id_identifier_.end())
         {
           prot_id_.setIdentifier(identifier);
           id_identifier_[id] = identifier;
@@ -463,7 +465,7 @@ namespace Internal
     else if (tag == "PeptideIdentification" || tag == "UnassignedPeptideIdentification")
     {
       String id = attributeAsString_(attributes, "identification_run_ref");
-      if (!id_identifier_.has(id))
+      if (id_identifier_.find(id) == id_identifier_.end())
       {
         warning(LOAD, String("Peptide identification without ProteinIdentification found (id: '") + id + "')!");
       }
@@ -515,14 +517,14 @@ namespace Internal
         accession_string.trim();
         vector<String> accessions;
         accession_string.split(' ', accessions);
-        if (accession_string != "" && accessions.empty())
+        if (!accession_string.empty() && accessions.empty())
         {
           accessions.push_back(std::move(accession_string));
         }
 
         for (vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
         {
-          Map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
+          std::map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
             PeptideEvidence pe;
@@ -637,7 +639,7 @@ namespace Internal
     setProgress(++progress_);
     os << "<consensusXML version=\"" << version_ << "\"";
     // file id
-    if (consensus_map.getIdentifier() != "")
+    if (!consensus_map.getIdentifier().empty())
     {
       os << " document_id=\"" << consensus_map.getIdentifier() << "\"";
     }
@@ -646,7 +648,7 @@ namespace Internal
     {
       os << " id=\"cm_" << consensus_map.getUniqueId() << "\"";
     }
-    if (consensus_map.getExperimentType() != "")
+    if (!consensus_map.getExperimentType().empty())
     {
       os << " experiment_type=\"" << consensus_map.getExperimentType() << "\"";
     }
@@ -855,7 +857,7 @@ namespace Internal
   {
     String indent = String(indentation_level, '\t');
 
-    if (!identifier_id_.has(id.getIdentifier()))
+    if (identifier_id_.find(id.getIdentifier()) == identifier_id_.end())
     {
       warning(STORE, String("Omitting peptide identification because of missing ProteinIdentification with identifier '") + id.getIdentifier()
               + "' while writing '" + filename + "'!");
@@ -993,5 +995,4 @@ namespace Internal
     }
   }
 
-} // namespace Internal
 } // namespace OpenMS

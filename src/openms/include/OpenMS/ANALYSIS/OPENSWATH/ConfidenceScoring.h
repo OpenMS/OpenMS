@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 
 #include <cmath> // for "exp"
 #include <limits> // for "infinity"
+#include <map>
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -56,7 +57,7 @@ namespace OpenMS
       /// Constructor
       explicit ConfidenceScoring(bool test_mode_ = false);
 
-      virtual ~ConfidenceScoring() {}
+      ~ConfidenceScoring() override {}
 
   protected:
 
@@ -67,7 +68,7 @@ namespace OpenMS
         double rt_coef;
         double int_coef;
 
-        double operator()(double diff_rt, double dist_int)
+        double operator()(double diff_rt, double dist_int) const
         {
           double lm = intercept + rt_coef * diff_rt * diff_rt + 
             int_coef * dist_int;
@@ -81,7 +82,7 @@ namespace OpenMS
         double min_rt;
         double max_rt;
         
-        double operator()(double rt)
+        double operator()(double rt) const
         {
           return (rt - min_rt) / (max_rt - min_rt) * 100;
         }
@@ -93,7 +94,7 @@ namespace OpenMS
 
       Size n_decoys_; ///< number of decoys to use (per feature/true assay)
 
-      Map<String, IntList> transition_map_; ///< assay (ID) -> transitions (indexes)
+      std::map<String, IntList> transition_map_; ///< assay (ID) -> transitions (indexes)
 
       Size n_transitions_; ///< number of transitions to consider
 

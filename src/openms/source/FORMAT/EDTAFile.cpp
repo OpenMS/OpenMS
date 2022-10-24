@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -183,7 +183,7 @@ namespace OpenMS
       //do nothing for empty lines
       String line_trimmed = *input_it;
       line_trimmed.trim();
-      if (line_trimmed == "")
+      if (line_trimmed.empty())
       {
         if ((input_it - input.begin()) < input_size - 1) OPENMS_LOG_WARN << "Notice: Empty line ignored (line " << ((input_it - input.begin()) + 1) << ").";
         continue;
@@ -266,10 +266,10 @@ namespace OpenMS
       {
         String part_trimmed = parts[j];
         part_trimmed.trim();
-        if (part_trimmed != "")
+        if (!part_trimmed.empty())
         {
           //check if column name is ok
-          if (headers.size() <= j || headers[j] == "")
+          if (headers.size() <= j || headers[j].empty())
           {
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
                                         String("Error: Missing meta data header for column ") + (j + 1) + "!"

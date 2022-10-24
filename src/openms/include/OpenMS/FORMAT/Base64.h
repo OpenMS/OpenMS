@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -350,7 +350,7 @@ private:
   void Base64::decodeCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
     out.clear();
-    if (in == "") return;
+    if (in.empty()) return;
 
     const Size element_size = sizeof(ToType);
 
@@ -645,7 +645,7 @@ private:
   void Base64::decodeIntegersCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
     out.clear();
-    if (in == "")
+    if (in.empty())
       return;
 
     void * byte_buffer;

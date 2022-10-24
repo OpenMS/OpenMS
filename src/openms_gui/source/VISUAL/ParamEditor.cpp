@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -323,11 +323,11 @@ namespace OpenMS
           vector<String> parts;
           if (restrictions.split(' ', parts))
           {
-            if (parts[0] != "" && new_value.toInt() < parts[0].toInt())
+            if (!parts[0].empty() && new_value.toInt() < parts[0].toInt())
             {
               restrictions_met = false;
             }
-            if (parts[1] != "" && new_value.toInt() > parts[1].toInt())
+            if (!parts[1].empty() && new_value.toInt() > parts[1].toInt())
             {
               restrictions_met = false;
             }
@@ -346,11 +346,11 @@ namespace OpenMS
           vector<String> parts;
           if (restrictions.split(' ', parts))
           {
-            if (parts[0] != "" && new_value.toDouble() < parts[0].toDouble())
+            if (!parts[0].empty() && new_value.toDouble() < parts[0].toDouble())
             {
               restrictions_met = false;
             }
-            if (parts[1] != "" && new_value.toDouble() > parts[1].toDouble())
+            if (!parts[1].empty() && new_value.toDouble() > parts[1].toDouble())
             {
               restrictions_met = false;
             }
@@ -520,7 +520,7 @@ namespace OpenMS
           item = new QTreeWidgetItem(parent);
           //name
           item->setText(0, String(par.name).toQString());
-          item->setTextColor(0, Qt::darkGray);  // color of nodes with children
+          item->setForeground(0, Qt::darkGray);  // color of nodes with children
 
           //description
           item->setData(1, Qt::UserRole, String(par.description).toQString());
@@ -554,15 +554,15 @@ namespace OpenMS
       bool is_required = it->tags.find("required") != it->tags.end();
       if (is_required)  // special color for required parameters
       {
-        item->setTextColor(0, QColor(255, 140, 0, 255)); // orange
-        item->setTextColor(2, QColor(255, 140, 0, 255));
-        item->setTextColor(3, QColor(255, 140, 0, 255));
+        item->setForeground(0, QColor(255, 140, 0, 255)); // orange
+        item->setForeground(2, QColor(255, 140, 0, 255));
+        item->setForeground(3, QColor(255, 140, 0, 255));
       }
       else
       {
-        item->setTextColor(0, Qt::darkGray);
-        item->setTextColor(2, Qt::darkGray);
-        item->setTextColor(3, Qt::darkGray);
+        item->setForeground(0, Qt::darkGray);
+        item->setForeground(2, Qt::darkGray);
+        item->setForeground(3, Qt::darkGray);
       }
 
       // advanced parameter
@@ -737,10 +737,7 @@ namespace OpenMS
       }
     }
 
-    if (!has_advanced_item)
-    {
-      ui_->advanced_->setVisible(false);
-    }
+    ui_->advanced_->setVisible(has_advanced_item);
 
     tree_->expandAll();
     toggleAdvancedMode(advanced_mode_);
@@ -792,7 +789,7 @@ namespace OpenMS
     */
     child->setData(1, Qt::BackgroundRole, QBrush(Qt::white));
 
-    if (path == "")
+    if (path.empty())
     {
       path = child->text(0).toStdString();
     }
@@ -814,7 +811,7 @@ namespace OpenMS
 
     if (child->text(2) == "")  // node
     {
-      if (description != "")
+      if (!description.empty())
       {
         section_descriptions.insert(make_pair(path, description));
       }
@@ -828,11 +825,11 @@ namespace OpenMS
         vector<String> parts;
         if (restrictions.split(' ', parts))
         {
-          if (parts[0] != "")
+          if (!parts[0].empty())
           {
             param_->setMinFloat(path, parts[0].toDouble());
           }
-          if (parts[1] != "")
+          if (!parts[1].empty())
           {
             param_->setMaxFloat(path, parts[1].toDouble());
           }
@@ -842,7 +839,7 @@ namespace OpenMS
       {
         param_->setValue(path, child->text(1).toStdString(), description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();
-        if (restrictions != "")
+        if (!restrictions.empty())
         {
           std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
           param_->setValidStrings(path, parts);
@@ -852,7 +849,7 @@ namespace OpenMS
       {
         param_->setValue(path, child->text(1).toStdString(), description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();
-        if (restrictions != "")
+        if (!restrictions.empty())
         {
           std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
           param_->setValidStrings(path, parts);
@@ -862,7 +859,7 @@ namespace OpenMS
       {
         param_->setValue(path, child->text(1).toStdString(), description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();
-        if (restrictions != "")
+        if (!restrictions.empty())
         {
           std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
           param_->setValidStrings(path, parts);
@@ -875,11 +872,11 @@ namespace OpenMS
         vector<String> parts;
         if (restrictions.split(' ', parts))
         {
-          if (parts[0] != "")
+          if (!parts[0].empty())
           {
             param_->setMinInt(path, parts[0].toInt());
           }
-          if (parts[1] != "")
+          if (!parts[1].empty())
           {
             param_->setMaxInt(path, parts[1].toInt());
           }
@@ -892,7 +889,7 @@ namespace OpenMS
       {
         param_->setValue(path, rlist, description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();
-        if (restrictions != "")
+        if (!restrictions.empty())
         {
           vector<std::string> parts = ListUtils::create<std::string>(restrictions);
           param_->setValidStrings(path, parts);
@@ -902,7 +899,7 @@ namespace OpenMS
       {
         param_->setValue(path, rlist, description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();
-        if (restrictions != "")
+        if (!restrictions.empty())
         {
           std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
           param_->setValidStrings(path, parts);
@@ -912,7 +909,7 @@ namespace OpenMS
       {
         param_->setValue(path, rlist, description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();
-        if (restrictions != "")
+        if (!restrictions.empty())
         {
           std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
           param_->setValidStrings(path, parts);
@@ -925,11 +922,11 @@ namespace OpenMS
         vector<String> parts;
         if (restrictions.split(' ', parts))
         {
-          if (parts[0] != "")
+          if (!parts[0].empty())
           {
             param_->setMinFloat(path, parts[0].toFloat());
           }
-          if (parts[1] != "")
+          if (!parts[1].empty())
           {
             param_->setMaxFloat(path, parts[1].toFloat());
           }
@@ -942,11 +939,11 @@ namespace OpenMS
         vector<String> parts;
         if (restrictions.split(' ', parts))
         {
-          if (parts[0] != "")
+          if (!parts[0].empty())
           {
             param_->setMinInt(path, parts[0].toInt());
           }
-          if (parts[1] != "")
+          if (!parts[1].empty())
           {
             param_->setMaxInt(path, parts[1].toInt());
           }

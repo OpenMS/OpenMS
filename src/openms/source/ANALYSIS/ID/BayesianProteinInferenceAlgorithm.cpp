@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -767,7 +767,7 @@ namespace OpenMS
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities(
       ConsensusMap& cmap,
       bool greedy_group_resolution, // TODO probably better to add it as a Param
-      boost::optional<const ExperimentalDesign> exp_des)
+      std::optional<const ExperimentalDesign> exp_des)
   {
     IDScoreSwitcherAlgorithm switcher;
     Size counter(0);
@@ -1005,7 +1005,7 @@ namespace OpenMS
       std::vector<ProteinIdentification>& proteinIDs,
       std::vector<PeptideIdentification>& peptideIDs,
       bool greedy_group_resolution,
-      boost::optional<const ExperimentalDesign> exp_des)
+      std::optional<const ExperimentalDesign> exp_des)
   {
     //TODO The following is a sketch to think about how to include missing peptides
     // Requirement: Datastructures for peptides first

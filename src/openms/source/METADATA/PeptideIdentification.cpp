@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -126,12 +126,17 @@ namespace OpenMS
 
   void PeptideIdentification::insertHit(PeptideHit&& hit)
   {
-    hits_.push_back(std::forward<PeptideHit>(hit));
+    hits_.push_back(std::move(hit));
   }
 
   void PeptideIdentification::setHits(const std::vector<PeptideHit>& hits)
   {
     hits_ = hits;
+  }
+
+  void PeptideIdentification::setHits(std::vector<PeptideHit>&& hits)
+  {
+    hits_ = std::move(hits);
   }
 
   double PeptideIdentification::getSignificanceThreshold() const
@@ -248,12 +253,12 @@ namespace OpenMS
 
   bool PeptideIdentification::empty() const
   {
-    return id_ == ""
+    return id_.empty()
            && hits_.empty()
            && significance_threshold_ == 0.0
-           && score_type_ == ""
+           && score_type_.empty()
            && higher_score_better_ == true
-           && base_name_ == "";
+           && base_name_.empty();
   }
 
   std::vector<PeptideHit> PeptideIdentification::getReferencingHits(const std::vector<PeptideHit>& hits, const std::set<String>& accession)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,10 +36,10 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h> // StringList
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <set>
+#include <map>
 
 namespace OpenMS
 {
@@ -115,6 +115,15 @@ public:
     /// Returns the CV name (set in the load method)
     const String& name() const;
 
+    /// Returns the CV label (set in the load method)
+    const String& label() const;
+
+    /// Returns the CV version (set in the load method)
+    const String& version() const;
+
+    /// Returns the CV url (set in the load method)
+    const String& url() const;
+
     /**
         @brief Loads the CV from an OBO file
 
@@ -145,7 +154,7 @@ public:
 
 
     /// returns all the terms stored in the CV
-    const Map<String, CVTerm>& getTerms() const;
+    const std::map<String, CVTerm>& getTerms() const;
 
     /**
         @brief Writes all child terms recursively into terms
@@ -213,14 +222,20 @@ protected:
 
         If the term is not known, 'true' is returned!
     */
-    bool checkName_(const String& id, const String& name, bool ignore_case = true);
+    bool checkName_(const String& id, const String& name, bool ignore_case = true) const;
 
-    ///Map from ID to CVTerm
-    Map<String, CVTerm> terms_;
-    ///Map from name to id
-    Map<String, String> namesToIds_;
-    ///Name set in the load method
+    /// Map from ID to CVTerm
+    std::map<String, CVTerm> terms_;
+    /// Map from name to id
+    std::map<String, String> namesToIds_;
+    /// Name set in the load method
     String name_;
+    /// CV label
+    String label_;
+    /// CV version
+    String version_;
+    /// CV URL
+    String url_;
   };
 
   ///Print the contents to a stream.

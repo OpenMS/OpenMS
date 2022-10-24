@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,8 +38,9 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <boost/bind.hpp>
 #include <boost/random/discrete_distribution.hpp>
+
+#include "svm.h"
 
 // #define DEBUG
 
@@ -171,7 +172,7 @@ namespace OpenMS
       initializeMaps_();
 
     defaults_.setValue("svm_mode", 1, "whether to predict abundant/missing using SVC (0) or predict intensities using SVR (1)");
-    defaults_.setValue("model_file_name", "examples/simulation/SvmMSim.model", "Name of the probabilistic Model file");
+    defaults_.setValue("model_file_name", "SIMULATION/SvmMSim.model", "Name of the probabilistic Model file");
 
     defaults_.setValue("add_isotopes", "false", "If set to 1 isotope peaks of the product ion peaks are added");
     defaults_.setValidStrings("add_isotopes", {"true","false"});
@@ -246,7 +247,7 @@ namespace OpenMS
   {
   }
 
-  Size SvmTheoreticalSpectrumGenerator::generateDescriptorSet_(AASequence peptide, Size position, IonType type, Size /* precursor_charge */, DescriptorSet& desc_set)
+  Size SvmTheoreticalSpectrumGenerator::generateDescriptorSet_(const AASequence& peptide, Size position, const IonType& type, Size /* precursor_charge */, DescriptorSet& desc_set)
   {
 
     std::vector<svm_node> descriptors_tmp;
@@ -269,15 +270,15 @@ namespace OpenMS
 
     double fragment_mass = (fragment.getMonoWeight(res_type, charge) - loss.getMonoWeight());
 
-    Residue res_n = peptide.getResidue(position);
-    Residue res_c = peptide.getResidue(position + 1);
+    const Residue& res_n = peptide.getResidue(position);
+    const Residue& res_c = peptide.getResidue(position + 1);
 
-    String res_n_string = res_n.getOneLetterCode();
-    String res_c_string = res_c.getOneLetterCode();
+    const String& res_n_string = res_n.getOneLetterCode();
+    const String& res_c_string = res_c.getOneLetterCode();
 
     Size num_aa = aa_to_index_.size();
     Int index = 1;
-    svm_node node;
+    svm_node node{};
 
     //RB_C
     node.index = index + (Int)aa_to_index_[peptide.getResidue(position + 1).getOneLetterCode()];
@@ -547,7 +548,7 @@ namespace OpenMS
     mp_.static_intensities.clear();
 
     TextFile info_file;
-    String path_to_models = File().path(svm_info_file) + "/";
+    String path_to_models = File::path(svm_info_file) + "/";
     info_file.load(svm_info_file);
 
     TextFile::ConstIterator left_marker = StringListUtils::searchPrefix(info_file.begin(), info_file.end(), "<PrecursorCharge>");
@@ -577,13 +578,13 @@ namespace OpenMS
       Residue::ResidueType res = (Residue::ResidueType)(*left_marker++).toInt();
       EmpiricalFormula loss(*(left_marker++));
       UInt charge = (left_marker++)->toInt();
-      mp_.ion_types.push_back(IonType(res, loss, charge));
+      mp_.ion_types.emplace_back(res, loss, charge);
 
       left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<SvmModelFileClass>");
       String svm_filename(*(++left_marker));
 
       boost::shared_ptr<SVMWrapper> sh_ptr_c(new SVMWrapper);
-      sh_ptr_c.get()->loadModel((path_to_models + svm_filename).c_str());
+      sh_ptr_c->loadModel((path_to_models + svm_filename).c_str());
 
       mp_.class_models.push_back(sh_ptr_c);
       OPENMS_LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
@@ -593,7 +594,7 @@ namespace OpenMS
       svm_filename = *(++left_marker);
 
       boost::shared_ptr<SVMWrapper> sh_ptr_r(new SVMWrapper);
-      sh_ptr_r.get()->loadModel((path_to_models + svm_filename).c_str());
+      sh_ptr_r->loadModel((path_to_models + svm_filename).c_str());
 
       mp_.reg_models.push_back(sh_ptr_r);
       OPENMS_LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
@@ -731,12 +732,12 @@ namespace OpenMS
 
     if (add_metainfo)
     {
-      if (spectrum.getIntegerDataArrays().size() == 0)
+      if (spectrum.getIntegerDataArrays().empty())
       {
         spectrum.getIntegerDataArrays().resize(1);
         spectrum.getIntegerDataArrays()[0].setName("Charges");
       }
-      if (spectrum.getStringDataArrays().size() == 0)
+      if (spectrum.getStringDataArrays().empty())
       {
         spectrum.getStringDataArrays().resize(1);
         spectrum.getStringDataArrays()[0].setName("IonNames");
@@ -915,7 +916,7 @@ namespace OpenMS
             Size region = std::min(mp_.number_regions - 1, (Size)floor(mp_.number_regions * prefix.getMonoWeight(Residue::Internal) / peptide.getMonoWeight()));
             std::vector<double>& props = mp_.conditional_prob[std::make_pair(*it, region)][bin];
             std::vector<double> weights;
-            std::transform(props.begin(), props.end(), std::back_inserter(weights), boost::bind(std::multiplies<double>(), _1, 10));
+            std::transform(props.begin(), props.end(), std::back_inserter(weights), [](auto && PH1) { return std::multiplies<double>()(std::forward<decltype(PH1)>(PH1), 10); });
             boost::random::discrete_distribution<Size> ddist(weights.begin(), weights.end());
             Size binned_int = ddist(rng);
 

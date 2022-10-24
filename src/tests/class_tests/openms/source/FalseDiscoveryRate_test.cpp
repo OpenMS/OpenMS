@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,7 +75,7 @@ START_SECTION((void apply(std::vector<PeptideIdentification> &fwd_ids, std::vect
   TOLERANCE_ABSOLUTE(0.0001)
   for (vector<PeptideIdentification>::const_iterator it = fwd_pep_ids.begin(); it != fwd_pep_ids.end(); ++it)
   {
-    if (it->getHits().size() > 0)
+    if (!it->getHits().empty())
     {
       PeptideHit hit(*it->getHits().begin());
       double fdr(hit.getScore());
@@ -106,7 +106,7 @@ START_SECTION((void apply(std::vector<ProteinIdentification> &fwd_ids, std::vect
 	
   for (vector<ProteinIdentification>::const_iterator prot_it = fwd_prot_ids.begin(); prot_it != fwd_prot_ids.end(); ++prot_it)
   {
-    if (prot_it->getHits().size() > 0)
+    if (!prot_it->getHits().empty())
     {
       for (vector<ProteinHit>::const_iterator it = prot_it->getHits().begin(); it != prot_it->getHits().end(); ++it)
       {
@@ -209,7 +209,7 @@ START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
 
   for (vector<ProteinIdentification>::const_iterator prot_it = prot_ids.begin(); prot_it != prot_ids.end(); ++prot_it)
   {
-    if (prot_it->getHits().size() > 0)
+    if (!prot_it->getHits().empty())
     {
       for (vector<ProteinHit>::const_iterator it = prot_it->getHits().begin(); it != prot_it->getHits().end(); ++it)
       {
@@ -287,7 +287,7 @@ START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
 
   for (vector<ProteinIdentification>::const_iterator prot_it = prot_ids.begin(); prot_it != prot_ids.end(); ++prot_it)
   {
-    if (prot_it->getHits().size() > 0)
+    if (!prot_it->getHits().empty())
     {
       for (vector<ProteinHit>::const_iterator it = prot_it->getHits().begin(); it != prot_it->getHits().end(); ++it)
       {

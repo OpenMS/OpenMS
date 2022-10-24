@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,14 +64,18 @@ namespace OpenMS
     insert(FeatureHandle(map_index, element));
   }
 
-  ConsensusFeature::~ConsensusFeature()
-  {
-  }
+  ConsensusFeature::~ConsensusFeature() = default;
 
   void ConsensusFeature::insert(const ConsensusFeature& cf)
   {
     handles_.insert(cf.handles_.begin(), cf.handles_.end());
     peptides_.insert(peptides_.end(), cf.getPeptideIdentifications().begin(), cf.getPeptideIdentifications().end());
+  }
+
+  void ConsensusFeature::insert(ConsensusFeature&& cf)
+  {
+    handles_.insert(make_move_iterator(cf.handles_.begin()), make_move_iterator(cf.handles_.end()));
+    peptides_.insert(peptides_.end(), make_move_iterator(cf.getPeptideIdentifications().begin()), make_move_iterator(cf.getPeptideIdentifications().end()));
   }
 
   void ConsensusFeature::insert(const FeatureHandle& handle)
@@ -83,11 +87,28 @@ namespace OpenMS
     }
   }
 
+  void ConsensusFeature::insert(FeatureHandle&& handle)
+  {
+    if (!(handles_.insert(std::move(handle)).second))
+    {
+      String key = String("map") + handle.getMapIndex() + "/feature" + handle.getUniqueId();
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The set already contained an element with this key.", key);
+    }
+  }
+
   void ConsensusFeature::insert(const HandleSetType& handle_set)
   {
-    for (ConsensusFeature::HandleSetType::const_iterator it = handle_set.begin(); it != handle_set.end(); ++it)
+    for (auto& handle : handle_set)
     {
-      insert(*it);
+      insert(handle);
+    }
+  }
+
+  void ConsensusFeature::insert(HandleSetType&& handle_set)
+  {
+    for (auto& handle : handle_set)
+    {
+      insert(std::move(handle));
     }
   }
 

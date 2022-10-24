@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -976,7 +976,7 @@ START_SECTION((Param copy(const std::string &prefix, bool remove_prefix=false) c
 	Param p2;
 
 	p2 = p_src.copy("notthere:");
-	TEST_EQUAL((p2==Param()),true)
+	TEST_EQUAL((p2.empty()),true)
 
 	p2 = p_src.copy("test:");
 
@@ -1616,14 +1616,14 @@ START_SECTION((void checkDefaults(const std::string &name, const Param &defaults
     p.setValue("double",47.11,"double");
 
     p.checkDefaults("Test",d,"");
-    TEST_EQUAL(os.str()=="",false)
+    TEST_EQUAL(os.str().empty(),false)
 
     d.setValue("int",5,"int");
     d.setValue("double",47.11,"double");
     os.str("");
   os.clear();
     p.checkDefaults("Test",d,"");
-    TEST_EQUAL(os.str()=="",false)
+    TEST_EQUAL(os.str().empty(),false)
 
     p.clear();
     p.setValue("pref:string",std::string("bla"),"pref:string");
@@ -1632,12 +1632,12 @@ START_SECTION((void checkDefaults(const std::string &name, const Param &defaults
     os.str("");
   os.clear();
     p.checkDefaults("Test",d,"pref");
-    TEST_EQUAL(os.str()=="",false)
+    TEST_EQUAL(os.str().empty(),false)
 
     os.str("");
   os.clear();
     p.checkDefaults("Test2",d,"pref:");
-    TEST_EQUAL(os.str()=="",false)
+    TEST_EQUAL(os.str().empty(),false)
 
     //check string restrictions
     vector<std::string> s_rest = {"a","b","c"};

@@ -37,12 +37,12 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
-    cdef cppclass ConsensusMap(UniqueIdInterface, DocumentIdentifier, RangeManager2, MetaInfoInterface):
+    cdef cppclass ConsensusMap(UniqueIdInterface, DocumentIdentifier, RangeManagerRtMzInt, MetaInfoInterface):
 
         # wrap-inherits:
         #   UniqueIdInterface
         #   DocumentIdentifier
-        #   RangeManager2
+        #   RangeManagerRtMzInt
         #   MetaInfoInterface
         #
         # wrap-doc:
@@ -69,7 +69,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         int size() nogil except +
         bool empty() nogil except +
         void reserve(Size s) nogil except +
-        ConsensusFeature & operator[](int) nogil except + #wrap-upper-limit:size()
+        ConsensusFeature & operator[](size_t) nogil except + #wrap-upper-limit:size()
         void push_back(ConsensusFeature spec) nogil except +
 
         ConsensusMap appendRows(ConsensusMap) nogil except + # wrap-doc:Add consensus map entries as new rows

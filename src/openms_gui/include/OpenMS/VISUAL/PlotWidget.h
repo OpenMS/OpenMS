@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,9 +94,9 @@ public:
     //@{
 
     /// Main data type (experiment)
-    typedef LayerData::ExperimentType ExperimentType;
+    typedef LayerDataBase::ExperimentType ExperimentType;
     /// Main data type (features)
-    typedef LayerData::FeatureMapType FeatureMapType;
+    typedef LayerDataBase::FeatureMapType FeatureMapType;
     /// Spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
@@ -168,9 +168,9 @@ public slots:
     /// Shows statistics about the data (count, min, max, avg of intensity, charge, quality and meta data)
     void showStatistics();
     /// Shows the intensity distribution of the current layer
-    void showIntensityDistribution();
+    void showIntensityDistribution(const Math::Histogram<>& dist);
     /// Shows the meta data distribution of value @p name of the current layer
-    void showMetaDistribution(const String & name);
+    void showMetaDistribution(const String& name, const Math::Histogram<>& dist);
     /// Updates the axes by setting the right labels and calling recalculateAxes_();
     void updateAxes();
     /**
@@ -211,10 +211,6 @@ protected:
     void setCanvas_(PlotCanvas * canvas, UInt row = 0, UInt col = 2);
     /// Switch between different intensity modes
     virtual void intensityModeChange_();
-    /// creates the intensity distribution of the current layer
-    virtual Math::Histogram<> createIntensityDistribution_() const = 0;
-    /// creates the meta data distribution of value @p name of the current layer
-    virtual Math::Histogram<> createMetaDistribution_(const String & name) const = 0;
     /// recalculates the Axis ticks
     virtual void recalculateAxes_() = 0;
     /// correct given area X/Y-values if the values under-/overflow the min-/max values of the data

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -82,10 +83,7 @@ namespace OpenMS
     defaults_.setValue("peak_width", 0.15, "Approximate fwhm of the peaks.");
     defaults_.setMinFloat("peak_width", 0.0);
     defaults_.setValue("estimate_peak_width", "false", "Flag if the average peak width shall be estimated. Attention: when this flag is set, the peak_width is ignored.");
-    std::vector<std::string> valid_opts;
-    valid_opts.push_back("true");
-    valid_opts.push_back("false");
-    defaults_.setValidStrings("estimate_peak_width", valid_opts);
+    defaults_.setValidStrings("estimate_peak_width", {"true","false"});
 
     defaults_.setValue("fwhm_lower_bound_factor", 0.7, "Factor that calculates the minimal fwhm value from the peak_width. All peaks with width smaller than fwhm_bound_factor * peak_width are discarded.", {"advanced"});
     defaults_.setValue("fwhm_upper_bound_factor", 20., "Factor that calculates the maximal fwhm value from the peak_width. All peaks with width greater than fwhm_upper_bound_factor * peak_width are discarded.", {"advanced"});
@@ -103,7 +101,7 @@ namespace OpenMS
     //Optimization parameters
     defaults_.setValue("optimization", "no", "If the peak parameters position, intensity and left/right width" \
                                              "shall be optimized set optimization to one_dimensional or two_dimensional.", {"advanced"});
-    valid_opts.clear();
+    std::vector<std::string> valid_opts;
     valid_opts.push_back("no");
     valid_opts.push_back("one_dimensional");
     valid_opts.push_back("two_dimensional");
@@ -129,10 +127,7 @@ namespace OpenMS
     defaults_.setMinFloat("optimization:2d:max_peak_distance", 0.0);
     // deconvolution parameters
     defaults_.setValue("deconvolution:deconvolution", "false", "If you want heavily overlapping peaks to be separated set this value to \"true\"", {"advanced"});
-    valid_opts.clear();
-    valid_opts.push_back("true");
-    valid_opts.push_back("false");
-    defaults_.setValidStrings("deconvolution:deconvolution", valid_opts);
+    defaults_.setValidStrings("deconvolution:deconvolution", {"true", "false"});
     defaults_.setValue("deconvolution:asym_threshold", 0.3, "If the symmetry of a peak is smaller than asym_thresholds it is assumed that it consists of more than one peak and the deconvolution procedure is started.", {"advanced"});
     defaults_.setMinFloat("deconvolution:asym_threshold", 0.0);
     defaults_.setValue("deconvolution:left_width", 2.0, "1/left_width is the initial value for the left width of the peaks found in the deconvolution step.", {"advanced"});
@@ -695,7 +690,7 @@ namespace OpenMS
 #endif
 
     // take shape with higher correlation (Sech2 can be NaN, so Lorentzian might be the only option)
-    if ((lorentz.r_value > sech.r_value) || boost::math::isnan(sech.r_value))
+    if ((lorentz.r_value > sech.r_value) || std::isnan(sech.r_value))
     {
       return lorentz;
     }
@@ -982,7 +977,7 @@ namespace OpenMS
       }
       dif /= peaks - 1;
       charge = (Int) Math::round(1 / dif);
-      if (boost::math::isnan((double)charge) || boost::math::isinf((double)charge))
+      if (std::isnan((double)charge) || std::isinf((double)charge))
       {
         charge = 0;
       }
@@ -1101,13 +1096,11 @@ namespace OpenMS
 
   void PeakPickerCWT::pick(const MSSpectrum & input, MSSpectrum & output) const
   {
+    // nearly empty spectra shouldn't be picked
+    if (input.size() < 2) return;
+
     // copy the spectrum meta data
-    output.clear(true);
-    output.SpectrumSettings::operator=(input);
-    output.MetaInfoInterface::operator=(input);
-    output.setRT(input.getRT());
-    output.setMSLevel(input.getMSLevel());
-    output.setName(input.getName());
+    copySpectrumMeta(input, output);
     //make sure the data type is set correctly
     output.setType(SpectrumSettings::CENTROID);
 
@@ -1116,6 +1109,7 @@ namespace OpenMS
     {
       return;
     }
+
     //set up meta data arrays
     output.getFloatDataArrays().clear();
     output.getFloatDataArrays().resize(7);

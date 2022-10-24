@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -237,7 +237,7 @@ namespace OpenMS
     arginine->addLossName("");
     arginine->addLossFormula(EmpiricalFormula("NHCNH"));
     arginine->addLossName("");
-    arginine->addLossFormula(EmpiricalFormula("CONH2"));
+    arginine->addLossFormula(EmpiricalFormula("CONH2"));	  
     insertResidueAndAssociateWithResidueSet_(arginine, {"All","Natural20","Natural19WithoutI","Natural19WithoutL","Natural19J","AmbiguousWithoutX","Ambiguous","AllNatural"} );
 	
     Residue* selenocysteine = new Residue ( "Selenocysteine", "Sec", "U", EmpiricalFormula( "C3H7NO2Se"), 0.00, 0.00, 5.73, 0.00, 880.99, 0.12, set<String>{ "SEC"});
@@ -324,7 +324,7 @@ namespace OpenMS
 
     vector<String> names;
     // add name to lookup
-    if (r->getName() != "") 
+    if (!r->getName().empty()) 
     {
       names.push_back(r->getName());
     }
@@ -351,13 +351,13 @@ namespace OpenMS
     residue_names_[r->getName()] = r;
 
     // add tree letter code to residue_names_
-    if (r->getThreeLetterCode() != "")
+    if (!r->getThreeLetterCode().empty())
     {
       residue_names_[r->getThreeLetterCode()] = r;
     }
 
     // add one letter code to residue_names_
-    if (r->getOneLetterCode() != "")
+    if (!r->getOneLetterCode().empty())
     {
       residue_names_[r->getOneLetterCode()] = r;
     }

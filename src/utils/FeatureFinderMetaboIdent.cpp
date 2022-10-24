@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,11 +50,10 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <OpenMS/FORMAT/OMSFileLoad.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -139,7 +138,7 @@ class TOPPFeatureFinderMetaboIdent :
 {
 public:
   TOPPFeatureFinderMetaboIdent() :
-    TOPPBase("FeatureFinderMetaboIdent", "Detects features in MS1 data based on metabolite identifications.", false)    
+    TOPPBase("FeatureFinderMetaboIdent", "Detects features in MS1 data based on metabolite identifications.", false)
   {
   }
 
@@ -161,6 +160,7 @@ protected:
     registerOutputFile_("trafo_out", "<file>", "", "Output file: Retention times (expected vs. observed)", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
     setValidFormats_("candidates_out", ListUtils::create<String>("featureXML"));
+    registerFlag_("force", "Force processing of files with no MS1 spectra", true);
 
     Param ffmetaboident_params;
     ffmetaboident_params.insert("", FeatureFinderAlgorithmMetaboIdent().getParameters());
@@ -242,6 +242,7 @@ protected:
     String lib_out = getStringOption_("lib_out");
     String chrom_out = getStringOption_("chrom_out");
     String trafo_out = getStringOption_("trafo_out");
+    bool force = getFlag_("force");
 
     prog_log_.setLogType(log_type_);
 
@@ -260,9 +261,25 @@ protected:
     mzml.setLogType(log_type_);
     mzml.getOptions().addMSLevel(1);
     mzml.load(in, ff_mident.getMSData());
-
+    if (ff_mident.getMSData().empty() && !force)
+    {
+      OPENMS_LOG_ERROR << "Error: No MS1 scans in '"
+                       << in << "' - aborting." << endl;
+      return INCOMPATIBLE_INPUT_DATA;
+    }
     FeatureMap features;
-    ff_mident.run(table, features);
+    ff_mident.run(table, features, in);
+
+    // annotate "spectra_data" metavalue
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      features.setPrimaryMSRunPath({"file://" + File::basename(in)});
+    }
+    else
+    {
+      features.setPrimaryMSRunPath({in}, ff_mident.getMSData());
+    }
 
     addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
 
@@ -289,7 +306,7 @@ protected:
     }
 
     // write expected vs. observed retention times
-    if (!trafo_out.empty()) 
+    if (!trafo_out.empty())
     {
       const TransformationDescription& trafo = ff_mident.getTransformations();
       TransformationXMLFile().store(trafo_out, trafo);

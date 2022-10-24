@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,7 +52,7 @@ namespace OpenMS
   {
     defaults_.setValue("stop_after_feature", -1, "Stop finding after feature (ordered by intensity; -1 means do not stop).");
     defaults_.setValue("stop_after_intensity_ratio", 0.0001, "Stop after reaching intensity ratio");
-    defaults_.setValue("min_peak_width", -1.0, "Minimal peak width (s), discard all peaks below this value (-1 means no action).", {"advanced"});
+    defaults_.setValue("min_peak_width", 0.001, "Minimal peak width (s), discard all peaks below this value (-1 means no action).", {"advanced"});
 
     defaults_.setValue("peak_integration", "original", "Calculate the peak area and height either the smoothed or the raw chromatogram data.", {"advanced"});
     defaults_.setValidStrings("peak_integration", {"original","smoothed"});

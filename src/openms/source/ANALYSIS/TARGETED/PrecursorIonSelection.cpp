@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -737,7 +737,7 @@ namespace OpenMS
     std::cout << max_iteration_ << std::endl;
 #endif
     // while there are precursors left and the maximal number of iterations isn't arrived
-    while ((new_features.size()  > 0 && iteration < max_iteration_))
+    while ((!new_features.empty() && iteration < max_iteration_))
     {
 
       ++iteration;
@@ -1092,7 +1092,7 @@ namespace OpenMS
     // #endif
     //    std::ofstream out_prec("precursors.txt");
     // while there are precursors left and the maximal number of iterations isn't arrived
-    while ((new_features.size()  > 0 && iteration < max_iteration_))
+    while ((!new_features.empty() && iteration < max_iteration_))
     {
       ++iteration;
 #ifdef PIS_DEBUG
@@ -1131,7 +1131,7 @@ namespace OpenMS
         std::vector<PeptideIdentification>& pep_ids = new_features[c].getPeptideIdentifications();
 
         //#ifdef PIS_DEBUG
-        if (pep_ids.size() > 0)
+        if (!pep_ids.empty())
         {
           String seq = pep_ids[0].getHits()[0].getSequence().toString();
           std::cout << "ids "   << "\t";

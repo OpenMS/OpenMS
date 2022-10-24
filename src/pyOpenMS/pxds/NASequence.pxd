@@ -4,7 +4,6 @@ from String cimport *
 from Residue cimport *
 from EmpiricalFormula cimport *
 from Ribonucleotide cimport *
-from Map cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS":
 

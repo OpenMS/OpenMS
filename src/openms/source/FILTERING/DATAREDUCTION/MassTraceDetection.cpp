@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -282,7 +282,7 @@ namespace OpenMS
       Size fwhm_meta_count(0);
       for (Size i = 0; i < work_exp.size(); ++i)
       {
-        if (work_exp[i].getFloatDataArrays().size() > 0 &&
+        if (!work_exp[i].getFloatDataArrays().empty() &&
             work_exp[i].getFloatDataArrays()[0].getName() == "FWHM_ppm")
         {
           if (work_exp[i].getFloatDataArrays()[0].size() != work_exp[i].size())

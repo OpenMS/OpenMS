@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,7 +87,7 @@ START_SECTION((void setUpHook(SimTypes::FeatureMapSimVector &)))
 
   // add another map
   Param p = i.getParameters();
-  p.setValue("channel_active_4plex", std::vector<std::string>{"114:myReference"," 117:blabla"}, "Four-plex only: Each channel that was used in the experiment and its description (114-117) in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\".");
+  p.setValue("channel_active_4plex", std::vector<std::string>{"114:myReference"," 117:blabla"}, R"(Four-plex only: Each channel that was used in the experiment and its description (114-117) in format <channel>:<name>, e.g. "114:myref","115:liver".)");
   i.setParameters(p);
   f_maps.push_back(FeatureMap());
   i.setUpHook(f_maps);

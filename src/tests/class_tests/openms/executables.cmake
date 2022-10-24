@@ -1,5 +1,6 @@
 set(concept_executables_list
   ClassTest_test
+  Colorizer_test
   Exception_Base_test
   FactoryBase_test
   Factory_test
@@ -24,6 +25,7 @@ set(qc_executables_list
   Ms2IdentificationRate_test
   Ms2SpectrumStats_test
   MQEvidenceExporter_test
+  MQMsmsExporter_test
   MzCalibration_test
   PeptideMass_test
   PSMExplainedIonCurrent_test
@@ -62,7 +64,6 @@ set(datastructures_executables_list
   ListUtils_test
   ListUtilsIO_test
   LPWrapper_test
-  Map_test
   MassExplainer_test
   MatchedIterator_test
   Matrix_test
@@ -148,10 +149,14 @@ set(kernel_executables_list
   ConsensusMap_test
   ConversionHelper_test
   ConstRefVector_test
+  DimMapper_test
   DPeak_test
   FeatureMap_test
   Feature_test
   MassTrace_test
+  Mobilogram_test
+  MobilityPeak1D_test
+  MobilityPeak2D_test
   MRMFeature_test
   MRMTransitionGroup_test
   MSChromatogram_test
@@ -192,6 +197,7 @@ set(format_executables_list
   GzipInputStream_test
   IBSpectraFile_test
   IdXMLFile_test
+  IndentedStream_test
   IndexedMzMLDecoder_test
   IndexedMzMLFile_test
   IndexedMzMLFileLoader_test
@@ -221,12 +227,15 @@ set(format_executables_list
   MzMLValidator_test
   MzTab_test
   MzTabFile_test
+  MzTabM_test
+  MzTabMFile_test
   # MSstatsFile_test
   MzQuantMLFile_test
   #MzQuantMLValidator_test
   MzXMLFile_test
   NoopMSDataConsumer_test
   TraMLValidator_test
+  OMSFile_test
   OMSSACSVFile_test
   OMSSAXMLFile_test
   OSWFile_test
@@ -295,7 +304,6 @@ set(math_executables_list
   NonNegativeLeastSquaresSolver_test
   PosteriorErrorProbabilityModel_test
   QuadraticRegression_test
-  #RegressionUtils_test
   RANSAC_test
   RANSACModel_test
   RANSACModelLinear_test
@@ -705,6 +713,9 @@ endif(NOT DISABLE_OPENSWATH)
 set(Boost_dependent_tests
   DIAHelper_test
   EmgModel_test
+  FASTAContainer_test
+  LogConfigHandler_test
+  LogStream_test
   MRMDecoy_test
   MRMFeatureFinderScoring_test
   MRMTransitionGroupPicker_test
@@ -713,6 +724,8 @@ set(Boost_dependent_tests
   OpenSwathMRMFeatureAccessOpenMS_test
   OpenSwathSpectrumAccessOpenMS_test
   PeakPickerMRM_test
+  SpectrumLookup_test
+  SpectrumMetaDataLookup_test
   StatisticFunctions_test
   String_test
   TransitionTSVFile_test

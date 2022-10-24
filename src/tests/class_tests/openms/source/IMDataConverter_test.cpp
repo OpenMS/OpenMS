@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,6 +72,7 @@ START_SECTION((std::vector<PeakMap> splitByFAIMSCV(PeakMap& exp)))
   TEST_EQUAL(exp.getSpectra().size(), 19)
 
   vector<PeakMap> splitPeakMap = IMDataConverter::splitByFAIMSCV(std::move(exp));
+  TEST_EQUAL(exp.empty(), true) // moved out
   TEST_EQUAL(splitPeakMap.size(), 3)
 
 	TEST_EQUAL(splitPeakMap[0].size(), 4)

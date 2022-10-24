@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,9 +74,9 @@ public:
   inline bool operator()(const Feature & f) const
   {
     String f_sequence = "";
-    if (f.getPeptideIdentifications().size() > 0)
+    if (!f.getPeptideIdentifications().empty())
     {
-      if (f.getPeptideIdentifications()[0].getHits().size() > 0)
+      if (!f.getPeptideIdentifications()[0].getHits().empty())
       {
         f_sequence = f.getPeptideIdentifications()[0].getHits()[0].getSequence().toString();
       }
@@ -107,9 +107,9 @@ public:
   inline bool operator()(const ConsensusFeature & f) const
   {
     String f_sequence = "";
-    if (f.getPeptideIdentifications().size() > 0)
+    if (!f.getPeptideIdentifications().empty())
     {
-      if (f.getPeptideIdentifications()[0].getHits().size() > 0)
+      if (!f.getPeptideIdentifications()[0].getHits().empty())
       {
         f_sequence = f.getPeptideIdentifications()[0].getHits()[0].getSequence().toString();
       }

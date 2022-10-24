@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,8 +44,7 @@
 #include <numeric>
 
 // AkimaInterpolator
-#include <Wm5IntpAkimaNonuniform1.h>
-#include <Wm5Math.h>
+#include <Mathematics/IntpAkimaNonuniform1.h>
 
 namespace OpenMS
 {
@@ -98,9 +97,9 @@ public:
 
     void init(std::vector<double>& x, std::vector<double>& y) override
     {
-      if (interpolator_ != (Wm5::IntpAkimaNonuniform1<double>*) nullptr) delete interpolator_;
+      if (interpolator_ != (gte::IntpAkimaNonuniform1<double>*) nullptr) delete interpolator_;
       // re-construct a new interpolator
-      interpolator_ = new Wm5::IntpAkimaNonuniform1<double>(static_cast<int>(x.size()), &x.front(), &y.front());
+      interpolator_ = new gte::IntpAkimaNonuniform1<double>(static_cast<int>(x.size()), &x.front(), &y.front());
     }
 
     double eval(const double& x) const override
@@ -114,7 +113,7 @@ public:
     }
 
 private:
-    Wm5::IntpAkimaNonuniform1<double>* interpolator_;
+    gte::IntpAkimaNonuniform1<double>* interpolator_;
   };
 
   /**

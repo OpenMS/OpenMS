@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+
+#include "svm.h"
 
 using std::vector;
 using std::cout;
@@ -187,8 +189,8 @@ namespace OpenMS
     svm.getSVCProbabilities(prediction_data, detectabilities, labels);
 
     // clean up when finished with prediction
-    delete prediction_data;
-    delete training_data;
+    LibSVMEncoder::destroyProblem(prediction_data);
+    LibSVMEncoder::destroyProblem(training_data);
   }
 
   void DetectabilitySimulation::svmFilter_(SimTypes::FeatureMapSim& features)
@@ -231,7 +233,7 @@ namespace OpenMS
     defaults_.setValue("dt_simulation_on", "false", "Modelling detectibility enabled? This can serve as a filter to remove peptides which ionize badly, thus reducing peptide count");
     defaults_.setValidStrings("dt_simulation_on", {"true","false"});
     defaults_.setValue("min_detect", 0.5, "Minimum peptide detectability accepted. Peptides with a lower score will be removed");
-    defaults_.setValue("dt_model_file", "examples/simulation/DTPredict.model", "SVM model for peptide detectability prediction");
+    defaults_.setValue("dt_model_file", "SIMULATION/DTPredict.model", "SVM model for peptide detectability prediction");
     defaultsToParam_();
   }
 

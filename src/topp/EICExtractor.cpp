@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -238,7 +238,7 @@ public:
     }*/
 
     // number of header files and input files must be identical
-    if (in_header.size() > 0 && in.size() != in_header.size())
+    if (!in_header.empty() && in.size() != in_header.size())
     {
       OPENMS_LOG_FATAL_ERROR << "Error: number of input file 'in' and 'in_header' files must be identical!" << std::endl;
       return ILLEGAL_PARAMETERS;
@@ -315,7 +315,7 @@ public:
         pp.setParameters(p);
         pp.pick(tic_gf, tics_pp);
 
-        if (tics_pp.size())
+        if (!tics_pp.empty())
         {
           OPENMS_LOG_INFO << "Found " << tics_pp.size() << " auto-rt peaks at: ";
           for (Size ipp = 0; ipp != tics_pp.size(); ++ipp)
@@ -396,7 +396,7 @@ public:
 
       // search for each EIC and add up
       Int not_found(0);
-      Map<Size, double> quant;
+      std::map<Size, double> quant;
 
       String description;
       if (fi < in_header.size())

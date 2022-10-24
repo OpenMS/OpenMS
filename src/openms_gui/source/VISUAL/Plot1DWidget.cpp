@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -150,94 +150,6 @@ namespace OpenMS
     default:
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-  }
-
-  Histogram<> Plot1DWidget::createIntensityDistribution_() const
-  {
-    //initialize histogram
-    double min = canvas_->getCurrentMinIntensity();
-    double max = canvas_->getCurrentMaxIntensity();
-    if (min == max)
-    {
-      min -= 0.01;
-      max += 0.01;
-    }
-    Histogram<> tmp(min, max, (max - min) / 500.0);
-
-    for (const Peak1D& spec : (*canvas_->getCurrentLayer().getPeakData())[0])
-    {
-      tmp.inc(spec.getIntensity());
-    }
-    return tmp;
-  }
-
-  Histogram<> Plot1DWidget::createMetaDistribution_(const String& name) const
-  {
-    Histogram<> tmp;
-    //float arrays
-    const ExperimentType::SpectrumType::FloatDataArrays& f_arrays = (*canvas_->getCurrentLayer().getPeakData())[0].getFloatDataArrays();
-    for (const OpenMS::DataArrays::FloatDataArray& dat : f_arrays)
-    {
-      if (dat.getName() == name)
-      {
-        //determine min and max of the data
-        float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
-        for (Size i = 0; i < dat.size(); ++i)
-        {
-          if (dat[i] < min)
-          {
-            min = dat[i];
-          }
-          if (dat[i] > max)
-          {
-            max = dat[i];
-          }
-        }
-        if (min >= max)
-        {
-          return tmp;
-        }
-        //create histogram
-        tmp.reset(min, max, (max - min) / 500.0);
-        for (Size i = 0; i < dat.size(); ++i)
-        {
-          tmp.inc((dat)[i]);
-        }
-      }
-    }
-    //integer arrays
-    const ExperimentType::SpectrumType::IntegerDataArrays& i_arrays = (*canvas_->getCurrentLayer().getPeakData())[0].getIntegerDataArrays();
-    for (const OpenMS::DataArrays::IntegerDataArray& dat : i_arrays)
-    {
-      if (dat.getName() == name)
-      {
-        //determine min and max of the data
-        float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
-        for (Size i = 0; i < dat.size(); ++i)
-        {
-          if (dat[i] < min)
-          {
-            min = dat[i];
-          }
-          if (dat[i] > max)
-          {
-            max = dat[i];
-          }
-        }
-        if (min >= max)
-        {
-          return tmp;
-        }
-        //create histogram
-        tmp.reset(min, max, (max - min) / 500.0);
-        for (Size i = 0; i < dat.size(); ++i)
-        {
-          tmp.inc(dat[i]);
-        }
-      }
-    }
-    //fallback if no array with that name exists
-    return tmp;
   }
 
   Plot1DWidget::~Plot1DWidget()

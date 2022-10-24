@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -251,7 +251,7 @@ public:
     Size size() const;
 
     /// Compare by quality
-    bool operator<(const QTCluster& cluster);
+    bool operator<(const QTCluster& cluster) const;
 
     /**
      * @brief Adds a new element/neighbor to the cluster
@@ -367,6 +367,4 @@ public:
       bool finalized_;
   };
 
-  // needed for the heap
-  bool operator<(const QTCluster& q1, const QTCluster& q2);
 } // namespace OpenMS

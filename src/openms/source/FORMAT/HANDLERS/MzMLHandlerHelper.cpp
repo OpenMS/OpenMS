@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,19 +65,19 @@ namespace OpenMS::Internal
     {
       if (np.np_compression == MSNumpressCoder::NONE || !use_numpress)
       {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />)";
       }
       else if (np.np_compression == MSNumpressCoder::LINEAR)
       {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002746\" name=\"MS-Numpress linear prediction compression followed by zlib compression\" />";
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />)";
       }
       else if (np.np_compression == MSNumpressCoder::PIC)
       {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002747\" name=\"MS-Numpress positive integer compression followed by zlib compression\" />";
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1002747" name="MS-Numpress positive integer compression followed by zlib compression" />)";
       }
       else if (np.np_compression == MSNumpressCoder::SLOF)
       {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002748\" name=\"MS-Numpress short logged float compression followed by zlib compression\" />";
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />)";
       }
     }
     else
@@ -85,23 +85,23 @@ namespace OpenMS::Internal
       if (np.np_compression == MSNumpressCoder::NONE || !use_numpress)
       {
         // default
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />)";
       }
       else if (np.np_compression == MSNumpressCoder::LINEAR)
       {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002312\" name=\"MS-Numpress linear prediction compression\" />";
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1002312" name="MS-Numpress linear prediction compression" />)";
       }
       else if (np.np_compression == MSNumpressCoder::PIC)
       {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002313\" name=\"MS-Numpress positive integer compression\" />";
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress positive integer compression" />)";
       }
       else if (np.np_compression == MSNumpressCoder::SLOF)
       {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002314\" name=\"MS-Numpress short logged float compression\" />";
+        return indent + R"(<cvParam cvRef="MS" accession="MS:1002314" name="MS-Numpress short logged float compression" />)";
       }
     }
     // default
-    return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
+    return indent + R"(<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />)";
   }
 
   void MzMLHandlerHelper::writeFooter_(std::ostream& os,

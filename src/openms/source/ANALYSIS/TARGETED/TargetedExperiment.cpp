@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <ostream> // for ostream& operator<<(ostream& os, const TargetedExperiment::SummaryStatistics& s);
+#include <map>
 
 
 // from https://stackoverflow.com/questions/17010005/how-to-use-c11-move-semantics-to-append-vector-contents-to-another-vector
@@ -98,6 +99,26 @@ namespace OpenMS
   {
   }
 
+  TargetedExperiment::TargetedExperiment(TargetedExperiment && rhs) noexcept :
+    cvs_(std::move(rhs.cvs_)),
+    contacts_(std::move(rhs.contacts_)),
+    publications_(std::move(rhs.publications_)),
+    instruments_(std::move(rhs.instruments_)),
+    targets_(std::move(rhs.targets_)),
+    software_(std::move(rhs.software_)),
+    proteins_(std::move(rhs.proteins_)),
+    compounds_(std::move(rhs.compounds_)),
+    peptides_(std::move(rhs.peptides_)),
+    transitions_(std::move(rhs.transitions_)),
+    include_targets_(std::move(rhs.include_targets_)),
+    exclude_targets_(std::move(rhs.exclude_targets_)),
+    source_files_(std::move(rhs.source_files_)),
+    protein_reference_map_dirty_(true),
+    peptide_reference_map_dirty_(true),
+    compound_reference_map_dirty_(true)
+  {
+  }
+
   TargetedExperiment::~TargetedExperiment()
   {
   }
@@ -119,6 +140,30 @@ namespace OpenMS
       include_targets_ = rhs.include_targets_;
       exclude_targets_ = rhs.exclude_targets_;
       source_files_ = rhs.source_files_;
+      protein_reference_map_dirty_ = true;
+      peptide_reference_map_dirty_ = true;
+      compound_reference_map_dirty_ = true;
+    }
+    return *this;
+  }
+
+  TargetedExperiment& TargetedExperiment::operator=(TargetedExperiment && rhs) noexcept
+  {
+    if (&rhs != this)
+    {
+      cvs_ = std::move(rhs.cvs_);
+      contacts_ = std::move(rhs.contacts_);
+      publications_ = std::move(rhs.publications_);
+      instruments_ = std::move(rhs.instruments_);
+      targets_ = std::move(rhs.targets_);
+      software_ = std::move(rhs.software_);
+      proteins_ = std::move(rhs.proteins_);
+      compounds_ = std::move(rhs.compounds_);
+      peptides_ = std::move(rhs.peptides_);
+      transitions_ = std::move(rhs.transitions_);
+      include_targets_ = std::move(rhs.include_targets_);
+      exclude_targets_ = std::move(rhs.exclude_targets_);
+      source_files_ = std::move(rhs.source_files_);
       protein_reference_map_dirty_ = true;
       peptide_reference_map_dirty_ = true;
       compound_reference_map_dirty_ = true;
@@ -153,7 +198,7 @@ namespace OpenMS
     exclude_targets_.insert(exclude_targets_.end(), rhs.exclude_targets_.begin(), rhs.exclude_targets_.end());
     source_files_.insert(source_files_.end(), rhs.source_files_.begin(), rhs.source_files_.end());
 
-    for (Map<String, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
+    for (std::map<String, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
     {
       for (std::vector<CVTerm>::const_iterator term_it = targ_it->second.begin(); term_it != targ_it->second.end(); ++term_it)
       {
@@ -188,7 +233,7 @@ namespace OpenMS
     appendRVector(std::move(rhs.exclude_targets_), exclude_targets_);
     appendRVector(std::move(rhs.source_files_), source_files_);
 
-    for (Map<String, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
+    for (std::map<String, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
     {
       for (std::vector<CVTerm>::const_iterator term_it = targ_it->second.begin(); term_it != targ_it->second.end(); ++term_it)
       {

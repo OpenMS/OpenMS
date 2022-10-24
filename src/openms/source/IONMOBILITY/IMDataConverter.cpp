@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,11 +76,12 @@ namespace OpenMS
     }
 
     // fill up the PeakMaps by moving spectra from the input PeakMap
-    for (const MSSpectrum& it : exp)
+    for (MSSpectrum& it : exp)
     {
       split_peakmap[cv2index[it.getDriftTime()]].addSpectrum(std::move(it));
     }
-
+    
+    exp.clear(true);
     return split_peakmap;
   }
 
@@ -185,7 +186,7 @@ namespace OpenMS
       // collapse for scans that actually have a float data array).
       if (in[k].containsIMData())
       {
-        MSExperiment frame = IMDataConverter::splitByIonMobility(in[k], number_of_bins);
+        MSExperiment frame = IMDataConverter::splitByIonMobility(std::move(in[k]), number_of_bins);
         // move into result
         for (auto&& spec : frame)
         {
@@ -197,6 +198,8 @@ namespace OpenMS
         result.addSpectrum(std::move(in[k]));
       }
     }
+    result.ExperimentalSettings::operator=(std::move(in));
+    in.clear(true);
     return result;
   }
 
@@ -254,8 +257,7 @@ namespace OpenMS
     if (exp.empty())
     {
       return result;
-    }
-      
+    }      
 
     std::vector<const MSSpectrum*> stack;
     double curr_rt = std::numeric_limits<double>::max();

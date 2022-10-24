@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,11 @@
 // $Authors: Oliver Alka, Lukas Zimmermann $
 // --------------------------------------------------------------------------
 
+#include <boost/foreach.hpp> // must be first, otherwise Q_FOREACH macro will wreak havoc
+
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
@@ -46,7 +49,7 @@
 #include <QDirIterator>
 #include <QString>
 #include <QtCore/QProcess>
-#include <fstream>
+#include <sstream>
 
 namespace OpenMS
 {
@@ -76,6 +79,9 @@ namespace OpenMS
       sirius.parameters();
       fingerid.parameters();
       passatutto.parameters();
+
+      defaults_.setValue("read_sirius_stdout", "false", "Read and print the standard output and error of the Sirius executable, even if it succeeds.", {"advanced"});
+      defaults_.setValidStrings("read_sirius_stdout",{"true","false"});
 
       defaultsToParam_();
     }
@@ -142,6 +148,14 @@ namespace OpenMS
           ProjectName("processors"),
           DefaultValue(1),
           Description("Number of cpu cores to use. If not specified SIRIUS uses all available cores.")
+      );
+
+      parameter(
+          ProjectName("loglevel"),
+          DefaultValue(""),
+          Description("Set logging level of the Jobs SIRIUS will execute.\n"
+                      "Valid values: SEVERE, WARNING, INFO, FINER, ALL\n"
+                      "Default: WARNING")
       );
 
       flag(
@@ -357,8 +371,7 @@ namespace OpenMS
         const std::string sirius_path(sirius_env_var);
         executable = sirius_path;
       }
-      const String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
-      OPENMS_LOG_WARN << "Executable is: " + exe << std::endl;
+      String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
       return exe;
     }
     
@@ -436,6 +449,7 @@ namespace OpenMS
                 indices.end(),
                 [](const SiriusWorkspaceIndex& i, const SiriusWorkspaceIndex& j) { return i.scan_index < j.scan_index; } );
 
+      sorted_subdirs.reserve(indices.size());
       for (const auto& index : indices)
       {
         sorted_subdirs.emplace_back(std::move(subdirs[index.array_index]));
@@ -447,7 +461,7 @@ namespace OpenMS
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
                                                      const MSExperiment& spectra,
                                                      FeatureMapping::FeatureMappingInfo& fm_info,
-                                                     FeatureMapping::FeatureToMs2Indices& feature_mapping)
+                                                     FeatureMapping::FeatureToMs2Indices& feature_mapping) const
     {
       // if fileparameter is given and should be not empty
       if (!featureinfo.empty())
@@ -465,14 +479,14 @@ namespace OpenMS
           if (num_masstrace_filter != 1 && !isFeatureOnly())
           {
             num_masstrace_filter = 1;
-            OPENMS_LOG_WARN << "Parameter: filter_by_num_masstraces, was set to 1 to retain the adduct information for all MS2 spectra, if available. Please use the masstrace filter in combination with feature_only." << std::endl;
+            OPENMS_LOG_WARN << "Parameter: filter_by_num_masstraces, was set to 1 to retain the adduct information for all MS2 spectra, if available. Masstrace filtering only makes sense in combination with feature_only." << std::endl;
           }
 
           // filter feature by number of masstraces
           auto map_it = remove_if(feature_map.begin(), feature_map.end(),
                                   [&num_masstrace_filter](const Feature &feat) -> bool
                                   {
-                                    unsigned int n_masstraces = feat.getMetaValue("num_of_masstraces");
+                                    unsigned int n_masstraces = feat.getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES);
                                     return n_masstraces < num_masstrace_filter;
                                   });
           feature_map.erase(map_it, feature_map.end());
@@ -499,17 +513,17 @@ namespace OpenMS
 
     void SiriusAdapterAlgorithm::logFeatureSpectraNumber(const String& featureinfo,
                                                          const FeatureMapping::FeatureToMs2Indices& feature_mapping,
-                                                         const MSExperiment& spectra)
+                                                         const MSExperiment& spectra) const
     {
       // number of features to be processed
       if (isFeatureOnly() && !featureinfo.empty())
       {
-        OPENMS_LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+        OPENMS_LOG_INFO << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
       }
       else if (!featureinfo.empty())
       {
-        OPENMS_LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
-        OPENMS_LOG_WARN << "Number of additional MS2 spectra to be processed: " << feature_mapping.unassignedMS2.size() << std::endl;
+        OPENMS_LOG_INFO << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+        OPENMS_LOG_INFO << "Number of additional MS2 spectra to be processed: " << feature_mapping.unassignedMS2.size() << std::endl;
       } 
       else
       {
@@ -520,9 +534,40 @@ namespace OpenMS
       }
     }
 
-  // ################
-  // Algorithm
-  // ################
+    // ################
+    // Algorithm
+    // ################
+
+    void SiriusAdapterAlgorithm::logInSiriusAccount(String& executable, const String& email, const String& password) const
+    {
+      // sirius login --email=email --password=password
+      QString executable_qstring = SiriusAdapterAlgorithm::determineSiriusExecutable(executable).toQString();
+      QStringList command_line{"login", String("--email="+email).toQString(), String("--password="+password).toQString()};
+      
+      // start QProcess with sirius login command
+      QProcess qp;
+      qp.start(executable_qstring, command_line);
+
+      // print executed command as info
+      std::stringstream ss;
+      ss << "Executing command: " << executable_qstring.toStdString();
+      for (const QString& it : command_line)
+      {
+        ss << " " << it.toStdString();
+      }
+      OPENMS_LOG_INFO << ss.str() << std::endl;
+
+      // wait until process finished
+      qp.waitForFinished(-1);
+
+      // always print process stdout (info) and stderror (warning)
+      const QString sirius_stdout(qp.readAllStandardOutput());
+      const QString sirius_stderr(qp.readAllStandardError());
+      OPENMS_LOG_INFO << String(sirius_stdout) << std::endl;
+      OPENMS_LOG_WARN << String(sirius_stderr) << std::endl;
+      
+      qp.close();
+    }
 
     // tmp_msfile (store), all parameters, out_dir (tmpstructure)
     const std::vector<String> SiriusAdapterAlgorithm::callSiriusQProcess(const String& tmp_ms_file,
@@ -540,8 +585,10 @@ namespace OpenMS
       const bool run_csifingerid = !out_csifingerid.empty();
       const bool run_passatutto = decoy_generation;
 
-      // structure of the command line passed to NightSky
-      QStringList command_line = project_params + QStringList({"--input", tmp_ms_file.toQString(), "--project", tmp_out_dir.toQString(), "sirius"}) + sirius_params;
+      // structure of the command line passed to NightSky (Sirius 4.X+)
+      // Add noCite and instead make sure the main citations are registered in our TOPP tool.
+      // Most of the time the user does not see the direct Sirius output anyway
+      QStringList command_line = QStringList("--noCite") + project_params + QStringList({"--input", tmp_ms_file.toQString(), "--project", tmp_out_dir.toQString(), "sirius"}) + sirius_params + QStringList("write-summaries");
 
       if (run_passatutto)
       {
@@ -553,30 +600,18 @@ namespace OpenMS
         command_line << "fingerid" << fingerid_params;
       }
 
-      OPENMS_LOG_INFO << "Running SIRIUS with the following command line parameters: " << endl;
-      for (const auto &param: command_line)
-      {
-        OPENMS_LOG_INFO << param.toStdString() << " ";
-      }
-      OPENMS_LOG_INFO << endl;
-
       // the actual process
       QProcess qp;
       QString executable_qstring = SiriusAdapterAlgorithm::determineSiriusExecutable(executable).toQString();
-      QString wd = File::path(executable).toQString();
-      qp.setWorkingDirectory(wd); //since library paths are relative to sirius executable path
-      //since library paths are relative to sirius executable path
-      qp.setWorkingDirectory(File::path(executable).toQString());
       qp.start(executable_qstring, command_line); // does automatic escaping etc... start
-
       std::stringstream ss;
-      ss << "COMMAND: " << executable_qstring.toStdString();
+
+      ss << "Executing command: " << executable_qstring.toStdString();
       for (const QString& it : command_line)
       {
         ss << " " << it.toStdString();
       }
       OPENMS_LOG_WARN << ss.str() << std::endl;
-      OPENMS_LOG_WARN << "Executing: " + executable_qstring.toStdString() << std::endl;
 
       const bool success = qp.waitForFinished(-1);
 
@@ -596,6 +631,15 @@ namespace OpenMS
                                       "FATAL: SIRIUS could not be executed!",
                                       "");
       }
+
+      if (param_.getValue("read_sirius_stdout") == "true")
+      {
+        OPENMS_LOG_WARN << "Standard output and error of SIRIUS were:" << std::endl;
+        const QString sirius_stdout(qp.readAllStandardOutput());
+        const QString sirius_stderr(qp.readAllStandardError());
+        OPENMS_LOG_WARN << String(sirius_stdout) << std::endl;
+        OPENMS_LOG_WARN << String(sirius_stderr) << std::endl;
+      }
       qp.close();
 
       //extract path to subfolders (sirius internal folder structure)
@@ -603,14 +647,14 @@ namespace OpenMS
       QDirIterator it(tmp_out_dir.toQString(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
       while (it.hasNext())
       {
-        subdirs.push_back(it.next());
+        subdirs.emplace_back(it.next());
       }
       return subdirs;
     }
 
-  // ################
-  // Parameter handling
-  // ################
+    // ################
+    // Parameter handling
+    // ################
 
     SiriusAdapterAlgorithm::ParameterModifier SiriusAdapterAlgorithm::ParameterSection::parameter(
             const String &parameter_name,

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,7 +57,7 @@ namespace OpenMS
 
   double HyperScore::compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const PeakSpectrum& theo_spectrum)
   {
-    if (exp_spectrum.size() < 1 || theo_spectrum.size() < 1)
+    if (exp_spectrum.empty() || theo_spectrum.empty())
     {
       std::cout << "Warning: HyperScore: One of the given spectra is empty." << std::endl;
       return 0.0;
@@ -65,7 +65,7 @@ namespace OpenMS
 
     // TODO this assumes only one StringDataArray is present and it is the right one
     const PeakSpectrum::StringDataArray* ion_names;
-    if (theo_spectrum.getStringDataArrays().size() > 0)
+    if (!theo_spectrum.getStringDataArrays().empty())
     {
       ion_names = &theo_spectrum.getStringDataArrays()[0];
     }
@@ -131,7 +131,7 @@ namespace OpenMS
     const PeakSpectrum& theo_spectrum,
     PSMDetail& d)
   {
-    if (exp_spectrum.size() < 1 || theo_spectrum.size() < 1)
+    if (exp_spectrum.empty() || theo_spectrum.empty())
     {
       std::cout << "Warning: HyperScore: One of the given spectra is empty." << std::endl;
       return 0.0;
@@ -139,7 +139,7 @@ namespace OpenMS
 
     // TODO this assumes only one StringDataArray is present and it is the right one
     const PeakSpectrum::StringDataArray* ion_names;
-    if (theo_spectrum.getStringDataArrays().size() > 0)
+    if (!theo_spectrum.getStringDataArrays().empty())
     {
       ion_names = &theo_spectrum.getStringDataArrays()[0];
     }

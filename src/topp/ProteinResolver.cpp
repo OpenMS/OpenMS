@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -372,7 +372,7 @@ protected:
         {
           const vector<PeptideIdentification>& identifications =  *res.peptide_identification;
           const PeptideIdentification& pi = ProteinResolver::getPeptideIdentification(identifications, peptide_entry);
-          if (pi.getHits().size() == 0)
+          if (pi.getHits().empty())
           {
             // this should not happen...
             std::cerr << "PeptideEntry " << peptide_entry->sequence << " from " << peptide_entry->origin << " with  " << peptide_entry->intensity << " has no hits!\n";
@@ -609,7 +609,7 @@ protected:
       dir.setSorting(QDir::Name | QDir::IgnoreCase);
       QFileInfoList list = dir.entryInfoList();
 
-      if (list.size() == 0)
+      if (list.empty())
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         String("Input path ('") + input_path + "') does not contain a valid input file. Check file types! Allowed are .idXML and .consensusXML files.");

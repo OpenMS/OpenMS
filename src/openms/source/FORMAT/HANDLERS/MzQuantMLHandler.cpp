@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,9 +32,14 @@
 // $Authors: Mathias Walzer$
 // --------------------------------------------------------------------------
 
+
 #include <OpenMS/FORMAT/HANDLERS/MzQuantMLHandler.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <map>
+
+#include <map>
 
 using namespace std;
 
@@ -344,7 +349,7 @@ namespace OpenMS::Internal
       {
         String transcoded_chars2 = sm_.convert(chars);
         transcoded_chars2.trim();
-        if (transcoded_chars2 != "")
+        if (!transcoded_chars2.empty())
           warning(LOAD, "MzQuantMLHandler::characters: Unknown character section found: '" + tag_ + "', ignoring: " + transcoded_chars2);
       }
     }
@@ -539,7 +544,7 @@ namespace OpenMS::Internal
           warning(LOAD, String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
         }
         //values used in wrong places and wrong value types
-        if (value != "")
+        if (!value.empty())
         {
           if (term.xref_type == ControlledVocabulary::CVTerm::NONE)
           {
@@ -667,7 +672,7 @@ namespace OpenMS::Internal
         data_value = DataValue(value);
       }
 
-      if (parent_parent_tag == "")
+      if (parent_parent_tag.empty())
       {
         //~ TODO: dummy
         warning(LOAD, String("The user param '") + name + "' used in tag '" + parent_tag + "' has no valid grand parent.'");
@@ -682,7 +687,7 @@ namespace OpenMS::Internal
       }
       else if (parent_tag == "Software")
       {
-        if (value == "")
+        if (value.empty())
         {
           current_sws_[current_id_].setName(name);
         }
@@ -731,7 +736,7 @@ namespace OpenMS::Internal
 
       //---header---
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-      os << "<MzQuantML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3 ../../schema/mzQuantML_1_0_0-rc3.xsd\" xmlns=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3\" id=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\" version=\"1.0.0\"" << " creationDate=\"" << DateTime::now().get() << "\">\n";
+      os << R"(<MzQuantML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3 ../../schema/mzQuantML_1_0_0-rc3.xsd" xmlns="http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3" id="OpenMS_)" << String(UniqueIdGenerator::getUniqueId()) << R"(" version="1.0.0")" << " creationDate=\"" << DateTime::now().get() << "\">\n";
 
       //---CVList---
       os << "<CvList>\n";
@@ -1259,7 +1264,7 @@ namespace OpenMS::Internal
       os << "</MzQuantML>\n";
     }
 
-    void MzQuantMLHandler::writeCVParams_(String& s, const Map<String, std::vector<CVTerm> >& cvl, UInt indent)
+    void MzQuantMLHandler::writeCVParams_(String& s, const std::map<String, std::vector<CVTerm> >& cvl, UInt indent)
     {
       String inden((size_t)indent, '\t');
       for (std::map<String, std::vector<CVTerm> >::const_iterator jt = cvl.begin(); jt != cvl.end(); ++jt)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -128,7 +128,7 @@ namespace OpenMS
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     os << "<?xml-stylesheet type=\"text/xsl\" href=\"https://www.openms.de/xml-stylesheet/IdXML.xsl\" ?>\n";
     os << "<IdXML version=\"" << getVersion() << "\"";
-    if (document_id != "")
+    if (!document_id.empty())
     {
       os << " id=\"" << document_id << "\"";
     }
@@ -471,7 +471,7 @@ namespace OpenMS
       prot_id_in_run_ = false;
 
       optionalAttributeAsString_(file_version, attributes, "version");
-      if (file_version == "")
+      if (file_version.empty())
       {
         file_version = "1.0";  //default version is 1.0
       }
@@ -1085,7 +1085,7 @@ namespace OpenMS
     PeptideHit::PeakAnnotation::writePeakAnnotationsString_(val, annotations);
     if (!val.empty())
     {
-      os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"string\" name=\"fragment_annotation\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
+      os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << R"( type="string" name="fragment_annotation" value=")" << writeXMLEscape(val) << "\"/>" << "\n";
     }
   }
 

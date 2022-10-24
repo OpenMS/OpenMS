@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,7 @@
 namespace OpenMS
 {
   class DIATreeTab;
-  class LayerData;
+  class LayerDataBase;
   class SpectraTreeTab;
   class SpectraIDViewTab;
   class TVDIATreeTabController;
@@ -58,11 +58,11 @@ namespace OpenMS
   public:
     /// given a layer, determine if the tab could use it to show data (useful to decide if the tab should be enabled/disabled)
     /// If a nullptr is given, it HAS to return false!
-    virtual bool hasData(const LayerData* layer) = 0;
+    virtual bool hasData(const LayerDataBase* layer) = 0;
 
     /// populate the tab using date from @p layer
     /// Should handle nullptr well (by calling clear())
-    virtual void updateEntries(LayerData* layer) = 0;
+    virtual void updateEntries(LayerDataBase* layer) = 0;
 
     /// explicitly show no data at all
     virtual void clear() = 0;
@@ -89,11 +89,14 @@ namespace OpenMS
     /// Default constructor
     DataSelectionTabs(QWidget* parent, TOPPViewBase* tv);
 
+    /// Destructor
+    ~DataSelectionTabs();
+
     /// Update items in the tabs according to the currently selected layer.
     /// Tabs which have data to show are automatically enabled. Others are disabled.
     /// If the currently visible tab would have to data to show, we pick the highest (rightmost) tab
     /// which has data and show that instead
-    void update();
+    void callUpdateEntries();
 
     /// invoked when user changes the active tab to @p tab_index
     void currentTabChanged(int tab_index);

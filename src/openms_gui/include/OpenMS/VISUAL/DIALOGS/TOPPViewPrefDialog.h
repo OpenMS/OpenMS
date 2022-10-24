@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,7 +62,7 @@ namespace OpenMS
 
 public:
       TOPPViewPrefDialog(QWidget * parent);
-      ~TOPPViewPrefDialog();
+      ~TOPPViewPrefDialog() override;
 
       /// initialize GUI values with these parameters
       void setParam(const Param& param);
@@ -73,9 +73,11 @@ public:
 
 protected slots:
       void browseDefaultPath_();
+      void browsePluginsPath_();
 private:
       Ui::TOPPViewPrefDialogTemplate* ui_;
       mutable Param param_; ///< is updated in getParam()
+      Param tsg_param_; ///< params for TheoreticalSpectrumGenerator in the TSG tab
     };
   }
 }

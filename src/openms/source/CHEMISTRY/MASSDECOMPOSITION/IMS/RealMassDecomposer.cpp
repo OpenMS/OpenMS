@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,9 @@
 // --------------------------------------------------------------------------
 //
 
-#include <iostream>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h>
+#include <iostream>
+#include <memory>
 
 namespace OpenMS::ims
 {
@@ -44,8 +45,8 @@ namespace OpenMS::ims
 
     rounding_errors_ = std::make_pair(weights.getMinRoundingError(), weights.getMaxRoundingError());
     precision_ = weights.getPrecision();
-    decomposer_ = std::shared_ptr<integer_decomposer_type>(
-      new integer_decomposer_type(weights));
+    decomposer_ = std::make_shared<integer_decomposer_type>(
+      weights);
   }
 
   RealMassDecomposer::decompositions_type RealMassDecomposer::getDecompositions(double mass, double error)

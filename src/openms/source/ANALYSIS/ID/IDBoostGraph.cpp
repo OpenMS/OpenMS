@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -144,13 +144,13 @@ namespace OpenMS
                              Size use_top_psms,
                              bool use_run_info,
                              bool best_psms_annotated,
-                             const boost::optional<const ExperimentalDesign>& ed):
+                             const std::optional<const ExperimentalDesign>& ed):
       protIDs_(proteins)
   {
     OPENMS_LOG_INFO << "Building graph on " << idedSpectra.size() << " spectra and " << proteins.getHits().size() << " proteins." << std::endl;
     if (use_run_info)
     {
-      buildGraphWithRunInfo_(proteins, idedSpectra, use_top_psms, ed.get_value_or(ExperimentalDesign::fromIdentifications({proteins})));
+      buildGraphWithRunInfo_(proteins, idedSpectra, use_top_psms, ed.value_or(ExperimentalDesign::fromIdentifications({proteins})));
     }
     else
     {
@@ -164,14 +164,14 @@ namespace OpenMS
                              bool use_run_info,
                              bool use_unassigned_ids,
                              bool best_psms_annotated,
-                             const boost::optional<const ExperimentalDesign>& ed):
+                             const std::optional<const ExperimentalDesign>& ed):
       protIDs_(proteins)
   {
     OPENMS_LOG_INFO << "Building graph on " << cmap.size() << " features, " << cmap.getUnassignedPeptideIdentifications().size() <<
     " unassigned spectra (if chosen) and " << proteins.getHits().size() << " proteins." << std::endl;
     if (use_run_info)
     {
-      buildGraphWithRunInfo_(proteins, cmap, use_top_psms, use_unassigned_ids, ed.get_value_or(ExperimentalDesign::fromConsensusMap(cmap)));
+      buildGraphWithRunInfo_(proteins, cmap, use_top_psms, use_unassigned_ids, ed.value_or(ExperimentalDesign::fromConsensusMap(cmap)));
     }
     else
     {
@@ -267,7 +267,7 @@ namespace OpenMS
             "Reference (id_merge_index) to non-existing run found at peptide ID."
             " Sth went wrong during merging. Aborting.");
       }
-      pfg = find_it->second - 1; // Experimental design numbering starts at one
+      pfg = find_it->second;
     }
     else
     {

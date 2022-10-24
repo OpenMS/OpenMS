@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -143,7 +143,7 @@ protected:
 
     if (number_of_peptides > identifications.size())
     {
-      writeLog_("Number of existing peptides smaller than number of chosen peptides. Aborting!");
+      writeLogError_("Number of existing peptides smaller than number of chosen peptides. Aborting!");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -192,7 +192,7 @@ protected:
       Size index = 0;
       while (chosen_ids.size() < number_of_peptides && index < indices.size())
       {
-        if (identifications[indices[index]].getHits().size() > 0 && find(chosen_ids.begin(), chosen_ids.end(), identifications[indices[index]].getHits()[0].getSequence().toString()) == chosen_ids.end())
+        if (!identifications[indices[index]].getHits().empty() && find(chosen_ids.begin(), chosen_ids.end(), identifications[indices[index]].getHits()[0].getSequence().toString()) == chosen_ids.end())
         {
           chosen_ids.push_back(identifications[indices[index]].getHits()[0].getSequence().toString());
           chosen_identifications.push_back(identifications[indices[index]]);
@@ -214,7 +214,7 @@ protected:
 
     if (chosen_ids.size() < number_of_peptides)
     {
-      writeLog_("Number of existing unique peptides (" + String(chosen_ids.size()) + ") smaller than number of chosen peptides. Aborting!");
+      writeLogError_("Number of existing unique peptides (" + String(chosen_ids.size()) + ") smaller than number of chosen peptides. Aborting!");
       return ILLEGAL_PARAMETERS;
     }
 

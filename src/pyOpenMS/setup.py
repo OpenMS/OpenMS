@@ -12,17 +12,14 @@ if isosx:
     osx_ver = platform.mac_ver()[0] #e.g. ('10.15.1', ('', '', ''), 'x86_64')
 
 import sys
-single_threaded = False
 no_optimization = False
-if "--single-threaded" in sys.argv:
-    single_threaded = True
-    sys.argv.remove("--single-threaded")
+
 if "--no-optimization" in sys.argv:
     no_optimization = True
     sys.argv.remove("--no-optimization")
 
 # import config
-from env import  (OPEN_MS_COMPILER, OPEN_MS_SRC, OPEN_MS_GIT_BRANCH, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
+from env import  (OPEN_MS_COMPILER, PYOPENMS_SRC_DIR, OPEN_MS_GIT_BRANCH, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
                   QT_INSTALL_LIBS, QT_INSTALL_BINS, MSVS_RTLIBS,
                   OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, INCLUDE_DIRS_EXTEND, LIBRARIES_EXTEND,
                   LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS,
@@ -56,7 +53,7 @@ os.environ["CXX"] = OPEN_MS_COMPILER
 
 j = os.path.join
 
-src_pyopenms = j(OPEN_MS_SRC, "src/pyOpenMS")
+src_pyopenms = PYOPENMS_SRC_DIR
 extra_includes = glob.glob(src_pyopenms + "/extra_includes/*.h*")
 
 for include in extra_includes:
@@ -66,25 +63,7 @@ for include in extra_includes:
 persisted_data_path = "include_dir.bin"
 autowrap_include_dirs = pickle.load(open(persisted_data_path, "rb"))
 
-# patch for parallel compilation
-# https://stackoverflow.com/questions/11013851/speeding-up-build-process-with-distutils
-# -- this is not what we want, we don't want to compile each object with
-#    multiple threads, we want to compile multiple extensions at the same time:
 from setuptools import setup, Extension
-import multiprocessing.pool
-def parallel_build_extensions(self):
-    # taken from distutils/command/build_ext.py
-    # see also Cython/Distutils/old_build_ext.py
-    #  - note that we are missing the self.cython_sources line, so this will not work under all circumstances
-    # First, sanity-check the 'extensions' list
-    self.check_extensions_list(self.extensions)
-    mypool = multiprocessing.pool.ThreadPool(int(PY_NUM_THREADS))
-    list(mypool.imap(self.build_extension, self.extensions))
-if not single_threaded:
-    import distutils.command.build_ext
-    distutils.command.build_ext.build_ext.build_extensions = parallel_build_extensions
-    import Cython.Distutils.build_ext
-    distutils.command.build_ext.build_ext.build_extensions = parallel_build_extensions
 
 with open("pyopenms/version.py", "w") as fp:
     print("version=%r" % package_version, file=fp)
@@ -226,9 +205,6 @@ if not iswin:
         extra_compile_args.append("-Wno-deprecated-copy")
     extra_compile_args.append("-Wno-redeclared-class-member")
     extra_compile_args.append("-Wno-unused-local-typedefs")
-    extra_compile_args.append("-Wno-deprecated-register") # caused by seqan on gcc
-    extra_compile_args.append("-Wno-misleading-indentation") # caused by seqan on gcc
-    extra_compile_args.append("-Wno-register") #caused by seqan on clang c17
     extra_compile_args.append("-Wdeprecated-declarations")
     extra_compile_args.append("-Wno-sign-compare")
     extra_compile_args.append("-Wno-unknown-pragmas")
@@ -244,6 +220,10 @@ if not iswin:
 
 mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 ext = []
+
+##WARNING debug
+libraries.extend("boost_regex-mt-x64")
+
 for module in mnames:
 
     ext.append(Extension(
@@ -273,6 +253,9 @@ setup(
     name=package_name,
     packages=["pyopenms"],
     ext_package="pyopenms",
+    package_data= {
+        'pyopenms': ['py.typed']
+    },
 	install_requires=[
           'numpy',
           'pandas'
@@ -280,8 +263,8 @@ setup(
 
     version=package_version,
 
-    maintainer="Uwe Schmitt",
-    maintainer_email="uschmitt@mineway.de",
+    maintainer="The OpenMS team",
+    maintainer_email="open-ms-general@lists.sourceforge.net",
     license="http://opensource.org/licenses/BSD-3-Clause",
     platforms=["any"],
     description="Python wrapper for C++ LCMS library OpenMS",
@@ -298,7 +281,7 @@ setup(
 
     url="http://open-ms.de",
 
-    author="Uwe Schmitt",
+    author="Uwe Schmitt and the OpenMS team",
     author_email="uschmitt@mineway.de",
 
     ext_modules=ext,

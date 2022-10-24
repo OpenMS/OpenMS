@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,7 +74,7 @@ namespace OpenMS
     defaults_.setValue("add_all_precursor_charges", "false", "Adds precursor peaks with all charges in the given range");
     defaults_.setValidStrings("add_all_precursor_charges", {"true","false"});
 
-    defaults_.setValue("add_abundant_immonium_ions", "false", "Add most abundant immonium ions");
+    defaults_.setValue("add_abundant_immonium_ions", "false", "Add most abundant immonium ions (for Proline, Cystein, Iso/Leucine, Histidin, Phenylalanin, Tyrosine, Tryptophan)");
     defaults_.setValidStrings("add_abundant_immonium_ions", {"true","false"});
 
     defaults_.setValue("add_first_prefix_ion", "false", "If set to true e.g. b1 ions are added");
@@ -100,18 +100,29 @@ namespace OpenMS
 
     // intensity options of the ions
     defaults_.setValue("y_intensity", 1.0, "Intensity of the y-ions");
+    defaults_.setMinFloat("y_intensity", 0.0);
     defaults_.setValue("b_intensity", 1.0, "Intensity of the b-ions");
+    defaults_.setMinFloat("b_intensity", 0.0);
     defaults_.setValue("a_intensity", 1.0, "Intensity of the a-ions");
+    defaults_.setMinFloat("a_intensity", 0.0);
     defaults_.setValue("c_intensity", 1.0, "Intensity of the c-ions");
+    defaults_.setMinFloat("c_intensity", 0.0);
     defaults_.setValue("x_intensity", 1.0, "Intensity of the x-ions");
+    defaults_.setMinFloat("x_intensity", 0.0);
     defaults_.setValue("z_intensity", 1.0, "Intensity of the z-ions");
+    defaults_.setMinFloat("z_intensity", 0.0);
 
     defaults_.setValue("relative_loss_intensity", 0.1, "Intensity of loss ions, in relation to the intact ion intensity");
+    defaults_.setMinFloat("relative_loss_intensity", 0.0);
+    defaults_.setMaxFloat("relative_loss_intensity", 1.0);
 
     // precursor intensity
     defaults_.setValue("precursor_intensity", 1.0, "Intensity of the precursor peak");
+    defaults_.setMinFloat("precursor_intensity", 0.0);
     defaults_.setValue("precursor_H2O_intensity", 1.0, "Intensity of the H2O loss peak of the precursor");
+    defaults_.setMinFloat("precursor_H2O_intensity", 0.0);
     defaults_.setValue("precursor_NH3_intensity", 1.0, "Intensity of the NH3 loss peak of the precursor");
+    defaults_.setMinFloat("precursor_NH3_intensity", 0.0);
 
     defaultsToParam_();
   }
@@ -264,7 +275,7 @@ namespace OpenMS
     // default with b and y ions
     Param theo_gen_settings = theo_gen.getParameters();
 
-    if (fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCID)
+    if (fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCID || fm == Precursor::ActivationMethod::HCD)
     {
       theo_gen_settings.setValue("add_b_ions", "true");
       theo_gen_settings.setValue("add_y_ions", "true");

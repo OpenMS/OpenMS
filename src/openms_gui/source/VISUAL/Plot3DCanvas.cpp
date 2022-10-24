@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,14 +33,15 @@
 // --------------------------------------------------------------------------
 
 //OpenMS
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/ColorSelector.h>
+#include <OpenMS/VISUAL/DIALOGS/Plot3DPrefDialog.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/VISUAL/DIALOGS/Plot3DPrefDialog.h>
-#include <OpenMS/VISUAL/ColorSelector.h>
-#include <OpenMS/VISUAL/MultiGradientSelector.h>
-#include <OpenMS/SYSTEM/FileWatcher.h>
 
 #include <QResizeEvent>
 #include <QtWidgets/QComboBox>
@@ -106,7 +107,7 @@ namespace OpenMS
 
   bool Plot3DCanvas::finishAdding_()
   {
-    if (layers_.getCurrentLayer().type != LayerData::DT_PEAK)
+    if (layers_.getCurrentLayer().type != LayerDataBase::DT_PEAK)
     {
       popIncompleteLayer_("This widget supports peak data only. Aborting!");
       return false;
@@ -164,7 +165,7 @@ namespace OpenMS
     resetZoom();
   }
 
-  Plot3DOpenGLCanvas * Plot3DCanvas::openglwidget()
+  Plot3DOpenGLCanvas * Plot3DCanvas::openglwidget() const
   {
     return static_cast<Plot3DOpenGLCanvas *>(openglcanvas_);
   }
@@ -198,7 +199,7 @@ namespace OpenMS
   void Plot3DCanvas::showCurrentLayerPreferences()
   {
     Internal::Plot3DPrefDialog dlg(this);
-    LayerData & layer = getCurrentLayer();
+    LayerDataBase& layer = getCurrentLayer();
 
 // cout << "IN: " << param_ << endl;
 
@@ -306,7 +307,7 @@ namespace OpenMS
 
   void Plot3DCanvas::saveCurrentLayer(bool visible)
   {
-    const LayerData & layer = getCurrentLayer();
+    const LayerDataBase& layer = getCurrentLayer();
 
     //determine proposed filename
     String proposed_name = param_.getValue("default_path").toString();
@@ -314,50 +315,22 @@ namespace OpenMS
     {
       proposed_name = layer.filename;
     }
-
-    QString selected_filter = "";
-    QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(), "mzML files (*.mzML);;mzData files (*.mzData);;mzXML files (*.mzXML);;All files (*)", &selected_filter);
-    if (!file_name.isEmpty())
+    QString file_name = GUIHelpers::getSaveFilename(this, "Save file", proposed_name.toQString(), FileTypeList({FileTypes::MZML, FileTypes::MZDATA, FileTypes::MZXML}), true, FileTypes::MZML);
+    if (file_name.isEmpty())
     {
-      // check whether a file type suffix has been given
-      // first check mzData and mzXML then mzML
-      // if the setting is at "All files"
-      // mzML will be used
-      String upper_filename = file_name;
-      upper_filename.toUpper();
-      if (selected_filter == "mzData files (*.mzData)")
-      {
-        if (!upper_filename.hasSuffix(".MZDATA"))
-        {
-          file_name += ".mzData";
-        }
-      }
-      else if (selected_filter == "mzXML files (*.mzXML)")
-      {
-        if (!upper_filename.hasSuffix(".MZXML"))
-        {
-          file_name += ".mzXML";
-        }
-      }
-      else
-      {
-        if (!upper_filename.hasSuffix(".MZML"))
-        {
-          file_name += ".mzML";
-        }
-      }
+      return;
+    }
 
-      if (visible)   //only visible data
-      {
-        ExperimentType out;
-        getVisiblePeakData(out);
-        addDataProcessing_(out, DataProcessing::FILTERING);
-        FileHandler().storeExperiment(file_name, out, ProgressLogger::GUI);
-      }
-      else       //all data
-      {
-        FileHandler().storeExperiment(file_name, *layer.getPeakData(), ProgressLogger::GUI);
-      }
+    if (visible)   //only visible data
+    {
+      ExperimentType out;
+      getVisiblePeakData(out);
+      addDataProcessing_(out, DataProcessing::FILTERING);
+      FileHandler().storeExperiment(file_name, out, ProgressLogger::GUI);
+    }
+    else       //all data
+    {
+      FileHandler().storeExperiment(file_name, *layer.getPeakData(), ProgressLogger::GUI);
     }
   }
 

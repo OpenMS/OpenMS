@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,6 +53,43 @@ namespace OpenMS
   */
   namespace Math
   {
+
+    /**
+      @brief Given an interval/range and a new value, extend the range to include the new value if needed
+
+      @param min The current minimum of the range
+      @param max The current maximum of the range
+      @param value The new value which may extend the range
+      @return true if the range was modified
+    */
+    template<typename T>
+    bool extendRange(T& min, T& max, const T& value)
+    {
+      if (value < min)
+      {
+        min = value;
+        return true;
+      }
+      if (value > max)
+      {
+        max = value;
+        return true;
+      }
+      return false;
+    }
+
+    /**
+     * \brief Is a @p value contained in [min, max] ?
+     * \tparam T Type, e.g. double
+     * \return True if contained, false otherwise
+     */
+    template<typename T>
+    bool contains(T value, T min, T max)
+    {
+      return min <= value && value <= max;
+    }
+
+
     /**
       @brief rounds @p x up to the next decimal power 10 ^ @p decPow
 

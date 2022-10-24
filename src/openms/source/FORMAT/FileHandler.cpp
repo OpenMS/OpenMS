@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -504,7 +504,7 @@ namespace OpenMS
     // MS2 file format
     if (all_simple.hasSubstring("CreationDate"))
     {
-      if (all_simple.size() > 0 && all_simple[0] == 'H')
+      if (!all_simple.empty() && all_simple[0] == 'H')
       {
         return FileTypes::MS2;
       }
@@ -663,6 +663,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     }
     else
     {
+      OPENMS_LOG_WARN << "Can not store features to " << filename << ". Unknown file extension" << endl;
       return false;
     }
 

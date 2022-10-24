@@ -3,7 +3,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -81,7 +81,7 @@ namespace OpenMS
       line_wo_spaces = line;
       line_wo_spaces.removeWhitespaces();
 
-      if (line == "" || line[0] == '!') //skip empty lines and comments
+      if (line.empty() || line[0] == '!') //skip empty lines and comments
       {
         continue;
       }
@@ -89,7 +89,7 @@ namespace OpenMS
       if (line_wo_spaces == "[Term]")       //new term
       {
         // if the last [Term] was a moon-link, then it does not belong in CrossLinksDB
-        if (id != "" && !reading_mono_link) //store last term
+        if (!id.empty() && !reading_mono_link) //store last term
         {
           // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
           vector<String> origins;
@@ -275,7 +275,7 @@ namespace OpenMS
       }
     }
 
-    if (id != "") //store last term
+    if (!id.empty()) //store last term
     {
       // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
       vector<String> origins;
@@ -365,7 +365,7 @@ namespace OpenMS
 
     for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
     {
-      if ((*it)->getPSIMODAccession() != "")
+      if (!(*it)->getPSIMODAccession().empty())
       {
         modifications.push_back((*it)->getFullId());
       }

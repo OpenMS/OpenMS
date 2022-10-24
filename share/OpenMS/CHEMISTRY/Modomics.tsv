@@ -175,3 +175,8 @@ uridine 5-oxyacetic acid	cmo5U	502U	U	V	V	C11O9N2H14	318.0699	318.2403
 uridine 5-oxyacetic acid methyl ester	mcmo5U	503U	U	υ	&upsilon;	C12O9N2H16	332.0856	332.2672
 wybutosine	yW	3483G	G	Y	Y	C21O9N6H28	508.1918	508.4892
 wyosine	imG	34G	G	€	&euro;	C14H17N5O5	335.123	335.3202
+deoxyadenosine	dA	dA	A			C10O3N5H13	251.1018	251.2424
+deoxycytidine	dC	dC	C			C9O4N3H13	227.0906	227.2176
+deoxyguanosine	dG	dG	G			C10O4N5H13	267.0968	267.2418
+deoxyuridine	dU	dU	U			C9O5N2H12	228.0746	228.2024
+thymidine	dT	dT	U			C10O5N2H14	242.0903	242.2290

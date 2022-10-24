@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,13 +62,13 @@ namespace OpenMS
     max_internal_cleavage_sites_(0),
     match_peak_count_(0),
     match_peak_allowed_error_(0),
-    show_fragment_ions_(1),
-    print_duplicate_references_(1),
-    remove_precursor_near_peaks_(0),
-    mass_type_parent_(0),
-    mass_type_fragment_(0),
-    normalize_xcorr_(0),
-    residues_in_upper_case_(1)
+    show_fragment_ions_(true),
+    print_duplicate_references_(true),
+    remove_precursor_near_peaks_(false),
+    mass_type_parent_(false),
+    mass_type_fragment_(false),
+    normalize_xcorr_(false),
+    residues_in_upper_case_(true)
   {
     setStandardEnzymeInfo_();
   }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,7 +76,7 @@ public:
     GaussFilter();
 
     /// Destructor
-    ~GaussFilter() override;
+    ~GaussFilter() override = default;
 
     /**
       @brief Smoothes an MSSpectrum containing profile data.
@@ -102,6 +102,8 @@ protected:
 
     /// The spacing of the pre-tabulated kernel coefficients
     double spacing_;
+
+    bool write_log_messages_ = false;
 
     // Docu in base class
     void updateMembers_() override;

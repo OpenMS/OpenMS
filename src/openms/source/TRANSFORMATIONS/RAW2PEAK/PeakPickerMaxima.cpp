@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,7 +56,7 @@ namespace OpenMS
 
   void PeakPickerMaxima::findMaxima(const std::vector<double>& mz_array, 
       const std::vector<double>& int_array, std::vector<PeakCandidate>& pc, 
-      bool check_spacings)
+      bool check_spacings) const
   {
     // don't pick a spectrum with less than 5 data points
     if (mz_array.size() < 5)

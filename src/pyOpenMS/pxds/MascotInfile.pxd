@@ -20,7 +20,8 @@ cdef extern from "<OpenMS/FORMAT/MascotInfile.h>" namespace "OpenMS":
         void load(const String & filename, MSExperiment & exp) nogil except +
             # wrap-doc:
                 #   Loads a Mascot Generic File into a PeakMap
-                #   -----
+                #   
+                #   ----------
                 #   :param filename: File name which the map should be read from
                 #   :param exp: The map which is filled with the data from the given file
                 #   :raises:

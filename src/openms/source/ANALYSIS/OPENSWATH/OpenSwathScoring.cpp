@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 #include <OpenMS/CONCEPT/Macros.h>
 
 // scoring
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
@@ -353,11 +355,11 @@ namespace OpenMS
         const std::vector<std::string>& precursor_ids,
         const std::vector<double>& normalized_library_intensity,
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-        OpenSwath_Scores & scores)
+        OpenSwath_Scores & scores) const
   {
     OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OpenSwath::MRMScoring mrmscore_;
-    if (su_.use_coelution_score_ || su_.use_shape_score_ || (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_correlation))
+    if (su_.use_coelution_score_ || su_.use_shape_score_ || (!imrmfeature->getPrecursorIDs().empty() && su_.use_ms1_correlation))
       mrmscore_.initializeXCorrMatrix(imrmfeature, native_ids);
 
     // XCorr score (coelution)
@@ -378,7 +380,7 @@ namespace OpenMS
     }
 
     // check that the MS1 feature is present and that the MS1 correlation should be calculated
-    if (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_correlation)
+    if (!imrmfeature->getPrecursorIDs().empty() && su_.use_ms1_correlation)
     {
       // we need at least two precursor isotopes
       if (precursor_ids.size() > 1)
@@ -425,7 +427,7 @@ namespace OpenMS
     }
 
     // check that the MS1 feature is present and that the MS1 MI should be calculated
-    if (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_mi)
+    if (!imrmfeature->getPrecursorIDs().empty() && su_.use_ms1_mi)
     {
       // we need at least two precursor isotopes
       if (precursor_ids.size() > 1)
@@ -446,7 +448,7 @@ namespace OpenMS
         const std::vector<std::string>& native_ids_identification,
         const std::vector<std::string>& native_ids_detection,
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-        OpenSwath_Ind_Scores & idscores)
+        OpenSwath_Ind_Scores & idscores) const
   {
     OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OpenSwath::MRMScoring mrmscore_;
@@ -488,6 +490,7 @@ namespace OpenMS
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
     std::vector<std::string> native_ids;
+    native_ids.reserve(transitions.size());
     for (const auto& trans : transitions)
     {
       native_ids.push_back(trans.getNativeID());

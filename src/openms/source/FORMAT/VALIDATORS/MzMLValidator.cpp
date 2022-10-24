@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,7 +61,7 @@ namespace OpenMS::Internal
     {
       String tag = sm_.convert(qname);
       String parent_tag;
-      if (open_tags_.size() > 0)
+      if (!open_tags_.empty())
       {
         parent_tag = open_tags_.back();
       }
@@ -120,7 +120,7 @@ namespace OpenMS::Internal
     String MzMLValidator::getPath_(UInt remove_from_end) const
     {
       String path;
-      if (open_tags_.size() != 0 && open_tags_.front() == "indexedmzML")
+      if (!open_tags_.empty() && open_tags_.front() == "indexedmzML")
       {
         path.concatenate(open_tags_.begin() + 1, open_tags_.end() - remove_from_end, "/");
       }
@@ -160,7 +160,7 @@ namespace OpenMS::Internal
           binary_data_type_ = parsed_term.accession;
         }
         //if both are parsed, check if they match
-        if (binary_data_type_ != "" && binary_data_array_ != "")
+        if (!binary_data_type_.empty() && !binary_data_array_.empty())
         {
           if (!ListUtils::contains(cv_.getTerm(binary_data_array_).xref_binary, binary_data_type_))
           {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -867,8 +868,8 @@ public:
                                   double threshold_score)
     {
         struct HasGoodScore<typename IdentificationType::HitType> score_filter(
-            threshold_score, id->isHigherScoreBetter());
-        keepMatchingItems(id->getHits(), score_filter);
+            threshold_score, id.isHigherScoreBetter());
+        keepMatchingItems(id.getHits(), score_filter);
     }
 
     /**
@@ -1136,7 +1137,7 @@ public:
       // filter protein hits:
       filterHitsByScore(experiment.getProteinIdentifications(),
                         protein_threshold_score);
-      // don't remove empty protein IDs - they contain search meta data and may
+      // don't remove empty protein IDs - they contain search metadata and may
       // be referenced by peptide IDs (via run ID)
 
       // filter peptide hits:
@@ -1146,6 +1147,7 @@ public:
         filterHitsByScore(exp_it->getPeptideIdentifications(),
                           peptide_threshold_score);
         removeEmptyIdentifications(exp_it->getPeptideIdentifications());
+        // TODO super-duper inefficient.
         updateProteinReferences(exp_it->getPeptideIdentifications(),
                                 experiment.getProteinIdentifications());
       }
@@ -1377,14 +1379,58 @@ public:
 
     /// @name Filter functions for class IdentificationData
     ///@{
-    static void keepBestMatchPerQuery(
+
+    /*!
+      @brief Helper function for filtering observation matches (e.g. PSMs) in IdentificationData
+
+      Depending on parameter @p cleanup_affected, the data structure may be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
+
+      @param id_data Data to be filtered
+      @param func Functor that returns true for items to be removed
+      @param cleanup_affected Will filtering invalidate other parts of @p id_data that need to be cleaned up?
+    */
+    template <typename PredicateType>
+    static void filterObservationMatchesByFunctor(
+        IdentificationData& id_data, PredicateType&& func, bool cleanup_affected = false)
+    {
+      id_data.removeFromSetIf_(id_data.observation_matches_, func);
+      if (cleanup_affected) id_data.cleanup();
+    }
+
+    /*!
+      @brief Filter IdentificationData to keep only the best match (e.g. PSM) for each observation (e.g. spectrum)
+
+      The data structure will be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
+
+      @see IdentificationData::getBestMatchPerObservation
+
+      @param id_data Data to be filtered
+      @param score_ref Reference to the score type defining "best" matches
+    */
+    static void keepBestMatchPerObservation(
       IdentificationData& id_data,
       IdentificationData::ScoreTypeRef score_ref);
 
-    static void filterQueryMatchesByScore(
+    /*!
+      @brief Filter observation matches (e.g. PSMs) in IdentificationData by score
+
+      Matches with scores of the required type that are worse than the cut-off are removed.
+      Matches without a score of the required type are also removed.
+      The data structure will be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
+
+      @param id_data Data to be filtered
+      @param score_ref Reference to the score type used for filtering
+      @param cutoff Score cut-off for filtering
+    */
+    static void filterObservationMatchesByScore(
       IdentificationData& id_data,
       IdentificationData::ScoreTypeRef score_ref, double cutoff);
 
+    /*!
+      @brief Filter IdentificationData to remove parent sequences annotated as decoys
+
+      If any were removed, the data structure will be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
+    */
     static void removeDecoys(IdentificationData& id_data);
     ///@}
 

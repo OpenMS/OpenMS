@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -131,7 +131,7 @@ namespace OpenMS
       else
       {
         convex_hull_.clear();
-        if (convex_hulls_.size() > 0)
+        if (!convex_hulls_.empty())
         {
           /*
           -- this does not work with our current approach of "non-convex"hull computation as the mass traces of features cannot be combined
@@ -232,6 +232,15 @@ namespace OpenMS
   void Feature::setSubordinates(const std::vector<Feature>& rhs)
   {
     subordinates_ = rhs;
+  }
+
+  void Feature::updateAllIDReferences(const IdentificationData::RefTranslator& trans)
+  {
+    updateIDReferences(trans); // update the feature itself (via BaseFeature method)
+    for (Feature& sub : subordinates_) // recursively update subordinate features
+    {
+      sub.updateAllIDReferences(trans);
+    }
   }
 
 }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <boost/lexical_cast.hpp>
 #include <regex>
 #include <unordered_set>
+#include <map>
 
 using namespace std;
 
@@ -448,7 +449,7 @@ namespace OpenMS
       for (const auto& ta_it : sm_it.second)
       {
         // Get a random unmodified peptide sequence as base for later modification
-        if (DecoySequenceMap[ta_it.first] == "")
+        if (DecoySequenceMap[ta_it.first].empty())
         {
           decoy_peptide_string = getRandomSequence_(ta_it.first.size(), pseudoRNG);
         }
@@ -609,7 +610,7 @@ namespace OpenMS
             tr_it->second, TargetIonMap.at(target_precursor_swath).at(peptide_sequence.toUnmodifiedString()), mz_threshold);
 
         // Check that transition maps to at least one peptidoform
-        if (isoforms.size() > 0)
+        if (!isoforms.empty())
         {
           ReactionMonitoringTransition trn;
           trn.setDetectingTransition(false);
@@ -688,7 +689,7 @@ namespace OpenMS
             decoy_tr_it->second, DecoyIonMap.at(target_precursor_swath).at(decoy_peptide_sequence.toUnmodifiedString()), mz_threshold);
 
         // Check that transition maps to at least one peptidoform
-        if (decoy_isoforms.size() > 0)
+        if (!decoy_isoforms.empty())
         {
           ReactionMonitoringTransition trn;
           trn.setDecoyTransitionType(ReactionMonitoringTransition::DECOY);
@@ -716,7 +717,7 @@ namespace OpenMS
           vector<string> target_isoforms_overlap = getMatchingPeptidoforms_(
               decoy_tr_it->second, TargetIonMap.at(target_precursor_swath).at(target_peptide_sequence.toUnmodifiedString()), mz_threshold);
 
-          if (target_isoforms_overlap.size() > 0)
+          if (!target_isoforms_overlap.empty())
           {
             OPENMS_LOG_DEBUG << "[uis] Skipping overlapping decoy transition " << trn.getNativeID() << std::endl;
             continue;
@@ -843,7 +844,7 @@ namespace OpenMS
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
 
       // Check annotation for unannotated interpretations
-      if (tr.getProduct().getInterpretationList().size() > 0)
+      if (!tr.getProduct().getInterpretationList().empty())
       {
         // Check if transition is unannotated at primary annotation and if yes, skip
         if (tr.getProduct().getInterpretationList()[0].iontype == TargetedExperiment::IonType::NonIdentified)
@@ -856,7 +857,7 @@ namespace OpenMS
       }
 
       // Check if product m/z falls into swath from precursor m/z and if yes, skip
-      if (swathes.size() > 0)
+      if (!swathes.empty())
       {
         if (MRMAssay::isInSwath_(swathes, tr.getPrecursorMZ(), tr.getProductMZ()))
         {
@@ -889,7 +890,7 @@ namespace OpenMS
     std::unordered_set<String> peptide_ids;
     std::unordered_set<String> ProteinList;
 
-    Map<String, TransitionVectorType> TransitionsMap;
+    std::map<String, TransitionVectorType> TransitionsMap;
 
     // Generate a map of peptides to transitions for easy access
     for (Size i = 0; i < exp.getTransitions().size(); ++i)
@@ -906,7 +907,7 @@ namespace OpenMS
 
     Size progress = 0;
     startProgress(0, TransitionsMap.size() + exp.getPeptides().size() + exp.getProteins().size(), "Select detecting transitions");
-    for (Map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
+    for (std::map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
          m != TransitionsMap.end(); ++m)
     {
       setProgress(++progress);
@@ -1055,7 +1056,7 @@ namespace OpenMS
     std::vector<String> compound_ids;
     TransitionVectorType transitions;
 
-    Map<String, TransitionVectorType> TransitionsMap;
+    std::map<String, TransitionVectorType> TransitionsMap;
 
     // Generate a map of compounds to transitions for easy access
     for (Size i = 0; i < exp.getTransitions().size(); ++i)
@@ -1070,7 +1071,7 @@ namespace OpenMS
       TransitionsMap[tr.getCompoundRef()].push_back(tr);
     }
 
-    for (Map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
+    for (std::map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
          m != TransitionsMap.end(); ++m)
     {
         // Ensure that all precursors have the minimum number of transitions or are a decoy transitions

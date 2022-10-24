@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -193,7 +193,7 @@ public:
     PeakMap exp;
     mz_data_file.load(in, exp);
 
-    if (exp.empty() && exp.getChromatograms().size() == 0)
+    if (exp.empty() && exp.getChromatograms().empty())
     {
       OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
@@ -202,7 +202,7 @@ public:
     //check for peak type (profile data required)
     if (!exp.empty() && exp[0].getType(true) == SpectrumSettings::CENTROID)
     {
-      writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
+      writeLogWarn_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
     }
 
     //check if spectra are sorted
@@ -210,7 +210,7 @@ public:
     {
       if (!exp[i].isSorted())
       {
-        writeLog_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+        writeLogError_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
         return INCOMPATIBLE_INPUT_DATA;
       }
     }
@@ -220,7 +220,7 @@ public:
     {
       if (!exp.getChromatogram(i).isSorted())
       {
-        writeLog_("Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+        writeLogError_("Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter to sort the input!");
         return INCOMPATIBLE_INPUT_DATA;
       }
     }
@@ -234,7 +234,7 @@ public:
     }
     catch (Exception::IllegalArgument & e)
     {
-      writeLog_(String("Error: ") + e.what());
+      writeLogError_(String("Error: ") + e.what());
       return INCOMPATIBLE_INPUT_DATA;
     }
 

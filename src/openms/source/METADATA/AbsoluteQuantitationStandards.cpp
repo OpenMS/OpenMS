@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,7 +65,7 @@ namespace OpenMS
     components_to_concentrations.clear();
     for (const AbsoluteQuantitationStandards::runConcentration& run : run_concentrations)
     {
-      if (run.sample_name == "" || run.component_name == "")
+      if (run.sample_name.empty() || run.component_name.empty())
       {
         continue;
       }
@@ -93,7 +93,7 @@ namespace OpenMS
         {
           continue;
         }
-        if (run.IS_component_name != "")
+        if (!run.IS_component_name.empty())
         {
           findComponentFeature_(fmap, run.IS_component_name, fc.IS_feature);
         }

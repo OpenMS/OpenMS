@@ -1,7 +1,7 @@
+from libcpp.map cimport map as libcpp_map
 from Types cimport *
 from CVTermList cimport *
 from Peak1D cimport *
-from Map cimport *
 
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 
@@ -68,5 +68,9 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
       PHD,                      #< Photodissociation
       ETD,                      #< Electron transfer dissociation
       PQD,                      #< Pulsed q dissociation
+      TRAP,                     #< trap-type collision-induced dissociation (MS:1002472)
+      HCD,                      #< beam-type collision-induced dissociation (MS:1000422) / HCD
+      INSOURCE,                 #< in-source collision-induced dissociation (MS:1001880)
+      LIFT,                     #< Bruker proprietary method (MS:1002000)
       SIZE_OF_ACTIVATIONMETHOD
 

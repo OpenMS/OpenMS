@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,14 +82,14 @@ namespace OpenMS
     return adduct_charge;
   }
 
-  bool MetaboTargetedAssay::intensityLess_(Peak1D a, Peak1D b)
+  bool MetaboTargetedAssay::intensityLess_(const Peak1D& a, const Peak1D& b)
   {
     return (a.getIntensity() < b.getIntensity());
   }
 
   void MetaboTargetedAssay::filterBasedOnTotalOccurrence_(std::vector<MetaboTargetedAssay>& mta, double total_occurrence_filter, size_t in_files_size)
   {
-    if (in_files_size > 1 && mta.size() >= 1)
+    if (in_files_size > 1 && !mta.empty())
     {
       double total_occurrence = double(mta.size())/double(in_files_size);
       if (!(total_occurrence >= total_occurrence_filter))
@@ -112,7 +112,7 @@ namespace OpenMS
   void MetaboTargetedAssay::filterBasedOnMolFormAdductOccurrence_(std::vector<MetaboTargetedAssay>& mta)
   {
     std::map<std::pair<String, String>, int> occ_map;
-    if (mta.size() >= 1)
+    if (!mta.empty())
     {
       for (const auto &t_it : mta)
       {
@@ -132,7 +132,7 @@ namespace OpenMS
       // filter vector down to the compound with mol. formula and adduct based on the highest occurrence
       mta.erase(remove_if(mta.begin(),
                           mta.end(),
-                          [&pr](MetaboTargetedAssay assay)
+                          [&pr](const MetaboTargetedAssay& assay)
                           {
                             return assay.molecular_formula != pr->first.first ||
                                    assay.compound_adduct != pr->first.second;
@@ -699,7 +699,7 @@ namespace OpenMS
   }
 
   // method to pair compound information (SiriusMSFile) with the annotated target spectrum from Sirius based on the m_id (unique identifier)
-  std::vector< MetaboTargetedAssay::CompoundTargetDecoyPair > MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
+  std::vector< MetaboTargetedAssay::CompoundTargetDecoyPair > MetaboTargetedAssay::pairCompoundWithAnnotatedTDSpectraPairs(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
                                                                                                                     const std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra>& annotated_spectra)
   {
     vector< MetaboTargetedAssay::CompoundTargetDecoyPair > v_cmp_spec;
@@ -707,10 +707,27 @@ namespace OpenMS
     {
       for (const auto& spectra : annotated_spectra)
       {
-        if (cmp.m_ids_id == spectra.target.getName()) // the m_id is saved at MSSpectrum level the name
+        if (cmp.m_ids_id == spectra.target.getName()) // the m_id is saved at MSSpectrum level as its name
         {
-          MetaboTargetedAssay::CompoundTargetDecoyPair csp(cmp, spectra);
-          v_cmp_spec.push_back(move(csp));
+          v_cmp_spec.emplace_back(cmp, spectra);
+        }
+      }
+    }
+    return v_cmp_spec;
+  }
+
+  // method to pair compound information (SiriusMSFile) with the annotated target spectrum from Sirius based on the m_id (unique identifier)
+  std::vector< MetaboTargetedAssay::CompoundSpectrumPair > MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
+                                                                                                                  const std::vector<MSSpectrum>& annotated_spectra)
+  {
+    vector< MetaboTargetedAssay::CompoundSpectrumPair > v_cmp_spec;
+    for (const auto& cmp : v_cmpinfo)
+    {
+      for (const auto& spectrum : annotated_spectra)
+      {
+        if (cmp.m_ids_id == spectrum.getName()) // the m_id is saved at MSSpectrum level as its name
+        {
+          v_cmp_spec.emplace_back(cmp, spectrum);
         }
       }
     }

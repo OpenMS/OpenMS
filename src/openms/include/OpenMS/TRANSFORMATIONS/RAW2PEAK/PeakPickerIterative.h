@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 
 // #define DEBUG_PEAK_PICKING
 
@@ -166,7 +167,7 @@ private:
     */
     void pickRecenterPeaks_(const MSSpectrum& input,
                               std::vector<PeakCandidate>& PeakCandidates,
-                              SignalToNoiseEstimatorMedian<MSSpectrum>& snt)
+                              SignalToNoiseEstimatorMedian<MSSpectrum>& snt) const
     {
       for (Size peak_it = 0; peak_it < PeakCandidates.size(); peak_it++)
       {
@@ -301,13 +302,8 @@ public:
       // don't pick a spectrum with less than 3 data points
       if (input.size() < 3) return;
 
-      // copy meta data of the input spectrum
-      output.clear(true);
-      output.SpectrumSettings::operator=(input);
-      output.MetaInfoInterface::operator=(input);
-      output.setRT(input.getRT());
-      output.setMSLevel(input.getMSLevel());
-      output.setName(input.getName());
+      // copy the spectrum meta data
+      copySpectrumMeta(input, output);
       output.setType(SpectrumSettings::CENTROID);
       output.getFloatDataArrays().clear();
 

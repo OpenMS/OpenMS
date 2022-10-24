@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,14 +85,16 @@ namespace OpenMS
   {
     if (value.valueType() == ParamValue::STRING_VALUE)
     {
-      if (valid_strings.size() != 0)
+      if (!valid_strings.empty())
       {
         bool ok = false;
         if (std::find(valid_strings.begin(), valid_strings.end(), value) != valid_strings.end())
         {
           ok = true;
         }
-        else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() || std::find(tags.begin(), tags.end(), "output file") != tags.end())
+        else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() 
+          || std::find(tags.begin(), tags.end(), "output file") != tags.end()
+          || std::find(tags.begin(), tags.end(), "output prefix") != tags.end())
         {
           //do not check restrictions on file names for now
           ok = true;
@@ -117,14 +119,15 @@ namespace OpenMS
       {
         str_value = ls_value[i];
 
-        if (valid_strings.size() != 0)
+        if (!valid_strings.empty())
         {
           bool ok = false;
           if (std::find(valid_strings.begin(), valid_strings.end(), str_value) != valid_strings.end())
           {
             ok = true;
           }
-          else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() || std::find(tags.begin(), tags.end(), "output file") != tags.end())
+          else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() 
+            || std::find(tags.begin(), tags.end(), "output file") != tags.end())
           {
             //do not check restrictions on file names for now
             ok = true;
@@ -364,7 +367,7 @@ namespace OpenMS
       {
         it->insert(*it2);
       }
-      if (it->description == "" || node.description != "") //replace description if not empty in new node
+      if (it->description.empty() || !node.description.empty()) //replace description if not empty in new node
       {
         it->description = node.description;
       }
@@ -413,7 +416,7 @@ namespace OpenMS
     {
       it->value = entry.value;
       it->tags = entry.tags;
-      if (it->description == "" || entry.description != "") //replace description if not empty in new entry
+      if (it->description.empty() || !entry.description.empty()) //replace description if not empty in new entry
       {
         it->description = entry.description;
       }
@@ -491,6 +494,17 @@ namespace OpenMS
       }
     }
     entry.valid_strings = strings;
+  }
+
+  const std::vector<std::string>& Param::getValidStrings(const std::string& key) const
+  {
+    ParamEntry& entry = getEntry_(key);
+    // check if correct parameter type
+    if (entry.value.valueType() != ParamValue::STRING_VALUE && entry.value.valueType() != ParamValue::STRING_LIST)
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
+    }
+    return entry.valid_strings;
   }
 
   void Param::setMinInt(const std::string& key, int min)
@@ -575,7 +589,7 @@ namespace OpenMS
   void Param::setDefaults(const Param& defaults, const std::string& prefix, bool showMessage)
   {
     std::string prefix2 = prefix;
-    if (prefix2 != "")
+    if (!prefix2.empty())
     {
       if (prefix2.back() != ':')
       {
@@ -627,11 +641,11 @@ namespace OpenMS
           pathname.resize(pathname.size() - it2->name.size() - 1);
         }
         std::string real_pathname = pathname.substr(0, pathname.length() - 1); //remove ':' at the end
-        if (real_pathname != "")
+        if (!real_pathname.empty())
         {
           std::string description_old = getSectionDescription(prefix + real_pathname);
           std::string description_new = defaults.getSectionDescription(real_pathname);
-          if (description_old == "")
+          if (description_old.empty())
           {
             //std::cerr << "## Setting description of " << prefix+real_pathname << " to"<< std::endl;
             //std::cerr << "## " << description_new << std::endl;
@@ -841,7 +855,7 @@ namespace OpenMS
   {
     //determine prefix
     std::string prefix2 = prefix;
-    if (prefix2 != "")
+    if (!prefix2.empty())
     {
       //prefix2.ensureLastChar(':');
       if (prefix2.back() != ':')
@@ -1036,7 +1050,7 @@ namespace OpenMS
         os << it.getName().substr(0, it.getName().length() - it->name.length() - 1) << "|";
       }
       os  << it->name << "\" -> \"" << it->value << '"';
-      if (it->description != "")
+      if (!it->description.empty())
       {
         os << " (" << it->description << ")";
       }
@@ -1064,7 +1078,7 @@ namespace OpenMS
   {
     //Extract right parameters
     std::string prefix2 = prefix;
-    if (prefix2 != "")
+    if (!prefix2.empty())
     {
       if (prefix2.back() != ':') 
       {
@@ -1228,7 +1242,7 @@ namespace OpenMS
         {
           if (this->getValue(it.getName()) != it->value)
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Warning: for ':version' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
           }
           continue;
@@ -1244,7 +1258,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
           {
             if (this->getValue(it.getName()) != it->value) 
             {
-                OPENMS_THREAD_CRITICAL(oms_log)
+                OPENMS_THREAD_CRITICAL(LOGSTREAM)
                 stream << "Warning: for ':type' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
             }
             continue;
@@ -1270,7 +1284,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
           // make sure the same leaf name does not exist at any other position
           if (this->findNext(l1_entry.name, it_match) == this->end())
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Found '" << it.getName() << "' as '" << it_match.getName() << "' in new param." << std::endl;
             new_entry = this->getEntry(it_match.getName());
             target_name = it_match.getName();
@@ -1281,13 +1295,13 @@ OPENMS_THREAD_CRITICAL(oms_log)
         {
           if (fail_on_unknown_parameters)
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file!" << std::endl;
             is_update_success = false;
           }
           else if (add_unknown)
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Adding to current set." << std::endl;
             Param::ParamEntry local_entry = p_outdated.getEntry(it.getName());
             std::string prefix = "";
@@ -1299,7 +1313,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
           }
           else if (verbose)
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Ignoring parameter. " << std::endl;
           }
           continue;
@@ -1320,24 +1334,24 @@ OPENMS_THREAD_CRITICAL(oms_log)
             // overwrite default value
             if (verbose) 
             {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
                 stream << "Default-Parameter '" << target_name << "' overridden: '" << default_value << "' --> '" << it->value << "'!" << std::endl;
             }
             this->setValue(target_name, it->value, new_entry.description, this->getTags(target_name));
           }
           else
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << validation_result;
             if (fail_on_invalid_values)
             {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
               stream << " Updating failed!" << std::endl;
               is_update_success = false;
             }
             else
             {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
               stream << " Ignoring invalid value (using new default '" << default_value << "')!" << std::endl;
               new_entry.value = default_value;
             }
@@ -1350,17 +1364,17 @@ OPENMS_THREAD_CRITICAL(oms_log)
       }
       else
       {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
         stream << "Parameter '" << it.getName() << "' has changed value type!\n";
         if (fail_on_invalid_values)
         {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
           stream << " Updating failed!" << std::endl;
           is_update_success = false;
         } 
         else
         {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
           stream << " Ignoring invalid value (using new default)!" << std::endl;
         }
       }
@@ -1407,11 +1421,11 @@ OPENMS_THREAD_CRITICAL(oms_log)
             pathname.resize(pathname.size() - traceIt->name.size() - 1);
         }
         std::string real_pathname = pathname.substr(0, pathname.size() - 1);//remove ':' at the end
-        if (real_pathname != "")
+        if (!real_pathname.empty())
         {
           std::string description_old = getSectionDescription(prefix + real_pathname);
           std::string description_new = toMerge.getSectionDescription(real_pathname);
-          if (description_old == "")
+          if (description_old.empty())
           {
             setSectionDescription(real_pathname, description_new);
           }

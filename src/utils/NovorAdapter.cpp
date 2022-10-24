@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -208,7 +208,7 @@ protected:
       const char* novor_path_env = getenv("NOVOR_PATH");
       if (novor_path_env == nullptr || strlen(novor_path_env) == 0)
       {
-        writeLog_( "FATAL: Executable of Novor could not be found. Please either use NOVOR_PATH env variable or provide via '-executable'!");
+        writeLogError_("FATAL: Executable of Novor could not be found. Please either use NOVOR_PATH env variable or provide via '-executable'!");
         return MISSING_PARAMETERS;
       }
       executable = novor_path_env;
@@ -218,7 +218,7 @@ protected:
     QFileInfo file_info(executable);
     executable = file_info.canonicalFilePath();
 
-    writeLog_("Executable is: " + executable);
+    writeLogInfo_("Executable is: " + executable);
     const QString & path_to_executable = File::path(executable).toQString();
     
     //-------------------------------------------------------------
@@ -298,6 +298,7 @@ protected:
     MSExperiment exp;
     MzMLFile m;
     PeakFileOptions op;
+    op.setFillData(false); // no actual peak data
     op.setMSLevels({ 2 }); //only MS2
     m.setOptions(op);
     m.load(in, exp);

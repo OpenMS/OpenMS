@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -303,7 +303,7 @@ protected:
       mod_param_value.split(' ', parts);
       if (parts.size() != 2)
       {
-        writeLog_("Error: cannot parse modification '" + mod_param_value + "'");
+        writeLogError_("Error: cannot parse modification '" + mod_param_value + "'");
         return PARSE_ERROR;
       }
       else
@@ -343,7 +343,7 @@ protected:
       vector<String> elements;
       if (!tsvfile.getRow(row_count, elements))
       {
-        writeLog_("Error: could not split row " + String(row_count) + " of file '" + l_out + "'");
+        writeLogError_("Error: could not split row " + String(row_count) + " of file '" + l_out + "'");
         return PARSE_ERROR;
       }
       
@@ -422,7 +422,7 @@ protected:
         {
           if (seq.getResidue(i).isModified())
           {
-            writeLog_("Error: ambiguous modifications on AA '" + iter->first + "' (" + seq.getResidue(i).getModificationName() + ", " + iter->second + ")");
+            writeLogError_("Error: ambiguous modifications on AA '" + iter->first + "' (" + seq.getResidue(i).getModificationName() + ", " + iter->second + ")");
             return PARSE_ERROR;
           }
           else 
@@ -480,13 +480,13 @@ protected:
     {
       if (!JavaInfo::canRun(java_executable))
       {
-        writeLog_("Fatal error: Java is needed to run LuciPHOr2!");
+        writeLogError_("Fatal error: Java is needed to run LuciPHOr2!");
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
     else
     {
-      writeLog_("The installation of Java was not checked.");
+      writeLogWarn_("The installation of Java was not checked.");
     }
 
     //tmp_dir
@@ -536,7 +536,7 @@ protected:
     }
     else
     {
-      writeLog_("Error: Unknown input file type given. Aborting!");
+      writeLogError_("Error: Unknown input file type given. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -544,7 +544,7 @@ protected:
     vector<String> target_mods = getStringList_("target_modifications");
     if (target_mods.empty())
     {
-      writeLog_("Error: No target modification existing.");
+      writeLogError_("Error: No target modification existing.");
       return ILLEGAL_PARAMETERS;
     }
     
@@ -593,10 +593,10 @@ protected:
     ProteinIdentification::SearchParameters search_params;
 
     String error = parseLuciphorOutput_(out, l_psms, lookup);
-    if (error != "")
+    if (!error.empty())
     {
       error = "Error: LuciPHOr2 output is not correctly formated. " + error;
-      writeLog_(error);
+      writeLogError_(error);
       return PARSE_ERROR;
     }
     
@@ -622,7 +622,7 @@ protected:
       catch (Exception::ElementNotFound&)
       {
         // fall-back if native ids are missing
-        writeLog_("Unable to map native ID of identification to spectrum native ID. " + ID_native_ids);
+        writeLogWarn_("Unable to map native ID of identification to spectrum native ID. " + ID_native_ids);
         scan_idx = lookup.findByRT(pep.getRT());
       }
 
@@ -659,7 +659,7 @@ protected:
       }
       else
       {
-        writeLog_("Error: LuciPHOr2 output does not match with idXML.");
+        writeLogError_("Error: LuciPHOr2 output does not match with idXML.");
         return PARSE_ERROR;
       }
       

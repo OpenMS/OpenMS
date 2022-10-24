@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,19 +34,19 @@
 
 #include <OpenMS/FORMAT/HANDLERS/FeatureXMLHandler.h>
 
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 
 #include <fstream>
+#include <map>
 
 using namespace std;
 
-namespace OpenMS
-{
-namespace Internal
+namespace OpenMS::Internal
 {
   FeatureXMLHandler::FeatureXMLHandler(FeatureMap& map, const String& filename) :
     Internal::XMLHandler("", "1.9")
@@ -101,7 +101,7 @@ namespace Internal
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
        << "<featureMap version=\"" << version_ << "\"";
     // file id
-    if (feature_map.getIdentifier() != "")
+    if (!feature_map.getIdentifier().empty())
     {
       os << " document_id=\"" << feature_map.getIdentifier() << "\"";
     }
@@ -299,7 +299,7 @@ namespace Internal
     }
     // do the actual parsing:
     String parent_tag;
-    if (open_tags_.size() != 0)
+    if (!open_tags_.empty())
     {
       parent_tag = open_tags_.back();
     }
@@ -360,7 +360,7 @@ namespace Internal
     {
       String name = attributeAsString_(attributes, s_name);
       String value = attributeAsString_(attributes, s_value);
-      if (name != "" && value != "")
+      if (!name.empty() && !value.empty())
         param_.setValue(name, value);
     }
     else if (tag == "userParam" || tag == "UserParam") // correct: "UserParam". Test for backwards compatibility.
@@ -407,7 +407,7 @@ namespace Internal
       //check file version against schema version
       String file_version = "";
       optionalAttributeAsString_(file_version, attributes, s_version);
-      if (file_version == "")
+      if (file_version.empty())
       {
         file_version = "1.0"; //default version is 1.0
       }
@@ -474,7 +474,7 @@ namespace Internal
         // Note: technically, it would be preferable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
         String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date") + '_' + String(UniqueIdGenerator::getUniqueId());
 
-        if (!id_identifier_.has(id))
+        if (id_identifier_.find(id) == id_identifier_.end())
         {
           prot_id_.setIdentifier(identifier);
           id_identifier_[id] = identifier;
@@ -574,7 +574,7 @@ namespace Internal
     else if (tag == "PeptideIdentification" || tag == "UnassignedPeptideIdentification")
     {
       String id = attributeAsString_(attributes, "identification_run_ref");
-      if (!id_identifier_.has(id))
+      if (id_identifier_.find(id) == id_identifier_.end())
       {
         warning(LOAD, String("Peptide identification without ProteinIdentification found (id: '") + id + "')!");
       }
@@ -633,13 +633,13 @@ namespace Internal
         accession_string.trim();
         vector<String> accessions;
         accession_string.split(' ', accessions);
-        if (accession_string != "" && accessions.empty())
+        if (!accession_string.empty() && accessions.empty())
         {
           accessions.push_back(accession_string);
         }
         for (vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
         {
-          Map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
+          std::map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
             PeptideEvidence pe;
@@ -875,7 +875,7 @@ namespace Internal
       return;
     }
     // we are before first tag or beyond last tag
-    if (open_tags_.size() == 0)
+    if (open_tags_.empty())
     {
       return;
     }
@@ -980,7 +980,7 @@ namespace Internal
   {
     String indent = String(indentation_level, '\t');
 
-    if (!identifier_id_.has(id.getIdentifier()))
+    if (identifier_id_.find(id.getIdentifier()) == identifier_id_.end())
     {
       warning(STORE, String("Omitting peptide identification because of missing ProteinIdentification with identifier '") + id.getIdentifier() + "' while writing '" + filename + "'!");
       return;
@@ -1138,5 +1138,4 @@ namespace Internal
     }
   }
 
-}
 }

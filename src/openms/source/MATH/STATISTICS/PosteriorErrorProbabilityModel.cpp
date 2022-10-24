@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -517,7 +517,7 @@ namespace OpenMS::Math
       }
     }
 
-    double PosteriorErrorProbabilityModel::computeLogLikelihood(const vector<double>& incorrect_density, const vector<double>& correct_density)
+    double PosteriorErrorProbabilityModel::computeLogLikelihood(const vector<double>& incorrect_density, const vector<double>& correct_density) const
     {
       double maxlike(0);
       auto incorrect = incorrect_density.cbegin();
@@ -530,7 +530,7 @@ namespace OpenMS::Math
 
     double PosteriorErrorProbabilityModel::computeLLAndIncorrectPosteriorsFromLogDensities(
         const vector<double>& incorrect_log_density, const vector<double>& correct_log_density,
-        vector<double>& incorrect_posterior)
+        vector<double>& incorrect_posterior) const
     {
       double loglikelihood = 0.0;
       double log_prior_pos = log(1. - negative_prior_);
@@ -705,14 +705,14 @@ namespace OpenMS::Math
 
     void PosteriorErrorProbabilityModel::plotTargetDecoyEstimation(vector<double>& target, vector<double>& decoy)
     {
-      if (target.size() == 0 || decoy.size() == 0)
+      if (target.empty() || decoy.empty())
       {
         StringList empty;
-        if (target.size() == 0)
+        if (target.empty())
         {
           empty.push_back("target");
         }
-        if (decoy.size() == 0) 
+        if (decoy.empty()) 
         {
           empty.push_back("decoy");
         }
@@ -961,7 +961,7 @@ namespace OpenMS::Math
       {
         return getScore_({"hyperscore"}, hit, current_score_type); //TODO evaluate transformations
       }
-      else if (engine == "MSFragger")
+      else if (engine == "MSFRAGGER")
       {
         return (-1) * log10(getScore_({"expect"}, hit, current_score_type));
       }

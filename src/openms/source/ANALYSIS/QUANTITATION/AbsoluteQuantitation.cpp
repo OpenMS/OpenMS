@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -336,7 +336,7 @@ namespace OpenMS
           String quant_component_name = quant_methods_it->second.getComponentName();
           String quant_IS_component_name = quant_methods_it->second.getISName();
           String quant_feature_name = quant_methods_it->second.getFeatureName();
-          if (quant_IS_component_name != "")
+          if (!quant_IS_component_name.empty())
           {
             // look up the internal standard for the component
             bool IS_found = false;

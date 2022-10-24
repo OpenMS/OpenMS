@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,16 +57,16 @@ namespace OpenMS
   void TVSpectraViewController::showSpectrumAsNew1D(int index)
   {
     // basic behavior 1
-    LayerData& layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
+    LayerDataBase& layer = const_cast<LayerDataBase&>(tv_->getActiveCanvas()->getCurrentLayer());
     ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
-    LayerData::ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
+    LayerDataBase::ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
     auto ondisc_sptr = layer.getOnDiscPeakData();
 
     // create new 1D widget; if we return due to error, the widget will be cleaned up automatically
-    unique_ptr<Plot1DWidget> wp(new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace()));
+    unique_ptr<Plot1DWidget> wp(new Plot1DWidget(tv_->getCanvasParameters(1), (QWidget*)tv_->getWorkspace()));
     Plot1DWidget* w = wp.get();
 
-    if (layer.type == LayerData::DT_CHROMATOGRAM)
+    if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
     {
       // set layer name
       String caption = layer.getName() + "[" + index + "]";
@@ -83,7 +83,7 @@ namespace OpenMS
       DRange<2> visible_area = tv_->getActiveCanvas()->getVisibleArea();
       w->canvas()->setVisibleArea(visible_area.swapDimensions());
     }
-    else if (layer.type == LayerData::DT_PEAK)
+    else if (layer.type == LayerDataBase::DT_PEAK)
     {
       String caption = layer.getName();
 
@@ -132,7 +132,7 @@ namespace OpenMS
 
     // show multiple spectra together is only used for chromatograms directly
     // where multiple (SRM) traces are shown together
-    LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
+    LayerDataBase& layer = const_cast<LayerDataBase&>(tv_->getActiveCanvas()->getCurrentLayer());
     ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
     auto ondisc_sptr = layer.getOnDiscPeakData();
 
@@ -140,11 +140,11 @@ namespace OpenMS
     String caption = layer.getName();
 
     //open new 1D widget
-    Plot1DWidget* w = new Plot1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
+    Plot1DWidget* w = new Plot1DWidget(tv_->getCanvasParameters(1), (QWidget *)tv_->getWorkspace());
 
     for (const auto& index : indices)
     {
-      if (layer.type == LayerData::DT_CHROMATOGRAM)
+      if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
       {
         // set layer name
         caption += String(" [") + index + "];";
@@ -181,7 +181,7 @@ namespace OpenMS
     if (widget_1d == nullptr) return;
     if (widget_1d->canvas()->getLayerCount() == 0) return;
 
-    LayerData& layer = widget_1d->canvas()->getCurrentLayer();
+    LayerDataBase& layer = widget_1d->canvas()->getCurrentLayer();
 
     // If we have a chromatogram, we cannot just simply activate this spectrum.
     // we have to do much more work, e.g. creating a new experiment with the
@@ -199,15 +199,16 @@ namespace OpenMS
       // only need to grab the one with the desired index
       ExperimentSharedPtrType exp_sptr = layer.getChromatogramData();
       auto ondisc_sptr = layer.getOnDiscPeakData();
+      auto annotation = layer.getChromatogramAnnotation();
+      String fname = layer.filename;
 
       widget_1d->canvas()->removeLayers();
 
       // fix legend and set layer name
-      String fname = layer.filename;
       String caption = fname + "[" + index + "]";
 
       // add chromatogram data as peak spectrum and update other controls
-      widget_1d->canvas()->addChromLayer(exp_sptr, ondisc_sptr, layer.getChromatogramAnnotation(), index, fname, caption, false);
+      widget_1d->canvas()->addChromLayer(exp_sptr, ondisc_sptr, annotation, index, fname, caption, false);
 
       tv_->updateBarsAndMenus(); // needed since we blocked update above (to avoid repeated layer updates for many layers!)
     }
@@ -227,7 +228,7 @@ namespace OpenMS
     {
       return;
     }
-    const LayerData& layer = widget_1d->canvas()->getCurrentLayer();
+    const LayerDataBase& layer = widget_1d->canvas()->getCurrentLayer();
     // If we have a chromatogram, we cannot just simply activate this spectrum.
     // we have to do much more work, e.g. creating a new experiment with the
     // new spectrum.
@@ -236,13 +237,14 @@ namespace OpenMS
       // first get raw data (the full experiment with all chromatograms), we
       // only need to grab the ones with the desired indices
       ExperimentSharedPtrType exp_sptr = layer.getChromatogramData();
-      auto ondisc_sptr = layer.getOnDiscPeakData();
 
-      widget_1d->canvas()->removeLayers();
+      String fname = layer.filename;
+      auto annotation = layer.getChromatogramAnnotation();
+      auto ondisc_sptr = layer.getOnDiscPeakData();
+      widget_1d->canvas()->removeLayers(); // this actually deletes layer, make sure its not used any more
 
       widget_1d->canvas()->blockSignals(true);
       RAIICleanup clean([&]() {widget_1d->canvas()->blockSignals(false); });
-      String fname = layer.filename;
       for (const auto& index : indices)
       {
         // get caption (either chromatogram idx or peptide sequence, if available)
@@ -253,7 +255,7 @@ namespace OpenMS
         }
         ((caption += "[") += index) += "]";
         // add chromatogram data as peak spectrum
-        widget_1d->canvas()->addChromLayer(exp_sptr, ondisc_sptr, layer.getChromatogramAnnotation(), index, fname, caption, true);
+        widget_1d->canvas()->addChromLayer(exp_sptr, ondisc_sptr, annotation, index, fname, caption, true);
       }
 
       tv_->updateBarsAndMenus(); // needed since we blocked update above (to avoid repeated layer updates for many layers!)

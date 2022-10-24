@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -131,8 +131,8 @@ endmacro()
 # Installs the exported target information
 macro(install_export_targets )
     install(EXPORT ${OPENMS_EXPORT_SET}
-            DESTINATION ${INSTALL_SHARE_DIR}/cmake
-            COMPONENT share)
+            DESTINATION ${INSTALL_LIB_DIR}/cmake/OpenMS
+            COMPONENT cmake)
 endmacro()
 
 #------------------------------------------------------------------------------

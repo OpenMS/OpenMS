@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,6 +31,12 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
+
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic push
+// Ignore -Wpessimizing-move, becuase it's intentional
+#pragma clang diagnostic ignored "-Wpessimizing-move"
+#endif
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
@@ -898,7 +904,15 @@ START_SECTION((MSChromatogram& operator=(const MSChromatogram &&source)))
 
   //Assignment of empty object
   //normal assignment
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic push
+// Ignore -Wpessimizing-move, because we want to test the move assignment operator.
+#pragma clang diagnostic ignored "-Wpessimizing-move"
+#endif
   tmp2 = std::move(MSChromatogram());
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic pop
+#endif
   TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),0);
   TEST_EQUAL(tmp2.metaValueExists("label"), false)
   TEST_REAL_SIMILAR(tmp2.getMZ(), 0.0)
@@ -1012,20 +1026,20 @@ START_SECTION((virtual void updateRanges()))
   s.updateRanges();
   s.updateRanges(); //second time to check the initialization
 
-  TEST_REAL_SIMILAR(s.getMaxInt(),2)
-  TEST_REAL_SIMILAR(s.getMinInt(),1)
-  TEST_REAL_SIMILAR(s.getMax()[0],10)
-  TEST_REAL_SIMILAR(s.getMin()[0],2)
+  TEST_REAL_SIMILAR(s.getMaxIntensity(),2)
+  TEST_REAL_SIMILAR(s.getMinIntensity(), 1)
+  TEST_REAL_SIMILAR(s.getMaxRT(),10)
+  TEST_REAL_SIMILAR(s.getMinRT(),2)
 
   //test with only one peak
 
   s.clear(true);
   s.push_back(p1);
   s.updateRanges();
-  TEST_REAL_SIMILAR(s.getMaxInt(),1)
-  TEST_REAL_SIMILAR(s.getMinInt(),1)
-  TEST_REAL_SIMILAR(s.getMax()[0],2)
-  TEST_REAL_SIMILAR(s.getMin()[0],2)
+  TEST_REAL_SIMILAR(s.getMaxIntensity(), 1)
+  TEST_REAL_SIMILAR(s.getMinIntensity(), 1)
+  TEST_REAL_SIMILAR(s.getMaxRT(),2)
+  TEST_REAL_SIMILAR(s.getMinRT(),2)
 }
 END_SECTION
 
@@ -1042,10 +1056,13 @@ START_SECTION(void clear(bool clear_meta_data))
 
   edit.clear(false);
   TEST_EQUAL(edit.size(),0)
-    TEST_EQUAL(edit==MSChromatogram(),false)
+  TEST_EQUAL(edit.empty(),true)
+  TEST_EQUAL(edit == MSChromatogram(),false)
 
-    edit.clear(true);
-  TEST_EQUAL(edit==MSChromatogram(),true)
+  edit.clear(true);
+  TEST_EQUAL(edit.size(),0)
+  TEST_EQUAL(edit.empty(),true)
+  TEST_EQUAL(edit == MSChromatogram(),true)
 }
 END_SECTION
 
@@ -1122,5 +1139,6 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 END_TEST
 
-
-
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic pop
+#endif

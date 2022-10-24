@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/ParamValue.h>
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -458,6 +459,42 @@ START_SECTION((bool isEmpty() const))
 END_SECTION
 
 // conversion operators
+START_SECTION((operator ParamValue() const))
+{
+  int i = 12;
+  double d = 3.41;
+  String s = "test";
+  IntList i_l = {1, 2};
+  DoubleList d_l = {2.71, 3.41};
+  StringList s_l = {"test", "list"};
+  vector<std::string> std_s_l = {"test", "list"};
+
+  DataValue d_i(i);
+  ParamValue p_i = d_i;
+  TEST_EQUAL(p_i, ParamValue(i))
+
+  DataValue d_d(d);
+  ParamValue p_d = d_d;
+  TEST_EQUAL(p_d, ParamValue(d))
+
+  DataValue d_s(s);
+  ParamValue p_s = d_s;
+  TEST_EQUAL(p_s, ParamValue(s))
+
+  DataValue d_i_l(i_l);
+  ParamValue p_i_l = d_i_l;
+  TEST_EQUAL(p_i_l, ParamValue(i_l))
+  
+  DataValue d_d_l(d_l);
+  ParamValue p_d_l = d_d_l;
+  TEST_EQUAL(p_d_l, ParamValue(d_l))
+
+  DataValue d_s_l(s_l);
+  ParamValue p_s_l = d_s_l;
+  TEST_EQUAL(p_s_l, ParamValue(std_s_l))
+}
+END_SECTION
+
 START_SECTION((operator std::string() const))
   DataValue d((std::string) "test string");
   std::string k = d;

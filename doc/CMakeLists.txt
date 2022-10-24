@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -68,38 +68,26 @@ if(ENABLE_DOCS)
   #------------------------------------------------------------------------------
   # doc programs
   #------------------------------------------------------------------------------
+  # TODO switch to target based linking and avoid re-searching Qt.
+  # At least reuse the COMPONENT variables
   set(OpenMS_doc_executables)
   include(doxygen/parameters/executables.cmake)
 
   set(OPENMS_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "doxygen/parameters")
 
-  # check whether OpenMS_GUI is available or not
-  set(_doc_progs_include )
-  set(_doc_progs_link_libraries )
-  if(WITH_GUI)
-    #------------------------------------------------------------------------------
-    # QT dependencies
-    find_package(Qt5 COMPONENTS Core Network Svg OpenGL REQUIRED)
-    set(_doc_progs_include ${OpenMS_GUI_INCLUDE_DIRECTORIES})
-    set(_doc_progs_link_libraries ${OpenMS_GUI_LIBRARIES})
-  else()
-    find_package(Qt5 COMPONENTS Core Network REQUIRED)
-    set(_doc_progs_include ${OpenMS_INCLUDE_DIRECTORIES})
-    set(_doc_progs_link_libraries ${OpenMS_LIBRARIES})
-  endif()
-
-  include_directories(SYSTEM ${_doc_progs_include})
   add_definitions(/DBOOST_ALL_NO_LIB)
 
   # build doc executables
   foreach(i ${OpenMS_doc_executables})
     add_executable(${i} EXCLUDE_FROM_ALL doxygen/parameters/${i}.cpp)
-    target_link_libraries(${i} ${_doc_progs_link_libraries})
-
+    
     # let the doc progs decide how to handle a missing OpenMS_GUI library
     if(WITH_GUI)
       set_target_properties(${i} PROPERTIES COMPILE_DEFINITIONS "WITH_GUI=1")
+      target_link_libraries(${i} OpenMS OpenMS_GUI)
+    else()
+      target_link_libraries(${i} OpenMS)
     endif()
   endforeach(i)
 
@@ -157,7 +145,6 @@ if(ENABLE_DOCS)
     #------------------------------------------------------------------------------
     # create refman files for PDF tutorials
     configure_file(${PROJECT_SOURCE_DIR}/OpenMS_tutorial/refman_overwrite.tex.in ${PROJECT_BINARY_DIR}/OpenMS_tutorial/refman_overwrite.tex)
-    configure_file(${PROJECT_SOURCE_DIR}/TOPP_tutorial/refman_overwrite.tex.in ${PROJECT_BINARY_DIR}/TOPP_tutorial/refman_overwrite.tex)
 
     #------------------------------------------------------------------------------
     # doc paths (bin path, topp documenter, defaultparamhandler documenter)
@@ -345,7 +332,6 @@ if(ENABLE_DOCS)
 
         # configure doxyfiles for tutorials
         configure_file(${PROJECT_SOURCE_DIR}/OpenMS_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/OpenMS_tutorial/Doxyfile)
-        configure_file(${PROJECT_SOURCE_DIR}/TOPP_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/TOPP_tutorial/Doxyfile)
 
         # check doxygen for bug with generated latex files
         set(DOXYGEN_START_BUGGY "1.6.3")
@@ -374,20 +360,6 @@ if(ENABLE_DOCS)
                           COMMAND ${CMAKE_COMMAND} -E echo "doc/OpenMS_tutorial.pdf"
                           COMMAND ${CMAKE_COMMAND} -E echo ""
                           COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                          COMMAND ${CMAKE_COMMAND} -E echo "Creating TOPP/TOPPView pdf tutorial"
-                          COMMAND ${CMAKE_COMMAND} -E echo ""
-                          COMMAND ${CMAKE_COMMAND} -E remove_directory TOPP_tutorial/latex_output
-                          COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/ "${DOXYGEN_EXECUTABLE}" Doxyfile
-                          COMMAND ${CMAKE_COMMAND} -E copy TOPP_tutorial/refman_overwrite.tex TOPP_tutorial/latex_output/refman.tex
-                          COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
-                          COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  "${MAKEINDEX_COMPILER}" refman.idx
-                          COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
-                          COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
-                          COMMAND ${CMAKE_COMMAND} -E copy TOPP_tutorial/latex_output/refman.pdf TOPP_tutorial.pdf
-                          COMMAND ${CMAKE_COMMAND} -E echo ""
-                          COMMAND ${CMAKE_COMMAND} -E echo "The OpenMS tutorial in PDF format has been successfully created:"
-                          COMMAND ${CMAKE_COMMAND} -E echo "doc/TOPP_tutorial.pdf"
-                          COMMAND ${CMAKE_COMMAND} -E echo ""
                           COMMENT "Build the OpenMS/TOPP pdf tutorial"
                           VERBATIM)
 
@@ -399,7 +371,6 @@ if(ENABLE_DOCS)
 
         #------------------------------------------------------------------------------
         # install also the tutorial pdfs
-        install_file(${PROJECT_BINARY_DIR}/TOPP_tutorial.pdf ${INSTALL_DOC_DIR} doc)
         install_file(${PROJECT_BINARY_DIR}/OpenMS_tutorial.pdf ${INSTALL_DOC_DIR} doc)
 
         #------------------------------------------------------------------------------
