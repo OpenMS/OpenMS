@@ -88,6 +88,12 @@ namespace OpenMS
       */
     void updateMonomassAndIsotopeIntensities();
 
+    /**
+           @brief Update isotope cosine sore and qscore
+           @param avg precalculated averagine
+           @param min_cos the peak groups with cosine score less than this will have QScore 0.
+           @param iso_da_distance Danton distance between consecutive isotopologues. Will be used to generate decoy masses.
+      */
     void updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double iso_da_distance);
 
     //MSSpectrum getSubspectrumForMass(const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass);
@@ -170,6 +176,7 @@ namespace OpenMS
     /// get charge range - the actual charge values
     std::tuple<int, int> getAbsChargeRange() const;
 
+    /// get per isotope intensities
     std::vector<float> getIsotopeIntensities() const;
 
     /// get isotopic cosine score
@@ -228,6 +235,7 @@ namespace OpenMS
 
     double getIsotopeDaDistance() const;
 
+    /// const iterators of LogMzPeaks in PeakGroup
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator begin() const noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator end() const noexcept;
 
