@@ -34,10 +34,11 @@
 
 #pragma once
 
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/Precursor.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
+
 
 namespace OpenMS
 {

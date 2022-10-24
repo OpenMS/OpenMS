@@ -34,13 +34,14 @@
 
 #pragma once
 
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-#include <iostream>
-#include <iomanip>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
+
+#include <iostream>
+#include <iomanip>
 
 namespace OpenMS
 {

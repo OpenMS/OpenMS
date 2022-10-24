@@ -36,14 +36,13 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
-
+#include <OpenMS/KERNEL/MSSpectrum.h>
 ///////////////////////////
 
 using namespace OpenMS;

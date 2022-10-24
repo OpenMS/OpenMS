@@ -37,8 +37,8 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
