@@ -240,7 +240,6 @@ namespace OpenMS
     int getIndex() const;
 
 
-
     /// const iterators of LogMzPeaks in PeakGroup
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator begin() const noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator end() const noexcept;
@@ -265,6 +264,7 @@ namespace OpenMS
 
     /// set per abs_charge signal power
     void setChargePowers_(const int abs_charge, const double signal_pwr, const double noise_pwr, const double intensity);
+    /// update chargefit score and also update per charge intensities here.
     void updateChargeFitScoreAndChargeIntensities_();
     //update avg ppm error
     void updateAvgPPMError_(double iso_da_distance);
