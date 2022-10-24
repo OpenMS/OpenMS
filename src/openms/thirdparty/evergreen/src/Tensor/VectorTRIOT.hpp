@@ -2,13 +2,17 @@
 #define _VECTORTRIOT_HPP
 
 template <typename ...VECTORS>
-void check_vector_pack_lengths(const VECTORS & ...args, unsigned long length) {
-  #ifdef SHAPE_CHECK
+#ifndef SHAPE_CHECK
+void check_vector_pack_lengths(const VECTORS&... /*args*/, unsigned long /*length*/) {}
+#else
+void check_vector_pack_lengths(const VECTORS&... args, unsigned long length)
+{
   unsigned long sizes[] = { args.size()... };
   for (unsigned long s : sizes)
     assert(s >= length);
-  #endif
 }
+#endif
+
 
 // Note: Vectorizing functions also work on VectorView types; a
 // common base class could be used, but that would require virtual
