@@ -135,9 +135,14 @@ namespace TRIOT {
 }
 
 template <typename ...TENSORS>
-void check_tensor_pack_bounds(const TENSORS & ...args, const Vector<unsigned long> & shape) {
-  #ifdef SHAPE_CHECK
-  // Verify same shapes:
+#ifndef SHAPE_CHECK
+  void check_tensor_pack_bounds(const TENSORS&... /*args*/, const Vector<unsigned long>& /*shape*/)
+  {
+  }
+#else
+  void check_tensor_pack_bounds(const TENSORS&... args, const Vector<unsigned long>& shape)
+  {
+    // Verify same shapes:
 
   // TODO: this could be faster by using an array of references; C++
   // does not allow an array of references, but it would allow an
@@ -151,10 +156,10 @@ void check_tensor_pack_bounds(const TENSORS & ...args, const Vector<unsigned lon
     // the current view_shape:
     assert(s >= shape);
   }
-  #endif
 }
+#endif
 
-template <typename ...TENSORS>
+  template <typename ...TENSORS>
 void check_tensor_pack_bounds(const Vector<unsigned long> & /*shape*/) {
 }
 
