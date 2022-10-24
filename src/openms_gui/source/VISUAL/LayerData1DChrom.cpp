@@ -55,7 +55,7 @@ namespace OpenMS
     return LayerDataChrom::storeFullData(); // just forward
   }
 
-  QMenu* LayerData1DChrom::getContextMenuAnnotation(Annotation1DItem* annot_item, bool& need_repaint)
+  QMenu* LayerData1DChrom::getContextMenuAnnotation(Annotation1DItem* /*annot_item*/, bool& /*need_repaint*/)
   {
     auto* context_menu = new QMenu("Chrom1D", nullptr);
 

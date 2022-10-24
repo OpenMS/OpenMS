@@ -78,7 +78,7 @@ namespace OpenMS
     return ret;
   }
 
-  LayerDataChrom::ProjectionData LayerDataChrom::getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const
+  LayerDataChrom::ProjectionData LayerDataChrom::getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& /*area*/) const
   {
     ProjectionData result;
 

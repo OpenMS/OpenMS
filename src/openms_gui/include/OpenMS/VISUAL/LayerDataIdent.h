@@ -73,7 +73,7 @@ namespace OpenMS
 
     ProjectionData getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const override;
 
-    PeakIndex findHighestDataPoint(const RangeAllType& area) const override
+    PeakIndex findHighestDataPoint(const RangeAllType& /*area*/) const override
     { // todo: not implemented
       return PeakIndex();
     }

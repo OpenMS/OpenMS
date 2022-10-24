@@ -46,7 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  std::unique_ptr<LayerStoreData> LayerData1DIonMobility::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
+  std::unique_ptr<LayerStoreData> LayerData1DIonMobility::storeVisibleData(const RangeAllType& /*visible_range*/, const DataFilters& /*layer_filters*/) const
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     // does not exist yet...
@@ -58,7 +58,7 @@ namespace OpenMS
     // does not exist yet...
   }
 
-  QMenu* LayerData1DIonMobility::getContextMenuAnnotation(Annotation1DItem* annot_item, bool& need_repaint)
+  QMenu* LayerData1DIonMobility::getContextMenuAnnotation(Annotation1DItem* /*annot_item*/, bool& /*need_repaint*/)
   {
     auto* context_menu = new QMenu("MobilityPeak", nullptr);
     return context_menu;
