@@ -156,7 +156,7 @@ protected:
 
     if (in_raw.size() != id_in.size())
     {
-      writeLog_("Number of spectrum files and identification files differs...");
+      writeLogError_("Number of spectrum files and identification files differs...");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -388,7 +388,7 @@ protected:
       }
       catch (Exception::UnableToFit&)
       {
-        writeLog_("Unable to fit a Gaussian distribution to the precursor mass errors");
+        writeLogWarn_("Unable to fit a Gaussian distribution to the precursor mass errors");
       }
     }
 
@@ -487,7 +487,7 @@ protected:
       }
       catch (Exception::UnableToFit&)
       {
-        writeLog_("Unable to fit a Gaussian distribution to the fragment mass errors");
+        writeLogWarn_("Unable to fit a Gaussian distribution to the fragment mass errors");
       }
     }
 

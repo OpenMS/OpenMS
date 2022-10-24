@@ -223,7 +223,7 @@ protected:
     String xml_out = getStringOption_("xml_out");
     if (xml_out.empty() && out.empty())
     {
-      writeLog_("Fatal error: no output file given (parameter 'out' or 'xml_out')");
+      writeLogError_("Fatal error: no output file given (parameter 'out' or 'xml_out')");
       return ILLEGAL_PARAMETERS;
     }
 

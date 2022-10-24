@@ -31,7 +31,7 @@
 # $Maintainer: Hannes Röst $
 # $Authors: Hannes Röst, Uwe Schmitt, Stephan Aiche $
 # --------------------------------------------------------------------------
-## 3.15 for FindPython (note the discussion in https://gitlab.kitware.com/cmake/cmake/-/issues/21186)
+## 3.15 to enable new find policies for FindPython (note the discussion in https://gitlab.kitware.com/cmake/cmake/-/issues/21186)
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("pyOpenMS" LANGUAGES C CXX)
 
@@ -167,7 +167,7 @@ if(AUTOWRAP_MISSING)
 else()
     execute_process(
         COMMAND
-        ${Python_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 8))"
+        ${Python_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 9))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -188,7 +188,7 @@ else()
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
     else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.22.8 is required)")
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.22.9 is required)")
         message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
     endif()
 endif()
@@ -209,7 +209,7 @@ if( _PYTEST_MISSING EQUAL 0)
     set(PYTEST_MISSING FALSE)
 endif()
 if(PYTEST_MISSING)
-	message(FATAL_ERROR "Looking for pytest testing framework - not found")
+	message(WARNING "Looking for pytest testing framework - not found. Testing pyopenms will not work.")
 else()
 	message(STATUS "Looking for pytest testing framework - found")
 endif()
@@ -290,7 +290,7 @@ endif()
 #------------------------------------------------------------------------------
 # Handle missing libraries (this should never be reached, as the individual
 #  parts should fire FATAL_ERRORs if something is missing)
-if(NUMPY_MISSING OR CYTHON_MODULE_NOTFOUND OR NOT CYTHON_MODULE_VERSION_CHECK_OK OR NOT AUTOWRAP_VERSION_OK OR PYTEST_MISSING
+if(NUMPY_MISSING OR CYTHON_MODULE_NOTFOUND OR NOT CYTHON_MODULE_VERSION_CHECK_OK OR NOT AUTOWRAP_VERSION_OK
    OR SETUPTOOLS_MISSING OR WHEEL_MISSING)
   message(FATAL_ERROR "Required Python modules not found or out of date")
 endif()
@@ -472,12 +472,12 @@ if ("${PY_NUM_MODULES}" GREATER "1")
     set(PYCPPFILES "")
     set(PYPYXFILES "")
     foreach(NUM RANGE 1 ${PY_NUM_MODULES})
-      list(APPEND PYCPPFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${NUM}.cpp")
-      list(APPEND PYPYXFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${NUM}.pyx")
+      list(APPEND PYCPPFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms_${NUM}.cpp")
+      list(APPEND PYPYXFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms_${NUM}.pyx")
     endforeach()
 else()
-    set(PYCPPFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.cpp")
-    set(PYPYXFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.pyx")
+    set(PYCPPFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms.cpp")
+    set(PYPYXFILES "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms.pyx")
 endif()
 
 
@@ -623,13 +623,13 @@ endif()
 if ("${PY_NUM_MODULES}" GREATER "1")
     add_custom_target(pyopenms_compile)
     foreach(nr RANGE 1 ${PY_NUM_MODULES})
-      #list(APPEND PYOPENMS_SRC "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.cpp")
-      Python_add_library(pyopenms_${nr} MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.cpp" )
+      #list(APPEND PYOPENMS_SRC "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms_${nr}.cpp")
+      Python_add_library(pyopenms_${nr} MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms_${nr}.cpp" )
       target_link_libraries(pyopenms_${nr} PRIVATE OpenMS)
       target_include_directories(pyopenms_${nr} SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
       target_compile_options(pyopenms_${nr} PRIVATE ${EXTRA_WARNINGS})
       set_target_properties(pyopenms_${nr} PROPERTIES
-        OUTPUT_NAME pyopenms_${nr}
+        OUTPUT_NAME _pyopenms_${nr}
         PREFIX "" # if you build a shared module it adds lib as prefix
         SUFFIX ${PYTHON_EXT_SUFFIX} # since CMake 3.17 you can add WITH_SOABI to Python_add_library
         CXX_VISIBILITY_PRESET ${VIS_PRESET}
@@ -651,16 +651,16 @@ if ("${PY_NUM_MODULES}" GREATER "1")
       add_dependencies(pyopenms_compile pyopenms_${nr})
       add_custom_command(TARGET pyopenms_${nr}
                    POST_BUILD
-                   COMMAND ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/fix_pyi_imports.py ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms_${nr}.pyi
-                   COMMENT "Fixing typing information for pyopenms_${nr}")
+                   COMMAND ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/fix_pyi_imports.py ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms_${nr}.pyi
+                   COMMENT "Fixing typing information for _pyopenms_${nr}")
     endforeach()
 else()
-    Python_add_library(pyopenms_compile MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.cpp" )
+    Python_add_library(pyopenms_compile MODULE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/_pyopenms.cpp" )
     target_link_libraries(pyopenms_compile PRIVATE OpenMS)
     target_include_directories(pyopenms_compile SYSTEM PUBLIC ${PYOPENMS_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${AUTOWRAP_INCLUDES})
     target_compile_options(pyopenms_compile PRIVATE ${EXTRA_WARNINGS})
     set_target_properties(pyopenms_compile PROPERTIES
-        OUTPUT_NAME pyopenms
+        OUTPUT_NAME _pyopenms
         PREFIX "" # if you build a shared module it adds lib as prefix
         SUFFIX ${PYTHON_EXT_SUFFIX} # since CMake 3.17 you can add WITH_SOABI to Python_add_library
         CXX_VISIBILITY_PRESET ${VIS_PRESET}
@@ -678,6 +678,10 @@ else()
         LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
         RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms"
     )
+    add_custom_command(TARGET pyopenms_compile
+    POST_BUILD
+    COMMAND ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/fix_pyi_imports.py ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/pyopenms.pyi #TODO Check if really necessary
+    COMMENT "Fixing typing information for pyopenms")
 endif()
 
 ## use no-binary=pyopenms since we built the binaries already with cmake
@@ -712,31 +716,6 @@ ELSE()
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
     ENDIF()
 ENDIF()
-
-# IF(LINUX AND PY_NO_OUTPUT)
-#   add_custom_command(
-#             OUTPUT ${PYSOFILES}
-#             COMMAND ${Python_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS} 2> /dev/null
-#             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
-#             DEPENDS compile_pxds prepare_pyopenms_libs
-#             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-# ELSEIF(APPLE) # We need to still copy libs with our script
-#   add_custom_command(
-#             OUTPUT ${PYSOFILES}
-#             COMMAND ${Python_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
-#             COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -f -v
-#             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
-#             DEPENDS compile_pxds prepare_pyopenms_libs
-#             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-# ELSE()
-#   add_custom_command(
-#             OUTPUT ${PYSOFILES}
-#             COMMAND ${Python_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
-#             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
-#             DEPENDS compile_pxds prepare_pyopenms_libs
-#             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-# ENDIF()
-
 
 ###########################################################################
 #####                      Testing pyOpenMS                           #####
