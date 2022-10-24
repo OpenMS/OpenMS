@@ -99,13 +99,13 @@ namespace OpenMS
     }
 
     updateChargeFitScoreAndChargeIntensities_();
-    if(charge_score_ < .7)//
+    if(charge_score_ < .7)
     {
       qscore_ = 0;
       return;
     }
 
-    updateMonomassAndIsotopeIntensities(); //
+    updateMonomassAndIsotopeIntensities();
     if(per_isotope_int_.empty() || max_abs_charge_ < min_abs_charge_)
     {
       qscore_ = 0;
@@ -164,7 +164,6 @@ namespace OpenMS
     updateSNR();
     for (int abs_charge = min_abs_charge_; abs_charge <= max_abs_charge_; abs_charge++)
     {
-      if (getChargeSNR(abs_charge) <= 0 || getChargeIsotopeCosine(abs_charge) <= 0)
       if (getChargeSNR(abs_charge) <= 0 || getChargeIsotopeCosine(abs_charge) <= 0)
       {
         continue;
@@ -281,7 +280,7 @@ namespace OpenMS
 
         double peak_pwr = pint * pint;
 
-        if(abs(pmz - cmz - iso_index * iso_delta) <= std::min(.25, pmz * tol)) //
+        if(abs(pmz - cmz - iso_index * iso_delta) <= std::min(.25, pmz * tol))
         {
           auto p = LogMzPeak(spec[index], is_positive_);
           p.isotopeIndex = iso_index;
