@@ -235,6 +235,12 @@ namespace OpenMS
 
     double getIsotopeDaDistance() const;
 
+    void setIndex(const int i);
+
+    int getIndex() const;
+
+
+
     /// const iterators of LogMzPeaks in PeakGroup
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator begin() const noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator end() const noexcept;
@@ -267,7 +273,6 @@ namespace OpenMS
     /// log Mz peaks
     std::vector<FLASHDeconvHelperStructs::LogMzPeak> logMzpeaks_;
 
-
     /// per charge SNR, isotope cosine, and intensity vectors
     std::vector<float> per_charge_signal_pwr_;
     std::vector<float> per_charge_pwr_;
@@ -280,6 +285,8 @@ namespace OpenMS
     double max_qscore_mz_end_, max_qscore_mz_start_;
     /// charge range
     int min_abs_charge_ = 0, max_abs_charge_ = -1;
+    /// peak group index
+    int index_ = 0;
     /// scan number
     int scan_number_;
     /// is positive or not

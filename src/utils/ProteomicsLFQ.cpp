@@ -1822,7 +1822,8 @@ protected:
     // And probably make sure that peptides that correspond to filtered out proteins are not producing errors
     // e.g. by removing them with a Filter beforehand.
 
-    consensus.resolveUniqueIdConflicts(); // TODO: find out if this is still needed
+    consensus.resolveUniqueIdConflicts(); // TODO: find out if this is still needed    
+
     if (!getStringOption_("out_cxml").empty())
     {
       // Note: idXML and consensusXML doesn't support writing quantification at protein groups
@@ -1843,6 +1844,8 @@ protected:
 
     if (!out_msstats.empty())
     {
+      IDFilter::removeEmptyIdentifications(consensus); // MzTab stream exporter currently doesn't support IDs with empty hits.
+      
       MSstatsFile msstats;
       // TODO: add a helper method to quickly check if experimental design file contain the right columns
       //  (and put this at start of tool)
@@ -1868,7 +1871,6 @@ protected:
 
       // shrink protein runs to the one containing the inference data
       consensus.getProteinIdentifications().resize(1);
-
 
       IDScoreSwitcherAlgorithm switcher;
       Size c = 0;

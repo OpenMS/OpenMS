@@ -254,7 +254,7 @@ protected:
     fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
     //fd_defaults.addTag("tol", "advanced"); // hide entry
-    fd_defaults.setValue("min_intensity", 100.0, "Intensity threshold");
+    fd_defaults.setValue("min_intensity", 10.0, "Intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
     fd_defaults.setValue("min_isotope_cosine",
                          DoubleList{.85, .85, .85},
@@ -444,6 +444,24 @@ protected:
     return precursor_map_for_real_time_acquisition;
   }
 
+  static void filterLowPeaks(MSExperiment& map, Size count)
+  {
+    for (auto & it : map)
+    {
+      if(it.size()<=count)
+      {
+        continue;
+      }
+      it.sortByIntensity(true);
+
+      while(it.size()>count)
+      {
+        it.pop_back();
+      }
+      it.sortByPosition();
+    }
+  }
+
   static std::vector<double> getTargetMasses(String targets)
   {
     vector<double> result;
@@ -488,6 +506,7 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
+    const Size max_peak_count_ = 30000;
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
     String in_train_file = "";
@@ -712,6 +731,9 @@ protected:
     DoubleList tols = fd_param.getValue("tol");
     //fd_param.setValue("tol", getParam_().getValue("tol"));
 
+    filterLowPeaks(map, max_peak_count_);
+
+
     // if a merged spectrum is analyzed, replace the input dataset with the merged one
     if (merge == 1)
     {
@@ -721,6 +743,7 @@ protected:
       Param sm_param = merger.getDefaults();
       sm_param.setValue("average_gaussian:precursor_mass_tol", tols[0]);
       sm_param.setValue("average_gaussian:precursor_max_charge", std::abs((int)fd_param.getValue("max_charge")));
+      //sm_param.setValue("average_gaussian:rt_FWHM", 20.0); // for top down 10 seconds make sense.
 
       merger.setParameters(sm_param);
       map.sortSpectra();
@@ -751,6 +774,8 @@ protected:
       fd_param.setValue("min_rt", .0);
       fd_param.setValue("max_rt", .0);
     }
+
+    filterLowPeaks(map, max_peak_count_);
 
     fd.setParameters(fd_param);
     fd.calculateAveragine(use_RNA_averagine);
@@ -876,9 +901,6 @@ protected:
 
       if (merge != 2)
       {
-        mass_tracer.storeInformationFromDeconvolvedSpectrum(
-            deconvolved_spectrum);// add deconvolved mass in mass_tracer
-
         scan_rt_map[deconvolved_spectrum.getScanNumber()] = it->getRT();
       }
 
@@ -941,6 +963,7 @@ protected:
       if ((int) out_spec_streams.size() > ms_level - 1)
       {
         FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, report_decoy);
+        mass_tracer.storeInformationFromDeconvolvedSpectrum(deconvolved_spectrum);// add deconvolved mass in mass_tracer
       }
       if ((int) out_topfd_streams.size() > ms_level - 1)
       {
@@ -979,7 +1002,7 @@ protected:
       auto mass_features = mass_tracer.findFeatures(// !out_promex_file.empty(), !out_topfd_feature_file.empty(),
                               // precursor_peak_groups,
         fd.getAveragine()
-                               //feature_cntr, , out_stream, out_promex_stream, out_topfd_feature_streams
+                               //feature_cntr , out_stream, out_promex_stream, out_topfd_feature_streams
                                );
       feature_cntr = mass_features.size();
       if(feature_cntr > 0)
@@ -1013,7 +1036,6 @@ protected:
       {
         OPENMS_LOG_INFO << "So far, FLASHDeconv found " << mass_cntr[j] << " masses in the merged MS"
                         << (j + 1) << " spectrum" << endl;
-
       }
       else
       {

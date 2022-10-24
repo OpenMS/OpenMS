@@ -122,13 +122,15 @@ namespace OpenMS
      * @param b vector b
      * @param b_size size of b
      * @param offset element index offset between a and b
+     * @param min_iso_size minimum isotope size. If isotope size is less than this, return 0
      */
     static float getCosine(const std::vector<float>& a,
                              int a_start,
                              int a_end,
                              const IsotopeDistribution& b,
                              int b_size,
-                             int offset);
+                             int offset,
+                             int min_iso_size);
 
     /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
         @param mono_mass monoisotopic mass
@@ -185,7 +187,7 @@ namespace OpenMS
     /// peak intensity threshold subject to analysis
     double intensity_threshold_;
     /// minimum number of peaks supporting a mass
-    const IntList min_support_peak_count_ = {3,3,3,3,3,3,3,3};
+    const static int min_support_peak_count_ = 3;
     /// tolerance in ppm for each MS level
     DoubleList tolerance_;
     /// bin size for first stage of mass selection - for fast convolution, binning is used
@@ -254,13 +256,10 @@ namespace OpenMS
     int ms_level_;
 
     /// high and low charges are differently deconvolved. This value determines the (inclusive) threshold for low charge.
-    const int low_charge_ = 5; // 5 inclusive
+    const int low_charge_ = 8; //8 inclusive
 
     /// default precursor isolation window size.
     double isolation_window_size_;
-
-    /// allowed maximum peak count per spectrum - intensity based.
-    const int max_peak_count_ = 30000;//30000
 
     /** @brief static function that converts bin to value
         @param bin bin number
