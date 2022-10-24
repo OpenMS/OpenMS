@@ -72,7 +72,7 @@ namespace OpenMS
     return *this;
   }
 
-  EnzymaticDigestion::~EnzymaticDigestion() = default
+  EnzymaticDigestion::~EnzymaticDigestion() = default;
 
   Size EnzymaticDigestion::getMissedCleavages() const
   {
@@ -153,7 +153,7 @@ namespace OpenMS
 
   bool EnzymaticDigestion::filterByMissedCleavages(const String& sequence, const std::function<bool(Int)>& filter) const
   {
-    return filter(Int(countInternalCleavageSites));
+    return filter(&countInternalCleavageSites);
   }
 
   bool EnzymaticDigestion::isValidProduct_(const String& sequence, int pos, int length, bool ignore_missed_cleavages, bool allow_nterm_protein_cleavage, bool allow_random_asp_pro_cleavage) const
