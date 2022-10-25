@@ -36,6 +36,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>" namespace "Ope
         void getProtonDistribution(libcpp_vector[ double ] & bb_charges, libcpp_vector[ double ] & sc_charges, AASequence & peptide, Int charge, ResidueType res_type) nogil except +
             # wrap-doc:
             #   Calculates a proton distribution of the given charged peptide
+            #   
             #   -----
             #   :param bb_charges: The calculated probabilities of the backbone sites (including N-terminus and C-terminus)
             #   :param sc_charges: The calculated probabilities of the side chain sites
@@ -46,6 +47,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>" namespace "Ope
         void getChargeStateIntensities(AASequence & peptide, AASequence & n_term_ion, AASequence & c_term_ion, Int charge, ResidueType n_term_type, libcpp_vector[ double ] & n_term_intensities, libcpp_vector[ double ] & c_term_intensities, FragmentationType type_) nogil except +
             # wrap-doc:
             #   Calculates the charge state intensities of different charge states of the same ion
+            #   
             #   -----
             #   :param peptide: The peptide
             #   :param n_term_ion: The prefix ion sequence

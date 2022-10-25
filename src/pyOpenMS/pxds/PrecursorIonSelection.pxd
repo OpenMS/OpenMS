@@ -24,6 +24,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace 
         void getNextPrecursors(FeatureMap & features, FeatureMap & next_features, UInt number) nogil except +
             # wrap-doc:
                 #   Returns features with highest score for MS/MS
+                #   
                 #   -----
                 #   :param features: FeatureMap with all possible precursors
                 #   :param next_features: FeatureMap with next precursors
@@ -42,6 +43,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace 
         void rescore(FeatureMap & features, libcpp_vector[ PeptideIdentification ] & new_pep_ids, libcpp_vector[ ProteinIdentification ] & prot_ids, PrecursorIonSelectionPreprocessing & preprocessed_db, bool check_meta_values) nogil except +
             # wrap-doc:
                 #   Change scoring of features using peptide identifications from all spectra
+                #   
                 #   -----
                 #   :param features: FeatureMap with all possible precursors
                 #   :param new_pep_ids: Peptide identifications
@@ -52,6 +54,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace 
         void simulateRun(FeatureMap & features, libcpp_vector[ PeptideIdentification ] & pep_ids, libcpp_vector[ ProteinIdentification ] & prot_ids, PrecursorIonSelectionPreprocessing & preprocessed_db, String path, MSExperiment & experiment, String precursor_path) nogil except +
             # wrap-doc:
                 #   Simulate the iterative precursor ion selection
+                #   
                 #   -----
                 #   :param features: FeatureMap with all possible precursors
                 #   :param new_pep_ids: Peptide identifications

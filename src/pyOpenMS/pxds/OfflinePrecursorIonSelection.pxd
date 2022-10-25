@@ -27,6 +27,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>" nam
                                                    feature_based) nogil except +
             # wrap-doc:
                 #   Makes the precursor selection for a given feature map, either feature or scan based
+                #   
                 #   -----
                 #   :param features: Input feature map
                 #   :param experiment: Input raw data

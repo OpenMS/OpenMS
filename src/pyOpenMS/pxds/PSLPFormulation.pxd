@@ -31,6 +31,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>" namespace "OpenM
             libcpp_vector[ int ] & solution_indices) nogil except + 
                 # wrap-doc:
                 #   Encode ILP formulation for a given LC-MS map, but unknown protein sample
+                #   
                 #   -----
                 #   :param features: FeatureMap with all possible precursors
                 #   :param experiment: Input raw data
