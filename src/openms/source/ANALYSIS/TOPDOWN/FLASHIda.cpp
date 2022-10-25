@@ -407,93 +407,76 @@ namespace OpenMS
           }
         }
 
+        auto [olmz, ormz] = pg.getMaxQScoreMzRange();
+
         // here crawling isolation windows max_isolation_window_half_
         auto ospec = deconvolved_spectrum_.getOriginalSpectrum();
-        Size index = ospec.findNearest(center_mz);
-        int tindexl = index;
-        Size tindexr = index + 1;
-        double lmz = -1.0, rmz = -1.0;
-
-        double sig_pwr = .0;
-        double noise_pwr = .0;
-        bool lkeep = true;
-        bool rkeep = true;
-        auto pmz_range = pg.getMzRange(charge);
-        double pmzl = std::get<0>(pmz_range);
-        double pmzr = std::get<1>(pmz_range);
-        //double final_snr = .0;
-
-        while (lkeep || rkeep)
+        if(ospec.size() > 2)
         {
-          if (tindexl < 0 || ospec[tindexl].getMZ() < center_mz - max_isolation_window_half_)// left side done
-          {
-            lkeep = false;
-          }
-          else
-          {
-            double power = pow(ospec[tindexl].getIntensity(), 2);
-            if (pg.isSignalMZ(ospec[tindexl].getMZ(), tol_[ospec.getMSLevel() - 1]))//
-            {
-              sig_pwr += power;
-            }
-            else
-            {
-              noise_pwr += power;
-            }
-          }
-          if (tindexr >= ospec.size() || ospec[tindexr].getMZ() > center_mz + max_isolation_window_half_)// right side done
-          {
-            rkeep = false;
-          }
-          else
-          {
-            double power = pow(ospec[tindexr].getIntensity(), 2);
-            if (pg.isSignalMZ(ospec[tindexr].getMZ(), tol_[ospec.getMSLevel() - 1]))//
-            {
-              sig_pwr += power;
-            }
-            else
-            {
-              noise_pwr += power;
-            }
-          }
+          Size index = ospec.findNearest(center_mz);
+          int tindexl = index == 0? index : index - 1;
+          Size tindexr = index == 0? index + 1 : index;
+          double lmz = ospec[tindexl].getMZ(), rmz = ospec[tindexr].getMZ();;
 
-          double tlmz = ospec[tindexl].getMZ();
-          double trmz = ospec[tindexr].getMZ();
+          double sig_pwr = .0;
+          double noise_pwr = .0;
 
-          tindexl--;
-          tindexr++;
+          bool goleft = tindexl > 0 && (center_mz -lmz >= rmz - center_mz);
+          bool goright = tindexr < ospec.size() - 1 && (center_mz - lmz <= rmz - center_mz);
 
-          if (trmz < pmzr + min_isolation_window_half_)
-          {
-            continue;
-          }
+         // auto pmz_range = pg.getMzRange(charge);
+          // double pmzl = std::get<0>(pmz_range);
+          // double pmzr = std::get<1>(pmz_range);
+          // double final_snr = .0;
 
-          if (tlmz > pmzl - min_isolation_window_half_)
+          while (goleft || goright)
           {
-            continue;
-          }
-
-          if (sig_pwr / noise_pwr < snr_threshold)
-          {
-            break;
-          }
-          else
-          {
-            if (tindexl >=0 && tindexl < (int) ospec.size() - 1)
-            {
-              lmz = std::max(center_mz - max_isolation_window_half_, tlmz);
+            if (goleft) {
+              double power = pow(ospec[tindexl].getIntensity(), 2);
+              if (pg.isSignalMZ(ospec[tindexl].getMZ(), tol_[ospec.getMSLevel() - 1])) //
+              {
+                sig_pwr += power;
+              }
+              else
+              {
+                noise_pwr += power;
+              }
+              tindexl--;
+              lmz = ospec[tindexl].getMZ();
             }
-            if (tindexr > 0 && tindexr < ospec.size())
-            {
-              rmz = std::min(center_mz + max_isolation_window_half_, trmz);
+            if(goright) {
+              double power = pow(ospec[tindexr].getIntensity(), 2);
+              if (pg.isSignalMZ(ospec[tindexr].getMZ(), tol_[ospec.getMSLevel() - 1])) //
+              {
+                sig_pwr += power;
+              }
+              else
+              {
+                noise_pwr += power;
+              }
+              tindexr++;
+              rmz = ospec[tindexr].getMZ();
             }
-            //final_snr = sig_pwr / noise_pwr;
+
+            goleft = tindexl > 0 && (center_mz - lmz >= rmz - center_mz);
+            goright = tindexr < ospec.size() - 1 && (center_mz - lmz <= rmz - center_mz);
+
+            if(lmz > olmz || rmz < ormz || rmz - lmz < min_isolation_window_half_ * 2)
+            {
+              continue;
+            }
+
+            if (sig_pwr / noise_pwr < snr_threshold)
+            {
+              break;
+            }
           }
+          olmz = std::max(center_mz - max_isolation_window_half_, lmz);
+          ormz = std::min(center_mz + max_isolation_window_half_, rmz);
         }
 
-
-        if (lmz < ospec[0].getMZ() - max_isolation_window_half_ || rmz > ospec.back().getMZ() + max_isolation_window_half_ || lmz + 2 * min_isolation_window_half_ > rmz || rmz - lmz > 2 * max_isolation_window_half_)
+        if (olmz < ospec[0].getMZ() - max_isolation_window_half_ || ormz > ospec.back().getMZ() + max_isolation_window_half_
+            || olmz + 2 * min_isolation_window_half_ > ormz || ormz - olmz > 2 * max_isolation_window_half_)
         {
           continue;
         }
@@ -517,8 +500,8 @@ namespace OpenMS
         filtered_peakgroups.push_back(pg);
         trigger_charges.push_back(charge);
 
-        trigger_left_isolation_mzs_.push_back(lmz);
-        trigger_right_isolation_mzs_.push_back(rmz);
+        trigger_left_isolation_mzs_.push_back(olmz);
+        trigger_right_isolation_mzs_.push_back(ormz);
 
         current_selected_mzs.insert(integer_mz);
       }
