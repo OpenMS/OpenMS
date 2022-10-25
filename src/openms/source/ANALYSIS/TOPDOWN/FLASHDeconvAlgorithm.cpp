@@ -1153,6 +1153,7 @@ namespace OpenMS
 
     if (previously_deconved_mono_masses_for_decoy.size() > 0)
     {
+      std::sort(previously_deconved_mono_masses_for_decoy.begin(), previously_deconved_mono_masses_for_decoy.end());
       previously_deconved_mass_bins_for_decoy = boost::dynamic_bitset<>(mass_bins_.size());
 
       for (double m : previously_deconved_mono_masses_for_decoy)
@@ -1265,6 +1266,10 @@ namespace OpenMS
             {
               exclude = true;
             }
+            if(peak_group.getMonoMass() - *upper > delta)
+            {
+              break;
+            }
           }
           if(upper == excluded_mono_masses_.begin())
           {
@@ -1290,6 +1295,10 @@ namespace OpenMS
             if (std::abs(*upper - peak_group.getMonoMass()) < delta)
             {
               peak_group.setTargeted();
+            }
+            if(peak_group.getMonoMass() - *upper > delta)
+            {
+              break;
             }
           }
           if(upper == target_mono_masses_.begin())
@@ -1321,6 +1330,10 @@ namespace OpenMS
             if (std::abs(*upper - peak_group.getMonoMass()) < delta)
             {
               exclude = true;
+            }
+            if(peak_group.getMonoMass() - *upper > delta)
+            {
+              break;
             }
           }
           if(upper == previously_deconved_mono_masses_for_decoy.begin())
