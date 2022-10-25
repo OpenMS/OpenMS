@@ -260,7 +260,7 @@ endif()
 #------------------------------------------------------------------------------
 # Enable SIRIUS_test (SiriusAdapter/AssayGeneratorMetabo)
 #------------------------------------------------------------------------------
-option(ENABLE_SIRIUS_TEST "Enable test for SIRIUS (SiriusAdapter)" ON)
+option(ENABLE_SIRIUS_TEST "Enable test for SIRIUS (SiriusAdapter)" OFF)
 
 #------------------------------------------------------------------------------
 # Enable CSI:FingerID_test (SiriusAdapter)
