@@ -16,6 +16,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>" namespace "Ope
         void FilterFeatureMap(FeatureMap features, MRMFeatureQC filter_criteria, TargetedExperiment transitions) nogil except +
             # wrap-doc:
                 #   Flags or filters features and subordinates in a FeatureMap
+                #   
                 #   -----
                 #   :param features: FeatureMap to flag or filter
                 #   :param filter_criteria: MRMFeatureQC class defining QC parameters

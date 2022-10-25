@@ -46,6 +46,7 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         void clear(int) nogil except +
             # wrap-doc:
                 #   Clears all data and meta data
+                #   
                 #   -----
                 #   :param clear_meta_data: If true, all meta data is cleared in addition to the data
 
@@ -56,24 +57,25 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         void sortByIntensity(bool reverse) nogil except +
             # wrap-doc:
                 #   Lexicographically sorts the peaks by their intensity
+                #   
                 #   -----
                 #   Sorts the peaks according to ascending intensity. Meta data arrays will be sorted accordingly
 
         void sortByPosition() nogil except +
             # wrap-doc:
                 #   Lexicographically sorts the peaks by their position
+                #   
                 #   -----
                 #   The chromatogram is sorted with respect to position. Meta data arrays will be sorted accordingly
 
         int findNearest(double) nogil except +
             # wrap-doc:
                 #   Binary search for the peak nearest to a specific RT
+                #   :note: Make sure the chromatogram is sorted with respect to RT! Otherwise the result is undefined
+                #   
                 #   -----
                 #   :param rt: The searched for mass-to-charge ratio searched
-                #   :returns: Returns the index of the peak.
-                #   -----
-                #   :note: Make sure the chromatogram is sorted with respect to RT! Otherwise the result is undefined
-                #   -----
+                #   :return: Returns the index of the peak.
                 #   :raises:
                 #     Exception: Precondition is thrown if the chromatogram is empty (not only in debug mode)
 

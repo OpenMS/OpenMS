@@ -18,12 +18,14 @@ cdef extern from "<OpenMS/FORMAT/MzXMLFile.h>" namespace "OpenMS":
         void load(String filename, MSExperiment & exp) nogil except + 
             # wrap-doc:
                 #   Loads a MSExperiment from a MzXML file
+                #   
                 #   -----
                 #   :param exp: MSExperiment
 
         void store(String filename, MSExperiment & exp) nogil except +
             # wrap-doc:
                 #   Stores a MSExperiment in a MzXML file
+                #   
                 #   -----
                 #   :param exp: MSExperiment
 

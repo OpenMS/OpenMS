@@ -25,6 +25,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>" namespace "O
                                                                        unsigned int& file_counter) nogil except +
             # wrap-doc:
                 #   Extract a vector of MetaboTargetedAssays without using fragment annotation
+                #   
                 #   -----
                 #   :param spectra: Input of MSExperiment with spectra information
                 #   :param feature_ms2_spectra_map: FeatureMapping class with associated MS2 spectra
@@ -37,7 +38,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>" namespace "O
                 #   :param method_consensus_spectrum: Boolean to use consensus spectrum method
                 #   :param exclude_ms2_precursor: Boolean to exclude MS2 precursor from MetaboTargetedAssay
                 #   :param file_counter: Count if multiple files are used
-                #   :returns: Vector of MetaboTargetedAssay
+                #   :return: Vector of MetaboTargetedAssay
 
        libcpp_vector[ MetaboTargetedAssay ] extractMetaboTargetedAssayFragmentAnnotation(libcpp_vector[ MetaboTargetedAssay_CompoundTargetDecoyPair ]& v_cmp_spec,
                                                                                          double& transition_threshold,
@@ -47,7 +48,8 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>" namespace "O
                                                                                          bool& exclude_ms2_precursor,
                                                                                          unsigned int& file_counter) nogil except +
             # wrap-doc:
-                #   Extract a vector of MetaboTargetedAssays using fragment annotation
+                #   Extract a vector of MetaboTargetedAssays using fragment 
+                #   
                 #   -----
                 #   :param v_cmp_spec: Vector of CompoundInfo with associated fragment annotated MSspectrum
                 #   :param transition_threshold: Intensity threshold for MS2 peak used in MetaboTargetedAssay
@@ -56,12 +58,13 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>" namespace "O
                 #   :param use_exact_mass: Boolean if exact mass should be used as peak mass for annotated fragments
                 #   :param exclude_ms2_precursor: Boolean to exclude MS2 precursor from MetaboTargetedAssay
                 #   :param file_counter: Count if multiple files are used.
-                #   :returns: Vector of MetaboTargetedAssay
+                #   :return: Vector of MetaboTargetedAssay
 
        libcpp_vector[ MetaboTargetedAssay_CompoundTargetDecoyPair ] pairCompoundWithAnnotatedTDSpectraPairs(libcpp_vector[ SiriusMSFile_CompoundInfo ]& v_cmpinfo,
                                                                                                      libcpp_vector[ SiriusFragmentAnnotation_SiriusTargetDecoySpectra]& annotated_spectra) nogil except +
             # wrap-doc:
                 #   Pair compound information (SiriusMSFile) with the annotated target and decoy spectrum from SIRIUS/Passatutto based on the m_id (unique identifier composed of description_filepath_native_id_k introduced in the SiriusMSConverter)
+                #   
                 #   -----
                 #   :param v_cmpinfo: Vector of SiriusMSFile::CompoundInfo
                 #   :param annotated_spectra: Vector of SiriusTargetDecoySpectra
