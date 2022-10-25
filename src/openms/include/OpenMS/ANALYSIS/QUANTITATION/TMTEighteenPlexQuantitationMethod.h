@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Stephan Aiche $
+// $Authors: Stephan Aiche, Samuel Wein, Radu Suciu $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -41,25 +41,25 @@
 namespace OpenMS
 {
   /**
-    @brief TMT 10plex quantitation to be used with the IsobaricQuantitation.
+    @brief TMT 18plex quantitation to be used with the IsobaricQuantitation.
 
-    @htmlinclude OpenMS_TMTTenPlexQuantitationMethod.parameters
+    @htmlinclude OpenMS_TMTEighteenPlexQuantitationMethod.parameters
   */
-  class OPENMS_DLLAPI TMTTenPlexQuantitationMethod :
+  class OPENMS_DLLAPI TMTEighteenPlexQuantitationMethod :
     public IsobaricQuantitationMethod
   {
 public:
     /// Default c'tor
-    TMTTenPlexQuantitationMethod();
+    TMTEighteenPlexQuantitationMethod();
 
     /// d'tor
-    ~TMTTenPlexQuantitationMethod() override = default;
+    ~TMTEighteenPlexQuantitationMethod() override = default;
 
     /// Copy c'tor
-    TMTTenPlexQuantitationMethod(const TMTTenPlexQuantitationMethod& other);
+    TMTEighteenPlexQuantitationMethod(const TMTEighteenPlexQuantitationMethod& other);
 
     /// Assignment operator
-    TMTTenPlexQuantitationMethod & operator=(const TMTTenPlexQuantitationMethod& rhs);
+    TMTEighteenPlexQuantitationMethod & operator=(const TMTEighteenPlexQuantitationMethod& rhs);
 
     /// @brief Methods to implement from IsobaricQuantitationMethod
     /// @{
@@ -77,7 +77,7 @@ public:
     /// @}
 
   private:
-    /// the actual information on the different tmt10plex channels.
+    /// the actual information on the different tmt18plex channels.
     IsobaricChannelList channels_;
 
     /// The name of the quantitation method.
@@ -95,7 +95,6 @@ public:
 
     /// implemented for DefaultParamHandler
     void updateMembers_() override;
-
   };
 } // namespace
 
