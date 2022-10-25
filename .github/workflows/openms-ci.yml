@@ -68,7 +68,7 @@ jobs:
       id: extract_pr
 
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.12
+      uses: jwlawson/actions-setup-cmake@v1.13
       with:
         cmake-version: 'latest'
 
