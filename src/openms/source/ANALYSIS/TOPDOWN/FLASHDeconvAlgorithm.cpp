@@ -1162,7 +1162,7 @@ namespace OpenMS
           continue;
         }
         Size j = getBinNumber_(log(m), mass_bin_min_value_, bin_width_[ms_level_ - 1]);
-        if (j < 1)
+        if (j < 0)
         {
           continue;
         }
@@ -1194,7 +1194,7 @@ namespace OpenMS
             continue;
           }
 
-          if (j >= target_mass_bins_.size() - 1)
+          if (j >= target_mass_bins_.size() - 2)
           {
             break;
           }
@@ -1257,11 +1257,17 @@ namespace OpenMS
         double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1] * 2;
         auto upper = std::upper_bound(excluded_mono_masses_.begin(), excluded_mono_masses_.end(), peak_group.getMonoMass() + delta);
         bool exclude = false;
-        while (upper != excluded_mono_masses_.begin())
+        while (!exclude)
         {
-          if (std::abs(*upper - peak_group.getMonoMass()) < delta)
+          if(upper != excluded_mono_masses_.end())
           {
-            exclude = true;
+            if (std::abs(*upper - peak_group.getMonoMass()) < delta)
+            {
+              exclude = true;
+            }
+          }
+          if(upper == excluded_mono_masses_.begin())
+          {
             break;
           }
           --upper;
@@ -1277,11 +1283,18 @@ namespace OpenMS
         double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1] * 2;
         auto upper = std::upper_bound(target_mono_masses_.begin(), target_mono_masses_.end(), peak_group.getMonoMass() + delta);
 
-        while (upper != target_mono_masses_.begin() && !peak_group.isTargeted())
+        while (!peak_group.isTargeted())
         {
-          if (std::abs(*upper - peak_group.getMonoMass()) < delta)
+          if(upper != target_mono_masses_.end())
           {
-            peak_group.setTargeted();
+            if (std::abs(*upper - peak_group.getMonoMass()) < delta)
+            {
+              peak_group.setTargeted();
+            }
+          }
+          if(upper == target_mono_masses_.begin())
+          {
+            break;
           }
           --upper;
         }
@@ -1301,11 +1314,17 @@ namespace OpenMS
         double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1];
         auto upper = std::upper_bound(previously_deconved_mono_masses_for_decoy.begin(), previously_deconved_mono_masses_for_decoy.end(), peak_group.getMonoMass() + delta);
 
-        while (upper != previously_deconved_mono_masses_for_decoy.begin())
+        while (!exclude)
         {
-          if (std::abs(*upper - peak_group.getMonoMass()) < delta)
+          if(upper != previously_deconved_mono_masses_for_decoy.end())
           {
-            exclude = true;
+            if (std::abs(*upper - peak_group.getMonoMass()) < delta)
+            {
+              exclude = true;
+            }
+          }
+          if(upper == previously_deconved_mono_masses_for_decoy.begin())
+          {
             break;
           }
           --upper;
@@ -1776,8 +1795,10 @@ namespace OpenMS
   }
 
 
-  void FLASHDeconvAlgorithm::setTargetMasses(const std::vector<double>& masses, bool excluded)
+  void FLASHDeconvAlgorithm::setTargetMasses(const std::vector<double> masses, bool excluded)
   {
+    target_mono_masses_.clear();
+    excluded_mono_masses_.clear();
     if (excluded)
     {
       excluded_mono_masses_ = masses;
