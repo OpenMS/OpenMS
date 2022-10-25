@@ -191,6 +191,7 @@ namespace OpenMS
     /// precursor SNR threshold
     double snr_threshold_ = 1.0;
 
+    double rt_tol_ = 120; // rt tol in seconds for mass targeting.
     /// mass tolerance
     DoubleList tol_;
   };
