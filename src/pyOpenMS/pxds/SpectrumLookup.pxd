@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumLookup.h>" namespace "OpenMS":
 
         double rt_tolerance
 
-        bool empty() nogil except + # wrap-doc:\n Check if any spectra were set
+        bool empty() nogil except + # wrap-doc: Check if any spectra were set
 
         void readSpectra(MSExperiment spectra, String scan_regexp) nogil except +
         # wrap-doc:

@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>" namespa
         void getLinearIonSpectrum(MSSpectrum& spectrum, AASequence peptide,
                 Size link_pos, bool frag_alpha, int charge, Size link_pos_2) nogil except +
         # wrap-doc:
-                #       Generates fragment ions not containing the cross-linker for one peptide\n
+                #       Generates fragment ions not containing the cross-linker for one peptide
                 #       
                 #       B-ions are generated from the beginning of the peptide up to the first linked position,
                 #       y-ions are generated from the second linked position up the end of the peptide.
@@ -37,7 +37,7 @@ cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>" namespa
                 Size link_pos, double precursor_mass, bool frag_alpha,
                 int mincharge, int maxcharge, Size link_pos_2) nogil except +
         # wrap-doc:
-                #       Generates fragment ions containing the cross-linker for one peptide\n
+                #       Generates fragment ions containing the cross-linker for one peptide
                 #       
                 #       B-ions are generated from the first linked position up to the end of the peptide,
                 #       y-ions are generated from the beginning of the peptide up to the second linked position.
@@ -63,7 +63,7 @@ cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>" namespa
         void getXLinkIonSpectrum(MSSpectrum& spectrum, ProteinProteinCrossLink crosslink,
                 bool frag_alpha, int mincharge, int maxcharge) nogil except +
         # wrap-doc:
-                #       Generates fragment ions containing the cross-linker for a pair of peptides\n
+                #       Generates fragment ions containing the cross-linker for a pair of peptides
                 #       
                 #       B-ions are generated from the first linked position up to the end of the peptide,
                 #       y-ions are generated from the beginning of the peptide up to the second linked position.

@@ -42,7 +42,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
                                  FeatureMapping_FeatureMappingInfo& fm_info,
                                  FeatureMapping_FeatureToMs2Indices& feature_mapping) nogil except +
         # wrap-doc:
-                #   Preprocessing needed for SIRIUS\n
+                #   Preprocessing needed for SIRIUS
                 #   
                 #   Filter number of masstraces and perform feature mapping
                 #       
@@ -56,7 +56,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
                                      FeatureMapping_FeatureToMs2Indices& feature_mapping,
                                      MSExperiment& spectra) nogil except +
         # wrap-doc:
-                #   Logs number of features and spectra used\n
+                #   Logs number of features and spectra used
                 #   
                 #   Prints the number of features and spectra used (OPENMS_LOG_INFO)
                 #       

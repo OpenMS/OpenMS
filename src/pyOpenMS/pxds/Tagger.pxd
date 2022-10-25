@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Tagger.h>" namespace "OpenMS":
 
     cdef cppclass Tagger:
         # wrap-doc:
-                #   Constructor for Tagger\n
+                #   Constructor for Tagger
                 #   
                 #   The parameter `max_charge_` should be >= `min_charge_`
                 #   Also `max_tag_length` should be >= `min_tag_length`
@@ -36,7 +36,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Tagger.h>" namespace "OpenMS":
         void getTag(const libcpp_vector[ double ]& mzs,
                     libcpp_vector[ libcpp_utf8_string ]& tags) nogil except +
         # wrap-doc:
-                #   Generate tags from mass vector `mzs`\n
+                #   Generate tags from mass vector `mzs`
                 #   
                 #   The parameter `tags` is filled with one string per sequence tag
                 #   It uses the standard residues from ResidueDB including
@@ -49,7 +49,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Tagger.h>" namespace "OpenMS":
         void getTag(const MSSpectrum& spec,
                     libcpp_vector[ libcpp_utf8_string ]& tags) nogil except +
          # wrap-doc:
-                #   Generate tags from an MSSpectrum\n
+                #   Generate tags from an MSSpectrum
                 #   
                 #   The parameter `tags` is filled with one string per sequence tag
                 #   It uses the standard residues from ResidueDB including
@@ -61,7 +61,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Tagger.h>" namespace "OpenMS":
 
         void setMaxCharge(size_t max_charge) nogil except +
         # wrap-doc:
-                #   Change the maximal charge considered by the tagger\n
+                #   Change the maximal charge considered by the tagger
                 #   
                 #   Allows to change the maximal considered charge e.g. based on a spectra
                 #   precursor charge without calling the constructor multiple times

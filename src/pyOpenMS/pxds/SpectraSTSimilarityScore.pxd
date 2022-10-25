@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>" namesp
         # double operator()(MSSpectrum & spec) nogil except +
         bool preprocess(MSSpectrum & spec, float remove_peak_intensity_threshold, UInt cut_peaks_below, Size min_peak_number, Size max_peak_number) nogil except +
         # wrap-doc:
-                #   Preprocesses the spectrum\n
+                #   Preprocesses the spectrum
                 #   
                 #   The preprocessing removes peak below a intensity threshold, reject spectra that does
                 #   not have enough peaks, and cuts peaks exceeding the max_peak_number most intense peaks
@@ -56,4 +56,4 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>" namesp
                 #   :return: The SpectraST similarity score
 
         # POINTER # MSSpectrumCompareFunctor * create() nogil except +
-        String getProductName() nogil except + # wrap-doc:\n Reimplemented from PeakSpectrumCompareFunctor
+        String getProductName() nogil except + # wrap-doc: Reimplemented from PeakSpectrumCompareFunctor

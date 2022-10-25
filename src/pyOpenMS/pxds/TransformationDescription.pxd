@@ -24,18 +24,18 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" nam
         TransformationDescription() nogil except +
         TransformationDescription(TransformationDescription &) nogil except +
 
-        libcpp_vector[TM_DataPoint] getDataPoints() nogil except + # wrap-doc:\n Returns the data points
-        void setDataPoints(libcpp_vector[TM_DataPoint]& data) nogil except + # wrap-doc:\n Sets the data points. Removes the model that was previously fitted to the data (if any)
-        void setDataPoints(libcpp_vector[libcpp_pair[double,double]]& data) nogil except + # wrap-doc:\n Sets the data points (backwards-compatible overload). Removes the model that was previously fitted to the data (if any)
-        double apply(double) nogil except + # wrap-doc:\n Applies the transformation to `value`
+        libcpp_vector[TM_DataPoint] getDataPoints() nogil except + # wrap-doc: Returns the data points
+        void setDataPoints(libcpp_vector[TM_DataPoint]& data) nogil except + # wrap-doc: Sets the data points. Removes the model that was previously fitted to the data (if any)
+        void setDataPoints(libcpp_vector[libcpp_pair[double,double]]& data) nogil except + # wrap-doc: Sets the data points (backwards-compatible overload). Removes the model that was previously fitted to the data (if any)
+        double apply(double) nogil except + # wrap-doc: Applies the transformation to `value`
 
-        void fitModel(String model_type, Param params)  nogil except + # wrap-doc:\n Fits a model to the data
-        void fitModel(String model_type)  nogil except + # wrap-doc:\n Fits a model to the data
+        void fitModel(String model_type, Param params)  nogil except + # wrap-doc: Fits a model to the data
+        void fitModel(String model_type)  nogil except + # wrap-doc: Fits a model to the data
 
-        String getModelType()  nogil except + # wrap-doc:\n Gets the type of the fitted model
-        Param getModelParameters() nogil except + # wrap-doc:\n Returns the model parameters
+        String getModelType()  nogil except + # wrap-doc: Gets the type of the fitted model
+        Param getModelParameters() nogil except + # wrap-doc: Returns the model parameters
 
-        void invert() nogil except + # wrap-doc:\n Computes an (approximate) inverse of the transformation
+        void invert() nogil except + # wrap-doc: Computes an (approximate) inverse of the transformation
 
         void getDeviations(libcpp_vector[double]& diffs, bool do_apply, bool do_sort) nogil except +
         # wrap-doc:

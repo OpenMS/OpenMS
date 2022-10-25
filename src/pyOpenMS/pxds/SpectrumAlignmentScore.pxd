@@ -10,12 +10,12 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>" namespac
         #   DefaultParamHandler
         SpectrumAlignmentScore() nogil except +
         # wrap-doc:
-                #   Similarity score via spectra alignment\n
+                #   Similarity score via spectra alignment
                 #   
                 #   This class implements a simple scoring based on the alignment of spectra. This alignment
                 #   is implemented in the SpectrumAlignment class and performs a dynamic programming alignment
                 #   of the peaks, minimizing the distances between the aligned peaks and maximizing the number
-                #   of peak pairs\n
+                #   of peak pairs
                 #   
                 #   The scoring is done via the simple formula score = sum / (sqrt(sum1 * sum2)). sum is the
                 #   product of the intensities of the aligned peaks, with the given exponent (default is 2)

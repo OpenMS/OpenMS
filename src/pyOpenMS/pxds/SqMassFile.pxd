@@ -18,8 +18,8 @@ cdef extern from "<OpenMS/FORMAT/SqMassFile.h>" namespace "OpenMS":
 
         SqMassFile() nogil except +
         SqMassFile(SqMassFile &) nogil except + # compiler
-        void load(const String & filename, MSExperiment & map_) nogil except + # wrap-doc:\n Read / Write a complete mass spectrometric experiment
-        void store(const String & filename, MSExperiment & map_) nogil except + # wrap-doc:\n Store an MSExperiment in sqMass format
+        void load(const String & filename, MSExperiment & map_) nogil except + # wrap-doc: Read / Write a complete mass spectrometric experiment
+        void store(const String & filename, MSExperiment & map_) nogil except + # wrap-doc: Store an MSExperiment in sqMass format
         # NAMESPACE # # POINTER # void transform(const String & filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count, bool skip_first_pass) nogil except +
         void setConfig(SqMassConfig config) nogil except +
 

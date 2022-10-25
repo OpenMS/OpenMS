@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/CHEMISTRY/SimpleTSGXLMS.h>" namespace "OpenMS":
 
         SimpleTSGXLMS() nogil except +
                 # wrap-doc:
-                #   Generates theoretical spectra for cross-linked peptides\n
+                #   Generates theoretical spectra for cross-linked peptides
                 #       
                 #   The spectra this class generates are vectors of SimplePeaks
                 #   This class generates the same peak types as TheoreticalSpectrumGeneratorXLMS
@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/CHEMISTRY/SimpleTSGXLMS.h>" namespace "OpenMS":
         void getLinearIonSpectrum(libcpp_vector[ SimplePeak ]& spectrum, AASequence peptide,
                 Size link_pos, int charge, Size link_pos_2) nogil except +
                 # wrap-doc:
-                #   Generates fragment ions not containing the cross-linker for one peptide\n
+                #   Generates fragment ions not containing the cross-linker for one peptide
                 #       
                 #   B-ions are generated from the beginning of the peptide up to the first linked position,
                 #   y-ions are generated from the second linked position up the end of the peptide
@@ -46,7 +46,7 @@ cdef extern from "<OpenMS/CHEMISTRY/SimpleTSGXLMS.h>" namespace "OpenMS":
                 Size link_pos, double precursor_mass,
                 int mincharge, int maxcharge, Size link_pos_2) nogil except +
                 # wrap-doc:
-                #   Generates fragment ions containing the cross-linker for one peptide\n
+                #   Generates fragment ions containing the cross-linker for one peptide
                 #       
                 #   B-ions are generated from the first linked position up to the end of the peptide,
                 #   y-ions are generated from the beginning of the peptide up to the second linked position
@@ -71,7 +71,7 @@ cdef extern from "<OpenMS/CHEMISTRY/SimpleTSGXLMS.h>" namespace "OpenMS":
         void getXLinkIonSpectrum(libcpp_vector[ SimplePeak ]& spectrum, ProteinProteinCrossLink crosslink,
                 bool frag_alpha, int mincharge, int maxcharge) nogil except +
                 # wrap-doc:
-                #   Generates fragment ions containing the cross-linker for a pair of peptides\n
+                #   Generates fragment ions containing the cross-linker for a pair of peptides
                 #   
                 #   B-ions are generated from the first linked position up to the end of the peptide,
                 #   y-ions are generated from the beginning of the peptide up to the second linked position
@@ -95,7 +95,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::S
 
     cdef cppclass SimplePeak "OpenMS::SimpleTSGXLMS::SimplePeak":
 
-        SimplePeak() nogil except + # wrap-doc:\n A simple struct to represent peaks with mz and charge and sort them easily
+        SimplePeak() nogil except + # wrap-doc: A simple struct to represent peaks with mz and charge and sort them easily
         SimplePeak(double mz, int charge) nogil except +
         SimplePeak(SimplePeak &) nogil except +
 

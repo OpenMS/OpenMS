@@ -28,7 +28,7 @@ cdef extern from "<OpenMS/CHEMISTRY/RNaseDigestion.h>" namespace "OpenMS":
       RNaseDigestion() nogil except + # compiler
       RNaseDigestion(RNaseDigestion &) nogil except + # compiler
 
-      void setEnzyme(String name) nogil except + # wrap-doc:\n Sets the enzyme for the digestion (by name)
+      void setEnzyme(String name) nogil except + # wrap-doc: Sets the enzyme for the digestion (by name)
 
       void digest(NASequence & rna, libcpp_vector[ NASequence ] & output) nogil except +
 
