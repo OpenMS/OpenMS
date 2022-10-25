@@ -424,10 +424,6 @@ namespace OpenMS
     {
       out << "predicted_rt";
     }
-    if (incl_peak_annotations)
-    {
-      out << "peak_annotations";
-    }
     if (incl_first_dim)
     {
       out << "rt_first_dim" << "predicted_rt_first_dim";
@@ -435,6 +431,10 @@ namespace OpenMS
     if (incl_pred_pt)
     {
       out << "predicted_pt";
+    }
+    if (incl_peak_annotations) 
+    {
+      out << "peak_annotations";
     }
     out.modifyStrings(old);
   }
