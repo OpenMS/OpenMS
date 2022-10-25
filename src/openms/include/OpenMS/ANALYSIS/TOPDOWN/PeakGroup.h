@@ -233,13 +233,11 @@ namespace OpenMS
     int getIndex() const;
 
 
-
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator begin() const noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator end() const noexcept;
 
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator begin() noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator end() noexcept;
-
 
     const FLASHDeconvHelperStructs::LogMzPeak& operator[](const Size i) const;
 

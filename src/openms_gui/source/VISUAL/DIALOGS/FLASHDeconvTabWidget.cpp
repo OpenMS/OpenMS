@@ -212,6 +212,7 @@ namespace OpenMS
       if( ui->checkbox_mzml->isChecked() )
       {
         flashdeconv_output_tags_.push_back("out_mzml");
+        flashdeconv_output_tags_.push_back("out_annotated_mzml");
       }
       if( ui->checkbox_promex->isChecked() )
       {
@@ -245,7 +246,7 @@ namespace OpenMS
           is_requested = true;
         }
 
-        if (tag == "out_mzml" || tag == "out_promex") // two params having string values
+        if (tag == "out_mzml" || tag == "out_annotated_mzml" || tag == "out_topFD_feature" || tag == "out_promex") //  params having string values
         {
           // if not requested, set default value
           if (!is_requested)
@@ -259,6 +260,14 @@ namespace OpenMS
           if (tag == "out_mzml")
           {
             out_path += "_deconv.mzML";
+          }
+          else if(tag == "out_annotated_mzml")
+          {
+            out_path += "_annotated.mzML";
+          }
+          else if(tag == "out_topFD_feature")
+          {
+            out_path += "_ms1.feature";
           }
           else // (tag == "out_promex")
           {
@@ -286,16 +295,13 @@ namespace OpenMS
           {
             out_extension = ".msalign";
           }
-          if (tag == "out_topFD_feature")
-          {
-            out_extension = ".feature";
-          }
           std::vector<std::string> files_paths;
-          for(Size i = 0; i < max_ms_level; ++i)
+          for (Size i = 0; i < max_ms_level; ++i)
           {
-            files_paths.push_back(filepath_without_ext + "_ms" + std::to_string(i+1) + out_extension);
+            files_paths.push_back(filepath_without_ext + "_ms" + std::to_string(i + 1) + out_extension);
           }
           flashdeconv_param_outputs_.setValue(tag, files_paths, org_desc, org_tags);
+
         }
       }
     }
@@ -319,7 +325,7 @@ namespace OpenMS
       flashdeconv_param_.remove("out");
 
       // parameters for different output format
-      StringList out_params = {"out_spec", "out_mzml", "out_promex", "out_topFD", "out_topFD_feature"};
+      StringList out_params = {"out_spec", "out_annotated_mzml", "out_mzml", "out_promex", "out_topFD", "out_topFD_feature"};
       for (const auto& name : out_params) flashdeconv_param_outputs_.setValue(name, ""); // create a dummy param, just so we can use ::copySubset
       flashdeconv_param_outputs_ = flashdeconv_param_.copySubset(flashdeconv_param_outputs_);
 

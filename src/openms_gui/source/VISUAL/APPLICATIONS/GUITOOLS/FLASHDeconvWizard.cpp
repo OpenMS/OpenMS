@@ -42,12 +42,12 @@
 
   Users can enter the required input data (mzML MS/MS data) in dedicated fields, usually by drag'n'droping files from the
   operating systems' file explorer (Explorer, Nautilus, Finder...).
-  The main output of the Wizard is deconvoluted feature files (*.tsv) from FLASHDeconv. Optional output files are as follows:
+  The main output of the Wizard is deconvolved feature files (*.tsv) from FLASHDeconv. Optional output files are as follows:
     - deconvoluted MSn spectra files (*.tsv)
     - deconvoluted mzML spectra file (*.mzML)
     - deconvoluted MS1 in ProMex output format (*.ms1ft)
     - deconvoluted MSn spectra files in TopFD output format (*.msalign)
-    - deconvoluted MSn feature files in TopFD output format (*.feature)
+    - deconvoluted MS1 feature file in TopFD output format (*.feature)
 */
 
 //QT

@@ -41,7 +41,7 @@ namespace OpenMS
     spec_ = spectrum;
   }
 
-  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, bool retain_undeconvolved)
+  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, double tol, bool retain_undeconvolved)
   {
     auto out_spec = MSSpectrum(spec_);
     out_spec.clear(false);
@@ -51,7 +51,9 @@ namespace OpenMS
     }
     double charge_mass_offset = abs(to_charge) * FLASHDeconvHelperStructs::getChargeMass(to_charge >= 0);
     std::unordered_set<double> deconvolved_mzs;
+    std::stringstream val{};
 
+    val<<"tol="<<tol<<";massoffset="<<charge_mass_offset<<";peaks=";
     for (auto& pg : *this)
     {
       if (pg.empty())
@@ -59,6 +61,9 @@ namespace OpenMS
         continue;
       }
       out_spec.emplace_back(pg.getMonoMass() + charge_mass_offset, pg.getIntensity());
+      auto z = pg.getAbsChargeRange();
+      val <<std::get<0>(z)<<":"<<std::get<1>(z)<< ","<<pg.getIsotopeIntensities().size()<<";";
+
       if (retain_undeconvolved)
       {
         for (auto& p : pg)
@@ -67,6 +72,8 @@ namespace OpenMS
         }
       }
     }
+    out_spec.setMetaValue("DeconvMassInfo", val.str());
+
     if (retain_undeconvolved)
     {
       for (auto& p : spec_)

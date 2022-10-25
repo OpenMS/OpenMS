@@ -100,17 +100,19 @@ namespace OpenMS
     /// set calculated averagine
     void setAveragine(const PrecalculatedAveragine& avg);
 
-    /// set targeted masses for targeted deconvolution. Masses are targeted in all ms levels
-    void setTargetMasses(const std::vector<double>& masses);
+    /** @brief set targeted or excluded masses for targeted deconvolution. Masses are targeted or excluded in all ms levels.
+        @param exclude if set, masses are excluded.
+     */
+    void setTargetMasses(const std::vector<double>& masses, bool exclude = false);
 
     /** @brief precalculate averagine (for predefined mass bins) to speed up averagine generation
         @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calculated
      */
     void calculateAveragine(const bool use_RNA_averagine);
 
-    void addExcludedMonoMass(const double m);
+    void addPreviouslyDeconvolvedMonoMass(const double m);
 
-    void clearExcludedMonoMasses();
+    void clearPreviouslyDeconvolvedMonoMasses();
 
     /// convert double to nominal mass
     static int getNominalMass(const double mass);
@@ -214,14 +216,16 @@ namespace OpenMS
 
     /// mass bins that are targeted for FLASHIda global targeting mode
     boost::dynamic_bitset<> target_mass_bins_;
-    std::vector<double> target_masses_;
+    std::vector<double> target_mono_masses_;
 
-    /// mass bins that are excluded for decoy
-    boost::dynamic_bitset<> excluded_mass_bins_;
-    std::vector<double> excluded_masses_;
+    /// mass bins that are excluded for FLASHIda global targeting mode
+    //boost::dynamic_bitset<> excluded_mass_bins_;
+    std::vector<double> excluded_mono_masses_;
 
-    /// harmonic charge factors that will be considered for harmonic mass reduction. For example, 2 is for 1/2 charge harmonic component reduction
-    const std::vector<int> harmonic_charges_{2, 3, 5, 7};
+    /// mass bins that are previsouly deconvolved and excluded for decoy mass generation
+    boost::dynamic_bitset<> previously_deconved_mass_bins_for_decoy;
+    std::vector<double> previously_deconved_mono_masses_for_decoy;
+
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;
     /// deconvolved_spectrum_ stores the deconvolved mass peak groups
@@ -255,8 +259,6 @@ namespace OpenMS
     /// current ms Level
     int ms_level_;
 
-    /// high and low charges are differently deconvolved. This value determines the (inclusive) threshold for low charge.
-    const int low_charge_ = 8; //8 inclusive
 
     /// default precursor isolation window size.
     double isolation_window_size_;
@@ -287,7 +289,7 @@ namespace OpenMS
     void updateMzBins_(const Size bin_number, std::vector<float>& mz_bin_intensities);
 
     ///this function takes the previous deconvolution results (from ovelapped spectra) for sensitive deconvolution of the current spectrum
-    void unionPrevMassBins_();
+    //void unionPrevMassBins_();
 
     ///get mass value for input mass bin
     double getMassFromMassBin_(Size mass_bin, double bin_width);
@@ -332,8 +334,8 @@ namespace OpenMS
     /// filter out overlapping masses
     void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dpec, const double tol, const int iso_length = 1);
 
-    ///Filter out masses with low isotope cosine scores, only retaining current_max_mass_count masses
-    void filterPeakGroupsByIsotopeCosine_(const int current_max_mass_count);
+    //Filter out masses with low isotope cosine scores, only retaining current_max_mass_count masses
+    //void filterPeakGroupsByIsotopeCosine_(const int current_max_mass_count);
 
     /**
     @brief register the precursor peak as well as the precursor peak group (or mass) if possible for MSn (n>1) spectrum.
