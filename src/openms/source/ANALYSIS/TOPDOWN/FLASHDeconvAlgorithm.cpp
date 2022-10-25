@@ -1259,12 +1259,12 @@ namespace OpenMS
         bool exclude = false;
         while (upper != excluded_mono_masses_.begin())
         {
-          --upper;
           if (std::abs(*upper - peak_group.getMonoMass()) < delta)
           {
             exclude = true;
             break;
           }
+          --upper;
         }
         if (exclude)
         {
@@ -1279,11 +1279,11 @@ namespace OpenMS
 
         while (upper != target_mono_masses_.begin() && !peak_group.isTargeted())
         {
-          --upper;
           if (std::abs(*upper - peak_group.getMonoMass()) < delta)
           {
             peak_group.setTargeted();
           }
+          --upper;
         }
       }
 
@@ -1303,12 +1303,12 @@ namespace OpenMS
 
         while (upper != previously_deconved_mono_masses_for_decoy.begin())
         {
-          --upper;
           if (std::abs(*upper - peak_group.getMonoMass()) < delta)
           {
             exclude = true;
             break;
           }
+          --upper;
         }
         if (exclude)
         {
