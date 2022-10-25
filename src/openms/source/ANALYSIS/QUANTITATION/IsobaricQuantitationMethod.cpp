@@ -70,7 +70,7 @@ namespace OpenMS
       auto number_of_columns = getChannelInformation()[contributing_channel].affected_channels.size();
       if (corrections.size() != number_of_columns )
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Entry #") + contributing_channel + " must contain " + number_of_columns + " values, but has " + corrections.size() + "!", String(corrections.size()));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Corrections for channel ID #") + contributing_channel + " must contain " + number_of_columns + " values, but has " + corrections.size() + "!", String(corrections.size()));
       }
 
       // overwrite line in Matrix with custom values
@@ -84,7 +84,20 @@ namespace OpenMS
         if (c != "NA" && c != "-1" && c != "0.0")
         {
           target_channel = getChannelInformation()[contributing_channel].affected_channels[affected_channel_idx];
-          correction = c.toDouble();
+          try
+          {
+            correction = c.toDouble();
+          }
+          catch (Exception::ConversionError& e)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Correction entry #") + affected_channel_idx + " in channel ID " + contributing_channel + " must be one of na/NA/-1 or a floating point number representation!", c);
+          }
+
+          if (correction < 0.0 || correction > 100.0)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Correction entry #") + affected_channel_idx + " in channel ID " + contributing_channel + " must be a percentage between 0 and 100!", c);
+          }
+          
           if (target_channel >= 0 && Size(target_channel) < getNumberOfChannels())
           {
             channel_frequency.setValue(target_channel, contributing_channel, correction / 100.0);

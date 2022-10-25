@@ -109,17 +109,7 @@ namespace OpenMS
   }
 
   TMTSixPlexQuantitationMethod& TMTSixPlexQuantitationMethod::operator=(const TMTSixPlexQuantitationMethod& rhs)
-  {
-    if (this == &rhs)
-      return *this;
-
-    channels_.clear();
-    channels_.insert(channels_.begin(), rhs.channels_.begin(), rhs.channels_.end());
-
-    reference_channel_ = rhs.reference_channel_;
-
-    return *this;
-  }
+  = default;
 
   const String& TMTSixPlexQuantitationMethod::getMethodName() const
   {
