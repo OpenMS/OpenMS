@@ -52,6 +52,8 @@ namespace OpenMS
     std::vector<String> out_files;
     char *token = std::strtok(arg, " ");
     std::string key;
+    std::stringstream ss{};
+
     while (token != nullptr)
     {
       String token_string = std::string(token);
@@ -59,12 +61,12 @@ namespace OpenMS
       if (token_string.hasSuffix(".log"))
       {
         log_files.push_back(token_string);
-        std::cout << token_string << " is used for global targeting\n";
+        ss << token_string << " is used for mass targeting";
       }
       else if (token_string.hasSuffix(".out"))
       {
         out_files.push_back(token_string);
-        std::cout << token_string << " is used for global targeting\n";
+        ss << token_string << " is used for mass targeting";
       }
       else
       {
@@ -86,9 +88,15 @@ namespace OpenMS
     qscore_threshold_ = inputs["score_threshold"][0];
     snr_threshold_ = 1;
     targeting_mode_ = (int)(inputs["target_mode"][0]);
-
+    if(targeting_mode_ == 1)
+    {
+      std::cout << ss.str() << "inclusion mode\n";
+    }else if(targeting_mode_ == 2)
+    {
+      std::cout << ss.str() << "exclusion mode\n";
+    }
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
-    // overwrite algorithm default so we export everything (important for copying back MSstats results)
+
     fd_defaults.setValue("min_charge", (int) inputs["min_charge"][0]);
     fd_defaults.setValue("max_charge", (int) inputs["max_charge"][0]);
     fd_defaults.setValue("min_mass", inputs["min_mass"][0]);
@@ -96,7 +104,7 @@ namespace OpenMS
     fd_defaults.setValue("min_isotope_cosine", DoubleList{.85, .85});
     //fd_defaults.setValue("min_qscore", .0);
     fd_defaults.setValue("tol", inputs["tol"]);
-    tol_ = inputs["tol"];
+    tol_ = std::vector<double>(inputs["tol"]);
     //fd_defaults.setValue("rt_window", rt_window_);
     //fd_defaults.setValue("min_peaks", IntList{3, 3});//
 
