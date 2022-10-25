@@ -28,9 +28,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace
                             bool check_spectrum_type
                            ) nogil except +
             # wrap-doc:
-                #   Applies the peak-picking algorithm to a map (MSExperiment). This
-                #   method picks peaks for each scan in the map consecutively. The resulting
+                #   Applies the peak-picking algorithm to a map (MSExperiment). This method picks peaks for each scan in the map consecutively. The resulting
                 #   picked peaks are written to the output map
+                #   
                 #   -----
                 #   :param input: Input map in profile mode
                 #   :param output: Output map with picked peaks

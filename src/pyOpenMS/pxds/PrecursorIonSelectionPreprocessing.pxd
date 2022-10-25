@@ -28,10 +28,10 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h
         void dbPreprocessing(String db_path, bool save) nogil except +
             # wrap-doc:
                 #   Calculates tryptic peptide masses of a given database and stores masses and peptide sequences
+                #   
                 #   -----
                 #   :param db_path: Path to database file (fasta)
                 #   :param save: Flag if preprocessing should be stored
-                #   -----
                 #   :raises:
                 #     Exception: FileNotFound is thrown if the file could not be found
                 #   :raises:
@@ -40,12 +40,12 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h
         void dbPreprocessing(String db_path, String rt_model_path, String dt_model_path, bool save) nogil except +
             # wrap-doc:
                 #   Calculates tryptic peptide masses of a given database and stores masses and peptide sequences
+                #   
                 #   -----
                 #   :param db_path: Path to database file (fasta)
                 #   :param rt_model_path
                 #   :param dt_model_path
                 #   :param save: Flag if preprocessing should be stored
-                #   -----
                 #   :raises:
                 #     Exception: FileNotFound is thrown if the file could not be found
                 #   :raises:

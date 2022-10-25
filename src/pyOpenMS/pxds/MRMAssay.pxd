@@ -23,6 +23,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
                                    int round_decPow) nogil except +
             # wrap-doc:
                 #   Annotates and filters transitions in a TargetedExperiment
+                #   
                 #   -----
                 #   :param exp: The input, unfiltered transitions
                 #   :param precursor_mz_threshold: The precursor m/z threshold in Th for annotation
@@ -39,6 +40,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
                                  libcpp_vector[ libcpp_pair[ double, double ] ] swathes) nogil except +
             # wrap-doc:
                 #   Restrict and filter transitions in a TargetedExperiment
+                #   
                 #   -----
                 #   :param exp: The input, unfiltered transitions
                 #   :param lower_mz_limit: The lower product m/z limit in Th
@@ -50,6 +52,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
                                   int max_transitions) nogil except +
             # wrap-doc:
                 #   Select detecting fragment ions
+                #   
                 #   -----
                 #   :param exp: The input, unfiltered transitions
                 #   :param min_transitions: The minimum number of transitions required per assay
@@ -60,6 +63,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
                                           int max_transitions) nogil except +
             # wrap-doc:
                 #   Filters target and decoy transitions by intensity, only keeping the top N transitions
+                #   
                 #   -----
                 #   :param exp: The transition list which will be filtered
                 #   :param min_transitions: The minimum number of transitions required per assay (targets only)
@@ -69,12 +73,13 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
             # wrap-doc:
                 #   Filters decoy transitions, which do not have respective target transition
                 #   based on the transitionID.
-                #   -----
+                #   
                 #   References between targets and decoys will be constructed based on the transitionsID
                 #   and the "_decoy_" string. For example:
-                #   -----
+                #   
                 #   target: 84_CompoundName_[M+H]+_88_22
                 #   decoy: 84_CompoundName_decoy_[M+H]+_88_22
+                #   
                 #   -----
                 #   :param exp: The transition list which will be filtered
         
@@ -91,16 +96,16 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
                             int shuffle_seed) nogil except +
             # wrap-doc:
                 #   Annotate UIS / site-specific transitions
-                #   -----
+                #   
                 #   Performs the following actions:
-                #   -----
+                #   
                 #   - Step 1: For each peptide, compute all theoretical alternative peptidoforms; see transitions generateTargetInSilicoMap_()
                 #   - Step 2: Generate target identification transitions; see generateTargetAssays_()
-                #   -----
+                #   
                 #   - Step 3a: Generate decoy sequences that share peptidoform properties with targets; see generateDecoySequences_()
                 #   - Step 3b: Generate decoy in silico peptide map containing theoretical transition; see generateDecoyInSilicoMap_()
                 #   - Step 4: Generate decoy identification transitions; see generateDecoyAssays_()
-                #   -----
+                #   
                 #   The IPF algorithm uses the concept of "identification transitions" that
                 #   are used to discriminate different peptidoforms, these are generated in
                 #   this function.  In brief, the algorithm takes the existing set of
@@ -108,6 +113,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
                 #   transitions" for targets and decoys. The novel transitions are set to be
                 #   non-detecting and non-quantifying and are annotated with the set of
                 #   peptidoforms to which they map.
+                #   
                 #   -----
                 #   :param exp: The input, unfiltered transitions
                 #   :param fragment_types: The fragment types to consider for annotation

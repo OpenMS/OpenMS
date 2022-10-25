@@ -27,6 +27,7 @@ cdef extern from "<OpenMS/FORMAT/OMSSAXMLFile.h>" namespace "OpenMS":
                   bool load_empty_hits) nogil except +
             # wrap-doc:
                 #   Loads data from a OMSSAXML file
+                #   
                 #   -----
                 #   :param filename: The file to be loaded
                 #   :param protein_identification: Protein identifications belonging to the whole experiment

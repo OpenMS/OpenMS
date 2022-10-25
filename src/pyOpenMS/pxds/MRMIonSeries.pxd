@@ -19,6 +19,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>" namespace "OpenMS"
         void annotateTransitionCV(ReactionMonitoringTransition & tr, String annotation) nogil except +
             # wrap-doc:
                 #   Annotates transition with CV terms
+                #   
                 #   -----
                 #   :param tr: The transition to annotate
                 #   :param annotation: The fragment ion annotation
@@ -33,6 +34,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>" namespace "OpenMS"
                                 bool enable_unspecific_losses, int round_decPow) nogil except +
             # wrap-doc:
                 #   Annotates transition
+                #   
                 #   -----
                 #   :param tr: The transition to annotate
                 #   :param peptide: The corresponding peptide
