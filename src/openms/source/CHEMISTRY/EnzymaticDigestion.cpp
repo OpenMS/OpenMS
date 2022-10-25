@@ -153,7 +153,8 @@ namespace OpenMS
 
   bool EnzymaticDigestion::filterByMissedCleavages(const String& sequence, const std::function<bool(Int)>& filter) const
   {
-    return filter(&countInternalCleavageSites);
+    const int mc = countInternalCleavageSites(sequence);
+    return filter(mc);
   }
 
   bool EnzymaticDigestion::isValidProduct_(const String& sequence, int pos, int length, bool ignore_missed_cleavages, bool allow_nterm_protein_cleavage, bool allow_random_asp_pro_cleavage) const
