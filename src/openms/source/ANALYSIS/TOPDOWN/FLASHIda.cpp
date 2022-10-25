@@ -342,14 +342,20 @@ namespace OpenMS
           double delta = 2 * tol_[0] * mass * 1e-6;
           auto ub = std::upper_bound(target_masses_.begin(), target_masses_.end(), mass + delta);
 
-          while (ub != target_masses_.begin()&&  !target_matched&&  *ub > mass - delta)
+          while (!target_matched&&  *ub > mass - delta)
           {
-            --ub;
-            if (std::abs(*ub - mass) < delta) // target is detected.
+            if(ub != target_masses_.end())
             {
-              target_matched = true;
+              if (std::abs(*ub - mass) < delta) // target is detected.
+              {
+                target_matched = true;
+              }
+            }
+            if(ub == target_masses_.begin())
+            {
               break;
             }
+            ub--;
           }
           if(targeting_mode_ == 1) // inclusive mode
           {

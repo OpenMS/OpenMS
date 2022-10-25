@@ -103,7 +103,7 @@ namespace OpenMS
     /** @brief set targeted or excluded masses for targeted deconvolution. Masses are targeted or excluded in all ms levels.
         @param exclude if set, masses are excluded.
      */
-    void setTargetMasses(const std::vector<double>& masses, bool exclude = false);
+    void setTargetMasses(const std::vector<double> masses, bool exclude = false);
 
     /** @brief precalculate averagine (for predefined mass bins) to speed up averagine generation
         @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calculated
