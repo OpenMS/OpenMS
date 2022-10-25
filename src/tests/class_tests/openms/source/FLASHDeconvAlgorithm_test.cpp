@@ -67,7 +67,7 @@ END_SECTION
 /// < public methods without tests >
 /// - default constructors and operators are not used (copy, move, assignment)
 /// - setTargetMasses : only private member (which can not be accessed) is affected
-/// - getDecoyDeconvolvedSpectrum, isDecoy, addExcludedMonoMass, clearExcludedMonoMasses: under development
+/// - getDecoyDeconvolvedSpectrum, isDecoy, addPreviouslyDeconvolvedMonoMass, clearPreviouslyDeconvolvedMonoMasses: under development
 /// - getAvgPPMError
 
 FLASHDeconvAlgorithm fd_algo = FLASHDeconvAlgorithm();

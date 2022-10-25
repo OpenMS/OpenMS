@@ -123,14 +123,14 @@ namespace OpenMS
 
   private:
     /// PeakGroup comparator for soring by QScore
-    struct
+    /*struct
     {
       bool operator()(const PeakGroup& a, const PeakGroup& b) const
       {
         return a.getQScore() > b.getQScore();
       }
     } QscoreComparator_;
-
+*/
     /// Maps that are necessary for mass exclusion
     std::unordered_map<int, double> tqscore_exceeding_mz_rt_map_; /// integer mz value vs. retention time with tqscore exceeding total qscore threshold
     std::unordered_map<int, double> tqscore_exceeding_mass_rt_map_; /// integer mass value vs. retention time with tqscore exceeding total qscore threshold
@@ -181,22 +181,12 @@ namespace OpenMS
     double rt_window_;
     /// how many masses will be selected per ms level? - determined from C# side
     IntList mass_count_;
-    /// minimum isolation window width divided by two
-    const double min_isolation_window_half_ = .6;
-    /// maximum isolation window width divided by two
-    const double max_isolation_window_half_ = 3.0;
 
-    bool inclusive_mode_ = true;
-    /// maps for global inclusion targeting
+    int targeting_mode_ = 0; /// 0 no targeting 1 inclusive 2 exclusive
+    /// maps for global inclusion/exclusion targeting
     std::map<double, std::vector<double>> target_mass_rt_map_;
     std::map<double, std::vector<double>> target_mz_rt_map_;
     std::vector<double> target_masses_; /// current target masses
-
-    /// maps for global exclusion targeting
-    std::map<double, std::vector<double>> excluded_mass_rt_map_;
-    std::map<double, std::vector<double>> excluded_mz_rt_map_;
-    std::vector<double> excluded_masses_; /// current target masses
-
 
     /// precursor SNR threshold
     double snr_threshold_ = 1.0;

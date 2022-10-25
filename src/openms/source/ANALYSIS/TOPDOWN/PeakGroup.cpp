@@ -92,23 +92,21 @@ namespace OpenMS
 
   void PeakGroup::updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double iso_da_distance)
   {
+   qscore_ = 0;
    if(empty())
     {
-      qscore_ = 0;
       return;
     }
 
     updateChargeFitScoreAndChargeIntensities_();
     if(charge_score_ < .7)//
     {
-      qscore_ = 0;
       return;
     }
 
     updateMonomassAndIsotopeIntensities(); //
     if(per_isotope_int_.empty() || max_abs_charge_ < min_abs_charge_)
     {
-      qscore_ = 0;
       return;
     }
 
@@ -365,12 +363,10 @@ namespace OpenMS
     sort();
     max_abs_charge_ = nmax_abs_charge;
     min_abs_charge_ = nmin_abs_charge;
-
     if(min_abs_charge_>max_abs_charge_)
     {
       clear();
     }
-
   }
 
   void PeakGroup::updateChargeFitScoreAndChargeIntensities_()
