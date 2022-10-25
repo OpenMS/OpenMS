@@ -90,10 +90,10 @@ namespace OpenMS
     targeting_mode_ = (int)(inputs["target_mode"][0]);
     if(targeting_mode_ == 1)
     {
-      std::cout << ss.str() << "inclusion mode\n";
+      std::cout << ss.str() << " inclusion mode\n";
     }else if(targeting_mode_ == 2)
     {
-      std::cout << ss.str() << "exclusion mode\n";
+      std::cout << ss.str() << " exclusion mode\n";
     }
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
 
