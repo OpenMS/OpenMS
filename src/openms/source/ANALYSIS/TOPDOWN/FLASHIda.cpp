@@ -233,7 +233,7 @@ namespace OpenMS
       {
         for (double prt : rts)
         {
-          if (std::abs(rt - prt) < rt_tol_)
+          if (std::abs(rt - prt) < rt_window_)
           {
             target_masses_.push_back(mass);
             break;
