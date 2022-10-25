@@ -1175,6 +1175,37 @@ namespace OpenMS
         }
       }
     }
+
+    if (target_mono_masses_.size() > 0)
+    {
+      target_mass_bins_.clear();
+      target_mass_bins_ = boost::dynamic_bitset<>(mass_bins_.size());
+      for (Size i = 0; i < target_mono_masses_.size(); i++)
+      {
+        double& tm = target_mono_masses_[i];
+        for (int off = -1; off < 2; off++)
+        {
+          double m = tm + off * iso_da_distance_;
+          double mass_delta = avg_.getMostAbundantMassDelta(m);
+
+          Size j = getBinNumber_(log(m + mass_delta), mass_bin_min_value_, bin_width_[ms_level_ - 1]);
+          if (j < 1)
+          {
+            continue;
+          }
+
+          if (j >= target_mass_bins_.size() - 1)
+          {
+            break;
+          }
+
+          target_mass_bins_[j - 1] = true;
+          target_mass_bins_[j] = true;
+          target_mass_bins_[j + 1] = true;
+        }
+      }
+    }
+
     auto per_mass_abs_charge_ranges = updateMassBins_(mz_bin_intensities);
 
     getCandidatePeakGroups_(per_mass_abs_charge_ranges);
