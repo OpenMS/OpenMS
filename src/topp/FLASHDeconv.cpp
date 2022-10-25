@@ -311,9 +311,11 @@ protected:
     sm_defaults.removeAll("average_tophat");
 */
     Param combined;
+
     combined.insert("Algorithm:", fd_defaults);
     combined.insert("FeatureTracing:", mf_defaults);
     //combined.insert("SpectraMerger:", sm_defaults);
+
     registerFullParam_(combined);
   }
 
