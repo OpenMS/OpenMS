@@ -94,7 +94,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES GTE ${LPTARGET} Eigen3::Eigen HDF5::HDF5 Boost:
 
 #------------------------------------------------------------------------------
 # Install the QSQLite driver if we are not on linux so we can use oms files
-if(WIN32)
+if(WIN32 OR APPLE)
   install_qt5_plugin("Qt5::QSQLiteDriverPlugin" QT_SQLITE_PLUGIN "${INSTALL_PLUGIN_DIR}/plugins" QT5SQLitePlugin)
 endif()
 
