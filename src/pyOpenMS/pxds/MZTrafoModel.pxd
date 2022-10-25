@@ -31,9 +31,9 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
         double getRT() nogil except + # wrap-doc:Get RT associated with the model (training region)
         double predict(double mz) nogil except +
             # wrap-doc:
-                #   Apply the model to an uncalibrated m/z value\n
+                #   Apply the model to an uncalibrated m/z value
                 #   
-                #   Make sure the model was trained (train()) and is valid (isValidModel()) before calling this function!\n
+                #   Make sure the model was trained (train()) and is valid (isValidModel()) before calling this function!
                 #   
                 #   Applies the function y = intercept + slope*mz + power*mz^2
                 #   and returns y
@@ -44,11 +44,11 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
 
         bool train(CalibrationData cd, MZTrafoModel_MODELTYPE md, bool use_RANSAC, double rt_left, double rt_right) nogil except +
             # wrap-doc:
-                #   Train a model using calibrant data\n
+                #   Train a model using calibrant data
                 #   
                 #   If the CalibrationData was created using peak groups (usually corresponding to mass traces),
                 #   the median for each group is used as a group representative. This
-                #   is more robust, and reduces the number of data points drastically, i.e. one value per group\n
+                #   is more robust, and reduces the number of data points drastically, i.e. one value per group
                 #   
                 #   Internally, these steps take place:
                 #   - apply RT filter
@@ -66,16 +66,16 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
                 
         bool train(libcpp_vector[double] error_mz, libcpp_vector[double] theo_mz, libcpp_vector[double] weights, MZTrafoModel_MODELTYPE md, bool use_RANSAC) nogil except +
             # wrap-doc:
-                #   Train a model using calibrant data\n
+                #   Train a model using calibrant data
                 #   
                 #   Given theoretical and observed mass values (and corresponding weights),
                 #   a model (linear, quadratic, ...) is build
                 #   Outlier removal is applied before
                 #   The 'obs_mz' can be either given as absolute masses in [Th] or relative deviations in [ppm]
                 #   The MZTrafoModel must be constructed accordingly (see constructor). This has no influence on the model building itself, but
-                #   rather on how 'predict()' works internally\n
+                #   rather on how 'predict()' works internally
                 #   
-                #   Outlier detection before model building via the RANSAC algorithm is supported for LINEAR and QUADRATIC models\n
+                #   Outlier detection before model building via the RANSAC algorithm is supported for LINEAR and QUADRATIC models
                 #   
                 #   Internally, these steps take place:
                 #   - [apply RANSAC] (depending on 'use_RANSAC')
@@ -91,7 +91,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
 
         void getCoefficients(double& intercept, double& slope, double& power) nogil except +
             # wrap-doc:
-                #   Get model coefficients\n
+                #   Get model coefficients
                 #   
                 #   Parameters will be filled with internal model parameters
                 #   The model must be trained before; Exception is thrown otherwise!
@@ -104,7 +104,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
         void setCoefficients(MZTrafoModel) nogil except + # wrap-doc:Copy model coefficients from another model
         void setCoefficients(double, double, double) nogil except +
             # wrap-doc:
-                #   Manually set model coefficients\n
+                #   Manually set model coefficients
                 #   
                 #   Can be used instead of train(), so manually set coefficients
                 #   It must be exactly three values. If you want a linear model, set 'power' to zero

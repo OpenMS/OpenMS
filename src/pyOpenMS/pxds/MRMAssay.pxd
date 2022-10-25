@@ -72,10 +72,10 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
         void filterUnreferencedDecoysCompound(TargetedExperiment & exp) nogil except +
             # wrap-doc:
                 #   Filters decoy transitions, which do not have respective target transition
-                #   based on the transitionID.\n
+                #   based on the transitionID.
                 #   
                 #   References between targets and decoys will be constructed based on the transitionsID
-                #   and the "_decoy_" string. For example:\n
+                #   and the "_decoy_" string. For example:
                 #   
                 #   target: 84_CompoundName_[M+H]+_88_22
                 #   decoy: 84_CompoundName_decoy_[M+H]+_88_22
@@ -95,16 +95,16 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
                             size_t max_num_alternative_localizations,
                             int shuffle_seed) nogil except +
             # wrap-doc:
-                #   Annotate UIS / site-specific transitions\n
+                #   Annotate UIS / site-specific transitions
                 #   
-                #   Performs the following actions:\n
+                #   Performs the following actions:
                 #   
                 #   - Step 1: For each peptide, compute all theoretical alternative peptidoforms; see transitions generateTargetInSilicoMap_()
-                #   - Step 2: Generate target identification transitions; see generateTargetAssays_()\n
+                #   - Step 2: Generate target identification transitions; see generateTargetAssays_()
                 #   
                 #   - Step 3a: Generate decoy sequences that share peptidoform properties with targets; see generateDecoySequences_()
                 #   - Step 3b: Generate decoy in silico peptide map containing theoretical transition; see generateDecoyInSilicoMap_()
-                #   - Step 4: Generate decoy identification transitions; see generateDecoyAssays_()\n
+                #   - Step 4: Generate decoy identification transitions; see generateDecoyAssays_()
                 #   
                 #   The IPF algorithm uses the concept of "identification transitions" that
                 #   are used to discriminate different peptidoforms, these are generated in

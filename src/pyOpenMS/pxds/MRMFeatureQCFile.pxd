@@ -5,7 +5,7 @@ cdef extern from "<OpenMS/FORMAT/MRMFeatureQCFile.h>" namespace "OpenMS":
 
     cdef cppclass MRMFeatureQCFile:
         # wrap-doc:
-                #   File adapter for MRMFeatureQC files\n
+                #   File adapter for MRMFeatureQC files
                 #   
                 #   Loads and stores .csv or .tsv files describing an MRMFeatureQC
 

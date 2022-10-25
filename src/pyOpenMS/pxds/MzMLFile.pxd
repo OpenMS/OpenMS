@@ -13,13 +13,13 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
         #   ProgressLogger
         #
         # wrap-doc:
-        #   File adapter for MzML files\n
+        #   File adapter for MzML files
         #   
         #   Provides methods to load and store MzML files.
-        #   PeakFileOptions allow to load a reduced subset of the data into an MSExperiment.\n
+        #   PeakFileOptions allow to load a reduced subset of the data into an MSExperiment.
         #   
         #   See help(MSExperiment) how data is stored after loading.
-        #   See help(PeakFileOptions) for available options.\n
+        #   See help(PeakFileOptions) for available options.
         #   
         #   Usage:
         #     exp = MSExperiment()

@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PrecursorPurity.h>" namespace "OpenMS":
 
     cdef cppclass PrecursorPurity "OpenMS::PrecursorPurity":
         # wrap-doc:
-            #   Precursor purity or noise estimation\n
+            #   Precursor purity or noise estimation
             #   
             #   This class computes metrics for precursor isolation window purity (or noise)
             #   The function extracts the peaks from an isolation window targeted for fragmentation
@@ -32,10 +32,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PrecursorPurity.h>" namespace "OpenMS":
                                             double precursor_mass_tolerance,
                                             bool precursor_mass_tolerance_unit_ppm) nogil except +
             # wrap-doc:
-            #   Compute precursor purity metrics for one MS2 precursor\n
+            #   Compute precursor purity metrics for one MS2 precursor
             #   
             #   Note: This function is implemented in a general way and can also be used for e.g. MS3 precursor isolation windows in MS2 spectra
-            #   Spectra annotated with charge 0 will be treated as charge 1.\n
+            #   Spectra annotated with charge 0 will be treated as charge 1.
             #   
             #   -----
             #   :param ms1: The Spectrum containing the isolation window

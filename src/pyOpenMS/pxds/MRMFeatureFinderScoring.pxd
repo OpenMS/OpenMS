@@ -71,7 +71,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
                              FeatureMap& output,
                              bool ms1only) nogil except +
             # wrap-doc:
-                #   Score all peak groups of a transition group\n
+                #   Score all peak groups of a transition group
                 #   
                 #   Iterate through all features found along the chromatograms of the transition group and score each one individually
                 #   
@@ -87,7 +87,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
 
         void prepareProteinPeptideMaps_(LightTargetedExperiment& transition_exp) nogil except +
             # wrap-doc:
-                #   Prepares the internal mappings of peptides and proteins\n
+                #   Prepares the internal mappings of peptides and proteins
                 #   
                 #   Calling this method _is_ required before calling scorePeakgroups
                 #   

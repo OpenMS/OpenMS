@@ -73,7 +73,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
       bool isValidProduct(AASequence protein, Size pep_pos, Size pep_length,
                           bool ignore_missed_cleavages, bool methionine_cleavage) nogil except +
           # wrap-doc:
-          #     Variant of EnzymaticDigestion::isValidProduct() with support for n-term protein cleavage and random D|P cleavage\n
+          #     Variant of EnzymaticDigestion::isValidProduct() with support for n-term protein cleavage and random D|P cleavage
           #     
           #     Checks if peptide is a valid digestion product of the enzyme, taking into account specificity and the flags provided here
           #     

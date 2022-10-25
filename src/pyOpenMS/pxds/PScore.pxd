@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
 
         libcpp_vector[ size_t ] calculateIntensityRankInMZWindow(libcpp_vector[ double ] & mz, libcpp_vector[ double ] & intensities, double mz_window) nogil except +
             # wrap-doc:
-                #   Calculate local (windowed) peak ranks\n
+                #   Calculate local (windowed) peak ranks
                 #   
                 #   The peak rank is defined as the number of neighboring peaks in +/- (mz_window/2) that have higher intensity 
                 #   The result can be used to efficiently filter spectra for top 1..n peaks in mass windows
@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
 
         libcpp_vector[ libcpp_vector[ size_t ] ] calculateRankMap(MSExperiment & peak_map, double mz_window) nogil except +
             # wrap-doc:
-                #   Precalculated, windowed peak ranks for a whole experiment\n
+                #   Precalculated, windowed peak ranks for a whole experiment
                 #   
                 #   The peak rank is defined as the number of neighboring peaks in +/- (mz_window/2) that have higher intensity 
                 #   

@@ -14,13 +14,13 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerMaxima.h>" namespac
             #   high resolution MS data (FT-ICR-MS, Orbitrap). In high resolution data, the
             #   signals of ions with similar mass-to-charge ratios (m/z) exhibit little or
             #   no overlapping and therefore allow for a clear separation. Furthermore, ion
-            #   signals tend to show well-defined peak shapes with narrow peak width\n
+            #   signals tend to show well-defined peak shapes with narrow peak width
             #   
             #   This peak-picking algorithm detects ion signals in raw data and
             #   reconstructs the corresponding peak shape by cubic spline interpolation.
             #   Signal detection depends on the signal-to-noise ratio which is adjustable
             #   by the user (see parameter signal_to_noise). A picked peak's m/z and
-            #   intensity value is given by the maximum of the underlying peak spline\n
+            #   intensity value is given by the maximum of the underlying peak spline
             #   
             #   So far, this peak picker was mainly tested on high resolution data. With
             #   appropriate preprocessing steps (e.g. noise reduction and baseline

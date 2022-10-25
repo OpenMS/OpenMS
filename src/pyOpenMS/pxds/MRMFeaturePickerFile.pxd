@@ -26,10 +26,10 @@ cdef extern from "<OpenMS/FORMAT/MRMFeaturePickerFile.h>" namespace "OpenMS":
 
         void load(const String& filename, libcpp_vector[MRMFP_ComponentParams]& cp_list, libcpp_vector[MRMFP_ComponentGroupParams]& cgp_list) nogil except +
             # wrap-doc:
-                #   Loads the file's data and saves it into vectors of `ComponentParams` and `ComponentGroupParams`\n
+                #   Loads the file's data and saves it into vectors of `ComponentParams` and `ComponentGroupParams`
                 #   
                 #   The file is expected to contain at least two columns: `component_name` and `component_group_name`. Otherwise,
-                #   an exception is thrown\n
+                #   an exception is thrown
                 #   
                 #   If a component group (identified by its name) is found multiple times, only the first one is saved
                 #   

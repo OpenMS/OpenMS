@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "Op
     
     cdef cppclass PeptideProteinResolution "OpenMS::PeptideProteinResolution":
         # wrap-doc:
-            #   Resolves shared peptides based on protein scores\n
+            #   Resolves shared peptides based on protein scores
             #   
             #   Resolves connected components of the bipartite protein-peptide graph based
             #   on protein probabilities/scores and adds them as additional protein_groups
@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "Op
             #   the peptides quantities.
             #   In accordance with most state-of-the-art protein inference tools, only the
             #   best hit (PSM) for a peptide ID is considered.  Probability ties are
-            #   currently resolved by taking the protein with larger number of peptides\n
+            #   currently resolved by taking the protein with larger number of peptides
             #   
             #   The class could provide iterator for ConnectedComponents in the
             #   future. One could extend the graph to include all PeptideHits (not only the

@@ -29,23 +29,23 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>" namespace "OpenMS":
                             bool enable_unspecific_losses,
                             int round_decPow) nogil except +
             # wrap-doc:
-                #   Generate decoys from a TargetedExperiment\n
+                #   Generate decoys from a TargetedExperiment
                 #   
                 #   Will generate decoy peptides for each target peptide provided in exp and
-                #   write them into the decoy experiment\n
+                #   write them into the decoy experiment
                 #   
-                #   Valid methods: shuffle, reverse, pseudo-reverse\n
+                #   Valid methods: shuffle, reverse, pseudo-reverse
                 #   
                 #   If theoretical is true, the target transitions will be returned but their
                 #   masses will be adjusted to match the theoretical value of the fragment ion
-                #   that is the most likely explanation for the product\n
+                #   that is the most likely explanation for the product
                 #   
-                #   `mz_threshold` is used for the matching of theoretical ion series to the observed one\n
+                #   `mz_threshold` is used for the matching of theoretical ion series to the observed one
                 #   
                 #   To generate decoys with different precursor mass, use the "switchKR" flag
                 #   which switches terminal K/R (switches K to R and R to K). This generates
                 #   different precursor m/z and ensures that the y ion series has a different
-                #   mass. For a description of the procedure, see (supplemental material)\n
+                #   mass. For a description of the procedure, see (supplemental material)
                 #   
                 #   Bruderer et al. Mol Cell Proteomics. 2017. 10.1074/mcp.RA117.000314.
 

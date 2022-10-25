@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>" namespace "O
         void writeHeader() nogil except + # wrap-doc:Initializes file by generating SQLite tables
         String prepareLine(LightCompound & compound, LightTransition * tr, FeatureMap & output, String id_) nogil except +
             # wrap-doc:
-                #   Prepare a single line (feature) for output\n
+                #   Prepare a single line (feature) for output
                 #   
                 #   The result can be flushed to disk using writeLines (either line by line or after collecting several lines)
                 #   
@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>" namespace "O
 
         void writeLines(libcpp_vector[ String ] to_osw_output) nogil except +
             # wrap-doc:
-                #   Write data to disk\n
+                #   Write data to disk
                 #   
                 #   Takes a set of pre-prepared data statements from prepareLine and flushes them to disk
                 #   

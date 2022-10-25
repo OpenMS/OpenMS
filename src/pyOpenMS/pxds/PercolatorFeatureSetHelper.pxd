@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>" namespace "
     
     cdef cppclass PercolatorFeatureSetHelper "OpenMS::PercolatorFeatureSetHelper":
         # wrap-doc:
-            #   Percolator feature set and integration helper\n
+            #   Percolator feature set and integration helper
             #   
             #   This class contains functions to handle (compute, aggregate, integrate)
             #   Percolator features. This includes the calculation or extraction of
@@ -93,7 +93,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>" namespace "
 
         void addCONCATSEFeatures(libcpp_vector[ PeptideIdentification ] & peptide_id_list, StringList & search_engines_used, StringList & feature_set) nogil except +
             # wrap-doc:
-                #   Adds multiple search engine specific Percolator features and registers them in feature_set\n
+                #   Adds multiple search engine specific Percolator features and registers them in feature_set
                 #   
                 #   This struct can be used to store both peak or feature indices
                 #   

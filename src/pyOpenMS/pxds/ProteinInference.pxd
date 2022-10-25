@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>" namespace "
 
         void infer(ConsensusMap & consensus_map, UInt reference_map) nogil except +
             # wrap-doc:
-            #   Given a peptide quantitation, infer corresponding protein quantities\n
+            #   Given a peptide quantitation, infer corresponding protein quantities
             #   
             #   Infers protein ratios from peptide ratios (currently using unique peptides only).
             #   Use the IDMapper class to add protein and peptide information to a

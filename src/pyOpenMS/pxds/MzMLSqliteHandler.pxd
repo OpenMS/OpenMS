@@ -76,7 +76,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
   
         void writeRunLevelInformation(MSExperiment exp, bool write_full_meta) nogil except +
             # wrap-doc:
-                #   Write the run-level information for an experiment into tables\n
+                #   Write the run-level information for an experiment into tables
                 #   
                 #   This is a low level function, do not call this function unless you know what you are doing
                 #   

@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace 
 
         void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) nogil except +
             # wrap-doc:
-                #   Set expected size of spectra and chromatograms to be written\n
+                #   Set expected size of spectra and chromatograms to be written
                 #   
                 #   These numbers will be written in the spectrumList and chromatogramList
                 #   tag in the mzML file. Therefore, these will contain wrong numbers if
@@ -38,7 +38,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace 
 
         void addDataProcessing(DataProcessing d) nogil except +
             # wrap-doc:
-                #   Optionally add a data processing method to each chromatogram and spectrum\n
+                #   Optionally add a data processing method to each chromatogram and spectrum
                 #   
                 #   The provided DataProcessing object will be added to each chromatogram
                 #   and spectrum written to to the mzML file
@@ -54,7 +54,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace 
 
     cdef cppclass NoopMSDataWritingConsumer:
         # wrap-doc:
-                #   Consumer class that perform no operation\n
+                #   Consumer class that perform no operation
                 #   
                 #   This is sometimes necessary to fulfill the requirement of passing an
                 #   valid MSDataWritingConsumer object or pointer but no operation is
