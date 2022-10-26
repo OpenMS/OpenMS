@@ -349,12 +349,12 @@ namespace OpenMS
     // Branch if the current layer is a spectrum
     if (auto* lp = dynamic_cast<LayerDataPeak*>(layer))
     {
-      auto spec_index = -1;
+      Size spec_index = std::numeric_limits<Size>::max();
       if (auto* layer_peak1d = dynamic_cast<LayerData1DPeak*>(lp))
       {
         spec_index = layer_peak1d->getCurrentIndex();
       }
-      const auto cl = *lp;
+      const auto& cl = *lp;
       spectra_treewidget_->clear();
 
       std::vector<QTreeWidgetItem *> parent_stack;

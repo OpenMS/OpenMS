@@ -204,10 +204,12 @@ namespace OpenMS
     LayerDataBase(const LayerDataBase& ld) = default;
     /// Assignment operator
     LayerDataBase& operator=(const LayerDataBase& ld) = delete;
-    /// Move-C'tor
-    LayerDataBase(LayerDataBase&& ld) = default;
-    /// Move assignment
-    LayerDataBase& operator=(LayerDataBase&& ld) = default;
+    /// Move-C'tor - do not move from this class since its a virtual base class (diamond problem) and the move c'tor may be called twice (which would loose data!)
+    /// Instead of painstakingly writing user-defined move c'tors which check for moving for all the direct child classes, 
+    /// we'd rather use copy (which is the automatic fallback, and safe) and incur a small performance hit
+    LayerDataBase(LayerDataBase&& ld) = delete;
+    /// Move assignment -- deleted, by same argument as for move c'tor
+    LayerDataBase& operator=(LayerDataBase&& ld) = delete;
     /// D'tor
     virtual ~LayerDataBase() = default;
 
@@ -310,17 +312,6 @@ namespace OpenMS
     /// compute layer statistics (via visitor)
     virtual std::unique_ptr<LayerStatistics> getStats() const = 0;
 
-    /// if this layer is visible
-    bool visible = true;
-
-    /// data type (peak or feature data, etc)
-    DataType type = DT_UNKNOWN;
-
-  private:
-    /// layer name
-    String name_;
-
-  public:
     const String& getName() const
     {
       return name_;
@@ -329,6 +320,12 @@ namespace OpenMS
     {
       name_ = new_name;
     }
+
+    /// if this layer is visible
+    bool visible = true;
+
+    /// data type (peak or feature data, etc)
+    DataType type = DT_UNKNOWN;
 
     /// file name of the file the data comes from (if available)
     String filename;
@@ -358,7 +355,9 @@ namespace OpenMS
     /// get name augmented with attributes, e.g. '*' if modified
     virtual String getDecoratedName() const;
 
-  protected:
+  private:
+    /// layer name
+    String name_;
   };
 
   /// A base class to annotate layers of specific types with (identification) data
