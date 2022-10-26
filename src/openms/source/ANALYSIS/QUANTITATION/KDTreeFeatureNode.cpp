@@ -58,9 +58,7 @@ KDTreeFeatureNode& KDTreeFeatureNode::operator=(KDTreeFeatureNode const& rhs)
   return *this;
 }
 
-KDTreeFeatureNode::~KDTreeFeatureNode()
-{
-}
+KDTreeFeatureNode::~KDTreeFeatureNode() = default;
 
 Size KDTreeFeatureNode::getIndex() const
 {

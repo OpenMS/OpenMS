@@ -56,9 +56,7 @@ namespace OpenMS
   {
   }
 
-  CVMappingRule::~CVMappingRule()
-  {
-  }
+  CVMappingRule::~CVMappingRule() = default;
 
   CVMappingRule& CVMappingRule::operator=(const CVMappingRule& rhs)
   {

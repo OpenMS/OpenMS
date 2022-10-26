@@ -183,10 +183,7 @@ namespace OpenMS
 
   }
 
-  ControlledVocabulary::~ControlledVocabulary()
-  {
-
-  }
+  ControlledVocabulary::~ControlledVocabulary() = default;
 
   void ControlledVocabulary::loadFromOBO(const String& name, const String& filename)
   {

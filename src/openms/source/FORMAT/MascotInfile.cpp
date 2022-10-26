@@ -87,10 +87,7 @@ namespace OpenMS
 
   }
 
-  MascotInfile::~MascotInfile()
-  {
-
-  }
+  MascotInfile::~MascotInfile() = default;
 
   void MascotInfile::store(const String& filename,
                            const PeakMap& experiment,

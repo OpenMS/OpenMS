@@ -78,9 +78,7 @@ namespace OpenMS
     return *this;
   }
 
-  CompNovoIdentification::~CompNovoIdentification()
-  {
-  }
+  CompNovoIdentification::~CompNovoIdentification() = default;
 
   void CompNovoIdentification::getIdentifications(vector<PeptideIdentification> & pep_ids, const PeakMap & exp)
   {

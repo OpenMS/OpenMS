@@ -107,10 +107,7 @@ namespace OpenMS::Internal
     {
     }
 
-    XQuestResultXMLHandler::~XQuestResultXMLHandler()
-    {
-
-    }
+    XQuestResultXMLHandler::~XQuestResultXMLHandler() = default;
 
     void XQuestResultXMLHandler::extractDateTime_(const String & xquest_datetime_string, DateTime & date_time) const
     {

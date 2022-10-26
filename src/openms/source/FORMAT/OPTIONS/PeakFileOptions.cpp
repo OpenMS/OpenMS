@@ -96,9 +96,7 @@ namespace OpenMS
   {
   }
 
-  PeakFileOptions::~PeakFileOptions()
-  {
-  }
+  PeakFileOptions::~PeakFileOptions() = default;
 
   void PeakFileOptions::setMetadataOnly(bool only)
   {

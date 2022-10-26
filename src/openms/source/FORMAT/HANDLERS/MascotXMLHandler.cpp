@@ -49,9 +49,7 @@ namespace OpenMS::Internal
     {
     }
 
-    MascotXMLHandler::~MascotXMLHandler()
-    {
-    }
+    MascotXMLHandler::~MascotXMLHandler() = default;
 
     void MascotXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {

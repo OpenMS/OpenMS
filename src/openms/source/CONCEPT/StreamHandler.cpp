@@ -49,10 +49,7 @@ using std::ofstream;
 
 namespace OpenMS
 {
-  StreamHandler::StreamHandler()
-  {
-
-  }
+  StreamHandler::StreamHandler() = default;
 
   StreamHandler::StreamHandler(const StreamHandler & source)
   {

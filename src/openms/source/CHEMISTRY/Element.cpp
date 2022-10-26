@@ -75,9 +75,7 @@ namespace OpenMS
   {
   }
 
-  Element::~Element()
-  {
-  }
+  Element::~Element() = default;
 
   void Element::setAtomicNumber(unsigned int atomic_number)
   {

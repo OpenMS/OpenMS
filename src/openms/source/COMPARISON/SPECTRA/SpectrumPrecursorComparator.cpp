@@ -54,9 +54,7 @@ namespace OpenMS
   {
   }
 
-  SpectrumPrecursorComparator::~SpectrumPrecursorComparator()
-  {
-  }
+  SpectrumPrecursorComparator::~SpectrumPrecursorComparator() = default;
 
   SpectrumPrecursorComparator & SpectrumPrecursorComparator::operator=(const SpectrumPrecursorComparator & source)
   {

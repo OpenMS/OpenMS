@@ -51,9 +51,7 @@ namespace OpenMS::Internal
     {
     }
 
-    UnimodXMLHandler::~UnimodXMLHandler()
-    {
-    }
+    UnimodXMLHandler::~UnimodXMLHandler() = default;
 
     void UnimodXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {

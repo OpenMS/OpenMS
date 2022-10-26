@@ -43,17 +43,13 @@ using namespace std;
 
 namespace OpenMS
 {
-  ClusterFunctor::ClusterFunctor()
-  {
-  }
+  ClusterFunctor::ClusterFunctor() = default;
 
   ClusterFunctor::ClusterFunctor(const ClusterFunctor & /*source*/)
   {
   }
 
-  ClusterFunctor::~ClusterFunctor()
-  {
-  }
+  ClusterFunctor::~ClusterFunctor() = default;
 
   ClusterFunctor & ClusterFunctor::operator=(const ClusterFunctor & /*source*/)
   {

@@ -63,9 +63,7 @@ namespace OpenMS
     return *this;
   }
 
-  DigestSimulation::~DigestSimulation()
-  {
-  }
+  DigestSimulation::~DigestSimulation() = default;
 
   void DigestSimulation::setDefaultParams_()
   {

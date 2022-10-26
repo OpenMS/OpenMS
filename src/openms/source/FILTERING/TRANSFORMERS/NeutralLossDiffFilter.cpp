@@ -61,8 +61,6 @@ namespace OpenMS
     return *this;
   }
 
-  NeutralLossDiffFilter::~NeutralLossDiffFilter()
-  {
-  }
+  NeutralLossDiffFilter::~NeutralLossDiffFilter() = default;
 
 }

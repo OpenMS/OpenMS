@@ -61,9 +61,7 @@ namespace OpenMS
   {
   }
 
-  AverageLinkage::~AverageLinkage()
-  {
-  }
+  AverageLinkage::~AverageLinkage() = default;
 
   AverageLinkage & AverageLinkage::operator=(const AverageLinkage & source)
   {

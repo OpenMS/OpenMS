@@ -302,9 +302,7 @@ namespace OpenMS
   }
 
   /// destructor
-  FeatureDeconvolution::~FeatureDeconvolution()
-  {
-  }
+  FeatureDeconvolution::~FeatureDeconvolution() = default;
 
   //@}
 

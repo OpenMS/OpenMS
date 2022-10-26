@@ -62,8 +62,6 @@ namespace OpenMS
     return *this;
   }
 
-  ComplementFilter::~ComplementFilter()
-  {
-  }
+  ComplementFilter::~ComplementFilter() = default;
 
 }

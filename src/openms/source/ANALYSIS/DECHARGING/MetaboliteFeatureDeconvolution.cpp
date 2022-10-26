@@ -342,10 +342,7 @@ namespace OpenMS
   }
 
   /// destructor
-  MetaboliteFeatureDeconvolution::~MetaboliteFeatureDeconvolution()
-  {
-  }
-
+  MetaboliteFeatureDeconvolution::~MetaboliteFeatureDeconvolution() = default;
 
   void MetaboliteFeatureDeconvolution::annotate_feature_(FeatureMap& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt comp_side, const Int new_q, const Int old_q)
   {

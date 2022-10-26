@@ -93,9 +93,7 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  ModificationDefinition::~ModificationDefinition()
-  {
-  }
+  ModificationDefinition::~ModificationDefinition() = default;
 
   bool ModificationDefinition::operator<(const ModificationDefinition& rhs) const
   {

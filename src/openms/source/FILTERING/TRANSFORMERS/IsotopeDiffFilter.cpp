@@ -63,8 +63,6 @@ namespace OpenMS
     return *this;
   }
 
-  IsotopeDiffFilter::~IsotopeDiffFilter()
-  {
-  }
+  IsotopeDiffFilter::~IsotopeDiffFilter() = default;
 
 }

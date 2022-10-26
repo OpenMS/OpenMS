@@ -58,9 +58,7 @@ namespace OpenMS
   {
   }
 
-  CVMappingTerm::~CVMappingTerm()
-  {
-  }
+  CVMappingTerm::~CVMappingTerm() = default;
 
   CVMappingTerm& CVMappingTerm::operator=(const CVMappingTerm& rhs)
   {

@@ -80,13 +80,9 @@ namespace OpenMS::Internal
     {
     }
 
-    XMLHandler::~XMLHandler()
-    {
-    }
+    XMLHandler::~XMLHandler() = default;
 
-    void XMLHandler::reset()
-    {
-    }
+    void XMLHandler::reset() {};
 
     void XMLHandler::fatalError(const SAXParseException & exception)
     {
@@ -298,13 +294,9 @@ namespace OpenMS::Internal
 
     //*******************************************************************************************************************
     
-    StringManager::StringManager()
-    {
-    }
+    StringManager::StringManager() = default;
 
-    StringManager::~StringManager()
-    {
-    }
+    StringManager::~StringManager() = default;
 
     void StringManager::appendASCII(const XMLCh * chars, const XMLSize_t length, String & result)
     {

@@ -37,8 +37,6 @@
 
 namespace OpenSwath
 {
-  ISpectrumAccess::~ISpectrumAccess()
-  {
-  }
+  ISpectrumAccess::~ISpectrumAccess() = default;
 
 }

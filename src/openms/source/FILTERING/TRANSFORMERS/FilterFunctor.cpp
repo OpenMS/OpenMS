@@ -65,9 +65,7 @@ namespace OpenMS
     return *this;
   }
 
-  FilterFunctor::~FilterFunctor()
-  {
-  }
+  FilterFunctor::~FilterFunctor() = default;
 
   void FilterFunctor::registerChildren()
   {

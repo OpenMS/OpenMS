@@ -53,9 +53,7 @@ namespace OpenMS
   {
   }
 
-  WeightWrapper::~WeightWrapper()
-  {
-  }
+  WeightWrapper::~WeightWrapper() = default;
 
   void WeightWrapper::setWeightMode(const WEIGHTMODE mode)
   {

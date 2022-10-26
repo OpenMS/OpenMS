@@ -46,9 +46,7 @@ namespace OpenMS::Internal
     {
     }
 
-    PTMXMLHandler::~PTMXMLHandler()
-    {
-    }
+    PTMXMLHandler::~PTMXMLHandler() = default;
 
     void PTMXMLHandler::writeTo(std::ostream & os)
     {

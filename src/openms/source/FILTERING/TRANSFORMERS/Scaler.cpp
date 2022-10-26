@@ -42,9 +42,7 @@ namespace OpenMS
   {
   }
 
-  Scaler::~Scaler()
-  {
-  }
+  Scaler::~Scaler() = default;
 
   Scaler::Scaler(const Scaler & source) :
     DefaultParamHandler(source)

@@ -116,9 +116,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MascotGenericFile::~MascotGenericFile()
-  {
-  }
+  MascotGenericFile::~MascotGenericFile() = default;
 
   void MascotGenericFile::updateMembers_()
   {

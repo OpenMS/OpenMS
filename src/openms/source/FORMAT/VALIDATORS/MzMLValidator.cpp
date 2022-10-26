@@ -49,9 +49,7 @@ namespace OpenMS::Internal
       setCheckUnits(true);
     }
 
-    MzMLValidator::~MzMLValidator()
-    {
-    }
+    MzMLValidator::~MzMLValidator() = default;
 
     //This method needed to be reimplemented to
     // - check CV term values

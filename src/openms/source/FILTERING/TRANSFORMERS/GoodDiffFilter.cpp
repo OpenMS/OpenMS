@@ -86,8 +86,6 @@ namespace OpenMS
     return *this;
   }
 
-  GoodDiffFilter::~GoodDiffFilter()
-  {
-  }
+  GoodDiffFilter::~GoodDiffFilter() = default;
 
 }

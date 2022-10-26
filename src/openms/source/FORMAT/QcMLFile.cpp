@@ -303,10 +303,7 @@ namespace OpenMS
   {
   }
 
-  QcMLFile::~QcMLFile()
-  {
-
-  }
+  QcMLFile::~QcMLFile() = default;
 
   void QcMLFile::addRunQualityParameter(String run_id, QualityParameter qp)
   {

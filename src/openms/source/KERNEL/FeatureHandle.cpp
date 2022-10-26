@@ -85,9 +85,7 @@ namespace OpenMS
     return *this;
   }
 
-  FeatureHandle::~FeatureHandle()
-  {
-  }
+  FeatureHandle::~FeatureHandle() = default;
 
   UInt64 FeatureHandle::getMapIndex() const
   {

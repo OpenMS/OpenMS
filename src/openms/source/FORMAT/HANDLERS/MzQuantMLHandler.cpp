@@ -64,9 +64,7 @@ namespace OpenMS::Internal
       cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
     }
 
-    MzQuantMLHandler::~MzQuantMLHandler()
-    {
-    }
+    MzQuantMLHandler::~MzQuantMLHandler() = default;
 
     void MzQuantMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {

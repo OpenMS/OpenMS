@@ -52,9 +52,7 @@ namespace OpenMS
   {
   }
 
-  ComplementMarker::~ComplementMarker()
-  {
-  }
+  ComplementMarker::~ComplementMarker() = default;
 
   ComplementMarker & ComplementMarker::operator=(const ComplementMarker & source)
   {

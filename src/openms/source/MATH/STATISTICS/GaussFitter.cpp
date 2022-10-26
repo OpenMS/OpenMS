@@ -50,9 +50,7 @@ namespace OpenMS::Math
     {
     }
 
-    GaussFitter::~GaussFitter()
-    {
-    }
+    GaussFitter::~GaussFitter() = default;
 
     void GaussFitter::setInitialParameters(const GaussFitResult & param)
     {

@@ -57,9 +57,7 @@ namespace OpenMS
 
   }
 
-  PreprocessingFunctor::~PreprocessingFunctor()
-  {
-  }
+  PreprocessingFunctor::~PreprocessingFunctor() = default;
 
   void PreprocessingFunctor::registerChildren()
   {

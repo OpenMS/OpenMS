@@ -112,9 +112,7 @@ namespace OpenMS
     canvas_->setPlotWidget(this);
   }
 
-  PlotWidget::~PlotWidget()
-  {
-  }
+  PlotWidget::~PlotWidget() = default;
 
   void PlotWidget::correctAreaToObeyMinMaxRanges_(PlotCanvas::AreaType& area)
   {

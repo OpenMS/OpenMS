@@ -59,9 +59,7 @@ namespace OpenMS
     setModifications(fixed_modifications, variable_modifications);
   }
 
-  ModificationDefinitionsSet::~ModificationDefinitionsSet()
-  {
-  }
+  ModificationDefinitionsSet::~ModificationDefinitionsSet() = default;
 
   void ModificationDefinitionsSet::setMaxModifications(Size max_mod)
   {

@@ -61,8 +61,6 @@ namespace OpenMS
     return *this;
   }
 
-  TICFilter::~TICFilter()
-  {
-  }
+  TICFilter::~TICFilter() = default;
 
 }

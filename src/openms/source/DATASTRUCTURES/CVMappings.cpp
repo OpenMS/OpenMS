@@ -47,9 +47,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  CVMappings::CVMappings()
-  {
-  }
+  CVMappings::CVMappings() = default;
 
   CVMappings::CVMappings(const CVMappings& rhs) :
     mapping_rules_(rhs.mapping_rules_),
@@ -58,9 +56,7 @@ namespace OpenMS
   {
   }
 
-  CVMappings::~CVMappings()
-  {
-  }
+  CVMappings::~CVMappings() = default;
 
   CVMappings& CVMappings::operator=(const CVMappings& rhs)
   {

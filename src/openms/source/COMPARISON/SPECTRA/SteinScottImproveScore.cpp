@@ -56,9 +56,7 @@ namespace OpenMS
   }
 
   /// destructor
-  SteinScottImproveScore::~SteinScottImproveScore()
-  {
-  }
+  SteinScottImproveScore::~SteinScottImproveScore() = default;
 
   /// assignment operator
   SteinScottImproveScore & SteinScottImproveScore::operator=(const SteinScottImproveScore & source)

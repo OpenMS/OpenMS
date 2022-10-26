@@ -52,9 +52,7 @@ namespace OpenMS
   {
   }
 
-  SpectraSTSimilarityScore::~SpectraSTSimilarityScore()
-  {
-  }
+  SpectraSTSimilarityScore::~SpectraSTSimilarityScore() = default;
 
   SpectraSTSimilarityScore & SpectraSTSimilarityScore::operator=(const SpectraSTSimilarityScore & source)
   {

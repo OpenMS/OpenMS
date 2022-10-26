@@ -114,9 +114,7 @@ namespace OpenMS::Internal
     //~ unimod_.loadFromOBO("PSI-MS",File::find("/CV/unimod.obo"));
     //~ }
 
-    MzIdentMLHandler::~MzIdentMLHandler()
-    {
-    }
+    MzIdentMLHandler::~MzIdentMLHandler() = default;
 
     void MzIdentMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {

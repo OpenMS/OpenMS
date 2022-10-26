@@ -44,9 +44,7 @@
 namespace OpenMS
 {
 
-  ProteinInference::ProteinInference()
-  {
-  }
+  ProteinInference::ProteinInference() = default;
 
   ProteinInference::ProteinInference(const ProteinInference& /*cp*/)
   {

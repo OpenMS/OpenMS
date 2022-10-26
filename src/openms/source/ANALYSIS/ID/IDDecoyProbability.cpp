@@ -64,9 +64,7 @@ namespace OpenMS
 
   }
 
-  IDDecoyProbability::~IDDecoyProbability()
-  {
-  }
+  IDDecoyProbability::~IDDecoyProbability() = default;
 
   void IDDecoyProbability::apply(vector<PeptideIdentification> & ids)
   {

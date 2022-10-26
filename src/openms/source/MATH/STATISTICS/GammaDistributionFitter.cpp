@@ -54,9 +54,7 @@ namespace OpenMS::Math
     {
     }
 
-    GammaDistributionFitter::~GammaDistributionFitter()
-    {
-    }
+    GammaDistributionFitter::~GammaDistributionFitter() = default;
 
     void GammaDistributionFitter::setInitialParameters(const GammaDistributionFitResult& param)
     {

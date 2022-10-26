@@ -54,9 +54,7 @@ namespace OpenMS
   {
   }
 
-  BinnedSpectrumCompareFunctor::~BinnedSpectrumCompareFunctor()
-  {
-  }
+  BinnedSpectrumCompareFunctor::~BinnedSpectrumCompareFunctor() = default;
 
   BinnedSpectrumCompareFunctor & BinnedSpectrumCompareFunctor::operator=(const BinnedSpectrumCompareFunctor & source)
   {

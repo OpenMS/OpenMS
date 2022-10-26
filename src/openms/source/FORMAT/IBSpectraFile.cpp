@@ -96,9 +96,7 @@ namespace OpenMS
     {}
   };
 
-  IBSpectraFile::IBSpectraFile()
-  {
-  }
+  IBSpectraFile::IBSpectraFile() = default;
 
   IBSpectraFile::IBSpectraFile(const IBSpectraFile& /* other */)
   {

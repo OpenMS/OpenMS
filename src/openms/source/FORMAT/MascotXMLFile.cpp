@@ -41,9 +41,7 @@ namespace OpenMS
 {
 
   MascotXMLFile::MascotXMLFile() :
-    Internal::XMLFile()
-  {
-  }
+    Internal::XMLFile() {};
 
   void MascotXMLFile::load(const String& filename,
                            ProteinIdentification& protein_identification,

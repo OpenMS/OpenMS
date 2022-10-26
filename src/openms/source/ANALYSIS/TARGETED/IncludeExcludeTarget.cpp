@@ -59,9 +59,7 @@ namespace OpenMS
   {
   }
 
-  IncludeExcludeTarget::~IncludeExcludeTarget()
-  {
-  }
+  IncludeExcludeTarget::~IncludeExcludeTarget() = default;
 
   IncludeExcludeTarget & IncludeExcludeTarget::operator=(const IncludeExcludeTarget & rhs)
   {

@@ -53,9 +53,7 @@ namespace OpenMS
   {
   }
 
-  SpectrumAlignment::~SpectrumAlignment()
-  {
-  }
+  SpectrumAlignment::~SpectrumAlignment() = default;
 
   SpectrumAlignment & SpectrumAlignment::operator=(const SpectrumAlignment & source)
   {

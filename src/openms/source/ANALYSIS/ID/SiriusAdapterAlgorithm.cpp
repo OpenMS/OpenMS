@@ -325,9 +325,7 @@ namespace OpenMS
                 );
     }
 
-    void SiriusAdapterAlgorithm::Passatutto::parameters()
-    {
-    }
+    void SiriusAdapterAlgorithm::Passatutto::parameters() {}
 
     void SiriusAdapterAlgorithm::updateExistingParameter(const OpenMS::Param &param)
     {

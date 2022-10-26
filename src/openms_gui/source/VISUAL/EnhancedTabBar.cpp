@@ -55,10 +55,7 @@ namespace OpenMS
     setAcceptDrops(true);
   }
 
-  EnhancedTabBar::~EnhancedTabBar()
-  {
-
-  }
+  EnhancedTabBar::~EnhancedTabBar() = default;
 
   void EnhancedTabBar::setTabText(const QString& text)
   {

@@ -53,9 +53,7 @@ namespace OpenMS
   {
   }
 
-  FeatureXMLFile::~FeatureXMLFile()
-  {
-  }
+  FeatureXMLFile::~FeatureXMLFile() = default;
 
   Size FeatureXMLFile::loadSize(const String& filename)
   {

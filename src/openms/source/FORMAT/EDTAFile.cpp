@@ -43,13 +43,9 @@ using namespace std;
 namespace OpenMS
 {
 
-  EDTAFile::EDTAFile()
-  {
-  }
+  EDTAFile::EDTAFile() = default;
 
-  EDTAFile::~EDTAFile()
-  {
-  }
+  EDTAFile::~EDTAFile() = default;
 
   double EDTAFile::checkedToDouble_(const std::vector<String>& parts, Size index, double def)
   {

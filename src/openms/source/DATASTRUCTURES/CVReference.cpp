@@ -39,13 +39,9 @@ using namespace std;
 namespace OpenMS
 {
   // CV reference implementation
-  CVReference::CVReference()
-  {
-  }
+  CVReference::CVReference() = default;
 
-  CVReference::~CVReference()
-  {
-  }
+  CVReference::~CVReference() = default;
 
   CVReference::CVReference(const CVReference& rhs) :
     name_(rhs.name_),

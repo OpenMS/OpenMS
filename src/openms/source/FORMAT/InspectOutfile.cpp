@@ -51,9 +51,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  InspectOutfile::InspectOutfile()
-  {
-  }
+  InspectOutfile::InspectOutfile() = default;
 
   /// copy constructor
   InspectOutfile::InspectOutfile(const InspectOutfile&)
@@ -61,9 +59,7 @@ namespace OpenMS
   }
 
   /// destructor
-  InspectOutfile::~InspectOutfile()
-  {
-  }
+  InspectOutfile::~InspectOutfile() = default;
 
   /// assignment operator
   InspectOutfile& InspectOutfile::operator=(const InspectOutfile& inspect_outfile)

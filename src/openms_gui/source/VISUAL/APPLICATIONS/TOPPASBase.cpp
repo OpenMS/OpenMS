@@ -988,10 +988,7 @@ namespace OpenMS
     // TODO
   }
 
-  void TOPPASBase::updateToolBar()
-  {
-
-  }
+  void TOPPASBase::updateToolBar() = default;
 
   void TOPPASBase::updateTabBar(QMdiSubWindow* w)
   {

@@ -81,9 +81,7 @@ namespace OpenMS
     resize(minimumSize());
   }
 
-  AxisWidget::~AxisWidget()
-  {
-  }
+  AxisWidget::~AxisWidget() = default;
 
   void AxisWidget::paintEvent(QPaintEvent * e)
   {

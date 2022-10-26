@@ -80,10 +80,7 @@ namespace OpenMS
     return *this;
   }
 
-  MultiGradient::~MultiGradient()
-  {
-
-  }
+  MultiGradient::~MultiGradient() = default;
 
   Size MultiGradient::size() const
   {

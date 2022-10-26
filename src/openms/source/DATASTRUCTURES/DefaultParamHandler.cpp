@@ -88,9 +88,7 @@ namespace OpenMS
            warn_empty_defaults_ == rhs.warn_empty_defaults_;
   }
 
-  DefaultParamHandler::~DefaultParamHandler()
-  {
-  }
+  DefaultParamHandler::~DefaultParamHandler() = default;
 
   void DefaultParamHandler::setParameters(const Param& param)
   {

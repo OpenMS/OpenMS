@@ -59,9 +59,7 @@ namespace OpenMS
   {
   }
 
-  PeakAlignment::~PeakAlignment()
-  {
-  }
+  PeakAlignment::~PeakAlignment() = default;
 
   PeakAlignment& PeakAlignment::operator=(const PeakAlignment& source)
   {

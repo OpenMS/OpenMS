@@ -63,9 +63,7 @@ namespace OpenMS
   {
   }
 
-  MRMFragmentSelection::~MRMFragmentSelection()
-  {
-  }
+  MRMFragmentSelection::~MRMFragmentSelection() = default;
 
   MRMFragmentSelection & MRMFragmentSelection::operator=(const MRMFragmentSelection & rhs)
   {

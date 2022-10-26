@@ -417,9 +417,7 @@ namespace OpenMS
       unregister();
     }
 
-    void LogStreamNotifier::logNotify()
-    {
-    }
+    void LogStreamNotifier::logNotify() {};
 
     void LogStreamNotifier::unregister()
     {

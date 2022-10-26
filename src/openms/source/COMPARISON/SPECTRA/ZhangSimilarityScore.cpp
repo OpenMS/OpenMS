@@ -62,9 +62,7 @@ namespace OpenMS
   {
   }
 
-  ZhangSimilarityScore::~ZhangSimilarityScore()
-  {
-  }
+  ZhangSimilarityScore::~ZhangSimilarityScore() = default;
 
   ZhangSimilarityScore & ZhangSimilarityScore::operator=(const ZhangSimilarityScore & source)
   {

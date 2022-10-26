@@ -65,9 +65,7 @@ namespace OpenMS
     stream_type_map_ = other.stream_type_map_;
   }
 
-  LogConfigHandler::~LogConfigHandler()
-  {
-  }
+  LogConfigHandler::~LogConfigHandler() = default;
 
   LogConfigHandler & LogConfigHandler::operator=(const LogConfigHandler & source)
   {

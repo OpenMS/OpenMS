@@ -1429,9 +1429,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::layerDeactivated()
-  {
-  }
+  void TOPPViewBase::layerDeactivated() = default;
 
   void TOPPViewBase::showPlotWidgetInWindow(PlotWidget* sw, const String& caption)
   {

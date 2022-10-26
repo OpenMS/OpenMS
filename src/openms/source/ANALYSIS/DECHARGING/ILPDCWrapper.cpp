@@ -47,13 +47,9 @@
 namespace OpenMS
 {
 
-  ILPDCWrapper::ILPDCWrapper()
-  {
-  }
+  ILPDCWrapper::ILPDCWrapper() = default;
 
-  ILPDCWrapper::~ILPDCWrapper()
-  {
-  }
+  ILPDCWrapper::~ILPDCWrapper() = default;
 
   double ILPDCWrapper::compute(const FeatureMap fm, PairsType& pairs, Size verbose_level) const
   {
