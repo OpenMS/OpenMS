@@ -38,18 +38,21 @@ cmake_minimum_required(VERSION 3.9.0 FATAL_ERROR)
 # --------------------------------------------------------------------------
 # OpenMS' TOPP tools
 
+find_package(Torch REQUIRED)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+
 # add all the tools
 include(executables.cmake)
 foreach(i ${TOPP_executables})
   add_executable(${i} ${i}.cpp)
-  target_link_libraries(${i} OpenMS)
+  target_link_libraries(${i} OpenMS ${TORCH_LIBRARIES})
   # we also want to install each topp tool
   install_tool(${i})
   if (OPENMP_FOUND AND NOT MSVC)
     set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
   endif()
 endforeach(i)
-
+#target_link_libraries(FLASHDeconv ${TORCH_LIBRARIES})
 # some regular TOPP tools need the GUI lib, only build them when WITH_GUI is enabled
 if(WITH_GUI)
   foreach(i ${TOPP_executables_with_GUIlib})

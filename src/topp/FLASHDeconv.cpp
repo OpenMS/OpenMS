@@ -45,6 +45,9 @@
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#undef slots
+#include <torch/torch.h>
+#define slots Q_SLOTS
 
 using namespace OpenMS;
 using namespace std;
@@ -381,7 +384,8 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-
+    torch::Tensor tensor = torch::rand({3,3});
+    std::cout << tensor << std::endl;
     const Size max_peak_count_ = 30000;
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
