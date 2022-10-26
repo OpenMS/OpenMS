@@ -59,9 +59,10 @@ namespace OpenMS
       {
         break;
       }
+
       auto iso = use_RNA_averagine ?
-                 generator->estimateFromRNAWeight(mass) :
-                 generator->estimateFromPeptideWeight(mass);
+                 generator->estimateFromRNAMonoWeight(mass) :
+                 generator->estimateFromPeptideMonoWeight(mass);
 
       const double min_pwr = .9999;
       const Size min_iso_length = 2;
