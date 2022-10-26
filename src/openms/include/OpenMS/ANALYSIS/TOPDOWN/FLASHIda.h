@@ -121,6 +121,13 @@ namespace OpenMS
                              double *precursor_intensities,
                              double *peakgroup_intensities);
 
+    /**
+           @brief parse FLASHIda log file
+           @param in_log_file input log file
+           @return parsed information : scan number - percursor information
+    **/
+    static std::map<int, std::vector<std::vector<double>>> parseFLASHIdaLog(const String& in_log_file);
+
   private:
     /// PeakGroup comparator for soring by QScore
     /*struct
