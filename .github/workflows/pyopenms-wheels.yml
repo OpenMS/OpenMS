@@ -37,7 +37,7 @@ jobs:
         target: 'desktop'
         install-deps: 'true'
         modules: 'qtsvg'
-        cached: 'false'
+        cache: 'false'
 
     - name: Install Miniconda
       shell: bash # uses git bash on windows
