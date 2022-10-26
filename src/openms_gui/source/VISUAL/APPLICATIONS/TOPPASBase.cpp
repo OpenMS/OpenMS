@@ -983,12 +983,9 @@ namespace OpenMS
     QApplication::processEvents();
   }
 
-  void TOPPASBase::showCursorStatus(double /*x*/, double /*y*/)
-  {
-    // TODO
-  }
+  void TOPPASBase::showCursorStatus(double /*x*/, double /*y*/) {}
 
-  void TOPPASBase::updateToolBar() = default;
+  void TOPPASBase::updateToolBar() {}
 
   void TOPPASBase::updateTabBar(QMdiSubWindow* w)
   {

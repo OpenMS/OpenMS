@@ -161,7 +161,7 @@ namespace OpenMS
     addItem(te);
   }
 
-  void TOPPASScene::itemClicked() = default;
+  void TOPPASScene::itemClicked() {}
 
   void TOPPASScene::itemReleased()
   {
