@@ -15,6 +15,7 @@ cdef extern from "<OpenMS/FORMAT/MSPGenericFile.h>" namespace "OpenMS":
         void load(const String& filename, MSExperiment& library) nogil except +
             # wrap-doc:
                 #   Load the file's data and metadata, and save it into an `MSExperiment`
+                #   
                 #   -----
                 #   :param filename: Path to the MSP input file
                 #   :param library: The variable into which the extracted information will be saved
@@ -24,6 +25,7 @@ cdef extern from "<OpenMS/FORMAT/MSPGenericFile.h>" namespace "OpenMS":
         void store(const String& filename, const MSExperiment& library) nogil except +
             # wrap-doc:
                 #   Save data and metadata into a file
+                #   
                 #   -----
                 #   :param filename: Path to the MSP input file
                 #   :param library: The variable from which extracted information will be saved

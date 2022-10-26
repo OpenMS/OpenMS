@@ -18,7 +18,8 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h>"
                 #   Gets a number of all decompositions for amass with an error
                 #   allowed. It's similar to thegetDecompositions(double,double) function
                 #   but less space consuming, since doesn't use container to store decompositions
+                #   
                 #   -----
                 #   :param mass: Mass to be decomposed
                 #   :param error: Error allowed between given and result decomposition
-                #   :returns: Number of all decompositions for a given mass and error
+                #   :return: Number of all decompositions for a given mass and error

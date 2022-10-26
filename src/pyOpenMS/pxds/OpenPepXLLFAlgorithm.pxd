@@ -26,6 +26,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OpenPepXLLFAlgorithm.h>" namespace "Open
                                            MSExperiment& spectra) nogil except +
             # wrap-doc:
                 #   Performs the main function of this class, the search for cross-linked peptides
+                #   
                 #   -----
                 #   :param unprocessed_spectra: The input PeakMap of experimental spectra
                 #   :param fasta_db: The protein database containing targets and decoys

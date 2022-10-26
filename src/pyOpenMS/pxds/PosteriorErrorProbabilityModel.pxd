@@ -33,19 +33,21 @@ cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" nam
                 #   Fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables
                 #   computeProbability can be used afterwards
                 #   Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate final probabilities
+                #   
                 #   -----
                 #   :param search_engine_scores: A vector which holds the data points
-                #   :returns: `true` if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated
+                #   :return: `true` if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated
 
         bool fit(libcpp_vector[double] & search_engine_scores, libcpp_vector[double] & probabilities, String outlier_handling) nogil except +
             # wrap-doc:
                 #   Fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables
                 #   computeProbability can be used afterwards
                 #   Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate final probabilities
+                #   
                 #   -----
                 #   :param search_engine_scores: A vector which holds the data points
                 #   :param probabilities a vector which holds the probability for each data point after running this function. If it has some content it will be overwritten
-                #   :returns: `true` if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated
+                #   :return: `true` if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated
 
         void fillDensities(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except + # wrap-doc:Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences
         void fillLogDensities(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except + # wrap-doc:Writes the log distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences
