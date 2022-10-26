@@ -54,9 +54,10 @@ install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dep
   COMPONENT zzz-fixing-dependencies
 )
 
-install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/sign_bins_and_libs.rb -d \${CMAKE_INSTALL_PREFIX}/ -s ${CPACK_BUNDLE_APPLE_CERT_APP})"
-  COMPONENT zzz-sign-bins-and-libs
-)
+## Apple no longer supports signing for DMGs in a useful way.
+# install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/sign_bins_and_libs.rb -d \${CMAKE_INSTALL_PREFIX}/ -s ${CPACK_BUNDLE_APPLE_CERT_APP})"
+#   COMPONENT zzz-sign-bins-and-libs
+# )
 
 ## Additionally install TOPPShell into root of install folder
 
