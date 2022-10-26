@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
@@ -319,140 +320,6 @@ protected:
     registerFullParam_(combined);
   }
 
-  static std::map<int, std::vector<std::vector<double>>> read_FLASHIda_log_(const String& in_log_file)
-  {
-    std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition; // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
-    if (!in_log_file.empty())
-    {
-      std::cout << "Log file used: " << in_log_file << std::endl;
-      std::ifstream instream(in_log_file);
-      if (instream.good())
-      {
-        String line;
-        int scan;
-        double mass, charge, w1, w2, qscore, pint, mint, z1, z2;
-        double features[6];
-        while (std::getline(instream, line))
-        {
-          if (line.find("0 targets") != line.npos)
-          {
-            continue;
-          }
-          if (line.hasPrefix("MS1"))
-          {
-            Size st = line.find("MS1 Scan# ") + 10;
-            Size ed = line.find(' ', st);
-            String n = line.substr(st, ed);
-            scan = atoi(n.c_str());
-            precursor_map_for_real_time_acquisition[scan] = std::vector<std::vector<double>>();//// ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
-          }
-          if (line.hasPrefix("Mass"))
-          {
-            Size st = 5;
-            Size ed = line.find('\t');
-            String n = line.substr(st, ed);
-            mass = atof(n.c_str());
-
-            st = line.find("Z=") + 2;
-            ed = line.find('\t', st);
-            n = line.substr(st, ed);
-            charge = atof(n.c_str());
-
-            st = line.find("Score=") + 6;
-            ed = line.find('\t', st);
-            n = line.substr(st, ed);
-            qscore = atof(n.c_str());
-
-            st = line.find("[") + 1;
-            ed = line.find('-', st);
-            n = line.substr(st, ed);
-            w1 = atof(n.c_str());
-
-            st = line.find('-', ed) + 1;
-            ed = line.find(']', st);
-            n = line.substr(st, ed);
-            w2 = atof(n.c_str());
-
-            st = line.find("PrecursorIntensity=", ed) + 19;
-            ed = line.find('\t', st);
-            n = line.substr(st, ed);
-            pint = atof(n.c_str());
-
-            st = line.find("PrecursorMassIntensity=", ed) + 23;
-            ed = line.find('\t', st);
-            n = line.substr(st, ed);
-            mint = atof(n.c_str());
-
-            st = line.find("Features=", ed) + 9;
-            //ed = line.find(' ', st);
-
-            st = line.find('[', st) + 1;
-            ed = line.find(',', st);
-            n = line.substr(st, ed);
-            features[0] = atof(n.c_str());
-
-            st = line.find(',', st) + 1;
-            ed = line.find(',', st);
-            n = line.substr(st, ed);
-            features[1] = atof(n.c_str());
-
-            st = line.find(',', st) + 1;
-            ed = line.find(',', st);
-            n = line.substr(st, ed);
-            features[2] = atof(n.c_str());
-
-            st = line.find(',', st) + 1;
-            ed = line.find(',', st);
-            n = line.substr(st, ed);
-            features[3] = atof(n.c_str());
-
-            st = line.find(',', st) + 1;
-            ed = line.find(',', st);
-            n = line.substr(st, ed);
-            features[4] = atof(n.c_str());
-
-            st = line.find(',', st) + 1;
-            ed = line.find(']', st);
-            n = line.substr(st, ed);
-            features[5] = atof(n.c_str());
-
-            st = line.find("ChargeRange=[", ed) + 13;
-            ed = line.find('-', st);
-            n = line.substr(st, ed);
-            z1 = atof(n.c_str());
-
-            st = line.find("-", ed) + 1;
-            ed = line.find(']', st);
-            n = line.substr(st, ed);
-            z2 = atof(n.c_str());
-            std::vector<double> e(15);
-            e[0] = mass;
-            e[1] = charge;
-            e[2] = qscore;
-            e[3] = w1;
-            e[4] = w2;
-            e[5] = pint;
-            e[6] = mint;
-            e[7] = z1;
-            e[8] = z2;
-            for (int i = 9; i < 15; i++)
-            {
-              e[i] = features[i - 9];
-            }
-            precursor_map_for_real_time_acquisition[scan].push_back(e);
-          }
-        }
-        instream.close();
-      }
-      else
-      {
-        std::cout << in_log_file << " not found\n";
-      }
-      std::cout << "Used precursor size : " << precursor_map_for_real_time_acquisition.size() << std::endl;
-    }
-    return precursor_map_for_real_time_acquisition;
-  }
-
   static void filterLowPeaks(MSExperiment& map, Size count)
   {
     for (auto & it : map)
@@ -634,7 +501,7 @@ protected:
     }
 
 
-    std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition = read_FLASHIda_log_(
+    std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition = FLASHIda::parseFLASHIdaLog(
         in_log_file); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
 
 
