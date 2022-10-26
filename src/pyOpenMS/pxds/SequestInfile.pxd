@@ -12,9 +12,9 @@ cdef extern from "<OpenMS/FORMAT/SequestInfile.h>" namespace "OpenMS":
         bool operator==(SequestInfile &sequest_infile) nogil except +
         void store(const String &filename) nogil except +
             # wrap-doc:
-                #   Stores the experiment data in a Sequest input file that can be used as input for Sequest shell execution
-                #   -----
-                #   :param filename: the name of the file in which the infile is stored into
+                #  Stores the experiment data in a Sequest input file that can be used as input for Sequest shell execution
+                #  
+                #  :param filename: the name of the file in which the infile is stored into
 
         String getEnzymeInfoAsString() nogil except + # wrap-doc:Returns the enzyme list as a string
         String  getDatabase() nogil except + # wrap-doc:Returns the used database
