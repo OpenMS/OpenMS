@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
 
     cdef cppclass PeakFileOptions:
         # wrap-doc:
-        #   Options for loading files containing peak data
+        #  Options for loading files containing peak data
         PeakFileOptions() nogil except +
         PeakFileOptions(PeakFileOptions &) nogil except +
 

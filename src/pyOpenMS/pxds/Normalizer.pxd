@@ -9,9 +9,9 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>" namespace "OpenM
 
     cdef cppclass Normalizer(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
         # wrap-doc:
-        #   Normalizes the peak intensities spectrum-wise
+        #  Normalizes the peak intensities spectrum-wise
 
         Normalizer() nogil except +
 

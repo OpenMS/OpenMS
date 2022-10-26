@@ -9,9 +9,9 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/NLargest.h>" namespace "OpenMS"
 
     cdef cppclass NLargest(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
         # wrap-doc:
-        #   NLargest removes all but the n largest peaks
+        #  NLargest removes all but the n largest peaks
         
         NLargest() nogil except + 
         NLargest(NLargest &) nogil except +

@@ -57,7 +57,7 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQu
     # derived from processing applied
     cdef enum QUANT_TYPES:
         # wrap-attach:
-        #     MSQuantifications
+        #    MSQuantifications
         MS1LABEL = 0,
         MS2LABEL,
         LABELFREE,

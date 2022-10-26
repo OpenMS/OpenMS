@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian
 
     cdef cppclass SignalToNoiseEstimatorMedian[SpectrumT]:
         # wrap-instances:
-        #   SignalToNoiseEstimatorMedian := SignalToNoiseEstimatorMedian[MSSpectrum]
+        #  SignalToNoiseEstimatorMedian := SignalToNoiseEstimatorMedian[MSSpectrum]
 
         SignalToNoiseEstimatorMedian() nogil except +
         SignalToNoiseEstimatorMedian(SignalToNoiseEstimatorMedian &) nogil except + # compiler
@@ -30,7 +30,7 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian
 
     cdef enum IntensityThresholdCalculation "OpenMS::SignalToNoiseEstimatorMedianChrom::IntensityThresholdCalculation":
         # wrap-attach:
-        #     SignalToNoiseEstimatorMedian
+        #    SignalToNoiseEstimatorMedian
         MANUAL
         AUTOMAXBYSTDEV
         AUTOMAXBYPERCENT

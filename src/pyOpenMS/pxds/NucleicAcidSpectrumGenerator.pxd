@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>" namespace "
     
     cdef cppclass NucleicAcidSpectrumGenerator(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
 
         NucleicAcidSpectrumGenerator() nogil except +
         NucleicAcidSpectrumGenerator(NucleicAcidSpectrumGenerator &) nogil except +
