@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_GUI")
-cmake_minimum_required(VERSION 3.9.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 set(CMAKE_AUTOUIC OFF) # leave off since this is broken, see qt5_wrap_ui below
 set(CMAKE_AUTOMOC ON)

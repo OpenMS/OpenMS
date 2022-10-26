@@ -33,24 +33,28 @@ cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
         MSSpectrum getSpectrum(Size id) nogil except +
             # wrap-doc:
                 #   Returns a single spectrum
+                #   
                 #   -----
                 #   :param id: The index of the spectrum
 
         MSSpectrum getSpectrumByNativeId(String id) nogil except +
             # wrap-doc:
                 #   Returns a single spectrum
+                #   
                 #   -----
                 #   :param id: The native identifier of the spectrum
 
         MSChromatogram getChromatogram(Size id) nogil except +
             # wrap-doc:
                 #   Returns a single chromatogram
+                #   
                 #   -----
                 #   :param id: The index of the chromatogram
                 
         MSChromatogram getChromatogramByNativeId(String id) nogil except +
             # wrap-doc:
                 #   Returns a single chromatogram
+                #   
                 #   -----
                 #   :param id: The native identifier of the chromatogram
 

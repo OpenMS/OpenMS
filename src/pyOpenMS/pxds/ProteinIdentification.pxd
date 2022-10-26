@@ -85,6 +85,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         void setPrimaryMSRunPath(StringList& s) nogil except +
           # wrap-doc:
             #   Set the file paths to the primary MS runs (usually the mzML files obtained after data conversion from raw files)
+            #   
             #   -----
             #   :param raw: Store paths to the raw files (or equivalent) rather than mzMLs
 

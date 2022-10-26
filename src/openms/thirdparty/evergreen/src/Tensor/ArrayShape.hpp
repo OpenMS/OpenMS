@@ -14,7 +14,7 @@ struct ArrayShape {
 
 template <typename T, unsigned long ...SHAPE>
 struct ArrayShape<T,T, SHAPE...> {
-  static Vector<unsigned long> eval(T element) {
+  static Vector<unsigned long> eval(T /*element*/) {
     return Vector<unsigned long>({SHAPE...});
   }
 };

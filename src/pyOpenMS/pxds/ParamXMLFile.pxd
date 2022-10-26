@@ -13,6 +13,7 @@ cdef extern from "<OpenMS/FORMAT/ParamXMLFile.h>" namespace "OpenMS":
         void load(String, Param &) nogil except+
             # wrap-doc:
                 #   Read XML file
+                #   
                 #   -----
                 #   :param filename: The file from where to read the Param object
                 #   :param param: The param object where the read data should be stored
@@ -24,6 +25,7 @@ cdef extern from "<OpenMS/FORMAT/ParamXMLFile.h>" namespace "OpenMS":
         void store(String, Param &) nogil except+
             # wrap-doc:
                 #   Write XML file
+                #   
                 #   -----
                 #   :param filename: The filename where the param data structure should be stored
                 #   :param param: The Param class that should be stored in the file
