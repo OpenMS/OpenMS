@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
 
     cdef cppclass ResidueModification "OpenMS::ResidueModification":
         # wrap-hash:
-        #   getFullId().c_str()
+        #  getFullId().c_str()
 
         ResidueModification() nogil except +
         ResidueModification(ResidueModification &) nogil except +
@@ -77,7 +77,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS::ResidueModification":
     cdef enum TermSpecificity "OpenMS::ResidueModification::TermSpecificity":
         #wrap-attach:
-        #    ResidueModification
+        #   ResidueModification
         ANYWHERE
         C_TERM
         N_TERM
@@ -88,7 +88,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS::R
 cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS::ResidueModification":
     cdef enum SourceClassification "OpenMS::ResidueModification::SourceClassification":
         #wrap-attach:
-        #    ResidueModification
+        #   ResidueModification
         ARTIFACT
         HYPOTHETICAL
         NATURAL

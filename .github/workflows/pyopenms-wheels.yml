@@ -36,8 +36,8 @@ jobs:
         host: 'windows' # default: win64_msvc2017_64
         target: 'desktop'
         install-deps: 'true'
-        modules: 'qtsvg'
-        cached: 'false'
+        archives: 'qtsvg qtbase'
+        cache: 'false'
 
     - name: Install Miniconda
       shell: bash # uses git bash on windows
