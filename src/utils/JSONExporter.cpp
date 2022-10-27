@@ -32,65 +32,83 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
+using namespace OpenMS;
+using namespace std;
 
-namespace OpenMS
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
+/**
+  @page UTILS_JSONExporter JSONExporter
+
+  @brief Converts .oms (SQLite) files to JSON
+
+  <CENTER>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ JSONExporter \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> external tools</td>
+  </tr>
+  </table>
+  </CENTER>
+
+  ...
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_JSONExporter.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_JSONExporter.html
+ */
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
+class JSONExporter: public TOPPBase
 {
-  /**
-      @brief This class supports reading and writing of OMS files.
-
-      OMS files are SQLite databases consisting of several tables.
-  */
-  class OPENMS_DLLAPI OMSFile: public ProgressLogger
-  {
   public:
-    /// Constructor (with option to set log type)
-    explicit OMSFile(LogType log_type = LogType::NONE):
-      log_type_(log_type)
-    {
-      setLogType(log_type);
-    }
-
-    /** @brief Write out an IdentificationData object to SQL-based OMS file
-     *
-     * @param filename The output file
-     * @param id_data The IdentificationData object
-     */
-    void store(const String& filename, const IdentificationData& id_data);
-
-    /** @brief Write out a feature map to SQL-based OMS file
-     *
-     * @param filename The output file
-     * @param features The feature map
-     */
-    void store(const String& filename, const FeatureMap& features);
-
-    /** @brief Read in an OMS file and construct an IdentificationData object
-     *
-     * @param filename The input file
-     * @param id_data The IdentificationData object
-     */
-    void load(const String& filename, IdentificationData& id_data);
-
-    /** @brief Read in an OMS file and construct a feature map
-     *
-     * @param filename The input file
-     * @param features The feature map
-     */
-    void load(const String& filename, FeatureMap& features);
-
-    /** @brief Read in an OMS file and write out the contents in JSON format
-     *
-     * @param filename_in The input file (OMS)
-     * @param filename_out The output file (JSON)
-     */
-    void exportToJSON(const String& filename_in, const String& filename_out);
+  JSONExporter(): TOPPBase("JSONExporter", "Exports .oms (SQLite) files in JSON format", false)
+  {
+  }
 
   protected:
-    LogType log_type_;
-  };
-} // namespace OpenMS
+  void registerOptionsAndFlags_() override
+  {
+    registerInputFile_("in", "<file>", "", "Input file");
+    setValidFormats_("in", {"oms"});
+    registerOutputFile_("out", "<file>", "", "Output file");
+    setValidFormats_("out", {"json"});
+  }
+
+  /// Main function
+  ExitCodes main_(int, const char**) override
+  {
+    //-------------------------------------------------------------
+    // parameter handling
+    //-------------------------------------------------------------
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
+
+    OMSFile oms(log_type_);
+    oms.exportToJSON(in, out);
+
+    return EXECUTION_OK;
+  }
+};
+
+
+int main(int argc, const char** argv)
+{
+  JSONExporter tool;
+  return tool.main(argc, argv);
+}
+
+/// @endcond
