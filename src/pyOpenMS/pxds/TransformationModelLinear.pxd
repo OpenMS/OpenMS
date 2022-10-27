@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>" nam
 
     cdef cppclass TransformationModelLinear(TransformationModel):
         # wrap-inherits:
-        #   TransformationModel
+        #  TransformationModel
 
         # copy constructor of 'TransformationModelLinear' is implicitly deleted because base class 'OpenMS::TransformationModel' has an inaccessible copy constructor public TransformationModel
         TransformationModelLinear(TransformationModelLinear &) nogil except + # wrap-ignore

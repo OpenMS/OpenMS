@@ -4,7 +4,7 @@
 
     def __getitem__(self,  in_0 ):
         assert isinstance(in_0, (int, long)), 'arg in_0 wrong type'
-        assert key >= 0, 'arg in_0 cannot be negative'
+        assert in_0 >= 0, 'arg in_0 cannot be negative'
 
         cdef unsigned long _idx = (<int>in_0)
         if _idx >= self.inst.get().size():

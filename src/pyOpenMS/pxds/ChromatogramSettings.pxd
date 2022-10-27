@@ -13,11 +13,11 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
 
     cdef cppclass ChromatogramSettings(MetaInfoInterface):
         # wrap-inherits:
-        #    MetaInfoInterface
+        #   MetaInfoInterface
         #
         # wrap-doc:
-        #   Description of the chromatogram settings, provides meta-information
-        #   about a single chromatogram.
+        #  Description of the chromatogram settings, provides meta-information
+        #  about a single chromatogram.
 
         ChromatogramSettings() nogil except +
         ChromatogramSettings(ChromatogramSettings &) nogil except +
@@ -67,7 +67,7 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS::C
 
     cdef enum ChromatogramType:
         # wrap-attach:
-        #     ChromatogramSettings
+        #    ChromatogramSettings
 
         MASS_CHROMATOGRAM,
         TOTAL_ION_CURRENT_CHROMATOGRAM,

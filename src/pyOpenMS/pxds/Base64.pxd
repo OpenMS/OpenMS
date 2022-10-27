@@ -31,6 +31,6 @@ cdef extern from "<OpenMS/FORMAT/Base64.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/FORMAT/Base64.h>" namespace "OpenMS::Base64":
     cdef enum ByteOrder "OpenMS::Base64::ByteOrder":
         #wrap-attach:
-        #    Base64
+        #   Base64
         BYTEORDER_BIGENDIAN
         BYTEORDER_LITTLEENDIAN
