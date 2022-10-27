@@ -5,7 +5,7 @@
 
 // Note: could be sped up to not make local Vector objects and to not
 // use tuple indexing (using integer offset):
-inline void add_scaled_outcome_interpolate(Tensor<double> & ten, const Vector<long> & new_first_support, const Vector<double> & scaled_tup, const Vector<double> & next_scaled_tup, double mass, const Vector<double> & factor) {
+inline void add_scaled_outcome_interpolate(Tensor<double> & ten, const Vector<long> & new_first_support, const Vector<double> & scaled_tup, const Vector<double> & next_scaled_tup, double mass, const Vector<double> & /*factor*/) {
   // For performance, don't bother if the mass is 0.
   if (mass > 0.0) {
     Vector<unsigned long> start_index(ten.dimension());
@@ -20,7 +20,7 @@ inline void add_scaled_outcome_interpolate(Tensor<double> & ten, const Vector<lo
     for (unsigned char i=0; i<ten.dimension(); ++i)
       mass /= scaled_bounding_box[i];
 
-    enumerate_apply_tensors([mass](const_tup_t tup, const unsigned char dim, double & val){
+    enumerate_apply_tensors([mass](const_tup_t /*tup*/, const unsigned char /*dim*/, double& val) {
 	val += mass;
       },
       scaled_bounding_box,

@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAl
     cdef cppclass FeatureFinderMultiplexAlgorithm(DefaultParamHandler):
 
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
         FeatureFinderMultiplexAlgorithm() nogil except +
 
         FeatureFinderMultiplexAlgorithm(FeatureFinderMultiplexAlgorithm &) nogil except + # compiler

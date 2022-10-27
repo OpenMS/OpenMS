@@ -10,13 +10,13 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>" namespace "
 
     cdef cppclass LinearResampler(DefaultParamHandler, ProgressLogger):
         # wrap-inherits:
-        #    DefaultParamHandler
-        #    ProgressLogger
+        #   DefaultParamHandler
+        #   ProgressLogger
         # wrap-doc:
-        #   Annotates and filters transitions in a TargetedExperiment
-        #   
-        #   ----------
-        #   :param exp: The input, unfiltered transitions
+        #  Annotates and filters transitions in a TargetedExperiment
+        #  
+        #  
+        #  :param exp: The input, unfiltered transitions
 
         LinearResampler() nogil except +
         LinearResampler(LinearResampler &) nogil except + # compiler

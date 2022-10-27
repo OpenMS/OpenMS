@@ -183,7 +183,6 @@
 import math
 from typing import Dict, Optional, Tuple, Union, List, Set
 import itertools
-from .all_modules import MSChromatogram, MSSpectrum
 
 
 colors = {'a': '#388E3C', 'b': '#1976D2', 'c': '#00796B',
@@ -192,8 +191,9 @@ colors = {'a': '#388E3C', 'b': '#1976D2', 'c': '#00796B',
 zorders = {'a': 3, 'b': 4, 'c': 3, 'x': 3, 'y': 4, 'z': 3, '?': 2, 'f': 5,
            None: 1}
 
-
-def plot_chromatogram(c: MSChromatogram):
+# TODO switch to forward declarations via from __future__ import annotations
+# when py 3.7 is minimum. Then you can use types instead of strings
+def plot_chromatogram(c: "MSChromatogram"):
     """
     Plot chromatogram peaks.
 
@@ -267,7 +267,7 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
     return color, zorder
 
 
-def plot_spectrum(spectrum: MSSpectrum, color_ions: bool = True,
+def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
              annotate_ions: bool = True, matched_peaks: Optional[Set] = None, annot_kws: Optional[Dict] = None,
              mirror_intensity: bool = False, grid: Union[bool, str] = True, ax=None):
     """
@@ -361,7 +361,7 @@ def plot_spectrum(spectrum: MSSpectrum, color_ions: bool = True,
     return ax
 
 
-def mirror_plot_spectrum(spec_top: MSSpectrum, spec_bottom: MSSpectrum, alignment: Optional[List] = None,
+def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", alignment: Optional[List] = None,
                          spectrum_top_kws: Optional[Dict] = None, spectrum_bottom_kws: Optional[Dict] = None,
                          ax=None):
     """

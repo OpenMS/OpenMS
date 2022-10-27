@@ -12,10 +12,10 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>" namespace "Ope
 
         void flush() nogil except +
             # wrap-doc:
-                #   Flushes the data for good
-                #   -----
-                #   After calling this function, no more data is held in the buffer but the
-                #   class is still able to receive new data
+                #  Flushes the data for good
+                #  
+                #  After calling this function, no more data is held in the buffer but the
+                #  class is still able to receive new data
 
         void consumeSpectrum(MSSpectrum & s) nogil except + # wrap-doc:Write a spectrum to the output file
         void consumeChromatogram(MSChromatogram & c) nogil except + # wrap-doc:Write a chromatogram to the output file
