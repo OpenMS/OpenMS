@@ -36,7 +36,7 @@ jobs:
         host: 'windows' # default: win64_msvc2017_64
         target: 'desktop'
         install-deps: 'true'
-        modules: 'qtsvg'
+        archives: 'qtsvg qtbase'
         cache: 'false'
 
     - name: Install Miniconda
