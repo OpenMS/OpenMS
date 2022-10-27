@@ -10,10 +10,10 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
 
     cdef cppclass DigestionEnzymeProtein(DigestionEnzyme):
         # wrap-inherits:
-        #    DigestionEnzyme
+        #   DigestionEnzyme
         #
         # wrap-doc:
-        #   Representation of a digestion enzyme for proteins (protease)
+        #  Representation of a digestion enzyme for proteins (protease)
 
         DigestionEnzymeProtein() nogil except +
 

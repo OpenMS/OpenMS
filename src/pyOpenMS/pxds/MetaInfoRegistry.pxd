@@ -5,23 +5,23 @@ cdef extern from "<OpenMS/METADATA/MetaInfoRegistry.h>" namespace "OpenMS":
     
     cdef cppclass MetaInfoRegistry "OpenMS::MetaInfoRegistry":
         # wrap-doc:
-                #   Registry which assigns unique integer indices to strings
-                #   -----
-                #   When registering a new name an index >= 1024 is assigned.
-                #   Indices from 1 to 1023 are reserved for fast access and will never change:
-                #   1 - isotopic_range
-                #   2 - cluster_id
-                #   3 - label
-                #   4 - icon
-                #   5 - color
-                #   6 - RT
-                #   7 - MZ
-                #   8 - predicted_RT
-                #   9 - predicted_RT_p_value
-                #   10 - spectrum_reference
-                #   11 - ID
-                #   12 - low_quality
-                #   13 - charge
+                #  Registry which assigns unique integer indices to strings
+                #  
+                #  When registering a new name an index >= 1024 is assigned.
+                #  Indices from 1 to 1023 are reserved for fast access and will never change:
+                #  1 - isotopic_range
+                #  2 - cluster_id
+                #  3 - label
+                #  4 - icon
+                #  5 - color
+                #  6 - RT
+                #  7 - MZ
+                #  8 - predicted_RT
+                #  9 - predicted_RT_p_value
+                #  10 - spectrum_reference
+                #  11 - ID
+                #  12 - low_quality
+                #  13 - charge
 
         MetaInfoRegistry() nogil except +
         MetaInfoRegistry(MetaInfoRegistry &) nogil except +

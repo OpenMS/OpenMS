@@ -16,8 +16,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentificati
 
     cdef cppclass MapAlignmentAlgorithmIdentification(DefaultParamHandler, ProgressLogger):
         # wrap-inherits:
-        #    DefaultParamHandler
-        #    ProgressLogger
+        #   DefaultParamHandler
+        #   ProgressLogger
 
         MapAlignmentAlgorithmIdentification() nogil except +
         # private
