@@ -71,14 +71,14 @@ cdef extern from "<OpenMS/FORMAT/XTandemInfile.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/FORMAT/XTandemInfile.h>" namespace "OpenMS::XTandemInfile":
     cdef enum ErrorUnit "OpenMS::XTandemInfile::ErrorUnit":
         #wrap-attach:
-        #    XTandemInfile
+        #   XTandemInfile
         DALTONS
         PPM
 
 cdef extern from "<OpenMS/FORMAT/XTandemInfile.h>" namespace "OpenMS::XTandemInfile":
     cdef enum MassType "OpenMS::XTandemInfile::MassType":
         #wrap-attach:
-        #    XTandemInfile
+        #   XTandemInfile
         MONOISOTOPIC
         AVERAGE
 

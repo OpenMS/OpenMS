@@ -1316,6 +1316,7 @@ protected:
             if (!theo_ms2_out.empty())
             {
               theo_spectrum.setName(candidate.toString());
+              theo_spectrum.setRT(exp_spectrum.getRT());
 #pragma omp critical (theo_ms2_out)
               theo_ms2_spectra.addSpectrum(theo_spectrum);
             }

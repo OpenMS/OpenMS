@@ -14,9 +14,9 @@ cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS":
         #  XMLFile
         #  ProgressLogger
         # wrap-doc:
-        #   File adapter for QcML files used to load and store QcML files
-        #   -----
-        #   This Class is supposed to internally collect the data for the qcML File
+        #  File adapter for QcML files used to load and store QcML files
+        #  
+        #  This Class is supposed to internally collect the data for the qcML File
 
         QcMLFile() nogil except +
         # copy constructor of 'QcMLFile' is implicitly deleted because base class 'Internal::XMLHandler' has a deleted copy constructor public Internal::XMLHandler,

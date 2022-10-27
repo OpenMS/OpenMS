@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>" namespace 
 cdef extern from "<OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>" namespace "OpenMS::NonNegativeLeastSquaresSolver":
     cdef enum RETURN_STATUS "OpenMS::NonNegativeLeastSquaresSolver::RETURN_STATUS":
         #wrap-attach:
-        #    NonNegativeLeastSquaresSolver
+        #   NonNegativeLeastSquaresSolver
         SOLVED
         ITERATION_EXCEEDED
 
