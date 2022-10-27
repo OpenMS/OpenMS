@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Matrix.h>" namespace "OpenMS":
     
     cdef cppclass Matrix[ValueT]:
         # wrap-instances:
-        #   MatrixDouble := Matrix[double]
+        #  MatrixDouble := Matrix[double]
 
         Matrix() nogil except +
         Matrix(Matrix[ValueT]) nogil except +
@@ -37,5 +37,5 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Matrix.h>" namespace "OpenMS":
         ## bool operator<(Matrix & rhs) nogil except +
         # TEMPLATE # void setMatrix(ValueType matrix) nogil except +
         # TEMPLATE # # NAMESPACE # std::ostream  operator<[(std::ostream & os, Matrix[ Value ] & matrix) nogil except +
-        #   MatrixUnsignedInt := Matrix[unsigned int]
+        #  MatrixUnsignedInt := Matrix[unsigned int]
 
