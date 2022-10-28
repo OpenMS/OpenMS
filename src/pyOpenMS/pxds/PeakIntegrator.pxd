@@ -10,24 +10,24 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenM
         # wrap-inherits:
         #  DefaultParamHandler
         # wrap-doc:
-        #   Compute the area, background and shape metrics of a peak
-        #   -----
-        #   The area computation is performed in integratePeak() and it supports
-        #   integration by simple sum of the intensity, integration by Simpson's rule
-        #   implementations for an odd number of unequally spaced points or integration
-        #   by the trapezoid rule
-        #   -----
-        #   The background computation is performed in estimateBackground() and it
-        #   supports three different approaches to baseline correction, namely
-        #   computing a rectangular shape under the peak based on the minimum value of
-        #   the peak borders (vertical_division_min), a rectangular shape based on the
-        #   maximum value of the beak borders (vertical_division_max) or a trapezoidal
-        #   shape based on a straight line between the peak borders (base_to_base)
-        #   -----
-        #   Peak shape metrics are computed in calculatePeakShapeMetrics() and multiple
-        #   metrics are supported
-        #   -----
-        #   The containers supported by the methods are MSChromatogram and MSSpectrum
+        #  Compute the area, background and shape metrics of a peak
+        #  
+        #  The area computation is performed in integratePeak() and it supports
+        #  integration by simple sum of the intensity, integration by Simpson's rule
+        #  implementations for an odd number of unequally spaced points or integration
+        #  by the trapezoid rule
+        #  
+        #  The background computation is performed in estimateBackground() and it
+        #  supports three different approaches to baseline correction, namely
+        #  computing a rectangular shape under the peak based on the minimum value of
+        #  the peak borders (vertical_division_min), a rectangular shape based on the
+        #  maximum value of the beak borders (vertical_division_max) or a trapezoidal
+        #  shape based on a straight line between the peak borders (base_to_base)
+        #  
+        #  Peak shape metrics are computed in calculatePeakShapeMetrics() and multiple
+        #  metrics are supported
+        #  
+        #  The containers supported by the methods are MSChromatogram and MSSpectrum
 
         PeakIntegrator() nogil except +
         PeakIntegrator(PeakIntegrator &) nogil except + # compiler

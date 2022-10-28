@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>" namespace "
 
     cdef cppclass CompNovoIdentification(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
 
         CompNovoIdentification() nogil except +
         CompNovoIdentification(CompNovoIdentification &) nogil except +

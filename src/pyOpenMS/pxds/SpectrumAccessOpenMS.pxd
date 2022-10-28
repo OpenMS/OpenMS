@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>"
         # wrap-inherits:
         #  ISpectrumAccess
         # wrap-doc:
-        #   An implementation of the OpenSWATH Spectrum Access interface using OpenMS
+        #  An implementation of the OpenSWATH Spectrum Access interface using OpenMS
 
         SpectrumAccessOpenMS() # wrap-pass-constructor
 

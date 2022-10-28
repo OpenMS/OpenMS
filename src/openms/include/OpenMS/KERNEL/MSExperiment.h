@@ -135,7 +135,7 @@ public:
     MSExperiment & operator=(const ExperimentalSettings & source);
 
     /// D'tor
-    ~MSExperiment() = default;
+    ~MSExperiment() override;
 
     /// Equality operator
     bool operator==(const MSExperiment & rhs) const;

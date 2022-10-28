@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS":
     
     cdef cppclass ElementDB "OpenMS::ElementDB":
         # wrap-manual-memory:
-        #    cdef AutowrapPtrHolder[_ElementDB] inst
+        #   cdef AutowrapPtrHolder[_ElementDB] inst
 
         # private
         ElementDB() nogil except + # wrap-ignore

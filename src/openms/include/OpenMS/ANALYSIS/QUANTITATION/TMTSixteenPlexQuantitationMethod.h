@@ -43,7 +43,7 @@ namespace OpenMS
   /**
     @brief TMT 16plex quantitation to be used with the IsobaricQuantitation.
 
-    @htmlinclude OpenMS_TMTSixPlexQuantitationMethod.parameters
+    @htmlinclude OpenMS_TMTSixteenPlexQuantitationMethod.parameters
   */
   class OPENMS_DLLAPI TMTSixteenPlexQuantitationMethod :
     public IsobaricQuantitationMethod

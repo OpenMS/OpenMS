@@ -46,18 +46,6 @@
 
 namespace OpenMS
 {
-
-  // Aliases / chromatograms
-  void MSExperiment::reserveSpaceSpectra(Size s)
-  {
-    spectra_.reserve(s);
-  }
-
-  void MSExperiment::reserveSpaceChromatograms(Size s)
-  {
-    chromatograms_.reserve(s);
-  }
-
   /// Constructor
   MSExperiment::MSExperiment() :
     RangeManagerContainerType(),
@@ -104,6 +92,8 @@ namespace OpenMS
     return *this;
   }
 
+  MSExperiment::~MSExperiment() = default;
+
   /// Equality operator
   bool MSExperiment::operator==(const MSExperiment & rhs) const
   {
@@ -118,6 +108,15 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
+  void MSExperiment::reserveSpaceSpectra(Size s)
+  {
+    spectra_.reserve(s);
+  }
+
+  void MSExperiment::reserveSpaceChromatograms(Size s)
+  {
+    chromatograms_.reserve(s);
+  }
 
   ///@name Iterating ranges and areas
   //@{

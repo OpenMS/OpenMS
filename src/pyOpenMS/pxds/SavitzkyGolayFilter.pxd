@@ -9,8 +9,8 @@ cdef extern from "<OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>" namespace 
 
     cdef cppclass SavitzkyGolayFilter(DefaultParamHandler,ProgressLogger):
         # wrap-inherits:
-        #    DefaultParamHandler
-        #    ProgressLogger
+        #   DefaultParamHandler
+        #   ProgressLogger
 
         SavitzkyGolayFilter() nogil except +
         SavitzkyGolayFilter(SavitzkyGolayFilter &) nogil except + # compiler
