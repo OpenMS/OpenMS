@@ -191,8 +191,6 @@ namespace OpenMS
 
   PeakIndex LayerDataChrom::findHighestDataPoint(const RangeAllType& area) const
   {
-    using IntType = MSExperiment::ConstAreaIterator::PeakType::IntensityType;
-
     const PeakMap& exp = *getChromatogramData();
     int count {-1};
     for (const auto& chrom : exp.getChromatograms())
