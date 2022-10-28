@@ -127,10 +127,12 @@ def handleDependencies(otool_out, targetPath, currentLib, rpaths)
       debug "Ignoring system-lib: #{fix_lib}"
     elsif fix_lib.start_with?("@loader") or fix_lib.start_with?("@executable")
       if $EXTRACTFW
-        # only fix loading of this library if it does not start with executable/loader_path. It is usually fixed already.
+        # only fix loading of this library if it does not start with executable/loader_path.
+        # It basically means it should be fixed already. If it was not we will not be able to
+        # find it anyway.
         fixLoadPath(fix_lib, File.basename(fix_lib), currentLib)
       else
-        puts "Ignoring libs that are referenced from a relative reference (#{fix_lib})"
+        debug "Ignoring libs that are referenced from a relative reference (#{fix_lib})"
         if not fix_lib.start_with?($executableId)
           puts "Warning: (#{fix_lib}) does not match the requested prefix, though."
         end
@@ -237,13 +239,13 @@ end
 def handleFramework(frameworkPath, targetPath, rpaths)
   $currentIndent+=1
 
-  puts "RPATHS: #{rpaths}"
+  debug "RPATHS: #{rpaths}"
 
   if frameworkPath.to_s.start_with?("@rpath")
     for index in 0 ... rpaths.size
       if File.file?(frameworkPath.gsub("@rpath", rpaths[index].strip))
         frameworkPath = frameworkPath.gsub("@rpath", rpaths[index].strip)
-        puts "Found lib with rpath at #{frameworkPath}"
+        debug "Found lib with rpath at #{frameworkPath}"
         break
       end
     end
@@ -285,13 +287,13 @@ end
 def handleDyLib(dylibPath, targetPath, rpaths)
   $currentIndent+=1
 
-  puts "RPATHS: #{rpaths}"
+  debug "RPATHS: #{rpaths}"
 
   if dylibPath.to_s.start_with?("@rpath")
     for index in 0 ... rpaths.size
       if File.file?(dylibPath.gsub("@rpath", rpaths[index].strip))
         dylibPath = dylibPath.gsub("@rpath", rpaths[index].strip)
-        puts "Found lib with rpath at #{dylibPath}"
+        debug "Found lib with rpath at #{dylibPath}"
         break
       end
     end
