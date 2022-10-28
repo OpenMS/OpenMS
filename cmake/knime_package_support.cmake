@@ -222,7 +222,7 @@ endforeach()
 if (APPLE) ## On APPLE use our script because the executables need to be relinked and some rpath lookups done
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -v -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH} -p ${PAYLOAD_LIB_PATH}/plugins -f
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH} -p ${PAYLOAD_LIB_PATH}/plugins -f
   )
 elseif(WIN32)
   # on Win everything should be linked statically for distribution except Qt
