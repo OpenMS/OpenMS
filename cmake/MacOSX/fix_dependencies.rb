@@ -127,7 +127,7 @@ def handleDependencies(otool_out, targetPath, currentLib)
         # only fix loading of this library, since we cannot get the real path if e.g. @rpath was used
         fixLoadPath(fix_lib, File.basename(fix_lib), currentLib)
       else
-        puts "Ignoring libs that are referenced from a relative reference (#{fix_lib})"
+        debug "Ignoring libs that are referenced from a relative reference (#{fix_lib})"
         if not fix_lib.start_with?($executableId)
           puts "Warning: (#{fix_lib}) does not match the requested prefix, though."
         end
