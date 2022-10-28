@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>" namespace
 
     cdef cppclass ChromatogramExtractor(ProgressLogger):
         # wrap-inherits:
-        #    ProgressLogger
+        #   ProgressLogger
 
         ChromatogramExtractor() nogil except + # compiler
         ChromatogramExtractor(ChromatogramExtractor &) nogil except + # compiler

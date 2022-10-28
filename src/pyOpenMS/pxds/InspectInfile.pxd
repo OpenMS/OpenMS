@@ -15,17 +15,18 @@ cdef extern from "<OpenMS/FORMAT/InspectInfile.h>" namespace "OpenMS":
         void store(const String & filename) nogil except + # wrap-doc:Stores the experiment data in an Inspect input file that can be used as input for Inspect shell execution
         void handlePTMs(const String & modification_line, const String & modifications_filename, bool monoisotopic) nogil except +
             # wrap-doc:
-                #   Retrieves the name, mass change, affected residues, type and position for all modifications from a string
-                #   -----
-                #   :param modification_line
-                #   :param modifications_filename
-                #   :param monoisotopic: if true, masses are considered to be monoisotopic
-                #   :raises:
-                #     Exception: FileNotReadable if the modifications_filename could not be read
-                #   :raises:
-                #     Exception: FileNotFound if modifications_filename could not be found
-                #   :raises:
-                #     Exception: ParseError if modifications_filename could not be parsed
+                #  Retrieves the name, mass change, affected residues, type and position for all modifications from a string
+                #  
+                #  
+                #  :param modification_line:
+                #  :param modifications_filename:
+                #  :param monoisotopic: if true, masses are considered to be monoisotopic
+                #  :raises:
+                #    Exception: FileNotReadable if the modifications_filename could not be read
+                #  :raises:
+                #    Exception: FileNotFound if modifications_filename could not be found
+                #  :raises:
+                #    Exception: ParseError if modifications_filename could not be parsed
 
         String  getSpectra() nogil except + # wrap-doc:Specifies a spectrum file to search
         void setSpectra(const String & spectra) nogil except + # wrap-doc:Specifies a spectrum file to search

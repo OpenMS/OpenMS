@@ -76,6 +76,9 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/MSPFile.h>
@@ -385,6 +388,9 @@ int main(int argc, char** argv)
   DOCME(IsotopeMarker);
   DOCME(IsotopeModel);
   DOCME(TMTSixPlexQuantitationMethod);
+  DOCME(TMTTenPlexQuantitationMethod);
+  DOCME(TMTSixteenPlexQuantitationMethod);
+  DOCME(TMTEighteenPlexQuantitationMethod);
   DOCME(ItraqEightPlexQuantitationMethod);
   DOCME(ItraqFourPlexQuantitationMethod);
   DOCME(LabeledPairFinder);
