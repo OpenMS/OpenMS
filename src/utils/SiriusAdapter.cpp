@@ -40,8 +40,8 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
-#include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
+#include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -66,7 +66,7 @@ using namespace std;
 
   To use this feature, the Sirius command line tool as well as a java installation is needed.
 
-  Sirius can be found on https://bio.informatik.uni-jena.de/software/sirius/
+  Sirius can be found on https://bio.informatik.uni-jena.de/software/sirius/ 
 
   Please use Sirius Version 4.0.1
 
@@ -81,10 +81,10 @@ using namespace std;
   6. Sirius output is parsed (SiriusMzTabWriter/CsiFingerIDMzTabWriter) \n
   7. Merge corresponding output in one mzTab (out_sirius/out_fingerid) \n
 
-  Preprocessing (featureXML):
+  Preprocessing (featureXML): 
   By providing a featureXML, the feature information can be used for feature mapping.
   Sirius will then process the internally merged MS2 spectra allocated to one feature (instead of all available MS2).
-  To reduce the feature space even further a masstrace filter can be set.
+  To reduce the feature space even further a masstrace filter can be set. 
   Additional adduct information can be provided using a featureXML from the MetaboliteAdductDecharger or AccurateMassSearch.
 
   <B>The command line parameters of this tool are:</B>
@@ -95,31 +95,39 @@ using namespace std;
 
 /// @cond TOPPCLASSES
 
-class TOPPSiriusAdapter : public TOPPBase
+class TOPPSiriusAdapter :
+ public TOPPBase
 {
-public:
+ public:
   TOPPSiriusAdapter() :
-      TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false,
-               {{"Kai Duehrkop and Sebastian Boecker", "Fragmentation trees reloaded", "J Cheminform; 2016", "10.1186/s13321-016-0116-8"},
-                {"Kai Duehrkop, Huibin Shen, Marvin Meusel, Juho Rousu, and Sebastian Boecker", "Searching molecular structure databases with tandem mass spectra using CSI:FingerID",
-                 "Proceedings of the National Academy of Sciences; 2015", "10.1073/pnas.1509788112"}})
-  {
-  }
+    TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false,
+      {
+        {"Kai Duehrkop and Sebastian Boecker",
+         "Fragmentation trees reloaded",
+         "J Cheminform; 2016",
+         "10.1186/s13321-016-0116-8"},
+        {"Kai Duehrkop, Huibin Shen, Marvin Meusel, Juho Rousu, and Sebastian Boecker",
+         "Searching molecular structure databases with tandem mass spectra using CSI:FingerID",
+         "Proceedings of the National Academy of Sciences; 2015",
+         "10.1073/pnas.1509788112"}
+      })
+    {}
 
 private:
   SiriusAdapterAlgorithm algorithm;
 
 protected:
+
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("sirius_executable", "<executable>",
-    // choose the default value according to the platform where it will be executed
+      // choose the default value according to the platform where it will be executed
 #ifdef OPENMS_WINDOWSPLATFORM
-                       "sirius.bat",
+      "sirius.bat",
 #else
-                       "sirius",
+      "sirius",
 #endif
-                       "The Sirius executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", false, false, {"is_executable"});
+      "The Sirius executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", false, false, {"is_executable"});
 
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -130,20 +138,19 @@ protected:
     registerOutputFile_("out_sirius", "<file>", "", "MzTab output file for SIRIUS results", false);
     setValidFormats_("out_sirius", ListUtils::create<String>("mzTab"));
 
-    registerOutputFile_("out_fingerid", "<file>", "",
-                        "MzTab output file for CSI:FingerID, if this parameter is given, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
+    registerOutputFile_("out_fingerid","<file>", "", "MzTab output file for CSI:FingerID, if this parameter is given, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
     setValidFormats_("out_fingerid", ListUtils::create<String>("mzTab"));
 
-    registerOutputFile_("out_ms", "<file>", "", "Internal SIRIUS .ms format after OpenMS preprocessing", false);
+    registerOutputFile_("out_ms","<file>", "", "Internal SIRIUS .ms format after OpenMS preprocessing", false);
     setValidFormats_("out_ms", ListUtils::create<String>("ms"));
 
-    registerOutputFile_("out_annotated_spectra", "<file>", "", "Export spectra with fragment annotations from SIRIUS", false);
+    registerOutputFile_("out_annotated_spectra","<file>", "", "Export spectra with fragment annotations from SIRIUS", false);
     setValidFormats_("out_annotated_spectra", ListUtils::create<String>("mzML"));
 
     registerStringOption_("out_project_space", "<directory>", "", "Output directory for SIRIUS project space", false);
 
     registerStringOption_("sirius_user_email", "<string>", "", "E-mail for your SIRIUS account.", false);
-
+    
     registerStringOption_("sirius_user_password", "<string>", "", "Password for your SIRIUS account.", false);
 
     registerFlag_("converter_mode", "Use this flag in combination with the out_ms file to convert the input mzML and featureXML to a .ms file. Without further SIRIUS processing.", true);
@@ -156,7 +163,7 @@ protected:
     registerFullParam_(defaults);
   }
 
-  ExitCodes main_(int, const char**) override
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // Parsing parameters
@@ -197,25 +204,32 @@ protected:
     // run masstrace filter and feature mapping
     FeatureMapping::FeatureMappingInfo fm_info;
     FeatureMapping::FeatureToMs2Indices feature_mapping; // reference to *basefeature in Feature Maps stored in fm_info using a KDTree
-    algorithm.preprocessingSirius(featureinfo, spectra, fm_info, feature_mapping);
+    algorithm.preprocessingSirius(featureinfo,
+                                  spectra,
+                                  fm_info,
+                                  feature_mapping);
 
     // returns Log of feature and/or spectra number
     algorithm.logFeatureSpectraNumber(featureinfo, feature_mapping, spectra);
 
     // write msfile and store the compound information in CompoundInfo Object
     vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
-    SiriusMSFile::store(spectra, sirius_tmp.getTmpMsFile(), feature_mapping, algorithm.isFeatureOnly(), algorithm.getIsotopePatternIterations(), algorithm.isNoMasstraceInfoIsotopePattern(),
+    SiriusMSFile::store(spectra,
+                        sirius_tmp.getTmpMsFile(),
+                        feature_mapping,
+                        algorithm.isFeatureOnly(),
+                        algorithm.getIsotopePatternIterations(),
+                        algorithm.isNoMasstraceInfoIsotopePattern(),
                         v_cmpinfo);
 
     // converter_mode enabled (only needed for SiriusAdapter)
     if (!out_ms.empty() && converter_mode)
     {
       QFile::copy(sirius_tmp.getTmpMsFile().toQString(), out_ms.toQString());
-
+      
       OPENMS_LOG_WARN << "SiriusAdapter was used in converter mode and is terminated after OpenMS preprocessing. \n"
-                         "If you would like to run SIRIUS internally please disable the converter mode."
-                      << std::endl;
-
+                         "If you would like to run SIRIUS internally please disable the converter mode." << std::endl;
+      
       return EXECUTION_OK;
     }
 
@@ -224,19 +238,22 @@ protected:
     {
       algorithm.logInSiriusAccount(sirius_executable, sirius_user_email, sirius_user_password);
     }
-    else
-      OPENMS_LOG_WARN << "No Sirius user account login information specified!" << std::endl;
+    else OPENMS_LOG_WARN << "No Sirius user account login information specified!" << std::endl;
 
     // calls Sirius and returns vector of paths to sirius folder structure
-    std::vector<String> subdirs = algorithm.callSiriusQProcess(sirius_tmp.getTmpMsFile(), sirius_tmp.getTmpOutDir(), sirius_executable, out_csifingerid, false);
-
+    std::vector<String> subdirs = algorithm.callSiriusQProcess(sirius_tmp.getTmpMsFile(),
+                                           sirius_tmp.getTmpOutDir(),
+                                           sirius_executable,
+                                           out_csifingerid,
+                                           false);
+    
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
 
     if (subdirs.empty())
     {
-      throw OpenMS::Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sirius was executed, but an empty output was generated");
+        throw OpenMS::Exception::Postcondition(__FILE__,__LINE__, OPENMS_PRETTY_FUNCTION, "Sirius was executed, but an empty output was generated");
     }
 
     // sort vector path list
@@ -246,7 +263,7 @@ protected:
     bool use_exact_mass = false;
     if (!out_ann_spectra.empty())
     {
-      MSExperiment annotations {};
+      MSExperiment annotations{};
       // extract Sirius FragmentAnnotations from subdirs
       // do not resolve for concat native IDs (i.e., per feature) since we want to write the annotated spectrum for every candidate
       // use 0.0 to not have a score_threshold
@@ -256,7 +273,7 @@ protected:
 
       // TODO remove the following or use it to add more info to the spectra
       // combine compound information (SiriusMSFile) with annotated spectra (SiriusFragmentAnnotation)
-      // vector<MetaboTargetedAssay::CompoundSpectrumPair> v_cmp_spec = MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(v_cmpinfo, annotated_spectra);
+      //vector<MetaboTargetedAssay::CompoundSpectrumPair> v_cmp_spec = MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(v_cmpinfo, annotated_spectra);
     }
 
     // convert sirius_output to mztab and store file
@@ -282,11 +299,11 @@ protected:
       // convert path to absolute path
       QDir sw_dir(sirius_workspace_directory.toQString());
       sirius_workspace_directory = String(sw_dir.absolutePath());
-
+      
       // move tmp folder to new location
       bool copy_status = File::copyDirRecursively(sirius_tmp.getTmpDir().toQString(), sirius_workspace_directory.toQString());
       if (copy_status)
-      {
+      { 
         OPENMS_LOG_INFO << "Sirius workspace was successfully copied to " << sirius_workspace_directory << std::endl;
       }
       else
@@ -294,10 +311,10 @@ protected:
         OPENMS_LOG_INFO << "Sirius workspace could not be copied to " << sirius_workspace_directory << ". Please run SiriusAdapter with debug >= 2." << std::endl;
       }
     }
-
+   
     // should the ms file be retained (non-converter mode)
     if (!out_ms.empty())
-    {
+    {  
       QFile::copy(sirius_tmp.getTmpMsFile().toQString(), out_ms.toQString());
       OPENMS_LOG_INFO << "Preprocessed .ms files were moved to " << out_ms << std::endl;
     }
@@ -305,7 +322,7 @@ protected:
   }
 };
 
-int main(int argc, const char** argv)
+int main(int argc, const char ** argv)
 {
   TOPPSiriusAdapter tool;
   return tool.main(argc, argv);
