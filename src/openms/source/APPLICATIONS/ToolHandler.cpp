@@ -202,6 +202,7 @@ namespace OpenMS
     util_map["IDMassAccuracy"] = Internal::ToolDescription("IDMassAccuracy", util_category);
     util_map["IDScoreSwitcher"] = Internal::ToolDescription("IDScoreSwitcher", util_category);
     util_map["IDSplitter"] = Internal::ToolDescription("IDSplitter", util_category);
+    util_map["JSONExporter"] = Internal::ToolDescription("JSONExporter",util_category);
     util_map["LabeledEval"] = Internal::ToolDescription("LabeledEval", util_category);
     util_map["NovorAdapter"] = Internal::ToolDescription("NovorAdapter", util_category);
     util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", util_category);

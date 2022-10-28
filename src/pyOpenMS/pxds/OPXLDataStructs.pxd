@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::OPXLDataStructs":
     cdef enum ProteinProteinCrossLinkType "OpenMS::OPXLDataStructs::ProteinProteinCrossLinkType":
         #wrap-attach:
-        #    OPXLDataStructs
+        #   OPXLDataStructs
         CROSS
         MONO
         LOOP
@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::OPXLDataStructs":
     cdef enum PeptidePosition "OpenMS::OPXLDataStructs::PeptidePosition":
         #wrap-attach:
-        #    OPXLDataStructs
+        #   OPXLDataStructs
         INTERNAL
         C_TERM
         N_TERM

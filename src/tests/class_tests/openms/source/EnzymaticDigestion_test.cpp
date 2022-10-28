@@ -509,9 +509,10 @@ END_SECTION
 START_SECTION(Size countInternalCleavageSites(const String& sequence) )
   EnzymaticDigestion ed;
   ed.setMissedCleavages(0); // setting max missed cleavages should not have any impact
-  TEST_EQUAL(ed.countInternalCleavageSites("PEPKPEPKPEPKPEPK"), 3); // has 3 internal cleavage sites
+  TEST_EQUAL(ed.countInternalCleavageSites("PEEKEEKEEPKEEPK"), 3); // has 3 internal cleavage sites
   ed.setMissedCleavages(2);
-  TEST_EQUAL(ed.countInternalCleavageSites("PEPKPEPKPEPKPEPK"), 3); // still has 3 internal cleavage sites
+  TEST_EQUAL(ed.countInternalCleavageSites("PEEKEEKEEPKEEPK"), 3); // has 3 internal cleavage sites
+  TEST_EQUAL(ed.countInternalCleavageSites("EEEEEEEEEEEEEEE"), 0); // has 0 internal cleavage sites
 END_SECTION
 
 /////////////////////////////////////////////////////////////

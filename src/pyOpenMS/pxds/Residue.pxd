@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 
     cdef cppclass Residue:
         # wrap-hash:
-        #   getName().c_str()
+        #  getName().c_str()
 
         Residue() nogil except +
         Residue(Residue &) nogil except +
@@ -161,7 +161,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS::Residue":
 
     cdef enum ResidueType:
       # wrap-attach:
-      #   Residue
+      #  Residue
       Full = 0,       # with N-terminus and C-terminus
       Internal,       # internal, without any termini
       NTerminal,      # only N-terminus

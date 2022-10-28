@@ -14,26 +14,26 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>" namesp
     
     cdef cppclass IMSAlphabet "OpenMS::ims::IMSAlphabet":
         # wrap-doc:
-                #   Holds an indexed list of bio-chemical elements.\n
-                #   
-                #   Presents an indexed list of bio-chemical elements of type (or derived from
-                #   type) 'Element'. Due to indexed structure 'Alphabet' can be used similar
-                #   to std::vector, for example to add a new element to 'Alphabet' function
-                #   push_back(element_type) can be used. Elements or their properties (such
-                #   as element's mass) can be accessed by index in a constant time. On the other
-                #   hand accessing elements by their names takes linear time. Due to this and
-                #   also the fact that 'Alphabet' is 'heavy-weighted' (consisting of
-                #   'Element' -s or their derivatives where the depth of derivation as well is
-                #   undefined resulting in possibly 'heavy' access operations) it is recommended
-                #   not use 'Alphabet' directly in operations where fast access to
-                #   'Element' 's properties is required. Instead consider to use
-                #   'light-weighted' equivalents, such as 'Weights'
-                #   
-                #   ----------
-                #   :param map: MSExperiment to receive the identifications
-                #   :param fmap: FeatureMap with PeptideIdentifications for the MSExperiment
-                #   :param clear_ids: Reset peptide and protein identifications of each scan before annotating
-                #   :param map_ms1: Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z) 
+                #  Holds an indexed list of bio-chemical elements.\n
+                #  
+                #  Presents an indexed list of bio-chemical elements of type (or derived from
+                #  type) 'Element'. Due to indexed structure 'Alphabet' can be used similar
+                #  to std::vector, for example to add a new element to 'Alphabet' function
+                #  push_back(element_type) can be used. Elements or their properties (such
+                #  as element's mass) can be accessed by index in a constant time. On the other
+                #  hand accessing elements by their names takes linear time. Due to this and
+                #  also the fact that 'Alphabet' is 'heavy-weighted' (consisting of
+                #  'Element' -s or their derivatives where the depth of derivation as well is
+                #  undefined resulting in possibly 'heavy' access operations) it is recommended
+                #  not use 'Alphabet' directly in operations where fast access to
+                #  'Element' 's properties is required. Instead consider to use
+                #  'light-weighted' equivalents, such as 'Weights'
+                #  
+                #  
+                #  :param map: MSExperiment to receive the identifications
+                #  :param fmap: FeatureMap with PeptideIdentifications for the MSExperiment
+                #  :param clear_ids: Reset peptide and protein identifications of each scan before annotating
+                #  :param map_ms1: Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z) 
                 
         IMSAlphabet() nogil except +
         IMSAlphabet(IMSAlphabet &) nogil except +
