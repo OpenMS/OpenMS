@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #  See help(SpectrumSettings) for information about meta-information
         #  
         #  Usage:
-        #
+        #  
         #  .. code-block:: python
         #  
         #    ms_level = spectrum.getMSLevel()
@@ -32,7 +32,7 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #
         #
         #  Usage:
-        #
+        #  
         #  .. code-block:: python
         #  
         #    from pyopenms import *
