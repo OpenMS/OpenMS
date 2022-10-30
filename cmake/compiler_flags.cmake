@@ -111,7 +111,7 @@ elseif (MSVC)
 	## hdf5 linkage for windows (in case we want to build dynamically)
 	# add_definitions(-DH5_BUILT_AS_DYNAMIC_LIB)
 
-	## FeatureFinder.obj is huge and won't compile in VS2008 debug otherwise:
+	## some .obj are huge and won't compile in VS2022 debug otherwise:
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 
 	## use multiple CPU cores (if available)

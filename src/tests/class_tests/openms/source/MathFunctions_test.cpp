@@ -29,7 +29,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -50,6 +50,55 @@ using namespace std;
 START_TEST(Distribution, "$Id$")
 
 // ///////////////////////////////////////////////////////////
+
+START_SECTION((std::pair<double, double> zoomIn(const double left, const double right, const float factor, const float align)))
+{
+  {
+    auto r = zoomIn(10, 20, 0.5, 0);
+    TEST_REAL_SIMILAR(r.first, 10)
+    TEST_REAL_SIMILAR(r.second, 15)
+  }
+  {
+    auto r = zoomIn(10, 20, 0.5, 1);
+    TEST_REAL_SIMILAR(r.first, 15)
+    TEST_REAL_SIMILAR(r.second, 20)
+  }
+  {
+    auto r = zoomIn(10, 20, 0.5, 0.5);
+    TEST_REAL_SIMILAR(r.first, 12.5)
+    TEST_REAL_SIMILAR(r.second, 17.5)
+  }
+  {
+    auto r = zoomIn(10, 20, 2, 0);
+    TEST_REAL_SIMILAR(r.first, 10)
+    TEST_REAL_SIMILAR(r.second, 30)
+  }
+  {
+    auto r = zoomIn(10, 20, 2, 0.5);
+    TEST_REAL_SIMILAR(r.first, 5)
+    TEST_REAL_SIMILAR(r.second, 25)
+  }
+  {
+    auto r = zoomIn(10, 20, 2, 1);
+    TEST_REAL_SIMILAR(r.first, 00)
+    TEST_REAL_SIMILAR(r.second, 20)
+  }
+  // test round trip
+  {
+    auto r = zoomIn(10, 20, 2, 1);
+    auto r2 = zoomIn(r.first, r.second, 0.5, 1);
+    TEST_REAL_SIMILAR(r2.first, 10)
+    TEST_REAL_SIMILAR(r2.second, 20)
+  }
+  // test round trip
+  {
+    auto r = zoomIn(10, 20, 2, 0);
+    auto r2 = zoomIn(r.first, r.second, 0.5, 0);
+    TEST_REAL_SIMILAR(r2.first, 10)
+    TEST_REAL_SIMILAR(r2.second, 20)
+  }
+}
+END_SECTION
 
 START_SECTION((ceilDecimal))
 	TEST_REAL_SIMILAR(ceilDecimal(12345.671,-2),12345.68)

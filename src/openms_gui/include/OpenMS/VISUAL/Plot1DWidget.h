@@ -69,14 +69,20 @@ namespace OpenMS
 
 public:    
     /// Default constructor
-    Plot1DWidget(const Param & preferences, QWidget * parent = nullptr);
-    ///Destructor
+    Plot1DWidget(const Param& preferences, const DIM gravity_axis = DIM::Y, QWidget* parent = nullptr);
+    /// Destructor
     ~Plot1DWidget() override;
 
-    /// This method is overwritten to make the class specific members accessible
-    inline Plot1DCanvas * canvas()
+    // docu in base class
+    Plot1DCanvas* canvas() const override
     {
-      return static_cast<Plot1DCanvas *>(canvas_);
+      return static_cast<Plot1DCanvas*>(canvas_);
+    }
+
+    // Docu in base class
+    void setMapper(const DimMapper<2>& mapper) override
+    {
+      canvas_->setMapper(mapper);
     }
 
     // Docu in base class
@@ -101,9 +107,6 @@ public:
     virtual void renderForImage(QPainter& painter);
 
 signals:
-    /// Is emitted whenever the visible area changes.
-    void visibleAreaChanged(double, double);
-
     /// Requests to display the whole spectrum in 2D view
     void showCurrentPeaksAs2D();
 
@@ -111,10 +114,10 @@ signals:
     void showCurrentPeaksAs3D();
 
     /// Requests to display the whole spectrum in ion mobility view
-    void showCurrentPeaksAsIonMobility();
+    void showCurrentPeaksAsIonMobility(const MSSpectrum& spec);
 
     /// Requests to display a full DIA window
-    void showCurrentPeaksAsDIA();
+    void showCurrentPeaksAsDIA(const Precursor& pc, const MSExperiment& exp);
 
 public slots:
     // Docu in base class
