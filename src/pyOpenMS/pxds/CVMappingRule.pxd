@@ -47,7 +47,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CVMappingRule.h>" namespace "OpenMS::CV
     # enum to specify the requirement level
     cdef enum RequirementLevel:
         # wrap-attach:
-        #     CVMappingRule
+        #    CVMappingRule
         MUST = 0,
         SHOULD = 1,
         MAY = 2
@@ -55,7 +55,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CVMappingRule.h>" namespace "OpenMS::CV
     # enum to specify the combination operator
     cdef enum CombinationsLogic:
         # wrap-attach:
-        #     CVMappingRule
+        #    CVMappingRule
         OR = 0,
         AND = 1,
         XOR = 2

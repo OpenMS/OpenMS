@@ -14,9 +14,9 @@ cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::Mat
         # sets the initial parameters used by the fit method as inital guess for the gaussian
         void setInitialParameters(GaussFitResult & result) nogil except + # wrap-doc:Sets the initial parameters used by the fit method as initial guess for the Gaussian
 
-        #   @brief Fits a gaussian distribution to the given data points
-        #   @param points the data points used for the gaussian fitting
-        #   @exception Exception::UnableToFit is thrown if fitting cannot be performed
+        #  @brief Fits a gaussian distribution to the given data points
+        #  @param points the data points used for the gaussian fitting
+        #  @exception Exception::UnableToFit is thrown if fitting cannot be performed
         GaussFitResult fit(libcpp_vector[DPosition2] points) nogil except + # wrap-doc:Fits a Gaussian distribution to the given data points
 
 cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::Math::GaussFitter":

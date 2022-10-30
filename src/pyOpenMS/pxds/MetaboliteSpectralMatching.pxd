@@ -11,8 +11,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace "
 
     cdef cppclass MetaboliteSpectralMatching(ProgressLogger, DefaultParamHandler):
         # wrap-inherits:
-        #    ProgressLogger
-        #    DefaultParamHandler
+        #   ProgressLogger
+        #   DefaultParamHandler
 
         MetaboliteSpectralMatching() nogil except +
         MetaboliteSpectralMatching(MetaboliteSpectralMatching &) nogil except + # compiler
@@ -71,22 +71,22 @@ cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace"O
         
         # static members        
         # double computeHyperScore(double fragment_mass_error,
-        #                          bool fragment_mass_tolerance_unit_ppm,
-        #                          MSSpectrum exp_spectrum,
-        #                          MSSpectrum db_spectrum) nogil except +  # wrap-attach:MetaboliteSpectralMatching
+        #                         bool fragment_mass_tolerance_unit_ppm,
+        #                         MSSpectrum exp_spectrum,
+        #                         MSSpectrum db_spectrum) nogil except +  # wrap-attach:MetaboliteSpectralMatching
         # 
         # double computeHyperScore(double fragment_mass_error,
-        #                          bool fragment_mass_tolerance_unit_ppm,
-        #                          MSSpectrum exp_spectrum,
-        #                          MSSpectrum db_spectrum,
-        #                          double mz_lower_bound) nogil except + # wrap-attach:MetaboliteSpectralMatching
+        #                         bool fragment_mass_tolerance_unit_ppm,
+        #                         MSSpectrum exp_spectrum,
+        #                         MSSpectrum db_spectrum,
+        #                         double mz_lower_bound) nogil except + # wrap-attach:MetaboliteSpectralMatching
         # 
         # double computeHyperScore(double fragment_mass_error,
-        #                          bool fragment_mass_tolerance_unit_ppm,
-        #                          MSSpectrum exp_spectrum,
-        #                          MSSpectrum db_spectrum,
-        #                          libcpp_vector[PeptideHit_PeakAnnotation]& annotations) nogil except + 
-        #     
+        #                         bool fragment_mass_tolerance_unit_ppm,
+        #                         MSSpectrum exp_spectrum,
+        #                         MSSpectrum db_spectrum,
+        #                         libcpp_vector[PeptideHit_PeakAnnotation]& annotations) nogil except + 
+        #    
         double computeHyperScore(double fragment_mass_error,
                                  bool fragment_mass_tolerance_unit_ppm,
                                  MSSpectrum exp_spectrum,

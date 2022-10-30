@@ -15,10 +15,11 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h>"
         # libcpp_vector[int] getDecompositions(double mass, double error, constraints_type & constraints) nogil except +
         UInt64 getNumberOfDecompositions(double mass, double error) nogil except +
             # wrap-doc:
-                #   Gets a number of all decompositions for amass with an error
-                #   allowed. It's similar to thegetDecompositions(double,double) function
-                #   but less space consuming, since doesn't use container to store decompositions
-                #   -----
-                #   :param mass: Mass to be decomposed
-                #   :param error: Error allowed between given and result decomposition
-                #   :returns: Number of all decompositions for a given mass and error
+                #  Gets a number of all decompositions for amass with an error
+                #  allowed. It's similar to thegetDecompositions(double,double) function
+                #  but less space consuming, since doesn't use container to store decompositions
+                #  
+                #  
+                #  :param mass: Mass to be decomposed
+                #  :param error: Error allowed between given and result decomposition
+                #  :return: Number of all decompositions for a given mass and error

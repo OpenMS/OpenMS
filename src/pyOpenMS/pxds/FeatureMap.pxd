@@ -17,22 +17,22 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
     cdef cppclass FeatureMap(UniqueIdInterface, DocumentIdentifier, RangeManagerRtMzInt, MetaInfoInterface):
 
         # wrap-inherits:
-        #   UniqueIdInterface
-        #   DocumentIdentifier
-        #   RangeManagerRtMzInt
-        #   MetaInfoInterface
+        #  UniqueIdInterface
+        #  DocumentIdentifier
+        #  RangeManagerRtMzInt
+        #  MetaInfoInterface
         #
         # wrap-instances:
-        #   FeatureMap := FeatureMap
+        #  FeatureMap := FeatureMap
         #
         # wrap-doc:
-        #   A container for features.
-        #   -----
-        #   A feature map is a container holding features, which represent
-        #   chemical entities (peptides, proteins, small molecules etc.) found
-        #   in an LC-MS/MS experiment.
-        #   -----
-        #   This class supports direct iteration in Python.
+        #  A container for features.
+        #  
+        #  A feature map is a container holding features, which represent
+        #  chemical entities (peptides, proteins, small molecules etc.) found
+        #  in an LC-MS/MS experiment.
+        #  
+        #  This class supports direct iteration in Python.
 
         FeatureMap() nogil except +
         FeatureMap(FeatureMap &) nogil except +

@@ -8,9 +8,9 @@ cdef extern from "<OpenMS/FORMAT/PercolatorOutfile.h>" namespace "OpenMS":
     
     cdef cppclass PercolatorOutfile "OpenMS::PercolatorOutfile":
         # wrap-doc:
-            #   Class for reading Percolator tab-delimited output files
-            #   -----
-            #   For PSM-level output, the file extension should be ".psms"
+            #  Class for reading Percolator tab-delimited output files
+            #  
+            #  For PSM-level output, the file extension should be ".psms"
 
         PercolatorOutfile() nogil except +
         PercolatorOutfile(PercolatorOutfile &) nogil except + # compiler
@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/FORMAT/PercolatorOutfile.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/FORMAT/PercolatorOutfile.h>" namespace "OpenMS::PercolatorOutfile":
     cdef enum PercolatorOutfile_ScoreType "OpenMS::PercolatorOutfile::ScoreType":
         #wrap-attach:
-        #    PercolatorOutfile
+        #   PercolatorOutfile
         QVALUE
         POSTERRPROB
         SCORE

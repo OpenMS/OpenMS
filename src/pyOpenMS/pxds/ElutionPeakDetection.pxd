@@ -15,8 +15,8 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>" names
 
     cdef cppclass ElutionPeakDetection(ProgressLogger, DefaultParamHandler):
         # wrap-inherits:
-        #    ProgressLogger
-        #    DefaultParamHandler
+        #   ProgressLogger
+        #   DefaultParamHandler
 
         ElutionPeakDetection() nogil except +
         ElutionPeakDetection(ElutionPeakDetection &) nogil except + # compiler

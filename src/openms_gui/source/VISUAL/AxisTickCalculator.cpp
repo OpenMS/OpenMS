@@ -146,8 +146,8 @@ namespace OpenMS
     }
 
     // small ticks covering one log order
-    const double TICK_VALUES[] = {log10(2.0), log10(3.0), log10(4.0), log10(5.0), log10(6.0), log10(7.0), log10(8.0), log10(9.0)};
-    constexpr int TICK_COUNT = sizeof(TICK_VALUES) / sizeof(decltype(TICK_VALUES[0]));
+    static const double TICK_VALUES[] = {log10(2.0), log10(3.0), log10(4.0), log10(5.0), log10(6.0), log10(7.0), log10(8.0), log10(9.0)};
+    static constexpr int TICK_COUNT = sizeof(TICK_VALUES) / sizeof(decltype(TICK_VALUES[0]));
 
     grid.clear();
     grid.resize(2);

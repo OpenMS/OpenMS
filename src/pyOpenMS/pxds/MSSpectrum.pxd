@@ -16,56 +16,63 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #  RangeManagerMzInt
         #
         # wrap-doc:
-        #   The representation of a 1D spectrum.
-        #   Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
-        #   Iterations yields access to underlying peak objects but is slower
-        #   Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
-        #   See help(SpectrumSettings) for information about meta-information
-        #   -----
-        #   Usage:
-        #     ms_level = spectrum.getMSLevel()
-        #     rt = spectrum.getRT()
-        #     mz, intensities = spectrum.get_peaks()
+        #  The representation of a 1D spectrum.
+        #  Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
+        #  Iterations yields access to underlying peak objects but is slower
+        #  Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
+        #  See help(SpectrumSettings) for information about meta-information
+        #  
+        #  Usage:
+        #  
+        #  .. code-block:: python
+        #  
+        #    ms_level = spectrum.getMSLevel()
+        #    rt = spectrum.getRT()
+        #    mz, intensities = spectrum.get_peaks()
         #
-        #   Usage:
-        #     from pyopenms import *
         #
-        #     spectrum = MSSpectrum()
-        #     spectrum.setDriftTime(25) # 25 ms
-        #     spectrum.setRT(205.2) # 205.2 s
-        #     spectrum.setMSLevel(3) # MS3
-        #     p = Precursor()
-        #     p.setIsolationWindowLowerOffset(1.5)
-        #     p.setIsolationWindowUpperOffset(1.5)
-        #     p.setMZ(600) # isolation at 600 +/- 1.5 Th
-        #     p.setActivationEnergy(40) # 40 eV
-        #     p.setCharge(4) # 4+ ion
-        #     spectrum.setPrecursors( [p] )
+        #  Usage:
+        #  
+        #  .. code-block:: python
+        #  
+        #    from pyopenms import *
         #
-        #     # Add raw data to spectrum
-        #     spectrum.set_peaks( ([401.5], [900]) )
+        #    spectrum = MSSpectrum()
+        #    spectrum.setDriftTime(25) # 25 ms
+        #    spectrum.setRT(205.2) # 205.2 s
+        #    spectrum.setMSLevel(3) # MS3
+        #    p = Precursor()
+        #    p.setIsolationWindowLowerOffset(1.5)
+        #    p.setIsolationWindowUpperOffset(1.5)
+        #    p.setMZ(600) # isolation at 600 +/- 1.5 Th
+        #    p.setActivationEnergy(40) # 40 eV
+        #    p.setCharge(4) # 4+ ion
+        #    spectrum.setPrecursors( [p] )
         #
-        #     # Additional data arrays / peak annotations
-        #     fda = FloatDataArray()
-        #     fda.setName("Signal to Noise Array")
-        #     fda.push_back(15)
-        #     sda = StringDataArray()
-        #     sda.setName("Peak annotation")
-        #     sda.push_back("y15++")
-        #     spectrum.setFloatDataArrays( [fda] )
-        #     spectrum.setStringDataArrays( [sda] )
+        #    # Add raw data to spectrum
+        #    spectrum.set_peaks( ([401.5], [900]) )
         #
-        #     # Add spectrum to MSExperiment
-        #     exp = MSExperiment()
-        #     exp.addSpectrum(spectrum)
+        #    # Additional data arrays / peak annotations
+        #    fda = FloatDataArray()
+        #    fda.setName("Signal to Noise Array")
+        #    fda.push_back(15)
+        #    sda = StringDataArray()
+        #    sda.setName("Peak annotation")
+        #    sda.push_back("y15++")
+        #    spectrum.setFloatDataArrays( [fda] )
+        #    spectrum.setStringDataArrays( [sda] )
         #
-        #     # Add second spectrum and store as mzML file
-        #     spectrum2 = MSSpectrum()
-        #     spectrum2.set_peaks( ([1, 2], [1, 2]) )
-        #     exp.addSpectrum(spectrum2)
+        #    # Add spectrum to MSExperiment
+        #    exp = MSExperiment()
+        #    exp.addSpectrum(spectrum)
         #
-        #     MzMLFile().store("testfile.mzML", exp)
-        #   -----
+        #    # Add second spectrum and store as mzML file
+        #    spectrum2 = MSSpectrum()
+        #    spectrum2.set_peaks( ([1, 2], [1, 2]) )
+        #    exp.addSpectrum(spectrum2)
+        #
+        #    MzMLFile().store("testfile.mzML", exp)
+        #  
 
         MSSpectrum() nogil except +
         MSSpectrum(MSSpectrum &) nogil except +

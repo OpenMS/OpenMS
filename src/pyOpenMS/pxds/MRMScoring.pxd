@@ -21,34 +21,34 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>" namespace "OpenSwath
         double calcXcorrCoelutionScore() nogil except + # wrap-doc:Calculate the cross-correlation coelution score. The score is a distance where zero indicates perfect coelution
         double calcXcorrCoelutionWeightedScore(libcpp_vector[ double ] & normalized_library_intensity) nogil except +
             # wrap-doc:
-                #   Calculate the weighted cross-correlation coelution score
-                #   -----
-                #   The score is a distance where zero indicates perfect coelution. The
-                #   score is weighted by the transition intensities, non-perfect coelution
-                #   in low-intensity transitions should thus become less important
+                #  Calculate the weighted cross-correlation coelution score
+                #  
+                #  The score is a distance where zero indicates perfect coelution. The
+                #  score is weighted by the transition intensities, non-perfect coelution
+                #  in low-intensity transitions should thus become less important
 
         libcpp_vector[ double ] calcSeparateXcorrContrastCoelutionScore() nogil except + # wrap-doc:Calculate the separate cross-correlation contrast score
         double calcXcorrPrecursorContrastCoelutionScore() nogil except +
             # wrap-doc:
-                #   Calculate the precursor cross-correlation contrast score against the transitions
-                #   -----
-                #   The score is a distance where zero indicates perfect coelution
+                #  Calculate the precursor cross-correlation contrast score against the transitions
+                #  
+                #  The score is a distance where zero indicates perfect coelution
 
         double calcXcorrShapeScore() nogil except +
             # wrap-doc:
-                #   Calculate the cross-correlation shape score
-                #   -----
-                #   The score is a correlation measure where 1 indicates perfect correlation
-                #   and 0 means no correlation.
+                #  Calculate the cross-correlation shape score
+                #  
+                #  The score is a correlation measure where 1 indicates perfect correlation
+                #  and 0 means no correlation.
 
         double calcXcorrShapeWeightedScore(libcpp_vector[ double ] & normalized_library_intensity) nogil except +
             # wrap-doc:
-                #   Calculate the weighted cross-correlation shape score
-                #   -----
-                #   The score is a correlation measure where 1 indicates perfect correlation
-                #   and 0 means no correlation. The score is weighted by the transition
-                #   intensities, non-perfect coelution in low-intensity transitions should
-                #   thus become less important
+                #  Calculate the weighted cross-correlation shape score
+                #  
+                #  The score is a correlation measure where 1 indicates perfect correlation
+                #  and 0 means no correlation. The score is weighted by the transition
+                #  intensities, non-perfect coelution in low-intensity transitions should
+                #  thus become less important
 
         libcpp_vector[ double ] calcSeparateXcorrContrastShapeScore() nogil except + # wrap-doc:Calculate the separate cross-correlation contrast shape score
         double calcXcorrPrecursorContrastShapeScore() nogil except + # wrap-doc:Calculate the precursor cross-correlation shape score against the transitions

@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS":
 
     cdef cppclass InstrumentSettings(MetaInfoInterface):
         # wrap-inherits:
-        #    MetaInfoInterface
+        #   MetaInfoInterface
 
         InstrumentSettings() nogil except + # wrap-doc:Description of the settings a MS Instrument was run with
         InstrumentSettings(InstrumentSettings &) nogil except +

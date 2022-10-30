@@ -12,12 +12,12 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
 # Get files changed in the PR
     - name: Get changed files
       id: changed_files
-      uses: tj-actions/changed-files@v22.2
+      uses: tj-actions/changed-files@v33
       with:
           path: .
           files: |
