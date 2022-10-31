@@ -50,8 +50,7 @@ namespace OpenMS
     return db_;
   }
 
-
-  RibonucleotideDB* initializeRibonucleotideDB(OpenMS::String modomics_file, OpenMS::String custom_mods_file, OpenMS::String proprietary_mods_file)
+  RibonucleotideDB* RibonucleotideDB::initializeRibonucleotideDB(OpenMS::String modomics_file, OpenMS::String custom_mods_file, OpenMS::String proprietary_mods_file)
   {
     static RibonucleotideDB* db_ = new RibonucleotideDB(modomics_file, custom_mods_file, proprietary_mods_file);
     return db_;

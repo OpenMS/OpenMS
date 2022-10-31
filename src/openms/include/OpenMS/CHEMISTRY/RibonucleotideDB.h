@@ -101,12 +101,6 @@ namespace OpenMS
 
 
   protected:
-    /// default constructor
-    explicit RibonucleotideDB(OpenMS::String modomics_file = "CHEMISTRY/Modomics.tsv", OpenMS::String custom_mods_file = "CHEMISTRY/Custom_RNA_modifications.tsv", OpenMS::String proprietary_mods_file = "");
-
-    /// destructor
-    virtual ~RibonucleotideDB();
-
     /// read (modified) nucleotides from input file
     void readFromFile_(const std::string& path);
 
@@ -123,5 +117,11 @@ namespace OpenMS
     std::map<std::string, std::pair<ConstRibonucleotidePtr, ConstRibonucleotidePtr>> ambiguity_map_;
 
     Size max_code_length_;
+  private:
+      /// default constructor
+    explicit RibonucleotideDB(OpenMS::String modomics_file = "CHEMISTRY/Modomics.tsv", OpenMS::String custom_mods_file = "CHEMISTRY/Custom_RNA_modifications.tsv", OpenMS::String proprietary_mods_file = "");
+
+    /// destructor
+    virtual ~RibonucleotideDB();
   };
 }
