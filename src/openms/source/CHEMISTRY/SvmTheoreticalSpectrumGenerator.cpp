@@ -244,8 +244,7 @@ namespace OpenMS
   }
 
   SvmTheoreticalSpectrumGenerator::~SvmTheoreticalSpectrumGenerator()
-  {
-  }
+  = default;
 
   Size SvmTheoreticalSpectrumGenerator::generateDescriptorSet_(const AASequence& peptide, Size position, const IonType& type, Size /* precursor_charge */, DescriptorSet& desc_set)
   {

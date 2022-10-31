@@ -49,10 +49,9 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  IsotopeDiffFilter::IsotopeDiffFilter(const IsotopeDiffFilter & source) :
-    FilterFunctor(source)
-  {
-  }
+  IsotopeDiffFilter::IsotopeDiffFilter(const IsotopeDiffFilter & source) 
+    
+  = default;
 
   IsotopeDiffFilter & IsotopeDiffFilter::operator=(const IsotopeDiffFilter & source)
   {
@@ -64,7 +63,6 @@ namespace OpenMS
   }
 
   IsotopeDiffFilter::~IsotopeDiffFilter()
-  {
-  }
+  = default;
 
 }

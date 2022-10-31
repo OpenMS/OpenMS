@@ -137,8 +137,7 @@ namespace OpenMS
   }
 
   ResidueModification::~ResidueModification()
-  {
-  }
+  = default;
 
   void ResidueModification::setId(const String& id)
   {

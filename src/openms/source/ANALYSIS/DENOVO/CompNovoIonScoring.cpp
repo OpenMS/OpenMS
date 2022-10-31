@@ -50,10 +50,9 @@ namespace OpenMS
   {
   }
 
-  CompNovoIonScoring::CompNovoIonScoring(const CompNovoIonScoring & rhs) :
-    CompNovoIonScoringBase(rhs)
-  {
-  }
+  CompNovoIonScoring::CompNovoIonScoring(const CompNovoIonScoring & rhs) 
+    
+  = default;
 
   CompNovoIonScoring & CompNovoIonScoring::operator=(const CompNovoIonScoring & rhs)
   {
@@ -65,8 +64,7 @@ namespace OpenMS
   }
 
   CompNovoIonScoring::~CompNovoIonScoring()
-  {
-  }
+  = default;
 
   void CompNovoIonScoring::scoreSpectra(std::map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec, PeakSpectrum & ETD_spec, double precursor_weight, Size charge)
   {

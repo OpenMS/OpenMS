@@ -57,8 +57,7 @@ namespace OpenMS
   }
 
   EGHTraceFitter::EGHTraceFunctor::~EGHTraceFunctor()
-  {
-  }
+  = default;
 
   int EGHTraceFitter::EGHTraceFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
   {

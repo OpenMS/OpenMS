@@ -141,8 +141,7 @@ namespace OpenMS
   }
 
   AASequence::~AASequence()
-  {
-  }
+  = default;
 
   const Residue& AASequence::getResidue(Size index) const
   {

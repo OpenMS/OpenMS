@@ -62,7 +62,6 @@ namespace OpenMS
   }
 
   IntensityBalanceFilter::~IntensityBalanceFilter()
-  {
-  }
+  = default;
 
 }

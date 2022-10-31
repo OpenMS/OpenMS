@@ -48,6 +48,5 @@ namespace OpenMS::Internal
   }
 
   MzIdentMLValidator::~MzIdentMLValidator()
-  {
-  }
+  = default;
 } // namespace OpenMS  // namespace Internal

@@ -94,8 +94,7 @@ namespace OpenMS
   }
 
   PlotCanvas::~PlotCanvas()
-  {
-  }
+  = default;
 
   void PlotCanvas::resizeEvent(QResizeEvent* /* e */)
   {

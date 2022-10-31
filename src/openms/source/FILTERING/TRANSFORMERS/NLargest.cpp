@@ -61,8 +61,7 @@ namespace OpenMS
   }
 
   NLargest::~NLargest()
-  {
-  }
+  = default;
 
   NLargest::NLargest(const NLargest & source) :
     DefaultParamHandler(source)

@@ -94,8 +94,7 @@ namespace OpenMS
   }
 
   BaseFeature::~BaseFeature()
-  {
-  }
+  = default;
 
   BaseFeature::QualityType BaseFeature::getQuality() const
   {

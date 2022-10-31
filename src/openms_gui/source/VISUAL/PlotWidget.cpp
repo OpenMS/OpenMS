@@ -112,8 +112,7 @@ namespace OpenMS
   }
 
   PlotWidget::~PlotWidget()
-  {
-  }
+  = default;
 
   Int PlotWidget::getActionMode() const
   {

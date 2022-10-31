@@ -103,8 +103,7 @@ namespace OpenMS
   }
 
   RawTandemMSSignalSimulation::~RawTandemMSSignalSimulation()
-  {
-  }
+  = default;
 
   void RawTandemMSSignalSimulation::generateMSESpectra_(const SimTypes::FeatureMapSim& features, const SimTypes::MSSimExperiment& experiment, SimTypes::MSSimExperiment& ms2)
   {

@@ -47,8 +47,7 @@ namespace OpenMS
   }
 
   TOFCalibration::~TOFCalibration()
-  {
-  }
+  = default;
 
   void TOFCalibration::calculateCalibCoeffs_(PeakMap & calib_spectra)
   {

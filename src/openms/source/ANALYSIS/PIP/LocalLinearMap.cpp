@@ -135,8 +135,7 @@ namespace OpenMS
   }
 
   LocalLinearMap::~LocalLinearMap()
-  {
-  }
+  = default;
 
   Matrix<UInt> LocalLinearMap::genCord_(Size xdim, Size ydim)
   {

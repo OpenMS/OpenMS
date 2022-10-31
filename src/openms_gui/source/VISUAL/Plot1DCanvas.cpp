@@ -135,8 +135,7 @@ namespace OpenMS
   }
 
   Plot1DCanvas::~Plot1DCanvas()
-  {
-  }
+  = default;
 
   const LayerData1DBase& Plot1DCanvas::getLayer(Size index) const
   {

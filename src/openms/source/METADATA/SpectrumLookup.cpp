@@ -50,7 +50,7 @@ namespace OpenMS
 
 
   SpectrumLookup::~SpectrumLookup()
-  {}
+  = default;
 
 
   bool SpectrumLookup::empty() const

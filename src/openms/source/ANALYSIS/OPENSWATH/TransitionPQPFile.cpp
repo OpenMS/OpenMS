@@ -55,8 +55,7 @@ namespace OpenMS
   }
 
   TransitionPQPFile::~TransitionPQPFile()
-  {
-  }
+  = default;
 
   void TransitionPQPFile::readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list, bool legacy_traml_id)
   {

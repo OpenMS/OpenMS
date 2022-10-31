@@ -138,8 +138,7 @@ namespace OpenMS
   }
 
   CompressedInputSource::~CompressedInputSource()
-  {
-  }
+  = default;
 
   BinInputStream * CompressedInputSource::makeStream() const
   {

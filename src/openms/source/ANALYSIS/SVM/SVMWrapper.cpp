@@ -147,8 +147,7 @@ namespace OpenMS
     gauss_table_(),
     kernel_type_(PRECOMPUTED),
     border_length_(0),
-    training_set_(nullptr),
-    training_problem_(nullptr),
+    
     training_data_(SVMData())
   {
     param_ = (struct svm_parameter*) malloc(sizeof(struct svm_parameter));

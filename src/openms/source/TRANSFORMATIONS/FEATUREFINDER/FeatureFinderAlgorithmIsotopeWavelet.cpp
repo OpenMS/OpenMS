@@ -76,8 +76,7 @@ namespace OpenMS
   }
 
   FeatureFinderAlgorithmIsotopeWavelet::~FeatureFinderAlgorithmIsotopeWavelet()
-  {
-  }
+  = default;
 
   MSSpectrum* FeatureFinderAlgorithmIsotopeWavelet::createHRData(const UInt i)
   {

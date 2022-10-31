@@ -53,8 +53,7 @@ namespace OpenMS
   }
 
   EnhancedWorkspace::~EnhancedWorkspace()
-  {
-  }
+  = default;
 
   void EnhancedWorkspace::tileHorizontal()
   {

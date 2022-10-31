@@ -40,12 +40,10 @@
 namespace OpenMS
 {
   MRMIonSeries::MRMIonSeries()
-  {
-  }
+  = default;
 
   MRMIonSeries::~MRMIonSeries()
-  {
-  }
+  = default;
 
   std::pair<String, double> MRMIonSeries::getIon(IonSeries& ionseries, const String& ionid)
   {

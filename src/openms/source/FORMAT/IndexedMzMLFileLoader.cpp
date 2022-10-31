@@ -42,12 +42,10 @@ namespace OpenMS
 {
 
   IndexedMzMLFileLoader::IndexedMzMLFileLoader()
-  {
-  }
+  = default;
 
   IndexedMzMLFileLoader::~IndexedMzMLFileLoader()
-  {
-  }
+  = default;
 
   PeakFileOptions & IndexedMzMLFileLoader::getOptions()
   {

@@ -88,8 +88,7 @@ namespace OpenMS
   }
 
   Plot3DCanvas::~Plot3DCanvas()
-  {
-  }
+  = default;
 
   void Plot3DCanvas::resizeEvent(QResizeEvent * e)
   {

@@ -107,8 +107,7 @@ namespace OpenMS
   }
 
   AbsoluteQuantitation::~AbsoluteQuantitation()
-  {
-  }
+  = default;
 
   void AbsoluteQuantitation::setQuantMethods(std::vector<AbsoluteQuantitationMethod>& quant_methods)
   {

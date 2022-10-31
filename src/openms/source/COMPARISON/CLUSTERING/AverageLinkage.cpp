@@ -56,14 +56,11 @@ namespace OpenMS
   {
   }
 
-  AverageLinkage::AverageLinkage(const AverageLinkage & source) :
-    ClusterFunctor(source), ProgressLogger(source)
-  {
-  }
+  AverageLinkage::AverageLinkage(const AverageLinkage & source)  
+  = default;
 
   AverageLinkage::~AverageLinkage()
-  {
-  }
+  = default;
 
   AverageLinkage & AverageLinkage::operator=(const AverageLinkage & source)
   {

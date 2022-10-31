@@ -76,8 +76,7 @@ namespace OpenMS
   }
 
   ACTrie::~ACTrie()
-  {
-  }
+  = default;
 
   void ACTrie::addNeedle(const std::string& needle)
   {

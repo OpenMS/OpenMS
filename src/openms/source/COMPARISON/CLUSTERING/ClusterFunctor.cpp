@@ -44,21 +44,16 @@ using namespace std;
 namespace OpenMS
 {
   ClusterFunctor::ClusterFunctor()
-  {
-  }
+  = default;
 
   ClusterFunctor::ClusterFunctor(const ClusterFunctor & /*source*/)
-  {
-  }
+  = default;
 
   ClusterFunctor::~ClusterFunctor()
-  {
-  }
+  = default;
 
   ClusterFunctor & ClusterFunctor::operator=(const ClusterFunctor & /*source*/)
-  {
-    return *this;
-  }
+  = default;
 
   void ClusterFunctor::registerChildren()
   {
@@ -73,7 +68,6 @@ namespace OpenMS
   }
 
   ClusterFunctor::InsufficientInput::~InsufficientInput() throw()
-  {
-  }
+  = default;
 
 }

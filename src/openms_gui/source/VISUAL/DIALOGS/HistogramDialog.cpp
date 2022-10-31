@@ -75,8 +75,7 @@ namespace OpenMS
   }
 
   HistogramDialog::~HistogramDialog()
-  {
-  }
+  = default;
 
   float HistogramDialog::getLeftSplitter()
   {

@@ -65,29 +65,15 @@ namespace OpenMS
   {
   }
 
-  FeatureHandle::FeatureHandle(const FeatureHandle& rhs) :
-    Peak2D(rhs),
-    UniqueIdInterface(rhs),
-    map_index_(rhs.map_index_),
-    charge_(rhs.charge_),
-    width_(rhs.width_)
-  {
-  }
+  FeatureHandle::FeatureHandle(const FeatureHandle& rhs) 
+    
+  = default;
 
   FeatureHandle& FeatureHandle::operator=(const FeatureHandle& rhs)
-  {
-    Peak2D::operator=(rhs);
-    UniqueIdInterface::operator=(rhs);
-    map_index_ = rhs.map_index_;
-    charge_ = rhs.charge_;
-    width_ = rhs.width_;
-
-    return *this;
-  }
+  = default;
 
   FeatureHandle::~FeatureHandle()
-  {
-  }
+  = default;
 
   UInt64 FeatureHandle::getMapIndex() const
   {

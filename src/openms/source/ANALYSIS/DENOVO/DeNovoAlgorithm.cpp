@@ -44,7 +44,6 @@ namespace OpenMS
   }
 
   DeNovoAlgorithm::~DeNovoAlgorithm()
-  {
-  }
+  = default;
 
 }

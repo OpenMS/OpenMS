@@ -55,8 +55,7 @@ namespace OpenMS
   }
 
   MzMLFile::~MzMLFile()
-  {
-  }
+  = default;
 
   PeakFileOptions& MzMLFile::getOptions()
   {

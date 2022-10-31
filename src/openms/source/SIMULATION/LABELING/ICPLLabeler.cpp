@@ -65,8 +65,7 @@ namespace OpenMS
   }
 
   ICPLLabeler::~ICPLLabeler()
-  {
-  }
+  = default;
 
   void ICPLLabeler::preCheck(Param& /* param */) const
   {

@@ -166,8 +166,7 @@ namespace OpenMS
   }
 
   MRMFeatureFinderScoring::~MRMFeatureFinderScoring()
-  {
-  }
+  = default;
 
   void MRMFeatureFinderScoring::pickExperiment(const PeakMap& chromatograms,
                                                FeatureMap& output,

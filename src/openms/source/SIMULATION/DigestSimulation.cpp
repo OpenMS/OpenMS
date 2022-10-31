@@ -49,10 +49,9 @@ namespace OpenMS
     setDefaultParams_();
   }
 
-  DigestSimulation::DigestSimulation(const DigestSimulation& source) :
-    DefaultParamHandler(source)
-  {
-  }
+  DigestSimulation::DigestSimulation(const DigestSimulation& source) 
+    
+  = default;
 
   DigestSimulation& DigestSimulation::operator=(const DigestSimulation& source)
   {
@@ -64,8 +63,7 @@ namespace OpenMS
   }
 
   DigestSimulation::~DigestSimulation()
-  {
-  }
+  = default;
 
   void DigestSimulation::setDefaultParams_()
   {

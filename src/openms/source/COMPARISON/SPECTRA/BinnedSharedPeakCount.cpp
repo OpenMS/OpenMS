@@ -54,8 +54,7 @@ namespace OpenMS
   }
 
   BinnedSharedPeakCount::~BinnedSharedPeakCount()
-  {
-  }
+  = default;
 
   BinnedSharedPeakCount& BinnedSharedPeakCount::operator=(const BinnedSharedPeakCount& source)
   {

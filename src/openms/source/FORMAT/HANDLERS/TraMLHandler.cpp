@@ -64,8 +64,7 @@ namespace OpenMS::Internal
     }
 
     TraMLHandler::~TraMLHandler()
-    {
-    }
+    = default;
 
     void TraMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {

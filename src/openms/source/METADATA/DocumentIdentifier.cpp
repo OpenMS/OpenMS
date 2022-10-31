@@ -50,8 +50,7 @@ namespace OpenMS
   }
 
   DocumentIdentifier::~DocumentIdentifier()
-  {
-  }
+  = default;
 
   void DocumentIdentifier::setIdentifier(const String & id)
   {
