@@ -56,16 +56,22 @@ namespace OpenMS
     Q_OBJECT
 
 public:
-    ///Constructor
+    /// Constructor
     Plot3DWidget(const Param & preferences, QWidget * parent = nullptr);
 
     /// Destructor
     ~Plot3DWidget() override;
 
-    /// This method is overwritten to make the class specific members accessible
-    inline Plot3DCanvas * canvas()
+    // docu in base class
+    Plot3DCanvas* canvas() const override
     {
-      return static_cast<Plot3DCanvas *>(canvas_);
+      return static_cast<Plot3DCanvas*>(canvas_);
+    }
+
+    // Docu in base class
+    void setMapper(const DimMapper<2>& /*mapper*/) override
+    { // 3D widget currently only handles MSExperiment. That's it.
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     // Docu in base class

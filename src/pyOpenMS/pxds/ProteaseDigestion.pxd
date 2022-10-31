@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
         #  Thus no random selection of just n specific missed cleavage sites is performed.
         #    
         #  Usage:
-        #
+        #  
         #  .. code-block:: python
         #  
         #        from pyopenms import *
