@@ -374,8 +374,8 @@ namespace OpenMS
         }
         else
         {
-        OpenSwathHelper::selectSwathTransitions(irt_transitions, transition_exp_used,
-            cp.min_upper_edge_dist, swath_maps[map_idx].lower, swath_maps[map_idx].upper);
+          OpenSwathHelper::selectSwathTransitions(irt_transitions, transition_exp_used,
+          cp.min_upper_edge_dist, swath_maps[map_idx].lower, swath_maps[map_idx].upper);
         }
         if (!transition_exp_used.getTransitions().empty()) // skip if no transitions found
         {
