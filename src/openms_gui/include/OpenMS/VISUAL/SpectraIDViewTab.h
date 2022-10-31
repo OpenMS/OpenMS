@@ -40,11 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <QtWidgets>
-#include <QLineEdit>
-#include <QComboBox>
-#include <QTableWidget>
 #include <QCheckBox>
-#include <QWidget>
 
 #include <unordered_map>
 #include <vector>
@@ -71,7 +67,7 @@ namespace OpenMS
     // docu in base class
     bool hasData(const LayerDataBase* layer) override;
 
-    /// set layer data and create table anew; if given a nullptr, behaves as clear()
+    /// set layer data and create table anew; if given a nullptr or the layer is not LayerDataPeak, behaves as clear()
     void updateEntries(LayerDataBase* model) override;
     /// get layer data
     LayerDataBase* getLayer();
@@ -110,7 +106,7 @@ namespace OpenMS
       void resizeEvent(QResizeEvent * event) override;
     };
 
-    LayerDataBase* layer_ = nullptr;
+    LayerDataPeak* layer_ = nullptr;
     QCheckBox* hide_no_identification_ = nullptr;
     QCheckBox* create_rows_for_commmon_metavalue_ = nullptr;
     TableView* table_widget_ = nullptr;

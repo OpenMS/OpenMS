@@ -36,11 +36,12 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
-#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/mersenne_twister.hpp> // for mt19937_64
 #include <boost/random/uniform_int.hpp>
 #include <cmath>
-#include <utility>
+#include <utility>    // for std::pair
 
 namespace OpenMS
 {
@@ -89,6 +90,38 @@ namespace OpenMS
       return min <= value && value <= max;
     }
 
+    /**
+     * \brief Zoom into an interval [left, right], decreasing its width by @p factor (which must be in [0,inf]).
+     * 
+     * To actually zoom in, the @p factor needs to be within [0,1]. Chosing a factor > 1 actually zooms out.
+     * @p align (between [0,1]) determines where the zoom happens:
+     *   i.e. align = 0 leaves @p left the same and reduces @p right (or extends if factor>1)
+     *        whereas align = 0.5 zooms into the center of the range etc
+     * 
+     * You can do round trips, i.e. undo a zoom in, by inverting the factor:
+     * \code
+     * [a2, b2] = zoomIn(a1, b1, 0.5, al); // zoom in
+     * [a1, b1] === zoomIn(a2, b2, 2, al); // zoom out again (inverting)
+     * \endcode
+     * 
+     * \param left Start of interval
+     * \param right End of interval
+     * \param factor Number between [0,1] to shrink, or >1 to extend the span (=right-left)
+     * \param align Where to position the smaller/shrunk interval (0 = left, 1 = right, 0.5=center etc)
+     * \return [new_left, new_right] as pair
+     */
+    inline std::pair<double,double> zoomIn(const double left, const double right, const float factor, const float align)
+    {
+      OPENMS_PRECONDITION(factor >= 0, "Factor must be >=0")
+      OPENMS_PRECONDITION(align >= 0, "align must be >=0")
+      OPENMS_PRECONDITION(align <= 1, "align must be <=1")
+      std::pair<double, double> res;
+      auto old_width = right - left;
+      auto offset_left = (1.0f - factor) * old_width * align;
+      res.first = left + offset_left;
+      res.second = res.first + old_width * factor;
+      return res;
+    }
 
     /**
       @brief rounds @p x up to the next decimal power 10 ^ @p decPow
@@ -101,7 +134,7 @@ namespace OpenMS
 
       @ingroup MathFunctionsMisc
     */
-    inline static double ceilDecimal(double x, int decPow)
+    inline double ceilDecimal(double x, int decPow)
     {
       return (ceil(x / pow(10.0, decPow))) * pow(10.0, decPow); // decimal shift right, ceiling, decimal shift left
     }
@@ -116,7 +149,7 @@ namespace OpenMS
 
         @ingroup MathFunctionsMisc
     */
-    inline static double roundDecimal(double x, int decPow)
+    inline double roundDecimal(double x, int decPow)
     {
       if (x > 0)
         return (floor(0.5 + x / pow(10.0, decPow))) * pow(10.0, decPow);
@@ -129,7 +162,7 @@ namespace OpenMS
 
         @ingroup MathFunctionsMisc
     */
-    inline static double intervalTransformation(double x, double left1, double right1, double left2, double right2)
+    inline double intervalTransformation(double x, double left1, double right1, double left2, double right2)
     {
       return left2 + (x - left1) * (right2 - left2) / (right1 - left1);
     }
@@ -191,7 +224,7 @@ namespace OpenMS
 
         @ingroup MathFunctionsMisc
     */
-    inline static bool approximatelyEqual(double a, double b, double tol)
+    inline bool approximatelyEqual(double a, double b, double tol)
     {
       return std::fabs(a - b) <= tol;
     }
@@ -301,7 +334,7 @@ namespace OpenMS
     template <typename T>
     T ppmToMass(T ppm, T mz_ref)
     {
-      return (ppm / 1e6) * mz_ref;
+      return (ppm / T(1e6)) * mz_ref;
     }
     
     /*
@@ -332,7 +365,7 @@ namespace OpenMS
       @param ppm Whether @p tol is in ppm or absolute
       @return Tolerance window boundaries
     */
-    inline static std::pair<double, double> getTolWindow(double val, double tol, bool ppm)
+    inline std::pair<double, double> getTolWindow(double val, double tol, bool ppm)
     {
       double left, right;
 

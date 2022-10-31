@@ -29,7 +29,7 @@ cdef extern from "<OpenMS/METADATA/Modification.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/METADATA/Modification.h>" namespace "OpenMS::Modification":
     cdef enum Modification_SpecificityType "OpenMS::Modification::SpecificityType":
         #wrap-attach:
-        #    Modification
+        #   Modification
         AA
         AA_AT_CTERM
         AA_AT_NTERM

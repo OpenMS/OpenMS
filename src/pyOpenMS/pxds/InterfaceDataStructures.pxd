@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/INTERFACES/DataStructures.h>" namespace "OpenMS::Inter
         # classes, only for methods
         #
         # wrap-instances:
-        #   _Interfaces_BinaryDataArray := BinaryDataArray
+        #  _Interfaces_BinaryDataArray := BinaryDataArray
         BinaryDataArray() nogil except +
         BinaryDataArray(BinaryDataArray &) nogil except +
         libcpp_vector[double] data
@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/INTERFACES/DataStructures.h>" namespace "OpenMS::Inter
         # classes, only for methods
         #
         # wrap-instances:
-        #   _Interfaces_Spectrum := Spectrum
+        #  _Interfaces_Spectrum := Spectrum
         Spectrum() nogil except +
         Spectrum(Spectrum &) nogil except +
         BinaryDataArrayPtr getMZArray() nogil except + #wrap-ignore
@@ -37,7 +37,7 @@ cdef extern from "<OpenMS/INTERFACES/DataStructures.h>" namespace "OpenMS::Inter
         # classes, only for methods
         #
         # wrap-instances:
-        #   _Interfaces_Chromatogram := Chromatogram
+        #  _Interfaces_Chromatogram := Chromatogram
         Chromatogram() nogil except +
         Chromatogram(Chromatogram &) nogil except +
         BinaryDataArrayPtr getTimeArray() nogil except + #wrap-ignore

@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
     
     cdef cppclass ExperimentalDesign "OpenMS::ExperimentalDesign":
     # wrap-doc:
-    #   Representation of an experimental design in OpenMS. Instances can be loaded with the ExperimentalDesignFile class
+    #  Representation of an experimental design in OpenMS. Instances can be loaded with the ExperimentalDesignFile class
 
         ExperimentalDesign() nogil except + # compiler 
         ExperimentalDesign(ExperimentalDesign &) nogil except + # compiler
@@ -91,8 +91,8 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::Exp
           ExperimentalDesign_SampleSection(ExperimentalDesign_SampleSection) nogil except +
 
           # ExperimentalDesign_SampleSection(const libcpp_vector[ libcpp_vector[ String ] ] & content,
-          #                                  libcpp_map[ unsigned, size_t ] sample_to_rowindex, 
-          #                                  libcpp_map[ String, size_t ] columnname_to_columnindex) nogil except +
+          #                                 libcpp_map[ unsigned, size_t ] sample_to_rowindex, 
+          #                                 libcpp_map[ String, size_t ] columnname_to_columnindex) nogil except +
 
           # Get set of all samples that are present in the sample section
           libcpp_set[ String ] getSamples() nogil except + # wrap-doc:Returns a set of all samples that are present in the sample section
