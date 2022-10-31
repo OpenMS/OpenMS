@@ -38,10 +38,10 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
-
 // declare Qt classes OUTSIDE of namespace OpenMS!
 class QPainter;
 class QPoint;
+class QRectF;
 class QString; 
 class QStringList;
 class QWidget;
@@ -60,8 +60,7 @@ namespace OpenMS
     Namespace which holds static GUI-related helper functions.
   */
   namespace GUIHelpers
-  {
-    
+  {        
     /// Open a folder in file explorer
     /// Will show a message box on failure
     OPENMS_GUI_DLLAPI void openFolder(const QString& folder);
@@ -104,6 +103,18 @@ namespace OpenMS
     
     */
     OPENMS_GUI_DLLAPI QRectF getTextDimension(const QStringList& text, const QFont& font, int& line_spacing);
+
+
+    /// Returns the point in the @p list that is nearest to @p origin
+    OPENMS_GUI_DLLAPI QPointF nearestPoint(const QPointF& origin, const QList<QPointF>& list);
+
+    /**
+     * \brief Find the point on a rectangle where a ray/line from a point @p p to its center would intersect at
+     * \param rect Rectangle which intersects with the line from @p p to its center
+     * \param p A point outside the rectangle
+     * \return The intersection point or the center() of @p rect if @p p is inside the rectangle
+     */
+    OPENMS_GUI_DLLAPI QPointF intersectionPoint(const QRectF& rect, const QPointF& p);
 
 
     /**

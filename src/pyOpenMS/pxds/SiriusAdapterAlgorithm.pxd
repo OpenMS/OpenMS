@@ -26,7 +26,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
         bool isNoMasstraceInfoIsotopePattern() nogil except +
         int getIsotopePatternIterations() nogil except +
         int getNumberOfSiriusCandidates() nogil except +
-        int getNumberOfCSIFingerIDCandidates() nogil except +
 
         String determineSiriusExecutable(String & executable) nogil except +
         # wrap-doc:

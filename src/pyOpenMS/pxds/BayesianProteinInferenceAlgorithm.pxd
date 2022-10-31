@@ -34,7 +34,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
         #  - Can make use of OpenMP to parallelize over connected components.
         #  
         #  Usage:
-        #
+        #  
         #  .. code-block:: python
         #  
         #    from pyopenms import *

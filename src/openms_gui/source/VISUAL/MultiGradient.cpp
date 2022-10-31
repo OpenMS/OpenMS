@@ -308,7 +308,7 @@ namespace OpenMS
   MultiGradient MultiGradient::getDefaultGradientLogarithmicIntensityMode()
   {
     MultiGradient mg;
-    mg.fromString("Linear|0,#EEEEEE;100,#000000");
+    mg.fromString("Linear|0,#ffea00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000");
     return mg;
   }
 

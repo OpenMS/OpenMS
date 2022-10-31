@@ -41,6 +41,7 @@
 
 namespace OpenMS
 {
+  class Annotation1DItem;
   class NASequence;
   class SpectraIDViewTab;
   class TOPPViewBase;
