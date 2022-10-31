@@ -87,11 +87,10 @@ namespace OpenMS
     }
 
     BaseException::BaseException(const BaseException& exception) noexcept 
-      
-    = default;
+    {
+    };
 
-    BaseException::~BaseException() noexcept
-    = default;
+    BaseException::~BaseException() noexcept = default;
 
     const char* BaseException::getName() const noexcept
     {
