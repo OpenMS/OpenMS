@@ -60,9 +60,6 @@ namespace OpenMS
 
     static RibonucleotideDB* initializeRibonucleotideDB(OpenMS::String modomics_file = "CHEMISTRY/Modomics.tsv", OpenMS::String custom_mods_file = "CHEMISTRY/Custom_RNA_modifications.tsv", OpenMS::String proprietary_mods_file = "");
 
-    /// default constructor
-    explicit RibonucleotideDB(OpenMS::String modomics_file = "CHEMISTRY/Modomics.tsv", OpenMS::String custom_mods_file = "CHEMISTRY/Custom_RNA_modifications.tsv", OpenMS::String proprietary_mods_file = "");
-
     /// copy constructor not available
     RibonucleotideDB(const RibonucleotideDB& other) = delete;
 
@@ -104,6 +101,8 @@ namespace OpenMS
 
 
   protected:
+    /// default constructor
+    explicit RibonucleotideDB(OpenMS::String modomics_file = "CHEMISTRY/Modomics.tsv", OpenMS::String custom_mods_file = "CHEMISTRY/Custom_RNA_modifications.tsv", OpenMS::String proprietary_mods_file = "");
 
     /// destructor
     virtual ~RibonucleotideDB();
