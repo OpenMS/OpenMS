@@ -46,6 +46,7 @@
 #include <QtWidgets/QDialogButtonBox>
 #include <QtWidgets/QFileDialog>
 
+#include <utility>
 #include <vector>
 
 using namespace std;
@@ -264,12 +265,12 @@ namespace OpenMS
 
     void ListEditorDelegate::setTypeName(QString name)
     {
-      typeName_ = name;
+      typeName_ = std::move(name);
     }
 
     void ListEditorDelegate::setFileName(QString name)
     {
-      file_name_ = name;
+      file_name_ = std::move(name);
     }
 
     //////////////////////////////////////////////////////////////
@@ -347,7 +348,7 @@ namespace OpenMS
   ////////////////////////////////////////////////////////////
   //ListEditor
   ////////////////////////////////////////////////////////////
-  ListEditor::ListEditor(QWidget * parent, QString title) :
+  ListEditor::ListEditor(QWidget * parent, const QString& title) :
     QDialog(parent)
   {
     listTable_ = new Internal::ListTable(this);
@@ -398,7 +399,7 @@ namespace OpenMS
 
   void ListEditor::setTypeName(QString name)
   {
-    listDelegate_->setTypeName(name);
+    listDelegate_->setTypeName(std::move(name));
   }
 
 } //namespace OpenMS

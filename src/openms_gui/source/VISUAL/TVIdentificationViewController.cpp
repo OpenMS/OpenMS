@@ -497,7 +497,7 @@ namespace OpenMS
   }
 
   // Helper function for text formatting
-  String TVIdentificationViewController::n_times(Size n, String input)
+  String TVIdentificationViewController::n_times(Size n, const String& input)
   {
     String result;
     for (Size i = 0; i < n; ++i)

@@ -35,6 +35,8 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 
+#include <utility>
+
 namespace OpenMS
 {
 
@@ -82,7 +84,7 @@ namespace OpenMS
     Param pisp_param = pisp.getParameters();
     pisp_param.setValue("store_peptide_sequences", "true");
     pisp.setParameters(pisp_param);
-    pisp.dbPreprocessing(include, rt_model_file, pt_model_file, false);
+    pisp.dbPreprocessing(std::move(include), std::move(rt_model_file), std::move(pt_model_file), false);
     //  std::cout << "now learn rt probabilities"<<std::endl;
     //pisp.learnRTProbabilities(f_map,rt_model,0.5);
     //  pisp.setGaussianParameters(3,-1);

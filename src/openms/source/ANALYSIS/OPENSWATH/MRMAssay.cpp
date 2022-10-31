@@ -662,7 +662,7 @@ namespace OpenMS
     for (const auto & decoy_pep_it : DecoyPeptideMap)
     {
       setProgress(progress++);
-      TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(decoy_pep_it.first);
+      const TargetedExperiment::Peptide& target_peptide = exp.getPeptideByRef(decoy_pep_it.first);
       int precursor_charge = 1;
       if (target_peptide.hasCharge()) 
       {
@@ -838,7 +838,7 @@ namespace OpenMS
       setProgress(++progress);
       ReactionMonitoringTransition tr = exp.getTransitions()[i];
 
-      const TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(tr.getPeptideRef());
+      const TargetedExperiment::Peptide& target_peptide = exp.getPeptideByRef(tr.getPeptideRef());
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
 
       // Check annotation for unannotated interpretations

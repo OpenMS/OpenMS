@@ -1304,7 +1304,7 @@ namespace OpenMS::Internal
       {
         s += String(indent, '\t') + "<userParam name=\"" + keys[i] + "\" unitName=\"";
 
-        DataValue d = meta.getMetaValue(keys[i]);
+        const DataValue& d = meta.getMetaValue(keys[i]);
         //determine type
         if (d.valueType() == DataValue::INT_VALUE)
         {

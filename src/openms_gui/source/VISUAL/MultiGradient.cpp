@@ -37,6 +37,7 @@
 #include <cstdlib>
 #include <limits>
 #include <sstream>
+#include <utility>
 
 using namespace std;
 
@@ -86,7 +87,7 @@ namespace OpenMS
   {
     if (position >= 0 && position <= 100)
     {
-      pos_col_[position] = color;
+      pos_col_[position] = std::move(color);
     }
     else
     {

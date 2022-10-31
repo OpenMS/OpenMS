@@ -55,12 +55,13 @@
 #include <OpenMS/VISUAL/LayerData1DChrom.h>
 
 // Qt
+#include <QElapsedTimer>
 #include <QMouseEvent>
 #include <QPainter>
-#include <QElapsedTimer>
 #include <QtWidgets/QInputDialog>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMessageBox>
+#include <utility>
 
 
 using namespace std;
@@ -71,7 +72,7 @@ namespace OpenMS
   using namespace Internal;
 
   /// returns an MSExp with a single spec (converted from @p exp_sptr's chromatograms at index  @p index (or ondisc_sptr, if that should be empty)
-  Plot1DCanvas::ExperimentSharedPtrType prepareChromatogram(Size index, Plot1DCanvas::ExperimentSharedPtrType exp_sptr, Plot1DCanvas::ODExperimentSharedPtrType ondisc_sptr)
+  Plot1DCanvas::ExperimentSharedPtrType prepareChromatogram(Size index, const Plot1DCanvas::ExperimentSharedPtrType& exp_sptr, const Plot1DCanvas::ODExperimentSharedPtrType& ondisc_sptr)
   {
     // create a managed pointer fill it with a spectrum containing the chromatographic data
     LayerDataBase::ExperimentSharedPtrType chrom_exp_sptr(new LayerDataBase::ExperimentType());
@@ -182,13 +183,13 @@ namespace OpenMS
     });
 
     // add chromatogram data as peak spectrum
-    if (!PlotCanvas::addChromLayer(chrom_exp_sptr, ondisc_sptr, filename))
+    if (!PlotCanvas::addChromLayer(std::move(chrom_exp_sptr), std::move(ondisc_sptr), filename))
     {
       return false;
     }
     auto& ld = dynamic_cast<LayerData1DChrom&>(getCurrentLayer());
     ld.setName(caption);
-    ld.getChromatogramAnnotation() = chrom_annotation; // copy over shared-ptr to OSW-sql data (if available)
+    ld.getChromatogramAnnotation() = std::move(chrom_annotation); // copy over shared-ptr to OSW-sql data (if available)
     ld.setCurrentIndex(index);                         // use this chrom for visualization
 
     setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);

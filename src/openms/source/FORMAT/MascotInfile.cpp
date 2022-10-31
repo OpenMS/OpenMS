@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/MascotInfile.h>
 
 #include <sstream>
+#include <utility>
 
 using namespace std;
 
@@ -72,7 +73,7 @@ namespace OpenMS
 
     mz_ = mz;
     retention_time_ = retention_time;
-    search_title_ = search_title;
+    search_title_ = std::move(search_title);
 
     writeHeader_(fp);
     writeSpectrum_(fp, filename, spec);
@@ -96,7 +97,7 @@ namespace OpenMS
   {
     FILE* fp = fopen(filename.c_str(), "wt");
 
-    search_title_ = search_title;
+    search_title_ = std::move(search_title);
 
     writeHeader_(fp);
     writeMSExperiment_(fp, filename, experiment);

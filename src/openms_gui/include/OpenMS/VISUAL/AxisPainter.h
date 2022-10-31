@@ -70,7 +70,7 @@ public:
     /// Draws an axis
     static void paint(QPainter * painter, QPaintEvent * e, const double & min, const double & max, const GridVector & grid,
                       const Int width, const Int height, const Alignment alignment, const UInt margin,
-                      const bool show_legend, const String legend, const bool shorten_number,
+                      const bool show_legend, const String& legend, const bool shorten_number,
                       const bool is_log, const bool is_inverse_orientation);
 private:
     /// Constructor: only static methods

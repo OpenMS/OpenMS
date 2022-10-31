@@ -40,6 +40,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
+#include <utility>
+
 namespace OpenMS
 {
 
@@ -490,7 +492,7 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVFile::spectrastRTExtract(const String str_inp, double & value, bool & spectrast_legacy)
+  void TransitionTSVFile::spectrastRTExtract(const String& str_inp, double & value, bool & spectrast_legacy)
   {
     // If SpectraST was run in RT normalization mode, the retention time is annotated as following: "3887.50(57.30)"
     // 3887.50 refers to the non-normalized RT of the individual or consensus run, and 57.30 refers to the normalized
@@ -513,7 +515,7 @@ namespace OpenMS
     }
   }
 
-  bool TransitionTSVFile::spectrastAnnotationExtract(const String str_inp, TSVTransition & mytransition)
+  bool TransitionTSVFile::spectrastAnnotationExtract(const String& str_inp, TSVTransition & mytransition)
   {
     // Parses SpectraST fragment ion annotations
     // Example: y13^2/0.000,b16-18^2/-0.013,y7-45/0.000
@@ -980,13 +982,13 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVFile::createProtein_(String protein_name, String uniprot_id, OpenMS::TargetedExperiment::Protein& protein)
+  void TransitionTSVFile::createProtein_(String protein_name, const String& uniprot_id, OpenMS::TargetedExperiment::Protein& protein)
   {
     // the following attributes will be stored as CV values (CV):
     // - uniprot accession number (if available)
     // the following attributes will be stored as attributes:
     // - id
-    protein.id = protein_name;
+    protein.id = std::move(protein_name);
 
     if (!uniprot_id.empty())
     {
@@ -1001,7 +1003,7 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVFile::interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times, const OpenMS::DataValue rt_value)
+  void TransitionTSVFile::interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times, const OpenMS::DataValue& rt_value)
   {
     TargetedExperiment::RetentionTime retention_time;
     retention_time.setRT(rt_value);

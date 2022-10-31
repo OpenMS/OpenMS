@@ -170,7 +170,7 @@ namespace OpenMS
 
     @note If there is no signal, mz will be set to -1 and intensity to 0
   */
-  void integrateDriftSpectrum(OpenSwath::SpectrumPtr spectrum, 
+  void integrateDriftSpectrum(const OpenSwath::SpectrumPtr& spectrum, 
                               double mz_start,
                               double mz_end,
                               double & im,
@@ -240,7 +240,7 @@ namespace OpenMS
   IonMobilityScoring::~IonMobilityScoring()
   = default;
 
-  void IonMobilityScoring::driftScoringMS1Contrast(OpenSwath::SpectrumPtr spectrum, OpenSwath::SpectrumPtr ms1spectrum, 
+  void IonMobilityScoring::driftScoringMS1Contrast(const OpenSwath::SpectrumPtr& spectrum, const OpenSwath::SpectrumPtr& ms1spectrum, 
                                                    const std::vector<TransitionType> & transitions,
                                                    OpenSwath_Scores & scores,
                                                    const double drift_lower,
@@ -340,7 +340,7 @@ namespace OpenMS
 
   }
 
-  void IonMobilityScoring::driftScoringMS1(OpenSwath::SpectrumPtr spectrum, 
+  void IonMobilityScoring::driftScoringMS1(const OpenSwath::SpectrumPtr& spectrum, 
                                            const std::vector<TransitionType> & transitions,
                                            OpenSwath_Scores & scores,
                                            const double drift_lower,
@@ -373,7 +373,7 @@ namespace OpenMS
     scores.im_ms1_delta_score = fabs(drift_target - im);
   }
 
-  void IonMobilityScoring::driftScoring(OpenSwath::SpectrumPtr spectrum, 
+  void IonMobilityScoring::driftScoring(const OpenSwath::SpectrumPtr& spectrum, 
                                         const std::vector<TransitionType> & transitions,
                                         OpenSwath_Scores & scores,
                                         const double drift_lower,

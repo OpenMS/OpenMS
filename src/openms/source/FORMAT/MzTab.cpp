@@ -914,7 +914,7 @@ namespace OpenMS
     row.opt_.push_back(opt_global_modified_sequence);
 
     // Defines how to consume user value keys for the upcoming keys
-    const auto addUserValueToRowBy = [&row](function<void(const String &s, MzTabOptionalColumnEntry &entry)> f) -> function<void(const String &key)>
+    const auto addUserValueToRowBy = [&row](const function<void(const String &s, MzTabOptionalColumnEntry &entry)>& f) -> function<void(const String &key)>
     {
       return [f,&row](const String &user_value_key)
         {

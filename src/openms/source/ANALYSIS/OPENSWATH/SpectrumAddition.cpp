@@ -41,7 +41,7 @@
 namespace OpenMS
 {
 
-  OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(const std::vector<OpenSwath::SpectrumPtr> all_spectra,
+  OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(const std::vector<OpenSwath::SpectrumPtr>& all_spectra,
       double sampling_rate, bool filter_zeros)
   {
     OPENMS_PRECONDITION(all_spectra.empty() || all_spectra[0]->getDataArrays().size() == 2, "Can only resample spectra with 2 data dimensions (no ion mobility spectra)")
@@ -143,7 +143,7 @@ namespace OpenMS
     }
   }
 
-  OpenMS::MSSpectrum SpectrumAddition::addUpSpectra(const std::vector<OpenMS::MSSpectrum> all_spectra, double sampling_rate, bool filter_zeros)
+  OpenMS::MSSpectrum SpectrumAddition::addUpSpectra(const std::vector<OpenMS::MSSpectrum>& all_spectra, double sampling_rate, bool filter_zeros)
   {
     OPENMS_PRECONDITION(all_spectra.empty() || all_spectra[0].getFloatDataArrays().empty(), "Can only resample spectra with 2 data dimensions (no ion mobility spectra)")
 

@@ -179,7 +179,7 @@ namespace OpenMS
     conn.executeStatement(sql_run.str());
   }
 
-  String OpenSwathOSWWriter::getScore(const Feature& feature, std::string score_name) const
+  String OpenSwathOSWWriter::getScore(const Feature& feature, const std::string& score_name) const
   {
     String score = "NULL";
     if (!feature.getMetaValue(score_name).isEmpty())
@@ -192,7 +192,7 @@ namespace OpenMS
     return score;
   }
 
-  std::vector<String> OpenSwathOSWWriter::getSeparateScore(const Feature& feature, std::string score_name) const
+  std::vector<String> OpenSwathOSWWriter::getSeparateScore(const Feature& feature, const std::string& score_name) const
   {
     std::vector<String> separated_scores;
 

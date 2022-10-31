@@ -693,7 +693,7 @@ namespace OpenMS
     return computeCosineSim_(x, y);
   }
 
-  Range FeatureFindingMetabo::getTheoreticIsotopicMassWindow_(const std::vector<Element const *> alphabet, int peakOffset) const
+  Range FeatureFindingMetabo::getTheoreticIsotopicMassWindow_(const std::vector<Element const *>& alphabet, int peakOffset) const
   {
     if (peakOffset < 1)
     {

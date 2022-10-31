@@ -47,7 +47,7 @@ namespace OpenMS
 {
 
 //static
-bool RNPxlModificationsGenerator::notInSeq(String res_seq, String query)
+bool RNPxlModificationsGenerator::notInSeq(const String& res_seq, const String& query)
 {
   // special case: empty query is in every seq -> false
   if (query.empty()) { return false; }
@@ -67,11 +67,11 @@ bool RNPxlModificationsGenerator::notInSeq(String res_seq, String query)
 }
 
 //static
-RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMassesRNA(StringList target_nucleotides,
-                                                                                     StringList nt_groups,
-                                                                                     std::set<char> can_xl,
-                                                                                     StringList mappings,
-                                                                                     StringList modifications,
+RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMassesRNA(const StringList& target_nucleotides,
+                                                                                     const StringList& nt_groups,
+                                                                                     const std::set<char>& can_xl,
+                                                                                     const StringList& mappings,
+                                                                                     const StringList& modifications,
                                                                                      String sequence_restriction,
                                                                                      bool cysteine_adduct,
                                                                                      Int max_length)

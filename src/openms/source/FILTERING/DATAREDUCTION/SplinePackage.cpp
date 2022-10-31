@@ -40,7 +40,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  SplinePackage::SplinePackage(std::vector<double> pos, std::vector<double> intensity) :
+  SplinePackage::SplinePackage(std::vector<double> pos, const std::vector<double>& intensity) :
     spline_(pos, intensity)
   {
     if (!(pos.size() == intensity.size() && pos.size() > 1))

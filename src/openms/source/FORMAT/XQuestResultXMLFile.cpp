@@ -228,7 +228,7 @@ namespace OpenMS
     return;
   }
 
-  String XQuestResultXMLFile::getxQuestBase64EncodedSpectrum_(const PeakSpectrum& spec, String header, const bool& test_mode)
+  String XQuestResultXMLFile::getxQuestBase64EncodedSpectrum_(const PeakSpectrum& spec, const String& header, const bool& test_mode)
   {
     std::vector<String> in_strings;
     StringList sl;

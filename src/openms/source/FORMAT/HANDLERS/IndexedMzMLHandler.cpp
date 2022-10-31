@@ -277,7 +277,7 @@ namespace OpenMS::Internal
     return s;
   }
 
-  void IndexedMzMLHandler::getMSSpectrumByNativeId(std::string id, MSSpectrum& s)
+  void IndexedMzMLHandler::getMSSpectrumByNativeId(const std::string& id, MSSpectrum& s)
   {
     if (spectra_native_ids_.find(id) == spectra_native_ids_.end())
     {

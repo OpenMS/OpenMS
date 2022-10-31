@@ -330,7 +330,7 @@ namespace OpenMS
       if (!hits.empty())
       {
         PeptideHit best_hit = hits[0];
-        const vector<PeptideEvidence> pepev = best_hit.getPeptideEvidences();
+        const vector<PeptideEvidence>& pepev = best_hit.getPeptideEvidences();
 
         for (vector<PeptideEvidence>::const_iterator pepev_it = pepev.begin();
              pepev_it != pepev.end(); ++pepev_it)

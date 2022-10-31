@@ -805,11 +805,11 @@ namespace OpenMS
     return LOAD_RESULT::OK;
   }
 
-  void TOPPViewBase::addData(FeatureMapSharedPtrType feature_map,
-                             ConsensusMapSharedPtrType consensus_map,
+  void TOPPViewBase::addData(const FeatureMapSharedPtrType& feature_map,
+                             const ConsensusMapSharedPtrType& consensus_map,
                              vector<PeptideIdentification>& peptides,
-                             ExperimentSharedPtrType peak_map,
-                             ODExperimentSharedPtrType on_disc_peak_map,
+                             const ExperimentSharedPtrType& peak_map,
+                             const ODExperimentSharedPtrType& on_disc_peak_map,
                              LayerDataBase::DataType data_type,
                              bool show_as_1d,
                              bool show_options,

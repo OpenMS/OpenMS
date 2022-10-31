@@ -144,7 +144,7 @@ namespace OpenMS
     }
 
     // 3. Pick input chromatograms to identify RT pairs from the input data
-    OpenSwath::LightTargetedExperiment transition_exp_used = targeted_exp;
+    const OpenSwath::LightTargetedExperiment& transition_exp_used = targeted_exp;
 
     // Change the feature finding parameters:
     //  - no RT score (since we don't know the correct retention time)
@@ -440,7 +440,7 @@ namespace OpenMS
 
   void OpenSwathWorkflow::performExtraction(
     const std::vector< OpenSwath::SwathMap > & swath_maps,
-    const TransformationDescription trafo,
+    const TransformationDescription& trafo,
     const ChromExtractParams & cp,
     const ChromExtractParams & cp_ms1,
     const Param & feature_finder_param,
@@ -492,7 +492,7 @@ namespace OpenMS
       FeatureMap featureFile;
       boost::shared_ptr<MSExperiment> empty_exp = boost::shared_ptr<MSExperiment>(new MSExperiment);
 
-      OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp;
+      const OpenSwath::LightTargetedExperiment& transition_exp_used = transition_exp;
       scoreAllChromatograms_(std::vector<MSChromatogram>(), ms1_chromatograms, swath_maps, transition_exp_used,
                             feature_finder_param, trafo,
                             cp.rt_extraction_window, featureFile, tsv_writer, osw_writer, ms1_isotopes, true);
@@ -694,7 +694,7 @@ namespace OpenMS
 #endif
           for (SignedSize pep_idx = 0; pep_idx <= nr_batches; pep_idx++)
           {
-            OpenSwath::SpectrumAccessPtr current_swath_map_inner = current_swath_map;
+            const OpenSwath::SpectrumAccessPtr& current_swath_map_inner = current_swath_map;
 
 #ifdef _OPENMP
 #ifdef MT_ENABLE_NESTED_OPENMP
@@ -823,7 +823,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathWorkflowBase::MS1Extraction_(const OpenSwath::SpectrumAccessPtr ms1_map,
+  void OpenSwathWorkflowBase::MS1Extraction_(const OpenSwath::SpectrumAccessPtr& ms1_map,
                                              const std::vector< OpenSwath::SwathMap > & /* swath_maps */,
                                              std::vector< MSChromatogram >& ms1_chromatograms,
                                              Interfaces::IMSDataConsumer* chromConsumer,
@@ -866,7 +866,7 @@ namespace OpenMS
     const std::vector< OpenSwath::SwathMap >& swath_maps,
     const OpenSwath::LightTargetedExperiment& transition_exp,
     const Param& feature_finder_param,
-    TransformationDescription trafo,
+    const TransformationDescription& trafo,
     const double rt_extraction_window,
     FeatureMap& output,
     OpenSwathTSVWriter & tsv_writer,
@@ -1099,7 +1099,7 @@ namespace OpenMS
   void OpenSwathWorkflowBase::prepareExtractionCoordinates_(std::vector< OpenSwath::ChromatogramPtr > & chrom_list,
                                                             std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates,
                                                             const OpenSwath::LightTargetedExperiment & transition_exp_used,
-                                                            const TransformationDescription trafo_inverse,
+                                                            const TransformationDescription& trafo_inverse,
                                                             const ChromExtractParams & cp,
                                                             const bool ms1,
                                                             const int ms1_isotopes) const
@@ -1128,7 +1128,7 @@ namespace OpenMS
 
     void OpenSwathWorkflowSonar::performExtractionSonar(
            const std::vector< OpenSwath::SwathMap > & swath_maps,
-           const TransformationDescription trafo,
+           const TransformationDescription& trafo,
            const ChromExtractParams & cp,
            const ChromExtractParams & cp_ms1,
            const Param & feature_finder_param,

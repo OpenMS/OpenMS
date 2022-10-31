@@ -161,12 +161,12 @@ namespace OpenMS
     painter_->drawText(textPosX, textPosY, text);
   }
 
-  void Plot3DOpenGLCanvas::qglColor_(QColor color) 
+  void Plot3DOpenGLCanvas::qglColor_(const QColor& color) 
   {
     glColor4f(color.redF(), color.greenF(), color.blueF(), color.alphaF());
   }
 
-  void Plot3DOpenGLCanvas::qglClearColor_(QColor clearColor) 
+  void Plot3DOpenGLCanvas::qglClearColor_(const QColor& clearColor) 
   {
     glClearColor(clearColor.redF(), clearColor.greenF(), clearColor.blueF(), clearColor.alphaF());
   }

@@ -51,7 +51,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  void verbosePrintFeatureMap(SimTypes::FeatureMapSimVector feature_maps, String stage)
+  void verbosePrintFeatureMap(const SimTypes::FeatureMapSimVector& feature_maps, const String& stage)
   {
 #ifdef OPENMS_DEBUG_SIM_
     cout << "############## DEBUG (" << stage << ") -- FEATURE MAPS ##############" << endl;
@@ -162,7 +162,7 @@ namespace OpenMS
     return tmp;
   }
 
-  void MSSim::simulate(SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen, SimTypes::SampleChannels& channels)
+  void MSSim::simulate(const SimTypes::MutableSimRandomNumberGeneratorPtr& rnd_gen, SimTypes::SampleChannels& channels)
   {
     /*todo: move to a global config file or into INI file */
     OpenMS_Log_fatal.setPrefix("%S: ");

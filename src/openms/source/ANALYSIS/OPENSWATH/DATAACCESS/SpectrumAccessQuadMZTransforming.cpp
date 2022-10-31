@@ -34,13 +34,15 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
 
+#include <utility>
+
 namespace OpenMS
 {
 
   SpectrumAccessQuadMZTransforming::SpectrumAccessQuadMZTransforming(
       OpenSwath::SpectrumAccessPtr sptr,
       double a, double b, double c, bool ppm) :
-        SpectrumAccessTransforming(sptr), 
+        SpectrumAccessTransforming(std::move(sptr)), 
         a_(a), 
         b_(b), 
         c_(c), 

@@ -32,9 +32,10 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/MISC/ExternalProcessMBox.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/MISC/ExternalProcessMBox.h>
 #include <QMessageBox>
+#include <utility>
 
 namespace OpenMS
 {
@@ -44,7 +45,7 @@ namespace OpenMS
   = default;
 
   ExternalProcessMBox::ExternalProcessMBox(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr)
-    : ep_(callbackStdOut, callbackStdErr)
+    : ep_(std::move(callbackStdOut), std::move(callbackStdErr))
   {
   }
 
@@ -54,7 +55,7 @@ namespace OpenMS
   /// re-wire the callbacks used using run()
   void ExternalProcessMBox::setCallbacks(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr)
   {
-    ep_.setCallbacks(callbackStdOut, callbackStdErr);
+    ep_.setCallbacks(std::move(callbackStdOut), std::move(callbackStdErr));
   }
 
   ExternalProcess::RETURNSTATE ExternalProcessMBox::run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg)

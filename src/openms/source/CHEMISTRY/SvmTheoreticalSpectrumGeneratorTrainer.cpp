@@ -228,7 +228,7 @@ namespace OpenMS
   SvmTheoreticalSpectrumGeneratorTrainer::~SvmTheoreticalSpectrumGeneratorTrainer()
   = default;
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::trainModel(const PeakMap& spectra, const std::vector<AASequence>& annotations, String filename, Int precursor_charge)
+  void SvmTheoreticalSpectrumGeneratorTrainer::trainModel(const PeakMap& spectra, const std::vector<AASequence>& annotations, const String& filename, Int precursor_charge)
   {
     //----------- BEGIN OF PARAMETER READING-------------------------
 
@@ -1132,7 +1132,7 @@ namespace OpenMS
 
   void SvmTheoreticalSpectrumGeneratorTrainer::countIntensities_(const PeakSpectrum& spectrum,
                                                                  const AASequence& annotation,
-                                                                 IonType type,
+                                                                 const IonType& type,
                                                                  std::map<std::pair<IonType, Size>, std::vector<double> >& observed_intensities,
                                                                  double tolerance,
                                                                  Size number_of_regions
@@ -1215,7 +1215,7 @@ namespace OpenMS
     }
   }
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::writeTrainingFile_(std::vector<DescriptorSet>& training_input, std::vector<double>& training_output, String filename)
+  void SvmTheoreticalSpectrumGeneratorTrainer::writeTrainingFile_(std::vector<DescriptorSet>& training_input, std::vector<double>& training_output, const String& filename)
   {
     std::cerr << "Creating Training File.. " << filename;
     TextFile file;
