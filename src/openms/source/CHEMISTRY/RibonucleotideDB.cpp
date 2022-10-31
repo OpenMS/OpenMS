@@ -43,21 +43,35 @@ using namespace std;
 
 namespace OpenMS
 {
-  RibonucleotideDB::RibonucleotideDB():
-    max_code_length_(0)
-  {
-    readFromFile_("CHEMISTRY/Modomics.tsv");
-    readFromFile_("CHEMISTRY/Custom_RNA_modifications.tsv");
-  }
 
   RibonucleotideDB* RibonucleotideDB::getInstance()
   {
-    static RibonucleotideDB* db_ = nullptr;
-    if (db_ == nullptr)
-    {
-      db_ = new RibonucleotideDB;
-    }
+    static RibonucleotideDB* db_ = RibonucleotideDB::initializeRibonucleotideDB();
     return db_;
+  }
+
+
+  RibonucleotideDB* initializeRibonucleotideDB(OpenMS::String modomics_file, OpenMS::String custom_mods_file, OpenMS::String proprietary_mods_file)
+  {
+    static RibonucleotideDB* db_ = new RibonucleotideDB(modomics_file, custom_mods_file, proprietary_mods_file);
+    return db_;
+  } 
+
+  RibonucleotideDB::RibonucleotideDB(OpenMS::String modomics_file, OpenMS::String custom_mods_file, OpenMS::String proprietary_mods_file):
+    max_code_length_(0)
+  {
+    if (! modomics_file.empty())
+    {
+      readFromFile_(modomics_file);
+    }
+    if ( !custom_mods_file.empty())
+    {
+      readFromFile_(custom_mods_file);
+    }
+    if (!proprietary_mods_file.empty())
+    {
+      readFromFile_(proprietary_mods_file); // We add this for future use by developers who need to work with proprietary compounds, but don't want them to get added to git
+    }
   }
 
   RibonucleotideDB::~RibonucleotideDB()
