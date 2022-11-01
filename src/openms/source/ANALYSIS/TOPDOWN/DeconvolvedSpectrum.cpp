@@ -45,7 +45,7 @@ namespace OpenMS
   {
     auto out_spec = MSSpectrum(spec_);
     out_spec.clear(false);
-    if (spec_.getMSLevel() > 1 && precursor_peak_group_.empty())
+    if ((spec_.getMSLevel() > 1 && precursor_peak_group_.empty()) || empty())
     {
       return out_spec;
     }
@@ -53,13 +53,14 @@ namespace OpenMS
     std::unordered_set<double> deconvolved_mzs;
     std::stringstream val{};
 
-    val<<"tol="<<tol<<";massoffset="<<charge_mass_offset<<";peaks=";
+    val<<"tol="<<tol<<";massoffset="<<std::to_string(charge_mass_offset)<<";chargemass="<< std::to_string(FLASHDeconvHelperStructs::getChargeMass(peak_groups[0].isPositive())) << ";peaks=";
     for (auto& pg : *this)
     {
       if (pg.empty())
       {
         continue;
       }
+
       out_spec.emplace_back(pg.getMonoMass() + charge_mass_offset, pg.getIntensity());
       auto z = pg.getAbsChargeRange();
       val <<std::get<0>(z)<<":"<<std::get<1>(z)<< ","<<pg.getIsotopeIntensities().size()<<";";

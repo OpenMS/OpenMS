@@ -109,7 +109,7 @@ namespace OpenMS
     a = pg->getChargeScore();
     fvector[index++] = (log2(a + d));
     a = pg->getAvgPPMError();
-    fvector[index++] = (log2(abs(a*1e6) + d));
+    fvector[index++] = (log2(abs(a) + d));
     return fvector;
   }
 

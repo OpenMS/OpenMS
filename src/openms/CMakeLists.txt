@@ -117,6 +117,11 @@ if(APPLE)
                            ${CoreServices_LIBRARY})
 endif()
 
+if(Torch_FOUND)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+    list(APPEND OPENMS_DEP_LIBRARIES "${TORCH_LIBRARIES}")
+endif()
+
 if (OPENMP_FOUND)
   list(APPEND OPENMS_DEP_LIBRARIES OpenMP::OpenMP_CXX)
 endif()

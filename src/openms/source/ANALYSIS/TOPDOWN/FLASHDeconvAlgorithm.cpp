@@ -35,7 +35,10 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
+
+//#undef slots
+//#include <torch/torch.h>
+//#define slots Q_SLOTS
 
 namespace OpenMS
 {
@@ -85,6 +88,10 @@ namespace OpenMS
     defaults_.setValue("min_intensity", 0.0, "Intensity threshold");
     //  defaults_.setValue("rt_window", 180.0, "RT window for MS1 deconvolution");
     defaultsToParam_();
+
+   // torch::Tensor tensor = torch::rand({3,3});
+   // std::cout << tensor << std::endl;
+
   }
 
   // Calculate the nominal (integer) mass from double mass. Multipling 0.999497 to the original mass and then rounding reduce the error between the original and nominal masses.
@@ -852,7 +859,7 @@ namespace OpenMS
       double mass = exp(log_m);
 
       PeakGroup pg(current_min_charge_, per_mass_abs_charge_ranges.getValue(1, mass_bin_index) + current_min_charge_, //
-                   is_positive_);                                                                                     // make a empty peakGroup (mass)
+                   is_positive_);                                                                                     // make an empty peakGroup (mass)
 
       pg.reserve(charge_range * 128);
       pg.setIsotopeDaDistance(iso_da_distance_);
@@ -1079,7 +1086,7 @@ namespace OpenMS
           {
             p.isotopeIndex -= min_off;
           }
-          pg.updateMonomassAndIsotopeIntensities();
+          pg.updateMonomassAndIsotopeIntensities(tol);
 
           if (pg.getMonoMass() < current_min_mass_ || pg.getMonoMass() > current_max_mass_)
           {
@@ -1211,6 +1218,51 @@ namespace OpenMS
 
     getCandidatePeakGroups_(per_mass_abs_charge_ranges);
     scoreAndFilterPeakGroups_();
+    for(auto& pg: deconvolved_spectrum_)
+    {
+      std::vector<Matrix<double>> ret(4);
+      pg.getEncodedMatrix(ret, 21, 31, tolerance_[ms_level_-1], avg_);
+      /*for(int k=0;k<5;k++)
+      {
+        for (int l = 0; l < 10; l++)
+        {
+          std::cout << ret[0].getValue(k, l) << " ";
+        }
+        std::cout<<"\n";
+      }
+      std::cout<<"<= Sig\n";
+
+      for(int k=0;k<5;k++)
+      {
+        for (int l = 0; l < 10; l++)
+        {
+          std::cout << ret[1].getValue(k, l) << " ";
+        }
+        std::cout<<"\n";
+      }
+      std::cout<<"<= Noise\n";
+      for(int k=0;k<5;k++)
+      {
+        for (int l = 0; l < 10; l++)
+        {
+          std::cout << ret[2].getValue(k, l) << " ";
+        }
+        std::cout<<"\n";
+      }
+      std::cout<<"<= SigTol\n";
+
+      for(int k=0;k<5;k++)
+      {
+        for (int l = 0; l < 10; l++)
+        {
+          std::cout << ret[3].getValue(k, l) << " ";
+        }
+        std::cout<<"\n";
+      }
+      std::cout<<"<= NoiseTol\n";
+*/
+      //std::cout<<ret[1]<<std::endl;
+    }
   }
 
   void FLASHDeconvAlgorithm::scoreAndFilterPeakGroups_()
@@ -1309,8 +1361,8 @@ namespace OpenMS
         }
       }
 
-      // min cosine is checked in here.
-      peak_group.updateIsotopeCosineAndQScore(avg_, peak_group.isTargeted() ? .5 : min_isotope_cosine_[ms_level_ - 1], iso_da_distance_);
+      // min cosine is checked in here. mono mass is also updated one last time.
+      peak_group.updateIsotopeCosineAndQScore(avg_, peak_group.isTargeted() ? .5 : min_isotope_cosine_[ms_level_ - 1], tol);
 
       if (peak_group.getQScore() <= 0)
       {
@@ -1397,7 +1449,7 @@ namespace OpenMS
           auto cr = peak_group.getAbsChargeRange();
           auto decoy = PeakGroup(std::get<0>(cr), std::get<1>(cr), peak_group.isPositive());
           decoy.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getSecondBestMonoMass(), write_detail_);
-          decoy.updateIsotopeCosineAndQScore(avg_, min_isotope_cosine_[ms_level_ - 1], iso_da_distance_);
+          decoy.updateIsotopeCosineAndQScore(avg_, min_isotope_cosine_[ms_level_ - 1], tol);
           if (ms_level_ == 1 && (decoy.getRepAbsCharge() < min_abs_charge_ || decoy.getRepAbsCharge() > max_abs_charge_)) {}
           else if (decoy.getQScore() <= 0) {}
           else
@@ -1892,7 +1944,7 @@ namespace OpenMS
               precursor_pg.setAvgPPMError(smap[14]);
               precursor_pg.setQScore(smap[2]);
               precursor_pg.setRepAbsCharge((int)smap[1]);
-              precursor_pg.updateMonomassAndIsotopeIntensities();
+              precursor_pg.updateMonomassAndIsotopeIntensities(tolerance_[ms_level_-1]);
               precursor_pg.setScanNumber(map->first);
               deconvolved_spectrum_.setPrecursorPeakGroup(precursor_pg);
 
