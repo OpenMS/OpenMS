@@ -78,7 +78,7 @@ namespace OpenMS::DIAHelpers
       {
         double left = *beg - width / 2.0;
         double right = *beg + width / 2.0;
-        if (integrateWindow(spectrum, left, right, mz, im, drift_start, drift_end, intensity, false))
+        if (integrateWindow(spectrum, left, right, mz, im, intensity, drift_start, drift_end, false))
         {
           integratedWindowsIntensity.push_back(intensity);
           integratedWindowsMZ.push_back(mz);
@@ -111,7 +111,7 @@ namespace OpenMS::DIAHelpers
       {
         double left = *beg - width / 2.0;
         double right = *beg + width / 2.0;
-        if (integrateWindow(spectrum, left, right, mz, im, drift_start, drift_end, intensity, false))
+        if (integrateWindow(spectrum, left, right, mz, im, intensity, drift_start, drift_end, false))
         {
           integratedWindowsIntensity.push_back(intensity);
           integratedWindowsMZ.push_back(mz);
@@ -127,9 +127,7 @@ namespace OpenMS::DIAHelpers
     }
 
 
-
-
-        void integrateDriftSpectrum(OpenSwath::SpectrumPtr spectrum,
+    void integrateDriftSpectrum(OpenSwath::SpectrumPtr spectrum,
                                               double mz_start,
                                               double mz_end,
                                               double & im,
@@ -229,24 +227,24 @@ namespace OpenMS::DIAHelpers
         std::advance(im_it, iterator_pos);
 
         // Start iteration from mz start, end iteration when mz value is larger than mz_end, only store only storing ion mobility values that are in the range
-        while ( *mz_it <= mz_end )
+
+        std:: cout << "Should stop before mz " << mz_end << std::endl;
+        while ( *mz_it < mz_end )
         {
           if ( *im_it >= drift_start && *im_it <= drift_end)
           {
-      intensity += (*int_it);
-      im += (*int_it) * (*im_it);
-      mz += (*int_it) * (*mz_it);
-
+            intensity += (*int_it);
+            im += (*int_it) * (*im_it);
+            mz += (*int_it) * (*mz_it);
           }
           ++mz_it;
           ++int_it;
           ++im_it;
         }
       }
-
       else // where do not have IM
       {
-        while ( *mz_it <= mz_end )
+        while ( *mz_it < mz_end )
         {
           intensity += (*int_it);
           mz += (*int_it) * (*mz_it);

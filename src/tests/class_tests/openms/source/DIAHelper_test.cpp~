@@ -136,13 +136,13 @@ START_SECTION(testIntegrateWindows_test)
 
   im = 0.0;
   double im_intens(0.0);
-  DIAHelpers::integrateWindow(specArr, 101., 109., mz, im, im_intens, 2, 5);
+  DIAHelpers::integrateWindow(specArr, 101., 109., mz, im, intens, 2, 5);
   //DIAHelpers::integrateDriftSpectrum(spec, 101., 109., im, im_intens, 2, 5);
   TEST_REAL_SIMILAR (im, 3.5);
   TEST_REAL_SIMILAR (im_intens, 4);
 
   double im2(0.0), im_intens2(0.0);
-  DIAHelpers::integrateWindow(specArr, 101., 103., mz, im2, im_intens2, 2, 5);
+  DIAHelpers::integrateWindow(specArr, 101., 103., mz, im2, intens2, 2, 5);
   //DIAHelpers::integrateDriftSpectrum(spec, 101., 103., im2, im_intens2, 2, 5);
   TEST_REAL_SIMILAR (im2, 2.5);
   TEST_REAL_SIMILAR (im_intens2, 2);
