@@ -80,20 +80,8 @@ namespace OpenMS
 
   ModificationsDB* ModificationsDB::getInstance()
   {
-    static ModificationsDB* db_ = ModificationsDB::initializeModificationsDB();
-    return db_;
-  }
-
-  ModificationsDB* ModificationsDB::initializeModificationsDB(OpenMS::String unimod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
-  {
-    // Currently its not possible to check for double initialization since getInstance() also calls this function.
-    // if (is_instantiated_)
-    // {
-    //   throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot initialize ModificationsDB twice");
-    // }
-
-    static ModificationsDB* db_ = new ModificationsDB(unimod_file, psimod_file, xlmod_file);
-    return db_;
+    static ModificationsDB db_;
+    return &db_;
   }
 
   ModificationsDB::ModificationsDB(OpenMS::String unimod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)

@@ -79,9 +79,6 @@ public:
     /// Returns a pointer to the modifications DB (singleton)
     static ModificationsDB* getInstance();
 
-    /// Initializes the modification DB with non-default modification files (can only be done once)
-    static ModificationsDB* initializeModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
-
     /// Check whether ModificationsDB was instantiated before
     static bool isInstantiated();
 
