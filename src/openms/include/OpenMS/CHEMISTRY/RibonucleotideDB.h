@@ -58,9 +58,6 @@ namespace OpenMS
     /// replacement for constructor (singleton pattern)
     static RibonucleotideDB* getInstance();
 
-    /// destructor
-    virtual ~RibonucleotideDB();
-
     /// copy constructor not available
     RibonucleotideDB(const RibonucleotideDB& other) = delete;
 
@@ -102,8 +99,6 @@ namespace OpenMS
 
 
   protected:
-    /// default constructor
-    RibonucleotideDB();
 
     /// read (modified) nucleotides from input file
     void readFromFile_(const std::string& path);
@@ -121,5 +116,17 @@ namespace OpenMS
     std::map<std::string, std::pair<ConstRibonucleotidePtr, ConstRibonucleotidePtr>> ambiguity_map_;
 
     Size max_code_length_;
+
+  private:
+
+    /// @brief default constructor for RibonucleotideDB
+    /// @param modomics_file 
+    /// @param custom_mods_file 
+    /// @param proprietary_mods_file 
+    explicit RibonucleotideDB(OpenMS::String modomics_file = "CHEMISTRY/Modomics.tsv", OpenMS::String custom_mods_file = "CHEMISTRY/Custom_RNA_modifications.tsv", OpenMS::String proprietary_mods_file = "");
+
+    /// destructor
+    virtual ~RibonucleotideDB();
+
   };
 }
