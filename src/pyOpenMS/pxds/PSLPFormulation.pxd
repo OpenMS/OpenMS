@@ -30,15 +30,16 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>" namespace "OpenM
             UInt ms2_spectra_per_rt_bin,
             libcpp_vector[ int ] & solution_indices) nogil except + 
                 # wrap-doc:
-                #   Encode ILP formulation for a given LC-MS map, but unknown protein sample
-                #   -----
-                #   :param features: FeatureMap with all possible precursors
-                #   :param experiment: Input raw data
-                #   :param variable_indices: Assignment of feature indices and ILP variables
-                #   :param mass_ranges: Feature borders as indices in the raw data
-                #   :param charges_set: Allowed charge states
-                #   :param ms2_spectra_per_rt_bin: Allowed number of precursors per rt bin
-                #   :param solution_indices: Indices of ILP variables that are in the optimal solution
+                #  Encode ILP formulation for a given LC-MS map, but unknown protein sample
+                #  
+                #  
+                #  :param features: FeatureMap with all possible precursors
+                #  :param experiment: Input raw data
+                #  :param variable_indices: Assignment of feature indices and ILP variables
+                #  :param mass_ranges: Feature borders as indices in the raw data
+                #  :param charges_set: Allowed charge states
+                #  :param ms2_spectra_per_rt_bin: Allowed number of precursors per rt bin
+                #  :param solution_indices: Indices of ILP variables that are in the optimal solution
 
         void createAndSolveILPForInclusionListCreation(
             PrecursorIonSelectionPreprocessing & preprocessing,

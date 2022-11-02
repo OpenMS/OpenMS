@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS":
 
     cdef cppclass SpectrumSettings(MetaInfoInterface):
         # wrap-inherits:
-        #   MetaInfoInterface
+        #  MetaInfoInterface
 
         SpectrumSettings() nogil except +
         SpectrumSettings(SpectrumSettings &) nogil except +
@@ -52,5 +52,5 @@ cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS::Spect
 
     cdef enum SpectrumType:
         # wrap-attach:
-        #     SpectrumSettings
+        #    SpectrumSettings
         UNKNOWN, CENTROID, PROFILE, SIZE_OF_SPECTRUMTYPE

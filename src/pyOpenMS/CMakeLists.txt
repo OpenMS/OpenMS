@@ -209,7 +209,7 @@ if( _PYTEST_MISSING EQUAL 0)
     set(PYTEST_MISSING FALSE)
 endif()
 if(PYTEST_MISSING)
-	message(FATAL_ERROR "Looking for pytest testing framework - not found")
+	message(WARNING "Looking for pytest testing framework - not found. Testing pyopenms will not work.")
 else()
 	message(STATUS "Looking for pytest testing framework - found")
 endif()
@@ -290,7 +290,7 @@ endif()
 #------------------------------------------------------------------------------
 # Handle missing libraries (this should never be reached, as the individual
 #  parts should fire FATAL_ERRORs if something is missing)
-if(NUMPY_MISSING OR CYTHON_MODULE_NOTFOUND OR NOT CYTHON_MODULE_VERSION_CHECK_OK OR NOT AUTOWRAP_VERSION_OK OR PYTEST_MISSING
+if(NUMPY_MISSING OR CYTHON_MODULE_NOTFOUND OR NOT CYTHON_MODULE_VERSION_CHECK_OK OR NOT AUTOWRAP_VERSION_OK
    OR SETUPTOOLS_MISSING OR WHEEL_MISSING)
   message(FATAL_ERROR "Required Python modules not found or out of date")
 endif()
@@ -716,31 +716,6 @@ ELSE()
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
     ENDIF()
 ENDIF()
-
-# IF(LINUX AND PY_NO_OUTPUT)
-#   add_custom_command(
-#             OUTPUT ${PYSOFILES}
-#             COMMAND ${Python_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS} 2> /dev/null
-#             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
-#             DEPENDS compile_pxds prepare_pyopenms_libs
-#             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-# ELSEIF(APPLE) # We need to still copy libs with our script
-#   add_custom_command(
-#             OUTPUT ${PYSOFILES}
-#             COMMAND ${Python_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
-#             COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -f -v
-#             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
-#             DEPENDS compile_pxds prepare_pyopenms_libs
-#             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-# ELSE()
-#   add_custom_command(
-#             OUTPUT ${PYSOFILES}
-#             COMMAND ${Python_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
-#             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
-#             DEPENDS compile_pxds prepare_pyopenms_libs
-#             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-# ENDIF()
-
 
 ###########################################################################
 #####                      Testing pyOpenMS                           #####

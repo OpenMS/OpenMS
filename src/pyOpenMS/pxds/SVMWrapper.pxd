@@ -64,7 +64,7 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS::SVMWrapper":
     cdef enum SVM_parameter_type "OpenMS::SVMWrapper::SVM_parameter_type":
         #wrap-attach:
-        #    SVMWrapper
+        #   SVMWrapper
         SVM_TYPE
         KERNEL_TYPE
         DEGREE
@@ -79,7 +79,7 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS::SVMWrap
 cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS::SVMWrapper":
     cdef enum SVM_kernel_type "OpenMS::SVMWrapper::SVM_kernel_type":
         #wrap-attach:
-        #    SVMWrapper
+        #   SVMWrapper
         OLIGO
         OLIGO_COMBINED
 

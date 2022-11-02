@@ -159,6 +159,13 @@ namespace OpenMS
     bool isValidProduct(const String& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages = true) const;
 
     /**
+       @brief Counts the number of internal cleavage sites (missed cleavages) in a protein sequence.
+       @param sequence Sequence
+       @return Number of internal cleavage sites (= missed cleavages in the sequence)
+    */
+    Size countInternalCleavageSites(const String& sequence) const;
+
+    /**
        @brief Filter based on the number of missed cleavages.
 
        @param sequence Unmodified (!) amino acid sequence to check.

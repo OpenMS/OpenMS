@@ -23,6 +23,7 @@ IDExtractor
 IDMassAccuracy
 IDScoreSwitcher
 IDSplitter
+JSONExporter
 LabeledEval
 MassCalculator
 MetaboliteAdductDecharger
