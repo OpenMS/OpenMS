@@ -451,12 +451,12 @@ namespace OpenMS
       OpenSwath::SpectrumPtr sp = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0);
       for (const auto& tr : transition_group->getTransitions())
       {
-        double mz, intensity, left(tr.product_mz), right(tr.product_mz);
+        double mz, intensity, left(tr.product_mz), right(tr.product_mz), im;
         bool centroided = false;
 
         // integrate spectrum at the position of the theoretical mass
         DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateWindow(sp, left, right, mz, intensity, centroided);
+        DIAHelpers::integrateWindow(sp, left, right, mz, intensity, im, -1, -1,  centroided);
 
         // skip empty windows
         if (mz == -1)

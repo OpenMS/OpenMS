@@ -232,7 +232,7 @@ private:
 
     /// Get the intensities of isotopes around @p precursor_mz in experimental @p spectrum
     /// and fill @p isotopes_int.
-    void getIsotopeIntysFromExpSpec_(double precursor_mz, std::vector<SpectrumPtrType> spectrum,
+    void getIsotopeIntysFromExpSpec_(double precursor_mz, SpectrumPtrType spectrum,
                                      std::vector<double>& isotopes_int,
                                      int charge_state, double drift_start, double drift_end) const;
 

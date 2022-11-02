@@ -300,7 +300,7 @@ namespace OpenMS
      * TODO add documentation
      *
      */
-    std::vector<OpenSwath::SpectrumPtr> fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add);
+    std::vector<OpenSwath::SpectrumPtr> fetchSpectrumSwath(OpenSwath::SwathMap swath_map, double RT, int nr_spectra_to_add);
 
 
 

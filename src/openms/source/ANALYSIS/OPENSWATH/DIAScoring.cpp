@@ -82,6 +82,8 @@ namespace OpenMS
     defaults_.setValue("peak_before_mono_max_ppm_diff", 20.0, "DIA maximal difference in ppm to count a peak at lower m/z when searching for evidence that a peak might not be monoisotopic.");
     defaults_.setMinFloat("peak_before_mono_max_ppm_diff", 0.0);
 
+    //TODO can I add im extraction window as parameters here
+
     // write defaults into Param object param_
     defaultsToParam_();
 
@@ -123,23 +125,25 @@ namespace OpenMS
   ///////////////////////////////////////////////////////////////////////////
   // DIA / SWATH scoring
 
-  void DIAScoring::dia_isotope_scores(const std::vector<TransitionType>& transitions, SpectrumPtrType spectrum,
-                                      OpenSwath::IMRMFeature* mrmfeature, double& isotope_corr, double& isotope_overlap) const
+  void DIAScoring::dia_isotope_scores(const std::vector<TransitionType>& transitions, std::vector<SpectrumPtrType> spectrum,
+                                      OpenSwath::IMRMFeature* mrmfeature, double& isotope_corr, double& isotope_overlap, double drift_start, double drift_end) const
   {
     isotope_corr = 0;
     isotope_overlap = 0;
     // first compute a map of relative intensities from the feature, then compute the score
     std::map<std::string, double> intensities;
     getFirstIsotopeRelativeIntensities_(transitions, mrmfeature, intensities);
-    diaIsotopeScoresSub_(transitions, spectrum, intensities, isotope_corr, isotope_overlap);
+    diaIsotopeScoresSub_(transitions, spectrum, intensities, isotope_corr, isotope_overlap, drift_start, drift_end);
   }
 
   void DIAScoring::dia_massdiff_score(const std::vector<TransitionType>& transitions,
-                                      SpectrumPtrType spectrum,
+                                      std::vector<SpectrumPtrType> spectrum,
                                       const std::vector<double>& normalized_library_intensity,
                                       double& ppm_score,
-	                                    double& ppm_score_weighted,
-                                      std::vector<double>& diff_ppm) const
+                                      double& ppm_score_weighted,
+                                      std::vector<double>& diff_ppm,
+                                      double drift_start,
+                                      double drift_end) const
   {
     ppm_score = 0;
     ppm_score_weighted = 0;
@@ -149,10 +153,11 @@ namespace OpenMS
       const TransitionType& transition = transitions[k];
       // Calculate the difference of the theoretical mass and the actually measured mass
       double left(transition.getProductMZ()), right(transition.getProductMZ());
-      DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
-      double mz, intensity;
-      bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
 
+      // fetch the drift time if exists
+      DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
+      double mz, intensity, im;
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, im, intensity, drift_start, drift_end, dia_centroided_);
       // Continue if no signal was found - we therefore don't make a statement
       // about the mass difference if no signal is present.
       if (!signalFound)
@@ -174,16 +179,16 @@ namespace OpenMS
     ppm_score /= transitions.size();
   }
 
-  bool DIAScoring::dia_ms1_massdiff_score(double precursor_mz, SpectrumPtrType spectrum,
-                                          double& ppm_score) const
+  bool DIAScoring::dia_ms1_massdiff_score(double precursor_mz, std::vector<SpectrumPtrType> spectrum,
+                                          double& ppm_score, double drift_start, double drift_end) const
   {
     ppm_score = -1;
-    double mz, intensity;
+    double mz, intensity, im;
     {
       // Calculate the difference of the theoretical mass and the actually measured mass
       double left(precursor_mz), right(precursor_mz);
       DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
-      bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, im, intensity, drift_start, drift_end, dia_centroided_);
 
       // Catch if no signal was found and replace it with the most extreme
       // value. Otherwise, calculate the difference in ppm.
@@ -201,14 +206,14 @@ namespace OpenMS
   }
 
   /// Precursor isotope scores
-  void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum,
-                                          double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula) const
+  void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, std::vector<SpectrumPtrType> spectrum,
+                                          double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula, double drift_start, double drift_end) const
   {
     // although precursor_mz can be received from the empirical formula (if non-empty), the actual precursor could be
     // slightly different. And also for compounds, usually the neutral sum_formula without adducts is given.
     // Therefore calculate the isotopes based on the formula but place them at precursor_mz
     std::vector<double> isotopes_int;
-    getIsotopeIntysFromExpSpec_(precursor_mz, spectrum, isotopes_int, sum_formula.getCharge());
+    getIsotopeIntysFromExpSpec_(precursor_mz, spectrum, isotopes_int, sum_formula.getCharge(), drift_start, drift_end);
 
     double max_ratio = 0;
     int nr_occurrences = 0;
@@ -216,13 +221,13 @@ namespace OpenMS
     // calculate the scores:
     // isotope correlation (forward) and the isotope overlap (backward) scores
     isotope_corr = scoreIsotopePattern_(isotopes_int, sum_formula);
-    largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, isotopes_int[0], nr_occurrences, max_ratio);
+    largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, isotopes_int[0], nr_occurrences, max_ratio, drift_start, drift_end);
     isotope_overlap = max_ratio;
   }
 
-  void DIAScoring::getIsotopeIntysFromExpSpec_(double precursor_mz, SpectrumPtrType spectrum,
+  void DIAScoring::getIsotopeIntysFromExpSpec_(double precursor_mz, std::vector<SpectrumPtrType> spectrum,
                             std::vector<double>& isotopes_int,
-                            int charge_state) const
+                            int charge_state, double drift_start, double drift_end) const
   {
     double abs_charge = std::fabs(static_cast<double>(charge_state));
     for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
@@ -230,18 +235,19 @@ namespace OpenMS
       double left  = precursor_mz + iso * C13C12_MASSDIFF_U / abs_charge;
       double right = left;
       DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
-      double mz, intensity;
-      DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      double mz, intensity, im;
+
+      DIAHelpers::integrateWindow(spectrum, left, right, mz, im, intensity, drift_start, drift_end, dia_centroided_);
       isotopes_int.push_back(intensity);
     }
   }
 
-  void DIAScoring::dia_ms1_isotope_scores_averagine(double precursor_mz, SpectrumPtrType spectrum,
+  void DIAScoring::dia_ms1_isotope_scores_averagine(double precursor_mz, std::vector<SpectrumPtrType> spectrum,
                                                     double& isotope_corr, double& isotope_overlap,
-                                                    int charge_state) const
+                                                    int charge_state, double drift_start, double drift_end) const
   {
     std::vector<double> exp_isotopes_int;
-    getIsotopeIntysFromExpSpec_(precursor_mz, spectrum, exp_isotopes_int, charge_state);
+    getIsotopeIntysFromExpSpec_(precursor_mz, spectrum, exp_isotopes_int, charge_state, drift_start, drift_end);
     CoarseIsotopePatternGenerator solver(dia_nr_isotopes_ + 1);
     // NOTE: this is a rough estimate of the neutral mz value since we would not know the charge carrier for negative ions
     IsotopeDistribution isotope_dist = solver.estimateFromPeptideWeight(std::fabs(precursor_mz * charge_state));
@@ -251,19 +257,19 @@ namespace OpenMS
     // calculate the scores:
     // isotope correlation (forward) and the isotope overlap (backward) scores
     isotope_corr = scoreIsotopePattern_(exp_isotopes_int, isotope_dist);
-    largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, exp_isotopes_int[0], nr_occurrences, max_ratio);
+    largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, exp_isotopes_int[0], nr_occurrences, max_ratio, drift_start, drift_end);
     isotope_overlap = max_ratio;
   }
 
-  void DIAScoring::dia_by_ion_score(SpectrumPtrType spectrum,
+  void DIAScoring::dia_by_ion_score(std::vector<SpectrumPtrType> spectrum,
                                     AASequence& sequence, int charge, double& bseries_score,
-                                    double& yseries_score) const
+                                    double& yseries_score, double drift_start, double drift_end) const
   {
     bseries_score = 0;
     yseries_score = 0;
     OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer"); // for peptides, charge should be positive
 
-    double mz, intensity, left, right;
+    double mz, intensity, left, right, im;
     std::vector<double> yseries, bseries;
     OpenMS::DIAHelpers::getBYSeries(sequence, bseries, yseries, generator, charge);
     for (const auto& b_ion_mz : bseries)
@@ -272,7 +278,7 @@ namespace OpenMS
       right = b_ion_mz;
       DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
 
-      bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, im, intensity, drift_start, drift_end, dia_centroided_);
       double ppmdiff = Math::getPPMAbs(mz, b_ion_mz);
       if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
@@ -285,7 +291,7 @@ namespace OpenMS
       right = y_ion_mz;
       DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
 
-      bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, im, intensity, drift_start, drift_end, dia_centroided_);
       double ppmdiff = Math::getPPMAbs(mz, y_ion_mz);
       if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
@@ -294,7 +300,7 @@ namespace OpenMS
     }
   }
 
-  void DIAScoring::score_with_isotopes(SpectrumPtrType spectrum, const std::vector<TransitionType>& transitions,
+  void DIAScoring::score_with_isotopes(std::vector<SpectrumPtrType> spectrum, const std::vector<TransitionType>& transitions,
                                        double& dotprod, double& manhattan) const
   {
     OpenMS::DiaPrescore dp(dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_);
@@ -317,10 +323,12 @@ namespace OpenMS
     }
   }
 
-  void DIAScoring::diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions, SpectrumPtrType spectrum,
+  void DIAScoring::diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions, std::vector<SpectrumPtrType> spectrum,
                                         std::map<std::string, double>& intensities, //relative intensities
                                         double& isotope_corr,
-                                        double& isotope_overlap) const
+                                        double& isotope_overlap, 
+					double drift_start,
+					double drift_end) const
   {
     std::vector<double> isotopes_int;
     double max_ratio;
@@ -345,8 +353,9 @@ namespace OpenMS
         double left = transitions[k].getProductMZ() + iso * C13C12_MASSDIFF_U / abs_charge;
         double right = left;
         DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
-        double mz, intensity;
-        DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+        double mz, intensity, im;
+
+        DIAHelpers::integrateWindow(spectrum, left, right, mz, im, intensity, drift_start, drift_end, dia_centroided_);
         isotopes_int.push_back(intensity);
       }
 
@@ -354,14 +363,14 @@ namespace OpenMS
       // isotope correlation (forward) and the isotope overlap (backward) scores
       double score = scoreIsotopePattern_(isotopes_int, transitions[k].getProductMZ(), putative_fragment_charge);
       isotope_corr += score * rel_intensity;
-      largePeaksBeforeFirstIsotope_(spectrum, transitions[k].getProductMZ(), isotopes_int[0], nr_occurences, max_ratio);
+      largePeaksBeforeFirstIsotope_(spectrum, transitions[k].getProductMZ(), isotopes_int[0], nr_occurences, max_ratio, drift_start, drift_end);
       isotope_overlap += nr_occurences * rel_intensity;
     }
   }
 
-  void DIAScoring::largePeaksBeforeFirstIsotope_(SpectrumPtrType spectrum, double mono_mz, double mono_int, int& nr_occurences, double& max_ratio) const
+  void DIAScoring::largePeaksBeforeFirstIsotope_(std::vector<SpectrumPtrType> spectrum, double mono_mz, double mono_int, int& nr_occurences, double& max_ratio, double drift_start, double drift_end) const
   {
-    double mz, intensity;
+    double mz, intensity, im;
     nr_occurences = 0;
     max_ratio = 0.0;
 
@@ -371,8 +380,8 @@ namespace OpenMS
       double left = center;
       double right = center;
       DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
-      bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
 
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, im, intensity, drift_start, drift_end, dia_centroided_);
       // Continue if no signal was found - we therefore don't make a statement
       // about the mass difference if no signal is present.
       if (!signalFound)

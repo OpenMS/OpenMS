@@ -225,8 +225,8 @@ namespace OpenMS
           left -= dia_extract_window_ / 2.0;
           right += dia_extract_window_ / 2.0;
         }
-        double mz, intensity;
-        DIAHelpers::integrateWindow(spectrum_, left, right, mz, intensity, dia_centroided_);
+        double mz, intensity, im; // create im even though not used
+        DIAHelpers::integrateWindow(spectrum_, left, right, mz, im, intensity, -1, -1, dia_centroided_);
 
         sonar_profile.push_back(intensity);
         sonar_mz_profile.push_back(mz);

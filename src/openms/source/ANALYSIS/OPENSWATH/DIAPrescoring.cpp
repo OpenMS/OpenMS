@@ -103,7 +103,9 @@ namespace OpenMS
     for (UInt i = 0; i < swath_ptr->getNrSpectra(); ++i)
     {
 
-      OpenSwath::SpectrumPtr spec = swath_ptr->getSpectrumById(i);
+      OpenSwath::SpectrumPtr s = swath_ptr->getSpectrumById(i);
+      std::vector<OpenSwath::SpectrumPtr> spec;
+      spec.push_back(s);
       OpenSwath::SpectrumMeta specmeta = swath_ptr->getSpectrumMetaById(i);
       std::cout << "Processing Spectrum  " << i << "RT " << specmeta.RT << std::endl;
 
@@ -133,7 +135,7 @@ namespace OpenMS
     } //end of for loop over spectra
   }
 
-  void DiaPrescore::score(OpenSwath::SpectrumPtr spec,
+  void DiaPrescore::score(std::vector<OpenSwath::SpectrumPtr> spec,
                           const std::vector<OpenSwath::LightTransition>& lt,
                           double& dotprod,
                           double& manhattan) const
@@ -183,8 +185,8 @@ namespace OpenMS
     std::vector<double> mzTheor, intTheor;
     DIAHelpers::extractFirst(spectrumWIso, mzTheor);
     DIAHelpers::extractSecond(spectrumWIso, intTheor);
-    std::vector<double> intExp, mzExp;
-    DIAHelpers::integrateWindows(std::move(spec), mzTheor, dia_extract_window_, intExp, mzExp);
+    std::vector<double> intExp, mzExp, imExp;
+    DIAHelpers::integrateWindows(spec, mzTheor, dia_extract_window_, intExp, mzExp, imExp, -1, -1 );
     std::transform(intExp.begin(), intExp.end(), intExp.begin(), [](double val){return std::sqrt(val);});
     std::transform(intTheor.begin(), intTheor.end(), intTheor.begin(), [](double val){return std::sqrt(val);});
 
