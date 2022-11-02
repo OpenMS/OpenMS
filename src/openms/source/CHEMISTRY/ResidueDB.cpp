@@ -52,15 +52,12 @@ namespace OpenMS
 
   ResidueDB* ResidueDB::getInstance()
   {
-    static ResidueDB* db_ = new ResidueDB(); // Meyers' singleton -> thread safe
-    return db_;
+    static ResidueDB db_; // Meyers' singleton -> thread safe
+    return &db_;
   }
 
   ResidueDB::~ResidueDB()
   {
-    // free memory
-    for (auto& r : const_residues_) { delete r; }
-    for (auto& r : const_modified_residues_) { delete r; }
   }
 
   const Residue* ResidueDB::getResidue(const String& name) const
