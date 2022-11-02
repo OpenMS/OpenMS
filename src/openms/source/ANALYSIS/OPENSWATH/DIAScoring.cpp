@@ -301,10 +301,10 @@ namespace OpenMS
   }
 
   void DIAScoring::score_with_isotopes(std::vector<SpectrumPtrType> spectrum, const std::vector<TransitionType>& transitions,
-                                       double& dotprod, double& manhattan) const
+                                       double& dotprod, double& manhattan, double drift_start, double drift_end) const
   {
     OpenMS::DiaPrescore dp(dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_);
-    dp.score(spectrum, transitions, dotprod, manhattan);
+    dp.score(spectrum, transitions, dotprod, manhattan, drift_start, drift_end);
   }
 
   ///////////////////////////////////////////////////////////////////////////

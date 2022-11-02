@@ -80,7 +80,7 @@ namespace OpenMS
 
   void DiaPrescore::operator()(OpenSwath::SpectrumAccessPtr swath_ptr,
                                OpenSwath::LightTargetedExperiment& transition_exp_used,
-                               OpenSwath::IDataFrameWriter* ivw) const
+                               OpenSwath::IDataFrameWriter* ivw, double drift_start, double drift_end) const
   {
     //getParams();
     typedef std::map<std::string, std::vector<OpenSwath::LightTransition> > Mmap;
@@ -122,7 +122,7 @@ namespace OpenMS
         double score1;
         double score2;
         //OpenSwath::LightPeptide pep;
-        score(spec, beg->second, score1, score2);
+        score(spec, beg->second, score1, score2, drift_start, drift_end);
 
         score1v.push_back(score1);
         score2v.push_back(score2);
@@ -138,7 +138,9 @@ namespace OpenMS
   void DiaPrescore::score(std::vector<OpenSwath::SpectrumPtr> spec,
                           const std::vector<OpenSwath::LightTransition>& lt,
                           double& dotprod,
-                          double& manhattan) const
+                          double& manhattan,
+                          double drift_start,
+                          double drift_end) const
   {
     std::vector<std::pair<double, double> > res;
     std::vector<std::pair<double, double> > spectrumWIso, spectrumWIsoNegPreIso;
@@ -186,7 +188,7 @@ namespace OpenMS
     DIAHelpers::extractFirst(spectrumWIso, mzTheor);
     DIAHelpers::extractSecond(spectrumWIso, intTheor);
     std::vector<double> intExp, mzExp, imExp;
-    DIAHelpers::integrateWindows(spec, mzTheor, dia_extract_window_, intExp, mzExp, imExp, -1, -1 );
+    DIAHelpers::integrateWindows(spec, mzTheor, dia_extract_window_, intExp, mzExp, imExp, drift_start, drift_end);
     std::transform(intExp.begin(), intExp.end(), intExp.begin(), [](double val){return std::sqrt(val);});
     std::transform(intTheor.begin(), intTheor.end(), intTheor.begin(), [](double val){return std::sqrt(val);});
 

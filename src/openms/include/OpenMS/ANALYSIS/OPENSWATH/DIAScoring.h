@@ -151,7 +151,9 @@ public:
     void score_with_isotopes(std::vector<SpectrumPtrType> spectrum,
                              const std::vector<TransitionType>& transitions,
                              double& dotprod,
-                             double& manhattan) const;
+                             double& manhattan,
+                             double drift_start,
+                             double drift_end) const;
     //@}
 
 private:
