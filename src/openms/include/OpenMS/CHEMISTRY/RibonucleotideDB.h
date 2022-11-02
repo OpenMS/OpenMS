@@ -99,7 +99,6 @@ namespace OpenMS
 
 
   protected:
-
     /// read (modified) nucleotides from input file
     void readFromFile_(const std::string& path);
 
@@ -118,7 +117,6 @@ namespace OpenMS
     Size max_code_length_;
 
   private:
-
     /// @brief default constructor for RibonucleotideDB
     /// @param modomics_file 
     /// @param custom_mods_file 
@@ -127,6 +125,5 @@ namespace OpenMS
 
     /// destructor
     virtual ~RibonucleotideDB();
-
   };
 }
