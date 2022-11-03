@@ -156,7 +156,16 @@ int main(int argc, const char** argv)
     QApplicationTOPP a(argc, const_cast<char**>(argv));
     a.connect(&a, &QApplicationTOPP::lastWindowClosed, &a, &QApplicationTOPP::quit);
 
-    TOPPViewBase::TOOL_SCAN mode = param.exists("force")? TOPPViewBase::TOOL_SCAN::FORCE_SCAN : TOPPViewBase::TOOL_SCAN::SCAN_IF_NEWER_VERSION;
+    TOPPViewBase::TOOL_SCAN mode = TOPPViewBase::TOOL_SCAN::SCAN_IF_NEWER_VERSION;
+    if (param.exists("force"))
+    {
+      mode = TOPPViewBase::TOOL_SCAN::FORCE_SCAN;
+    }
+    else if (param.exists("skip_tool_scan"))
+    {
+      mode = TOPPViewBase::TOOL_SCAN::SKIP;
+    }
+     
     TOPPViewBase tb(mode);
     a.connect(&a, &QApplicationTOPP::fileOpen, &tb, &TOPPViewBase::openFile);
     tb.show();
