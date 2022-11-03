@@ -111,6 +111,7 @@ namespace OpenMS::DIAHelpers
       {
         double left = *beg - width / 2.0;
         double right = *beg + width / 2.0;
+
         if (integrateWindow(spectrum, left, right, mz, im, intensity, drift_start, drift_end, false))
         {
           integratedWindowsIntensity.push_back(intensity);
@@ -206,7 +207,6 @@ namespace OpenMS::DIAHelpers
 
       // this assumes that the spectra are sorted!
       auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
-      // auto mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
 
       // also advance intensity and ion mobility iterator now
       auto iterator_pos = std::distance(spectrum->getMZArray()->data.begin(), mz_it);
@@ -229,7 +229,7 @@ namespace OpenMS::DIAHelpers
         // Start iteration from mz start, end iteration when mz value is larger than mz_end, only store only storing ion mobility values that are in the range
 
         std:: cout << "Should stop before mz " << mz_end << std::endl;
-        while ( *mz_it < mz_end )
+        while ( ( *mz_it < mz_end ) && (mz_it < mz_arr_end) )
         {
           if ( *im_it >= drift_start && *im_it <= drift_end)
           {
@@ -244,7 +244,7 @@ namespace OpenMS::DIAHelpers
       }
       else // where do not have IM
       {
-        while ( *mz_it < mz_end )
+        while ( ( *mz_it < mz_end ) && (mz_it < mz_arr_end) )
         {
           intensity += (*int_it);
           mz += (*int_it) * (*mz_it);
