@@ -78,7 +78,7 @@ namespace OpenMS
     /**
       @brief Performs scoring of the ion mobility dimension in MS2
 
-      @param spectrum The DIA MS2 spectrum found at the peak apex
+      @param spectra Vector of the DIA MS2 spectrum found at the peak apex
       @param transitions The transitions used for scoring
       @param scores The output scores
       @param drift_lower Ion Mobility extraction start
@@ -92,7 +92,7 @@ namespace OpenMS
       @return Populates additional scores in the @p scores object
 
     */
-    static void driftScoring(OpenSwath::SpectrumPtr spectrum,
+    static void driftScoring(std::vector<OpenSwath::SpectrumPtr> spectra,
                              const std::vector<TransitionType> & transitions,
                              OpenSwath_Scores & scores,
                              const double drift_lower,
@@ -106,7 +106,7 @@ namespace OpenMS
     /**
       @brief Performs scoring of the ion mobility dimension in MS1
 
-      @param spectrum The DIA MS1 spectrum found at the peak apex
+      @param spectra vector of the DIA MS1 spectrum found at the peak apex
       @param transitions The transitions used for scoring
       @param scores The output scores
       @param drift_lower Ion Mobility extraction start
@@ -120,7 +120,7 @@ namespace OpenMS
       @return Populates additional scores in the @p scores object
 
     */
-    static void driftScoringMS1(OpenSwath::SpectrumPtr spectrum,
+    static void driftScoringMS1(std::vector<OpenSwath::SpectrumPtr> spectra,
                                 const std::vector<TransitionType> & transitions,
                                 OpenSwath_Scores & scores,
                                 const double drift_lower,
@@ -134,7 +134,7 @@ namespace OpenMS
     /**
       @brief Performs scoring of the ion mobility dimension in MS1 and MS2 (contrast)
 
-      @param spectrum The DIA MS2 spectrum found at the peak apex
+      @param spectra Vector of the DIA MS2 spectrum found at the peak apex
       @param ms1spectrum The DIA MS1 spectrum found at the peak apex
       @param transitions The transitions used for scoring
       @param scores The output scores
@@ -149,7 +149,7 @@ namespace OpenMS
       @return Populates additional scores in the @p scores object
 
     */
-    static void driftScoringMS1Contrast(OpenSwath::SpectrumPtr spectrum, OpenSwath::SpectrumPtr ms1spectrum,
+    static void driftScoringMS1Contrast(std::vector<OpenSwath::SpectrumPtr> spectra, std::vector<OpenSwath::SpectrumPtr> ms1spectrum,
                                         const std::vector<TransitionType> & transitions,
                                         OpenSwath_Scores & scores,
                                         const double drift_lower,

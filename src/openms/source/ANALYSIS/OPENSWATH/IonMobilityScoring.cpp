@@ -71,7 +71,7 @@ namespace OpenMS
     // grid of all permitted ion mobility values
     std::vector<double> im_grid;
     std::vector< double > mobilityValues;
-    for (const auto & im_profile : mobilograms) 
+    for (const auto & im_profile : mobilograms)
     {
       mobilityValues.reserve(mobilityValues.size() + im_profile.size());
       for (const auto & k : im_profile) mobilityValues.push_back(k.im);
@@ -81,13 +81,13 @@ namespace OpenMS
     std::sort(mobilityValues.begin(), mobilityValues.end());
 
     // Reduce mobility values to grid (consider equal if closer than eps)
-    // 
+    //
     // In some cases there are not enough datapoints available (one of the
     // transitions has no datapoints)
     if (!mobilityValues.empty())
     {
       im_grid.push_back( mobilityValues[0] );
-      for (Size k = 1; k < mobilityValues.size(); k++) 
+      for (Size k = 1; k < mobilityValues.size(); k++)
       {
         double diff = fabs(mobilityValues[k] - mobilityValues[k-1]);
         if (diff > eps)
@@ -159,6 +159,80 @@ namespace OpenMS
     }
   }
 
+  // compute ion mobilogram as well as im weighted average. This is based off of integrateWindows() in DIAHelper.cpp
+  void computeIonMobilogram(std::vector<OpenSwath::SpectrumPtr> spectra,
+                              double mz_start,
+                              double mz_end,
+                              double & im,
+                              double & intensity,
+                              IonMobilogram& res,
+                              double eps,
+                              double drift_start,
+                              double drift_end)
+  {
+
+    // rounding multiplier for the ion mobility value
+    // TODO: how to improve this -- will work up to 42949.67296
+    double IM_IDX_MULT = 1/eps;
+
+    // We need to store all values that map to the same ion mobility in the
+    // same spot in the ion mobilogram (they are not sorted by ion mobility in
+    // the input data), therefore create a map to map to bins.
+    std::map< int, double> im_chrom;
+
+    for (auto spectrum:spectra)
+    {
+      OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
+      OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getIntensityArray()->data.size(), "MZ and Intensity array need to have the same length.");
+      OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getDriftTimeArray()->data.size(), "MZ and Drift Time array need to have the same length.");
+
+      auto mz_arr_end = spectrum->getMZArray()->data.end();
+      auto int_it = spectrum->getIntensityArray()->data.begin();
+      auto im_it = spectrum->getDriftTimeArray()->data.begin();
+
+      // this assumes that the spectra are sorted!
+      auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
+      // auto mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
+
+      // also advance intensity and ion mobility iterator now
+      auto iterator_pos = std::distance(spectrum->getMZArray()->data.begin(), mz_it);
+      std::advance(int_it, iterator_pos);
+      std::advance(im_it, iterator_pos);
+
+      // Start iteration from mz start, end iteration when mz value is larger than mz_end, only store only storing ion mobility values that are in the range
+      while ( ( *mz_it < mz_end ) && (mz_it < mz_arr_end) )
+      {
+        if ( *im_it >= drift_start && *im_it <= drift_end)
+        {
+          intensity += (*int_it);
+          im += (*int_it) * (*im_it);
+          im_chrom[ int((*im_it)*IM_IDX_MULT) ] += *int_it;
+        }
+        ++mz_it;
+        ++int_it;
+        ++im_it;
+      }
+    }
+
+    // compute the weighted average ion mobility
+    if (intensity > 0.)
+    {
+      im /= intensity;
+    }
+    else
+    {
+      im = -1;
+      intensity = 0;
+    }
+
+    res.reserve(res.size() + im_chrom.size());
+    for (const auto& k : im_chrom)
+    {
+      res.emplace_back(k.first / IM_IDX_MULT, k.second );
+    }
+  }
+
+
   /**
     @brief Integrate intensity in an ion mobility spectrum from start to end
 
@@ -170,12 +244,12 @@ namespace OpenMS
 
     @note If there is no signal, mz will be set to -1 and intensity to 0
   */
-  void integrateDriftSpectrum(OpenSwath::SpectrumPtr spectrum, 
+  void integrateDriftSpectrum(OpenSwath::SpectrumPtr spectrum,
                               double mz_start,
                               double mz_end,
                               double & im,
                               double & intensity,
-                              IonMobilogram& res, 
+                              IonMobilogram& res,
                               double eps,
                               double drift_start,
                               double drift_end)
@@ -242,7 +316,7 @@ namespace OpenMS
   {
   }
 
-  void IonMobilityScoring::driftScoringMS1Contrast(OpenSwath::SpectrumPtr spectrum, OpenSwath::SpectrumPtr ms1spectrum, 
+  void IonMobilityScoring::driftScoringMS1Contrast(std::vector<OpenSwath::SpectrumPtr> spectra, std::vector<OpenSwath::SpectrumPtr> ms1spectrum,
                                                    const std::vector<TransitionType> & transitions,
                                                    OpenSwath_Scores & scores,
                                                    const double drift_lower,
@@ -251,13 +325,18 @@ namespace OpenMS
                                                    const bool dia_extraction_ppm_,
                                                    const double drift_extra)
   {
-    OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be null");
+
+    OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty")
+    OPENMS_PRECONDITION(!ms1spectrum.empty(), "MS1 spectrum cannot be empty")
     OPENMS_PRECONDITION(!transitions.empty(), "Need at least one transition");
 
-    if (ms1spectrum->getDriftTimeArray() == nullptr)
+    for (auto s:spectra)
     {
-      OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
-      return;
+      if (s->getDriftTimeArray() == nullptr)
+      {
+        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
+        return;
+      }
     }
 
     double eps = 1e-5; // eps for two grid cells to be considered equal
@@ -278,7 +357,7 @@ namespace OpenMS
       double left(transition.getProductMZ()), right(transition.getProductMZ());
       DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
 
-      integrateDriftSpectrum(spectrum, left, right, im, intensity, res, eps, drift_lower_used, drift_upper_used);
+      computeIonMobilogram(spectra, left, right, im, intensity, res, eps, drift_lower_used, drift_upper_used);
       mobilograms.push_back( std::move(res) );
     }
 
@@ -287,7 +366,7 @@ namespace OpenMS
     IonMobilogram ms1_profile;
     double left(transitions[0].getPrecursorMZ()), right(transitions[0].getPrecursorMZ());
     DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
-    integrateDriftSpectrum(ms1spectrum, left, right, im, intensity, ms1_profile, eps, drift_lower_used, drift_upper_used); // TODO: aggregate over isotopes
+    computeIonMobilogram(ms1spectrum, left, right, im, intensity, ms1_profile, eps, drift_lower_used, drift_upper_used); // TODO: aggregate over isotopes
     mobilograms.push_back(ms1_profile);
 
     std::vector<double> im_grid = computeGrid(mobilograms, eps); // ensure grid is based on all profiles!
@@ -295,7 +374,7 @@ namespace OpenMS
 
     // Step 3: Align the IonMobilogram vectors to the grid
     std::vector< std::vector< double > > aligned_mobilograms;
-    for (const auto & mobilogram : mobilograms) 
+    for (const auto & mobilogram : mobilograms)
     {
       std::vector< double > arrInt, arrIM;
       Size max_peak_idx = 0;
@@ -311,7 +390,7 @@ namespace OpenMS
     {
       OpenSwath::MRMScoring mrmscore_;
       mrmscore_.initializeXCorrPrecursorContrastMatrix({ms1_int_values}, aligned_mobilograms);
-      OPENMS_LOG_DEBUG << "all-all: Contrast Scores : coelution precursor : " << mrmscore_.calcXcorrPrecursorContrastCoelutionScore() << " / shape  precursor " << 
+      OPENMS_LOG_DEBUG << "all-all: Contrast Scores : coelution precursor : " << mrmscore_.calcXcorrPrecursorContrastCoelutionScore() << " / shape  precursor " <<
         mrmscore_.calcXcorrPrecursorContrastShapeScore() << std::endl;
       scores.im_ms1_contrast_coelution = mrmscore_.calcXcorrPrecursorContrastCoelutionScore();
       scores.im_ms1_contrast_shape = mrmscore_.calcXcorrPrecursorContrastShapeScore();
@@ -331,7 +410,7 @@ namespace OpenMS
     OpenSwath::MRMScoring mrmscore_;
     // horribly broken: provides vector of length 1, but expects at least length 2 in calcXcorrPrecursorContrastCoelutionScore()
     mrmscore_.initializeXCorrPrecursorContrastMatrix({ms1_int_values}, {fragment_values});
-    OPENMS_LOG_DEBUG << "Contrast Scores : coelution precursor : " << mrmscore_.calcXcorrPrecursorContrastSumFragCoelutionScore() << " / shape  precursor " << 
+    OPENMS_LOG_DEBUG << "Contrast Scores : coelution precursor : " << mrmscore_.calcXcorrPrecursorContrastSumFragCoelutionScore() << " / shape  precursor " <<
        mrmscore_.calcXcorrPrecursorContrastSumFragShapeScore() << std::endl;
 
     // in order to prevent assertion error call calcXcorrPrecursorContrastSumFragCoelutionScore, same as calcXcorrPrecursorContrastCoelutionScore() however different assertion
@@ -342,7 +421,7 @@ namespace OpenMS
 
   }
 
-  void IonMobilityScoring::driftScoringMS1(OpenSwath::SpectrumPtr spectrum, 
+  void IonMobilityScoring::driftScoringMS1(std::vector<OpenSwath::SpectrumPtr> spectra,
                                            const std::vector<TransitionType> & transitions,
                                            OpenSwath_Scores & scores,
                                            const double drift_lower,
@@ -353,23 +432,26 @@ namespace OpenMS
                                            const bool /* use_spline */,
                                            const double drift_extra)
   {
-    OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be null");
+    //OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be null");
+    OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty")
     OPENMS_PRECONDITION(!transitions.empty(), "Need at least one transition");
 
-    if (spectrum->getDriftTimeArray() == nullptr)
-    {
-      OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
-      return;
+    for (auto s:spectra){
+      if (s->getDriftTimeArray() == nullptr)
+      {
+        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
+        return;
+      }
     }
 
     double drift_width = fabs(drift_upper - drift_lower);
     double drift_lower_used = drift_lower - drift_width * drift_extra;
     double drift_upper_used = drift_upper + drift_width * drift_extra;
 
-    double im(0), intensity(0);
+    double im(0), intensity(0), mz(0);
     double left(transitions[0].getPrecursorMZ()), right(transitions[0].getPrecursorMZ());
     DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
-    DIAHelpers::integrateDriftSpectrum(spectrum, left, right, im, intensity, drift_lower_used, drift_upper_used);
+    DIAHelpers::integrateWindow(spectra, left, right, mz, im, intensity, drift_lower_used, drift_upper_used);
 
     // Record the measured ion mobility
     scores.im_ms1_drift = im;
@@ -379,7 +461,7 @@ namespace OpenMS
     scores.im_ms1_delta = drift_target - im;
   }
 
-  void IonMobilityScoring::driftScoring(OpenSwath::SpectrumPtr spectrum, 
+  void IonMobilityScoring::driftScoring(std::vector<OpenSwath::SpectrumPtr> spectra,
                                         const std::vector<TransitionType> & transitions,
                                         OpenSwath_Scores & scores,
                                         const double drift_lower,
@@ -390,12 +472,14 @@ namespace OpenMS
                                         const bool /* use_spline */,
                                         const double drift_extra)
   {
-    OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be null");
-
-    if (spectrum->getDriftTimeArray() == nullptr)
+    OPENMS_PRECONDITION(spectra != nullptr, "Spectra cannot be null");
+    for (auto s:spectra)
     {
-      OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
-      return;
+      if (s->getDriftTimeArray() == nullptr)
+      {
+        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
+        return;
+      }
     }
 
     double eps = 1e-5; // eps for two grid cells to be considered equal
@@ -423,7 +507,7 @@ namespace OpenMS
       // Calculate the difference of the theoretical ion mobility and the actually measured ion mobility
       double left(transition.getProductMZ()), right(transition.getProductMZ());
       DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
-      integrateDriftSpectrum(spectrum, left, right, im, intensity, res, eps, drift_lower_used, drift_upper_used);
+      computeIonMobilogram(spectra, left, right, im, intensity, res, eps, drift_lower_used, drift_upper_used);
       mobilograms.push_back(res);
 
       // TODO what do to about those that have no signal ?
@@ -466,7 +550,7 @@ namespace OpenMS
     // Step 2: Align the IonMobilogram vectors to the grid
     std::vector<double> im_grid = computeGrid(mobilograms, eps);
     std::vector< std::vector< double > > aligned_mobilograms;
-    for (const auto & mobilogram : mobilograms) 
+    for (const auto & mobilogram : mobilograms)
     {
       std::vector< double > arr_int, arr_IM;
       Size max_peak_idx = 0;
