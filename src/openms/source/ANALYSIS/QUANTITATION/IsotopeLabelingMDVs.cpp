@@ -61,8 +61,7 @@ namespace OpenMS
   {
   }
 
-  IsotopeLabelingMDVs::~IsotopeLabelingMDVs()
-  = default;
+  IsotopeLabelingMDVs::~IsotopeLabelingMDVs() = default;
 
   void IsotopeLabelingMDVs::updateMembers_()
   {

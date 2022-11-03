@@ -48,8 +48,7 @@ namespace OpenMS
     type_ = "Tagging";
   }
 
-  Tagging::~Tagging()
-  = default;
+  Tagging::~Tagging() = default;
 
   bool Tagging::operator==(const SampleTreatment & rhs) const
   {

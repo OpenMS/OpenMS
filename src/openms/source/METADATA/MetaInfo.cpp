@@ -41,8 +41,7 @@ namespace OpenMS
 
   MetaInfoRegistry MetaInfo::registry_ = MetaInfoRegistry();
 
-  MetaInfo::~MetaInfo()
-  = default;
+  MetaInfo::~MetaInfo() = default;
 
   bool MetaInfo::operator==(const MetaInfo& rhs) const
   {

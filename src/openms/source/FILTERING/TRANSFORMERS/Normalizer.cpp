@@ -46,8 +46,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  Normalizer::~Normalizer()
-  = default;
+  Normalizer::~Normalizer() = default;
 
   Normalizer::Normalizer(const Normalizer & source) :
     DefaultParamHandler(source)

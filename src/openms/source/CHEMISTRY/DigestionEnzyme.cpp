@@ -113,8 +113,7 @@ namespace OpenMS
     }
   }
 
-  DigestionEnzyme::~DigestionEnzyme()
-  = default;
+  DigestionEnzyme::~DigestionEnzyme() = default;
 
   void DigestionEnzyme::setName(const String& name)
   {

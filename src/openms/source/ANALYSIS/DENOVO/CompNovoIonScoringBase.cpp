@@ -57,12 +57,9 @@ namespace OpenMS
   {
   }
 
-  CompNovoIonScoringBase::IonScore::IonScore(const IonScore & rhs) 
-    
-  = default;
+  CompNovoIonScoringBase::IonScore::IonScore(const IonScore & rhs) = default;
 
-  CompNovoIonScoringBase::IonScore::~IonScore()
-  = default;
+  CompNovoIonScoringBase::IonScore::~IonScore() = default;
 
   CompNovoIonScoringBase::IonScore & CompNovoIonScoringBase::IonScore::operator=(const IonScore & rhs)
   {
@@ -113,8 +110,7 @@ namespace OpenMS
     return *this;
   }
 
-  CompNovoIonScoringBase::~CompNovoIonScoringBase()
-  = default;
+  CompNovoIonScoringBase::~CompNovoIonScoringBase() = default;
 
   void CompNovoIonScoringBase::addSingleChargedIons_(std::map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec)
   {

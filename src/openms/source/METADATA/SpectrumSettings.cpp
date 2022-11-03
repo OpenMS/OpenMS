@@ -59,8 +59,7 @@ namespace OpenMS
   {
   }
 
-  SpectrumSettings::~SpectrumSettings()
-  = default;
+  SpectrumSettings::~SpectrumSettings() = default;
 
   bool SpectrumSettings::operator==(const SpectrumSettings & rhs) const
   {

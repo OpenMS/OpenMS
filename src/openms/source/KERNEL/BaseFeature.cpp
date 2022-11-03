@@ -93,8 +93,7 @@ namespace OpenMS
     return !operator==(rhs);
   }
 
-  BaseFeature::~BaseFeature()
-  = default;
+  BaseFeature::~BaseFeature() = default;
 
   BaseFeature::QualityType BaseFeature::getQuality() const
   {

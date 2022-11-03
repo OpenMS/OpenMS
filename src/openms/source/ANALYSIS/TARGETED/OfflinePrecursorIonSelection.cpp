@@ -72,8 +72,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  OfflinePrecursorIonSelection::~OfflinePrecursorIonSelection()
-  = default;
+  OfflinePrecursorIonSelection::~OfflinePrecursorIonSelection() = default;
 
   void OfflinePrecursorIonSelection::createProteinSequenceBasedLPInclusionList(String include, String rt_model_file, String pt_model_file,
                                                                                FeatureMap & precursors)

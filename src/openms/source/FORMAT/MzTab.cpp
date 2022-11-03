@@ -54,8 +54,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  MzTabModification::MzTabModification()
-  = default;
+  MzTabModification::MzTabModification() = default;
 
   bool MzTabModification::isNull() const
   {

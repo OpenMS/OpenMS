@@ -105,8 +105,7 @@ namespace OpenMS
     setWindowTitle(tool_name.toQString() + " " + tr("configuration"));
   }
 
-  TOPPASToolConfigDialog::~TOPPASToolConfigDialog()
-  = default;
+  TOPPASToolConfigDialog::~TOPPASToolConfigDialog() = default;
 
   void TOPPASToolConfigDialog::ok_()
   {

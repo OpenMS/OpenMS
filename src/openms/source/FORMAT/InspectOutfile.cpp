@@ -51,16 +51,13 @@ using namespace std;
 
 namespace OpenMS
 {
-  InspectOutfile::InspectOutfile()
-  = default;
+  InspectOutfile::InspectOutfile() = default;
 
   /// copy constructor
-  InspectOutfile::InspectOutfile(const InspectOutfile&)
-  = default;
+  InspectOutfile::InspectOutfile(const InspectOutfile&) = default;
 
   /// destructor
-  InspectOutfile::~InspectOutfile()
-  = default;
+  InspectOutfile::~InspectOutfile() = default;
 
   /// assignment operator
   InspectOutfile& InspectOutfile::operator=(const InspectOutfile& inspect_outfile)

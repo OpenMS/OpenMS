@@ -45,7 +45,6 @@ namespace OpenMS
     //defaultsToParam_();
   }
 
-  DeNovoIdentification::~DeNovoIdentification()
-  = default;
+  DeNovoIdentification::~DeNovoIdentification() = default;
 
 }

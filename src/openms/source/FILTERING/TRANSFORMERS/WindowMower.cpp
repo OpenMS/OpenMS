@@ -49,8 +49,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  WindowMower::~WindowMower()
-  = default;
+  WindowMower::~WindowMower() = default;
 
   WindowMower::WindowMower(const WindowMower & source) :
     DefaultParamHandler(source)

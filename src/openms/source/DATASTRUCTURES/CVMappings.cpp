@@ -47,15 +47,11 @@ using namespace std;
 
 namespace OpenMS
 {
-  CVMappings::CVMappings()
-  = default;
+  CVMappings::CVMappings() = default;
 
-  CVMappings::CVMappings(const CVMappings& rhs) 
-    
-  = default;
+  CVMappings::CVMappings(const CVMappings& rhs) = default;
 
-  CVMappings::~CVMappings()
-  = default;
+  CVMappings::~CVMappings() = default;
 
   CVMappings& CVMappings::operator=(const CVMappings& rhs)
   {

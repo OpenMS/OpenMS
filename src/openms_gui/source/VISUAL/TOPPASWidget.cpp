@@ -65,8 +65,7 @@ namespace OpenMS
     setFocusPolicy(Qt::StrongFocus);
   }
 
-  TOPPASWidget::~TOPPASWidget()
-  = default;
+  TOPPASWidget::~TOPPASWidget() = default;
 
   TOPPASScene * TOPPASWidget::getScene()
   {

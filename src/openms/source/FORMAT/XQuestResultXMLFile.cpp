@@ -46,8 +46,7 @@ namespace OpenMS
     n_hits_(-1)
   {
   }
-  XQuestResultXMLFile::~XQuestResultXMLFile()
-  = default;
+  XQuestResultXMLFile::~XQuestResultXMLFile() = default;
 
   void XQuestResultXMLFile::load(const String & filename,
                                  std::vector < PeptideIdentification > & pep_ids,

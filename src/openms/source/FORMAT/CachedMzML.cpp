@@ -47,8 +47,7 @@
 namespace OpenMS
 {
 
-  CachedmzML::CachedmzML()
-  = default;
+  CachedmzML::CachedmzML() = default;
 
   CachedmzML::CachedmzML(const String& filename)
   {

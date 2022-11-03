@@ -73,8 +73,7 @@ namespace OpenMS
     trans_y_ = 0.0;
   }
 
-  Plot3DOpenGLCanvas::~Plot3DOpenGLCanvas()
-  = default;
+  Plot3DOpenGLCanvas::~Plot3DOpenGLCanvas() = default;
 
   void Plot3DOpenGLCanvas::calculateGridLines_()
   {

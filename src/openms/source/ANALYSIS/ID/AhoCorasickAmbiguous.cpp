@@ -75,8 +75,7 @@ namespace OpenMS
     trie_.push_back(ACNode());
   }
 
-  ACTrie::~ACTrie()
-  = default;
+  ACTrie::~ACTrie() = default;
 
   void ACTrie::addNeedle(const std::string& needle)
   {

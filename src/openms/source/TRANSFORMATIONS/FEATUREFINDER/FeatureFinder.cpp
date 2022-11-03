@@ -44,8 +44,7 @@ namespace OpenMS
   {
   }
 
-  FeatureFinder::~FeatureFinder()
-  = default;
+  FeatureFinder::~FeatureFinder() = default;
 
   Param FeatureFinder::getParameters(const String& algorithm_name) const
   {

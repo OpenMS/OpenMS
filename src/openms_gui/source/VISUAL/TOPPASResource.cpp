@@ -75,8 +75,7 @@ namespace OpenMS
   {
   }
 
-  TOPPASResource::~TOPPASResource()
-  = default;
+  TOPPASResource::~TOPPASResource() = default;
 
   TOPPASResource & TOPPASResource::operator=(const TOPPASResource & rhs)
   {

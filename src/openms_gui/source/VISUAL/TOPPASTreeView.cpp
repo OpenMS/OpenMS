@@ -53,8 +53,7 @@ namespace OpenMS
     setDragEnabled(false);
   }
 
-  TOPPASTreeView::~TOPPASTreeView()
-  = default;
+  TOPPASTreeView::~TOPPASTreeView() = default;
 
   void TOPPASTreeView::mousePressEvent(QMouseEvent * event)
   {

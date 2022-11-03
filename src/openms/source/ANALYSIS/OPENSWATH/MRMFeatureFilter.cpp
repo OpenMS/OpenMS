@@ -56,8 +56,7 @@ namespace OpenMS
     defaultsToParam_(); // write defaults into Param object param_
   }
 
-  MRMFeatureFilter::~MRMFeatureFilter()
-  = default;
+  MRMFeatureFilter::~MRMFeatureFilter() = default;
 
   void MRMFeatureFilter::getDefaultParameters(Param& params) const
   {

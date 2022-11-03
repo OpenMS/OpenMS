@@ -141,8 +141,7 @@ namespace OpenMS
     return *this;
   }
 
-  SimpleTSGXLMS::~SimpleTSGXLMS()
-  = default;
+  SimpleTSGXLMS::~SimpleTSGXLMS() = default;
 
   void SimpleTSGXLMS::getLinearIonSpectrum(std::vector< SimplePeak >& spectrum, AASequence& peptide, Size link_pos, int charge, Size link_pos_2) const
   {

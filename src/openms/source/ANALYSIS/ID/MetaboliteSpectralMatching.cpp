@@ -71,13 +71,10 @@ namespace OpenMS
   }
 
   /// Default destructor
-  SpectralMatch::~SpectralMatch()
-  = default;
+  SpectralMatch::~SpectralMatch() = default;
 
   /// Copy constructor
-  SpectralMatch::SpectralMatch(const SpectralMatch& sm) 
-    
-  = default;
+  SpectralMatch::SpectralMatch(const SpectralMatch& sm) = default;
 
   /// Assignment operator
   SpectralMatch& SpectralMatch::operator=(const SpectralMatch& rhs)
@@ -307,8 +304,7 @@ namespace OpenMS
   }
 
 
-  MetaboliteSpectralMatching::~MetaboliteSpectralMatching()
-  = default;
+  MetaboliteSpectralMatching::~MetaboliteSpectralMatching() = default;
 
 
   double MetaboliteSpectralMatching::computeHyperScore(

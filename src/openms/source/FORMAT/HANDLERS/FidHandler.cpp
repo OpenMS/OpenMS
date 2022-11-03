@@ -63,8 +63,7 @@ namespace OpenMS::Internal
     seekg(0, ios::beg);
   }
 
-  FidHandler::~FidHandler()
-  = default;
+  FidHandler::~FidHandler() = default;
 
   Size FidHandler::getIndex() const
   {

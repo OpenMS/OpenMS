@@ -47,12 +47,9 @@ namespace OpenMS
   {
   }
 
-  CVMappingTerm::CVMappingTerm(const CVMappingTerm& rhs) 
-    
-  = default;
+  CVMappingTerm::CVMappingTerm(const CVMappingTerm& rhs) = default;
 
-  CVMappingTerm::~CVMappingTerm()
-  = default;
+  CVMappingTerm::~CVMappingTerm() = default;
 
   CVMappingTerm& CVMappingTerm::operator=(const CVMappingTerm& rhs)
   {

@@ -71,8 +71,7 @@ namespace OpenMS
     return *this;
   }
 
-  GaussTraceFitter::~GaussTraceFitter()
-  = default;
+  GaussTraceFitter::~GaussTraceFitter() = default;
 
   void GaussTraceFitter::fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)
   {

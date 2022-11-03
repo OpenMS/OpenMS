@@ -52,8 +52,7 @@ namespace OpenMS
     label_set.insert(l);
   }
 
-  MultiplexDeltaMasses::MultiplexDeltaMasses()
-  = default;
+  MultiplexDeltaMasses::MultiplexDeltaMasses() = default;
 
   MultiplexDeltaMasses::MultiplexDeltaMasses(const vector<MultiplexDeltaMasses::DeltaMass>& dm) :
     delta_masses_(dm)

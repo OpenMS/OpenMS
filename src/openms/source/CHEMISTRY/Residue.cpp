@@ -93,8 +93,7 @@ namespace OpenMS
     }
   } 
 
-  Residue::~Residue()
-  = default;
+  Residue::~Residue() = default;
 
   void Residue::setName(const String& name)
   {

@@ -77,8 +77,7 @@ namespace OpenMS
     }
   }
 
-  Param::ParamEntry::~ParamEntry()
-  = default;
+  Param::ParamEntry::~ParamEntry() = default;
 
   bool Param::ParamEntry::isValid(std::string& message) const
   {
@@ -218,8 +217,7 @@ namespace OpenMS
       }
   }
 
-  Param::ParamNode::~ParamNode()
-  = default;
+  Param::ParamNode::~ParamNode() = default;
 
   bool Param::ParamNode::operator==(const ParamNode& rhs) const
   {
@@ -454,8 +452,7 @@ namespace OpenMS
   {
   }
 
-  Param::~Param()
-  = default;
+  Param::~Param() = default;
 
   Param::Param(const ParamNode& node) :
     root_(node)
@@ -1489,8 +1486,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     operator++();
   }
 
-  Param::ParamIterator::~ParamIterator()
-  = default;
+  Param::ParamIterator::~ParamIterator() = default;
 
   const Param::ParamEntry& Param::ParamIterator::operator*()
   {
