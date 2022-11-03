@@ -276,7 +276,7 @@ else()
   )
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
-          COMMAND find ${PAYLOAD_LIB_PATH} -type f -name "*.dylib" -exec ${CMAKE_STRIP} -x {} "\;"
+          COMMAND find ${PAYLOAD_LIB_PATH} -type f -name "*.so" -exec ${CMAKE_STRIP} -x {} "\;"
   )
 endif()
 
