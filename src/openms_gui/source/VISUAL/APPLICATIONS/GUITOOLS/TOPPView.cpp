@@ -94,6 +94,7 @@ void print_usage()
        << "  --help           Shows this help" << "\n"
        << "  -ini <File>      Sets the INI file (default: ~/.TOPPView.ini)" << "\n"
        << "  --force          Forces scan for new tools/utils" << "\n"
+       << "  --skip_tool_scan Skips scan for new tools/utils" << "\n"
        << "\n"
        << "Hints:" << "\n"
        << " - To open several files in one window put a '+' in between the files." << "\n"
@@ -113,6 +114,7 @@ int main(int argc, const char** argv)
   std::map<std::string, std::string> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
   valid_flags["--force"] = "force";
+  valid_flags["--skip_tool_scan"] = "skip_tool_scan";
   valid_options["-ini"] = "ini";
 
   Param param;
