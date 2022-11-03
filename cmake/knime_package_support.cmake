@@ -50,6 +50,8 @@ if(DEFINED CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP)
 endif()
 
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+
+# collect compiler-provided system runtime libraries (e.g., VS runtime libraries)
 include(InstallRequiredSystemLibraries)
 
 # Reset var, just in case
