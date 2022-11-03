@@ -242,7 +242,7 @@ if (APPLE) ## On APPLE use our script because the executables need to be relinke
   )
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
-          COMMAND find ${PAYLOAD_BIN_PATH} -depth 1 -type f -exec ${CMAKE_STRIP} -s {} "\;"
+          COMMAND find ${PAYLOAD_BIN_PATH} -depth 1 -type f -exec ${CMAKE_STRIP} -S {} "\;"
   )
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
