@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h
         # wrap-inherits:
         #  DefaultParamHandler
         # wrap-doc:
-        #   This class implements the database preprocessing needing for precursor ion selection
+        #  This class implements the database preprocessing needing for precursor ion selection
 
         PrecursorIonSelectionPreprocessing() nogil except +
         PrecursorIonSelectionPreprocessing(PrecursorIonSelectionPreprocessing &) nogil except +
@@ -27,29 +27,29 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h
         # libcpp_map[ String, libcpp_vector[ String ] ]  getProteinPeptideSequenceMap() nogil except +
         void dbPreprocessing(String db_path, bool save) nogil except +
             # wrap-doc:
-                #   Calculates tryptic peptide masses of a given database and stores masses and peptide sequences
-                #   -----
-                #   :param db_path: Path to database file (fasta)
-                #   :param save: Flag if preprocessing should be stored
-                #   -----
-                #   :raises:
-                #     Exception: FileNotFound is thrown if the file could not be found
-                #   :raises:
-                #     Exception: UnableToCreateFile if preprocessing file can't be written
+                #  Calculates tryptic peptide masses of a given database and stores masses and peptide sequences
+                #  
+                #  
+                #  :param db_path: Path to database file (fasta)
+                #  :param save: Flag if preprocessing should be stored
+                #  :raises:
+                #    Exception: FileNotFound is thrown if the file could not be found
+                #  :raises:
+                #    Exception: UnableToCreateFile if preprocessing file can't be written
 
         void dbPreprocessing(String db_path, String rt_model_path, String dt_model_path, bool save) nogil except +
             # wrap-doc:
-                #   Calculates tryptic peptide masses of a given database and stores masses and peptide sequences
-                #   -----
-                #   :param db_path: Path to database file (fasta)
-                #   :param rt_model_path
-                #   :param dt_model_path
-                #   :param save: Flag if preprocessing should be stored
-                #   -----
-                #   :raises:
-                #     Exception: FileNotFound is thrown if the file could not be found
-                #   :raises:
-                #     Exception: UnableToCreateFile if preprocessing file can't be written
+                #  Calculates tryptic peptide masses of a given database and stores masses and peptide sequences
+                #  
+                #  
+                #  :param db_path: Path to database file (fasta)
+                #  :param rt_model_path: Path to the retention time model
+                #  :param dt_model_path: Path to the detectability model
+                #  :param save: Flag if preprocessing should be stored
+                #  :raises:
+                #    Exception: FileNotFound is thrown if the file could not be found
+                #  :raises:
+                #    Exception: UnableToCreateFile if preprocessing file can't be written
 
         void loadPreprocessing() nogil except + # wrap-doc:Loads tryptic peptide masses of a given database
         double getWeight(double mass) nogil except + # wrap-doc:Returns the weighted frequency of a mass

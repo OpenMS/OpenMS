@@ -69,22 +69,28 @@ namespace OpenMS
      */
     void store(const String& filename, const FeatureMap& features);
 
-    /** @brief Read in a OMS file and construct an IdentificationData object
+    /** @brief Read in an OMS file and construct an IdentificationData object
      *
      * @param filename The input file
      * @param id_data The IdentificationData object
      */
     void load(const String& filename, IdentificationData& id_data);
 
-    /** @brief Read in a OMS file and construct a feature map
+    /** @brief Read in an OMS file and construct a feature map
      *
      * @param filename The input file
      * @param features The feature map
      */
     void load(const String& filename, FeatureMap& features);
 
+    /** @brief Read in an OMS file and write out the contents in JSON format
+     *
+     * @param filename_in The input file (OMS)
+     * @param filename_out The output file (JSON)
+     */
+    void exportToJSON(const String& filename_in, const String& filename_out);
+
   protected:
     LogType log_type_;
   };
 } // namespace OpenMS
-

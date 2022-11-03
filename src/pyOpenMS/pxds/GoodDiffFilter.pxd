@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/GoodDiffFilter.h>" namespace "O
         # wrap-inherits:
         #  FilterFunctor
         # wrap-doc:
-        #   It counts the number ob peak pairs whose m/z difference can be explained by a amino acid loss
+        #  It counts the number ob peak pairs whose m/z difference can be explained by a amino acid loss
 
         GoodDiffFilter() nogil except +
         GoodDiffFilter(GoodDiffFilter &) nogil except +
