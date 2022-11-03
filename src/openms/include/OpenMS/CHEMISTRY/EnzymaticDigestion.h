@@ -174,13 +174,6 @@ namespace OpenMS
      */
     bool filterByMissedCleavages(const String& sequence, const std::function<bool(const Int)>& filter) const;
 
-    /**
-       @brief Count the number of internal cleavage sites (missed cleavages) in a sequence.
-
-       @param sequence Sequence
-       @return number of internal cleavage sites (= missed cleavages in the sequence)
-    */
-    Size countInternalCleavageSites(const String& sequence) const;
 
   protected:
     /**

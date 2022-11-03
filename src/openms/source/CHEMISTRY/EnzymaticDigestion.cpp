@@ -151,11 +151,6 @@ namespace OpenMS
     return isValidProduct_(sequence, pos, length, ignore_missed_cleavages, false, false);
   }
 
-  Size EnzymaticDigestion::countInternalCleavageSites(const String& sequence) const
-  {
-    return tokenize_(sequence).size() - 1;
-  }
-
   bool EnzymaticDigestion::filterByMissedCleavages(const String& sequence, const std::function<bool(Int)>& filter) const
   {
     const int mc = countInternalCleavageSites(sequence);
