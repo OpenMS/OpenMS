@@ -456,7 +456,7 @@ namespace OpenMS
 
         // integrate spectrum at the position of the theoretical mass
         DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateWindow(sp, left, right, mz, intensity, im, -1, -1,  centroided);
+        DIAHelpers::integrateWindow(sp, left, right, mz, im, intensity,  -1, -1,  centroided); // TODO apply with Ion mobility
 
         // skip empty windows
         if (mz == -1)
