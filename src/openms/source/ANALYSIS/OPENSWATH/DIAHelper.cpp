@@ -227,8 +227,6 @@ namespace OpenMS::DIAHelpers
         std::advance(im_it, iterator_pos);
 
         // Start iteration from mz start, end iteration when mz value is larger than mz_end, only store only storing ion mobility values that are in the range
-
-        std:: cout << "Should stop before mz " << mz_end << std::endl;
         while ( ( *mz_it < mz_end ) && (mz_it < mz_arr_end) )
         {
           if ( *im_it >= drift_start && *im_it <= drift_end)
