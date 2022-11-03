@@ -122,7 +122,7 @@ START_SECTION ( test score function with perfect first transition )
   std::vector <OpenSwath::SpectrumPtr> sptrArr;
   sptrArr.push_back(sptr);
 
-  diaprescore.score(sptrArr, transitions , dotprod, manhattan);
+  diaprescore.score(sptrArr, transitions , dotprod, manhattan, -1, -1);
   //std::cout << "dotprod : " << dotprod << std::endl;
   //std::cout << "manhattan : " << manhattan << std::endl;
   // >> exp = [240, 74, 39, 15, 0]
@@ -197,7 +197,7 @@ START_SECTION ( test score function missing first transition )
 
   std::vector <OpenSwath::SpectrumPtr> sptrArr;
   sptrArr.push_back(sptr);
-  diaprescore.score(sptrArr, transitions , dotprod, manhattan);
+  diaprescore.score(sptrArr, transitions , dotprod, manhattan, -1, -1);
   //std::cout << "dotprod : " << dotprod << std::endl;
   //std::cout << "manhattan : " << manhattan << std::endl;
   // >> exp = [240, 74, 39, 15, 0]
@@ -269,7 +269,7 @@ START_SECTION ( test score function with shifted first transition )
   std::vector <OpenSwath::SpectrumPtr> sptrArr;
   sptrArr.push_back(sptr);
 
-  diaprescore.score(sptrArr, transitions , dotprod, manhattan);
+  diaprescore.score(sptrArr, transitions , dotprod, manhattan, -1, -1);
   //std::cout << "dotprod : " << dotprod << std::endl;
   //std::cout << "manhattan : " << manhattan << std::endl;
   // >> exp = [240, 74, 39, 15, 0]
