@@ -52,12 +52,9 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  SpectrumAlignmentScore::SpectrumAlignmentScore(const SpectrumAlignmentScore & source) 
-    
-  = default;
+  SpectrumAlignmentScore::SpectrumAlignmentScore(const SpectrumAlignmentScore & source) = default;
 
-  SpectrumAlignmentScore::~SpectrumAlignmentScore()
-  = default;
+  SpectrumAlignmentScore::~SpectrumAlignmentScore() = default;
 
   SpectrumAlignmentScore & SpectrumAlignmentScore::operator=(const SpectrumAlignmentScore & source)
   {

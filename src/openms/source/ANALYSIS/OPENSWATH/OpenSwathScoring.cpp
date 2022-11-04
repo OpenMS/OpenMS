@@ -108,8 +108,7 @@ namespace OpenMS
   }
 
   /// Destructor
-  OpenSwathScoring::~OpenSwathScoring()
-  = default;
+  OpenSwathScoring::~OpenSwathScoring() = default;
 
   void OpenSwathScoring::initialize(double rt_normalization_factor,
                                     int add_up_spectra,

@@ -71,13 +71,10 @@ namespace OpenMS
   }
 
   /// default destructor
-  AccurateMassSearchResult::~AccurateMassSearchResult()
-  = default;
+  AccurateMassSearchResult::~AccurateMassSearchResult() = default;
 
   /// copy constructor
-  AccurateMassSearchResult::AccurateMassSearchResult(const AccurateMassSearchResult& source) 
-    
-  = default;
+  AccurateMassSearchResult::AccurateMassSearchResult(const AccurateMassSearchResult& source) = default;
 
   /// assignment operator
   AccurateMassSearchResult& AccurateMassSearchResult::operator=(const AccurateMassSearchResult& rhs)
@@ -335,8 +332,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  AccurateMassSearchEngine::~AccurateMassSearchEngine()
-  = default;
+  AccurateMassSearchEngine::~AccurateMassSearchEngine() = default;
 
 /// public methods
 

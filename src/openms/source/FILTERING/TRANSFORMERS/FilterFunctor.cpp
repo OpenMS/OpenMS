@@ -51,9 +51,7 @@ namespace OpenMS
   {
   }
 
-  FilterFunctor::FilterFunctor(const FilterFunctor & source) 
-    
-  = default;
+  FilterFunctor::FilterFunctor(const FilterFunctor & source) = default;
 
   FilterFunctor & FilterFunctor::operator=(const FilterFunctor & source)
   {
@@ -64,8 +62,7 @@ namespace OpenMS
     return *this;
   }
 
-  FilterFunctor::~FilterFunctor()
-  = default;
+  FilterFunctor::~FilterFunctor() = default;
 
   void FilterFunctor::registerChildren()
   {

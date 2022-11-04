@@ -50,9 +50,7 @@ namespace OpenMS
   {
   }
 
-  Element::Element(const Element & e) 
-    
-  = default;
+  Element::Element(const Element & e) = default;
 
   Element::Element(const string & name,
                    const string & symbol,
@@ -69,8 +67,7 @@ namespace OpenMS
   {
   }
 
-  Element::~Element()
-  = default;
+  Element::~Element() = default;
 
   void Element::setAtomicNumber(unsigned int atomic_number)
   {
@@ -132,8 +129,7 @@ namespace OpenMS
     return symbol_;
   }
 
-  Element & Element::operator=(const Element & element)
-  = default;
+  Element & Element::operator=(const Element & element) = default;
 
   bool Element::operator==(const Element & element) const
   {

@@ -1758,6 +1758,9 @@ protected:
 
     // clean up references (assigned and unassigned)
     IDFilter::removeUnreferencedProteins(consensus, true);
+    
+    // only keep best scoring ID for each consensus feature
+    IDConflictResolverAlgorithm::resolve(consensus);
 
     //-------------------------------------------------------------
     // Peptide quantification

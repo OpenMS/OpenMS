@@ -53,8 +53,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  ParentPeakMower::~ParentPeakMower()
-  = default;
+  ParentPeakMower::~ParentPeakMower() = default;
 
   ParentPeakMower::ParentPeakMower(const ParentPeakMower & source) :
     DefaultParamHandler(source)

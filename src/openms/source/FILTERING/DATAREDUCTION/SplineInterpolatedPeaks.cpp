@@ -72,8 +72,7 @@ namespace OpenMS
     SplineInterpolatedPeaks::init_(rt, intensity);
   }
 
-  SplineInterpolatedPeaks::~SplineInterpolatedPeaks()
-  = default;
+  SplineInterpolatedPeaks::~SplineInterpolatedPeaks() = default;
 
   void SplineInterpolatedPeaks::init_(const std::vector<double>& pos, const std::vector<double>& intensity)
   {
@@ -211,11 +210,9 @@ namespace OpenMS
   {
   }
 
-  SplineInterpolatedPeaks::Navigator::Navigator()
-  = default;
+  SplineInterpolatedPeaks::Navigator::Navigator() = default;
 
-  SplineInterpolatedPeaks::Navigator::~Navigator()
-  = default;
+  SplineInterpolatedPeaks::Navigator::~Navigator() = default;
 
   double SplineInterpolatedPeaks::Navigator::eval(double pos)
   {

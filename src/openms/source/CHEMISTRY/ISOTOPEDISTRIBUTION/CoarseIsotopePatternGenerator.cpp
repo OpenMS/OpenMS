@@ -58,8 +58,7 @@ namespace OpenMS
   {
   }
 
-  CoarseIsotopePatternGenerator::~CoarseIsotopePatternGenerator()
-  = default;
+  CoarseIsotopePatternGenerator::~CoarseIsotopePatternGenerator() = default;
 
 
   void CoarseIsotopePatternGenerator::setMaxIsotope(const Size& max_isotope)

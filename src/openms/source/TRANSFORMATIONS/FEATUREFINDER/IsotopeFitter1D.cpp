@@ -60,8 +60,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  IsotopeFitter1D::~IsotopeFitter1D()
-  = default;
+  IsotopeFitter1D::~IsotopeFitter1D() = default;
 
   IsotopeFitter1D& IsotopeFitter1D::operator=(const IsotopeFitter1D& source)
   {

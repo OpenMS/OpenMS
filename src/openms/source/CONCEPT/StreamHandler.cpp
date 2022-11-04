@@ -49,8 +49,7 @@ using std::ofstream;
 
 namespace OpenMS
 {
-  StreamHandler::StreamHandler()
-  = default;
+  StreamHandler::StreamHandler() = default;
 
   StreamHandler::StreamHandler(const StreamHandler & source)
   {
@@ -74,8 +73,7 @@ namespace OpenMS
     }
   }
 
-  StreamHandler & StreamHandler::operator=(const StreamHandler & source)
-  = default;
+  StreamHandler & StreamHandler::operator=(const StreamHandler & source) = default;
 
   ostream & StreamHandler::getStream(StreamType const type, const String & stream_name)
   {

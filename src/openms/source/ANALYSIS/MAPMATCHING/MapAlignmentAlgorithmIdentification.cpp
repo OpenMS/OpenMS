@@ -71,8 +71,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MapAlignmentAlgorithmIdentification::~MapAlignmentAlgorithmIdentification()
-  = default;
+  MapAlignmentAlgorithmIdentification::~MapAlignmentAlgorithmIdentification() = default;
 
   void MapAlignmentAlgorithmIdentification::checkParameters_(Size runs)
   {

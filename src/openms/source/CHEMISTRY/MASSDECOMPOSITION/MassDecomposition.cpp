@@ -84,9 +84,7 @@ namespace OpenMS
     }
   }
 
-  MassDecomposition::MassDecomposition(const MassDecomposition& rhs) 
-    
-  = default;
+  MassDecomposition::MassDecomposition(const MassDecomposition& rhs) = default;
 
   MassDecomposition& MassDecomposition::operator=(const MassDecomposition& rhs)
   {

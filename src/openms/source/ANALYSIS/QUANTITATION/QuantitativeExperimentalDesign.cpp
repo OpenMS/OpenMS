@@ -63,8 +63,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  QuantitativeExperimentalDesign::~QuantitativeExperimentalDesign()
-  = default;
+  QuantitativeExperimentalDesign::~QuantitativeExperimentalDesign() = default;
 
   void QuantitativeExperimentalDesign::applyDesign2Resolver(ProteinResolver& resolver, TextFile& file, StringList& file_paths)
   {

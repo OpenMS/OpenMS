@@ -47,9 +47,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  NeutralLossDiffFilter::NeutralLossDiffFilter(const NeutralLossDiffFilter & source) 
-    
-  = default;
+  NeutralLossDiffFilter::NeutralLossDiffFilter(const NeutralLossDiffFilter & source) = default;
 
   NeutralLossDiffFilter & NeutralLossDiffFilter::operator=(const NeutralLossDiffFilter & source)
   {
@@ -60,7 +58,6 @@ namespace OpenMS
     return *this;
   }
 
-  NeutralLossDiffFilter::~NeutralLossDiffFilter()
-  = default;
+  NeutralLossDiffFilter::~NeutralLossDiffFilter() = default;
 
 }

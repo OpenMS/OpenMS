@@ -70,8 +70,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  ExtendedIsotopeModel::~ExtendedIsotopeModel()
-  = default;
+  ExtendedIsotopeModel::~ExtendedIsotopeModel() = default;
 
   ExtendedIsotopeModel & ExtendedIsotopeModel::operator=(const ExtendedIsotopeModel & source)
   {

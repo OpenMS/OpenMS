@@ -55,9 +55,7 @@ namespace OpenMS
   {}
 
   /// Copy constructor
-  MSExperiment::MSExperiment(const MSExperiment & source) 
-    
-  = default;
+  MSExperiment::MSExperiment(const MSExperiment & source) = default;
 
   /// Assignment operator
   MSExperiment & MSExperiment::operator=(const MSExperiment & source)

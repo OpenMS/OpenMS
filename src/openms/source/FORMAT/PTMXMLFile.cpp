@@ -40,8 +40,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  PTMXMLFile::PTMXMLFile()
-  = default;
+  PTMXMLFile::PTMXMLFile() = default;
 
   void PTMXMLFile::load(const String & filename, map<String, pair<String, String> > & ptm_informations)
   {

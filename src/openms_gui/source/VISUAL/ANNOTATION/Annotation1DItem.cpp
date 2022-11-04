@@ -54,8 +54,7 @@ namespace OpenMS
     text_ = rhs.getText();
   }
 
-  Annotation1DItem::~Annotation1DItem()
-  = default;
+  Annotation1DItem::~Annotation1DItem() = default;
 
   void Annotation1DItem::drawBoundingBox_(QPainter & painter)
   {

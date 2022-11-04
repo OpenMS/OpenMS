@@ -71,9 +71,7 @@ namespace OpenMS
   }
 
   /// Copy C'tor
-  Compomer::Compomer(const Compomer& p) 
-    
-  = default;
+  Compomer::Compomer(const Compomer& p) = default;
 
   /// Assignment Operator
   Compomer& Compomer::operator=(const Compomer& source)

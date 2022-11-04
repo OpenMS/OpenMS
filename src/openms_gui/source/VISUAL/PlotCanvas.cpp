@@ -94,8 +94,7 @@ namespace OpenMS
     connect(this, SIGNAL(actionModeChange()), this, SLOT(updateCursor_()));
   }
 
-  PlotCanvas::~PlotCanvas()
-  = default;
+  PlotCanvas::~PlotCanvas() = default;
 
   void PlotCanvas::resizeEvent(QResizeEvent* /* e */)
   {

@@ -87,8 +87,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  EGHModel::~EGHModel()
-  = default;
+  EGHModel::~EGHModel() = default;
 
   EGHModel & EGHModel::operator=(const EGHModel & source)
   {

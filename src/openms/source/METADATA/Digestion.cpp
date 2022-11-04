@@ -50,8 +50,7 @@ namespace OpenMS
 
   }
 
-  Digestion::~Digestion()
-  = default;
+  Digestion::~Digestion() = default;
 
   SampleTreatment * Digestion::clone() const
   {

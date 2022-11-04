@@ -67,8 +67,7 @@ namespace OpenMS
   {
   }
 
-  SpectrumCheapDPCorr::~SpectrumCheapDPCorr()
-  = default;
+  SpectrumCheapDPCorr::~SpectrumCheapDPCorr() = default;
 
   SpectrumCheapDPCorr & SpectrumCheapDPCorr::operator=(const SpectrumCheapDPCorr & source)
   {

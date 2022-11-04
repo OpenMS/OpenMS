@@ -106,8 +106,7 @@ namespace OpenMS
     optimization_method_ = param_.getValue("optimization_method").toString();
   }
 
-  AbsoluteQuantitation::~AbsoluteQuantitation()
-  = default;
+  AbsoluteQuantitation::~AbsoluteQuantitation() = default;
 
   void AbsoluteQuantitation::setQuantMethods(std::vector<AbsoluteQuantitationMethod>& quant_methods)
   {

@@ -50,8 +50,7 @@ namespace OpenMS
     manager_ = new QNetworkAccessManager(this);
   }
 
-  NetworkGetRequest::~NetworkGetRequest()
-  = default;
+  NetworkGetRequest::~NetworkGetRequest() = default;
 
   void NetworkGetRequest::setUrl(const QUrl& url)
   {

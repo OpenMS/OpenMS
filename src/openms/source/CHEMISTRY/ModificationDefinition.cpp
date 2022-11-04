@@ -48,9 +48,7 @@ namespace OpenMS
   {
   }
 
-  ModificationDefinition::ModificationDefinition(const ModificationDefinition& rhs) 
-    
-  = default;
+  ModificationDefinition::ModificationDefinition(const ModificationDefinition& rhs) = default;
 
   ModificationDefinition::ModificationDefinition(const String& mod, bool fixed, UInt max_occur) :
     mod_(nullptr),
@@ -90,8 +88,7 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  ModificationDefinition::~ModificationDefinition()
-  = default;
+  ModificationDefinition::~ModificationDefinition() = default;
 
   bool ModificationDefinition::operator<(const ModificationDefinition& rhs) const
   {

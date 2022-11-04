@@ -49,12 +49,9 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  IsotopeMarker::IsotopeMarker(const IsotopeMarker & source) 
-    
-  = default;
+  IsotopeMarker::IsotopeMarker(const IsotopeMarker & source) = default;
 
-  IsotopeMarker::~IsotopeMarker()
-  = default;
+  IsotopeMarker::~IsotopeMarker() = default;
 
   IsotopeMarker & IsotopeMarker::operator=(const IsotopeMarker & source)
   {

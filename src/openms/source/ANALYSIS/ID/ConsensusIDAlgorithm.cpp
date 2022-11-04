@@ -63,8 +63,7 @@ namespace OpenMS
   }
 
 
-  ConsensusIDAlgorithm::~ConsensusIDAlgorithm()
-  = default;
+  ConsensusIDAlgorithm::~ConsensusIDAlgorithm() = default;
 
 
   void ConsensusIDAlgorithm::updateMembers_()

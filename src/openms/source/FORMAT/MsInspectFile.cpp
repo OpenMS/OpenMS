@@ -39,11 +39,9 @@ using namespace std;
 namespace OpenMS
 {
 
-  MsInspectFile::MsInspectFile()
-  = default;
+  MsInspectFile::MsInspectFile() = default;
 
-  MsInspectFile::~MsInspectFile()
-  = default;
+  MsInspectFile::~MsInspectFile() = default;
 
 } // namespace OpenMS
 

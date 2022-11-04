@@ -72,9 +72,7 @@ namespace OpenMS
   }
 
   /// Copy constructor
-  ChargePair::ChargePair(const ChargePair& rhs) 
-    
-  = default;
+  ChargePair::ChargePair(const ChargePair& rhs) = default;
 
   /// Assignment operator
   ChargePair& ChargePair::operator=(const ChargePair& rhs)

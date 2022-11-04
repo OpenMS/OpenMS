@@ -65,15 +65,11 @@ namespace OpenMS
   {
   }
 
-  FeatureHandle::FeatureHandle(const FeatureHandle& rhs) 
-    
-  = default;
+  FeatureHandle::FeatureHandle(const FeatureHandle& rhs) = default;
 
-  FeatureHandle& FeatureHandle::operator=(const FeatureHandle& rhs)
-  = default;
+  FeatureHandle& FeatureHandle::operator=(const FeatureHandle& rhs) = default;
 
-  FeatureHandle::~FeatureHandle()
-  = default;
+  FeatureHandle::~FeatureHandle() = default;
 
   UInt64 FeatureHandle::getMapIndex() const
   {

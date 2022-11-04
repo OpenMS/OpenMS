@@ -90,8 +90,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  FeatureDistance::~FeatureDistance()
-  = default;
+  FeatureDistance::~FeatureDistance() = default;
 
   FeatureDistance & FeatureDistance::operator=(const FeatureDistance & other)
   {

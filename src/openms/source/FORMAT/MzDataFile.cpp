@@ -46,8 +46,7 @@ namespace OpenMS
   {
   }
 
-  MzDataFile::~MzDataFile()
-  = default;
+  MzDataFile::~MzDataFile() = default;
 
   PeakFileOptions & MzDataFile::getOptions()
   {

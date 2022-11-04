@@ -46,7 +46,6 @@ namespace OpenMS::Internal
     setCheckUnits(true);
   }
 
-  MzQuantMLValidator::~MzQuantMLValidator()
-  = default;
+  MzQuantMLValidator::~MzQuantMLValidator() = default;
 
 } // namespace OpenMS   // namespace Internal

@@ -61,9 +61,7 @@ namespace OpenMS
   {
   }
 
-  ControlledVocabulary::CVTerm::CVTerm(const CVTerm& rhs) 
-    
-  = default;
+  ControlledVocabulary::CVTerm::CVTerm(const CVTerm& rhs) = default;
 
   ControlledVocabulary::CVTerm& ControlledVocabulary::CVTerm::operator=(const CVTerm& rhs)
   {
@@ -172,8 +170,7 @@ namespace OpenMS
 
   }
 
-  ControlledVocabulary::~ControlledVocabulary()
-  = default;
+  ControlledVocabulary::~ControlledVocabulary() = default;
 
   void ControlledVocabulary::loadFromOBO(const String& name, const String& filename)
   {

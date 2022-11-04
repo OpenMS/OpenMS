@@ -67,8 +67,7 @@ namespace OpenMS
                );
   }
 
-  MultiGradientSelector::~MultiGradientSelector()
-  = default;
+  MultiGradientSelector::~MultiGradientSelector() = default;
 
   const MultiGradient & MultiGradientSelector::gradient() const
   {

@@ -108,8 +108,7 @@ namespace OpenMS
     connect(this, SIGNAL(preferencesChange()), this, SLOT(currentLayerParametersChanged_()));
   }
 
-  Plot2DCanvas::~Plot2DCanvas()
-  = default;
+  Plot2DCanvas::~Plot2DCanvas() = default;
 
   void Plot2DCanvas::highlightPeak_(QPainter & painter, const PeakIndex & peak)
   {

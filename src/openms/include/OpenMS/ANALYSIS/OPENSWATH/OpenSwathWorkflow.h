@@ -287,6 +287,7 @@ protected:
      * @param irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
      *        iRT chromatograms will be stored in this file)
      * @param sonar Whether the data is SONAR data
+     * @param pasef whether the data is PASEF data (should match transitions by their IM)
      * @param load_into_memory Whether to cache the current SWATH map in memory
      *
     */
@@ -302,6 +303,7 @@ protected:
       const String& irt_mzml_out,
       Size debug_level,
       bool sonar = false,
+      bool pasef = false,
       bool load_into_memory = false);
 
   public:
@@ -331,6 +333,7 @@ protected:
      * @param default_ffparam Parameter set for the feature finding in chromatographic dimension
      * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
      * @param calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
+     * @param pasef whether this data is pasef data with potentially overlapping m/z windows (differing by IM)
      *
      * @note This function is based on the algorithm inside the OpenSwathRTNormalizer tool
      *
@@ -343,7 +346,8 @@ protected:
       double min_coverage,
       const Param& default_ffparam,
       const Param& irt_detection_param,
-      const Param& calibration_param);
+      const Param& calibration_param,
+      const bool pasef);
 
     /** @brief Simple method to extract chromatograms (for the RT-normalization peptides)
      *
@@ -354,6 +358,7 @@ protected:
      * @param cp Parameter set for the chromatogram extraction
      * @param load_into_memory Whether to cache the current SWATH map in memory
      * @param sonar Whether the data is SONAR data
+     * @param pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility)
      *
     */
     void simpleExtractChromatograms_(const std::vector< OpenSwath::SwathMap > & swath_maps,
@@ -362,6 +367,7 @@ protected:
                                      const TransformationDescription& trafo,
                                      const ChromExtractParams & cp,
                                      bool sonar,
+                                     bool pasef,
                                      bool load_into_memory);
 
     /** @brief Add two chromatograms

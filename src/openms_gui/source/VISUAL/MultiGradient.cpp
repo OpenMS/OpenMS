@@ -56,9 +56,7 @@ namespace OpenMS
     pos_col_[100] = Qt::black;
   }
 
-  MultiGradient::MultiGradient(const MultiGradient & multigradient) 
-    
-  = default;
+  MultiGradient::MultiGradient(const MultiGradient & multigradient) = default;
 
   MultiGradient & MultiGradient::operator=(const MultiGradient & rhs)
   {
@@ -75,8 +73,7 @@ namespace OpenMS
     return *this;
   }
 
-  MultiGradient::~MultiGradient()
-  = default;
+  MultiGradient::~MultiGradient() = default;
 
   Size MultiGradient::size() const
   {

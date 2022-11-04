@@ -54,8 +54,7 @@ namespace OpenMS
 
   }
 
-  IonDetector::~IonDetector()
-  = default;
+  IonDetector::~IonDetector() = default;
 
   bool IonDetector::operator==(const IonDetector & rhs) const
   {

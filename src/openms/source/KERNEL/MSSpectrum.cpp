@@ -529,9 +529,7 @@ namespace OpenMS
     integer_data_arrays_()
   {}
 
-  MSSpectrum::MSSpectrum(const MSSpectrum &source) 
-    
-  = default;
+  MSSpectrum::MSSpectrum(const MSSpectrum &source) = default;
 
   MSSpectrum &MSSpectrum::operator=(const SpectrumSettings &source)
   {

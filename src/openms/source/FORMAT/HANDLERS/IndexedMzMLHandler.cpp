@@ -113,8 +113,7 @@ namespace OpenMS::Internal
   {
   }
 
-  IndexedMzMLHandler::~IndexedMzMLHandler()
-  = default;
+  IndexedMzMLHandler::~IndexedMzMLHandler() = default;
 
   void IndexedMzMLHandler::openFile(const String& filename) 
   {

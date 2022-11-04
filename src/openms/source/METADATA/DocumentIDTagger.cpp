@@ -62,8 +62,7 @@ namespace OpenMS
     pool_file_ = File::getOpenMSDataPath() + ("/IDPool/IDPool.txt");
   }
 
-  DocumentIDTagger::~DocumentIDTagger()
-  = default;
+  DocumentIDTagger::~DocumentIDTagger() = default;
 
   bool DocumentIDTagger::operator==(const DocumentIDTagger & rhs) const
   {

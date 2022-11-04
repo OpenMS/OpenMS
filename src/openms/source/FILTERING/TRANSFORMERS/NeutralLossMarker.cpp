@@ -48,12 +48,9 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  NeutralLossMarker::NeutralLossMarker(const NeutralLossMarker & source) 
-    
-  = default;
+  NeutralLossMarker::NeutralLossMarker(const NeutralLossMarker & source) = default;
 
-  NeutralLossMarker::~NeutralLossMarker()
-  = default;
+  NeutralLossMarker::~NeutralLossMarker() = default;
 
   NeutralLossMarker & NeutralLossMarker::operator=(const NeutralLossMarker & source)
   {

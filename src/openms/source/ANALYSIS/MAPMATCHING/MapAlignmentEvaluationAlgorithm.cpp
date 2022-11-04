@@ -75,10 +75,8 @@ namespace OpenMS
 #endif
   }
 
-  MapAlignmentEvaluationAlgorithm::MapAlignmentEvaluationAlgorithm()
-  = default;
+  MapAlignmentEvaluationAlgorithm::MapAlignmentEvaluationAlgorithm() = default;
 
-  MapAlignmentEvaluationAlgorithm::~MapAlignmentEvaluationAlgorithm()
-  = default;
+  MapAlignmentEvaluationAlgorithm::~MapAlignmentEvaluationAlgorithm() = default;
 
 }

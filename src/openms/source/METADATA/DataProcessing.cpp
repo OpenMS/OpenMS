@@ -63,8 +63,7 @@ namespace OpenMS
     "Identification"
   };
 
-  DataProcessing::~DataProcessing()
-  = default;
+  DataProcessing::~DataProcessing() = default;
 
   DataProcessing::DataProcessing(DataProcessing&& rhs) noexcept :
     MetaInfoInterface(std::move(rhs)),

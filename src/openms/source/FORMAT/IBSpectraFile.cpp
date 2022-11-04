@@ -92,16 +92,14 @@ namespace OpenMS
     {}
   };
 
-  IBSpectraFile::IBSpectraFile()
-  = default;
+  IBSpectraFile::IBSpectraFile() = default;
 
   IBSpectraFile::IBSpectraFile(const IBSpectraFile& /* other */)
   {
     // no members
   }
 
-  IBSpectraFile& IBSpectraFile::operator=(const IBSpectraFile& /* rhs */)
-  = default;
+  IBSpectraFile& IBSpectraFile::operator=(const IBSpectraFile& /* rhs */) = default;
 
   boost::shared_ptr<IsobaricQuantitationMethod> IBSpectraFile::guessExperimentType_(const ConsensusMap& cm)
   {

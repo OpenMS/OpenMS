@@ -88,8 +88,7 @@ namespace OpenMS
     return !modifications.empty();
   }
 
-  SILACLabeler::~SILACLabeler()
-  = default;
+  SILACLabeler::~SILACLabeler() = default;
 
   void SILACLabeler::preCheck(Param&) const
   {

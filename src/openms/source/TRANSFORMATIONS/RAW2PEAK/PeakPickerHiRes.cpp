@@ -80,8 +80,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  PeakPickerHiRes::~PeakPickerHiRes()
-  = default;
+  PeakPickerHiRes::~PeakPickerHiRes() = default;
 
   void PeakPickerHiRes::pick(const MSSpectrum& input, MSSpectrum& output) const
   {

@@ -45,7 +45,6 @@ namespace OpenMS
     //defaultsToParam_();
   }
 
-  DeNovoIonScoring::~DeNovoIonScoring()
-  = default;
+  DeNovoIonScoring::~DeNovoIonScoring() = default;
 
 }

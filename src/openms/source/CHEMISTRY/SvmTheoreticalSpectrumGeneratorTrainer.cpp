@@ -225,8 +225,7 @@ namespace OpenMS
     return *this;
   }
 
-  SvmTheoreticalSpectrumGeneratorTrainer::~SvmTheoreticalSpectrumGeneratorTrainer()
-  = default;
+  SvmTheoreticalSpectrumGeneratorTrainer::~SvmTheoreticalSpectrumGeneratorTrainer() = default;
 
   void SvmTheoreticalSpectrumGeneratorTrainer::trainModel(const PeakMap& spectra, const std::vector<AASequence>& annotations, const String& filename, Int precursor_charge)
   {

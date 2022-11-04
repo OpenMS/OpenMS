@@ -41,8 +41,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  Gradient::~Gradient()
-  = default;
+  Gradient::~Gradient() = default;
 
   bool Gradient::operator==(const Gradient & rhs) const
   {

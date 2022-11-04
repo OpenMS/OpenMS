@@ -45,12 +45,9 @@ namespace OpenMS
   {
   }
 
-  IncludeExcludeTarget::IncludeExcludeTarget(const IncludeExcludeTarget & rhs) 
-    
-  = default;
+  IncludeExcludeTarget::IncludeExcludeTarget(const IncludeExcludeTarget & rhs) = default;
 
-  IncludeExcludeTarget::~IncludeExcludeTarget()
-  = default;
+  IncludeExcludeTarget::~IncludeExcludeTarget() = default;
 
   IncludeExcludeTarget & IncludeExcludeTarget::operator=(const IncludeExcludeTarget & rhs)
   {

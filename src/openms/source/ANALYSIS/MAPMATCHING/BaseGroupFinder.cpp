@@ -48,8 +48,7 @@ namespace OpenMS
   {
   }
 
-  BaseGroupFinder::~BaseGroupFinder()
-  = default;
+  BaseGroupFinder::~BaseGroupFinder() = default;
 
   void BaseGroupFinder::registerChildren()
   {

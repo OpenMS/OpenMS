@@ -47,8 +47,7 @@ namespace OpenMS
     {"qvalue", "PEP", "score"};
 
 
-  PercolatorOutfile::PercolatorOutfile()
-  = default;
+  PercolatorOutfile::PercolatorOutfile() = default;
 
 
   enum PercolatorOutfile::ScoreType PercolatorOutfile::getScoreType(

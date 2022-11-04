@@ -68,8 +68,7 @@ namespace OpenMS
     return *this;
   }
 
-  DetectabilitySimulation::~DetectabilitySimulation()
-  = default;
+  DetectabilitySimulation::~DetectabilitySimulation() = default;
 
   void DetectabilitySimulation::filterDetectability(SimTypes::FeatureMapSim& features)
   {

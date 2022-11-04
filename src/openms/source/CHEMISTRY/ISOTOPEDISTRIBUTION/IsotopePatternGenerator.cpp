@@ -54,7 +54,6 @@ namespace OpenMS
   {
   }
   
-  IsotopePatternGenerator::~IsotopePatternGenerator()
-  = default;
+  IsotopePatternGenerator::~IsotopePatternGenerator() = default;
 
 }

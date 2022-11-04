@@ -125,9 +125,7 @@ namespace OpenMS
     setDefaultParams_();
   }
 
-  IsobaricChannelExtractor::IsobaricChannelExtractor(const IsobaricChannelExtractor& other) 
-    
-  = default;
+  IsobaricChannelExtractor::IsobaricChannelExtractor(const IsobaricChannelExtractor& other) = default;
 
   IsobaricChannelExtractor& IsobaricChannelExtractor::operator=(const IsobaricChannelExtractor& rhs)
   {

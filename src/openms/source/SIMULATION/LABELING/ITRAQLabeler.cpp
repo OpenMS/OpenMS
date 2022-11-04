@@ -87,8 +87,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  ITRAQLabeler::~ITRAQLabeler()
-  = default;
+  ITRAQLabeler::~ITRAQLabeler() = default;
 
   void ITRAQLabeler::updateMembers_()
   {
