@@ -57,9 +57,7 @@ namespace OpenMS
     th_ = 0.1;
   }
 
-  BernNorm::~BernNorm()
-  {
-  }
+  BernNorm::~BernNorm() = default;
 
   BernNorm::BernNorm(const BernNorm & source) :
     DefaultParamHandler(source)
