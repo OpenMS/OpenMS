@@ -133,7 +133,7 @@
 
   @note Until the CoinMP complete package is migrated to the coin-or-tools tap, we suggest to use our contrib version. You will then additionally need gfortran as a Fortran compiler to build.
   @note The compression libraries bzip and zlib should come with your macOS/XCode/commandline tools.
-  @note If using Boost from brew, since v1.75, its CMake config file links all dependent libraries to icu4c when using boost::regex as static library. Therefore, we suggest to use <code>-DBOOST_USE_STATIC=OFF</code>.
+  @note If using Boost from brew, since v1.75, its CMake config file links all dependent libraries to icu4c when using boost::regex as static library. Therefore, we suggest to use dynamic libraries in the OpenMS build stage.
 
   For MacPorts the following sequence of commands installs some of the
   libraries required by %OpenMS.
@@ -174,9 +174,10 @@
 
         \code
         cd <path_to_OpenMS_build>
-        cmake -DBOOST_USE_STATIC=OFF -DOPENMS_CONTRIB_LIBS=<path_to_contrib_build> -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix qt5)" <path_to_OpenMS>
+        cmake -DOPENMS_CONTRIB_LIBS=<path_to_contrib_build> -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix qt5)" <path_to_OpenMS>
         \endcode
 
+      @note If you obtained Boost from Homebrew, please add <code>-DBOOST_USE_STATIC=OFF</code> to the above command!
       @note If you still have Qt4 installed make sure to brew uninstall or at least brew unlink it, so it is not picked up. The same holds for libraries that you built and passed with the contrib.
       You can set additional CMake variables using the <code>-DVARIABLE=VALUE</code> option.
       A full list of the CMake variables is shown when you execute
