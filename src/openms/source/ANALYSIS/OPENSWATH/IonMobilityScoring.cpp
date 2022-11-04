@@ -325,16 +325,25 @@ namespace OpenMS
                                                    const bool dia_extraction_ppm_,
                                                    const double drift_extra)
   {
-
     OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty")
     OPENMS_PRECONDITION(!ms1spectrum.empty(), "MS1 spectrum cannot be empty")
     OPENMS_PRECONDITION(!transitions.empty(), "Need at least one transition");
 
+    //TODO not sure what error format is best
     for (auto s:spectra)
     {
       if (s->getDriftTimeArray() == nullptr)
       {
         OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
+        return;
+      }
+    }
+
+    for (auto s:ms1spectrum)
+    {
+      if (s->getDriftTimeArray() == nullptr)
+      {
+        OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in MS1 ion mobility spectrum!" << std::endl;
         return;
       }
     }
@@ -565,6 +574,8 @@ namespace OpenMS
       scores.im_xcorr_shape_score = std::numeric_limits<double>::quiet_NaN();
       return;
     }
+
+
     OpenSwath::MRMScoring mrmscore_;
     mrmscore_.initializeXCorrMatrix(aligned_mobilograms);
 
@@ -574,6 +585,4 @@ namespace OpenMS
     scores.im_xcorr_coelution_score = xcorr_coelution_score;
     scores.im_xcorr_shape_score = xcorr_shape_score;
   }
-
 }
-
