@@ -168,7 +168,7 @@ int main(int argc, const char** argv)
     }
     else if (param.exists("skip_tool_scan"))
     {
-      mode = TOPPViewBase::TOOL_SCAN::SKIP;
+      mode = TOPPViewBase::TOOL_SCAN::SKIP_SCAN;
     }
      
     TOPPViewBase tb(mode);
