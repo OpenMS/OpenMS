@@ -81,12 +81,6 @@ elseif (MSVC)
 	## disable dll-interface warning
 	set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} /wd4251 /wd4275")
 
-	## treat warning of unused function parameter as error
-	set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} /we4100")
-
-	## treat warning of unused local variable as error
-	set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} /we4189")
-
 	## disable deprecated functions warning (e.g. for POSIX functions)
 	set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} /wd4996")
 
