@@ -743,7 +743,7 @@ namespace OpenMS
 #endif
           for (SignedSize pep_idx = 0; pep_idx <= nr_batches; pep_idx++)
           {
-            const OpenSwath::SpectrumAccessPtr& current_swath_map_inner = current_swath_map;
+            OpenSwath::SpectrumAccessPtr current_swath_map_inner = current_swath_map;
 
 #ifdef _OPENMP
 #ifdef MT_ENABLE_NESTED_OPENMP
