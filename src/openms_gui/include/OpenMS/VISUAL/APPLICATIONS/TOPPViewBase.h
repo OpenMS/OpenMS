@@ -447,9 +447,12 @@ protected:
     LogWindow* log_;
 
     /// Determines TVToolDiscovery scans for tool/utils and generates new params.
-    TOOL_SCAN scan_mode_;
+    TOOL_SCAN scan_mode_;    
     /// Scans for tools/utils and generates a param for each.
     TVToolDiscovery tool_scanner_;
+
+    /// Verbosity of TV 
+    VERBOSITY verbosity_;
 
     /** @name Toolbar
     */

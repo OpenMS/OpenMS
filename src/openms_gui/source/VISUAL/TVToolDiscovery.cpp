@@ -272,6 +272,11 @@ namespace OpenMS
     return plugin_path_;
   }
 
+  void TVToolDiscovery::setVerbose(int verbosity_level)
+  {
+    verbosity_level_ = verbosity_level;
+  }
+
   std::string TVToolDiscovery::findPluginExecutable(const std::string& name)
   {
     //TODO: At the moment the usage of subdirectories in the plugin path are not possible
