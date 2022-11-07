@@ -96,13 +96,6 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES GTE ${LPTARGET} Eigen3::Eigen HDF5::HDF5 Boost:
 # Install the QSQLite driver if we are not on linux so we can use oms files
 if(WIN32 OR APPLE)
   install_qt5_plugin("Qt5::QSQLiteDriverPlugin" QT_SQLITE_PLUGIN "${INSTALL_PLUGIN_DIR}/plugins" QT5SQLitePlugin)
-  if(APPLE) # add qt.conf to the bin directory for DMGs
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-    "[Paths]\nPlugins = ../lib/plugins/plugins/\n")
-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-          DESTINATION "${OPENMS_BINARY_DIR}"
-          COMPONENT QT5SQLitePlugin)
-  endif()
 endif()
 
 # xerces requires linking against CoreFoundation&CoreServices on macOS
