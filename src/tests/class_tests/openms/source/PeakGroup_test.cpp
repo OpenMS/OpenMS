@@ -344,14 +344,6 @@ START_SECTION((double getIntensity() const))
 }
 END_SECTION
 
-START_SECTION((void updateSNR()))
-{
-  sample_pg.updateSNR();
-  double new_snr = sample_pg.getSNR();
-  TEST_REAL_SIMILAR(new_snr, 0);
-}
-END_SECTION
-
 
 PeakGroup sample_pg2(sample_pg);
 LogMzPeak tmp_peak4 = fillPeak(1127.5185151766082, 2504.3433, 2, 4);
