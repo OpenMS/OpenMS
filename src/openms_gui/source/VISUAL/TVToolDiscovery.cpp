@@ -164,10 +164,25 @@ namespace OpenMS
     }
 
     // Write tool ini to temporary file
+    static std::atomic<int> running_processes{0}; // used to limit the number of parallel processes
     auto lam_out = [&](const String& out) { OPENMS_LOG_INFO << out; };
     auto lam_err = [&](const String& out) { OPENMS_LOG_INFO << out; };
+
+    // Spawning a thread for all tools is no problem (if std::async decides to do so)
+    // but spawning that many processes failed with not enough file handles on machines with large number of cores.
+    // Restricting the number of running processes solves that issue.
+    while (running_processes >= 6) 
+    { 
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      QCoreApplication::processEvents();
+    }
+
     ExternalProcess proc(lam_out, lam_err);
+    // Write tool ini to temporary file
+    ++running_processes;
     auto return_state = proc.run(executable.toQString(), args, working_dir.toQString(), true, ExternalProcess::IO_MODE::NO_IO);
+    --running_processes;
+
     // Return empty param if writing the ini file failed
     if (return_state != ExternalProcess::RETURNSTATE::SUCCESS)
     {
