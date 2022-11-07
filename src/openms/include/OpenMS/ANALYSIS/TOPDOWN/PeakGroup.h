@@ -93,8 +93,7 @@ namespace OpenMS
     /// recruit peaks and then return as a spectrum.
     void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, const std::unordered_set<double>& exclude_mzs);
 
-    /// using signal and total (signal + noise) power, update SNR value
-    void updateSNR();
+
 
     /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance)
     bool isSignalMZ(const double mz, const double tol) const;
@@ -249,12 +248,14 @@ namespace OpenMS
   private:
 
     /// set per abs_charge signal power
-    void setChargePowers_(const int abs_charge, const double signal_pwr, const double noise_pwr, const double intensity);
+    void setChargePowers_(const int abs_charge, const float signal_pwr, const float noise_pwr, const float intensity);
     void updateChargeFitScoreAndChargeIntensities_();
     ///update avg ppm error
     void updateAvgPPMError_();
     /// get ppm error of a logMzPeak
     double getAbsPPMError_(const LogMzPeak& p) const;
+    /// using signal and total (signal + noise) power, update SNR value
+    void updateSNR_();
 
     /// Encoded matrix for DL scoring
     std::vector<Matrix<float>> dl_matrices_;
@@ -265,7 +266,7 @@ namespace OpenMS
 
     /// per charge SNR, isotope cosine, and intensity vectors
     std::vector<float> per_charge_signal_pwr_;
-    std::vector<float> per_charge_pwr_;
+    std::vector<float> per_charge_noise_pwr_;
     std::vector<float> per_charge_cos_;
     std::vector<float> per_charge_int_;
     std::vector<float> per_charge_snr_;
