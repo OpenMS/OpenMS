@@ -168,8 +168,14 @@ public:
       FORCE_SCAN
     };
 
+    enum class VERBOSITY
+    {
+      DEFAULT,
+      VERBOSE
+    };    
+
     ///Constructor
-    explicit TOPPViewBase(TOOL_SCAN scan_mode = TOOL_SCAN::SCAN_IF_NEWER_VERSION, QWidget* parent = nullptr);
+    explicit TOPPViewBase(TOOL_SCAN scan_mode = TOOL_SCAN::SCAN_IF_NEWER_VERSION, VERBOSITY verbosity = VERBOSITY::DEFAULT, QWidget* parent = nullptr);
     ///Destructor
     ~TOPPViewBase() override;
 
