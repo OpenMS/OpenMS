@@ -275,25 +275,15 @@ namespace OpenMS
           break;
         }
 
-        if (iso_index < 0 || iso_index > max_isotope - iso_margin)
-        {
-          auto p = LogMzPeak(spec[index], is_positive_);
-          p.isotopeIndex = iso_index;
-          p.abs_charge = c;
-          noisy_peaks_.push_back(p);
-          continue;
-        }
 
-        float peak_pwr = pint * pint;
-
-        if (abs(pmz - cmz - iso_index * iso_delta) <= pmz * tol) //
+        if (iso_index >=0 && iso_index <= max_isotope - iso_margin && abs(pmz - cmz - iso_index * iso_delta) <= pmz * tol) //
         {
           auto p = LogMzPeak(spec[index], is_positive_);
           p.isotopeIndex = iso_index;
           p.abs_charge = c;
           push_back(p);
 
-          charge_sig_pwr += peak_pwr;
+          charge_sig_pwr += pint * pint;
           charge_intensity += pint;
           if (max_charge_signal_intensity < p.intensity)
           {
@@ -319,7 +309,7 @@ namespace OpenMS
         for (; noise_start < noisy_peaks_.size(); noise_start++)
         {
           auto& p = noisy_peaks_[noise_start];
-          if (p.isotopeIndex < 0 || p.isotopeIndex > max_isotope - iso_margin)
+          if (p.isotopeIndex < -1 || p.isotopeIndex > max_isotope - iso_margin)
           {
             continue;
           }
