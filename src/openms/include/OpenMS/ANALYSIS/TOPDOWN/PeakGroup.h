@@ -85,16 +85,13 @@ namespace OpenMS
 
     /**
            @brief add monoisotopic indices of peaks by offset and discard negative isotope peaks. Total intensity is also updated
-           @param offset isotope index offset
       */
-    void updateMonomassAndIsotopeIntensities(double tol);
+    void updateMonomassAndIsotopeIntensities();
 
-    void updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double tol);
-
-    //MSSpectrum getSubspectrumForMass(const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass);
+    void updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos);
 
     /// recruit peaks and then return as a spectrum.
-    void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, bool write_detail);
+    void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, const std::unordered_set<double>& exclude_mzs);
 
     /// using signal and total (signal + noise) power, update SNR value
     void updateSNR();
@@ -138,17 +135,11 @@ namespace OpenMS
     /// set if it is targeted
     void setTargeted();
 
-    /// set second best monoisotopic mass
-    void setSecondBestMonsMass(const double mass);
-
     /// get scan number
     int getScanNumber() const;
 
     /// get monoisotopic mass
     double getMonoMass() const;
-
-    /// get second best monoisotopic mass
-    double getSecondBestMonoMass() const;
 
     /// get intensity
     double getIntensity() const;
@@ -197,14 +188,6 @@ namespace OpenMS
     /// get if it is targeted
     bool isTargeted() const;
 
-    //float getDecoyQScore() const;
-
-    //void setDecoyQScore(const float d);
-
-    //float getDecoyIsoScore() const;
-
-    //void setDecoyIsoScore(const float d);
-
     int getDecoyIndex() const;
 
     void setDecoyIndex(int index);
@@ -233,7 +216,9 @@ namespace OpenMS
 
     int getIndex() const;
 
-    void getEncodedMatrix(std::vector<Matrix<double>>& ret, int charge_range, int iso_range, double tol, PrecalculatedAveragine& avg) const;
+    void calculateDLMatriices(int charge_range, int iso_range, double tol, PrecalculatedAveragine& avg);
+
+    Matrix<float> getDLMatrix(int index) const;
 
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator begin() const noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator end() const noexcept;
@@ -259,6 +244,8 @@ namespace OpenMS
     void shrink_to_fit();
     void sort();
 
+    void clearVectors();
+
   private:
 
     /// set per abs_charge signal power
@@ -268,6 +255,9 @@ namespace OpenMS
     void updateAvgPPMError_();
     /// get ppm error of a logMzPeak
     double getAbsPPMError_(const LogMzPeak& p) const;
+
+    /// Encoded matrix for DL scoring
+    std::vector<Matrix<float>> dl_matrices_;
 
     /// log Mz peaks
     std::vector<FLASHDeconvHelperStructs::LogMzPeak> logMzpeaks_;
@@ -295,7 +285,6 @@ namespace OpenMS
     bool is_targeted_ = false;
     /// information on the deconvolved mass
     double monoisotopic_mass_ = -1.0;
-    double second_best_monomass_ = -1.0;
     double intensity_;// total intensity
     /// index to specify if this peak_group is a target (0), an isotope decoy (1), a noise (2), or a charge decoy (3)
     int decoy_index_ = 0;

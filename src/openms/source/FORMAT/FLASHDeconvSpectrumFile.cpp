@@ -225,6 +225,93 @@ namespace OpenMS
     }
   }
 
+  void FLASHDeconvSpectrumFile::writeDLMatrixHeader(DeconvolvedSpectrum& dspec, std::fstream& fs)
+  {
+    if(dspec.size() <= 0)
+    {
+      return;
+    }
+
+    auto pg = dspec[0];
+    for(int i=0;i<3;i++)
+    {
+      String prefix = "Set" + std::to_string(i+1) + "_";
+      auto dlm = pg.getDLMatrix(i).asVector();
+      int j=0;
+      for(double v:dlm)
+      {
+        fs<<prefix<<j++<<",";
+      }
+    }
+    fs<<"Class\n";
+  }
+
+  template<class BidiIter >
+  BidiIter random_unique(BidiIter begin, BidiIter end, size_t num_random) {
+    size_t left = std::distance(begin, end);
+    while (num_random--) {
+      BidiIter r = begin;
+      std::advance(r, rand()%left);
+      std::swap(*begin, *r);
+      ++begin;
+      --left;
+    }
+    return begin;
+  }
+
+  void FLASHDeconvSpectrumFile::writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, std::fstream& fs)
+  {
+    String cns[] = {"T", "D1", "D2", "D3"};
+    int count = 25000;
+    //class,ID,group,data
+    std::vector<std::vector<PeakGroup>> grouped(4);
+
+    for(auto& dspec: dspecs)
+    {
+      for(auto& pg: dspec)
+      {
+        int cl = pg.getDecoyIndex();
+        if(cl<0 || cl>=grouped.size())
+        {
+          continue;
+        }
+        grouped[cl].push_back(pg);
+      }
+    }
+
+    for(auto& g : grouped)
+    {
+      if(g.size() < count)
+      {
+        continue;
+      }
+      random_unique(g.begin(), g.end(), count);
+    }
+
+    for(auto& g : grouped)
+    {
+      int cntr = 0;
+      for (auto& pg : g)
+      {
+        int cl = pg.getDecoyIndex();
+
+        for (int i = 0; i < 3; i++)
+        {
+          auto dlm = pg.getDLMatrix(i).asVector();
+          for (double v : dlm)
+          {
+            fs << v << ",";
+          }
+        }
+        fs << cns[cl] << "\n";
+        if(++cntr >= count)
+        {
+          break;
+        }
+      }
+    }
+  }
+
   void FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(std::fstream& fs, const int ms_level, const bool detail, const bool decoy)
   {
     if (detail)

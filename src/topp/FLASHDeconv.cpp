@@ -375,6 +375,7 @@ protected:
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
   {
+    bool DLTrain = false;
     OPENMS_LOG_INFO << "Initializing ... " << endl;
     const bool write_detail_qscore_att = false;
 
@@ -427,10 +428,14 @@ protected:
     fi_out.open(in_file + ".txt", fstream::out); //
     #endif
 
-    fstream out_stream, out_train_stream, out_promex_stream, out_att_stream, out_topfd_feature_stream;
+    fstream out_stream, out_train_stream, out_promex_stream, out_att_stream, out_dl_stream, out_topfd_feature_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams;
 
     out_stream.open(out_file, fstream::out);
+    if(DLTrain)
+    {
+      out_dl_stream.open(out_file + "_dl.csv", fstream::out);
+    }
 #ifdef DEBUG_EXTRA_PARAMTER
     out_att_stream.open(out_att_file, fstream::out);
 
@@ -467,7 +472,6 @@ protected:
       {
         out_spec_streams[i].open(out_spec_file[i], fstream::out);
         FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail, report_decoy);
-
       }
     }
 
@@ -599,7 +603,7 @@ protected:
     MSExperiment exp, exp_annotated;
 
     auto fd = FLASHDeconvAlgorithm();
-    FLASHDeconvAlgorithm fd_charge_decoy, fd_noise_decoy;
+    FLASHDeconvAlgorithm fd_charge_decoy, fd_noise_decoy, fd_iso_decoy;
 
     Param fd_param = getParam_().copy("Algorithm:", true);
     DoubleList tols = fd_param.getValue("tol");
@@ -653,21 +657,23 @@ protected:
     fd.setParameters(fd_param);
     fd.calculateAveragine(use_RNA_averagine);
     //fd.setTargetMasses(getTargetMasses(targets));
-
+    auto avg = fd.getAveragine();
     if(report_decoy)
     {
       fd_charge_decoy.setParameters(fd_param);
-      fd_charge_decoy.setAveragine(fd.getAveragine());
-      fd_charge_decoy.setDecoyFlag(1); // charge
+      fd_charge_decoy.setAveragine(avg);
+      fd_charge_decoy.setDecoyFlag(1, fd); // charge
 
 
       fd_noise_decoy.setParameters(fd_param);
-      fd_noise_decoy.setAveragine(fd.getAveragine());
-      fd_noise_decoy.setDecoyFlag(2); // noise
+      fd_noise_decoy.setAveragine(avg);
+      fd_noise_decoy.setDecoyFlag(2, fd); // noise
 
-      fd.setDecoyFlag(3); // isotope
+      fd_iso_decoy.setParameters(fd_param);
+      fd_iso_decoy.setAveragine(avg);
+      fd_iso_decoy.setDecoyFlag(3, fd);
     }
-    auto avg = fd.getAveragine();
+
     auto mass_tracer = MassFeatureTrace();
     Param mf_param = getParam_().copy("FeatureTracing:", true);
     DoubleList isotope_cosines = fd_param.getValue("min_isotope_cosine");
@@ -703,6 +709,9 @@ protected:
     {
       scan_number = SpectrumLookup::extractScanNumber(it->getNativeID(),
                                                       map.getSourceFiles()[0].getNativeIDTypeAccession());
+
+      progresslogger.nextProgress();
+
       if (it->empty())
       {
         continue;
@@ -725,7 +734,6 @@ protected:
       }
       fd.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
       auto& deconvolved_spectrum = fd.getDeconvolvedSpectrum();
-      auto& decoy_deconvolved_spectrum = fd.getDecoyDeconvolvedSpectrum();
 
       if (deconvolved_spectrum.empty())
       {
@@ -805,36 +813,28 @@ protected:
 
       if(report_decoy)
       {
-        fd_charge_decoy.clearPreviouslyDeconvolvedMonoMasses();
-        for(auto& pg: deconvolved_spectrum){
-          for(int iso=-5;iso <=  (int)avg.getLastIndex(pg.getMonoMass()) + 2;iso++){
-            fd_charge_decoy.addPreviouslyDeconvolvedMonoMass(pg.getMonoMass() + iso * Constants::ISOTOPE_MASSDIFF_55K_U);
-          }
-        }
+
         fd_charge_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
         fd_noise_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
+        fd_iso_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
 
-        decoy_deconvolved_spectrum.reserve(decoy_deconvolved_spectrum.size() + fd_charge_decoy.getDecoyDeconvolvedSpectrum().size()
-                                           + fd_noise_decoy.getDecoyDeconvolvedSpectrum().size());
+        DeconvolvedSpectrum& decoy_deconvolved_spectrum = fd_noise_decoy.getDeconvolvedSpectrum();
 
-        for(auto& pg: fd_charge_decoy.getDecoyDeconvolvedSpectrum())
+        decoy_deconvolved_spectrum.reserve(fd_iso_decoy.getDeconvolvedSpectrum().size() + fd_charge_decoy.getDeconvolvedSpectrum().size()
+                                           + fd_noise_decoy.getDeconvolvedSpectrum().size());
+
+        for(auto& pg: fd_charge_decoy.getDeconvolvedSpectrum())
         {
           decoy_deconvolved_spectrum.push_back(pg);
         }
 
-        for(auto& pg: fd_noise_decoy.getDecoyDeconvolvedSpectrum())
+        for(auto& pg: fd_iso_decoy.getDeconvolvedSpectrum())
         {
           decoy_deconvolved_spectrum.push_back(pg);
         }
 
         decoy_deconvolved_spectrum.sort();
-        if(!write_detail)
-        {
-          for(auto& pg: decoy_deconvolved_spectrum)
-          {
-            pg.clear();
-          }
-        }
+
         decoy_deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
       }
 
@@ -846,8 +846,6 @@ protected:
       elapsed_deconv_wall_secs[ms_level - 1] += chrono::duration<double>(
                                                   chrono::high_resolution_clock::now() - deconv_t_start).count();
 
-
-      progresslogger.nextProgress();
     }
     progresslogger.endProgress();
 
@@ -858,11 +856,13 @@ protected:
     for(auto& deconvolved_spectrum: deconvolved_spectra)
     {
       int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
-
+      if (ms_level == 1)
+      {
+        mass_tracer.storeInformationFromDeconvolvedSpectrum(deconvolved_spectrum); // add deconvolved mass in mass_tracer
+      }
       if ((int) out_spec_streams.size() > ms_level - 1)
       {
         FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, report_decoy);
-        mass_tracer.storeInformationFromDeconvolvedSpectrum(deconvolved_spectrum);// add deconvolved mass in mass_tracer
       }
       if ((int) out_topfd_streams.size() > ms_level - 1)
       {
@@ -898,11 +898,7 @@ protected:
     // mass_tracer run
     if (merge != 2) // unless spectra are merged into a single one
     {
-      auto mass_features = mass_tracer.findFeatures(// !out_promex_file.empty(), !out_topfd_feature_file.empty(),
-                              // precursor_peak_groups,
-        fd.getAveragine()
-                               //feature_cntr , out_stream, out_promex_stream, out_topfd_feature_streams
-                               );
+      auto mass_features = mass_tracer.findFeatures(fd.getAveragine());
       feature_cntr = mass_features.size();
       if(feature_cntr > 0)
       {
@@ -918,6 +914,43 @@ protected:
         FLASHDeconvFeatureFile::writePromexFeatures(mass_features, precursor_peak_groups, scan_rt_map, avg, out_promex_stream);
       }
     }
+
+    // TODO
+
+    if(DLTrain)
+    {
+      for (auto& deconvolved_spectrum : deconvolved_spectra){
+        for (auto& pg : deconvolved_spectrum) // TODO
+        {
+          pg.calculateDLMatriices(11, 21, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1] * 1e-6, avg);
+          pg.clearVectors();
+        }
+      }
+
+      for (auto& deconvolved_spectrum : decoy_deconvolved_spectra){
+        for (auto& pg : deconvolved_spectrum) // TODO
+        {
+          pg.calculateDLMatriices(11, 21, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1] * 1e-6, avg);
+          pg.clearVectors();
+        }
+      }
+
+      for (auto& deconvolved_spectrum : deconvolved_spectra)
+      {
+        if (deconvolved_spectrum.empty())
+        {
+          continue;
+        }
+        FLASHDeconvSpectrumFile::writeDLMatrixHeader(deconvolved_spectrum, out_dl_stream);
+        break;
+      }
+
+      FLASHDeconvSpectrumFile::writeDLMatrix(deconvolved_spectra, out_dl_stream);
+      FLASHDeconvSpectrumFile::writeDLMatrix(decoy_deconvolved_spectra, out_dl_stream);
+
+      out_dl_stream.close();
+    }
+
     if (!out_mzml_file.empty())
     {
       MzMLFile mzml_file;
