@@ -78,19 +78,24 @@ namespace OpenMS
 
 
 
-  void PeakGroup::updateAvgPPMError_(double iso_da_distance)
+  void PeakGroup::updateAvgPPMError_()
   {
     avg_ppm_error_ = 0;
     for (auto& p : *this)
     {
-      double average_mass = monoisotopic_mass_ + p.isotopeIndex * iso_da_distance;
-      avg_ppm_error_ += (average_mass / p.abs_charge + FLASHDeconvHelperStructs::getChargeMass(p.is_positive) - p.mz) / p.mz;
+      avg_ppm_error_ += getAbsPPMError_(p);
     }
     avg_ppm_error_ /= size();
   }
 
+  double PeakGroup::getAbsPPMError_(const LogMzPeak& p) const
+  {
+    double average_mass = monoisotopic_mass_ + p.isotopeIndex * iso_da_distance_;
+    return abs(average_mass / p.abs_charge + FLASHDeconvHelperStructs::getChargeMass(p.is_positive) - p.mz) / p.mz * 1e6;
+  }
 
-  void PeakGroup::updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, double iso_da_distance)
+
+  void PeakGroup::updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos)
   {
    qscore_ = 0;
    if(empty())
@@ -111,8 +116,7 @@ namespace OpenMS
     }
 
     int h_offset;
-    int second_best_offset= 0;
-    isotope_cosine_score_ = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(monoisotopic_mass_, per_isotope_int_, h_offset, second_best_offset, avg, 0);
+    isotope_cosine_score_ = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(monoisotopic_mass_, per_isotope_int_, h_offset, avg, 0);
 
     if(isotope_cosine_score_ < min_cos)
     {
@@ -158,7 +162,7 @@ namespace OpenMS
       setChargeIsotopeCosine(abs_charge, cos_score);//
     }
 
-    updateAvgPPMError_(iso_da_distance);
+    updateAvgPPMError_();
     updateSNR();
     for (int abs_charge = min_abs_charge_; abs_charge <= max_abs_charge_; abs_charge++)
     {
@@ -219,7 +223,7 @@ namespace OpenMS
 */
   void PeakGroup::recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol,
                                             const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                            double mono_mass, bool write_detail)
+                                            double mono_mass, const std::unordered_set<double>& exclude_mzs)
   {
     if(mono_mass < 0)
     {
@@ -232,8 +236,9 @@ namespace OpenMS
 
     clear();
     reserve((max_isotope) * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
-    if(write_detail)
-      noisy_peaks.reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1)* 2);
+    //if(write_detail)
+    noisy_peaks_.clear();
+    noisy_peaks_.reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1)* 2);
 
     int nmax_abs_charge = -1;
     int nmin_abs_charge = min_abs_charge_;
@@ -252,6 +257,11 @@ namespace OpenMS
       double iso_delta = iso_da_distance_ / c;
       for(;index < spec.size(); index++)
       {
+        if(exclude_mzs.size() > 0 && exclude_mzs.find(spec[index].getMZ()) != exclude_mzs.end())
+        {
+          continue;
+        }
+
         double pint = spec[index].getIntensity();
         if(pint <= 0)
         {
@@ -267,19 +277,16 @@ namespace OpenMS
 
         if(iso_index < 0 || iso_index > max_isotope - iso_margin)
         {
-          if(write_detail)
-          {
-            auto p = LogMzPeak(spec[index], is_positive_);
-            p.isotopeIndex = iso_index;
-            p.abs_charge = c;
-            noisy_peaks.push_back(p);
-          }
+          auto p = LogMzPeak(spec[index], is_positive_);
+          p.isotopeIndex = iso_index;
+          p.abs_charge = c;
+          noisy_peaks_.push_back(p);
           continue;
         }
 
         double peak_pwr = pint * pint;
 
-        if(abs(pmz - cmz - iso_index * iso_delta) <= std::min(.25, pmz * tol)) //
+        if(abs(pmz - cmz - iso_index * iso_delta) <= pmz * tol) //
         {
           auto p = LogMzPeak(spec[index], is_positive_);
           p.isotopeIndex = iso_index;
@@ -291,13 +298,11 @@ namespace OpenMS
         }
         else
         {
-          if(write_detail)
-          {
-            auto p = LogMzPeak(spec[index], is_positive_);
-            p.isotopeIndex = iso_index;
-            p.abs_charge = c;
-            noisy_peaks.push_back(p);
-          }
+          auto p = LogMzPeak(spec[index], is_positive_);
+          p.isotopeIndex = iso_index;
+          p.abs_charge = c;
+          noisy_peaks_.push_back(p);
+
           charge_noise_pwr += peak_pwr;
         }
       }
@@ -361,11 +366,13 @@ namespace OpenMS
       }
     }
     sort();
+    std::sort(noisy_peaks_.begin(), noisy_peaks_.end());
     max_abs_charge_ = nmax_abs_charge;
     min_abs_charge_ = nmin_abs_charge;
     if(min_abs_charge_>max_abs_charge_)
     {
       clear();
+      noisy_peaks_.clear();
     }
   }
 
@@ -722,7 +729,6 @@ namespace OpenMS
     return avg_ppm_error_;
   }
 
-
   float PeakGroup::getChargeSNR(const int abs_charge) const
   {
     if (abs_charge<0 || (int) per_charge_snr_.size() <= abs_charge)
@@ -806,7 +812,6 @@ namespace OpenMS
     decoy_iso_score_ = d;
   }
   */
-
   std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator PeakGroup::begin() const noexcept
   {
     return logMzpeaks_.begin();
@@ -875,6 +880,22 @@ namespace OpenMS
   {
     qvalue_ = q;
   }
+
+  void PeakGroup::clearVectors()
+  {
+
+    std::vector<LogMzPeak>().swap(logMzpeaks_);
+    std::vector<LogMzPeak>().swap(noisy_peaks_);
+
+    std::vector<float>().swap(per_charge_signal_pwr_);
+    std::vector<float>().swap(per_charge_pwr_);
+    std::vector<float>().swap(per_charge_cos_);
+    std::vector<float>().swap(per_charge_int_);
+    std::vector<float>().swap(per_charge_snr_);
+    std::vector<float>().swap(per_isotope_int_);
+  }
+
+
   void PeakGroup::setQvalueWithChargeDecoyOnly(float q)
   {
     qvalue_with_charge_decoy_only_ = q;
@@ -887,13 +908,134 @@ namespace OpenMS
   {
     qvalue_with_noise_decoy_only_ = q;
   }
-  void PeakGroup::setSecondBestMonsMass(const double mass)
+
+
+  void PeakGroup::calculateDLMatriices(int charge_range, int iso_range, double tol, PrecalculatedAveragine& avg)
   {
-    second_best_monomass_ = mass;
+    int iso_index_diff = -avg.getApexIndex(getMonoMass()) + (int)(iso_range/2);
+    auto max_charge_iter = std::max_element(per_charge_int_.begin(), per_charge_int_.end());
+    int charge_index_diff = -std::distance(per_charge_int_.begin(), max_charge_iter)
+      + (int)(charge_range/2);
+
+    auto iso = avg.get(getMonoMass());
+
+    float base = iso.getMostAbundant().getIntensity()/100.0;
+
+    Matrix<float> sig, sigtol, noise;
+    sig.resize(charge_range, iso_range, .0);
+    sigtol.resize(charge_range, iso_range, .0);
+
+    for(auto& p: logMzpeaks_)
+    {
+      int iso_index = p.isotopeIndex + iso_index_diff;
+      int charge_index = p.abs_charge + charge_index_diff;
+      if(iso_index<0 || iso_index >=iso_range)
+      {
+        continue;
+      }
+      if(charge_index<0 || charge_index >=charge_range)
+      {
+        continue;
+      }
+
+      if(p.intensity < sig.getValue(charge_index, iso_index))
+      {
+        continue;
+      }
+      sig.setValue(charge_index, iso_index, p.intensity);
+      sigtol.setValue(charge_index, iso_index, getAbsPPMError_(p)/tol/1e6);
+    }
+
+    noise.resize(charge_range, iso_range, .0);
+    //noisetol.resize(charge_range, iso_range, .0);
+
+    for(auto& p: noisy_peaks_)
+    {
+      int iso_index = p.isotopeIndex + iso_index_diff;
+      int charge_index = p.abs_charge + charge_index_diff;
+      if(iso_index<0 || iso_index >=iso_range)
+      {
+        continue;
+      }
+      if(charge_index<0 || charge_index >=charge_range)
+      {
+        continue;
+      }
+      if(p.intensity < noise.getValue(charge_index, iso_index))
+      {
+        continue;
+      }
+      noise.setValue(charge_index, iso_index, p.intensity);
+      //noisetol.setValue(charge_index, iso_index, getAbsPPMError_(p)/tol/1e6);
+    }
+    for(int c=0; c<sig.cols();c++)
+    {
+      int index = c-iso_index_diff;
+      float factor = base;
+      if(index >= 0 && index < iso.size())
+      {
+        factor += iso[index].getIntensity();;
+      }
+      for(int r=0; r<sig.rows();r++)
+      {
+        sig.setValue(r,c,sig.getValue(r,c) / factor);
+        noise.setValue(r,c,noise.getValue(r,c) / factor);
+      }
+    }
+
+   // auto apex_row = sig.row((int)(charge_range/2));
+    //double apex_sum = *std::max_element(apex_row.begin(), apex_row.end());
+
+    float apex_sum = *std::max_element(sig.asVector().begin(), sig.asVector().end());
+    if(apex_sum > 0)
+    {
+      for (auto& v : sig)
+      {
+        if (v <= 0)
+        {
+          continue;
+        }
+        v /= apex_sum;
+      }
+
+      for (auto& v : noise)
+      {
+        if (v <= 0)
+        {
+          continue;
+        }
+        v /= apex_sum;
+      }
+    }
+    dl_matrices_.push_back(sig);
+    dl_matrices_.push_back(noise);
+    dl_matrices_.push_back(sigtol);
+    //dl_matrices_.push_back(noisetol);
   }
 
-  double PeakGroup::getSecondBestMonoMass() const
+  std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator PeakGroup::getNoisePeakBegin() noexcept
   {
-    return second_best_monomass_;
+    return noisy_peaks_.begin();
+  }
+
+  std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator PeakGroup::getNoisePeakEnd() noexcept
+  {
+    return noisy_peaks_.end();
+  }
+
+  std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator PeakGroup::getNoisePeakBegin() const noexcept
+  {
+    return noisy_peaks_.begin();
+  }
+
+  std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator PeakGroup::getNoisePeakEnd() const noexcept
+  {
+    return noisy_peaks_.end();
+  }
+
+  Matrix<float> PeakGroup::getDLMatrix(int index) const
+  {
+    assert(index >=0 && index < dl_matrices_.size());
+    return dl_matrices_[index];
   }
 }
