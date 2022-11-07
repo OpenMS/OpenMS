@@ -319,6 +319,10 @@ namespace OpenMS
         for (; noise_start < noisy_peaks_.size(); noise_start++)
         {
           auto& p = noisy_peaks_[noise_start];
+          if (p.isotopeIndex < 0 || p.isotopeIndex > max_isotope - iso_margin)
+          {
+            continue;
+          }
           if (p.intensity < max_charge_signal_intensity)
           {
             continue;
