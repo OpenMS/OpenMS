@@ -94,13 +94,6 @@ macro(add_mac_app_bundle _name)
                 DESTINATION "${APP_FOLDER}/Contents/Resources"
                 COMPONENT AAApplications)
 
-        ## add qt.conf to the bin directory for DMGs
-        file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-        "[Paths]\nPlugins = ../lib/plugins/plugins/\n")
-        install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-                DESTINATION "${OPENMS_BINARY_DIR}"
-                COMPONENT QT5SQLitePlugin)
-
         ## Fix up the dependencies in the bundle and make them rel. to their location in the bundle
         ## Give additional plugins to fix and extra dirs where dependencies should be searched
 		install(CODE "

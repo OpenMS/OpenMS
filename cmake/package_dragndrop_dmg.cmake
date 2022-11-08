@@ -86,7 +86,10 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README
         COMPONENT   TOPPShell)
 
 ## Install the qt.conf file so we can find the libraries
-install(FILES       ${PROJECT_BINARY_DIR}/bin/qt.conf
+## add qt.conf to the bin directory for DMGs
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+"[Paths]\nPlugins = ../lib/plugins/plugins/\n")
+install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
         DESTINATION ./bin
         PERMISSIONS OWNER_WRITE OWNER_READ
                     GROUP_READ
