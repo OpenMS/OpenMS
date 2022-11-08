@@ -131,7 +131,7 @@ namespace OpenMS
     void inferPosteriorProbabilities(
         ConsensusMap& cmap,
         bool greedy_group_resolution,
-        const std::optional<const ExperimentalDesign>exp_des);
+        const std::optional<const ExperimentalDesign> exp_des);
 
   private:
 
