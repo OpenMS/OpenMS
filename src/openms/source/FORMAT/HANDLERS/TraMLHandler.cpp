@@ -1591,36 +1591,10 @@ namespace OpenMS::Internal
 
     void TraMLHandler::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
     {
-      //create a DataValue that contains the data in the right type
-      DataValue data_value;
-      // float type
-      if (type == "xsd:double" || type == "xsd:float" || type == "xsd:decimal")
-      {
-        data_value = DataValue(value.toDouble());
-      }
-      // <=32 bit integer types
-      else if (type == "xsd:byte" ||          // 8bit signed
-               type == "xsd:int" ||           // 32bit signed
-               type == "xsd:unsignedShort" || // 16bit unsigned
-               type == "xsd:short" ||         // 16bit signed
-               type == "xsd:unsignedByte" || type == "xsd:unsignedInt")
-      {
-        data_value = DataValue(value.toInt32());
-      }
-      // 64 bit integer types
-      else if (type == "xsd:long" || type == "xsd:unsignedLong" ||       // 64bit signed or unsigned respectively
-               type == "xsd:integer" || type == "xsd:negativeInteger" || // any 'integer' has arbitrary size... but we have to cope with 64bit for now.
-               type == "xsd:nonNegativeInteger" || type == "xsd:nonPositiveInteger" || type == "xsd:positiveInteger")
-      {
-        data_value = DataValue(value.toInt64()); // internally a signed 64-bit integer. So if someone uses 2^64-1 as value, toInt64() will raise an exception...
-      }
-      //everything else is treated as a string
-      else
-      {
-        data_value = DataValue(value);
-      }
+      // create a DataValue that contains the data in the right type
+      DataValue data_value = fromXSDString(type, value);
 
-      //find the right MetaInfoInterface
+      // find the right MetaInfoInterface
       if (parent_tag == "Software")
       {
         actual_software_.setMetaValue(name, data_value);
