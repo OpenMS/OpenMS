@@ -1593,15 +1593,26 @@ namespace OpenMS::Internal
     {
       //create a DataValue that contains the data in the right type
       DataValue data_value;
-      //float type
-      if (type == "xsd:double" || type == "xsd:float")
+      // float type
+      if (type == "xsd:double" || type == "xsd:float" || type == "xsd:decimal")
       {
         data_value = DataValue(value.toDouble());
       }
-      //integer type
-      else if (type == "xsd:byte" || type == "xsd:decimal" || type == "xsd:int" || type == "xsd:integer" || type == "xsd:long" || type == "xsd:negativeInteger" || type == "xsd:nonNegativeInteger" || type == "xsd:nonPositiveInteger" || type == "xsd:positiveInteger" || type == "xsd:short" || type == "xsd:unsignedByte" || type == "xsd:unsignedInt" || type == "xsd:unsignedLong" || type == "xsd:unsignedShort")
+      // <=32 bit integer types
+      else if (type == "xsd:byte" ||          // 8bit signed
+               type == "xsd:int" ||           // 32bit signed
+               type == "xsd:unsignedShort" || // 16bit unsigned
+               type == "xsd:short" ||         // 16bit signed
+               type == "xsd:unsignedByte" || type == "xsd:unsignedInt")
       {
-        data_value = DataValue(value.toInt());
+        data_value = DataValue(value.toInt32());
+      }
+      // 64 bit integer types
+      else if (type == "xsd:long" || type == "xsd:unsignedLong" ||       // 64bit signed or unsigned respectively
+               type == "xsd:integer" || type == "xsd:negativeInteger" || // any 'integer' has arbitrary size... but we have to cope with 64bit for now.
+               type == "xsd:nonNegativeInteger" || type == "xsd:nonPositiveInteger" || type == "xsd:positiveInteger")
+      {
+        data_value = DataValue(value.toInt64()); // internally a signed 64-bit integer. So if someone uses 2^64-1 as value, toInt64() will raise an exception...
       }
       //everything else is treated as a string
       else
