@@ -385,7 +385,7 @@ jobs:
       if: github.event_name == 'pull_request'
       shell: bash
       run: |
-        apt-get install -y jq
+        sudo apt-get install -y jq
         echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
 
@@ -395,7 +395,7 @@ jobs:
       #  hack needed to fix apt dependency
 #    - name: "Debug: Package dependancies for tmate"
 #      run: |
-#        apt-get install -y xz
+#        sudo apt-get install -y xz
 #        ln -s /bin/true /bin/apt-get
 #
 #    - name: "Debug: Start tmate"
@@ -406,7 +406,7 @@ jobs:
 
     - name: Install Xvfb package
       run: |
-            apt-get install -y xorg-x11-server-Xvfb
+            sudo apt-get install -y xorg-x11-server-Xvfb
 
     - name: Add THIRDPARTY
       shell: bash
@@ -430,11 +430,11 @@ jobs:
       uses: KyleMayes/install-llvm-action@v1.6.0
   
     - name: Install dev tools
-      run: add-apt-repository universe
-           apt update    
-           apt-get install build-essential cmake autoconf patch libtool git automake
-           apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
-           apt-get install libeigen3-dev libsqlite3-dev libboost-random1.67-dev libboost-regex1.67-dev libboost-iostreams1.67-dev libboost-date-time1.67-dev libboost-math1.67-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
+      run: sudo add-apt-repository universe
+           sudo apt update    
+           sudo apt-get install build-essential cmake autoconf patch libtool git automake
+           sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
+           sudo apt-get install libeigen3-dev libsqlite3-dev libboost-random1.67-dev libboost-regex1.67-dev libboost-iostreams1.67-dev libboost-date-time1.67-dev libboost-math1.67-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
     - name: Build and test lnx
       run: |
