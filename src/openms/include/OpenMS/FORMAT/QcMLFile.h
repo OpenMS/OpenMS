@@ -114,7 +114,7 @@ public:
       bool operator>(const Attachment& rhs) const;
 
       String toXMLString(UInt indentation_level) const;
-      String toCSVString(String separator) const;
+      String toCSVString(const String& separator) const;
     };
 
     ///Default constructor
@@ -126,47 +126,47 @@ public:
     String exportIDstats(const String& filename) const;
     
     /// Registers a run in the qcml file with the respective mappings
-    void registerRun(const String id, const String name);
+    void registerRun(const String& id, const String& name);
     /// Registers a set in the qcml file with the respective mappings
-    void registerSet(const String id, const String name, const std::set<String>& names);
+    void registerSet(const String& id, const String& name, const std::set<String>& names);
     /// Just adds a qualityparameter to run by the name r
-    void addRunQualityParameter(String r, QualityParameter qp);
+    void addRunQualityParameter(const String& r, const QualityParameter& qp);
     /// Just adds a attachment to run by the name r
-    void addRunAttachment(String r, Attachment at);
+    void addRunAttachment(const String& r, const Attachment& at);
     /// Just adds a qualityparameter to set by the name r
-    void addSetQualityParameter(String r, QualityParameter qp);
+    void addSetQualityParameter(const String& r, const QualityParameter& qp);
     /// Just adds a attachment to set by the name r
-    void addSetAttachment(String r, Attachment at);
+    void addSetAttachment(const String& r, const Attachment& at);
     /// Removes attachments referencing a id given in ids, from run/set r. All attachments if no attachment name is given with at.
-    void removeAttachment(String r, std::vector<String>& ids, String at = "");
+    void removeAttachment(const String& r, std::vector<String>& ids, const String& at = "");
     /// Removes attachment with cv accession at from run/set r.
-    void removeAttachment(String r, String at);
+    void removeAttachment(const String& r, const String& at);
     /// Removes attachment with cv accession at from  all runs/sets.
-    void removeAllAttachments(String at);
+    void removeAllAttachments(const String& at);
     /// Just removes qualityparameter going by one of the ID attributes given in ids.
-    void removeQualityParameter(String r, std::vector<String>& ids);
+    void removeQualityParameter(const String& r, std::vector<String>& ids);
     /// merges the given QCFile into this one
-    void merge(const QcMLFile & addendum, String setname = "");
+    void merge(const QcMLFile & addendum, const String& setname = "");
     /// collects the values of given QPs (as CVid) of the given set
-    void/* std::vector<String>& */ collectSetParameter(const String setname, const String qp, std::vector<String>& ret);
+    void/* std::vector<String>& */ collectSetParameter(const String& setname, const String& qp, std::vector<String>& ret);
     /// Returns a String of a tab separated rows if found empty string else from run/set by the name filename of the qualityparameter by the name qpname
-    String exportAttachment(const String filename, const String qpname) const; 
+    String exportAttachment(const String& filename, const String& qpname) const; 
     /// Returns a String value in quotation of a qualityparameter by the name qpname in run/set by the name filename
-    String exportQP(const String filename, const String qpname) const;
+    String exportQP(const String& filename, const String& qpname) const;
     /// Returns a String of a tab separated qualityparameter by the name qpname in run/set by the name filename
-    String exportQPs(const String filename, const StringList qpnames) const;
+    String exportQPs(const String& filename, const StringList& qpnames) const;
     /// Gives the ids of the registered runs in the vector ids.
     void getRunIDs (std::vector<String>& ids) const;
     /// Gives the names of the registered runs in the vector ids.
     void getRunNames (std::vector<String>& ids) const;
     /// Returns true if the given run id is present in this file, if checkname is true it also checks the names
-    bool existsRun(const String filename, bool checkname = false) const;
+    bool existsRun(const String& filename, bool checkname = false) const;
     /// Returns true if the given set id is present in this file, if checkname is true it also checks the names
-    bool existsSet(const String filename, bool checkname = false) const;
+    bool existsSet(const String& filename, bool checkname = false) const;
     /// Returns the ids of the parameter name given if found in given run empty else
-    void existsRunQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const;
+    void existsRunQualityParameter(const String& filename, const String& qpname, std::vector<String>& ids) const;
     /// Returns the ids of the parameter name given if found in given set, empty else
-    void existsSetQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const;
+    void existsSetQualityParameter(const String& filename, const String& qpname, std::vector<String>& ids) const;
     /// Calculation and collection of QC data
     /**
       @brief Collects QC data in qualityParameters and qualityAttachments

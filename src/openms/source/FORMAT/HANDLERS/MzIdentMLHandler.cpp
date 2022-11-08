@@ -988,7 +988,7 @@ namespace OpenMS::Internal
         {
           s += String(indent, '\t') + "<userParam name=\"" + keys[i] + "\" unitName=\"";
 
-          DataValue d = meta.getMetaValue(keys[i]);
+          const DataValue& d = meta.getMetaValue(keys[i]);
           //determine type
           if (d.valueType() == DataValue::INT_VALUE)
           {
@@ -1007,13 +1007,13 @@ namespace OpenMS::Internal
       }
     }
 
-    void MzIdentMLHandler::writeEnzyme_(String& s, DigestionEnzymeProtein enzy, UInt miss, UInt indent) const
+    void MzIdentMLHandler::writeEnzyme_(String& s, const DigestionEnzymeProtein& enzy, UInt miss, UInt indent) const
     {
       String cv_ns = cv_.name();
       s += String(indent, '\t') + "<Enzymes independent=\"false\">\n";
       s += String(indent + 1, '\t') + "<Enzyme missedCleavages=\"" + String(miss) + "\" id=\"" + String("ENZ_") + String(UniqueIdGenerator::getUniqueId()) + "\">\n";
       s += String(indent + 2, '\t') + "<EnzymeName>\n";
-      String enzymename = enzy.getName();
+      const String& enzymename = enzy.getName();
       if (cv_.hasTermWithName(enzymename))
       {
         s += String(indent + 3, '\t') + cv_.getTermByName(enzymename).toXMLString(cv_ns) + "\n";
@@ -1186,7 +1186,7 @@ namespace OpenMS::Internal
 //</Fragmentation>
     }
 
-    String MzIdentMLHandler::trimOpenMSfileURI(const String file) const
+    String MzIdentMLHandler::trimOpenMSfileURI(const String& file) const
     {
       String r = file;
       if (r.hasPrefix("["))
@@ -1200,7 +1200,7 @@ namespace OpenMS::Internal
     void MzIdentMLHandler::writePeptideHit(const PeptideHit& hit,
                                                 std::vector<PeptideIdentification>::const_iterator& it,
                                                 std::map<String, String>& pep_ids,
-                                                String cv_ns, std::set<String>& sen_set,
+                                                const String& cv_ns, std::set<String>& sen_set,
                                                 std::map<String, String>& sen_ids,
                                                 std::map<String, std::vector<String> >& pep_evis,
                                                 std::map<String, double>& pp_identifier_2_thresh,
@@ -1497,8 +1497,8 @@ namespace OpenMS::Internal
 
     void MzIdentMLHandler::writeXLMSPeptideHit(const PeptideHit& hit,
                                                 std::vector<PeptideIdentification>::const_iterator& it,
-                                                String ppxl_linkid, std::map<String, String>& pep_ids,
-                                                String cv_ns, std::set<String>& sen_set,
+                                                const String& ppxl_linkid, std::map<String, String>& pep_ids,
+                                                const String& cv_ns, std::set<String>& sen_set,
                                                 std::map<String, String>& sen_ids,
                                                 std::map<String, std::vector<String> >& pep_evis,
                                                 std::map<String, double>& pp_identifier_2_thresh,

@@ -729,7 +729,7 @@ namespace OpenMS
           for (Size m = 0; m < keys.size(); ++m)
           {
             status += " " + keys[m] + ": ";
-            DataValue dv = f->getMetaValue(keys[m]);
+            const DataValue& dv = f->getMetaValue(keys[m]);
             if (dv.valueType() == DataValue::DOUBLE_VALUE)
             { // use less precision for large numbers, for better readability
               int precision(2);
@@ -1509,7 +1509,7 @@ namespace OpenMS
     }
   }
 
-  void Plot2DCanvas::mergeIntoLayer(Size i, FeatureMapSharedPtrType map)
+  void Plot2DCanvas::mergeIntoLayer(Size i, const FeatureMapSharedPtrType& map)
   {
     auto& layer = dynamic_cast<LayerDataFeature&>(layers_.getLayer(i));
 
@@ -1536,7 +1536,7 @@ namespace OpenMS
     }
   }
 
-  void Plot2DCanvas::mergeIntoLayer(Size i, ConsensusMapSharedPtrType map)
+  void Plot2DCanvas::mergeIntoLayer(Size i, const ConsensusMapSharedPtrType& map)
   {
     auto& layer = dynamic_cast<LayerDataConsensus&>(layers_.getLayer(i));
     OPENMS_PRECONDITION(layer.type == LayerDataBase::DT_CONSENSUS, "Plot2DCanvas::mergeIntoLayer(i, map) non-consensus-feature layer selected");

@@ -758,7 +758,7 @@ namespace OpenMS
     const String& database_filename,
     const String& index_filename,
     bool append,
-    const String species)
+    const String& species)
   {
     ifstream source_database(source_database_filename.c_str());
     if (!source_database)

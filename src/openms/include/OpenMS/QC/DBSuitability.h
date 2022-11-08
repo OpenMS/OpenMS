@@ -449,7 +449,7 @@ namespace OpenMS
     * @throws                     IllegalArgument if @p score_name isn't found in the metavalues
     * @throws                     Precondition if main score of @p pep_ids isn't 'q-value'
     */
-    double getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, String score_name, bool higher_score_better) const;
+    double getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, const String& score_name, bool higher_score_better) const;
   };
 
   // friend class to test private member functions

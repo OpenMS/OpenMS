@@ -1350,7 +1350,7 @@ namespace OpenMS
       model_->setRowBounds(idx, 0., (double)ms2_spectra_per_rt_bin, LPWrapper::UPPER_BOUND_ONLY);
   }
 
-  void PSLPFormulation::updateObjFunction_(String acc, FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices)
+  void PSLPFormulation::updateObjFunction_(const String& acc, FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices)
   {
 #ifdef DEBUG_OPS
     std::cout << "Update Obj. function of combined ILP." << std::endl;

@@ -37,21 +37,22 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <iostream>
 #include <ostream>
 #include <sstream>
+#include <utility>
 
 using namespace std;
 
 namespace OpenMS
 {
   MultiplexDeltaMassesGenerator::Label::Label(String sn, String ln, String d, double dm) :
-    short_name(sn),
-    long_name(ln),
-    description(d),
+    short_name(std::move(sn)),
+    long_name(std::move(ln)),
+    description(std::move(d)),
     delta_mass(dm)
   {
   }
@@ -78,11 +79,11 @@ namespace OpenMS
 
   MultiplexDeltaMassesGenerator::MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_delta_mass) :
     DefaultParamHandler("labels"),
-    labels_(labels),
+    labels_(std::move(labels)),
     labels_list_(),
     samples_labels_(),
     missed_cleavages_(missed_cleavages),
-    label_delta_mass_(label_delta_mass)
+    label_delta_mass_(std::move(label_delta_mass))
   {
     // fill label master list
     fillLabelMasterList_();
@@ -550,17 +551,17 @@ namespace OpenMS
     return samples_labels_;
   }
 
-  String MultiplexDeltaMassesGenerator::getLabelShort(String label)
+  String MultiplexDeltaMassesGenerator::getLabelShort(const String& label)
   {
     return label_long_short_[label];
   }
 
-  String MultiplexDeltaMassesGenerator::getLabelLong(String label)
+  String MultiplexDeltaMassesGenerator::getLabelLong(const String& label)
   {
     return label_short_long_[label];
   }
 
-  MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(AASequence sequence)
+  MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(const AASequence& sequence)
   {
     String s(sequence.toString());
 

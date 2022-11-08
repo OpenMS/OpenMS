@@ -34,12 +34,14 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
 
+#include <utility>
+
 namespace OpenMS
 {
   SpectrumAccessOpenMS::SpectrumAccessOpenMS(boost::shared_ptr<MSExperimentType> ms_experiment)
   {
     // store shared pointer to the actual MSExperiment
-    ms_experiment_ = ms_experiment;
+    ms_experiment_ = std::move(ms_experiment);
   }
 
   SpectrumAccessOpenMS::~SpectrumAccessOpenMS() = default;

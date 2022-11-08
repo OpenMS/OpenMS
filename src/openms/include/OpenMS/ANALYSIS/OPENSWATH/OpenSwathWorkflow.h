@@ -151,7 +151,7 @@ protected:
      * @param ms1only If true, will only score on MS1 level and ignore MS2 level
      *
     */
-    void MS1Extraction_(const OpenSwath::SpectrumAccessPtr ms1_map,
+    void MS1Extraction_(const OpenSwath::SpectrumAccessPtr& ms1_map,
                         const std::vector< OpenSwath::SwathMap > & swath_maps,
                         std::vector< MSChromatogram >& ms1_chromatograms,
                         Interfaces::IMSDataConsumer * chromConsumer,
@@ -181,7 +181,7 @@ protected:
     void prepareExtractionCoordinates_(std::vector< OpenSwath::ChromatogramPtr > & chrom_list,
                                        std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates,
                                        const OpenSwath::LightTargetedExperiment & transition_exp_used,
-                                       const TransformationDescription trafo_inverse,
+                                       const TransformationDescription& trafo_inverse,
                                        const ChromExtractParams & cp,
                                        const bool ms1 = false,
                                        const int ms1_isotopes = -1) const;
@@ -461,7 +461,7 @@ protected:
      *
     */
     void performExtraction(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                           const TransformationDescription trafo,
+                           const TransformationDescription& trafo,
                            const ChromExtractParams & chromatogram_extraction_params,
                            const ChromExtractParams & ms1_chromatogram_extraction_params,
                            const Param & feature_finder_param,
@@ -540,7 +540,7 @@ protected:
         const std::vector< OpenSwath::SwathMap >& swath_maps,
         const OpenSwath::LightTargetedExperiment& transition_exp,
         const Param& feature_finder_param,
-        TransformationDescription trafo,
+        const TransformationDescription& trafo,
         const double rt_extraction_window,
         FeatureMap& output,
         OpenSwathTSVWriter & tsv_writer,
@@ -639,7 +639,7 @@ protected:
      *
     */
     void performExtractionSonar(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                                const TransformationDescription trafo,
+                                const TransformationDescription& trafo,
                                 const ChromExtractParams & cp,
                                 const ChromExtractParams & cp_ms1,
                                 const Param & feature_finder_param,

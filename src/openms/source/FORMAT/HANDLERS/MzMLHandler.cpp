@@ -5421,7 +5421,7 @@ namespace OpenMS::Internal
     }
 
     template <typename ContainerT>
-    void MzMLHandler::writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type)
+    void MzMLHandler::writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, const String& array_type)
     {
       // Intensity is the same for chromatograms and spectra, the second
       // dimension is either "time" or "mz" (both of these are controlled by
@@ -5641,12 +5641,12 @@ namespace OpenMS::Internal
     template void MzMLHandler::writeContainerData_<SpectrumType>(std::ostream& os,
                                                                  const PeakFileOptions& pf_options_,
                                                                  const SpectrumType& container,
-                                                                 String array_type);
+                                                                 const String& array_type);
 
     template void MzMLHandler::writeContainerData_<ChromatogramType>(std::ostream& os,
                                                                      const PeakFileOptions& pf_options_,
                                                                      const ChromatogramType& container,
-                                                                     String array_type);
+                                                                     const String& array_type);
 
     template void MzMLHandler::writeBinaryDataArray_<float>(std::ostream& os,
                                                             const PeakFileOptions& pf_options_,

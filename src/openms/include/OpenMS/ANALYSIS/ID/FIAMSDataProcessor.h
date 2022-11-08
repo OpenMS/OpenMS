@@ -171,7 +171,7 @@ private:
     /**
       @brief Store the spectrum to the given filepath
     */
-    void storeSpectrum_(const MSSpectrum& input, String filename);
+    void storeSpectrum_(const MSSpectrum& input, const String& filename);
 
     std::vector<float> mzs_; 
     std::vector<float> bin_sizes_;

@@ -37,6 +37,8 @@
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorSet.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 
+#include <utility>
+
 namespace OpenMS
 {
   RawTandemMSSignalSimulation::RawTandemMSSignalSimulation() :
@@ -48,7 +50,7 @@ namespace OpenMS
 
   RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr rng) :
     DefaultParamHandler("RawTandemMSSignalSimulation"),
-    rnd_gen_(rng)
+    rnd_gen_(std::move(rng))
   {
     initParam_();
   }

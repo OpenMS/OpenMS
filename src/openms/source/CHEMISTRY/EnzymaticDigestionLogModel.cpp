@@ -85,7 +85,7 @@ namespace OpenMS
     return *this;
   }
 
-  void EnzymaticDigestionLogModel::setEnzyme(const String enzyme_name)
+  void EnzymaticDigestionLogModel::setEnzyme(const String& enzyme_name)
   {
     enzyme_ = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
   }
