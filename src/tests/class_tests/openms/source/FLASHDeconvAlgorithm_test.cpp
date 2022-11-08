@@ -154,16 +154,12 @@ START_SECTION((static double getIsotopeCosineAndDetermineIsotopeIndex(const doub
   tmp_iso_inty.push_back(62.4324335);
 
   int offset = 0;
-  int secondoff;
-  double tmp_iso_1 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1000., tmp_iso_inty, offset, secondoff,
-                                                                      fd_algo.getAveragine(), -1);
+  double tmp_iso_1 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1000., tmp_iso_inty, offset, fd_algo.getAveragine(), -1);
 
-  double tmp_iso_2 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1000., tmp_iso_inty, offset,secondoff,
-                                                                      fd_algo.getAveragine(), -1);
+  double tmp_iso_2 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1000., tmp_iso_inty, offset, fd_algo.getAveragine(), -1);
 
   offset = 3;
-  double tmp_iso_3 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1500., tmp_iso_inty, offset,secondoff,
-                                                                      fd_algo.getAveragine(), -1);
+  double tmp_iso_3 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1500., tmp_iso_inty, offset, fd_algo.getAveragine(), -1);
 
   TEST_REAL_SIMILAR(tmp_iso_1, 0.99999997024829767);
   TEST_REAL_SIMILAR(tmp_iso_2, 0.99999997024829767);

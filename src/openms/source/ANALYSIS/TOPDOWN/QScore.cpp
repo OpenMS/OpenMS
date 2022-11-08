@@ -47,10 +47,8 @@ namespace OpenMS
     { // all zero
       return .0;
     }
-    //const double th = 2;
-    //const std::vector<double> weights_vh({1.3522, -1.0877, -16.4956, -2.036, -0.9439, 18.251});
     const std::vector<double> weights({ 1.492, -2.0041, -14.3891, -0.9853, 0.4568, 0.063, 14.4072});
-    //const std::vector<double> weights({ -2.5334, -6.2718, -31.5409, 0.1305, -3.8576, 0.4948, 37.2419});
+    //const std::vector<double> weights({ .7422, -1.4964, -16.984 , -0.3141, -1.4791, 0.1597, 16.9061});
 
     //ChargeCos         1.492
     //ChargeSNR       -2.0041
@@ -60,13 +58,13 @@ namespace OpenMS
     //AvgPPMerror       0.063
     //Intercept       14.4072
 
-    // ChargeCos                    2.5334
-    // ChargeSNR                    6.2718
-    // Cos                         31.5409
-    // SNR                         -0.1305
-    // ChargeScore                  3.8576
-    // AvgPPMerror                 -0.4948
-    // Intercept                  -37.2419
+    // ChargeCos           -0.7422
+    // ChargeSNR            1.4964
+    // Cos                  16.984
+    // SNR                  0.3141
+    // ChargeScore          1.4791
+    // AvgPPMerror         -0.1597
+    // Intercept          -16.9061
 
     double score = weights.back();
     auto fv = toFeatureVector_(pg, abs_charge);
@@ -235,26 +233,20 @@ namespace OpenMS
   {
     f
       << "MSLevel,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Class\n";
-    //ChargeCos         1.492
-    //ChargeSNR       -2.0041
-    //Cos            -14.3891
-    //SNR             -0.9853
-    //ChargeScore      0.4568
-    //AvgPPMerror       0.063
   }
   void QScore::writeAttCsvFromDecoy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
   {
     int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+    String cns[] = {"T", "D", "D", "D"};
     for(auto& pg:deconvolved_spectrum)
     {
-      String decoy =  pg.getDecoyIndex() == 0? "T" : "D";
       auto fv = toFeatureVector_(&pg, pg.getRepAbsCharge());
       f<< ms_level<<",";
       for (auto& item: fv)
       {
         f << item << ",";
       }
-      f << decoy<< "\n";
+      f <<  cns[pg.getDecoyIndex()]<< "\n";
     }
   }
 

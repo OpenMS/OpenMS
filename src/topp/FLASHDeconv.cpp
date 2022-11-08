@@ -49,8 +49,6 @@
 using namespace OpenMS;
 using namespace std;
 
-//#define DEBUG_EXTRA_PARAMTER
-
 //-------------------------------------------------------------
 // Doxygen docu
 //-------------------------------------------------------------
@@ -86,13 +84,6 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file (mzML)");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-
-    #ifdef DEBUG_EXTRA_PARAMTER
-    registerInputFile_("in_train", "<file>", "", "topPIC result *prsm.tsv file for QScore training", false, true);
-    setValidFormats_("in_train", ListUtils::create<String>("tsv"));
-    registerOutputFile_("out_train", "<file>", "", "train result csv file for QScore training by weka", false, true);
-    setValidFormats_("out_train", ListUtils::create<String>("csv"));
-    #endif
 
     registerInputFile_("in_log",
                        "<file>",
@@ -387,13 +378,6 @@ protected:
     String out_file = getStringOption_("out");
     String in_train_file = "";
     String in_log_file = getStringOption_("in_log");
-    String out_train_file = "";
-
-    String out_att_file = out_file + ".csv";
-#ifdef DEBUG_EXTRA_PARAMTER
-    in_train_file = getStringOption_("in_train");
-    out_train_file = getStringOption_("out_train");
-#endif
 
     auto out_spec_file = getStringList_("out_spec");
     String out_mzml_file = getStringOption_("out_mzml");
@@ -417,17 +401,6 @@ protected:
     double max_rt = getDoubleOption_("Algorithm:max_rt");
     //String targets = getStringOption_("target_mass");
 
-    #ifdef DEBUG_EXTRA_PARAMTER
-    auto out_topfd_file_log =  out_topfd_file[1] + ".log";
-    fstream f_out_topfd_file_log;
-    f_out_topfd_file_log.open(out_topfd_file_log, fstream::out);
-
-    in_train_file = getStringOption_("in_train");
-    out_train_file = getStringOption_("out_train");
-    fstream fi_out;
-    fi_out.open(in_file + ".txt", fstream::out); //
-    #endif
-
     fstream out_stream, out_train_stream, out_promex_stream, out_att_stream, out_dl_stream, out_topfd_feature_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams;
 
@@ -435,12 +408,9 @@ protected:
     if(DLTrain)
     {
       out_dl_stream.open(out_file + "_dl.csv", fstream::out);
+      out_att_stream.open(out_file + "_qscore.csv", fstream::out);
     }
-#ifdef DEBUG_EXTRA_PARAMTER
-    out_att_stream.open(out_att_file, fstream::out);
 
-    QScore::writeAttCsvFromDecoyHeader(out_att_stream);
-#endif
     FLASHDeconvFeatureFile::writeHeader(out_stream);
 
     if (!out_promex_file.empty())
@@ -451,9 +421,7 @@ protected:
 
     if (!out_topfd_feature_file.empty())
     {
-
       out_topfd_feature_stream.open(out_topfd_feature_file, fstream::out);
-
       FLASHDeconvFeatureFile::writeTopFDFeatureHeader(out_topfd_feature_stream);
     }
 
@@ -474,35 +442,6 @@ protected:
         FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail, report_decoy);
       }
     }
-
-    std::unordered_map<int, FLASHDeconvHelperStructs::TopPicItem> top_pic_map;
-
-    if (!in_train_file.empty() && !out_train_file.empty())
-    {
-      out_train_stream.open(out_train_file, fstream::out);
-
-      QScore::writeAttCsvFromTopPICHeader(out_train_stream, write_detail_qscore_att);
-      std::ifstream in_trainstream(in_train_file);
-      String line;
-      bool start = false;
-      while (std::getline(in_trainstream, line))
-      {
-        if (line.rfind("Data file name", 0) == 0)
-        {
-          start = true;
-          continue;
-        }
-        if (!start)
-        {
-          continue;
-        }
-
-        auto tp = FLASHDeconvHelperStructs::TopPicItem(line);
-        top_pic_map[tp.scan] = tp;
-      }
-      in_trainstream.close();
-    }
-
 
     std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition = FLASHIda::parseFLASHIdaLog(
         in_log_file); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
@@ -750,13 +689,6 @@ protected:
         }
       }
 
-      if (it->getMSLevel() == 2 && !in_train_file.empty() && !out_train_file.empty()
-          && !deconvolved_spectrum.getPrecursorPeakGroup().empty()
-          )
-      {
-        QScore::writeAttCsvFromTopPIC(deconvolved_spectrum, top_pic_map[scan_number], avg, out_train_stream, write_detail_qscore_att);
-      }
-
       if (!out_mzml_file.empty())
       {
         if (!deconvolved_spectrum.empty())
@@ -867,17 +799,8 @@ protected:
       if ((int) out_topfd_streams.size() > ms_level - 1)
       {
         FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum,out_topfd_streams[ms_level - 1], topFD_SNR_threshold);//, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
-#ifdef DEBUG_EXTRA_PARAMTER
-        if(ms_level ==2 && !deconvolved_spectrum.getPrecursorPeakGroup().empty()){
-          f_out_topfd_file_log << scan_number <<","<<deconvolved_spectrum.getPrecursorPeakGroup().getMonoMass()
-                               <<","<<deconvolved_spectrum.getPrecursorPeakGroup().getRepAbsCharge()<<","
-                               <<deconvolved_spectrum.getPrecursorPeakGroup().getIntensity()<<"\n";
-        }
-#endif
+
       }
-#ifdef DEBUG_EXTRA_PARAMTER
-      QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
-#endif
     }
     if(report_decoy)
     {
@@ -889,9 +812,6 @@ protected:
         {
           FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, report_decoy);
         }
-#ifdef DEBUG_EXTRA_PARAMTER
-        QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
-#endif
       }
     }
 
@@ -919,7 +839,11 @@ protected:
 
     if(DLTrain)
     {
+      QScore::writeAttCsvFromDecoyHeader(out_att_stream);
+
       for (auto& deconvolved_spectrum : deconvolved_spectra){
+        if(deconvolved_spectrum.getOriginalSpectrum().getMSLevel() == 1)
+          QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
         for (auto& pg : deconvolved_spectrum) // TODO
         {
           pg.calculateDLMatriices(11, 21, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1] * 1e-6, avg);
@@ -928,12 +852,15 @@ protected:
       }
 
       for (auto& deconvolved_spectrum : decoy_deconvolved_spectra){
+        if(deconvolved_spectrum.getOriginalSpectrum().getMSLevel() == 1)
+          QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
         for (auto& pg : deconvolved_spectrum) // TODO
         {
           pg.calculateDLMatriices(11, 21, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1] * 1e-6, avg);
           pg.clearVectors();
         }
       }
+
 
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
@@ -949,6 +876,7 @@ protected:
       FLASHDeconvSpectrumFile::writeDLMatrix(decoy_deconvolved_spectra, out_dl_stream);
 
       out_dl_stream.close();
+      out_att_stream.close();
     }
 
     if (!out_mzml_file.empty())
@@ -1005,11 +933,6 @@ protected:
       OPENMS_LOG_INFO << "Expected number of PrSMs: " << expected_identification_count << endl;
     }
 
-    #ifdef DEBUG_EXTRA_PARAMTER
-    f_out_topfd_file_log.close();
-    fi_out.close();
-    out_att_stream.close();
-    #endif
     out_stream.close();
 
     if (!out_promex_file.empty())
@@ -1048,10 +971,6 @@ protected:
       }
     }
 
-    if (!out_train_file.empty())
-    {
-      out_train_stream.close();
-    }
 
     return EXECUTION_OK;
   }
