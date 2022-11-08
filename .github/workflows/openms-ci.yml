@@ -433,7 +433,8 @@ jobs:
         version: "12.0.0"        
   
     - name: Install dev tools
-      run: sudo add-apt-repository universe
+      run: |
+           sudo add-apt-repository universe
            sudo apt update    
            sudo apt-get install build-essential cmake autoconf patch libtool git automake
            sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
