@@ -3631,14 +3631,14 @@ namespace OpenMS::Internal
       }
 
       // write out all the cvParams and userParams in correct order
-      for (std::vector<String>::iterator term = cvParams.begin(); term != cvParams.end(); ++term)
+      for (const auto& p : cvParams)
       {
-        os << String(indent, '\t') << *term;
+        os << String(indent, '\t') << p;
       }
 
-      for (std::vector<String>::iterator term = userParams.begin(); term != userParams.end(); ++term)
+      for (const auto& p : userParams)
       {
-        os << String(indent, '\t') << *term;
+        os << String(indent, '\t') << p;
       }
     }
 
