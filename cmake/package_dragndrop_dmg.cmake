@@ -50,7 +50,7 @@ set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULL
 ## Fix OpenMS dependencies for all executables in the install directory under bin.
 ## That affects everything but the bundles (which have their own structure and are fixed up in add_mac_bundle.cmake)
 ########################################################### Fix Dependencies
-install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ )"
+install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -p \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/plugins/plugins/)"
   COMPONENT zzz-fixing-dependencies
 )
 
@@ -85,6 +85,16 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README
                     WORLD_READ
         COMPONENT   TOPPShell)
 
+## Install the qt.conf file so we can find the libraries
+## add qt.conf to the bin directory for DMGs
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+"[Paths]\nPlugins = ../lib/plugins/plugins/\n")
+install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
+        DESTINATION ./bin
+        PERMISSIONS OWNER_WRITE OWNER_READ
+                    GROUP_READ
+                    WORLD_READ
+        COMPONENT   QT5SQLitePlugin)
 
 
 ## Create own target because you cannot "depend" on the internal target 'package'
