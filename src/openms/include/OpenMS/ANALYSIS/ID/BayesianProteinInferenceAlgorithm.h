@@ -115,7 +115,7 @@ namespace OpenMS
         std::vector<ProteinIdentification>& proteinIDs,
         std::vector<PeptideIdentification>& peptideIDs,
         bool greedy_group_resolution,
-        const std::optional<const ExperimentalDesign> exp_des;
+        const std::optional<const ExperimentalDesign> exp_des);
 
     /**
      * @brief Perform inference. Filter, build graph, run the private inferPosteriorProbabilities_ function.
@@ -131,7 +131,7 @@ namespace OpenMS
     void inferPosteriorProbabilities(
         ConsensusMap& cmap,
         bool greedy_group_resolution,
-        const std::optional<const ExperimentalDesign>exp_des;
+        const std::optional<const ExperimentalDesign>exp_des);
 
   private:
 
