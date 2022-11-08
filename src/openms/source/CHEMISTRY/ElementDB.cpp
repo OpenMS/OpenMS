@@ -245,7 +245,7 @@ namespace OpenMS
 
     map<unsigned int, double> carbon_abundance = {{12u, 0.9893000000000001}, {13u, 0.010700000000000001}, {14u, 0.0}, {15u, 0.0}};
     map<unsigned int, double> carbon_mass = {{12u, 12.0}, {13u, 13.003355000000001}, {14u, 14.003241989}, {15u, 15.0105993}};
-    map<unsigned int, double> carbon_half_life = {{12u, -1.0}, {13u, -1.0}, {14u, 5.70*1e3 * CONSTANTS::SECONDS_PER_YEAR}, {15u, 2.449} };
+    map<unsigned int, double> carbon_half_life = {{12u, -1.0}, {13u, -1.0}, {14u, 5.70*1e3 * Constants::SECONDS_PER_YEAR}, {15u, 2.449} };
     map<unsigned int, Isotope::DecayMode> carbon_decay = {{12u, Isotope::DecayMode::NONE}, {13u, Isotope::DecayMode::NONE}, {14u, Isotope::DecayMode::BETA_MINUS}, {15u, Isotope::DecayMode::BETA_MINUS}};
     buildElement_("Carbon", "C", 6u, carbon_abundance, carbon_mass, carbon_half_life, carbon_decay);
 
@@ -657,7 +657,7 @@ namespace OpenMS
 
     map<unsigned int, double> uranium_abundance = {{234u,  0.000054}, {235u, 0.007204}, {238u, 0.992742}};
     map<unsigned int, double> uranium_mass = {{234u,  234.040950}, {235u,  235.043928}, {238u,   238.05079}};
-    map<unsigned int, double> uranium_half_life = {{234u, 2.455 *1e5* CONSTANTS::SECONDS_PER_YEAR}, {235u, 7.038 *1e8* CONSTANTS::SECONDS_PER_YEAR}, {238u, 4.468 *1e9* CONSTANTS::SECONDS_PER_YEAR} };
+    map<unsigned int, double> uranium_half_life = {{234u, 2.455 *1e5* Constants::SECONDS_PER_YEAR}, {235u, 7.038 *1e8* Constants::SECONDS_PER_YEAR}, {238u, 4.468 *1e9* Constants::SECONDS_PER_YEAR} };
     map<unsigned int, Isotope::DecayMode> uranium_decay = {{234u, Isotope::DecayMode::ALPHA}, {235u, Isotope::DecayMode::ALPHA}, {238u, Isotope::DecayMode::ALPHA} };
     buildElement_("Uranium", "U", 92u, uranium_abundance, uranium_mass, uranium_half_life, uranium_decay);
 
