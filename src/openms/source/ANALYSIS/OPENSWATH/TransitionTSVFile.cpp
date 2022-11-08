@@ -123,9 +123,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  TransitionTSVFile::~TransitionTSVFile()
-  {
-  }
+  TransitionTSVFile::~TransitionTSVFile() = default;
 
   void TransitionTSVFile::updateMembers_()
   {

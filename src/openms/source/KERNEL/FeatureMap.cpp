@@ -75,10 +75,7 @@ namespace OpenMS
   {
   }
 
-  AnnotationStatistics::AnnotationStatistics(const AnnotationStatistics& rhs) :
-    states(rhs.states)
-  {
-  }
+  AnnotationStatistics::AnnotationStatistics(const AnnotationStatistics& rhs) = default;
 
   AnnotationStatistics& AnnotationStatistics::operator=(const AnnotationStatistics& rhs)
   {

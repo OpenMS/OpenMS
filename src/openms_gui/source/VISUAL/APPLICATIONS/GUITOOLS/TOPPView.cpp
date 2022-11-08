@@ -97,6 +97,7 @@ void print_usage()
        << "  --help           Shows this help" << "\n"
        << "  -ini <File>      Sets the INI file (default: ~/.TOPPView.ini)" << "\n"
        << "  --force          Forces scan for new tools/utils" << "\n"
+       << "  --skip_tool_scan Skips scan for new tools/utils" << "\n"
        << "\n"
        << "Hints:" << "\n"
        << " - To open several files in one window put a '+' in between the files." << "\n"
@@ -116,6 +117,7 @@ int main(int argc, const char** argv)
   std::map<std::string, std::string> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
   valid_flags["--force"] = "force";
+  valid_flags["--skip_tool_scan"] = "skip_tool_scan";
   valid_options["-ini"] = "ini";
 
   Param param;
@@ -159,7 +161,16 @@ int main(int argc, const char** argv)
     QApplicationTOPP a(argc, const_cast<char**>(argv));
     a.connect(&a, &QApplicationTOPP::lastWindowClosed, &a, &QApplicationTOPP::quit);
 
-    TOPPViewBase::TOOL_SCAN mode = param.exists("force")? TOPPViewBase::TOOL_SCAN::FORCE_SCAN : TOPPViewBase::TOOL_SCAN::SCAN_IF_NEWER_VERSION;
+    TOPPViewBase::TOOL_SCAN mode = TOPPViewBase::TOOL_SCAN::SCAN_IF_NEWER_VERSION;
+    if (param.exists("force"))
+    {
+      mode = TOPPViewBase::TOOL_SCAN::FORCE_SCAN;
+    }
+    else if (param.exists("skip_tool_scan"))
+    {
+      mode = TOPPViewBase::TOOL_SCAN::SKIP_SCAN;
+    }
+     
     TOPPViewBase tb(mode);
     a.connect(&a, &QApplicationTOPP::fileOpen, &tb, &TOPPViewBase::openFile);
     tb.show();

@@ -42,14 +42,9 @@ namespace OpenMS
   {
   }
 
-  BinaryTreeNode::BinaryTreeNode(const BinaryTreeNode& source) :
-    left_child(source.left_child), right_child(source.right_child), distance(source.distance)
-  {
-  }
+  BinaryTreeNode::BinaryTreeNode(const BinaryTreeNode& source)  = default;
 
-  BinaryTreeNode::~BinaryTreeNode()
-  {
-  }
+  BinaryTreeNode::~BinaryTreeNode() = default;
 
   BinaryTreeNode& BinaryTreeNode::operator=(const BinaryTreeNode& source)
   {

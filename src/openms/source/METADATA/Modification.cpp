@@ -50,9 +50,7 @@ namespace OpenMS
   {
   }
 
-  Modification::~Modification()
-  {
-  }
+  Modification::~Modification() = default;
 
   bool Modification::operator==(const SampleTreatment & rhs) const
   {

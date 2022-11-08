@@ -65,17 +65,11 @@ namespace OpenMS
 
 #endif
 
-  SequestOutfile::SequestOutfile()
-  {
-  }
+  SequestOutfile::SequestOutfile() = default;
 
-  SequestOutfile::SequestOutfile(const SequestOutfile&)
-  {
-  }
+  SequestOutfile::SequestOutfile(const SequestOutfile&) = default;
 
-  SequestOutfile::~SequestOutfile()
-  {
-  }
+  SequestOutfile::~SequestOutfile() = default;
 
   SequestOutfile& SequestOutfile::operator=(const SequestOutfile& sequest_outfile)
   {

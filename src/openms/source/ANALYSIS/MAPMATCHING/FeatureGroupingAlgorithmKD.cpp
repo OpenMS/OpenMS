@@ -108,9 +108,7 @@ namespace OpenMS
     setLogType(CMD);
   }
 
-  FeatureGroupingAlgorithmKD::~FeatureGroupingAlgorithmKD()
-  {
-  }
+  FeatureGroupingAlgorithmKD::~FeatureGroupingAlgorithmKD() = default;
 
   template <typename MapType>
   void FeatureGroupingAlgorithmKD::group_(const vector<MapType>& input_maps,

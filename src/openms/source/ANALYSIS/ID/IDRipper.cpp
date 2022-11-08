@@ -54,14 +54,9 @@ namespace OpenMS
   {
   }
 
-  IDRipper::IDRipper(const IDRipper& cp) :
-    DefaultParamHandler(cp)
-  {
-  }
+  IDRipper::IDRipper(const IDRipper& cp) = default;
 
-  IDRipper::~IDRipper()
-  {
-  }
+  IDRipper::~IDRipper() = default;
 
   IDRipper& IDRipper::operator=(const IDRipper& rhs)
   {

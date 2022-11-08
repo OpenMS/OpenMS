@@ -119,9 +119,7 @@ namespace OpenMS
     *this = rhs;
   }
 
-  MetaInfoRegistry::~MetaInfoRegistry()
-  {
-  }
+  MetaInfoRegistry::~MetaInfoRegistry() = default;
 
   MetaInfoRegistry& MetaInfoRegistry::operator=(const MetaInfoRegistry& rhs)
   {
