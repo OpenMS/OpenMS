@@ -134,9 +134,7 @@ namespace OpenMS
     connect(this, SIGNAL(preferencesChange()), this, SLOT(currentLayerParamtersChanged_()));
   }
 
-  Plot1DCanvas::~Plot1DCanvas()
-  {
-  }
+  Plot1DCanvas::~Plot1DCanvas() = default;
 
   const LayerData1DBase& Plot1DCanvas::getLayer(Size index) const
   {

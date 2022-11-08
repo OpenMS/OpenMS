@@ -60,10 +60,7 @@ namespace OpenMS
     connect(canvas(), SIGNAL(showCurrentPeaksAs2D()), this, SIGNAL(showCurrentPeaksAs2D()));
   }
 
-  Plot3DWidget::~Plot3DWidget()
-  {
-
-  }
+  Plot3DWidget::~Plot3DWidget() = default;
 
   void Plot3DWidget::recalculateAxes_()
   {

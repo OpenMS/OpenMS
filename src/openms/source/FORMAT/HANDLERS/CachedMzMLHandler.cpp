@@ -39,13 +39,9 @@
 
 namespace OpenMS::Internal
 {
-  CachedMzMLHandler::CachedMzMLHandler()
-  {
-  }
+  CachedMzMLHandler::CachedMzMLHandler() = default;
 
-  CachedMzMLHandler::~CachedMzMLHandler()
-  {
-  }
+  CachedMzMLHandler::~CachedMzMLHandler() = default;
 
   CachedMzMLHandler& CachedMzMLHandler::operator=(const CachedMzMLHandler& rhs)
   {

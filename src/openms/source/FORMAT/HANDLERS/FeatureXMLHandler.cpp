@@ -63,9 +63,7 @@ namespace OpenMS::Internal
     cmap_ = &map;
     file_ = filename;
   }
-  FeatureXMLHandler::~FeatureXMLHandler()
-  {
-  }
+  FeatureXMLHandler::~FeatureXMLHandler() = default;
 
   void FeatureXMLHandler::resetMembers_()
   {

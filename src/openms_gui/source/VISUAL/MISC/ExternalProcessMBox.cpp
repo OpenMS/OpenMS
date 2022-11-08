@@ -40,18 +40,14 @@ namespace OpenMS
 {
 
   /// default Ctor; callbacks for stdout/stderr are empty
-  ExternalProcessMBox::ExternalProcessMBox()
-  {
-  }
+  ExternalProcessMBox::ExternalProcessMBox() = default;
 
   ExternalProcessMBox::ExternalProcessMBox(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr)
     : ep_(callbackStdOut, callbackStdErr)
   {
   }
 
-  ExternalProcessMBox::~ExternalProcessMBox()
-  {
-  }
+  ExternalProcessMBox::~ExternalProcessMBox() = default;
 
   /// re-wire the callbacks used using run()
   void ExternalProcessMBox::setCallbacks(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr)

@@ -45,13 +45,9 @@
 
 namespace OpenMS
 {
-  ClusterAnalyzer::ClusterAnalyzer()
-  {
-  }
+  ClusterAnalyzer::ClusterAnalyzer() = default;
 
-  ClusterAnalyzer::~ClusterAnalyzer()
-  {
-  }
+  ClusterAnalyzer::~ClusterAnalyzer() = default;
 
   ClusterAnalyzer & ClusterAnalyzer::operator=(const ClusterAnalyzer & source)
   {

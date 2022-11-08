@@ -172,9 +172,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  PeakPickerCWT::~PeakPickerCWT()
-  {
-  }
+  PeakPickerCWT::~PeakPickerCWT() = default;
 
   void PeakPickerCWT::updateMembers_()
   {

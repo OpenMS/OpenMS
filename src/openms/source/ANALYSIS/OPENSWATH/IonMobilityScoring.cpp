@@ -233,14 +233,10 @@ namespace OpenMS
   }
 
   /// Constructor
-  IonMobilityScoring::IonMobilityScoring()
-  {
-  }
+  IonMobilityScoring::IonMobilityScoring() = default;
 
   /// Destructor
-  IonMobilityScoring::~IonMobilityScoring()
-  {
-  }
+  IonMobilityScoring::~IonMobilityScoring() = default;
 
   void IonMobilityScoring::driftScoringMS1Contrast(OpenSwath::SpectrumPtr spectrum, OpenSwath::SpectrumPtr ms1spectrum, 
                                                    const std::vector<TransitionType> & transitions,

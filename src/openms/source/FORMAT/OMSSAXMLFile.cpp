@@ -50,9 +50,7 @@ namespace OpenMS
     readMappingFile_();
   }
 
-  OMSSAXMLFile::~OMSSAXMLFile()
-  {
-  }
+  OMSSAXMLFile::~OMSSAXMLFile() = default;
 
   void OMSSAXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_identifications, bool load_proteins, bool load_empty_hits)
   {

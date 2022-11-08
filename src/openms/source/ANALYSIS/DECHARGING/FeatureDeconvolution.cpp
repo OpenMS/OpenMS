@@ -64,20 +64,19 @@ namespace OpenMS
   struct FeatureDeconvolution::CmpInfo_
   {
     String s_comp; ///< formula as String
-    Size idx_cp; ///< index into compomer vector
-    UInt side_cp; ///< side of parent compomer (LEFT or RIGHT)
+    Size idx_cp{}; ///< index into compomer vector
+    UInt side_cp{}; ///< side of parent compomer (LEFT or RIGHT)
 
     // C'tor
     CmpInfo_() :
-      s_comp(), idx_cp(), side_cp() {}
+      s_comp() {}
 
     // C'tor
     CmpInfo_(String& s, Size idx, UInt side) :
       s_comp(s), idx_cp(idx), side_cp(side) {}
 
     // Copy C'tor
-    CmpInfo_(const CmpInfo_& rhs) :
-      s_comp(rhs.s_comp), idx_cp(rhs.idx_cp), side_cp(rhs.side_cp) {}
+    CmpInfo_(const CmpInfo_& rhs)  = default;
 
     // Assignment
     CmpInfo_& operator=(const CmpInfo_& rhs)
@@ -302,9 +301,7 @@ namespace OpenMS
   }
 
   /// destructor
-  FeatureDeconvolution::~FeatureDeconvolution()
-  {
-  }
+  FeatureDeconvolution::~FeatureDeconvolution() = default;
 
   //@}
 

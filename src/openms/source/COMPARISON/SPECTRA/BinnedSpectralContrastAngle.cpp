@@ -53,9 +53,7 @@ namespace OpenMS
   {
   }
 
-  BinnedSpectralContrastAngle::~BinnedSpectralContrastAngle()
-  {
-  }
+  BinnedSpectralContrastAngle::~BinnedSpectralContrastAngle() = default;
 
   BinnedSpectralContrastAngle& BinnedSpectralContrastAngle::operator=(const BinnedSpectralContrastAngle& source)
   {
