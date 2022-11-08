@@ -385,7 +385,7 @@ jobs:
       if: github.event_name == 'pull_request'
       shell: bash
       run: |
-        yum -y install jq
+        apt-get install -y jq
         echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
 
@@ -395,7 +395,7 @@ jobs:
       #  hack needed to fix apt dependency
 #    - name: "Debug: Package dependancies for tmate"
 #      run: |
-#        yum install -y xz
+#        apt-get install -y xz
 #        ln -s /bin/true /bin/apt-get
 #
 #    - name: "Debug: Start tmate"
@@ -406,7 +406,7 @@ jobs:
 
     - name: Install Xvfb package
       run: |
-            yum -y install xorg-x11-server-Xvfb
+            apt-get install -y xorg-x11-server-Xvfb
 
     - name: Add THIRDPARTY
       shell: bash
