@@ -118,6 +118,7 @@ int main(int argc, const char** argv)
   valid_flags["--help"] = "help";
   valid_flags["--force"] = "force";
   valid_flags["--skip_tool_scan"] = "skip_tool_scan";
+  valid_flags["--debug"] = "debug";
   valid_options["-ini"] = "ini";
 
   Param param;
@@ -170,8 +171,14 @@ int main(int argc, const char** argv)
     {
       mode = TOPPViewBase::TOOL_SCAN::SKIP_SCAN;
     }
-     
-    TOPPViewBase tb(mode);
+
+    TOPPViewBase::VERBOSITY verbosity = TOPPViewBase::VERBOSITY::DEFAULT;
+    if (param.exists("debug"))
+    {
+      verbosity = TOPPViewBase::VERBOSITY::VERBOSE;
+    }
+
+    TOPPViewBase tb(mode, verbosity);
     a.connect(&a, &QApplicationTOPP::fileOpen, &tb, &TOPPViewBase::openFile);
     tb.show();
 

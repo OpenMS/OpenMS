@@ -168,8 +168,14 @@ public:
       FORCE_SCAN
     };
 
+    enum class VERBOSITY
+    {
+      DEFAULT,
+      VERBOSE
+    };    
+
     ///Constructor
-    explicit TOPPViewBase(TOOL_SCAN scan_mode = TOOL_SCAN::SCAN_IF_NEWER_VERSION, QWidget* parent = nullptr);
+    explicit TOPPViewBase(TOOL_SCAN scan_mode = TOOL_SCAN::SCAN_IF_NEWER_VERSION, VERBOSITY verbosity = VERBOSITY::DEFAULT, QWidget* parent = nullptr);
     ///Destructor
     ~TOPPViewBase() override;
 
@@ -441,9 +447,12 @@ protected:
     LogWindow* log_;
 
     /// Determines TVToolDiscovery scans for tool/utils and generates new params.
-    TOOL_SCAN scan_mode_;
+    TOOL_SCAN scan_mode_;    
     /// Scans for tools/utils and generates a param for each.
     TVToolDiscovery tool_scanner_;
+
+    /// Verbosity of TV 
+    VERBOSITY verbosity_;
 
     /** @name Toolbar
     */
