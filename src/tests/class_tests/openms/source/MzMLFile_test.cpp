@@ -40,6 +40,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
@@ -979,6 +980,45 @@ START_SECTION([EXTRA] load intensity range)
   TEST_REAL_SIMILAR(exp[2][1].getIntensity(),8.0)
   TEST_REAL_SIMILAR(exp[2][2].getIntensity(),7.0)
   TEST_EQUAL(exp[3].size(),0)
+}
+END_SECTION
+
+class MzMLHandlerTest : public Internal::MzMLHandler
+{
+public:
+  // expose Ctors
+  using MzMLHandler::MzMLHandler;
+  // expose protected function so we can test it
+  void handleUserParam(const String& type, const String& value, const String& unit_accession = "")
+  {
+    MzMLHandler::handleUserParam_("", "run", "meta", type, value, unit_accession);
+  }
+};
+
+START_SECTION([EXTRA] load xsd:integer types)
+{
+  MzMLFile file;
+  PeakMap exp;
+  // just load without crashing...
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_xsd-ranges.mzML"), exp);
+
+
+  MzMLHandlerTest mt(exp, "", "v1.1", ProgressLogger());
+  mt.handleUserParam("xsd:int", "2147483647");  TEST_EQUAL((Int64)exp.getMetaValue("meta"), 2147483647)
+  mt.handleUserParam("xsd:long", "9223372036854775807");  TEST_EQUAL((Int64)exp.getMetaValue("meta"), 9223372036854775807)
+  mt.handleUserParam("xsd:decimal", "123.45");  TEST_EQUAL((double)exp.getMetaValue("meta"), 123.45)
+  mt.handleUserParam("xsd:unsignedLong", "9223372036854775807");  TEST_EQUAL((Int64)exp.getMetaValue("meta"), 9223372036854775807)
+
+  // input exceeds valid range
+  TEST_EXCEPTION(Exception::ConversionError, mt.handleUserParam("xsd:int", "2147483648")) // +1 larger than 2^31-1
+  TEST_EXCEPTION(Exception::ConversionError, mt.handleUserParam("xsd:long", "9223372036854775808")) // +1 larger than 2^63-1
+
+  // things we SHOULD support, but don't, due to using a signed 64bit type in DataValue
+  TEST_EXCEPTION(Exception::ConversionError, mt.handleUserParam("xsd:unsignedLong", "9223372036854775808")) // +1 larger than 2^63-1; 'xsd:unsignedLong' up to 2^64-1
+
+  // things which are really hard to support (arbitrarily large numbers)
+  TEST_EXCEPTION(Exception::ConversionError, mt.handleUserParam("xsd:integer",      "9223372036854775808")) // +1 larger than 2^63-1; 'xsd:integer' can be any number... hard to support :)
+  TEST_EXCEPTION(Exception::ConversionError, mt.handleUserParam("xsd:negativeInteger", "-9223372036854775809"))      // -1 smaller than 2^63; 'xsd:negativeInteger' can be any negative number... hard to support :)
 }
 END_SECTION
 
