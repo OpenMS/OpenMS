@@ -47,8 +47,8 @@ namespace OpenMS
     { // all zero
       return .0;
     }
-    const std::vector<double> weights({ 1.492, -2.0041, -14.3891, -0.9853, 0.4568, 0.063, 14.4072});
-    //const std::vector<double> weights({ .7422, -1.4964, -16.984 , -0.3141, -1.4791, 0.1597, 16.9061});
+    //const std::vector<double> weights({ 1.492, -2.0041, -14.3891, -0.9853, 0.4568, 0.063, 14.4072});
+    const std::vector<double> weights({ .7422, -1.4964, -16.984 , -0.3141, -1.4791, 0.1597, 16.9061});
 
     //ChargeCos         1.492
     //ChargeSNR       -2.0041
