@@ -88,6 +88,9 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README
 ## Install the qt.conf file so we can find the libraries
 install(FILES       ${PROJECT_BINARY_DIR}/bin/qt.conf
         DESTINATION ./bin
+        PERMISSIONS OWNER_WRITE OWNER_READ
+                    GROUP_READ
+                    WORLD_READ
         COMPONENT   QT5SQLitePlugin)
 
 
