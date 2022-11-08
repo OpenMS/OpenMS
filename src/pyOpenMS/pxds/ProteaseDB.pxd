@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDB.h>" namespace "OpenMS":
 
     cdef cppclass ProteaseDB "OpenMS::ProteaseDB":
         # wrap-manual-memory:
-        #     cdef AutowrapPtrHolder[_ProteaseDB] inst
+        #    cdef AutowrapPtrHolder[_ProteaseDB] inst
 
         # protected
         ProteaseDB() nogil except + #wrap-ignore
@@ -17,7 +17,6 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDB.h>" namespace "OpenMS":
         void getAllXTandemNames(libcpp_vector[ String ]& all_names) nogil except + # wrap-doc:Returns all the enzyme names available for XTandem
         void getAllOMSSANames(libcpp_vector[ String ]& all_names) nogil except + # wrap-doc:Returns all the enzyme names available for OMSSA
         void getAllCometNames(libcpp_vector[ String ]& all_names) nogil except + # wrap-doc:Returns all the enzyme names available for Comet
-        void getAllCruxNames(libcpp_vector[ String ] & all_names) nogil except + # wrap-doc:Returns all the enzyme names available for Crux
         void getAllMSGFNames(libcpp_vector[ String ] & all_names) nogil except + # wrap-doc:Returns all the enzyme names available for MSGFPlus
         bool hasEnzyme(const String& name) nogil except +
         bool hasRegEx(const String& cleavage_regex) nogil except +

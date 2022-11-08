@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -242,8 +242,25 @@ protected:
         FeatureXMLFile f_fxml_tmp; // do not use OMP-firstprivate, since FeatureXMLFile has no copy c'tor
         f_fxml_tmp.getOptions() = f_fxml.getOptions();
         f_fxml_tmp.load(in_files[i], map);
-        if (i == static_cast<int>(reference_index)) trafo.fitModel("identity");
-        else algorithm.align(map, trafo);
+        if (i == static_cast<int>(reference_index)) 
+        {
+          trafo.fitModel("identity");
+        }
+        else 
+        {
+          try
+          {
+            algorithm.align(map, trafo);
+          }
+          catch (Exception::IllegalArgument& e)
+          {
+            OPENMS_LOG_ERROR << "Aligning " << in_files[i] << " to reference " << in_files[reference_index]
+                             << " failed. No transformation will be applied (RT not changed for this file)." << endl;
+            writeLogError_("Illegal argument (" + String(e.getName()) + "): " + String(e.what()) + ".");
+            trafo.fitModel("identity");
+          }
+        }
+
         if (!out_files.empty())
         {
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
@@ -284,7 +301,6 @@ protected:
       {
         plog.setProgress(++progress); // thread safe progress counter
       }
-
     }
 
     plog.endProgress();

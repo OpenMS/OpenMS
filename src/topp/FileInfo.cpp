@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,7 +42,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -66,6 +65,7 @@
 
 #include <unordered_map>
 #include <iomanip>
+#include <map>
 
 using namespace OpenMS;
 using namespace std;
@@ -117,7 +117,7 @@ namespace OpenMS
   template <class CONTAINER, typename LAMBDA>
   void printChargeDistribution(const CONTAINER& data, LAMBDA lam, ostream& os, ostream& os_tsv, const String& header = "Charge")
   {
-    Map<Int, UInt> charges;
+    std::map<Int, UInt> charges;
     Int q;
     for (const auto& item : data)
     {
@@ -195,9 +195,9 @@ protected:
   {
     os << "Ranges:"
        << '\n'
-       << "  retention time: " << String::number(map.getMin()[Peak2D::RT], 2) << " .. " << String::number(map.getMax()[Peak2D::RT], 2) << " sec (" << String::number((map.getMax()[Peak2D::RT] - map.getMin()[Peak2D::RT]) / 60, 1) << " min)\n"
-       << "  mass-to-charge: " << String::number(map.getMin()[Peak2D::MZ], 2) << " .. " << String::number(map.getMax()[Peak2D::MZ], 2) << '\n'
-       << "  intensity:      " << String::number(map.getMinInt(), 2) << " .. " << String::number(map.getMaxInt(), 2) << '\n'
+       << "  retention time: " << String::number(map.getMinRT(), 2) << " .. " << String::number(map.getMaxRT(), 2) << " sec (" << String::number((map.getMaxRT() - map.getMinRT()) / 60, 1) << " min)\n"
+       << "  mass-to-charge: " << String::number(map.getMinMZ(), 2) << " .. " << String::number(map.getMaxMZ(), 2) << '\n'
+       << "  intensity:      " << String::number(map.getMinIntensity(), 2) << " .. " << String::number(map.getMaxIntensity(), 2) << '\n'
        << '\n';
   }
 
@@ -205,17 +205,17 @@ protected:
   void writeRangesMachineReadable_(const Map& map, ostream &os)
   {
     os << "general: ranges: retention time: min"
-       << '\t' << String::number(map.getMin()[Peak2D::RT], 2) << '\n'
+       << '\t' << String::number(map.getMinRT(), 2) << '\n'
        << "general: ranges: retention time: max"
-       << '\t' << String::number(map.getMax()[Peak2D::RT], 2) << '\n'
+       << '\t' << String::number(map.getMaxRT(), 2) << '\n'
        << "general: ranges: mass-to-charge: min"
-       << '\t' << String::number(map.getMin()[Peak2D::MZ], 2) << '\n'
+       << '\t' << String::number(map.getMinMZ(), 2) << '\n'
        << "general: ranges: mass-to-charge: max"
-       << '\t' << String::number(map.getMax()[Peak2D::MZ], 2) << '\n'
+       << '\t' << String::number(map.getMaxMZ(), 2) << '\n'
        << "general: ranges: intensity: min"
-       << '\t' << String::number(map.getMinInt(), 2) << '\n'
+       << '\t' << String::number(map.getMinIntensity(), 2) << '\n'
        << "general: ranges: intensity: max"
-       << '\t' << String::number(map.getMaxInt(), 2) << '\n';
+       << '\t' << String::number(map.getMaxIntensity(), 2) << '\n';
   }
 
   template <class T>
@@ -252,7 +252,7 @@ protected:
 
     if (in_type == FileTypes::UNKNOWN)
     {
-      writeLog_("Error: Could not determine input file type!");
+      writeLogError_("Error: Could not determine input file type!");
       return PARSE_ERROR;
     }
 
@@ -406,7 +406,7 @@ protected:
     {
       if (in_type != FileTypes::MZML)
       {
-        writeLog_("Error: Can only validate indices for mzML files");
+        writeLogError_("Error: Can only validate indices for mzML files");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
@@ -439,7 +439,7 @@ protected:
     //-------------------------------------------------------------
     // Content statistics
     //-------------------------------------------------------------
-    Map<String, int> meta_names;
+    std::map<String, int> meta_names;
 
     if (in_type == FileTypes::FASTA)
     {
@@ -452,7 +452,7 @@ protected:
       file.load(in, entries);
       std::cout << "\n\n" << mu.delta("loading FASTA") << std::endl;
 
-      Map<char, int> aacids;// required for default construction of non-existing keys
+      std::map<char, int> aacids;// required for default construction of non-existing keys
       size_t number_of_aacids = 0;
 
       Size dup_header(0);
@@ -546,8 +546,8 @@ protected:
       writeRangesMachineReadable_(feat, os_tsv);
 
       // Charge distribution and TIC
-      Map<Int, UInt> charges;
-      Map<size_t, UInt> numberofids;
+      std::map<Int, UInt> charges;
+      std::map<size_t, UInt> numberofids;
       double tic = 0.0;
       for (Size i = 0; i < feat.size(); ++i)
       {
@@ -729,7 +729,7 @@ protected:
       set<String> peptides_ignore_mods;
       set<String> proteins;
       Size modified_peptide_count(0);
-      Map<String, int> mod_counts;
+      std::map<String, int> mod_counts;
       vector<uint16_t> peptide_length;
 
       // reading input
@@ -830,7 +830,7 @@ protected:
       os << "  non-redundant peptide hits: " << peptides.size() << '\n';
       os << "  (only hits that differ in sequence and/or modifications)"
          << '\n';
-      for (Map<String, int>::ConstIterator it = mod_counts.begin(); it != mod_counts.end(); ++it)
+      for (std::map<String, int>::const_iterator it = mod_counts.begin(); it != mod_counts.end(); ++it)
       {
         if (it != mod_counts.begin())
         {
@@ -882,7 +882,7 @@ protected:
       SysInfo::MemUsage mu;
       if (!fh.loadExperiment(in, exp, in_type, log_type_, false, false))
       {
-        writeLog_("Unsupported or corrupt input file. Aborting!");
+        writeLogError_("Unsupported or corrupt input file. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
@@ -1023,7 +1023,7 @@ protected:
       {
         // nice formatting:
         Size max_length = 0;
-        for (Map<String, int>::ConstIterator it = meta_names.begin(); it != meta_names.end(); ++it)
+        for (std::map<String, int>::const_iterator it = meta_names.begin(); it != meta_names.end(); ++it)
         {
           if (it->first.size() > max_length)
           {
@@ -1032,7 +1032,7 @@ protected:
         }
         os << "Meta data array:"
            << '\n';
-        for (Map<String, int>::ConstIterator it = meta_names.begin(); it != meta_names.end(); ++it)
+        for (std::map<String, int>::const_iterator it = meta_names.begin(); it != meta_names.end(); ++it)
         {
           String padding(max_length - it->first.size(), ' ');
           os << "  " << it->first << ": " << padding << it->second << " spectra"
@@ -1049,7 +1049,7 @@ protected:
                << '\t' << exp.getChromatograms().size() << '\n';
 
         Size num_chrom_peaks(0);
-        Map<ChromatogramSettings::ChromatogramType, Size> chrom_types;
+        std::map<ChromatogramSettings::ChromatogramType, Size> chrom_types;
         for (const MSChromatogram& ms : exp.getChromatograms())
         {
           num_chrom_peaks += ms.size();
@@ -1061,12 +1061,12 @@ protected:
 
         os << "Number of chromatograms per type: "
            << '\n';
-        for (Map<ChromatogramSettings::ChromatogramType, Size>::const_iterator it = chrom_types.begin(); it != chrom_types.end(); ++it)
+        for (std::map<ChromatogramSettings::ChromatogramType, Size>::const_iterator it = chrom_types.begin(); it != chrom_types.end(); ++it)
         {
           os << String("  ") + ChromatogramSettings::ChromatogramNames[it->first] + ":                         "
              << it->second << '\n';
         }
-        if (getFlag_("d") && chrom_types.has(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM))
+        if (getFlag_("d") && chrom_types.find(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM) != chrom_types.end())
         {
           os << '\n'
              << " -- Detailed chromatogram listing -- "
@@ -1160,11 +1160,11 @@ protected:
                << '\n';
           }
           //duplicate meta data array names
-          Map<String, int> names;
+          std::map<String, int> names;
           for (Size m = 0; m < exp[s].getFloatDataArrays().size(); ++m)
           {
             String name = exp[s].getFloatDataArrays()[m].getName();
-            if (names.has(name))
+            if (names.find(name) != names.end())
             {
               os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")"
                  << '\n';
@@ -1177,7 +1177,7 @@ protected:
           for (Size m = 0; m < exp[s].getIntegerDataArrays().size(); ++m)
           {
             String name = exp[s].getIntegerDataArrays()[m].getName();
-            if (names.has(name))
+            if (names.find(name) != names.end())
             {
               os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")"
                  << '\n';
@@ -1190,7 +1190,7 @@ protected:
           for (Size m = 0; m < exp[s].getStringDataArrays().size(); ++m)
           {
             String name = exp[s].getStringDataArrays()[m].getName();
-            if (names.has(name))
+            if (names.find(name) != names.end())
             {
               os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")"
                  << '\n';
@@ -1676,7 +1676,7 @@ protected:
            << Math::SummaryStatistics<vector<double>>(intensities) << '\n';
 
         //Statistics for meta information
-        for (Map<String, int>::ConstIterator it = meta_names.begin(); it != meta_names.end(); ++it)
+        for (std::map<String, int>::const_iterator it = meta_names.begin(); it != meta_names.end(); ++it)
         {
           String name = it->first;
           vector<double> m_values;

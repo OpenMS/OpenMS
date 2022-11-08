@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,7 +76,7 @@ END_SECTION
 SvmTheoreticalSpectrumGeneratorSet gen_set;
 
 START_SECTION(void load(String))
-    gen_set.load("examples/simulation/SvmModelSet.model");
+    gen_set.load("SIMULATION/SvmModelSet.model");
     NOT_TESTABLE //is implicitly tested by the following two tests
 END_SECTION
 

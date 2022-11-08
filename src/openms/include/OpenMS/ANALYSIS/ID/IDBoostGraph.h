@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -366,7 +366,7 @@ namespace OpenMS
                 Size use_top_psms,
                 bool use_run_info,
                 bool best_psms_annotated,
-                const boost::optional<const ExperimentalDesign>& ed = boost::optional<const ExperimentalDesign>());
+                const std::optional<const ExperimentalDesign>& ed = std::optional<const ExperimentalDesign>());
 
     IDBoostGraph(ProteinIdentification& proteins,
                 ConsensusMap& cmap,
@@ -374,7 +374,7 @@ namespace OpenMS
                 bool use_run_info,
                 bool use_unassigned_ids,
                 bool best_psms_annotated,
-                const boost::optional<const ExperimentalDesign>& ed = boost::optional<const ExperimentalDesign>());
+                const std::optional<const ExperimentalDesign>& ed = std::optional<const ExperimentalDesign>());
 
 
     //TODO think about templating to avoid wrapping to std::function

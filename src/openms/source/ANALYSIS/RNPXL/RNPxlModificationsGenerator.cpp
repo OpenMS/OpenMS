@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,8 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+
+#include <map>
 
 using namespace std;
 
@@ -324,7 +326,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   // 1) do not contain a cross-linkable nucleotide
   // 2) or contain no cross-linkable nucleotide that is part of the restricted target sequences
   std::vector<pair<String, String> > violates_restriction; // elemental composition, nucleotide style formula
-  for (Map<String, double>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
+  for (std::map<String, double>::const_iterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
   {
     // remove additive or subtractive modifications from string as these are not used in string comparison
     const set<String>& ambiguities = result.mod_combinations[mit->first];

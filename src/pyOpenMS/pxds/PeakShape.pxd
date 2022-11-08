@@ -7,9 +7,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>" namespace "Open
     
     cdef cppclass PeakShape "OpenMS::PeakShape":
         # wrap-doc:
-            #   Internal representation of a peak shape (used by the PeakPickerCWT)
-            #   -----
-            #   It defines an asymmetric Lorentzian and asymmetric hyperbolic squared secan function
+            #  Internal representation of a peak shape (used by the PeakPickerCWT)
+            #  
+            #  It defines an asymmetric Lorentzian and asymmetric hyperbolic squared secan function
 
         PeakShape() nogil except +
         PeakShape(PeakShape &) nogil except +
@@ -37,7 +37,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>" namespace "Open
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>" namespace "OpenMS::PeakShape":
     cdef enum PeakShape_Type "OpenMS::PeakShape::Type":
         #wrap-attach:
-        #    PeakShape
+        #   PeakShape
         LORENTZ_PEAK
         SECH_PEAK
         UNDEFINED

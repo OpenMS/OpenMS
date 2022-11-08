@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -442,10 +442,133 @@ namespace OpenMS
       */
       inline const std::string   OPENPEPXL_BETA_PEPEV_END = "BetaPepEv:end";
 
+      /** @name User parameters in/from Sirius annotated mzMLs
+        *  E.g., when running SiriusAdapter with annotation output
+       */
+      ///@{
+
+      /** FloatDataArray name for observed m/z values of Sirius annotated spectra
+        FloatDataArray
+      */
+      inline const std::string   SIRIUS_MZ = "mz";
+
+      /** FloatDataArray name for exact mass values of Sirius annotated spectra
+        FloatDataArray
+      */
+      inline const std::string   SIRIUS_EXACTMASS = "exact_mass";
+
+      /** StringDataArray name for most likely fragment explanations of the corresponding peak in the spectrum
+        StringDataArray
+      */
+      inline const std::string   SIRIUS_EXPLANATION = "explanation";
+
+      /** User parameter name for Sirius score
+        double
+      */
+      inline const std::string   SIRIUS_SCORE = "score";
+
+      /** User parameter name to tell what the contents of the m/z dimension of the annotated spectra contains (mz or exact mass)
+        String
+      */
+      inline const std::string   SIRIUS_PEAKMZ = "peak_mz";
+
+      /** User parameter name to tell which sum formula was considered for this annotated spectrum
+        String
+      */
+      inline const std::string   SIRIUS_ANNOTATED_SUMFORMULA = "annotated_sumformula";
+
+      /** User parameter name to tell which adduct was considered for this annotated spectrum
+        String
+      */
+      inline const std::string   SIRIUS_ANNOTATED_ADDUCT = "annotated_adduct";
+
+      /** User parameter name to tell if this annotated spectrum comes from a Sirius/Passatutto generated decoy or an actual target spectrum
+        boolean
+      */
+      inline const std::string   SIRIUS_DECOY = "decoy";
+
+      /** User parameter name to tell if this annotated spectrum comes from a feature (then it contains the feature ID) or a single MS2 spectrum (missing)
+        boolean
+      */
+      inline const std::string   SIRIUS_FEATURE_ID = "feat_id";
+
+      ///@}
+
       /** User parameter name for XL-MS FDR values
               String
       */
       inline const std::string   XFDR_FDR = "XFDR:FDR";
+
+      /** User parameter name for best ion annotation in a ConsensusFeature, taken from the best quality feature. (Required for IIMN)
+              String
+      */
+      inline const std::string   IIMN_BEST_ION = "best ion";
+
+      /** User parameter name for a ConsensusFeature. Represents the IIMN_ROW_IDs of related ConsensusFeatures defined by MetaboliteAdductDecharger.
+       *  Partners are separated by semin colon. (Required for IIMN)
+              List of String
+      */
+      inline const std::string   IIMN_ADDUCT_PARTNERS = "partners";
+
+      /** User parameter name for a unique ConsensusFeature index in a ConsensusMap. (Required for IIMN)
+              String
+      */
+      inline const std::string   IIMN_ROW_ID = "row ID";
+
+      /** User parameter name for a ConsensusFeature to indicate a metabolite with different adduct states. (Required for IIMN)
+              String
+      */
+      inline const std::string   IIMN_ANNOTATION_NETWORK_NUMBER = "annotation network number";
+
+      /** User parameter name for group annotation in Feature by MetaboliteAdductDecharger to indicate matching Features with different adducts.
+              String
+      */
+      inline const std::string   ADDUCT_GROUP = "Group";
+
+      /** User parameter name for a list of ADDUCT_GROUP annotations in a ConsensusFeature. (Required for IIMN)
+              vector<String>
+      */
+      inline const std::string   IIMN_LINKED_GROUPS = "LinkedGroups";
+
+      /** User parameter name for adduct annotation in Feature by MetaboliteAdductDecharger.
+              String
+      */
+      inline const std::string   DC_CHARGE_ADDUCTS = "dc_charge_adducts";
+
+      /** User parameter name for the number of mass traces in a feature. (Required for SiriusAdapter)
+              String
+      */
+      inline const std::string   NUM_OF_MASSTRACES = "num_of_masstraces";
+
+      /** User parameter name for the total number of data points (peaks) in a feature. (Required for MQEvidenceExporter)
+              String
+      */
+      inline const std::string   NUM_OF_DATAPOINTS = "num_of_datapoints";
+
+      /** User parameter name for the name/description of a metabolite. (Required for MetaboliteSpectralMatcher)
+              String
+      */
+      inline const std::string   MSM_METABOLITE_NAME = "Metabolite_Name";
+
+      /** User parameter name for the INCHI key associated with a metabolite. (Required for MetaboliteSpectralMatcher)
+              String
+      */
+      inline const std::string   MSM_INCHI_STRING = "Inchi_String";
+
+      /** User parameter name for the SMILES key associated with a metabolite. (Required for MetaboliteSpectralMatcher)
+              String
+      */
+      inline const std::string   MSM_SMILES_STRING = "SMILES_String";
+
+      /** User parameter name for the precursor adduct ion of a metabolite. (Required for MetaboliteSpectralMatcher)
+              String
+      */
+      inline const std::string   MSM_PRECURSOR_ADDUCT = "Precursor_Ion";
+
+      /** User parameter name for the sum formula of a metabolite. (Required for MetaboliteSpectralMatcher)
+              String
+      */
+      inline const std::string   MSM_SUM_FORMULA = "Sum_Formula";
     }
 
     //@}

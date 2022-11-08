@@ -9,18 +9,18 @@ cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
 
     cdef cppclass OnDiscMSExperiment(ExperimentalSettings):
         # wrap-doc:
-        #   Representation of a mass spectrometry experiment on disk.
+        #  Representation of a mass spectrometry experiment on disk.
         OnDiscMSExperiment() nogil except +
         OnDiscMSExperiment(OnDiscMSExperiment &) nogil except +
 
         bool openFile(String filename) nogil except +
         bool openFile(String filename, bool skipLoadingMetaData) nogil except +
             # wrap-doc:
-                #   Open a specific file on disk
-                #   -----
-                #   This tries to read the indexed mzML by parsing the index and then reading the meta information into memory
-                #   -----
-                #   returns: Whether the parsing of the file was successful (if false, the file most likely was not an indexed mzML file)
+                #  Open a specific file on disk
+                #  
+                #  This tries to read the indexed mzML by parsing the index and then reading the meta information into memory
+                #  
+                #  returns: Whether the parsing of the file was successful (if false, the file most likely was not an indexed mzML file)
 
         Size getNrSpectra() nogil except + # wrap-doc:Returns the total number of spectra available
         Size getNrChromatograms() nogil except + # wrap-doc:Returns the total number of chromatograms available
@@ -32,27 +32,31 @@ cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
 
         MSSpectrum getSpectrum(Size id) nogil except +
             # wrap-doc:
-                #   Returns a single spectrum
-                #   -----
-                #   :param id: The index of the spectrum
+                #  Returns a single spectrum
+                #  
+                #  
+                #  :param id: The index of the spectrum
 
         MSSpectrum getSpectrumByNativeId(String id) nogil except +
             # wrap-doc:
-                #   Returns a single spectrum
-                #   -----
-                #   :param id: The native identifier of the spectrum
+                #  Returns a single spectrum
+                #  
+                #  
+                #  :param id: The native identifier of the spectrum
 
         MSChromatogram getChromatogram(Size id) nogil except +
             # wrap-doc:
-                #   Returns a single chromatogram
-                #   -----
-                #   :param id: The index of the chromatogram
+                #  Returns a single chromatogram
+                #  
+                #  
+                #  :param id: The index of the chromatogram
                 
         MSChromatogram getChromatogramByNativeId(String id) nogil except +
             # wrap-doc:
-                #   Returns a single chromatogram
-                #   -----
-                #   :param id: The native identifier of the chromatogram
+                #  Returns a single chromatogram
+                #  
+                #  
+                #  :param id: The native identifier of the chromatogram
 
         # TODO decide for 1.12 whether to include those ... 
         shared_ptr[Spectrum] getSpectrumById(int id_) nogil except + # wrap-doc:Returns a single spectrum

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -307,10 +307,13 @@ namespace OpenMS
           initialNewline();
           if (this_test)
           {
-            stdcout << " +  line " << line << ":  TEST_EQUAL("
-                      << expression_1_stringified << ','
-                      << expression_2_stringified << "): got '" << expression_1
-                      << "', expected '" << expression_2 << "'\n";
+            if (verbose > 1)
+            {
+              stdcout << " +  line " << line << ":  TEST_EQUAL("
+                        << expression_1_stringified << ','
+                        << expression_2_stringified << "): got '" << expression_1
+                        << "', expected '" << expression_2 << "'\n";
+            }
           }
           else
           {
@@ -318,6 +321,52 @@ namespace OpenMS
                       << expression_1_stringified << ','
                       << expression_2_stringified << "): got '" << expression_1
                       << "', expected '" << expression_2 << "'\n";
+            failed_lines_list.push_back(line);
+          }
+        }
+      }
+
+      void testTrue(const char* /*file*/, int line, const bool expression_1, const char* expression_1_stringified)
+      {
+        ++test_count;
+        test_line = line;
+        this_test = expression_1;
+        test = test && this_test;
+        {
+          initialNewline();
+          if (this_test)
+          {
+            if (verbose > 1)
+            {
+              stdcout << " +  line " << line << ":  TEST_TRUE(" << expression_1_stringified << "): ok\n";
+            }
+          }
+          else
+          {
+            stdcout << " -  line " << line << ":  TEST_TRUE(" << expression_1_stringified << "): failed\n";
+            failed_lines_list.push_back(line);
+          }
+        }
+      }
+
+      void testFalse(const char* /*file*/, int line, const bool expression_1, const char* expression_1_stringified)
+      {
+        ++test_count;
+        test_line = line;
+        this_test = !expression_1;
+        test = test && this_test;
+        {
+          initialNewline();
+          if (this_test)
+          {
+            if (verbose > 1)
+            {
+              stdcout << " +  line " << line << ":  TEST_FALSE(" << expression_1_stringified << "): ok\n";
+            }
+          }
+          else
+          {
+            stdcout << " -  line " << line << ":  TEST_FALSE(" << expression_1_stringified << "): failed\n";
             failed_lines_list.push_back(line);
           }
         }
@@ -338,10 +387,13 @@ namespace OpenMS
           initialNewline();
           if (this_test)
           {
-            stdcout << " +  line " << line << ":  TEST_NOT_EQUAL("
-                      << expression_1_stringified << ','
-                      << expression_2_stringified << "): got '" << expression_1
-                      << "', forbidden is '" << expression_2 << "'\n";
+            if (verbose > 1)
+            {
+              stdcout << " +  line " << line << ":  TEST_NOT_EQUAL("
+                        << expression_1_stringified << ','
+                        << expression_2_stringified << "): got '" << expression_1
+                        << "', forbidden is '" << expression_2 << "'\n";
+            }
           }
           else
           {
@@ -416,7 +468,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
 #define START_TEST(class_name, version)                                                   \
   int main(int argc, char** argv)                                                         \
   {                                                                                       \
-    TEST::mainInit(version, #class_name, argc, argv[0]);                                        \
+    TEST::mainInit(version, #class_name, argc, argv[0]);                                  \
     try {
 
 /**	@brief End of the test program for a class.  @sa #START_TEST.
@@ -471,7 +523,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
     TEST::all_tests = false;                                                              \
     {                                                                                     \
       TEST::initialNewline();                                                             \
-      stdcout << "Error: Caught unidentified and unexpected exception - No message."    \
+      stdcout << "Error: Caught unidentified and unexpected exception - No message."      \
                 << std::endl;                                                             \
     }                                                                                     \
   }                                                                                       \
@@ -479,6 +531,10 @@ namespace TEST = OpenMS::Internal::ClassTest;
   if (!TEST::validate(TEST::tmp_file_list))                                               \
   {                                                                                       \
     TEST::all_tests = false;                                                              \
+  }                                                                                       \
+  if (TEST::verbose == 0)                                                                 \
+  {                                                                                       \
+    stdcout << "Output of successful tests were suppressed. Set the environment variable 'OPENMS_TEST_VERBOSE=True' to enable them." << std::endl; \
   }                                                                                       \
   /* check for exit code */                                                               \
   if (!TEST::all_tests)                                                                   \
@@ -655,6 +711,29 @@ namespace TEST = OpenMS::Internal::ClassTest;
  */
 #define TEST_EQUAL(a, b) TEST::testEqual(__FILE__, __LINE__, (a), (# a), (b), (# b));
 
+/**	@brief Boolean test macro.
+
+ This macro tests if its argument evaluates to 'true'.
+ If possible use TEST_EQUAL(a, b) instead of TEST_TRUE(a==b), because the latter makes bug tracing harder.
+
+ @param a value/object convertible to bool
+ 
+ @hideinitializer
+*/
+#define TEST_TRUE(a) TEST::testTrue(__FILE__, __LINE__, (a), (#a));
+
+/**	@brief Boolean test macro.
+
+ This macro tests if its argument evaluates to 'false'.
+ If possible use TEST_NOT_EQUAL(a, b) instead of TEST_FALSE(a!=b), because the latter makes bug tracing harder.
+
+ @param a value/object convertible to bool
+
+ @hideinitializer
+*/
+#define TEST_FALSE(a) TEST::testFalse(__FILE__, __LINE__, (a), (#a));
+
+
 /**	@brief Generic inequality macro.
 
  This macro checks for inequality just like #TEST_EQUAL tests for equality.
@@ -759,25 +838,28 @@ namespace TEST = OpenMS::Internal::ClassTest;
       TEST::initialNewline();                                                             \
       if (TEST::this_test)                                                                \
       {                                                                                   \
-        stdcout << " +  line " << __LINE__                                              \
-                  << ":  TEST_FILE_SIMILAR(" # a "," # b "):  absolute: "                       \
-                  << precisionWrapper(TEST::absdiff)                                            \
-                  << " ("                                                                       \
-                  << precisionWrapper(TEST::absdiff_max_allowed)                                \
-                  << "), relative: "                                                            \
-                  << precisionWrapper(TEST::ratio)                                              \
-                  << " ("                                                                       \
-                  << precisionWrapper(TEST::ratio_max_allowed)                                  \
-                  << ")\n";                                                               \
-        stdcout << "message: \n";                                                       \
-        stdcout << TEST::fuzzy_message;                                                 \
+        if (TEST::verbose > 1)                                                            \
+        {                                                                                 \
+          stdcout << " +  line " << __LINE__                                              \
+                    << ":  TEST_FILE_SIMILAR(" # a "," # b "):  absolute: "               \
+                    << precisionWrapper(TEST::absdiff)                                    \
+                    << " ("                                                               \
+                    << precisionWrapper(TEST::absdiff_max_allowed)                        \
+                    << "), relative: "                                                    \
+                    << precisionWrapper(TEST::ratio)                                      \
+                    << " ("                                                               \
+                    << precisionWrapper(TEST::ratio_max_allowed)                          \
+                    << ")\n";                                                             \
+          stdcout << "message: \n";                                                       \
+          stdcout << TEST::fuzzy_message;                                                 \
+        }                                                                                 \
       }                                                                                   \
       else                                                                                \
       {                                                                                   \
-        stdcout << " -  line " << TEST::test_line <<                                    \
-          ": TEST_FILE_SIMILAR(" # a "," # b ") ...    -\n";                                \
-        stdcout << "message: \n";                                                       \
-        stdcout << TEST::fuzzy_message;                                                 \
+        stdcout << " -  line " << TEST::test_line <<                                      \
+          ": TEST_FILE_SIMILAR(" # a "," # b ") ...    -\n";                              \
+        stdcout << "message: \n";                                                         \
+        stdcout << TEST::fuzzy_message;                                                   \
         TEST::failed_lines_list.push_back(TEST::test_line);                               \
       }                                                                                   \
     }                                                                                     \
@@ -799,9 +881,12 @@ namespace TEST = OpenMS::Internal::ClassTest;
   TEST::ratio_max_allowed = (a);                                                          \
   {                                                                                       \
     TEST::initialNewline();                                                               \
-    stdcout << " +  line " << __LINE__ <<                                               \
-      ":  TOLERANCE_RELATIVE(" <<     TEST::ratio_max_allowed <<                            \
-      ")   (\"" # a "\")\n";                                                     \
+    if (TEST::verbose > 1)                                                                \
+    {                                                                                     \
+      stdcout << " +  line " << __LINE__ <<                                               \
+        ":  TOLERANCE_RELATIVE(" <<     TEST::ratio_max_allowed <<                        \
+        ")   (\"" # a "\")\n";                                                            \
+    }                                                                                     \
   }
 
 /**	@brief Define the absolute tolerance for floating point comparisons.
@@ -819,9 +904,12 @@ namespace TEST = OpenMS::Internal::ClassTest;
   TEST::absdiff_max_allowed = (a);                                                        \
   {                                                                                       \
     TEST::initialNewline();                                                               \
-    stdcout << " +  line " << __LINE__ <<                                               \
-      ":  TOLERANCE_ABSOLUTE(" <<     TEST::absdiff_max_allowed   <<                        \
-      ")   (\"" # a "\")\n";                                                              \
+    if (TEST::verbose > 1)                                                                \
+    {                                                                                     \
+      stdcout << " +  line " << __LINE__ <<                                               \
+        ":  TOLERANCE_ABSOLUTE(" <<     TEST::absdiff_max_allowed   <<                    \
+        ")   (\"" # a "\")\n";                                                            \
+    }                                                                                     \
   }
 
 /** @brief Define the whitelist_ used by #TEST_STRING_SIMILAR and #TEST_FILE_SIMILAR.
@@ -852,11 +940,11 @@ namespace TEST = OpenMS::Internal::ClassTest;
     {                                                                                     \
       command;                                                                            \
     }                                                                                     \
-    catch (exception_type&)                                                                \
+    catch (exception_type&)                                                               \
     {                                                                                     \
       TEST::exception = 1;                                                                \
     }                                                                                     \
-    catch (::OpenMS::Exception::BaseException& e)                                          \
+    catch (::OpenMS::Exception::BaseException& e)                                         \
     {                                                                                     \
       TEST::exception = 2;                                                                \
       TEST::exception_name = e.getName();                                                 \
@@ -879,9 +967,12 @@ namespace TEST = OpenMS::Internal::ClassTest;
         TEST::failed_lines_list.push_back(TEST::test_line);                               \
         break;                                                                            \
       case 1:                                                                             \
-        stdcout << " +  line " << TEST::test_line <<                                    \
-          ":  TEST_EXCEPTION(" # exception_type "," # command                               \
-          "): OK\n";                                                                    \
+        if (TEST::verbose > 1)                                                            \
+        {                                                                                 \
+          stdcout << " +  line " << TEST::test_line <<                                    \
+            ":  TEST_EXCEPTION(" # exception_type "," # command                           \
+            "): OK\n";                                                                    \
+        }                                                                                 \
         break;                                                                            \
       case 2:                                                                             \
         stdcout << " -  line " << TEST::test_line <<                                    \
@@ -992,11 +1083,14 @@ namespace TEST = OpenMS::Internal::ClassTest;
         TEST::failed_lines_list.push_back(TEST::test_line);                               \
         break;                                                                            \
       case 1:                                                                             \
-        /* this is actually what we want to get:  */                                      \
-        stdcout << " +  line " << TEST::test_line <<                                    \
-          ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
-          "): OK\n";                                                                      \
-        break;                                                                            \
+        if (TEST::verbose > 1)                                                            \
+        {                                                                                 \
+          /* this is actually what we want to get:  */                                      \
+          stdcout << " +  line " << TEST::test_line <<                                    \
+            ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
+            "): OK\n";                                                                      \
+          break;                                                                            \
+        }                                                                                 \
       case 2:                                                                             \
         stdcout << " -  line " << TEST::test_line <<                                    \
           ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
@@ -1044,7 +1138,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
     TEST::tmp_file_list.push_back(filename);                                              \
     {                                                                                     \
       TEST::initialNewline();                                                             \
-      stdcout << "    creating new temporary filename '"                                \
+      stdcout << "    creating new temporary filename '"                                  \
                 << filename                                                               \
                 << "' (line "                                                             \
                 << __LINE__                                                               \
@@ -1063,14 +1157,14 @@ namespace TEST = OpenMS::Internal::ClassTest;
   if (condition)                                                                          \
   {                                                                                       \
     {                                                                                     \
-      TEST::test_line = __LINE__;                                                           \
-      TEST::this_test = false;                                                              \
-      TEST::test = TEST::test && TEST::this_test;                                           \
-      TEST::failed_lines_list.push_back(TEST::test_line);                                   \
-      TEST::initialNewline();                                                               \
-      stdcout << " -  line " << TEST::test_line <<                                          \
-        ":  ABORT_IF(" # condition "):  TEST ABORTED\n";                                    \
-    }                                                                                       \
+      TEST::test_line = __LINE__;                                                         \
+      TEST::this_test = false;                                                            \
+      TEST::test = TEST::test && TEST::this_test;                                         \
+      TEST::failed_lines_list.push_back(TEST::test_line);                                 \
+      TEST::initialNewline();                                                             \
+      stdcout << " -  line " << TEST::test_line <<                                        \
+        ":  ABORT_IF(" # condition "):  TEST ABORTED\n";                                  \
+    }                                                                                     \
     break;                                                                                \
   }
 
@@ -1094,7 +1188,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
 #define STATUS(message)                                                                   \
   {                                                                                       \
     TEST::initialNewline();                                                               \
-    stdcout << "    line "                                                              \
+    stdcout << "    line "                                                                \
               <<  __LINE__                                                                \
               << ": status:  "                                                            \
               << message                                                                  \
@@ -1126,4 +1220,3 @@ namespace TEST = OpenMS::Internal::ClassTest;
   TEST::test_count = 1;
 
 //@} // end of ClassTest
-

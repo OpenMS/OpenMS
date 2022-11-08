@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,19 +34,11 @@
 
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 
-#include <OpenMS/ANALYSIS/ID/IDMapper.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/NASequence.h>
-#include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -56,7 +48,6 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -64,25 +55,22 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
-#include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
+#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
 #include <OpenMS/VISUAL/LayerListView.h>
+#include <OpenMS/VISUAL/LayerDataChrom.h>
+#include <OpenMS/VISUAL/LayerDataConsensus.h>
+#include <OpenMS/VISUAL/LayerDataFeature.h>
+#include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-#include <OpenMS/VISUAL/MultiGradientSelector.h>
-#include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
@@ -92,31 +80,21 @@
 #include <OpenMS/VISUAL/Plot3DWidget.h>
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/SpectraTreeTab.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 
-//Qt
+// Qt
 #include <QCloseEvent>
-#include <QPainter>
-#include <QtCore/QDate>
 #include <QtCore/QDir>
 #include <QtCore/QSettings>
-#include <QtCore/QTime>
 #include <QtCore/QUrl>
-#include <QTextCodec>
-#include <QtWidgets/QCheckBox>
-#include <QtWidgets/QDesktopWidget>
+#include <QGuiApplication>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QSplashScreen>
-#include <QtWidgets/QToolBar>
 #include <QtWidgets/QToolButton>
-#include <QtWidgets/QToolTip>
-#include <QtWidgets/QTreeWidget>
-#include <QtWidgets/QTreeWidgetItem>
-#include <QtWidgets/QWhatsThis>
 
-#include <boost/math/special_functions/fpclassify.hpp>
-
+#include <cmath>
 #include <utility>
 
 using namespace std;
@@ -128,11 +106,13 @@ namespace OpenMS
 
   const String TOPPViewBase::CAPTION_3D_SUFFIX_ = " (3D)";
 
+  const std::string user_section = "preferences:user:";
+
   /// supported types which can be opened with File-->Open
-  const FileTypes::FileTypeList supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
-                                                  FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
-                                                  FileTypes::DTA, FileTypes::DTA2D, FileTypes::MGF, FileTypes::MS2,
-                                                  FileTypes::MSP, FileTypes::BZ2, FileTypes::GZ });
+  const FileTypeList supported_types({ FileTypes::MZML, FileTypes::MZXML, FileTypes::MZDATA, FileTypes::SQMASS,
+                                       FileTypes::FEATUREXML, FileTypes::CONSENSUSXML, FileTypes::IDXML,
+                                       FileTypes::DTA, FileTypes::DTA2D, FileTypes::MGF, FileTypes::MS2,
+                                       FileTypes::MSP, FileTypes::BZ2, FileTypes::GZ });
 
   TOPPViewBase::TOPPViewBase(TOOL_SCAN scan_mode, QWidget* parent) :
     QMainWindow(parent),
@@ -149,7 +129,7 @@ namespace OpenMS
     setAcceptDrops(true); // enable drag-and-drop
 
     // get geometry of first screen
-    QRect screen_geometry = QApplication::desktop()->screenGeometry();
+    QRect screen_geometry = QGuiApplication::primaryScreen()->geometry();
     // center main window
     setGeometry(
       (int)(0.1 * screen_geometry.width()),
@@ -177,8 +157,10 @@ namespace OpenMS
     connect(&tab_bar_, &EnhancedTabBar::dropOnTab, this, &TOPPViewBase::copyLayer);
     box_layout->addWidget(&tab_bar_);
 
+    // Trigger updates only when the active subWindow changes and update it
     connect(&ws_, &EnhancedWorkspace::subWindowActivated, [this](QMdiSubWindow* window) {
-      if (window != nullptr) /* 0 upon terminate */ updateBarsAndMenus(); 
+      if (window && lastActiveSubwindow_ != window) /* 0 upon terminate */ updateBarsAndMenus();
+      lastActiveSubwindow_ = window;
     });
     connect(&ws_, &EnhancedWorkspace::dropReceived, this, &TOPPViewBase::copyLayer);
     box_layout->addWidget(&ws_);
@@ -188,24 +170,24 @@ namespace OpenMS
     message_label_ = new QLabel(statusBar());
     statusBar()->addWidget(message_label_, 1);
 
-    rt_label_ = new QLabel("RT: 12345678", statusBar());
-    rt_label_->setMinimumSize(rt_label_->sizeHint());
-    rt_label_->setText("");
-    statusBar()->addPermanentWidget(rt_label_, 0);
-    mz_label_ = new QLabel("m/z: 123456780912", statusBar());
-    mz_label_->setMinimumSize(mz_label_->sizeHint());
-    mz_label_->setText("");
-    statusBar()->addPermanentWidget(mz_label_, 0);
+    x_label_ = new QLabel("RT: 12345678", statusBar());
+    x_label_->setMinimumSize(x_label_->sizeHint());
+    x_label_->setText("");
+    statusBar()->addPermanentWidget(x_label_, 0);
+    y_label_ = new QLabel("m/z: 123456780912", statusBar());
+    y_label_->setMinimumSize(y_label_->sizeHint());
+    y_label_->setText("");
+    statusBar()->addPermanentWidget(y_label_, 0);
 
     //################## TOOLBARS #################
-    //create toolbars and connect signals
+    // create toolbars and connect signals
     QToolButton* b;
 
     //--Basic tool bar for all views--
     tool_bar_ = addToolBar("Basic tool bar");
     tool_bar_->setObjectName("tool_bar");
 
-    //intensity modes
+    // intensity modes
     intensity_button_group_ = new QButtonGroup(tool_bar_);
     intensity_button_group_->setExclusive(true);
 
@@ -249,10 +231,16 @@ namespace OpenMS
     intensity_button_group_->addButton(b, PlotCanvas::IM_LOG);
     tool_bar_->addWidget(b);
 
+    /*
+     * Suppressed warning QButtonGroup buttonClicked(int) till Qt 5.15
+     */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     connect(intensity_button_group_, CONNECTCAST(QButtonGroup,buttonClicked,(int)), this, &TOPPViewBase::setIntensityMode);
+#pragma GCC diagnostic pop
     tool_bar_->addSeparator();
 
-    //common buttons
+    // common buttons
     QAction* reset_zoom_button = tool_bar_->addAction(QIcon(":/reset_zoom.png"), "Reset Zoom", this, &TOPPViewBase::resetZoom);
     reset_zoom_button->setWhatsThis("Reset zoom: Zooms out as far as possible and resets the zoom history.<BR>(Hotkey: Backspace)");
 
@@ -262,7 +250,7 @@ namespace OpenMS
     tool_bar_1d_ = addToolBar("1D tool bar");
     tool_bar_1d_->setObjectName("1d_tool_bar");
 
-    //draw modes 1D
+    // draw modes 1D
     draw_group_1d_ = new QButtonGroup(tool_bar_1d_);
     draw_group_1d_->setExclusive(true);
 
@@ -284,7 +272,14 @@ namespace OpenMS
     draw_group_1d_->addButton(b, Plot1DCanvas::DM_CONNECTEDLINES);
     tool_bar_1d_->addWidget(b);
 
+    /*
+     * Suppressed warning QButtonGroup buttonClicked(int) till Qt 5.15
+     */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     connect(draw_group_1d_, CONNECTCAST(QButtonGroup, buttonClicked, (int)), this, &TOPPViewBase::setDrawMode1D);
+#pragma GCC diagnostic pop
+
     tool_bar_->addSeparator();
 
     //--2D peak toolbar--
@@ -329,13 +324,13 @@ namespace OpenMS
     dm_label_2d_->setDefaultAction(action2);
     tool_bar_2d_feat_->addWidget(dm_label_2d_);
     connect(dm_label_2d_, &QToolButton::triggered, this, &TOPPViewBase::changeLabel);
-    //button menu
+    // button menu
     group_label_2d_ = new QActionGroup(dm_label_2d_);
     QMenu* menu = new QMenu(dm_label_2d_);
-    for (Size i = 0; i < LayerData::SIZE_OF_LABEL_TYPE; ++i)
+    for (Size i = 0; i < LayerDataBase::SIZE_OF_LABEL_TYPE; ++i)
     {
       QAction* temp = group_label_2d_->addAction(
-        QString(LayerData::NamesOfLabelType[i].c_str()));
+        QString(LayerDataBase::NamesOfLabelType[i].c_str()));
       temp->setCheckable(true);
       if (i == 0) temp->setChecked(true);
       menu->addAction(temp);
@@ -352,7 +347,7 @@ namespace OpenMS
     dm_unassigned_2d_->setDefaultAction(action_unassigned);
     tool_bar_2d_feat_->addWidget(dm_unassigned_2d_);
     connect(dm_unassigned_2d_, &QToolButton::triggered, this, &TOPPViewBase::changeUnassigned);
-    //button menu
+    // button menu
     group_unassigned_2d_ = new QActionGroup(dm_unassigned_2d_);
     menu = new QMenu(dm_unassigned_2d_);
     StringList options = {"Don't show", "Show by precursor m/z", "Show by peptide mass", "Show label meta data"};
@@ -444,7 +439,11 @@ namespace OpenMS
     loadPreferences();
 
     // set current path
-    current_path_ = param_.getValue("preferences:default_path").toString();
+    current_path_ = param_.getValue(user_section + "default_path").toString();
+
+    // set plugin search path, create it if it does not already exist
+    String plugin_path = String(param_.getValue(user_section + "plugins_path").toString());
+    tool_scanner_.setPluginPath(plugin_path, true);
 
     // update the menu
     updateMenu();
@@ -463,36 +462,52 @@ namespace OpenMS
 
   void TOPPViewBase::initializeDefaultParameters_()
   {
-    //general
-    defaults_.setValue("preferences:default_map_view", "2d", "Default visualization mode for maps.");
-    defaults_.setValidStrings("preferences:default_map_view", {"2d","3d"});
-    defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
-    defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
-    defaults_.setValidStrings("preferences:default_path_current", {"true","false"});
-    defaults_.setValue("preferences:intensity_cutoff", "off", "Low intensity cutoff for maps.");
-    defaults_.setValidStrings("preferences:intensity_cutoff", {"on","off"});
-    defaults_.setValue("preferences:on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
-    defaults_.setValidStrings("preferences:on_file_change", {"none","ask","update automatically"});
-    defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
-    defaults_.setValidStrings("preferences:topp_cleanup", {"true","false"});
-    defaults_.setValue("preferences:use_cached_ms2", "false", "If possible, only load MS1 spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
-    defaults_.setValidStrings("preferences:use_cached_ms2", {"true","false"});
-    defaults_.setValue("preferences:use_cached_ms1", "false", "If possible, do not load MS1 spectra into memory spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
-    defaults_.setValidStrings("preferences:use_cached_ms1", {"true","false"});
+    // FIXME: these parameters are declared again in TOPPViewPrefDialog, incl. their allowed values
+    //        There should be one place to do this. E.g. generate the GUI automatically from a Param (or simply use ParamEditor for the whole thing)
+
+    // all parameters in preferences:user: can be edited by the user in the preferences dialog
+
+    // general
+    defaults_.setValue(user_section + "default_map_view", "2d", "Default visualization mode for maps.");
+    defaults_.setValidStrings(user_section + "default_map_view", {"2d","3d"});
+    defaults_.setValue(user_section + "default_path", ".", "Default path for loading and storing files.");
+    defaults_.setValue(user_section + "default_path_current", "true", "If the current path is preferred over the default path.");
+    defaults_.setValidStrings(user_section + "default_path_current", {"true","false"});
+    defaults_.setValue(user_section + "plugins_path", File::getUserDirectory() + "OpenMS_Plugins", "Default path for loading Plugins");
+    defaults_.setValue(user_section + "intensity_cutoff", "off", "Low intensity cutoff for maps.");
+    defaults_.setValidStrings(user_section + "intensity_cutoff", {"on","off"});
+    defaults_.setValue(user_section + "on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
+    defaults_.setValidStrings(user_section + "on_file_change", {"none","ask","update automatically"});
+    defaults_.setValue(user_section + "use_cached_ms2", "false", "If possible, only load MS1 spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
+    defaults_.setValidStrings(user_section + "use_cached_ms2", {"true","false"});
+    defaults_.setValue(user_section + "use_cached_ms1", "false", "If possible, do not load MS1 spectra into memory spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
+    defaults_.setValidStrings(user_section + "use_cached_ms1", {"true","false"});
+
+    // FIXME: getCanvasParameters() depends on the exact naming of the param sections below!
     // 1d view
-    defaults_.insert("preferences:1d:", Plot1DCanvas(Param()).getDefaults());
-    defaults_.setSectionDescription("preferences:1d", "Settings for single spectrum view.");
+    defaults_.insert(user_section + "1d:", Plot1DCanvas(Param()).getDefaults());
+    defaults_.setSectionDescription(user_section + "1d", "Settings for single spectrum view.");
     // 2d view
-    defaults_.insert("preferences:2d:", Plot2DCanvas(Param()).getDefaults());
-    defaults_.setSectionDescription("preferences:2d", "Settings for 2D map view.");
+    defaults_.insert(user_section + "2d:", Plot2DCanvas(Param()).getDefaults());
+    defaults_.setSectionDescription(user_section + "2d", "Settings for 2D map view.");
     // 3d view
-    defaults_.insert("preferences:3d:", Plot3DCanvas(Param()).getDefaults());
-    defaults_.setSectionDescription("preferences:3d", "Settings for 3D map view.");
+    defaults_.insert(user_section + "3d:", Plot3DCanvas(Param()).getDefaults());
+    defaults_.setSectionDescription(user_section + "3d", "Settings for 3D map view.");
     // identification view
-    defaults_.insert("preferences:idview:", SpectraIDViewTab(Param()).getDefaults());
-    defaults_.setSectionDescription("preferences:idview", "Settings for identification view.");
+    defaults_.insert(user_section + "idview:", SpectraIDViewTab(Param()).getDefaults());
+    defaults_.setSectionDescription(user_section + "idview", "Settings for identification view.");
+
+    // non-editable parameters
+
+    // not in Dialog (yet?)
+    defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
+    defaults_.setValidStrings("preferences:topp_cleanup", {"true", "false"});
+
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPView.ini is up-to-date");
     subsections_.push_back("preferences:RecentFiles");
+
+    // store defaults in param_
+    defaultsToParam_();
   }
 
   void TOPPViewBase::closeEvent(QCloseEvent* event)
@@ -507,13 +522,14 @@ namespace OpenMS
   void TOPPViewBase::preferencesDialog()
   {
     Internal::TOPPViewPrefDialog dlg(this);
-    dlg.setParam(param_);
+    dlg.setParam(param_.copy(user_section, true));
 
     // --------------------------------------------------------------------
     // Execute dialog and update parameter object with user modified values
     if (dlg.exec())
     {
-      param_ = dlg.getParam();
+      param_.remove(user_section);
+      param_.insert(user_section, dlg.getParam());
       savePreferences();
     }
   }
@@ -545,7 +561,7 @@ namespace OpenMS
       return LOAD_RESULT::FILETYPE_UNSUPPORTED;
     }
 
-    //try to load data and determine if it's 1D or 2D data
+    // try to load data and determine if it's 1D or 2D data
 
     // create shared pointer to main data types
     FeatureMapType* feature_map = new FeatureMapType();
@@ -561,31 +577,33 @@ namespace OpenMS
     vector<ProteinIdentification> proteins;
     String annotate_path;
 
-    LayerData::DataType data_type;
+    LayerDataBase::DataType data_type;
 
     ODExperimentSharedPtrType on_disc_peaks(new OnDiscMSExperiment);
 
     // lock the GUI - no interaction possible when loading...
     GUIHelpers::GUILock glock(this);
 
-    bool cache_ms2_on_disc = (param_.getValue("preferences:use_cached_ms2") == "true");
-    bool cache_ms1_on_disc = (param_.getValue("preferences:use_cached_ms1") == "true");
+    bool cache_ms2_on_disc = (param_.getValue(user_section + "use_cached_ms2") == "true");
+    bool cache_ms1_on_disc = (param_.getValue(user_section + "use_cached_ms1") == "true");
 
     try
     {
       if (file_type == FileTypes::FEATUREXML)
       {
         FeatureXMLFile().load(abs_filename, *feature_map);
-        data_type = LayerData::DT_FEATURE;
+        data_type = LayerDataBase::DT_FEATURE;
       }
       else if (file_type == FileTypes::CONSENSUSXML)
       {
         ConsensusXMLFile().load(abs_filename, *consensus_map);
-        data_type = LayerData::DT_CONSENSUS;
+        data_type = LayerDataBase::DT_CONSENSUS;
       }
-      else if (file_type == FileTypes::IDXML)
+      else if (file_type == FileTypes::IDXML || file_type == FileTypes::MZIDENTML)
       {
-        IdXMLFile().load(abs_filename, proteins, peptides);
+        if (file_type == FileTypes::IDXML) IdXMLFile().load(abs_filename, proteins, peptides);
+        else if (file_type == FileTypes::MZIDENTML) MzIdentMLFile().load(abs_filename, proteins, peptides);
+
         if (peptides.empty())
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications found");
@@ -653,40 +671,7 @@ namespace OpenMS
             }
           }
         }
-        data_type = LayerData::DT_IDENT;
-      }
-      else if (file_type == FileTypes::MZIDENTML)
-      {
-        vector<ProteinIdentification> proteins; // not needed later
-        MzIdentMLFile().load(abs_filename, proteins, peptides);
-        if (peptides.empty())
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications found");
-        }
-        // check if RT (and sequence) information is present:
-        vector<PeptideIdentification> peptides_with_rt;
-        for (vector<PeptideIdentification>::const_iterator it =
-               peptides.begin(); it != peptides.end(); ++it)
-        {
-          if (!it->getHits().empty() && it->hasRT())
-          {
-            peptides_with_rt.push_back(*it);
-          }
-        }
-        Size diff = peptides.size() - peptides_with_rt.size();
-        if (diff)
-        {
-          String msg = String(diff) + " peptide identification(s) without"
-                                      " sequence and/or retention time information were removed.\n" +
-                       peptides_with_rt.size() + " peptide identification(s) remaining.";
-          log_->appendNewHeader(LogWindow::LogState::WARNING, "While loading file:", msg);
-        }
-        if (peptides_with_rt.empty())
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications with sufficient information remaining.");
-        }
-        peptides.swap(peptides_with_rt);
-        data_type = LayerData::DT_IDENT;
+        data_type = LayerDataBase::DT_IDENT;
       }
       else
       {
@@ -694,9 +679,9 @@ namespace OpenMS
         if (file_type == FileTypes::MZML)
         {
           // Load index only and check success (is it indexed?)
-          Internal::IndexedMzMLHandler indexed_mzml_file_;
-          indexed_mzml_file_.openFile(filename);
-          if ( indexed_mzml_file_.getParsingSuccess() && cache_ms2_on_disc)
+          Internal::IndexedMzMLHandler indexed_mzml_file;
+          indexed_mzml_file.openFile(filename);
+          if ( indexed_mzml_file.getParsingSuccess() && cache_ms2_on_disc)
           {
             // If it has an index, now load index and meta data
             on_disc_peaks->openFile(filename, false);
@@ -716,17 +701,16 @@ namespace OpenMS
             // with actual spectra including raw data (allowing us to only
             // populate MS1 spectra with actual data).
 
-            // peak_map_sptr = boost::static_pointer_cast<ExperimentSharedPtrType>(on_disc_peaks->getMetaData());
             peak_map_sptr = on_disc_peaks->getMetaData();
 
-            for (Size k = 0; k < indexed_mzml_file_.getNrSpectra() && !cache_ms1_on_disc; k++)
+            for (Size k = 0; k < indexed_mzml_file.getNrSpectra() && !cache_ms1_on_disc; k++)
             {
               if ( peak_map_sptr->getSpectrum(k).getMSLevel() == 1)
               {
                 peak_map_sptr->getSpectrum(k) = on_disc_peaks->getSpectrum(k);
               }
             }
-            for (Size k = 0; k < indexed_mzml_file_.getNrChromatograms() && !cache_ms2_on_disc; k++)
+            for (Size k = 0; k < indexed_mzml_file.getNrChromatograms() && !cache_ms2_on_disc; k++)
             {
               peak_map_sptr->getChromatogram(k) = on_disc_peaks->getChromatogram(k);
             }
@@ -744,11 +728,11 @@ namespace OpenMS
         OPENMS_LOG_INFO << "INFO: done loading all " << std::endl;
 
         // a mzML file may contain both, chromatogram and peak data
-        // -> this is handled in PlotCanvas::addLayer
-        data_type = LayerData::DT_CHROMATOGRAM;
+        // -> this is handled in PlotCanvas::addPeakLayer
+        data_type = LayerDataBase::DT_CHROMATOGRAM;
         if (peak_map_sptr->containsScanOfLevel(1))
         {
-          data_type = LayerData::DT_PEAK;
+          data_type = LayerDataBase::DT_PEAK;
         }
       }
     }
@@ -758,7 +742,7 @@ namespace OpenMS
       return LOAD_RESULT::LOAD_ERROR;
     }
 
-    // sort for mz and update ranges of newly loaded data
+    // sort for m/z and update ranges of newly loaded data
     peak_map_sptr->sortSpectra(true);
     peak_map_sptr->updateRanges(1);
 
@@ -801,9 +785,9 @@ namespace OpenMS
       peak_map_sptr, 
       on_disc_peaks, 
       data_type, 
-      false, 
+      false,   // show as 1D
       show_options, 
-      true, 
+      true,    // as new window
       abs_filename, 
       caption, 
       window_id, 
@@ -826,7 +810,7 @@ namespace OpenMS
                              vector<PeptideIdentification>& peptides,
                              ExperimentSharedPtrType peak_map,
                              ODExperimentSharedPtrType on_disc_peak_map,
-                             LayerData::DataType data_type,
+                             LayerDataBase::DataType data_type,
                              bool show_as_1d,
                              bool show_options,
                              bool as_new_window,
@@ -836,15 +820,15 @@ namespace OpenMS
                              Size spectrum_id)
   {
     // initialize flags with defaults from the parameters
-    bool maps_as_2d = (param_.getValue("preferences:default_map_view") == "2d");
+    bool maps_as_2d = (param_.getValue(user_section + "default_map_view") == "2d");
     bool maps_as_1d = false;
-    bool use_intensity_cutoff = (param_.getValue("preferences:intensity_cutoff") == "on");
+    bool use_intensity_cutoff = (param_.getValue(user_section + "intensity_cutoff") == "on");
     bool is_dia_data = false;
 
     // feature, consensus feature and identifications can be merged
-    bool mergeable = ((data_type == LayerData::DT_FEATURE) ||
-                      (data_type == LayerData::DT_CONSENSUS) ||
-                      (data_type == LayerData::DT_IDENT));
+    bool mergeable = ((data_type == LayerDataBase::DT_FEATURE) ||
+                      (data_type == LayerDataBase::DT_CONSENSUS) ||
+                      (data_type == LayerDataBase::DT_IDENT));
 
     // only one peak spectrum? disable 2D as default
     if (peak_map->size() == 1) { maps_as_2d = false; }
@@ -868,40 +852,35 @@ namespace OpenMS
     // create dialog no matter if it is shown or not. It is used to determine the flags.
     TOPPViewOpenDialog dialog(caption, as_new_window, maps_as_2d, use_intensity_cutoff, this);
 
-    //disable opening in new window when there is no active window or feature/ID data is to be opened, but the current window is a 3D window
-    if (target_window == nullptr || (mergeable && dynamic_cast<Plot3DWidget*>(target_window) != nullptr))
+    // disable opening in new window when there is no active window or feature/ID data is to be opened, but the current window is a 3D window
+    if (target_window == nullptr || (mergeable && dynamic_cast<Plot3DWidget*>(target_window)))
     {
       dialog.disableLocation(true);
     }
 
-    //disable 1d/2d/3d option for feature/consensus/identification maps
-    if (mergeable)
+    // for feature/consensus/identification maps
+    if (mergeable) 
     {
-      dialog.disableDimension(true);
-    }
-
-    //disable cutoff for feature/consensus/identification maps
-    if (mergeable)
-    {
+      dialog.disableDimension(true); // disable 1d/2d/3d option
       dialog.disableCutoff(false);
-    }
 
-    //enable merge layers if a feature layer is opened and there are already features layers to merge it to
-    if (mergeable && target_window != nullptr) //TODO merge
-    {
-      PlotCanvas* open_canvas = target_window->canvas();
-      Map<Size, String> layers;
-      for (Size i = 0; i < open_canvas->getLayerCount(); ++i)
+      // enable merge layers if a feature layer is opened and there are already features layers to merge it to
+      if (target_window)
       {
-        if (data_type == open_canvas->getLayer(i).type)
+        PlotCanvas* open_canvas = target_window->canvas();
+        std::map<Size, String> layers;
+        for (Size i = 0; i < open_canvas->getLayerCount(); ++i)
         {
-          layers[i] = open_canvas->getLayer(i).getName();
+          if (data_type == open_canvas->getLayer(i).type)
+          {
+            layers[i] = open_canvas->getLayer(i).getName();
+          }
         }
+        dialog.setMergeLayers(layers); // adds a dropdown
       }
-      dialog.setMergeLayers(layers);
     }
-
-    //show options if requested
+    
+    // show options if requested
     if (show_options && !dialog.exec())
     {
       return;
@@ -927,65 +906,55 @@ namespace OpenMS
     }
 
     // determine the window to open the data in
-    if (as_new_window) //new window
+    if (as_new_window) // new window
     {
       if (maps_as_1d) // 2d in 1d window
       {
-        target_window = new Plot1DWidget(getSpectrumParameters(1), &ws_);
+        target_window = new Plot1DWidget(getCanvasParameters(1), DIM::Y, &ws_);
       }
-      else if (maps_as_2d || mergeable) //2d or features/IDs
+      else if (maps_as_2d || mergeable) // 2d or features/IDs
       {
-        target_window = new Plot2DWidget(getSpectrumParameters(2), &ws_);
+        target_window = new Plot2DWidget(getCanvasParameters(2), &ws_);
       }
       else // 3d
       {
-        target_window = new Plot3DWidget(getSpectrumParameters(3), &ws_);
+        target_window = new Plot3DWidget(getCanvasParameters(3), &ws_);
       }
     }
 
-    if (merge_layer == -1) //add layer to the window
+    if (merge_layer == -1) // add new layer to the window
     {
-      if (data_type == LayerData::DT_FEATURE) //features
+      if (data_type == LayerDataBase::DT_FEATURE) // features
       {
         if (!target_window->canvas()->addLayer(feature_map, filename))
         {
           return;
         }
       }
-      else if (data_type == LayerData::DT_CONSENSUS) //consensus features
+      else if (data_type == LayerDataBase::DT_CONSENSUS) // consensus features
       {
         if (!target_window->canvas()->addLayer(consensus_map, filename))
           return;
       }
-      else if (data_type == LayerData::DT_IDENT)
+      else if (data_type == LayerDataBase::DT_IDENT)
       {
         if (!target_window->canvas()->addLayer(peptides, filename))
           return;
       }
-      else //peaks
+      else // peaks or chrom
       {
-        if (!target_window->canvas()->addLayer(peak_map, on_disc_peak_map, filename))
+        if (data_type == LayerDataBase::DT_PEAK &&
+            !target_window->canvas()->addPeakLayer(peak_map, on_disc_peak_map, filename, use_intensity_cutoff))
+        {
           return;
-
-        //calculate noise
-        if (use_intensity_cutoff)
-        {
-          double cutoff = estimateNoiseFromRandomScans(*(target_window->canvas()->getCurrentLayer().getPeakData()), 1, 10, 80);
-          DataFilters filters;
-          filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, cutoff));
-          target_window->canvas()->setFilters(filters);
         }
-        else // no mower, hide zeros if wanted
+        
+        if (data_type == LayerDataBase::DT_CHROMATOGRAM &&
+            !target_window->canvas()->addChromLayer(peak_map, on_disc_peak_map, filename))
         {
-          if (target_window->canvas()->getCurrentLayer().getPeakData()->hasZeroIntensities(1))
-          {
-            statusBar()->showMessage("Note: Data contains zero values.\nA filter will be added to hide these values.\nYou can reenable data points with zero intensity by removing the filter.");
-            DataFilters filters;
-            filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, 0.001));
-            target_window->canvas()->setFilters(filters);
-          }
+          return;
         }
-
+        
         Plot1DWidget* open_1d_window = dynamic_cast<Plot1DWidget*>(target_window);
         if (open_1d_window)
         {
@@ -993,18 +962,18 @@ namespace OpenMS
         }
       }
     }
-    else //merge feature/ID data into feature layer
+    else // merge feature/ID data into feature layer
     {
       Plot2DCanvas* canvas = qobject_cast<Plot2DCanvas*>(target_window->canvas());
-      if (data_type == LayerData::DT_CONSENSUS)
+      if (data_type == LayerDataBase::DT_CONSENSUS)
       {
         canvas->mergeIntoLayer(merge_layer, consensus_map);
       }
-      else if (data_type == LayerData::DT_FEATURE)
+      else if (data_type == LayerDataBase::DT_FEATURE)
       {
         canvas->mergeIntoLayer(merge_layer, feature_map);
       }
-      else if (data_type == LayerData::DT_IDENT)
+      else if (data_type == LayerDataBase::DT_IDENT)
       {
         canvas->mergeIntoLayer(merge_layer, peptides);
       }
@@ -1012,7 +981,7 @@ namespace OpenMS
 
     if (as_new_window)
     {
-      showPlotWidgetInWindow(target_window, caption);
+      showPlotWidgetInWindow(target_window);
     }
 
     // enable spectra view tab (not required anymore since selection_view_.update() will decide automatically)
@@ -1061,7 +1030,7 @@ namespace OpenMS
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "The current layer is not visible", "Have you selected the right layer for this action?");
     }
 
-    //show editable meta data dialog
+    // show editable meta data dialog
     canvas->showMetaData(true);
   }
 
@@ -1070,7 +1039,7 @@ namespace OpenMS
     getActivePlotWidget()->showStatistics();
   }
 
-  void TOPPViewBase::showStatusMessage(string msg, OpenMS::UInt time)
+  void TOPPViewBase::showStatusMessage(const string& msg, OpenMS::UInt time)
   {
     if (time == 0)
     {
@@ -1083,40 +1052,11 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::showCursorStatusInvert(double mz, double rt)
-  {
-    // swap rt vs mz (for vertical projection)
-    showCursorStatus(rt, mz);
-  }
-
-  void TOPPViewBase::showCursorStatus(double mz, double rt)
+  void TOPPViewBase::showCursorStatus(const String& x, const String& y)
   {
     message_label_->setText("");
-    if (mz == -1)
-    {
-      mz_label_->setText("m/z: ");
-    }
-    else if (boost::math::isinf(mz) || boost::math::isnan(mz))
-    {
-      mz_label_->setText("m/z: n/a");
-    }
-    else
-    {
-      mz_label_->setText((String("m/z: ") + String::number(mz, 6).fillLeft(' ', 8)).toQString());
-    }
-
-    if (rt == -1)
-    {
-      rt_label_->setText("RT: ");
-    }
-    else if (boost::math::isinf(rt) || boost::math::isnan(rt))
-    {
-      rt_label_->setText("RT: n/a");
-    }
-    else
-    {
-      rt_label_->setText((String("RT: ") + String::number(rt, 1).fillLeft(' ', 8)).toQString());
-    }
+    x_label_->setText(x.toQString());
+    y_label_->setText(y.toQString());
     statusBar()->update();
   }
 
@@ -1152,27 +1092,27 @@ namespace OpenMS
   {
     bool set = false;
 
-    //label type is selected
-    for (Size i = 0; i < LayerData::SIZE_OF_LABEL_TYPE; ++i)
+    // label type is selected
+    for (Size i = 0; i < LayerDataBase::SIZE_OF_LABEL_TYPE; ++i)
     {
-      if (action->text().toStdString() == LayerData::NamesOfLabelType[i])
+      if (action->text().toStdString() == LayerDataBase::NamesOfLabelType[i])
       {
-        getActive2DWidget()->canvas()->setLabel(LayerData::LabelType(i));
+        getActive2DWidget()->canvas()->setLabel(LayerDataBase::LabelType(i));
         set = true;
       }
     }
 
-    //button is simply pressed
+    // button is simply pressed
     if (!set)
     {
-      if (getActive2DWidget()->canvas()->getCurrentLayer().label == LayerData::L_NONE)
+      if (getActive2DWidget()->canvas()->getCurrentLayer().label == LayerDataBase::L_NONE)
       {
-        getActive2DWidget()->canvas()->setLabel(LayerData::L_INDEX);
+        getActive2DWidget()->canvas()->setLabel(LayerDataBase::L_INDEX);
         dm_label_2d_->menu()->actions()[1]->setChecked(true);
       }
       else
       {
-        getActive2DWidget()->canvas()->setLabel(LayerData::L_NONE);
+        getActive2DWidget()->canvas()->setLabel(LayerDataBase::L_NONE);
         dm_label_2d_->menu()->actions()[0]->setChecked(true);
       }
     }
@@ -1185,32 +1125,32 @@ namespace OpenMS
     // mass reference is selected
     if (action->text().toStdString() == "Don't show")
     {
-      getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, false);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::F_UNASSIGNED, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_LABELS, false);
     }
     else if (action->text().toStdString() == "Show by precursor m/z")
     {
-      getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::F_UNASSIGNED, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_LABELS, false);
     }
     else if (action->text().toStdString() == "Show by peptide mass")
     {
-      getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, true);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::F_UNASSIGNED, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_PEPTIDEMZ, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_LABELS, false);
     }
     else if (action->text().toStdString() == "Show label meta data")
     {
-      getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::F_UNASSIGNED, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_LABELS, true);
     }
     else // button is simply pressed
     {
-      bool previous = getActive2DWidget()->canvas()->getLayerFlag(LayerData::F_UNASSIGNED);
-      getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED,
+      bool previous = getActive2DWidget()->canvas()->getLayerFlag(LayerDataBase::F_UNASSIGNED);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::F_UNASSIGNED,
                                                   !previous);
       if (previous) // now: don't show
       {
@@ -1220,7 +1160,7 @@ namespace OpenMS
       {
         dm_unassigned_2d_->menu()->actions()[1]->setChecked(true);
       }
-      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerDataBase::I_PEPTIDEMZ, false);
     }
 
     updateToolBar();
@@ -1231,47 +1171,53 @@ namespace OpenMS
     QAction* action = qobject_cast<QAction*>(sender());
     if (Plot2DWidget* win = getActive2DWidget())
     {
-      //peaks
+      // peaks
       if (action == dm_precursors_2d_)
       {
-        win->canvas()->setLayerFlag(LayerData::P_PRECURSORS, on);
+        win->canvas()->setLayerFlag(LayerDataBase::P_PRECURSORS, on);
       }
-      //features
+      // features
       else if (action == dm_hulls_2d_)
       {
-        win->canvas()->setLayerFlag(LayerData::F_HULLS, on);
+        win->canvas()->setLayerFlag(LayerDataBase::F_HULLS, on);
       }
       else if (action == dm_hull_2d_)
       {
-        win->canvas()->setLayerFlag(LayerData::F_HULL, on);
+        win->canvas()->setLayerFlag(LayerDataBase::F_HULL, on);
       }
-      //consensus features
+      // consensus features
       else if (action == dm_elements_2d_)
       {
-        win->canvas()->setLayerFlag(LayerData::C_ELEMENTS, on);
+        win->canvas()->setLayerFlag(LayerDataBase::C_ELEMENTS, on);
       }
       // identifications
       else if (action == dm_ident_2d_)
       {
-        win->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, on);
+        win->canvas()->setLayerFlag(LayerDataBase::I_PEPTIDEMZ, on);
       }
     }
   }
 
   void TOPPViewBase::updateBarsAndMenus()
   {
-    //Update filter bar, spectrum bar and layer bar
+    // Update filter bar, spectrum bar and layer bar
     layerActivated();
     updateMenu();
   }
 
   void TOPPViewBase::updateToolBar()
   {
+    tool_bar_1d_->hide();
+    tool_bar_2d_peak_->hide();
+    tool_bar_2d_feat_->hide();
+    tool_bar_2d_cons_->hide();
+    tool_bar_2d_ident_->hide();
+
     PlotWidget* w = getActivePlotWidget();
 
     if (w)
     {
-      //set intensity mode
+      // set intensity mode
       if (intensity_button_group_->button(w->canvas()->getIntensityMode()))
       {
         intensity_button_group_->button(w->canvas()->getIntensityMode())->setChecked(true);
@@ -1286,61 +1232,44 @@ namespace OpenMS
     Plot1DWidget* w1 = getActive1DWidget();
     if (w1)
     {
-      //draw mode
+      // draw mode
       draw_group_1d_->button(w1->canvas()->getDrawMode())->setChecked(true);
 
-      //show/hide toolbars and buttons
+      // show/hide toolbars and buttons
       tool_bar_1d_->show();
-      tool_bar_2d_peak_->hide();
-      tool_bar_2d_feat_->hide();
-      tool_bar_2d_cons_->hide();
-      tool_bar_2d_ident_->hide();
     }
 
     // 2D
     Plot2DWidget* w2 = getActive2DWidget();
     if (w2)
     {
-      tool_bar_1d_->hide();
       // check if there is a layer before requesting data from it
       if (w2->canvas()->getLayerCount() > 0)
       {
-        //peak draw modes
-        if (w2->canvas()->getCurrentLayer().type == LayerData::DT_PEAK)
+        // peak draw modes
+        if (w2->canvas()->getCurrentLayer().type == LayerDataBase::DT_PEAK)
         {
-          dm_precursors_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::P_PRECURSORS));
+          dm_precursors_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::P_PRECURSORS));
           tool_bar_2d_peak_->show();
-          tool_bar_2d_feat_->hide();
-          tool_bar_2d_cons_->hide();
-          tool_bar_2d_ident_->hide();
         }
-        //feature draw modes
-        else if (w2->canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
+        // feature draw modes
+        else if (w2->canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE)
         {
-          dm_hulls_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULLS));
-          dm_hull_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULL));
-          dm_unassigned_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_UNASSIGNED));
-          dm_label_2d_->setChecked(w2->canvas()->getCurrentLayer().label != LayerData::L_NONE);
-          tool_bar_2d_peak_->hide();
+          dm_hulls_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::F_HULLS));
+          dm_hull_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::F_HULL));
+          dm_unassigned_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::F_UNASSIGNED));
+          dm_label_2d_->setChecked(w2->canvas()->getCurrentLayer().label != LayerDataBase::L_NONE);
           tool_bar_2d_feat_->show();
-          tool_bar_2d_cons_->hide();
-          tool_bar_2d_ident_->hide();
         }
-        //consensus feature draw modes
-        else if (w2->canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS)
+        // consensus feature draw modes
+        else if (w2->canvas()->getCurrentLayer().type == LayerDataBase::DT_CONSENSUS)
         {
-          dm_elements_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::C_ELEMENTS));
-          tool_bar_2d_peak_->hide();
-          tool_bar_2d_feat_->hide();
+          dm_elements_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::C_ELEMENTS));
           tool_bar_2d_cons_->show();
-          tool_bar_2d_ident_->hide();
         }
-        else if (w2->canvas()->getCurrentLayer().type == LayerData::DT_IDENT)
+        else if (w2->canvas()->getCurrentLayer().type == LayerDataBase::DT_IDENT)
         {
-          dm_ident_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::I_PEPTIDEMZ));
-          tool_bar_2d_peak_->hide();
-          tool_bar_2d_feat_->hide();
-          tool_bar_2d_cons_->hide();
+          dm_ident_2d_->setChecked(w2->canvas()->getLayerFlag(LayerDataBase::I_PEPTIDEMZ));
           tool_bar_2d_ident_->show();
         }
       }
@@ -1350,12 +1279,7 @@ namespace OpenMS
     Plot3DWidget* w3 = getActive3DWidget();
     if (w3)
     {
-      //show/hide toolbars and buttons
-      tool_bar_1d_->hide();
-      tool_bar_2d_peak_->hide();
-      tool_bar_2d_feat_->hide();
-      tool_bar_2d_cons_->hide();
-      tool_bar_2d_ident_->hide();
+      // show no toolbars and buttons
     }
   }
 
@@ -1366,13 +1290,13 @@ namespace OpenMS
 
   void TOPPViewBase::updateViewBar()
   {
-    selection_view_->update();
+    selection_view_->callUpdateEntries();
   }
 
   void TOPPViewBase::updateMenu()
   {
     FS_TV fs;
-    LayerData::DataType layer_type = LayerData::DT_UNKNOWN;
+    LayerDataBase::DataType layer_type = LayerDataBase::DT_UNKNOWN;
     // is there a canvas?
     if (getActiveCanvas() != nullptr)
     {  
@@ -1381,9 +1305,7 @@ namespace OpenMS
       if (getActiveCanvas()->getLayerCount() != 0) 
       {
         fs |= TV_STATUS::HAS_LAYER;
-        layer_type = getCurrentLayer()->getChromatogramData().get()->getNrChromatograms() > 0
-                             ? LayerData::DT_CHROMATOGRAM // chrom data in 1D view is shown as DT_PEAK...
-                             : getCurrentLayer()->type;
+        layer_type = getCurrentLayer()->type;
       }
     }
     // is this a 1D view
@@ -1438,10 +1360,9 @@ namespace OpenMS
     if (!windows.count()) return;
 
     PlotWidget* w = getActivePlotWidget();
-    DRange<2> new_visible_area = w->canvas()->getVisibleArea();
+    auto new_visible_area = w->canvas()->getVisibleArea();
     // only zoom if other window is also (not) a chromatogram
-    bool sender_is_chrom = w->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM ||
-                           w->canvas()->getCurrentLayer().chromatogram_flag_set();
+    bool sender_is_chrom = w->canvas()->getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM;
 
     // go through all windows, adjust the visible area where necessary
     for (int i = 0; i < int(windows.count()); ++i)
@@ -1449,8 +1370,7 @@ namespace OpenMS
       PlotWidget* specwidg = qobject_cast<PlotWidget*>(windows.at(i)->widget());
       if (!specwidg) continue;
 
-      bool is_chrom = specwidg->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM ||
-                      specwidg->canvas()->getCurrentLayer().chromatogram_flag_set();
+      bool is_chrom = specwidg->canvas()->getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM;
       if (is_chrom != sender_is_chrom) continue;
       // not the same dimensionality (e.g. Plot1DCanvas vs. 2DCanvas)
       if (w->canvas()->getName() != specwidg->canvas()->getName()) continue;
@@ -1461,10 +1381,9 @@ namespace OpenMS
 
   void TOPPViewBase::layerDeactivated()
   {
-
   }
 
-  void TOPPViewBase::showPlotWidgetInWindow(PlotWidget* sw, const String& caption)
+  void TOPPViewBase::showPlotWidgetInWindow(PlotWidget* sw)
   {
     ws_.addSubWindow(sw);
     connect(sw->canvas(), &PlotCanvas::preferencesChange, this, &TOPPViewBase::updateLayerBar);
@@ -1475,37 +1394,42 @@ namespace OpenMS
     connect(sw, &PlotWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
     connect(sw, &PlotWidget::dropReceived, this, &TOPPViewBase::copyLayer);
 
+    auto base_name = sw->canvas()->getCurrentLayer().getDecoratedName();
+
     // 1D spectrum specific signals
     Plot1DWidget* sw1 = qobject_cast<Plot1DWidget*>(sw);
-    if (sw1 != nullptr)
+    if (sw1)
     {
       connect(sw1, &Plot1DWidget::showCurrentPeaksAs2D, this, &TOPPViewBase::showCurrentPeaksAs2D);
       connect(sw1, &Plot1DWidget::showCurrentPeaksAs3D, this, &TOPPViewBase::showCurrentPeaksAs3D);
       connect(sw1, &Plot1DWidget::showCurrentPeaksAsIonMobility, this, &TOPPViewBase::showCurrentPeaksAsIonMobility);
       connect(sw1, &Plot1DWidget::showCurrentPeaksAsDIA, this, &TOPPViewBase::showCurrentPeaksAsDIA);
+      base_name += " (1D)";
     }
 
     // 2D spectrum specific signals
     Plot2DWidget* sw2 = qobject_cast<Plot2DWidget*>(sw);
-    if (sw2 != nullptr)
+    if (sw2)
     {
-      connect(sw2->getHorizontalProjection(), &Plot2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
-      connect(sw2->getVerticalProjection(), &Plot2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatusInvert);
+      connect(sw2->getProjectionOntoX(), &Plot1DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
+      connect(sw2->getProjectionOntoY(), &Plot1DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
       connect(sw2, &Plot2DWidget::showSpectrumAsNew1D, selection_view_, &DataSelectionTabs::showSpectrumAsNew1D);
       connect(sw2, &Plot2DWidget::showCurrentPeaksAs3D , this, &TOPPViewBase::showCurrentPeaksAs3D);
+      base_name += " (2D)";
     }
 
     // 3D spectrum specific signals
     Plot3DWidget* sw3 = qobject_cast<Plot3DWidget*>(sw);
-    if (sw3 != nullptr)
+    if (sw3)
     {
       connect(sw3, &Plot3DWidget::showCurrentPeaksAs2D,this, &TOPPViewBase::showCurrentPeaksAs2D);
+      base_name += " (3D)";
     }
 
-    sw->setWindowTitle(caption.toQString());
-    sw->addToTabBar(&tab_bar_, caption, true);
+    sw->setWindowTitle(base_name.toQString());
+    sw->addToTabBar(&tab_bar_, base_name, true);
     
-    //show first window maximized (only visible windows are in the list)
+    // show first window maximized (only visible windows are in the list)
     if (ws_.subWindowList().count() == 1)
     {
       sw->showMaximized();
@@ -1533,9 +1457,19 @@ namespace OpenMS
 
   PlotWidget* TOPPViewBase::getActivePlotWidget() const
   {
+    // If the MDI window that holds all the subwindows for layers/spectra
+    // is out-of-focus (e.g. because the table below was clicked and you moved out and into TOPPView),
+    // currentSubWindow returns nullptr (i.e. no window is ACTIVE). In this case we get the one that is active
+    // in the tabs (which SHOULD in theory be in-sync; due to a bug the way subwindow->tab does not work).
+    // TODO check if we can reactivate automatically (e.g. double-check when TOPPView reacquires focus)
     if (!ws_.currentSubWindow())
     {
-      return nullptr;
+      // TODO think about using lastActivatedSubwindow_
+      const int id = tab_bar_.currentIndex();
+
+      if (id < 0 || id >= ws_.subWindowList().size()) return nullptr;
+
+      return qobject_cast<PlotWidget*>(ws_.subWindowList()[id]->widget());
     }
     return qobject_cast<PlotWidget*>(ws_.currentSubWindow()->widget());
   }
@@ -1587,7 +1521,7 @@ namespace OpenMS
       {
         error = true;
       }
-      //apply preferences if they are of the current TOPPView version
+      // apply preferences if they are of the current TOPPView version
       if (!error && tmp.exists("preferences:version") &&
           tmp.getValue("preferences:version").toString() == VersionInfo::getVersion())
       {
@@ -1604,12 +1538,6 @@ namespace OpenMS
       {
         error = true;
       }
-      // Load tool/util params
-      if (!error && scan_mode_ != TOOL_SCAN::FORCE_SCAN && tmp.hasSection("tool_params:"))
-      {
-        param_.insert("tool_params:", tmp.copy("tool_params:", true));
-        tool_params_added = true;
-      }
 
       // set parameters to defaults when something is fishy with the parameters file
       if (error)
@@ -1617,6 +1545,21 @@ namespace OpenMS
         // reset parameters (they will be stored again when TOPPView quits)
         setParameters(Param());
         cerr << "The TOPPView preferences files '" << filename << "' was ignored. It is no longer compatible with this TOPPView version and will be replaced." << endl;
+      }
+      else
+      {
+        // Load tool/util params
+        if (scan_mode_ != TOOL_SCAN::FORCE_SCAN && tmp.hasSection("tool_params:"))
+        {
+          param_.insert("tool_params:", tmp.copy("tool_params:", true));
+          tool_params_added = true;
+        }
+        // If the saved plugin path does not exist
+        if (!tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString()))
+        {
+          // reset it to the default
+          param_.setValue(user_section + "plugins_path", File::getUserDirectory() + "OpenMS_Plugins");
+        }
       }
     }
     else if (filename != default_ini_file)
@@ -1626,7 +1569,7 @@ namespace OpenMS
     // Scan for tools/utils if scan_mode is set to FORCE_SCAN or if the tool/util params could not be added for whatever reason
     if (!tool_params_added && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
     {
-      tool_scanner_.loadParams();
+      tool_scanner_.loadToolParams();
     }
 
     param_.setValue("PreferencesFile", filename);
@@ -1646,8 +1589,16 @@ namespace OpenMS
     // Make sure TOPP tool/util params have been inserted
     if (!param_.hasSection("tool_params:") && scan_mode_ != TOOL_SCAN::SKIP_SCAN)
     {
-      addToolParamsToIni_();
+      tool_scanner_.waitForToolParams();
+      param_.insert("tool_params:", tool_scanner_.getToolParams());
     }
+    // check if the plugin path exists
+    if (!tool_scanner_.setPluginPath(param_.getValue(user_section + "plugins_path").toString()))
+    {
+      // reset if it does not
+      param_.setValue(user_section + "plugins_path", tool_scanner_.getPluginPath());
+    }
+
     // save only the subsection that begins with "preferences:" and all tool params ("tool_params:")
     try
     {
@@ -1662,37 +1613,28 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::addToolParamsToIni_()
-  {
-    tool_scanner_.waitForParams();
-    param_.addSection("tool_params", "");
-    for (const auto& pair : tool_scanner_.getToolParams())
-    {
-      param_.insert("tool_params:", pair.second);
-    }
-  }
-
   QStringList TOPPViewBase::chooseFilesDialog_(const String& path_overwrite)
   {
     // store active sub window
+    // TODO Why is this done? And why only here?
     QMdiSubWindow* old_active = ws_.currentSubWindow();
     RAIICleanup clean([&]() { ws_.setActiveSubWindow(old_active); });
 
     QString open_path = current_path_.toQString();
-    if (path_overwrite != "")
+    if (!path_overwrite.empty())
     {
       open_path = path_overwrite.toQString();
     }
     // we use the QT file dialog instead of using QFileDialog::Names(...)
     // On Windows and Mac OS X, this static function will use the native file dialog and not a QFileDialog,
     // which prevents us from doing GUI testing on it.
-    QFileDialog dialog(this, "Open file(s)", open_path, supported_types.toFileDialogFilter(FileTypes::Filter::BOTH, true).toQString());
+    QFileDialog dialog(this, "Open file(s)", open_path, supported_types.toFileDialogFilter(FilterLayout::BOTH, true).toQString());
     dialog.setFileMode(QFileDialog::ExistingFiles);
     if (dialog.exec())
     {
        return dialog.selectedFiles();
     }
-    return QStringList();
+    return {};
   }
 
   void TOPPViewBase::openFilesByDialog(const String& dir)
@@ -1711,14 +1653,14 @@ namespace OpenMS
 
   void TOPPViewBase::showTOPPDialog_(bool visible_area_only)
   {
-    //warn if hidden layer => wrong layer selected...
-    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
+    // warn if hidden layer => wrong layer selected...
+    const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
     if (!layer.visible)
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "The current layer is not visible", "Have you selected the right layer for this action?");
     }
 
-    //create and store unique file name prefix for files
+    // create and store unique file name prefix for files
     topp_.file_name = File::getTempDirectory() + "/TOPPView_" + File::getUniqueName();
     if (!File::writable(topp_.file_name + "_ini"))
     {
@@ -1727,18 +1669,22 @@ namespace OpenMS
     }
     if (!param_.hasSection("tool_params:"))
     {
-      addToolParamsToIni_();
+      tool_scanner_.waitForToolParams();
+      param_.insert("tool_params:", tool_scanner_.getToolParams());
     }
-    ToolsDialog tools_dialog(this, param_.copy("tool_params:", true), topp_.file_name + "_ini", current_path_, layer.type, layer.getName());
+
+    ToolsDialog tools_dialog(this, param_,
+                             topp_.file_name + "_ini", current_path_, layer.type,
+                             layer.getName(), &tool_scanner_);
 
     if (tools_dialog.exec() == QDialog::Accepted)
     {
-      //Store tool name, input parameter and output parameter
+      // Store tool name, input parameter and output parameter
       topp_.tool = tools_dialog.getTool();
       topp_.in = tools_dialog.getInput();
       topp_.out = tools_dialog.getOutput();
       topp_.visible_area_only = visible_area_only;
-      //run the tool
+      // run the tool
       runTOPPTool_();
     }
   }
@@ -1750,27 +1696,27 @@ namespace OpenMS
       QMessageBox::warning(this, "Error", "No TOPP tool was run before. Please run a tool first.");
       return;
     }
-    //warn if hidden layer => wrong layer selected...
-    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
+    // warn if hidden layer => wrong layer selected...
+    const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
     if (!layer.visible)
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "The current layer is not visible", "Have you selected the right layer for this action?");
     }
 
-    //run the tool
+    // run the tool
     runTOPPTool_();
   }
 
   void TOPPViewBase::runTOPPTool_()
   {
-    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
+    const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
 
 
-    //delete old input and output file
+    // delete old input and output file
     File::remove(topp_.file_name + "_in");
     File::remove(topp_.file_name + "_out");
 
-    //test if files are writable
+    // test if files are writable
     if (!File::writable(topp_.file_name + "_in"))
     {
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "_in'!");
@@ -1782,73 +1728,19 @@ namespace OpenMS
       return;
     }
 
-    //Store data
+    // store data
     topp_.layer_name = layer.getName();
     topp_.window_id = getActivePlotWidget()->getWindowId();
-    topp_.spectrum_id = layer.getCurrentSpectrumIndex();
-    if (layer.type == LayerData::DT_PEAK  && !(layer.chromatogram_flag_set()))
+    if (auto layer_1d = dynamic_cast<const LayerData1DBase*>(&layer))
     {
-      MzMLFile f;
-      f.setLogType(ProgressLogger::GUI);
-      if (topp_.visible_area_only)
-      {
-        ExperimentType exp;
-        getActiveCanvas()->getVisiblePeakData(exp);
-        f.store(topp_.file_name + "_in", exp);
-      }
-      else
-      {
-        f.store(topp_.file_name + "_in", *layer.getPeakData());
-      }
+      topp_.spectrum_id = layer_1d->getCurrentIndex();
     }
-    else if (layer.type == LayerData::DT_CHROMATOGRAM || layer.chromatogram_flag_set())
-    {
-      MzMLFile f;
-      // This means we have chromatogram data, either as DT_CHROMATOGRAM or as
-      // DT_PEAK with the chromatogram flag set. To run the TOPPTool we need to
-      // remove the flag and add the newly generated layer as spectrum data
-      // (otherwise we run into problems with SpectraTreeTab::updateEntries
-      // which assumes that all chromatogram data has chromatograms).
-      getActiveCanvas()->getCurrentLayer().remove_chromatogram_flag(); // removing the flag is not constant
-      //getActiveCanvas()->getCurrentLayer().getPeakData()->setMetaValue("chromatogram_passed_through_TOPP", "true");
 
-      f.setLogType(ProgressLogger::GUI);
-      if (topp_.visible_area_only)
-      {
-        ExperimentType exp;
-        getActiveCanvas()->getVisiblePeakData(exp);
-        f.store(topp_.file_name + "_in", exp);
-      }
-      else
-      {
-        f.store(topp_.file_name + "_in", *layer.getPeakData());
-      }
-    }
-    else if (layer.type == LayerData::DT_FEATURE)
-    {
-      if (topp_.visible_area_only)
-      {
-        FeatureMapType map;
-        getActiveCanvas()->getVisibleFeatureData(map);
-        FeatureXMLFile().store(topp_.file_name + "_in", map);
-      }
-      else
-      {
-        FeatureXMLFile().store(topp_.file_name + "_in", *layer.getFeatureMap());
-      }
-    }
-    else
-    {
-      if (topp_.visible_area_only)
-      {
-        ConsensusMapType map;
-        getActiveCanvas()->getVisibleConsensusData(map);
-        ConsensusXMLFile().store(topp_.file_name + "_in", map);
-      }
-      else
-      {
-        ConsensusXMLFile().store(topp_.file_name + "_in", *layer.getConsensusMap());
-      }
+    { // just a local scope
+      auto visitor_data = topp_.visible_area_only
+                          ? layer.storeVisibleData(getActiveCanvas()->getVisibleArea().getAreaUnit(), layer.filters)
+                          : layer.storeFullData();
+      visitor_data->saveToFile(topp_.file_name, ProgressLogger::GUI);
     }
 
     // compose argument list
@@ -1865,7 +1757,7 @@ namespace OpenMS
     }
 
     // start log and show it
-    log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("Starting '%1'").arg(topp_.tool.toQString()), ""); // tool + args.join(" "));
+    log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("Starting '%1'").arg(topp_.tool.toQString()), "");
 
     // initialize process
     topp_.process = new QProcess();
@@ -1874,16 +1766,21 @@ namespace OpenMS
     // connect slots
     connect(topp_.process, &QProcess::readyReadStandardOutput, this, &TOPPViewBase::updateProcessLog);
     connect(topp_.process, CONNECTCAST(QProcess, finished, (int, QProcess::ExitStatus)), this, &TOPPViewBase::finishTOPPToolExecution);
-    QString tool_executable;
-    try
+    QString tool_executable = String(tool_scanner_.findPluginExecutable(topp_.tool)).toQString();
+    if (tool_executable.isEmpty())
     {
-      // find correct location of TOPP tool
-      tool_executable = File::findSiblingTOPPExecutable(topp_.tool).toQString();
-    }
-    catch (Exception::FileNotFound& /*ex*/)
-    {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Could not locate executable!", QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(topp_.tool.toQString()));
-      return;
+      try
+      {
+        // find correct location of TOPP tool
+        tool_executable = File::findSiblingTOPPExecutable(topp_.tool).toQString();
+      }
+      catch (Exception::FileNotFound & /*ex*/)
+      {
+        log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Could not locate executable!",
+                              QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(
+                                      topp_.tool.toQString()));
+        return;
+      }
     }
 
     // update menu entries according to new state
@@ -1901,12 +1798,10 @@ namespace OpenMS
       // ensure that all tool output is emitted into log screen
       updateProcessLog();
 
-      // re-enable Apply TOPP tool menues
+      // re-enable Apply TOPP tool menus
       delete topp_.process;
       topp_.process = nullptr;
       updateMenu();
-
-      return;
     }
   }
 
@@ -1919,7 +1814,14 @@ namespace OpenMS
                       QString("The tool crashed during execution. If you want to debug this crash, check the input files in '%1'"
                               " or enable 'debug' mode in the TOPP ini file.").arg(File::getTempDirectory().toQString()));
     }
-    else if (topp_.out != "")
+    else if (topp_.process->exitCode() != 0) // NormalExit with non-zero exit code
+    {
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, QString("Execution of '%1' not successful!").arg(topp_.tool.toQString()),
+                            QString("The tool ended with a non-zero exit code of '%1'. ").arg(topp_.process->exitCode()) +
+                            QString("If you want to debug this, check the input files in '%1' or"
+                                    " enable 'debug' mode in the TOPP ini file.").arg(File::getTempDirectory().toQString()));
+    }
+    else if (!topp_.out.empty())
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("'%1' finished successfully").arg(topp_.tool.toQString()),
                       QString("Execution time: %1 ms").arg(topp_.timer.elapsed()));
@@ -1933,12 +1835,12 @@ namespace OpenMS
       }
     }
 
-    //clean up
+    // clean up
     delete topp_.process;
     topp_.process = nullptr;
     updateMenu();
 
-    //clean up temporary files
+    // clean up temporary files
     if (param_.getValue("preferences:topp_cleanup") == "true")
     {
       File::remove(topp_.file_name + "_ini");
@@ -1947,7 +1849,7 @@ namespace OpenMS
     }
   }
 
-  const LayerData* TOPPViewBase::getCurrentLayer() const
+  const LayerDataBase* TOPPViewBase::getCurrentLayer() const
   {
     PlotCanvas* canvas = getActiveCanvas();
     if (canvas == nullptr)
@@ -1957,7 +1859,7 @@ namespace OpenMS
     return &(canvas->getCurrentLayer());
   }
 
-  LayerData* TOPPViewBase::getCurrentLayer()
+  LayerDataBase* TOPPViewBase::getCurrentLayer()
   {
     PlotCanvas* canvas = getActiveCanvas();
     if (canvas == nullptr)
@@ -1972,7 +1874,7 @@ namespace OpenMS
     Plot2DWidget* w = getActive2DWidget();
     if (w)
     {
-      //update minimum size before
+      // update minimum size before
       if (!w->projectionsVisible())
       {
         setMinimumSize(700, 700);
@@ -1987,7 +1889,7 @@ namespace OpenMS
 
   void TOPPViewBase::annotateWithAMS()
   { // this should only be callable if current layer's type is of type DT_PEAK
-    LayerData& layer = getActiveCanvas()->getCurrentLayer();
+    LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
     LayerAnnotatorAMS annotator(this);
     assert(log_ != nullptr);
     if (!annotator.annotateWithFileDialog(layer, *log_, current_path_))
@@ -1998,96 +1900,37 @@ namespace OpenMS
 
   void TOPPViewBase::annotateWithID()
   { // this should only be callable if current layer's type is one of DT_PEAK, DT_FEATURE, DT_CONSENSUS
-    LayerData& layer = getActiveCanvas()->getCurrentLayer();
+    LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
     LayerAnnotatorPeptideID annotator(this);
     assert(log_ != nullptr);
     if (!annotator.annotateWithFileDialog(layer, *log_, current_path_))
     {
       return;
     }
+    selection_view_->setCurrentIndex(DataSelectionTabs::IDENT_IDX); //switch to ID view
+    selection_view_->currentTabChanged(DataSelectionTabs::IDENT_IDX);
   }
 
   void TOPPViewBase::annotateWithOSW()
   { // this should only be callable if current layer's type is of type DT_CHROMATOGRAM
-    LayerData& layer = getActiveCanvas()->getCurrentLayer();
+    LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
     LayerAnnotatorOSW annotator(this);
     assert(log_ != nullptr);
     if (!annotator.annotateWithFileDialog(layer, *log_, current_path_))
     {
       return;
     }
+    selection_view_->setCurrentIndex(DataSelectionTabs::DIAOSW_IDX); // switch to DIA view
+    selection_view_->currentTabChanged(DataSelectionTabs::DIAOSW_IDX);
   }
 
   void TOPPViewBase::showSpectrumGenerationDialog()
   {
-    TheoreticalSpectrumGenerationDialog spec_gen_dialog;
-    if (spec_gen_dialog.exec())
+    // TheoreticalSpectrumGenerationDialog spec_gen_dialog;
+    if (spec_gen_dialog_.exec())
     {
-      String seq_string(spec_gen_dialog.getSequence());
-      if (seq_string == "")
-      {
-        QMessageBox::warning(this, "Error", "You must enter a peptide sequence!");
-        return;
-      }
-      AASequence aa_sequence;
-      try
-      {
-        aa_sequence = AASequence::fromString(seq_string);
-      }
-      catch (Exception::BaseException& e)
-      {
-        QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + ")");
-        return;
-      }
-
-      PeakSpectrum spectrum;
-      Param p = spec_gen_dialog.getParam();
-      Int charge = p.getValue("charge");
-
-      p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-
-      // these two are true by default, initialize to false here and set to true in the loop below
-      p.setValue("add_y_ions", "false", "Add peaks of y-ions to the spectrum");
-      p.setValue("add_b_ions", "false", "Add peaks of b-ions to the spectrum");
-
-      // for losses, isotopes, abundant_immonium_ions see getParam
-      if (p.getValue("has_A").toBool()) // "A-ions"
-      {
-        p.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
-      }
-      if (p.getValue("has_B").toBool()) // "B-ions"
-      {
-        p.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
-      }
-      if (p.getValue("has_C").toBool()) // "C-ions"
-      {
-        p.setValue("add_c_ions", "true", "Add peaks of c-ions to the spectrum");
-      }
-      if (p.getValue("has_X").toBool()) // "X-ions"
-      {
-        p.setValue("add_x_ions", "true", "Add peaks of x-ions to the spectrum");
-      }
-      if (p.getValue("has_Y").toBool()) // "Y-ions"
-      {
-        p.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
-      }
-      if (p.getValue("has_Z").toBool()) // "Z-ions"
-      {
-        p.setValue("add_z_ions", "true", "Add peaks of z-ions to the spectrum");
-      }
-
-      TheoreticalSpectrumGenerator generator;
-      generator.setParameters(p);
-
-      try
-      {
-        generator.getSpectrum(spectrum, aa_sequence, charge, charge);
-      }
-      catch (Exception::BaseException& e)
-      {
-        QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + "). Please report this to the developers (specify what input you used)!");
-        return;
-      }
+      // spectrum is generated in the dialog, so just receive it here
+      PeakSpectrum spectrum = spec_gen_dialog_.getSpectrum();
 
       PeakMap new_exp;
       new_exp.addSpectrum(spectrum);
@@ -2096,7 +1939,7 @@ namespace OpenMS
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
       ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
       vector<PeptideIdentification> p_dummy;
-      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_PEAK, false, true, true, "", seq_string + " (theoretical)");
+      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerDataBase::DT_PEAK, false, true, true, "", spec_gen_dialog_.getSequence() + " (theoretical)");
 
       // ensure spectrum is drawn as sticks
       draw_group_1d_->button(Plot1DCanvas::DM_PEAKS)->setChecked(true);
@@ -2143,15 +1986,18 @@ namespace OpenMS
   
   void TOPPViewBase::showCurrentPeaksAs2D()
   {
-    LayerData& layer = getActiveCanvas()->getCurrentLayer();
-    ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
-    ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
+    LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
+    auto* lp = dynamic_cast<LayerDataPeak*>(&layer);
+    if (!lp) return;
 
-    //open new 2D widget
-    Plot2DWidget* w = new Plot2DWidget(getSpectrumParameters(2), &ws_);
+    ExperimentSharedPtrType exp_sptr = lp->getPeakDataMuteable();
+    ODExperimentSharedPtrType od_exp_sptr = lp->getOnDiscPeakData();
 
-    //add data
-    if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename))
+    // open new 2D widget
+    Plot2DWidget* w = new Plot2DWidget(getCanvasParameters(2), &ws_);
+
+    // add data
+    if (!w->canvas()->addPeakLayer(exp_sptr, od_exp_sptr, layer.filename))
     {
       return;
     }
@@ -2163,55 +2009,43 @@ namespace OpenMS
       caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
     }
     w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
-    showPlotWidgetInWindow(w, caption);
+    showPlotWidgetInWindow(w);
     updateMenu();
   }
 
 
-  void TOPPViewBase::showCurrentPeaksAsIonMobility()
+  void TOPPViewBase::showCurrentPeaksAsIonMobility(const MSSpectrum& spec)
   {
-    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-
-    // Get current spectrum
-    auto spidx = layer.getCurrentSpectrumIndex();
+    const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
     
-    ExperimentSharedPtrType exp(new MSExperiment(IMDataConverter::splitByIonMobility(layer.getCurrentSpectrum())));
+    ExperimentSharedPtrType exp(new MSExperiment(IMDataConverter::splitByIonMobility(spec)));
     // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
-    for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
+    // for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
 
     // open new 2D widget
-    Plot2DWidget* w = new Plot2DWidget(getSpectrumParameters(2), &ws_);
+    Plot2DWidget* w = new Plot2DWidget(getCanvasParameters(2), &ws_);
+    // map to IM + MZ
+    w->setMapper(DimMapper<2>({IMTypes::fromIMUnit(exp->getSpectra()[0].getDriftTimeUnit()), DIM_UNIT::MZ}));
 
     // add data
-    if (!w->canvas()->addLayer(exp, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
+    if (!w->canvas()->addPeakLayer(exp, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename + " (IM Frame)"))
     {
       return;
     }
-    w->xAxis()->setLegend("Ion Mobility [" + exp->getSpectra()[0].getDriftTimeUnitAsString() + "]");
 
-    String caption = layer.getName() + " (Ion Mobility Scan " + String(spidx) + ")";
-    // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
-    if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
-    {
-      caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
-    }
-    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
-    showPlotWidgetInWindow(w, caption);
+    showPlotWidgetInWindow(w);
     updateMenu();
   }
 
-  void TOPPViewBase::showCurrentPeaksAsDIA()
+  void TOPPViewBase::showCurrentPeaksAsDIA(const Precursor& pc, const MSExperiment& exp)
   {
-    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-
-    if (!layer.isDIAData())
+    const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
+    auto* lp = dynamic_cast<const LayerDataPeak*>(&layer);
+    if (!lp || !lp->isDIAData())
     {
       std::cout << "Layer does not contain DIA / SWATH-MS data" << std::endl;
       return;
     }
-
-    // Get current spectrum
-    MSSpectrum tmps = layer.getCurrentSpectrum();
 
     // Add spectra into a MSExperiment, sort and prepare it for display
     ExperimentSharedPtrType tmpe(new OpenMS::MSExperiment() );
@@ -2219,68 +2053,59 @@ namespace OpenMS
     // Collect all MS2 spectra with the same precursor as the current spectrum
     // (they are in the same SWATH window)
     String caption_add = "";
-    if (!tmps.getPrecursors().empty())
-    {
-      // Get precursor isolation windows
-      const auto& prec = tmps.getPrecursors()[0];
-      double lower = prec.getMZ() - prec.getIsolationWindowLowerOffset();
-      double upper = prec.getMZ() + prec.getIsolationWindowUpperOffset();
 
-      Size k = 0;
-      for (const auto& spec : (*layer.getPeakData() ) )
+    double lower = pc.getMZ() - pc.getIsolationWindowLowerOffset();
+    double upper = pc.getMZ() + pc.getIsolationWindowUpperOffset();
+
+    Size k = 0;
+    for (const auto& spec : exp)
+    {
+      if (spec.getMSLevel() == 2 && !spec.getPrecursors().empty() )
       {
-        if (spec.getMSLevel() == 2 && !spec.getPrecursors().empty() )
+        if (fabs(spec.getPrecursors()[0].getMZ() - pc.getMZ()) < 1e-4)
         {
-          if (fabs(spec.getPrecursors()[0].getMZ() - tmps.getPrecursors()[0].getMZ() ) < 1e-4 )
+          // Get the spectrum in question (from memory or disk) and add to
+          // the newly created MSExperiment
+          if (spec.size() > 0)
           {
-            // Get the spectrum in question (from memory or disk) and add to
-            // the newly created MSExperiment
-            if (spec.size() > 0)
-            {
-              // Get data from memory - copy data and tell TOPPView that this
-              // is MS1 data so that it will be displayed properly in 2D and 3D
-              // view
-              MSSpectrum t = spec;
-              t.setMSLevel(1);
-              tmpe->addSpectrum(t);
-            }
-            else if (layer.getOnDiscPeakData()->getNrSpectra() > k)
-            {
-              // Get data from disk - copy data and tell TOPPView that this is
-              // MS1 data so that it will be displayed properly in 2D and 3D
-              // view
-              MSSpectrum t = layer.getOnDiscPeakData()->getSpectrum(k);
-              t.setMSLevel(1);
-              tmpe->addSpectrum(t);
-            }
+            // Get data from memory - copy data and tell TOPPView that this
+            // is MS1 data so that it will be displayed properly in 2D and 3D
+            // view
+            MSSpectrum t = spec;
+            t.setMSLevel(1);
+            tmpe->addSpectrum(t);
+          }
+          else if (lp->getOnDiscPeakData()->getNrSpectra() > k)
+          {
+            // Get data from disk - copy data and tell TOPPView that this is
+            // MS1 data so that it will be displayed properly in 2D and 3D
+            // view
+            MSSpectrum t = lp->getOnDiscPeakData()->getSpectrum(k);
+            t.setMSLevel(1);
+            tmpe->addSpectrum(t);
           }
         }
-        k++;
       }
-      caption_add = "(DIA window " + String(lower) + " - " + String(upper) + ")";
+      k++;
     }
+    caption_add = "(DIA window " + String(lower) + " - " + String(upper) + ")";
     
     tmpe->sortSpectra();
     tmpe->updateRanges();
 
     // open new 2D widget
-    Plot2DWidget* w = new Plot2DWidget(getSpectrumParameters(2), &ws_);
+    Plot2DWidget* w = new Plot2DWidget(getCanvasParameters(2), &ws_);
 
     // add data
-    if (!w->canvas()->addLayer(tmpe, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
+    if (!w->canvas()->addPeakLayer(tmpe, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
     {
       return;
     }
 
     String caption = layer.getName();
     caption += caption_add;
-    // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
-    if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
-    {
-      caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
-    }
     w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
-    showPlotWidgetInWindow(w, caption);
+    showPlotWidgetInWindow(w);
     updateMenu();
   }
 
@@ -2295,7 +2120,7 @@ namespace OpenMS
     int best_candidate = BIGINDEX;
     for (int i = 0; i < (int) getActiveCanvas()->getLayerCount(); ++i)
     {
-      if ((LayerData::DT_PEAK == getActiveCanvas()->getLayer(i).type) && // supported type
+      if ((LayerDataBase::DT_PEAK == getActiveCanvas()->getLayer(i).type) && // supported type
           (std::abs(i - target_layer) < std::abs(best_candidate - target_layer))) // & smallest distance to active layer
       {
         best_candidate = i;
@@ -2316,18 +2141,19 @@ namespace OpenMS
           "The currently active layer cannot be viewed in 3D view. The closest layer which is supported by the 3D view was selected!");
     }
 
-    LayerData& layer = const_cast<LayerData&>(getActiveCanvas()->getLayer(best_candidate));
-
-    if (layer.type != LayerData::DT_PEAK)
+    LayerDataBase& layer = const_cast<LayerDataBase&>(getActiveCanvas()->getLayer(best_candidate));
+    auto* lp = dynamic_cast<LayerDataPeak*>(&layer);
+    if (!lp)
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "Wrong layer type", "Something went wrong during layer selection. Please report this problem with a description of your current layers!");
+      return;
     }
-    //open new 3D widget
-    Plot3DWidget* w = new Plot3DWidget(getSpectrumParameters(3), &ws_);
+    // open new 3D widget
+    Plot3DWidget* w = new Plot3DWidget(getCanvasParameters(3), &ws_);
 
-    ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
+    ExperimentSharedPtrType exp_sptr = lp->getPeakDataMuteable();
 
-    if (layer.isIonMobilityData())
+    if (lp->isIonMobilityData())
     {
       // Determine ion mobility unit (default is milliseconds)
       String unit = "ms";
@@ -2340,14 +2166,14 @@ namespace OpenMS
       w->canvas()->openglwidget()->setYLabel(label.c_str());
     }
 
-    if (!w->canvas()->addLayer(exp_sptr, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
+    if (!w->canvas()->addPeakLayer(exp_sptr, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
     {
       return;
     }
 
     if (getActive1DWidget()) // switch from 1D to 3D
     {
-      //TODO:
+      // TODO:
       //- doesn't make sense for fragment scan
       //- build new Area with mz range equal to 1D visible range
       //- rt range either overall MS1 data range or some convenient window
@@ -2361,7 +2187,7 @@ namespace OpenMS
     // set layer name
     String caption = layer.getName() + CAPTION_3D_SUFFIX_;
     w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
-    showPlotWidgetInWindow(w, caption);
+    showPlotWidgetInWindow(w);
 
     // set intensity mode (after spectrum has been added!)
     setIntensityMode(PlotCanvas::IM_SNAP);
@@ -2373,10 +2199,10 @@ namespace OpenMS
     log_->appendText(topp_.process->readAllStandardOutput());
   }
 
-  Param TOPPViewBase::getSpectrumParameters(UInt dim)
+  Param TOPPViewBase::getCanvasParameters(UInt dim) const
   {
-    Param out = param_.copy(String("preferences:") + dim + "d:", true);
-    out.setValue("default_path", param_.getValue("preferences:default_path").toString());
+    Param out = param_.copy(String(user_section + "") + dim + "d:", true);
+    out.setValue("default_path", param_.getValue(user_section + "default_path").toString());
     return out;
   }
 
@@ -2384,14 +2210,14 @@ namespace OpenMS
   {
     if (topp_.process)
     {
-      //block signals to avoid error message from finished() signal
+      // block signals to avoid error message from finished() signal
       topp_.process->blockSignals(true);
-      //kill and delete the process
+      // kill and delete the process
       topp_.process->terminate();
       delete topp_.process;
       topp_.process = nullptr;
 
-      //finish log with new line
+      // finish log with new line
       log_->addNewline();
 
       updateMenu();
@@ -2551,12 +2377,12 @@ namespace OpenMS
     SpectraTreeTab* spec_view = (source ? qobject_cast<SpectraTreeTab*>(source->parentWidget()) : nullptr);
     try
     {
-      //NOT USED RIGHT NOW, BUT KEEP THIS CODE (it was hard to find out how this is done)
-      //decode data to get the row
-      //QByteArray encoded_data = data->data(data->formats()[0]);
-      //QDataStream stream(&encoded_data, QIODevice::ReadOnly);
-      //int row, col;
-      //stream >> row >> col;
+      // NOT USED RIGHT NOW, BUT KEEP THIS CODE (it was hard to find out how this is done)
+      // decode data to get the row
+      // QByteArray encoded_data = data->data(data->formats()[0]);
+      // QDataStream stream(&encoded_data, QIODevice::ReadOnly);
+      // int row, col;
+      // stream >> row >> col;
 
       // set wait cursor
       setCursor(Qt::WaitCursor);
@@ -2568,14 +2394,33 @@ namespace OpenMS
       if (source == layers_view_)
       {
         // only the selected row can be dragged => the source layer is the selected layer
-        LayerData& layer = getActiveCanvas()->getCurrentLayer();
+        LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
 
-        // attach feature, consensus and peak data
-        FeatureMapSharedPtrType features = layer.getFeatureMap();
-        ExperimentSharedPtrType peaks = layer.getPeakDataMuteable();
-        ConsensusMapSharedPtrType consensus = layer.getConsensusMap();
-        vector<PeptideIdentification> peptides = layer.peptides;
-        ODExperimentSharedPtrType on_disc_peaks = layer.getOnDiscPeakData();
+        // attach feature, consensus and peak data          (new OnDiscMSExperiment());
+        FeatureMapSharedPtrType features(new FeatureMapType());
+        if (auto* lp = dynamic_cast<LayerDataFeature*>(&layer)) features = lp->getFeatureMap();
+
+        ConsensusMapSharedPtrType consensus(new ConsensusMapType());
+        if (auto* lp = dynamic_cast<LayerDataConsensus*>(&layer)) consensus = lp->getConsensusMap();
+
+        ExperimentSharedPtrType peaks(new ExperimentType());
+        ODExperimentSharedPtrType on_disc_peaks(new OnDiscMSExperiment());
+        if (auto* lp = dynamic_cast<LayerDataPeak*>(&layer))
+        {
+          peaks = lp->getPeakDataMuteable();
+          on_disc_peaks = lp->getOnDiscPeakData();
+        }
+        if (auto* lp = dynamic_cast<LayerDataChrom*>(&layer))
+        {
+          peaks = lp->getChromatogramData();
+          on_disc_peaks = lp->getOnDiscPeakData();
+        }
+        // if the layer provides identification data -> retrieve it
+        vector<PeptideIdentification> peptides;
+        if (auto p = dynamic_cast<IPeptideIds*>(&layer); p != nullptr)
+        {
+          peptides = p->getPeptideIds();
+        }
 
         // add the data
         addData(features, consensus, peptides, peaks, on_disc_peaks, layer.type, false, false, true, layer.filename, layer.getName(), new_id);
@@ -2583,13 +2428,13 @@ namespace OpenMS
       else if (spec_view != nullptr)
       {
         ExperimentSharedPtrType new_exp_sptr(new ExperimentType());
-        if (LayerData::DataType current_type; spec_view->getSelectedScan(*new_exp_sptr, current_type))
+        if (LayerDataBase::DataType current_type; spec_view->getSelectedScan(*new_exp_sptr, current_type))
         {
           ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
           FeatureMapSharedPtrType f_dummy(new FeatureMapType());
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
           vector<PeptideIdentification> p_dummy;
-          const LayerData& layer = getActiveCanvas()->getCurrentLayer();
+          const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
           addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, current_type, false, false, true, layer.filename, layer.getName(), new_id);
         }
       }
@@ -2605,7 +2450,6 @@ namespace OpenMS
           }
         }
       }
-
     }
     catch (Exception::BaseException& e)
     {
@@ -2615,16 +2459,16 @@ namespace OpenMS
 
   void TOPPViewBase::updateCurrentPath()
   {
-    //do not update if the user disabled this feature.
-    if (param_.getValue("preferences:default_path_current") != "true")
+    // do not update if the user disabled this feature.
+    if (param_.getValue(user_section + "default_path_current") != "true")
     {
       return;
     }
 
-    //reset
-    current_path_ = param_.getValue("preferences:default_path").toString();
+    // reset
+    current_path_ = param_.getValue(user_section + "default_path").toString();
 
-    //update if the current layer has a path associated
+    // update if the current layer has a path associated
     if (getActiveCanvas() && getActiveCanvas()->getLayerCount() != 0 && getActiveCanvas()->getCurrentLayer().filename != "")
     {
       current_path_ = File::path(getActiveCanvas()->getCurrentLayer().filename);
@@ -2670,17 +2514,17 @@ namespace OpenMS
       return;
     }
     
-    //std::cout << "Number of Layers that need update: " << needs_update.size() << std::endl;
+    // std::cout << "Number of Layers that need update: " << needs_update.size() << std::endl;
     pair<const PlotWidget*, Size>& slp = needs_update[0];
     const PlotWidget* sw = slp.first;
     Size layer_index = slp.second;
 
     bool user_wants_update = false;
-    if (param_.getValue("preferences:on_file_change") == "update automatically") //automatically update
+    if (param_.getValue(user_section + "on_file_change") == "update automatically") //automatically update
     {
       user_wants_update = true;
     }
-    else if (param_.getValue("preferences:on_file_change") == "ask") //ask the user if the layer should be updated
+    else if (param_.getValue(user_section + "on_file_change") == "ask") // ask the user if the layer should be updated
     {
       if (watcher_msgbox_ == true) // we already have a dialog for that opened... do not ask again
       {
@@ -2705,62 +2549,62 @@ namespace OpenMS
     {
       return;
     }
-    LayerData& layer = const_cast<LayerData&>(sw->canvas()->getLayer(layer_index));
+    LayerDataBase& layer = sw->canvas()->getLayer(layer_index);
     // reload data
-    if (layer.type == LayerData::DT_PEAK) //peak data
+    if (auto* lp = dynamic_cast<LayerDataPeak*>(&layer)) // peak data
     {
       try
       {
-        FileHandler().loadExperiment(layer.filename, *layer.getPeakDataMuteable());
+        FileHandler().loadExperiment(layer.filename, *lp->getPeakDataMuteable());
       }
       catch (Exception::BaseException& e)
       {
         QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-        layer.getPeakDataMuteable()->clear(true);
+        lp->getPeakDataMuteable()->clear(true);
       }
-      layer.getPeakDataMuteable()->sortSpectra(true);
-      layer.getPeakDataMuteable()->updateRanges(1);
+      lp->getPeakDataMuteable()->sortSpectra(true);
+      lp->getPeakDataMuteable()->updateRanges(1);
     }
-    else if (layer.type == LayerData::DT_FEATURE) //feature data
+    else if (auto* lp = dynamic_cast<LayerDataFeature*>(&layer)) // feature data
     {
       try
       {
-        FileHandler().loadFeatures(layer.filename, *layer.getFeatureMap());
+        FileHandler().loadFeatures(layer.filename, *lp->getFeatureMap());
       }
       catch (Exception::BaseException& e)
       {
         QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-        layer.getFeatureMap()->clear(true);
+        lp->getFeatureMap()->clear(true);
       }
-      layer.getFeatureMap()->updateRanges();
+      lp->getFeatureMap()->updateRanges();
     }
-    else if (layer.type == LayerData::DT_CONSENSUS) //consensus feature data
+    else if (auto* lp = dynamic_cast<LayerDataConsensus*>(&layer)) // consensus feature data
     {
       try
       {
-        ConsensusXMLFile().load(layer.filename, *layer.getConsensusMap());
+        ConsensusXMLFile().load(layer.filename, *lp->getConsensusMap());
       }
       catch (Exception::BaseException& e)
       {
         QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-        layer.getConsensusMap()->clear(true);
+        lp->getConsensusMap()->clear(true);
       }
-      layer.getConsensusMap()->updateRanges();
+      lp->getConsensusMap()->updateRanges();
     }
-    else if (layer.type == LayerData::DT_CHROMATOGRAM) //chromatogram
+    else if (auto* lp = dynamic_cast<LayerDataChrom*>(&layer)) // chromatogram
     {
-      //TODO CHROM
+      // TODO CHROM
       try
       {
-        FileHandler().loadExperiment(layer.filename, *layer.getPeakDataMuteable());
+        FileHandler().loadExperiment(layer.filename, *lp->getChromatogramData());
       }
       catch (Exception::BaseException& e)
       {
         QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-        layer.getPeakDataMuteable()->clear(true);
+        lp->getChromatogramData()->clear(true);
       }
-      layer.getPeakDataMuteable()->sortChromatograms(true);
-      layer.getPeakDataMuteable()->updateRanges(1);
+      lp->getChromatogramData()->sortChromatograms(true);
+      lp->getChromatogramData()->updateRanges(1);
     }
 
     // update all layers that need an update
@@ -2783,4 +2627,4 @@ namespace OpenMS
     abortTOPPTool();
   }
 
-} //namespace OpenMS
+} // namespace OpenMS

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,8 +72,12 @@ public:
       STRING_LIST, ///< string list
       INT_LIST, ///< integer list
       DOUBLE_LIST, ///< double list
-      EMPTY_VALUE ///< empty value
+      EMPTY_VALUE, ///< empty 
+      SIZE_OF_DATATYPE
     };
+
+    /// Names of data types for DataValue
+    static const std::string NamesOfDataType[SIZE_OF_DATATYPE];
 
     /// Supported types for DataValue
     enum UnitType : unsigned char
@@ -137,6 +141,11 @@ public:
     ///These methods are used when the DataType is known.
     ///If they are applied to a DataValue with the wrong DataType, an exception (Exception::ConversionError) is thrown. In particular, none of these operators will work for an empty DataValue (DataType EMPTY_VALUE) - except toChar(), which will return 0.
     //@{
+
+    /**
+      @brief conversion operator to ParamValue based on DataType
+    */
+    operator ParamValue() const;
 
     /**
       @brief conversion operator to string

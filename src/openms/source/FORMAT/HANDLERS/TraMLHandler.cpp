@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <ostream>
+#include <map>
 
 namespace OpenMS::Internal
 {
@@ -63,8 +64,7 @@ namespace OpenMS::Internal
     }
 
     TraMLHandler::~TraMLHandler()
-    {
-    }
+    = default;
 
     void TraMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
@@ -1758,9 +1758,9 @@ namespace OpenMS::Internal
       writeCVList_(os, cv_terms.getCVTerms(), indent);
     }
 
-    void TraMLHandler::writeCVList_(std::ostream & os, const Map<String, std::vector<CVTerm>> & cv_terms, UInt indent) const
+    void TraMLHandler::writeCVList_(std::ostream & os, const std::map<String, std::vector<CVTerm>> & cv_terms, UInt indent) const
     {
-      for (Map<String, std::vector<CVTerm> >::const_iterator it = cv_terms.begin();
+      for (std::map<String, std::vector<CVTerm> >::const_iterator it = cv_terms.begin();
            it != cv_terms.end(); ++it)
       {
         for (const CVTerm& cit : it->second)

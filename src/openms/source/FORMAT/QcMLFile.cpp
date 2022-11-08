@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,17 +63,7 @@ namespace OpenMS
   {
   }
 
-  QcMLFile::QualityParameter::QualityParameter(const QualityParameter& rhs) :
-    name(rhs.name),
-    id(rhs.id),
-    value(rhs.value),
-    cvRef(rhs.cvRef),
-    cvAcc(rhs.cvAcc),
-    unitRef(rhs.unitRef),
-    unitAcc(rhs.unitAcc),
-    flag(rhs.flag)
-  {
-  }
+  QcMLFile::QualityParameter::QualityParameter(const QualityParameter& rhs) = default;
 
   QcMLFile::QualityParameter& QcMLFile::QualityParameter::operator=(const QualityParameter& rhs)
   {
@@ -148,20 +138,7 @@ namespace OpenMS
   {
   }
 
-  QcMLFile::Attachment::Attachment(const Attachment& rhs) :
-    name(rhs.name),
-    id(rhs.id),
-    value(rhs.value),
-    cvRef(rhs.cvRef),
-    cvAcc(rhs.cvAcc),
-    unitRef(rhs.unitRef),
-    unitAcc(rhs.unitAcc),
-    binary(rhs.binary),
-    qualityRef(rhs.qualityRef),
-    colTypes(rhs.colTypes),
-    tableRows(rhs.tableRows)
-  {
-  }
+  QcMLFile::Attachment::Attachment(const Attachment& rhs) = default;
 
   QcMLFile::Attachment& QcMLFile::Attachment::operator=(const Attachment& rhs)
   {
@@ -303,10 +280,7 @@ namespace OpenMS
   {
   }
 
-  QcMLFile::~QcMLFile()
-  {
-
-  }
+  QcMLFile::~QcMLFile() = default;
 
   void QcMLFile::addRunQualityParameter(String run_id, QualityParameter qp)
   {

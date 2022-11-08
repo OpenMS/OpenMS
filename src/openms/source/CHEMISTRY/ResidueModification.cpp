@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -135,9 +136,7 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  ResidueModification::~ResidueModification()
-  {
-  }
+  ResidueModification::~ResidueModification() = default;
 
   void ResidueModification::setId(const String& id)
   {

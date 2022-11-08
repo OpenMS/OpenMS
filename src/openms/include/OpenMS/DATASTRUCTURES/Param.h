@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -571,9 +571,16 @@ protected:
       It is only checked in checkDefaults().
 
       @exception Exception::InvalidParameter is thrown, if one of the strings contains a comma character
-      @exception Exception::ElementNotFound exception is thrown, if the parameter is no string parameter
+      @exception Exception::ElementNotFound exception is thrown, if the parameter is no string/stringlist parameter
     */
     void setValidStrings(const std::string& key, const std::vector<std::string>& strings);
+
+    /**
+      @brief Gets he valid strings for the parameter @p key.
+
+      @exception Exception::ElementNotFound exception is thrown, if the parameter is no string/stringlist parameter
+    */
+    const std::vector<std::string>& getValidStrings(const std::string& key) const;
 
     /**
       @brief Sets the minimum value for the integer or integer list parameter @p key.

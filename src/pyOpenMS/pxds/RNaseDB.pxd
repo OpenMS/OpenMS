@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/CHEMISTRY/RNaseDB.h>" namespace "OpenMS":
 
     cdef cppclass RNaseDB "OpenMS::RNaseDB":
         # wrap-manual-memory:
-        #     cdef AutowrapPtrHolder[_RNaseDB] inst
+        #    cdef AutowrapPtrHolder[_RNaseDB] inst
 
         # protected
         RNaseDB() nogil except + # wrap-ignore

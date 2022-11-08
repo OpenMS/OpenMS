@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,8 +49,7 @@ namespace OpenMS::Internal
     }
 
     ParamXMLHandler::~ParamXMLHandler()
-    {
-    }
+    = default;
 
     void ParamXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {
@@ -110,6 +109,11 @@ namespace OpenMS::Internal
         else if (type == "output-file")
         {
           tags.push_back("output file");          
+          param_.setValue(name, value, description, tags);
+        }
+        else if (type == "output-prefix")
+        {
+          tags.push_back("output prefix");          
           param_.setValue(name, value, description, tags);
         }
         else if (type == "float" || type == "double")
@@ -225,8 +229,7 @@ namespace OpenMS::Internal
         String tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
         list_.tags = ListUtils::create<std::string>(tags_string);
-        
-        
+                
         //parse name/type
         list_.type = attributeAsString_(attributes, "type");
         // handle in-/output file correctly

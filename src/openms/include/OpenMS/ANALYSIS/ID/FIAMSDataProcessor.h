@@ -1,8 +1,8 @@
-// --------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/FORMAT/MzTabM.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
@@ -89,17 +90,17 @@ public:
       @param experiment  Input MSExperiment
       @param n_seconds Input number of seconds
       @param load_cached_spectrum Load the cached picked spectrum if exists
-      @param output   [out] Output of the accurate mass search results
+      @param[out] output Output of the accurate mass search results
       @return a boolean indicating if the picked spectrum was loaded from the cached file
     */
     bool run(const MSExperiment& experiment, const float n_seconds, OpenMS::MzTab& output, const bool load_cached_spectrum = true);
 
     /**
-      @brief Cut the time axis of the experiment from 0 to @n_seconds
+      @brief Cut the time axis of the experiment from 0 to @p n_seconds
 
       @param experiment  Input MSExperiment
       @param n_seconds Input number of seconds
-      @param output   [out] Spectra with retention time less than @n_seconds
+      @param output   [out] Spectra with retention time less than @p n_seconds
     */
     void cutForTime(const MSExperiment& experiment, const float n_seconds, std::vector<MSSpectrum>& output);
 
@@ -107,8 +108,8 @@ public:
       @brief Sum the spectra with different retention times into one.
 
       The bin size for summing the intensities is defined as mz / (resolution*4) 
-      for all the mzs taken with the @bin_step defined in the parameters.
-      Uses `SpectrumAddition::addUpSpectra` function with the sliding bin size parameter. 
+      for all the mzs taken with the @p bin_step defined in the parameters.
+      Uses `OpenMS::SpectrumAddition::addUpSpectra` function with the sliding bin size parameter. 
 
       @param input  Input vector of spectra
       @return a spectrum

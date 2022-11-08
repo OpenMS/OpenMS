@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,22 +65,9 @@ namespace OpenMS
     stream_type_map_ = other.stream_type_map_;
   }
 
-  LogConfigHandler::~LogConfigHandler()
-  {
-  }
+  LogConfigHandler::~LogConfigHandler() = default;
 
-  LogConfigHandler & LogConfigHandler::operator=(const LogConfigHandler & source)
-  {
-    debug_streams_ = source.debug_streams_;
-    info_streams_ = source.info_streams_;
-    warn_streams_ = source.warn_streams_;
-    error_streams_ = source.error_streams_;
-    fatal_streams_ = source.fatal_streams_;
-
-    stream_type_map_ = source.stream_type_map_;
-
-    return *this;
-  }
+  LogConfigHandler & LogConfigHandler::operator=(const LogConfigHandler & source) = default;
 
   Param LogConfigHandler::parse(const StringList & settings)
   {

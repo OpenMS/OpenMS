@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -146,6 +146,12 @@ namespace OpenMS
             os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << R"(" type="output-file")";
             tag_list.erase("output file");
           }
+          else if (tag_list.find("output prefix") != tag_list.end())
+          {
+            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << R"(" type="output-prefix")";
+            tag_list.erase("output prefix");
+          }
+
           else if (it->valid_strings.size() == 2 &&
           it->valid_strings[0] == "true" && it->valid_strings[1] == "false" &&
           it->value == "false")
@@ -292,7 +298,9 @@ namespace OpenMS
           // for files we store the restrictions as supported_formats
           if (!restrictions.empty())
           {
-            if (it->tags.find("input file") != it->tags.end() || it->tags.find("output file") != it->tags.end())
+            if (it->tags.find("input file") != it->tags.end() 
+              || it->tags.find("output file") != it->tags.end()
+              || it->tags.find("output prefix") != it->tags.end())
             {
               os << " supported_formats=\"" << writeXMLEscape(restrictions) << "\"";
             }

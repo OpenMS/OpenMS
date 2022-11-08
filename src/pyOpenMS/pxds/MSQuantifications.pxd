@@ -1,5 +1,4 @@
 from libcpp.vector cimport vector as libcpp_vector
-from libcpp.map cimport map as libcpp_map
 from libcpp.pair cimport pair as libcpp_pair
 from ConsensusMap cimport *
 from String cimport *
@@ -58,7 +57,7 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQu
     # derived from processing applied
     cdef enum QUANT_TYPES:
         # wrap-attach:
-        #     MSQuantifications
+        #    MSQuantifications
         MS1LABEL = 0,
         MS2LABEL,
         LABELFREE,

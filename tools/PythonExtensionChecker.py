@@ -5,7 +5,7 @@
                   OpenMS -- Open-Source Mass Spectrometry
 --------------------------------------------------------------------------
 Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above copyright
@@ -1136,7 +1136,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             print ("  - Found class", comp_name, compound.prot, "in namespace", comp_name.split("::")[0])
 
         namespace = comp_name.split("::")[0]
-        if namespace in ["std", "Ui", "xercesc", "seqan"]:
+        if namespace in ["std", "Ui", "xercesc"]:
             # Namespace std, xerces, UI -> skip
             continue
         elif comp_name.startswith("ms::numpress"):

@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -54,9 +54,10 @@ install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dep
   COMPONENT zzz-fixing-dependencies
 )
 
-install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/sign_bins_and_libs.rb -d \${CMAKE_INSTALL_PREFIX}/ -s ${CPACK_BUNDLE_APPLE_CERT_APP})"
-  COMPONENT zzz-sign-bins-and-libs
-)
+## Apple no longer supports signing for DMGs in a useful way.
+# install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/sign_bins_and_libs.rb -d \${CMAKE_INSTALL_PREFIX}/ -s ${CPACK_BUNDLE_APPLE_CERT_APP})"
+#   COMPONENT zzz-sign-bins-and-libs
+# )
 
 ## Additionally install TOPPShell into root of install folder
 
@@ -102,17 +103,6 @@ if (DEFINED CMAKE_VERSION AND NOT "${CMAKE_VERSION}" VERSION_LESS "3.5")
   #set(CPACK_DMG_DS_STORE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store_new)
   set(CPACK_DMG_BACKGROUND_IMAGE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png)
   set(CPACK_DMG_FORMAT UDBZ) ## Try bzip2 to get slighlty smaller images
-
-  ## Sign the image. CPACK_BUNDLE_APPLE_CERT_APP needs to be unique and found in one of the
-  ## keychains in the search list (which needs to be unlocked).
-  if (DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
-    add_custom_target(signed_dist
-      COMMAND codesign --deep --force --sign ${CPACK_BUNDLE_APPLE_CERT_APP} ${CPACK_PACKAGE_FILE_NAME}.dmg
-      COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize_app.sh ${CPACK_PACKAGE_FILE_NAME}.dmg de.openms ${SIGNING_EMAIL} CODESIGNPW ${OPENMS_HOST_BINARY_DIRECTORY}
-      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-      COMMENT "Signing and notarizing ${CPACK_PACKAGE_FILE_NAME}.dmg as ${CPACK_BUNDLE_APPLE_CERT_APP}"
-      DEPENDS dist)
-  endif()
 
 else()
   ## The old scripts need the background image in the target folder.

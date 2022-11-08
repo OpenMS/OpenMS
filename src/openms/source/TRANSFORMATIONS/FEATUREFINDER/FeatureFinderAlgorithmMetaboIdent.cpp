@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,6 +45,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <vector>
@@ -166,11 +167,17 @@ namespace OpenMS
   {
     // if proper mzML is annotated in MS data use this as reference. Otherwise, overwrite with spectra_file information.
     features.setPrimaryMSRunPath({spectra_file}, ms_data_); 
+  
+    if (ms_data_.empty())
+    {
+      OPENMS_LOG_WARN << "Warning: No MS1 scans in:"<< spectra_file << endl;      
+      return;
+    }
 
     for (const auto& c : metaboIdentTable)
     {
-      addTargetToLibrary_(c.name, c.formula, c.mass, c.charges, c.rts, c.rt_ranges,
-                      c.iso_distrib);
+      addTargetToLibrary_(c.getName(), c.getFormula(), c.getMass(), c.getCharges(), c.getRTs(), c.getRTRanges(),
+                      c.getIsotopeDistribution());
     }
 
     // initialize algorithm classes needed later:
@@ -755,6 +762,8 @@ namespace OpenMS
         sub.setMetaValue("isotope_probability", isotope_probs_[native_id]);
         sub.removeMetaValue("FeatureLevel"); // value "MS2" is misleading
       }
+      // annotate num_mass_traces, required for SIRIUS
+      feat.setMetaValue(Constants::UserParam::NUM_OF_MASSTRACES, feat.getSubordinates().size());
     }
     features.getProteinIdentifications().clear();
   }

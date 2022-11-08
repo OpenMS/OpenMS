@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,6 +53,7 @@ namespace OpenMS
     defaults_.setValue("use_ppm_tolerance", "false", "If true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussian is calculated in each step anew, so this is much slower.");
     defaults_.setValidStrings("use_ppm_tolerance", {"true","false"});
     defaults_.setValue("write_log_messages", "false", "true: Warn if no signal was found by the Gauss filter algorithm.");
+    defaults_.setValidStrings("write_log_messages", {"true","false"});
     defaultsToParam_();
   }
 
@@ -147,7 +148,7 @@ namespace OpenMS
         String error_message = "Found no signal. The Gaussian width is probably smaller than the spacing in your chromatogram data. Try to use a bigger width.";
         if (chromatogram.getMZ() > 0.0)
         {
-          error_message += String(" The error occurred in the chromatogram with m/z time ") + chromatogram.getMZ() + ".";
+          error_message += String(" The error occurred in the chromatogram with m/z ratio ") + chromatogram.getMZ() + ".";
         }
         OPENMS_LOG_ERROR << error_message << std::endl;
       }

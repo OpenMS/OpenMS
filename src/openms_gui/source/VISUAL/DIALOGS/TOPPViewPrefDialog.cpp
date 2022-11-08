@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,8 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <ui_TOPPViewPrefDialog.h>
 
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -49,10 +51,13 @@ namespace OpenMS
   {
     TOPPViewPrefDialog::TOPPViewPrefDialog(QWidget* parent) :
       QDialog(parent),
-      ui_(new Ui::TOPPViewPrefDialogTemplate)
+      ui_(new Ui::TOPPViewPrefDialogTemplate),
+      tsg_param_(TheoreticalSpectrumGenerator().getParameters())
     {
       ui_->setupUi(this);
+      ui_->param_editor_spec_gen_->load(tsg_param_);
       connect(ui_->browse_default, &QPushButton::clicked, this, &TOPPViewPrefDialog::browseDefaultPath_);
+      connect(ui_->browse_plugins, &QPushButton::clicked, this, &TOPPViewPrefDialog::browsePluginsPath_);
     }
 
     TOPPViewPrefDialog::~TOPPViewPrefDialog()
@@ -60,82 +65,47 @@ namespace OpenMS
       delete ui_;
     }
 
+    const char* tsg_prefix = "idview:tsg:";
+
     void TOPPViewPrefDialog::setParam(const Param& param)
     {
-      param_ = param;
+      param_ = getParam(); // get our own defaults
 
-      // --------------------------------------------------------------------
-      // Set dialog entries from current parameter object (default values)
+      // make sure the params we write (using getParam) are the same as the ones we can read
+      param_.update(param, true, true, true, true, OpenMS_Log_info);
 
-      // default
-      ui_->default_path->setText(String(param_.getValue("preferences:default_path").toString()).toQString());
-      ui_->default_path_current->setChecked(param_.getValue("preferences:default_path_current").toBool());
-      ui_->use_cached_ms1->setChecked(param_.getValue("preferences:use_cached_ms1").toBool());
-      ui_->use_cached_ms2->setChecked(param_.getValue("preferences:use_cached_ms2").toBool());
-   
-      ui_->map_default->setCurrentIndex(ui_->map_default->findText(String(param_.getValue("preferences:default_map_view").toString()).toQString()));
-      ui_->map_cutoff->setCurrentIndex(ui_->map_cutoff->findText(String(param_.getValue("preferences:intensity_cutoff").toString()).toQString()));
-      ui_->on_file_change->setCurrentIndex(ui_->on_file_change->findText(String(param_.getValue("preferences:on_file_change").toString()).toQString()));
+      // general tab
+      ui_->default_path->setText(String(param_.getValue("default_path").toString()).toQString());
+      ui_->default_path_current->setChecked(param_.getValue("default_path_current").toBool());
+      ui_->plugins_path->setText(String(param_.getValue("plugins_path").toString()).toQString());
+      ui_->use_cached_ms1->setChecked(param_.getValue("use_cached_ms1").toBool());
+      ui_->use_cached_ms2->setChecked(param_.getValue("use_cached_ms2").toBool());
+
+      ui_->map_default->setCurrentIndex(ui_->map_default->findText(String(param_.getValue("default_map_view").toString()).toQString()));
+      ui_->map_cutoff->setCurrentIndex(ui_->map_cutoff->findText(String(param_.getValue("intensity_cutoff").toString()).toQString()));
+      ui_->on_file_change->setCurrentIndex(ui_->on_file_change->findText(String(param_.getValue("on_file_change").toString()).toQString()));
 
       // 1D view
-      ui_->color_1D->setColor(QColor(String(param_.getValue("preferences:1d:peak_color").toString()).toQString()));
-      ui_->selected_1D->setColor(QColor(String(param_.getValue("preferences:1d:highlighted_peak_color").toString()).toQString()));
-      ui_->icon_1D->setColor(QColor(String(param_.getValue("preferences:1d:icon_color").toString()).toQString()));
+      ui_->color_1D->setColor(QColor(String(param_.getValue("1d:peak_color").toString()).toQString()));
+      ui_->selected_1D->setColor(QColor(String(param_.getValue("1d:highlighted_peak_color").toString()).toQString()));
+      ui_->icon_1D->setColor(QColor(String(param_.getValue("1d:icon_color").toString()).toQString()));
 
       // 2D view
-      ui_->peak_2D->gradient().fromString(param_.getValue("preferences:2d:dot:gradient"));
-      ui_->mapping_2D->setCurrentIndex(ui_->mapping_2D->findText(String(param_.getValue("preferences:2d:mapping_of_mz_to").toString()).toQString()));
-      ui_->feature_icon_2D->setCurrentIndex(ui_->feature_icon_2D->findText(String(param_.getValue("preferences:2d:dot:feature_icon").toString()).toQString()));
-      ui_->feature_icon_size_2D->setValue((Int)param_.getValue("preferences:2d:dot:feature_icon_size"));
+      ui_->peak_2D->gradient().fromString(param_.getValue("2d:dot:gradient"));
+      ui_->mapping_2D->setCurrentIndex(ui_->mapping_2D->findText(String(param_.getValue("2d:mapping_of_mz_to").toString()).toQString()));
+      ui_->feature_icon_2D->setCurrentIndex(ui_->feature_icon_2D->findText(String(param_.getValue("2d:dot:feature_icon").toString()).toQString()));
+      ui_->feature_icon_size_2D->setValue((Int)param_.getValue("2d:dot:feature_icon_size"));
 
       // 3D view
-      ui_->peak_3D->gradient().fromString(param_.getValue("preferences:3d:dot:gradient"));
-      ui_->shade_3D->setCurrentIndex((Int)param_.getValue("preferences:3d:dot:shade_mode"));
-      ui_->line_width_3D->setValue((Int)param_.getValue("preferences:3d:dot:line_width"));
+      ui_->peak_3D->gradient().fromString(param_.getValue("3d:dot:gradient"));
+      ui_->shade_3D->setCurrentIndex((Int)param_.getValue("3d:dot:shade_mode"));
+      ui_->line_width_3D->setValue((Int)param_.getValue("3d:dot:line_width"));
 
-      // id view
-      ui_->a_intensity->setValue((double)param_.getValue("preferences:idview:a_intensity"));
-      ui_->b_intensity->setValue((double)param_.getValue("preferences:idview:b_intensity"));
-      ui_->c_intensity->setValue((double)param_.getValue("preferences:idview:c_intensity"));
-      ui_->x_intensity->setValue((double)param_.getValue("preferences:idview:x_intensity"));
-      ui_->y_intensity->setValue((double)param_.getValue("preferences:idview:y_intensity"));
-      ui_->z_intensity->setValue((double)param_.getValue("preferences:idview:z_intensity"));
-      ui_->tolerance->setValue((double)param_.getValue("preferences:idview:tolerance"));
-
-      ui_->relative_loss_intensity->setValue((double)param_.getValue("preferences:idview:relative_loss_intensity"));
-
-      QList<QListWidgetItem*> a_ions = ui_->ions_list_widget->findItems("A-ions", Qt::MatchFixedString);
-      QList<QListWidgetItem*> b_ions = ui_->ions_list_widget->findItems("B-ions", Qt::MatchFixedString);
-      QList<QListWidgetItem*> c_ions = ui_->ions_list_widget->findItems("C-ions", Qt::MatchFixedString);
-      QList<QListWidgetItem*> x_ions = ui_->ions_list_widget->findItems("X-ions", Qt::MatchFixedString);
-      QList<QListWidgetItem*> y_ions = ui_->ions_list_widget->findItems("Y-ions", Qt::MatchFixedString);
-      QList<QListWidgetItem*> z_ions = ui_->ions_list_widget->findItems("Z-ions", Qt::MatchFixedString);
-      QList<QListWidgetItem*> pc_ions = ui_->ions_list_widget->findItems("Precursor", Qt::MatchFixedString);
-      QList<QListWidgetItem*> nl_ions = ui_->ions_list_widget->findItems("Neutral losses", Qt::MatchFixedString);
-      QList<QListWidgetItem*> ic_ions = ui_->ions_list_widget->findItems("Isotope clusters", Qt::MatchFixedString);
-      QList<QListWidgetItem*> ai_ions = ui_->ions_list_widget->findItems("Abundant immonium-ions", Qt::MatchFixedString);
-
-      OPENMS_PRECONDITION(a_ions.size() == 1, "String 'A-ions' does not exist in identification dialog.");
-      OPENMS_PRECONDITION(b_ions.size() == 1, "String 'B-ions' does not exist in identification dialog.");
-      OPENMS_PRECONDITION(c_ions.size() == 1, "String 'C-ions' does not exist in identification dialog.");
-      OPENMS_PRECONDITION(x_ions.size() == 1, "String 'X-ions' does not exist in identification dialog.");
-      OPENMS_PRECONDITION(y_ions.size() == 1, "String 'Y-ions' does not exist in identification dialog.");
-      OPENMS_PRECONDITION(z_ions.size() == 1, "String 'Z-ions' does not exist in identification dialog.");
-      OPENMS_PRECONDITION(pc_ions.size() == 1, "String 'Precursor' does not exist in identification dialog.");
-      OPENMS_PRECONDITION(nl_ions.size() == 1, "String 'Neutral losses' does not exist in identification dialog.");
-      OPENMS_PRECONDITION(ic_ions.size() == 1, "String 'Isotope clusters' does not exist in identification dialog.");
-      OPENMS_PRECONDITION(ai_ions.size() == 1, "String 'Abundant immonium-ions' does not exist in identification dialog.");
-
-      a_ions[0]->setCheckState(param_.getValue("preferences:idview:show_a_ions").toBool() ? Qt::Checked : Qt::Unchecked);
-      b_ions[0]->setCheckState(param_.getValue("preferences:idview:show_b_ions").toBool() ? Qt::Checked : Qt::Unchecked);
-      c_ions[0]->setCheckState(param_.getValue("preferences:idview:show_c_ions").toBool() ? Qt::Checked : Qt::Unchecked);
-      x_ions[0]->setCheckState(param_.getValue("preferences:idview:show_x_ions").toBool() ? Qt::Checked : Qt::Unchecked);
-      y_ions[0]->setCheckState(param_.getValue("preferences:idview:show_y_ions").toBool() ? Qt::Checked : Qt::Unchecked);
-      z_ions[0]->setCheckState(param_.getValue("preferences:idview:show_z_ions").toBool() ? Qt::Checked : Qt::Unchecked);
-      pc_ions[0]->setCheckState(param_.getValue("preferences:idview:show_precursor").toBool() ? Qt::Checked : Qt::Unchecked);
-      nl_ions[0]->setCheckState(param_.getValue("preferences:idview:add_losses").toBool() ? Qt::Checked : Qt::Unchecked);
-      ic_ions[0]->setCheckState(param_.getValue("preferences:idview:add_isotopes").toBool() ? Qt::Checked : Qt::Unchecked);
-      ai_ions[0]->setCheckState(param_.getValue("preferences:idview:add_abundant_immonium_ions").toBool() ? Qt::Checked : Qt::Unchecked);
+      // TSG view
+      tsg_param_ = param_.copy(tsg_prefix, true);
+      ui_->param_editor_spec_gen_->load(tsg_param_);
+      ui_->tolerance->setValue((double)param_.getValue("idview:align:tolerance"));
+      ui_->unit->setCurrentIndex(ui_->unit->findText(String(param_.getValue("idview:align:is_relative_tolerance") == "true" ? "ppm" : "Da").toQString()));
     }
 
     String fromCheckState(const Qt::CheckState cs)
@@ -151,72 +121,39 @@ namespace OpenMS
     Param TOPPViewPrefDialog::getParam() const
     {
       Param p; 
-      p.setValue("preferences:default_path", ui_->default_path->text().toStdString());
-      p.setValue("preferences:default_path_current", fromCheckState(ui_->default_path_current->checkState()));
+      p.setValue("default_path", ui_->default_path->text().toStdString());
+      p.setValue("default_path_current", fromCheckState(ui_->default_path_current->checkState()));
 
-      p.setValue("preferences:use_cached_ms1", fromCheckState(ui_->use_cached_ms1->checkState()));
-      p.setValue("preferences:use_cached_ms2", fromCheckState(ui_->use_cached_ms2->checkState()));
+      p.setValue("plugins_path", ui_->plugins_path->text().toStdString());
 
-      p.setValue("preferences:default_map_view", ui_->map_default->currentText().toStdString());
-      p.setValue("preferences:intensity_cutoff", ui_->map_cutoff->currentText().toStdString());
-      p.setValue("preferences:on_file_change", ui_->on_file_change->currentText().toStdString());
+      p.setValue("use_cached_ms1", fromCheckState(ui_->use_cached_ms1->checkState()));
+      p.setValue("use_cached_ms2", fromCheckState(ui_->use_cached_ms2->checkState()));
 
-      p.setValue("preferences:1d:peak_color", ui_->color_1D->getColor().name().toStdString());
-      p.setValue("preferences:1d:highlighted_peak_color", ui_->selected_1D->getColor().name().toStdString());
-      p.setValue("preferences:1d:icon_color", ui_->icon_1D->getColor().name().toStdString());
+      p.setValue("default_map_view", ui_->map_default->currentText().toStdString());
+      p.setValue("intensity_cutoff", ui_->map_cutoff->currentText().toStdString());
+      p.setValue("on_file_change", ui_->on_file_change->currentText().toStdString());
 
-      p.setValue("preferences:2d:dot:gradient", ui_->peak_2D->gradient().toString());
-      p.setValue("preferences:2d:mapping_of_mz_to", ui_->mapping_2D->currentText().toStdString());
-      p.setValue("preferences:2d:dot:feature_icon", ui_->feature_icon_2D->currentText().toStdString());
-      p.setValue("preferences:2d:dot:feature_icon_size", ui_->feature_icon_size_2D->value());
+      p.setValue("1d:peak_color", ui_->color_1D->getColor().name().toStdString());
+      p.setValue("1d:highlighted_peak_color", ui_->selected_1D->getColor().name().toStdString());
+      p.setValue("1d:icon_color", ui_->icon_1D->getColor().name().toStdString());
 
-      p.setValue("preferences:3d:dot:gradient", ui_->peak_3D->gradient().toString());
-      p.setValue("preferences:3d:dot:shade_mode", ui_->shade_3D->currentIndex());
-      p.setValue("preferences:3d:dot:line_width", ui_->line_width_3D->value());
+      p.setValue("2d:dot:gradient", ui_->peak_2D->gradient().toString());
+      p.setValue("2d:mapping_of_mz_to", ui_->mapping_2D->currentText().toStdString());
+      p.setValue("2d:dot:feature_icon", ui_->feature_icon_2D->currentText().toStdString());
+      p.setValue("2d:dot:feature_icon_size", ui_->feature_icon_size_2D->value());
 
-      // id view
-      p.setValue("preferences:idview:a_intensity", ui_->a_intensity->value(), "Default intensity of a-ions");
-      p.setValue("preferences:idview:b_intensity", ui_->b_intensity->value(), "Default intensity of b-ions");
-      p.setValue("preferences:idview:c_intensity", ui_->c_intensity->value(), "Default intensity of c-ions");
-      p.setValue("preferences:idview:x_intensity", ui_->x_intensity->value(), "Default intensity of x-ions");
-      p.setValue("preferences:idview:y_intensity", ui_->y_intensity->value(), "Default intensity of y-ions");
-      p.setValue("preferences:idview:z_intensity", ui_->z_intensity->value(), "Default intensity of z-ions");
-      p.setValue("preferences:idview:relative_loss_intensity", ui_->relative_loss_intensity->value(), "Relativ loss in percent");
-      p.setValue("preferences:idview:tolerance", ui_->tolerance->value(), "Alignment tolerance");
+      p.setValue("3d:dot:gradient", ui_->peak_3D->gradient().toString());
+      p.setValue("3d:dot:shade_mode", ui_->shade_3D->currentIndex());
+      p.setValue("3d:dot:line_width", ui_->line_width_3D->value());
 
-      QList<QListWidgetItem*> a_ions = ui_->ions_list_widget->findItems("A-ions", Qt::MatchFixedString);
-      QList<QListWidgetItem*> b_ions = ui_->ions_list_widget->findItems("B-ions", Qt::MatchFixedString);
-      QList<QListWidgetItem*> c_ions = ui_->ions_list_widget->findItems("C-ions", Qt::MatchFixedString);
-      QList<QListWidgetItem*> x_ions = ui_->ions_list_widget->findItems("X-ions", Qt::MatchFixedString);
-      QList<QListWidgetItem*> y_ions = ui_->ions_list_widget->findItems("Y-ions", Qt::MatchFixedString);
-      QList<QListWidgetItem*> z_ions = ui_->ions_list_widget->findItems("Z-ions", Qt::MatchFixedString);
-      QList<QListWidgetItem*> pc_ions = ui_->ions_list_widget->findItems("Precursor", Qt::MatchFixedString);
-      QList<QListWidgetItem*> nl_ions = ui_->ions_list_widget->findItems("Neutral losses", Qt::MatchFixedString);
-      QList<QListWidgetItem*> ic_ions = ui_->ions_list_widget->findItems("Isotope clusters", Qt::MatchFixedString);
-      QList<QListWidgetItem*> ai_ions = ui_->ions_list_widget->findItems("Abundant immonium-ions", Qt::MatchFixedString);
-      
-      p.setValue("preferences:idview:show_a_ions", fromCheckState(a_ions[0]->checkState()), "Show a-ions");
-      p.setValue("preferences:idview:show_b_ions", fromCheckState(b_ions[0]->checkState()), "Show b-ions");
-      p.setValue("preferences:idview:show_c_ions", fromCheckState(c_ions[0]->checkState()), "Show c-ions");
-      p.setValue("preferences:idview:show_x_ions", fromCheckState(x_ions[0]->checkState()), "Show x-ions");
-      p.setValue("preferences:idview:show_y_ions", fromCheckState(y_ions[0]->checkState()), "Show y-ions");
-      p.setValue("preferences:idview:show_z_ions", fromCheckState(z_ions[0]->checkState()), "Show z-ions");
-      p.setValue("preferences:idview:show_precursor", fromCheckState(pc_ions[0]->checkState()), "Show precursor");
-      p.setValue("preferences:idview:add_losses", fromCheckState(nl_ions[0]->checkState()), "Show neutral losses");
-      p.setValue("preferences:idview:add_isotopes", fromCheckState(ic_ions[0]->checkState()), "Show isotopes");
-      p.setValue("preferences:idview:add_abundant_immonium_ions", fromCheckState(ai_ions[0]->checkState()), "Show abundant immonium ions");
+      // TSG view
+      ui_->param_editor_spec_gen_->store(); // to tsg_param_
+      p.insert(tsg_prefix, tsg_param_);
+      // from SpectrumAlignment
+      p.setValue("idview:align:tolerance", ui_->tolerance->value(), "Alignment tolerance value");
+      p.setValue("idview:align:is_relative_tolerance", ui_->unit->currentText().toStdString() == "ppm" ? "true" : "false", "Alignment tolerance unit (Da, ppm)");
 
-      // if setParam() was not called before, param_ is empty and p is the only thing we have...
-      if (param_.empty()) 
-      {
-        param_ = p;
-      }
-      // update with new values from 'p' to avoid loosing additional parameters and the existing descriptions already present in param_
-      else if (!param_.update(p, true, true, true, true, OpenMS_Log_warn))
-      { // fails if parameter types are incompatible, e.g. param_.getValue("checkbox") is STRING, but p.setValue("checkBox", 1), i.e. Int was stored.
-        // You should see 'Parameter 'preferences:use_cached_ms2' has changed value type!' or similar in the console
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Storing parameters failed. This is a bug! Please report it!");
-      }
+      param_ = p;
         
       return param_;
     }
@@ -224,9 +161,18 @@ namespace OpenMS
     void TOPPViewPrefDialog::browseDefaultPath_()
     {
       QString path = QFileDialog::getExistingDirectory(this, "Choose a directory", ui_->default_path->text());
-      if (path != "")
+      if (!path.isEmpty())
       {
         ui_->default_path->setText(path);
+      }
+    }
+
+    void TOPPViewPrefDialog::browsePluginsPath_()
+    {
+      QString path = QFileDialog::getExistingDirectory(this, "Choose a directory", ui_->plugins_path->text());
+      if (!path.isEmpty())
+      {
+        ui_->plugins_path->setText(path);
       }
     }
 

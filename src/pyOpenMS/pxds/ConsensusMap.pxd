@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
 
     cdef cppclass ColumnHeader(MetaInfoInterface):
         # wrap-inherits:
-        #   MetaInfoInterface
+        #  MetaInfoInterface
 
         String filename
         String label
@@ -37,28 +37,28 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
-    cdef cppclass ConsensusMap(UniqueIdInterface, DocumentIdentifier, RangeManager2, MetaInfoInterface):
+    cdef cppclass ConsensusMap(UniqueIdInterface, DocumentIdentifier, RangeManagerRtMzInt, MetaInfoInterface):
 
         # wrap-inherits:
-        #   UniqueIdInterface
-        #   DocumentIdentifier
-        #   RangeManager2
-        #   MetaInfoInterface
+        #  UniqueIdInterface
+        #  DocumentIdentifier
+        #  RangeManagerRtMzInt
+        #  MetaInfoInterface
         #
         # wrap-doc:
-        #   A container for consensus elements.
-        #   -----
-        #   A ConsensusMap is a container holding 2-dimensional consensus elements
-        #   (ConsensusFeature) which in turn represent analytes that have been
-        #   quantified across multiple LC-MS/MS experiments. Each analyte in a
-        #   ConsensusFeature is linked to its original LC-MS/MS run, the links are
-        #   maintained by the ConsensusMap class.
-        #   The map is implemented as a vector of elements of type ConsensusFeature.
-        #   -----
-        #   To be consistent, all maps who are referenced by ConsensusFeature objects
-        #   (through a unique id) need to be registered in this class. 
-        #   -----
-        #   This class supports direct iteration in Python.
+        #  A container for consensus elements.
+        #  
+        #  A ConsensusMap is a container holding 2-dimensional consensus elements
+        #  (ConsensusFeature) which in turn represent analytes that have been
+        #  quantified across multiple LC-MS/MS experiments. Each analyte in a
+        #  ConsensusFeature is linked to its original LC-MS/MS run, the links are
+        #  maintained by the ConsensusMap class.
+        #  The map is implemented as a vector of elements of type ConsensusFeature.
+        #  
+        #  To be consistent, all maps who are referenced by ConsensusFeature objects
+        #  (through a unique id) need to be registered in this class. 
+        #  
+        #  This class supports direct iteration in Python.
 
         ConsensusMap() nogil except +
         ConsensusMap(ConsensusMap &) nogil except +
@@ -69,7 +69,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         int size() nogil except +
         bool empty() nogil except +
         void reserve(Size s) nogil except +
-        ConsensusFeature & operator[](int) nogil except + #wrap-upper-limit:size()
+        ConsensusFeature & operator[](size_t) nogil except + #wrap-upper-limit:size()
         void push_back(ConsensusFeature spec) nogil except +
 
         ConsensusMap appendRows(ConsensusMap) nogil except + # wrap-doc:Add consensus map entries as new rows

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,15 +35,15 @@
 #pragma once
 
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 
+#include <numeric>
+
 namespace OpenMS
 {
-  class Peak1D;
   enum class DriftTimeUnit;
   /**
     @brief The representation of a 1D spectrum.
@@ -63,9 +63,9 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI MSSpectrum :
+  class OPENMS_DLLAPI MSSpectrum final :
     private std::vector<Peak1D>,
-    public RangeManager<1>,
+    public RangeManagerContainer<RangeMZ, RangeIntensity>,
     public SpectrumSettings
   {
 public:
@@ -73,6 +73,10 @@ public:
     /// Comparator for the retention time.
     struct OPENMS_DLLAPI RTLess
     {
+      bool operator()(const MSSpectrum& a, const MSSpectrum& b) const;
+    };
+    /// Comparator for the ion mobility.
+    struct OPENMS_DLLAPI IMLess {
       bool operator()(const MSSpectrum& a, const MSSpectrum& b) const;
     };
 
@@ -108,6 +112,9 @@ public:
     typedef typename PeakType::CoordinateType CoordinateType;
     /// Spectrum base type
     typedef std::vector<PeakType> ContainerType;
+    /// RangeManager
+    typedef RangeManagerContainer<RangeMZ, RangeIntensity> RangeManagerContainerType;
+    typedef RangeManager<RangeMZ, RangeIntensity> RangeManagerType;
     /// Float data array vector type
     typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
     typedef std::vector<FloatDataArray> FloatDataArrays;
@@ -138,6 +145,8 @@ public:
     using ContainerType::rbegin;
     using ContainerType::end;
     using ContainerType::rend;
+    using ContainerType::cbegin;
+    using ContainerType::cend;
     using ContainerType::resize;
     using ContainerType::size;
     using ContainerType::push_back;
@@ -173,8 +182,7 @@ public:
     MSSpectrum(MSSpectrum&&) = default;
 
     /// Destructor
-    ~MSSpectrum() override
-    {}
+    ~MSSpectrum() = default;
 
     /// Assignment operator
     MSSpectrum& operator=(const MSSpectrum& source);
@@ -555,6 +563,12 @@ public:
 
     /**
       @brief Clears all data and meta data
+
+      Will delete (clear) all peaks contained in the spectrum as well as any
+      associated data arrays (FloatDataArrays, IntegerDataArrays,
+      StringDataArrays) by default. If @em clear_meta_data is @em true, then
+      also all meta data (such as RT, drift time, ms level etc) will be
+      deleted.
 
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */

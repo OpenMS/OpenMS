@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,8 +40,6 @@
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot2DGoToDialog.h>
 
-//QT
-#include <QtWidgets/QGridLayout>
 
 using namespace std;
 
@@ -62,129 +60,10 @@ namespace OpenMS
     connect(canvas(), SIGNAL(showCurrentPeaksAs2D()), this, SIGNAL(showCurrentPeaksAs2D()));
   }
 
-  Plot3DWidget::~Plot3DWidget()
-  {
-
-  }
+  Plot3DWidget::~Plot3DWidget() = default;
 
   void Plot3DWidget::recalculateAxes_()
   {
-  }
-
-  Histogram<> Plot3DWidget::createIntensityDistribution_() const
-  {
-    //initialize histogram
-    double min = canvas_->getCurrentMinIntensity();
-    double max = canvas_->getCurrentMaxIntensity();
-    if (min == max)
-    {
-      min -= 0.01;
-      max += 0.01;
-    }
-    Histogram<> tmp(min, max, (max - min) / 500.0);
-
-    for (ExperimentType::ConstIterator spec_it = canvas_->getCurrentLayer().getPeakData()->begin(); spec_it != canvas_->getCurrentLayer().getPeakData()->end(); ++spec_it)
-    {
-      if (spec_it->getMSLevel() != 1)
-      {
-        continue;
-      }
-      for (ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
-      {
-        tmp.inc(peak_it->getIntensity());
-      }
-    }
-
-    return tmp;
-  }
-
-  Histogram<> Plot3DWidget::createMetaDistribution_(const String & name) const
-  {
-    Histogram<> tmp;
-
-    //determine min and max of the data
-    float m_min = (numeric_limits<float>::max)(), m_max = -(numeric_limits<float>::max)();
-    for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
-    {
-      if (s_it->getMSLevel() != 1)
-      {
-        continue;
-      }
-      //float arrays
-      for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
-      {
-        if (it->getName() == name)
-        {
-          for (Size i = 0; i < it->size(); ++i)
-          {
-            if ((*it)[i] < m_min)
-            {
-              m_min = (*it)[i];
-            }
-            if ((*it)[i] > m_max)
-            {
-              m_max = (*it)[i];
-            }
-          }
-          break;
-        }
-      }
-      //integer arrays
-      for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = s_it->getIntegerDataArrays().begin(); it != s_it->getIntegerDataArrays().end(); ++it)
-      {
-        if (it->getName() == name)
-        {
-          for (Size i = 0; i < it->size(); ++i)
-          {
-            if ((*it)[i] < m_min)
-            {
-              m_min = (*it)[i];
-            }
-            if ((*it)[i] > m_max)
-            {
-              m_max = (*it)[i];
-            }
-          }
-          break;
-        }
-      }
-    }
-    if (m_min >= m_max)
-      return tmp;
-
-    //create histogram
-    tmp.reset(m_min, m_max, (m_max - m_min) / 500.0);
-    for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
-    {
-      if (s_it->getMSLevel() != 1)
-        continue;
-      //float arrays
-      for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
-      {
-        if (it->getName() == name)
-        {
-          for (Size i = 0; i < it->size(); ++i)
-          {
-            tmp.inc((*it)[i]);
-          }
-          break;
-        }
-      }
-      //integer arrays
-      for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = s_it->getIntegerDataArrays().begin(); it != s_it->getIntegerDataArrays().end(); ++it)
-      {
-        if (it->getName() == name)
-        {
-          for (Size i = 0; i < it->size(); ++i)
-          {
-            tmp.inc((*it)[i]);
-          }
-          break;
-        }
-      }
-    }
-
-    return tmp;
   }
 
   void Plot3DWidget::showLegend(bool show)
@@ -200,16 +79,18 @@ namespace OpenMS
   void Plot3DWidget::showGoToDialog()
   {
     Plot2DGoToDialog goto_dialog(this);
-    const DRange<3> & area = canvas()->getDataRange();
+    const auto& area = canvas()->getVisibleArea().getAreaXY();
     goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
-    goto_dialog.setMinMaxOfRange(canvas()->getDataRange().minY(), canvas()->getDataRange().maxY(), canvas()->getDataRange().minX(), canvas()->getDataRange().maxX());
+
+    auto all_area_xy = canvas_->getMapper().mapRange(canvas_->getDataRange());
+    goto_dialog.setMinMaxOfRange(all_area_xy.minX(), all_area_xy.maxX(), all_area_xy.minY(), all_area_xy.maxY());
+
     goto_dialog.enableFeatureNumber(false);
     if (goto_dialog.exec())
     {
       goto_dialog.fixRange(); // in case user did something invalid
-      PlotCanvas::AreaType area (goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
-      correctAreaToObeyMinMaxRanges_(area);
-      canvas()->setVisibleArea(area);
+      PlotCanvas::AreaXYType area_new(goto_dialog.getMinRT(), goto_dialog.getMinMZ(), goto_dialog.getMaxRT(), goto_dialog.getMaxMZ());
+      canvas()->setVisibleArea(area_new);
     }
   }
 

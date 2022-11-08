@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -248,7 +248,13 @@ public:
         return bin_index;
       }
 
-
+      /**
+       * @brief Increment all bins from to lowest(=first) bin up to (and including?) the bin for @p val by a certain number of counts
+       * @param val The value which determines the highest bin
+       * @param inclusive Is the highest bin included?
+       * @param increment Increase each bin by this value
+       * @return The index of the bin for @p value
+      */
       Size incUntil(BinSizeType val, bool inclusive, ValueType increment = 1)
       {
         Size bin_index = this->valueToBin(val);
@@ -263,6 +269,13 @@ public:
         return bin_index;
       }
 
+     /**
+       * @brief Increment all bins from the bin of @p val to the highest(=last) bin by a certain number of counts
+       * @param val The value which determines the lowest bin
+       * @param inclusive Is the lowest bin included?
+       * @param increment Increase each bin by this value
+       * @return The index of the bin for @p value
+      */
       Size incFrom(BinSizeType val, bool inclusive, ValueType increment = 1)
       {
         Size bin_index = this->valueToBin(val);

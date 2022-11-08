@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1035,7 +1035,7 @@ namespace OpenMS
       const double intercept = rt_low_image - rt_low * slope;
       params.setValue("intercept", intercept);
 
-      if (boost::math::isinf(slope) || boost::math::isnan(slope) || boost::math::isinf(intercept) || boost::math::isnan(intercept))
+      if (std::isinf(slope) || std::isnan(slope) || std::isinf(intercept) || std::isnan(intercept))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       String("Superimposer could not compute an initial transformation!") +

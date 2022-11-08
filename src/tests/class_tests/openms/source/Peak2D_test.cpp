@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,6 +47,15 @@ START_TEST(Peak2D<D>, "$Id$")
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
+
+static_assert(std::is_trivially_destructible<Peak2D> {});
+// static_assert(std::is_trivially_default_constructible<Peak2D> {});
+static_assert(std::is_trivially_copy_constructible<Peak2D> {});
+static_assert(std::is_trivially_copy_assignable<Peak2D> {});
+static_assert(std::is_trivially_move_constructible<Peak2D> {});
+static_assert(std::is_nothrow_move_constructible<Peak2D> {});
+static_assert(std::is_trivially_move_assignable<Peak2D> {});
+
 
 Peak2D* d10_ptr = nullptr;
 Peak2D* d10_nullPointer = nullptr;
@@ -102,7 +111,6 @@ START_SECTION((Peak2D(Peak2D &&rhs)))
   Peak2D::PositionType pos2;
   Peak2D::IntensityType i2;
 
-  Peak2D orig = p;
   Peak2D copy_of_p(std::move(p));
 
   i2 = copy_of_p.getIntensity();

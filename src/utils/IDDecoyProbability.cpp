@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -131,7 +131,7 @@ protected:
     {
       if (!in.empty())
       {
-        writeLog_("Error, either 'fwd_in' and 'rev_in' must be given or 'in', but not both");
+        writeLogError_("Error: either 'fwd_in' and 'rev_in' must be given or 'in', but not both");
         return ILLEGAL_PARAMETERS;
       }
     }
@@ -143,7 +143,7 @@ protected:
       }
       else
       {
-        writeLog_("Error, at least 'fwd_in' and 'rev_in' or 'in' must be given");
+        writeLogError_("Error: at least 'fwd_in' and 'rev_in' or 'in' must be given");
         return ILLEGAL_PARAMETERS;
       }
     }

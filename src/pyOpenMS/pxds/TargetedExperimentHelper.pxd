@@ -1,8 +1,8 @@
 from libcpp.vector cimport vector as libcpp_vector
+from libcpp.map cimport map as libcpp_map
 from String cimport *
 from CVTerm cimport *
 from Residue cimport *
-from Map cimport *
 from DataValue cimport *
 from CVTermList cimport *
 
@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
     ctypedef enum RTUnit "OpenMS::TargetedExperimentHelper::RetentionTime::RTUnit":
             # wrap-attach:
-            #    RetentionTime
+            #   RetentionTime
             SECOND,        # RT stored in seconds
             MINUTE,        # RT stored in minutes
             UNKNOWN,       # no stored annotation
@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
     ctypedef enum RTType "OpenMS::TargetedExperimentHelper::RetentionTime::RTType":
             # wrap-attach:
-            #    RetentionTime
+            #   RetentionTime
             LOCAL,            # undefined local chromatography
             NORMALIZED,       # standardized reference chromatography
             PREDICTED,        # predicted by referenced software
@@ -33,7 +33,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
     cdef cppclass Configuration(CVTermList):
         # wrap-inherits:
-        #    CVTermList
+        #   CVTermList
 
         Configuration(Configuration) nogil except + #wrap-ignore
         String contact_ref
@@ -52,7 +52,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
     cdef cppclass Protein(CVTermList):
         # wrap-inherits:
-        #    CVTermList
+        #   CVTermList
 
         Protein() nogil except +
         Protein(Protein &) nogil except +
@@ -63,7 +63,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
     cdef cppclass RetentionTime(CVTermList):
         # wrap-inherits:
-        #    CVTermList
+        #   CVTermList
 
         RetentionTime() nogil except +
         RetentionTime(RetentionTime &) nogil except +
@@ -78,7 +78,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
     cdef cppclass Compound(CVTermList):
         # wrap-inherits:
-        #    CVTermList
+        #   CVTermList
 
         Compound() nogil except +
         Compound(Compound &) nogil except +
@@ -100,7 +100,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
     cdef cppclass Peptide(CVTermList):
         # wrap-inherits:
-        #    CVTermList
+        #   CVTermList
 
         Peptide() nogil except +
         Peptide(Peptide &) nogil except +
@@ -126,7 +126,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
     cdef cppclass Contact(CVTermList):
         # wrap-inherits:
-        #    CVTermList
+        #   CVTermList
 
         Contact() nogil except +
         Contact(Contact &) nogil except + # compiler
@@ -135,7 +135,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
     cdef cppclass Publication(CVTermList):
         # wrap-inherits:
-        #    CVTermList
+        #   CVTermList
 
         Publication() nogil except +
         Publication(Publication &) nogil except + # compiler
@@ -153,9 +153,9 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
         void replaceCVTerm(CVTerm & term)               nogil except +
         void replaceCVTerms(libcpp_vector[CVTerm] cv_terms, String accession) nogil except +
-        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        void consumeCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
+        void replaceCVTerms(libcpp_map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
+        void consumeCVTerms(libcpp_map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
+        libcpp_map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
         void addCVTerm(CVTerm & term)                   nogil except +
         bool hasCVTerm(String accession)  nogil except +
         bool empty()                      nogil except +
@@ -177,7 +177,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
     cdef cppclass Prediction(CVTermList):
         # wrap-inherits:
-        #    CVTermList
+        #   CVTermList
 
         Prediction() nogil except +
         Prediction(Prediction &) nogil except + # compiler
@@ -199,9 +199,9 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
         void replaceCVTerm(CVTerm & term)               nogil except +
         void replaceCVTerms(libcpp_vector[CVTerm] cv_terms, String accession) nogil except +
-        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        void consumeCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
-        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
+        void replaceCVTerms(libcpp_map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
+        void consumeCVTerms(libcpp_map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
+        libcpp_map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
         void addCVTerm(CVTerm & term)                   nogil except +
         bool hasCVTerm(String accession)  nogil except +
         bool empty()                      nogil except +
@@ -223,7 +223,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
     cdef cppclass TraMLProduct(CVTermList):
         # wrap-inherits:
-        #    CVTermList
+        #   CVTermList
 
         TraMLProduct() nogil except +
         TraMLProduct(TraMLProduct &) nogil except + # compiler

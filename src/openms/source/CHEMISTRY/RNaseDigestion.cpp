@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,7 @@ namespace OpenMS
     }
     String three_prime_code = rnase->getThreePrimeGain();
     if (three_prime_code == "p")
-    {  
+    {
       three_prime_code = "3'-p";
     }
 
@@ -207,11 +207,8 @@ namespace OpenMS
   void RNaseDigestion::digest(IdentificationData& id_data, Size min_length,
                               Size max_length) const
   {
-    for (IdentificationData::ParentMoleculeRef parent_ref =
-             id_data.getParentMolecules().begin();
-         parent_ref !=
-         id_data.getParentMolecules().end();
-         ++parent_ref)
+    for (IdentificationData::ParentSequenceRef parent_ref = id_data.getParentSequences().begin();
+         parent_ref != id_data.getParentSequences().end(); ++parent_ref)
     {
       if (parent_ref->molecule_type != IdentificationData::MoleculeType::RNA)
       {
@@ -234,13 +231,14 @@ namespace OpenMS
           fragment.setThreePrimeMod(three_prime_gain_);
         }
         IdentificationData::IdentifiedOligo oligo(fragment);
-        Size end_pos = pos.first + pos.second;// past-the-end position!
-        IdentificationData::MoleculeParentMatch match(pos.first, end_pos - 1);
-        match.left_neighbor = (pos.first > 0) ? rna[pos.first - 1]->getCode() :
-                                                IdentificationData::MoleculeParentMatch::LEFT_TERMINUS;
-        match.right_neighbor = (end_pos < rna.size()) ?
-                                   rna[end_pos]->getCode() :
-                                   IdentificationData::MoleculeParentMatch::RIGHT_TERMINUS;
+        Size end_pos = pos.first + pos.second; // past-the-end position!
+        IdentificationData::ParentMatch match(pos.first, end_pos - 1);
+        match.left_neighbor = ((pos.first > 0) ?
+                               rna[pos.first - 1]->getCode() :
+                               IdentificationData::ParentMatch::LEFT_TERMINUS);
+        match.right_neighbor = ((end_pos < rna.size()) ?
+                                rna[end_pos]->getCode() :
+                                IdentificationData::ParentMatch::RIGHT_TERMINUS);
         oligo.parent_matches[parent_ref].insert(match);
         id_data.registerIdentifiedOligo(oligo);
       }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -130,9 +130,7 @@ namespace OpenMS
     return *this;
   }
 
-  RawMSSignalSimulation::~RawMSSignalSimulation()
-  {
-  }
+  RawMSSignalSimulation::~RawMSSignalSimulation() = default;
 
   void RawMSSignalSimulation::setDefaultParams_()
   {
@@ -164,7 +162,7 @@ namespace OpenMS
     defaults_.setMinInt("mz:sampling_points", 2);
 
     // contaminants:
-    defaults_.setValue("contaminants:file", "examples/simulation/contaminants.csv", "Contaminants file with sum formula and absolute RT interval. See 'OpenMS/examples/simulation/contaminants.txt' for details");
+    defaults_.setValue("contaminants:file", "SIMULATION/contaminants.csv", "Contaminants file with sum formula and absolute RT interval. See 'share/OpenMS/SIMULATION/contaminants.txt' for details");
 
     // VARIATION
 
@@ -977,7 +975,7 @@ namespace OpenMS
         continue;
       }
       // ... create contaminants...
-      SimTypes::FeatureMapSim::FeatureType feature;
+      Feature feature;
       feature.setRT((contaminants_[i].rt_end + contaminants_[i].rt_start) / 2);
       feature.setMZ((contaminants_[i].sf.getMonoWeight() / contaminants_[i].q) + Constants::PROTON_MASS_U); // m/z (incl. protons)
       if (!(minimal_mz_measurement_limit < feature.getMZ() && feature.getMZ() < maximal_mz_measurement_limit))

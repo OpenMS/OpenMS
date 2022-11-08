@@ -1,15 +1,18 @@
 from Types cimport *
 from String cimport *
 from ConvexHull2D cimport *
+from Peak2D cimport *
 from libcpp.pair cimport pair as libcpp_pair
 from libcpp.vector cimport vector as libcpp_vector
+
 
 cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
 
     cdef cppclass Kernel_MassTrace "OpenMS::MassTrace":
 
-        Kernel_MassTrace()  nogil except +
+        Kernel_MassTrace() nogil except +
         Kernel_MassTrace(Kernel_MassTrace &) nogil except +
+        Kernel_MassTrace(const libcpp_vector[ Peak2D ] &trace_peaks) nogil except +
 
         # public members
         double fwhm_mz_avg
@@ -51,10 +54,10 @@ cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
         void updateWeightedMeanMZ() nogil except + # wrap-doc:Compute & update centroid m/z as weighted mean of m/z values
         void updateWeightedMZsd() nogil except +
             # wrap-doc:
-                #   Compute & update m/z standard deviation of mass trace as weighted mean of m/z values
-                #   -----
-                #   Make sure to call update(Weighted)(Mean|Median)MZ() first! <br>
-                #   use getCentroidSD() to get result
+                #  Compute & update m/z standard deviation of mass trace as weighted mean of m/z values
+                #  
+                #  Make sure to call update(Weighted)(Mean|Median)MZ() first! <br>
+                #  use getCentroidSD() to get result
 
 
         void setQuantMethod(MT_QUANTMETHOD method) nogil except + # wrap-doc:Determine if area or median is used for quantification

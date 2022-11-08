@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -451,7 +451,7 @@ protected:
     String mzid_out = getStringOption_("mzid_out");
     if (mzid_out.empty() && out.empty())
     {
-      writeLog_("Fatal error: no output file given (parameter 'out' or 'mzid_out')");
+      writeLogError_("Error:  no output file given (parameter 'out' or 'mzid_out')");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -464,20 +464,20 @@ protected:
     Int max_mods = getIntOption_("max_mods");
     if ((max_mods == 0) && !no_mods)
     {
-      writeLog_("Warning: Modifications are defined ('fixed_modifications'/'variable_modifications'), but the number of allowed modifications is zero ('max_mods'). Is that intended?");
+      writeLogWarn_("Warning: Modifications are defined ('fixed_modifications'/'variable_modifications'), but the number of allowed modifications is zero ('max_mods'). Is that intended?");
     }
 
     if (!getFlag_("force"))
     {
       if (!JavaInfo::canRun(java_executable))
       {
-        writeLog_("Fatal error: Java is needed to run MS-GF+!");
+        writeLogError_("Fatal error: Java is needed to run MS-GF+!");
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
     else
     {
-      writeLog_("The installation of Java was not checked.");
+      writeLogWarn_("The installation of Java was not checked.");
     }
 
     // create temporary directory (and modifications file, if necessary):
@@ -554,7 +554,7 @@ protected:
 
     // run MS-GF+ process and create the .mzid file
 
-    writeLog_("Running MSGFPlus search...");
+    writeLogInfo_("Running MSGFPlus search...");
     // collect all output since MSGF+ might return 'success' even though it did not like the command arguments (e.g. if the version is too old)
     // If no output file is produced, we can print the stderr below.
     String proc_stdout, proc_stderr; 
@@ -597,7 +597,7 @@ protected:
                        << "-showQValue" << "1"
                        << "-showDecoy" << "1"
                        << "-unroll" << "1";
-        writeLog_("Running MzIDToTSVConverter...");
+        writeLogInfo_("Running MzIDToTSVConverter...");
         exit_code = runExternalProcess_(java_executable.toQString(), process_params);
         if (exit_code != EXECUTION_OK)
         {
@@ -654,7 +654,7 @@ protected:
           vector<String> elements;
           if (!tsvfile.getRow(row_count, elements))
           {
-            writeLog_("Error: could not split row " + String(row_count) + " of file '" + tsv_out + "'");
+            writeLogError_("Error: could not split row " + String(row_count) + " of file '" + tsv_out + "'");
             return PARSE_ERROR;
           }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,10 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/Plot1DWidget.h>
+
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot1DGoToDialog.h>
+
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QScrollBar>
 #include <QtWidgets/QFileDialog>
@@ -51,19 +53,15 @@ namespace OpenMS
   using namespace Internal;
   using namespace Math;
 
-  Plot1DWidget::Plot1DWidget(const Param& preferences, QWidget* parent) :
+  Plot1DWidget::Plot1DWidget(const Param& preferences, const DIM gravity_axis, QWidget* parent) :
     PlotWidget(preferences, parent)
   {
-    //set the label mode for the axes  - side effect
-    setCanvas_(new Plot1DCanvas(preferences, this));
-
-    x_axis_->setLegend(PlotWidget::MZ_AXIS_TITLE);
     x_axis_->setAllowShortNumbers(false);
-    y_axis_->setLegend(PlotWidget::INTENSITY_AXIS_TITLE);
+
     y_axis_->setAllowShortNumbers(true);
     y_axis_->setMinimumWidth(50);
 
-    flipped_y_axis_ = new AxisWidget(AxisPainter::LEFT, PlotWidget::INTENSITY_AXIS_TITLE, this);
+    flipped_y_axis_ = new AxisWidget(AxisPainter::LEFT, "", this);
     flipped_y_axis_->setInverseOrientation(true);
     flipped_y_axis_->setAllowShortNumbers(true);
     flipped_y_axis_->setMinimumWidth(50);
@@ -71,173 +69,48 @@ namespace OpenMS
 
     spacer_ = new QSpacerItem(0, 0);
 
-    //Delegate signals
-    connect(canvas(), SIGNAL(showCurrentPeaksAs2D()), this, SIGNAL(showCurrentPeaksAs2D()));
-    connect(canvas(), SIGNAL(showCurrentPeaksAs3D()), this, SIGNAL(showCurrentPeaksAs3D()));
-    connect(canvas(), SIGNAL(showCurrentPeaksAsIonMobility()), this, SIGNAL(showCurrentPeaksAsIonMobility()));
-    connect(canvas(), SIGNAL(showCurrentPeaksAsDIA()), this, SIGNAL(showCurrentPeaksAsDIA()));
+    // set the label mode for the axes  - side effect
+    setCanvas_(new Plot1DCanvas(preferences, gravity_axis, this));
+
+    // Delegate signals
+    connect(canvas(), &Plot1DCanvas::showCurrentPeaksAs2D, this, &Plot1DWidget::showCurrentPeaksAs2D);
+    connect(canvas(), &Plot1DCanvas::showCurrentPeaksAs3D, this, &Plot1DWidget::showCurrentPeaksAs3D);
+    connect(canvas(), &Plot1DCanvas::showCurrentPeaksAsIonMobility, this, &Plot1DWidget::showCurrentPeaksAsIonMobility);
+    connect(canvas(), &Plot1DCanvas::showCurrentPeaksAsDIA, this, &Plot1DWidget::showCurrentPeaksAsDIA);
   }
 
   void Plot1DWidget::recalculateAxes_()
   {
-    AxisWidget* mz_axis;
-    AxisWidget* it_axis;
+    // set names
+    x_axis_->setLegend(string(canvas()->getMapper().getDim(DIM::X).getDimName()));
+    y_axis_->setLegend(string(canvas()->getMapper().getDim(DIM::Y).getDimName()));
 
-    //determine axes
-    if (canvas()->isMzToXAxis())
+    // determine which is the gravity axis (usually equals intensity axis (for LOG mode))
+    AxisWidget* other_axis = x_axis_;
+    AxisWidget* int_axis = y_axis_;
+    // in the unusual case: gravity is on X axis
+    if (canvas()->getGravitator().getGravityAxis() == DIM::X)
     {
-      mz_axis = x_axis_;
-      it_axis = y_axis_;
+      swap(other_axis, int_axis);
+      //vis_area_xy.swapDimensions();
+      //all_area_xy.swapDimensions();
     }
-    else
-    {
-      mz_axis = y_axis_;
-      it_axis = x_axis_;
-    }
+    // from now on, we can assume X-dim = data; Y-dim = gravity=intensity
 
-    // recalculate gridlines
-    mz_axis->setAxisBounds(canvas()->getVisibleArea().minX(), canvas()->getVisibleArea().maxX());
-    switch (canvas()->getIntensityMode())
-    {
-      case PlotCanvas::IM_NONE:
-        if (it_axis->isLogScale())
-        {
-          it_axis->setLogScale(false);
-          flipped_y_axis_->setLogScale(false);
-        }
+    // deal with log scaling for intensity axis
+    int_axis->setLogScale(canvas()->getIntensityMode() == PlotCanvas::IM_LOG);
 
-        it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
-        flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
-        break;
+    // to compute the axis values at min/max, we simply use widgetToData() at the corners of the canvas (mind that y axis is inverted in Qt's pixel coordinate system)
+    auto top_left_units = canvas()->widgetToData(0, canvas()->height());    // e.g. --> 0, 300
+    auto bottom_right_units = canvas()->widgetToData(canvas()->width(), 0); // e.g. --> 8000, 900
 
-      case PlotCanvas::IM_PERCENTAGE:
-      {
-        if (it_axis->isLogScale())
-        {
-          it_axis->setLogScale(false);
-          flipped_y_axis_->setLogScale(false);
-        }
+    x_axis_->setAxisBounds(top_left_units.getX(), bottom_right_units.getX());
+    y_axis_->setAxisBounds(top_left_units.getY(), bottom_right_units.getY());
 
-        double min_y = canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY();
-        double max_y = canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * Plot1DCanvas::TOP_MARGIN;
-
-        it_axis->setAxisBounds(min_y * 100.0, max_y * 100.0);
-        flipped_y_axis_->setAxisBounds(min_y * 100.0, max_y * 100.0);
-        break;
-      }
-    case PlotCanvas::IM_SNAP:
-      if (it_axis->isLogScale())
-      {
-        it_axis->setLogScale(false);
-        flipped_y_axis_->setLogScale(false);
-      }
-
-      it_axis->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getSnapFactor(), canvas()->getVisibleArea().maxY() / canvas()->getSnapFactor());
-      flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getSnapFactor(), canvas()->getVisibleArea().maxY() / canvas()->getSnapFactor());
-      break;
-
-    case PlotCanvas::IM_LOG:
-      if (!it_axis->isLogScale())
-      {
-        it_axis->setLogScale(true);
-        flipped_y_axis_->setLogScale(true);
-      }
-
-      it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
-      flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
-      break;
-
-    default:
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-    }
-  }
-
-  Histogram<> Plot1DWidget::createIntensityDistribution_() const
-  {
-    //initialize histogram
-    double min = canvas_->getCurrentMinIntensity();
-    double max = canvas_->getCurrentMaxIntensity();
-    if (min == max)
-    {
-      min -= 0.01;
-      max += 0.01;
-    }
-    Histogram<> tmp(min, max, (max - min) / 500.0);
-
-    for (const Peak1D& spec : (*canvas_->getCurrentLayer().getPeakData())[0])
-    {
-      tmp.inc(spec.getIntensity());
-    }
-    return tmp;
-  }
-
-  Histogram<> Plot1DWidget::createMetaDistribution_(const String& name) const
-  {
-    Histogram<> tmp;
-    //float arrays
-    const ExperimentType::SpectrumType::FloatDataArrays& f_arrays = (*canvas_->getCurrentLayer().getPeakData())[0].getFloatDataArrays();
-    for (const OpenMS::DataArrays::FloatDataArray& dat : f_arrays)
-    {
-      if (dat.getName() == name)
-      {
-        //determine min and max of the data
-        float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
-        for (Size i = 0; i < dat.size(); ++i)
-        {
-          if (dat[i] < min)
-          {
-            min = dat[i];
-          }
-          if (dat[i] > max)
-          {
-            max = dat[i];
-          }
-        }
-        if (min >= max)
-        {
-          return tmp;
-        }
-        //create histogram
-        tmp.reset(min, max, (max - min) / 500.0);
-        for (Size i = 0; i < dat.size(); ++i)
-        {
-          tmp.inc((dat)[i]);
-        }
-      }
-    }
-    //integer arrays
-    const ExperimentType::SpectrumType::IntegerDataArrays& i_arrays = (*canvas_->getCurrentLayer().getPeakData())[0].getIntegerDataArrays();
-    for (const OpenMS::DataArrays::IntegerDataArray& dat : i_arrays)
-    {
-      if (dat.getName() == name)
-      {
-        //determine min and max of the data
-        float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
-        for (Size i = 0; i < dat.size(); ++i)
-        {
-          if (dat[i] < min)
-          {
-            min = dat[i];
-          }
-          if (dat[i] > max)
-          {
-            max = dat[i];
-          }
-        }
-        if (min >= max)
-        {
-          return tmp;
-        }
-        //create histogram
-        tmp.reset(min, max, (max - min) / 500.0);
-        for (Size i = 0; i < dat.size(); ++i)
-        {
-          tmp.inc(dat[i]);
-        }
-      }
-    }
-    //fallback if no array with that name exists
-    return tmp;
+    // assume flipped-y-axis is identical
+    flipped_y_axis_->setLegend(y_axis_->getLegend());
+    flipped_y_axis_->setLogScale(y_axis_->isLogScale());
+    flipped_y_axis_->setAxisBounds(y_axis_->getAxisMinimum(), y_axis_->getAxisMaximum());
   }
 
   Plot1DWidget::~Plot1DWidget()
@@ -248,17 +121,26 @@ namespace OpenMS
   void Plot1DWidget::showGoToDialog()
   {
     Plot1DGoToDialog goto_dialog(this);
-    goto_dialog.setRange(canvas()->getVisibleArea().minX(), canvas()->getVisibleArea().maxX());
-    goto_dialog.setMinMaxOfRange(canvas()->getDataRange().minX(), canvas()->getDataRange().maxX());
+    auto vis_area_xy = canvas_->getVisibleArea().getAreaXY();
+    auto all_area_xy = canvas_->getMapper().mapRange(canvas_->getDataRange());
+    // in the unusual case: gravity is on X axis
+    if (canvas()->getGravitator().getGravityAxis() == DIM::X)
+    {
+      vis_area_xy.swapDimensions();
+      all_area_xy.swapDimensions();
+    }
+    goto_dialog.setRange(vis_area_xy.minX(), vis_area_xy.maxX());
+    goto_dialog.setMinMaxOfRange(all_area_xy.minX(), all_area_xy.maxX());
     if (goto_dialog.exec())
     {
       goto_dialog.fixRange();
-      PlotCanvas::AreaType area(goto_dialog.getMin(), 0, goto_dialog.getMax(), 0);
-      if (goto_dialog.checked())
+      PlotCanvas::AreaXYType area(goto_dialog.getMin(), 0, goto_dialog.getMax(), 0);
+      if (canvas()->getGravitator().getGravityAxis() == DIM::X)
       {
-        correctAreaToObeyMinMaxRanges_(area);
+        area.swapDimensions();
       }
-      canvas()->setVisibleArea(area);
+      auto va_new = canvas_->getVisibleArea().cloneWith(area);
+      canvas()->setVisibleArea(va_new);
     }
   }
 

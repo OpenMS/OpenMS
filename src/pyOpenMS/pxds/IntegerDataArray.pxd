@@ -14,8 +14,8 @@ cdef extern from "<OpenMS/METADATA/DataArrays.h>" namespace "OpenMS::DataArrays"
         #  MetaInfoDescription
         #
         # wrap-doc:
-        #   The representation of extra integer data attached to a spectrum or chromatogram.
-        #   Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
+        #  The representation of extra integer data attached to a spectrum or chromatogram.
+        #  Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
 
         IntegerDataArray() nogil except +
         IntegerDataArray(IntegerDataArray &) nogil except +
@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/METADATA/DataArrays.h>" namespace "OpenMS::DataArrays"
         Size size() nogil except +
         void resize(size_t n) nogil except +
         void reserve(size_t n) nogil except +
-        Int& operator[](int) nogil except + # wrap-ignore
+        Int& operator[](size_t) nogil except + # wrap-ignore
         void clear() nogil except +
         void push_back(Int) nogil except +
 

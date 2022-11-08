@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,12 +42,12 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
+#include <fstream>
+
 #define SWATHMAPMASSCORRECTION_DEBUG
 
 namespace OpenMS
 {
-
-
   void findBestFeature(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group, double& bestRT)
   {
     // Find the feature with the highest score
@@ -74,6 +74,40 @@ namespace OpenMS
           m.upper >= transition_group.getTransitions()[0].precursor_mz)
       {
         used_maps.push_back(m);
+      }
+    }
+    return used_maps;
+  }
+
+  // Computes the SwathMaps for PASEF data in which windows can have the same m/z but differ by ion mobility
+  // NOTE: swathMap is stored as a vector to enable compatibility with downstream function calls (as SONAR) can have multiple windows
+  std::vector<OpenSwath::SwathMap> SwathMapMassCorrection::findSwathMapsPasef(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
+                                                 const std::vector< OpenSwath::SwathMap > & swath_maps)
+  {
+    // Although theoretically there can be more than one map, for this case, just use the "best" map, best map is defined as the one in which the IM is closest to the center of the window
+    std::vector<OpenSwath::SwathMap> used_maps;
+    for (const auto& m : swath_maps)
+    {
+      // If precursor m/z and IM in Swath window
+      if (m.lower < transition_group.getTransitions()[0].precursor_mz &&
+          m.upper >= transition_group.getTransitions()[0].precursor_mz &&
+          m.imLower < transition_group.getTransitions()[0].precursor_im &&
+          m.imUpper >= transition_group.getTransitions()[0].precursor_im)
+      {
+        // if no other windows at this position just add it
+        if (used_maps.size() == 0)
+        {
+          used_maps.push_back(m);
+        }
+        else //there is another window at this position, check if the new window found is better
+        {
+          double imCenterDiffOld = std::fabs(((used_maps[0].imLower + used_maps[0].imUpper) / 2) - transition_group.getTransitions()[0].precursor_im);
+          double imCenterDiffNew = std::fabs(((m.imLower + m.imUpper) / 2) - transition_group.getTransitions()[0].precursor_im);
+          if (imCenterDiffOld > imCenterDiffNew)
+          {
+            used_maps[0] = m;
+          }
+        }
       }
     }
     return used_maps;
@@ -116,6 +150,7 @@ namespace OpenMS
     const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
     const OpenSwath::LightTargetedExperiment& targeted_exp,
     const std::vector< OpenSwath::SwathMap > & swath_maps,
+    const bool pasef,
     TransformationDescription& im_trafo)
   {
     bool ppm = mz_extraction_window_ppm_;
@@ -172,7 +207,16 @@ namespace OpenMS
       double bestRT;
       findBestFeature(*transition_group, bestRT);
       // Get the corresponding SWATH map(s), for SONAR there will be more than one map
-      std::vector<OpenSwath::SwathMap> used_maps = findSwathMaps(*transition_group, swath_maps);
+      std::vector<OpenSwath::SwathMap> used_maps;
+      if (!pasef)
+      {
+        used_maps = findSwathMaps(*transition_group, swath_maps);
+      }
+      // If pasef then have to check for overlap across IM
+      else
+      {
+        used_maps = findSwathMapsPasef(*transition_group, swath_maps);
+      }
 
       std::vector<OpenSwath::SwathMap> ms1_maps;
       for (const auto& m : swath_maps) {if (m.ms1) ms1_maps.push_back(m);}
@@ -302,6 +346,11 @@ namespace OpenMS
 
     if (!debug_im_file_.empty()) {os_im.close();}
 
+    if (exp_im.empty())
+    {
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression", String("Could not fit a linear model to the data (0 points)."));
+    }
+
     // linear correction is default (none returns in the beginning of the function)
     std::vector<double> im_regression_params;
     double confidence_interval_P(0.0);
@@ -327,7 +376,8 @@ namespace OpenMS
   void SwathMapMassCorrection::correctMZ(
     const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
     const OpenSwath::LightTargetedExperiment& targeted_exp,
-    std::vector< OpenSwath::SwathMap > & swath_maps)
+    std::vector< OpenSwath::SwathMap > & swath_maps,
+    const bool pasef)
   {
     bool ppm = mz_extraction_window_ppm_;
     double mz_extr_window = mz_extraction_window_;
@@ -380,7 +430,16 @@ namespace OpenMS
       double bestRT;
       findBestFeature(*transition_group, bestRT);
       // Get the corresponding SWATH map(s), for SONAR there will be more than one map
-      std::vector<OpenSwath::SwathMap> used_maps = findSwathMaps(*transition_group, swath_maps);
+      std::vector<OpenSwath::SwathMap> used_maps;
+      if (!pasef)
+      {
+        used_maps = findSwathMaps(*transition_group, swath_maps);
+      }
+      // If pasef then have to check for overlap across IM
+      else
+      {
+        used_maps = findSwathMapsPasef(*transition_group, swath_maps);
+      }
 
       if (used_maps.empty())
       {

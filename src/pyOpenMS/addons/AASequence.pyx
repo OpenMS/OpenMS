@@ -1,14 +1,15 @@
+from libcpp.map cimport map as libcpp_map
 
 
     def getAAFrequencies(self, dict mmap):
-        cdef Map[_String, size_t] c_mmap
+        cdef libcpp_map[_String, size_t] c_mmap
         self.inst.get().getAAFrequencies(c_mmap)
         for k,v in mmap.iteritems():
             v = c_mmap[ _String(<char *>k) ]
 
     def __iter__(self):
-        cdef int n = self.inst.get().size()
-        cdef int i = 0
+        cdef unsigned long n = self.inst.get().size()
+        cdef unsigned long i = 0
 
         cdef Residue py_result 
         while i < n:

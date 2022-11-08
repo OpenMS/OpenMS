@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -583,9 +583,9 @@ START_SECTION((float toFloat() const))
   s = "47218.8";
   TEST_EQUAL(String(s.toFloat()),"4.72188e04");
   s = String("nan");
-  TEST_EQUAL(boost::math::isnan(s.toFloat()),true);
+  TEST_EQUAL(std::isnan(s.toFloat()),true);
   s = "NaN";
-  TEST_EQUAL(boost::math::isnan(s.toFloat()),true);
+  TEST_EQUAL(std::isnan(s.toFloat()),true);
   s = "not a number";
   TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toFloat(), String("Could not convert string '") + s + "' to a float value")
 END_SECTION
@@ -603,9 +603,9 @@ START_SECTION((double toDouble() const))
   s = "47218.890000001";
   TEST_EQUAL(String(s.toDouble()),"4.7218890000001e04");
   s = "nan";
-  TEST_EQUAL(boost::math::isnan(s.toDouble()),true);
+  TEST_EQUAL(std::isnan(s.toDouble()),true);
   s = "NaN";
-  TEST_EQUAL(boost::math::isnan(s.toDouble()),true);
+  TEST_EQUAL(std::isnan(s.toDouble()),true);
   s = "not a number";
   TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toDouble(), String("Could not convert string '") + s + "' to a double value")
 END_SECTION

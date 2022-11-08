@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,7 +76,7 @@ public:
 
       This initializes the object, use openFile to open a file.
     */
-    OnDiscMSExperiment() {}
+    OnDiscMSExperiment() = default;
 
     /**
       @brief Open a specific file on disk.
@@ -87,16 +87,7 @@ public:
       @return Whether the parsing of the file was successful (if false, the
       file most likely was not an indexed mzML file)
     */
-    bool openFile(const String& filename, bool skipMetaData = false)
-    {
-      filename_ = filename;
-      indexed_mzml_file_.openFile(filename);
-      if (!filename.empty() && !skipMetaData)
-      {
-        loadMetaData_(filename);
-      }
-      return indexed_mzml_file_.getParsingSuccess();
-    }
+    bool openFile(const String& filename, bool skipMetaData = false);
 
     /// Copy constructor
     OnDiscMSExperiment(const OnDiscMSExperiment& source) :
@@ -240,16 +231,10 @@ public:
     /**
       @brief returns a single chromatogram
     */
-    OpenMS::Interfaces::ChromatogramPtr getChromatogramById(Size id)
-    {
-      return indexed_mzml_file_.getChromatogramById(id);
-    }
+    OpenMS::Interfaces::ChromatogramPtr getChromatogramById(Size id);
 
     /// sets whether to skip some XML checks and be fast instead
-    void setSkipXMLChecks(bool skip)
-    {
-      indexed_mzml_file_.setSkipXMLChecks(skip);
-    }
+    void setSkipXMLChecks(bool skip);
 
 private:
 

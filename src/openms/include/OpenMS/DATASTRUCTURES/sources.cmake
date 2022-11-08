@@ -31,7 +31,6 @@ KDTree.h
 ListUtils.h
 ListUtilsIO.h
 LPWrapper.h
-Map.h
 MassExplainer.h
 MatchedIterator.h
 Matrix.h
@@ -39,10 +38,11 @@ OSWData.h
 Param.h
 ParamValue.h
 QTCluster.h
-SeqanIncludeWrapper.h
 String.h
 StringUtils.h
+StringUtilsSimple.h
 StringListUtils.h
+StringView.h
 ToolDescription.h
 )
 

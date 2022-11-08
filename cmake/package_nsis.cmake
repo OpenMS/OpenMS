@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,9 @@ else()
   set(PLATFORM "64")
   set(ARCH "x64")
 endif()
-set(VC_REDIST_EXE "vcredist_${ARCH}.exe")
+if (NOT VC_REDIST_EXE)
+  set(VC_REDIST_EXE "vcredist_${ARCH}.exe")
+endif()
 
 ## Find redistributable to be installed by NSIS
 if (NOT VC_REDIST_PATH)

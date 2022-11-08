@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,9 +94,9 @@ public:
     //@{
 
     /// Main data type (experiment)
-    typedef LayerData::ExperimentType ExperimentType;
+    typedef LayerDataBase::ExperimentType ExperimentType;
     /// Main data type (features)
-    typedef LayerData::FeatureMapType FeatureMapType;
+    typedef LayerDataBase::FeatureMapType FeatureMapType;
     /// Spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
@@ -109,18 +109,12 @@ public:
     /**
         @brief Returns a pointer to canvas object
 
+        This method is overwritten for 1D, 2D, 3D to make the class specific members accessible.
+        
         The canvas object is set with the setCanvas_() method.
         This is usually done in the constructor.
     */
-    PlotCanvas * canvas()
-    {
-      return canvas_;
-    }
-
-    PlotCanvas * canvas() const
-    {
-      return canvas_;
-    }
+    virtual PlotCanvas* canvas() const = 0;
 
     /// Returns a pointer to the x-axis axis widget.
     virtual inline AxisWidget * xAxis()
@@ -156,21 +150,21 @@ signals:
     /// Emits a status message that should be displayed for @p time ms. If @p time is 0 the message should be displayed until the next message is emitted.
     void sendStatusMessage(std::string, OpenMS::UInt);
     /// Emitted when the cursor position changes (for displaying e.g. in status bar)
-    void sendCursorStatus(double mz = -1.0, double rt = -1.0);
+    void sendCursorStatus(const String& x_value, const String& y_value);
     /// Message about the destruction of this widget
     void aboutToBeDestroyed(int window_id);
     /// Shows the main preferences dialog
     void openPreferences();
     /// Signal that is emitted, when a drag-and-drop action ends on this widget
-    void dropReceived(const QMimeData * data, QWidget * source, int id);
+    void dropReceived(const QMimeData* data, QWidget* source, int id);
 
 public slots:
     /// Shows statistics about the data (count, min, max, avg of intensity, charge, quality and meta data)
     void showStatistics();
     /// Shows the intensity distribution of the current layer
-    void showIntensityDistribution();
+    void showIntensityDistribution(const Math::Histogram<>& dist);
     /// Shows the meta data distribution of value @p name of the current layer
-    void showMetaDistribution(const String & name);
+    void showMetaDistribution(const String& name, const Math::Histogram<>& dist);
     /// Updates the axes by setting the right labels and calling recalculateAxes_();
     void updateAxes();
     /**
@@ -196,6 +190,12 @@ public slots:
     /// Toggles the axis legend visibility
     void changeLegendVisibility();
 
+    /**
+     * \brief Set a new mapper for the canvas and axis. Internally, all dependent components are updated (e.g. projections in 2D View)
+     * \param mapper The new mapper for translating between units and axis
+     */
+    virtual void setMapper(const DimMapper<2>& mapper) = 0;
+
 protected:
     /// @name Reimplemented Qt events
     //@{
@@ -211,14 +211,8 @@ protected:
     void setCanvas_(PlotCanvas * canvas, UInt row = 0, UInt col = 2);
     /// Switch between different intensity modes
     virtual void intensityModeChange_();
-    /// creates the intensity distribution of the current layer
-    virtual Math::Histogram<> createIntensityDistribution_() const = 0;
-    /// creates the meta data distribution of value @p name of the current layer
-    virtual Math::Histogram<> createMetaDistribution_(const String & name) const = 0;
     /// recalculates the Axis ticks
     virtual void recalculateAxes_() = 0;
-    /// correct given area X/Y-values if the values under-/overflow the min-/max values of the data
-    void correctAreaToObeyMinMaxRanges_(PlotCanvas::AreaType& area);
 
     ///@name reimplemented Qt events
     //@{
@@ -230,17 +224,17 @@ protected:
     //@}
 
     /// Pointer to the canvas widget
-    PlotCanvas * canvas_;
-    ///Main layout
-    QGridLayout * grid_;
+    PlotCanvas* canvas_;
+    /// Main layout
+    QGridLayout* grid_;
     /// Vertical axis
-    AxisWidget * y_axis_;
+    AxisWidget* y_axis_;
     /// Horizontal axis
-    AxisWidget * x_axis_;
+    AxisWidget* x_axis_;
     /// Horizontal scrollbar
-    QScrollBar * x_scrollbar_;
+    QScrollBar* x_scrollbar_;
     /// Vertical scrollbar
-    QScrollBar * y_scrollbar_;
+    QScrollBar* y_scrollbar_;
   };
 }
 

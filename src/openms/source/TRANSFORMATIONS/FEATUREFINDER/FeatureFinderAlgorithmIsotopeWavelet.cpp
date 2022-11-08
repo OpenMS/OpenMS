@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,9 +75,7 @@ namespace OpenMS
     this->defaultsToParam_();
   }
 
-  FeatureFinderAlgorithmIsotopeWavelet::~FeatureFinderAlgorithmIsotopeWavelet()
-  {
-  }
+  FeatureFinderAlgorithmIsotopeWavelet::~FeatureFinderAlgorithmIsotopeWavelet() = default;
 
   MSSpectrum* FeatureFinderAlgorithmIsotopeWavelet::createHRData(const UInt i)
   {
@@ -158,8 +156,8 @@ namespace OpenMS
 
   void FeatureFinderAlgorithmIsotopeWavelet::run()
   {
-    double max_mz = this->map_->getMax()[1];
-    double min_mz = this->map_->getMin()[1];
+    double max_mz = this->map_->getMaxMZ();
+    double min_mz = this->map_->getMinMZ();
 
     Size max_size = 0;
 

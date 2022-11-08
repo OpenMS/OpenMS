@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -166,10 +166,10 @@ namespace OpenMS
     // get RT ranges (NOTE: we trust that min and max have been updated in the
     // ConsensusMap::convert() method !)
 
-    const double model_low = map_model.getMin()[ConsensusFeature::RT];
-    const double scene_low = map_scene.getMin()[ConsensusFeature::RT];
-    const double model_high = map_model.getMax()[ConsensusFeature::RT];
-    const double scene_high = map_scene.getMax()[ConsensusFeature::RT];
+    const double model_low = map_model.getMinRT();
+    const double scene_low = map_scene.getMinRT();
+    const double model_high = map_model.getMaxRT();
+    const double scene_high = map_scene.getMaxRT();
 
     // OLD STUFF
     //    const double rt_low = (maps[0].getMin()[ConsensusFeature::RT] + maps[1].getMin()[ConsensusFeature::RT]) / 2.;

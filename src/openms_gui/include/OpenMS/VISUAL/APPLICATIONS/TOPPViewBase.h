@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,6 +49,7 @@
 #include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/TOPPViewMenu.h>
 #include <OpenMS/VISUAL/TVToolDiscovery.h>
+#include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 
 //STL
 #include <map>
@@ -59,6 +60,7 @@
 #include <QtWidgets/QActionGroup>
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
+#include <QElapsedTimer>
 
 class QAction;
 class QComboBox;
@@ -133,21 +135,21 @@ public:
     ///@name Type definitions
     //@{
     //Feature map type
-    typedef LayerData::FeatureMapType FeatureMapType;
+    typedef LayerDataBase::FeatureMapType FeatureMapType;
     //Feature map managed type
-    typedef LayerData::FeatureMapSharedPtrType FeatureMapSharedPtrType;
+    typedef LayerDataBase::FeatureMapSharedPtrType FeatureMapSharedPtrType;
 
     //Consensus feature map type
-    typedef LayerData::ConsensusMapType ConsensusMapType;
+    typedef LayerDataBase::ConsensusMapType ConsensusMapType;
     //Consensus  map managed type
-    typedef LayerData::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
+    typedef LayerDataBase::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
 
     //Peak map type
-    typedef LayerData::ExperimentType ExperimentType;
+    typedef LayerDataBase::ExperimentType ExperimentType;
     //Main managed data type (experiment)
-    typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    typedef LayerDataBase::ExperimentSharedPtrType ExperimentSharedPtrType;
     //Main on-disc managed data type (experiment)
-    typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
+    typedef LayerDataBase::ODExperimentSharedPtrType ODExperimentSharedPtrType;
     ///Peak spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
@@ -215,7 +217,7 @@ public:
                  std::vector<PeptideIdentification>& peptides,
                  ExperimentSharedPtrType peak_map,
                  ODExperimentSharedPtrType on_disc_peak_map,
-                 LayerData::DataType data_type,
+                 LayerDataBase::DataType data_type,
                  bool show_as_1d,
                  bool show_options,
                  bool as_new_window = true,
@@ -238,13 +240,13 @@ public:
     void savePreferences();
 
     /// Returns the parameters for a PlotCanvas of dimension @p dim
-    Param getSpectrumParameters(UInt dim);
+    Param getCanvasParameters(UInt dim) const;
 
     /// Returns the active Layer data (0 if no layer is active)
-    const LayerData* getCurrentLayer() const;
+    const LayerDataBase* getCurrentLayer() const;
 
     /// Returns the active Layer data (0 if no layer is active)
-    LayerData* getCurrentLayer();
+    LayerDataBase* getCurrentLayer();
 
     //@name Accessors for the main gui components.
     //@brief The top level enhanced workspace and the EnhancedTabWidgets resing in the EnhancedTabBar.
@@ -269,7 +271,7 @@ public:
     PlotCanvas* getActiveCanvas() const;
 
     /// Opens the provided spectrum widget in a new window
-    void showPlotWidgetInWindow(PlotWidget* sw, const String& caption);
+    void showPlotWidgetInWindow(PlotWidget* sw);
 
 public slots:
     /// changes the current path according to the currently active window/layer
@@ -316,11 +318,9 @@ public slots:
       If @p time is 0 the status message is displayed until showStatusMessage is called with an empty message or a new message.
       Otherwise the message is displayed for @p time ms.
     */
-    void showStatusMessage(std::string msg, OpenMS::UInt time);
-    /// shows m/z and rt in the status bar
-    void showCursorStatus(double mz, double rt);
-    /// shows m/z and rt in the status bar (inverting RT and m/z)
-    void showCursorStatusInvert(double mz, double rt);
+    void showStatusMessage(const std::string& msg, OpenMS::UInt time);
+    /// shows X/Y axis mouse values in the status bar
+    void showCursorStatus(const String& x, const String& y);
     /// Apply TOPP tool
     void showTOPPDialog();
     /// Annotates current layer with ID data from AccurateMassSearch
@@ -338,9 +338,9 @@ public slots:
     /// Shows the current peak data of the active layer in 3D
     void showCurrentPeaksAs3D();
     /// Shows the current peak data of the active layer as ion mobility
-    void showCurrentPeaksAsIonMobility();
+    void showCurrentPeaksAsIonMobility(const MSSpectrum& spec);
     /// Shows the current peak data of the active layer as DIA data
-    void showCurrentPeaksAsDIA();
+    void showCurrentPeaksAsDIA(const Precursor& pc, const MSExperiment& exp);
     /// Saves the whole current layer data
     void saveLayerAll() const;
     /// Saves the visible layer data
@@ -476,6 +476,10 @@ protected:
 
     /// Main workspace
     EnhancedWorkspace ws_;  // not a pointer, but an actual object, so it gets destroyed before the DefaultParamhandler (on which it depends)
+    /// LAST active subwindow (~ corresponding to tab) in the MDI container. Since subwindows can lose focus,
+    /// we want to make sure that things like the ID tables only update when a NEW window is activated. (Actually,
+    /// we should check for the underlying data but this might be a @todo).
+    QMdiSubWindow* lastActiveSubwindow_ = nullptr; // due to Qt bugs or confusing features we need to save the current Window id in the children of the workspace;
     /// Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
     EnhancedTabBar tab_bar_;
     /// manages recent list of filenames and the menu that goes with it
@@ -488,10 +492,10 @@ protected:
     //@{
     /// Label for messages in the status bar
     QLabel* message_label_;
-    /// m/z label for messages in the status bar
-    QLabel* mz_label_;
-    /// RT label for messages in the status bar
-    QLabel* rt_label_;
+    /// x-axis label for messages in the status bar
+    QLabel* x_label_;
+    /// y-axis label for messages in the status bar
+    QLabel* y_label_;
     //@}
 
     /// @name Recent files
@@ -518,7 +522,7 @@ protected:
       UInt window_id;
       Size spectrum_id;
       QProcess* process = nullptr;
-      QTime timer;
+      QElapsedTimer timer;
       bool visible_area_only;
     } topp_;
     //@}
@@ -540,12 +544,12 @@ protected:
     /// Depending on the preferences this is static or changes with the current window/layer.
     String current_path_;
 
-    /// Adds tool/util params to param_ object by querying them from TVToolDiscovery
-    void addToolParamsToIni_();
-
 private:
     /// Suffix appended to caption of tabs when layer is shown in 3D
     static const String CAPTION_3D_SUFFIX_;
+
+    /// This dialog is a member so that its settings can be perserved upon closing.
+    TheoreticalSpectrumGenerationDialog spec_gen_dialog_;
   }; //class
 
 } //namespace

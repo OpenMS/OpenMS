@@ -21,7 +21,17 @@ InputFile.ui
 InputFileList.cpp
 InputFileList.ui
 LayerListView.cpp
-LayerData.cpp
+LayerData1DBase.cpp
+LayerData1DChrom.cpp
+LayerData1DIonMobility.cpp
+LayerData1DPeak.cpp
+LayerDataBase.cpp
+LayerDataChrom.cpp
+LayerDataConsensus.cpp
+LayerDataFeature.cpp
+LayerDataIdent.cpp
+LayerDataIonMobility.cpp
+LayerDataPeak.cpp
 ListEditor.cpp
 LogWindow.cpp
 MetaDataBrowser.cpp
@@ -29,6 +39,8 @@ MultiGradient.cpp
 MultiGradientSelector.cpp
 OutputDirectory.cpp
 OutputDirectory.ui
+Painter1DBase.cpp
+Painter2DBase.cpp
 ParamEditor.cpp
 ParamEditor.ui
 Plot1DCanvas.cpp
@@ -41,6 +53,8 @@ Plot3DWidget.cpp
 PlotCanvas.cpp
 PlotWidget.cpp
 RecentFilesMenu.cpp
+SequenceVisualizer.cpp
+SequenceVisualizer.ui
 SpectraIDViewTab.cpp
 SpectraTreeTab.cpp
 SwathLibraryStats.cpp

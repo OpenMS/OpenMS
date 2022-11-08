@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 #include <OpenMS/CONCEPT/Macros.h>
 
 // scoring
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
@@ -104,9 +106,7 @@ namespace OpenMS
   }
 
   /// Destructor
-  OpenSwathScoring::~OpenSwathScoring()
-  {
-  }
+  OpenSwathScoring::~OpenSwathScoring() = default;
 
   void OpenSwathScoring::initialize(double rt_normalization_factor,
                                     int add_up_spectra,

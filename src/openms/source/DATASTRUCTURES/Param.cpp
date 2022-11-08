@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -77,9 +77,7 @@ namespace OpenMS
     }
   }
 
-  Param::ParamEntry::~ParamEntry()
-  {
-  }
+  Param::ParamEntry::~ParamEntry() = default;
 
   bool Param::ParamEntry::isValid(std::string& message) const
   {
@@ -92,7 +90,9 @@ namespace OpenMS
         {
           ok = true;
         }
-        else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() || std::find(tags.begin(), tags.end(), "output file") != tags.end())
+        else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() 
+          || std::find(tags.begin(), tags.end(), "output file") != tags.end()
+          || std::find(tags.begin(), tags.end(), "output prefix") != tags.end())
         {
           //do not check restrictions on file names for now
           ok = true;
@@ -124,7 +124,8 @@ namespace OpenMS
           {
             ok = true;
           }
-          else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() || std::find(tags.begin(), tags.end(), "output file") != tags.end())
+          else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() 
+            || std::find(tags.begin(), tags.end(), "output file") != tags.end())
           {
             //do not check restrictions on file names for now
             ok = true;
@@ -216,9 +217,7 @@ namespace OpenMS
       }
   }
 
-  Param::ParamNode::~ParamNode()
-  {
-  }
+  Param::ParamNode::~ParamNode() = default;
 
   bool Param::ParamNode::operator==(const ParamNode& rhs) const
   {
@@ -453,9 +452,7 @@ namespace OpenMS
   {
   }
 
-  Param::~Param()
-  {
-  }
+  Param::~Param() = default;
 
   Param::Param(const ParamNode& node) :
     root_(node)
@@ -491,6 +488,17 @@ namespace OpenMS
       }
     }
     entry.valid_strings = strings;
+  }
+
+  const std::vector<std::string>& Param::getValidStrings(const std::string& key) const
+  {
+    ParamEntry& entry = getEntry_(key);
+    // check if correct parameter type
+    if (entry.value.valueType() != ParamValue::STRING_VALUE && entry.value.valueType() != ParamValue::STRING_LIST)
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
+    }
+    return entry.valid_strings;
   }
 
   void Param::setMinInt(const std::string& key, int min)
@@ -1228,7 +1236,7 @@ namespace OpenMS
         {
           if (this->getValue(it.getName()) != it->value)
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Warning: for ':version' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
           }
           continue;
@@ -1244,7 +1252,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
           {
             if (this->getValue(it.getName()) != it->value) 
             {
-                OPENMS_THREAD_CRITICAL(oms_log)
+                OPENMS_THREAD_CRITICAL(LOGSTREAM)
                 stream << "Warning: for ':type' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
             }
             continue;
@@ -1270,7 +1278,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
           // make sure the same leaf name does not exist at any other position
           if (this->findNext(l1_entry.name, it_match) == this->end())
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Found '" << it.getName() << "' as '" << it_match.getName() << "' in new param." << std::endl;
             new_entry = this->getEntry(it_match.getName());
             target_name = it_match.getName();
@@ -1281,13 +1289,13 @@ OPENMS_THREAD_CRITICAL(oms_log)
         {
           if (fail_on_unknown_parameters)
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file!" << std::endl;
             is_update_success = false;
           }
           else if (add_unknown)
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Adding to current set." << std::endl;
             Param::ParamEntry local_entry = p_outdated.getEntry(it.getName());
             std::string prefix = "";
@@ -1299,7 +1307,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
           }
           else if (verbose)
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Ignoring parameter. " << std::endl;
           }
           continue;
@@ -1320,24 +1328,24 @@ OPENMS_THREAD_CRITICAL(oms_log)
             // overwrite default value
             if (verbose) 
             {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
                 stream << "Default-Parameter '" << target_name << "' overridden: '" << default_value << "' --> '" << it->value << "'!" << std::endl;
             }
             this->setValue(target_name, it->value, new_entry.description, this->getTags(target_name));
           }
           else
           {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stream << validation_result;
             if (fail_on_invalid_values)
             {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
               stream << " Updating failed!" << std::endl;
               is_update_success = false;
             }
             else
             {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
               stream << " Ignoring invalid value (using new default '" << default_value << "')!" << std::endl;
               new_entry.value = default_value;
             }
@@ -1350,17 +1358,17 @@ OPENMS_THREAD_CRITICAL(oms_log)
       }
       else
       {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
         stream << "Parameter '" << it.getName() << "' has changed value type!\n";
         if (fail_on_invalid_values)
         {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
           stream << " Updating failed!" << std::endl;
           is_update_success = false;
         } 
         else
         {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
           stream << " Ignoring invalid value (using new default)!" << std::endl;
         }
       }
@@ -1478,9 +1486,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
     operator++();
   }
 
-  Param::ParamIterator::~ParamIterator()
-  {
-  }
+  Param::ParamIterator::~ParamIterator() = default;
 
   const Param::ParamEntry& Param::ParamIterator::operator*()
   {

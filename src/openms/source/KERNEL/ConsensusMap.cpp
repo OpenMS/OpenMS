@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,6 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -43,12 +42,14 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <map>
+
 namespace OpenMS
 {
   ConsensusMap::ConsensusMap() :
     Base(),
     MetaInfoInterface(),
-    RangeManagerType(),
+    RangeManagerContainerType(),
     DocumentIdentifier(),
     UniqueIdInterface(),
     UniqueIdIndexer<ConsensusMap>(),
@@ -63,7 +64,7 @@ namespace OpenMS
   ConsensusMap::ConsensusMap(const ConsensusMap& source) :
     Base(source),
     MetaInfoInterface(source),
-    RangeManagerType(source),
+    RangeManagerContainerType(source),
     DocumentIdentifier(source),
     UniqueIdInterface(source),
     UniqueIdIndexer<ConsensusMap>(source),
@@ -75,14 +76,12 @@ namespace OpenMS
   {
   }
 
-  ConsensusMap::~ConsensusMap()
-  {
-  }
+  ConsensusMap::~ConsensusMap() = default;
 
   ConsensusMap::ConsensusMap(Base::size_type n) :
     Base(n),
     MetaInfoInterface(),
-    RangeManagerType(),
+    RangeManagerContainerType(),
     DocumentIdentifier(),
     UniqueIdInterface(),
     column_description_(),
@@ -102,7 +101,7 @@ namespace OpenMS
 
     Base::operator=(source);
     MetaInfoInterface::operator=(source);
-    RangeManagerType::operator=(source);
+    RangeManagerContainerType::operator=(source);
     DocumentIdentifier::operator=(source);
     UniqueIdInterface::operator=(source);
     column_description_ = source.column_description_;
@@ -119,7 +118,7 @@ namespace OpenMS
     ConsensusMap empty_map;
 
     // reset these:
-    RangeManagerType::operator=(empty_map);
+    RangeManagerContainerType::operator=(empty_map);
 
     if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty())
     {
@@ -138,8 +137,8 @@ namespace OpenMS
     column_description_.insert(rhs.column_description_.begin(), rhs.column_description_.end());
 
     // update filename and map size
-    Map<UInt64, ColumnHeader>::const_iterator it = column_description_.begin();
-    Map<UInt64, ColumnHeader>::const_iterator it2 = rhs.column_description_.begin();
+    std::map<UInt64, ColumnHeader>::const_iterator it = column_description_.begin();
+    std::map<UInt64, ColumnHeader>::const_iterator it2 = rhs.column_description_.begin();
 
     for (; it != column_description_.end() && it2 != rhs.column_description_.end(); ++it, ++it2)
     {
@@ -616,44 +615,17 @@ namespace OpenMS
   void ConsensusMap::updateRanges()
   {
     clearRanges();
-    updateRanges_(begin(), end());
-
     // enlarge the range by the internal points of each feature
-    for (Size i = 0; i < size(); ++i)
+    for (const auto& cf : (privvec&) *this)
     {
-      for (ConsensusFeature::HandleSetType::const_iterator it = operator[](i).begin(); it != operator[](i).end(); ++it)
+      extendRT(cf.getRT());
+      extendMZ(cf.getMZ());
+      extendIntensity(cf.getIntensity());
+      for (const auto& handle : cf.getFeatures())
       {
-        double rt = it->getRT();
-        double mz = it->getMZ();
-        double intensity = it->getIntensity();
-
-        // update RT
-        if (rt < pos_range_.minPosition()[Peak2D::RT])
-        {
-          pos_range_.setMinX(rt);
-        }
-        if (rt > pos_range_.maxPosition()[Peak2D::RT])
-        {
-          pos_range_.setMaxX(rt);
-        }
-        // update m/z
-        if (mz < pos_range_.minPosition()[Peak2D::MZ])
-        {
-          pos_range_.setMinY(mz);
-        }
-        if (mz > pos_range_.maxPosition()[Peak2D::MZ])
-        {
-          pos_range_.setMaxY(mz);
-        }
-        // update intensity
-        if (intensity <  int_range_.minX())
-        {
-          int_range_.setMinX(intensity);
-        }
-        if (intensity > int_range_.maxX())
-        {
-          int_range_.setMaxX(intensity);
-        }
+        extendRT(handle.getRT());
+        extendMZ(handle.getMZ());
+        extendIntensity(handle.getIntensity());
       }
     }
   }
@@ -661,7 +633,7 @@ namespace OpenMS
   bool ConsensusMap::isMapConsistent(Logger::LogStream* stream) const
   {
     Size stats_wrongMID(0); // invalid map ID references by a feature handle
-    Map<Size, Size> wrong_ID_count; // which IDs were given which are not valid
+    std::map<Size, Size> wrong_ID_count; // which IDs were given which are not valid
 
     // check file descriptions
     std::set<String> maps;
@@ -677,7 +649,7 @@ namespace OpenMS
     {
       if (stream != nullptr)
       {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
         *stream << "Map descriptions (file name + label) in ConsensusMap are not unique:\n" << all_maps << std::endl;
       }
       return false;
@@ -702,14 +674,14 @@ OPENMS_THREAD_CRITICAL(oms_log)
     {
       if (stream != nullptr)
       {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
         *stream << "ConsensusMap contains " << stats_wrongMID << " invalid references to maps:\n";
-        for (Map<Size, Size>::ConstIterator it = wrong_ID_count.begin(); it != wrong_ID_count.end(); ++it)
+        for (std::map<Size, Size>::const_iterator it = wrong_ID_count.begin(); it != wrong_ID_count.end(); ++it)
         {
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
           *stream << "  wrong id=" << it->first << " (occurred " << it->second << "x)\n";
         }
-OPENMS_THREAD_CRITICAL(oms_log)
+OPENMS_THREAD_CRITICAL(LOGSTREAM)
         *stream << std::endl;
       }
       return false;

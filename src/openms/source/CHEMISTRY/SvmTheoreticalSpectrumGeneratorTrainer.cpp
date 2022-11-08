@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,8 +39,11 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+
 #include <cstdio>
 #include <sstream>
+
+#include "svm.h"
 
 using namespace std;
 
@@ -222,9 +225,7 @@ namespace OpenMS
     return *this;
   }
 
-  SvmTheoreticalSpectrumGeneratorTrainer::~SvmTheoreticalSpectrumGeneratorTrainer()
-  {
-  }
+  SvmTheoreticalSpectrumGeneratorTrainer::~SvmTheoreticalSpectrumGeneratorTrainer() = default;
 
   void SvmTheoreticalSpectrumGeneratorTrainer::trainModel(const PeakMap& spectra, const std::vector<AASequence>& annotations, String filename, Int precursor_charge)
   {

@@ -14,25 +14,25 @@ from MSExperiment cimport *
 
 cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
 
-    cdef cppclass FeatureMap(UniqueIdInterface, DocumentIdentifier, RangeManager2, MetaInfoInterface):
+    cdef cppclass FeatureMap(UniqueIdInterface, DocumentIdentifier, RangeManagerRtMzInt, MetaInfoInterface):
 
         # wrap-inherits:
-        #   UniqueIdInterface
-        #   DocumentIdentifier
-        #   RangeManager2
-        #   MetaInfoInterface
+        #  UniqueIdInterface
+        #  DocumentIdentifier
+        #  RangeManagerRtMzInt
+        #  MetaInfoInterface
         #
         # wrap-instances:
-        #   FeatureMap := FeatureMap
+        #  FeatureMap := FeatureMap
         #
         # wrap-doc:
-        #   A container for features.
-        #   -----
-        #   A feature map is a container holding features, which represent
-        #   chemical entities (peptides, proteins, small molecules etc.) found
-        #   in an LC-MS/MS experiment.
-        #   -----
-        #   This class supports direct iteration in Python.
+        #  A container for features.
+        #  
+        #  A feature map is a container holding features, which represent
+        #  chemical entities (peptides, proteins, small molecules etc.) found
+        #  in an LC-MS/MS experiment.
+        #  
+        #  This class supports direct iteration in Python.
 
         FeatureMap() nogil except +
         FeatureMap(FeatureMap &) nogil except +
@@ -41,7 +41,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         bool operator!=(FeatureMap) nogil except +
 
         int size()  nogil except +
-        Feature & operator[](int)      nogil except + #wrap-upper-limit:size()
+        Feature & operator[](size_t)      nogil except + #wrap-upper-limit:size()
         void push_back(Feature spec) nogil except +
         void push_back(MRMFeature spec) nogil except +
 

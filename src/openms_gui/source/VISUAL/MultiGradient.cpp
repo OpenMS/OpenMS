@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,15 +55,7 @@ namespace OpenMS
     pos_col_[100] = Qt::black;
   }
 
-  MultiGradient::MultiGradient(const MultiGradient & multigradient) :
-    pos_col_(multigradient.pos_col_),
-    interpolation_mode_(multigradient.interpolation_mode_),
-    pre_(multigradient.pre_),
-    pre_min_(multigradient.pre_min_),
-    pre_size_(multigradient.pre_size_),
-    pre_steps_(multigradient.pre_steps_)
-  {
-  }
+  MultiGradient::MultiGradient(const MultiGradient & multigradient) = default;
 
   MultiGradient & MultiGradient::operator=(const MultiGradient & rhs)
   {
@@ -80,10 +72,7 @@ namespace OpenMS
     return *this;
   }
 
-  MultiGradient::~MultiGradient()
-  {
-
-  }
+  MultiGradient::~MultiGradient() = default;
 
   Size MultiGradient::size() const
   {
@@ -308,7 +297,7 @@ namespace OpenMS
   MultiGradient MultiGradient::getDefaultGradientLogarithmicIntensityMode()
   {
     MultiGradient mg;
-    mg.fromString("Linear|0,#EEEEEE;100,#000000");
+    mg.fromString("Linear|0,#ffea00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000");
     return mg;
   }
 

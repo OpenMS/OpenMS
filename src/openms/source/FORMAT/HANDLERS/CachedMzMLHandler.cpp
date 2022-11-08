@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,13 +39,9 @@
 
 namespace OpenMS::Internal
 {
-  CachedMzMLHandler::CachedMzMLHandler()
-  {
-  }
+  CachedMzMLHandler::CachedMzMLHandler() = default;
 
-  CachedMzMLHandler::~CachedMzMLHandler()
-  {
-  }
+  CachedMzMLHandler::~CachedMzMLHandler() = default;
 
   CachedMzMLHandler& CachedMzMLHandler::operator=(const CachedMzMLHandler& rhs)
   {
@@ -95,7 +91,6 @@ namespace OpenMS::Internal
     }
 
     Size exp_size, chrom_size;
-    Peak1D current_peak;
 
     int file_identifier;
     ifs.read((char*)&file_identifier, sizeof(file_identifier));
@@ -154,7 +149,6 @@ namespace OpenMS::Internal
     }
 
     Size exp_size, chrom_size;
-    Peak1D current_peak;
 
     ifs.seekg(0, ifs.beg); // set file pointer to beginning, start reading
     spectra_index_.clear();

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,13 +37,13 @@
 namespace OpenMS
 {
 
-  MSDataChainingConsumer::MSDataChainingConsumer() {}
+  MSDataChainingConsumer::MSDataChainingConsumer() = default;
 
   MSDataChainingConsumer::MSDataChainingConsumer(std::vector<Interfaces::IMSDataConsumer *> consumers) :
     consumers_(consumers)
   {}
 
-  MSDataChainingConsumer::~MSDataChainingConsumer() {}
+  MSDataChainingConsumer::~MSDataChainingConsumer() = default;
 
   void MSDataChainingConsumer::appendConsumer(Interfaces::IMSDataConsumer * consumer)
   {

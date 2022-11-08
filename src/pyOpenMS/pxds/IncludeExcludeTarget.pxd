@@ -1,6 +1,7 @@
 from Types cimport *
 from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
+from libcpp.map cimport map as libcpp_map
 from CVTermList cimport *
 from TargetedExperimentHelper cimport *
 
@@ -47,10 +48,10 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>" namespace "
                             String accession
                            ) nogil except + # TODO
 
-        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map
+        void replaceCVTerms(libcpp_map[String, libcpp_vector[CVTerm] ] cv_term_map
                            ) nogil except + # TODO
 
-        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except + # TODO
+        libcpp_map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except + # TODO
         void addCVTerm(CVTerm & term)                   nogil except + # TODO
 
         bool hasCVTerm(String accession)  nogil except + # TODO
