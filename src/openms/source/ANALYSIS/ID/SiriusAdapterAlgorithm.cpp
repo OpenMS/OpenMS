@@ -138,7 +138,7 @@ namespace OpenMS
     {
       parameter(
           ProjectName("maxmz"),
-          DefaultValue(),
+          DefaultValue(-1),
           Description("Just consider compounds with a precursor mz lower or equal\n"
                       "this maximum mz. All other compounds in the input file\n"
                       "are ignored.")
@@ -169,7 +169,7 @@ namespace OpenMS
       );
     }
 
-    void SiriusAdapterAlgorithm::Sirius::parameters()
+    void SiriusAdapterAlgorithm::Sirius::parameters() // original sirius 5.6.1 parameters as defaults, except for timeouts
     {
       parameter(
                  SiriusName("ppm-max"),
@@ -186,13 +186,13 @@ namespace OpenMS
 
       parameter(
                  SiriusName("tree-timeout"),
-                 DefaultValue(0),
+                 DefaultValue(100), // original default = 0
                  Description("Time out in seconds per fragmentation tree computations. 0 for an infinite amount of time")
                ).withMinInt(0);
 
       parameter(
                  SiriusName("compound-timeout"),
-                 DefaultValue(100),
+                 DefaultValue(100), // original default = 0
                  Description("Maximal computation time in seconds for a single compound. 0 for an infinite amount of time.")
                ).withMinInt(0);
 
@@ -203,12 +203,12 @@ namespace OpenMS
 
       parameter(
                  SiriusName("profile"),
-                 DefaultValue("qtof"),
+                 DefaultValue("default"),
                  Description("Name of the configuration profile")
                ).withValidStrings({"default", "qtof", "orbitrap", "fticr"});
 
       parameter(
-                 SiriusName("formula"),
+                 SiriusName("formulas"),
                  DefaultValue(""),
                  Description("Specify the neutral molecular formula of the measured "
                              "compound to compute its tree or a list of candidate "
@@ -218,41 +218,41 @@ namespace OpenMS
 
       parameter(
                  SiriusName("ions-enforced"),
-                 DefaultValue(-1),
+                 DefaultValue(""),
                  Description("the iontype/adduct of the MS/MS data. Example: [M+H]+, "
                              "[M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a comma separated list of adducts")
                );
 
       parameter(
                  SiriusName("candidates"),
-                 DefaultValue(5),
+                 DefaultValue(10),
                  Description("The number of formula candidates in the SIRIUS output")
-               ).withMinInt(1);
+               ).withMinInt(0);
 
       parameter(
                  SiriusName("candidates-per-ion"),
-                 DefaultValue(-1),
+                 DefaultValue(1),
                  Description("Minimum number of candidates in the output for each "
                              "ionization. Set to force output of results for each "
                              "possible ionization, even if not part of highest "
-                             "ranked results. -1 omits parameter in Sirius.")
+                             "ranked results.")
                 );
 
       parameter(
                  SiriusName("elements-considered"),
-                 DefaultValue(""),
+                 DefaultValue("SBrClBSe"),
                  Description("Set the allowed elements for rare element detection. "
                              "Write SBrClBSe to allow the elements S,Br,Cl,B and Se."));
 
       parameter(
                  SiriusName("elements-enforced"),
-                 DefaultValue(""),
+                 DefaultValue("CHNOP"),
                  Description("Enforce elements for molecular formula determination. "
                              "Write CHNOPSCl to allow the elements C, H, N, O, P, S "
                              "and Cl. Add numbers in brackets to restrict the "
                              "minimal and maximal allowed occurrence of these "
                              "elements: CHNOP[5]S[8]Cl[1-2]. When one number is "
-                             "given then it is interpreted as upper bound. Default is CHNOP")
+                             "given then it is interpreted as upper bound.")
                 );
 
       flag(
@@ -269,7 +269,7 @@ namespace OpenMS
 
       parameter(
                  SiriusName("ions-considered"),
-                 DefaultValue(""),
+                 DefaultValue("[M+H]+,[M+K]+,[M+Na]+,[M+H-H2O]+,[M+H-H4O2]+,[M+NH4]+,[M-H]-,[M+Cl]-,[M-H2O-H]-,[M+Br]-"),
                  Description("the iontype/adduct of the MS/MS data. "
                              "Example: [M+H]+, [M-H]-, [M+Cl]-, [M+Na]+, [M]+. "
                              "You can also provide a comma separated list of adducts.")
@@ -277,7 +277,7 @@ namespace OpenMS
 
       parameter(
                  SiriusName("db"),
-                 DefaultValue(""),
+                 DefaultValue("none"),
                  Description("Search formulas in the Union of the given "
                               "databases db-name1,db-name2,db-name3. If no database is given all possible "
                               "molecular formulas will be respected (no database "
@@ -298,20 +298,21 @@ namespace OpenMS
                              "[M-H]-, [M+Cl]-, [M+Na]+, [M]+. You can also provide a \n"
                              "comma separated list of adducts.")
                );
+
+      parameter(
+                 SiriusName("solver"),
+                 DefaultValue("CLP"),
+                 Description("For GUROBI and CPLEX environment variables need to be configured. \n"
+                             "(see SIRIUS manual: https://boecker-lab.github.io/docs.sirius.github.io/install/).")
+               );
     }
 
     void SiriusAdapterAlgorithm::Fingerid::parameters()
     {
       parameter(
-                 FingeridName("candidates"),
-                 DefaultValue(10),
-                 Description("Number of molecular structure candidates in the output.")
-               ).withMinInt(1);
-
-      parameter(
                  FingeridName("db"),
-                 DefaultValue("BIO"),
-                 Description("Search formulas in the Union of the given "
+                 DefaultValue(""), // default = BIO
+                 Description("Search structures in the Union of the given "
                               "databases db-name1,db-name2,db-name3. If no database is given all possible "
                               "molecular formulas will be respected (no database "
                               "is used). "
@@ -538,6 +539,37 @@ namespace OpenMS
     // Algorithm
     // ################
 
+    void SiriusAdapterAlgorithm::logInSiriusAccount(String& executable, const String& email, const String& password) const
+    {
+      // sirius login --email=email --password=password
+      QString executable_qstring = SiriusAdapterAlgorithm::determineSiriusExecutable(executable).toQString();
+      QStringList command_line{"login", String("--email="+email).toQString(), String("--password="+password).toQString()};
+      
+      // start QProcess with sirius login command
+      QProcess qp;
+      qp.start(executable_qstring, command_line);
+
+      // print executed command as info
+      std::stringstream ss;
+      ss << "Executing command: " << executable_qstring.toStdString();
+      for (const QString& it : command_line)
+      {
+        ss << " " << it.toStdString();
+      }
+      OPENMS_LOG_INFO << ss.str() << std::endl;
+
+      // wait until process finished
+      qp.waitForFinished(-1);
+
+      // always print process stdout (info) and stderror (warning)
+      const QString sirius_stdout(qp.readAllStandardOutput());
+      const QString sirius_stderr(qp.readAllStandardError());
+      OPENMS_LOG_INFO << String(sirius_stdout) << std::endl;
+      OPENMS_LOG_WARN << String(sirius_stderr) << std::endl;
+      
+      qp.close();
+    }
+
     // tmp_msfile (store), all parameters, out_dir (tmpstructure)
     const std::vector<String> SiriusAdapterAlgorithm::callSiriusQProcess(const String& tmp_ms_file,
                                                                          const String& tmp_out_dir,
@@ -557,7 +589,7 @@ namespace OpenMS
       // structure of the command line passed to NightSky (Sirius 4.X+)
       // Add noCite and instead make sure the main citations are registered in our TOPP tool.
       // Most of the time the user does not see the direct Sirius output anyway
-      QStringList command_line = QStringList("--noCite") + project_params + QStringList({"--input", tmp_ms_file.toQString(), "--project", tmp_out_dir.toQString(), "sirius"}) + sirius_params + QStringList("write-summaries");
+      QStringList command_line = QStringList("--noCite") + project_params + QStringList({"--input", tmp_ms_file.toQString(), "--project", tmp_out_dir.toQString(), "--no-compression", "sirius"}) + sirius_params;
 
       if (run_passatutto)
       {
@@ -566,8 +598,10 @@ namespace OpenMS
 
       if (run_csifingerid)
       {
-        command_line << "fingerid" << fingerid_params;
+        command_line << "fingerprint" << "structure" << fingerid_params;
       }
+
+      command_line << "write-summaries";
 
       // the actual process
       QProcess qp;

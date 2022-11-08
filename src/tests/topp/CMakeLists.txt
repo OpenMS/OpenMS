@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_TOPP_tests")
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 #
 # README:
@@ -807,7 +807,6 @@ set_tests_properties("TOPP_GNPSExport_4_out_pairs" PROPERTIES DEPENDS "TOPP_GNPS
 add_test("TOPP_GNPSExport_4_out_meta_values" ${DIFF} -in1 GNPSExport_4_out_meta_values.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_4_out_meta_values.tsv)
 set_tests_properties("TOPP_GNPSExport_4_out_meta_values" PROPERTIES DEPENDS "TOPP_GNPSExport_4")
 
-#------------------------------------------------------------------------------ 
 # HighResPrecursorMassCorrector tests
 add_test("TOPP_HighResPrecursorMassCorrector_1"
 ${TOPP_BIN_PATH}/HighResPrecursorMassCorrector -test -in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2860_1103_3.mzML -feature:in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2860_1103_3.featureXML -out HighResPrecursorMassCorrector_2860_1103_3_out.tmp)
@@ -2664,7 +2663,7 @@ set_tests_properties("TOPP_XFDR_7_out33" PROPERTIES DEPENDS "TOPP_XFDR_7")
 
 #------------------------------------------------------------------------------
 # QualityControl tests
-add_test("TOPP_QualityControl_1" ${TOPP_BIN_PATH}/QualityControl -test -in_raw ${DATA_DIR_TOPP}/QualityControl_1_in1.mzML.gz ${DATA_DIR_TOPP}/QualityControl_1_in2.mzML.gz ${DATA_DIR_TOPP}/QualityControl_1_in3.mzML.gz -in_postFDR ${DATA_DIR_TOPP}/QualityControl_1_in1.featureXML ${DATA_DIR_TOPP}/QualityControl_1_in2.featureXML ${DATA_DIR_TOPP}/QualityControl_1_in3.featureXML -in_trafo ${DATA_DIR_TOPP}/QualityControl_1_in1.trafoXML ${DATA_DIR_TOPP}/QualityControl_1_in2.trafoXML ${DATA_DIR_TOPP}/QualityControl_1_in3.trafoXML  -in_contaminants ${DATA_DIR_TOPP}/QualityControl_1.fasta -in_cm ${DATA_DIR_TOPP}/QualityControl_1_in.consensusXML -out_cm QualityControl_1_out.consensusXML.tmp -out QualityControl_1_out.mzTab.tmp)
+add_test("TOPP_QualityControl_1" ${TOPP_BIN_PATH}/QualityControl -test -in_raw ${DATA_DIR_TOPP}/QualityControl_1_in1.mzML.gz ${DATA_DIR_TOPP}/QualityControl_1_in2.mzML.gz ${DATA_DIR_TOPP}/QualityControl_1_in3.mzML.gz -in_postFDR ${DATA_DIR_TOPP}/QualityControl_1_in1.featureXML ${DATA_DIR_TOPP}/QualityControl_1_in2.featureXML ${DATA_DIR_TOPP}/QualityControl_1_in3.featureXML -in_trafo ${DATA_DIR_TOPP}/QualityControl_1_in1.trafoXML ${DATA_DIR_TOPP}/QualityControl_1_in2.trafoXML ${DATA_DIR_TOPP}/QualityControl_1_in3.trafoXML  -in_contaminants ${DATA_DIR_TOPP}/QualityControl_1.fasta -in_cm ${DATA_DIR_TOPP}/QualityControl_1_in.consensusXML -in_fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -out_cm QualityControl_1_out.consensusXML.tmp -out QualityControl_1_out.mzTab.tmp)
 add_test("TOPP_QualityControl_1_out_consXML" ${DIFF} -in1 QualityControl_1_out.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/QualityControl_1_out.consensusXML -whitelist "href=")
 add_test("TOPP_QualityControl_1_out_mzTab" ${DIFF} -in1 QualityControl_1_out.mzTab.tmp -in2 ${DATA_DIR_TOPP}/QualityControl_1_out.mzTab -whitelist "MS:1000752")
 set_tests_properties("TOPP_QualityControl_1_out_consXML" PROPERTIES DEPENDS "TOPP_QualityControl_1")
@@ -2763,6 +2762,16 @@ add_test("UTILS_IDSplitter_1_out1" ${DIFF} -in1 IDSplitter_1_output1.tmp -in2 ${
 set_tests_properties("UTILS_IDSplitter_1_out1" PROPERTIES DEPENDS "UTILS_IDSplitter_1")
 add_test("UTILS_IDSplitter_1_out2" ${DIFF} -in1 IDSplitter_1_output2.tmp -in2 ${DATA_DIR_TOPP}/IDSplitter_1_output.idXML )
 set_tests_properties("UTILS_IDSplitter_1_out2" PROPERTIES DEPENDS "UTILS_IDSplitter_1")
+
+# JSONExporter:
+# proteomics test file (= IDFileConverter_34_output1.oms):
+add_test("UTILS_JSONExporter_1" ${TOPP_BIN_PATH}/JSONExporter -test -in ${DATA_DIR_TOPP}/JSONExporter_protein.oms -out JSONExporter_1_output.tmp)
+add_test("UTILS_JSONExporter_1_out" ${DIFF} -in1 JSONExporter_1_output.tmp -in2 ${DATA_DIR_TOPP}/JSONExporter_1_output.json)
+set_tests_properties("UTILS_JSONExporter_1_out" PROPERTIES DEPENDS "UTILS_JSONExporter_1")
+# RNA test file (= NucleicAcidSearchEngine_13_out.tmp):
+add_test("UTILS_JSONExporter_2" ${TOPP_BIN_PATH}/JSONExporter -test -in ${DATA_DIR_TOPP}/JSONExporter_RNA.oms -out JSONExporter_2_output.tmp)
+add_test("UTILS_JSONExporter_2_out" ${DIFF} -in1 JSONExporter_2_output.tmp -in2 ${DATA_DIR_TOPP}/JSONExporter_2_output.json)
+set_tests_properties("UTILS_JSONExporter_2_out" PROPERTIES DEPENDS "UTILS_JSONExporter_2")
 
 # MassCalculator:
 add_test("UTILS_MassCalculator_1" ${TOPP_BIN_PATH}/MassCalculator -test -in ${DATA_DIR_TOPP}/MassCalculator_1_input.tsv -out MassCalculator_1_output.tmp -charge 0 1 -format table -separator ,)
@@ -2890,7 +2899,46 @@ add_test("UTILS_TICCalculator_3" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA
 add_test("UTILS_TICCalculator_4" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed)
 add_test("UTILS_TICCalculator_5" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed_parallel)
 
-# ProteomicsLFQ test:
+# ProteomicsLFQ test with a subset of the experimental design. Also tests the nonconsecutiveness of the design:
+add_test("UTILS_ProteomicsLFQ_1_subset" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design_onetable_nonconsec.tsv
+         -Alignment:align_algorithm:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -transfer_ids false
+         -mass_recalibration false
+         -out_cxml BSA_subset.consensusXML.tmp
+         -out_msstats BSA_subset.csv.tmp
+         -out BSA_subset.mzTab.tmp
+         -out_triqler BSA_subset.tsv.tmp
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         )
+add_test("UTILS_ProteomicsLFQ_1_subset_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_subset.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_subset_out.consensusXML )
+set_tests_properties("UTILS_ProteomicsLFQ_1_subset_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_1_subset")
+add_test("UTILS_ProteomicsLFQ_1_subset_out_2" ${DIFF}  -whitelist "software" "location" -in1 BSA_subset.csv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_subset_out.csv )
+set_tests_properties("UTILS_ProteomicsLFQ_1_subset_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_1_subset")
+add_test("UTILS_ProteomicsLFQ_1_subset_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 BSA_subset.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_subset_out.mzTab )
+set_tests_properties("UTILS_ProteomicsLFQ_1_subset_out_3" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_1_subset")
+add_test("UTILS_ProteomicsLFQ_1_subset_out_4" ${DIFF} -in1 BSA_subset.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_subset_out.tsv )
+set_tests_properties("UTILS_ProteomicsLFQ_1_subset_out_4" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_1_subset")
+
+
 add_test("UTILS_ProteomicsLFQ_1" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -in
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML

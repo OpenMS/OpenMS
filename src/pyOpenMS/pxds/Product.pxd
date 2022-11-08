@@ -5,7 +5,7 @@ cdef extern from "<OpenMS/METADATA/Product.h>" namespace "OpenMS":
 
     cdef cppclass Product:
         # wrap-doc:
-        #   This class describes the product isolation window for special scan types, such as MRM
+        #  This class describes the product isolation window for special scan types, such as MRM
 
         Product() nogil except +
         Product(Product &) nogil except +

@@ -46,8 +46,6 @@ namespace OpenMS::Internal
     setCheckUnits(true);
   }
 
-  TraMLValidator::~TraMLValidator()
-  {
-  }
+  TraMLValidator::~TraMLValidator() = default;
 
 } // namespace OpenMS   // namespace Internal

@@ -130,9 +130,7 @@ namespace OpenMS
     return *this;
   }
 
-  RawMSSignalSimulation::~RawMSSignalSimulation()
-  {
-  }
+  RawMSSignalSimulation::~RawMSSignalSimulation() = default;
 
   void RawMSSignalSimulation::setDefaultParams_()
   {

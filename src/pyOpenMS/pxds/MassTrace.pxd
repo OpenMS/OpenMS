@@ -54,10 +54,10 @@ cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
         void updateWeightedMeanMZ() nogil except + # wrap-doc:Compute & update centroid m/z as weighted mean of m/z values
         void updateWeightedMZsd() nogil except +
             # wrap-doc:
-                #   Compute & update m/z standard deviation of mass trace as weighted mean of m/z values
-                #   -----
-                #   Make sure to call update(Weighted)(Mean|Median)MZ() first! <br>
-                #   use getCentroidSD() to get result
+                #  Compute & update m/z standard deviation of mass trace as weighted mean of m/z values
+                #  
+                #  Make sure to call update(Weighted)(Mean|Median)MZ() first! <br>
+                #  use getCentroidSD() to get result
 
 
         void setQuantMethod(MT_QUANTMETHOD method) nogil except + # wrap-doc:Determine if area or median is used for quantification

@@ -39,11 +39,11 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" nam
 
         void getDeviations(libcpp_vector[double]& diffs, bool do_apply, bool do_sort) nogil except +
         # wrap-doc:
-                #   Get the deviations between the data pairs
-                #   -----
-                #   :param diffs: Output
-                #   :param do_apply: Get deviations after applying the model?
-                #   :param do_sort: Sort `diffs` before returning?
+                #  Get the deviations between the data pairs
+                #  
+                #  :param diffs: Output
+                #  :param do_apply: Get deviations after applying the model?
+                #  :param do_sort: Sort `diffs` before returning?
 
         TransformationStatistics getStatistics() nogil except +
 

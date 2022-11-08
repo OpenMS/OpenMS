@@ -170,7 +170,7 @@ namespace OpenMS
     QUrl url = buildUrl_(server_path_ + "/cgi/login.pl");
     QNetworkRequest request(url);
 
-    QString boundary = boundary_.toQString();
+    QByteArray boundary = boundary_.toQString().toUtf8();
     request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data, boundary=" + boundary);
 
     // header
@@ -180,18 +180,18 @@ namespace OpenMS
 
     // content
     QByteArray loginbytes;
-    QString boundary_string("--" + boundary + "\r\n");
+    QByteArray boundary_string("--" + boundary + "\r\n");
     loginbytes.append(boundary_string);
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"username\"\r\n");
     loginbytes.append("\r\n");
-    loginbytes.append(String(param_.getValue("username").toString()).toQString());
+    loginbytes.append(String(param_.getValue("username").toString()).toQString().toUtf8());
     loginbytes.append("\r\n");
     loginbytes.append(boundary_string);
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"password\"\r\n");
     loginbytes.append("\r\n");
-    loginbytes.append(String(param_.getValue("password").toString()).toQString());
+    loginbytes.append(String(param_.getValue("password").toString()).toQString().toUtf8());
     loginbytes.append("\r\n");
     loginbytes.append(boundary_string);
     loginbytes.append("Content-Disposition: ");
@@ -339,7 +339,7 @@ namespace OpenMS
 #endif
     QNetworkRequest request(url);
 
-    QString boundary = boundary_.toQString();
+    QByteArray boundary = boundary_.toQString().toUtf8();
     request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data, boundary=" + boundary);
 
     // header

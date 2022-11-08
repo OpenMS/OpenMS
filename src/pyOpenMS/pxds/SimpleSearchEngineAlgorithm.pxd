@@ -9,8 +9,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>" namespace 
  
     cdef cppclass SimpleSearchEngineAlgorithm(DefaultParamHandler, ProgressLogger):
         # wrap-inherits:
-        #    DefaultParamHandler
-        #    ProgressLogger
+        #   DefaultParamHandler
+        #   ProgressLogger
 
         SimpleSearchEngineAlgorithm() nogil except + # compiler
         SimpleSearchEngineAlgorithm(SimpleSearchEngineAlgorithm &) nogil except + #  compiler

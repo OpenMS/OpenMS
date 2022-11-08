@@ -52,9 +52,7 @@ namespace OpenMS
     setAcceptDrops(true);
   }
 
-  EnhancedWorkspace::~EnhancedWorkspace()
-  {
-  }
+  EnhancedWorkspace::~EnhancedWorkspace() = default;
 
   void EnhancedWorkspace::tileHorizontal()
   {

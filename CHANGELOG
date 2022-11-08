@@ -1,5 +1,6 @@
 
 
+
 Glossary:
 OpenMS - Name of the project and our C++ library
 TOPP - "The OpenMS Proteomics Pipeline", collection of chainable tools for flexible HPLC/MS workflows
@@ -18,7 +19,8 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 ------------------------------------------------------------------------------------------
 
 - full release
-- OpenSwath: Add support for diaPASEF data with overlapping m/z and IM windows
+- OpenSwath: Add support for diaPASEF data with overlapping m/z and IM windows, and add new outputs on ion mobility features (delta_im)
+- OpenSwath: Fix duplicated transition error when multiple genes map to a single peptide (#5653)
 - TOPPView: TheoreticalSpectrumGenerationDialog now supports generation of isotope patterns for metabolites
 - pyopenms: pyopenms-extra is renamed to pyopenms-docs.
 - Add extractSpectra to TargetedSpectraExtractor with support of MS1 features

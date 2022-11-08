@@ -14,8 +14,8 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>" namespa
 
     cdef cppclass MassTraceDetection(ProgressLogger, DefaultParamHandler):
         # wrap-inherits:
-        #    ProgressLogger
-        #    DefaultParamHandler
+        #   ProgressLogger
+        #   DefaultParamHandler
 
         MassTraceDetection() nogil except +
         MassTraceDetection(MassTraceDetection &) nogil except + # compiler

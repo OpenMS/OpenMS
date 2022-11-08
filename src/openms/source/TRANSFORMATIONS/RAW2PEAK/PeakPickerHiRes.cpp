@@ -80,9 +80,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  PeakPickerHiRes::~PeakPickerHiRes()
-  {
-  }
+  PeakPickerHiRes::~PeakPickerHiRes() = default;
 
   void PeakPickerHiRes::pick(const MSSpectrum& input, MSSpectrum& output) const
   {
@@ -538,7 +536,7 @@ namespace OpenMS
     }
     endProgress();
 
-    OPENMS_LOG_INFO << "Picked spectra by MS-level:\n";
+    OPENMS_LOG_INFO << "#Spectra that needed to and could be picked by MS-level:\n";
     for (const auto& info : pick_info)
     {
       OPENMS_LOG_INFO << "  MS-level " << info.first << ": " << info.second.picked << " / " << info.second.total << "\n";

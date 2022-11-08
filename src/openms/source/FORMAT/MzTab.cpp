@@ -54,9 +54,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  MzTabModification::MzTabModification()
-  {
-  }
+  MzTabModification::MzTabModification() = default;
 
   bool MzTabModification::isNull() const
   {
@@ -986,7 +984,7 @@ namespace OpenMS
       UInt label = ch.getLabelAsUInt(experiment_type);
       // convert from column index to study variable index
       auto pl = make_pair(ch.filename, label);
-      study_variable = path_label_to_assay.at(pl); // for now, a study_variable is one assay
+      study_variable = path_label_to_assay.at(pl) + 1; // for now, a study_variable is one assay (both 1-based). And pathLabelToSample mapping reports 0-based.
 
       //TODO implement aggregation in case we generalize study_variable to include multiple assays.
       row.peptide_abundance_stdev_study_variable[study_variable];
@@ -2319,9 +2317,13 @@ state0:
     if (psm_row) // valid row?
     {
       std::swap(row, *psm_row);
-      return true;
     }
-    return false;
+    /* avoid reinitialization of 512 bytes. Skipped row == unchanged. Usually empty rows are input
+    else
+    {
+      *psm_row = MzTabPSMSectionRow();
+    }*/
+    return true;
   }
 
   MzTab MzTab::exportIdentificationsToMzTab(
@@ -2584,9 +2586,9 @@ state0:
     // fill ID datastructure without copying
     const vector<ProteinIdentification>& prot_id = consensus_map.getProteinIdentifications();
     prot_ids_.reserve(prot_id.size());
-    for (Size i = 0; i < prot_id.size(); ++i)
+    for (const auto & i : prot_id)
     {
-      prot_ids_.push_back(&(prot_id[i]));
+      prot_ids_.push_back(&i);
     }
  
     // extract mapped IDs
@@ -2610,7 +2612,7 @@ state0:
     // create some lookup structures and precalculate some values
     idrunid_2_idrunindex_ = MzTab::mapIDRunIdentifier2IDRunIndex_(prot_ids_);
 
-    bool has_inference_data = prot_ids_.empty() ? false : prot_ids_[0]->hasInferenceData();
+    bool has_inference_data = !prot_ids_.empty() && prot_ids_[0]->hasInferenceData();
 
     first_run_inference_ = has_inference_data && first_run_inference_only;
     if (first_run_inference_)
@@ -2834,7 +2836,7 @@ state0:
       MzTabParameter quantification_reagent;
       Size label = c.second.getLabelAsUInt(experiment_type);
       auto pl = make_pair(c.second.filename, label);
-      assay_index = path_label_to_assay_[pl];
+      assay_index = path_label_to_assay_[pl] + 1; // sample rows are a vector and therefore their IDs zero-based, mzTab assays 1-based
 
       if (experiment_type == "label-free")
       {
@@ -3058,9 +3060,13 @@ state0:
     if (psm_row) // valid row?
     {
       std::swap(row, *psm_row);
-      return true;
     }
-    return false;
+    /* avoid reinitialization of 512 bytes. Skipped row == unchanged. Usually empty rows are input
+    else
+    {
+      *psm_row = MzTabPSMSectionRow();
+    }*/
+    return true;
   }
 
   MzTab MzTab::exportConsensusMapToMzTab(
@@ -3104,7 +3110,12 @@ state0:
     MzTabPSMSectionRow psm_row;
     while (s.nextPSMRow(psm_row))
     {
-      m.getPSMSectionRows().emplace_back(std::move(psm_row));
+      // TODO better return a State enum instead of relying on some uninitialized
+      // parts of a row..
+      if (!psm_row.sequence.isNull())
+      {
+        m.getPSMSectionRows().emplace_back(std::move(psm_row));
+      }
     }
 
     return m;

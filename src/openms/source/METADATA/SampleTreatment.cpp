@@ -46,9 +46,7 @@ namespace OpenMS
   {
   }
 
-  SampleTreatment::~SampleTreatment()
-  {
-  }
+  SampleTreatment::~SampleTreatment() = default;
 
   const String & SampleTreatment::getType() const
   {

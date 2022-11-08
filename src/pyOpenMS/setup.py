@@ -218,7 +218,7 @@ if not iswin:
         extra_compile_args.append("-O0")
         extra_link_args.append("-O0")
 
-mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
+mnames = ["_pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 ext = []
 
 ##WARNING debug

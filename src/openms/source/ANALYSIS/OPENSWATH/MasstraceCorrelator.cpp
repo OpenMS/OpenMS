@@ -64,9 +64,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MasstraceCorrelator::~MasstraceCorrelator()
-  {
-  }
+  MasstraceCorrelator::~MasstraceCorrelator() = default;
 
   void MasstraceCorrelator::matchMassTraces_(
       const MasstracePointsType& hull_points1,

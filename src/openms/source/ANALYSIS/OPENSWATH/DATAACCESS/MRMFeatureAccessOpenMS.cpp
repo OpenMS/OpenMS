@@ -65,9 +65,7 @@ namespace OpenMS
     feature_ = &feature; // store raw ptr to the feature
   }
 
-  FeatureOpenMS::~FeatureOpenMS()
-  {
-  }
+  FeatureOpenMS::~FeatureOpenMS() = default;
 
   void FeatureOpenMS::getRT(std::vector<double>& rt) const
   {
@@ -99,9 +97,7 @@ namespace OpenMS
     return feature_->getRT();
   }
 
-  MRMFeatureOpenMS::~MRMFeatureOpenMS()
-  {
-  }
+  MRMFeatureOpenMS::~MRMFeatureOpenMS() = default;
 
   boost::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getFeature(std::string nativeID)
   {
