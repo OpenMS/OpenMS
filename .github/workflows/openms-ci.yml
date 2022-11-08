@@ -373,7 +373,7 @@ jobs:
       if: github.event_name == 'push'
       shell: bash
       run: |
-        yum -y install jq
+        apt-get install -y jq
         ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
         ref=${ref#"refs/heads/"}
         ref=${ref#"refs/"}
