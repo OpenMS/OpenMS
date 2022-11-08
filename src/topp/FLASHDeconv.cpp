@@ -368,7 +368,6 @@ protected:
   {
     bool DLTrain = false;
     OPENMS_LOG_INFO << "Initializing ... " << endl;
-    const bool write_detail_qscore_att = false;
 
     //-------------------------------------------------------------
     // parsing parameters
