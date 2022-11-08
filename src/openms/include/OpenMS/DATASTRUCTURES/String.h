@@ -341,7 +341,7 @@ public:
 
     @exception Exception::ConversionError is thrown if the string could not be converted to Int64
     */
-    OPENMS_DLLAPI Int32 toInt64() const;
+    OPENMS_DLLAPI Int64 toInt64() const;
 
     /**
       @brief Conversion to float

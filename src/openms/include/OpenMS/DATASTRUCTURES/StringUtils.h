@@ -62,7 +62,7 @@ public:
     //
     /// Functions
     //
-    static Int toInt32(const String & this_s)
+    static Int toInt32(const String& this_s)
     {
       Int ret;
 

@@ -305,15 +305,18 @@ namespace OpenMS
     {
       return StringUtils::toInt32(*this);
     }
-    return StringUtils::toInt64(*this);
+    else
+    {
+      return StringUtils::toInt64(*this);
+    }
   }
 
-  Int String::toInt32() const
+  Int32 String::toInt32() const
   {
     return StringUtils::toInt32(*this);
   }
 
-  Int String::toInt64() const
+  Int64 String::toInt64() const
   {
     return StringUtils::toInt64(*this);
   }
