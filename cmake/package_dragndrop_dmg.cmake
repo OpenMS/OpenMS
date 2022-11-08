@@ -85,6 +85,10 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README
                     WORLD_READ
         COMPONENT   TOPPShell)
 
+## Install the qt.conf file so we can find the libraries
+install(FILES       ${PROJECT_BINARY_DIR}/bin/qt.conf
+        DESTINATION ./bin
+        COMPONENT   QT5SQLitePlugin)
 
 
 ## Create own target because you cannot "depend" on the internal target 'package'
