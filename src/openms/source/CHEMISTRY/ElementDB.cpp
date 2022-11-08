@@ -12,14 +12,13 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/Isotope.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <iostream>
 #include <cmath>
 #include <memory>
 
 using namespace std;
-
-constexpr int SECONDS_PER_YEAR = 31556952; // Gregorian year
 
 namespace OpenMS
 {
