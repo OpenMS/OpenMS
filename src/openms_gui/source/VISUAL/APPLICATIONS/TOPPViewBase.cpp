@@ -443,7 +443,7 @@ namespace OpenMS
     current_path_ = param_.getValue(user_section + "default_path").toString();
 
     // set plugin search path, create it if it does not already exist
-    if (verbosity_ == VERBOSE) 
+    if (verbosity_ == VERBOSITY::VERBOSE) 
     {
       tool_scanner_.setVerbose(1);
     }
