@@ -84,11 +84,7 @@ namespace OpenMS
     }
   }
 
-  MassDecomposition::MassDecomposition(const MassDecomposition& rhs) :
-    decomp_(rhs.decomp_),
-    number_of_max_aa_(rhs.number_of_max_aa_)
-  {
-  }
+  MassDecomposition::MassDecomposition(const MassDecomposition& rhs) = default;
 
   MassDecomposition& MassDecomposition::operator=(const MassDecomposition& rhs)
   {

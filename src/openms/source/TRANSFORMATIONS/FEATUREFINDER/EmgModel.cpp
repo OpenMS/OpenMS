@@ -62,9 +62,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  EmgModel::~EmgModel()
-  {
-  }
+  EmgModel::~EmgModel() = default;
 
   EmgModel & EmgModel::operator=(const EmgModel & source)
   {

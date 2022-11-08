@@ -151,9 +151,7 @@ namespace OpenMS
   }
 
   /// Destructor
-  MassExplainer::~MassExplainer()
-  {
-  }
+  MassExplainer::~MassExplainer() = default;
 
   //@}
 

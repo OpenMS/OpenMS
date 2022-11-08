@@ -71,17 +71,7 @@ namespace OpenMS
   }
 
   /// Copy C'tor
-  Compomer::Compomer(const Compomer& p) :
-    cmp_(p.cmp_),
-    net_charge_(p.net_charge_),
-    mass_(p.mass_),
-    pos_charges_(p.pos_charges_),
-    neg_charges_(p.neg_charges_),
-    log_p_(p.log_p_),
-    rt_shift_(p.rt_shift_),
-    id_(p.id_)
-  {
-  }
+  Compomer::Compomer(const Compomer& p) = default;
 
   /// Assignment Operator
   Compomer& Compomer::operator=(const Compomer& source)

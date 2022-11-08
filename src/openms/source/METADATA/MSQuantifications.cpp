@@ -57,9 +57,7 @@ namespace OpenMS
     feature_maps_  = std::vector<FeatureMap > (1,fm);
   }
 
-  MSQuantifications::~MSQuantifications()
-  {
-  }
+  MSQuantifications::~MSQuantifications() = default;
 
   /// Equality operator
   bool MSQuantifications::operator==(const MSQuantifications & rhs) const

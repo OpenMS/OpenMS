@@ -155,9 +155,7 @@ namespace OpenMS
     disable_();
   }
 
-  ToolsDialog::~ToolsDialog()
-  {
-  }
+  ToolsDialog::~ToolsDialog() = default;
 
   std::vector<LayerDataBase::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const
   {

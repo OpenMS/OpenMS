@@ -85,9 +85,7 @@ namespace OpenMS
 
   }*/
 
-  HMMState::~HMMState()
-  {
-  }
+  HMMState::~HMMState() = default;
 
   void HMMState::setName(const String & name)
   {

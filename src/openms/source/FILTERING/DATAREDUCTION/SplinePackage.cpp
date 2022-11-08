@@ -53,9 +53,7 @@ namespace OpenMS
     pos_step_width_ = (pos_max_ - pos_min_) / (pos.size() - 1);
   }
 
-  SplinePackage::~SplinePackage()
-  {
-  }
+  SplinePackage::~SplinePackage() = default;
 
   double SplinePackage::getPosMin() const
   {
