@@ -32,8 +32,10 @@
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
+
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
 {
@@ -61,7 +63,7 @@ namespace OpenMS
     ConvexHull2D::PointArrayType hull_points(peaks.size());
     for (Size i = 0; i < peaks.size(); ++i)
     {
-      hull_points[i][0] = peaks[i].first;
+      hull_points[i][0] = peaks[i].first->getRT();
       hull_points[i][1] = peaks[i].second->getMZ();
     }
     ConvexHull2D hull;
@@ -75,14 +77,14 @@ namespace OpenMS
     {
       return;
     }
-    max_rt = peaks.begin()->first;
+    max_rt = peaks.begin()->first->getRT();
     max_peak = peaks.begin()->second;
 
     for (Size i = 1; i < peaks.size(); ++i)
     {
       if (peaks[i].second->getIntensity() > max_peak->getIntensity())
       {
-        max_rt = peaks[i].first;
+        max_rt = peaks[i].first->getRT();
         max_peak = peaks[i].second;
       }
     }
@@ -96,6 +98,21 @@ namespace OpenMS
     {
       sum += peaks[i].second->getMZ() * peaks[i].second->getIntensity();
       intensities += peaks[i].second->getIntensity();
+    }
+    return sum / intensities;
+  }
+
+  double FeatureFinderAlgorithmPickedHelperStructs::MassTrace::getAvgIM(Size im_array_location) const
+  {
+    double sum = 0.0;
+    double intensities = 0.0;
+    for (Size i = 0; i < peaks.size(); ++i)
+    {
+      const MSSpectrum* spec = peaks[i].first;
+      const Peak1D* peak = peaks[i].second;
+      auto peak_idx = std::distance(&(*(spec->begin())), peak);
+      sum += peaks[i].first->getFloatDataArrays()[im_array_location][peak_idx] * peak->getIntensity();
+      intensities += peak->getIntensity();
     }
     return sum / intensities;
   }
@@ -197,7 +214,7 @@ namespace OpenMS
     {
       for (Size j = 0; j < this->at(i).peaks.size(); ++j)
       {
-        double rt = this->at(i).peaks[j].first;
+        double rt = this->at(i).peaks[j].first->getRT();
         if (rt > max)
         {
           max = rt;
@@ -216,14 +233,12 @@ namespace OpenMS
     // typedefs for better readability
     typedef MassTraces::const_iterator TTraceIterator;
     typedef std::list<std::pair<double, double> >::iterator TProfileIterator;
-    typedef std::vector<std::pair<double, const Peak1D*> > TMassTracePeakList;
-    typedef TMassTracePeakList::const_iterator TTracePeakIterator;
 
     TTraceIterator trace_it = this->begin();
     // we add the first trace without check, as the profile is currently empty
-    for (TTracePeakIterator trace_peak_it = trace_it->peaks.begin(); trace_peak_it != trace_it->peaks.end(); ++trace_peak_it)
+    for (const auto& trace_peak : trace_it->peaks)
     {
-      intensity_profile.push_back(std::make_pair(trace_peak_it->first, trace_peak_it->second->getIntensity()));
+      intensity_profile.push_back(std::make_pair(trace_peak.first->getRT(), trace_peak.second->getIntensity()));
     }
     ++trace_it;
 
@@ -231,29 +246,29 @@ namespace OpenMS
     for (; trace_it != this->end(); ++trace_it)
     {
       TProfileIterator profile_it = intensity_profile.begin();
-      TTracePeakIterator trace_peak_it = trace_it->peaks.begin();
+      auto trace_peak_it = trace_it->peaks.begin();
 
       while (trace_peak_it != trace_it->peaks.end())
       {
         // append .. if profile has already ended
         if (profile_it == intensity_profile.end())
         {
-          intensity_profile.push_back(std::make_pair(trace_peak_it->first, trace_peak_it->second->getIntensity()));
+          intensity_profile.push_back(std::make_pair(trace_peak_it->first->getRT(), trace_peak_it->second->getIntensity()));
           ++trace_peak_it;
         }
         // prepend
-        else if (profile_it->first > trace_peak_it->first)
+        else if (profile_it->first > trace_peak_it->first->getRT())
         {
-          intensity_profile.insert(profile_it, std::make_pair(trace_peak_it->first, trace_peak_it->second->getIntensity()));
+          intensity_profile.insert(profile_it, std::make_pair(trace_peak_it->first->getRT(), trace_peak_it->second->getIntensity()));
           ++trace_peak_it;
         }
         // proceed
-        else if (profile_it->first < trace_peak_it->first)
+        else if (profile_it->first < trace_peak_it->first->getRT())
         {
           ++profile_it;
         }
         // merge
-        else if (profile_it->first == trace_peak_it->first)
+        else if (profile_it->first == trace_peak_it->first->getRT())
         {
           profile_it->second += trace_peak_it->second->getIntensity();
           ++trace_peak_it;

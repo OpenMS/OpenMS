@@ -40,6 +40,7 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -67,46 +68,27 @@ FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt1;
 mt1.theoretical_int = 0.8;
 
 /////////////////////////////////////////////////////////////
-Peak1D p1_1;
-p1_1.setIntensity(1.08268226589f);
-p1_1.setMZ(1000);
-mt1.peaks.push_back(std::make_pair(677.1 , &p1_1));
-Peak1D p1_2;
-p1_2.setIntensity(1.58318959267f);
-p1_2.setMZ(1000);
-mt1.peaks.push_back(std::make_pair(677.4 , &p1_2));
-Peak1D p1_3;
-p1_3.setIntensity(2.22429840363f);
-p1_3.setMZ(1000);
-mt1.peaks.push_back(std::make_pair(677.7 , &p1_3));
-Peak1D p1_4;
-p1_4.setIntensity(3.00248879081f);
-p1_4.setMZ(1000);
-mt1.peaks.push_back(std::make_pair(678 , &p1_4));
-Peak1D p1_5;
-p1_5.setIntensity(3.89401804768f);
-p1_5.setMZ(1000);
-mt1.peaks.push_back(std::make_pair(678.3 , &p1_5));
-Peak1D p1_6;
-p1_6.setIntensity(4.8522452777f);
-p1_6.setMZ(1000);
-mt1.peaks.push_back(std::make_pair(678.6 , &p1_6));
-Peak1D p1_7;
-p1_7.setIntensity(5.80919229659f);
-p1_7.setMZ(1000);
-mt1.peaks.push_back(std::make_pair(678.9 , &p1_7));
-Peak1D p1_8;
-p1_8.setIntensity(6.68216169129f);
-p1_8.setMZ(1000);
-mt1.peaks.push_back(std::make_pair(679.2 , &p1_8));
-Peak1D p1_9;
-p1_9.setIntensity(7.38493077109f);
-p1_9.setMZ(1000);
-mt1.peaks.push_back(std::make_pair(679.5 , &p1_9));
-Peak1D p1_10;
-p1_10.setIntensity(7.84158938645f);
-p1_10.setMZ(1000);
-mt1.peaks.push_back(std::make_pair(679.8 , &p1_10));
+double intensities[] = { 1.08268226589f, 0.270670566473f, 1.58318959267f, 0.395797398167f, 2.22429840363f, 0.556074600906f, 3.00248879081f, 0.750622197703f, 3.89401804768f, 0.97350451192f, 4.8522452777f, 1.21306131943f, 5.80919229659f, 1.45229807415f, 6.68216169129f, 1.67054042282f, 7.38493077109f, 1.84623269277f, 7.84158938645f, 1.96039734661f, 8.0f, 2.0f, 7.84158938645f, 1.96039734661f, 7.38493077109f, 1.84623269277f, 6.68216169129f, 1.67054042282f, 5.80919229659f, 1.45229807415f, 4.8522452777f, 1.21306131943f, 3.89401804768f, 0.97350451192f, 3.00248879081f, 0.750622197703f, 2.22429840363f, 0.556074600906f, 1.58318959267f, 0.395797398167f, 1.08268226589f, 0.270670566473f};
+double rts[] = { 677.1, 677.1, 677.4, 677.4, 677.7, 677.7, 678, 678, 678.3, 678.3, 678.6, 678.6, 678.9, 678.9, 679.2, 679.2, 679.5, 679.5, 679.8, 679.8, 680.1, 680.1, 680.4, 680.4, 680.7, 680.7, 681, 681, 681.3, 681.3, 681.6, 681.6, 681.9, 681.9, 682.2, 682.2, 682.5, 682.5, 682.8, 682.8, 683.1, 683.1};
+
+std::vector<Peak1D> all_peaks;
+std::vector<MSSpectrum> all_spectra;
+all_spectra.reserve(10);
+all_peaks.reserve(10);
+
+// Generate 10 peaks for mt1 (skip all mt2 peaks for now)
+for (int k = 0; k < 20; k++)
+{
+  Peak1D p1; MSSpectrum s1;
+  p1.setIntensity( intensities[k] );
+  p1.setMZ(1000);
+  s1.setRT( rts[k] );
+  all_peaks.push_back(p1); all_spectra.push_back(s1);
+  mt1.peaks.push_back(make_pair(&all_spectra.back(), &all_peaks.back()));
+  std::cout << "1_" << k /2 +1 << " :: " << mt1.peaks.back().first->getRT() << " : " << mt1.peaks.back().second->getIntensity() << std::endl;
+
+  k++;
+}
 
 START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] ConvexHull2D getConvexhull() const ))
 {
@@ -114,14 +96,14 @@ START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] ConvexHull
 
   DPosition<2> point;
   point[0] = 679.8;
-  point[1] = p1_10.getMZ();
+  point[1] = all_peaks[10-1].getMZ();
 
   TEST_EQUAL(ch.encloses(point),true);
 
-  point[1] = p1_10.getMZ() + 1.0;
+  point[1] = all_peaks[10-1].getMZ() + 1.0;
   TEST_EQUAL(ch.encloses(point),false);
 
-  point[1] = p1_10.getMZ();
+  point[1] = all_peaks[10-1].getMZ();
   point[0] = 679.9;
   TEST_EQUAL(ch.encloses(point),false);
 }
@@ -130,7 +112,7 @@ END_SECTION
 START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] void updateMaximum()))
 {
   mt1.updateMaximum();
-  TEST_EQUAL(mt1.max_peak, &p1_10)
+  TEST_EQUAL(mt1.max_peak, &all_peaks[9])
   TEST_EQUAL(mt1.max_rt, 679.8)
 }
 END_SECTION
@@ -145,17 +127,23 @@ START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] double get
   Peak1D pAvg1;
   pAvg1.setMZ(10.5);
   pAvg1.setIntensity(1000);
-  mt_avg.peaks.push_back(std::make_pair(100.0, &pAvg1));
+  MSSpectrum sAvg1;
+  sAvg1.setRT(100.0);
+  mt_avg.peaks.push_back(std::make_pair(&sAvg1, &pAvg1));
 
   Peak1D pAvg2;
   pAvg2.setMZ(10.0);
   pAvg2.setIntensity(100);
-  mt_avg.peaks.push_back(std::make_pair(100.0, &pAvg2));
+  MSSpectrum sAvg2;
+  sAvg2.setRT(100.0);
+  mt_avg.peaks.push_back(std::make_pair(&sAvg2, &pAvg2));
 
   Peak1D pAvg3;
   pAvg3.setMZ(9.5);
   pAvg3.setIntensity(10);
-  mt_avg.peaks.push_back(std::make_pair(100.0, &pAvg3));
+  MSSpectrum sAvg3;
+  sAvg3.setRT(100.0);
+  mt_avg.peaks.push_back(std::make_pair(&sAvg3, &pAvg3));
 
   TEST_REAL_SIMILAR(mt_avg.getAvgMZ(), 10.4459)
 }
@@ -166,13 +154,17 @@ START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] bool isVal
   TEST_EQUAL(mt1.isValid(), true)
   FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt_non_valid;
 
-  mt_non_valid.peaks.push_back(std::make_pair(679.8 , &p1_10));
+  MSSpectrum s;
+  s.setRT(679.8);
+  mt_non_valid.peaks.push_back(std::make_pair(&s, &all_peaks[9]));
   TEST_EQUAL(mt_non_valid.isValid(), false)
 
-  mt_non_valid.peaks.push_back(std::make_pair(679.5 , &p1_9));
+  s.setRT(679.5);
+  mt_non_valid.peaks.push_back(std::make_pair(&s, &all_peaks[8]));
   TEST_EQUAL(mt_non_valid.isValid(), false)
 
-  mt_non_valid.peaks.push_back(std::make_pair(679.2 , &p1_8));
+  s.setRT(679.2);
+  mt_non_valid.peaks.push_back(std::make_pair(&s, &all_peaks[7]));
   TEST_EQUAL(mt_non_valid.isValid(), true)
 }
 END_SECTION
@@ -203,15 +195,21 @@ mt2.theoretical_int = 0.2;
 Peak1D p2_4;
 p2_4.setIntensity(0.750622197703f);
 p2_4.setMZ(1001);
-mt2.peaks.push_back(std::make_pair(678, &p2_4));
+MSSpectrum s2_4;
+s2_4.setRT(678);
+mt2.peaks.push_back(std::make_pair(&s2_4, &p2_4));
 Peak1D p2_5;
 p2_5.setIntensity(0.97350451192f);
 p2_5.setMZ(1001);
-mt2.peaks.push_back(std::make_pair(678.3, &p2_5));
+MSSpectrum s2_5;
+s2_5.setRT(678.3);
+mt2.peaks.push_back(std::make_pair(&s2_5, &p2_5));
 Peak1D p2_6;
 p2_6.setIntensity(1.21306131943f);
 p2_6.setMZ(1001);
-mt2.peaks.push_back(std::make_pair(678.6, &p2_6));
+MSSpectrum s2_6;
+s2_6.setRT(678.6);
+mt2.peaks.push_back(std::make_pair(&s2_6, &p2_6));
 
 mt.push_back(mt2);
 
@@ -264,19 +262,25 @@ END_SECTION
 Peak1D p2_0;
 p2_0.setIntensity(0.286529652f);
 p2_0.setMZ(1001);
-mt[1].peaks.insert(mt[1].peaks.begin(), std::make_pair(676.8, &p2_0));
+MSSpectrum s2_0;
+s2_0.setRT(676.8);
+mt[1].peaks.insert(mt[1].peaks.begin(), std::make_pair(&s2_0, &p2_0));
 
 // .. add a peak after a gap
 Peak1D p2_7;
 p2_7.setIntensity(0.72952935f);
 p2_7.setMZ(1001);
-mt[1].peaks.push_back(std::make_pair(679.2, &p2_7));
+MSSpectrum s2_7;
+s2_7.setRT(679.2);
+mt[1].peaks.push_back(std::make_pair(&s2_7, &p2_7));
 
 // .. and a trailing peak
 Peak1D p2_8;
 p2_8.setIntensity(0.672624672f);
 p2_8.setMZ(1001);
-mt[1].peaks.push_back(std::make_pair(680.1, &p2_8));
+MSSpectrum s2_8;
+s2_8.setRT(680.1);
+mt[1].peaks.push_back(std::make_pair(&s2_8, &p2_8));
 
 START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] void computeIntensityProfile(std::list< std::pair<double, double> > intensity_profile) const))
 {
