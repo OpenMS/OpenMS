@@ -125,7 +125,7 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         /**
         * @brief destructor
         */
-        ~Navigator();
+        ~Navigator() = default;
 
         /**
         * @brief returns spline interpolated intensity at this position

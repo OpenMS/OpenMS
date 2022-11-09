@@ -263,7 +263,7 @@ public:
       StringManager();
 
       /// Destructor
-      ~StringManager();
+      ~StringManager() = default;
 
       /// Transcode the supplied C string to a xerces string
       inline static XercesString convert(const char * str)

@@ -75,7 +75,7 @@ namespace OpenMS
   {
   }
 
-  MzTabFile::~MzTabFile() = default;
+  
 
   std::pair<int, int> MzTabFile::extractIndexPairsFromBrackets_(const String & s)
   {

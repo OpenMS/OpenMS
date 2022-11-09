@@ -300,8 +300,7 @@ namespace OpenMS::Internal
     StringManager::StringManager()
     = default;
 
-    StringManager::~StringManager()
-    = default;
+    
 
     void StringManager::appendASCII(const XMLCh * chars, const XMLSize_t length, String & result)
     {

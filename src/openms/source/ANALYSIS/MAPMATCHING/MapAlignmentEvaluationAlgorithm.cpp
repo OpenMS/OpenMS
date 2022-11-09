@@ -40,6 +40,8 @@
 
 #include <OpenMS/CONCEPT/Factory.h>
 
+#include <cmath>
+
 namespace OpenMS
 {
   //register products here
@@ -60,7 +62,7 @@ namespace OpenMS
     if (fabs(lhs.getMZ() - rhs.getMZ()) > mz_dev)
       return false; // TODO MAGIC_ALERT
 
-    if (fabs(lhs.getIntensity() - rhs.getIntensity()) > int_dev)
+    if (std::fabs(lhs.getIntensity() - rhs.getIntensity()) > int_dev)
       return false; // TODO MAGIC_ALERT
 
     if (use_charge && (lhs.getCharge() != rhs.getCharge()))

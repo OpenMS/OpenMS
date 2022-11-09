@@ -212,7 +212,7 @@ namespace OpenMS
 
   SplineInterpolatedPeaks::Navigator::Navigator() = default;
 
-  SplineInterpolatedPeaks::Navigator::~Navigator() = default;
+  
 
   double SplineInterpolatedPeaks::Navigator::eval(double pos)
   {

@@ -381,7 +381,7 @@ namespace OpenMS
     //set tool combo
     Param::ParamIterator iter = arg_param_.begin();
     String str;
-    string = iter.getName().substr(0, iter.getName().find(":")).c_str();
+    string = iter.getName().substr(0, iter.getName().find(':')).c_str();
     Int pos = tools_combo_->findText(string);
     if (pos == -1)
     {

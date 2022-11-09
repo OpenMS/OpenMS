@@ -77,7 +77,7 @@ public:
     MRMIonSeries();
 
     /// Destructor
-    ~MRMIonSeries();
+    ~MRMIonSeries() = default;
     //@}
 
     typedef std::unordered_map<String, double> IonSeries; ///< An MRM ion series which maps: "ion_type" -> "fragment m/z"
