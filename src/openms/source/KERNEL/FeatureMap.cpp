@@ -131,9 +131,6 @@ namespace OpenMS
     }
   }
 
-  FeatureMap::FeatureMap(FeatureMap&& source)  noexcept = default;
-
-  FeatureMap::~FeatureMap() = default;
 
   FeatureMap& FeatureMap::operator=(const FeatureMap& rhs)
   {

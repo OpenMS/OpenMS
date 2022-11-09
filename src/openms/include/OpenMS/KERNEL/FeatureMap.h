@@ -159,10 +159,11 @@ public:
     OPENMS_DLLAPI FeatureMap(const FeatureMap& source);
 
     /// Move constructor
-    OPENMS_DLLAPI FeatureMap(FeatureMap&& source);
+    OPENMS_DLLAPI FeatureMap(FeatureMap&& source) noexcept = default;
 
     /// Destructor
-    OPENMS_DLLAPI ~FeatureMap() override;
+    OPENMS_DLLAPI ~FeatureMap() override = default; 
+
     //@}
 
     /// Assignment operator
