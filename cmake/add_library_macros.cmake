@@ -225,7 +225,7 @@ function(openms_add_library)
   # copy dll to test/doc bin folder on MSVC systems
   copy_dll_to_extern_bin(${openms_add_library_TARGET_NAME})
 
-  if(${CMAKE_VERSION} VERSION_GREATER "3.20")
+  if(${CMAKE_VERSION} VERSION_GREATER "3.20" AND WIN32)
     # with newer CMakes we can also easily copy dependencies like Qt
     # This stores the command as a list
     set(has_dll_dep

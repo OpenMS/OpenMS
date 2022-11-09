@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/CHEMISTRY/RibonucleotideDB.h>" namespace "OpenMS":
     
     cdef cppclass RibonucleotideDB "OpenMS::RibonucleotideDB":
         # wrap-manual-memory:
-        #   cdef AutowrapPtrHolder[_RibonucleotideDB] inst
+        #  cdef AutowrapPtrHolder[_RibonucleotideDB] inst
 
 
         # protected

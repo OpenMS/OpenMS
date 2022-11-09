@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS":
 
     cdef cppclass DataProcessing(MetaInfoInterface):
         # wrap-inherits:
-        #     MetaInfoInterface
+        #    MetaInfoInterface
 
         DataProcessing()  nogil except +
         DataProcessing(DataProcessing &) nogil except +
@@ -30,7 +30,7 @@ cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS::DataPro
 
     cdef enum ProcessingAction:
         # wrap-attach:
-        #    DataProcessing
+        #   DataProcessing
         DATA_PROCESSING,                #< General data processing (if no other term applies)
         CHARGE_DECONVOLUTION,           #< Charge deconvolution
         DEISOTOPING,                    #< Deisotoping

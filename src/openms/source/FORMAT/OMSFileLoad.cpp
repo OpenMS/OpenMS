@@ -42,8 +42,12 @@
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlError>
 #include <QtSql/QSqlQuery>
+#include <QtSql/QSqlRecord>
 // strangely, this is needed for type conversions in "QSqlQuery::bindValue":
 #include <QtSql/QSqlQueryModel>
+// JSON export:
+#include <QtCore/QJsonDocument>
+#include <QtCore/QJsonObject>
 
 using namespace std;
 
@@ -51,6 +55,21 @@ using ID = OpenMS::IdentificationData;
 
 namespace OpenMS::Internal
 {
+  // initialize lookup table:
+  map<QString, QString> OMSFileLoad::export_order_by_ = {
+    {"version", ""},
+    {"ID_IdentifiedCompound", "molecule_id"},
+    {"ID_ParentMatch", "molecule_id, parent_id, start_pos, end_pos"},
+    {"ID_ParentGroup_ParentSequence", "group_id, parent_id"},
+    {"ID_ProcessingStep_InputFile", "processing_step_id, input_file_id"},
+    {"ID_ProcessingSoftware_AssignedScore", "software_id, score_type_order"},
+    {"ID_ObservationMatch_PeakAnnotation", "parent_id, processing_step_id, peak_mz, peak_annotation"},
+    {"FEAT_ConvexHull", "feature_id, hull_index, point_index"},
+    {"FEAT_ObservationMatch", "feature_id, observation_match_id"},
+    {"FEAT_MapMetaData", "unique_id"}
+  };
+
+
   OMSFileLoad::OMSFileLoad(const String& filename, LogType log_type):
     db_name_("load_" + filename.toQString() + "_" + QString::number(UniqueIdGenerator::getUniqueId()))
   {
@@ -520,7 +539,7 @@ namespace OpenMS::Internal
         handleQueryAppliedProcessingStep_(subquery_step, parent, id);
       }
       ID::ParentSequenceRef ref = id_data.registerParentSequence(parent);
-      parent_refs_[id] = ref;
+      parent_sequence_refs_[id] = ref;
     }
   }
 
@@ -532,7 +551,9 @@ namespace OpenMS::Internal
     QSqlDatabase db = QSqlDatabase::database(db_name_);
     QSqlQuery query(db);
     query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_ParentGroupSet ORDER BY grouping_order ASC"))
+    // "grouping_order" column was removed in schema version 3:
+    QString order_by = version_number_ > 2 ? "id" : "grouping_order";
+    if (!query.exec("SELECT * FROM ID_ParentGroupSet ORDER BY " + order_by + " ASC"))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
@@ -605,7 +626,7 @@ namespace OpenMS::Internal
         {
           Key parent_id = subquery_parent.value(0).toLongLong();
           pair.second.parent_refs.insert(
-            parent_refs_[parent_id]);
+            parent_sequence_refs_[parent_id]);
         }
         grouping.groups.insert(pair.second);
       }
@@ -672,8 +693,7 @@ namespace OpenMS::Internal
     }
     while (query.next())
     {
-      ID::ParentSequenceRef ref =
-        parent_refs_[query.value("parent_id").toLongLong()];
+      ID::ParentSequenceRef ref = parent_sequence_refs_[query.value("parent_id").toLongLong()];
       ID::ParentMatch match;
       QVariant start_pos = query.value("start_pos");
       QVariant end_pos = query.value("end_pos");
@@ -950,7 +970,9 @@ namespace OpenMS::Internal
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM FEAT_DataProcessing ORDER BY position ASC"))
+    // "position" column was removed in schema version 3:
+    QString order_by = version_number_ > 2 ? "id" : "position";
+    if (!query.exec("SELECT * FROM FEAT_DataProcessing ORDER BY " + order_by + " ASC"))
     {
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading from database");
@@ -1130,5 +1152,85 @@ namespace OpenMS::Internal
     nextProgress();
     loadFeatures_(features);
     endProgress();
+  }
+
+
+  void OMSFileLoad::createView_(const QString& name, const QString& select)
+  {
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    if (!query.exec("CREATE TEMP VIEW " + name + " AS " + select))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error creating database view",
+                    query.lastQuery());
+    }
+  }
+
+
+  QJsonArray OMSFileLoad::exportTableToJSON_(const QString& table, const QString& order_by)
+  {
+    // code based on: https://stackoverflow.com/a/18067555
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.setForwardOnly(true);
+    QString sql = "SELECT * FROM " + table;
+    if (!order_by.isEmpty())
+    {
+      sql += " ORDER BY " + order_by;
+    }
+    if (!query.exec(sql))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error reading from database");
+    }
+
+    QJsonArray array;
+    while (query.next())
+    {
+      QJsonObject record;
+      for (int i = 0; i < query.record().count(); ++i)
+      {
+        // @TODO: this will repeat field names for every row -
+        // avoid this with separate "header" and "rows" (array)?
+        record.insert(query.record().fieldName(i), QJsonValue::fromVariant(query.value(i)));
+      }
+      array.push_back(record);
+    }
+    return array;
+  }
+
+
+  void OMSFileLoad::exportToJSON(ostream& output)
+  {
+    // @TODO: this constructs the whole JSON file in memory - write directly to stream instead?
+    // (more code, but would use less memory)
+    QJsonObject json_data;
+    // get names of all tables (except SQLite-internal ones) in the database:
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.setForwardOnly(true);
+    if (!query.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error listing database tables");
+    }
+    while (query.next())
+    {
+      QString table = query.value("name").toString();
+      QString order_by = "id"; // row order for most tables
+      // special cases regarding ordering, e.g. tables without "id" column:
+      if (table.endsWith("_MetaInfo"))
+      {
+        order_by = "parent_id, name";
+      }
+      else if (table.endsWith("_AppliedProcessingStep"))
+      {
+        order_by = "parent_id, processing_step_order, score_type_id";
+      }
+      else if (auto pos = export_order_by_.find(table); pos != export_order_by_.end())
+      {
+        order_by = pos->second;
+      }
+      json_data.insert(table, exportTableToJSON_(table, order_by));
+    }
+
+    QJsonDocument json_doc;
+    json_doc.setObject(json_data);
+    output << json_doc.toJson().toStdString();
   }
 }

@@ -37,6 +37,8 @@
 #include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <utility>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -49,8 +51,8 @@ namespace OpenMS {
     bool load_cached
   )
     : 
-    filename_(filename),
-    base_dir_(base_dir),
+    filename_(std::move(filename)),
+    base_dir_(std::move(base_dir)),
     load_cached_(load_cached),
     samples_()
   {

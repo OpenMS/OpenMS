@@ -303,7 +303,7 @@ namespace OpenMS
       }
     }
 
-    void PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, String search_engine)
+    void PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, const String& search_engine)
     {
       OPENMS_LOG_DEBUG << "creating spectrum map" << endl;
       
@@ -535,7 +535,7 @@ namespace OpenMS
       OPENMS_LOG_DEBUG << "Merging for this file finished." << endl;
     }
     
-    void PercolatorFeatureSetHelper::concatMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, String search_engine)
+    void PercolatorFeatureSetHelper::concatMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, const String& search_engine)
     {      
       for (vector<PeptideIdentification>::iterator pit = new_peptide_ids.begin(); pit != new_peptide_ids.end(); ++pit)
       {
@@ -766,7 +766,7 @@ namespace OpenMS
       return featureValue * ((double)numerator / denominator);
     }
     
-    void PercolatorFeatureSetHelper::assignDeltaScore_(vector<PeptideHit>& hits, String score_ref, String output_ref)
+    void PercolatorFeatureSetHelper::assignDeltaScore_(vector<PeptideHit>& hits, const String& score_ref, const String& output_ref)
     {
       if (!hits.empty())
       {

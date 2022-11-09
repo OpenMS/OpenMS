@@ -94,6 +94,9 @@ namespace OpenMS
     Size getMatchingSpectrumIndex() const;
     void setMatchingSpectrumIndex(const Size&);
 
+    String getObservedSpectrumNativeID() const;
+    void setObservedSpectrumNativeID(const String&);
+
     String getPrimaryIdentifier() const;
     void setPrimaryIdentifier(const String&);
 
@@ -124,6 +127,7 @@ namespace OpenMS
     double matching_score_;
     Size observed_spectrum_idx_;
     Size matching_spectrum_idx_;
+    String observed_spectrum_native_id_;
 
     // further meta information
     String primary_id_;
@@ -174,7 +178,7 @@ namespace OpenMS
       double mz_lower_bound = 0.0);
 
     /// main method of MetaboliteSpectralMatching
-    void run(PeakMap &, PeakMap &, MzTab &);
+    void run(PeakMap &, PeakMap &, MzTab &, String &);
 
   protected:
     void updateMembers_() override;
@@ -199,6 +203,8 @@ namespace OpenMS
     String ion_mode_;
 
     String report_mode_;
+
+    bool merge_spectra_;
   };
 
 }

@@ -40,6 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <map>
+#include <utility>
 
 using std::vector;
 using std::pair;
@@ -56,9 +57,7 @@ namespace OpenMS
     warn_empty_defaults_ = false;
   }
 
-  BaseLabeler::~BaseLabeler()
-  {
-  }
+  BaseLabeler::~BaseLabeler() = default;
 
   Param BaseLabeler::getDefaultParameters() const
   {
@@ -67,7 +66,7 @@ namespace OpenMS
 
   void BaseLabeler::setRnd(SimTypes::MutableSimRandomNumberGeneratorPtr rng)
   {
-    rng_ = rng;
+    rng_ = std::move(rng);
   }
 
   String BaseLabeler::getChannelIntensityName(const Size channel_index) const

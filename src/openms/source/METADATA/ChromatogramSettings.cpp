@@ -61,9 +61,7 @@ namespace OpenMS
   {
   }
 
-  ChromatogramSettings::~ChromatogramSettings()
-  {
-  }
+  ChromatogramSettings::~ChromatogramSettings() = default;
 
   bool ChromatogramSettings::operator==(const ChromatogramSettings & rhs) const
   {

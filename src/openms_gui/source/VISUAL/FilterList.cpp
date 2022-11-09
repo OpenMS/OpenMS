@@ -51,7 +51,7 @@ namespace OpenMS::Internal
       ui_->setupUi(this);
       connect(ui_->filter, &QListWidget::itemDoubleClicked, this, &FilterList::filterEdit_);
       connect(ui_->filter, &QListWidget::customContextMenuRequested, this, &FilterList::customContextMenuRequested_);
-      connect(ui_->check, &QCheckBox::toggled, [&]()
+      connect(ui_->check, &QCheckBox::clicked, [&]() // only on user interaction; not when calling setChecked()!
       {
         filters_.setActive(!filters_.isActive()); // invert internal representation
         emit filterChanged(filters_);             // make it public

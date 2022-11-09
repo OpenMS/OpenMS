@@ -262,7 +262,7 @@ public:
     void setAnalysisResults(std::vector<PepXMLAnalysisResult> aresult);
 
     /// add information on (search engine) sub scores associated with this PSM
-    void addAnalysisResults(PepXMLAnalysisResult aresult);
+    void addAnalysisResults(const PepXMLAnalysisResult& aresult);
 
     /// returns information on (search engine) sub scores associated with this PSM
     const std::vector<PepXMLAnalysisResult>& getAnalysisResults() const;

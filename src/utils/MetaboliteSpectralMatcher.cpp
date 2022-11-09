@@ -75,6 +75,9 @@ using namespace std;
         </table>
         </CENTER>
 
+        By default, MS2 spectra with similar precursor mass are merged before comparison with database spectra, for example when a mass at the beginning of the peak and on the peak apex is selected twice as precursor.
+        Merging can also have disadvantages, for example, for isobaric or isomeric compounds that have similar/same masses but can have different retention times and MS2 spectra.
+
         <B>The command line parameters of this tool are:</B>
         @verbinclude UTILS_MetaboliteSpectralMatcher.cli
         <B>INI file documentation of this tool:</B>
@@ -103,6 +106,8 @@ protected:
     setValidFormats_("database", {"mzML", "msp", "mgf"});
     registerOutputFile_("out", "<file>", "", "mzTab file");
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
+    registerOutputFile_("out_spectra", "<file>", "", "Output spectra as mzML file. Can be useful to inspect the peak map after spectra merging.", false);
+    setValidFormats_("out_spectra", ListUtils::create<String>("mzML"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
@@ -130,6 +135,7 @@ protected:
     }
 
     String out = getStringOption_("out");
+    String out_spectra = getStringOption_("out_spectra");
 
     //-------------------------------------------------------------
     // loading input
@@ -189,7 +195,7 @@ protected:
     //-------------------------------------------------------------
     MetaboliteSpectralMatching msm;
     msm.setParameters(msm_param);
-    msm.run(ms_peakmap, spec_db, mztab_output);
+    msm.run(ms_peakmap, spec_db, mztab_output, out_spectra);
 
     //-------------------------------------------------------------
     // store results

@@ -32,11 +32,11 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>" namespace "Op
     void setModifications(libcpp_set[ ModificationDefinition ] &mod_defs) nogil except + # wrap-doc:Sets the modification definitions
     void setModifications(const String &fixed_modifications, String &variable_modifications) nogil except +
       # wrap-doc:
-          #   Set the modification definitions from a string
-          #   -----
-          #   The strings should contain a comma separated list of modifications. The names
-          #   can be PSI-MOD identifier or any other unique name supported by PSI-MOD. TermSpec
-          #   definitions and other specific definitions are given by the modifications themselves.
+          #  Set the modification definitions from a string
+          #  
+          #  The strings should contain a comma separated list of modifications. The names
+          #  can be PSI-MOD identifier or any other unique name supported by PSI-MOD. TermSpec
+          #  definitions and other specific definitions are given by the modifications themselves.
 
     void setModifications(StringList &fixed_modifications, StringList &variable_modifications) nogil except + # wrap-doc:Same as above, but using StringList instead of comma separated strings
     libcpp_set[ModificationDefinition] getModifications() nogil except + # wrap-doc:Returns the stored modification definitions

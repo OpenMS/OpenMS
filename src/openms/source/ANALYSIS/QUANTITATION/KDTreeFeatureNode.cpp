@@ -44,23 +44,15 @@ KDTreeFeatureNode::KDTreeFeatureNode(KDTreeFeatureMaps* data, Size idx) :
 {
 }
 
-KDTreeFeatureNode::KDTreeFeatureNode(const KDTreeFeatureNode& rhs) :
-  data_(rhs.data_),
-  idx_(rhs.idx_)
-{
-}
+KDTreeFeatureNode::KDTreeFeatureNode(const KDTreeFeatureNode& rhs) 
+  
+= default;
 
 KDTreeFeatureNode& KDTreeFeatureNode::operator=(KDTreeFeatureNode const& rhs)
-{
-  data_ = rhs.data_;
-  idx_ = rhs.idx_;
-
-  return *this;
-}
+= default;
 
 KDTreeFeatureNode::~KDTreeFeatureNode()
-{
-}
+= default;
 
 Size KDTreeFeatureNode::getIndex() const
 {

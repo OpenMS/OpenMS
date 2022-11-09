@@ -65,11 +65,12 @@ namespace OpenMS
       @param line Line in the code where error occurred
       @param function Name of the function where error occurred
       @param context Context for the error
+      @param query Text of the query that was executed (optional)
 
       @throw Exception::FailedAPICall Throw this exception
     */
     void raiseDBError_(const QSqlError& error, int line,
-                       const char* function, const String& context);
+                       const char* function, const String& context, const String& query = "");
 
 
     /*!
@@ -164,19 +165,18 @@ namespace OpenMS
 
       void createTableIdentifiedMolecule_();
 
-      Key getAddress_(const IdentificationData::IdentifiedMolecule& molecule_var);
+      Key getDatabaseKey_(const IdentificationData::IdentifiedMolecule& molecule_var);
 
       void createTableParentMatches_();
 
       void storeParentMatches_(
         const IdentificationData::ParentMatches& matches, Key molecule_id);
 
-      template<class MetaInfoInterfaceContainer>
+      template<class MetaInfoInterfaceContainer, class DBKeyTable>
       void storeMetaInfos_(const MetaInfoInterfaceContainer& container,
-                           const String& parent_table)
+                           const String& parent_table, const DBKeyTable& db_keys)
       {
         bool table_created = false;
-        QSqlQuery query; // prepare query only once and only if needed
         for (const auto& element : container)
         {
           if (!element.isMetaEmpty())
@@ -186,15 +186,14 @@ namespace OpenMS
               createTableMetaInfo_(parent_table);
               table_created = true;
             }
-            storeMetaInfo_(element, parent_table, Key(&element));
+            storeMetaInfo_(element, parent_table, db_keys.at(&element));
           }
         }
       }
 
-      template<class ScoredProcessingResultContainer>
-      void storeScoredProcessingResults_(
-        const ScoredProcessingResultContainer& container,
-        const String& parent_table)
+      template<class ScoredProcessingResultContainer, class DBKeyTable>
+      void storeScoredProcessingResults_(const ScoredProcessingResultContainer& container,
+                                         const String& parent_table, const DBKeyTable& db_keys)
       {
         bool table_created = false;
         for (const auto& element : container)
@@ -207,15 +206,13 @@ namespace OpenMS
               table_created = true;
             }
             Size counter = 0;
-            for (const IdentificationData::AppliedProcessingStep& step :
-                   element.steps_and_scores)
+            for (const IdentificationData::AppliedProcessingStep& step : element.steps_and_scores)
             {
-              storeAppliedProcessingStep_(step, ++counter, parent_table,
-                                          Key(&element));
+              storeAppliedProcessingStep_(step, ++counter, parent_table, db_keys.at(&element));
             }
           }
         }
-        storeMetaInfos_(container, parent_table);
+        storeMetaInfos_(container, parent_table, db_keys);
       }
 
       void storeFeature_(const FeatureMap& features);
@@ -245,6 +242,26 @@ namespace OpenMS
 
       /// prepared queries for inserting data into different tables
       std::map<std::string, QSqlQuery> prepared_queries_;
+
+      // mapping between loaded data and database keys:
+      // @NOTE: in principle we could use `unordered_map` here for efficiency,
+      // but that gives compiler errors when pointers or iterators (`...Ref`)
+      // are used as keys (because they aren't hashable?)
+      std::map<const IdentificationData::ScoreType*, Key> score_type_keys_;
+      std::map<const IdentificationData::InputFile*, Key> input_file_keys_;
+      std::map<const IdentificationData::ProcessingSoftware*, Key> processing_software_keys_;
+      std::map<const IdentificationData::ProcessingStep*, Key> processing_step_keys_;
+      std::map<const IdentificationData::DBSearchParam*, Key> search_param_keys_;
+      std::map<const IdentificationData::Observation*, Key> observation_keys_;
+      std::map<const IdentificationData::ParentSequence*, Key> parent_sequence_keys_;
+      std::map<const IdentificationData::ParentGroupSet*, Key> parent_grouping_keys_;
+      std::map<const IdentificationData::IdentifiedCompound*, Key> identified_compound_keys_;
+      std::map<const IdentificationData::IdentifiedPeptide*, Key> identified_peptide_keys_;
+      std::map<const IdentificationData::IdentifiedOligo*, Key> identified_oligo_keys_;
+      std::map<const AdductInfo*, Key> adduct_keys_;
+      std::map<const IdentificationData::ObservationMatch*, Key> observation_match_keys_;
+      // for feature maps:
+      std::map<const DataProcessing*, Key> feat_processing_keys_;
     };
   }
 }

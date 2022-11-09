@@ -205,7 +205,7 @@ public:
 protected:
 
       /// Distribute a new message to connected streams.
-      void distribute_(std::string outstring);
+      void distribute_(const std::string& outstring);
 
       /// Interpret the prefix format string and return the expanded prefix.
       std::string expandPrefix_(const std::string & prefix, time_t time) const;

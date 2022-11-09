@@ -10,8 +10,8 @@ cdef extern from "<OpenMS/FILTERING/SMOOTHING/GaussFilter.h>" namespace "OpenMS"
 
     cdef cppclass GaussFilter(DefaultParamHandler,ProgressLogger):
         # wrap-inherits:
-        #    DefaultParamHandler
-        #    ProgressLogger
+        #   DefaultParamHandler
+        #   ProgressLogger
 
         GaussFilter() nogil except + # wrap-doc:This class represents a Gaussian lowpass-filter which works on uniform as well as on non-uniform profile data
         GaussFilter(GaussFilter &) nogil except + # compiler

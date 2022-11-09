@@ -74,7 +74,7 @@ namespace OpenMS
         bool cgp_found = std::any_of(
           cgp_list.begin(),
           cgp_list.end(),
-          [&cgp](MRMFeaturePicker::ComponentGroupParams current_cgp)
+          [&cgp](const MRMFeaturePicker::ComponentGroupParams& current_cgp)
           {
             return cgp.component_group_name == current_cgp.component_group_name;
           }

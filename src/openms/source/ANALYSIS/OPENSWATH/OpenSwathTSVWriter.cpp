@@ -106,7 +106,7 @@ namespace OpenMS
 
     String OpenSwathTSVWriter::prepareLine(const OpenSwath::LightCompound& pep,
         const OpenSwath::LightTransition * transition,
-        const FeatureMap& output, const String id) const
+        const FeatureMap& output, const String& id) const
     {
         String result = "";
         String decoy = "0"; // 0 = false

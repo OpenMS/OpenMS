@@ -37,33 +37,37 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
         double getElement(Int row_index, Int column_index) nogil except + # wrap-doc:Returns the element
         void readProblem(String filename, String format_) nogil except +
             # wrap-doc:
-                #   Read LP from file
-                #   -----
-                #   :param filename: Filename where to store the LP problem
-                #   :param format: LP, MPS or GLPK
+                #  Read LP from file
+                #  
+                #  
+                #  :param filename: Filename where to store the LP problem
+                #  :param format: LP, MPS or GLPK
 
         void writeProblem(const String & filename, WriteFormat format_) nogil except +
             # wrap-doc:
-                #   Write LP formulation to a file
-                #   -----
-                #   :param filename: Output filename, if the filename ends with '.gz' it will be compressed
-                #   :param format: MPS-format is supported by GLPK and COIN-OR; LP and GLPK-formats only by GLPK
+                #  Write LP formulation to a file
+                #  
+                #  
+                #  :param filename: Output filename, if the filename ends with '.gz' it will be compressed
+                #  :param format: MPS-format is supported by GLPK and COIN-OR; LP and GLPK-formats only by GLPK
 
         Int solve(SolverParam & solver_param, Size verbose_level) nogil except +
             # wrap-doc:
-                #   Solve problems, parameters like enabled heuristics can be given via solver_param
-                #   -----
-                #   The verbose level (0,1,2) determines if the solver prints status messages and internals
-                #   -----
-                #   :param solver_param: Parameters of the solver introduced by SolverParam
-                #   :param verbose_level: Sets verbose level
-                #   :returns: solver dependent 
+                #  Solve problems, parameters like enabled heuristics can be given via solver_param\n
+                #  
+                #  The verbose level (0,1,2) determines if the solver prints status messages and internals
+                #  
+                #  
+                #  :param solver_param: Parameters of the solver introduced by SolverParam
+                #  :param verbose_level: Sets verbose level
+                #  :return: solver dependent 
 
         SolverStatus getStatus() nogil except +
             # wrap-doc:
-                #   Returns solution status
-                #   -----
-                #   :returns: status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
+                #  Returns solution status
+                #  
+                #  
+                #  :return: status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
 
         double getObjectiveValue() nogil except +
         double getColumnValue(Int index) nogil except +
@@ -97,7 +101,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrap
 cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrapper":
     cdef enum LPWrapper_Type "OpenMS::LPWrapper::Type":
         #wrap-attach:
-        #    LPWrapper
+        #   LPWrapper
         UNBOUNDED
         LOWER_BOUND_ONLY
         UPPER_BOUND_ONLY
@@ -107,7 +111,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrap
 cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrapper":
     cdef enum VariableType "OpenMS::LPWrapper::VariableType":
         #wrap-attach:
-        #    LPWrapper
+        #   LPWrapper
         CONTINUOUS
         INTEGER
         BINARY
@@ -115,14 +119,14 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrap
 cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrapper":
     cdef enum Sense "OpenMS::LPWrapper::Sense":
         #wrap-attach:
-        #    LPWrapper
+        #   LPWrapper
         MIN
         MAX
 
 cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrapper":
     cdef enum WriteFormat "OpenMS::LPWrapper::WriteFormat":
         #wrap-attach:
-        #    LPWrapper
+        #   LPWrapper
         FORMAT_LP
         FORMAT_MPS
         FORMAT_GLPK
@@ -130,13 +134,13 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrap
 cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrapper":
     cdef enum SOLVER "OpenMS::LPWrapper::SOLVER":
         #wrap-attach:
-        #    LPWrapper
+        #   LPWrapper
         SOLVER_GLPK
 
 cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrapper":
     cdef enum SolverStatus "OpenMS::LPWrapper::SolverStatus":
         #wrap-attach:
-        #    LPWrapper
+        #   LPWrapper
         UNDEFINED
         OPTIMAL
         FEASIBLE

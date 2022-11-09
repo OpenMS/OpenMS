@@ -163,15 +163,21 @@ namespace OpenMS
 
   void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable, 
     FeatureMap& features, 
-    String spectra_file)
+    const String& spectra_file)
   {
     // if proper mzML is annotated in MS data use this as reference. Otherwise, overwrite with spectra_file information.
     features.setPrimaryMSRunPath({spectra_file}, ms_data_); 
+  
+    if (ms_data_.empty())
+    {
+      OPENMS_LOG_WARN << "Warning: No MS1 scans in:"<< spectra_file << endl;      
+      return;
+    }
 
     for (const auto& c : metaboIdentTable)
     {
-      addTargetToLibrary_(c.name, c.formula, c.mass, c.charges, c.rts, c.rt_ranges,
-                      c.iso_distrib);
+      addTargetToLibrary_(c.getName(), c.getFormula(), c.getMass(), c.getCharges(), c.getRTs(), c.getRTRanges(),
+                      c.getIsotopeDistribution());
     }
 
     // initialize algorithm classes needed later:

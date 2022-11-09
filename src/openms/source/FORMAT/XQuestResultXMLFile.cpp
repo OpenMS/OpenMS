@@ -46,9 +46,7 @@ namespace OpenMS
     n_hits_(-1)
   {
   }
-  XQuestResultXMLFile::~XQuestResultXMLFile()
-  {
-  }
+  XQuestResultXMLFile::~XQuestResultXMLFile() = default;
 
   void XQuestResultXMLFile::load(const String & filename,
                                  std::vector < PeptideIdentification > & pep_ids,
@@ -229,7 +227,7 @@ namespace OpenMS
     return;
   }
 
-  String XQuestResultXMLFile::getxQuestBase64EncodedSpectrum_(const PeakSpectrum& spec, String header, const bool& test_mode)
+  String XQuestResultXMLFile::getxQuestBase64EncodedSpectrum_(const PeakSpectrum& spec, const String& header, const bool& test_mode)
   {
     std::vector<String> in_strings;
     StringList sl;

@@ -41,9 +41,9 @@
 namespace OpenMS
 {
 
-  MzTabMFile::MzTabMFile(){}
+  MzTabMFile::MzTabMFile()= default;
 
-  MzTabMFile::~MzTabMFile(){}
+  MzTabMFile::~MzTabMFile()= default;
 
   void MzTabMFile::generateMzTabMMetaDataSection_(const MzTabMMetaData& md, StringList& sl) const
   {

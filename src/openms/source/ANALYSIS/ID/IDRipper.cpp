@@ -54,14 +54,9 @@ namespace OpenMS
   {
   }
 
-  IDRipper::IDRipper(const IDRipper& cp) :
-    DefaultParamHandler(cp)
-  {
-  }
+  IDRipper::IDRipper(const IDRipper& cp) = default;
 
-  IDRipper::~IDRipper()
-  {
-  }
+  IDRipper::~IDRipper() = default;
 
   IDRipper& IDRipper::operator=(const IDRipper& rhs)
   {
@@ -413,7 +408,7 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
     }
   }
 
-  void IDRipper::getProteinIdentification_(ProteinIdentification& result, PeptideIdentification pep_ident, std::vector<ProteinIdentification>& prot_idents)
+  void IDRipper::getProteinIdentification_(ProteinIdentification& result, const PeptideIdentification& pep_ident, std::vector<ProteinIdentification>& prot_idents)
   {
     const String& identifier = pep_ident.getIdentifier();
 

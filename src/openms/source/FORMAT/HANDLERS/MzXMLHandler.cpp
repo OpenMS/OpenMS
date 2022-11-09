@@ -1150,7 +1150,7 @@ namespace OpenMS::Internal
     }
 
 
-    inline void MzXMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent, String tag)
+    inline void MzXMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent, const String& tag)
     {
       std::vector<String> keys; // Vector to hold keys to meta info
       meta.getKeys(keys);

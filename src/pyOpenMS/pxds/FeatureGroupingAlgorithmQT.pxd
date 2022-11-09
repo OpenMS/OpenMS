@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>" na
 
     cdef cppclass FeatureGroupingAlgorithmQT(FeatureGroupingAlgorithm):
         # wrap-inherits:
-        #    FeatureGroupingAlgorithm
+        #   FeatureGroupingAlgorithm
 
         FeatureGroupingAlgorithmQT() nogil except + 
         # private
