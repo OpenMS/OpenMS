@@ -350,5 +350,5 @@ jobs:
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
           OPENMP: "On"
-          USE_STATIC_BOOST: "Off"
+          USE_STATIC_BOOST: "On"
           BUILD_FLAGS: "-j2"
