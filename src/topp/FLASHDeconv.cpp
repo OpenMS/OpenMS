@@ -384,8 +384,7 @@ protected:
     String out_promex_file = getStringOption_("out_promex");
     auto out_topfd_file = getStringList_("out_topFD");
     auto out_topfd_feature_file = getStringOption_("out_topFD_feature");
-    double topFD_SNR_threshold = //in_log_file.length() > 0 ? .0 :
-                                                            getDoubleOption_("min_precursor_snr");
+    double topFD_SNR_threshold = getDoubleOption_("min_precursor_snr");
     bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
     int max_ms_level = getIntOption_("max_MS_level");
     int forced_ms_level = getIntOption_("forced_MS_level");
@@ -442,8 +441,7 @@ protected:
       }
     }
 
-    std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition = FLASHIda::parseFLASHIdaLog(
-        in_log_file); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
+    std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition = FLASHIda::parseFLASHIdaLog(in_log_file); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
 
 
     //-------------------------------------------------------------
@@ -834,8 +832,6 @@ protected:
       }
     }
 
-    // TODO
-
     if(DLTrain)
     {
       QScore::writeAttCsvFromDecoyHeader(out_att_stream);
@@ -859,7 +855,6 @@ protected:
           pg.clearVectors();
         }
       }
-
 
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
