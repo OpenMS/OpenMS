@@ -60,9 +60,20 @@ namespace OpenMS
           "\n";
   }
 
-  void FLASHDeconvFeatureFile::writeTopFDFeatureHeader(std::fstream& fs)
+  void FLASHDeconvFeatureFile::writeTopFDFeatureHeader(std::vector<std::fstream>& fs)
   {
-    fs << "Sample_ID\tID\tMass\tIntensity\tTime_begin\tTime_end\tTime_apex\tMinimum_charge_state\tMaximum_charge_state\tMinimum_fraction_id\tMaximum_fraction_id\n";
+    for (Size i = 0; i < fs.size(); ++i)
+    {
+      if (i == 0)
+      {
+        fs[i] << "Sample_ID\tID\tMass\tIntensity\tTime_begin\tTime_end\tTime_apex\tMinimum_charge_state\tMaximum_charge_state\tMinimum_fraction_id\tMaximum_fraction_id\n";
+      }
+      else
+      {
+        fs[i] << "Spec_ID\tFraction_ID\tFile_name\tScans\tMS_one_ID\tMS_one_scans\tPrecursor_mass\tPrecursor_intensity\tFraction_feature_ID\tFraction_feature_intensity\tFraction_feature_"
+                 "score\tFraction_feature_time_apex\tSample_feature_ID\tSample_feature_intensity\n";
+      }
+    }
   }
 
   void FLASHDeconvFeatureFile::writeFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const String& file_name, std::fstream& fs)
@@ -122,7 +133,7 @@ namespace OpenMS
 
   void FLASHDeconvFeatureFile::writeTopFDFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features,
                                                   const std::map<int, PeakGroup>& precursor_peak_groups,
-                                                  const std::map<int, double>& scan_rt_map, const String file_name, std::fstream& fs)
+                                                  const std::map<int, double>& scan_rt_map, const String file_name, std::vector<std::fstream>& fs)
   {
     int topid = 1;
     std::unordered_map<int, int> mtid_topid;
@@ -135,20 +146,26 @@ namespace OpenMS
         {
           sum_intensity += m.getIntensity();
         }
-
-        fs << "0\t" << topid << "\t" << mass_feature.mt.getCentroidMZ() << "\t" << sum_intensity << "\t" << mass_feature.mt.begin()->getRT() << "\t" << mass_feature.mt.rbegin()->getRT() << "\t" << mass_feature.mt[mass_feature.mt.findMaxByIntPeak()].getRT()<< "\t"
-              << mass_feature.min_charge << "\t" << mass_feature.max_charge << "\t0\t0\n";
-        mtid_topid[l] = topid;
-
+        for (Size i = 0; i < fs.size(); i++)
+        {
+            if (i == 0)
+            {
+              fs[i] << "0\t" << topid << "\t" << mass_feature.mt.getCentroidMZ() << "\t" << sum_intensity << "\t" << mass_feature.mt.begin()->getRT() << "\t" << mass_feature.mt.rbegin()->getRT() << "\t" << mass_feature.mt[mass_feature.mt.findMaxByIntPeak()].getRT()<< "\t"
+                    << mass_feature.min_charge << "\t" << mass_feature.max_charge << "\t0\t0\n";
+              mtid_topid[l] = topid;
+            }
+         }
         topid++;
       }
 
 
       for (auto& precursor : precursor_peak_groups)
       {
+        int ms1_scan_number = precursor.second.getScanNumber();
         int ms2_scan_number = precursor.first;
         double rt = scan_rt_map.at(ms2_scan_number);
         bool selected = false;
+        int selected_index = -1;
         for (Size l = 0; l < mass_features.size(); l++)
         {
           auto mass_feature = mass_features[l];
@@ -162,18 +179,40 @@ namespace OpenMS
             continue;
           }
           selected = true;
+          selected_index = (int) l;
           break;
         }
 
         if (selected)
         {
+          for (Size i = 1; i < fs.size(); i++)
+          {
+            double sum_intensity = .0;
+            for (auto& m : mass_features[selected_index].mt)
+            {
+              sum_intensity += m.getIntensity();
+            }
+            fs[i] << ms2_scan_number << "\t0\t" << file_name << "\t" << ms2_scan_number << "\t" << ms1_scan_number << "\t" << ms1_scan_number << "\t" << precursor.second.getMonoMass() << "\t"
+                  << precursor.second.getIntensity() << "\t" << mtid_topid[selected_index] << "\t" << sum_intensity << "\t-1000\t" << mass_features[selected_index].mt[mass_features[selected_index].mt.findMaxByIntPeak()].getRT()<< "\t"  << topid << "\t" << sum_intensity << "\n";
+          }
           continue;
         }
 
         auto crange = precursor.second.getAbsChargeRange();
 
-        fs << "0\t" << topid << "\t" << precursor.second.getMonoMass() << "\t" << precursor.second.getIntensity() << "\t" << rt - 1 << "\t" << rt + 1 << "\t" << rt<< "\t"
-               << (precursor.second.isPositive() ? std::get<0>(crange) : -std::get<1>(crange)) << "\t" << (precursor.second.isPositive() ? std::get<1>(crange) : -std::get<0>(crange)) << "\t0\t0\n";
+        for (Size i = 0; i < fs.size(); i++)
+        {
+          if (i == 0)
+          {
+            fs[i] << "0\t" << topid << "\t" << precursor.second.getMonoMass() << "\t" << precursor.second.getIntensity() << "\t" << rt - 1 << "\t" << rt + 1 << "\t" << rt<< "\t"
+                   << (precursor.second.isPositive() ? std::get<0>(crange) : -std::get<1>(crange)) << "\t" << (precursor.second.isPositive() ? std::get<1>(crange) : -std::get<0>(crange)) << "\t0\t0\n";
+          }
+          else
+          {
+            fs[i] << ms2_scan_number << "\t0\t" << file_name << "\t" << ms2_scan_number << "\t" << ms1_scan_number << "\t" << ms1_scan_number << "\t" << precursor.second.getMonoMass() << "\t"
+                   << precursor.second.getIntensity() << "\t" << topid << "\t" << precursor.second.getIntensity() << "\t-1000\t" << rt << "\t" <<  topid << "\t" << precursor.second.getIntensity() << "\n";
+          }
+        }
         topid++;
       }
   }

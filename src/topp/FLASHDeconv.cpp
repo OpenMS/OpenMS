@@ -128,10 +128,11 @@ protected:
 
     setValidFormats_("out_topFD", ListUtils::create<String>("msalign"), false);
 
-    registerOutputFile_("out_topFD_feature",
-                            "<file>",
-                            "",
-                            "Output feature (topFD compatible) file containing MS1 deconvolved features. MS1 feature file is necessary for TopPIC feature intensity output",
+    registerOutputFileList_("out_topFD_feature",
+                            "<file for MS1, file for MS2, ...>",
+                            {""},
+                            "Output feature (topFD compatible) files containing deconvolved features (per MS level). "
+                        "The feature files are necessary for TopPIC feature intensity output",
                             false);
     setValidFormats_("out_topFD_feature", ListUtils::create<String>("feature"), false);
 
@@ -382,7 +383,7 @@ protected:
     String out_anno_mzml_file = getStringOption_("out_annotated_mzml");
     String out_promex_file = getStringOption_("out_promex");
     auto out_topfd_file = getStringList_("out_topFD");
-    auto out_topfd_feature_file = getStringOption_("out_topFD_feature");
+    auto out_topfd_feature_file = getStringList_("out_topFD_feature");
     double topFD_SNR_threshold = getDoubleOption_("min_precursor_snr");
     bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
     int max_ms_level = getIntOption_("max_MS_level");
@@ -398,8 +399,8 @@ protected:
     double max_rt = getDoubleOption_("Algorithm:max_rt");
     //String targets = getStringOption_("target_mass");
 
-    fstream out_stream, out_train_stream, out_promex_stream, out_att_stream, out_dl_stream, out_topfd_feature_stream;
-    std::vector<fstream> out_spec_streams, out_topfd_streams;
+    fstream out_stream, out_train_stream, out_promex_stream, out_att_stream, out_dl_stream;
+    std::vector<fstream> out_spec_streams, out_topfd_streams, out_topfd_feature_streams;
 
     out_stream.open(out_file, fstream::out);
     if(DLTrain)
@@ -418,8 +419,12 @@ protected:
 
     if (!out_topfd_feature_file.empty())
     {
-      out_topfd_feature_stream.open(out_topfd_feature_file, fstream::out);
-      FLASHDeconvFeatureFile::writeTopFDFeatureHeader(out_topfd_feature_stream);
+      out_topfd_feature_streams = std::vector<fstream>(out_topfd_feature_file.size());
+      for (Size i = 0; i < out_topfd_feature_file.size(); i++)
+      {
+        out_topfd_feature_streams[i].open(out_topfd_feature_file[i], fstream::out);
+      }
+      FLASHDeconvFeatureFile::writeTopFDFeatureHeader(out_topfd_feature_streams);
     }
 
     if (!out_topfd_file.empty())
@@ -822,7 +827,7 @@ protected:
       }
       if(!out_topfd_feature_file.empty())
       {
-        FLASHDeconvFeatureFile::writeTopFDFeatures(mass_features, precursor_peak_groups, scan_rt_map, in_file,out_topfd_feature_stream);
+        FLASHDeconvFeatureFile::writeTopFDFeatures(mass_features, precursor_peak_groups, scan_rt_map, in_file,out_topfd_feature_streams);
       }
 
       if(!out_promex_file.empty())
@@ -934,7 +939,16 @@ protected:
     }
     if (!out_topfd_feature_file.empty())
     {
+      int j = 0;
+      for (auto& out_topfd_feature_stream: out_topfd_feature_streams)
+      {
         out_topfd_feature_stream.close();
+        if (j + 1 > current_max_ms_level)
+        {
+          std::remove(out_topfd_feature_file[j].c_str());
+        }
+        j++;
+      }
     }
 
     if (!out_topfd_file.empty())
