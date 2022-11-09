@@ -33,17 +33,18 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <QFileInfo>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
+
+#include <QFileInfo>
 
 using namespace OpenMS;
 using namespace std;
@@ -251,7 +252,6 @@ protected:
     fd_defaults.addTag("max_rt", "advanced");
     fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
-    //fd_defaults.addTag("tol", "advanced"); // hide entry
     fd_defaults.setValue("min_intensity", 10.0, "Intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
     fd_defaults.setValue("min_isotope_cosine",
@@ -284,23 +284,6 @@ protected:
     mf_defaults.setValue("mass_error_ppm", -1.0, "Feature tracing mass ppm tolerance. When negative, MS1 tolerance for mass deconvolution will be used (e.g., 16 ppm is used when -Algorithm:tol 16).");
     mf_defaults.setValue("min_sample_rate", 0.05);
 
-    /*
-    Param sm_defaults = SpectraMerger().getDefaults();
-    sm_defaults.remove("mz_binning_width");
-    sm_defaults.remove("mz_binning_width_unit");
-    sm_defaults.remove("sort_blocks");
-
-    sm_defaults.remove("average_gaussian:spectrum_type");
-    sm_defaults.remove("average_gaussian:rt_FWHM");
-    sm_defaults.remove("average_gaussian:cutoff");
-    sm_defaults.remove("block_method:rt_max_length");
-
-    sm_defaults.remove("average_gaussian:ms_level");
-    sm_defaults.remove("block_method:ms_levels");
-
-    sm_defaults.removeAll("precursor_method");
-    sm_defaults.removeAll("average_tophat");
-*/
     Param combined;
 
     combined.insert("Algorithm:", fd_defaults);
@@ -525,7 +508,6 @@ protected:
         break;
       }
     }
-    //std::cout<<max_precursor_c<<std::endl;
     // Max MS Level is adjusted according to the input dataset
     current_max_ms_level = current_max_ms_level > max_ms_level ? max_ms_level : current_max_ms_level;
 
@@ -546,7 +528,6 @@ protected:
 
     Param fd_param = getParam_().copy("Algorithm:", true);
     DoubleList tols = fd_param.getValue("tol");
-    //fd_param.setValue("tol", getParam_().getValue("tol"));
 
     filterLowPeaks(map, max_peak_count_);
 
@@ -559,7 +540,6 @@ protected:
       Param sm_param = merger.getDefaults();
       sm_param.setValue("average_gaussian:precursor_mass_tol", tols[0]);
       sm_param.setValue("average_gaussian:precursor_max_charge", std::abs((int)fd_param.getValue("max_charge")));
-      //sm_param.setValue("average_gaussian:rt_FWHM", 20.0); // for top down 10 seconds make sense.
 
       merger.setParameters(sm_param);
       map.sortSpectra();
@@ -571,7 +551,6 @@ protected:
     }
     else if(merge == 2)
     {
-      //mz_binning_width - ms tols
       OPENMS_LOG_INFO<< "Merging spectra into a single spectrum per MS level... "<<std::endl;
       SpectraMerger merger;
       merger.setLogType(log_type_);
@@ -616,7 +595,6 @@ protected:
     auto mass_tracer = MassFeatureTrace();
     Param mf_param = getParam_().copy("FeatureTracing:", true);
     DoubleList isotope_cosines = fd_param.getValue("min_isotope_cosine");
-    //mf_param.setValue("mass_error_ppm", ms1tol);
 
     if(((double)mf_param.getValue("mass_error_ppm")) < 0)
     {

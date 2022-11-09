@@ -34,13 +34,14 @@
 
 #pragma once
 
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-#include <iostream>
-#include <iomanip>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
+
+#include <iostream>
+#include <iomanip>
 
 namespace OpenMS
 {
@@ -76,6 +77,7 @@ namespace OpenMS
 
     /// assignment operator
     MassFeatureTrace& operator=(const MassFeatureTrace& fd) = default;
+    MassFeatureTrace& operator=(MassFeatureTrace&& fd) = default;
 
     /// Obtain and store information from deconvolved_spectrum (necessary information for mass tracing afterwards)
     void storeInformationFromDeconvolvedSpectrum(DeconvolvedSpectrum& deconvolved_spectrum);
@@ -83,7 +85,6 @@ namespace OpenMS
     /**
        @brief Find mass features.
        @param averagine precalculated averagine for cosine calculation
-       @param fst file streams for topfd output tsv, feature files
        */
     std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(const PrecalculatedAveragine& averagine);
 

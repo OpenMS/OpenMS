@@ -35,9 +35,9 @@
 #pragma once
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 
 namespace OpenMS
@@ -55,7 +55,7 @@ namespace OpenMS
 
   struct OPENMS_DLLAPI FLASHDeconvHelperStructs
   {
-    /// Averagine patterns pre-calculated for speed up. Other variables are also calculated for fast cosine calculation
+    /// @brief Averagine patterns pre-calculated for speed up. Other variables are also calculated for fast cosine calculation
     class OPENMS_DLLAPI PrecalculatedAveragine
     {
     private:
@@ -172,7 +172,7 @@ namespace OpenMS
       bool operator==(const TopPicItem& other) const;
     };
 
-    ///
+    /// Mass feature (Deconvolved masses in spectra are traced by Mass tracing to generate mass features - like LC-MS features).
     struct OPENMS_DLLAPI MassFeature
     {
     public:

@@ -32,10 +32,11 @@
 // $Authors: Kyowon Jeong$
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/TOPDOWN/QScore.h"
-#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
+
 #include <iomanip>
 
 namespace OpenMS
@@ -74,19 +75,7 @@ namespace OpenMS
       score += fv[i] * weights[i];
     }
     double qscore = 1.0 / (1.0 + exp(score));
-    /*if (qscore < th)
-    {
-      return qscore;
-    }
 
-    score = weights_h[weights_h.size() - 1];
-
-    for (int i = 0; i < weights_h.size() - 1; i++)
-    {
-      score += fv[i] * weights_h[i];
-    }
-    qscore = 1.0 / (1.0 + exp(score));
-*/
     return qscore;
   }
 
@@ -133,7 +122,7 @@ namespace OpenMS
     int scan_number = deconvolved_spectrum.getScanNumber();
     double pmz = deconvolved_spectrum.getPrecursor().getMZ();
     auto pg = deconvolved_spectrum.getPrecursorPeakGroup();
-    double pmass = //pg.getMonoMass();
+    double pmass = 
         top_id.proteform_id < 0 ? pg.getMonoMass()
                                  : top_id.adj_precursor_mass;
     double precursor_intensity = deconvolved_spectrum.getPrecursor().getIntensity();
@@ -159,8 +148,6 @@ namespace OpenMS
     else
     {
       auto fv = toFeatureVector_(&pg, charge);
-      //if (pg.getChargeIsotopeCosine(charge) <= 0)
-      //  return;
       double monomass = pmass;
       double mass = avgpmass;
       f << acc << "," << fr << "," << lr << "," << proID << "," << rt << "," << scan_number << "," << pscan << ","

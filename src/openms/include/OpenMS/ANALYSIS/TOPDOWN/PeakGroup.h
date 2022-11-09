@@ -88,6 +88,11 @@ namespace OpenMS
       */
     void updateMonomassAndIsotopeIntensities();
 
+    /**
+           @brief Update isotope cosine sore and qscore
+           @param avg precalculated averagine
+           @param min_cos the peak groups with cosine score less than this will have QScore 0.
+      */
     void updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos);
 
     /// recruit peaks and then return as a spectrum.
@@ -161,6 +166,7 @@ namespace OpenMS
     /// get charge range - the actual charge values
     std::tuple<int, int> getAbsChargeRange() const;
 
+    /// get per isotope intensities
     std::vector<float> getIsotopeIntensities() const;
 
     /// get isotopic cosine score
@@ -249,6 +255,7 @@ namespace OpenMS
 
     /// set per abs_charge signal power
     void setChargePowers_(const int abs_charge, const float signal_pwr, const float noise_pwr, const float intensity);
+    /// update chargefit score and also update per charge intensities here.
     void updateChargeFitScoreAndChargeIntensities_();
     ///update avg ppm error
     void updateAvgPPMError_();

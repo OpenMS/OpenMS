@@ -53,8 +53,6 @@ namespace OpenMS
       return this->intensity_ < a.intensity_;
     }
     return this->monoisotopic_mass_ < a.monoisotopic_mass_;
-    //}
-    // return this->spec->getRT() < a.spec->getRT();
   }
 
   bool PeakGroup::operator>(const PeakGroup& a) const
@@ -162,10 +160,9 @@ namespace OpenMS
     for (int abs_charge = min_abs_charge_; abs_charge <= max_abs_charge_; abs_charge++)
     {
       if (getChargeSNR(abs_charge) <= 0 || getChargeIsotopeCosine(abs_charge) <= 0)
-        if (getChargeSNR(abs_charge) <= 0 || getChargeIsotopeCosine(abs_charge) <= 0)
-        {
-          continue;
-        }
+      {
+        continue;
+      }
 
       double q_score = QScore::getQScore(this, abs_charge);
       if (qscore_ > q_score)
@@ -177,45 +174,6 @@ namespace OpenMS
     }
   }
 
-  /*
-    MSSpectrum PeakGroup::getSubspectrumForMass(const MSSpectrum& spec, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double mono_mass)
-    {
-      MSSpectrum sub_spec; // is this shallow copy?
-      int max_isotope = avg.getLastIndex(mono_mass);
-      int left = avg.getLeftCountFromApex(mono_mass);
-      int right = avg.getRightCountFromApex(mono_mass);
-
-      sub_spec.reserve(spec.size());
-
-      for(int c = max_abs_charge_;c >= min_abs_charge_;c--)
-      {
-        if (c <= 0)
-        {
-          break;
-        }
-        double cmz = (mono_mass - left) / c + FLASHDeconvHelperStructs::getChargeMass(is_positive_);
-        Size index = spec.findNearest(cmz);
-        double iso_delta = Constants::iso_da_distance_ / c;
-        for (; index < spec.size(); index++)
-        {
-          double pint = spec[index].getIntensity();
-          if (pint <= 0)
-          {
-            continue;
-          }
-
-          int iso_index = (int)round((spec[index].getMZ() - cmz) / iso_delta);
-          sub_spec.push_back(spec[index]);
-
-          if (iso_index > max_isotope + right + left)
-          {
-            break;
-          }
-        }
-      }
-      return sub_spec;
-    }
-  */
   void PeakGroup::recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double mono_mass,
                                             const std::unordered_set<double>& exclude_mzs)
   {
@@ -427,10 +385,9 @@ namespace OpenMS
     min_abs_charge_ = first_index;
     max_abs_charge_ = last_index;
     double p = .0;
-    for (int c = max_index; c < last_index; c++) //
+    for (int c = max_index; c < last_index; c++)
     {
       double diff = per_charge_int_[c + 1] - per_charge_int_[c];
-      // double ratio = per_charge_intensity[i] / (.1 + per_charge_intensity[i + 1]);
       if (diff <= 0)
       {
         continue;
@@ -440,7 +397,6 @@ namespace OpenMS
     for (int c = max_index; c > first_index; c--)
     {
       double diff = per_charge_int_[c - 1] - per_charge_int_[c];
-      //      double ratio = per_charge_intensity[i] / (.1 + per_charge_intensity[i - 1]);
 
       if (diff <= 0)
       {
@@ -464,9 +420,6 @@ namespace OpenMS
     intensity_ = .0;
     double nominator = .0;
 
-    // std::vector<LogMzPeak> new_logMzpeaks_;
-    // new_logMzpeaks_.reserve(logMzpeaks_.size());
-
     for (auto& p : logMzpeaks_)
     {
       double pi = p.intensity + 1;
@@ -480,7 +433,6 @@ namespace OpenMS
       nominator += pi * (p.getUnchargedMass() - p.isotopeIndex * iso_da_distance_);
       intensity_ += pi;
     }
-    // logMzpeaks_.swap(new_logMzpeaks_);
 
     monoisotopic_mass_ = nominator / intensity_;
   }
@@ -804,27 +756,6 @@ namespace OpenMS
     return index_;
   }
 
-  /*
-  float PeakGroup::getDecoyQScore() const
-  {
-    return decoy_qscore_;
-  }
-
-  void PeakGroup::setDecoyQScore(const float d)
-  {
-    decoy_qscore_ = d;
-  }
-
-  float PeakGroup::getDecoyIsoScore() const
-  {
-    return decoy_iso_score_;
-  }
-
-  void PeakGroup::setDecoyIsoScore(const float d)
-  {
-    decoy_iso_score_ = d;
-  }
-  */
   std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator PeakGroup::begin() const noexcept
   {
     return logMzpeaks_.begin();
