@@ -288,11 +288,7 @@ namespace OpenMS
     protein_acc = acc.substr(first + 1, second - first - 1);
     first_residue = stoi(results[15]);
     last_residue = stoi(results[16]);
-    if (stoi(results[18]) == 0)
-    {
-      //unexp_mod = .0;
-    }
-    else
+    if (stoi(results[18]) != 0)
     {
       String seq = results[17];
       int loc = 0;
