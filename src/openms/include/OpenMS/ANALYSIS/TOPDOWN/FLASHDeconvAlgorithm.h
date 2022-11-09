@@ -91,8 +91,8 @@ namespace OpenMS
 
     /// return deconvolved spectrum
     DeconvolvedSpectrum& getDeconvolvedSpectrum();
-    /// return decoy deconvolved spectrum
-    DeconvolvedSpectrum& getDecoyDeconvolvedSpectrum();
+    // return decoy deconvolved spectrum
+    //DeconvolvedSpectrum& getDecoyDeconvolvedSpectrum();
 
     /// get calculated averagine. This should be called after calculateAveragine is called.
     const PrecalculatedAveragine& getAveragine();
@@ -100,17 +100,15 @@ namespace OpenMS
     /// set calculated averagine
     void setAveragine(const PrecalculatedAveragine& avg);
 
-    /// set targeted masses for targeted deconvolution. Masses are targeted in all ms levels
-    void setTargetMasses(const std::vector<double>& masses);
+    /** @brief set targeted or excluded masses for targeted deconvolution. Masses are targeted or excluded in all ms levels.
+        @param exclude if set, masses are excluded.
+     */
+    void setTargetMasses(const std::vector<double> masses, bool exclude = false);
 
     /** @brief precalculate averagine (for predefined mass bins) to speed up averagine generation
         @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calculated
      */
     void calculateAveragine(const bool use_RNA_averagine);
-
-    void addExcludedMonoMass(const double m);
-
-    void clearExcludedMonoMasses();
 
     /// convert double to nominal mass
     static int getNominalMass(const double mass);
@@ -136,21 +134,19 @@ namespace OpenMS
         @param mono_mass monoisotopic mass
         @param per_isotope_intensities per isotope intensity - aggregated through charges
         @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
-        @param second_best_iso_offset second best scoring isotope offset - for decoy calculation.
         @param avg precalculated averagine
         @param window_width isotope offset value range. If -1, set automatically.
-        @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate qscure
+        @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If it is > 0, second best cosine and its corresponding offset will be output
         @return calculated cosine similar score
      */
     static float getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
                                                            const std::vector<float>& per_isotope_intensities,
                                                            int& offset,
-                                                           int& second_best_iso_offset,
                                                            const PrecalculatedAveragine& avg,
-                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 1);
+                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 0);
 
     /// set decoy_flag_
-    void setDecoyFlag(int flag);
+    void setDecoyFlag(int flag, FLASHDeconvAlgorithm& targetFD);
 
   protected:
     void updateMembers_() override;
@@ -194,8 +190,9 @@ namespace OpenMS
     DoubleList bin_width_;
     /// cosine threshold between observed and theoretical isotope patterns for each MS level
     DoubleList min_isotope_cosine_;
-    /// max mass count per spectrum for each MS level
-    //IntList max_mass_count_;
+
+    FLASHDeconvAlgorithm* targetFD_;
+
 
     /// if it is set to 0, not a decoy run. If 1, the charge decoy run, If 2, the random noise decoy run
     int decoy_run_flag_ = 0;
@@ -206,34 +203,29 @@ namespace OpenMS
 
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
-    /// The data structures for spectra overlapping.
-    std::vector<std::vector<Size>> prev_mass_bins_ms1_;
-    std::vector<std::map<int, std::vector<Size>>> prev_mass_bins_ms2_;
-    std::vector<double> prev_rts_ms1_;
-    std::vector<double> prev_rts_ms2_;
 
     /// mass bins that are targeted for FLASHIda global targeting mode
     boost::dynamic_bitset<> target_mass_bins_;
-    std::vector<double> target_masses_;
+    std::vector<double> target_mono_masses_;
 
-    /// mass bins that are excluded for decoy
-    boost::dynamic_bitset<> excluded_mass_bins_;
-    std::vector<double> excluded_masses_;
+    /// mass bins that are excluded for FLASHIda global targeting mode
+    std::vector<double> excluded_mono_masses_;
 
-    /// harmonic charge factors that will be considered for harmonic mass reduction. For example, 2 is for 1/2 charge harmonic component reduction
-    const std::vector<int> harmonic_charges_{2, 3, 5, 7};
+    /// mass bins that are previsouly deconvolved and excluded for decoy mass generation
+    boost::dynamic_bitset<> previously_deconved_mass_bins_for_decoy;
+    std::vector<double> previously_deconved_mono_masses_for_decoy;
+    std::unordered_set<double> excluded_mzs_;
+
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;
     /// deconvolved_spectrum_ stores the deconvolved mass peak groups
     DeconvolvedSpectrum deconvolved_spectrum_;
-    /// decoy_deconvolved_spectrum_ stores the deconvolved decoy mass peak groups
-    DeconvolvedSpectrum decoy_deconvolved_spectrum_;
+    // decoy_deconvolved_spectrum_ stores the deconvolved decoy mass peak groups
+    //DeconvolvedSpectrum decoy_deconvolved_spectrum_;
     /// mass_bins_ stores the selected bins for this spectrum + overlapped spectrum (previous a few spectra).
     boost::dynamic_bitset<> mass_bins_;
     /// mz_bins_ stores the binned log mz peaks
     boost::dynamic_bitset<> mz_bins_;
-    /// mz_bins_for_edge_effect_ stores the binned log mz peaks, considering edge effect
-    boost::dynamic_bitset<> mz_bins_for_edge_effect_;
 
     /// This stores the "universal pattern"
     std::vector<double> filter_;
@@ -255,8 +247,6 @@ namespace OpenMS
     /// current ms Level
     int ms_level_;
 
-    /// high and low charges are differently deconvolved. This value determines the (inclusive) threshold for low charge.
-    const int low_charge_ = 8; //8 inclusive
 
     /// default precursor isolation window size.
     double isolation_window_size_;
@@ -278,7 +268,7 @@ namespace OpenMS
     static Size getBinNumber_(const double value, const double min_value, const double bin_width);
 
     ///generate log mz peaks from the input spectrum
-    void updateLogMzPeaks_(const MSSpectrum *spec);
+    void updateLogMzPeaks_();
 
     /** @brief generate mz bins and intensity per mz bin from log mz peaks
         @param bin_number number of mz bins
@@ -286,8 +276,6 @@ namespace OpenMS
      */
     void updateMzBins_(const Size bin_number, std::vector<float>& mz_bin_intensities);
 
-    ///this function takes the previous deconvolution results (from ovelapped spectra) for sensitive deconvolution of the current spectrum
-    void unionPrevMassBins_();
 
     ///get mass value for input mass bin
     double getMassFromMassBin_(Size mass_bin, double bin_width);
@@ -331,9 +319,6 @@ namespace OpenMS
 
     /// filter out overlapping masses
     void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dpec, const double tol, const int iso_length = 1);
-
-    ///Filter out masses with low isotope cosine scores, only retaining current_max_mass_count masses
-    void filterPeakGroupsByIsotopeCosine_(const int current_max_mass_count);
 
     /**
     @brief register the precursor peak as well as the precursor peak group (or mass) if possible for MSn (n>1) spectrum.

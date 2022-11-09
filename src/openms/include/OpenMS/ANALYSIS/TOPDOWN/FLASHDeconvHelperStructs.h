@@ -194,11 +194,11 @@ namespace OpenMS
       /// original peak mz
       double mz = 0;
       /// original peak intensity
-      double intensity = 0;
+      float intensity = 0;
       /// log transformed mz
-      double logMz = -1000;
+      float logMz = -1000;
       /// determined mass after deconvolution. NOT monoisotopic but only decharged
-      double mass = .0;
+      float mass = .0;
       /// absolute charge (in case negative, is_positive is set to false
       int abs_charge = 0;
       /// is positive mode
@@ -222,7 +222,7 @@ namespace OpenMS
       ~LogMzPeak() = default;
 
       /// get uncharged mass of this peak. It is NOT a monoisotopic mass of a PeakGroup, rather a monoisotopic mass of each LogMzPeak. Returns 0 if no charge set
-      double getUnchargedMass();
+      float getUnchargedMass();
 
       /// log mz values are compared
       bool operator<(const LogMzPeak& a) const;
@@ -238,12 +238,12 @@ namespace OpenMS
         //       @param mz mz
         //       @param positive determines the charge carrier mass
        */
-    static double getLogMz(const double mz, const bool positive);
+    static float getLogMz(const double mz, const bool positive);
 
     /**
             //       @brief get charge carrier mass
             //       @param positive determines the charge carrier mass*/
-    static double getChargeMass(const bool positive);
+    static float getChargeMass(const bool positive);
 
   };
 }

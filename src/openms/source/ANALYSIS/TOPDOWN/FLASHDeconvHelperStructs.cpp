@@ -59,9 +59,10 @@ namespace OpenMS
       {
         break;
       }
+
       auto iso = use_RNA_averagine ?
-                 generator->estimateFromRNAWeight(mass) :
-                 generator->estimateFromPeptideWeight(mass);
+                 generator->estimateFromRNAMonoWeight(mass) :
+                 generator->estimateFromPeptideMonoWeight(mass);
 
       const double min_pwr = .9999;
       const Size min_iso_length = 2;
@@ -204,7 +205,7 @@ namespace OpenMS
   {
   }
 
-  double FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass()
+  float FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass()
   {
     if (abs_charge == 0)
     {
@@ -240,13 +241,13 @@ namespace OpenMS
     return this->logMz == a.logMz && this->intensity == a.intensity;
   }
 
-  double FLASHDeconvHelperStructs::getChargeMass(const bool positive)
+  float FLASHDeconvHelperStructs::getChargeMass(const bool positive)
   {
     return (positive ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U);
   }
 
 
-  double FLASHDeconvHelperStructs::getLogMz(const double mz, const bool positive)
+  float FLASHDeconvHelperStructs::getLogMz(const double mz, const bool positive)
   {
     return std::log(mz - getChargeMass(positive));
   }
