@@ -147,8 +147,7 @@ namespace OpenMS
     gauss_table_(),
     kernel_type_(PRECOMPUTED),
     border_length_(0),
-    training_set_(nullptr),
-    training_problem_(nullptr),
+    
     training_data_(SVMData())
   {
     param_ = (struct svm_parameter*) malloc(sizeof(struct svm_parameter));
@@ -438,7 +437,7 @@ namespace OpenMS
 
   }
 
-  void SVMWrapper::saveModel(std::string model_filename) const
+  void SVMWrapper::saveModel(const std::string& model_filename) const
   {
     Int  status = 0;
 
@@ -456,7 +455,7 @@ namespace OpenMS
     }
   }
 
-  void SVMWrapper::loadModel(std::string model_filename)
+  void SVMWrapper::loadModel(const std::string& model_filename)
   {
     TextFile file;
     TextFile::ConstIterator it;
@@ -823,7 +822,7 @@ namespace OpenMS
                                             map<SVM_parameter_type, double>& best_parameters,
                                             bool                                                                                 additive_step_sizes,
                                             bool                                                                             output,
-                                            String                                                                           performances_file_name,
+                                            const String&                                                                           performances_file_name,
                                             bool                                                                                 mcc_as_performance_measure)
   {
     map<SVM_parameter_type, double>::const_iterator start_values_iterator;

@@ -49,9 +49,7 @@ namespace OpenMS
   {
   }
 
-  FeatureFileOptions::~FeatureFileOptions()
-  {
-  }
+  FeatureFileOptions::~FeatureFileOptions() = default;
 
   void FeatureFileOptions::setLoadConvexHull(bool convex)
   {

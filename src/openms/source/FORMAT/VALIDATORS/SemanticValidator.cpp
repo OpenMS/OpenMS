@@ -70,8 +70,7 @@ namespace OpenMS::Internal
     }
 
     SemanticValidator::~SemanticValidator()
-    {
-    }
+    = default;
 
     void SemanticValidator::setTag(const String& tag)
     {

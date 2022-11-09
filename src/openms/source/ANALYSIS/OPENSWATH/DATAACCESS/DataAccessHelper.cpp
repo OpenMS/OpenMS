@@ -39,7 +39,7 @@
 namespace OpenMS
 {
 
-  void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum & spectrum)
+  void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr& sptr, OpenMS::MSSpectrum & spectrum)
   {
     std::vector<double>::const_iterator mz_it = sptr->getMZArray()->data.begin();
     std::vector<double>::const_iterator int_it = sptr->getIntensityArray()->data.begin();
@@ -86,7 +86,7 @@ namespace OpenMS
     return cptr;
   }
 
-  void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(const OpenSwath::ChromatogramPtr cptr, OpenMS::MSChromatogram & chromatogram)
+  void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(const OpenSwath::ChromatogramPtr& cptr, OpenMS::MSChromatogram & chromatogram)
   {
     std::vector<double>::const_iterator rt_it = cptr->getTimeArray()->data.begin();
     std::vector<double>::const_iterator int_it = cptr->getIntensityArray()->data.begin();
@@ -104,7 +104,7 @@ namespace OpenMS
   }
 
   void OpenSwathDataAccessHelper::convertToOpenMSChromatogramFilter(OpenMS::MSChromatogram & chromatogram,
-                                                                    const OpenSwath::ChromatogramPtr cptr,
+                                                                    const OpenSwath::ChromatogramPtr& cptr,
                                                                     double rt_min,
                                                                     double rt_max)
   {

@@ -26,7 +26,7 @@
 			<VariableModification name="Carbamidomethyl (C)" />
 			<VariableModification name="Oxidation (M)" />
 				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
-				<UserParam type="string" name="InferenceEngineVersion" value="3.0.0-pre-fix-syncIDQuantPLFQ-2022-09-09"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="3.0.0-pre-fix-plfq-idconflict-2022-11-02"/>
 				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="best"/>
 				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="1"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
@@ -183,7 +183,7 @@
 				<UserParam type="int" name="nr_found_peptides" value="1"/>
 				<UserParam type="float" name="Posterior Probability_score" value="0.954545454545455"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML,/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML,/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML,/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML,/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML,/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML,/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML,/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML,/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML,/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML,/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML]"/>
 			<UserParam type="string" name="indistinguishable_proteins_0" value="0.105263157894737,PH_10"/>
 			<UserParam type="string" name="indistinguishable_proteins_1" value="0.105263157894737,PH_9"/>
 			<UserParam type="string" name="indistinguishable_proteins_2" value="0.105263157894737,PH_8"/>
@@ -836,33 +836,319 @@
 		<UserParam type="int" name="map_index" value="5"/>
 		<UserParam type="int" name="id_merge_index" value="5"/>
 	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="508.248138427734" RT="1813.642578125" spectrum_reference="spectrum=2545" >
+		<PeptideHit score="0.0158730158730159" sequence="SHCIAEVEK" charge="2" aa_before="K" aa_after="D" start="309" end="317" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.162925684160918"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="6577895467092461988"/>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="int" name="id_merge_index" value="2"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="569.752807617188" RT="1683.76110839844" spectrum_reference="spectrum=2419" >
+		<PeptideHit score="0.0158730158730159" sequence="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR" charge="2" aa_before="K" aa_after="R" start="498" end="506" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="4.902165713837331e-03"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="9950936438912456644"/>
+		<UserParam type="int" name="map_index" value="1"/>
+		<UserParam type="int" name="id_merge_index" value="1"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="569.753356933594" RT="1710.49194335938" spectrum_reference="spectrum=2436" >
+		<PeptideHit score="0.0158730158730159" sequence="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR" charge="2" aa_before="K" aa_after="R" start="498" end="506" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="2.12182263846671e-03"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="9950936438912456644"/>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="int" name="id_merge_index" value="2"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="449.744079589844" RT="1668.20104980469" spectrum_reference="spectrum=2393" >
+		<PeptideHit score="0.0158730158730159" sequence="LC(Carbamidomethyl)VLHEK" charge="2" aa_before="R" aa_after="T" start="482" end="488" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="5.80345524445421e-03"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="17118515683443455458"/>
+		<UserParam type="int" name="map_index" value="1"/>
+		<UserParam type="int" name="id_merge_index" value="1"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="449.744201660156" RT="1707.72644042969" spectrum_reference="spectrum=2431" >
+		<PeptideHit score="0.0158730158730159" sequence="LC(Carbamidomethyl)VLHEK" charge="2" aa_before="R" aa_after="T" start="482" end="488" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.013380082223923"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="17118515683443455458"/>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="int" name="id_merge_index" value="2"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="300.165985107422" RT="1666.36279296875" spectrum_reference="spectrum=2391" >
+		<PeptideHit score="0.0158730158730159" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" start="482" end="488" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="1.01892240818698"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.047619047619048"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="8002577509882545576"/>
+		<UserParam type="int" name="map_index" value="1"/>
+		<UserParam type="int" name="id_merge_index" value="1"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="443.71142578125" RT="1697.93835449219" spectrum_reference="spectrum=2440" >
+		<PeptideHit score="0.0158730158730159" sequence="DDSPDLPK" charge="2" aa_before="K" aa_after="L" start="130" end="137" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="1.93445540304764e-03"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="2547597046393019773"/>
+		<UserParam type="int" name="map_index" value="1"/>
+		<UserParam type="int" name="id_merge_index" value="1"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="443.711639404297" RT="1727.41552734375" spectrum_reference="spectrum=2458" >
+		<PeptideHit score="0.0158730158730159" sequence="DDSPDLPK" charge="2" aa_before="K" aa_after="L" start="130" end="137" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="7.06618639765107e-03"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="2547597046393019773"/>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="int" name="id_merge_index" value="2"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="431.205749511719" RT="1705.23486328125" spectrum_reference="spectrum=2427" >
+		<PeptideHit score="0.0158730158730159" sequence="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK" charge="3" aa_before="K" aa_after="S" start="299" end="308" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.13170405716256"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="14868022199306242395"/>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="int" name="id_merge_index" value="2"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="722.324951171875" RT="1728.01306152344" spectrum_reference="spectrum=2481" >
+		<PeptideHit score="0.0158730158730159" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" start="285" end="296" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="3.95473142553261e-07"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="6244178397615412071"/>
+		<UserParam type="int" name="map_index" value="1"/>
+		<UserParam type="int" name="id_merge_index" value="1"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="722.324951171875" RT="1754.4775390625" spectrum_reference="spectrum=2477" >
+		<PeptideHit score="0.0158730158730159" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" start="285" end="296" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="7.116147996047729e-04"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="6244178397615412071"/>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="int" name="id_merge_index" value="2"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="487.73193359375" RT="1764.072265625" spectrum_reference="spectrum=2530" >
+		<PeptideHit score="0.0158730158730159" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" start="36" end="43" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.095928319902701"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="10147015604772775807"/>
+		<UserParam type="int" name="map_index" value="1"/>
+		<UserParam type="int" name="id_merge_index" value="1"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="487.732513427734" RT="1788.2138671875" spectrum_reference="spectrum=2515" >
+		<PeptideHit score="0.0158730158730159" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" start="36" end="43" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.018619230664851"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="10147015604772775807"/>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="int" name="id_merge_index" value="2"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="325.491271972656" RT="1766.46264648438" spectrum_reference="spectrum=2534" >
+		<PeptideHit score="0.0158730158730159" sequence="DLGEEHFK" charge="3" aa_before="K" aa_after="G" start="36" end="43" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.026443408891425"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="13916592869622500300"/>
+		<UserParam type="int" name="map_index" value="1"/>
+		<UserParam type="int" name="id_merge_index" value="1"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="325.491271972656" RT="1811.23511563603" spectrum_reference="spectrum=2534" >
+		<PeptideHit score="0.0158730158730159" sequence="DLGEEHFK" charge="3" aa_before="K" aa_after="G" start="36" end="43" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.026443408891425"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="13916592869622500300"/>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="int" name="id_merge_index" value="2"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="693.815307617188" RT="1880.10424804688" spectrum_reference="spectrum=2614" >
+		<PeptideHit score="0.0158730158730159" sequence="YICDNQDTISSK" charge="2" aa_before="K" aa_after="L" start="285" end="296" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.014015137899773"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="8629766171681189474"/>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="int" name="id_merge_index" value="2"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="751.810546875" RT="1947.00720214844" spectrum_reference="spectrum=2697" >
+		<PeptideHit score="0.0158730158730159" sequence="EYEATLEEC(Carbamidomethyl)C(Carbamidomethyl)AK" charge="2" aa_before="K" aa_after="D" start="374" end="385" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="6.18893768168827e-03"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="6439916495748663103"/>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="int" name="id_merge_index" value="2"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="461.747711181641" RT="1946.79406738281" spectrum_reference="spectrum=2696" >
+		<PeptideHit score="0.0158730158730159" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="L" start="248" end="255" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="2.2536185127512e-03"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="10110888475853982524"/>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="int" name="id_merge_index" value="2"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="428.234069824219" RT="2125.65234375" spectrum_reference="spectrum=2885" >
+		<PeptideHit score="0.0158730158730159" sequence="FVEGLYK" charge="2" aa_before="K" aa_after="V" start="83" end="89" protein_refs="PH_7">
+			<UserParam type="float" name="OMSSA_score" value="0.033559867570263"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="11768613195939475075"/>
+		<UserParam type="int" name="map_index" value="5"/>
+		<UserParam type="int" name="id_merge_index" value="5"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="653.360290527344" RT="2272.67431640625" spectrum_reference="spectrum=3040" >
+		<PeptideHit score="0.0158730158730159" sequence="HLVDEPQNLIK" charge="2" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.01323390528043"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="6645998577322441588"/>
+		<UserParam type="int" name="map_index" value="5"/>
+		<UserParam type="int" name="id_merge_index" value="5"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="435.910797119141" RT="2211.69580078125" spectrum_reference="spectrum=3126" >
+		<PeptideHit score="0.0158730158730159" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="2.55714795835858e-07"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="7343296971654312843"/>
+		<UserParam type="int" name="map_index" value="4"/>
+		<UserParam type="int" name="id_merge_index" value="4"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="435.910461425781" RT="2251.568359375" spectrum_reference="spectrum=3007" >
+		<PeptideHit score="0.0158730158730159" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="1.05306087801224e-04"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="7343296971654312843"/>
+		<UserParam type="int" name="map_index" value="5"/>
+		<UserParam type="int" name="id_merge_index" value="5"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="464.250061035156" RT="2250.060546875" spectrum_reference="spectrum=3191" >
+		<PeptideHit score="0.0158730158730159" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="1.18336398159532e-04"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="8842809451233714795"/>
+		<UserParam type="int" name="map_index" value="4"/>
+		<UserParam type="int" name="id_merge_index" value="4"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="464.250274658203" RT="2235.77685546875" spectrum_reference="spectrum=2981" >
+		<PeptideHit score="0.0158730158730159" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="1.27135965878674e-04"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="8842809451233714795"/>
+		<UserParam type="int" name="map_index" value="5"/>
+		<UserParam type="int" name="id_merge_index" value="5"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="547.31689453125" RT="2309.00219726562" spectrum_reference="spectrum=3075" >
+		<PeptideHit score="0.0158730158730159" sequence="KVPQVSTPTLVEVSR" charge="3" aa_before="R" aa_after="S" start="436" end="450" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="6.02991436330375e-03"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="14221707053314134069"/>
+		<UserParam type="int" name="map_index" value="5"/>
+		<UserParam type="int" name="id_merge_index" value="5"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="501.794799804688" RT="2341.02001953125" spectrum_reference="spectrum=3304" >
+		<PeptideHit score="0.0158730158730159" sequence="LVVSTQTALA" charge="2" aa_before="K" aa_after="]" start="597" end="606" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.018136079089243"/>
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
+		</PeptideHit>
+		<UserParam type="string" name="FFId_category" value="internal"/>
+		<UserParam type="string" name="feature_id" value="18287630086400846884"/>
+		<UserParam type="int" name="map_index" value="4"/>
+		<UserParam type="int" name="id_merge_index" value="4"/>
+	</UnassignedPeptideIdentification>
 	<mapList count="6">
-		<map id="0" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML" unique_id="13343514148591584918" label="label-free" size="0">
+		<map id="0" name="/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML" unique_id="13343514148591584918" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="1"/>
 			<UserParam type="string" name="sample_name" value="1"/>
 		</map>
-		<map id="1" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML" unique_id="2167960984773533086" label="label-free" size="0">
+		<map id="1" name="/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML" unique_id="2167960984773533086" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="2"/>
 			<UserParam type="int" name="fraction" value="1"/>
 			<UserParam type="string" name="sample_name" value="2"/>
 		</map>
-		<map id="2" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML" unique_id="1216511045582904264" label="label-free" size="0">
+		<map id="2" name="/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML" unique_id="1216511045582904264" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="3"/>
 			<UserParam type="int" name="fraction" value="1"/>
 			<UserParam type="string" name="sample_name" value="3"/>
 		</map>
-		<map id="3" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML" unique_id="6980758904166542152" label="label-free" size="0">
+		<map id="3" name="/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML" unique_id="6980758904166542152" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="1"/>
 			<UserParam type="int" name="fraction" value="2"/>
 			<UserParam type="string" name="sample_name" value="1"/>
 		</map>
-		<map id="4" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML" unique_id="4784466995395982166" label="label-free" size="0">
+		<map id="4" name="/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML" unique_id="4784466995395982166" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="2"/>
 			<UserParam type="int" name="fraction" value="2"/>
 			<UserParam type="string" name="sample_name" value="2"/>
 		</map>
-		<map id="5" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML" unique_id="6140578451993267176" label="label-free" size="0">
+		<map id="5" name="/workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML" unique_id="6140578451993267176" label="label-free" size="0">
 			<UserParam type="int" name="fraction_group" value="3"/>
 			<UserParam type="int" name="fraction" value="2"/>
 			<UserParam type="string" name="sample_name" value="3"/>
@@ -870,9 +1156,9 @@
 	</mapList>
 	<consensusElementList>
 		<consensusElement id="e_1480129257984030875" quality="0.0" charge="3">
-			<centroid rt="1523.370634117893133" mz="368.843772909670918" it="2788.036377"/>
+			<centroid rt="1523.370634117893133" mz="368.843772909670918" it="2788.181885"/>
 			<groupedElementList>
-				<element map="1" id="16290421735094563442" rt="1523.370634117893133" mz="368.843772909670918" it="2788.036377" charge="3"/>
+				<element map="1" id="16290421735094563442" rt="1523.370634117893133" mz="368.843772909670918" it="2788.181885" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="368.832366943359" RT="1517.88525390625" spectrum_reference="spectrum=2311" >
 				<PeptideHit score="0.0158730158730159" sequence="DGDIEAEISR" charge="3" aa_before="K" aa_after="E" start="89" end="98" protein_refs="PH_6">
@@ -881,25 +1167,25 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="16290421735094563442"/>
+				<UserParam type="string" name="feature_id" value="1480129257984030875"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="id_merge_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="1480129257984030875"/>
 		</consensusElement>
 		<consensusElement id="e_3228988057475851378" quality="0.0" charge="3">
-			<centroid rt="1533.479042701062554" mz="358.174576486337685" it="4.618462e05"/>
+			<centroid rt="1533.479042701062554" mz="358.174576486337685" it="4.618349e05"/>
 			<groupedElementList>
-				<element map="2" id="5930089466193586468" rt="1533.479042701062554" mz="358.174576486337685" it="4.618462e05" charge="3"/>
+				<element map="2" id="5930089466193586468" rt="1533.479042701062554" mz="358.174576486337685" it="4.618349e05" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="358.174530029297" RT="1533.16589355469" spectrum_reference="spectrum=2376" >
 				<PeptideHit score="0.0158730158730159" sequence="SHC(Carbamidomethyl)IAEVEK" charge="3" aa_before="K" aa_after="D" start="309" end="317" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="6.761189916221991e-03"/>
+					<UserParam type="float" name="OMSSA_score" value="6.76118991622199e-03"/>
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="5930089466193586468"/>
+				<UserParam type="string" name="feature_id" value="3228988057475851378"/>
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
@@ -918,27 +1204,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="15960569366695886719"/>
+				<UserParam type="string" name="feature_id" value="6577895467092461988"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="id_merge_index" value="1"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="508.248138427734" RT="1813.642578125" spectrum_reference="spectrum=2545" >
-				<PeptideHit score="0.0158730158730159" sequence="SHCIAEVEK" charge="2" aa_before="K" aa_after="D" start="309" end="317" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="0.162925684160918"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="3485378768692219473"/>
-				<UserParam type="int" name="map_index" value="2"/>
-				<UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="6577895467092461988"/>
 		</consensusElement>
 		<consensusElement id="e_8527957607781633288" quality="0.0" charge="3">
-			<centroid rt="1717.69147518548084" mz="558.594863858504482" it="3.881577e06"/>
+			<centroid rt="1717.69147518548084" mz="558.594863858504482" it="3.881549e06"/>
 			<groupedElementList>
-				<element map="1" id="8734334354285411525" rt="1717.69147518548084" mz="558.594863858504482" it="3.881577e06" charge="3"/>
+				<element map="1" id="8734334354285411525" rt="1717.69147518548084" mz="558.594863858504482" it="3.881549e06" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="558.594543457031" RT="1725.173828125" spectrum_reference="spectrum=2476" >
 				<PeptideHit score="0.0158730158730159" sequence="QEPERNEC(Carbamidomethyl)FLSHK" charge="3" aa_before="K" aa_after="D" start="117" end="129" protein_refs="PH_9">
@@ -947,18 +1222,18 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="8734334354285411525"/>
+				<UserParam type="string" name="feature_id" value="8527957607781633288"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="id_merge_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="8527957607781633288"/>
 		</consensusElement>
 		<consensusElement id="e_9950936438912456644" quality="0.971702" charge="2">
-			<centroid rt="1721.990137043296045" mz="569.752618393021066" it="1.176577e07"/>
+			<centroid rt="1721.990137043296045" mz="569.752618393021066" it="1.176546e07"/>
 			<groupedElementList>
 				<element map="0" id="5494749430262800962" rt="1759.95224833795146" mz="569.752618393021066" it="2.056782e07" charge="2"/>
-				<element map="1" id="1276068484780993272" rt="1690.933087267142128" mz="569.752618393021066" it="1.103754e07" charge="2"/>
-				<element map="2" id="13459927643760717721" rt="1715.08507552479432" mz="569.752618393021066" it="3.691953e06" charge="2"/>
+				<element map="1" id="1276068484780993272" rt="1690.933087267142128" mz="569.752618393021066" it="1.10367e07" charge="2"/>
+				<element map="2" id="13459927643760717721" rt="1715.08507552479432" mz="569.752618393021066" it="3.691858e06" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="569.752807617188" RT="1750.91589355469" spectrum_reference="spectrum=2566" >
 				<PeptideHit score="0.0158730158730159" sequence="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR" charge="2" aa_before="K" aa_after="R" start="498" end="506" protein_refs="PH_9">
@@ -967,40 +1242,18 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.03448275862069"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="5494749430262800962"/>
+				<UserParam type="string" name="feature_id" value="9950936438912456644"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="569.752807617188" RT="1683.76110839844" spectrum_reference="spectrum=2419" >
-				<PeptideHit score="0.0158730158730159" sequence="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR" charge="2" aa_before="K" aa_after="R" start="498" end="506" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="4.902165713837331e-03"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="1276068484780993272"/>
-				<UserParam type="int" name="map_index" value="1"/>
-				<UserParam type="int" name="id_merge_index" value="1"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="569.753356933594" RT="1710.49194335938" spectrum_reference="spectrum=2436" >
-				<PeptideHit score="0.0158730158730159" sequence="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR" charge="2" aa_before="K" aa_after="R" start="498" end="506" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="2.12182263846671e-03"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="13459927643760717721"/>
-				<UserParam type="int" name="map_index" value="2"/>
-				<UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="9950936438912456644"/>
 		</consensusElement>
 		<consensusElement id="e_17118515683443455458" quality="0.961813" charge="2">
-			<centroid rt="1722.020478664436041" mz="449.744389900420913" it="2.278242e06"/>
+			<centroid rt="1722.020478664436041" mz="449.744389900420913" it="2.278309e06"/>
 			<groupedElementList>
-				<element map="0" id="9229951951226823321" rt="1781.642176761832616" mz="449.74438990042097" it="1.971501e06" charge="2"/>
-				<element map="1" id="14868461944796607728" rt="1673.962453042176094" mz="449.74438990042097" it="4.102755e06" charge="2"/>
-				<element map="2" id="2048939979934748630" rt="1710.456806189299641" mz="449.74438990042097" it="7.604715e05" charge="2"/>
+				<element map="0" id="9229951951226823321" rt="1781.642176761832616" mz="449.74438990042097" it="1.971638e06" charge="2"/>
+				<element map="1" id="14868461944796607728" rt="1673.962453042176094" mz="449.74438990042097" it="4.102819e06" charge="2"/>
+				<element map="2" id="2048939979934748630" rt="1710.456806189299641" mz="449.74438990042097" it="7.604709e05" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="449.744232177734" RT="1776.05004882812" spectrum_reference="spectrum=2588" >
 				<PeptideHit score="0.0158730158730159" sequence="LC(Carbamidomethyl)VLHEK" charge="2" aa_before="R" aa_after="T" start="482" end="488" protein_refs="PH_9">
@@ -1009,38 +1262,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.03448275862069"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="9229951951226823321"/>
+				<UserParam type="string" name="feature_id" value="17118515683443455458"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="449.744079589844" RT="1668.20104980469" spectrum_reference="spectrum=2393" >
-				<PeptideHit score="0.0158730158730159" sequence="LC(Carbamidomethyl)VLHEK" charge="2" aa_before="R" aa_after="T" start="482" end="488" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="5.803455244454209e-03"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="14868461944796607728"/>
-				<UserParam type="int" name="map_index" value="1"/>
-				<UserParam type="int" name="id_merge_index" value="1"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="449.744201660156" RT="1707.72644042969" spectrum_reference="spectrum=2431" >
-				<PeptideHit score="0.0158730158730159" sequence="LC(Carbamidomethyl)VLHEK" charge="2" aa_before="R" aa_after="T" start="482" end="488" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="0.013380082223923"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="2048939979934748630"/>
-				<UserParam type="int" name="map_index" value="2"/>
-				<UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="17118515683443455458"/>
 		</consensusElement>
 		<consensusElement id="e_8002577509882545576" quality="0.470464" charge="3">
-			<centroid rt="1727.822072080827638" mz="300.165352089204305" it="1.325324e07"/>
+			<centroid rt="1727.822072080827638" mz="300.165352089204305" it="1.325325e07"/>
 			<groupedElementList>
-				<element map="0" id="9429020594666658834" rt="1781.755160501302271" mz="300.165352089204305" it="1.292531e07" charge="3"/>
+				<element map="0" id="9429020594666658834" rt="1781.755160501302271" mz="300.165352089204305" it="1.292532e07" charge="3"/>
 				<element map="1" id="4426839943702196831" rt="1673.888983660353006" mz="300.165352089204305" it="1.358117e07" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="300.165954589844" RT="1800.23291015625" spectrum_reference="spectrum=2619" >
@@ -1050,20 +1281,9 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="9429020594666658834"/>
+				<UserParam type="string" name="feature_id" value="8002577509882545576"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="300.165985107422" RT="1666.36279296875" spectrum_reference="spectrum=2391" >
-				<PeptideHit score="0.0158730158730159" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" start="482" end="488" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="1.01892240818698"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.047619047619048"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="4426839943702196831"/>
-				<UserParam type="int" name="map_index" value="1"/>
-				<UserParam type="int" name="id_merge_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="8002577509882545576"/>
 		</consensusElement>
@@ -1081,39 +1301,17 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.03448275862069"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="8269033494178950104"/>
+				<UserParam type="string" name="feature_id" value="2547597046393019773"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="443.71142578125" RT="1697.93835449219" spectrum_reference="spectrum=2440" >
-				<PeptideHit score="0.0158730158730159" sequence="DDSPDLPK" charge="2" aa_before="K" aa_after="L" start="130" end="137" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="1.93445540304764e-03"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="17435873260432890273"/>
-				<UserParam type="int" name="map_index" value="1"/>
-				<UserParam type="int" name="id_merge_index" value="1"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="443.711639404297" RT="1727.41552734375" spectrum_reference="spectrum=2458" >
-				<PeptideHit score="0.0158730158730159" sequence="DDSPDLPK" charge="2" aa_before="K" aa_after="L" start="130" end="137" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="7.066186397651071e-03"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="3552445793072071659"/>
-				<UserParam type="int" name="map_index" value="2"/>
-				<UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="2547597046393019773"/>
 		</consensusElement>
 		<consensusElement id="e_14868022199306242395" quality="0.478181" charge="3">
-			<centroid rt="1737.332015135548545" mz="431.20554824377092" it="7.502512e06"/>
+			<centroid rt="1737.332015135548545" mz="431.20554824377092" it="7.502234e06"/>
 			<groupedElementList>
-				<element map="0" id="13171818018686116661" rt="1765.721442974537695" mz="431.20554824377092" it="1.240657e07" charge="3"/>
-				<element map="2" id="16925151590283380732" rt="1708.942587296559395" mz="431.20554824377092" it="2.598459e06" charge="3"/>
+				<element map="0" id="13171818018686116661" rt="1765.721442974537695" mz="431.20554824377092" it="1.240589e07" charge="3"/>
+				<element map="2" id="16925151590283380732" rt="1708.942587296559395" mz="431.20554824377092" it="2.59858e06" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="431.205261230469" RT="1797.83959960938" spectrum_reference="spectrum=2615" >
 				<PeptideHit score="0.0158730158730159" sequence="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK" charge="3" aa_before="K" aa_after="S" start="299" end="308" protein_refs="PH_9">
@@ -1122,27 +1320,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.03448275862069"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="13171818018686116661"/>
+				<UserParam type="string" name="feature_id" value="14868022199306242395"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="431.205749511719" RT="1705.23486328125" spectrum_reference="spectrum=2427" >
-				<PeptideHit score="0.0158730158730159" sequence="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK" charge="3" aa_before="K" aa_after="S" start="299" end="308" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="0.13170405716256"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="16925151590283380732"/>
-				<UserParam type="int" name="map_index" value="2"/>
-				<UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="14868022199306242395"/>
 		</consensusElement>
 		<consensusElement id="e_3839306012642094212" quality="0.0" charge="2">
-			<centroid rt="1750.657985080517847" mz="541.24188634517111" it="1.456498e05"/>
+			<centroid rt="1750.657985080517847" mz="541.24188634517111" it="1.456496e05"/>
 			<groupedElementList>
-				<element map="2" id="11951074431693044320" rt="1750.657985080517847" mz="541.24188634517111" it="1.456498e05" charge="2"/>
+				<element map="2" id="11951074431693044320" rt="1750.657985080517847" mz="541.24188634517111" it="1.456496e05" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="541.241516113281" RT="1751.08020019531" spectrum_reference="spectrum=2475" >
 				<PeptideHit score="0.0158730158730159" sequence="CC(Carbamidomethyl)TESLVNR" charge="2" aa_before="K" aa_after="R" start="498" end="506" protein_refs="PH_9">
@@ -1151,7 +1338,7 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="11951074431693044320"/>
+				<UserParam type="string" name="feature_id" value="3839306012642094212"/>
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
@@ -1171,38 +1358,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="1740627715817141822"/>
+				<UserParam type="string" name="feature_id" value="6244178397615412071"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="722.324951171875" RT="1728.01306152344" spectrum_reference="spectrum=2481" >
-				<PeptideHit score="0.0158730158730159" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" start="285" end="296" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="3.95473142553261e-07"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="7632861276876604852"/>
-				<UserParam type="int" name="map_index" value="1"/>
-				<UserParam type="int" name="id_merge_index" value="1"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="722.324951171875" RT="1754.4775390625" spectrum_reference="spectrum=2477" >
-				<PeptideHit score="0.0158730158730159" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" start="285" end="296" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="7.116147996047729e-04"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="8469646142350269142"/>
-				<UserParam type="int" name="map_index" value="2"/>
-				<UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="6244178397615412071"/>
 		</consensusElement>
 		<consensusElement id="e_1747517360768976839" quality="0.0" charge="2">
-			<centroid rt="1765.461084264346937" mz="646.30468413227095" it="1.228439e06"/>
+			<centroid rt="1765.461084264346937" mz="646.30468413227095" it="1.22851e06"/>
 			<groupedElementList>
-				<element map="0" id="17480794184187398956" rt="1765.461084264346937" mz="646.30468413227095" it="1.228439e06" charge="2"/>
+				<element map="0" id="17480794184187398956" rt="1765.461084264346937" mz="646.30468413227095" it="1.22851e06" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="646.3037109375" RT="1804.53405761719" spectrum_reference="spectrum=2625" >
 				<PeptideHit score="0.0158730158730159" sequence="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK" charge="2" aa_before="K" aa_after="S" start="299" end="308" protein_refs="PH_9">
@@ -1211,16 +1376,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.03448275862069"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="17480794184187398956"/>
+				<UserParam type="string" name="feature_id" value="1747517360768976839"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="1747517360768976839"/>
 		</consensusElement>
 		<consensusElement id="e_6297404135161150640" quality="0.0" charge="2">
-			<centroid rt="1786.813501918683414" mz="523.285465678971036" it="8.232995e05"/>
+			<centroid rt="1786.813501918683414" mz="523.285465678971036" it="8.232996e05"/>
 			<groupedElementList>
-				<element map="2" id="17335195571373876892" rt="1786.813501918683414" mz="523.285465678971036" it="8.232995e05" charge="2"/>
+				<element map="2" id="17335195571373876892" rt="1786.813501918683414" mz="523.285465678971036" it="8.232996e05" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="523.284973144531" RT="1781.71240234375" spectrum_reference="spectrum=2510" >
 				<PeptideHit score="0.0158730158730159" sequence="LSSPATLNSR" charge="2" aa_before="K K" aa_after="V V" start="112 97" end="121 106" protein_refs="PH_8 PH_10">
@@ -1229,16 +1394,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="17335195571373876892"/>
+				<UserParam type="string" name="feature_id" value="6297404135161150640"/>
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="6297404135161150640"/>
 		</consensusElement>
 		<consensusElement id="e_3523979636841659648" quality="0.0" charge="2">
-			<centroid rt="1792.508458559750579" mz="739.765263949420955" it="6.884173e05"/>
+			<centroid rt="1792.508458559750579" mz="739.765263949420955" it="6.884618e05"/>
 			<groupedElementList>
-				<element map="1" id="10666771715999960526" rt="1792.508458559750579" mz="739.765263949420955" it="6.884173e05" charge="2"/>
+				<element map="1" id="10666771715999960526" rt="1792.508458559750579" mz="739.765263949420955" it="6.884618e05" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="739.765686035156" RT="1790.20324707031" spectrum_reference="spectrum=2570" >
 				<PeptideHit score="0.0158730158730159" sequence="ETYGDMADC(Carbamidomethyl)C(Carbamidomethyl)EK" charge="2" aa_before="R" aa_after="Q" start="105" end="116" protein_refs="PH_9">
@@ -1247,18 +1412,18 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="10666771715999960526"/>
+				<UserParam type="string" name="feature_id" value="3523979636841659648"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="id_merge_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="3523979636841659648"/>
 		</consensusElement>
 		<consensusElement id="e_10147015604772775807" quality="0.967252" charge="2">
-			<centroid rt="1807.254603105628121" mz="487.732534471620966" it="6.794489e07"/>
+			<centroid rt="1807.254603105628121" mz="487.732534471620966" it="6.794199e07"/>
 			<groupedElementList>
-				<element map="0" id="13689446208680806914" rt="1850.125288661992272" mz="487.732534471620966" it="9.063513e07" charge="2"/>
-				<element map="1" id="15733511310427031803" rt="1772.139820750561739" mz="487.732534471620966" it="8.830588e07" charge="2"/>
-				<element map="2" id="10655081126782733365" rt="1799.498699904329897" mz="487.732534471620966" it="2.489364e07" charge="2"/>
+				<element map="0" id="13689446208680806914" rt="1850.125288661992272" mz="487.732534471620966" it="9.063492e07" charge="2"/>
+				<element map="1" id="15733511310427031803" rt="1772.139820750561739" mz="487.732534471620966" it="8.829845e07" charge="2"/>
+				<element map="2" id="10655081126782733365" rt="1799.498699904329897" mz="487.732534471620966" it="2.489262e07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="487.732299804688" RT="1875.54736328125" spectrum_reference="spectrum=2716" >
 				<PeptideHit score="0.0158730158730159" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" start="36" end="43" protein_refs="PH_9">
@@ -1267,40 +1432,18 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.03448275862069"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="13689446208680806914"/>
+				<UserParam type="string" name="feature_id" value="10147015604772775807"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="487.73193359375" RT="1764.072265625" spectrum_reference="spectrum=2530" >
-				<PeptideHit score="0.0158730158730159" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" start="36" end="43" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="0.095928319902701"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="15733511310427031803"/>
-				<UserParam type="int" name="map_index" value="1"/>
-				<UserParam type="int" name="id_merge_index" value="1"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="487.732513427734" RT="1788.2138671875" spectrum_reference="spectrum=2515" >
-				<PeptideHit score="0.0158730158730159" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" start="36" end="43" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="0.018619230664851"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="10655081126782733365"/>
-				<UserParam type="int" name="map_index" value="2"/>
-				<UserParam type="int" name="id_merge_index" value="2"/>
-			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="10147015604772775807"/>
 		</consensusElement>
-		<consensusElement id="e_13916592869622500300" quality="0.966569" charge="3">
-			<centroid rt="1807.265705058004642" mz="325.490781803337711" it="4.234466e07"/>
+		<consensusElement id="e_13916592869622500300" quality="0.96657" charge="3">
+			<centroid rt="1807.265705058004642" mz="325.490781803337711" it="4.234447e07"/>
 			<groupedElementList>
-				<element map="0" id="11486987517808453959" rt="1850.265747616082535" mz="325.490781803337711" it="6.698248e07" charge="3"/>
-				<element map="1" id="16007354456047415681" rt="1772.204483655986223" mz="325.490781803337711" it="5.132749e07" charge="3"/>
-				<element map="2" id="9462493458134831305" rt="1799.326883901945166" mz="325.490781803337711" it="8.724008e06" charge="3"/>
+				<element map="0" id="11486987517808453959" rt="1850.265747616082535" mz="325.490781803337711" it="6.698416e07" charge="3"/>
+				<element map="1" id="16007354456047415681" rt="1772.204483655986223" mz="325.490781803337711" it="5.132535e07" charge="3"/>
+				<element map="2" id="9462493458134831305" rt="1799.326883901945166" mz="325.490781803337711" it="8.723893e06" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="325.491180419922" RT="1840.79333496094" spectrum_reference="spectrum=2663" >
 				<PeptideHit score="0.0158730158730159" sequence="DLGEEHFK" charge="3" aa_before="K" aa_after="G" start="36" end="43" protein_refs="PH_9">
@@ -1309,31 +1452,9 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.045454545454546"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="11486987517808453959"/>
+				<UserParam type="string" name="feature_id" value="13916592869622500300"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="325.491271972656" RT="1766.46264648438" spectrum_reference="spectrum=2534" >
-				<PeptideHit score="0.0158730158730159" sequence="DLGEEHFK" charge="3" aa_before="K" aa_after="G" start="36" end="43" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="0.026443408891425"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="16007354456047415681"/>
-				<UserParam type="int" name="map_index" value="1"/>
-				<UserParam type="int" name="id_merge_index" value="1"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="325.491271972656" RT="1811.23511563603" spectrum_reference="spectrum=2534" >
-				<PeptideHit score="0.0158730158730159" sequence="DLGEEHFK" charge="3" aa_before="K" aa_after="G" start="36" end="43" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="0.026443408891425"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="9462493458134831305"/>
-				<UserParam type="int" name="map_index" value="2"/>
-				<UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="13916592869622500300"/>
 		</consensusElement>
@@ -1349,17 +1470,17 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.024390243902439"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="9637723581632676922"/>
+				<UserParam type="string" name="feature_id" value="1361844436498977223"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="id_merge_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="1361844436498977223"/>
 		</consensusElement>
 		<consensusElement id="e_8629766171681189474" quality="0.490309" charge="2">
-			<centroid rt="1865.361915576120509" mz="693.813928283221117" it="2.815717e05"/>
+			<centroid rt="1865.361915576120509" mz="693.813928283221003" it="2.815717e05"/>
 			<groupedElementList>
-				<element map="1" id="16613868263531932304" rt="1849.395393003333538" mz="693.813928283221117" it="2.620202e05" charge="2"/>
-				<element map="2" id="430934307908448384" rt="1881.32843814890748" mz="693.813928283221117" it="3.011231e05" charge="2"/>
+				<element map="1" id="16613868263531932304" rt="1849.395393003333538" mz="693.813928283221003" it="2.620202e05" charge="2"/>
+				<element map="2" id="430934307908448384" rt="1881.32843814890748" mz="693.813928283221003" it="3.011231e05" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="693.814819335938" RT="1846.52856445312" spectrum_reference="spectrum=2643" >
 				<PeptideHit score="0.0158730158730159" sequence="YICDNQDTISSK" charge="2" aa_before="K" aa_after="L" start="285" end="296" protein_refs="PH_9">
@@ -1368,20 +1489,9 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="16613868263531932304"/>
+				<UserParam type="string" name="feature_id" value="8629766171681189474"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="id_merge_index" value="1"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="693.815307617188" RT="1880.10424804688" spectrum_reference="spectrum=2614" >
-				<PeptideHit score="0.0158730158730159" sequence="YICDNQDTISSK" charge="2" aa_before="K" aa_after="L" start="285" end="296" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="0.014015137899773"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="430934307908448384"/>
-				<UserParam type="int" name="map_index" value="2"/>
-				<UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="8629766171681189474"/>
 		</consensusElement>
@@ -1397,7 +1507,7 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="9462057889525570726"/>
+				<UserParam type="string" name="feature_id" value="15401243200886540351"/>
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
@@ -1416,20 +1526,9 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="1958179543060470692"/>
+				<UserParam type="string" name="feature_id" value="6439916495748663103"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="id_merge_index" value="1"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="751.810546875" RT="1947.00720214844" spectrum_reference="spectrum=2697" >
-				<PeptideHit score="0.0158730158730159" sequence="EYEATLEEC(Carbamidomethyl)C(Carbamidomethyl)AK" charge="2" aa_before="K" aa_after="D" start="374" end="385" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="6.18893768168827e-03"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="11595921421070804873"/>
-				<UserParam type="int" name="map_index" value="2"/>
-				<UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="6439916495748663103"/>
 		</consensusElement>
@@ -1445,7 +1544,7 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="14356764654261201422"/>
+				<UserParam type="string" name="feature_id" value="7459857709672936328"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
@@ -1464,27 +1563,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="17913703819525749873"/>
+				<UserParam type="string" name="feature_id" value="10110888475853982524"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="id_merge_index" value="1"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="461.747711181641" RT="1946.79406738281" spectrum_reference="spectrum=2696" >
-				<PeptideHit score="0.0158730158730159" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="L" start="248" end="255" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="2.2536185127512e-03"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="14330533564863596576"/>
-				<UserParam type="int" name="map_index" value="2"/>
-				<UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="10110888475853982524"/>
 		</consensusElement>
 		<consensusElement id="e_6653507376919826563" quality="0.0" charge="2">
-			<centroid rt="1981.815619995114048" mz="351.204368724971005" it="3.483044e05"/>
+			<centroid rt="1981.815619995114048" mz="351.204368724971005" it="3.483081e05"/>
 			<groupedElementList>
-				<element map="1" id="12697467487414938944" rt="1981.815619995114048" mz="351.204368724971005" it="3.483044e05" charge="2"/>
+				<element map="1" id="12697467487414938944" rt="1981.815619995114048" mz="351.204368724971005" it="3.483081e05" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="351.204498291016" RT="1983.37719726562" spectrum_reference="spectrum=2840" >
 				<PeptideHit score="0.0158730158730159" sequence="GACLLPK" charge="2" aa_before="K" aa_after="I" start="197" end="203" protein_refs="PH_9">
@@ -1493,16 +1581,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="12697467487414938944"/>
+				<UserParam type="string" name="feature_id" value="6653507376919826563"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="id_merge_index" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="6653507376919826563"/>
 		</consensusElement>
 		<consensusElement id="e_10959714027095477006" quality="0.0" charge="2">
-			<centroid rt="1993.808613230953597" mz="395.726522907820936" it="6914.940918"/>
+			<centroid rt="1993.808613230953597" mz="395.726522907820936" it="6915.25"/>
 			<groupedElementList>
-				<element map="1" id="5550756649143897830" rt="1993.808613230953597" mz="395.726522907820936" it="6914.940918" charge="2"/>
+				<element map="1" id="5550756649143897830" rt="1993.808613230953597" mz="395.726522907820936" it="6915.25" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="395.700927734375" RT="1989.79528808594" spectrum_reference="spectrum=2848" >
 				<PeptideHit score="0.0158730158730159" sequence="AGAFSLPK" charge="2" aa_before="R" aa_after="D" start="9" end="16" protein_refs="PH_5">
@@ -1511,7 +1599,7 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="5550756649143897830"/>
+				<UserParam type="string" name="feature_id" value="10959714027095477006"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="id_merge_index" value="1"/>
 			</PeptideIdentification>
@@ -1529,16 +1617,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="11471876308000197376"/>
+				<UserParam type="string" name="feature_id" value="475808166666510305"/>
 				<UserParam type="int" name="map_index" value="3"/>
 				<UserParam type="int" name="id_merge_index" value="3"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="475808166666510305"/>
 		</consensusElement>
 		<consensusElement id="e_9918603590975871677" quality="0.0" charge="2">
-			<centroid rt="2072.094747027906124" mz="395.726522907820936" it="7877.708008"/>
+			<centroid rt="2072.094747027906124" mz="395.726522907820936" it="7877.708496"/>
 			<groupedElementList>
-				<element map="3" id="12422149900288344057" rt="2072.094747027906124" mz="395.726522907820936" it="7877.708008" charge="2"/>
+				<element map="3" id="12422149900288344057" rt="2072.094747027906124" mz="395.726522907820936" it="7877.708496" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="395.700897216797" RT="2085.73901367188" spectrum_reference="spectrum=3077" >
 				<PeptideHit score="0.0158730158730159" sequence="AGAFSLPK" charge="2" aa_before="R" aa_after="D" start="9" end="16" protein_refs="PH_5">
@@ -1547,7 +1635,7 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.045454545454546"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="12422149900288344057"/>
+				<UserParam type="string" name="feature_id" value="9918603590975871677"/>
 				<UserParam type="int" name="map_index" value="3"/>
 				<UserParam type="int" name="id_merge_index" value="3"/>
 			</PeptideIdentification>
@@ -1565,16 +1653,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="8188542940886812797"/>
+				<UserParam type="string" name="feature_id" value="7724001795979309193"/>
 				<UserParam type="int" name="map_index" value="3"/>
 				<UserParam type="int" name="id_merge_index" value="3"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="7724001795979309193"/>
 		</consensusElement>
 		<consensusElement id="e_18331818900014486874" quality="0.0" charge="2">
-			<centroid rt="2089.596569519389959" mz="421.758354535420949" it="2.062205e07"/>
+			<centroid rt="2089.596569519389959" mz="421.758354535420949" it="2.062206e07"/>
 			<groupedElementList>
-				<element map="3" id="11853100618574357339" rt="2089.596569519389959" mz="421.758354535420949" it="2.062205e07" charge="2"/>
+				<element map="3" id="11853100618574357339" rt="2089.596569519389959" mz="421.758354535420949" it="2.062206e07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="421.758056640625" RT="2091.08642578125" spectrum_reference="spectrum=3087" >
 				<PeptideHit score="0.0158730158730159" sequence="VATVSLPR" charge="2" aa_before="R" aa_after="S" start="107" end="114" protein_refs="PH_10">
@@ -1583,7 +1671,7 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.03448275862069"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="11853100618574357339"/>
+				<UserParam type="string" name="feature_id" value="18331818900014486874"/>
 				<UserParam type="int" name="map_index" value="3"/>
 				<UserParam type="int" name="id_merge_index" value="3"/>
 			</PeptideIdentification>
@@ -1602,27 +1690,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="4733692306052449524"/>
+				<UserParam type="string" name="feature_id" value="11768613195939475075"/>
 				<UserParam type="int" name="map_index" value="4"/>
 				<UserParam type="int" name="id_merge_index" value="4"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="428.234069824219" RT="2125.65234375" spectrum_reference="spectrum=2885" >
-				<PeptideHit score="0.0158730158730159" sequence="FVEGLYK" charge="2" aa_before="K" aa_after="V" start="83" end="89" protein_refs="PH_7">
-					<UserParam type="float" name="OMSSA_score" value="0.033559867570263"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="8619438208551661769"/>
-				<UserParam type="int" name="map_index" value="5"/>
-				<UserParam type="int" name="id_merge_index" value="5"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="11768613195939475075"/>
 		</consensusElement>
 		<consensusElement id="e_4479699759622740501" quality="0.0" charge="3">
-			<centroid rt="2194.41740961052983" mz="518.889165386937634" it="5.99796e06"/>
+			<centroid rt="2194.41740961052983" mz="518.889165386937634" it="5.997949e06"/>
 			<groupedElementList>
-				<element map="5" id="11823780438806274244" rt="2194.41740961052983" mz="518.889165386937634" it="5.99796e06" charge="3"/>
+				<element map="5" id="11823780438806274244" rt="2194.41740961052983" mz="518.889165386937634" it="5.997949e06" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="518.888854980469" RT="2194.63940429688" spectrum_reference="spectrum=2949" >
 				<PeptideHit score="0.0158730158730159" sequence="DDPHAC(Carbamidomethyl)YSTVFDK" charge="3" aa_before="K" aa_after="L" start="386" end="398" protein_refs="PH_9">
@@ -1631,16 +1708,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="11823780438806274244"/>
+				<UserParam type="string" name="feature_id" value="4479699759622740501"/>
 				<UserParam type="int" name="map_index" value="5"/>
 				<UserParam type="int" name="id_merge_index" value="5"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="4479699759622740501"/>
 		</consensusElement>
 		<consensusElement id="e_5990834678922985545" quality="0.0" charge="3">
-			<centroid rt="2238.001169587713321" mz="499.882010688371054" it="3.052875e04"/>
+			<centroid rt="2238.001169587713321" mz="499.882010688371054" it="3.052892e04"/>
 			<groupedElementList>
-				<element map="4" id="1139787997990240514" rt="2238.001169587713321" mz="499.882010688371054" it="3.052875e04" charge="3"/>
+				<element map="4" id="1139787997990240514" rt="2238.001169587713321" mz="499.882010688371054" it="3.052892e04" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="499.880798339844" RT="2240.0859375" spectrum_reference="spectrum=3174" >
 				<PeptideHit score="0.0158730158730159" sequence="DDPHACYSTVFDK" charge="3" aa_before="K" aa_after="L" start="386" end="398" protein_refs="PH_9">
@@ -1649,7 +1726,7 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.024390243902439"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="1139787997990240514"/>
+				<UserParam type="string" name="feature_id" value="5990834678922985545"/>
 				<UserParam type="int" name="map_index" value="4"/>
 				<UserParam type="int" name="id_merge_index" value="4"/>
 			</PeptideIdentification>
@@ -1668,20 +1745,9 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="4757317756968981676"/>
+				<UserParam type="string" name="feature_id" value="6645998577322441588"/>
 				<UserParam type="int" name="map_index" value="4"/>
 				<UserParam type="int" name="id_merge_index" value="4"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="653.360290527344" RT="2272.67431640625" spectrum_reference="spectrum=3040" >
-				<PeptideHit score="0.0158730158730159" sequence="HLVDEPQNLIK" charge="2" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="0.01323390528043"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="12189052785734539134"/>
-				<UserParam type="int" name="map_index" value="5"/>
-				<UserParam type="int" name="id_merge_index" value="5"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="6645998577322441588"/>
 		</consensusElement>
@@ -1699,31 +1765,9 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.03448275862069"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="229971771646460639"/>
+				<UserParam type="string" name="feature_id" value="7343296971654312843"/>
 				<UserParam type="int" name="map_index" value="3"/>
 				<UserParam type="int" name="id_merge_index" value="3"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="435.910797119141" RT="2211.69580078125" spectrum_reference="spectrum=3126" >
-				<PeptideHit score="0.0158730158730159" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="2.557147958358581e-07"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="9706635062731468173"/>
-				<UserParam type="int" name="map_index" value="4"/>
-				<UserParam type="int" name="id_merge_index" value="4"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="435.910461425781" RT="2251.568359375" spectrum_reference="spectrum=3007" >
-				<PeptideHit score="0.0158730158730159" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" start="401" end="411" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="1.05306087801224e-04"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="11540486723677585095"/>
-				<UserParam type="int" name="map_index" value="5"/>
-				<UserParam type="int" name="id_merge_index" value="5"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="7343296971654312843"/>
 		</consensusElement>
@@ -1741,31 +1785,9 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="14748226108516668205"/>
+				<UserParam type="string" name="feature_id" value="8842809451233714795"/>
 				<UserParam type="int" name="map_index" value="3"/>
 				<UserParam type="int" name="id_merge_index" value="3"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="464.250061035156" RT="2250.060546875" spectrum_reference="spectrum=3191" >
-				<PeptideHit score="0.0158730158730159" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="1.18336398159532e-04"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="13382135864188802114"/>
-				<UserParam type="int" name="map_index" value="4"/>
-				<UserParam type="int" name="id_merge_index" value="4"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="464.250274658203" RT="2235.77685546875" spectrum_reference="spectrum=2981" >
-				<PeptideHit score="0.0158730158730159" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" start="160" end="166" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="1.27135965878674e-04"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="2146729748361507257"/>
-				<UserParam type="int" name="map_index" value="5"/>
-				<UserParam type="int" name="id_merge_index" value="5"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="8842809451233714795"/>
 		</consensusElement>
@@ -1782,20 +1804,9 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="6787214389126543652"/>
+				<UserParam type="string" name="feature_id" value="14221707053314134069"/>
 				<UserParam type="int" name="map_index" value="4"/>
 				<UserParam type="int" name="id_merge_index" value="4"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="547.31689453125" RT="2309.00219726562" spectrum_reference="spectrum=3075" >
-				<PeptideHit score="0.0158730158730159" sequence="KVPQVSTPTLVEVSR" charge="3" aa_before="R" aa_after="S" start="436" end="450" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="6.02991436330375e-03"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="10913570637522126994"/>
-				<UserParam type="int" name="map_index" value="5"/>
-				<UserParam type="int" name="id_merge_index" value="5"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="14221707053314134069"/>
 		</consensusElement>
@@ -1812,20 +1823,9 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.045454545454546"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="10707537060371528309"/>
+				<UserParam type="string" name="feature_id" value="18287630086400846884"/>
 				<UserParam type="int" name="map_index" value="3"/>
 				<UserParam type="int" name="id_merge_index" value="3"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="501.794799804688" RT="2341.02001953125" spectrum_reference="spectrum=3304" >
-				<PeptideHit score="0.0158730158730159" sequence="LVVSTQTALA" charge="2" aa_before="K" aa_after="]" start="597" end="606" protein_refs="PH_9">
-					<UserParam type="float" name="OMSSA_score" value="0.018136079089243"/>
-					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
-				</PeptideHit>
-				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="1030380145289255108"/>
-				<UserParam type="int" name="map_index" value="4"/>
-				<UserParam type="int" name="id_merge_index" value="4"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="18287630086400846884"/>
 		</consensusElement>
@@ -1841,16 +1841,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.03448275862069"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="8865906945311802458"/>
+				<UserParam type="string" name="feature_id" value="12603208022133887631"/>
 				<UserParam type="int" name="map_index" value="5"/>
 				<UserParam type="int" name="id_merge_index" value="5"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="12603208022133887631"/>
 		</consensusElement>
 		<consensusElement id="e_3780646146223422162" quality="0.0" charge="3">
-			<centroid rt="2427.530873709501975" mz="504.619115012304462" it="7.962601e05"/>
+			<centroid rt="2427.530873709501975" mz="504.619115012304292" it="7.962601e05"/>
 			<groupedElementList>
-				<element map="5" id="6218619334787567504" rt="2427.530873709501975" mz="504.619115012304462" it="7.962601e05" charge="3"/>
+				<element map="5" id="6218619334787567504" rt="2427.530873709501975" mz="504.619115012304292" it="7.962601e05" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="504.618865966797" RT="2421.07788085938" spectrum_reference="spectrum=3168" >
 				<PeptideHit score="0.0158730158730159" sequence="VPQVSTPTLVEVSR" charge="3" aa_before="K" aa_after="S" start="437" end="450" protein_refs="PH_9">
@@ -1859,16 +1859,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="6218619334787567504"/>
+				<UserParam type="string" name="feature_id" value="3780646146223422162"/>
 				<UserParam type="int" name="map_index" value="5"/>
 				<UserParam type="int" name="id_merge_index" value="5"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="3780646146223422162"/>
 		</consensusElement>
 		<consensusElement id="e_1621683516845473027" quality="0.0" charge="3">
-			<centroid rt="2460.045948124548886" mz="627.645224415137818" it="5.109413e06"/>
+			<centroid rt="2460.045948124548886" mz="627.645224415137705" it="5.109438e06"/>
 			<groupedElementList>
-				<element map="4" id="4151587613788557423" rt="2460.045948124548886" mz="627.645224415137818" it="5.109413e06" charge="3"/>
+				<element map="4" id="4151587613788557423" rt="2460.045948124548886" mz="627.645224415137705" it="5.109438e06" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="627.646362304688" RT="2476.88061523438" spectrum_reference="spectrum=3440" >
 				<PeptideHit score="0.0158730158730159" sequence="RPC(Carbamidomethyl)FSALTPDETYVPK" charge="3" aa_before="R" aa_after="A" start="507" end="522" protein_refs="PH_9">
@@ -1877,7 +1877,7 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="4151587613788557423"/>
+				<UserParam type="string" name="feature_id" value="1621683516845473027"/>
 				<UserParam type="int" name="map_index" value="4"/>
 				<UserParam type="int" name="id_merge_index" value="4"/>
 			</PeptideIdentification>
@@ -1895,7 +1895,7 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="17170054314574876840"/>
+				<UserParam type="string" name="feature_id" value="9877941173182438569"/>
 				<UserParam type="int" name="map_index" value="4"/>
 				<UserParam type="int" name="id_merge_index" value="4"/>
 			</PeptideIdentification>
@@ -1913,16 +1913,16 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="17623901357665174734"/>
+				<UserParam type="string" name="feature_id" value="10641530450358358496"/>
 				<UserParam type="int" name="map_index" value="4"/>
 				<UserParam type="int" name="id_merge_index" value="4"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="10641530450358358496"/>
 		</consensusElement>
 		<consensusElement id="e_11619824972304868953" quality="0.0" charge="3">
-			<centroid rt="2488.240298282809817" mz="480.608772593904405" it="1.255663e07"/>
+			<centroid rt="2488.240298282809817" mz="480.608772593904405" it="1.255665e07"/>
 			<groupedElementList>
-				<element map="4" id="4995866191739044173" rt="2488.240298282809817" mz="480.608772593904405" it="1.255663e07" charge="3"/>
+				<element map="4" id="4995866191739044173" rt="2488.240298282809817" mz="480.608772593904405" it="1.255665e07" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="480.608703613281" RT="2412.92065429688" spectrum_reference="spectrum=3369" >
 				<PeptideHit score="0.0158730158730159" sequence="RHPEYAVSVLLR" charge="3" aa_before="R" aa_after="L" start="359" end="370" protein_refs="PH_9">
@@ -1931,7 +1931,7 @@
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
-				<UserParam type="string" name="feature_id" value="4995866191739044173"/>
+				<UserParam type="string" name="feature_id" value="11619824972304868953"/>
 				<UserParam type="int" name="map_index" value="4"/>
 				<UserParam type="int" name="id_merge_index" value="4"/>
 			</PeptideIdentification>

@@ -68,9 +68,7 @@ using namespace OpenMS;
     defaultsToParam_();
   }
 
-  XFDRAlgorithm::~XFDRAlgorithm()
-  {
-  }
+  XFDRAlgorithm::~XFDRAlgorithm() = default;
 
   void XFDRAlgorithm::updateMembers_()
   {

@@ -991,7 +991,7 @@ namespace OpenMS
       throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
 
-    StringList valids = strings;
+    const StringList& valids = strings;
     StringList defaults;
 
     if (p.type == ParameterInformation::STRING)
@@ -1187,14 +1187,14 @@ namespace OpenMS
     parameters_.push_back(ParameterInformation(name, ParameterInformation::INT, argument, default_value, description, required, advanced));
   }
 
-  void TOPPBase::registerOutputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
+  void TOPPBase::registerOutputFileList_(const String& name, const String& argument, const StringList& default_value, const String& description, bool required, bool advanced)
   {
     if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required OutputFileList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
     parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE_LIST, argument, ListUtils::create<std::string>(default_value), description, required, advanced));
   }
 
-  void TOPPBase::registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced, const StringList& tags)
+  void TOPPBase::registerInputFileList_(const String& name, const String& argument, const StringList& default_value, const String& description, bool required, bool advanced, const StringList& tags)
   {
     int count_conflicting_tags = (ListUtils::contains(tags, "skipexists") + ListUtils::contains(tags, "is_executable"));
     if (count_conflicting_tags >= 2)
@@ -1206,14 +1206,14 @@ namespace OpenMS
     parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE_LIST, argument, ListUtils::create<std::string>(default_value), description, required, advanced, tags));
   }
 
-  void TOPPBase::registerStringList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
+  void TOPPBase::registerStringList_(const String& name, const String& argument, const StringList& default_value, const String& description, bool required, bool advanced)
   {
     if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required StringList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
     parameters_.push_back(ParameterInformation(name, ParameterInformation::STRINGLIST, argument, ListUtils::create<std::string>(default_value), description, required, advanced));
   }
 
-  void TOPPBase::registerIntList_(const String& name, const String& argument, IntList default_value, const String& description, bool required, bool advanced)
+  void TOPPBase::registerIntList_(const String& name, const String& argument, const IntList& default_value, const String& description, bool required, bool advanced)
   {
     stringstream ss;
     ss << default_value;
@@ -1222,7 +1222,7 @@ namespace OpenMS
     parameters_.push_back(ParameterInformation(name, ParameterInformation::INTLIST, argument, default_value, description, required, advanced));
   }
 
-  void TOPPBase::registerDoubleList_(const String& name, const String& argument, DoubleList default_value, const String& description, bool required, bool advanced)
+  void TOPPBase::registerDoubleList_(const String& name, const String& argument, const DoubleList& default_value, const String& description, bool required, bool advanced)
   {
     stringstream ss;
     ss << default_value;

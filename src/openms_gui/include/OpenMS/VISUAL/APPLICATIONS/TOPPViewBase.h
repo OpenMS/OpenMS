@@ -168,8 +168,14 @@ public:
       FORCE_SCAN
     };
 
+    enum class VERBOSITY
+    {
+      DEFAULT,
+      VERBOSE
+    };    
+
     ///Constructor
-    explicit TOPPViewBase(TOOL_SCAN scan_mode = TOOL_SCAN::SCAN_IF_NEWER_VERSION, QWidget* parent = nullptr);
+    explicit TOPPViewBase(TOOL_SCAN scan_mode = TOOL_SCAN::SCAN_IF_NEWER_VERSION, VERBOSITY verbosity = VERBOSITY::DEFAULT, QWidget* parent = nullptr);
     ///Destructor
     ~TOPPViewBase() override;
 
@@ -212,11 +218,11 @@ public:
       @param window_id in which window the file is opened if opened as a new layer (0 or default equals current
       @param spectrum_id determines the spectrum to show in 1D view.
     */
-    void addData(FeatureMapSharedPtrType feature_map,
-                 ConsensusMapSharedPtrType consensus_map,
+    void addData(const FeatureMapSharedPtrType& feature_map,
+                 const ConsensusMapSharedPtrType& consensus_map,
                  std::vector<PeptideIdentification>& peptides,
-                 ExperimentSharedPtrType peak_map,
-                 ODExperimentSharedPtrType on_disc_peak_map,
+                 const ExperimentSharedPtrType& peak_map,
+                 const ODExperimentSharedPtrType& on_disc_peak_map,
                  LayerDataBase::DataType data_type,
                  bool show_as_1d,
                  bool show_options,
@@ -441,9 +447,12 @@ protected:
     LogWindow* log_;
 
     /// Determines TVToolDiscovery scans for tool/utils and generates new params.
-    TOOL_SCAN scan_mode_;
+    TOOL_SCAN scan_mode_;    
     /// Scans for tools/utils and generates a param for each.
     TVToolDiscovery tool_scanner_;
+
+    /// Verbosity of TV 
+    VERBOSITY verbosity_;
 
     /** @name Toolbar
     */

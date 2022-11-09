@@ -133,7 +133,7 @@ private:
       * @param spec The spectrum
       * @param header A header for the spectrum, build using the base_name parameter for writeXQuestXMLSpec and the index of the spectrum.
       */
-      static String getxQuestBase64EncodedSpectrum_(const PeakSpectrum& spec, String header, const bool& test_mode = false);
+      static String getxQuestBase64EncodedSpectrum_(const PeakSpectrum& spec, const String& header, const bool& test_mode = false);
 
      /**
       * @brief A helper function, that takes one string containing one line and wraps it into several lines of a given width

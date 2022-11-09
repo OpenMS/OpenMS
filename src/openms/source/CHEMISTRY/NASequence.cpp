@@ -42,6 +42,7 @@
 #include <map>
 
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -52,7 +53,7 @@ namespace OpenMS
                          const RibonucleotideChainEnd* five_prime,
                          const RibonucleotideChainEnd* three_prime)
   {
-    seq_ = seq;
+    seq_ = std::move(seq);
     five_prime_ = five_prime;
     three_prime_ = three_prime;
   }

@@ -43,8 +43,6 @@ namespace OpenMS
   {
   }
 
-  BaseSuperimposer::~BaseSuperimposer()
-  {
-  }
+  BaseSuperimposer::~BaseSuperimposer() = default;
 
 }

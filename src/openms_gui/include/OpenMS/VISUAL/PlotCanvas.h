@@ -427,7 +427,7 @@ public:
 
       @return If a new layer was created
     */
-    bool addPeakLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String& filename = "", const bool use_noise_cutoff = false);
+    bool addPeakLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename = "", const bool use_noise_cutoff = false);
 
     /**
       @brief Add a chrom data layer
@@ -438,7 +438,7 @@ public:
 
       @return If a new layer was created
     */
-    bool addChromLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String& filename = "");
+    bool addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename = "");
 
 
     /**
@@ -713,7 +713,7 @@ protected slots:
 protected:
 
     /// Draws several lines of text to the upper right corner of the widget
-    void drawText_(QPainter & painter, QStringList text);
+    void drawText_(QPainter & painter, const QStringList& text);
 
     /// Returns the m/z value of an identification depending on the m/z source of the layer (precursor mass/theoretical peptide mass)
     double getIdentificationMZ_(const Size layer_index,

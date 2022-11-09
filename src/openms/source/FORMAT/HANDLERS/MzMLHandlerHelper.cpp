@@ -59,7 +59,7 @@ namespace OpenMS::Internal
       OPENMS_LOG_WARN << error_message_ << std::endl;
     }
 
-  String MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, String indent, bool use_numpress)
+  String MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, const String& indent, bool use_numpress)
   {
     if (opt.getCompression())
     {
