@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/FORMAT/PeakTypeEstimator.h>" namespace "OpenMS":
 
     cdef cppclass PeakTypeEstimator:
     # wrap-doc:
-    #   Estimates if the data of a spectrum is raw data or peak data
+    #  Estimates if the data of a spectrum is raw data or peak data
     
         PeakTypeEstimator() nogil except + 
         PeakTypeEstimator(PeakTypeEstimator &) nogil except +

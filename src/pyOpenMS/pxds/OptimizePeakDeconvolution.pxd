@@ -11,13 +11,13 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>"
         # wrap-inherits:
         #  DefaultParamHandler
         # wrap-doc:
-        #   This class provides the deconvolution of peak regions using non-linear optimization
-        #   -----
-        #   Given a vector of peak shapes, this class optimizes all peak shapes parameters using a non-linear optimization.
-        #   For the non-linear optimization we use the Levenberg-Marquardt algorithm.
-        #   There are a few constraints for the parameters: the positions are equidistant according to the peptide
-        #   mass rule, e.g. two consecutive isotopic peaks are 1.003/charge away from each other. Besides the
-        #   peaks have all the same left and right width, respectively
+        #  This class provides the deconvolution of peak regions using non-linear optimization
+        #  
+        #  Given a vector of peak shapes, this class optimizes all peak shapes parameters using a non-linear optimization.
+        #  For the non-linear optimization we use the Levenberg-Marquardt algorithm.
+        #  There are a few constraints for the parameters: the positions are equidistant according to the peptide
+        #  mass rule, e.g. two consecutive isotopic peaks are 1.003/charge away from each other. Besides the
+        #  peaks have all the same left and right width, respectively
 
         OptimizePeakDeconvolution() nogil except +
         OptimizePeakDeconvolution(OptimizePeakDeconvolution &) nogil except +
@@ -34,10 +34,10 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>"
         # wrap-inherits:
         #  OptimizationFunctions_PenaltyFactors
         # wrap-doc:
-        #   Class for the penalty factors used during the optimization
-        #   -----
-        #   A great deviation (squared deviation) of a peak shape's position or its left or right width parameter can be penalised
-        #   During the optimization negative heights may occur, they are penalised as well
+        #  Class for the penalty factors used during the optimization
+        #  
+        #  A great deviation (squared deviation) of a peak shape's position or its left or right width parameter can be penalised
+        #  During the optimization negative heights may occur, they are penalised as well
 
         PenaltyFactorsIntensity() nogil except +
         PenaltyFactorsIntensity(PenaltyFactorsIntensity) nogil except +

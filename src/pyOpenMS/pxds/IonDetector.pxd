@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS":
 
     cdef cppclass IonDetector(MetaInfoInterface):
         # wrap-inherits:
-        #    MetaInfoInterface
+        #   MetaInfoInterface
         
         IonDetector() nogil except + # wrap-doc:Description of a ion detector (part of a MS Instrument)
         IonDetector(IonDetector &) nogil except + 
@@ -31,7 +31,7 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS::IonDetecto
         # Detector type
         cdef enum Type_IonDetector "OpenMS::IonDetector::Type":
           # wrap-attach:
-          #     IonDetector
+          #    IonDetector
           TYPENULL,                                                                 #< Unknown
           ELECTRONMULTIPLIER,                                           #< Electron multiplier
           PHOTOMULTIPLIER,                                                  #< Photo multiplier
@@ -59,7 +59,7 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS::IonDetecto
         # Acquisition mode
         cdef enum AcquisitionMode:
           # wrap-attach:
-          #     IonDetector
+          #    IonDetector
           ACQMODENULL,                          #< Unknown
           PULSECOUNTING,                    #< Pulse counting
           ADC,                                          #< Analog-digital converter

@@ -40,8 +40,9 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
+#include <utility>
 
 using namespace std;
 
@@ -136,9 +137,7 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  ResidueModification::~ResidueModification()
-  {
-  }
+  ResidueModification::~ResidueModification() = default;
 
   void ResidueModification::setId(const String& id)
   {
@@ -545,7 +544,7 @@ namespace OpenMS
 
   void ResidueModification::setNeutralLossMonoMasses(vector<double> mono_masses)
   {
-    neutral_loss_mono_masses_ = mono_masses;
+    neutral_loss_mono_masses_ = std::move(mono_masses);
   }
 
   vector<double> ResidueModification::getNeutralLossMonoMasses() const
@@ -555,7 +554,7 @@ namespace OpenMS
 
   void ResidueModification::setNeutralLossAverageMasses(vector<double> average_masses)
   {
-    neutral_loss_average_masses_ = average_masses;
+    neutral_loss_average_masses_ = std::move(average_masses);
   }
 
   vector<double> ResidueModification::getNeutralLossAverageMasses() const

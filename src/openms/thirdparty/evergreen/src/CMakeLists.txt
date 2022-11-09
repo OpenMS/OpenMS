@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS-evergreen")
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 # export include directory
 add_library(Evergreen INTERFACE)

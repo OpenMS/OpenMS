@@ -40,14 +40,9 @@ using namespace std;
 
 namespace OpenMS
 {
-  ConsensusMapNormalizerAlgorithmQuantile::ConsensusMapNormalizerAlgorithmQuantile()
-  {
-  }
+  ConsensusMapNormalizerAlgorithmQuantile::ConsensusMapNormalizerAlgorithmQuantile() = default;
 
-  ConsensusMapNormalizerAlgorithmQuantile::~ConsensusMapNormalizerAlgorithmQuantile()
-  {
-
-  }
+  ConsensusMapNormalizerAlgorithmQuantile::~ConsensusMapNormalizerAlgorithmQuantile() = default;
 
   void ConsensusMapNormalizerAlgorithmQuantile::normalizeMaps(ConsensusMap& map)
   {

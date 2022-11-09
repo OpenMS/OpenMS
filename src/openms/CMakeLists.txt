@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS")
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 set(CMAKE_AUTOMOC ON) # some OpenMS classes make use of Signal/Slot, e.g. SYSTEM/FileWatcher.cpp
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -94,7 +94,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES GTE ${LPTARGET} Eigen3::Eigen HDF5::HDF5 Boost:
 
 #------------------------------------------------------------------------------
 # Install the QSQLite driver if we are not on linux so we can use oms files
-if(WIN32)
+if(WIN32 OR APPLE)
   install_qt5_plugin("Qt5::QSQLiteDriverPlugin" QT_SQLITE_PLUGIN "${INSTALL_PLUGIN_DIR}/plugins" QT5SQLitePlugin)
 endif()
 
@@ -130,6 +130,14 @@ openms_add_library(TARGET_NAME  OpenMS
                                   ${OPENMS_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
+
+if (MSVC)
+  ## treat warning of unused function parameter as error
+  target_compile_options(OpenMS PRIVATE "/we4100")
+
+  ## treat warning of unused local variable as error
+  target_compile_options(OpenMS PRIVATE "/we4189")
+endif()
 
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation

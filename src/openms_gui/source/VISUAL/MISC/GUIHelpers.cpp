@@ -37,12 +37,12 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QDesktopServices>
-#include <QDir>
 #include <QGuiApplication>
 #include <QMessageBox>
 #include <QPainter>
 #include <QPoint>
 #include <QProcess>
+#include <QRectF>
 #include <QString>
 #include <QStringList>
 #include <QtWidgets/QFileDialog>
@@ -72,7 +72,7 @@ namespace OpenMS
 #endif
   }
 
-  OPENMS_GUI_DLLAPI QString GUIHelpers::getSaveFilename(QWidget* parent, const QString& caption, const QString& dir, FileTypeList supported_file_types, bool add_all_filter,
+  OPENMS_GUI_DLLAPI QString GUIHelpers::getSaveFilename(QWidget* parent, const QString& caption, const QString& dir, const FileTypeList& supported_file_types, bool add_all_filter,
                                                         const FileTypes::Type fallback_extension)
   {
     QString selected_filter;
@@ -160,7 +160,7 @@ namespace OpenMS
     }
   }
 
-  void GUIHelpers::drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor col_fg, const QColor col_bg, const QFont& f)
+  void GUIHelpers::drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor& col_fg, const QColor& col_bg, const QFont& f)
   {
     painter.save();
 
@@ -201,6 +201,73 @@ namespace OpenMS
 #pragma GCC diagnostic pop
     }
     return QRectF(0, 0, width, height);
+  }
+
+  QPointF GUIHelpers::nearestPoint(const QPointF& origin, const QList<QPointF>& list)
+  {
+    if (list.empty())
+    {
+      return QPointF();
+    }
+    QPointF nearest = list.first();
+    qreal min_distance = (std::numeric_limits<qreal>::max)();
+
+    for (QList<QPointF>::const_iterator it = list.begin(); it != list.end(); ++it)
+    {
+      qreal sqr_distance = (it->x() - origin.x()) * (it->x() - origin.x()) + (it->y() - origin.y()) * (it->y() - origin.y());
+      if (sqr_distance < min_distance)
+      {
+        min_distance = sqr_distance;
+        nearest = *it;
+      }
+    }
+
+    return nearest;
+  }
+
+  QPointF GUIHelpers::intersectionPoint(const QRectF& rect, const QPointF& p)
+  {
+    if (rect.contains(p))
+      return rect.center();
+
+    QPointF delta = rect.center() - p;
+    qreal slope;
+    if (delta.x() == 0)
+    {
+      slope = std::numeric_limits<qreal>::infinity();
+    }
+    else
+    {
+      slope = delta.y() / delta.x();
+    }
+
+    qreal y_1 = p.y() + slope * (rect.left() - p.x());
+    qreal y_2 = p.y() + slope * (rect.right() - p.x());
+
+    slope = 1.0 / slope;
+
+    qreal x_3 = p.x() + slope * (rect.top() - p.y());
+    qreal x_4 = p.x() + slope * (rect.bottom() - p.y());
+
+    QList<QPointF> point_list;
+    if (y_1 <= rect.bottom() && y_1 >= rect.top())
+    {
+      point_list.push_back(QPointF(rect.left(), y_1));
+    }
+    if (y_2 <= rect.bottom() && y_2 >= rect.top())
+    {
+      point_list.push_back(QPointF(rect.right(), y_2));
+    }
+    if (x_3 <= rect.right() && x_3 >= rect.left())
+    {
+      point_list.push_back(QPointF(x_3, rect.top()));
+    }
+    if (x_4 <= rect.right() && x_4 >= rect.left())
+    {
+      point_list.push_back(QPointF(x_4, rect.bottom()));
+    }
+
+    return nearestPoint(p, point_list);
   }
 
   StringList GUIHelpers::convert(const QStringList& in)

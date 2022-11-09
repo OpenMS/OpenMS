@@ -148,7 +148,7 @@ public:
      * @param transition_group_map Output mapping of transition groups
      *
     */
-    void pickExperiment(const OpenSwath::SpectrumAccessPtr input,
+    void pickExperiment(const OpenSwath::SpectrumAccessPtr& input,
                         FeatureMap& output,
                         const OpenSwath::LightTargetedExperiment& transition_exp,
                         const TransformationDescription& trafo,
@@ -224,7 +224,7 @@ public:
      * @param rt_extraction_window The used retention time extraction window
      *
     */
-    void mapExperimentToTransitionList(const OpenSwath::SpectrumAccessPtr input,
+    void mapExperimentToTransitionList(const OpenSwath::SpectrumAccessPtr& input,
                                        const OpenSwath::LightTargetedExperiment& transition_exp,
                                        TransitionGroupMapType& transition_group_map,
                                        TransformationDescription trafo,

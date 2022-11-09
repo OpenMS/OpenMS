@@ -78,7 +78,7 @@ namespace OpenMS
     }
   }
 
-  void DiaPrescore::operator()(OpenSwath::SpectrumAccessPtr swath_ptr,
+  void DiaPrescore::operator()(const OpenSwath::SpectrumAccessPtr& swath_ptr,
                                OpenSwath::LightTargetedExperiment& transition_exp_used,
                                OpenSwath::IDataFrameWriter* ivw) const
   {

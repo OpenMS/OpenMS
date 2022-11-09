@@ -86,11 +86,9 @@ namespace OpenMS
                                        const bool write_detail,
                                        const bool decoy);
 
-//    /**
-//      @brief write the deconvolved masses Json output (*.json)
-//         @param dspec deconvolved spectrum to write
-//      @param fs file stream to the output file
-//    */
+    static void writeDLMatrixHeader(DeconvolvedSpectrum& dspec, std::fstream& fs);
+
+    static void writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, std::fstream& fs);
 
     /**
       @brief write the deconvolved masses TopFD output (*.msalign)

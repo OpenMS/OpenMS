@@ -80,9 +80,6 @@ public:
     /// @param current_type Either DT_PEAK or DT_CHROMATOGRAM, depending on what is currently shown
     bool getSelectedScan(MSExperiment& exp, LayerDataBase::DataType& current_type) const;
 
-    /// received focus e.g. through tabswitching
-    void updateIndexFromCurrentLayer();
-
 signals:
     void spectrumSelected(int);
     void chromsSelected(std::vector<int> indices);

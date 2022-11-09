@@ -43,7 +43,7 @@ namespace OpenMS
 
   void AxisPainter::paint(QPainter * painter, QPaintEvent *, const double & min, const double & max, const GridVector & grid,
                           const Int width, const Int height, const AxisPainter::Alignment alignment, const UInt margin,
-                          bool show_legend, String legend, bool shorten_number,
+                          bool show_legend, const String& legend, bool shorten_number,
                           bool is_log, bool is_inverse_orientation)
   {
     // position of the widget
@@ -289,28 +289,28 @@ namespace OpenMS
     }
   }
 
-  void AxisPainter::getShortenedNumber_(QString & short_num, double number)
+  void AxisPainter::getShortenedNumber_(QString& short_num, double number)
   {
-    if (number < 1000.0)
+    if (number < 1e3)
     {
       short_num = QString("%1").arg(number);
     }
-    else if (number < 1000000.0)
+    else if (number < 1e6)
     {
-      short_num = QString("%1k").arg(Math::roundDecimal(number / 1000.0, -2));
+      short_num = QString("%1k").arg(Math::roundDecimal(number /1e3, -2));
     }
-    else if (number < 1000000000.0)
+    else if (number < 1e9)
     {
-      short_num = QString("%1M").arg(number / 1000000.0);
+      short_num = QString("%1M").arg(number / 1e6);
     }
     else
     {
-      short_num = QString("%1G").arg(number / 1000000000.0);
+      short_num = QString("%1G").arg(number / 1e9);
     }
   }
 
   double AxisPainter::scale_(double x, bool is_log)
-  {
+  { // 
     return (is_log) ? Math::roundDecimal(pow(10, x), -8) : Math::roundDecimal(x, -8);
   }
 

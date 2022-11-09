@@ -68,9 +68,7 @@ namespace OpenMS
     charge_ = charge;
   }
 
-  EmpiricalFormula::~EmpiricalFormula()
-  {
-  }
+  EmpiricalFormula::~EmpiricalFormula() = default;
 
   double EmpiricalFormula::getMonoWeight() const
   {
@@ -157,6 +155,43 @@ namespace OpenMS
 
     double remaining_mass = average_weight-getAverageWeight();
     SignedSize adjusted_H = Math::round(remaining_mass / db->getElement("H")->getAverageWeight());
+
+    // It's possible for a very small mass to get a negative value here.
+    if (adjusted_H < 0)
+    {
+      // The approximation can still be useful, but we set the return flag to false to explicitly notify the programmer.
+      return false;
+    }
+
+    // Only insert hydrogens if their number is not negative.
+    formula_.insert(make_pair(db->getElement("H"), adjusted_H));
+    // The approximation had no issues.
+    return true;
+  }
+
+  bool EmpiricalFormula::estimateFromMonoWeightAndComp(double mono_weight, double C, double H, double N, double O, double S, double P)
+  {
+    const ElementDB* db = ElementDB::getInstance();
+
+    double monoTotal = (C * db->getElement("C")->getMonoWeight() +
+                       H * db->getElement("H")->getMonoWeight() +
+                       N * db->getElement("N")->getMonoWeight() +
+                       O * db->getElement("O")->getMonoWeight() +
+                       S * db->getElement("S")->getMonoWeight() +
+                       P * db->getElement("P")->getMonoWeight());
+
+    double factor = mono_weight / monoTotal;
+
+    formula_.clear();
+
+    formula_.insert(make_pair(db->getElement("C"), (SignedSize) Math::round(C * factor)));
+    formula_.insert(make_pair(db->getElement("N"), (SignedSize) Math::round(N * factor)));
+    formula_.insert(make_pair(db->getElement("O"), (SignedSize) Math::round(O * factor)));
+    formula_.insert(make_pair(db->getElement("S"), (SignedSize) Math::round(S * factor)));
+    formula_.insert(make_pair(db->getElement("P"), (SignedSize) Math::round(P * factor)));
+
+    double remaining_mass = mono_weight-getMonoWeight();
+    SignedSize adjusted_H = Math::round(remaining_mass / db->getElement("H")->getMonoWeight());
 
     // It's possible for a very small mass to get a negative value here.
     if (adjusted_H < 0)

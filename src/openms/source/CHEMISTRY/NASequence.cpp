@@ -42,6 +42,7 @@
 #include <map>
 
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -52,7 +53,7 @@ namespace OpenMS
                          const RibonucleotideChainEnd* five_prime,
                          const RibonucleotideChainEnd* three_prime)
   {
-    seq_ = seq;
+    seq_ = std::move(seq);
     five_prime_ = five_prime;
     three_prime_ = three_prime;
   }
@@ -332,6 +333,10 @@ namespace OpenMS
       {
         s += "p";
       }
+      else if (code == "3'-c")
+      {
+        s += "c";
+      }
       else
       {
         s += "[" + code + "]";
@@ -365,6 +370,11 @@ namespace OpenMS
     if ((s.size() > 1) && (s.back() == 'p')) // special case for 3' phosphate
     {
       nas.setThreePrimeMod(rdb->getRibonucleotide("3'-p"));
+      --stop;
+    }
+    else if ((s.size() > 1) && (s.back() == 'c')) // special case for 3' cyclo-phosphate
+    {
+      nas.setThreePrimeMod(rdb->getRibonucleotide("3'-c"));
       --stop;
     }
     for (; str_it != stop; ++str_it)

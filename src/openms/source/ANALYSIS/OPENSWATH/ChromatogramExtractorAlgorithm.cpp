@@ -267,7 +267,7 @@ namespace OpenMS
     }
   }
 
-  void ChromatogramExtractorAlgorithm::extractChromatograms(const OpenSwath::SpectrumAccessPtr input,
+  void ChromatogramExtractorAlgorithm::extractChromatograms(const OpenSwath::SpectrumAccessPtr& input,
       std::vector< OpenSwath::ChromatogramPtr >& output,
       const std::vector<ExtractionCoordinates>& extraction_coordinates,
       double mz_extraction_window,

@@ -48,7 +48,8 @@ namespace OpenMS
     { // all zero
       return .0;
     }
-    const std::vector<double> weights({ 1.492, -2.0041, -14.3891, -0.9853, 0.4568, 0.063, 14.4072});
+    //const std::vector<double> weights({ 1.492, -2.0041, -14.3891, -0.9853, 0.4568, 0.063, 14.4072});
+    const std::vector<double> weights({ -.0941, -1.9804, -12.7522, 0.2622, -1.2431, 0.0815, 13.5244});
 
     //ChargeCos         1.492
     //ChargeSNR       -2.0041
@@ -57,6 +58,14 @@ namespace OpenMS
     //ChargeScore      0.4568
     //AvgPPMerror       0.063
     //Intercept       14.4072
+
+    // ChargeCos           0.0941
+    // ChargeSNR           1.9804
+    // Cos                12.7522
+    // SNR                -0.2622
+    // ChargeScore         1.2431
+    // AvgPPMerror        -0.0815
+    // Intercept         -13.5244
 
     double score = weights.back();
     auto fv = toFeatureVector_(pg, abs_charge);
@@ -87,7 +96,7 @@ namespace OpenMS
     a = pg->getChargeScore();
     fvector[index++] = (log2(a + d));
     a = pg->getAvgPPMError();
-    fvector[index++] = (log2(abs(a*1e6) + d));
+    fvector[index++] = (log2(abs(a) + d));
     return fvector;
   }
 
@@ -211,26 +220,20 @@ namespace OpenMS
   {
     f
       << "MSLevel,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Class\n";
-    //ChargeCos         1.492
-    //ChargeSNR       -2.0041
-    //Cos            -14.3891
-    //SNR             -0.9853
-    //ChargeScore      0.4568
-    //AvgPPMerror       0.063
   }
   void QScore::writeAttCsvFromDecoy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
   {
     int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+    String cns[] = {"T", "D", "D", "D"};
     for(auto& pg:deconvolved_spectrum)
     {
-      String decoy =  pg.getDecoyIndex() == 0? "T" : "D";
       auto fv = toFeatureVector_(&pg, pg.getRepAbsCharge());
       f<< ms_level<<",";
       for (auto& item: fv)
       {
         f << item << ",";
       }
-      f << decoy<< "\n";
+      f <<  cns[pg.getDecoyIndex()]<< "\n";
     }
   }
 

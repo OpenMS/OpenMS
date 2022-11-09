@@ -4,6 +4,7 @@ set(directory source/VISUAL/VISITORS)
 ### list all filenames of the directory here
 set(sources_list
 LayerStatistics.cpp
+LayerStoreData.cpp
 )
 
 ### add path to the filenames
@@ -16,5 +17,5 @@ endforeach(i)
 set(OpenMSVisual_sources ${OpenMSVisual_sources} ${sources})
 
 ### source group definition
-source_group("Source Files\\VISUAL\\VISTORS" FILES ${sources})
+source_group("Source Files\\VISUAL\\VISITORS" FILES ${sources})
 

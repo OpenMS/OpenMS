@@ -65,8 +65,7 @@ namespace OpenMS::Internal
     }
 
     MzQuantMLHandler::~MzQuantMLHandler()
-    {
-    }
+    = default;
 
     void MzQuantMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
@@ -1305,7 +1304,7 @@ namespace OpenMS::Internal
       {
         s += String(indent, '\t') + "<userParam name=\"" + keys[i] + "\" unitName=\"";
 
-        DataValue d = meta.getMetaValue(keys[i]);
+        const DataValue& d = meta.getMetaValue(keys[i]);
         //determine type
         if (d.valueType() == DataValue::INT_VALUE)
         {

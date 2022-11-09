@@ -170,7 +170,7 @@ namespace OpenMS
 
     @note If there is no signal, mz will be set to -1 and intensity to 0
   */
-  void integrateDriftSpectrum(OpenSwath::SpectrumPtr spectrum, 
+  void integrateDriftSpectrum(const OpenSwath::SpectrumPtr& spectrum, 
                               double mz_start,
                               double mz_end,
                               double & im,
@@ -233,16 +233,12 @@ namespace OpenMS
   }
 
   /// Constructor
-  IonMobilityScoring::IonMobilityScoring()
-  {
-  }
+  IonMobilityScoring::IonMobilityScoring() = default;
 
   /// Destructor
-  IonMobilityScoring::~IonMobilityScoring()
-  {
-  }
+  IonMobilityScoring::~IonMobilityScoring() = default;
 
-  void IonMobilityScoring::driftScoringMS1Contrast(OpenSwath::SpectrumPtr spectrum, OpenSwath::SpectrumPtr ms1spectrum, 
+  void IonMobilityScoring::driftScoringMS1Contrast(const OpenSwath::SpectrumPtr& spectrum, const OpenSwath::SpectrumPtr& ms1spectrum, 
                                                    const std::vector<TransitionType> & transitions,
                                                    OpenSwath_Scores & scores,
                                                    const double drift_lower,
@@ -342,7 +338,7 @@ namespace OpenMS
 
   }
 
-  void IonMobilityScoring::driftScoringMS1(OpenSwath::SpectrumPtr spectrum, 
+  void IonMobilityScoring::driftScoringMS1(const OpenSwath::SpectrumPtr& spectrum, 
                                            const std::vector<TransitionType> & transitions,
                                            OpenSwath_Scores & scores,
                                            const double drift_lower,
@@ -371,11 +367,15 @@ namespace OpenMS
     DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
     DIAHelpers::integrateDriftSpectrum(spectrum, left, right, im, intensity, drift_lower_used, drift_upper_used);
 
+    // Record the measured ion mobility
+    scores.im_ms1_drift = im;
+
     // Calculate the difference of the theoretical ion mobility and the actually measured ion mobility
     scores.im_ms1_delta_score = fabs(drift_target - im);
+    scores.im_ms1_delta = drift_target - im;
   }
 
-  void IonMobilityScoring::driftScoring(OpenSwath::SpectrumPtr spectrum, 
+  void IonMobilityScoring::driftScoring(const OpenSwath::SpectrumPtr& spectrum, 
                                         const std::vector<TransitionType> & transitions,
                                         OpenSwath_Scores & scores,
                                         const double drift_lower,
@@ -400,8 +400,9 @@ namespace OpenMS
     double drift_lower_used = drift_lower - drift_width * drift_extra;
     double drift_upper_used = drift_upper + drift_width * drift_extra;
 
-    // IonMobilogram: a data structure that holds points <im_value, intensity>
     double delta_drift = 0;
+    double delta_drift_abs = 0;
+    // IonMobilogram: a data structure that holds points <im_value, intensity>
     std::vector< IonMobilogram > mobilograms;
     double computed_im = 0;
     double computed_im_weighted = 0;
@@ -426,7 +427,8 @@ namespace OpenMS
 
       tr_used++;
 
-      delta_drift += fabs(drift_target - im);
+      delta_drift_abs += fabs(drift_target - im);
+      delta_drift += drift_target - im;
       OPENMS_LOG_DEBUG << "  -- have delta drift time " << fabs(drift_target -im ) << " with im " << im << std::endl;
       computed_im += im;
       computed_im_weighted += im * intensity;
@@ -438,19 +440,22 @@ namespace OpenMS
     if (tr_used != 0)
     {
       delta_drift /= tr_used;
+      delta_drift_abs /= tr_used;
       computed_im /= tr_used;
       computed_im_weighted /= sum_intensity;
     }
     else
     {
       delta_drift = -1;
+      delta_drift_abs = -1;
       computed_im = -1;
       computed_im_weighted = -1;
     }
 
     OPENMS_LOG_DEBUG << " Scoring delta drift time " << delta_drift << std::endl;
     OPENMS_LOG_DEBUG << " Scoring weighted delta drift time " << computed_im_weighted << " -> get difference " << std::fabs(computed_im_weighted - drift_target)<< std::endl;
-    scores.im_delta_score = delta_drift;
+    scores.im_delta_score = delta_drift_abs;
+    scores.im_delta = delta_drift;
     scores.im_drift = computed_im;
     scores.im_drift_weighted = computed_im_weighted;
 

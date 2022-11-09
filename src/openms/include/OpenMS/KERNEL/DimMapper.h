@@ -101,6 +101,8 @@ namespace OpenMS
 
     /// obtain value from a certain point in a spectrum
     virtual ValueType map(const MSSpectrum& spec, const Size index) const = 0;
+    /// obtain value from a certain point in a chromatogram
+    virtual ValueType map(const MSChromatogram& chrom, const Size index) const = 0;
     /// obtain value from a certain point in a mobilogram
     virtual ValueType map(const Mobilogram& mb, const Size index) const = 0;
     
@@ -196,6 +198,10 @@ namespace OpenMS
     ValueType map(const MSSpectrum& spec, const Size /*index*/) const override
     {
       return spec.getRT();
+    }
+    ValueType map(const MSChromatogram& chrom, const Size index) const override
+    {
+      return chrom[index].getRT();
     }
     ValueType map(const Mobilogram& mb, const Size /*index*/) const override
     {
@@ -312,7 +318,11 @@ namespace OpenMS
     {
       return spec[index].getMZ();
     }
-    ValueType map(const Mobilogram&, const Size /*index*/) const override
+    ValueType map(const MSChromatogram& chrom, const Size /*index*/) const override
+    {
+      return chrom.getPrecursor().getMZ();
+    }
+    ValueType map(const Mobilogram& /*mb*/, const Size /*index*/) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -414,6 +424,10 @@ namespace OpenMS
     ValueType map(const MSSpectrum& spec, const Size index) const override
     {
       return spec[index].getIntensity();
+    }
+    ValueType map(const MSChromatogram& chrom, const Size index) const override
+    {
+      return chrom[index].getIntensity();
     }
     ValueType map(const Mobilogram& mb, const Size index) const override
     {
@@ -533,6 +547,10 @@ namespace OpenMS
     ValueType map(const MSSpectrum& spec, const Size /*index*/) const override
     {
       return spec.getDriftTime();
+    }
+    ValueType map(const MSChromatogram&, const Size) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     ValueType map(const Mobilogram& mb, const Size index) const override
     {
@@ -889,6 +907,12 @@ namespace OpenMS
       auto a = data_range_;
       a.pushInto(sandbox);
       setArea(a);
+    }
+
+    /// empty all dimensions
+    void clear()
+    {
+      setArea(RangeAllType());
     }
 
   private:

@@ -72,7 +72,20 @@ namespace OpenMS
        * @brief Accessors for Sirius Parameters
        */
 
-      int getNumberOfSiriusCandidates() const { return sirius.getValue("candidates");  }
+      int getNumberOfSiriusCandidates() const 
+      {
+        int number_of_candidates = sirius.getValue("candidates");
+        // default for SiriusAdapter is -1 to not pass a value to command and use SIRIUS 5 default (10)
+        // therefore 10 needs to be returned in this case
+        if (number_of_candidates == -1)
+        {
+          return 10;
+        }
+        else
+        {
+          return number_of_candidates;
+        }
+      }
 
       /**
        * @brief Updates all parameters that already exist in this DefaultParamHandler
@@ -89,10 +102,6 @@ namespace OpenMS
        * @return Whether this DefaultParamHandler has an ParamEntry for the provided name.
        */
       bool hasFullNameParameter(const String &name) const;
-
-
-      int getNumberOfCSIFingerIDCandidates() const { return fingerid.getValue("candidates"); }
-
 
       /// Struct for temporary folder structure
       class OPENMS_DLLAPI SiriusTemporaryFileSystemObjects
@@ -250,15 +259,12 @@ namespace OpenMS
 
       QStringList getCommandLine() const
       {
-        const DataValue omit_integer(-1);
-        const DataValue omit_string("");
-
         QStringList result;
         for (const auto &pair : openms_to_sirius)
         {
           DataValue value = enclose->param_.getValue(pair.first);
-
-          if (!value.isEmpty() && value != omit_integer && value != omit_string)
+          DataValue default_value = enclose->defaults_.getValue(pair.first);
+          if (!value.isEmpty() && value != default_value)
           {
            String string_value = value.toString(true);
            if (string_value == "true")

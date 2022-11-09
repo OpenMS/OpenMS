@@ -81,7 +81,7 @@ public:
     @exception Exception::UnableToCreateFile is thrown if the file could not be created
     @exception Exception::IllegalArgument is thrown if unsupported parameter types have been set
     */
-    void store(String filename, const TransformationDescription& transformation);
+    void store(const String& filename, const TransformationDescription& transformation);
 
 protected:
     // Docu in base class

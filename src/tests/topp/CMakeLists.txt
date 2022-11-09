@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_TOPP_tests")
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 #
 # README:
@@ -814,7 +814,6 @@ set_tests_properties("TOPP_GNPSExport_4_out_pairs" PROPERTIES DEPENDS "TOPP_GNPS
 add_test("TOPP_GNPSExport_4_out_meta_values" ${DIFF} -in1 GNPSExport_4_out_meta_values.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_4_out_meta_values.tsv)
 set_tests_properties("TOPP_GNPSExport_4_out_meta_values" PROPERTIES DEPENDS "TOPP_GNPSExport_4")
 
-#------------------------------------------------------------------------------ 
 # HighResPrecursorMassCorrector tests
 add_test("TOPP_HighResPrecursorMassCorrector_1"
 ${TOPP_BIN_PATH}/HighResPrecursorMassCorrector -test -in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2860_1103_3.mzML -feature:in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2860_1103_3.featureXML -out HighResPrecursorMassCorrector_2860_1103_3_out.tmp)
@@ -2770,6 +2769,16 @@ add_test("UTILS_IDSplitter_1_out1" ${DIFF} -in1 IDSplitter_1_output1.tmp -in2 ${
 set_tests_properties("UTILS_IDSplitter_1_out1" PROPERTIES DEPENDS "UTILS_IDSplitter_1")
 add_test("UTILS_IDSplitter_1_out2" ${DIFF} -in1 IDSplitter_1_output2.tmp -in2 ${DATA_DIR_TOPP}/IDSplitter_1_output.idXML )
 set_tests_properties("UTILS_IDSplitter_1_out2" PROPERTIES DEPENDS "UTILS_IDSplitter_1")
+
+# JSONExporter:
+# proteomics test file (= IDFileConverter_34_output1.oms):
+add_test("UTILS_JSONExporter_1" ${TOPP_BIN_PATH}/JSONExporter -test -in ${DATA_DIR_TOPP}/JSONExporter_protein.oms -out JSONExporter_1_output.tmp)
+add_test("UTILS_JSONExporter_1_out" ${DIFF} -in1 JSONExporter_1_output.tmp -in2 ${DATA_DIR_TOPP}/JSONExporter_1_output.json)
+set_tests_properties("UTILS_JSONExporter_1_out" PROPERTIES DEPENDS "UTILS_JSONExporter_1")
+# RNA test file (= NucleicAcidSearchEngine_13_out.tmp):
+add_test("UTILS_JSONExporter_2" ${TOPP_BIN_PATH}/JSONExporter -test -in ${DATA_DIR_TOPP}/JSONExporter_RNA.oms -out JSONExporter_2_output.tmp)
+add_test("UTILS_JSONExporter_2_out" ${DIFF} -in1 JSONExporter_2_output.tmp -in2 ${DATA_DIR_TOPP}/JSONExporter_2_output.json)
+set_tests_properties("UTILS_JSONExporter_2_out" PROPERTIES DEPENDS "UTILS_JSONExporter_2")
 
 # MassCalculator:
 add_test("UTILS_MassCalculator_1" ${TOPP_BIN_PATH}/MassCalculator -test -in ${DATA_DIR_TOPP}/MassCalculator_1_input.tsv -out MassCalculator_1_output.tmp -charge 0 1 -format table -separator ,)
