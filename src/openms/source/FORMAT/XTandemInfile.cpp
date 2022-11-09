@@ -74,9 +74,7 @@ namespace OpenMS
   {
   }
 
-  XTandemInfile::~XTandemInfile()
-  {
-  }
+  XTandemInfile::~XTandemInfile() = default;
 
   void XTandemInfile::write(const String& filename, bool ignore_member_parameters, bool force_default_mods)
   {
@@ -704,7 +702,7 @@ namespace OpenMS
     return number_of_missed_cleavages_;
   }
 
-  void XTandemInfile::setOutputResults(String result)
+  void XTandemInfile::setOutputResults(const String& result)
   {
     if (result == "valid" || result == "all" || result == "stochastic")
     {

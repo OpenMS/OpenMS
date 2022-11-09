@@ -54,9 +54,7 @@ namespace OpenMS
   {
   }
 
-  PeptideIdentification::~PeptideIdentification() noexcept
-  {
-  }
+  PeptideIdentification::~PeptideIdentification() noexcept = default;
 
   // Equality operator
   bool PeptideIdentification::operator==(const PeptideIdentification& rhs) const

@@ -17,12 +17,12 @@ jobs:
   build-win:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         path: OpenMS
       
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.9
+      uses: jwlawson/actions-setup-cmake@v1.13
       with:
         cmake-version: '3.23.x'
 
@@ -30,14 +30,14 @@ jobs:
       run: echo "PATH=C:\hostedtoolcache\windows\Python\3.7.9\x64\Scripts;C:\hostedtoolcache\windows\Python\3.7.9\x64;C:\hostedtoolcache\windows\Ruby\2.5.8\x64\bin;C:\Program Files\Java\jdk8u265-b01\bin;C:\ProgramData\kind;C:\vcpkg;C:\cf-cli;C:\Program Files (x86)\NSIS;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0;C:\windows\System32\OpenSSH;C:\ProgramData\Chocolatey\bin;C:\Program Files\Docker;C:\Program Files\PowerShell\7;C:\Program Files\OpenSSL\bin;C:\Strawberry\c\bin;C:\Strawberry\perl\site\bin;C:\Strawberry\perl\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Program Files (x86)\Microsoft Visual Studio\2019\\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v2
+      uses: jurplel/install-qt-action@v3
       with:
         version: '5.12.6' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715
         host: 'windows' # default: win64_msvc2017_64
         target: 'desktop'
         install-deps: 'true'
-        modules: 'qtsvg'
-        cached: 'false'
+        archives: 'qtsvg qtbase'
+        cache: 'false'
 
     - name: Install Miniconda
       shell: bash # uses git bash on windows
@@ -127,7 +127,7 @@ jobs:
 
           done
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v3
       name: Upload artifacts
       with:
         name: ${{ runner.os }}-wheels
@@ -136,14 +136,14 @@ jobs:
   build-macos:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         path: OpenMS
 
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.9
+      uses: jwlawson/actions-setup-cmake@v1.13
       with:
-        cmake-version: '3.20.x'
+        cmake-version: '3.23.x'
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
@@ -270,7 +270,7 @@ jobs:
 
           done
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       name: Upload artifacts
       if: always()
       with:
@@ -279,7 +279,7 @@ jobs:
           bld/CMakeCache.txt
           bld/pyOpenMS/env.py
         
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v3
       name: Upload wheels
       with:
         name: ${{ runner.os }}-wheels
@@ -296,13 +296,13 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       name: Checkout sources
       with:
         path: OpenMS
 
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.9
+      uses: jwlawson/actions-setup-cmake@v1.13
       with:
         cmake-version: '3.23.x'
 
@@ -368,7 +368,7 @@ jobs:
               export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
             done
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v3
       name: Upload artifacts
       with:
         name: ${{ runner.os }}-wheels
@@ -407,7 +407,7 @@ jobs:
         echo "$HOME/miniconda3/Scripts" >> $GITHUB_PATH
 
     - name: Download artifacts
-      uses: actions/download-artifact@v1.0.0
+      uses: actions/download-artifact@v3
       with:
           name: ${{ runner.os }}-wheels
 
@@ -458,15 +458,15 @@ jobs:
     steps:
     # haha github is just ridiculous.. not getting their actions to do basic stuff for years
     - name: Download artifacts
-      uses: actions/download-artifact@v1.0.0
+      uses: actions/download-artifact@v3
       with:
           name: Linux-wheels
     - name: Download artifacts
-      uses: actions/download-artifact@v1.0.0
+      uses: actions/download-artifact@v3
       with:
           name: Windows-wheels
     - name: Download artifacts
-      uses: actions/download-artifact@v1.0.0
+      uses: actions/download-artifact@v3
       with:
           name: macOS-wheels
 
@@ -477,17 +477,18 @@ jobs:
             pwd
             ls -la wheels/
 
-    - name: Publish package to nightly PyPI (warning, somehow also can publish to general package)
+    - name: Publish package to nightly PyPI
       if: "github.ref == 'refs/heads/nightly'"
-      uses: pypa/gh-action-pypi-publish@master
+      uses: pypa/gh-action-pypi-publish@release/v1.5.0
       with:
-        user: __token__
-        password: ${{ secrets.pypi_api_token }}
+        repository_url: https://abi-services.informatik.uni-tuebingen.de/pypi/
+        user: openms
+        password: ${{ secrets.abiservices_pypi_pw }}
         packages_dir: ${{ github.workspace }}/wheels
 
     - name: Publish package to PyPI
       if: "contains(github.ref, 'Release')"
-      uses: pypa/gh-action-pypi-publish@master
+      uses: pypa/gh-action-pypi-publish@release/v1.5.0
       with:
         user: __token__
         password: ${{ secrets.pypi_api_token_release }}

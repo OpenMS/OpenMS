@@ -49,8 +49,7 @@ namespace OpenMS
   {}
 
 
-  SpectrumLookup::~SpectrumLookup()
-  {}
+  SpectrumLookup::~SpectrumLookup() = default;
 
 
   bool SpectrumLookup::empty() const

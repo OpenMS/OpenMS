@@ -40,15 +40,16 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
-#include <cmath>
-#include <iostream>
-#include <cstdlib>
 #include <algorithm>
-#include <limits>
-#include <functional>
-#include <numeric>
+#include <cmath>
+#include <cstdlib>
 #include <fstream>
+#include <functional>
+#include <iostream>
+#include <limits>
+#include <numeric>
 #include <tuple>
+#include <utility>
 
 using namespace std;
 
@@ -140,7 +141,7 @@ namespace OpenMS
   void IsotopeDistribution::sort_(
     function<bool(const MassAbundance& p1, const MassAbundance& p2)> sorter)
   {
-    sort(distribution_.begin(), distribution_.end(), sorter);
+    sort(distribution_.begin(), distribution_.end(), std::move(sorter));
   }
 
   void IsotopeDistribution::sortByIntensity()
@@ -159,7 +160,7 @@ namespace OpenMS
 
   void IsotopeDistribution::transform_(function<void(MassAbundance&)> lambda)
   {
-    for_each(distribution_.begin(), distribution_.end(), lambda);
+    for_each(distribution_.begin(), distribution_.end(), std::move(lambda));
   }
 
   bool IsotopeDistribution::operator==(const IsotopeDistribution & isotope_distribution) const

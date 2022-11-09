@@ -676,7 +676,7 @@ namespace OpenMS
     return novo_hits_to_data.at(novo_data[ceil(novo_data.size() / 2)]);
   }
 
-  double DBSuitability::getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, String score_name, bool higher_score_better) const
+  double DBSuitability::getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, const String& score_name, bool higher_score_better) const
   {
     double worst_score = DBL_MAX;
     if (!higher_score_better)

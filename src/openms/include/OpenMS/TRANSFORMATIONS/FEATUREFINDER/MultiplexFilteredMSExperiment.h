@@ -98,7 +98,7 @@ namespace OpenMS
          * @param exp_picked   original (i.e. not white) centroided experimental data
          * @param debug_out    file name of the debug output
          */
-        void writeDebugOutput(const MSExperiment& exp_picked, String debug_out) const;
+        void writeDebugOutput(const MSExperiment& exp_picked, const String& debug_out) const;
         
         private:
         /**

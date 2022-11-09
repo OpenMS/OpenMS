@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <array>
+#include <utility>
 
 namespace OpenMS
 {
@@ -49,7 +50,7 @@ namespace OpenMS
     String name;
     String description;
     TypeNameBinding(FileTypes::Type type, String name, String description)
-      : type(type), name(name), description(description)
+      : type(type), name(std::move(name)), description(std::move(description))
     {
     }
   };

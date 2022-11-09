@@ -19,12 +19,13 @@ cdef extern from "<OpenMS/FORMAT/MascotInfile.h>" namespace "OpenMS":
 
         void load(const String & filename, MSExperiment & exp) nogil except +
             # wrap-doc:
-                #   Loads a Mascot Generic File into a PeakMap
-                #   -----
-                #   :param filename: File name which the map should be read from
-                #   :param exp: The map which is filled with the data from the given file
-                #   :raises:
-                #     Exception: FileNotFound is thrown if the given file could not be found
+                #  Loads a Mascot Generic File into a PeakMap
+                #  
+                #  
+                #  :param filename: File name which the map should be read from
+                #  :param exp: The map which is filled with the data from the given file
+                #  :raises:
+                #    Exception: FileNotFound is thrown if the given file could not be found
 
         String  getBoundary() nogil except + # wrap-doc:Returns the boundary used for the MIME format
         void setBoundary(const String & boundary) nogil except + # wrap-doc:Sets the boundary used for the MIME format.By default a 22 character random string is used

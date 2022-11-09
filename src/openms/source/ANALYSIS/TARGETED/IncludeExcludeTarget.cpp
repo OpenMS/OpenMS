@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>
 
+#include <utility>
+
 namespace OpenMS
 {
   IncludeExcludeTarget::IncludeExcludeTarget() :
@@ -43,25 +45,9 @@ namespace OpenMS
   {
   }
 
-  IncludeExcludeTarget::IncludeExcludeTarget(const IncludeExcludeTarget & rhs) :
-    CVTermList(rhs),
-    name_(rhs.name_),
-    precursor_mz_(rhs.precursor_mz_),
-    precursor_cv_terms_(rhs.precursor_cv_terms_),
-    product_mz_(rhs.product_mz_),
-    product_cv_terms_(rhs.product_cv_terms_),
-    interpretation_list_(rhs.interpretation_list_),
-    peptide_ref_(rhs.peptide_ref_),
-    compound_ref_(rhs.compound_ref_),
-    configurations_(rhs.configurations_),
-    prediction_(rhs.prediction_),
-    rts_(rhs.rts_)
-  {
-  }
+  IncludeExcludeTarget::IncludeExcludeTarget(const IncludeExcludeTarget & rhs) = default;
 
-  IncludeExcludeTarget::~IncludeExcludeTarget()
-  {
-  }
+  IncludeExcludeTarget::~IncludeExcludeTarget() = default;
 
   IncludeExcludeTarget & IncludeExcludeTarget::operator=(const IncludeExcludeTarget & rhs)
   {
@@ -235,7 +221,7 @@ namespace OpenMS
 
   void IncludeExcludeTarget::setRetentionTime(IncludeExcludeTarget::RetentionTime rt)
   {
-    rts_ = rt;
+    rts_ = std::move(rt);
   }
 
   const IncludeExcludeTarget::RetentionTime & IncludeExcludeTarget::getRetentionTime() const

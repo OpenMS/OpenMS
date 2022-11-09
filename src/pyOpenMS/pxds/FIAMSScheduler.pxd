@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSScheduler.h>" namespace "OpenMS":
     cdef cppclass FIAMSScheduler "OpenMS::FIAMSScheduler":
         #
         # wrap-doc:
-        #     ADD PYTHON DOCUMENTATION HERE
+        #    ADD PYTHON DOCUMENTATION HERE
         #
 
         FIAMSScheduler() nogil except + # wrap-doc:Scheduler for FIA-MS data batches. Works with FIAMSDataProcessor

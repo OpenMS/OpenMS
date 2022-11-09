@@ -44,8 +44,7 @@
 #include <numeric>
 
 // AkimaInterpolator
-#include <Wm5IntpAkimaNonuniform1.h>
-#include <Wm5Math.h>
+#include <Mathematics/IntpAkimaNonuniform1.h>
 
 namespace OpenMS
 {
@@ -56,10 +55,9 @@ namespace OpenMS
     public TransformationModelInterpolated::Interpolator
   {
 public:
-    Spline2dInterpolator() :
-      spline_(nullptr)
-    {
-    }
+    Spline2dInterpolator() 
+      
+    = default;
 
     void init(std::vector<double>& x, std::vector<double>& y) override
     {
@@ -81,7 +79,7 @@ public:
     }
 
 private:
-    CubicSpline2d* spline_;
+    CubicSpline2d* spline_{nullptr};
     // Spline2d<double>* spline_;
   };
 
@@ -92,15 +90,15 @@ private:
     public TransformationModelInterpolated::Interpolator
   {
 public:
-    AkimaInterpolator() :
-      interpolator_(nullptr)
-    {}
+    AkimaInterpolator() 
+      
+    = default;
 
     void init(std::vector<double>& x, std::vector<double>& y) override
     {
-      if (interpolator_ != (Wm5::IntpAkimaNonuniform1<double>*) nullptr) delete interpolator_;
+      if (interpolator_ != (gte::IntpAkimaNonuniform1<double>*) nullptr) delete interpolator_;
       // re-construct a new interpolator
-      interpolator_ = new Wm5::IntpAkimaNonuniform1<double>(static_cast<int>(x.size()), &x.front(), &y.front());
+      interpolator_ = new gte::IntpAkimaNonuniform1<double>(static_cast<int>(x.size()), &x.front(), &y.front());
     }
 
     double eval(const double& x) const override
@@ -114,7 +112,7 @@ public:
     }
 
 private:
-    Wm5::IntpAkimaNonuniform1<double>* interpolator_;
+    gte::IntpAkimaNonuniform1<double>* interpolator_{nullptr};
   };
 
   /**
@@ -125,7 +123,7 @@ private:
   {
 public:
     LinearInterpolator()
-    {}
+    = default;
 
     void init(std::vector<double>& x, std::vector<double>& y) override
     {
@@ -168,8 +166,7 @@ public:
     }
 
     ~LinearInterpolator() override
-    {
-    }
+    = default;
 
 private:
     /// x values

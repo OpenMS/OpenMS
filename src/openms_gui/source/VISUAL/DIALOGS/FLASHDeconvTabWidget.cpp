@@ -246,7 +246,7 @@ namespace OpenMS
           is_requested = true;
         }
 
-        if (tag == "out_mzml" || tag == "out_annotated_mzml" || tag == "out_topFD_feature" || tag == "out_promex") //  params having string values
+        if (tag == "out_mzml" || tag == "out_annotated_mzml" || tag == "out_promex") //  params having string values
         {
           // if not requested, set default value
           if (!is_requested)
@@ -264,10 +264,6 @@ namespace OpenMS
           else if(tag == "out_annotated_mzml")
           {
             out_path += "_annotated.mzML";
-          }
-          else if(tag == "out_topFD_feature")
-          {
-            out_path += "_ms1.feature";
           }
           else // (tag == "out_promex")
           {
@@ -294,6 +290,10 @@ namespace OpenMS
           if (tag == "out_topFD")
           {
             out_extension = ".msalign";
+          }
+          if (tag == "out_topFD_feature")
+          {
+            out_extension = ".feature";
           }
           std::vector<std::string> files_paths;
           for (Size i = 0; i < max_ms_level; ++i)

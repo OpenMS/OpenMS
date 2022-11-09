@@ -64,8 +64,7 @@ namespace OpenMS::Internal
     }
 
     TraMLHandler::~TraMLHandler()
-    {
-    }
+    = default;
 
     void TraMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
@@ -1128,7 +1127,7 @@ namespace OpenMS::Internal
     void TraMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const CVTerm& cv_term)
     {
       //Error checks of CV values
-      String accession = cv_term.getAccession();
+      const String& accession = cv_term.getAccession();
       if (cv_.exists(accession))
       {
         const ControlledVocabulary::CVTerm& term = cv_.getTerm(accession);

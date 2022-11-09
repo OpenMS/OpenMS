@@ -44,7 +44,9 @@ else()
   set(PLATFORM "64")
   set(ARCH "x64")
 endif()
-set(VC_REDIST_EXE "vcredist_${ARCH}.exe")
+if (NOT VC_REDIST_EXE)
+  set(VC_REDIST_EXE "vcredist_${ARCH}.exe")
+endif()
 
 ## Find redistributable to be installed by NSIS
 if (NOT VC_REDIST_PATH)

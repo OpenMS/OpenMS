@@ -290,7 +290,7 @@ namespace OpenMS
       IdentificationData::ProcessingStepRef step_ref,
       ProteinIdentification& protein);
 
-    static void handleFeatureImport_(Feature& feature, IntList indexes,
+    static void handleFeatureImport_(Feature& feature, const IntList& indexes,
                                      std::vector<PeptideIdentification>& peptides,
                                      Size& id_counter, bool clear_original);
 

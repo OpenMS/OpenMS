@@ -239,9 +239,10 @@ Section "OpenMS Library" SEC_Lib
     !insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
     # install files
-	File "${OPENMSBINDIR}\*.dll"
-	File "${OPENMSBINDIR}\*.lib"
-        File /r "${OPENMSBINDIR}\plugins\*.*"
+    File "${OPENMSBINDIR}\*.dll"
+    File "${OPENMSBINDIR}\*.lib"
+    File /r "${OPENMSBINDIR}\plugins\*.*"
+    File "${OPENMSBINDIR}\*.conf"
     SetOutPath $INSTDIR\share\OpenMS
     SetOverwrite on
     !if ${DEBUG_BUILD} == 0

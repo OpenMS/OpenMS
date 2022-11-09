@@ -174,7 +174,7 @@ public:
     void writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                       const String& out_path,
                       const IntList& charges,
-                      const String rt_model_path);
+                      const String& rt_model_path);
 
     /**
       @brief Writes inclusion or exclusion list of given feature map.

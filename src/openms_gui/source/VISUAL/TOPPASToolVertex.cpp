@@ -97,8 +97,8 @@ namespace OpenMS
     type_(rhs.type_),
     param_(rhs.param_),
     status_(rhs.status_),
-    tool_ready_(rhs.tool_ready_),
-    breakpoint_set_(false)
+    tool_ready_(rhs.tool_ready_)
+    
   {
   }
 

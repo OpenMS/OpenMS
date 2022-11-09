@@ -121,7 +121,7 @@ protected:
       bool eventFilter(QObject* editor, QEvent* event) override;
   
       /// Checks if a @p name is valid for the entry corresponding to @p index (checks if it would be duplicate)
-      bool exists_(QString name, QModelIndex index) const;
+      bool exists_(const QString& name, QModelIndex index) const;
 
 private slots:
       ///For closing any editor and updating ParamEditor

@@ -170,7 +170,7 @@ namespace OpenMS
     QUrl url = buildUrl_(server_path_ + "/cgi/login.pl");
     QNetworkRequest request(url);
 
-    QString boundary = boundary_.toQString();
+    QByteArray boundary = boundary_.toQString().toUtf8();
     request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data, boundary=" + boundary);
 
     // header
@@ -180,18 +180,18 @@ namespace OpenMS
 
     // content
     QByteArray loginbytes;
-    QString boundary_string("--" + boundary + "\r\n");
+    QByteArray boundary_string("--" + boundary + "\r\n");
     loginbytes.append(boundary_string);
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"username\"\r\n");
     loginbytes.append("\r\n");
-    loginbytes.append(String(param_.getValue("username").toString()).toQString());
+    loginbytes.append(String(param_.getValue("username").toString()).toQString().toUtf8());
     loginbytes.append("\r\n");
     loginbytes.append(boundary_string);
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"password\"\r\n");
     loginbytes.append("\r\n");
-    loginbytes.append(String(param_.getValue("password").toString()).toQString());
+    loginbytes.append(String(param_.getValue("password").toString()).toQString().toUtf8());
     loginbytes.append("\r\n");
     loginbytes.append(boundary_string);
     loginbytes.append("Content-Disposition: ");
@@ -241,7 +241,7 @@ namespace OpenMS
 
   }
 
-  void MascotRemoteQuery::getResults(QString results_path)
+  void MascotRemoteQuery::getResults(const QString& results_path)
   {
     // Tidy up again and run another request...
 #ifdef MASCOTREMOTEQUERY_DEBUG
@@ -339,7 +339,7 @@ namespace OpenMS
 #endif
     QNetworkRequest request(url);
 
-    QString boundary = boundary_.toQString();
+    QByteArray boundary = boundary_.toQString().toUtf8();
     request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data, boundary=" + boundary);
 
     // header
@@ -798,7 +798,7 @@ namespace OpenMS
     if (url[0] != '/') url.prepend('/');
   }
 
-  QUrl MascotRemoteQuery::buildUrl_(std::string path)
+  QUrl MascotRemoteQuery::buildUrl_(const std::string& path)
   {
     String protocol;
     if (use_ssl_)
@@ -823,7 +823,7 @@ namespace OpenMS
     cerr << "<<<< Header to " << what << " (end)." << endl;
   }
 
-  void MascotRemoteQuery::logHeader_(const QNetworkRequest header, const String& what)
+  void MascotRemoteQuery::logHeader_(const QNetworkRequest& header, const String& what)
   {
     QList<QByteArray> header_list = header.rawHeaderList();
     cerr << ">>>> Header to " << what << " (begin):\n";

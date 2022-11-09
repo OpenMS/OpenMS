@@ -34,6 +34,7 @@
 
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <ostream>
+#include <utility>
 
 using namespace std;
 
@@ -261,10 +262,10 @@ namespace OpenMS
   {
     // delete old results first
     if (analysis_results_ != nullptr) delete analysis_results_;
-    analysis_results_ = new std::vector< PeptideHit::PepXMLAnalysisResult> (aresult);
+    analysis_results_ = new std::vector< PeptideHit::PepXMLAnalysisResult> (std::move(aresult));
   }
 
-  void PeptideHit::addAnalysisResults(PeptideHit::PepXMLAnalysisResult aresult)
+  void PeptideHit::addAnalysisResults(const PeptideHit::PepXMLAnalysisResult& aresult)
   {
     if (analysis_results_ == nullptr)
     {

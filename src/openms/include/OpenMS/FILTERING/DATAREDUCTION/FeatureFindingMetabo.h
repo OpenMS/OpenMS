@@ -209,7 +209,7 @@ private:
      * @param peakOffset integer distance between isotope peak and monoisotopic peak (minimum: 1)
      * @return an interval which should contain the isotopic peak. This interval is relative to the monoisotopic peak.
      */
-    Range getTheoreticIsotopicMassWindow_(const std::vector<Element const *> alphabet, int peakOffset) const;
+    Range getTheoreticIsotopicMassWindow_(const std::vector<Element const *>& alphabet, int peakOffset) const;
 
     /** @brief Computes the cosine similarity between two vectors
      *

@@ -38,7 +38,10 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
+#include <QtCore/QJsonArray> // for JSON export
 #include <QString>
+#include <QStringList> // avoid compiler error on initialization using init. list
+
 class QSqlQuery;
 
 namespace OpenMS
@@ -79,6 +82,9 @@ namespace OpenMS
 
       /// Load data from database and populate a FeatureMap object
       void load(FeatureMap& features);
+
+      /// Export database contents in JSON format, write to stream
+      void exportToJSON(std::ostream& output);
 
     private:
       // static CVTerm loadCVTerm_(int id);
@@ -141,10 +147,16 @@ namespace OpenMS
         QSqlQuery& query, IdentificationData::ObservationMatch& match,
         Key parent_id);
 
+      void createView_(const QString& name, const QString& select);
+
+      QJsonArray exportTableToJSON_(const QString& table, const QString& order_by);
+
       // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
       QString db_name_;
 
       int version_number_; ///< schema version number
+
+      QString subquery_score_; ///< query for score types used in JSON export
 
       // mappings between database keys and loaded data:
       std::unordered_map<Key, IdentificationData::ScoreTypeRef> score_type_refs_;
@@ -153,10 +165,14 @@ namespace OpenMS
       std::unordered_map<Key, IdentificationData::ProcessingStepRef> processing_step_refs_;
       std::unordered_map<Key, IdentificationData::SearchParamRef> search_param_refs_;
       std::unordered_map<Key, IdentificationData::ObservationRef> observation_refs_;
-      std::unordered_map<Key, IdentificationData::ParentSequenceRef> parent_refs_;
+      std::unordered_map<Key, IdentificationData::ParentSequenceRef> parent_sequence_refs_;
       std::unordered_map<Key, IdentificationData::IdentifiedMolecule> identified_molecule_vars_;
       std::unordered_map<Key, IdentificationData::ObservationMatchRef> observation_match_refs_;
       std::unordered_map<Key, IdentificationData::AdductRef> adduct_refs_;
+
+      // mapping: table name -> ordering critera (for JSON export)
+      // @TODO: could use 'unordered_map' here, but would need to specify hash function for 'QString'
+      static std::map<QString, QString> export_order_by_;
     };
   }
 }

@@ -565,7 +565,7 @@ namespace OpenMS
     return einfo_i->first;
   }
 
-  Size SequestInfile::setEnzyme(String enzyme_name)
+  Size SequestInfile::setEnzyme(const String& enzyme_name)
   {
     enzyme_number_ = 0;
     map<String, vector<String> >::const_iterator einfo_i;

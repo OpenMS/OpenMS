@@ -42,6 +42,7 @@
 #include <map>
 
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -52,7 +53,7 @@ namespace OpenMS
                          const RibonucleotideChainEnd* five_prime,
                          const RibonucleotideChainEnd* three_prime)
   {
-    seq_ = seq;
+    seq_ = std::move(seq);
     five_prime_ = five_prime;
     three_prime_ = three_prime;
   }
@@ -267,12 +268,14 @@ namespace OpenMS
 
   double NASequence::getMonoWeight(NASFragmentType type, Int charge) const
   {
-    return getFormula(type, charge).getMonoWeight();
+    //getFormula adds (or subtracts in negative mode) Hydrogens, not protons, so we need to subtract (or add in negative mode) the electrons
+    return getFormula(type, charge).getMonoWeight() - charge * Constants::ELECTRON_MASS_U;
   }
 
   double NASequence::getAverageWeight(NASFragmentType type, Int charge) const
   {
-    return getFormula(type, charge).getAverageWeight();
+    //getFormula adds (or subtracts in negative mode) Hydrogens, not protons, so we need to subtract (or add in negative mode) the electrons
+    return getFormula(type, charge).getAverageWeight() - charge * Constants::ELECTRON_MASS_U;
   }
 
   size_t NASequence::size() const
@@ -330,6 +333,10 @@ namespace OpenMS
       {
         s += "p";
       }
+      else if (code == "3'-c")
+      {
+        s += "c";
+      }
       else
       {
         s += "[" + code + "]";
@@ -363,6 +370,11 @@ namespace OpenMS
     if ((s.size() > 1) && (s.back() == 'p')) // special case for 3' phosphate
     {
       nas.setThreePrimeMod(rdb->getRibonucleotide("3'-p"));
+      --stop;
+    }
+    else if ((s.size() > 1) && (s.back() == 'c')) // special case for 3' cyclo-phosphate
+    {
+      nas.setThreePrimeMod(rdb->getRibonucleotide("3'-c"));
       --stop;
     }
     for (; str_it != stop; ++str_it)

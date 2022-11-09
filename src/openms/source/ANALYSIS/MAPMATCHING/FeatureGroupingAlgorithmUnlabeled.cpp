@@ -48,9 +48,7 @@ namespace OpenMS
     pairfinder_input_.resize(2);
   }
 
-  FeatureGroupingAlgorithmUnlabeled::~FeatureGroupingAlgorithmUnlabeled()
-  {
-  }
+  FeatureGroupingAlgorithmUnlabeled::~FeatureGroupingAlgorithmUnlabeled() = default;
 
   void FeatureGroupingAlgorithmUnlabeled::group(const std::vector<FeatureMap> & maps, ConsensusMap & out)
   {
