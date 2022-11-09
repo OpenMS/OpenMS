@@ -66,7 +66,6 @@ using namespace std;
   from FLASHIda runs and pass the parsed information to DeconvolvedSpectrum class.
 */
 
-
 class TOPPFLASHDeconv :
     public TOPPBase
 {
