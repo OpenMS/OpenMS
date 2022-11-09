@@ -61,127 +61,6 @@ namespace OpenMS::DIAHelpers
       }
     }
 
-    void integrateWindows(const OpenSwath::SpectrumPtr spectrum,
-                          const std::vector<double> & windowsCenter,
-                          double width,
-                          std::vector<double> & integratedWindowsIntensity,
-                          std::vector<double> & integratedWindowsMZ,
-			  std::vector<double> & integratedWindowsIm,
-			  double drift_start,
-			  double drift_end,
-                          bool remZero)
-    {
-      std::vector<double>::const_iterator beg = windowsCenter.begin();
-      std::vector<double>::const_iterator end = windowsCenter.end();
-      double mz, intensity, im;
-      for (; beg != end; ++beg)
-      {
-        double left = *beg - width / 2.0;
-        double right = *beg + width / 2.0;
-        if (integrateWindow(spectrum, left, right, mz, im, intensity, drift_start, drift_end, false))
-        {
-          integratedWindowsIntensity.push_back(intensity);
-          integratedWindowsMZ.push_back(mz);
-	  integratedWindowsIm.push_back(im);
-        }
-        else if (!remZero)
-        {
-          integratedWindowsIntensity.push_back(0.);
-          integratedWindowsMZ.push_back(*beg);
-          integratedWindowsIm.push_back(*beg);
-        }
-      }
-    }
-
-
-    void integrateWindows(const std::vector<OpenSwath::SpectrumPtr> spectrum,
-                          const std::vector<double> & windowsCenter,
-                          double width,
-                          std::vector<double> & integratedWindowsIntensity,
-                          std::vector<double> & integratedWindowsMZ,
-			  std::vector<double> & integratedWindowsIm,
-			  double drift_start,
-			  double drift_end,
-                          bool remZero)
-    {
-      std::vector<double>::const_iterator beg = windowsCenter.begin();
-      std::vector<double>::const_iterator end = windowsCenter.end();
-      double mz, intensity, im;
-      for (; beg != end; ++beg)
-      {
-        double left = *beg - width / 2.0;
-        double right = *beg + width / 2.0;
-
-        if (integrateWindow(spectrum, left, right, mz, im, intensity, drift_start, drift_end, false))
-        {
-          integratedWindowsIntensity.push_back(intensity);
-          integratedWindowsMZ.push_back(mz);
-	  integratedWindowsIm.push_back(im);
-        }
-        else if (!remZero)
-        {
-          integratedWindowsIntensity.push_back(0.);
-          integratedWindowsMZ.push_back(*beg);
-          integratedWindowsIm.push_back(*beg);
-        }
-      }
-    }
-
-
-    void integrateDriftSpectrum(OpenSwath::SpectrumPtr spectrum,
-                                              double mz_start,
-                                              double mz_end,
-                                              double & im,
-                                              double & intensity,
-                                              double drift_start,
-                                              double drift_end)
-    {
-      OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
-      OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getIntensityArray()->data.size(), "MZ and Intensity array need to have the same length.");
-      OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getDriftTimeArray()->data.size(), "MZ and Drift Time array need to have the same length.");
-      OPENMS_PRECONDITION(std::adjacent_find(spectrum->getMZArray()->data.begin(),
-              spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),
-              "Precondition violated: m/z vector needs to be sorted!" )
-
-      im = 0;
-      intensity = 0;
-
-      // get the weighted average for noncentroided data.
-      // TODO this is not optimal if there are two peaks in this window (e.g. if the window is too large)
-      auto mz_arr_end = spectrum->getMZArray()->data.end();
-      auto int_it = spectrum->getIntensityArray()->data.begin();
-      auto im_it = spectrum->getDriftTimeArray()->data.begin();
-
-      // this assumes that the spectra are sorted!
-      auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
-      auto mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
-
-      // also advance intensity and ion mobility iterator now
-      auto iterator_pos = std::distance(spectrum->getMZArray()->data.begin(), mz_it);
-      std::advance(int_it, iterator_pos);
-      std::advance(im_it, iterator_pos);
-
-      // Iterate from mz start to end, only storing ion mobility values that are in the range
-      for (; mz_it != mz_it_end; ++mz_it, ++int_it, ++im_it)
-      {
-        if ( *im_it >= drift_start && *im_it <= drift_end)
-        {
-          intensity += (*int_it);
-          im += (*int_it) * (*im_it);
-        }
-      }
-
-      if (intensity > 0.)
-      {
-        im /= intensity;
-      }
-      else
-      {
-        im = -1;
-        intensity = 0;
-      }
-
-    }
     // Helper for integrate window returns the sum of all intensities, sum of all ion mobilities and sum of all mz
     // no expensive division calls
     // assumes mz, im and intensity should already be initiated.
@@ -269,6 +148,73 @@ namespace OpenMS::DIAHelpers
       }
     }
 
+
+    void integrateWindows(const OpenSwath::SpectrumPtr spectrum,
+                          const std::vector<double> & windowsCenter,
+                          double width,
+                          std::vector<double> & integratedWindowsIntensity,
+                          std::vector<double> & integratedWindowsMZ,
+			  std::vector<double> & integratedWindowsIm,
+			  double drift_start,
+			  double drift_end,
+                          bool remZero)
+    {
+      std::vector<double>::const_iterator beg = windowsCenter.begin();
+      std::vector<double>::const_iterator end = windowsCenter.end();
+      double mz, intensity, im;
+      for (; beg != end; ++beg)
+      {
+        double left = *beg - width / 2.0;
+        double right = *beg + width / 2.0;
+        if (integrateWindow(spectrum, left, right, mz, im, intensity, drift_start, drift_end, false))
+        {
+          integratedWindowsIntensity.push_back(intensity);
+          integratedWindowsMZ.push_back(mz);
+	  integratedWindowsIm.push_back(im);
+        }
+        else if (!remZero)
+        {
+          integratedWindowsIntensity.push_back(0.);
+          integratedWindowsMZ.push_back(*beg);
+          integratedWindowsIm.push_back(*beg);
+        }
+      }
+    }
+
+
+    void integrateWindows(const std::vector<OpenSwath::SpectrumPtr> spectrum,
+                          const std::vector<double> & windowsCenter,
+                          double width,
+                          std::vector<double> & integratedWindowsIntensity,
+                          std::vector<double> & integratedWindowsMZ,
+			  std::vector<double> & integratedWindowsIm,
+			  double drift_start,
+			  double drift_end,
+                          bool remZero)
+    {
+      std::vector<double>::const_iterator beg = windowsCenter.begin();
+      std::vector<double>::const_iterator end = windowsCenter.end();
+      double mz, intensity, im;
+      for (; beg != end; ++beg)
+      {
+        double left = *beg - width / 2.0;
+        double right = *beg + width / 2.0;
+
+        if (integrateWindow(spectrum, left, right, mz, im, intensity, drift_start, drift_end, false))
+        {
+          integratedWindowsIntensity.push_back(intensity);
+          integratedWindowsMZ.push_back(mz);
+	  integratedWindowsIm.push_back(im);
+        }
+        else if (!remZero)
+        {
+          integratedWindowsIntensity.push_back(0.);
+          integratedWindowsMZ.push_back(*beg);
+          integratedWindowsIm.push_back(*beg);
+        }
+      }
+    }
+
     bool integrateWindow(OpenSwath::SpectrumPtr spectrum,
                                               double mz_start,
                                               double mz_end,
@@ -342,154 +288,6 @@ namespace OpenMS::DIAHelpers
       intensity = 0;
       return false;
      }
-
-   /*
-    bool integrateWindow(OpenSwath::SpectrumPtr spectrum,
-                                              double mz_start,
-                                              double mz_end,
-                                              double & mz,
-                                              double & im,
-                                              double & intensity,
-                                              double drift_start,
-                                              double drift_end,
-                                              bool centroided)
-    {
-      OPENMS_PRECONDITION(std::adjacent_find(spectrum->getMZArray()->data.begin(),
-              spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),
-              "Precondition violated: m/z vector needs to be sorted!" );
-      OPENMS_PRECONDITION(!centroided,  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION));
-
-      intensity, im, mz = 0;
-
-      // get the weighted average for noncentroided data.
-      // TODO this is not optimal if there are two peaks in this window (e.g. if the window is too large)
-      auto mz_arr_end = spectrum->getMZArray()->data.end();
-      auto int_it = spectrum->getIntensityArray()->data.begin();
-
-      // this assumes that the spectra are sorted!
-      auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
-      // auto mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
-
-      // also advance intensity and ion mobility iterator now
-      auto iterator_pos = std::distance(spectrum->getMZArray()->data.begin(), mz_it);
-      std::advance(int_it, iterator_pos);
-
-      if ( drift_start != -1 ) // integrate across im as well
-      {
-        // additional checks only relevant if ion mobility is present
-        OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
-        OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getIntensityArray()->data.size(), "MZ and Intensity array need to have the same length.");
-        OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getDriftTimeArray()->data.size(), "MZ and Drift Time array need to have the same length.");
-
-        // get the weighted average for noncentroided data.
-        // TODO this is not optimal if there are two peaks in this window (e.g. if the window is too large)
-        auto im_it = spectrum->getDriftTimeArray()->data.begin();
-
-        // also advance ion mobility iterator now
-        std::advance(im_it, iterator_pos);
-
-        // Start iteration from mz start, end iteration when mz value is larger than mz_end, only store only storing ion mobility values that are in the range
-        while ( *mz_it <= mz_end )
-        {
-          if ( *im_it >= drift_start && *im_it <= drift_end)
-          {
-            intensity += (*int_it);
-            im += (*int_it) * (*im_it);
-            mz += (*int_it) * (*mz_it);
-
-          }
-          ++mz_it;
-          ++int_it;
-          ++im_it;
-        }
-      }
-
-      else // where do not have IM
-      {
-        while ( *mz_it <= mz_end )
-        {
-          intensity += (*int_it);
-          mz += (*int_it) * (*mz_it);
-
-          ++mz_it;
-          ++int_it;
-        }
-      }
-
-      // Post processing compute im, mz by taking the weighted average
-      if (intensity_tmp > 0.)
-      {
-        mz /= intensity;
-        im /= intensity;
-        return true;
-      }
-      else
-      {
-        im = -1;
-        mz = -1;
-        intensity = 0;
-        return false;
-      }
-    }
-  */
-
-// Deprecate this function
-/*
-    bool integrateWindow(const OpenSwath::SpectrumPtr spectrum,
-                         double mz_start,
-                         double mz_end,
-                         double & mz,
-                         double & intensity,
-                         bool centroided)
-    {
-      OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getIntensityArray()->data.size(), "MZ and Intensity array need to have the same length.");
-      OPENMS_PRECONDITION(std::adjacent_find(spectrum->getMZArray()->data.begin(),
-              spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),
-              "Precondition violated: m/z vector needs to be sorted!" )
-
-      mz = 0;
-      intensity = 0;
-      if (!centroided)
-      {
-        // get the weighted average for noncentroided data.
-        // TODO this is not optimal if there are two peaks in this window (e.g. if the window is too large)
-        auto mz_arr_end = spectrum->getMZArray()->data.end();
-        auto int_it = spectrum->getIntensityArray()->data.begin();
-
-        // this assumes that the spectra are sorted!
-        auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
-        auto mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
-
-        // also advance intensity iterator now
-        auto iterator_pos = std::distance(spectrum->getMZArray()->data.begin(), mz_it);
-        std::advance(int_it, iterator_pos);
-
-        for (; mz_it != mz_it_end; ++mz_it, ++int_it)
-        {
-          intensity += (*int_it);
-          mz += (*int_it) * (*mz_it);
-        }
-
-        if (intensity > 0.)
-        {
-          mz /= intensity;
-          return true;
-        }
-        else
-        {
-          mz = -1;
-          intensity = 0;
-          return false;
-        }
-
-      }
-      else
-      {
-        // not implemented
-        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-      }
-    }
-    */
 
     // for SWATH -- get the theoretical b and y series masses for a sequence
     void getBYSeries(const AASequence& a, //

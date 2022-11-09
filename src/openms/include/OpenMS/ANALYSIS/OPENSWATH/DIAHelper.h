@@ -44,7 +44,6 @@ namespace OpenMS
   class TheoreticalSpectrumGenerator;
   namespace DIAHelpers
   {
-
     /**
       @brief Helper functions for the DIA scoring of OpenSWATH
     */
@@ -64,24 +63,20 @@ namespace OpenMS
     OPENMS_DLLAPI bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start,
                                        double mz_end, double& mz, double& im, double& intensity, double drift_start, double drift_end,  bool centroided = false);
 
-    /** Added By Josh integrates windows with spectra stored in multiple points **/
+    /**
+      @brief Integrate intensity in an array of spectra from start to end
+
+      This function will integrate the intensity in a spectrum between mz_start
+      and mz_end, returning the total intensity and an intensity-weighted m/z and im
+      value.
+
+      @note ion mobility is only computed if drift_start != -1
+      @note If there is no signal, mz will be set to -1 and intensity to 0
+      @return Returns true if a signal was found (and false if no signal was found)
+
+    */
     OPENMS_DLLAPI bool integrateWindow(const std::vector<OpenSwath::SpectrumPtr> spectrum, double mz_start,
                                        double mz_end, double& mz, double& im, double& intensity, double drift_start, double drift_end,  bool centroided = false);
-
-
-    /**
-      @brief Integrate intensities multiple spectra from start to end
-    */
-    OPENMS_DLLAPI void integrateWindows(const std::vector<OpenSwath::SpectrumPtr> spectrum, //!< [in] Spectrum
-                                        const std::vector<double>& windows_center, //!< [in] center location
-                                        double width,
-                                        std::vector<double>& integrated_windows_intensity,
-                                        std::vector<double>& integrated_windows_mz,
-					std::vector<double>& integrated_windows_im,
-					double drift_start,
-					double drift_end,
-                                        bool remove_zero = false);
-
 
 
     /**
@@ -97,22 +92,19 @@ namespace OpenMS
 					double drift_end,
                                         bool remove_zero = false);
 
+
     /**
-      @brief Integrate intensity in an ion mobility spectrum from start to end
-
-      This function will integrate the intensity in a spectrum between mz_start
-      and mz_end, returning the total intensity and an intensity-weighted drift
-      time value.
-
-      @note If there is no signal, mz will be set to -1 and intensity to 0
+      @brief Integrate intensities of multiple spectra from start to end
     */
-    OPENMS_DLLAPI void integrateDriftSpectrum(OpenSwath::SpectrumPtr spectrum,
-                                              double mz_start,
-                                              double mz_end,
-                                              double & im,
-                                              double & intensity,
-                                              double drift_start,
-                                              double drift_end);
+    OPENMS_DLLAPI void integrateWindows(const std::vector<OpenSwath::SpectrumPtr> spectrum, //!< [in] Spectrum
+                                        const std::vector<double>& windows_center, //!< [in] center location
+                                        double width,
+                                        std::vector<double>& integrated_windows_intensity,
+                                        std::vector<double>& integrated_windows_mz,
+					std::vector<double>& integrated_windows_im,
+					double drift_start,
+					double drift_end,
+                                        bool remove_zero = false);
 
     /**
       @brief Adjust left/right window based on window and whether its ppm or not
@@ -185,8 +177,22 @@ namespace OpenMS
     OPENMS_DLLAPI void extractFirst(const std::vector<std::pair<double, double> >& peaks, std::vector<double>& mass);
     /// extract second from vector of pairs
     OPENMS_DLLAPI void extractSecond(const std::vector<std::pair<double, double> >& peaks, std::vector<double>& mass);
-    
+
+
+    /**
+      @brief Helper function for integrating a spectrum.
+    */
+    void _integrateWindowHelper(OpenSwath::SpectrumPtr spectrum,
+                                double mz_start,
+                                double mz_end,
+                                double & mz,
+                                double & im,
+                                double & intensity,
+                                double drift_start,
+                                double drift_end,
+                                bool centroided);
+    }
+
     ///}@
-  }
-}
+} //namespace OpenMS
 

@@ -64,7 +64,7 @@ namespace OpenMS
   }
 
   std::vector<OpenSwath::SwathMap> findSwathMaps(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
-                                                 const std::vector< OpenSwath::SwathMap > & swath_maps) 
+                                                 const std::vector< OpenSwath::SwathMap > & swath_maps)
   {
     // Get the corresponding SWATH map(s), for SONAR there will be more than one map
     std::vector<OpenSwath::SwathMap> used_maps;
@@ -238,18 +238,18 @@ namespace OpenMS
       {
         if (ms1_im_)
         {
-          sp_ms1 = OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, 0, 0);
+          sp_ms1 = OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1)[0];
         }
         else
         {
-          sp_ms2 = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0);
+          sp_ms2 = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1)[0];
         }
       }
 
       for (const auto& tr : transition_group->getTransitions())
       {
         if (ms1_im_) {continue;}
-        double intensity(0), im(0), left(tr.product_mz), right(tr.product_mz);
+        double intensity(0), im(0), mz(0), left(tr.product_mz), right(tr.product_mz);
 
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
@@ -270,7 +270,7 @@ namespace OpenMS
         }
 
         DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateDriftSpectrum(sp_ms2, left, right, im, intensity, drift_left, drift_right);
+        DIAHelpers::integrateWindow(sp_ms2, left, right, mz, im, intensity, drift_left, drift_right);
 
         // skip empty windows
         if (im <= 0)
@@ -298,7 +298,7 @@ namespace OpenMS
       if (!transition_group->getTransitions().empty() && ms1_im_)
       {
         const auto& tr = transition_group->getTransitions()[0];
-        double intensity(0), im(0), left(tr.precursor_mz), right(tr.precursor_mz);
+        double intensity(0), im(0), mz(0), left(tr.precursor_mz), right(tr.precursor_mz);
 
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
@@ -319,7 +319,7 @@ namespace OpenMS
         }
 
         DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateDriftSpectrum(sp_ms1, left, right, im, intensity, drift_left, drift_right);
+        DIAHelpers::integrateWindow(sp_ms1, left, right, mz, im, intensity, drift_left, drift_right);
 
         // skip empty windows
         if (im <= 0)
@@ -448,7 +448,7 @@ namespace OpenMS
 
       // Get the spectrum for this RT and extract raw data points for all the
       // calibrating transitions (fragment m/z values) from the spectrum
-      OpenSwath::SpectrumPtr sp = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0);
+      OpenSwath::SpectrumPtr sp = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1)[0];
       for (const auto& tr : transition_group->getTransitions())
       {
         double mz, intensity, left(tr.product_mz), right(tr.product_mz), im;

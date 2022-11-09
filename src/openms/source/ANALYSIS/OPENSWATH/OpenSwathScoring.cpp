@@ -538,41 +538,11 @@ namespace OpenMS
     OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
   }
 
-  OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map,
-                                                              double RT, int nr_spectra_to_add, const double drift_lower, const double drift_upper)
-  {
-    return getAddedSpectra_(swath_map, RT, nr_spectra_to_add, drift_lower, drift_upper);
-  }
-
-
-  OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps,
-                                                              double RT, int nr_spectra_to_add, const double drift_lower, const double drift_upper)
-  {
-    if (swath_maps.size() == 1)
-    {
-      return getAddedSpectra_(swath_maps[0].sptr, RT, nr_spectra_to_add, drift_lower, drift_upper);
-    }
-    else
-    {
-      // multiple SWATH maps for a single precursor -> this is SONAR data
-      std::vector<OpenSwath::SpectrumPtr> all_spectra;
-      for (size_t i = 0; i < swath_maps.size(); ++i)
-      {
-        OpenSwath::SpectrumPtr spec = getAddedSpectra_(swath_maps[i].sptr, RT, nr_spectra_to_add, drift_lower, drift_upper);
-        all_spectra.push_back(spec);
-      }
-      OpenSwath::SpectrumPtr spectrum_ = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
-      return spectrum_;
-    }
-  }
-
-  // Added by Josh fetch spectrum swath
   std::vector<OpenSwath::SpectrumPtr> OpenSwathScoring::fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swathmap, double RT, int nr_spectra_to_add)
   {
     return fetchMultipleSpectra_(swathmap, RT, nr_spectra_to_add);
   }
 
-  // fetch spectrum swath added by Josh
   std::vector<OpenSwath::SpectrumPtr> OpenSwathScoring::fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps, double RT, int nr_spectra_to_add)
   {
     if (swath_maps.size() == 1)
@@ -581,62 +551,11 @@ namespace OpenMS
     }
     else
     {
-
       // TODO Not tested for SONAR data yet
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
      }
   }
 
-
-
-  OpenSwath::SpectrumPtr filterByDrift(const OpenSwath::SpectrumPtr input, const double drift_lower, const double drift_upper)
-  {
-    OPENMS_PRECONDITION(drift_upper > 0, "Cannot filter by drift time if upper value is less or equal to zero");
-    //OPENMS_PRECONDITION(input->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
-
-    if (input->getDriftTimeArray() == nullptr)
-    {
-      std::cerr << "Warning: Cannot filter by drift time if no drift time is available.\n";
-      return input;
-    }
-
-    OpenSwath::SpectrumPtr output(new OpenSwath::Spectrum);
-
-    OpenSwath::BinaryDataArrayPtr mz_arr = input->getMZArray();
-    OpenSwath::BinaryDataArrayPtr int_arr = input->getIntensityArray();
-    OpenSwath::BinaryDataArrayPtr im_arr = input->getDriftTimeArray();
-
-    std::vector<double>::const_iterator mz_it = mz_arr->data.begin();
-    std::vector<double>::const_iterator int_it = int_arr->data.begin();
-    std::vector<double>::const_iterator im_it = im_arr->data.begin();
-    std::vector<double>::const_iterator mz_end = mz_arr->data.end();
-
-    OpenSwath::BinaryDataArrayPtr mz_arr_out(new OpenSwath::BinaryDataArray);
-    OpenSwath::BinaryDataArrayPtr intens_arr_out(new OpenSwath::BinaryDataArray);
-    OpenSwath::BinaryDataArrayPtr im_arr_out(new OpenSwath::BinaryDataArray);
-    im_arr_out->description = im_arr->description;
-
-    size_t n = mz_arr->data.size();
-    im_arr_out->data.reserve(n);
-    while (mz_it != mz_end)
-    {
-      if (*im_it > drift_lower && *im_it < drift_upper)
-      {
-        mz_arr_out->data.push_back( *mz_it );
-        intens_arr_out->data.push_back( *int_it );
-        im_arr_out->data.push_back( *im_it );
-      }
-      ++mz_it;
-      ++int_it;
-      ++im_it;
-    }
-    output->setMZArray(mz_arr_out);
-    output->setIntensityArray(intens_arr_out);
-    output->getDataArrays().push_back(im_arr_out);
-    return output;
-  }
-
-  // Josh's implementation no adding involved just fetching spectra. if nr_spectra_to_add > 1 return array of spectra, do not add
   std::vector<OpenSwath::SpectrumPtr> OpenSwathScoring::fetchMultipleSpectra_(OpenSwath::SpectrumAccessPtr swath_map,
                                                             double RT, int nr_spectra_to_fetch)
   {
@@ -671,98 +590,4 @@ namespace OpenMS
 
     return all_spectra;
   }
-
-  OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map,
-                                                            double RT, int nr_spectra_to_add, const double drift_lower, const double drift_upper)
-  {
-    std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
-    OpenSwath::SpectrumPtr added_spec(new OpenSwath::Spectrum);
-    added_spec->getDataArrays().push_back( OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray) );
-    added_spec->getDataArrays().back()->description = "Ion Mobility";
-
-    if (indices.empty() )
-    {
-      return added_spec;
-    }
-    int closest_idx = boost::numeric_cast<int>(indices[0]);
-    if (indices[0] != 0 &&
-        std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0]) - 1).RT - RT) <
-        std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0])).RT - RT))
-    {
-      closest_idx--;
-    }
-
-    if (nr_spectra_to_add == 1)
-    {
-      added_spec = swath_map->getSpectrumById(closest_idx);
-      if (drift_upper > 0)
-      {
-        added_spec = filterByDrift(added_spec, drift_lower, drift_upper);
-      }
-    }
-    else
-    {
-      std::vector<OpenSwath::SpectrumPtr> all_spectra;
-      // always add the spectrum 0, then add those right and left
-      all_spectra.push_back(swath_map->getSpectrumById(closest_idx));
-      for (int i = 1; i <= nr_spectra_to_add / 2; i++) // cast to int is intended!
-      {
-        if (closest_idx - i >= 0)
-        {
-          all_spectra.push_back(swath_map->getSpectrumById(closest_idx - i));
-        }
-        if (closest_idx + i < (int)swath_map->getNrSpectra())
-        {
-          all_spectra.push_back(swath_map->getSpectrumById(closest_idx + i));
-        }
-      }
-
-      // Filter all spectra by drift time before further processing
-      if (drift_upper > 0)
-      {
-        for (auto& s: all_spectra) s = filterByDrift(s, drift_lower, drift_upper);
-      }
-
-      // add up all spectra
-      if (spectra_addition_method_ == "simple")
-      {
-        // Ensure that we have the same number of data arrays as in the input spectrum
-        if (!all_spectra.empty() && all_spectra[0]->getDataArrays().size() > 2)
-        {
-          for (Size k = 2; k < all_spectra[0]->getDataArrays().size(); k++)
-          {
-            OpenSwath::BinaryDataArrayPtr tmp (new OpenSwath::BinaryDataArray());
-            tmp->description = all_spectra[0]->getDataArrays()[k]->description;
-            added_spec->getDataArrays().push_back(tmp);
-          }
-        }
-
-        // Simply add up data and sort in the end
-        for (const auto& s : all_spectra)
-        {
-          for (Size k = 0; k < s->getDataArrays().size(); k++)
-          {
-            auto& v1 = added_spec->getDataArrays()[k]->data;
-            auto& v2 = s->getDataArrays()[k]->data;
-
-            v1.reserve( v1.size() + v2.size() );
-            v1.insert( v1.end(), v2.begin(), v2.end() );
-          }
-        }
-        sortSpectrumByMZ(*added_spec);
-      }
-      else
-      {
-        added_spec = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
-      }
-    }
-
-    OPENMS_POSTCONDITION( std::adjacent_find(added_spec->getMZArray()->data.begin(),
-           added_spec->getMZArray()->data.end(), std::greater<double>()) == added_spec->getMZArray()->data.end(),
-           "Postcondition violated: m/z vector needs to be sorted!" )
-
-    return added_spec;
-  }
-
 }
-
