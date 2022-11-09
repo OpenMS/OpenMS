@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
@@ -445,7 +444,7 @@ protected:
       }
     }
 
-    std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition = FLASHIda::parseFLASHIdaLog(in_log_file); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
+    std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition; // For FLASHIda later; FLASHIda::parseFLASHIdaLog(in_log_file); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
 
 
     //-------------------------------------------------------------
