@@ -99,7 +99,6 @@ namespace OpenMS
     return out_spec;
   }
 
-
   const MSSpectrum& DeconvolvedSpectrum::getOriginalSpectrum() const
   {
     return spec_;
@@ -161,12 +160,10 @@ namespace OpenMS
     return precursor_scan_number_;
   }
 
-
   const String& DeconvolvedSpectrum::getActivationMethod() const
   {
     return activation_method_;
   }
-
 
   void DeconvolvedSpectrum::setPrecursor(const Precursor& precursor)
   {
@@ -197,6 +194,7 @@ namespace OpenMS
   {
     return peak_groups.begin();
   }
+
   std::vector<PeakGroup>::const_iterator DeconvolvedSpectrum::end() const noexcept
   {
     return peak_groups.end();
@@ -206,6 +204,7 @@ namespace OpenMS
   {
     return peak_groups.begin();
   }
+
   std::vector<PeakGroup>::iterator DeconvolvedSpectrum::end() noexcept
   {
     return peak_groups.end();
@@ -220,22 +219,27 @@ namespace OpenMS
   {
     peak_groups.push_back(pg);
   }
+
   Size DeconvolvedSpectrum::size() const noexcept
   {
     return peak_groups.size();
   }
+
   void DeconvolvedSpectrum::clear()
   {
     peak_groups.clear();
   }
+
   void DeconvolvedSpectrum::reserve(Size n)
   {
     peak_groups.reserve(n);
   }
+
   bool DeconvolvedSpectrum::empty() const
   {
     return peak_groups.empty();
   }
+
   void DeconvolvedSpectrum::swap(std::vector<PeakGroup>& x)
   {
     peak_groups.swap(x);
@@ -253,7 +257,6 @@ namespace OpenMS
 
   void DeconvolvedSpectrum::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra) // per ms level + precursor update as well.
   {
-
     std::map<int, std::vector<float>> tscore_map; // per ms level
 
     std::map<int, std::vector<float>> dscore_iso_decoy_map;

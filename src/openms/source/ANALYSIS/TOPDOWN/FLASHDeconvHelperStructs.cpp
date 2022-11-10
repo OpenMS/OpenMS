@@ -149,7 +149,7 @@ namespace OpenMS
     return i;
   }
 
-      IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(const double mass) const
+  IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(const double mass) const
   {
     return isotopes_[massToIndex_(mass)];
   }
@@ -189,7 +189,6 @@ namespace OpenMS
     Size index = massToIndex_(mass);
     return apex_index_[index] + right_count_from_apex_[index];
   }
-
 
   void FLASHDeconvHelperStructs::PrecalculatedAveragine::setMaxIsotopeIndex(const int index)
   {
@@ -253,7 +252,6 @@ namespace OpenMS
     return std::log(mz - getChargeMass(positive));
   }
 
-
   FLASHDeconvHelperStructs::TopPicItem::TopPicItem(String in)
   {
     str = in;
@@ -311,7 +309,6 @@ namespace OpenMS
       }
     }
 
-
     matched_peaks = stoi(results[21]);
     matched_frags = stoi(results[22]);
     e_value = stod(results[23]);
@@ -336,5 +333,4 @@ namespace OpenMS
   {
     return this->scan == other.scan;
   }
-
 }

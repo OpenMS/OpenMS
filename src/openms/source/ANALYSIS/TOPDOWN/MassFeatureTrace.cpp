@@ -50,13 +50,10 @@ namespace OpenMS
 
     mtd_defaults.setValue("chrom_peak_snr", .0);
     mtd_defaults.addTag("chrom_peak_snr", "advanced");
-    mtd_defaults.setValue("reestimate_mt_sd",
-                          "false");
+    mtd_defaults.setValue("reestimate_mt_sd", "false");
     mtd_defaults.addTag("reestimate_mt_sd", "advanced");
-    mtd_defaults.setValue("noise_threshold_int",
-                          .0);
+    mtd_defaults.setValue("noise_threshold_int", .0);
     mtd_defaults.addTag("noise_threshold_int", "advanced");
-
 
     mtd_defaults.setValue("quant_method", "area");
     mtd_defaults.addTag("quant_method", "advanced"); // hide entry
@@ -201,7 +198,6 @@ namespace OpenMS
           }
         }
       }
-
 
       mass_feature.per_charge_intensity = per_charge_intensity;
       mass_feature.per_isotope_intensity = per_isotope_intensity;

@@ -69,7 +69,6 @@ namespace OpenMS
     return this->monoisotopic_mass_ == a.monoisotopic_mass_ && this->intensity_ == a.intensity_;
   }
 
-
   void PeakGroup::updateAvgPPMError_()
   {
     avg_ppm_error_ = 0;
@@ -149,9 +148,6 @@ namespace OpenMS
       }
 
       float cos_score = FLASHDeconvAlgorithm::getCosine(current_per_isotope_intensities, min_isotope_index, max_isotope_index + 1, iso_dist, iso_size, 0, 0);
-
-      // cos_score = (float)min_isotope_index / (float)max_isotope_index;//current_per_isotope_intensities[max_isotope_index]/ std::accumulate(current_per_isotope_intensities.begin(),
-      // current_per_isotope_intensities.end(), 0);
       setChargeIsotopeCosine(abs_charge, cos_score); //
     }
 
@@ -211,7 +207,6 @@ namespace OpenMS
       Size index = spec.findNearest(left_mz * (1 - tol));
       double iso_delta = iso_da_distance_ / c;
       float max_charge_signal_intensity = .0;
-      //double max_charge_noise_mz = .0;
 
       for (; index < spec.size(); index++)
       {
@@ -232,7 +227,6 @@ namespace OpenMS
         {
           break;
         }
-
 
         if (iso_index >=0 && iso_index <= max_isotope - iso_margin && abs(pmz - cmz - iso_index * iso_delta) <= pmz * tol) //
         {
@@ -429,7 +423,6 @@ namespace OpenMS
       }
 
       per_isotope_int_[p.isotopeIndex] += p.intensity;
-      // new_logMzpeaks_.push_back(p);
       nominator += pi * (p.getUnchargedMass() - p.isotopeIndex * iso_da_distance_);
       intensity_ += pi;
     }
@@ -495,7 +488,6 @@ namespace OpenMS
     per_charge_signal_pwr_[abs_charge] = signal_pwr;
   }
 
-
   void PeakGroup::setChargeIsotopeCosine(const int abs_charge, const float cos)
   {
     if (max_abs_charge_ < abs_charge)
@@ -508,7 +500,6 @@ namespace OpenMS
     }
     per_charge_cos_[abs_charge] = cos;
   }
-
 
   void PeakGroup::setMaxQScoreMzRange(const double min, const double max)
   {
@@ -657,7 +648,6 @@ namespace OpenMS
     snr_ = t_denom <= 0 ? .0 : (t_nom / t_denom);
   }
 
-
   float PeakGroup::getQvalue() const
   {
     return qvalue_;
@@ -677,7 +667,6 @@ namespace OpenMS
   {
     return qvalue_with_noise_decoy_only_;
   }
-
 
   float PeakGroup::getSNR() const
   {
@@ -820,6 +809,7 @@ namespace OpenMS
   {
     std::sort(logMzpeaks_.begin(), logMzpeaks_.end());
   }
+
   void PeakGroup::setQvalue(float q)
   {
     qvalue_ = q;
@@ -830,14 +820,11 @@ namespace OpenMS
     std::vector<LogMzPeak>().swap(logMzpeaks_);
     std::vector<LogMzPeak>().swap(noisy_peaks_);
 
-    // std::vector<float>().swap(per_charge_signal_pwr_);
-    // std::vector<float>().swap(per_charge_pwr_);
     std::vector<float>().swap(per_charge_cos_);
     std::vector<float>().swap(per_charge_int_);
     std::vector<float>().swap(per_charge_snr_);
     std::vector<float>().swap(per_isotope_int_);
   }
-
 
   void PeakGroup::setQvalueWithChargeDecoyOnly(float q)
   {
@@ -851,7 +838,6 @@ namespace OpenMS
   {
     qvalue_with_noise_decoy_only_ = q;
   }
-
 
   void PeakGroup::calculateDLMatriices(int charge_range, int iso_range, double tol, PrecalculatedAveragine& avg)
   {
@@ -889,7 +875,6 @@ namespace OpenMS
     }
 
     noise.resize(charge_range, iso_range, .0);
-    // noisetol.resize(charge_range, iso_range, .0);
 
     for (auto& p : noisy_peaks_)
     {
@@ -908,7 +893,6 @@ namespace OpenMS
         continue;
       }
       noise.setValue(charge_index, iso_index, p.intensity);
-      // noisetol.setValue(charge_index, iso_index, getAbsPPMError_(p)/tol/1e6);
     }
     for (int c = 0; c < sig.cols(); c++)
     {
@@ -917,7 +901,6 @@ namespace OpenMS
       if (index >= 0 && index < iso.size())
       {
         factor += iso[index].getIntensity();
-        ;
       }
       for (int r = 0; r < sig.rows(); r++)
       {
@@ -925,9 +908,6 @@ namespace OpenMS
         noise.setValue(r, c, noise.getValue(r, c) / factor);
       }
     }
-
-    // auto apex_row = sig.row((int)(charge_range/2));
-    // double apex_sum = *std::max_element(apex_row.begin(), apex_row.end());
 
     float apex_sum = *std::max_element(sig.asVector().begin(), sig.asVector().end());
     if (apex_sum > 0)
@@ -953,7 +933,6 @@ namespace OpenMS
     dl_matrices_.push_back(sig);
     dl_matrices_.push_back(noise);
     dl_matrices_.push_back(sigtol);
-    // dl_matrices_.push_back(noisetol);
   }
 
   std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator PeakGroup::getNoisePeakBegin() noexcept

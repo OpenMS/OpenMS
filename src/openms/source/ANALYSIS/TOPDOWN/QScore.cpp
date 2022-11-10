@@ -41,7 +41,6 @@
 
 namespace OpenMS
 {
-
   double QScore::getQScore(const PeakGroup *pg, const int abs_charge)
   {
     if (pg->empty())
@@ -102,10 +101,9 @@ namespace OpenMS
 
   void QScore::writeAttCsvFromTopPICHeader(std::fstream& f, bool write_detail)
   {
-    f
-        << "ACC,FirstResidue,LastResidue,ProID,RT,ScanNumber,PrecursorScanNumber,PrecursorMonoMass,PrecursorOriginalMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,"
-           "MassIntensity,FeatureIntensity,PrecursorCharge,PrecursorMinCharge,"
-           "PrecursorMaxCharge,PTM,PTMMass1,PTMMass2,PTMMass3,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,Qvalue,";
+    f << "ACC,FirstResidue,LastResidue,ProID,RT,ScanNumber,PrecursorScanNumber,PrecursorMonoMass,PrecursorOriginalMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,"
+         "MassIntensity,FeatureIntensity,PrecursorCharge,PrecursorMinCharge,"
+         "PrecursorMaxCharge,PTM,PTMMass1,PTMMass2,PTMMass3,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,Qvalue,";
     if (write_detail)
     {
       f << "PeakMZs,PeakIntensities,PeakMasses,PeakCharges,PeakIsotopeIndices,";
@@ -122,9 +120,7 @@ namespace OpenMS
     int scan_number = deconvolved_spectrum.getScanNumber();
     double pmz = deconvolved_spectrum.getPrecursor().getMZ();
     auto pg = deconvolved_spectrum.getPrecursorPeakGroup();
-    double pmass = 
-        top_id.proteform_id < 0 ? pg.getMonoMass()
-                                 : top_id.adj_precursor_mass;
+    double pmass = top_id.proteform_id < 0 ? pg.getMonoMass() : top_id.adj_precursor_mass;
     double precursor_intensity = deconvolved_spectrum.getPrecursor().getIntensity();
     int fr = top_id.first_residue;
     int lr = top_id.last_residue;
@@ -191,7 +187,6 @@ namespace OpenMS
         f << ";,";
         f << std::setprecision(-1);
 
-
         for (auto& p: pg)
         {
           f << p.getUnchargedMass() << " ";
@@ -212,15 +207,15 @@ namespace OpenMS
         f << std::fixed << std::setprecision(-1);
       }
 
-
       f << (is_identified ? "T" : "F") << "\n";
     }
   }
+
   void QScore::writeAttCsvFromDecoyHeader(std::fstream& f)
   {
-    f
-      << "MSLevel,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Class\n";
+    f << "MSLevel,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Class\n";
   }
+
   void QScore::writeAttCsvFromDecoy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
   {
     int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
@@ -236,5 +231,4 @@ namespace OpenMS
       f <<  cns[pg.getDecoyIndex()]<< "\n";
     }
   }
-
 }

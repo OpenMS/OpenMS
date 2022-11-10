@@ -32,7 +32,6 @@
 // $Authors: Kyowon Jeong $
 // --------------------------------------------------------------------------
 
-
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 
 namespace OpenMS
@@ -71,7 +70,9 @@ namespace OpenMS
       pg.setIndex(index);
       fs << index++ << "\t" << file_name << "\t" << pg.getScanNumber() << "\t";
       if (decoy)
+      {
         fs << pg.getDecoyIndex() << "\t";
+      }
       fs << std::to_string(dspec.getOriginalSpectrum().getRT()) << "\t" << dspec.size() << "\t" << std::to_string(avg_mass) << "\t" << std::to_string(mono_mass) << "\t" << intensity << "\t"
          << min_charge << "\t" << max_charge << "\t" << pg.size() << "\t";
 
@@ -84,17 +85,14 @@ namespace OpenMS
         }
 
         fs << "\t";
-
         fs << std::fixed << std::setprecision(1);
         for (auto& p : pg)
         {
           fs << p.intensity << " ";
         }
 
-
         fs << "\t";
         fs << std::setprecision(-1);
-
         for (auto& p : pg)
         {
           fs << (p.is_positive ? p.abs_charge : -p.abs_charge) << " ";
@@ -113,15 +111,14 @@ namespace OpenMS
         }
 
         fs << "\t";
-
         for (auto& p : pg)
         {
           double average_mass = pg.getMonoMass() + p.isotopeIndex * pg.getIsotopeDaDistance();
           double mass_error = (average_mass / p.abs_charge + FLASHDeconvHelperStructs::getChargeMass(p.is_positive) - p.mz) / p.mz;
           fs << 1e6 * mass_error << " ";
         }
-        fs << "\t";
 
+        fs << "\t";
         fs << std::fixed << std::setprecision(2);
         for (auto iter = pg.getNoisePeakBegin(); iter<pg.getNoisePeakEnd();iter++)
         {
@@ -129,7 +126,6 @@ namespace OpenMS
         }
 
         fs << "\t";
-
         fs << std::fixed << std::setprecision(1);
         for (auto iter = pg.getNoisePeakBegin(); iter<pg.getNoisePeakEnd();iter++)
         {
@@ -138,7 +134,6 @@ namespace OpenMS
 
         fs << "\t";
         fs << std::setprecision(-1);
-
         for (auto iter = pg.getNoisePeakBegin(); iter<pg.getNoisePeakEnd();iter++)
         {
           auto p= (*iter);
@@ -158,7 +153,6 @@ namespace OpenMS
         }
 
         fs << "\t";
-
         for (auto iter = pg.getNoisePeakBegin(); iter<pg.getNoisePeakEnd();iter++)
         {
           auto p = (*iter);
@@ -195,7 +189,9 @@ namespace OpenMS
          << std::to_string(std::get<0>(max_qscore_mz_range)) << "\t" << std::to_string(std::get<1>(max_qscore_mz_range)) << "\t" << pg.getQScore();
 
       if (decoy)
+      {
         fs << "\t" << pg.getQvalue() << "\t" << pg.getQvalueWithIsotopeDecoyOnly() << "\t" << pg.getQvalueWithNoiseDecoyOnly() << "\t" << pg.getQvalueWithChargeDecoyOnly();
+      }
 
       if (write_detail)
       {
@@ -234,21 +230,22 @@ namespace OpenMS
     }
 
     auto pg = dspec[0];
-    for(int i=0;i<3;i++)
+    for(int i = 0; i < 3; i++)
     {
       String prefix = "Set" + std::to_string(i+1) + "_";
       auto dlm = pg.getDLMatrix(i).asVector();
-      int j=0;
-      for(double v:dlm)
+      int j = 0;
+      for(double v : dlm)
       {
-        fs<<prefix<<j++<<",";
+        fs << prefix << j++ << ",";
       }
     }
-    fs<<"Class\n";
+    fs << "Class\n";
   }
 
-  template<class BidiIter >
-  BidiIter random_unique(BidiIter begin, BidiIter end, size_t num_random) {
+  template<class BidiIter>
+  BidiIter random_unique(BidiIter begin, BidiIter end, size_t num_random)
+  {
     size_t left = std::distance(begin, end);
     while (num_random--) {
       BidiIter r = begin;
@@ -321,31 +318,41 @@ namespace OpenMS
       {
         fs << "Index\tFileName\tScanNum\t";
         if (decoy)
+        {
           fs << "Decoy\t";
+        }
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
               "NoisePeakMZs\tNoisePeakIntensities\tNoisePeakCharges\tNoisePeakMasses\tNoisePeakIsotopeIndices\tNoisePeakPPMErrors\t"
               "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\t";
         if (decoy)
+        {
           fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\t";
+        }
         fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
       }
       else
       {
         fs << "Index\tFileName\tScanNum\t";
         if (decoy)
+        {
           fs << "Decoy\t";
+        }
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
               "NoisePeakMZs\tNoisePeakIntensities\tNoisePeakCharges\tNoisePeakMasses\tNoisePeakIsotopeIndices\tNoisePeakPPMErrors\t"
               "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\t";
         if (decoy)
+        {
           fs << "PrecursorQvalue\tPrecursorQvalueWithIsotopeDecoyOnly\tPrecursorQvalueWithNoiseDecoyOnly\tPrecursorQvalueWithChargeDecoyOnly\t";
+        }
         fs << "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\t";
         if (decoy)
+        {
           fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\t";
+        }
         fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
       }
     }
@@ -355,35 +362,43 @@ namespace OpenMS
       {
         fs << "Index\tFileName\tScanNum\t";
         if (decoy)
+        {
           fs << "Decoy\t";
+        }
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\t"
               "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\t";
         if (decoy)
+        {
           fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly";
-
+        }
         fs << "\n";
       }
       else
       {
         fs << "Index\tFileName\tScanNum\t";
         if (decoy)
+        {
           fs << "Decoy\t";
+        }
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\t"
               "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\t";
         if (decoy)
+        {
           fs << "PrecursorQvalue\tPrecursorQvalueWithIsotopeDecoyOnly\tPrecursorQvalueWithNoiseDecoyOnly\tPrecursorQvalueWithChargeDecoyOnly\t";
+        }
         fs << "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\t";
         if (decoy)
+        {
           fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly";
+        }
          fs << "\n";
       }
     }
   }
-
 
   void FLASHDeconvSpectrumFile::writeTopFD(const DeconvolvedSpectrum& dspec, std::fstream& fs,
                                            const double snr_threshold, const double decoy_harmonic_factor,
@@ -456,9 +471,6 @@ namespace OpenMS
         break;
       }
     }
-
     fs << "END IONS\n\n";
   }
-
-
 } // namespace OpenMS

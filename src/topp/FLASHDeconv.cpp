@@ -132,7 +132,7 @@ protected:
                             "<file for MS1, file for MS2, ...>",
                             {""},
                             "Output feature (topFD compatible) files containing deconvolved features (per MS level). "
-                        "The feature files are necessary for TopPIC feature intensity output",
+                            "The feature files are necessary for TopPIC feature intensity output",
                             false);
     setValidFormats_("out_topFD_feature", ListUtils::create<String>("feature"), false);
 
@@ -153,17 +153,6 @@ protected:
     setMinInt_("mzml_mass_charge", -1);
     setMaxInt_("mzml_mass_charge", 1);
 
-    /*
-    registerIntOption_("mzml_output_undeconvolved_peaks",
-                       "<0:do not output undeconvolved peaks 1: output undeconvolved peaks>",
-                       0,
-                       "The undeconvolved raw peaks in the input spectra are output in mzML output.",
-                       false,
-                       true);
-
-    setMinInt_("mzml_output_undeconvolved_peaks", 0);
-    setMaxInt_("mzml_output_undeconvolved_peaks", 1);
-*/
     registerIntOption_("preceding_MS1_count",
                        "<number>",
                        3,
@@ -181,8 +170,7 @@ protected:
                        "<1:true 0:false>",
                        0,
                        "To write peak information per deconvolved mass in detail or not in tsv files for deconvolved spectra. "
-                       "If set to 1, all peak information (m/z, intensity, charge, "
-                       "and isotope index) per mass is reported.",
+                       "If set to 1, all peak information (m/z, intensity, charge and isotope index) per mass is reported.",
                        false,
                        false);
 
@@ -200,11 +188,13 @@ protected:
                        true);
     setMinInt_("forced_MS_level", 0);
 
-    registerIntOption_("merging_method", "<0: None 1: gaussian averaging 2: block method>", 0,
-                                            "Method for spectra merging before deconvolution. 0: No merging "
-                                                                "1: Average gaussian method to perform moving gaussian averaging of spectra per MS level. Effective to increase proteoform ID sensitivity "
-                       "(in particular for Q-TOF datasets). "
-                                                                "2: Block method to perform merging of all spectra into a single one per MS level (e.g., for NativeMS datasets)", false);
+    registerIntOption_("merging_method",
+                       "<0: None 1: gaussian averaging 2: block method>",
+                       0,
+                       "Method for spectra merging before deconvolution. 0: No merging "
+                       "1: Average gaussian method to perform moving gaussian averaging of spectra per MS level. Effective to increase proteoform ID sensitivity (in particular for Q-TOF datasets). "
+                       "2: Block method to perform merging of all spectra into a single one per MS level (e.g., for NativeMS datasets)",
+                       false);
     setMinInt_("merging_method", 0);
     setMaxInt_("merging_method", 2);
 
@@ -212,28 +202,6 @@ protected:
     setMinInt_("report_FDR", 0);
     setMaxInt_("report_FDR", 1);
 
-    /*
-        registerIntOption_("isobaric_labeling_option",
-                           "",
-                           -1,
-                           "-1: none (default), 0: manual reporter ions m/zs with -isobaric_mz option, 1: IodoTMT6",
-                           false,
-                           false);
-
-        registerDoubleList_("isobaric_mz",
-                            "",
-                            DoubleList{},
-                            "isobaric reporter ion m/zs. If -isobaric_labeling_option 0 is used ,these m/zs intensities will be reported.",
-                            false,
-                            false);
-
-
-    registerStringOption_("target_mass", "<target monoisotopic masses or file name containing target masses>", "", "Target monoisotopic masses for deconvolution or a txt file containing target masses. Masses are separated by commas. "
-                                                                                                               "For instance, 100.0,200.0 will target 100.0 and 200.0 Da masses. "
-                                                                                                                   "A plane text file containing the same target mass information may be used instead. "
-                                                                                                                   "For each targeted mass, FLASHDeconv attempts to find the mass from input spectrum file. "
-                                                                                                                   "If spectral peaks corresponding to the target mass, the target mass will be reported regardless of its quality (e.g., IsotopeCosine score). ", false, false);
-  */
     registerIntOption_("use_RNA_averagine", "", 0, "If set to 1, RNA averagine model is used", false, true);
     setMinInt_("use_RNA_averagine", 0);
     setMaxInt_("use_RNA_averagine", 1);
@@ -256,17 +224,8 @@ protected:
     fd_defaults.addTag("min_intensity", "advanced");
     fd_defaults.setValue("min_isotope_cosine",
                          DoubleList{.85, .85, .85},
-                         "Cosine similarity thresholds "
-                         "between avg. and observed isotope patterns for MS1, 2, ... "
+                         "Cosine similarity thresholds between avg. and observed isotope patterns for MS1, 2, ... "
                          "(e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
-    /*fd_defaults.setValue("max_mass_count",
-                         IntList{-1, -1, -1},
-                         "Maximum mass counts per spec for MS1, 2, ... "
-                         "(e.g., -max_mass_count_ 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)");
-    fd_defaults.addTag("max_mass_count", "advanced");
-
-    fd_defaults.remove("max_mass_count");*/
-    //fd_defaults.remove("min_mass_count");
 
     Param mf_defaults = MassFeatureTrace().getDefaults();
     mf_defaults.setValue("min_isotope_cosine",
@@ -285,10 +244,8 @@ protected:
     mf_defaults.setValue("min_sample_rate", 0.05);
 
     Param combined;
-
     combined.insert("Algorithm:", fd_defaults);
     combined.insert("FeatureTracing:", mf_defaults);
-    //combined.insert("SpectraMerger:", sm_defaults);
 
     registerFullParam_(combined);
   }
@@ -323,7 +280,8 @@ protected:
     if(isdigit(targets[0]))
     {
       target_masses = targets;
-    }else // if it is a file
+    }
+    else // if it is a file
     {
       std::ifstream in_trainstream(targets);
       String line;
@@ -335,7 +293,8 @@ protected:
 
     std::cout<<"Monoisotopic masses ";
     stringstream s_stream(target_masses); //create string stream from the string
-    while(s_stream.good()) {
+    while(s_stream.good())
+    {
       String substr;
       getline(s_stream, substr, ','); //get first string delimited by comma
       result.push_back(std::stod(substr));
@@ -374,12 +333,10 @@ protected:
     bool write_detail = getIntOption_("write_detail") > 0;
     int mzml_charge = getIntOption_("mzml_mass_charge");
     bool report_decoy = getIntOption_("report_FDR") == 1;
-   // bool out_undeconvolved = getIntOption_("mzml_output_undeconvolved_peaks") == 1;
     double min_mz = getDoubleOption_("Algorithm:min_mz");
     double max_mz = getDoubleOption_("Algorithm:max_mz");
     double min_rt = getDoubleOption_("Algorithm:min_rt");
     double max_rt = getDoubleOption_("Algorithm:max_rt");
-    //String targets = getStringOption_("target_mass");
 
     fstream out_stream, out_train_stream, out_promex_stream, out_att_stream, out_dl_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams, out_topfd_feature_streams;
@@ -428,7 +385,6 @@ protected:
     }
 
     std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition; // For FLASHIda later; FLASHIda::parseFLASHIdaLog(in_log_file); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
-
 
     //-------------------------------------------------------------
     // reading input
@@ -491,6 +447,7 @@ protected:
       {
         continue;
       }
+
       if(it.getMSLevel() ==2)
       {
         max_precursor_c =std::max(max_precursor_c, it.getPrecursors()[0].getCharge());
@@ -574,14 +531,12 @@ protected:
 
     fd.setParameters(fd_param);
     fd.calculateAveragine(use_RNA_averagine);
-    //fd.setTargetMasses(getTargetMasses(targets));
     auto avg = fd.getAveragine();
     if(report_decoy)
     {
       fd_charge_decoy.setParameters(fd_param);
       fd_charge_decoy.setAveragine(avg);
       fd_charge_decoy.setDecoyFlag(1, fd); // charge
-
 
       fd_noise_decoy.setParameters(fd_param);
       fd_noise_decoy.setAveragine(avg);
@@ -723,7 +678,6 @@ protected:
 
       if(report_decoy)
       {
-
         fd_charge_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
         fd_noise_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
         fd_iso_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
@@ -755,7 +709,6 @@ protected:
       elapsed_deconv_cpu_secs[ms_level - 1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
       elapsed_deconv_wall_secs[ms_level - 1] += chrono::duration<double>(
                                                   chrono::high_resolution_clock::now() - deconv_t_start).count();
-
     }
     progresslogger.endProgress();
 
@@ -777,7 +730,6 @@ protected:
       if ((int) out_topfd_streams.size() > ms_level - 1)
       {
         FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum,out_topfd_streams[ms_level - 1], topFD_SNR_threshold);//, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
-
       }
     }
     if(report_decoy)
@@ -955,10 +907,8 @@ protected:
       }
     }
 
-
     return EXECUTION_OK;
   }
-
 };
 
 // the actual main function needed to create an executable

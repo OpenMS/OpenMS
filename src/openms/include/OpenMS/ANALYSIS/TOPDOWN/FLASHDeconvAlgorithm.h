@@ -91,8 +91,6 @@ namespace OpenMS
 
     /// return deconvolved spectrum
     DeconvolvedSpectrum& getDeconvolvedSpectrum();
-    // return decoy deconvolved spectrum
-    //DeconvolvedSpectrum& getDecoyDeconvolvedSpectrum();
 
     /// get calculated averagine. Call after calculateAveragine is called.
     const PrecalculatedAveragine& getAveragine();
@@ -219,8 +217,6 @@ namespace OpenMS
     std::vector<LogMzPeak> log_mz_peaks_;
     /// deconvolved_spectrum_ stores the deconvolved mass peak groups
     DeconvolvedSpectrum deconvolved_spectrum_;
-    // decoy_deconvolved_spectrum_ stores the deconvolved decoy mass peak groups
-    //DeconvolvedSpectrum decoy_deconvolved_spectrum_;
     /// mass_bins_ stores the selected bins for this spectrum + overlapped spectrum (previous a few spectra).
     boost::dynamic_bitset<> mass_bins_;
     /// mz_bins_ stores the binned log mz peaks
