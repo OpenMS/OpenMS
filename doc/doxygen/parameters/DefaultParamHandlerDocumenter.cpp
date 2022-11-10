@@ -33,7 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/AScore.h>
+#include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
+#include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
+#include <OpenMS/ANALYSIS/ID/IDRipper.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
@@ -41,6 +44,7 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
@@ -68,9 +72,14 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
@@ -80,6 +89,9 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
+#include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
+#include <OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>
+#include <OpenMS/MATH/MISC/EmgGradientDescent.h>
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
@@ -97,6 +109,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/SteinScottImproveScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
@@ -130,6 +143,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
@@ -137,16 +151,23 @@
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSharedPeakCount.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 #include <OpenMS/SIMULATION/DigestSimulation.h>
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
@@ -158,18 +179,22 @@
 #include <OpenMS/SIMULATION/EGHFitter1D.h>
 #include <OpenMS/SIMULATION/EGHModel.h>
 #include <OpenMS/SIMULATION/LABELING/O18Labeler.h>
+#include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 #include <OpenMS/SIMULATION/LABELING/ITRAQLabeler.h>
 #include <OpenMS/SIMULATION/LABELING/SILACLabeler.h>
 #include <OpenMS/SIMULATION/LABELING/ICPLLabeler.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+#include <OpenMS/QC/DBSuitability.h>
 
 // those are only added if GUI is enabled
 #ifdef WITH_GUI
 #include <QApplication>
 
+#include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #endif
@@ -362,11 +387,15 @@ int main(int argc, char** argv)
   //////////////////////////////////
 
   DOCME(AScore);
+  DOCME(AccurateMassSearchEngine);
+  DOCME(BaseLabeler);
+  DOCME(BaseModel);
   DOCME(BernNorm);
   DOCME(BiGaussFitter1D);
   DOCME(BiGaussModel);
   DOCME(BinnedSharedPeakCount);
   DOCME(BinnedSpectralContrastAngle);
+  DOCME(BinnedSpectrumCompareFunctor);
   DOCME(BinnedSumAgreeingIntensities);
   DOCME(ComplementFilter);
   DOCME(ComplementMarker);
@@ -376,25 +405,34 @@ int main(int argc, char** argv)
   DOCME(ConsensusIDAlgorithmPEPMatrix);
   DOCME(ConsensusIDAlgorithmRanks);
   DOCME(ConsensusIDAlgorithmWorst);
+  DOCME(DBSuitability);
   DOCME(DetectabilitySimulation);
+  DOCME(DiaPrescore);
   DOCME(DIAScoring);
   DOCME(DigestSimulation);
   DOCME(ElutionModelFitter);
   DOCME(EmgFitter1D);
+  DOCME(EmgGradientDescent)
   DOCME(EmgModel);
   DOCME(ExtendedIsotopeFitter1D);
   DOCME(ExtendedIsotopeModel);
   DOCME(FalseDiscoveryRate);
   DOCME(FeatureDeconvolution);
   DOCME(FeatureDistance);
+  DOCME(FeatureFinderAlgorithm);
+  DOCME(FeatureFinderAlgorithmMetaboIdent);
+  DOCME(FeatureFindingMetabo);
   DOCME(FeatureGroupingAlgorithmLabeled);
   DOCME(FeatureGroupingAlgorithmQT);
   DOCME(FeatureGroupingAlgorithmUnlabeled);
+  DOCME(FIAMSDataProcessor);
   DOCME(GaussFilter);
   DOCME(GaussFitter1D);
   DOCME(GaussModel);
   DOCME(GoodDiffFilter);
   DOCME(IDMapper);
+  DOCME(IDRipper);
+  DOCME(InclusionExclusionList);
   DOCME(InterpolationModel);
   DOCME(IsotopeDiffFilter);
   DOCME(IsotopeFitter1D);
@@ -412,8 +450,10 @@ int main(int argc, char** argv)
   DOCME(MSSim);
   DOCME(MapAlignmentAlgorithmPoseClustering);
   DOCME(MapAlignmentAlgorithmSpectrumAlignment);
+  DOCME(MRMDecoy);
   DOCME(MRMFeatureFinderScoring);
   DOCME(MRMTransitionGroupPicker);
+  DOCME(MultiplexDeltaMassesGenerator);
   DOCME(NLargest);
   DOCME(NeutralLossDiffFilter);
   DOCME(NeutralLossMarker);
@@ -421,21 +461,27 @@ int main(int argc, char** argv)
   DOCME(OptimizePeakDeconvolution);
   DOCME(ParentPeakMower);
   DOCME(PeakAlignment);
+  DOCME(PeakIntegrator);
   DOCME(PeakPickerCWT);
   DOCME(PeakPickerHiRes);
   DOCME(PeakPickerMRM);
+  DOCME(PeptideIndexing);
+  DOCME(PSLPFormulation);
   DOCME(PoseClusteringAffineSuperimposer);
   DOCME(PoseClusteringShiftSuperimposer);
   DOCME(QTClusterFinder);
   DOCME(SavitzkyGolayFilter);
   DOCME(LowessSmoothing);
+  DOCME(SignalToNoiseEstimator);
   DOCME(SimplePairFinder);
   DOCME(SimpleSVM);
+  DOCME(SONARScoring);
   DOCME(StablePairFinder);
   DOCME(SpectrumAlignment);
   DOCME(SpectrumAlignmentScore);
   DOCME(SpectrumCheapDPCorr);
   DOCME(SpectrumPrecursorComparator);
+  DOCME(SqrtMower);
   DOCME(SteinScottImproveScore);
   DOCME(SpectraMerger);
   DOCME(SvmTheoreticalSpectrumGenerator);
@@ -444,6 +490,8 @@ int main(int argc, char** argv)
   DOCME(TICFilter);
   DOCME(TheoreticalSpectrumGenerator);
   DOCME(ThresholdMower);
+  DOCME(TraceFitter);
+  DOCME(TransitionTSVFile);
   DOCME(TwoDOptimization);
   DOCME(WindowMower);
   DOCME(ZhangSimilarityScore);
@@ -504,9 +552,12 @@ int main(int argc, char** argv)
   DOCME2(TOPPViewBase, TOPPViewBase(TOPPViewBase::TOOL_SCAN::SKIP_SCAN));
   DOCME(TOPPASBase);
 
+  DOCME(PlotCanvas);
   DOCME2(Plot1DCanvas, Plot1DCanvas(Param()));
   DOCME2(Plot2DCanvas, Plot2DCanvas(Param()));
   DOCME2(Plot3DCanvas, Plot3DCanvas(Param()));
+
+  DOCME(SpectraIDViewTab);
 #endif
 
   return 0;
