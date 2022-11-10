@@ -431,7 +431,8 @@ debug "HANDLING LIB DIR"
 Dir.chdir($lib_dir.to_s) do
   lib_files = Dir.glob(["*","*/*"])
   for content in lib_files
-    if not ($lib_dir+content).to_s.start_with?($plugin_dir.to_s) and fixable(content, $lib_dir)
+    # in case plugin dir is a subdir of lib dir
+    if not ($plugin_dir.nil? and ($lib_dir+content).to_s.start_with?($plugin_dir.to_s)) and fixable(content, $lib_dir)
       if isFramework(content)
         handleFramework($lib_dir + content, $lib_dir, [])
       elsif (content.end_with?(".dylib") or content.end_with?(".so"))
