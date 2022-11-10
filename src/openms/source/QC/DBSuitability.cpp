@@ -109,7 +109,7 @@ namespace OpenMS
     }
 
     // calculate suitability
-    results_.push_back(SuitabilityData());
+    results_.emplace_back();
     SuitabilityData& suitability_data_full = results_.back();
 
     // make sure pep_ids are sorted

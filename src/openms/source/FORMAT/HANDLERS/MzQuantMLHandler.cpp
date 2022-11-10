@@ -199,7 +199,7 @@ namespace OpenMS::Internal
           optionalAttributeAsString_(residue, attributes, "residues");
           if (massdelta_string != "145")
           {
-            current_assay_.mods_.push_back(std::make_pair(residue, massdelta_string.toDouble()));
+            current_assay_.mods_.emplace_back(residue, massdelta_string.toDouble());
           }
           //TODO CV handling
         }

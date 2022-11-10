@@ -376,7 +376,7 @@ namespace OpenMS
           else
           {
             std::vector<std::pair<String, Size> > tmp_vec;
-            tmp_vec.push_back(make_pair(entries[e].identifier, prot_masses.size() - 1));
+            tmp_vec.emplace_back(entries[e].identifier, prot_masses.size() - 1);
             tmp_peptide_map.insert(make_pair(vec_iter.toUnmodifiedString(), tmp_vec));
           }
           if (sequences_.count(vec_iter) == 0) // peptide sequences are considered only once
