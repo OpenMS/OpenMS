@@ -53,7 +53,7 @@ namespace OpenMS
     std::unordered_set<double> deconvolved_mzs;
     std::stringstream val{};
 
-    val<<"tol="<<tol<<";massoffset="<<std::to_string(charge_mass_offset)<<";chargemass="<< std::to_string(FLASHDeconvHelperStructs::getChargeMass(peak_groups[0].isPositive())) << ";peaks=";
+    val<<"tol="<<tol<<";massoffset="<<std::to_string(charge_mass_offset)<<";chargemass="<< std::to_string(FLASHDeconvHelperStructs::getChargeMass(peak_groups_[0].isPositive())) << ";peaks=";
     for (auto& pg : *this)
     {
       if (pg.empty())
@@ -160,7 +160,7 @@ namespace OpenMS
     return precursor_scan_number_;
   }
 
-  const String& DeconvolvedSpectrum::getActivationMethod() const
+  const Precursor::ActivationMethod& DeconvolvedSpectrum::getActivationMethod() const
   {
     return activation_method_;
   }
@@ -175,7 +175,7 @@ namespace OpenMS
     precursor_peak_.setIntensity(i);
   }
 
-  void DeconvolvedSpectrum::setActivationMethod(const String& method)
+  void DeconvolvedSpectrum::setActivationMethod(const Precursor::ActivationMethod& method)
   {
     activation_method_ = method;
   }
@@ -192,67 +192,68 @@ namespace OpenMS
 
   std::vector<PeakGroup>::const_iterator DeconvolvedSpectrum::begin() const noexcept
   {
-    return peak_groups.begin();
+    return peak_groups_.begin();
   }
 
   std::vector<PeakGroup>::const_iterator DeconvolvedSpectrum::end() const noexcept
   {
-    return peak_groups.end();
+    return peak_groups_.end();
   }
 
   std::vector<PeakGroup>::iterator DeconvolvedSpectrum::begin() noexcept
   {
-    return peak_groups.begin();
+    return peak_groups_.begin();
   }
 
   std::vector<PeakGroup>::iterator DeconvolvedSpectrum::end() noexcept
   {
-    return peak_groups.end();
+    return peak_groups_.end();
   }
 
   const PeakGroup& DeconvolvedSpectrum::operator[](const Size i) const
   {
-    return peak_groups[i];
+    return peak_groups_[i];
   }
 
   void DeconvolvedSpectrum::push_back(const PeakGroup& pg)
   {
-    peak_groups.push_back(pg);
+    peak_groups_.push_back(pg);
   }
 
   Size DeconvolvedSpectrum::size() const noexcept
   {
-    return peak_groups.size();
+    return peak_groups_.size();
   }
 
   void DeconvolvedSpectrum::clear()
   {
-    peak_groups.clear();
+    peak_groups_.clear();
   }
 
   void DeconvolvedSpectrum::reserve(Size n)
   {
-    peak_groups.reserve(n);
+    peak_groups_.reserve(n);
   }
 
   bool DeconvolvedSpectrum::empty() const
   {
-    return peak_groups.empty();
+    return peak_groups_.empty();
   }
 
-  void DeconvolvedSpectrum::swap(std::vector<PeakGroup>& x)
+  void DeconvolvedSpectrum::setPeakGroups(std::vector<PeakGroup>& x)
   {
-    peak_groups.swap(x);
+    peak_groups_.clear();
+    peak_groups_ = x;
   }
 
   void DeconvolvedSpectrum::sort()
   {
-    std::sort(peak_groups.begin(), peak_groups.end());
+    std::sort(peak_groups_.begin(), peak_groups_.end());
   }
 
   void DeconvolvedSpectrum::sortByQScore()
   {
-    std::sort(peak_groups.begin(), peak_groups.end(), [](const PeakGroup& p1, const PeakGroup& p2) { return p1.getQScore() > p2.getQScore(); });
+    std::sort(peak_groups_.begin(), peak_groups_.end(), [](const PeakGroup& p1, const PeakGroup& p2) { return p1.getQScore() > p2.getQScore(); });
   }
 
   void DeconvolvedSpectrum::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra) // per ms level + precursor update as well.

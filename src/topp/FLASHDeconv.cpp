@@ -138,7 +138,7 @@ protected:
 
     registerDoubleOption_("min_precursor_snr",
                           "<SNR value>",
-                          1.0,
+                          0.0,
                           "Minimum precursor SNR (SNR within the precursor envelope range) for identification. Similar to precursor interference level, but more stringent."
                           "When FLASHIda log file is used, this parameter is ignored. Applied only for topFD msalign outputs.",
                           false,

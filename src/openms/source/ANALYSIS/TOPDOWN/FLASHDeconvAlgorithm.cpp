@@ -115,7 +115,7 @@ namespace OpenMS
     deconvolved_spectrum_ = DeconvolvedSpectrum(spec, scan_number);
     write_detail_ = write_detail;
     // for MSn (n>1) register precursor peak and peak group.
-    registerPrecursor(survey_scans, precursor_map_for_FLASHIda);
+    registerPrecursor_(survey_scans, precursor_map_for_FLASHIda);
 
     // rt range of analysis
     if (min_rt_ > 0 && spec.getRT() < min_rt_)
@@ -943,8 +943,7 @@ namespace OpenMS
   // spectral deconvolution main function
   void FLASHDeconvAlgorithm::generatePeakGroupsFromSpectrum_()
   {
-    std::vector<PeakGroup> empty;
-    deconvolved_spectrum_.swap(empty);
+    deconvolved_spectrum_.clear();
     int min_peak_cntr = min_support_peak_count_ - 1;
     int current_charge_range = current_max_charge_ - current_min_charge_ + 1;
     int tmp_peak_cntr = current_charge_range - min_peak_cntr;
@@ -1190,7 +1189,7 @@ namespace OpenMS
       filtered_peak_groups.push_back(peak_group);
     }
 
-    deconvolved_spectrum_.swap(filtered_peak_groups);
+    deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
 
     if (!std::is_sorted(deconvolved_spectrum_.begin(), deconvolved_spectrum_.end()))
     {
@@ -1431,7 +1430,7 @@ namespace OpenMS
       }
       filtered_pg_vec.push_back(dpec[i]);
     }
-    dpec.swap(filtered_pg_vec);
+    dpec.setPeakGroups(filtered_pg_vec);
   }
 
   void FLASHDeconvAlgorithm::removeOverlappingPeakGroups_(DeconvolvedSpectrum& dpec, const double tol, const int iso_length)
@@ -1451,7 +1450,7 @@ namespace OpenMS
 
       filtered_pg_vec.push_back(dpec[i]);
     }
-    dpec.swap(filtered_pg_vec);
+    dpec.setPeakGroups(filtered_pg_vec);
     std::vector<PeakGroup>().swap(filtered_pg_vec);
     filtered_pg_vec.reserve(dpec.size());
 
@@ -1535,7 +1534,7 @@ namespace OpenMS
       }
       filtered_pg_vec.push_back(pg);
     }
-    dpec.swap(filtered_pg_vec);
+    dpec.setPeakGroups(filtered_pg_vec);
   }
 
   void FLASHDeconvAlgorithm::setTargetMasses(const std::vector<double> masses, bool excluded)
@@ -1552,7 +1551,7 @@ namespace OpenMS
     }
   }
 
-  bool FLASHDeconvAlgorithm::registerPrecursor(const std::vector<DeconvolvedSpectrum>& survey_scans, const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_real_time_acquisition)
+  bool FLASHDeconvAlgorithm::registerPrecursor_(const std::vector<DeconvolvedSpectrum>& survey_scans, const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_real_time_acquisition)
   {
     if (ms_level_ == 1 || (survey_scans.empty() && precursor_map_for_real_time_acquisition.empty()))
     {
@@ -1565,10 +1564,10 @@ namespace OpenMS
     {
       for (auto& activation_method : precursor.getActivationMethods())
       {
-        deconvolved_spectrum_.setActivationMethod(Precursor::NamesOfActivationMethodShort[activation_method]);
-        if (deconvolved_spectrum_.getActivationMethod() == "HCID")
+        deconvolved_spectrum_.setActivationMethod(activation_method);
+        if (deconvolved_spectrum_.getActivationMethod() == Precursor::HCID)
         {
-          deconvolved_spectrum_.setActivationMethod("HCD");
+          deconvolved_spectrum_.setActivationMethod(Precursor::HCD);
         }
         break;
       }

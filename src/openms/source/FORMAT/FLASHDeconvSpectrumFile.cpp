@@ -429,7 +429,7 @@ namespace OpenMS
 
     if (ms_level > 1)
     {
-      fs << "ACTIVATION=" << dspec.getActivationMethod() << "\n";
+      fs << "ACTIVATION=" << Precursor::NamesOfActivationMethodShort[dspec.getActivationMethod()] << "\n";
       fs << "MS_ONE_ID=" << dspec.getPrecursorScanNumber() << "\n"
          << "MS_ONE_SCAN=" << dspec.getPrecursorScanNumber() << "\n"
          << "PRECURSOR_MZ=" << std::to_string(dspec.getPrecursor().getMZ()) << "\n"

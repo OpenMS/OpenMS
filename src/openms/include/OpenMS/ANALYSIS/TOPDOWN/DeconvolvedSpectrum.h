@@ -75,7 +75,7 @@ namespace OpenMS
     DeconvolvedSpectrum(const DeconvolvedSpectrum& ) = default;
 
     /// move constructor
-    DeconvolvedSpectrum(DeconvolvedSpectrum&& other) = default;
+    DeconvolvedSpectrum(DeconvolvedSpectrum&& other) noexcept = default;
 
     /// assignment operator
     DeconvolvedSpectrum& operator=(const DeconvolvedSpectrum& deconvolved_spectrum) = default;
@@ -124,7 +124,7 @@ namespace OpenMS
     int getPrecursorScanNumber() const;
 
     /// get activation method
-    const String& getActivationMethod() const;
+    const Precursor::ActivationMethod& getActivationMethod() const;
 
     /// set max isotope index
     void setPrecursor(const Precursor& precursor);
@@ -136,13 +136,16 @@ namespace OpenMS
     void setPrecursorScanNumber(const int scan_number);
 
     /// set activation method
-    void setActivationMethod(const String& method);
+    void setActivationMethod(const Precursor::ActivationMethod& method);
 
     /// set precusor peakGroup
     void setPrecursorPeakGroup(const PeakGroup& pg);
 
+    ///
     void static updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra);
 
+    ///
+    void setPeakGroups (std::vector<PeakGroup>& x);
 
     std::vector<PeakGroup>::const_iterator begin() const noexcept;
     std::vector<PeakGroup>::const_iterator end() const noexcept;
@@ -157,13 +160,13 @@ namespace OpenMS
     void clear();
     void reserve (Size n);
     bool empty() const;
-    void swap (std::vector<PeakGroup>& x);
+
 
     void sort();
     void sortByQScore();
   private:
     /// peak groups (deconvolved masses)
-    std::vector<PeakGroup> peak_groups;
+    std::vector<PeakGroup> peak_groups_;
     /// the original raw spectrum (not deconvolved)
     MSSpectrum spec_;
     /// precursor peakGroup (or mass)
@@ -171,7 +174,7 @@ namespace OpenMS
     /// precursor raw peak (not deconvolved one)
     Precursor precursor_peak_;
     /// activation method for file output
-    String activation_method_;
+    Precursor::ActivationMethod activation_method_;
     /// scan number and precursor scan number
     int scan_number_ = 0, precursor_scan_number_ = 0;
 
