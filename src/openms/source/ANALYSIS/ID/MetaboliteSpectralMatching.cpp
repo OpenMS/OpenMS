@@ -316,7 +316,7 @@ namespace OpenMS
   {
     return computeHyperScore_(fragment_mass_error,
                               fragment_mass_tolerance_unit_ppm, exp_spectrum,
-                              db_spectrum, 0, mz_lower_bound);
+                              db_spectrum, nullptr, mz_lower_bound);
   }
 
 
@@ -389,7 +389,7 @@ namespace OpenMS
     }
 
     // return annotations for matching peaks?
-    if ((annotations != 0) &&
+    if ((annotations != nullptr) &&
         !db_spectrum.getStringDataArrays().empty() &&
         !db_spectrum.getIntegerDataArrays().empty())
     {

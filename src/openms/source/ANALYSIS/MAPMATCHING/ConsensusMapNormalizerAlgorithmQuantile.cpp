@@ -102,7 +102,7 @@ namespace OpenMS
       sort_pairs.reserve(feature_ints[i].size());
       for (Size j = 0; j < feature_ints[i].size(); ++j)
       {
-        sort_pairs.push_back(std::make_pair(feature_ints[i][j], j));
+        sort_pairs.emplace_back(feature_ints[i][j], j);
       }
       std::sort(sort_pairs.begin(), sort_pairs.end());
       vector<Size> sort_indices;
