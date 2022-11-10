@@ -864,7 +864,7 @@ namespace OpenMS::Internal
       }
       else if (tag == "binaryDataArray" /* && in_spectrum_list_*/)
       {
-        bin_data_.push_back(BinaryData());
+        bin_data_.emplace_back();
         bin_data_.back().np_compression = MSNumpressCoder::NONE; // ensure that numpress compression is initially set to none ...
         bin_data_.back().compression = false; // ensure that zlib compression is initially set to none ...
 
@@ -1047,7 +1047,7 @@ namespace OpenMS::Internal
       }
       else if (tag == "contact")
       {
-        exp_->getContacts().push_back(ContactPerson());
+        exp_->getContacts().emplace_back();
       }
       else if (tag == "sample")
       {
@@ -1128,17 +1128,17 @@ namespace OpenMS::Internal
       }
       else if (tag == "source")
       {
-        instruments_[current_id_].getIonSources().push_back(IonSource());
+        instruments_[current_id_].getIonSources().emplace_back();
         instruments_[current_id_].getIonSources().back().setOrder(attributeAsInt_(attributes, s_order));
       }
       else if (tag == "analyzer")
       {
-        instruments_[current_id_].getMassAnalyzers().push_back(MassAnalyzer());
+        instruments_[current_id_].getMassAnalyzers().emplace_back();
         instruments_[current_id_].getMassAnalyzers().back().setOrder(attributeAsInt_(attributes, s_order));
       }
       else if (tag == "detector")
       {
-        instruments_[current_id_].getIonDetectors().push_back(IonDetector());
+        instruments_[current_id_].getIonDetectors().emplace_back();
         instruments_[current_id_].getIonDetectors().back().setOrder(attributeAsInt_(attributes, s_order));
       }
       else if (tag == "precursor")
@@ -1146,7 +1146,7 @@ namespace OpenMS::Internal
         if (in_spectrum_list_)
         {
           //initialize
-          spec_.getPrecursors().push_back(Precursor());
+          spec_.getPrecursors().emplace_back();
 
           //source file => meta data
           String source_file_ref;
@@ -1195,7 +1195,7 @@ namespace OpenMS::Internal
         //initialize
         if (in_spectrum_list_)
         {
-          spec_.getProducts().push_back(Product());
+          spec_.getProducts().emplace_back();
         }
         else
         {
@@ -1217,7 +1217,7 @@ namespace OpenMS::Internal
       }
       else if (tag == "scanWindow")
       {
-        spec_.getInstrumentSettings().getScanWindows().push_back(ScanWindow());
+        spec_.getInstrumentSettings().getScanWindows().emplace_back();
       }
     }
 
@@ -5086,7 +5086,7 @@ namespace OpenMS::Internal
       }
 
       Int64 offset = os.tellp();
-      spectra_offsets_.push_back(make_pair(native_id, offset + 3));
+      spectra_offsets_.emplace_back(native_id, offset + 3);
 
       // IMPORTANT make sure the offset (above) corresponds to the start of the <spectrum tag
       os << "\t\t\t<spectrum id=\"" << writeXMLEscape(native_id) << "\" index=\"" << s << "\" defaultArrayLength=\"" << spec.size() << "\"";

@@ -101,7 +101,7 @@ namespace OpenMS
       {
         // new id
         //id_data.push_back(IdentificationData());
-        id_data.push_back(PeptideIdentification());
+        id_data.emplace_back();
         id_data.back().setScoreType("OMSSA");
         actual_spectrum_number = (UInt)split[0].trim().toInt();
       }
