@@ -327,7 +327,7 @@ namespace OpenMS
     @param survey_scans the candidate precursor spectra - the user may allow search of previous N survey scans.
     @param precursor_map_for_real_time_acquisition this contains the deconvolved mass information from FLASHIda runs.
     */
-    bool registerPrecursor(const std::vector<DeconvolvedSpectrum>& survey_scans,
+    bool registerPrecursor_(const std::vector<DeconvolvedSpectrum>& survey_scans,
                                   const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_real_time_acquisition);
 
   };
