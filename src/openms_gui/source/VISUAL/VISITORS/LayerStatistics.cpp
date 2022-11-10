@@ -168,7 +168,7 @@ namespace OpenMS
     computeStatistics_();
   }
 
-  void addMetaDistributionValue(Math::Histogram<>& result, string name, const MetaInfoInterface& mi)
+  void addMetaDistributionValue(Math::Histogram<>& result, const string& name, const MetaInfoInterface& mi)
   {
     if (mi.metaValueExists(name))
     {

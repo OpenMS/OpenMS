@@ -61,9 +61,7 @@ namespace OpenMS
     }
   }
 
-  GridFeature::~GridFeature()
-  {
-  }
+  GridFeature::~GridFeature() = default;
 
   const BaseFeature& GridFeature::getFeature() const
   {

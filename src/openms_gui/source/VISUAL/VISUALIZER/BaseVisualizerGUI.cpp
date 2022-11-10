@@ -34,16 +34,17 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
-#include <QtWidgets/QLayout>
-#include <QtWidgets/QWidget>
 #include <QtWidgets/QComboBox>
-#include <QtWidgets/QLineEdit>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QTextEdit>
 #include <QtWidgets/QGridLayout>
-#include <QtWidgets/QPushButton>
 #include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLayout>
+#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QListWidget>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QWidget>
+#include <utility>
 
 namespace OpenMS
 {
@@ -74,13 +75,13 @@ namespace OpenMS
     addVSpacer_();
   }
 
-  void BaseVisualizerGUI::addLabel_(QString label, UInt row)
+  void BaseVisualizerGUI::addLabel_(const QString& label, UInt row)
   {
     QLabel * label_item = new QLabel(label, this);
     mainlayout_->addWidget(label_item, row, 0);
   }
 
-  void BaseVisualizerGUI::addLabel_(QString label)
+  void BaseVisualizerGUI::addLabel_(const QString& label)
   {
     QLabel * label_item = new QLabel(label, this);
     mainlayout_->addWidget(label_item, row_, 0, 1, 3);
@@ -91,7 +92,7 @@ namespace OpenMS
   {
     ptr = new QLineEdit(this);
     ptr->setMinimumWidth(180);
-    addLabel_(label, row_);
+    addLabel_(std::move(label), row_);
     mainlayout_->addWidget(ptr, row_, 1, 1, 2);
     ptr->setReadOnly(!isEditable());
     row_++;
@@ -103,7 +104,7 @@ namespace OpenMS
     ptr->setMinimumWidth(180);
     QIntValidator * vali = new QIntValidator(ptr);
     ptr->setValidator(vali);
-    addLabel_(label, row_);
+    addLabel_(std::move(label), row_);
     mainlayout_->addWidget(ptr, row_, 1, 1, 2);
     ptr->setReadOnly(!isEditable());
     row_++;
@@ -116,14 +117,14 @@ namespace OpenMS
     ptr->setMinimumWidth(180);
     QDoubleValidator * vali = new QDoubleValidator(ptr);
     ptr->setValidator(vali);
-    addLabel_(label, row_);
+    addLabel_(std::move(label), row_);
     mainlayout_->addWidget(ptr, row_, 1, 1, 2);
     ptr->setReadOnly(!isEditable());
     row_++;
 
   }
 
-  void BaseVisualizerGUI::addLineEditButton_(QString label, QLineEdit * & ptr1, QPushButton * & ptr2, QString buttonlabel)
+  void BaseVisualizerGUI::addLineEditButton_(const QString& label, QLineEdit * & ptr1, QPushButton * & ptr2, const QString& buttonlabel)
   {
     QLabel * label_item = new QLabel(label, this);
     ptr1 = new QLineEdit(this);
@@ -141,7 +142,7 @@ namespace OpenMS
   void BaseVisualizerGUI::addTextEdit_(QTextEdit * & ptr, QString label)
   {
     ptr = new QTextEdit(this);
-    addLabel_(label, row_);
+    addLabel_(std::move(label), row_);
     mainlayout_->addWidget(ptr, row_, 1, 1, 2);
     ptr->setReadOnly(!isEditable());
     row_++;
@@ -150,7 +151,7 @@ namespace OpenMS
   void BaseVisualizerGUI::addComboBox_(QComboBox * & ptr, QString label)
   {
     ptr = new QComboBox(this);
-    addLabel_(label, row_);
+    addLabel_(std::move(label), row_);
     mainlayout_->addWidget(ptr, row_, 1, 1, 2);
     ptr->blockSignals(true);
     row_++;
@@ -161,7 +162,7 @@ namespace OpenMS
     ptr = new QComboBox(this);
     ptr->insertItem(0, "false");
     ptr->insertItem(1, "true");
-    addLabel_(label, row_);
+    addLabel_(std::move(label), row_);
     mainlayout_->addWidget(ptr, row_, 1, 1, 2);
     ptr->blockSignals(true);
     row_++;
@@ -175,7 +176,7 @@ namespace OpenMS
     }
   }
 
-  void BaseVisualizerGUI::addButton_(QPushButton * & ptr, QString label)
+  void BaseVisualizerGUI::addButton_(QPushButton * & ptr, const QString& label)
   {
     ptr = new QPushButton(label, this);
     QHBoxLayout * box = new QHBoxLayout();
@@ -193,7 +194,7 @@ namespace OpenMS
     row_++;
   }
 
-  void BaseVisualizerGUI::add2Buttons_(QPushButton * & ptr1, QString label1, QPushButton * & ptr2, QString label2)
+  void BaseVisualizerGUI::add2Buttons_(QPushButton * & ptr1, const QString& label1, QPushButton * & ptr2, const QString& label2)
   {
     ptr1 = new QPushButton(label1, this);
     ptr2 = new QPushButton(label2, this);
@@ -216,7 +217,7 @@ namespace OpenMS
   void BaseVisualizerGUI::addListView_(QListWidget * & ptr, QString label)
   {
     ptr = new QListWidget(this);
-    addLabel_(label, row_);
+    addLabel_(std::move(label), row_);
     mainlayout_->addWidget(ptr, row_, 1, 1, 2);
     row_++;
   }

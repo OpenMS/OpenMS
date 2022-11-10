@@ -1758,6 +1758,9 @@ protected:
 
     // clean up references (assigned and unassigned)
     IDFilter::removeUnreferencedProteins(consensus, true);
+    
+    // only keep best scoring ID for each consensus feature
+    IDConflictResolverAlgorithm::resolve(consensus);
 
     //-------------------------------------------------------------
     // Peptide quantification
@@ -1832,15 +1835,20 @@ protected:
     }
 
     // Fill MzTab with meta data and quants annotated in identification data structure
-    const bool report_unmapped(true);
     const bool report_unidentified_features(false);
+    const bool report_unmapped(true); //TODO we should make a distinction from unassigned after conflict resolution and unassigned because unmappable
+    const bool report_subfeatures(false);
+    const bool report_unidentified_spectra(false);
+    const bool report_not_only_best_psm_per_spectrum(false); 
 
     MzTabFile().store(out,
                       consensus,
                       false, // first run is inference but also a properly merged run, so we don't need the hack
                       report_unidentified_features,
                       report_unmapped,
-                      "Export from ProteomicsLFQ workflow in OpenMS.");
+                      report_subfeatures,
+                      report_unidentified_spectra,
+                      report_not_only_best_psm_per_spectrum);
 
     if (!out_msstats.empty())
     {

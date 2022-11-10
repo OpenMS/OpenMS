@@ -53,6 +53,7 @@
 #include <functional>
 
 #include <cmath> // for isnan
+#include <utility>
 
 const double C13C12_MASSDIFF_U = 1.0033548;
 
@@ -104,7 +105,7 @@ namespace OpenMS
     //  generator->setParameters(p);
   }
 
-  DIAScoring::~DIAScoring() 
+  DIAScoring::~DIAScoring()
   {
     delete generator;
   }
@@ -137,7 +138,7 @@ namespace OpenMS
   }
 
   void DIAScoring::dia_massdiff_score(const std::vector<TransitionType>& transitions,
-                                      std::vector<SpectrumPtrType> spectrum,
+                                      const std::vector<SpectrumPtrType>& spectrum,
                                       const std::vector<double>& normalized_library_intensity,
                                       double& ppm_score,
                                       double& ppm_score_weighted,
@@ -206,7 +207,7 @@ namespace OpenMS
   }
 
   /// Precursor isotope scores
-  void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, std::vector<SpectrumPtrType> spectrum,
+  void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum,
                                           double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula, double drift_start, double drift_end) const
   {
     // although precursor_mz can be received from the empirical formula (if non-empty), the actual precursor could be
@@ -225,7 +226,7 @@ namespace OpenMS
     isotope_overlap = max_ratio;
   }
 
-  void DIAScoring::getIsotopeIntysFromExpSpec_(double precursor_mz, std::vector<SpectrumPtrType> spectrum,
+  void DIAScoring::getIsotopeIntysFromExpSpec_(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum,
                             std::vector<double>& isotopes_int,
                             int charge_state, double drift_start, double drift_end) const
   {
@@ -242,7 +243,7 @@ namespace OpenMS
     }
   }
 
-  void DIAScoring::dia_ms1_isotope_scores_averagine(double precursor_mz, std::vector<SpectrumPtrType> spectrum,
+  void DIAScoring::dia_ms1_isotope_scores_averagine(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum,
                                                     double& isotope_corr, double& isotope_overlap,
                                                     int charge_state, double drift_start, double drift_end) const
   {
@@ -261,7 +262,7 @@ namespace OpenMS
     isotope_overlap = max_ratio;
   }
 
-  void DIAScoring::dia_by_ion_score(std::vector<SpectrumPtrType> spectrum,
+  void DIAScoring::dia_by_ion_score(const std::vector<SpectrumPtrType>& spectrum,
                                     AASequence& sequence, int charge, double& bseries_score,
                                     double& yseries_score, double drift_start, double drift_end) const
   {
@@ -323,10 +324,10 @@ namespace OpenMS
     }
   }
 
-  void DIAScoring::diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions, std::vector<SpectrumPtrType> spectrum,
+  void DIAScoring::diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions, const std::vector<SpectrumPtrType>& spectrum,
                                         std::map<std::string, double>& intensities, //relative intensities
                                         double& isotope_corr,
-                                        double& isotope_overlap, 
+                                        double& isotope_overlap,
 					double drift_start,
 					double drift_end) const
   {
@@ -368,7 +369,7 @@ namespace OpenMS
     }
   }
 
-  void DIAScoring::largePeaksBeforeFirstIsotope_(std::vector<SpectrumPtrType> spectrum, double mono_mz, double mono_int, int& nr_occurences, double& max_ratio, double drift_start, double drift_end) const
+  void DIAScoring::largePeaksBeforeFirstIsotope_(const std::vector<SpectrumPtrType>& spectrum, double mono_mz, double mono_int, int& nr_occurences, double& max_ratio, double drift_start, double drift_end) const
   {
     double mz, intensity, im;
     nr_occurences = 0;

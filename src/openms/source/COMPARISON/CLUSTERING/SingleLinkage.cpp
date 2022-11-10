@@ -58,9 +58,7 @@ namespace OpenMS
   {
   }
 
-  SingleLinkage::~SingleLinkage()
-  {
-  }
+  SingleLinkage::~SingleLinkage() = default;
 
   SingleLinkage & SingleLinkage::operator=(const SingleLinkage & source)
   {

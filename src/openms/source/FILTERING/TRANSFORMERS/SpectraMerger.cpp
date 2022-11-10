@@ -99,9 +99,7 @@ namespace OpenMS
   {
   }
 
-  SpectraMerger::~SpectraMerger()
-  {
-  }
+  SpectraMerger::~SpectraMerger() = default;
 
   SpectraMerger & SpectraMerger::operator=(const SpectraMerger & source)
   {

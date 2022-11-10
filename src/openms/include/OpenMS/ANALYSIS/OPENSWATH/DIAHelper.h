@@ -60,7 +60,7 @@ namespace OpenMS
       @return Returns true if a signal was found (and false if no signal was found)
 
     */
-    OPENMS_DLLAPI bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start,
+    OPENMS_DLLAPI bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum, double mz_start,
                                        double mz_end, double& mz, double& im, double& intensity, double drift_start, double drift_end,  bool centroided = false);
 
     /**
@@ -75,14 +75,14 @@ namespace OpenMS
       @return Returns true if a signal was found (and false if no signal was found)
 
     */
-    OPENMS_DLLAPI bool integrateWindow(const std::vector<OpenSwath::SpectrumPtr> spectrum, double mz_start,
+    OPENMS_DLLAPI bool integrateWindow(const std::vector<OpenSwath::SpectrumPtr>& spectrum, double mz_start,
                                        double mz_end, double& mz, double& im, double& intensity, double drift_start, double drift_end,  bool centroided = false);
-
 
     /**
       @brief Integrate intensities in a spectrum from start to end
     */
-    OPENMS_DLLAPI void integrateWindows(const OpenSwath::SpectrumPtr spectrum, //!< [in] Spectrum
+
+    OPENMS_DLLAPI void integrateWindows(const OpenSwath::SpectrumPtr& spectrum, //!< [in] Spectrum
                                         const std::vector<double>& windows_center, //!< [in] center location
                                         double width,
                                         std::vector<double>& integrated_windows_intensity,
@@ -96,7 +96,7 @@ namespace OpenMS
     /**
       @brief Integrate intensities of multiple spectra from start to end
     */
-    OPENMS_DLLAPI void integrateWindows(const std::vector<OpenSwath::SpectrumPtr> spectrum, //!< [in] Spectrum
+    OPENMS_DLLAPI void integrateWindows(const std::vector<OpenSwath::SpectrumPtr>& spectrum, //!< [in] Spectrum
                                         const std::vector<double>& windows_center, //!< [in] center location
                                         double width,
                                         std::vector<double>& integrated_windows_intensity,
@@ -105,7 +105,6 @@ namespace OpenMS
 					double drift_start,
 					double drift_end,
                                         bool remove_zero = false);
-
     /**
       @brief Adjust left/right window based on window and whether its ppm or not
     */
@@ -182,7 +181,7 @@ namespace OpenMS
     /**
       @brief Helper function for integrating a spectrum.
     */
-    void _integrateWindowHelper(OpenSwath::SpectrumPtr spectrum,
+    void _integrateWindowHelper(const OpenSwath::SpectrumPtr& spectrum,
                                 double mz_start,
                                 double mz_end,
                                 double & mz,

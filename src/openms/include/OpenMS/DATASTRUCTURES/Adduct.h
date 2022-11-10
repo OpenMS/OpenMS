@@ -54,7 +54,7 @@ public:
     Adduct(Int charge);
 
     /// C'tor for all members
-    Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob, double rt_shift, const String label = "");
+    Adduct(Int charge, Int amount, double singleMass, const String& formula, double log_prob, double rt_shift, const String& label = "");
 
     /// Increase amount of this adduct by factor @param m
     Adduct operator*(const Int m) const;

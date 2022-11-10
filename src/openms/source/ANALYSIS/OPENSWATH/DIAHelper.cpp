@@ -64,7 +64,7 @@ namespace OpenMS::DIAHelpers
     // Helper for integrate window returns the sum of all intensities, sum of all ion mobilities and sum of all mz
     // no expensive division calls
     // assumes mz, im and intensity should already be initiated.
-    void _integrateWindowHelper(OpenSwath::SpectrumPtr spectrum,
+    void _integrateWindowHelper(const OpenSwath::SpectrumPtr& spectrum,
                 double mz_start,
                 double mz_end,
                 double & mz,
@@ -149,7 +149,7 @@ namespace OpenMS::DIAHelpers
     }
 
 
-    void integrateWindows(const OpenSwath::SpectrumPtr spectrum,
+    void integrateWindows(const OpenSwath::SpectrumPtr& spectrum,
                           const std::vector<double> & windowsCenter,
                           double width,
                           std::vector<double> & integratedWindowsIntensity,
@@ -182,7 +182,7 @@ namespace OpenMS::DIAHelpers
     }
 
 
-    void integrateWindows(const std::vector<OpenSwath::SpectrumPtr> spectrum,
+    void integrateWindows(const std::vector<OpenSwath::SpectrumPtr>& spectrum,
                           const std::vector<double> & windowsCenter,
                           double width,
                           std::vector<double> & integratedWindowsIntensity,
@@ -215,7 +215,7 @@ namespace OpenMS::DIAHelpers
       }
     }
 
-    bool integrateWindow(OpenSwath::SpectrumPtr spectrum,
+    bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum,
                                               double mz_start,
                                               double mz_end,
                                               double & mz,
@@ -249,7 +249,7 @@ namespace OpenMS::DIAHelpers
       }
     }
 
-    bool integrateWindow(std::vector<OpenSwath::SpectrumPtr> spectra,
+    bool integrateWindow(const std::vector<OpenSwath::SpectrumPtr>& spectra,
                                               double mz_start,
                                               double mz_end,
                                               double & mz,

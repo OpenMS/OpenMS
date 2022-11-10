@@ -67,9 +67,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  AScore::~AScore()
-  {
-  }
+  AScore::~AScore() = default;
 
   PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& real_spectrum)
   {

@@ -61,7 +61,7 @@ bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std:
 
 
 void processFeatureForOutput(OpenMS::Feature& curr_feature, bool write_convex_hull_, double
-                             quantification_cutoff_, double& total_intensity, double& total_peak_apices, std::string ms_level)
+                             quantification_cutoff_, double& total_intensity, double& total_peak_apices, const std::string& ms_level)
 {
   // Save some space when writing out the featureXML
   if (!write_convex_hull_)
@@ -165,9 +165,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MRMFeatureFinderScoring::~MRMFeatureFinderScoring()
-  {
-  }
+  MRMFeatureFinderScoring::~MRMFeatureFinderScoring() = default;
 
   void MRMFeatureFinderScoring::pickExperiment(const PeakMap& chromatograms,
                                                FeatureMap& output,
@@ -193,7 +191,7 @@ namespace OpenMS
     pickExperiment(chromatogram_ptr, output, transition_exp, trafo, swath_ptrs, transition_group_map);
   }
 
-  void MRMFeatureFinderScoring::pickExperiment(const OpenSwath::SpectrumAccessPtr input,
+  void MRMFeatureFinderScoring::pickExperiment(const OpenSwath::SpectrumAccessPtr& input,
                                                FeatureMap& output,
                                                const OpenSwath::LightTargetedExperiment& transition_exp,
                                                const TransformationDescription& trafo, 
@@ -1084,7 +1082,7 @@ namespace OpenMS
     su_.use_ms2_isotope_scores   = param_.getValue("Scores:use_ms2_isotope_scores").toBool();
   }
 
-  void MRMFeatureFinderScoring::mapExperimentToTransitionList(const OpenSwath::SpectrumAccessPtr input,
+  void MRMFeatureFinderScoring::mapExperimentToTransitionList(const OpenSwath::SpectrumAccessPtr& input,
                                                               const TargetedExpType& transition_exp,
                                                               TransitionGroupMapType& transition_group_map,
                                                               TransformationDescription trafo,

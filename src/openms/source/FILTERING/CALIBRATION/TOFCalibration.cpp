@@ -46,9 +46,7 @@ namespace OpenMS
     check_defaults_ = false;   // class has no own parameters
   }
 
-  TOFCalibration::~TOFCalibration()
-  {
-  }
+  TOFCalibration::~TOFCalibration() = default;
 
   void TOFCalibration::calculateCalibCoeffs_(PeakMap & calib_spectra)
   {

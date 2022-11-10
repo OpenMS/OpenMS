@@ -244,7 +244,7 @@ namespace OpenMS
 
     @note If there is no signal, mz will be set to -1 and intensity to 0
   */
-  void integrateDriftSpectrum(OpenSwath::SpectrumPtr spectrum,
+  void integrateDriftSpectrum(const OpenSwath::SpectrumPtr& spectrum,
                               double mz_start,
                               double mz_end,
                               double & im,
@@ -307,16 +307,12 @@ namespace OpenMS
   }
 
   /// Constructor
-  IonMobilityScoring::IonMobilityScoring()
-  {
-  }
+  IonMobilityScoring::IonMobilityScoring() = default;
 
   /// Destructor
-  IonMobilityScoring::~IonMobilityScoring()
-  {
-  }
+  IonMobilityScoring::~IonMobilityScoring() = default;
 
-  void IonMobilityScoring::driftScoringMS1Contrast(std::vector<OpenSwath::SpectrumPtr> spectra, std::vector<OpenSwath::SpectrumPtr> ms1spectrum,
+  void IonMobilityScoring::driftScoringMS1Contrast(const std::vector<OpenSwath::SpectrumPtr>& spectra, const std::vector<OpenSwath::SpectrumPtr>& ms1spectrum,
                                                    const std::vector<TransitionType> & transitions,
                                                    OpenSwath_Scores & scores,
                                                    const double drift_lower,
@@ -430,7 +426,7 @@ namespace OpenMS
 
   }
 
-  void IonMobilityScoring::driftScoringMS1(std::vector<OpenSwath::SpectrumPtr> spectra,
+  void IonMobilityScoring::driftScoringMS1(const std::vector<OpenSwath::SpectrumPtr>& spectra,
                                            const std::vector<TransitionType> & transitions,
                                            OpenSwath_Scores & scores,
                                            const double drift_lower,
@@ -470,7 +466,7 @@ namespace OpenMS
     scores.im_ms1_delta = drift_target - im;
   }
 
-  void IonMobilityScoring::driftScoring(std::vector<OpenSwath::SpectrumPtr> spectra,
+  void IonMobilityScoring::driftScoring(const std::vector<OpenSwath::SpectrumPtr>& spectra,
                                         const std::vector<TransitionType> & transitions,
                                         OpenSwath_Scores & scores,
                                         const double drift_lower,

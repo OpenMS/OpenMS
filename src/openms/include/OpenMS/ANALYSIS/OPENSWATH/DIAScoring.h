@@ -117,7 +117,7 @@ public:
 
     /// Massdiff scores, see class description
     void dia_massdiff_score(const std::vector<TransitionType>& transitions,
-                            std::vector<SpectrumPtrType> spectrum,
+                            const std::vector<SpectrumPtrType>& spectrum,
                             const std::vector<double>& normalized_library_intensity,
                             double& ppm_score,
                             double& ppm_score_weighted,
@@ -137,14 +137,14 @@ public:
                                 double& ppm_score, double drift_start, double drift_end) const;
 
     /// Precursor isotope scores for precursors (peptides and metabolites)
-    void dia_ms1_isotope_scores_averagine(double precursor_mz, std::vector<SpectrumPtrType> spectrum,
+    void dia_ms1_isotope_scores_averagine(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum,
                                           double& isotope_corr, double& isotope_overlap, int charge_state, double drift_start, double drift_end) const;
-    void dia_ms1_isotope_scores(double precursor_mz, std::vector<SpectrumPtrType> spectrum,
+    void dia_ms1_isotope_scores(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum,
                                 double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula, double drift_start, double drift_end) const;
 
 
     /// b/y ion scores
-    void dia_by_ion_score(std::vector<SpectrumPtrType> spectrum, AASequence& sequence,
+    void dia_by_ion_score(const std::vector<SpectrumPtrType>& spectrum, AASequence& sequence,
                           int charge, double& bseries_score, double& yseries_score, double drift_start, double drift_end) const;
 
     /// Dotproduct / Manhattan score with theoretical spectrum
@@ -169,7 +169,7 @@ private:
 
     /// Subfunction of dia_isotope_scores
     void diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions,
-                              std::vector<SpectrumPtrType> spectrum,
+                              const std::vector<SpectrumPtrType>& spectrum,
                               std::map<std::string, double>& intensities,
                               double& isotope_corr,
                               double& isotope_overlap, double drift_start, double drift_end) const;
@@ -184,8 +184,8 @@ private:
 private:
 
     /**
-      @brief Determine whether the current m/z value is a monoisotopic peak 
-      
+      @brief Determine whether the current m/z value is a monoisotopic peak
+
       This function will try to determine whether the current peak is a
       monoisotopic peak or not. It will do so by searching for an intense peak
       at a lower m/z that could explain the current peak as part of a isotope
@@ -198,7 +198,7 @@ private:
       @param nr_occurrences Will contain the maximum ratio of a peaks intensity compared to the monoisotopic peak intensity how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
 
     */
-    void largePeaksBeforeFirstIsotope_(std::vector<SpectrumPtrType> spectrum, double mono_mz, double mono_int, int& nr_occurrences, double& max_ratio, double drift_start, double drift_end) const;
+    void largePeaksBeforeFirstIsotope_(const std::vector<SpectrumPtrType>& spectrum, double mono_mz, double mono_int, int& nr_occurrences, double& max_ratio, double drift_start, double drift_end) const;
 
     /**
       @brief Compare an experimental isotope pattern to a theoretical one
@@ -234,7 +234,7 @@ private:
 
     /// Get the intensities of isotopes around @p precursor_mz in experimental @p spectrum
     /// and fill @p isotopes_int.
-    void getIsotopeIntysFromExpSpec_(double precursor_mz, std::vector<SpectrumPtrType> spectrum,
+    void getIsotopeIntysFromExpSpec_(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum,
                                      std::vector<double>& isotopes_int,
                                      int charge_state, double drift_start, double drift_end) const;
 
@@ -251,4 +251,3 @@ private:
     TheoreticalSpectrumGenerator * generator;
   };
 }
-

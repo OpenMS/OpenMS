@@ -49,6 +49,8 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 
+#include <utility>
+
 namespace OpenMS
 {
 
@@ -106,9 +108,7 @@ namespace OpenMS
   }
 
   /// Destructor
-  OpenSwathScoring::~OpenSwathScoring()
-  {
-  }
+  OpenSwathScoring::~OpenSwathScoring() = default;
 
   void OpenSwathScoring::initialize(double rt_normalization_factor,
                                     int add_up_spectra,
@@ -128,7 +128,7 @@ namespace OpenMS
   void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
                                             const std::vector<TransitionType>& transitions,
                                             const std::vector<OpenSwath::SwathMap>& swath_maps,
-                                            OpenSwath::SpectrumAccessPtr ms1_map,
+                                            const OpenSwath::SpectrumAccessPtr& ms1_map,
                                             const OpenMS::DIAScoring& diascoring,
                                             const CompoundType& compound,
                                             OpenSwath_Scores& scores,
@@ -240,7 +240,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathScoring::calculatePrecursorDIAScores(OpenSwath::SpectrumAccessPtr ms1_map,
+  void OpenSwathScoring::calculatePrecursorDIAScores(const OpenSwath::SpectrumAccessPtr& ms1_map,
                                    const OpenMS::DIAScoring & diascoring,
                                    double precursor_mz,
                                    double rt,
@@ -304,7 +304,7 @@ namespace OpenMS
 
   void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
                                               const TransitionType & transition,
-                                              const std::vector<OpenSwath::SwathMap> swath_maps,
+                                              const std::vector<OpenSwath::SwathMap>& swath_maps,
                                               const OpenMS::DIAScoring & diascoring,
                                               OpenSwath_Scores & scores,
                                               double drift_lower, double drift_upper)
@@ -556,7 +556,7 @@ namespace OpenMS
      }
   }
 
-  std::vector<OpenSwath::SpectrumPtr> OpenSwathScoring::fetchMultipleSpectra_(OpenSwath::SpectrumAccessPtr swath_map,
+  std::vector<OpenSwath::SpectrumPtr> OpenSwathScoring::fetchMultipleSpectra_(const OpenSwath::SpectrumAccessPtr& swath_map,
                                                             double RT, int nr_spectra_to_fetch)
   {
     std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);

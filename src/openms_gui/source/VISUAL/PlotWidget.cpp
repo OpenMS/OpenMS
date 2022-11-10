@@ -111,9 +111,7 @@ namespace OpenMS
     canvas_->setPlotWidget(this);
   }
 
-  PlotWidget::~PlotWidget()
-  {
-  }
+  PlotWidget::~PlotWidget() = default;
 
   Int PlotWidget::getActionMode() const
   {
