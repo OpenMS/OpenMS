@@ -72,11 +72,10 @@ namespace OpenMS
       OpenSwath::SpectrumAccessPtr experiment(new OpenMS::SpectrumAccessOpenMSCached(exp->getLoadedFilePath()));
       return experiment;
     }
-    else
-    {
-      OpenSwath::SpectrumAccessPtr experiment(new OpenMS::SpectrumAccessOpenMS(exp));
+    
+          OpenSwath::SpectrumAccessPtr experiment(new OpenMS::SpectrumAccessOpenMS(exp));
       return experiment;
-    }
+   
   }
 
 }//end Namespace

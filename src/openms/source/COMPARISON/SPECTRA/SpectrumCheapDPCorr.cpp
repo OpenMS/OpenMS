@@ -353,9 +353,8 @@ namespace OpenMS
       double p = boost::math::pdf(normal, posa - posb);
       return p * inta * intb;
     }
-    else
-    {
-      if (int_cnt == 1)
+    
+          if (int_cnt == 1)
       {
         return boost::math::pdf(normal, posa - posb) * sqrt(inta * intb);
       }
@@ -379,7 +378,7 @@ namespace OpenMS
           }
         }
       }
-    }
+   
   }
 
 }

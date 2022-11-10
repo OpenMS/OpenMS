@@ -128,10 +128,9 @@ namespace OpenMS
           {
             break;
           }
-          else
-          {
-            j_left = j;
-          }
+          
+                      j_left = j;
+         
         }
       }
     }

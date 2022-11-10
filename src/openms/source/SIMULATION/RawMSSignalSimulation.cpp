@@ -360,10 +360,9 @@ namespace OpenMS
       OPENMS_LOG_INFO << "disabled" << std::endl;
       return;
     }
-    else
-    {
-      OPENMS_LOG_INFO << "started" << std::endl;
-    }
+    
+          OPENMS_LOG_INFO << "started" << std::endl;
+   
 
     // retrieve mz boundary parameters from experiment:
     SimTypes::SimCoordinateType minimal_mz_measurement_limit = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;
@@ -862,10 +861,10 @@ namespace OpenMS
       // add four edge points of mass trace
       ConvexHull2D hull;
       std::vector<DPosition<2> > points;
-      points.push_back(DPosition<2>(rt_min, mz - 0.001));
-      points.push_back(DPosition<2>(rt_min, mz + 0.001));
-      points.push_back(DPosition<2>(rt_max, mz - 0.001));
-      points.push_back(DPosition<2>(rt_max, mz + 0.001));
+      points.emplace_back(rt_min, mz - 0.001);
+      points.emplace_back(rt_min, mz + 0.001);
+      points.emplace_back(rt_max, mz - 0.001);
+      points.emplace_back(rt_max, mz + 0.001);
       hull.addPoints(points);
       active_feature.getConvexHulls().push_back(hull);
 

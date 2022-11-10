@@ -202,12 +202,12 @@ namespace OpenMS
        */  
       return static_cast<SparseVectorIndexType>(floor(log(mz/MIN_MZ_)/log1p(bin_size_ * 1e-6)));
     }
-    else 
-    { // implemented as described in PMC4607604
+    
+    // implemented as described in PMC4607604
       // Note: Consider a peak offset (important for low-resolution data, where most peak boundaries
       //       may fall on the mass peak apex. See publication for details.).
       return static_cast<SparseVectorIndexType>(floor(mz / bin_size_ + offset_)); 
-    }
+   
   }
 
   float BinnedSpectrum::getBinIntensity(double mz)

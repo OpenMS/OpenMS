@@ -155,9 +155,8 @@ namespace OpenMS
                 OPENMS_PRETTY_FUNCTION,
                 "Not all proteins present in an indistinguishable group. Make sure to add them as singletons.");
           }
-          else
-          {
-            Size prot_group_index = found->second;
+          
+                      Size prot_group_index = found->second;
             auto it = grpIdxToEvIdx.emplace(prot_group_index, set<Size>());
             it.first->second.insert(ev_idx);
             //TODO work with a tolerance for doubles instead?
@@ -187,7 +186,7 @@ namespace OpenMS
                 bestNonDecoyGrpTie.insert(prot_group_index);
               }
             }
-          }
+         
         }
 
         bool targets_first_resolve_ties = false;
@@ -345,13 +344,12 @@ namespace OpenMS
                 OPENMS_PRETTY_FUNCTION,
                 "Not all proteins present in an indistinguishable group. (" + acc + " not found). Make sure to add them as singletons.");
           }
-          else
-          {
-            Size prot_group_index = found->second;
+          
+                      Size prot_group_index = found->second;
             pep_to_indist_prot_grp_[pep_index].insert(prot_group_index);
             indist_prot_grp_to_pep_[prot_group_index];
             indist_prot_grp_to_pep_[prot_group_index].insert(pep_index);
-          }
+         
         }
       }
       else

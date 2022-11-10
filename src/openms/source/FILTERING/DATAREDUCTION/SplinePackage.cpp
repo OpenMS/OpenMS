@@ -81,10 +81,9 @@ namespace OpenMS
     {
       return max(0.0, spline_.eval(pos));
     }
-    else
-    {
-      return 0;
-    }
+    
+          return 0;
+   
   }
 
 }

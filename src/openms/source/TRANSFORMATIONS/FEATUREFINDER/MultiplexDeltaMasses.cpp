@@ -93,9 +93,8 @@ namespace OpenMS
       // Search first for complete multiplets, then knock-out cases.
       return (dm1.getDeltaMasses().size() > dm2.getDeltaMasses().size());
     }
-    else
-    {
-      for (unsigned i = 0; i < dm1.getDeltaMasses().size(); ++i)
+    
+          for (unsigned i = 0; i < dm1.getDeltaMasses().size(); ++i)
       {
         double ms1 = dm1.getDeltaMasses()[i].delta_mass - dm1.getDeltaMasses()[0].delta_mass;
         double ms2 = dm2.getDeltaMasses()[i].delta_mass - dm2.getDeltaMasses()[0].delta_mass;
@@ -106,7 +105,7 @@ namespace OpenMS
           return (ms1 < ms2);
         }
       }
-    }
+   
 
     return (false);
   }

@@ -123,10 +123,9 @@ namespace OpenMS
         cerr << "MassDecompositionAlgorithm: Warning: cannot handle modification " << mod.getName() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
         continue;
       }
-      else
-      {
-        aa = mod.getOrigin();
-      }
+      
+              aa = mod.getOrigin();
+     
 
       if (mod.getMonoMass() != 0)
       {
@@ -162,10 +161,9 @@ namespace OpenMS
         cerr << "MassDecompositionAlgorithm: Warning: cannot handle modification " << mod.getName() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
         continue;
       }
-      else
-      {
-        origin_aa = mod.getOrigin();
-      }
+      
+              origin_aa = mod.getOrigin();
+     
 
       if (mod.getMonoMass() != 0)
       {

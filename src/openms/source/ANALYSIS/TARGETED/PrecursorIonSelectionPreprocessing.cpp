@@ -153,10 +153,9 @@ namespace OpenMS
       ++iter;
     if (iter != prot_masses_.end())
       return iter->second;
-    else
-    {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PrecursorIonSelectionPreprocessing: protein " + acc + " could not be found.");
-    }
+    
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PrecursorIonSelectionPreprocessing: protein " + acc + " could not be found.");
+   
   }
 
   const std::map<String, std::vector<double> >& PrecursorIonSelectionPreprocessing::getProteinRTMap() const
@@ -182,8 +181,7 @@ namespace OpenMS
       {
         if (rt_prot_map_[prot_id].size() > peptide_index)
           return rt_prot_map_[prot_id][peptide_index];
-        else
-          return -1;
+                  return -1;
       }
       else
         return -1;
@@ -200,8 +198,7 @@ namespace OpenMS
       {
         if (pt_prot_map_[prot_id].size() > peptide_index)
           return pt_prot_map_[prot_id][peptide_index];
-        else
-          return 1;
+                  return 1;
       }
       else
         return 1;
@@ -216,9 +213,8 @@ namespace OpenMS
     {
       return (double)counter_[(Size) floor((mass - masses_[0]) / (double)param_.getValue("precursor_mass_tolerance") + 0.5)] / (double)f_max_;
     }
-    else //
-    {
-#ifdef PISP_DEBUG
+    //
+    #ifdef PISP_DEBUG
       std::cout << bin_masses_.size() << " " << mass << std::endl;
       std::cout << *(bin_masses_.begin()) << " " << *(bin_masses_.end() - 1) << std::endl;
 #endif
@@ -243,7 +239,7 @@ namespace OpenMS
       }
       else
         return (double)counter_[distance(bin_masses_.begin(), tmp_iter + 1)] / (double)f_max_;
-    }
+   
   }
 
   void PrecursorIonSelectionPreprocessing::loadPreprocessing()
@@ -376,7 +372,7 @@ namespace OpenMS
           else
           {
             std::vector<std::pair<String, Size> > tmp_vec;
-            tmp_vec.push_back(make_pair(entries[e].identifier, prot_masses.size() - 1));
+            tmp_vec.emplace_back(entries[e].identifier, prot_masses.size() - 1);
             tmp_peptide_map.insert(make_pair(vec_iter.toUnmodifiedString(), tmp_vec));
           }
           if (sequences_.count(vec_iter) == 0) // peptide sequences are considered only once
@@ -1102,7 +1098,7 @@ namespace OpenMS
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "ppm is used as precursor_mass_tolerance_unit, which requires the file "
                                           + path + "_bin_masses" + ", that could not be found.");
-      else if (iter->hasPrefix("###"))
+      if (iter->hasPrefix("###"))
       {
         ++iter;
 #ifdef PISP_DEBUG

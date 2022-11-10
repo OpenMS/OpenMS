@@ -216,7 +216,7 @@ namespace OpenMS
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
     defaults_.setValidStrings("preferences:default_path_current", {"true","false"});
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPAS.ini is up-to-date");
-    subsections_.push_back("preferences:RecentFiles");
+    subsections_.emplace_back("preferences:RecentFiles");
     defaultsToParam_();
 
     //load param file
@@ -963,7 +963,7 @@ namespace OpenMS
 
   void TOPPASBase::closeFile()
   {
-    if (ws_ != 0 && ws_->currentSubWindow() != 0)
+    if (ws_ != nullptr && ws_->currentSubWindow() != nullptr)
     {
       ws_->currentSubWindow()->close();
     }
@@ -1477,7 +1477,7 @@ namespace OpenMS
                                QMessageBox::Ok);
       return "";
     }
-    else if (st == TOPPASScene::ST_REFRESH_REMAINSINVALID)
+    if (st == TOPPASScene::ST_REFRESH_REMAINSINVALID)
     {
       QMessageBox::information(tw, "Parameters updated!",
                                "The resulting pipeline remains invalid (not runnable). Maybe some input files or even edges are missing. Please repair!",

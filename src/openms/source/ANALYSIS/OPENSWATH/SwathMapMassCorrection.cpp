@@ -488,7 +488,7 @@ namespace OpenMS
     {
       return;
     }
-    else if (corr_type == "unweighted_regression")
+    if (corr_type == "unweighted_regression")
     {
       double confidence_interval_P(0.0);
       Math::LinearRegression lr;

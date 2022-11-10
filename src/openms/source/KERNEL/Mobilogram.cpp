@@ -78,7 +78,7 @@ namespace OpenMS
     {
       return;
     }
-    else if (!reverse && std::is_sorted(cbegin(), cend(), PeakType::IntensityLess()))
+    if (!reverse && std::is_sorted(cbegin(), cend(), PeakType::IntensityLess()))
     {
       return;
     }
@@ -134,10 +134,9 @@ namespace OpenMS
     {
       return Size(it - cbegin());
     }
-    else
-    {
-      return Size(it2 - cbegin());
-    }
+    
+          return Size(it2 - cbegin());
+   
   }
 
   Int Mobilogram::findNearest(CoordinateType mb, CoordinateType tolerance) const
@@ -152,10 +151,9 @@ namespace OpenMS
     {
       return static_cast<Int>(i);
     }
-    else
-    {
-      return -1;
-    }
+    
+          return -1;
+   
   }
 
   Int Mobilogram::findNearest(CoordinateType mb, CoordinateType tolerance_left, CoordinateType tolerance_right) const
@@ -175,9 +173,8 @@ namespace OpenMS
       {
         return i; // success: nearest peak is in left tolerance window
       }
-      else
-      {
-        if (i == this->size() - 1)
+      
+              if (i == this->size() - 1)
         {
           return -1; // we are at the last peak which is too far left
         }
@@ -189,7 +186,7 @@ namespace OpenMS
         {
           return i;
         }
-      }
+     
     }
     else
     {
@@ -197,9 +194,8 @@ namespace OpenMS
       {
         return i; // success: nearest peak is in right tolerance window
       }
-      else
-      {
-        if (i == 0)
+      
+              if (i == 0)
         {
           return -1; // we are at the first peak which is too far right
         }
@@ -209,7 +205,7 @@ namespace OpenMS
         {
           return i;
         }
-      }
+     
     }
 
     // neither in the left nor the right tolerance window

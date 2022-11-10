@@ -94,12 +94,12 @@ namespace OpenMS
     // Comparator
     bool operator<(const CmpInfo_& other) const
     {
-      if (s_comp < other.s_comp) return true; else return false;
+      if (s_comp < other.s_comp) return true; return false;
     }
 
     bool operator==(const CmpInfo_& other) const
     {
-      if (s_comp == other.s_comp) return true; else return false;
+      if (s_comp == other.s_comp) return true; return false;
     }
 
   };
@@ -235,7 +235,7 @@ namespace OpenMS
         String error = "MetaboliteFeatureDeconvolution::potential_adduct mixes charges for an adduct!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
-      else if (pos_charge > 0)
+      if (pos_charge > 0)
       {
         EmpiricalFormula ef(adduct[0]);
         ef.setCharge(pos_charge);
@@ -1255,12 +1255,11 @@ namespace OpenMS
       {
         return true;
       }
-      else
-      {
-        // forbid this edge?!
+      
+              // forbid this edge?!
         std::cout << "intensity constraint: edge with intensity " << f1.getIntensity() << "(" << cmp.getAdductsAsString(Compomer::LEFT) << ") and " << f2.getIntensity() << "(" << cmp.getAdductsAsString(Compomer::RIGHT) << ") deleted\n";
         return false;
-      }
+     
     }
     return true;
   }
@@ -1289,7 +1288,7 @@ namespace OpenMS
     {
       return true;
     }
-    else if (q_try_ == QHEURISTIC)
+    if (q_try_ == QHEURISTIC)
     {
       // do not allow two charges to change at the same time
       if (!other_unchanged && abs_feature_charge != abs_putative_charge)

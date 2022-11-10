@@ -115,7 +115,7 @@ namespace OpenMS
     {
       return SOLVED;
     }
-    else if (mode == 2) // this should not happen (dimensions are bad)
+    if (mode == 2) // this should not happen (dimensions are bad)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "NonNegativeLeastSquaresSolver::solve() Bad dimension reported!");
     }

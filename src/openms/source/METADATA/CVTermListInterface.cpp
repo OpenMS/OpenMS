@@ -172,10 +172,9 @@ namespace OpenMS
     {
       return empty_cvterm_map;
     }
-    else
-    {
-      return cvt_ptr_->getCVTerms();
-    }
+    
+          return cvt_ptr_->getCVTerms();
+   
   }
 
   /// adds a CV term
@@ -192,10 +191,9 @@ namespace OpenMS
     {
       return false;
     }
-    else
-    {
-      return cvt_ptr_->hasCVTerm(accession);
-    }
+    
+          return cvt_ptr_->hasCVTerm(accession);
+   
   }
 
 }

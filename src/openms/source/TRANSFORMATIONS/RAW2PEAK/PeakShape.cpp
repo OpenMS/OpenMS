@@ -254,10 +254,9 @@ namespace OpenMS
     {
       return true;
     }
-    else
-    {
-      return false;
-    }
+    
+          return false;
+   
   }
 
   PeakShape::PeakIterator PeakShape::getLeftEndpoint() const

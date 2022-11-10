@@ -100,12 +100,11 @@ namespace OpenMS
       OPENMS_LOG_DEBUG << " ====  Chromatogram " << chromatogram.getNativeID() << "empty. Skip picking.";
       return;
     }
-    else
-    {
-        OPENMS_LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << 
+    
+            OPENMS_LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << 
         " with " << chromatogram.size() << " peaks (start at RT " << chromatogram[0].getRT() << " to RT " << chromatogram.back().getRT() << ") "
         "using method \'" << method_ << "\'" << std::endl;
-    }
+   
     picked_chrom.clear(true);
     // Crawdad has its own methods, so we can call the wrapper directly
     if (method_ == "crawdad")

@@ -231,7 +231,7 @@ namespace OpenMS
         op_plus = true;
         continue;
       }
-      else if (list[part_idx] == "-")
+      if (list[part_idx] == "-")
       {
         op_plus = false;
         continue;

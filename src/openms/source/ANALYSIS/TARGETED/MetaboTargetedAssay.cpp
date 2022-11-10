@@ -827,7 +827,7 @@ namespace OpenMS
         continue;
       }
       // target and decoy available - check correspondence
-      else if (it.second.target_mz != 0.0 && it.second.decoy_mz != 0.0)
+      if (it.second.target_mz != 0.0 && it.second.decoy_mz != 0.0)
       {
         if (!(it.second.target_mz == it.second.decoy_mz &&
               it.second.target_rt == it.second.decoy_rt &&

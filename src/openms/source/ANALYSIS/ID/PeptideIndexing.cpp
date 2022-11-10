@@ -742,10 +742,9 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
           it_hit = hits.erase(it_hit);
           continue; // already points to the next hit
         }
-        else
-        {
-          it_hit->setMetaValue("protein_references", "unmatched");
-        }
+        
+                  it_hit->setMetaValue("protein_references", "unmatched");
+       
       }
 
       ++it_hit; // next hit

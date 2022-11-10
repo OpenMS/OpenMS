@@ -1370,7 +1370,7 @@ namespace OpenMS
         }
         continue;
       }
-      else if (pattern.peak[p] == -1)
+      if (pattern.peak[p] == -1)
       {
         if (debug_)
         {
@@ -1433,7 +1433,7 @@ namespace OpenMS
           traces.clear(); //remove earlier traces
           continue;
         }
-        else if (p > traces.max_trace)
+        if (p > traces.max_trace)
         {
           break; //no more traces are possible
         }
@@ -1669,7 +1669,7 @@ namespace OpenMS
     {
       return 0.1 * (0.5 * allowed_deviation - diff) / (0.5 * allowed_deviation) + 0.9;
     }
-    else if (diff <= allowed_deviation)
+    if (diff <= allowed_deviation)
     {
       return 0.9 * (allowed_deviation - diff) / (0.5 * allowed_deviation);
     }
@@ -1867,11 +1867,10 @@ namespace OpenMS
       tau = -1.0;
       return std::make_unique<EGHTraceFitter>();
     }
-    else // if (param_.getValue("feature:rt_shape") == "symmetric")
-    {
-      OPENMS_LOG_DEBUG << "use symmetric rt peak shape" << std::endl;
+    // if (param_.getValue("feature:rt_shape") == "symmetric")
+          OPENMS_LOG_DEBUG << "use symmetric rt peak shape" << std::endl;
       return std::make_unique<GaussTraceFitter>();
-    }
+   
   }
 
   double FeatureFinderAlgorithmPicked::intensityScore_(Size rt_bin, Size mz_bin, double intensity) const
@@ -1977,7 +1976,7 @@ namespace OpenMS
           new_traces.clear(); //remove earlier traces
           continue;
         }
-        else if (t == traces.max_trace)
+        if (t == traces.max_trace)
         {
           new_traces = MassTraces();
           if (debug_)

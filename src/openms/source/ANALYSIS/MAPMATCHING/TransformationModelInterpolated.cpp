@@ -152,9 +152,8 @@ public:
       {
         return y_.back();
       }
-      else
-      {
-        // interpolate .. invariant: idx > 0
+      
+              // interpolate .. invariant: idx > 0
         const SignedSize idx = it - x_.begin();
         const double x_0 = x_[idx - 1];
         const double x_1 = x_[idx];
@@ -162,7 +161,7 @@ public:
         const double y_1 = y_[idx];
 
         return y_0 + (y_1 - y_0) * (x - x_0) / (x_1 - x_0);
-      }
+     
     }
 
     ~LinearInterpolator() override
@@ -411,7 +410,7 @@ private:
     {
       return lm_front_->evaluate(value);
     }
-    else if (value > x_.back()) // extrapolate back
+    if (value > x_.back()) // extrapolate back
     {
       return lm_back_->evaluate(value);
     }

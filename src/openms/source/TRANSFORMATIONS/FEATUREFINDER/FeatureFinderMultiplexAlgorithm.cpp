@@ -163,7 +163,7 @@ namespace OpenMS
     {
       return (charge - 1);
     }
-    else if (charge == 1)
+    if (charge == 1)
     {
       return 4;
     }
@@ -198,10 +198,9 @@ namespace OpenMS
           // 2+ before 3+ before 4+ before 1+ before 5+ before 6+ etc.
           return orderCharge(pattern1.getCharge()) < orderCharge(pattern2.getCharge());
         }
-        else
-        {
-          return pattern1.getMassShiftAt(1) < pattern2.getMassShiftAt(1);
-        }
+        
+                  return pattern1.getMassShiftAt(1) < pattern2.getMassShiftAt(1);
+       
       }
       else
       {

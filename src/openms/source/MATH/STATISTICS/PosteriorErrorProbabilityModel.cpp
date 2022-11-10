@@ -897,9 +897,8 @@ namespace OpenMS::Math
             {
               return hit.getScore();
             }
-            else
-            {
-                if (hit.metaValueExists(requested_score_type))
+            
+                            if (hit.metaValueExists(requested_score_type))
                 {
                   return static_cast<double>(hit.getMetaValue(requested_score_type));
                 }
@@ -907,7 +906,7 @@ namespace OpenMS::Math
                 {
                   return static_cast<double>(hit.getMetaValue(requested_score_type+"_score"));
                 }
-            }
+           
         }
         std::cout << actual_score_type << std::endl;
         throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected score type for search engine not found", "None of the expected score types " + ListUtils::concatenate(requested_score_types, ',') + " for search engine found");
@@ -923,7 +922,7 @@ namespace OpenMS::Math
       {
         return (-1) * log10(getScore_({"OMSSA"}, hit, current_score_type)); //OMSSA??? TODO make sure to fix in new ID datastructure
       }
-      else if (engine == "MYRIMATCH") 
+      if (engine == "MYRIMATCH") 
       {
         return getScore_({"mvh"}, hit, current_score_type);
       }

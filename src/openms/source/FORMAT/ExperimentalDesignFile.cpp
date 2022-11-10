@@ -477,10 +477,9 @@ namespace OpenMS
       {
         return parseOneTableFile_(text_file, tsv_file, require_spectra_file);
       }
-      else // two tables
-      {
-        return parseTwoTableFile_(text_file, tsv_file, require_spectra_file);
-      }
+      // two tables
+              return parseTwoTableFile_(text_file, tsv_file, require_spectra_file);
+     
     }
 }
 

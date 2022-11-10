@@ -353,7 +353,7 @@ namespace OpenMS
     {
       return false;
     }
-    else if (!n_term_mod_ && rhs.n_term_mod_)
+    if (!n_term_mod_ && rhs.n_term_mod_)
     {
       return true;
     }
@@ -372,7 +372,7 @@ namespace OpenMS
       {
         return (a->getOneLetterCode() < b->getOneLetterCode());
       }
-      else if (a->getModification() != b->getModification())
+      if (a->getModification() != b->getModification())
       {
         return (a->getModification() < b->getModification());
       }
@@ -383,7 +383,7 @@ namespace OpenMS
     {
       return false;
     }
-    else if (!c_term_mod_ && rhs.c_term_mod_)
+    if (!c_term_mod_ && rhs.c_term_mod_)
     {
       return true;
     }
@@ -483,11 +483,10 @@ namespace OpenMS
 
       return ef;
     }
-    else
-    {
-      OPENMS_LOG_ERROR << "AASequence::getFormula: Formula for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
+    
+          OPENMS_LOG_ERROR << "AASequence::getFormula: Formula for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
       return EmpiricalFormula("");
-    }
+   
   }
 
   double AASequence::getAverageWeight(Residue::ResidueType type, Int charge) const
@@ -604,11 +603,10 @@ namespace OpenMS
 
       return mono_weight;
     }
-    else
-    {
-      OPENMS_LOG_ERROR << "AASequence::getMonoWeight: Mass for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
+    
+          OPENMS_LOG_ERROR << "AASequence::getMonoWeight: Mass for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
       return 0.0;
-    }
+   
 }
 
 
@@ -892,7 +890,7 @@ namespace OpenMS
         return false;
       }
       // if AA sequence equal, check if modifications (if available) are equal
-      else if (peptide_.at(i)->getModification() != peptide.peptide_.at(i)->getModification())
+      if (peptide_.at(i)->getModification() != peptide.peptide_.at(i)->getModification())
       {
         return false;
       }
@@ -1015,12 +1013,11 @@ namespace OpenMS
         aas.n_term_mod_ = proteinTerminalResidueHelper(mod_db, 'n', str, mod, String(*next_aa));
         return mod_end;
       }
-      else
-      {
-        //TODO why are we allowing Protein Term here?
+      
+              //TODO why are we allowing Protein Term here?
         aas.n_term_mod_ = terminalResidueHelper(mod_db, 'n', true, str, mod, String(*next_aa));
         return mod_end;
-      }
+     
     }
 
     // get one letter code of unmodified version
@@ -1030,7 +1027,7 @@ namespace OpenMS
       aas.c_term_mod_ = proteinTerminalResidueHelper(mod_db, 'c', str, mod, res);
       return mod_end;
     }
-    else if (specificity == ResidueModification::C_TERM)
+    if (specificity == ResidueModification::C_TERM)
     {
       //TODO why are we allowing Protein Term here?
       aas.c_term_mod_ = terminalResidueHelper(mod_db, 'c', true, str, mod, res);
@@ -1174,7 +1171,7 @@ namespace OpenMS
           aas.peptide_.back() = ResidueDB::getInstance()->getModifiedResidue(residue, res_mods[0]);
           return mod_end;
         }
-        else if (aas.size() == 1) // N-terminal mod.?
+        if (aas.size() == 1) // N-terminal mod.?
         {
           std::vector<String> term_mods;
           mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, residue->getOneLetterCode(), ResidueModification::N_TERM);
@@ -1207,7 +1204,7 @@ namespace OpenMS
           aas.peptide_.back() = ResidueDB::getInstance()->getModifiedResidue(residue, id);
           return mod_end;
         }
-        else if (aas.size() == 1) // N-terminal mod.?
+        if (aas.size() == 1) // N-terminal mod.?
         {
           res_mod = mod_db->getBestModificationByDiffMonoMass(mass, tolerance, residue->getOneLetterCode(), ResidueModification::N_TERM);
           if (res_mod)
@@ -1294,7 +1291,7 @@ namespace OpenMS
       aas.n_term_mod_ = new_mod;
       return mod_end;
     }
-    else if (specificity == ResidueModification::C_TERM)
+    if (specificity == ResidueModification::C_TERM)
     {
       aas.c_term_mod_ = new_mod;
       return mod_end;

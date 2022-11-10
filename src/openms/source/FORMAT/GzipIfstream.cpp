@@ -74,10 +74,9 @@ namespace OpenMS
       }
       return n_buffer_;
     }
-    else
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "no file for decompression initialized");
-    }
+    
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "no file for decompression initialized");
+   
   }
 
   void GzipIfstream::open(const char * filename)
@@ -94,9 +93,8 @@ namespace OpenMS
       close();
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
-    else
-    {
-      stream_at_end_ = false;
+    
+          stream_at_end_ = false;
       /*		crc  = crc32(0L, Z_NULL, 0);
               FILE* file =  fopen(filename,"rb");
               fseek(file,8,SEEK_END);
@@ -134,7 +132,7 @@ namespace OpenMS
           cout<<"CRC" <<crc<<endl;
       */
 
-    }
+   
   }
 
   void GzipIfstream::close()

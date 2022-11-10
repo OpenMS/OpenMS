@@ -169,7 +169,7 @@ namespace OpenMS::Internal
         {
           throw (runtime_error("Path file_name does not exist, or path is an empty string."));
         }
-        else if (errno == ENOTDIR)
+        if (errno == ENOTDIR)
         {
           throw (runtime_error("A component of the path is not a directory."));
         }
@@ -570,8 +570,7 @@ namespace OpenMS::Internal
         }
         return CVTerm(accession, name, cvRef, value, u);
       }
-      else
-        throw invalid_argument("no cv param here");
+              throw invalid_argument("no cv param here");
     }
 
     pair<String, DataValue> MzIdentMLDOMHandler::parseUserParam_(DOMElement* param)
@@ -636,11 +635,10 @@ namespace OpenMS::Internal
 
         return make_pair(name, dv);
       }
-      else
-      {
-        OPENMS_LOG_ERROR << "No parameters found at given position." << endl;
+      
+              OPENMS_LOG_ERROR << "No parameters found at given position." << endl;
         throw invalid_argument("no user param here");
-      }
+     
     }
 
     void MzIdentMLDOMHandler::parseAnalysisSoftwareList_(DOMNodeList* analysisSoftwareElements)
@@ -687,10 +685,9 @@ namespace OpenMS::Internal
                     swname = up->second.toString();
                     break;
                   }
-                  else
-                  {
-                    swname = up->first;
-                  }
+                  
+                                      swname = up->first;
+                 
                 }
               }
             }
@@ -1178,10 +1175,9 @@ namespace OpenMS::Internal
                 use_thresh = true;
                 break;
               }
-              else
-              {
-                break;
-              }
+              
+                              break;
+             
             }
           }
 
@@ -2572,9 +2568,8 @@ namespace OpenMS::Internal
                     cvp = cvp->getNextElementSibling();
                     continue;
                   }
-                  else
-                  {
-                    // Case 2: unknown modification (needs to be added to ModificationsDB)
+                  
+                                      // Case 2: unknown modification (needs to be added to ModificationsDB)
                     // note, this is optional
                     double mass_delta = 0;
                     bool has_mass_delta = false;
@@ -2689,7 +2684,7 @@ namespace OpenMS::Internal
                       cvp = cvp->getNextElementSibling();
                       continue;
                     }
-                  }
+                 
                 }
                 if (cv.getCVIdentifierRef() != "UNIMOD")
                 {
@@ -2706,12 +2701,11 @@ namespace OpenMS::Internal
                     cvp = cvp->getNextElementSibling();
                     continue;
                   }
-                  else
-                  {
-                    aas.setNTerminalModification(cv.getName());
+                  
+                                      aas.setNTerminalModification(cv.getName());
                     cvp = cvp->getNextElementSibling();
                     continue;
-                  }
+                 
                 }
                 else if (index == static_cast<SignedSize>(aas.size() + 1))
                 {

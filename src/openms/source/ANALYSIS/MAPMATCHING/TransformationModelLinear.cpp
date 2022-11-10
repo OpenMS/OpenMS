@@ -74,7 +74,7 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "no data points for 'linear' model");
       }
-      else if (size == 1) // degenerate case, but we can still do something
+      if (size == 1) // degenerate case, but we can still do something
       {
         slope_ = 1.0;
         intercept_ = data_weighted[0].second - data_weighted[0].first;

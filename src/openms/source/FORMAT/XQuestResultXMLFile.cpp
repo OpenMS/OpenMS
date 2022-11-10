@@ -118,7 +118,7 @@ namespace OpenMS
       {
         if (all_top_csms[i][0].scan_index_light < spectra.size() && all_top_csms[i][0].scan_index_heavy < spectra.size())
         {
-          spectrum_indices.push_back( std::make_pair(all_top_csms[i][0].scan_index_light, all_top_csms[i][0].scan_index_heavy) );
+          spectrum_indices.emplace_back(all_top_csms[i][0].scan_index_light, all_top_csms[i][0].scan_index_heavy );
         }
       }
     }
@@ -291,10 +291,9 @@ namespace OpenMS
       wrap_(out_encoded, 76, out_wrapped);
       return out_wrapped;
     }
-    else // skip base64 encoding in test mode
-    {
-      return out;
-    }
+    // skip base64 encoding in test mode
+          return out;
+   
   }
 
   void XQuestResultXMLFile::wrap_(const String& input, Size width, String & output)

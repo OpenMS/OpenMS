@@ -472,10 +472,9 @@ namespace OpenMS
   }
   */
     }
-    else
-    {
-      return 0;
-    }
+    
+          return 0;
+   
   }
 
   void HiddenMarkovModel::train()

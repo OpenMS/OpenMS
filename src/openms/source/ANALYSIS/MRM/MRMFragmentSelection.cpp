@@ -130,9 +130,8 @@ namespace OpenMS
           // TODO implement charges
           return true;
         }
-        else
-        {
-          if (!(name.hasSubstring("-H") || name.hasSubstring("-C") || name.hasSubstring("-N")))
+        
+                  if (!(name.hasSubstring("-H") || name.hasSubstring("-C") || name.hasSubstring("-N")))
           {
             Size c = count(name.begin(), name.end(), '+');
             if (ListUtils::contains(allowed_charges, String(c)))
@@ -148,7 +147,7 @@ namespace OpenMS
           {
             return false;
           }
-        }
+       
       }
       else
       {

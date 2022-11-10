@@ -405,8 +405,8 @@ namespace OpenMS
 
           cmpinfo.native_ids.push_back(native_id);
           cmpinfo.m_ids.push_back(m_id);
-          cmpinfo.scan_indices.push_back(ind);
-          cmpinfo.specrefs.push_back(String("ms_run[1]:" + native_id));
+          cmpinfo.scan_indices.emplace_back(ind);
+          cmpinfo.specrefs.emplace_back("ms_run[1]:" + native_id);
 
           // single spectrum peaks
           for (Size i = 0; i < current_ms2.size(); ++i)
@@ -484,16 +484,15 @@ namespace OpenMS
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: The SourceFile was annotated correctly in the provided mzML. Please run the OpenMS::FileConverter convert the files again from mzML to mzML.");
     }
-    else
-    {
-      ainfo.sf_path = spectra.getSourceFiles()[0].getPathToFile();
+    
+          ainfo.sf_path = spectra.getSourceFiles()[0].getPathToFile();
       ainfo.sf_filename = spectra.getSourceFiles()[0].getNameOfFile();
       ainfo.sf_type = spectra.getSourceFiles()[0].getFileType();
 
       // native_id
       ainfo.native_id_accession = spectra.getSourceFiles()[0].getNativeIDTypeAccession();
       ainfo.native_id_type = spectra.getSourceFiles()[0].getNativeIDType();
-    }
+   
  
     // extract accession by name
     ControlledVocabulary cv;
@@ -619,8 +618,8 @@ namespace OpenMS
         else
         {
           // initialization with UNKNOWN in case no feature information was available
-          v_description.push_back("UNKNOWN");
-          v_sumformula.push_back("UNKNOWN");
+          v_description.emplace_back("UNKNOWN");
+          v_sumformula.emplace_back("UNKNOWN");
         }
 
         bool writecompound = true;

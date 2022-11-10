@@ -77,7 +77,7 @@ namespace OpenMS
 
         return editor;
       }
-      else if (type_ == ListEditor::OUTPUT_FILE)
+      if (type_ == ListEditor::OUTPUT_FILE)
       {
         QLineEdit * editor = new QLineEdit(parent);
         //editor->setReadOnly(true);

@@ -269,7 +269,7 @@ namespace OpenMS
     {
       return ((n == 'K' || n == 'R') && c != 'P') || n == '-' || c == '-';
     }
-    else if (enz == "trypsinp")
+    if (enz == "trypsinp")
     {
       return (n == 'K' || n == 'R') || n == '-' || c == '-';
     }

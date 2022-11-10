@@ -336,7 +336,7 @@ namespace OpenMS
     {
       return ti->data(Qt::UserRole).toString();
     }
-    else if (ti->data(Qt::DisplayRole).isValid())
+    if (ti->data(Qt::DisplayRole).isValid())
     {
       return ti->data(Qt::DisplayRole).toString();
     }

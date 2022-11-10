@@ -143,15 +143,14 @@ namespace OpenMS
       {
         return it1->second;
       }
-      else
-      {
-        map<double, QColor>::const_iterator it0 = it1;
+      
+              map<double, QColor>::const_iterator it0 = it1;
         --it0;
         double factor = (position - it0->first) / (it1->first - it0->first);
         return QColor(Int(factor * it1->second.red() + (1 - factor) * it0->second.red() + 0.001)
                      , Int(factor * it1->second.green() + (1 - factor) * it0->second.green() + 0.001)
                      , Int(factor * it1->second.blue() + (1 - factor) * it0->second.blue() + 0.001));
-      }
+     
     }
     //stairs
     else

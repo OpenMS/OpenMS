@@ -453,9 +453,8 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
             has_min_isopeaks = (i >= min_isopeaks);
             break;
           }
-          else
-          {
-            // Possible improvement: include proper averagine model filtering
+          
+                      // Possible improvement: include proper averagine model filtering
             // for now start at the peak with i = start_intensity_check to test hypothesis
             // if start_intensity_check = 0 or 1, start checking by comparing monoisotopic and second isotopic peak
             // if start_intensity_check = 2, start checking by comparing second isotopic peak with the third, etc.
@@ -471,7 +470,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
             {
               iso_peak_count[current_peak] = i + 1; // with "+ 1" the monoisotopic peak is counted as well
             }
-          }
+         
         }
 
         if (has_min_isopeaks)

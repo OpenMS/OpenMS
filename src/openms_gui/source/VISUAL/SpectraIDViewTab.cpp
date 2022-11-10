@@ -234,9 +234,8 @@ namespace OpenMS
       {
         continue;
       }
-      else
-      {
-        if (reg_uniprot_accession.exactMatch(substr.simplified()))
+      
+              if (reg_uniprot_accession.exactMatch(substr.simplified()))
         {
           return substr.simplified();
         }
@@ -245,7 +244,7 @@ namespace OpenMS
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid accession found!", 
               String(full_accession));
         }
-      }
+     
     }
     return {};
   }

@@ -131,10 +131,9 @@ namespace OpenMS
     {
       return data_[i].getMetaValue("ppm_error");
     }
-    else
-    {
-      return (data_[i].getMZ() - getRefMZ(i));
-    }
+    
+          return (data_[i].getMZ() - getRefMZ(i));
+   
   }
 
   CalibrationData::CalDataType::CoordinateType CalibrationData::getRefMZ( Size i ) const

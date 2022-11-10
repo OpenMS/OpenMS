@@ -144,7 +144,7 @@ namespace OpenMS
         {
           return INPUT_FILE_EMPTY;       
         }
-        else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+        if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
         {
           return UNEXPECTED_RESULT;
         }

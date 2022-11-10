@@ -133,7 +133,7 @@ namespace OpenMS
     {
       return diff * params.norm_factor * params.weight;
     }
-    else if (params.exponent == 2)
+    if (params.exponent == 2)
     {
       double tmp(diff * params.norm_factor);
       return tmp * tmp * params.weight;

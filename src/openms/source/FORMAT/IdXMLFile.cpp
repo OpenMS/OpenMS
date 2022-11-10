@@ -292,7 +292,7 @@ namespace OpenMS
           ++count_wrong_id;
           continue;
         }
-        else if (peptide_ids[l].getHits().empty())
+        if (peptide_ids[l].getHits().empty())
         {
           ++count_empty;
           continue;

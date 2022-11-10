@@ -509,7 +509,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue::EMPTY to long double");
     }
-    else if (value_type_ == INT_VALUE)
+    if (value_type_ == INT_VALUE)
     {
       return (long double)(data_.ssize_);
     }
@@ -522,7 +522,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue::EMPTY to double");
     }
-    else if (value_type_ == INT_VALUE)
+    if (value_type_ == INT_VALUE)
     {
       return double(data_.ssize_);
     }
@@ -535,7 +535,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue::EMPTY to float");
     }
-    else if (value_type_ == INT_VALUE)
+    if (value_type_ == INT_VALUE)
     {
       return float(data_.ssize_);
     }
@@ -792,7 +792,7 @@ namespace OpenMS
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
         "Could not convert non-string DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to bool");
     }
-    else if (*(data_.str_) != "true" &&  *(data_.str_) != "false")
+    if (*(data_.str_) != "true" &&  *(data_.str_) != "false")
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
         String("Could not convert non-string DataValue of type '") + NamesOfDataType[value_type_] + 

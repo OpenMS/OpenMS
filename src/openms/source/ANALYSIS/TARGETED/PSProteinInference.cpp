@@ -193,7 +193,7 @@ namespace OpenMS
               insert = false; // new pep id is not inserted
               break;
             }
-            else if ((higher_better && it->getHits()[0].getScore() < score)
+            if ((higher_better && it->getHits()[0].getScore() < score)
                     || (!higher_better && it->getHits()[0].getScore() > score)) // if there is the same peptide with a worse score
             {
               *it = ids[i];

@@ -412,7 +412,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert ParamValue::EMPTY to long double");
     }
-    else if (value_type_ == INT_VALUE)
+    if (value_type_ == INT_VALUE)
     {
       return (long double)(data_.ssize_);
     }
@@ -425,7 +425,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert ParamValue::EMPTY to double");
     }
-    else if (value_type_ == INT_VALUE)
+    if (value_type_ == INT_VALUE)
     {
       return double(data_.ssize_);
     }
@@ -438,7 +438,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert ParamValue::EMPTY to float");
     }
-    else if (value_type_ == INT_VALUE)
+    if (value_type_ == INT_VALUE)
     {
       return float(data_.ssize_);
     }
@@ -668,7 +668,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-string ParamValue to bool.");
     }
-    else if (!(*(data_.str_) == "true" || *(data_.str_) == "false"))
+    if (!(*(data_.str_) == "true" || *(data_.str_) == "false"))
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert '" + *(data_.str_) + "' to bool. Valid stings are 'true' and 'false'.");
     }

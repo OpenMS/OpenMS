@@ -199,7 +199,7 @@ namespace OpenMS::Internal
           optionalAttributeAsString_(residue, attributes, "residues");
           if (massdelta_string != "145")
           {
-            current_assay_.mods_.push_back(std::make_pair(residue, massdelta_string.toDouble()));
+            current_assay_.mods_.emplace_back(residue, massdelta_string.toDouble());
           }
           //TODO CV handling
         }
@@ -319,7 +319,7 @@ namespace OpenMS::Internal
         cf_cf_obj_[current_cf_id_].getPeptideIdentifications().back().insertHit(ph); // just moments before added
         return;
       }
-      else if (tag_ == "Row")
+      if (tag_ == "Row")
       {
         String r = sm_.convert(chars);
         r.trim();
@@ -392,7 +392,7 @@ namespace OpenMS::Internal
         current_orderedps_.insert(current_dp_);
         return;
       }
-      else if (tag_ == "DataProcessingList")
+      if (tag_ == "DataProcessingList")
       {
         std::vector<DataProcessing> dps;
         for (std::map<int, DataProcessing>::const_iterator it = current_orderedps_.begin(); it != current_orderedps_.end(); ++it)

@@ -123,7 +123,7 @@ namespace OpenMS::Internal
     {
       return String(getPosition(td_ - 1));
     }
-    else if (param == String("mzMin"))
+    if (param == String("mzMin"))
     {
       return String(getPosition(0));
     }

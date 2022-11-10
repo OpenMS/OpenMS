@@ -65,7 +65,7 @@ namespace OpenMS
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
       }
-      else if (i >= feature_int.size())
+      if (i >= feature_int.size())
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           String(i) + " exceeds map number");
@@ -119,15 +119,14 @@ namespace OpenMS
       OPENMS_LOG_WARN << endl << "Not enough features passing filters. Cannot compute normalization coefficients for all maps. Result will be unnormalized." << endl << endl;
       return 0;
     }
-    else
-    {
-      //compute medians
+    
+          //compute medians
       for (UInt j = 0; j < number_of_maps; j++)
       {
         vector<double>& ints_j = feature_int[j];
         medians[j] = Math::median(ints_j.begin(), ints_j.end());
       }
-    }
+   
 
     return map_with_most_features_idx;
   }

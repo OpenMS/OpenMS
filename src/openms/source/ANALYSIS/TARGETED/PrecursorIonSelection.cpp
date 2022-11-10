@@ -222,14 +222,13 @@ namespace OpenMS
           }
           break;
         }
-        else
-        {
-          f_iter->setMetaValue("fragmented", (String)"true");
+        
+                  f_iter->setMetaValue("fragmented", (String)"true");
           ++fraction_counter_[idx];
           // store them
           next_features.push_back(*f_iter);
           ++count;
-        }
+       
       }
       ++f_iter;
     }

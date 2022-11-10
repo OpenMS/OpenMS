@@ -461,7 +461,7 @@ namespace OpenMS
     {
       return AggregationMethod::BEST;
     }
-    else if (agg_method_string == "product")
+    if (agg_method_string == "product")
     {
       return AggregationMethod::PROD;
     }
@@ -489,10 +489,9 @@ namespace OpenMS
           {
             return old_score * new_score;
           }
-          else
-          {
-            return old_score;
-          }
+          
+                      return old_score;
+         
         };
       case AggregationMethod::BEST :
         if (higher_better)

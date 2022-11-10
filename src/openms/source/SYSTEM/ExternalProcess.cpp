@@ -138,7 +138,7 @@ namespace OpenMS
       }
       return RETURNSTATE::CRASH;
     }
-    else if (qp_->exitCode() != 0)
+    if (qp_->exitCode() != 0)
     {
       error_msg = "Process '" + exe + "' did not finish successfully (exit code: " + int(qp_->exitCode()) + "). Please check the log.";
       if (verbose)

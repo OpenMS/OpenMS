@@ -219,7 +219,7 @@ namespace OpenMS::Internal
         tde_.param = p_;
         return;
       }
-      else if (endtag_ == "external")
+      if (endtag_ == "external")
       {
         td_.external_details.push_back(tde_);
         tde_ = ToolExternalDetails();

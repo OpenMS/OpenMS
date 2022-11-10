@@ -153,7 +153,7 @@ void MSChromatogram::sortByIntensity(bool reverse) {
     sorted_indices.reserve(ContainerType::size());
     for (Size i = 0; i < ContainerType::size(); ++i)
     {
-      sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getIntensity(), i));
+      sorted_indices.emplace_back(ContainerType::operator[](i).getIntensity(), i);
     }
 
     if (reverse)
@@ -218,7 +218,7 @@ void MSChromatogram::sortByPosition()
     sorted_indices.reserve(ContainerType::size());
     for (Size i = 0; i < ContainerType::size(); ++i)
     {
-      sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(), i));
+      sorted_indices.emplace_back(ContainerType::operator[](i).getPosition(), i);
     }
     std::sort(sorted_indices.begin(), sorted_indices.end());
 
@@ -299,10 +299,9 @@ Size MSChromatogram::findNearest(MSChromatogram::CoordinateType rt) const
   {
     return Size(it - ContainerType::begin());
   }
-  else
-  {
-    return Size(it2 - ContainerType::begin());
-  }
+  
+      return Size(it2 - ContainerType::begin());
+ 
 }
 
 MSChromatogram::Iterator MSChromatogram::RTBegin(MSChromatogram::CoordinateType rt)

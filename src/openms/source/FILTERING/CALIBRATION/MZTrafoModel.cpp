@@ -368,10 +368,9 @@ namespace OpenMS
     {
       return Size(it - tms.begin());
     }
-    else
-    {
-      return Size(it2 - tms.begin());
-    }
+    
+          return Size(it2 - tms.begin());
+   
   }
 
   void MZTrafoModel::setCoefficients( const MZTrafoModel& rhs )

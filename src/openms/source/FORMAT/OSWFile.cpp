@@ -132,7 +132,7 @@ namespace OpenMS
             else
             {
               scan_id = group_id_index.size();
-              group_id_index.push_back(sqlite3_column_text(stmt, i));
+              group_id_index.emplace_back(sqlite3_column_text(stmt, i));
             }
           }
           if (strcmp(sqlite3_column_name(stmt, i), "DECOY") == 0)
@@ -186,10 +186,9 @@ namespace OpenMS
           throw Exception::Precondition(__FILE__, __LINE__, __FUNCTION__,
               OpenMS::String("PercolatorAdapter needs to be applied on MS1 & MS2 levels before conducting transition-level scoring."));
         }
-        else
-        {
-          throw Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, in_osw);
-        }
+        
+                  throw Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, in_osw);
+       
       }
 
     }
@@ -484,10 +483,10 @@ namespace OpenMS
           transition_ids.clear();
           return true;
         }
-        else
-        { // if we enter the above block, we will parse the same sql row in the next iteration, so only add the tr-ID if its not a new block
+        
+        // if we enter the above block, we will parse the same sql row in the next iteration, so only add the tr-ID if its not a new block
           transition_ids.push_back(new_transition); // the current transition belongs to the current feature...
-        }
+       
         return false;
       };
 

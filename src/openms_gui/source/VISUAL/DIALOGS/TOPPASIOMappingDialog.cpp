@@ -87,10 +87,9 @@ namespace OpenMS
       checkValidity_();
       return QDialog::Accepted;
     }
-    else
-    {
-      return QDialog::exec();
-    }
+    
+          return QDialog::exec();
+   
   }
 
   void TOPPASIOMappingDialog::fillComboBoxes_()

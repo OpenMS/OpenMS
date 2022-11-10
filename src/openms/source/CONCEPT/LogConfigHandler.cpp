@@ -308,11 +308,10 @@ namespace OpenMS
     {
       return STREAM_HANDLER.getStream(stream_type_map_[name], name);
     }
-    else
-    {
-      // there is no stream with this name
+    
+          // there is no stream with this name
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There is no stream with the given name.");
-    }
+   
   }
 
   StreamHandler::StreamType LogConfigHandler::getStreamTypeByName_(const String & stream_type)

@@ -190,10 +190,9 @@ for (PeakSpectrum::ConstIterator it2 = s2.begin(); it2 != s2.end(); ++it2)
           {
             break;
           }
-          else
-          {
-            j_left = j;
-          }
+          
+                      j_left = j;
+         
         }
       }
     }

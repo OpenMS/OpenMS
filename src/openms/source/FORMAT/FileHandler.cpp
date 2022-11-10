@@ -160,10 +160,9 @@ namespace OpenMS
     {
       return false;
     }
-    else
-    {
-      return true;
-    }
+    
+          return true;
+   
   }
 
   FileTypes::Type FileHandler::getConsistentOutputfileType(const String& output_filename, const String& requested_type)
@@ -187,10 +186,9 @@ namespace OpenMS
     {
       return t_file;
     }
-    else
-    {
-      return t_req;
-    }
+    
+          return t_req;
+   
   }
 
   FileTypes::Type FileHandler::getTypeByContent(const String& filename)
@@ -490,16 +488,15 @@ namespace OpenMS
     {
       return FileTypes::MGF;
     }
-    else
-    {
-      for (Size i = 0; i != complete_file.size(); ++i)
+    
+          for (Size i = 0; i != complete_file.size(); ++i)
       {
         if (complete_file[i].trim() == "FORMAT=Mascot generic" || complete_file[i].trim() == "BEGIN IONS")
         {
           return FileTypes::MGF;
         }
       }
-    }
+   
 
     // MS2 file format
     if (all_simple.hasSubstring("CreationDate"))

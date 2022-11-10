@@ -83,7 +83,7 @@ namespace OpenMS
         {
           break;
         }
-        else if (hull_points1[k].first > hull_points2[m].first )
+        if (hull_points1[k].first > hull_points2[m].first )
         {
             m++;
         }
@@ -198,7 +198,7 @@ namespace OpenMS
           max_mz  = it->getMZ();
         }
       }
-      max_intensities.push_back( std::make_pair(max_mz, max_int));
+      max_intensities.emplace_back(max_mz, max_int);
       rt_cache.push_back(map[i].getRT());
     }
     endProgress();

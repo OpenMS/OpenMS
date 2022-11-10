@@ -80,7 +80,7 @@ namespace OpenMS
       {
         return n_buffer_;
       }
-      else if (bzerror_ != BZ_STREAM_END)
+      if (bzerror_ != BZ_STREAM_END)
       {
         close();
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, " ", "bzip2 compression failed: ");

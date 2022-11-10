@@ -377,14 +377,13 @@ namespace OpenMS
               {
                 continue;
               }
-              else
-              {
-                if (!is_absdiff_small_)
+              
+                              if (!is_absdiff_small_)
                 {
                   reportFailure_("element_1_.number_ is zero, but element_2_.number_ is not");
                   continue;
                 }
-              }
+             
             }
             else // element_1_.number_ is not zero
             {
@@ -456,9 +455,8 @@ namespace OpenMS
             reportFailure_("input_1 is not a number, but input_2 is");
             continue;
           }
-          else // ok, both inputs are not numbers, let us compare them as characters or whitespace
-          {
-            if (element_1_.is_space)
+          // ok, both inputs are not numbers, let us compare them as characters or whitespace
+                      if (element_1_.is_space)
             {
               if (element_2_.is_space) // ok, both inputs are whitespace
               {
@@ -512,7 +510,7 @@ namespace OpenMS
                 }
               }
             }
-          }
+         
         }
 
         if (is_absdiff_small_)

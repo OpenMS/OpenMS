@@ -54,10 +54,9 @@ Size MQExporterHelper::proteinGroupID_(std::map<OpenMS::String, OpenMS::Size>& d
     database.emplace(protein_accession, database.size() + 1);
     return database.size();
   }
-  else
-  {
-    return it->second;
-  }
+  
+      return it->second;
+ 
 }
 
 std::map<Size, Size> MQExporterHelper::makeFeatureUIDtoConsensusMapIndex_(const ConsensusMap& cmap)

@@ -75,7 +75,7 @@ namespace OpenMS
 
   bool isFirstBetterScore(double first, double second, bool isHigherBetter)
   {
-    if (isHigherBetter) return first > second; else return first < second;
+    if (isHigherBetter) return first > second; return first < second;
   }
 
   void FalseDiscoveryRate::apply(vector<PeptideIdentification>& ids, bool annotate_peptide_fdr) const
@@ -886,11 +886,10 @@ namespace OpenMS
           score_to_fdr[ds] = score_to_fdr[target_scores[0]];
           continue;
         }
-        else
-        {
-          score_to_fdr[ds] = 1.0;
+        
+                  score_to_fdr[ds] = 1.0;
           continue;
-        }
+       
       }
 
       if (k == target_scores.size()) { score_to_fdr[ds] = score_to_fdr[target_scores.back()]; continue; }
@@ -1623,11 +1622,10 @@ namespace OpenMS
     {
       return (std::fabs(b1) + std::fabs(b2)) * height / 2.0;
     }
-    else
-    {
-      // it is intersecting the x=y line. Add the area of the resulting triangles
+    
+          // it is intersecting the x=y line. Add the area of the resulting triangles
       return (b1*b1 + b2*b2) * height / (2.0 * (std::fabs(b1)+std::fabs(b2)));
-    }
+   
   }
 
   /// assumes a flat base

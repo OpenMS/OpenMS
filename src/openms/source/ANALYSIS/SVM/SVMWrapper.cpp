@@ -372,9 +372,8 @@ namespace OpenMS
 
       return 1;
     }
-    else
-    {
-      if (problem == nullptr)
+    
+          if (problem == nullptr)
       {
         cout << "problem is null" << endl;
       }
@@ -389,7 +388,7 @@ namespace OpenMS
       }
       cout << "Training error" << endl;
       return 0;
-    }
+   
   }
 
   Int SVMWrapper::train(SVMData& problem)
@@ -663,7 +662,7 @@ namespace OpenMS
       // Creating the particular partition instances
       for (Size i = 0; i < number; i++)
       {
-        problems.push_back(SVMData());
+        problems.emplace_back();
       }
 
       // Creating indices
@@ -827,12 +826,12 @@ namespace OpenMS
   {
     map<SVM_parameter_type, double>::const_iterator start_values_iterator;
     vector<pair<double, Size> > combined_parameters;
-    combined_parameters.push_back(make_pair(1, 25));
+    combined_parameters.emplace_back(1, 25);
 
     double cv_quality = 0.0;
     for (Size i = 1; i < gauss_tables_.size(); ++i)
     {
-      combined_parameters.push_back(make_pair(1, 25));
+      combined_parameters.emplace_back(1, 25);
     }
 
     std::vector<double> start_values(start_values_map.size());
@@ -878,14 +877,12 @@ namespace OpenMS
       map<SVM_parameter_type, double>::const_iterator it = step_sizes_map.find(start_values_iterator->first);
       if (it == step_sizes_map.end())
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No step size given for svm parameter grid search");
-      else
-        step_sizes[actual_index] = it->second;
+              step_sizes[actual_index] = it->second;
 
       it = end_values_map.find(start_values_iterator->first);
       if (it == end_values_map.end())
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No end value given for svm parameter grid search");
-      else
-        end_values[actual_index] = it->second;
+              end_values[actual_index] = it->second;
 
       ++start_values_iterator;
       ++actual_index;
@@ -1308,10 +1305,9 @@ namespace OpenMS
     {
       return svm_get_svr_probability(model_);
     }
-    else
-    {
-      return 0;
-    }
+    
+          return 0;
+   
   }
 
   void SVMWrapper::getSVCProbabilities(struct svm_problem* problem,
@@ -1743,7 +1739,7 @@ namespace OpenMS
           while (pred_it != predicted_labels.end()
                 && real_it != real_labels.end())
           {
-            points.push_back(make_pair(*real_it, *pred_it));
+            points.emplace_back(*real_it, *pred_it);
             differences.push_back(abs(*real_it - *pred_it));
             file << *real_it << " " << *pred_it << endl;
             ++pred_it;
@@ -1823,7 +1819,7 @@ namespace OpenMS
           while (pred_it != predicted_labels.end()
                 && real_it != partitions[j].labels.end())
           {
-            points.push_back(make_pair(*real_it, *pred_it));
+            points.emplace_back(*real_it, *pred_it);
             differences.push_back(abs(*real_it - *pred_it));
             file << *real_it << " " << *pred_it << endl;
 

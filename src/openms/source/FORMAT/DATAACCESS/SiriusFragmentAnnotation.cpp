@@ -123,11 +123,10 @@ namespace OpenMS
       {
         continue;
       }
-      else
-      {
-        // max_rank 1 will get the best.
+      
+              // max_rank 1 will get the best.
         best_annotated_spectrum = extractAnnotationsFromSiriusFile(subdir, 1, false, use_exact_mass)[0];
-      }
+     
 
       ann_spec_tmp = extractAnnotationsFromSiriusFile(subdir, 1, true, use_exact_mass);
       // if no spectrum can be extracted we add an empty spectrum
@@ -229,7 +228,7 @@ namespace OpenMS
           fid = line.erase(line.find(fid_prefix), fid_prefix.size());
           break; // one file can only have one fid
         }
-        else if (spectrum_ms_file.eof())
+        if (spectrum_ms_file.eof())
         {
           return ""; // fid is optional and only there if the origin of the sirius run was an OpenMS feature (not a single MS2).
         }

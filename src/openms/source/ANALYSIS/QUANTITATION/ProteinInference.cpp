@@ -223,10 +223,9 @@ namespace OpenMS
       // this is a shared peptide --> do not use it
       return false;
     }
-    else
-    {
-      return true;
-    }
+    
+          return true;
+   
     // the first element now contains the best peptideHit
 
   }

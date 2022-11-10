@@ -163,10 +163,9 @@ namespace OpenMS
               {
                 return p1.getHits()[0].getScore() < p2.getHits()[0].getScore();
               }
-              else
-              {
-                return p1.getHits()[0].getScore() > p2.getHits()[0].getScore();
-              }});
+              
+                              return p1.getHits()[0].getScore() > p2.getHits()[0].getScore();
+             });
   }
 
   BaseFeature::AnnotationState BaseFeature::getAnnotationState() const
@@ -202,9 +201,8 @@ namespace OpenMS
       /*else if (seqs.size()==0)*/
       return FEATURE_ID_NONE;   // very rare case of empty hits
     }
-    else // consider IDs in new format
-    {
-      if (id_matches_.size() == 1)
+    // consider IDs in new format
+          if (id_matches_.size() == 1)
       {
         return FEATURE_ID_SINGLE;
       }
@@ -219,7 +217,7 @@ namespace OpenMS
         }
       }
       return FEATURE_ID_MULTIPLE_SAME;
-    }
+   
   }
 
 

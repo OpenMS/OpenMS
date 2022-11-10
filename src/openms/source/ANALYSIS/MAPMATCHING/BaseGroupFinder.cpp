@@ -74,10 +74,9 @@ namespace OpenMS
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "file ids have to be unique");
         }
-        else
-        {
-          used_ids.insert(it->first);
-        }
+        
+                  used_ids.insert(it->first);
+       
       }
     }
   }

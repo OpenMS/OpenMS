@@ -545,9 +545,8 @@ namespace OpenMS
     {
       return getAddedSpectra_(swath_maps[0].sptr, RT, nr_spectra_to_add, drift_lower, drift_upper);
     }
-    else
-    {
-      // multiple SWATH maps for a single precursor -> this is SONAR data
+    
+          // multiple SWATH maps for a single precursor -> this is SONAR data
       std::vector<OpenSwath::SpectrumPtr> all_spectra;
       for (size_t i = 0; i < swath_maps.size(); ++i)
       {
@@ -556,7 +555,7 @@ namespace OpenMS
       }
       OpenSwath::SpectrumPtr spectrum_ = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
       return spectrum_;
-    }
+   
   }
 
   OpenSwath::SpectrumPtr filterByDrift(const OpenSwath::SpectrumPtr& input, const double drift_lower, const double drift_upper)

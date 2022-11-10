@@ -101,10 +101,9 @@ namespace OpenMS
     {
       return &transition_exp_used.getPeptideByRef(transition.getPeptideRef()); 
     }
-    else
-    {
-      return &transition_exp_used.getCompoundByRef(transition.getCompoundRef()); 
-    }
+    
+          return &transition_exp_used.getCompoundByRef(transition.getCompoundRef()); 
+   
   }
 
   const TargetedExperimentHelper::PeptideCompound* getPeptideHelperMS1_(const OpenMS::TargetedExperiment & transition_exp_used,
@@ -118,10 +117,9 @@ namespace OpenMS
     {
       return &transition_exp_used.getPeptides()[i];
     }
-    else
-    {
-      return &transition_exp_used.getCompounds()[i];
-    }
+    
+          return &transition_exp_used.getCompounds()[i];
+   
   }
 
   void ChromatogramExtractor::prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
@@ -285,7 +283,7 @@ namespace OpenMS
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                            "Error: Peptide " + pep->id + " does not have retention time information which is necessary to perform an RT-limited extraction");
         }
-        else if (std::isnan(rt_extraction_window)) // if 'rt_extraction_window' is NAN, we assume that RT start/end is encoded in the data
+        if (std::isnan(rt_extraction_window)) // if 'rt_extraction_window' is NAN, we assume that RT start/end is encoded in the data
         {
           // TODO: better use a single RT entry with start/end
           if (pep->rts.size() != 2)
@@ -354,7 +352,7 @@ namespace OpenMS
     {
       return 1;
     }
-    else if (filter == "bartlett")
+    if (filter == "bartlett")
     {
       return 2;
     }

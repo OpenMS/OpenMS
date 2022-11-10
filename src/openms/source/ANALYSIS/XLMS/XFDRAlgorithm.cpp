@@ -262,7 +262,7 @@ using namespace OpenMS;
             assigned = true;
             break;
           }
-          else if (   current_crosslink_type == crosslink_class_fulldecoysintralinks_
+          if (   current_crosslink_type == crosslink_class_fulldecoysintralinks_
               || current_crosslink_type == crosslink_class_hybriddecoysintralinks_
               || current_crosslink_type == crosslink_class_intradecoys_
               || current_crosslink_type == crosslink_class_intralinks_)
@@ -584,7 +584,7 @@ using namespace OpenMS;
                + "-b" + String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2));
 
     }
-    else if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "loop-link")
+    if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "loop-link")
     {
       return   ph.getSequence().toUnmodifiedString()
                + "-a" + String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1))

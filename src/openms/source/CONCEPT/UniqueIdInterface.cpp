@@ -52,8 +52,7 @@ namespace OpenMS
       unique_id_ = UniqueIdGenerator::getUniqueId();
       return 1;
     }
-    else
-      return 0;
+          return 0;
   }
 
   void UniqueIdInterface::setUniqueId(const String & rhs)

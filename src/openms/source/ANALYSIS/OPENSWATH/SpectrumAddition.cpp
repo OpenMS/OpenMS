@@ -128,9 +128,8 @@ namespace OpenMS
     {
       return resampled_peak_container;
     }
-    else
-    {
-      OpenSwath::SpectrumPtr master_spectrum_filtered(new OpenSwath::Spectrum);
+    
+          OpenSwath::SpectrumPtr master_spectrum_filtered(new OpenSwath::Spectrum);
       for (Size i = 0; i < resampled_peak_container->getIntensityArray()->data.size(); ++i)
       {
         if (resampled_peak_container->getIntensityArray()->data[i] > 0)
@@ -140,7 +139,7 @@ namespace OpenMS
         }
       }
       return master_spectrum_filtered;
-    }
+   
   }
 
   OpenMS::MSSpectrum SpectrumAddition::addUpSpectra(const std::vector<OpenMS::MSSpectrum>& all_spectra, double sampling_rate, bool filter_zeros)
@@ -218,9 +217,8 @@ namespace OpenMS
     {
       return master_spectrum;
     }
-    else
-    {
-      MSSpectrum master_spectrum_filtered;
+    
+          MSSpectrum master_spectrum_filtered;
       for (Size i = 0; i < master_spectrum.size(); ++i)
       {
         if (master_spectrum[i].getIntensity() > 0)
@@ -229,7 +227,7 @@ namespace OpenMS
         }
       }
       return master_spectrum_filtered;
-    }
+   
   }
 
 }

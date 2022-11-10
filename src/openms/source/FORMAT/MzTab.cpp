@@ -97,9 +97,8 @@ namespace OpenMS
     {
       return "null";
     }
-    else
-    {
-      String pos_param_string;
+    
+          String pos_param_string;
 
       for (Size i = 0; i != pos_param_pairs_.size(); ++i)
       {
@@ -135,7 +134,7 @@ namespace OpenMS
         res = mod_identifier_.toCellString();
       }
       return res;
-    }
+   
   }
 
   void MzTabModification::fromCellString(const String& s)
@@ -210,9 +209,8 @@ namespace OpenMS
     {
       return "null";
     }
-    else
-    {
-      String ret;
+    
+          String ret;
       for (std::vector<MzTabModification>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
       {
         if (it != entries_.begin())
@@ -222,7 +220,7 @@ namespace OpenMS
         ret += it->toCellString();
       }
       return ret;
-    }
+   
   }
 
   void MzTabModificationList::fromCellString(const String& s)
@@ -682,10 +680,9 @@ namespace OpenMS
       mods_mztab.insert(make_pair(1, mod_mtd));
       return mods_mztab;
     }
-    else
-    {
-      return generateMzTabStringFromModifications(mods);
-    }
+    
+          return generateMzTabStringFromModifications(mods);
+   
   }
 
   map<Size, MzTabModificationMetaData> MzTab::generateMzTabStringFromFixedModifications(const vector<String>& mods)
@@ -698,10 +695,9 @@ namespace OpenMS
       mods_mztab.insert(make_pair(1, mod_mtd));
       return mods_mztab;
     }
-    else
-    {
-      return generateMzTabStringFromModifications(mods);
-    }
+    
+          return generateMzTabStringFromModifications(mods);
+   
   }
 
   MzTab MzTab::exportFeatureMapToMzTab(
@@ -1457,11 +1453,10 @@ namespace OpenMS
     {
       return MzTabString(unimod);
     }
-    else
-    {
-      MzTabString non_unimod_accession = MzTabString("CHEMMOD:" + String(r.getDiffMonoMass()));
+    
+          MzTabString non_unimod_accession = MzTabString("CHEMMOD:" + String(r.getDiffMonoMass()));
       return non_unimod_accession;
-    }
+   
   }
 
   MzTabProteinSectionRow MzTab::proteinSectionRowFromProteinHit_(

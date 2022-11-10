@@ -193,11 +193,10 @@ namespace OpenMS
         ppm_score = (right - left) / precursor_mz * 1000000;
         return false;
       }
-      else
-      {
-        ppm_score = Math::getPPMAbs(mz, precursor_mz);
+      
+              ppm_score = Math::getPPMAbs(mz, precursor_mz);
         return true;
-      }
+     
     }
   }
 

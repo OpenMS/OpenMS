@@ -132,7 +132,7 @@ namespace OpenMS
           continue;
         }
         // do not list first scan again if it's only a single point
-        else if (it == --map_points_.rend() && (it->second.width() == 0))
+        if (it == --map_points_.rend() && (it->second.width() == 0))
         {
           continue;
         }

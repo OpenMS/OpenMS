@@ -411,11 +411,10 @@ namespace OpenMS
 
       return new_f;
     }
-    else
-    {
-      // simply add feature from second channel, since we have no corresponding feature in the first channel
+    
+          // simply add feature from second channel, since we have no corresponding feature in the first channel
       return feature_to_merge;
-    }
+   
   }
 
   void ICPLLabeler::addModificationToPeptideHit_(Feature& feature, const String& modification) const

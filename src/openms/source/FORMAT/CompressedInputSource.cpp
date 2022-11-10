@@ -151,16 +151,15 @@ namespace OpenMS
       }
       return retStrm;
     }
-    else /*     (bz[0] == g1 && bz[1] == g2), where char g1 = 0x1f and char g2 = 0x8b */
-    {
-      GzipInputStream * retStrm = new GzipInputStream(Internal::StringManager().convert(getSystemId()));
+    /*     (bz[0] == g1 && bz[1] == g2), where char g1 = 0x1f and char g2 = 0x8b */
+          GzipInputStream * retStrm = new GzipInputStream(Internal::StringManager().convert(getSystemId()));
       if (!retStrm->getIsOpen())
       {
         delete retStrm;
         return nullptr;
       }
       return retStrm;
-    }
+   
 
   }
 

@@ -388,7 +388,7 @@ namespace OpenMS
     {
       return score;
     }
-    else if (lambda_score == LambdaScore::INVERSE)
+    if (lambda_score == LambdaScore::INVERSE)
     {
       return 1.0 / score;
     }

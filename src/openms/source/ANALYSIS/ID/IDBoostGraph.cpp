@@ -1527,10 +1527,9 @@ namespace OpenMS
     {
       return g;
     }
-    else
-    {
-      return ccs_.at(cc);
-    }
+    
+          return ccs_.at(cc);
+   
   }
 
   IDBoostGraph::vertex_t IDBoostGraph::addVertexWithLookup_(const IDPointer& ptr, unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map)

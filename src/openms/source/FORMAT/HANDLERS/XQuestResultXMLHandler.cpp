@@ -100,8 +100,8 @@ namespace OpenMS::Internal
                                                    const String& version
                                                  ) :
       XMLHandler(filename, version),
-      pep_ids_(0),
-      prot_ids_(0),
+      pep_ids_(nullptr),
+      prot_ids_(nullptr),
       cpro_id_(&pro_id),
       cpep_id_(&pep_id)
     {
@@ -895,10 +895,9 @@ namespace OpenMS::Internal
         n = (n / 2) + 1;
         return splitByNth(input, separator, n);
       }
-      else
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The separator has to occur in the input string an uneven number of times (and at least once).");
-      }
+      
+              throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The separator has to occur in the input string an uneven number of times (and at least once).");
+     
     }
 
     void XQuestResultXMLHandler::writeTo(std::ostream& os)

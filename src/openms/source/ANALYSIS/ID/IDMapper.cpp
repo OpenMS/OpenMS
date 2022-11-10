@@ -886,7 +886,7 @@ namespace OpenMS
     {
       return mz * mz_tolerance_ / 1e6;
     }
-    else if (measure_ == MEASURE_DA)
+    if (measure_ == MEASURE_DA)
     {
       return mz_tolerance_;
     }
@@ -899,7 +899,7 @@ namespace OpenMS
     {
       return (fabs(rt_distance) <= rt_tolerance_) && (Math::getPPMAbs(mz_observed, mz_theoretical) <= mz_tolerance_);
     }
-    else if (measure_ == MEASURE_DA)
+    if (measure_ == MEASURE_DA)
     {
       return (fabs(rt_distance) <= rt_tolerance_) && (fabs(mz_theoretical - mz_observed) <= mz_tolerance_);
     }

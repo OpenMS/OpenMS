@@ -696,10 +696,10 @@ namespace OpenMS
     {
       return one_letter_code_;
     }
-    else
-    { // this already contains the origin!
+    
+    // this already contains the origin!
       return modification_->toString();
-    }
+   
   }
 
   ostream& operator<<(ostream& os, const Residue& residue)

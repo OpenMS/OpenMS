@@ -493,9 +493,8 @@ namespace OpenMS::Internal::ClassTest
             fuzzy_message = "both numbers are zero";
             return true;
           }
-          else
-          {
-            if (!is_absdiff_small)
+          
+                      if (!is_absdiff_small)
             {
               fuzzy_message = "number_1 is zero, but number_2 is not small";
               return false;
@@ -505,7 +504,7 @@ namespace OpenMS::Internal::ClassTest
               fuzzy_message = "number_1 is zero, number_2 is small";
               return true;
             }
-          }
+         
         }
         else // number_1 is not zero
         {
@@ -516,11 +515,10 @@ namespace OpenMS::Internal::ClassTest
               fuzzy_message = "number_1 is not zero, but number_2 is";
               return false;
             }
-            else
-            {
-              fuzzy_message = "number_2 is zero, but number_1 is not small";
+            
+                          fuzzy_message = "number_2 is zero, but number_1 is not small";
               return true;
-            }
+           
           }
           else // both numbers are not zero
           {
@@ -533,12 +531,11 @@ namespace OpenMS::Internal::ClassTest
                   = "numbers have different signs and difference is not small";
                 return false;
               }
-              else
-              {
-                fuzzy_message
+              
+                              fuzzy_message
                   = "numbers have different signs, but difference is small";
                 return true;
-              }
+             
             }
             else // ok, numbers have same sign, but we still need to check their ratio
             {
@@ -558,12 +555,11 @@ namespace OpenMS::Internal::ClassTest
                   fuzzy_message = "ratio of numbers is large";
                   return false;
                 }
-                else
-                {
-                  fuzzy_message
+                
+                                  fuzzy_message
                     = "ratio of numbers is large, but numbers are small";
                   return true;
-                }
+               
               }
               else
               {

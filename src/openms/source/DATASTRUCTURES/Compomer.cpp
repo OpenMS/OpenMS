@@ -335,7 +335,7 @@ namespace OpenMS
     {
       return true;
     }
-    else if (c1.net_charge_ > c2.net_charge_)
+    if (c1.net_charge_ > c2.net_charge_)
     {
       return false;
     }

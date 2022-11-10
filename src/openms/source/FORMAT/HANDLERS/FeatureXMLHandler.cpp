@@ -662,7 +662,7 @@ namespace OpenMS::Internal
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
-            peptide_evidences_.push_back(PeptideEvidence());
+            peptide_evidences_.emplace_back();
           }
           peptide_evidences_[i].setAABefore(splitted[i][0]);
         }
@@ -679,7 +679,7 @@ namespace OpenMS::Internal
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
-            peptide_evidences_.push_back(PeptideEvidence());
+            peptide_evidences_.emplace_back();
           }
           peptide_evidences_[i].setAAAfter(splitted[i][0]);
         }
@@ -697,7 +697,7 @@ namespace OpenMS::Internal
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
-            peptide_evidences_.push_back(PeptideEvidence());
+            peptide_evidences_.emplace_back();
           }
           peptide_evidences_[i].setStart(splitted[i].toInt());
         }
@@ -714,7 +714,7 @@ namespace OpenMS::Internal
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
-            peptide_evidences_.push_back(PeptideEvidence());
+            peptide_evidences_.emplace_back();
           }
           peptide_evidences_[i].setEnd(splitted[i].toInt());
         }
@@ -1094,10 +1094,9 @@ namespace OpenMS::Internal
       last_meta_ = nullptr;
       return;
     }
-    else
-    {
-      f1 = &map_->back();
-    }
+    
+          f1 = &map_->back();
+   
 
     for (Int level = 1; level < subordinate_feature_level_; ++level)
     {
@@ -1114,14 +1113,13 @@ namespace OpenMS::Internal
     }
     if (create)
     {
-      f1->getSubordinates().push_back(Feature());
+      f1->getSubordinates().emplace_back();
       current_feature_ = &f1->getSubordinates().back();
       last_meta_ = &f1->getSubordinates().back();
       return;
     }
-    else
-    {
-      if (f1->getSubordinates().empty())
+    
+          if (f1->getSubordinates().empty())
       {
         current_feature_ = nullptr;
         last_meta_ = nullptr;
@@ -1133,7 +1131,7 @@ namespace OpenMS::Internal
         last_meta_ = &f1->getSubordinates().back();
         return;
       }
-    }
+   
   }
 
 }

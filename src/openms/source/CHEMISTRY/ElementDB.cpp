@@ -82,13 +82,12 @@ namespace OpenMS
     {
       return entry->second;
     }
-    else
-    {
-      if (auto entry = names_.find(name); entry != names_.end())
+    
+          if (auto entry = names_.find(name); entry != names_.end())
       {
         return entry->second;
       }
-    }
+   
     return nullptr;
   }
 
@@ -152,7 +151,7 @@ namespace OpenMS
     }
 
     if (highest_abundance_isotope != -1) return mass.at(highest_abundance_isotope);
-    else return 0.0;
+    return 0.0;
   }
 
   void ElementDB::storeElements_()

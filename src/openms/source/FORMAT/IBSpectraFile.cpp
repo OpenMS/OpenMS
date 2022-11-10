@@ -116,7 +116,7 @@ namespace OpenMS
     {
       return boost::shared_ptr<IsobaricQuantitationMethod>(new ItraqFourPlexQuantitationMethod);
     }
-    else if (cm.getColumnHeaders().size() == 6)
+    if (cm.getColumnHeaders().size() == 6)
     {
       return boost::shared_ptr<IsobaricQuantitationMethod>(new TMTSixPlexQuantitationMethod);
     }
@@ -224,7 +224,7 @@ namespace OpenMS
       if (cFeature.getPeptideIdentifications().empty() || !has_proteinIdentifications)
       {
         // we store unidentified hits anyway, because the iTRAQ quant is still helpful for normalization
-        entries.push_back(IdCSV());
+        entries.emplace_back();
       }
       else
       {

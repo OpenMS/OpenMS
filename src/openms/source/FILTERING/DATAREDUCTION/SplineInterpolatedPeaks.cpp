@@ -162,7 +162,7 @@ namespace OpenMS
         if (intensity_package.size() > 1)
         {
           // Two or more data points in package. At least one of them will be non-zero since unnecessary zeros removed above.
-          packages_.push_back(SplinePackage(pos_package, intensity_package));
+          packages_.emplace_back(pos_package, intensity_package);
         }
         pos_package.clear();
         intensity_package.clear();
@@ -173,7 +173,7 @@ namespace OpenMS
     // add the last package
     if (intensity_package.size() > 1)
     {
-      packages_.push_back(SplinePackage(pos_package, intensity_package));
+      packages_.emplace_back(pos_package, intensity_package);
     }
 
   }
@@ -315,12 +315,11 @@ namespace OpenMS
       last_package_ = i;
       return (*packages_)[i].getPosMin();
     }
-    else
-    {
-      // make a small step within the package
+    
+          // make a small step within the package
       last_package_ = i;
       return pos + pos_step_width_scaling_ * package.getPosStepWidth();
-    }
+   
   }
 
 }

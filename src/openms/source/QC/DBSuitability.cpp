@@ -109,7 +109,7 @@ namespace OpenMS
     }
 
     // calculate suitability
-    results_.push_back(SuitabilityData());
+    results_.emplace_back();
     SuitabilityData& suitability_data_full = results_.back();
 
     // make sure pep_ids are sorted
@@ -590,15 +590,14 @@ namespace OpenMS
     {
       return double(pep_hit.getMetaValue("MS:1002252")) / pep_hit.getSequence().getMonoWeight(); // normalized by mw
     }
-    else
-    {
-      if (!param_.getValue("force").toBool()) // without xcorr, need to force re-ranking
+    
+          if (!param_.getValue("force").toBool()) // without xcorr, need to force re-ranking
       {
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported for re-ranking. Set 'force' flag to use the default score for this. This may result in undefined behaviour and is not advised."));
       }
 
       return pep_hit.getScore(); // uses q-value from FDR
-    }
+   
   }
 
   double DBSuitability::calculateCorrectionFactor_(const SuitabilityData& data_full, const SuitabilityData& data_sampled, double sampling_rate) const

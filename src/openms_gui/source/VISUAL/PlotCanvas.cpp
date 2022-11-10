@@ -858,10 +858,9 @@ namespace OpenMS
       Int charge = hit.getCharge();
       return hit.getSequence().getMZ(charge);
     }
-    else
-    {
-      return peptide.getMZ();
-    }
+    
+          return peptide.getMZ();
+   
   }
 
   void LayerStack::addLayer(LayerDataBaseUPtr new_layer)

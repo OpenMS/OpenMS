@@ -1820,9 +1820,8 @@ namespace OpenMS
       return;
       //cerr << position << " " << left_gb << " " << right_gb << endl;
     }
-    else
-    {
-      if (position == peptide.size())
+    
+          if (position == peptide.size())
       {
         left_gb = peptide[position - 1].getBackboneBasicityLeft();
         right_gb = (double)param_.getValue("gb_bb_r_COOH");
@@ -1836,7 +1835,7 @@ namespace OpenMS
         return;
         //cerr << position << " " << left_gb << " " << right_gb << endl;
       }
-    }
+   
   }
 
 } // namespace OpenMS

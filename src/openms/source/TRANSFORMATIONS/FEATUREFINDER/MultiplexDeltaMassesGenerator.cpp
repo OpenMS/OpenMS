@@ -111,7 +111,7 @@ namespace OpenMS
         if (temp_samples[i]=="no_label")
         {
           vector<String> temp_labels;
-          temp_labels.push_back("no_label");
+          temp_labels.emplace_back("no_label");
           samples_labels_.push_back(temp_labels);
         }
         else
@@ -126,7 +126,7 @@ namespace OpenMS
     if (samples_labels_.empty())
     {
       vector<String> temp_labels;
-      temp_labels.push_back("no_label");
+      temp_labels.emplace_back("no_label");
       samples_labels_.push_back(temp_labels);
     }
 
@@ -205,7 +205,7 @@ namespace OpenMS
           if (ArgPerPeptide + LysPerPeptide <= (unsigned) missed_cleavages_ + 1)
           {
             MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
-            delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+            delta_masses_temp.getDeltaMasses().emplace_back(0, "no_label");
             for (unsigned i = 0; i < samples_labels_.size(); i++)
             {
               double mass_shift = 0;
@@ -252,7 +252,7 @@ namespace OpenMS
 
               if (goAhead_Arg && goAhead_Lys && (mass_shift != 0))
               {
-                delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
+                delta_masses_temp.getDeltaMasses().emplace_back(mass_shift, label_set);
               }
             }
 
@@ -276,7 +276,7 @@ namespace OpenMS
       {
         MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
 
-        delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+        delta_masses_temp.getDeltaMasses().emplace_back(0, "no_label");
 
         double mass_shift = (mc + 1) * (label_delta_mass_[samples_labels_[1][0]] - label_delta_mass_[samples_labels_[0][0]]);
         MultiplexDeltaMasses::LabelSet label_set;
@@ -285,7 +285,7 @@ namespace OpenMS
         {
           label_set.insert(samples_labels_[1][0]);
         }
-        delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
+        delta_masses_temp.getDeltaMasses().emplace_back(mass_shift, label_set);
 
         delta_masses_list_.push_back(delta_masses_temp);
       }
@@ -313,7 +313,7 @@ namespace OpenMS
             label_set.insert(samples_labels_[i][0]);
           }
 
-         delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
+         delta_masses_temp.getDeltaMasses().emplace_back(mass_shift, label_set);
         }
         delta_masses_list_.push_back(delta_masses_temp);
       }
@@ -333,7 +333,7 @@ namespace OpenMS
             label_set.insert(samples_labels_[i][0]);
           }
 
-          delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
+          delta_masses_temp.getDeltaMasses().emplace_back(mass_shift, label_set);
         }
         delta_masses_list_.push_back(delta_masses_temp);
       }
@@ -342,7 +342,7 @@ namespace OpenMS
     {
       // none (singlet detection)
       MultiplexDeltaMasses delta_masses_temp;
-      delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+      delta_masses_temp.getDeltaMasses().emplace_back(0, "no_label");
       delta_masses_list_.push_back(delta_masses_temp);
     }
 
@@ -378,7 +378,7 @@ namespace OpenMS
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Knock-outs for singlet detection not relevant.");
     }
-    else if (n == 2)
+    if (n == 2)
     {
       // add singlets
       MultiplexDeltaMasses dm;
@@ -600,19 +600,19 @@ namespace OpenMS
 
   void MultiplexDeltaMassesGenerator::fillLabelMasterList_()
   {
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Arg6", "Label:13C(6)", "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", 6.0201290268));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Arg10", "Label:13C(6)15N(4)", "Label:13C(6)15N(4)  |  C(-6) 13C(6) N(-4) 15N(4)  |  unimod #267", 10.008268600));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Lys4", "Label:2H(4)", "Label:2H(4)  |  H(-4) 2H(4)  |  unimod #481", 4.0251069836));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Lys6", "Label:13C(6)", "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", 6.0201290268));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Lys8", "Label:13C(6)15N(2)", "Label:13C(6)15N(2)  |  C(-6) 13C(6) N(-2) 15N(2)  |  unimod #259", 8.0141988132));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Leu3", "Label:2H(3)", "Label:2H(3)  |  H(-3) 2H(3)  |  unimod #262", 3.018830));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Dimethyl0", "Dimethyl", "Dimethyl  |  H(4) C(2)  |  unimod #36", 28.031300));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Dimethyl4", "Dimethyl:2H(4)", "Dimethyl:2H(4)  |  2H(4) C(2)  |  unimod #199", 32.056407));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Dimethyl6", "Dimethyl:2H(4)13C(2)", "Dimethyl:2H(4)13C(2)  |  2H(4) 13C(2)  |  unimod #510", 34.063117));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Dimethyl8", "Dimethyl:2H(6)13C(2)", "Dimethyl:2H(6)13C(2)  |  H(-2) 2H(6) 13C(2)  |  unimod #330", 36.075670));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("ICPL0", "ICPL", "ICPL  |  H(3) C(6) N O  |  unimod #365", 105.021464));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("ICPL4", "ICPL:2H(4)", "ICPL:2H(4)  |  H(-1) 2H(4) C(6) N O  |  unimod #687", 109.046571));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("ICPL6", "ICPL:13C(6)", "ICPL:13C(6)  |  H(3) 13C(6) N O  |  unimod #364", 111.041593));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("ICPL10", "ICPL:13C(6)2H(4)", "ICPL:13C(6)2H(4)  |  H(-1) 2H(4) 13C(6) N O  |  unimod #866", 115.066700));
+    label_master_list_.emplace_back("Arg6", "Label:13C(6)", "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", 6.0201290268);
+    label_master_list_.emplace_back("Arg10", "Label:13C(6)15N(4)", "Label:13C(6)15N(4)  |  C(-6) 13C(6) N(-4) 15N(4)  |  unimod #267", 10.008268600);
+    label_master_list_.emplace_back("Lys4", "Label:2H(4)", "Label:2H(4)  |  H(-4) 2H(4)  |  unimod #481", 4.0251069836);
+    label_master_list_.emplace_back("Lys6", "Label:13C(6)", "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", 6.0201290268);
+    label_master_list_.emplace_back("Lys8", "Label:13C(6)15N(2)", "Label:13C(6)15N(2)  |  C(-6) 13C(6) N(-2) 15N(2)  |  unimod #259", 8.0141988132);
+    label_master_list_.emplace_back("Leu3", "Label:2H(3)", "Label:2H(3)  |  H(-3) 2H(3)  |  unimod #262", 3.018830);
+    label_master_list_.emplace_back("Dimethyl0", "Dimethyl", "Dimethyl  |  H(4) C(2)  |  unimod #36", 28.031300);
+    label_master_list_.emplace_back("Dimethyl4", "Dimethyl:2H(4)", "Dimethyl:2H(4)  |  2H(4) C(2)  |  unimod #199", 32.056407);
+    label_master_list_.emplace_back("Dimethyl6", "Dimethyl:2H(4)13C(2)", "Dimethyl:2H(4)13C(2)  |  2H(4) 13C(2)  |  unimod #510", 34.063117);
+    label_master_list_.emplace_back("Dimethyl8", "Dimethyl:2H(6)13C(2)", "Dimethyl:2H(6)13C(2)  |  H(-2) 2H(6) 13C(2)  |  unimod #330", 36.075670);
+    label_master_list_.emplace_back("ICPL0", "ICPL", "ICPL  |  H(3) C(6) N O  |  unimod #365", 105.021464);
+    label_master_list_.emplace_back("ICPL4", "ICPL:2H(4)", "ICPL:2H(4)  |  H(-1) 2H(4) C(6) N O  |  unimod #687", 109.046571);
+    label_master_list_.emplace_back("ICPL6", "ICPL:13C(6)", "ICPL:13C(6)  |  H(3) 13C(6) N O  |  unimod #364", 111.041593);
+    label_master_list_.emplace_back("ICPL10", "ICPL:13C(6)2H(4)", "ICPL:13C(6)2H(4)  |  H(-1) 2H(4) 13C(6) N O  |  unimod #866", 115.066700);
   }
 }

@@ -287,9 +287,8 @@ namespace OpenMS
         //cout << " - Next name: '" << new_name << "'" << std::endl;
         return it->findParentOf(new_name);
     }
-    else // we are in the right child
-    {
-        //check if a node or entry prefix match
+    // we are in the right child
+            //check if a node or entry prefix match
         for (size_t i = 0; i < nodes.size(); ++i)
         {
             if (nodes[i].name.compare(0, local_name.size(), local_name) == 0)
@@ -305,7 +304,7 @@ namespace OpenMS
             }
         }
         return nullptr;
-    }
+   
   }
 
   Param::ParamEntry* Param::ParamNode::findEntryRecursive(const std::string& local_name)
@@ -343,7 +342,7 @@ namespace OpenMS
       }
       else //create it
       {
-        insert_node->nodes.push_back(ParamNode(local_name, ""));
+        insert_node->nodes.emplace_back(local_name, "");
         insert_node = &(insert_node->nodes.back());
         //std::cerr << " - Created new node: " << insert_node->name << std::endl;
       }
@@ -396,7 +395,7 @@ namespace OpenMS
       }
       else //create it
       {
-        insert_node->nodes.push_back(ParamNode(local_name, ""));
+        insert_node->nodes.emplace_back(local_name, "");
         insert_node = &(insert_node->nodes.back());
         //std::cerr << " - Created new node: " << insert_node->name << std::endl;
       }
@@ -1240,7 +1239,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           continue;
         }
         // param 'type': do not override!
-        else if (suffix = ":type",
+        if (suffix = ":type",
                 !(suffix.length() > it.getName().length()) &&
                 it.getName().compare(it.getName().length() - suffix.length(), suffix.length(), suffix) == 0) // only for TOPP type (e.g. PeakPicker:1:type), any other 'type' param is ok
         {
@@ -1524,7 +1523,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
         return *this;
       }
       //visit subnodes after entries
-      else if (!node->nodes.empty())
+      if (!node->nodes.empty())
       {
         current_ = -1;
         stack_.push_back(&(node->nodes[0]));
@@ -1669,10 +1668,9 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       // Remove trailing colon from key
       return root_.findParentOf(key.substr(0, key.size() - 1)) != nullptr;
     }
-    else
-    {
-      return root_.findParentOf(key) != nullptr;
-    }
+    
+          return root_.findParentOf(key) != nullptr;
+   
   }
 
   Param::ParamEntry& Param::getEntry_(const std::string& key) const

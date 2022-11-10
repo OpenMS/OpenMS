@@ -183,12 +183,11 @@ namespace OpenMS::DIAHelpers
           mz /= intensity;
           return true;
         }
-        else
-        {
-          mz = -1;
+        
+                  mz = -1;
           intensity = 0;
           return false;
-        }
+       
 
       }
       else

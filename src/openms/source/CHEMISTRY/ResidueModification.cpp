@@ -618,11 +618,10 @@ namespace OpenMS
      
         return mod_db->addModification(std::move(new_mod));
       }
-      else
-      {
-        Size mod_idx = mod_db->findModificationIndex(residue_id);
+      
+              Size mod_idx = mod_db->findModificationIndex(residue_id);
         return mod_db->getModification(mod_idx);
-      }
+     
     }
     else
       if (specificity == ResidueModification::C_TERM || specificity == ResidueModification::PROTEIN_C_TERM)
@@ -655,11 +654,10 @@ namespace OpenMS
 
           return mod_db->addModification(std::move(new_mod));
         }
-        else
-        {
-          Size mod_idx = mod_db->findModificationIndex(residue_id);
+        
+                  Size mod_idx = mod_db->findModificationIndex(residue_id);
           return mod_db->getModification(mod_idx);
-        }
+       
       }
       else
       {
@@ -697,11 +695,10 @@ namespace OpenMS
 
           return mod_db->addModification(std::move(new_mod));
         }
-        else
-        {
-          Size mod_idx = mod_db->findModificationIndex(residue_id);
+        
+                  Size mod_idx = mod_db->findModificationIndex(residue_id);
           return mod_db->getModification(mod_idx);
-        }
+       
       }
   }
   

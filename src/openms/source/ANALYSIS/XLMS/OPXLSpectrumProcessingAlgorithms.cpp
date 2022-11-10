@@ -265,7 +265,7 @@ namespace OpenMS
             { // found a match
               break;
             }
-            else if (new_d > max_dist_dalton)
+            if (new_d > max_dist_dalton)
             { // no match found
               e_candidate = e;
               break;
@@ -276,10 +276,10 @@ namespace OpenMS
             ++t;
             continue;
           }
-          else
-          { // match found
+          
+          // match found
             e = e_candidate;
-          }
+         
         }
 
         // Invariant: e now points to the first peak in tolerance window, that matches in charge and intensity
@@ -410,7 +410,7 @@ namespace OpenMS
             { // found a match
               break;
             }
-            else if (new_d > max_dist_dalton)
+            if (new_d > max_dist_dalton)
             { // no match found
               e_candidate = e;
               break;
@@ -421,10 +421,10 @@ namespace OpenMS
             ++t;
             continue;
           }
-          else
-          { // match found
+          
+          // match found
             e = e_candidate;
-          }
+         
         }
 
         // Invariant: e now points to the first peak in tolerance window, that matches in charge and intensity

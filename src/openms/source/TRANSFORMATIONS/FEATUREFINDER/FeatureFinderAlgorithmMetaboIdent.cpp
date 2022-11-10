@@ -656,7 +656,7 @@ namespace OpenMS
       OPENMS_LOG_DEBUG << msg << endl;
     }
 
-    Feature* best_feature = 0;
+    Feature* best_feature = nullptr;
     while (!group.empty())
     {
       double best_rt_delta = numeric_limits<double>::infinity();

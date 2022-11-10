@@ -678,13 +678,13 @@ namespace OpenMS
               line.split(' ', split);
               if (split.size() == 2)
               {
-                spectrum.push_back(make_pair(split[0].toDouble(), split[1].toDouble()));
+                spectrum.emplace_back(split[0].toDouble(), split[1].toDouble());
               }
               else
               {
                 if (split.size() == 3)
                 {
-                  spectrum.push_back(make_pair(split[0].toDouble(), split[1].toDouble()));
+                  spectrum.emplace_back(split[0].toDouble(), split[1].toDouble());
                   // @improvement add meta info e.g. charge, name... (Andreas)
                 }
                 else
@@ -699,10 +699,9 @@ namespace OpenMS
               // found spectrum
               return true;
             }
-            else
-            {
-              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, R"(Found "BEGIN IONS" but not the corresponding "END IONS"!)", "");
-            }
+            
+                          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, R"(Found "BEGIN IONS" but not the corresponding "END IONS"!)", "");
+           
           }
         }
       }

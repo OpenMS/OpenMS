@@ -189,15 +189,14 @@ namespace OpenMS
       {
         return false;
       }
-      else
-      {
-        //TODO actually introduce a flag for labelling modifications in the Mod datastructures?
+      
+              //TODO actually introduce a flag for labelling modifications in the Mod datastructures?
         //OR put a unique ID for the used mod as a UserParam to the mapList entries (consensusHeaders)
         //TODO actually you would probably need an experimental design here, because
         //settings have to agree exactly in a FractionGroup but can slightly differ across runs.
         //Or just ignore labelling mods during the check
         return true;
-      }
+     
     }
     return true;
   }
@@ -927,7 +926,7 @@ namespace OpenMS
     {
       return this->search_parameters_.getMetaValue("InferenceEngine");
     }
-    else if (hasInferenceEngineAsSearchEngine())
+    if (hasInferenceEngineAsSearchEngine())
     {
       return search_engine_;
     }
@@ -945,7 +944,7 @@ namespace OpenMS
     {
       return this->search_parameters_.getMetaValue("InferenceEngineVersion");
     }
-    else if (hasInferenceData())
+    if (hasInferenceData())
     {
       return search_engine_version_;
     }

@@ -251,9 +251,8 @@ namespace c_lowess
       {
         return false;
       }
-      else
-      {
-
+      
+      
         // normalize weights (make sum of w[j] == 1)
         for (j = nleft; j <= nrt; j++)
         {
@@ -262,7 +261,7 @@ namespace c_lowess
 
         return true;
 
-      }
+     
     }
 
     /// Calculate smoothed/fitted y-value by weighted regression.

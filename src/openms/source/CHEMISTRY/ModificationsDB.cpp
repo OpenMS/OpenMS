@@ -60,9 +60,8 @@ namespace OpenMS
       // residues match if they are equal or they match everything (X/.)
       return (origin == residue || residue == 'X' || residue == '.' || residue == '?');
     }
-    else
-    {
-      // origin is X, this usually means that the modification can be at any amino acid
+    
+          // origin is X, this usually means that the modification can be at any amino acid
 
       // residues do NOT match if the modification is user-defined and has origin
       // X (which here means an actual input AA X and it does *not* mean "match
@@ -74,7 +73,7 @@ namespace OpenMS
            origin != residue );
 
       return !non_matching_user_defined;
-    }
+   
   }
 
   bool ModificationsDB::is_instantiated_ = false;

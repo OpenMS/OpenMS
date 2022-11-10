@@ -352,10 +352,9 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
           {
             return UNKNOWN_OAF;
           }
-          else
-          {
-            mode_identified = true;
-          }
+          
+                      mode_identified = true;
+         
 
           if (i == 0) // names_of_OriginAnnotationFormat[0] == "file_origin"
           {
@@ -379,10 +378,9 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
     {
       return UNKNOWN_OAF;
     }
-    else
-    {
-      return static_cast<IDRipper::OriginAnnotationFormat>(mode);
-    }
+    
+          return static_cast<IDRipper::OriginAnnotationFormat>(mode);
+   
   }
 
   void IDRipper::getProteinHits_(vector<ProteinHit>& result, const vector<ProteinHit>& protein_hits, const vector<String>& protein_accessions)

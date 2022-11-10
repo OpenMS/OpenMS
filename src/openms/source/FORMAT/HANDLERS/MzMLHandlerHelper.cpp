@@ -67,7 +67,7 @@ namespace OpenMS::Internal
       {
         return indent + R"(<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />)";
       }
-      else if (np.np_compression == MSNumpressCoder::LINEAR)
+      if (np.np_compression == MSNumpressCoder::LINEAR)
       {
         return indent + R"(<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />)";
       }
@@ -87,7 +87,7 @@ namespace OpenMS::Internal
         // default
         return indent + R"(<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />)";
       }
-      else if (np.np_compression == MSNumpressCoder::LINEAR)
+      if (np.np_compression == MSNumpressCoder::LINEAR)
       {
         return indent + R"(<cvParam cvRef="MS" accession="MS:1002312" name="MS-Numpress linear prediction compression" />)";
       }

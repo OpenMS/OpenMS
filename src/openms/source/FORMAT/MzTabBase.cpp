@@ -56,9 +56,8 @@ namespace OpenMS
     {
       return "null";
     }
-    else
-    {
-      String ret;
+    
+          String ret;
       for (std::vector<MzTabParameter>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
       {
         if (it != parameters_.begin())
@@ -68,7 +67,7 @@ namespace OpenMS
         ret += it->toCellString();
       }
       return ret;
-    }
+   
   }
 
   void MzTabParameterList::fromCellString(const String& s)
@@ -138,9 +137,8 @@ namespace OpenMS
     {
       return "null";
     }
-    else
-    {
-      String ret;
+    
+          String ret;
       for (std::vector<MzTabString>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
       {
         if (it != entries_.begin())
@@ -150,7 +148,7 @@ namespace OpenMS
         ret += it->toCellString();
       }
       return ret;
-    }
+   
   }
 
   void MzTabStringList::fromCellString(const String& s)
@@ -253,10 +251,9 @@ namespace OpenMS
     {
       return "null";
     }
-    else
-    {
-      return String("ms_run[") + String(ms_run_) + "]:" + spec_ref_;
-    }
+    
+          return String("ms_run[") + String(ms_run_) + "]:" + spec_ref_;
+   
   }
 
   void MzTabSpectraRef::fromCellString(const String& s)
@@ -354,9 +351,8 @@ namespace OpenMS
     {
       return "null";
     }
-    else
-    {
-      String ret = "[";
+    
+          String ret = "[";
       ret += CV_label_ + ", ";
       ret += accession_ + ", ";
 
@@ -382,7 +378,7 @@ namespace OpenMS
 
       ret += "]";
       return ret;
-    }
+   
   }
 
   void MzTabParameter::fromCellString(const String& s)
@@ -490,10 +486,9 @@ namespace OpenMS
     {
       return "null";
     }
-    else
-    {
-      return value_;
-    }
+    
+          return value_;
+   
   }
 
   void MzTabString::fromCellString(const String& s)
@@ -540,9 +535,8 @@ namespace OpenMS
     {
       return "null";
     }
-    else
-    {
-      if (value_)
+    
+          if (value_)
       {
         return "1";
       }
@@ -550,7 +544,7 @@ namespace OpenMS
       {
         return "0";
       }
-    }
+   
   }
 
   void MzTabBoolean::fromCellString(const String& s)
@@ -597,9 +591,8 @@ namespace OpenMS
     {
       return "null";
     }
-    else
-    {
-      String ret;
+    
+          String ret;
       for (std::vector<MzTabInteger>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
       {
         if (it != entries_.begin())
@@ -609,7 +602,7 @@ namespace OpenMS
         ret += it->toCellString();
       }
       return ret;
-    }
+   
   }
 
   void MzTabIntegerList::fromCellString(const String& s)
@@ -665,10 +658,9 @@ namespace OpenMS
     {
       return value_;
     }
-    else
-    {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Trying to extract MzTab Integer value from non-integer valued cell. Did you check the cell state before querying the value?"));
-    }
+    
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Trying to extract MzTab Integer value from non-integer valued cell. Did you check the cell state before querying the value?"));
+   
   }
 
   String MzTabInteger::toCellString() const
@@ -868,9 +860,8 @@ namespace OpenMS
     {
       return "null";
     }
-    else
-    {
-      String ret;
+    
+          String ret;
       for (std::vector<MzTabDouble>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
       {
         if (it != entries_.begin())
@@ -880,7 +871,7 @@ namespace OpenMS
         ret += it->toCellString();
       }
       return ret;
-    }
+   
   }
 
   void MzTabDoubleList::fromCellString(const String& s)

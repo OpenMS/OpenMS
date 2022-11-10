@@ -72,10 +72,9 @@ namespace OpenMS
     {
       return aa.getMonoWeight();
     }
-    else
-    {
-      return aa.getAverageWeight();
-    }
+    
+          return aa.getAverageWeight();
+   
   }
 
   double WeightWrapper::getWeight(const EmpiricalFormula & ef) const
@@ -84,10 +83,9 @@ namespace OpenMS
     {
       return ef.getMonoWeight();
     }
-    else
-    {
-      return ef.getAverageWeight();
-    }
+    
+          return ef.getAverageWeight();
+   
   }
 
   double WeightWrapper::getWeight(const Residue & r, Residue::ResidueType res_type) const
@@ -96,10 +94,9 @@ namespace OpenMS
     {
       return r.getMonoWeight(res_type);
     }
-    else
-    {
-      return r.getAverageWeight(res_type);
-    }
+    
+          return r.getAverageWeight(res_type);
+   
   }
 
 }

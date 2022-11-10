@@ -532,7 +532,7 @@ namespace OpenMS
         return true;
       }
       // check if it is an indirect parent
-      else if (isChildOf(it, parent))
+      if (isChildOf(it, parent))
       {
         return true;
       }

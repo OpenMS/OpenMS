@@ -126,10 +126,9 @@ namespace OpenMS
       return inner_term * inner_term * inner_term;
     }
     // u >= t
-    else
-    {
-      return 0.0;
-    }
+    
+          return 0.0;
+   
   }
 
   void LowessSmoothing::updateMembers_()

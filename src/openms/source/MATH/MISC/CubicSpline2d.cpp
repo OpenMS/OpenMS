@@ -134,7 +134,7 @@ namespace OpenMS
     {
       return b_[i] + 2 * c_[i] * xx + 3 * d_[i] * xx * xx;
     }
-    else if (order == 2)
+    if (order == 2)
     {
       return 2 * c_[i] + 6 * d_[i] * xx;
     }

@@ -118,7 +118,7 @@ namespace OpenMS
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed parsing in line 1: not enough columns! Expected at least 3 columns!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
     }
-    else if (headers.size() == 3)
+    if (headers.size() == 3)
     {
       input_type = TYPE_OLD_NOCHARGE;
     }

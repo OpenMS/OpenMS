@@ -147,7 +147,7 @@ namespace OpenMS::Internal
         handleCVParam_(parent_parent_tag, parent_tag, cv_term);
         return;
       }
-      else if (tag_ == "userParam")
+      if (tag_ == "userParam")
       {
         String type = "";
         optionalAttributeAsString_(type, attributes, s_type);
@@ -356,7 +356,7 @@ namespace OpenMS::Internal
       {
         return;
       }
-      else if (tag_ == "Contact")
+      if (tag_ == "Contact")
       {
         exp_->addContact(actual_contact_);
         actual_contact_ = TargetedExperiment::Contact();

@@ -117,10 +117,9 @@ SiriusMzTabWriter::SiriusSpectrumMSInfo SiriusMzTabWriter::extractSpectrumMSInfo
     spectrum_ms_file.close();
     return info;
   }
-  else
-  {
-    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sirius_spectrum_ms);
-  }
+  
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sirius_spectrum_ms);
+ 
 };
 
 void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,

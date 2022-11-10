@@ -383,7 +383,7 @@ namespace OpenMS
     {
       return 1;
     }
-    else if (filter == "bartlett")
+    if (filter == "bartlett")
     {
       return 2;
     }

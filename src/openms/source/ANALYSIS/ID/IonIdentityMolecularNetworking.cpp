@@ -100,7 +100,7 @@ namespace OpenMS
           already_in_graph[group] = boost::num_vertices(g);
           continue;
         }
-        else add_edge(feature_vertex, already_in_graph[group]-1, g);
+        add_edge(feature_vertex, already_in_graph[group]-1, g);
       }
     }
 

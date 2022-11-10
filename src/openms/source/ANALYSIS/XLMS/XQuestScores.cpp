@@ -122,10 +122,9 @@ namespace OpenMS
     {
       return match_odds;
     }
-    else
-    {
-      return 0;
-    }
+    
+          return 0;
+   
   }
 
   double XQuestScores::matchOddsScoreSimpleSpec(const std::vector< SimpleTSGXLMS::SimplePeak >& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges)
@@ -172,10 +171,9 @@ namespace OpenMS
     {
       return match_odds;
     }
-    else
-    {
-      return 0;
-    }
+    
+          return 0;
+   
   }
 
   double XQuestScores::logOccupancyProb(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
@@ -216,10 +214,9 @@ namespace OpenMS
     {
       return log_occu_prob;
     }
-    else // underflow warning?
-    {
-      return 0;
-    }
+    // underflow warning?
+          return 0;
+   
   }
 
   double XQuestScores::weightedTICScoreXQuest(Size alpha_size, Size beta_size, double intsum_alpha, double intsum_beta, double total_current, bool type_is_cross_link)

@@ -104,10 +104,9 @@ namespace OpenMS
     {
       return feature0_charge_;
     }
-    else
-    {
-      return feature1_charge_;
-    }
+    
+          return feature1_charge_;
+   
   }
 
   /// Set the charge (for element 0 or 1)
@@ -130,10 +129,9 @@ namespace OpenMS
     {
       return feature0_index_;
     }
-    else
-    {
-      return feature1_index_;
-    }
+    
+          return feature1_index_;
+   
   }
 
   /// Set the element index (for element 0 or 1)

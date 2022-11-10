@@ -98,10 +98,9 @@ namespace OpenMS
         sync();
         return c;
       }
-      else
-      {
-        return traits_type::eof();
-      }
+      
+              return traits_type::eof();
+     
     }
 
     LogStreamBuf * LogStream::rdbuf()
@@ -131,10 +130,9 @@ namespace OpenMS
       {
         return rdbuf()->level_;
       }
-      else
-      {
-        return LogStreamBuf::UNKNOWN_LOG_LEVEL;
-      }
+      
+              return LogStreamBuf::UNKNOWN_LOG_LEVEL;
+     
     }
 
     // caching methods
@@ -150,9 +148,8 @@ namespace OpenMS
       {
         return false;
       }
-      else
-      {
-        // increment counter
+      
+              // increment counter
         log_cache_[line].counter++;
 
         // remove old entry
@@ -163,7 +160,7 @@ namespace OpenMS
         log_cache_[line].timestamp = counter_value;
         log_time_cache_[counter_value] = line;
         return true;
-      }
+     
     }
 
     std::string LogStreamBuf::addToCache_(std::string const & line)

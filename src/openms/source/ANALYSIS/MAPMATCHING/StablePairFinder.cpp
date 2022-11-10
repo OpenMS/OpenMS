@@ -284,13 +284,12 @@ namespace OpenMS
                               PeptideHit::ScoreMore()
                               )->getSequence();
     }
-    else
-    {
-      return std::min_element(peptideIdentification.getHits().begin(),
+    
+          return std::min_element(peptideIdentification.getHits().begin(),
                               peptideIdentification.getHits().end(),
                               PeptideHit::ScoreLess()
                               )->getSequence();
-    }
+   
   }
 
 }

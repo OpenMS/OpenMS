@@ -1307,10 +1307,9 @@ namespace OpenMS
             database_name_ = fields[1];
             continue;
           }
-          else
-          {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Mapping file (") + filename + "') must contain \"database_name\t{NAME}\" as first line.!", line);
-          }
+          
+                      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Mapping file (") + filename + "') must contain \"database_name\t{NAME}\" as first line.!", line);
+         
         }
         else if (line_count == 2)
         {
@@ -1321,10 +1320,9 @@ namespace OpenMS
             database_version_ = fields[1];
             continue;
           }
-          else
-          {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Mapping file (") + filename + "') must contain \"database_version\t{VERSION}\" as second line.!", line);
-          }
+          
+                      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Mapping file (") + filename + "') must contain \"database_version\t{VERSION}\" as second line.!", line);
+         
         }
 
         str_buf.clear();

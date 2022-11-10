@@ -999,10 +999,10 @@ namespace OpenMS
         if (iter == solution_indices.end())
           continue;
         // we need to remember the index in the solution_indices
-        else if (distance(solution_indices.begin(), iter) > (Int)max_sol_index)
+        if (distance(solution_indices.begin(), iter) > (Int)max_sol_index)
           max_sol_index = distance(solution_indices.begin(), iter);
-        points.push_back(DPosition<2>(min_rt + variable_indices[i].scan * rt_step_size, tmp_feat.getMZ() - 0.1));
-        points.push_back(DPosition<2>(min_rt + variable_indices[i].scan * rt_step_size, tmp_feat.getMZ() + 3.));
+        points.emplace_back(min_rt + variable_indices[i].scan * rt_step_size, tmp_feat.getMZ() - 0.1);
+        points.emplace_back(min_rt + variable_indices[i].scan * rt_step_size, tmp_feat.getMZ() + 3.);
 
       }
       ConvexHull2D hull;

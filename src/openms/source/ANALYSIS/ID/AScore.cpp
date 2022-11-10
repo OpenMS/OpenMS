@@ -279,10 +279,9 @@ namespace OpenMS
               peptide_not_found = true;
               break;
             }
-            else
-            {
-              peptide_not_found = false;
-            }
+            
+                          peptide_not_found = false;
+           
           }
           else
           {
@@ -291,10 +290,9 @@ namespace OpenMS
               peptide_not_found = true;
               break;
             }
-            else
-            {
-              peptide_not_found = false;
-            }
+            
+                          peptide_not_found = false;
+           
           }
         }
       } while (peptide_not_found);
@@ -429,7 +427,7 @@ namespace OpenMS
     {
       return permutations;
     }
-    else if (n_phosphorylation_events == 1)
+    if (n_phosphorylation_events == 1)
     {
       for (Size i = 0; i < sites.size(); ++i)
       {
@@ -618,7 +616,7 @@ namespace OpenMS
     { 
       return -1;
     }
-    else if (error > tolerance)
+    if (error > tolerance)
     {
       return 1;
     }

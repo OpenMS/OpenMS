@@ -294,8 +294,7 @@ namespace OpenMS
     {
       if (compar != 0)
         return nodes.size();
-      else
-        return compare_value;
+              return compare_value;
     }
     else if (compar <  0)
     {

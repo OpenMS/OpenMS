@@ -193,10 +193,10 @@ namespace OpenMS
               real_max = false;
               break;
             }
-            else
-            { // skip if only a low intensity peak (e.g. flanks of elution profile)
+            
+            // skip if only a low intensity peak (e.g. flanks of elution profile)
               continue;
-            }
+           
           }
 
           if (smoothed_ints_vec[j] > ref_int)

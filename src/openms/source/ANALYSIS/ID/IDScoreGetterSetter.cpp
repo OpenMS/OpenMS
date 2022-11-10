@@ -70,7 +70,7 @@ namespace OpenMS
 
   inline bool isFirstBetterScore_(double first, double second, bool isHigherBetter)
   {
-    if (isHigherBetter) return first > second; else return first < second;
+    if (isHigherBetter) return first > second; return first < second;
   }
 
   inline void addToPeptideScoreMap_(
@@ -147,7 +147,7 @@ namespace OpenMS
           scores_labels.emplace_back(grp.probability, 1.0);
           break;
         }
-        else if (isDecoy && tgt_proportion == 0)
+        if (isDecoy && tgt_proportion == 0)
         {
           decoy_picked = true;
         }
@@ -165,7 +165,7 @@ namespace OpenMS
     {
       return {true ,acc.suffix(acc.size() - decoy_string.size())};
     }
-    else if (acc.hasSuffix(decoy_string))
+    if (acc.hasSuffix(decoy_string))
     {
       return {true, acc.prefix(acc.size() - decoy_string.size())};
     }

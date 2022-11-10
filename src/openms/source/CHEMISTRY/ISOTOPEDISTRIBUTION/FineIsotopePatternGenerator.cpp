@@ -49,12 +49,11 @@ namespace OpenMS
         result.sortByMass();
         return result;
     }
-    else
-    {
-        IsotopeDistribution result(IsoSpecThresholdWrapper(formula, stop_condition_, absolute_).run());
+    
+            IsotopeDistribution result(IsoSpecThresholdWrapper(formula, stop_condition_, absolute_).run());
         result.sortByMass();
         return result;
-    }
+   
   }
 
 }

@@ -87,10 +87,9 @@ namespace OpenMS
     {
       return swath;
     }
-    else
-    {
-      return -1;
-    }
+    
+          return -1;
+   
   }
 
   bool MRMAssay::isInSwath_(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz, const double product_mz)
@@ -98,9 +97,8 @@ namespace OpenMS
     int swath_idx = getSwath_(swathes, precursor_mz);
 
     if (swath_idx == -1) { return true; } // remove all transitions that are not in swath range
-    else
-    {
-      std::pair<double, double> swath = swathes[getSwath_(swathes, precursor_mz)];
+    
+          std::pair<double, double> swath = swathes[getSwath_(swathes, precursor_mz)];
 
       if (product_mz >= swath.first && product_mz <= swath.second)
       {
@@ -110,7 +108,7 @@ namespace OpenMS
       { 
         return false;
       }
-    }
+   
   }
 
   std::string MRMAssay::getRandomSequence_(size_t sequence_size, boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
@@ -718,11 +716,10 @@ namespace OpenMS
             OPENMS_LOG_DEBUG << "[uis] Skipping overlapping decoy transition " << trn.getNativeID() << std::endl;
             continue;
           }
-          else
-          {
-            // Append transition
+          
+                      // Append transition
             transitions.push_back(trn);
-          }
+         
         }
         transition_index++;
       }
@@ -802,10 +799,9 @@ namespace OpenMS
             << " " << tr.getMetaValue("annotation") << std::endl;
           continue;
         }
-        else
-        {
-          OPENMS_LOG_DEBUG << "[selected] " << target_peptide_sequence.toString() << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << " " << tr.getMetaValue("annotation") << std::endl;
-        }
+        
+                  OPENMS_LOG_DEBUG << "[selected] " << target_peptide_sequence.toString() << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << " " << tr.getMetaValue("annotation") << std::endl;
+       
 
         // Set CV terms
         mrmis.annotateTransitionCV(tr, targetion.first);

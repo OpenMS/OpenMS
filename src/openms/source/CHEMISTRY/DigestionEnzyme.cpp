@@ -82,7 +82,7 @@ namespace OpenMS
           OPENMS_PRETTY_FUNCTION,
           "No cleavage position given when trying to construct a DigestionEnzyme.");
     }
-    else if (!cut_before.hasSuffix("X"))
+    if (!cut_before.hasSuffix("X"))
     {
       //TODO think about this
       cut_before = cut_before + "X";

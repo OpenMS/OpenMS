@@ -311,7 +311,7 @@ namespace OpenMS
             {
               return RangeStatsInt();
             }
-            else if (meta_dv.valueType() == DataValue::DOUBLE_VALUE)
+            if (meta_dv.valueType() == DataValue::DOUBLE_VALUE)
             {
               return RangeStatsDouble();
             }

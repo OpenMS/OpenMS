@@ -252,9 +252,8 @@ namespace OpenMS
       {
         return i; // success: nearest peak is in left tolerance window
       }
-      else
-      {
-        if (i == this->size() - 1)
+      
+              if (i == this->size() - 1)
         {
           return -1; // we are at the last peak which is too far left
         }
@@ -266,7 +265,7 @@ namespace OpenMS
         {
           return i;
         }
-      }
+     
     }
     else
     {
@@ -274,9 +273,8 @@ namespace OpenMS
       {
         return i; // success: nearest peak is in right tolerance window
       }
-      else
-      {
-        if (i == 0)
+      
+              if (i == 0)
         {
           return -1; // we are at the first peak which is too far right
         }
@@ -286,7 +284,7 @@ namespace OpenMS
         {
           return i;
         }
-      }
+     
     }
 
     // neither in the left nor the right tolerance window
@@ -305,10 +303,9 @@ namespace OpenMS
     {
       return static_cast<Int>(i);
     }
-    else
-    {
-      return -1;
-    }
+    
+          return -1;
+   
   }
 
   Size MSSpectrum::findNearest(MSSpectrum::CoordinateType mz) const
@@ -336,10 +333,9 @@ namespace OpenMS
     {
       return Size(it - ContainerType::begin());
     }
-    else
-    {
-      return Size(it2 - ContainerType::begin());
-    }
+    
+          return Size(it2 - ContainerType::begin());
+   
   }
 
   Int MSSpectrum::findHighestInWindow(MSSpectrum::CoordinateType mz, MSSpectrum::CoordinateType tolerance_left,
@@ -436,7 +432,7 @@ namespace OpenMS
     {
       return;
     }
-    else if (!reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess()))
+    if (!reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess()))
     {
       return;
     }

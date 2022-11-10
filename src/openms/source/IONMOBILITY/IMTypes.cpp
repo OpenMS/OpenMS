@@ -127,7 +127,7 @@ namespace OpenMS
     {
       return IMFormat::CONCATENATED;
     }
-    else if (has_drift_time)
+    if (has_drift_time)
     {
       if (spec.getDriftTimeUnit() == DriftTimeUnit::NONE)
       {

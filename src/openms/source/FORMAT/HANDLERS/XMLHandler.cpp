@@ -202,11 +202,10 @@ namespace OpenMS::Internal
       {
         return it - cv_terms_[section].begin();
       }
-      else
-      {
-        warning(LOAD, String("Unexpected CV entry '") + message + "'='" + term + "'");
+      
+              warning(LOAD, String("Unexpected CV entry '") + message + "'='" + term + "'");
         return result_on_error;
-      }
+     
     }
 
     /// handlers which support partial loading, implement this method

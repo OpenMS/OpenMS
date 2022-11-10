@@ -212,8 +212,8 @@ namespace OpenMS
           if (files_and_peptide_identification_with_scan_number.empty() ||
               !files_and_peptide_identification_with_scan_number.back().second.empty())
           {
-            files_and_peptide_identification_with_scan_number.push_back(make_pair(substrings[spectrum_file_column],
-                  vector<pair<Size, Size> >()));
+            files_and_peptide_identification_with_scan_number.emplace_back(substrings[spectrum_file_column],
+                  vector<pair<Size, Size> >());
           }
           // otherwise change the name of the last file entry (the one without hits)
           else
@@ -226,7 +226,7 @@ namespace OpenMS
         // if it's not the first scan and if hits have been found, insert the peptide identification
         if (!peptide_identification.empty() && !peptide_identification.getHits().empty())
         {
-          files_and_peptide_identification_with_scan_number.back().second.push_back(make_pair(peptide_identifications.size(), scan_number));
+          files_and_peptide_identification_with_scan_number.back().second.emplace_back(peptide_identifications.size(), scan_number);
           peptide_identifications.push_back(peptide_identification);
         }
         peptide_identification = PeptideIdentification();
@@ -282,7 +282,7 @@ namespace OpenMS
     // if it's not the first scan and if hits have been found, insert the peptide identification
     if (!peptide_identification.empty() && !peptide_identification.getHits().empty())
     {
-      files_and_peptide_identification_with_scan_number.back().second.push_back(make_pair(peptide_identifications.size(), scan_number));
+      files_and_peptide_identification_with_scan_number.back().second.emplace_back(peptide_identifications.size(), scan_number);
       peptide_identifications.push_back(peptide_identification);
     }
 
@@ -348,7 +348,7 @@ namespace OpenMS
         database.ignore(sp, trie_delimiter_);
       }
       database.get(sequence, trie_delimiter_);
-      sequences.push_back(sequence.str());
+      sequences.emplace_back(sequence.str());
       if (sequences.back().empty())
       {
         not_found.push_back(wr_i->first);
@@ -1023,7 +1023,7 @@ namespace OpenMS
       {
         continue;
       }
-      else if (line.hasPrefix(">"))
+      if (line.hasPrefix(">"))
       {
         ac_label = ">";
         sequence_start_label = ">";

@@ -65,7 +65,7 @@ KDTreeFeatureNode::value_type KDTreeFeatureNode::operator[](Size i) const
   {
     return data_->rt(idx_);
   }
-  else if (i == 1)
+  if (i == 1)
   {
     return data_->mz(idx_);
   }

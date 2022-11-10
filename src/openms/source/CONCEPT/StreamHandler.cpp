@@ -81,10 +81,9 @@ namespace OpenMS
     {
       return *name_to_stream_map_[stream_name];
     }
-    else
-    {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream_name);
-    }
+    
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream_name);
+   
   }
 
   ostream * StreamHandler::createStream_(const StreamType type, const String & stream_name)
@@ -140,10 +139,9 @@ namespace OpenMS
     {
       return name_to_type_map_[stream_name] == type;
     }
-    else
-    {
-      return false;
-    }
+    
+          return false;
+   
   }
 
   void StreamHandler::unregisterStream(StreamType const type, const String & stream_name)

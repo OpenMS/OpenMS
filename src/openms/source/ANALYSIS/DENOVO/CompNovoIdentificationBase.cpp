@@ -461,10 +461,9 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
         {
           return;
         }
-        else
-        {
-          old_num_used = used_pos.size();
-        }
+        
+                  old_num_used = used_pos.size();
+       
 
         pivots.push_back(max_pos);
         max = 0;
@@ -664,10 +663,9 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
         cerr << "Warning: cannot handle modification " << mod.getName() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
         continue;
       }
-      else
-      {
-        aa = mod.getOrigin();
-      }
+      
+              aa = mod.getOrigin();
+     
 
       if (mod.getMonoMass() != 0)
       {
@@ -708,10 +706,9 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
         cerr << "CompNovoIdentificationBase: Warning: cannot handle modification " << mod.getName() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
         continue;
       }
-      else
-      {
-        origin_aa = mod.getOrigin();
-      }
+      
+              origin_aa = mod.getOrigin();
+     
 
       if (mod.getMonoMass() != 0)
       {

@@ -49,10 +49,9 @@ namespace OpenMS
     {
       return make_pair(ionid, ionseries[ionid]);
     }
-    else
-    {
-      return make_pair(String("unannotated"), -1);
-    }
+    
+          return make_pair(String("unannotated"), -1);
+   
   }
 
   std::pair<String, double> MRMIonSeries::annotateIon(const IonSeries& ionseries, const double ProductMZ, const double mz_threshold)
@@ -95,7 +94,7 @@ namespace OpenMS
     {
       return interpretation;
     }
-    else if (best_annotation[0].find("-") != std::string::npos)
+    if (best_annotation[0].find("-") != std::string::npos)
     {
       std::vector<String> best_annotation_loss;
       best_annotation[0].split("-", best_annotation_loss);

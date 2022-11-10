@@ -439,11 +439,10 @@ namespace OpenMS
       //std::cout << i << " i " << j << " j " << " inside" << std::endl;
       return true;
     }
-    else
-    {
-      //std::cout << i << " i " << j << " j " << " outside" << std::endl;
+    
+          //std::cout << i << " i " << j << " j " << " outside" << std::endl;
       return false;
-    }
+   
   }
 
   inline Int MapAlignmentAlgorithmSpectrumAlignment::bestk_(const std::vector<MSSpectrum*>& pattern, std::vector<MSSpectrum*>& aligned, std::map<Size, std::map<Size, float> >& buffer, bool column_row_orientation, Size xbegin, Size xend, Size ybegin, Size yend)
@@ -504,9 +503,8 @@ namespace OpenMS
       }
       return buffer[i][j];
     }
-    else
-    {
-      if (buffer[j][i] == 0)
+    
+          if (buffer[j][i] == 0)
       {
         float score = scoring_(*pattern[j + patternbegin - 1], *aligned[i + alignbegin - 1]);
         if (score > 1)
@@ -522,7 +520,7 @@ namespace OpenMS
         buffer[j][i] = score;
       }
       return buffer[j][i];
-    }
+   
   }
 
   inline float MapAlignmentAlgorithmSpectrumAlignment::scoring_(const MSSpectrum& a, MSSpectrum& b)

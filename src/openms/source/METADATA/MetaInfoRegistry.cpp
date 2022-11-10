@@ -265,13 +265,12 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered Name!", name);
     }
-    else
-    {
-#pragma omp critical (MetaInfoRegistry)
+    
+    #pragma omp critical (MetaInfoRegistry)
       {
         rv = (index_to_description_.find(index))->second;
       }
-    }
+   
     return rv;
   }
 
@@ -298,13 +297,12 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered Name!", name);
     }
-    else
-    {
-#pragma omp critical (MetaInfoRegistry)
+    
+    #pragma omp critical (MetaInfoRegistry)
       {
         rv = (index_to_unit_.find(index))->second;
       }
-    }
+   
     return rv;
   }
 

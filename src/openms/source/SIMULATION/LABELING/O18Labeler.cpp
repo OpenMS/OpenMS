@@ -235,12 +235,11 @@ namespace OpenMS
 
       return new_f;
     }
-    else
-    {
-      // simply add feature from labeled channel, since we
+    
+          // simply add feature from labeled channel, since we
       // have no corresponding feature in the unlabeled channel
       return labeled_channel_feature;
-    }
+   
   }
 
   void O18Labeler::addModificationToPeptideHit_(Feature& feature, const String& modification) const

@@ -137,10 +137,9 @@ namespace OpenMS
       {
         return offset_min_;
       }
-      else // "EX_LINEAR" or "EX_GLOBAL_LINEAR"
-      {
-        return offset_min_ - slope_min_ * (xmin_ - value);
-      }
+      // "EX_LINEAR" or "EX_GLOBAL_LINEAR"
+              return offset_min_ - slope_min_ * (xmin_ - value);
+     
     }
     if ((value > xmax_) && (extrapolate_ != EX_BSPLINE)) // extrapolate (right)
     {
@@ -148,10 +147,9 @@ namespace OpenMS
       {
         return offset_max_;
       }
-      else // "EX_LINEAR" or "EX_GLOBAL_LINEAR"
-      {
-        return offset_max_ + slope_max_ * (value - xmax_);
-      }
+      // "EX_LINEAR" or "EX_GLOBAL_LINEAR"
+              return offset_max_ + slope_max_ * (value - xmax_);
+     
     }
     return spline_->eval(value);
   }

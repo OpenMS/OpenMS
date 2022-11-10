@@ -353,10 +353,9 @@ namespace OpenMS
           {
             return value.toInt() + 1; // if the native ID is index=.., the scan number is usually considered index+1 (especially for pepXML)
           }
-          else
-          {
-            return value.toInt();
-          }
+          
+                      return value.toInt();
+         
         }
         catch (Exception::ConversionError&)
         {
@@ -373,10 +372,9 @@ namespace OpenMS
             int value = String(matches[0]).toInt() * 1000 + String(matches[1]).toInt();
             return value; 
           }
-          else
-          {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The value of experiment is too large and can not be handled properly.", String(matches[1]));
-          }
+          
+                      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The value of experiment is too large and can not be handled properly.", String(matches[1]));
+         
         }
         catch (Exception::ConversionError&)
         {

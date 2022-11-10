@@ -277,10 +277,9 @@ private:
       {
         return to_encode;
       }
-      else
-      {
-        return String(to_encode).substitute("\t", "&#x9;");
-      }
+      
+              return String(to_encode).substitute("\t", "&#x9;");
+     
     }
 
     bool XMLFile::isValid(const String & filename, std::ostream & os)

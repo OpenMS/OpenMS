@@ -231,10 +231,9 @@ namespace OpenMS
                    {
                      return val * nrNegPeaks * lt.size() * negWeight/intTheorNegEuclidNorm;
                    }
-                   else
-                   {
-                     return 0.;
-                   }
+                   
+                                        return 0.;
+                  
     });
     double intTheorNegBestEuclidNorm = OpenSwath::norm(intTheorNegBest.begin(), intTheorNegBest.end());
     OpenSwath::normalize(intTheorNegBest, intTheorNegBestEuclidNorm, intTheorNegBest);

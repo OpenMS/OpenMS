@@ -415,10 +415,9 @@ namespace OpenMS
       {
         return true;
       }
-      else
-      {
-        return false;
-      }
+      
+              return false;
+     
     }
 
     bool PrecursorCorrection::compatible_(const Feature& feature,
@@ -440,10 +439,9 @@ namespace OpenMS
         }
         return true;
       }
-      else
-      {
-        return false;
-      }
+      
+              return false;
+     
     }
 }
 

@@ -207,18 +207,16 @@ namespace OpenMS
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid value", tmp);
       }
-      else
-      {
-        tmp = tmp.substr(1, tmp.size() - 2);
-      }
+      
+              tmp = tmp.substr(1, tmp.size() - 2);
+     
       if (!meta)       // non meta values must be numerical
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid value", tmp);
       }
-      else
-      {
-        value_string = tmp;
-      }
+      
+              value_string = tmp;
+     
     }
   }
 
@@ -307,7 +305,7 @@ namespace OpenMS
         {
           return false;
         }
-        else if (filter.op == LESS_EQUAL && feature.getIntensity() > filter.value)
+        if (filter.op == LESS_EQUAL && feature.getIntensity() > filter.value)
         {
           return false;
         }
@@ -322,7 +320,7 @@ namespace OpenMS
         {
           return false;
         }
-        else if (filter.op == LESS_EQUAL && feature.getOverallQuality() > filter.value)
+        if (filter.op == LESS_EQUAL && feature.getOverallQuality() > filter.value)
         {
           return false;
         }
@@ -337,7 +335,7 @@ namespace OpenMS
         {
           return false;
         }
-        else if (filter.op == GREATER_EQUAL && feature.getCharge() < filter.value)
+        if (filter.op == GREATER_EQUAL && feature.getCharge() < filter.value)
         {
           return false;
         }
@@ -352,7 +350,7 @@ namespace OpenMS
         {
           return false;
         }
-        else if (filter.op == GREATER_EQUAL && feature.getSubordinates().size() < filter.value)
+        if (filter.op == GREATER_EQUAL && feature.getSubordinates().size() < filter.value)
         {
           return false;
         }
@@ -388,7 +386,7 @@ namespace OpenMS
         {
           return false;
         }
-        else if (filter.op == LESS_EQUAL && consensus_feature.getIntensity() > filter.value)
+        if (filter.op == LESS_EQUAL && consensus_feature.getIntensity() > filter.value)
         {
           return false;
         }
@@ -403,7 +401,7 @@ namespace OpenMS
         {
           return false;
         }
-        else if (filter.op == LESS_EQUAL && consensus_feature.getQuality() > filter.value)
+        if (filter.op == LESS_EQUAL && consensus_feature.getQuality() > filter.value)
         {
           return false;
         }
@@ -418,7 +416,7 @@ namespace OpenMS
         {
           return false;
         }
-        else if (filter.op == GREATER_EQUAL && consensus_feature.getCharge() < filter.value)
+        if (filter.op == GREATER_EQUAL && consensus_feature.getCharge() < filter.value)
         {
           return false;
         }
@@ -433,7 +431,7 @@ namespace OpenMS
         {
           return false;
         }
-        else if (filter.op == GREATER_EQUAL && consensus_feature.size() < filter.value)
+        if (filter.op == GREATER_EQUAL && consensus_feature.size() < filter.value)
         {
           return false;
         }
@@ -460,7 +458,7 @@ namespace OpenMS
     {
       return false;
     }
-    else if (filter.op != EXISTS)
+    if (filter.op != EXISTS)
     {
       const DataValue& data_value = meta_interface.getMetaValue((UInt)index);
       if (!filter.value_is_numerical)

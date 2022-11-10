@@ -76,7 +76,7 @@ namespace OpenMS
     defaults_.setValue("status", "disabled", "Create Tandem-MS scans?");
     defaults_.setValidStrings("status", {"disabled","precursor","MS^E"});
 
-    subsections_.push_back("Precursor:");
+    subsections_.emplace_back("Precursor:");
     defaults_.insert("Precursor:", OfflinePrecursorIonSelection().getDefaults());
     defaults_.remove("Precursor:peptides_per_protein");
     defaults_.setValue("Precursor:charge_filter", ListUtils::create<Int>("2,3"), "Charges considered for MS2 fragmentation.");
@@ -90,7 +90,7 @@ namespace OpenMS
     defaults_.setMaxInt("tandem_mode", 2);
     defaults_.setValue("svm_model_set_file", "SIMULATION/SvmModelSet.model", "File containing the filenames of SVM Models for different charge variants");
 
-    subsections_.push_back("TandemSim:");
+    subsections_.emplace_back("TandemSim:");
     defaults_.insert("TandemSim:Simple:", TheoreticalSpectrumGenerator().getDefaults());
     Param svm_par = SvmTheoreticalSpectrumGenerator().getDefaults();
     svm_par.remove("svm_mode");
@@ -399,7 +399,7 @@ namespace OpenMS
       OPENMS_LOG_INFO << "disabled" << std::endl;
       return;
     }
-    else if (param_.getValue("status") == "precursor")
+    if (param_.getValue("status") == "precursor")
     {
       OPENMS_LOG_INFO << "precursor" << std::endl;
       generatePrecursorSpectra_(features, experiment, ms2);

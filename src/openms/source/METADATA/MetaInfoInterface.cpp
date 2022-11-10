@@ -123,7 +123,7 @@ namespace OpenMS
     {
       return true;
     }
-    else if (rhs.meta_ == nullptr && meta_ != nullptr)
+    if (rhs.meta_ == nullptr && meta_ != nullptr)
     {
       if (meta_->empty())
       {

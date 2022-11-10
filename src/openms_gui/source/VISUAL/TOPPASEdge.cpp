@@ -265,10 +265,9 @@ namespace OpenMS
     {
       return mapFromScene(from_->scenePos());
     }
-    else
-    {
-      return QPointF();
-    }
+    
+          return QPointF();
+   
   }
 
   QPointF TOPPASEdge::endPos() const
@@ -278,11 +277,10 @@ namespace OpenMS
       // we do not have a target vertex yet
       return (hover_pos_);
     }
-    else
-    {
-      // we have a target node --> line should end at its border
+    
+          // we have a target node --> line should end at its border
       return (borderPoint_());
-    }
+   
   }
 
 
@@ -389,9 +387,8 @@ namespace OpenMS
       // no type specified --> allow edge
       return ES_VALID;
     }
-    else
-    {
-      // check file type compatibility
+    
+          // check file type compatibility
       bool found_match = false;
       for (StringList::iterator s_it = source_param_types.begin(); s_it != source_param_types.end(); ++s_it)
       {
@@ -420,7 +417,7 @@ namespace OpenMS
       }
 
       return ES_VALID;
-    }
+   
   }
 
   TOPPASEdge::EdgeStatus TOPPASEdge::getListToolStatus_(TOPPASInputFileListVertex* source_input_list, TOPPASToolVertex* target_tool, int target_param_index)
@@ -549,7 +546,7 @@ namespace OpenMS
             // [input] -> [merger] -> [output]) makes no sense
             return ES_MERGER_WITHOUT_TOOL;
           }
-          else if (target_tool)
+          if (target_tool)
           {
             EdgeStatus es = getListToolStatus_(merger_in_list, target_tool, target_in_param_);
             if (es != ES_VALID)

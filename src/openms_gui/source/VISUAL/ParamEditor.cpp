@@ -117,7 +117,7 @@ namespace OpenMS
         connect(editor, SIGNAL(activated(int)), this, SLOT(commitAndCloseEditor_()));
         return editor;
       }
-      else if (dtype == "output file")
+      if (dtype == "output file")
       {
         QLineEdit* editor = new QLineEdit(parent);
         QString dir = "";        // = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();

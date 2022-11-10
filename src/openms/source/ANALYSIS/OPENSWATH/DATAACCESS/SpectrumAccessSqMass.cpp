@@ -198,9 +198,8 @@ namespace OpenMS
       {
         return res;
       }
-      else
-      {
-        // we need to map the resulting indices back to the external indices
+      
+              // we need to map the resulting indices back to the external indices
         std::vector<std::size_t> res_mapped;
         for (Size k = 0; k < res.size(); k++)
         {
@@ -210,7 +209,7 @@ namespace OpenMS
           }
         }
         return res_mapped;
-      }
+     
     }
 
     size_t SpectrumAccessSqMass::getNrSpectra() const

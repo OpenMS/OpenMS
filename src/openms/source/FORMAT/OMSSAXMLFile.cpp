@@ -202,7 +202,7 @@ namespace OpenMS
       tag_ = "";
       return;
     }
-    else if (tag_ == "MSPepHit_stop")
+    if (tag_ == "MSPepHit_stop")
     {
       tag_ = "";
       return;

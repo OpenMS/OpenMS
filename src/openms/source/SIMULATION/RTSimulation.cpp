@@ -218,7 +218,7 @@ namespace OpenMS
       return;
     }
     // CE or HPLC:
-    else if (param_.getValue("rt_column") == "CE")
+    if (param_.getValue("rt_column") == "CE")
     {
       calculateMT_(features, predicted_retention_times);
     }

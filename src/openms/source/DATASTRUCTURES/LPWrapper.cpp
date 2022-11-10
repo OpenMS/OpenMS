@@ -378,8 +378,7 @@ namespace OpenMS
     {
       return INTEGER;
     }
-    else
-      return CONTINUOUS;
+          return CONTINUOUS;
 #else
     return (VariableType)glp_get_col_kind(lp_problem_, index + 1);
 #endif
@@ -744,8 +743,7 @@ namespace OpenMS
 #if COINOR_SOLVER == 1
     if (model_->optimizationDirection() == 1)
       return LPWrapper::MIN;
-    else
-      return LPWrapper::MAX;
+          return LPWrapper::MAX;
 #else
     if (glp_get_obj_dir(lp_problem_) == 1)
     {

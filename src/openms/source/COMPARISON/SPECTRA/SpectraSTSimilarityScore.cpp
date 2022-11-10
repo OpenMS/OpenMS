@@ -132,10 +132,9 @@ namespace OpenMS
     {
       return (double)numerator / dot_product;
     }
-    else
-    {
-      return (double)numerator / (*this)(bin1, bin2);
-    }
+    
+          return (double)numerator / (*this)(bin1, bin2);
+   
   }
 
   double SpectraSTSimilarityScore::delta_D(double top_hit, double runner_up)
@@ -144,10 +143,9 @@ namespace OpenMS
     {
       throw Exception::DivisionByZero(__FILE__, __LINE__, __FUNCTION__);
     }
-    else
-    {
-      return (double)(top_hit - runner_up) / top_hit;
-    }
+    
+          return (double)(top_hit - runner_up) / top_hit;
+   
   }
 
   double SpectraSTSimilarityScore::compute_F(double dot_product, double delta_D, double dot_bias)

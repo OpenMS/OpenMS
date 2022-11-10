@@ -586,9 +586,8 @@ public:
           {
             continue;
           }
-          else
-          {
-            Feature charged_feature(features[index]);
+          
+                      Feature charged_feature(features[index]);
 
             setFeatureProperties_(charged_feature, h_mono_weight * c, String("H") + String(c), c, charge_states[c], feature_index);
 
@@ -604,7 +603,7 @@ public:
             copy_map.push_back(charged_feature);
 
             cf.insert(0, charged_feature);
-          }
+         
         }
         // add consensus element containing all charge variants just created
         cf.computeDechargeConsensus(copy_map);
@@ -678,10 +677,9 @@ public:
     {
       return false;
     }
-    else
-    {
-      return true;
-    }
+    
+          return true;
+   
   }
 
 }

@@ -195,10 +195,9 @@ namespace OpenMS
     {
       return getMetaValue("experiment_label").toString();
     }
-    else
-    {
-      return "";
-    }
+    
+          return "";
+   
   }
 
   void PeptideIdentification::setExperimentLabel(const String& label)

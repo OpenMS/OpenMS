@@ -196,7 +196,7 @@ namespace OpenMS
     std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_allpeaks; // store all peaks above cutoff
     for (std::map<std::string, double>::iterator it = best_features.begin(); it != best_features.end(); ++it)
     {
-      pairs.push_back(std::make_pair(it->second, PeptideRTMap[it->first])); // pair<exp_rt, theor_rt>
+      pairs.emplace_back(it->second, PeptideRTMap[it->first]); // pair<exp_rt, theor_rt>
       if (transition_group_map.find(it->first) != transition_group_map.end())
       {
         trgrmap_allpeaks[ it->first ] = &transition_group_map[ it->first];
@@ -561,7 +561,7 @@ namespace OpenMS
       std::cerr << "Setting -pasef and -matching_window_only flags simultaneously is not currently supported." << std::endl;
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    else if (prm_)
+    if (prm_)
     {
       // Here we deal with overlapping PRM / DIA windows: we only want to extract
       // each peptide from a single window and we assume that PRM windows are

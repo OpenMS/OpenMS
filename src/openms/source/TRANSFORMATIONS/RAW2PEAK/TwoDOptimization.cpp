@@ -125,9 +125,8 @@ namespace OpenMS
     {
       return --insert_iter;
     }
-    else
-    {
-      // if the found peak is at the beginning of the spectrum,
+    
+          // if the found peak is at the beginning of the spectrum,
       // there is not much we can do.
       if (insert_iter == scan_begin)
       {
@@ -147,7 +146,7 @@ namespace OpenMS
           return ++insert_iter;                          // peak to the right is closer
         }
       }
-    }
+   
 
   } // end of searchInScan_
 
@@ -1388,8 +1387,8 @@ namespace OpenMS
       std::cout << "right: " << iter->getRT() << "\t" << raw_data_iter->getMZ() << std::endl;
 #endif
       // region endpoints are stored in global vector
-      d.signal2D.push_back(left);
-      d.signal2D.push_back(right);
+      d.signal2D.emplace_back(left);
+      d.signal2D.emplace_back(right);
     }
 #ifdef DEBUG2D
     std::cout << first_peak_mz << "\t" << last_peak_mz << std::endl;

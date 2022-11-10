@@ -417,7 +417,7 @@ namespace OpenMS
       proteins.push_back(protein);
     }
 
-    srand(time(0));
+    srand(time(nullptr));
     std::vector<size_t> item_list, selection_list;
     item_list.reserve(exp.getPeptides().size());
     for (Size k = 0; k < exp.getPeptides().size(); k++) {item_list.push_back(k);}
@@ -426,7 +426,7 @@ namespace OpenMS
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decoy fraction needs to be less than one (values larger than one currently not supported).");
     }
-    else if (aim_decoy_fraction < 1.0)
+    if (aim_decoy_fraction < 1.0)
     {
       Math::RandomShuffler shuffler;
       shuffler.portable_random_shuffle(item_list.begin(), item_list.end());
