@@ -588,6 +588,17 @@ namespace OpenMS
       }
     }
 
-    return all_spectra;
+    if (spectra_addition_method_ == "simple")
+    {
+      return all_spectra;
+    }
+
+    else
+    {
+      // currently ion mobility is not supported for this, addUpSpectra will thow an error
+      std::vector<OpenSwath::SpectrumPtr> resampledSpectra;
+      resampledSpectra.push_back(SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true));
+      return resampledSpectra;
+    }
   }
 }
