@@ -62,7 +62,7 @@ public:
     //
     /// Functions
     //
-    static Int toInt(const String & this_s)
+    static Int toInt32(const String& this_s)
     {
       Int ret;
 
@@ -76,7 +76,28 @@ public:
       // was the string parsed (white spaces are skipped automatically!) completely? If not, we have a problem because a previous split might have used the wrong split char
       if (it != this_s.end())
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Prefix of string '") + this_s + "' successfully converted to an integer value. Additional characters found at position " + (int)(distance(this_s.begin(), it) + 1));
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Prefix of string '") + this_s + "' successfully converted to an int32 value. Additional characters found at position " + (int)(distance(this_s.begin(), it) + 1));
+      }
+      return ret;
+    }
+
+    static Int64 toInt64(const String& this_s)
+    {
+      Int64 ret;
+
+      // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
+      // so don't change this unless you have benchmarks for all platforms!
+      String::ConstIterator it = this_s.begin();
+      if (!boost::spirit::qi::phrase_parse(it, this_s.end(), boost::spirit::qi::long_long, boost::spirit::ascii::space, ret))
+      {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert string '") + this_s + "' to an int64 value");
+      }
+      // was the string parsed (white spaces are skipped automatically!) completely? If not, we have a problem because a previous split might have used the wrong split char
+      if (it != this_s.end())
+      {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         String("Prefix of string '") + this_s + "' successfully converted to an integer value. Additional characters found at position " +
+                                           (int)(distance(this_s.begin(), it) + 1));
       }
       return ret;
     }
@@ -203,9 +224,14 @@ public:
       return QString(this_s.c_str());
     }
 
-    [[maybe_unused]] static Int toInt(const String & this_s)
+    [[maybe_unused]] static Int32 toInt32(const String & this_s)
     {
-      return StringUtilsHelper::toInt(this_s);
+      return StringUtilsHelper::toInt32(this_s);
+    }
+
+    [[maybe_unused]] static Int64 toInt64(const String& this_s)
+    {
+      return StringUtilsHelper::toInt64(this_s);
     }
 
     [[maybe_unused]] static float toFloat(const String & this_s)
