@@ -388,14 +388,14 @@ int main(int argc, char** argv)
 
   DOCME(AScore);
   DOCME(AccurateMassSearchEngine);
-  DOCME(BaseLabeler);
-  DOCME(BaseModel);
+  //DOCME(BaseLabeler); //abstract base class, TODO: causes compile error on Mac
+  //DOCME(BaseModel);  //TODO: causes compile error on Mac
   DOCME(BernNorm);
   DOCME(BiGaussFitter1D);
   DOCME(BiGaussModel);
   DOCME(BinnedSharedPeakCount);
   DOCME(BinnedSpectralContrastAngle);
-  DOCME(BinnedSpectrumCompareFunctor);
+  //DOCME(BinnedSpectrumCompareFunctor);  //TODO: causes compile error on Mac
   DOCME(BinnedSumAgreeingIntensities);
   DOCME(ComplementFilter);
   DOCME(ComplementMarker);
@@ -419,7 +419,7 @@ int main(int argc, char** argv)
   DOCME(FalseDiscoveryRate);
   DOCME(FeatureDeconvolution);
   DOCME(FeatureDistance);
-  DOCME(FeatureFinderAlgorithm);
+  //DOCME(FeatureFinderAlgorithm);  //TODO: causes compile error on Mac
   DOCME(FeatureFinderAlgorithmMetaboIdent);
   DOCME(FeatureFindingMetabo);
   DOCME(FeatureGroupingAlgorithmLabeled);
@@ -472,7 +472,7 @@ int main(int argc, char** argv)
   DOCME(QTClusterFinder);
   DOCME(SavitzkyGolayFilter);
   DOCME(LowessSmoothing);
-  DOCME(SignalToNoiseEstimator);
+  //DOCME(SignalToNoiseEstimator);  //TODO: causes compile error on Mac
   DOCME(SimplePairFinder);
   DOCME(SimpleSVM);
   DOCME(SONARScoring);
@@ -490,7 +490,7 @@ int main(int argc, char** argv)
   DOCME(TICFilter);
   DOCME(TheoreticalSpectrumGenerator);
   DOCME(ThresholdMower);
-  DOCME(TraceFitter);
+  //DOCME(TraceFitter);  //TODO: causes compile error on Mac
   DOCME(TransitionTSVFile);
   DOCME(TwoDOptimization);
   DOCME(WindowMower);
@@ -552,12 +552,12 @@ int main(int argc, char** argv)
   DOCME2(TOPPViewBase, TOPPViewBase(TOPPViewBase::TOOL_SCAN::SKIP_SCAN));
   DOCME(TOPPASBase);
 
-  DOCME(PlotCanvas);
+  //DOCME(PlotCanvas);  //TODO: causes compile error on Mac
   DOCME2(Plot1DCanvas, Plot1DCanvas(Param()));
   DOCME2(Plot2DCanvas, Plot2DCanvas(Param()));
   DOCME2(Plot3DCanvas, Plot3DCanvas(Param()));
 
-  DOCME(SpectraIDViewTab);
+  //DOCME(SpectraIDViewTab);  //TODO: causes compile error on Mac
 #endif
 
   return 0;
