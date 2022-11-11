@@ -34,6 +34,8 @@
 
 #include <OpenMS/METADATA/HPLC.h>
 
+#include <utility>
+
 using namespace std;
 
 namespace OpenMS
@@ -50,9 +52,7 @@ namespace OpenMS
   {
   }
 
-  HPLC::~HPLC()
-  {
-  }
+  HPLC::~HPLC() = default;
 
   bool HPLC::operator==(const HPLC & rhs) const
   {
@@ -127,7 +127,7 @@ namespace OpenMS
 
   void HPLC::setComment(String comment)
   {
-    comment_ = comment;
+    comment_ = std::move(comment);
   }
 
   Gradient & HPLC::getGradient()

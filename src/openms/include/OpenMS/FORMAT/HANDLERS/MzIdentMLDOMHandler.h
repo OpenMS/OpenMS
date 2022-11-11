@@ -153,7 +153,7 @@ protected:
       void parseSpectrumIdentificationProtocolElements_(xercesc::DOMNodeList* spectrumIdentificationProtocolElements);
       void parseInputElements_(xercesc::DOMNodeList* inputElements);
       void parseSpectrumIdentificationListElements_(xercesc::DOMNodeList* spectrumIdentificationListElements);
-      void parseSpectrumIdentificationItemSetXLMS(std::set<String>::const_iterator set_it, std::multimap<String, int> xl_val_map, xercesc::DOMElement* element_res, String spectrumID);
+      void parseSpectrumIdentificationItemSetXLMS(std::set<String>::const_iterator set_it, std::multimap<String, int> xl_val_map, xercesc::DOMElement* element_res, const String& spectrumID);
       void parseSpectrumIdentificationItemElement_(xercesc::DOMElement* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, String& spectrumIdentificationList_ref);
       void parseProteinDetectionHypothesisElement_(xercesc::DOMElement* proteinDetectionHypothesisElement, ProteinIdentification& protein_identification);
       void parseProteinAmbiguityGroupElement_(xercesc::DOMElement* proteinAmbiguityGroupElement, ProteinIdentification& protein_identification);

@@ -43,9 +43,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  PepNovoInfile::PepNovoInfile()
-  {
-  }
+  PepNovoInfile::PepNovoInfile() = default;
 
   PepNovoInfile::PepNovoInfile(const PepNovoInfile& pepnovo_infile)
   {
@@ -54,9 +52,7 @@ namespace OpenMS
     ptm_file_ = pepnovo_infile.ptm_file_;
   }
 
-  PepNovoInfile::~PepNovoInfile()
-  {
-  }
+  PepNovoInfile::~PepNovoInfile() = default;
 
   PepNovoInfile& PepNovoInfile::operator=(const PepNovoInfile& pepnovo_infile)
   {

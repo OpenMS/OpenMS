@@ -40,6 +40,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
@@ -979,6 +980,16 @@ START_SECTION([EXTRA] load intensity range)
   TEST_REAL_SIMILAR(exp[2][1].getIntensity(),8.0)
   TEST_REAL_SIMILAR(exp[2][2].getIntensity(),7.0)
   TEST_EQUAL(exp[3].size(),0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] load xsd:integer types)
+{
+  MzMLFile file;
+  PeakMap exp;
+  // just load without crashing...
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_xsd-ranges.mzML"), exp);
+  NOT_TESTABLE
 }
 END_SECTION
 

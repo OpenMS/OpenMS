@@ -47,23 +47,22 @@
 #endif
 
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <utility>
 
 using namespace std;
 
 namespace OpenMS
 {
   DocumentIDTagger::DocumentIDTagger(String toolname) :
-    toolname_(toolname),
+    toolname_(std::move(toolname)),
     pool_file_()
   {
     pool_file_ = File::getOpenMSDataPath() + ("/IDPool/IDPool.txt");
   }
 
-  DocumentIDTagger::~DocumentIDTagger()
-  {
-  }
+  DocumentIDTagger::~DocumentIDTagger() = default;
 
   bool DocumentIDTagger::operator==(const DocumentIDTagger & rhs) const
   {

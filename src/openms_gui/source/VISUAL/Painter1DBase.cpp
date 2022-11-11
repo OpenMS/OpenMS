@@ -57,7 +57,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  void Painter1DBase::drawDashedLine(const QPoint& from, const QPoint& to, QPainter* painter, const QColor color)
+  void Painter1DBase::drawDashedLine(const QPoint& from, const QPoint& to, QPainter* painter, const QColor& color)
   {
     QPen pen;
     QVector<qreal> dashes;

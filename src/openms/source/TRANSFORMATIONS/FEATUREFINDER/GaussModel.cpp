@@ -57,9 +57,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  GaussModel::~GaussModel()
-  {
-  }
+  GaussModel::~GaussModel() = default;
 
   GaussModel & GaussModel::operator=(const GaussModel & source)
   {

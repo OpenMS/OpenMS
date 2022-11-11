@@ -61,7 +61,7 @@ bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std:
 
 
 void processFeatureForOutput(OpenMS::Feature& curr_feature, bool write_convex_hull_, double
-                             quantification_cutoff_, double& total_intensity, double& total_peak_apices, std::string ms_level)
+                             quantification_cutoff_, double& total_intensity, double& total_peak_apices, const std::string& ms_level)
 {
   // Save some space when writing out the featureXML
   if (!write_convex_hull_)
@@ -165,9 +165,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MRMFeatureFinderScoring::~MRMFeatureFinderScoring()
-  {
-  }
+  MRMFeatureFinderScoring::~MRMFeatureFinderScoring() = default;
 
   void MRMFeatureFinderScoring::pickExperiment(const PeakMap& chromatograms,
                                                FeatureMap& output,
@@ -193,7 +191,7 @@ namespace OpenMS
     pickExperiment(chromatogram_ptr, output, transition_exp, trafo, swath_ptrs, transition_group_map);
   }
 
-  void MRMFeatureFinderScoring::pickExperiment(const OpenSwath::SpectrumAccessPtr input,
+  void MRMFeatureFinderScoring::pickExperiment(const OpenSwath::SpectrumAccessPtr& input,
                                                FeatureMap& output,
                                                const OpenSwath::LightTargetedExperiment& transition_exp,
                                                const TransformationDescription& trafo, 
@@ -394,7 +392,7 @@ namespace OpenMS
 
       for (size_t i = 0; i < native_ids_identification.size(); i++)
       {
-        ind_transition_names.push_back(native_ids_identification[i]);
+        ind_transition_names.emplace_back(native_ids_identification[i]);
         if (idmrmfeature.getFeature(native_ids_identification[i]).getIntensity() > 0)
         {
           double intensity_score = double(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity()) / double(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic"));
@@ -907,8 +905,11 @@ namespace OpenMS
           mrmfeature.addScore("var_im_xcorr_coelution", scores.im_xcorr_coelution_score);
           mrmfeature.addScore("var_im_delta_score", scores.im_delta_score);
           mrmfeature.addScore("var_im_ms1_delta_score", scores.im_ms1_delta_score);
-          mrmfeature.addScore("im_drift", scores.im_drift);
-          mrmfeature.addScore("im_drift_weighted", scores.im_drift_weighted);
+          mrmfeature.addScore("im_drift", scores.im_drift); // MS2 level
+          mrmfeature.addScore("im_drift_weighted", scores.im_drift_weighted); // MS2 level
+          mrmfeature.addScore("im_ms1_drift", scores.im_ms1_drift); // MS1 level
+          mrmfeature.addScore("im_ms1_delta", scores.im_ms1_delta); // MS1 level
+          mrmfeature.addScore("im_delta", scores.im_delta); // MS2 level
         }
 
         precursor_mz = transition_group_detection.getTransitions()[0].getPrecursorMZ();
@@ -1081,7 +1082,7 @@ namespace OpenMS
     su_.use_ms2_isotope_scores   = param_.getValue("Scores:use_ms2_isotope_scores").toBool();
   }
 
-  void MRMFeatureFinderScoring::mapExperimentToTransitionList(const OpenSwath::SpectrumAccessPtr input,
+  void MRMFeatureFinderScoring::mapExperimentToTransitionList(const OpenSwath::SpectrumAccessPtr& input,
                                                               const TargetedExpType& transition_exp,
                                                               TransitionGroupMapType& transition_group_map,
                                                               TransformationDescription trafo,

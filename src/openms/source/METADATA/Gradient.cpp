@@ -41,10 +41,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  Gradient::~Gradient()
-  {
-
-  }
+  Gradient::~Gradient() = default;
 
   bool Gradient::operator==(const Gradient & rhs) const
   {
@@ -69,7 +66,7 @@ namespace OpenMS
 
     eluents_.push_back(eluent);
     // add zero values to percentages
-    percentages_.push_back(vector<UInt>(times_.size(), 0));
+    percentages_.emplace_back(times_.size(), 0);
   }
 
   void Gradient::clearEluents()

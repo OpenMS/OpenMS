@@ -47,15 +47,11 @@
 namespace OpenMS
 {
 
-  ILPDCWrapper::ILPDCWrapper()
-  {
-  }
+  ILPDCWrapper::ILPDCWrapper() = default;
 
-  ILPDCWrapper::~ILPDCWrapper()
-  {
-  }
+  ILPDCWrapper::~ILPDCWrapper()  = default;
 
-  double ILPDCWrapper::compute(const FeatureMap fm, PairsType& pairs, Size verbose_level) const
+  double ILPDCWrapper::compute(const FeatureMap& fm, PairsType& pairs, Size verbose_level) const
   {
     if (fm.empty())
     {
@@ -219,7 +215,7 @@ namespace OpenMS
     f_set[rota_l].insert(v);
   }
 
-  double ILPDCWrapper::computeSlice_(const FeatureMap fm,
+  double ILPDCWrapper::computeSlice_(const FeatureMap& fm,
                                      PairsType& pairs,
                                      const PairsIndex margin_left,
                                      const PairsIndex margin_right,
@@ -320,7 +316,7 @@ namespace OpenMS
 
   // old version, slower, as ILP has different layout (i.e, the same as described in paper)
 
-  double ILPDCWrapper::computeSliceOld_(const FeatureMap fm,
+  double ILPDCWrapper::computeSliceOld_(const FeatureMap& fm,
                                         PairsType& pairs,
                                         const PairsIndex margin_left,
                                         const PairsIndex margin_right,

@@ -112,9 +112,7 @@ namespace OpenMS
   }
 
 
-  NucleicAcidSpectrumGenerator::~NucleicAcidSpectrumGenerator()
-  {
-  }
+  NucleicAcidSpectrumGenerator::~NucleicAcidSpectrumGenerator() = default;
 
 
   void NucleicAcidSpectrumGenerator::addFragmentPeaks_(MSSpectrum& spectrum, const vector<double>& fragment_masses, const String& ion_type, double offset, double intensity, Size start) const

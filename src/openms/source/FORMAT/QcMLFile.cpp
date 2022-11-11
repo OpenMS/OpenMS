@@ -63,17 +63,7 @@ namespace OpenMS
   {
   }
 
-  QcMLFile::QualityParameter::QualityParameter(const QualityParameter& rhs) :
-    name(rhs.name),
-    id(rhs.id),
-    value(rhs.value),
-    cvRef(rhs.cvRef),
-    cvAcc(rhs.cvAcc),
-    unitRef(rhs.unitRef),
-    unitAcc(rhs.unitAcc),
-    flag(rhs.flag)
-  {
-  }
+  QcMLFile::QualityParameter::QualityParameter(const QualityParameter& rhs) = default;
 
   QcMLFile::QualityParameter& QcMLFile::QualityParameter::operator=(const QualityParameter& rhs)
   {
@@ -148,20 +138,7 @@ namespace OpenMS
   {
   }
 
-  QcMLFile::Attachment::Attachment(const Attachment& rhs) :
-    name(rhs.name),
-    id(rhs.id),
-    value(rhs.value),
-    cvRef(rhs.cvRef),
-    cvAcc(rhs.cvAcc),
-    unitRef(rhs.unitRef),
-    unitAcc(rhs.unitAcc),
-    binary(rhs.binary),
-    qualityRef(rhs.qualityRef),
-    colTypes(rhs.colTypes),
-    tableRows(rhs.tableRows)
-  {
-  }
+  QcMLFile::Attachment::Attachment(const Attachment& rhs) = default;
 
   QcMLFile::Attachment& QcMLFile::Attachment::operator=(const Attachment& rhs)
   {
@@ -197,7 +174,7 @@ namespace OpenMS
     return name.toQString() == rhs.name.toQString();
   }
 
-  String QcMLFile::Attachment::toCSVString(const String separator) const
+  String QcMLFile::Attachment::toCSVString(const String& separator) const
   {
     String s = "";
     if ((!colTypes.empty()) && (!tableRows.empty()))
@@ -303,12 +280,9 @@ namespace OpenMS
   {
   }
 
-  QcMLFile::~QcMLFile()
-  {
+  QcMLFile::~QcMLFile() = default;
 
-  }
-
-  void QcMLFile::addRunQualityParameter(String run_id, QualityParameter qp)
+  void QcMLFile::addRunQualityParameter(const String& run_id, const QualityParameter& qp)
   {
     // TODO warn that run has to be registered!
     std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(run_id); //if 'filename is a ID:'
@@ -327,7 +301,7 @@ namespace OpenMS
     //TODO redundancy check
   }
 
-  void QcMLFile::addSetQualityParameter(String set_id, QualityParameter qp)
+  void QcMLFile::addSetQualityParameter(const String& set_id, const QualityParameter& qp)
   {
     // TODO warn that set has to be registered!
     std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(set_id); //if 'filename is a ID:'
@@ -346,12 +320,12 @@ namespace OpenMS
     //TODO redundancy check
   }
 
-  void QcMLFile::addRunAttachment(String run_id, Attachment at)
+  void QcMLFile::addRunAttachment(const String& run_id, const Attachment& at)
   {
     runQualityAts_[run_id].push_back(at); //TODO permit AT without a QP (or enable orphan write out in store),redundancy check
   }
 
-  void QcMLFile::addSetAttachment(String run_id, Attachment at)
+  void QcMLFile::addSetAttachment(const String& run_id, const Attachment& at)
   {
     setQualityAts_[run_id].push_back(at); //TODO add file QP to set member
   }
@@ -368,7 +342,7 @@ namespace OpenMS
     for (const auto& m : runQualityQPs_) ids.push_back(m.first);
   }
 
-  bool QcMLFile::existsRun(const String filename, bool checkname) const
+  bool QcMLFile::existsRun(const String& filename, bool checkname) const
   {
     std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename); //if 'filename is a ID:'
     if (qpsit != runQualityQPs_.end()) //NO, do not!: permit AT without a QP
@@ -387,7 +361,7 @@ namespace OpenMS
     return false;
   }
 
-  bool QcMLFile::existsSet(const String filename, bool checkname) const
+  bool QcMLFile::existsSet(const String& filename, bool checkname) const
   {
     std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(filename); //if 'filename is a ID:'
     if (qpsit != setQualityQPs_.end()) //NO, do not!: permit AT without a QP
@@ -405,7 +379,7 @@ namespace OpenMS
     return false;
   }
 
-  void QcMLFile::existsRunQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const
+  void QcMLFile::existsRunQualityParameter(const String& filename, const String& qpname, std::vector<String>& ids) const
   {
     ids.clear();
     std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
@@ -429,7 +403,7 @@ namespace OpenMS
     }
   }
 
-  void QcMLFile::existsSetQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const
+  void QcMLFile::existsSetQualityParameter(const String& filename, const String& qpname, std::vector<String>& ids) const
   {
     ids.clear();
     std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(filename);
@@ -455,7 +429,7 @@ namespace OpenMS
     }
   }
 
-  void QcMLFile::removeQualityParameter(String r, std::vector<String>& ids)
+  void QcMLFile::removeQualityParameter(const String& r, std::vector<String>& ids)
   {
     removeAttachment(r, ids);
     for (Size i = 0; i < ids.size(); ++i)
@@ -487,7 +461,7 @@ namespace OpenMS
     }
   }
 
-  void QcMLFile::removeAttachment(String r, std::vector<String>& ids, String at)
+  void QcMLFile::removeAttachment(const String& r, std::vector<String>& ids, const String& at)
   {
     bool not_all = !at.empty();
     for (Size i = 0; i < ids.size(); ++i)
@@ -519,7 +493,7 @@ namespace OpenMS
     }
   }
 
-  void QcMLFile::removeAttachment(String r, String at)
+  void QcMLFile::removeAttachment(const String& r, const String& at)
   {
     if (existsRun(r))
     {
@@ -555,7 +529,7 @@ namespace OpenMS
     }
   }
 
-  void QcMLFile::removeAllAttachments(String at)
+  void QcMLFile::removeAllAttachments(const String& at)
   {
     for (std::map<String, std::vector<Attachment> >::iterator it = runQualityAts_.begin(); it != runQualityAts_.end(); ++it)
     {
@@ -563,14 +537,14 @@ namespace OpenMS
     }
   }
 
-  void QcMLFile::registerRun(const String id, const String name)
+  void QcMLFile::registerRun(const String& id, const String& name)
   {
     runQualityQPs_[id] = std::vector<QualityParameter>();
     runQualityAts_[id] = std::vector<Attachment>();
     run_Name_ID_map_[name] = id;
   }
 
-  void QcMLFile::registerSet(const String id, const String name, const std::set<String>& names)
+  void QcMLFile::registerSet(const String& id, const String& name, const std::set<String>& names)
   {
     setQualityQPs_[id] = std::vector<QualityParameter>();
     setQualityAts_[id] = std::vector<Attachment>();
@@ -578,7 +552,7 @@ namespace OpenMS
     setQualityQPs_members_[id] = names;
   }
 
-  void QcMLFile::merge(const QcMLFile& addendum, String setname)
+  void QcMLFile::merge(const QcMLFile& addendum, const String& setname)
   {
     //~ runs (and create set if setname not empty)
     for (std::map<String, std::vector<QualityParameter> >::const_iterator it = addendum.runQualityQPs_.begin(); it != addendum.runQualityQPs_.end(); ++it)
@@ -619,7 +593,7 @@ namespace OpenMS
     }
   }
 
-  String QcMLFile::exportAttachment(const String filename, const String qpname) const
+  String QcMLFile::exportAttachment(const String& filename, const String& qpname) const
   {
     std::map<String, std::vector<QcMLFile::Attachment> >::const_iterator qpsit = runQualityAts_.find(filename);
     if (qpsit == runQualityAts_.end()) //try name mapping if 'filename' is no ID but name
@@ -667,7 +641,7 @@ namespace OpenMS
     return "";
   }
 
-  String QcMLFile::exportQP(const String filename, const String qpname) const
+  String QcMLFile::exportQP(const String& filename, const String& qpname) const
   {
     std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
     if (qpsit == runQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
@@ -713,7 +687,7 @@ namespace OpenMS
     return "N/A";
   }
 
-  String QcMLFile::exportQPs(const String filename, const StringList qpnames) const
+  String QcMLFile::exportQPs(const String& filename, const StringList& qpnames) const
   {
     String ret = "";
     for (StringList::const_iterator qit = qpnames.begin(); qit != qpnames.end(); ++qit)
@@ -795,7 +769,7 @@ namespace OpenMS
     return "";
   }
 
-  void QcMLFile::collectSetParameter(const String setname, const String qp, std::vector<String>& ret)
+  void QcMLFile::collectSetParameter(const String& setname, const String& qp, std::vector<String>& ret)
   {
     for (std::set<String>::const_iterator it = setQualityQPs_members_[setname].begin(); it != setQualityQPs_members_[setname].end(); ++it)
     {
@@ -1165,11 +1139,11 @@ namespace OpenMS
         at.name = "precursors"; ///< Name
       }
 
-      at.colTypes.push_back("MS:1000894_[sec]");  // RT
-      at.colTypes.push_back("MS:1000040");  // MZ
-      at.colTypes.push_back("MS:1000041");  // charge
-      at.colTypes.push_back("S/N");  // S/N
-      at.colTypes.push_back("peak count");  // peak count
+      at.colTypes.emplace_back("MS:1000894_[sec]");  // RT
+      at.colTypes.emplace_back("MS:1000040");  // MZ
+      at.colTypes.emplace_back("MS:1000041");  // charge
+      at.colTypes.emplace_back("S/N");  // S/N
+      at.colTypes.emplace_back("peak count");  // peak count
       
       for (Size i = 0; i < exp.size(); ++i)
       {
@@ -1185,11 +1159,11 @@ namespace OpenMS
             max_mz = exp[i].getPrecursors().front().getMZ();
           }
           std::vector<String> row;
-          row.push_back(exp[i].getRT());
-          row.push_back(exp[i].getPrecursors().front().getMZ());
-          row.push_back(exp[i].getPrecursors().front().getCharge());
-          row.push_back(calculateSNmedian(exp[i]));
-          row.push_back(exp[i].size());
+          row.emplace_back(exp[i].getRT());
+          row.emplace_back(exp[i].getPrecursors().front().getMZ());
+          row.emplace_back(exp[i].getPrecursors().front().getCharge());
+          row.emplace_back(calculateSNmedian(exp[i]));
+          row.emplace_back(exp[i].size());
           at.tableRows.push_back(row);
         }
       }
@@ -1260,11 +1234,11 @@ namespace OpenMS
         at.name = "MS MZ aquisition ranges"; ///< Name
       }
 
-      at.colTypes.push_back("QC:0000010"); //MZ
-      at.colTypes.push_back("QC:0000011"); //MZ
+      at.colTypes.emplace_back("QC:0000010"); //MZ
+      at.colTypes.emplace_back("QC:0000011"); //MZ
       std::vector<String> rowmz;
-      rowmz.push_back(String(min_mz));
-      rowmz.push_back(String(max_mz));
+      rowmz.emplace_back(min_mz);
+      rowmz.emplace_back(max_mz);
       at.tableRows.push_back(rowmz);
       addRunAttachment(base_name, at);
 
@@ -1283,11 +1257,11 @@ namespace OpenMS
         at.name = "MS RT aquisition ranges"; ///< Name
       }
 
-      at.colTypes.push_back("QC:0000013"); //MZ
-      at.colTypes.push_back("QC:0000014"); //MZ
+      at.colTypes.emplace_back("QC:0000013"); //MZ
+      at.colTypes.emplace_back("QC:0000014"); //MZ
       std::vector<String> rowrt;
-      rowrt.push_back(String(exp.begin()->getRT()));
-      rowrt.push_back(String(exp.getSpectra().back().getRT()));
+      rowrt.emplace_back(exp.begin()->getRT());
+      rowrt.emplace_back(exp.getSpectra().back().getRT());
       at.tableRows.push_back(rowrt);
       addRunAttachment(base_name, at);
       
@@ -1308,8 +1282,8 @@ namespace OpenMS
         at.name = "MS TICs"; ///< Name
       }
 
-      at.colTypes.push_back("MS:1000894_[sec]");
-      at.colTypes.push_back("MS:1000285");
+      at.colTypes.emplace_back("MS:1000894_[sec]");
+      at.colTypes.emplace_back("MS:1000285");
       Size below_10k = 0;
       std::vector<OpenMS::Chromatogram> chroms = exp.getChromatograms();
       if (!chroms.empty()) //real TIC from the mzML
@@ -1326,8 +1300,8 @@ namespace OpenMS
                 ++below_10k;
               }
               std::vector<String> row;
-              row.push_back(chroms[t][i].getRT() * 60);
-              row.push_back(sum);
+              row.emplace_back(chroms[t][i].getRT() * 60);
+              row.emplace_back(sum);
               at.tableRows.push_back(row);
             }
             break;  // what if there are more than one? should generally not be though ...
@@ -1368,10 +1342,10 @@ namespace OpenMS
         at.name = "MS RICs"; ///< Name
       }
 
-      at.colTypes.push_back("MS:1000894_[sec]");
-      at.colTypes.push_back("MS:1000285");
-      at.colTypes.push_back("S/N");
-      at.colTypes.push_back("peak count");
+      at.colTypes.emplace_back("MS:1000894_[sec]");
+      at.colTypes.emplace_back("MS:1000285");
+      at.colTypes.emplace_back("S/N");
+      at.colTypes.emplace_back("peak count");
       Size prev = 0;
       below_10k = 0;
       Size jumps = 0;
@@ -1400,10 +1374,10 @@ namespace OpenMS
           }
           prev = sum;
           std::vector<String> row;
-          row.push_back(exp[i].getRT());
-          row.push_back(sum);
-          row.push_back(calculateSNmedian(exp[i]));
-          row.push_back(exp[i].size());
+          row.emplace_back(exp[i].getRT());
+          row.emplace_back(sum);
+          row.emplace_back(calculateSNmedian(exp[i]));
+          row.emplace_back(exp[i].size());
           at.tableRows.push_back(row);
         }
       }
@@ -1473,8 +1447,8 @@ namespace OpenMS
         at.name = "MS2 injection time"; ///< Name
       }
 
-      at.colTypes.push_back("MS:1000894_[sec]");
-      at.colTypes.push_back("MS:1000927");
+      at.colTypes.emplace_back("MS:1000894_[sec]");
+      at.colTypes.emplace_back("MS:1000927");
       for (Size i = 0; i < exp.size(); ++i)
       {
         if (exp[i].getMSLevel() > 1 && !exp[i].getAcquisitionInfo().empty())
@@ -1484,8 +1458,8 @@ namespace OpenMS
             if (exp[i].getAcquisitionInfo()[j].metaValueExists("MS:1000927"))
             {
               std::vector<String> row;
-              row.push_back(String(exp[i].getRT()));
-              row.push_back(exp[i].getAcquisitionInfo()[j].getMetaValue("MS:1000927"));
+              row.emplace_back(exp[i].getRT());
+              row.emplace_back(exp[i].getAcquisitionInfo()[j].getMetaValue("MS:1000927"));
               at.tableRows.push_back(row);
             }
           }
@@ -1537,13 +1511,13 @@ namespace OpenMS
           at.name = "MS id settings"; ///< Name
         }
         
-        at.colTypes.push_back("MS:1001013"); //MS:1001013 db name  MS:1001016 version  MS:1001020 taxonomy
-        at.colTypes.push_back("MS:1001016");
-        at.colTypes.push_back("MS:1001020");
+        at.colTypes.emplace_back("MS:1001013"); //MS:1001013 db name  MS:1001016 version  MS:1001020 taxonomy
+        at.colTypes.emplace_back("MS:1001016");
+        at.colTypes.emplace_back("MS:1001020");
         std::vector<String> row;
-        row.push_back(String(prot_ids.front().getSearchParameters().db));
-        row.push_back(String(prot_ids.front().getSearchParameters().db_version));
-        row.push_back(String(prot_ids.front().getSearchParameters().taxonomy));
+        row.emplace_back(prot_ids.front().getSearchParameters().db);
+        row.emplace_back(prot_ids.front().getSearchParameters().db_version);
+        row.emplace_back(prot_ids.front().getSearchParameters().taxonomy);
         at.tableRows.push_back(row);
         addRunAttachment(base_name, at);
 
@@ -1707,13 +1681,13 @@ namespace OpenMS
         }
         
         //~ delta ppm QC:0000039 RT MZ uniqueness ProteinID MS:1000885 target/decoy Score PeptideSequence MS:1000889 Annots string Similarity Charge UO:0000219 TheoreticalWeight UO:0000221 Oxidation_(M)
-        at.colTypes.push_back("RT");
-        at.colTypes.push_back("MZ");
-        at.colTypes.push_back("Score");
-        at.colTypes.push_back("PeptideSequence");
-        at.colTypes.push_back("Charge");
-        at.colTypes.push_back("TheoreticalWeight");
-        at.colTypes.push_back("delta_ppm");
+        at.colTypes.emplace_back("RT");
+        at.colTypes.emplace_back("MZ");
+        at.colTypes.emplace_back("Score");
+        at.colTypes.emplace_back("PeptideSequence");
+        at.colTypes.emplace_back("Charge");
+        at.colTypes.emplace_back("TheoreticalWeight");
+        at.colTypes.emplace_back("delta_ppm");
   //      at.colTypes.push_back("S/N");
         for (UInt w = 0; w < var_mods.size(); ++w)
         {
@@ -1727,8 +1701,8 @@ namespace OpenMS
           if (!pep_id.getHits().empty())
           {
             std::vector<String> row;
-            row.push_back(pep_id.getRT());
-            row.push_back(pep_id.getMZ());
+            row.emplace_back(pep_id.getRT());
+            row.emplace_back(pep_id.getMZ());
             PeptideHit tmp = pep_id.getHits().front();  //N.B.: depends on score & sort
             vector<UInt> pep_mods;
             for (UInt w = 0; w < var_mods.size(); ++w)
@@ -1754,17 +1728,17 @@ namespace OpenMS
               }
             }
 
-            row.push_back(tmp.getScore());
+            row.emplace_back(tmp.getScore());
             row.push_back(tmp.getSequence().toString().removeWhitespaces());
-            row.push_back(tmp.getCharge());
+            row.emplace_back(tmp.getCharge());
             double mz = tmp.getSequence().getMZ(tmp.getCharge());
-            row.push_back(String(mz));
+            row.emplace_back(mz);
             double dppm = (pep_id.getMZ()-mz)/(mz*(double)1e-6);
-            row.push_back(String(dppm));
+            row.emplace_back(dppm);
             deltas.push_back(dppm);
             for (UInt w = 0; w < var_mods.size(); ++w)
             {
-              row.push_back(pep_mods[w]);
+              row.emplace_back(pep_mods[w]);
             }
             at.tableRows.push_back(row);
           }
@@ -1876,26 +1850,26 @@ namespace OpenMS
         {
           at.name = "features"; ///< Name
         }
-        at.colTypes.push_back("MZ");
-        at.colTypes.push_back("RT");
-        at.colTypes.push_back("Intensity");
-        at.colTypes.push_back("Charge");
-        at.colTypes.push_back("Quality");
-        at.colTypes.push_back("FWHM");
-        at.colTypes.push_back("IDs");
+        at.colTypes.emplace_back("MZ");
+        at.colTypes.emplace_back("RT");
+        at.colTypes.emplace_back("Intensity");
+        at.colTypes.emplace_back("Charge");
+        at.colTypes.emplace_back("Quality");
+        at.colTypes.emplace_back("FWHM");
+        at.colTypes.emplace_back("IDs");
         UInt fiter = 0;
         UInt ided = 0;
         //ofstream out(outputfile_name.c_str());
         while (fiter < feature_map.size())
         {
           std::vector<String> row;
-          row.push_back(feature_map[fiter].getMZ());
-          row.push_back(feature_map[fiter].getRT());
-          row.push_back(feature_map[fiter].getIntensity());
-          row.push_back(feature_map[fiter].getCharge());
-          row.push_back(feature_map[fiter].getOverallQuality());
-          row.push_back(feature_map[fiter].getWidth());
-          row.push_back(feature_map[fiter].getPeptideIdentifications().size());
+          row.emplace_back(feature_map[fiter].getMZ());
+          row.emplace_back(feature_map[fiter].getRT());
+          row.emplace_back(feature_map[fiter].getIntensity());
+          row.emplace_back(feature_map[fiter].getCharge());
+          row.emplace_back(feature_map[fiter].getOverallQuality());
+          row.emplace_back(feature_map[fiter].getWidth());
+          row.emplace_back(feature_map[fiter].getPeptideIdentifications().size());
           if (!feature_map[fiter].getPeptideIdentifications().empty())
           {
             ++ided;
@@ -1939,10 +1913,10 @@ namespace OpenMS
           at.name = "features"; ///< Name
         }
         
-        at.colTypes.push_back("MZ");
-        at.colTypes.push_back("RT");
-        at.colTypes.push_back("Intensity");
-        at.colTypes.push_back("Charge");
+        at.colTypes.emplace_back("MZ");
+        at.colTypes.emplace_back("RT");
+        at.colTypes.emplace_back("Intensity");
+        at.colTypes.emplace_back("Charge");
         FeatureMap map_out;
         UInt fiter = 0;
         while (fiter < feature_map.size())
@@ -1984,14 +1958,14 @@ namespace OpenMS
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "feature mapper results"
 
-        at.colTypes.push_back("Native_spectrum_ID");
-        at.colTypes.push_back("DECON_RT_(sec)");
-        at.colTypes.push_back("DECON_MZ_(Th)");
-        at.colTypes.push_back("DECON_Intensity");
-        at.colTypes.push_back("Feature_RT_(sec)");
-        at.colTypes.push_back("Feature_MZ_(Th)");
-        at.colTypes.push_back("Feature_Intensity");
-        at.colTypes.push_back("Feature_Charge");
+        at.colTypes.emplace_back("Native_spectrum_ID");
+        at.colTypes.emplace_back("DECON_RT_(sec)");
+        at.colTypes.emplace_back("DECON_MZ_(Th)");
+        at.colTypes.emplace_back("DECON_Intensity");
+        at.colTypes.emplace_back("Feature_RT_(sec)");
+        at.colTypes.emplace_back("Feature_MZ_(Th)");
+        at.colTypes.emplace_back("Feature_Intensity");
+        at.colTypes.emplace_back("Feature_Charge");
         for (ConsensusMap::const_iterator cmit = consensus_map.begin(); cmit != consensus_map.end(); ++cmit)
         {
           const ConsensusFeature& CF = *cmit;
@@ -1999,12 +1973,12 @@ namespace OpenMS
           {
             std::vector<String> row;
             FeatureHandle FH = *cfit;
-            row.push_back(CF.getMetaValue("spectrum_native_id"));
-            row.push_back(CF.getRT()); row.push_back(CF.getMZ());
-            row.push_back(CF.getIntensity());
-            row.push_back(FH.getRT());
-            row.push_back(FH.getMZ());
-            row.push_back(FH.getCharge());
+            row.emplace_back(CF.getMetaValue("spectrum_native_id"));
+            row.emplace_back(CF.getRT()); row.emplace_back(CF.getMZ());
+            row.emplace_back(CF.getIntensity());
+            row.emplace_back(FH.getRT());
+            row.emplace_back(FH.getMZ());
+            row.emplace_back(FH.getCharge());
             at.tableRows.push_back(row);
           }
         }

@@ -72,7 +72,7 @@ namespace OpenMS
 #endif
   }
 
-  OPENMS_GUI_DLLAPI QString GUIHelpers::getSaveFilename(QWidget* parent, const QString& caption, const QString& dir, FileTypeList supported_file_types, bool add_all_filter,
+  OPENMS_GUI_DLLAPI QString GUIHelpers::getSaveFilename(QWidget* parent, const QString& caption, const QString& dir, const FileTypeList& supported_file_types, bool add_all_filter,
                                                         const FileTypes::Type fallback_extension)
   {
     QString selected_filter;
@@ -160,7 +160,7 @@ namespace OpenMS
     }
   }
 
-  void GUIHelpers::drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor col_fg, const QColor col_bg, const QFont& f)
+  void GUIHelpers::drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor& col_fg, const QColor& col_bg, const QFont& f)
   {
     painter.save();
 

@@ -273,7 +273,7 @@ private:
 
      */
     //@{
-    explicit ModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
+    explicit ModificationsDB(const OpenMS::String& unimod_file = "CHEMISTRY/unimod.xml", const OpenMS::String& psimod_file = "CHEMISTRY/PSI-MOD.obo", const OpenMS::String& xlmod_file = "CHEMISTRY/XLMOD.obo");
 
     /// Copy constructor
     ModificationsDB(const ModificationsDB& residue_db);
