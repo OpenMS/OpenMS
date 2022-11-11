@@ -2287,7 +2287,10 @@ state0:
 
   bool MzTab::IDMzTabStream::nextPSMRow(MzTabPSMSectionRow& row)
   {
-    if (pep_id_ >= peptide_ids_.size()) return false;
+    if (pep_id_ >= peptide_ids_.size()) 
+    {
+      return false;
+    }
     const PeptideIdentification* pid = peptide_ids_[pep_id_];
 
     auto psm_row = MzTab::PSMSectionRowFromPeptideID_(
@@ -2316,11 +2319,11 @@ state0:
 
     if (psm_row) // valid row?
     {
-      std::swap(row, *psm_row);
+      row = *psm_row;
     }
     else
     {
-      *psm_row = MzTabPSMSectionRow();
+      row = MzTabPSMSectionRow();
     }
     return true;
   }
@@ -3058,11 +3061,11 @@ state0:
 
     if (psm_row) // valid row?
     {
-      std::swap(row, *psm_row);
+      row = *psm_row;
     }
     else
     {
-      *psm_row = MzTabPSMSectionRow();
+      row = MzTabPSMSectionRow();
     }
     return true;
   }
@@ -3112,7 +3115,7 @@ state0:
       // parts of a row..
       if (!psm_row.sequence.isNull())
       {
-        m.getPSMSectionRows().emplace_back(std::move(psm_row));
+        m.getPSMSectionRows().push_back(psm_row);
       }
     }
 
