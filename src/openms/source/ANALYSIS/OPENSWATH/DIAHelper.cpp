@@ -237,7 +237,15 @@ namespace OpenMS::DIAHelpers
       if (intensity > 0.)
       {
         mz /= intensity;
-        im /= intensity;
+
+        if (drift_start >= 0)
+        {
+          im /= intensity;
+        }
+        else
+        {
+          im = -1;
+        }
         return true;
       }
       else
