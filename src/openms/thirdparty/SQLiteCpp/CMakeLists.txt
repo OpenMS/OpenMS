@@ -445,5 +445,7 @@ else (SQLITECPP_BUILD_TESTS)
     message(STATUS "SQLITECPP_BUILD_TESTS OFF")
 endif (SQLITECPP_BUILD_TESTS)
 
+export(TARGETS SQLiteCpp NAMESPACE SQLiteCpp:: FILE SQLiteCppTargets.cmake)
+
 # API version for SQLiteCpp shared library.
 set_property(TARGET SQLiteCpp PROPERTY SOVERSION 0)
