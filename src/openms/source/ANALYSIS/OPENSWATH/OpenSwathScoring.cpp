@@ -166,11 +166,6 @@ namespace OpenMS
     // find spectrum that is closest to the apex of the peak using binary search
     std::vector<OpenSwath::SpectrumPtr> spectra = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, drift_lower, drift_upper);
 
-    // calculate drift extraction width for current spectrum (with some extra for cross-correlation)
-    double drift_width = fabs(drift_upper - drift_lower);
-    double drift_lower_used = drift_lower - drift_width * im_drift_extra_pcnt_;
-    double drift_upper_used = drift_upper + drift_width * im_drift_extra_pcnt_;
-
     // set the DIA parameters
     double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
     bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";

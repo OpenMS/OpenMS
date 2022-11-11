@@ -361,7 +361,6 @@ namespace OpenMS
       // Calculate the difference of the theoretical ion mobility and the actually measured ion mobility
       double left(transition.getProductMZ()), right(transition.getProductMZ());
       DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
-
       computeIonMobilogram(spectra, left, right, im, intensity, res, eps, drift_lower_used, drift_upper_used);
       mobilograms.push_back( std::move(res) );
     }
@@ -437,7 +436,6 @@ namespace OpenMS
                                            const bool /* use_spline */,
                                            const double drift_extra)
   {
-    //OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be null");
     OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty")
     OPENMS_PRECONDITION(!transitions.empty(), "Need at least one transition");
 
