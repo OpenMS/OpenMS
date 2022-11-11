@@ -2318,11 +2318,10 @@ state0:
     {
       std::swap(row, *psm_row);
     }
-    /* avoid reinitialization of 512 bytes. Skipped row == unchanged. Usually empty rows are input
     else
     {
       *psm_row = MzTabPSMSectionRow();
-    }*/
+    }
     return true;
   }
 
@@ -3061,11 +3060,10 @@ state0:
     {
       std::swap(row, *psm_row);
     }
-    /* avoid reinitialization of 512 bytes. Skipped row == unchanged. Usually empty rows are input
     else
     {
       *psm_row = MzTabPSMSectionRow();
-    }*/
+    }
     return true;
   }
 
