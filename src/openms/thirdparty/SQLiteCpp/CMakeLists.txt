@@ -180,7 +180,7 @@ if (SQLITECPP_INCLUDE_SCRIPT)
 endif()
 
 # add sources of the wrapper as a "SQLiteCpp" static library
-add_library(SQLiteCpp ${SQLITECPP_SRC} ${SQLITECPP_INC} ${SQLITECPP_DOC} ${SQLITECPP_SCRIPT})
+add_library(SQLiteCpp STATIC ${SQLITECPP_SRC} ${SQLITECPP_INC} ${SQLITECPP_DOC} ${SQLITECPP_SCRIPT})
 
 # Options relative to SQLite and SQLiteC++ functions
 
@@ -445,6 +445,7 @@ else (SQLITECPP_BUILD_TESTS)
     message(STATUS "SQLITECPP_BUILD_TESTS OFF")
 endif (SQLITECPP_BUILD_TESTS)
 
+export(TARGETS sqlite3 NAMESPACE sqlite3:: FILE sqlite3Targets.cmake)
 export(TARGETS SQLiteCpp NAMESPACE SQLiteCpp:: FILE SQLiteCppTargets.cmake)
 
 # API version for SQLiteCpp shared library.

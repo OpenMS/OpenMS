@@ -6,7 +6,7 @@
 # or copy at http://opensource.org/licenses/MIT) 
 
 # add sources of the "sqlite3" static library
-add_library(sqlite3
+add_library(sqlite3 STATIC
  sqlite3.c
  sqlite3.h
 )
