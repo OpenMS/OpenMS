@@ -36,6 +36,7 @@
 
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <unordered_map>
 
 namespace OpenMS
@@ -107,6 +108,9 @@ namespace OpenMS
 
     /// read (modified) nucleotides from input file
     void readFromFile_(const std::string& path);
+
+    /// read from a newer version of Modomics that uses a JSON file
+    void readFromJSON_(const std::string& path);
 
     /// create a (modified) nucleotide from an input row
     ConstRibonucleotidePtr parseRow_(const std::string& row, Size line_count);
