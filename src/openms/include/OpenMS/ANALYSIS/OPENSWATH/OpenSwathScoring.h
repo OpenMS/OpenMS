@@ -250,42 +250,73 @@ namespace OpenMS
      *
      * This function will fetch a vector of spectrum pointers to be used in DIA analysis.
      * If nr_spectra_to_add == 1, than a vector of length 1 will be returned
-     * all spectra sum up (add) the intensities of multiple spectra a single
+     *
+     * Case #1: Non SONAR data and "simple" addition selected - Array of length "nr_spectra_to_add" returned corresponding with "nr_spectra_to_add" spectra
+     * Case #2: Non SONAR data and "resampling addition selected - Array of length 1 of the resampled spectrum returned
+     * Case #3: SONAR data - Array of length 1 containing the added/resampled spectrum returned
+     *
+     * For case #2 and #3 result is
+     * all spectra summed up (add) with the intensities of multiple spectra a single
      * swath map (assuming these are regular SWATH / DIA maps) around the given
      * retention time and return an "averaged" spectrum which may contain less noise.
+     *
+     * For case #1 this processing is done downstream in DIA scores to speed up computation time
      *
      * @param[in] swath_map The map containing the spectra
      * @param[in] RT The target retention time
      * @param[in] nr_spectra_to_add How many spectra to add up
-     *
+     * @param[in] drift_lower lower drift time boundary, only used if resampling spectrum addition chosen
+     * @param[in] drift_upper upper drift time boundary, only used if resampling spectrum addition chosen
      * @return Vector of spectra to be used
      *
     */
-    std::vector<OpenSwath::SpectrumPtr> fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps, double RT, int nr_spectra_to_add);
+    std::vector<OpenSwath::SpectrumPtr> fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps, double RT, int nr_spectra_to_add, double drift_lower, double drift_upper);
 
 
    /** @brief Prepares a spectrum for DIA analysis (multiple map)
      *
      * This function will fetch a vector of spectrum pointers to be used in DIA analysis.
-     * If nr_spectra_to_add == 1, than a vector of length 1 will be returned
-     * all spectra sum up (add) the intensities of multiple spectra a single
+     * If nr_spectra_to_add == 1, than a vector of length 1 will be returned.
+     * Spectra are prepared differently based on the condition
+     * Case #1: Non SONAR data and "simple" addition selected - Array of length "nr_spectra_to_add" returned corresponding with "nr_spectra_to_add" spectra
+     * Case #2: Non SONAR data and "resampling addition selected - Array of length 1 of the resampled spectrum returned
+     * Case #3: SONAR data - Array of length 1 containing the added/resampled spectrum returned
+     *
+     * For case #2 and #3 result is
+     * all spectra summed up (add) with the intensities of multiple spectra a single
      * swath map (assuming these are regular SWATH / DIA maps) around the given
      * retention time and return an "averaged" spectrum which may contain less noise.
+     * Spectra are also filtered and summed across drift time to transform an ion mobility spectrum into a non ion mobility spectrum
+     *
+     * For case #1 this processing is done downstream in DIA scores to speed up computation time, furthermore drift time filtering is done downstream (these parameters are ignored)
      *
      * @param[in] swath_map The map containing the spectra
      * @param[in] RT The target retention time
      * @param[in] nr_spectra_to_add How many spectra to add up
+     * @param[in] drift_lower lower drift time boundary, only used if resampling spectrum addition chosen
+     * @param[in] drift_upper upper drift time boundary, only used if resampling spectrum addition chosen
      *
      * @return Vector of spectra to be used
      *
     */
-    std::vector<OpenSwath::SpectrumPtr> fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add);
+    std::vector<OpenSwath::SpectrumPtr> fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add, double drift_lower, double drift_upper);
+
 
   protected:
 
     /** @breif Fetches multiple spectrum pointers in an vector format
     */
     std::vector<OpenSwath::SpectrumPtr> fetchMultipleSpectra_(const OpenSwath::SpectrumAccessPtr& swath_map, double RT, int nr_spectra_to_fetch);
+
+    /** @breif converts a ion mobility enhanced spectrum to a non ion mobility spectrum by filtering by drift time
+     */
+    OpenSwath::SpectrumPtr filterByDrift_(const OpenSwath::SpectrumPtr& input, const double drift_lower, const double drift_upper);
+
+
+    /** @breif Adds up an array of spectrum into one spectrum. If the spectra are ion mobility enhanced, first filter by drift time and then add up spectra
+     */
+    OpenSwath::SpectrumPtr getAddedSpectra_(std::vector<OpenSwath::SpectrumPtr>&, const double drift_lower, const double drift_upper);
+
   };
 }
 

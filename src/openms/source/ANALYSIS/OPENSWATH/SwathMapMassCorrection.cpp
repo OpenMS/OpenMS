@@ -238,11 +238,11 @@ namespace OpenMS
       {
         if (ms1_im_)
         {
-          sp_ms1 = OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1)[0];
+          sp_ms1 = OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, 0, 0)[0];
         }
         else
         {
-          sp_ms2 = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1)[0];
+          sp_ms2 = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0)[0];
         }
       }
 
@@ -448,7 +448,7 @@ namespace OpenMS
 
       // Get the spectrum for this RT and extract raw data points for all the
       // calibrating transitions (fragment m/z values) from the spectrum
-      OpenSwath::SpectrumPtr sp = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1)[0];
+      OpenSwath::SpectrumPtr sp = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0)[0];
       for (const auto& tr : transition_group->getTransitions())
       {
         double mz, intensity, left(tr.product_mz), right(tr.product_mz), im;
@@ -456,7 +456,7 @@ namespace OpenMS
 
         // integrate spectrum at the position of the theoretical mass
         DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateWindow(sp, left, right, mz, im, intensity,  -1, -1,  centroided); // TODO apply with Ion mobility
+        DIAHelpers::integrateWindow(sp, left, right, mz, im, intensity,  -1, -1,  centroided); // TODO should this be applied with Ion mobility??
 
         // skip empty windows
         if (mz == -1)
